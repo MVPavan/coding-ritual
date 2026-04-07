@@ -1,0 +1,12 @@
+[submodule "reference_harnesses/compound-engineering-plugin"]
+	path = reference_harnesses/compound-engineering-plugin
+	url = https://github.com/EveryInc/compound-engineering-plugin.git
+[submodule "reference_harnesses/everything-claude-code"]
+	path = reference_harnesses/everything-claude-code
+	url = https://github.com/affaan-m/everything-claude-code.git
+[submodule "reference_harnesses/mattpocock_skills"]
+	path = reference_harnesses/mattpocock_skills
+	url = https://github.com/mattpocock/skills.git
+[submodule "reference_harnesses/superpowers"]
+	path = reference_harnesses/superpowers
+	url = https://github.com/obra/superpowers.git
