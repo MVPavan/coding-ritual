@@ -1,0 +1,4 @@
+interface:
+  display_name: "Refresh Harness"
+  short_description: "Compare a new harness repo and apply only durable improvements."
+  default_prompt: "Use $refresh-harness-from-reference to compare a newly added reference harness repo and selectively update the local harness."

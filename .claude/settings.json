@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node /tmp/ua-build-graph-5.js)",
+      "Bash(node -e \":*)",
+      "Bash(node /tmp/ua-file-extract-7.js /tmp/ua-batch-input-7.json /tmp/ua-file-extract-results-7.json)",
+      "Bash(node /tmp/ua-file-extract-8.js /tmp/ua-batch-input-8.json /tmp/ua-file-extract-results-8.json)",
+      "Bash(node /tmp/ua-file-extract-6.js /tmp/ua-batch-input-6.json /tmp/ua-file-extract-results-6.json)",
+      "Bash(node -e ':*)",
+      "Bash(node /tmp/build-graph-6.js)",
+      "Bash(node /tmp/ua-file-extract-9.js /tmp/ua-batch-input-9.json /tmp/ua-file-extract-results-9.json)",
+      "Bash(python3 -c \"import json,sys; nodes=json.load\\(sys.stdin\\); print\\(len\\(nodes\\)\\); print\\(''''\\\\n''''.join\\(n[''''id''''] for n in nodes\\)\\)\")",
+      "Bash(node /tmp/ua-arch-analyze.js /tmp/ua-arch-input.json /tmp/ua-arch-results.json)",
+      "Bash(node /tmp/ua-tour-analyze.js /tmp/ua-tour-input.json /tmp/ua-tour-results.json)",
+      "Bash(node /tmp/ua-graph-validate.js /data/codes/coding_setup/everything-claude-code/.understand-anything/intermediate/assembled-graph.json /tmp/ua-review-results.json)"
+    ],
+    "additionalDirectories": [
+      "/home/pavanmv/.claude/projects/-data-codes-coding_setup/memory"
+    ]
+  }
+}

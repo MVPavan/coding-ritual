@@ -1,0 +1,11 @@
+**/.mypy_cache**
+**/.pytest_cache
+**/.venv
+**/__pycache__
+**/dist
+**/build
+**/egg-info
+**/.eggs
+
+**/scratchpad/*
+**/reference*
