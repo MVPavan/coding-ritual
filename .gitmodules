@@ -10,3 +10,6 @@
 [submodule "reference_harnesses/superpowers"]
 	path = reference_harnesses/superpowers
 	url = https://github.com/obra/superpowers.git
+[submodule "reference_harnesses/claude-code-best-practice"]
+	path = reference_harnesses/claude-code-best-practice
+	url = https://github.com/shanraisshan/claude-code-best-practice.git
