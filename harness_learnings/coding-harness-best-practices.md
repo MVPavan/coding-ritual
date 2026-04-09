@@ -66,11 +66,18 @@ Do not force all work through the deepest path.
 
 Avoid giant prompt files that mix style, architecture, workflow, and transient project state.
 
+## Skill Authoring
+
+- Write skill `description` fields as trigger text for when the skill should fire, not as human summaries.
+- Keep always-loaded descriptions short. Put detail in `references/`, `scripts/`, or examples so the skill can use progressive disclosure.
+- Add gotchas only for real repeated failure modes. Prefer goals and constraints over rigid step-by-step railroading.
+
 ## Memory and Knowledge
 
 - Use memory only for multi-session continuity or coordinated execution.
 - Capture durable learnings only after a verified fix or repeated pattern.
 - Make long-lived docs discoverable from the root instruction file or docs index.
+- In monorepos, keep shared instructions high in the tree. Put subtree-specific `CLAUDE.md` files and skills near the code they govern so they load only when work enters that subtree.
 - Protect plans, requirements, and learnings from cleanup drift.
 
 ## Automation
@@ -84,6 +91,7 @@ Avoid giant prompt files that mix style, architecture, workflow, and transient p
 
 This canon is synthesized primarily from:
 - Compound Engineering for decision workflows and discoverability
+- Claude Code Best Practice for skill authoring and monorepo instruction loading
 - Superpowers for execution discipline and verification rigor
 - Everything Claude Code for Python review and layered rules
 - Matt Pocock Skills for TDD, questioning, and interface pressure

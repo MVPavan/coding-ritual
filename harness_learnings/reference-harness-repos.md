@@ -4,6 +4,7 @@ These are the local third-party reference repos used to study harness patterns. 
 
 | Repo | Local Path | Upstream | Best At | Do Not Cargo-Cult |
 | --- | --- | --- | --- | --- |
+| Claude Code Best Practice | `reference_harnesses/claude-code-best-practice` | `https://github.com/shanraisshan/claude-code-best-practice.git` | Claude surface reference, skill authoring patterns, monorepo loading behavior for instructions and skills | Giant reference catalogs, UI/tutorial assets, version-chasing docs, and repo-specific demos |
 | Compound Engineering | `reference_harnesses/compound-engineering-plugin` | `https://github.com/EveryInc/compound-engineering-plugin.git` | Brainstorming, planning, document review, onboarding, knowledge discoverability | Large persona lattices, connector-heavy assumptions, deep workflow ceremony |
 | Everything Claude Code | `reference_harnesses/everything-claude-code` | `https://github.com/affaan-m/everything-claude-code.git` | Python review, layered rules, broad harness coverage | Large catalogs, install detail, heavy command inventory |
 | Matt Pocock Skills | `reference_harnesses/mattpocock_skills` | `https://github.com/mattpocock/skills.git` | TDD discipline, interface design, adversarial questioning, domain language | Converting every task into a teaching workflow |
@@ -15,6 +16,7 @@ These are the local third-party reference repos used to study harness patterns. 
 - Need execution loops, task packets, or review sequencing: start with Superpowers.
 - Need Python review or layered rules: start with Everything Claude Code.
 - Need stronger test-first or design pressure: start with Matt Pocock Skills.
+- Need Claude-specific skill triggering, surface selection, or monorepo loading behavior: start with Claude Code Best Practice.
 
 ## Borrowing Heuristic
 

@@ -9,6 +9,8 @@ This file records the best upstream source for each capability, what was kept, a
 | Planning | Compound Engineering + Superpowers | research first, requirements as source of truth, tracer-bullet planning, explicit verification | heavyweight plan templates and shell choreography |
 | Document review | Compound Engineering | doc-to-repo consistency checks and focused risk review | multi-persona review lattices by default |
 | Skill routing | Superpowers | process before execution, use the right workflow surface first | over-aggressive skill triggering for marginal cases |
+| Skill authoring | Claude Code Best Practice | trigger-style descriptions, progressive disclosure, and gotchas built from real failure modes | verbose summaries and rigid step lists that stay loaded all the time |
+| Monorepo instruction loading | Claude Code Best Practice | keep shared guidance at the root and subtree-specific `CLAUDE.md` files or skills near the code they govern | duplicated instructions everywhere or assuming nested guidance is always preloaded |
 | Subagent execution | Superpowers | fresh worker per task, task packets, spec review before code review, escalation statuses | high-ceremony orchestration and extra machinery |
 | Verification | Superpowers | evidence before claims, fresh command output, no trusting reports | moralizing verbosity and duplicate gates everywhere |
 | Python review | Everything Claude Code | Python-first code-review heuristics, layered Python rules | large surrounding catalog and extra repo-specific detail |

@@ -15,6 +15,12 @@ Put repo-specific facts in `.claude/project/`.
 6. `.claude/project/invariants.md`
 7. Relevant rules under `.claude/rules/`
 
+## Instruction Placement
+
+- Keep repo-wide guidance in `AGENTS.md` and the root `.claude/` directory.
+- Put package- or subtree-specific guidance in nested `CLAUDE.md` files or nested `.claude/skills/` directories near the code they govern.
+- Assume nested guidance is discovered only when work enters that subtree. Do not duplicate it at the root unless it is truly global.
+
 ## Working Mode
 
 Classify the task before acting.
