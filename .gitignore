@@ -14,3 +14,10 @@
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# --- mvp-plugin (added by /mvp-plugin:adopt) ---
+scratchpad/
+**/scratchpad/*
+.serena/
+.codebase-memory/
+my_harness/*

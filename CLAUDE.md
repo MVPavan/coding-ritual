@@ -19,7 +19,7 @@ Core harness is stable; repo-specific facts live in `.claude/project/`.
 3. `docs/research/` — when working from prior research, runtime comparisons, or provider/tooling decisions
 4. `docs/workstreams/<name>/roadmap.md` (active workstream plan) + generated workstream mirrors — when a workstream exists
 5. Relevant rules under `.claude/rules/`
-6. `external/<name>/` docs — only when the task is explicitly about that submodule
+6. `reference_harnesses/<name>/` docs — only when the task is explicitly about that reference submodule
 
 ## Coding guideline
 
@@ -88,7 +88,7 @@ Record verified, likely-to-recur patterns in `.claude/project/learnings.md` (for
 
 ## External Submodules
 
-External upstream projects, if any, are tracked as Git submodules under `external/` (see `.gitmodules`). The parent repo tracks their commit pointers only. Do not edit submodule internals unless the task is explicitly submodule-local; for upstream sync, update and stage the submodule path.
+Third-party **reference harness** repos are tracked as Git submodules under `reference_harnesses/` (see `.gitmodules`). The parent repo tracks their commit pointers only — they are read-only references, never copied into the local harness. Do not edit submodule internals unless the task is explicitly submodule-local; for upstream sync, update and stage the submodule path. Borrow only the smallest durable pattern (see `harness_learnings/reference-harness-workflow.md`).
 
 ## Beads Issue Tracker
 

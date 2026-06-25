@@ -3,7 +3,7 @@
     "allow": [
       "mcp__plugin_code-review-graph_code-review-graph__list_graph_stats_tool",
       "mcp__plugin_code-review-graph_code-review-graph__build_or_update_graph_tool",
-      "Bash(python3 /tmp/ua-project-scan.py \"/data/codes/coding_setup/everything-claude-code\" \"/tmp/ua-scan-results.json\")",
+      "Bash(python3 /tmp/ua-project-scan.py \"/data/codes/coding-ritual/everything-claude-code\" \"/tmp/ua-scan-results.json\")",
       "Bash(node -e \":*)",
       "Bash(node /tmp/ua-file-extract-0.js /tmp/ua-batch-input-0.json /tmp/ua-file-extract-results-0.json)",
       "Bash(node /tmp/ua-file-extract-2.js /tmp/ua-batch-input-2.json /tmp/ua-file-extract-results-2.json)",
