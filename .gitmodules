@@ -13,3 +13,6 @@
 [submodule "reference_harnesses/claude-code-best-practice"]
 	path = reference_harnesses/claude-code-best-practice
 	url = https://github.com/shanraisshan/claude-code-best-practice.git
+[submodule "reference_harnesses/claude-plugins-official"]
+	path = reference_harnesses/claude-plugins-official
+	url = https://github.com/anthropics/claude-plugins-official.git
