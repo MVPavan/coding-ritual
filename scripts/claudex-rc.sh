@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# remote-control.sh — manage resilient remote-control sessions as systemd
+# claudex-rc.sh — manage resilient remote-control sessions as systemd
 #                     user services. Covers two tools:
 #                       • Claude: ONE session per project, named "<project>-rc"
 #                                 (systemd template  claude-rc@<project>.service)
@@ -12,15 +12,15 @@
 # logout, and reboots (Restart=always + linger + a Windows logon task).
 #
 # Usage:
-#   remote-control.sh setup                     First-time setup: all default Claude projects + the Codex daemon
-#   remote-control.sh add <path>                Add ONE Claude project (no-op if already present/running)
-#   remote-control.sh remove <name|path|codex>  Stop, disable and forget ONE Claude session, or the Codex daemon
-#   remote-control.sh status                    Table of all managed sessions (Claude + Codex)
-#   remote-control.sh list                      List configured Claude projects
-#   remote-control.sh logs <name|codex> [-f]    Show (or follow) a session's log
-#   remote-control.sh pair <name|codex>         Claude: print the connect URL; Codex: print the machine-name hint
-#   remote-control.sh restart <name|codex|all>  Restart one session (or all, incl. Codex)
-#   remote-control.sh help                      This help
+#   claudex-rc.sh setup                     First-time setup: all default Claude projects + the Codex daemon
+#   claudex-rc.sh add <path>                Add ONE Claude project (no-op if already present/running)
+#   claudex-rc.sh remove <name|path|codex>  Stop, disable and forget ONE Claude session, or the Codex daemon
+#   claudex-rc.sh status                    Table of all managed sessions (Claude + Codex)
+#   claudex-rc.sh list                      List configured Claude projects
+#   claudex-rc.sh logs <name|codex> [-f]    Show (or follow) a session's log
+#   claudex-rc.sh pair <name|codex>         Claude: print the connect URL; Codex: print the machine-name hint
+#   claudex-rc.sh restart <name|codex|all>  Restart one session (or all, incl. Codex)
+#   claudex-rc.sh help                      This help
 #
 # Re-running `setup` never restarts already-running sessions; it only adds
 # missing default Claude projects, starts Codex if down, and warns about any
