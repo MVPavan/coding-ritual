@@ -12,10 +12,10 @@
       "Bash(python3 -c \"import json,sys; nodes=json.load\\(sys.stdin\\); print\\(len\\(nodes\\)\\); print\\(''''\\\\n''''.join\\(n[''''id''''] for n in nodes\\)\\)\")",
       "Bash(node /tmp/ua-arch-analyze.js /tmp/ua-arch-input.json /tmp/ua-arch-results.json)",
       "Bash(node /tmp/ua-tour-analyze.js /tmp/ua-tour-input.json /tmp/ua-tour-results.json)",
-      "Bash(node /tmp/ua-graph-validate.js /data/codes/coding_setup/everything-claude-code/.understand-anything/intermediate/assembled-graph.json /tmp/ua-review-results.json)"
+      "Bash(node /tmp/ua-graph-validate.js /data/codes/coding-ritual/everything-claude-code/.understand-anything/intermediate/assembled-graph.json /tmp/ua-review-results.json)"
     ],
     "additionalDirectories": [
-      "/home/pavanmv/.claude/projects/-data-codes-coding_setup/memory"
+      "/home/pavanmv/.claude/projects/-data-codes-coding-ritual/memory"
     ]
   }
 }
