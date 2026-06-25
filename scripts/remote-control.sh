@@ -1,35 +1,42 @@
 #!/usr/bin/env bash
 #
-# claude-rc.sh — manage resilient `claude remote-control` sessions as systemd
-#                user services. One service per project, session "<name>-rc".
+# remote-control.sh — manage resilient remote-control sessions as systemd
+#                     user services. Covers two tools:
+#                       • Claude: ONE session per project, named "<project>-rc"
+#                                 (systemd template  claude-rc@<project>.service)
+#                       • Codex:  ONE global app-server daemon for ALL projects
+#                                 (systemd service   codex-rc.service)
 #
-# Source of truth: env files in ~/.config/claude-rc/*.env (one per project).
+# Source of truth (Claude): env files in ~/.config/claude-rc/*.env (one/project).
 # Each service auto-recovers from the ~10-min network timeout, crashes,
 # logout, and reboots (Restart=always + linger + a Windows logon task).
 #
 # Usage:
-#   claude-rc.sh setup              First-time system setup + add default projects
-#   claude-rc.sh add <path>         Add ONE project (no-op if already present/running)
-#   claude-rc.sh remove <name|path> Stop, disable and forget ONE project
-#   claude-rc.sh status             Table of all managed sessions
-#   claude-rc.sh list              List configured projects
-#   claude-rc.sh logs <name> [-f]   Show (or follow) a session's log
-#   claude-rc.sh pair <name>        Print the pairing/connect URL from the log
-#   claude-rc.sh restart <name|all> Restart one session (or all)
-#   claude-rc.sh help               This help
+#   remote-control.sh setup                     First-time setup: all default Claude projects + the Codex daemon
+#   remote-control.sh add <path>                Add ONE Claude project (no-op if already present/running)
+#   remote-control.sh remove <name|path|codex>  Stop, disable and forget ONE Claude session, or the Codex daemon
+#   remote-control.sh status                    Table of all managed sessions (Claude + Codex)
+#   remote-control.sh list                      List configured Claude projects
+#   remote-control.sh logs <name|codex> [-f]    Show (or follow) a session's log
+#   remote-control.sh pair <name|codex>         Claude: print the connect URL; Codex: print the machine-name hint
+#   remote-control.sh restart <name|codex|all>  Restart one session (or all, incl. Codex)
+#   remote-control.sh help                      This help
 #
 # Re-running `setup` never restarts already-running sessions; it only adds
-# missing default projects and warns about any running session not in the list.
+# missing default Claude projects, starts Codex if down, and warns about any
+# running Claude session not in the list.
 
 set -euo pipefail
 
 CFG_DIR="${HOME}/.config/claude-rc"
 UNIT_DIR="${HOME}/.config/systemd/user"
-UNIT_FILE="${UNIT_DIR}/claude-rc@.service"
+UNIT_FILE="${UNIT_DIR}/claude-rc@.service"          # Claude per-project template
+CODEX_UNIT="codex-rc"                                # Codex single-daemon unit name
+CODEX_UNIT_FILE="${UNIT_DIR}/${CODEX_UNIT}.service"
 RC_SUFFIX="-rc"
-WIN_TASK="Start-WSL-ClaudeRC"
+WIN_TASK="Start-WSL-RemoteControl"
 
-# Default projects used by `setup` (edit to taste).
+# Default Claude projects used by `setup` (edit to taste). Codex is single-instance.
 DEFAULT_PROJECTS=(
   "/data/codes/coding-ritual"
   "/data/codes/bodha"
@@ -44,6 +51,14 @@ err()  { printf '\033[1;31m[err]\033[0m %s\n' "$*" >&2; }
 
 uc() { systemctl --user "$@"; }                     # user systemctl shorthand
 sanitize() { printf '%s' "$1" | tr -c 'A-Za-z0-9_-' '_'; }
+
+# True when the argument names the Codex daemon rather than a Claude project.
+is_codex_arg() {
+  case "$(printf '%s' "${1:-}" | tr 'A-Z' 'a-z')" in
+    codex|codex-rc|codex_rc) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
 # Map an argument (path, "name", or "name-rc") to a systemd instance key.
 resolve_inst() {
@@ -69,6 +84,9 @@ ensure_claude() {
     exit 1
   fi
 }
+
+# Codex is optional: warn + skip rather than abort Claude setup if it is absent.
+has_codex() { bash -lc 'command -v codex >/dev/null 2>&1'; }
 
 # Enable systemd in WSL if it is not the init system. Exits with instructions
 # the first time, because the distro must be restarted to pick it up.
@@ -106,6 +124,30 @@ EOF
   uc daemon-reload
 }
 
+# Bare `codex remote-control` (no subcommand) runs the app-server in the
+# FOREGROUND ("Press Ctrl-C to stop") — so Type=simple + Restart=always, just
+# like Claude; systemd's SIGTERM stops it cleanly (no ExecStop needed). One
+# global instance for ALL projects. Launch from $HOME so it isn't tied to any
+# single project's trust scope. (`start`/`stop` would daemonize instead.)
+write_codex_unit() {
+  mkdir -p "$UNIT_DIR"
+  cat > "$CODEX_UNIT_FILE" <<'EOF'
+[Unit]
+Description=Codex remote-control app-server (single instance, all projects)
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -lc 'cd "$HOME" && exec codex remote-control'
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=default.target
+EOF
+  uc daemon-reload
+}
+
 ensure_linger() {
   if [ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null || true)" = "yes" ]; then
     return
@@ -134,7 +176,7 @@ ensure_windows_task() {
   fi
 }
 
-# Add one project. Idempotent and NON-disruptive: an already-configured,
+# Add one Claude project. Idempotent and NON-disruptive: an already-configured,
 # running session is left exactly as-is (never restarted).
 add_project() {
   local dir="$1"
@@ -169,8 +211,33 @@ add_project() {
   log "added + started: ${base}${RC_SUFFIX}"
 }
 
+# Bring up the single Codex daemon. Idempotent: a running daemon is left as-is.
+setup_codex() {
+  if ! has_codex; then
+    warn "'codex' not found on your login PATH — skipping Codex remote-control setup."
+    return
+  fi
+  write_codex_unit
+  if uc is-active --quiet "$CODEX_UNIT"; then
+    log "unchanged (left running): codex remote-control daemon"
+  else
+    uc enable --now "$CODEX_UNIT"
+    log "added + started: codex remote-control daemon (single instance, all projects)"
+  fi
+}
+
+remove_codex() {
+  log "Removing Codex daemon: ${CODEX_UNIT}"
+  uc disable --now "$CODEX_UNIT" >/dev/null 2>&1 || true
+  uc reset-failed "$CODEX_UNIT" >/dev/null 2>&1 || true
+  rm -f "$CODEX_UNIT_FILE"
+  uc daemon-reload
+  log "removed: ${CODEX_UNIT}"
+}
+
 remove_project() {
   local arg="$1" inst envf
+  if is_codex_arg "$arg"; then remove_codex; return; fi
   inst="$(resolve_inst "$arg")"
   envf="${CFG_DIR}/${inst}.env"
   if [ ! -f "$envf" ] && ! uc list-unit-files "claude-rc@${inst}.service" --no-legend --plain >/dev/null 2>&1; then
@@ -198,24 +265,34 @@ list_orphans() {
   return 0
 }
 
+# Print one status row for a unit: "<label> <state> <restarts> <detail>".
+status_row() {
+  local unit="$1" label="$2" detail="$3" vals state sub nr
+  vals="$(uc show "$unit" -p ActiveState -p SubState -p NRestarts --value 2>/dev/null | paste -sd'|' - || true)"
+  state="${vals%%|*}"; vals="${vals#*|}"; sub="${vals%%|*}"; nr="${vals##*|}"
+  printf '%-24s %-20s %-9s %s\n' "$label" "${state:-?} (${sub:-?})" "${nr:-0}" "$detail"
+}
+
 cmd_status() {
   require_systemd
   printf '%-24s %-20s %-9s %s\n' "SESSION" "STATE" "RESTARTS" "PROJECT DIR"
   printf '%-24s %-20s %-9s %s\n' "-------" "-----" "--------" "-----------"
-  local envf inst dir rcname vals state sub nr found=0
+  local envf inst dir rcname found=0
   shopt -s nullglob
   for envf in "$CFG_DIR"/*.env; do
     found=1
     inst="$(basename "$envf" .env)"
     dir="$(grep -m1 '^PROJECT_DIR=' "$envf" | cut -d= -f2- || true)"
     rcname="$(grep -m1 '^RC_NAME=' "$envf" | cut -d= -f2- || true)"
-    vals="$(uc show "claude-rc@${inst}" -p ActiveState -p SubState -p NRestarts --value 2>/dev/null | paste -sd'|' - || true)"
-    state="${vals%%|*}"; vals="${vals#*|}"; sub="${vals%%|*}"; nr="${vals##*|}"
-    printf '%-24s %-20s %-9s %s\n' "${rcname:-$inst}" "${state:-?} (${sub:-?})" "${nr:-0}" "${dir:-?}"
+    status_row "claude-rc@${inst}" "${rcname:-$inst}" "${dir:-?}"
   done
   shopt -u nullglob
+  if [ -f "$CODEX_UNIT_FILE" ]; then
+    found=1
+    status_row "$CODEX_UNIT" "codex-rc" "(app-server · all projects)"
+  fi
   if [ "$found" -eq 0 ]; then
-    warn "No projects configured. Add one with: $0 add <path>"
+    warn "Nothing configured. Run: $0 setup   (or: $0 add <path>)"
   fi
   echo
   list_orphans
@@ -231,25 +308,32 @@ cmd_list() {
     printf '%-24s %s\n' "${inst}${RC_SUFFIX}" "$dir"
   done
   shopt -u nullglob
-  if [ "$found" -eq 0 ]; then warn "No projects configured."; fi
+  [ -f "$CODEX_UNIT_FILE" ] && printf '%-24s %s\n' "codex-rc" "(single daemon · all projects)"
+  if [ "$found" -eq 0 ] && [ ! -f "$CODEX_UNIT_FILE" ]; then warn "Nothing configured."; fi
 }
 
 cmd_logs() {
   require_systemd
   local arg="${1:-}"; shift || true
-  if [ -z "$arg" ]; then err "Usage: $0 logs <name> [-f]"; exit 1; fi
-  local inst; inst="$(resolve_inst "$arg")"
+  if [ -z "$arg" ]; then err "Usage: $0 logs <name|codex> [-f]"; exit 1; fi
+  local unit
+  if is_codex_arg "$arg"; then unit="$CODEX_UNIT"; else unit="claude-rc@$(resolve_inst "$arg")"; fi
   if [ "${1:-}" = "-f" ]; then
-    journalctl --user -u "claude-rc@${inst}" -f
+    journalctl --user -u "$unit" -f
   else
-    journalctl --user -u "claude-rc@${inst}" -n 100 --no-pager
+    journalctl --user -u "$unit" -n 100 --no-pager
   fi
 }
 
 cmd_pair() {
   require_systemd
   local arg="${1:-}"
-  if [ -z "$arg" ]; then err "Usage: $0 pair <name>"; exit 1; fi
+  if [ -z "$arg" ]; then err "Usage: $0 pair <name|codex>"; exit 1; fi
+  if is_codex_arg "$arg"; then
+    log "Codex uses no pairing URL — its daemon registers this machine by name."
+    echo "    Open the Codex app and pick this machine (see the name in: $0 logs codex)."
+    return
+  fi
   local inst url
   inst="$(resolve_inst "$arg")"
   url="$(journalctl --user -u "claude-rc@${inst}" -n 300 --no-pager 2>/dev/null \
@@ -265,7 +349,7 @@ cmd_pair() {
 cmd_restart() {
   require_systemd
   local arg="${1:-}"
-  if [ -z "$arg" ]; then err "Usage: $0 restart <name|all>"; exit 1; fi
+  if [ -z "$arg" ]; then err "Usage: $0 restart <name|codex|all>"; exit 1; fi
   if [ "$arg" = "all" ] || [ "$arg" = "--all" ]; then
     shopt -s nullglob
     local envf inst
@@ -275,6 +359,13 @@ cmd_restart() {
       log "restarted: ${inst}${RC_SUFFIX}"
     done
     shopt -u nullglob
+    if [ -f "$CODEX_UNIT_FILE" ]; then
+      uc restart "$CODEX_UNIT"
+      log "restarted: codex-rc"
+    fi
+  elif is_codex_arg "$arg"; then
+    uc restart "$CODEX_UNIT"
+    log "restarted: codex-rc"
   else
     local inst; inst="$(resolve_inst "$arg")"
     uc restart "claude-rc@${inst}"
@@ -286,7 +377,8 @@ cmd_add() {
   require_systemd
   ensure_claude
   local arg="${1:-}"
-  if [ -z "$arg" ]; then err "Usage: $0 add <path>"; exit 1; fi
+  if [ -z "$arg" ]; then err "Usage: $0 add <path>   (Codex is single-instance — use '$0 setup')"; exit 1; fi
+  if is_codex_arg "$arg"; then setup_codex; return; fi
   [ -f "$UNIT_FILE" ] || write_unit
   ensure_linger
   add_project "$arg"
@@ -295,7 +387,7 @@ cmd_add() {
 cmd_remove() {
   require_systemd
   local arg="${1:-}"
-  if [ -z "$arg" ]; then err "Usage: $0 remove <name|path>"; exit 1; fi
+  if [ -z "$arg" ]; then err "Usage: $0 remove <name|path|codex>"; exit 1; fi
   remove_project "$arg"
 }
 
@@ -310,10 +402,12 @@ cmd_setup() {
   for d in "${DEFAULT_PROJECTS[@]}"; do
     add_project "$d"
   done
+  setup_codex
   echo
   cmd_status
   echo
-  log "Pair each session once. Get its URL with:  $0 pair <name>"
+  log "Pair each Claude session once:   $0 pair <name>"
+  log "Codex: pick this machine in the Codex app (no URL). See: $0 logs codex"
   log "Done."
 }
 
