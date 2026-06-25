@@ -76,6 +76,24 @@ require_systemd() {
     err "systemd is not running as PID 1. Run '$0 setup' first (it enables systemd in WSL)."
     exit 1
   fi
+  require_user_bus
+}
+
+# `systemctl --user` needs a reachable per-user D-Bus session bus. In WSL it
+# sometimes fails to initialize (e.g. a duplicate 'systemd --user' manager
+# races over /run/user/<uid>), surfacing as the cryptic "Failed to connect to
+# bus". Detect that here and print the real fix instead.
+require_user_bus() {
+  if systemctl --user show --property=Version >/dev/null 2>&1; then
+    return
+  fi
+  err "Cannot reach your user systemd bus — 'systemctl --user' is not working."
+  err "(Common WSL glitch: the per-user systemd / D-Bus session did not initialize.)"
+  err "Fix with a clean restart:"
+  err "  1) In Windows PowerShell:   wsl --shutdown"
+  err "  2) Reopen WSL, then check:  systemctl --user is-system-running"
+  err "  3) Re-run:                  $0 setup"
+  exit 1
 }
 
 ensure_claude() {
@@ -393,6 +411,7 @@ cmd_remove() {
 
 cmd_setup() {
   ensure_systemd_or_bootstrap
+  require_user_bus
   ensure_claude
   write_unit
   log "Wrote systemd template: $UNIT_FILE"
