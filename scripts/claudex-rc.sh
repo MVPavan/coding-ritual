@@ -20,11 +20,20 @@
 #   claudex-rc.sh logs <name|codex> [-f]    Show (or follow) a session's log
 #   claudex-rc.sh pair <name|codex>         Claude: print the connect URL; Codex: print the machine-name hint
 #   claudex-rc.sh restart <name|codex|all>  Restart one session (or all, incl. Codex)
+#   claudex-rc.sh reset <name|path|all>     Force a FRESH env: clear the cached bridge-pointer + restart (un-burn)
+#   claudex-rc.sh heal                      Watchdog: reset only sessions stuck/burned >15 min (run by the timer)
 #   claudex-rc.sh help                      This help
 #
 # Re-running `setup` never restarts already-running sessions; it only adds
-# missing default Claude projects, starts Codex if down, and warns about any
-# running Claude session not in the list.
+# missing default Claude projects, starts Codex if down, installs the heal
+# watchdog timer, and warns about any running Claude session not in the list.
+#
+# A session "burns" when a stale cached environment in
+# ~/.claude/projects/<slug>/bridge-pointer.json pins the project to a dead
+# env_id; it then sits "Connecting"/poll-failing and the app can't reach it.
+# `reset` (manual) and the 15-min `heal` watchdog (automatic) fix it by clearing
+# that pointer so a fresh env is minted. 15 min lets the normal ~10-min network
+# outage ride out on Claude's own reconnect before we intervene.
 
 set -euo pipefail
 
@@ -35,6 +44,11 @@ CODEX_UNIT="codex-rc"                                # Codex single-daemon unit 
 CODEX_UNIT_FILE="${UNIT_DIR}/${CODEX_UNIT}.service"
 RC_SUFFIX="-rc"
 WIN_TASK="Start-WSL-RemoteControl"
+PROJECTS_DIR="${HOME}/.claude/projects"             # per-project state incl. bridge-pointer.json (cached env)
+HEAL_SERVICE="claudex-rc-heal"                       # watchdog: timer + oneshot service
+HEAL_INTERVAL="15min"                                # watchdog cadence
+HEAL_THRESHOLD_SECS=900                              # heal only sessions unhealthy this long (rides out ~10-min outages)
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"  # absolute path (baked into the heal timer)
 
 # Default Claude projects used by `setup` (edit to taste). Codex is single-instance.
 DEFAULT_PROJECTS=(
@@ -51,6 +65,12 @@ err()  { printf '\033[1;31m[err]\033[0m %s\n' "$*" >&2; }
 
 uc() { systemctl --user "$@"; }                     # user systemctl shorthand
 sanitize() { printf '%s' "$1" | tr -c 'A-Za-z0-9_-' '_'; }
+
+# Cached remote-control env pointer for a project dir. Reusing a dead one is what
+# "burns" a session; clearing it forces a fresh env on next start.
+project_slug() { printf '%s' "$1" | sed 's/[^A-Za-z0-9]/-/g'; }
+bridge_pointer() { printf '%s/%s/bridge-pointer.json' "$PROJECTS_DIR" "$(project_slug "$1")"; }
+clear_bridge_pointer() { local f; f="$(bridge_pointer "$1")"; [ -f "$f" ] && rm -f "$f"; }
 
 # True when the argument names the Codex daemon rather than a Claude project.
 is_codex_arg() {
@@ -164,6 +184,35 @@ RestartSec=15
 WantedBy=default.target
 EOF
   uc daemon-reload
+}
+
+# Install the watchdog: a oneshot service that runs `claudex-rc.sh heal`, fired by
+# a timer every HEAL_INTERVAL. Idempotent.
+write_heal_units() {
+  mkdir -p "$UNIT_DIR"
+  cat > "${UNIT_DIR}/${HEAL_SERVICE}.service" <<EOF
+[Unit]
+Description=claudex-rc watchdog: heal burned/stuck remote-control sessions
+
+[Service]
+Type=oneshot
+ExecStart=${SELF} heal
+EOF
+  cat > "${UNIT_DIR}/${HEAL_SERVICE}.timer" <<EOF
+[Unit]
+Description=Run claudex-rc heal every ${HEAL_INTERVAL}
+
+[Timer]
+OnBootSec=${HEAL_INTERVAL}
+OnUnitActiveSec=${HEAL_INTERVAL}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+  uc daemon-reload
+  uc enable --now "${HEAL_SERVICE}.timer" >/dev/null 2>&1 || uc start "${HEAL_SERVICE}.timer"
+  log "watchdog installed: heals burned sessions every ${HEAL_INTERVAL}"
 }
 
 ensure_linger() {
@@ -391,6 +440,59 @@ cmd_restart() {
   fi
 }
 
+# Manual un-burn: clear the cached env pointer and restart, forcing a fresh env.
+cmd_reset() {
+  require_systemd
+  local arg="${1:-}"
+  if [ -z "$arg" ]; then err "Usage: $0 reset <name|path|all>"; exit 1; fi
+  local envf inst dir
+  if [ "$arg" = "all" ] || [ "$arg" = "--all" ]; then
+    shopt -s nullglob
+    for envf in "$CFG_DIR"/*.env; do
+      inst="$(basename "$envf" .env)"
+      dir="$(grep -m1 '^PROJECT_DIR=' "$envf" | cut -d= -f2- || true)"
+      [ -n "$dir" ] && clear_bridge_pointer "$dir" || true
+      uc restart "claude-rc@${inst}"
+      log "reset (fresh env): ${inst}${RC_SUFFIX}"
+    done
+    shopt -u nullglob
+  else
+    inst="$(resolve_inst "$arg")"
+    dir="$(grep -m1 '^PROJECT_DIR=' "${CFG_DIR}/${inst}.env" 2>/dev/null | cut -d= -f2- || true)"
+    [ -n "$dir" ] && clear_bridge_pointer "$dir" || true
+    uc restart "claude-rc@${inst}"
+    log "reset (fresh env): ${inst}${RC_SUFFIX}"
+  fi
+}
+
+# Watchdog (run by the timer): reset any Claude session that has been up longer
+# than HEAL_THRESHOLD_SECS but has NOT reached a connected state in that window.
+# Healthy sessions log "Connected"/"Ready" periodically and are left untouched;
+# freshly-(re)started ones are in a grace period and skipped.
+cmd_heal() {
+  require_systemd
+  local now win envf inst dir recent active_since active_secs
+  now="$(date +%s)"
+  win="@$(( now - HEAL_THRESHOLD_SECS ))"
+  shopt -s nullglob
+  for envf in "$CFG_DIR"/*.env; do
+    inst="$(basename "$envf" .env)"
+    uc is-active --quiet "claude-rc@${inst}" || continue
+    active_since="$(uc show "claude-rc@${inst}" -p ActiveEnterTimestamp --value 2>/dev/null || true)"
+    active_secs=$(( now - $(date -d "${active_since:-@0}" +%s 2>/dev/null || echo "$now") ))
+    [ "$active_secs" -lt "$HEAL_THRESHOLD_SECS" ] && continue   # grace: too fresh to judge
+    recent="$(journalctl --user -u "claude-rc@${inst}" --since "$win" --no-pager 2>/dev/null || true)"
+    if printf '%s\n' "$recent" | grep -qE 'Connected|Ready'; then
+      continue                                                  # connected within window -> healthy
+    fi
+    dir="$(grep -m1 '^PROJECT_DIR=' "$envf" | cut -d= -f2- || true)"
+    log "heal: ${inst}${RC_SUFFIX} burned (up ${active_secs}s, no connect in last ${HEAL_INTERVAL}) -> clear env + restart"
+    [ -n "$dir" ] && clear_bridge_pointer "$dir" || true
+    uc restart "claude-rc@${inst}"
+  done
+  shopt -u nullglob
+}
+
 cmd_add() {
   require_systemd
   ensure_claude
@@ -422,6 +524,7 @@ cmd_setup() {
     add_project "$d"
   done
   setup_codex
+  write_heal_units
   echo
   cmd_status
   echo
@@ -445,6 +548,8 @@ main() {
     logs|log)      cmd_logs "$@" ;;
     pair|url)      cmd_pair "$@" ;;
     restart)       cmd_restart "$@" ;;
+    reset)         cmd_reset "$@" ;;
+    heal)          cmd_heal "$@" ;;
     help|-h|--help) usage ;;
     *) err "Unknown command: $cmd"; echo; usage; exit 1 ;;
   esac
