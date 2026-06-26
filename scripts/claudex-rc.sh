@@ -47,7 +47,7 @@ WIN_TASK="Start-WSL-RemoteControl"
 PROJECTS_DIR="${HOME}/.claude/projects"             # per-project state incl. bridge-pointer.json (cached env)
 HEAL_SERVICE="claudex-rc-heal"                       # watchdog: timer + oneshot service
 HEAL_INTERVAL="15min"                                # watchdog cadence
-HEAL_THRESHOLD_SECS=900                              # heal only sessions unhealthy this long (rides out ~10-min outages)
+HEAL_THRESHOLD_SECS="${HEAL_THRESHOLD_SECS:-900}"    # heal only sessions unhealthy this long (rides out ~10-min outages); env-overridable for tests
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"  # absolute path (baked into the heal timer)
 
 # Default Claude projects used by `setup` (edit to taste). Codex is single-instance.
@@ -212,6 +212,11 @@ WantedBy=timers.target
 EOF
   uc daemon-reload
   uc enable --now "${HEAL_SERVICE}.timer" >/dev/null 2>&1 || uc start "${HEAL_SERVICE}.timer"
+  # Run the oneshot once now to anchor OnUnitActiveSec immediately. Without this,
+  # a setup run >15 min after boot leaves OnBootSec already elapsed and
+  # OnUnitActiveSec unanchored, so the timer would not arm until the next reboot.
+  # heal is a safe no-op on healthy sessions.
+  uc start "${HEAL_SERVICE}.service" >/dev/null 2>&1 || true
   log "watchdog installed: heals burned sessions every ${HEAL_INTERVAL}"
 }
 
@@ -465,28 +470,42 @@ cmd_reset() {
   fi
 }
 
-# Watchdog (run by the timer): reset any Claude session that has been up longer
-# than HEAL_THRESHOLD_SECS but has NOT reached a connected state in that window.
-# Healthy sessions log "Connected"/"Ready" periodically and are left untouched;
-# freshly-(re)started ones are in a grace period and skipped.
+# Watchdog (run by the timer). The remote-control TUI re-renders its CURRENT
+# connection state to the journal ~once/second, so a recent window directly
+# reflects the live state — no need to parse historical ordering. The state line
+# arrives as an ANSI/redraw blob (journald shows "[NNB blob data]" in the default
+# view); decode it with `-o cat`, strip ANSI, then look back HEAL_THRESHOLD_SECS:
+#   • any "Connected"/"Ready" in the window -> healthy. Also rides out a
+#     sub-threshold outage: those steady-state redraws from before the blip are
+#     still inside the window. (Both are the connected steady states; the
+#     transient spinner is "Connecting"/"Reconnecting" — distinct words, and the
+#     lowercase c in "Reconnecting"/"Reconnected" never matches capitalized
+#     "Connected" anyway.)
+#   • no "Connected" but a burn signature present -> stuck/burned: clear the
+#     stale env pointer + restart so a fresh env is minted.
+#   • no signal at all (session too quiet to judge) -> leave it alone.
+# A freshly (re)started session (up < threshold) has no full window yet -> skip.
 cmd_heal() {
   require_systemd
-  local now win envf inst dir recent active_since active_secs
+  local now win envf inst dir buf conn trouble start_ts start_secs up
   now="$(date +%s)"
   win="@$(( now - HEAL_THRESHOLD_SECS ))"
   shopt -s nullglob
   for envf in "$CFG_DIR"/*.env; do
     inst="$(basename "$envf" .env)"
     uc is-active --quiet "claude-rc@${inst}" || continue
-    active_since="$(uc show "claude-rc@${inst}" -p ActiveEnterTimestamp --value 2>/dev/null || true)"
-    active_secs=$(( now - $(date -d "${active_since:-@0}" +%s 2>/dev/null || echo "$now") ))
-    [ "$active_secs" -lt "$HEAL_THRESHOLD_SECS" ] && continue   # grace: too fresh to judge
-    recent="$(journalctl --user -u "claude-rc@${inst}" --since "$win" --no-pager 2>/dev/null || true)"
-    if printf '%s\n' "$recent" | grep -qE 'Connected|Ready'; then
-      continue                                                  # connected within window -> healthy
-    fi
+    start_ts="$(uc show "claude-rc@${inst}" -p ActiveEnterTimestamp --value 2>/dev/null || true)"
+    start_secs="$(date -d "${start_ts:-@0}" +%s 2>/dev/null || echo "$now")"
+    up=$(( now - start_secs ))
+    [ "$up" -lt "$HEAL_THRESHOLD_SECS" ] && continue           # grace: not a full window yet
+    buf="$(journalctl --user -u "claude-rc@${inst}" -o cat --since "$win" --no-pager 2>/dev/null \
+           | tr -d '\000' | sed -E 's/\x1b\[[0-9;?]*[A-Za-z]//g' || true)"
+    conn="$(printf '%s' "$buf" | grep -acE 'Connected|Ready' || true)"
+    [ "${conn:-0}" -gt 0 ] && continue                         # connected/ready within window -> healthy
+    trouble="$(printf '%s' "$buf" | grep -acE 'Poll failed|timeout of|Reconnecting|Connecting|disconnected' || true)"
+    [ "${trouble:-0}" -eq 0 ] && continue                      # no signal at all -> leave alone
     dir="$(grep -m1 '^PROJECT_DIR=' "$envf" | cut -d= -f2- || true)"
-    log "heal: ${inst}${RC_SUFFIX} burned (up ${active_secs}s, no connect in last ${HEAL_INTERVAL}) -> clear env + restart"
+    log "heal: ${inst}${RC_SUFFIX} burned (no 'Connected' in last ${HEAL_INTERVAL}, ${trouble} trouble hits) -> clear env + restart"
     [ -n "$dir" ] && clear_bridge_pointer "$dir" || true
     uc restart "claude-rc@${inst}"
   done
