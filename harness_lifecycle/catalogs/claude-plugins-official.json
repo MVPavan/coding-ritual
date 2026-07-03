@@ -1,0 +1,1710 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "claude-plugins-official",
+  "source": "working-tree",
+  "source_commit": "f7b31235e6f01cd7cd08ad4a6699f007a4072519",
+  "physical_scanned": 385,
+  "excluded": 49,
+  "counts": {
+    "agent": {
+      "physical": 26,
+      "logical": 24
+    },
+    "command": {
+      "physical": 29,
+      "logical": 28
+    },
+    "hook": {
+      "physical": 17,
+      "logical": 17
+    },
+    "mcp": {
+      "physical": 4,
+      "logical": 4
+    },
+    "plugin": {
+      "physical": 39,
+      "logical": 1
+    },
+    "skill": {
+      "physical": 29,
+      "logical": 25
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "agent",
+      "name": "agent-creator",
+      "logical_id": "agent:agent-creator",
+      "canonical_path": "plugins/plugin-dev/agents/agent-creator.md",
+      "paths": [
+        "plugins/plugin-dev/agents/agent-creator.md"
+      ],
+      "description": "|",
+      "content_hash": "bd65b1bd60dd3900372de1b61bb475c1ea360b14",
+      "signature_hash": "718118e59b34637641799c1795a0976e17af11e2",
+      "variant_hashes": [
+        "bd65b1bd60dd3900372de1b61bb475c1ea360b14"
+      ],
+      "line_count": 176
+    },
+    {
+      "kind": "agent",
+      "name": "agent-sdk-verifier-py",
+      "logical_id": "agent:agent-sdk-verifier-py",
+      "canonical_path": "plugins/agent-sdk-dev/agents/agent-sdk-verifier-py.md",
+      "paths": [
+        "plugins/agent-sdk-dev/agents/agent-sdk-verifier-py.md"
+      ],
+      "description": "Use this agent to verify that a Python Agent SDK application is properly configured, follows SDK best practices and documentation recommendations, and is ready for deployment or testing. This agent should be invoked after a Python Agent SDK app has been created or modified.",
+      "content_hash": "dc04275bf5650bb6a70d7875c7b5dc4659060af4",
+      "signature_hash": "508f8e40a6851d6ffc6c19654f29b4611c1762e5",
+      "variant_hashes": [
+        "dc04275bf5650bb6a70d7875c7b5dc4659060af4"
+      ],
+      "line_count": 140
+    },
+    {
+      "kind": "agent",
+      "name": "agent-sdk-verifier-ts",
+      "logical_id": "agent:agent-sdk-verifier-ts",
+      "canonical_path": "plugins/agent-sdk-dev/agents/agent-sdk-verifier-ts.md",
+      "paths": [
+        "plugins/agent-sdk-dev/agents/agent-sdk-verifier-ts.md"
+      ],
+      "description": "Use this agent to verify that a TypeScript Agent SDK application is properly configured, follows SDK best practices and documentation recommendations, and is ready for deployment or testing. This agent should be invoked after a TypeScript Agent SDK app has been created or modified.",
+      "content_hash": "b16f9ec5298689e2b84090684e36bf74604687fb",
+      "signature_hash": "ade652f99a72de767128da33a89f8ec750e62369",
+      "variant_hashes": [
+        "b16f9ec5298689e2b84090684e36bf74604687fb"
+      ],
+      "line_count": 145
+    },
+    {
+      "kind": "agent",
+      "name": "analyzer",
+      "logical_id": "agent:analyzer",
+      "canonical_path": "plugins/skill-creator/skills/skill-creator/agents/analyzer.md",
+      "paths": [
+        "plugins/skill-creator/skills/skill-creator/agents/analyzer.md"
+      ],
+      "description": "",
+      "content_hash": "d301e0ba2519af95c183a9d6bf57ce743c2f57c2",
+      "signature_hash": "d80c735ba3e60d7916cb70c568a3c61bfc79ff32",
+      "variant_hashes": [
+        "d301e0ba2519af95c183a9d6bf57ce743c2f57c2"
+      ],
+      "line_count": 274
+    },
+    {
+      "kind": "agent",
+      "name": "architecture-critic",
+      "logical_id": "agent:architecture-critic",
+      "canonical_path": "plugins/code-modernization/agents/architecture-critic.md",
+      "paths": [
+        "plugins/code-modernization/agents/architecture-critic.md"
+      ],
+      "description": "Reviews proposed target architectures and transformed code against modern best practice. Adversarial \u2014 looks for over-engineering, missed requirements, and simpler alternatives.",
+      "content_hash": "adbff78e4a1cc9729bf0f1f6f71e96db5ac1ef3e",
+      "signature_hash": "ce94ee34f72ac1b153dd4fd1e9da7efac059fb76",
+      "variant_hashes": [
+        "adbff78e4a1cc9729bf0f1f6f71e96db5ac1ef3e"
+      ],
+      "line_count": 63
+    },
+    {
+      "kind": "agent",
+      "name": "business-rules-extractor",
+      "logical_id": "agent:business-rules-extractor",
+      "canonical_path": "plugins/code-modernization/agents/business-rules-extractor.md",
+      "paths": [
+        "plugins/code-modernization/agents/business-rules-extractor.md"
+      ],
+      "description": "Mines domain logic, calculations, validations, and policies from legacy code into testable Given/When/Then specifications. Use when you need to separate \"what the business requires\" from \"how the old code happened to implement it.",
+      "content_hash": "73c7347f5ce5edb424756240f6f8507460fba288",
+      "signature_hash": "fc6f5924a802660ae89ea4b3681dc79bb90a9431",
+      "variant_hashes": [
+        "73c7347f5ce5edb424756240f6f8507460fba288"
+      ],
+      "line_count": 76
+    },
+    {
+      "kind": "agent",
+      "name": "code-architect",
+      "logical_id": "agent:code-architect",
+      "canonical_path": "plugins/feature-dev/agents/code-architect.md",
+      "paths": [
+        "plugins/feature-dev/agents/code-architect.md"
+      ],
+      "description": "Designs feature architectures by analyzing existing codebase patterns and conventions, then providing comprehensive implementation blueprints with specific files to create/modify, component designs, data flows, and build sequences",
+      "content_hash": "1f24ecc3f08132d01a81cbfbcf5906c01dc22736",
+      "signature_hash": "41ef20991457dae53b1b5ab98266629fbba6ffcb",
+      "variant_hashes": [
+        "1f24ecc3f08132d01a81cbfbcf5906c01dc22736"
+      ],
+      "line_count": 34
+    },
+    {
+      "kind": "agent",
+      "name": "code-explorer",
+      "logical_id": "agent:code-explorer",
+      "canonical_path": "plugins/feature-dev/agents/code-explorer.md",
+      "paths": [
+        "plugins/feature-dev/agents/code-explorer.md"
+      ],
+      "description": "Deeply analyzes existing codebase features by tracing execution paths, mapping architecture layers, understanding patterns and abstractions, and documenting dependencies to inform new development",
+      "content_hash": "64e659e7438f69e15f50d34a6ba8927037ac686c",
+      "signature_hash": "b433156a6be2c0d5f926faca49f58991890b47fe",
+      "variant_hashes": [
+        "64e659e7438f69e15f50d34a6ba8927037ac686c"
+      ],
+      "line_count": 51
+    },
+    {
+      "kind": "agent",
+      "name": "code-reviewer",
+      "logical_id": "agent:code-reviewer",
+      "canonical_path": "plugins/feature-dev/agents/code-reviewer.md",
+      "paths": [
+        "plugins/feature-dev/agents/code-reviewer.md",
+        "plugins/pr-review-toolkit/agents/code-reviewer.md"
+      ],
+      "description": "Reviews code for bugs, logic errors, security vulnerabilities, code quality issues, and adherence to project conventions, using confidence-based filtering to report only high-priority issues that truly matter",
+      "content_hash": "f2a346be4999e40011cb1e28eb1c0cfd018e96eb",
+      "signature_hash": "dd1173df4d422620cef797235c103925888eab78",
+      "variant_hashes": [
+        "87849ecdc4287247819a6423d2ba971314bb07f1",
+        "f2a346be4999e40011cb1e28eb1c0cfd018e96eb"
+      ],
+      "line_count": 46
+    },
+    {
+      "kind": "agent",
+      "name": "code-simplifier",
+      "logical_id": "agent:code-simplifier",
+      "canonical_path": "plugins/code-simplifier/agents/code-simplifier.md",
+      "paths": [
+        "plugins/code-simplifier/agents/code-simplifier.md",
+        "plugins/pr-review-toolkit/agents/code-simplifier.md"
+      ],
+      "description": "Simplifies and refines code for clarity, consistency, and maintainability while preserving all functionality. Focuses on recently modified code unless instructed otherwise.",
+      "content_hash": "a3d3b269f60b00d782a5c38157939d2e31698500",
+      "signature_hash": "4b6c224533a7ad028f0aa386bccb2c7c82627823",
+      "variant_hashes": [
+        "a3d3b269f60b00d782a5c38157939d2e31698500",
+        "a9e63c4d84962267041d230c0480992e326d170c"
+      ],
+      "line_count": 52
+    },
+    {
+      "kind": "agent",
+      "name": "comment-analyzer",
+      "logical_id": "agent:comment-analyzer",
+      "canonical_path": "plugins/pr-review-toolkit/agents/comment-analyzer.md",
+      "paths": [
+        "plugins/pr-review-toolkit/agents/comment-analyzer.md"
+      ],
+      "description": "Use this agent when you need to analyze code comments for accuracy, completeness, and long-term maintainability. This includes (1) after generating large documentation comments or docstrings, (2) before finalizing a pull request that adds or modifies comments, (3) when reviewing existing comments for potential technical debt or comment rot, and (4) when you need to verify that comments accurately reflect the code they describe. See \"When to invoke\" in the agent body for worked scenarios.",
+      "content_hash": "a7dc567434232ecc97856ad784191e9a70e1ceaf",
+      "signature_hash": "295a214dc311e9ab0670db41a191ba46f444907a",
+      "variant_hashes": [
+        "a7dc567434232ecc97856ad784191e9a70e1ceaf"
+      ],
+      "line_count": 78
+    },
+    {
+      "kind": "agent",
+      "name": "comparator",
+      "logical_id": "agent:comparator",
+      "canonical_path": "plugins/skill-creator/skills/skill-creator/agents/comparator.md",
+      "paths": [
+        "plugins/skill-creator/skills/skill-creator/agents/comparator.md"
+      ],
+      "description": "",
+      "content_hash": "acc949f15a6cd41ce1268c80ec109786ee40b0ff",
+      "signature_hash": "9620d32f3d24ff5ce60b43a4a6d660d96ec2f43f",
+      "variant_hashes": [
+        "acc949f15a6cd41ce1268c80ec109786ee40b0ff"
+      ],
+      "line_count": 202
+    },
+    {
+      "kind": "agent",
+      "name": "conversation-analyzer",
+      "logical_id": "agent:conversation-analyzer",
+      "canonical_path": "plugins/hookify/agents/conversation-analyzer.md",
+      "paths": [
+        "plugins/hookify/agents/conversation-analyzer.md"
+      ],
+      "description": "Use this agent when analyzing conversation transcripts to find behaviors worth preventing with hooks. Typical triggers include the /hookify command being invoked without arguments, or the user explicitly asking to look back at the current conversation and surface mistakes that should be prevented in the future. See \"When to invoke\" in the agent body for worked scenarios.",
+      "content_hash": "8a132b4430b21dbd6cf1e079aad808184d979ccf",
+      "signature_hash": "5dfe5b0875723d5fa4d19110572c957f01521df8",
+      "variant_hashes": [
+        "8a132b4430b21dbd6cf1e079aad808184d979ccf"
+      ],
+      "line_count": 183
+    },
+    {
+      "kind": "agent",
+      "name": "grader",
+      "logical_id": "agent:grader",
+      "canonical_path": "plugins/skill-creator/skills/skill-creator/agents/grader.md",
+      "paths": [
+        "plugins/skill-creator/skills/skill-creator/agents/grader.md"
+      ],
+      "description": "",
+      "content_hash": "53ecc3331ca4b438bbeaebc93c3bb722d61f48e2",
+      "signature_hash": "31de1c95e11d4110cd6010d7d1b7fc64f775abdd",
+      "variant_hashes": [
+        "53ecc3331ca4b438bbeaebc93c3bb722d61f48e2"
+      ],
+      "line_count": 223
+    },
+    {
+      "kind": "agent",
+      "name": "legacy-analyst",
+      "logical_id": "agent:legacy-analyst",
+      "canonical_path": "plugins/code-modernization/agents/legacy-analyst.md",
+      "paths": [
+        "plugins/code-modernization/agents/legacy-analyst.md"
+      ],
+      "description": "Deep-reads legacy codebases (COBOL, Java, .NET, Node, anything) to build structural and behavioral understanding. Use for discovery, dependency mapping, dead-code detection, and \"what does this system actually do\" questions.",
+      "content_hash": "dec4574f22b90f1e73d50f00cbe04ebd5023886b",
+      "signature_hash": "87f289f736ea72b25ad0185152caa9b6f9b50889",
+      "variant_hashes": [
+        "dec4574f22b90f1e73d50f00cbe04ebd5023886b"
+      ],
+      "line_count": 69
+    },
+    {
+      "kind": "agent",
+      "name": "plugin-validator",
+      "logical_id": "agent:plugin-validator",
+      "canonical_path": "plugins/plugin-dev/agents/plugin-validator.md",
+      "paths": [
+        "plugins/plugin-dev/agents/plugin-validator.md"
+      ],
+      "description": "|",
+      "content_hash": "b37d6ea431e80caea80a50c66bc4f586cca49b9d",
+      "signature_hash": "95b02968b38444c85e3f7e7bfe9b164cdd4a658e",
+      "variant_hashes": [
+        "b37d6ea431e80caea80a50c66bc4f586cca49b9d"
+      ],
+      "line_count": 184
+    },
+    {
+      "kind": "agent",
+      "name": "pr-test-analyzer",
+      "logical_id": "agent:pr-test-analyzer",
+      "canonical_path": "plugins/pr-review-toolkit/agents/pr-test-analyzer.md",
+      "paths": [
+        "plugins/pr-review-toolkit/agents/pr-test-analyzer.md"
+      ],
+      "description": "Use this agent when you need to review a pull request for test coverage quality and completeness. This agent should be invoked after a PR is created or updated to ensure tests adequately cover new functionality and edge cases. Typical triggers include the user asking whether tests on a freshly-created PR are thorough, an updated PR adding new logic that needs coverage analysis, and a final pre-merge double-check before marking a PR ready. See \"When to invoke\" in the agent body for worked scenarios.",
+      "content_hash": "b330d233cde3f0d78071d3f877dd999c60b45208",
+      "signature_hash": "5952e3a75b7760a776d04d10e4c5341c625ddc73",
+      "variant_hashes": [
+        "b330d233cde3f0d78071d3f877dd999c60b45208"
+      ],
+      "line_count": 77
+    },
+    {
+      "kind": "agent",
+      "name": "scaffolder",
+      "logical_id": "agent:scaffolder",
+      "canonical_path": "plugins/code-modernization/agents/scaffolder.md",
+      "paths": [
+        "plugins/code-modernization/agents/scaffolder.md"
+      ],
+      "description": "Scaffolds one service of a reimagined system from the approved architecture and spec \u2014 project skeleton, domain model, API stubs, executable acceptance tests. Write access is scoped to its own service directory under modernized/.",
+      "content_hash": "e611b608e088a5ef30574f34e65b515f181a2dbe",
+      "signature_hash": "bfab08d17bf2cc43da578647555d48f61a680080",
+      "variant_hashes": [
+        "e611b608e088a5ef30574f34e65b515f181a2dbe"
+      ],
+      "line_count": 40
+    },
+    {
+      "kind": "agent",
+      "name": "security-auditor",
+      "logical_id": "agent:security-auditor",
+      "canonical_path": "plugins/code-modernization/agents/security-auditor.md",
+      "paths": [
+        "plugins/code-modernization/agents/security-auditor.md"
+      ],
+      "description": "Adversarial security reviewer \u2014 OWASP Top 10, CWE, dependency CVEs, secrets, injection. Use for security debt scanning and pre-modernization hardening.",
+      "content_hash": "3856ef3038df88047b9ac9cf4afa9a839acc516b",
+      "signature_hash": "01afa5c3b2bdbfedb9e77cb5f29e59d15582896c",
+      "variant_hashes": [
+        "3856ef3038df88047b9ac9cf4afa9a839acc516b"
+      ],
+      "line_count": 100
+    },
+    {
+      "kind": "agent",
+      "name": "silent-failure-hunter",
+      "logical_id": "agent:silent-failure-hunter",
+      "canonical_path": "plugins/pr-review-toolkit/agents/silent-failure-hunter.md",
+      "paths": [
+        "plugins/pr-review-toolkit/agents/silent-failure-hunter.md"
+      ],
+      "description": "Use this agent when reviewing code changes in a pull request to identify silent failures, inadequate error handling, and inappropriate fallback behavior. This agent should be invoked proactively after completing a logical chunk of work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors. Examples:\\n\\n<example>\\nContext: Daisy has just finished implementing a new feature that fetches data from an API with fallback behavior.\\nDaisy: \"I've added error handling to the API client. Can you review it?\"\\nAssistant: \"Let me use the silent-failure-hunter agent to thoroughly examine the error handling in your changes.\"\\n<Task tool invocation to launch silent-failure-hunter agent>\\n</example>\\n\\n<example>\\nContext: Daisy has created a PR with changes that include try-catch blocks.\\nDaisy: \"Please review PR #1234\"\\nAssistant: \"I'll use the silent-failure-hunter agent to check for any silent failures or inadequate error handling in this PR.\"\\n<Task tool invocation to launch silent-failure-hunter agent>\\n</example>\\n\\n<example>\\nContext: Daisy has just refactored error handling code.\\nDaisy: \"I've updated the error handling in the authentication module\"\\nAssistant: \"Let me proactively use the silent-failure-hunter agent to ensure the error handling changes don't introduce silent failures.\"\\n<Task tool invocation to launch silent-failure-hunter agent>\\n</example>",
+      "content_hash": "690797713e682a128fb90aa4b0d7edf5b3ee60e4",
+      "signature_hash": "f7398fab986850c225abb266ae010d8fbf7d0699",
+      "variant_hashes": [
+        "690797713e682a128fb90aa4b0d7edf5b3ee60e4"
+      ],
+      "line_count": 130
+    },
+    {
+      "kind": "agent",
+      "name": "skill-reviewer",
+      "logical_id": "agent:skill-reviewer",
+      "canonical_path": "plugins/plugin-dev/agents/skill-reviewer.md",
+      "paths": [
+        "plugins/plugin-dev/agents/skill-reviewer.md"
+      ],
+      "description": "|",
+      "content_hash": "d86da9dfb7b6c6c83e02c37f9cfaf472a5db2c9a",
+      "signature_hash": "57b520e36e09e3a322573350d28b0049187fbf66",
+      "variant_hashes": [
+        "d86da9dfb7b6c6c83e02c37f9cfaf472a5db2c9a"
+      ],
+      "line_count": 184
+    },
+    {
+      "kind": "agent",
+      "name": "test-engineer",
+      "logical_id": "agent:test-engineer",
+      "canonical_path": "plugins/code-modernization/agents/test-engineer.md",
+      "paths": [
+        "plugins/code-modernization/agents/test-engineer.md"
+      ],
+      "description": "Writes characterization, contract, and equivalence tests that pin down legacy behavior so transformation can be proven correct. Use before any rewrite.",
+      "content_hash": "e2f21f539256d3ae3fa0c90738c68758b06ce10d",
+      "signature_hash": "146325c7ce1067a3d6caace1d67750afd912bd83",
+      "variant_hashes": [
+        "e2f21f539256d3ae3fa0c90738c68758b06ce10d"
+      ],
+      "line_count": 57
+    },
+    {
+      "kind": "agent",
+      "name": "type-design-analyzer",
+      "logical_id": "agent:type-design-analyzer",
+      "canonical_path": "plugins/pr-review-toolkit/agents/type-design-analyzer.md",
+      "paths": [
+        "plugins/pr-review-toolkit/agents/type-design-analyzer.md"
+      ],
+      "description": "Use this agent when you need expert analysis of type design in your codebase. Specifically use it (1) when introducing a new type to ensure it follows best practices for encapsulation and invariant expression, (2) during pull request creation to review all types being added, and (3) when refactoring existing types to improve their design quality. The agent will provide both qualitative feedback and quantitative ratings on encapsulation, invariant expression, usefulness, and enforcement. See \"When to invoke\" in the agent body for worked scenarios.",
+      "content_hash": "7b00dd3b6b6c3c436bf2bea0f4526f7e23b31604",
+      "signature_hash": "0b894a487193da2b82426c6fafad7377289afdfb",
+      "variant_hashes": [
+        "7b00dd3b6b6c3c436bf2bea0f4526f7e23b31604"
+      ],
+      "line_count": 117
+    },
+    {
+      "kind": "agent",
+      "name": "version-delta-analyst",
+      "logical_id": "agent:version-delta-analyst",
+      "canonical_path": "plugins/code-modernization/agents/version-delta-analyst.md",
+      "paths": [
+        "plugins/code-modernization/agents/version-delta-analyst.md"
+      ],
+      "description": "Identifies the breaking changes between two versions of the SAME stack (e.g. .NET Framework 4.8 \u2192 .NET 8, Java 8 \u2192 17/21, Spring Boot 2 \u2192 3) that actually bite a given codebase, and drives the ecosystem's migration tooling. Use for same-stack uplifts, where code is preserved and tweaked \u2014 not rewritten from intent. (Note: some \"same-stack\" bumps are really rewrites \u2014 Python 2 \u2192 3 with pervasive str/bytes, AngularJS \u2192 Angular \u2014 where minimal-diff fails; flag those for /modernize-transform.)",
+      "content_hash": "f996fb87a2ce6ff0a4dcfcb6c0a6308223f36058",
+      "signature_hash": "d31a8b68b2bd9c732b468c594690cdd9850229b9",
+      "variant_hashes": [
+        "f996fb87a2ce6ff0a4dcfcb6c0a6308223f36058"
+      ],
+      "line_count": 126
+    },
+    {
+      "kind": "command",
+      "name": "cancel-ralph",
+      "logical_id": "command:cancel-ralph",
+      "canonical_path": "plugins/ralph-loop/commands/cancel-ralph.md",
+      "paths": [
+        "plugins/ralph-loop/commands/cancel-ralph.md"
+      ],
+      "description": "Cancel active Ralph Loop",
+      "content_hash": "7e417ff1aafa9ab439621c79caa629f01539ed6f",
+      "signature_hash": "12fd5eb638b5965b4aefc33b2329506f66d9526a",
+      "variant_hashes": [
+        "7e417ff1aafa9ab439621c79caa629f01539ed6f"
+      ],
+      "line_count": 18
+    },
+    {
+      "kind": "command",
+      "name": "clean_gone",
+      "logical_id": "command:clean_gone",
+      "canonical_path": "plugins/commit-commands/commands/clean_gone.md",
+      "paths": [
+        "plugins/commit-commands/commands/clean_gone.md"
+      ],
+      "description": "Cleans up all git branches marked as [gone] (branches that have been deleted on the remote but still exist locally), including removing associated worktrees.",
+      "content_hash": "8b4f4f67b4799be64b95f18c060e9f3347158fe7",
+      "signature_hash": "7128cb303de6804046a9c69622b4063f424adb01",
+      "variant_hashes": [
+        "8b4f4f67b4799be64b95f18c060e9f3347158fe7"
+      ],
+      "line_count": 52
+    },
+    {
+      "kind": "command",
+      "name": "code-review",
+      "logical_id": "command:code-review",
+      "canonical_path": "plugins/code-review/commands/code-review.md",
+      "paths": [
+        "plugins/code-review/commands/code-review.md"
+      ],
+      "description": "Code review a pull request",
+      "content_hash": "6f7a75db1eb7344564fd7392d22c0b1f56aee3dc",
+      "signature_hash": "fa37aa89cd7caa6b01030b5f397855dcc4ee932a",
+      "variant_hashes": [
+        "6f7a75db1eb7344564fd7392d22c0b1f56aee3dc"
+      ],
+      "line_count": 92
+    },
+    {
+      "kind": "command",
+      "name": "commit",
+      "logical_id": "command:commit",
+      "canonical_path": "plugins/commit-commands/commands/commit.md",
+      "paths": [
+        "plugins/commit-commands/commands/commit.md"
+      ],
+      "description": "Create a git commit",
+      "content_hash": "1340de71ee70c01c215c4ff3dc1ba705129d8fb9",
+      "signature_hash": "e0b7ba03778d92decdc3936b5e4364a86d829050",
+      "variant_hashes": [
+        "1340de71ee70c01c215c4ff3dc1ba705129d8fb9"
+      ],
+      "line_count": 17
+    },
+    {
+      "kind": "command",
+      "name": "commit-push-pr",
+      "logical_id": "command:commit-push-pr",
+      "canonical_path": "plugins/commit-commands/commands/commit-push-pr.md",
+      "paths": [
+        "plugins/commit-commands/commands/commit-push-pr.md"
+      ],
+      "description": "Commit, push, and open a PR",
+      "content_hash": "12ba7895273f6bf43e8529fb0acc675e0e410340",
+      "signature_hash": "9f2a6821d2753a1aaec43193e8457be888ca935e",
+      "variant_hashes": [
+        "12ba7895273f6bf43e8529fb0acc675e0e410340"
+      ],
+      "line_count": 20
+    },
+    {
+      "kind": "command",
+      "name": "configure",
+      "logical_id": "command:configure",
+      "canonical_path": "plugins/hookify/commands/configure.md",
+      "paths": [
+        "plugins/hookify/commands/configure.md"
+      ],
+      "description": "Enable or disable hookify rules interactively",
+      "content_hash": "797d69a0309076ffbab81779a006368f68bbfeb0",
+      "signature_hash": "6bd12776f73717f90b1396e52f937eef6d024e2f",
+      "variant_hashes": [
+        "797d69a0309076ffbab81779a006368f68bbfeb0"
+      ],
+      "line_count": 128
+    },
+    {
+      "kind": "command",
+      "name": "create-docker-mcp-tunnel",
+      "logical_id": "command:create-docker-mcp-tunnel",
+      "canonical_path": "plugins/mcp-tunnels/commands/create-docker-mcp-tunnel.md",
+      "paths": [
+        "plugins/mcp-tunnels/commands/create-docker-mcp-tunnel.md"
+      ],
+      "description": "Stand up an Anthropic MCP tunnel locally with Docker Compose so Claude can call a private MCP server (manual-credentials quickstart).",
+      "content_hash": "12c1b6c64d4c9895bf2cbc1267cde1dce96a87fa",
+      "signature_hash": "97fdef8954b779dd2441d877c52139867eba7e1f",
+      "variant_hashes": [
+        "12c1b6c64d4c9895bf2cbc1267cde1dce96a87fa"
+      ],
+      "line_count": 367
+    },
+    {
+      "kind": "command",
+      "name": "create-plugin",
+      "logical_id": "command:create-plugin",
+      "canonical_path": "plugins/plugin-dev/commands/create-plugin.md",
+      "paths": [
+        "plugins/plugin-dev/commands/create-plugin.md"
+      ],
+      "description": "Guided end-to-end plugin creation workflow with component design, implementation, and validation",
+      "content_hash": "e2458ba4a492efff04bc14ee609b0304a7f16700",
+      "signature_hash": "a6e9663b21ac246c6d629117db155a37b6cd2d00",
+      "variant_hashes": [
+        "e2458ba4a492efff04bc14ee609b0304a7f16700"
+      ],
+      "line_count": 449
+    },
+    {
+      "kind": "command",
+      "name": "example-command",
+      "logical_id": "command:example-command",
+      "canonical_path": "plugins/example-plugin/commands/example-command.md",
+      "paths": [
+        "plugins/example-plugin/commands/example-command.md"
+      ],
+      "description": "An example slash command that demonstrates command frontmatter options (legacy format)",
+      "content_hash": "2693c1b9d20471d4c8ee90745b579ce400fe3926",
+      "signature_hash": "4fad49d1217b6e2bc693e4e465d653d664c58bcf",
+      "variant_hashes": [
+        "2693c1b9d20471d4c8ee90745b579ce400fe3926"
+      ],
+      "line_count": 39
+    },
+    {
+      "kind": "command",
+      "name": "feature-dev",
+      "logical_id": "command:feature-dev",
+      "canonical_path": "plugins/feature-dev/commands/feature-dev.md",
+      "paths": [
+        "plugins/feature-dev/commands/feature-dev.md"
+      ],
+      "description": "Guided feature development with codebase understanding and architecture focus",
+      "content_hash": "19596763b5ef8f7d452cd47e53e248c220381c88",
+      "signature_hash": "46bc39b4876841d5308452a8beec12e88e8c87dd",
+      "variant_hashes": [
+        "19596763b5ef8f7d452cd47e53e248c220381c88"
+      ],
+      "line_count": 125
+    },
+    {
+      "kind": "command",
+      "name": "help",
+      "logical_id": "command:help",
+      "canonical_path": "plugins/hookify/commands/help.md",
+      "paths": [
+        "plugins/hookify/commands/help.md",
+        "plugins/ralph-loop/commands/help.md"
+      ],
+      "description": "Get help with the hookify plugin",
+      "content_hash": "c8e9a1700c23623634666aea677781fae936f38e",
+      "signature_hash": "ddb0b0e65526b872d13ff2c74e2dd359188b7714",
+      "variant_hashes": [
+        "091b7e94dbfb59bc4f217ef06a9bc973f41c9b1a",
+        "c8e9a1700c23623634666aea677781fae936f38e"
+      ],
+      "line_count": 175
+    },
+    {
+      "kind": "command",
+      "name": "hookify",
+      "logical_id": "command:hookify",
+      "canonical_path": "plugins/hookify/commands/hookify.md",
+      "paths": [
+        "plugins/hookify/commands/hookify.md"
+      ],
+      "description": "Create hooks to prevent unwanted behaviors from conversation analysis or explicit instructions",
+      "content_hash": "16e3177d79dcab2e7aab607cac304ff69e5400f2",
+      "signature_hash": "1566c96e4e6df8cf912b910b836387a51d631234",
+      "variant_hashes": [
+        "16e3177d79dcab2e7aab607cac304ff69e5400f2"
+      ],
+      "line_count": 231
+    },
+    {
+      "kind": "command",
+      "name": "list",
+      "logical_id": "command:list",
+      "canonical_path": "plugins/hookify/commands/list.md",
+      "paths": [
+        "plugins/hookify/commands/list.md"
+      ],
+      "description": "List all configured hookify rules",
+      "content_hash": "14f6e980e74e40e4d6d3ff0f7ca7177c0ca067ed",
+      "signature_hash": "b0f0f9b342bc1cb9c7ff2e1420e97c8ac3a210da",
+      "variant_hashes": [
+        "14f6e980e74e40e4d6d3ff0f7ca7177c0ca067ed"
+      ],
+      "line_count": 82
+    },
+    {
+      "kind": "command",
+      "name": "maker-setup",
+      "logical_id": "command:maker-setup",
+      "canonical_path": "plugins/cwc-makers/commands/maker-setup.md",
+      "paths": [
+        "plugins/cwc-makers/commands/maker-setup.md"
+      ],
+      "description": "Onboard a Code-with-Claude Makers Cardputer \u2014 fetch the build-with-claude repo, flash firmware, and install the Claude Buddy apps.",
+      "content_hash": "55047b2447999a03fe857f36d6932afa71ef2cc5",
+      "signature_hash": "b8f0affb60123b95885fbe404eb90128a48cb4a3",
+      "variant_hashes": [
+        "55047b2447999a03fe857f36d6932afa71ef2cc5"
+      ],
+      "line_count": 15
+    },
+    {
+      "kind": "command",
+      "name": "modernize-assess",
+      "logical_id": "command:modernize-assess",
+      "canonical_path": "plugins/code-modernization/commands/modernize-assess.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-assess.md"
+      ],
+      "description": "Full discovery & portfolio analysis of a legacy system \u2014 inventory, complexity, debt, relative scale",
+      "content_hash": "3d21b2c5e65be2e9bf302dcddbde541a1886b3c6",
+      "signature_hash": "4fcf66a61b5d5c1c820a622e6c12355f1a424db2",
+      "variant_hashes": [
+        "3d21b2c5e65be2e9bf302dcddbde541a1886b3c6"
+      ],
+      "line_count": 232
+    },
+    {
+      "kind": "command",
+      "name": "modernize-brief",
+      "logical_id": "command:modernize-brief",
+      "canonical_path": "plugins/code-modernization/commands/modernize-brief.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-brief.md"
+      ],
+      "description": "Generate a phased Modernization Brief \u2014 the approved plan that transformation agents will execute against",
+      "content_hash": "cd2b287a039b864293c76bb982a2af20906b9150",
+      "signature_hash": "f10b678f9ab8cf4cb9fb7a341ca1aa6eec718a40",
+      "variant_hashes": [
+        "cd2b287a039b864293c76bb982a2af20906b9150"
+      ],
+      "line_count": 97
+    },
+    {
+      "kind": "command",
+      "name": "modernize-extract-rules",
+      "logical_id": "command:modernize-extract-rules",
+      "canonical_path": "plugins/code-modernization/commands/modernize-extract-rules.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-extract-rules.md"
+      ],
+      "description": "Mine business logic from legacy code into testable, human-readable rule specifications",
+      "content_hash": "99432dbdf1ad9648e8ec61f77f19151d21f21cdd",
+      "signature_hash": "0c08ec361bfa5e23d032ea831281acfc7902efec",
+      "variant_hashes": [
+        "99432dbdf1ad9648e8ec61f77f19151d21f21cdd"
+      ],
+      "line_count": 121
+    },
+    {
+      "kind": "command",
+      "name": "modernize-harden",
+      "logical_id": "command:modernize-harden",
+      "canonical_path": "plugins/code-modernization/commands/modernize-harden.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-harden.md"
+      ],
+      "description": "Security vulnerability scan with a reviewable remediation patch \u2014 OWASP, CWE, CVE, secrets, injection",
+      "content_hash": "0b69a9e4e0637f8ee6172071701f87662d7f4a4b",
+      "signature_hash": "a5537d0c50674925fd3741ac37c90e7974b44b53",
+      "variant_hashes": [
+        "0b69a9e4e0637f8ee6172071701f87662d7f4a4b"
+      ],
+      "line_count": 154
+    },
+    {
+      "kind": "command",
+      "name": "modernize-map",
+      "logical_id": "command:modernize-map",
+      "canonical_path": "plugins/code-modernization/commands/modernize-map.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-map.md"
+      ],
+      "description": "Dependency & topology mapping \u2014 call graphs, data lineage, batch flows, rendered as navigable diagrams",
+      "content_hash": "e42154d1e9ab1ea21d1e9c24cf333de7f053043b",
+      "signature_hash": "788404e6d5eb88b3a07c95f6ad38fc808dd5c485",
+      "variant_hashes": [
+        "e42154d1e9ab1ea21d1e9c24cf333de7f053043b"
+      ],
+      "line_count": 184
+    },
+    {
+      "kind": "command",
+      "name": "modernize-preflight",
+      "logical_id": "command:modernize-preflight",
+      "canonical_path": "plugins/code-modernization/commands/modernize-preflight.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-preflight.md"
+      ],
+      "description": "Environment readiness check \u2014 analysis tools, build toolchain, source completeness, telemetry access",
+      "content_hash": "efd17a064fb4b224d32cba7dc8971b08938a6ad7",
+      "signature_hash": "d899f64fa5028b9f2c3c08e424e608ffaa4464de",
+      "variant_hashes": [
+        "efd17a064fb4b224d32cba7dc8971b08938a6ad7"
+      ],
+      "line_count": 107
+    },
+    {
+      "kind": "command",
+      "name": "modernize-reimagine",
+      "logical_id": "command:modernize-reimagine",
+      "canonical_path": "plugins/code-modernization/commands/modernize-reimagine.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-reimagine.md"
+      ],
+      "description": "Multi-agent greenfield rebuild \u2014 extract specs from legacy, design AI-native, scaffold & validate with HITL",
+      "content_hash": "fffeeb83cbe261f8810fa29c2ba2ef4e9d6b9815",
+      "signature_hash": "e9b347f1cf3759d405f6d216bd94560531413beb",
+      "variant_hashes": [
+        "fffeeb83cbe261f8810fa29c2ba2ef4e9d6b9815"
+      ],
+      "line_count": 124
+    },
+    {
+      "kind": "command",
+      "name": "modernize-status",
+      "logical_id": "command:modernize-status",
+      "canonical_path": "plugins/code-modernization/commands/modernize-status.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-status.md"
+      ],
+      "description": "Where am I in the modernization workflow \u2014 artifact inventory, staleness, secrets hygiene, next step",
+      "content_hash": "b5cb3c27fd178e82a18aa5ecb7efd43759ad4e1b",
+      "signature_hash": "a49c7b74ed6c797b80a207dd8b482c1fa3f489c3",
+      "variant_hashes": [
+        "b5cb3c27fd178e82a18aa5ecb7efd43759ad4e1b"
+      ],
+      "line_count": 56
+    },
+    {
+      "kind": "command",
+      "name": "modernize-transform",
+      "logical_id": "command:modernize-transform",
+      "canonical_path": "plugins/code-modernization/commands/modernize-transform.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-transform.md"
+      ],
+      "description": "Transform one legacy module to the target stack \u2014 idiomatic rewrite with behavior-equivalence tests",
+      "content_hash": "edeb054fcd0985741cb7921df128ef06debac0f9",
+      "signature_hash": "da9f3ccca8fc564e27980c9cf215c4510cb4c936",
+      "variant_hashes": [
+        "edeb054fcd0985741cb7921df128ef06debac0f9"
+      ],
+      "line_count": 111
+    },
+    {
+      "kind": "command",
+      "name": "modernize-uplift",
+      "logical_id": "command:modernize-uplift",
+      "canonical_path": "plugins/code-modernization/commands/modernize-uplift.md",
+      "paths": [
+        "plugins/code-modernization/commands/modernize-uplift.md"
+      ],
+      "description": "Same-stack version uplift (e.g. .NET Framework 4.8 \u2192 .NET 8) \u2014 preserve the code, fix the version deltas, prove equivalence by running one test suite on both runtimes",
+      "content_hash": "744f5d655af72f66f768f5f07b985106aa670033",
+      "signature_hash": "f635cee50008da383138b767bd5cda6442f95680",
+      "variant_hashes": [
+        "744f5d655af72f66f768f5f07b985106aa670033"
+      ],
+      "line_count": 239
+    },
+    {
+      "kind": "command",
+      "name": "new-sdk-app",
+      "logical_id": "command:new-sdk-app",
+      "canonical_path": "plugins/agent-sdk-dev/commands/new-sdk-app.md",
+      "paths": [
+        "plugins/agent-sdk-dev/commands/new-sdk-app.md"
+      ],
+      "description": "Create and setup a new Claude Agent SDK application",
+      "content_hash": "d40bde67a00ddfb80c35d66290c92008c8a337b0",
+      "signature_hash": "4033a97d2029f17ada1bee8a18e9a63cdac55bf0",
+      "variant_hashes": [
+        "d40bde67a00ddfb80c35d66290c92008c8a337b0"
+      ],
+      "line_count": 176
+    },
+    {
+      "kind": "command",
+      "name": "ralph-loop",
+      "logical_id": "command:ralph-loop",
+      "canonical_path": "plugins/ralph-loop/commands/ralph-loop.md",
+      "paths": [
+        "plugins/ralph-loop/commands/ralph-loop.md"
+      ],
+      "description": "Start Ralph Loop in current session",
+      "content_hash": "e77d74926ac99426b2106ffb274f0a64d2e9b262",
+      "signature_hash": "11fa422488b50511e2e89125749ee84e0dc0b9cb",
+      "variant_hashes": [
+        "e77d74926ac99426b2106ffb274f0a64d2e9b262"
+      ],
+      "line_count": 18
+    },
+    {
+      "kind": "command",
+      "name": "review-pr",
+      "logical_id": "command:review-pr",
+      "canonical_path": "plugins/pr-review-toolkit/commands/review-pr.md",
+      "paths": [
+        "plugins/pr-review-toolkit/commands/review-pr.md"
+      ],
+      "description": "Comprehensive PR review using specialized agents",
+      "content_hash": "85b060d76bf459e46f2c770a9d9e371b81b8270d",
+      "signature_hash": "3941cbd83cba132d676b2f39c18fe0b833090b99",
+      "variant_hashes": [
+        "85b060d76bf459e46f2c770a9d9e371b81b8270d"
+      ],
+      "line_count": 189
+    },
+    {
+      "kind": "command",
+      "name": "revise-claude-md",
+      "logical_id": "command:revise-claude-md",
+      "canonical_path": "plugins/claude-md-management/commands/revise-claude-md.md",
+      "paths": [
+        "plugins/claude-md-management/commands/revise-claude-md.md"
+      ],
+      "description": "Update CLAUDE.md with learnings from this session",
+      "content_hash": "5c5325b012f789322c8c10b2248cc5979bb640d0",
+      "signature_hash": "0cbf7f5635c75f1d599d9a00cd14c771bdc4148d",
+      "variant_hashes": [
+        "5c5325b012f789322c8c10b2248cc5979bb640d0"
+      ],
+      "line_count": 54
+    },
+    {
+      "kind": "hook",
+      "name": "__init__.py",
+      "logical_id": "hook:__init__.py",
+      "canonical_path": "plugins/hookify/hooks/__init__.py",
+      "paths": [
+        "plugins/hookify/hooks/__init__.py"
+      ],
+      "description": "",
+      "content_hash": "adc83b19e793491b1c6ea0fd8b46cd9f32e592fc",
+      "signature_hash": "d0ee0eee563cc280aba63152dea154ca51c6b0f8",
+      "variant_hashes": [
+        "adc83b19e793491b1c6ea0fd8b46cd9f32e592fc"
+      ],
+      "line_count": 1
+    },
+    {
+      "kind": "hook",
+      "name": "_base.py",
+      "logical_id": "hook:_base.py",
+      "canonical_path": "plugins/security-guidance/hooks/_base.py",
+      "paths": [
+        "plugins/security-guidance/hooks/_base.py"
+      ],
+      "description": "",
+      "content_hash": "68bf84ba1394d20429728761415300c792a70a34",
+      "signature_hash": "8f4fa6084934e48c625557893af3648dd91a4e09",
+      "variant_hashes": [
+        "68bf84ba1394d20429728761415300c792a70a34"
+      ],
+      "line_count": 221
+    },
+    {
+      "kind": "hook",
+      "name": "diffstate.py",
+      "logical_id": "hook:diffstate.py",
+      "canonical_path": "plugins/security-guidance/hooks/diffstate.py",
+      "paths": [
+        "plugins/security-guidance/hooks/diffstate.py"
+      ],
+      "description": "",
+      "content_hash": "fedfbd8f0e5f0dfc0943e2512728c466f2ff9d04",
+      "signature_hash": "0b89ef5e526ae6090d19124d6e37308774175b2f",
+      "variant_hashes": [
+        "fedfbd8f0e5f0dfc0943e2512728c466f2ff9d04"
+      ],
+      "line_count": 457
+    },
+    {
+      "kind": "hook",
+      "name": "ensure_agent_sdk.py",
+      "logical_id": "hook:ensure_agent_sdk.py",
+      "canonical_path": "plugins/security-guidance/hooks/ensure_agent_sdk.py",
+      "paths": [
+        "plugins/security-guidance/hooks/ensure_agent_sdk.py"
+      ],
+      "description": "",
+      "content_hash": "e465d978b4e64442a2e1909fa0f5ce020ee3a31d",
+      "signature_hash": "b86b1f775d9cf2547cd01fd721c0d25c235fd1a6",
+      "variant_hashes": [
+        "e465d978b4e64442a2e1909fa0f5ce020ee3a31d"
+      ],
+      "line_count": 794
+    },
+    {
+      "kind": "hook",
+      "name": "extensibility.py",
+      "logical_id": "hook:extensibility.py",
+      "canonical_path": "plugins/security-guidance/hooks/extensibility.py",
+      "paths": [
+        "plugins/security-guidance/hooks/extensibility.py"
+      ],
+      "description": "",
+      "content_hash": "0823d81d3ccad71118185cb30ca9450a43474733",
+      "signature_hash": "a5ef299ea7c0fcbc4ada522dcdb6978e9ce01b22",
+      "variant_hashes": [
+        "0823d81d3ccad71118185cb30ca9450a43474733"
+      ],
+      "line_count": 274
+    },
+    {
+      "kind": "hook",
+      "name": "gitutil.py",
+      "logical_id": "hook:gitutil.py",
+      "canonical_path": "plugins/security-guidance/hooks/gitutil.py",
+      "paths": [
+        "plugins/security-guidance/hooks/gitutil.py"
+      ],
+      "description": "",
+      "content_hash": "59bdc0795a26730d88f0e7eb45c3a3939b1a7cae",
+      "signature_hash": "c922d5c582b0dd052ca6df7dbbcaa5624231c793",
+      "variant_hashes": [
+        "59bdc0795a26730d88f0e7eb45c3a3939b1a7cae"
+      ],
+      "line_count": 766
+    },
+    {
+      "kind": "hook",
+      "name": "llm.py",
+      "logical_id": "hook:llm.py",
+      "canonical_path": "plugins/security-guidance/hooks/llm.py",
+      "paths": [
+        "plugins/security-guidance/hooks/llm.py"
+      ],
+      "description": "",
+      "content_hash": "b13737c30b4e7052ea3866b9335272f71f0de891",
+      "signature_hash": "3a4412c34e8bc4f60af631abc14e2ee6d74d2575",
+      "variant_hashes": [
+        "b13737c30b4e7052ea3866b9335272f71f0de891"
+      ],
+      "line_count": 1732
+    },
+    {
+      "kind": "hook",
+      "name": "patterns.py",
+      "logical_id": "hook:patterns.py",
+      "canonical_path": "plugins/security-guidance/hooks/patterns.py",
+      "paths": [
+        "plugins/security-guidance/hooks/patterns.py"
+      ],
+      "description": "",
+      "content_hash": "2a699e5a506a377fb165237bc7a520055dd33a4e",
+      "signature_hash": "73fe664a35f89857e26307642dc9d2c34cb0466e",
+      "variant_hashes": [
+        "2a699e5a506a377fb165237bc7a520055dd33a4e"
+      ],
+      "line_count": 355
+    },
+    {
+      "kind": "hook",
+      "name": "posttooluse.py",
+      "logical_id": "hook:posttooluse.py",
+      "canonical_path": "plugins/hookify/hooks/posttooluse.py",
+      "paths": [
+        "plugins/hookify/hooks/posttooluse.py"
+      ],
+      "description": "",
+      "content_hash": "5e4a84a2b3d6b20589cd3d8bfd68cf7ba36fc261",
+      "signature_hash": "b8e736ca85ad3220348e7e26f2b3dc3713761c02",
+      "variant_hashes": [
+        "5e4a84a2b3d6b20589cd3d8bfd68cf7ba36fc261"
+      ],
+      "line_count": 60
+    },
+    {
+      "kind": "hook",
+      "name": "pretooluse.py",
+      "logical_id": "hook:pretooluse.py",
+      "canonical_path": "plugins/hookify/hooks/pretooluse.py",
+      "paths": [
+        "plugins/hookify/hooks/pretooluse.py"
+      ],
+      "description": "",
+      "content_hash": "08eeb3697a7af291e0d885febb062b0116fafe9c",
+      "signature_hash": "a4dee24089d7ddb199aba43539bcdfdbf96687e2",
+      "variant_hashes": [
+        "08eeb3697a7af291e0d885febb062b0116fafe9c"
+      ],
+      "line_count": 64
+    },
+    {
+      "kind": "hook",
+      "name": "review_api.py",
+      "logical_id": "hook:review_api.py",
+      "canonical_path": "plugins/security-guidance/hooks/review_api.py",
+      "paths": [
+        "plugins/security-guidance/hooks/review_api.py"
+      ],
+      "description": "",
+      "content_hash": "0ee68d8d1e7b32abc49a03644c45aaec919bfe74",
+      "signature_hash": "ae77eaa19e993ae32cfef650996faa5ea6eb2aeb",
+      "variant_hashes": [
+        "0ee68d8d1e7b32abc49a03644c45aaec919bfe74"
+      ],
+      "line_count": 386
+    },
+    {
+      "kind": "hook",
+      "name": "security_reminder_hook.py",
+      "logical_id": "hook:security_reminder_hook.py",
+      "canonical_path": "plugins/security-guidance/hooks/security_reminder_hook.py",
+      "paths": [
+        "plugins/security-guidance/hooks/security_reminder_hook.py"
+      ],
+      "description": "",
+      "content_hash": "d940ab513ef2648ed9458a48abedd10e15160ebe",
+      "signature_hash": "079e2e9bd3a4990aee60286909dd4f314664226c",
+      "variant_hashes": [
+        "d940ab513ef2648ed9458a48abedd10e15160ebe"
+      ],
+      "line_count": 2325
+    },
+    {
+      "kind": "hook",
+      "name": "session_state.py",
+      "logical_id": "hook:session_state.py",
+      "canonical_path": "plugins/security-guidance/hooks/session_state.py",
+      "paths": [
+        "plugins/security-guidance/hooks/session_state.py"
+      ],
+      "description": "",
+      "content_hash": "477ca30e1f596e9ea27d15f4175173a951a0029c",
+      "signature_hash": "d472248f81eb9b81558a7433b899362fdf081cca",
+      "variant_hashes": [
+        "477ca30e1f596e9ea27d15f4175173a951a0029c"
+      ],
+      "line_count": 153
+    },
+    {
+      "kind": "hook",
+      "name": "sg-python.sh",
+      "logical_id": "hook:sg-python.sh",
+      "canonical_path": "plugins/security-guidance/hooks/sg-python.sh",
+      "paths": [
+        "plugins/security-guidance/hooks/sg-python.sh"
+      ],
+      "description": "",
+      "content_hash": "66003e9fda54c27e0ba07983faa6c9d570c84696",
+      "signature_hash": "c1e062eea2770991b21d94425d08cd52b4333c8c",
+      "variant_hashes": [
+        "66003e9fda54c27e0ba07983faa6c9d570c84696"
+      ],
+      "line_count": 122
+    },
+    {
+      "kind": "hook",
+      "name": "stop-hook.sh",
+      "logical_id": "hook:stop-hook.sh",
+      "canonical_path": "plugins/ralph-loop/hooks/stop-hook.sh",
+      "paths": [
+        "plugins/ralph-loop/hooks/stop-hook.sh"
+      ],
+      "description": "",
+      "content_hash": "ac55717a3036ba10d59b30269f1c83a13d3b6271",
+      "signature_hash": "0e64f845f4def6d3cc318e82318a3a95b0fc0748",
+      "variant_hashes": [
+        "ac55717a3036ba10d59b30269f1c83a13d3b6271"
+      ],
+      "line_count": 191
+    },
+    {
+      "kind": "hook",
+      "name": "stop.py",
+      "logical_id": "hook:stop.py",
+      "canonical_path": "plugins/hookify/hooks/stop.py",
+      "paths": [
+        "plugins/hookify/hooks/stop.py"
+      ],
+      "description": "",
+      "content_hash": "afaafd16f5e363a7262e64dad515269a4c57b11c",
+      "signature_hash": "e11fbf7ed5173cd4bb25a3871076701bb718a50e",
+      "variant_hashes": [
+        "afaafd16f5e363a7262e64dad515269a4c57b11c"
+      ],
+      "line_count": 53
+    },
+    {
+      "kind": "hook",
+      "name": "userpromptsubmit.py",
+      "logical_id": "hook:userpromptsubmit.py",
+      "canonical_path": "plugins/hookify/hooks/userpromptsubmit.py",
+      "paths": [
+        "plugins/hookify/hooks/userpromptsubmit.py"
+      ],
+      "description": "",
+      "content_hash": "b49932786e85a2b0f9730a7c098bdf8e3ac44fca",
+      "signature_hash": "6d57a7a8853c084d4171e31fb58db10cae32376d",
+      "variant_hashes": [
+        "b49932786e85a2b0f9730a7c098bdf8e3ac44fca"
+      ],
+      "line_count": 52
+    },
+    {
+      "kind": "mcp",
+      "name": "discord",
+      "logical_id": "mcp:discord",
+      "canonical_path": "external_plugins/discord/.mcp.json#discord",
+      "paths": [
+        "external_plugins/discord/.mcp.json#discord"
+      ],
+      "description": "bun",
+      "content_hash": "ff60dc204bd3d3c5fb1a0dfb69c05e6c7cb73164",
+      "signature_hash": "981c4a7ac05784d376165dc289d4c631aae9b042",
+      "variant_hashes": [
+        "ff60dc204bd3d3c5fb1a0dfb69c05e6c7cb73164"
+      ],
+      "line_count": 11
+    },
+    {
+      "kind": "mcp",
+      "name": "fakechat",
+      "logical_id": "mcp:fakechat",
+      "canonical_path": "external_plugins/fakechat/.mcp.json#fakechat",
+      "paths": [
+        "external_plugins/fakechat/.mcp.json#fakechat"
+      ],
+      "description": "bun",
+      "content_hash": "ff60dc204bd3d3c5fb1a0dfb69c05e6c7cb73164",
+      "signature_hash": "75e3b713cb5c84d5fa8651c44453405733dfa894",
+      "variant_hashes": [
+        "ff60dc204bd3d3c5fb1a0dfb69c05e6c7cb73164"
+      ],
+      "line_count": 11
+    },
+    {
+      "kind": "mcp",
+      "name": "imessage",
+      "logical_id": "mcp:imessage",
+      "canonical_path": "external_plugins/imessage/.mcp.json#imessage",
+      "paths": [
+        "external_plugins/imessage/.mcp.json#imessage"
+      ],
+      "description": "bun",
+      "content_hash": "ff60dc204bd3d3c5fb1a0dfb69c05e6c7cb73164",
+      "signature_hash": "d9a140480e69c1f8e3e43547c296c736bba4dd8c",
+      "variant_hashes": [
+        "ff60dc204bd3d3c5fb1a0dfb69c05e6c7cb73164"
+      ],
+      "line_count": 11
+    },
+    {
+      "kind": "mcp",
+      "name": "telegram",
+      "logical_id": "mcp:telegram",
+      "canonical_path": "external_plugins/telegram/.mcp.json#telegram",
+      "paths": [
+        "external_plugins/telegram/.mcp.json#telegram"
+      ],
+      "description": "bun",
+      "content_hash": "ff60dc204bd3d3c5fb1a0dfb69c05e6c7cb73164",
+      "signature_hash": "084bd8d5e27c24118c73f42b0d66e89738d0316a",
+      "variant_hashes": [
+        "ff60dc204bd3d3c5fb1a0dfb69c05e6c7cb73164"
+      ],
+      "line_count": 11
+    },
+    {
+      "kind": "plugin",
+      "name": ".claude-plugin",
+      "logical_id": "plugin:.claude-plugin",
+      "canonical_path": "plugins/agent-sdk-dev/.claude-plugin/plugin.json",
+      "paths": [
+        "external_plugins/asana/.claude-plugin/plugin.json",
+        "external_plugins/context7/.claude-plugin/plugin.json",
+        "external_plugins/discord/.claude-plugin/plugin.json",
+        "external_plugins/fakechat/.claude-plugin/plugin.json",
+        "external_plugins/firebase/.claude-plugin/plugin.json",
+        "external_plugins/github/.claude-plugin/plugin.json",
+        "external_plugins/gitlab/.claude-plugin/plugin.json",
+        "external_plugins/greptile/.claude-plugin/plugin.json",
+        "external_plugins/imessage/.claude-plugin/plugin.json",
+        "external_plugins/laravel-boost/.claude-plugin/plugin.json",
+        "external_plugins/linear/.claude-plugin/plugin.json",
+        "external_plugins/playwright/.claude-plugin/plugin.json",
+        "external_plugins/serena/.claude-plugin/plugin.json",
+        "external_plugins/telegram/.claude-plugin/plugin.json",
+        "external_plugins/terraform/.claude-plugin/plugin.json",
+        "plugins/agent-sdk-dev/.claude-plugin/plugin.json",
+        "plugins/claude-code-setup/.claude-plugin/plugin.json",
+        "plugins/claude-md-management/.claude-plugin/plugin.json",
+        "plugins/code-modernization/.claude-plugin/plugin.json",
+        "plugins/code-review/.claude-plugin/plugin.json",
+        "plugins/code-simplifier/.claude-plugin/plugin.json",
+        "plugins/commit-commands/.claude-plugin/plugin.json",
+        "plugins/cwc-makers/.claude-plugin/plugin.json",
+        "plugins/example-plugin/.claude-plugin/plugin.json",
+        "plugins/explanatory-output-style/.claude-plugin/plugin.json",
+        "plugins/feature-dev/.claude-plugin/plugin.json",
+        "plugins/frontend-design/.claude-plugin/plugin.json",
+        "plugins/hookify/.claude-plugin/plugin.json",
+        "plugins/learning-output-style/.claude-plugin/plugin.json",
+        "plugins/math-olympiad/.claude-plugin/plugin.json",
+        "plugins/mcp-server-dev/.claude-plugin/plugin.json",
+        "plugins/mcp-tunnels/.claude-plugin/plugin.json",
+        "plugins/playground/.claude-plugin/plugin.json",
+        "plugins/plugin-dev/.claude-plugin/plugin.json",
+        "plugins/pr-review-toolkit/.claude-plugin/plugin.json",
+        "plugins/project-artifact/.claude-plugin/plugin.json",
+        "plugins/ralph-loop/.claude-plugin/plugin.json",
+        "plugins/security-guidance/.claude-plugin/plugin.json",
+        "plugins/skill-creator/.claude-plugin/plugin.json"
+      ],
+      "description": "",
+      "content_hash": "15c613df11eee8cf3129099bdc98537da6fc512c",
+      "signature_hash": "b0ca4ec2c5c63c832604c38e93162ce03ffbbde9",
+      "variant_hashes": [
+        "0e3a6b99566aea7a9e586ebbe9068c6fb438b6f1",
+        "15c613df11eee8cf3129099bdc98537da6fc512c",
+        "187a0653b4cff522019b95ea13cb9dbd6e24c486",
+        "2dda31c545e3161121995e771b13e4aa953b3683",
+        "2ea94d7d0b9eec853b551f3d6a03ea95acd0af52",
+        "3a01768d8dd147ac9233a11c3c116cba1623fbda",
+        "3cd8d5a222a613abfc3f12c01ca06644beb38cf7",
+        "3d1d148dd1850c57d41807899856b3932773768a",
+        "4c30876c9b77b1a57341b24d410fdf4ed1e89c20",
+        "5415ea654e4821e23897bce1e83e368b0051b6e5",
+        "561d7fd91f6f5e7a31569a9e7adf6c9d703df5c4",
+        "5b9df050ac7e71a8c822c01b06ce1b83224ac274",
+        "5fb13731a5a9d57c9eedf39a9898adb187edaec7",
+        "6084d0e80102e744b97ee45b958bb0add3c55d82",
+        "62682c45a24227d9c5a03b2e61b41ec9c84ac43f",
+        "68ab31ae94db9dc40cca3b6e64b2bcc8b47cd862",
+        "733b7fc4e6a9413544cf6579f61f23b5cbba376b",
+        "74bb4c85b3559cd642496d1b9ea57bdf475cf6c3",
+        "78ff8022e20caf5e410353ac60f291118b43e12e",
+        "79552adaa1fc5986d99364bce6b24dd2526a05e6",
+        "799fe32898a43572369954aa3fb2f0148ac032fb",
+        "7d1216034542a71db1f39061648af0a45313ab6e",
+        "7f65b2e69830f16d9481e278618ff64187622bfb",
+        "8c779d620a725cbd492d3db5bdbdd0f0c69a8990",
+        "94487d2f798b701a80d52c512aede492742a9c64",
+        "b3aab665a8a152ec2fda5b21f70bbff1dc2c868f",
+        "b4133407cbdf514582b5c2492415bc689471d8c6",
+        "b539da9b44eb48488edb760556ba2b8d6610fabd",
+        "c2bdc23fab27bd4842321483fa791d85e6acc066",
+        "c862c96fd1704c449ea9c9b4929b525f12301f48",
+        "d081315629fbb90188d9a6cd24042e2259db3d3c",
+        "d43c7e95d124ada24ca31c7fb75fd8a1609b8402",
+        "d91891d7dea5f9dde9879eb26f787ffd7f880e62",
+        "da02fc1714e3217c49a29b6902d006809bca9b37",
+        "ed9d652ee30cadca81274e2a8ac92f7b63fed81d",
+        "f27e4d895f256521506aedf8c8725405024b2c87",
+        "f37e553efc626501cd616304bbda64bb86064745",
+        "f49c51b90ed1c6ab705ecd3f4a846658943a6e66",
+        "f704f66f2559e6c95d08602a5adfbc7ed0008ae4"
+      ],
+      "line_count": 8
+    },
+    {
+      "kind": "skill",
+      "name": "access",
+      "logical_id": "skill:access",
+      "canonical_path": "external_plugins/discord/skills/access/SKILL.md",
+      "paths": [
+        "external_plugins/discord/skills/access/SKILL.md",
+        "external_plugins/imessage/skills/access/SKILL.md",
+        "external_plugins/telegram/skills/access/SKILL.md"
+      ],
+      "description": "Manage Discord channel access \u2014 approve pairings, edit allowlists, set DM/group policy. Use when the user asks to pair, approve someone, check who's allowed, or change policy for the Discord channel.",
+      "content_hash": "aec8062119893931bde0c5b320095e54dc8d36d0",
+      "signature_hash": "8c4c9e3dddb5aedc829fdccf25d86ccd6a314d9a",
+      "variant_hashes": [
+        "9f20791902701d6b9659056c9ffdf6f353523cfc",
+        "aec8062119893931bde0c5b320095e54dc8d36d0",
+        "d1b2c16faa191341771d1fc3b544aa6ecc0124d9"
+      ],
+      "line_count": 137
+    },
+    {
+      "kind": "skill",
+      "name": "agent-development",
+      "logical_id": "skill:agent-development",
+      "canonical_path": "plugins/plugin-dev/skills/agent-development/SKILL.md",
+      "paths": [
+        "plugins/plugin-dev/skills/agent-development/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks to \"create an agent\", \"add an agent\", \"write a subagent\", \"agent frontmatter\", \"when to use description\", \"agent examples\", \"agent tools\", \"agent colors\", \"autonomous agent\", or needs guidance on agent structure, system prompts, triggering conditions, or agent development best practices for Claude Code plugins.",
+      "content_hash": "e8998e53c6789b732597797c4a2074165c716c80",
+      "signature_hash": "26ff423a7bfeb43fcd71e98a65fdc5ae0e5fe62b",
+      "variant_hashes": [
+        "e8998e53c6789b732597797c4a2074165c716c80"
+      ],
+      "line_count": 401
+    },
+    {
+      "kind": "skill",
+      "name": "build-mcp-app",
+      "logical_id": "skill:build-mcp-app",
+      "canonical_path": "plugins/mcp-server-dev/skills/build-mcp-app/SKILL.md",
+      "paths": [
+        "plugins/mcp-server-dev/skills/build-mcp-app/SKILL.md"
+      ],
+      "description": "This skill should be used when the user wants to build an \"MCP app\", add \"interactive UI\" or \"widgets\" to an MCP server, \"render components in chat\", build \"MCP UI resources\", make a tool that shows a \"form\", \"picker\", \"dashboard\" or \"confirmation dialog\" inline in the conversation, or mentions \"apps SDK\" in the context of MCP. Use AFTER the build-mcp-server skill has settled the deployment model, or when the user already knows they want UI widgets.",
+      "content_hash": "d66f9b04a2233d54d2a0d88b2dde42da60364470",
+      "signature_hash": "f959939b5f309c3e7dcd7c9dbd0c2b51f4d1b334",
+      "variant_hashes": [
+        "d66f9b04a2233d54d2a0d88b2dde42da60364470"
+      ],
+      "line_count": 392
+    },
+    {
+      "kind": "skill",
+      "name": "build-mcp-server",
+      "logical_id": "skill:build-mcp-server",
+      "canonical_path": "plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "paths": [
+        "plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks to \"build an MCP server\", \"create an MCP\", \"make an MCP integration\", \"wrap an API for Claude\", \"expose tools to Claude\", \"make an MCP app\", or discusses building something with the Model Context Protocol. It is the entry point for MCP server development \u2014 it interrogates the user about their use case, determines the right deployment model (remote HTTP, MCPB, local stdio), picks a tool-design pattern, and hands off to specialized skills.",
+      "content_hash": "45791cdfb5c069441fb087032e586177a1944138",
+      "signature_hash": "5c7544e0f43b8d50a7dcedcdafb02302e89440b6",
+      "variant_hashes": [
+        "45791cdfb5c069441fb087032e586177a1944138"
+      ],
+      "line_count": 221
+    },
+    {
+      "kind": "skill",
+      "name": "build-mcpb",
+      "logical_id": "skill:build-mcpb",
+      "canonical_path": "plugins/mcp-server-dev/skills/build-mcpb/SKILL.md",
+      "paths": [
+        "plugins/mcp-server-dev/skills/build-mcpb/SKILL.md"
+      ],
+      "description": "This skill should be used when the user wants to \"package an MCP server\", \"bundle an MCP\", \"make an MCPB\", \"ship a local MCP server\", \"distribute a local MCP\", discusses \".mcpb files\", mentions bundling a Node or Python runtime with their MCP server, or needs an MCP server that interacts with the local filesystem, desktop apps, or OS and must be installable without the user having Node/Python set up.",
+      "content_hash": "96a999bce4af28d303b21ed64c5e43672951311b",
+      "signature_hash": "1e2bf9f1f27166e0b037ae2b6f1070b02e274f99",
+      "variant_hashes": [
+        "96a999bce4af28d303b21ed64c5e43672951311b"
+      ],
+      "line_count": 199
+    },
+    {
+      "kind": "skill",
+      "name": "cardputer-buddy",
+      "logical_id": "skill:cardputer-buddy",
+      "canonical_path": "plugins/cwc-makers/skills/cardputer-buddy/SKILL.md",
+      "paths": [
+        "plugins/cwc-makers/skills/cardputer-buddy/SKILL.md"
+      ],
+      "description": "Iterate on the Cardputer-Adv MicroPython app bundle (Claude Buddy, Snake, Hello) after the device is already provisioned via m5-onboard. Use when the user wants to add a new app, push a single changed .py without re-flashing, watch device serial logs, or run a one-shot REPL command. Trigger on \"add an app\", \"push to the cardputer\", \"tail the device\", \"run on the device\", or follow-up work after /maker-setup.",
+      "content_hash": "a85c4653c0bd85fcfdf9f421924f73bbacba34b9",
+      "signature_hash": "cc22ab37a00cd4dcfd2a875610de064ba80e853d",
+      "variant_hashes": [
+        "a85c4653c0bd85fcfdf9f421924f73bbacba34b9"
+      ],
+      "line_count": 46
+    },
+    {
+      "kind": "skill",
+      "name": "claude-automation-recommender",
+      "logical_id": "skill:claude-automation-recommender",
+      "canonical_path": "plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md",
+      "paths": [
+        "plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md"
+      ],
+      "description": "Analyze a codebase and recommend Claude Code automations (hooks, subagents, skills, plugins, MCP servers). Use when user asks for automation recommendations, wants to optimize their Claude Code setup, mentions improving Claude Code workflows, asks how to first set up Claude Code for a project, or wants to know what Claude Code features they should use.",
+      "content_hash": "7e64b26465b5e06b5f264d2341d90d0e5e0b2d42",
+      "signature_hash": "bad1e84bb25a86c21d492a309ee9b3d22efd0f47",
+      "variant_hashes": [
+        "7e64b26465b5e06b5f264d2341d90d0e5e0b2d42"
+      ],
+      "line_count": 289
+    },
+    {
+      "kind": "skill",
+      "name": "claude-md-improver",
+      "logical_id": "skill:claude-md-improver",
+      "canonical_path": "plugins/claude-md-management/skills/claude-md-improver/SKILL.md",
+      "paths": [
+        "plugins/claude-md-management/skills/claude-md-improver/SKILL.md"
+      ],
+      "description": "Audit and improve CLAUDE.md files in repositories. Use when user asks to check, audit, update, improve, or fix CLAUDE.md files. Scans for all CLAUDE.md files, evaluates quality against templates, outputs quality report, then makes targeted updates. Also use when the user mentions \"CLAUDE.md maintenance\" or \"project memory optimization\".",
+      "content_hash": "159624e19a0384ad157c6983e8e4ca8c3a5d1e45",
+      "signature_hash": "1f9cbe8dfc022c0b00f761a7aa008cb2c26d1835",
+      "variant_hashes": [
+        "159624e19a0384ad157c6983e8e4ca8c3a5d1e45"
+      ],
+      "line_count": 179
+    },
+    {
+      "kind": "skill",
+      "name": "command-development",
+      "logical_id": "skill:command-development",
+      "canonical_path": "plugins/plugin-dev/skills/command-development/SKILL.md",
+      "paths": [
+        "plugins/plugin-dev/skills/command-development/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks to \"create a slash command\", \"add a command\", \"write a custom command\", \"define command arguments\", \"use command frontmatter\", \"organize commands\", \"create command with file references\", \"interactive command\", \"use AskUserQuestion in command\", or needs guidance on slash command structure, YAML frontmatter fields, dynamic arguments, bash execution in commands, user interaction patterns, or command development best practices for Claude Code.",
+      "content_hash": "bfa93e25559419009c67aa17d54a78255b78e768",
+      "signature_hash": "59fc59d818a451a15345f9ca2da982388b0a727f",
+      "variant_hashes": [
+        "bfa93e25559419009c67aa17d54a78255b78e768"
+      ],
+      "line_count": 884
+    },
+    {
+      "kind": "skill",
+      "name": "configure",
+      "logical_id": "skill:configure",
+      "canonical_path": "external_plugins/discord/skills/configure/SKILL.md",
+      "paths": [
+        "external_plugins/discord/skills/configure/SKILL.md",
+        "external_plugins/imessage/skills/configure/SKILL.md",
+        "external_plugins/telegram/skills/configure/SKILL.md"
+      ],
+      "description": "Set up the Discord channel \u2014 save the bot token and review access policy. Use when the user pastes a Discord bot token, asks to configure Discord, asks \"how do I set this up\" or \"who can reach me,\" or wants to check channel status.",
+      "content_hash": "b401122bd4800b5d8c3168a446fd2b724a1fe2b4",
+      "signature_hash": "751bc38521d151ca78e359bb805e539aa1329203",
+      "variant_hashes": [
+        "a93047a1c719f9218cf36eaa084ab57ffe662263",
+        "b401122bd4800b5d8c3168a446fd2b724a1fe2b4",
+        "e28cde7ebcde6b541827dffbf0d46a77d78dec3d"
+      ],
+      "line_count": 99
+    },
+    {
+      "kind": "skill",
+      "name": "example-command",
+      "logical_id": "skill:example-command",
+      "canonical_path": "plugins/example-plugin/skills/example-command/SKILL.md",
+      "paths": [
+        "plugins/example-plugin/skills/example-command/SKILL.md"
+      ],
+      "description": "An example user-invoked skill that demonstrates frontmatter options and the skills/<name>/SKILL.md layout",
+      "content_hash": "c644e984feb3bd6e043eb6fe758a989650b19a90",
+      "signature_hash": "8a7fa58ded9b2d52f26829a7db88866c96f33d7c",
+      "variant_hashes": [
+        "c644e984feb3bd6e043eb6fe758a989650b19a90"
+      ],
+      "line_count": 39
+    },
+    {
+      "kind": "skill",
+      "name": "example-skill",
+      "logical_id": "skill:example-skill",
+      "canonical_path": "plugins/example-plugin/skills/example-skill/SKILL.md",
+      "paths": [
+        "plugins/example-plugin/skills/example-skill/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks to \"demonstrate skills\", \"show skill format\", \"create a skill template\", or discusses skill development patterns. Provides a reference template for creating Claude Code plugin skills.",
+      "content_hash": "afea9f68bd8edc0a4c9afed674ccf9523d82eaa9",
+      "signature_hash": "31b590e031c27e3113a3a7f1e866edde8a2f1530",
+      "variant_hashes": [
+        "afea9f68bd8edc0a4c9afed674ccf9523d82eaa9"
+      ],
+      "line_count": 84
+    },
+    {
+      "kind": "skill",
+      "name": "frontend-design",
+      "logical_id": "skill:frontend-design",
+      "canonical_path": "plugins/frontend-design/skills/frontend-design/SKILL.md",
+      "paths": [
+        "plugins/frontend-design/skills/frontend-design/SKILL.md"
+      ],
+      "description": "Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.",
+      "content_hash": "e4971c4ff27b7c8bce86a1c872462258e79b5658",
+      "signature_hash": "2dabe0ccc18851ea6f7faa1480cfbb5303dd662a",
+      "variant_hashes": [
+        "e4971c4ff27b7c8bce86a1c872462258e79b5658"
+      ],
+      "line_count": 55
+    },
+    {
+      "kind": "skill",
+      "name": "hook-development",
+      "logical_id": "skill:hook-development",
+      "canonical_path": "plugins/plugin-dev/skills/hook-development/SKILL.md",
+      "paths": [
+        "plugins/plugin-dev/skills/hook-development/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks to \"create a hook\", \"add a PreToolUse/PostToolUse/Stop hook\", \"validate tool use\", \"implement prompt-based hooks\", \"use ${CLAUDE_PLUGIN_ROOT}\", \"set up event-driven automation\", \"block dangerous commands\", or mentions hook events (PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, UserPromptSubmit, PreCompact, Notification). Provides comprehensive guidance for creating and implementing Claude Code plugin hooks with focus on advanced prompt-based hooks API.",
+      "content_hash": "834effaaa8ae1088a169266fb1917be625c7722e",
+      "signature_hash": "41a1f615c1fa566ab9b1843a424578178efc949f",
+      "variant_hashes": [
+        "834effaaa8ae1088a169266fb1917be625c7722e"
+      ],
+      "line_count": 712
+    },
+    {
+      "kind": "skill",
+      "name": "m5-onboard",
+      "logical_id": "skill:m5-onboard",
+      "canonical_path": "plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "paths": [
+        "plugins/cwc-makers/skills/m5-onboard/SKILL.md"
+      ],
+      "description": "End-to-end onboarding for a freshly-plugged-in M5Stack ESP32 device (Cardputer, Cardputer-Adv, Core, CoreS3, Stick) \u2014 detect on USB, flash UIFlow 2.0 firmware, and install the Claude Buddy MicroPython app bundle. Use whenever the user plugs in or wants to flash/provision/reset an M5Stack or ESP32 board, or says \"m5-onboard go\".",
+      "content_hash": "422dc101a3dd1871a9942c3905e5a4cff9df4c37",
+      "signature_hash": "32ee52ade0709f2094ac583746bec03059aa78d7",
+      "variant_hashes": [
+        "422dc101a3dd1871a9942c3905e5a4cff9df4c37"
+      ],
+      "line_count": 184
+    },
+    {
+      "kind": "skill",
+      "name": "math-olympiad",
+      "logical_id": "skill:math-olympiad",
+      "canonical_path": "plugins/math-olympiad/skills/math-olympiad/SKILL.md",
+      "paths": [
+        "plugins/math-olympiad/skills/math-olympiad/SKILL.md"
+      ],
+      "description": "",
+      "content_hash": "3194b4eb541a59137756fdcaca21aba745f08cf4",
+      "signature_hash": "67e6fcd9de2c2953ec42b99651db1fa4a50d3dae",
+      "variant_hashes": [
+        "3194b4eb541a59137756fdcaca21aba745f08cf4"
+      ],
+      "line_count": 411
+    },
+    {
+      "kind": "skill",
+      "name": "mcp-integration",
+      "logical_id": "skill:mcp-integration",
+      "canonical_path": "plugins/plugin-dev/skills/mcp-integration/SKILL.md",
+      "paths": [
+        "plugins/plugin-dev/skills/mcp-integration/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks to \"add MCP server\", \"integrate MCP\", \"configure MCP in plugin\", \"use .mcp.json\", \"set up Model Context Protocol\", \"connect external service\", mentions \"${CLAUDE_PLUGIN_ROOT} with MCP\", or discusses MCP server types (SSE, stdio, HTTP, WebSocket). Provides comprehensive guidance for integrating Model Context Protocol servers into Claude Code plugins for external tool and service integration.",
+      "content_hash": "59348ebaaa047b0686c1120176924944176688b2",
+      "signature_hash": "6e418875aa2e97bbcc280e389f94ff85abfcd13a",
+      "variant_hashes": [
+        "59348ebaaa047b0686c1120176924944176688b2"
+      ],
+      "line_count": 554
+    },
+    {
+      "kind": "skill",
+      "name": "playground",
+      "logical_id": "skill:playground",
+      "canonical_path": "plugins/playground/skills/playground/SKILL.md",
+      "paths": [
+        "plugins/playground/skills/playground/SKILL.md"
+      ],
+      "description": "Creates interactive HTML playgrounds \u2014 self-contained single-file explorers that let users configure something visually through controls, see a live preview, and copy out a prompt. Use when the user asks to make a playground, explorer, or interactive tool for a topic.",
+      "content_hash": "d2917333c61e09c3f0ea8be3187b719704ef41a6",
+      "signature_hash": "1a235eef5d07e3a70a5d6c970618acabc848a20d",
+      "variant_hashes": [
+        "d2917333c61e09c3f0ea8be3187b719704ef41a6"
+      ],
+      "line_count": 76
+    },
+    {
+      "kind": "skill",
+      "name": "plugin-settings",
+      "logical_id": "skill:plugin-settings",
+      "canonical_path": "plugins/plugin-dev/skills/plugin-settings/SKILL.md",
+      "paths": [
+        "plugins/plugin-dev/skills/plugin-settings/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks about \"plugin settings\", \"store plugin configuration\", \"user-configurable plugin\", \".local.md files\", \"plugin state files\", \"read YAML frontmatter\", \"per-project plugin settings\", or wants to make plugin behavior configurable. Documents the .claude/plugin-name.local.md pattern for storing plugin-specific configuration with YAML frontmatter and markdown content.",
+      "content_hash": "2fda9b9bc46d7766e913fd61a4cb3f19d61011ab",
+      "signature_hash": "08ce74773c86d77f550f8c00e33b44280c52dddc",
+      "variant_hashes": [
+        "2fda9b9bc46d7766e913fd61a4cb3f19d61011ab"
+      ],
+      "line_count": 544
+    },
+    {
+      "kind": "skill",
+      "name": "plugin-structure",
+      "logical_id": "skill:plugin-structure",
+      "canonical_path": "plugins/plugin-dev/skills/plugin-structure/SKILL.md",
+      "paths": [
+        "plugins/plugin-dev/skills/plugin-structure/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks to \"create a plugin\", \"scaffold a plugin\", \"understand plugin structure\", \"organize plugin components\", \"set up plugin.json\", \"use ${CLAUDE_PLUGIN_ROOT}\", \"add commands/agents/skills/hooks\", \"configure auto-discovery\", or needs guidance on plugin directory layout, manifest configuration, component organization, file naming conventions, or Claude Code plugin architecture best practices.",
+      "content_hash": "85d3dd9e2419424ed220e0cfa5da0b04f807d059",
+      "signature_hash": "ae61b69dab96b3395559ad51e6e3fa1703a1debf",
+      "variant_hashes": [
+        "85d3dd9e2419424ed220e0cfa5da0b04f807d059"
+      ],
+      "line_count": 476
+    },
+    {
+      "kind": "skill",
+      "name": "project-artifact",
+      "logical_id": "skill:project-artifact",
+      "canonical_path": "plugins/project-artifact/skills/project-artifact/SKILL.md",
+      "paths": [
+        "plugins/project-artifact/skills/project-artifact/SKILL.md"
+      ],
+      "description": "Generate and publish a project status artifact \u2014 an opinionated, tabbed status page for a project too big for one update (overview & success criteria, the workstream sequence, next steps, plus background, plan, risks & open questions, and decisions/FAQ when they earn a tab) \u2014 published with the built-in Artifact tool to a default-private claude.ai page the user can share with teammates. Use when a piece of work spans several workstreams and you want a shareable overview kept current. Each artifact is backed by a small per-project config in the plugin data dir, so refreshing it re-gathers live state, redeploys the same URL, and reports only the delta. For software projects whose workstreams are PRs, also read swe.md (the X.Y PR-numbering convention; pulling PR state with gh/git; a per-PR detail block). Needs the built-in Artifact tool (claude.ai login). Not for single-PR changes or public docs.",
+      "content_hash": "fc9f3ea643c83312965a38ebfc9ef3f29f49ff39",
+      "signature_hash": "5d973a8f63f0d466354e1b8f2ff46934a7d7624b",
+      "variant_hashes": [
+        "fc9f3ea643c83312965a38ebfc9ef3f29f49ff39"
+      ],
+      "line_count": 255
+    },
+    {
+      "kind": "skill",
+      "name": "session-report",
+      "logical_id": "skill:session-report",
+      "canonical_path": "plugins/session-report/skills/session-report/SKILL.md",
+      "paths": [
+        "plugins/session-report/skills/session-report/SKILL.md"
+      ],
+      "description": "Generate an explorable HTML report of Claude Code session usage (tokens, cache, subagents, skills, expensive prompts) from ~/.claude/projects transcripts.",
+      "content_hash": "786892c24d60226bf51d68c9ff0baa1eaefb3728",
+      "signature_hash": "e4df4b241b2e5f5a99f3b2be7157d646ca10e14f",
+      "variant_hashes": [
+        "786892c24d60226bf51d68c9ff0baa1eaefb3728"
+      ],
+      "line_count": 42
+    },
+    {
+      "kind": "skill",
+      "name": "skill-creator",
+      "logical_id": "skill:skill-creator",
+      "canonical_path": "plugins/skill-creator/skills/skill-creator/SKILL.md",
+      "paths": [
+        "plugins/skill-creator/skills/skill-creator/SKILL.md"
+      ],
+      "description": "Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.",
+      "content_hash": "17e4755b392824bc348d4211f45de9e734ee9412",
+      "signature_hash": "80449aff2218167b27dd960e6ce694d01fa04fc1",
+      "variant_hashes": [
+        "17e4755b392824bc348d4211f45de9e734ee9412"
+      ],
+      "line_count": 485
+    },
+    {
+      "kind": "skill",
+      "name": "skill-development",
+      "logical_id": "skill:skill-development",
+      "canonical_path": "plugins/plugin-dev/skills/skill-development/SKILL.md",
+      "paths": [
+        "plugins/plugin-dev/skills/skill-development/SKILL.md"
+      ],
+      "description": "This skill should be used when the user wants to \"create a skill\", \"add a skill to plugin\", \"write a new skill\", \"improve skill description\", \"organize skill content\", or needs guidance on skill structure, progressive disclosure, or skill development best practices for Claude Code plugins.",
+      "content_hash": "0cb9072534764eb9178e3c69082b422657471bd2",
+      "signature_hash": "6bf16e694979a7a81d28ba5b42f489b32054f98b",
+      "variant_hashes": [
+        "0cb9072534764eb9178e3c69082b422657471bd2"
+      ],
+      "line_count": 637
+    },
+    {
+      "kind": "skill",
+      "name": "writing-hookify-rules",
+      "logical_id": "skill:writing-hookify-rules",
+      "canonical_path": "plugins/hookify/skills/writing-rules/SKILL.md",
+      "paths": [
+        "plugins/hookify/skills/writing-rules/SKILL.md"
+      ],
+      "description": "This skill should be used when the user asks to \"create a hookify rule\", \"write a hook rule\", \"configure hookify\", \"add a hookify rule\", or needs guidance on hookify rule syntax and patterns.",
+      "content_hash": "c859d0387e4391849acf861ddf09d98e931713f2",
+      "signature_hash": "fbffb5696ba117f81a720d5321f4741a108a1d68",
+      "variant_hashes": [
+        "c859d0387e4391849acf861ddf09d98e931713f2"
+      ],
+      "line_count": 374
+    }
+  ]
+}

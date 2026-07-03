@@ -1,0 +1,596 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "mattpocock_skills",
+  "source": "working-tree",
+  "source_commit": "8370e760d0251a3738e006aeacec6d1cb31dd208",
+  "physical_scanned": 83,
+  "excluded": 3,
+  "counts": {
+    "plugin": {
+      "physical": 1,
+      "logical": 1
+    },
+    "skill": {
+      "physical": 35,
+      "logical": 35
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "plugin",
+      "name": ".claude-plugin",
+      "logical_id": "plugin:.claude-plugin",
+      "canonical_path": ".claude-plugin/plugin.json",
+      "paths": [
+        ".claude-plugin/plugin.json"
+      ],
+      "description": "",
+      "content_hash": "56278840818787b9a9a0d5758805dbabb50856db",
+      "signature_hash": "b0ca4ec2c5c63c832604c38e93162ce03ffbbde9",
+      "variant_hashes": [
+        "56278840818787b9a9a0d5758805dbabb50856db"
+      ],
+      "line_count": 22
+    },
+    {
+      "kind": "skill",
+      "name": "ask-matt",
+      "logical_id": "skill:ask-matt",
+      "canonical_path": "skills/engineering/ask-matt/SKILL.md",
+      "paths": [
+        "skills/engineering/ask-matt/SKILL.md"
+      ],
+      "description": "Ask which skill or flow fits your situation. A router over the user-invoked skills in this repo.",
+      "content_hash": "88cdf10b56bb40fbf17d6d4e4f2e0dae2126d9a7",
+      "signature_hash": "79f7f8189a92892fad3b8387f8791eed69d66d19",
+      "variant_hashes": [
+        "88cdf10b56bb40fbf17d6d4e4f2e0dae2126d9a7"
+      ],
+      "line_count": 61
+    },
+    {
+      "kind": "skill",
+      "name": "codebase-design",
+      "logical_id": "skill:codebase-design",
+      "canonical_path": "skills/engineering/codebase-design/SKILL.md",
+      "paths": [
+        "skills/engineering/codebase-design/SKILL.md"
+      ],
+      "description": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.",
+      "content_hash": "5810b0cd4c7957df3bdc5d28fd437a2dff4470e3",
+      "signature_hash": "7193c8d0c2e8b9075151176f3cbf75877bf5aeec",
+      "variant_hashes": [
+        "5810b0cd4c7957df3bdc5d28fd437a2dff4470e3"
+      ],
+      "line_count": 114
+    },
+    {
+      "kind": "skill",
+      "name": "decision-mapping",
+      "logical_id": "skill:decision-mapping",
+      "canonical_path": "skills/in-progress/decision-mapping/SKILL.md",
+      "paths": [
+        "skills/in-progress/decision-mapping/SKILL.md"
+      ],
+      "description": "Turn a loose idea into a sequenced map of investigation tickets, then drive them to resolution one at a time.",
+      "content_hash": "846e8509f656adee303a5ea514a6830af4a962d6",
+      "signature_hash": "e2ef6495a6e477e9e4a752e88d5f8fa358aa5591",
+      "variant_hashes": [
+        "846e8509f656adee303a5ea514a6830af4a962d6"
+      ],
+      "line_count": 84
+    },
+    {
+      "kind": "skill",
+      "name": "design-an-interface",
+      "logical_id": "skill:design-an-interface",
+      "canonical_path": "skills/deprecated/design-an-interface/SKILL.md",
+      "paths": [
+        "skills/deprecated/design-an-interface/SKILL.md"
+      ],
+      "description": "Generate multiple radically different interface designs for a module using parallel sub-agents. Use when user wants to design an API, explore interface options, compare module shapes, or mentions \"design it twice\".",
+      "content_hash": "5630cbda3fc2d51dd5294d6919219a0886293e8b",
+      "signature_hash": "143cee1e06368c9dce532d6d1a3a543628b4ee84",
+      "variant_hashes": [
+        "5630cbda3fc2d51dd5294d6919219a0886293e8b"
+      ],
+      "line_count": 94
+    },
+    {
+      "kind": "skill",
+      "name": "diagnosing-bugs",
+      "logical_id": "skill:diagnosing-bugs",
+      "canonical_path": "skills/engineering/diagnosing-bugs/SKILL.md",
+      "paths": [
+        "skills/engineering/diagnosing-bugs/SKILL.md"
+      ],
+      "description": "Diagnosis loop for hard bugs and performance regressions. Use when the user says \"diagnose\"/\"debug this\", or reports something broken/throwing/failing/slow.",
+      "content_hash": "f8d71fd3589ae5edcbfe96d4f3b9b5dd2583d28d",
+      "signature_hash": "48d0b153ec2478d00b37187292a94765316d3f24",
+      "variant_hashes": [
+        "f8d71fd3589ae5edcbfe96d4f3b9b5dd2583d28d"
+      ],
+      "line_count": 134
+    },
+    {
+      "kind": "skill",
+      "name": "domain-modeling",
+      "logical_id": "skill:domain-modeling",
+      "canonical_path": "skills/engineering/domain-modeling/SKILL.md",
+      "paths": [
+        "skills/engineering/domain-modeling/SKILL.md"
+      ],
+      "description": "Build and sharpen a project's domain model. Use when the user wants to pin down domain terminology or a ubiquitous language, record an architectural decision, or when another skill needs to maintain the domain model.",
+      "content_hash": "4391357e14a2c46108bcc0bf40eca96041fab034",
+      "signature_hash": "d5c6528d4e5fe449801aa26a1fcfc87aaf437a0b",
+      "variant_hashes": [
+        "4391357e14a2c46108bcc0bf40eca96041fab034"
+      ],
+      "line_count": 74
+    },
+    {
+      "kind": "skill",
+      "name": "edit-article",
+      "logical_id": "skill:edit-article",
+      "canonical_path": "skills/personal/edit-article/SKILL.md",
+      "paths": [
+        "skills/personal/edit-article/SKILL.md"
+      ],
+      "description": "Edit and improve articles by restructuring sections, improving clarity, and tightening prose. Use when user wants to edit, revise, or improve an article draft.",
+      "content_hash": "65ab21b480373721557c9f7e81d83aa7386fc194",
+      "signature_hash": "b980587571570c5ecbe6fc4e023d864b5ba6c4d7",
+      "variant_hashes": [
+        "65ab21b480373721557c9f7e81d83aa7386fc194"
+      ],
+      "line_count": 15
+    },
+    {
+      "kind": "skill",
+      "name": "git-guardrails-claude-code",
+      "logical_id": "skill:git-guardrails-claude-code",
+      "canonical_path": "skills/misc/git-guardrails-claude-code/SKILL.md",
+      "paths": [
+        "skills/misc/git-guardrails-claude-code/SKILL.md"
+      ],
+      "description": "Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code.",
+      "content_hash": "c0f340fe19ac9f234018642c89a381f91c29a47b",
+      "signature_hash": "0537d00ef03ffb6245c7522de3e2a9c077c4a65f",
+      "variant_hashes": [
+        "c0f340fe19ac9f234018642c89a381f91c29a47b"
+      ],
+      "line_count": 95
+    },
+    {
+      "kind": "skill",
+      "name": "grill-me",
+      "logical_id": "skill:grill-me",
+      "canonical_path": "skills/productivity/grill-me/SKILL.md",
+      "paths": [
+        "skills/productivity/grill-me/SKILL.md"
+      ],
+      "description": "A relentless interview to sharpen a plan or design.",
+      "content_hash": "0cf459cdf5314375fc9cb64ae9bf206d38cd3f80",
+      "signature_hash": "f1d0d1ab54825c150601379ef892b6d5fc235b60",
+      "variant_hashes": [
+        "0cf459cdf5314375fc9cb64ae9bf206d38cd3f80"
+      ],
+      "line_count": 7
+    },
+    {
+      "kind": "skill",
+      "name": "grill-with-docs",
+      "logical_id": "skill:grill-with-docs",
+      "canonical_path": "skills/engineering/grill-with-docs/SKILL.md",
+      "paths": [
+        "skills/engineering/grill-with-docs/SKILL.md"
+      ],
+      "description": "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.",
+      "content_hash": "893c1f8c9aaf1110645e755f6b9fc5b99ceef9ce",
+      "signature_hash": "353c0d66906131031b8fe0b79879482767c9d131",
+      "variant_hashes": [
+        "893c1f8c9aaf1110645e755f6b9fc5b99ceef9ce"
+      ],
+      "line_count": 7
+    },
+    {
+      "kind": "skill",
+      "name": "grilling",
+      "logical_id": "skill:grilling",
+      "canonical_path": "skills/productivity/grilling/SKILL.md",
+      "paths": [
+        "skills/productivity/grilling/SKILL.md"
+      ],
+      "description": "Interview the user relentlessly about a plan or design. Use when the user wants to stress-test a plan before building, or uses any 'grill' trigger phrases.",
+      "content_hash": "ced7b34b752f67c392da09107afce725886358b1",
+      "signature_hash": "3b1b7d01a3d6a3bc7d4715db7420522fd9a78ca9",
+      "variant_hashes": [
+        "ced7b34b752f67c392da09107afce725886358b1"
+      ],
+      "line_count": 10
+    },
+    {
+      "kind": "skill",
+      "name": "handoff",
+      "logical_id": "skill:handoff",
+      "canonical_path": "skills/productivity/handoff/SKILL.md",
+      "paths": [
+        "skills/productivity/handoff/SKILL.md"
+      ],
+      "description": "Compact the current conversation into a handoff document for another agent to pick up.",
+      "content_hash": "037de3ef78a4504d46e94740af16daa19a766f77",
+      "signature_hash": "ed526cf39da5f1f2710585eba4564428e0fc2df9",
+      "variant_hashes": [
+        "037de3ef78a4504d46e94740af16daa19a766f77"
+      ],
+      "line_count": 16
+    },
+    {
+      "kind": "skill",
+      "name": "implement",
+      "logical_id": "skill:implement",
+      "canonical_path": "skills/engineering/implement/SKILL.md",
+      "paths": [
+        "skills/engineering/implement/SKILL.md"
+      ],
+      "description": "Implement a piece of work based on a PRD or set of issues.",
+      "content_hash": "cf97b0697314549a4df5df7f85771466ebe364a2",
+      "signature_hash": "3fe200a57e2ee55383446c2da7b8b74798f00985",
+      "variant_hashes": [
+        "cf97b0697314549a4df5df7f85771466ebe364a2"
+      ],
+      "line_count": 15
+    },
+    {
+      "kind": "skill",
+      "name": "improve-codebase-architecture",
+      "logical_id": "skill:improve-codebase-architecture",
+      "canonical_path": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "paths": [
+        "skills/engineering/improve-codebase-architecture/SKILL.md"
+      ],
+      "description": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
+      "content_hash": "0d188d12fe1d10ec86485b3ca123a1ff5f2b169a",
+      "signature_hash": "02370d837e2b43b61ac097223e5c38858a0e7263",
+      "variant_hashes": [
+        "0d188d12fe1d10ec86485b3ca123a1ff5f2b169a"
+      ],
+      "line_count": 66
+    },
+    {
+      "kind": "skill",
+      "name": "loop-me",
+      "logical_id": "skill:loop-me",
+      "canonical_path": "skills/in-progress/loop-me/SKILL.md",
+      "paths": [
+        "skills/in-progress/loop-me/SKILL.md"
+      ],
+      "description": "Grill me about specs for the workflows I want to build, within this workspace.",
+      "content_hash": "29b19689d9d798bff97020d79a3205f525e8c833",
+      "signature_hash": "be6b0abfb4fcb75f771cc18a2c9538e56127fa6d",
+      "variant_hashes": [
+        "29b19689d9d798bff97020d79a3205f525e8c833"
+      ],
+      "line_count": 32
+    },
+    {
+      "kind": "skill",
+      "name": "migrate-to-shoehorn",
+      "logical_id": "skill:migrate-to-shoehorn",
+      "canonical_path": "skills/misc/migrate-to-shoehorn/SKILL.md",
+      "paths": [
+        "skills/misc/migrate-to-shoehorn/SKILL.md"
+      ],
+      "description": "Migrate test files from `as` type assertions to @total-typescript/shoehorn. Use when user mentions shoehorn, wants to replace `as` in tests, or needs partial test data.",
+      "content_hash": "db83aeb721630b9797bc1f874e058d66fc8aac25",
+      "signature_hash": "1b80c957a9fc92c4d9509c20b5998afad3ceec92",
+      "variant_hashes": [
+        "db83aeb721630b9797bc1f874e058d66fc8aac25"
+      ],
+      "line_count": 118
+    },
+    {
+      "kind": "skill",
+      "name": "obsidian-vault",
+      "logical_id": "skill:obsidian-vault",
+      "canonical_path": "skills/personal/obsidian-vault/SKILL.md",
+      "paths": [
+        "skills/personal/obsidian-vault/SKILL.md"
+      ],
+      "description": "Search, create, and manage notes in the Obsidian vault with wikilinks and index notes. Use when user wants to find, create, or organize notes in Obsidian.",
+      "content_hash": "6ad4c2fa3c0c71e8960ae9f74ceeaceda20cf4bd",
+      "signature_hash": "ce9198cda84c6de65aee141c6e14df76c628898f",
+      "variant_hashes": [
+        "6ad4c2fa3c0c71e8960ae9f74ceeaceda20cf4bd"
+      ],
+      "line_count": 59
+    },
+    {
+      "kind": "skill",
+      "name": "prototype",
+      "logical_id": "skill:prototype",
+      "canonical_path": "skills/engineering/prototype/SKILL.md",
+      "paths": [
+        "skills/engineering/prototype/SKILL.md"
+      ],
+      "description": "Build a throwaway prototype to flesh out a design \u2014 a runnable terminal app for state/business-logic questions, or several radically different UI variations toggleable from one route.",
+      "content_hash": "ddb02a9fc8756318698d48a1dbc8e7e14b72e462",
+      "signature_hash": "19f6d8879722c277fe867ea7afc3ec75fb50befc",
+      "variant_hashes": [
+        "ddb02a9fc8756318698d48a1dbc8e7e14b72e462"
+      ],
+      "line_count": 31
+    },
+    {
+      "kind": "skill",
+      "name": "qa",
+      "logical_id": "skill:qa",
+      "canonical_path": "skills/deprecated/qa/SKILL.md",
+      "paths": [
+        "skills/deprecated/qa/SKILL.md"
+      ],
+      "description": "Interactive QA session where user reports bugs or issues conversationally, and the agent files GitHub issues. Explores the codebase in the background for context and domain language. Use when user wants to report bugs, do QA, file issues conversationally, or mentions \"QA session\".",
+      "content_hash": "b50f92a96391bfdfc4d6716fc0fa00d33069c349",
+      "signature_hash": "3423135178fd9aae40efe7beff48da96596a96b0",
+      "variant_hashes": [
+        "b50f92a96391bfdfc4d6716fc0fa00d33069c349"
+      ],
+      "line_count": 130
+    },
+    {
+      "kind": "skill",
+      "name": "request-refactor-plan",
+      "logical_id": "skill:request-refactor-plan",
+      "canonical_path": "skills/deprecated/request-refactor-plan/SKILL.md",
+      "paths": [
+        "skills/deprecated/request-refactor-plan/SKILL.md"
+      ],
+      "description": "Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when user wants to plan a refactor, create a refactoring RFC, or break a refactor into safe incremental steps.",
+      "content_hash": "548c7323e5772e023c40cde31535980fe5dfaa6b",
+      "signature_hash": "15e82dbdaa07ba67d7e08872d54669f9317720a1",
+      "variant_hashes": [
+        "548c7323e5772e023c40cde31535980fe5dfaa6b"
+      ],
+      "line_count": 68
+    },
+    {
+      "kind": "skill",
+      "name": "resolving-merge-conflicts",
+      "logical_id": "skill:resolving-merge-conflicts",
+      "canonical_path": "skills/engineering/resolving-merge-conflicts/SKILL.md",
+      "paths": [
+        "skills/engineering/resolving-merge-conflicts/SKILL.md"
+      ],
+      "description": "Use when you need to resolve an in-progress git merge/rebase conflict.",
+      "content_hash": "4fc49408c6488df9a19abbb2cbe0c270f7b4ebb5",
+      "signature_hash": "62164b9a8b507c07e797d40dd9a36dac096e6a36",
+      "variant_hashes": [
+        "4fc49408c6488df9a19abbb2cbe0c270f7b4ebb5"
+      ],
+      "line_count": 14
+    },
+    {
+      "kind": "skill",
+      "name": "review",
+      "logical_id": "skill:review",
+      "canonical_path": "skills/in-progress/review/SKILL.md",
+      "paths": [
+        "skills/in-progress/review/SKILL.md"
+      ],
+      "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes \u2014 Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
+      "content_hash": "5fd13f8f623a7fb16ab99007d908d281e97a0b15",
+      "signature_hash": "e093638e42acbc5e31e4d7dca2368363c36ef0cf",
+      "variant_hashes": [
+        "5fd13f8f623a7fb16ab99007d908d281e97a0b15"
+      ],
+      "line_count": 69
+    },
+    {
+      "kind": "skill",
+      "name": "scaffold-exercises",
+      "logical_id": "skill:scaffold-exercises",
+      "canonical_path": "skills/misc/scaffold-exercises/SKILL.md",
+      "paths": [
+        "skills/misc/scaffold-exercises/SKILL.md"
+      ],
+      "description": "Create exercise directory structures with sections, problems, solutions, and explainers that pass linting. Use when user wants to scaffold exercises, create exercise stubs, or set up a new course section.",
+      "content_hash": "2dc29f9d8985b7469f9737ceb52fabaaa05b56a3",
+      "signature_hash": "fd07e2e4e669d2ad0c6c840d4b0f947da86ef78b",
+      "variant_hashes": [
+        "2dc29f9d8985b7469f9737ceb52fabaaa05b56a3"
+      ],
+      "line_count": 106
+    },
+    {
+      "kind": "skill",
+      "name": "setup-matt-pocock-skills",
+      "logical_id": "skill:setup-matt-pocock-skills",
+      "canonical_path": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+      "paths": [
+        "skills/engineering/setup-matt-pocock-skills/SKILL.md"
+      ],
+      "description": "Configure this repo for the engineering skills \u2014 set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.",
+      "content_hash": "bda0b4f3e8cac139f4739c2104e8875c787eb446",
+      "signature_hash": "fe9711118b49c9168e49dbe42a56784cc4db0d59",
+      "variant_hashes": [
+        "bda0b4f3e8cac139f4739c2104e8875c787eb446"
+      ],
+      "line_count": 127
+    },
+    {
+      "kind": "skill",
+      "name": "setup-pre-commit",
+      "logical_id": "skill:setup-pre-commit",
+      "canonical_path": "skills/misc/setup-pre-commit/SKILL.md",
+      "paths": [
+        "skills/misc/setup-pre-commit/SKILL.md"
+      ],
+      "description": "Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged, or add commit-time formatting/typechecking/testing.",
+      "content_hash": "7b961d7d9cce3ba4ac0524b9b4369ab6ebe810d9",
+      "signature_hash": "03e951ca92569838841ddc844219db84870b5bfc",
+      "variant_hashes": [
+        "7b961d7d9cce3ba4ac0524b9b4369ab6ebe810d9"
+      ],
+      "line_count": 91
+    },
+    {
+      "kind": "skill",
+      "name": "tdd",
+      "logical_id": "skill:tdd",
+      "canonical_path": "skills/engineering/tdd/SKILL.md",
+      "paths": [
+        "skills/engineering/tdd/SKILL.md"
+      ],
+      "description": "Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions \"red-green-refactor\", or wants integration tests.",
+      "content_hash": "e919a3d3c8010c50bdea645f0d1b86d69f756183",
+      "signature_hash": "59e898bd057d8146cbfabfbd620d7f736a822d84",
+      "variant_hashes": [
+        "e919a3d3c8010c50bdea645f0d1b86d69f756183"
+      ],
+      "line_count": 108
+    },
+    {
+      "kind": "skill",
+      "name": "teach",
+      "logical_id": "skill:teach",
+      "canonical_path": "skills/productivity/teach/SKILL.md",
+      "paths": [
+        "skills/productivity/teach/SKILL.md"
+      ],
+      "description": "Teach the user a new skill or concept, within this workspace.",
+      "content_hash": "e05fbfa02b5b4e8b0aac47d8ab9db0301cee3f17",
+      "signature_hash": "501a60175c1da7371f2a90fe729c551c0640d435",
+      "variant_hashes": [
+        "e05fbfa02b5b4e8b0aac47d8ab9db0301cee3f17"
+      ],
+      "line_count": 140
+    },
+    {
+      "kind": "skill",
+      "name": "to-issues",
+      "logical_id": "skill:to-issues",
+      "canonical_path": "skills/engineering/to-issues/SKILL.md",
+      "paths": [
+        "skills/engineering/to-issues/SKILL.md"
+      ],
+      "description": "Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using tracer-bullet vertical slices.",
+      "content_hash": "69ca25f943bff7e4845038bd1bcf7e224593b9f0",
+      "signature_hash": "baf34d7bd374d694c10488252e40e786cb848221",
+      "variant_hashes": [
+        "69ca25f943bff7e4845038bd1bcf7e224593b9f0"
+      ],
+      "line_count": 84
+    },
+    {
+      "kind": "skill",
+      "name": "to-prd",
+      "logical_id": "skill:to-prd",
+      "canonical_path": "skills/engineering/to-prd/SKILL.md",
+      "paths": [
+        "skills/engineering/to-prd/SKILL.md"
+      ],
+      "description": "Turn the current conversation into a PRD and publish it to the project issue tracker \u2014 no interview, just synthesis of what you've already discussed.",
+      "content_hash": "7f932231b8dd57470bfa45ec0b82e76f49020db7",
+      "signature_hash": "38ed9a4a478547b3ae068ee0c9fd01c8211b836f",
+      "variant_hashes": [
+        "7f932231b8dd57470bfa45ec0b82e76f49020db7"
+      ],
+      "line_count": 75
+    },
+    {
+      "kind": "skill",
+      "name": "triage",
+      "logical_id": "skill:triage",
+      "canonical_path": "skills/engineering/triage/SKILL.md",
+      "paths": [
+        "skills/engineering/triage/SKILL.md"
+      ],
+      "description": "Move issues and external PRs through a state machine of triage roles \u2014 categorise, verify, grill if needed, and write agent-ready briefs.",
+      "content_hash": "06b92fe6f3add372cbbde73bf4e6d1bf4d67bedb",
+      "signature_hash": "142d64f35db5ab5fbbacf8c9dafac6ff29df003f",
+      "variant_hashes": [
+        "06b92fe6f3add372cbbde73bf4e6d1bf4d67bedb"
+      ],
+      "line_count": 112
+    },
+    {
+      "kind": "skill",
+      "name": "ubiquitous-language",
+      "logical_id": "skill:ubiquitous-language",
+      "canonical_path": "skills/deprecated/ubiquitous-language/SKILL.md",
+      "paths": [
+        "skills/deprecated/ubiquitous-language/SKILL.md"
+      ],
+      "description": "Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when user wants to define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions \"domain model\" or \"DDD\".",
+      "content_hash": "c2c78035aacaa63299f7c3fbc30c193012513d61",
+      "signature_hash": "8a60ed0707c0cc91a603f9b2f8714eac025570f6",
+      "variant_hashes": [
+        "c2c78035aacaa63299f7c3fbc30c193012513d61"
+      ],
+      "line_count": 93
+    },
+    {
+      "kind": "skill",
+      "name": "writing-beats",
+      "logical_id": "skill:writing-beats",
+      "canonical_path": "skills/in-progress/writing-beats/SKILL.md",
+      "paths": [
+        "skills/in-progress/writing-beats/SKILL.md"
+      ],
+      "description": "Shape an article as a journey of beats, choose-your-own-adventure style. The user picks a starting beat from the raw material, you write only that beat, then offer options for where to pivot next, beat by beat, until the article reaches a natural end. Use when the user has raw material and wants to assemble it as a narrative rather than an argument.",
+      "content_hash": "c4c6a6460f07afb1fc73d9b6b5f53a63118fd178",
+      "signature_hash": "4a2b0bd170fec25b58c7d0719715450a24900da3",
+      "variant_hashes": [
+        "c4c6a6460f07afb1fc73d9b6b5f53a63118fd178"
+      ],
+      "line_count": 52
+    },
+    {
+      "kind": "skill",
+      "name": "writing-fragments",
+      "logical_id": "skill:writing-fragments",
+      "canonical_path": "skills/in-progress/writing-fragments/SKILL.md",
+      "paths": [
+        "skills/in-progress/writing-fragments/SKILL.md"
+      ],
+      "description": "Grilling session that mines the user for fragments \u2014 heterogeneous nuggets of writing (claims, vignettes, sharp sentences, half-thoughts) \u2014 and appends them to a single document as raw material for a future article. Use when the user wants to develop ideas before imposing structure, or mentions \"fragments\", \"ideate\", or \"raw material\" for writing.",
+      "content_hash": "c3afc71411e437800cb64dcc6fb766ff08fe5821",
+      "signature_hash": "e7004a190f0816ebedfddff3e975a8396ec02157",
+      "variant_hashes": [
+        "c3afc71411e437800cb64dcc6fb766ff08fe5821"
+      ],
+      "line_count": 75
+    },
+    {
+      "kind": "skill",
+      "name": "writing-great-skills",
+      "logical_id": "skill:writing-great-skills",
+      "canonical_path": "skills/productivity/writing-great-skills/SKILL.md",
+      "paths": [
+        "skills/productivity/writing-great-skills/SKILL.md"
+      ],
+      "description": "Reference for writing and editing skills well \u2014 the vocabulary and principles that make a skill predictable.",
+      "content_hash": "c20ed3015594eb0303a9e233e1dfbbc85a9d685d",
+      "signature_hash": "5a0e495c4f4bcf0f9c14f6d3b2c680ef7c83c1a8",
+      "variant_hashes": [
+        "c20ed3015594eb0303a9e233e1dfbbc85a9d685d"
+      ],
+      "line_count": 82
+    },
+    {
+      "kind": "skill",
+      "name": "writing-shape",
+      "logical_id": "skill:writing-shape",
+      "canonical_path": "skills/in-progress/writing-shape/SKILL.md",
+      "paths": [
+        "skills/in-progress/writing-shape/SKILL.md"
+      ],
+      "description": "Take a markdown file of raw material and shape it into an article through a conversational session \u2014 drafting candidate openings, growing the piece paragraph by paragraph, arguing about format (lists, tables, callouts, quotes) at each step. Use when the user has a pile of notes, fragments, or a rough draft and wants help turning it into something publishable.",
+      "content_hash": "eb3ddf378c07912477e92811cdd7377f26ad7203",
+      "signature_hash": "98451b2fb35e6940b260c2c16d6b60ca434d94a9",
+      "variant_hashes": [
+        "eb3ddf378c07912477e92811cdd7377f26ad7203"
+      ],
+      "line_count": 64
+    }
+  ]
+}
