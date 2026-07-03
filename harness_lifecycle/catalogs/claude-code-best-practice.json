@@ -42,7 +42,7 @@
       ],
       "description": "Use this agent to fetch the current time for Dubai, UAE (Asia/Dubai timezone, UTC+4). This agent fetches real-time Dubai time using its preloaded time-fetcher skill.",
       "content_hash": "37372c90515b4d2abf9ae043b06de6b9ef453211",
-      "signature_hash": "6359b9831fd3d574eddcb94b8a3383f9d935a4b7",
+      "signature_hash": "fddc44832d52a2fc3b478a6753432c73a54e7a46",
       "variant_hashes": [
         "37372c90515b4d2abf9ae043b06de6b9ef453211"
       ],
@@ -58,7 +58,7 @@
       ],
       "description": "Research agent that fetches GitHub repos, counts agents/skills/commands, gets star counts, and analyzes Claude Code workflow repositories",
       "content_hash": "1d390e4f245cfda29fc5a854f1824c61b24a0874",
-      "signature_hash": "796e9d490096fd49c606a99ce45b96571b49bd8a",
+      "signature_hash": "506840ee8180d6e8d00f34871cf7f513c4617786",
       "variant_hashes": [
         "1d390e4f245cfda29fc5a854f1824c61b24a0874"
       ],
@@ -74,7 +74,7 @@
       ],
       "description": "PROACTIVELY use this agent whenever the user wants to update, modify, or fix the presentation slides, structure, styling, or weights",
       "content_hash": "4ae52b380bb32039e9b1d8e1c96e2f32fbe89234",
-      "signature_hash": "83a2f2d21a536200108421f4864c9d7c3c074aa7",
+      "signature_hash": "9f9fc380068d6503aa214b075308b2a5d1fa0691",
       "variant_hashes": [
         "4ae52b380bb32039e9b1d8e1c96e2f32fbe89234"
       ],
@@ -90,7 +90,7 @@
       ],
       "description": "Use this agent to display the current time in Pakistan Standard Time (PKT, UTC+5).",
       "content_hash": "3a2457c4fa0bbac3671886a21e4884f7ed52e16a",
-      "signature_hash": "170a6a7aef73d2b8ec77e75447dba3c2c0b9c62c",
+      "signature_hash": "ac64957222cad00de96aa375f5924bf25a3b7883",
       "variant_hashes": [
         "3a2457c4fa0bbac3671886a21e4884f7ed52e16a"
       ],
@@ -106,7 +106,7 @@
       ],
       "description": "Use this agent PROACTIVELY when you need to fetch weather data for Dubai, UAE. This agent fetches real-time temperature from Open-Meteo using its preloaded weather-fetcher skill.",
       "content_hash": "193aa4dccbce64084e889859c68236724c130e84",
-      "signature_hash": "d6bb30d2919f52a4d003eb9ab4ff5cb8cc017804",
+      "signature_hash": "3d724f83495cd1a50647c8fb39e10bcfd98c0bda",
       "variant_hashes": [
         "193aa4dccbce64084e889859c68236724c130e84"
       ],
@@ -122,7 +122,7 @@
       ],
       "description": "Research agent that fetches Claude Code docs, reads the local commands report, and analyzes drift",
       "content_hash": "913808f85f0d2b941bc4336251ab78e46b3795c7",
-      "signature_hash": "63a55995a96c8f58b08ad64717fb318e3d51e66d",
+      "signature_hash": "7ee8e08c357648d6d154ef61fd3a60f2c27ee442",
       "variant_hashes": [
         "913808f85f0d2b941bc4336251ab78e46b3795c7"
       ],
@@ -138,7 +138,7 @@
       ],
       "description": "Research agent that fetches Claude Code docs, reads the local settings report, and analyzes drift",
       "content_hash": "bbcbd9479eed521d028525fd407065c84a3930fb",
-      "signature_hash": "fcdd96efb61588802c9420aaff1bad6b25a31363",
+      "signature_hash": "2205a1bb1e40c1ea79230c1fb00b2401661e3177",
       "variant_hashes": [
         "bbcbd9479eed521d028525fd407065c84a3930fb"
       ],
@@ -154,7 +154,7 @@
       ],
       "description": "Research agent that fetches Claude Code docs, reads the local skills report, and analyzes drift",
       "content_hash": "f84860e445c2837ec2ab87c17995ad95ac98e35d",
-      "signature_hash": "2a01ac956251d838ee8605dbef2d49d849b24e7f",
+      "signature_hash": "476a5097049e6e7a1f892b636dd2d147f6d900fd",
       "variant_hashes": [
         "f84860e445c2837ec2ab87c17995ad95ac98e35d"
       ],
@@ -170,7 +170,7 @@
       ],
       "description": "Research agent that fetches Claude Code docs, reads the local subagents report, and analyzes drift",
       "content_hash": "80cde825bb70629340d889fc195c61045c71dc3b",
-      "signature_hash": "f1886ac97abcddfa7562115f15274305b3fc1fb4",
+      "signature_hash": "49c922d4f7fb658f69929d992a326ce49947874a",
       "variant_hashes": [
         "80cde825bb70629340d889fc195c61045c71dc3b"
       ],
@@ -186,7 +186,7 @@
       ],
       "description": "Research agent that fetches Claude Code docs and changelog, reads the local README CONCEPTS section, and analyzes drift",
       "content_hash": "4ad8a3f91fbe723e0bf9131305ed593fed48f59f",
-      "signature_hash": "b436350b9936e2db3253fe4aaea14e802f790812",
+      "signature_hash": "40b930fcffb8489878faeac9d1892c4590ed46c7",
       "variant_hashes": [
         "4ad8a3f91fbe723e0bf9131305ed593fed48f59f"
       ],
@@ -202,7 +202,7 @@
       ],
       "description": "Research agent that fetches GitHub repos, counts agents/skills/commands, gets star counts, and analyzes Claude Code workflow repositories",
       "content_hash": "1d390e4f245cfda29fc5a854f1824c61b24a0874",
-      "signature_hash": "796e9d490096fd49c606a99ce45b96571b49bd8a",
+      "signature_hash": "506840ee8180d6e8d00f34871cf7f513c4617786",
       "variant_hashes": [
         "1d390e4f245cfda29fc5a854f1824c61b24a0874"
       ],
@@ -218,7 +218,7 @@
       ],
       "description": "Meticulous, constructive reviewer for correctness, clarity, security, and maintainability.",
       "content_hash": "43a9733d945e9429986cacfc917275c4f3747533",
-      "signature_hash": "9cc87ea7bb359d0a809f970432fe338434fa37aa",
+      "signature_hash": "db8914c8e3ecaf6203f73d11990d1dba942ca685",
       "variant_hashes": [
         "43a9733d945e9429986cacfc917275c4f3747533"
       ],
@@ -234,7 +234,7 @@
       ],
       "description": "Validates roadmap items, features, and technical decisions against the project's constitution, principles, and core values. Ensures all proposals align with the mission, established methodology, and design principles before implementation proceeds.",
       "content_hash": "4524d31d4bc0443a820887336da9926510e748f7",
-      "signature_hash": "bdabff1f8884078437aca28e5083d8e13b6beb10",
+      "signature_hash": "2f312b3283040f359718d84a001fa7dd3539d074",
       "variant_hashes": [
         "4524d31d4bc0443a820887336da9926510e748f7"
       ],
@@ -250,7 +250,7 @@
       ],
       "description": "Use this agent when you need to analyze existing documentation and create new or updated documentation that strictly adheres to project-specific documentation standards defined in claude.md. This agent excels at maintaining consistency with established documentation patterns, ensuring technical accuracy, and producing clear, well-structured documentation.",
       "content_hash": "4c276d6a8769e88f628a4fc55f1d4b2c55740cf5",
-      "signature_hash": "fedc2c27e68fc2af0abd2e5580449046406e978e",
+      "signature_hash": "dd0eb06b54f2189ac318020a29a45a1a12b34947",
       "variant_hashes": [
         "4c276d6a8769e88f628a4fc55f1d4b2c55740cf5"
       ],
@@ -266,7 +266,7 @@
       ],
       "description": "Turns a high-level ask into a crisp, exec-ready PRD with acceptance criteria and scope.",
       "content_hash": "7680f42b168d49a052a52c42fd1d6bb1378a2aa9",
-      "signature_hash": "7eb20046e816f2e4e4723ec1cddb594742686c7b",
+      "signature_hash": "f2c1306bdd0181d5a0457a9caa733cdd4005f43f",
       "variant_hashes": [
         "7680f42b168d49a052a52c42fd1d6bb1378a2aa9"
       ],
@@ -282,7 +282,7 @@
       ],
       "description": "Analyzes feature request descriptions and extracts structured requirements, goals, constraints, and metadata for downstream planning agents.",
       "content_hash": "8185106478a42cace639da712d0c6b97739dd0a7",
-      "signature_hash": "1b92d83859515952e785ce8de9358d45930bd8e5",
+      "signature_hash": "ac55bbb2de187b1280e85cb63fbb70b1836bcdc4",
       "variant_hashes": [
         "8185106478a42cace639da712d0c6b97739dd0a7"
       ],
@@ -298,7 +298,7 @@
       ],
       "description": "Pragmatic IC who plans sanely, ships small reversible slices with tests, and writes clear PRs.",
       "content_hash": "d13b7b90ac1a983d83c13036f72110b912ec9907",
-      "signature_hash": "6ce055f95593122bb80112f8254edc86c11f1b52",
+      "signature_hash": "5449cd8c26b4268e7e5f74ed841fe57263aa4fb8",
       "variant_hashes": [
         "d13b7b90ac1a983d83c13036f72110b912ec9907"
       ],
@@ -314,7 +314,7 @@
       ],
       "description": "Use this agent to align technological decisions with engineering principles and organizational standards. This agent acts as a CTO, evaluating technical recommendations against established engineering frameworks, risk assessment methodologies, and business alignment criteria before documentation creation. It ensures all technical decisions follow systematic methodology, evidence-based risk reduction, and AI-first development principles while maintaining alignment with venture success metrics.",
       "content_hash": "32cbbfeacec82d91d0fdf66fcde450ba00ef78b7",
-      "signature_hash": "9b0153f65f04ec62892789f034820dd0cd8a7baf",
+      "signature_hash": "6074865cb574f91cb1a7b8b3a6510185cb397164",
       "variant_hashes": [
         "32cbbfeacec82d91d0fdf66fcde450ba00ef78b7"
       ],
@@ -330,7 +330,7 @@
       ],
       "description": "Produces a concise, accessible UX brief with flows, states, and annotations.",
       "content_hash": "7b03dd783769c21f580a58cb82ae31c8d4ebde87",
-      "signature_hash": "f235c87cb8c62a1fb7d177caa3e77483ac4f0e27",
+      "signature_hash": "828ab115fe918d0f097b75fd39db4441b14e781a",
       "variant_hashes": [
         "7b03dd783769c21f580a58cb82ae31c8d4ebde87"
       ],
@@ -394,7 +394,7 @@
       ],
       "description": "Track Claude Code commands report changes and find what needs updating",
       "content_hash": "8c06433818ef070a875d5efa16c6182464483193",
-      "signature_hash": "b14cf5dcff838bcb8379a769be191cebd09c67c1",
+      "signature_hash": "ba44a0d152a4c1e4d555305948183bac4f9b1666",
       "variant_hashes": [
         "8c06433818ef070a875d5efa16c6182464483193"
       ],
@@ -410,7 +410,7 @@
       ],
       "description": "Track Claude Code settings report changes and find what needs updating",
       "content_hash": "07a2b21319a4592915785b4ef3f83e3307a82518",
-      "signature_hash": "8d60d7b6ff1cc24b689c4426900cde934dc8574b",
+      "signature_hash": "227949cf466cfa82bbf10121f71729f0a10752dc",
       "variant_hashes": [
         "07a2b21319a4592915785b4ef3f83e3307a82518"
       ],
@@ -426,7 +426,7 @@
       ],
       "description": "Track Claude Code skills report changes and find what needs updating",
       "content_hash": "23eccfc54ab3f10b5ea852fb94a0080cbd0e1b1a",
-      "signature_hash": "24594b29536cf2364169d674eb39c85621eb7cd2",
+      "signature_hash": "1004499f60000a06efe650b00d2efddc8120eba7",
       "variant_hashes": [
         "23eccfc54ab3f10b5ea852fb94a0080cbd0e1b1a"
       ],
@@ -442,7 +442,7 @@
       ],
       "description": "Track Claude Code subagents report changes and find what needs updating",
       "content_hash": "6165a5881b0805a75edf67a3499e83d9b303975d",
-      "signature_hash": "4389f4ad33090bdf83f42a86666a251aa3d784b2",
+      "signature_hash": "e526239d27bdc6122995c2ddb0ae3ae3017590c6",
       "variant_hashes": [
         "6165a5881b0805a75edf67a3499e83d9b303975d"
       ],
@@ -458,7 +458,7 @@
       ],
       "description": "Update the README CONCEPTS section with the latest Claude Code features and concepts",
       "content_hash": "9406c732a231530d505bb4ebbfb590a11d876043",
-      "signature_hash": "c887ef13407b565c9bfbe76ec90c22d8acffceeb",
+      "signature_hash": "6ddd585e9097be31d6d4b34d71f2281ce87e7806",
       "variant_hashes": [
         "9406c732a231530d505bb4ebbfb590a11d876043"
       ],
@@ -490,7 +490,7 @@
       ],
       "description": "Execute phased implementation with validation gates",
       "content_hash": "ef24a5a05f23fa83f47b47afa0de823835284395",
-      "signature_hash": "627557e06cbfd20cff53efd81238135066a8b836",
+      "signature_hash": "2d2009b486b624cb0bb56f4527fc58ca35b4630c",
       "variant_hashes": [
         "ef24a5a05f23fa83f47b47afa0de823835284395"
       ],
@@ -506,7 +506,7 @@
       ],
       "description": "Create comprehensive planning documentation for a feature",
       "content_hash": "5f08016699ecd5f9eb60b8830f2b134d8273770c",
-      "signature_hash": "315cdaa42dd14457cb502c32c2ef7e598f02f0cd",
+      "signature_hash": "fddb74ba1a1953858953eb52db492f1935349f8f",
       "variant_hashes": [
         "5f08016699ecd5f9eb60b8830f2b134d8273770c"
       ],
@@ -522,7 +522,7 @@
       ],
       "description": "Research and analyze feature viability - GO/NO-GO decision gate",
       "content_hash": "1386616c8edad582872521a6503d4b48e53335f5",
-      "signature_hash": "711107eacb204d79634fdee143252d20bc614962",
+      "signature_hash": "57f76525c9623ae649d7cae9eb5a8c77c87e3114",
       "variant_hashes": [
         "1386616c8edad582872521a6503d4b48e53335f5"
       ],
@@ -636,7 +636,7 @@
       ],
       "description": "Instructions for fetching current Dubai time via bash command",
       "content_hash": "5ac0adf40a1624c0ca451a81dbd40b4ffa86c310",
-      "signature_hash": "8377d7d2c8e6fd500472a5c3f5af846b65257e2d",
+      "signature_hash": "cef4037eb647e6a62065d2dc916e3264dfbce4ad",
       "variant_hashes": [
         "5ac0adf40a1624c0ca451a81dbd40b4ffa86c310"
       ],
@@ -652,7 +652,7 @@
       ],
       "description": "Creates an SVG time card showing the current time for Dubai. Writes the SVG to agent-teams/output/dubai-time.svg and updates agent-teams/output/output.md.",
       "content_hash": "1c823009a5027c0b2999704efb5fa22c734d2ece",
-      "signature_hash": "45baa5c0c34a91328be3bee209b754c6df63f224",
+      "signature_hash": "9f3b638aa6a72c76b6346a87a36da7e832b30d85",
       "variant_hashes": [
         "1c823009a5027c0b2999704efb5fa22c734d2ece"
       ],
@@ -668,7 +668,7 @@
       ],
       "description": "Browser automation CLI for AI agents. Use when the user needs to interact with websites, including navigating pages, filling forms, clicking buttons, taking screenshots, extracting data, testing web apps, or automating any browser task. Triggers include requests to \"open a website\", \"fill out a form\", \"click a button\", \"take a screenshot\", \"scrape data from a page\", \"test this web app\", \"login to a site\", \"automate browser actions\", or any task requiring programmatic web interaction.",
       "content_hash": "0ffffca039504b8d8664ba34810d3c137203f107",
-      "signature_hash": "50260e7d1e894f1aacf60c2082e6f4497a5e8121",
+      "signature_hash": "fb093f1ba100b4429958f30d77fdf6d656b6f4a8",
       "variant_hashes": [
         "0ffffca039504b8d8664ba34810d3c137203f107"
       ],
@@ -684,7 +684,7 @@
       ],
       "description": "Knowledge about the presentation slide format, weight system, navigation, and section structure",
       "content_hash": "172955f010ceabaeae8f964d2b605a397cdbeef0",
-      "signature_hash": "d5650c881d662fff86478dbc3d1f49e2b2fd87aa",
+      "signature_hash": "536db719500a34af683cd756198b523b9c519660",
       "variant_hashes": [
         "172955f010ceabaeae8f964d2b605a397cdbeef0"
       ],
@@ -700,7 +700,7 @@
       ],
       "description": "Knowledge about CSS classes, component patterns, and syntax highlighting in the presentation",
       "content_hash": "a46b3b1671ecdb398c0e037fc829477857e6c52b",
-      "signature_hash": "c94c2b44290a9e257996c1d2dd4ac9420e27d59f",
+      "signature_hash": "56d5bdf4d0b986d2eb2c1f80c48da7b9da2374fe",
       "variant_hashes": [
         "a46b3b1671ecdb398c0e037fc829477857e6c52b"
       ],
@@ -716,7 +716,7 @@
       ],
       "description": "The conceptual framework behind the presentation \u2014 what \"Vibe Coding to Agentic Engineering\" means, why the journey is structured the way it is, and how every slide fits the narrative arc",
       "content_hash": "e48cd54108d6c095c2bc209d7555357f5db5fec7",
-      "signature_hash": "4f564e0d20ed592ba6f23f9d7569d8f1ea1e3754",
+      "signature_hash": "b9164bb6d9fcccf86685070978b2149d0d6a1351",
       "variant_hashes": [
         "e48cd54108d6c095c2bc209d7555357f5db5fec7"
       ],
@@ -732,7 +732,7 @@
       ],
       "description": "Display the current time in Pakistan Standard Time (PKT, UTC+5). Use when the user asks for the current time, Pakistan time, or PKT.",
       "content_hash": "4e091959aefbdc3bc77ac59239e0ff3e13f94c30",
-      "signature_hash": "7050f1ccd438aede813a31f206528665301bc38e",
+      "signature_hash": "888090761e3ab35fcb01da1ccf45db5920f866b9",
       "variant_hashes": [
         "4e091959aefbdc3bc77ac59239e0ff3e13f94c30"
       ],
@@ -748,7 +748,7 @@
       ],
       "description": "Instructions for fetching current weather temperature data for Dubai, UAE from Open-Meteo API",
       "content_hash": "ac0f36cc7930886f43529c48f5f4fe46791a02c4",
-      "signature_hash": "8f96bf68476f2c014a727ef8eb8bf4fe744edd3f",
+      "signature_hash": "913cab2cfddf63f6c1bf0c241b38af3a2a411767",
       "variant_hashes": [
         "ac0f36cc7930886f43529c48f5f4fe46791a02c4"
       ],
@@ -764,7 +764,7 @@
       ],
       "description": "Creates an SVG weather card showing the current temperature for Dubai. Writes the SVG to orchestration-workflow/weather.svg and updates orchestration-workflow/output.md.",
       "content_hash": "43c4f2b7eed4b82fe5d712c6eb55abb561f02d1d",
-      "signature_hash": "de58bed3963713a3e0b1b7a6d6975fd0502e2a24",
+      "signature_hash": "4a4cb9bef47af29698f8e290fc5077890fc0a332",
       "variant_hashes": [
         "43c4f2b7eed4b82fe5d712c6eb55abb561f02d1d"
       ],

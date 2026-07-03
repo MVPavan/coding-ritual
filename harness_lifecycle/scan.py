@@ -34,11 +34,12 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from difflib import SequenceMatcher
 from enum import Enum
 from pathlib import Path
 from shutil import rmtree
+from typing import Any
 
 SCHEMA = "harness-capability-catalog/v1"
 
@@ -102,18 +103,18 @@ class Capability:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, object]) -> "Capability":
+    def from_dict(data: dict[str, Any]) -> "Capability":
         return Capability(
             kind=Kind(data["kind"]),
             name=str(data["name"]),
             logical_id=str(data["logical_id"]),
             canonical_path=str(data["canonical_path"]),
-            paths=tuple(str(p) for p in data.get("paths", [])),  # type: ignore[arg-type]
+            paths=tuple(str(p) for p in data.get("paths", [])),
             description=str(data.get("description", "")),
             content_hash=str(data["content_hash"]),
             signature_hash=str(data["signature_hash"]),
-            variant_hashes=tuple(str(h) for h in data.get("variant_hashes", [])),  # type: ignore[arg-type]
-            line_count=int(data.get("line_count", 0)),  # type: ignore[arg-type]
+            variant_hashes=tuple(str(h) for h in data.get("variant_hashes", [])),
+            line_count=int(data.get("line_count", 0)),
         )
 
 
@@ -142,16 +143,16 @@ class Catalog:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, object]) -> "Catalog":
+    def from_dict(data: dict[str, Any]) -> "Catalog":
         return Catalog(
             repo=str(data["repo"]),
             source=str(data.get("source", "")),
             source_commit=(str(data["source_commit"]) if data.get("source_commit") else None),
-            counts=dict(data.get("counts", {})),  # type: ignore[arg-type]
-            physical_scanned=int(data.get("physical_scanned", 0)),  # type: ignore[arg-type]
-            excluded=int(data.get("excluded", 0)),  # type: ignore[arg-type]
+            counts=dict(data.get("counts", {})),
+            physical_scanned=int(data.get("physical_scanned", 0)),
+            excluded=int(data.get("excluded", 0)),
             capabilities=tuple(
-                Capability.from_dict(c) for c in data.get("capabilities", [])  # type: ignore[arg-type]
+                Capability.from_dict(c) for c in data.get("capabilities", [])
             ),
         )
 
@@ -325,10 +326,10 @@ def _plugin_dedup_key(parts: tuple[str, ...], name: str) -> str:
 
 
 def _raw_frontmatter(text: str) -> str:
-    """The normalized YAML frontmatter block (between the first two `---`), or ''.
-
-    Hashed into the signature so block-style list changes (e.g. adding a tool /
-    permission) are seen even though the minimal scalar parser cannot read them.
+    """The YAML frontmatter block, canonicalised for the signature: top-level keys
+    are sorted (so a pure key-reorder is not read as a surface change) and blank /
+    trailing whitespace is normalised. Block-style list changes (adding a tool or
+    permission) still register; re-indentation within a value is a rare residual.
     """
     if not text.startswith("---"):
         return ""
@@ -336,11 +337,23 @@ def _raw_frontmatter(text: str) -> str:
     if lines[0].strip() != "---":
         return ""
     block: list[str] = []
+    closed = False
     for line in lines[1:]:
         if line.strip() == "---":
-            return normalize("\n".join(block))
+            closed = True
+            break
         block.append(line)
-    return ""
+    if not closed:
+        return ""
+    groups: list[list[str]] = []
+    for line in block:
+        is_top = bool(line) and not line[0].isspace() and not line.lstrip().startswith("-") and ":" in line
+        if is_top or not groups:
+            groups.append([line])
+        else:
+            groups[-1].append(line)
+    groups.sort(key=lambda g: g[0])
+    return normalize("\n".join("\n".join(g) for g in groups))
 
 
 def _plugin_name(text: str) -> str:
@@ -543,6 +556,7 @@ def classify_change(
 class CatalogDiff:
     added: tuple[Capability, ...]
     removed: tuple[Capability, ...]
+    moved: tuple[tuple[Capability, Capability], ...]
     modified_material: tuple[tuple[Capability, str], ...]
     modified_minor: tuple[tuple[Capability, str], ...]
 
@@ -555,8 +569,22 @@ def diff_catalogs(
 ) -> CatalogDiff:
     old_map = old.by_logical_id()
     new_map = new.by_logical_id()
-    added = tuple(new_map[k] for k in new_map if k not in old_map)
-    removed = tuple(old_map[k] for k in old_map if k not in new_map)
+    added_list = [new_map[k] for k in new_map if k not in old_map]
+    removed_list = [old_map[k] for k in old_map if k not in new_map]
+    # Move detection: a removed + added pair with identical (kind, content) is a
+    # rename, not a real remove/add — keeps drift quiet and ledger continuity.
+    added_by_key: dict[tuple[Kind, str], list[Capability]] = {}
+    for cap in added_list:
+        added_by_key.setdefault((cap.kind, cap.content_hash), []).append(cap)
+    moved: list[tuple[Capability, Capability]] = []
+    still_removed: list[Capability] = []
+    for cap in removed_list:
+        cands = added_by_key.get((cap.kind, cap.content_hash))
+        if cands:
+            moved.append((cap, cands.pop(0)))
+        else:
+            still_removed.append(cap)
+    still_added = [c for caps in added_by_key.values() for c in caps]
     material: list[tuple[Capability, str]] = []
     minor: list[tuple[Capability, str]] = []
     for key in new_map:
@@ -570,8 +598,9 @@ def diff_catalogs(
         level, reason = classify_change(old_cap, new_cap, old_root, new_root)
         (material if level is Material.MATERIAL else minor).append((new_cap, reason))
     return CatalogDiff(
-        added=tuple(sorted(added, key=lambda c: c.logical_id)),
-        removed=tuple(sorted(removed, key=lambda c: c.logical_id)),
+        added=tuple(sorted(still_added, key=lambda c: c.logical_id)),
+        removed=tuple(sorted(still_removed, key=lambda c: c.logical_id)),
+        moved=tuple(sorted(moved, key=lambda p: p[1].logical_id)),
         modified_material=tuple(sorted(material, key=lambda t: t[0].logical_id)),
         modified_minor=tuple(sorted(minor, key=lambda t: t[0].logical_id)),
     )
@@ -607,7 +636,7 @@ def render_diff(old: Catalog, new: Catalog, diff: CatalogDiff) -> str:
         "",
         f"material: {len(diff.added)} added, {len(diff.removed)} removed, "
         f"{len(diff.modified_material)} changed   |   "
-        f"minor: {len(diff.modified_minor)}",
+        f"minor: {len(diff.modified_minor)} + {len(diff.moved)} moved",
     ]
     if diff.added:
         lines.append("\n### ADDED (material)")
@@ -626,6 +655,10 @@ def render_diff(old: Catalog, new: Catalog, diff: CatalogDiff) -> str:
         lines.append("\n### changed (minor — cosmetic/mirror)")
         for cap, reason in diff.modified_minor:
             lines.append(f"  · {cap.logical_id}  [{reason}]")
+    if diff.moved:
+        lines.append("\n### moved (renamed; content identical)")
+        for old_cap, new_cap in diff.moved:
+            lines.append(f"  → {old_cap.logical_id}  ⇒  {new_cap.logical_id}")
     if not (diff.added or diff.removed or diff.modified_material):
         lines.append("\nNo material changes.")
     return "\n".join(lines)

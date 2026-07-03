@@ -42,7 +42,7 @@
       ],
       "description": "Generate multiple radically different interface designs for a module using parallel sub-agents. Use when user wants to design an API, explore interface options, compare module shapes, or mentions \"design it twice\".",
       "content_hash": "5630cbda3fc2d51dd5294d6919219a0886293e8b",
-      "signature_hash": "60b765d389ae9f3a0645bc226c09358023213444",
+      "signature_hash": "a7eb2c00ea03180c17526120c0e44465d3012658",
       "variant_hashes": [
         "5630cbda3fc2d51dd5294d6919219a0886293e8b"
       ],
@@ -58,7 +58,7 @@
       ],
       "description": "Interactive QA session where user reports bugs or issues conversationally, and the agent files GitHub issues. Explores the codebase in the background for context and domain language. Use when user wants to report bugs, do QA, file issues conversationally, or mentions \"QA session\".",
       "content_hash": "b50f92a96391bfdfc4d6716fc0fa00d33069c349",
-      "signature_hash": "7061c0308e66b6bf9a072ec559c1f5551ec1ae63",
+      "signature_hash": "babd79eeaef0f7edd98c35ba9e7739d1c8203815",
       "variant_hashes": [
         "b50f92a96391bfdfc4d6716fc0fa00d33069c349"
       ],
@@ -74,7 +74,7 @@
       ],
       "description": "Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when user wants to plan a refactor, create a refactoring RFC, or break a refactor into safe incremental steps.",
       "content_hash": "548c7323e5772e023c40cde31535980fe5dfaa6b",
-      "signature_hash": "7429d2353e7f919ff299e3c0efeb5e0e9fbad865",
+      "signature_hash": "df1fb2bd24d8c9af382d74675d05f2069aba2ea6",
       "variant_hashes": [
         "548c7323e5772e023c40cde31535980fe5dfaa6b"
       ],
@@ -90,7 +90,7 @@
       ],
       "description": "Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when user wants to define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions \"domain model\" or \"DDD\".",
       "content_hash": "c2c78035aacaa63299f7c3fbc30c193012513d61",
-      "signature_hash": "15650163bf0bf3008f608ab6bc90cf3c97fe88b4",
+      "signature_hash": "2422b639f9afcec245763d9db2e08dadb456dd33",
       "variant_hashes": [
         "c2c78035aacaa63299f7c3fbc30c193012513d61"
       ],
@@ -106,7 +106,7 @@
       ],
       "description": "Ask which skill or flow fits your situation. A router over the user-invoked skills in this repo.",
       "content_hash": "88cdf10b56bb40fbf17d6d4e4f2e0dae2126d9a7",
-      "signature_hash": "c48b931ada464ce279552f71d9e62e72bc55c12c",
+      "signature_hash": "a79777b4e00b0a874ca84980f9232fac5e0e698d",
       "variant_hashes": [
         "88cdf10b56bb40fbf17d6d4e4f2e0dae2126d9a7"
       ],
@@ -122,7 +122,7 @@
       ],
       "description": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.",
       "content_hash": "5810b0cd4c7957df3bdc5d28fd437a2dff4470e3",
-      "signature_hash": "db8dd7bf0dd1fabbca6a5ad374b639ef02499fab",
+      "signature_hash": "b1ef76927e1d9d28278f24df4f443b9e9e7d812b",
       "variant_hashes": [
         "5810b0cd4c7957df3bdc5d28fd437a2dff4470e3"
       ],
@@ -138,7 +138,7 @@
       ],
       "description": "Diagnosis loop for hard bugs and performance regressions. Use when the user says \"diagnose\"/\"debug this\", or reports something broken/throwing/failing/slow.",
       "content_hash": "f8d71fd3589ae5edcbfe96d4f3b9b5dd2583d28d",
-      "signature_hash": "7168d5cce154e113135e332c7ff51af25c6be253",
+      "signature_hash": "90c0b14b6cf2eafdf45f0267cf488ef5d5f3266f",
       "variant_hashes": [
         "f8d71fd3589ae5edcbfe96d4f3b9b5dd2583d28d"
       ],
@@ -154,7 +154,7 @@
       ],
       "description": "Build and sharpen a project's domain model. Use when the user wants to pin down domain terminology or a ubiquitous language, record an architectural decision, or when another skill needs to maintain the domain model.",
       "content_hash": "4391357e14a2c46108bcc0bf40eca96041fab034",
-      "signature_hash": "00eefea8b50c92c70fbea986a35f351a93811a5a",
+      "signature_hash": "96b7783cbd35a201d46cb5c046fea532ee1ce6bb",
       "variant_hashes": [
         "4391357e14a2c46108bcc0bf40eca96041fab034"
       ],
@@ -170,7 +170,7 @@
       ],
       "description": "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.",
       "content_hash": "893c1f8c9aaf1110645e755f6b9fc5b99ceef9ce",
-      "signature_hash": "cefad631db17ee6d02ce1a17343d52ba03ed52eb",
+      "signature_hash": "c46b69fc964d122e8cda199d372074942276bf41",
       "variant_hashes": [
         "893c1f8c9aaf1110645e755f6b9fc5b99ceef9ce"
       ],
@@ -186,7 +186,7 @@
       ],
       "description": "Implement a piece of work based on a PRD or set of issues.",
       "content_hash": "cf97b0697314549a4df5df7f85771466ebe364a2",
-      "signature_hash": "61c22a6d8a248b0fad8cb770acbca196f6f2f480",
+      "signature_hash": "17ed5eb4542e351c82c4a31c2f87690993d6853a",
       "variant_hashes": [
         "cf97b0697314549a4df5df7f85771466ebe364a2"
       ],
@@ -202,7 +202,7 @@
       ],
       "description": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
       "content_hash": "0d188d12fe1d10ec86485b3ca123a1ff5f2b169a",
-      "signature_hash": "d1f4a14d0f66cebaedb45bd290b6b722d6967813",
+      "signature_hash": "be479377c2c483be5dfbb37322a94ee79d6203f8",
       "variant_hashes": [
         "0d188d12fe1d10ec86485b3ca123a1ff5f2b169a"
       ],
@@ -218,7 +218,7 @@
       ],
       "description": "Build a throwaway prototype to flesh out a design \u2014 a runnable terminal app for state/business-logic questions, or several radically different UI variations toggleable from one route.",
       "content_hash": "ddb02a9fc8756318698d48a1dbc8e7e14b72e462",
-      "signature_hash": "ad030b11b8af45c84eb0cb26f28d9eb85632aa15",
+      "signature_hash": "3534d351873f83c2d68f2863c479e60cbc5d2417",
       "variant_hashes": [
         "ddb02a9fc8756318698d48a1dbc8e7e14b72e462"
       ],
@@ -234,7 +234,7 @@
       ],
       "description": "Use when you need to resolve an in-progress git merge/rebase conflict.",
       "content_hash": "4fc49408c6488df9a19abbb2cbe0c270f7b4ebb5",
-      "signature_hash": "5db5e02da28f37b882b839ded5bc5767e58a3c35",
+      "signature_hash": "633460878b3def72774df5e2424ab650326b4d20",
       "variant_hashes": [
         "4fc49408c6488df9a19abbb2cbe0c270f7b4ebb5"
       ],
@@ -250,7 +250,7 @@
       ],
       "description": "Configure this repo for the engineering skills \u2014 set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.",
       "content_hash": "bda0b4f3e8cac139f4739c2104e8875c787eb446",
-      "signature_hash": "f3deff4ba92b0edc294a8874d4b9b0fd54195675",
+      "signature_hash": "3a7bc1a9f15b90f4f516094ced734caaa9a7c9fa",
       "variant_hashes": [
         "bda0b4f3e8cac139f4739c2104e8875c787eb446"
       ],
@@ -266,7 +266,7 @@
       ],
       "description": "Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions \"red-green-refactor\", or wants integration tests.",
       "content_hash": "e919a3d3c8010c50bdea645f0d1b86d69f756183",
-      "signature_hash": "461c5990e2e505c19656e3acea0e7f028c47ac0b",
+      "signature_hash": "ccb2fda663e58b04ddc935925475fc99dfc4ab74",
       "variant_hashes": [
         "e919a3d3c8010c50bdea645f0d1b86d69f756183"
       ],
@@ -282,7 +282,7 @@
       ],
       "description": "Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using tracer-bullet vertical slices.",
       "content_hash": "69ca25f943bff7e4845038bd1bcf7e224593b9f0",
-      "signature_hash": "aa0f7b5842e2be7d1fd3358f4e4e5683eb2037de",
+      "signature_hash": "a13110efff09ed99861bf7f61736d2b223d9a084",
       "variant_hashes": [
         "69ca25f943bff7e4845038bd1bcf7e224593b9f0"
       ],
@@ -298,7 +298,7 @@
       ],
       "description": "Turn the current conversation into a PRD and publish it to the project issue tracker \u2014 no interview, just synthesis of what you've already discussed.",
       "content_hash": "7f932231b8dd57470bfa45ec0b82e76f49020db7",
-      "signature_hash": "fb4e05cfb0438f4d59321fbd2eedcd00b45fd5ec",
+      "signature_hash": "9f5ea4620077cc5f56584d586d0629b2635f0452",
       "variant_hashes": [
         "7f932231b8dd57470bfa45ec0b82e76f49020db7"
       ],
@@ -314,7 +314,7 @@
       ],
       "description": "Move issues and external PRs through a state machine of triage roles \u2014 categorise, verify, grill if needed, and write agent-ready briefs.",
       "content_hash": "06b92fe6f3add372cbbde73bf4e6d1bf4d67bedb",
-      "signature_hash": "f958196409dfd8c707e2e0ff4d61162486fb6fa0",
+      "signature_hash": "ae454e090407f835c3738b34bf47f319f6cd9ead",
       "variant_hashes": [
         "06b92fe6f3add372cbbde73bf4e6d1bf4d67bedb"
       ],
@@ -330,7 +330,7 @@
       ],
       "description": "Turn a loose idea into a sequenced map of investigation tickets, then drive them to resolution one at a time.",
       "content_hash": "846e8509f656adee303a5ea514a6830af4a962d6",
-      "signature_hash": "58068beac8ba72bfc48b4db7b5c99751f94218f0",
+      "signature_hash": "13a1a4c09429ae27cdeaa03d0ef543e10115194d",
       "variant_hashes": [
         "846e8509f656adee303a5ea514a6830af4a962d6"
       ],
@@ -346,7 +346,7 @@
       ],
       "description": "Grill me about specs for the workflows I want to build, within this workspace.",
       "content_hash": "29b19689d9d798bff97020d79a3205f525e8c833",
-      "signature_hash": "d897766a1904189d8d4326c8a4d8e03ea8714159",
+      "signature_hash": "d12da01958bf496179f6c54c6fd35c9c0c7c89ac",
       "variant_hashes": [
         "29b19689d9d798bff97020d79a3205f525e8c833"
       ],
@@ -362,7 +362,7 @@
       ],
       "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes \u2014 Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
       "content_hash": "5fd13f8f623a7fb16ab99007d908d281e97a0b15",
-      "signature_hash": "ed1ca135ea4fbceeee6cd0831b707afa4f23909b",
+      "signature_hash": "bbd82a69515d0aa15751dc0bbd5707fbe4fbbd44",
       "variant_hashes": [
         "5fd13f8f623a7fb16ab99007d908d281e97a0b15"
       ],
@@ -378,7 +378,7 @@
       ],
       "description": "Shape an article as a journey of beats, choose-your-own-adventure style. The user picks a starting beat from the raw material, you write only that beat, then offer options for where to pivot next, beat by beat, until the article reaches a natural end. Use when the user has raw material and wants to assemble it as a narrative rather than an argument.",
       "content_hash": "c4c6a6460f07afb1fc73d9b6b5f53a63118fd178",
-      "signature_hash": "684c44bc6da392bb31181e31ca73215a87cd11eb",
+      "signature_hash": "084069fcb89ff62de9593d650c53eca113272a75",
       "variant_hashes": [
         "c4c6a6460f07afb1fc73d9b6b5f53a63118fd178"
       ],
@@ -394,7 +394,7 @@
       ],
       "description": "Grilling session that mines the user for fragments \u2014 heterogeneous nuggets of writing (claims, vignettes, sharp sentences, half-thoughts) \u2014 and appends them to a single document as raw material for a future article. Use when the user wants to develop ideas before imposing structure, or mentions \"fragments\", \"ideate\", or \"raw material\" for writing.",
       "content_hash": "c3afc71411e437800cb64dcc6fb766ff08fe5821",
-      "signature_hash": "e348c0e37225268b56cf4dc90577812237561d88",
+      "signature_hash": "e8814d3c94c5114b3db61522cadf14b9061196a6",
       "variant_hashes": [
         "c3afc71411e437800cb64dcc6fb766ff08fe5821"
       ],
@@ -410,7 +410,7 @@
       ],
       "description": "Take a markdown file of raw material and shape it into an article through a conversational session \u2014 drafting candidate openings, growing the piece paragraph by paragraph, arguing about format (lists, tables, callouts, quotes) at each step. Use when the user has a pile of notes, fragments, or a rough draft and wants help turning it into something publishable.",
       "content_hash": "eb3ddf378c07912477e92811cdd7377f26ad7203",
-      "signature_hash": "1f58e488d4966862afa9f3899e2914d6f5faa11b",
+      "signature_hash": "99e94a6f72883dc389e291777301f72bf7b06f60",
       "variant_hashes": [
         "eb3ddf378c07912477e92811cdd7377f26ad7203"
       ],
@@ -426,7 +426,7 @@
       ],
       "description": "Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code.",
       "content_hash": "c0f340fe19ac9f234018642c89a381f91c29a47b",
-      "signature_hash": "815181a323db05fe8501284d14f8a6f5977f26f3",
+      "signature_hash": "c6bf6de568643a0ada5b2dccbd7f6aef228fb6d5",
       "variant_hashes": [
         "c0f340fe19ac9f234018642c89a381f91c29a47b"
       ],
@@ -442,7 +442,7 @@
       ],
       "description": "Migrate test files from `as` type assertions to @total-typescript/shoehorn. Use when user mentions shoehorn, wants to replace `as` in tests, or needs partial test data.",
       "content_hash": "db83aeb721630b9797bc1f874e058d66fc8aac25",
-      "signature_hash": "7eb7d1a3bab21139446bd5ab7ce42be261555c31",
+      "signature_hash": "16bc37aafd4ccdfaa10de46b73a9b169ef89639a",
       "variant_hashes": [
         "db83aeb721630b9797bc1f874e058d66fc8aac25"
       ],
@@ -458,7 +458,7 @@
       ],
       "description": "Create exercise directory structures with sections, problems, solutions, and explainers that pass linting. Use when user wants to scaffold exercises, create exercise stubs, or set up a new course section.",
       "content_hash": "2dc29f9d8985b7469f9737ceb52fabaaa05b56a3",
-      "signature_hash": "261070062e61c71225f3d4e3444ee5989c6691c2",
+      "signature_hash": "bc537450d1ef5f058595b3f5d9685726049abac3",
       "variant_hashes": [
         "2dc29f9d8985b7469f9737ceb52fabaaa05b56a3"
       ],
@@ -474,7 +474,7 @@
       ],
       "description": "Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged, or add commit-time formatting/typechecking/testing.",
       "content_hash": "7b961d7d9cce3ba4ac0524b9b4369ab6ebe810d9",
-      "signature_hash": "108ed202eb4c7156f039070afb330e6c2c7f75ff",
+      "signature_hash": "4f6df385a62304109867460451e5fe07f2d84a4d",
       "variant_hashes": [
         "7b961d7d9cce3ba4ac0524b9b4369ab6ebe810d9"
       ],
@@ -490,7 +490,7 @@
       ],
       "description": "Edit and improve articles by restructuring sections, improving clarity, and tightening prose. Use when user wants to edit, revise, or improve an article draft.",
       "content_hash": "65ab21b480373721557c9f7e81d83aa7386fc194",
-      "signature_hash": "99aaf606198d8cc64130a4d44c4c4acf7f117f97",
+      "signature_hash": "d855301c676acf1b05770e7c31b82d3e09f4217c",
       "variant_hashes": [
         "65ab21b480373721557c9f7e81d83aa7386fc194"
       ],
@@ -506,7 +506,7 @@
       ],
       "description": "Search, create, and manage notes in the Obsidian vault with wikilinks and index notes. Use when user wants to find, create, or organize notes in Obsidian.",
       "content_hash": "6ad4c2fa3c0c71e8960ae9f74ceeaceda20cf4bd",
-      "signature_hash": "8ee20288242aa9fe638070dcd5b1d88071ea93ea",
+      "signature_hash": "245ace25b48c4fd17666bc3da891b46aeac14839",
       "variant_hashes": [
         "6ad4c2fa3c0c71e8960ae9f74ceeaceda20cf4bd"
       ],
@@ -522,7 +522,7 @@
       ],
       "description": "A relentless interview to sharpen a plan or design.",
       "content_hash": "0cf459cdf5314375fc9cb64ae9bf206d38cd3f80",
-      "signature_hash": "2349bb3141694fa8f891a97f49c2241d5987845c",
+      "signature_hash": "6df7b5c9996d6d7524485288415b844d218f8712",
       "variant_hashes": [
         "0cf459cdf5314375fc9cb64ae9bf206d38cd3f80"
       ],
@@ -538,7 +538,7 @@
       ],
       "description": "Interview the user relentlessly about a plan or design. Use when the user wants to stress-test a plan before building, or uses any 'grill' trigger phrases.",
       "content_hash": "ced7b34b752f67c392da09107afce725886358b1",
-      "signature_hash": "b0a6465d7e70f8cfc0303a65f817f6297aa632e7",
+      "signature_hash": "2b4f99a298438617eec05b27a041d919a4d01e0a",
       "variant_hashes": [
         "ced7b34b752f67c392da09107afce725886358b1"
       ],
@@ -554,7 +554,7 @@
       ],
       "description": "Compact the current conversation into a handoff document for another agent to pick up.",
       "content_hash": "037de3ef78a4504d46e94740af16daa19a766f77",
-      "signature_hash": "581678ef33a4e1bb32158b8c6c165a27679de0fc",
+      "signature_hash": "79026be006b749bb88f41600983d28f5268f40f9",
       "variant_hashes": [
         "037de3ef78a4504d46e94740af16daa19a766f77"
       ],
@@ -570,7 +570,7 @@
       ],
       "description": "Teach the user a new skill or concept, within this workspace.",
       "content_hash": "e05fbfa02b5b4e8b0aac47d8ab9db0301cee3f17",
-      "signature_hash": "ec7b533a3c4437674a53c1660de8d2b5d322f7a0",
+      "signature_hash": "e679ff91a68db6e3e3b72dbf6ff3429a7ecf682c",
       "variant_hashes": [
         "e05fbfa02b5b4e8b0aac47d8ab9db0301cee3f17"
       ],
@@ -586,7 +586,7 @@
       ],
       "description": "Reference for writing and editing skills well \u2014 the vocabulary and principles that make a skill predictable.",
       "content_hash": "c20ed3015594eb0303a9e233e1dfbbc85a9d685d",
-      "signature_hash": "7843f78ae298ab134c439b6cad3f40950792df3b",
+      "signature_hash": "da0d5ca337e98f7f29d90376ab7d9bd7a2426600",
       "variant_hashes": [
         "c20ed3015594eb0303a9e233e1dfbbc85a9d685d"
       ],

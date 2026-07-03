@@ -18,9 +18,9 @@ data-loss/crashes to identity-model edges + an unbounded `rm` — all now addres
 | #3 | MED | `EXCLUDE_SEGMENTS` dropped capabilities nested under `docs/`/`examples/` (e.g. `agents/docs/…`) | **FIXED** — `docs`/`examples` excluded only at top level |
 | #7 | LOW | sweep produced garbled prose "the parent the parent repo repo" | **FIXED** — `orchestrators` → `upstream` |
 | H6-label | LOW | signature-change reason mislabeled "name/description/tools" for any frontmatter edit | **FIXED** — relabeled "frontmatter/surface changed" |
-| N2/#5 | MED | path-based `logical_id` ⇒ an upstream *move* reads as remove+add, orphaning ledger entries | **DEFERRED** — moves are rare; a move is legitimately a path change. Note for a future move-detection pass (match remove+add by content_hash). |
-| N3/#8 | LOW | H6 signature over-sensitive to frontmatter key-reorder / blank-line churn | **ACCEPTED** — safe direction (over-flag, never hide); deeper semantic canonicalization deferred. |
-| #6/N6 | LOW | `ensure_yaml_key` awk still mishandles a remote URL containing `"` or `\` | **DEFERRED** — git remote URLs don't contain these; the `@host` corruption (the real bug) is fixed. |
+| N2/#5 | MED | path-based `logical_id` ⇒ an upstream *move* reads as remove+add, orphaning ledger entries | **FIXED** — `diff_catalogs` pairs same-(kind, content) remove+add as a `moved` entry; drift renders a "moved" section. |
+| N3/#8 | LOW | H6 signature over-sensitive to frontmatter key-reorder / blank-line churn | **FIXED** — the signature canonicalizes frontmatter (top-level keys sorted, blanks normalized), so a pure reorder is not a change. |
+| #6/N6 | LOW | `ensure_yaml_key` awk still mishandles a remote URL containing `"` or `\` | **FIXED** — value is `\`/`"`-escaped in shell and passed via `ENVIRON` (awk `-v` no longer mangles it). |
 | #4 | — | (Codex) leak self-check "not case-insensitive" | **FALSE POSITIVE** — `grep -rnIi` is case-insensitive; verified `BODHA_SECRET` matches. |
 
 ## Verification of round-2 fixes
@@ -31,6 +31,7 @@ data-loss/crashes to identity-model edges + an unbounded `rm` — all now addres
 - #7: template now reads "the parent upstream repo".
 - Suites all green: P3 three-way 9/9, review-fix (C3/H3/H4) 7/7, plugin suite 26/0; build-template no leak/no drift.
 
-## Remaining (all minor, none blocking)
-Move-tolerant ledger identity (N2), stricter YAML value escaping (N6), semantic
-frontmatter canonicalization (N3). None affect correctness on real harnesses today.
+## Remaining
+None. The three round-2 minors (N2 move detection, N3 frontmatter canonicalization,
+N6 YAML value escaping) were subsequently implemented and verified — every round-1
+and round-2 finding is now resolved.

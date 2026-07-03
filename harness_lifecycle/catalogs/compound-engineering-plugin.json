@@ -34,7 +34,7 @@
       ],
       "description": "Visually compares live UI implementation against Figma designs and provides detailed feedback on discrepancies. Use after writing or modifying HTML/CSS/React components to verify design fidelity.",
       "content_hash": "03eee8d83420ace87016af0b0e361eb59d38c83f",
-      "signature_hash": "b8ceb5710c4c69efd35c7d03dea9a6ffd7c01312",
+      "signature_hash": "2e8b52afe6ec0aac1124360b056d0e4261d0f95e",
       "variant_hashes": [
         "03eee8d83420ace87016af0b0e361eb59d38c83f"
       ],
@@ -50,7 +50,7 @@
       ],
       "description": "Iteratively refines UI design through N screenshot-analyze-improve cycles. Use PROACTIVELY when design changes aren't coming together after 1-2 attempts, or when user requests iterative refinement.",
       "content_hash": "ebf69889b843035baad4361dbca9d80ec23f5a50",
-      "signature_hash": "ffe74adfb9e9321250af12968e148b3f67bbdaf9",
+      "signature_hash": "de5fed83a62f0b3fc4ff56a87e5f7b1090fcec70",
       "variant_hashes": [
         "ebf69889b843035baad4361dbca9d80ec23f5a50"
       ],
@@ -66,7 +66,7 @@
       ],
       "description": "Detects and fixes visual differences between a web implementation and its Figma design. Use iteratively when syncing implementation to match Figma specs.",
       "content_hash": "00c12d81265088f330860bb0026c2c11ac2fe8ec",
-      "signature_hash": "db1fb6bca38564992912cf0500bbf4a872dbe768",
+      "signature_hash": "d825c05b7b1f2b1b351abfdb32990a1dea4ab887",
       "variant_hashes": [
         "00c12d81265088f330860bb0026c2c11ac2fe8ec"
       ],
@@ -82,7 +82,7 @@
       ],
       "description": "Creates or updates README files following Ankane-style template for Ruby gems. Use when writing gem documentation with imperative voice, concise prose, and standard section ordering.",
       "content_hash": "41ebcfdc937c9d6c8bd73c8d3cdcbc5559083a42",
-      "signature_hash": "0546fe7340b954fee7293241583b5d888aa4f56b",
+      "signature_hash": "c676c66be3fb05a01b1d59cd0346318150580553",
       "variant_hashes": [
         "41ebcfdc937c9d6c8bd73c8d3cdcbc5559083a42"
       ],
@@ -98,7 +98,7 @@
       ],
       "description": "Conditional document-review persona, selected when the document has >5 requirements or implementation units, makes significant architectural decisions, covers high-stakes domains, or proposes new abstractions. Challenges premises, surfaces unstated assumptions, and stress-tests decisions rather than evaluating document quality.",
       "content_hash": "fbfc9ad69e86c1ebea4cf8529b50d6685c236a5f",
-      "signature_hash": "8c1d74fdf7f5c787863a8bfd656d8ee4d1f69527",
+      "signature_hash": "d4c6ac2773967727526e01b3a131a05c2e93f900",
       "variant_hashes": [
         "fbfc9ad69e86c1ebea4cf8529b50d6685c236a5f"
       ],
@@ -114,7 +114,7 @@
       ],
       "description": "Reviews planning documents for internal consistency -- contradictions between sections, terminology drift, structural issues, and ambiguity where readers would diverge. Spawned by the document-review skill.",
       "content_hash": "5ea333e86e7c1227b6caaffd548b5bc757dac8aa",
-      "signature_hash": "95c621e62446109e9a5ade3312a7b858ae7c3f47",
+      "signature_hash": "fda6dabab19dc7083d277df38e27c7056aa926e3",
       "variant_hashes": [
         "5ea333e86e7c1227b6caaffd548b5bc757dac8aa"
       ],
@@ -130,7 +130,7 @@
       ],
       "description": "Reviews planning documents for missing design decisions -- information architecture, interaction states, user flows, and AI slop risk. Uses dimensional rating to identify gaps. Spawned by the document-review skill.",
       "content_hash": "fef5b4ffba09e17f750e87d24ea0e1c5c67d8fad",
-      "signature_hash": "a8e2234d58d75b80e23cd855c07c52fa271c2bed",
+      "signature_hash": "eae221b55062009230e537e5f5e45bf6f999a242",
       "variant_hashes": [
         "fef5b4ffba09e17f750e87d24ea0e1c5c67d8fad"
       ],
@@ -146,7 +146,7 @@
       ],
       "description": "Evaluates whether proposed technical approaches in planning documents will survive contact with reality -- architecture conflicts, dependency gaps, migration risks, and implementability. Spawned by the document-review skill.",
       "content_hash": "e079126018b853e594a3313613a47c769fef29b6",
-      "signature_hash": "c976179f0c842d40026c0596a2ce635abfa968b2",
+      "signature_hash": "b2eecef99d88ec518548d8b13c6622f0460e3ac2",
       "variant_hashes": [
         "e079126018b853e594a3313613a47c769fef29b6"
       ],
@@ -162,7 +162,7 @@
       ],
       "description": "Reviews planning documents as a senior product leader -- challenges premise claims, assesses strategic consequences (trajectory, identity, adoption, opportunity cost), and surfaces goal-work misalignment. Domain-agnostic: users may be end users, developers, operators, or any audience. Spawned by the document-review skill.",
       "content_hash": "10ad02ce48407c62b2efd2eeb2c9a81d4200aca2",
-      "signature_hash": "5cced8f35006141c4c4e847bad870273536afd07",
+      "signature_hash": "204c2ba6c4eb2709ce247d9cb328a0db30bc9216",
       "variant_hashes": [
         "10ad02ce48407c62b2efd2eeb2c9a81d4200aca2"
       ],
@@ -178,7 +178,7 @@
       ],
       "description": "Reviews planning documents for scope alignment and unjustified complexity -- challenges unnecessary abstractions, premature frameworks, and scope that exceeds stated goals. Spawned by the document-review skill.",
       "content_hash": "5a51e7e6b85680691a254c8879f46dd74b513cc9",
-      "signature_hash": "4fec72968155d0d515888141d027392b6fd04033",
+      "signature_hash": "615b6d40360e8bb4c057a162c3f139be07fbd741",
       "variant_hashes": [
         "5a51e7e6b85680691a254c8879f46dd74b513cc9"
       ],
@@ -194,7 +194,7 @@
       ],
       "description": "Evaluates planning documents for security gaps at the plan level -- auth/authz assumptions, data exposure risks, API surface vulnerabilities, and missing threat model elements. Spawned by the document-review skill.",
       "content_hash": "c73dbc32da351d3b7a6b2532292b83458eb8cc97",
-      "signature_hash": "e45a1a8d70136d837cd5edca2fc1fee1ded8d9ce",
+      "signature_hash": "76fb503ebe3d3128d533373dddf92434190da8b6",
       "variant_hashes": [
         "c73dbc32da351d3b7a6b2532292b83458eb8cc97"
       ],
@@ -210,7 +210,7 @@
       ],
       "description": "Researches and synthesizes external best practices, documentation, and examples for any technology or framework. Use when you need industry standards, community conventions, or implementation guidance.",
       "content_hash": "1741ada326f991080b93ab5fa4e9144290f1e6c9",
-      "signature_hash": "7fe3277a6d77e15ba6100b37feeef72a22c044e4",
+      "signature_hash": "011d76cd47aa1694abd4d14bac5f9936d6e52b1a",
       "variant_hashes": [
         "1741ada326f991080b93ab5fa4e9144290f1e6c9"
       ],
@@ -226,7 +226,7 @@
       ],
       "description": "Gathers comprehensive documentation and best practices for frameworks, libraries, or dependencies. Use when you need official docs, version-specific constraints, or implementation patterns.",
       "content_hash": "d6d0cc5c83f0cb6f40f930d8dda3d9937b274370",
-      "signature_hash": "2a29a8e64570ca9d8377f5a3b6528418af0487a5",
+      "signature_hash": "f80c893a9d3fc1aaa638450a517a0ed4dbb3ef65",
       "variant_hashes": [
         "d6d0cc5c83f0cb6f40f930d8dda3d9937b274370"
       ],
@@ -242,7 +242,7 @@
       ],
       "description": "Performs archaeological analysis of git history to trace code evolution, identify contributors, and understand why code patterns exist. Use when you need historical context for code changes.",
       "content_hash": "1fa08342fdee9c12e98036793987d2410fff29e1",
-      "signature_hash": "d18faf042f9ec07b3f5f50bd70abea1fe9a8f3ca",
+      "signature_hash": "ed6a2c33af78788de125d6d3dea55b34ad43e54a",
       "variant_hashes": [
         "1fa08342fdee9c12e98036793987d2410fff29e1"
       ],
@@ -258,7 +258,7 @@
       ],
       "description": "Fetches and analyzes GitHub issues to surface recurring themes, pain patterns, and severity trends. Use when understanding a project's issue landscape, analyzing bug patterns for ideation, or summarizing what users are reporting.",
       "content_hash": "179f2d8ccfa9b644f2696b15aa731245273cde24",
-      "signature_hash": "271aaaa66bb4dd8e6a96bad7841556c09b1ce6f6",
+      "signature_hash": "744ee13dd1f4c90b473d2c4ae36934cdf2328e41",
       "variant_hashes": [
         "179f2d8ccfa9b644f2696b15aa731245273cde24"
       ],
@@ -274,7 +274,7 @@
       ],
       "description": "Searches docs/solutions/ for relevant past solutions by frontmatter metadata. Use before implementing features or fixing problems to surface institutional knowledge and prevent repeated mistakes.",
       "content_hash": "069d559ea779ab47ec6f91373751e893360fa06e",
-      "signature_hash": "7394b6dae8479d84eafd03a50f15492426ed8cd5",
+      "signature_hash": "00ce7d6a4b8f3c54cd70a291c7c522ed7b2e12d4",
       "variant_hashes": [
         "069d559ea779ab47ec6f91373751e893360fa06e"
       ],
@@ -290,7 +290,7 @@
       ],
       "description": "Conducts thorough research on repository structure, documentation, conventions, and implementation patterns. Use when onboarding to a new codebase or understanding project conventions.",
       "content_hash": "bbea5a0e22958c0a6267cf79263ff3b8f3ab8028",
-      "signature_hash": "5aa1aa5117690c67a44cc7d73bd308804394fc58",
+      "signature_hash": "d210ab75829b3d2c457cafd48ec356b1b65fc596",
       "variant_hashes": [
         "bbea5a0e22958c0a6267cf79263ff3b8f3ab8028"
       ],
@@ -306,7 +306,7 @@
       ],
       "description": "Searches Claude Code, Codex, and Cursor session history for related prior sessions about the same problem or topic. Use to surface investigation context, failed approaches, and learnings from previous sessions that the current session cannot see. Supports time-based queries for conversational use.",
       "content_hash": "d07a9c76e52471516b6dad08be05d841b4b7a86c",
-      "signature_hash": "94f7dde170ba08a9fc3e75a78acd73a0aca187f3",
+      "signature_hash": "068224cdcbb83c35390cdb507a0a56a86788733c",
       "variant_hashes": [
         "d07a9c76e52471516b6dad08be05d841b4b7a86c"
       ],
@@ -322,7 +322,7 @@
       ],
       "description": "Searches Slack for organizational context relevant to the current task -- decisions, constraints, and discussions that may not be documented elsewhere. Use when the user explicitly asks to search Slack for context during ideation, planning, or brainstorming. Always surfaces the workspace identity so the user can verify the correct Slack instance was searched.",
       "content_hash": "801da7eaafb982ac0678409e6cc8835599254bc3",
-      "signature_hash": "65518f8fa71fb79f69dd1479e627ad08e8287812",
+      "signature_hash": "8d0169bef30cf38bd2661a6c6936fa4c4aac03b8",
       "variant_hashes": [
         "801da7eaafb982ac0678409e6cc8835599254bc3"
       ],
@@ -338,7 +338,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff is large (>=50 changed lines) or touches high-risk domains like auth, payments, data mutations, or external APIs. Actively constructs failure scenarios to break the implementation rather than checking against known patterns.",
       "content_hash": "e2e88f8c8ce33f2bdf89a5364feca75de8bb4e66",
-      "signature_hash": "02abc9a9f680dc6b9bec70634d279252a2ff685c",
+      "signature_hash": "5921d6e706c8c86f53aa2904f955329d0ea7bb08",
       "variant_hashes": [
         "e2e88f8c8ce33f2bdf89a5364feca75de8bb4e66"
       ],
@@ -354,7 +354,7 @@
       ],
       "description": "Reviews code to ensure agent-native parity -- any action a user can take, an agent can also take. Use after adding UI features, agent tools, or system prompts.",
       "content_hash": "de595606dff41ccbfd3b1861ed53536ce17daaf9",
-      "signature_hash": "a90fff0a8572da7d2667000c17a04b09eb814fe5",
+      "signature_hash": "76ba67a73d6978ddb01e158d5432c0691f4dcad7",
       "variant_hashes": [
         "de595606dff41ccbfd3b1861ed53536ce17daaf9"
       ],
@@ -370,7 +370,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches API routes, request/response types, serialization, versioning, or exported type signatures. Reviews code for breaking contract changes.",
       "content_hash": "045df7ffa25965db7ce8fd1d62a16f2ba9b76d92",
-      "signature_hash": "f1e4e0f641b7442ab6e10e58112babef825ab669",
+      "signature_hash": "83a32718eaa24909721d2209737f04ca8176b768",
       "variant_hashes": [
         "045df7ffa25965db7ce8fd1d62a16f2ba9b76d92"
       ],
@@ -386,7 +386,7 @@
       ],
       "description": "Analyzes code changes from an architectural perspective for pattern compliance and design integrity. Use when reviewing PRs, adding services, or evaluating structural refactors.",
       "content_hash": "1489852b3a60bec860e3361caf9447ff2a72e9b6",
-      "signature_hash": "6b575eda2ef8ed2c2bb4d748e522e3c637dccc18",
+      "signature_hash": "e493785a32a3b7d60ec2cbde45d5547aa158d401",
       "variant_hashes": [
         "1489852b3a60bec860e3361caf9447ff2a72e9b6"
       ],
@@ -402,7 +402,7 @@
       ],
       "description": "Reviews CLI source code, plans, or specs for AI agent readiness using a severity-based rubric focused on whether a CLI is merely usable by agents or genuinely optimized for them.",
       "content_hash": "d6432975202f37585f4c2158bae4f4603aee7352",
-      "signature_hash": "bc665a828622c3226dcc421b3f201a87eb1ce3e5",
+      "signature_hash": "17c7b8ac7ca7f35e106fc81a768ad45dc9ed41b3",
       "variant_hashes": [
         "d6432975202f37585f4c2158bae4f4603aee7352"
       ],
@@ -418,7 +418,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches CLI command definitions, argument parsing, or command handler implementations. Reviews CLI code for agent readiness -- how well the CLI serves autonomous agents, not just human users.",
       "content_hash": "fa8a92202be334d16c6ac93784a32d3847bf101e",
-      "signature_hash": "8cd563405cca98ece73979173ef42d917418dc3e",
+      "signature_hash": "8379a2997e0cb0f9bddfcd9b92d26ddd61d06f1a",
       "variant_hashes": [
         "fa8a92202be334d16c6ac93784a32d3847bf101e"
       ],
@@ -434,7 +434,7 @@
       ],
       "description": "Final review pass to ensure code is as simple and minimal as possible. Use after implementation is complete to identify YAGNI violations and simplification opportunities.",
       "content_hash": "064906ae662bd70cfb20472fb628207b93d68e10",
-      "signature_hash": "5d731c7791f6ab62d3083afd66eecbe398941d6b",
+      "signature_hash": "09b960de877fba06f69f716be2aeb9a4332de397",
       "variant_hashes": [
         "064906ae662bd70cfb20472fb628207b93d68e10"
       ],
@@ -450,7 +450,7 @@
       ],
       "description": "Always-on code-review persona. Reviews code for logic errors, edge cases, state management bugs, error propagation failures, and intent-vs-implementation mismatches.",
       "content_hash": "389f1e8eb450552794c5d217ad342f93b8936f7d",
-      "signature_hash": "a4c261afd8f451ca3623aa95ed03ea75e7e76c64",
+      "signature_hash": "597dd15212c034fc2546d041951399b96ef63e66",
       "variant_hashes": [
         "389f1e8eb450552794c5d217ad342f93b8936f7d"
       ],
@@ -466,7 +466,7 @@
       ],
       "description": "Reviews database migrations, data models, and persistent data code for safety. Use when checking migration safety, data constraints, transaction boundaries, or privacy compliance.",
       "content_hash": "9ce657bd8960eddb80e1c6b851a683cc79396bb2",
-      "signature_hash": "d5b56943dd995f2bb16bed918ca4e9cc2fd5de48",
+      "signature_hash": "02b570c960ebd63b2f03fbce6dbf84b6f3953545",
       "variant_hashes": [
         "9ce657bd8960eddb80e1c6b851a683cc79396bb2"
       ],
@@ -482,7 +482,7 @@
       ],
       "description": "Validates data migrations, backfills, and production data transformations against reality. Use when PRs involve ID mappings, column renames, enum conversions, or schema changes.",
       "content_hash": "388b9876552d2db3d357363afae91bdeca699b04",
-      "signature_hash": "a5f648b1a61612189787f3f3aa20b9f2a2010a32",
+      "signature_hash": "98b0b82e911c0f951ae1c9d00ec6bcaad5ff4340",
       "variant_hashes": [
         "388b9876552d2db3d357363afae91bdeca699b04"
       ],
@@ -498,7 +498,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches migration files, schema changes, data transformations, or backfill scripts. Reviews code for data integrity and migration safety.",
       "content_hash": "3645b3dafa0e7455168d0e8b0cf59eb08a96030a",
-      "signature_hash": "8f021b10b88d5e7e5022b77ce5ac716008fbb588",
+      "signature_hash": "ee876b1f008eb1916fbf6a07b552d47894b0403c",
       "variant_hashes": [
         "3645b3dafa0e7455168d0e8b0cf59eb08a96030a"
       ],
@@ -514,7 +514,7 @@
       ],
       "description": "Produces Go/No-Go deployment checklists with SQL verification queries, rollback procedures, and monitoring plans. Use when PRs touch production data, migrations, or risky data changes.",
       "content_hash": "fccf4096e46897dd4dae37702fce20cf875edcd2",
-      "signature_hash": "0ccc5a2e8acbd2e8d841a1eca0538ff223bc1aa4",
+      "signature_hash": "45c282eefb4730d22c887f23d768e6202aeef5de",
       "variant_hashes": [
         "fccf4096e46897dd4dae37702fce20cf875edcd2"
       ],
@@ -530,7 +530,7 @@
       ],
       "description": "Conditional code-review persona, selected when Rails diffs introduce architectural choices, abstractions, or frontend patterns that may fight the framework. Reviews code from an opinionated DHH perspective.",
       "content_hash": "ce862c006562b7b48ef948b38a1033023adb6def",
-      "signature_hash": "5fd0b5de82cce454193eccde262c8d1a3c743ad6",
+      "signature_hash": "ea8f49e8b52668db547534fd33caba4310428193",
       "variant_hashes": [
         "ce862c006562b7b48ef948b38a1033023adb6def"
       ],
@@ -546,7 +546,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches async UI code, Stimulus/Turbo lifecycles, or DOM-timing-sensitive frontend behavior. Reviews code for race conditions and janky UI failure modes.",
       "content_hash": "be52baffc130dfd35a2d4e9a37bc5212a0d0f30b",
-      "signature_hash": "a009f245baf60670846247e071fba2a677e3605e",
+      "signature_hash": "e5cbec18eef74017861e109ed2347e612fecebb3",
       "variant_hashes": [
         "be52baffc130dfd35a2d4e9a37bc5212a0d0f30b"
       ],
@@ -562,7 +562,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches Python code. Reviews changes with Kieran's strict bar for Pythonic clarity, type hints, and maintainability.",
       "content_hash": "cdde96f4f82c732cc556953415808d9b591456cf",
-      "signature_hash": "d55d4019703bc31e687f630f3e3b031926b07637",
+      "signature_hash": "adcb1de1a0287199673d455f5a38f230f6b71e1a",
       "variant_hashes": [
         "cdde96f4f82c732cc556953415808d9b591456cf"
       ],
@@ -578,7 +578,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches Rails application code. Reviews Rails changes with Kieran's strict bar for clarity, conventions, and maintainability.",
       "content_hash": "f9e50222465d73ac463bf761b322d2fa6d8d350a",
-      "signature_hash": "c09fdc7ef93aa5f7b95b98a85a034bcb7e49e0c1",
+      "signature_hash": "a565bfce22b6197e82b877086d54540d77cafc59",
       "variant_hashes": [
         "f9e50222465d73ac463bf761b322d2fa6d8d350a"
       ],
@@ -594,7 +594,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches TypeScript code. Reviews changes with Kieran's strict bar for type safety, clarity, and maintainability.",
       "content_hash": "3203b6670a59e9a31346e61c983d5c2e034f2d2f",
-      "signature_hash": "17d9158361b8ce238025c6d975d77fbbf5699ef6",
+      "signature_hash": "d871704cb9098b2c18d8d5d7b7ee991eb1e52c6e",
       "variant_hashes": [
         "3203b6670a59e9a31346e61c983d5c2e034f2d2f"
       ],
@@ -610,7 +610,7 @@
       ],
       "description": "Always-on code-review persona. Reviews code for premature abstraction, unnecessary indirection, dead code, coupling between unrelated modules, and naming that obscures intent.",
       "content_hash": "8f4ee4364b4439cb5113212e11f11e72a904d5a2",
-      "signature_hash": "fc3f194c810725c25a6d8e3f57e8e429b291135f",
+      "signature_hash": "27c2b326ad6b681c4bf9e1e89562ecc746eda540",
       "variant_hashes": [
         "8f4ee4364b4439cb5113212e11f11e72a904d5a2"
       ],
@@ -626,7 +626,7 @@
       ],
       "description": "Analyzes code for design patterns, anti-patterns, naming conventions, and duplication. Use when checking codebase consistency or verifying new code follows established patterns.",
       "content_hash": "840d4a04acffa29de4ca90adbf114d06aa4bf0dc",
-      "signature_hash": "026b1405c84a9e2a8cc5155d6a09e4492b3a7bd3",
+      "signature_hash": "0b376b9cea29d8c66bdf483cf2c5bc01ee32fbfd",
       "variant_hashes": [
         "840d4a04acffa29de4ca90adbf114d06aa4bf0dc"
       ],
@@ -642,7 +642,7 @@
       ],
       "description": "Analyzes code for performance bottlenecks, algorithmic complexity, database queries, memory usage, and scalability. Use after implementing features or when performance concerns arise.",
       "content_hash": "5d42e1f10759166174f0944f14559228029ddf93",
-      "signature_hash": "9417b60bf44b35f610269af7f9f9fa91c703ec43",
+      "signature_hash": "5516231f431d744692b7e4efcfcc61f6141c3a40",
       "variant_hashes": [
         "5d42e1f10759166174f0944f14559228029ddf93"
       ],
@@ -658,7 +658,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches database queries, loop-heavy data transforms, caching layers, or I/O-intensive paths. Reviews code for runtime performance and scalability issues.",
       "content_hash": "f32e9586e75c328addfc15415586029e4cd6c4f9",
-      "signature_hash": "38c2ae941b2f670a85218ab378e6ae3381dd624d",
+      "signature_hash": "efb4a4393f913816d15b47e7e99ec188a685f71b",
       "variant_hashes": [
         "f32e9586e75c328addfc15415586029e4cd6c4f9"
       ],
@@ -674,7 +674,7 @@
       ],
       "description": "Conditional code-review persona, selected when reviewing a PR that has existing review comments or review threads. Checks whether prior feedback has been addressed in the current diff.",
       "content_hash": "738c151c73623b0d35f11b5b7dd23f54f61ffba1",
-      "signature_hash": "803ad6e5463d8e11c5128fd09d040677ea363e13",
+      "signature_hash": "fb39b0a13e0e899030db70ddf3f44e76a4c6e1f0",
       "variant_hashes": [
         "738c151c73623b0d35f11b5b7dd23f54f61ffba1"
       ],
@@ -690,7 +690,7 @@
       ],
       "description": "Always-on code-review persona. Audits changes against the project's own CLAUDE.md and AGENTS.md standards -- frontmatter rules, reference inclusion, naming conventions, cross-platform portability, and tool selection policies.",
       "content_hash": "08b09a96296b5f5ac359b659327e64c057530073",
-      "signature_hash": "8d1a2a763e6d9f65018b736f2ea709817affc7d9",
+      "signature_hash": "c9a5800f21fd9e8d97f7fa90696a1de95a13d119",
       "variant_hashes": [
         "08b09a96296b5f5ac359b659327e64c057530073"
       ],
@@ -706,7 +706,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches error handling, retries, circuit breakers, timeouts, health checks, background jobs, or async handlers. Reviews code for production reliability and failure modes.",
       "content_hash": "326fa27425bebdf3f34c54d8ebb00b44daf58831",
-      "signature_hash": "5337a69d6e99372f2aaa8c68ab55607f3297a6f8",
+      "signature_hash": "beba5d5bb2f67fda6b1a335dbda2f6e6d2acf527",
       "variant_hashes": [
         "326fa27425bebdf3f34c54d8ebb00b44daf58831"
       ],
@@ -722,7 +722,7 @@
       ],
       "description": "Detects unrelated schema.rb changes in PRs by cross-referencing against included migrations. Use when reviewing PRs with database schema changes.",
       "content_hash": "75917c639e59b21ae4331481872eb1f89253e7ad",
-      "signature_hash": "10514aa5ffa6c23c77c554334080c5f91f0bdd47",
+      "signature_hash": "f9c398275d17d2d5c99786002435cf55a81ee131",
       "variant_hashes": [
         "75917c639e59b21ae4331481872eb1f89253e7ad"
       ],
@@ -738,7 +738,7 @@
       ],
       "description": "Conditional code-review persona, selected when the diff touches auth middleware, public endpoints, user input handling, or permission checks. Reviews code for exploitable vulnerabilities.",
       "content_hash": "0312ed9a4b3ce72785f429852ce347909ef6cdf7",
-      "signature_hash": "986dba72fcda9d8daf75464ef587e14ca02a1ccd",
+      "signature_hash": "ec213a756fed9d458b9c8b2dd38c854d0d98d016",
       "variant_hashes": [
         "0312ed9a4b3ce72785f429852ce347909ef6cdf7"
       ],
@@ -754,7 +754,7 @@
       ],
       "description": "Performs security audits for vulnerabilities, input validation, auth/authz, hardcoded secrets, and OWASP compliance. Use when reviewing code for security issues or before deployment.",
       "content_hash": "8b54691b312751a44a8a7748b9d774fbbb2191f4",
-      "signature_hash": "85a48ede7509021619a27bcb9f08b64b8eb21e7a",
+      "signature_hash": "fc5dc2c082d13fa510cfe75c691b5624e37841f1",
       "variant_hashes": [
         "8b54691b312751a44a8a7748b9d774fbbb2191f4"
       ],
@@ -770,7 +770,7 @@
       ],
       "description": "Always-on code-review persona. Reviews code for test coverage gaps, weak assertions, brittle implementation-coupled tests, and missing edge case coverage.",
       "content_hash": "e1eda9b3bbb304bc1942d79996b4d4163eee963f",
-      "signature_hash": "cf14c188d121b6372c67eab6172609944d49ea35",
+      "signature_hash": "091072edf20a26284df82eb0f1d532ce28a244ac",
       "variant_hashes": [
         "e1eda9b3bbb304bc1942d79996b4d4163eee963f"
       ],
@@ -786,7 +786,7 @@
       ],
       "description": "Systematically reproduces and validates bug reports to confirm whether reported behavior is an actual bug. Use when you receive a bug report or issue that needs verification.",
       "content_hash": "154f26cbf98071ae02ed0c849389449f1476c3ae",
-      "signature_hash": "6c4e281bd2ec571ba6bdba70ffb4c870f384a5eb",
+      "signature_hash": "73a8c08825b1a17124e403032954565b0cd64e3c",
       "variant_hashes": [
         "154f26cbf98071ae02ed0c849389449f1476c3ae"
       ],
@@ -802,7 +802,7 @@
       ],
       "description": "Use this agent when you need to run linting and code quality checks on Ruby and ERB files. Run before pushing to origin.",
       "content_hash": "7492080b273f59477da9fa4db01d353f4f7c2dea",
-      "signature_hash": "80f17c3bb5ced5628f23d156a996554bb2e24a25",
+      "signature_hash": "f5bf9317e4960533b312ba5c0b94a71ea75738e3",
       "variant_hashes": [
         "7492080b273f59477da9fa4db01d353f4f7c2dea"
       ],
@@ -818,7 +818,7 @@
       ],
       "description": "Evaluates and resolves one or more related PR review threads -- assesses validity, implements fixes, and returns structured summaries with reply text. Spawned by the resolve-pr-feedback skill.",
       "content_hash": "dfb603ae2af8e3a7553db6cb0dd826540a488483",
-      "signature_hash": "7e04a7b0a01a15a1f2165cefed5ba7735e207e30",
+      "signature_hash": "b6868785a8ed657f7b5d3f4db49ccb1db1ecb155",
       "variant_hashes": [
         "dfb603ae2af8e3a7553db6cb0dd826540a488483"
       ],
@@ -834,7 +834,7 @@
       ],
       "description": "Analyzes specifications and feature descriptions for user flow completeness and gap identification. Use when a spec, plan, or feature description needs flow analysis, edge case discovery, or requirements validation.",
       "content_hash": "edcd171ba437608390a06732f65f3e2de4ed72d8",
-      "signature_hash": "a0fa1ac98c2b74a3b793e3a23d0e787e3d1f20ef",
+      "signature_hash": "a34be352f438843a5eb989c9116ee5c033cb2450",
       "variant_hashes": [
         "edcd171ba437608390a06732f65f3e2de4ed72d8"
       ],
@@ -850,7 +850,7 @@
       ],
       "description": "Triage all open PRs with parallel agents, label, group, and review one-by-one",
       "content_hash": "ff526ef0f77d6d0a44f1a72f24d2a27e9a7596ef",
-      "signature_hash": "e72a0b20672e21000701961e1c6dda336f48383c",
+      "signature_hash": "fb63336a55d366423973336ef1f3af44ccdaa8e3",
       "variant_hashes": [
         "ff526ef0f77d6d0a44f1a72f24d2a27e9a7596ef"
       ],
@@ -946,7 +946,7 @@
       ],
       "description": "Personalized coding tutorials that build on your existing knowledge and use your actual codebase for examples. Creates a persistent learning trail that compounds over time using the power of AI, spaced repetition and quizes.",
       "content_hash": "924c553ab3ede32fe1222e0bded2fcea242d7045",
-      "signature_hash": "74a6fd7d68a1095765bb98919074c7aa28833d51",
+      "signature_hash": "1534047c8548056a55377f00abfa73da90113d8f",
       "variant_hashes": [
         "924c553ab3ede32fe1222e0bded2fcea242d7045"
       ],
@@ -962,7 +962,7 @@
       ],
       "description": "Browser automation CLI for AI agents. Use when the user needs to interact with websites, including navigating pages, filling forms, clicking buttons, taking screenshots, extracting data, testing web apps, or automating any browser task. Triggers include requests to \"open a website\", \"fill out a form\", \"click a button\", \"take a screenshot\", \"scrape data from a page\", \"test this web app\", \"login to a site\", \"automate browser actions\", or any task requiring programmatic web interaction.",
       "content_hash": "fc4451570c7e2187043675fafaced17aa1fc39be",
-      "signature_hash": "645f19e3e6da4bfe64122586b25063044bad580b",
+      "signature_hash": "dc827e8c19cdf4b086b2ec6efa3e085401ddb26a",
       "variant_hashes": [
         "fc4451570c7e2187043675fafaced17aa1fc39be"
       ],
@@ -978,7 +978,7 @@
       ],
       "description": "Build applications where agents are first-class citizens. Use this skill when designing autonomous agents, creating MCP tools, implementing self-modifying systems, or building apps where features are outcomes achieved by agents operating in a loop.",
       "content_hash": "cc05b21842da1186d6b81d490c8e1a0faff43c8f",
-      "signature_hash": "c48e4eda10208f0694aa06d9c3bcd4d3c9a27f77",
+      "signature_hash": "e17d839232498e8b138732f9847884d242000d8b",
       "variant_hashes": [
         "cc05b21842da1186d6b81d490c8e1a0faff43c8f"
       ],
@@ -994,7 +994,7 @@
       ],
       "description": "Run comprehensive agent-native architecture review with scored principles",
       "content_hash": "63f5ce4c329ce5932cec10a05c2041b7fb8be523",
-      "signature_hash": "87c2a4b665b3a82acb3bbd179e76e33ce0d2ef99",
+      "signature_hash": "c641856bcd78b891591dd68c87312654e6a3f896",
       "variant_hashes": [
         "63f5ce4c329ce5932cec10a05c2041b7fb8be523"
       ],
@@ -1010,7 +1010,7 @@
       ],
       "description": "This skill should be used when writing Ruby gems following Andrew Kane's proven patterns and philosophy. It applies when creating new Ruby gems, refactoring existing gems, designing gem APIs, or when clean, minimal, production-ready Ruby library code is needed. Triggers on requests like \"create a gem\", \"write a Ruby library\", \"design a gem API\", or mentions of Andrew Kane's style.",
       "content_hash": "72c5679b1a2c416894d8e3247b5f80d62defa9f2",
-      "signature_hash": "9018919e17e50dd84622e0e33a3f2d0771a53d80",
+      "signature_hash": "2bc969d83f07a1da24589c000f0ab2dfc6b17d60",
       "variant_hashes": [
         "72c5679b1a2c416894d8e3247b5f80d62defa9f2"
       ],
@@ -1026,7 +1026,7 @@
       ],
       "description": "Explore requirements and approaches through collaborative dialogue before writing a right-sized requirements document and planning implementation. Use for feature ideas, problem framing, when the user says ''let''s brainstorm'', or when they want to think through options before deciding what to build. Also use when a user describes a vague or ambitious feature request, asks ''what should we build'', ''help me think through X'', presents a problem with multiple valid solutions, or seems unsure about scope or direction \u2014 even if they don''t explicitly ask to brainstorm.",
       "content_hash": "b30322bfc89f15938033ee82b717caf162443852",
-      "signature_hash": "fae499d2a22b65763c3f43e9be9f09ab108fecdc",
+      "signature_hash": "663a8420f8d6964982291060576996b15ebb6652",
       "variant_hashes": [
         "b30322bfc89f15938033ee82b717caf162443852"
       ],
@@ -1042,7 +1042,7 @@
       ],
       "description": "Document a recently solved problem to compound your team's knowledge",
       "content_hash": "39b11ec61c47465b76cd0fa20413be76825379f1",
-      "signature_hash": "06cc5d6d02bc88646d1c1e752b9e2e495310f673",
+      "signature_hash": "51fad5f9d2fcc0b96583f09a82290d55699e2199",
       "variant_hashes": [
         "39b11ec61c47465b76cd0fa20413be76825379f1"
       ],
@@ -1058,7 +1058,7 @@
       ],
       "description": "Refresh stale or drifting learnings and pattern docs in docs/solutions/ by reviewing, updating, consolidating, replacing, or deleting them against the current codebase. Use after refactors, migrations, dependency upgrades, or when a retrieved learning feels outdated or wrong. Also use when reviewing docs/solutions/ for accuracy, when a recently solved problem contradicts an existing learning, when pattern docs no longer reflect current code, or when multiple docs seem to cover the same topic and might benefit from consolidation.",
       "content_hash": "f7e95a2c1f7053ced358b4a30a8499ee7b7af4ac",
-      "signature_hash": "e9c663314c8f36c8394f5894cd966cb65a508e6e",
+      "signature_hash": "070cc927710cca17fdfc6deb59c9a6a04c92597e",
       "variant_hashes": [
         "f7e95a2c1f7053ced358b4a30a8499ee7b7af4ac"
       ],
@@ -1074,7 +1074,7 @@
       ],
       "description": "Generate and critically evaluate grounded improvement ideas for the current project. Use when asking what to improve, requesting idea generation, exploring surprising improvements, or wanting the AI to proactively suggest strong project directions before brainstorming one in depth. Triggers on phrases like 'what should I improve', 'give me ideas', 'ideate on this project', 'surprise me with improvements', 'what would you change', or any request for AI-generated project improvement suggestions rather than refining the user's own idea.",
       "content_hash": "972c4d62740552a35faa70badb4616713bd86c4b",
-      "signature_hash": "7758c64044b8ddb4d7a46724f2abd343b51a50ff",
+      "signature_hash": "c74666e298224822d79f1f2e1babbd78193df8dc",
       "variant_hashes": [
         "972c4d62740552a35faa70badb4616713bd86c4b"
       ],
@@ -1090,7 +1090,7 @@
       ],
       "description": "Create structured plans for any multi-step task -- software features, research workflows, events, study plans, or any goal that benefits from structured breakdown. Also deepen existing plans with interactive review of sub-agent findings. Use for plan creation when the user says 'plan this', 'create a plan', 'write a tech plan', 'plan the implementation', 'how should we build', 'what's the approach for', 'break this down', 'plan a trip', 'create a study plan', or when a brainstorm/requirements document is ready for planning. Use for plan deepening when the user says 'deepen the plan', 'deepen my plan', 'deepening pass', or uses 'deepen' in reference to a plan. For exploratory or ambiguous requests where the user is unsure what to do, prefer ce:brainstorm first.",
       "content_hash": "66c50af3e90f23c810e0a742af48b8abefa57bf2",
-      "signature_hash": "30c65255b48a42aec37c35d6cb6d5c61d059e15d",
+      "signature_hash": "ce234f675bfe4066f70998d3319db0643c2e65ec",
       "variant_hashes": [
         "66c50af3e90f23c810e0a742af48b8abefa57bf2"
       ],
@@ -1106,7 +1106,7 @@
       ],
       "description": "Structured code review using tiered persona agents, confidence-gated findings, and a merge/dedup pipeline. Use when reviewing code changes before creating a PR.",
       "content_hash": "370cc3f911a05f334bbe52ce913951941cf6ffac",
-      "signature_hash": "2cebedc7c0d913fbff7ba5ca49e2b0f24a04be67",
+      "signature_hash": "2b84f54268fbfb74dfeac417954786ab253dbd3e",
       "variant_hashes": [
         "370cc3f911a05f334bbe52ce913951941cf6ffac"
       ],
@@ -1122,7 +1122,7 @@
       ],
       "description": "Search and ask questions about your coding agent session history. Use when asking what you worked on, what was tried before, how a problem was investigated across sessions, what happened recently, or any question about past agent sessions. Also use when the user references prior sessions, previous attempts, or past investigations \u2014 even without saying 'sessions' explicitly.",
       "content_hash": "2533ba0de46c92b4bac7a277de86cb24e19916e0",
-      "signature_hash": "4febda82fc176755751375409968272341d9beb3",
+      "signature_hash": "3b7045d523aa749628c6382931463336f4923a6d",
       "variant_hashes": [
         "2533ba0de46c92b4bac7a277de86cb24e19916e0"
       ],
@@ -1138,7 +1138,7 @@
       ],
       "description": "Search Slack for interpreted organizational context -- decisions, constraints, and discussion arcs that shape the current task. Produces a research digest with cross-cutting analysis and research-value assessment, not raw message lists. Use when searching Slack for context during planning, brainstorming, or any task where organizational knowledge matters. Trigger phrases: 'search slack for', 'what did we discuss about', 'slack context for', 'organizational context about', 'what does the team think about', 'any slack discussions on'. Differs from slack:find-discussions which returns individual message results without synthesis.",
       "content_hash": "df31836575a09f1895c3793b50adcc8aa4f208f9",
-      "signature_hash": "180f5529bcf2600c19bf27204d66b5d4cd117b74",
+      "signature_hash": "8cf9f77003208fd01cbc29c1723c496525bead71",
       "variant_hashes": [
         "df31836575a09f1895c3793b50adcc8aa4f208f9"
       ],
@@ -1154,7 +1154,7 @@
       ],
       "description": "|",
       "content_hash": "bca0b813b593218117c31630d4b12da09e4f0f0f",
-      "signature_hash": "c324b9b79192ba73e6095a2a2008d237484495ec",
+      "signature_hash": "b51b35d31815981358842ef8f3685c235bc40600",
       "variant_hashes": [
         "bca0b813b593218117c31630d4b12da09e4f0f0f"
       ],
@@ -1170,7 +1170,7 @@
       ],
       "description": "Execute work efficiently while maintaining quality and finishing features",
       "content_hash": "50e3e17028eaaa059f8175ada67dfdc66f2f0905",
-      "signature_hash": "90a27733a5bfc16418a026872bd75e820357141f",
+      "signature_hash": "17604fa45565417140d26b6600899db4acd13b5a",
       "variant_hashes": [
         "50e3e17028eaaa059f8175ada67dfdc66f2f0905"
       ],
@@ -1186,7 +1186,7 @@
       ],
       "description": "[BETA] Execute work with external delegate support. Same as ce:work but includes experimental Codex delegation mode for token-conserving code implementation.",
       "content_hash": "8d5bb149a858b0941eb79a052f803342d13eb9fd",
-      "signature_hash": "fa06b85b1bbf4f57999d67762fa16c5a9092a46d",
+      "signature_hash": "576dd2d05ea96ac01bc5ffbff0cb4e5883b9c85e",
       "variant_hashes": [
         "8d5bb149a858b0941eb79a052f803342d13eb9fd"
       ],
@@ -1202,7 +1202,7 @@
       ],
       "description": "Create engaging changelogs for recent merges to main branch",
       "content_hash": "77d1da9f3c9cee97c7bee1e4d7a591ac3ca3284f",
-      "signature_hash": "5897c073a687deb501ff94a025e8b0bc5b2bb6a1",
+      "signature_hash": "270124c8bf30ad62e7d4d826683589b804e88861",
       "variant_hashes": [
         "77d1da9f3c9cee97c7bee1e4d7a591ac3ca3284f"
       ],
@@ -1218,7 +1218,7 @@
       ],
       "description": "Optimize Claude Code permissions by finding safe Bash commands from session history and auto-applying them to settings.json. Can run from any coding agent but targets Claude Code specifically. Use when experiencing permission fatigue, too many permission prompts, wanting to optimize permissions, or needing to set up allowlists. Triggers on \"optimize permissions\", \"reduce permission prompts\", \"allowlist commands\", \"too many permission prompts\", \"permission fatigue\", \"permission setup\", or complaints about clicking approve too often.",
       "content_hash": "672923ffc558067ab6ab9f9afdd0d72fe8c63f01",
-      "signature_hash": "8392e2e79c4385b0001ecab2fb4b212bf0eddbeb",
+      "signature_hash": "023243fa5c4e9158b3b4daeb33669961fa0d0d60",
       "variant_hashes": [
         "672923ffc558067ab6ab9f9afdd0d72fe8c63f01"
       ],
@@ -1234,7 +1234,7 @@
       ],
       "description": "Validate and prepare documentation for GitHub Pages deployment",
       "content_hash": "af66f767c6cd0566a902b51e54701bce50c99990",
-      "signature_hash": "cea122e138321776d54aa3a0f4a13f722d29e277",
+      "signature_hash": "62413069cf12325485f4de0816f9424e75fbdce4",
       "variant_hashes": [
         "af66f767c6cd0566a902b51e54701bce50c99990"
       ],
@@ -1250,7 +1250,7 @@
       ],
       "description": "This skill should be used when writing Ruby and Rails code in DHH's distinctive 37signals style. It applies when writing Ruby code, Rails applications, creating models, controllers, or any Ruby file. Triggers on Ruby/Rails code generation, refactoring requests, code review, or when the user mentions DHH, 37signals, Basecamp, HEY, or Campfire style. Embodies REST purity, fat models, thin controllers, Current attributes, Hotwire patterns, and the \"clarity over cleverness\" philosophy.",
       "content_hash": "d18cdd8a00c7ea0cad21e65194de6be92ba7b234",
-      "signature_hash": "397cc7da5de49df27dc3c7f90185243800c8b273",
+      "signature_hash": "12cea0d249e52e732658fa2c2567c13a80556c4d",
       "variant_hashes": [
         "d18cdd8a00c7ea0cad21e65194de6be92ba7b234"
       ],
@@ -1266,7 +1266,7 @@
       ],
       "description": "Review requirements or plan documents using parallel persona agents that surface role-specific issues. Use when a requirements document or plan document exists and the user wants to improve it.",
       "content_hash": "e6f9133535d76c4824ff5ebadf93472476ae6c99",
-      "signature_hash": "57c7a330bd0bd2a3cfce0d7e5db259e2a448df81",
+      "signature_hash": "4869f23c926997d73a2cbe7fb457ecee30bd5fe9",
       "variant_hashes": [
         "e6f9133535d76c4824ff5ebadf93472476ae6c99"
       ],
@@ -1282,7 +1282,7 @@
       ],
       "description": "Build type-safe LLM applications with DSPy.rb \u2014 Ruby's programmatic prompt framework with signatures, modules, agents, and optimization. Use when implementing predictable AI features, creating LLM signatures and modules, configuring language model providers, building agent systems with tools, optimizing prompts, or testing LLM-powered functionality in Ruby applications.",
       "content_hash": "eb6e2b47d8d06532325f1cb74dc54e899a345b1d",
-      "signature_hash": "a9a97494dd35f4ca56919761ea4229cd1ca9d0f5",
+      "signature_hash": "dbf7c0b7289f203e49fda20399019c1714f73dcc",
       "variant_hashes": [
         "eb6e2b47d8d06532325f1cb74dc54e899a345b1d"
       ],
@@ -1298,7 +1298,7 @@
       ],
       "description": "This skill should be used when reviewing or editing copy to ensure adherence to Every's style guide. It provides a systematic line-by-line review process for grammar, punctuation, mechanics, and style guide compliance.",
       "content_hash": "261988a04ef8f7c70556d26fb858d176b814eecc",
-      "signature_hash": "e361b51ee157440a412e14f4dc74905e432580ef",
+      "signature_hash": "b1156fd74ca9bc68ccf8a3a97af82b7a757911de",
       "variant_hashes": [
         "261988a04ef8f7c70556d26fb858d176b814eecc"
       ],
@@ -1314,7 +1314,7 @@
       ],
       "description": "Record a video walkthrough of a feature and add it to the PR description. Use when a PR needs a visual demo for reviewers, when the user asks to demo a feature, create a PR video, record a walkthrough, show what changed visually, or add a video to a pull request.",
       "content_hash": "e93361fd4140090e30eb4d20d78b149d023c4268",
-      "signature_hash": "a3653af72dde9cb180e9b441c48feb3900bb8d67",
+      "signature_hash": "e4a65dd6bdf8e45ecd774c717f2f7812f8b9b36c",
       "variant_hashes": [
         "e93361fd4140090e30eb4d20d78b149d023c4268"
       ],
@@ -1330,7 +1330,7 @@
       ],
       "description": "Build web interfaces with genuine design quality, not AI slop. Use for any frontend work - landing pages, web apps, dashboards, admin panels, components, interactive experiences. Activates for both greenfield builds and modifications to existing applications. Detects existing design systems and respects them. Covers composition, typography, color, motion, and copy. Verifies results via screenshots before declaring done.",
       "content_hash": "f1a5ea36421f65be868941b7a6095146f2c47581",
-      "signature_hash": "47766fa9657300e378dc9c549b37035cdd6965b9",
+      "signature_hash": "875a5e413ade1bf809c03e8878bdbc65f6f15e88",
       "variant_hashes": [
         "f1a5ea36421f65be868941b7a6095146f2c47581"
       ],
@@ -1346,7 +1346,7 @@
       ],
       "description": "This skill should be used when generating and editing images using the Gemini API (Nano Banana Pro). It applies when creating images from text prompts, editing existing images, applying style transfers, generating logos with text, creating stickers, product mockups, or any image generation/manipulation task. Supports text-to-image, image editing, multi-turn refinement, and composition from multiple reference images.",
       "content_hash": "40c75c987986ce495b7c05a6cbcd570c9239886e",
-      "signature_hash": "4cfde55415f7d371562f5c4ef98b770a183b1b12",
+      "signature_hash": "d09d2d03ec882e15c687d62e3ff246133a58db22",
       "variant_hashes": [
         "40c75c987986ce495b7c05a6cbcd570c9239886e"
       ],
@@ -1362,7 +1362,7 @@
       ],
       "description": "Clean up local branches whose remote tracking branch is gone. Use when the user says \"clean up branches\", \"delete gone branches\", \"prune local branches\", \"clean gone\", or wants to remove stale local branches that no longer exist on the remote. Also handles removing associated worktrees for branches that have them.",
       "content_hash": "7c114ba7a3da2fd3c79714ce0d318c2d8fbc12ee",
-      "signature_hash": "55f90c51496a813f8a7b13864d7b770101ad3da2",
+      "signature_hash": "c5c903a155d2322c19ff0235302e17f49d30afb5",
       "variant_hashes": [
         "7c114ba7a3da2fd3c79714ce0d318c2d8fbc12ee"
       ],
@@ -1378,7 +1378,7 @@
       ],
       "description": "Create a git commit with a clear, value-communicating message. Use when the user says \"commit\", \"commit this\", \"save my changes\", \"create a commit\", or wants to commit staged or unstaged work. Produces well-structured commit messages that follow repo conventions when they exist, and defaults to conventional commit format otherwise.",
       "content_hash": "5448a170d5977d4110da72fc54932aa738d3cab3",
-      "signature_hash": "bcd06949dc1726a1b6b8c2a5e3c2c34f91ca163b",
+      "signature_hash": "be289e68aadec9c888eb2beb40e087b11648808a",
       "variant_hashes": [
         "5448a170d5977d4110da72fc54932aa738d3cab3"
       ],
@@ -1394,7 +1394,7 @@
       ],
       "description": "Commit, push, and open a PR with an adaptive, value-first description. Use when the user says \"commit and PR\", \"push and open a PR\", \"ship this\", \"create a PR\", \"open a pull request\", \"commit push PR\", or wants to go from working changes to an open pull request in one step. Also use when the user says \"update the PR description\", \"refresh the PR description\", \"freshen the PR\", or wants to rewrite an existing PR description. Produces PR descriptions that scale in depth with the complexity of the change, avoiding cookie-cutter templates.",
       "content_hash": "674c93801d1e2dbcb56040d527d281e3337d17c1",
-      "signature_hash": "8382c3ff5c86b7c905e9fa484ecc784be3a05b5a",
+      "signature_hash": "e1709a1e9a2bb70cf1f7dc22d522e8d5596e0c9a",
       "variant_hashes": [
         "674c93801d1e2dbcb56040d527d281e3337d17c1"
       ],
@@ -1410,7 +1410,7 @@
       ],
       "description": "This skill manages Git worktrees for isolated parallel development. It handles creating, listing, switching, and cleaning up worktrees with a simple interactive interface, following KISS principles.",
       "content_hash": "550749c8da7ce38c47d81635d437244797817372",
-      "signature_hash": "605ee8c1abe6dfbf2ce2c33786a330acfc09362e",
+      "signature_hash": "f81809c788fac9767c32b91e5ff55cbebbcc799f",
       "variant_hashes": [
         "550749c8da7ce38c47d81635d437244797817372"
       ],
@@ -1426,7 +1426,7 @@
       ],
       "description": "Full autonomous engineering workflow",
       "content_hash": "e96e04e9200f55350287646572944ae712338cca",
-      "signature_hash": "2b836bb22973df68e39bbac4d64b50bd96a1ae05",
+      "signature_hash": "6a31f5044b28888536576ab7ed733bf5a0dd18d1",
       "variant_hashes": [
         "e96e04e9200f55350287646572944ae712338cca"
       ],
@@ -1442,7 +1442,7 @@
       ],
       "description": "Generate or regenerate ONBOARDING.md to help new contributors understand a codebase. Use when the user asks to 'create onboarding docs', 'generate ONBOARDING.md', 'document this project for new developers', 'write onboarding documentation', 'vonboard', 'vonboarding', 'prepare this repo for a new contributor', 'refresh the onboarding doc', or 'update ONBOARDING.md'. Also use when someone needs to onboard a new team member and wants a written artifact, or when a codebase lacks onboarding documentation and the user wants to generate one.",
       "content_hash": "77b0a10b8dea5608cffb1f93adf4fb8e70c595eb",
-      "signature_hash": "5ac7b50c87d9773c43c0c137df441a385b2981cb",
+      "signature_hash": "b56518b1a09f799502a6e0927325e03b7651eb66",
       "variant_hashes": [
         "77b0a10b8dea5608cffb1f93adf4fb8e70c595eb"
       ],
@@ -1458,7 +1458,7 @@
       ],
       "description": "Create, edit, comment on, and share markdown documents via Proof's web API and local bridge. Use when asked to \"proof\", \"share a doc\", \"create a proof doc\", \"comment on a document\", \"suggest edits\", \"review in proof\", or when given a proofeditor.ai URL.",
       "content_hash": "e2d575a476840cfcfdf939b65ccfda62c6aa2967",
-      "signature_hash": "9a8059b09668016dfdc6e8984e55d467ee0a1585",
+      "signature_hash": "1c996f1ecc1db76052125cd40377adcd41c9869c",
       "variant_hashes": [
         "e2d575a476840cfcfdf939b65ccfda62c6aa2967"
       ],
@@ -1474,7 +1474,7 @@
       ],
       "description": "Upload, sync, and manage files across cloud storage providers using rclone. Use when uploading files (images, videos, documents) to S3, Cloudflare R2, Backblaze B2, Google Drive, Dropbox, or any S3-compatible storage. Triggers on \"upload to S3\", \"sync to cloud\", \"rclone\", \"backup files\", \"upload video/image to bucket\", or requests to transfer files to remote storage.",
       "content_hash": "8a8fe74d9fcc855c20c67c94b8b9247b3fa7197c",
-      "signature_hash": "e890ba8ff1142e237eaa168592c90cbfe5ed9096",
+      "signature_hash": "713acfc59f2c5a7a2851d0302a514f08b20ae196",
       "variant_hashes": [
         "8a8fe74d9fcc855c20c67c94b8b9247b3fa7197c"
       ],
@@ -1490,7 +1490,7 @@
       ],
       "description": "Report a bug in the compound-engineering plugin",
       "content_hash": "ccd90a16e93864e95e3fbbb612e67947f879b1d1",
-      "signature_hash": "334b5c9b60b92d03f37b8e2c899c7df391ee6594",
+      "signature_hash": "cb9879c5ec39b544960cdfc8983f6cf65f7a1834",
       "variant_hashes": [
         "ccd90a16e93864e95e3fbbb612e67947f879b1d1"
       ],
@@ -1506,7 +1506,7 @@
       ],
       "description": "Systematically reproduce and investigate a bug from a GitHub issue. Use when the user provides a GitHub issue number or URL for a bug they want reproduced or investigated.",
       "content_hash": "c09166c13b8e61ca522f29578b6a33cd87a85593",
-      "signature_hash": "43c35889ea13c0514ffae2e9da9e5b8de46ff2c0",
+      "signature_hash": "06120a5e2c30d8781ba5eee7f65ecb534bca4396",
       "variant_hashes": [
         "c09166c13b8e61ca522f29578b6a33cd87a85593"
       ],
@@ -1522,7 +1522,7 @@
       ],
       "description": "Resolve PR review feedback by evaluating validity and fixing issues in parallel. Use when addressing PR review comments, resolving review threads, or fixing code review feedback.",
       "content_hash": "e7067ab2a89431d59e1b881e3a74eb51f32560dc",
-      "signature_hash": "9d60a1b766fd42c243e1b4c6148a925196a27f3b",
+      "signature_hash": "8c59278d3ad7c6e9d3362c861579ea83f610e7d6",
       "variant_hashes": [
         "e7067ab2a89431d59e1b881e3a74eb51f32560dc"
       ],
@@ -1538,7 +1538,7 @@
       ],
       "description": "Configure project-level settings for compound-engineering workflows. Currently a placeholder \u2014 review agent selection is handled automatically by ce:review.",
       "content_hash": "1b45e12442f3e0c0c05180e833dd3f1a7a521edb",
-      "signature_hash": "b6afa4c9cb6ad15880ac10c95f0395e3a3958828",
+      "signature_hash": "479aea89e3bcb6a78cf259ae418ae1e20d5b2333",
       "variant_hashes": [
         "1b45e12442f3e0c0c05180e833dd3f1a7a521edb"
       ],
@@ -1554,7 +1554,7 @@
       ],
       "description": "Run browser tests on pages affected by current PR or branch",
       "content_hash": "9396f4c4d6f705462b230f0d1a2780c992f6a56f",
-      "signature_hash": "9524cd114415fad89bfc93201c026af0b98d9e1a",
+      "signature_hash": "520502402b809eda00af2b3b0229c2afdf899f64",
       "variant_hashes": [
         "9396f4c4d6f705462b230f0d1a2780c992f6a56f"
       ],
@@ -1570,7 +1570,7 @@
       ],
       "description": "Build and test iOS apps on simulator using XcodeBuildMCP. Use after making iOS code changes, before creating a PR, or when verifying app behavior and checking for crashes on simulator.",
       "content_hash": "17a337354bf3bd439aacf7efe4dc6906894cf597",
-      "signature_hash": "481ed9c8aa339d7e66a8adbd6ed3ea1cd9271264",
+      "signature_hash": "7015e356c141ed2d54e3ea1befd19ee05eab15bf",
       "variant_hashes": [
         "17a337354bf3bd439aacf7efe4dc6906894cf597"
       ],
@@ -1586,7 +1586,7 @@
       ],
       "description": "Use when creating durable work items, managing todo lifecycle, or tracking findings across sessions in the file-based todo system",
       "content_hash": "8cff3f80943384da0008747bb2d405c3c7784f9d",
-      "signature_hash": "02853e212c2a81d9b3c2ea7b56c9fb3a6142fb85",
+      "signature_hash": "9ae728737e1240ceeeed682420baa10922dc16b2",
       "variant_hashes": [
         "8cff3f80943384da0008747bb2d405c3c7784f9d"
       ],
@@ -1602,7 +1602,7 @@
       ],
       "description": "Use when batch-resolving approved todos, especially after code review or triage sessions",
       "content_hash": "1d51de327e72e4051785b1a9de71c23d32534e3f",
-      "signature_hash": "b93d80f834e9d91f0c0238208bc5e1bb2f1e5cdc",
+      "signature_hash": "d9d71a5d1e3a773a9abc724c8e5570ef70970a65",
       "variant_hashes": [
         "1d51de327e72e4051785b1a9de71c23d32534e3f"
       ],
@@ -1618,7 +1618,7 @@
       ],
       "description": "Use when reviewing pending todos for approval, prioritizing code review findings, or interactively categorizing work items",
       "content_hash": "5ea57d253eb1efb720edfc2da005a74b8378435e",
-      "signature_hash": "faaeeafb41d1a7141db77c88cbbb6696fc9b5c64",
+      "signature_hash": "cb17b5042ea39578ff0e4cf65de3d727b45e7a19",
       "variant_hashes": [
         "5ea57d253eb1efb720edfc2da005a74b8378435e"
       ],
