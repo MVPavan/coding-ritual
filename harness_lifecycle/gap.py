@@ -26,7 +26,9 @@ Pure standard library; imports the scanner from scan.py.
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
+import shlex
 import sys
 from dataclasses import dataclass
 from datetime import date
@@ -94,14 +96,23 @@ def merge_catalogs(name: str, source: str, catalogs: list[scan.Catalog]) -> scan
     )
 
 
+def _drop_template_caps(catalog: scan.Catalog) -> scan.Catalog:
+    """Drop a plugin's template/ payload — it is a genericised copy of the root
+    harness, not a capability of its own (avoids double-counting in 'ours')."""
+    kept = tuple(c for c in catalog.capabilities if not c.canonical_path.startswith("template/"))
+    return dataclasses.replace(catalog, capabilities=kept)
+
+
 def build_ours() -> scan.Catalog:
-    """Catalog our reusable surface: root .claude/ plus every shipped plugin."""
-    roots = [OUR_HARNESS_ROOT] + sorted(REPO_ROOT.glob(PLUGINS_GLOB))
+    """Catalog our reusable surface: root .claude/ + .codex/ + every shipped plugin,
+    excluding each plugin's template/ copy of the root harness."""
+    roots = [OUR_HARNESS_ROOT, REPO_ROOT / ".codex"] + sorted(REPO_ROOT.glob(PLUGINS_GLOB))
     catalogs: list[scan.Catalog] = []
     for root in roots:
         if root.is_dir():
-            catalogs.append(scan.scan_repo(root, root.name, source=f"ours:{root.name}", source_commit=None))
-    return merge_catalogs("ours", "root .claude + plugins", catalogs)
+            cat = scan.scan_repo(root, root.name, source=f"ours:{root.name}", source_commit=None)
+            catalogs.append(_drop_template_caps(cat))
+    return merge_catalogs("ours", "root .claude/.codex + plugins", catalogs)
 
 
 # --- Matching -----------------------------------------------------------------
@@ -262,12 +273,12 @@ def render_gap(ref: scan.Catalog, ours: scan.Catalog, gaps: list[Gap], improved,
     if emit_beads and gaps:
         lines.append("\n### bd create lines (review before running)")
         for gap in gaps:
-            title = f"Evaluate {gap.cap.kind.value} '{gap.cap.name}' from {ref.repo}"
+            title = f"Evaluate {gap.cap.kind.value} {gap.cap.name} from {ref.repo}"
+            desc = (f"Gap candidate {gap.cap.logical_id} from {ref.repo} "
+                    f"({gap.cap.canonical_path}). Decide adopt/reject/defer via harness-evaluate.")
             lines.append(
-                f"bd create --title=\"{title}\" "
-                f"--description=\"Gap candidate {gap.cap.logical_id} from {ref.repo} "
-                f"({gap.cap.canonical_path}). Decide: adopt/reject/defer via harness-evaluate.\" "
-                f"--type=task --priority=3"
+                f"bd create --title={shlex.quote(title)} "
+                f"--description={shlex.quote(desc)} --type=task --priority=3"
             )
     if not gaps and not improved:
         lines.append("\nNo gaps — everything they ship is covered or already decided.")

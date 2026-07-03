@@ -27,14 +27,14 @@
     {
       "kind": "agent",
       "name": "code-reviewer",
-      "logical_id": "agent:code-reviewer",
+      "logical_id": "agent:agents/code-reviewer",
       "canonical_path": "agents/code-reviewer.md",
       "paths": [
         "agents/code-reviewer.md"
       ],
       "description": "|",
       "content_hash": "65941326ec05dd0d76e41913be6b1a399c530fe4",
-      "signature_hash": "7a96d15079e66e4d7cba737ca299d00da49b1f52",
+      "signature_hash": "a11a57be0ccfe17cc6d2f86380a8227cdae678fd",
       "variant_hashes": [
         "65941326ec05dd0d76e41913be6b1a399c530fe4"
       ],
@@ -43,14 +43,14 @@
     {
       "kind": "command",
       "name": "brainstorm",
-      "logical_id": "command:brainstorm",
+      "logical_id": "command:commands/brainstorm",
       "canonical_path": "commands/brainstorm.md",
       "paths": [
         "commands/brainstorm.md"
       ],
       "description": "Deprecated - use the superpowers:brainstorming skill instead",
       "content_hash": "4dc7fdfe546e6f2dc64d26c69ecdbe8589763d85",
-      "signature_hash": "5504b796878c4d636662179346ba1fb2e42dae0a",
+      "signature_hash": "83ad49f0a265dfe64a35baaf85908e43f68dcec1",
       "variant_hashes": [
         "4dc7fdfe546e6f2dc64d26c69ecdbe8589763d85"
       ],
@@ -59,14 +59,14 @@
     {
       "kind": "command",
       "name": "execute-plan",
-      "logical_id": "command:execute-plan",
+      "logical_id": "command:commands/execute-plan",
       "canonical_path": "commands/execute-plan.md",
       "paths": [
         "commands/execute-plan.md"
       ],
       "description": "Deprecated - use the superpowers:executing-plans skill instead",
       "content_hash": "38b46ffaece896c85720b123b42dd165e635e742",
-      "signature_hash": "06b825e605e206e94da426dd318a7ffbef8314ea",
+      "signature_hash": "0f9367d5d387a209d661d57bda354928ba494b92",
       "variant_hashes": [
         "38b46ffaece896c85720b123b42dd165e635e742"
       ],
@@ -75,14 +75,14 @@
     {
       "kind": "command",
       "name": "write-plan",
-      "logical_id": "command:write-plan",
+      "logical_id": "command:commands/write-plan",
       "canonical_path": "commands/write-plan.md",
       "paths": [
         "commands/write-plan.md"
       ],
       "description": "Deprecated - use the superpowers:writing-plans skill instead",
       "content_hash": "690c78ab4fc7d08c135f0f50533e9777a8e2d782",
-      "signature_hash": "724bc3f20fa21f72e98cfed5fe281277f8849140",
+      "signature_hash": "b892854629aca605dfb337cb088409940f8c35f0",
       "variant_hashes": [
         "690c78ab4fc7d08c135f0f50533e9777a8e2d782"
       ],
@@ -90,15 +90,15 @@
     },
     {
       "kind": "plugin",
-      "name": ".claude-plugin",
-      "logical_id": "plugin:.claude-plugin",
+      "name": "superpowers",
+      "logical_id": "plugin:",
       "canonical_path": ".claude-plugin/plugin.json",
       "paths": [
         ".claude-plugin/plugin.json"
       ],
       "description": "",
       "content_hash": "73b1001e9be00b2026a7ed778d24567fa7b2ee1b",
-      "signature_hash": "b0ca4ec2c5c63c832604c38e93162ce03ffbbde9",
+      "signature_hash": "ad85f643bc0a8c49ba81ff861c8d8f5cfd32bdd5",
       "variant_hashes": [
         "73b1001e9be00b2026a7ed778d24567fa7b2ee1b"
       ],
@@ -107,14 +107,14 @@
     {
       "kind": "skill",
       "name": "brainstorming",
-      "logical_id": "skill:brainstorming",
+      "logical_id": "skill:skills/brainstorming",
       "canonical_path": "skills/brainstorming/SKILL.md",
       "paths": [
         "skills/brainstorming/SKILL.md"
       ],
       "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
       "content_hash": "1b0710979c671689718d16643abfd0d9b67f74a7",
-      "signature_hash": "e6a651c63d5cb0aefca52b6898265276936cb3d5",
+      "signature_hash": "cb022703b5829a140987297d9521308c20cf25eb",
       "variant_hashes": [
         "1b0710979c671689718d16643abfd0d9b67f74a7"
       ],
@@ -123,14 +123,14 @@
     {
       "kind": "skill",
       "name": "dispatching-parallel-agents",
-      "logical_id": "skill:dispatching-parallel-agents",
+      "logical_id": "skill:skills/dispatching-parallel-agents",
       "canonical_path": "skills/dispatching-parallel-agents/SKILL.md",
       "paths": [
         "skills/dispatching-parallel-agents/SKILL.md"
       ],
       "description": "Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies",
       "content_hash": "fb3cf9870113a6a01b76385923528a21d0afc4e0",
-      "signature_hash": "909d5c53686e8f513268ea11bf022df37e8e1f73",
+      "signature_hash": "9b6caea33441e1582ca322eb3c2bbebcbcfad77f",
       "variant_hashes": [
         "fb3cf9870113a6a01b76385923528a21d0afc4e0"
       ],
@@ -139,14 +139,14 @@
     {
       "kind": "skill",
       "name": "executing-plans",
-      "logical_id": "skill:executing-plans",
+      "logical_id": "skill:skills/executing-plans",
       "canonical_path": "skills/executing-plans/SKILL.md",
       "paths": [
         "skills/executing-plans/SKILL.md"
       ],
       "description": "Use when you have a written implementation plan to execute in a separate session with review checkpoints",
       "content_hash": "87a00e5f798cf82ead82097bcc80a1019a55a10a",
-      "signature_hash": "0fa1a7de0cb87c808f6272151af3e2e152e47872",
+      "signature_hash": "591078a6ee9c31e1c7105cd04cfc883d2fda4ac0",
       "variant_hashes": [
         "87a00e5f798cf82ead82097bcc80a1019a55a10a"
       ],
@@ -155,14 +155,14 @@
     {
       "kind": "skill",
       "name": "finishing-a-development-branch",
-      "logical_id": "skill:finishing-a-development-branch",
+      "logical_id": "skill:skills/finishing-a-development-branch",
       "canonical_path": "skills/finishing-a-development-branch/SKILL.md",
       "paths": [
         "skills/finishing-a-development-branch/SKILL.md"
       ],
       "description": "Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup",
       "content_hash": "ad48721df9fa238a73b15dff2c5454226ced9f91",
-      "signature_hash": "621a74a553af80deb4f69335eb73e8e9b02b76a6",
+      "signature_hash": "d5ac35fbca940e2c10db5e289f1ad9c6cf996cc6",
       "variant_hashes": [
         "ad48721df9fa238a73b15dff2c5454226ced9f91"
       ],
@@ -171,14 +171,14 @@
     {
       "kind": "skill",
       "name": "receiving-code-review",
-      "logical_id": "skill:receiving-code-review",
+      "logical_id": "skill:skills/receiving-code-review",
       "canonical_path": "skills/receiving-code-review/SKILL.md",
       "paths": [
         "skills/receiving-code-review/SKILL.md"
       ],
       "description": "Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation",
       "content_hash": "1ab3e001b39f0bae77cc5af2bfbe7a2687aedbf4",
-      "signature_hash": "46877e2d573b6950cb163fe159373f6922e20819",
+      "signature_hash": "ac2a3f49aee5a4815216fc68af2f57fbac2140b3",
       "variant_hashes": [
         "1ab3e001b39f0bae77cc5af2bfbe7a2687aedbf4"
       ],
@@ -187,14 +187,14 @@
     {
       "kind": "skill",
       "name": "requesting-code-review",
-      "logical_id": "skill:requesting-code-review",
+      "logical_id": "skill:skills/requesting-code-review",
       "canonical_path": "skills/requesting-code-review/SKILL.md",
       "paths": [
         "skills/requesting-code-review/SKILL.md"
       ],
       "description": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
       "content_hash": "06f8749dd837124cde9dd9620a7f569a8c031460",
-      "signature_hash": "4630b820bddbcbbbed03a082bb1e834edd2a6837",
+      "signature_hash": "a8cc22b58294bd9fe7de8ef79f3e143fbbc7d40e",
       "variant_hashes": [
         "06f8749dd837124cde9dd9620a7f569a8c031460"
       ],
@@ -203,14 +203,14 @@
     {
       "kind": "skill",
       "name": "subagent-driven-development",
-      "logical_id": "skill:subagent-driven-development",
+      "logical_id": "skill:skills/subagent-driven-development",
       "canonical_path": "skills/subagent-driven-development/SKILL.md",
       "paths": [
         "skills/subagent-driven-development/SKILL.md"
       ],
       "description": "Use when executing implementation plans with independent tasks in the current session",
       "content_hash": "2ea2f0b09ac81f5be335e41f2c77c846a1ce9386",
-      "signature_hash": "1b56edd47e16694bf07eaa124fb6a4e4afbbaf7f",
+      "signature_hash": "eb6cf606f785754783abbc5dbd7c0989bff60c5b",
       "variant_hashes": [
         "2ea2f0b09ac81f5be335e41f2c77c846a1ce9386"
       ],
@@ -219,14 +219,14 @@
     {
       "kind": "skill",
       "name": "systematic-debugging",
-      "logical_id": "skill:systematic-debugging",
+      "logical_id": "skill:skills/systematic-debugging",
       "canonical_path": "skills/systematic-debugging/SKILL.md",
       "paths": [
         "skills/systematic-debugging/SKILL.md"
       ],
       "description": "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes",
       "content_hash": "d5e4c57573966f4dcc6a0cdd64316cec9b221440",
-      "signature_hash": "d9ac8aaaa3fae2ac03379db152dbeb6ab489f577",
+      "signature_hash": "2f9dd75b9f3602412cb3518395a816495218f5cf",
       "variant_hashes": [
         "d5e4c57573966f4dcc6a0cdd64316cec9b221440"
       ],
@@ -235,14 +235,14 @@
     {
       "kind": "skill",
       "name": "test-driven-development",
-      "logical_id": "skill:test-driven-development",
+      "logical_id": "skill:skills/test-driven-development",
       "canonical_path": "skills/test-driven-development/SKILL.md",
       "paths": [
         "skills/test-driven-development/SKILL.md"
       ],
       "description": "Use when implementing any feature or bugfix, before writing implementation code",
       "content_hash": "df8bf2ef838653f74082944ba6c0c4ba202c7977",
-      "signature_hash": "de753e34efd7c6897a4a11cfdf30e6cce20f67e8",
+      "signature_hash": "fae47cf1cb296c3fe58bdcde4fcf156e76dbde97",
       "variant_hashes": [
         "df8bf2ef838653f74082944ba6c0c4ba202c7977"
       ],
@@ -251,14 +251,14 @@
     {
       "kind": "skill",
       "name": "using-git-worktrees",
-      "logical_id": "skill:using-git-worktrees",
+      "logical_id": "skill:skills/using-git-worktrees",
       "canonical_path": "skills/using-git-worktrees/SKILL.md",
       "paths": [
         "skills/using-git-worktrees/SKILL.md"
       ],
       "description": "Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification",
       "content_hash": "17039bc58069c31e32d06588105b5a1743043d47",
-      "signature_hash": "b3f49d976cc50e2e736fe1a53d78c7c8b3b4bac4",
+      "signature_hash": "7f05692757c960acc231382389f0898d814066d6",
       "variant_hashes": [
         "17039bc58069c31e32d06588105b5a1743043d47"
       ],
@@ -267,14 +267,14 @@
     {
       "kind": "skill",
       "name": "using-superpowers",
-      "logical_id": "skill:using-superpowers",
+      "logical_id": "skill:skills/using-superpowers",
       "canonical_path": "skills/using-superpowers/SKILL.md",
       "paths": [
         "skills/using-superpowers/SKILL.md"
       ],
       "description": "Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions",
       "content_hash": "87084ccfc0ee30ae2ceee8b32aa63af3cb6771f3",
-      "signature_hash": "a718ef91cf82cf977a3c98b6f2aa515c235cb3d1",
+      "signature_hash": "b691100de7afe3d0f76f5405b5bba6e7e00d6947",
       "variant_hashes": [
         "87084ccfc0ee30ae2ceee8b32aa63af3cb6771f3"
       ],
@@ -283,14 +283,14 @@
     {
       "kind": "skill",
       "name": "verification-before-completion",
-      "logical_id": "skill:verification-before-completion",
+      "logical_id": "skill:skills/verification-before-completion",
       "canonical_path": "skills/verification-before-completion/SKILL.md",
       "paths": [
         "skills/verification-before-completion/SKILL.md"
       ],
       "description": "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always",
       "content_hash": "4521d2476a174f5a52e991deb7eb88b27f0086a0",
-      "signature_hash": "6a28e9acad7339f6aa00c174efe98f09a81d4d99",
+      "signature_hash": "2bd658256643fdd2c478171195a13cf2fa688265",
       "variant_hashes": [
         "4521d2476a174f5a52e991deb7eb88b27f0086a0"
       ],
@@ -299,14 +299,14 @@
     {
       "kind": "skill",
       "name": "writing-plans",
-      "logical_id": "skill:writing-plans",
+      "logical_id": "skill:skills/writing-plans",
       "canonical_path": "skills/writing-plans/SKILL.md",
       "paths": [
         "skills/writing-plans/SKILL.md"
       ],
       "description": "Use when you have a spec or requirements for a multi-step task, before touching code",
       "content_hash": "be008098f3d65acdd2a7e9c8c06a7007955dbadb",
-      "signature_hash": "7fe3133aa04669cb1215169fc4dbf3dc0acd2bdc",
+      "signature_hash": "4bc063a2fe4d07690713dd127a0086e015e558cd",
       "variant_hashes": [
         "be008098f3d65acdd2a7e9c8c06a7007955dbadb"
       ],
@@ -315,14 +315,14 @@
     {
       "kind": "skill",
       "name": "writing-skills",
-      "logical_id": "skill:writing-skills",
+      "logical_id": "skill:skills/writing-skills",
       "canonical_path": "skills/writing-skills/SKILL.md",
       "paths": [
         "skills/writing-skills/SKILL.md"
       ],
       "description": "Use when creating new skills, editing existing skills, or verifying skills work before deployment",
       "content_hash": "1e2c3584353ecb83f8260dbf5434ea0a48e027dd",
-      "signature_hash": "b5618c186cd825fcaee379cb4affe2ce5e8764af",
+      "signature_hash": "e5c75ff1d75e7ab92cff94b0fe2ffd6d6881a551",
       "variant_hashes": [
         "1e2c3584353ecb83f8260dbf5434ea0a48e027dd"
       ],
