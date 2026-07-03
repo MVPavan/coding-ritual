@@ -1,0 +1,5 @@
+{
+  "schema": "harness-capability-aliases/v1",
+  "_comment": "Maps a reference harness capability logical_id (their naming) to OUR logical_id, for capabilities that are the same job under a different name. Auto-matching already handles identical and normalized-equal names; only add genuinely divergent names here. Seed grows during gap review.",
+  "aliases": {}
+}
