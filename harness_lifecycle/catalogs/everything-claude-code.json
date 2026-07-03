@@ -47,7 +47,7 @@
       ],
       "description": "Software architecture specialist for system design, scalability, and technical decision-making. Use PROACTIVELY when planning new features, refactoring large systems, or making architectural decisions.",
       "content_hash": "2ca3f31614d837fecf6490b4138eef10c297cf1e",
-      "signature_hash": "203468ff017c4111e271718c90c942e802a887a1",
+      "signature_hash": "c11ac2152f36ee0a6018231e02e5459956d50b79",
       "variant_hashes": [
         "2ca3f31614d837fecf6490b4138eef10c297cf1e",
         "b25c5ca6a430f567da9aa8de4d8bae235a048256"
@@ -65,7 +65,7 @@
       ],
       "description": "Build and TypeScript error resolution specialist. Use PROACTIVELY when build fails or type errors occur. Fixes build/type errors only with minimal diffs, no architectural edits. Focuses on getting the build green quickly.",
       "content_hash": "70f3b7278dd01d01f8cdefde2ee7764d73526248",
-      "signature_hash": "ce19810c0b5e27e73acd70ddca5edf504b520fc1",
+      "signature_hash": "8eab78ac0e71981c7030be5ef5779cd795672c85",
       "variant_hashes": [
         "70f3b7278dd01d01f8cdefde2ee7764d73526248",
         "edef3c2568f97d1f13330b7baaf8a7ed09cf8458"
@@ -83,7 +83,7 @@
       ],
       "description": "Personal communication chief of staff that triages email, Slack, LINE, and Messenger. Classifies messages into 4 tiers (skip/info_only/meeting_info/action_required), generates draft replies, and enforces post-send follow-through via hooks. Use when managing multi-channel communication workflows.",
       "content_hash": "a283de4a190a0a753224909dd0125e5a6c0eb0cc",
-      "signature_hash": "a16b2040cfd21901cc9438036e73808e730125a4",
+      "signature_hash": "8cbe255ea1f1a10a9441ee72ddb2fb143e9e5a54",
       "variant_hashes": [
         "80d5753c536541679e96164f6a5144326dfadf1c",
         "a283de4a190a0a753224909dd0125e5a6c0eb0cc"
@@ -100,7 +100,7 @@
       ],
       "description": "Designs feature architectures by analyzing existing codebase patterns and conventions, then providing implementation blueprints with concrete files, interfaces, data flow, and build order.",
       "content_hash": "816686ee53c1ca8db16952f9ce74dc9d982dd71c",
-      "signature_hash": "eb047c8a4e2bd9b47d1346850759b5c6d2f648e5",
+      "signature_hash": "7e00118813431fbc83c991473bcba2e6b47e15ad",
       "variant_hashes": [
         "816686ee53c1ca8db16952f9ce74dc9d982dd71c"
       ],
@@ -116,7 +116,7 @@
       ],
       "description": "Deeply analyzes existing codebase features by tracing execution paths, mapping architecture layers, and documenting dependencies to inform new development.",
       "content_hash": "1044d07359431d4967681bddc765471316f7168c",
-      "signature_hash": "68f74665f6cd753ae9d2c84e3e6da97e4f09e841",
+      "signature_hash": "57e3d4ed0dcde99c8da25d00920c264a3798cad2",
       "variant_hashes": [
         "1044d07359431d4967681bddc765471316f7168c"
       ],
@@ -133,7 +133,7 @@
       ],
       "description": "Expert code review specialist. Proactively reviews code for quality, security, and maintainability. Use immediately after writing or modifying code. MUST BE USED for all code changes.",
       "content_hash": "fa1b0d6c61f890ece21e73f96fc3fa152de7787e",
-      "signature_hash": "ffe18d77b0ab72176421b8099030cde4516208da",
+      "signature_hash": "ffe50011e9e5027ff772866f11902ea1b843b5ee",
       "variant_hashes": [
         "eb740292416cd890835a4eb85a65c3a11ac9d151",
         "fa1b0d6c61f890ece21e73f96fc3fa152de7787e"
@@ -150,7 +150,7 @@
       ],
       "description": "Simplifies and refines code for clarity, consistency, and maintainability while preserving behavior. Focus on recently modified code unless instructed otherwise.",
       "content_hash": "1dd9387a32b2ea2e1cec42664064829db774c91f",
-      "signature_hash": "2cd50bcd73e215cdb123c09de522b047addef27a",
+      "signature_hash": "5b44d36a84548757d1845488543fee186a7b2afb",
       "variant_hashes": [
         "1dd9387a32b2ea2e1cec42664064829db774c91f"
       ],
@@ -166,7 +166,7 @@
       ],
       "description": "Analyze code comments for accuracy, completeness, maintainability, and comment rot risk.",
       "content_hash": "09481496b7f5b9e02d4eefe573c1938ff89454f6",
-      "signature_hash": "28463aa565aa61e8b5e0df4f539d15a0ebd06944",
+      "signature_hash": "30fea62f0b22efec3d5c1a9b6a7139d5d7ff9dc1",
       "variant_hashes": [
         "09481496b7f5b9e02d4eefe573c1938ff89454f6"
       ],
@@ -182,7 +182,7 @@
       ],
       "description": "Use this agent when analyzing conversation transcripts to find behaviors worth preventing with hooks. Triggered by /hookify without arguments.",
       "content_hash": "714b3e7db3bca0a0fe770142f6a387e2d41c99b2",
-      "signature_hash": "8ad75dbad21fb539eb5d27c6c719b6e6755e7dc5",
+      "signature_hash": "ca4bc2a1ed172619ebb562c028f88801819b7846",
       "variant_hashes": [
         "714b3e7db3bca0a0fe770142f6a387e2d41c99b2"
       ],
@@ -198,7 +198,7 @@
       ],
       "description": "C++ build, CMake, and compilation error resolution specialist. Fixes build errors, linker issues, and template errors with minimal changes. Use when C++ builds fail.",
       "content_hash": "f7a4f8ce4206ae8055fd6f4d20bf15f8608fb067",
-      "signature_hash": "1602c0d4cef97d841a72486e463c67d895166601",
+      "signature_hash": "30e30c93ca2e42247b7fd93cfb070eee631b5584",
       "variant_hashes": [
         "f7a4f8ce4206ae8055fd6f4d20bf15f8608fb067"
       ],
@@ -214,7 +214,7 @@
       ],
       "description": "Expert C++ code reviewer specializing in memory safety, modern C++ idioms, concurrency, and performance. Use for all C++ code changes. MUST BE USED for C++ projects.",
       "content_hash": "d3efe6a2fb8ac17c1921aceffa76fdcb939e7756",
-      "signature_hash": "c529842bcedff8c90493328b5d5bcf302f607ca1",
+      "signature_hash": "0424f77629bd8d047400169679a7c1565813df31",
       "variant_hashes": [
         "d3efe6a2fb8ac17c1921aceffa76fdcb939e7756"
       ],
@@ -230,7 +230,7 @@
       ],
       "description": "Expert C# code reviewer specializing in .NET conventions, async patterns, security, nullable reference types, and performance. Use for all C# code changes. MUST BE USED for C# projects.",
       "content_hash": "b1e2a04ffb035b9be56355edf840d65d9d976f94",
-      "signature_hash": "0bafb1b087b6b60e7b8a065a19b4f29a129f3b56",
+      "signature_hash": "cf3ba2cf2935a25941e92e9e458d940f2042427b",
       "variant_hashes": [
         "b1e2a04ffb035b9be56355edf840d65d9d976f94"
       ],
@@ -246,7 +246,7 @@
       ],
       "description": "Dart/Flutter build, analysis, and dependency error resolution specialist. Fixes `dart analyze` errors, Flutter compilation failures, pub dependency conflicts, and build_runner issues with minimal, surgical changes. Use when Dart/Flutter builds fail.",
       "content_hash": "c771859eab481a9be8961d1872744770e3a6dff8",
-      "signature_hash": "b1a048fc111d2884512176364431f112803236a3",
+      "signature_hash": "a616ed7fc78116f58de56780ebe5455398fb42ba",
       "variant_hashes": [
         "c771859eab481a9be8961d1872744770e3a6dff8"
       ],
@@ -263,7 +263,7 @@
       ],
       "description": "PostgreSQL database specialist for query optimization, schema design, security, and performance. Use PROACTIVELY when writing SQL, creating migrations, designing schemas, or troubleshooting database performance. Incorporates Supabase best practices.",
       "content_hash": "0735a6e544a56117062329e5d52d7c7b23c06e74",
-      "signature_hash": "d3927b25a2e6798c766ae1e5dd5670e9f7bd48a4",
+      "signature_hash": "be12d1cfb335cd6ac03e64488d6350476e914a6a",
       "variant_hashes": [
         "0735a6e544a56117062329e5d52d7c7b23c06e74",
         "e8661ae8ba69c7b3629b1b8c5c3ee968b935764d"
@@ -281,7 +281,7 @@
       ],
       "description": "Documentation and codemap specialist. Use PROACTIVELY for updating codemaps and documentation. Runs /update-codemaps and /update-docs, generates docs/CODEMAPS/*, updates READMEs and guides.",
       "content_hash": "1c48cdbe6b2a0226317f035f5edd6119b83122fa",
-      "signature_hash": "49d6f08f1ff185bb38525535a7193e3c616ecbb7",
+      "signature_hash": "887c58d239da71aca1a6b1613ee339a09a8759d3",
       "variant_hashes": [
         "1c48cdbe6b2a0226317f035f5edd6119b83122fa",
         "4ad962c230ba39a7f86b4327db3ebbb9970d6ca5"
@@ -298,7 +298,7 @@
       ],
       "description": "When the user asks how to use a library, framework, or API or needs up-to-date code examples, use Context7 MCP to fetch current documentation and return answers with examples. Invoke for docs/API/setup questions.",
       "content_hash": "8218313a2dc1669c9af8358a398379143f118de1",
-      "signature_hash": "e3c107cd74b93a4bc03b1709c1e134eb10294816",
+      "signature_hash": "82bdedbb3bff3b3d3d32f63a23e3d7d7b95bdc4f",
       "variant_hashes": [
         "8218313a2dc1669c9af8358a398379143f118de1"
       ],
@@ -315,7 +315,7 @@
       ],
       "description": "End-to-end testing specialist using Vercel Agent Browser (preferred) with Playwright fallback. Use PROACTIVELY for generating, maintaining, and running E2E tests. Manages test journeys, quarantines flaky tests, uploads artifacts (screenshots, videos, traces), and ensures critical user flows work.",
       "content_hash": "3c4e4855daf6fb055727fc5bee21417de7294f22",
-      "signature_hash": "6fbc0a87c31bb7da49ebe601462ae0bdddf320ce",
+      "signature_hash": "f21349d5547810499ca21e93d5ec097518a065fa",
       "variant_hashes": [
         "3725752135552bfec73f23b7164ede65f5a1b76a",
         "3c4e4855daf6fb055727fc5bee21417de7294f22"
@@ -332,7 +332,7 @@
       ],
       "description": "Flutter and Dart code reviewer. Reviews Flutter code for widget best practices, state management patterns, Dart idioms, performance pitfalls, accessibility, and clean architecture violations. Library-agnostic \u2014 works with any state management solution and tooling.",
       "content_hash": "3a51c2c647f7d6e9e170f3f553e9dd86f45b887d",
-      "signature_hash": "ec9d980fb1b7cbf9550d7ef85c7c5b226b7e1cdc",
+      "signature_hash": "96a5b132cca46da1b11df2b2b353143d7277cd8e",
       "variant_hashes": [
         "3a51c2c647f7d6e9e170f3f553e9dd86f45b887d"
       ],
@@ -348,7 +348,7 @@
       ],
       "description": "GAN Harness \u2014 Evaluator agent. Tests the live running application via Playwright, scores against rubric, and provides actionable feedback to the Generator.",
       "content_hash": "f24d058e0ed3fe7532720bac70fd1e5fe89cd9ab",
-      "signature_hash": "53b566c4103555ce9ef0e41bd90778556f5dda02",
+      "signature_hash": "8fd30546678cba4d85f67f9014ed028c808937fe",
       "variant_hashes": [
         "f24d058e0ed3fe7532720bac70fd1e5fe89cd9ab"
       ],
@@ -364,7 +364,7 @@
       ],
       "description": "GAN Harness \u2014 Generator agent. Implements features according to the spec, reads evaluator feedback, and iterates until quality threshold is met.",
       "content_hash": "b7ab232547227176b2b771959d1f0fbc634bbde0",
-      "signature_hash": "40b3dbd52ed6f5112256400c3a7d7768abd55f36",
+      "signature_hash": "ae16c99d39529ce3429de3158d0fcb2229a7a18c",
       "variant_hashes": [
         "b7ab232547227176b2b771959d1f0fbc634bbde0"
       ],
@@ -380,7 +380,7 @@
       ],
       "description": "GAN Harness \u2014 Planner agent. Expands a one-line prompt into a full product specification with features, sprints, evaluation criteria, and design direction.",
       "content_hash": "127ec18c050142de7371c6d95eb8685e9f3b7304",
-      "signature_hash": "8a8c589930c2340f5f2f728ea22d584b57a4a815",
+      "signature_hash": "574a6f3335f201e81ab962d2282b4a61d3064563",
       "variant_hashes": [
         "127ec18c050142de7371c6d95eb8685e9f3b7304"
       ],
@@ -397,7 +397,7 @@
       ],
       "description": "Go build, vet, and compilation error resolution specialist. Fixes build errors, go vet issues, and linter warnings with minimal changes. Use when Go builds fail.",
       "content_hash": "c29726a3052476356521209b574d28e282ff5ed8",
-      "signature_hash": "d17200d07b08660332e4891a96f0775f32a9e024",
+      "signature_hash": "ba13d9c5c53b74bb30553c08398db24d28ba8c59",
       "variant_hashes": [
         "c29726a3052476356521209b574d28e282ff5ed8",
         "eec2f16f0479c6815cbe0d9e5c618c1c6caa4697"
@@ -415,7 +415,7 @@
       ],
       "description": "Expert Go code reviewer specializing in idiomatic Go, concurrency patterns, error handling, and performance. Use for all Go code changes. MUST BE USED for Go projects.",
       "content_hash": "2b92de2a853cf4b5ba687ad4f64f14a56ff61d72",
-      "signature_hash": "95a44215579e388dec7dee4ac6889a360531ba5f",
+      "signature_hash": "ca0075fa883f9434b781d357b55f85222a74ea97",
       "variant_hashes": [
         "2b92de2a853cf4b5ba687ad4f64f14a56ff61d72",
         "fce0bafe14ae049f5a29e4eb866ad0ede6b662f7"
@@ -433,7 +433,7 @@
       ],
       "description": "Analyze and improve the local agent harness configuration for reliability, cost, and throughput.",
       "content_hash": "70c0628ee42ee665862a4adef3b5d0860192bb0d",
-      "signature_hash": "7e2b1f0e089b57c0be19fa1b85d428388c0f6480",
+      "signature_hash": "0ea7c05bdfc349841a4c4157be0151938521c3f2",
       "variant_hashes": [
         "70c0628ee42ee665862a4adef3b5d0860192bb0d",
         "e27bd049e25c76c6e14432853932aeaf1b38e6d2"
@@ -450,7 +450,7 @@
       ],
       "description": "Reviews healthcare application code for clinical safety, CDSS accuracy, PHI compliance, and medical data integrity. Specialized for EMR/EHR, clinical decision support, and health information systems.",
       "content_hash": "dfda3607a3f033a965a840c461e7b80109ee6bda",
-      "signature_hash": "e83566c0da1505970c4a9b4cfd6cb56ad8be53c9",
+      "signature_hash": "7ea3c0d9664b0b5d601f9d6dd5de8ba5b19a51f6",
       "variant_hashes": [
         "dfda3607a3f033a965a840c461e7b80109ee6bda"
       ],
@@ -466,7 +466,7 @@
       ],
       "description": "Java/Maven/Gradle build, compilation, and dependency error resolution specialist. Fixes build errors, Java compiler errors, and Maven/Gradle issues with minimal changes. Use when Java or Spring Boot builds fail.",
       "content_hash": "5539afa83049c51c038a01371b901e8e13355ea5",
-      "signature_hash": "dfdb623f1a4ccac2668d041293a171944136d86c",
+      "signature_hash": "49d881cc0fa79055ad31bbbe41a3417ba8ef953c",
       "variant_hashes": [
         "5539afa83049c51c038a01371b901e8e13355ea5"
       ],
@@ -482,7 +482,7 @@
       ],
       "description": "Expert Java and Spring Boot code reviewer specializing in layered architecture, JPA patterns, security, and concurrency. Use for all Java code changes. MUST BE USED for Spring Boot projects.",
       "content_hash": "cf6b0c04674a20abca21fcb6236d477a6a7003a0",
-      "signature_hash": "11f09352a5d8bfbc4e3921f9516a89beca57820f",
+      "signature_hash": "41924229d7e246c682089c66ebc7db6588c98c33",
       "variant_hashes": [
         "cf6b0c04674a20abca21fcb6236d477a6a7003a0"
       ],
@@ -498,7 +498,7 @@
       ],
       "description": "Kotlin/Gradle build, compilation, and dependency error resolution specialist. Fixes build errors, Kotlin compiler errors, and Gradle issues with minimal changes. Use when Kotlin builds fail.",
       "content_hash": "ae8c6c8d24ae2d19af25630cfbb7fb86a7eae3ab",
-      "signature_hash": "4d2febfc944921f7b3ca8e0015f3f0033ab321bc",
+      "signature_hash": "397f8d1c6c9b52030954b8ddbc15021f705d8ed1",
       "variant_hashes": [
         "ae8c6c8d24ae2d19af25630cfbb7fb86a7eae3ab"
       ],
@@ -514,7 +514,7 @@
       ],
       "description": "Kotlin and Android/KMP code reviewer. Reviews Kotlin code for idiomatic patterns, coroutine safety, Compose best practices, clean architecture violations, and common Android pitfalls.",
       "content_hash": "f01d26693af6748185d77edb75f4d5ec3c71fb7f",
-      "signature_hash": "f53f4e2f74ba84755f3911fe934f1cbf63f9a19b",
+      "signature_hash": "f846ccb7761c4a9edbc01875871f11a973516a11",
       "variant_hashes": [
         "f01d26693af6748185d77edb75f4d5ec3c71fb7f"
       ],
@@ -531,7 +531,7 @@
       ],
       "description": "Operate autonomous agent loops, monitor progress, and intervene safely when loops stall.",
       "content_hash": "665358fa671e61f21c40444a8b72c8d1ed848e36",
-      "signature_hash": "b7359af6f4b1befdf224ac7c52c393ff5453fdbb",
+      "signature_hash": "01fe7f8142f12c7256bb38bf6c64525a8031ae22",
       "variant_hashes": [
         "2063ef8bb6c992c45ff3916543baaf368eab3a24",
         "665358fa671e61f21c40444a8b72c8d1ed848e36"
@@ -548,7 +548,7 @@
       ],
       "description": "Fork any project for open-sourcing. Copies files, strips secrets and credentials (20+ patterns), replaces internal references with placeholders, generates .env.example, and cleans git history. First stage of the opensource-pipeline skill.",
       "content_hash": "62c7041a7e9f326b32633f6405b0ca97d1bd0008",
-      "signature_hash": "f28614fe944ba1a6912fa9698b850e2282858283",
+      "signature_hash": "dd843c5f303992961c89393dc2dde3d56f0a0243",
       "variant_hashes": [
         "62c7041a7e9f326b32633f6405b0ca97d1bd0008"
       ],
@@ -564,7 +564,7 @@
       ],
       "description": "Generate complete open-source packaging for a sanitized project. Produces CLAUDE.md, setup.sh, README.md, LICENSE, CONTRIBUTING.md, and GitHub issue templates. Makes any repo immediately usable with Claude Code. Third stage of the opensource-pipeline skill.",
       "content_hash": "567aed96e8f33d2a90744e634669915f5d6bca8d",
-      "signature_hash": "818c58698972c72c8add5285ae1bd1a49fd97b93",
+      "signature_hash": "4a34e3687a194a6f2046a06dee6f3845ec98fd3a",
       "variant_hashes": [
         "567aed96e8f33d2a90744e634669915f5d6bca8d"
       ],
@@ -580,7 +580,7 @@
       ],
       "description": "Verify an open-source fork is fully sanitized before release. Scans for leaked secrets, PII, internal references, and dangerous files using 20+ regex patterns. Generates a PASS/FAIL/PASS-WITH-WARNINGS report. Second stage of the opensource-pipeline skill. Use PROACTIVELY before any public release.",
       "content_hash": "efdf1e6b66fbdfe8c97b22f1476eccee7aca1cb5",
-      "signature_hash": "446d0ea13167d50829b6a498a425ee92b7133574",
+      "signature_hash": "70c1233fb5e69b922077644e7de0002812df516e",
       "variant_hashes": [
         "efdf1e6b66fbdfe8c97b22f1476eccee7aca1cb5"
       ],
@@ -596,7 +596,7 @@
       ],
       "description": "Performance analysis and optimization specialist. Use PROACTIVELY for identifying bottlenecks, optimizing slow code, reducing bundle sizes, and improving runtime performance. Profiling, memory leaks, render optimization, and algorithmic improvements.",
       "content_hash": "e434fb13fd265231c9b3fac5e1836dc43433c1f9",
-      "signature_hash": "85e5768e28a56fc7f77ffea6e4d813fcb5e978ba",
+      "signature_hash": "96ef59a3cf2194324055cfa65e109490419c7587",
       "variant_hashes": [
         "e434fb13fd265231c9b3fac5e1836dc43433c1f9"
       ],
@@ -613,7 +613,7 @@
       ],
       "description": "Expert planning specialist for complex features and refactoring. Use PROACTIVELY when users request feature implementation, architectural changes, or complex refactoring. Automatically activated for planning tasks.",
       "content_hash": "d0a09c421f1e4bbe4f8c7edd0126e5474c3bf857",
-      "signature_hash": "352f91578cd623007990078ca77e5056bc54ddb7",
+      "signature_hash": "56de0559d4a40a2af31eea4a3bfe648a22971e98",
       "variant_hashes": [
         "4c65de199afa9239bd87770b213a577412272e7e",
         "d0a09c421f1e4bbe4f8c7edd0126e5474c3bf857"
@@ -630,7 +630,7 @@
       ],
       "description": "Review pull request test coverage quality and completeness, with emphasis on behavioral coverage and real bug prevention.",
       "content_hash": "d8d4e507abada3a7f7e5330b4e3912d2b51d0b6c",
-      "signature_hash": "0fefc955cf0aab68440453f44aeeb8f11186b689",
+      "signature_hash": "7cfb2e1d43d185db71075a15ec7d70d755c5356c",
       "variant_hashes": [
         "d8d4e507abada3a7f7e5330b4e3912d2b51d0b6c"
       ],
@@ -647,7 +647,7 @@
       ],
       "description": "Expert Python code reviewer specializing in PEP 8 compliance, Pythonic idioms, type hints, security, and performance. Use for all Python code changes. MUST BE USED for Python projects.",
       "content_hash": "9b6ca790b1dc072ed137138ae591fb4a5be75c6a",
-      "signature_hash": "be53af17da927c3ba04f1cccee9934d4d9f6931b",
+      "signature_hash": "8a9713fa88ddd6a65423d0b4bf1927f4d6f4ea5e",
       "variant_hashes": [
         "224ca577d18768a032e3e8564a79def8bcf39bb6",
         "9b6ca790b1dc072ed137138ae591fb4a5be75c6a"
@@ -664,7 +664,7 @@
       ],
       "description": "PyTorch runtime, CUDA, and training error resolution specialist. Fixes tensor shape mismatches, device errors, gradient issues, DataLoader problems, and mixed precision failures with minimal changes. Use when PyTorch training or inference crashes.",
       "content_hash": "8a9d587b8b4bc6d1c555a1c4a1ba46583f23ba04",
-      "signature_hash": "c1c30bd160958390482cec898efe9d8aeac20c01",
+      "signature_hash": "b585295e960831ddb3b05135eb43c06a3717d710",
       "variant_hashes": [
         "8a9d587b8b4bc6d1c555a1c4a1ba46583f23ba04"
       ],
@@ -681,7 +681,7 @@
       ],
       "description": "Dead code cleanup and consolidation specialist. Use PROACTIVELY for removing unused code, duplicates, and refactoring. Runs analysis tools (knip, depcheck, ts-prune) to identify dead code and safely removes it.",
       "content_hash": "f179055bd9e66ee18b137c682b9ac76d8a472ddd",
-      "signature_hash": "f05c54073e0cb5c9da86bdea2261fe2eea401771",
+      "signature_hash": "7bca83358718894947adcef4e6463348cfbd51d6",
       "variant_hashes": [
         "3cc8f14fd215ce33beb81c9118dd12b293043721",
         "f179055bd9e66ee18b137c682b9ac76d8a472ddd"
@@ -698,7 +698,7 @@
       ],
       "description": "Rust build, compilation, and dependency error resolution specialist. Fixes cargo build errors, borrow checker issues, and Cargo.toml problems with minimal changes. Use when Rust builds fail.",
       "content_hash": "a969654b604380da1c714e0c3083f94222ed522a",
-      "signature_hash": "011b5222dca45bcee5857f79933e4c7fa077c02e",
+      "signature_hash": "06d2a7148ac4bebb18ebbb1f0e1d3fea1eb08007",
       "variant_hashes": [
         "a969654b604380da1c714e0c3083f94222ed522a"
       ],
@@ -714,7 +714,7 @@
       ],
       "description": "Expert Rust code reviewer specializing in ownership, lifetimes, error handling, unsafe usage, and idiomatic patterns. Use for all Rust code changes. MUST BE USED for Rust projects.",
       "content_hash": "1b88cdb58f9e6e260fad2515d89dbbb972e28ab6",
-      "signature_hash": "5ebafba34ee652aac3bff66f6cb3c53bb205266b",
+      "signature_hash": "ee18bd801907a70a63e43df2c58920074ecba7fb",
       "variant_hashes": [
         "1b88cdb58f9e6e260fad2515d89dbbb972e28ab6"
       ],
@@ -731,7 +731,7 @@
       ],
       "description": "Security vulnerability detection and remediation specialist. Use PROACTIVELY after writing code that handles user input, authentication, API endpoints, or sensitive data. Flags secrets, SSRF, injection, unsafe crypto, and OWASP Top 10 vulnerabilities.",
       "content_hash": "2cdfaf65e2ae134c8ae7c01e6606696a43b8d8e7",
-      "signature_hash": "a0e09511575a8fef889cac15b1056e2a11c6300a",
+      "signature_hash": "1a483f97536dba5eacc79779c8393509a2ac5ed5",
       "variant_hashes": [
         "2cdfaf65e2ae134c8ae7c01e6606696a43b8d8e7",
         "b0fc47c2aed0b61378065aff45ca0ebf0ba6617f"
@@ -748,7 +748,7 @@
       ],
       "description": "SEO specialist for technical SEO audits, on-page optimization, structured data, Core Web Vitals, and content/keyword mapping. Use for site audits, meta tag reviews, schema markup, sitemap and robots issues, and SEO remediation plans.",
       "content_hash": "0b1645681ad25bee8a69a7b899fe217472ad2283",
-      "signature_hash": "dcf5cb599e1ad53adbc3725ec3a3a5ef61eed982",
+      "signature_hash": "1457466d11c1ddec97df3d75b568bc380939df4d",
       "variant_hashes": [
         "0b1645681ad25bee8a69a7b899fe217472ad2283"
       ],
@@ -764,7 +764,7 @@
       ],
       "description": "Review code for silent failures, swallowed errors, bad fallbacks, and missing error propagation.",
       "content_hash": "796e8db7ff0cf982ed195052169251d5beb912d3",
-      "signature_hash": "b7207a7eb14387786fbc3b933a06908264a184e1",
+      "signature_hash": "c19bbe5a731589168476c65373a865fdb336b753",
       "variant_hashes": [
         "796e8db7ff0cf982ed195052169251d5beb912d3"
       ],
@@ -781,7 +781,7 @@
       ],
       "description": "Test-Driven Development specialist enforcing write-tests-first methodology. Use PROACTIVELY when writing new features, fixing bugs, or refactoring code. Ensures 80%+ test coverage.",
       "content_hash": "0eb323fccda6f568cba7620b9282424ac988b23f",
-      "signature_hash": "c625e613364075ae25fef12642ba86a68188a56a",
+      "signature_hash": "50df5e2f8eedd027302ed1d7b24d551effb3a006",
       "variant_hashes": [
         "0eb323fccda6f568cba7620b9282424ac988b23f",
         "dfcaccf00304455ecd80b5cd7cf77c656ee5f867"
@@ -798,7 +798,7 @@
       ],
       "description": "Analyze type design for encapsulation, invariant expression, usefulness, and enforcement.",
       "content_hash": "b3f0933f6b0ed780fc20a695b52a625e105ae447",
-      "signature_hash": "85c629e187a1e0b31ac360e585638ef12220a182",
+      "signature_hash": "f449b227725fe18501c4cc3a91ca6fbe1021266c",
       "variant_hashes": [
         "b3f0933f6b0ed780fc20a695b52a625e105ae447"
       ],
@@ -814,7 +814,7 @@
       ],
       "description": "Expert TypeScript/JavaScript code reviewer specializing in type safety, async correctness, Node/web security, and idiomatic patterns. Use for all TypeScript and JavaScript code changes. MUST BE USED for TypeScript/JavaScript projects.",
       "content_hash": "648fa5060927718f9efdf80ba72859baf5aa70d9",
-      "signature_hash": "257d1f2b34eb679a8d40ac2518fdab57e95b2c92",
+      "signature_hash": "5a6d44940fae785fe56cf10095f1c013fc73888f",
       "variant_hashes": [
         "648fa5060927718f9efdf80ba72859baf5aa70d9"
       ],
@@ -830,7 +830,7 @@
       ],
       "description": "Background agent that analyzes session observations to detect patterns and create instincts. Uses Haiku for cost-efficiency. v2.1 adds project-scoped instincts.",
       "content_hash": "a72c198bf8414f157a807c709fbde50e0d6f8448",
-      "signature_hash": "9d0fa26bf1f2efc5069391fea1ef90f21539d5db",
+      "signature_hash": "07babdee8cc40481b47f12c9fc731efb674a61e1",
       "variant_hashes": [
         "a72c198bf8414f157a807c709fbde50e0d6f8448"
       ],
@@ -846,7 +846,7 @@
       ],
       "description": "Pulls detailed profile, company, and activity data for qualified leads. Enriches prospects with recent news, funding data, content interests, and mutual overlap.",
       "content_hash": "fc286892fe9c5fc70794fa117e9196c35160aab5",
-      "signature_hash": "58e3ef554556db3db710c2c438f9aa12872da8b2",
+      "signature_hash": "7182080209adb5e4b33f4372d903aac5bebffcd3",
       "variant_hashes": [
         "fc286892fe9c5fc70794fa117e9196c35160aab5"
       ],
@@ -862,7 +862,7 @@
       ],
       "description": "Maps the user's social graph (X following, LinkedIn connections) against scored prospects to find mutual connections and rank them by introduction potential.",
       "content_hash": "5e1aeac10a0a0fc3160b6a0a5c2b642834d0a7b7",
-      "signature_hash": "7f5a665900469dc398cd6ac38d174d51eb16328b",
+      "signature_hash": "614993dfb19d502560dc5f63f62716a131e46309",
       "variant_hashes": [
         "5e1aeac10a0a0fc3160b6a0a5c2b642834d0a7b7"
       ],
@@ -878,7 +878,7 @@
       ],
       "description": "Generates personalized outreach messages for qualified leads. Creates warm intro requests, cold emails, X DMs, and follow-up sequences using enriched profile data.",
       "content_hash": "5203f6c289a85cc219997dd780d797feeaa38e16",
-      "signature_hash": "9d7bda61c3d443791e677dca710bb19444090af8",
+      "signature_hash": "ceab4f11e9650bec96f5311466b8153ee5d34baf",
       "variant_hashes": [
         "5203f6c289a85cc219997dd780d797feeaa38e16"
       ],
@@ -894,7 +894,7 @@
       ],
       "description": "Searches and ranks prospects by relevance signals across X, Exa, and LinkedIn. Assigns weighted scores based on role, industry, activity, influence, and location.",
       "content_hash": "545c3321a14e9119729fc178fef86313289115fe",
-      "signature_hash": "d71482f073e9d801f38cadddf1f99215894d44df",
+      "signature_hash": "43496931289b6005d434ed7d70239d001eacf72b",
       "variant_hashes": [
         "545c3321a14e9119729fc178fef86313289115fe"
       ],
@@ -910,7 +910,7 @@
       ],
       "description": "Workflow command scaffold for add-language-rules in everything-claude-code.",
       "content_hash": "6c80ef5e88f4556ff85acef8a469d182de4df793",
-      "signature_hash": "42372abb9f6a394b01dce298772e40b048238320",
+      "signature_hash": "c3cac370441d4be6f0fe38677d385ca7dd2a334b",
       "variant_hashes": [
         "6c80ef5e88f4556ff85acef8a469d182de4df793"
       ],
@@ -1011,7 +1011,7 @@
       ],
       "description": "Code review \u2014 local uncommitted changes or GitHub PR (pass PR number/URL for PR mode)",
       "content_hash": "6843fa6a03b1b3b504987fd962900452e4c2493f",
-      "signature_hash": "2755f5a3549eb4dbbaaaa68858348046f149ed3c",
+      "signature_hash": "b923fb8a071bb99c52accfec0e889c7ae1e9019b",
       "variant_hashes": [
         "6843fa6a03b1b3b504987fd962900452e4c2493f",
         "a58e282c423b6fd96564238a2af3e1be04f5b72f"
@@ -1092,7 +1092,7 @@
       ],
       "description": "Workflow command scaffold for database-migration in everything-claude-code.",
       "content_hash": "4cc940827d32a8ba13fae51808bb21d373c174d5",
-      "signature_hash": "3cf3a528269bd7199e2c4a39a138ac48c3051e2a",
+      "signature_hash": "a53e160f8c612af7613adfe3c794ec624c098208",
       "variant_hashes": [
         "4cc940827d32a8ba13fae51808bb21d373c174d5"
       ],
@@ -1177,7 +1177,7 @@
       ],
       "description": "Analyze instincts and suggest or generate evolved structures",
       "content_hash": "e990f71a22b7e0b2408855b04e44dc6da169d4fd",
-      "signature_hash": "948237a774fafbbea210c04084f968a9f2801a88",
+      "signature_hash": "aafe7cb2a47773e0dda2d51377a286618a048ff1",
       "variant_hashes": [
         "7c07ddb7e9aa40427da1e305c899208c56b8a337",
         "e990f71a22b7e0b2408855b04e44dc6da169d4fd"
@@ -1210,7 +1210,7 @@
       ],
       "description": "Workflow command scaffold for feature-development in everything-claude-code.",
       "content_hash": "0d576f2ec502677b7fbd839f767065fd9d30a8f4",
-      "signature_hash": "f78f464ab2fcf089282a488568b0653fcd5b7e42",
+      "signature_hash": "d5981d3fd8003192c686690a5d58ccfaffef9471",
       "variant_hashes": [
         "0d576f2ec502677b7fbd839f767065fd9d30a8f4"
       ],
@@ -1458,7 +1458,7 @@
       ],
       "description": "Export instincts from project/global scope to a file",
       "content_hash": "4f2015ac575bde66d4c1d9acfbb34a2645f161fc",
-      "signature_hash": "803e7a5d7188bdd9703ac8a44d6293204786ddad",
+      "signature_hash": "ba9d4683355bffe4f9626f6a24996dc2d4263096",
       "variant_hashes": [
         "4f2015ac575bde66d4c1d9acfbb34a2645f161fc",
         "7124bb47bcae84539255fdb82f1e57448d688b0a"
@@ -1476,7 +1476,7 @@
       ],
       "description": "Import instincts from file or URL into project/global scope",
       "content_hash": "484b339f9dd8d951d555c43438d6918a4c63e055",
-      "signature_hash": "427cd5c108c18ed4c87c6cf03d5323d72aee8e42",
+      "signature_hash": "3cbceb100eb7629e69d6cf27a0d02117f134ee19",
       "variant_hashes": [
         "1060e5a9053f711b5b18ab801dd20cad7510a299",
         "484b339f9dd8d951d555c43438d6918a4c63e055"
@@ -1494,7 +1494,7 @@
       ],
       "description": "Show learned instincts (project + global) with confidence",
       "content_hash": "6734e72e678f7b964812c13e69c4f808cda8e2c7",
-      "signature_hash": "887472e3d1ca53bf2ae86a822e4d940bc0e7ab8d",
+      "signature_hash": "c710d1dd757e8c8bcab415713743e67c68166177",
       "variant_hashes": [
         "6734e72e678f7b964812c13e69c4f808cda8e2c7",
         "7a94cc7903815eb51578e33be424d1921e91e21c"
@@ -1793,7 +1793,7 @@
       ],
       "description": "List known projects and their instinct statistics",
       "content_hash": "487741a03b1307daf184ad27a861adf04a8759c0",
-      "signature_hash": "5c50e5434d9f64c6530cf5ec533702bcc695c53f",
+      "signature_hash": "80b1826d682c9eda67436bbef1b3830b3a88668d",
       "variant_hashes": [
         "487741a03b1307daf184ad27a861adf04a8759c0",
         "9d44907258118b2eef1bc7208e55edb99576261d"
@@ -1811,7 +1811,7 @@
       ],
       "description": "Promote project-scoped instincts to global scope",
       "content_hash": "658c6959a912ecc507bfd03726263917e8820b95",
-      "signature_hash": "a8c2e187a91dd94207147135a3e0fa6e622a3141",
+      "signature_hash": "354e4b1211a67b5746bafdc209115adade3f01b8",
       "variant_hashes": [
         "5da16cb41c47c5d2ca14294bdb89083ce00fbee3",
         "658c6959a912ecc507bfd03726263917e8820b95"
@@ -1844,7 +1844,7 @@
       ],
       "description": "Quick commit with natural language file targeting \u2014 describe what to commit in plain English",
       "content_hash": "fb242d0d8ae45d337d71dabe4c4fca95887dd7ba",
-      "signature_hash": "5dee22534e773c29a38ac3947d64ab9031ed64a4",
+      "signature_hash": "3af10dabfbc331dcc851f0d6faf78f5729cf2408",
       "variant_hashes": [
         "fb242d0d8ae45d337d71dabe4c4fca95887dd7ba"
       ],
@@ -1860,7 +1860,7 @@
       ],
       "description": "Execute an implementation plan with rigorous validation loops",
       "content_hash": "299384161cfa4de00ce0a99677c4cd4456abd0d0",
-      "signature_hash": "494d01b73b7cf89807ac19b9e150b6046a40e7a4",
+      "signature_hash": "f9dafda8c2cd676c43e9c755c4f3c762428b3f98",
       "variant_hashes": [
         "299384161cfa4de00ce0a99677c4cd4456abd0d0"
       ],
@@ -1876,7 +1876,7 @@
       ],
       "description": "Create comprehensive feature implementation plan with codebase analysis and pattern extraction",
       "content_hash": "612c074d4427a838466c218cde4fe0c2de98c99e",
-      "signature_hash": "4975aeecd586c016a69625aeacb3d81f34fca783",
+      "signature_hash": "3db09fffc1fa464d4517e508ec48c5cb6269451d",
       "variant_hashes": [
         "612c074d4427a838466c218cde4fe0c2de98c99e"
       ],
@@ -1892,7 +1892,7 @@
       ],
       "description": "Create a GitHub PR from current branch with unpushed commits \u2014 discovers templates, analyzes changes, pushes",
       "content_hash": "948afefbd3170f9e5fcd2c6b5da4ed1af15ae4e7",
-      "signature_hash": "d6fd5ed890cc95197e12cf0832fc2ea57189b999",
+      "signature_hash": "a60920ff9bf100f5ce8f422bd3703dcf494dc342",
       "variant_hashes": [
         "948afefbd3170f9e5fcd2c6b5da4ed1af15ae4e7"
       ],
@@ -1908,7 +1908,7 @@
       ],
       "description": "Interactive PRD generator - problem-first, hypothesis-driven product spec with back-and-forth questioning",
       "content_hash": "9cdf4df8ac7c8dbe2c59f4efe1972d5f57749169",
-      "signature_hash": "673f0de4d59147c02e5538a5d3e5c8169bdd53fc",
+      "signature_hash": "e31a2e28c0a8ee49e81b6d6242b173dfc146199e",
       "variant_hashes": [
         "9cdf4df8ac7c8dbe2c59f4efe1972d5f57749169"
       ],
@@ -1924,7 +1924,7 @@
       ],
       "description": "Delete pending instincts older than 30 days that were never promoted",
       "content_hash": "f015cb740f9be275a42de4dc837ab4a70cd670ed",
-      "signature_hash": "99e5adc53c8f79eb91614c7912cd2b157db3fc6e",
+      "signature_hash": "6f52d64c02ac2fd61c561e9fff0d44b7ada41b97",
       "variant_hashes": [
         "f015cb740f9be275a42de4dc837ab4a70cd670ed"
       ],
@@ -2125,7 +2125,7 @@
       ],
       "description": "Run comprehensive security review",
       "content_hash": "51e9f4cb53cab74b0a35803d1cec44dee34555a8",
-      "signature_hash": "dbfb7f89b90162e9c83839a727a9e4018681d42c",
+      "signature_hash": "94c5273c42986e870de95605315bc1901419f039",
       "variant_hashes": [
         "51e9f4cb53cab74b0a35803d1cec44dee34555a8"
       ],
@@ -2176,7 +2176,7 @@
       ],
       "description": "Analyze local git history to extract coding patterns and generate SKILL.md files. Local version of the Skill Creator GitHub App.",
       "content_hash": "4ebae4429ee2cc13379a1470d2749a005e890d64",
-      "signature_hash": "648766494ce1042bd4f0051c886ec99102090a7b",
+      "signature_hash": "ad2c6a2853d3f92a4751091fcd97b6d40296d0d5",
       "variant_hashes": [
         "4ebae4429ee2cc13379a1470d2749a005e890d64",
         "7a0e63ddf81715a292453e61fdc27c386e33e9bf"
@@ -2193,7 +2193,7 @@
       ],
       "description": "Show skill portfolio health dashboard with charts and analytics",
       "content_hash": "56eb833b25c0ce3ee8f6a3a422e6c1aac8755e84",
-      "signature_hash": "284a10b3173fc46ed3ee2eb382209fb5a69b40ef",
+      "signature_hash": "33df8fe9ac030e6ceab0b7a104dfabf9d18a7544",
       "variant_hashes": [
         "56eb833b25c0ce3ee8f6a3a422e6c1aac8755e84"
       ],
@@ -3243,7 +3243,7 @@
       ],
       "description": "Agent orchestration: available agents, parallel execution, multi-perspective analysis",
       "content_hash": "5210fa5a734c40e014163594e3b9ba714cdf6e32",
-      "signature_hash": "075e98291f018d954ed8ac043bb134259a20d4f7",
+      "signature_hash": "a1ff6e2a7686c54316176346ead31a4042305c4a",
       "variant_hashes": [
         "5210fa5a734c40e014163594e3b9ba714cdf6e32"
       ],
@@ -3259,7 +3259,7 @@
       ],
       "description": "ECC coding style: immutability, file organization, error handling, validation",
       "content_hash": "8dde05ef2b44f640568605c7d6cd670be7f25f75",
-      "signature_hash": "0ebbccaa1f26dcc0ed1cb092332233a999093f89",
+      "signature_hash": "eebc9ff14946887c519a8ffcbc2eae5f219e8a47",
       "variant_hashes": [
         "8dde05ef2b44f640568605c7d6cd670be7f25f75"
       ],
@@ -3275,7 +3275,7 @@
       ],
       "description": "Development workflow: plan, TDD, review, commit pipeline",
       "content_hash": "d9575245dff451e5e08009988a51b05ec5cc52c8",
-      "signature_hash": "3dd13dfca8b6def051f5081effba8f70087816c7",
+      "signature_hash": "d65dcafc0625452a5e3f419f2d6c71c5cb95e6e7",
       "variant_hashes": [
         "d9575245dff451e5e08009988a51b05ec5cc52c8"
       ],
@@ -3291,7 +3291,7 @@
       ],
       "description": "Git workflow: conventional commits, PR process",
       "content_hash": "e6adffab712ba7a60a8c3fcd2a8f7806fb125634",
-      "signature_hash": "e169fa0516f1e5a441e60c0b86c3cc60ee1bdf49",
+      "signature_hash": "666b06e8a7f020d4f644897e3a131f7de8d1f8aa",
       "variant_hashes": [
         "e6adffab712ba7a60a8c3fcd2a8f7806fb125634"
       ],
@@ -3307,7 +3307,7 @@
       ],
       "description": "Hooks system: types, auto-accept permissions, TodoWrite best practices",
       "content_hash": "c167eafc9c2f8d322db43fbb06fe2373018a7b02",
-      "signature_hash": "9d64c81cf7522a1ef5486d5a523c4cdc2b246083",
+      "signature_hash": "413485b9d38e6d4a65aacaa0ede420c79e0c1af8",
       "variant_hashes": [
         "c167eafc9c2f8d322db43fbb06fe2373018a7b02"
       ],
@@ -3323,7 +3323,7 @@
       ],
       "description": "Common patterns: repository, API response, skeleton projects",
       "content_hash": "7168a889d517bfb0701c06e1489e45dd9ee4ad54",
-      "signature_hash": "948be04d219f085a0b2bb83997d82c1e1c3e2c28",
+      "signature_hash": "d92b3d9bd269872aa97366317a4369cd45b75a1f",
       "variant_hashes": [
         "7168a889d517bfb0701c06e1489e45dd9ee4ad54"
       ],
@@ -3339,7 +3339,7 @@
       ],
       "description": "Performance: model selection, context management, build troubleshooting",
       "content_hash": "8965234bd81c0e2cbb3c9d4aba3c8c41c84324a1",
-      "signature_hash": "4aee08a87b5ded06320fe56751431c5806871b34",
+      "signature_hash": "baaaf2d1bda29652a93f51547896f444156cf5a1",
       "variant_hashes": [
         "8965234bd81c0e2cbb3c9d4aba3c8c41c84324a1"
       ],
@@ -3355,7 +3355,7 @@
       ],
       "description": "Security: mandatory checks, secret management, response protocol",
       "content_hash": "0264dc4d605a1de8871ea6a6e34af83e6c4047fd",
-      "signature_hash": "b394b6209216334e5d8e88aad6403af39f750c8c",
+      "signature_hash": "48624dfccbaea8a4f8565e45276d70df77f8d9b1",
       "variant_hashes": [
         "0264dc4d605a1de8871ea6a6e34af83e6c4047fd"
       ],
@@ -3371,7 +3371,7 @@
       ],
       "description": "Testing requirements: 80% coverage, TDD workflow, test types",
       "content_hash": "fb016e5909a5f0c11e3e3f1acd2d3f9d24c9e6fc",
-      "signature_hash": "48a95c2a5507f13f7472479182a53cb509a49017",
+      "signature_hash": "fd79d4490f8b9eb850ce228d3c455686d71398bc",
       "variant_hashes": [
         "fb016e5909a5f0c11e3e3f1acd2d3f9d24c9e6fc"
       ],
@@ -3803,7 +3803,7 @@
       ],
       "description": "Go coding style extending common rules",
       "content_hash": "f99ce6a4652ff721ef21c782608a9a5bf55916e4",
-      "signature_hash": "ff44538b8e88758bc29196325932bbcdb0b0766f",
+      "signature_hash": "59dbb3d6a9b5056fbf20004a72562a1b24679c94",
       "variant_hashes": [
         "f99ce6a4652ff721ef21c782608a9a5bf55916e4"
       ],
@@ -3819,7 +3819,7 @@
       ],
       "description": "Go hooks extending common rules",
       "content_hash": "7a6839b052e7191f6232fc7955e706cc2e59847a",
-      "signature_hash": "f35dc14fb9d7e2594f7e495938205dc24bf2f017",
+      "signature_hash": "aee22ba11f4d85d081eb1a4685fc6c15eed414d0",
       "variant_hashes": [
         "7a6839b052e7191f6232fc7955e706cc2e59847a"
       ],
@@ -3835,7 +3835,7 @@
       ],
       "description": "Go patterns extending common rules",
       "content_hash": "438661498141061ac2a2ce7acf9aa987b54de0e7",
-      "signature_hash": "339aab45a0845dc3d05259f20eef609f5d0db5d8",
+      "signature_hash": "dbb7a2d67dcdc48a15459b65da9f6d0e2182449c",
       "variant_hashes": [
         "438661498141061ac2a2ce7acf9aa987b54de0e7"
       ],
@@ -3851,7 +3851,7 @@
       ],
       "description": "Go security extending common rules",
       "content_hash": "c35ead5de9dd29dd28c71105101d3847e6ebe45b",
-      "signature_hash": "7e914921b9d5efd320752f1fc1081b7b53b7c5a3",
+      "signature_hash": "067973e5bf147841f03f0e88b630d3175673142d",
       "variant_hashes": [
         "c35ead5de9dd29dd28c71105101d3847e6ebe45b"
       ],
@@ -3867,7 +3867,7 @@
       ],
       "description": "Go testing extending common rules",
       "content_hash": "ef9226a11c624273450bd80a31cbe3383259f8c5",
-      "signature_hash": "fc5aa6bc1e3924fa9133a787b706c0d07ff1a78f",
+      "signature_hash": "c0329f8836b9072ab6227d69ca3cac0a43802854",
       "variant_hashes": [
         "ef9226a11c624273450bd80a31cbe3383259f8c5"
       ],
@@ -4043,7 +4043,7 @@
       ],
       "description": "Kotlin coding style extending common rules",
       "content_hash": "ebd466cce61216b74e12064ae3f38a34f9840425",
-      "signature_hash": "7419ba7a59f4817af819f4e438d965deef7fd26f",
+      "signature_hash": "8eca1414986a95adcb66ab11f0e166668b54767b",
       "variant_hashes": [
         "ebd466cce61216b74e12064ae3f38a34f9840425"
       ],
@@ -4059,7 +4059,7 @@
       ],
       "description": "Kotlin hooks extending common rules",
       "content_hash": "f5f934f0869975000537d3199503aad408c17d2d",
-      "signature_hash": "621c730916125430c75728eacc38608811699c71",
+      "signature_hash": "76829b5e421777e72c083b7fd63daaf4a05f8aa6",
       "variant_hashes": [
         "f5f934f0869975000537d3199503aad408c17d2d"
       ],
@@ -4075,7 +4075,7 @@
       ],
       "description": "Kotlin patterns extending common rules",
       "content_hash": "ee1c5ca833ced298b4eaac0b7efef057fc23d4d0",
-      "signature_hash": "f7aa65c423d88b3664c1561cdb638e318cc2a1e5",
+      "signature_hash": "62f0814e9b01292cf527009177431584d1db9b47",
       "variant_hashes": [
         "ee1c5ca833ced298b4eaac0b7efef057fc23d4d0"
       ],
@@ -4091,7 +4091,7 @@
       ],
       "description": "Kotlin security extending common rules",
       "content_hash": "4dc371db618ffba9f001e2c3ca2a57baccd26834",
-      "signature_hash": "cc481224ca8292724287b21edb28a804552278a2",
+      "signature_hash": "5abd01dc6ddd770d36515d1ade553be3ae170073",
       "variant_hashes": [
         "4dc371db618ffba9f001e2c3ca2a57baccd26834"
       ],
@@ -4107,7 +4107,7 @@
       ],
       "description": "Kotlin testing extending common rules",
       "content_hash": "397f8142a0b366d4f2cc229024f9f955d91a9e3c",
-      "signature_hash": "22a53764c55f2bf4f3c297df47e010cd98cc37a5",
+      "signature_hash": "3020604d5fcc7d7f720560af9513d815def28958",
       "variant_hashes": [
         "397f8142a0b366d4f2cc229024f9f955d91a9e3c"
       ],
@@ -4299,7 +4299,7 @@
       ],
       "description": "PHP coding style extending common rules",
       "content_hash": "d2c6ddf601e793024bb86987b9975f5a9a4f2aad",
-      "signature_hash": "d108b0fd8357b6f676f6b9d8f6a3b982dc394d95",
+      "signature_hash": "80feac3d055eec89a140fd8748ada8218510d4be",
       "variant_hashes": [
         "d2c6ddf601e793024bb86987b9975f5a9a4f2aad"
       ],
@@ -4315,7 +4315,7 @@
       ],
       "description": "PHP hooks extending common rules",
       "content_hash": "eaf296f8875bc9a6bb3c44fc79c154d9bc75dc9b",
-      "signature_hash": "f8b4d0e263af58faa6137b07577bbca50e46be24",
+      "signature_hash": "dbe3ddd520fd67dc4f2ca2bc3f9829bb22c30d6e",
       "variant_hashes": [
         "eaf296f8875bc9a6bb3c44fc79c154d9bc75dc9b"
       ],
@@ -4331,7 +4331,7 @@
       ],
       "description": "PHP patterns extending common rules",
       "content_hash": "c7e8e45a8a6f6d7813ea3e6f1e7d9cb37f913703",
-      "signature_hash": "e1293f9e09d9d06651b47008354b135386c95d8e",
+      "signature_hash": "3a74d7af1d889095b2d4ea1d16d1ee6926307f59",
       "variant_hashes": [
         "c7e8e45a8a6f6d7813ea3e6f1e7d9cb37f913703"
       ],
@@ -4347,7 +4347,7 @@
       ],
       "description": "PHP security extending common rules",
       "content_hash": "0fc6a40245d175116358c413523b1007d906e7e7",
-      "signature_hash": "b84dbd2f5d4398a41fb9c979a64e549f3b8fc432",
+      "signature_hash": "88bc3970048e5d6861b908261241a76305ff1af3",
       "variant_hashes": [
         "0fc6a40245d175116358c413523b1007d906e7e7"
       ],
@@ -4363,7 +4363,7 @@
       ],
       "description": "PHP testing extending common rules",
       "content_hash": "1c1199760f7eddb3d5277d022ad22dae4a9dc1ae",
-      "signature_hash": "1fe9bcfb21d72314092b1b6710ab8c6beb76df88",
+      "signature_hash": "f807cb76ec7f185787444804c7705a5bf14f3b78",
       "variant_hashes": [
         "1c1199760f7eddb3d5277d022ad22dae4a9dc1ae"
       ],
@@ -4459,7 +4459,7 @@
       ],
       "description": "Python coding style extending common rules",
       "content_hash": "efe7b658635ed882f4c4f6e3aec51f5111848fb2",
-      "signature_hash": "2c79b25a0e2c2fd6c552ea60e9d26dd8bd3b72fe",
+      "signature_hash": "d1edec50d317125a6bb433e1cb62cc436775a6fc",
       "variant_hashes": [
         "efe7b658635ed882f4c4f6e3aec51f5111848fb2"
       ],
@@ -4475,7 +4475,7 @@
       ],
       "description": "Python hooks extending common rules",
       "content_hash": "495336713090ab915d9c23973993a724df1a3a7f",
-      "signature_hash": "b91e125adf087b932d32843cdb9e469ebb20945e",
+      "signature_hash": "ec0414aa67dc9c9d88ee15c208396aa93c0f0c16",
       "variant_hashes": [
         "495336713090ab915d9c23973993a724df1a3a7f"
       ],
@@ -4491,7 +4491,7 @@
       ],
       "description": "Python patterns extending common rules",
       "content_hash": "566e4d985ceb472c8201d61cde3ac8b971081337",
-      "signature_hash": "6c37a1d5ce23de8a3ead6b5efc7705243272f11d",
+      "signature_hash": "38981433e35a0213e9124685e7f3277becdb1928",
       "variant_hashes": [
         "566e4d985ceb472c8201d61cde3ac8b971081337"
       ],
@@ -4507,7 +4507,7 @@
       ],
       "description": "Python security extending common rules",
       "content_hash": "ec07de00e42816dca186b1962ce3fe78be3770fe",
-      "signature_hash": "33a92582ee80d193c46ed6ce17838d5102846bff",
+      "signature_hash": "0b6372223705b09a3586e5a389d94557e57fdf9a",
       "variant_hashes": [
         "ec07de00e42816dca186b1962ce3fe78be3770fe"
       ],
@@ -4523,7 +4523,7 @@
       ],
       "description": "Python testing extending common rules",
       "content_hash": "b55b183d35bfb9d3252a9560fa2f0de932462e6c",
-      "signature_hash": "f45e7f0e8bab31690345e8bbf88c72390b67de88",
+      "signature_hash": "fad06a5424ee9eee15999aba2463be279895823b",
       "variant_hashes": [
         "b55b183d35bfb9d3252a9560fa2f0de932462e6c"
       ],
@@ -4699,7 +4699,7 @@
       ],
       "description": "Swift coding style extending common rules",
       "content_hash": "815d42e439195724e46496fd574906c4d4329c6d",
-      "signature_hash": "57294e11e3613871f89d2f83ddfb8d9c33fd8aac",
+      "signature_hash": "2acb03f103804cc0a33d20ce3699090e2c664a44",
       "variant_hashes": [
         "815d42e439195724e46496fd574906c4d4329c6d"
       ],
@@ -4715,7 +4715,7 @@
       ],
       "description": "Swift hooks extending common rules",
       "content_hash": "8df9e1f86a857361ff4260c73b389554677c0cd7",
-      "signature_hash": "266e1758b2b16a0dabee35fb891522f4a92fa034",
+      "signature_hash": "11cb8680ab6171338442625d39ffbe46f0660ef8",
       "variant_hashes": [
         "8df9e1f86a857361ff4260c73b389554677c0cd7"
       ],
@@ -4731,7 +4731,7 @@
       ],
       "description": "Swift patterns extending common rules",
       "content_hash": "14489d9edb7a7d6fce888dda2426903fd4385609",
-      "signature_hash": "bb8e821165bc16589fe0b79c07dcda61b4141180",
+      "signature_hash": "b426287a298023c13177dd2342fcf6e84d722bac",
       "variant_hashes": [
         "14489d9edb7a7d6fce888dda2426903fd4385609"
       ],
@@ -4747,7 +4747,7 @@
       ],
       "description": "Swift security extending common rules",
       "content_hash": "aec84081000a85fb2ee1bcf7936b241ec8a11f63",
-      "signature_hash": "372b6a4447c230ecef116fc14b57261507fe082f",
+      "signature_hash": "c04220813b75b72fdd40c680ab2364d9d5bf8e77",
       "variant_hashes": [
         "aec84081000a85fb2ee1bcf7936b241ec8a11f63"
       ],
@@ -4763,7 +4763,7 @@
       ],
       "description": "Swift testing extending common rules",
       "content_hash": "fd185afa66605655f85ad96e615ce8c275fa80af",
-      "signature_hash": "d2f0bc0d66f7ff278a81226e89f1565bbb0212c6",
+      "signature_hash": "92732ee8338b1bef0e4f1f837c3ef116d4f144ac",
       "variant_hashes": [
         "fd185afa66605655f85ad96e615ce8c275fa80af"
       ],
@@ -4859,7 +4859,7 @@
       ],
       "description": "TypeScript coding style extending common rules",
       "content_hash": "f6ce6197ec7d2d3eb0649aefb8192d2667f7bdf3",
-      "signature_hash": "37d78bce6ec702e78fdfc29e892d60f45f893f4d",
+      "signature_hash": "a8f0d187d78adf534c76d1ac6b8de6ccfe1df7aa",
       "variant_hashes": [
         "f6ce6197ec7d2d3eb0649aefb8192d2667f7bdf3"
       ],
@@ -4875,7 +4875,7 @@
       ],
       "description": "TypeScript hooks extending common rules",
       "content_hash": "2c16428307b5706d4f438b8ddd5e04b13eb3a4de",
-      "signature_hash": "21f0b70381d5dcb868c3f6fc19416445650926cf",
+      "signature_hash": "41dd0b2bc3ad924f69f40d160690268b76e66678",
       "variant_hashes": [
         "2c16428307b5706d4f438b8ddd5e04b13eb3a4de"
       ],
@@ -4891,7 +4891,7 @@
       ],
       "description": "TypeScript patterns extending common rules",
       "content_hash": "a15209be579bb14405c087d22359d6c2d8c49175",
-      "signature_hash": "d29804056cc4997fbd6836fadf2fee45e4b7012d",
+      "signature_hash": "f30c3d2f40995bc806e83ff2395e30c6c6b16049",
       "variant_hashes": [
         "a15209be579bb14405c087d22359d6c2d8c49175"
       ],
@@ -4907,7 +4907,7 @@
       ],
       "description": "TypeScript security extending common rules",
       "content_hash": "02eb02cc7c012a13d1647240dcc1f3cc05517dd0",
-      "signature_hash": "ae58afd0ed49728f5b800b205a5ac46f57933636",
+      "signature_hash": "39ddc693f5516d170431d7a29ac5ede44e15f15a",
       "variant_hashes": [
         "02eb02cc7c012a13d1647240dcc1f3cc05517dd0"
       ],
@@ -4923,7 +4923,7 @@
       ],
       "description": "TypeScript testing extending common rules",
       "content_hash": "8a309cd38d045d0f3b8643a522e8a6617986a4f0",
-      "signature_hash": "36ca4ae17dcad016b6655ffd25c1ecf39ff29d28",
+      "signature_hash": "67d0f32115b0aa36e3a9abe3b2cf6c4ba51487d3",
       "variant_hashes": [
         "8a309cd38d045d0f3b8643a522e8a6617986a4f0"
       ],
@@ -5307,7 +5307,7 @@
       ],
       "description": "3D content in Remotion using Three.js and React Three Fiber.",
       "content_hash": "ba0ce3c1f6294b6f50047054335996ed5a698205",
-      "signature_hash": "e040a57c2a583f4afbbc7fdf73b59f87a1303746",
+      "signature_hash": "1f774d7e11d6910ced5499c76130f19bb22e7545",
       "variant_hashes": [
         "ba0ce3c1f6294b6f50047054335996ed5a698205"
       ],
@@ -5323,7 +5323,7 @@
       ],
       "description": "Fundamental animation skills for Remotion",
       "content_hash": "a2bbd7939e1158d2d276ed83fd6a1081cc23382a",
-      "signature_hash": "6d719c4d03d6fca4b547baeadbf81d44c41c53af",
+      "signature_hash": "570b1e34504956d26e4fa88782ac499137b3d84d",
       "variant_hashes": [
         "a2bbd7939e1158d2d276ed83fd6a1081cc23382a"
       ],
@@ -5339,7 +5339,7 @@
       ],
       "description": "Importing images, videos, audio, and fonts into Remotion",
       "content_hash": "092f8870a2635597358c9583453fab273779b046",
-      "signature_hash": "905b84ef2cdfb9c55dad0ec452bde15984e19cd6",
+      "signature_hash": "a669ea59a32080cf3d75e130a18678cf2dcc4a95",
       "variant_hashes": [
         "092f8870a2635597358c9583453fab273779b046"
       ],
@@ -5355,7 +5355,7 @@
       ],
       "description": "Using audio and sound in Remotion - importing, trimming, volume, speed, pitch",
       "content_hash": "a60584e80f24f047306eb520cafb3d8245255420",
-      "signature_hash": "d1933ae4e91826db06068e7629a96f39fe977609",
+      "signature_hash": "0fcbd94e247249475b14bde354cfc05e42f5b2e5",
       "variant_hashes": [
         "a60584e80f24f047306eb520cafb3d8245255420"
       ],
@@ -5371,7 +5371,7 @@
       ],
       "description": "Dynamically set composition duration, dimensions, and props",
       "content_hash": "c2b76c212b7c0348799ea0956dbacd88f7d77e09",
-      "signature_hash": "4a76c3e8ec6c9bd8af86605479cf4d3f0f55ae9e",
+      "signature_hash": "4308a8fe47c6bcc24e7140715cc216f6dbf83793",
       "variant_hashes": [
         "c2b76c212b7c0348799ea0956dbacd88f7d77e09"
       ],
@@ -5387,7 +5387,7 @@
       ],
       "description": "Check if a video can be decoded by the browser using Mediabunny",
       "content_hash": "82abf847b630d90189434c9327aee414160b6a03",
-      "signature_hash": "f8347d2e94d242766aadccc6541aeffa5da9d77e",
+      "signature_hash": "da6fedde2b4d5cb6a81652bdd141f00b67b4203e",
       "variant_hashes": [
         "82abf847b630d90189434c9327aee414160b6a03"
       ],
@@ -5403,7 +5403,7 @@
       ],
       "description": "Chart and data visualization patterns for Remotion. Use when creating bar charts, pie charts, histograms, progress bars, or any data-driven animations.",
       "content_hash": "249e4be2af8c3bb81173f4c16cffcd6de5decded",
-      "signature_hash": "130385ab937f504289fc1f85127348cbd9663a97",
+      "signature_hash": "b2cd8de48df6755b81c6c9b434664ece2e09c278",
       "variant_hashes": [
         "249e4be2af8c3bb81173f4c16cffcd6de5decded"
       ],
@@ -5419,7 +5419,7 @@
       ],
       "description": "Defining compositions, stills, folders, default props and dynamic metadata",
       "content_hash": "4bca1df4ddb59151a39db6e614bbf293aaf11e04",
-      "signature_hash": "3230e8a18deb1d4cc3843f5afd3a30560d220a83",
+      "signature_hash": "6b76de7405e0a6b1a159bc9eca7b4bcc562f1d6f",
       "variant_hashes": [
         "4bca1df4ddb59151a39db6e614bbf293aaf11e04"
       ],
@@ -5435,7 +5435,7 @@
       ],
       "description": "Displaying captions in Remotion with TikTok-style pages and word highlighting",
       "content_hash": "565cacc856ced217e1fb77945a627a594ccd7b5b",
-      "signature_hash": "17a0b0729474e3b91448c0fcf232337d831d6a09",
+      "signature_hash": "30a8ec177cd4f0e9d74ac2f9bc1884d986fac828",
       "variant_hashes": [
         "565cacc856ced217e1fb77945a627a594ccd7b5b"
       ],
@@ -5451,7 +5451,7 @@
       ],
       "description": "Extract frames from videos at specific timestamps using Mediabunny",
       "content_hash": "95f72d9b9db71432894eb9262a459e121539841d",
-      "signature_hash": "b6efa75a57247a2212b477e6765fea4518d17f67",
+      "signature_hash": "8233b118fdfe07fa5cdce9c13a2c30e027e2028f",
       "variant_hashes": [
         "95f72d9b9db71432894eb9262a459e121539841d"
       ],
@@ -5467,7 +5467,7 @@
       ],
       "description": "Loading Google Fonts and local fonts in Remotion",
       "content_hash": "b3f325cdd9abee3ec83d1bae73c0779d833eb7c2",
-      "signature_hash": "4b711c8b8e76d1b9bd6619bbb406b779cd649074",
+      "signature_hash": "062516a7c8fbe70049e43ab7647c5352d2268980",
       "variant_hashes": [
         "b3f325cdd9abee3ec83d1bae73c0779d833eb7c2"
       ],
@@ -5483,7 +5483,7 @@
       ],
       "description": "Getting the duration of an audio file in seconds with Mediabunny",
       "content_hash": "8bc52f52f61ab21d2f3c1a65cfbbf7e142902f35",
-      "signature_hash": "6ec791b706da2e51871c15648f091d3dd91c1500",
+      "signature_hash": "db5ff244a4327e09e336a66df2f862f25ae6758b",
       "variant_hashes": [
         "8bc52f52f61ab21d2f3c1a65cfbbf7e142902f35"
       ],
@@ -5499,7 +5499,7 @@
       ],
       "description": "Getting the width and height of a video file with Mediabunny",
       "content_hash": "3234bc2410515ffaeef3c284d7b9487edebdc298",
-      "signature_hash": "6970c72af10338bdbdd1498ecb81bb04d1deb4e8",
+      "signature_hash": "6e6182351d47fe8f6a467197a447d238035fddc6",
       "variant_hashes": [
         "3234bc2410515ffaeef3c284d7b9487edebdc298"
       ],
@@ -5515,7 +5515,7 @@
       ],
       "description": "Getting the duration of a video file in seconds with Mediabunny",
       "content_hash": "6c8884b443f713f0c97c44076660371c934cf1fd",
-      "signature_hash": "ff7b482cc4c49081df149f0a0adc114a7f5b7e68",
+      "signature_hash": "692a6fd811b94e2d6bd506fb834dc2897a2558d1",
       "variant_hashes": [
         "6c8884b443f713f0c97c44076660371c934cf1fd"
       ],
@@ -5531,7 +5531,7 @@
       ],
       "description": "Displaying GIFs, APNG, AVIF and WebP in Remotion",
       "content_hash": "b8b27d3452c0a5e723e91e207ab4a6738f952680",
-      "signature_hash": "6e4bb6ace133222704815c7b9f6aba14ee972ec2",
+      "signature_hash": "bb6987c74631d44586d765ea5728431b6324ea78",
       "variant_hashes": [
         "b8b27d3452c0a5e723e91e207ab4a6738f952680"
       ],
@@ -5547,7 +5547,7 @@
       ],
       "description": "Embedding images in Remotion using the <Img> component",
       "content_hash": "4fb44c087a1c82c98d34c5c0459be6bebfcd819b",
-      "signature_hash": "eea42654aa001fbec969e15f0e89f9b14d5dd611",
+      "signature_hash": "394e20e6c9e3f2ebd3fada0a00773a288f33691c",
       "variant_hashes": [
         "4fb44c087a1c82c98d34c5c0459be6bebfcd819b"
       ],
@@ -5563,7 +5563,7 @@
       ],
       "description": "Importing .srt subtitle files into Remotion using @remotion/captions",
       "content_hash": "8379ac20379d09629355104e435f9adc876b4fa4",
-      "signature_hash": "e0bc546be86882143f8ae865e732c8f007bf30db",
+      "signature_hash": "6b82c0214e6b4269231df2f84588e3faf3c10036",
       "variant_hashes": [
         "8379ac20379d09629355104e435f9adc876b4fa4"
       ],
@@ -5579,7 +5579,7 @@
       ],
       "description": "Embedding Lottie animations in Remotion.",
       "content_hash": "c1178243f2870b33dd7e3523452e5b85c54f02d6",
-      "signature_hash": "4adf57cf13472be92840c6155259f4b025177e44",
+      "signature_hash": "01b06c216ccf2b22379d014813c9718df398b0d3",
       "variant_hashes": [
         "c1178243f2870b33dd7e3523452e5b85c54f02d6"
       ],
@@ -5595,7 +5595,7 @@
       ],
       "description": "Measuring DOM element dimensions in Remotion",
       "content_hash": "32e1bcb7c8f5cd6a94f060f9e5ecfa35e78d45d0",
-      "signature_hash": "3523dc53ab7fb7aa2a45990cad6f110af5f692cf",
+      "signature_hash": "a91332d2defed16de816dcae63f5963dc46766a7",
       "variant_hashes": [
         "32e1bcb7c8f5cd6a94f060f9e5ecfa35e78d45d0"
       ],
@@ -5611,7 +5611,7 @@
       ],
       "description": "Measuring text dimensions, fitting text to containers, and checking overflow",
       "content_hash": "fc1743ebf87a11ad75138a6d8941bdecfb54db11",
-      "signature_hash": "f6772056c82e4dcbee2055c14fc5dd15494c7bdc",
+      "signature_hash": "7481718d268b16fe6761d073a6a02b3bcaded0c7",
       "variant_hashes": [
         "fc1743ebf87a11ad75138a6d8941bdecfb54db11"
       ],
@@ -5627,7 +5627,7 @@
       ],
       "description": "Sequencing patterns for Remotion - delay, trim, limit duration of items",
       "content_hash": "8f359cf3465806660d4cfb158f35020703e403fb",
-      "signature_hash": "16784ffaf5a12b5afbcb51c144923dfb81dcb1f4",
+      "signature_hash": "ddff0c9433330eca27dd5302a0afde1549bdabfd",
       "variant_hashes": [
         "8f359cf3465806660d4cfb158f35020703e403fb"
       ],
@@ -5643,7 +5643,7 @@
       ],
       "description": "Using TailwindCSS in Remotion.",
       "content_hash": "c25ca70a09faec4f99aa9e13af632c7779343ddb",
-      "signature_hash": "a3c54c4473591aceb77eedc576d51bd56cb1a603",
+      "signature_hash": "87d4bd2985b9629198734eccd4df963acaf34a9e",
       "variant_hashes": [
         "c25ca70a09faec4f99aa9e13af632c7779343ddb"
       ],
@@ -5659,7 +5659,7 @@
       ],
       "description": "Typography and text animation patterns for Remotion.",
       "content_hash": "5a83fcb9b71a206bb5e75918376897587767d9b0",
-      "signature_hash": "239e4456b371403db1f6c7391c42cec00ab72372",
+      "signature_hash": "c844e6799edd7646d998d962fbb2e63255e38dc3",
       "variant_hashes": [
         "5a83fcb9b71a206bb5e75918376897587767d9b0"
       ],
@@ -5675,7 +5675,7 @@
       ],
       "description": "Interpolation curves in Remotion - linear, easing, spring animations",
       "content_hash": "a0aef3495e2e0fe33a1a5f52dda995b5cd44187c",
-      "signature_hash": "353af20a88b756280eebd7cdcd41d4d18095b65c",
+      "signature_hash": "3fa13b1839977291464f7540b848080158305484",
       "variant_hashes": [
         "a0aef3495e2e0fe33a1a5f52dda995b5cd44187c"
       ],
@@ -5691,7 +5691,7 @@
       ],
       "description": "Transcribing audio to generate captions in Remotion",
       "content_hash": "2adc5df9d2b41d0dc5b2fec875eb9cb95253953b",
-      "signature_hash": "938a03963bfe07eaafdfcc038e9cdbe83cfdbad7",
+      "signature_hash": "90b0f6c4827abc4eac25c866a75f50aa9005d416",
       "variant_hashes": [
         "2adc5df9d2b41d0dc5b2fec875eb9cb95253953b"
       ],
@@ -5707,7 +5707,7 @@
       ],
       "description": "Fullscreen scene transitions for Remotion.",
       "content_hash": "fbb8bc8620a231182bb40c6a4fa492589bee4b5f",
-      "signature_hash": "ce9d3c87b02e000d798518d785f29d2b0a08b04a",
+      "signature_hash": "7cb0b6e24d0aec4b83d7d8eac698a4f74abdd46a",
       "variant_hashes": [
         "fbb8bc8620a231182bb40c6a4fa492589bee4b5f"
       ],
@@ -5723,7 +5723,7 @@
       ],
       "description": "Trimming patterns for Remotion - cut the beginning or end of animations",
       "content_hash": "775bc035cda12206623faffeae72a9d0cd69be47",
-      "signature_hash": "6bf5338178387e2b78df3ce46b351b2acf0899f9",
+      "signature_hash": "63897b20ee26ebd7a98ba9fe7eb72220ade0936d",
       "variant_hashes": [
         "775bc035cda12206623faffeae72a9d0cd69be47"
       ],
@@ -5739,7 +5739,7 @@
       ],
       "description": "Embedding videos in Remotion - trimming, volume, speed, looping, pitch",
       "content_hash": "8f97bec1ba475345bb78b6581511ba6edf44cd44",
-      "signature_hash": "92fbbe9cfc3cf8970d33992f9f0140d19d5cd2a4",
+      "signature_hash": "711f5e49af270647323eee62dbf7fe9098ccec9f",
       "variant_hashes": [
         "8f97bec1ba475345bb78b6581511ba6edf44cd44"
       ],
@@ -5755,7 +5755,7 @@
       ],
       "description": "Head-to-head comparison of coding agents (Claude Code, Aider, Codex, etc.) on custom tasks with pass rate, cost, time, and consistency metrics",
       "content_hash": "a890962dbdcbf6fb8e95247c4fe4edb303f331c1",
-      "signature_hash": "5a39ee12bc942fc0b134c7ebe32998239a3ab0cf",
+      "signature_hash": "eb015e389c66f0119915c9903435a89821d744f6",
       "variant_hashes": [
         "a890962dbdcbf6fb8e95247c4fe4edb303f331c1"
       ],
@@ -5771,7 +5771,7 @@
       ],
       "description": "Design and optimize AI agent action spaces, tool definitions, and observation formatting for higher completion rates.",
       "content_hash": "56e8dd0c7e29d0c5cd155db400564f108a63e282",
-      "signature_hash": "e91c60d93045ed466c1528fb060010ac2e77d130",
+      "signature_hash": "097b77685d7eaacb54f2fba792cc3ff49a4da291",
       "variant_hashes": [
         "56e8dd0c7e29d0c5cd155db400564f108a63e282"
       ],
@@ -5788,7 +5788,7 @@
       ],
       "description": "Structured self-debugging workflow for AI agent failures using capture, diagnosis, contained recovery, and introspection reports.",
       "content_hash": "65fd338e4987b3728c912a8144f0bc33f0e42511",
-      "signature_hash": "74a34a814e463ad0acc816ecbbe2bfa3483dbef4",
+      "signature_hash": "f5d00a54df12308edc18769d58c79684173328f6",
       "variant_hashes": [
         "65fd338e4987b3728c912a8144f0bc33f0e42511"
       ],
@@ -5804,7 +5804,7 @@
       ],
       "description": "Add x402 payment execution to AI agents \u2014 per-task budgets, spending controls, and non-custodial wallets via MCP tools. Use when agents need to pay for APIs, services, or other agents.",
       "content_hash": "4aa0b15617780f87d5689ff989b8fb80c68687c8",
-      "signature_hash": "9f61be803f1c453469ade05846ee0223b7f1329d",
+      "signature_hash": "a09003c910000d33506c8ad61eddaf9616ee652d",
       "variant_hashes": [
         "4aa0b15617780f87d5689ff989b8fb80c68687c8"
       ],
@@ -5821,7 +5821,7 @@
       ],
       "description": "Build an evidence-backed ECC install plan for a specific repo by sorting skills, commands, rules, hooks, and extras into DAILY vs LIBRARY buckets using parallel repo-aware review passes. Use when ECC should be trimmed to what a project actually needs instead of loading the full bundle.",
       "content_hash": "c7abc2ea8a06670618f3b548f840031ff251cfd2",
-      "signature_hash": "2ac08ba8f9dbaf41d1fba2c273a792da9651dce5",
+      "signature_hash": "4c14ff5c98586c4f27d760fd0c1b2a9a95e492be",
       "variant_hashes": [
         "c7abc2ea8a06670618f3b548f840031ff251cfd2"
       ],
@@ -5838,7 +5838,7 @@
       ],
       "description": "Operate as an agentic engineer using eval-first execution, decomposition, and cost-aware model routing.",
       "content_hash": "593e87d8e83b7993aed880887c660722278b8ea2",
-      "signature_hash": "9e1ab710c77768a22fdcedf67dd21be17e979954",
+      "signature_hash": "a0ba7f70892bcc41501ac141d599ece8cc758a81",
       "variant_hashes": [
         "49ceaf81600ef2fa8aa4b85d073c82336b3732ad",
         "593e87d8e83b7993aed880887c660722278b8ea2"
@@ -5855,7 +5855,7 @@
       ],
       "description": "Engineering operating model for teams where AI agents generate a large share of implementation output.",
       "content_hash": "c4c548f4f0235e16daf125ba74a3dcaf728ea97d",
-      "signature_hash": "8ba751da256c8032755a5f7da706950655b510d6",
+      "signature_hash": "91b4d67de0b3ea8574aef035ba6517ed1421ebc6",
       "variant_hashes": [
         "c4c548f4f0235e16daf125ba74a3dcaf728ea97d"
       ],
@@ -5871,7 +5871,7 @@
       ],
       "description": "Regression testing strategies for AI-assisted development. Sandbox-mode API testing without database dependencies, automated bug-check workflows, and patterns to catch AI blind spots where the same model writes and reviews code.",
       "content_hash": "17c46ad97645fd42f83472415034a6079c1a8a50",
-      "signature_hash": "9f2a0eb291f0dff3f0643c896cb933889568bcf5",
+      "signature_hash": "620c7b3f24d6e23282a7fc8ed1a5719f5e624ff4",
       "variant_hashes": [
         "17c46ad97645fd42f83472415034a6079c1a8a50"
       ],
@@ -5887,7 +5887,7 @@
       ],
       "description": "Clean Architecture patterns for Android and Kotlin Multiplatform projects \u2014 module structure, dependency rules, UseCases, Repositories, and data layer patterns.",
       "content_hash": "2cf0707bd47d06dd9e2f55ef1a76fde4a713eb76",
-      "signature_hash": "51532b987f0dea4a374c67c7bb721bf0f1aacafb",
+      "signature_hash": "863e4788c61c1bfd4797e8e81e054d64dbdba53e",
       "variant_hashes": [
         "2cf0707bd47d06dd9e2f55ef1a76fde4a713eb76"
       ],
@@ -5903,7 +5903,7 @@
       ],
       "description": "Build a new API connector or provider by matching the target repo's existing integration pattern exactly. Use when adding one more integration without inventing a second architecture.",
       "content_hash": "7a6028285eb0fa5d8edaf3af1daafda441a51755",
-      "signature_hash": "f6dac7918d04bc121ceff7647f4b7a565f055b71",
+      "signature_hash": "038b7e94709b73be0e7cd247d665863ff0aa7ee7",
       "variant_hashes": [
         "7a6028285eb0fa5d8edaf3af1daafda441a51755"
       ],
@@ -5921,7 +5921,7 @@
       ],
       "description": "REST API design patterns including resource naming, status codes, pagination, filtering, error responses, versioning, and rate limiting for production APIs.",
       "content_hash": "3fecb6c5110a482ebbdba1e066a3812446500850",
-      "signature_hash": "2fe41fe486fe2acc45c90000ed87bf6251f09b63",
+      "signature_hash": "9ffd055560760563b0b819f92901d9dcc27c8170",
       "variant_hashes": [
         "3fecb6c5110a482ebbdba1e066a3812446500850",
         "46ec6ffd2748d30fcfd762978edf123377bab198"
@@ -5938,7 +5938,7 @@
       ],
       "description": "Capture architectural decisions made during Claude Code sessions as structured ADRs. Auto-detects decision moments, records context, alternatives considered, and rationale. Maintains an ADR log so future developers understand why the codebase is shaped the way it is.",
       "content_hash": "295e366fa4551466e38318172bc09d13c6f04b9f",
-      "signature_hash": "76b72b59523ba12630ee2fa22506b4e8308de477",
+      "signature_hash": "56c552ef8ec8c17f87e4a7d9968d4a3e5a3319b2",
       "variant_hashes": [
         "295e366fa4551466e38318172bc09d13c6f04b9f"
       ],
@@ -5956,7 +5956,7 @@
       ],
       "description": "Write articles, guides, blog posts, tutorials, newsletter issues, and other long-form content in a distinctive voice derived from supplied examples or brand guidance. Use when the user wants polished written content longer than a paragraph, especially when voice consistency, structure, and credibility matter.",
       "content_hash": "3b89be15829eed51c0476e907a451f1527855844",
-      "signature_hash": "36b265dcaebcd3349003b22ca58a951cd4ac4dee",
+      "signature_hash": "85171a4f6002792a1133392f8c6ab4787bd3d2a3",
       "variant_hashes": [
         "3b89be15829eed51c0476e907a451f1527855844",
         "6d073fbe5301574c084c4163e4dbc2c992cca3b9"
@@ -5973,7 +5973,7 @@
       ],
       "description": "Evidence-first automation inventory and overlap audit workflow for ECC. Use when the user wants to know which jobs, hooks, connectors, MCP servers, or wrappers are live, broken, redundant, or missing before fixing anything.",
       "content_hash": "491534da53ab460fb98a70ec881266a82425d28b",
-      "signature_hash": "9f59e83e0cf61f24c6b08ad9dbe898331b426c9f",
+      "signature_hash": "25311ffbac62375bc6b51609c608e8a5a1ccec18",
       "variant_hashes": [
         "491534da53ab460fb98a70ec881266a82425d28b"
       ],
@@ -5989,7 +5989,7 @@
       ],
       "description": "Transform Claude Code into a fully autonomous agent system with persistent memory, scheduled operations, computer use, and task queuing. Replaces standalone agent frameworks (Hermes, AutoGPT) by leveraging Claude Code's native crons, dispatch, MCP tools, and memory. Use when the user wants continuous autonomous operation, scheduled tasks, or a self-directing agent loop.",
       "content_hash": "5e68cc1c4dd53ad6ba13f93a1da9821c2757bb0d",
-      "signature_hash": "8f48614cc3038671588f59400ce3da8fe5eecc5d",
+      "signature_hash": "0e00a7f9b5fa189d49807e28c1835884a003ee41",
       "variant_hashes": [
         "5e68cc1c4dd53ad6ba13f93a1da9821c2757bb0d"
       ],
@@ -6005,7 +6005,7 @@
       ],
       "description": "Patterns and architectures for autonomous Claude Code loops \u2014 from simple sequential pipelines to RFC-driven multi-agent DAG systems.",
       "content_hash": "a7751044a26d0649bf274f160902e4700e4e2a6f",
-      "signature_hash": "1f590775139ad85763ad7d1dce2dde6f3733225a",
+      "signature_hash": "c0ef9d7eb2e49b7abb14229cfde6706ef350c5b4",
       "variant_hashes": [
         "a7751044a26d0649bf274f160902e4700e4e2a6f"
       ],
@@ -6023,7 +6023,7 @@
       ],
       "description": "Backend architecture patterns, API design, database optimization, and server-side best practices for Node.js, Express, and Next.js API routes.",
       "content_hash": "77384c65aad583a91d37d16a8b6eed4fe56fc62f",
-      "signature_hash": "eb84e3a8547cd9611ca893ec9e19b42bdc9f9513",
+      "signature_hash": "6fb6cdcfd9942139d39170b2d9b3c4d9b69a4826",
       "variant_hashes": [
         "5567a0ff1cb003f360edeafa738004e71ed91bfc",
         "77384c65aad583a91d37d16a8b6eed4fe56fc62f"
@@ -6040,7 +6040,7 @@
       ],
       "description": "Use this skill to measure performance baselines, detect regressions before/after PRs, and compare stack alternatives.",
       "content_hash": "613c1611d709739cf2ab850fa40949a9db96dcf3",
-      "signature_hash": "9b34c8193ea349fc847a47e1c721873761361a95",
+      "signature_hash": "f5f8f531c4c5321b17d1d0d7bec5e953a8010895",
       "variant_hashes": [
         "613c1611d709739cf2ab850fa40949a9db96dcf3"
       ],
@@ -6056,7 +6056,7 @@
       ],
       "description": ">-",
       "content_hash": "f3d4022f13a87c1b6d03b3a5ae30fd5b7dd3975d",
-      "signature_hash": "1b2f176defee5c1fe83f29d703bbef03f6c636e0",
+      "signature_hash": "37e285d74462805d79955c5076b810a7594a760d",
       "variant_hashes": [
         "f3d4022f13a87c1b6d03b3a5ae30fd5b7dd3975d"
       ],
@@ -6073,7 +6073,7 @@
       ],
       "description": "Build a source-derived writing style profile from real posts, essays, launch notes, docs, or site copy, then reuse that profile across content, outreach, and social workflows. Use when the user wants voice consistency without generic AI writing tropes.",
       "content_hash": "32ccf4306baa362ce864d24712f61ee529805c8b",
-      "signature_hash": "283a5f44f91ae4b6c3cde19da69f46b134b2f6fa",
+      "signature_hash": "706d7cc74df2912ceb2522d152cba747129fa7d5",
       "variant_hashes": [
         "32ccf4306baa362ce864d24712f61ee529805c8b"
       ],
@@ -6089,7 +6089,7 @@
       ],
       "description": "Use this skill to automate visual testing and UI interaction verification using browser automation after deploying features.",
       "content_hash": "0632b101e1ba9e4513f2e3da2cc5a73598a64e4d",
-      "signature_hash": "7708074e6f466a3dbcd3073e0951ac72e2a6d536",
+      "signature_hash": "37be4020944128b18bd917a896efc35fb7f9452d",
       "variant_hashes": [
         "0632b101e1ba9e4513f2e3da2cc5a73598a64e4d"
       ],
@@ -6107,7 +6107,7 @@
       ],
       "description": "Bun as runtime, package manager, bundler, and test runner. When to choose Bun vs Node, migration notes, and Vercel support.",
       "content_hash": "27ac11a2d503b299fbdb94b5afaedabbd8e63124",
-      "signature_hash": "4ff945643d17bd951c118d5731a329e15c830b6a",
+      "signature_hash": "1f6ca8d5f7d59fcbbed9264ead3b3d6c02cb34cd",
       "variant_hashes": [
         "27ac11a2d503b299fbdb94b5afaedabbd8e63124"
       ],
@@ -6123,7 +6123,7 @@
       ],
       "description": "Use this skill to monitor a deployed URL for regressions after deploys, merges, or dependency upgrades.",
       "content_hash": "ebead2e25decb59c8115196e8582f5c25b24fea8",
-      "signature_hash": "916c90e71aec8b3313784631a75e187c30e23482",
+      "signature_hash": "8a4195f499c738b199b05be18c17c73deaa6e4a1",
       "variant_hashes": [
         "ebead2e25decb59c8115196e8582f5c25b24fea8"
       ],
@@ -6139,7 +6139,7 @@
       ],
       "description": ">",
       "content_hash": "d037847e68b3f786df12875900d12cdeca875011",
-      "signature_hash": "3d79c49c05cef1ac61ed44ae017fc36266f27396",
+      "signature_hash": "b8f1089f0e04143b393c5a4d951bceaf15a8a3af",
       "variant_hashes": [
         "d037847e68b3f786df12875900d12cdeca875011"
       ],
@@ -6155,7 +6155,7 @@
       ],
       "description": "Persistent per-project memory for Claude Code. Auto-loads project context on session start, tracks sessions with git activity, and writes to native memory. Commands run deterministic Node.js scripts \u2014 behavior is consistent across model versions.",
       "content_hash": "e22f4f6f3355bd73292e779880813ccbb427ce0d",
-      "signature_hash": "5d45ca1e814fac9802d66ca3d546a8ecec7cb0af",
+      "signature_hash": "6f1072d9dec219eb8b6ba7f7898fc7b917e9b85d",
       "variant_hashes": [
         "e22f4f6f3355bd73292e779880813ccbb427ce0d"
       ],
@@ -6172,7 +6172,7 @@
       ],
       "description": "Anthropic Claude API patterns for Python and TypeScript. Covers Messages API, streaming, tool use, vision, extended thinking, batches, prompt caching, and Claude Agent SDK. Use when building applications with the Claude API or Anthropic SDKs.",
       "content_hash": "19a767de5bbbf1180678f4fd04b12fe34ed960be",
-      "signature_hash": "b38751c52a6d2a5bb92af285c6c1e3625cf85b9d",
+      "signature_hash": "6650dd20bfea17e6a133ab10583c844aef1078ab",
       "variant_hashes": [
         "19a767de5bbbf1180678f4fd04b12fe34ed960be",
         "c9c1163465db743836d04b8e9ea4692ab8755fc4"
@@ -6189,7 +6189,7 @@
       ],
       "description": "Orchestrate multi-agent coding tasks via Claude DevFleet \u2014 plan projects, dispatch parallel agents in isolated worktrees, monitor progress, and read structured reports.",
       "content_hash": "ea2a30d75d98e6ca0952afd2fa64990b43bb1a47",
-      "signature_hash": "6534675749fc02ca13dcfa0d7fe926fc0203552e",
+      "signature_hash": "9c5ca51b78a9c007e13f017c5cc08eb6159e7513",
       "variant_hashes": [
         "ea2a30d75d98e6ca0952afd2fa64990b43bb1a47"
       ],
@@ -6205,7 +6205,7 @@
       ],
       "description": "Trace every user-facing button/touchpoint through its full state change sequence to find bugs where functions individually work but cancel each other out, produce wrong final state, or leave the UI in an inconsistent state. Use when: systematic debugging found no bugs but users report broken buttons, or after any major refactor touching shared state stores.",
       "content_hash": "67c4fdea11d6770608b962b2f5a55c68493acb73",
-      "signature_hash": "665f8cf43d3000cc8628b5ab080983190e8cf781",
+      "signature_hash": "bf5a8959f4a98809be8fc595e79a67b208fefe7d",
       "variant_hashes": [
         "67c4fdea11d6770608b962b2f5a55c68493acb73"
       ],
@@ -6221,7 +6221,7 @@
       ],
       "description": "ClickHouse database patterns, query optimization, analytics, and data engineering best practices for high-performance analytical workloads.",
       "content_hash": "027600a7004d97b38b8e9c9cd4f767bba98592cc",
-      "signature_hash": "c4fc665ca51c3e83690a50de30915fd48cfeabf6",
+      "signature_hash": "89239fd66787f2af9de34da3a7e0afae35da91df",
       "variant_hashes": [
         "027600a7004d97b38b8e9c9cd4f767bba98592cc"
       ],
@@ -6237,7 +6237,7 @@
       ],
       "description": "Create CodeTour `.tour` files \u2014 persona-targeted, step-by-step walkthroughs with real file and line anchors. Use for onboarding tours, architecture walkthroughs, PR tours, RCA tours, and structured \"explain how this works\" requests.",
       "content_hash": "9fc95aa18c604989c835d4665ac821bd47ead1bc",
-      "signature_hash": "074c713b7e7bded1fff2b05210ecdd88bbd2a260",
+      "signature_hash": "a25661ce874d477aa345191282c0f37535f0f320",
       "variant_hashes": [
         "9fc95aa18c604989c835d4665ac821bd47ead1bc"
       ],
@@ -6253,7 +6253,7 @@
       ],
       "description": "Analyze an unfamiliar codebase and generate a structured onboarding guide with architecture map, key entry points, conventions, and a starter CLAUDE.md. Use when joining a new project or setting up Claude Code for the first time in a repo.",
       "content_hash": "581930e5d6793a12fd007df3c9b3c1e6f64f6096",
-      "signature_hash": "73f29ba46e67835a3500ea8020f96f5c4e143285",
+      "signature_hash": "ff5b0efe5a76df45db01c7a90ade51fb63574abb",
       "variant_hashes": [
         "581930e5d6793a12fd007df3c9b3c1e6f64f6096"
       ],
@@ -6271,7 +6271,7 @@
       ],
       "description": "Baseline cross-project coding conventions for naming, readability, immutability, and code-quality review. Use detailed frontend or backend skills for framework-specific patterns.",
       "content_hash": "ebfc6dbe772897f82c2a7ddd84b717ac5bb474ba",
-      "signature_hash": "325db8179b83ee8f26b005bf92c0019b51a44f2f",
+      "signature_hash": "189cc36b30a6236de02b7180f0932d02647f7c00",
       "variant_hashes": [
         "958ba93200cfeb21d83cb27066dc4db8b325bb39",
         "ebfc6dbe772897f82c2a7ddd84b717ac5bb474ba"
@@ -6288,7 +6288,7 @@
       ],
       "description": "Compose Multiplatform and Jetpack Compose patterns for KMP projects \u2014 state management, navigation, theming, performance, and platform-specific UI.",
       "content_hash": "5232ffad0123c3ab87a757658795686d8b1c77d6",
-      "signature_hash": "cc15d2602975f1deb32896a16c233b632602f890",
+      "signature_hash": "7796753f59fad447922abf54d0afd24f6262cdf1",
       "variant_hashes": [
         "5232ffad0123c3ab87a757658795686d8b1c77d6"
       ],
@@ -6304,7 +6304,7 @@
       ],
       "description": "Interactive installer for Everything Claude Code \u2014 guides users through selecting and installing skills and rules to user-level or project-level directories, verifies paths, and optionally optimizes installed files.",
       "content_hash": "aee6961da11a1aa87fc9ad27779f0232661511a2",
-      "signature_hash": "3ec24ea76ca54efe410c8a11ae576cd418b6536b",
+      "signature_hash": "d18637abf421c220e0d0e1ac4c74640ec6c7acb7",
       "variant_hashes": [
         "aee6961da11a1aa87fc9ad27779f0232661511a2"
       ],
@@ -6320,7 +6320,7 @@
       ],
       "description": "Reorganize the user's X and LinkedIn network with review-first pruning, add/follow recommendations, and channel-specific warm outreach drafted in the user's real voice. Use when the user wants to clean up following lists, grow toward current priorities, or rebalance a social graph around higher-signal relationships.",
       "content_hash": "cd2aa53d54db23de09ad466f1d25e546fa161d0f",
-      "signature_hash": "4b513ce9e4e5b8dda27c6a1c526defa158f9d49f",
+      "signature_hash": "4be25dd7496d6ce6eaf1f78d5b5deb6b87848c73",
       "variant_hashes": [
         "cd2aa53d54db23de09ad466f1d25e546fa161d0f"
       ],
@@ -6338,7 +6338,7 @@
       ],
       "description": "Create platform-native content systems for X, LinkedIn, TikTok, YouTube, newsletters, and repurposed multi-platform campaigns. Use when the user wants social posts, threads, scripts, content calendars, or one source asset adapted cleanly across platforms.",
       "content_hash": "27c3b4876d256d135a6ce0eaeff03981e1002ead",
-      "signature_hash": "85cb3fa2a41a94470b7fb72e0b1e2b408699783f",
+      "signature_hash": "63ba9a491f8bc4c10314f3e8d03e74f459485b2e",
       "variant_hashes": [
         "27c3b4876d256d135a6ce0eaeff03981e1002ead",
         "fded0cab5c7b09e6ec6398bda675e3f9d5bf027c"
@@ -6355,7 +6355,7 @@
       ],
       "description": "Cache expensive file processing results using SHA-256 content hashes \u2014 path-independent, auto-invalidating, with service layer separation.",
       "content_hash": "41ab4ef8eaa774668ed31bad1bfb75a88149c5a7",
-      "signature_hash": "a548251996193a416165cbadebd46af0993eff7a",
+      "signature_hash": "f1643a938d2a7823e31508c0278bae9e7f2948bb",
       "variant_hashes": [
         "41ab4ef8eaa774668ed31bad1bfb75a88149c5a7"
       ],
@@ -6371,7 +6371,7 @@
       ],
       "description": "Audits Claude Code context window consumption across agents, skills, MCP servers, and rules. Identifies bloat, redundant components, and produces prioritized token-savings recommendations.",
       "content_hash": "6b92548d12d9fb09d740029a7e06cf754528f52b",
-      "signature_hash": "bd0052929e8bb6390256ee98ea2836379141528b",
+      "signature_hash": "f18cb0e263dbe66685a6865e6749ea5df9fd217a",
       "variant_hashes": [
         "6b92548d12d9fb09d740029a7e06cf754528f52b"
       ],
@@ -6387,7 +6387,7 @@
       ],
       "description": "Patterns for continuous autonomous agent loops with quality gates, evals, and recovery controls.",
       "content_hash": "ad6d94669ada426e010d06db5a7986d9e1f9da3a",
-      "signature_hash": "c584bedfaa4edbca85ddacd58c2b694cb7d49419",
+      "signature_hash": "37bb39941ead87ca88ac83aa0e1665ba3c16609b",
       "variant_hashes": [
         "ad6d94669ada426e010d06db5a7986d9e1f9da3a"
       ],
@@ -6403,7 +6403,7 @@
       ],
       "description": "Automatically extract reusable patterns from Claude Code sessions and save them as learned skills for future use.",
       "content_hash": "d9eb762ac700668f9ec57443b50e9d86001393a3",
-      "signature_hash": "c9be29c3c8dff6a17c4d1de3c654863065066d86",
+      "signature_hash": "241cebe8b7b2f68967d6138fe8d5ca778bd731e6",
       "variant_hashes": [
         "d9eb762ac700668f9ec57443b50e9d86001393a3"
       ],
@@ -6419,7 +6419,7 @@
       ],
       "description": "Instinct-based learning system that observes sessions via hooks, creates atomic instincts with confidence scoring, and evolves them into skills/commands/agents. v2.1 adds project-scoped instincts to prevent cross-project contamination.",
       "content_hash": "78dcba08c24614487648990bea1141efcaefe52b",
-      "signature_hash": "026a94a0d9c7ff7cae307b90a63588f080f8f855",
+      "signature_hash": "44d1adb311e3306c80d81d53060dc1dc745910f7",
       "variant_hashes": [
         "78dcba08c24614487648990bea1141efcaefe52b"
       ],
@@ -6435,7 +6435,7 @@
       ],
       "description": "Cost optimization patterns for LLM API usage \u2014 model routing by task complexity, budget tracking, retry logic, and prompt caching.",
       "content_hash": "1772930d945b0b5b714468331f29dcdb1cfe7fe0",
-      "signature_hash": "58db4b3fec56f95e7159527675b52bd06099759c",
+      "signature_hash": "de9b09332ffbc3410d84fafe3b97d5a4ea82da1a",
       "variant_hashes": [
         "1772930d945b0b5b714468331f29dcdb1cfe7fe0"
       ],
@@ -6451,7 +6451,7 @@
       ],
       "description": "Convene a four-voice council for ambiguous decisions, tradeoffs, and go/no-go calls. Use when multiple valid paths exist and you need structured disagreement before choosing.",
       "content_hash": "1d9414c9bd03be3ca3234280db43b6bf088f781f",
-      "signature_hash": "4c7b226ad446a94a0b9648be2283512f69b549f4",
+      "signature_hash": "f3a7c248fbd66f39c1effecd753a0a21dc083679",
       "variant_hashes": [
         "1d9414c9bd03be3ca3234280db43b6bf088f781f"
       ],
@@ -6467,7 +6467,7 @@
       ],
       "description": "C++ coding standards based on the C++ Core Guidelines (isocpp.github.io). Use when writing, reviewing, or refactoring C++ code to enforce modern, safe, and idiomatic practices.",
       "content_hash": "21f699cd77fae7151fb975c56d04d0953d54fbc7",
-      "signature_hash": "12c34a17415e6e8f2e8e2f4698f52f654e532b17",
+      "signature_hash": "919049435de60e8ad9d2bf0fe8cb1ffcb6b37251",
       "variant_hashes": [
         "21f699cd77fae7151fb975c56d04d0953d54fbc7"
       ],
@@ -6483,7 +6483,7 @@
       ],
       "description": "Use only when writing/updating/fixing C++ tests, configuring GoogleTest/CTest, diagnosing failing or flaky tests, or adding coverage/sanitizers.",
       "content_hash": "93f7dd1f71b2d9243f4ef5f500c8ac69a4abae96",
-      "signature_hash": "b4bdc2c83750bf47063135bc0d94a74cccf99528",
+      "signature_hash": "797648d14867ad2f5ca49e1a94e7955cba45c8b0",
       "variant_hashes": [
         "93f7dd1f71b2d9243f4ef5f500c8ac69a4abae96"
       ],
@@ -6500,7 +6500,7 @@
       ],
       "description": "Multi-platform content distribution across X, LinkedIn, Threads, and Bluesky. Adapts content per platform using content-engine patterns. Never posts identical content cross-platform. Use when the user wants to distribute content across social platforms.",
       "content_hash": "8f3986ce3414b656a8f07904160f9c6b77600139",
-      "signature_hash": "c0a6d5d2ded4c2dc588a7645633b441746ee00a7",
+      "signature_hash": "17c103d7761aae1d0296bdb871b2569af1cddb0b",
       "variant_hashes": [
         "8f3986ce3414b656a8f07904160f9c6b77600139"
       ],
@@ -6516,7 +6516,7 @@
       ],
       "description": "C# and .NET testing patterns with xUnit, FluentAssertions, mocking, integration tests, and test organization best practices.",
       "content_hash": "cdf4fe6bc228d760746fb12b8146adec5d960640",
-      "signature_hash": "b83d87572ef7e380458100d788991be2a1993971",
+      "signature_hash": "073833ad8bb512e2a3d0ec7fc997c5f417a2bf3d",
       "variant_hashes": [
         "cdf4fe6bc228d760746fb12b8146adec5d960640"
       ],
@@ -6532,7 +6532,7 @@
       ],
       "description": "Operate customer billing workflows such as subscriptions, refunds, churn triage, billing-portal recovery, and plan analysis using connected billing tools like Stripe. Use when the user needs to help a customer, inspect subscription state, or manage revenue-impacting billing operations.",
       "content_hash": "9bb094225747db7fd10e733ac341938b1d3e071e",
-      "signature_hash": "0678ddf96430dab29049159137545b750cd752db",
+      "signature_hash": "3184d8a2142f6374995114b993c1c5353b32c4af",
       "variant_hashes": [
         "9bb094225747db7fd10e733ac341938b1d3e071e"
       ],
@@ -6548,7 +6548,7 @@
       ],
       "description": ">",
       "content_hash": "f5510f583c9c36fb120da10127c81c1c8ffa5a28",
-      "signature_hash": "fc519616f4a2b5a51bb540237b4468f66103df8a",
+      "signature_hash": "00f43584c37cd63effa237b28a81c2c39ed0938f",
       "variant_hashes": [
         "f5510f583c9c36fb120da10127c81c1c8ffa5a28"
       ],
@@ -6564,7 +6564,7 @@
       ],
       "description": "Production-ready Dart and Flutter patterns covering null safety, immutable state, async composition, widget architecture, popular state management frameworks (BLoC, Riverpod, Provider), GoRouter navigation, Dio networking, Freezed code generation, and clean architecture.",
       "content_hash": "b74c2feec3339c39c7696a11ef371a060798dc64",
-      "signature_hash": "08c567076f8c1e42c143a1d04973a3838966db75",
+      "signature_hash": "e83d7a7b5b8bcb2898775c7ad51f964063903672",
       "variant_hashes": [
         "b74c2feec3339c39c7696a11ef371a060798dc64"
       ],
@@ -6580,7 +6580,7 @@
       ],
       "description": "Build monitoring dashboards that answer real operator questions for Grafana, SigNoz, and similar platforms. Use when turning metrics into a working dashboard instead of a vanity board.",
       "content_hash": "fa93082348774b2e1898a84d6c82f0827de62ff0",
-      "signature_hash": "9db27cdccfd0fe1989c909d702833b711b97bbbe",
+      "signature_hash": "7491c4edc493e8ee7e0de690e9e546f5afd6b948",
       "variant_hashes": [
         "fa93082348774b2e1898a84d6c82f0827de62ff0"
       ],
@@ -6596,7 +6596,7 @@
       ],
       "description": "Build a fully automated AI-powered data collection agent for any public source \u2014 job boards, prices, news, GitHub, sports, anything. Scrapes on a schedule, enriches data with a free LLM (Gemini Flash), stores results in Notion/Sheets/Supabase, and learns from user feedback. Runs 100% free on GitHub Actions. Use when the user wants to monitor, collect, or track any public data automatically.",
       "content_hash": "86abe596f9067e8653918155706cd1aa100f099e",
-      "signature_hash": "58fa181c142b27d1a16048116398ba0c5e4ca43d",
+      "signature_hash": "7cb252775129e0b081f79f9973ce5bb31c66a70a",
       "variant_hashes": [
         "86abe596f9067e8653918155706cd1aa100f099e"
       ],
@@ -6613,7 +6613,7 @@
       ],
       "description": "Database migration best practices for schema changes, data migrations, rollbacks, and zero-downtime deployments across PostgreSQL, MySQL, and common ORMs (Prisma, Drizzle, Kysely, Django, TypeORM, golang-migrate).",
       "content_hash": "b02dc6128b47932663503e099f7fa4cf302f7946",
-      "signature_hash": "b1ea2fb33357a66d77edb2347de93c24dd8db3b9",
+      "signature_hash": "ad250cb77c613a801cf339da7b2596893f8a68f4",
       "variant_hashes": [
         "89027a99a9925e03293c94daa9df70f88980d4dc",
         "b02dc6128b47932663503e099f7fa4cf302f7946"
@@ -6631,7 +6631,7 @@
       ],
       "description": "Multi-source deep research using firecrawl and exa MCPs. Searches the web, synthesizes findings, and delivers cited reports with source attribution. Use when the user wants thorough research on any topic with evidence and citations.",
       "content_hash": "030cac968419109bd0499207edecfa01d8cc7387",
-      "signature_hash": "8feaa6d57921262b780060efc045b57d7d3e9b7e",
+      "signature_hash": "b5b277b8680cc7ba4f5486e84dcedadf208b31ee",
       "variant_hashes": [
         "030cac968419109bd0499207edecfa01d8cc7387"
       ],
@@ -6647,7 +6647,7 @@
       ],
       "description": "Security checklist for Solidity AMM contracts, liquidity pools, and swap flows. Covers reentrancy, CEI ordering, donation or inflation attacks, oracle manipulation, slippage, admin controls, and integer math.",
       "content_hash": "16b90afff304700c2d514dd5ce10259dfee4fdc2",
-      "signature_hash": "81eaa798ac7d4e437afb8dba44e8323572b33b79",
+      "signature_hash": "c57c66694b28143b26f8e694b72df4825e875dc7",
       "variant_hashes": [
         "16b90afff304700c2d514dd5ce10259dfee4fdc2"
       ],
@@ -6664,7 +6664,7 @@
       ],
       "description": "Deployment workflows, CI/CD pipeline patterns, Docker containerization, health checks, rollback strategies, and production readiness checklists for web applications.",
       "content_hash": "b8b1aa3adcd2610a07ff8ee60c2a454bfbc77d20",
-      "signature_hash": "4e5bdd18792e3a14dbe2cda500a40518943a404e",
+      "signature_hash": "3428f92e2503c41dfd8e602e271b9d6ffe9e7a21",
       "variant_hashes": [
         "391528141efbc366fa7b6c2b0c61d79158961a2d",
         "b8b1aa3adcd2610a07ff8ee60c2a454bfbc77d20"
@@ -6681,7 +6681,7 @@
       ],
       "description": "Use this skill to generate or audit design systems, check visual consistency, and review PRs that touch styling.",
       "content_hash": "e1e3a7ae6f9ad8cb6b8d52e2b8890a144b3ee30c",
-      "signature_hash": "30996cc97abf63eeae169ced3156a6317fc2438a",
+      "signature_hash": "78749a230941feb5d68e7f1a909da72ff194499f",
       "variant_hashes": [
         "e1e3a7ae6f9ad8cb6b8d52e2b8890a144b3ee30c"
       ],
@@ -6697,7 +6697,7 @@
       ],
       "description": "Django architecture patterns, REST API design with DRF, ORM best practices, caching, signals, middleware, and production-grade Django apps.",
       "content_hash": "8066fc2c4b441652e62236d6336be7ce7a5e8233",
-      "signature_hash": "697e60fc18ca9c031fb3ac3bde8751f7bd30bf6f",
+      "signature_hash": "a552b5101aa0e731bece854a6e00287f40fe63d5",
       "variant_hashes": [
         "8066fc2c4b441652e62236d6336be7ce7a5e8233"
       ],
@@ -6713,7 +6713,7 @@
       ],
       "description": "Django security best practices, authentication, authorization, CSRF protection, SQL injection prevention, XSS prevention, and secure deployment configurations.",
       "content_hash": "5d483ba639ee52dff557a1294c2c5950fbaa8dd6",
-      "signature_hash": "1f500f769459a6e6c5aa722c33cc661bf3dee0a1",
+      "signature_hash": "5ea57b0f65894c965a8418b46aeb502bfb9cf458",
       "variant_hashes": [
         "5d483ba639ee52dff557a1294c2c5950fbaa8dd6"
       ],
@@ -6729,7 +6729,7 @@
       ],
       "description": "Django testing strategies with pytest-django, TDD methodology, factory_boy, mocking, coverage, and testing Django REST Framework APIs.",
       "content_hash": "ab962992ad4364efa69ca8f6b730e3ef483d7032",
-      "signature_hash": "6a0c6e2377ddfcbd4dffd275328823f503ce34b9",
+      "signature_hash": "e117b1ac8dedf12078c3d72de0238b4872167820",
       "variant_hashes": [
         "ab962992ad4364efa69ca8f6b730e3ef483d7032"
       ],
@@ -6745,7 +6745,7 @@
       ],
       "description": "Verification loop for Django projects: migrations, linting, tests with coverage, security scans, and deployment readiness checks before release or PR.",
       "content_hash": "72040d085d727ecc802281e3ac14d9a12ad8480d",
-      "signature_hash": "a020a4dfddeacfa6f83983495f4acbc3312453dd",
+      "signature_hash": "fa5731826e2282da4145ae243873ce2ec3677d7a",
       "variant_hashes": [
         "72040d085d727ecc802281e3ac14d9a12ad8480d"
       ],
@@ -6762,7 +6762,7 @@
       ],
       "description": "Multi-agent orchestration using dmux (tmux pane manager for AI agents). Patterns for parallel agent workflows across Claude Code, Codex, OpenCode, and other harnesses. Use when running multiple agent sessions in parallel or coordinating multi-agent development workflows.",
       "content_hash": "328ccbb0c34ee1152e7df09813b4291cecb58f35",
-      "signature_hash": "cf0c378f4f2f78b5200e5540647125f61218d503",
+      "signature_hash": "5bd0483f67081436b4f5020c14fe4fd67f2b130b",
       "variant_hashes": [
         "328ccbb0c34ee1152e7df09813b4291cecb58f35",
         "57ddd514c0dedb90128cf19c19c96031417455db"
@@ -6780,7 +6780,7 @@
       ],
       "description": "Docker and Docker Compose patterns for local development, container security, networking, volume strategies, and multi-service orchestration.",
       "content_hash": "5b1eb523684aa0d440f1c4f363ce607d92eac7e2",
-      "signature_hash": "0961816290da1e5988a106350405cc3036100ca9",
+      "signature_hash": "6cf558664b42b1653071fe6ca642b0280aa0c5b6",
       "variant_hashes": [
         "5b1eb523684aa0d440f1c4f363ce607d92eac7e2",
         "fe8ede5d647cf4e5f5d08bda1c11f68203fcfa3e"
@@ -6799,7 +6799,7 @@
       ],
       "description": "Use up-to-date library and framework docs via Context7 MCP instead of training data. Activates for setup questions, API references, code examples, or when the user names a framework (e.g. React, Next.js, Prisma).",
       "content_hash": "471cb83cf9cde30bf2c98ff4d40781f88a463047",
-      "signature_hash": "1ee354890e2b99bcfa88776cca0c63d3aad08d8d",
+      "signature_hash": "a228a84bb0085c7593fc9856db4d664dc12f57cc",
       "variant_hashes": [
         "471cb83cf9cde30bf2c98ff4d40781f88a463047"
       ],
@@ -6815,7 +6815,7 @@
       ],
       "description": "Idiomatic C# and .NET patterns, conventions, dependency injection, async/await, and best practices for building robust, maintainable .NET applications.",
       "content_hash": "8cd9245ad0921fe8b32551115035bb911f481867",
-      "signature_hash": "a1571e1b8622dbddc6b11030d7e0d52210dc51aa",
+      "signature_hash": "c57a98b6b14fda987993d288d31513fb595ffbb4",
       "variant_hashes": [
         "8cd9245ad0921fe8b32551115035bb911f481867"
       ],
@@ -6833,7 +6833,7 @@
       ],
       "description": "Playwright E2E testing patterns, Page Object Model, configuration, CI/CD integration, artifact management, and flaky test strategies.",
       "content_hash": "5fcab594ac60b08f4458d73ca5e024394e6943d1",
-      "signature_hash": "9fbb8b717ef2160aa9fe15d53a1a89f7456cdbcf",
+      "signature_hash": "f150b97e708ab6d426c71ae11467e06448fe9ea0",
       "variant_hashes": [
         "49e7ce77b0fc138af2ad08c70fb8ce3dc9cbcec0",
         "5fcab594ac60b08f4458d73ca5e024394e6943d1"
@@ -6850,7 +6850,7 @@
       ],
       "description": "Evidence-first ECC Tools burn and billing audit workflow. Use when investigating runaway PR creation, quota bypass, premium-model leakage, duplicate jobs, or GitHub App cost spikes in the ECC Tools repo.",
       "content_hash": "a410e74c1e385fd22f47738fbe5fe946b711a800",
-      "signature_hash": "b77ee38d54c529d1781b25e98fe216edb9df21e8",
+      "signature_hash": "b85cbcce7cfa3ef23760c657977b2b4947bbf399",
       "variant_hashes": [
         "a410e74c1e385fd22f47738fbe5fe946b711a800"
       ],
@@ -6866,7 +6866,7 @@
       ],
       "description": "Evidence-first mailbox triage, drafting, send verification, and sent-mail-safe follow-up workflow for ECC. Use when the user wants to organize email, draft or send through the real mail surface, or prove what landed in Sent.",
       "content_hash": "5948a9e8ae125d757265509706abcf6ebb126a8c",
-      "signature_hash": "ed42d73d8d5a500aa1962b93c4e6f95ba67fab42",
+      "signature_hash": "f97665fdc59f6cd1ddf7880fa1eac051a30de0dd",
       "variant_hashes": [
         "5948a9e8ae125d757265509706abcf6ebb126a8c"
       ],
@@ -6882,7 +6882,7 @@
       ],
       "description": ">",
       "content_hash": "42489eb053a64579afb8215358c52d8813d89e86",
-      "signature_hash": "db021a5221254300b821be2d2fe334b5de7b09f2",
+      "signature_hash": "ab125a878f6e05aee291f99187d6d2bd9e0ccf11",
       "variant_hashes": [
         "42489eb053a64579afb8215358c52d8813d89e86"
       ],
@@ -6898,7 +6898,7 @@
       ],
       "description": "Operate long-lived agent workloads with observability, security boundaries, and lifecycle management.",
       "content_hash": "3fa6089e6045aca23547021b81fb42d97d41d9fa",
-      "signature_hash": "30f3ae6bb459256ee757db5f9d1e91a1cccafe2e",
+      "signature_hash": "d6fe178b514c894b662de2453ffbefa26d770f7d",
       "variant_hashes": [
         "3fa6089e6045aca23547021b81fb42d97d41d9fa"
       ],
@@ -6915,7 +6915,7 @@
       ],
       "description": "Formal evaluation framework for Claude Code sessions implementing eval-driven development (EDD) principles",
       "content_hash": "8d3b57452382f6b7ce2d1dfb25fbc05aaac8bc91",
-      "signature_hash": "2b06824b1e19b868fcf06ae0c9454c25cdcf64d2",
+      "signature_hash": "1d1c5bec4f5d2813d5a1ff62158d0dd9e384bea3",
       "variant_hashes": [
         "3f6611c36297b76f3b0bf3c5cb8dbc0f2e9deffc",
         "8d3b57452382f6b7ce2d1dfb25fbc05aaac8bc91"
@@ -6933,7 +6933,7 @@
       ],
       "description": "Development conventions and patterns for everything-claude-code. JavaScript project with conventional commits.",
       "content_hash": "717dc5e6849a7ca45782513a6fab60e4558bc906",
-      "signature_hash": "81838cc460b757a1e3c56475f1091f1080e69f88",
+      "signature_hash": "135d290f26794039e1ab12a3882802da72af6af0",
       "variant_hashes": [
         "3390cb2d96f4fdaa93fd93ee80fe9903bd6faf1c",
         "717dc5e6849a7ca45782513a6fab60e4558bc906"
@@ -6950,7 +6950,7 @@
       ],
       "description": "Prevent silent decimal mismatch bugs across EVM chains. Covers runtime decimal lookup, chain-aware caching, bridged-token precision drift, and safe normalization for bots, dashboards, and DeFi tools.",
       "content_hash": "439bfb860692a8f696c397bf2d0453f528d2f17f",
-      "signature_hash": "e61a07310a8280d034c0a5838e146d22df1146b9",
+      "signature_hash": "d9f73c48738632e1a3f1ad51cf3701a808187cdb",
       "variant_hashes": [
         "439bfb860692a8f696c397bf2d0453f528d2f17f"
       ],
@@ -6967,7 +6967,7 @@
       ],
       "description": "Neural search via Exa MCP for web, code, and company research. Use when the user needs web search, code examples, company intel, people lookup, or AI-powered deep research with Exa's neural search engine.",
       "content_hash": "746972f0cd17f29f8047fe8bd824d08b4815d65e",
-      "signature_hash": "bcbf8c0882e6ad8f943c779b5ba0aac8483070e9",
+      "signature_hash": "0ff3de7f1370f0c493c6f3e5d207c34f151939cd",
       "variant_hashes": [
         "746972f0cd17f29f8047fe8bd824d08b4815d65e",
         "e448e7ac8bfafd504935f678038f43375eb392ea"
@@ -6985,7 +6985,7 @@
       ],
       "description": "Unified media generation via fal.ai MCP \u2014 image, video, and audio. Covers text-to-image (Nano Banana), text/image-to-video (Seedance, Kling, Veo 3), text-to-speech (CSM-1B), and video-to-audio (ThinkSound). Use when the user wants to generate images, videos, or audio with AI.",
       "content_hash": "7ae981ed981368ab21ed7942a4fa940c3eb40fcb",
-      "signature_hash": "5c06d67e4b4ab76afa2eaa3d6c9ffe52c0c21c34",
+      "signature_hash": "831c3841333bd6083f99ce89237c5b1bd0abe608",
       "variant_hashes": [
         "44c523e8135112d5c093da35b4e88f8f0e53e4f1",
         "7ae981ed981368ab21ed7942a4fa940c3eb40fcb"
@@ -7002,7 +7002,7 @@
       ],
       "description": "Evidence-first revenue, pricing, refunds, team-billing, and billing-model truth workflow for ECC. Use when the user wants a sales snapshot, pricing comparison, duplicate-charge diagnosis, or code-backed billing reality instead of generic payments advice.",
       "content_hash": "ddf13222d33fd5205edadec4be5c76353ffbc96f",
-      "signature_hash": "478918b6f95f5a510c7efbc263eecbb708a1e7ed",
+      "signature_hash": "ffb66667c7546f25bf8a7a510c271f857aa37d93",
       "variant_hashes": [
         "ddf13222d33fd5205edadec4be5c76353ffbc96f"
       ],
@@ -7018,7 +7018,7 @@
       ],
       "description": "Library-agnostic Flutter/Dart code review checklist covering widget best practices, state management patterns (BLoC, Riverpod, Provider, GetX, MobX, Signals), Dart idioms, performance, accessibility, security, and clean architecture.",
       "content_hash": "83ef7be6e6bbf89e1822bb2922c8b8f4737f5056",
-      "signature_hash": "d99d3c9329b1fd41511f0adf478b1a395a5943ea",
+      "signature_hash": "2d0650cfc5efca2d152126d6d8b72e4f70845df3",
       "variant_hashes": [
         "83ef7be6e6bbf89e1822bb2922c8b8f4737f5056"
       ],
@@ -7034,7 +7034,7 @@
       ],
       "description": "Apple FoundationModels framework for on-device LLM \u2014 text generation, guided generation with @Generable, tool calling, and snapshot streaming in iOS 26+.",
       "content_hash": "5a54b63a53385959ea01be87814497285cd0b8e1",
-      "signature_hash": "833ea8bae4375349f63c9bd2bc46cdfa3cd0954b",
+      "signature_hash": "77850f84678338271b369392f5535004fd56b5d6",
       "variant_hashes": [
         "5a54b63a53385959ea01be87814497285cd0b8e1"
       ],
@@ -7051,7 +7051,7 @@
       ],
       "description": "Create distinctive, production-grade frontend interfaces with high design quality. Use when the user asks to build web components, pages, or applications and the visual direction matters as much as the code quality.",
       "content_hash": "92cc482f3fcae2b95e711604379768bb218d1a03",
-      "signature_hash": "51733e2bcb358ad3d2f706564229c71c9764ec37",
+      "signature_hash": "af6fb9eb869b3a4b2aa1d6fb544cd5b1e7db7e65",
       "variant_hashes": [
         "92cc482f3fcae2b95e711604379768bb218d1a03"
       ],
@@ -7069,7 +7069,7 @@
       ],
       "description": "Frontend development patterns for React, Next.js, state management, performance optimization, and UI best practices.",
       "content_hash": "c27b8ee85534f19026a7dd7efc150fde6a9d80f8",
-      "signature_hash": "b08f3349b28f0f91d950a6da00a0779c85964e87",
+      "signature_hash": "6512b870318fc3cf8e10f256d47f5183e08216fd",
       "variant_hashes": [
         "3b6c907b2c2e27a291390a4d758f8b68f3a07736",
         "c27b8ee85534f19026a7dd7efc150fde6a9d80f8"
@@ -7088,7 +7088,7 @@
       ],
       "description": "Create stunning, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web, or create slides for a talk/pitch. Helps non-designers discover their aesthetic through visual exploration rather than abstract choices.",
       "content_hash": "1542e3820c0981bc2c7deebf8a73ec6bde8b2ba3",
-      "signature_hash": "56c35cc73f0be7b68797c9d7b90eb2862909891e",
+      "signature_hash": "8697da7d31f7972aa234a214d9d83ae0bdcc9ac6",
       "variant_hashes": [
         "1542e3820c0981bc2c7deebf8a73ec6bde8b2ba3",
         "e40e977fa4696d671b33afed90a06204c925bf11"
@@ -7105,7 +7105,7 @@
       ],
       "description": "GAN-inspired Generator-Evaluator agent harness for building high-quality applications autonomously. Based on Anthropic's March 2026 harness design paper.",
       "content_hash": "0f998624408889b4d2b9d889cf0ce602ed31140f",
-      "signature_hash": "d95a84d68822ca358606e524b6b748b024cac290",
+      "signature_hash": "2b168f43d3eed405e308381665ca44b29358d973",
       "variant_hashes": [
         "0f998624408889b4d2b9d889cf0ce602ed31140f"
       ],
@@ -7121,7 +7121,7 @@
       ],
       "description": "Git workflow patterns including branching strategies, commit conventions, merge vs rebase, conflict resolution, and collaborative development best practices for teams of all sizes.",
       "content_hash": "ad2d237db2f7e1ba6597d409aa3563133c4896f5",
-      "signature_hash": "73eb3e03743b46b263beedbd1ed6dd9d4ef9097e",
+      "signature_hash": "61199153c3ea6d2015bd93ed495215c8c2d63a8b",
       "variant_hashes": [
         "ad2d237db2f7e1ba6597d409aa3563133c4896f5"
       ],
@@ -7137,7 +7137,7 @@
       ],
       "description": "GitHub repository operations, automation, and management. Issue triage, PR management, CI/CD operations, release management, and security monitoring using the gh CLI. Use when the user wants to manage GitHub issues, PRs, CI status, releases, contributors, stale items, or any GitHub operational task beyond simple git commands.",
       "content_hash": "c25375804dda241d73415a233284d98ff5c12540",
-      "signature_hash": "7bfbe638bc13bdfcdc2712706b7731a1ebac27f8",
+      "signature_hash": "819bff6f213f1f9821a003ee95f3307f3642df73",
       "variant_hashes": [
         "c25375804dda241d73415a233284d98ff5c12540"
       ],
@@ -7154,7 +7154,7 @@
       ],
       "description": "Idiomatic Go patterns, best practices, and conventions for building robust, efficient, and maintainable Go applications.",
       "content_hash": "6054940233b61eae83cf7221d69978c25ae40c79",
-      "signature_hash": "336cfe5af3aa9403deebdb84d3f25506dc98ce93",
+      "signature_hash": "da469b9c664086988c816c57a45c834d10757484",
       "variant_hashes": [
         "2b1475687707a18fa57e2665364d483c72c259ef",
         "6054940233b61eae83cf7221d69978c25ae40c79"
@@ -7172,7 +7172,7 @@
       ],
       "description": "Go testing patterns including table-driven tests, subtests, benchmarks, fuzzing, and test coverage. Follows TDD methodology with idiomatic Go practices.",
       "content_hash": "a5d006a2161501b244546f914ca66ba5c5c05e84",
-      "signature_hash": "a2265aac2079a87837dd10b870e6d5992d874ef8",
+      "signature_hash": "f42af157979bb51d807b5abaf6320a097c64c8d3",
       "variant_hashes": [
         "a5d006a2161501b244546f914ca66ba5c5c05e84",
         "b47ccb749bc1252f952345fdd13f9054ce7655fa"
@@ -7189,7 +7189,7 @@
       ],
       "description": "Operate across Google Drive, Docs, Sheets, and Slides as one workflow surface for plans, trackers, decks, and shared documents. Use when the user needs to find, summarize, edit, migrate, or clean up Google Workspace assets without dropping to raw tool calls.",
       "content_hash": "062a2fec6a727503754938f3b10771b77c8a77f9",
-      "signature_hash": "a67e956a3a8e85b9f1f0d04b649cd3fe8b1694e1",
+      "signature_hash": "f1c20aed4fcb7819ac6faea7fab3944a73869c92",
       "variant_hashes": [
         "062a2fec6a727503754938f3b10771b77c8a77f9"
       ],
@@ -7205,7 +7205,7 @@
       ],
       "description": "Clinical Decision Support System (CDSS) development patterns. Drug interaction checking, dose validation, clinical scoring (NEWS2, qSOFA), alert severity classification, and integration into EMR workflows.",
       "content_hash": "4b2d163ec4e319ba25df9aedc5eabdb621172fcb",
-      "signature_hash": "a8f537f9af48c480160c087a95939f40819bcaaa",
+      "signature_hash": "948049f1c15d4fe5b17eb6e030b2642b6caacc03",
       "variant_hashes": [
         "4b2d163ec4e319ba25df9aedc5eabdb621172fcb"
       ],
@@ -7221,7 +7221,7 @@
       ],
       "description": "EMR/EHR development patterns for healthcare applications. Clinical safety, encounter workflows, prescription generation, clinical decision support integration, and accessibility-first UI for medical data entry.",
       "content_hash": "233601915986ee489d6b3fa511caf30186ebc474",
-      "signature_hash": "9e28cacff4c6061c924f7fe9fe470952e984ad11",
+      "signature_hash": "e7639b044e531de04d83384984422c5c99da3b91",
       "variant_hashes": [
         "233601915986ee489d6b3fa511caf30186ebc474"
       ],
@@ -7237,7 +7237,7 @@
       ],
       "description": "Patient safety evaluation harness for healthcare application deployments. Automated test suites for CDSS accuracy, PHI exposure, clinical workflow integrity, and integration compliance. Blocks deployments on safety failures.",
       "content_hash": "4ebfcb7fc7b51391181368b94b974c2aeaca1924",
-      "signature_hash": "9c833d1c7bbe268e45cff4cf63efac70ca4644f7",
+      "signature_hash": "5012aff103e2654fff6c1e837c34e1636b191bfe",
       "variant_hashes": [
         "4ebfcb7fc7b51391181368b94b974c2aeaca1924"
       ],
@@ -7253,7 +7253,7 @@
       ],
       "description": "Protected Health Information (PHI) and Personally Identifiable Information (PII) compliance patterns for healthcare applications. Covers data classification, access control, audit trails, encryption, and common leak vectors.",
       "content_hash": "9feaa3e247f316d7faff5c01db084a7123d7a60b",
-      "signature_hash": "2ffeffcd6b30950fb348bad85105b0ee29a5c697",
+      "signature_hash": "2a2b8c839593b9ef245635d4d5dcd508d97f9ae5",
       "variant_hashes": [
         "9feaa3e247f316d7faff5c01db084a7123d7a60b"
       ],
@@ -7269,7 +7269,7 @@
       ],
       "description": "Design, implement, and refactor Ports & Adapters systems with clear domain boundaries, dependency inversion, and testable use-case orchestration across TypeScript, Java, Kotlin, and Go services.",
       "content_hash": "22d9294a900db578f93679c850ce65fc6f762ad7",
-      "signature_hash": "f420983742c95fd473f6df2f8268115e4d909be4",
+      "signature_hash": "583bea3d3b7744ab91b41cfaa2dd6633ae01c0d0",
       "variant_hashes": [
         "22d9294a900db578f93679c850ce65fc6f762ad7"
       ],
@@ -7285,7 +7285,7 @@
       ],
       "description": "HIPAA-specific entrypoint for healthcare privacy and security work. Use when a task is explicitly framed around HIPAA, PHI handling, covered entities, BAAs, breach posture, or US healthcare compliance requirements.",
       "content_hash": "bd717b37473c4c3fedc198c215f0957dc0126e50",
-      "signature_hash": "6174f4cc8ec190f9f80c0eb036e4da11366f4781",
+      "signature_hash": "979d6c34c6954050dbbf07dfd2796521887d3f25",
       "variant_hashes": [
         "bd717b37473c4c3fedc198c215f0957dc0126e50"
       ],
@@ -7301,7 +7301,7 @@
       ],
       "description": "This skill should be used when the user asks to create a hookify rule, write a hook rule, configure hookify, add a hookify rule, or needs guidance on hookify rule syntax and patterns.",
       "content_hash": "483deeaad014417a1f71f3c8150d72074fb115ac",
-      "signature_hash": "aa54f2c6d079a4a0cbcc9219cc2e28963227a7f0",
+      "signature_hash": "fe6639277bdadace9be4e5be80ca6ad0c2154db5",
       "variant_hashes": [
         "483deeaad014417a1f71f3c8150d72074fb115ac"
       ],
@@ -7317,7 +7317,7 @@
       ],
       "description": ">",
       "content_hash": "901420e39914008753952c392f426d8f0787b778",
-      "signature_hash": "df7bf8329e2519503809eb8b71dfaf01a333f2aa",
+      "signature_hash": "f4e42835954b5d905c9643dbe7886ac1502588f4",
       "variant_hashes": [
         "901420e39914008753952c392f426d8f0787b778"
       ],
@@ -7335,7 +7335,7 @@
       ],
       "description": "Create and update pitch decks, one-pagers, investor memos, accelerator applications, financial models, and fundraising materials. Use when the user needs investor-facing documents, projections, use-of-funds tables, milestone plans, or materials that must stay internally consistent across multiple fundraising assets.",
       "content_hash": "8a6ae3bc990dc1a557af27744ad4dd7ef2cafc99",
-      "signature_hash": "a56d99d9e1da027e93f333fe6ca5038eb49829b2",
+      "signature_hash": "661c1ef4ca7ad7923a405f90c75dc2ecb38501dd",
       "variant_hashes": [
         "8a6ae3bc990dc1a557af27744ad4dd7ef2cafc99"
       ],
@@ -7353,7 +7353,7 @@
       ],
       "description": "Draft cold emails, warm intro blurbs, follow-ups, update emails, and investor communications for fundraising. Use when the user wants outreach to angels, VCs, strategic investors, or accelerators and needs concise, personalized, investor-facing messaging.",
       "content_hash": "73a5d4a60b738ebc8ca3d19eb4a8c6b0bdf53821",
-      "signature_hash": "49ffb3fad4593db664bb5147a9143d8f1c029940",
+      "signature_hash": "348e2a4bfd12653fa23a6c5fcb00ba62caed17d8",
       "variant_hashes": [
         "73a5d4a60b738ebc8ca3d19eb4a8c6b0bdf53821",
         "ec5e5578591a2126eae4ecdde0118e9098c774e7"
@@ -7370,7 +7370,7 @@
       ],
       "description": "Pattern for progressively refining context retrieval to solve the subagent context problem",
       "content_hash": "95085aa23d0cd8077110e9541a39748701697847",
-      "signature_hash": "77fc9c30222b34345a5a59c78a2cfda3d0923f5e",
+      "signature_hash": "8b396c76bbb721da10e9ef1bfc8ce38edb91c877",
       "variant_hashes": [
         "95085aa23d0cd8077110e9541a39748701697847"
       ],
@@ -7386,7 +7386,7 @@
       ],
       "description": "Java coding standards for Spring Boot services: naming, immutability, Optional usage, streams, exceptions, generics, and project layout.",
       "content_hash": "c1651907d3a705af3c9ea7a316b65b727b2311fe",
-      "signature_hash": "7b3a77c529247ed07a8f86fe1024f965b2248aa0",
+      "signature_hash": "cf45e6ae0765c0b524dc06d215d6dbcfe9052677",
       "variant_hashes": [
         "c1651907d3a705af3c9ea7a316b65b727b2311fe"
       ],
@@ -7402,7 +7402,7 @@
       ],
       "description": "Use this skill when retrieving Jira tickets, analyzing requirements, updating ticket status, adding comments, or transitioning issues. Provides Jira API patterns via MCP or direct REST calls.",
       "content_hash": "9b080b1b6f7e458b10fbe21c43180491cfea3d89",
-      "signature_hash": "e76b3245b1a820d4259a3660b0c9d5be07a4cb76",
+      "signature_hash": "c79251fc79e2c36ec8a259dddcf86142ac9c5b48",
       "variant_hashes": [
         "9b080b1b6f7e458b10fbe21c43180491cfea3d89"
       ],
@@ -7418,7 +7418,7 @@
       ],
       "description": "JPA/Hibernate patterns for entity design, relationships, query optimization, transactions, auditing, indexing, pagination, and pooling in Spring Boot.",
       "content_hash": "c99290121316c32df69898a9bd392c20e2739f10",
-      "signature_hash": "4fa282b1fad379184d061033d8fe57f72fdff808",
+      "signature_hash": "586ecbcd7e02d87f323e2426f82bd798fb29ef7a",
       "variant_hashes": [
         "c99290121316c32df69898a9bd392c20e2739f10"
       ],
@@ -7434,7 +7434,7 @@
       ],
       "description": "Knowledge base management, ingestion, sync, and retrieval across multiple storage layers (local files, MCP memory, vector stores, Git repos). Use when the user wants to save, organize, sync, deduplicate, or search across their knowledge systems.",
       "content_hash": "47ab73ed4b93faa9819197adc1102823fc92a52c",
-      "signature_hash": "d21e81205e9607f4189df94a1ff6a3d52a8fd73d",
+      "signature_hash": "9c0301cf9f3ff157a16111a8ad8b4e46aa80bb78",
       "variant_hashes": [
         "47ab73ed4b93faa9819197adc1102823fc92a52c"
       ],
@@ -7450,7 +7450,7 @@
       ],
       "description": "Kotlin Coroutines and Flow patterns for Android and KMP \u2014 structured concurrency, Flow operators, StateFlow, error handling, and testing.",
       "content_hash": "10d512771dec6b7ae67882a0d98df40198ec8590",
-      "signature_hash": "29935b2c9bb25e491afe6f446d6fe36662f59d5a",
+      "signature_hash": "2948560d311024555e19c3fe2b0600b8ddc96db9",
       "variant_hashes": [
         "10d512771dec6b7ae67882a0d98df40198ec8590"
       ],
@@ -7466,7 +7466,7 @@
       ],
       "description": "JetBrains Exposed ORM patterns including DSL queries, DAO pattern, transactions, HikariCP connection pooling, Flyway migrations, and repository pattern.",
       "content_hash": "0919053263966cb9cb74be8722260bb61f22ad87",
-      "signature_hash": "ba24cee21b5d7834590b9db0bce97b80e472f419",
+      "signature_hash": "8ec3891f8113bd0e5fcc74e2b52bd11af0f44508",
       "variant_hashes": [
         "0919053263966cb9cb74be8722260bb61f22ad87"
       ],
@@ -7482,7 +7482,7 @@
       ],
       "description": "Ktor server patterns including routing DSL, plugins, authentication, Koin DI, kotlinx.serialization, WebSockets, and testApplication testing.",
       "content_hash": "95c3821fcd0de431515a469ac862416cc9a946ce",
-      "signature_hash": "684c966ec5a9ae4f375ec7d3b11ffa84162d01e1",
+      "signature_hash": "bcf314ba96f2163ab45dc317b16ab0b17f2f8e9d",
       "variant_hashes": [
         "95c3821fcd0de431515a469ac862416cc9a946ce"
       ],
@@ -7498,7 +7498,7 @@
       ],
       "description": "Idiomatic Kotlin patterns, best practices, and conventions for building robust, efficient, and maintainable Kotlin applications with coroutines, null safety, and DSL builders.",
       "content_hash": "b564e343170f291f6990198c102e16f6ff485e48",
-      "signature_hash": "520a2af6dcf83d832cf1eb3a61dee2e704993e0f",
+      "signature_hash": "431116a79b6b05433115505478d3dcb1ad56de00",
       "variant_hashes": [
         "b564e343170f291f6990198c102e16f6ff485e48"
       ],
@@ -7514,7 +7514,7 @@
       ],
       "description": "Kotlin testing patterns with Kotest, MockK, coroutine testing, property-based testing, and Kover coverage. Follows TDD methodology with idiomatic Kotlin practices.",
       "content_hash": "33467da047717f9814a1c6918191aa4a30163739",
-      "signature_hash": "72d30b217e692cab15cfabfb9647616d2728a556",
+      "signature_hash": "4b128563fb845587be202df8d98de69603dcd5bf",
       "variant_hashes": [
         "33467da047717f9814a1c6918191aa4a30163739"
       ],
@@ -7530,7 +7530,7 @@
       ],
       "description": "Laravel architecture patterns, routing/controllers, Eloquent ORM, service layers, queues, events, caching, and API resources for production apps.",
       "content_hash": "23040e70c2749f76268ed9e39c51501373ad7ba6",
-      "signature_hash": "0c190fcb900d203a89879bd34021dbcca9d6141d",
+      "signature_hash": "d8f1617fd6a0bf199e3368c4f27316c6b080941f",
       "variant_hashes": [
         "23040e70c2749f76268ed9e39c51501373ad7ba6"
       ],
@@ -7546,7 +7546,7 @@
       ],
       "description": "Discover and evaluate Laravel packages via LaraPlugins.io MCP. Use when the user wants to find plugins, check package health, or assess Laravel/PHP compatibility.",
       "content_hash": "9822c88afe035f115ec3ffa41efa0b6eb00ba89b",
-      "signature_hash": "8dc8d7c47ba70d9b15ff62bb2d355b697910fe54",
+      "signature_hash": "1247df9e7159b0888848cabbc8b0896c8c63abd6",
       "variant_hashes": [
         "9822c88afe035f115ec3ffa41efa0b6eb00ba89b"
       ],
@@ -7562,7 +7562,7 @@
       ],
       "description": "Laravel security best practices for authn/authz, validation, CSRF, mass assignment, file uploads, secrets, rate limiting, and secure deployment.",
       "content_hash": "52897ef01c51d155d3bd474b7ae1b3b361473ad8",
-      "signature_hash": "4f6215acfacf7775d2eaab81fa7d55c3c9f76342",
+      "signature_hash": "20fcbd43480d0b41d1fc82169fbcfbb8c9dca879",
       "variant_hashes": [
         "52897ef01c51d155d3bd474b7ae1b3b361473ad8"
       ],
@@ -7578,7 +7578,7 @@
       ],
       "description": "Test-driven development for Laravel with PHPUnit and Pest, factories, database testing, fakes, and coverage targets.",
       "content_hash": "d3199dd73505e29a778087872b65e036926477b1",
-      "signature_hash": "5d48489dce0ba74ddcf05799860bfda9314ae886",
+      "signature_hash": "7e0b47b388c46f24e864e1e2d7dc19d5d9b1e59e",
       "variant_hashes": [
         "d3199dd73505e29a778087872b65e036926477b1"
       ],
@@ -7594,7 +7594,7 @@
       ],
       "description": "Verification loop for Laravel projects: env checks, linting, static analysis, tests with coverage, security scans, and deployment readiness.",
       "content_hash": "88833bc80615cd59273cebcc5d35e00080580d00",
-      "signature_hash": "039b817f7cd59df1ffe92fb604389dda55a3f1cf",
+      "signature_hash": "badab37dea39f2ee1e57d27a04c97eb84a2266fe",
       "variant_hashes": [
         "88833bc80615cd59273cebcc5d35e00080580d00"
       ],
@@ -7610,7 +7610,7 @@
       ],
       "description": "AI-native lead intelligence and outreach pipeline. Replaces Apollo, Clay, and ZoomInfo with agent-powered signal scoring, mutual ranking, warm path discovery, source-derived voice modeling, and channel-specific outreach across email, LinkedIn, and X. Use when the user wants to find, qualify, and reach high-value contacts.",
       "content_hash": "5f8c3f2a9f3c66c0690357a57593ec423238d465",
-      "signature_hash": "25213cd4ac56eee5aaf4aa6d7bfcbbaf35eb0698",
+      "signature_hash": "866f7279fa7e6ff2c4afbedac6d632b3cf49dd73",
       "variant_hashes": [
         "5f8c3f2a9f3c66c0690357a57593ec423238d465"
       ],
@@ -7626,7 +7626,7 @@
       ],
       "description": "iOS 26 Liquid Glass design system \u2014 dynamic glass material with blur, reflection, and interactive morphing for SwiftUI, UIKit, and WidgetKit.",
       "content_hash": "57f421fd05440711607b0c82c998613abce4bf6a",
-      "signature_hash": "66725e4e8ac23911c39312aed853ea48d1a44255",
+      "signature_hash": "052f11f92f3879d37f569b2856cf74b62b9283fa",
       "variant_hashes": [
         "57f421fd05440711607b0c82c998613abce4bf6a"
       ],
@@ -7642,7 +7642,7 @@
       ],
       "description": "Security patterns for autonomous trading agents with wallet or transaction authority. Covers prompt injection, spend limits, pre-send simulation, circuit breakers, MEV protection, and key handling.",
       "content_hash": "5859c49f1a789e869dbc4c170dae49fc2dc31155",
-      "signature_hash": "68bf79ad2dc319ac919064a8610db82035c05b6e",
+      "signature_hash": "8019ab895d11403642b2ae876eaa7f2f909dfb29",
       "variant_hashes": [
         "5859c49f1a789e869dbc4c170dae49fc2dc31155"
       ],
@@ -7658,7 +7658,7 @@
       ],
       "description": ">",
       "content_hash": "882888a692be26f70303384763583ecb42e7cec6",
-      "signature_hash": "62e47dbfa4fca1b90e7184a8e377ee63616be6ee",
+      "signature_hash": "58b5d56afa9c160094e7adb295cc0cb50c8e5091",
       "variant_hashes": [
         "882888a692be26f70303384763583ecb42e7cec6"
       ],
@@ -7674,7 +7674,7 @@
       ],
       "description": "Build reusable Manim explainers for technical concepts, graphs, system diagrams, and product walkthroughs, then hand off to the wider ECC video stack if needed. Use when the user wants a clean animated explainer rather than a generic talking-head script.",
       "content_hash": "fad9feb0a2ec89453413299652f77c5e8fa361dc",
-      "signature_hash": "47d17dadcf0b5d5a8a49c4b4f7f89fd1cc671b58",
+      "signature_hash": "5891f19d3ca967103fbd9ffca1bc8ed9a85ac395",
       "variant_hashes": [
         "fad9feb0a2ec89453413299652f77c5e8fa361dc"
       ],
@@ -7692,7 +7692,7 @@
       ],
       "description": "Conduct market research, competitive analysis, investor due diligence, and industry intelligence with source attribution and decision-oriented summaries. Use when the user wants market sizing, competitor comparisons, fund research, technology scans, or research that informs business decisions.",
       "content_hash": "d5eeaa60f26e6e8e64edd03260dd1e855f1f1ef2",
-      "signature_hash": "97d5b9a4e158d61effd9bf6687f5a408fd73d2ba",
+      "signature_hash": "9b70109e3674711c3b72446ff4c2dc343442090f",
       "variant_hashes": [
         "d5eeaa60f26e6e8e64edd03260dd1e855f1f1ef2"
       ],
@@ -7710,7 +7710,7 @@
       ],
       "description": "Build MCP servers with Node/TypeScript SDK \u2014 tools, resources, prompts, Zod validation, stdio vs Streamable HTTP. Use Context7 or official MCP docs for latest API.",
       "content_hash": "e79bd1da764ab796cc41fd66bb0c89a0afdd82fa",
-      "signature_hash": "121ca8d830b33e563e70e93f12c917dd16942a37",
+      "signature_hash": "0ad7fd88af302bd897244466866e021762e64c22",
       "variant_hashes": [
         "c223976a16d59e51ec2ce4cf0f955c2dea87ea79",
         "e79bd1da764ab796cc41fd66bb0c89a0afdd82fa"
@@ -7727,7 +7727,7 @@
       ],
       "description": "Evidence-first live messaging workflow for ECC. Use when the user wants to read texts or DMs, recover a recent one-time code, inspect a thread before replying, or prove which message source was actually checked.",
       "content_hash": "1d2e7c609c9fe61642d4214f19e5965d55bf7a7a",
-      "signature_hash": "df7ef481497b49e1635f0bdf4e3e4b78032f8146",
+      "signature_hash": "f6c759dfd40e1391887891afb9fb1e7e4c344d47",
       "variant_hashes": [
         "1d2e7c609c9fe61642d4214f19e5965d55bf7a7a"
       ],
@@ -7743,7 +7743,7 @@
       ],
       "description": "Operate and extend NanoClaw v2, ECC's zero-dependency session-aware REPL built on claude -p.",
       "content_hash": "c8ff7bc402af97976d0c6e0484f2da62e56ceeb8",
-      "signature_hash": "7a028703bd395e848358b7f7d5a169959b40c6a9",
+      "signature_hash": "30df8e8bba2e5a432c638e1c7d70904345dfa285",
       "variant_hashes": [
         "c8ff7bc402af97976d0c6e0484f2da62e56ceeb8"
       ],
@@ -7759,7 +7759,7 @@
       ],
       "description": "NestJS architecture patterns for modules, controllers, providers, DTO validation, guards, interceptors, config, and production-grade TypeScript backends.",
       "content_hash": "a19b2a59ed49dafebb03fe671e648910f37ebda2",
-      "signature_hash": "1da03db2d63ea3d4b9599b374d8f41074111a075",
+      "signature_hash": "f28c7dd318165fb1e8cabe08f7ea97b568a4c712",
       "variant_hashes": [
         "a19b2a59ed49dafebb03fe671e648910f37ebda2"
       ],
@@ -7777,7 +7777,7 @@
       ],
       "description": "Next.js 16+ and Turbopack \u2014 incremental bundling, FS caching, dev speed, and when to use Turbopack vs webpack.",
       "content_hash": "b9407956a5fe2ddab794ad9bc8d73898efa3e35c",
-      "signature_hash": "702c1509d97d702335678e43cb1246046238e37d",
+      "signature_hash": "c17561c7bba12598bc386c8dd78f8496efddc4ed",
       "variant_hashes": [
         "b9407956a5fe2ddab794ad9bc8d73898efa3e35c"
       ],
@@ -7793,7 +7793,7 @@
       ],
       "description": "Prevent Ethereum hashing bugs in JavaScript and TypeScript. Node's sha3-256 is NIST SHA3, not Ethereum Keccak-256, and silently breaks selectors, signatures, storage slots, and address derivation.",
       "content_hash": "ef3e1e074abff8cb69f5703c3af43d580215f79c",
-      "signature_hash": "667a01fae9d2b5edcf243ee164a3a3132677c022",
+      "signature_hash": "b437346311c6ae4958fe8027a078f97aa3b3b01f",
       "variant_hashes": [
         "ef3e1e074abff8cb69f5703c3af43d580215f79c"
       ],
@@ -7809,7 +7809,7 @@
       ],
       "description": "Process, convert, OCR, extract, redact, sign, and fill documents using the Nutrient DWS API. Works with PDFs, DOCX, XLSX, PPTX, HTML, and images.",
       "content_hash": "13e842aafb97b631005bb03c11b5cad2f4e4efbc",
-      "signature_hash": "1c4b7021677f4cd0eefe121b0aea334bba86e370",
+      "signature_hash": "1f576404b04d7767b982ae8c4f4e11f0e394222d",
       "variant_hashes": [
         "13e842aafb97b631005bb03c11b5cad2f4e4efbc"
       ],
@@ -7825,7 +7825,7 @@
       ],
       "description": "Nuxt 4 app patterns for hydration safety, performance, route rules, lazy loading, and SSR-safe data fetching with useFetch and useAsyncData.",
       "content_hash": "65a3d49eca4014b68ccd3577c2afc6ebb4c2e416",
-      "signature_hash": "3e8a27a6fc8a1e0162552537d52fb43feded412d",
+      "signature_hash": "c501f489571e18671763fc1b1877d4ccba51205a",
       "variant_hashes": [
         "65a3d49eca4014b68ccd3577c2afc6ebb4c2e416"
       ],
@@ -7841,7 +7841,7 @@
       ],
       "description": "|-",
       "content_hash": "8615a58ded4170b93ee73b8fe1177e10ae29c921",
-      "signature_hash": "05e8b71c169e2427f00530d2a4a43aab0abf21c3",
+      "signature_hash": "b4afd023ced12c56176876bb8866cebceda99571",
       "variant_hashes": [
         "8615a58ded4170b93ee73b8fe1177e10ae29c921"
       ],
@@ -7857,7 +7857,7 @@
       ],
       "description": "Open-source pipeline: fork, sanitize, and package private projects for safe public release. Chains 3 agents (forker, sanitizer, packager). Triggers: '/opensource', 'open source this', 'make this public', 'prepare for open source'.",
       "content_hash": "a1f9b553e7b2c2c370ba101647e12583a6777955",
-      "signature_hash": "2644f37c41b83be53708d2a61fe939ec3b305698",
+      "signature_hash": "8d30792dad212ee094bc13279b98ca0c9ea6c44d",
       "variant_hashes": [
         "a1f9b553e7b2c2c370ba101647e12583a6777955"
       ],
@@ -7873,7 +7873,7 @@
       ],
       "description": "Modern Perl 5.36+ idioms, best practices, and conventions for building robust, maintainable Perl applications.",
       "content_hash": "be7bb22c4274015120c5050b1b476beded689c42",
-      "signature_hash": "1f6f21efeb5cc0ef08393ccb93e7b381719b5a9c",
+      "signature_hash": "94cbcb352a922ae0e3694ea5d18facaba5e6f926",
       "variant_hashes": [
         "be7bb22c4274015120c5050b1b476beded689c42"
       ],
@@ -7889,7 +7889,7 @@
       ],
       "description": "Comprehensive Perl security covering taint mode, input validation, safe process execution, DBI parameterized queries, web security (XSS/SQLi/CSRF), and perlcritic security policies.",
       "content_hash": "8d16638a3d80b087266fad685d961bf9fa4488ac",
-      "signature_hash": "c71a2c41f4c42a174f9e55f1c3495883f6a6056f",
+      "signature_hash": "d45f97d4f1786a32311da541f68fe01374766d1e",
       "variant_hashes": [
         "8d16638a3d80b087266fad685d961bf9fa4488ac"
       ],
@@ -7905,7 +7905,7 @@
       ],
       "description": "Perl testing patterns using Test2::V0, Test::More, prove runner, mocking, coverage with Devel::Cover, and TDD methodology.",
       "content_hash": "c906b80f8d86f454995d4754491d63846896c216",
-      "signature_hash": "fb84d0fcf758e8e278c69bcab351b9f4a5302d9d",
+      "signature_hash": "6f2f356d70ca79109673208baa5f9502d2b417e5",
       "variant_hashes": [
         "c906b80f8d86f454995d4754491d63846896c216"
       ],
@@ -7921,7 +7921,7 @@
       ],
       "description": "Write-time code quality enforcement using Plankton \u2014 auto-formatting, linting, and Claude-powered fixes on every file edit via hooks.",
       "content_hash": "ad835748869dbcb6f35b9466aebe42fd4637e310",
-      "signature_hash": "24dfdc07475702aad2783c5fe200c1a58029c8cc",
+      "signature_hash": "b142c4514d566e0a126af4a16aa51ff7181d66c2",
       "variant_hashes": [
         "ad835748869dbcb6f35b9466aebe42fd4637e310"
       ],
@@ -7938,7 +7938,7 @@
       ],
       "description": "PostgreSQL database patterns for query optimization, schema design, indexing, and security. Based on Supabase best practices.",
       "content_hash": "785b6f7ee857ec439a56551e11d555218ed506ec",
-      "signature_hash": "598942dc77342bab588b678078fe5dc865c1b429",
+      "signature_hash": "1f8392af2e0b1343f619b612094337e593195bbd",
       "variant_hashes": [
         "61b982414007b6b2e30caf43c54bb32327ccd785",
         "785b6f7ee857ec439a56551e11d555218ed506ec"
@@ -7956,7 +7956,7 @@
       ],
       "description": "Translate PRD intent, roadmap asks, or product discussions into an implementation-ready capability plan that exposes constraints, invariants, interfaces, and unresolved decisions before multi-service work starts. Use when the user needs an ECC-native PRD-to-SRS lane instead of vague planning prose.",
       "content_hash": "43f8893e107eaf0ee1fe1b96ca5b29afb7b84ede",
-      "signature_hash": "6cc4e7933786423d32f2be2784510accee60008b",
+      "signature_hash": "2992a6bf5e5e70a10f72958714fa7723bb5da556",
       "variant_hashes": [
         "43f8893e107eaf0ee1fe1b96ca5b29afb7b84ede"
       ],
@@ -7972,7 +7972,7 @@
       ],
       "description": "Use this skill to validate the \"why\" before building, run product diagnostics, and pressure-test product direction before the request becomes an implementation contract.",
       "content_hash": "83c20b2e77dfe81dc1cb3e6830a2bcf3f16b285d",
-      "signature_hash": "94a4d8571a5e384fefba5007cb85fad12b0743d3",
+      "signature_hash": "710272157d8d70bc105874b84c6cd08dc59db84a",
       "variant_hashes": [
         "83c20b2e77dfe81dc1cb3e6830a2bcf3f16b285d"
       ],
@@ -7988,7 +7988,7 @@
       ],
       "description": ">",
       "content_hash": "21778501b0db8b13907c46e7f7306c19ca22a8fa",
-      "signature_hash": "ab567c7734e1291026e22ae3c4c9f2f6b5daf4f1",
+      "signature_hash": "158637eae135fe756988333588c6181ebaf31769",
       "variant_hashes": [
         "21778501b0db8b13907c46e7f7306c19ca22a8fa"
       ],
@@ -8004,7 +8004,7 @@
       ],
       "description": "Operate execution flow across GitHub and Linear by triaging issues and pull requests, linking active work, and keeping GitHub public-facing while Linear remains the internal execution layer. Use when the user wants backlog control, PR triage, or GitHub-to-Linear coordination.",
       "content_hash": "2b90262e6520e5442a06a4ec58b8db9e0d0ce06a",
-      "signature_hash": "d5b826fea7136c7a0098b3bc597a4bdd6dded4f5",
+      "signature_hash": "f30ff0db9a77ca0773dd99f9d91cc64c4e46e343",
       "variant_hashes": [
         "2b90262e6520e5442a06a4ec58b8db9e0d0ce06a"
       ],
@@ -8020,7 +8020,7 @@
       ],
       "description": ">-",
       "content_hash": "989e06f569015264543951e8b8aaa13c2802fd32",
-      "signature_hash": "3bface428384d6d2805c9b561bca223b462ed187",
+      "signature_hash": "073a7d7721ef9451d65314171c9f5d7fc1993fec",
       "variant_hashes": [
         "989e06f569015264543951e8b8aaa13c2802fd32"
       ],
@@ -8037,7 +8037,7 @@
       ],
       "description": "Pythonic idioms, PEP 8 standards, type hints, and best practices for building robust, efficient, and maintainable Python applications.",
       "content_hash": "309707bba4a8d2e6cd10f5b8c54d9e5493b62a34",
-      "signature_hash": "43bfa6b6108af9292763c75fbccb4a4141dc3da9",
+      "signature_hash": "d9cbf55c4f6578cb79145068fe048346e5e90c87",
       "variant_hashes": [
         "309707bba4a8d2e6cd10f5b8c54d9e5493b62a34",
         "5379cc2c5442bbd51bbffa201c52ab6cbf3b2320"
@@ -8055,7 +8055,7 @@
       ],
       "description": "Python testing strategies using pytest, TDD methodology, fixtures, mocking, parametrization, and coverage requirements.",
       "content_hash": "7cb4440ffb2ac2d00c395debf337af9ba2c70d13",
-      "signature_hash": "b54528d88521278cae5c35171929b6da24da0c94",
+      "signature_hash": "6832418e8ef445d418564fb0a4406b2be9aca9bf",
       "variant_hashes": [
         "7cb4440ffb2ac2d00c395debf337af9ba2c70d13",
         "d873e3e6a8c278508b7069fa2dbd06ec9b43a48b"
@@ -8072,7 +8072,7 @@
       ],
       "description": "PyTorch deep learning patterns and best practices for building robust, efficient, and reproducible training pipelines, model architectures, and data loading.",
       "content_hash": "73bcb366c4cd8680f208f2567dbc7ac74495fd2f",
-      "signature_hash": "c407d056f14985d6bbefa2c63c2b4dee5eee35d8",
+      "signature_hash": "dbd829932c5fd038da4725ed8ca6057aa2b24ce5",
       "variant_hashes": [
         "73bcb366c4cd8680f208f2567dbc7ac74495fd2f"
       ],
@@ -8088,7 +8088,7 @@
       ],
       "description": ">",
       "content_hash": "7d44699a152ab4fb390c4ef10fef83ba03d4ad54",
-      "signature_hash": "2c3ef2f5622ae52cafabd322ee5fb2a85c96cf86",
+      "signature_hash": "9be6c7d3d857d09839fd50163a71c189e13a0a33",
       "variant_hashes": [
         "7d44699a152ab4fb390c4ef10fef83ba03d4ad54"
       ],
@@ -8104,7 +8104,7 @@
       ],
       "description": "RFC-driven multi-agent DAG execution pattern with quality gates, merge queues, and work unit orchestration.",
       "content_hash": "de3137d0d9c1621ef387e1e6b55c919b5fab53d7",
-      "signature_hash": "864e1e1dac958a060b02f21b85b713708fcbfb70",
+      "signature_hash": "869eae45ceb9f01f9483510abc5161fb2380c2d8",
       "variant_hashes": [
         "de3137d0d9c1621ef387e1e6b55c919b5fab53d7"
       ],
@@ -8120,7 +8120,7 @@
       ],
       "description": "Decision framework for choosing between regex and LLM when parsing structured text \u2014 start with regex, add LLM only for low-confidence edge cases.",
       "content_hash": "adbccf1a938f0185848cab2b3423dfd7c8ca385a",
-      "signature_hash": "e1ef780fbc18055ac3166601a37bd4719506dac0",
+      "signature_hash": "7dec9e82342022b3fe59a1205cde1b80b8f02f02",
       "variant_hashes": [
         "adbccf1a938f0185848cab2b3423dfd7c8ca385a"
       ],
@@ -8136,7 +8136,7 @@
       ],
       "description": "Best practices for Remotion - Video creation in React. 29 domain-specific rules covering 3D, animations, audio, captions, charts, transitions, and more.",
       "content_hash": "5778b4a260086809f625db6c122db8afa164cde1",
-      "signature_hash": "a9f2542ac266cf4b0c146c45503a52f05f2dbc8b",
+      "signature_hash": "f8f08c2234aa5f2c96300af4dd145725fe175841",
       "variant_hashes": [
         "5778b4a260086809f625db6c122db8afa164cde1"
       ],
@@ -8152,7 +8152,7 @@
       ],
       "description": "Cross-stack source code asset audit \u2014 classifies every file, detects embedded third-party libraries, and delivers actionable four-level verdicts per module with interactive HTML reports.",
       "content_hash": "e02731586f859848d402ac755dc2617e0f8a9043",
-      "signature_hash": "b3d337a42f92d2d6fd78416ac34b215ff8217bef",
+      "signature_hash": "cd396eb02333ff25194066a6b1219899a782fed9",
       "variant_hashes": [
         "e02731586f859848d402ac755dc2617e0f8a9043"
       ],
@@ -8168,7 +8168,7 @@
       ],
       "description": "Evidence-first current-state research workflow for ECC. Use when the user wants fresh facts, comparisons, enrichment, or a recommendation built from current public evidence and any supplied local context.",
       "content_hash": "af777eb751943e4cf1985699a2b051277c4cd225",
-      "signature_hash": "a7fd8921079d5038dd441c32602fe7aa7c4c8a33",
+      "signature_hash": "f657bc03c5cde870035b3bebced3feca19f777c8",
       "variant_hashes": [
         "af777eb751943e4cf1985699a2b051277c4cd225"
       ],
@@ -8184,7 +8184,7 @@
       ],
       "description": ">",
       "content_hash": "b7f936738b0c9d3f31c2adf43ad51a3641277948",
-      "signature_hash": "5fb9126c7e9a491351af6dd0e73cd2cf132b97b8",
+      "signature_hash": "fcc2d4c50519cdf7f4ed05c47b8ffbede9e49aa6",
       "variant_hashes": [
         "b7f936738b0c9d3f31c2adf43ad51a3641277948"
       ],
@@ -8200,7 +8200,7 @@
       ],
       "description": "Scan skills to extract cross-cutting principles and distill them into rules \u2014 append, revise, or create new rule files",
       "content_hash": "c813655a1e310d7c18689619c01487216b9db0be",
-      "signature_hash": "b39beda8050d3f7957014f852dd10ee0b6b7ee2f",
+      "signature_hash": "d1b7219e4dc706ac42a1c05954a0759944a13981",
       "variant_hashes": [
         "c813655a1e310d7c18689619c01487216b9db0be"
       ],
@@ -8216,7 +8216,7 @@
       ],
       "description": "Idiomatic Rust patterns, ownership, error handling, traits, concurrency, and best practices for building safe, performant applications.",
       "content_hash": "5d764279cfa1edbcc71077aab3d5dff99f35e4d2",
-      "signature_hash": "7deeb425d4e8371d9c54f23d9775a339355c62d7",
+      "signature_hash": "5b005cfe5eba9b195fabe18587ca7278ebee7573",
       "variant_hashes": [
         "5d764279cfa1edbcc71077aab3d5dff99f35e4d2"
       ],
@@ -8232,7 +8232,7 @@
       ],
       "description": "Rust testing patterns including unit tests, integration tests, async testing, property-based testing, mocking, and coverage. Follows TDD methodology.",
       "content_hash": "24a919a9da639b14e56190df7d35c576ad32ee82",
-      "signature_hash": "0e125b3b30b75bc26b1481d563203645d32116e7",
+      "signature_hash": "b47570034049a595584b8f7a2cf7e050f9e1c0e8",
       "variant_hashes": [
         "24a919a9da639b14e56190df7d35c576ad32ee82"
       ],
@@ -8248,7 +8248,7 @@
       ],
       "description": "Use this skill to prevent destructive operations when working on production systems or running agents autonomously.",
       "content_hash": "38e13c63a3c5272e913432412c993caec1629264",
-      "signature_hash": "5fe34abc716aca8a22477c7937b6192710b0d6db",
+      "signature_hash": "48d9a7f7c46aa6a865de9b45fd46e042f9b6e050",
       "variant_hashes": [
         "38e13c63a3c5272e913432412c993caec1629264"
       ],
@@ -8264,7 +8264,7 @@
       ],
       "description": "Multi-agent adversarial verification with convergence loop. Two independent review agents must both pass before output ships.",
       "content_hash": "fbc5ec175fc013985c4b6d8378c1cc5e110b2f3e",
-      "signature_hash": "27925689d85748564a06dbe51ec813743ad8cdea",
+      "signature_hash": "e43a65a83a80dff09b03f7fe42a27c33f779530e",
       "variant_hashes": [
         "fbc5ec175fc013985c4b6d8378c1cc5e110b2f3e"
       ],
@@ -8281,7 +8281,7 @@
       ],
       "description": "Research-before-coding workflow. Search for existing tools, libraries, and patterns before writing custom code. Invokes the researcher agent.",
       "content_hash": "f99af2b867237c0fa4d8bfe82ff9bce43ee9a7bd",
-      "signature_hash": "ed00b4cc2d47d7bbdf03be0051ae44fbe8e3b186",
+      "signature_hash": "c6833ffe1867e1391c3f30dab009e2de46a3f4fe",
       "variant_hashes": [
         "ae7eaa9e3b68555ed562c9cdf576ec58f79a847f",
         "f99af2b867237c0fa4d8bfe82ff9bce43ee9a7bd"
@@ -8298,7 +8298,7 @@
       ],
       "description": "Hunt for exploitable, bounty-worthy security issues in repositories. Focuses on remotely reachable vulnerabilities that qualify for real reports instead of noisy local-only findings.",
       "content_hash": "69312016b5a67a030d250feda93f472b378f4f04",
-      "signature_hash": "e8029dfc966b7e3d2366c9498c232b7e51ea594b",
+      "signature_hash": "301e1fe5028e0501701c799218cbcbf2bd3b6e48",
       "variant_hashes": [
         "69312016b5a67a030d250feda93f472b378f4f04"
       ],
@@ -8316,7 +8316,7 @@
       ],
       "description": "Use this skill when adding authentication, handling user input, working with secrets, creating API endpoints, or implementing payment/sensitive features. Provides comprehensive security checklist and patterns.",
       "content_hash": "6c65112eb53a362eec6d0db4901f758b61295b28",
-      "signature_hash": "ad25eaa41cccb15abb960988541a3912e3d12139",
+      "signature_hash": "cd35c3b26c2bcc655d8dcb5b082ad5929ada3697",
       "variant_hashes": [
         "6c65112eb53a362eec6d0db4901f758b61295b28",
         "941a34568a82e1e6fa8fdd752fbeb615eac9cbeb"
@@ -8333,7 +8333,7 @@
       ],
       "description": "Scan your Claude Code configuration (.claude/ directory) for security vulnerabilities, misconfigurations, and injection risks using AgentShield. Checks CLAUDE.md, settings.json, MCP servers, hooks, and agent definitions.",
       "content_hash": "a4a3dc77be82a8d9355dd882405b508d82241a54",
-      "signature_hash": "c1e14bab9915cf21d151d505f2d4590805be0c06",
+      "signature_hash": "071149a7706533f6c56cd67b61bd70aa6845327f",
       "variant_hashes": [
         "a4a3dc77be82a8d9355dd882405b508d82241a54"
       ],
@@ -8349,7 +8349,7 @@
       ],
       "description": "Audit, plan, and implement SEO improvements across technical SEO, on-page optimization, structured data, Core Web Vitals, and content strategy. Use when the user wants better search visibility, SEO remediation, schema markup, sitemap/robots work, or keyword mapping.",
       "content_hash": "95621cd4d001e035618dd53e875a030623055ad0",
-      "signature_hash": "77f75f208eaa181bc20651183965ba07812e5ed6",
+      "signature_hash": "8bc7a1b28f76549f97a4db890923ae44ec5b864a",
       "variant_hashes": [
         "95621cd4d001e035618dd53e875a030623055ad0"
       ],
@@ -8365,7 +8365,7 @@
       ],
       "description": "Visualize whether skills, rules, and agent definitions are actually followed \u2014 auto-generates scenarios at 3 prompt strictness levels, runs agents, classifies behavioral sequences, and reports compliance rates with full tool call timelines",
       "content_hash": "156713745f2618c3a41931d3e5ff2bbcc09bbb66",
-      "signature_hash": "8d18a001a782f9f7c69110775eb394e0b99e4194",
+      "signature_hash": "24a8ee56c7a69320f87374deb9b0b48e937017e3",
       "variant_hashes": [
         "156713745f2618c3a41931d3e5ff2bbcc09bbb66"
       ],
@@ -8397,7 +8397,7 @@
       ],
       "description": "Weighted social-graph ranking for warm intro discovery, bridge scoring, and network gap analysis across X and LinkedIn. Use when the user wants the reusable graph-ranking engine itself, not the broader outreach or network-maintenance workflow layered on top of it.",
       "content_hash": "df4cc9704e75c8178f628fc988ecdf8988d24048",
-      "signature_hash": "c957edb9db1aa1de21aa9f32ab2e939d20286f21",
+      "signature_hash": "ba85aa0d12466ff51f3948e241a5b4cf960cab89",
       "variant_hashes": [
         "df4cc9704e75c8178f628fc988ecdf8988d24048"
       ],
@@ -8413,7 +8413,7 @@
       ],
       "description": "Spring Boot architecture patterns, REST API design, layered services, data access, caching, async processing, and logging. Use for Java Spring Boot backend work.",
       "content_hash": "1ac68a9e8a30546915f19b61a2c2c9c88ef58ee3",
-      "signature_hash": "5e059bcef05af70dfaca8ab184da1842f31e57bd",
+      "signature_hash": "67bd414b14efb48262c9e6b938c15a8c3c7645ed",
       "variant_hashes": [
         "1ac68a9e8a30546915f19b61a2c2c9c88ef58ee3"
       ],
@@ -8429,7 +8429,7 @@
       ],
       "description": "Spring Security best practices for authn/authz, validation, CSRF, secrets, headers, rate limiting, and dependency security in Java Spring Boot services.",
       "content_hash": "726f20ec347d974b902d7624ab27ea631b99b8a4",
-      "signature_hash": "e4868b134174988f3023d23e4afc44864176d716",
+      "signature_hash": "5fb6bde113b7fd517133f754ae3907b4815804b5",
       "variant_hashes": [
         "726f20ec347d974b902d7624ab27ea631b99b8a4"
       ],
@@ -8445,7 +8445,7 @@
       ],
       "description": "Test-driven development for Spring Boot using JUnit 5, Mockito, MockMvc, Testcontainers, and JaCoCo. Use when adding features, fixing bugs, or refactoring.",
       "content_hash": "65f0d58f5e23a939e62329c5377896042f7f9519",
-      "signature_hash": "f0a4dea0e920554138b43d95aa7aee83c58a5d03",
+      "signature_hash": "7dcb4c9f34257540036f7097704edbb69a90675d",
       "variant_hashes": [
         "65f0d58f5e23a939e62329c5377896042f7f9519"
       ],
@@ -8461,7 +8461,7 @@
       ],
       "description": "Verification loop for Spring Boot projects: build, static analysis, tests with coverage, security scans, and diff review before release or PR.",
       "content_hash": "7d190e2eb78daf066feecef040602333cc29b844",
-      "signature_hash": "0a1c1659b5436ca7e3934e29a6a90996aff6459e",
+      "signature_hash": "08ecc67d1ea2a4880ef0472b87c8e3f34086b4c3",
       "variant_hashes": [
         "7d190e2eb78daf066feecef040602333cc29b844"
       ],
@@ -8478,7 +8478,7 @@
       ],
       "description": "Suggests manual context compaction at logical intervals to preserve context through task phases rather than arbitrary auto-compaction.",
       "content_hash": "154729ba375eaa7f12159f5cb3a375ae9fb9e364",
-      "signature_hash": "5d6df44ac99a32f1aff364a07512b2c0128fef31",
+      "signature_hash": "a9b9a3fa5da65817bb12282632829126f9609885",
       "variant_hashes": [
         "154729ba375eaa7f12159f5cb3a375ae9fb9e364",
         "a1020b0ae330207ead8dd3a7ea811869cab84a80"
@@ -8495,7 +8495,7 @@
       ],
       "description": "Thread-safe data persistence in Swift using actors \u2014 in-memory cache with file-backed storage, eliminating data races by design.",
       "content_hash": "71771aaafde058a97d7067f3c870c4b345add5de",
-      "signature_hash": "284a913c973c3c9f695d89fe82a9cf49a18d7ca0",
+      "signature_hash": "d07345747f63283332d088d19e815d2e6b810dbf",
       "variant_hashes": [
         "71771aaafde058a97d7067f3c870c4b345add5de"
       ],
@@ -8511,7 +8511,7 @@
       ],
       "description": "Swift 6.2 Approachable Concurrency \u2014 single-threaded by default, @concurrent for explicit background offloading, isolated conformances for main actor types.",
       "content_hash": "d95d680ac06bfb8a658dffad70daaae70bf63acb",
-      "signature_hash": "e88705f756aea952eb766f65db7dd54440e28bd2",
+      "signature_hash": "95db063e2763c372d04254d6a8c2da2e73fbfc0e",
       "variant_hashes": [
         "d95d680ac06bfb8a658dffad70daaae70bf63acb"
       ],
@@ -8527,7 +8527,7 @@
       ],
       "description": "Protocol-based dependency injection for testable Swift code \u2014 mock file system, network, and external APIs using focused protocols and Swift Testing.",
       "content_hash": "51b9f7b2f791feb81bd21c3b6d1c0d273b52a9e2",
-      "signature_hash": "424079c532be2bd4e8aa911375c0371dd2cd4b94",
+      "signature_hash": "55338fec425542b256932a7803c23e74f8614e5c",
       "variant_hashes": [
         "51b9f7b2f791feb81bd21c3b6d1c0d273b52a9e2"
       ],
@@ -8543,7 +8543,7 @@
       ],
       "description": "SwiftUI architecture patterns, state management with @Observable, view composition, navigation, performance optimization, and modern iOS/macOS UI best practices.",
       "content_hash": "a48218ac07196f91c66c917c876a03c66fab5390",
-      "signature_hash": "c50cf18c7892f22fc39137dbf27d1e0be94c9cb3",
+      "signature_hash": "bc009434f25a9270c900d9ea98a38fc58b29f138",
       "variant_hashes": [
         "a48218ac07196f91c66c917c876a03c66fab5390"
       ],
@@ -8561,7 +8561,7 @@
       ],
       "description": "Use this skill when writing new features, fixing bugs, or refactoring code. Enforces test-driven development with 80%+ coverage including unit, integration, and E2E tests.",
       "content_hash": "659e0d8b1a4eb4730be219f8d7cbba038e384e78",
-      "signature_hash": "17997291199c7c2779fd5798d3b10892cb096127",
+      "signature_hash": "57024d9966f23d713824192f4f331b3924f6d08b",
       "variant_hashes": [
         "659e0d8b1a4eb4730be219f8d7cbba038e384e78",
         "8ea22a478d3680e225c412cb7fe1556210fbf13e",
@@ -8579,7 +8579,7 @@
       ],
       "description": "Interactive agent picker for composing and dispatching parallel teams",
       "content_hash": "f609faf33ecaa2334513f57c0a7eaeebb2f83aff",
-      "signature_hash": "3d842268d01f633c230ef6c485b428df458357ab",
+      "signature_hash": "25edc2948108dd3ff9bc476144b591d640333286",
       "variant_hashes": [
         "f609faf33ecaa2334513f57c0a7eaeebb2f83aff"
       ],
@@ -8595,7 +8595,7 @@
       ],
       "description": "Evidence-first repo execution workflow for ECC. Use when the user wants a command run, a repo checked, a CI failure debugged, or a narrow fix pushed with exact proof of what was executed and verified.",
       "content_hash": "2e161ff65a528fa6d1a6a5a6fb568d8a4457bfb1",
-      "signature_hash": "a613d3045f7f48d656f5cfe428944de41df9683f",
+      "signature_hash": "79db95d61003ccd8a06a2ef12d56ba6720a85ba7",
       "variant_hashes": [
         "2e161ff65a528fa6d1a6a5a6fb568d8a4457bfb1"
       ],
@@ -8611,7 +8611,7 @@
       ],
       "description": ">-",
       "content_hash": "7430c496fe5c4b3aee8b636ddd3c917d13c55458",
-      "signature_hash": "bf99d033597e993c7b294f35a680a9b8205a9cb1",
+      "signature_hash": "f485cc15eb7c19c08725397f3762674cadcf6573",
       "variant_hashes": [
         "7430c496fe5c4b3aee8b636ddd3c917d13c55458"
       ],
@@ -8627,7 +8627,7 @@
       ],
       "description": "Record polished UI demo videos using Playwright. Use when the user asks to create a demo, walkthrough, screen recording, or tutorial video of a web application. Produces WebM videos with visible cursor, natural pacing, and professional feel.",
       "content_hash": "3fdf238310ba828df5ee940e895642e7e6f569a5",
-      "signature_hash": "73407c6dfb567031b33156bc91f0c659069d26ea",
+      "signature_hash": "bcdf4994d7e830c8e21e4c97f36c3633ef68578a",
       "variant_hashes": [
         "3fdf238310ba828df5ee940e895642e7e6f569a5"
       ],
@@ -8643,7 +8643,7 @@
       ],
       "description": "Operate notifications as one ECC-native workflow across GitHub, Linear, desktop alerts, hooks, and connected communication surfaces. Use when the real problem is alert routing, deduplication, escalation, or inbox collapse.",
       "content_hash": "04101044f27332b46fc1310c25acf47e5fbda43f",
-      "signature_hash": "43d7b6c86159bcd8c0aeebc07497bc98d8a9f488",
+      "signature_hash": "56d41f4e2ecb08aa831f718e8587a1ec5a85c148",
       "variant_hashes": [
         "04101044f27332b46fc1310c25acf47e5fbda43f"
       ],
@@ -8661,7 +8661,7 @@
       ],
       "description": "A comprehensive verification system for Claude Code sessions.",
       "content_hash": "48056654853af203c34d1abbebe21f4e2d942675",
-      "signature_hash": "5b87fb84705f19dc84c66deb0023b237db6ee6a9",
+      "signature_hash": "517efaba485cbcd17a9d33be1e1c6ec092819eb2",
       "variant_hashes": [
         "403d1f2eb572903992032d3ee0e2cc1634a7691f",
         "48056654853af203c34d1abbebe21f4e2d942675"
@@ -8679,7 +8679,7 @@
       ],
       "description": "AI-assisted video editing workflows for cutting, structuring, and augmenting real footage. Covers the full pipeline from raw capture through FFmpeg, Remotion, ElevenLabs, fal.ai, and final polish in Descript or CapCut. Use when the user wants to edit video, cut footage, create vlogs, or build video content.",
       "content_hash": "7801eb732d108876d1ac65f7a1b39413867da69a",
-      "signature_hash": "aa7bd07bb03529cefe4c7bd5119ecf8e4d5113b4",
+      "signature_hash": "5af16f6995e94ca60f2c718a56d0d9898f8767fb",
       "variant_hashes": [
         "678bdff8ba8d336ab739016c079c161eb7e9b67f",
         "7801eb732d108876d1ac65f7a1b39413867da69a"
@@ -8696,7 +8696,7 @@
       ],
       "description": "See, Understand, Act on video and audio. See- ingest from local files, URLs, RTSP/live feeds, or live record desktop; return realtime context and playable stream links. Understand- extract frames, build visual/semantic/temporal indexes, and search moments with timestamps and auto-clips. Act- transcode and normalize (codec, fps, resolution, aspect ratio), perform timeline edits (subtitles, text/image overlays, branding, audio overlays, dubbing, translation), generate media assets (image, audio, video), and create real time alerts for events from live streams or desktop capture.",
       "content_hash": "96bd2628b9e42d7221f25071c77314086c50dca8",
-      "signature_hash": "e9af2601f6aa49ef19a8ebb598921d5eea69b44b",
+      "signature_hash": "d24805918b284f94a0b41b2340db7da4bfc1660a",
       "variant_hashes": [
         "96bd2628b9e42d7221f25071c77314086c50dca8"
       ],
@@ -8712,7 +8712,7 @@
       ],
       "description": "Translate visa application documents (images) to English and create a bilingual PDF with original and translation",
       "content_hash": "80981f61fb1f4953267f5d419e9d0bac4452d336",
-      "signature_hash": "65719ce4d69951b791268515249b3baa4c3cd22b",
+      "signature_hash": "4b2281057bffca1ea38b94f8c312ced6782b1179",
       "variant_hashes": [
         "80981f61fb1f4953267f5d419e9d0bac4452d336"
       ],
@@ -8728,7 +8728,7 @@
       ],
       "description": "Audit the active repo, MCP servers, plugins, connectors, env surfaces, and harness setup, then recommend the highest-value ECC-native skills, hooks, agents, and operator workflows. Use when the user wants help setting up Claude Code or understanding what capabilities are actually available in their environment.",
       "content_hash": "10cd9bf08c3c15b3476969dd67df395b78820218",
-      "signature_hash": "771f3dee2a0adbf93578cede8d534b9970023d0b",
+      "signature_hash": "f4c7eb8de8860c8114db97e537cebcae9b0a3c90",
       "variant_hashes": [
         "10cd9bf08c3c15b3476969dd67df395b78820218"
       ],
@@ -8745,7 +8745,7 @@
       ],
       "description": "X/Twitter API integration for posting tweets, threads, reading timelines, search, and analytics. Covers OAuth auth patterns, rate limits, and platform-native content posting. Use when the user wants to interact with X programmatically.",
       "content_hash": "89e6e1ef64038da479e6d6d1b6b6c1d11a0cbad0",
-      "signature_hash": "7623c252363f91f7b88ba2768bf18a2cbbc95f9b",
+      "signature_hash": "3967700efb415221989de52622c1e4a4da0a6094",
       "variant_hashes": [
         "89e6e1ef64038da479e6d6d1b6b6c1d11a0cbad0"
       ],

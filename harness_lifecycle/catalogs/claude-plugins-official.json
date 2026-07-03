@@ -42,7 +42,7 @@
       ],
       "description": "Use this agent to verify that a Python Agent SDK application is properly configured, follows SDK best practices and documentation recommendations, and is ready for deployment or testing. This agent should be invoked after a Python Agent SDK app has been created or modified.",
       "content_hash": "dc04275bf5650bb6a70d7875c7b5dc4659060af4",
-      "signature_hash": "72b9cf84e63e047d7b032ddf96752f648f19d540",
+      "signature_hash": "e7c93dedb0ff9aeb6519ca2db90341714217c378",
       "variant_hashes": [
         "dc04275bf5650bb6a70d7875c7b5dc4659060af4"
       ],
@@ -58,7 +58,7 @@
       ],
       "description": "Use this agent to verify that a TypeScript Agent SDK application is properly configured, follows SDK best practices and documentation recommendations, and is ready for deployment or testing. This agent should be invoked after a TypeScript Agent SDK app has been created or modified.",
       "content_hash": "b16f9ec5298689e2b84090684e36bf74604687fb",
-      "signature_hash": "1a283d43d792b3fdf40a5400d9afb41e0d10eb4e",
+      "signature_hash": "d4449631b4d1a45463fdf11cdc49d7c7711ba127",
       "variant_hashes": [
         "b16f9ec5298689e2b84090684e36bf74604687fb"
       ],
@@ -74,7 +74,7 @@
       ],
       "description": "Reviews proposed target architectures and transformed code against modern best practice. Adversarial \u2014 looks for over-engineering, missed requirements, and simpler alternatives.",
       "content_hash": "adbff78e4a1cc9729bf0f1f6f71e96db5ac1ef3e",
-      "signature_hash": "b78593f0275db02c33f2f54e12d4d3724aff978f",
+      "signature_hash": "86a0899f4af18d1e4549ce1b788b59daac0fcfd3",
       "variant_hashes": [
         "adbff78e4a1cc9729bf0f1f6f71e96db5ac1ef3e"
       ],
@@ -90,7 +90,7 @@
       ],
       "description": "Mines domain logic, calculations, validations, and policies from legacy code into testable Given/When/Then specifications. Use when you need to separate \"what the business requires\" from \"how the old code happened to implement it.",
       "content_hash": "73c7347f5ce5edb424756240f6f8507460fba288",
-      "signature_hash": "3dadfca22146007e4fc12163962a200abed483ee",
+      "signature_hash": "94221b96ef74c6ac844880956f8186481cf7cbc4",
       "variant_hashes": [
         "73c7347f5ce5edb424756240f6f8507460fba288"
       ],
@@ -106,7 +106,7 @@
       ],
       "description": "Deep-reads legacy codebases (COBOL, Java, .NET, Node, anything) to build structural and behavioral understanding. Use for discovery, dependency mapping, dead-code detection, and \"what does this system actually do\" questions.",
       "content_hash": "dec4574f22b90f1e73d50f00cbe04ebd5023886b",
-      "signature_hash": "0a419725198d819c926b47b0d49ec25c2c3b0b0b",
+      "signature_hash": "0aef6e89e4df995f29bcb9528a1fb410d692d3b4",
       "variant_hashes": [
         "dec4574f22b90f1e73d50f00cbe04ebd5023886b"
       ],
@@ -122,7 +122,7 @@
       ],
       "description": "Scaffolds one service of a reimagined system from the approved architecture and spec \u2014 project skeleton, domain model, API stubs, executable acceptance tests. Write access is scoped to its own service directory under modernized/.",
       "content_hash": "e611b608e088a5ef30574f34e65b515f181a2dbe",
-      "signature_hash": "8be2d4e67cec22e5e09ce8fd89dbb1708c0838b4",
+      "signature_hash": "e182bcc69ec2e80d478a9c440f3783dde395fa61",
       "variant_hashes": [
         "e611b608e088a5ef30574f34e65b515f181a2dbe"
       ],
@@ -138,7 +138,7 @@
       ],
       "description": "Adversarial security reviewer \u2014 OWASP Top 10, CWE, dependency CVEs, secrets, injection. Use for security debt scanning and pre-modernization hardening.",
       "content_hash": "3856ef3038df88047b9ac9cf4afa9a839acc516b",
-      "signature_hash": "8a3aa7100cb5af5cca0a6d8d2b7d8df9e5dc0e7b",
+      "signature_hash": "6d0c68bfdc9285b8a794077d5a37d661cbde1dfb",
       "variant_hashes": [
         "3856ef3038df88047b9ac9cf4afa9a839acc516b"
       ],
@@ -154,7 +154,7 @@
       ],
       "description": "Writes characterization, contract, and equivalence tests that pin down legacy behavior so transformation can be proven correct. Use before any rewrite.",
       "content_hash": "e2f21f539256d3ae3fa0c90738c68758b06ce10d",
-      "signature_hash": "1b646fe86dd06d151cc2e4236a25532b59b32ef0",
+      "signature_hash": "7f0fc66ec766cacaaf6910e0ed36f20fead4b75e",
       "variant_hashes": [
         "e2f21f539256d3ae3fa0c90738c68758b06ce10d"
       ],
@@ -170,7 +170,7 @@
       ],
       "description": "Identifies the breaking changes between two versions of the SAME stack (e.g. .NET Framework 4.8 \u2192 .NET 8, Java 8 \u2192 17/21, Spring Boot 2 \u2192 3) that actually bite a given codebase, and drives the ecosystem's migration tooling. Use for same-stack uplifts, where code is preserved and tweaked \u2014 not rewritten from intent. (Note: some \"same-stack\" bumps are really rewrites \u2014 Python 2 \u2192 3 with pervasive str/bytes, AngularJS \u2192 Angular \u2014 where minimal-diff fails; flag those for /modernize-transform.)",
       "content_hash": "f996fb87a2ce6ff0a4dcfcb6c0a6308223f36058",
-      "signature_hash": "0207252d5661b8b7ffdb9b957aabc040ceb842d4",
+      "signature_hash": "c5473aeaab945b7cce4d33ee83e93912e5880e97",
       "variant_hashes": [
         "f996fb87a2ce6ff0a4dcfcb6c0a6308223f36058"
       ],
@@ -186,7 +186,7 @@
       ],
       "description": "Simplifies and refines code for clarity, consistency, and maintainability while preserving all functionality. Focuses on recently modified code unless instructed otherwise.",
       "content_hash": "a3d3b269f60b00d782a5c38157939d2e31698500",
-      "signature_hash": "246f65dff99823ee636814b05414c5b1ecb0784a",
+      "signature_hash": "528aa13578d76306d65e60ff94f1bffb9c35c60b",
       "variant_hashes": [
         "a3d3b269f60b00d782a5c38157939d2e31698500"
       ],
@@ -202,7 +202,7 @@
       ],
       "description": "Designs feature architectures by analyzing existing codebase patterns and conventions, then providing comprehensive implementation blueprints with specific files to create/modify, component designs, data flows, and build sequences",
       "content_hash": "1f24ecc3f08132d01a81cbfbcf5906c01dc22736",
-      "signature_hash": "59a5fddbd45483ccdde26f42801d45a78955836f",
+      "signature_hash": "3a58318fbdc6f7ffbcab96a882f14fddd65cd664",
       "variant_hashes": [
         "1f24ecc3f08132d01a81cbfbcf5906c01dc22736"
       ],
@@ -218,7 +218,7 @@
       ],
       "description": "Deeply analyzes existing codebase features by tracing execution paths, mapping architecture layers, understanding patterns and abstractions, and documenting dependencies to inform new development",
       "content_hash": "64e659e7438f69e15f50d34a6ba8927037ac686c",
-      "signature_hash": "ed518b7ef511fb35011445dad04fc201d871e5a8",
+      "signature_hash": "1e0528277cfdc79792b0558434aac33a76330622",
       "variant_hashes": [
         "64e659e7438f69e15f50d34a6ba8927037ac686c"
       ],
@@ -234,7 +234,7 @@
       ],
       "description": "Reviews code for bugs, logic errors, security vulnerabilities, code quality issues, and adherence to project conventions, using confidence-based filtering to report only high-priority issues that truly matter",
       "content_hash": "f2a346be4999e40011cb1e28eb1c0cfd018e96eb",
-      "signature_hash": "cf5eb8130e4e226963bf77f0eb7ac7010e9bfc43",
+      "signature_hash": "6f6d36e7d73e8415c08a6907218bcfa403cce7ce",
       "variant_hashes": [
         "f2a346be4999e40011cb1e28eb1c0cfd018e96eb"
       ],
@@ -250,7 +250,7 @@
       ],
       "description": "Use this agent when analyzing conversation transcripts to find behaviors worth preventing with hooks. Typical triggers include the /hookify command being invoked without arguments, or the user explicitly asking to look back at the current conversation and surface mistakes that should be prevented in the future. See \"When to invoke\" in the agent body for worked scenarios.",
       "content_hash": "8a132b4430b21dbd6cf1e079aad808184d979ccf",
-      "signature_hash": "b9fc3009e825bc24f0137918140f8bc8d017737f",
+      "signature_hash": "a766b523e8ad57d651290921a53569a3eb3d91e0",
       "variant_hashes": [
         "8a132b4430b21dbd6cf1e079aad808184d979ccf"
       ],
@@ -266,7 +266,7 @@
       ],
       "description": "|",
       "content_hash": "bd65b1bd60dd3900372de1b61bb475c1ea360b14",
-      "signature_hash": "dad20555b1475cfc445c03d953a03322584ffe9f",
+      "signature_hash": "58f4daf50c7abc45e83652eb831d26a62c9e5d6e",
       "variant_hashes": [
         "bd65b1bd60dd3900372de1b61bb475c1ea360b14"
       ],
@@ -282,7 +282,7 @@
       ],
       "description": "|",
       "content_hash": "b37d6ea431e80caea80a50c66bc4f586cca49b9d",
-      "signature_hash": "94bad8cf5834e1591bbda73ab6a7d740e846a0d5",
+      "signature_hash": "d1d39edf7da8453fda936d51c29963305dc6e6e6",
       "variant_hashes": [
         "b37d6ea431e80caea80a50c66bc4f586cca49b9d"
       ],
@@ -298,7 +298,7 @@
       ],
       "description": "|",
       "content_hash": "d86da9dfb7b6c6c83e02c37f9cfaf472a5db2c9a",
-      "signature_hash": "012d0aeb8398537bb191352743c7029153439b27",
+      "signature_hash": "57ca3d7a14727ad8c966d0dcc6c2ab6f60cc55ef",
       "variant_hashes": [
         "d86da9dfb7b6c6c83e02c37f9cfaf472a5db2c9a"
       ],
@@ -314,7 +314,7 @@
       ],
       "description": "Use this agent when you need to review code for adherence to project guidelines, style guides, and best practices. This agent should be used proactively after writing or modifying code, especially before committing changes or creating pull requests. It will check for style violations, potential issues, and ensure code follows the established patterns in CLAUDE.md. Also the agent needs to know which files to focus on for the review. In most cases this will be recently completed work which is unstaged in git (can be retrieved by running git diff). However there can be cases where this is different, make sure to specify this as the agent input when calling the agent. Typical triggers include the user asking for a review of a feature they just implemented, the assistant proactively reviewing its own newly-written code before declaring a task done, and a final pre-PR check before opening a pull request. See \"When to invoke\" in the agent body for worked scenarios.",
       "content_hash": "87849ecdc4287247819a6423d2ba971314bb07f1",
-      "signature_hash": "587f9a11db43539bdb1dfefcf4038afb48bdbdea",
+      "signature_hash": "405a2dfe6d6f55d8854b1f0fc66ce4b7a69d9e4f",
       "variant_hashes": [
         "87849ecdc4287247819a6423d2ba971314bb07f1"
       ],
@@ -330,7 +330,7 @@
       ],
       "description": "|",
       "content_hash": "a9e63c4d84962267041d230c0480992e326d170c",
-      "signature_hash": "35d67173c477199fa18069a55cc91f06f44c40fb",
+      "signature_hash": "ad3f4b9415f564aed3344f15edbc0670d9455f93",
       "variant_hashes": [
         "a9e63c4d84962267041d230c0480992e326d170c"
       ],
@@ -346,7 +346,7 @@
       ],
       "description": "Use this agent when you need to analyze code comments for accuracy, completeness, and long-term maintainability. This includes (1) after generating large documentation comments or docstrings, (2) before finalizing a pull request that adds or modifies comments, (3) when reviewing existing comments for potential technical debt or comment rot, and (4) when you need to verify that comments accurately reflect the code they describe. See \"When to invoke\" in the agent body for worked scenarios.",
       "content_hash": "a7dc567434232ecc97856ad784191e9a70e1ceaf",
-      "signature_hash": "1a44c0f2379d09f18fdad3a4136bbe4185e81b44",
+      "signature_hash": "2c7749719f61d189f777217a9ec5a23bfc5c84c1",
       "variant_hashes": [
         "a7dc567434232ecc97856ad784191e9a70e1ceaf"
       ],
@@ -362,7 +362,7 @@
       ],
       "description": "Use this agent when you need to review a pull request for test coverage quality and completeness. This agent should be invoked after a PR is created or updated to ensure tests adequately cover new functionality and edge cases. Typical triggers include the user asking whether tests on a freshly-created PR are thorough, an updated PR adding new logic that needs coverage analysis, and a final pre-merge double-check before marking a PR ready. See \"When to invoke\" in the agent body for worked scenarios.",
       "content_hash": "b330d233cde3f0d78071d3f877dd999c60b45208",
-      "signature_hash": "ee8d266a4007e252526bd75374728264ca4cb045",
+      "signature_hash": "0f14e9ce6f120a44d3f64883b3730a8328a5cb78",
       "variant_hashes": [
         "b330d233cde3f0d78071d3f877dd999c60b45208"
       ],
@@ -378,7 +378,7 @@
       ],
       "description": "Use this agent when reviewing code changes in a pull request to identify silent failures, inadequate error handling, and inappropriate fallback behavior. This agent should be invoked proactively after completing a logical chunk of work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors. Examples:\\n\\n<example>\\nContext: Daisy has just finished implementing a new feature that fetches data from an API with fallback behavior.\\nDaisy: \"I've added error handling to the API client. Can you review it?\"\\nAssistant: \"Let me use the silent-failure-hunter agent to thoroughly examine the error handling in your changes.\"\\n<Task tool invocation to launch silent-failure-hunter agent>\\n</example>\\n\\n<example>\\nContext: Daisy has created a PR with changes that include try-catch blocks.\\nDaisy: \"Please review PR #1234\"\\nAssistant: \"I'll use the silent-failure-hunter agent to check for any silent failures or inadequate error handling in this PR.\"\\n<Task tool invocation to launch silent-failure-hunter agent>\\n</example>\\n\\n<example>\\nContext: Daisy has just refactored error handling code.\\nDaisy: \"I've updated the error handling in the authentication module\"\\nAssistant: \"Let me proactively use the silent-failure-hunter agent to ensure the error handling changes don't introduce silent failures.\"\\n<Task tool invocation to launch silent-failure-hunter agent>\\n</example>",
       "content_hash": "690797713e682a128fb90aa4b0d7edf5b3ee60e4",
-      "signature_hash": "fe40bbdf61a6dce5c384edb48c41771ffb43c8fb",
+      "signature_hash": "4b3690018cb63f0cc1dabe137559835b3346559f",
       "variant_hashes": [
         "690797713e682a128fb90aa4b0d7edf5b3ee60e4"
       ],
@@ -394,7 +394,7 @@
       ],
       "description": "Use this agent when you need expert analysis of type design in your codebase. Specifically use it (1) when introducing a new type to ensure it follows best practices for encapsulation and invariant expression, (2) during pull request creation to review all types being added, and (3) when refactoring existing types to improve their design quality. The agent will provide both qualitative feedback and quantitative ratings on encapsulation, invariant expression, usefulness, and enforcement. See \"When to invoke\" in the agent body for worked scenarios.",
       "content_hash": "7b00dd3b6b6c3c436bf2bea0f4526f7e23b31604",
-      "signature_hash": "232a2789b48c37db26de78b8c72837c3f3189e42",
+      "signature_hash": "4c5d22eab8ee19c9522b9cdcd311a66222d088b3",
       "variant_hashes": [
         "7b00dd3b6b6c3c436bf2bea0f4526f7e23b31604"
       ],
@@ -458,7 +458,7 @@
       ],
       "description": "Create and setup a new Claude Agent SDK application",
       "content_hash": "d40bde67a00ddfb80c35d66290c92008c8a337b0",
-      "signature_hash": "a4afcb274a9c7b9fda9a12734ea974ef2b9a0e7c",
+      "signature_hash": "acd6a3d575ce75d0177b6fe238ed69edf8753bb4",
       "variant_hashes": [
         "d40bde67a00ddfb80c35d66290c92008c8a337b0"
       ],
@@ -474,7 +474,7 @@
       ],
       "description": "Update CLAUDE.md with learnings from this session",
       "content_hash": "5c5325b012f789322c8c10b2248cc5979bb640d0",
-      "signature_hash": "814d86e76f342aee2068694bedf46aa4132c2900",
+      "signature_hash": "9637e8420b4b9b7890cef49e9d82a2738c8f90c1",
       "variant_hashes": [
         "5c5325b012f789322c8c10b2248cc5979bb640d0"
       ],
@@ -490,7 +490,7 @@
       ],
       "description": "Full discovery & portfolio analysis of a legacy system \u2014 inventory, complexity, debt, relative scale",
       "content_hash": "3d21b2c5e65be2e9bf302dcddbde541a1886b3c6",
-      "signature_hash": "367302dd91a9ef53ca14037bc0097e6477c9a29c",
+      "signature_hash": "de735452b530434b2c7afb1f6b89ccc87e81c1ba",
       "variant_hashes": [
         "3d21b2c5e65be2e9bf302dcddbde541a1886b3c6"
       ],
@@ -506,7 +506,7 @@
       ],
       "description": "Generate a phased Modernization Brief \u2014 the approved plan that transformation agents will execute against",
       "content_hash": "cd2b287a039b864293c76bb982a2af20906b9150",
-      "signature_hash": "611ae502dc55ee682f07a6e1e6ec1ca254929586",
+      "signature_hash": "34c6f03d17e68e57e159daf993d725179b7683cf",
       "variant_hashes": [
         "cd2b287a039b864293c76bb982a2af20906b9150"
       ],
@@ -522,7 +522,7 @@
       ],
       "description": "Mine business logic from legacy code into testable, human-readable rule specifications",
       "content_hash": "99432dbdf1ad9648e8ec61f77f19151d21f21cdd",
-      "signature_hash": "9647e9ee21c973a595f2bfab407dd524b35a255d",
+      "signature_hash": "6797f5c787156b71f9d0bbe4098603f4cab4b1f3",
       "variant_hashes": [
         "99432dbdf1ad9648e8ec61f77f19151d21f21cdd"
       ],
@@ -538,7 +538,7 @@
       ],
       "description": "Security vulnerability scan with a reviewable remediation patch \u2014 OWASP, CWE, CVE, secrets, injection",
       "content_hash": "0b69a9e4e0637f8ee6172071701f87662d7f4a4b",
-      "signature_hash": "700064b59e73765d89600eff46457b4db7e80ef8",
+      "signature_hash": "e1e3e0a7f5f251b19a164e900b09183ae351dc91",
       "variant_hashes": [
         "0b69a9e4e0637f8ee6172071701f87662d7f4a4b"
       ],
@@ -554,7 +554,7 @@
       ],
       "description": "Dependency & topology mapping \u2014 call graphs, data lineage, batch flows, rendered as navigable diagrams",
       "content_hash": "e42154d1e9ab1ea21d1e9c24cf333de7f053043b",
-      "signature_hash": "939ccef54fd6ed514306642b91cbb1cb8d48b5f4",
+      "signature_hash": "1c1732d7301e3ad91e954273fe0020cd8a9cf576",
       "variant_hashes": [
         "e42154d1e9ab1ea21d1e9c24cf333de7f053043b"
       ],
@@ -570,7 +570,7 @@
       ],
       "description": "Environment readiness check \u2014 analysis tools, build toolchain, source completeness, telemetry access",
       "content_hash": "efd17a064fb4b224d32cba7dc8971b08938a6ad7",
-      "signature_hash": "2096730f98c0802e4270c408927c9d06d401530e",
+      "signature_hash": "c0f7db4e795d4a321d583933b4ee933835517c38",
       "variant_hashes": [
         "efd17a064fb4b224d32cba7dc8971b08938a6ad7"
       ],
@@ -586,7 +586,7 @@
       ],
       "description": "Multi-agent greenfield rebuild \u2014 extract specs from legacy, design AI-native, scaffold & validate with HITL",
       "content_hash": "fffeeb83cbe261f8810fa29c2ba2ef4e9d6b9815",
-      "signature_hash": "c2d1c9f14195bcbb684463c31f5e3e46cee5e524",
+      "signature_hash": "9192f282453540c42fa707c12d7b366ab20ea1eb",
       "variant_hashes": [
         "fffeeb83cbe261f8810fa29c2ba2ef4e9d6b9815"
       ],
@@ -602,7 +602,7 @@
       ],
       "description": "Where am I in the modernization workflow \u2014 artifact inventory, staleness, secrets hygiene, next step",
       "content_hash": "b5cb3c27fd178e82a18aa5ecb7efd43759ad4e1b",
-      "signature_hash": "55e62d88ae99a188e92d3d26a6fd758275b92cce",
+      "signature_hash": "61a73694deb8a8f9566fdf1ac2cea4ab49f81503",
       "variant_hashes": [
         "b5cb3c27fd178e82a18aa5ecb7efd43759ad4e1b"
       ],
@@ -618,7 +618,7 @@
       ],
       "description": "Transform one legacy module to the target stack \u2014 idiomatic rewrite with behavior-equivalence tests",
       "content_hash": "edeb054fcd0985741cb7921df128ef06debac0f9",
-      "signature_hash": "70b2564e5bb30fbb49d65edf4c0b4aa318a4b9bb",
+      "signature_hash": "494c1c80d6bcffafceeb466b2ce7e05ffbb90751",
       "variant_hashes": [
         "edeb054fcd0985741cb7921df128ef06debac0f9"
       ],
@@ -634,7 +634,7 @@
       ],
       "description": "Same-stack version uplift (e.g. .NET Framework 4.8 \u2192 .NET 8) \u2014 preserve the code, fix the version deltas, prove equivalence by running one test suite on both runtimes",
       "content_hash": "744f5d655af72f66f768f5f07b985106aa670033",
-      "signature_hash": "bbe9e88725795ad4a5f5d0e95f56fbd0c14f457d",
+      "signature_hash": "035234ac90fe37a16358e06c8a7bbcf8c19fa5b7",
       "variant_hashes": [
         "744f5d655af72f66f768f5f07b985106aa670033"
       ],
@@ -730,7 +730,7 @@
       ],
       "description": "An example slash command that demonstrates command frontmatter options (legacy format)",
       "content_hash": "2693c1b9d20471d4c8ee90745b579ce400fe3926",
-      "signature_hash": "c01be85813072214f54595eb78ada6dca60c790b",
+      "signature_hash": "59afb30369801a72861b2687d825898f24bf8d4e",
       "variant_hashes": [
         "2693c1b9d20471d4c8ee90745b579ce400fe3926"
       ],
@@ -746,7 +746,7 @@
       ],
       "description": "Guided feature development with codebase understanding and architecture focus",
       "content_hash": "19596763b5ef8f7d452cd47e53e248c220381c88",
-      "signature_hash": "9d97f8894a2eb7fc6ab1f4d41d0cf04aba010b73",
+      "signature_hash": "fb75421ab08167ab35da67f9c44f7014733b6c0f",
       "variant_hashes": [
         "19596763b5ef8f7d452cd47e53e248c220381c88"
       ],
@@ -762,7 +762,7 @@
       ],
       "description": "Enable or disable hookify rules interactively",
       "content_hash": "797d69a0309076ffbab81779a006368f68bbfeb0",
-      "signature_hash": "e8dc5f61e4e43b6fc5836bd155269eadb2604d68",
+      "signature_hash": "68fdac1fea1bc7dbaa0e5343ff706ff0731ed318",
       "variant_hashes": [
         "797d69a0309076ffbab81779a006368f68bbfeb0"
       ],
@@ -778,7 +778,7 @@
       ],
       "description": "Get help with the hookify plugin",
       "content_hash": "c8e9a1700c23623634666aea677781fae936f38e",
-      "signature_hash": "71819eab5f538979a63eced676d478635d5e0446",
+      "signature_hash": "855dacc13418e0c22e6d7be51a8a0b1da89f25e9",
       "variant_hashes": [
         "c8e9a1700c23623634666aea677781fae936f38e"
       ],
@@ -794,7 +794,7 @@
       ],
       "description": "Create hooks to prevent unwanted behaviors from conversation analysis or explicit instructions",
       "content_hash": "16e3177d79dcab2e7aab607cac304ff69e5400f2",
-      "signature_hash": "f2de29bbad0d7a07b60d45b37f20c847c1da4d8c",
+      "signature_hash": "416a74ea839ad2de7ee98ac76c038cb37b10f7e9",
       "variant_hashes": [
         "16e3177d79dcab2e7aab607cac304ff69e5400f2"
       ],
@@ -810,7 +810,7 @@
       ],
       "description": "List all configured hookify rules",
       "content_hash": "14f6e980e74e40e4d6d3ff0f7ca7177c0ca067ed",
-      "signature_hash": "04b8ac318438fc1c244781141fbc89fe704ac7f8",
+      "signature_hash": "5c74c786672122316e5e85c9fc2f6cd329241fa0",
       "variant_hashes": [
         "14f6e980e74e40e4d6d3ff0f7ca7177c0ca067ed"
       ],
@@ -826,7 +826,7 @@
       ],
       "description": "Stand up an Anthropic MCP tunnel locally with Docker Compose so Claude can call a private MCP server (manual-credentials quickstart).",
       "content_hash": "12c1b6c64d4c9895bf2cbc1267cde1dce96a87fa",
-      "signature_hash": "f7bd56ccf3d5b041bad96a8adf73169043ba2354",
+      "signature_hash": "9259074a09eee7a9221025b1ed032827c2fbd838",
       "variant_hashes": [
         "12c1b6c64d4c9895bf2cbc1267cde1dce96a87fa"
       ],
@@ -842,7 +842,7 @@
       ],
       "description": "Guided end-to-end plugin creation workflow with component design, implementation, and validation",
       "content_hash": "e2458ba4a492efff04bc14ee609b0304a7f16700",
-      "signature_hash": "f537eb183c86faf4e543f01eda03b8b739096dd6",
+      "signature_hash": "8bdd0c072fb27ea221a7ac929acef763c8e1bebb",
       "variant_hashes": [
         "e2458ba4a492efff04bc14ee609b0304a7f16700"
       ],
@@ -858,7 +858,7 @@
       ],
       "description": "Comprehensive PR review using specialized agents",
       "content_hash": "85b060d76bf459e46f2c770a9d9e371b81b8270d",
-      "signature_hash": "37b710a7dc606cfc5f8fec37cc3560197258e547",
+      "signature_hash": "e16228dfa66cb0252f34c4f0c9216965ecd409f8",
       "variant_hashes": [
         "85b060d76bf459e46f2c770a9d9e371b81b8270d"
       ],
@@ -874,7 +874,7 @@
       ],
       "description": "Cancel active Ralph Loop",
       "content_hash": "7e417ff1aafa9ab439621c79caa629f01539ed6f",
-      "signature_hash": "4cf825abde038b9f8b381ef07c801764cdc07bcd",
+      "signature_hash": "4095d3083b7e57e55f9ff02ebfbe4c8bb43522b3",
       "variant_hashes": [
         "7e417ff1aafa9ab439621c79caa629f01539ed6f"
       ],
@@ -906,7 +906,7 @@
       ],
       "description": "Start Ralph Loop in current session",
       "content_hash": "e77d74926ac99426b2106ffb274f0a64d2e9b262",
-      "signature_hash": "ab998b48150df0be32cd0f289e2672299d1b0cc3",
+      "signature_hash": "4d2073fb38e2aa2edc8177c64082afbddc00046e",
       "variant_hashes": [
         "e77d74926ac99426b2106ffb274f0a64d2e9b262"
       ],
@@ -1882,7 +1882,7 @@
       ],
       "description": "Manage Discord channel access \u2014 approve pairings, edit allowlists, set DM/group policy. Use when the user asks to pair, approve someone, check who's allowed, or change policy for the Discord channel.",
       "content_hash": "aec8062119893931bde0c5b320095e54dc8d36d0",
-      "signature_hash": "32ee33b8e114ac4e0e940257ff8ff7202e05a7d5",
+      "signature_hash": "540757b58e3930a6560e563d968da94b22eeb449",
       "variant_hashes": [
         "aec8062119893931bde0c5b320095e54dc8d36d0"
       ],
@@ -1898,7 +1898,7 @@
       ],
       "description": "Set up the Discord channel \u2014 save the bot token and review access policy. Use when the user pastes a Discord bot token, asks to configure Discord, asks \"how do I set this up\" or \"who can reach me,\" or wants to check channel status.",
       "content_hash": "b401122bd4800b5d8c3168a446fd2b724a1fe2b4",
-      "signature_hash": "685141e01e5dfdde94ded526cc8f4c9f6882d2d9",
+      "signature_hash": "3ec9a2c10c2d02f66cacb243a5cf5a2222403bc0",
       "variant_hashes": [
         "b401122bd4800b5d8c3168a446fd2b724a1fe2b4"
       ],
@@ -1914,7 +1914,7 @@
       ],
       "description": "Manage iMessage channel access \u2014 approve pairings, edit allowlists, set DM/group policy. Use when the user asks to pair, approve someone, check who's allowed, or change policy for the iMessage channel.",
       "content_hash": "9f20791902701d6b9659056c9ffdf6f353523cfc",
-      "signature_hash": "5abdc49ccb0fa4dcd3d1c73d4f6cf61bff785080",
+      "signature_hash": "47ad14dede36097a3b754ddac113ec0d716ce6bc",
       "variant_hashes": [
         "9f20791902701d6b9659056c9ffdf6f353523cfc"
       ],
@@ -1930,7 +1930,7 @@
       ],
       "description": "Check iMessage channel setup and review access policy. Use when the user asks to configure iMessage, asks \"how do I set this up\" or \"who can reach me,\" or wants to know why texts aren't reaching the assistant.",
       "content_hash": "e28cde7ebcde6b541827dffbf0d46a77d78dec3d",
-      "signature_hash": "f0a587f586721bc19468464d440100197f6fc8ed",
+      "signature_hash": "c29882c1d97bbd67d52aa33922d234f46ef4cd48",
       "variant_hashes": [
         "e28cde7ebcde6b541827dffbf0d46a77d78dec3d"
       ],
@@ -1946,7 +1946,7 @@
       ],
       "description": "Manage Telegram channel access \u2014 approve pairings, edit allowlists, set DM/group policy. Use when the user asks to pair, approve someone, check who's allowed, or change policy for the Telegram channel.",
       "content_hash": "d1b2c16faa191341771d1fc3b544aa6ecc0124d9",
-      "signature_hash": "02453425abbd335fc8beabda4bccd36e39967c6b",
+      "signature_hash": "d28da524921dc8adee2d078d069f0ec8b6f4425a",
       "variant_hashes": [
         "d1b2c16faa191341771d1fc3b544aa6ecc0124d9"
       ],
@@ -1962,7 +1962,7 @@
       ],
       "description": "Set up the Telegram channel \u2014 save the bot token and review access policy. Use when the user pastes a Telegram bot token, asks to configure Telegram, asks \"how do I set this up\" or \"who can reach me,\" or wants to check channel status.",
       "content_hash": "a93047a1c719f9218cf36eaa084ab57ffe662263",
-      "signature_hash": "21dfcab1170ded8b61da8b8277cd05882a273a76",
+      "signature_hash": "1dfa2f5366ede03b272d446a37d7cfab2d5e8d87",
       "variant_hashes": [
         "a93047a1c719f9218cf36eaa084ab57ffe662263"
       ],
@@ -1978,7 +1978,7 @@
       ],
       "description": "Analyze a codebase and recommend Claude Code automations (hooks, subagents, skills, plugins, MCP servers). Use when user asks for automation recommendations, wants to optimize their Claude Code setup, mentions improving Claude Code workflows, asks how to first set up Claude Code for a project, or wants to know what Claude Code features they should use.",
       "content_hash": "7e64b26465b5e06b5f264d2341d90d0e5e0b2d42",
-      "signature_hash": "09e2ffbb8c69f11f1b1015e2116cbfabb458d603",
+      "signature_hash": "425a9a3b59970cde5359657e9823e070d4bb1a7c",
       "variant_hashes": [
         "7e64b26465b5e06b5f264d2341d90d0e5e0b2d42"
       ],
@@ -1994,7 +1994,7 @@
       ],
       "description": "Audit and improve CLAUDE.md files in repositories. Use when user asks to check, audit, update, improve, or fix CLAUDE.md files. Scans for all CLAUDE.md files, evaluates quality against templates, outputs quality report, then makes targeted updates. Also use when the user mentions \"CLAUDE.md maintenance\" or \"project memory optimization\".",
       "content_hash": "159624e19a0384ad157c6983e8e4ca8c3a5d1e45",
-      "signature_hash": "5534a389bf4b1d5142b674763d7e1f001e578178",
+      "signature_hash": "4df95bfd62fbc10407f9018b51582f1eea61fa16",
       "variant_hashes": [
         "159624e19a0384ad157c6983e8e4ca8c3a5d1e45"
       ],
@@ -2010,7 +2010,7 @@
       ],
       "description": "Iterate on the Cardputer-Adv MicroPython app bundle (Claude Buddy, Snake, Hello) after the device is already provisioned via m5-onboard. Use when the user wants to add a new app, push a single changed .py without re-flashing, watch device serial logs, or run a one-shot REPL command. Trigger on \"add an app\", \"push to the cardputer\", \"tail the device\", \"run on the device\", or follow-up work after /maker-setup.",
       "content_hash": "a85c4653c0bd85fcfdf9f421924f73bbacba34b9",
-      "signature_hash": "97f75f3b7da5da114924ddd87741181b9aae6542",
+      "signature_hash": "82f2d396246e5f3ec77fa6bd0a9b6fe74e450347",
       "variant_hashes": [
         "a85c4653c0bd85fcfdf9f421924f73bbacba34b9"
       ],
@@ -2026,7 +2026,7 @@
       ],
       "description": "End-to-end onboarding for a freshly-plugged-in M5Stack ESP32 device (Cardputer, Cardputer-Adv, Core, CoreS3, Stick) \u2014 detect on USB, flash UIFlow 2.0 firmware, and install the Claude Buddy MicroPython app bundle. Use whenever the user plugs in or wants to flash/provision/reset an M5Stack or ESP32 board, or says \"m5-onboard go\".",
       "content_hash": "422dc101a3dd1871a9942c3905e5a4cff9df4c37",
-      "signature_hash": "70592a8e1918d2142849061256d7f385ef78d79f",
+      "signature_hash": "3586746db1ad26b078ea117acd89776658c68684",
       "variant_hashes": [
         "422dc101a3dd1871a9942c3905e5a4cff9df4c37"
       ],
@@ -2042,7 +2042,7 @@
       ],
       "description": "An example user-invoked skill that demonstrates frontmatter options and the skills/<name>/SKILL.md layout",
       "content_hash": "c644e984feb3bd6e043eb6fe758a989650b19a90",
-      "signature_hash": "91b3d084164343056750eb1a57671223faffa1a5",
+      "signature_hash": "7a792674dcb388d80c9427afbd65594aab316bda",
       "variant_hashes": [
         "c644e984feb3bd6e043eb6fe758a989650b19a90"
       ],
@@ -2058,7 +2058,7 @@
       ],
       "description": "This skill should be used when the user asks to \"demonstrate skills\", \"show skill format\", \"create a skill template\", or discusses skill development patterns. Provides a reference template for creating Claude Code plugin skills.",
       "content_hash": "afea9f68bd8edc0a4c9afed674ccf9523d82eaa9",
-      "signature_hash": "610d4e6d4db72275272b67f03d3edaa7a5cd5236",
+      "signature_hash": "db85e6c1b7e8ddfaf4d3080f903ac1b9b3c42cc1",
       "variant_hashes": [
         "afea9f68bd8edc0a4c9afed674ccf9523d82eaa9"
       ],
@@ -2074,7 +2074,7 @@
       ],
       "description": "Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.",
       "content_hash": "e4971c4ff27b7c8bce86a1c872462258e79b5658",
-      "signature_hash": "1a4a800d2997b07c533f52e5430c0639da46cb60",
+      "signature_hash": "f22043fc7838874612cdcc05c9f21cb451eb4bc6",
       "variant_hashes": [
         "e4971c4ff27b7c8bce86a1c872462258e79b5658"
       ],
@@ -2090,7 +2090,7 @@
       ],
       "description": "This skill should be used when the user asks to \"create a hookify rule\", \"write a hook rule\", \"configure hookify\", \"add a hookify rule\", or needs guidance on hookify rule syntax and patterns.",
       "content_hash": "c859d0387e4391849acf861ddf09d98e931713f2",
-      "signature_hash": "be8fd6ff5fe9da7986295951f1cf6c6be118c600",
+      "signature_hash": "64aaaa0b6e18179be8468ee4019c790d48c14d81",
       "variant_hashes": [
         "c859d0387e4391849acf861ddf09d98e931713f2"
       ],
@@ -2106,7 +2106,7 @@
       ],
       "description": "",
       "content_hash": "3194b4eb541a59137756fdcaca21aba745f08cf4",
-      "signature_hash": "3529b16e276aa10f274ba915522164bdb791c933",
+      "signature_hash": "eabaffd8c453dee5ee2e91d92cd58bec9caacbc3",
       "variant_hashes": [
         "3194b4eb541a59137756fdcaca21aba745f08cf4"
       ],
@@ -2122,7 +2122,7 @@
       ],
       "description": "This skill should be used when the user wants to build an \"MCP app\", add \"interactive UI\" or \"widgets\" to an MCP server, \"render components in chat\", build \"MCP UI resources\", make a tool that shows a \"form\", \"picker\", \"dashboard\" or \"confirmation dialog\" inline in the conversation, or mentions \"apps SDK\" in the context of MCP. Use AFTER the build-mcp-server skill has settled the deployment model, or when the user already knows they want UI widgets.",
       "content_hash": "d66f9b04a2233d54d2a0d88b2dde42da60364470",
-      "signature_hash": "b8f9673489a4fe0a6dd18eb9ad36915c9cd6f221",
+      "signature_hash": "354c3e7e200651150c8cf13d3060e334f0bd4fcc",
       "variant_hashes": [
         "d66f9b04a2233d54d2a0d88b2dde42da60364470"
       ],
@@ -2138,7 +2138,7 @@
       ],
       "description": "This skill should be used when the user asks to \"build an MCP server\", \"create an MCP\", \"make an MCP integration\", \"wrap an API for Claude\", \"expose tools to Claude\", \"make an MCP app\", or discusses building something with the Model Context Protocol. It is the entry point for MCP server development \u2014 it interrogates the user about their use case, determines the right deployment model (remote HTTP, MCPB, local stdio), picks a tool-design pattern, and hands off to specialized skills.",
       "content_hash": "45791cdfb5c069441fb087032e586177a1944138",
-      "signature_hash": "ed8b251c47a8431243f16f2d55f57972fd13aac7",
+      "signature_hash": "50282e066c5835031cb10dae4134d262c41ace9a",
       "variant_hashes": [
         "45791cdfb5c069441fb087032e586177a1944138"
       ],
@@ -2154,7 +2154,7 @@
       ],
       "description": "This skill should be used when the user wants to \"package an MCP server\", \"bundle an MCP\", \"make an MCPB\", \"ship a local MCP server\", \"distribute a local MCP\", discusses \".mcpb files\", mentions bundling a Node or Python runtime with their MCP server, or needs an MCP server that interacts with the local filesystem, desktop apps, or OS and must be installable without the user having Node/Python set up.",
       "content_hash": "96a999bce4af28d303b21ed64c5e43672951311b",
-      "signature_hash": "7931ff42a26687233a16e011a24c1c5b3048fc00",
+      "signature_hash": "cf559ef2d99cd7c5c35ee49bbd40f0b25d39bbad",
       "variant_hashes": [
         "96a999bce4af28d303b21ed64c5e43672951311b"
       ],
@@ -2170,7 +2170,7 @@
       ],
       "description": "Creates interactive HTML playgrounds \u2014 self-contained single-file explorers that let users configure something visually through controls, see a live preview, and copy out a prompt. Use when the user asks to make a playground, explorer, or interactive tool for a topic.",
       "content_hash": "d2917333c61e09c3f0ea8be3187b719704ef41a6",
-      "signature_hash": "23879b8c7f938b3484c7b8cee1e71cd2aae9c2fc",
+      "signature_hash": "c91e7df8941b8effa2e6a181418cf9a313796301",
       "variant_hashes": [
         "d2917333c61e09c3f0ea8be3187b719704ef41a6"
       ],
@@ -2186,7 +2186,7 @@
       ],
       "description": "This skill should be used when the user asks to \"create an agent\", \"add an agent\", \"write a subagent\", \"agent frontmatter\", \"when to use description\", \"agent examples\", \"agent tools\", \"agent colors\", \"autonomous agent\", or needs guidance on agent structure, system prompts, triggering conditions, or agent development best practices for Claude Code plugins.",
       "content_hash": "e8998e53c6789b732597797c4a2074165c716c80",
-      "signature_hash": "d6b125fa6360c45a69b0b1c2e917e83731a5f7ba",
+      "signature_hash": "66c340e54905a62a1034c981851d0097bab9c301",
       "variant_hashes": [
         "e8998e53c6789b732597797c4a2074165c716c80"
       ],
@@ -2202,7 +2202,7 @@
       ],
       "description": "This skill should be used when the user asks to \"create a slash command\", \"add a command\", \"write a custom command\", \"define command arguments\", \"use command frontmatter\", \"organize commands\", \"create command with file references\", \"interactive command\", \"use AskUserQuestion in command\", or needs guidance on slash command structure, YAML frontmatter fields, dynamic arguments, bash execution in commands, user interaction patterns, or command development best practices for Claude Code.",
       "content_hash": "bfa93e25559419009c67aa17d54a78255b78e768",
-      "signature_hash": "13874bfaf8b52a6826be0c4254d2c5a5e139456e",
+      "signature_hash": "04dc23cb5b540b630f70dc8c2394b4d3da4d0591",
       "variant_hashes": [
         "bfa93e25559419009c67aa17d54a78255b78e768"
       ],
@@ -2218,7 +2218,7 @@
       ],
       "description": "This skill should be used when the user asks to \"create a hook\", \"add a PreToolUse/PostToolUse/Stop hook\", \"validate tool use\", \"implement prompt-based hooks\", \"use ${CLAUDE_PLUGIN_ROOT}\", \"set up event-driven automation\", \"block dangerous commands\", or mentions hook events (PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, UserPromptSubmit, PreCompact, Notification). Provides comprehensive guidance for creating and implementing Claude Code plugin hooks with focus on advanced prompt-based hooks API.",
       "content_hash": "834effaaa8ae1088a169266fb1917be625c7722e",
-      "signature_hash": "30874bab7ea44e633d3b291bc3b2e5599432135b",
+      "signature_hash": "4d2c17fdeb3970811329e1eae156378ecf922e55",
       "variant_hashes": [
         "834effaaa8ae1088a169266fb1917be625c7722e"
       ],
@@ -2234,7 +2234,7 @@
       ],
       "description": "This skill should be used when the user asks to \"add MCP server\", \"integrate MCP\", \"configure MCP in plugin\", \"use .mcp.json\", \"set up Model Context Protocol\", \"connect external service\", mentions \"${CLAUDE_PLUGIN_ROOT} with MCP\", or discusses MCP server types (SSE, stdio, HTTP, WebSocket). Provides comprehensive guidance for integrating Model Context Protocol servers into Claude Code plugins for external tool and service integration.",
       "content_hash": "59348ebaaa047b0686c1120176924944176688b2",
-      "signature_hash": "dceb0f890688cdafbe1d7b3ae30cf9a53b55f31a",
+      "signature_hash": "d4c97864e3253d4508aeeebe141c1e198f91af1f",
       "variant_hashes": [
         "59348ebaaa047b0686c1120176924944176688b2"
       ],
@@ -2250,7 +2250,7 @@
       ],
       "description": "This skill should be used when the user asks about \"plugin settings\", \"store plugin configuration\", \"user-configurable plugin\", \".local.md files\", \"plugin state files\", \"read YAML frontmatter\", \"per-project plugin settings\", or wants to make plugin behavior configurable. Documents the .claude/plugin-name.local.md pattern for storing plugin-specific configuration with YAML frontmatter and markdown content.",
       "content_hash": "2fda9b9bc46d7766e913fd61a4cb3f19d61011ab",
-      "signature_hash": "9147984864a682e698c9a81d645150279a539109",
+      "signature_hash": "ad990a7c90b0bdf956aa392edaf8af7f94a5dc30",
       "variant_hashes": [
         "2fda9b9bc46d7766e913fd61a4cb3f19d61011ab"
       ],
@@ -2266,7 +2266,7 @@
       ],
       "description": "This skill should be used when the user asks to \"create a plugin\", \"scaffold a plugin\", \"understand plugin structure\", \"organize plugin components\", \"set up plugin.json\", \"use ${CLAUDE_PLUGIN_ROOT}\", \"add commands/agents/skills/hooks\", \"configure auto-discovery\", or needs guidance on plugin directory layout, manifest configuration, component organization, file naming conventions, or Claude Code plugin architecture best practices.",
       "content_hash": "85d3dd9e2419424ed220e0cfa5da0b04f807d059",
-      "signature_hash": "87f67885c551cced9070362c7523c3b797ea3e00",
+      "signature_hash": "5952864690111d4a30b9da8678be09c4ba91dc0c",
       "variant_hashes": [
         "85d3dd9e2419424ed220e0cfa5da0b04f807d059"
       ],
@@ -2282,7 +2282,7 @@
       ],
       "description": "This skill should be used when the user wants to \"create a skill\", \"add a skill to plugin\", \"write a new skill\", \"improve skill description\", \"organize skill content\", or needs guidance on skill structure, progressive disclosure, or skill development best practices for Claude Code plugins.",
       "content_hash": "0cb9072534764eb9178e3c69082b422657471bd2",
-      "signature_hash": "58fe32fd64bc1ffd0e10f68badd6a4f0c63fd17f",
+      "signature_hash": "4c2214646addeaf45c483bad64846198b4ee0e17",
       "variant_hashes": [
         "0cb9072534764eb9178e3c69082b422657471bd2"
       ],
@@ -2298,7 +2298,7 @@
       ],
       "description": "Generate and publish a project status artifact \u2014 an opinionated, tabbed status page for a project too big for one update (overview & success criteria, the workstream sequence, next steps, plus background, plan, risks & open questions, and decisions/FAQ when they earn a tab) \u2014 published with the built-in Artifact tool to a default-private claude.ai page the user can share with teammates. Use when a piece of work spans several workstreams and you want a shareable overview kept current. Each artifact is backed by a small per-project config in the plugin data dir, so refreshing it re-gathers live state, redeploys the same URL, and reports only the delta. For software projects whose workstreams are PRs, also read swe.md (the X.Y PR-numbering convention; pulling PR state with gh/git; a per-PR detail block). Needs the built-in Artifact tool (claude.ai login). Not for single-PR changes or public docs.",
       "content_hash": "fc9f3ea643c83312965a38ebfc9ef3f29f49ff39",
-      "signature_hash": "a85aad7d3b7c3da7d4999efb6f5ccd1e36f242be",
+      "signature_hash": "4456b2ea58033a0c825ec6e410150fa5004db586",
       "variant_hashes": [
         "fc9f3ea643c83312965a38ebfc9ef3f29f49ff39"
       ],
@@ -2314,7 +2314,7 @@
       ],
       "description": "Generate an explorable HTML report of Claude Code session usage (tokens, cache, subagents, skills, expensive prompts) from ~/.claude/projects transcripts.",
       "content_hash": "786892c24d60226bf51d68c9ff0baa1eaefb3728",
-      "signature_hash": "527942716abe3df213fd240fadbeaf296aa11bf9",
+      "signature_hash": "c610bdbb5b16f72f84fb176026ca24e04aad4e4f",
       "variant_hashes": [
         "786892c24d60226bf51d68c9ff0baa1eaefb3728"
       ],
@@ -2330,7 +2330,7 @@
       ],
       "description": "Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.",
       "content_hash": "17e4755b392824bc348d4211f45de9e734ee9412",
-      "signature_hash": "ddaf0fedae77bc8466fc7f435ef4680616db72da",
+      "signature_hash": "f493347ed40011402abef0d81dfc36481f3122de",
       "variant_hashes": [
         "17e4755b392824bc348d4211f45de9e734ee9412"
       ],
