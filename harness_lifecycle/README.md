@@ -1,0 +1,78 @@
+# harness_lifecycle
+
+Tooling for curating the external agent harnesses under `reference_harnesses/`
+(git submodules) into our own `mvp-harness`. This directory holds the
+**deterministic** half of the lifecycle — "what does a harness ship?" and "what
+changed?" — so the model only ever reads the short list of things that actually
+moved, never hundreds of files.
+
+Lives at the repo root (not under `.claude/`), so it is **never** copied into an
+adopted repo by `mvp-plugin`.
+
+## `scan.py` — capability scanner + differ
+
+Pure Python standard library, no dependencies. A **capability** is a skill /
+command / agent / rule / hook / MCP server / plugin.
+
+```bash
+# Inventory a harness working tree -> JSON catalog + a summary table
+python3 harness_lifecycle/scan.py catalog reference_harnesses/superpowers \
+    --out harness_lifecycle/catalogs/superpowers.json
+
+# What changed between two catalogs (e.g. last-reviewed vs now)
+python3 harness_lifecycle/scan.py diff old.json new.json
+
+# What did upstream add/change since our pinned submodule commit
+python3 harness_lifecycle/scan.py drift reference_harnesses/superpowers
+#   fetches origin, catalogs the pinned commit vs upstream HEAD (via git archive,
+#   no checkout), and reports the drift. Use --no-fetch to skip the network call.
+```
+
+### Logical capabilities (why counts collapse)
+
+Harnesses mirror the same skill into several per-tool trees
+(`.claude/`, `.cursor/`, `.kiro/`, `.agents/`) and into translated `docs/`
+copies. Raw file counts therefore lie: `everything-claude-code` has 457 `SKILL.md`
+files but only **182 logical skills**.
+
+The scanner deduplicates to logical units:
+
+- **`docs/`, `tests/`, `examples/`, vendor/build dirs are excluded** (they hold
+  documentation and fixtures, not capabilities). The excluded count is reported —
+  nothing is dropped silently.
+- Remaining files are grouped by **`(kind, name)`** — the mirror copies of one
+  skill share a name and collapse into one capability. The **canonical** copy is
+  the one under the top-level, non-hidden root (`skills/…` beats `.kiro/skills/…`);
+  mirror paths and their content hashes are recorded as `variant_hashes`.
+- Only *true* duplicates collapse. `.cursor/rules/*` that share no name with
+  `rules/*` stay distinct — the scanner never merges different capabilities.
+
+### Materiality (signal over noise)
+
+`diff` / `drift` split changes into **material** and **minor**:
+
+- **ADDED / REMOVED** → always material.
+- **Surface change** (name / description / tools / MCP command changed, detected
+  via `signature_hash`) → material.
+- **Body change** → measured precisely when both trees are on disk (`drift`):
+  material if more than ~15 lines **or** >10% of lines changed, else minor.
+  From catalogs alone (`diff`) the magnitude can't be sized, so a body change is
+  surfaced as material rather than risk hiding a real edit.
+- **Mirror-only / path-only** change (canonical copy unchanged) → minor.
+
+Thresholds (15 lines / 10%) are conservative defaults; tune in `classify_change`.
+
+## `catalogs/` — committed baselines
+
+One `<repo>.json` per reference harness: the last-reviewed capability state.
+Re-`catalog` + `diff` against these to see what changed since the last review.
+Schema id: `harness-capability-catalog/v1` (see `Catalog.to_dict` in `scan.py`).
+
+## Limitations (current)
+
+- Frontmatter parsing is minimal (single-line scalars); multi-line descriptions
+  are truncated to their first line.
+- MCP detection reads `mcp.json` / `.mcp.json` / `plugin.json` `mcpServers`; other
+  bespoke MCP config layouts are not yet recognised.
+- Hook signatures use file content only (event/matcher wiring lives in
+  `settings.json`, not yet parsed).

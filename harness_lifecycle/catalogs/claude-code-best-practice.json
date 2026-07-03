@@ -1,0 +1,745 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "claude-code-best-practice",
+  "source": "working-tree",
+  "source_commit": "cd5af1fba246df29318cb151e96557bf6ba39538",
+  "physical_scanned": 344,
+  "excluded": 1,
+  "counts": {
+    "agent": {
+      "physical": 19,
+      "logical": 17
+    },
+    "command": {
+      "physical": 12,
+      "logical": 12
+    },
+    "hook": {
+      "physical": 2,
+      "logical": 1
+    },
+    "mcp": {
+      "physical": 3,
+      "logical": 3
+    },
+    "rule": {
+      "physical": 2,
+      "logical": 2
+    },
+    "skill": {
+      "physical": 9,
+      "logical": 9
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "agent",
+      "name": "code-reviewer",
+      "logical_id": "agent:code-reviewer",
+      "canonical_path": "development-workflows/rpi/.claude/agents/code-reviewer.md",
+      "paths": [
+        "development-workflows/rpi/.claude/agents/code-reviewer.md"
+      ],
+      "description": "Meticulous, constructive reviewer for correctness, clarity, security, and maintainability.",
+      "content_hash": "43a9733d945e9429986cacfc917275c4f3747533",
+      "signature_hash": "723e3356e9433b95d9919f26a9f4a5dc19a7dfc9",
+      "variant_hashes": [
+        "43a9733d945e9429986cacfc917275c4f3747533"
+      ],
+      "line_count": 21
+    },
+    {
+      "kind": "agent",
+      "name": "constitutional-validator",
+      "logical_id": "agent:constitutional-validator",
+      "canonical_path": "development-workflows/rpi/.claude/agents/constitutional-validator.md",
+      "paths": [
+        "development-workflows/rpi/.claude/agents/constitutional-validator.md"
+      ],
+      "description": "Validates roadmap items, features, and technical decisions against the project's constitution, principles, and core values. Ensures all proposals align with the mission, established methodology, and design principles before implementation proceeds.",
+      "content_hash": "4524d31d4bc0443a820887336da9926510e748f7",
+      "signature_hash": "1504fa4b5cfed159352da85f4a33e9203de4d1b8",
+      "variant_hashes": [
+        "4524d31d4bc0443a820887336da9926510e748f7"
+      ],
+      "line_count": 288
+    },
+    {
+      "kind": "agent",
+      "name": "development-workflows-research-agent",
+      "logical_id": "agent:development-workflows-research-agent",
+      "canonical_path": ".claude/agents/development-workflows-research-agent.md",
+      "paths": [
+        ".claude/agents/development-workflows-research-agent.md",
+        ".claude/agents/workflows/development-workflows-research-agent.md"
+      ],
+      "description": "Research agent that fetches GitHub repos, counts agents/skills/commands, gets star counts, and analyzes Claude Code workflow repositories",
+      "content_hash": "1d390e4f245cfda29fc5a854f1824c61b24a0874",
+      "signature_hash": "151b1ddb61ec76fa6d8b81c1d8ef4b95082d72b7",
+      "variant_hashes": [
+        "1d390e4f245cfda29fc5a854f1824c61b24a0874"
+      ],
+      "line_count": 121
+    },
+    {
+      "kind": "agent",
+      "name": "documentation-analyst-writer",
+      "logical_id": "agent:documentation-analyst-writer",
+      "canonical_path": "development-workflows/rpi/.claude/agents/documentation-analyst-writer.md",
+      "paths": [
+        "development-workflows/rpi/.claude/agents/documentation-analyst-writer.md"
+      ],
+      "description": "Use this agent when you need to analyze existing documentation and create new or updated documentation that strictly adheres to project-specific documentation standards defined in claude.md. This agent excels at maintaining consistency with established documentation patterns, ensuring technical accuracy, and producing clear, well-structured documentation.",
+      "content_hash": "4c276d6a8769e88f628a4fc55f1d4b2c55740cf5",
+      "signature_hash": "a3363738c025c0ea70abcd29898585060c15483e",
+      "variant_hashes": [
+        "4c276d6a8769e88f628a4fc55f1d4b2c55740cf5"
+      ],
+      "line_count": 64
+    },
+    {
+      "kind": "agent",
+      "name": "presentation-curator",
+      "logical_id": "agent:presentation-curator",
+      "canonical_path": ".claude/agents/presentation-curator.md",
+      "paths": [
+        ".claude/agents/presentation-curator.md"
+      ],
+      "description": "PROACTIVELY use this agent whenever the user wants to update, modify, or fix the presentation slides, structure, styling, or weights",
+      "content_hash": "4ae52b380bb32039e9b1d8e1c96e2f32fbe89234",
+      "signature_hash": "db9b2d254326f6cdc182f61c1e08d7063ef1f0b3",
+      "variant_hashes": [
+        "4ae52b380bb32039e9b1d8e1c96e2f32fbe89234"
+      ],
+      "line_count": 133
+    },
+    {
+      "kind": "agent",
+      "name": "product-manager",
+      "logical_id": "agent:product-manager",
+      "canonical_path": "development-workflows/rpi/.claude/agents/product-manager.md",
+      "paths": [
+        "development-workflows/rpi/.claude/agents/product-manager.md"
+      ],
+      "description": "Turns a high-level ask into a crisp, exec-ready PRD with acceptance criteria and scope.",
+      "content_hash": "7680f42b168d49a052a52c42fd1d6bb1378a2aa9",
+      "signature_hash": "9f7c171ea5f1c90e980477e9b9513dfaad1e3e1d",
+      "variant_hashes": [
+        "7680f42b168d49a052a52c42fd1d6bb1378a2aa9"
+      ],
+      "line_count": 15
+    },
+    {
+      "kind": "agent",
+      "name": "requirement-parser",
+      "logical_id": "agent:requirement-parser",
+      "canonical_path": "development-workflows/rpi/.claude/agents/requirement-parser.md",
+      "paths": [
+        "development-workflows/rpi/.claude/agents/requirement-parser.md"
+      ],
+      "description": "Analyzes feature request descriptions and extracts structured requirements, goals, constraints, and metadata for downstream planning agents.",
+      "content_hash": "8185106478a42cace639da712d0c6b97739dd0a7",
+      "signature_hash": "4f89e8c2e9f5523b2f0744ea750b0bd8e0fb7e49",
+      "variant_hashes": [
+        "8185106478a42cace639da712d0c6b97739dd0a7"
+      ],
+      "line_count": 238
+    },
+    {
+      "kind": "agent",
+      "name": "senior-software-engineer",
+      "logical_id": "agent:senior-software-engineer",
+      "canonical_path": "development-workflows/rpi/.claude/agents/senior-software-engineer.md",
+      "paths": [
+        "development-workflows/rpi/.claude/agents/senior-software-engineer.md"
+      ],
+      "description": "Pragmatic IC who plans sanely, ships small reversible slices with tests, and writes clear PRs.",
+      "content_hash": "d13b7b90ac1a983d83c13036f72110b912ec9907",
+      "signature_hash": "e76b3036ad624ab9c6a36abf300715b0a34c78e5",
+      "variant_hashes": [
+        "d13b7b90ac1a983d83c13036f72110b912ec9907"
+      ],
+      "line_count": 15
+    },
+    {
+      "kind": "agent",
+      "name": "technical-cto-advisor",
+      "logical_id": "agent:technical-cto-advisor",
+      "canonical_path": "development-workflows/rpi/.claude/agents/technical-cto-advisor.md",
+      "paths": [
+        "development-workflows/rpi/.claude/agents/technical-cto-advisor.md"
+      ],
+      "description": "Use this agent to align technological decisions with engineering principles and organizational standards. This agent acts as a CTO, evaluating technical recommendations against established engineering frameworks, risk assessment methodologies, and business alignment criteria before documentation creation. It ensures all technical decisions follow systematic methodology, evidence-based risk reduction, and AI-first development principles while maintaining alignment with venture success metrics.",
+      "content_hash": "32cbbfeacec82d91d0fdf66fcde450ba00ef78b7",
+      "signature_hash": "17612ba6d8a05c93d0ac6eb4f0b37ae2fee019a4",
+      "variant_hashes": [
+        "32cbbfeacec82d91d0fdf66fcde450ba00ef78b7"
+      ],
+      "line_count": 201
+    },
+    {
+      "kind": "agent",
+      "name": "time-agent",
+      "logical_id": "agent:time-agent",
+      "canonical_path": "agent-teams/.claude/agents/time-agent.md",
+      "paths": [
+        ".claude/agents/time-agent.md",
+        "agent-teams/.claude/agents/time-agent.md"
+      ],
+      "description": "Use this agent to fetch the current time for Dubai, UAE (Asia/Dubai timezone, UTC+4). This agent fetches real-time Dubai time using its preloaded time-fetcher skill.",
+      "content_hash": "37372c90515b4d2abf9ae043b06de6b9ef453211",
+      "signature_hash": "9aa12faf4b24098e124a764828779857c33e5f85",
+      "variant_hashes": [
+        "37372c90515b4d2abf9ae043b06de6b9ef453211",
+        "3a2457c4fa0bbac3671886a21e4884f7ed52e16a"
+      ],
+      "line_count": 23
+    },
+    {
+      "kind": "agent",
+      "name": "ux-designer",
+      "logical_id": "agent:ux-designer",
+      "canonical_path": "development-workflows/rpi/.claude/agents/ux-designer.md",
+      "paths": [
+        "development-workflows/rpi/.claude/agents/ux-designer.md"
+      ],
+      "description": "Produces a concise, accessible UX brief with flows, states, and annotations.",
+      "content_hash": "7b03dd783769c21f580a58cb82ae31c8d4ebde87",
+      "signature_hash": "61a8c16f41e37bba8dc63a105bba74cbd30c8719",
+      "variant_hashes": [
+        "7b03dd783769c21f580a58cb82ae31c8d4ebde87"
+      ],
+      "line_count": 14
+    },
+    {
+      "kind": "agent",
+      "name": "weather-agent",
+      "logical_id": "agent:weather-agent",
+      "canonical_path": ".claude/agents/weather-agent.md",
+      "paths": [
+        ".claude/agents/weather-agent.md"
+      ],
+      "description": "Use this agent PROACTIVELY when you need to fetch weather data for Dubai, UAE. This agent fetches real-time temperature from Open-Meteo using its preloaded weather-fetcher skill.",
+      "content_hash": "193aa4dccbce64084e889859c68236724c130e84",
+      "signature_hash": "aba2a2f823b9bbc47f5328ef39d112eea4e9b857",
+      "variant_hashes": [
+        "193aa4dccbce64084e889859c68236724c130e84"
+      ],
+      "line_count": 78
+    },
+    {
+      "kind": "agent",
+      "name": "workflow-claude-commands-agent",
+      "logical_id": "agent:workflow-claude-commands-agent",
+      "canonical_path": ".claude/agents/workflows/best-practice/workflow-claude-commands-agent.md",
+      "paths": [
+        ".claude/agents/workflows/best-practice/workflow-claude-commands-agent.md"
+      ],
+      "description": "Research agent that fetches Claude Code docs, reads the local commands report, and analyzes drift",
+      "content_hash": "913808f85f0d2b941bc4336251ab78e46b3795c7",
+      "signature_hash": "80a399d955cfa136e122a1398f8e7a2aeff473f4",
+      "variant_hashes": [
+        "913808f85f0d2b941bc4336251ab78e46b3795c7"
+      ],
+      "line_count": 86
+    },
+    {
+      "kind": "agent",
+      "name": "workflow-claude-settings-agent",
+      "logical_id": "agent:workflow-claude-settings-agent",
+      "canonical_path": ".claude/agents/workflows/best-practice/workflow-claude-settings-agent.md",
+      "paths": [
+        ".claude/agents/workflows/best-practice/workflow-claude-settings-agent.md"
+      ],
+      "description": "Research agent that fetches Claude Code docs, reads the local settings report, and analyzes drift",
+      "content_hash": "bbcbd9479eed521d028525fd407065c84a3930fb",
+      "signature_hash": "d4c030fddfe3b17246ddf7c4e2e8247359c298b0",
+      "variant_hashes": [
+        "bbcbd9479eed521d028525fd407065c84a3930fb"
+      ],
+      "line_count": 186
+    },
+    {
+      "kind": "agent",
+      "name": "workflow-claude-skills-agent",
+      "logical_id": "agent:workflow-claude-skills-agent",
+      "canonical_path": ".claude/agents/workflows/best-practice/workflow-claude-skills-agent.md",
+      "paths": [
+        ".claude/agents/workflows/best-practice/workflow-claude-skills-agent.md"
+      ],
+      "description": "Research agent that fetches Claude Code docs, reads the local skills report, and analyzes drift",
+      "content_hash": "f84860e445c2837ec2ab87c17995ad95ac98e35d",
+      "signature_hash": "cb24aff52e444a780dad4c0a5844c84b528b6d53",
+      "variant_hashes": [
+        "f84860e445c2837ec2ab87c17995ad95ac98e35d"
+      ],
+      "line_count": 86
+    },
+    {
+      "kind": "agent",
+      "name": "workflow-claude-subagents-agent",
+      "logical_id": "agent:workflow-claude-subagents-agent",
+      "canonical_path": ".claude/agents/workflows/best-practice/workflow-claude-subagents-agent.md",
+      "paths": [
+        ".claude/agents/workflows/best-practice/workflow-claude-subagents-agent.md"
+      ],
+      "description": "Research agent that fetches Claude Code docs, reads the local subagents report, and analyzes drift",
+      "content_hash": "80cde825bb70629340d889fc195c61045c71dc3b",
+      "signature_hash": "cd8d9191a1c1aff31a9593bd4569847a94cd35ff",
+      "variant_hashes": [
+        "80cde825bb70629340d889fc195c61045c71dc3b"
+      ],
+      "line_count": 83
+    },
+    {
+      "kind": "agent",
+      "name": "workflow-concepts-agent",
+      "logical_id": "agent:workflow-concepts-agent",
+      "canonical_path": ".claude/agents/workflows/best-practice/workflow-concepts-agent.md",
+      "paths": [
+        ".claude/agents/workflows/best-practice/workflow-concepts-agent.md"
+      ],
+      "description": "Research agent that fetches Claude Code docs and changelog, reads the local README CONCEPTS section, and analyzes drift",
+      "content_hash": "4ad8a3f91fbe723e0bf9131305ed593fed48f59f",
+      "signature_hash": "c6d492a5811d012967e2b295c74019d2768aef2c",
+      "variant_hashes": [
+        "4ad8a3f91fbe723e0bf9131305ed593fed48f59f"
+      ],
+      "line_count": 138
+    },
+    {
+      "kind": "command",
+      "name": "rpi/implement",
+      "logical_id": "command:rpi/implement",
+      "canonical_path": "development-workflows/rpi/.claude/commands/rpi/implement.md",
+      "paths": [
+        "development-workflows/rpi/.claude/commands/rpi/implement.md"
+      ],
+      "description": "Execute phased implementation with validation gates",
+      "content_hash": "ef24a5a05f23fa83f47b47afa0de823835284395",
+      "signature_hash": "dadf527691484da3bdeb7353a85027875315cf1f",
+      "variant_hashes": [
+        "ef24a5a05f23fa83f47b47afa0de823835284395"
+      ],
+      "line_count": 634
+    },
+    {
+      "kind": "command",
+      "name": "rpi/plan",
+      "logical_id": "command:rpi/plan",
+      "canonical_path": "development-workflows/rpi/.claude/commands/rpi/plan.md",
+      "paths": [
+        "development-workflows/rpi/.claude/commands/rpi/plan.md"
+      ],
+      "description": "Create comprehensive planning documentation for a feature",
+      "content_hash": "5f08016699ecd5f9eb60b8830f2b134d8273770c",
+      "signature_hash": "335ff03f1e299e7d687ab81ca7890773c8e70040",
+      "variant_hashes": [
+        "5f08016699ecd5f9eb60b8830f2b134d8273770c"
+      ],
+      "line_count": 416
+    },
+    {
+      "kind": "command",
+      "name": "rpi/research",
+      "logical_id": "command:rpi/research",
+      "canonical_path": "development-workflows/rpi/.claude/commands/rpi/research.md",
+      "paths": [
+        "development-workflows/rpi/.claude/commands/rpi/research.md"
+      ],
+      "description": "Research and analyze feature viability - GO/NO-GO decision gate",
+      "content_hash": "1386616c8edad582872521a6503d4b48e53335f5",
+      "signature_hash": "37ed958f6ed2542ac9dad989d7eef7606605b5e0",
+      "variant_hashes": [
+        "1386616c8edad582872521a6503d4b48e53335f5"
+      ],
+      "line_count": 381
+    },
+    {
+      "kind": "command",
+      "name": "time-command",
+      "logical_id": "command:time-command",
+      "canonical_path": ".claude/commands/time-command.md",
+      "paths": [
+        ".claude/commands/time-command.md"
+      ],
+      "description": "Display the current time in Pakistan Standard Time (PKT, UTC+5)",
+      "content_hash": "891e9c87c884826f0bc52b35ab96a5760c57b461",
+      "signature_hash": "0e9984cdbb55b5462d4711016211ac41d4646049",
+      "variant_hashes": [
+        "891e9c87c884826f0bc52b35ab96a5760c57b461"
+      ],
+      "line_count": 26
+    },
+    {
+      "kind": "command",
+      "name": "time-orchestrator",
+      "logical_id": "command:time-orchestrator",
+      "canonical_path": "agent-teams/.claude/commands/time-orchestrator.md",
+      "paths": [
+        "agent-teams/.claude/commands/time-orchestrator.md"
+      ],
+      "description": "",
+      "content_hash": "fa085e8901cf595fd6b7a06901a08f0d74edac2b",
+      "signature_hash": "850f68a427728e92f32d25f71b33bb7a1226fc54",
+      "variant_hashes": [
+        "fa085e8901cf595fd6b7a06901a08f0d74edac2b"
+      ],
+      "line_count": 50
+    },
+    {
+      "kind": "command",
+      "name": "weather-orchestrator",
+      "logical_id": "command:weather-orchestrator",
+      "canonical_path": ".claude/commands/weather-orchestrator.md",
+      "paths": [
+        ".claude/commands/weather-orchestrator.md"
+      ],
+      "description": "Fetch weather data for Dubai and create an SVG weather card",
+      "content_hash": "223587e11f7ec78bf227f357d9933b3ddb6f924d",
+      "signature_hash": "ce781420a744405351f0a3d0b83cb881897ac53b",
+      "variant_hashes": [
+        "223587e11f7ec78bf227f357d9933b3ddb6f924d"
+      ],
+      "line_count": 46
+    },
+    {
+      "kind": "command",
+      "name": "workflows/best-practice/workflow-claude-commands",
+      "logical_id": "command:workflows/best-practice/workflow-claude-commands",
+      "canonical_path": ".claude/commands/workflows/best-practice/workflow-claude-commands.md",
+      "paths": [
+        ".claude/commands/workflows/best-practice/workflow-claude-commands.md"
+      ],
+      "description": "Track Claude Code commands report changes and find what needs updating",
+      "content_hash": "8c06433818ef070a875d5efa16c6182464483193",
+      "signature_hash": "fb7271d85cc0f5392f1c37fd6513c76beec87f1b",
+      "variant_hashes": [
+        "8c06433818ef070a875d5efa16c6182464483193"
+      ],
+      "line_count": 140
+    },
+    {
+      "kind": "command",
+      "name": "workflows/best-practice/workflow-claude-settings",
+      "logical_id": "command:workflows/best-practice/workflow-claude-settings",
+      "canonical_path": ".claude/commands/workflows/best-practice/workflow-claude-settings.md",
+      "paths": [
+        ".claude/commands/workflows/best-practice/workflow-claude-settings.md"
+      ],
+      "description": "Track Claude Code settings report changes and find what needs updating",
+      "content_hash": "07a2b21319a4592915785b4ef3f83e3307a82518",
+      "signature_hash": "804c8ef7c6d1beb53b373fe3b321fe5f629ddfe1",
+      "variant_hashes": [
+        "07a2b21319a4592915785b4ef3f83e3307a82518"
+      ],
+      "line_count": 243
+    },
+    {
+      "kind": "command",
+      "name": "workflows/best-practice/workflow-claude-skills",
+      "logical_id": "command:workflows/best-practice/workflow-claude-skills",
+      "canonical_path": ".claude/commands/workflows/best-practice/workflow-claude-skills.md",
+      "paths": [
+        ".claude/commands/workflows/best-practice/workflow-claude-skills.md"
+      ],
+      "description": "Track Claude Code skills report changes and find what needs updating",
+      "content_hash": "23eccfc54ab3f10b5ea852fb94a0080cbd0e1b1a",
+      "signature_hash": "1791fdb7c15a8f2ffc1cc5b53ae9aa203105d272",
+      "variant_hashes": [
+        "23eccfc54ab3f10b5ea852fb94a0080cbd0e1b1a"
+      ],
+      "line_count": 138
+    },
+    {
+      "kind": "command",
+      "name": "workflows/best-practice/workflow-claude-subagents",
+      "logical_id": "command:workflows/best-practice/workflow-claude-subagents",
+      "canonical_path": ".claude/commands/workflows/best-practice/workflow-claude-subagents.md",
+      "paths": [
+        ".claude/commands/workflows/best-practice/workflow-claude-subagents.md"
+      ],
+      "description": "Track Claude Code subagents report changes and find what needs updating",
+      "content_hash": "6165a5881b0805a75edf67a3499e83d9b303975d",
+      "signature_hash": "d4192d78c208e52946740f44d46d0e0dfa49954b",
+      "variant_hashes": [
+        "6165a5881b0805a75edf67a3499e83d9b303975d"
+      ],
+      "line_count": 136
+    },
+    {
+      "kind": "command",
+      "name": "workflows/best-practice/workflow-concepts",
+      "logical_id": "command:workflows/best-practice/workflow-concepts",
+      "canonical_path": ".claude/commands/workflows/best-practice/workflow-concepts.md",
+      "paths": [
+        ".claude/commands/workflows/best-practice/workflow-concepts.md"
+      ],
+      "description": "Update the README CONCEPTS section with the latest Claude Code features and concepts",
+      "content_hash": "9406c732a231530d505bb4ebbfb590a11d876043",
+      "signature_hash": "e8caae4ff2f78aa52f77c35fd37131c97070298f",
+      "variant_hashes": [
+        "9406c732a231530d505bb4ebbfb590a11d876043"
+      ],
+      "line_count": 231
+    },
+    {
+      "kind": "command",
+      "name": "workflows/development-workflows",
+      "logical_id": "command:workflows/development-workflows",
+      "canonical_path": ".claude/commands/workflows/development-workflows.md",
+      "paths": [
+        ".claude/commands/workflows/development-workflows.md"
+      ],
+      "description": "Update the DEVELOPMENT WORKFLOWS table by researching all 10 workflow repos in parallel",
+      "content_hash": "27da57b4b7720da329fe67ae1eca1a185512097d",
+      "signature_hash": "1f7821bd546523e65e8f64b81602c55571d46851",
+      "variant_hashes": [
+        "27da57b4b7720da329fe67ae1eca1a185512097d"
+      ],
+      "line_count": 209
+    },
+    {
+      "kind": "hook",
+      "name": "hooks.py",
+      "logical_id": "hook:hooks.py",
+      "canonical_path": ".claude/hooks/scripts/hooks.py",
+      "paths": [
+        ".claude/hooks/scripts/hooks.py",
+        ".codex/hooks/scripts/hooks.py"
+      ],
+      "description": "",
+      "content_hash": "cb74c868b3dddf54ed353d9c3ad787d965919dba",
+      "signature_hash": "90f4fc7ee76767b608abf4cede70ed4c949b8f31",
+      "variant_hashes": [
+        "9f3325342f1a09103ae59bb6c5813f8a7befe586",
+        "cb74c868b3dddf54ed353d9c3ad787d965919dba"
+      ],
+      "line_count": 476
+    },
+    {
+      "kind": "mcp",
+      "name": "context7",
+      "logical_id": "mcp:context7",
+      "canonical_path": ".mcp.json#context7",
+      "paths": [
+        ".mcp.json#context7"
+      ],
+      "description": "npx",
+      "content_hash": "529a5047ec58e5c7b32b211f016eaaaf5df9d50b",
+      "signature_hash": "cb8899e8bafbc736ccec9d0fff63d81b91e18834",
+      "variant_hashes": [
+        "529a5047ec58e5c7b32b211f016eaaaf5df9d50b"
+      ],
+      "line_count": 7
+    },
+    {
+      "kind": "mcp",
+      "name": "deepwiki",
+      "logical_id": "mcp:deepwiki",
+      "canonical_path": ".mcp.json#deepwiki",
+      "paths": [
+        ".mcp.json#deepwiki"
+      ],
+      "description": "npx",
+      "content_hash": "a2699eff66ad9c81744e1bab99ea950af51aaad2",
+      "signature_hash": "893457cd13badb71543f7d62005f65cc2992f230",
+      "variant_hashes": [
+        "a2699eff66ad9c81744e1bab99ea950af51aaad2"
+      ],
+      "line_count": 7
+    },
+    {
+      "kind": "mcp",
+      "name": "playwright",
+      "logical_id": "mcp:playwright",
+      "canonical_path": ".mcp.json#playwright",
+      "paths": [
+        ".mcp.json#playwright"
+      ],
+      "description": "npx",
+      "content_hash": "997b6ff37fb85331fd25254c79b7cb63e9dfd45f",
+      "signature_hash": "20d4c3ed615b0cc36fa67d6ece61c8e624c907e4",
+      "variant_hashes": [
+        "997b6ff37fb85331fd25254c79b7cb63e9dfd45f"
+      ],
+      "line_count": 7
+    },
+    {
+      "kind": "rule",
+      "name": "markdown-docs",
+      "logical_id": "rule:markdown-docs",
+      "canonical_path": ".claude/rules/markdown-docs.md",
+      "paths": [
+        ".claude/rules/markdown-docs.md"
+      ],
+      "description": "",
+      "content_hash": "072f8569c5ce701cbd922edd310cde5f9d24955a",
+      "signature_hash": "e46c4b41f51c4db5d2eb3dc6355be1ab54369266",
+      "variant_hashes": [
+        "072f8569c5ce701cbd922edd310cde5f9d24955a"
+      ],
+      "line_count": 22
+    },
+    {
+      "kind": "rule",
+      "name": "presentation",
+      "logical_id": "rule:presentation",
+      "canonical_path": ".claude/rules/presentation.md",
+      "paths": [
+        ".claude/rules/presentation.md"
+      ],
+      "description": "",
+      "content_hash": "be14d43caacf4f08ecbeb188a600df0fd97593d6",
+      "signature_hash": "6bf05d8282fba6360f6df54df393c9635d445775",
+      "variant_hashes": [
+        "be14d43caacf4f08ecbeb188a600df0fd97593d6"
+      ],
+      "line_count": 13
+    },
+    {
+      "kind": "skill",
+      "name": "agent-browser",
+      "logical_id": "skill:agent-browser",
+      "canonical_path": ".claude/skills/agent-browser/SKILL.md",
+      "paths": [
+        ".claude/skills/agent-browser/SKILL.md"
+      ],
+      "description": "Browser automation CLI for AI agents. Use when the user needs to interact with websites, including navigating pages, filling forms, clicking buttons, taking screenshots, extracting data, testing web apps, or automating any browser task. Triggers include requests to \"open a website\", \"fill out a form\", \"click a button\", \"take a screenshot\", \"scrape data from a page\", \"test this web app\", \"login to a site\", \"automate browser actions\", or any task requiring programmatic web interaction.",
+      "content_hash": "0ffffca039504b8d8664ba34810d3c137203f107",
+      "signature_hash": "39867b418bf8aa7a5110a1e5d95e4fcb4f4b9aec",
+      "variant_hashes": [
+        "0ffffca039504b8d8664ba34810d3c137203f107"
+      ],
+      "line_count": 217
+    },
+    {
+      "kind": "skill",
+      "name": "presentation-structure",
+      "logical_id": "skill:presentation-structure",
+      "canonical_path": ".claude/skills/presentation/presentation-structure/SKILL.md",
+      "paths": [
+        ".claude/skills/presentation/presentation-structure/SKILL.md"
+      ],
+      "description": "Knowledge about the presentation slide format, weight system, navigation, and section structure",
+      "content_hash": "172955f010ceabaeae8f964d2b605a397cdbeef0",
+      "signature_hash": "f29f715f57018d92314884e79a2b3f6e9362ad57",
+      "variant_hashes": [
+        "172955f010ceabaeae8f964d2b605a397cdbeef0"
+      ],
+      "line_count": 89
+    },
+    {
+      "kind": "skill",
+      "name": "presentation-styling",
+      "logical_id": "skill:presentation-styling",
+      "canonical_path": ".claude/skills/presentation/presentation-styling/SKILL.md",
+      "paths": [
+        ".claude/skills/presentation/presentation-styling/SKILL.md"
+      ],
+      "description": "Knowledge about CSS classes, component patterns, and syntax highlighting in the presentation",
+      "content_hash": "a46b3b1671ecdb398c0e037fc829477857e6c52b",
+      "signature_hash": "382b48807a792b5d76d887a824046f658ac488f9",
+      "variant_hashes": [
+        "a46b3b1671ecdb398c0e037fc829477857e6c52b"
+      ],
+      "line_count": 106
+    },
+    {
+      "kind": "skill",
+      "name": "time-fetcher",
+      "logical_id": "skill:time-fetcher",
+      "canonical_path": "agent-teams/.claude/skills/time-fetcher/SKILL.md",
+      "paths": [
+        "agent-teams/.claude/skills/time-fetcher/SKILL.md"
+      ],
+      "description": "Instructions for fetching current Dubai time via bash command",
+      "content_hash": "5ac0adf40a1624c0ca451a81dbd40b4ffa86c310",
+      "signature_hash": "c46d7363e47870068f3dae619094d0c40dd5c713",
+      "variant_hashes": [
+        "5ac0adf40a1624c0ca451a81dbd40b4ffa86c310"
+      ],
+      "line_count": 31
+    },
+    {
+      "kind": "skill",
+      "name": "time-skill",
+      "logical_id": "skill:time-skill",
+      "canonical_path": ".claude/skills/time-skill/SKILL.md",
+      "paths": [
+        ".claude/skills/time-skill/SKILL.md"
+      ],
+      "description": "Display the current time in Pakistan Standard Time (PKT, UTC+5). Use when the user asks for the current time, Pakistan time, or PKT.",
+      "content_hash": "4e091959aefbdc3bc77ac59239e0ff3e13f94c30",
+      "signature_hash": "df0707aa5c93ed97bfb15cbd2fa4296664eccc80",
+      "variant_hashes": [
+        "4e091959aefbdc3bc77ac59239e0ff3e13f94c30"
+      ],
+      "line_count": 32
+    },
+    {
+      "kind": "skill",
+      "name": "time-svg-creator",
+      "logical_id": "skill:time-svg-creator",
+      "canonical_path": "agent-teams/.claude/skills/time-svg-creator/SKILL.md",
+      "paths": [
+        "agent-teams/.claude/skills/time-svg-creator/SKILL.md"
+      ],
+      "description": "Creates an SVG time card showing the current time for Dubai. Writes the SVG to agent-teams/output/dubai-time.svg and updates agent-teams/output/output.md.",
+      "content_hash": "1c823009a5027c0b2999704efb5fa22c734d2ece",
+      "signature_hash": "26b78833c5fb200f5d8478a5e78965fd74facb6b",
+      "variant_hashes": [
+        "1c823009a5027c0b2999704efb5fa22c734d2ece"
+      ],
+      "line_count": 30
+    },
+    {
+      "kind": "skill",
+      "name": "vibe-to-agentic-framework",
+      "logical_id": "skill:vibe-to-agentic-framework",
+      "canonical_path": ".claude/skills/presentation/vibe-to-agentic-framework/SKILL.md",
+      "paths": [
+        ".claude/skills/presentation/vibe-to-agentic-framework/SKILL.md"
+      ],
+      "description": "The conceptual framework behind the presentation \u2014 what \"Vibe Coding to Agentic Engineering\" means, why the journey is structured the way it is, and how every slide fits the narrative arc",
+      "content_hash": "e48cd54108d6c095c2bc209d7555357f5db5fec7",
+      "signature_hash": "058f360737980c6f23db25a7d58e2f93c3a0d717",
+      "variant_hashes": [
+        "e48cd54108d6c095c2bc209d7555357f5db5fec7"
+      ],
+      "line_count": 170
+    },
+    {
+      "kind": "skill",
+      "name": "weather-fetcher",
+      "logical_id": "skill:weather-fetcher",
+      "canonical_path": ".claude/skills/weather-fetcher/SKILL.md",
+      "paths": [
+        ".claude/skills/weather-fetcher/SKILL.md"
+      ],
+      "description": "Instructions for fetching current weather temperature data for Dubai, UAE from Open-Meteo API",
+      "content_hash": "ac0f36cc7930886f43529c48f5f4fe46791a02c4",
+      "signature_hash": "634ad3f30a39d9fabc427d9f289e1fc9bcf1d15a",
+      "variant_hashes": [
+        "ac0f36cc7930886f43529c48f5f4fe46791a02c4"
+      ],
+      "line_count": 45
+    },
+    {
+      "kind": "skill",
+      "name": "weather-svg-creator",
+      "logical_id": "skill:weather-svg-creator",
+      "canonical_path": ".claude/skills/weather-svg-creator/SKILL.md",
+      "paths": [
+        ".claude/skills/weather-svg-creator/SKILL.md"
+      ],
+      "description": "Creates an SVG weather card showing the current temperature for Dubai. Writes the SVG to orchestration-workflow/weather.svg and updates orchestration-workflow/output.md.",
+      "content_hash": "43c4f2b7eed4b82fe5d712c6eb55abb561f02d1d",
+      "signature_hash": "0bb7cc3d86ed7042d5f10072e3eaec6f52f5c0f8",
+      "variant_hashes": [
+        "43c4f2b7eed4b82fe5d712c6eb55abb561f02d1d"
+      ],
+      "line_count": 29
+    }
+  ]
+}

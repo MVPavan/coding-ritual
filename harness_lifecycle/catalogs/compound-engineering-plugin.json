@@ -1,0 +1,1598 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "compound-engineering-plugin",
+  "source": "working-tree",
+  "source_commit": "31b0686c2e88808381560314f10ce276c86e11e2",
+  "physical_scanned": 296,
+  "excluded": 170,
+  "counts": {
+    "agent": {
+      "physical": 50,
+      "logical": 50
+    },
+    "command": {
+      "physical": 4,
+      "logical": 4
+    },
+    "plugin": {
+      "physical": 2,
+      "logical": 1
+    },
+    "skill": {
+      "physical": 43,
+      "logical": 43
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "agent",
+      "name": "adversarial-document-reviewer",
+      "logical_id": "agent:adversarial-document-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/document-review/adversarial-document-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/document-review/adversarial-document-reviewer.md"
+      ],
+      "description": "Conditional document-review persona, selected when the document has >5 requirements or implementation units, makes significant architectural decisions, covers high-stakes domains, or proposes new abstractions. Challenges premises, surfaces unstated assumptions, and stress-tests decisions rather than evaluating document quality.",
+      "content_hash": "fbfc9ad69e86c1ebea4cf8529b50d6685c236a5f",
+      "signature_hash": "6e796c1ee81b77a0599e5bc77391d8dcd80356c1",
+      "variant_hashes": [
+        "fbfc9ad69e86c1ebea4cf8529b50d6685c236a5f"
+      ],
+      "line_count": 87
+    },
+    {
+      "kind": "agent",
+      "name": "adversarial-reviewer",
+      "logical_id": "agent:adversarial-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/adversarial-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/adversarial-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff is large (>=50 changed lines) or touches high-risk domains like auth, payments, data mutations, or external APIs. Actively constructs failure scenarios to break the implementation rather than checking against known patterns.",
+      "content_hash": "e2e88f8c8ce33f2bdf89a5364feca75de8bb4e66",
+      "signature_hash": "2286e9d0aa03fc1d552afc04948b2eddde8936a9",
+      "variant_hashes": [
+        "e2e88f8c8ce33f2bdf89a5364feca75de8bb4e66"
+      ],
+      "line_count": 107
+    },
+    {
+      "kind": "agent",
+      "name": "agent-native-reviewer",
+      "logical_id": "agent:agent-native-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/agent-native-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/agent-native-reviewer.md"
+      ],
+      "description": "Reviews code to ensure agent-native parity -- any action a user can take, an agent can also take. Use after adding UI features, agent tools, or system prompts.",
+      "content_hash": "de595606dff41ccbfd3b1861ed53536ce17daaf9",
+      "signature_hash": "321e4261da990057b90c967bfea9c2b05dcbf81d",
+      "variant_hashes": [
+        "de595606dff41ccbfd3b1861ed53536ce17daaf9"
+      ],
+      "line_count": 177
+    },
+    {
+      "kind": "agent",
+      "name": "api-contract-reviewer",
+      "logical_id": "agent:api-contract-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/api-contract-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/api-contract-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches API routes, request/response types, serialization, versioning, or exported type signatures. Reviews code for breaking contract changes.",
+      "content_hash": "045df7ffa25965db7ce8fd1d62a16f2ba9b76d92",
+      "signature_hash": "5b81f0b089ffd2b402336b67f2f69fcbe445b249",
+      "variant_hashes": [
+        "045df7ffa25965db7ce8fd1d62a16f2ba9b76d92"
+      ],
+      "line_count": 48
+    },
+    {
+      "kind": "agent",
+      "name": "architecture-strategist",
+      "logical_id": "agent:architecture-strategist",
+      "canonical_path": "plugins/compound-engineering/agents/review/architecture-strategist.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/architecture-strategist.md"
+      ],
+      "description": "Analyzes code changes from an architectural perspective for pattern compliance and design integrity. Use when reviewing PRs, adding services, or evaluating structural refactors.",
+      "content_hash": "1489852b3a60bec860e3361caf9447ff2a72e9b6",
+      "signature_hash": "c4655c08156a00844f6cbadddce2465c14a31ce4",
+      "variant_hashes": [
+        "1489852b3a60bec860e3361caf9447ff2a72e9b6"
+      ],
+      "line_count": 52
+    },
+    {
+      "kind": "agent",
+      "name": "best-practices-researcher",
+      "logical_id": "agent:best-practices-researcher",
+      "canonical_path": "plugins/compound-engineering/agents/research/best-practices-researcher.md",
+      "paths": [
+        "plugins/compound-engineering/agents/research/best-practices-researcher.md"
+      ],
+      "description": "Researches and synthesizes external best practices, documentation, and examples for any technology or framework. Use when you need industry standards, community conventions, or implementation guidance.",
+      "content_hash": "1741ada326f991080b93ab5fa4e9144290f1e6c9",
+      "signature_hash": "0edacfccb6808b840be678b4a58502796fd3ada5",
+      "variant_hashes": [
+        "1741ada326f991080b93ab5fa4e9144290f1e6c9"
+      ],
+      "line_count": 116
+    },
+    {
+      "kind": "agent",
+      "name": "bug-reproduction-validator",
+      "logical_id": "agent:bug-reproduction-validator",
+      "canonical_path": "plugins/compound-engineering/agents/workflow/bug-reproduction-validator.md",
+      "paths": [
+        "plugins/compound-engineering/agents/workflow/bug-reproduction-validator.md"
+      ],
+      "description": "Systematically reproduces and validates bug reports to confirm whether reported behavior is an actual bug. Use when you receive a bug report or issue that needs verification.",
+      "content_hash": "154f26cbf98071ae02ed0c849389449f1476c3ae",
+      "signature_hash": "2dd1b85c810ec38f6fa827ea2f4ea7c390e7397c",
+      "variant_hashes": [
+        "154f26cbf98071ae02ed0c849389449f1476c3ae"
+      ],
+      "line_count": 67
+    },
+    {
+      "kind": "agent",
+      "name": "cli-agent-readiness-reviewer",
+      "logical_id": "agent:cli-agent-readiness-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/cli-agent-readiness-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/cli-agent-readiness-reviewer.md"
+      ],
+      "description": "Reviews CLI source code, plans, or specs for AI agent readiness using a severity-based rubric focused on whether a CLI is merely usable by agents or genuinely optimized for them.",
+      "content_hash": "d6432975202f37585f4c2158bae4f4603aee7352",
+      "signature_hash": "451f2411577b303b85aa8b5e2cc8d29b56b3db58",
+      "variant_hashes": [
+        "d6432975202f37585f4c2158bae4f4603aee7352"
+      ],
+      "line_count": 416
+    },
+    {
+      "kind": "agent",
+      "name": "cli-readiness-reviewer",
+      "logical_id": "agent:cli-readiness-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/cli-readiness-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/cli-readiness-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches CLI command definitions, argument parsing, or command handler implementations. Reviews CLI code for agent readiness -- how well the CLI serves autonomous agents, not just human users.",
+      "content_hash": "fa8a92202be334d16c6ac93784a32d3847bf101e",
+      "signature_hash": "cd9d21ac79f0e7f57ad02d3c4e9fa0c600feef91",
+      "variant_hashes": [
+        "fa8a92202be334d16c6ac93784a32d3847bf101e"
+      ],
+      "line_count": 69
+    },
+    {
+      "kind": "agent",
+      "name": "code-simplicity-reviewer",
+      "logical_id": "agent:code-simplicity-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/code-simplicity-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/code-simplicity-reviewer.md"
+      ],
+      "description": "Final review pass to ensure code is as simple and minimal as possible. Use after implementation is complete to identify YAGNI violations and simplification opportunities.",
+      "content_hash": "064906ae662bd70cfb20472fb628207b93d68e10",
+      "signature_hash": "b22b2bc57e86761c645c1d1110da555804e00a66",
+      "variant_hashes": [
+        "064906ae662bd70cfb20472fb628207b93d68e10"
+      ],
+      "line_count": 86
+    },
+    {
+      "kind": "agent",
+      "name": "coherence-reviewer",
+      "logical_id": "agent:coherence-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/document-review/coherence-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/document-review/coherence-reviewer.md"
+      ],
+      "description": "Reviews planning documents for internal consistency -- contradictions between sections, terminology drift, structural issues, and ambiguity where readers would diverge. Spawned by the document-review skill.",
+      "content_hash": "5ea333e86e7c1227b6caaffd548b5bc757dac8aa",
+      "signature_hash": "092fffb1fa5962ecccb92f9e880f819227520ea5",
+      "variant_hashes": [
+        "5ea333e86e7c1227b6caaffd548b5bc757dac8aa"
+      ],
+      "line_count": 37
+    },
+    {
+      "kind": "agent",
+      "name": "correctness-reviewer",
+      "logical_id": "agent:correctness-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/correctness-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/correctness-reviewer.md"
+      ],
+      "description": "Always-on code-review persona. Reviews code for logic errors, edge cases, state management bugs, error propagation failures, and intent-vs-implementation mismatches.",
+      "content_hash": "389f1e8eb450552794c5d217ad342f93b8936f7d",
+      "signature_hash": "53dc412154073647912344f5bcf98a4f11e80638",
+      "variant_hashes": [
+        "389f1e8eb450552794c5d217ad342f93b8936f7d"
+      ],
+      "line_count": 48
+    },
+    {
+      "kind": "agent",
+      "name": "data-integrity-guardian",
+      "logical_id": "agent:data-integrity-guardian",
+      "canonical_path": "plugins/compound-engineering/agents/review/data-integrity-guardian.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/data-integrity-guardian.md"
+      ],
+      "description": "Reviews database migrations, data models, and persistent data code for safety. Use when checking migration safety, data constraints, transaction boundaries, or privacy compliance.",
+      "content_hash": "9ce657bd8960eddb80e1c6b851a683cc79396bb2",
+      "signature_hash": "fa13fb08bef217a46ec773fbda18dff5e44460d3",
+      "variant_hashes": [
+        "9ce657bd8960eddb80e1c6b851a683cc79396bb2"
+      ],
+      "line_count": 70
+    },
+    {
+      "kind": "agent",
+      "name": "data-migration-expert",
+      "logical_id": "agent:data-migration-expert",
+      "canonical_path": "plugins/compound-engineering/agents/review/data-migration-expert.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/data-migration-expert.md"
+      ],
+      "description": "Validates data migrations, backfills, and production data transformations against reality. Use when PRs involve ID mappings, column renames, enum conversions, or schema changes.",
+      "content_hash": "388b9876552d2db3d357363afae91bdeca699b04",
+      "signature_hash": "7bd2bf8d4eb2e452278a18394cd8089537662996",
+      "variant_hashes": [
+        "388b9876552d2db3d357363afae91bdeca699b04"
+      ],
+      "line_count": 97
+    },
+    {
+      "kind": "agent",
+      "name": "data-migrations-reviewer",
+      "logical_id": "agent:data-migrations-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/data-migrations-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/data-migrations-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches migration files, schema changes, data transformations, or backfill scripts. Reviews code for data integrity and migration safety.",
+      "content_hash": "3645b3dafa0e7455168d0e8b0cf59eb08a96030a",
+      "signature_hash": "77881ee2de07017888cf02272a4f9c896a4e9605",
+      "variant_hashes": [
+        "3645b3dafa0e7455168d0e8b0cf59eb08a96030a"
+      ],
+      "line_count": 52
+    },
+    {
+      "kind": "agent",
+      "name": "deployment-verification-agent",
+      "logical_id": "agent:deployment-verification-agent",
+      "canonical_path": "plugins/compound-engineering/agents/review/deployment-verification-agent.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/deployment-verification-agent.md"
+      ],
+      "description": "Produces Go/No-Go deployment checklists with SQL verification queries, rollback procedures, and monitoring plans. Use when PRs touch production data, migrations, or risky data changes.",
+      "content_hash": "fccf4096e46897dd4dae37702fce20cf875edcd2",
+      "signature_hash": "5ee9b544de23852487d3233bf8e0a9108fcf82e1",
+      "variant_hashes": [
+        "fccf4096e46897dd4dae37702fce20cf875edcd2"
+      ],
+      "line_count": 159
+    },
+    {
+      "kind": "agent",
+      "name": "design-implementation-reviewer",
+      "logical_id": "agent:design-implementation-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/design/design-implementation-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/design/design-implementation-reviewer.md"
+      ],
+      "description": "Visually compares live UI implementation against Figma designs and provides detailed feedback on discrepancies. Use after writing or modifying HTML/CSS/React components to verify design fidelity.",
+      "content_hash": "03eee8d83420ace87016af0b0e361eb59d38c83f",
+      "signature_hash": "d06abfb13df01b773e8a0b0c4b9c9470a6d5ec90",
+      "variant_hashes": [
+        "03eee8d83420ace87016af0b0e361eb59d38c83f"
+      ],
+      "line_count": 93
+    },
+    {
+      "kind": "agent",
+      "name": "design-iterator",
+      "logical_id": "agent:design-iterator",
+      "canonical_path": "plugins/compound-engineering/agents/design/design-iterator.md",
+      "paths": [
+        "plugins/compound-engineering/agents/design/design-iterator.md"
+      ],
+      "description": "Iteratively refines UI design through N screenshot-analyze-improve cycles. Use PROACTIVELY when design changes aren't coming together after 1-2 attempts, or when user requests iterative refinement.",
+      "content_hash": "ebf69889b843035baad4361dbca9d80ec23f5a50",
+      "signature_hash": "381edf206362c5d5535f722ca7bcbf16c3a01b15",
+      "variant_hashes": [
+        "ebf69889b843035baad4361dbca9d80ec23f5a50"
+      ],
+      "line_count": 197
+    },
+    {
+      "kind": "agent",
+      "name": "design-lens-reviewer",
+      "logical_id": "agent:design-lens-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/document-review/design-lens-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/document-review/design-lens-reviewer.md"
+      ],
+      "description": "Reviews planning documents for missing design decisions -- information architecture, interaction states, user flows, and AI slop risk. Uses dimensional rating to identify gaps. Spawned by the document-review skill.",
+      "content_hash": "fef5b4ffba09e17f750e87d24ea0e1c5c67d8fad",
+      "signature_hash": "87b1e2c2604cbe8f5a808a762d99e54cafd5d269",
+      "variant_hashes": [
+        "fef5b4ffba09e17f750e87d24ea0e1c5c67d8fad"
+      ],
+      "line_count": 44
+    },
+    {
+      "kind": "agent",
+      "name": "dhh-rails-reviewer",
+      "logical_id": "agent:dhh-rails-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/dhh-rails-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/dhh-rails-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when Rails diffs introduce architectural choices, abstractions, or frontend patterns that may fight the framework. Reviews code from an opinionated DHH perspective.",
+      "content_hash": "ce862c006562b7b48ef948b38a1033023adb6def",
+      "signature_hash": "d3b627514154c7332a994ecd7958d4297b225e56",
+      "variant_hashes": [
+        "ce862c006562b7b48ef948b38a1033023adb6def"
+      ],
+      "line_count": 45
+    },
+    {
+      "kind": "agent",
+      "name": "feasibility-reviewer",
+      "logical_id": "agent:feasibility-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/document-review/feasibility-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/document-review/feasibility-reviewer.md"
+      ],
+      "description": "Evaluates whether proposed technical approaches in planning documents will survive contact with reality -- architecture conflicts, dependency gaps, migration risks, and implementability. Spawned by the document-review skill.",
+      "content_hash": "e079126018b853e594a3313613a47c769fef29b6",
+      "signature_hash": "810fb922d0325e295440b8db24de17b5830ec276",
+      "variant_hashes": [
+        "e079126018b853e594a3313613a47c769fef29b6"
+      ],
+      "line_count": 40
+    },
+    {
+      "kind": "agent",
+      "name": "figma-design-sync",
+      "logical_id": "agent:figma-design-sync",
+      "canonical_path": "plugins/compound-engineering/agents/design/figma-design-sync.md",
+      "paths": [
+        "plugins/compound-engineering/agents/design/figma-design-sync.md"
+      ],
+      "description": "Detects and fixes visual differences between a web implementation and its Figma design. Use iteratively when syncing implementation to match Figma specs.",
+      "content_hash": "00c12d81265088f330860bb0026c2c11ac2fe8ec",
+      "signature_hash": "7af798b49e3ad4928b6ef43aa600c2d9d51b4725",
+      "variant_hashes": [
+        "00c12d81265088f330860bb0026c2c11ac2fe8ec"
+      ],
+      "line_count": 172
+    },
+    {
+      "kind": "agent",
+      "name": "framework-docs-researcher",
+      "logical_id": "agent:framework-docs-researcher",
+      "canonical_path": "plugins/compound-engineering/agents/research/framework-docs-researcher.md",
+      "paths": [
+        "plugins/compound-engineering/agents/research/framework-docs-researcher.md"
+      ],
+      "description": "Gathers comprehensive documentation and best practices for frameworks, libraries, or dependencies. Use when you need official docs, version-specific constraints, or implementation patterns.",
+      "content_hash": "d6d0cc5c83f0cb6f40f930d8dda3d9937b274370",
+      "signature_hash": "3d8f325def30753ad6a1a8e11e407629b6caaab6",
+      "variant_hashes": [
+        "d6d0cc5c83f0cb6f40f930d8dda3d9937b274370"
+      ],
+      "line_count": 93
+    },
+    {
+      "kind": "agent",
+      "name": "git-history-analyzer",
+      "logical_id": "agent:git-history-analyzer",
+      "canonical_path": "plugins/compound-engineering/agents/research/git-history-analyzer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/research/git-history-analyzer.md"
+      ],
+      "description": "Performs archaeological analysis of git history to trace code evolution, identify contributors, and understand why code patterns exist. Use when you need historical context for code changes.",
+      "content_hash": "1fa08342fdee9c12e98036793987d2410fff29e1",
+      "signature_hash": "ee46cf80203ead2ce831a7da24609f89a34ba46c",
+      "variant_hashes": [
+        "1fa08342fdee9c12e98036793987d2410fff29e1"
+      ],
+      "line_count": 46
+    },
+    {
+      "kind": "agent",
+      "name": "issue-intelligence-analyst",
+      "logical_id": "agent:issue-intelligence-analyst",
+      "canonical_path": "plugins/compound-engineering/agents/research/issue-intelligence-analyst.md",
+      "paths": [
+        "plugins/compound-engineering/agents/research/issue-intelligence-analyst.md"
+      ],
+      "description": "Fetches and analyzes GitHub issues to surface recurring themes, pain patterns, and severity trends. Use when understanding a project's issue landscape, analyzing bug patterns for ideation, or summarizing what users are reporting.",
+      "content_hash": "179f2d8ccfa9b644f2696b15aa731245273cde24",
+      "signature_hash": "7feab1310ccfac733807cb60e7fbce8d30155f8a",
+      "variant_hashes": [
+        "179f2d8ccfa9b644f2696b15aa731245273cde24"
+      ],
+      "line_count": 209
+    },
+    {
+      "kind": "agent",
+      "name": "julik-frontend-races-reviewer",
+      "logical_id": "agent:julik-frontend-races-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/julik-frontend-races-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/julik-frontend-races-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches async UI code, Stimulus/Turbo lifecycles, or DOM-timing-sensitive frontend behavior. Reviews code for race conditions and janky UI failure modes.",
+      "content_hash": "be52baffc130dfd35a2d4e9a37bc5212a0d0f30b",
+      "signature_hash": "edcc27630b8ab5ade412a2826c2193dd56cedcaf",
+      "variant_hashes": [
+        "be52baffc130dfd35a2d4e9a37bc5212a0d0f30b"
+      ],
+      "line_count": 48
+    },
+    {
+      "kind": "agent",
+      "name": "kieran-python-reviewer",
+      "logical_id": "agent:kieran-python-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/kieran-python-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/kieran-python-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches Python code. Reviews changes with Kieran's strict bar for Pythonic clarity, type hints, and maintainability.",
+      "content_hash": "cdde96f4f82c732cc556953415808d9b591456cf",
+      "signature_hash": "40856316cd6d71045d67e55335c22adde96ad0c7",
+      "variant_hashes": [
+        "cdde96f4f82c732cc556953415808d9b591456cf"
+      ],
+      "line_count": 46
+    },
+    {
+      "kind": "agent",
+      "name": "kieran-rails-reviewer",
+      "logical_id": "agent:kieran-rails-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/kieran-rails-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/kieran-rails-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches Rails application code. Reviews Rails changes with Kieran's strict bar for clarity, conventions, and maintainability.",
+      "content_hash": "f9e50222465d73ac463bf761b322d2fa6d8d350a",
+      "signature_hash": "96cbed6a473ac273fb9e914f25c845fcccaeb91f",
+      "variant_hashes": [
+        "f9e50222465d73ac463bf761b322d2fa6d8d350a"
+      ],
+      "line_count": 46
+    },
+    {
+      "kind": "agent",
+      "name": "kieran-typescript-reviewer",
+      "logical_id": "agent:kieran-typescript-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/kieran-typescript-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/kieran-typescript-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches TypeScript code. Reviews changes with Kieran's strict bar for type safety, clarity, and maintainability.",
+      "content_hash": "3203b6670a59e9a31346e61c983d5c2e034f2d2f",
+      "signature_hash": "b033e8c3ade645fd9ae095623779a199f77ca791",
+      "variant_hashes": [
+        "3203b6670a59e9a31346e61c983d5c2e034f2d2f"
+      ],
+      "line_count": 46
+    },
+    {
+      "kind": "agent",
+      "name": "learnings-researcher",
+      "logical_id": "agent:learnings-researcher",
+      "canonical_path": "plugins/compound-engineering/agents/research/learnings-researcher.md",
+      "paths": [
+        "plugins/compound-engineering/agents/research/learnings-researcher.md"
+      ],
+      "description": "Searches docs/solutions/ for relevant past solutions by frontmatter metadata. Use before implementing features or fixing problems to surface institutional knowledge and prevent repeated mistakes.",
+      "content_hash": "069d559ea779ab47ec6f91373751e893360fa06e",
+      "signature_hash": "266b30a9471b48d3b89c238d4b0402a35282b1d7",
+      "variant_hashes": [
+        "069d559ea779ab47ec6f91373751e893360fa06e"
+      ],
+      "line_count": 245
+    },
+    {
+      "kind": "agent",
+      "name": "lint",
+      "logical_id": "agent:lint",
+      "canonical_path": "plugins/compound-engineering/agents/workflow/lint.md",
+      "paths": [
+        "plugins/compound-engineering/agents/workflow/lint.md"
+      ],
+      "description": "Use this agent when you need to run linting and code quality checks on Ruby and ERB files. Run before pushing to origin.",
+      "content_hash": "7492080b273f59477da9fa4db01d353f4f7c2dea",
+      "signature_hash": "74453c497e5f76670fc6bbb7128afe2dfcd82755",
+      "variant_hashes": [
+        "7492080b273f59477da9fa4db01d353f4f7c2dea"
+      ],
+      "line_count": 16
+    },
+    {
+      "kind": "agent",
+      "name": "maintainability-reviewer",
+      "logical_id": "agent:maintainability-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/maintainability-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/maintainability-reviewer.md"
+      ],
+      "description": "Always-on code-review persona. Reviews code for premature abstraction, unnecessary indirection, dead code, coupling between unrelated modules, and naming that obscures intent.",
+      "content_hash": "8f4ee4364b4439cb5113212e11f11e72a904d5a2",
+      "signature_hash": "2f71bc9a00247269feeec2c6c7471130c187d752",
+      "variant_hashes": [
+        "8f4ee4364b4439cb5113212e11f11e72a904d5a2"
+      ],
+      "line_count": 48
+    },
+    {
+      "kind": "agent",
+      "name": "pattern-recognition-specialist",
+      "logical_id": "agent:pattern-recognition-specialist",
+      "canonical_path": "plugins/compound-engineering/agents/review/pattern-recognition-specialist.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/pattern-recognition-specialist.md"
+      ],
+      "description": "Analyzes code for design patterns, anti-patterns, naming conventions, and duplication. Use when checking codebase consistency or verifying new code follows established patterns.",
+      "content_hash": "840d4a04acffa29de4ca90adbf114d06aa4bf0dc",
+      "signature_hash": "dc7e7b15edfccfbf460160aaa475b5530d9c27db",
+      "variant_hashes": [
+        "840d4a04acffa29de4ca90adbf114d06aa4bf0dc"
+      ],
+      "line_count": 57
+    },
+    {
+      "kind": "agent",
+      "name": "performance-oracle",
+      "logical_id": "agent:performance-oracle",
+      "canonical_path": "plugins/compound-engineering/agents/review/performance-oracle.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/performance-oracle.md"
+      ],
+      "description": "Analyzes code for performance bottlenecks, algorithmic complexity, database queries, memory usage, and scalability. Use after implementing features or when performance concerns arise.",
+      "content_hash": "5d42e1f10759166174f0944f14559228029ddf93",
+      "signature_hash": "03b70d890fa8a8488cda421e2f789d65bcce33df",
+      "variant_hashes": [
+        "5d42e1f10759166174f0944f14559228029ddf93"
+      ],
+      "line_count": 110
+    },
+    {
+      "kind": "agent",
+      "name": "performance-reviewer",
+      "logical_id": "agent:performance-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/performance-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/performance-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches database queries, loop-heavy data transforms, caching layers, or I/O-intensive paths. Reviews code for runtime performance and scalability issues.",
+      "content_hash": "f32e9586e75c328addfc15415586029e4cd6c4f9",
+      "signature_hash": "d509f1196e453d04812d7d734b0bf8180e8c02b2",
+      "variant_hashes": [
+        "f32e9586e75c328addfc15415586029e4cd6c4f9"
+      ],
+      "line_count": 50
+    },
+    {
+      "kind": "agent",
+      "name": "pr-comment-resolver",
+      "logical_id": "agent:pr-comment-resolver",
+      "canonical_path": "plugins/compound-engineering/agents/workflow/pr-comment-resolver.md",
+      "paths": [
+        "plugins/compound-engineering/agents/workflow/pr-comment-resolver.md"
+      ],
+      "description": "Evaluates and resolves one or more related PR review threads -- assesses validity, implements fixes, and returns structured summaries with reply text. Spawned by the resolve-pr-feedback skill.",
+      "content_hash": "dfb603ae2af8e3a7553db6cb0dd826540a488483",
+      "signature_hash": "d2052745dbb93f0b1e7d4a34412e3ac76d371ff4",
+      "variant_hashes": [
+        "dfb603ae2af8e3a7553db6cb0dd826540a488483"
+      ],
+      "line_count": 167
+    },
+    {
+      "kind": "agent",
+      "name": "previous-comments-reviewer",
+      "logical_id": "agent:previous-comments-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/previous-comments-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/previous-comments-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when reviewing a PR that has existing review comments or review threads. Checks whether prior feedback has been addressed in the current diff.",
+      "content_hash": "738c151c73623b0d35f11b5b7dd23f54f61ffba1",
+      "signature_hash": "83510c8872c76ffe0458104b3b4aa4b583475061",
+      "variant_hashes": [
+        "738c151c73623b0d35f11b5b7dd23f54f61ffba1"
+      ],
+      "line_count": 64
+    },
+    {
+      "kind": "agent",
+      "name": "product-lens-reviewer",
+      "logical_id": "agent:product-lens-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/document-review/product-lens-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/document-review/product-lens-reviewer.md"
+      ],
+      "description": "Reviews planning documents as a senior product leader -- challenges premise claims, assesses strategic consequences (trajectory, identity, adoption, opportunity cost), and surfaces goal-work misalignment. Domain-agnostic: users may be end users, developers, operators, or any audience. Spawned by the document-review skill.",
+      "content_hash": "10ad02ce48407c62b2efd2eeb2c9a81d4200aca2",
+      "signature_hash": "72b5c2c8663b1be9f07aef61f5a4e87acbb9a2d9",
+      "variant_hashes": [
+        "10ad02ce48407c62b2efd2eeb2c9a81d4200aca2"
+      ],
+      "line_count": 68
+    },
+    {
+      "kind": "agent",
+      "name": "project-standards-reviewer",
+      "logical_id": "agent:project-standards-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/project-standards-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/project-standards-reviewer.md"
+      ],
+      "description": "Always-on code-review persona. Audits changes against the project's own CLAUDE.md and AGENTS.md standards -- frontmatter rules, reference inclusion, naming conventions, cross-platform portability, and tool selection policies.",
+      "content_hash": "08b09a96296b5f5ac359b659327e64c057530073",
+      "signature_hash": "63807de1505022b4b4b6fec97b32cc5d4448050b",
+      "variant_hashes": [
+        "08b09a96296b5f5ac359b659327e64c057530073"
+      ],
+      "line_count": 80
+    },
+    {
+      "kind": "agent",
+      "name": "reliability-reviewer",
+      "logical_id": "agent:reliability-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/reliability-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/reliability-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches error handling, retries, circuit breakers, timeouts, health checks, background jobs, or async handlers. Reviews code for production reliability and failure modes.",
+      "content_hash": "326fa27425bebdf3f34c54d8ebb00b44daf58831",
+      "signature_hash": "3aa3abae0bdafdc9e24ed77791e226e8ed797cf3",
+      "variant_hashes": [
+        "326fa27425bebdf3f34c54d8ebb00b44daf58831"
+      ],
+      "line_count": 48
+    },
+    {
+      "kind": "agent",
+      "name": "repo-research-analyst",
+      "logical_id": "agent:repo-research-analyst",
+      "canonical_path": "plugins/compound-engineering/agents/research/repo-research-analyst.md",
+      "paths": [
+        "plugins/compound-engineering/agents/research/repo-research-analyst.md"
+      ],
+      "description": "Conducts thorough research on repository structure, documentation, conventions, and implementation patterns. Use when onboarding to a new codebase or understanding project conventions.",
+      "content_hash": "bbea5a0e22958c0a6267cf79263ff3b8f3ab8028",
+      "signature_hash": "8676aab3962d99c6bb42d8331696fdb910a4324a",
+      "variant_hashes": [
+        "bbea5a0e22958c0a6267cf79263ff3b8f3ab8028"
+      ],
+      "line_count": 258
+    },
+    {
+      "kind": "agent",
+      "name": "schema-drift-detector",
+      "logical_id": "agent:schema-drift-detector",
+      "canonical_path": "plugins/compound-engineering/agents/review/schema-drift-detector.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/schema-drift-detector.md"
+      ],
+      "description": "Detects unrelated schema.rb changes in PRs by cross-referencing against included migrations. Use when reviewing PRs with database schema changes.",
+      "content_hash": "75917c639e59b21ae4331481872eb1f89253e7ad",
+      "signature_hash": "17ff11ca4c430f84f336feb7ad6f28b759ecfe84",
+      "variant_hashes": [
+        "75917c639e59b21ae4331481872eb1f89253e7ad"
+      ],
+      "line_count": 141
+    },
+    {
+      "kind": "agent",
+      "name": "scope-guardian-reviewer",
+      "logical_id": "agent:scope-guardian-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/document-review/scope-guardian-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/document-review/scope-guardian-reviewer.md"
+      ],
+      "description": "Reviews planning documents for scope alignment and unjustified complexity -- challenges unnecessary abstractions, premature frameworks, and scope that exceeds stated goals. Spawned by the document-review skill.",
+      "content_hash": "5a51e7e6b85680691a254c8879f46dd74b513cc9",
+      "signature_hash": "66fadcf3157c63b425f1c7d962e81292668216df",
+      "variant_hashes": [
+        "5a51e7e6b85680691a254c8879f46dd74b513cc9"
+      ],
+      "line_count": 52
+    },
+    {
+      "kind": "agent",
+      "name": "security-lens-reviewer",
+      "logical_id": "agent:security-lens-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/document-review/security-lens-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/document-review/security-lens-reviewer.md"
+      ],
+      "description": "Evaluates planning documents for security gaps at the plan level -- auth/authz assumptions, data exposure risks, API surface vulnerabilities, and missing threat model elements. Spawned by the document-review skill.",
+      "content_hash": "c73dbc32da351d3b7a6b2532292b83458eb8cc97",
+      "signature_hash": "c152ff194636826a57c5e96631c118f48808bcd4",
+      "variant_hashes": [
+        "c73dbc32da351d3b7a6b2532292b83458eb8cc97"
+      ],
+      "line_count": 36
+    },
+    {
+      "kind": "agent",
+      "name": "security-reviewer",
+      "logical_id": "agent:security-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/security-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/security-reviewer.md"
+      ],
+      "description": "Conditional code-review persona, selected when the diff touches auth middleware, public endpoints, user input handling, or permission checks. Reviews code for exploitable vulnerabilities.",
+      "content_hash": "0312ed9a4b3ce72785f429852ce347909ef6cdf7",
+      "signature_hash": "afbb7fa8cbe1a3d1a5794fc5530a92e99f9e8b49",
+      "variant_hashes": [
+        "0312ed9a4b3ce72785f429852ce347909ef6cdf7"
+      ],
+      "line_count": 50
+    },
+    {
+      "kind": "agent",
+      "name": "security-sentinel",
+      "logical_id": "agent:security-sentinel",
+      "canonical_path": "plugins/compound-engineering/agents/review/security-sentinel.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/security-sentinel.md"
+      ],
+      "description": "Performs security audits for vulnerabilities, input validation, auth/authz, hardcoded secrets, and OWASP compliance. Use when reviewing code for security issues or before deployment.",
+      "content_hash": "8b54691b312751a44a8a7748b9d774fbbb2191f4",
+      "signature_hash": "a0866a8c76cce5fdb21bc3a5e2d4b881dbdaa864",
+      "variant_hashes": [
+        "8b54691b312751a44a8a7748b9d774fbbb2191f4"
+      ],
+      "line_count": 93
+    },
+    {
+      "kind": "agent",
+      "name": "session-historian",
+      "logical_id": "agent:session-historian",
+      "canonical_path": "plugins/compound-engineering/agents/research/session-historian.md",
+      "paths": [
+        "plugins/compound-engineering/agents/research/session-historian.md"
+      ],
+      "description": "Searches Claude Code, Codex, and Cursor session history for related prior sessions about the same problem or topic. Use to surface investigation context, failed approaches, and learnings from previous sessions that the current session cannot see. Supports time-based queries for conversational use.",
+      "content_hash": "d07a9c76e52471516b6dad08be05d841b4b7a86c",
+      "signature_hash": "a1545d57c0576d354e4a90b96b904b93f7a3a248",
+      "variant_hashes": [
+        "d07a9c76e52471516b6dad08be05d841b4b7a86c"
+      ],
+      "line_count": 188
+    },
+    {
+      "kind": "agent",
+      "name": "slack-researcher",
+      "logical_id": "agent:slack-researcher",
+      "canonical_path": "plugins/compound-engineering/agents/research/slack-researcher.md",
+      "paths": [
+        "plugins/compound-engineering/agents/research/slack-researcher.md"
+      ],
+      "description": "Searches Slack for organizational context relevant to the current task -- decisions, constraints, and discussions that may not be documented elsewhere. Use when the user explicitly asks to search Slack for context during ideation, planning, or brainstorming. Always surfaces the workspace identity so the user can verify the correct Slack instance was searched.",
+      "content_hash": "801da7eaafb982ac0678409e6cc8835599254bc3",
+      "signature_hash": "b803f1a1d39a4264a43d201384387f832629596e",
+      "variant_hashes": [
+        "801da7eaafb982ac0678409e6cc8835599254bc3"
+      ],
+      "line_count": 128
+    },
+    {
+      "kind": "agent",
+      "name": "spec-flow-analyzer",
+      "logical_id": "agent:spec-flow-analyzer",
+      "canonical_path": "plugins/compound-engineering/agents/workflow/spec-flow-analyzer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/workflow/spec-flow-analyzer.md"
+      ],
+      "description": "Analyzes specifications and feature descriptions for user flow completeness and gap identification. Use when a spec, plan, or feature description needs flow analysis, edge case discovery, or requirements validation.",
+      "content_hash": "edcd171ba437608390a06732f65f3e2de4ed72d8",
+      "signature_hash": "1864375d60029bc6450037a00e6915930860da89",
+      "variant_hashes": [
+        "edcd171ba437608390a06732f65f3e2de4ed72d8"
+      ],
+      "line_count": 84
+    },
+    {
+      "kind": "agent",
+      "name": "testing-reviewer",
+      "logical_id": "agent:testing-reviewer",
+      "canonical_path": "plugins/compound-engineering/agents/review/testing-reviewer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/review/testing-reviewer.md"
+      ],
+      "description": "Always-on code-review persona. Reviews code for test coverage gaps, weak assertions, brittle implementation-coupled tests, and missing edge case coverage.",
+      "content_hash": "e1eda9b3bbb304bc1942d79996b4d4163eee963f",
+      "signature_hash": "e5f5cabe8a51db9f73c02b9654ca718f2d6fe96c",
+      "variant_hashes": [
+        "e1eda9b3bbb304bc1942d79996b4d4163eee963f"
+      ],
+      "line_count": 48
+    },
+    {
+      "kind": "command",
+      "name": "quiz-me",
+      "logical_id": "command:quiz-me",
+      "canonical_path": "plugins/coding-tutor/commands/quiz-me.md",
+      "paths": [
+        "plugins/coding-tutor/commands/quiz-me.md"
+      ],
+      "description": "",
+      "content_hash": "ea88cdaa2e2c6898f11f3496b452a181f8e8cfcb",
+      "signature_hash": "76d27d18946015812c1d8e459d93757115a13573",
+      "variant_hashes": [
+        "ea88cdaa2e2c6898f11f3496b452a181f8e8cfcb"
+      ],
+      "line_count": 1
+    },
+    {
+      "kind": "command",
+      "name": "sync-tutorials",
+      "logical_id": "command:sync-tutorials",
+      "canonical_path": "plugins/coding-tutor/commands/sync-tutorials.md",
+      "paths": [
+        "plugins/coding-tutor/commands/sync-tutorials.md"
+      ],
+      "description": "",
+      "content_hash": "72ef8b14d97f8f848fd64945f5130a110bcaae1b",
+      "signature_hash": "2d7cd4b503ad09757f28ec85174ae3e7c6e9bafe",
+      "variant_hashes": [
+        "72ef8b14d97f8f848fd64945f5130a110bcaae1b"
+      ],
+      "line_count": 25
+    },
+    {
+      "kind": "command",
+      "name": "teach-me",
+      "logical_id": "command:teach-me",
+      "canonical_path": "plugins/coding-tutor/commands/teach-me.md",
+      "paths": [
+        "plugins/coding-tutor/commands/teach-me.md"
+      ],
+      "description": "",
+      "content_hash": "55e2bb8f20188470ee59bdbce7ece5f33b3cc7bf",
+      "signature_hash": "a8d52f5b3714c8d2853e82e650f362cc6e9f978a",
+      "variant_hashes": [
+        "55e2bb8f20188470ee59bdbce7ece5f33b3cc7bf"
+      ],
+      "line_count": 1
+    },
+    {
+      "kind": "command",
+      "name": "triage-prs",
+      "logical_id": "command:triage-prs",
+      "canonical_path": ".claude/commands/triage-prs.md",
+      "paths": [
+        ".claude/commands/triage-prs.md"
+      ],
+      "description": "Triage all open PRs with parallel agents, label, group, and review one-by-one",
+      "content_hash": "ff526ef0f77d6d0a44f1a72f24d2a27e9a7596ef",
+      "signature_hash": "4fd8a0d341002d2fbd95e9a9a1472811fa4fc801",
+      "variant_hashes": [
+        "ff526ef0f77d6d0a44f1a72f24d2a27e9a7596ef"
+      ],
+      "line_count": 193
+    },
+    {
+      "kind": "plugin",
+      "name": ".claude-plugin",
+      "logical_id": "plugin:.claude-plugin",
+      "canonical_path": "plugins/coding-tutor/.claude-plugin/plugin.json",
+      "paths": [
+        "plugins/coding-tutor/.claude-plugin/plugin.json",
+        "plugins/compound-engineering/.claude-plugin/plugin.json"
+      ],
+      "description": "",
+      "content_hash": "06c0462cd924a5ddb9188aa00d47b1fb96352004",
+      "signature_hash": "b0ca4ec2c5c63c832604c38e93162ce03ffbbde9",
+      "variant_hashes": [
+        "06c0462cd924a5ddb9188aa00d47b1fb96352004",
+        "fb4b17b549079c46d14f60d1b4175694d86b26c3"
+      ],
+      "line_count": 9
+    },
+    {
+      "kind": "skill",
+      "name": "agent-browser",
+      "logical_id": "skill:agent-browser",
+      "canonical_path": "plugins/compound-engineering/skills/agent-browser/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/agent-browser/SKILL.md"
+      ],
+      "description": "Browser automation CLI for AI agents. Use when the user needs to interact with websites, including navigating pages, filling forms, clicking buttons, taking screenshots, extracting data, testing web apps, or automating any browser task. Triggers include requests to \"open a website\", \"fill out a form\", \"click a button\", \"take a screenshot\", \"scrape data from a page\", \"test this web app\", \"login to a site\", \"automate browser actions\", or any task requiring programmatic web interaction.",
+      "content_hash": "fc4451570c7e2187043675fafaced17aa1fc39be",
+      "signature_hash": "bfa9f350be31007e8435f538b4cd1964ea5911a5",
+      "variant_hashes": [
+        "fc4451570c7e2187043675fafaced17aa1fc39be"
+      ],
+      "line_count": 686
+    },
+    {
+      "kind": "skill",
+      "name": "agent-native-architecture",
+      "logical_id": "skill:agent-native-architecture",
+      "canonical_path": "plugins/compound-engineering/skills/agent-native-architecture/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/agent-native-architecture/SKILL.md"
+      ],
+      "description": "Build applications where agents are first-class citizens. Use this skill when designing autonomous agents, creating MCP tools, implementing self-modifying systems, or building apps where features are outcomes achieved by agents operating in a loop.",
+      "content_hash": "cc05b21842da1186d6b81d490c8e1a0faff43c8f",
+      "signature_hash": "14024d7a31a25a4236f1b8915617ed4ed8ec4353",
+      "variant_hashes": [
+        "cc05b21842da1186d6b81d490c8e1a0faff43c8f"
+      ],
+      "line_count": 435
+    },
+    {
+      "kind": "skill",
+      "name": "agent-native-audit",
+      "logical_id": "skill:agent-native-audit",
+      "canonical_path": "plugins/compound-engineering/skills/agent-native-audit/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/agent-native-audit/SKILL.md"
+      ],
+      "description": "Run comprehensive agent-native architecture review with scored principles",
+      "content_hash": "63f5ce4c329ce5932cec10a05c2041b7fb8be523",
+      "signature_hash": "82aee52c971135092a8caf616289e134cdab5105",
+      "variant_hashes": [
+        "63f5ce4c329ce5932cec10a05c2041b7fb8be523"
+      ],
+      "line_count": 278
+    },
+    {
+      "kind": "skill",
+      "name": "andrew-kane-gem-writer",
+      "logical_id": "skill:andrew-kane-gem-writer",
+      "canonical_path": "plugins/compound-engineering/skills/andrew-kane-gem-writer/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/andrew-kane-gem-writer/SKILL.md"
+      ],
+      "description": "This skill should be used when writing Ruby gems following Andrew Kane's proven patterns and philosophy. It applies when creating new Ruby gems, refactoring existing gems, designing gem APIs, or when clean, minimal, production-ready Ruby library code is needed. Triggers on requests like \"create a gem\", \"write a Ruby library\", \"design a gem API\", or mentions of Andrew Kane's style.",
+      "content_hash": "72c5679b1a2c416894d8e3247b5f80d62defa9f2",
+      "signature_hash": "2b6301bd5ae87681e68a7ddee657c6c3717fd8a4",
+      "variant_hashes": [
+        "72c5679b1a2c416894d8e3247b5f80d62defa9f2"
+      ],
+      "line_count": 184
+    },
+    {
+      "kind": "skill",
+      "name": "ce-sessions",
+      "logical_id": "skill:ce-sessions",
+      "canonical_path": "plugins/compound-engineering/skills/ce-sessions/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-sessions/SKILL.md"
+      ],
+      "description": "Search and ask questions about your coding agent session history. Use when asking what you worked on, what was tried before, how a problem was investigated across sessions, what happened recently, or any question about past agent sessions. Also use when the user references prior sessions, previous attempts, or past investigations \u2014 even without saying 'sessions' explicitly.",
+      "content_hash": "2533ba0de46c92b4bac7a277de86cb24e19916e0",
+      "signature_hash": "7e99733ebbbd26350ff80b54e1c5d186ea10fd2f",
+      "variant_hashes": [
+        "2533ba0de46c92b4bac7a277de86cb24e19916e0"
+      ],
+      "line_count": 33
+    },
+    {
+      "kind": "skill",
+      "name": "ce-slack-research",
+      "logical_id": "skill:ce-slack-research",
+      "canonical_path": "plugins/compound-engineering/skills/ce-slack-research/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-slack-research/SKILL.md"
+      ],
+      "description": "Search Slack for interpreted organizational context -- decisions, constraints, and discussion arcs that shape the current task. Produces a research digest with cross-cutting analysis and research-value assessment, not raw message lists. Use when searching Slack for context during planning, brainstorming, or any task where organizational knowledge matters. Trigger phrases: 'search slack for', 'what did we discuss about', 'slack context for', 'organizational context about', 'what does the team think about', 'any slack discussions on'. Differs from slack:find-discussions which returns individual message results without synthesis.",
+      "content_hash": "df31836575a09f1895c3793b50adcc8aa4f208f9",
+      "signature_hash": "731f1f19fa90a269b75d80daff91c5285ebd8618",
+      "variant_hashes": [
+        "df31836575a09f1895c3793b50adcc8aa4f208f9"
+      ],
+      "line_count": 41
+    },
+    {
+      "kind": "skill",
+      "name": "ce-update",
+      "logical_id": "skill:ce-update",
+      "canonical_path": "plugins/compound-engineering/skills/ce-update/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-update/SKILL.md"
+      ],
+      "description": "|",
+      "content_hash": "bca0b813b593218117c31630d4b12da09e4f0f0f",
+      "signature_hash": "d6536d609560960682a25187220b61c681020541",
+      "variant_hashes": [
+        "bca0b813b593218117c31630d4b12da09e4f0f0f"
+      ],
+      "line_count": 69
+    },
+    {
+      "kind": "skill",
+      "name": "ce:brainstorm",
+      "logical_id": "skill:ce:brainstorm",
+      "canonical_path": "plugins/compound-engineering/skills/ce-brainstorm/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-brainstorm/SKILL.md"
+      ],
+      "description": "Explore requirements and approaches through collaborative dialogue before writing a right-sized requirements document and planning implementation. Use for feature ideas, problem framing, when the user says ''let''s brainstorm'', or when they want to think through options before deciding what to build. Also use when a user describes a vague or ambitious feature request, asks ''what should we build'', ''help me think through X'', presents a problem with multiple valid solutions, or seems unsure about scope or direction \u2014 even if they don''t explicitly ask to brainstorm.",
+      "content_hash": "b30322bfc89f15938033ee82b717caf162443852",
+      "signature_hash": "d500ed8abebd8ce8c44d24fa195f5d7e2f84bc23",
+      "variant_hashes": [
+        "b30322bfc89f15938033ee82b717caf162443852"
+      ],
+      "line_count": 198
+    },
+    {
+      "kind": "skill",
+      "name": "ce:compound",
+      "logical_id": "skill:ce:compound",
+      "canonical_path": "plugins/compound-engineering/skills/ce-compound/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-compound/SKILL.md"
+      ],
+      "description": "Document a recently solved problem to compound your team's knowledge",
+      "content_hash": "39b11ec61c47465b76cd0fa20413be76825379f1",
+      "signature_hash": "d810e11fc040c135a2391de355b04880f40c21b1",
+      "variant_hashes": [
+        "39b11ec61c47465b76cd0fa20413be76825379f1"
+      ],
+      "line_count": 530
+    },
+    {
+      "kind": "skill",
+      "name": "ce:compound-refresh",
+      "logical_id": "skill:ce:compound-refresh",
+      "canonical_path": "plugins/compound-engineering/skills/ce-compound-refresh/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-compound-refresh/SKILL.md"
+      ],
+      "description": "Refresh stale or drifting learnings and pattern docs in docs/solutions/ by reviewing, updating, consolidating, replacing, or deleting them against the current codebase. Use after refactors, migrations, dependency upgrades, or when a retrieved learning feels outdated or wrong. Also use when reviewing docs/solutions/ for accuracy, when a recently solved problem contradicts an existing learning, when pattern docs no longer reflect current code, or when multiple docs seem to cover the same topic and might benefit from consolidation.",
+      "content_hash": "f7e95a2c1f7053ced358b4a30a8499ee7b7af4ac",
+      "signature_hash": "a4a97482d7d97e387f2709e0cb110265df438eca",
+      "variant_hashes": [
+        "f7e95a2c1f7053ced358b4a30a8499ee7b7af4ac"
+      ],
+      "line_count": 679
+    },
+    {
+      "kind": "skill",
+      "name": "ce:ideate",
+      "logical_id": "skill:ce:ideate",
+      "canonical_path": "plugins/compound-engineering/skills/ce-ideate/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-ideate/SKILL.md"
+      ],
+      "description": "Generate and critically evaluate grounded improvement ideas for the current project. Use when asking what to improve, requesting idea generation, exploring surprising improvements, or wanting the AI to proactively suggest strong project directions before brainstorming one in depth. Triggers on phrases like 'what should I improve', 'give me ideas', 'ideate on this project', 'surprise me with improvements', 'what would you change', or any request for AI-generated project improvement suggestions rather than refining the user's own idea.",
+      "content_hash": "972c4d62740552a35faa70badb4616713bd86c4b",
+      "signature_hash": "a4abf098d385967cb8d958c6b542ba3d327644f9",
+      "variant_hashes": [
+        "972c4d62740552a35faa70badb4616713bd86c4b"
+      ],
+      "line_count": 156
+    },
+    {
+      "kind": "skill",
+      "name": "ce:plan",
+      "logical_id": "skill:ce:plan",
+      "canonical_path": "plugins/compound-engineering/skills/ce-plan/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-plan/SKILL.md"
+      ],
+      "description": "Create structured plans for any multi-step task -- software features, research workflows, events, study plans, or any goal that benefits from structured breakdown. Also deepen existing plans with interactive review of sub-agent findings. Use for plan creation when the user says 'plan this', 'create a plan', 'write a tech plan', 'plan the implementation', 'how should we build', 'what's the approach for', 'break this down', 'plan a trip', 'create a study plan', or when a brainstorm/requirements document is ready for planning. Use for plan deepening when the user says 'deepen the plan', 'deepen my plan', 'deepening pass', or uses 'deepen' in reference to a plan. For exploratory or ambiguous requests where the user is unsure what to do, prefer ce:brainstorm first.",
+      "content_hash": "66c50af3e90f23c810e0a742af48b8abefa57bf2",
+      "signature_hash": "68e6adad4fc704e8ed35e6c18e330be2d5645b90",
+      "variant_hashes": [
+        "66c50af3e90f23c810e0a742af48b8abefa57bf2"
+      ],
+      "line_count": 700
+    },
+    {
+      "kind": "skill",
+      "name": "ce:review",
+      "logical_id": "skill:ce:review",
+      "canonical_path": "plugins/compound-engineering/skills/ce-review/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-review/SKILL.md"
+      ],
+      "description": "Structured code review using tiered persona agents, confidence-gated findings, and a merge/dedup pipeline. Use when reviewing code changes before creating a PR.",
+      "content_hash": "370cc3f911a05f334bbe52ce913951941cf6ffac",
+      "signature_hash": "4e6bc7b1eecef6adbde56757e886bbfbcdab7472",
+      "variant_hashes": [
+        "370cc3f911a05f334bbe52ce913951941cf6ffac"
+      ],
+      "line_count": 732
+    },
+    {
+      "kind": "skill",
+      "name": "ce:work",
+      "logical_id": "skill:ce:work",
+      "canonical_path": "plugins/compound-engineering/skills/ce-work/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-work/SKILL.md"
+      ],
+      "description": "Execute work efficiently while maintaining quality and finishing features",
+      "content_hash": "50e3e17028eaaa059f8175ada67dfdc66f2f0905",
+      "signature_hash": "ae02b8b101a89d3bcb2fb672cb12949cfc1619a0",
+      "variant_hashes": [
+        "50e3e17028eaaa059f8175ada67dfdc66f2f0905"
+      ],
+      "line_count": 444
+    },
+    {
+      "kind": "skill",
+      "name": "ce:work-beta",
+      "logical_id": "skill:ce:work-beta",
+      "canonical_path": "plugins/compound-engineering/skills/ce-work-beta/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/ce-work-beta/SKILL.md"
+      ],
+      "description": "[BETA] Execute work with external delegate support. Same as ce:work but includes experimental Codex delegation mode for token-conserving code implementation.",
+      "content_hash": "8d5bb149a858b0941eb79a052f803342d13eb9fd",
+      "signature_hash": "2778bff476e8223074c9f7b288ef6e083adbb994",
+      "variant_hashes": [
+        "8d5bb149a858b0941eb79a052f803342d13eb9fd"
+      ],
+      "line_count": 517
+    },
+    {
+      "kind": "skill",
+      "name": "changelog",
+      "logical_id": "skill:changelog",
+      "canonical_path": "plugins/compound-engineering/skills/changelog/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/changelog/SKILL.md"
+      ],
+      "description": "Create engaging changelogs for recent merges to main branch",
+      "content_hash": "77d1da9f3c9cee97c7bee1e4d7a591ac3ca3284f",
+      "signature_hash": "5543ad93572b3ceb70a1193077f675d8521c31ba",
+      "variant_hashes": [
+        "77d1da9f3c9cee97c7bee1e4d7a591ac3ca3284f"
+      ],
+      "line_count": 138
+    },
+    {
+      "kind": "skill",
+      "name": "claude-permissions-optimizer",
+      "logical_id": "skill:claude-permissions-optimizer",
+      "canonical_path": "plugins/compound-engineering/skills/claude-permissions-optimizer/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/claude-permissions-optimizer/SKILL.md"
+      ],
+      "description": "Optimize Claude Code permissions by finding safe Bash commands from session history and auto-applying them to settings.json. Can run from any coding agent but targets Claude Code specifically. Use when experiencing permission fatigue, too many permission prompts, wanting to optimize permissions, or needing to set up allowlists. Triggers on \"optimize permissions\", \"reduce permission prompts\", \"allowlist commands\", \"too many permission prompts\", \"permission fatigue\", \"permission setup\", or complaints about clicking approve too often.",
+      "content_hash": "672923ffc558067ab6ab9f9afdd0d72fe8c63f01",
+      "signature_hash": "985232fe7cb6bb2b7838dc5ae70ceeec408b1443",
+      "variant_hashes": [
+        "672923ffc558067ab6ab9f9afdd0d72fe8c63f01"
+      ],
+      "line_count": 160
+    },
+    {
+      "kind": "skill",
+      "name": "coding-tutor",
+      "logical_id": "skill:coding-tutor",
+      "canonical_path": "plugins/coding-tutor/skills/coding-tutor/SKILL.md",
+      "paths": [
+        "plugins/coding-tutor/skills/coding-tutor/SKILL.md"
+      ],
+      "description": "Personalized coding tutorials that build on your existing knowledge and use your actual codebase for examples. Creates a persistent learning trail that compounds over time using the power of AI, spaced repetition and quizes.",
+      "content_hash": "924c553ab3ede32fe1222e0bded2fcea242d7045",
+      "signature_hash": "c8de640aed3f60d7884bcddde1cbca319694e0df",
+      "variant_hashes": [
+        "924c553ab3ede32fe1222e0bded2fcea242d7045"
+      ],
+      "line_count": 214
+    },
+    {
+      "kind": "skill",
+      "name": "deploy-docs",
+      "logical_id": "skill:deploy-docs",
+      "canonical_path": "plugins/compound-engineering/skills/deploy-docs/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/deploy-docs/SKILL.md"
+      ],
+      "description": "Validate and prepare documentation for GitHub Pages deployment",
+      "content_hash": "af66f767c6cd0566a902b51e54701bce50c99990",
+      "signature_hash": "96dc3fe3762f3325ef8fc2e032169bcdbda8748c",
+      "variant_hashes": [
+        "af66f767c6cd0566a902b51e54701bce50c99990"
+      ],
+      "line_count": 112
+    },
+    {
+      "kind": "skill",
+      "name": "dhh-rails-style",
+      "logical_id": "skill:dhh-rails-style",
+      "canonical_path": "plugins/compound-engineering/skills/dhh-rails-style/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/dhh-rails-style/SKILL.md"
+      ],
+      "description": "This skill should be used when writing Ruby and Rails code in DHH's distinctive 37signals style. It applies when writing Ruby code, Rails applications, creating models, controllers, or any Ruby file. Triggers on Ruby/Rails code generation, refactoring requests, code review, or when the user mentions DHH, 37signals, Basecamp, HEY, or Campfire style. Embodies REST purity, fat models, thin controllers, Current attributes, Hotwire patterns, and the \"clarity over cleverness\" philosophy.",
+      "content_hash": "d18cdd8a00c7ea0cad21e65194de6be92ba7b234",
+      "signature_hash": "aa7a081958d3ff9be989783b3b65a707a6445341",
+      "variant_hashes": [
+        "d18cdd8a00c7ea0cad21e65194de6be92ba7b234"
+      ],
+      "line_count": 185
+    },
+    {
+      "kind": "skill",
+      "name": "document-review",
+      "logical_id": "skill:document-review",
+      "canonical_path": "plugins/compound-engineering/skills/document-review/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/document-review/SKILL.md"
+      ],
+      "description": "Review requirements or plan documents using parallel persona agents that surface role-specific issues. Use when a requirements document or plan document exists and the user wants to improve it.",
+      "content_hash": "e6f9133535d76c4824ff5ebadf93472476ae6c99",
+      "signature_hash": "4a8f75c0519665c8f8ab23b07b3d3ff42a5e41b0",
+      "variant_hashes": [
+        "e6f9133535d76c4824ff5ebadf93472476ae6c99"
+      ],
+      "line_count": 147
+    },
+    {
+      "kind": "skill",
+      "name": "dspy-ruby",
+      "logical_id": "skill:dspy-ruby",
+      "canonical_path": "plugins/compound-engineering/skills/dspy-ruby/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/dspy-ruby/SKILL.md"
+      ],
+      "description": "Build type-safe LLM applications with DSPy.rb \u2014 Ruby's programmatic prompt framework with signatures, modules, agents, and optimization. Use when implementing predictable AI features, creating LLM signatures and modules, configuring language model providers, building agent systems with tools, optimizing prompts, or testing LLM-powered functionality in Ruby applications.",
+      "content_hash": "eb6e2b47d8d06532325f1cb74dc54e899a345b1d",
+      "signature_hash": "4d2b29cc3dda59eb825db44639d7ee9d46c9a306",
+      "variant_hashes": [
+        "eb6e2b47d8d06532325f1cb74dc54e899a345b1d"
+      ],
+      "line_count": 737
+    },
+    {
+      "kind": "skill",
+      "name": "every-style-editor",
+      "logical_id": "skill:every-style-editor",
+      "canonical_path": "plugins/compound-engineering/skills/every-style-editor/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/every-style-editor/SKILL.md"
+      ],
+      "description": "This skill should be used when reviewing or editing copy to ensure adherence to Every's style guide. It provides a systematic line-by-line review process for grammar, punctuation, mechanics, and style guide compliance.",
+      "content_hash": "261988a04ef8f7c70556d26fb858d176b814eecc",
+      "signature_hash": "3dabdf14da74bad31f56a74cef20f146fbbf262c",
+      "variant_hashes": [
+        "261988a04ef8f7c70556d26fb858d176b814eecc"
+      ],
+      "line_count": 134
+    },
+    {
+      "kind": "skill",
+      "name": "feature-video",
+      "logical_id": "skill:feature-video",
+      "canonical_path": "plugins/compound-engineering/skills/feature-video/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/feature-video/SKILL.md"
+      ],
+      "description": "Record a video walkthrough of a feature and add it to the PR description. Use when a PR needs a visual demo for reviewers, when the user asks to demo a feature, create a PR video, record a walkthrough, show what changed visually, or add a video to a pull request.",
+      "content_hash": "e93361fd4140090e30eb4d20d78b149d023c4268",
+      "signature_hash": "688cd6c5b8f7d1e4e4104883e97621a939cc5969",
+      "variant_hashes": [
+        "e93361fd4140090e30eb4d20d78b149d023c4268"
+      ],
+      "line_count": 382
+    },
+    {
+      "kind": "skill",
+      "name": "frontend-design",
+      "logical_id": "skill:frontend-design",
+      "canonical_path": "plugins/compound-engineering/skills/frontend-design/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/frontend-design/SKILL.md"
+      ],
+      "description": "Build web interfaces with genuine design quality, not AI slop. Use for any frontend work - landing pages, web apps, dashboards, admin panels, components, interactive experiences. Activates for both greenfield builds and modifications to existing applications. Detects existing design systems and respects them. Covers composition, typography, color, motion, and copy. Verifies results via screenshots before declaring done.",
+      "content_hash": "f1a5ea36421f65be868941b7a6095146f2c47581",
+      "signature_hash": "1820e3c2f51d90a8e98a47cfea83c5a9cbf4574e",
+      "variant_hashes": [
+        "f1a5ea36421f65be868941b7a6095146f2c47581"
+      ],
+      "line_count": 258
+    },
+    {
+      "kind": "skill",
+      "name": "gemini-imagegen",
+      "logical_id": "skill:gemini-imagegen",
+      "canonical_path": "plugins/compound-engineering/skills/gemini-imagegen/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/gemini-imagegen/SKILL.md"
+      ],
+      "description": "This skill should be used when generating and editing images using the Gemini API (Nano Banana Pro). It applies when creating images from text prompts, editing existing images, applying style transfers, generating logos with text, creating stickers, product mockups, or any image generation/manipulation task. Supports text-to-image, image editing, multi-turn refinement, and composition from multiple reference images.",
+      "content_hash": "40c75c987986ce495b7c05a6cbcd570c9239886e",
+      "signature_hash": "d577849e0cdbdb92610aa4af63b85448f48647bf",
+      "variant_hashes": [
+        "40c75c987986ce495b7c05a6cbcd570c9239886e"
+      ],
+      "line_count": 237
+    },
+    {
+      "kind": "skill",
+      "name": "git-clean-gone-branches",
+      "logical_id": "skill:git-clean-gone-branches",
+      "canonical_path": "plugins/compound-engineering/skills/git-clean-gone-branches/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/git-clean-gone-branches/SKILL.md"
+      ],
+      "description": "Clean up local branches whose remote tracking branch is gone. Use when the user says \"clean up branches\", \"delete gone branches\", \"prune local branches\", \"clean gone\", or wants to remove stale local branches that no longer exist on the remote. Also handles removing associated worktrees for branches that have them.",
+      "content_hash": "7c114ba7a3da2fd3c79714ce0d318c2d8fbc12ee",
+      "signature_hash": "d862d42a63fae53289fa2856c5fd27f7ae13834a",
+      "variant_hashes": [
+        "7c114ba7a3da2fd3c79714ce0d318c2d8fbc12ee"
+      ],
+      "line_count": 63
+    },
+    {
+      "kind": "skill",
+      "name": "git-commit",
+      "logical_id": "skill:git-commit",
+      "canonical_path": "plugins/compound-engineering/skills/git-commit/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/git-commit/SKILL.md"
+      ],
+      "description": "Create a git commit with a clear, value-communicating message. Use when the user says \"commit\", \"commit this\", \"save my changes\", \"create a commit\", or wants to commit staged or unstaged work. Produces well-structured commit messages that follow repo conventions when they exist, and defaults to conventional commit format otherwise.",
+      "content_hash": "5448a170d5977d4110da72fc54932aa738d3cab3",
+      "signature_hash": "684be7f10c8175abc0f9b28ea644152ecaa02bf1",
+      "variant_hashes": [
+        "5448a170d5977d4110da72fc54932aa738d3cab3"
+      ],
+      "line_count": 103
+    },
+    {
+      "kind": "skill",
+      "name": "git-commit-push-pr",
+      "logical_id": "skill:git-commit-push-pr",
+      "canonical_path": "plugins/compound-engineering/skills/git-commit-push-pr/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/git-commit-push-pr/SKILL.md"
+      ],
+      "description": "Commit, push, and open a PR with an adaptive, value-first description. Use when the user says \"commit and PR\", \"push and open a PR\", \"ship this\", \"create a PR\", \"open a pull request\", \"commit push PR\", or wants to go from working changes to an open pull request in one step. Also use when the user says \"update the PR description\", \"refresh the PR description\", \"freshen the PR\", or wants to rewrite an existing PR description. Produces PR descriptions that scale in depth with the complexity of the change, avoiding cookie-cutter templates.",
+      "content_hash": "674c93801d1e2dbcb56040d527d281e3337d17c1",
+      "signature_hash": "00d2c81aedc95af1537b08a70e7897d5679eeef9",
+      "variant_hashes": [
+        "674c93801d1e2dbcb56040d527d281e3337d17c1"
+      ],
+      "line_count": 379
+    },
+    {
+      "kind": "skill",
+      "name": "git-worktree",
+      "logical_id": "skill:git-worktree",
+      "canonical_path": "plugins/compound-engineering/skills/git-worktree/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/git-worktree/SKILL.md"
+      ],
+      "description": "This skill manages Git worktrees for isolated parallel development. It handles creating, listing, switching, and cleaning up worktrees with a simple interactive interface, following KISS principles.",
+      "content_hash": "550749c8da7ce38c47d81635d437244797817372",
+      "signature_hash": "07ba7b379b20c02fa9abe90a46b195dc907065ed",
+      "variant_hashes": [
+        "550749c8da7ce38c47d81635d437244797817372"
+      ],
+      "line_count": 310
+    },
+    {
+      "kind": "skill",
+      "name": "lfg",
+      "logical_id": "skill:lfg",
+      "canonical_path": "plugins/compound-engineering/skills/lfg/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/lfg/SKILL.md"
+      ],
+      "description": "Full autonomous engineering workflow",
+      "content_hash": "e96e04e9200f55350287646572944ae712338cca",
+      "signature_hash": "1d7bf9544c9ec5269e2f2708f1b84836ab24fa77",
+      "variant_hashes": [
+        "e96e04e9200f55350287646572944ae712338cca"
+      ],
+      "line_count": 32
+    },
+    {
+      "kind": "skill",
+      "name": "onboarding",
+      "logical_id": "skill:onboarding",
+      "canonical_path": "plugins/compound-engineering/skills/onboarding/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/onboarding/SKILL.md"
+      ],
+      "description": "Generate or regenerate ONBOARDING.md to help new contributors understand a codebase. Use when the user asks to 'create onboarding docs', 'generate ONBOARDING.md', 'document this project for new developers', 'write onboarding documentation', 'vonboard', 'vonboarding', 'prepare this repo for a new contributor', 'refresh the onboarding doc', or 'update ONBOARDING.md'. Also use when someone needs to onboard a new team member and wants a written artifact, or when a codebase lacks onboarding documentation and the user wants to generate one.",
+      "content_hash": "77b0a10b8dea5608cffb1f93adf4fb8e70c595eb",
+      "signature_hash": "c807897a2c467c7d152c2f1843226f23a9b7de39",
+      "variant_hashes": [
+        "77b0a10b8dea5608cffb1f93adf4fb8e70c595eb"
+      ],
+      "line_count": 407
+    },
+    {
+      "kind": "skill",
+      "name": "proof",
+      "logical_id": "skill:proof",
+      "canonical_path": "plugins/compound-engineering/skills/proof/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/proof/SKILL.md"
+      ],
+      "description": "Create, edit, comment on, and share markdown documents via Proof's web API and local bridge. Use when asked to \"proof\", \"share a doc\", \"create a proof doc\", \"comment on a document\", \"suggest edits\", \"review in proof\", or when given a proofeditor.ai URL.",
+      "content_hash": "e2d575a476840cfcfdf939b65ccfda62c6aa2967",
+      "signature_hash": "963dcd3eea883266062b3fff54e0c7bbb409a262",
+      "variant_hashes": [
+        "e2d575a476840cfcfdf939b65ccfda62c6aa2967"
+      ],
+      "line_count": 185
+    },
+    {
+      "kind": "skill",
+      "name": "rclone",
+      "logical_id": "skill:rclone",
+      "canonical_path": "plugins/compound-engineering/skills/rclone/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/rclone/SKILL.md"
+      ],
+      "description": "Upload, sync, and manage files across cloud storage providers using rclone. Use when uploading files (images, videos, documents) to S3, Cloudflare R2, Backblaze B2, Google Drive, Dropbox, or any S3-compatible storage. Triggers on \"upload to S3\", \"sync to cloud\", \"rclone\", \"backup files\", \"upload video/image to bucket\", or requests to transfer files to remote storage.",
+      "content_hash": "8a8fe74d9fcc855c20c67c94b8b9247b3fa7197c",
+      "signature_hash": "86d5a75f495a1a28a7b7ba82f1a2bba3213f60a7",
+      "variant_hashes": [
+        "8a8fe74d9fcc855c20c67c94b8b9247b3fa7197c"
+      ],
+      "line_count": 150
+    },
+    {
+      "kind": "skill",
+      "name": "report-bug-ce",
+      "logical_id": "skill:report-bug-ce",
+      "canonical_path": "plugins/compound-engineering/skills/report-bug-ce/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/report-bug-ce/SKILL.md"
+      ],
+      "description": "Report a bug in the compound-engineering plugin",
+      "content_hash": "ccd90a16e93864e95e3fbbb612e67947f879b1d1",
+      "signature_hash": "a3e69d07e3a5795fa21f38ed45b402e290ddc652",
+      "variant_hashes": [
+        "ccd90a16e93864e95e3fbbb612e67947f879b1d1"
+      ],
+      "line_count": 157
+    },
+    {
+      "kind": "skill",
+      "name": "reproduce-bug",
+      "logical_id": "skill:reproduce-bug",
+      "canonical_path": "plugins/compound-engineering/skills/reproduce-bug/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/reproduce-bug/SKILL.md"
+      ],
+      "description": "Systematically reproduce and investigate a bug from a GitHub issue. Use when the user provides a GitHub issue number or URL for a bug they want reproduced or investigated.",
+      "content_hash": "c09166c13b8e61ca522f29578b6a33cd87a85593",
+      "signature_hash": "e663a3baecf4284ab1c93050796b92a87d11a8f4",
+      "variant_hashes": [
+        "c09166c13b8e61ca522f29578b6a33cd87a85593"
+      ],
+      "line_count": 194
+    },
+    {
+      "kind": "skill",
+      "name": "resolve-pr-feedback",
+      "logical_id": "skill:resolve-pr-feedback",
+      "canonical_path": "plugins/compound-engineering/skills/resolve-pr-feedback/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/resolve-pr-feedback/SKILL.md"
+      ],
+      "description": "Resolve PR review feedback by evaluating validity and fixing issues in parallel. Use when addressing PR review comments, resolving review threads, or fixing code review feedback.",
+      "content_hash": "e7067ab2a89431d59e1b881e3a74eb51f32560dc",
+      "signature_hash": "14a83148d1e8dfb5bc299198415bd47d706a7a13",
+      "variant_hashes": [
+        "e7067ab2a89431d59e1b881e3a74eb51f32560dc"
+      ],
+      "line_count": 380
+    },
+    {
+      "kind": "skill",
+      "name": "setup",
+      "logical_id": "skill:setup",
+      "canonical_path": "plugins/compound-engineering/skills/setup/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/setup/SKILL.md"
+      ],
+      "description": "Configure project-level settings for compound-engineering workflows. Currently a placeholder \u2014 review agent selection is handled automatically by ce:review.",
+      "content_hash": "1b45e12442f3e0c0c05180e833dd3f1a7a521edb",
+      "signature_hash": "03b914164c32f7a856854e46bcddd4eeec9e3a33",
+      "variant_hashes": [
+        "1b45e12442f3e0c0c05180e833dd3f1a7a521edb"
+      ],
+      "line_count": 21
+    },
+    {
+      "kind": "skill",
+      "name": "test-browser",
+      "logical_id": "skill:test-browser",
+      "canonical_path": "plugins/compound-engineering/skills/test-browser/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/test-browser/SKILL.md"
+      ],
+      "description": "Run browser tests on pages affected by current PR or branch",
+      "content_hash": "9396f4c4d6f705462b230f0d1a2780c992f6a56f",
+      "signature_hash": "f20aadaa587a5a5ab6ec1bd857b7a74cd214aed4",
+      "variant_hashes": [
+        "9396f4c4d6f705462b230f0d1a2780c992f6a56f"
+      ],
+      "line_count": 316
+    },
+    {
+      "kind": "skill",
+      "name": "test-xcode",
+      "logical_id": "skill:test-xcode",
+      "canonical_path": "plugins/compound-engineering/skills/test-xcode/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/test-xcode/SKILL.md"
+      ],
+      "description": "Build and test iOS apps on simulator using XcodeBuildMCP. Use after making iOS code changes, before creating a PR, or when verifying app behavior and checking for crashes on simulator.",
+      "content_hash": "17a337354bf3bd439aacf7efe4dc6906894cf597",
+      "signature_hash": "34470dd5b6c0a7413fdec1afe30015574b692085",
+      "variant_hashes": [
+        "17a337354bf3bd439aacf7efe4dc6906894cf597"
+      ],
+      "line_count": 214
+    },
+    {
+      "kind": "skill",
+      "name": "todo-create",
+      "logical_id": "skill:todo-create",
+      "canonical_path": "plugins/compound-engineering/skills/todo-create/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/todo-create/SKILL.md"
+      ],
+      "description": "Use when creating durable work items, managing todo lifecycle, or tracking findings across sessions in the file-based todo system",
+      "content_hash": "8cff3f80943384da0008747bb2d405c3c7784f9d",
+      "signature_hash": "64e5447fda04c34a55f03c8d765d1196ada1ee55",
+      "variant_hashes": [
+        "8cff3f80943384da0008747bb2d405c3c7784f9d"
+      ],
+      "line_count": 109
+    },
+    {
+      "kind": "skill",
+      "name": "todo-resolve",
+      "logical_id": "skill:todo-resolve",
+      "canonical_path": "plugins/compound-engineering/skills/todo-resolve/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/todo-resolve/SKILL.md"
+      ],
+      "description": "Use when batch-resolving approved todos, especially after code review or triage sessions",
+      "content_hash": "1d51de327e72e4051785b1a9de71c23d32534e3f",
+      "signature_hash": "a4070e612d7ce15c3ba7e75e93e406f88b650b06",
+      "variant_hashes": [
+        "1d51de327e72e4051785b1a9de71c23d32534e3f"
+      ],
+      "line_count": 68
+    },
+    {
+      "kind": "skill",
+      "name": "todo-triage",
+      "logical_id": "skill:todo-triage",
+      "canonical_path": "plugins/compound-engineering/skills/todo-triage/SKILL.md",
+      "paths": [
+        "plugins/compound-engineering/skills/todo-triage/SKILL.md"
+      ],
+      "description": "Use when reviewing pending todos for approval, prioritizing code review findings, or interactively categorizing work items",
+      "content_hash": "5ea57d253eb1efb720edfc2da005a74b8378435e",
+      "signature_hash": "d310f5af84a3a64efaf1e6210ad2723caa810004",
+      "variant_hashes": [
+        "5ea57d253eb1efb720edfc2da005a74b8378435e"
+      ],
+      "line_count": 70
+    }
+  ]
+}
