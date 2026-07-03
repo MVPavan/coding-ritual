@@ -31,6 +31,15 @@
           }
         ],
         "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/harness-staleness-nudge.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
       }
     ]
   }
