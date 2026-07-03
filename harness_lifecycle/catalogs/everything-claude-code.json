@@ -3,8 +3,8 @@
   "repo": "everything-claude-code",
   "source": "working-tree",
   "source_commit": "c7bf1434505b3b8dd3160349e07289eaf9a1970c",
-  "physical_scanned": 1074,
-  "excluded": 845,
+  "physical_scanned": 1077,
+  "excluded": 842,
   "counts": {
     "agent": {
       "physical": 68,
@@ -3204,7 +3204,7 @@
     {
       "kind": "plugin",
       "name": "ecc",
-      "logical_id": "plugin:",
+      "logical_id": "plugin:ecc",
       "canonical_path": ".claude-plugin/plugin.json",
       "paths": [
         ".claude-plugin/plugin.json"

@@ -3,8 +3,8 @@
   "repo": "superpowers",
   "source": "working-tree",
   "source_commit": "917e5f53b16b115b70a3a355ed5f4993b9f8b73d",
-  "physical_scanned": 79,
-  "excluded": 65,
+  "physical_scanned": 80,
+  "excluded": 64,
   "counts": {
     "agent": {
       "physical": 1,
@@ -91,7 +91,7 @@
     {
       "kind": "plugin",
       "name": "superpowers",
-      "logical_id": "plugin:",
+      "logical_id": "plugin:superpowers",
       "canonical_path": ".claude-plugin/plugin.json",
       "paths": [
         ".claude-plugin/plugin.json"

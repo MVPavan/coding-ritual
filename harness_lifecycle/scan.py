@@ -45,10 +45,15 @@ SCHEMA = "harness-capability-catalog/v1"
 # Directory segments that never contain first-class capabilities: VCS/build/vendor
 # noise, test fixtures, and — crucially — docs/ (harnesses mirror rendered and
 # translated skill copies under docs/, which would otherwise inflate the count).
-EXCLUDE_SEGMENTS = frozenset({
+# Excluded anywhere in a path: VCS/build/vendor noise and test fixtures.
+EXCLUDE_ANYWHERE = frozenset({
     ".git", "node_modules", ".venv", "venv", "dist", "build",
-    "__pycache__", ".mypy_cache", "docs", "test", "tests", "fixtures", "examples",
+    "__pycache__", ".mypy_cache", "test", "tests", "fixtures",
 })
+# Excluded only as a TOP-LEVEL dir: harnesses mirror rendered/translated skill
+# copies under a top-level docs/ (or examples/), but a capability legitimately
+# nested under e.g. agents/docs/ must not be dropped.
+EXCLUDE_TOPLEVEL = frozenset({"docs", "examples"})
 
 # A capability's "root kind dir": the directory whose name marks the kind.
 HOOK_SUFFIXES = frozenset({".sh", ".py", ".mjs", ".js", ".ts"})
@@ -302,13 +307,21 @@ def dedup_key(kind: Kind, parts: tuple[str, ...]) -> str:
     stripped = _strip_leading_dots(parts)
     if kind is Kind.SKILL:
         return "/".join(stripped[:-1])                       # the skill directory
-    if kind is Kind.PLUGIN:
-        if ".claude-plugin" in stripped:
-            idx = stripped.index(".claude-plugin")
-            return "/".join(stripped[:idx]) or ".claude-plugin"
-        return "/".join(stripped[:-1])
     joined = "/".join(stripped)
     return joined.rsplit(".", 1)[0] if "." in stripped[-1] else joined
+
+
+def _plugin_dedup_key(parts: tuple[str, ...], name: str) -> str:
+    """Plugin identity: containing namespace (if any) + the plugin.json name.
+    Computed from RAW parts — `.claude-plugin` is a manifest dir, NOT a mirror
+    root, so it must not be stripped; a root-level plugin keys by its name rather
+    than an empty path.
+    """
+    if ".claude-plugin" in parts:
+        container = "/".join(parts[:parts.index(".claude-plugin")])
+    else:
+        container = "/".join(parts[:-1])
+    return f"{container}/{name}" if container else name
 
 
 def _raw_frontmatter(text: str) -> str:
@@ -350,7 +363,9 @@ def _iter_files(root: Path) -> "tuple[list[Path], int]":
         if not path.is_file():
             continue
         rel_parts = path.relative_to(root).parts
-        if any(seg in EXCLUDE_SEGMENTS for seg in rel_parts):
+        if any(seg in EXCLUDE_ANYWHERE for seg in rel_parts) or (
+            rel_parts and rel_parts[0] in EXCLUDE_TOPLEVEL
+        ):
             excluded += 1
             continue
         kept.append(path)
@@ -402,15 +417,17 @@ def _entry_for(path: Path, root: Path, kind: Kind) -> _Entry:
     if kind is Kind.PLUGIN:
         name = _plugin_name(text) or canonical_name(kind, parts)
         surface = normalize(text)
+        dkey = _plugin_dedup_key(parts, name)
     else:
         name = fm.get("name") or canonical_name(kind, parts)
         surface = _raw_frontmatter(text)
+        dkey = dedup_key(kind, parts)
     normalized = normalize(text)
     return _Entry(
         kind=kind,
         name=name,
         relpath=str(path.relative_to(root)),
-        dedup_key=dedup_key(kind, parts),
+        dedup_key=dkey,
         content_hash=sha1(normalized),
         signature_hash=_signature_hash(kind, name, surface),
         description=fm.get("description", ""),
@@ -507,7 +524,7 @@ def classify_change(
     rather than risk hiding a real edit.
     """
     if old.signature_hash != new.signature_hash:
-        return Material.MATERIAL, "surface changed (name/description/tools)"
+        return Material.MATERIAL, "frontmatter/surface changed"
     if old.content_hash == new.content_hash:
         if set(old.variant_hashes) != set(new.variant_hashes):
             return Material.MINOR, "mirror-only change (canonical unchanged)"
