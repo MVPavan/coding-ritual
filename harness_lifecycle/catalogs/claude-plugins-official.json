@@ -3,8 +3,8 @@
   "repo": "claude-plugins-official",
   "source": "working-tree",
   "source_commit": "f7b31235e6f01cd7cd08ad4a6699f007a4072519",
-  "physical_scanned": 385,
-  "excluded": 49,
+  "physical_scanned": 405,
+  "excluded": 29,
   "counts": {
     "agent": {
       "physical": 26,
@@ -1251,7 +1251,7 @@
     {
       "kind": "plugin",
       "name": "asana",
-      "logical_id": "plugin:external_plugins/asana",
+      "logical_id": "plugin:external_plugins/asana/asana",
       "canonical_path": "external_plugins/asana/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/asana/.claude-plugin/plugin.json"
@@ -1267,7 +1267,7 @@
     {
       "kind": "plugin",
       "name": "context7",
-      "logical_id": "plugin:external_plugins/context7",
+      "logical_id": "plugin:external_plugins/context7/context7",
       "canonical_path": "external_plugins/context7/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/context7/.claude-plugin/plugin.json"
@@ -1283,7 +1283,7 @@
     {
       "kind": "plugin",
       "name": "discord",
-      "logical_id": "plugin:external_plugins/discord",
+      "logical_id": "plugin:external_plugins/discord/discord",
       "canonical_path": "external_plugins/discord/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/discord/.claude-plugin/plugin.json"
@@ -1299,7 +1299,7 @@
     {
       "kind": "plugin",
       "name": "fakechat",
-      "logical_id": "plugin:external_plugins/fakechat",
+      "logical_id": "plugin:external_plugins/fakechat/fakechat",
       "canonical_path": "external_plugins/fakechat/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/fakechat/.claude-plugin/plugin.json"
@@ -1315,7 +1315,7 @@
     {
       "kind": "plugin",
       "name": "firebase",
-      "logical_id": "plugin:external_plugins/firebase",
+      "logical_id": "plugin:external_plugins/firebase/firebase",
       "canonical_path": "external_plugins/firebase/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/firebase/.claude-plugin/plugin.json"
@@ -1331,7 +1331,7 @@
     {
       "kind": "plugin",
       "name": "github",
-      "logical_id": "plugin:external_plugins/github",
+      "logical_id": "plugin:external_plugins/github/github",
       "canonical_path": "external_plugins/github/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/github/.claude-plugin/plugin.json"
@@ -1347,7 +1347,7 @@
     {
       "kind": "plugin",
       "name": "gitlab",
-      "logical_id": "plugin:external_plugins/gitlab",
+      "logical_id": "plugin:external_plugins/gitlab/gitlab",
       "canonical_path": "external_plugins/gitlab/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/gitlab/.claude-plugin/plugin.json"
@@ -1363,7 +1363,7 @@
     {
       "kind": "plugin",
       "name": "greptile",
-      "logical_id": "plugin:external_plugins/greptile",
+      "logical_id": "plugin:external_plugins/greptile/greptile",
       "canonical_path": "external_plugins/greptile/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/greptile/.claude-plugin/plugin.json"
@@ -1379,7 +1379,7 @@
     {
       "kind": "plugin",
       "name": "imessage",
-      "logical_id": "plugin:external_plugins/imessage",
+      "logical_id": "plugin:external_plugins/imessage/imessage",
       "canonical_path": "external_plugins/imessage/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/imessage/.claude-plugin/plugin.json"
@@ -1395,7 +1395,7 @@
     {
       "kind": "plugin",
       "name": "laravel-boost",
-      "logical_id": "plugin:external_plugins/laravel-boost",
+      "logical_id": "plugin:external_plugins/laravel-boost/laravel-boost",
       "canonical_path": "external_plugins/laravel-boost/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/laravel-boost/.claude-plugin/plugin.json"
@@ -1411,7 +1411,7 @@
     {
       "kind": "plugin",
       "name": "linear",
-      "logical_id": "plugin:external_plugins/linear",
+      "logical_id": "plugin:external_plugins/linear/linear",
       "canonical_path": "external_plugins/linear/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/linear/.claude-plugin/plugin.json"
@@ -1427,7 +1427,7 @@
     {
       "kind": "plugin",
       "name": "playwright",
-      "logical_id": "plugin:external_plugins/playwright",
+      "logical_id": "plugin:external_plugins/playwright/playwright",
       "canonical_path": "external_plugins/playwright/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/playwright/.claude-plugin/plugin.json"
@@ -1443,7 +1443,7 @@
     {
       "kind": "plugin",
       "name": "serena",
-      "logical_id": "plugin:external_plugins/serena",
+      "logical_id": "plugin:external_plugins/serena/serena",
       "canonical_path": "external_plugins/serena/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/serena/.claude-plugin/plugin.json"
@@ -1459,7 +1459,7 @@
     {
       "kind": "plugin",
       "name": "telegram",
-      "logical_id": "plugin:external_plugins/telegram",
+      "logical_id": "plugin:external_plugins/telegram/telegram",
       "canonical_path": "external_plugins/telegram/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/telegram/.claude-plugin/plugin.json"
@@ -1475,7 +1475,7 @@
     {
       "kind": "plugin",
       "name": "terraform",
-      "logical_id": "plugin:external_plugins/terraform",
+      "logical_id": "plugin:external_plugins/terraform/terraform",
       "canonical_path": "external_plugins/terraform/.claude-plugin/plugin.json",
       "paths": [
         "external_plugins/terraform/.claude-plugin/plugin.json"
@@ -1491,7 +1491,7 @@
     {
       "kind": "plugin",
       "name": "agent-sdk-dev",
-      "logical_id": "plugin:plugins/agent-sdk-dev",
+      "logical_id": "plugin:plugins/agent-sdk-dev/agent-sdk-dev",
       "canonical_path": "plugins/agent-sdk-dev/.claude-plugin/plugin.json",
       "paths": [
         "plugins/agent-sdk-dev/.claude-plugin/plugin.json"
@@ -1507,7 +1507,7 @@
     {
       "kind": "plugin",
       "name": "claude-code-setup",
-      "logical_id": "plugin:plugins/claude-code-setup",
+      "logical_id": "plugin:plugins/claude-code-setup/claude-code-setup",
       "canonical_path": "plugins/claude-code-setup/.claude-plugin/plugin.json",
       "paths": [
         "plugins/claude-code-setup/.claude-plugin/plugin.json"
@@ -1523,7 +1523,7 @@
     {
       "kind": "plugin",
       "name": "claude-md-management",
-      "logical_id": "plugin:plugins/claude-md-management",
+      "logical_id": "plugin:plugins/claude-md-management/claude-md-management",
       "canonical_path": "plugins/claude-md-management/.claude-plugin/plugin.json",
       "paths": [
         "plugins/claude-md-management/.claude-plugin/plugin.json"
@@ -1539,7 +1539,7 @@
     {
       "kind": "plugin",
       "name": "code-modernization",
-      "logical_id": "plugin:plugins/code-modernization",
+      "logical_id": "plugin:plugins/code-modernization/code-modernization",
       "canonical_path": "plugins/code-modernization/.claude-plugin/plugin.json",
       "paths": [
         "plugins/code-modernization/.claude-plugin/plugin.json"
@@ -1555,7 +1555,7 @@
     {
       "kind": "plugin",
       "name": "code-review",
-      "logical_id": "plugin:plugins/code-review",
+      "logical_id": "plugin:plugins/code-review/code-review",
       "canonical_path": "plugins/code-review/.claude-plugin/plugin.json",
       "paths": [
         "plugins/code-review/.claude-plugin/plugin.json"
@@ -1571,7 +1571,7 @@
     {
       "kind": "plugin",
       "name": "code-simplifier",
-      "logical_id": "plugin:plugins/code-simplifier",
+      "logical_id": "plugin:plugins/code-simplifier/code-simplifier",
       "canonical_path": "plugins/code-simplifier/.claude-plugin/plugin.json",
       "paths": [
         "plugins/code-simplifier/.claude-plugin/plugin.json"
@@ -1587,7 +1587,7 @@
     {
       "kind": "plugin",
       "name": "commit-commands",
-      "logical_id": "plugin:plugins/commit-commands",
+      "logical_id": "plugin:plugins/commit-commands/commit-commands",
       "canonical_path": "plugins/commit-commands/.claude-plugin/plugin.json",
       "paths": [
         "plugins/commit-commands/.claude-plugin/plugin.json"
@@ -1603,7 +1603,7 @@
     {
       "kind": "plugin",
       "name": "cwc-makers",
-      "logical_id": "plugin:plugins/cwc-makers",
+      "logical_id": "plugin:plugins/cwc-makers/cwc-makers",
       "canonical_path": "plugins/cwc-makers/.claude-plugin/plugin.json",
       "paths": [
         "plugins/cwc-makers/.claude-plugin/plugin.json"
@@ -1619,7 +1619,7 @@
     {
       "kind": "plugin",
       "name": "example-plugin",
-      "logical_id": "plugin:plugins/example-plugin",
+      "logical_id": "plugin:plugins/example-plugin/example-plugin",
       "canonical_path": "plugins/example-plugin/.claude-plugin/plugin.json",
       "paths": [
         "plugins/example-plugin/.claude-plugin/plugin.json"
@@ -1635,7 +1635,7 @@
     {
       "kind": "plugin",
       "name": "explanatory-output-style",
-      "logical_id": "plugin:plugins/explanatory-output-style",
+      "logical_id": "plugin:plugins/explanatory-output-style/explanatory-output-style",
       "canonical_path": "plugins/explanatory-output-style/.claude-plugin/plugin.json",
       "paths": [
         "plugins/explanatory-output-style/.claude-plugin/plugin.json"
@@ -1651,7 +1651,7 @@
     {
       "kind": "plugin",
       "name": "feature-dev",
-      "logical_id": "plugin:plugins/feature-dev",
+      "logical_id": "plugin:plugins/feature-dev/feature-dev",
       "canonical_path": "plugins/feature-dev/.claude-plugin/plugin.json",
       "paths": [
         "plugins/feature-dev/.claude-plugin/plugin.json"
@@ -1667,7 +1667,7 @@
     {
       "kind": "plugin",
       "name": "frontend-design",
-      "logical_id": "plugin:plugins/frontend-design",
+      "logical_id": "plugin:plugins/frontend-design/frontend-design",
       "canonical_path": "plugins/frontend-design/.claude-plugin/plugin.json",
       "paths": [
         "plugins/frontend-design/.claude-plugin/plugin.json"
@@ -1683,7 +1683,7 @@
     {
       "kind": "plugin",
       "name": "hookify",
-      "logical_id": "plugin:plugins/hookify",
+      "logical_id": "plugin:plugins/hookify/hookify",
       "canonical_path": "plugins/hookify/.claude-plugin/plugin.json",
       "paths": [
         "plugins/hookify/.claude-plugin/plugin.json"
@@ -1699,7 +1699,7 @@
     {
       "kind": "plugin",
       "name": "learning-output-style",
-      "logical_id": "plugin:plugins/learning-output-style",
+      "logical_id": "plugin:plugins/learning-output-style/learning-output-style",
       "canonical_path": "plugins/learning-output-style/.claude-plugin/plugin.json",
       "paths": [
         "plugins/learning-output-style/.claude-plugin/plugin.json"
@@ -1715,7 +1715,7 @@
     {
       "kind": "plugin",
       "name": "math-olympiad",
-      "logical_id": "plugin:plugins/math-olympiad",
+      "logical_id": "plugin:plugins/math-olympiad/math-olympiad",
       "canonical_path": "plugins/math-olympiad/.claude-plugin/plugin.json",
       "paths": [
         "plugins/math-olympiad/.claude-plugin/plugin.json"
@@ -1731,7 +1731,7 @@
     {
       "kind": "plugin",
       "name": "mcp-server-dev",
-      "logical_id": "plugin:plugins/mcp-server-dev",
+      "logical_id": "plugin:plugins/mcp-server-dev/mcp-server-dev",
       "canonical_path": "plugins/mcp-server-dev/.claude-plugin/plugin.json",
       "paths": [
         "plugins/mcp-server-dev/.claude-plugin/plugin.json"
@@ -1747,7 +1747,7 @@
     {
       "kind": "plugin",
       "name": "mcp-tunnels",
-      "logical_id": "plugin:plugins/mcp-tunnels",
+      "logical_id": "plugin:plugins/mcp-tunnels/mcp-tunnels",
       "canonical_path": "plugins/mcp-tunnels/.claude-plugin/plugin.json",
       "paths": [
         "plugins/mcp-tunnels/.claude-plugin/plugin.json"
@@ -1763,7 +1763,7 @@
     {
       "kind": "plugin",
       "name": "playground",
-      "logical_id": "plugin:plugins/playground",
+      "logical_id": "plugin:plugins/playground/playground",
       "canonical_path": "plugins/playground/.claude-plugin/plugin.json",
       "paths": [
         "plugins/playground/.claude-plugin/plugin.json"
@@ -1779,7 +1779,7 @@
     {
       "kind": "plugin",
       "name": "plugin-dev",
-      "logical_id": "plugin:plugins/plugin-dev",
+      "logical_id": "plugin:plugins/plugin-dev/plugin-dev",
       "canonical_path": "plugins/plugin-dev/.claude-plugin/plugin.json",
       "paths": [
         "plugins/plugin-dev/.claude-plugin/plugin.json"
@@ -1795,7 +1795,7 @@
     {
       "kind": "plugin",
       "name": "pr-review-toolkit",
-      "logical_id": "plugin:plugins/pr-review-toolkit",
+      "logical_id": "plugin:plugins/pr-review-toolkit/pr-review-toolkit",
       "canonical_path": "plugins/pr-review-toolkit/.claude-plugin/plugin.json",
       "paths": [
         "plugins/pr-review-toolkit/.claude-plugin/plugin.json"
@@ -1811,7 +1811,7 @@
     {
       "kind": "plugin",
       "name": "project-artifact",
-      "logical_id": "plugin:plugins/project-artifact",
+      "logical_id": "plugin:plugins/project-artifact/project-artifact",
       "canonical_path": "plugins/project-artifact/.claude-plugin/plugin.json",
       "paths": [
         "plugins/project-artifact/.claude-plugin/plugin.json"
@@ -1827,7 +1827,7 @@
     {
       "kind": "plugin",
       "name": "ralph-loop",
-      "logical_id": "plugin:plugins/ralph-loop",
+      "logical_id": "plugin:plugins/ralph-loop/ralph-loop",
       "canonical_path": "plugins/ralph-loop/.claude-plugin/plugin.json",
       "paths": [
         "plugins/ralph-loop/.claude-plugin/plugin.json"
@@ -1843,7 +1843,7 @@
     {
       "kind": "plugin",
       "name": "security-guidance",
-      "logical_id": "plugin:plugins/security-guidance",
+      "logical_id": "plugin:plugins/security-guidance/security-guidance",
       "canonical_path": "plugins/security-guidance/.claude-plugin/plugin.json",
       "paths": [
         "plugins/security-guidance/.claude-plugin/plugin.json"
@@ -1859,7 +1859,7 @@
     {
       "kind": "plugin",
       "name": "skill-creator",
-      "logical_id": "plugin:plugins/skill-creator",
+      "logical_id": "plugin:plugins/skill-creator/skill-creator",
       "canonical_path": "plugins/skill-creator/.claude-plugin/plugin.json",
       "paths": [
         "plugins/skill-creator/.claude-plugin/plugin.json"

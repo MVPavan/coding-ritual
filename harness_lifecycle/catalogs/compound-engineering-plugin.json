@@ -3,12 +3,12 @@
   "repo": "compound-engineering-plugin",
   "source": "working-tree",
   "source_commit": "31b0686c2e88808381560314f10ce276c86e11e2",
-  "physical_scanned": 296,
-  "excluded": 170,
+  "physical_scanned": 297,
+  "excluded": 169,
   "counts": {
     "agent": {
-      "physical": 50,
-      "logical": 50
+      "physical": 51,
+      "logical": 51
     },
     "command": {
       "physical": 4,
@@ -71,6 +71,22 @@
         "00c12d81265088f330860bb0026c2c11ac2fe8ec"
       ],
       "line_count": 172
+    },
+    {
+      "kind": "agent",
+      "name": "ankane-readme-writer",
+      "logical_id": "agent:plugins/compound-engineering/agents/docs/ankane-readme-writer",
+      "canonical_path": "plugins/compound-engineering/agents/docs/ankane-readme-writer.md",
+      "paths": [
+        "plugins/compound-engineering/agents/docs/ankane-readme-writer.md"
+      ],
+      "description": "Creates or updates README files following Ankane-style template for Ruby gems. Use when writing gem documentation with imperative voice, concise prose, and standard section ordering.",
+      "content_hash": "41ebcfdc937c9d6c8bd73c8d3cdcbc5559083a42",
+      "signature_hash": "0546fe7340b954fee7293241583b5d888aa4f56b",
+      "variant_hashes": [
+        "41ebcfdc937c9d6c8bd73c8d3cdcbc5559083a42"
+      ],
+      "line_count": 50
     },
     {
       "kind": "agent",
@@ -891,7 +907,7 @@
     {
       "kind": "plugin",
       "name": "coding-tutor",
-      "logical_id": "plugin:plugins/coding-tutor",
+      "logical_id": "plugin:plugins/coding-tutor/coding-tutor",
       "canonical_path": "plugins/coding-tutor/.claude-plugin/plugin.json",
       "paths": [
         "plugins/coding-tutor/.claude-plugin/plugin.json"
@@ -907,7 +923,7 @@
     {
       "kind": "plugin",
       "name": "compound-engineering",
-      "logical_id": "plugin:plugins/compound-engineering",
+      "logical_id": "plugin:plugins/compound-engineering/compound-engineering",
       "canonical_path": "plugins/compound-engineering/.claude-plugin/plugin.json",
       "paths": [
         "plugins/compound-engineering/.claude-plugin/plugin.json"
