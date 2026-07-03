@@ -62,6 +62,39 @@ The scanner deduplicates to logical units:
 
 Thresholds (15 lines / 10%) are conservative defaults; tune in `classify_change`.
 
+## `gap.py` — gap report + adoption ledger
+
+Answers "what do the reference harnesses ship that **our** harness doesn't?" and
+records what we've decided so it stops re-nagging. Imports `scan.py`.
+
+```bash
+# Catalog our own reusable surface (root .claude/ + every mvp-harness plugin)
+python3 harness_lifecycle/gap.py ours
+
+# What does a reference harness have that we don't? (ledgered decisions excluded)
+python3 harness_lifecycle/gap.py gap reference_harnesses/superpowers
+python3 harness_lifecycle/gap.py gap superpowers --kind skill --beads
+
+# Record a decision so the gap report stops surfacing it
+python3 harness_lifecycle/gap.py ledger add --repo superpowers \
+    --id skill:writing-plans --status adopted --our-id skill:planning \
+    --reason "covered by our planning skill"
+python3 harness_lifecycle/gap.py ledger list
+```
+
+- **"Ours"** merges the root `.claude/` capabilities with every plugin under
+  `mvp-harness/plugins/*`, so plugin-provided capabilities (codex-adapter,
+  code-intel) never show up as false gaps.
+- **Matching** a reference capability to ours: exact `logical_id` → curated alias
+  (`aliases.json`) → normalized name → otherwise it is a gap. A close lexical name
+  match is shown as a `[similar to ours: X]` hint only — never auto-matched.
+- **Ledger** (`ledger.json`): `adopted | rejected | deferred` + reason +
+  `source_sha`. Ledgered capabilities drop out of the gap report. An `adopted`
+  entry stores the reference capability's hash, so a later upstream change to it
+  is surfaced as **⚑ upstream improved since we adopted**.
+- **`--beads`** prints ready-to-run `bd create` lines for the gaps; it never files
+  issues itself — that stays a human / `harness-evaluate` decision.
+
 ## `catalogs/` — committed baselines
 
 One `<repo>.json` per reference harness: the last-reviewed capability state.

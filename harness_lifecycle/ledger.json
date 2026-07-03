@@ -1,0 +1,5 @@
+{
+  "schema": "harness-adoption-ledger/v1",
+  "_comment": "One entry per adoption decision so the gap report stops re-nagging. status: adopted|rejected|deferred. For 'adopted', source_content_hash records the reference capability's normalized hash at decision time, so a later upstream change to it can be surfaced as 'improved since adopted'.",
+  "entries": []
+}
