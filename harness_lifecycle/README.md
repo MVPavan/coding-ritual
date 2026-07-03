@@ -40,10 +40,13 @@ The scanner deduplicates to logical units:
 - **`docs/`, `tests/`, `examples/`, vendor/build dirs are excluded** (they hold
   documentation and fixtures, not capabilities). The excluded count is reported —
   nothing is dropped silently.
-- Remaining files are grouped by **`(kind, name)`** — the mirror copies of one
-  skill share a name and collapse into one capability. The **canonical** copy is
-  the one under the top-level, non-hidden root (`skills/…` beats `.kiro/skills/…`);
-  mirror paths and their content hashes are recorded as `variant_hashes`.
+- Remaining files are grouped by a **namespace-aware identity** — the path with
+  leading per-tool mirror roots (`.kiro/`, `.cursor/`, `.claude/`, …) stripped. So
+  mirror copies of one skill collapse, while two same-named skills in *different*
+  plugins (`plugins/discord/…/access` vs `plugins/telegram/…/access`) stay distinct.
+  The **canonical** copy is the one under the top-level, non-hidden root; mirror
+  paths and their content hashes are recorded as `variant_hashes`. Plugin identity
+  comes from `plugin.json`'s `name`, not the `.claude-plugin` directory.
 - Only *true* duplicates collapse. `.cursor/rules/*` that share no name with
   `rules/*` stay distinct — the scanner never merges different capabilities.
 
@@ -82,9 +85,10 @@ python3 harness_lifecycle/gap.py ledger add --repo superpowers \
 python3 harness_lifecycle/gap.py ledger list
 ```
 
-- **"Ours"** merges the root `.claude/` capabilities with every plugin under
-  `mvp-harness/plugins/*`, so plugin-provided capabilities (codex-adapter,
-  code-intel) never show up as false gaps.
+- **"Ours"** merges the root `.claude/` **and `.codex/`** capabilities with every
+  plugin under `mvp-harness/plugins/*` (excluding each plugin's `template/` copy of
+  the root harness), so plugin-provided capabilities (codex-adapter, code-intel)
+  never show up as false gaps.
 - **Matching** a reference capability to ours: exact `logical_id` → curated alias
   (`aliases.json`) → normalized name → otherwise it is a gap. A close lexical name
   match is shown as a `[similar to ours: X]` hint only — never auto-matched.

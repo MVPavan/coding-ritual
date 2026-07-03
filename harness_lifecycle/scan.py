@@ -53,8 +53,6 @@ EXCLUDE_SEGMENTS = frozenset({
 # A capability's "root kind dir": the directory whose name marks the kind.
 HOOK_SUFFIXES = frozenset({".sh", ".py", ".mjs", ".js", ".ts"})
 MCP_FILENAMES = frozenset({"mcp.json", ".mcp.json"})
-# Frontmatter keys that shape a capability's invocation surface (its "signature").
-SIGNATURE_KEYS = ("name", "description", "model", "tools", "allowed-tools", "argument-hint")
 
 
 class Kind(str, Enum):
@@ -164,6 +162,7 @@ class _Entry:
     kind: Kind
     name: str
     relpath: str
+    dedup_key: str
     content_hash: str
     signature_hash: str
     description: str
@@ -284,6 +283,63 @@ def root_rank(kind: Kind, parts: tuple[str, ...]) -> int:
     return depth + hidden_penalty
 
 
+def _strip_leading_dots(parts: tuple[str, ...]) -> tuple[str, ...]:
+    """Drop leading per-tool mirror roots (`.kiro/`, `.cursor/`, `.claude/`, …) so a
+    skill mirrored into several tool trees collapses to one identity — while a
+    distinct plugin namespace (`plugins/discord/…` vs `plugins/telegram/…`) does not.
+    """
+    i = 0
+    while i < len(parts) - 1 and parts[i].startswith("."):
+        i += 1
+    return parts[i:]
+
+
+def dedup_key(kind: Kind, parts: tuple[str, ...]) -> str:
+    """Namespace-aware grouping identity: merges mirror copies of ONE capability
+    but keeps genuinely distinct capabilities apart (fixes over-merge). Uses the
+    mirror-stripped path, which retains any containing plugin namespace.
+    """
+    stripped = _strip_leading_dots(parts)
+    if kind is Kind.SKILL:
+        return "/".join(stripped[:-1])                       # the skill directory
+    if kind is Kind.PLUGIN:
+        if ".claude-plugin" in stripped:
+            idx = stripped.index(".claude-plugin")
+            return "/".join(stripped[:idx]) or ".claude-plugin"
+        return "/".join(stripped[:-1])
+    joined = "/".join(stripped)
+    return joined.rsplit(".", 1)[0] if "." in stripped[-1] else joined
+
+
+def _raw_frontmatter(text: str) -> str:
+    """The normalized YAML frontmatter block (between the first two `---`), or ''.
+
+    Hashed into the signature so block-style list changes (e.g. adding a tool /
+    permission) are seen even though the minimal scalar parser cannot read them.
+    """
+    if not text.startswith("---"):
+        return ""
+    lines = text.split("\n")
+    if lines[0].strip() != "---":
+        return ""
+    block: list[str] = []
+    for line in lines[1:]:
+        if line.strip() == "---":
+            return normalize("\n".join(block))
+        block.append(line)
+    return ""
+
+
+def _plugin_name(text: str) -> str:
+    """The `name` from a plugin.json, or '' if unreadable."""
+    try:
+        data = json.loads(text)
+    except (json.JSONDecodeError, ValueError):
+        return ""
+    name = data.get("name") if isinstance(data, dict) else None
+    return str(name) if isinstance(name, str) else ""
+
+
 # --- Scanning -----------------------------------------------------------------
 
 
@@ -301,14 +357,12 @@ def _iter_files(root: Path) -> "tuple[list[Path], int]":
     return kept, excluded
 
 
-def _signature_hash(kind: Kind, name: str, fm: dict[str, str], extra: str = "") -> str:
-    sig = {"kind": kind.value, "name": name}
-    for key in SIGNATURE_KEYS:
-        if key in fm:
-            sig[key] = fm[key]
-    if extra:
-        sig["extra"] = extra
-    return sha1(json.dumps(sig, sort_keys=True))
+def _signature_hash(kind: Kind, name: str, surface: str) -> str:
+    """Hash a capability's invocation surface: kind, name, and the full (normalized)
+    frontmatter/config block. Any tool/permission/description change flips it, so a
+    permission expansion can never be bucketed as a cosmetic body edit.
+    """
+    return sha1(json.dumps({"kind": kind.value, "name": name, "surface": surface}, sort_keys=True))
 
 
 def _scan_mcp(path: Path, root: Path) -> list[_Entry]:
@@ -320,24 +374,23 @@ def _scan_mcp(path: Path, root: Path) -> list[_Entry]:
     servers = data.get("mcpServers") or data.get("servers") or {}
     if not isinstance(servers, dict):
         return []
+    rel_parts = path.relative_to(root).parts
     rel = str(path.relative_to(root))
+    stripped = "/".join(_strip_leading_dots(rel_parts))
     entries: list[_Entry] = []
     for server_name, config in servers.items():
         body = json.dumps(config, sort_keys=True, indent=2)
-        fm = {"name": server_name}
-        if isinstance(config, dict):
-            for key in ("command", "url", "type"):
-                if key in config:
-                    fm[key] = str(config[key])
+        cfg = config if isinstance(config, dict) else {}
         entries.append(_Entry(
             kind=Kind.MCP,
             name=str(server_name),
             relpath=f"{rel}#{server_name}",
+            dedup_key=f"{stripped}#{server_name}",
             content_hash=sha1(normalize(body)),
-            signature_hash=_signature_hash(Kind.MCP, str(server_name), fm),
-            description=str(fm.get("command", fm.get("url", ""))),
+            signature_hash=_signature_hash(Kind.MCP, str(server_name), json.dumps(config, sort_keys=True)),
+            description=str(cfg.get("command", cfg.get("url", ""))),
             line_count=body.count("\n") + 1,
-            rank=root_rank(Kind.MCP, path.relative_to(root).parts),
+            rank=root_rank(Kind.MCP, rel_parts),
         ))
     return entries
 
@@ -346,14 +399,20 @@ def _entry_for(path: Path, root: Path, kind: Kind) -> _Entry:
     parts = path.relative_to(root).parts
     text = read_text(path)
     fm = parse_frontmatter(text) if path.suffix == ".md" else {}
-    name = fm.get("name") or canonical_name(kind, parts)
+    if kind is Kind.PLUGIN:
+        name = _plugin_name(text) or canonical_name(kind, parts)
+        surface = normalize(text)
+    else:
+        name = fm.get("name") or canonical_name(kind, parts)
+        surface = _raw_frontmatter(text)
     normalized = normalize(text)
     return _Entry(
         kind=kind,
         name=name,
         relpath=str(path.relative_to(root)),
+        dedup_key=dedup_key(kind, parts),
         content_hash=sha1(normalized),
-        signature_hash=_signature_hash(kind, name, fm),
+        signature_hash=_signature_hash(kind, name, surface),
         description=fm.get("description", ""),
         line_count=normalized.count("\n"),
         rank=root_rank(kind, parts),
@@ -374,7 +433,7 @@ def scan_repo(root: Path, repo: str, source: str, source_commit: str | None) -> 
 
     groups: dict[str, list[_Entry]] = {}
     for entry in entries:
-        logical_id = f"{entry.kind.value}:{entry.name}"
+        logical_id = f"{entry.kind.value}:{entry.dedup_key}"
         groups.setdefault(logical_id, []).append(entry)
 
     capabilities: list[Capability] = []
@@ -453,14 +512,14 @@ def classify_change(
         if set(old.variant_hashes) != set(new.variant_hashes):
             return Material.MINOR, "mirror-only change (canonical unchanged)"
         return Material.MINOR, "paths changed only"
-    if old_root is not None and new_root is not None:
-        old_body = read_text(old_root / old.canonical_path)
-        new_body = read_text(new_root / new.canonical_path)
-        changed, ratio = _change_ratio(old_body, new_body)
-        if changed > 15 or ratio > 0.10:
-            return Material.MATERIAL, f"body changed (~{changed} lines, {ratio:.0%})"
-        return Material.MINOR, f"minor body edit (~{changed} lines, {ratio:.0%})"
-    return Material.MATERIAL, "body changed (magnitude not computed — run drift)"
+    if old_root is not None and new_root is not None and "#" not in old.canonical_path:
+        old_file, new_file = old_root / old.canonical_path, new_root / new.canonical_path
+        if old_file.exists() and new_file.exists():
+            changed, ratio = _change_ratio(read_text(old_file), read_text(new_file))
+            if changed > 15 or ratio > 0.10:
+                return Material.MATERIAL, f"body changed (~{changed} lines, {ratio:.0%})"
+            return Material.MINOR, f"minor body edit (~{changed} lines, {ratio:.0%})"
+    return Material.MATERIAL, "body changed (magnitude not computed)"
 
 
 @dataclass(frozen=True)
@@ -573,7 +632,8 @@ def pinned_commit(submodule: Path) -> str:
 def upstream_ref(submodule: Path) -> str:
     try:
         head = _git(submodule, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD")
-        return head.rsplit("/", 1)[-1] and f"origin/{head.split('refs/remotes/origin/')[-1]}"
+        if head:
+            return "origin/" + head.rsplit("/", 1)[-1]
     except subprocess.CalledProcessError:
         pass
     for branch in ("origin/main", "origin/master"):
