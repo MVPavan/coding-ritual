@@ -101,6 +101,19 @@ One `<repo>.json` per reference harness: the last-reviewed capability state.
 Re-`catalog` + `diff` against these to see what changed since the last review.
 Schema id: `harness-capability-catalog/v1` (see `Catalog.to_dict` in `scan.py`).
 
+## Command surface (Claude Code)
+
+The lifecycle is driven from the root harness. Everything here is curation-only and
+kept out of the shipped template by `template-exclude.txt`:
+
+- **`/harness-status`** — upstream-drift one-liner across all reference harnesses.
+- **`/harness-scan <name>`** — deep drift + gap for one harness, then routing.
+- **`harness-evaluate` skill** — decide template / new-plugin / merge / reject for a
+  candidate and drive the sync-back; records the decision in the ledger.
+- **`.claude/rules/harness-lifecycle/curation.md`** — the guardrails.
+- **`.claude/hooks/harness-staleness-nudge.sh`** — SessionStart reminder when the
+  catalogs are more than 30 days old.
+
 ## Limitations (current)
 
 - Frontmatter parsing is minimal (single-line scalars); multi-line descriptions
