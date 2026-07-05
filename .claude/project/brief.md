@@ -7,7 +7,7 @@ It is **not** an application; there is no first-party product code and no CI.
 
 ## What lives here
 
-- `my_harness/` — the harness plugins under active development:
+- `mvp-harness/` — the harness plugins under active development:
   - `mvp-plugin/` — the reusable harness installer (`/mvp-plugin:adopt` copies the
     `.claude` + `.codex` setup, rules, hooks, and beads tracking into any repo).
     This repo was itself adopted with it.

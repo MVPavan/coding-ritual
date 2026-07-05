@@ -18,9 +18,9 @@ test/lint/build commands to run for the repo as a whole, so the health gate is
 
 ## Plugin test harnesses (when you touch a plugin)
 
-- `my_harness/mvp-plugin/test/run-tests.sh` — Docker-based from-zero install test
+- `mvp-harness/plugins/mvp-plugin/test/run-tests.sh` — Docker-based from-zero install test
   for the installer (`from-zero.sh`).
-- `my_harness/code-intel/test/run-tests.sh` — code-intel plugin tests.
+- `mvp-harness/plugins/code-intel/test/run-tests.sh` — code-intel plugin tests.
 
 Run the relevant harness after changing that plugin; these are the closest thing
 to CI the repo has. Report actual exit status and output — no completion claim

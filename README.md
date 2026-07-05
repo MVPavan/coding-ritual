@@ -7,7 +7,7 @@ application code.
 
 ## Main Areas
 
-- `my_harness/` — the harness plugins under active development:
+- `mvp-harness/` — the harness plugins under active development:
   - `mvp-plugin/` — the reusable harness installer. `/mvp-plugin:adopt` copies the
     `.claude` + `.codex` setup, rules, hooks, and beads tracking into any repo.
   - `codex-adapter/` — call OpenAI Codex (`gpt-5.x`) from Claude Code via `codex exec`.
@@ -33,20 +33,19 @@ application code.
 
 ### Work on the reusable harness
 
-Start in `my_harness/mvp-plugin/` and use `harness_learnings/` as the design
+Start in `mvp-harness/plugins/mvp-plugin/` and use `harness_learnings/` as the design
 reference.
 
 ### Add or update a reference repo
 
 Follow `harness_learnings/reference-harness-workflow.md`.
 
-### Refresh the local harness from a new reference repo
+### Curate a reference repo into the harness
 
-Use:
-
-```text
-Use $refresh-harness-from-reference to evaluate reference_harnesses/<repo-name> and selectively update harness_learnings plus my_harness.
-```
+Run `/harness-status` (what changed upstream since our pins) then
+`/harness-scan <repo>` (what it ships that we don't), and triage candidates with
+the `harness-evaluate` skill. Deterministic tooling lives in `harness_lifecycle/`
+(`scan.py`, `gap.py`).
 
 ## Reference Repo Policy
 
