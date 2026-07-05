@@ -16,7 +16,7 @@ Node ≥18 package (`codex-adapter`, no build step).
 - Skeleton overlay under `.claude/project/` and `.codex/project/`.
 - `.gitmodules`, `.beads/config.yaml`, `.beads/metadata.json`, `.gitignore`,
   `git remote -v`, `git status`.
-- `my_harness/` plugin manifests (`plugin.json`, `marketplace.json`) and trees
+- `mvp-harness/` plugin manifests (`plugin.json`, `marketplace.json`) and trees
   for `mvp-plugin`, `codex-adapter`, `code-intel`; `codex-adapter/package.json`.
 - `harness_learnings/coding-harness-best-practices.md`.
 - Installed core: `.claude/{rules,agents,commands,skills,hooks}/`.
@@ -38,8 +38,8 @@ are reference harnesses under `reference_harnesses/`.
 - **Structural verification gate.** No build/test/lint/CI exists for the repo as
   a whole, so the gate is structural (manifests parse, changed `.sh` pass
   `bash -n`, changed `.py` pass `py_compile`, `bd list` runs) plus the per-plugin
-  test harnesses (`my_harness/mvp-plugin/test/run-tests.sh`,
-  `my_harness/code-intel/test/run-tests.sh`) when those plugins change. No
+  test harnesses (`mvp-harness/plugins/mvp-plugin/test/run-tests.sh`,
+  `mvp-harness/plugins/code-intel/test/run-tests.sh`) when those plugins change. No
   commands invented.
 - **Beads prefix** auto-detects from the directory name (`coding-ritual`);
   `issue-prefix` left unset, no issues created yet.
@@ -48,7 +48,7 @@ are reference harnesses under `reference_harnesses/`.
 
 - **`README.md` was stale → fixed.** It documented `project_agnostic_claude_setup/`
   and `bodha_claude_setup/`, both removed. Refreshed during adoption (at the
-  user's request) to match the current `my_harness/` + `.claude`/`.codex` layout.
+  user's request) to match the current `mvp-harness/` + `.claude`/`.codex` layout.
 - **`rules/python/` partial mismatch.** The harness ships `.claude/rules/python/`
   and `.codex/rules/python/`, but the repo has no Python application/package —
   only tooling scripts. Noted in `tools.md`; recommend trimming or explicitly

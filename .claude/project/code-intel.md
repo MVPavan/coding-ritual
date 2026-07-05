@@ -13,6 +13,6 @@
   but absent.
 
 Note: the `code-intel` plugin's *source* lives in this repo
-(`my_harness/code-intel/`), but that is the artifact being developed, not a
+(`mvp-harness/plugins/code-intel/`), but that is the artifact being developed, not a
 reason to run it against this repo. Revisit only if substantial first-party
 source code in a single LSP language lands here.

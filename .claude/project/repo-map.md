@@ -4,13 +4,14 @@ Top-level layout and how to navigate.
 
 | Path | What it is |
 |---|---|
-| `my_harness/` | Harness plugins under development (the repo's real output) |
-| `my_harness/mvp-plugin/` | The harness installer plugin: `scripts/install-harness.sh`, `template/` (the `.claude`+`.codex` payload), `skills/harness-adopt/`, `commands/`, `test/` (Docker from-zero install test), `vendor/codex-adapter/` |
-| `my_harness/codex-adapter/` | Codex bridge plugin: `scripts/codex-run.mjs`, `roles/`, `commands/`, `skills/codex-runner/` |
-| `my_harness/code-intel/` | Code-intelligence plugin: `bin/` shims, `hooks/`, `skills/graph-first/`, `test/` |
+| `mvp-harness/` | Harness marketplace (git submodule) — the 3 plugins live under `plugins/`; the repo's real output |
+| `mvp-harness/plugins/mvp-plugin/` | The harness installer plugin: `scripts/install-harness.sh`, `template/` (the dot-less `.claude`+`.codex` payload), `skills/harness-adopt/`, `commands/`, `test/` (Docker from-zero install test) |
+| `mvp-harness/plugins/codex-adapter/` | Codex bridge plugin: `scripts/codex-run.mjs`, `roles/`, `commands/`, `skills/codex-runner/` |
+| `mvp-harness/plugins/code-intel/` | Code-intelligence plugin: `bin/` shims, `hooks/`, `skills/graph-first/`, `test/` |
 | `harness_learnings/` | Synthesized canon + best-practice docs (design reference) |
-| `reference_harnesses/` | Five third-party harnesses as git submodules (read-only) |
-| `.agents/` | Codex-style local skill `refresh-harness-from-reference` + settings |
+| `reference_harnesses/` | Six third-party harnesses as git submodules (read-only) |
+| `harness_lifecycle/` | Reference-harness curation tooling: `scan.py` (catalog/diff/drift), `gap.py` (gap/ledger), committed `catalogs/` |
+| `.agents/` | Codex/agent local settings |
 | `.claude/` | Installed Claude harness: `rules/`, `skills/`, `agents/`, `commands/`, `hooks/`, `project/` overlay |
 | `.codex/` | Installed Codex harness (mirror of `.claude/`, Codex-flavored) |
 | `.beads/` | Beads issue tracker store (embedded Dolt) + `beads.md` |
@@ -20,10 +21,10 @@ Top-level layout and how to navigate.
 
 ## Orientation
 
-- To work on the reusable harness: start in `my_harness/mvp-plugin/`, use
+- To work on the reusable harness: start in `mvp-harness/plugins/mvp-plugin/`, use
   `harness_learnings/` as the design reference.
-- To evaluate/borrow from a reference repo: see
-  `harness_learnings/reference-harness-workflow.md` and the
-  `.agents/skills/refresh-harness-from-reference/` skill.
+- To evaluate/borrow from a reference repo: run `/harness-status` then
+  `/harness-scan <repo>`, and triage candidates with the `harness-evaluate` skill;
+  the deterministic tooling lives in `harness_lifecycle/` (see its README).
 - Submodules are pointers only — `git submodule update --init` to populate;
   don't edit their internals.
