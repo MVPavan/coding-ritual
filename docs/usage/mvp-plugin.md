@@ -6,9 +6,8 @@ how each command and script works, and what it installs into a target repo.
 > **Where it lives now.** `mvp-plugin` is one of three plugins in the **`mvp-harness`**
 > marketplace, tracked in this repo as the `mvp-harness/` git submodule
 > (`MVPavan/mvp-harness`). Its path is [`mvp-harness/plugins/mvp-plugin/`](../../mvp-harness/plugins/mvp-plugin/).
-> The plugin's own `README.md` predates the marketplace restructure and still
-> describes a two-plugin / vendored-codex-adapter layout — see
-> [Current state & caveats](#current-state--caveats) for what actually holds today.
+> The plugin's `README.md` and `plugin.json` are current with the `mvp-harness`
+> marketplace layout (one root marketplace, sibling plugins, no vendoring).
 
 ---
 
@@ -295,23 +294,11 @@ exits clean, install is idempotent, and `claude plugin validate` passes.
 
 ---
 
-## Current state & caveats
+## Current state
 
-The marketplace restructure (mvp-plugin folded into the single `mvp-harness`
-marketplace; the per-plugin `marketplace.json` and the vendored `codex-adapter` copy
-removed) left three known drifts to reconcile:
-
-1. **The plugin `README.md` is stale.** It still says "single marketplace with two
-   plugins", references `vendor/codex-adapter/`, and lists
-   `.claude-plugin/{plugin.json, marketplace.json}`. Under `mvp-harness` there is one
-   root marketplace, no vendored copy, and no per-plugin `marketplace.json`.
-2. **`test/run-tests.sh` will fail its "bundled codex-adapter" section.** It asserts
-   `vendor/codex-adapter/...` files and that `.claude-plugin/marketplace.json` "lists
-   both plugins" — both removed. Those assertions need to move to the harness level
-   (or be dropped) now that codex-adapter is a sibling plugin.
-3. **Install IDs changed.** `mvp-plugin@mvp-plugin` / `codex-adapter@mvp-plugin` →
-   `…@mvp-harness`. Any docs/READMEs still using the old `@mvp-plugin` suffix are stale.
-
-Minor: `build-template.sh`'s genericization still targets the old project/machine
-tokens (`Bodha`, `orchestrators`, `gascity`/`gastown`); revisit if the source harness
-has been renamed.
+The marketplace restructure is fully reconciled: `mvp-harness` is the single root
+marketplace, `codex-adapter` and `code-intel` are sibling plugins (no vendored copy,
+no per-plugin `marketplace.json`), install IDs are `…@mvp-harness`, and the plugin
+`README.md`, `plugin.json`, and `test/run-tests.sh` all match. `/mvp-plugin:update`
+is non-destructive (base/local/new three-way merge; covered by
+`test/update-merge-test.sh`).
