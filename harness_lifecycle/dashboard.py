@@ -112,6 +112,21 @@ INVENTORY_COLUMNS = [
 ]
 
 
+def our_origin_catalogs() -> list[scan.Catalog]:
+    """Scan our own reusable surface as separate per-origin catalogs — root ``.claude``,
+    ``.codex``, and each ``mvp-harness`` plugin — so the inventory attributes every
+    capability to where it lives (``ours:*`` vs ``mvp:*``). Each plugin's ``template/``
+    copy of the root harness is dropped, matching ``gap.build_ours``."""
+    roots = [gap.OUR_HARNESS_ROOT, REPO_ROOT / ".codex"] + sorted(REPO_ROOT.glob(gap.PLUGINS_GLOB))
+    out: list[scan.Catalog] = []
+    for root in roots:
+        if root.is_dir():
+            label = f"mvp:{root.name}" if root.parent.name == "plugins" else f"ours:{root.name}"
+            cat = scan.scan_repo(root, label, source=f"ours:{root.name}", source_commit=None)
+            out.append(gap._drop_template_caps(cat))
+    return out
+
+
 def inventory_rows(catalogs: list[scan.Catalog], ours: scan.Catalog) -> list[dict]:
     our_ids = ours.by_logical_id()
     aliases = gap.load_aliases()
@@ -131,6 +146,21 @@ def inventory_rows(catalogs: list[scan.Catalog], ours: scan.Catalog) -> list[dic
                 "path": cap.canonical_path, "description": cap.description,
             })
     rows.sort(key=lambda r: (r["harness"], r["kind"], r["category"], r["name"]))
+    return rows
+
+
+def our_inventory_rows(our_cats: list[scan.Catalog]) -> list[dict]:
+    """Inventory rows for our own capabilities — marked ``covered=ours`` since they
+    are the baseline, not a reference item measured against it."""
+    rows: list[dict] = []
+    for cat in our_cats:
+        for cap in cat.capabilities:
+            rows.append({
+                "harness": cat.repo, "kind": cap.kind.value, "category": cap.category,
+                "name": cap.name, "covered": "ours",
+                "our_equivalent": cap.logical_id, "similar_to": "",
+                "decision": "", "path": cap.canonical_path, "description": cap.description,
+            })
     return rows
 
 
@@ -500,12 +530,17 @@ def main(argv: list[str] | None = None) -> int:
     out.write_text(render(catalogs, ours), encoding="utf-8")
 
     csv_path = out.with_suffix(".csv")
-    inventory = inventory_rows(catalogs, ours)
+    our_cats = our_origin_catalogs()
+    inventory = inventory_rows(catalogs, ours) + our_inventory_rows(our_cats)
+    inventory.sort(key=lambda r: (r["harness"], r["kind"], r["category"], r["name"]))
     write_inventory_csv(inventory, csv_path)
+    ref = sum(1 for r in inventory if r["covered"] in ("yes", "no"))
     covered = sum(1 for r in inventory if r["covered"] == "yes")
+    mine = sum(1 for r in inventory if r["covered"] == "ours")
     print(f"wrote {out} + {csv_path.name} "
-          f"({len(catalogs)} harnesses, {len(inventory)} capabilities, "
-          f"{covered} covered / {len(inventory) - covered} not)")
+          f"({len(catalogs)} reference harnesses + {len(our_cats)} of ours, "
+          f"{len(inventory)} rows: {ref} reference "
+          f"({covered} covered / {ref - covered} not) + {mine} ours)")
     return 0
 
 
