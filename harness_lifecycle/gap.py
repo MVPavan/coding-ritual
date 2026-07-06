@@ -59,6 +59,7 @@ def _merge_capability(existing: scan.Capability, other: scan.Capability) -> scan
     return scan.Capability(
         kind=existing.kind,
         name=existing.name,
+        category=existing.category,
         logical_id=existing.logical_id,
         canonical_path=existing.canonical_path,
         paths=tuple(sorted(set(existing.paths) | set(other.paths))),
@@ -263,9 +264,10 @@ def render_gap(ref: scan.Catalog, ours: scan.Catalog, gaps: list[Gap], improved,
             continue
         lines.append(f"\n### {kind.value} ({len(bucket)})")
         for gap in bucket:
+            cat = f"[{gap.cap.category}] " if gap.cap.category else ""
             desc = f" — {gap.cap.description}" if gap.cap.description else ""
             hint = f"   [similar to ours: {gap.hint}]" if gap.hint else ""
-            lines.append(f"  + {gap.cap.name}{desc}{hint}")
+            lines.append(f"  + {cat}{gap.cap.name}{desc}{hint}")
     if improved:
         lines.append(f"\n### ⚑ upstream improved since we adopted ({len(improved)})")
         for cap, entry in improved:

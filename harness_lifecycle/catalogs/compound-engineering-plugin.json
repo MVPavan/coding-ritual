@@ -27,6 +27,7 @@
     {
       "kind": "agent",
       "name": "design-implementation-reviewer",
+      "category": "design",
       "logical_id": "agent:plugins/compound-engineering/agents/design/design-implementation-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/design/design-implementation-reviewer.md",
       "paths": [
@@ -43,6 +44,7 @@
     {
       "kind": "agent",
       "name": "design-iterator",
+      "category": "design",
       "logical_id": "agent:plugins/compound-engineering/agents/design/design-iterator",
       "canonical_path": "plugins/compound-engineering/agents/design/design-iterator.md",
       "paths": [
@@ -59,6 +61,7 @@
     {
       "kind": "agent",
       "name": "figma-design-sync",
+      "category": "design",
       "logical_id": "agent:plugins/compound-engineering/agents/design/figma-design-sync",
       "canonical_path": "plugins/compound-engineering/agents/design/figma-design-sync.md",
       "paths": [
@@ -75,6 +78,7 @@
     {
       "kind": "agent",
       "name": "ankane-readme-writer",
+      "category": "docs",
       "logical_id": "agent:plugins/compound-engineering/agents/docs/ankane-readme-writer",
       "canonical_path": "plugins/compound-engineering/agents/docs/ankane-readme-writer.md",
       "paths": [
@@ -91,6 +95,7 @@
     {
       "kind": "agent",
       "name": "adversarial-document-reviewer",
+      "category": "document-review",
       "logical_id": "agent:plugins/compound-engineering/agents/document-review/adversarial-document-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/document-review/adversarial-document-reviewer.md",
       "paths": [
@@ -107,6 +112,7 @@
     {
       "kind": "agent",
       "name": "coherence-reviewer",
+      "category": "document-review",
       "logical_id": "agent:plugins/compound-engineering/agents/document-review/coherence-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/document-review/coherence-reviewer.md",
       "paths": [
@@ -123,6 +129,7 @@
     {
       "kind": "agent",
       "name": "design-lens-reviewer",
+      "category": "document-review",
       "logical_id": "agent:plugins/compound-engineering/agents/document-review/design-lens-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/document-review/design-lens-reviewer.md",
       "paths": [
@@ -139,6 +146,7 @@
     {
       "kind": "agent",
       "name": "feasibility-reviewer",
+      "category": "document-review",
       "logical_id": "agent:plugins/compound-engineering/agents/document-review/feasibility-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/document-review/feasibility-reviewer.md",
       "paths": [
@@ -155,6 +163,7 @@
     {
       "kind": "agent",
       "name": "product-lens-reviewer",
+      "category": "document-review",
       "logical_id": "agent:plugins/compound-engineering/agents/document-review/product-lens-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/document-review/product-lens-reviewer.md",
       "paths": [
@@ -171,6 +180,7 @@
     {
       "kind": "agent",
       "name": "scope-guardian-reviewer",
+      "category": "document-review",
       "logical_id": "agent:plugins/compound-engineering/agents/document-review/scope-guardian-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/document-review/scope-guardian-reviewer.md",
       "paths": [
@@ -187,6 +197,7 @@
     {
       "kind": "agent",
       "name": "security-lens-reviewer",
+      "category": "document-review",
       "logical_id": "agent:plugins/compound-engineering/agents/document-review/security-lens-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/document-review/security-lens-reviewer.md",
       "paths": [
@@ -203,6 +214,7 @@
     {
       "kind": "agent",
       "name": "best-practices-researcher",
+      "category": "research",
       "logical_id": "agent:plugins/compound-engineering/agents/research/best-practices-researcher",
       "canonical_path": "plugins/compound-engineering/agents/research/best-practices-researcher.md",
       "paths": [
@@ -219,6 +231,7 @@
     {
       "kind": "agent",
       "name": "framework-docs-researcher",
+      "category": "research",
       "logical_id": "agent:plugins/compound-engineering/agents/research/framework-docs-researcher",
       "canonical_path": "plugins/compound-engineering/agents/research/framework-docs-researcher.md",
       "paths": [
@@ -235,6 +248,7 @@
     {
       "kind": "agent",
       "name": "git-history-analyzer",
+      "category": "research",
       "logical_id": "agent:plugins/compound-engineering/agents/research/git-history-analyzer",
       "canonical_path": "plugins/compound-engineering/agents/research/git-history-analyzer.md",
       "paths": [
@@ -251,6 +265,7 @@
     {
       "kind": "agent",
       "name": "issue-intelligence-analyst",
+      "category": "research",
       "logical_id": "agent:plugins/compound-engineering/agents/research/issue-intelligence-analyst",
       "canonical_path": "plugins/compound-engineering/agents/research/issue-intelligence-analyst.md",
       "paths": [
@@ -267,6 +282,7 @@
     {
       "kind": "agent",
       "name": "learnings-researcher",
+      "category": "research",
       "logical_id": "agent:plugins/compound-engineering/agents/research/learnings-researcher",
       "canonical_path": "plugins/compound-engineering/agents/research/learnings-researcher.md",
       "paths": [
@@ -283,6 +299,7 @@
     {
       "kind": "agent",
       "name": "repo-research-analyst",
+      "category": "research",
       "logical_id": "agent:plugins/compound-engineering/agents/research/repo-research-analyst",
       "canonical_path": "plugins/compound-engineering/agents/research/repo-research-analyst.md",
       "paths": [
@@ -299,6 +316,7 @@
     {
       "kind": "agent",
       "name": "session-historian",
+      "category": "research",
       "logical_id": "agent:plugins/compound-engineering/agents/research/session-historian",
       "canonical_path": "plugins/compound-engineering/agents/research/session-historian.md",
       "paths": [
@@ -315,6 +333,7 @@
     {
       "kind": "agent",
       "name": "slack-researcher",
+      "category": "research",
       "logical_id": "agent:plugins/compound-engineering/agents/research/slack-researcher",
       "canonical_path": "plugins/compound-engineering/agents/research/slack-researcher.md",
       "paths": [
@@ -331,6 +350,7 @@
     {
       "kind": "agent",
       "name": "adversarial-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/adversarial-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/adversarial-reviewer.md",
       "paths": [
@@ -347,6 +367,7 @@
     {
       "kind": "agent",
       "name": "agent-native-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/agent-native-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/agent-native-reviewer.md",
       "paths": [
@@ -363,6 +384,7 @@
     {
       "kind": "agent",
       "name": "api-contract-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/api-contract-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/api-contract-reviewer.md",
       "paths": [
@@ -379,6 +401,7 @@
     {
       "kind": "agent",
       "name": "architecture-strategist",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/architecture-strategist",
       "canonical_path": "plugins/compound-engineering/agents/review/architecture-strategist.md",
       "paths": [
@@ -395,6 +418,7 @@
     {
       "kind": "agent",
       "name": "cli-agent-readiness-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/cli-agent-readiness-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/cli-agent-readiness-reviewer.md",
       "paths": [
@@ -411,6 +435,7 @@
     {
       "kind": "agent",
       "name": "cli-readiness-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/cli-readiness-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/cli-readiness-reviewer.md",
       "paths": [
@@ -427,6 +452,7 @@
     {
       "kind": "agent",
       "name": "code-simplicity-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/code-simplicity-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/code-simplicity-reviewer.md",
       "paths": [
@@ -443,6 +469,7 @@
     {
       "kind": "agent",
       "name": "correctness-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/correctness-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/correctness-reviewer.md",
       "paths": [
@@ -459,6 +486,7 @@
     {
       "kind": "agent",
       "name": "data-integrity-guardian",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/data-integrity-guardian",
       "canonical_path": "plugins/compound-engineering/agents/review/data-integrity-guardian.md",
       "paths": [
@@ -475,6 +503,7 @@
     {
       "kind": "agent",
       "name": "data-migration-expert",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/data-migration-expert",
       "canonical_path": "plugins/compound-engineering/agents/review/data-migration-expert.md",
       "paths": [
@@ -491,6 +520,7 @@
     {
       "kind": "agent",
       "name": "data-migrations-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/data-migrations-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/data-migrations-reviewer.md",
       "paths": [
@@ -507,6 +537,7 @@
     {
       "kind": "agent",
       "name": "deployment-verification-agent",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/deployment-verification-agent",
       "canonical_path": "plugins/compound-engineering/agents/review/deployment-verification-agent.md",
       "paths": [
@@ -523,6 +554,7 @@
     {
       "kind": "agent",
       "name": "dhh-rails-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/dhh-rails-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/dhh-rails-reviewer.md",
       "paths": [
@@ -539,6 +571,7 @@
     {
       "kind": "agent",
       "name": "julik-frontend-races-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/julik-frontend-races-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/julik-frontend-races-reviewer.md",
       "paths": [
@@ -555,6 +588,7 @@
     {
       "kind": "agent",
       "name": "kieran-python-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/kieran-python-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/kieran-python-reviewer.md",
       "paths": [
@@ -571,6 +605,7 @@
     {
       "kind": "agent",
       "name": "kieran-rails-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/kieran-rails-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/kieran-rails-reviewer.md",
       "paths": [
@@ -587,6 +622,7 @@
     {
       "kind": "agent",
       "name": "kieran-typescript-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/kieran-typescript-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/kieran-typescript-reviewer.md",
       "paths": [
@@ -603,6 +639,7 @@
     {
       "kind": "agent",
       "name": "maintainability-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/maintainability-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/maintainability-reviewer.md",
       "paths": [
@@ -619,6 +656,7 @@
     {
       "kind": "agent",
       "name": "pattern-recognition-specialist",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/pattern-recognition-specialist",
       "canonical_path": "plugins/compound-engineering/agents/review/pattern-recognition-specialist.md",
       "paths": [
@@ -635,6 +673,7 @@
     {
       "kind": "agent",
       "name": "performance-oracle",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/performance-oracle",
       "canonical_path": "plugins/compound-engineering/agents/review/performance-oracle.md",
       "paths": [
@@ -651,6 +690,7 @@
     {
       "kind": "agent",
       "name": "performance-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/performance-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/performance-reviewer.md",
       "paths": [
@@ -667,6 +707,7 @@
     {
       "kind": "agent",
       "name": "previous-comments-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/previous-comments-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/previous-comments-reviewer.md",
       "paths": [
@@ -683,6 +724,7 @@
     {
       "kind": "agent",
       "name": "project-standards-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/project-standards-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/project-standards-reviewer.md",
       "paths": [
@@ -699,6 +741,7 @@
     {
       "kind": "agent",
       "name": "reliability-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/reliability-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/reliability-reviewer.md",
       "paths": [
@@ -715,6 +758,7 @@
     {
       "kind": "agent",
       "name": "schema-drift-detector",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/schema-drift-detector",
       "canonical_path": "plugins/compound-engineering/agents/review/schema-drift-detector.md",
       "paths": [
@@ -731,6 +775,7 @@
     {
       "kind": "agent",
       "name": "security-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/security-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/security-reviewer.md",
       "paths": [
@@ -747,6 +792,7 @@
     {
       "kind": "agent",
       "name": "security-sentinel",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/security-sentinel",
       "canonical_path": "plugins/compound-engineering/agents/review/security-sentinel.md",
       "paths": [
@@ -763,6 +809,7 @@
     {
       "kind": "agent",
       "name": "testing-reviewer",
+      "category": "review",
       "logical_id": "agent:plugins/compound-engineering/agents/review/testing-reviewer",
       "canonical_path": "plugins/compound-engineering/agents/review/testing-reviewer.md",
       "paths": [
@@ -779,6 +826,7 @@
     {
       "kind": "agent",
       "name": "bug-reproduction-validator",
+      "category": "workflow",
       "logical_id": "agent:plugins/compound-engineering/agents/workflow/bug-reproduction-validator",
       "canonical_path": "plugins/compound-engineering/agents/workflow/bug-reproduction-validator.md",
       "paths": [
@@ -795,6 +843,7 @@
     {
       "kind": "agent",
       "name": "lint",
+      "category": "workflow",
       "logical_id": "agent:plugins/compound-engineering/agents/workflow/lint",
       "canonical_path": "plugins/compound-engineering/agents/workflow/lint.md",
       "paths": [
@@ -811,6 +860,7 @@
     {
       "kind": "agent",
       "name": "pr-comment-resolver",
+      "category": "workflow",
       "logical_id": "agent:plugins/compound-engineering/agents/workflow/pr-comment-resolver",
       "canonical_path": "plugins/compound-engineering/agents/workflow/pr-comment-resolver.md",
       "paths": [
@@ -827,6 +877,7 @@
     {
       "kind": "agent",
       "name": "spec-flow-analyzer",
+      "category": "workflow",
       "logical_id": "agent:plugins/compound-engineering/agents/workflow/spec-flow-analyzer",
       "canonical_path": "plugins/compound-engineering/agents/workflow/spec-flow-analyzer.md",
       "paths": [
@@ -843,6 +894,7 @@
     {
       "kind": "command",
       "name": "triage-prs",
+      "category": "commands",
       "logical_id": "command:commands/triage-prs",
       "canonical_path": ".claude/commands/triage-prs.md",
       "paths": [
@@ -859,6 +911,7 @@
     {
       "kind": "command",
       "name": "quiz-me",
+      "category": "commands",
       "logical_id": "command:plugins/coding-tutor/commands/quiz-me",
       "canonical_path": "plugins/coding-tutor/commands/quiz-me.md",
       "paths": [
@@ -875,6 +928,7 @@
     {
       "kind": "command",
       "name": "sync-tutorials",
+      "category": "commands",
       "logical_id": "command:plugins/coding-tutor/commands/sync-tutorials",
       "canonical_path": "plugins/coding-tutor/commands/sync-tutorials.md",
       "paths": [
@@ -891,6 +945,7 @@
     {
       "kind": "command",
       "name": "teach-me",
+      "category": "commands",
       "logical_id": "command:plugins/coding-tutor/commands/teach-me",
       "canonical_path": "plugins/coding-tutor/commands/teach-me.md",
       "paths": [
@@ -907,6 +962,7 @@
     {
       "kind": "plugin",
       "name": "coding-tutor",
+      "category": "coding-tutor",
       "logical_id": "plugin:plugins/coding-tutor/coding-tutor",
       "canonical_path": "plugins/coding-tutor/.claude-plugin/plugin.json",
       "paths": [
@@ -923,6 +979,7 @@
     {
       "kind": "plugin",
       "name": "compound-engineering",
+      "category": "compound-engineering",
       "logical_id": "plugin:plugins/compound-engineering/compound-engineering",
       "canonical_path": "plugins/compound-engineering/.claude-plugin/plugin.json",
       "paths": [
@@ -939,6 +996,7 @@
     {
       "kind": "skill",
       "name": "coding-tutor",
+      "category": "skills",
       "logical_id": "skill:plugins/coding-tutor/skills/coding-tutor",
       "canonical_path": "plugins/coding-tutor/skills/coding-tutor/SKILL.md",
       "paths": [
@@ -955,6 +1013,7 @@
     {
       "kind": "skill",
       "name": "agent-browser",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/agent-browser",
       "canonical_path": "plugins/compound-engineering/skills/agent-browser/SKILL.md",
       "paths": [
@@ -971,6 +1030,7 @@
     {
       "kind": "skill",
       "name": "agent-native-architecture",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/agent-native-architecture",
       "canonical_path": "plugins/compound-engineering/skills/agent-native-architecture/SKILL.md",
       "paths": [
@@ -987,6 +1047,7 @@
     {
       "kind": "skill",
       "name": "agent-native-audit",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/agent-native-audit",
       "canonical_path": "plugins/compound-engineering/skills/agent-native-audit/SKILL.md",
       "paths": [
@@ -1003,6 +1064,7 @@
     {
       "kind": "skill",
       "name": "andrew-kane-gem-writer",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/andrew-kane-gem-writer",
       "canonical_path": "plugins/compound-engineering/skills/andrew-kane-gem-writer/SKILL.md",
       "paths": [
@@ -1019,6 +1081,7 @@
     {
       "kind": "skill",
       "name": "ce:brainstorm",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-brainstorm",
       "canonical_path": "plugins/compound-engineering/skills/ce-brainstorm/SKILL.md",
       "paths": [
@@ -1035,6 +1098,7 @@
     {
       "kind": "skill",
       "name": "ce:compound",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-compound",
       "canonical_path": "plugins/compound-engineering/skills/ce-compound/SKILL.md",
       "paths": [
@@ -1051,6 +1115,7 @@
     {
       "kind": "skill",
       "name": "ce:compound-refresh",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-compound-refresh",
       "canonical_path": "plugins/compound-engineering/skills/ce-compound-refresh/SKILL.md",
       "paths": [
@@ -1067,6 +1132,7 @@
     {
       "kind": "skill",
       "name": "ce:ideate",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-ideate",
       "canonical_path": "plugins/compound-engineering/skills/ce-ideate/SKILL.md",
       "paths": [
@@ -1083,6 +1149,7 @@
     {
       "kind": "skill",
       "name": "ce:plan",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-plan",
       "canonical_path": "plugins/compound-engineering/skills/ce-plan/SKILL.md",
       "paths": [
@@ -1099,6 +1166,7 @@
     {
       "kind": "skill",
       "name": "ce:review",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-review",
       "canonical_path": "plugins/compound-engineering/skills/ce-review/SKILL.md",
       "paths": [
@@ -1115,6 +1183,7 @@
     {
       "kind": "skill",
       "name": "ce-sessions",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-sessions",
       "canonical_path": "plugins/compound-engineering/skills/ce-sessions/SKILL.md",
       "paths": [
@@ -1131,6 +1200,7 @@
     {
       "kind": "skill",
       "name": "ce-slack-research",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-slack-research",
       "canonical_path": "plugins/compound-engineering/skills/ce-slack-research/SKILL.md",
       "paths": [
@@ -1147,6 +1217,7 @@
     {
       "kind": "skill",
       "name": "ce-update",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-update",
       "canonical_path": "plugins/compound-engineering/skills/ce-update/SKILL.md",
       "paths": [
@@ -1163,6 +1234,7 @@
     {
       "kind": "skill",
       "name": "ce:work",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-work",
       "canonical_path": "plugins/compound-engineering/skills/ce-work/SKILL.md",
       "paths": [
@@ -1179,6 +1251,7 @@
     {
       "kind": "skill",
       "name": "ce:work-beta",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/ce-work-beta",
       "canonical_path": "plugins/compound-engineering/skills/ce-work-beta/SKILL.md",
       "paths": [
@@ -1195,6 +1268,7 @@
     {
       "kind": "skill",
       "name": "changelog",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/changelog",
       "canonical_path": "plugins/compound-engineering/skills/changelog/SKILL.md",
       "paths": [
@@ -1211,6 +1285,7 @@
     {
       "kind": "skill",
       "name": "claude-permissions-optimizer",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/claude-permissions-optimizer",
       "canonical_path": "plugins/compound-engineering/skills/claude-permissions-optimizer/SKILL.md",
       "paths": [
@@ -1227,6 +1302,7 @@
     {
       "kind": "skill",
       "name": "deploy-docs",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/deploy-docs",
       "canonical_path": "plugins/compound-engineering/skills/deploy-docs/SKILL.md",
       "paths": [
@@ -1243,6 +1319,7 @@
     {
       "kind": "skill",
       "name": "dhh-rails-style",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/dhh-rails-style",
       "canonical_path": "plugins/compound-engineering/skills/dhh-rails-style/SKILL.md",
       "paths": [
@@ -1259,6 +1336,7 @@
     {
       "kind": "skill",
       "name": "document-review",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/document-review",
       "canonical_path": "plugins/compound-engineering/skills/document-review/SKILL.md",
       "paths": [
@@ -1275,6 +1353,7 @@
     {
       "kind": "skill",
       "name": "dspy-ruby",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/dspy-ruby",
       "canonical_path": "plugins/compound-engineering/skills/dspy-ruby/SKILL.md",
       "paths": [
@@ -1291,6 +1370,7 @@
     {
       "kind": "skill",
       "name": "every-style-editor",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/every-style-editor",
       "canonical_path": "plugins/compound-engineering/skills/every-style-editor/SKILL.md",
       "paths": [
@@ -1307,6 +1387,7 @@
     {
       "kind": "skill",
       "name": "feature-video",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/feature-video",
       "canonical_path": "plugins/compound-engineering/skills/feature-video/SKILL.md",
       "paths": [
@@ -1323,6 +1404,7 @@
     {
       "kind": "skill",
       "name": "frontend-design",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/frontend-design",
       "canonical_path": "plugins/compound-engineering/skills/frontend-design/SKILL.md",
       "paths": [
@@ -1339,6 +1421,7 @@
     {
       "kind": "skill",
       "name": "gemini-imagegen",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/gemini-imagegen",
       "canonical_path": "plugins/compound-engineering/skills/gemini-imagegen/SKILL.md",
       "paths": [
@@ -1355,6 +1438,7 @@
     {
       "kind": "skill",
       "name": "git-clean-gone-branches",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/git-clean-gone-branches",
       "canonical_path": "plugins/compound-engineering/skills/git-clean-gone-branches/SKILL.md",
       "paths": [
@@ -1371,6 +1455,7 @@
     {
       "kind": "skill",
       "name": "git-commit",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/git-commit",
       "canonical_path": "plugins/compound-engineering/skills/git-commit/SKILL.md",
       "paths": [
@@ -1387,6 +1472,7 @@
     {
       "kind": "skill",
       "name": "git-commit-push-pr",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/git-commit-push-pr",
       "canonical_path": "plugins/compound-engineering/skills/git-commit-push-pr/SKILL.md",
       "paths": [
@@ -1403,6 +1489,7 @@
     {
       "kind": "skill",
       "name": "git-worktree",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/git-worktree",
       "canonical_path": "plugins/compound-engineering/skills/git-worktree/SKILL.md",
       "paths": [
@@ -1419,6 +1506,7 @@
     {
       "kind": "skill",
       "name": "lfg",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/lfg",
       "canonical_path": "plugins/compound-engineering/skills/lfg/SKILL.md",
       "paths": [
@@ -1435,6 +1523,7 @@
     {
       "kind": "skill",
       "name": "onboarding",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/onboarding",
       "canonical_path": "plugins/compound-engineering/skills/onboarding/SKILL.md",
       "paths": [
@@ -1451,6 +1540,7 @@
     {
       "kind": "skill",
       "name": "proof",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/proof",
       "canonical_path": "plugins/compound-engineering/skills/proof/SKILL.md",
       "paths": [
@@ -1467,6 +1557,7 @@
     {
       "kind": "skill",
       "name": "rclone",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/rclone",
       "canonical_path": "plugins/compound-engineering/skills/rclone/SKILL.md",
       "paths": [
@@ -1483,6 +1574,7 @@
     {
       "kind": "skill",
       "name": "report-bug-ce",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/report-bug-ce",
       "canonical_path": "plugins/compound-engineering/skills/report-bug-ce/SKILL.md",
       "paths": [
@@ -1499,6 +1591,7 @@
     {
       "kind": "skill",
       "name": "reproduce-bug",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/reproduce-bug",
       "canonical_path": "plugins/compound-engineering/skills/reproduce-bug/SKILL.md",
       "paths": [
@@ -1515,6 +1608,7 @@
     {
       "kind": "skill",
       "name": "resolve-pr-feedback",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/resolve-pr-feedback",
       "canonical_path": "plugins/compound-engineering/skills/resolve-pr-feedback/SKILL.md",
       "paths": [
@@ -1531,6 +1625,7 @@
     {
       "kind": "skill",
       "name": "setup",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/setup",
       "canonical_path": "plugins/compound-engineering/skills/setup/SKILL.md",
       "paths": [
@@ -1547,6 +1642,7 @@
     {
       "kind": "skill",
       "name": "test-browser",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/test-browser",
       "canonical_path": "plugins/compound-engineering/skills/test-browser/SKILL.md",
       "paths": [
@@ -1563,6 +1659,7 @@
     {
       "kind": "skill",
       "name": "test-xcode",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/test-xcode",
       "canonical_path": "plugins/compound-engineering/skills/test-xcode/SKILL.md",
       "paths": [
@@ -1579,6 +1676,7 @@
     {
       "kind": "skill",
       "name": "todo-create",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/todo-create",
       "canonical_path": "plugins/compound-engineering/skills/todo-create/SKILL.md",
       "paths": [
@@ -1595,6 +1693,7 @@
     {
       "kind": "skill",
       "name": "todo-resolve",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/todo-resolve",
       "canonical_path": "plugins/compound-engineering/skills/todo-resolve/SKILL.md",
       "paths": [
@@ -1611,6 +1710,7 @@
     {
       "kind": "skill",
       "name": "todo-triage",
+      "category": "skills",
       "logical_id": "skill:plugins/compound-engineering/skills/todo-triage",
       "canonical_path": "plugins/compound-engineering/skills/todo-triage/SKILL.md",
       "paths": [
