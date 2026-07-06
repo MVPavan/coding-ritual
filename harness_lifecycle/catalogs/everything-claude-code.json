@@ -39,6 +39,7 @@
     {
       "kind": "agent",
       "name": "architect",
+      "category": "agents",
       "logical_id": "agent:agents/architect",
       "canonical_path": "agents/architect.md",
       "paths": [
@@ -57,6 +58,7 @@
     {
       "kind": "agent",
       "name": "build-error-resolver",
+      "category": "agents",
       "logical_id": "agent:agents/build-error-resolver",
       "canonical_path": "agents/build-error-resolver.md",
       "paths": [
@@ -75,6 +77,7 @@
     {
       "kind": "agent",
       "name": "chief-of-staff",
+      "category": "agents",
       "logical_id": "agent:agents/chief-of-staff",
       "canonical_path": "agents/chief-of-staff.md",
       "paths": [
@@ -93,6 +96,7 @@
     {
       "kind": "agent",
       "name": "code-architect",
+      "category": "agents",
       "logical_id": "agent:agents/code-architect",
       "canonical_path": "agents/code-architect.md",
       "paths": [
@@ -109,6 +113,7 @@
     {
       "kind": "agent",
       "name": "code-explorer",
+      "category": "agents",
       "logical_id": "agent:agents/code-explorer",
       "canonical_path": "agents/code-explorer.md",
       "paths": [
@@ -125,6 +130,7 @@
     {
       "kind": "agent",
       "name": "code-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/code-reviewer",
       "canonical_path": "agents/code-reviewer.md",
       "paths": [
@@ -143,6 +149,7 @@
     {
       "kind": "agent",
       "name": "code-simplifier",
+      "category": "agents",
       "logical_id": "agent:agents/code-simplifier",
       "canonical_path": "agents/code-simplifier.md",
       "paths": [
@@ -159,6 +166,7 @@
     {
       "kind": "agent",
       "name": "comment-analyzer",
+      "category": "agents",
       "logical_id": "agent:agents/comment-analyzer",
       "canonical_path": "agents/comment-analyzer.md",
       "paths": [
@@ -175,6 +183,7 @@
     {
       "kind": "agent",
       "name": "conversation-analyzer",
+      "category": "agents",
       "logical_id": "agent:agents/conversation-analyzer",
       "canonical_path": "agents/conversation-analyzer.md",
       "paths": [
@@ -191,6 +200,7 @@
     {
       "kind": "agent",
       "name": "cpp-build-resolver",
+      "category": "agents",
       "logical_id": "agent:agents/cpp-build-resolver",
       "canonical_path": "agents/cpp-build-resolver.md",
       "paths": [
@@ -207,6 +217,7 @@
     {
       "kind": "agent",
       "name": "cpp-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/cpp-reviewer",
       "canonical_path": "agents/cpp-reviewer.md",
       "paths": [
@@ -223,6 +234,7 @@
     {
       "kind": "agent",
       "name": "csharp-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/csharp-reviewer",
       "canonical_path": "agents/csharp-reviewer.md",
       "paths": [
@@ -239,6 +251,7 @@
     {
       "kind": "agent",
       "name": "dart-build-resolver",
+      "category": "agents",
       "logical_id": "agent:agents/dart-build-resolver",
       "canonical_path": "agents/dart-build-resolver.md",
       "paths": [
@@ -255,6 +268,7 @@
     {
       "kind": "agent",
       "name": "database-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/database-reviewer",
       "canonical_path": "agents/database-reviewer.md",
       "paths": [
@@ -273,6 +287,7 @@
     {
       "kind": "agent",
       "name": "doc-updater",
+      "category": "agents",
       "logical_id": "agent:agents/doc-updater",
       "canonical_path": "agents/doc-updater.md",
       "paths": [
@@ -291,6 +306,7 @@
     {
       "kind": "agent",
       "name": "docs-lookup",
+      "category": "agents",
       "logical_id": "agent:agents/docs-lookup",
       "canonical_path": "agents/docs-lookup.md",
       "paths": [
@@ -307,6 +323,7 @@
     {
       "kind": "agent",
       "name": "e2e-runner",
+      "category": "agents",
       "logical_id": "agent:agents/e2e-runner",
       "canonical_path": "agents/e2e-runner.md",
       "paths": [
@@ -325,6 +342,7 @@
     {
       "kind": "agent",
       "name": "flutter-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/flutter-reviewer",
       "canonical_path": "agents/flutter-reviewer.md",
       "paths": [
@@ -341,6 +359,7 @@
     {
       "kind": "agent",
       "name": "gan-evaluator",
+      "category": "agents",
       "logical_id": "agent:agents/gan-evaluator",
       "canonical_path": "agents/gan-evaluator.md",
       "paths": [
@@ -357,6 +376,7 @@
     {
       "kind": "agent",
       "name": "gan-generator",
+      "category": "agents",
       "logical_id": "agent:agents/gan-generator",
       "canonical_path": "agents/gan-generator.md",
       "paths": [
@@ -373,6 +393,7 @@
     {
       "kind": "agent",
       "name": "gan-planner",
+      "category": "agents",
       "logical_id": "agent:agents/gan-planner",
       "canonical_path": "agents/gan-planner.md",
       "paths": [
@@ -389,6 +410,7 @@
     {
       "kind": "agent",
       "name": "go-build-resolver",
+      "category": "agents",
       "logical_id": "agent:agents/go-build-resolver",
       "canonical_path": "agents/go-build-resolver.md",
       "paths": [
@@ -407,6 +429,7 @@
     {
       "kind": "agent",
       "name": "go-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/go-reviewer",
       "canonical_path": "agents/go-reviewer.md",
       "paths": [
@@ -425,6 +448,7 @@
     {
       "kind": "agent",
       "name": "harness-optimizer",
+      "category": "agents",
       "logical_id": "agent:agents/harness-optimizer",
       "canonical_path": "agents/harness-optimizer.md",
       "paths": [
@@ -443,6 +467,7 @@
     {
       "kind": "agent",
       "name": "healthcare-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/healthcare-reviewer",
       "canonical_path": "agents/healthcare-reviewer.md",
       "paths": [
@@ -459,6 +484,7 @@
     {
       "kind": "agent",
       "name": "java-build-resolver",
+      "category": "agents",
       "logical_id": "agent:agents/java-build-resolver",
       "canonical_path": "agents/java-build-resolver.md",
       "paths": [
@@ -475,6 +501,7 @@
     {
       "kind": "agent",
       "name": "java-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/java-reviewer",
       "canonical_path": "agents/java-reviewer.md",
       "paths": [
@@ -491,6 +518,7 @@
     {
       "kind": "agent",
       "name": "kotlin-build-resolver",
+      "category": "agents",
       "logical_id": "agent:agents/kotlin-build-resolver",
       "canonical_path": "agents/kotlin-build-resolver.md",
       "paths": [
@@ -507,6 +535,7 @@
     {
       "kind": "agent",
       "name": "kotlin-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/kotlin-reviewer",
       "canonical_path": "agents/kotlin-reviewer.md",
       "paths": [
@@ -523,6 +552,7 @@
     {
       "kind": "agent",
       "name": "loop-operator",
+      "category": "agents",
       "logical_id": "agent:agents/loop-operator",
       "canonical_path": "agents/loop-operator.md",
       "paths": [
@@ -541,6 +571,7 @@
     {
       "kind": "agent",
       "name": "opensource-forker",
+      "category": "agents",
       "logical_id": "agent:agents/opensource-forker",
       "canonical_path": "agents/opensource-forker.md",
       "paths": [
@@ -557,6 +588,7 @@
     {
       "kind": "agent",
       "name": "opensource-packager",
+      "category": "agents",
       "logical_id": "agent:agents/opensource-packager",
       "canonical_path": "agents/opensource-packager.md",
       "paths": [
@@ -573,6 +605,7 @@
     {
       "kind": "agent",
       "name": "opensource-sanitizer",
+      "category": "agents",
       "logical_id": "agent:agents/opensource-sanitizer",
       "canonical_path": "agents/opensource-sanitizer.md",
       "paths": [
@@ -589,6 +622,7 @@
     {
       "kind": "agent",
       "name": "performance-optimizer",
+      "category": "agents",
       "logical_id": "agent:agents/performance-optimizer",
       "canonical_path": "agents/performance-optimizer.md",
       "paths": [
@@ -605,6 +639,7 @@
     {
       "kind": "agent",
       "name": "planner",
+      "category": "agents",
       "logical_id": "agent:agents/planner",
       "canonical_path": "agents/planner.md",
       "paths": [
@@ -623,6 +658,7 @@
     {
       "kind": "agent",
       "name": "pr-test-analyzer",
+      "category": "agents",
       "logical_id": "agent:agents/pr-test-analyzer",
       "canonical_path": "agents/pr-test-analyzer.md",
       "paths": [
@@ -639,6 +675,7 @@
     {
       "kind": "agent",
       "name": "python-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/python-reviewer",
       "canonical_path": "agents/python-reviewer.md",
       "paths": [
@@ -657,6 +694,7 @@
     {
       "kind": "agent",
       "name": "pytorch-build-resolver",
+      "category": "agents",
       "logical_id": "agent:agents/pytorch-build-resolver",
       "canonical_path": "agents/pytorch-build-resolver.md",
       "paths": [
@@ -673,6 +711,7 @@
     {
       "kind": "agent",
       "name": "refactor-cleaner",
+      "category": "agents",
       "logical_id": "agent:agents/refactor-cleaner",
       "canonical_path": "agents/refactor-cleaner.md",
       "paths": [
@@ -691,6 +730,7 @@
     {
       "kind": "agent",
       "name": "rust-build-resolver",
+      "category": "agents",
       "logical_id": "agent:agents/rust-build-resolver",
       "canonical_path": "agents/rust-build-resolver.md",
       "paths": [
@@ -707,6 +747,7 @@
     {
       "kind": "agent",
       "name": "rust-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/rust-reviewer",
       "canonical_path": "agents/rust-reviewer.md",
       "paths": [
@@ -723,6 +764,7 @@
     {
       "kind": "agent",
       "name": "security-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/security-reviewer",
       "canonical_path": "agents/security-reviewer.md",
       "paths": [
@@ -741,6 +783,7 @@
     {
       "kind": "agent",
       "name": "seo-specialist",
+      "category": "agents",
       "logical_id": "agent:agents/seo-specialist",
       "canonical_path": "agents/seo-specialist.md",
       "paths": [
@@ -757,6 +800,7 @@
     {
       "kind": "agent",
       "name": "silent-failure-hunter",
+      "category": "agents",
       "logical_id": "agent:agents/silent-failure-hunter",
       "canonical_path": "agents/silent-failure-hunter.md",
       "paths": [
@@ -773,6 +817,7 @@
     {
       "kind": "agent",
       "name": "tdd-guide",
+      "category": "agents",
       "logical_id": "agent:agents/tdd-guide",
       "canonical_path": "agents/tdd-guide.md",
       "paths": [
@@ -791,6 +836,7 @@
     {
       "kind": "agent",
       "name": "type-design-analyzer",
+      "category": "agents",
       "logical_id": "agent:agents/type-design-analyzer",
       "canonical_path": "agents/type-design-analyzer.md",
       "paths": [
@@ -807,6 +853,7 @@
     {
       "kind": "agent",
       "name": "typescript-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/typescript-reviewer",
       "canonical_path": "agents/typescript-reviewer.md",
       "paths": [
@@ -823,6 +870,7 @@
     {
       "kind": "agent",
       "name": "observer",
+      "category": "agents",
       "logical_id": "agent:skills/continuous-learning-v2/agents/observer",
       "canonical_path": "skills/continuous-learning-v2/agents/observer.md",
       "paths": [
@@ -839,6 +887,7 @@
     {
       "kind": "agent",
       "name": "enrichment-agent",
+      "category": "agents",
       "logical_id": "agent:skills/lead-intelligence/agents/enrichment-agent",
       "canonical_path": "skills/lead-intelligence/agents/enrichment-agent.md",
       "paths": [
@@ -855,6 +904,7 @@
     {
       "kind": "agent",
       "name": "mutual-mapper",
+      "category": "agents",
       "logical_id": "agent:skills/lead-intelligence/agents/mutual-mapper",
       "canonical_path": "skills/lead-intelligence/agents/mutual-mapper.md",
       "paths": [
@@ -871,6 +921,7 @@
     {
       "kind": "agent",
       "name": "outreach-drafter",
+      "category": "agents",
       "logical_id": "agent:skills/lead-intelligence/agents/outreach-drafter",
       "canonical_path": "skills/lead-intelligence/agents/outreach-drafter.md",
       "paths": [
@@ -887,6 +938,7 @@
     {
       "kind": "agent",
       "name": "signal-scorer",
+      "category": "agents",
       "logical_id": "agent:skills/lead-intelligence/agents/signal-scorer",
       "canonical_path": "skills/lead-intelligence/agents/signal-scorer.md",
       "paths": [
@@ -903,6 +955,7 @@
     {
       "kind": "command",
       "name": "add-language-rules",
+      "category": "commands",
       "logical_id": "command:commands/add-language-rules",
       "canonical_path": ".claude/commands/add-language-rules.md",
       "paths": [
@@ -919,6 +972,7 @@
     {
       "kind": "command",
       "name": "agent-sort",
+      "category": "commands",
       "logical_id": "command:commands/agent-sort",
       "canonical_path": "commands/agent-sort.md",
       "paths": [
@@ -935,6 +989,7 @@
     {
       "kind": "command",
       "name": "aside",
+      "category": "commands",
       "logical_id": "command:commands/aside",
       "canonical_path": "commands/aside.md",
       "paths": [
@@ -951,6 +1006,7 @@
     {
       "kind": "command",
       "name": "build-fix",
+      "category": "commands",
       "logical_id": "command:commands/build-fix",
       "canonical_path": "commands/build-fix.md",
       "paths": [
@@ -969,6 +1025,7 @@
     {
       "kind": "command",
       "name": "checkpoint",
+      "category": "commands",
       "logical_id": "command:commands/checkpoint",
       "canonical_path": "commands/checkpoint.md",
       "paths": [
@@ -987,6 +1044,7 @@
     {
       "kind": "command",
       "name": "claw",
+      "category": "commands",
       "logical_id": "command:commands/claw",
       "canonical_path": "commands/claw.md",
       "paths": [
@@ -1003,6 +1061,7 @@
     {
       "kind": "command",
       "name": "code-review",
+      "category": "commands",
       "logical_id": "command:commands/code-review",
       "canonical_path": "commands/code-review.md",
       "paths": [
@@ -1021,6 +1080,7 @@
     {
       "kind": "command",
       "name": "context-budget",
+      "category": "commands",
       "logical_id": "command:commands/context-budget",
       "canonical_path": "commands/context-budget.md",
       "paths": [
@@ -1037,6 +1097,7 @@
     {
       "kind": "command",
       "name": "cpp-build",
+      "category": "commands",
       "logical_id": "command:commands/cpp-build",
       "canonical_path": "commands/cpp-build.md",
       "paths": [
@@ -1053,6 +1114,7 @@
     {
       "kind": "command",
       "name": "cpp-review",
+      "category": "commands",
       "logical_id": "command:commands/cpp-review",
       "canonical_path": "commands/cpp-review.md",
       "paths": [
@@ -1069,6 +1131,7 @@
     {
       "kind": "command",
       "name": "cpp-test",
+      "category": "commands",
       "logical_id": "command:commands/cpp-test",
       "canonical_path": "commands/cpp-test.md",
       "paths": [
@@ -1085,6 +1148,7 @@
     {
       "kind": "command",
       "name": "database-migration",
+      "category": "commands",
       "logical_id": "command:commands/database-migration",
       "canonical_path": ".claude/commands/database-migration.md",
       "paths": [
@@ -1101,6 +1165,7 @@
     {
       "kind": "command",
       "name": "devfleet",
+      "category": "commands",
       "logical_id": "command:commands/devfleet",
       "canonical_path": "commands/devfleet.md",
       "paths": [
@@ -1117,6 +1182,7 @@
     {
       "kind": "command",
       "name": "docs",
+      "category": "commands",
       "logical_id": "command:commands/docs",
       "canonical_path": "commands/docs.md",
       "paths": [
@@ -1133,6 +1199,7 @@
     {
       "kind": "command",
       "name": "e2e",
+      "category": "commands",
       "logical_id": "command:commands/e2e",
       "canonical_path": "commands/e2e.md",
       "paths": [
@@ -1151,6 +1218,7 @@
     {
       "kind": "command",
       "name": "eval",
+      "category": "commands",
       "logical_id": "command:commands/eval",
       "canonical_path": "commands/eval.md",
       "paths": [
@@ -1169,6 +1237,7 @@
     {
       "kind": "command",
       "name": "evolve",
+      "category": "commands",
       "logical_id": "command:commands/evolve",
       "canonical_path": "commands/evolve.md",
       "paths": [
@@ -1187,6 +1256,7 @@
     {
       "kind": "command",
       "name": "feature-dev",
+      "category": "commands",
       "logical_id": "command:commands/feature-dev",
       "canonical_path": "commands/feature-dev.md",
       "paths": [
@@ -1203,6 +1273,7 @@
     {
       "kind": "command",
       "name": "feature-development",
+      "category": "commands",
       "logical_id": "command:commands/feature-development",
       "canonical_path": ".claude/commands/feature-development.md",
       "paths": [
@@ -1219,6 +1290,7 @@
     {
       "kind": "command",
       "name": "flutter-build",
+      "category": "commands",
       "logical_id": "command:commands/flutter-build",
       "canonical_path": "commands/flutter-build.md",
       "paths": [
@@ -1235,6 +1307,7 @@
     {
       "kind": "command",
       "name": "flutter-review",
+      "category": "commands",
       "logical_id": "command:commands/flutter-review",
       "canonical_path": "commands/flutter-review.md",
       "paths": [
@@ -1251,6 +1324,7 @@
     {
       "kind": "command",
       "name": "flutter-test",
+      "category": "commands",
       "logical_id": "command:commands/flutter-test",
       "canonical_path": "commands/flutter-test.md",
       "paths": [
@@ -1267,6 +1341,7 @@
     {
       "kind": "command",
       "name": "gan-build",
+      "category": "commands",
       "logical_id": "command:commands/gan-build",
       "canonical_path": "commands/gan-build.md",
       "paths": [
@@ -1283,6 +1358,7 @@
     {
       "kind": "command",
       "name": "gan-design",
+      "category": "commands",
       "logical_id": "command:commands/gan-design",
       "canonical_path": "commands/gan-design.md",
       "paths": [
@@ -1299,6 +1375,7 @@
     {
       "kind": "command",
       "name": "go-build",
+      "category": "commands",
       "logical_id": "command:commands/go-build",
       "canonical_path": "commands/go-build.md",
       "paths": [
@@ -1317,6 +1394,7 @@
     {
       "kind": "command",
       "name": "go-review",
+      "category": "commands",
       "logical_id": "command:commands/go-review",
       "canonical_path": "commands/go-review.md",
       "paths": [
@@ -1335,6 +1413,7 @@
     {
       "kind": "command",
       "name": "go-test",
+      "category": "commands",
       "logical_id": "command:commands/go-test",
       "canonical_path": "commands/go-test.md",
       "paths": [
@@ -1353,6 +1432,7 @@
     {
       "kind": "command",
       "name": "gradle-build",
+      "category": "commands",
       "logical_id": "command:commands/gradle-build",
       "canonical_path": "commands/gradle-build.md",
       "paths": [
@@ -1369,6 +1449,7 @@
     {
       "kind": "command",
       "name": "harness-audit",
+      "category": "commands",
       "logical_id": "command:commands/harness-audit",
       "canonical_path": "commands/harness-audit.md",
       "paths": [
@@ -1386,6 +1467,7 @@
     {
       "kind": "command",
       "name": "hookify",
+      "category": "commands",
       "logical_id": "command:commands/hookify",
       "canonical_path": "commands/hookify.md",
       "paths": [
@@ -1402,6 +1484,7 @@
     {
       "kind": "command",
       "name": "hookify-configure",
+      "category": "commands",
       "logical_id": "command:commands/hookify-configure",
       "canonical_path": "commands/hookify-configure.md",
       "paths": [
@@ -1418,6 +1501,7 @@
     {
       "kind": "command",
       "name": "hookify-help",
+      "category": "commands",
       "logical_id": "command:commands/hookify-help",
       "canonical_path": "commands/hookify-help.md",
       "paths": [
@@ -1434,6 +1518,7 @@
     {
       "kind": "command",
       "name": "hookify-list",
+      "category": "commands",
       "logical_id": "command:commands/hookify-list",
       "canonical_path": "commands/hookify-list.md",
       "paths": [
@@ -1450,6 +1535,7 @@
     {
       "kind": "command",
       "name": "instinct-export",
+      "category": "commands",
       "logical_id": "command:commands/instinct-export",
       "canonical_path": "commands/instinct-export.md",
       "paths": [
@@ -1468,6 +1554,7 @@
     {
       "kind": "command",
       "name": "instinct-import",
+      "category": "commands",
       "logical_id": "command:commands/instinct-import",
       "canonical_path": "commands/instinct-import.md",
       "paths": [
@@ -1486,6 +1573,7 @@
     {
       "kind": "command",
       "name": "instinct-status",
+      "category": "commands",
       "logical_id": "command:commands/instinct-status",
       "canonical_path": "commands/instinct-status.md",
       "paths": [
@@ -1504,6 +1592,7 @@
     {
       "kind": "command",
       "name": "jira",
+      "category": "commands",
       "logical_id": "command:commands/jira",
       "canonical_path": "commands/jira.md",
       "paths": [
@@ -1520,6 +1609,7 @@
     {
       "kind": "command",
       "name": "kotlin-build",
+      "category": "commands",
       "logical_id": "command:commands/kotlin-build",
       "canonical_path": "commands/kotlin-build.md",
       "paths": [
@@ -1536,6 +1626,7 @@
     {
       "kind": "command",
       "name": "kotlin-review",
+      "category": "commands",
       "logical_id": "command:commands/kotlin-review",
       "canonical_path": "commands/kotlin-review.md",
       "paths": [
@@ -1552,6 +1643,7 @@
     {
       "kind": "command",
       "name": "kotlin-test",
+      "category": "commands",
       "logical_id": "command:commands/kotlin-test",
       "canonical_path": "commands/kotlin-test.md",
       "paths": [
@@ -1568,6 +1660,7 @@
     {
       "kind": "command",
       "name": "learn",
+      "category": "commands",
       "logical_id": "command:commands/learn",
       "canonical_path": "commands/learn.md",
       "paths": [
@@ -1586,6 +1679,7 @@
     {
       "kind": "command",
       "name": "learn-eval",
+      "category": "commands",
       "logical_id": "command:commands/learn-eval",
       "canonical_path": "commands/learn-eval.md",
       "paths": [
@@ -1602,6 +1696,7 @@
     {
       "kind": "command",
       "name": "loop-start",
+      "category": "commands",
       "logical_id": "command:commands/loop-start",
       "canonical_path": "commands/loop-start.md",
       "paths": [
@@ -1619,6 +1714,7 @@
     {
       "kind": "command",
       "name": "loop-status",
+      "category": "commands",
       "logical_id": "command:commands/loop-status",
       "canonical_path": "commands/loop-status.md",
       "paths": [
@@ -1636,6 +1732,7 @@
     {
       "kind": "command",
       "name": "model-route",
+      "category": "commands",
       "logical_id": "command:commands/model-route",
       "canonical_path": "commands/model-route.md",
       "paths": [
@@ -1653,6 +1750,7 @@
     {
       "kind": "command",
       "name": "multi-backend",
+      "category": "commands",
       "logical_id": "command:commands/multi-backend",
       "canonical_path": "commands/multi-backend.md",
       "paths": [
@@ -1669,6 +1767,7 @@
     {
       "kind": "command",
       "name": "multi-execute",
+      "category": "commands",
       "logical_id": "command:commands/multi-execute",
       "canonical_path": "commands/multi-execute.md",
       "paths": [
@@ -1685,6 +1784,7 @@
     {
       "kind": "command",
       "name": "multi-frontend",
+      "category": "commands",
       "logical_id": "command:commands/multi-frontend",
       "canonical_path": "commands/multi-frontend.md",
       "paths": [
@@ -1701,6 +1801,7 @@
     {
       "kind": "command",
       "name": "multi-plan",
+      "category": "commands",
       "logical_id": "command:commands/multi-plan",
       "canonical_path": "commands/multi-plan.md",
       "paths": [
@@ -1717,6 +1818,7 @@
     {
       "kind": "command",
       "name": "multi-workflow",
+      "category": "commands",
       "logical_id": "command:commands/multi-workflow",
       "canonical_path": "commands/multi-workflow.md",
       "paths": [
@@ -1733,6 +1835,7 @@
     {
       "kind": "command",
       "name": "orchestrate",
+      "category": "commands",
       "logical_id": "command:commands/orchestrate",
       "canonical_path": "commands/orchestrate.md",
       "paths": [
@@ -1751,6 +1854,7 @@
     {
       "kind": "command",
       "name": "plan",
+      "category": "commands",
       "logical_id": "command:commands/plan",
       "canonical_path": "commands/plan.md",
       "paths": [
@@ -1769,6 +1873,7 @@
     {
       "kind": "command",
       "name": "pm2",
+      "category": "commands",
       "logical_id": "command:commands/pm2",
       "canonical_path": "commands/pm2.md",
       "paths": [
@@ -1785,6 +1890,7 @@
     {
       "kind": "command",
       "name": "projects",
+      "category": "commands",
       "logical_id": "command:commands/projects",
       "canonical_path": "commands/projects.md",
       "paths": [
@@ -1803,6 +1909,7 @@
     {
       "kind": "command",
       "name": "promote",
+      "category": "commands",
       "logical_id": "command:commands/promote",
       "canonical_path": "commands/promote.md",
       "paths": [
@@ -1821,6 +1928,7 @@
     {
       "kind": "command",
       "name": "prompt-optimize",
+      "category": "commands",
       "logical_id": "command:commands/prompt-optimize",
       "canonical_path": "commands/prompt-optimize.md",
       "paths": [
@@ -1837,6 +1945,7 @@
     {
       "kind": "command",
       "name": "prp-commit",
+      "category": "commands",
       "logical_id": "command:commands/prp-commit",
       "canonical_path": "commands/prp-commit.md",
       "paths": [
@@ -1853,6 +1962,7 @@
     {
       "kind": "command",
       "name": "prp-implement",
+      "category": "commands",
       "logical_id": "command:commands/prp-implement",
       "canonical_path": "commands/prp-implement.md",
       "paths": [
@@ -1869,6 +1979,7 @@
     {
       "kind": "command",
       "name": "prp-plan",
+      "category": "commands",
       "logical_id": "command:commands/prp-plan",
       "canonical_path": "commands/prp-plan.md",
       "paths": [
@@ -1885,6 +1996,7 @@
     {
       "kind": "command",
       "name": "prp-pr",
+      "category": "commands",
       "logical_id": "command:commands/prp-pr",
       "canonical_path": "commands/prp-pr.md",
       "paths": [
@@ -1901,6 +2013,7 @@
     {
       "kind": "command",
       "name": "prp-prd",
+      "category": "commands",
       "logical_id": "command:commands/prp-prd",
       "canonical_path": "commands/prp-prd.md",
       "paths": [
@@ -1917,6 +2030,7 @@
     {
       "kind": "command",
       "name": "prune",
+      "category": "commands",
       "logical_id": "command:commands/prune",
       "canonical_path": "commands/prune.md",
       "paths": [
@@ -1933,6 +2047,7 @@
     {
       "kind": "command",
       "name": "python-review",
+      "category": "commands",
       "logical_id": "command:commands/python-review",
       "canonical_path": "commands/python-review.md",
       "paths": [
@@ -1949,6 +2064,7 @@
     {
       "kind": "command",
       "name": "quality-gate",
+      "category": "commands",
       "logical_id": "command:commands/quality-gate",
       "canonical_path": "commands/quality-gate.md",
       "paths": [
@@ -1966,6 +2082,7 @@
     {
       "kind": "command",
       "name": "refactor-clean",
+      "category": "commands",
       "logical_id": "command:commands/refactor-clean",
       "canonical_path": "commands/refactor-clean.md",
       "paths": [
@@ -1984,6 +2101,7 @@
     {
       "kind": "command",
       "name": "resume-session",
+      "category": "commands",
       "logical_id": "command:commands/resume-session",
       "canonical_path": "commands/resume-session.md",
       "paths": [
@@ -2000,6 +2118,7 @@
     {
       "kind": "command",
       "name": "review-pr",
+      "category": "commands",
       "logical_id": "command:commands/review-pr",
       "canonical_path": "commands/review-pr.md",
       "paths": [
@@ -2016,6 +2135,7 @@
     {
       "kind": "command",
       "name": "rules-distill",
+      "category": "commands",
       "logical_id": "command:commands/rules-distill",
       "canonical_path": "commands/rules-distill.md",
       "paths": [
@@ -2032,6 +2152,7 @@
     {
       "kind": "command",
       "name": "rust-build",
+      "category": "commands",
       "logical_id": "command:commands/rust-build",
       "canonical_path": "commands/rust-build.md",
       "paths": [
@@ -2050,6 +2171,7 @@
     {
       "kind": "command",
       "name": "rust-review",
+      "category": "commands",
       "logical_id": "command:commands/rust-review",
       "canonical_path": "commands/rust-review.md",
       "paths": [
@@ -2068,6 +2190,7 @@
     {
       "kind": "command",
       "name": "rust-test",
+      "category": "commands",
       "logical_id": "command:commands/rust-test",
       "canonical_path": "commands/rust-test.md",
       "paths": [
@@ -2086,6 +2209,7 @@
     {
       "kind": "command",
       "name": "santa-loop",
+      "category": "commands",
       "logical_id": "command:commands/santa-loop",
       "canonical_path": "commands/santa-loop.md",
       "paths": [
@@ -2102,6 +2226,7 @@
     {
       "kind": "command",
       "name": "save-session",
+      "category": "commands",
       "logical_id": "command:commands/save-session",
       "canonical_path": "commands/save-session.md",
       "paths": [
@@ -2118,6 +2243,7 @@
     {
       "kind": "command",
       "name": "security",
+      "category": "commands",
       "logical_id": "command:commands/security",
       "canonical_path": ".opencode/commands/security.md",
       "paths": [
@@ -2134,6 +2260,7 @@
     {
       "kind": "command",
       "name": "sessions",
+      "category": "commands",
       "logical_id": "command:commands/sessions",
       "canonical_path": "commands/sessions.md",
       "paths": [
@@ -2150,6 +2277,7 @@
     {
       "kind": "command",
       "name": "setup-pm",
+      "category": "commands",
       "logical_id": "command:commands/setup-pm",
       "canonical_path": "commands/setup-pm.md",
       "paths": [
@@ -2168,6 +2296,7 @@
     {
       "kind": "command",
       "name": "skill-create",
+      "category": "commands",
       "logical_id": "command:commands/skill-create",
       "canonical_path": "commands/skill-create.md",
       "paths": [
@@ -2186,6 +2315,7 @@
     {
       "kind": "command",
       "name": "skill-health",
+      "category": "commands",
       "logical_id": "command:commands/skill-health",
       "canonical_path": "commands/skill-health.md",
       "paths": [
@@ -2202,6 +2332,7 @@
     {
       "kind": "command",
       "name": "tdd",
+      "category": "commands",
       "logical_id": "command:commands/tdd",
       "canonical_path": "commands/tdd.md",
       "paths": [
@@ -2220,6 +2351,7 @@
     {
       "kind": "command",
       "name": "test-coverage",
+      "category": "commands",
       "logical_id": "command:commands/test-coverage",
       "canonical_path": "commands/test-coverage.md",
       "paths": [
@@ -2238,6 +2370,7 @@
     {
       "kind": "command",
       "name": "update-codemaps",
+      "category": "commands",
       "logical_id": "command:commands/update-codemaps",
       "canonical_path": "commands/update-codemaps.md",
       "paths": [
@@ -2256,6 +2389,7 @@
     {
       "kind": "command",
       "name": "update-docs",
+      "category": "commands",
       "logical_id": "command:commands/update-docs",
       "canonical_path": "commands/update-docs.md",
       "paths": [
@@ -2274,6 +2408,7 @@
     {
       "kind": "command",
       "name": "verify",
+      "category": "commands",
       "logical_id": "command:commands/verify",
       "canonical_path": "commands/verify.md",
       "paths": [
@@ -2292,6 +2427,7 @@
     {
       "kind": "hook",
       "name": "adapter.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/adapter",
       "canonical_path": ".cursor/hooks/adapter.js",
       "paths": [
@@ -2308,6 +2444,7 @@
     {
       "kind": "hook",
       "name": "after-file-edit.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/after-file-edit",
       "canonical_path": ".cursor/hooks/after-file-edit.js",
       "paths": [
@@ -2324,6 +2461,7 @@
     {
       "kind": "hook",
       "name": "after-mcp-execution.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/after-mcp-execution",
       "canonical_path": ".cursor/hooks/after-mcp-execution.js",
       "paths": [
@@ -2340,6 +2478,7 @@
     {
       "kind": "hook",
       "name": "after-shell-execution.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/after-shell-execution",
       "canonical_path": ".cursor/hooks/after-shell-execution.js",
       "paths": [
@@ -2356,6 +2495,7 @@
     {
       "kind": "hook",
       "name": "after-tab-file-edit.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/after-tab-file-edit",
       "canonical_path": ".cursor/hooks/after-tab-file-edit.js",
       "paths": [
@@ -2372,6 +2512,7 @@
     {
       "kind": "hook",
       "name": "before-mcp-execution.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/before-mcp-execution",
       "canonical_path": ".cursor/hooks/before-mcp-execution.js",
       "paths": [
@@ -2388,6 +2529,7 @@
     {
       "kind": "hook",
       "name": "before-read-file.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/before-read-file",
       "canonical_path": ".cursor/hooks/before-read-file.js",
       "paths": [
@@ -2404,6 +2546,7 @@
     {
       "kind": "hook",
       "name": "before-shell-execution.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/before-shell-execution",
       "canonical_path": ".cursor/hooks/before-shell-execution.js",
       "paths": [
@@ -2420,6 +2563,7 @@
     {
       "kind": "hook",
       "name": "before-submit-prompt.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/before-submit-prompt",
       "canonical_path": ".cursor/hooks/before-submit-prompt.js",
       "paths": [
@@ -2436,6 +2580,7 @@
     {
       "kind": "hook",
       "name": "before-tab-file-read.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/before-tab-file-read",
       "canonical_path": ".cursor/hooks/before-tab-file-read.js",
       "paths": [
@@ -2452,6 +2597,7 @@
     {
       "kind": "hook",
       "name": "pre-compact.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/pre-compact",
       "canonical_path": ".cursor/hooks/pre-compact.js",
       "paths": [
@@ -2468,6 +2614,7 @@
     {
       "kind": "hook",
       "name": "session-end.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/session-end",
       "canonical_path": ".cursor/hooks/session-end.js",
       "paths": [
@@ -2484,6 +2631,7 @@
     {
       "kind": "hook",
       "name": "session-start.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/session-start",
       "canonical_path": ".cursor/hooks/session-start.js",
       "paths": [
@@ -2500,6 +2648,7 @@
     {
       "kind": "hook",
       "name": "stop.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/stop",
       "canonical_path": ".cursor/hooks/stop.js",
       "paths": [
@@ -2516,6 +2665,7 @@
     {
       "kind": "hook",
       "name": "subagent-start.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/subagent-start",
       "canonical_path": ".cursor/hooks/subagent-start.js",
       "paths": [
@@ -2532,6 +2682,7 @@
     {
       "kind": "hook",
       "name": "subagent-stop.js",
+      "category": "hooks",
       "logical_id": "hook:hooks/subagent-stop",
       "canonical_path": ".cursor/hooks/subagent-stop.js",
       "paths": [
@@ -2548,6 +2699,7 @@
     {
       "kind": "hook",
       "name": "auto-tmux-dev.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/auto-tmux-dev",
       "canonical_path": "scripts/hooks/auto-tmux-dev.js",
       "paths": [
@@ -2564,6 +2716,7 @@
     {
       "kind": "hook",
       "name": "check-console-log.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/check-console-log",
       "canonical_path": "scripts/hooks/check-console-log.js",
       "paths": [
@@ -2580,6 +2733,7 @@
     {
       "kind": "hook",
       "name": "check-hook-enabled.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/check-hook-enabled",
       "canonical_path": "scripts/hooks/check-hook-enabled.js",
       "paths": [
@@ -2596,6 +2750,7 @@
     {
       "kind": "hook",
       "name": "config-protection.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/config-protection",
       "canonical_path": "scripts/hooks/config-protection.js",
       "paths": [
@@ -2612,6 +2767,7 @@
     {
       "kind": "hook",
       "name": "cost-tracker.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/cost-tracker",
       "canonical_path": "scripts/hooks/cost-tracker.js",
       "paths": [
@@ -2628,6 +2784,7 @@
     {
       "kind": "hook",
       "name": "design-quality-check.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/design-quality-check",
       "canonical_path": "scripts/hooks/design-quality-check.js",
       "paths": [
@@ -2644,6 +2801,7 @@
     {
       "kind": "hook",
       "name": "desktop-notify.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/desktop-notify",
       "canonical_path": "scripts/hooks/desktop-notify.js",
       "paths": [
@@ -2660,6 +2818,7 @@
     {
       "kind": "hook",
       "name": "doc-file-warning.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/doc-file-warning",
       "canonical_path": "scripts/hooks/doc-file-warning.js",
       "paths": [
@@ -2676,6 +2835,7 @@
     {
       "kind": "hook",
       "name": "evaluate-session.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/evaluate-session",
       "canonical_path": "scripts/hooks/evaluate-session.js",
       "paths": [
@@ -2692,6 +2852,7 @@
     {
       "kind": "hook",
       "name": "governance-capture.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/governance-capture",
       "canonical_path": "scripts/hooks/governance-capture.js",
       "paths": [
@@ -2708,6 +2869,7 @@
     {
       "kind": "hook",
       "name": "mcp-health-check.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/mcp-health-check",
       "canonical_path": "scripts/hooks/mcp-health-check.js",
       "paths": [
@@ -2724,6 +2886,7 @@
     {
       "kind": "hook",
       "name": "post-bash-build-complete.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/post-bash-build-complete",
       "canonical_path": "scripts/hooks/post-bash-build-complete.js",
       "paths": [
@@ -2740,6 +2903,7 @@
     {
       "kind": "hook",
       "name": "post-bash-command-log.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/post-bash-command-log",
       "canonical_path": "scripts/hooks/post-bash-command-log.js",
       "paths": [
@@ -2756,6 +2920,7 @@
     {
       "kind": "hook",
       "name": "post-bash-pr-created.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/post-bash-pr-created",
       "canonical_path": "scripts/hooks/post-bash-pr-created.js",
       "paths": [
@@ -2772,6 +2937,7 @@
     {
       "kind": "hook",
       "name": "post-edit-accumulator.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/post-edit-accumulator",
       "canonical_path": "scripts/hooks/post-edit-accumulator.js",
       "paths": [
@@ -2788,6 +2954,7 @@
     {
       "kind": "hook",
       "name": "post-edit-console-warn.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/post-edit-console-warn",
       "canonical_path": "scripts/hooks/post-edit-console-warn.js",
       "paths": [
@@ -2804,6 +2971,7 @@
     {
       "kind": "hook",
       "name": "post-edit-format.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/post-edit-format",
       "canonical_path": "scripts/hooks/post-edit-format.js",
       "paths": [
@@ -2820,6 +2988,7 @@
     {
       "kind": "hook",
       "name": "post-edit-typecheck.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/post-edit-typecheck",
       "canonical_path": "scripts/hooks/post-edit-typecheck.js",
       "paths": [
@@ -2836,6 +3005,7 @@
     {
       "kind": "hook",
       "name": "pre-bash-commit-quality.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/pre-bash-commit-quality",
       "canonical_path": "scripts/hooks/pre-bash-commit-quality.js",
       "paths": [
@@ -2852,6 +3022,7 @@
     {
       "kind": "hook",
       "name": "pre-bash-dev-server-block.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/pre-bash-dev-server-block",
       "canonical_path": "scripts/hooks/pre-bash-dev-server-block.js",
       "paths": [
@@ -2868,6 +3039,7 @@
     {
       "kind": "hook",
       "name": "pre-bash-git-push-reminder.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/pre-bash-git-push-reminder",
       "canonical_path": "scripts/hooks/pre-bash-git-push-reminder.js",
       "paths": [
@@ -2884,6 +3056,7 @@
     {
       "kind": "hook",
       "name": "pre-bash-tmux-reminder.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/pre-bash-tmux-reminder",
       "canonical_path": "scripts/hooks/pre-bash-tmux-reminder.js",
       "paths": [
@@ -2900,6 +3073,7 @@
     {
       "kind": "hook",
       "name": "pre-compact.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/pre-compact",
       "canonical_path": "scripts/hooks/pre-compact.js",
       "paths": [
@@ -2916,6 +3090,7 @@
     {
       "kind": "hook",
       "name": "pre-write-doc-warn.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/pre-write-doc-warn",
       "canonical_path": "scripts/hooks/pre-write-doc-warn.js",
       "paths": [
@@ -2932,6 +3107,7 @@
     {
       "kind": "hook",
       "name": "quality-gate.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/quality-gate",
       "canonical_path": "scripts/hooks/quality-gate.js",
       "paths": [
@@ -2948,6 +3124,7 @@
     {
       "kind": "hook",
       "name": "run-with-flags.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/run-with-flags",
       "canonical_path": "scripts/hooks/run-with-flags.js",
       "paths": [
@@ -2964,6 +3141,7 @@
     {
       "kind": "hook",
       "name": "run-with-flags-shell.sh",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/run-with-flags-shell",
       "canonical_path": "scripts/hooks/run-with-flags-shell.sh",
       "paths": [
@@ -2980,6 +3158,7 @@
     {
       "kind": "hook",
       "name": "session-end.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/session-end",
       "canonical_path": "scripts/hooks/session-end.js",
       "paths": [
@@ -2996,6 +3175,7 @@
     {
       "kind": "hook",
       "name": "session-end-marker.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/session-end-marker",
       "canonical_path": "scripts/hooks/session-end-marker.js",
       "paths": [
@@ -3012,6 +3192,7 @@
     {
       "kind": "hook",
       "name": "session-start.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/session-start",
       "canonical_path": "scripts/hooks/session-start.js",
       "paths": [
@@ -3028,6 +3209,7 @@
     {
       "kind": "hook",
       "name": "session-start-bootstrap.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/session-start-bootstrap",
       "canonical_path": "scripts/hooks/session-start-bootstrap.js",
       "paths": [
@@ -3044,6 +3226,7 @@
     {
       "kind": "hook",
       "name": "stop-format-typecheck.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/stop-format-typecheck",
       "canonical_path": "scripts/hooks/stop-format-typecheck.js",
       "paths": [
@@ -3060,6 +3243,7 @@
     {
       "kind": "hook",
       "name": "suggest-compact.js",
+      "category": "hooks",
       "logical_id": "hook:scripts/hooks/suggest-compact",
       "canonical_path": "scripts/hooks/suggest-compact.js",
       "paths": [
@@ -3076,6 +3260,7 @@
     {
       "kind": "hook",
       "name": "session-start.mjs",
+      "category": "hooks",
       "logical_id": "hook:skills/ck/hooks/session-start",
       "canonical_path": "skills/ck/hooks/session-start.mjs",
       "paths": [
@@ -3092,6 +3277,7 @@
     {
       "kind": "hook",
       "name": "observe.sh",
+      "category": "hooks",
       "logical_id": "hook:skills/continuous-learning-v2/hooks/observe",
       "canonical_path": "skills/continuous-learning-v2/hooks/observe.sh",
       "paths": [
@@ -3108,6 +3294,7 @@
     {
       "kind": "mcp",
       "name": "context7",
+      "category": "",
       "logical_id": "mcp:.mcp.json#context7",
       "canonical_path": ".mcp.json#context7",
       "paths": [
@@ -3124,6 +3311,7 @@
     {
       "kind": "mcp",
       "name": "exa",
+      "category": "",
       "logical_id": "mcp:.mcp.json#exa",
       "canonical_path": ".mcp.json#exa",
       "paths": [
@@ -3140,6 +3328,7 @@
     {
       "kind": "mcp",
       "name": "github",
+      "category": "",
       "logical_id": "mcp:.mcp.json#github",
       "canonical_path": ".mcp.json#github",
       "paths": [
@@ -3156,6 +3345,7 @@
     {
       "kind": "mcp",
       "name": "memory",
+      "category": "",
       "logical_id": "mcp:.mcp.json#memory",
       "canonical_path": ".mcp.json#memory",
       "paths": [
@@ -3172,6 +3362,7 @@
     {
       "kind": "mcp",
       "name": "playwright",
+      "category": "",
       "logical_id": "mcp:.mcp.json#playwright",
       "canonical_path": ".mcp.json#playwright",
       "paths": [
@@ -3188,6 +3379,7 @@
     {
       "kind": "mcp",
       "name": "sequential-thinking",
+      "category": "",
       "logical_id": "mcp:.mcp.json#sequential-thinking",
       "canonical_path": ".mcp.json#sequential-thinking",
       "paths": [
@@ -3204,6 +3396,7 @@
     {
       "kind": "plugin",
       "name": "ecc",
+      "category": "",
       "logical_id": "plugin:ecc",
       "canonical_path": ".claude-plugin/plugin.json",
       "paths": [
@@ -3220,6 +3413,7 @@
     {
       "kind": "rule",
       "name": "README",
+      "category": "rules",
       "logical_id": "rule:rules/README",
       "canonical_path": "rules/README.md",
       "paths": [
@@ -3236,6 +3430,7 @@
     {
       "kind": "rule",
       "name": "common-agents",
+      "category": "rules",
       "logical_id": "rule:rules/common-agents",
       "canonical_path": ".cursor/rules/common-agents.md",
       "paths": [
@@ -3252,6 +3447,7 @@
     {
       "kind": "rule",
       "name": "common-coding-style",
+      "category": "rules",
       "logical_id": "rule:rules/common-coding-style",
       "canonical_path": ".cursor/rules/common-coding-style.md",
       "paths": [
@@ -3268,6 +3464,7 @@
     {
       "kind": "rule",
       "name": "common-development-workflow",
+      "category": "rules",
       "logical_id": "rule:rules/common-development-workflow",
       "canonical_path": ".cursor/rules/common-development-workflow.md",
       "paths": [
@@ -3284,6 +3481,7 @@
     {
       "kind": "rule",
       "name": "common-git-workflow",
+      "category": "rules",
       "logical_id": "rule:rules/common-git-workflow",
       "canonical_path": ".cursor/rules/common-git-workflow.md",
       "paths": [
@@ -3300,6 +3498,7 @@
     {
       "kind": "rule",
       "name": "common-hooks",
+      "category": "rules",
       "logical_id": "rule:rules/common-hooks",
       "canonical_path": ".cursor/rules/common-hooks.md",
       "paths": [
@@ -3316,6 +3515,7 @@
     {
       "kind": "rule",
       "name": "common-patterns",
+      "category": "rules",
       "logical_id": "rule:rules/common-patterns",
       "canonical_path": ".cursor/rules/common-patterns.md",
       "paths": [
@@ -3332,6 +3532,7 @@
     {
       "kind": "rule",
       "name": "common-performance",
+      "category": "rules",
       "logical_id": "rule:rules/common-performance",
       "canonical_path": ".cursor/rules/common-performance.md",
       "paths": [
@@ -3348,6 +3549,7 @@
     {
       "kind": "rule",
       "name": "common-security",
+      "category": "rules",
       "logical_id": "rule:rules/common-security",
       "canonical_path": ".cursor/rules/common-security.md",
       "paths": [
@@ -3364,6 +3566,7 @@
     {
       "kind": "rule",
       "name": "common-testing",
+      "category": "rules",
       "logical_id": "rule:rules/common-testing",
       "canonical_path": ".cursor/rules/common-testing.md",
       "paths": [
@@ -3380,6 +3583,7 @@
     {
       "kind": "rule",
       "name": "common/agents",
+      "category": "common",
       "logical_id": "rule:rules/common/agents",
       "canonical_path": "rules/common/agents.md",
       "paths": [
@@ -3396,6 +3600,7 @@
     {
       "kind": "rule",
       "name": "common/code-review",
+      "category": "common",
       "logical_id": "rule:rules/common/code-review",
       "canonical_path": "rules/common/code-review.md",
       "paths": [
@@ -3412,6 +3617,7 @@
     {
       "kind": "rule",
       "name": "common/coding-style",
+      "category": "common",
       "logical_id": "rule:rules/common/coding-style",
       "canonical_path": "rules/common/coding-style.md",
       "paths": [
@@ -3428,6 +3634,7 @@
     {
       "kind": "rule",
       "name": "common/development-workflow",
+      "category": "common",
       "logical_id": "rule:rules/common/development-workflow",
       "canonical_path": "rules/common/development-workflow.md",
       "paths": [
@@ -3444,6 +3651,7 @@
     {
       "kind": "rule",
       "name": "common/git-workflow",
+      "category": "common",
       "logical_id": "rule:rules/common/git-workflow",
       "canonical_path": "rules/common/git-workflow.md",
       "paths": [
@@ -3460,6 +3668,7 @@
     {
       "kind": "rule",
       "name": "common/hooks",
+      "category": "common",
       "logical_id": "rule:rules/common/hooks",
       "canonical_path": "rules/common/hooks.md",
       "paths": [
@@ -3476,6 +3685,7 @@
     {
       "kind": "rule",
       "name": "common/patterns",
+      "category": "common",
       "logical_id": "rule:rules/common/patterns",
       "canonical_path": "rules/common/patterns.md",
       "paths": [
@@ -3492,6 +3702,7 @@
     {
       "kind": "rule",
       "name": "common/performance",
+      "category": "common",
       "logical_id": "rule:rules/common/performance",
       "canonical_path": "rules/common/performance.md",
       "paths": [
@@ -3508,6 +3719,7 @@
     {
       "kind": "rule",
       "name": "common/security",
+      "category": "common",
       "logical_id": "rule:rules/common/security",
       "canonical_path": "rules/common/security.md",
       "paths": [
@@ -3524,6 +3736,7 @@
     {
       "kind": "rule",
       "name": "common/testing",
+      "category": "common",
       "logical_id": "rule:rules/common/testing",
       "canonical_path": "rules/common/testing.md",
       "paths": [
@@ -3540,6 +3753,7 @@
     {
       "kind": "rule",
       "name": "cpp/coding-style",
+      "category": "cpp",
       "logical_id": "rule:rules/cpp/coding-style",
       "canonical_path": "rules/cpp/coding-style.md",
       "paths": [
@@ -3556,6 +3770,7 @@
     {
       "kind": "rule",
       "name": "cpp/hooks",
+      "category": "cpp",
       "logical_id": "rule:rules/cpp/hooks",
       "canonical_path": "rules/cpp/hooks.md",
       "paths": [
@@ -3572,6 +3787,7 @@
     {
       "kind": "rule",
       "name": "cpp/patterns",
+      "category": "cpp",
       "logical_id": "rule:rules/cpp/patterns",
       "canonical_path": "rules/cpp/patterns.md",
       "paths": [
@@ -3588,6 +3804,7 @@
     {
       "kind": "rule",
       "name": "cpp/security",
+      "category": "cpp",
       "logical_id": "rule:rules/cpp/security",
       "canonical_path": "rules/cpp/security.md",
       "paths": [
@@ -3604,6 +3821,7 @@
     {
       "kind": "rule",
       "name": "cpp/testing",
+      "category": "cpp",
       "logical_id": "rule:rules/cpp/testing",
       "canonical_path": "rules/cpp/testing.md",
       "paths": [
@@ -3620,6 +3838,7 @@
     {
       "kind": "rule",
       "name": "csharp/coding-style",
+      "category": "csharp",
       "logical_id": "rule:rules/csharp/coding-style",
       "canonical_path": "rules/csharp/coding-style.md",
       "paths": [
@@ -3636,6 +3855,7 @@
     {
       "kind": "rule",
       "name": "csharp/hooks",
+      "category": "csharp",
       "logical_id": "rule:rules/csharp/hooks",
       "canonical_path": "rules/csharp/hooks.md",
       "paths": [
@@ -3652,6 +3872,7 @@
     {
       "kind": "rule",
       "name": "csharp/patterns",
+      "category": "csharp",
       "logical_id": "rule:rules/csharp/patterns",
       "canonical_path": "rules/csharp/patterns.md",
       "paths": [
@@ -3668,6 +3889,7 @@
     {
       "kind": "rule",
       "name": "csharp/security",
+      "category": "csharp",
       "logical_id": "rule:rules/csharp/security",
       "canonical_path": "rules/csharp/security.md",
       "paths": [
@@ -3684,6 +3906,7 @@
     {
       "kind": "rule",
       "name": "csharp/testing",
+      "category": "csharp",
       "logical_id": "rule:rules/csharp/testing",
       "canonical_path": "rules/csharp/testing.md",
       "paths": [
@@ -3700,6 +3923,7 @@
     {
       "kind": "rule",
       "name": "dart/coding-style",
+      "category": "dart",
       "logical_id": "rule:rules/dart/coding-style",
       "canonical_path": "rules/dart/coding-style.md",
       "paths": [
@@ -3716,6 +3940,7 @@
     {
       "kind": "rule",
       "name": "dart/hooks",
+      "category": "dart",
       "logical_id": "rule:rules/dart/hooks",
       "canonical_path": "rules/dart/hooks.md",
       "paths": [
@@ -3732,6 +3957,7 @@
     {
       "kind": "rule",
       "name": "dart/patterns",
+      "category": "dart",
       "logical_id": "rule:rules/dart/patterns",
       "canonical_path": "rules/dart/patterns.md",
       "paths": [
@@ -3748,6 +3974,7 @@
     {
       "kind": "rule",
       "name": "dart/security",
+      "category": "dart",
       "logical_id": "rule:rules/dart/security",
       "canonical_path": "rules/dart/security.md",
       "paths": [
@@ -3764,6 +3991,7 @@
     {
       "kind": "rule",
       "name": "dart/testing",
+      "category": "dart",
       "logical_id": "rule:rules/dart/testing",
       "canonical_path": "rules/dart/testing.md",
       "paths": [
@@ -3780,6 +4008,7 @@
     {
       "kind": "rule",
       "name": "everything-claude-code-guardrails",
+      "category": "rules",
       "logical_id": "rule:rules/everything-claude-code-guardrails",
       "canonical_path": ".claude/rules/everything-claude-code-guardrails.md",
       "paths": [
@@ -3796,6 +4025,7 @@
     {
       "kind": "rule",
       "name": "golang-coding-style",
+      "category": "rules",
       "logical_id": "rule:rules/golang-coding-style",
       "canonical_path": ".cursor/rules/golang-coding-style.md",
       "paths": [
@@ -3812,6 +4042,7 @@
     {
       "kind": "rule",
       "name": "golang-hooks",
+      "category": "rules",
       "logical_id": "rule:rules/golang-hooks",
       "canonical_path": ".cursor/rules/golang-hooks.md",
       "paths": [
@@ -3828,6 +4059,7 @@
     {
       "kind": "rule",
       "name": "golang-patterns",
+      "category": "rules",
       "logical_id": "rule:rules/golang-patterns",
       "canonical_path": ".cursor/rules/golang-patterns.md",
       "paths": [
@@ -3844,6 +4076,7 @@
     {
       "kind": "rule",
       "name": "golang-security",
+      "category": "rules",
       "logical_id": "rule:rules/golang-security",
       "canonical_path": ".cursor/rules/golang-security.md",
       "paths": [
@@ -3860,6 +4093,7 @@
     {
       "kind": "rule",
       "name": "golang-testing",
+      "category": "rules",
       "logical_id": "rule:rules/golang-testing",
       "canonical_path": ".cursor/rules/golang-testing.md",
       "paths": [
@@ -3876,6 +4110,7 @@
     {
       "kind": "rule",
       "name": "golang/coding-style",
+      "category": "golang",
       "logical_id": "rule:rules/golang/coding-style",
       "canonical_path": "rules/golang/coding-style.md",
       "paths": [
@@ -3892,6 +4127,7 @@
     {
       "kind": "rule",
       "name": "golang/hooks",
+      "category": "golang",
       "logical_id": "rule:rules/golang/hooks",
       "canonical_path": "rules/golang/hooks.md",
       "paths": [
@@ -3908,6 +4144,7 @@
     {
       "kind": "rule",
       "name": "golang/patterns",
+      "category": "golang",
       "logical_id": "rule:rules/golang/patterns",
       "canonical_path": "rules/golang/patterns.md",
       "paths": [
@@ -3924,6 +4161,7 @@
     {
       "kind": "rule",
       "name": "golang/security",
+      "category": "golang",
       "logical_id": "rule:rules/golang/security",
       "canonical_path": "rules/golang/security.md",
       "paths": [
@@ -3940,6 +4178,7 @@
     {
       "kind": "rule",
       "name": "golang/testing",
+      "category": "golang",
       "logical_id": "rule:rules/golang/testing",
       "canonical_path": "rules/golang/testing.md",
       "paths": [
@@ -3956,6 +4195,7 @@
     {
       "kind": "rule",
       "name": "java/coding-style",
+      "category": "java",
       "logical_id": "rule:rules/java/coding-style",
       "canonical_path": "rules/java/coding-style.md",
       "paths": [
@@ -3972,6 +4212,7 @@
     {
       "kind": "rule",
       "name": "java/hooks",
+      "category": "java",
       "logical_id": "rule:rules/java/hooks",
       "canonical_path": "rules/java/hooks.md",
       "paths": [
@@ -3988,6 +4229,7 @@
     {
       "kind": "rule",
       "name": "java/patterns",
+      "category": "java",
       "logical_id": "rule:rules/java/patterns",
       "canonical_path": "rules/java/patterns.md",
       "paths": [
@@ -4004,6 +4246,7 @@
     {
       "kind": "rule",
       "name": "java/security",
+      "category": "java",
       "logical_id": "rule:rules/java/security",
       "canonical_path": "rules/java/security.md",
       "paths": [
@@ -4020,6 +4263,7 @@
     {
       "kind": "rule",
       "name": "java/testing",
+      "category": "java",
       "logical_id": "rule:rules/java/testing",
       "canonical_path": "rules/java/testing.md",
       "paths": [
@@ -4036,6 +4280,7 @@
     {
       "kind": "rule",
       "name": "kotlin-coding-style",
+      "category": "rules",
       "logical_id": "rule:rules/kotlin-coding-style",
       "canonical_path": ".cursor/rules/kotlin-coding-style.md",
       "paths": [
@@ -4052,6 +4297,7 @@
     {
       "kind": "rule",
       "name": "kotlin-hooks",
+      "category": "rules",
       "logical_id": "rule:rules/kotlin-hooks",
       "canonical_path": ".cursor/rules/kotlin-hooks.md",
       "paths": [
@@ -4068,6 +4314,7 @@
     {
       "kind": "rule",
       "name": "kotlin-patterns",
+      "category": "rules",
       "logical_id": "rule:rules/kotlin-patterns",
       "canonical_path": ".cursor/rules/kotlin-patterns.md",
       "paths": [
@@ -4084,6 +4331,7 @@
     {
       "kind": "rule",
       "name": "kotlin-security",
+      "category": "rules",
       "logical_id": "rule:rules/kotlin-security",
       "canonical_path": ".cursor/rules/kotlin-security.md",
       "paths": [
@@ -4100,6 +4348,7 @@
     {
       "kind": "rule",
       "name": "kotlin-testing",
+      "category": "rules",
       "logical_id": "rule:rules/kotlin-testing",
       "canonical_path": ".cursor/rules/kotlin-testing.md",
       "paths": [
@@ -4116,6 +4365,7 @@
     {
       "kind": "rule",
       "name": "kotlin/coding-style",
+      "category": "kotlin",
       "logical_id": "rule:rules/kotlin/coding-style",
       "canonical_path": "rules/kotlin/coding-style.md",
       "paths": [
@@ -4132,6 +4382,7 @@
     {
       "kind": "rule",
       "name": "kotlin/hooks",
+      "category": "kotlin",
       "logical_id": "rule:rules/kotlin/hooks",
       "canonical_path": "rules/kotlin/hooks.md",
       "paths": [
@@ -4148,6 +4399,7 @@
     {
       "kind": "rule",
       "name": "kotlin/patterns",
+      "category": "kotlin",
       "logical_id": "rule:rules/kotlin/patterns",
       "canonical_path": "rules/kotlin/patterns.md",
       "paths": [
@@ -4164,6 +4416,7 @@
     {
       "kind": "rule",
       "name": "kotlin/security",
+      "category": "kotlin",
       "logical_id": "rule:rules/kotlin/security",
       "canonical_path": "rules/kotlin/security.md",
       "paths": [
@@ -4180,6 +4433,7 @@
     {
       "kind": "rule",
       "name": "kotlin/testing",
+      "category": "kotlin",
       "logical_id": "rule:rules/kotlin/testing",
       "canonical_path": "rules/kotlin/testing.md",
       "paths": [
@@ -4196,6 +4450,7 @@
     {
       "kind": "rule",
       "name": "node",
+      "category": "rules",
       "logical_id": "rule:rules/node",
       "canonical_path": ".claude/rules/node.md",
       "paths": [
@@ -4212,6 +4467,7 @@
     {
       "kind": "rule",
       "name": "perl/coding-style",
+      "category": "perl",
       "logical_id": "rule:rules/perl/coding-style",
       "canonical_path": "rules/perl/coding-style.md",
       "paths": [
@@ -4228,6 +4484,7 @@
     {
       "kind": "rule",
       "name": "perl/hooks",
+      "category": "perl",
       "logical_id": "rule:rules/perl/hooks",
       "canonical_path": "rules/perl/hooks.md",
       "paths": [
@@ -4244,6 +4501,7 @@
     {
       "kind": "rule",
       "name": "perl/patterns",
+      "category": "perl",
       "logical_id": "rule:rules/perl/patterns",
       "canonical_path": "rules/perl/patterns.md",
       "paths": [
@@ -4260,6 +4518,7 @@
     {
       "kind": "rule",
       "name": "perl/security",
+      "category": "perl",
       "logical_id": "rule:rules/perl/security",
       "canonical_path": "rules/perl/security.md",
       "paths": [
@@ -4276,6 +4535,7 @@
     {
       "kind": "rule",
       "name": "perl/testing",
+      "category": "perl",
       "logical_id": "rule:rules/perl/testing",
       "canonical_path": "rules/perl/testing.md",
       "paths": [
@@ -4292,6 +4552,7 @@
     {
       "kind": "rule",
       "name": "php-coding-style",
+      "category": "rules",
       "logical_id": "rule:rules/php-coding-style",
       "canonical_path": ".cursor/rules/php-coding-style.md",
       "paths": [
@@ -4308,6 +4569,7 @@
     {
       "kind": "rule",
       "name": "php-hooks",
+      "category": "rules",
       "logical_id": "rule:rules/php-hooks",
       "canonical_path": ".cursor/rules/php-hooks.md",
       "paths": [
@@ -4324,6 +4586,7 @@
     {
       "kind": "rule",
       "name": "php-patterns",
+      "category": "rules",
       "logical_id": "rule:rules/php-patterns",
       "canonical_path": ".cursor/rules/php-patterns.md",
       "paths": [
@@ -4340,6 +4603,7 @@
     {
       "kind": "rule",
       "name": "php-security",
+      "category": "rules",
       "logical_id": "rule:rules/php-security",
       "canonical_path": ".cursor/rules/php-security.md",
       "paths": [
@@ -4356,6 +4620,7 @@
     {
       "kind": "rule",
       "name": "php-testing",
+      "category": "rules",
       "logical_id": "rule:rules/php-testing",
       "canonical_path": ".cursor/rules/php-testing.md",
       "paths": [
@@ -4372,6 +4637,7 @@
     {
       "kind": "rule",
       "name": "php/coding-style",
+      "category": "php",
       "logical_id": "rule:rules/php/coding-style",
       "canonical_path": "rules/php/coding-style.md",
       "paths": [
@@ -4388,6 +4654,7 @@
     {
       "kind": "rule",
       "name": "php/hooks",
+      "category": "php",
       "logical_id": "rule:rules/php/hooks",
       "canonical_path": "rules/php/hooks.md",
       "paths": [
@@ -4404,6 +4671,7 @@
     {
       "kind": "rule",
       "name": "php/patterns",
+      "category": "php",
       "logical_id": "rule:rules/php/patterns",
       "canonical_path": "rules/php/patterns.md",
       "paths": [
@@ -4420,6 +4688,7 @@
     {
       "kind": "rule",
       "name": "php/security",
+      "category": "php",
       "logical_id": "rule:rules/php/security",
       "canonical_path": "rules/php/security.md",
       "paths": [
@@ -4436,6 +4705,7 @@
     {
       "kind": "rule",
       "name": "php/testing",
+      "category": "php",
       "logical_id": "rule:rules/php/testing",
       "canonical_path": "rules/php/testing.md",
       "paths": [
@@ -4452,6 +4722,7 @@
     {
       "kind": "rule",
       "name": "python-coding-style",
+      "category": "rules",
       "logical_id": "rule:rules/python-coding-style",
       "canonical_path": ".cursor/rules/python-coding-style.md",
       "paths": [
@@ -4468,6 +4739,7 @@
     {
       "kind": "rule",
       "name": "python-hooks",
+      "category": "rules",
       "logical_id": "rule:rules/python-hooks",
       "canonical_path": ".cursor/rules/python-hooks.md",
       "paths": [
@@ -4484,6 +4756,7 @@
     {
       "kind": "rule",
       "name": "python-patterns",
+      "category": "rules",
       "logical_id": "rule:rules/python-patterns",
       "canonical_path": ".cursor/rules/python-patterns.md",
       "paths": [
@@ -4500,6 +4773,7 @@
     {
       "kind": "rule",
       "name": "python-security",
+      "category": "rules",
       "logical_id": "rule:rules/python-security",
       "canonical_path": ".cursor/rules/python-security.md",
       "paths": [
@@ -4516,6 +4790,7 @@
     {
       "kind": "rule",
       "name": "python-testing",
+      "category": "rules",
       "logical_id": "rule:rules/python-testing",
       "canonical_path": ".cursor/rules/python-testing.md",
       "paths": [
@@ -4532,6 +4807,7 @@
     {
       "kind": "rule",
       "name": "python/coding-style",
+      "category": "python",
       "logical_id": "rule:rules/python/coding-style",
       "canonical_path": "rules/python/coding-style.md",
       "paths": [
@@ -4548,6 +4824,7 @@
     {
       "kind": "rule",
       "name": "python/hooks",
+      "category": "python",
       "logical_id": "rule:rules/python/hooks",
       "canonical_path": "rules/python/hooks.md",
       "paths": [
@@ -4564,6 +4841,7 @@
     {
       "kind": "rule",
       "name": "python/patterns",
+      "category": "python",
       "logical_id": "rule:rules/python/patterns",
       "canonical_path": "rules/python/patterns.md",
       "paths": [
@@ -4580,6 +4858,7 @@
     {
       "kind": "rule",
       "name": "python/security",
+      "category": "python",
       "logical_id": "rule:rules/python/security",
       "canonical_path": "rules/python/security.md",
       "paths": [
@@ -4596,6 +4875,7 @@
     {
       "kind": "rule",
       "name": "python/testing",
+      "category": "python",
       "logical_id": "rule:rules/python/testing",
       "canonical_path": "rules/python/testing.md",
       "paths": [
@@ -4612,6 +4892,7 @@
     {
       "kind": "rule",
       "name": "rust/coding-style",
+      "category": "rust",
       "logical_id": "rule:rules/rust/coding-style",
       "canonical_path": "rules/rust/coding-style.md",
       "paths": [
@@ -4628,6 +4909,7 @@
     {
       "kind": "rule",
       "name": "rust/hooks",
+      "category": "rust",
       "logical_id": "rule:rules/rust/hooks",
       "canonical_path": "rules/rust/hooks.md",
       "paths": [
@@ -4644,6 +4926,7 @@
     {
       "kind": "rule",
       "name": "rust/patterns",
+      "category": "rust",
       "logical_id": "rule:rules/rust/patterns",
       "canonical_path": "rules/rust/patterns.md",
       "paths": [
@@ -4660,6 +4943,7 @@
     {
       "kind": "rule",
       "name": "rust/security",
+      "category": "rust",
       "logical_id": "rule:rules/rust/security",
       "canonical_path": "rules/rust/security.md",
       "paths": [
@@ -4676,6 +4960,7 @@
     {
       "kind": "rule",
       "name": "rust/testing",
+      "category": "rust",
       "logical_id": "rule:rules/rust/testing",
       "canonical_path": "rules/rust/testing.md",
       "paths": [
@@ -4692,6 +4977,7 @@
     {
       "kind": "rule",
       "name": "swift-coding-style",
+      "category": "rules",
       "logical_id": "rule:rules/swift-coding-style",
       "canonical_path": ".cursor/rules/swift-coding-style.md",
       "paths": [
@@ -4708,6 +4994,7 @@
     {
       "kind": "rule",
       "name": "swift-hooks",
+      "category": "rules",
       "logical_id": "rule:rules/swift-hooks",
       "canonical_path": ".cursor/rules/swift-hooks.md",
       "paths": [
@@ -4724,6 +5011,7 @@
     {
       "kind": "rule",
       "name": "swift-patterns",
+      "category": "rules",
       "logical_id": "rule:rules/swift-patterns",
       "canonical_path": ".cursor/rules/swift-patterns.md",
       "paths": [
@@ -4740,6 +5028,7 @@
     {
       "kind": "rule",
       "name": "swift-security",
+      "category": "rules",
       "logical_id": "rule:rules/swift-security",
       "canonical_path": ".cursor/rules/swift-security.md",
       "paths": [
@@ -4756,6 +5045,7 @@
     {
       "kind": "rule",
       "name": "swift-testing",
+      "category": "rules",
       "logical_id": "rule:rules/swift-testing",
       "canonical_path": ".cursor/rules/swift-testing.md",
       "paths": [
@@ -4772,6 +5062,7 @@
     {
       "kind": "rule",
       "name": "swift/coding-style",
+      "category": "swift",
       "logical_id": "rule:rules/swift/coding-style",
       "canonical_path": "rules/swift/coding-style.md",
       "paths": [
@@ -4788,6 +5079,7 @@
     {
       "kind": "rule",
       "name": "swift/hooks",
+      "category": "swift",
       "logical_id": "rule:rules/swift/hooks",
       "canonical_path": "rules/swift/hooks.md",
       "paths": [
@@ -4804,6 +5096,7 @@
     {
       "kind": "rule",
       "name": "swift/patterns",
+      "category": "swift",
       "logical_id": "rule:rules/swift/patterns",
       "canonical_path": "rules/swift/patterns.md",
       "paths": [
@@ -4820,6 +5113,7 @@
     {
       "kind": "rule",
       "name": "swift/security",
+      "category": "swift",
       "logical_id": "rule:rules/swift/security",
       "canonical_path": "rules/swift/security.md",
       "paths": [
@@ -4836,6 +5130,7 @@
     {
       "kind": "rule",
       "name": "swift/testing",
+      "category": "swift",
       "logical_id": "rule:rules/swift/testing",
       "canonical_path": "rules/swift/testing.md",
       "paths": [
@@ -4852,6 +5147,7 @@
     {
       "kind": "rule",
       "name": "typescript-coding-style",
+      "category": "rules",
       "logical_id": "rule:rules/typescript-coding-style",
       "canonical_path": ".cursor/rules/typescript-coding-style.md",
       "paths": [
@@ -4868,6 +5164,7 @@
     {
       "kind": "rule",
       "name": "typescript-hooks",
+      "category": "rules",
       "logical_id": "rule:rules/typescript-hooks",
       "canonical_path": ".cursor/rules/typescript-hooks.md",
       "paths": [
@@ -4884,6 +5181,7 @@
     {
       "kind": "rule",
       "name": "typescript-patterns",
+      "category": "rules",
       "logical_id": "rule:rules/typescript-patterns",
       "canonical_path": ".cursor/rules/typescript-patterns.md",
       "paths": [
@@ -4900,6 +5198,7 @@
     {
       "kind": "rule",
       "name": "typescript-security",
+      "category": "rules",
       "logical_id": "rule:rules/typescript-security",
       "canonical_path": ".cursor/rules/typescript-security.md",
       "paths": [
@@ -4916,6 +5215,7 @@
     {
       "kind": "rule",
       "name": "typescript-testing",
+      "category": "rules",
       "logical_id": "rule:rules/typescript-testing",
       "canonical_path": ".cursor/rules/typescript-testing.md",
       "paths": [
@@ -4932,6 +5232,7 @@
     {
       "kind": "rule",
       "name": "typescript/coding-style",
+      "category": "typescript",
       "logical_id": "rule:rules/typescript/coding-style",
       "canonical_path": "rules/typescript/coding-style.md",
       "paths": [
@@ -4948,6 +5249,7 @@
     {
       "kind": "rule",
       "name": "typescript/hooks",
+      "category": "typescript",
       "logical_id": "rule:rules/typescript/hooks",
       "canonical_path": "rules/typescript/hooks.md",
       "paths": [
@@ -4964,6 +5266,7 @@
     {
       "kind": "rule",
       "name": "typescript/patterns",
+      "category": "typescript",
       "logical_id": "rule:rules/typescript/patterns",
       "canonical_path": "rules/typescript/patterns.md",
       "paths": [
@@ -4980,6 +5283,7 @@
     {
       "kind": "rule",
       "name": "typescript/security",
+      "category": "typescript",
       "logical_id": "rule:rules/typescript/security",
       "canonical_path": "rules/typescript/security.md",
       "paths": [
@@ -4996,6 +5300,7 @@
     {
       "kind": "rule",
       "name": "typescript/testing",
+      "category": "typescript",
       "logical_id": "rule:rules/typescript/testing",
       "canonical_path": "rules/typescript/testing.md",
       "paths": [
@@ -5012,6 +5317,7 @@
     {
       "kind": "rule",
       "name": "web/coding-style",
+      "category": "web",
       "logical_id": "rule:rules/web/coding-style",
       "canonical_path": "rules/web/coding-style.md",
       "paths": [
@@ -5028,6 +5334,7 @@
     {
       "kind": "rule",
       "name": "web/design-quality",
+      "category": "web",
       "logical_id": "rule:rules/web/design-quality",
       "canonical_path": "rules/web/design-quality.md",
       "paths": [
@@ -5044,6 +5351,7 @@
     {
       "kind": "rule",
       "name": "web/hooks",
+      "category": "web",
       "logical_id": "rule:rules/web/hooks",
       "canonical_path": "rules/web/hooks.md",
       "paths": [
@@ -5060,6 +5368,7 @@
     {
       "kind": "rule",
       "name": "web/patterns",
+      "category": "web",
       "logical_id": "rule:rules/web/patterns",
       "canonical_path": "rules/web/patterns.md",
       "paths": [
@@ -5076,6 +5385,7 @@
     {
       "kind": "rule",
       "name": "web/performance",
+      "category": "web",
       "logical_id": "rule:rules/web/performance",
       "canonical_path": "rules/web/performance.md",
       "paths": [
@@ -5092,6 +5402,7 @@
     {
       "kind": "rule",
       "name": "web/security",
+      "category": "web",
       "logical_id": "rule:rules/web/security",
       "canonical_path": "rules/web/security.md",
       "paths": [
@@ -5108,6 +5419,7 @@
     {
       "kind": "rule",
       "name": "web/testing",
+      "category": "web",
       "logical_id": "rule:rules/web/testing",
       "canonical_path": "rules/web/testing.md",
       "paths": [
@@ -5124,6 +5436,7 @@
     {
       "kind": "rule",
       "name": "zh/README",
+      "category": "zh",
       "logical_id": "rule:rules/zh/README",
       "canonical_path": "rules/zh/README.md",
       "paths": [
@@ -5140,6 +5453,7 @@
     {
       "kind": "rule",
       "name": "zh/agents",
+      "category": "zh",
       "logical_id": "rule:rules/zh/agents",
       "canonical_path": "rules/zh/agents.md",
       "paths": [
@@ -5156,6 +5470,7 @@
     {
       "kind": "rule",
       "name": "zh/code-review",
+      "category": "zh",
       "logical_id": "rule:rules/zh/code-review",
       "canonical_path": "rules/zh/code-review.md",
       "paths": [
@@ -5172,6 +5487,7 @@
     {
       "kind": "rule",
       "name": "zh/coding-style",
+      "category": "zh",
       "logical_id": "rule:rules/zh/coding-style",
       "canonical_path": "rules/zh/coding-style.md",
       "paths": [
@@ -5188,6 +5504,7 @@
     {
       "kind": "rule",
       "name": "zh/development-workflow",
+      "category": "zh",
       "logical_id": "rule:rules/zh/development-workflow",
       "canonical_path": "rules/zh/development-workflow.md",
       "paths": [
@@ -5204,6 +5521,7 @@
     {
       "kind": "rule",
       "name": "zh/git-workflow",
+      "category": "zh",
       "logical_id": "rule:rules/zh/git-workflow",
       "canonical_path": "rules/zh/git-workflow.md",
       "paths": [
@@ -5220,6 +5538,7 @@
     {
       "kind": "rule",
       "name": "zh/hooks",
+      "category": "zh",
       "logical_id": "rule:rules/zh/hooks",
       "canonical_path": "rules/zh/hooks.md",
       "paths": [
@@ -5236,6 +5555,7 @@
     {
       "kind": "rule",
       "name": "zh/patterns",
+      "category": "zh",
       "logical_id": "rule:rules/zh/patterns",
       "canonical_path": "rules/zh/patterns.md",
       "paths": [
@@ -5252,6 +5572,7 @@
     {
       "kind": "rule",
       "name": "zh/performance",
+      "category": "zh",
       "logical_id": "rule:rules/zh/performance",
       "canonical_path": "rules/zh/performance.md",
       "paths": [
@@ -5268,6 +5589,7 @@
     {
       "kind": "rule",
       "name": "zh/security",
+      "category": "zh",
       "logical_id": "rule:rules/zh/security",
       "canonical_path": "rules/zh/security.md",
       "paths": [
@@ -5284,6 +5606,7 @@
     {
       "kind": "rule",
       "name": "zh/testing",
+      "category": "zh",
       "logical_id": "rule:rules/zh/testing",
       "canonical_path": "rules/zh/testing.md",
       "paths": [
@@ -5300,6 +5623,7 @@
     {
       "kind": "rule",
       "name": "3d",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/3d",
       "canonical_path": "skills/remotion-video-creation/rules/3d.md",
       "paths": [
@@ -5316,6 +5640,7 @@
     {
       "kind": "rule",
       "name": "animations",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/animations",
       "canonical_path": "skills/remotion-video-creation/rules/animations.md",
       "paths": [
@@ -5332,6 +5657,7 @@
     {
       "kind": "rule",
       "name": "assets",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/assets",
       "canonical_path": "skills/remotion-video-creation/rules/assets.md",
       "paths": [
@@ -5348,6 +5674,7 @@
     {
       "kind": "rule",
       "name": "audio",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/audio",
       "canonical_path": "skills/remotion-video-creation/rules/audio.md",
       "paths": [
@@ -5364,6 +5691,7 @@
     {
       "kind": "rule",
       "name": "calculate-metadata",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/calculate-metadata",
       "canonical_path": "skills/remotion-video-creation/rules/calculate-metadata.md",
       "paths": [
@@ -5380,6 +5708,7 @@
     {
       "kind": "rule",
       "name": "can-decode",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/can-decode",
       "canonical_path": "skills/remotion-video-creation/rules/can-decode.md",
       "paths": [
@@ -5396,6 +5725,7 @@
     {
       "kind": "rule",
       "name": "charts",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/charts",
       "canonical_path": "skills/remotion-video-creation/rules/charts.md",
       "paths": [
@@ -5412,6 +5742,7 @@
     {
       "kind": "rule",
       "name": "compositions",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/compositions",
       "canonical_path": "skills/remotion-video-creation/rules/compositions.md",
       "paths": [
@@ -5428,6 +5759,7 @@
     {
       "kind": "rule",
       "name": "display-captions",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/display-captions",
       "canonical_path": "skills/remotion-video-creation/rules/display-captions.md",
       "paths": [
@@ -5444,6 +5776,7 @@
     {
       "kind": "rule",
       "name": "extract-frames",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/extract-frames",
       "canonical_path": "skills/remotion-video-creation/rules/extract-frames.md",
       "paths": [
@@ -5460,6 +5793,7 @@
     {
       "kind": "rule",
       "name": "fonts",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/fonts",
       "canonical_path": "skills/remotion-video-creation/rules/fonts.md",
       "paths": [
@@ -5476,6 +5810,7 @@
     {
       "kind": "rule",
       "name": "get-audio-duration",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/get-audio-duration",
       "canonical_path": "skills/remotion-video-creation/rules/get-audio-duration.md",
       "paths": [
@@ -5492,6 +5827,7 @@
     {
       "kind": "rule",
       "name": "get-video-dimensions",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/get-video-dimensions",
       "canonical_path": "skills/remotion-video-creation/rules/get-video-dimensions.md",
       "paths": [
@@ -5508,6 +5844,7 @@
     {
       "kind": "rule",
       "name": "get-video-duration",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/get-video-duration",
       "canonical_path": "skills/remotion-video-creation/rules/get-video-duration.md",
       "paths": [
@@ -5524,6 +5861,7 @@
     {
       "kind": "rule",
       "name": "gif",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/gifs",
       "canonical_path": "skills/remotion-video-creation/rules/gifs.md",
       "paths": [
@@ -5540,6 +5878,7 @@
     {
       "kind": "rule",
       "name": "images",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/images",
       "canonical_path": "skills/remotion-video-creation/rules/images.md",
       "paths": [
@@ -5556,6 +5895,7 @@
     {
       "kind": "rule",
       "name": "import-srt-captions",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/import-srt-captions",
       "canonical_path": "skills/remotion-video-creation/rules/import-srt-captions.md",
       "paths": [
@@ -5572,6 +5912,7 @@
     {
       "kind": "rule",
       "name": "lottie",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/lottie",
       "canonical_path": "skills/remotion-video-creation/rules/lottie.md",
       "paths": [
@@ -5588,6 +5929,7 @@
     {
       "kind": "rule",
       "name": "measuring-dom-nodes",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/measuring-dom-nodes",
       "canonical_path": "skills/remotion-video-creation/rules/measuring-dom-nodes.md",
       "paths": [
@@ -5604,6 +5946,7 @@
     {
       "kind": "rule",
       "name": "measuring-text",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/measuring-text",
       "canonical_path": "skills/remotion-video-creation/rules/measuring-text.md",
       "paths": [
@@ -5620,6 +5963,7 @@
     {
       "kind": "rule",
       "name": "sequencing",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/sequencing",
       "canonical_path": "skills/remotion-video-creation/rules/sequencing.md",
       "paths": [
@@ -5636,6 +5980,7 @@
     {
       "kind": "rule",
       "name": "tailwind",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/tailwind",
       "canonical_path": "skills/remotion-video-creation/rules/tailwind.md",
       "paths": [
@@ -5652,6 +5997,7 @@
     {
       "kind": "rule",
       "name": "text-animations",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/text-animations",
       "canonical_path": "skills/remotion-video-creation/rules/text-animations.md",
       "paths": [
@@ -5668,6 +6014,7 @@
     {
       "kind": "rule",
       "name": "timing",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/timing",
       "canonical_path": "skills/remotion-video-creation/rules/timing.md",
       "paths": [
@@ -5684,6 +6031,7 @@
     {
       "kind": "rule",
       "name": "transcribe-captions",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/transcribe-captions",
       "canonical_path": "skills/remotion-video-creation/rules/transcribe-captions.md",
       "paths": [
@@ -5700,6 +6048,7 @@
     {
       "kind": "rule",
       "name": "transitions",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/transitions",
       "canonical_path": "skills/remotion-video-creation/rules/transitions.md",
       "paths": [
@@ -5716,6 +6065,7 @@
     {
       "kind": "rule",
       "name": "trimming",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/trimming",
       "canonical_path": "skills/remotion-video-creation/rules/trimming.md",
       "paths": [
@@ -5732,6 +6082,7 @@
     {
       "kind": "rule",
       "name": "videos",
+      "category": "rules",
       "logical_id": "rule:skills/remotion-video-creation/rules/videos",
       "canonical_path": "skills/remotion-video-creation/rules/videos.md",
       "paths": [
@@ -5748,6 +6099,7 @@
     {
       "kind": "skill",
       "name": "agent-eval",
+      "category": "skills",
       "logical_id": "skill:skills/agent-eval",
       "canonical_path": "skills/agent-eval/SKILL.md",
       "paths": [
@@ -5764,6 +6116,7 @@
     {
       "kind": "skill",
       "name": "agent-harness-construction",
+      "category": "skills",
       "logical_id": "skill:skills/agent-harness-construction",
       "canonical_path": "skills/agent-harness-construction/SKILL.md",
       "paths": [
@@ -5780,6 +6133,7 @@
     {
       "kind": "skill",
       "name": "agent-introspection-debugging",
+      "category": "skills",
       "logical_id": "skill:skills/agent-introspection-debugging",
       "canonical_path": "skills/agent-introspection-debugging/SKILL.md",
       "paths": [
@@ -5797,6 +6151,7 @@
     {
       "kind": "skill",
       "name": "agent-payment-x402",
+      "category": "skills",
       "logical_id": "skill:skills/agent-payment-x402",
       "canonical_path": "skills/agent-payment-x402/SKILL.md",
       "paths": [
@@ -5813,6 +6168,7 @@
     {
       "kind": "skill",
       "name": "agent-sort",
+      "category": "skills",
       "logical_id": "skill:skills/agent-sort",
       "canonical_path": "skills/agent-sort/SKILL.md",
       "paths": [
@@ -5830,6 +6186,7 @@
     {
       "kind": "skill",
       "name": "agentic-engineering",
+      "category": "skills",
       "logical_id": "skill:skills/agentic-engineering",
       "canonical_path": "skills/agentic-engineering/SKILL.md",
       "paths": [
@@ -5848,6 +6205,7 @@
     {
       "kind": "skill",
       "name": "ai-first-engineering",
+      "category": "skills",
       "logical_id": "skill:skills/ai-first-engineering",
       "canonical_path": "skills/ai-first-engineering/SKILL.md",
       "paths": [
@@ -5864,6 +6222,7 @@
     {
       "kind": "skill",
       "name": "ai-regression-testing",
+      "category": "skills",
       "logical_id": "skill:skills/ai-regression-testing",
       "canonical_path": "skills/ai-regression-testing/SKILL.md",
       "paths": [
@@ -5880,6 +6239,7 @@
     {
       "kind": "skill",
       "name": "android-clean-architecture",
+      "category": "skills",
       "logical_id": "skill:skills/android-clean-architecture",
       "canonical_path": "skills/android-clean-architecture/SKILL.md",
       "paths": [
@@ -5896,6 +6256,7 @@
     {
       "kind": "skill",
       "name": "api-connector-builder",
+      "category": "skills",
       "logical_id": "skill:skills/api-connector-builder",
       "canonical_path": "skills/api-connector-builder/SKILL.md",
       "paths": [
@@ -5912,6 +6273,7 @@
     {
       "kind": "skill",
       "name": "api-design",
+      "category": "skills",
       "logical_id": "skill:skills/api-design",
       "canonical_path": "skills/api-design/SKILL.md",
       "paths": [
@@ -5931,6 +6293,7 @@
     {
       "kind": "skill",
       "name": "architecture-decision-records",
+      "category": "skills",
       "logical_id": "skill:skills/architecture-decision-records",
       "canonical_path": "skills/architecture-decision-records/SKILL.md",
       "paths": [
@@ -5947,6 +6310,7 @@
     {
       "kind": "skill",
       "name": "article-writing",
+      "category": "skills",
       "logical_id": "skill:skills/article-writing",
       "canonical_path": "skills/article-writing/SKILL.md",
       "paths": [
@@ -5966,6 +6330,7 @@
     {
       "kind": "skill",
       "name": "automation-audit-ops",
+      "category": "skills",
       "logical_id": "skill:skills/automation-audit-ops",
       "canonical_path": "skills/automation-audit-ops/SKILL.md",
       "paths": [
@@ -5982,6 +6347,7 @@
     {
       "kind": "skill",
       "name": "autonomous-agent-harness",
+      "category": "skills",
       "logical_id": "skill:skills/autonomous-agent-harness",
       "canonical_path": "skills/autonomous-agent-harness/SKILL.md",
       "paths": [
@@ -5998,6 +6364,7 @@
     {
       "kind": "skill",
       "name": "autonomous-loops",
+      "category": "skills",
       "logical_id": "skill:skills/autonomous-loops",
       "canonical_path": "skills/autonomous-loops/SKILL.md",
       "paths": [
@@ -6014,6 +6381,7 @@
     {
       "kind": "skill",
       "name": "backend-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/backend-patterns",
       "canonical_path": "skills/backend-patterns/SKILL.md",
       "paths": [
@@ -6033,6 +6401,7 @@
     {
       "kind": "skill",
       "name": "benchmark",
+      "category": "skills",
       "logical_id": "skill:skills/benchmark",
       "canonical_path": "skills/benchmark/SKILL.md",
       "paths": [
@@ -6049,6 +6418,7 @@
     {
       "kind": "skill",
       "name": "blueprint",
+      "category": "skills",
       "logical_id": "skill:skills/blueprint",
       "canonical_path": "skills/blueprint/SKILL.md",
       "paths": [
@@ -6065,6 +6435,7 @@
     {
       "kind": "skill",
       "name": "brand-voice",
+      "category": "skills",
       "logical_id": "skill:skills/brand-voice",
       "canonical_path": "skills/brand-voice/SKILL.md",
       "paths": [
@@ -6082,6 +6453,7 @@
     {
       "kind": "skill",
       "name": "browser-qa",
+      "category": "skills",
       "logical_id": "skill:skills/browser-qa",
       "canonical_path": "skills/browser-qa/SKILL.md",
       "paths": [
@@ -6098,6 +6470,7 @@
     {
       "kind": "skill",
       "name": "bun-runtime",
+      "category": "skills",
       "logical_id": "skill:skills/bun-runtime",
       "canonical_path": "skills/bun-runtime/SKILL.md",
       "paths": [
@@ -6116,6 +6489,7 @@
     {
       "kind": "skill",
       "name": "canary-watch",
+      "category": "skills",
       "logical_id": "skill:skills/canary-watch",
       "canonical_path": "skills/canary-watch/SKILL.md",
       "paths": [
@@ -6132,6 +6506,7 @@
     {
       "kind": "skill",
       "name": "carrier-relationship-management",
+      "category": "skills",
       "logical_id": "skill:skills/carrier-relationship-management",
       "canonical_path": "skills/carrier-relationship-management/SKILL.md",
       "paths": [
@@ -6148,6 +6523,7 @@
     {
       "kind": "skill",
       "name": "ck",
+      "category": "skills",
       "logical_id": "skill:skills/ck",
       "canonical_path": "skills/ck/SKILL.md",
       "paths": [
@@ -6164,6 +6540,7 @@
     {
       "kind": "skill",
       "name": "claude-api",
+      "category": "skills",
       "logical_id": "skill:skills/claude-api",
       "canonical_path": "skills/claude-api/SKILL.md",
       "paths": [
@@ -6182,6 +6559,7 @@
     {
       "kind": "skill",
       "name": "claude-devfleet",
+      "category": "skills",
       "logical_id": "skill:skills/claude-devfleet",
       "canonical_path": "skills/claude-devfleet/SKILL.md",
       "paths": [
@@ -6198,6 +6576,7 @@
     {
       "kind": "skill",
       "name": "click-path-audit",
+      "category": "skills",
       "logical_id": "skill:skills/click-path-audit",
       "canonical_path": "skills/click-path-audit/SKILL.md",
       "paths": [
@@ -6214,6 +6593,7 @@
     {
       "kind": "skill",
       "name": "clickhouse-io",
+      "category": "skills",
       "logical_id": "skill:skills/clickhouse-io",
       "canonical_path": "skills/clickhouse-io/SKILL.md",
       "paths": [
@@ -6230,6 +6610,7 @@
     {
       "kind": "skill",
       "name": "code-tour",
+      "category": "skills",
       "logical_id": "skill:skills/code-tour",
       "canonical_path": "skills/code-tour/SKILL.md",
       "paths": [
@@ -6246,6 +6627,7 @@
     {
       "kind": "skill",
       "name": "codebase-onboarding",
+      "category": "skills",
       "logical_id": "skill:skills/codebase-onboarding",
       "canonical_path": "skills/codebase-onboarding/SKILL.md",
       "paths": [
@@ -6262,6 +6644,7 @@
     {
       "kind": "skill",
       "name": "coding-standards",
+      "category": "skills",
       "logical_id": "skill:skills/coding-standards",
       "canonical_path": "skills/coding-standards/SKILL.md",
       "paths": [
@@ -6281,6 +6664,7 @@
     {
       "kind": "skill",
       "name": "compose-multiplatform-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/compose-multiplatform-patterns",
       "canonical_path": "skills/compose-multiplatform-patterns/SKILL.md",
       "paths": [
@@ -6297,6 +6681,7 @@
     {
       "kind": "skill",
       "name": "configure-ecc",
+      "category": "skills",
       "logical_id": "skill:skills/configure-ecc",
       "canonical_path": "skills/configure-ecc/SKILL.md",
       "paths": [
@@ -6313,6 +6698,7 @@
     {
       "kind": "skill",
       "name": "connections-optimizer",
+      "category": "skills",
       "logical_id": "skill:skills/connections-optimizer",
       "canonical_path": "skills/connections-optimizer/SKILL.md",
       "paths": [
@@ -6329,6 +6715,7 @@
     {
       "kind": "skill",
       "name": "content-engine",
+      "category": "skills",
       "logical_id": "skill:skills/content-engine",
       "canonical_path": "skills/content-engine/SKILL.md",
       "paths": [
@@ -6348,6 +6735,7 @@
     {
       "kind": "skill",
       "name": "content-hash-cache-pattern",
+      "category": "skills",
       "logical_id": "skill:skills/content-hash-cache-pattern",
       "canonical_path": "skills/content-hash-cache-pattern/SKILL.md",
       "paths": [
@@ -6364,6 +6752,7 @@
     {
       "kind": "skill",
       "name": "context-budget",
+      "category": "skills",
       "logical_id": "skill:skills/context-budget",
       "canonical_path": "skills/context-budget/SKILL.md",
       "paths": [
@@ -6380,6 +6769,7 @@
     {
       "kind": "skill",
       "name": "continuous-agent-loop",
+      "category": "skills",
       "logical_id": "skill:skills/continuous-agent-loop",
       "canonical_path": "skills/continuous-agent-loop/SKILL.md",
       "paths": [
@@ -6396,6 +6786,7 @@
     {
       "kind": "skill",
       "name": "continuous-learning",
+      "category": "skills",
       "logical_id": "skill:skills/continuous-learning",
       "canonical_path": "skills/continuous-learning/SKILL.md",
       "paths": [
@@ -6412,6 +6803,7 @@
     {
       "kind": "skill",
       "name": "continuous-learning-v2",
+      "category": "skills",
       "logical_id": "skill:skills/continuous-learning-v2",
       "canonical_path": "skills/continuous-learning-v2/SKILL.md",
       "paths": [
@@ -6428,6 +6820,7 @@
     {
       "kind": "skill",
       "name": "cost-aware-llm-pipeline",
+      "category": "skills",
       "logical_id": "skill:skills/cost-aware-llm-pipeline",
       "canonical_path": "skills/cost-aware-llm-pipeline/SKILL.md",
       "paths": [
@@ -6444,6 +6837,7 @@
     {
       "kind": "skill",
       "name": "council",
+      "category": "skills",
       "logical_id": "skill:skills/council",
       "canonical_path": "skills/council/SKILL.md",
       "paths": [
@@ -6460,6 +6854,7 @@
     {
       "kind": "skill",
       "name": "cpp-coding-standards",
+      "category": "skills",
       "logical_id": "skill:skills/cpp-coding-standards",
       "canonical_path": "skills/cpp-coding-standards/SKILL.md",
       "paths": [
@@ -6476,6 +6871,7 @@
     {
       "kind": "skill",
       "name": "cpp-testing",
+      "category": "skills",
       "logical_id": "skill:skills/cpp-testing",
       "canonical_path": "skills/cpp-testing/SKILL.md",
       "paths": [
@@ -6492,6 +6888,7 @@
     {
       "kind": "skill",
       "name": "crosspost",
+      "category": "skills",
       "logical_id": "skill:skills/crosspost",
       "canonical_path": "skills/crosspost/SKILL.md",
       "paths": [
@@ -6509,6 +6906,7 @@
     {
       "kind": "skill",
       "name": "csharp-testing",
+      "category": "skills",
       "logical_id": "skill:skills/csharp-testing",
       "canonical_path": "skills/csharp-testing/SKILL.md",
       "paths": [
@@ -6525,6 +6923,7 @@
     {
       "kind": "skill",
       "name": "customer-billing-ops",
+      "category": "skills",
       "logical_id": "skill:skills/customer-billing-ops",
       "canonical_path": "skills/customer-billing-ops/SKILL.md",
       "paths": [
@@ -6541,6 +6940,7 @@
     {
       "kind": "skill",
       "name": "customs-trade-compliance",
+      "category": "skills",
       "logical_id": "skill:skills/customs-trade-compliance",
       "canonical_path": "skills/customs-trade-compliance/SKILL.md",
       "paths": [
@@ -6557,6 +6957,7 @@
     {
       "kind": "skill",
       "name": "dart-flutter-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/dart-flutter-patterns",
       "canonical_path": "skills/dart-flutter-patterns/SKILL.md",
       "paths": [
@@ -6573,6 +6974,7 @@
     {
       "kind": "skill",
       "name": "dashboard-builder",
+      "category": "skills",
       "logical_id": "skill:skills/dashboard-builder",
       "canonical_path": "skills/dashboard-builder/SKILL.md",
       "paths": [
@@ -6589,6 +6991,7 @@
     {
       "kind": "skill",
       "name": "data-scraper-agent",
+      "category": "skills",
       "logical_id": "skill:skills/data-scraper-agent",
       "canonical_path": "skills/data-scraper-agent/SKILL.md",
       "paths": [
@@ -6605,6 +7008,7 @@
     {
       "kind": "skill",
       "name": "database-migrations",
+      "category": "skills",
       "logical_id": "skill:skills/database-migrations",
       "canonical_path": "skills/database-migrations/SKILL.md",
       "paths": [
@@ -6623,6 +7027,7 @@
     {
       "kind": "skill",
       "name": "deep-research",
+      "category": "skills",
       "logical_id": "skill:skills/deep-research",
       "canonical_path": "skills/deep-research/SKILL.md",
       "paths": [
@@ -6640,6 +7045,7 @@
     {
       "kind": "skill",
       "name": "defi-amm-security",
+      "category": "skills",
       "logical_id": "skill:skills/defi-amm-security",
       "canonical_path": "skills/defi-amm-security/SKILL.md",
       "paths": [
@@ -6656,6 +7062,7 @@
     {
       "kind": "skill",
       "name": "deployment-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/deployment-patterns",
       "canonical_path": "skills/deployment-patterns/SKILL.md",
       "paths": [
@@ -6674,6 +7081,7 @@
     {
       "kind": "skill",
       "name": "design-system",
+      "category": "skills",
       "logical_id": "skill:skills/design-system",
       "canonical_path": "skills/design-system/SKILL.md",
       "paths": [
@@ -6690,6 +7098,7 @@
     {
       "kind": "skill",
       "name": "django-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/django-patterns",
       "canonical_path": "skills/django-patterns/SKILL.md",
       "paths": [
@@ -6706,6 +7115,7 @@
     {
       "kind": "skill",
       "name": "django-security",
+      "category": "skills",
       "logical_id": "skill:skills/django-security",
       "canonical_path": "skills/django-security/SKILL.md",
       "paths": [
@@ -6722,6 +7132,7 @@
     {
       "kind": "skill",
       "name": "django-tdd",
+      "category": "skills",
       "logical_id": "skill:skills/django-tdd",
       "canonical_path": "skills/django-tdd/SKILL.md",
       "paths": [
@@ -6738,6 +7149,7 @@
     {
       "kind": "skill",
       "name": "django-verification",
+      "category": "skills",
       "logical_id": "skill:skills/django-verification",
       "canonical_path": "skills/django-verification/SKILL.md",
       "paths": [
@@ -6754,6 +7166,7 @@
     {
       "kind": "skill",
       "name": "dmux-workflows",
+      "category": "skills",
       "logical_id": "skill:skills/dmux-workflows",
       "canonical_path": "skills/dmux-workflows/SKILL.md",
       "paths": [
@@ -6772,6 +7185,7 @@
     {
       "kind": "skill",
       "name": "docker-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/docker-patterns",
       "canonical_path": "skills/docker-patterns/SKILL.md",
       "paths": [
@@ -6790,6 +7204,7 @@
     {
       "kind": "skill",
       "name": "documentation-lookup",
+      "category": "skills",
       "logical_id": "skill:skills/documentation-lookup",
       "canonical_path": "skills/documentation-lookup/SKILL.md",
       "paths": [
@@ -6808,6 +7223,7 @@
     {
       "kind": "skill",
       "name": "dotnet-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/dotnet-patterns",
       "canonical_path": "skills/dotnet-patterns/SKILL.md",
       "paths": [
@@ -6824,6 +7240,7 @@
     {
       "kind": "skill",
       "name": "e2e-testing",
+      "category": "skills",
       "logical_id": "skill:skills/e2e-testing",
       "canonical_path": "skills/e2e-testing/SKILL.md",
       "paths": [
@@ -6843,6 +7260,7 @@
     {
       "kind": "skill",
       "name": "ecc-tools-cost-audit",
+      "category": "skills",
       "logical_id": "skill:skills/ecc-tools-cost-audit",
       "canonical_path": "skills/ecc-tools-cost-audit/SKILL.md",
       "paths": [
@@ -6859,6 +7277,7 @@
     {
       "kind": "skill",
       "name": "email-ops",
+      "category": "skills",
       "logical_id": "skill:skills/email-ops",
       "canonical_path": "skills/email-ops/SKILL.md",
       "paths": [
@@ -6875,6 +7294,7 @@
     {
       "kind": "skill",
       "name": "energy-procurement",
+      "category": "skills",
       "logical_id": "skill:skills/energy-procurement",
       "canonical_path": "skills/energy-procurement/SKILL.md",
       "paths": [
@@ -6891,6 +7311,7 @@
     {
       "kind": "skill",
       "name": "enterprise-agent-ops",
+      "category": "skills",
       "logical_id": "skill:skills/enterprise-agent-ops",
       "canonical_path": "skills/enterprise-agent-ops/SKILL.md",
       "paths": [
@@ -6907,6 +7328,7 @@
     {
       "kind": "skill",
       "name": "eval-harness",
+      "category": "skills",
       "logical_id": "skill:skills/eval-harness",
       "canonical_path": "skills/eval-harness/SKILL.md",
       "paths": [
@@ -6925,6 +7347,7 @@
     {
       "kind": "skill",
       "name": "everything-claude-code-conventions",
+      "category": "skills",
       "logical_id": "skill:skills/everything-claude-code",
       "canonical_path": ".agents/skills/everything-claude-code/SKILL.md",
       "paths": [
@@ -6943,6 +7366,7 @@
     {
       "kind": "skill",
       "name": "evm-token-decimals",
+      "category": "skills",
       "logical_id": "skill:skills/evm-token-decimals",
       "canonical_path": "skills/evm-token-decimals/SKILL.md",
       "paths": [
@@ -6959,6 +7383,7 @@
     {
       "kind": "skill",
       "name": "exa-search",
+      "category": "skills",
       "logical_id": "skill:skills/exa-search",
       "canonical_path": "skills/exa-search/SKILL.md",
       "paths": [
@@ -6977,6 +7402,7 @@
     {
       "kind": "skill",
       "name": "fal-ai-media",
+      "category": "skills",
       "logical_id": "skill:skills/fal-ai-media",
       "canonical_path": "skills/fal-ai-media/SKILL.md",
       "paths": [
@@ -6995,6 +7421,7 @@
     {
       "kind": "skill",
       "name": "finance-billing-ops",
+      "category": "skills",
       "logical_id": "skill:skills/finance-billing-ops",
       "canonical_path": "skills/finance-billing-ops/SKILL.md",
       "paths": [
@@ -7011,6 +7438,7 @@
     {
       "kind": "skill",
       "name": "flutter-dart-code-review",
+      "category": "skills",
       "logical_id": "skill:skills/flutter-dart-code-review",
       "canonical_path": "skills/flutter-dart-code-review/SKILL.md",
       "paths": [
@@ -7027,6 +7455,7 @@
     {
       "kind": "skill",
       "name": "foundation-models-on-device",
+      "category": "skills",
       "logical_id": "skill:skills/foundation-models-on-device",
       "canonical_path": "skills/foundation-models-on-device/SKILL.md",
       "paths": [
@@ -7043,6 +7472,7 @@
     {
       "kind": "skill",
       "name": "frontend-design",
+      "category": "skills",
       "logical_id": "skill:skills/frontend-design",
       "canonical_path": "skills/frontend-design/SKILL.md",
       "paths": [
@@ -7060,6 +7490,7 @@
     {
       "kind": "skill",
       "name": "frontend-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/frontend-patterns",
       "canonical_path": "skills/frontend-patterns/SKILL.md",
       "paths": [
@@ -7079,6 +7510,7 @@
     {
       "kind": "skill",
       "name": "frontend-slides",
+      "category": "skills",
       "logical_id": "skill:skills/frontend-slides",
       "canonical_path": "skills/frontend-slides/SKILL.md",
       "paths": [
@@ -7098,6 +7530,7 @@
     {
       "kind": "skill",
       "name": "gan-style-harness",
+      "category": "skills",
       "logical_id": "skill:skills/gan-style-harness",
       "canonical_path": "skills/gan-style-harness/SKILL.md",
       "paths": [
@@ -7114,6 +7547,7 @@
     {
       "kind": "skill",
       "name": "git-workflow",
+      "category": "skills",
       "logical_id": "skill:skills/git-workflow",
       "canonical_path": "skills/git-workflow/SKILL.md",
       "paths": [
@@ -7130,6 +7564,7 @@
     {
       "kind": "skill",
       "name": "github-ops",
+      "category": "skills",
       "logical_id": "skill:skills/github-ops",
       "canonical_path": "skills/github-ops/SKILL.md",
       "paths": [
@@ -7146,6 +7581,7 @@
     {
       "kind": "skill",
       "name": "golang-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/golang-patterns",
       "canonical_path": "skills/golang-patterns/SKILL.md",
       "paths": [
@@ -7164,6 +7600,7 @@
     {
       "kind": "skill",
       "name": "golang-testing",
+      "category": "skills",
       "logical_id": "skill:skills/golang-testing",
       "canonical_path": "skills/golang-testing/SKILL.md",
       "paths": [
@@ -7182,6 +7619,7 @@
     {
       "kind": "skill",
       "name": "google-workspace-ops",
+      "category": "skills",
       "logical_id": "skill:skills/google-workspace-ops",
       "canonical_path": "skills/google-workspace-ops/SKILL.md",
       "paths": [
@@ -7198,6 +7636,7 @@
     {
       "kind": "skill",
       "name": "healthcare-cdss-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/healthcare-cdss-patterns",
       "canonical_path": "skills/healthcare-cdss-patterns/SKILL.md",
       "paths": [
@@ -7214,6 +7653,7 @@
     {
       "kind": "skill",
       "name": "healthcare-emr-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/healthcare-emr-patterns",
       "canonical_path": "skills/healthcare-emr-patterns/SKILL.md",
       "paths": [
@@ -7230,6 +7670,7 @@
     {
       "kind": "skill",
       "name": "healthcare-eval-harness",
+      "category": "skills",
       "logical_id": "skill:skills/healthcare-eval-harness",
       "canonical_path": "skills/healthcare-eval-harness/SKILL.md",
       "paths": [
@@ -7246,6 +7687,7 @@
     {
       "kind": "skill",
       "name": "healthcare-phi-compliance",
+      "category": "skills",
       "logical_id": "skill:skills/healthcare-phi-compliance",
       "canonical_path": "skills/healthcare-phi-compliance/SKILL.md",
       "paths": [
@@ -7262,6 +7704,7 @@
     {
       "kind": "skill",
       "name": "hexagonal-architecture",
+      "category": "skills",
       "logical_id": "skill:skills/hexagonal-architecture",
       "canonical_path": "skills/hexagonal-architecture/SKILL.md",
       "paths": [
@@ -7278,6 +7721,7 @@
     {
       "kind": "skill",
       "name": "hipaa-compliance",
+      "category": "skills",
       "logical_id": "skill:skills/hipaa-compliance",
       "canonical_path": "skills/hipaa-compliance/SKILL.md",
       "paths": [
@@ -7294,6 +7738,7 @@
     {
       "kind": "skill",
       "name": "hookify-rules",
+      "category": "skills",
       "logical_id": "skill:skills/hookify-rules",
       "canonical_path": "skills/hookify-rules/SKILL.md",
       "paths": [
@@ -7310,6 +7755,7 @@
     {
       "kind": "skill",
       "name": "inventory-demand-planning",
+      "category": "skills",
       "logical_id": "skill:skills/inventory-demand-planning",
       "canonical_path": "skills/inventory-demand-planning/SKILL.md",
       "paths": [
@@ -7326,6 +7772,7 @@
     {
       "kind": "skill",
       "name": "investor-materials",
+      "category": "skills",
       "logical_id": "skill:skills/investor-materials",
       "canonical_path": "skills/investor-materials/SKILL.md",
       "paths": [
@@ -7344,6 +7791,7 @@
     {
       "kind": "skill",
       "name": "investor-outreach",
+      "category": "skills",
       "logical_id": "skill:skills/investor-outreach",
       "canonical_path": "skills/investor-outreach/SKILL.md",
       "paths": [
@@ -7363,6 +7811,7 @@
     {
       "kind": "skill",
       "name": "iterative-retrieval",
+      "category": "skills",
       "logical_id": "skill:skills/iterative-retrieval",
       "canonical_path": "skills/iterative-retrieval/SKILL.md",
       "paths": [
@@ -7379,6 +7828,7 @@
     {
       "kind": "skill",
       "name": "java-coding-standards",
+      "category": "skills",
       "logical_id": "skill:skills/java-coding-standards",
       "canonical_path": "skills/java-coding-standards/SKILL.md",
       "paths": [
@@ -7395,6 +7845,7 @@
     {
       "kind": "skill",
       "name": "jira-integration",
+      "category": "skills",
       "logical_id": "skill:skills/jira-integration",
       "canonical_path": "skills/jira-integration/SKILL.md",
       "paths": [
@@ -7411,6 +7862,7 @@
     {
       "kind": "skill",
       "name": "jpa-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/jpa-patterns",
       "canonical_path": "skills/jpa-patterns/SKILL.md",
       "paths": [
@@ -7427,6 +7879,7 @@
     {
       "kind": "skill",
       "name": "knowledge-ops",
+      "category": "skills",
       "logical_id": "skill:skills/knowledge-ops",
       "canonical_path": "skills/knowledge-ops/SKILL.md",
       "paths": [
@@ -7443,6 +7896,7 @@
     {
       "kind": "skill",
       "name": "kotlin-coroutines-flows",
+      "category": "skills",
       "logical_id": "skill:skills/kotlin-coroutines-flows",
       "canonical_path": "skills/kotlin-coroutines-flows/SKILL.md",
       "paths": [
@@ -7459,6 +7913,7 @@
     {
       "kind": "skill",
       "name": "kotlin-exposed-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/kotlin-exposed-patterns",
       "canonical_path": "skills/kotlin-exposed-patterns/SKILL.md",
       "paths": [
@@ -7475,6 +7930,7 @@
     {
       "kind": "skill",
       "name": "kotlin-ktor-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/kotlin-ktor-patterns",
       "canonical_path": "skills/kotlin-ktor-patterns/SKILL.md",
       "paths": [
@@ -7491,6 +7947,7 @@
     {
       "kind": "skill",
       "name": "kotlin-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/kotlin-patterns",
       "canonical_path": "skills/kotlin-patterns/SKILL.md",
       "paths": [
@@ -7507,6 +7964,7 @@
     {
       "kind": "skill",
       "name": "kotlin-testing",
+      "category": "skills",
       "logical_id": "skill:skills/kotlin-testing",
       "canonical_path": "skills/kotlin-testing/SKILL.md",
       "paths": [
@@ -7523,6 +7981,7 @@
     {
       "kind": "skill",
       "name": "laravel-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/laravel-patterns",
       "canonical_path": "skills/laravel-patterns/SKILL.md",
       "paths": [
@@ -7539,6 +7998,7 @@
     {
       "kind": "skill",
       "name": "laravel-plugin-discovery",
+      "category": "skills",
       "logical_id": "skill:skills/laravel-plugin-discovery",
       "canonical_path": "skills/laravel-plugin-discovery/SKILL.md",
       "paths": [
@@ -7555,6 +8015,7 @@
     {
       "kind": "skill",
       "name": "laravel-security",
+      "category": "skills",
       "logical_id": "skill:skills/laravel-security",
       "canonical_path": "skills/laravel-security/SKILL.md",
       "paths": [
@@ -7571,6 +8032,7 @@
     {
       "kind": "skill",
       "name": "laravel-tdd",
+      "category": "skills",
       "logical_id": "skill:skills/laravel-tdd",
       "canonical_path": "skills/laravel-tdd/SKILL.md",
       "paths": [
@@ -7587,6 +8049,7 @@
     {
       "kind": "skill",
       "name": "laravel-verification",
+      "category": "skills",
       "logical_id": "skill:skills/laravel-verification",
       "canonical_path": "skills/laravel-verification/SKILL.md",
       "paths": [
@@ -7603,6 +8066,7 @@
     {
       "kind": "skill",
       "name": "lead-intelligence",
+      "category": "skills",
       "logical_id": "skill:skills/lead-intelligence",
       "canonical_path": "skills/lead-intelligence/SKILL.md",
       "paths": [
@@ -7619,6 +8083,7 @@
     {
       "kind": "skill",
       "name": "liquid-glass-design",
+      "category": "skills",
       "logical_id": "skill:skills/liquid-glass-design",
       "canonical_path": "skills/liquid-glass-design/SKILL.md",
       "paths": [
@@ -7635,6 +8100,7 @@
     {
       "kind": "skill",
       "name": "llm-trading-agent-security",
+      "category": "skills",
       "logical_id": "skill:skills/llm-trading-agent-security",
       "canonical_path": "skills/llm-trading-agent-security/SKILL.md",
       "paths": [
@@ -7651,6 +8117,7 @@
     {
       "kind": "skill",
       "name": "logistics-exception-management",
+      "category": "skills",
       "logical_id": "skill:skills/logistics-exception-management",
       "canonical_path": "skills/logistics-exception-management/SKILL.md",
       "paths": [
@@ -7667,6 +8134,7 @@
     {
       "kind": "skill",
       "name": "manim-video",
+      "category": "skills",
       "logical_id": "skill:skills/manim-video",
       "canonical_path": "skills/manim-video/SKILL.md",
       "paths": [
@@ -7683,6 +8151,7 @@
     {
       "kind": "skill",
       "name": "market-research",
+      "category": "skills",
       "logical_id": "skill:skills/market-research",
       "canonical_path": "skills/market-research/SKILL.md",
       "paths": [
@@ -7701,6 +8170,7 @@
     {
       "kind": "skill",
       "name": "mcp-server-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/mcp-server-patterns",
       "canonical_path": "skills/mcp-server-patterns/SKILL.md",
       "paths": [
@@ -7720,6 +8190,7 @@
     {
       "kind": "skill",
       "name": "messages-ops",
+      "category": "skills",
       "logical_id": "skill:skills/messages-ops",
       "canonical_path": "skills/messages-ops/SKILL.md",
       "paths": [
@@ -7736,6 +8207,7 @@
     {
       "kind": "skill",
       "name": "nanoclaw-repl",
+      "category": "skills",
       "logical_id": "skill:skills/nanoclaw-repl",
       "canonical_path": "skills/nanoclaw-repl/SKILL.md",
       "paths": [
@@ -7752,6 +8224,7 @@
     {
       "kind": "skill",
       "name": "nestjs-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/nestjs-patterns",
       "canonical_path": "skills/nestjs-patterns/SKILL.md",
       "paths": [
@@ -7768,6 +8241,7 @@
     {
       "kind": "skill",
       "name": "nextjs-turbopack",
+      "category": "skills",
       "logical_id": "skill:skills/nextjs-turbopack",
       "canonical_path": "skills/nextjs-turbopack/SKILL.md",
       "paths": [
@@ -7786,6 +8260,7 @@
     {
       "kind": "skill",
       "name": "nodejs-keccak256",
+      "category": "skills",
       "logical_id": "skill:skills/nodejs-keccak256",
       "canonical_path": "skills/nodejs-keccak256/SKILL.md",
       "paths": [
@@ -7802,6 +8277,7 @@
     {
       "kind": "skill",
       "name": "nutrient-document-processing",
+      "category": "skills",
       "logical_id": "skill:skills/nutrient-document-processing",
       "canonical_path": "skills/nutrient-document-processing/SKILL.md",
       "paths": [
@@ -7818,6 +8294,7 @@
     {
       "kind": "skill",
       "name": "nuxt4-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/nuxt4-patterns",
       "canonical_path": "skills/nuxt4-patterns/SKILL.md",
       "paths": [
@@ -7834,6 +8311,7 @@
     {
       "kind": "skill",
       "name": "openclaw-persona-forge",
+      "category": "skills",
       "logical_id": "skill:skills/openclaw-persona-forge",
       "canonical_path": "skills/openclaw-persona-forge/SKILL.md",
       "paths": [
@@ -7850,6 +8328,7 @@
     {
       "kind": "skill",
       "name": "opensource-pipeline",
+      "category": "skills",
       "logical_id": "skill:skills/opensource-pipeline",
       "canonical_path": "skills/opensource-pipeline/SKILL.md",
       "paths": [
@@ -7866,6 +8345,7 @@
     {
       "kind": "skill",
       "name": "perl-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/perl-patterns",
       "canonical_path": "skills/perl-patterns/SKILL.md",
       "paths": [
@@ -7882,6 +8362,7 @@
     {
       "kind": "skill",
       "name": "perl-security",
+      "category": "skills",
       "logical_id": "skill:skills/perl-security",
       "canonical_path": "skills/perl-security/SKILL.md",
       "paths": [
@@ -7898,6 +8379,7 @@
     {
       "kind": "skill",
       "name": "perl-testing",
+      "category": "skills",
       "logical_id": "skill:skills/perl-testing",
       "canonical_path": "skills/perl-testing/SKILL.md",
       "paths": [
@@ -7914,6 +8396,7 @@
     {
       "kind": "skill",
       "name": "plankton-code-quality",
+      "category": "skills",
       "logical_id": "skill:skills/plankton-code-quality",
       "canonical_path": "skills/plankton-code-quality/SKILL.md",
       "paths": [
@@ -7930,6 +8413,7 @@
     {
       "kind": "skill",
       "name": "postgres-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/postgres-patterns",
       "canonical_path": "skills/postgres-patterns/SKILL.md",
       "paths": [
@@ -7948,6 +8432,7 @@
     {
       "kind": "skill",
       "name": "product-capability",
+      "category": "skills",
       "logical_id": "skill:skills/product-capability",
       "canonical_path": "skills/product-capability/SKILL.md",
       "paths": [
@@ -7965,6 +8450,7 @@
     {
       "kind": "skill",
       "name": "product-lens",
+      "category": "skills",
       "logical_id": "skill:skills/product-lens",
       "canonical_path": "skills/product-lens/SKILL.md",
       "paths": [
@@ -7981,6 +8467,7 @@
     {
       "kind": "skill",
       "name": "production-scheduling",
+      "category": "skills",
       "logical_id": "skill:skills/production-scheduling",
       "canonical_path": "skills/production-scheduling/SKILL.md",
       "paths": [
@@ -7997,6 +8484,7 @@
     {
       "kind": "skill",
       "name": "project-flow-ops",
+      "category": "skills",
       "logical_id": "skill:skills/project-flow-ops",
       "canonical_path": "skills/project-flow-ops/SKILL.md",
       "paths": [
@@ -8013,6 +8501,7 @@
     {
       "kind": "skill",
       "name": "prompt-optimizer",
+      "category": "skills",
       "logical_id": "skill:skills/prompt-optimizer",
       "canonical_path": "skills/prompt-optimizer/SKILL.md",
       "paths": [
@@ -8029,6 +8518,7 @@
     {
       "kind": "skill",
       "name": "python-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/python-patterns",
       "canonical_path": "skills/python-patterns/SKILL.md",
       "paths": [
@@ -8047,6 +8537,7 @@
     {
       "kind": "skill",
       "name": "python-testing",
+      "category": "skills",
       "logical_id": "skill:skills/python-testing",
       "canonical_path": "skills/python-testing/SKILL.md",
       "paths": [
@@ -8065,6 +8556,7 @@
     {
       "kind": "skill",
       "name": "pytorch-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/pytorch-patterns",
       "canonical_path": "skills/pytorch-patterns/SKILL.md",
       "paths": [
@@ -8081,6 +8573,7 @@
     {
       "kind": "skill",
       "name": "quality-nonconformance",
+      "category": "skills",
       "logical_id": "skill:skills/quality-nonconformance",
       "canonical_path": "skills/quality-nonconformance/SKILL.md",
       "paths": [
@@ -8097,6 +8590,7 @@
     {
       "kind": "skill",
       "name": "ralphinho-rfc-pipeline",
+      "category": "skills",
       "logical_id": "skill:skills/ralphinho-rfc-pipeline",
       "canonical_path": "skills/ralphinho-rfc-pipeline/SKILL.md",
       "paths": [
@@ -8113,6 +8607,7 @@
     {
       "kind": "skill",
       "name": "regex-vs-llm-structured-text",
+      "category": "skills",
       "logical_id": "skill:skills/regex-vs-llm-structured-text",
       "canonical_path": "skills/regex-vs-llm-structured-text/SKILL.md",
       "paths": [
@@ -8129,6 +8624,7 @@
     {
       "kind": "skill",
       "name": "remotion-video-creation",
+      "category": "skills",
       "logical_id": "skill:skills/remotion-video-creation",
       "canonical_path": "skills/remotion-video-creation/SKILL.md",
       "paths": [
@@ -8145,6 +8641,7 @@
     {
       "kind": "skill",
       "name": "repo-scan",
+      "category": "skills",
       "logical_id": "skill:skills/repo-scan",
       "canonical_path": "skills/repo-scan/SKILL.md",
       "paths": [
@@ -8161,6 +8658,7 @@
     {
       "kind": "skill",
       "name": "research-ops",
+      "category": "skills",
       "logical_id": "skill:skills/research-ops",
       "canonical_path": "skills/research-ops/SKILL.md",
       "paths": [
@@ -8177,6 +8675,7 @@
     {
       "kind": "skill",
       "name": "returns-reverse-logistics",
+      "category": "skills",
       "logical_id": "skill:skills/returns-reverse-logistics",
       "canonical_path": "skills/returns-reverse-logistics/SKILL.md",
       "paths": [
@@ -8193,6 +8692,7 @@
     {
       "kind": "skill",
       "name": "rules-distill",
+      "category": "skills",
       "logical_id": "skill:skills/rules-distill",
       "canonical_path": "skills/rules-distill/SKILL.md",
       "paths": [
@@ -8209,6 +8709,7 @@
     {
       "kind": "skill",
       "name": "rust-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/rust-patterns",
       "canonical_path": "skills/rust-patterns/SKILL.md",
       "paths": [
@@ -8225,6 +8726,7 @@
     {
       "kind": "skill",
       "name": "rust-testing",
+      "category": "skills",
       "logical_id": "skill:skills/rust-testing",
       "canonical_path": "skills/rust-testing/SKILL.md",
       "paths": [
@@ -8241,6 +8743,7 @@
     {
       "kind": "skill",
       "name": "safety-guard",
+      "category": "skills",
       "logical_id": "skill:skills/safety-guard",
       "canonical_path": "skills/safety-guard/SKILL.md",
       "paths": [
@@ -8257,6 +8760,7 @@
     {
       "kind": "skill",
       "name": "santa-method",
+      "category": "skills",
       "logical_id": "skill:skills/santa-method",
       "canonical_path": "skills/santa-method/SKILL.md",
       "paths": [
@@ -8273,6 +8777,7 @@
     {
       "kind": "skill",
       "name": "search-first",
+      "category": "skills",
       "logical_id": "skill:skills/search-first",
       "canonical_path": "skills/search-first/SKILL.md",
       "paths": [
@@ -8291,6 +8796,7 @@
     {
       "kind": "skill",
       "name": "security-bounty-hunter",
+      "category": "skills",
       "logical_id": "skill:skills/security-bounty-hunter",
       "canonical_path": "skills/security-bounty-hunter/SKILL.md",
       "paths": [
@@ -8307,6 +8813,7 @@
     {
       "kind": "skill",
       "name": "security-review",
+      "category": "skills",
       "logical_id": "skill:skills/security-review",
       "canonical_path": "skills/security-review/SKILL.md",
       "paths": [
@@ -8326,6 +8833,7 @@
     {
       "kind": "skill",
       "name": "security-scan",
+      "category": "skills",
       "logical_id": "skill:skills/security-scan",
       "canonical_path": "skills/security-scan/SKILL.md",
       "paths": [
@@ -8342,6 +8850,7 @@
     {
       "kind": "skill",
       "name": "seo",
+      "category": "skills",
       "logical_id": "skill:skills/seo",
       "canonical_path": "skills/seo/SKILL.md",
       "paths": [
@@ -8358,6 +8867,7 @@
     {
       "kind": "skill",
       "name": "skill-comply",
+      "category": "skills",
       "logical_id": "skill:skills/skill-comply",
       "canonical_path": "skills/skill-comply/SKILL.md",
       "paths": [
@@ -8374,6 +8884,7 @@
     {
       "kind": "skill",
       "name": "skill-stocktake",
+      "category": "skills",
       "logical_id": "skill:skills/skill-stocktake",
       "canonical_path": "skills/skill-stocktake/SKILL.md",
       "paths": [
@@ -8390,6 +8901,7 @@
     {
       "kind": "skill",
       "name": "social-graph-ranker",
+      "category": "skills",
       "logical_id": "skill:skills/social-graph-ranker",
       "canonical_path": "skills/social-graph-ranker/SKILL.md",
       "paths": [
@@ -8406,6 +8918,7 @@
     {
       "kind": "skill",
       "name": "springboot-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/springboot-patterns",
       "canonical_path": "skills/springboot-patterns/SKILL.md",
       "paths": [
@@ -8422,6 +8935,7 @@
     {
       "kind": "skill",
       "name": "springboot-security",
+      "category": "skills",
       "logical_id": "skill:skills/springboot-security",
       "canonical_path": "skills/springboot-security/SKILL.md",
       "paths": [
@@ -8438,6 +8952,7 @@
     {
       "kind": "skill",
       "name": "springboot-tdd",
+      "category": "skills",
       "logical_id": "skill:skills/springboot-tdd",
       "canonical_path": "skills/springboot-tdd/SKILL.md",
       "paths": [
@@ -8454,6 +8969,7 @@
     {
       "kind": "skill",
       "name": "springboot-verification",
+      "category": "skills",
       "logical_id": "skill:skills/springboot-verification",
       "canonical_path": "skills/springboot-verification/SKILL.md",
       "paths": [
@@ -8470,6 +8986,7 @@
     {
       "kind": "skill",
       "name": "strategic-compact",
+      "category": "skills",
       "logical_id": "skill:skills/strategic-compact",
       "canonical_path": "skills/strategic-compact/SKILL.md",
       "paths": [
@@ -8488,6 +9005,7 @@
     {
       "kind": "skill",
       "name": "swift-actor-persistence",
+      "category": "skills",
       "logical_id": "skill:skills/swift-actor-persistence",
       "canonical_path": "skills/swift-actor-persistence/SKILL.md",
       "paths": [
@@ -8504,6 +9022,7 @@
     {
       "kind": "skill",
       "name": "swift-concurrency-6-2",
+      "category": "skills",
       "logical_id": "skill:skills/swift-concurrency-6-2",
       "canonical_path": "skills/swift-concurrency-6-2/SKILL.md",
       "paths": [
@@ -8520,6 +9039,7 @@
     {
       "kind": "skill",
       "name": "swift-protocol-di-testing",
+      "category": "skills",
       "logical_id": "skill:skills/swift-protocol-di-testing",
       "canonical_path": "skills/swift-protocol-di-testing/SKILL.md",
       "paths": [
@@ -8536,6 +9056,7 @@
     {
       "kind": "skill",
       "name": "swiftui-patterns",
+      "category": "skills",
       "logical_id": "skill:skills/swiftui-patterns",
       "canonical_path": "skills/swiftui-patterns/SKILL.md",
       "paths": [
@@ -8552,6 +9073,7 @@
     {
       "kind": "skill",
       "name": "tdd-workflow",
+      "category": "skills",
       "logical_id": "skill:skills/tdd-workflow",
       "canonical_path": "skills/tdd-workflow/SKILL.md",
       "paths": [
@@ -8572,6 +9094,7 @@
     {
       "kind": "skill",
       "name": "team-builder",
+      "category": "skills",
       "logical_id": "skill:skills/team-builder",
       "canonical_path": "skills/team-builder/SKILL.md",
       "paths": [
@@ -8588,6 +9111,7 @@
     {
       "kind": "skill",
       "name": "terminal-ops",
+      "category": "skills",
       "logical_id": "skill:skills/terminal-ops",
       "canonical_path": "skills/terminal-ops/SKILL.md",
       "paths": [
@@ -8604,6 +9128,7 @@
     {
       "kind": "skill",
       "name": "token-budget-advisor",
+      "category": "skills",
       "logical_id": "skill:skills/token-budget-advisor",
       "canonical_path": "skills/token-budget-advisor/SKILL.md",
       "paths": [
@@ -8620,6 +9145,7 @@
     {
       "kind": "skill",
       "name": "ui-demo",
+      "category": "skills",
       "logical_id": "skill:skills/ui-demo",
       "canonical_path": "skills/ui-demo/SKILL.md",
       "paths": [
@@ -8636,6 +9162,7 @@
     {
       "kind": "skill",
       "name": "unified-notifications-ops",
+      "category": "skills",
       "logical_id": "skill:skills/unified-notifications-ops",
       "canonical_path": "skills/unified-notifications-ops/SKILL.md",
       "paths": [
@@ -8652,6 +9179,7 @@
     {
       "kind": "skill",
       "name": "verification-loop",
+      "category": "skills",
       "logical_id": "skill:skills/verification-loop",
       "canonical_path": "skills/verification-loop/SKILL.md",
       "paths": [
@@ -8671,6 +9199,7 @@
     {
       "kind": "skill",
       "name": "video-editing",
+      "category": "skills",
       "logical_id": "skill:skills/video-editing",
       "canonical_path": "skills/video-editing/SKILL.md",
       "paths": [
@@ -8689,6 +9218,7 @@
     {
       "kind": "skill",
       "name": "videodb",
+      "category": "skills",
       "logical_id": "skill:skills/videodb",
       "canonical_path": "skills/videodb/SKILL.md",
       "paths": [
@@ -8705,6 +9235,7 @@
     {
       "kind": "skill",
       "name": "visa-doc-translate",
+      "category": "skills",
       "logical_id": "skill:skills/visa-doc-translate",
       "canonical_path": "skills/visa-doc-translate/SKILL.md",
       "paths": [
@@ -8721,6 +9252,7 @@
     {
       "kind": "skill",
       "name": "workspace-surface-audit",
+      "category": "skills",
       "logical_id": "skill:skills/workspace-surface-audit",
       "canonical_path": "skills/workspace-surface-audit/SKILL.md",
       "paths": [
@@ -8737,6 +9269,7 @@
     {
       "kind": "skill",
       "name": "x-api",
+      "category": "skills",
       "logical_id": "skill:skills/x-api",
       "canonical_path": "skills/x-api/SKILL.md",
       "paths": [

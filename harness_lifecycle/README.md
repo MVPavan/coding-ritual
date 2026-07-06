@@ -49,6 +49,11 @@ The scanner deduplicates to logical units:
   comes from `plugin.json`'s `name`, not the `.claude-plugin` directory.
 - Only *true* duplicates collapse. `.cursor/rules/*` that share no name with
   `rules/*` stay distinct — the scanner never merges different capabilities.
+- Each capability records its **`category`** — the grouping directory it sits in
+  (a skill's own folder's parent: `skills/productivity/foo/SKILL.md` → `productivity`;
+  a flat `skills/foo/SKILL.md` → the generic `skills`). `gap` prints it as
+  `[category] name` so a reviewer sees where a candidate falls — e.g. an upstream
+  `[deprecated]` skill flags itself as one to skip.
 
 ### Materiality (signal over noise)
 

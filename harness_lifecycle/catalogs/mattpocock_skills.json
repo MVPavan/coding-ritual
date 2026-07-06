@@ -19,6 +19,7 @@
     {
       "kind": "plugin",
       "name": "mattpocock-skills",
+      "category": "",
       "logical_id": "plugin:mattpocock-skills",
       "canonical_path": ".claude-plugin/plugin.json",
       "paths": [
@@ -35,6 +36,7 @@
     {
       "kind": "skill",
       "name": "design-an-interface",
+      "category": "deprecated",
       "logical_id": "skill:skills/deprecated/design-an-interface",
       "canonical_path": "skills/deprecated/design-an-interface/SKILL.md",
       "paths": [
@@ -51,6 +53,7 @@
     {
       "kind": "skill",
       "name": "qa",
+      "category": "deprecated",
       "logical_id": "skill:skills/deprecated/qa",
       "canonical_path": "skills/deprecated/qa/SKILL.md",
       "paths": [
@@ -67,6 +70,7 @@
     {
       "kind": "skill",
       "name": "request-refactor-plan",
+      "category": "deprecated",
       "logical_id": "skill:skills/deprecated/request-refactor-plan",
       "canonical_path": "skills/deprecated/request-refactor-plan/SKILL.md",
       "paths": [
@@ -83,6 +87,7 @@
     {
       "kind": "skill",
       "name": "ubiquitous-language",
+      "category": "deprecated",
       "logical_id": "skill:skills/deprecated/ubiquitous-language",
       "canonical_path": "skills/deprecated/ubiquitous-language/SKILL.md",
       "paths": [
@@ -99,6 +104,7 @@
     {
       "kind": "skill",
       "name": "ask-matt",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/ask-matt",
       "canonical_path": "skills/engineering/ask-matt/SKILL.md",
       "paths": [
@@ -115,6 +121,7 @@
     {
       "kind": "skill",
       "name": "codebase-design",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/codebase-design",
       "canonical_path": "skills/engineering/codebase-design/SKILL.md",
       "paths": [
@@ -131,6 +138,7 @@
     {
       "kind": "skill",
       "name": "diagnosing-bugs",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/diagnosing-bugs",
       "canonical_path": "skills/engineering/diagnosing-bugs/SKILL.md",
       "paths": [
@@ -147,6 +155,7 @@
     {
       "kind": "skill",
       "name": "domain-modeling",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/domain-modeling",
       "canonical_path": "skills/engineering/domain-modeling/SKILL.md",
       "paths": [
@@ -163,6 +172,7 @@
     {
       "kind": "skill",
       "name": "grill-with-docs",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/grill-with-docs",
       "canonical_path": "skills/engineering/grill-with-docs/SKILL.md",
       "paths": [
@@ -179,6 +189,7 @@
     {
       "kind": "skill",
       "name": "implement",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/implement",
       "canonical_path": "skills/engineering/implement/SKILL.md",
       "paths": [
@@ -195,6 +206,7 @@
     {
       "kind": "skill",
       "name": "improve-codebase-architecture",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/improve-codebase-architecture",
       "canonical_path": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "paths": [
@@ -211,6 +223,7 @@
     {
       "kind": "skill",
       "name": "prototype",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/prototype",
       "canonical_path": "skills/engineering/prototype/SKILL.md",
       "paths": [
@@ -227,6 +240,7 @@
     {
       "kind": "skill",
       "name": "resolving-merge-conflicts",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/resolving-merge-conflicts",
       "canonical_path": "skills/engineering/resolving-merge-conflicts/SKILL.md",
       "paths": [
@@ -243,6 +257,7 @@
     {
       "kind": "skill",
       "name": "setup-matt-pocock-skills",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/setup-matt-pocock-skills",
       "canonical_path": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
       "paths": [
@@ -259,6 +274,7 @@
     {
       "kind": "skill",
       "name": "tdd",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/tdd",
       "canonical_path": "skills/engineering/tdd/SKILL.md",
       "paths": [
@@ -275,6 +291,7 @@
     {
       "kind": "skill",
       "name": "to-issues",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/to-issues",
       "canonical_path": "skills/engineering/to-issues/SKILL.md",
       "paths": [
@@ -291,6 +308,7 @@
     {
       "kind": "skill",
       "name": "to-prd",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/to-prd",
       "canonical_path": "skills/engineering/to-prd/SKILL.md",
       "paths": [
@@ -307,6 +325,7 @@
     {
       "kind": "skill",
       "name": "triage",
+      "category": "engineering",
       "logical_id": "skill:skills/engineering/triage",
       "canonical_path": "skills/engineering/triage/SKILL.md",
       "paths": [
@@ -323,6 +342,7 @@
     {
       "kind": "skill",
       "name": "decision-mapping",
+      "category": "in-progress",
       "logical_id": "skill:skills/in-progress/decision-mapping",
       "canonical_path": "skills/in-progress/decision-mapping/SKILL.md",
       "paths": [
@@ -339,6 +359,7 @@
     {
       "kind": "skill",
       "name": "loop-me",
+      "category": "in-progress",
       "logical_id": "skill:skills/in-progress/loop-me",
       "canonical_path": "skills/in-progress/loop-me/SKILL.md",
       "paths": [
@@ -355,6 +376,7 @@
     {
       "kind": "skill",
       "name": "review",
+      "category": "in-progress",
       "logical_id": "skill:skills/in-progress/review",
       "canonical_path": "skills/in-progress/review/SKILL.md",
       "paths": [
@@ -371,6 +393,7 @@
     {
       "kind": "skill",
       "name": "writing-beats",
+      "category": "in-progress",
       "logical_id": "skill:skills/in-progress/writing-beats",
       "canonical_path": "skills/in-progress/writing-beats/SKILL.md",
       "paths": [
@@ -387,6 +410,7 @@
     {
       "kind": "skill",
       "name": "writing-fragments",
+      "category": "in-progress",
       "logical_id": "skill:skills/in-progress/writing-fragments",
       "canonical_path": "skills/in-progress/writing-fragments/SKILL.md",
       "paths": [
@@ -403,6 +427,7 @@
     {
       "kind": "skill",
       "name": "writing-shape",
+      "category": "in-progress",
       "logical_id": "skill:skills/in-progress/writing-shape",
       "canonical_path": "skills/in-progress/writing-shape/SKILL.md",
       "paths": [
@@ -419,6 +444,7 @@
     {
       "kind": "skill",
       "name": "git-guardrails-claude-code",
+      "category": "misc",
       "logical_id": "skill:skills/misc/git-guardrails-claude-code",
       "canonical_path": "skills/misc/git-guardrails-claude-code/SKILL.md",
       "paths": [
@@ -435,6 +461,7 @@
     {
       "kind": "skill",
       "name": "migrate-to-shoehorn",
+      "category": "misc",
       "logical_id": "skill:skills/misc/migrate-to-shoehorn",
       "canonical_path": "skills/misc/migrate-to-shoehorn/SKILL.md",
       "paths": [
@@ -451,6 +478,7 @@
     {
       "kind": "skill",
       "name": "scaffold-exercises",
+      "category": "misc",
       "logical_id": "skill:skills/misc/scaffold-exercises",
       "canonical_path": "skills/misc/scaffold-exercises/SKILL.md",
       "paths": [
@@ -467,6 +495,7 @@
     {
       "kind": "skill",
       "name": "setup-pre-commit",
+      "category": "misc",
       "logical_id": "skill:skills/misc/setup-pre-commit",
       "canonical_path": "skills/misc/setup-pre-commit/SKILL.md",
       "paths": [
@@ -483,6 +512,7 @@
     {
       "kind": "skill",
       "name": "edit-article",
+      "category": "personal",
       "logical_id": "skill:skills/personal/edit-article",
       "canonical_path": "skills/personal/edit-article/SKILL.md",
       "paths": [
@@ -499,6 +529,7 @@
     {
       "kind": "skill",
       "name": "obsidian-vault",
+      "category": "personal",
       "logical_id": "skill:skills/personal/obsidian-vault",
       "canonical_path": "skills/personal/obsidian-vault/SKILL.md",
       "paths": [
@@ -515,6 +546,7 @@
     {
       "kind": "skill",
       "name": "grill-me",
+      "category": "productivity",
       "logical_id": "skill:skills/productivity/grill-me",
       "canonical_path": "skills/productivity/grill-me/SKILL.md",
       "paths": [
@@ -531,6 +563,7 @@
     {
       "kind": "skill",
       "name": "grilling",
+      "category": "productivity",
       "logical_id": "skill:skills/productivity/grilling",
       "canonical_path": "skills/productivity/grilling/SKILL.md",
       "paths": [
@@ -547,6 +580,7 @@
     {
       "kind": "skill",
       "name": "handoff",
+      "category": "productivity",
       "logical_id": "skill:skills/productivity/handoff",
       "canonical_path": "skills/productivity/handoff/SKILL.md",
       "paths": [
@@ -563,6 +597,7 @@
     {
       "kind": "skill",
       "name": "teach",
+      "category": "productivity",
       "logical_id": "skill:skills/productivity/teach",
       "canonical_path": "skills/productivity/teach/SKILL.md",
       "paths": [
@@ -579,6 +614,7 @@
     {
       "kind": "skill",
       "name": "writing-great-skills",
+      "category": "productivity",
       "logical_id": "skill:skills/productivity/writing-great-skills",
       "canonical_path": "skills/productivity/writing-great-skills/SKILL.md",
       "paths": [

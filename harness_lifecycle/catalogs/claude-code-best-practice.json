@@ -35,6 +35,7 @@
     {
       "kind": "agent",
       "name": "time-agent",
+      "category": "agents",
       "logical_id": "agent:agent-teams/.claude/agents/time-agent",
       "canonical_path": "agent-teams/.claude/agents/time-agent.md",
       "paths": [
@@ -51,6 +52,7 @@
     {
       "kind": "agent",
       "name": "development-workflows-research-agent",
+      "category": "agents",
       "logical_id": "agent:agents/development-workflows-research-agent",
       "canonical_path": ".claude/agents/development-workflows-research-agent.md",
       "paths": [
@@ -67,6 +69,7 @@
     {
       "kind": "agent",
       "name": "presentation-curator",
+      "category": "agents",
       "logical_id": "agent:agents/presentation-curator",
       "canonical_path": ".claude/agents/presentation-curator.md",
       "paths": [
@@ -83,6 +86,7 @@
     {
       "kind": "agent",
       "name": "time-agent",
+      "category": "agents",
       "logical_id": "agent:agents/time-agent",
       "canonical_path": ".claude/agents/time-agent.md",
       "paths": [
@@ -99,6 +103,7 @@
     {
       "kind": "agent",
       "name": "weather-agent",
+      "category": "agents",
       "logical_id": "agent:agents/weather-agent",
       "canonical_path": ".claude/agents/weather-agent.md",
       "paths": [
@@ -115,6 +120,7 @@
     {
       "kind": "agent",
       "name": "workflow-claude-commands-agent",
+      "category": "best-practice",
       "logical_id": "agent:agents/workflows/best-practice/workflow-claude-commands-agent",
       "canonical_path": ".claude/agents/workflows/best-practice/workflow-claude-commands-agent.md",
       "paths": [
@@ -131,6 +137,7 @@
     {
       "kind": "agent",
       "name": "workflow-claude-settings-agent",
+      "category": "best-practice",
       "logical_id": "agent:agents/workflows/best-practice/workflow-claude-settings-agent",
       "canonical_path": ".claude/agents/workflows/best-practice/workflow-claude-settings-agent.md",
       "paths": [
@@ -147,6 +154,7 @@
     {
       "kind": "agent",
       "name": "workflow-claude-skills-agent",
+      "category": "best-practice",
       "logical_id": "agent:agents/workflows/best-practice/workflow-claude-skills-agent",
       "canonical_path": ".claude/agents/workflows/best-practice/workflow-claude-skills-agent.md",
       "paths": [
@@ -163,6 +171,7 @@
     {
       "kind": "agent",
       "name": "workflow-claude-subagents-agent",
+      "category": "best-practice",
       "logical_id": "agent:agents/workflows/best-practice/workflow-claude-subagents-agent",
       "canonical_path": ".claude/agents/workflows/best-practice/workflow-claude-subagents-agent.md",
       "paths": [
@@ -179,6 +188,7 @@
     {
       "kind": "agent",
       "name": "workflow-concepts-agent",
+      "category": "best-practice",
       "logical_id": "agent:agents/workflows/best-practice/workflow-concepts-agent",
       "canonical_path": ".claude/agents/workflows/best-practice/workflow-concepts-agent.md",
       "paths": [
@@ -195,6 +205,7 @@
     {
       "kind": "agent",
       "name": "development-workflows-research-agent",
+      "category": "workflows",
       "logical_id": "agent:agents/workflows/development-workflows-research-agent",
       "canonical_path": ".claude/agents/workflows/development-workflows-research-agent.md",
       "paths": [
@@ -211,6 +222,7 @@
     {
       "kind": "agent",
       "name": "code-reviewer",
+      "category": "agents",
       "logical_id": "agent:development-workflows/rpi/.claude/agents/code-reviewer",
       "canonical_path": "development-workflows/rpi/.claude/agents/code-reviewer.md",
       "paths": [
@@ -227,6 +239,7 @@
     {
       "kind": "agent",
       "name": "constitutional-validator",
+      "category": "agents",
       "logical_id": "agent:development-workflows/rpi/.claude/agents/constitutional-validator",
       "canonical_path": "development-workflows/rpi/.claude/agents/constitutional-validator.md",
       "paths": [
@@ -243,6 +256,7 @@
     {
       "kind": "agent",
       "name": "documentation-analyst-writer",
+      "category": "agents",
       "logical_id": "agent:development-workflows/rpi/.claude/agents/documentation-analyst-writer",
       "canonical_path": "development-workflows/rpi/.claude/agents/documentation-analyst-writer.md",
       "paths": [
@@ -259,6 +273,7 @@
     {
       "kind": "agent",
       "name": "product-manager",
+      "category": "agents",
       "logical_id": "agent:development-workflows/rpi/.claude/agents/product-manager",
       "canonical_path": "development-workflows/rpi/.claude/agents/product-manager.md",
       "paths": [
@@ -275,6 +290,7 @@
     {
       "kind": "agent",
       "name": "requirement-parser",
+      "category": "agents",
       "logical_id": "agent:development-workflows/rpi/.claude/agents/requirement-parser",
       "canonical_path": "development-workflows/rpi/.claude/agents/requirement-parser.md",
       "paths": [
@@ -291,6 +307,7 @@
     {
       "kind": "agent",
       "name": "senior-software-engineer",
+      "category": "agents",
       "logical_id": "agent:development-workflows/rpi/.claude/agents/senior-software-engineer",
       "canonical_path": "development-workflows/rpi/.claude/agents/senior-software-engineer.md",
       "paths": [
@@ -307,6 +324,7 @@
     {
       "kind": "agent",
       "name": "technical-cto-advisor",
+      "category": "agents",
       "logical_id": "agent:development-workflows/rpi/.claude/agents/technical-cto-advisor",
       "canonical_path": "development-workflows/rpi/.claude/agents/technical-cto-advisor.md",
       "paths": [
@@ -323,6 +341,7 @@
     {
       "kind": "agent",
       "name": "ux-designer",
+      "category": "agents",
       "logical_id": "agent:development-workflows/rpi/.claude/agents/ux-designer",
       "canonical_path": "development-workflows/rpi/.claude/agents/ux-designer.md",
       "paths": [
@@ -339,6 +358,7 @@
     {
       "kind": "command",
       "name": "time-orchestrator",
+      "category": "commands",
       "logical_id": "command:agent-teams/.claude/commands/time-orchestrator",
       "canonical_path": "agent-teams/.claude/commands/time-orchestrator.md",
       "paths": [
@@ -355,6 +375,7 @@
     {
       "kind": "command",
       "name": "time-command",
+      "category": "commands",
       "logical_id": "command:commands/time-command",
       "canonical_path": ".claude/commands/time-command.md",
       "paths": [
@@ -371,6 +392,7 @@
     {
       "kind": "command",
       "name": "weather-orchestrator",
+      "category": "commands",
       "logical_id": "command:commands/weather-orchestrator",
       "canonical_path": ".claude/commands/weather-orchestrator.md",
       "paths": [
@@ -387,6 +409,7 @@
     {
       "kind": "command",
       "name": "workflows/best-practice/workflow-claude-commands",
+      "category": "best-practice",
       "logical_id": "command:commands/workflows/best-practice/workflow-claude-commands",
       "canonical_path": ".claude/commands/workflows/best-practice/workflow-claude-commands.md",
       "paths": [
@@ -403,6 +426,7 @@
     {
       "kind": "command",
       "name": "workflows/best-practice/workflow-claude-settings",
+      "category": "best-practice",
       "logical_id": "command:commands/workflows/best-practice/workflow-claude-settings",
       "canonical_path": ".claude/commands/workflows/best-practice/workflow-claude-settings.md",
       "paths": [
@@ -419,6 +443,7 @@
     {
       "kind": "command",
       "name": "workflows/best-practice/workflow-claude-skills",
+      "category": "best-practice",
       "logical_id": "command:commands/workflows/best-practice/workflow-claude-skills",
       "canonical_path": ".claude/commands/workflows/best-practice/workflow-claude-skills.md",
       "paths": [
@@ -435,6 +460,7 @@
     {
       "kind": "command",
       "name": "workflows/best-practice/workflow-claude-subagents",
+      "category": "best-practice",
       "logical_id": "command:commands/workflows/best-practice/workflow-claude-subagents",
       "canonical_path": ".claude/commands/workflows/best-practice/workflow-claude-subagents.md",
       "paths": [
@@ -451,6 +477,7 @@
     {
       "kind": "command",
       "name": "workflows/best-practice/workflow-concepts",
+      "category": "best-practice",
       "logical_id": "command:commands/workflows/best-practice/workflow-concepts",
       "canonical_path": ".claude/commands/workflows/best-practice/workflow-concepts.md",
       "paths": [
@@ -467,6 +494,7 @@
     {
       "kind": "command",
       "name": "workflows/development-workflows",
+      "category": "workflows",
       "logical_id": "command:commands/workflows/development-workflows",
       "canonical_path": ".claude/commands/workflows/development-workflows.md",
       "paths": [
@@ -483,6 +511,7 @@
     {
       "kind": "command",
       "name": "rpi/implement",
+      "category": "rpi",
       "logical_id": "command:development-workflows/rpi/.claude/commands/rpi/implement",
       "canonical_path": "development-workflows/rpi/.claude/commands/rpi/implement.md",
       "paths": [
@@ -499,6 +528,7 @@
     {
       "kind": "command",
       "name": "rpi/plan",
+      "category": "rpi",
       "logical_id": "command:development-workflows/rpi/.claude/commands/rpi/plan",
       "canonical_path": "development-workflows/rpi/.claude/commands/rpi/plan.md",
       "paths": [
@@ -515,6 +545,7 @@
     {
       "kind": "command",
       "name": "rpi/research",
+      "category": "rpi",
       "logical_id": "command:development-workflows/rpi/.claude/commands/rpi/research",
       "canonical_path": "development-workflows/rpi/.claude/commands/rpi/research.md",
       "paths": [
@@ -531,6 +562,7 @@
     {
       "kind": "hook",
       "name": "hooks.py",
+      "category": "scripts",
       "logical_id": "hook:hooks/scripts/hooks",
       "canonical_path": ".claude/hooks/scripts/hooks.py",
       "paths": [
@@ -549,6 +581,7 @@
     {
       "kind": "mcp",
       "name": "context7",
+      "category": "",
       "logical_id": "mcp:.mcp.json#context7",
       "canonical_path": ".mcp.json#context7",
       "paths": [
@@ -565,6 +598,7 @@
     {
       "kind": "mcp",
       "name": "deepwiki",
+      "category": "",
       "logical_id": "mcp:.mcp.json#deepwiki",
       "canonical_path": ".mcp.json#deepwiki",
       "paths": [
@@ -581,6 +615,7 @@
     {
       "kind": "mcp",
       "name": "playwright",
+      "category": "",
       "logical_id": "mcp:.mcp.json#playwright",
       "canonical_path": ".mcp.json#playwright",
       "paths": [
@@ -597,6 +632,7 @@
     {
       "kind": "rule",
       "name": "markdown-docs",
+      "category": "rules",
       "logical_id": "rule:rules/markdown-docs",
       "canonical_path": ".claude/rules/markdown-docs.md",
       "paths": [
@@ -613,6 +649,7 @@
     {
       "kind": "rule",
       "name": "presentation",
+      "category": "rules",
       "logical_id": "rule:rules/presentation",
       "canonical_path": ".claude/rules/presentation.md",
       "paths": [
@@ -629,6 +666,7 @@
     {
       "kind": "skill",
       "name": "time-fetcher",
+      "category": "skills",
       "logical_id": "skill:agent-teams/.claude/skills/time-fetcher",
       "canonical_path": "agent-teams/.claude/skills/time-fetcher/SKILL.md",
       "paths": [
@@ -645,6 +683,7 @@
     {
       "kind": "skill",
       "name": "time-svg-creator",
+      "category": "skills",
       "logical_id": "skill:agent-teams/.claude/skills/time-svg-creator",
       "canonical_path": "agent-teams/.claude/skills/time-svg-creator/SKILL.md",
       "paths": [
@@ -661,6 +700,7 @@
     {
       "kind": "skill",
       "name": "agent-browser",
+      "category": "skills",
       "logical_id": "skill:skills/agent-browser",
       "canonical_path": ".claude/skills/agent-browser/SKILL.md",
       "paths": [
@@ -677,6 +717,7 @@
     {
       "kind": "skill",
       "name": "presentation-structure",
+      "category": "presentation",
       "logical_id": "skill:skills/presentation/presentation-structure",
       "canonical_path": ".claude/skills/presentation/presentation-structure/SKILL.md",
       "paths": [
@@ -693,6 +734,7 @@
     {
       "kind": "skill",
       "name": "presentation-styling",
+      "category": "presentation",
       "logical_id": "skill:skills/presentation/presentation-styling",
       "canonical_path": ".claude/skills/presentation/presentation-styling/SKILL.md",
       "paths": [
@@ -709,6 +751,7 @@
     {
       "kind": "skill",
       "name": "vibe-to-agentic-framework",
+      "category": "presentation",
       "logical_id": "skill:skills/presentation/vibe-to-agentic-framework",
       "canonical_path": ".claude/skills/presentation/vibe-to-agentic-framework/SKILL.md",
       "paths": [
@@ -725,6 +768,7 @@
     {
       "kind": "skill",
       "name": "time-skill",
+      "category": "skills",
       "logical_id": "skill:skills/time-skill",
       "canonical_path": ".claude/skills/time-skill/SKILL.md",
       "paths": [
@@ -741,6 +785,7 @@
     {
       "kind": "skill",
       "name": "weather-fetcher",
+      "category": "skills",
       "logical_id": "skill:skills/weather-fetcher",
       "canonical_path": ".claude/skills/weather-fetcher/SKILL.md",
       "paths": [
@@ -757,6 +802,7 @@
     {
       "kind": "skill",
       "name": "weather-svg-creator",
+      "category": "skills",
       "logical_id": "skill:skills/weather-svg-creator",
       "canonical_path": ".claude/skills/weather-svg-creator/SKILL.md",
       "paths": [

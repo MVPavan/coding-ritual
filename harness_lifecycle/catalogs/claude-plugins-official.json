@@ -4,7 +4,7 @@
   "source": "working-tree",
   "source_commit": "f7b31235e6f01cd7cd08ad4a6699f007a4072519",
   "physical_scanned": 405,
-  "excluded": 29,
+  "excluded": 120,
   "counts": {
     "agent": {
       "physical": 26,
@@ -35,6 +35,7 @@
     {
       "kind": "agent",
       "name": "agent-sdk-verifier-py",
+      "category": "agents",
       "logical_id": "agent:plugins/agent-sdk-dev/agents/agent-sdk-verifier-py",
       "canonical_path": "plugins/agent-sdk-dev/agents/agent-sdk-verifier-py.md",
       "paths": [
@@ -51,6 +52,7 @@
     {
       "kind": "agent",
       "name": "agent-sdk-verifier-ts",
+      "category": "agents",
       "logical_id": "agent:plugins/agent-sdk-dev/agents/agent-sdk-verifier-ts",
       "canonical_path": "plugins/agent-sdk-dev/agents/agent-sdk-verifier-ts.md",
       "paths": [
@@ -67,6 +69,7 @@
     {
       "kind": "agent",
       "name": "architecture-critic",
+      "category": "agents",
       "logical_id": "agent:plugins/code-modernization/agents/architecture-critic",
       "canonical_path": "plugins/code-modernization/agents/architecture-critic.md",
       "paths": [
@@ -83,6 +86,7 @@
     {
       "kind": "agent",
       "name": "business-rules-extractor",
+      "category": "agents",
       "logical_id": "agent:plugins/code-modernization/agents/business-rules-extractor",
       "canonical_path": "plugins/code-modernization/agents/business-rules-extractor.md",
       "paths": [
@@ -99,6 +103,7 @@
     {
       "kind": "agent",
       "name": "legacy-analyst",
+      "category": "agents",
       "logical_id": "agent:plugins/code-modernization/agents/legacy-analyst",
       "canonical_path": "plugins/code-modernization/agents/legacy-analyst.md",
       "paths": [
@@ -115,6 +120,7 @@
     {
       "kind": "agent",
       "name": "scaffolder",
+      "category": "agents",
       "logical_id": "agent:plugins/code-modernization/agents/scaffolder",
       "canonical_path": "plugins/code-modernization/agents/scaffolder.md",
       "paths": [
@@ -131,6 +137,7 @@
     {
       "kind": "agent",
       "name": "security-auditor",
+      "category": "agents",
       "logical_id": "agent:plugins/code-modernization/agents/security-auditor",
       "canonical_path": "plugins/code-modernization/agents/security-auditor.md",
       "paths": [
@@ -147,6 +154,7 @@
     {
       "kind": "agent",
       "name": "test-engineer",
+      "category": "agents",
       "logical_id": "agent:plugins/code-modernization/agents/test-engineer",
       "canonical_path": "plugins/code-modernization/agents/test-engineer.md",
       "paths": [
@@ -163,6 +171,7 @@
     {
       "kind": "agent",
       "name": "version-delta-analyst",
+      "category": "agents",
       "logical_id": "agent:plugins/code-modernization/agents/version-delta-analyst",
       "canonical_path": "plugins/code-modernization/agents/version-delta-analyst.md",
       "paths": [
@@ -179,6 +188,7 @@
     {
       "kind": "agent",
       "name": "code-simplifier",
+      "category": "agents",
       "logical_id": "agent:plugins/code-simplifier/agents/code-simplifier",
       "canonical_path": "plugins/code-simplifier/agents/code-simplifier.md",
       "paths": [
@@ -195,6 +205,7 @@
     {
       "kind": "agent",
       "name": "code-architect",
+      "category": "agents",
       "logical_id": "agent:plugins/feature-dev/agents/code-architect",
       "canonical_path": "plugins/feature-dev/agents/code-architect.md",
       "paths": [
@@ -211,6 +222,7 @@
     {
       "kind": "agent",
       "name": "code-explorer",
+      "category": "agents",
       "logical_id": "agent:plugins/feature-dev/agents/code-explorer",
       "canonical_path": "plugins/feature-dev/agents/code-explorer.md",
       "paths": [
@@ -227,6 +239,7 @@
     {
       "kind": "agent",
       "name": "code-reviewer",
+      "category": "agents",
       "logical_id": "agent:plugins/feature-dev/agents/code-reviewer",
       "canonical_path": "plugins/feature-dev/agents/code-reviewer.md",
       "paths": [
@@ -243,6 +256,7 @@
     {
       "kind": "agent",
       "name": "conversation-analyzer",
+      "category": "agents",
       "logical_id": "agent:plugins/hookify/agents/conversation-analyzer",
       "canonical_path": "plugins/hookify/agents/conversation-analyzer.md",
       "paths": [
@@ -259,6 +273,7 @@
     {
       "kind": "agent",
       "name": "agent-creator",
+      "category": "agents",
       "logical_id": "agent:plugins/plugin-dev/agents/agent-creator",
       "canonical_path": "plugins/plugin-dev/agents/agent-creator.md",
       "paths": [
@@ -275,6 +290,7 @@
     {
       "kind": "agent",
       "name": "plugin-validator",
+      "category": "agents",
       "logical_id": "agent:plugins/plugin-dev/agents/plugin-validator",
       "canonical_path": "plugins/plugin-dev/agents/plugin-validator.md",
       "paths": [
@@ -291,6 +307,7 @@
     {
       "kind": "agent",
       "name": "skill-reviewer",
+      "category": "agents",
       "logical_id": "agent:plugins/plugin-dev/agents/skill-reviewer",
       "canonical_path": "plugins/plugin-dev/agents/skill-reviewer.md",
       "paths": [
@@ -307,6 +324,7 @@
     {
       "kind": "agent",
       "name": "code-reviewer",
+      "category": "agents",
       "logical_id": "agent:plugins/pr-review-toolkit/agents/code-reviewer",
       "canonical_path": "plugins/pr-review-toolkit/agents/code-reviewer.md",
       "paths": [
@@ -323,6 +341,7 @@
     {
       "kind": "agent",
       "name": "code-simplifier",
+      "category": "agents",
       "logical_id": "agent:plugins/pr-review-toolkit/agents/code-simplifier",
       "canonical_path": "plugins/pr-review-toolkit/agents/code-simplifier.md",
       "paths": [
@@ -339,6 +358,7 @@
     {
       "kind": "agent",
       "name": "comment-analyzer",
+      "category": "agents",
       "logical_id": "agent:plugins/pr-review-toolkit/agents/comment-analyzer",
       "canonical_path": "plugins/pr-review-toolkit/agents/comment-analyzer.md",
       "paths": [
@@ -355,6 +375,7 @@
     {
       "kind": "agent",
       "name": "pr-test-analyzer",
+      "category": "agents",
       "logical_id": "agent:plugins/pr-review-toolkit/agents/pr-test-analyzer",
       "canonical_path": "plugins/pr-review-toolkit/agents/pr-test-analyzer.md",
       "paths": [
@@ -371,6 +392,7 @@
     {
       "kind": "agent",
       "name": "silent-failure-hunter",
+      "category": "agents",
       "logical_id": "agent:plugins/pr-review-toolkit/agents/silent-failure-hunter",
       "canonical_path": "plugins/pr-review-toolkit/agents/silent-failure-hunter.md",
       "paths": [
@@ -387,6 +409,7 @@
     {
       "kind": "agent",
       "name": "type-design-analyzer",
+      "category": "agents",
       "logical_id": "agent:plugins/pr-review-toolkit/agents/type-design-analyzer",
       "canonical_path": "plugins/pr-review-toolkit/agents/type-design-analyzer.md",
       "paths": [
@@ -403,6 +426,7 @@
     {
       "kind": "agent",
       "name": "analyzer",
+      "category": "agents",
       "logical_id": "agent:plugins/skill-creator/skills/skill-creator/agents/analyzer",
       "canonical_path": "plugins/skill-creator/skills/skill-creator/agents/analyzer.md",
       "paths": [
@@ -419,6 +443,7 @@
     {
       "kind": "agent",
       "name": "comparator",
+      "category": "agents",
       "logical_id": "agent:plugins/skill-creator/skills/skill-creator/agents/comparator",
       "canonical_path": "plugins/skill-creator/skills/skill-creator/agents/comparator.md",
       "paths": [
@@ -435,6 +460,7 @@
     {
       "kind": "agent",
       "name": "grader",
+      "category": "agents",
       "logical_id": "agent:plugins/skill-creator/skills/skill-creator/agents/grader",
       "canonical_path": "plugins/skill-creator/skills/skill-creator/agents/grader.md",
       "paths": [
@@ -451,6 +477,7 @@
     {
       "kind": "command",
       "name": "new-sdk-app",
+      "category": "commands",
       "logical_id": "command:plugins/agent-sdk-dev/commands/new-sdk-app",
       "canonical_path": "plugins/agent-sdk-dev/commands/new-sdk-app.md",
       "paths": [
@@ -467,6 +494,7 @@
     {
       "kind": "command",
       "name": "revise-claude-md",
+      "category": "commands",
       "logical_id": "command:plugins/claude-md-management/commands/revise-claude-md",
       "canonical_path": "plugins/claude-md-management/commands/revise-claude-md.md",
       "paths": [
@@ -483,6 +511,7 @@
     {
       "kind": "command",
       "name": "modernize-assess",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-assess",
       "canonical_path": "plugins/code-modernization/commands/modernize-assess.md",
       "paths": [
@@ -499,6 +528,7 @@
     {
       "kind": "command",
       "name": "modernize-brief",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-brief",
       "canonical_path": "plugins/code-modernization/commands/modernize-brief.md",
       "paths": [
@@ -515,6 +545,7 @@
     {
       "kind": "command",
       "name": "modernize-extract-rules",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-extract-rules",
       "canonical_path": "plugins/code-modernization/commands/modernize-extract-rules.md",
       "paths": [
@@ -531,6 +562,7 @@
     {
       "kind": "command",
       "name": "modernize-harden",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-harden",
       "canonical_path": "plugins/code-modernization/commands/modernize-harden.md",
       "paths": [
@@ -547,6 +579,7 @@
     {
       "kind": "command",
       "name": "modernize-map",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-map",
       "canonical_path": "plugins/code-modernization/commands/modernize-map.md",
       "paths": [
@@ -563,6 +596,7 @@
     {
       "kind": "command",
       "name": "modernize-preflight",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-preflight",
       "canonical_path": "plugins/code-modernization/commands/modernize-preflight.md",
       "paths": [
@@ -579,6 +613,7 @@
     {
       "kind": "command",
       "name": "modernize-reimagine",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-reimagine",
       "canonical_path": "plugins/code-modernization/commands/modernize-reimagine.md",
       "paths": [
@@ -595,6 +630,7 @@
     {
       "kind": "command",
       "name": "modernize-status",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-status",
       "canonical_path": "plugins/code-modernization/commands/modernize-status.md",
       "paths": [
@@ -611,6 +647,7 @@
     {
       "kind": "command",
       "name": "modernize-transform",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-transform",
       "canonical_path": "plugins/code-modernization/commands/modernize-transform.md",
       "paths": [
@@ -627,6 +664,7 @@
     {
       "kind": "command",
       "name": "modernize-uplift",
+      "category": "commands",
       "logical_id": "command:plugins/code-modernization/commands/modernize-uplift",
       "canonical_path": "plugins/code-modernization/commands/modernize-uplift.md",
       "paths": [
@@ -643,6 +681,7 @@
     {
       "kind": "command",
       "name": "code-review",
+      "category": "commands",
       "logical_id": "command:plugins/code-review/commands/code-review",
       "canonical_path": "plugins/code-review/commands/code-review.md",
       "paths": [
@@ -659,6 +698,7 @@
     {
       "kind": "command",
       "name": "clean_gone",
+      "category": "commands",
       "logical_id": "command:plugins/commit-commands/commands/clean_gone",
       "canonical_path": "plugins/commit-commands/commands/clean_gone.md",
       "paths": [
@@ -675,6 +715,7 @@
     {
       "kind": "command",
       "name": "commit",
+      "category": "commands",
       "logical_id": "command:plugins/commit-commands/commands/commit",
       "canonical_path": "plugins/commit-commands/commands/commit.md",
       "paths": [
@@ -691,6 +732,7 @@
     {
       "kind": "command",
       "name": "commit-push-pr",
+      "category": "commands",
       "logical_id": "command:plugins/commit-commands/commands/commit-push-pr",
       "canonical_path": "plugins/commit-commands/commands/commit-push-pr.md",
       "paths": [
@@ -707,6 +749,7 @@
     {
       "kind": "command",
       "name": "maker-setup",
+      "category": "commands",
       "logical_id": "command:plugins/cwc-makers/commands/maker-setup",
       "canonical_path": "plugins/cwc-makers/commands/maker-setup.md",
       "paths": [
@@ -723,6 +766,7 @@
     {
       "kind": "command",
       "name": "example-command",
+      "category": "commands",
       "logical_id": "command:plugins/example-plugin/commands/example-command",
       "canonical_path": "plugins/example-plugin/commands/example-command.md",
       "paths": [
@@ -739,6 +783,7 @@
     {
       "kind": "command",
       "name": "feature-dev",
+      "category": "commands",
       "logical_id": "command:plugins/feature-dev/commands/feature-dev",
       "canonical_path": "plugins/feature-dev/commands/feature-dev.md",
       "paths": [
@@ -755,6 +800,7 @@
     {
       "kind": "command",
       "name": "configure",
+      "category": "commands",
       "logical_id": "command:plugins/hookify/commands/configure",
       "canonical_path": "plugins/hookify/commands/configure.md",
       "paths": [
@@ -771,6 +817,7 @@
     {
       "kind": "command",
       "name": "help",
+      "category": "commands",
       "logical_id": "command:plugins/hookify/commands/help",
       "canonical_path": "plugins/hookify/commands/help.md",
       "paths": [
@@ -787,6 +834,7 @@
     {
       "kind": "command",
       "name": "hookify",
+      "category": "commands",
       "logical_id": "command:plugins/hookify/commands/hookify",
       "canonical_path": "plugins/hookify/commands/hookify.md",
       "paths": [
@@ -803,6 +851,7 @@
     {
       "kind": "command",
       "name": "list",
+      "category": "commands",
       "logical_id": "command:plugins/hookify/commands/list",
       "canonical_path": "plugins/hookify/commands/list.md",
       "paths": [
@@ -819,6 +868,7 @@
     {
       "kind": "command",
       "name": "create-docker-mcp-tunnel",
+      "category": "commands",
       "logical_id": "command:plugins/mcp-tunnels/commands/create-docker-mcp-tunnel",
       "canonical_path": "plugins/mcp-tunnels/commands/create-docker-mcp-tunnel.md",
       "paths": [
@@ -835,6 +885,7 @@
     {
       "kind": "command",
       "name": "create-plugin",
+      "category": "commands",
       "logical_id": "command:plugins/plugin-dev/commands/create-plugin",
       "canonical_path": "plugins/plugin-dev/commands/create-plugin.md",
       "paths": [
@@ -851,6 +902,7 @@
     {
       "kind": "command",
       "name": "review-pr",
+      "category": "commands",
       "logical_id": "command:plugins/pr-review-toolkit/commands/review-pr",
       "canonical_path": "plugins/pr-review-toolkit/commands/review-pr.md",
       "paths": [
@@ -867,6 +919,7 @@
     {
       "kind": "command",
       "name": "cancel-ralph",
+      "category": "commands",
       "logical_id": "command:plugins/ralph-loop/commands/cancel-ralph",
       "canonical_path": "plugins/ralph-loop/commands/cancel-ralph.md",
       "paths": [
@@ -883,6 +936,7 @@
     {
       "kind": "command",
       "name": "help",
+      "category": "commands",
       "logical_id": "command:plugins/ralph-loop/commands/help",
       "canonical_path": "plugins/ralph-loop/commands/help.md",
       "paths": [
@@ -899,6 +953,7 @@
     {
       "kind": "command",
       "name": "ralph-loop",
+      "category": "commands",
       "logical_id": "command:plugins/ralph-loop/commands/ralph-loop",
       "canonical_path": "plugins/ralph-loop/commands/ralph-loop.md",
       "paths": [
@@ -915,6 +970,7 @@
     {
       "kind": "hook",
       "name": "__init__.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/hookify/hooks/__init__",
       "canonical_path": "plugins/hookify/hooks/__init__.py",
       "paths": [
@@ -931,6 +987,7 @@
     {
       "kind": "hook",
       "name": "posttooluse.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/hookify/hooks/posttooluse",
       "canonical_path": "plugins/hookify/hooks/posttooluse.py",
       "paths": [
@@ -947,6 +1004,7 @@
     {
       "kind": "hook",
       "name": "pretooluse.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/hookify/hooks/pretooluse",
       "canonical_path": "plugins/hookify/hooks/pretooluse.py",
       "paths": [
@@ -963,6 +1021,7 @@
     {
       "kind": "hook",
       "name": "stop.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/hookify/hooks/stop",
       "canonical_path": "plugins/hookify/hooks/stop.py",
       "paths": [
@@ -979,6 +1038,7 @@
     {
       "kind": "hook",
       "name": "userpromptsubmit.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/hookify/hooks/userpromptsubmit",
       "canonical_path": "plugins/hookify/hooks/userpromptsubmit.py",
       "paths": [
@@ -995,6 +1055,7 @@
     {
       "kind": "hook",
       "name": "stop-hook.sh",
+      "category": "hooks",
       "logical_id": "hook:plugins/ralph-loop/hooks/stop-hook",
       "canonical_path": "plugins/ralph-loop/hooks/stop-hook.sh",
       "paths": [
@@ -1011,6 +1072,7 @@
     {
       "kind": "hook",
       "name": "_base.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/_base",
       "canonical_path": "plugins/security-guidance/hooks/_base.py",
       "paths": [
@@ -1027,6 +1089,7 @@
     {
       "kind": "hook",
       "name": "diffstate.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/diffstate",
       "canonical_path": "plugins/security-guidance/hooks/diffstate.py",
       "paths": [
@@ -1043,6 +1106,7 @@
     {
       "kind": "hook",
       "name": "ensure_agent_sdk.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/ensure_agent_sdk",
       "canonical_path": "plugins/security-guidance/hooks/ensure_agent_sdk.py",
       "paths": [
@@ -1059,6 +1123,7 @@
     {
       "kind": "hook",
       "name": "extensibility.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/extensibility",
       "canonical_path": "plugins/security-guidance/hooks/extensibility.py",
       "paths": [
@@ -1075,6 +1140,7 @@
     {
       "kind": "hook",
       "name": "gitutil.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/gitutil",
       "canonical_path": "plugins/security-guidance/hooks/gitutil.py",
       "paths": [
@@ -1091,6 +1157,7 @@
     {
       "kind": "hook",
       "name": "llm.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/llm",
       "canonical_path": "plugins/security-guidance/hooks/llm.py",
       "paths": [
@@ -1107,6 +1174,7 @@
     {
       "kind": "hook",
       "name": "patterns.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/patterns",
       "canonical_path": "plugins/security-guidance/hooks/patterns.py",
       "paths": [
@@ -1123,6 +1191,7 @@
     {
       "kind": "hook",
       "name": "review_api.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/review_api",
       "canonical_path": "plugins/security-guidance/hooks/review_api.py",
       "paths": [
@@ -1139,6 +1208,7 @@
     {
       "kind": "hook",
       "name": "security_reminder_hook.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/security_reminder_hook",
       "canonical_path": "plugins/security-guidance/hooks/security_reminder_hook.py",
       "paths": [
@@ -1155,6 +1225,7 @@
     {
       "kind": "hook",
       "name": "session_state.py",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/session_state",
       "canonical_path": "plugins/security-guidance/hooks/session_state.py",
       "paths": [
@@ -1171,6 +1242,7 @@
     {
       "kind": "hook",
       "name": "sg-python.sh",
+      "category": "hooks",
       "logical_id": "hook:plugins/security-guidance/hooks/sg-python",
       "canonical_path": "plugins/security-guidance/hooks/sg-python.sh",
       "paths": [
@@ -1187,6 +1259,7 @@
     {
       "kind": "mcp",
       "name": "discord",
+      "category": "",
       "logical_id": "mcp:external_plugins/discord/.mcp.json#discord",
       "canonical_path": "external_plugins/discord/.mcp.json#discord",
       "paths": [
@@ -1203,6 +1276,7 @@
     {
       "kind": "mcp",
       "name": "fakechat",
+      "category": "",
       "logical_id": "mcp:external_plugins/fakechat/.mcp.json#fakechat",
       "canonical_path": "external_plugins/fakechat/.mcp.json#fakechat",
       "paths": [
@@ -1219,6 +1293,7 @@
     {
       "kind": "mcp",
       "name": "imessage",
+      "category": "",
       "logical_id": "mcp:external_plugins/imessage/.mcp.json#imessage",
       "canonical_path": "external_plugins/imessage/.mcp.json#imessage",
       "paths": [
@@ -1235,6 +1310,7 @@
     {
       "kind": "mcp",
       "name": "telegram",
+      "category": "",
       "logical_id": "mcp:external_plugins/telegram/.mcp.json#telegram",
       "canonical_path": "external_plugins/telegram/.mcp.json#telegram",
       "paths": [
@@ -1251,6 +1327,7 @@
     {
       "kind": "plugin",
       "name": "asana",
+      "category": "asana",
       "logical_id": "plugin:external_plugins/asana/asana",
       "canonical_path": "external_plugins/asana/.claude-plugin/plugin.json",
       "paths": [
@@ -1267,6 +1344,7 @@
     {
       "kind": "plugin",
       "name": "context7",
+      "category": "context7",
       "logical_id": "plugin:external_plugins/context7/context7",
       "canonical_path": "external_plugins/context7/.claude-plugin/plugin.json",
       "paths": [
@@ -1283,6 +1361,7 @@
     {
       "kind": "plugin",
       "name": "discord",
+      "category": "discord",
       "logical_id": "plugin:external_plugins/discord/discord",
       "canonical_path": "external_plugins/discord/.claude-plugin/plugin.json",
       "paths": [
@@ -1299,6 +1378,7 @@
     {
       "kind": "plugin",
       "name": "fakechat",
+      "category": "fakechat",
       "logical_id": "plugin:external_plugins/fakechat/fakechat",
       "canonical_path": "external_plugins/fakechat/.claude-plugin/plugin.json",
       "paths": [
@@ -1315,6 +1395,7 @@
     {
       "kind": "plugin",
       "name": "firebase",
+      "category": "firebase",
       "logical_id": "plugin:external_plugins/firebase/firebase",
       "canonical_path": "external_plugins/firebase/.claude-plugin/plugin.json",
       "paths": [
@@ -1331,6 +1412,7 @@
     {
       "kind": "plugin",
       "name": "github",
+      "category": "github",
       "logical_id": "plugin:external_plugins/github/github",
       "canonical_path": "external_plugins/github/.claude-plugin/plugin.json",
       "paths": [
@@ -1347,6 +1429,7 @@
     {
       "kind": "plugin",
       "name": "gitlab",
+      "category": "gitlab",
       "logical_id": "plugin:external_plugins/gitlab/gitlab",
       "canonical_path": "external_plugins/gitlab/.claude-plugin/plugin.json",
       "paths": [
@@ -1363,6 +1446,7 @@
     {
       "kind": "plugin",
       "name": "greptile",
+      "category": "greptile",
       "logical_id": "plugin:external_plugins/greptile/greptile",
       "canonical_path": "external_plugins/greptile/.claude-plugin/plugin.json",
       "paths": [
@@ -1379,6 +1463,7 @@
     {
       "kind": "plugin",
       "name": "imessage",
+      "category": "imessage",
       "logical_id": "plugin:external_plugins/imessage/imessage",
       "canonical_path": "external_plugins/imessage/.claude-plugin/plugin.json",
       "paths": [
@@ -1395,6 +1480,7 @@
     {
       "kind": "plugin",
       "name": "laravel-boost",
+      "category": "laravel-boost",
       "logical_id": "plugin:external_plugins/laravel-boost/laravel-boost",
       "canonical_path": "external_plugins/laravel-boost/.claude-plugin/plugin.json",
       "paths": [
@@ -1411,6 +1497,7 @@
     {
       "kind": "plugin",
       "name": "linear",
+      "category": "linear",
       "logical_id": "plugin:external_plugins/linear/linear",
       "canonical_path": "external_plugins/linear/.claude-plugin/plugin.json",
       "paths": [
@@ -1427,6 +1514,7 @@
     {
       "kind": "plugin",
       "name": "playwright",
+      "category": "playwright",
       "logical_id": "plugin:external_plugins/playwright/playwright",
       "canonical_path": "external_plugins/playwright/.claude-plugin/plugin.json",
       "paths": [
@@ -1443,6 +1531,7 @@
     {
       "kind": "plugin",
       "name": "serena",
+      "category": "serena",
       "logical_id": "plugin:external_plugins/serena/serena",
       "canonical_path": "external_plugins/serena/.claude-plugin/plugin.json",
       "paths": [
@@ -1459,6 +1548,7 @@
     {
       "kind": "plugin",
       "name": "telegram",
+      "category": "telegram",
       "logical_id": "plugin:external_plugins/telegram/telegram",
       "canonical_path": "external_plugins/telegram/.claude-plugin/plugin.json",
       "paths": [
@@ -1475,6 +1565,7 @@
     {
       "kind": "plugin",
       "name": "terraform",
+      "category": "terraform",
       "logical_id": "plugin:external_plugins/terraform/terraform",
       "canonical_path": "external_plugins/terraform/.claude-plugin/plugin.json",
       "paths": [
@@ -1491,6 +1582,7 @@
     {
       "kind": "plugin",
       "name": "agent-sdk-dev",
+      "category": "agent-sdk-dev",
       "logical_id": "plugin:plugins/agent-sdk-dev/agent-sdk-dev",
       "canonical_path": "plugins/agent-sdk-dev/.claude-plugin/plugin.json",
       "paths": [
@@ -1507,6 +1599,7 @@
     {
       "kind": "plugin",
       "name": "claude-code-setup",
+      "category": "claude-code-setup",
       "logical_id": "plugin:plugins/claude-code-setup/claude-code-setup",
       "canonical_path": "plugins/claude-code-setup/.claude-plugin/plugin.json",
       "paths": [
@@ -1523,6 +1616,7 @@
     {
       "kind": "plugin",
       "name": "claude-md-management",
+      "category": "claude-md-management",
       "logical_id": "plugin:plugins/claude-md-management/claude-md-management",
       "canonical_path": "plugins/claude-md-management/.claude-plugin/plugin.json",
       "paths": [
@@ -1539,6 +1633,7 @@
     {
       "kind": "plugin",
       "name": "code-modernization",
+      "category": "code-modernization",
       "logical_id": "plugin:plugins/code-modernization/code-modernization",
       "canonical_path": "plugins/code-modernization/.claude-plugin/plugin.json",
       "paths": [
@@ -1555,6 +1650,7 @@
     {
       "kind": "plugin",
       "name": "code-review",
+      "category": "code-review",
       "logical_id": "plugin:plugins/code-review/code-review",
       "canonical_path": "plugins/code-review/.claude-plugin/plugin.json",
       "paths": [
@@ -1571,6 +1667,7 @@
     {
       "kind": "plugin",
       "name": "code-simplifier",
+      "category": "code-simplifier",
       "logical_id": "plugin:plugins/code-simplifier/code-simplifier",
       "canonical_path": "plugins/code-simplifier/.claude-plugin/plugin.json",
       "paths": [
@@ -1587,6 +1684,7 @@
     {
       "kind": "plugin",
       "name": "commit-commands",
+      "category": "commit-commands",
       "logical_id": "plugin:plugins/commit-commands/commit-commands",
       "canonical_path": "plugins/commit-commands/.claude-plugin/plugin.json",
       "paths": [
@@ -1603,6 +1701,7 @@
     {
       "kind": "plugin",
       "name": "cwc-makers",
+      "category": "cwc-makers",
       "logical_id": "plugin:plugins/cwc-makers/cwc-makers",
       "canonical_path": "plugins/cwc-makers/.claude-plugin/plugin.json",
       "paths": [
@@ -1619,6 +1718,7 @@
     {
       "kind": "plugin",
       "name": "example-plugin",
+      "category": "example-plugin",
       "logical_id": "plugin:plugins/example-plugin/example-plugin",
       "canonical_path": "plugins/example-plugin/.claude-plugin/plugin.json",
       "paths": [
@@ -1635,6 +1735,7 @@
     {
       "kind": "plugin",
       "name": "explanatory-output-style",
+      "category": "explanatory-output-style",
       "logical_id": "plugin:plugins/explanatory-output-style/explanatory-output-style",
       "canonical_path": "plugins/explanatory-output-style/.claude-plugin/plugin.json",
       "paths": [
@@ -1651,6 +1752,7 @@
     {
       "kind": "plugin",
       "name": "feature-dev",
+      "category": "feature-dev",
       "logical_id": "plugin:plugins/feature-dev/feature-dev",
       "canonical_path": "plugins/feature-dev/.claude-plugin/plugin.json",
       "paths": [
@@ -1667,6 +1769,7 @@
     {
       "kind": "plugin",
       "name": "frontend-design",
+      "category": "frontend-design",
       "logical_id": "plugin:plugins/frontend-design/frontend-design",
       "canonical_path": "plugins/frontend-design/.claude-plugin/plugin.json",
       "paths": [
@@ -1683,6 +1786,7 @@
     {
       "kind": "plugin",
       "name": "hookify",
+      "category": "hookify",
       "logical_id": "plugin:plugins/hookify/hookify",
       "canonical_path": "plugins/hookify/.claude-plugin/plugin.json",
       "paths": [
@@ -1699,6 +1803,7 @@
     {
       "kind": "plugin",
       "name": "learning-output-style",
+      "category": "learning-output-style",
       "logical_id": "plugin:plugins/learning-output-style/learning-output-style",
       "canonical_path": "plugins/learning-output-style/.claude-plugin/plugin.json",
       "paths": [
@@ -1715,6 +1820,7 @@
     {
       "kind": "plugin",
       "name": "math-olympiad",
+      "category": "math-olympiad",
       "logical_id": "plugin:plugins/math-olympiad/math-olympiad",
       "canonical_path": "plugins/math-olympiad/.claude-plugin/plugin.json",
       "paths": [
@@ -1731,6 +1837,7 @@
     {
       "kind": "plugin",
       "name": "mcp-server-dev",
+      "category": "mcp-server-dev",
       "logical_id": "plugin:plugins/mcp-server-dev/mcp-server-dev",
       "canonical_path": "plugins/mcp-server-dev/.claude-plugin/plugin.json",
       "paths": [
@@ -1747,6 +1854,7 @@
     {
       "kind": "plugin",
       "name": "mcp-tunnels",
+      "category": "mcp-tunnels",
       "logical_id": "plugin:plugins/mcp-tunnels/mcp-tunnels",
       "canonical_path": "plugins/mcp-tunnels/.claude-plugin/plugin.json",
       "paths": [
@@ -1763,6 +1871,7 @@
     {
       "kind": "plugin",
       "name": "playground",
+      "category": "playground",
       "logical_id": "plugin:plugins/playground/playground",
       "canonical_path": "plugins/playground/.claude-plugin/plugin.json",
       "paths": [
@@ -1779,6 +1888,7 @@
     {
       "kind": "plugin",
       "name": "plugin-dev",
+      "category": "plugin-dev",
       "logical_id": "plugin:plugins/plugin-dev/plugin-dev",
       "canonical_path": "plugins/plugin-dev/.claude-plugin/plugin.json",
       "paths": [
@@ -1795,6 +1905,7 @@
     {
       "kind": "plugin",
       "name": "pr-review-toolkit",
+      "category": "pr-review-toolkit",
       "logical_id": "plugin:plugins/pr-review-toolkit/pr-review-toolkit",
       "canonical_path": "plugins/pr-review-toolkit/.claude-plugin/plugin.json",
       "paths": [
@@ -1811,6 +1922,7 @@
     {
       "kind": "plugin",
       "name": "project-artifact",
+      "category": "project-artifact",
       "logical_id": "plugin:plugins/project-artifact/project-artifact",
       "canonical_path": "plugins/project-artifact/.claude-plugin/plugin.json",
       "paths": [
@@ -1827,6 +1939,7 @@
     {
       "kind": "plugin",
       "name": "ralph-loop",
+      "category": "ralph-loop",
       "logical_id": "plugin:plugins/ralph-loop/ralph-loop",
       "canonical_path": "plugins/ralph-loop/.claude-plugin/plugin.json",
       "paths": [
@@ -1843,6 +1956,7 @@
     {
       "kind": "plugin",
       "name": "security-guidance",
+      "category": "security-guidance",
       "logical_id": "plugin:plugins/security-guidance/security-guidance",
       "canonical_path": "plugins/security-guidance/.claude-plugin/plugin.json",
       "paths": [
@@ -1859,6 +1973,7 @@
     {
       "kind": "plugin",
       "name": "skill-creator",
+      "category": "skill-creator",
       "logical_id": "plugin:plugins/skill-creator/skill-creator",
       "canonical_path": "plugins/skill-creator/.claude-plugin/plugin.json",
       "paths": [
@@ -1875,6 +1990,7 @@
     {
       "kind": "skill",
       "name": "access",
+      "category": "skills",
       "logical_id": "skill:external_plugins/discord/skills/access",
       "canonical_path": "external_plugins/discord/skills/access/SKILL.md",
       "paths": [
@@ -1891,6 +2007,7 @@
     {
       "kind": "skill",
       "name": "configure",
+      "category": "skills",
       "logical_id": "skill:external_plugins/discord/skills/configure",
       "canonical_path": "external_plugins/discord/skills/configure/SKILL.md",
       "paths": [
@@ -1907,6 +2024,7 @@
     {
       "kind": "skill",
       "name": "access",
+      "category": "skills",
       "logical_id": "skill:external_plugins/imessage/skills/access",
       "canonical_path": "external_plugins/imessage/skills/access/SKILL.md",
       "paths": [
@@ -1923,6 +2041,7 @@
     {
       "kind": "skill",
       "name": "configure",
+      "category": "skills",
       "logical_id": "skill:external_plugins/imessage/skills/configure",
       "canonical_path": "external_plugins/imessage/skills/configure/SKILL.md",
       "paths": [
@@ -1939,6 +2058,7 @@
     {
       "kind": "skill",
       "name": "access",
+      "category": "skills",
       "logical_id": "skill:external_plugins/telegram/skills/access",
       "canonical_path": "external_plugins/telegram/skills/access/SKILL.md",
       "paths": [
@@ -1955,6 +2075,7 @@
     {
       "kind": "skill",
       "name": "configure",
+      "category": "skills",
       "logical_id": "skill:external_plugins/telegram/skills/configure",
       "canonical_path": "external_plugins/telegram/skills/configure/SKILL.md",
       "paths": [
@@ -1971,6 +2092,7 @@
     {
       "kind": "skill",
       "name": "claude-automation-recommender",
+      "category": "skills",
       "logical_id": "skill:plugins/claude-code-setup/skills/claude-automation-recommender",
       "canonical_path": "plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md",
       "paths": [
@@ -1987,6 +2109,7 @@
     {
       "kind": "skill",
       "name": "claude-md-improver",
+      "category": "skills",
       "logical_id": "skill:plugins/claude-md-management/skills/claude-md-improver",
       "canonical_path": "plugins/claude-md-management/skills/claude-md-improver/SKILL.md",
       "paths": [
@@ -2003,6 +2126,7 @@
     {
       "kind": "skill",
       "name": "cardputer-buddy",
+      "category": "skills",
       "logical_id": "skill:plugins/cwc-makers/skills/cardputer-buddy",
       "canonical_path": "plugins/cwc-makers/skills/cardputer-buddy/SKILL.md",
       "paths": [
@@ -2019,6 +2143,7 @@
     {
       "kind": "skill",
       "name": "m5-onboard",
+      "category": "skills",
       "logical_id": "skill:plugins/cwc-makers/skills/m5-onboard",
       "canonical_path": "plugins/cwc-makers/skills/m5-onboard/SKILL.md",
       "paths": [
@@ -2035,6 +2160,7 @@
     {
       "kind": "skill",
       "name": "example-command",
+      "category": "skills",
       "logical_id": "skill:plugins/example-plugin/skills/example-command",
       "canonical_path": "plugins/example-plugin/skills/example-command/SKILL.md",
       "paths": [
@@ -2051,6 +2177,7 @@
     {
       "kind": "skill",
       "name": "example-skill",
+      "category": "skills",
       "logical_id": "skill:plugins/example-plugin/skills/example-skill",
       "canonical_path": "plugins/example-plugin/skills/example-skill/SKILL.md",
       "paths": [
@@ -2067,6 +2194,7 @@
     {
       "kind": "skill",
       "name": "frontend-design",
+      "category": "skills",
       "logical_id": "skill:plugins/frontend-design/skills/frontend-design",
       "canonical_path": "plugins/frontend-design/skills/frontend-design/SKILL.md",
       "paths": [
@@ -2083,6 +2211,7 @@
     {
       "kind": "skill",
       "name": "writing-hookify-rules",
+      "category": "skills",
       "logical_id": "skill:plugins/hookify/skills/writing-rules",
       "canonical_path": "plugins/hookify/skills/writing-rules/SKILL.md",
       "paths": [
@@ -2099,6 +2228,7 @@
     {
       "kind": "skill",
       "name": "math-olympiad",
+      "category": "skills",
       "logical_id": "skill:plugins/math-olympiad/skills/math-olympiad",
       "canonical_path": "plugins/math-olympiad/skills/math-olympiad/SKILL.md",
       "paths": [
@@ -2115,6 +2245,7 @@
     {
       "kind": "skill",
       "name": "build-mcp-app",
+      "category": "skills",
       "logical_id": "skill:plugins/mcp-server-dev/skills/build-mcp-app",
       "canonical_path": "plugins/mcp-server-dev/skills/build-mcp-app/SKILL.md",
       "paths": [
@@ -2131,6 +2262,7 @@
     {
       "kind": "skill",
       "name": "build-mcp-server",
+      "category": "skills",
       "logical_id": "skill:plugins/mcp-server-dev/skills/build-mcp-server",
       "canonical_path": "plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
       "paths": [
@@ -2147,6 +2279,7 @@
     {
       "kind": "skill",
       "name": "build-mcpb",
+      "category": "skills",
       "logical_id": "skill:plugins/mcp-server-dev/skills/build-mcpb",
       "canonical_path": "plugins/mcp-server-dev/skills/build-mcpb/SKILL.md",
       "paths": [
@@ -2163,6 +2296,7 @@
     {
       "kind": "skill",
       "name": "playground",
+      "category": "skills",
       "logical_id": "skill:plugins/playground/skills/playground",
       "canonical_path": "plugins/playground/skills/playground/SKILL.md",
       "paths": [
@@ -2179,6 +2313,7 @@
     {
       "kind": "skill",
       "name": "agent-development",
+      "category": "skills",
       "logical_id": "skill:plugins/plugin-dev/skills/agent-development",
       "canonical_path": "plugins/plugin-dev/skills/agent-development/SKILL.md",
       "paths": [
@@ -2195,6 +2330,7 @@
     {
       "kind": "skill",
       "name": "command-development",
+      "category": "skills",
       "logical_id": "skill:plugins/plugin-dev/skills/command-development",
       "canonical_path": "plugins/plugin-dev/skills/command-development/SKILL.md",
       "paths": [
@@ -2211,6 +2347,7 @@
     {
       "kind": "skill",
       "name": "hook-development",
+      "category": "skills",
       "logical_id": "skill:plugins/plugin-dev/skills/hook-development",
       "canonical_path": "plugins/plugin-dev/skills/hook-development/SKILL.md",
       "paths": [
@@ -2227,6 +2364,7 @@
     {
       "kind": "skill",
       "name": "mcp-integration",
+      "category": "skills",
       "logical_id": "skill:plugins/plugin-dev/skills/mcp-integration",
       "canonical_path": "plugins/plugin-dev/skills/mcp-integration/SKILL.md",
       "paths": [
@@ -2243,6 +2381,7 @@
     {
       "kind": "skill",
       "name": "plugin-settings",
+      "category": "skills",
       "logical_id": "skill:plugins/plugin-dev/skills/plugin-settings",
       "canonical_path": "plugins/plugin-dev/skills/plugin-settings/SKILL.md",
       "paths": [
@@ -2259,6 +2398,7 @@
     {
       "kind": "skill",
       "name": "plugin-structure",
+      "category": "skills",
       "logical_id": "skill:plugins/plugin-dev/skills/plugin-structure",
       "canonical_path": "plugins/plugin-dev/skills/plugin-structure/SKILL.md",
       "paths": [
@@ -2275,6 +2415,7 @@
     {
       "kind": "skill",
       "name": "skill-development",
+      "category": "skills",
       "logical_id": "skill:plugins/plugin-dev/skills/skill-development",
       "canonical_path": "plugins/plugin-dev/skills/skill-development/SKILL.md",
       "paths": [
@@ -2291,6 +2432,7 @@
     {
       "kind": "skill",
       "name": "project-artifact",
+      "category": "skills",
       "logical_id": "skill:plugins/project-artifact/skills/project-artifact",
       "canonical_path": "plugins/project-artifact/skills/project-artifact/SKILL.md",
       "paths": [
@@ -2307,6 +2449,7 @@
     {
       "kind": "skill",
       "name": "session-report",
+      "category": "skills",
       "logical_id": "skill:plugins/session-report/skills/session-report",
       "canonical_path": "plugins/session-report/skills/session-report/SKILL.md",
       "paths": [
@@ -2323,6 +2466,7 @@
     {
       "kind": "skill",
       "name": "skill-creator",
+      "category": "skills",
       "logical_id": "skill:plugins/skill-creator/skills/skill-creator",
       "canonical_path": "plugins/skill-creator/skills/skill-creator/SKILL.md",
       "paths": [

@@ -27,6 +27,7 @@
     {
       "kind": "agent",
       "name": "code-reviewer",
+      "category": "agents",
       "logical_id": "agent:agents/code-reviewer",
       "canonical_path": "agents/code-reviewer.md",
       "paths": [
@@ -43,6 +44,7 @@
     {
       "kind": "command",
       "name": "brainstorm",
+      "category": "commands",
       "logical_id": "command:commands/brainstorm",
       "canonical_path": "commands/brainstorm.md",
       "paths": [
@@ -59,6 +61,7 @@
     {
       "kind": "command",
       "name": "execute-plan",
+      "category": "commands",
       "logical_id": "command:commands/execute-plan",
       "canonical_path": "commands/execute-plan.md",
       "paths": [
@@ -75,6 +78,7 @@
     {
       "kind": "command",
       "name": "write-plan",
+      "category": "commands",
       "logical_id": "command:commands/write-plan",
       "canonical_path": "commands/write-plan.md",
       "paths": [
@@ -91,6 +95,7 @@
     {
       "kind": "plugin",
       "name": "superpowers",
+      "category": "",
       "logical_id": "plugin:superpowers",
       "canonical_path": ".claude-plugin/plugin.json",
       "paths": [
@@ -107,6 +112,7 @@
     {
       "kind": "skill",
       "name": "brainstorming",
+      "category": "skills",
       "logical_id": "skill:skills/brainstorming",
       "canonical_path": "skills/brainstorming/SKILL.md",
       "paths": [
@@ -123,6 +129,7 @@
     {
       "kind": "skill",
       "name": "dispatching-parallel-agents",
+      "category": "skills",
       "logical_id": "skill:skills/dispatching-parallel-agents",
       "canonical_path": "skills/dispatching-parallel-agents/SKILL.md",
       "paths": [
@@ -139,6 +146,7 @@
     {
       "kind": "skill",
       "name": "executing-plans",
+      "category": "skills",
       "logical_id": "skill:skills/executing-plans",
       "canonical_path": "skills/executing-plans/SKILL.md",
       "paths": [
@@ -155,6 +163,7 @@
     {
       "kind": "skill",
       "name": "finishing-a-development-branch",
+      "category": "skills",
       "logical_id": "skill:skills/finishing-a-development-branch",
       "canonical_path": "skills/finishing-a-development-branch/SKILL.md",
       "paths": [
@@ -171,6 +180,7 @@
     {
       "kind": "skill",
       "name": "receiving-code-review",
+      "category": "skills",
       "logical_id": "skill:skills/receiving-code-review",
       "canonical_path": "skills/receiving-code-review/SKILL.md",
       "paths": [
@@ -187,6 +197,7 @@
     {
       "kind": "skill",
       "name": "requesting-code-review",
+      "category": "skills",
       "logical_id": "skill:skills/requesting-code-review",
       "canonical_path": "skills/requesting-code-review/SKILL.md",
       "paths": [
@@ -203,6 +214,7 @@
     {
       "kind": "skill",
       "name": "subagent-driven-development",
+      "category": "skills",
       "logical_id": "skill:skills/subagent-driven-development",
       "canonical_path": "skills/subagent-driven-development/SKILL.md",
       "paths": [
@@ -219,6 +231,7 @@
     {
       "kind": "skill",
       "name": "systematic-debugging",
+      "category": "skills",
       "logical_id": "skill:skills/systematic-debugging",
       "canonical_path": "skills/systematic-debugging/SKILL.md",
       "paths": [
@@ -235,6 +248,7 @@
     {
       "kind": "skill",
       "name": "test-driven-development",
+      "category": "skills",
       "logical_id": "skill:skills/test-driven-development",
       "canonical_path": "skills/test-driven-development/SKILL.md",
       "paths": [
@@ -251,6 +265,7 @@
     {
       "kind": "skill",
       "name": "using-git-worktrees",
+      "category": "skills",
       "logical_id": "skill:skills/using-git-worktrees",
       "canonical_path": "skills/using-git-worktrees/SKILL.md",
       "paths": [
@@ -267,6 +282,7 @@
     {
       "kind": "skill",
       "name": "using-superpowers",
+      "category": "skills",
       "logical_id": "skill:skills/using-superpowers",
       "canonical_path": "skills/using-superpowers/SKILL.md",
       "paths": [
@@ -283,6 +299,7 @@
     {
       "kind": "skill",
       "name": "verification-before-completion",
+      "category": "skills",
       "logical_id": "skill:skills/verification-before-completion",
       "canonical_path": "skills/verification-before-completion/SKILL.md",
       "paths": [
@@ -299,6 +316,7 @@
     {
       "kind": "skill",
       "name": "writing-plans",
+      "category": "skills",
       "logical_id": "skill:skills/writing-plans",
       "canonical_path": "skills/writing-plans/SKILL.md",
       "paths": [
@@ -315,6 +333,7 @@
     {
       "kind": "skill",
       "name": "writing-skills",
+      "category": "skills",
       "logical_id": "skill:skills/writing-skills",
       "canonical_path": "skills/writing-skills/SKILL.md",
       "paths": [

@@ -79,6 +79,7 @@ class Capability:
 
     kind: Kind
     name: str
+    category: str
     logical_id: str
     canonical_path: str
     paths: tuple[str, ...]
@@ -92,6 +93,7 @@ class Capability:
         return {
             "kind": self.kind.value,
             "name": self.name,
+            "category": self.category,
             "logical_id": self.logical_id,
             "canonical_path": self.canonical_path,
             "paths": list(self.paths),
@@ -107,6 +109,7 @@ class Capability:
         return Capability(
             kind=Kind(data["kind"]),
             name=str(data["name"]),
+            category=str(data.get("category", "")),
             logical_id=str(data["logical_id"]),
             canonical_path=str(data["canonical_path"]),
             paths=tuple(str(p) for p in data.get("paths", [])),
@@ -174,6 +177,7 @@ class _Entry:
     description: str
     line_count: int
     rank: int
+    category: str = ""
 
 
 # --- Text helpers -------------------------------------------------------------
@@ -266,6 +270,25 @@ def canonical_name(kind: Kind, parts: tuple[str, ...]) -> str:
     if kind is Kind.PLUGIN:
         return parts[-2] if len(parts) >= 2 else parts[-1]
     return parts[-1]
+
+
+def category(kind: Kind, parts: tuple[str, ...]) -> str:
+    """The grouping directory a capability falls under — its own folder's
+    immediate parent. A grouped skill (skills/productivity/foo/SKILL.md) yields
+    its group ('productivity'); a flat one (skills/foo/SKILL.md) yields the
+    generic anchor ('skills'). Single-file kinds report their parent dir;
+    plugins report their containing namespace.
+    """
+    if kind is Kind.PLUGIN:
+        if ".claude-plugin" in parts:
+            idx = parts.index(".claude-plugin")
+            return parts[idx - 1] if idx >= 1 else ""
+        return parts[-2] if len(parts) >= 2 else ""
+    if kind is Kind.SKILL:
+        if len(parts) >= 3:
+            return parts[-3]
+        return parts[-2] if len(parts) >= 2 else ""
+    return parts[-2] if len(parts) >= 2 else ""
 
 
 def _last_index(parts: tuple[str, ...], value: str) -> int:
@@ -446,6 +469,7 @@ def _entry_for(path: Path, root: Path, kind: Kind) -> _Entry:
         description=fm.get("description", ""),
         line_count=normalized.count("\n"),
         rank=root_rank(kind, parts),
+        category=category(kind, parts),
     )
 
 
@@ -473,6 +497,7 @@ def scan_repo(root: Path, repo: str, source: str, source_commit: str | None) -> 
         capabilities.append(Capability(
             kind=canonical.kind,
             name=canonical.name,
+            category=canonical.category,
             logical_id=logical_id,
             canonical_path=canonical.relpath,
             paths=tuple(sorted(e.relpath for e in group)),
