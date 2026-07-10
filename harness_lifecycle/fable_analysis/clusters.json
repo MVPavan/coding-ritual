@@ -1,0 +1,2157 @@
+{
+  "clusters": [
+    {
+      "cluster_id": "C01",
+      "title": "Code review lenses & change quality",
+      "count": 29,
+      "kinds": {
+        "agent": 15,
+        "command": 5,
+        "plugin": 3,
+        "rule": 2,
+        "skill": 4
+      },
+      "verdicts": {
+        "adopt": 1,
+        "merge": 17,
+        "rewrite": 1,
+        "reject_after_review": 7,
+        "defer": 3
+      },
+      "avg_score": 3.74,
+      "best_source_ids": [
+        "agent:codereviewer",
+        "agent:performancereviewer",
+        "agent:apicontractreviewer"
+      ],
+      "raw_keys": [
+        "adversarial-code-review",
+        "adversarial-review",
+        "api-contract-review",
+        "code-pattern-consistency",
+        "code-review-core",
+        "comment-accuracy-review",
+        "maintainability-code-review",
+        "performance-code-review",
+        "python-code-review",
+        "python-review",
+        "reliability-code-review",
+        "security-code-review",
+        "silent-failure-review",
+        "type-invariant-review"
+      ],
+      "source_ids": [
+        "agent:adversarialreviewer",
+        "agent:apicontractreviewer",
+        "agent:codereviewer",
+        "agent:commentanalyzer",
+        "agent:correctnessreviewer",
+        "agent:kieranpythonreviewer",
+        "agent:maintainabilityreviewer",
+        "agent:patternrecognitionspecialist",
+        "agent:performanceoracle",
+        "agent:performancereviewer",
+        "agent:pythonreviewer",
+        "agent:reliabilityreviewer",
+        "agent:securityreviewer",
+        "agent:silentfailurehunter",
+        "agent:typedesignanalyzer",
+        "command:codereview",
+        "command:codexreview",
+        "command:pythonreview",
+        "command:reviewpr",
+        "command:santaloop",
+        "plugin:codereview",
+        "plugin:greptile",
+        "plugin:prreviewtoolkit",
+        "rule:commoncodereview",
+        "rule:zhcodereview",
+        "skill:cereview",
+        "skill:requestingcodereview",
+        "skill:review",
+        "skill:santamethod"
+      ]
+    },
+    {
+      "cluster_id": "C02",
+      "title": "PR feedback resolution & triage",
+      "count": 5,
+      "kinds": {
+        "agent": 2,
+        "skill": 2,
+        "command": 1
+      },
+      "verdicts": {
+        "defer": 3,
+        "merge": 1,
+        "rewrite": 1
+      },
+      "avg_score": 3.93,
+      "best_source_ids": [
+        "agent:prcommentresolver",
+        "agent:previouscommentsreviewer",
+        "skill:receivingcodereview"
+      ],
+      "raw_keys": [
+        "pr-feedback-lifecycle",
+        "pr-triage",
+        "review-feedback-resolution"
+      ],
+      "source_ids": [
+        "agent:prcommentresolver",
+        "agent:previouscommentsreviewer",
+        "command:triageprs",
+        "skill:receivingcodereview",
+        "skill:resolveprfeedback"
+      ]
+    },
+    {
+      "cluster_id": "C03",
+      "title": "Code simplification & cleanup",
+      "count": 5,
+      "kinds": {
+        "agent": 3,
+        "command": 1,
+        "plugin": 1
+      },
+      "verdicts": {
+        "rewrite": 2,
+        "reject_after_review": 3
+      },
+      "avg_score": 2.97,
+      "best_source_ids": [
+        "agent:codesimplicityreviewer",
+        "command:refactorclean",
+        "plugin:codesimplifier"
+      ],
+      "raw_keys": [
+        "code-simplicity",
+        "code-simplification",
+        "dead-code-cleanup"
+      ],
+      "source_ids": [
+        "agent:codesimplicityreviewer",
+        "agent:codesimplifier",
+        "agent:refactorcleaner",
+        "command:refactorclean",
+        "plugin:codesimplifier"
+      ]
+    },
+    {
+      "cluster_id": "C04",
+      "title": "Planning, requirements & product discovery",
+      "count": 24,
+      "kinds": {
+        "agent": 6,
+        "command": 7,
+        "skill": 11
+      },
+      "verdicts": {
+        "merge": 10,
+        "adopt": 3,
+        "reject_after_review": 10,
+        "defer": 1
+      },
+      "avg_score": 3.47,
+      "best_source_ids": [
+        "skill:brainstorming",
+        "skill:planning",
+        "agent:codearchitect"
+      ],
+      "raw_keys": [
+        "feature-viability",
+        "implementation-planning",
+        "product-document-review",
+        "product-requirements-planning",
+        "product-validation",
+        "project-ideation",
+        "refactor-planning",
+        "requirements-brainstorming",
+        "requirements-capture",
+        "requirements-discovery",
+        "requirements-engineering"
+      ],
+      "source_ids": [
+        "agent:codearchitect",
+        "agent:ganplanner",
+        "agent:planner",
+        "agent:productlensreviewer",
+        "agent:productmanager",
+        "agent:requirementparser",
+        "command:brainstorm",
+        "command:plan",
+        "command:prpplan",
+        "command:prpprd",
+        "command:rpiplan",
+        "command:rpiresearch",
+        "command:writeplan",
+        "skill:blueprint",
+        "skill:brainstorming",
+        "skill:cebrainstorm",
+        "skill:ceideate",
+        "skill:ceplan",
+        "skill:planning",
+        "skill:productcapability",
+        "skill:productlens",
+        "skill:requestrefactorplan",
+        "skill:toprd",
+        "skill:writingplans"
+      ]
+    },
+    {
+      "cluster_id": "C05",
+      "title": "Plan / spec / design document review",
+      "count": 17,
+      "kinds": {
+        "skill": 7,
+        "agent": 9,
+        "command": 1
+      },
+      "verdicts": {
+        "reject_after_review": 4,
+        "merge": 8,
+        "defer": 1,
+        "adopt": 3,
+        "rewrite": 1
+      },
+      "avg_score": 4.05,
+      "best_source_ids": [
+        "agent:specreviewer",
+        "agent:feasibilityreviewer",
+        "agent:projectstandardsreviewer"
+      ],
+      "raw_keys": [
+        "adversarial-design-review",
+        "adversarial-document-review",
+        "design-critique",
+        "design-doc-evolution",
+        "design-interrogation",
+        "document-coherence-review",
+        "document-review",
+        "multi-perspective-decision",
+        "plan-feasibility-review",
+        "plan-scope-review",
+        "principle-compliance-review",
+        "project-standards-review",
+        "spec-compliance-review",
+        "spec-flow-review",
+        "ux-spec-review",
+        "workflow-specification"
+      ],
+      "source_ids": [
+        "agent:adversarialdocumentreviewer",
+        "agent:coherencereviewer",
+        "agent:constitutionalvalidator",
+        "agent:designlensreviewer",
+        "agent:feasibilityreviewer",
+        "agent:projectstandardsreviewer",
+        "agent:scopeguardianreviewer",
+        "agent:specflowanalyzer",
+        "agent:specreviewer",
+        "command:codexcritique",
+        "skill:council",
+        "skill:designevolve",
+        "skill:documentreview",
+        "skill:grilling",
+        "skill:grillme",
+        "skill:grillwithdocs",
+        "skill:loopme"
+      ]
+    },
+    {
+      "cluster_id": "C06",
+      "title": "Implementation execution workflows",
+      "count": 13,
+      "kinds": {
+        "agent": 2,
+        "command": 5,
+        "skill": 3,
+        "plugin": 1,
+        "rule": 2
+      },
+      "verdicts": {
+        "adopt": 1,
+        "reject_after_review": 8,
+        "merge": 4
+      },
+      "avg_score": 3.38,
+      "best_source_ids": [
+        "agent:implementer",
+        "command:codeximplement",
+        "skill:executingplans"
+      ],
+      "raw_keys": [
+        "bounded-implementation",
+        "delegated-implementation",
+        "dev-workflow-pipeline",
+        "development-workflow-core",
+        "feature-dev-workflow",
+        "feature-development-workflow",
+        "implementation-execution",
+        "implementation-workflow",
+        "plan-execution",
+        "plan-execution-compat"
+      ],
+      "source_ids": [
+        "agent:implementer",
+        "agent:seniorsoftwareengineer",
+        "command:codeximplement",
+        "command:executeplan",
+        "command:featuredev",
+        "command:featuredevelopment",
+        "command:prpimplement",
+        "plugin:featuredev",
+        "rule:commondevelopmentworkflow",
+        "rule:zhdevelopmentworkflow",
+        "skill:cework",
+        "skill:executingplans",
+        "skill:implement"
+      ]
+    },
+    {
+      "cluster_id": "C07",
+      "title": "Workstreams, tasks & issue tracking",
+      "count": 22,
+      "kinds": {
+        "skill": 13,
+        "command": 5,
+        "agent": 1,
+        "hook": 1,
+        "plugin": 2
+      },
+      "verdicts": {
+        "adopt": 7,
+        "reject_after_review": 10,
+        "defer": 3,
+        "rewrite": 1,
+        "merge": 1
+      },
+      "avg_score": 3.74,
+      "best_source_ids": [
+        "skill:runphases",
+        "skill:beads",
+        "command:runphases"
+      ],
+      "raw_keys": [
+        "beads-context-priming",
+        "beads-phase-execution",
+        "durable-task-tracking",
+        "external-pm-integration",
+        "external-ticketing-integration",
+        "issue-filing",
+        "issue-landscape-analysis",
+        "issue-tracker-integration",
+        "issue-tracking-integration",
+        "issue-triage",
+        "phased-execution",
+        "phased-workstream-execution",
+        "workflow-checkpointing",
+        "workstream-bootstrap",
+        "workstream-decomposition",
+        "workstream-planning",
+        "workstream-seeding"
+      ],
+      "source_ids": [
+        "agent:issueintelligenceanalyst",
+        "command:checkpoint",
+        "command:jira",
+        "command:preparephases",
+        "command:rpiimplement",
+        "command:runphases",
+        "hook:bdprimesh",
+        "plugin:asana",
+        "plugin:linear",
+        "skill:beads",
+        "skill:decisionmapping",
+        "skill:jiraintegration",
+        "skill:phaseexecution",
+        "skill:preparephases",
+        "skill:projectflowops",
+        "skill:qa",
+        "skill:runphases",
+        "skill:todocreate",
+        "skill:todoresolve",
+        "skill:todotriage",
+        "skill:toissues",
+        "skill:triage"
+      ]
+    },
+    {
+      "cluster_id": "C08",
+      "title": "Debugging & root-cause analysis",
+      "count": 9,
+      "kinds": {
+        "agent": 2,
+        "command": 2,
+        "skill": 5
+      },
+      "verdicts": {
+        "merge": 6,
+        "reject_after_review": 1,
+        "adopt": 1,
+        "defer": 1
+      },
+      "avg_score": 3.7,
+      "best_source_ids": [
+        "skill:systematicdebugging",
+        "command:codexdiagnose",
+        "skill:agentintrospectiondebugging"
+      ],
+      "raw_keys": [
+        "pytorch-runtime-debugging",
+        "state-transition-debugging",
+        "systematic-debugging"
+      ],
+      "source_ids": [
+        "agent:bugreproductionvalidator",
+        "agent:pytorchbuildresolver",
+        "command:buildfix",
+        "command:codexdiagnose",
+        "skill:agentintrospectiondebugging",
+        "skill:clickpathaudit",
+        "skill:diagnosingbugs",
+        "skill:reproducebug",
+        "skill:systematicdebugging"
+      ]
+    },
+    {
+      "cluster_id": "C09",
+      "title": "Testing, TDD & regression",
+      "count": 16,
+      "kinds": {
+        "command": 2,
+        "skill": 6,
+        "agent": 5,
+        "rule": 3
+      },
+      "verdicts": {
+        "reject_after_review": 9,
+        "merge": 5,
+        "adopt": 1,
+        "rewrite": 1
+      },
+      "avg_score": 3.3,
+      "best_source_ids": [
+        "skill:testdrivendevelopment",
+        "agent:testengineer",
+        "agent:testingreviewer"
+      ],
+      "raw_keys": [
+        "performance-benchmarking",
+        "performance-profiling",
+        "python-testing",
+        "regression-testing",
+        "tdd-core",
+        "test-coverage-analysis",
+        "test-coverage-review",
+        "test-driven-development",
+        "test-first-development",
+        "test-quality-review",
+        "testing-core",
+        "testing-standards"
+      ],
+      "source_ids": [
+        "agent:performanceoptimizer",
+        "agent:prtestanalyzer",
+        "agent:tddguide",
+        "agent:testengineer",
+        "agent:testingreviewer",
+        "command:tdd",
+        "command:testcoverage",
+        "rule:commontesting",
+        "rule:pythontesting",
+        "rule:zhtesting",
+        "skill:airegressiontesting",
+        "skill:benchmark",
+        "skill:pythontesting",
+        "skill:tdd",
+        "skill:tddworkflow",
+        "skill:testdrivendevelopment"
+      ]
+    },
+    {
+      "cluster_id": "C10",
+      "title": "Verification before completion",
+      "count": 7,
+      "kinds": {
+        "skill": 4,
+        "command": 2,
+        "hook": 1
+      },
+      "verdicts": {
+        "adopt": 3,
+        "reject_after_review": 3,
+        "merge": 1
+      },
+      "avg_score": 4.05,
+      "best_source_ids": [
+        "skill:verificationbeforecompletion",
+        "command:checkinvariants",
+        "skill:checkinvariants"
+      ],
+      "raw_keys": [
+        "completion-gate",
+        "completion-verification",
+        "evidence-first-terminal-ops",
+        "invariant-checking",
+        "repository-invariant-checking",
+        "verification-before-completion"
+      ],
+      "source_ids": [
+        "command:checkinvariants",
+        "command:verify",
+        "hook:stoppy",
+        "skill:checkinvariants",
+        "skill:terminalops",
+        "skill:verificationbeforecompletion",
+        "skill:verificationloop"
+      ]
+    },
+    {
+      "cluster_id": "C11",
+      "title": "Browser automation & E2E QA",
+      "count": 9,
+      "kinds": {
+        "agent": 1,
+        "command": 1,
+        "skill": 5,
+        "mcp": 1,
+        "plugin": 1
+      },
+      "verdicts": {
+        "reject_after_review": 4,
+        "adopt": 1,
+        "defer": 3,
+        "rewrite": 1
+      },
+      "avg_score": 3.63,
+      "best_source_ids": [
+        "skill:agentbrowser",
+        "skill:browserqa",
+        "mcp:playwright"
+      ],
+      "raw_keys": [
+        "browser-automation",
+        "browser-demo-recording",
+        "browser-e2e-testing",
+        "browser-qa",
+        "browser-testing"
+      ],
+      "source_ids": [
+        "agent:e2erunner",
+        "command:e2e",
+        "mcp:playwright",
+        "plugin:playwright",
+        "skill:agentbrowser",
+        "skill:browserqa",
+        "skill:e2etesting",
+        "skill:testbrowser",
+        "skill:uidemo"
+      ]
+    },
+    {
+      "cluster_id": "C12",
+      "title": "Security review & baselines",
+      "count": 26,
+      "kinds": {
+        "hook": 11,
+        "command": 2,
+        "plugin": 1,
+        "skill": 3,
+        "rule": 6,
+        "agent": 3
+      },
+      "verdicts": {
+        "merge": 9,
+        "reject_after_review": 7,
+        "rewrite": 2,
+        "defer": 6,
+        "adopt": 2
+      },
+      "avg_score": 3.36,
+      "best_source_ids": [
+        "rule:pythonsafety",
+        "agent:securitylensreviewer",
+        "agent:securityauditor"
+      ],
+      "raw_keys": [
+        "agentic-security-review",
+        "application-security-baseline",
+        "application-security-review",
+        "automated-security-review",
+        "governance-security-audit",
+        "harness-security-audit",
+        "llm-security-review",
+        "prompt-defense",
+        "security-audit",
+        "security-baseline",
+        "security-hardening",
+        "security-plan-review",
+        "security-review",
+        "security-review-core",
+        "security-review-state"
+      ],
+      "source_ids": [
+        "agent:securityauditor",
+        "agent:securitylensreviewer",
+        "agent:securitysentinel",
+        "command:modernizeharden",
+        "command:security",
+        "hook:basepy",
+        "hook:diffstatepy",
+        "hook:ensureagentsdkpy",
+        "hook:extensibilitypy",
+        "hook:gitutilpy",
+        "hook:governancecapturejs",
+        "hook:llmpy",
+        "hook:patternspy",
+        "hook:reviewapipy",
+        "hook:securityreminderhookpy",
+        "hook:sessionstatepy",
+        "plugin:securityguidance",
+        "rule:commonsecurity",
+        "rule:everythingclaudecodeguardrails",
+        "rule:pythonsafety",
+        "rule:pythonsecurity",
+        "rule:websecurity",
+        "rule:zhsecurity",
+        "skill:securitybountyhunter",
+        "skill:securityreview",
+        "skill:securityscan"
+      ]
+    },
+    {
+      "cluster_id": "C13",
+      "title": "Safety guardrails (destructive actions & data)",
+      "count": 11,
+      "kinds": {
+        "hook": 10,
+        "skill": 1
+      },
+      "verdicts": {
+        "rewrite": 4,
+        "merge": 2,
+        "reject_after_review": 4,
+        "adopt": 1
+      },
+      "avg_score": 3.45,
+      "best_source_ids": [
+        "hook:blockgeneratededitssh",
+        "hook:blockgeneratededitspy",
+        "hook:blockdangerouscommandssh"
+      ],
+      "raw_keys": [
+        "config-edit-protection",
+        "dangerous-command-guard",
+        "destructive-operation-guard",
+        "generated-file-protection",
+        "long-running-process-safety",
+        "publication-safety",
+        "sensitive-data-guard"
+      ],
+      "source_ids": [
+        "hook:beforereadfilejs",
+        "hook:beforesubmitpromptjs",
+        "hook:beforetabfilereadjs",
+        "hook:blockdangerouscommandssh",
+        "hook:blockgeneratededitspy",
+        "hook:blockgeneratededitssh",
+        "hook:configprotectionjs",
+        "hook:prebashdevserverblockjs",
+        "hook:prebashgitpushreminderjs",
+        "hook:prebashtmuxreminderjs",
+        "skill:safetyguard"
+      ]
+    },
+    {
+      "cluster_id": "C14",
+      "title": "Edit/commit-time quality gates",
+      "count": 12,
+      "kinds": {
+        "hook": 10,
+        "command": 1,
+        "skill": 1
+      },
+      "verdicts": {
+        "reject_after_review": 5,
+        "rewrite": 3,
+        "merge": 4
+      },
+      "avg_score": 3.31,
+      "best_source_ids": [
+        "command:qualitygate",
+        "hook:prewritedocwarnjs",
+        "hook:posteditaccumulatorjs"
+      ],
+      "raw_keys": [
+        "batched-edit-quality",
+        "commit-quality-gate",
+        "doc-sprawl-guard",
+        "documentation-sprawl-control",
+        "formatter-quality-gate",
+        "post-edit-formatting",
+        "post-edit-quality",
+        "post-edit-typechecking",
+        "quality-gates",
+        "write-time-quality-hooks"
+      ],
+      "source_ids": [
+        "command:qualitygate",
+        "hook:afterfileeditjs",
+        "hook:aftertabfileeditjs",
+        "hook:designqualitycheckjs",
+        "hook:docfilewarningjs",
+        "hook:posteditaccumulatorjs",
+        "hook:posteditformatjs",
+        "hook:postedittypecheckjs",
+        "hook:prebashcommitqualityjs",
+        "hook:prewritedocwarnjs",
+        "hook:qualitygatejs",
+        "skill:planktoncodequality"
+      ]
+    },
+    {
+      "cluster_id": "C15",
+      "title": "Hook infrastructure & authoring",
+      "count": 24,
+      "kinds": {
+        "command": 6,
+        "hook": 10,
+        "plugin": 1,
+        "skill": 4,
+        "rule": 3
+      },
+      "verdicts": {
+        "defer": 8,
+        "reject_after_review": 13,
+        "rewrite": 3
+      },
+      "avg_score": 3.31,
+      "best_source_ids": [
+        "command:configure",
+        "command:hookifylist",
+        "command:hookifyhelp"
+      ],
+      "raw_keys": [
+        "declarative-hook-rules",
+        "hook-authoring",
+        "hook-bootstrap",
+        "hook-feature-flags",
+        "hook-profile-dispatch",
+        "hook-rule-inventory",
+        "hook-safety-and-tracking",
+        "hookify-rule-management",
+        "hooks-configuration",
+        "hooks-governance",
+        "package-plumbing",
+        "permission-allowlist-tuning",
+        "policy-hook-authoring",
+        "python-automation-hooks",
+        "python-hook-launcher",
+        "stop-hook-dispatch"
+      ],
+      "source_ids": [
+        "command:configure",
+        "command:hookify",
+        "command:hookifyconfigure",
+        "command:hookifyhelp",
+        "command:hookifylist",
+        "command:list",
+        "hook:checkhookenabledjs",
+        "hook:initpy",
+        "hook:posttoolusepy",
+        "hook:pretoolusepy",
+        "hook:runwithflagsjs",
+        "hook:runwithflagsshellsh",
+        "hook:sessionstartbootstrapjs",
+        "hook:sgpythonsh",
+        "hook:stopjs",
+        "hook:userpromptsubmitpy",
+        "plugin:hookify",
+        "rule:commonhooks",
+        "rule:pythonhooks",
+        "rule:zhhooks",
+        "skill:claudepermissionsoptimizer",
+        "skill:hookdevelopment",
+        "skill:hookifyrules",
+        "skill:writinghookifyrules"
+      ]
+    },
+    {
+      "cluster_id": "C16",
+      "title": "Observability & notifications",
+      "count": 19,
+      "kinds": {
+        "hook": 14,
+        "plugin": 2,
+        "skill": 3
+      },
+      "verdicts": {
+        "reject_after_review": 16,
+        "defer": 2,
+        "adopt": 1
+      },
+      "avg_score": 3.05,
+      "best_source_ids": [
+        "skill:sessionreport",
+        "hook:aftershellexecutionjs",
+        "hook:autotmuxdevjs"
+      ],
+      "raw_keys": [
+        "agent-event-notifications",
+        "agent-ops-observability",
+        "agent-session-observability",
+        "build-completion-notice",
+        "chat-notification-bridge",
+        "command-audit-logging",
+        "cost-observability",
+        "mcp-observability",
+        "mcp-reliability",
+        "notifications-ops",
+        "pr-workflow-notice",
+        "shell-lifecycle",
+        "subagent-observability"
+      ],
+      "source_ids": [
+        "hook:aftermcpexecutionjs",
+        "hook:aftershellexecutionjs",
+        "hook:autotmuxdevjs",
+        "hook:beforemcpexecutionjs",
+        "hook:beforeshellexecutionjs",
+        "hook:costtrackerjs",
+        "hook:desktopnotifyjs",
+        "hook:hookspy",
+        "hook:mcphealthcheckjs",
+        "hook:postbashbuildcompletejs",
+        "hook:postbashcommandlogjs",
+        "hook:postbashprcreatedjs",
+        "hook:subagentstartjs",
+        "hook:subagentstopjs",
+        "plugin:discord",
+        "plugin:telegram",
+        "skill:enterpriseagentops",
+        "skill:sessionreport",
+        "skill:unifiednotificationsops"
+      ]
+    },
+    {
+      "cluster_id": "C17",
+      "title": "Context, cost & model routing",
+      "count": 13,
+      "kinds": {
+        "hook": 2,
+        "skill": 6,
+        "command": 3,
+        "rule": 2
+      },
+      "verdicts": {
+        "defer": 3,
+        "merge": 2,
+        "reject_after_review": 6,
+        "rewrite": 2
+      },
+      "avg_score": 3.12,
+      "best_source_ids": [
+        "skill:strategiccompact",
+        "command:contextbudget",
+        "hook:suggestcompactjs"
+      ],
+      "raw_keys": [
+        "agent-runtime-management",
+        "context-budget",
+        "context-compaction",
+        "context-compaction-continuity",
+        "context-management",
+        "context-management-compat",
+        "context-retrieval",
+        "conversational-context-control",
+        "llm-cost-control",
+        "model-routing",
+        "response-budgeting",
+        "software-cost-estimation"
+      ],
+      "source_ids": [
+        "command:aside",
+        "command:contextbudget",
+        "command:modelroute",
+        "hook:precompactjs",
+        "hook:suggestcompactjs",
+        "rule:commonperformance",
+        "rule:zhperformance",
+        "skill:contextbudget",
+        "skill:costawarellmpipeline",
+        "skill:costestimate",
+        "skill:iterativeretrieval",
+        "skill:strategiccompact",
+        "skill:tokenbudgetadvisor"
+      ]
+    },
+    {
+      "cluster_id": "C18",
+      "title": "Memory, learning & knowledge continuity",
+      "count": 26,
+      "kinds": {
+        "command": 10,
+        "agent": 3,
+        "mcp": 2,
+        "skill": 7,
+        "hook": 3,
+        "plugin": 1
+      },
+      "verdicts": {
+        "reject_after_review": 16,
+        "merge": 6,
+        "defer": 3,
+        "adopt": 1
+      },
+      "avg_score": 3.12,
+      "best_source_ids": [
+        "hook:sessionendmarkerjs",
+        "command:projects",
+        "command:instinctimport"
+      ],
+      "raw_keys": [
+        "agent-memory",
+        "continuous-learning",
+        "continuous-learning-observation",
+        "knowledge-management",
+        "learned-capability-promotion",
+        "learned-guidance-audit",
+        "learned-guidance-portability",
+        "learning-capture",
+        "learning-compounding",
+        "learning-memory-lifecycle",
+        "observer-lifecycle",
+        "persistent-learnings",
+        "personal-notes",
+        "prior-learnings-retrieval",
+        "project-learning-capture",
+        "project-learning-maintenance",
+        "project-memory",
+        "session-learning",
+        "session-learning-guardrails"
+      ],
+      "source_ids": [
+        "agent:conversationanalyzer",
+        "agent:learningsresearcher",
+        "agent:observer",
+        "command:evolve",
+        "command:instinctexport",
+        "command:instinctimport",
+        "command:instinctstatus",
+        "command:learn",
+        "command:learneval",
+        "command:projects",
+        "command:promote",
+        "command:prune",
+        "command:reviseclaudemd",
+        "hook:evaluatesessionjs",
+        "hook:observesh",
+        "hook:sessionendmarkerjs",
+        "mcp:codebasememory",
+        "mcp:memory",
+        "plugin:compoundengineering",
+        "skill:cecompound",
+        "skill:cecompoundrefresh",
+        "skill:ck",
+        "skill:continuouslearning",
+        "skill:continuouslearningv2",
+        "skill:knowledgeops",
+        "skill:obsidianvault"
+      ]
+    },
+    {
+      "cluster_id": "C19",
+      "title": "Session continuity & handoff",
+      "count": 9,
+      "kinds": {
+        "command": 3,
+        "hook": 3,
+        "agent": 1,
+        "skill": 2
+      },
+      "verdicts": {
+        "reject_after_review": 6,
+        "defer": 1,
+        "rewrite": 1,
+        "merge": 1
+      },
+      "avg_score": 3.31,
+      "best_source_ids": [
+        "agent:sessionhistorian",
+        "skill:cesessions",
+        "skill:handoff"
+      ],
+      "raw_keys": [
+        "cross-session-history",
+        "session-continuity",
+        "session-handoff-continuity",
+        "session-history-retrieval"
+      ],
+      "source_ids": [
+        "agent:sessionhistorian",
+        "command:resumesession",
+        "command:savesession",
+        "command:sessions",
+        "hook:sessionendjs",
+        "hook:sessionstartjs",
+        "hook:sessionstartmjs",
+        "skill:cesessions",
+        "skill:handoff"
+      ]
+    },
+    {
+      "cluster_id": "C20",
+      "title": "Subagent orchestration & delegation",
+      "count": 20,
+      "kinds": {
+        "command": 5,
+        "rule": 3,
+        "skill": 8,
+        "agent": 3,
+        "mcp": 1
+      },
+      "verdicts": {
+        "reject_after_review": 11,
+        "merge": 3,
+        "adopt": 4,
+        "rewrite": 2
+      },
+      "avg_score": 3.42,
+      "best_source_ids": [
+        "rule:core01delegation",
+        "skill:subagentdrivendevelopment",
+        "agent:fablexhigh"
+      ],
+      "raw_keys": [
+        "agent-delegation",
+        "agent-fleet-orchestration",
+        "agent-orchestration",
+        "generalist-delegation-tier",
+        "git-worktree-isolation",
+        "max-effort-generalist",
+        "multi-agent-orchestration",
+        "multi-model-development-workflow",
+        "reasoning-scaffold",
+        "subagent-driven-development",
+        "workspace-isolation"
+      ],
+      "source_ids": [
+        "agent:claudemax",
+        "agent:fablemax",
+        "agent:fablexhigh",
+        "command:devfleet",
+        "command:multibackend",
+        "command:multiexecute",
+        "command:multiplan",
+        "command:multiworkflow",
+        "mcp:sequentialthinking",
+        "rule:commonagents",
+        "rule:core01delegation",
+        "rule:zhagents",
+        "skill:ceworkbeta",
+        "skill:claudedevfleet",
+        "skill:dispatchingparallelagents",
+        "skill:dmuxworkflows",
+        "skill:gitworktree",
+        "skill:subagentdrivendevelopment",
+        "skill:teambuilder",
+        "skill:usinggitworktrees"
+      ]
+    },
+    {
+      "cluster_id": "C21",
+      "title": "Autonomous loops & pipelines",
+      "count": 17,
+      "kinds": {
+        "agent": 3,
+        "command": 6,
+        "skill": 6,
+        "hook": 1,
+        "plugin": 1
+      },
+      "verdicts": {
+        "reject_after_review": 13,
+        "rewrite": 1,
+        "defer": 2,
+        "merge": 1
+      },
+      "avg_score": 3.03,
+      "best_source_ids": [
+        "command:cancelralph",
+        "command:loopstatus",
+        "skill:lfg"
+      ],
+      "raw_keys": [
+        "autonomous-agent-loop",
+        "autonomous-agent-operations",
+        "autonomous-execution",
+        "autonomous-loop-control",
+        "autonomous-loop-operations",
+        "autonomous-loop-supervision",
+        "autonomous-looping",
+        "autonomous-pipeline",
+        "continuous-agent-execution",
+        "generator-evaluator-loop",
+        "ralph-loop-control"
+      ],
+      "source_ids": [
+        "agent:ganevaluator",
+        "agent:gangenerator",
+        "agent:loopoperator",
+        "command:cancelralph",
+        "command:ganbuild",
+        "command:gandesign",
+        "command:loopstart",
+        "command:loopstatus",
+        "command:ralphloop",
+        "hook:stophooksh",
+        "plugin:ralphloop",
+        "skill:autonomousagentharness",
+        "skill:autonomousloops",
+        "skill:continuousagentloop",
+        "skill:ganstyleharness",
+        "skill:lfg",
+        "skill:ralphinhorfcpipeline"
+      ]
+    },
+    {
+      "cluster_id": "C22",
+      "title": "Codex / second-model delegation",
+      "count": 8,
+      "kinds": {
+        "command": 4,
+        "skill": 3,
+        "plugin": 1
+      },
+      "verdicts": {
+        "adopt": 6,
+        "merge": 1,
+        "reject_after_review": 1
+      },
+      "avg_score": 4.4,
+      "best_source_ids": [
+        "plugin:codexadapter",
+        "command:codexcheck",
+        "skill:usecodex"
+      ],
+      "raw_keys": [
+        "claude-codex-migration",
+        "codex-command-migration",
+        "codex-delegation",
+        "codex-invocation",
+        "codex-invocation-routing",
+        "codex-readiness",
+        "second-model-delegation"
+      ],
+      "source_ids": [
+        "command:codex",
+        "command:codexcheck",
+        "command:readme",
+        "command:usecodex",
+        "plugin:codexadapter",
+        "skill:codexrunner",
+        "skill:migrateclaudetocodex",
+        "skill:usecodex"
+      ]
+    },
+    {
+      "cluster_id": "C23",
+      "title": "Compatibility shims",
+      "count": 4,
+      "kinds": {
+        "command": 3,
+        "skill": 1
+      },
+      "verdicts": {
+        "reject_after_review": 4
+      },
+      "avg_score": 3.62,
+      "best_source_ids": [
+        "command:orchestrate",
+        "command:promptoptimize",
+        "command:claw"
+      ],
+      "raw_keys": [
+        "legacy-command-shims",
+        "nanoclaw-repl-compat",
+        "repl-tooling"
+      ],
+      "source_ids": [
+        "command:claw",
+        "command:orchestrate",
+        "command:promptoptimize",
+        "skill:nanoclawrepl"
+      ]
+    },
+    {
+      "cluster_id": "C24",
+      "title": "Harness lifecycle & curation",
+      "count": 40,
+      "kinds": {
+        "command": 13,
+        "rule": 1,
+        "skill": 13,
+        "agent": 7,
+        "plugin": 5,
+        "hook": 1
+      },
+      "verdicts": {
+        "adopt": 11,
+        "merge": 12,
+        "reject_after_review": 16,
+        "rewrite": 1
+      },
+      "avg_score": 3.57,
+      "best_source_ids": [
+        "rule:harnesslifecyclecuration",
+        "command:harnessstatus",
+        "skill:harnessevaluate"
+      ],
+      "raw_keys": [
+        "automation-surface-audit",
+        "capability-curation",
+        "capability-quality-audit",
+        "claude-code-docs-drift",
+        "claude-platform-doc-drift",
+        "core-dev-methodology",
+        "environment-diagnostics",
+        "harness-adoption",
+        "harness-automation-audit",
+        "harness-catalog-bundle",
+        "harness-curation",
+        "harness-health-audit",
+        "harness-installation",
+        "harness-optimization",
+        "harness-repository-research",
+        "harness-setup-recommendation",
+        "harness-surface-audit",
+        "harness-update",
+        "plugin-self-update",
+        "reference-catalog-freshness",
+        "reference-harness-comparison",
+        "repo-audit",
+        "skill-compliance-evaluation"
+      ],
+      "source_ids": [
+        "agent:developmentworkflowsresearchagent",
+        "agent:harnessoptimizer",
+        "agent:workflowclaudecommandsagent",
+        "agent:workflowclaudesettingsagent",
+        "agent:workflowclaudeskillsagent",
+        "agent:workflowclaudesubagentsagent",
+        "agent:workflowconceptsagent",
+        "command:adopt",
+        "command:agentsort",
+        "command:doctor",
+        "command:harnessaudit",
+        "command:harnessscan",
+        "command:harnessstatus",
+        "command:update",
+        "command:workflowsbestpracticeworkflowclaudecommands",
+        "command:workflowsbestpracticeworkflowclaudesettings",
+        "command:workflowsbestpracticeworkflowclaudeskills",
+        "command:workflowsbestpracticeworkflowclaudesubagents",
+        "command:workflowsbestpracticeworkflowconcepts",
+        "command:workflowsdevelopmentworkflows",
+        "hook:harnessstalenessnudgesh",
+        "plugin:claudecodesetup",
+        "plugin:ecc",
+        "plugin:mattpocockskills",
+        "plugin:mvpplugin",
+        "plugin:superpowers",
+        "rule:harnesslifecyclecuration",
+        "skill:adopt",
+        "skill:agentsort",
+        "skill:automationauditops",
+        "skill:ceupdate",
+        "skill:claudeautomationrecommender",
+        "skill:configureecc",
+        "skill:harnessadopt",
+        "skill:harnessevaluate",
+        "skill:refreshharnessfromreference",
+        "skill:reposcan",
+        "skill:skillcomply",
+        "skill:skillstocktake",
+        "skill:workspacesurfaceaudit"
+      ]
+    },
+    {
+      "cluster_id": "C25",
+      "title": "Harness authoring & skill quality",
+      "count": 32,
+      "kinds": {
+        "command": 5,
+        "plugin": 4,
+        "skill": 16,
+        "agent": 5,
+        "rule": 2
+      },
+      "verdicts": {
+        "reject_after_review": 14,
+        "adopt": 2,
+        "merge": 9,
+        "rewrite": 4,
+        "defer": 3
+      },
+      "avg_score": 3.24,
+      "best_source_ids": [
+        "skill:writinggreatskills",
+        "plugin:skillcreator",
+        "skill:skillcreator"
+      ],
+      "raw_keys": [
+        "agent-authoring",
+        "agent-evaluation",
+        "agent-tooling-design",
+        "claude-md-hygiene",
+        "coding-agent-benchmarking",
+        "eval-harness",
+        "harness-command-authoring",
+        "harness-rule-maintenance",
+        "instruction-file-maintenance",
+        "language-rules",
+        "output-style",
+        "prompt-authoring",
+        "rule-pack-installation",
+        "rules-distillation",
+        "skill-authoring",
+        "skill-authoring-templates",
+        "skill-output-evaluation",
+        "skill-portfolio-observability",
+        "skill-quality-review",
+        "skill-routing",
+        "skill-routing-bootstrap",
+        "spec-output-grading"
+      ],
+      "source_ids": [
+        "agent:agentcreator",
+        "agent:analyzer",
+        "agent:comparator",
+        "agent:grader",
+        "agent:skillreviewer",
+        "command:addlanguagerules",
+        "command:eval",
+        "command:rulesdistill",
+        "command:skillcreate",
+        "command:skillhealth",
+        "plugin:claudemdmanagement",
+        "plugin:explanatoryoutputstyle",
+        "plugin:learningoutputstyle",
+        "plugin:skillcreator",
+        "rule:readme",
+        "rule:zhreadme",
+        "skill:agentdevelopment",
+        "skill:agenteval",
+        "skill:agentharnessconstruction",
+        "skill:askmatt",
+        "skill:claudemdimprover",
+        "skill:commanddevelopment",
+        "skill:evalharness",
+        "skill:examplecommand",
+        "skill:exampleskill",
+        "skill:promptoptimizer",
+        "skill:rulesdistill",
+        "skill:skillcreator",
+        "skill:skilldevelopment",
+        "skill:usingsuperpowers",
+        "skill:writinggreatskills",
+        "skill:writingskills"
+      ]
+    },
+    {
+      "cluster_id": "C26",
+      "title": "Agent-native readiness",
+      "count": 5,
+      "kinds": {
+        "agent": 3,
+        "skill": 2
+      },
+      "verdicts": {
+        "merge": 3,
+        "reject_after_review": 1,
+        "defer": 1
+      },
+      "avg_score": 3.67,
+      "best_source_ids": [
+        "agent:clireadinessreviewer",
+        "agent:cliagentreadinessreviewer",
+        "skill:agentnativearchitecture"
+      ],
+      "raw_keys": [
+        "agent-interface-parity",
+        "agent-native-architecture",
+        "cli-agent-readiness"
+      ],
+      "source_ids": [
+        "agent:agentnativereviewer",
+        "agent:cliagentreadinessreviewer",
+        "agent:clireadinessreviewer",
+        "skill:agentnativearchitecture",
+        "skill:agentnativeaudit"
+      ]
+    },
+    {
+      "cluster_id": "C27",
+      "title": "Docs & research lookup",
+      "count": 18,
+      "kinds": {
+        "agent": 5,
+        "command": 2,
+        "mcp": 3,
+        "skill": 7,
+        "plugin": 1
+      },
+      "verdicts": {
+        "merge": 6,
+        "reject_after_review": 5,
+        "adopt": 4,
+        "defer": 3
+      },
+      "avg_score": 3.83,
+      "best_source_ids": [
+        "skill:deepresearch",
+        "mcp:context7",
+        "agent:docsresearcher"
+      ],
+      "raw_keys": [
+        "current-evidence-research",
+        "decision-grade-research",
+        "docs-lookup",
+        "docs-research",
+        "documentation-lookup",
+        "documentation-research",
+        "framework-doc-research",
+        "live-docs-lookup",
+        "organizational-context-research",
+        "research-before-building",
+        "research-reporting",
+        "web-research"
+      ],
+      "source_ids": [
+        "agent:bestpracticesresearcher",
+        "agent:docslookup",
+        "agent:docsresearcher",
+        "agent:frameworkdocsresearcher",
+        "agent:slackresearcher",
+        "command:codexresearch",
+        "command:docs",
+        "mcp:context7",
+        "mcp:deepwiki",
+        "mcp:exa",
+        "plugin:context7",
+        "skill:ceslackresearch",
+        "skill:deepresearch",
+        "skill:documentationlookup",
+        "skill:exasearch",
+        "skill:marketresearch",
+        "skill:researchops",
+        "skill:searchfirst"
+      ]
+    },
+    {
+      "cluster_id": "C28",
+      "title": "Documentation maintenance",
+      "count": 8,
+      "kinds": {
+        "agent": 2,
+        "rule": 2,
+        "command": 2,
+        "skill": 2
+      },
+      "verdicts": {
+        "reject_after_review": 5,
+        "adopt": 1,
+        "rewrite": 1,
+        "defer": 1
+      },
+      "avg_score": 3.29,
+      "best_source_ids": [
+        "rule:core02knowledgediscoverability",
+        "skill:codetour",
+        "command:synctutorials"
+      ],
+      "raw_keys": [
+        "codebase-onboarding-artifacts",
+        "docs-conventions",
+        "docs-deployment",
+        "documentation-maintenance",
+        "documentation-source-sync",
+        "learning-artifact-sync"
+      ],
+      "source_ids": [
+        "agent:documentationanalystwriter",
+        "agent:docupdater",
+        "command:synctutorials",
+        "command:updatedocs",
+        "rule:core02knowledgediscoverability",
+        "rule:markdowndocs",
+        "skill:codetour",
+        "skill:deploydocs"
+      ]
+    },
+    {
+      "cluster_id": "C29",
+      "title": "Teaching & onboarding people",
+      "count": 7,
+      "kinds": {
+        "command": 2,
+        "skill": 4,
+        "plugin": 1
+      },
+      "verdicts": {
+        "merge": 3,
+        "defer": 1,
+        "rewrite": 1,
+        "reject_after_review": 2
+      },
+      "avg_score": 3.14,
+      "best_source_ids": [
+        "skill:teach",
+        "skill:scaffoldexercises",
+        "skill:teachsession"
+      ],
+      "raw_keys": [
+        "codebase-teaching",
+        "course-authoring",
+        "learning-tutor",
+        "teaching-and-retention",
+        "teaching-learning"
+      ],
+      "source_ids": [
+        "command:quizme",
+        "command:teachme",
+        "plugin:codingtutor",
+        "skill:codingtutor",
+        "skill:scaffoldexercises",
+        "skill:teach",
+        "skill:teachsession"
+      ]
+    },
+    {
+      "cluster_id": "C30",
+      "title": "Architecture & codebase understanding",
+      "count": 21,
+      "kinds": {
+        "skill": 12,
+        "agent": 7,
+        "command": 2
+      },
+      "verdicts": {
+        "adopt": 3,
+        "rewrite": 4,
+        "reject_after_review": 5,
+        "merge": 8,
+        "defer": 1
+      },
+      "avg_score": 3.54,
+      "best_source_ids": [
+        "agent:codeexplorer",
+        "agent:architecturecritic",
+        "agent:githistoryanalyzer"
+      ],
+      "raw_keys": [
+        "api-connector-development",
+        "architecture-assessment",
+        "architecture-critique",
+        "architecture-decision-review",
+        "architecture-decisions",
+        "architecture-design",
+        "architecture-mapping",
+        "architecture-patterns",
+        "architecture-review",
+        "codebase-exploration",
+        "codebase-onboarding",
+        "codebase-orientation",
+        "codebase-understanding",
+        "domain-glossary",
+        "domain-modeling",
+        "git-archaeology",
+        "interface-design",
+        "module-design",
+        "repository-orientation",
+        "rest-api-design"
+      ],
+      "source_ids": [
+        "agent:architect",
+        "agent:architecturecritic",
+        "agent:architecturestrategist",
+        "agent:codeexplorer",
+        "agent:githistoryanalyzer",
+        "agent:reporesearchanalyst",
+        "agent:technicalctoadvisor",
+        "command:modernizemap",
+        "command:updatecodemaps",
+        "skill:apiconnectorbuilder",
+        "skill:apidesign",
+        "skill:architecturedecisionrecords",
+        "skill:codebasearchitectureresearch",
+        "skill:codebasedesign",
+        "skill:codebaseonboarding",
+        "skill:designaninterface",
+        "skill:domainmodeling",
+        "skill:hexagonalarchitecture",
+        "skill:improvecodebasearchitecture",
+        "skill:onboarding",
+        "skill:ubiquitouslanguage"
+      ]
+    },
+    {
+      "cluster_id": "C31",
+      "title": "Code intelligence indexing",
+      "count": 8,
+      "kinds": {
+        "plugin": 2,
+        "command": 3,
+        "hook": 1,
+        "mcp": 1,
+        "skill": 1
+      },
+      "verdicts": {
+        "adopt": 7,
+        "reject_after_review": 1
+      },
+      "avg_score": 4.25,
+      "best_source_ids": [
+        "plugin:codeintel",
+        "command:disableforproject",
+        "mcp:serena"
+      ],
+      "raw_keys": [
+        "code-index-readiness",
+        "code-intel-lifecycle",
+        "code-intelligence",
+        "code-intelligence-indexing",
+        "code-intelligence-setup",
+        "graph-first-code-intelligence",
+        "semantic-code-intel"
+      ],
+      "source_ids": [
+        "command:disableforproject",
+        "command:indexrepo",
+        "command:setup",
+        "hook:freshnesschecksh",
+        "mcp:serena",
+        "plugin:codeintel",
+        "plugin:serena",
+        "skill:graphfirst"
+      ]
+    },
+    {
+      "cluster_id": "C32",
+      "title": "Git, GitHub & release workflows",
+      "count": 25,
+      "kinds": {
+        "agent": 3,
+        "command": 5,
+        "skill": 11,
+        "plugin": 3,
+        "mcp": 1,
+        "rule": 2
+      },
+      "verdicts": {
+        "rewrite": 5,
+        "merge": 4,
+        "reject_after_review": 16
+      },
+      "avg_score": 2.97,
+      "best_source_ids": [
+        "command:prppr",
+        "mcp:github",
+        "rule:commongitworkflow"
+      ],
+      "raw_keys": [
+        "changelog-generation",
+        "git-branch-cleanup",
+        "git-branch-finish",
+        "git-change-publishing",
+        "git-commit-workflow",
+        "git-conventions",
+        "git-hosting-integration",
+        "git-publish-workflow",
+        "git-safety-guardrails",
+        "git-workflow",
+        "git-workflow-core",
+        "github-integration",
+        "github-repository-operations",
+        "merge-conflict-resolution",
+        "open-source-release",
+        "open-source-release-prep",
+        "pr-creation",
+        "pr-evidence-capture",
+        "safe-commit-workflow"
+      ],
+      "source_ids": [
+        "agent:opensourceforker",
+        "agent:opensourcepackager",
+        "agent:opensourcesanitizer",
+        "command:cleangone",
+        "command:commit",
+        "command:commitpushpr",
+        "command:prpcommit",
+        "command:prppr",
+        "mcp:github",
+        "plugin:commitcommands",
+        "plugin:github",
+        "plugin:gitlab",
+        "rule:commongitworkflow",
+        "rule:zhgitworkflow",
+        "skill:changelog",
+        "skill:featurevideo",
+        "skill:finishingadevelopmentbranch",
+        "skill:gitcleangonebranches",
+        "skill:gitcommit",
+        "skill:gitcommitpushpr",
+        "skill:gitguardrailsclaudecode",
+        "skill:githubops",
+        "skill:gitworkflow",
+        "skill:opensourcepipeline",
+        "skill:resolvingmergeconflicts"
+      ]
+    },
+    {
+      "cluster_id": "C33",
+      "title": "Legacy modernization",
+      "count": 13,
+      "kinds": {
+        "agent": 4,
+        "command": 8,
+        "plugin": 1
+      },
+      "verdicts": {
+        "adopt": 1,
+        "merge": 3,
+        "defer": 3,
+        "rewrite": 4,
+        "reject_after_review": 2
+      },
+      "avg_score": 4.23,
+      "best_source_ids": [
+        "agent:businessrulesextractor",
+        "command:modernizestatus",
+        "agent:legacyanalyst"
+      ],
+      "raw_keys": [
+        "behavior-preserving-modernization",
+        "business-rule-extraction",
+        "code-modernization-scaffolding",
+        "legacy-business-rule-extraction",
+        "legacy-codebase-analysis",
+        "legacy-modernization",
+        "legacy-system-assessment",
+        "legacy-system-rebuild",
+        "modernization-planning",
+        "modernization-readiness",
+        "modernization-status",
+        "runtime-version-uplift",
+        "stack-version-migration"
+      ],
+      "source_ids": [
+        "agent:businessrulesextractor",
+        "agent:legacyanalyst",
+        "agent:scaffolder",
+        "agent:versiondeltaanalyst",
+        "command:modernizeassess",
+        "command:modernizebrief",
+        "command:modernizeextractrules",
+        "command:modernizepreflight",
+        "command:modernizereimagine",
+        "command:modernizestatus",
+        "command:modernizetransform",
+        "command:modernizeuplift",
+        "plugin:codemodernization"
+      ]
+    },
+    {
+      "cluster_id": "C34",
+      "title": "Data & database safety",
+      "count": 10,
+      "kinds": {
+        "agent": 5,
+        "command": 1,
+        "skill": 4
+      },
+      "verdicts": {
+        "merge": 2,
+        "rewrite": 7,
+        "reject_after_review": 1
+      },
+      "avg_score": 3.13,
+      "best_source_ids": [
+        "agent:datamigrationexpert",
+        "agent:datamigrationsreviewer",
+        "agent:dataintegrityguardian"
+      ],
+      "raw_keys": [
+        "clickhouse-data-engineering",
+        "data-migration-review",
+        "database-change-safety",
+        "database-deployment-readiness",
+        "database-migration",
+        "database-migrations",
+        "postgres-engineering",
+        "postgres-review",
+        "scheduled-data-collection"
+      ],
+      "source_ids": [
+        "agent:databasereviewer",
+        "agent:dataintegrityguardian",
+        "agent:datamigrationexpert",
+        "agent:datamigrationsreviewer",
+        "agent:deploymentverificationagent",
+        "command:databasemigration",
+        "skill:clickhouseio",
+        "skill:databasemigrations",
+        "skill:datascraperagent",
+        "skill:postgrespatterns"
+      ]
+    },
+    {
+      "cluster_id": "C35",
+      "title": "Coding discipline & standards",
+      "count": 15,
+      "kinds": {
+        "rule": 7,
+        "skill": 8
+      },
+      "verdicts": {
+        "reject_after_review": 10,
+        "adopt": 3,
+        "rewrite": 2
+      },
+      "avg_score": 3.32,
+      "best_source_ids": [
+        "skill:akguide",
+        "skill:prototype",
+        "rule:core03akguidelines"
+      ],
+      "raw_keys": [
+        "agentic-engineering-operating-model",
+        "application-design-patterns",
+        "coding-discipline",
+        "coding-standards-core",
+        "coding-style-core",
+        "content-addressed-cache",
+        "design-patterns",
+        "deterministic-text-parsing",
+        "llm-coding-guardrails",
+        "prototyping",
+        "python-coding-standards",
+        "python-style"
+      ],
+      "source_ids": [
+        "rule:commoncodingstyle",
+        "rule:commonpatterns",
+        "rule:core03akguidelines",
+        "rule:pythoncodingstyle",
+        "rule:pythonpatterns",
+        "rule:zhcodingstyle",
+        "rule:zhpatterns",
+        "skill:agenticengineering",
+        "skill:aifirstengineering",
+        "skill:akguide",
+        "skill:codingstandards",
+        "skill:contenthashcachepattern",
+        "skill:prototype",
+        "skill:pythonpatterns",
+        "skill:regexvsllmstructuredtext"
+      ]
+    },
+    {
+      "cluster_id": "C36",
+      "title": "Deployment & DevOps",
+      "count": 6,
+      "kinds": {
+        "skill": 4,
+        "plugin": 2
+      },
+      "verdicts": {
+        "merge": 2,
+        "reject_after_review": 4
+      },
+      "avg_score": 3.08,
+      "best_source_ids": [
+        "plugin:terraform",
+        "plugin:firebase",
+        "skill:rclone"
+      ],
+      "raw_keys": [
+        "cloud-file-transfer",
+        "deployment-containers",
+        "iac-tooling",
+        "platform-integration",
+        "post-deploy-monitoring"
+      ],
+      "source_ids": [
+        "plugin:firebase",
+        "plugin:terraform",
+        "skill:canarywatch",
+        "skill:deploymentpatterns",
+        "skill:dockerpatterns",
+        "skill:rclone"
+      ]
+    },
+    {
+      "cluster_id": "C37",
+      "title": "External integrations & media tools",
+      "count": 13,
+      "kinds": {
+        "plugin": 1,
+        "skill": 11,
+        "agent": 1
+      },
+      "verdicts": {
+        "reject_after_review": 10,
+        "defer": 3
+      },
+      "avg_score": 3.45,
+      "best_source_ids": [
+        "skill:cardputerbuddy",
+        "skill:m5onboard",
+        "agent:seospecialist"
+      ],
+      "raw_keys": [
+        "agent-payments",
+        "blockchain-domain",
+        "cardputer-device-development",
+        "document-processing",
+        "hardware-onboarding",
+        "media-explainers",
+        "media-generation",
+        "media-processing",
+        "office-suite-ops",
+        "seo-audit",
+        "web-seo"
+      ],
+      "source_ids": [
+        "agent:seospecialist",
+        "plugin:cwcmakers",
+        "skill:agentpaymentx402",
+        "skill:cardputerbuddy",
+        "skill:evmtokendecimals",
+        "skill:falaimedia",
+        "skill:geminiimagegen",
+        "skill:googleworkspaceops",
+        "skill:m5onboard",
+        "skill:manimvideo",
+        "skill:nutrientdocumentprocessing",
+        "skill:seo",
+        "skill:videodb"
+      ]
+    },
+    {
+      "cluster_id": "C38",
+      "title": "Domain-specific packs",
+      "count": 15,
+      "kinds": {
+        "skill": 14,
+        "agent": 1
+      },
+      "verdicts": {
+        "reject_after_review": 13,
+        "rewrite": 2
+      },
+      "avg_score": 2.82,
+      "best_source_ids": [
+        "skill:llmtradingagentsecurity",
+        "skill:productionscheduling",
+        "skill:qualitynonconformance"
+      ],
+      "raw_keys": [
+        "business-domain-persona",
+        "django-application-patterns",
+        "django-security",
+        "django-testing",
+        "django-verification",
+        "domain-security-niche",
+        "healthcare-domain",
+        "healthcare-safety-review",
+        "manufacturing-domain",
+        "pytorch-training"
+      ],
+      "source_ids": [
+        "agent:healthcarereviewer",
+        "skill:djangopatterns",
+        "skill:djangosecurity",
+        "skill:djangotdd",
+        "skill:djangoverification",
+        "skill:healthcarecdsspatterns",
+        "skill:healthcareemrpatterns",
+        "skill:healthcareevalharness",
+        "skill:healthcarephicompliance",
+        "skill:hipaacompliance",
+        "skill:inventorydemandplanning",
+        "skill:llmtradingagentsecurity",
+        "skill:productionscheduling",
+        "skill:pytorchpatterns",
+        "skill:qualitynonconformance"
+      ]
+    },
+    {
+      "cluster_id": "C39",
+      "title": "Writing craft",
+      "count": 7,
+      "kinds": {
+        "skill": 7
+      },
+      "verdicts": {
+        "reject_after_review": 5,
+        "defer": 2
+      },
+      "avg_score": 3.67,
+      "best_source_ids": [
+        "skill:articlewriting",
+        "skill:brandvoice",
+        "skill:writingshape"
+      ],
+      "raw_keys": [
+        "brand-voice",
+        "long-form-writing",
+        "prose-editing",
+        "writing-craft"
+      ],
+      "source_ids": [
+        "skill:articlewriting",
+        "skill:brandvoice",
+        "skill:editarticle",
+        "skill:everystyleeditor",
+        "skill:writingbeats",
+        "skill:writingfragments",
+        "skill:writingshape"
+      ]
+    },
+    {
+      "cluster_id": "C40",
+      "title": "HTML artifacts, frontend & reporting",
+      "count": 23,
+      "kinds": {
+        "agent": 4,
+        "rule": 7,
+        "skill": 10,
+        "plugin": 2
+      },
+      "verdicts": {
+        "defer": 3,
+        "reject_after_review": 13,
+        "merge": 3,
+        "adopt": 3,
+        "rewrite": 1
+      },
+      "avg_score": 3.54,
+      "best_source_ids": [
+        "skill:htmlartifact",
+        "skill:playground",
+        "skill:dashboardbuilder"
+      ],
+      "raw_keys": [
+        "doc-sharing-service",
+        "figma-fidelity-review",
+        "frontend-application-architecture",
+        "html-artifact-design-quality",
+        "html-artifact-performance",
+        "html-artifact-tooling",
+        "html-artifact-verification",
+        "html-design-quality",
+        "html-presentations",
+        "human-readable-html-artifacts",
+        "interactive-html-playground",
+        "observability-dashboard-design",
+        "presentation-delegation",
+        "presentation-repo-specific",
+        "project-status-reporting",
+        "remotion-text-layout",
+        "status-reporting",
+        "ui-visual-iteration",
+        "ux-requirements",
+        "visual-design-audit"
+      ],
+      "source_ids": [
+        "agent:designimplementationreviewer",
+        "agent:designiterator",
+        "agent:figmadesignsync",
+        "agent:uxdesigner",
+        "plugin:playground",
+        "plugin:projectartifact",
+        "rule:measuringtext",
+        "rule:presentation",
+        "rule:webcodingstyle",
+        "rule:webdesignquality",
+        "rule:webpatterns",
+        "rule:webperformance",
+        "rule:webtesting",
+        "skill:dashboardbuilder",
+        "skill:designsystem",
+        "skill:frontenddesign",
+        "skill:frontendslides",
+        "skill:htmlartifact",
+        "skill:playground",
+        "skill:presentationstructure",
+        "skill:presentationstyling",
+        "skill:projectartifact",
+        "skill:proof"
+      ]
+    },
+    {
+      "cluster_id": "C41",
+      "title": "MCP & plugin development",
+      "count": 18,
+      "kinds": {
+        "command": 4,
+        "plugin": 5,
+        "agent": 2,
+        "skill": 7
+      },
+      "verdicts": {
+        "rewrite": 4,
+        "adopt": 2,
+        "defer": 7,
+        "merge": 1,
+        "reject_after_review": 4
+      },
+      "avg_score": 3.22,
+      "best_source_ids": [
+        "plugin:mcpserverdev",
+        "skill:buildmcpb",
+        "plugin:plugindev"
+      ],
+      "raw_keys": [
+        "agent-sdk-scaffolding",
+        "anthropic-api-reference",
+        "mcp-app-development",
+        "mcp-local-distribution",
+        "mcp-plugin-integration",
+        "mcp-server-dev",
+        "mcp-server-development",
+        "plugin-authoring",
+        "plugin-authoring-reference",
+        "plugin-configuration",
+        "plugin-help",
+        "plugin-scaffolding",
+        "plugin-validation",
+        "private-mcp-tunnel",
+        "python-agent-sdk-verification",
+        "remote-mcp-connectivity"
+      ],
+      "source_ids": [
+        "agent:agentsdkverifierpy",
+        "agent:pluginvalidator",
+        "command:createdockermcptunnel",
+        "command:createplugin",
+        "command:help",
+        "command:newsdkapp",
+        "plugin:agentsdkdev",
+        "plugin:exampleplugin",
+        "plugin:mcpserverdev",
+        "plugin:mcptunnels",
+        "plugin:plugindev",
+        "skill:buildmcpapp",
+        "skill:buildmcpb",
+        "skill:buildmcpserver",
+        "skill:claudeapi",
+        "skill:mcpintegration",
+        "skill:pluginsettings",
+        "skill:pluginstructure"
+      ]
+    }
+  ]
+}

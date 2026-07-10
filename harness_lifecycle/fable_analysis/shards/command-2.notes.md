@@ -1,0 +1,5 @@
+# Shard notes — command-2 (evaluator: Codex GPT-5.6-Sol xhigh)
+
+Assumptions: runtime-specific Claude and Codex counterparts are not treated as wasteful duplication when they serve different callers. Thin commands that delegated substantive work were scored with the named agent inspected. All supplied paths were read; stale shim paths were resolved by name. Local comparisons covered the canon, Python rules, planning/brainstorming/debugging/review/phase skills, Beads, project learnings, Git policy, and the mvp installer. No files were written.
+
+Weakest rows are the two deprecated shims, `add-language-rules`, history-derived `skill-create`, and the generic/Node-heavy security review. The RPI family is coherent in isolation but loses to the leaner Beads-backed local stack. Main relationships: `prp-plan` and `rpi/plan` compete with local planning; `rpi/implement` and `run-phases` share phased execution; save/resume form one continuity cluster; review-pr and Santa Loop feed the existing review stack; PRP PRD and the deprecated brainstorm entry belong to requirements discovery.
