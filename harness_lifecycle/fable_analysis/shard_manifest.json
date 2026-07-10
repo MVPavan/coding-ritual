@@ -1,0 +1,387 @@
+{
+  "csv_path": "harness_lifecycle/capability_usefulness.csv",
+  "total_rows": 868,
+  "included_rows": 629,
+  "excluded_rows": 239,
+  "shards": [
+    {
+      "shard_id": "skill-1",
+      "rows": 27,
+      "kinds": [
+        [
+          "skill",
+          27
+        ]
+      ],
+      "input": "shards/skill-1.input.jsonl",
+      "row_output": "shards/skill-1.row_evaluations.jsonl",
+      "notes_output": "shards/skill-1.notes.md",
+      "first_source_id": "skill:adopt",
+      "last_source_id": "skill:claudemdimprover"
+    },
+    {
+      "shard_id": "skill-2",
+      "rows": 27,
+      "kinds": [
+        [
+          "skill",
+          27
+        ]
+      ],
+      "input": "shards/skill-2.input.jsonl",
+      "row_output": "shards/skill-2.row_evaluations.jsonl",
+      "notes_output": "shards/skill-2.notes.md",
+      "first_source_id": "skill:codebasearchitectureresearch",
+      "last_source_id": "skill:gitcleangonebranches"
+    },
+    {
+      "shard_id": "skill-3",
+      "rows": 27,
+      "kinds": [
+        [
+          "skill",
+          27
+        ]
+      ],
+      "input": "shards/skill-3.input.jsonl",
+      "row_output": "shards/skill-3.row_evaluations.jsonl",
+      "notes_output": "shards/skill-3.notes.md",
+      "first_source_id": "skill:gitcommit",
+      "last_source_id": "skill:rclone"
+    },
+    {
+      "shard_id": "skill-4",
+      "rows": 27,
+      "kinds": [
+        [
+          "skill",
+          27
+        ]
+      ],
+      "input": "shards/skill-4.input.jsonl",
+      "row_output": "shards/skill-4.row_evaluations.jsonl",
+      "notes_output": "shards/skill-4.notes.md",
+      "first_source_id": "skill:receivingcodereview",
+      "last_source_id": "skill:triage"
+    },
+    {
+      "shard_id": "skill-5",
+      "rows": 27,
+      "kinds": [
+        [
+          "skill",
+          27
+        ]
+      ],
+      "input": "shards/skill-5.input.jsonl",
+      "row_output": "shards/skill-5.row_evaluations.jsonl",
+      "notes_output": "shards/skill-5.notes.md",
+      "first_source_id": "skill:usecodex",
+      "last_source_id": "skill:brandvoice"
+    },
+    {
+      "shard_id": "skill-6",
+      "rows": 27,
+      "kinds": [
+        [
+          "skill",
+          27
+        ]
+      ],
+      "input": "shards/skill-6.input.jsonl",
+      "row_output": "shards/skill-6.row_evaluations.jsonl",
+      "notes_output": "shards/skill-6.notes.md",
+      "first_source_id": "skill:buildmcpapp",
+      "last_source_id": "skill:e2etesting"
+    },
+    {
+      "shard_id": "skill-7",
+      "rows": 27,
+      "kinds": [
+        [
+          "skill",
+          27
+        ]
+      ],
+      "input": "shards/skill-7.input.jsonl",
+      "row_output": "shards/skill-7.row_evaluations.jsonl",
+      "notes_output": "shards/skill-7.notes.md",
+      "first_source_id": "skill:editarticle",
+      "last_source_id": "skill:inventorydemandplanning"
+    },
+    {
+      "shard_id": "skill-8",
+      "rows": 27,
+      "kinds": [
+        [
+          "skill",
+          27
+        ]
+      ],
+      "input": "shards/skill-8.input.jsonl",
+      "row_output": "shards/skill-8.row_evaluations.jsonl",
+      "notes_output": "shards/skill-8.notes.md",
+      "first_source_id": "skill:jiraintegration",
+      "last_source_id": "skill:santamethod"
+    },
+    {
+      "shard_id": "skill-9",
+      "rows": 22,
+      "kinds": [
+        [
+          "skill",
+          22
+        ]
+      ],
+      "input": "shards/skill-9.input.jsonl",
+      "row_output": "shards/skill-9.row_evaluations.jsonl",
+      "notes_output": "shards/skill-9.notes.md",
+      "first_source_id": "skill:scaffoldexercises",
+      "last_source_id": "skill:writingshape"
+    },
+    {
+      "shard_id": "agent-1",
+      "rows": 27,
+      "kinds": [
+        [
+          "agent",
+          27
+        ]
+      ],
+      "input": "shards/agent-1.input.jsonl",
+      "row_output": "shards/agent-1.row_evaluations.jsonl",
+      "notes_output": "shards/agent-1.notes.md",
+      "first_source_id": "agent:adversarialdocumentreviewer",
+      "last_source_id": "agent:fablemax"
+    },
+    {
+      "shard_id": "agent-2",
+      "rows": 27,
+      "kinds": [
+        [
+          "agent",
+          27
+        ]
+      ],
+      "input": "shards/agent-2.input.jsonl",
+      "row_output": "shards/agent-2.row_evaluations.jsonl",
+      "notes_output": "shards/agent-2.notes.md",
+      "first_source_id": "agent:fablexhigh",
+      "last_source_id": "agent:sessionhistorian"
+    },
+    {
+      "shard_id": "agent-3",
+      "rows": 27,
+      "kinds": [
+        [
+          "agent",
+          27
+        ]
+      ],
+      "input": "shards/agent-3.input.jsonl",
+      "row_output": "shards/agent-3.row_evaluations.jsonl",
+      "notes_output": "shards/agent-3.notes.md",
+      "first_source_id": "agent:silentfailurehunter",
+      "last_source_id": "agent:gangenerator"
+    },
+    {
+      "shard_id": "agent-4",
+      "rows": 27,
+      "kinds": [
+        [
+          "agent",
+          27
+        ]
+      ],
+      "input": "shards/agent-4.input.jsonl",
+      "row_output": "shards/agent-4.row_evaluations.jsonl",
+      "notes_output": "shards/agent-4.notes.md",
+      "first_source_id": "agent:ganplanner",
+      "last_source_id": "agent:workflowconceptsagent"
+    },
+    {
+      "shard_id": "plugin-mcp-1",
+      "rows": 26,
+      "kinds": [
+        [
+          "plugin",
+          26
+        ]
+      ],
+      "input": "shards/plugin-mcp-1.input.jsonl",
+      "row_output": "shards/plugin-mcp-1.row_evaluations.jsonl",
+      "notes_output": "shards/plugin-mcp-1.notes.md",
+      "first_source_id": "plugin:agentsdkdev",
+      "last_source_id": "plugin:cwcmakers"
+    },
+    {
+      "shard_id": "plugin-mcp-2",
+      "rows": 25,
+      "kinds": [
+        [
+          "mcp",
+          9
+        ],
+        [
+          "plugin",
+          16
+        ]
+      ],
+      "input": "shards/plugin-mcp-2.input.jsonl",
+      "row_output": "shards/plugin-mcp-2.row_evaluations.jsonl",
+      "notes_output": "shards/plugin-mcp-2.notes.md",
+      "first_source_id": "plugin:discord",
+      "last_source_id": "mcp:sequentialthinking"
+    },
+    {
+      "shard_id": "rule-1",
+      "rows": 21,
+      "kinds": [
+        [
+          "rule",
+          21
+        ]
+      ],
+      "input": "shards/rule-1.input.jsonl",
+      "row_output": "shards/rule-1.row_evaluations.jsonl",
+      "notes_output": "shards/rule-1.notes.md",
+      "first_source_id": "rule:commonagents",
+      "last_source_id": "rule:everythingclaudecodeguardrails"
+    },
+    {
+      "shard_id": "rule-2",
+      "rows": 21,
+      "kinds": [
+        [
+          "rule",
+          21
+        ]
+      ],
+      "input": "shards/rule-2.input.jsonl",
+      "row_output": "shards/rule-2.row_evaluations.jsonl",
+      "notes_output": "shards/rule-2.notes.md",
+      "first_source_id": "rule:harnesslifecyclecuration",
+      "last_source_id": "rule:zhtesting"
+    },
+    {
+      "shard_id": "hook-1",
+      "rows": 23,
+      "kinds": [
+        [
+          "hook",
+          23
+        ]
+      ],
+      "input": "shards/hook-1.input.jsonl",
+      "row_output": "shards/hook-1.row_evaluations.jsonl",
+      "notes_output": "shards/hook-1.notes.md",
+      "first_source_id": "hook:bdprimesh",
+      "last_source_id": "hook:desktopnotifyjs"
+    },
+    {
+      "shard_id": "hook-2",
+      "rows": 23,
+      "kinds": [
+        [
+          "hook",
+          23
+        ]
+      ],
+      "input": "shards/hook-2.input.jsonl",
+      "row_output": "shards/hook-2.row_evaluations.jsonl",
+      "notes_output": "shards/hook-2.notes.md",
+      "first_source_id": "hook:observesh",
+      "last_source_id": "hook:gitutilpy"
+    },
+    {
+      "shard_id": "hook-3",
+      "rows": 22,
+      "kinds": [
+        [
+          "hook",
+          22
+        ]
+      ],
+      "input": "shards/hook-3.input.jsonl",
+      "row_output": "shards/hook-3.row_evaluations.jsonl",
+      "notes_output": "shards/hook-3.notes.md",
+      "first_source_id": "hook:governancecapturejs",
+      "last_source_id": "hook:subagentstopjs"
+    },
+    {
+      "shard_id": "command-1",
+      "rows": 25,
+      "kinds": [
+        [
+          "command",
+          25
+        ]
+      ],
+      "input": "shards/command-1.input.jsonl",
+      "row_output": "shards/command-1.row_evaluations.jsonl",
+      "notes_output": "shards/command-1.notes.md",
+      "first_source_id": "command:adopt",
+      "last_source_id": "command:preparephases"
+    },
+    {
+      "shard_id": "command-2",
+      "rows": 25,
+      "kinds": [
+        [
+          "command",
+          25
+        ]
+      ],
+      "input": "shards/command-2.input.jsonl",
+      "row_output": "shards/command-2.row_evaluations.jsonl",
+      "notes_output": "shards/command-2.notes.md",
+      "first_source_id": "command:prpimplement",
+      "last_source_id": "command:cancelralph"
+    },
+    {
+      "shard_id": "command-3",
+      "rows": 25,
+      "kinds": [
+        [
+          "command",
+          25
+        ]
+      ],
+      "input": "shards/command-3.input.jsonl",
+      "row_output": "shards/command-3.row_evaluations.jsonl",
+      "notes_output": "shards/command-3.notes.md",
+      "first_source_id": "command:checkpoint",
+      "last_source_id": "command:instinctstatus"
+    },
+    {
+      "shard_id": "command-4",
+      "rows": 25,
+      "kinds": [
+        [
+          "command",
+          25
+        ]
+      ],
+      "input": "shards/command-4.input.jsonl",
+      "row_output": "shards/command-4.row_evaluations.jsonl",
+      "notes_output": "shards/command-4.notes.md",
+      "first_source_id": "command:jira",
+      "last_source_id": "command:qualitygate"
+    },
+    {
+      "shard_id": "command-5",
+      "rows": 22,
+      "kinds": [
+        [
+          "command",
+          22
+        ]
+      ],
+      "input": "shards/command-5.input.jsonl",
+      "row_output": "shards/command-5.row_evaluations.jsonl",
+      "notes_output": "shards/command-5.notes.md",
+      "first_source_id": "command:quizme",
+      "last_source_id": "command:writeplan"
+    }
+  ]
+}

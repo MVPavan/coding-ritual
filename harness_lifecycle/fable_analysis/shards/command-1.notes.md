@@ -1,0 +1,3 @@
+# Shard notes — command-1 (evaluator: Codex GPT-5.6-Sol xhigh)
+
+Read all 30 named source files plus referenced local skills, agents, rules, scripts, project overlays, and harness canon where commands were thin or overlap mattered. Weakest rows were `clean_gone`, `commit-push-pr`, `hookify`, and `aside`; their shallow usefulness labels missed destructive behavior, implicit mutation, runtime coupling, or excessive ceremony. The Codex role commands should converge on `use-codex`/`codex-runner`; `feature-dev` and `plan` overlap the local scoped planning stack; `modernize-map` contributes only selected principles to architecture research. The final `git status --short` matched the already-dirty state observed before source inspection; no files or Beads issues were modified.

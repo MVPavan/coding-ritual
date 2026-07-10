@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source_id": { "type": "string" },
+          "problem_solved": { "type": "string" },
+          "effectiveness": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "instruction_quality": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "clarity": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "precision": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "concision": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "structural_efficiency": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "actual_usefulness_verdict": { "type": "string", "enum": ["adopt", "merge", "rewrite", "defer", "reject_after_review"] },
+          "rationale": { "type": "string" },
+          "overlap_with_existing": { "type": "string" },
+          "candidate_cluster_key": { "type": "string" },
+          "evidence_notes": { "type": "string" }
+        },
+        "required": ["source_id", "problem_solved", "effectiveness", "instruction_quality", "clarity", "precision", "concision", "structural_efficiency", "actual_usefulness_verdict", "rationale", "overlap_with_existing", "candidate_cluster_key", "evidence_notes"]
+      }
+    },
+    "notes_markdown": { "type": "string" }
+  },
+  "required": ["evaluations", "notes_markdown"]
+}
