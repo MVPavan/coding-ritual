@@ -20,3 +20,9 @@ scratchpad/
 **/scratchpad/*
 .serena/
 .codebase-memory/
+# analysis shard intermediates — merged records are committed; these stay local for audit
+harness_lifecycle/*_analysis/shards/*.input.jsonl
+harness_lifecycle/*_analysis/shards/*.row_evaluations.jsonl
+harness_lifecycle/fable_analysis/raw_clusters.json
+harness_lifecycle/fable_analysis/cluster_consolidation_input.md
+harness_lifecycle/fable_analysis/tools/scratch/

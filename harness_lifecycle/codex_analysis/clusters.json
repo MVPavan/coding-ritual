@@ -1,0 +1,4447 @@
+{
+  "clusters": [
+    {
+      "average_score": 4.12,
+      "best_source_ids": [
+        "agent:codesimplicityreviewer",
+        "agent:correctnessreviewer",
+        "agent:maintainabilityreviewer"
+      ],
+      "candidate_cluster_keys": [
+        "code-review-api-contract",
+        "code-review-architecture-lens",
+        "code-review-core",
+        "code-review-correctness-lens",
+        "code-review-maintainability-lens",
+        "code-review-pattern-consistency",
+        "code-review-performance-lens",
+        "code-review-reliability-lens",
+        "code-review-risk-lenses",
+        "code-review-simplicity-lens",
+        "code-review-standards",
+        "comment-and-docstring-review",
+        "github-pr-feedback-resolution",
+        "local-and-pr-code-review",
+        "python-code-review",
+        "python-specific-code-review",
+        "review-and-quality-assurance",
+        "review-error-handling-silent-failures",
+        "review-feedback-discipline",
+        "structured-code-review",
+        "technology-pattern-library",
+        "third-party-code-review-service",
+        "type-and-invariant-review"
+      ],
+      "cluster_id": "C001-code-review-and-change-quality",
+      "cluster_key": "code-review-and-change-quality",
+      "decision": "merge",
+      "kinds": {
+        "agent": 18,
+        "command": 3,
+        "plugin": 3,
+        "rule": 2,
+        "skill": 6
+      },
+      "priority": "P0",
+      "problem_solved": "Review diffs for correctness, safety, maintainability, API contracts, performance, and project fit.",
+      "recommended_capability": "Code review and change quality",
+      "recommended_surface": "agent/skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "High leverage, but implementation should stay narrow and preserve existing local workflow boundaries.",
+      "secondary_relationships": [
+        "C009-hook-edit-and-doc-quality-gates",
+        "C018-code-intelligence-context-and-cost-controls",
+        "C019-document-requirements-and-spec-review",
+        "C024-hook-git-and-pr-quality-gates",
+        "C032-safe-refactor-and-code-simplification"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 32,
+      "source_ids": [
+        "skill:cereview",
+        "skill:pythonpatterns",
+        "skill:receivingcodereview",
+        "skill:requestingcodereview",
+        "skill:resolveprfeedback",
+        "skill:review",
+        "agent:adversarialreviewer",
+        "agent:apicontractreviewer",
+        "agent:architecturestrategist",
+        "agent:codereviewer",
+        "agent:codesimplicityreviewer",
+        "agent:commentanalyzer",
+        "agent:correctnessreviewer",
+        "agent:kieranpythonreviewer",
+        "agent:maintainabilityreviewer",
+        "agent:patternrecognitionspecialist",
+        "agent:performanceoracle",
+        "agent:performancereviewer",
+        "agent:prcommentresolver",
+        "agent:previouscommentsreviewer",
+        "agent:pythonreviewer",
+        "agent:reliabilityreviewer",
+        "agent:silentfailurehunter",
+        "agent:typedesignanalyzer",
+        "plugin:codereview",
+        "plugin:greptile",
+        "plugin:prreviewtoolkit",
+        "rule:commoncodereview",
+        "rule:zhcodereview",
+        "command:codereview",
+        "command:pythonreview",
+        "command:reviewpr"
+      ],
+      "source_names": [
+        "ce:review",
+        "python-patterns",
+        "receiving-code-review",
+        "requesting-code-review",
+        "resolve-pr-feedback",
+        "review",
+        "adversarial-reviewer",
+        "api-contract-reviewer",
+        "architecture-strategist",
+        "code-reviewer",
+        "code-simplicity-reviewer",
+        "comment-analyzer",
+        "correctness-reviewer",
+        "kieran-python-reviewer",
+        "maintainability-reviewer",
+        "pattern-recognition-specialist",
+        "performance-oracle",
+        "performance-reviewer",
+        "pr-comment-resolver",
+        "previous-comments-reviewer",
+        "python-reviewer",
+        "reliability-reviewer",
+        "silent-failure-hunter",
+        "type-design-analyzer",
+        "code-review",
+        "greptile",
+        "pr-review-toolkit",
+        "common/code-review",
+        "zh/code-review",
+        "code-review",
+        "python-review",
+        "review-pr"
+      ],
+      "verdict_counts": {
+        "adopt": 1,
+        "defer": 3,
+        "merge": 26,
+        "reject_after_review": 1,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 32 related candidate(s) such as ce:review, python-patterns, receiving-code-review... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.33,
+      "best_source_ids": [
+        "skill:systematicdebugging",
+        "agent:bugreproductionvalidator",
+        "skill:diagnosingbugs"
+      ],
+      "candidate_cluster_keys": [
+        "agent-failure-debugging",
+        "bug-reproduction-and-debugging",
+        "conversational-bug-report-capture",
+        "pytorch-runtime-debugging",
+        "systematic-bug-reproduction",
+        "systematic-debugging"
+      ],
+      "cluster_id": "C002-debugging-and-bug-reproduction",
+      "cluster_key": "debugging-and-bug-reproduction",
+      "decision": "merge",
+      "kinds": {
+        "agent": 2,
+        "skill": 5
+      },
+      "priority": "P0",
+      "problem_solved": "Reproduce failures, isolate root causes, and validate fixes before implementation claims.",
+      "recommended_capability": "Debugging and bug reproduction",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "High leverage, but implementation should stay narrow and preserve existing local workflow boundaries.",
+      "secondary_relationships": [],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 7,
+      "source_ids": [
+        "skill:agentintrospectiondebugging",
+        "skill:diagnosingbugs",
+        "skill:qa",
+        "skill:reproducebug",
+        "skill:systematicdebugging",
+        "agent:bugreproductionvalidator",
+        "agent:pytorchbuildresolver"
+      ],
+      "source_names": [
+        "agent-introspection-debugging",
+        "diagnosing-bugs",
+        "qa",
+        "reproduce-bug",
+        "systematic-debugging",
+        "bug-reproduction-validator",
+        "pytorch-build-resolver"
+      ],
+      "verdict_counts": {
+        "adopt": 1,
+        "defer": 1,
+        "merge": 5
+      },
+      "why_this_is_better": "Consolidates 7 related candidate(s) such as agent-introspection-debugging, diagnosing-bugs, qa... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.58,
+      "best_source_ids": [
+        "skill:checkinvariants",
+        "agent:specreviewer",
+        "command:checkinvariants"
+      ],
+      "candidate_cluster_keys": [
+        "codex-adapter-readiness-checks",
+        "harness-adoption-and-overlay-refresh",
+        "harness-and-tooling-doctor-checks",
+        "harness-installer-and-adoption",
+        "harness-setup-and-adoption",
+        "harness/adopt-project-overlay",
+        "harness/claude-to-codex-migration",
+        "mechanical-invariant-checking",
+        "project-invariant-verification",
+        "project-overlay-adoption",
+        "requirements-implementation-spec-review"
+      ],
+      "cluster_id": "C003-harness-adoption-migration-and-doctoring",
+      "cluster_key": "harness-adoption-migration-and-doctoring",
+      "decision": "merge",
+      "kinds": {
+        "agent": 1,
+        "command": 4,
+        "plugin": 2,
+        "skill": 5
+      },
+      "priority": "P0",
+      "problem_solved": "Adopt the harness into repos, migrate Claude/Codex assets, and verify local harness/tooling health.",
+      "recommended_capability": "Harness adoption, migration, and doctoring",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "High leverage, but implementation should stay narrow and preserve existing local workflow boundaries.",
+      "secondary_relationships": [
+        "C008-harness-authoring-and-agent-ops",
+        "C023-harness-lifecycle-and-reference-curation",
+        "C039-data-database-and-migration-safety"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 12,
+      "source_ids": [
+        "skill:adopt",
+        "skill:checkinvariants",
+        "skill:configureecc",
+        "skill:harnessadopt",
+        "skill:migrateclaudetocodex",
+        "agent:specreviewer",
+        "plugin:claudecodesetup",
+        "plugin:mvpplugin",
+        "command:adopt",
+        "command:checkinvariants",
+        "command:codexcheck",
+        "command:doctor"
+      ],
+      "source_names": [
+        "adopt",
+        "check-invariants",
+        "configure-ecc",
+        "harness-adopt",
+        "migrate-claude-to-codex",
+        "spec-reviewer",
+        "claude-code-setup",
+        "mvp-plugin",
+        "adopt",
+        "check-invariants",
+        "codex-check",
+        "doctor"
+      ],
+      "verdict_counts": {
+        "adopt": 10,
+        "merge": 2
+      },
+      "why_this_is_better": "Consolidates 12 related candidate(s) such as adopt, check-invariants, configure-ecc... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.49,
+      "best_source_ids": [
+        "agent:implementer",
+        "skill:codexrunner",
+        "plugin:codexadapter"
+      ],
+      "candidate_cluster_keys": [
+        "bounded-implementation-agent",
+        "codex-adversarial-code-review",
+        "codex-bounded-implementation",
+        "codex-delegation",
+        "codex-delegation-entrypoints",
+        "codex-delegation-runner",
+        "codex-invocation-policy",
+        "codex-readonly-critique",
+        "codex-readonly-diagnosis",
+        "codex-surface-routing",
+        "generalist-delegation-tiers"
+      ],
+      "cluster_id": "C004-codex-and-generalist-delegation",
+      "cluster_key": "codex-and-generalist-delegation",
+      "decision": "merge",
+      "kinds": {
+        "agent": 4,
+        "command": 6,
+        "plugin": 1,
+        "skill": 2
+      },
+      "priority": "P1",
+      "problem_solved": "Route bounded work to Codex or generalist delegates with inherited model/effort, scope, and verification.",
+      "recommended_capability": "Codex and generalist delegation",
+      "recommended_surface": "agent/command",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 13,
+      "source_ids": [
+        "skill:codexrunner",
+        "skill:usecodex",
+        "agent:claudemax",
+        "agent:fablemax",
+        "agent:fablexhigh",
+        "agent:implementer",
+        "plugin:codexadapter",
+        "command:codex",
+        "command:codexcritique",
+        "command:codexdiagnose",
+        "command:codeximplement",
+        "command:codexreview",
+        "command:usecodex"
+      ],
+      "source_names": [
+        "codex-runner",
+        "use-codex",
+        "claude-max",
+        "fable-max",
+        "fable-xhigh",
+        "implementer",
+        "codex-adapter",
+        "codex",
+        "codex-critique",
+        "codex-diagnose",
+        "codex-implement",
+        "codex-review",
+        "use-codex"
+      ],
+      "verdict_counts": {
+        "adopt": 13
+      },
+      "why_this_is_better": "Consolidates 13 related candidate(s) such as codex-runner, use-codex, claude-max... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.33,
+      "best_source_ids": [
+        "skill:safetyguard"
+      ],
+      "candidate_cluster_keys": [
+        "destructive-action-safety"
+      ],
+      "cluster_id": "C005-destructive-action-safety",
+      "cluster_key": "destructive-action-safety",
+      "decision": "merge",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Destructive Action Safety",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:safetyguard"
+      ],
+      "source_names": [
+        "safety-guard"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as safety-guard into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.33,
+      "best_source_ids": [
+        "skill:regexvsllmstructuredtext"
+      ],
+      "candidate_cluster_keys": [
+        "deterministic-parsing-policy"
+      ],
+      "cluster_id": "C006-deterministic-parsing-policy",
+      "cluster_key": "deterministic-parsing-policy",
+      "decision": "merge",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Deterministic Parsing Policy",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:regexvsllmstructuredtext"
+      ],
+      "source_names": [
+        "regex-vs-llm-structured-text"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as regex-vs-llm-structured-text into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.33,
+      "best_source_ids": [
+        "skill:skillstocktake",
+        "skill:skillcomply"
+      ],
+      "candidate_cluster_keys": [
+        "harness-quality-evals"
+      ],
+      "cluster_id": "C007-harness-quality-evals",
+      "cluster_key": "harness-quality-evals",
+      "decision": "merge",
+      "kinds": {
+        "skill": 2
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Harness Quality Evals",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 2,
+      "source_ids": [
+        "skill:skillcomply",
+        "skill:skillstocktake"
+      ],
+      "source_names": [
+        "skill-comply",
+        "skill-stocktake"
+      ],
+      "verdict_counts": {
+        "merge": 1,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 2 related candidate(s) such as skill-comply, skill-stocktake into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.02,
+      "best_source_ids": [
+        "skill:agentdevelopment",
+        "agent:harnessoptimizer",
+        "skill:commanddevelopment"
+      ],
+      "candidate_cluster_keys": [
+        "agent-coding-quality-guardrails",
+        "agent-harness-design",
+        "agent-instruction-file-maintenance",
+        "agent-instruction-file-management",
+        "agent-native-cli-readiness",
+        "agent-orchestration/autonomous-loops",
+        "agent-sdk-development-support",
+        "cli-agent-readiness",
+        "git-platform-integration",
+        "harness-authoring-agents",
+        "harness-authoring-commands",
+        "harness-automation-recommendations",
+        "harness-hook-authoring",
+        "harness-optimization",
+        "harness-rule-distillation"
+      ],
+      "cluster_id": "C008-harness-authoring-and-agent-ops",
+      "cluster_key": "harness-authoring-and-agent-ops",
+      "decision": "merge",
+      "kinds": {
+        "agent": 4,
+        "plugin": 3,
+        "rule": 1,
+        "skill": 8
+      },
+      "priority": "P1",
+      "problem_solved": "Create, maintain, and tune agents, rules, commands, hooks, and harness operating modes.",
+      "recommended_capability": "Harness authoring and agent operations",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C003-harness-adoption-migration-and-doctoring",
+        "C023-harness-lifecycle-and-reference-curation",
+        "C029-plugin-and-mcp-authoring",
+        "C034-skill-authoring-evaluation-and-portfolio",
+        "C043-agent-orchestration-and-autonomous-loops"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 16,
+      "source_ids": [
+        "skill:agentdevelopment",
+        "skill:agentharnessconstruction",
+        "skill:autonomousagentharness",
+        "skill:claudeautomationrecommender",
+        "skill:claudemdimprover",
+        "skill:commanddevelopment",
+        "skill:hookdevelopment",
+        "skill:rulesdistill",
+        "agent:agentnativereviewer",
+        "agent:cliagentreadinessreviewer",
+        "agent:clireadinessreviewer",
+        "agent:harnessoptimizer",
+        "plugin:agentsdkdev",
+        "plugin:claudemdmanagement",
+        "plugin:gitlab",
+        "rule:core03akguidelines"
+      ],
+      "source_names": [
+        "agent-development",
+        "agent-harness-construction",
+        "autonomous-agent-harness",
+        "claude-automation-recommender",
+        "claude-md-improver",
+        "command-development",
+        "hook-development",
+        "rules-distill",
+        "agent-native-reviewer",
+        "cli-agent-readiness-reviewer",
+        "cli-readiness-reviewer",
+        "harness-optimizer",
+        "agent-sdk-dev",
+        "claude-md-management",
+        "gitlab",
+        "core/03-ak-guidelines"
+      ],
+      "verdict_counts": {
+        "adopt": 2,
+        "defer": 1,
+        "merge": 10,
+        "rewrite": 3
+      },
+      "why_this_is_better": "Consolidates 16 related candidate(s) such as agent-development, agent-harness-construction, autonomous-agent-harness... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.18,
+      "best_source_ids": [
+        "hook:blockgeneratededitspy",
+        "hook:freshnesschecksh",
+        "hook:harnessstalenessnudgesh"
+      ],
+      "candidate_cluster_keys": [
+        "hook-doc-hygiene-warning",
+        "hook-edit-quality-gate",
+        "hook-generated-file-guard",
+        "hook-staleness-freshness"
+      ],
+      "cluster_id": "C009-hook-edit-and-doc-quality-gates",
+      "cluster_key": "hook-edit-and-doc-quality-gates",
+      "decision": "merge",
+      "kinds": {
+        "hook": 10
+      },
+      "priority": "P1",
+      "problem_solved": "Run targeted quality checks after edits and warn on stale, generated, or low-quality docs.",
+      "recommended_capability": "Hook edit and documentation quality gates",
+      "recommended_surface": "hook",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C001-code-review-and-change-quality",
+        "C024-hook-git-and-pr-quality-gates",
+        "C025-hook-observability-and-notifications",
+        "C026-hook-security-and-command-safety",
+        "C051-edit-time-quality-hooks"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 10,
+      "source_ids": [
+        "hook:blockgeneratededitspy",
+        "hook:blockgeneratededitssh",
+        "hook:docfilewarningjs",
+        "hook:freshnesschecksh",
+        "hook:harnessstalenessnudgesh",
+        "hook:posteditaccumulatorjs",
+        "hook:posteditformatjs",
+        "hook:postedittypecheckjs",
+        "hook:prewritedocwarnjs",
+        "hook:qualitygatejs"
+      ],
+      "source_names": [
+        "block-generated-edits.py",
+        "block-generated-edits.sh",
+        "doc-file-warning.js",
+        "freshness-check.sh",
+        "harness-staleness-nudge.sh",
+        "post-edit-accumulator.js",
+        "post-edit-format.js",
+        "post-edit-typecheck.js",
+        "pre-write-doc-warn.js",
+        "quality-gate.js"
+      ],
+      "verdict_counts": {
+        "adopt": 3,
+        "merge": 6,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 10 related candidate(s) such as block-generated-edits.py, block-generated-edits.sh, doc-file-warning.js... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.33,
+      "best_source_ids": [
+        "command:rpiimplement"
+      ],
+      "candidate_cluster_keys": [
+        "phased-implementation-with-validation"
+      ],
+      "cluster_id": "C010-phased-implementation-with-validation",
+      "cluster_key": "phased-implementation-with-validation",
+      "decision": "merge",
+      "kinds": {
+        "command": 1
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Phased Implementation With Validation",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "command:rpiimplement"
+      ],
+      "source_names": [
+        "rpi/implement"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as rpi/implement into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.0,
+      "best_source_ids": [
+        "skill:prototype"
+      ],
+      "candidate_cluster_keys": [
+        "prototyping/throwaway-validation"
+      ],
+      "cluster_id": "C011-prototyping-throwaway-validation",
+      "cluster_key": "prototyping-throwaway-validation",
+      "decision": "merge",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Prototyping Throwaway Validation",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:prototype"
+      ],
+      "source_names": [
+        "prototype"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as prototype into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.17,
+      "best_source_ids": [
+        "skill:automationauditops"
+      ],
+      "candidate_cluster_keys": [
+        "workspace-surface-audit"
+      ],
+      "cluster_id": "C012-workspace-surface-audit",
+      "cluster_key": "workspace-surface-audit",
+      "decision": "merge",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Workspace Surface Audit",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:automationauditops"
+      ],
+      "source_names": [
+        "automation-audit-ops"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as automation-audit-ops into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 4.83,
+      "best_source_ids": [
+        "command:codexresearch"
+      ],
+      "candidate_cluster_keys": [
+        "codex-cited-research"
+      ],
+      "cluster_id": "C013-codex-cited-research",
+      "cluster_key": "codex-cited-research",
+      "decision": "adopt_as_is",
+      "kinds": {
+        "command": 1
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Codex Cited Research",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Keep or adopt the best source directly, with only path/name adjustments required by this harness.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "command:codexresearch"
+      ],
+      "source_names": [
+        "codex-research"
+      ],
+      "verdict_counts": {
+        "adopt": 1
+      },
+      "why_this_is_better": "The candidate set is already strong and narrow; adopting as-is preserves the existing behavior without extra abstraction."
+    },
+    {
+      "average_score": 4.83,
+      "best_source_ids": [
+        "skill:akguide"
+      ],
+      "candidate_cluster_keys": [
+        "llm-coding-discipline"
+      ],
+      "cluster_id": "C014-llm-coding-discipline",
+      "cluster_key": "llm-coding-discipline",
+      "decision": "adopt_as_is",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Llm Coding Discipline",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Keep or adopt the best source directly, with only path/name adjustments required by this harness.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:akguide"
+      ],
+      "source_names": [
+        "ak-guide"
+      ],
+      "verdict_counts": {
+        "adopt": 1
+      },
+      "why_this_is_better": "The candidate set is already strong and narrow; adopting as-is preserves the existing behavior without extra abstraction."
+    },
+    {
+      "average_score": 4.83,
+      "best_source_ids": [
+        "skill:designevolve"
+      ],
+      "candidate_cluster_keys": [
+        "versioned-design-doc-evolution"
+      ],
+      "cluster_id": "C015-versioned-design-doc-evolution",
+      "cluster_key": "versioned-design-doc-evolution",
+      "decision": "adopt_as_is",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P1",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Versioned Design Doc Evolution",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Keep or adopt the best source directly, with only path/name adjustments required by this harness.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:designevolve"
+      ],
+      "source_names": [
+        "design-evolve"
+      ],
+      "verdict_counts": {
+        "adopt": 1
+      },
+      "why_this_is_better": "The candidate set is already strong and narrow; adopting as-is preserves the existing behavior without extra abstraction."
+    },
+    {
+      "average_score": 3.76,
+      "best_source_ids": [
+        "skill:codebasearchitectureresearch",
+        "skill:grillme",
+        "skill:apiconnectorbuilder"
+      ],
+      "candidate_cluster_keys": [
+        "adversarial-design-review",
+        "agent-apps/architecture",
+        "agent-apps/audit",
+        "api-design-guidance",
+        "architecture-critique",
+        "architecture-improvement-review",
+        "architecture-pattern-guidance",
+        "architecture-research-reporting",
+        "architecture/implementation-blueprint",
+        "architecture/interface-design-exploration",
+        "codebase-architecture-research",
+        "codebase-onboarding-and-architecture-map",
+        "codebase-topology-and-architecture-mapping",
+        "codemap-refresh",
+        "decision-records-and-project-memory",
+        "django-application-guidance",
+        "domain-language-glossary",
+        "integration-pattern-matching",
+        "legacy-greenfield-modernization",
+        "module-and-domain-design",
+        "repo-docs-research",
+        "service-scaffolding"
+      ],
+      "cluster_id": "C016-architecture-codebase-and-domain-modeling",
+      "cluster_key": "architecture-codebase-and-domain-modeling",
+      "decision": "merge",
+      "kinds": {
+        "agent": 4,
+        "command": 3,
+        "mcp": 1,
+        "skill": 16
+      },
+      "priority": "P2",
+      "problem_solved": "Map architecture and domain models before changing complex systems.",
+      "recommended_capability": "Architecture, codebase, and domain modeling",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C044-domain-and-technology-specific-packs"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 24,
+      "source_ids": [
+        "skill:agentnativearchitecture",
+        "skill:agentnativeaudit",
+        "skill:apiconnectorbuilder",
+        "skill:apidesign",
+        "skill:architecturedecisionrecords",
+        "skill:blueprint",
+        "skill:codebasearchitectureresearch",
+        "skill:codebasedesign",
+        "skill:codebaseonboarding",
+        "skill:designaninterface",
+        "skill:djangopatterns",
+        "skill:domainmodeling",
+        "skill:grillme",
+        "skill:hexagonalarchitecture",
+        "skill:improvecodebasearchitecture",
+        "skill:ubiquitouslanguage",
+        "agent:architecturecritic",
+        "agent:codeexplorer",
+        "agent:reporesearchanalyst",
+        "agent:scaffolder",
+        "mcp:deepwiki",
+        "command:modernizemap",
+        "command:modernizereimagine",
+        "command:updatecodemaps"
+      ],
+      "source_names": [
+        "agent-native-architecture",
+        "agent-native-audit",
+        "api-connector-builder",
+        "api-design",
+        "architecture-decision-records",
+        "blueprint",
+        "codebase-architecture-research",
+        "codebase-design",
+        "codebase-onboarding",
+        "design-an-interface",
+        "django-patterns",
+        "domain-modeling",
+        "grill-me",
+        "hexagonal-architecture",
+        "improve-codebase-architecture",
+        "ubiquitous-language",
+        "architecture-critic",
+        "code-explorer",
+        "repo-research-analyst",
+        "scaffolder",
+        "deepwiki",
+        "modernize-map",
+        "modernize-reimagine",
+        "update-codemaps"
+      ],
+      "verdict_counts": {
+        "adopt": 2,
+        "defer": 8,
+        "merge": 13,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 24 related candidate(s) such as agent-native-architecture, agent-native-audit, api-connector-builder... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.88,
+      "best_source_ids": [
+        "skill:beads",
+        "command:preparephases",
+        "command:runphases"
+      ],
+      "candidate_cluster_keys": [
+        "beads-backed-sequential-phase-execution",
+        "beads-backed-workstream-preparation",
+        "beads-phase-execution",
+        "docs/project-status-artifact",
+        "durable-task-tracking",
+        "external-issue-tracker-integration",
+        "git-hygiene-and-branch-maintenance",
+        "hooks-governance",
+        "issue-decomposition-triage",
+        "issue-pr-flow-ops",
+        "llm-cost-optimization",
+        "tracking/file-todo-create",
+        "tracking/file-todo-resolve",
+        "tracking/todo-triage"
+      ],
+      "cluster_id": "C017-beads-workstreams-and-task-tracking",
+      "cluster_key": "beads-workstreams-and-task-tracking",
+      "decision": "merge",
+      "kinds": {
+        "command": 3,
+        "rule": 2,
+        "skill": 12
+      },
+      "priority": "P2",
+      "problem_solved": "Convert work into durable Beads tasks, phases, and trackable issue or TODO flows.",
+      "recommended_capability": "Beads workstreams and task tracking",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 17,
+      "source_ids": [
+        "skill:beads",
+        "skill:costawarellmpipeline",
+        "skill:gitcleangonebranches",
+        "skill:phaseexecution",
+        "skill:projectartifact",
+        "skill:projectflowops",
+        "skill:runphases",
+        "skill:todocreate",
+        "skill:todoresolve",
+        "skill:todotriage",
+        "skill:toissues",
+        "skill:triage",
+        "rule:commonhooks",
+        "rule:zhhooks",
+        "command:jira",
+        "command:preparephases",
+        "command:runphases"
+      ],
+      "source_names": [
+        "beads",
+        "cost-aware-llm-pipeline",
+        "git-clean-gone-branches",
+        "phase-execution",
+        "project-artifact",
+        "project-flow-ops",
+        "run-phases",
+        "todo-create",
+        "todo-resolve",
+        "todo-triage",
+        "to-issues",
+        "triage",
+        "common-hooks",
+        "zh/hooks",
+        "jira",
+        "prepare-phases",
+        "run-phases"
+      ],
+      "verdict_counts": {
+        "adopt": 5,
+        "defer": 2,
+        "merge": 6,
+        "reject_after_review": 3,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 17 related candidate(s) such as beads, cost-aware-llm-pipeline, git-clean-gone-branches... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.52,
+      "best_source_ids": [
+        "skill:graphfirst",
+        "command:indexrepo",
+        "command:disableforproject"
+      ],
+      "candidate_cluster_keys": [
+        "agentic-engineering-operating-model",
+        "code-intel-enable-disable-controls",
+        "code-intel-index-management",
+        "context-performance-model-selection",
+        "context-preserving-side-questions",
+        "graph-first-code-intelligence",
+        "model-routing",
+        "response-depth-and-token-budgeting"
+      ],
+      "cluster_id": "C018-code-intelligence-context-and-cost-controls",
+      "cluster_key": "code-intelligence-context-and-cost-controls",
+      "decision": "merge",
+      "kinds": {
+        "command": 4,
+        "rule": 2,
+        "skill": 3
+      },
+      "priority": "P2",
+      "problem_solved": "Use graph/code intelligence, context budgets, and cost/model routing to keep agent work efficient.",
+      "recommended_capability": "Code intelligence, context, and cost controls",
+      "recommended_surface": "skill/plugin",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C001-code-review-and-change-quality",
+        "C032-safe-refactor-and-code-simplification"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 9,
+      "source_ids": [
+        "skill:agenticengineering",
+        "skill:graphfirst",
+        "skill:tokenbudgetadvisor",
+        "rule:commonperformance",
+        "rule:zhperformance",
+        "command:aside",
+        "command:disableforproject",
+        "command:indexrepo",
+        "command:modelroute"
+      ],
+      "source_names": [
+        "agentic-engineering",
+        "graph-first",
+        "token-budget-advisor",
+        "common-performance",
+        "zh/performance",
+        "aside",
+        "disable-for-project",
+        "index-repo",
+        "model-route"
+      ],
+      "verdict_counts": {
+        "adopt": 3,
+        "merge": 3,
+        "reject_after_review": 2,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 9 related candidate(s) such as agentic-engineering, graph-first, token-budget-advisor... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.75,
+      "best_source_ids": [
+        "agent:feasibilityreviewer",
+        "agent:projectstandardsreviewer",
+        "agent:securitylensreviewer"
+      ],
+      "candidate_cluster_keys": [
+        "code-simplification",
+        "compound-workflow-learning-capture",
+        "continuous-learning-observer",
+        "document-review-adversarial-risk-lenses",
+        "document-review-feasibility-lenses",
+        "durable-learning-capture",
+        "git-commit-workflow",
+        "instinct-promotion",
+        "instinct-system-project-stats",
+        "memory-portability-and-audit",
+        "project-principles-validation",
+        "project-standards-review",
+        "requirements-and-plan-review",
+        "requirements-flow-and-spec-review",
+        "research/deep-research",
+        "security-review-and-threat-modeling",
+        "session-learning-and-skill-extraction"
+      ],
+      "cluster_id": "C019-document-requirements-and-spec-review",
+      "cluster_key": "document-requirements-and-spec-review",
+      "decision": "merge",
+      "kinds": {
+        "agent": 7,
+        "command": 5,
+        "plugin": 2,
+        "skill": 4
+      },
+      "priority": "P2",
+      "problem_solved": "Review plans and requirements for assumptions, feasibility, consistency, scope, and implementation fit.",
+      "recommended_capability": "Document, requirements, and spec review",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C001-code-review-and-change-quality",
+        "C033-security-and-privacy-review"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 18,
+      "source_ids": [
+        "skill:continuouslearningv2",
+        "skill:deepresearch",
+        "skill:documentreview",
+        "skill:gitcommit",
+        "agent:adversarialdocumentreviewer",
+        "agent:constitutionalvalidator",
+        "agent:feasibilityreviewer",
+        "agent:observer",
+        "agent:projectstandardsreviewer",
+        "agent:securitylensreviewer",
+        "agent:specflowanalyzer",
+        "plugin:codesimplifier",
+        "plugin:compoundengineering",
+        "command:instinctexport",
+        "command:instinctstatus",
+        "command:learneval",
+        "command:projects",
+        "command:promote"
+      ],
+      "source_names": [
+        "continuous-learning-v2",
+        "deep-research",
+        "document-review",
+        "git-commit",
+        "adversarial-document-reviewer",
+        "constitutional-validator",
+        "feasibility-reviewer",
+        "observer",
+        "project-standards-reviewer",
+        "security-lens-reviewer",
+        "spec-flow-analyzer",
+        "code-simplifier",
+        "compound-engineering",
+        "instinct-export",
+        "instinct-status",
+        "learn-eval",
+        "projects",
+        "promote"
+      ],
+      "verdict_counts": {
+        "adopt": 2,
+        "defer": 2,
+        "merge": 9,
+        "reject_after_review": 2,
+        "rewrite": 3
+      },
+      "why_this_is_better": "Consolidates 18 related candidate(s) such as continuous-learning-v2, deep-research, document-review... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.92,
+      "best_source_ids": [
+        "agent:docsresearcher",
+        "rule:core02knowledgediscoverability",
+        "agent:frameworkdocsresearcher"
+      ],
+      "candidate_cluster_keys": [
+        "docs-and-best-practices-research",
+        "docs-sync",
+        "docs/code-walkthroughs",
+        "documentation-maintenance",
+        "evidence-first-research",
+        "html-report-artifacts",
+        "knowledge-discoverability",
+        "knowledge-refresh",
+        "learning/coding-tutor",
+        "live-documentation-lookup",
+        "markdown-docs-standards",
+        "official-documentation-lookup",
+        "repo-doc-placeholder",
+        "repo-onboarding-docs",
+        "ruleset-readme-docs",
+        "session-learning-memory",
+        "web-research",
+        "workspace-document-ops"
+      ],
+      "cluster_id": "C020-documentation-research-and-reporting",
+      "cluster_key": "documentation-research-and-reporting",
+      "decision": "merge",
+      "kinds": {
+        "agent": 6,
+        "command": 3,
+        "mcp": 2,
+        "plugin": 1,
+        "rule": 4,
+        "skill": 9
+      },
+      "priority": "P2",
+      "problem_solved": "Find current docs, synthesize research, maintain project docs, and produce readable reports.",
+      "recommended_capability": "Documentation, research, and reporting",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 25,
+      "source_ids": [
+        "skill:cecompoundrefresh",
+        "skill:codetour",
+        "skill:codingtutor",
+        "skill:documentationlookup",
+        "skill:googleworkspaceops",
+        "skill:htmlartifact",
+        "skill:onboarding",
+        "skill:researchops",
+        "skill:searchfirst",
+        "agent:bestpracticesresearcher",
+        "agent:docslookup",
+        "agent:docsresearcher",
+        "agent:documentationanalystwriter",
+        "agent:docupdater",
+        "agent:frameworkdocsresearcher",
+        "plugin:context7",
+        "mcp:context7",
+        "mcp:exa",
+        "rule:core02knowledgediscoverability",
+        "rule:markdowndocs",
+        "rule:readme",
+        "rule:zhreadme",
+        "command:readme",
+        "command:reviseclaudemd",
+        "command:updatedocs"
+      ],
+      "source_names": [
+        "ce:compound-refresh",
+        "code-tour",
+        "coding-tutor",
+        "documentation-lookup",
+        "google-workspace-ops",
+        "html-artifact",
+        "onboarding",
+        "research-ops",
+        "search-first",
+        "best-practices-researcher",
+        "docs-lookup",
+        "docs-researcher",
+        "documentation-analyst-writer",
+        "doc-updater",
+        "framework-docs-researcher",
+        "context7",
+        "context7",
+        "exa",
+        "core/02-knowledge-discoverability",
+        "markdown-docs",
+        "README",
+        "zh/README",
+        "README",
+        "revise-claude-md",
+        "update-docs"
+      ],
+      "verdict_counts": {
+        "adopt": 7,
+        "defer": 3,
+        "merge": 11,
+        "reject_after_review": 3,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 25 related candidate(s) such as ce:compound-refresh, code-tour, coding-tutor... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.67,
+      "best_source_ids": [
+        "command:qualitygate"
+      ],
+      "candidate_cluster_keys": [
+        "format-quality-gate"
+      ],
+      "cluster_id": "C021-format-quality-gate",
+      "cluster_key": "format-quality-gate",
+      "decision": "merge",
+      "kinds": {
+        "command": 1
+      },
+      "priority": "P2",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Format Quality Gate",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "command:qualitygate"
+      ],
+      "source_names": [
+        "quality-gate"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as quality-gate into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.7,
+      "best_source_ids": [
+        "skill:resolvingmergeconflicts",
+        "mcp:github",
+        "skill:gitguardrailsclaudecode"
+      ],
+      "candidate_cluster_keys": [
+        "branch-completion-and-pr-flow",
+        "code-intel-toolchain-setup",
+        "docs/github-pages-deploy",
+        "git-branch-worktree-cleanup",
+        "git-commit-and-publish-workflows",
+        "git-commit-workflow",
+        "git-conflict-resolution",
+        "git-natural-language-commit",
+        "git-pr-workflow",
+        "git-safety-guardrails",
+        "git/workflow-guidance",
+        "github-issue-intelligence",
+        "github-pr-triage-and-review-queue",
+        "github-workflow-integration",
+        "notification-routing-ops",
+        "open-source-release-prep",
+        "pr-ui-demo-video",
+        "public-release-sanitization",
+        "release-changelog-generation",
+        "repo-history-and-institutional-research"
+      ],
+      "cluster_id": "C022-git-github-and-release-workflows",
+      "cluster_key": "git-github-and-release-workflows",
+      "decision": "merge",
+      "kinds": {
+        "agent": 5,
+        "command": 7,
+        "mcp": 1,
+        "plugin": 2,
+        "rule": 2,
+        "skill": 10
+      },
+      "priority": "P2",
+      "problem_solved": "Prepare commits, branches, PRs, release notes, and GitHub workflows with explicit safety.",
+      "recommended_capability": "Git, GitHub, and release workflows",
+      "recommended_surface": "command/skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C024-hook-git-and-pr-quality-gates",
+        "C028-planning-prd-and-implementation-workflows"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 27,
+      "source_ids": [
+        "skill:changelog",
+        "skill:deploydocs",
+        "skill:featurevideo",
+        "skill:finishingadevelopmentbranch",
+        "skill:gitcommitpushpr",
+        "skill:gitguardrailsclaudecode",
+        "skill:gitworkflow",
+        "skill:opensourcepipeline",
+        "skill:resolvingmergeconflicts",
+        "skill:unifiednotificationsops",
+        "agent:githistoryanalyzer",
+        "agent:issueintelligenceanalyst",
+        "agent:opensourceforker",
+        "agent:opensourcepackager",
+        "agent:opensourcesanitizer",
+        "plugin:commitcommands",
+        "plugin:github",
+        "mcp:github",
+        "rule:commongitworkflow",
+        "rule:zhgitworkflow",
+        "command:cleangone",
+        "command:commit",
+        "command:commitpushpr",
+        "command:prpcommit",
+        "command:prppr",
+        "command:setup",
+        "command:triageprs"
+      ],
+      "source_names": [
+        "changelog",
+        "deploy-docs",
+        "feature-video",
+        "finishing-a-development-branch",
+        "git-commit-push-pr",
+        "git-guardrails-claude-code",
+        "git-workflow",
+        "opensource-pipeline",
+        "resolving-merge-conflicts",
+        "unified-notifications-ops",
+        "git-history-analyzer",
+        "issue-intelligence-analyst",
+        "opensource-forker",
+        "opensource-packager",
+        "opensource-sanitizer",
+        "commit-commands",
+        "github",
+        "github",
+        "common-git-workflow",
+        "zh/git-workflow",
+        "clean_gone",
+        "commit",
+        "commit-push-pr",
+        "prp-commit",
+        "prp-pr",
+        "setup",
+        "triage-prs"
+      ],
+      "verdict_counts": {
+        "adopt": 3,
+        "defer": 7,
+        "merge": 13,
+        "reject_after_review": 1,
+        "rewrite": 3
+      },
+      "why_this_is_better": "Consolidates 27 related candidate(s) such as changelog, deploy-docs, feature-video... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.75,
+      "best_source_ids": [
+        "command:harnessstatus",
+        "command:update",
+        "skill:refreshharnessfromreference"
+      ],
+      "candidate_cluster_keys": [
+        "asset-catalog-trimming",
+        "audit/repo-asset-scan",
+        "compound-plugin-self-update",
+        "harness-audit-scorecard",
+        "harness-core-resync",
+        "harness-docs-drift-review",
+        "harness-lifecycle-curation",
+        "harness-security-scan",
+        "harness/reference-capability-evaluation",
+        "harness/reference-refresh",
+        "mega-bundle-harvesting",
+        "platform-drift-maintenance",
+        "reference-harness-drift-status",
+        "reference-harness-gap-scanning",
+        "reference-harness-research"
+      ],
+      "cluster_id": "C023-harness-lifecycle-and-reference-curation",
+      "cluster_key": "harness-lifecycle-and-reference-curation",
+      "decision": "merge",
+      "kinds": {
+        "agent": 6,
+        "command": 9,
+        "plugin": 1,
+        "rule": 1,
+        "skill": 6
+      },
+      "priority": "P2",
+      "problem_solved": "Scan reference harnesses, track drift, curate candidates, and avoid stale harness documentation.",
+      "recommended_capability": "Harness lifecycle and reference curation",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C003-harness-adoption-migration-and-doctoring",
+        "C008-harness-authoring-and-agent-ops",
+        "C053-hook-session-lifecycle-and-memory"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 23,
+      "source_ids": [
+        "skill:agentsort",
+        "skill:ceupdate",
+        "skill:harnessevaluate",
+        "skill:refreshharnessfromreference",
+        "skill:reposcan",
+        "skill:securityscan",
+        "agent:developmentworkflowsresearchagent",
+        "agent:workflowclaudecommandsagent",
+        "agent:workflowclaudesettingsagent",
+        "agent:workflowclaudeskillsagent",
+        "agent:workflowclaudesubagentsagent",
+        "agent:workflowconceptsagent",
+        "plugin:ecc",
+        "rule:harnesslifecyclecuration",
+        "command:harnessaudit",
+        "command:harnessscan",
+        "command:harnessstatus",
+        "command:update",
+        "command:workflowsbestpracticeworkflowclaudecommands",
+        "command:workflowsbestpracticeworkflowclaudesettings",
+        "command:workflowsbestpracticeworkflowclaudeskills",
+        "command:workflowsbestpracticeworkflowclaudesubagents",
+        "command:workflowsbestpracticeworkflowconcepts"
+      ],
+      "source_names": [
+        "agent-sort",
+        "ce-update",
+        "harness-evaluate",
+        "refresh-harness-from-reference",
+        "repo-scan",
+        "security-scan",
+        "development-workflows-research-agent",
+        "workflow-claude-commands-agent",
+        "workflow-claude-settings-agent",
+        "workflow-claude-skills-agent",
+        "workflow-claude-subagents-agent",
+        "workflow-concepts-agent",
+        "ecc",
+        "harness-lifecycle/curation",
+        "harness-audit",
+        "harness-scan",
+        "harness-status",
+        "update",
+        "workflows/best-practice/workflow-claude-commands",
+        "workflows/best-practice/workflow-claude-settings",
+        "workflows/best-practice/workflow-claude-skills",
+        "workflows/best-practice/workflow-claude-subagents",
+        "workflows/best-practice/workflow-concepts"
+      ],
+      "verdict_counts": {
+        "adopt": 5,
+        "defer": 2,
+        "merge": 14,
+        "reject_after_review": 1,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 23 related candidate(s) such as agent-sort, ce-update, harness-evaluate... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.37,
+      "best_source_ids": [
+        "hook:pretoolusepy",
+        "hook:userpromptsubmitpy",
+        "hook:postbashprcreatedjs"
+      ],
+      "candidate_cluster_keys": [
+        "hook-autonomous-loop-stop",
+        "hook-git-pr-quality",
+        "hook-hook-profile-plumbing",
+        "hook-package-plumbing",
+        "hook-policy-engine-pre-post-prompt-stop"
+      ],
+      "cluster_id": "C024-hook-git-and-pr-quality-gates",
+      "cluster_key": "hook-git-and-pr-quality-gates",
+      "decision": "merge",
+      "kinds": {
+        "hook": 9
+      },
+      "priority": "P2",
+      "problem_solved": "Guard commit and PR workflows with staged-file, branch, and message checks.",
+      "recommended_capability": "Hook git and PR quality gates",
+      "recommended_surface": "hook",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C001-code-review-and-change-quality",
+        "C009-hook-edit-and-doc-quality-gates",
+        "C022-git-github-and-release-workflows",
+        "C025-hook-observability-and-notifications",
+        "C026-hook-security-and-command-safety"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 9,
+      "source_ids": [
+        "hook:initpy",
+        "hook:postbashprcreatedjs",
+        "hook:prebashcommitqualityjs",
+        "hook:prebashgitpushreminderjs",
+        "hook:pretoolusepy",
+        "hook:runwithflagsjs",
+        "hook:runwithflagsshellsh",
+        "hook:stophooksh",
+        "hook:userpromptsubmitpy"
+      ],
+      "source_names": [
+        "__init__.py",
+        "post-bash-pr-created.js",
+        "pre-bash-commit-quality.js",
+        "pre-bash-git-push-reminder.js",
+        "pretooluse.py",
+        "run-with-flags.js",
+        "run-with-flags-shell.sh",
+        "stop-hook.sh",
+        "userpromptsubmit.py"
+      ],
+      "verdict_counts": {
+        "merge": 6,
+        "reject_after_review": 2,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 9 related candidate(s) such as __init__.py, post-bash-pr-created.js, pre-bash-commit-quality.js... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.52,
+      "best_source_ids": [
+        "hook:posttoolusepy",
+        "hook:mcphealthcheckjs",
+        "hook:prebashtmuxreminderjs"
+      ],
+      "candidate_cluster_keys": [
+        "hook-build-notification",
+        "hook-generic-tool-event-adapters",
+        "hook-mcp-health-observability",
+        "hook-notification-audit-dispatch",
+        "hook-policy-engine-pre-post-prompt-stop",
+        "hook-tmux-dev-server"
+      ],
+      "cluster_id": "C025-hook-observability-and-notifications",
+      "cluster_key": "hook-observability-and-notifications",
+      "decision": "merge",
+      "kinds": {
+        "hook": 9
+      },
+      "priority": "P2",
+      "problem_solved": "Track MCP health, costs, notifications, tmux/dev-server state, and operational signals.",
+      "recommended_capability": "Hook observability and notifications",
+      "recommended_surface": "hook",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C009-hook-edit-and-doc-quality-gates",
+        "C024-hook-git-and-pr-quality-gates",
+        "C026-hook-security-and-command-safety",
+        "C053-hook-session-lifecycle-and-memory",
+        "C066-hook-authoring-policy-and-plumbing"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 9,
+      "source_ids": [
+        "hook:aftermcpexecutionjs",
+        "hook:aftershellexecutionjs",
+        "hook:beforemcpexecutionjs",
+        "hook:hookspy",
+        "hook:mcphealthcheckjs",
+        "hook:postbashbuildcompletejs",
+        "hook:posttoolusepy",
+        "hook:prebashdevserverblockjs",
+        "hook:prebashtmuxreminderjs"
+      ],
+      "source_names": [
+        "after-mcp-execution.js",
+        "after-shell-execution.js",
+        "before-mcp-execution.js",
+        "hooks.py",
+        "mcp-health-check.js",
+        "post-bash-build-complete.js",
+        "posttooluse.py",
+        "pre-bash-dev-server-block.js",
+        "pre-bash-tmux-reminder.js"
+      ],
+      "verdict_counts": {
+        "defer": 2,
+        "merge": 4,
+        "reject_after_review": 2,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 9 related candidate(s) such as after-mcp-execution.js, after-shell-execution.js, before-mcp-execution.js... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.81,
+      "best_source_ids": [
+        "hook:blockdangerouscommandssh",
+        "hook:reviewapipy",
+        "hook:configprotectionjs"
+      ],
+      "candidate_cluster_keys": [
+        "hook-authoring-and-guardrail-management",
+        "hook-bash-command-audit",
+        "hook-command-safety-dangerous",
+        "hook-config-protection",
+        "hook-hook-profile-plumbing",
+        "hook-prompt-secret-warning",
+        "hook-python-static-analysis",
+        "hook-read-privacy-warning",
+        "hook-security-reminders-patterns",
+        "hook-security-review-agentic",
+        "hook-security-review-support"
+      ],
+      "cluster_id": "C026-hook-security-and-command-safety",
+      "cluster_key": "hook-security-and-command-safety",
+      "decision": "merge",
+      "kinds": {
+        "command": 2,
+        "hook": 17
+      },
+      "priority": "P2",
+      "problem_solved": "Prevent dangerous commands, secret exposure, config weakening, and unsafe prompt/tool actions.",
+      "recommended_capability": "Hook security and command safety",
+      "recommended_surface": "hook",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C009-hook-edit-and-doc-quality-gates",
+        "C024-hook-git-and-pr-quality-gates",
+        "C025-hook-observability-and-notifications",
+        "C033-security-and-privacy-review",
+        "C039-data-database-and-migration-safety"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 19,
+      "source_ids": [
+        "hook:basepy",
+        "hook:beforereadfilejs",
+        "hook:beforeshellexecutionjs",
+        "hook:beforesubmitpromptjs",
+        "hook:blockdangerouscommandssh",
+        "hook:checkhookenabledjs",
+        "hook:configprotectionjs",
+        "hook:diffstatepy",
+        "hook:extensibilitypy",
+        "hook:gitutilpy",
+        "hook:llmpy",
+        "hook:patternspy",
+        "hook:postbashcommandlogjs",
+        "hook:reviewapipy",
+        "hook:securityreminderhookpy",
+        "hook:sessionstatepy",
+        "hook:sgpythonsh",
+        "command:hookifyconfigure",
+        "command:hookifylist"
+      ],
+      "source_names": [
+        "_base.py",
+        "before-read-file.js",
+        "before-shell-execution.js",
+        "before-submit-prompt.js",
+        "block-dangerous-commands.sh",
+        "check-hook-enabled.js",
+        "config-protection.js",
+        "diffstate.py",
+        "extensibility.py",
+        "gitutil.py",
+        "llm.py",
+        "patterns.py",
+        "post-bash-command-log.js",
+        "review_api.py",
+        "security_reminder_hook.py",
+        "session_state.py",
+        "sg-python.sh",
+        "hookify-configure",
+        "hookify-list"
+      ],
+      "verdict_counts": {
+        "adopt": 1,
+        "merge": 17,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 19 related candidate(s) such as _base.py, before-read-file.js, before-shell-execution.js... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.83,
+      "best_source_ids": [
+        "command:santaloop"
+      ],
+      "candidate_cluster_keys": [
+        "multi-review-convergence-gates"
+      ],
+      "cluster_id": "C027-multi-review-convergence-gates",
+      "cluster_key": "multi-review-convergence-gates",
+      "decision": "merge",
+      "kinds": {
+        "command": 1
+      },
+      "priority": "P2",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Multi Review Convergence Gates",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "command:santaloop"
+      ],
+      "source_names": [
+        "santa-loop"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as santa-loop into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.67,
+      "best_source_ids": [
+        "agent:planner",
+        "agent:coherencereviewer",
+        "agent:scopeguardianreviewer"
+      ],
+      "candidate_cluster_keys": [
+        "agent-orchestration/worktree-fleets",
+        "architecture-planning",
+        "codebase-aware-feature-planning",
+        "database-migration-workflows",
+        "development-workflow-discipline",
+        "docs/conversation-to-prd",
+        "document-review-consistency-lenses",
+        "document-review-design-product-lenses",
+        "document-review-scope-lenses",
+        "execution/prd-to-implementation",
+        "external-task-tracker-integration",
+        "feature-planning-and-implementation-workflow",
+        "feature-viability-research-gate",
+        "git-worktree-isolation",
+        "implementation-planning",
+        "implementation-planning-and-confirmation-gates",
+        "legacy-modernization-planning",
+        "operations-domain-planning",
+        "plan-execution-with-checkpoints",
+        "planning/investigation-ticket-map",
+        "planning/refactor-rfc",
+        "problem-first-prd-generation",
+        "requirements-prd-planning",
+        "research/slack-org-context",
+        "validated-plan-execution",
+        "workflow/improvement-ideation"
+      ],
+      "cluster_id": "C028-planning-prd-and-implementation-workflows",
+      "cluster_key": "planning-prd-and-implementation-workflows",
+      "decision": "merge",
+      "kinds": {
+        "agent": 9,
+        "command": 9,
+        "plugin": 2,
+        "rule": 1,
+        "skill": 16
+      },
+      "priority": "P2",
+      "problem_solved": "Move from discovery to plans, specs, implementation, and verification with clear gates.",
+      "recommended_capability": "Planning, PRD, and implementation workflows",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C022-git-github-and-release-workflows"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 37,
+      "source_ids": [
+        "skill:ceideate",
+        "skill:ceplan",
+        "skill:ceslackresearch",
+        "skill:claudedevfleet",
+        "skill:decisionmapping",
+        "skill:executingplans",
+        "skill:implement",
+        "skill:inventorydemandplanning",
+        "skill:planning",
+        "skill:productcapability",
+        "skill:productionscheduling",
+        "skill:qualitynonconformance",
+        "skill:requestrefactorplan",
+        "skill:toprd",
+        "skill:usinggitworktrees",
+        "skill:writingplans",
+        "agent:architect",
+        "agent:codearchitect",
+        "agent:coherencereviewer",
+        "agent:designlensreviewer",
+        "agent:planner",
+        "agent:productlensreviewer",
+        "agent:productmanager",
+        "agent:requirementparser",
+        "agent:scopeguardianreviewer",
+        "plugin:asana",
+        "plugin:linear",
+        "rule:commondevelopmentworkflow",
+        "command:databasemigration",
+        "command:featuredev",
+        "command:modernizebrief",
+        "command:plan",
+        "command:prpimplement",
+        "command:prpplan",
+        "command:prpprd",
+        "command:rpiplan",
+        "command:rpiresearch"
+      ],
+      "source_names": [
+        "ce:ideate",
+        "ce:plan",
+        "ce-slack-research",
+        "claude-devfleet",
+        "decision-mapping",
+        "executing-plans",
+        "implement",
+        "inventory-demand-planning",
+        "planning",
+        "product-capability",
+        "production-scheduling",
+        "quality-nonconformance",
+        "request-refactor-plan",
+        "to-prd",
+        "using-git-worktrees",
+        "writing-plans",
+        "architect",
+        "code-architect",
+        "coherence-reviewer",
+        "design-lens-reviewer",
+        "planner",
+        "product-lens-reviewer",
+        "product-manager",
+        "requirement-parser",
+        "scope-guardian-reviewer",
+        "asana",
+        "linear",
+        "common-development-workflow",
+        "database-migration",
+        "feature-dev",
+        "modernize-brief",
+        "plan",
+        "prp-implement",
+        "prp-plan",
+        "prp-prd",
+        "rpi/plan",
+        "rpi/research"
+      ],
+      "verdict_counts": {
+        "adopt": 2,
+        "defer": 3,
+        "merge": 23,
+        "reject_after_review": 6,
+        "rewrite": 3
+      },
+      "why_this_is_better": "Consolidates 37 related candidate(s) such as ce:ideate, ce:plan, ce-slack-research... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.6,
+      "best_source_ids": [
+        "skill:contextbudget",
+        "agent:pluginvalidator",
+        "skill:buildmcpserver"
+      ],
+      "candidate_cluster_keys": [
+        "context-budget-audit",
+        "experiment-sandbox",
+        "mcp-plugin-integration",
+        "mcp-server-authoring",
+        "mcp-server-development",
+        "mcp/distribution-packaging",
+        "mcp/interactive-ui-resources",
+        "plugin-authoring",
+        "plugin-authoring-workflow",
+        "plugin-example-scaffold",
+        "plugin-help",
+        "plugin-validation",
+        "private-mcp-server-setup",
+        "remote-mcp-connectivity",
+        "tutorial-sync",
+        "workspace-surface-audit"
+      ],
+      "cluster_id": "C029-plugin-and-mcp-authoring",
+      "cluster_key": "plugin-and-mcp-authoring",
+      "decision": "merge",
+      "kinds": {
+        "agent": 1,
+        "command": 4,
+        "plugin": 4,
+        "skill": 8
+      },
+      "priority": "P2",
+      "problem_solved": "Build, validate, package, and connect plugins and MCP servers without weakening harness boundaries.",
+      "recommended_capability": "Plugin and MCP authoring",
+      "recommended_surface": "plugin/mcp",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C008-harness-authoring-and-agent-ops",
+        "C034-skill-authoring-evaluation-and-portfolio",
+        "C066-hook-authoring-policy-and-plumbing",
+        "C070-prompt-authoring-and-reasoning-guidance"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 17,
+      "source_ids": [
+        "skill:buildmcpapp",
+        "skill:buildmcpb",
+        "skill:buildmcpserver",
+        "skill:contextbudget",
+        "skill:mcpintegration",
+        "skill:pluginsettings",
+        "skill:pluginstructure",
+        "skill:workspacesurfaceaudit",
+        "agent:pluginvalidator",
+        "plugin:exampleplugin",
+        "plugin:mcpserverdev",
+        "plugin:mcptunnels",
+        "plugin:playground",
+        "command:createdockermcptunnel",
+        "command:createplugin",
+        "command:help",
+        "command:synctutorials"
+      ],
+      "source_names": [
+        "build-mcp-app",
+        "build-mcpb",
+        "build-mcp-server",
+        "context-budget",
+        "mcp-integration",
+        "plugin-settings",
+        "plugin-structure",
+        "workspace-surface-audit",
+        "plugin-validator",
+        "example-plugin",
+        "mcp-server-dev",
+        "mcp-tunnels",
+        "playground",
+        "create-docker-mcp-tunnel",
+        "create-plugin",
+        "help",
+        "sync-tutorials"
+      ],
+      "verdict_counts": {
+        "adopt": 2,
+        "defer": 4,
+        "merge": 6,
+        "reject_after_review": 4,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 17 related candidate(s) such as build-mcp-app, build-mcpb, build-mcp-server... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.83,
+      "best_source_ids": [
+        "skill:productlens"
+      ],
+      "candidate_cluster_keys": [
+        "product/discovery-validation"
+      ],
+      "cluster_id": "C030-product-discovery-validation",
+      "cluster_key": "product-discovery-validation",
+      "decision": "merge",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P2",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Product Discovery Validation",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:productlens"
+      ],
+      "source_names": [
+        "product-lens"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as product-lens into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.47,
+      "best_source_ids": [
+        "mcp:serena",
+        "plugin:serena",
+        "plugin:codeintel"
+      ],
+      "candidate_cluster_keys": [
+        "agent-session-evaluation-harness",
+        "agent-session-handoff",
+        "article-writing-workflows",
+        "durable-project-memory",
+        "instinct-pruning",
+        "knowledge-memory-ops",
+        "learning-system-evolution",
+        "memory-portability-and-audit",
+        "memory/project-continuity",
+        "performance-optimization-review",
+        "permissions/claude-allowlist-tuning",
+        "personal-knowledge-vault-ops",
+        "repo-history-and-institutional-research",
+        "semantic-code-intelligence-and-memory",
+        "session-continuity-and-handoff",
+        "session-history-and-memory",
+        "session-history-management",
+        "session-history-retrieval",
+        "session-learning-and-skill-extraction",
+        "session-learning-memory",
+        "solved-problem-knowledge-capture",
+        "teaching-and-explanation",
+        "teaching-and-session-explanation"
+      ],
+      "cluster_id": "C031-project-memory-session-continuity-and-learning",
+      "cluster_key": "project-memory-session-continuity-and-learning",
+      "decision": "merge",
+      "kinds": {
+        "agent": 3,
+        "command": 7,
+        "mcp": 3,
+        "plugin": 3,
+        "skill": 13
+      },
+      "priority": "P2",
+      "problem_solved": "Preserve handoffs, learnings, memories, session summaries, and reusable project knowledge.",
+      "recommended_capability": "Project memory, session continuity, and learning",
+      "recommended_surface": "skill/hook",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C053-hook-session-lifecycle-and-memory"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 29,
+      "source_ids": [
+        "skill:cecompound",
+        "skill:cesessions",
+        "skill:ck",
+        "skill:claudepermissionsoptimizer",
+        "skill:continuouslearning",
+        "skill:evalharness",
+        "skill:handoff",
+        "skill:knowledgeops",
+        "skill:obsidianvault",
+        "skill:strategiccompact",
+        "skill:teach",
+        "skill:teachsession",
+        "skill:writingshape",
+        "agent:learningsresearcher",
+        "agent:performanceoptimizer",
+        "agent:sessionhistorian",
+        "plugin:codeintel",
+        "plugin:learningoutputstyle",
+        "plugin:serena",
+        "mcp:codebasememory",
+        "mcp:memory",
+        "mcp:serena",
+        "command:evolve",
+        "command:instinctimport",
+        "command:learn",
+        "command:prune",
+        "command:resumesession",
+        "command:savesession",
+        "command:sessions"
+      ],
+      "source_names": [
+        "ce:compound",
+        "ce-sessions",
+        "ck",
+        "claude-permissions-optimizer",
+        "continuous-learning",
+        "eval-harness",
+        "handoff",
+        "knowledge-ops",
+        "obsidian-vault",
+        "strategic-compact",
+        "teach",
+        "teach-session",
+        "writing-shape",
+        "learnings-researcher",
+        "performance-optimizer",
+        "session-historian",
+        "code-intel",
+        "learning-output-style",
+        "serena",
+        "codebase-memory",
+        "memory",
+        "serena",
+        "evolve",
+        "instinct-import",
+        "learn",
+        "prune",
+        "resume-session",
+        "save-session",
+        "sessions"
+      ],
+      "verdict_counts": {
+        "adopt": 4,
+        "defer": 9,
+        "merge": 8,
+        "reject_after_review": 4,
+        "rewrite": 4
+      },
+      "why_this_is_better": "Consolidates 29 related candidate(s) such as ce:compound, ce-sessions, ck... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.67,
+      "best_source_ids": [
+        "agent:legacyanalyst",
+        "agent:codesimplifier",
+        "agent:refactorcleaner"
+      ],
+      "candidate_cluster_keys": [
+        "code-simplification-and-refactor",
+        "dead-code-cleanup",
+        "legacy-codebase-analysis"
+      ],
+      "cluster_id": "C032-safe-refactor-and-code-simplification",
+      "cluster_key": "safe-refactor-and-code-simplification",
+      "decision": "merge",
+      "kinds": {
+        "agent": 3
+      },
+      "priority": "P2",
+      "problem_solved": "Simplify code or remove dead code only with behavior-preserving evidence and cleanup boundaries.",
+      "recommended_capability": "Safe refactor and code simplification",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C001-code-review-and-change-quality",
+        "C018-code-intelligence-context-and-cost-controls"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 3,
+      "source_ids": [
+        "agent:codesimplifier",
+        "agent:legacyanalyst",
+        "agent:refactorcleaner"
+      ],
+      "source_names": [
+        "code-simplifier",
+        "legacy-analyst",
+        "refactor-cleaner"
+      ],
+      "verdict_counts": {
+        "merge": 2,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 3 related candidate(s) such as code-simplifier, legacy-analyst, refactor-cleaner into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.77,
+      "best_source_ids": [
+        "agent:securityreviewer",
+        "rule:pythonsafety",
+        "agent:securitysentinel"
+      ],
+      "candidate_cluster_keys": [
+        "application-security-review",
+        "blockchain-domain-safety",
+        "containerization-patterns",
+        "data-and-database-safety-review",
+        "django-security-guidance",
+        "django-verification-guidance",
+        "github-repository-operations",
+        "healthcare-privacy-compliance",
+        "python-security-safety",
+        "security-audit-specialist",
+        "security-baseline",
+        "security-review",
+        "security-review-and-hardening",
+        "security-review-and-threat-modeling",
+        "security-review-guidance",
+        "technology-pattern-library",
+        "web-security-rules"
+      ],
+      "cluster_id": "C033-security-and-privacy-review",
+      "cluster_key": "security-and-privacy-review",
+      "decision": "merge",
+      "kinds": {
+        "agent": 4,
+        "command": 2,
+        "plugin": 1,
+        "rule": 5,
+        "skill": 10
+      },
+      "priority": "P2",
+      "problem_solved": "Apply threat, privacy, hardening, and domain safety lenses to plans, code, and workflows.",
+      "recommended_capability": "Security and privacy review",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C001-code-review-and-change-quality",
+        "C019-document-requirements-and-spec-review",
+        "C026-hook-security-and-command-safety"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 22,
+      "source_ids": [
+        "skill:djangosecurity",
+        "skill:djangoverification",
+        "skill:dockerpatterns",
+        "skill:githubops",
+        "skill:healthcarephicompliance",
+        "skill:hipaacompliance",
+        "skill:llmtradingagentsecurity",
+        "skill:postgrespatterns",
+        "skill:securitybountyhunter",
+        "skill:securityreview",
+        "agent:databasereviewer",
+        "agent:securityauditor",
+        "agent:securityreviewer",
+        "agent:securitysentinel",
+        "plugin:securityguidance",
+        "rule:commonsecurity",
+        "rule:pythonsafety",
+        "rule:pythonsecurity",
+        "rule:websecurity",
+        "rule:zhsecurity",
+        "command:modernizeharden",
+        "command:security"
+      ],
+      "source_names": [
+        "django-security",
+        "django-verification",
+        "docker-patterns",
+        "github-ops",
+        "healthcare-phi-compliance",
+        "hipaa-compliance",
+        "llm-trading-agent-security",
+        "postgres-patterns",
+        "security-bounty-hunter",
+        "security-review",
+        "database-reviewer",
+        "security-auditor",
+        "security-reviewer",
+        "security-sentinel",
+        "security-guidance",
+        "common-security",
+        "python/safety",
+        "python-security",
+        "web/security",
+        "zh/security",
+        "modernize-harden",
+        "security"
+      ],
+      "verdict_counts": {
+        "adopt": 2,
+        "defer": 7,
+        "merge": 10,
+        "reject_after_review": 3
+      },
+      "why_this_is_better": "Consolidates 22 related candidate(s) such as django-security, django-verification, docker-patterns... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.74,
+      "best_source_ids": [
+        "plugin:skillcreator",
+        "agent:skillreviewer",
+        "skill:skillcreator"
+      ],
+      "candidate_cluster_keys": [
+        "authoring/skill-template",
+        "plugin-skill-authoring",
+        "prompt-authoring-agent-and-skill-development",
+        "skill-authoring",
+        "skill-authoring-example-template",
+        "skill-authoring-from-repo-patterns",
+        "skill-discovery-bootstrap",
+        "skill-eval-benchmark-analysis",
+        "skill-portfolio-health",
+        "skill-quality-review",
+        "typescript-skill-bundle"
+      ],
+      "cluster_id": "C034-skill-authoring-evaluation-and-portfolio",
+      "cluster_key": "skill-authoring-evaluation-and-portfolio",
+      "decision": "merge",
+      "kinds": {
+        "agent": 5,
+        "command": 2,
+        "plugin": 3,
+        "skill": 7
+      },
+      "priority": "P2",
+      "problem_solved": "Author high-quality skills, review their trigger quality, and evaluate the portfolio for redundancy.",
+      "recommended_capability": "Skill authoring, evaluation, and portfolio health",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C008-harness-authoring-and-agent-ops",
+        "C029-plugin-and-mcp-authoring",
+        "C066-hook-authoring-policy-and-plumbing",
+        "C070-prompt-authoring-and-reasoning-guidance"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 17,
+      "source_ids": [
+        "skill:examplecommand",
+        "skill:exampleskill",
+        "skill:skillcreator",
+        "skill:skilldevelopment",
+        "skill:usingsuperpowers",
+        "skill:writinggreatskills",
+        "skill:writingskills",
+        "agent:agentcreator",
+        "agent:analyzer",
+        "agent:comparator",
+        "agent:grader",
+        "agent:skillreviewer",
+        "plugin:mattpocockskills",
+        "plugin:plugindev",
+        "plugin:skillcreator",
+        "command:skillcreate",
+        "command:skillhealth"
+      ],
+      "source_names": [
+        "example-command",
+        "example-skill",
+        "skill-creator",
+        "skill-development",
+        "using-superpowers",
+        "writing-great-skills",
+        "writing-skills",
+        "agent-creator",
+        "analyzer",
+        "comparator",
+        "grader",
+        "skill-reviewer",
+        "mattpocock-skills",
+        "plugin-dev",
+        "skill-creator",
+        "skill-create",
+        "skill-health"
+      ],
+      "verdict_counts": {
+        "adopt": 1,
+        "defer": 4,
+        "merge": 8,
+        "reject_after_review": 3,
+        "rewrite": 1
+      },
+      "why_this_is_better": "Consolidates 17 related candidate(s) such as example-command, example-skill, skill-creator... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.82,
+      "best_source_ids": [
+        "skill:verificationbeforecompletion",
+        "skill:testdrivendevelopment",
+        "mcp:playwright"
+      ],
+      "candidate_cluster_keys": [
+        "adversarial-multi-agent-verification",
+        "ai-assisted-regression-testing",
+        "browser-automation-and-web-qa",
+        "browser-automation-testing",
+        "browser-ui-verification",
+        "build-fix-loop",
+        "coverage-improvement",
+        "data-deployment-verification",
+        "deployment-regression-monitoring",
+        "design-review/grill-me-variant",
+        "design-review/grill-plus-adr",
+        "django-testing-guidance",
+        "evidence-first-terminal-ops",
+        "frontend-design-quality",
+        "generic-ic-persona",
+        "legacy-business-rule-extraction",
+        "legacy-modernization-workflow",
+        "legacy-module-transformation-with-equivalence-tests",
+        "pr-ui-demo-video",
+        "python-testing",
+        "safe-refactor-cleanup",
+        "test-coverage-review",
+        "test-first-and-characterization-testing",
+        "test-first-development",
+        "test-quality-review",
+        "testing-baseline",
+        "testing/browser-ui-verification",
+        "testing/tdd-workflow",
+        "verification-gate",
+        "web-artifact-visual-verification",
+        "web-e2e-testing"
+      ],
+      "cluster_id": "C035-testing-verification-and-regression",
+      "cluster_key": "testing-verification-and-regression",
+      "decision": "merge",
+      "kinds": {
+        "agent": 8,
+        "command": 5,
+        "mcp": 1,
+        "plugin": 2,
+        "rule": 4,
+        "skill": 19
+      },
+      "priority": "P2",
+      "problem_solved": "Use TDD, characterization, coverage, browser checks, and verification gates to prove changes.",
+      "recommended_capability": "Testing, verification, and regression control",
+      "recommended_surface": "skill/hook",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 39,
+      "source_ids": [
+        "skill:agentbrowser",
+        "skill:airegressiontesting",
+        "skill:browserqa",
+        "skill:canarywatch",
+        "skill:djangotdd",
+        "skill:e2etesting",
+        "skill:frontenddesign",
+        "skill:grilling",
+        "skill:grillwithdocs",
+        "skill:pythontesting",
+        "skill:santamethod",
+        "skill:tdd",
+        "skill:tddworkflow",
+        "skill:terminalops",
+        "skill:testbrowser",
+        "skill:testdrivendevelopment",
+        "skill:uidemo",
+        "skill:verificationbeforecompletion",
+        "skill:verificationloop",
+        "agent:businessrulesextractor",
+        "agent:deploymentverificationagent",
+        "agent:e2erunner",
+        "agent:prtestanalyzer",
+        "agent:seniorsoftwareengineer",
+        "agent:tddguide",
+        "agent:testengineer",
+        "agent:testingreviewer",
+        "plugin:codemodernization",
+        "plugin:playwright",
+        "mcp:playwright",
+        "rule:commontesting",
+        "rule:pythontesting",
+        "rule:webtesting",
+        "rule:zhtesting",
+        "command:buildfix",
+        "command:modernizeextractrules",
+        "command:modernizetransform",
+        "command:refactorclean",
+        "command:testcoverage"
+      ],
+      "source_names": [
+        "agent-browser",
+        "ai-regression-testing",
+        "browser-qa",
+        "canary-watch",
+        "django-tdd",
+        "e2e-testing",
+        "frontend-design",
+        "grilling",
+        "grill-with-docs",
+        "python-testing",
+        "santa-method",
+        "tdd",
+        "tdd-workflow",
+        "terminal-ops",
+        "test-browser",
+        "test-driven-development",
+        "ui-demo",
+        "verification-before-completion",
+        "verification-loop",
+        "business-rules-extractor",
+        "deployment-verification-agent",
+        "e2e-runner",
+        "pr-test-analyzer",
+        "senior-software-engineer",
+        "tdd-guide",
+        "test-engineer",
+        "testing-reviewer",
+        "code-modernization",
+        "playwright",
+        "playwright",
+        "common-testing",
+        "python-testing",
+        "web/testing",
+        "zh/testing",
+        "build-fix",
+        "modernize-extract-rules",
+        "modernize-transform",
+        "refactor-clean",
+        "test-coverage"
+      ],
+      "verdict_counts": {
+        "adopt": 4,
+        "defer": 6,
+        "merge": 25,
+        "reject_after_review": 4
+      },
+      "why_this_is_better": "Consolidates 39 related candidate(s) such as agent-browser, ai-regression-testing, browser-qa... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.83,
+      "best_source_ids": [
+        "skill:agenteval"
+      ],
+      "candidate_cluster_keys": [
+        "agent-benchmarking"
+      ],
+      "cluster_id": "C036-agent-benchmarking",
+      "cluster_key": "agent-benchmarking",
+      "decision": "defer",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P2",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Agent Benchmarking",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "skill:agenteval"
+      ],
+      "source_names": [
+        "agent-eval"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.83,
+      "best_source_ids": [
+        "skill:claudeapi"
+      ],
+      "candidate_cluster_keys": [
+        "api/anthropic-claude-sdk"
+      ],
+      "cluster_id": "C037-api-anthropic-claude-sdk",
+      "cluster_key": "api-anthropic-claude-sdk",
+      "decision": "defer",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P2",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Api Anthropic Claude Sdk",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "skill:claudeapi"
+      ],
+      "source_names": [
+        "claude-api"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.83,
+      "best_source_ids": [
+        "skill:rclone"
+      ],
+      "candidate_cluster_keys": [
+        "cloud-file-sync"
+      ],
+      "cluster_id": "C038-cloud-file-sync",
+      "cluster_key": "cloud-file-sync",
+      "decision": "defer",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P2",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Cloud File Sync",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "skill:rclone"
+      ],
+      "source_names": [
+        "rclone"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.68,
+      "best_source_ids": [
+        "agent:dataintegrityguardian",
+        "agent:datamigrationexpert",
+        "agent:datamigrationsreviewer"
+      ],
+      "candidate_cluster_keys": [
+        "automation/data-scraping-agent",
+        "data-and-database-safety-review",
+        "data-migration-safety-review",
+        "data/clickhouse-sql",
+        "database-migration-guidance",
+        "healthcare-domain-review",
+        "healthcare-software-domain-patterns",
+        "same-stack-migration-analysis",
+        "seo-review",
+        "technology-pattern-library",
+        "web-frontend-quality-rules",
+        "web-growth-and-seo"
+      ],
+      "cluster_id": "C039-data-database-and-migration-safety",
+      "cluster_key": "data-database-and-migration-safety",
+      "decision": "defer",
+      "kinds": {
+        "agent": 6,
+        "rule": 1,
+        "skill": 6
+      },
+      "priority": "P2",
+      "problem_solved": "Plan and review schema, SQL, backfills, data integrity, and rollback procedures.",
+      "recommended_capability": "Data, database, and migration safety",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C003-harness-adoption-migration-and-doctoring",
+        "C026-hook-security-and-command-safety"
+      ],
+      "selection_mode": "defer",
+      "source_count": 13,
+      "source_ids": [
+        "skill:clickhouseio",
+        "skill:databasemigrations",
+        "skill:datascraperagent",
+        "skill:healthcareemrpatterns",
+        "skill:pytorchpatterns",
+        "skill:seo",
+        "agent:dataintegrityguardian",
+        "agent:datamigrationexpert",
+        "agent:datamigrationsreviewer",
+        "agent:healthcarereviewer",
+        "agent:seospecialist",
+        "agent:versiondeltaanalyst",
+        "rule:webpatterns"
+      ],
+      "source_names": [
+        "clickhouse-io",
+        "database-migrations",
+        "data-scraper-agent",
+        "healthcare-emr-patterns",
+        "pytorch-patterns",
+        "seo",
+        "data-integrity-guardian",
+        "data-migration-expert",
+        "data-migrations-reviewer",
+        "healthcare-reviewer",
+        "seo-specialist",
+        "version-delta-analyst",
+        "web/patterns"
+      ],
+      "verdict_counts": {
+        "defer": 7,
+        "merge": 2,
+        "reject_after_review": 4
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.83,
+      "best_source_ids": [
+        "skill:nutrientdocumentprocessing"
+      ],
+      "candidate_cluster_keys": [
+        "documents/third-party-processing"
+      ],
+      "cluster_id": "C040-documents-third-party-processing",
+      "cluster_key": "documents-third-party-processing",
+      "decision": "defer",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P2",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Documents Third Party Processing",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "skill:nutrientdocumentprocessing"
+      ],
+      "source_names": [
+        "nutrient-document-processing"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 4.17,
+      "best_source_ids": [
+        "skill:benchmark"
+      ],
+      "candidate_cluster_keys": [
+        "performance-benchmarking"
+      ],
+      "cluster_id": "C041-performance-benchmarking",
+      "cluster_key": "performance-benchmarking",
+      "decision": "defer",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P2",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Performance Benchmarking",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "skill:benchmark"
+      ],
+      "source_names": [
+        "benchmark"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 2.67,
+      "best_source_ids": [
+        "skill:loopme"
+      ],
+      "candidate_cluster_keys": [
+        "adversarial-design-review"
+      ],
+      "cluster_id": "C042-adversarial-design-review",
+      "cluster_key": "adversarial-design-review",
+      "decision": "merge",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Adversarial Design Review",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:loopme"
+      ],
+      "source_names": [
+        "loop-me"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as loop-me into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.17,
+      "best_source_ids": [
+        "rule:core01delegation",
+        "skill:subagentdrivendevelopment",
+        "skill:gitworktree"
+      ],
+      "candidate_cluster_keys": [
+        "agent-loop-control",
+        "agent-loop-operations",
+        "agent-orchestration-rules",
+        "agent-orchestration/autonomous-loops",
+        "agent-orchestration/dmux-parallel-workflows",
+        "agent-orchestration/long-lived-agent-ops",
+        "agent-orchestration/rfc-dag-pipeline",
+        "agent-orchestration/team-composition",
+        "agent-session-telemetry",
+        "autonomous-agent-execution-loops",
+        "autonomous-agent-loop",
+        "codebase-cost-and-effort-estimation",
+        "execution/delegated-work-beta",
+        "gan-iterative-app-loop",
+        "generator-evaluator-quality-loop",
+        "multi-model-execution",
+        "parallel-agent-dispatch",
+        "parallel-worktree-management",
+        "progressive-context-retrieval",
+        "ralph-loop-control",
+        "subagent-execution",
+        "unknown-ml-workflow"
+      ],
+      "cluster_id": "C043-agent-orchestration-and-autonomous-loops",
+      "cluster_key": "agent-orchestration-and-autonomous-loops",
+      "decision": "merge",
+      "kinds": {
+        "agent": 4,
+        "command": 7,
+        "plugin": 1,
+        "rule": 3,
+        "skill": 14
+      },
+      "priority": "P3",
+      "problem_solved": "Coordinate subagents, worktrees, autonomous loops, and generator/evaluator flows without ambiguous ownership.",
+      "recommended_capability": "Agent orchestration and autonomous loops",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C008-harness-authoring-and-agent-ops"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 29,
+      "source_ids": [
+        "skill:autonomousloops",
+        "skill:ceworkbeta",
+        "skill:continuousagentloop",
+        "skill:costestimate",
+        "skill:dispatchingparallelagents",
+        "skill:dmuxworkflows",
+        "skill:enterpriseagentops",
+        "skill:ganstyleharness",
+        "skill:gitworktree",
+        "skill:iterativeretrieval",
+        "skill:ralphinhorfcpipeline",
+        "skill:sessionreport",
+        "skill:subagentdrivendevelopment",
+        "skill:teambuilder",
+        "agent:ganevaluator",
+        "agent:gangenerator",
+        "agent:ganplanner",
+        "agent:loopoperator",
+        "plugin:ralphloop",
+        "rule:commonagents",
+        "rule:core01delegation",
+        "rule:zhagents",
+        "command:cancelralph",
+        "command:ganbuild",
+        "command:gandesign",
+        "command:loopstart",
+        "command:loopstatus",
+        "command:multiexecute",
+        "command:ralphloop"
+      ],
+      "source_names": [
+        "autonomous-loops",
+        "ce:work-beta",
+        "continuous-agent-loop",
+        "cost-estimate",
+        "dispatching-parallel-agents",
+        "dmux-workflows",
+        "enterprise-agent-ops",
+        "gan-style-harness",
+        "git-worktree",
+        "iterative-retrieval",
+        "ralphinho-rfc-pipeline",
+        "session-report",
+        "subagent-driven-development",
+        "team-builder",
+        "gan-evaluator",
+        "gan-generator",
+        "gan-planner",
+        "loop-operator",
+        "ralph-loop",
+        "common-agents",
+        "core/01-delegation",
+        "zh/agents",
+        "cancel-ralph",
+        "gan-build",
+        "gan-design",
+        "loop-start",
+        "loop-status",
+        "multi-execute",
+        "ralph-loop"
+      ],
+      "verdict_counts": {
+        "adopt": 3,
+        "defer": 8,
+        "merge": 6,
+        "reject_after_review": 8,
+        "rewrite": 4
+      },
+      "why_this_is_better": "Consolidates 29 related candidate(s) such as autonomous-loops, ce:work-beta, continuous-agent-loop... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.21,
+      "best_source_ids": [
+        "skill:contenthashcachepattern",
+        "skill:articlewriting",
+        "skill:marketresearch"
+      ],
+      "candidate_cluster_keys": [
+        "agent-payment-rails",
+        "ai-media-generation",
+        "article-writing-workflows",
+        "blockchain-domain-safety",
+        "business-and-market-research",
+        "company-specific-style-editing",
+        "content-voice-and-style",
+        "course-authoring-workflows",
+        "healthcare-software-domain-patterns",
+        "hookify-rule-authoring",
+        "m5stack-cardputer-device-workflow",
+        "patterns/content-hash-cache",
+        "presentation-format-specific-guidance",
+        "presentation-specific-delegation",
+        "prose-and-article-editing",
+        "python-coding-style",
+        "python-hooks-automation",
+        "python-patterns",
+        "technical-explainer-media",
+        "video-audio-media-platform-ops",
+        "writing/long-form-content"
+      ],
+      "cluster_id": "C044-domain-and-technology-specific-packs",
+      "cluster_key": "domain-and-technology-specific-packs",
+      "decision": "merge",
+      "kinds": {
+        "rule": 4,
+        "skill": 21
+      },
+      "priority": "P3",
+      "problem_solved": "Keep Python, Django, healthcare, blockchain, media, writing, and other niche packs optional.",
+      "recommended_capability": "Domain and technology specific packs",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [
+        "C016-architecture-codebase-and-domain-modeling"
+      ],
+      "selection_mode": "merge complementary candidates",
+      "source_count": 25,
+      "source_ids": [
+        "skill:agentpaymentx402",
+        "skill:articlewriting",
+        "skill:brandvoice",
+        "skill:cardputerbuddy",
+        "skill:contenthashcachepattern",
+        "skill:editarticle",
+        "skill:everystyleeditor",
+        "skill:evmtokendecimals",
+        "skill:falaimedia",
+        "skill:geminiimagegen",
+        "skill:healthcarecdsspatterns",
+        "skill:m5onboard",
+        "skill:manimvideo",
+        "skill:marketresearch",
+        "skill:presentationstructure",
+        "skill:presentationstyling",
+        "skill:scaffoldexercises",
+        "skill:videodb",
+        "skill:writingbeats",
+        "skill:writingfragments",
+        "skill:writinghookifyrules",
+        "rule:presentation",
+        "rule:pythoncodingstyle",
+        "rule:pythonhooks",
+        "rule:pythonpatterns"
+      ],
+      "source_names": [
+        "agent-payment-x402",
+        "article-writing",
+        "brand-voice",
+        "cardputer-buddy",
+        "content-hash-cache-pattern",
+        "edit-article",
+        "every-style-editor",
+        "evm-token-decimals",
+        "fal-ai-media",
+        "gemini-imagegen",
+        "healthcare-cdss-patterns",
+        "m5-onboard",
+        "manim-video",
+        "market-research",
+        "presentation-structure",
+        "presentation-styling",
+        "scaffold-exercises",
+        "videodb",
+        "writing-beats",
+        "writing-fragments",
+        "writing-hookify-rules",
+        "presentation",
+        "python-coding-style",
+        "python-hooks",
+        "python-patterns"
+      ],
+      "verdict_counts": {
+        "defer": 6,
+        "merge": 4,
+        "reject_after_review": 13,
+        "rewrite": 2
+      },
+      "why_this_is_better": "Consolidates 25 related candidate(s) such as agent-payment-x402, article-writing, brand-voice... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.17,
+      "best_source_ids": [
+        "plugin:projectartifact"
+      ],
+      "candidate_cluster_keys": [
+        "project-artifact-generation"
+      ],
+      "cluster_id": "C045-project-artifact-generation",
+      "cluster_key": "project-artifact-generation",
+      "decision": "merge",
+      "kinds": {
+        "plugin": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Project Artifact Generation",
+      "recommended_surface": "plugin",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "plugin:projectartifact"
+      ],
+      "source_names": [
+        "project-artifact"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as project-artifact into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.33,
+      "best_source_ids": [
+        "command:workflowsdevelopmentworkflows"
+      ],
+      "candidate_cluster_keys": [
+        "reference-workflow-research"
+      ],
+      "cluster_id": "C046-reference-workflow-research",
+      "cluster_key": "reference-workflow-research",
+      "decision": "merge",
+      "kinds": {
+        "command": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Reference Workflow Research",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "command:workflowsdevelopmentworkflows"
+      ],
+      "source_names": [
+        "workflows/development-workflows"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as workflows/development-workflows into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.17,
+      "best_source_ids": [
+        "skill:codingstandards"
+      ],
+      "candidate_cluster_keys": [
+        "rules/coding-standards"
+      ],
+      "cluster_id": "C047-rules-coding-standards",
+      "cluster_key": "rules-coding-standards",
+      "decision": "merge",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Rules Coding Standards",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:codingstandards"
+      ],
+      "source_names": [
+        "coding-standards"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as coding-standards into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 3.33,
+      "best_source_ids": [
+        "skill:council"
+      ],
+      "candidate_cluster_keys": [
+        "structured-decision-critique"
+      ],
+      "cluster_id": "C048-structured-decision-critique",
+      "cluster_key": "structured-decision-critique",
+      "decision": "merge",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Structured Decision Critique",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:council"
+      ],
+      "source_names": [
+        "council"
+      ],
+      "verdict_counts": {
+        "merge": 1
+      },
+      "why_this_is_better": "Consolidates 1 related candidate(s) such as council into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+    },
+    {
+      "average_score": 2.83,
+      "best_source_ids": [
+        "skill:cework"
+      ],
+      "candidate_cluster_keys": [
+        "implementation-execution-workflow"
+      ],
+      "cluster_id": "C049-implementation-execution-workflow",
+      "cluster_key": "implementation-execution-workflow",
+      "decision": "adapt",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Implementation Execution Workflow",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Rewrite into a repo-native skill/agent/rule/command using the source rows as requirements, then verify with structural checks.",
+      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "secondary_relationships": [],
+      "selection_mode": "single superior candidate",
+      "source_count": 1,
+      "source_ids": [
+        "skill:cework"
+      ],
+      "source_names": [
+        "ce:work"
+      ],
+      "verdict_counts": {
+        "rewrite": 1
+      },
+      "why_this_is_better": "The idea is useful but needs this repo's constraints, trigger discipline, or artifact ownership rules before it is safe to add."
+    },
+    {
+      "average_score": 3.5,
+      "best_source_ids": [
+        "skill:dashboardbuilder",
+        "skill:deploymentpatterns",
+        "skill:healthcareevalharness"
+      ],
+      "candidate_cluster_keys": [
+        "deployment-readiness-patterns",
+        "healthcare-software-domain-patterns",
+        "infrastructure-as-code",
+        "ops/monitoring-dashboard-design",
+        "platform-specific-devops"
+      ],
+      "cluster_id": "C050-deployment-devops-and-operations",
+      "cluster_key": "deployment-devops-and-operations",
+      "decision": "defer",
+      "kinds": {
+        "plugin": 2,
+        "skill": 3
+      },
+      "priority": "P3",
+      "problem_solved": "Handle deployment readiness, containers, infrastructure, monitoring, and operational runbooks.",
+      "recommended_capability": "Deployment, DevOps, and operations",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 5,
+      "source_ids": [
+        "skill:dashboardbuilder",
+        "skill:deploymentpatterns",
+        "skill:healthcareevalharness",
+        "plugin:firebase",
+        "plugin:terraform"
+      ],
+      "source_names": [
+        "dashboard-builder",
+        "deployment-patterns",
+        "healthcare-eval-harness",
+        "firebase",
+        "terraform"
+      ],
+      "verdict_counts": {
+        "defer": 4,
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.33,
+      "best_source_ids": [
+        "skill:planktoncodequality"
+      ],
+      "candidate_cluster_keys": [
+        "edit-time-quality-hooks"
+      ],
+      "cluster_id": "C051-edit-time-quality-hooks",
+      "cluster_key": "edit-time-quality-hooks",
+      "decision": "defer",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Edit Time Quality Hooks",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C009-hook-edit-and-doc-quality-gates"
+      ],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "skill:planktoncodequality"
+      ],
+      "source_names": [
+        "plankton-code-quality"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.54,
+      "best_source_ids": [
+        "skill:playground",
+        "skill:clickpathaudit",
+        "agent:designimplementationreviewer"
+      ],
+      "candidate_cluster_keys": [
+        "figma-visual-fidelity-review",
+        "frontend-design-quality",
+        "frontend-interaction-state-audit",
+        "html-text-fitting-visual-artifacts",
+        "html/interactive-playground",
+        "html/presentation-builder",
+        "iterative-ui-design-review",
+        "ux-briefing",
+        "web-frontend-performance",
+        "web-frontend-quality-rules"
+      ],
+      "cluster_id": "C052-frontend-ui-design-and-visual-artifacts",
+      "cluster_key": "frontend-ui-design-and-visual-artifacts",
+      "decision": "defer",
+      "kinds": {
+        "agent": 4,
+        "rule": 4,
+        "skill": 4
+      },
+      "priority": "P3",
+      "problem_solved": "Build and verify frontend, visual, Figma, UX, HTML, and presentation artifacts.",
+      "recommended_capability": "Frontend UI design and visual artifacts",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 12,
+      "source_ids": [
+        "skill:clickpathaudit",
+        "skill:designsystem",
+        "skill:frontendslides",
+        "skill:playground",
+        "agent:designimplementationreviewer",
+        "agent:designiterator",
+        "agent:figmadesignsync",
+        "agent:uxdesigner",
+        "rule:measuringtext",
+        "rule:webcodingstyle",
+        "rule:webdesignquality",
+        "rule:webperformance"
+      ],
+      "source_names": [
+        "click-path-audit",
+        "design-system",
+        "frontend-slides",
+        "playground",
+        "design-implementation-reviewer",
+        "design-iterator",
+        "figma-design-sync",
+        "ux-designer",
+        "measuring-text",
+        "web/coding-style",
+        "web/design-quality",
+        "web/performance"
+      ],
+      "verdict_counts": {
+        "defer": 6,
+        "merge": 4,
+        "reject_after_review": 2
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.4,
+      "best_source_ids": [
+        "hook:bdprimesh",
+        "hook:suggestcompactjs",
+        "plugin:hookify"
+      ],
+      "candidate_cluster_keys": [
+        "hook-agent-sdk-env-check",
+        "hook-authoring-automation",
+        "hook-context-preservation",
+        "hook-continuous-learning-observation",
+        "hook-cost-usage-tracking",
+        "hook-desktop-notifications",
+        "hook-generic-tool-event-adapters",
+        "hook-governance-decision-capture",
+        "hook-lifecycle-beads-context",
+        "hook-policy-engine-pre-post-prompt-stop",
+        "hook-session-end-lifecycle",
+        "hook-session-self-evaluation",
+        "hook-session-start-context",
+        "hook-subagent-lifecycle-tracking",
+        "hook-tmux-dev-server"
+      ],
+      "cluster_id": "C053-hook-session-lifecycle-and-memory",
+      "cluster_key": "hook-session-lifecycle-and-memory",
+      "decision": "defer",
+      "kinds": {
+        "hook": 19,
+        "plugin": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Capture context at session start/end and preserve summaries, Beads state, and subagent lifecycle facts.",
+      "recommended_capability": "Hook session lifecycle and memory",
+      "recommended_surface": "hook",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C009-hook-edit-and-doc-quality-gates",
+        "C023-harness-lifecycle-and-reference-curation",
+        "C024-hook-git-and-pr-quality-gates",
+        "C025-hook-observability-and-notifications",
+        "C026-hook-security-and-command-safety"
+      ],
+      "selection_mode": "defer",
+      "source_count": 20,
+      "source_ids": [
+        "plugin:hookify",
+        "hook:autotmuxdevjs",
+        "hook:bdprimesh",
+        "hook:costtrackerjs",
+        "hook:desktopnotifyjs",
+        "hook:ensureagentsdkpy",
+        "hook:evaluatesessionjs",
+        "hook:governancecapturejs",
+        "hook:observesh",
+        "hook:precompactjs",
+        "hook:sessionendjs",
+        "hook:sessionendmarkerjs",
+        "hook:sessionstartbootstrapjs",
+        "hook:sessionstartjs",
+        "hook:sessionstartmjs",
+        "hook:stopjs",
+        "hook:stoppy",
+        "hook:subagentstartjs",
+        "hook:subagentstopjs",
+        "hook:suggestcompactjs"
+      ],
+      "source_names": [
+        "hookify",
+        "auto-tmux-dev.js",
+        "bd-prime.sh",
+        "cost-tracker.js",
+        "desktop-notify.js",
+        "ensure_agent_sdk.py",
+        "evaluate-session.js",
+        "governance-capture.js",
+        "observe.sh",
+        "pre-compact.js",
+        "session-end.js",
+        "session-end-marker.js",
+        "session-start-bootstrap.js",
+        "session-start.js",
+        "session-start.mjs",
+        "stop.js",
+        "stop.py",
+        "subagent-start.js",
+        "subagent-stop.js",
+        "suggest-compact.js"
+      ],
+      "verdict_counts": {
+        "adopt": 1,
+        "defer": 10,
+        "merge": 3,
+        "reject_after_review": 3,
+        "rewrite": 3
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.33,
+      "best_source_ids": [
+        "skill:hookifyrules"
+      ],
+      "candidate_cluster_keys": [
+        "hookify-rule-authoring"
+      ],
+      "cluster_id": "C054-hookify-rule-authoring",
+      "cluster_key": "hookify-rule-authoring",
+      "decision": "defer",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Hookify Rule Authoring",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C055-hookify-rule-management"
+      ],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "skill:hookifyrules"
+      ],
+      "source_names": [
+        "hookify-rules"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.33,
+      "best_source_ids": [
+        "command:configure",
+        "command:list"
+      ],
+      "candidate_cluster_keys": [
+        "hookify-rule-management"
+      ],
+      "cluster_id": "C055-hookify-rule-management",
+      "cluster_key": "hookify-rule-management",
+      "decision": "defer",
+      "kinds": {
+        "command": 2
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Hookify Rule Management",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C054-hookify-rule-authoring"
+      ],
+      "selection_mode": "defer",
+      "source_count": 2,
+      "source_ids": [
+        "command:configure",
+        "command:list"
+      ],
+      "source_names": [
+        "configure",
+        "list"
+      ],
+      "verdict_counts": {
+        "defer": 2
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.22,
+      "best_source_ids": [
+        "command:modernizeassess",
+        "command:modernizepreflight",
+        "command:modernizestatus"
+      ],
+      "candidate_cluster_keys": [
+        "legacy-modernization-discovery-and-assessment",
+        "modernization-environment-preflight",
+        "modernization-workflow-status"
+      ],
+      "cluster_id": "C056-legacy-modernization-and-business-rule-extraction",
+      "cluster_key": "legacy-modernization-and-business-rule-extraction",
+      "decision": "defer",
+      "kinds": {
+        "command": 3
+      },
+      "priority": "P3",
+      "problem_solved": "Extract legacy rules and plan modernization with tests, discovery, and equivalence checks.",
+      "recommended_capability": "Legacy modernization and business rule extraction",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 3,
+      "source_ids": [
+        "command:modernizeassess",
+        "command:modernizepreflight",
+        "command:modernizestatus"
+      ],
+      "source_names": [
+        "modernize-assess",
+        "modernize-preflight",
+        "modernize-status"
+      ],
+      "verdict_counts": {
+        "defer": 3
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.17,
+      "best_source_ids": [
+        "agent:conversationanalyzer",
+        "hook:designqualitycheckjs"
+      ],
+      "candidate_cluster_keys": [
+        "hook-candidate-transcript-analysis",
+        "hook-design-quality"
+      ],
+      "cluster_id": "C057-hook-miscellaneous-automation",
+      "cluster_key": "hook-miscellaneous-automation",
+      "decision": "defer",
+      "kinds": {
+        "agent": 1,
+        "hook": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Situational hook automations that do not fit core safety, quality, session, or git clusters.",
+      "recommended_capability": "Miscellaneous hook automation",
+      "recommended_surface": "hook",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 2,
+      "source_ids": [
+        "agent:conversationanalyzer",
+        "hook:designqualitycheckjs"
+      ],
+      "source_names": [
+        "conversation-analyzer",
+        "design-quality-check.js"
+      ],
+      "verdict_counts": {
+        "defer": 2
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.5,
+      "best_source_ids": [
+        "agent:agentsdkverifierpy",
+        "command:newsdkapp"
+      ],
+      "candidate_cluster_keys": [
+        "agent-sdk-app-scaffold",
+        "python-agent-sdk-verification"
+      ],
+      "cluster_id": "C058-openai-agent-sdk-support",
+      "cluster_key": "openai-agent-sdk-support",
+      "decision": "defer",
+      "kinds": {
+        "agent": 1,
+        "command": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Create and verify OpenAI Agent SDK applications or examples when that stack is in scope.",
+      "recommended_capability": "OpenAI Agent SDK support",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 2,
+      "source_ids": [
+        "agent:agentsdkverifierpy",
+        "command:newsdkapp"
+      ],
+      "source_names": [
+        "agent-sdk-verifier-py",
+        "new-sdk-app"
+      ],
+      "verdict_counts": {
+        "defer": 2
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.5,
+      "best_source_ids": [
+        "skill:exasearch"
+      ],
+      "candidate_cluster_keys": [
+        "research/search-provider-exa"
+      ],
+      "cluster_id": "C059-research-search-provider-exa",
+      "cluster_key": "research-search-provider-exa",
+      "decision": "defer",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Research Search Provider Exa",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "skill:exasearch"
+      ],
+      "source_names": [
+        "exa-search"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 3.17,
+      "best_source_ids": [
+        "command:modernizeuplift"
+      ],
+      "candidate_cluster_keys": [
+        "same-stack-version-uplift"
+      ],
+      "cluster_id": "C060-same-stack-version-uplift",
+      "cluster_key": "same-stack-version-uplift",
+      "decision": "defer",
+      "kinds": {
+        "command": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Same Stack Version Uplift",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "defer",
+      "source_count": 1,
+      "source_ids": [
+        "command:modernizeuplift"
+      ],
+      "source_names": [
+        "modernize-uplift"
+      ],
+      "verdict_counts": {
+        "defer": 1
+      },
+      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+    },
+    {
+      "average_score": 1.83,
+      "best_source_ids": [
+        "skill:lfg"
+      ],
+      "candidate_cluster_keys": [
+        "execution/autonomous-engineering"
+      ],
+      "cluster_id": "C061-execution-autonomous-engineering",
+      "cluster_key": "execution-autonomous-engineering",
+      "decision": "reject_after_review",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Execution Autonomous Engineering",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 1,
+      "source_ids": [
+        "skill:lfg"
+      ],
+      "source_names": [
+        "lfg"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 3.5,
+      "best_source_ids": [
+        "skill:proof"
+      ],
+      "candidate_cluster_keys": [
+        "external-document-platform-ops"
+      ],
+      "cluster_id": "C062-external-document-platform-ops",
+      "cluster_key": "external-document-platform-ops",
+      "decision": "reject_after_review",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "External Document Platform Ops",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 1,
+      "source_ids": [
+        "skill:proof"
+      ],
+      "source_names": [
+        "proof"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 3.28,
+      "best_source_ids": [
+        "skill:jiraintegration",
+        "plugin:discord",
+        "plugin:telegram"
+      ],
+      "candidate_cluster_keys": [
+        "chat-integration",
+        "integrations/jira-workflow",
+        "notification-integration"
+      ],
+      "cluster_id": "C063-external-collaboration-and-ticketing-integrations",
+      "cluster_key": "external-collaboration-and-ticketing-integrations",
+      "decision": "reject_after_review",
+      "kinds": {
+        "plugin": 2,
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Integrate Slack, Jira, Linear, Asana, GitHub issues, and notifications only when user context requires them.",
+      "recommended_capability": "External collaboration and ticketing integrations",
+      "recommended_surface": "plugin/skill",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 3,
+      "source_ids": [
+        "skill:jiraintegration",
+        "plugin:discord",
+        "plugin:telegram"
+      ],
+      "source_names": [
+        "jira-integration",
+        "discord",
+        "telegram"
+      ],
+      "verdict_counts": {
+        "defer": 1,
+        "reject_after_review": 2
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.42,
+      "best_source_ids": [
+        "rule:commonpatterns",
+        "rule:zhpatterns"
+      ],
+      "candidate_cluster_keys": [
+        "generic-application-patterns"
+      ],
+      "cluster_id": "C064-generic-application-patterns",
+      "cluster_key": "generic-application-patterns",
+      "decision": "reject_after_review",
+      "kinds": {
+        "rule": 2
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Generic Application Patterns",
+      "recommended_surface": "rule",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 2,
+      "source_ids": [
+        "rule:commonpatterns",
+        "rule:zhpatterns"
+      ],
+      "source_names": [
+        "common-patterns",
+        "zh/patterns"
+      ],
+      "verdict_counts": {
+        "defer": 1,
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.58,
+      "best_source_ids": [
+        "rule:commoncodingstyle",
+        "rule:zhcodingstyle"
+      ],
+      "candidate_cluster_keys": [
+        "generic-coding-style"
+      ],
+      "cluster_id": "C065-generic-coding-style",
+      "cluster_key": "generic-coding-style",
+      "decision": "reject_after_review",
+      "kinds": {
+        "rule": 2
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Generic Coding Style",
+      "recommended_surface": "rule",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 2,
+      "source_ids": [
+        "rule:commoncodingstyle",
+        "rule:zhcodingstyle"
+      ],
+      "source_names": [
+        "common-coding-style",
+        "zh/coding-style"
+      ],
+      "verdict_counts": {
+        "merge": 1,
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.58,
+      "best_source_ids": [
+        "command:hookify",
+        "hook:afterfileeditjs",
+        "hook:aftertabfileeditjs"
+      ],
+      "candidate_cluster_keys": [
+        "hook-authoring-and-guardrail-management",
+        "hook-generic-tool-event-adapters"
+      ],
+      "cluster_id": "C066-hook-authoring-policy-and-plumbing",
+      "cluster_key": "hook-authoring-policy-and-plumbing",
+      "decision": "reject_after_review",
+      "kinds": {
+        "command": 1,
+        "hook": 3
+      },
+      "priority": "P3",
+      "problem_solved": "Turn repeated agent failures into maintainable policy hooks and reusable hook profiles.",
+      "recommended_capability": "Hook authoring, policy, and plumbing",
+      "recommended_surface": "hook",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C008-harness-authoring-and-agent-ops",
+        "C009-hook-edit-and-doc-quality-gates",
+        "C024-hook-git-and-pr-quality-gates",
+        "C025-hook-observability-and-notifications",
+        "C026-hook-security-and-command-safety"
+      ],
+      "selection_mode": "reject_after_review",
+      "source_count": 4,
+      "source_ids": [
+        "hook:afterfileeditjs",
+        "hook:aftertabfileeditjs",
+        "hook:beforetabfilereadjs",
+        "command:hookify"
+      ],
+      "source_names": [
+        "after-file-edit.js",
+        "after-tab-file-edit.js",
+        "before-tab-file-read.js",
+        "hookify"
+      ],
+      "verdict_counts": {
+        "merge": 1,
+        "reject_after_review": 2,
+        "rewrite": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.17,
+      "best_source_ids": [
+        "command:addlanguagerules"
+      ],
+      "candidate_cluster_keys": [
+        "language-rule-scaffold"
+      ],
+      "cluster_id": "C067-language-rule-scaffold",
+      "cluster_key": "language-rule-scaffold",
+      "decision": "reject_after_review",
+      "kinds": {
+        "command": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Language Rule Scaffold",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 1,
+      "source_ids": [
+        "command:addlanguagerules"
+      ],
+      "source_names": [
+        "add-language-rules"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.92,
+      "best_source_ids": [
+        "skill:preparephases",
+        "skill:cebrainstorm",
+        "skill:brainstorming"
+      ],
+      "candidate_cluster_keys": [
+        "agent-repl-orchestration",
+        "deprecated-skill-command-shim",
+        "hookify-help",
+        "legacy-skill-command-shim",
+        "org-context-slack-research",
+        "requirements-discovery",
+        "session-learning-quiz",
+        "session-teaching",
+        "workflow-discipline-suite",
+        "workstreams/beads-phase-prep"
+      ],
+      "cluster_id": "C068-legacy-command-shims",
+      "cluster_key": "legacy-command-shims",
+      "decision": "reject_after_review",
+      "kinds": {
+        "agent": 1,
+        "command": 18,
+        "plugin": 1,
+        "skill": 4
+      },
+      "priority": "P3",
+      "problem_solved": "Replace or remove low-value slash-command wrappers that only invoke existing skills.",
+      "recommended_capability": "Legacy command shims",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C069-overbroad-workflow-command-shims"
+      ],
+      "selection_mode": "reject_after_review",
+      "source_count": 24,
+      "source_ids": [
+        "skill:brainstorming",
+        "skill:cebrainstorm",
+        "skill:nanoclawrepl",
+        "skill:preparephases",
+        "agent:slackresearcher",
+        "plugin:superpowers",
+        "command:agentsort",
+        "command:brainstorm",
+        "command:claw",
+        "command:contextbudget",
+        "command:devfleet",
+        "command:docs",
+        "command:e2e",
+        "command:eval",
+        "command:executeplan",
+        "command:hookifyhelp",
+        "command:orchestrate",
+        "command:promptoptimize",
+        "command:quizme",
+        "command:rulesdistill",
+        "command:tdd",
+        "command:teachme",
+        "command:verify",
+        "command:writeplan"
+      ],
+      "source_names": [
+        "brainstorming",
+        "ce:brainstorm",
+        "nanoclaw-repl",
+        "prepare-phases",
+        "slack-researcher",
+        "superpowers",
+        "agent-sort",
+        "brainstorm",
+        "claw",
+        "context-budget",
+        "devfleet",
+        "docs",
+        "e2e",
+        "eval",
+        "execute-plan",
+        "hookify-help",
+        "orchestrate",
+        "prompt-optimize",
+        "quiz-me",
+        "rules-distill",
+        "tdd",
+        "teach-me",
+        "verify",
+        "write-plan"
+      ],
+      "verdict_counts": {
+        "adopt": 2,
+        "defer": 1,
+        "merge": 2,
+        "reject_after_review": 19
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.64,
+      "best_source_ids": [
+        "plugin:featuredev",
+        "command:multibackend",
+        "command:checkpoint"
+      ],
+      "candidate_cluster_keys": [
+        "development-workflow-discipline",
+        "feature-development-workflow",
+        "multi-agent-planning-variants",
+        "multi-agent-workflow-orchestration",
+        "multi-model-backend-workflow",
+        "workflow-checkpointing"
+      ],
+      "cluster_id": "C069-overbroad-workflow-command-shims",
+      "cluster_key": "overbroad-workflow-command-shims",
+      "decision": "reject_after_review",
+      "kinds": {
+        "command": 5,
+        "plugin": 1,
+        "rule": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Avoid generic commands that hide planning or multi-agent workflow decisions behind vague wrappers.",
+      "recommended_capability": "Overbroad workflow command shims",
+      "recommended_surface": "command",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C068-legacy-command-shims"
+      ],
+      "selection_mode": "reject_after_review",
+      "source_count": 7,
+      "source_ids": [
+        "plugin:featuredev",
+        "rule:zhdevelopmentworkflow",
+        "command:checkpoint",
+        "command:featuredevelopment",
+        "command:multibackend",
+        "command:multiplan",
+        "command:multiworkflow"
+      ],
+      "source_names": [
+        "feature-dev",
+        "zh/development-workflow",
+        "checkpoint",
+        "feature-development",
+        "multi-backend",
+        "multi-plan",
+        "multi-workflow"
+      ],
+      "verdict_counts": {
+        "merge": 1,
+        "reject_after_review": 6
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.33,
+      "best_source_ids": [
+        "mcp:sequentialthinking",
+        "rule:everythingclaudecodeguardrails",
+        "skill:promptoptimizer"
+      ],
+      "candidate_cluster_keys": [
+        "prompt-defense-guardrails",
+        "prompting/prompt-optimization",
+        "structured-reasoning"
+      ],
+      "cluster_id": "C070-prompt-authoring-and-reasoning-guidance",
+      "cluster_key": "prompt-authoring-and-reasoning-guidance",
+      "decision": "reject_after_review",
+      "kinds": {
+        "mcp": 1,
+        "rule": 1,
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Improve prompts, structured reasoning, and prompt-safety practices without bloating default context.",
+      "recommended_capability": "Prompt authoring and reasoning guidance",
+      "recommended_surface": "rule/skill",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C008-harness-authoring-and-agent-ops",
+        "C029-plugin-and-mcp-authoring",
+        "C034-skill-authoring-evaluation-and-portfolio",
+        "C066-hook-authoring-policy-and-plumbing"
+      ],
+      "selection_mode": "reject_after_review",
+      "source_count": 3,
+      "source_ids": [
+        "skill:promptoptimizer",
+        "mcp:sequentialthinking",
+        "rule:everythingclaudecodeguardrails"
+      ],
+      "source_names": [
+        "prompt-optimizer",
+        "sequential-thinking",
+        "everything-claude-code-guardrails"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 1,
+        "rewrite": 2
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.5,
+      "best_source_ids": [
+        "skill:askmatt"
+      ],
+      "candidate_cluster_keys": [
+        "repo-specific-skill-router"
+      ],
+      "cluster_id": "C071-repo-specific-skill-router",
+      "cluster_key": "repo-specific-skill-router",
+      "decision": "reject_after_review",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Repo Specific Skill Router",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 1,
+      "source_ids": [
+        "skill:askmatt"
+      ],
+      "source_names": [
+        "ask-matt"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.92,
+      "best_source_ids": [
+        "plugin:codingtutor",
+        "plugin:explanatoryoutputstyle"
+      ],
+      "candidate_cluster_keys": [
+        "teaching-and-explanation"
+      ],
+      "cluster_id": "C072-teaching-and-explanation",
+      "cluster_key": "teaching-and-explanation",
+      "decision": "reject_after_review",
+      "kinds": {
+        "plugin": 2
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Teaching And Explanation",
+      "recommended_surface": "plugin",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 2,
+      "source_ids": [
+        "plugin:codingtutor",
+        "plugin:explanatoryoutputstyle"
+      ],
+      "source_names": [
+        "coding-tutor",
+        "explanatory-output-style"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 2
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.5,
+      "best_source_ids": [
+        "skill:aifirstengineering"
+      ],
+      "candidate_cluster_keys": [
+        "team/ai-first-operating-model"
+      ],
+      "cluster_id": "C073-team-ai-first-operating-model",
+      "cluster_key": "team-ai-first-operating-model",
+      "decision": "reject_after_review",
+      "kinds": {
+        "skill": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Team Ai First Operating Model",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 1,
+      "source_ids": [
+        "skill:aifirstengineering"
+      ],
+      "source_names": [
+        "ai-first-engineering"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.17,
+      "best_source_ids": [
+        "agent:technicalctoadvisor"
+      ],
+      "candidate_cluster_keys": [
+        "technical-strategy-review"
+      ],
+      "cluster_id": "C074-technical-strategy-review",
+      "cluster_key": "technical-strategy-review",
+      "decision": "reject_after_review",
+      "kinds": {
+        "agent": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
+      "recommended_capability": "Technical Strategy Review",
+      "recommended_surface": "agent",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [],
+      "selection_mode": "reject_after_review",
+      "source_count": 1,
+      "source_ids": [
+        "agent:technicalctoadvisor"
+      ],
+      "source_names": [
+        "technical-cto-advisor"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    },
+    {
+      "average_score": 2.0,
+      "best_source_ids": [
+        "plugin:cwcmakers"
+      ],
+      "candidate_cluster_keys": [
+        "community-showcase"
+      ],
+      "cluster_id": "C075-web-quality-performance-and-growth",
+      "cluster_key": "web-quality-performance-and-growth",
+      "decision": "reject_after_review",
+      "kinds": {
+        "plugin": 1
+      },
+      "priority": "P3",
+      "problem_solved": "Handle browser automation, web performance, SEO, and web-specific quality checks.",
+      "recommended_capability": "Web quality, performance, and growth",
+      "recommended_surface": "skill/agent",
+      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
+      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "secondary_relationships": [
+        "C001-code-review-and-change-quality",
+        "C009-hook-edit-and-doc-quality-gates",
+        "C024-hook-git-and-pr-quality-gates"
+      ],
+      "selection_mode": "reject_after_review",
+      "source_count": 1,
+      "source_ids": [
+        "plugin:cwcmakers"
+      ],
+      "source_names": [
+        "cwc-makers"
+      ],
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+    }
+  ],
+  "schema": "codex-analysis-clusters-v1",
+  "total_clusters": 75,
+  "total_source_ids": 629
+}

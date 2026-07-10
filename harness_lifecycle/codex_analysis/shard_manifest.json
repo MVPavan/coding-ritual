@@ -1,0 +1,186 @@
+{
+  "csv_path": "harness_lifecycle/capability_usefulness.csv",
+  "excluded_rows": 239,
+  "included_by_kind": {
+    "agent": 108,
+    "command": 122,
+    "hook": 68,
+    "mcp": 9,
+    "plugin": 42,
+    "rule": 42,
+    "skill": 238
+  },
+  "included_rows": 629,
+  "shards": [
+    {
+      "first_source_id": "skill:adopt",
+      "input": "shards/skill-1.input.jsonl",
+      "kinds": [
+        [
+          "skill",
+          60
+        ]
+      ],
+      "last_source_id": "skill:graphfirst",
+      "notes_output": "shards/skill-1.notes.md",
+      "row_output": "shards/skill-1.row_evaluations.jsonl",
+      "rows": 60,
+      "shard_id": "skill-1"
+    },
+    {
+      "first_source_id": "skill:grillme",
+      "input": "shards/skill-2.input.jsonl",
+      "kinds": [
+        [
+          "skill",
+          60
+        ]
+      ],
+      "last_source_id": "skill:automationauditops",
+      "notes_output": "shards/skill-2.notes.md",
+      "row_output": "shards/skill-2.row_evaluations.jsonl",
+      "rows": 60,
+      "shard_id": "skill-2"
+    },
+    {
+      "first_source_id": "skill:autonomousagentharness",
+      "input": "shards/skill-3.input.jsonl",
+      "kinds": [
+        [
+          "skill",
+          60
+        ]
+      ],
+      "last_source_id": "skill:codingtutor",
+      "notes_output": "shards/skill-3.notes.md",
+      "row_output": "shards/skill-3.row_evaluations.jsonl",
+      "rows": 60,
+      "shard_id": "skill-3"
+    },
+    {
+      "first_source_id": "skill:costestimate",
+      "input": "shards/skill-4.input.jsonl",
+      "kinds": [
+        [
+          "skill",
+          58
+        ]
+      ],
+      "last_source_id": "skill:writingshape",
+      "notes_output": "shards/skill-4.notes.md",
+      "row_output": "shards/skill-4.row_evaluations.jsonl",
+      "rows": 58,
+      "shard_id": "skill-4"
+    },
+    {
+      "first_source_id": "agent:adversarialdocumentreviewer",
+      "input": "shards/agent-1.input.jsonl",
+      "kinds": [
+        [
+          "agent",
+          54
+        ]
+      ],
+      "last_source_id": "agent:sessionhistorian",
+      "notes_output": "shards/agent-1.notes.md",
+      "row_output": "shards/agent-1.row_evaluations.jsonl",
+      "rows": 54,
+      "shard_id": "agent-1"
+    },
+    {
+      "first_source_id": "agent:silentfailurehunter",
+      "input": "shards/agent-2.input.jsonl",
+      "kinds": [
+        [
+          "agent",
+          54
+        ]
+      ],
+      "last_source_id": "agent:seospecialist",
+      "notes_output": "shards/agent-2.notes.md",
+      "row_output": "shards/agent-2.row_evaluations.jsonl",
+      "rows": 54,
+      "shard_id": "agent-2"
+    },
+    {
+      "first_source_id": "plugin:agentsdkdev",
+      "input": "shards/plugin-mcp-1.input.jsonl",
+      "kinds": [
+        [
+          "mcp",
+          9
+        ],
+        [
+          "plugin",
+          42
+        ]
+      ],
+      "last_source_id": "mcp:sequentialthinking",
+      "notes_output": "shards/plugin-mcp-1.notes.md",
+      "row_output": "shards/plugin-mcp-1.row_evaluations.jsonl",
+      "rows": 51,
+      "shard_id": "plugin-mcp-1"
+    },
+    {
+      "first_source_id": "rule:commonagents",
+      "input": "shards/rule-1.input.jsonl",
+      "kinds": [
+        [
+          "rule",
+          42
+        ]
+      ],
+      "last_source_id": "rule:zhreadme",
+      "notes_output": "shards/rule-1.notes.md",
+      "row_output": "shards/rule-1.row_evaluations.jsonl",
+      "rows": 42,
+      "shard_id": "rule-1"
+    },
+    {
+      "first_source_id": "hook:bdprimesh",
+      "input": "shards/hook-1.input.jsonl",
+      "kinds": [
+        [
+          "hook",
+          68
+        ]
+      ],
+      "last_source_id": "hook:runwithflagsjs",
+      "notes_output": "shards/hook-1.notes.md",
+      "row_output": "shards/hook-1.row_evaluations.jsonl",
+      "rows": 68,
+      "shard_id": "hook-1"
+    },
+    {
+      "first_source_id": "command:adopt",
+      "input": "shards/command-1.input.jsonl",
+      "kinds": [
+        [
+          "command",
+          61
+        ]
+      ],
+      "last_source_id": "command:multiworkflow",
+      "notes_output": "shards/command-1.notes.md",
+      "row_output": "shards/command-1.row_evaluations.jsonl",
+      "rows": 61,
+      "shard_id": "command-1"
+    },
+    {
+      "first_source_id": "command:newsdkapp",
+      "input": "shards/command-2.input.jsonl",
+      "kinds": [
+        [
+          "command",
+          61
+        ]
+      ],
+      "last_source_id": "command:writeplan",
+      "notes_output": "shards/command-2.notes.md",
+      "row_output": "shards/command-2.row_evaluations.jsonl",
+      "rows": 61,
+      "shard_id": "command-2"
+    }
+  ],
+  "total_rows": 868
+}
