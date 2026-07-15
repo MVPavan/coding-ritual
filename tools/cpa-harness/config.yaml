@@ -1,6 +1,6 @@
-port: 18317
+port: 58317
 
-# Development-only client key. Compose publishes the API on host loopback only.
+# Development-only client key. Restrict remote access at the host/network firewall.
 api-keys:
   - "sk-cpa-harness-local-1"
 

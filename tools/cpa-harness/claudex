@@ -79,7 +79,7 @@ CLIENT_KEY=$(read_client_key)
 [ -n "$CLIENT_KEY" ] || fail "no client key found under api-keys in $CONFIG_FILE"
 
 API_PORT=$(read_api_port)
-API_PORT=${API_PORT:-18317}
+API_PORT=${API_PORT:-58317}
 case "$API_PORT" in
     *[!0-9]*|'') fail "CPA_API_PORT must be numeric" ;;
 esac

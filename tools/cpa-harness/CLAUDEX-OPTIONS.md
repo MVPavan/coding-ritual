@@ -46,7 +46,7 @@ and cost-aware compaction policy are wanted in both the CLI and VS Code:
 {
   "model": "gpt-5.6-sol",
   "env": {
-    "ANTHROPIC_BASE_URL": "http://127.0.0.1:18317",
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:58317",
     "ANTHROPIC_AUTH_TOKEN": "YOUR_CPA_CLIENT_KEY",
     "ANTHROPIC_MODEL": "gpt-5.6-sol",
     "ANTHROPIC_CUSTOM_MODEL_OPTION": "gpt-5.6-sol",
@@ -63,8 +63,8 @@ and cost-aware compaction policy are wanted in both the CLI and VS Code:
 ```
 
 Store this only in ignored `.claude/settings.local.json`, never in a committed
-`.claude/settings.json`. Use the actual proxy IP instead of `127.0.0.1` when the
-gateway is reached directly; keep `127.0.0.1` when using an SSH tunnel.
+`.claude/settings.json`. Use the actual proxy IP instead of `127.0.0.1` from a
+remote client; keep `127.0.0.1` when Claude runs on the proxy host.
 
 `ENABLE_TOOL_SEARCH`, `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY`, and
 `CLAUDE_CODE_ATTRIBUTION_HEADER` are deliberately absent so Claude Code uses its
@@ -77,7 +77,7 @@ a Claude settings file. Values in JSON must be strings.
 
 | Variable | Current claudex value | Purpose and cautions |
 |---|---:|---|
-| `ANTHROPIC_BASE_URL` | `http://127.0.0.1:18317` | Anthropic-format gateway root; do not append `/v1`. |
+| `ANTHROPIC_BASE_URL` | `http://127.0.0.1:58317` | Anthropic-format gateway root; do not append `/v1`. |
 | `ANTHROPIC_AUTH_TOKEN` | First CPA client key | Sends `Authorization: Bearer`. This is a CPA `api-keys` entry, not the management password or OAuth credential. |
 | `ANTHROPIC_MODEL` | Not exported by `claudex`; `--model` is used | Default main model for surfaces without a CLI model flag. The VS Code profile sets it. |
 | `ANTHROPIC_CUSTOM_MODEL_OPTION` | `gpt-5.6-sol` | Adds an arbitrary gateway model ID and bypasses built-in model validation. |
@@ -111,7 +111,7 @@ NAME=value claudex [native Claude CLI flags] [prompt]
 |---|---:|---|
 | `CPA_CONFIG_FILE` | `config.yaml` beside `claudex` | File from which the first `api-keys` entry is read. |
 | `CPA_CLIENT_API_KEY` | Unset | Direct CPA client-key override; avoids needing a local `config.yaml`. Required on a remote machine unless another config file is supplied. |
-| `CPA_API_PORT` | `.env`, then `18317` | Local gateway port used when `CLAUDEX_BASE_URL` is unset. |
+| `CPA_API_PORT` | `.env`, then `58317` | Local gateway port used when `CLAUDEX_BASE_URL` is unset. |
 | `CLAUDEX_BASE_URL` | `http://127.0.0.1:$CPA_API_PORT` | Full gateway root URL. |
 | `CLAUDEX_MODEL` | `gpt-5.6-sol` | Main model passed as `claude --model`. |
 | `CLAUDEX_BACKGROUND_MODEL` | Main model | Value exported as `ANTHROPIC_DEFAULT_HAIKU_MODEL`. |
@@ -152,7 +152,7 @@ Inputs read during `enable`:
 |---|---:|---|
 | `CPA_CONFIG_FILE` | `config.yaml` beside the script | Use only when the proxy config is present locally. |
 | `CPA_CLIENT_API_KEY` | Unset | Required when the script is copied alone to a remote machine. |
-| `CPA_API_PORT` | `.env`, then `18317` | Used only to construct the default base URL. |
+| `CPA_API_PORT` | `.env`, then `58317` | Used only to construct the default base URL. |
 | `CLAUDEX_BASE_URL` | `http://127.0.0.1:$CPA_API_PORT` | Use the proxy IP or an HTTPS URL for a direct remote connection. |
 | `CLAUDEX_MODEL` | `gpt-5.6-sol` | Main model written to project settings. |
 | `CLAUDEX_BACKGROUND_MODEL` | Main model | Background model written to project settings. |
@@ -171,7 +171,7 @@ Remote-machine example:
 
 ```sh
 CPA_CLIENT_API_KEY='YOUR_REMOTE_CPA_CLIENT_KEY' \
-CLAUDEX_BASE_URL='http://PROXY_PRIVATE_IP:18317' \
+CLAUDEX_BASE_URL='http://PROXY_PRIVATE_IP:58317' \
 claudex-vscode enable /path/to/repository
 ```
 

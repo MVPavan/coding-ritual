@@ -4,6 +4,7 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
 ENV_FILE="$SCRIPT_DIR/.env"
+COMPOSE_FILE="$SCRIPT_DIR/cpa-harness-compose.yaml"
 SERVICE=cpa-harness-api
 
 usage() {
@@ -23,7 +24,7 @@ EOF
 }
 
 compose() {
-    (cd "$SCRIPT_DIR" && docker compose "$@")
+    (cd "$SCRIPT_DIR" && docker compose -f "$COMPOSE_FILE" "$@")
 }
 
 load_env() {
@@ -55,7 +56,7 @@ require_port() {
 
 validate_env() {
     load_env
-    require_port CPA_API_PORT "${CPA_API_PORT:-18317}"
+    require_port CPA_API_PORT "${CPA_API_PORT:-58317}"
     require_port CPA_ANTIGRAVITY_CALLBACK_PORT "${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}"
     if [ -z "${CPA_MANAGEMENT_PASSWORD:-}" ]; then
         echo "CPA_MANAGEMENT_PASSWORD must not be empty." >&2
@@ -127,7 +128,7 @@ case "$command" in
         ;;
     verify)
         validate_env
-        api_port=${CPA_API_PORT:-18317}
+        api_port=${CPA_API_PORT:-58317}
         management_password=${CPA_MANAGEMENT_PASSWORD:-}
         if ! command -v curl >/dev/null 2>&1; then
             echo "curl is required for verification." >&2

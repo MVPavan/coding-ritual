@@ -7,8 +7,8 @@ services:
     container_name: cpa-harness-api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${CPA_API_PORT:-18317}:18317"
-      - "127.0.0.1:${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}:${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}"
+      - "${CPA_API_PORT:-58317}:58317"
+      - "${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}:${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}"
     volumes:
       - ./config.yaml:/CLIProxyAPI/config.yaml
       - ./auths:/root/.cli-proxy-api
