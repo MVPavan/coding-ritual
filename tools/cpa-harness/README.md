@@ -150,9 +150,12 @@ claudex-vscode disable
 
 `status` reports the current mode. You may also pass the repository path as the
 second argument. Enabled mode uses GPT-5.6 Sol for the main session, background
-work, and subagents, with `xhigh` effort. It leaves tool search, concurrency,
-permissions, attribution, token limits, and compaction at Claude Code's normal
-defaults.
+work, and subagents, with `xhigh` effort. It declares the native Codex app's
+current 372,000-token catalog window, 128,000-token output ceiling, and 90%
+auto-compaction policy. Claude Code applies its own output reserve and
+compaction buffer, so the observed trigger can be earlier than Codex's 334,800
+tokens. Tool search, concurrency, permissions, and attribution remain at Claude
+Code's normal defaults.
 
 The switch stores gateway environment variables in the ignored
 `.claude/settings.local.json`; the client key is never written to the tracked

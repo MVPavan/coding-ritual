@@ -177,8 +177,28 @@ enable_profile() {
     BACKGROUND_MODEL=${CLAUDEX_BACKGROUND_MODEL:-$MODEL}
     SUBAGENT_MODEL=${CLAUDEX_SUBAGENT_MODEL:-$MODEL}
     EFFORT=${CLAUDEX_EFFORT:-xhigh}
+    CONTEXT_TOKENS=${CLAUDEX_CONTEXT_TOKENS:-372000}
+    MAX_OUTPUT_TOKENS=${CLAUDEX_MAX_OUTPUT_TOKENS:-128000}
+    AUTO_COMPACT_WINDOW=${CLAUDEX_AUTO_COMPACT_WINDOW:-372000}
+    AUTO_COMPACT_PERCENT=${CLAUDEX_AUTO_COMPACT_PERCENT:-90}
     BASE_URL=${CLAUDEX_BASE_URL:-"http://127.0.0.1:$API_PORT"}
     BASE_URL=${BASE_URL%/}
+
+    case "$CONTEXT_TOKENS" in
+        *[!0-9]*|''|0) fail "CLAUDEX_CONTEXT_TOKENS must be a positive integer" ;;
+    esac
+    case "$MAX_OUTPUT_TOKENS" in
+        *[!0-9]*|''|0) fail "CLAUDEX_MAX_OUTPUT_TOKENS must be a positive integer" ;;
+    esac
+    case "$AUTO_COMPACT_WINDOW" in
+        *[!0-9]*|''|0) fail "CLAUDEX_AUTO_COMPACT_WINDOW must be a positive integer" ;;
+    esac
+    case "$AUTO_COMPACT_PERCENT" in
+        *[!0-9]*|'') fail "CLAUDEX_AUTO_COMPACT_PERCENT must be an integer from 1 to 100" ;;
+    esac
+    if [ "$AUTO_COMPACT_PERCENT" -lt 1 ] || [ "$AUTO_COMPACT_PERCENT" -gt 100 ]; then
+        fail "CLAUDEX_AUTO_COMPACT_PERCENT must be an integer from 1 to 100"
+    fi
 
     umask 077
     mkdir -p "$STATE_DIR"
@@ -205,7 +225,11 @@ enable_profile() {
         --arg model "$MODEL" \
         --arg background_model "$BACKGROUND_MODEL" \
         --arg subagent_model "$SUBAGENT_MODEL" \
-        --arg effort "$EFFORT" '
+        --arg effort "$EFFORT" \
+        --arg context_tokens "$CONTEXT_TOKENS" \
+        --arg max_output_tokens "$MAX_OUTPUT_TOKENS" \
+        --arg auto_compact_window "$AUTO_COMPACT_WINDOW" \
+        --arg auto_compact_percent "$AUTO_COMPACT_PERCENT" '
         if ((.env // {}) | type) != "object" then
             error("env must be a JSON object")
         else
@@ -220,7 +244,11 @@ enable_profile() {
             "ANTHROPIC_DEFAULT_HAIKU_MODEL": $background_model,
             "CLAUDE_CODE_SUBAGENT_MODEL": $subagent_model,
             "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
-            "CLAUDE_CODE_EFFORT_LEVEL": $effort
+            "CLAUDE_CODE_EFFORT_LEVEL": $effort,
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": $context_tokens,
+            "CLAUDE_CODE_MAX_OUTPUT_TOKENS": $max_output_tokens,
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": $auto_compact_window,
+            "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": $auto_compact_percent
         })
     ' "$CLAUDE_SOURCE" >"$STATE_DIR/claude.enabled" || {
         clear_state
@@ -249,6 +277,8 @@ enable_profile() {
     echo "claudex-vscode: enabled for $REPO"
     echo "  main/background/subagents: $MODEL"
     echo "  effort: $EFFORT"
+    echo "  context/max output: $CONTEXT_TOKENS/$MAX_OUTPUT_TOKENS"
+    echo "  auto-compact window/percent: $AUTO_COMPACT_WINDOW/$AUTO_COMPACT_PERCENT"
     echo "  gateway: $BASE_URL"
     echo "Start a new Claude chat or run 'Developer: Reload Window' in VS Code."
 }

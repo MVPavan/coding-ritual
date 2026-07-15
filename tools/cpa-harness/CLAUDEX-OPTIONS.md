@@ -75,7 +75,7 @@ provider-aware defaults.
 These variables can be placed in a shell environment or in the `env` object of
 a Claude settings file. Values in JSON must be strings.
 
-| Variable | Current claudex value | Purpose and cautions |
+| Variable | Current harness value | Purpose and cautions |
 |---|---:|---|
 | `ANTHROPIC_BASE_URL` | `http://127.0.0.1:58317` | Anthropic-format gateway root; do not append `/v1`. |
 | `ANTHROPIC_AUTH_TOKEN` | First CPA client key | Sends `Authorization: Bearer`. This is a CPA `api-keys` entry, not the management password or OAuth credential. |
@@ -85,10 +85,10 @@ a Claude settings file. Values in JSON must be strings.
 | `CLAUDE_CODE_SUBAGENT_MODEL` | `gpt-5.6-sol` | Forces all subagents and agent teams to this model; overrides agent frontmatter. |
 | `CLAUDE_CODE_ALWAYS_ENABLE_EFFORT` | `1` | Sends effort controls for a custom gateway model. Translation still depends on CPA. |
 | `CLAUDE_CODE_EFFORT_LEVEL` | `xhigh` | Default effort: `low`, `medium`, `high`, `xhigh`, or `max`. A CLI `--effort` can override it. |
-| `CLAUDE_CODE_MAX_CONTEXT_TOKENS` | `1050000` in `claudex` | Declares the context window for an unknown custom model. The VS Code switch currently leaves it unset unless added manually to project settings. |
-| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `128000` in `claudex` | Requested output-token ceiling. It cannot exceed proxy/upstream support. The VS Code switch currently leaves it unset unless added manually. |
-| `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | `270000` in `claudex` | Context window used for automatic compaction. The cost-aware harness value is not a native Claude default. |
-| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` | `90` in `claudex` | Compaction trigger percentage, from `1` to `100`; values above Claude's native threshold have no effect. |
+| `CLAUDE_CODE_MAX_CONTEXT_TOKENS` | CLI `1050000`; VS Code `372000` | Declares the context window for an unknown custom model. The VS Code value matches the current native Codex app catalog window. |
+| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `128000` | Requested output-token ceiling. It cannot exceed proxy/upstream support. |
+| `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | CLI `270000`; VS Code `372000` | Context window used for automatic compaction. The CLI value is cost-aware; the VS Code value mirrors the native Codex app window. |
+| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` | `90` | Compaction trigger percentage, from `1` to `100`; values above Claude's native threshold have no effect. |
 | `ENABLE_TOOL_SEARCH` | Unset | Unset uses provider-aware behavior. `false` loads MCP definitions up front; `true` requires gateway `tool_reference` compatibility. This does not enable or disable ordinary tools. |
 | `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` | Unset | Maximum concurrent tool uses. Native default is currently `10`; this harness does not override it. |
 | `CLAUDE_CODE_ATTRIBUTION_HEADER` | Unset | Controls Claude Code attribution. This harness leaves the native behavior unchanged. |
@@ -158,14 +158,16 @@ Inputs read during `enable`:
 | `CLAUDEX_BACKGROUND_MODEL` | Main model | Background model written to project settings. |
 | `CLAUDEX_SUBAGENT_MODEL` | Main model | Global subagent model written to project settings. |
 | `CLAUDEX_EFFORT` | `xhigh` | Effort written to project settings. |
+| `CLAUDEX_CONTEXT_TOKENS` | `372000` | Written as `CLAUDE_CODE_MAX_CONTEXT_TOKENS`; positive integer. |
+| `CLAUDEX_MAX_OUTPUT_TOKENS` | `128000` | Written as `CLAUDE_CODE_MAX_OUTPUT_TOKENS`; positive integer. |
+| `CLAUDEX_AUTO_COMPACT_WINDOW` | `372000` | Written as `CLAUDE_CODE_AUTO_COMPACT_WINDOW`; positive integer. |
+| `CLAUDEX_AUTO_COMPACT_PERCENT` | `90` | Written as `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`; integer `1`–`100`. |
 | `CLAUDEX_VSCODE_STATE_HOME` | `$XDG_STATE_HOME/claudex-vscode` | Override for private backup/state storage; mainly useful for tests. |
 
-The current VS Code switch does **not** read `CLAUDEX_CONTEXT_TOKENS`,
-`CLAUDEX_MAX_OUTPUT_TOKENS`, `CLAUDEX_AUTO_COMPACT_WINDOW`, or
-`CLAUDEX_AUTO_COMPACT_PERCENT`. Add their mapped `CLAUDE_*` variables to the
-generated `.claude/settings.local.json` when those overrides are required. A
-post-enable edit makes `status` report modified, so use `disable --force` after
-preserving any wanted changes.
+The VS Code defaults declare the current native Codex app's 372,000-token
+catalog window, 128,000-token model output ceiling, and 90% compaction policy.
+Claude Code still applies its own output reserve and compaction buffer, so its
+observed compaction point can be earlier than Codex's 334,800-token threshold.
 
 Remote-machine example:
 
