@@ -1,0 +1,18 @@
+name: cpa-harness
+
+services:
+  cpa-harness-api:
+    image: eceasy/cli-proxy-api:latest
+    pull_policy: always
+    container_name: cpa-harness-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${CPA_API_PORT:-18317}:18317"
+      - "127.0.0.1:${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}:${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}"
+    volumes:
+      - ./config.yaml:/CLIProxyAPI/config.yaml
+      - ./auths:/root/.cli-proxy-api
+      - ./logs:/CLIProxyAPI/logs
+      - ./plugins:/CLIProxyAPI/plugins
+    environment:
+      MANAGEMENT_PASSWORD: ${CPA_MANAGEMENT_PASSWORD:?Set CPA_MANAGEMENT_PASSWORD in .env}

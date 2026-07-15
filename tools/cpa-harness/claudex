@@ -1,0 +1,130 @@
+#!/bin/sh
+
+set -eu
+
+SCRIPT_PATH=$0
+LINK_COUNT=0
+while [ -L "$SCRIPT_PATH" ]; do
+    LINK_COUNT=$((LINK_COUNT + 1))
+    if [ "$LINK_COUNT" -gt 40 ]; then
+        echo "claudex: too many symbolic links while resolving $0" >&2
+        exit 1
+    fi
+
+    LINK_TARGET=$(readlink "$SCRIPT_PATH")
+    case "$LINK_TARGET" in
+        /*) SCRIPT_PATH=$LINK_TARGET ;;
+        *) SCRIPT_PATH=$(dirname "$SCRIPT_PATH")/$LINK_TARGET ;;
+    esac
+done
+
+SCRIPT_DIR=$(CDPATH= cd "$(dirname "$SCRIPT_PATH")" && pwd)
+CONFIG_FILE=${CPA_CONFIG_FILE:-"$SCRIPT_DIR/config.yaml"}
+ENV_FILE="$SCRIPT_DIR/.env"
+
+fail() {
+    echo "claudex: $*" >&2
+    exit 1
+}
+
+read_client_key() {
+    if [ -n "${CPA_CLIENT_API_KEY:-}" ]; then
+        printf '%s\n' "$CPA_CLIENT_API_KEY"
+        return
+    fi
+
+    [ -r "$CONFIG_FILE" ] || fail "cannot read $CONFIG_FILE"
+
+    awk '
+        /^api-keys:[[:space:]]*$/ {
+            in_keys = 1
+            next
+        }
+        in_keys && /^[^[:space:]#]/ {
+            exit
+        }
+        in_keys && /^[[:space:]]*-[[:space:]]*/ {
+            value = $0
+            sub(/^[[:space:]]*-[[:space:]]*/, "", value)
+            sub(/[[:space:]]+#.*/, "", value)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+            if (value ~ /^".*"$/) {
+                value = substr(value, 2, length(value) - 2)
+            }
+            print value
+            exit
+        }
+    ' "$CONFIG_FILE"
+}
+
+read_api_port() {
+    if [ -n "${CPA_API_PORT:-}" ]; then
+        printf '%s\n' "$CPA_API_PORT"
+        return
+    fi
+
+    if [ -r "$ENV_FILE" ]; then
+        awk -F= '
+            /^CPA_API_PORT=[0-9]+\r?$/ {
+                value = $2
+                sub(/\r$/, "", value)
+                print value
+                exit
+            }
+        ' "$ENV_FILE"
+    fi
+}
+
+CLIENT_KEY=$(read_client_key)
+[ -n "$CLIENT_KEY" ] || fail "no client key found under api-keys in $CONFIG_FILE"
+
+API_PORT=$(read_api_port)
+API_PORT=${API_PORT:-18317}
+case "$API_PORT" in
+    *[!0-9]*|'') fail "CPA_API_PORT must be numeric" ;;
+esac
+
+MODEL=${CLAUDEX_MODEL:-gpt-5.6-sol}
+BACKGROUND_MODEL=${CLAUDEX_BACKGROUND_MODEL:-$MODEL}
+SUBAGENT_MODEL=${CLAUDEX_SUBAGENT_MODEL:-$MODEL}
+EFFORT=${CLAUDEX_EFFORT:-xhigh}
+CONTEXT_TOKENS=${CLAUDEX_CONTEXT_TOKENS:-1050000}
+MAX_OUTPUT_TOKENS=${CLAUDEX_MAX_OUTPUT_TOKENS:-128000}
+# Keep routine turns below Sol's >272K long-context pricing tier after
+# Claude Code applies its internal output reserve and compaction buffer.
+AUTO_COMPACT_WINDOW=${CLAUDEX_AUTO_COMPACT_WINDOW:-270000}
+AUTO_COMPACT_PERCENT=${CLAUDEX_AUTO_COMPACT_PERCENT:-90}
+BASE_URL=${CLAUDEX_BASE_URL:-"http://127.0.0.1:$API_PORT"}
+BASE_URL=${BASE_URL%/}
+
+case "$CONTEXT_TOKENS" in
+    *[!0-9]*|''|0) fail "CLAUDEX_CONTEXT_TOKENS must be a positive integer" ;;
+esac
+case "$MAX_OUTPUT_TOKENS" in
+    *[!0-9]*|''|0) fail "CLAUDEX_MAX_OUTPUT_TOKENS must be a positive integer" ;;
+esac
+case "$AUTO_COMPACT_WINDOW" in
+    *[!0-9]*|''|0) fail "CLAUDEX_AUTO_COMPACT_WINDOW must be a positive integer" ;;
+esac
+case "$AUTO_COMPACT_PERCENT" in
+    *[!0-9]*|'') fail "CLAUDEX_AUTO_COMPACT_PERCENT must be an integer from 1 to 100" ;;
+esac
+if [ "$AUTO_COMPACT_PERCENT" -lt 1 ] || [ "$AUTO_COMPACT_PERCENT" -gt 100 ]; then
+    fail "CLAUDEX_AUTO_COMPACT_PERCENT must be an integer from 1 to 100"
+fi
+
+command -v claude >/dev/null 2>&1 || fail "claude is not installed or not on PATH"
+
+export ANTHROPIC_BASE_URL="$BASE_URL"
+export ANTHROPIC_AUTH_TOKEN="$CLIENT_KEY"
+export ANTHROPIC_CUSTOM_MODEL_OPTION="$MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$BACKGROUND_MODEL"
+export CLAUDE_CODE_SUBAGENT_MODEL="$SUBAGENT_MODEL"
+export CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
+export CLAUDE_CODE_EFFORT_LEVEL="$EFFORT"
+export CLAUDE_CODE_MAX_CONTEXT_TOKENS="$CONTEXT_TOKENS"
+export CLAUDE_CODE_MAX_OUTPUT_TOKENS="$MAX_OUTPUT_TOKENS"
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW="$AUTO_COMPACT_WINDOW"
+export CLAUDE_AUTOCOMPACT_PCT_OVERRIDE="$AUTO_COMPACT_PERCENT"
+
+exec claude --model "$MODEL" "$@"

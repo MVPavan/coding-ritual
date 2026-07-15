@@ -1,0 +1,21 @@
+port: 18317
+
+# Development-only client key. Compose publishes the API on host loopback only.
+api-keys:
+  - "sk-cpa-harness-local-1"
+
+auth-dir: "/root/.cli-proxy-api"
+logging-to-file: true
+usage-statistics-enabled: true
+
+remote-management:
+  allow-remote: true
+  # Keep empty: the MANAGEMENT_PASSWORD environment variable enables management auth.
+  secret-key: ""
+  disable-control-panel: false
+  disable-auto-update-panel: false
+  panel-github-repository: "https://github.com/router-for-me/Cli-Proxy-API-Management-Center"
+
+plugins:
+  enabled: true
+  dir: plugins
