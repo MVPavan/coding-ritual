@@ -1,0 +1,326 @@
+#!/bin/sh
+
+set -eu
+
+SCRIPT_PATH=$0
+LINK_COUNT=0
+while [ -L "$SCRIPT_PATH" ]; do
+    LINK_COUNT=$((LINK_COUNT + 1))
+    if [ "$LINK_COUNT" -gt 40 ]; then
+        echo "claudex-vscode: too many symbolic links while resolving $0" >&2
+        exit 1
+    fi
+
+    LINK_TARGET=$(readlink "$SCRIPT_PATH")
+    case "$LINK_TARGET" in
+        /*) SCRIPT_PATH=$LINK_TARGET ;;
+        *) SCRIPT_PATH=$(dirname "$SCRIPT_PATH")/$LINK_TARGET ;;
+    esac
+done
+
+SCRIPT_DIR=$(CDPATH= cd "$(dirname "$SCRIPT_PATH")" && pwd)
+CONFIG_FILE=${CPA_CONFIG_FILE:-"$SCRIPT_DIR/config.yaml"}
+ENV_FILE="$SCRIPT_DIR/.env"
+
+usage() {
+    cat <<'EOF'
+Usage: ./claudex-vscode COMMAND [REPOSITORY]
+       ./claudex-vscode disable --force [REPOSITORY]
+
+Commands:
+  enable   Route this repository's Claude VS Code extension through CPA
+  disable  Restore the repository's previous Claude and VS Code settings
+  status   Show whether the repository-local CPA profile is enabled
+
+REPOSITORY defaults to the Git repository containing the current directory.
+After enable or disable, start a new Claude chat. If the extension was already
+running, use "Developer: Reload Window" in VS Code.
+EOF
+}
+
+fail() {
+    echo "claudex-vscode: $*" >&2
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 || fail "$1 is required"
+}
+
+read_client_key() {
+    if [ -n "${CPA_CLIENT_API_KEY:-}" ]; then
+        printf '%s\n' "$CPA_CLIENT_API_KEY"
+        return
+    fi
+
+    [ -r "$CONFIG_FILE" ] || fail "cannot read $CONFIG_FILE"
+
+    awk '
+        /^api-keys:[[:space:]]*$/ {
+            in_keys = 1
+            next
+        }
+        in_keys && /^[^[:space:]#]/ {
+            exit
+        }
+        in_keys && /^[[:space:]]*-[[:space:]]*/ {
+            value = $0
+            sub(/^[[:space:]]*-[[:space:]]*/, "", value)
+            sub(/[[:space:]]+#.*/, "", value)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+            if (value ~ /^".*"$/) {
+                value = substr(value, 2, length(value) - 2)
+            }
+            print value
+            exit
+        }
+    ' "$CONFIG_FILE"
+}
+
+read_api_port() {
+    if [ -n "${CPA_API_PORT:-}" ]; then
+        printf '%s\n' "$CPA_API_PORT"
+        return
+    fi
+
+    if [ -r "$ENV_FILE" ]; then
+        awk -F= '
+            /^CPA_API_PORT=[0-9]+\r?$/ {
+                value = $2
+                sub(/\r$/, "", value)
+                print value
+                exit
+            }
+        ' "$ENV_FILE"
+    fi
+}
+
+resolve_repo() {
+    candidate=${1:-.}
+    git -C "$candidate" rev-parse --show-toplevel 2>/dev/null ||
+        fail "$candidate is not inside a Git repository"
+}
+
+file_hash() {
+    sha256sum "$1" | awk '{print $1}'
+}
+
+backup_file() {
+    source_file=$1
+    backup_name=$2
+
+    if [ -f "$source_file" ]; then
+        cp "$source_file" "$STATE_DIR/$backup_name.before"
+    else
+        : >"$STATE_DIR/$backup_name.missing"
+    fi
+}
+
+restore_file() {
+    target_file=$1
+    backup_name=$2
+
+    if [ -f "$STATE_DIR/$backup_name.before" ]; then
+        mkdir -p "$(dirname "$target_file")"
+        cp "$STATE_DIR/$backup_name.before" "$target_file"
+    elif [ -f "$STATE_DIR/$backup_name.missing" ]; then
+        rm -f "$target_file"
+    else
+        fail "state for $target_file is incomplete"
+    fi
+}
+
+check_unchanged() {
+    target_file=$1
+    hash_file=$2
+
+    [ -f "$target_file" ] || return 1
+    [ "$(file_hash "$target_file")" = "$(sed -n '1p' "$hash_file")" ]
+}
+
+clear_state() {
+    rm -f \
+        "$STATE_DIR/claude.before" \
+        "$STATE_DIR/claude.missing" \
+        "$STATE_DIR/claude.source" \
+        "$STATE_DIR/claude.enabled" \
+        "$STATE_DIR/claude.sha256" \
+        "$STATE_DIR/vscode.before" \
+        "$STATE_DIR/vscode.missing" \
+        "$STATE_DIR/vscode.source" \
+        "$STATE_DIR/vscode.enabled" \
+        "$STATE_DIR/vscode.sha256" \
+        "$STATE_DIR/repository" \
+        "$STATE_DIR/enabled"
+    rmdir "$STATE_DIR" 2>/dev/null || true
+}
+
+enable_profile() {
+    [ ! -e "$STATE_DIR/enabled" ] || {
+        echo "claudex-vscode: already enabled for $REPO"
+        return
+    }
+    [ ! -d "$STATE_DIR" ] || fail "incomplete state exists at $STATE_DIR"
+    git -C "$REPO" check-ignore -q .claude/settings.local.json ||
+        fail ".claude/settings.local.json must be ignored before storing the CPA client key"
+
+    CLIENT_KEY=$(read_client_key)
+    [ -n "$CLIENT_KEY" ] || fail "no client key found under api-keys in $CONFIG_FILE"
+
+    API_PORT=$(read_api_port)
+    API_PORT=${API_PORT:-18317}
+    case "$API_PORT" in
+        *[!0-9]*|'') fail "CPA_API_PORT must be numeric" ;;
+    esac
+
+    MODEL=${CLAUDEX_MODEL:-gpt-5.6-sol}
+    BACKGROUND_MODEL=${CLAUDEX_BACKGROUND_MODEL:-$MODEL}
+    SUBAGENT_MODEL=${CLAUDEX_SUBAGENT_MODEL:-$MODEL}
+    EFFORT=${CLAUDEX_EFFORT:-xhigh}
+    BASE_URL=${CLAUDEX_BASE_URL:-"http://127.0.0.1:$API_PORT"}
+    BASE_URL=${BASE_URL%/}
+
+    umask 077
+    mkdir -p "$STATE_DIR"
+    printf '%s\n' "$REPO" >"$STATE_DIR/repository"
+    backup_file "$CLAUDE_SETTINGS" claude
+    backup_file "$VSCODE_SETTINGS" vscode
+
+    if [ -f "$CLAUDE_SETTINGS" ]; then
+        CLAUDE_SOURCE=$CLAUDE_SETTINGS
+    else
+        printf '{}\n' >"$STATE_DIR/claude.source"
+        CLAUDE_SOURCE=$STATE_DIR/claude.source
+    fi
+    if [ -f "$VSCODE_SETTINGS" ]; then
+        VSCODE_SOURCE=$VSCODE_SETTINGS
+    else
+        printf '{}\n' >"$STATE_DIR/vscode.source"
+        VSCODE_SOURCE=$STATE_DIR/vscode.source
+    fi
+
+    jq \
+        --arg base_url "$BASE_URL" \
+        --arg client_key "$CLIENT_KEY" \
+        --arg model "$MODEL" \
+        --arg background_model "$BACKGROUND_MODEL" \
+        --arg subagent_model "$SUBAGENT_MODEL" \
+        --arg effort "$EFFORT" '
+        if ((.env // {}) | type) != "object" then
+            error("env must be a JSON object")
+        else
+            .
+        end
+        | .model = $model
+        | .env = ((.env // {}) + {
+            "ANTHROPIC_BASE_URL": $base_url,
+            "ANTHROPIC_AUTH_TOKEN": $client_key,
+            "ANTHROPIC_MODEL": $model,
+            "ANTHROPIC_CUSTOM_MODEL_OPTION": $model,
+            "ANTHROPIC_DEFAULT_HAIKU_MODEL": $background_model,
+            "CLAUDE_CODE_SUBAGENT_MODEL": $subagent_model,
+            "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT": "1",
+            "CLAUDE_CODE_EFFORT_LEVEL": $effort
+        })
+    ' "$CLAUDE_SOURCE" >"$STATE_DIR/claude.enabled" || {
+        clear_state
+        fail "could not update $CLAUDE_SETTINGS; it must be valid JSON"
+    }
+
+    jq '."claudeCode.disableLoginPrompt" = true' \
+        "$VSCODE_SOURCE" >"$STATE_DIR/vscode.enabled" || {
+        clear_state
+        fail "could not update $VSCODE_SETTINGS; it must be valid JSON (not JSONC)"
+    }
+
+    mkdir -p "$(dirname "$CLAUDE_SETTINGS")" "$(dirname "$VSCODE_SETTINGS")"
+    if ! cp "$STATE_DIR/claude.enabled" "$CLAUDE_SETTINGS" ||
+        ! cp "$STATE_DIR/vscode.enabled" "$VSCODE_SETTINGS"; then
+        restore_file "$CLAUDE_SETTINGS" claude
+        restore_file "$VSCODE_SETTINGS" vscode
+        clear_state
+        fail "could not install repository-local settings"
+    fi
+
+    file_hash "$CLAUDE_SETTINGS" >"$STATE_DIR/claude.sha256"
+    file_hash "$VSCODE_SETTINGS" >"$STATE_DIR/vscode.sha256"
+    : >"$STATE_DIR/enabled"
+
+    echo "claudex-vscode: enabled for $REPO"
+    echo "  main/background/subagents: $MODEL"
+    echo "  effort: $EFFORT"
+    echo "  gateway: $BASE_URL"
+    echo "Start a new Claude chat or run 'Developer: Reload Window' in VS Code."
+}
+
+disable_profile() {
+    [ -e "$STATE_DIR/enabled" ] || {
+        echo "claudex-vscode: already disabled for $REPO"
+        return
+    }
+
+    if ! check_unchanged "$CLAUDE_SETTINGS" "$STATE_DIR/claude.sha256" ||
+        ! check_unchanged "$VSCODE_SETTINGS" "$STATE_DIR/vscode.sha256"; then
+        [ "$FORCE" -eq 1 ] ||
+            fail "managed settings changed after enable; preserve those edits or use disable --force"
+        echo "claudex-vscode: warning: restoring backups over modified managed settings" >&2
+    fi
+
+    restore_file "$CLAUDE_SETTINGS" claude
+    restore_file "$VSCODE_SETTINGS" vscode
+    clear_state
+
+    echo "claudex-vscode: disabled for $REPO"
+    echo "Start a new Claude chat or run 'Developer: Reload Window' in VS Code."
+}
+
+show_status() {
+    if [ ! -e "$STATE_DIR/enabled" ]; then
+        echo "disabled: $REPO"
+    elif check_unchanged "$CLAUDE_SETTINGS" "$STATE_DIR/claude.sha256" &&
+        check_unchanged "$VSCODE_SETTINGS" "$STATE_DIR/vscode.sha256"; then
+        echo "enabled: $REPO"
+    else
+        echo "enabled, but managed settings were modified: $REPO"
+        return 1
+    fi
+}
+
+COMMAND=${1:-}
+case "$COMMAND" in
+    enable|disable|status) ;;
+    help|-h|--help|'')
+        usage
+        [ -n "$COMMAND" ] || exit 2
+        exit 0
+        ;;
+    *)
+        echo "Unknown command: $COMMAND" >&2
+        usage >&2
+        exit 2
+        ;;
+esac
+shift
+FORCE=0
+if [ "$COMMAND" = disable ] && [ "${1:-}" = --force ]; then
+    FORCE=1
+    shift
+fi
+[ "$#" -le 1 ] || fail "expected at most one repository path"
+
+require_command git
+require_command jq
+require_command sha256sum
+
+REPO=$(resolve_repo "${1:-.}")
+REPO_ID=$(printf '%s' "$REPO" | sha256sum | awk '{print $1}')
+STATE_ROOT=${CLAUDEX_VSCODE_STATE_HOME:-"${XDG_STATE_HOME:-$HOME/.local/state}/claudex-vscode"}
+STATE_DIR=$STATE_ROOT/$REPO_ID
+CLAUDE_SETTINGS=$REPO/.claude/settings.local.json
+VSCODE_SETTINGS=$REPO/.vscode/settings.json
+
+case "$COMMAND" in
+    enable) enable_profile ;;
+    disable) disable_profile ;;
+    status) show_status ;;
+esac
