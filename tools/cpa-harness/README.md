@@ -22,20 +22,23 @@ defaults:
 
 | Item | Local value |
 |---|---|
-| API and management server | `http://127.0.0.1:18317` |
-| Management Center | `http://127.0.0.1:18317/management.html` |
+| API and management server | `http://HOST_IP:58317` |
+| Management Center | `http://HOST_IP:58317/management.html` |
 | Management key | `cpa-harness-local-management-1` |
 | Client API key | `sk-cpa-harness-local-1` |
-| Antigravity callback | `http://127.0.0.1:15121` |
+| Antigravity callback | `http://HOST_IP:15121` |
 
-The API and callback bind to host loopback only. The harness does not publish
-ports `8317`, `8085`, `54545`, `1455`, or `11451`. Change the two port variables
-in `.env` before `./cpa.sh up` if the defaults are occupied.
+Compose publishes the API and callback on all host interfaces. The host and
+network firewalls determine which remote clients can connect; restrict ports
+`58317` and `15121` to trusted addresses. The harness does not publish ports
+`8317`, `8085`, `54545`, `1455`, or `11451`. Change the two port variables in
+`.env` before `./cpa.sh up` if the defaults are occupied.
 
 ## Management Center and plugins
 
 Open the Management Center URL above. Enter
-`http://127.0.0.1:18317` as the server and the management key from `.env`.
+`http://HOST_IP:58317` as the server from a remote client, or
+`http://127.0.0.1:58317` on the host, and use the management key from `.env`.
 Configuration, usage statistics, control-panel updates, and plugins are enabled
 for this harness. Install `gemini-cli` from the official plugin registry through
 the Management Center; there is no built-in Gemini login command in `cpa.sh`.
@@ -172,8 +175,8 @@ normal Claude login is not deleted; it becomes active again after `disable`.
 
 This is a third-party compatibility path: CLIProxyAPI translates Claude's
 Messages protocol to the selected Codex/OpenAI model. Anthropic does not support
-non-Claude models in Claude Code. Keep the proxy bound to loopback, and retest
-the wrapper after pulling a new `latest` image.
+non-Claude models in Claude Code. Keep the published ports restricted to trusted
+clients, and retest the wrapper after pulling a new `latest` image.
 
 ## Non-production warning
 
@@ -182,3 +185,17 @@ different upstream builds over time. The static client and management keys are
 development credentials. This harness is deliberately non-reproducible and must
 not be used for production or as Bodha's normal proxy. `./cpa.sh restart` also
 pulls and recreates the container so environment changes take effect.
+
+## Firewall setup on Host
+
+```powershell
+New-NetFirewallRule `
+  -DisplayName "CLIProxyAPI from Office Laptop" `
+  -Direction Inbound `
+  -Action Allow `
+  -Protocol TCP `
+  -LocalAddress 192.168.0.176 `
+  -LocalPort 58317 `
+  -RemoteAddress 192.168.0.199 `
+  -Profile Private
+```
