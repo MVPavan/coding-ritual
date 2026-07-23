@@ -1,0 +1,764 @@
+schema_version: 1
+kind: agent-matrix-value-catalog
+catalog_version: "2026-07-22.1"
+reference_only: true
+superseded_by: agent-matrix-values.yaml
+
+scope:
+  phase: values-only
+  includes:
+    - selectable subagent definition fields
+    - selectable invocation fields
+    - closed enum values
+    - constrained scalar shapes
+    - current project registries
+    - current authenticated Codex model catalog
+  excludes:
+    - cross-field compatibility rules
+    - role-to-capability combinations
+    - default-selection policy
+    - runtime adapters
+    - resolver implementation
+
+validation_policy:
+  unknown_key: error
+  unknown_enum_value: error
+  unknown_registry_id: error
+  duplicate_registry_id: error
+  unregistered_runtime_identifier: error
+  combinations_checked_by_this_catalog: false
+  runtime_entitlement_checked_by_this_catalog: false
+  notes:
+    - A YAML catalog declares the allowed values; a later schema or resolver must enforce these errors.
+    - Payload fields are user-authored text, not selections, and are validated by type or shape rather than membership.
+    - Dynamic registries must be refreshed when models, tools, skills, MCP servers, plugins, or agent files change.
+
+field_kinds:
+  enum:
+    rule: value must exactly match one listed value
+  registry_id:
+    rule: value must exactly match an id in the referenced registry
+  constrained_scalar:
+    rule: value must satisfy the declared type, range, or pattern
+  payload:
+    rule: value is user-authored content and is not looked up in a registry
+  structured:
+    rule: object keys and leaf values must satisfy the declared shape
+
+snapshot:
+  generated_at: "2026-07-22"
+  claude_code_version: "2.1.217"
+  codex_cli_version: "0.144.4"
+  codex_auth_mode: chatgpt
+  codex_model_catalog_command: codex debug models
+  codex_current_spawn_model_overrides:
+    - gpt-5.6-sol
+    - gpt-5.6-terra
+  sources:
+    claude_subagents: https://code.claude.com/docs/en/sub-agents
+    claude_package: "@anthropic-ai/claude-code@2.1.217"
+    codex_manual: https://developers.openai.com/codex/codex-manual.md
+    codex_source: https://github.com/openai/codex/tree/rust-v0.144.4
+
+shared:
+  runtimes:
+    kind: enum
+    values:
+      - claude-code
+      - codex
+  execution_mode:
+    kind: enum
+    values:
+      - auto
+      - foreground
+      - background
+  boolean:
+    kind: enum
+    values:
+      - true
+      - false
+  payload_fields:
+    kind: payload
+    values:
+      - role_description
+      - role_instructions
+      - invocation_task
+      - invocation_description
+      - initial_prompt
+
+claude_code:
+  agent_definition:
+    required_fields:
+      - name
+      - description
+    optional_fields:
+      - tools
+      - disallowedTools
+      - model
+      - permissionMode
+      - maxTurns
+      - skills
+      - mcpServers
+      - hooks
+      - memory
+      - background
+      - effort
+      - isolation
+      - color
+      - initialPrompt
+    prompt_field:
+      location: markdown-body
+      kind: payload
+    fields:
+      name:
+        kind: constrained_scalar
+        type: string
+        pattern: "^[a-z]+(?:-[a-z]+)*$"
+      description:
+        kind: payload
+        type: string
+      tools:
+        kind: registry_id
+        collection: list
+        registry: claude_code.registries.tool_ids
+        omitted: inherit-all
+      disallowedTools:
+        kind: registry_id
+        collection: list
+        registry: claude_code.registries.tool_ids
+        omitted: deny-none
+      model:
+        kind: registry_id
+        registry: claude_code.registries.model_ids
+        omitted: inherit
+      permissionMode:
+        kind: enum
+        values:
+          - default
+          - manual
+          - acceptEdits
+          - auto
+          - dontAsk
+          - bypassPermissions
+          - plan
+        aliases:
+          manual: default
+      maxTurns:
+        kind: constrained_scalar
+        type: integer
+        minimum: 1
+      skills:
+        kind: registry_id
+        collection: list
+        registry: claude_code.registries.skill_ids
+      mcpServers:
+        kind: registry_id
+        collection: list
+        registry: claude_code.registries.mcp_server_ids
+        matrix_policy: named-servers-only
+        upstream_also_accepts: inline-server-definitions
+      hooks:
+        kind: registry_id
+        collection: list
+        registry: claude_code.registries.hook_profile_ids
+        matrix_policy: named-profiles-only
+        upstream_also_accepts: inline-hook-definitions
+      memory:
+        kind: enum
+        values:
+          - user
+          - project
+          - local
+      background:
+        kind: enum
+        values:
+          - true
+          - false
+        omitted: runtime-choice
+      effort:
+        kind: enum
+        values:
+          - low
+          - medium
+          - high
+          - xhigh
+          - max
+        omitted: inherit-session
+      isolation:
+        kind: enum
+        values:
+          - worktree
+        omitted: shared-working-tree
+      color:
+        kind: enum
+        values:
+          - red
+          - blue
+          - green
+          - yellow
+          - purple
+          - orange
+          - pink
+          - cyan
+      initialPrompt:
+        kind: payload
+        type: string
+
+  agent_invocation:
+    required_fields:
+      - description
+      - prompt
+    optional_fields:
+      - subagent_type
+      - model
+      - run_in_background
+      - name
+      - isolation
+    fields:
+      description:
+        kind: payload
+        type: string
+      prompt:
+        kind: payload
+        type: string
+      subagent_type:
+        kind: registry_id
+        registry: claude_code.registries.role_ids
+      model:
+        kind: enum
+        values:
+          - sonnet
+          - opus
+          - haiku
+          - fable
+      run_in_background:
+        kind: enum
+        values:
+          - true
+          - false
+        omitted: true
+      name:
+        kind: constrained_scalar
+        type: string
+      isolation:
+        kind: enum
+        values:
+          - worktree
+          - remote
+        omitted: none
+        gated_values:
+          - remote
+    deprecated_ignored_fields:
+      - team_name
+      - mode
+    unavailable_per_invocation_fields:
+      - effort
+      - tools
+      - disallowedTools
+      - permissionMode
+      - skills
+      - mcpServers
+      - hooks
+      - memory
+      - maxTurns
+
+  registries:
+    model_ids:
+      type: explicit-and-refreshable
+      values:
+        - id: inherit
+          class: documented-alias
+          definition_selectable: true
+          invocation_selectable: false
+        - id: sonnet
+          class: documented-alias
+          definition_selectable: true
+          invocation_selectable: true
+        - id: opus
+          class: documented-alias
+          definition_selectable: true
+          invocation_selectable: true
+        - id: haiku
+          class: documented-alias
+          definition_selectable: true
+          invocation_selectable: true
+        - id: fable
+          class: documented-alias
+          definition_selectable: true
+          invocation_selectable: true
+        - id: claude-opus-4-8
+          class: full-model-id
+          source: project-agent-files
+          definition_selectable: true
+          invocation_selectable: false
+          live_entitlement_verified: false
+        - id: "claude-fable-5[1m]"
+          class: full-model-id
+          source: project-agent-files
+          definition_selectable: true
+          invocation_selectable: false
+          live_entitlement_verified: false
+      refresh_note: Full model IDs are organization-specific; add them here before the strict validator accepts them.
+
+    role_ids:
+      type: explicit-and-refreshable
+      values:
+        - id: general-purpose
+          source: product-builtin
+        - id: Explore
+          source: product-builtin
+        - id: Plan
+          source: product-builtin
+        - id: claude-code-guide
+          source: product-builtin
+        - id: statusline-setup
+          source: product-builtin
+        - id: claude-max
+          source: .claude/agents/claude-max.md
+        - id: code-reviewer
+          source: .claude/agents/code-reviewer.md
+        - id: docs-researcher
+          source: .claude/agents/docs-researcher.md
+        - id: fable-max
+          source: .claude/agents/fable-max.md
+        - id: fable-xhigh
+          source: .claude/agents/fable-xhigh.md
+        - id: implementer
+          source: .claude/agents/implementer.md
+        - id: planner
+          source: .claude/agents/planner.md
+        - id: spec-reviewer
+          source: .claude/agents/spec-reviewer.md
+
+    tool_ids:
+      type: explicit-and-refreshable
+      completeness: documented-core-plus-project-observed
+      values:
+        - Agent
+        - AskUserQuestion
+        - Bash
+        - Edit
+        - EnterPlanMode
+        - ExitPlanMode
+        - Glob
+        - Grep
+        - NotebookEdit
+        - Read
+        - Skill
+        - TaskCreate
+        - TaskGet
+        - TaskList
+        - TaskOutput
+        - TaskStop
+        - TaskUpdate
+        - WebFetch
+        - WebSearch
+        - Write
+        - mcp__plugin_context7_context7__resolve-library-id
+        - mcp__plugin_context7_context7__query-docs
+      refresh_note: MCP and plugin tools are dynamic and must be registered by exact tool id.
+
+    skill_ids:
+      type: project-snapshot
+      values:
+        - ak-guide
+        - beads
+        - brainstorming
+        - cost-estimate
+        - design-evolve
+        - document-review
+        - grill-me
+        - harness-evaluate
+        - html-artifact
+        - i-have-adhd
+        - phase-execution
+        - planning
+        - refresh-harness-from-reference
+        - subagent-driven-development
+        - systematic-debugging
+        - teach-session
+        - test-driven-development
+        - verification-before-completion
+
+    mcp_server_ids:
+      type: explicit-and-refreshable
+      values:
+        - plugin_context7_context7
+      source: project-agent-tool-references
+
+    hook_profile_ids:
+      type: explicit-and-refreshable
+      values: []
+      note: Define named hook profiles here before selecting them; raw inline hook objects are intentionally outside the matrix.
+
+  rejected_observed_values:
+    - field: effort
+      value: extra
+      files:
+        - .claude/agents/code-reviewer.md
+        - .claude/agents/planner.md
+        - .claude/agents/spec-reviewer.md
+      reason: not in the documented effort enum
+    - field: color
+      value: teal
+      files:
+        - .claude/agents/fable-xhigh.md
+      reason: not in the documented color enum
+
+codex:
+  custom_agent_definition:
+    required_fields:
+      - name
+      - description
+      - developer_instructions
+    matrix_registered_optional_fields:
+      - nickname_candidates
+      - model
+      - model_provider
+      - model_reasoning_effort
+      - model_reasoning_summary
+      - model_verbosity
+      - service_tier
+      - personality
+      - sandbox_mode
+      - approval_policy
+      - approvals_reviewer
+      - default_permissions
+      - web_search
+      - mcp_servers
+      - skills.config
+    upstream_behavior: A custom agent is a full ConfigToml overlay and can accept additional supported config.toml keys.
+    matrix_policy: Additional ConfigToml keys are rejected until explicitly registered in this catalog.
+    fields:
+      name:
+        kind: constrained_scalar
+        type: string
+      description:
+        kind: payload
+        type: string
+      developer_instructions:
+        kind: payload
+        type: string
+      nickname_candidates:
+        kind: constrained_scalar
+        collection: list
+        item_type: string
+      model:
+        kind: registry_id
+        registry: codex.registries.model_ids
+      model_provider:
+        kind: registry_id
+        registry: codex.registries.model_provider_ids
+      model_reasoning_effort:
+        kind: registry_id
+        registry: codex.registries.reasoning_effort_ids
+      model_reasoning_summary:
+        kind: enum
+        values:
+          - auto
+          - concise
+          - detailed
+          - none
+      model_verbosity:
+        kind: enum
+        values:
+          - low
+          - medium
+          - high
+      service_tier:
+        kind: registry_id
+        registry: codex.registries.service_tier_ids
+      personality:
+        kind: enum
+        values:
+          - none
+          - friendly
+          - pragmatic
+      sandbox_mode:
+        kind: enum
+        values:
+          - read-only
+          - workspace-write
+          - danger-full-access
+      approval_policy:
+        kind: structured
+        named_values:
+          - untrusted
+          - on-request
+          - never
+        granular_shape:
+          sandbox_approval: boolean
+          rules: boolean
+          skill_approval: boolean
+          request_permissions: boolean
+          mcp_elicitations: boolean
+      approvals_reviewer:
+        kind: enum
+        values:
+          - user
+          - auto_review
+      default_permissions:
+        kind: registry_id
+        registry: codex.registries.permission_profile_ids
+      web_search:
+        kind: enum
+        values:
+          - disabled
+          - cached
+          - indexed
+          - live
+      mcp_servers:
+        kind: registry_id
+        collection: map
+        registry: codex.registries.mcp_server_ids
+      skills.config:
+        kind: registry_id
+        collection: list
+        registry: codex.registries.skill_ids
+
+  spawn_agent_v2_invocation:
+    required_fields:
+      - task_name
+    task_requirement: task or follow-up message must supply the user-authored work
+    optional_fields:
+      - agent_type
+      - model
+      - reasoning_effort
+      - fork_turns
+    fields:
+      task_name:
+        kind: constrained_scalar
+        type: string
+        pattern: "^[a-z0-9_]+$"
+      agent_type:
+        kind: registry_id
+        registry: codex.registries.role_ids
+        omitted: default
+      model:
+        kind: registry_id
+        registry: codex.registries.model_ids
+      reasoning_effort:
+        kind: registry_id
+        registry: codex.registries.reasoning_effort_ids
+      fork_turns:
+        kind: constrained_scalar
+        literal_values:
+          - none
+          - all
+        alternate_shape:
+          type: positive-integer-string
+          pattern: "^[1-9][0-9]*$"
+        omitted: all
+      task:
+        kind: payload
+        type: string
+    not_exposed_by_current_session_spawn_tool:
+      - service_tier
+      - sandbox_mode
+      - approval_policy
+      - tools
+      - skills
+      - mcp_servers
+
+  global_subagent_settings:
+    fields:
+      agents.enabled:
+        kind: enum
+        values:
+          - true
+          - false
+        default: true
+      agents.max_concurrent_threads_per_session:
+        kind: constrained_scalar
+        type: integer
+        minimum: 1
+      agents.default_subagent_model:
+        kind: registry_id
+        registry: codex.registries.model_ids
+      agents.default_subagent_reasoning_effort:
+        kind: registry_id
+        registry: codex.registries.reasoning_effort_ids
+      agents.interrupt_message:
+        kind: enum
+        values:
+          - true
+          - false
+        default: true
+
+  registries:
+    role_ids:
+      type: product-and-project-snapshot
+      values:
+        - id: default
+          source: product-builtin
+        - id: explorer
+          source: product-builtin
+        - id: worker
+          source: product-builtin
+        - id: claude-max
+          source: .codex/agents/claude-max.toml
+        - id: code-reviewer
+          source: .codex/agents/code-reviewer.toml
+        - id: docs-researcher
+          source: .codex/agents/docs-researcher.toml
+        - id: fable-max
+          source: .codex/agents/fable-max.toml
+        - id: fable-xhigh
+          source: .codex/agents/fable-xhigh.toml
+        - id: implementer
+          source: .codex/agents/implementer.toml
+        - id: planner
+          source: .codex/agents/planner.toml
+        - id: spec-reviewer
+          source: .codex/agents/spec-reviewer.toml
+
+    model_ids:
+      type: authenticated-live-snapshot
+      values:
+        - id: gpt-5.6-sol
+          display_name: GPT-5.6-Sol
+          visible: true
+          current_spawn_override: true
+          default_reasoning_effort: low
+          supported_reasoning_efforts: [low, medium, high, xhigh, max, ultra]
+          additional_speed_tiers: [fast]
+          service_tiers: [priority]
+        - id: gpt-5.6-terra
+          display_name: GPT-5.6-Terra
+          visible: true
+          current_spawn_override: true
+          default_reasoning_effort: medium
+          supported_reasoning_efforts: [low, medium, high, xhigh, max, ultra]
+          additional_speed_tiers: [fast]
+          service_tiers: [priority]
+        - id: gpt-5.6-luna
+          display_name: GPT-5.6-Luna
+          visible: true
+          current_spawn_override: false
+          default_reasoning_effort: medium
+          supported_reasoning_efforts: [low, medium, high, xhigh, max]
+          additional_speed_tiers: [fast]
+          service_tiers: [priority]
+        - id: gpt-5.5
+          display_name: GPT-5.5
+          visible: true
+          current_spawn_override: false
+          default_reasoning_effort: medium
+          supported_reasoning_efforts: [low, medium, high, xhigh]
+          additional_speed_tiers: [fast]
+          service_tiers: [priority]
+        - id: gpt-5.4
+          display_name: GPT-5.4
+          visible: true
+          current_spawn_override: false
+          default_reasoning_effort: medium
+          supported_reasoning_efforts: [low, medium, high, xhigh]
+          additional_speed_tiers: [fast]
+          service_tiers: [priority]
+        - id: gpt-5.4-mini
+          display_name: GPT-5.4-Mini
+          visible: true
+          current_spawn_override: false
+          default_reasoning_effort: medium
+          supported_reasoning_efforts: [low, medium, high, xhigh]
+          additional_speed_tiers: []
+          service_tiers: []
+        - id: gpt-5.2
+          display_name: GPT-5.2
+          visible: true
+          current_spawn_override: false
+          default_reasoning_effort: medium
+          supported_reasoning_efforts: [low, medium, high, xhigh]
+          additional_speed_tiers: []
+          service_tiers: []
+        - id: codex-auto-review
+          display_name: Codex Auto Review
+          visible: false
+          current_spawn_override: false
+          default_reasoning_effort: medium
+          supported_reasoning_efforts: [low, medium, high, xhigh]
+          additional_speed_tiers: []
+          service_tiers: []
+      refresh_command: codex debug models
+
+    reasoning_effort_ids:
+      type: live-catalog-union
+      values:
+        - low
+        - medium
+        - high
+        - xhigh
+        - max
+        - ultra
+      source_note: The Codex parser also accepts none, minimal, and future custom strings, but none are offered by the current authenticated model catalog and custom values are rejected by this matrix.
+
+    service_tier_ids:
+      type: runtime-and-live-catalog-union
+      values:
+        - default
+        - fast
+        - priority
+        - flex
+      aliases:
+        fast: priority
+      source_note: priority is the wire value for Fast; flex is runtime-supported but absent from the current model entries.
+
+    model_provider_ids:
+      type: current-config-snapshot
+      values:
+        - openai
+
+    permission_profile_ids:
+      type: built-in-and-refreshable
+      values:
+        - ":read-only"
+        - ":workspace"
+        - ":danger-full-access"
+
+    skill_ids:
+      type: project-snapshot
+      values:
+        - adopt
+        - ak-guide
+        - beads
+        - brainstorming
+        - check-invariants
+        - codebase-architecture-research
+        - cost-estimate
+        - deep-research
+        - design-evolve
+        - document-review
+        - grill-me
+        - html-artifact
+        - migrate-claude-to-codex
+        - phase-execution
+        - planning
+        - prepare-phases
+        - run-phases
+        - subagent-driven-development
+        - systematic-debugging
+        - teach-session
+        - test-driven-development
+        - use-codex
+        - verification-before-completion
+
+    mcp_server_ids:
+      type: current-config-snapshot
+      values:
+        - openaiDeveloperDocs
+
+    capability_inheritance:
+      type: enum
+      values:
+        - inherit-parent-tools
+        - inherit-parent-sandbox
+        - inherit-parent-approval-policy
+      note: Codex 0.144.4 does not expose a Claude-style per-spawn tool allowlist.
+
+refresh_triggers:
+  - runtime version changes
+  - authenticated model catalog changes
+  - project agent files change
+  - project or user skill directories change
+  - MCP or plugin configuration changes
+  - current spawn tool schema changes

@@ -1,0 +1,266 @@
+version: 2
+
+models:
+  claude:
+    - inherit
+    - sonnet
+    - opus
+    - haiku
+    - fable
+    - claude-opus-4-8
+    - "claude-fable-5[1m]"
+  codex:
+    - gpt-5.6-sol
+    - gpt-5.6-terra
+    - gpt-5.6-luna
+    - gpt-5.5
+    - gpt-5.4
+    - gpt-5.4-mini
+    - gpt-5.2
+
+effort_levels:
+  low: {}
+  medium: {}
+  high: {}
+  xhigh: {}
+  max: {}
+  codex:
+    - ultra
+
+context_modes:
+  fresh:
+    claude:
+      mechanism: named_subagent
+    codex:
+      field: fork_turns
+      value: none
+  full:
+    claude:
+      mechanism: fork_subagent
+      subagent_type: fork
+      command: /subtask
+    codex:
+      field: fork_turns
+      value: all
+  last_n_turns:
+    claude:
+      supported: false
+    codex:
+      field: fork_turns
+      value_type: positive_integer_string
+      example: "10"
+
+capabilities:
+  skills:
+    claude:
+      field: skills
+      values_from: skills
+    codex:
+      field: skills.config
+      values_from: skills
+
+  mcp_servers:
+    claude:
+      field: mcpServers
+      values:
+        - plugin_context7_context7
+      also_accepts: inline_server_definition
+    codex:
+      field: mcp_servers
+      values:
+        - openaiDeveloperDocs
+
+  claude:
+    tool_allowlist:
+      field: tools
+      resolution: intersection_with_parent_tool_pool
+      values:
+        - Artifact
+        - Bash
+        - CronCreate
+        - CronDelete
+        - CronList
+        - Edit
+        - EnterWorktree
+        - ExitWorktree
+        - Glob
+        - Grep
+        - ListMcpResourcesTool
+        - LSP
+        - Monitor
+        - NotebookEdit
+        - PowerShell
+        - PushNotification
+        - Read
+        - ReadMcpResourceTool
+        - RemoteTrigger
+        - ReportFindings
+        - SendMessage
+        - SendUserFile
+        - ShareOnboardingGuide
+        - Skill
+        - TaskCreate
+        - TaskGet
+        - TaskList
+        - TaskStop
+        - TaskUpdate
+        - TodoWrite
+        - ToolSearch
+        - WebFetch
+        - WebSearch
+        - Write
+      conditional_values:
+        Agent: nested_subagent_spawning_enabled
+        ExitPlanMode: permissionMode_is_plan
+      mcp_patterns:
+        - "mcp__<server>"
+        - "mcp__<server>__*"
+        - "mcp__<server>__<tool>"
+      background_builtin_values:
+        - Read
+        - Grep
+        - Glob
+        - Bash
+        - PowerShell
+        - Edit
+        - Write
+        - NotebookEdit
+        - WebFetch
+        - WebSearch
+        - TodoWrite
+        - Skill
+        - ToolSearch
+        - EnterWorktree
+        - ExitWorktree
+        - Monitor
+        - TaskStop
+        - SendMessage
+        - Artifact
+      unavailable_to_named_subagents:
+        - AskUserQuestion
+        - EndConversation
+        - EnterPlanMode
+        - ScheduleWakeup
+        - TaskOutput
+        - WaitForMcpServers
+        - Workflow
+
+    tool_denylist:
+      field: disallowedTools
+      values_from:
+        - capabilities.claude.tool_allowlist.values
+        - capabilities.claude.tool_allowlist.conditional_values
+      additional_patterns:
+        - "mcp__*"
+
+    permission_mode:
+      field: permissionMode
+      values:
+        - default
+        - manual
+        - acceptEdits
+        - auto
+        - dontAsk
+        - bypassPermissions
+        - plan
+
+    persistent_memory:
+      field: memory
+      values:
+        - user
+        - project
+        - local
+
+    background_execution:
+      field: background
+      values:
+        - true
+        - false
+
+    isolation:
+      field: isolation
+      values:
+        - worktree
+
+    hooks:
+      field: hooks
+      value_type: inline_hook_definition
+
+  codex:
+    tool_access:
+      values:
+        - inherit_parent
+
+    sandbox_mode:
+      field: sandbox_mode
+      values:
+        - read-only
+        - workspace-write
+        - danger-full-access
+
+    approval_policy:
+      field: approval_policy
+      named_values:
+        - untrusted
+        - on-request
+        - never
+      structured_value:
+        granular:
+          sandbox_approval: boolean
+          rules: boolean
+          skill_approval: boolean
+          request_permissions: boolean
+          mcp_elicitations: boolean
+
+    permission_profile:
+      field: default_permissions
+      values:
+        - ":read-only"
+        - ":workspace"
+        - ":danger-full-access"
+
+    web_search:
+      field: web_search
+      values:
+        - disabled
+        - cached
+        - indexed
+        - live
+
+    service_tier:
+      field: service_tier
+      values:
+        - default
+        - fast
+        - priority
+        - flex
+
+skills:
+  ak-guide: {}
+  beads: {}
+  brainstorming: {}
+  cost-estimate: {}
+  design-evolve: {}
+  document-review: {}
+  grill-me: {}
+  html-artifact: {}
+  phase-execution: {}
+  planning: {}
+  subagent-driven-development: {}
+  systematic-debugging: {}
+  teach-session: {}
+  test-driven-development: {}
+  verification-before-completion: {}
+  claude:
+    - harness-evaluate
+    - i-have-adhd
+    - refresh-harness-from-reference
+  codex:
+    - adopt
+    - check-invariants
+    - codebase-architecture-research
+    - deep-research
+    - migrate-claude-to-codex
+    - prepare-phases
+    - run-phases
+    - use-codex
