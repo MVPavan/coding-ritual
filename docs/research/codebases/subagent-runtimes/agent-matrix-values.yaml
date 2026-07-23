@@ -236,6 +236,7 @@ capabilities:
         - flex
 
 skills:
+  agent-matrix: {}
   ak-guide: {}
   beads: {}
   brainstorming: {}
