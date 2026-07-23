@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Focused harness synthesis review</title>
+  <script>document.documentElement.classList.add('js')</script>
+  <style>
+    :root {
+      color-scheme: light dark; --bg:#f5f7f9; --surface:#fff; --surface-2:#f9fafb;
+      --text:#1f242c; --muted:#69727e; --border:#dfe4ea; --accent:#355fc9;
+      --accent-soft:#edf2ff; --green:#287a4b; --green-soft:#eaf6ef; --amber:#98680d;
+      --amber-soft:#fff4d8; --red:#a63b35; --red-soft:#fdecea; --space-1:.5rem;
+      --space-2:1rem; --space-3:1.5rem; --space-4:2rem;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    @media(prefers-color-scheme:dark){:root{--bg:#0f1216;--surface:#171b20;--surface-2:#1c2128;
+      --text:#e7eaee;--muted:#9ca5b1;--border:#2b323b;--accent:#8da7ff;--accent-soft:#202a48;
+      --green:#70cd92;--green-soft:#183126;--amber:#e0b45c;--amber-soft:#342a15;
+      --red:#ee887f;--red-soft:#3b211f;}}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--text);line-height:1.55}
+    main{max-width:1440px;margin:auto;padding:2.5rem 1.5rem 5rem} a{color:var(--accent)}
+    .topline{display:flex;justify-content:space-between;gap:1rem;align-items:center;color:var(--muted);font-size:.8rem}
+    .kicker{color:var(--accent);font-weight:750;letter-spacing:.09em;text-transform:uppercase}
+    h1{font-size:clamp(2rem,4vw,3.3rem);line-height:1.08;letter-spacing:-.04em;margin:.55rem 0 .75rem}
+    .lede{max-width:78ch;color:var(--muted);font-size:1.02rem}
+    .kpis{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:1rem;margin:2rem 0}
+    .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem}
+    .kpi.primary{border-color:color-mix(in srgb,var(--accent) 45%,var(--border))} .kpi strong{display:block;font-size:2rem;line-height:1;font-variant-numeric:tabular-nums}
+    .kpi.primary strong{color:var(--accent)} .kpi span{display:block;color:var(--muted);font-size:.78rem;margin-top:.45rem}
+    .section{margin-top:3rem} .section-head{display:flex;align-items:end;gap:1rem;border-bottom:1px solid var(--border);padding-bottom:.65rem;margin-bottom:1.25rem}
+    .section-no{color:var(--muted);font:700 1.6rem/1 ui-monospace,SFMono-Regular,Menlo,monospace} h2{font-size:1.35rem;margin:0;letter-spacing:-.02em}
+    .chart-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:1.25rem} .secondary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem;margin-top:1.25rem}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;overflow:auto}
+    .card h3{font-size:.9rem;margin:0 0 .75rem} .caption{color:var(--muted);font-size:.78rem;margin:.55rem 0 0}
+    .chart{display:block;width:100%;height:auto;max-height:360px} .bar{fill:var(--accent)} .bar.neutral{fill:color-mix(in srgb,var(--muted) 45%,var(--border))}
+    .chart-label,.chart-value{fill:var(--muted);font:12px system-ui,sans-serif;dominant-baseline:middle} .chart-value{fill:var(--text);font-weight:700}
+    .short-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem} .short-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem}
+    .short-card h3{font-size:.85rem;margin:0 0 .75rem} .short-card h3 span{color:var(--muted);font-weight:500} .short-card ul{margin:0;padding-left:1.1rem}
+    .short-card li{margin:.42rem 0;font-size:.82rem} .short-card a{color:var(--text);font-weight:650} .mini{display:block;color:var(--muted);font-size:.7rem} .review-guide{margin-top:1rem}
+    .controls{display:none;grid-template-columns:minmax(220px,2fr) repeat(3,minmax(140px,1fr)) auto;gap:.75rem;align-items:end;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;position:sticky;top:.5rem;z-index:5} .js .controls{display:grid}
+    label{display:block;color:var(--muted);font-size:.72rem;font-weight:700} input,select,button{width:100%;margin-top:.3rem;padding:.62rem .7rem;border:1px solid var(--border);border-radius:7px;background:var(--surface-2);color:var(--text);font:inherit}
+    button{width:auto;cursor:pointer;color:var(--accent);font-weight:700} .result-count{display:none;color:var(--muted);font-size:.8rem;margin:.5rem 0} .js .result-count{display:block}
+    .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface)} table{width:100%;border-collapse:collapse;min-width:1050px}
+    th{position:sticky;top:0;background:var(--surface-2);z-index:2;text-align:left;color:var(--muted);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase}
+    th,td{padding:.85rem;border-bottom:1px solid var(--border);vertical-align:top} tbody tr:last-child td{border-bottom:0} tbody tr:target{background:var(--accent-soft)}
+    .number{text-align:right;font-variant-numeric:tabular-nums;font-weight:750} .number span{display:block;max-width:170px;color:var(--muted);font-size:.68rem;font-weight:400}
+    .capability{min-width:260px} .capability strong,.capability span,.capability code{display:block} .capability span{color:var(--muted);font-size:.78rem;margin:.2rem 0} code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.76em}
+    .decision,.priority{display:inline-block;border-radius:999px;padding:.2rem .52rem;font-size:.68rem;font-weight:750;white-space:nowrap}
+    .decision-merge{color:var(--green);background:var(--green-soft)} .decision-adapt,.decision-defer{color:var(--amber);background:var(--amber-soft)} .decision-reject-after-review{color:var(--red);background:var(--red-soft)}
+    .priority{color:var(--accent);background:var(--accent-soft)} .p3{color:var(--muted);background:var(--surface-2)}
+    details summary{cursor:pointer;color:var(--accent);font-size:.78rem;font-weight:700} .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin:.85rem 0}
+    .detail-grid div{background:var(--surface-2);border-radius:7px;padding:.75rem} h4{font-size:.74rem;margin:0 0 .35rem} .detail-grid p{font-size:.8rem;margin:0;color:var(--muted)}
+    .sources{padding-left:1.1rem;max-height:320px;overflow:auto} .sources li{margin:.55rem 0;font-size:.78rem} .source-harness,.source-rationale{display:block;color:var(--muted);font-size:.68rem} .source-rationale{margin-top:.15rem;max-width:90ch}
+    .evidence-meta,.muted{color:var(--muted);font-size:.74rem} .excluded{margin-top:1.25rem} footer{margin-top:2.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);padding-top:1rem}
+    [hidden]{display:none!important}
+    @media(max-width:980px){.kpis{grid-template-columns:repeat(3,1fr)}.chart-grid,.secondary,.short-grid{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr 1fr}}
+    @media(max-width:720px){main{padding:1.5rem .85rem 3rem}.topline{display:block}.kpis,.chart-grid,.secondary,.short-grid,.detail-grid,.controls{grid-template-columns:1fr}.controls{position:static}h1{font-size:2.2rem}.chart{min-width:600px}.review-table,.exclusion-table{min-width:0}.review-table thead,.exclusion-table thead{display:none}.review-table tbody,.review-table tr,.review-table td,.exclusion-table tbody,.exclusion-table tr,.exclusion-table td{display:block;width:100%}.review-table tr,.exclusion-table tr{padding:.55rem .8rem;border-bottom:1px solid var(--border)}.review-table td,.exclusion-table td{border:0;padding:.38rem 0;text-align:left}.review-table td::before,.exclusion-table td::before{content:attr(data-label);display:block;color:var(--muted);font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.18rem}.review-table .number span{max-width:none}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="topline"><span class="kicker">Focused synthesis review</span><a href="../index.html">All visualizations</a></div>
+    <h1>Three reference harnesses, one review surface.</h1>
+    <p class="lede">A focused Codex synthesis of <code>agent-skills</code>, <code>mattpocock_skills</code>, and <code>superpowers</code>. Use the shortlist to orient, then filter the complete table to challenge decisions, priorities, merge plans, and risks. Nothing here changes the adoption ledger.</p>
+  </header>
+
+  <section class="kpis" aria-label="Scope summary">
+    <div class="kpi primary"><strong>97</strong><span>unique canonical rows</span></div>
+    <div class="kpi"><strong>94</strong><span>deep evaluations</span></div>
+    <div class="kpi"><strong>30</strong><span>problem clusters</span></div>
+    <div class="kpi"><strong>3</strong><span>explicit exclusions</span></div>
+    <div class="kpi"><strong>7</strong><span>P1 clusters to review first</span></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-no">01</span><h2>Recommendation shape</h2></div>
+    <div class="chart-grid">
+      <article class="card"><h3>Cluster decisions</h3><svg class="chart" viewBox="0 0 680 152" role="img" aria-label="Focused cluster decisions" preserveAspectRatio="xMinYMin meet"><title>Focused cluster decisions</title><desc>adapt: 2; defer: 4; merge: 21; reject_after_review: 3</desc><text class="chart-label" x="164" y="25.0" text-anchor="end">adapt</text><rect class="bar accent" x="176" y="17.0" width="43.2" height="16" rx="3"></rect><text class="chart-value" x="227.2" y="25.0">2</text><text class="chart-label" x="164" y="59.0" text-anchor="end">defer</text><rect class="bar accent" x="176" y="51.0" width="86.5" height="16" rx="3"></rect><text class="chart-value" x="270.5" y="59.0">4</text><text class="chart-label" x="164" y="93.0" text-anchor="end">merge</text><rect class="bar accent" x="176" y="85.0" width="454.0" height="16" rx="3"></rect><text class="chart-value" x="638.0" y="93.0">21</text><text class="chart-label" x="164" y="127.0" text-anchor="end">reject_after_review</text><rect class="bar accent" x="176" y="119.0" width="64.9" height="16" rx="3"></rect><text class="chart-value" x="248.9" y="127.0">3</text></svg><p class="caption">Most selected evidence should merge into existing workflows; adaptation is reserved for useful capabilities without a proven local owner.</p></article>
+      <article class="card"><h3>Adoption-review priority</h3><svg class="chart" viewBox="0 0 680 118" role="img" aria-label="Focused cluster priorities" preserveAspectRatio="xMinYMin meet"><title>Focused cluster priorities</title><desc>P1: 7; P2: 14; P3: 9</desc><text class="chart-label" x="164" y="25.0" text-anchor="end">P1</text><rect class="bar neutral" x="176" y="17.0" width="227.0" height="16" rx="3"></rect><text class="chart-value" x="411.0" y="25.0">7</text><text class="chart-label" x="164" y="59.0" text-anchor="end">P2</text><rect class="bar neutral" x="176" y="51.0" width="454.0" height="16" rx="3"></rect><text class="chart-value" x="638.0" y="59.0">14</text><text class="chart-label" x="164" y="93.0" text-anchor="end">P3</text><rect class="bar neutral" x="176" y="85.0" width="291.9" height="16" rx="3"></rect><text class="chart-value" x="475.9" y="93.0">9</text></svg><p class="caption">Priority measures remaining adoption work, not the abstract importance of the capability.</p></article>
+    </div>
+    <div class="secondary">
+      <article class="card"><h3>Canonical rows by requested harness</h3><svg class="chart" viewBox="0 0 680 118" role="img" aria-label="Canonical rows by selected reference harness" preserveAspectRatio="xMinYMin meet"><title>Canonical rows by selected reference harness</title><desc>agent-skills: 44; mattpocock_skills: 36; superpowers: 19</desc><text class="chart-label" x="164" y="25.0" text-anchor="end">agent-skills</text><rect class="bar neutral" x="176" y="17.0" width="454.0" height="16" rx="3"></rect><text class="chart-value" x="638.0" y="25.0">44</text><text class="chart-label" x="164" y="59.0" text-anchor="end">mattpocock_skills</text><rect class="bar neutral" x="176" y="51.0" width="371.5" height="16" rx="3"></rect><text class="chart-value" x="555.5" y="59.0">36</text><text class="chart-label" x="164" y="93.0" text-anchor="end">superpowers</text><rect class="bar neutral" x="176" y="85.0" width="196.0" height="16" rx="3"></rect><text class="chart-value" x="380.0" y="93.0">19</text></svg><p class="caption">Counts overlap where one canonical row is shared by more than one requested harness.</p></article>
+      <article class="card"><h3>Included rows by capability kind</h3><svg class="chart" viewBox="0 0 680 220" role="img" aria-label="Rows by capability kind" preserveAspectRatio="xMinYMin meet"><title>Rows by capability kind</title><desc>skill: 69; command: 11; hook: 6; agent: 4; plugin: 3; rule: 1</desc><text class="chart-label" x="164" y="25.0" text-anchor="end">skill</text><rect class="bar accent" x="176" y="17.0" width="454.0" height="16" rx="3"></rect><text class="chart-value" x="638.0" y="25.0">69</text><text class="chart-label" x="164" y="59.0" text-anchor="end">command</text><rect class="bar accent" x="176" y="51.0" width="72.4" height="16" rx="3"></rect><text class="chart-value" x="256.4" y="59.0">11</text><text class="chart-label" x="164" y="93.0" text-anchor="end">hook</text><rect class="bar accent" x="176" y="85.0" width="39.5" height="16" rx="3"></rect><text class="chart-value" x="223.5" y="93.0">6</text><text class="chart-label" x="164" y="127.0" text-anchor="end">agent</text><rect class="bar accent" x="176" y="119.0" width="26.3" height="16" rx="3"></rect><text class="chart-value" x="210.3" y="127.0">4</text><text class="chart-label" x="164" y="161.0" text-anchor="end">plugin</text><rect class="bar accent" x="176" y="153.0" width="19.7" height="16" rx="3"></rect><text class="chart-value" x="203.7" y="161.0">3</text><text class="chart-label" x="164" y="195.0" text-anchor="end">rule</text><rect class="bar accent" x="176" y="187.0" width="6.6" height="16" rx="3"></rect><text class="chart-value" x="190.6" y="195.0">1</text></svg></article>
+      <article class="card"><h3>Deep row verdicts</h3><svg class="chart" viewBox="0 0 680 186" role="img" aria-label="Deep row verdicts" preserveAspectRatio="xMinYMin meet"><title>Deep row verdicts</title><desc>adopt: 8; defer: 7; merge: 52; reject_after_review: 24; rewrite: 3</desc><text class="chart-label" x="164" y="25.0" text-anchor="end">adopt</text><rect class="bar neutral" x="176" y="17.0" width="69.8" height="16" rx="3"></rect><text class="chart-value" x="253.8" y="25.0">8</text><text class="chart-label" x="164" y="59.0" text-anchor="end">defer</text><rect class="bar neutral" x="176" y="51.0" width="61.1" height="16" rx="3"></rect><text class="chart-value" x="245.1" y="59.0">7</text><text class="chart-label" x="164" y="93.0" text-anchor="end">merge</text><rect class="bar neutral" x="176" y="85.0" width="454.0" height="16" rx="3"></rect><text class="chart-value" x="638.0" y="93.0">52</text><text class="chart-label" x="164" y="127.0" text-anchor="end">reject_after_review</text><rect class="bar neutral" x="176" y="119.0" width="209.5" height="16" rx="3"></rect><text class="chart-value" x="393.5" y="127.0">24</text><text class="chart-label" x="164" y="161.0" text-anchor="end">rewrite</text><rect class="bar neutral" x="176" y="153.0" width="26.2" height="16" rx="3"></rect><text class="chart-value" x="210.2" y="161.0">3</text></svg></article>
+      <article class="card"><h3>Cluster evidence breadth</h3><svg class="chart" viewBox="0 0 680 152" role="img" aria-label="Focused clusters by source count" preserveAspectRatio="xMinYMin meet"><title>Focused clusters by source count</title><desc>1 source: 10; 2–3 sources: 10; 4–6 sources: 6; 7+ sources: 4</desc><text class="chart-label" x="164" y="25.0" text-anchor="end">1 source</text><rect class="bar neutral" x="176" y="17.0" width="454.0" height="16" rx="3"></rect><text class="chart-value" x="638.0" y="25.0">10</text><text class="chart-label" x="164" y="59.0" text-anchor="end">2–3 sources</text><rect class="bar neutral" x="176" y="51.0" width="454.0" height="16" rx="3"></rect><text class="chart-value" x="638.0" y="59.0">10</text><text class="chart-label" x="164" y="93.0" text-anchor="end">4–6 sources</text><rect class="bar neutral" x="176" y="85.0" width="272.4" height="16" rx="3"></rect><text class="chart-value" x="456.4" y="93.0">6</text><text class="chart-label" x="164" y="127.0" text-anchor="end">7+ sources</text><rect class="bar neutral" x="176" y="119.0" width="181.6" height="16" rx="3"></rect><text class="chart-value" x="365.6" y="127.0">4</text></svg></article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-no">02</span><h2>Review shortlist</h2></div>
+    <div class="short-grid"><article class="short-card"><h3>P1 review first <span>7</span></h3><ul><li><a href="#C010-phased-implementation-with-validation">Thin-slice incremental implementation</a><span class="mini">merge · P1</span></li><li><a href="#C022-git-github-and-release-workflows">Safe Git integration and conflict resolution</a><span class="mini">merge · P1</span></li><li><a href="#C027-multi-review-convergence-gates">Risk-calibrated review convergence for high-stakes decisions and launches</a><span class="mini">merge · P1</span></li><li><a href="#C030-product-discovery-validation">Structured product discovery with assumption testing and explicit non-goals</a><span class="mini">merge · P1</span></li><li><a href="#C032-safe-refactor-and-code-simplification">Behavior-preserving, context-first code simplification</a><span class="mini">merge · P1</span></li><li><a href="#C033-security-and-privacy-review">Threat-model-first security and privacy review</a><span class="mini">merge · P1</span></li><li><a href="#C034-skill-authoring-evaluation-and-portfolio">Skill-authoring canon with portfolio anti-duplication preflight</a><span class="mini">merge · P1</span></li></ul></article><article class="short-card"><h3>Needs adaptation <span>2</span></h3><ul><li><a href="#C052-frontend-ui-design-and-visual-artifacts">Accessible, responsive, state-complete frontend implementation checks</a><span class="mini">adapt · P2</span></li><li><a href="#C056-legacy-modernization-and-business-rule-extraction">Measured deprecation and incremental migration lifecycle</a><span class="mini">adapt · P2</span></li></ul></article><article class="short-card"><h3>Deferred <span>4</span></h3><ul><li><a href="#C041-performance-benchmarking">Measure-isolate-improve-remeasure performance loop</a><span class="mini">defer · P3</span></li><li><a href="#C044-domain-and-technology-specific-packs">Long-form article editing</a><span class="mini">defer · P3</span></li><li><a href="#C050-deployment-devops-and-operations">Deployment readiness, observability, and staged launch guidance</a><span class="mini">defer · P3</span></li><li><a href="#C075-web-quality-performance-and-growth">Evidence-aware web performance auditing</a><span class="mini">defer · P3</span></li></ul></article><article class="short-card"><h3>Rejected after review <span>3</span></h3><ul><li><a href="#C053-hook-session-lifecycle-and-memory">Always-on session-start skill-catalog injection</a><span class="mini">reject_after_review · P3</span></li><li><a href="#C066-hook-authoring-policy-and-plumbing">Hook test fixtures as routed harness capabilities</a><span class="mini">reject_after_review · P3</span></li><li><a href="#C071-repo-specific-skill-router">Matt-specific skill-catalog router</a><span class="mini">reject_after_review · P3</span></li></ul></article></div>
+    <details class="card review-guide" open>
+      <summary>How to challenge each recommendation</summary>
+      <ol class="evidence-meta">
+        <li>Does the selected source evidence actually support the decision, or was a useful pattern promoted into a new surface?</li>
+        <li>For every merge, is the named local owner real and still the best owner?</li>
+        <li>Does priority measure remaining adoption work rather than general capability importance?</li>
+        <li>Are stack-specific assumptions, unsafe automation, and maintenance costs explicit in the risks?</li>
+      </ol>
+    </details>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-no">03</span><h2>Complete cluster review table</h2></div>
+    <noscript><p class="card">JavaScript is disabled. All 30 clusters remain visible; search and filters are optional progressive enhancements.</p></noscript>
+    <div class="controls" aria-label="Review table filters">
+      <label>Search<input id="search" type="search" placeholder="Capability, source, rationale, risk…"></label>
+      <label>Decision<select id="decision"><option value="">All decisions</option><option value="adapt">adapt</option><option value="defer">defer</option><option value="merge">merge</option><option value="reject_after_review">reject_after_review</option></select></label>
+      <label>Priority<select id="priority"><option value="">All priorities</option><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option></select></label>
+      <label>Harness<select id="harness"><option value="">All harnesses</option><option value="agent-skills">agent-skills</option><option value="mattpocock_skills">mattpocock_skills</option><option value="superpowers">superpowers</option></select></label>
+      <button id="reset" type="button">Reset</button>
+    </div>
+    <p class="result-count" id="result-count">Showing all 30 clusters.</p>
+    <div class="table-wrap">
+      <table class="review-table">
+        <thead><tr><th>Priority</th><th>Decision</th><th>Recommended capability</th><th>Sources</th><th>Avg score</th><th>Review detail</th></tr></thead>
+        <tbody id="cluster-rows"><tr id="C001-code-review-and-change-quality" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills mattpocock_skills superpowers"
+                data-search="c001-code-review-and-change-quality spec-aware code review and feedback discipline agent review changes against project intent and engineering quality while evaluating incoming feedback critically before acting on it. the selected rows support one project-aware reviewer augmented with standards/spec checks, severity labeling, verification evidence, and disciplined feedback handling; duplicate launcher commands and broad review skills add routing noise. keep the existing code-review agent as the canonical surface and merge the standards-versus-spec check, review-request gate, feedback verification, and useful five-axis lenses into its risk-scaled workflow. a universal five-axis checklist can create review theater, and mandatory pre-merge review can be excessive for small changes; trigger depth must remain proportional to scope and risk. skill:receivingcodereview skill:requestingcodereview skill:review agent:codereviewer command:review skill:codereviewandquality receiving-code-review requesting-code-review review code-reviewer review code-review-and-quality agent-skills mattpocock_skills superpowers">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Spec-aware code review and feedback discipline</strong>
+                <span>agent</span><code>C001-code-review-and-change-quality</code></td>
+              <td data-label="Sources" class="number">6<span>agent-skills, mattpocock_skills, superpowers</span></td>
+              <td data-label="Average score" class="number">4.00<span>adopt: 1, merge: 4, reject_after_review: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Review changes against project intent and engineering quality while evaluating incoming feedback critically before acting on it.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected rows support one project-aware reviewer augmented with standards/spec checks, severity labeling, verification evidence, and disciplined feedback handling; duplicate launcher commands and broad review skills add routing noise.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Keep the existing code-review agent as the canonical surface and merge the standards-versus-spec check, review-request gate, feedback verification, and useful five-axis lenses into its risk-scaled workflow.</p></div>
+              <div><h4>Risks and open questions</h4><p>A universal five-axis checklist can create review theater, and mandatory pre-merge review can be excessive for small changes; trigger depth must remain proportional to scope and risk.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:receivingcodereview</code> — receiving-code-review<span class="source-harness">superpowers · skill · merge · score 4.50</span><span class="source-rationale">The behavior is high-value and aligns with AGENTS.md, but should be folded into review and PR-feedback workflows rather than added separately.</span></li><li><code>skill:requestingcodereview</code> — requesting-code-review<span class="source-harness">superpowers · skill · merge · score 3.67</span><span class="source-rationale">The checkpoint is useful, but local subagent-driven-development and verification already cover review gates more concretely.</span></li><li><code>skill:review</code> — review<span class="source-harness">mattpocock_skills · skill · merge · score 3.83</span><span class="source-rationale">The standards/spec two-axis review is useful, but should merge into a local code-review workflow with Codex review guidance.</span></li><li><code>agent:codereviewer</code> — code-reviewer<span class="source-harness">agent-skills, superpowers · agent · adopt · score 4.33</span><span class="source-rationale">The agent-skills variant adds explicit review axes and a verification story, but the leaner local reviewer is already equivalent and more project-aware; keep it canonical.</span></li><li><code>command:review</code> — review<span class="source-harness">agent-skills · command · reject_after_review · score 3.83</span><span class="source-rationale">The review axes are useful but already covered by the local code-reviewer and Codex review surface; another slash command adds routing duplication without behavioral gain.</span></li><li><code>skill:codereviewandquality</code> — code-review-and-quality<span class="source-harness">agent-skills · skill · merge · score 3.83</span><span class="source-rationale">The five-axis review, severity categories, structural remedies, and verification checks strengthen the existing reviewer but do not justify a duplicate broad review surface.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: adopt: 1, merge: 4, reject_after_review: 1 · candidate keys: code-review-core, review-feedback-discipline, structured-code-review</p>
+          </details></td>
+            </tr><tr id="C002-debugging-and-bug-reproduction" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills mattpocock_skills superpowers"
+                data-search="c002-debugging-and-bug-reproduction systematic root-cause debugging skill reproduce failures, preserve evidence, isolate root causes, implement bounded fixes, and add regression protection before declaring resolution. systematic-debugging is already the strongest concise candidate; the other selected rows reinforce diagnosis and regression protection but substantially overlap it, while deprecated conversational qa belongs in issue tracking rather than the debugging core. retain systematic-debugging as canonical and merge only useful reproduce-localize-reduce-guard details from the adjacent skills; route conversational bug capture to beads or github workflows. generic fallback examples can conceal missing configuration, and combining bug capture with diagnosis can blur whether the task is triage or root-cause analysis. skill:diagnosingbugs skill:qa skill:systematicdebugging skill:debugginganderrorrecovery diagnosing-bugs qa systematic-debugging debugging-and-error-recovery agent-skills mattpocock_skills superpowers">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Systematic root-cause debugging</strong>
+                <span>skill</span><code>C002-debugging-and-bug-reproduction</code></td>
+              <td data-label="Sources" class="number">4<span>agent-skills, mattpocock_skills, superpowers</span></td>
+              <td data-label="Average score" class="number">4.17<span>adopt: 1, merge: 3</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Reproduce failures, preserve evidence, isolate root causes, implement bounded fixes, and add regression protection before declaring resolution.</p></div>
+              <div><h4>Why this recommendation</h4><p>Systematic-debugging is already the strongest concise candidate; the other selected rows reinforce diagnosis and regression protection but substantially overlap it, while deprecated conversational QA belongs in issue tracking rather than the debugging core.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Retain systematic-debugging as canonical and merge only useful reproduce-localize-reduce-guard details from the adjacent skills; route conversational bug capture to Beads or GitHub workflows.</p></div>
+              <div><h4>Risks and open questions</h4><p>Generic fallback examples can conceal missing configuration, and combining bug capture with diagnosis can blur whether the task is triage or root-cause analysis.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:diagnosingbugs</code> — diagnosing-bugs<span class="source-harness">mattpocock_skills · skill · merge · score 4.33</span><span class="source-rationale">Useful but substantially duplicates the local systematic-debugging skill.</span></li><li><code>skill:qa</code> — qa<span class="source-harness">mattpocock_skills · skill · merge · score 3.33</span><span class="source-rationale">Conversational bug capture is useful, but the upstream row is deprecated and should be merged into Beads/GitHub bug-report workflows if needed.</span></li><li><code>skill:systematicdebugging</code> — systematic-debugging<span class="source-harness">superpowers · skill · adopt · score 5.00</span><span class="source-rationale">Already adopted locally and is a core guardrail against speculative fixes.</span></li><li><code>skill:debugginganderrorrecovery</code> — debugging-and-error-recovery<span class="source-harness">agent-skills · skill · merge · score 4.00</span><span class="source-rationale">The debugging sequence is highly effective, but the local systematic-debugging skill remains canonical and avoids some unsafe generic fallback advice.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: adopt: 1, merge: 3 · candidate keys: conversational-bug-report-capture, systematic-bug-reproduction, systematic-debugging</p>
+          </details></td>
+            </tr><tr id="C010-phased-implementation-with-validation" data-decision="merge"
+                data-priority="P1" data-harnesses="agent-skills"
+                data-search="c010-phased-implementation-with-validation thin-slice incremental implementation skill deliver large changes through vertical or risk-first increments that remain testable, reviewable, and reversible after each step. the selected evaluation identifies vertical slicing and per-increment verification as the durable gain, while existing phase and subagent execution already own the broader workflow. merge slice selection, explicit per-slice scope, and test/verify checkpoints into planning and phased execution; preserve repository-specific commit and rollout authority. unconditional commits and generic feature-flag rules exceed user authority or may not fit the repository; slice size must follow actual dependency and risk boundaries. skill:incrementalimplementation incremental-implementation agent-skills">
+              <td data-label="Priority"><span class="priority p1">P1</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Thin-slice incremental implementation</strong>
+                <span>skill</span><code>C010-phased-implementation-with-validation</code></td>
+              <td data-label="Sources" class="number">1<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.83<span>merge: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Deliver large changes through vertical or risk-first increments that remain testable, reviewable, and reversible after each step.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected evaluation identifies vertical slicing and per-increment verification as the durable gain, while existing phase and subagent execution already own the broader workflow.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge slice selection, explicit per-slice scope, and test/verify checkpoints into planning and phased execution; preserve repository-specific commit and rollout authority.</p></div>
+              <div><h4>Risks and open questions</h4><p>Unconditional commits and generic feature-flag rules exceed user authority or may not fit the repository; slice size must follow actual dependency and risk boundaries.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:incrementalimplementation</code> — incremental-implementation<span class="source-harness">agent-skills · skill · merge · score 3.83</span><span class="source-rationale">Thin-slice and verification discipline materially strengthen phased execution, but commit authority and feature-flag policy must remain project-specific.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1 · candidate keys: phased-implementation-with-validation</p>
+          </details></td>
+            </tr><tr id="C011-prototyping-throwaway-validation" data-decision="merge"
+                data-priority="P3" data-harnesses="mattpocock_skills"
+                data-search="c011-prototyping-throwaway-validation throwaway prototype validation mode existing brainstorming and planning skills test uncertain business logic, command flows, or interface alternatives cheaply before committing to production architecture. the selected evaluation supports a useful uncertainty-reduction mode but explicitly routes it through existing brainstorming and planning rather than justifying another standalone skill. merge an opt-in prototype mode into brainstorming and planning, with a stated hypothesis, timebox, disposal plan, and prohibition on silently promoting prototype code to production. prototype code can become accidental production code, ui-oriented examples may not generalize, and a prototype is wasteful when a cheaper experiment or existing evidence answers the question. skill:prototype prototype mattpocock_skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Throwaway prototype validation mode</strong>
+                <span>existing brainstorming and planning skills</span><code>C011-prototyping-throwaway-validation</code></td>
+              <td data-label="Sources" class="number">1<span>mattpocock_skills</span></td>
+              <td data-label="Average score" class="number">4.00<span>merge: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Test uncertain business logic, command flows, or interface alternatives cheaply before committing to production architecture.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected evaluation supports a useful uncertainty-reduction mode but explicitly routes it through existing brainstorming and planning rather than justifying another standalone skill.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge an opt-in prototype mode into brainstorming and planning, with a stated hypothesis, timebox, disposal plan, and prohibition on silently promoting prototype code to production.</p></div>
+              <div><h4>Risks and open questions</h4><p>Prototype code can become accidental production code, UI-oriented examples may not generalize, and a prototype is wasteful when a cheaper experiment or existing evidence answers the question.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:prototype</code> — prototype<span class="source-harness">mattpocock_skills · skill · merge · score 4.00</span><span class="source-rationale">A throwaway-prototype mode is useful for uncertain designs, but should route through brainstorming/planning with explicit non-production constraints.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1 · candidate keys: prototyping/throwaway-validation</p>
+          </details></td>
+            </tr><tr id="C013-codex-cited-research" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills"
+                data-search="c013-codex-cited-research version-aware official-documentation lookup skill verify framework- and library-specific implementation choices against authoritative documentation for the versions actually used by the repository. the selected row supports dependency detection and narrow official-source verification, but its requirement to cite every framework pattern is broader than the risk and duplicates existing research routes. merge version detection, authoritative source selection, deprecation checks, and explicit uncertainty into the existing documentation-research route; require visible citations for consequential or disputed choices. official documentation can still be ambiguous or version-mismatched, and universal citation requirements add friction without proving that the resulting implementation works. skill:sourcedrivendevelopment source-driven-development agent-skills">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Version-aware official-documentation lookup</strong>
+                <span>skill</span><code>C013-codex-cited-research</code></td>
+              <td data-label="Sources" class="number">1<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">4.00<span>merge: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Verify framework- and library-specific implementation choices against authoritative documentation for the versions actually used by the repository.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected row supports dependency detection and narrow official-source verification, but its requirement to cite every framework pattern is broader than the risk and duplicates existing research routes.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge version detection, authoritative source selection, deprecation checks, and explicit uncertainty into the existing documentation-research route; require visible citations for consequential or disputed choices.</p></div>
+              <div><h4>Risks and open questions</h4><p>Official documentation can still be ambiguous or version-mismatched, and universal citation requirements add friction without proving that the resulting implementation works.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:sourcedrivendevelopment</code> — source-driven-development<span class="source-harness">agent-skills · skill · merge · score 4.00</span><span class="source-rationale">Version-aware official documentation is high-value, but citation scope should be risk-based and integrated with existing research/tool routing.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1 · candidate keys: official-documentation-lookup</p>
+          </details></td>
+            </tr><tr id="C016-architecture-codebase-and-domain-modeling" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills mattpocock_skills"
+                data-search="c016-architecture-codebase-and-domain-modeling architecture, domain, and interface design review skill clarify domain vocabulary, module boundaries, public contracts, and competing architecture choices before consequential implementation. the selected rows provide complementary lenses—deep modules, domain terminology, contract-first interfaces, alternative designs, architecture scanning, and adversarial review—but most overlap planning, grill-me, and architecture research. keep grill-me and existing planning/research routes, then merge contract validation, domain-language clarification, and bounded alternative-design prompts as selectable architecture-review lenses rather than new standalone skills. deprecated candidates, vague design vocabulary, typescript/rest defaults, and mandatory parallel exploration can add ceremony; select lenses only when the decision materially affects boundaries or compatibility. skill:codebasedesign skill:designaninterface skill:domainmodeling skill:grillme skill:improvecodebasearchitecture skill:ubiquitouslanguage skill:apiandinterfacedesign codebase-design design-an-interface domain-modeling grill-me improve-codebase-architecture ubiquitous-language api-and-interface-design agent-skills mattpocock_skills">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Architecture, domain, and interface design review</strong>
+                <span>skill</span><code>C016-architecture-codebase-and-domain-modeling</code></td>
+              <td data-label="Sources" class="number">7<span>agent-skills, mattpocock_skills</span></td>
+              <td data-label="Average score" class="number">3.79<span>adopt: 1, defer: 1, merge: 5</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Clarify domain vocabulary, module boundaries, public contracts, and competing architecture choices before consequential implementation.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected rows provide complementary lenses—deep modules, domain terminology, contract-first interfaces, alternative designs, architecture scanning, and adversarial review—but most overlap planning, grill-me, and architecture research.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Keep grill-me and existing planning/research routes, then merge contract validation, domain-language clarification, and bounded alternative-design prompts as selectable architecture-review lenses rather than new standalone skills.</p></div>
+              <div><h4>Risks and open questions</h4><p>Deprecated candidates, vague design vocabulary, TypeScript/REST defaults, and mandatory parallel exploration can add ceremony; select lenses only when the decision materially affects boundaries or compatibility.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:codebasedesign</code> — codebase-design<span class="source-harness">mattpocock_skills · skill · merge · score 4.00</span><span class="source-rationale">Useful design-review lens, but should merge into planning/document-review rather than stand alone as a vague engineering skill.</span></li><li><code>skill:designaninterface</code> — design-an-interface<span class="source-harness">mattpocock_skills · skill · merge · score 3.33</span><span class="source-rationale">The divergent-design pattern is useful, but the source is deprecated and should be merged into brainstorming/planning rather than adopted as a standalone skill.</span></li><li><code>skill:domainmodeling</code> — domain-modeling<span class="source-harness">mattpocock_skills · skill · merge · score 4.00</span><span class="source-rationale">Useful for ambiguous domains, best merged into planning, design review, and ADR capture rather than separate default routing.</span></li><li><code>skill:grillme</code> — grill-me<span class="source-harness">mattpocock_skills · skill · adopt · score 4.83</span><span class="source-rationale">Already adopted locally and high leverage for preventing shallow plans; keep as a core review skill.</span></li><li><code>skill:improvecodebasearchitecture</code> — improve-codebase-architecture<span class="source-harness">mattpocock_skills · skill · merge · score 3.67</span><span class="source-rationale">The workflow is useful, but should be merged with existing codebase architecture research, document review, grill-me, and html-artifact instead of adding another broad scanner.</span></li><li><code>skill:ubiquitouslanguage</code> — ubiquitous-language<span class="source-harness">mattpocock_skills · skill · defer · score 3.33</span><span class="source-rationale">Useful in domain-heavy projects, but deprecated upstream and not a core harness need.</span></li><li><code>skill:apiandinterfacedesign</code> — api-and-interface-design<span class="source-harness">agent-skills · skill · merge · score 3.33</span><span class="source-rationale">Contract-first and boundary-validation guidance is reusable, but the long REST and TypeScript treatment should be merged selectively into the architecture and API-design cluster.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: adopt: 1, defer: 1, merge: 5 · candidate keys: adversarial-design-review, api-design-guidance, architecture-improvement-review, architecture/interface-design-exploration, domain-language-glossary, module-and-domain-design</p>
+          </details></td>
+            </tr><tr id="C017-beads-workstreams-and-task-tracking" data-decision="merge"
+                data-priority="P2" data-harnesses="mattpocock_skills"
+                data-search="c017-beads-workstreams-and-task-tracking beads issue decomposition and triage skill convert approved plans into independently executable issue slices and turn incoming issues or pull requests into verified, agent-ready work briefs. the two selected rows form one coherent tracker workflow—vertical decomposition followed by evidence-based triage—but both overlap existing beads, planning, prepare-phases, github, and grill-me capabilities. merge tracer-bullet issue creation and concise triage states into the beads workflow, routing external pull-request operations through the existing github path and using grill-me only for unresolved design choices. a parallel state machine can diverge from beads status, over-decomposition increases tracking cost, and generated briefs must preserve source requirements rather than inventing scope. skill:toissues skill:triage to-issues triage mattpocock_skills">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Beads issue decomposition and triage</strong>
+                <span>skill</span><code>C017-beads-workstreams-and-task-tracking</code></td>
+              <td data-label="Sources" class="number">2<span>mattpocock_skills</span></td>
+              <td data-label="Average score" class="number">4.08<span>merge: 2</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Convert approved plans into independently executable issue slices and turn incoming issues or pull requests into verified, agent-ready work briefs.</p></div>
+              <div><h4>Why this recommendation</h4><p>The two selected rows form one coherent tracker workflow—vertical decomposition followed by evidence-based triage—but both overlap existing Beads, planning, prepare-phases, GitHub, and grill-me capabilities.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge tracer-bullet issue creation and concise triage states into the Beads workflow, routing external pull-request operations through the existing GitHub path and using grill-me only for unresolved design choices.</p></div>
+              <div><h4>Risks and open questions</h4><p>A parallel state machine can diverge from Beads status, over-decomposition increases tracking cost, and generated briefs must preserve source requirements rather than inventing scope.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:toissues</code> — to-issues<span class="source-harness">mattpocock_skills · skill · merge · score 4.17</span><span class="source-rationale">This is useful for Beads-backed execution, but should merge with prepare-phases/planning rather than become another tracker skill.</span></li><li><code>skill:triage</code> — triage<span class="source-harness">mattpocock_skills · skill · merge · score 4.00</span><span class="source-rationale">Good operational workflow, but should merge with Beads/GitHub triage rather than add a parallel issue state machine.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 2 · candidate keys: issue-decomposition-triage</p>
+          </details></td>
+            </tr><tr id="C018-code-intelligence-context-and-cost-controls" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills"
+                data-search="c018-code-intelligence-context-and-cost-controls selective task-context loading and conflict handling skill load the smallest trustworthy context needed for a task and surface missing or conflicting information before work proceeds. the context-engineering row contributes useful context hierarchy and conflict handling, while both webfetch cache hooks are weak, privacy-sensitive, prompt-insensitive mechanisms that should not be part of the capability. merge selective-loading and explicit-conflict practices into the existing project read order and context routes; reject both url-keyed webfetch cache hooks rather than adapting them. overly aggressive context reduction can omit decisive evidence, while persistent prompt-shaped fetch results risk stale answers and private-data retention; context sufficiency remains a judgment call. hook:sddcachepostsh hook:sddcachepresh skill:contextengineering sdd-cache-post.sh sdd-cache-pre.sh context-engineering agent-skills">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Selective task-context loading and conflict handling</strong>
+                <span>skill</span><code>C018-code-intelligence-context-and-cost-controls</code></td>
+              <td data-label="Sources" class="number">3<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">2.61<span>merge: 1, reject_after_review: 2</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Load the smallest trustworthy context needed for a task and surface missing or conflicting information before work proceeds.</p></div>
+              <div><h4>Why this recommendation</h4><p>The context-engineering row contributes useful context hierarchy and conflict handling, while both WebFetch cache hooks are weak, privacy-sensitive, prompt-insensitive mechanisms that should not be part of the capability.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge selective-loading and explicit-conflict practices into the existing project read order and context routes; reject both URL-keyed WebFetch cache hooks rather than adapting them.</p></div>
+              <div><h4>Risks and open questions</h4><p>Overly aggressive context reduction can omit decisive evidence, while persistent prompt-shaped fetch results risk stale answers and private-data retention; context sufficiency remains a judgment call.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>hook:sddcachepostsh</code> — sdd-cache-post.sh<span class="source-harness">agent-skills · hook · reject_after_review · score 2.50</span><span class="source-rationale">Project-local persistence, URL-only keys, prompt-shaped content, extra HEAD traffic, and version-specific response parsing create more correctness and privacy risk than justified savings.</span></li><li><code>hook:sddcachepresh</code> — sdd-cache-pre.sh<span class="source-harness">agent-skills · hook · reject_after_review · score 2.33</span><span class="source-rationale">Blocking a new prompt-specific fetch with an earlier transformed response can silently omit required evidence; conditional HEAD behavior and hook exit semantics add fragility.</span></li><li><code>skill:contextengineering</code> — context-engineering<span class="source-harness">agent-skills · skill · merge · score 3.00</span><span class="source-rationale">The context hierarchy and selective-loading practices are useful, but the long setup tutorial and generic provider list duplicate current project-overlay and read-order mechanisms.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1, reject_after_review: 2 · candidate keys: context-budget-audit, webfetch-cache-and-context-cost</p>
+          </details></td>
+            </tr><tr id="C020-documentation-research-and-reporting" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills"
+                data-search="c020-documentation-research-and-reporting repository-routed architectural decision records skill preserve architectural rationale, rejected alternatives, public-interface expectations, and lifecycle status for future engineers and agents. the selected row&#x27;s adr template and lifecycle add durable decision context, but decision memory already overlaps design evolution, learnings, and beads and must respect repository-specific document locations. merge a concise adr trigger, rationale/alternatives template, and supersession lifecycle into existing documentation and design-memory workflows; route storage through each repository&#x27;s docs index. unnecessary adrs create documentation debt, duplicate memory systems drift, and records become misleading unless superseded decisions are updated and discoverable. skill:documentationandadrs documentation-and-adrs agent-skills">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Repository-routed architectural decision records</strong>
+                <span>skill</span><code>C020-documentation-research-and-reporting</code></td>
+              <td data-label="Sources" class="number">1<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">4.00<span>merge: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Preserve architectural rationale, rejected alternatives, public-interface expectations, and lifecycle status for future engineers and agents.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected row&#x27;s ADR template and lifecycle add durable decision context, but decision memory already overlaps design evolution, learnings, and Beads and must respect repository-specific document locations.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge a concise ADR trigger, rationale/alternatives template, and supersession lifecycle into existing documentation and design-memory workflows; route storage through each repository&#x27;s docs index.</p></div>
+              <div><h4>Risks and open questions</h4><p>Unnecessary ADRs create documentation debt, duplicate memory systems drift, and records become misleading unless superseded decisions are updated and discoverable.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:documentationandadrs</code> — documentation-and-adrs<span class="source-harness">agent-skills · skill · merge · score 4.00</span><span class="source-rationale">ADR lifecycle and why-focused documentation are valuable, but must follow the repo&#x27;s existing design, learning, and durable-memory locations.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1 · candidate keys: decision-records-and-project-memory</p>
+          </details></td>
+            </tr><tr id="C022-git-github-and-release-workflows" data-decision="merge"
+                data-priority="P1" data-harnesses="agent-skills mattpocock_skills superpowers"
+                data-search="c022-git-github-and-release-workflows safe git integration and conflict resolution skill/hook complete branches, resolve merge or rebase conflicts, and prevent destructive git operations without exceeding the user&#x27;s commit, push, merge, or cleanup authority. the selected rows combine a distinct conflict-resolution workflow with useful branch-completion choices and mechanical guardrails, while the broad git skill contains destructive recovery and unauthorized commit assumptions that must be excluded. use the focused conflict-resolution skill as the operational core, merge branch-completion choices into the existing github flow, and adapt destructive-command blocking across supported runtimes while retaining conservative approval rules. hooks are runtime-specific, conflict resolution can silently change semantics, and no workflow may authorize reset, commit, push, merge, branch deletion, or cleanup without the governing user and repository policy. skill:finishingadevelopmentbranch skill:gitguardrailsclaudecode skill:resolvingmergeconflicts skill:gitworkflowandversioning finishing-a-development-branch git-guardrails-claude-code resolving-merge-conflicts git-workflow-and-versioning agent-skills mattpocock_skills superpowers">
+              <td data-label="Priority"><span class="priority p1">P1</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Safe Git integration and conflict resolution</strong>
+                <span>skill/hook</span><code>C022-git-github-and-release-workflows</code></td>
+              <td data-label="Sources" class="number">4<span>agent-skills, mattpocock_skills, superpowers</span></td>
+              <td data-label="Average score" class="number">3.96<span>adopt: 1, merge: 3</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Complete branches, resolve merge or rebase conflicts, and prevent destructive Git operations without exceeding the user&#x27;s commit, push, merge, or cleanup authority.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected rows combine a distinct conflict-resolution workflow with useful branch-completion choices and mechanical guardrails, while the broad Git skill contains destructive recovery and unauthorized commit assumptions that must be excluded.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Use the focused conflict-resolution skill as the operational core, merge branch-completion choices into the existing GitHub flow, and adapt destructive-command blocking across supported runtimes while retaining conservative approval rules.</p></div>
+              <div><h4>Risks and open questions</h4><p>Hooks are runtime-specific, conflict resolution can silently change semantics, and no workflow may authorize reset, commit, push, merge, branch deletion, or cleanup without the governing user and repository policy.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:finishingadevelopmentbranch</code> — finishing-a-development-branch<span class="source-harness">superpowers · skill · merge · score 4.17</span><span class="source-rationale">Useful git lifecycle capability, but should be merged with existing GitHub/yeet and conservative git-safety rules.</span></li><li><code>skill:gitguardrailsclaudecode</code> — git-guardrails-claude-code<span class="source-harness">mattpocock_skills · skill · merge · score 4.50</span><span class="source-rationale">Strong safety capability; adapt beyond Claude-only hooks to Codex and repo policy enforcement surfaces.</span></li><li><code>skill:resolvingmergeconflicts</code> — resolving-merge-conflicts<span class="source-harness">mattpocock_skills · skill · adopt · score 4.50</span><span class="source-rationale">A focused conflict-resolution skill is recurring, concrete, and not covered by current local skills beyond broad git safety.</span></li><li><code>skill:gitworkflowandversioning</code> — git-workflow-and-versioning<span class="source-harness">agent-skills · skill · merge · score 2.67</span><span class="source-rationale">Release/versioning concepts are useful, but only safe missing pieces should merge because the source assumes commit authority and recommends destructive recovery.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: adopt: 1, merge: 3 · candidate keys: branch-completion-and-pr-flow, git-conflict-resolution, git-safety-guardrails, git/workflow-guidance</p>
+          </details></td>
+            </tr><tr id="C027-multi-review-convergence-gates" data-decision="merge"
+                data-priority="P1" data-harnesses="agent-skills"
+                data-search="c027-multi-review-convergence-gates risk-calibrated review convergence for high-stakes decisions and launches existing phase-execution and subagent-driven-development review gates challenge consequential in-flight claims, converge independent findings, and make an evidence-backed go or no-go decision with rollback considerations. ship contributes independent pre-launch convergence and rollback planning; doubt-driven-development contributes a bounded claim, adversarial review, reconciliation, and stop cycle. both are useful but overlap existing review orchestration. merge a short high-risk mode into existing orchestration: extract the claim and contract, use risk-selected reviewers, reconcile findings, and require project-specific release and rollback evidence. do not add a separate command or mandatory cycle. mandatory fresh reviewers, repeated cross-model offers, hard-coded personas, and broad release ceremony would add cost and tool fragility. keep the mode opt-in by risk and avoid duplicating adversarial design review. command:ship skill:doubtdrivendevelopment ship doubt-driven-development agent-skills">
+              <td data-label="Priority"><span class="priority p1">P1</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Risk-calibrated review convergence for high-stakes decisions and launches</strong>
+                <span>Existing phase-execution and subagent-driven-development review gates</span><code>C027-multi-review-convergence-gates</code></td>
+              <td data-label="Sources" class="number">2<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.08<span>rewrite: 2</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Challenge consequential in-flight claims, converge independent findings, and make an evidence-backed go or no-go decision with rollback considerations.</p></div>
+              <div><h4>Why this recommendation</h4><p>ship contributes independent pre-launch convergence and rollback planning; doubt-driven-development contributes a bounded claim, adversarial review, reconciliation, and stop cycle. Both are useful but overlap existing review orchestration.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge a short high-risk mode into existing orchestration: extract the claim and contract, use risk-selected reviewers, reconcile findings, and require project-specific release and rollback evidence. Do not add a separate command or mandatory cycle.</p></div>
+              <div><h4>Risks and open questions</h4><p>Mandatory fresh reviewers, repeated cross-model offers, hard-coded personas, and broad release ceremony would add cost and tool fragility. Keep the mode opt-in by risk and avoid duplicating adversarial design review.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>command:ship</code> — ship<span class="source-harness">agent-skills · command · rewrite · score 3.67</span><span class="source-rationale">Retain independent review convergence and rollback evidence, but rewrite around local agents, risk-based fan-out, authority boundaries, and project-specific release verification.</span></li><li><code>skill:doubtdrivendevelopment</code> — doubt-driven-development<span class="source-harness">agent-skills · skill · rewrite · score 2.50</span><span class="source-rationale">Claim/extract/doubt/reconcile is valuable, but mandatory fresh reviewers and repeated cross-model offers create ceremony and tool fragility that require rebuilding the workflow.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: rewrite: 2 · candidate keys: multi-review-convergence-gates, multi-review-launch-gate</p>
+          </details></td>
+            </tr><tr id="C028-planning-prd-and-implementation-workflows" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills mattpocock_skills superpowers"
+                data-search="c028-planning-prd-and-implementation-workflows approved-specification to dependency-aware execution planning existing brainstorming, planning, prepare-phases, beads, and phase-execution surfaces turn conversation or approved requirements into vertically sliced, dependency-aware tasks with acceptance criteria, verification, review checkpoints, and optional workspace isolation. the selected planning, specification, prd, task-breakdown, execution, and decision-mapping rows reinforce one coherent workflow. their useful mechanics overlap stronger local owners, while implement is underspecified and request-refactor-plan is deprecated. keep local planning and beads canonical. merge explicit assumptions, non-goals, vertical slices, real dependency mapping, acceptance criteria, and verification checkpoints. treat worktrees as an optional localized isolation technique, not a default planning step. do not import fixed spec.md or tasks files, github issue publishing, repeated approval gates, automatic tiny commits, or a duplicate execution skill. worktree guidance must respect codex thread behavior and existing git safety. skill:decisionmapping skill:executingplans skill:implement skill:requestrefactorplan skill:toprd skill:usinggitworktrees skill:writingplans command:plan command:spec skill:planningandtaskbreakdown skill:specdrivendevelopment decision-mapping executing-plans implement request-refactor-plan to-prd using-git-worktrees writing-plans plan spec planning-and-task-breakdown spec-driven-development agent-skills mattpocock_skills superpowers">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Approved-specification to dependency-aware execution planning</strong>
+                <span>Existing brainstorming, planning, prepare-phases, Beads, and phase-execution surfaces</span><code>C028-planning-prd-and-implementation-workflows</code></td>
+              <td data-label="Sources" class="number">11<span>agent-skills, mattpocock_skills, superpowers</span></td>
+              <td data-label="Average score" class="number">3.61<span>merge: 9, reject_after_review: 1, rewrite: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Turn conversation or approved requirements into vertically sliced, dependency-aware tasks with acceptance criteria, verification, review checkpoints, and optional workspace isolation.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected planning, specification, PRD, task-breakdown, execution, and decision-mapping rows reinforce one coherent workflow. Their useful mechanics overlap stronger local owners, while implement is underspecified and request-refactor-plan is deprecated.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Keep local planning and Beads canonical. Merge explicit assumptions, non-goals, vertical slices, real dependency mapping, acceptance criteria, and verification checkpoints. Treat worktrees as an optional localized isolation technique, not a default planning step.</p></div>
+              <div><h4>Risks and open questions</h4><p>Do not import fixed SPEC.md or tasks files, GitHub issue publishing, repeated approval gates, automatic tiny commits, or a duplicate execution skill. Worktree guidance must respect Codex thread behavior and existing Git safety.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:decisionmapping</code> — decision-mapping<span class="source-harness">mattpocock_skills · skill · merge · score 3.17</span><span class="source-rationale">The core idea fits existing brainstorming-to-Beads workflows, but the row is in-progress and too thin to adopt separately.</span></li><li><code>skill:executingplans</code> — executing-plans<span class="source-harness">superpowers · skill · merge · score 4.00</span><span class="source-rationale">Good workflow boundary, but local phase-execution already provides a richer implementation cycle.</span></li><li><code>skill:implement</code> — implement<span class="source-harness">mattpocock_skills · skill · reject_after_review · score 2.50</span><span class="source-rationale">The row is too generic to add value over existing execution skills and lacks verification, risk routing, or handoff detail.</span></li><li><code>skill:requestrefactorplan</code> — request-refactor-plan<span class="source-harness">mattpocock_skills · skill · merge · score 3.33</span><span class="source-rationale">Incremental refactor planning is valuable, but the deprecated source and GitHub-issue assumption mean only the tiny-commit planning pattern should be merged.</span></li><li><code>skill:toprd</code> — to-prd<span class="source-harness">mattpocock_skills · skill · merge · score 3.50</span><span class="source-rationale">Conversation-to-requirements capture is useful, but issue publishing should route through Beads/planning rather than a separate PRD skill.</span></li><li><code>skill:usinggitworktrees</code> — using-git-worktrees<span class="source-harness">superpowers · skill · rewrite · score 4.33</span><span class="source-rationale">Worktree isolation is useful, but this repo needs Codex desktop/thread and git-safety-specific guidance before adoption.</span></li><li><code>skill:writingplans</code> — writing-plans<span class="source-harness">superpowers · skill · merge · score 4.17</span><span class="source-rationale">Useful but redundant with the stronger local planning skill; merge any phrasing into that cluster.</span></li><li><code>command:plan</code> — plan<span class="source-harness">agent-skills · command · merge · score 4.17</span><span class="source-rationale">The agent-skills variant reinforces useful dependency and acceptance-criteria planning, but fixed tasks files and a slash wrapper are weaker than the local planning skill and planner agent.</span></li><li><code>command:spec</code> — spec<span class="source-harness">agent-skills · command · merge · score 3.67</span><span class="source-rationale">Merge the requirements questions and confirmation gate into local brainstorming and planning; do not impose one root SPEC.md or a fixed six-section format.</span></li><li><code>skill:planningandtaskbreakdown</code> — planning-and-task-breakdown<span class="source-harness">agent-skills · skill · merge · score 3.83</span><span class="source-rationale">The planning mechanics are useful, but local planning and Beads are canonical and the source&#x27;s task-file convention must not be imported.</span></li><li><code>skill:specdrivendevelopment</code> — spec-driven-development<span class="source-harness">agent-skills · skill · merge · score 3.00</span><span class="source-rationale">Assumption and success-criteria gates are useful, but the source duplicates project facts, mandates repeated approvals, and conflicts with durable task-tracking conventions.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 9, reject_after_review: 1, rewrite: 1 · candidate keys: docs/conversation-to-prd, execution/prd-to-implementation, git-worktree-isolation, implementation-planning, implementation-planning-and-confirmation-gates, plan-execution-with-checkpoints, planning/investigation-ticket-map, planning/refactor-rfc, planning/spec-driven-development, specification-workflow</p>
+          </details></td>
+            </tr><tr id="C030-product-discovery-validation" data-decision="merge"
+                data-priority="P1" data-harnesses="agent-skills"
+                data-search="c030-product-discovery-validation structured product discovery with assumption testing and explicit non-goals existing brainstorming skill, with grill-me used only for deeper interrogation convert a vague idea into grounded alternatives and a focused outcome by identifying beneficiaries, success measures, constraints, assumptions, feasibility, and non-goals. idea-refine supplies a strong divergent-to-convergent flow and assumption audit; interview-me adds hypothesis-backed, one-question-at-a-time outcome discovery. both overlap the existing discovery and interrogation surfaces. add concise discovery prompts to brainstorming: generate distinct directions, test the riskiest assumptions, ask only decision-changing questions, and finish with an outcome, recommendation, success measure, constraints, and non-goals. avoid the rigid 95-percent confidence threshold, refusal of ordinary confirmations, and exhaustive interviewing when a reasonable assumption is safe. keep boundaries clear with planning and adversarial design review. skill:idearefine skill:interviewme idea-refine interview-me agent-skills">
+              <td data-label="Priority"><span class="priority p1">P1</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Structured product discovery with assumption testing and explicit non-goals</strong>
+                <span>Existing brainstorming skill, with grill-me used only for deeper interrogation</span><code>C030-product-discovery-validation</code></td>
+              <td data-label="Sources" class="number">2<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.67<span>merge: 2</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Convert a vague idea into grounded alternatives and a focused outcome by identifying beneficiaries, success measures, constraints, assumptions, feasibility, and non-goals.</p></div>
+              <div><h4>Why this recommendation</h4><p>idea-refine supplies a strong divergent-to-convergent flow and assumption audit; interview-me adds hypothesis-backed, one-question-at-a-time outcome discovery. Both overlap the existing discovery and interrogation surfaces.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Add concise discovery prompts to brainstorming: generate distinct directions, test the riskiest assumptions, ask only decision-changing questions, and finish with an outcome, recommendation, success measure, constraints, and non-goals.</p></div>
+              <div><h4>Risks and open questions</h4><p>Avoid the rigid 95-percent confidence threshold, refusal of ordinary confirmations, and exhaustive interviewing when a reasonable assumption is safe. Keep boundaries clear with planning and adversarial design review.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:idearefine</code> — idea-refine<span class="source-harness">agent-skills · skill · merge · score 4.17</span><span class="source-rationale">This is the strongest structured skill in the set, but its workflow and trigger overlap existing brainstorming and product-discovery capabilities.</span></li><li><code>skill:interviewme</code> — interview-me<span class="source-harness">agent-skills · skill · merge · score 3.17</span><span class="source-rationale">Hypothesis-attached questions and explicit non-goals are useful, but the 95-percent confidence test and refusal of ordinary confirmations can obstruct users.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 2 · candidate keys: product/discovery-validation, workflow/improvement-ideation</p>
+          </details></td>
+            </tr><tr id="C031-project-memory-session-continuity-and-learning" data-decision="merge"
+                data-priority="P2" data-harnesses="mattpocock_skills"
+                data-search="c031-project-memory-session-continuity-and-learning minimal session handoff checkpoint for interrupted or cross-agent work existing interruption, compaction, project-doc, and teach-session conventions preserve the current objective, verified state, decisions, blockers, and next action so work can resume without reconstructing the session. handoff is the only strong continuity-specific row and fits existing resume conventions. teach is already covered by teach-session; obsidian is dependency-specific, and writing-shape is article production rather than coding continuity. merge a short handoff format into existing continuity guidance and use it only at real interruption or ownership boundaries. keep teach-session canonical; leave personal vault management deferred and article shaping outside the harness. routine handoff files can become stale, duplicate beads or project docs, and add ceremony. define one authoritative location per fact and avoid coupling continuity to obsidian or another personal knowledge tool. skill:handoff skill:obsidianvault skill:teach skill:writingshape handoff obsidian-vault teach writing-shape mattpocock_skills">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Minimal session handoff checkpoint for interrupted or cross-agent work</strong>
+                <span>Existing interruption, compaction, project-doc, and teach-session conventions</span><code>C031-project-memory-session-continuity-and-learning</code></td>
+              <td data-label="Sources" class="number">4<span>mattpocock_skills</span></td>
+              <td data-label="Average score" class="number">3.38<span>defer: 1, merge: 2, reject_after_review: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Preserve the current objective, verified state, decisions, blockers, and next action so work can resume without reconstructing the session.</p></div>
+              <div><h4>Why this recommendation</h4><p>handoff is the only strong continuity-specific row and fits existing resume conventions. teach is already covered by teach-session; Obsidian is dependency-specific, and writing-shape is article production rather than coding continuity.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge a short handoff format into existing continuity guidance and use it only at real interruption or ownership boundaries. Keep teach-session canonical; leave personal vault management deferred and article shaping outside the harness.</p></div>
+              <div><h4>Risks and open questions</h4><p>Routine handoff files can become stale, duplicate Beads or project docs, and add ceremony. Define one authoritative location per fact and avoid coupling continuity to Obsidian or another personal knowledge tool.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:handoff</code> — handoff<span class="source-harness">mattpocock_skills · skill · merge · score 4.17</span><span class="source-rationale">Useful continuity pattern, but should merge with strategic compaction and repo handoff conventions rather than become a standalone thin skill.</span></li><li><code>skill:obsidianvault</code> — obsidian-vault<span class="source-harness">mattpocock_skills · skill · defer · score 3.17</span><span class="source-rationale">Useful only for a developer who uses Obsidian as the durable knowledge store; this repo already routes durable project facts to project docs and MEMORY.md.</span></li><li><code>skill:teach</code> — teach<span class="source-harness">mattpocock_skills · skill · merge · score 2.67</span><span class="source-rationale">The idea is useful but too generic; the existing teach-session skill is more specific to explaining completed work.</span></li><li><code>skill:writingshape</code> — writing-shape<span class="source-harness">mattpocock_skills · skill · reject_after_review · score 3.50</span><span class="source-rationale">Could help occasional developer essays, but it is not a reusable coding-harness need.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: defer: 1, merge: 2, reject_after_review: 1 · candidate keys: agent-session-handoff, article-writing-workflows, personal-knowledge-vault-ops, teaching-and-session-explanation</p>
+          </details></td>
+            </tr><tr id="C032-safe-refactor-and-code-simplification" data-decision="merge"
+                data-priority="P1" data-harnesses="agent-skills"
+                data-search="c032-safe-refactor-and-code-simplification behavior-preserving, context-first code simplification existing ak guidance and code-review maintainability lens reduce accidental complexity without changing behavior, weakening error handling, violating project conventions, or expanding the requested scope. code-simplify and code-simplification agree on caller analysis, chesterton&#x27;s fence, bounded edits, behavior preservation, and incremental verification. simplify-ignore.sh demonstrates why source-masking hooks are too risky. merge the context checklist and before-and-after behavior proof into ak and review guidance. simplify only recently changed or explicitly scoped code, one verified step at a time; do not add a duplicate command or mutating hook. simplification can become unsolicited churn or silently alter edge cases. never hide source with placeholders, rely on stop-hook restoration, optimize for line count, or proceed when callers and invariants are not understood. command:codesimplify hook:simplifyignoresh skill:codesimplification code-simplify simplify-ignore.sh code-simplification agent-skills">
+              <td data-label="Priority"><span class="priority p1">P1</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Behavior-preserving, context-first code simplification</strong>
+                <span>Existing AK guidance and code-review maintainability lens</span><code>C032-safe-refactor-and-code-simplification</code></td>
+              <td data-label="Sources" class="number">3<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.28<span>merge: 2, reject_after_review: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Reduce accidental complexity without changing behavior, weakening error handling, violating project conventions, or expanding the requested scope.</p></div>
+              <div><h4>Why this recommendation</h4><p>code-simplify and code-simplification agree on caller analysis, Chesterton&#x27;s Fence, bounded edits, behavior preservation, and incremental verification. simplify-ignore.sh demonstrates why source-masking hooks are too risky.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge the context checklist and before-and-after behavior proof into AK and review guidance. Simplify only recently changed or explicitly scoped code, one verified step at a time; do not add a duplicate command or mutating hook.</p></div>
+              <div><h4>Risks and open questions</h4><p>Simplification can become unsolicited churn or silently alter edge cases. Never hide source with placeholders, rely on Stop-hook restoration, optimize for line count, or proceed when callers and invariants are not understood.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>command:codesimplify</code> — code-simplify<span class="source-harness">agent-skills · command · merge · score 4.17</span><span class="source-rationale">Keep the useful behavior-preservation and incremental-test guidance, but merge it into the existing surgical-change discipline instead of adding a duplicate command.</span></li><li><code>hook:simplifyignoresh</code> — simplify-ignore.sh<span class="source-harness">agent-skills · hook · reject_after_review · score 2.00</span><span class="source-rationale">The protection goal is valid, but mutating real working files during reads can corrupt builds or external edits and can strand filtered files after abnormal termination.</span></li><li><code>skill:codesimplification</code> — code-simplification<span class="source-harness">agent-skills · skill · merge · score 3.67</span><span class="source-rationale">Chesterton&#x27;s Fence, bounded scope, incremental verification, and behavior preservation are strong but already represented by local simplification and review guidance.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 2, reject_after_review: 1 · candidate keys: code-simplification-and-refactor, safe-code-simplification</p>
+          </details></td>
+            </tr><tr id="C033-security-and-privacy-review" data-decision="merge"
+                data-priority="P1" data-harnesses="agent-skills"
+                data-search="c033-security-and-privacy-review threat-model-first security and privacy review existing code-review security lens and project safety guidance audit trust boundaries for exploitable authentication, authorization, injection, secrets, ssrf, supply-chain, privacy, infrastructure, integration, and llm-specific failures with actionable evidence. both selected evaluations call for merging complementary exploit-evidence and threat-model patterns into the security review problem space; neither establishes a need for another standalone specialist surface. merge assets, actors, trust boundaries, abuse paths, concrete evidence, severity, ssrf, supply-chain, and llm trust-boundary checks into the existing review and safety guidance. add a specialist only if recurring project evidence later justifies it. prune node and express assumptions, universal audit claims, and exhaustive low-signal checklists. the merged lens must remain evidence-based and must not imply that model review proves a system secure. agent:securityauditor skill:securityandhardening security-auditor security-and-hardening agent-skills">
+              <td data-label="Priority"><span class="priority p1">P1</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Threat-model-first security and privacy review</strong>
+                <span>existing code-review security lens and project safety guidance</span><code>C033-security-and-privacy-review</code></td>
+              <td data-label="Sources" class="number">2<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.83<span>merge: 2</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Audit trust boundaries for exploitable authentication, authorization, injection, secrets, SSRF, supply-chain, privacy, infrastructure, integration, and LLM-specific failures with actionable evidence.</p></div>
+              <div><h4>Why this recommendation</h4><p>Both selected evaluations call for merging complementary exploit-evidence and threat-model patterns into the security review problem space; neither establishes a need for another standalone specialist surface.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge assets, actors, trust boundaries, abuse paths, concrete evidence, severity, SSRF, supply-chain, and LLM trust-boundary checks into the existing review and safety guidance. Add a specialist only if recurring project evidence later justifies it.</p></div>
+              <div><h4>Risks and open questions</h4><p>Prune Node and Express assumptions, universal audit claims, and exhaustive low-signal checklists. The merged lens must remain evidence-based and must not imply that model review proves a system secure.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>agent:securityauditor</code> — security-auditor<span class="source-harness">agent-skills · agent · merge · score 4.50</span><span class="source-rationale">The new variant is strong and expands practical threat modeling, but should merge with the existing security-review cluster rather than create another overlapping specialist surface.</span></li><li><code>skill:securityandhardening</code> — security-and-hardening<span class="source-harness">agent-skills · skill · merge · score 3.17</span><span class="source-rationale">Threat-model-first, SSRF, supply-chain, and LLM sections materially improve the security cluster, but 461 lines of Node/Express guidance and universal audit claims need pruning.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 2 · candidate keys: application-security-review, security-review-and-threat-modeling</p>
+          </details></td>
+            </tr><tr id="C034-skill-authoring-evaluation-and-portfolio" data-decision="merge"
+                data-priority="P1" data-harnesses="agent-skills mattpocock_skills superpowers"
+                data-search="c034-skill-authoring-evaluation-and-portfolio skill-authoring canon with portfolio anti-duplication preflight existing system skill-creator plus local harness-evaluate guidance create predictable, well-routed, verified skills only after proving that the existing portfolio lacks an adequate capability. writing-great-skills and writing-skills provide authoring and verification guidance; skills-contributing adds a high-value catalog and open-work gap check. the umbrella plugins and meta-routers are duplicative or overly rigid. merge a preflight into the existing authoring path: search skills and active work, state the unmet job, choose the smallest surface, write precise triggers, and verify discovery and behavior. continue evaluating catalog capabilities individually. do not duplicate the system skill-creator, mandate skill invocation on every turn, import repository-specific contributing or open-pr mechanics, or install either broad plugin as an indivisible catalog. skill:usingsuperpowers skill:writinggreatskills skill:writingskills plugin:mattpocockskills plugin:agentskills rule:skillscontributing skill:usingagentskills using-superpowers writing-great-skills writing-skills mattpocock-skills agent-skills skills-contributing using-agent-skills agent-skills mattpocock_skills superpowers">
+              <td data-label="Priority"><span class="priority p1">P1</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Skill-authoring canon with portfolio anti-duplication preflight</strong>
+                <span>Existing system skill-creator plus local harness-evaluate guidance</span><code>C034-skill-authoring-evaluation-and-portfolio</code></td>
+              <td data-label="Sources" class="number">7<span>agent-skills, mattpocock_skills, superpowers</span></td>
+              <td data-label="Average score" class="number">3.43<span>merge: 3, reject_after_review: 4</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Create predictable, well-routed, verified skills only after proving that the existing portfolio lacks an adequate capability.</p></div>
+              <div><h4>Why this recommendation</h4><p>writing-great-skills and writing-skills provide authoring and verification guidance; skills-contributing adds a high-value catalog and open-work gap check. The umbrella plugins and meta-routers are duplicative or overly rigid.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Merge a preflight into the existing authoring path: search skills and active work, state the unmet job, choose the smallest surface, write precise triggers, and verify discovery and behavior. Continue evaluating catalog capabilities individually.</p></div>
+              <div><h4>Risks and open questions</h4><p>Do not duplicate the system skill-creator, mandate skill invocation on every turn, import repository-specific CONTRIBUTING or open-PR mechanics, or install either broad plugin as an indivisible catalog.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:usingsuperpowers</code> — using-superpowers<span class="source-harness">superpowers · skill · reject_after_review · score 3.00</span><span class="source-rationale">Skill discovery matters, but an always-on mandatory ritual is too rigid and duplicates Codex skill routing.</span></li><li><code>skill:writinggreatskills</code> — writing-great-skills<span class="source-harness">mattpocock_skills · skill · merge · score 4.33</span><span class="source-rationale">Useful skill-authoring guidance, best merged into a single local skill-authoring canon.</span></li><li><code>skill:writingskills</code> — writing-skills<span class="source-harness">superpowers · skill · merge · score 3.83</span><span class="source-rationale">Useful but thinner than skill-creator/skill-development; merge into the skill-authoring cluster.</span></li><li><code>plugin:mattpocockskills</code> — mattpocock-skills<span class="source-harness">mattpocock_skills · plugin · reject_after_review · score 2.83</span><span class="source-rationale">The source is language-specialized and the row lacks concrete reusable capability evidence; reject for this harness except as occasional reference for skill style.</span></li><li><code>plugin:agentskills</code> — agent-skills<span class="source-harness">agent-skills · plugin · reject_after_review · score 2.83</span><span class="source-rationale">Evaluate and route individual capabilities instead of adopting the umbrella; selective curation preserves strong patterns without the catalog&#x27;s duplicate surfaces and dependency costs.</span></li><li><code>rule:skillscontributing</code> — skills-contributing<span class="source-harness">agent-skills · rule · merge · score 4.50</span><span class="source-rationale">Merge the anti-duplication preflight into skill-authoring and harness-evaluation guidance, but keep repository-specific CONTRIBUTING and open-PR references out of the reusable rule.</span></li><li><code>skill:usingagentskills</code> — using-agent-skills<span class="source-harness">agent-skills · skill · reject_after_review · score 2.67</span><span class="source-rationale">Native skill trigger rules and AGENTS.md already solve routing more accurately; this meta-skill adds redundant context and excessive default ceremony.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 3, reject_after_review: 4 · candidate keys: full-lifecycle-capability-pack, skill-authoring, skill-authoring-anti-duplication, skill-discovery-bootstrap, typescript-skill-bundle</p>
+          </details></td>
+            </tr><tr id="C035-testing-verification-and-regression" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills mattpocock_skills superpowers"
+                data-search="c035-testing-verification-and-regression risk-calibrated test-first and evidence-first verification spine existing test-driven-development, verification-before-completion, python testing, and review surfaces prove risky behavior changes and bug fixes with characterization or failing regression tests, select appropriate test levels, and require fresh completion evidence, including live browser evidence when relevant. the exact local tdd and verification capabilities are the strongest rows. tdd and test-engineer add useful test-level and bug-proof lenses; browser testing adds runtime evidence and trust boundaries. thin test and grilling duplicates add no surface. keep local tdd and verification canonical. merge selective damp, resource-cleanup, test-level, concurrency, and prove-the-bug prompts into existing guidance. route ui verification through available browser tooling and retain durable decision capture in existing review workflows. avoid universal tdd ratios, per-function test checklists, unconditional browser coupling, duplicate test personas, and slash wrappers. browser content remains untrusted, and browser tooling must be optional and project-supported. skill:grilling skill:grillwithdocs skill:tdd skill:testdrivendevelopment skill:verificationbeforecompletion agent:testengineer command:test skill:browsertestingwithdevtools grilling grill-with-docs tdd test-driven-development verification-before-completion test-engineer test browser-testing-with-devtools agent-skills mattpocock_skills superpowers">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Risk-calibrated test-first and evidence-first verification spine</strong>
+                <span>Existing test-driven-development, verification-before-completion, Python testing, and review surfaces</span><code>C035-testing-verification-and-regression</code></td>
+              <td data-label="Sources" class="number">8<span>agent-skills, mattpocock_skills, superpowers</span></td>
+              <td data-label="Average score" class="number">4.15<span>adopt: 2, merge: 4, reject_after_review: 2</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Prove risky behavior changes and bug fixes with characterization or failing regression tests, select appropriate test levels, and require fresh completion evidence, including live browser evidence when relevant.</p></div>
+              <div><h4>Why this recommendation</h4><p>The exact local TDD and verification capabilities are the strongest rows. tdd and test-engineer add useful test-level and bug-proof lenses; browser testing adds runtime evidence and trust boundaries. Thin test and grilling duplicates add no surface.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Keep local TDD and verification canonical. Merge selective DAMP, resource-cleanup, test-level, concurrency, and prove-the-bug prompts into existing guidance. Route UI verification through available browser tooling and retain durable decision capture in existing review workflows.</p></div>
+              <div><h4>Risks and open questions</h4><p>Avoid universal TDD ratios, per-function test checklists, unconditional browser coupling, duplicate test personas, and slash wrappers. Browser content remains untrusted, and browser tooling must be optional and project-supported.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:grilling</code> — grilling<span class="source-harness">mattpocock_skills · skill · reject_after_review · score 4.17</span><span class="source-rationale">The underlying workflow is strong, but the local grill-me skill already implements a more detailed version, so this variant adds no adoption value.</span></li><li><code>skill:grillwithdocs</code> — grill-with-docs<span class="source-harness">mattpocock_skills · skill · merge · score 3.67</span><span class="source-rationale">The ADR/glossary capture idea can improve grill-me outputs, but the interrogation workflow is already present locally.</span></li><li><code>skill:tdd</code> — tdd<span class="source-harness">mattpocock_skills · skill · merge · score 4.33</span><span class="source-rationale">Good generic TDD trigger, but local test-driven-development already covers the safer characterization-first variant.</span></li><li><code>skill:testdrivendevelopment</code> — test-driven-development<span class="source-harness">agent-skills, superpowers · skill · adopt · score 4.67</span><span class="source-rationale">The existing local risk-calibrated skill remains canonical; the agent-skills variant adds useful prove-it, DAMP, and test-resource guidance but duplicates browser testing and overstates universal TDD ratios.</span></li><li><code>skill:verificationbeforecompletion</code> — verification-before-completion<span class="source-harness">superpowers · skill · adopt · score 5.00</span><span class="source-rationale">Already adopted locally and directly enforces the repo’s completion standard.</span></li><li><code>agent:testengineer</code> — test-engineer<span class="source-harness">agent-skills · agent · merge · score 3.83</span><span class="source-rationale">The broader agent-skills variant adds useful test-level selection and bug proof, but its universal per-function checklist should be merged selectively into local TDD and testing guidance.</span></li><li><code>command:test</code> — test<span class="source-harness">agent-skills · command · reject_after_review · score 4.00</span><span class="source-rationale">The behavior is already captured more precisely by the local TDD skill; a thin slash wrapper and unconditional browser-skill coupling add no independent capability.</span></li><li><code>skill:browsertestingwithdevtools</code> — browser-testing-with-devtools<span class="source-harness">agent-skills · skill · merge · score 3.50</span><span class="source-rationale">The runtime workflow and security boundaries are strong, but the capability should route through supported browser tools rather than bind the harness to one MCP setup.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: adopt: 2, merge: 4, reject_after_review: 2 · candidate keys: browser-automation-and-web-qa, design-review/grill-me-variant, design-review/grill-plus-adr, test-first-and-characterization-testing, test-first-development, verification-gate</p>
+          </details></td>
+            </tr><tr id="C041-performance-benchmarking" data-decision="defer"
+                data-priority="P3" data-harnesses="agent-skills"
+                data-search="c041-performance-benchmarking measure-isolate-improve-remeasure performance loop optional project or domain skill activated by a demonstrated performance need establish a baseline, locate a measured bottleneck, make a targeted change, remeasure it, and guard the result against regression. performance-optimization contains a sound empirical loop, but it is the only selected row and its hard-coded web budgets and react-heavy examples do not justify a universal core capability. keep the measurement loop as reference material. revisit when a repository has a concrete performance objective, then localize metrics, budgets, profiling tools, and regression checks to that stack. generic budgets can be misleading, and premature optimization can consume effort without user value. adoption needs a real workload, representative benchmark, and project-owned success threshold. skill:performanceoptimization performance-optimization agent-skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-defer">defer</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Measure-isolate-improve-remeasure performance loop</strong>
+                <span>Optional project or domain skill activated by a demonstrated performance need</span><code>C041-performance-benchmarking</code></td>
+              <td data-label="Sources" class="number">1<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.00<span>defer: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Establish a baseline, locate a measured bottleneck, make a targeted change, remeasure it, and guard the result against regression.</p></div>
+              <div><h4>Why this recommendation</h4><p>performance-optimization contains a sound empirical loop, but it is the only selected row and its hard-coded web budgets and React-heavy examples do not justify a universal core capability.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Keep the measurement loop as reference material. Revisit when a repository has a concrete performance objective, then localize metrics, budgets, profiling tools, and regression checks to that stack.</p></div>
+              <div><h4>Risks and open questions</h4><p>Generic budgets can be misleading, and premature optimization can consume effort without user value. Adoption needs a real workload, representative benchmark, and project-owned success threshold.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:performanceoptimization</code> — performance-optimization<span class="source-harness">agent-skills · skill · defer · score 3.00</span><span class="source-rationale">The measurement loop is sound, but hard-coded budgets and extensive web/React examples make the skill too situational for the core harness.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: defer: 1 · candidate keys: performance-benchmarking</p>
+          </details></td>
+            </tr><tr id="C042-adversarial-design-review" data-decision="merge"
+                data-priority="P3" data-harnesses="mattpocock_skills"
+                data-search="c042-adversarial-design-review workflow-spec interrogation trigger existing grill-me and planning skills challenge workflow specifications before implementation so unresolved assumptions, dependencies, and failure modes are exposed while changes remain cheap. loop-me supports the useful trigger, but its selected evaluation identifies it as a narrower and less precise form of the existing grill-me and planning capabilities. retain only the trigger language for workflow-spec interrogation in the existing design-review path. do not create a separate loop skill or copy its weaker mechanics. even a small merge may add little beyond current triggers. keep the wording minimal and reject it entirely if it cannot improve discovery without expanding always-loaded context. skill:loopme loop-me mattpocock_skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Workflow-spec interrogation trigger</strong>
+                <span>Existing grill-me and planning skills</span><code>C042-adversarial-design-review</code></td>
+              <td data-label="Sources" class="number">1<span>mattpocock_skills</span></td>
+              <td data-label="Average score" class="number">2.67<span>merge: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Challenge workflow specifications before implementation so unresolved assumptions, dependencies, and failure modes are exposed while changes remain cheap.</p></div>
+              <div><h4>Why this recommendation</h4><p>loop-me supports the useful trigger, but its selected evaluation identifies it as a narrower and less precise form of the existing grill-me and planning capabilities.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Retain only the trigger language for workflow-spec interrogation in the existing design-review path. Do not create a separate loop skill or copy its weaker mechanics.</p></div>
+              <div><h4>Risks and open questions</h4><p>Even a small merge may add little beyond current triggers. Keep the wording minimal and reject it entirely if it cannot improve discovery without expanding always-loaded context.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:loopme</code> — loop-me<span class="source-harness">mattpocock_skills · skill · merge · score 2.67</span><span class="source-rationale">The capability is a narrower, less precise form of grill-me/planning; keep any useful trigger language only as part of that cluster.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1 · candidate keys: adversarial-design-review</p>
+          </details></td>
+            </tr><tr id="C043-agent-orchestration-and-autonomous-loops" data-decision="merge"
+                data-priority="P2" data-harnesses="superpowers"
+                data-search="c043-agent-orchestration-and-autonomous-loops parallel-aware bounded subagent execution existing subagent-driven-development skill execute approved plans through bounded implementer and reviewer tasks while dispatching genuinely independent work in parallel. subagent-driven-development is already local and scores strongly across effectiveness, instruction quality, and structural efficiency; dispatching-parallel-agents adds a clear independence test, but its own evaluation says it needs local lifecycle and artifact-ownership rules. keep the local subagent-driven-development lifecycle as the canonical surface and merge only the parallel-dispatch routing condition for two or more tasks without shared state or sequential dependencies. parallel work can still collide through shared files or hidden dependencies, so the merged guidance must preserve explicit ownership, dependency checks, and review handoffs. skill:dispatchingparallelagents skill:subagentdrivendevelopment dispatching-parallel-agents subagent-driven-development superpowers">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Parallel-aware bounded subagent execution</strong>
+                <span>existing subagent-driven-development skill</span><code>C043-agent-orchestration-and-autonomous-loops</code></td>
+              <td data-label="Sources" class="number">2<span>superpowers</span></td>
+              <td data-label="Average score" class="number">4.42<span>adopt: 1, merge: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Execute approved plans through bounded implementer and reviewer tasks while dispatching genuinely independent work in parallel.</p></div>
+              <div><h4>Why this recommendation</h4><p>subagent-driven-development is already local and scores strongly across effectiveness, instruction quality, and structural efficiency; dispatching-parallel-agents adds a clear independence test, but its own evaluation says it needs local lifecycle and artifact-ownership rules.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Keep the local subagent-driven-development lifecycle as the canonical surface and merge only the parallel-dispatch routing condition for two or more tasks without shared state or sequential dependencies.</p></div>
+              <div><h4>Risks and open questions</h4><p>Parallel work can still collide through shared files or hidden dependencies, so the merged guidance must preserve explicit ownership, dependency checks, and review handoffs.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:dispatchingparallelagents</code> — dispatching-parallel-agents<span class="source-harness">superpowers · skill · merge · score 4.00</span><span class="source-rationale">The routing condition is valuable, but the row needs integration with local subagent lifecycle and artifact ownership rules.</span></li><li><code>skill:subagentdrivendevelopment</code> — subagent-driven-development<span class="source-harness">superpowers · skill · adopt · score 4.83</span><span class="source-rationale">Already adopted locally and central for standard/deep approved execution.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: adopt: 1, merge: 1 · candidate keys: parallel-agent-dispatch, subagent-execution</p>
+          </details></td>
+            </tr><tr id="C044-domain-and-technology-specific-packs" data-decision="defer"
+                data-priority="P3" data-harnesses="mattpocock_skills"
+                data-search="c044-domain-and-technology-specific-packs long-form article editing optional writing skill restructure, clarify, and tighten long-form article drafts when a user explicitly needs editorial help. edit-article is the only selected candidate with moderate general value, while scaffold-exercises is course-specific and writing-beats and writing-fragments are low-effectiveness article-craft workflows outside routine coding work. do not add a core domain pack now; if repeated article-editing demand appears, extract the restructuring and clarity checks from edit-article into a small optional skill or merge them into existing document-review guidance without bringing over the course and narrative-authoring workflows. a standalone writing surface would overlap document-review, html-artifact, brainstorming, and normal editing behavior, and there is no demonstrated recurring course- or article-authoring need in this harness. skill:editarticle skill:scaffoldexercises skill:writingbeats skill:writingfragments edit-article scaffold-exercises writing-beats writing-fragments mattpocock_skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-defer">defer</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Long-form article editing</strong>
+                <span>optional writing skill</span><code>C044-domain-and-technology-specific-packs</code></td>
+              <td data-label="Sources" class="number">4<span>mattpocock_skills</span></td>
+              <td data-label="Average score" class="number">3.33<span>merge: 1, reject_after_review: 3</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Restructure, clarify, and tighten long-form article drafts when a user explicitly needs editorial help.</p></div>
+              <div><h4>Why this recommendation</h4><p>edit-article is the only selected candidate with moderate general value, while scaffold-exercises is course-specific and writing-beats and writing-fragments are low-effectiveness article-craft workflows outside routine coding work.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Do not add a core domain pack now; if repeated article-editing demand appears, extract the restructuring and clarity checks from edit-article into a small optional skill or merge them into existing document-review guidance without bringing over the course and narrative-authoring workflows.</p></div>
+              <div><h4>Risks and open questions</h4><p>A standalone writing surface would overlap document-review, html-artifact, brainstorming, and normal editing behavior, and there is no demonstrated recurring course- or article-authoring need in this harness.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:editarticle</code> — edit-article<span class="source-harness">mattpocock_skills · skill · merge · score 3.50</span><span class="source-rationale">Useful for documentation and external writing, but too content-oriented to add as a standalone coding-harness skill.</span></li><li><code>skill:scaffoldexercises</code> — scaffold-exercises<span class="source-harness">mattpocock_skills · skill · reject_after_review · score 3.17</span><span class="source-rationale">Useful for course authors but not for this repo&#x27;s harness lifecycle or normal coding workflows.</span></li><li><code>skill:writingbeats</code> — writing-beats<span class="source-harness">mattpocock_skills · skill · reject_after_review · score 3.33</span><span class="source-rationale">An article craft workflow, not a coding-harness capability.</span></li><li><code>skill:writingfragments</code> — writing-fragments<span class="source-harness">mattpocock_skills · skill · reject_after_review · score 3.33</span><span class="source-rationale">Useful for essay ideation but outside this harness&#x27;s coding workflow.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1, reject_after_review: 3 · candidate keys: article-writing-workflows, course-authoring-workflows, prose-and-article-editing</p>
+          </details></td>
+            </tr><tr id="C050-deployment-devops-and-operations" data-decision="defer"
+                data-priority="P3" data-harnesses="agent-skills"
+                data-search="c050-deployment-devops-and-operations deployment readiness, observability, and staged launch guidance optional application-operations skill pack prepare production changes with repository quality gates, diagnosable telemetry, incremental rollout, rollback triggers, and post-launch verification. observability-and-instrumentation supplies the strongest question-driven telemetry guidance, while ci-cd-and-automation and shipping-and-launch contribute quality-gate and rollout patterns; all three evaluations also identify stack-specific examples or universal mandates that make direct core adoption unsafe. when an application repository needs operations support, merge the lifecycle concepts into a localized pack driven by that repo&#x27;s stack, risk model, and verification commands; omit fixed github/node assumptions, blanket instrumentation rules, and hard-coded rollout thresholds. the right gates, metrics, alert thresholds, feature-flag policy, rollout stages, and rollback windows are project-specific, so generic defaults could add cost or produce false confidence. skill:cicdandautomation skill:observabilityandinstrumentation skill:shippingandlaunch ci-cd-and-automation observability-and-instrumentation shipping-and-launch agent-skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-defer">defer</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Deployment readiness, observability, and staged launch guidance</strong>
+                <span>optional application-operations skill pack</span><code>C050-deployment-devops-and-operations</code></td>
+              <td data-label="Sources" class="number">3<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.11<span>defer: 3</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Prepare production changes with repository quality gates, diagnosable telemetry, incremental rollout, rollback triggers, and post-launch verification.</p></div>
+              <div><h4>Why this recommendation</h4><p>observability-and-instrumentation supplies the strongest question-driven telemetry guidance, while ci-cd-and-automation and shipping-and-launch contribute quality-gate and rollout patterns; all three evaluations also identify stack-specific examples or universal mandates that make direct core adoption unsafe.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>When an application repository needs operations support, merge the lifecycle concepts into a localized pack driven by that repo&#x27;s stack, risk model, and verification commands; omit fixed GitHub/Node assumptions, blanket instrumentation rules, and hard-coded rollout thresholds.</p></div>
+              <div><h4>Risks and open questions</h4><p>The right gates, metrics, alert thresholds, feature-flag policy, rollout stages, and rollback windows are project-specific, so generic defaults could add cost or produce false confidence.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:cicdandautomation</code> — ci-cd-and-automation<span class="source-harness">agent-skills · skill · defer · score 2.67</span><span class="source-rationale">The lifecycle concepts are useful for application repositories, but the examples and all-gates policy are too stack-specific and prescriptive for this harness core.</span></li><li><code>skill:observabilityandinstrumentation</code> — observability-and-instrumentation<span class="source-harness">agent-skills · skill · defer · score 3.83</span><span class="source-rationale">The content is strong for production services, but it belongs in an optional application-operations pack and should avoid universal instrumentation mandates.</span></li><li><code>skill:shippingandlaunch</code> — shipping-and-launch<span class="source-harness">agent-skills · skill · defer · score 2.83</span><span class="source-rationale">The rollout and rollback concepts are useful for applications, but blanket feature flags, fixed windows, and hard-coded thresholds prevent core-harness adoption.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: defer: 3 · candidate keys: deployment-readiness-patterns</p>
+          </details></td>
+            </tr><tr id="C052-frontend-ui-design-and-visual-artifacts" data-decision="adapt"
+                data-priority="P2" data-harnesses="agent-skills"
+                data-search="c052-frontend-ui-design-and-visual-artifacts accessible, responsive, state-complete frontend implementation checks optional project-local frontend implementation skill build user interfaces that follow an established design system, cover runtime states, meet accessibility needs, and are verified in the browser. the selected row contributes a useful accessibility and ui-state checklist, but its general trigger masks predominantly react and tailwind advice plus arbitrary style rules, and this focused evidence does not establish a canonical local frontend owner. adapt the framework-neutral accessibility, responsive-state, design-system, and runtime-verification checks into an optional project-local skill only when a repository has recurring frontend work; otherwise keep it deferred reference evidence. the extracted checklist must not imply react or tailwind, duplicate design-system guidance, or turn subjective style preferences into universal quality requirements. skill:frontenduiengineering frontend-ui-engineering agent-skills">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-adapt">adapt</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Accessible, responsive, state-complete frontend implementation checks</strong>
+                <span>optional project-local frontend implementation skill</span><code>C052-frontend-ui-design-and-visual-artifacts</code></td>
+              <td data-label="Sources" class="number">1<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">2.83<span>merge: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Build user interfaces that follow an established design system, cover runtime states, meet accessibility needs, and are verified in the browser.</p></div>
+              <div><h4>Why this recommendation</h4><p>The selected row contributes a useful accessibility and UI-state checklist, but its general trigger masks predominantly React and Tailwind advice plus arbitrary style rules, and this focused evidence does not establish a canonical local frontend owner.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Adapt the framework-neutral accessibility, responsive-state, design-system, and runtime-verification checks into an optional project-local skill only when a repository has recurring frontend work; otherwise keep it deferred reference evidence.</p></div>
+              <div><h4>Risks and open questions</h4><p>The extracted checklist must not imply React or Tailwind, duplicate design-system guidance, or turn subjective style preferences into universal quality requirements.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:frontenduiengineering</code> — frontend-ui-engineering<span class="source-harness">agent-skills · skill · merge · score 2.83</span><span class="source-rationale">The accessibility and UI-state checklist is useful, but framework-specific examples and arbitrary size/style rules should be absorbed into stronger scoped frontend guidance.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1 · candidate keys: frontend-design-quality</p>
+          </details></td>
+            </tr><tr id="C053-hook-session-lifecycle-and-memory" data-decision="reject_after_review"
+                data-priority="P3" data-harnesses="agent-skills"
+                data-search="c053-hook-session-lifecycle-and-memory always-on session-start skill-catalog injection no standalone surface expose skill-discovery guidance at the start of every claude session. session-start.sh has low effectiveness, precision, and structural efficiency, and its evaluation finds that injecting the full discovery meta-skill every session duplicates native skill routing while violating the lean context budget. retain runtime-native skill discovery and reserve local sessionstart hooks for small dynamic context such as beads or staleness information; do not port this hook. native routing still needs periodic verification that skill triggers are discoverable, but any gap should be fixed in metadata or routing rather than with permanent catalog injection. hook:sessionstartsh session-start.sh agent-skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-reject-after-review">reject_after_review</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Always-on session-start skill-catalog injection</strong>
+                <span>no standalone surface</span><code>C053-hook-session-lifecycle-and-memory</code></td>
+              <td data-label="Sources" class="number">1<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">2.83<span>reject_after_review: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Expose skill-discovery guidance at the start of every Claude session.</p></div>
+              <div><h4>Why this recommendation</h4><p>session-start.sh has low effectiveness, precision, and structural efficiency, and its evaluation finds that injecting the full discovery meta-skill every session duplicates native skill routing while violating the lean context budget.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Retain runtime-native skill discovery and reserve local SessionStart hooks for small dynamic context such as Beads or staleness information; do not port this hook.</p></div>
+              <div><h4>Risks and open questions</h4><p>Native routing still needs periodic verification that skill triggers are discoverable, but any gap should be fixed in metadata or routing rather than with permanent catalog injection.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>hook:sessionstartsh</code> — session-start.sh<span class="source-harness">agent-skills · hook · reject_after_review · score 2.83</span><span class="source-rationale">Always-on full-skill injection violates the lean context budget; native skill routing already exposes triggers without loading an entire catalog guide into every session.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: reject_after_review: 1 · candidate keys: session-start-skill-injection</p>
+          </details></td>
+            </tr><tr id="C056-legacy-modernization-and-business-rule-extraction" data-decision="adapt"
+                data-priority="P2" data-harnesses="agent-skills"
+                data-search="c056-legacy-modernization-and-business-rule-extraction measured deprecation and incremental migration lifecycle optional project-local migration skill retire legacy apis, systems, or features safely by identifying consumers, supplying a replacement, migrating incrementally, and delaying destructive removal. deprecation-and-migration is clear and effective and adds coherent consumer measurement plus expand-contract sequencing, but its cited overlaps do not prove a current local owner and it overstates the universal availability of reversible down migrations. adapt the consumer inventory, replacement-first, compatibility-window, incremental migration, and removal-evidence steps into a project-local skill when recurring migration work warrants it, with rollback requirements conditioned on the specific change&#x27;s reversibility. some data transformations are irreversible, compatibility windows can prolong dual-system cost, and consumer measurement may be incomplete; the adapted workflow must require explicit mitigation rather than promise a down path. skill:deprecationandmigration deprecation-and-migration agent-skills">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-adapt">adapt</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Measured deprecation and incremental migration lifecycle</strong>
+                <span>optional project-local migration skill</span><code>C056-legacy-modernization-and-business-rule-extraction</code></td>
+              <td data-label="Sources" class="number">1<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.83<span>merge: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Retire legacy APIs, systems, or features safely by identifying consumers, supplying a replacement, migrating incrementally, and delaying destructive removal.</p></div>
+              <div><h4>Why this recommendation</h4><p>deprecation-and-migration is clear and effective and adds coherent consumer measurement plus expand-contract sequencing, but its cited overlaps do not prove a current local owner and it overstates the universal availability of reversible down migrations.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Adapt the consumer inventory, replacement-first, compatibility-window, incremental migration, and removal-evidence steps into a project-local skill when recurring migration work warrants it, with rollback requirements conditioned on the specific change&#x27;s reversibility.</p></div>
+              <div><h4>Risks and open questions</h4><p>Some data transformations are irreversible, compatibility windows can prolong dual-system cost, and consumer measurement may be incomplete; the adapted workflow must require explicit mitigation rather than promise a down path.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:deprecationandmigration</code> — deprecation-and-migration<span class="source-harness">agent-skills · skill · merge · score 3.83</span><span class="source-rationale">The source adds a coherent deprecation lifecycle and strong expand-contract guidance, but universal reversible-down-migration claims need qualification.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: merge: 1 · candidate keys: legacy-modernization-and-migration</p>
+          </details></td>
+            </tr><tr id="C066-hook-authoring-policy-and-plumbing" data-decision="reject_after_review"
+                data-priority="P3" data-harnesses="agent-skills"
+                data-search="c066-hook-authoring-policy-and-plumbing hook test fixtures as routed harness capabilities implementation tests under their owning hooks verify session-start payload handling and simplify-ignore parsing, syntax, newline, and malformed-input behavior. both selected rows have effectiveness and structural-efficiency scores of one and are explicitly test scripts for parent hooks, not independent triggers or user workflows. preserve such scripts only as tests beside the production hook or plugin they verify and exclude them from capability routing and adoption inventories. automated inventory scans may continue to misclassify executable test fixtures as hooks unless classification distinguishes production entry points from supporting tests. hook:sessionstarttestsh hook:simplifyignoretestsh session-start-test.sh simplify-ignore-test.sh agent-skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-reject-after-review">reject_after_review</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Hook test fixtures as routed harness capabilities</strong>
+                <span>implementation tests under their owning hooks</span><code>C066-hook-authoring-policy-and-plumbing</code></td>
+              <td data-label="Sources" class="number">2<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">2.08<span>reject_after_review: 2</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Verify session-start payload handling and simplify-ignore parsing, syntax, newline, and malformed-input behavior.</p></div>
+              <div><h4>Why this recommendation</h4><p>Both selected rows have effectiveness and structural-efficiency scores of one and are explicitly test scripts for parent hooks, not independent triggers or user workflows.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Preserve such scripts only as tests beside the production hook or plugin they verify and exclude them from capability routing and adoption inventories.</p></div>
+              <div><h4>Risks and open questions</h4><p>Automated inventory scans may continue to misclassify executable test fixtures as hooks unless classification distinguishes production entry points from supporting tests.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>hook:sessionstarttestsh</code> — session-start-test.sh<span class="source-harness">agent-skills · hook · reject_after_review · score 2.33</span><span class="source-rationale">Preserve it as source evidence for its parent hook, but do not treat a repository test script as a standalone harness capability.</span></li><li><code>hook:simplifyignoretestsh</code> — simplify-ignore-test.sh<span class="source-harness">agent-skills · hook · reject_after_review · score 1.83</span><span class="source-rationale">The script is evidence about its parent implementation, not an independent trigger or workflow; scanner classification should not create a ledger-worthy capability.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: reject_after_review: 2 · candidate keys: hook-test-fixture</p>
+          </details></td>
+            </tr><tr id="C068-legacy-command-shims" data-decision="merge"
+                data-priority="P2" data-harnesses="agent-skills superpowers"
+                data-search="c068-legacy-command-shims skill-first disciplined development workflows existing scoped workflow skills without legacy command shims route requirements discovery, planning, debugging, tdd, execution, and verification through canonical skills instead of duplicate or deprecated commands. brainstorming and the superpowers workflow suite are highly effective, but brainstorming already exists locally and the suite strongly overlaps local workflow skills; the three superpowers commands are explicitly deprecated, while the build command adds rigid paths and automatic commits that conflict with local authority and beads-backed execution. keep the locally scoped brainstorming, planning, tdd, debugging, verification, phase, and subagent skills as canonical; mine only missing workflow details from superpowers and do not retain brainstorm, execute-plan, write-plan, or build command wrappers. broad mandatory triggers can create unnecessary ceremony, and importing the plugin wholesale would duplicate local skills; selective merging needs a concrete gap check for each pattern. skill:brainstorming plugin:superpowers command:brainstorm command:executeplan command:writeplan command:build brainstorming superpowers brainstorm execute-plan write-plan build agent-skills superpowers">
+              <td data-label="Priority"><span class="priority p2">P2</span></td>
+              <td data-label="Decision"><span class="decision decision-merge">merge</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Skill-first disciplined development workflows</strong>
+                <span>existing scoped workflow skills without legacy command shims</span><code>C068-legacy-command-shims</code></td>
+              <td data-label="Sources" class="number">6<span>agent-skills, superpowers</span></td>
+              <td data-label="Average score" class="number">3.42<span>adopt: 1, merge: 1, reject_after_review: 4</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Route requirements discovery, planning, debugging, TDD, execution, and verification through canonical skills instead of duplicate or deprecated commands.</p></div>
+              <div><h4>Why this recommendation</h4><p>brainstorming and the superpowers workflow suite are highly effective, but brainstorming already exists locally and the suite strongly overlaps local workflow skills; the three superpowers commands are explicitly deprecated, while the build command adds rigid paths and automatic commits that conflict with local authority and Beads-backed execution.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Keep the locally scoped brainstorming, planning, TDD, debugging, verification, phase, and subagent skills as canonical; mine only missing workflow details from superpowers and do not retain brainstorm, execute-plan, write-plan, or build command wrappers.</p></div>
+              <div><h4>Risks and open questions</h4><p>Broad mandatory triggers can create unnecessary ceremony, and importing the plugin wholesale would duplicate local skills; selective merging needs a concrete gap check for each pattern.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:brainstorming</code> — brainstorming<span class="source-harness">superpowers · skill · adopt · score 4.17</span><span class="source-rationale">Already local and important, though the CSV wording overstates the trigger with a blanket MUST.</span></li><li><code>plugin:superpowers</code> — superpowers<span class="source-harness">superpowers · plugin · merge · score 4.00</span><span class="source-rationale">Many patterns are already represented locally and are valuable, but the upstream plugin is a broad bundle with some overbroad triggers; continue mining and reconciling selected workflows.</span></li><li><code>command:brainstorm</code> — brainstorm<span class="source-harness">superpowers · command · reject_after_review · score 3.00</span><span class="source-rationale">The row itself says to use the skill instead; local brainstorming skill already exists.</span></li><li><code>command:executeplan</code> — execute-plan<span class="source-harness">superpowers · command · reject_after_review · score 3.00</span><span class="source-rationale">Deprecated in favor of a skill and already covered locally by planning/phase/subagent workflows.</span></li><li><code>command:writeplan</code> — write-plan<span class="source-harness">superpowers · command · reject_after_review · score 3.00</span><span class="source-rationale">Planning is already a local skill and this command is explicitly deprecated in favor of a skill.</span></li><li><code>command:build</code> — build<span class="source-harness">agent-skills · command · reject_after_review · score 3.33</span><span class="source-rationale">The underlying execution discipline is already local; the slash wrapper adds rigid SPEC and tasks paths plus automatic commit behavior that conflicts with repo-specific authority.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: adopt: 1, merge: 1, reject_after_review: 4 · candidate keys: deprecated-skill-command-shim, legacy-command-shim, requirements-discovery, workflow-discipline-suite</p>
+          </details></td>
+            </tr><tr id="C071-repo-specific-skill-router" data-decision="reject_after_review"
+                data-priority="P3" data-harnesses="mattpocock_skills"
+                data-search="c071-repo-specific-skill-router matt-specific skill-catalog router no standalone surface route a user to the appropriate skill or flow in matt pocock&#x27;s repository-specific catalog. ask-matt has low effectiveness, instruction quality, precision, and structural efficiency, and its evaluation identifies the catalog binding as non-portable and redundant with local docs, read order, and runtime routing. continue using the local docs index, agents read order, and native skill metadata for routing; do not port the foreign catalog or its router. copying the router would drift as either catalog changes and could direct users to unavailable or semantically different skills. skill:askmatt ask-matt mattpocock_skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-reject-after-review">reject_after_review</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Matt-specific skill-catalog router</strong>
+                <span>no standalone surface</span><code>C071-repo-specific-skill-router</code></td>
+              <td data-label="Sources" class="number">1<span>mattpocock_skills</span></td>
+              <td data-label="Average score" class="number">2.50<span>reject_after_review: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Route a user to the appropriate skill or flow in Matt Pocock&#x27;s repository-specific catalog.</p></div>
+              <div><h4>Why this recommendation</h4><p>ask-matt has low effectiveness, instruction quality, precision, and structural efficiency, and its evaluation identifies the catalog binding as non-portable and redundant with local docs, read order, and runtime routing.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>Continue using the local docs index, AGENTS read order, and native skill metadata for routing; do not port the foreign catalog or its router.</p></div>
+              <div><h4>Risks and open questions</h4><p>Copying the router would drift as either catalog changes and could direct users to unavailable or semantically different skills.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>skill:askmatt</code> — ask-matt<span class="source-harness">mattpocock_skills · skill · reject_after_review · score 2.50</span><span class="source-rationale">The router is bound to another repo&#x27;s catalog and would be redundant or misleading here.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: reject_after_review: 1 · candidate keys: repo-specific-skill-router</p>
+          </details></td>
+            </tr><tr id="C075-web-quality-performance-and-growth" data-decision="defer"
+                data-priority="P3" data-harnesses="agent-skills"
+                data-search="c075-web-quality-performance-and-growth evidence-aware web performance auditing optional specialist agent with one canonical trigger audit browser applications for measured or potential core web vitals, loading, rendering, and network-performance problems while distinguishing field, lab, and static evidence. web-performance-auditor is precise, effective, and fills a gap beyond generic code review, but it is browser-specific and depends on lighthouse, crux, and devtools; webperf has no independent value and is only a lower-efficiency launcher for that agent. if a web application needs this depth, adapt the auditor to locally available measurement tools and expose it through one agent or skill trigger; omit the duplicate claude-only webperf command. tool and artifact availability varies by repository, lab findings can be mistaken for field evidence, and a specialist surface is unjustified until recurring web-performance work appears. agent:webperformanceauditor command:webperf web-performance-auditor webperf agent-skills">
+              <td data-label="Priority"><span class="priority p3">P3</span></td>
+              <td data-label="Decision"><span class="decision decision-defer">defer</span></td>
+              <td data-label="Recommended capability" class="capability"><strong>Evidence-aware web performance auditing</strong>
+                <span>optional specialist agent with one canonical trigger</span><code>C075-web-quality-performance-and-growth</code></td>
+              <td data-label="Sources" class="number">2<span>agent-skills</span></td>
+              <td data-label="Average score" class="number">3.92<span>defer: 1, reject_after_review: 1</span></td>
+              <td data-label="Review detail">
+          <details>
+            <summary>Evidence and recommendation</summary>
+            <div class="detail-grid">
+              <div><h4>Problem solved</h4><p>Audit browser applications for measured or potential Core Web Vitals, loading, rendering, and network-performance problems while distinguishing field, lab, and static evidence.</p></div>
+              <div><h4>Why this recommendation</h4><p>web-performance-auditor is precise, effective, and fills a gap beyond generic code review, but it is browser-specific and depends on Lighthouse, CrUX, and DevTools; webperf has no independent value and is only a lower-efficiency launcher for that agent.</p></div>
+              <div><h4>Reuse or merge plan</h4><p>If a web application needs this depth, adapt the auditor to locally available measurement tools and expose it through one agent or skill trigger; omit the duplicate Claude-only webperf command.</p></div>
+              <div><h4>Risks and open questions</h4><p>Tool and artifact availability varies by repository, lab findings can be mistaken for field evidence, and a specialist surface is unjustified until recurring web-performance work appears.</p></div>
+            </div>
+            <h4>All selected sources</h4>
+            <ul class="sources"><li><code>agent:webperformanceauditor</code> — web-performance-auditor<span class="source-harness">agent-skills · agent · defer · score 4.17</span><span class="source-rationale">The metric-honesty contract is strong, but this browser-specific capability and its Lighthouse, CrUX, and DevTools integrations belong in an optional web-performance surface.</span></li><li><code>command:webperf</code> — webperf<span class="source-harness">agent-skills · command · reject_after_review · score 3.67</span><span class="source-rationale">If the deferred web-performance capability is built, expose one canonical skill or agent trigger rather than retaining this duplicate Claude-only command.</span></li></ul>
+            <p class="evidence-meta">Row verdicts: defer: 1, reject_after_review: 1 · candidate keys: web-performance-audit</p>
+          </details></td>
+            </tr></tbody>
+      </table>
+    </div>
+    <p class="caption">Spreadsheet review: <a href="review-table.csv">review-table.csv</a>. Source synthesis: <a href="../../codex_analysis/focused-three-harnesses/final_synthesis.md">final_synthesis.md</a>.</p>
+  </section>
+
+  <section class="section excluded">
+    <div class="section-head"><span class="section-no">04</span><h2>Explicit prior exclusions</h2></div>
+    <div class="table-wrap"><table class="exclusion-table"><thead><tr><th>Source ID</th><th>Name</th><th>Harness</th><th>Status</th></tr></thead><tbody><tr><td data-label="Source ID"><code>skill:migratetoshoehorn</code></td><td data-label="Name">migrate-to-shoehorn</td><td data-label="Harness">mattpocock_skills</td><td data-label="Status"><span class="decision decision-reject-after-review">excluded by both shallow reviews</span></td></tr><tr><td data-label="Source ID"><code>skill:setupmattpocockskills</code></td><td data-label="Name">setup-matt-pocock-skills</td><td data-label="Harness">mattpocock_skills</td><td data-label="Status"><span class="decision decision-reject-after-review">excluded by both shallow reviews</span></td></tr><tr><td data-label="Source ID"><code>skill:setupprecommit</code></td><td data-label="Name">setup-pre-commit</td><td data-label="Harness">mattpocock_skills</td><td data-label="Status"><span class="decision decision-reject-after-review">excluded by both shallow reviews</span></td></tr></tbody></table></div>
+  </section>
+
+  <footer>Generated from the verified focused synthesis bundle · 97 unique rows · 94 deep evaluations · 30 clusters · no network · no ledger writes</footer>
+</main>
+<script>
+  const rows = [...document.querySelectorAll('#cluster-rows tr')];
+  const search = document.querySelector('#search');
+  const decision = document.querySelector('#decision');
+  const priority = document.querySelector('#priority');
+  const harness = document.querySelector('#harness');
+  const count = document.querySelector('#result-count');
+  function applyFilters() {
+    const term = search.value.trim().toLowerCase();
+    let visible = 0;
+    for (const row of rows) {
+      const show = (!term || row.dataset.search.includes(term)) &&
+        (!decision.value || row.dataset.decision === decision.value) &&
+        (!priority.value || row.dataset.priority === priority.value) &&
+        (!harness.value || row.dataset.harnesses.split(' ').includes(harness.value));
+      row.hidden = !show;
+      if (show) visible += 1;
+    }
+    count.textContent = `Showing ${visible} of ${rows.length} clusters.`;
+  }
+  for (const control of [search, decision, priority, harness]) {
+    control.addEventListener(control === search ? 'input' : 'change', applyFilters);
+  }
+  document.querySelector('#reset').addEventListener('click', () => {
+    search.value = ''; decision.value = ''; priority.value = ''; harness.value = ''; applyFilters();
+  });
+</script>
+</body>
+</html>

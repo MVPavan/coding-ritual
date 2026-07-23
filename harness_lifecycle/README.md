@@ -110,6 +110,21 @@ One `<repo>.json` per reference harness: the last-reviewed capability state.
 Re-`catalog` + `diff` against these to see what changed since the last review.
 Schema id: `harness-capability-catalog/v1` (see `Catalog.to_dict` in `scan.py`).
 
+## `visualizations/` — local review surfaces
+
+All generated HTML and its backing presentation data live under
+[`visualizations/`](visualizations/). Open
+[`visualizations/index.html`](visualizations/index.html) for the contents page.
+
+- `focused-three-harnesses/` is the current recommendation-review dashboard for
+  Agent Skills, Matt Pocock Skills, and Superpowers.
+- `lifecycle-overview/` is the all-reference inventory and gap dashboard.
+- `archive/` contains explicitly historical pages that must not be read as the
+  current canonical row count.
+
+Canonical CSV, JSON, JSONL, catalogs, and ledger files stay outside this folder.
+Visualization generators never write adoption decisions.
+
 ## Command surface (Claude Code)
 
 The lifecycle is driven from the root harness. Everything here is curation-only and
