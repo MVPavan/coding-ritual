@@ -1,0 +1,827 @@
+{
+  "schema": "codex-focused-synthesis-scope/v1",
+  "requested_harnesses": [
+    "agent-skills",
+    "mattpocock_skills",
+    "superpowers"
+  ],
+  "repository_row_counts": {
+    "agent-skills": 44,
+    "mattpocock_skills": 36,
+    "superpowers": 19
+  },
+  "provenance_pattern_counts": {
+    "agent-skills": 42,
+    "agent-skills+superpowers": 2,
+    "mattpocock_skills": 36,
+    "superpowers": 17
+  },
+  "unique_canonical_rows": 97,
+  "included_evaluation_rows": 94,
+  "excluded_rows": 3,
+  "focused_clusters": 30,
+  "excluded_source_ids": [
+    "skill:migratetoshoehorn",
+    "skill:setupmattpocockskills",
+    "skill:setupprecommit"
+  ],
+  "inventory": [
+    {
+      "source_id": "agent:codereviewer",
+      "name": "code-reviewer",
+      "selected_harnesses": [
+        "agent-skills",
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "agent:securityauditor",
+      "name": "security-auditor",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "agent:testengineer",
+      "name": "test-engineer",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:plan",
+      "name": "plan",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "plugin:superpowers",
+      "name": "superpowers",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:brainstorming",
+      "name": "brainstorming",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:codebasedesign",
+      "name": "codebase-design",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:diagnosingbugs",
+      "name": "diagnosing-bugs",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:dispatchingparallelagents",
+      "name": "dispatching-parallel-agents",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:domainmodeling",
+      "name": "domain-modeling",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:executingplans",
+      "name": "executing-plans",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:finishingadevelopmentbranch",
+      "name": "finishing-a-development-branch",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:gitguardrailsclaudecode",
+      "name": "git-guardrails-claude-code",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:grillme",
+      "name": "grill-me",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:handoff",
+      "name": "handoff",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:improvecodebasearchitecture",
+      "name": "improve-codebase-architecture",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:loopme",
+      "name": "loop-me",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:receivingcodereview",
+      "name": "receiving-code-review",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:requestingcodereview",
+      "name": "requesting-code-review",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:resolvingmergeconflicts",
+      "name": "resolving-merge-conflicts",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:review",
+      "name": "review",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:subagentdrivendevelopment",
+      "name": "subagent-driven-development",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:systematicdebugging",
+      "name": "systematic-debugging",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:tdd",
+      "name": "tdd",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:testdrivendevelopment",
+      "name": "test-driven-development",
+      "selected_harnesses": [
+        "agent-skills",
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:toissues",
+      "name": "to-issues",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:triage",
+      "name": "triage",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:usinggitworktrees",
+      "name": "using-git-worktrees",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:verificationbeforecompletion",
+      "name": "verification-before-completion",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:writinggreatskills",
+      "name": "writing-great-skills",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:writingplans",
+      "name": "writing-plans",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:writingskills",
+      "name": "writing-skills",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:decisionmapping",
+      "name": "decision-mapping",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:designaninterface",
+      "name": "design-an-interface",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:grillwithdocs",
+      "name": "grill-with-docs",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:grilling",
+      "name": "grilling",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:implement",
+      "name": "implement",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:prototype",
+      "name": "prototype",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:requestrefactorplan",
+      "name": "request-refactor-plan",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:toprd",
+      "name": "to-prd",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:editarticle",
+      "name": "edit-article",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:obsidianvault",
+      "name": "obsidian-vault",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:qa",
+      "name": "qa",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:teach",
+      "name": "teach",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:ubiquitouslanguage",
+      "name": "ubiquitous-language",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:usingsuperpowers",
+      "name": "using-superpowers",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:brainstorm",
+      "name": "brainstorm",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:executeplan",
+      "name": "execute-plan",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:writeplan",
+      "name": "write-plan",
+      "selected_harnesses": [
+        "superpowers"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "plugin:mattpocockskills",
+      "name": "mattpocock-skills",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:askmatt",
+      "name": "ask-matt",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:scaffoldexercises",
+      "name": "scaffold-exercises",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:writingbeats",
+      "name": "writing-beats",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:writingfragments",
+      "name": "writing-fragments",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:writingshape",
+      "name": "writing-shape",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:migratetoshoehorn",
+      "name": "migrate-to-shoehorn",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "excluded_both_rejected"
+    },
+    {
+      "source_id": "skill:setupmattpocockskills",
+      "name": "setup-matt-pocock-skills",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "excluded_both_rejected"
+    },
+    {
+      "source_id": "skill:setupprecommit",
+      "name": "setup-pre-commit",
+      "selected_harnesses": [
+        "mattpocock_skills"
+      ],
+      "synthesis_status": "excluded_both_rejected"
+    },
+    {
+      "source_id": "agent:webperformanceauditor",
+      "name": "web-performance-auditor",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:build",
+      "name": "build",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:codesimplify",
+      "name": "code-simplify",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:review",
+      "name": "review",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:ship",
+      "name": "ship",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:spec",
+      "name": "spec",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:test",
+      "name": "test",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "command:webperf",
+      "name": "webperf",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "hook:sddcachepostsh",
+      "name": "sdd-cache-post.sh",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "hook:sddcachepresh",
+      "name": "sdd-cache-pre.sh",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "hook:sessionstartsh",
+      "name": "session-start.sh",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "hook:sessionstarttestsh",
+      "name": "session-start-test.sh",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "hook:simplifyignoresh",
+      "name": "simplify-ignore.sh",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "hook:simplifyignoretestsh",
+      "name": "simplify-ignore-test.sh",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "plugin:agentskills",
+      "name": "agent-skills",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "rule:skillscontributing",
+      "name": "skills-contributing",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:apiandinterfacedesign",
+      "name": "api-and-interface-design",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:browsertestingwithdevtools",
+      "name": "browser-testing-with-devtools",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:cicdandautomation",
+      "name": "ci-cd-and-automation",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:codereviewandquality",
+      "name": "code-review-and-quality",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:codesimplification",
+      "name": "code-simplification",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:contextengineering",
+      "name": "context-engineering",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:debugginganderrorrecovery",
+      "name": "debugging-and-error-recovery",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:deprecationandmigration",
+      "name": "deprecation-and-migration",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:documentationandadrs",
+      "name": "documentation-and-adrs",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:doubtdrivendevelopment",
+      "name": "doubt-driven-development",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:frontenduiengineering",
+      "name": "frontend-ui-engineering",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:gitworkflowandversioning",
+      "name": "git-workflow-and-versioning",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:idearefine",
+      "name": "idea-refine",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:incrementalimplementation",
+      "name": "incremental-implementation",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:interviewme",
+      "name": "interview-me",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:observabilityandinstrumentation",
+      "name": "observability-and-instrumentation",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:performanceoptimization",
+      "name": "performance-optimization",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:planningandtaskbreakdown",
+      "name": "planning-and-task-breakdown",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:securityandhardening",
+      "name": "security-and-hardening",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:shippingandlaunch",
+      "name": "shipping-and-launch",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:sourcedrivendevelopment",
+      "name": "source-driven-development",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:specdrivendevelopment",
+      "name": "spec-driven-development",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    },
+    {
+      "source_id": "skill:usingagentskills",
+      "name": "using-agent-skills",
+      "selected_harnesses": [
+        "agent-skills"
+      ],
+      "synthesis_status": "included"
+    }
+  ],
+  "inputs": {
+    "capability_csv": "harness_lifecycle/capability_usefulness.csv",
+    "global_evaluations": "harness_lifecycle/codex_analysis/row_evaluations.jsonl",
+    "global_clusters": "harness_lifecycle/codex_analysis/clusters.json",
+    "global_exclusions": "harness_lifecycle/codex_analysis/excluded_both_rejected.jsonl"
+  },
+  "protected_sha256": {
+    "harness_lifecycle/capability_usefulness.csv": "81874dcaf09fb92f80f82dabd26093b184341b5bdd81a62bb012a46d8b83e05c",
+    "harness_lifecycle/ledger.json": "b7cbb49a4b8fe8e0bd4e1cf6e085387ab98cd42a7e57d6ab85c3b5e833384d82",
+    "harness_lifecycle/codex_analysis/excluded_both_rejected.jsonl": "5c7ffd8336ffcd543386992aba38ad2faf67f8311d865ce3d9be73ae8357b8d7",
+    "harness_lifecycle/codex_analysis/row_evaluations.jsonl": "e74710f99b4b034b25703f5de7a56e8ad0327a0a85b0d36c1a1761ad7913be13",
+    "harness_lifecycle/codex_analysis/clusters.json": "3ac6d3da1cca4819d801b93c0d1cbe0fc48d62dda60392198568a46916c37ccc",
+    "harness_lifecycle/codex_analysis/cluster_review.md": "983eae0a96518c8082f6f138a25fa781a13633d373a70aa7b9991a056272a373",
+    "harness_lifecycle/codex_analysis/final_synthesis.md": "100bc55ff2ddace0e6797e7c830ad84776f48e4ed32cf9eba9b5315a770e49d7",
+    "harness_lifecycle/codex_analysis/shard_manifest.json": "662b1c285b90a7ec540dc7ffe0f4ec73e6f83f1c5751fc01ea2d43c35de9f4d8",
+    "harness_lifecycle/codex_analysis/run-notes.md": "c0ca53f57562902d8d2a074a6514fa6b667c1754ca041a6c0f1e4076af37fbce",
+    "harness_lifecycle/codex_analysis/session-board.md": "1dfa43f73569740cc140eaaa4772b2c5ddc35100a49470bb6357b65717163f26",
+    "harness_lifecycle/codex_analysis/session-goal.md": "e6a08f54f63af9d6dcd436c79eb7b5247c673816a1dea3d7d10e9fb875394175"
+  }
+}

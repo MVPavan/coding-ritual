@@ -1,0 +1,784 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "agent-skills",
+  "source": "working-tree",
+  "source_commit": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+  "physical_scanned": 114,
+  "excluded": 12,
+  "counts": {
+    "agent": {
+      "physical": 4,
+      "logical": 4
+    },
+    "command": {
+      "physical": 8,
+      "logical": 8
+    },
+    "hook": {
+      "physical": 6,
+      "logical": 6
+    },
+    "plugin": {
+      "physical": 1,
+      "logical": 1
+    },
+    "rule": {
+      "physical": 1,
+      "logical": 1
+    },
+    "skill": {
+      "physical": 24,
+      "logical": 24
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "agent",
+      "name": "code-reviewer",
+      "category": "agents",
+      "logical_id": "agent:agents/code-reviewer",
+      "canonical_path": "agents/code-reviewer.md",
+      "paths": [
+        "agents/code-reviewer.md"
+      ],
+      "description": "Senior code reviewer that evaluates changes across five dimensions \u2014 correctness, readability, architecture, security, and performance. Use for thorough code review before merge.",
+      "content_hash": "12b2e9995f48eafda0ed6a86c4910f77683e6be0",
+      "signature_hash": "a0a1cea380efa55c0549c3dae09d73ea760a3067",
+      "variant_hashes": [
+        "12b2e9995f48eafda0ed6a86c4910f77683e6be0"
+      ],
+      "line_count": 97
+    },
+    {
+      "kind": "agent",
+      "name": "security-auditor",
+      "category": "agents",
+      "logical_id": "agent:agents/security-auditor",
+      "canonical_path": "agents/security-auditor.md",
+      "paths": [
+        "agents/security-auditor.md"
+      ],
+      "description": "Security engineer focused on vulnerability detection, threat modeling, and secure coding practices. Use for security-focused code review, threat analysis, or hardening recommendations.",
+      "content_hash": "8c102540dc2944151c3a91f52e3476e2b2a2125b",
+      "signature_hash": "e5baeff692b394de22115c485528489158ad1315",
+      "variant_hashes": [
+        "8c102540dc2944151c3a91f52e3476e2b2a2125b"
+      ],
+      "line_count": 112
+    },
+    {
+      "kind": "agent",
+      "name": "test-engineer",
+      "category": "agents",
+      "logical_id": "agent:agents/test-engineer",
+      "canonical_path": "agents/test-engineer.md",
+      "paths": [
+        "agents/test-engineer.md"
+      ],
+      "description": "QA engineer specialized in test strategy, test writing, and coverage analysis. Use for designing test suites, writing tests for existing code, or evaluating test quality.",
+      "content_hash": "c10472e421ab0ad8d6e5ece91bd99a102a913616",
+      "signature_hash": "a362617adb1ee369773151e78268ba58e686cc06",
+      "variant_hashes": [
+        "c10472e421ab0ad8d6e5ece91bd99a102a913616"
+      ],
+      "line_count": 95
+    },
+    {
+      "kind": "agent",
+      "name": "web-performance-auditor",
+      "category": "agents",
+      "logical_id": "agent:agents/web-performance-auditor",
+      "canonical_path": "agents/web-performance-auditor.md",
+      "paths": [
+        "agents/web-performance-auditor.md"
+      ],
+      "description": "Web performance engineer focused on Core Web Vitals, loading, rendering, and network optimization. Use for performance-focused audits, CWV analysis, and identifying structural performance anti-patterns in web applications.",
+      "content_hash": "36af5d4779d0eaeb826ac3b31b3a4b52a5660f45",
+      "signature_hash": "25ec383083f29b8164e39089aec3e2a373cf5ad9",
+      "variant_hashes": [
+        "36af5d4779d0eaeb826ac3b31b3a4b52a5660f45"
+      ],
+      "line_count": 184
+    },
+    {
+      "kind": "command",
+      "name": "build",
+      "category": "commands",
+      "logical_id": "command:commands/build",
+      "canonical_path": ".claude/commands/build.md",
+      "paths": [
+        ".claude/commands/build.md"
+      ],
+      "description": "Implement tasks incrementally \u2014 build, test, verify, commit. Add \"auto\" to run the whole plan in one approved pass.",
+      "content_hash": "ec9c517ec7279c14fc635b8ca585fd483588cf29",
+      "signature_hash": "778b10fa4d7c789d69ba826a50ace947f086d379",
+      "variant_hashes": [
+        "ec9c517ec7279c14fc635b8ca585fd483588cf29"
+      ],
+      "line_count": 44
+    },
+    {
+      "kind": "command",
+      "name": "code-simplify",
+      "category": "commands",
+      "logical_id": "command:commands/code-simplify",
+      "canonical_path": ".claude/commands/code-simplify.md",
+      "paths": [
+        ".claude/commands/code-simplify.md"
+      ],
+      "description": "Simplify code for clarity and maintainability \u2014 reduce complexity without changing behavior",
+      "content_hash": "1297279cebf275ed5a7ffec3b22f13f0e5737cc9",
+      "signature_hash": "a0cbcf216399576b8d3637a377fc0eb61ed4ba72",
+      "variant_hashes": [
+        "1297279cebf275ed5a7ffec3b22f13f0e5737cc9"
+      ],
+      "line_count": 22
+    },
+    {
+      "kind": "command",
+      "name": "plan",
+      "category": "commands",
+      "logical_id": "command:commands/plan",
+      "canonical_path": ".claude/commands/plan.md",
+      "paths": [
+        ".claude/commands/plan.md"
+      ],
+      "description": "Break work into small verifiable tasks with acceptance criteria and dependency ordering",
+      "content_hash": "5ff71c8cc68ad0cfb624ef4b655974d67c23382e",
+      "signature_hash": "0f61a1756735d2a202b72ea231ad08d1fb7d2b85",
+      "variant_hashes": [
+        "5ff71c8cc68ad0cfb624ef4b655974d67c23382e"
+      ],
+      "line_count": 16
+    },
+    {
+      "kind": "command",
+      "name": "review",
+      "category": "commands",
+      "logical_id": "command:commands/review",
+      "canonical_path": ".claude/commands/review.md",
+      "paths": [
+        ".claude/commands/review.md"
+      ],
+      "description": "Conduct a five-axis code review \u2014 correctness, readability, architecture, security, performance",
+      "content_hash": "996fda8ec1786274402cdc2786dab71b857fd79f",
+      "signature_hash": "9b12dea61ef1c762f6895072c948f5d52851c9dd",
+      "variant_hashes": [
+        "996fda8ec1786274402cdc2786dab71b857fd79f"
+      ],
+      "line_count": 16
+    },
+    {
+      "kind": "command",
+      "name": "ship",
+      "category": "commands",
+      "logical_id": "command:commands/ship",
+      "canonical_path": ".claude/commands/ship.md",
+      "paths": [
+        ".claude/commands/ship.md"
+      ],
+      "description": "Run the pre-launch checklist via parallel fan-out to specialist personas, then synthesize a go/no-go decision",
+      "content_hash": "c810cf546c557d6fcef459f03a61556077c039dc",
+      "signature_hash": "cbaa7762dfb42a64872fc003b4a9271b5cbb71ec",
+      "variant_hashes": [
+        "c810cf546c557d6fcef459f03a61556077c039dc"
+      ],
+      "line_count": 72
+    },
+    {
+      "kind": "command",
+      "name": "spec",
+      "category": "commands",
+      "logical_id": "command:commands/spec",
+      "canonical_path": ".claude/commands/spec.md",
+      "paths": [
+        ".claude/commands/spec.md"
+      ],
+      "description": "Start spec-driven development \u2014 write a structured specification before writing code",
+      "content_hash": "7894965fa0e81811ba97d9d09b437b6c5071b4eb",
+      "signature_hash": "8191bef00fe14b377feca692ce0585465a01fcf4",
+      "variant_hashes": [
+        "7894965fa0e81811ba97d9d09b437b6c5071b4eb"
+      ],
+      "line_count": 15
+    },
+    {
+      "kind": "command",
+      "name": "test",
+      "category": "commands",
+      "logical_id": "command:commands/test",
+      "canonical_path": ".claude/commands/test.md",
+      "paths": [
+        ".claude/commands/test.md"
+      ],
+      "description": "Run TDD workflow \u2014 write failing tests, implement, verify. For bugs, use the Prove-It pattern.",
+      "content_hash": "c45c6291dc572c8e8289511a86564772ec95bc5a",
+      "signature_hash": "289e3c898d1b1c9b473078a4a3e0d299b01b212d",
+      "variant_hashes": [
+        "c45c6291dc572c8e8289511a86564772ec95bc5a"
+      ],
+      "line_count": 19
+    },
+    {
+      "kind": "command",
+      "name": "webperf",
+      "category": "commands",
+      "logical_id": "command:commands/webperf",
+      "canonical_path": ".claude/commands/webperf.md",
+      "paths": [
+        ".claude/commands/webperf.md"
+      ],
+      "description": "Run a web performance audit via the web-performance-auditor persona",
+      "content_hash": "ac4ccf44ea753e292c77cbd2001e515325ddc81d",
+      "signature_hash": "8ed142b2b1da317f6fc53d12ff199659ae7affce",
+      "variant_hashes": [
+        "ac4ccf44ea753e292c77cbd2001e515325ddc81d"
+      ],
+      "line_count": 32
+    },
+    {
+      "kind": "hook",
+      "name": "sdd-cache-post.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/sdd-cache-post",
+      "canonical_path": "hooks/sdd-cache-post.sh",
+      "paths": [
+        "hooks/sdd-cache-post.sh"
+      ],
+      "description": "",
+      "content_hash": "d22bc981e8a8ae15c915000bfc2eb63a18f76a13",
+      "signature_hash": "195713036ef0942d3aa8c4eba2083b90031c5b59",
+      "variant_hashes": [
+        "d22bc981e8a8ae15c915000bfc2eb63a18f76a13"
+      ],
+      "line_count": 135
+    },
+    {
+      "kind": "hook",
+      "name": "sdd-cache-pre.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/sdd-cache-pre",
+      "canonical_path": "hooks/sdd-cache-pre.sh",
+      "paths": [
+        "hooks/sdd-cache-pre.sh"
+      ],
+      "description": "",
+      "content_hash": "d461014dcc594389a2d1eb86b1eac3062a92e2f3",
+      "signature_hash": "2cb04fe2685b01aafd4b665e8f08c390d9ccfe74",
+      "variant_hashes": [
+        "d461014dcc594389a2d1eb86b1eac3062a92e2f3"
+      ],
+      "line_count": 106
+    },
+    {
+      "kind": "hook",
+      "name": "session-start.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/session-start",
+      "canonical_path": "hooks/session-start.sh",
+      "paths": [
+        "hooks/session-start.sh"
+      ],
+      "description": "",
+      "content_hash": "ab473c47edcbe17c0d6d6b46ac966b1d343b112c",
+      "signature_hash": "9e14e39317d071e4226a5da4013583ef2ef68dc8",
+      "variant_hashes": [
+        "ab473c47edcbe17c0d6d6b46ac966b1d343b112c"
+      ],
+      "line_count": 24
+    },
+    {
+      "kind": "hook",
+      "name": "session-start-test.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/session-start-test",
+      "canonical_path": "hooks/session-start-test.sh",
+      "paths": [
+        "hooks/session-start-test.sh"
+      ],
+      "description": "",
+      "content_hash": "7050b259c880283a77302ebe17dd8d51956fc01b",
+      "signature_hash": "cb47210ccc31aecfcd8b5f65107cd9ae79899696",
+      "variant_hashes": [
+        "7050b259c880283a77302ebe17dd8d51956fc01b"
+      ],
+      "line_count": 46
+    },
+    {
+      "kind": "hook",
+      "name": "simplify-ignore.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/simplify-ignore",
+      "canonical_path": "hooks/simplify-ignore.sh",
+      "paths": [
+        "hooks/simplify-ignore.sh"
+      ],
+      "description": "",
+      "content_hash": "a1b59747ba01a0ba984ffe61a65c0e2b68d6569b",
+      "signature_hash": "8c4261c43f356f8428d083c7444057756431fd13",
+      "variant_hashes": [
+        "a1b59747ba01a0ba984ffe61a65c0e2b68d6569b"
+      ],
+      "line_count": 302
+    },
+    {
+      "kind": "hook",
+      "name": "simplify-ignore-test.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/simplify-ignore-test",
+      "canonical_path": "hooks/simplify-ignore-test.sh",
+      "paths": [
+        "hooks/simplify-ignore-test.sh"
+      ],
+      "description": "",
+      "content_hash": "adfa7efaef1c1a4875ed9226442cb1ec5bc2b49b",
+      "signature_hash": "49295d566736557b9b1e5c88ad70ecef94cfe45b",
+      "variant_hashes": [
+        "adfa7efaef1c1a4875ed9226442cb1ec5bc2b49b"
+      ],
+      "line_count": 247
+    },
+    {
+      "kind": "plugin",
+      "name": "agent-skills",
+      "category": "",
+      "logical_id": "plugin:agent-skills",
+      "canonical_path": ".claude-plugin/plugin.json",
+      "paths": [
+        ".claude-plugin/plugin.json"
+      ],
+      "description": "",
+      "content_hash": "c781ac1f9327825e5657bf9624746edde3d09e7c",
+      "signature_hash": "79444719a6f84c11b0c89047e05ef9bc4949069c",
+      "variant_hashes": [
+        "c781ac1f9327825e5657bf9624746edde3d09e7c"
+      ],
+      "line_count": 18
+    },
+    {
+      "kind": "rule",
+      "name": "skills-contributing",
+      "category": "rules",
+      "logical_id": "rule:rules/skills-contributing",
+      "canonical_path": ".claude/rules/skills-contributing.md",
+      "paths": [
+        ".claude/rules/skills-contributing.md"
+      ],
+      "description": "Anti-duplication guardrail for adding or changing skills",
+      "content_hash": "cfc6bdd2c9a9bca01c7c6b23058d438507ce662a",
+      "signature_hash": "6b4e9b03bd2d64244beee80e57ac63e38cd69e5f",
+      "variant_hashes": [
+        "cfc6bdd2c9a9bca01c7c6b23058d438507ce662a"
+      ],
+      "line_count": 15
+    },
+    {
+      "kind": "skill",
+      "name": "api-and-interface-design",
+      "category": "skills",
+      "logical_id": "skill:skills/api-and-interface-design",
+      "canonical_path": "skills/api-and-interface-design/SKILL.md",
+      "paths": [
+        "skills/api-and-interface-design/SKILL.md"
+      ],
+      "description": "Guides stable API and interface design. Use when designing APIs, module boundaries, or any public interface. Use when creating REST or GraphQL endpoints, defining type contracts between modules, or establishing boundaries between frontend and backend.",
+      "content_hash": "97accee05ccd244184573e320c928c3921c7ac3f",
+      "signature_hash": "8e500ff3143751fe0784388548f467371bf8bd44",
+      "variant_hashes": [
+        "97accee05ccd244184573e320c928c3921c7ac3f"
+      ],
+      "line_count": 294
+    },
+    {
+      "kind": "skill",
+      "name": "browser-testing-with-devtools",
+      "category": "skills",
+      "logical_id": "skill:skills/browser-testing-with-devtools",
+      "canonical_path": "skills/browser-testing-with-devtools/SKILL.md",
+      "paths": [
+        "skills/browser-testing-with-devtools/SKILL.md"
+      ],
+      "description": "Tests in real browsers via Chrome DevTools MCP. Use when building or debugging anything that runs in a browser. Use when you need to inspect the DOM, capture console errors, analyze network requests, profile performance, or verify visual output with real runtime data. Requires the chrome-devtools MCP server to be configured.",
+      "content_hash": "e2e4b18f70385669172831fe4f40cd4491e68b67",
+      "signature_hash": "090c0a03dada76bf51c11061d3ec324afe90ace2",
+      "variant_hashes": [
+        "e2e4b18f70385669172831fe4f40cd4491e68b67"
+      ],
+      "line_count": 317
+    },
+    {
+      "kind": "skill",
+      "name": "ci-cd-and-automation",
+      "category": "skills",
+      "logical_id": "skill:skills/ci-cd-and-automation",
+      "canonical_path": "skills/ci-cd-and-automation/SKILL.md",
+      "paths": [
+        "skills/ci-cd-and-automation/SKILL.md"
+      ],
+      "description": "Automates CI/CD pipeline setup. Use when setting up or modifying build and deployment pipelines. Use when you need to automate quality gates, configure test runners in CI, or establish deployment strategies.",
+      "content_hash": "7652720b57dd289f2ed6755790b2de6afb267419",
+      "signature_hash": "67640cea5a1df1be8b7639789b16c6b319f5a320",
+      "variant_hashes": [
+        "7652720b57dd289f2ed6755790b2de6afb267419"
+      ],
+      "line_count": 390
+    },
+    {
+      "kind": "skill",
+      "name": "code-review-and-quality",
+      "category": "skills",
+      "logical_id": "skill:skills/code-review-and-quality",
+      "canonical_path": "skills/code-review-and-quality/SKILL.md",
+      "paths": [
+        "skills/code-review-and-quality/SKILL.md"
+      ],
+      "description": "Conducts multi-axis code review. Use before merging any change. Use when reviewing code written by yourself, another agent, or a human. Use when you need to assess code quality across multiple dimensions before it enters the main branch.",
+      "content_hash": "3b830e73980d4c47a53d233a94de72d41ee2aec6",
+      "signature_hash": "1d22d09219dd90c4934a4f010f268de8ecd79d04",
+      "variant_hashes": [
+        "3b830e73980d4c47a53d233a94de72d41ee2aec6"
+      ],
+      "line_count": 396
+    },
+    {
+      "kind": "skill",
+      "name": "code-simplification",
+      "category": "skills",
+      "logical_id": "skill:skills/code-simplification",
+      "canonical_path": "skills/code-simplification/SKILL.md",
+      "paths": [
+        "skills/code-simplification/SKILL.md"
+      ],
+      "description": "Simplifies code for clarity. Use when refactoring code for clarity without changing behavior. Use when code works but is harder to read, maintain, or extend than it should be. Use when reviewing code that has accumulated unnecessary complexity.",
+      "content_hash": "967a7227962bb98eba9ddc71cf1d75a2dffb0620",
+      "signature_hash": "b1461f775f118f1462cb8b1480b365a8fb60b120",
+      "variant_hashes": [
+        "967a7227962bb98eba9ddc71cf1d75a2dffb0620"
+      ],
+      "line_count": 331
+    },
+    {
+      "kind": "skill",
+      "name": "context-engineering",
+      "category": "skills",
+      "logical_id": "skill:skills/context-engineering",
+      "canonical_path": "skills/context-engineering/SKILL.md",
+      "paths": [
+        "skills/context-engineering/SKILL.md"
+      ],
+      "description": "Optimizes agent context setup. Use when starting a new session, when agent output quality degrades, when switching between tasks, or when you need to configure rules files and context for a project.",
+      "content_hash": "38c693974b7e205f38517aa1f8a87e394b25a06c",
+      "signature_hash": "035c5d6a414fc96fe1d93b749ffe10cb46d0ff10",
+      "variant_hashes": [
+        "38c693974b7e205f38517aa1f8a87e394b25a06c"
+      ],
+      "line_count": 289
+    },
+    {
+      "kind": "skill",
+      "name": "debugging-and-error-recovery",
+      "category": "skills",
+      "logical_id": "skill:skills/debugging-and-error-recovery",
+      "canonical_path": "skills/debugging-and-error-recovery/SKILL.md",
+      "paths": [
+        "skills/debugging-and-error-recovery/SKILL.md"
+      ],
+      "description": "Guides systematic root-cause debugging. Use when tests fail, builds break, behavior doesn't match expectations, or you encounter any unexpected error. Use when you need a systematic approach to finding and fixing the root cause rather than guessing.",
+      "content_hash": "afea5d2df6e973d3c58e6464d17d15580c88efe2",
+      "signature_hash": "ded7b475ac5c08d050753ef1615dbfd020ae1301",
+      "variant_hashes": [
+        "afea5d2df6e973d3c58e6464d17d15580c88efe2"
+      ],
+      "line_count": 300
+    },
+    {
+      "kind": "skill",
+      "name": "deprecation-and-migration",
+      "category": "skills",
+      "logical_id": "skill:skills/deprecation-and-migration",
+      "canonical_path": "skills/deprecation-and-migration/SKILL.md",
+      "paths": [
+        "skills/deprecation-and-migration/SKILL.md"
+      ],
+      "description": "Manages deprecation and migration. Use when removing old systems, APIs, or features. Use when migrating users from one implementation to another. Use when deciding whether to maintain or sunset existing code.",
+      "content_hash": "49fb9f0acd9c7b704d509761e167373a168cd11e",
+      "signature_hash": "3b568dd73220664c5eefb9169c4b4babb90105de",
+      "variant_hashes": [
+        "49fb9f0acd9c7b704d509761e167373a168cd11e"
+      ],
+      "line_count": 247
+    },
+    {
+      "kind": "skill",
+      "name": "documentation-and-adrs",
+      "category": "skills",
+      "logical_id": "skill:skills/documentation-and-adrs",
+      "canonical_path": "skills/documentation-and-adrs/SKILL.md",
+      "paths": [
+        "skills/documentation-and-adrs/SKILL.md"
+      ],
+      "description": "Records decisions and documentation. Use when making architectural decisions, changing public APIs, shipping features, or when you need to record context that future engineers and agents will need to understand the codebase.",
+      "content_hash": "c06db424db3a7f7a8cd2c087f3e6bff084fad9dd",
+      "signature_hash": "0bb9a265358fe884c7110097880acaa7ba775447",
+      "variant_hashes": [
+        "c06db424db3a7f7a8cd2c087f3e6bff084fad9dd"
+      ],
+      "line_count": 278
+    },
+    {
+      "kind": "skill",
+      "name": "doubt-driven-development",
+      "category": "skills",
+      "logical_id": "skill:skills/doubt-driven-development",
+      "canonical_path": "skills/doubt-driven-development/SKILL.md",
+      "paths": [
+        "skills/doubt-driven-development/SKILL.md"
+      ],
+      "description": "Subjects every non-trivial decision to a fresh-context adversarial review before it stands. Use when correctness matters more than speed, when working in unfamiliar code, when stakes are high (production, security-sensitive logic, irreversible operations), or any time a confident output would be cheaper to verify now than to debug later.",
+      "content_hash": "d2ed7adb9bad3d41c7a4d0fe27da6ebb7dd171fd",
+      "signature_hash": "17c9c9238c655b597d8d7cf901cb4922f86e11ae",
+      "variant_hashes": [
+        "d2ed7adb9bad3d41c7a4d0fe27da6ebb7dd171fd"
+      ],
+      "line_count": 243
+    },
+    {
+      "kind": "skill",
+      "name": "frontend-ui-engineering",
+      "category": "skills",
+      "logical_id": "skill:skills/frontend-ui-engineering",
+      "canonical_path": "skills/frontend-ui-engineering/SKILL.md",
+      "paths": [
+        "skills/frontend-ui-engineering/SKILL.md"
+      ],
+      "description": "Builds production-quality, accessible, responsive user-facing UIs. Use when building or modifying interfaces and pages, creating components, implementing layouts, meeting WCAG accessibility requirements, managing state, or when the output needs to look and feel production-quality rather than AI-generated.",
+      "content_hash": "38e61056d62248b88f442660acff03688488dd1b",
+      "signature_hash": "ed34b5668f5b4a6a7fc1ed29f7257de242ebfac4",
+      "variant_hashes": [
+        "38e61056d62248b88f442660acff03688488dd1b"
+      ],
+      "line_count": 328
+    },
+    {
+      "kind": "skill",
+      "name": "git-workflow-and-versioning",
+      "category": "skills",
+      "logical_id": "skill:skills/git-workflow-and-versioning",
+      "canonical_path": "skills/git-workflow-and-versioning/SKILL.md",
+      "paths": [
+        "skills/git-workflow-and-versioning/SKILL.md"
+      ],
+      "description": "Structures git workflow practices. Use when making any code change. Use when committing, branching, resolving conflicts, or when you need to organize work across multiple parallel streams. Use when cutting a release, choosing a semantic version bump, tagging, or writing a changelog.",
+      "content_hash": "c0b968f6488ed4ad9ea8fb53a0d2bb77b48e7b96",
+      "signature_hash": "51718013eac60c9ade1e20c058ac63bf020bdd7e",
+      "variant_hashes": [
+        "c0b968f6488ed4ad9ea8fb53a0d2bb77b48e7b96"
+      ],
+      "line_count": 355
+    },
+    {
+      "kind": "skill",
+      "name": "idea-refine",
+      "category": "skills",
+      "logical_id": "skill:skills/idea-refine",
+      "canonical_path": "skills/idea-refine/SKILL.md",
+      "paths": [
+        "skills/idea-refine/SKILL.md"
+      ],
+      "description": "Refines raw ideas into sharp, actionable concepts through structured divergent and convergent thinking. Use when an idea is still vague, when you need to stress-test assumptions before committing to a plan, or when you want to expand options before converging on one. Triggers on \"ideate\", \"refine this idea\", or \"stress-test my plan\".",
+      "content_hash": "1e970fd804c14c68345f34a736d12df1e4dffa1b",
+      "signature_hash": "af7bc56d29eceb233e26964dee481f2ffa5c934e",
+      "variant_hashes": [
+        "1e970fd804c14c68345f34a736d12df1e4dffa1b"
+      ],
+      "line_count": 178
+    },
+    {
+      "kind": "skill",
+      "name": "incremental-implementation",
+      "category": "skills",
+      "logical_id": "skill:skills/incremental-implementation",
+      "canonical_path": "skills/incremental-implementation/SKILL.md",
+      "paths": [
+        "skills/incremental-implementation/SKILL.md"
+      ],
+      "description": "Delivers changes incrementally. Use when implementing any feature or change that touches more than one file. Use when you're about to write a large amount of code at once, or when a task feels too big to land in one step.",
+      "content_hash": "086c149395b626a7ee36cf48286bb3e178eb0faa",
+      "signature_hash": "eafcd5c25b18b09e0cb247da405df737c41b8005",
+      "variant_hashes": [
+        "086c149395b626a7ee36cf48286bb3e178eb0faa"
+      ],
+      "line_count": 249
+    },
+    {
+      "kind": "skill",
+      "name": "interview-me",
+      "category": "skills",
+      "logical_id": "skill:skills/interview-me",
+      "canonical_path": "skills/interview-me/SKILL.md",
+      "paths": [
+        "skills/interview-me/SKILL.md"
+      ],
+      "description": "Extracts what the user actually wants instead of what they think they should want. Achieves this through one-question-at-a-time interview until ~95% confidence about the underlying intent. Use when an ask is underspecified (\"build me X\" without \"for whom\" or \"why now\"), when the user explicitly invokes (\"interview me\", \"grill me\", \"are we sure?\", \"stress-test my thinking\"), or when you catch yourself silently filling in ambiguous requirements before any plan, spec, or code exists.",
+      "content_hash": "22a0935a1e4c8b38025d0f8eb7230f8ae8c46070",
+      "signature_hash": "d94f829c128445ce4ff5c4458bfc697fd2818e69",
+      "variant_hashes": [
+        "22a0935a1e4c8b38025d0f8eb7230f8ae8c46070"
+      ],
+      "line_count": 225
+    },
+    {
+      "kind": "skill",
+      "name": "observability-and-instrumentation",
+      "category": "skills",
+      "logical_id": "skill:skills/observability-and-instrumentation",
+      "canonical_path": "skills/observability-and-instrumentation/SKILL.md",
+      "paths": [
+        "skills/observability-and-instrumentation/SKILL.md"
+      ],
+      "description": "Instruments code so production behavior is visible and diagnosable. Use when adding logging, metrics, tracing, or alerting. Use when shipping any feature that runs in production and you need evidence it works. Use when production issues are reported but you can't tell what happened from the available data.",
+      "content_hash": "575380ad70a84317299e8151cee1461aad1a8cb9",
+      "signature_hash": "e7762d4d74449bcd05c6680abba430342f9e66c1",
+      "variant_hashes": [
+        "575380ad70a84317299e8151cee1461aad1a8cb9"
+      ],
+      "line_count": 203
+    },
+    {
+      "kind": "skill",
+      "name": "performance-optimization",
+      "category": "skills",
+      "logical_id": "skill:skills/performance-optimization",
+      "canonical_path": "skills/performance-optimization/SKILL.md",
+      "paths": [
+        "skills/performance-optimization/SKILL.md"
+      ],
+      "description": "Optimizes application performance across frontend, backend, queries, and databases. Use when performance requirements exist, when you suspect performance regressions, when Core Web Vitals or load times need improvement, when N+1 query patterns need fixing, or when profiling reveals bottlenecks.",
+      "content_hash": "4e02eabedffe18068e3e1270b0efd4f518d5c995",
+      "signature_hash": "38ac04a18fc32f647ab239cfdc303ec297596078",
+      "variant_hashes": [
+        "4e02eabedffe18068e3e1270b0efd4f518d5c995"
+      ],
+      "line_count": 349
+    },
+    {
+      "kind": "skill",
+      "name": "planning-and-task-breakdown",
+      "category": "skills",
+      "logical_id": "skill:skills/planning-and-task-breakdown",
+      "canonical_path": "skills/planning-and-task-breakdown/SKILL.md",
+      "paths": [
+        "skills/planning-and-task-breakdown/SKILL.md"
+      ],
+      "description": "Breaks work into ordered tasks. Use when you have a spec or clear requirements and need to break work into implementable tasks. Use when a task feels too large to start, when you need to estimate scope, or when parallel work is possible.",
+      "content_hash": "a83971b56a6786c871955799ef089b095702ca6c",
+      "signature_hash": "0626f8e830fe9d3ee49b6aafced4a6fc034ea38a",
+      "variant_hashes": [
+        "a83971b56a6786c871955799ef089b095702ca6c"
+      ],
+      "line_count": 234
+    },
+    {
+      "kind": "skill",
+      "name": "security-and-hardening",
+      "category": "skills",
+      "logical_id": "skill:skills/security-and-hardening",
+      "canonical_path": "skills/security-and-hardening/SKILL.md",
+      "paths": [
+        "skills/security-and-hardening/SKILL.md"
+      ],
+      "description": "Hardens code against vulnerabilities. Use when handling user input, authentication, data storage, or external integrations. Use when building any feature that accepts untrusted data, manages user sessions, or interacts with third-party services.",
+      "content_hash": "e4ec82fc45b88646db3b208215136bf9afa0e933",
+      "signature_hash": "98bcc757476821a0051e7c51dc177900922ae466",
+      "variant_hashes": [
+        "e4ec82fc45b88646db3b208215136bf9afa0e933"
+      ],
+      "line_count": 461
+    },
+    {
+      "kind": "skill",
+      "name": "shipping-and-launch",
+      "category": "skills",
+      "logical_id": "skill:skills/shipping-and-launch",
+      "canonical_path": "skills/shipping-and-launch/SKILL.md",
+      "paths": [
+        "skills/shipping-and-launch/SKILL.md"
+      ],
+      "description": "Prepares production launches. Use when preparing to deploy to production. Use when you need a pre-launch checklist, when setting up monitoring, when planning a staged rollout, or when you need a rollback strategy.",
+      "content_hash": "d339fad4d6e79b30361b581f5b47f740e9bfb206",
+      "signature_hash": "bfc52e176a0a31d2b415dc15fb330d8664eda0f4",
+      "variant_hashes": [
+        "d339fad4d6e79b30361b581f5b47f740e9bfb206"
+      ],
+      "line_count": 310
+    },
+    {
+      "kind": "skill",
+      "name": "source-driven-development",
+      "category": "skills",
+      "logical_id": "skill:skills/source-driven-development",
+      "canonical_path": "skills/source-driven-development/SKILL.md",
+      "paths": [
+        "skills/source-driven-development/SKILL.md"
+      ],
+      "description": "Grounds every implementation decision in official documentation. Use when you want authoritative, source-cited code free from outdated patterns. Use when building with any framework or library where correctness matters.",
+      "content_hash": "513cc9f97961c219435854db27e7acaa31cb2922",
+      "signature_hash": "78f114459b2a65acd12a2d44096abcb157268180",
+      "variant_hashes": [
+        "513cc9f97961c219435854db27e7acaa31cb2922"
+      ],
+      "line_count": 194
+    },
+    {
+      "kind": "skill",
+      "name": "spec-driven-development",
+      "category": "skills",
+      "logical_id": "skill:skills/spec-driven-development",
+      "canonical_path": "skills/spec-driven-development/SKILL.md",
+      "paths": [
+        "skills/spec-driven-development/SKILL.md"
+      ],
+      "description": "Creates specs before coding. Use when starting a new project, feature, or significant change and no specification exists yet. Use when requirements are unclear, ambiguous, or only exist as a vague idea.",
+      "content_hash": "18d1b48e3fb8fb019bcb262f256020ba6ccaa258",
+      "signature_hash": "031cd5780cc49c2b6e679310c4c48f6d31a9fcd4",
+      "variant_hashes": [
+        "18d1b48e3fb8fb019bcb262f256020ba6ccaa258"
+      ],
+      "line_count": 206
+    },
+    {
+      "kind": "skill",
+      "name": "test-driven-development",
+      "category": "skills",
+      "logical_id": "skill:skills/test-driven-development",
+      "canonical_path": "skills/test-driven-development/SKILL.md",
+      "paths": [
+        "skills/test-driven-development/SKILL.md"
+      ],
+      "description": "Drives development with tests. Use when implementing any logic, fixing any bug, or changing any behavior. Use when you need to prove that code works, when a bug report arrives, or when you're about to modify existing functionality.",
+      "content_hash": "0e94130c9a20604756350d862ed4f74036206867",
+      "signature_hash": "b6dcaac12e7765fb7007a13d16802eb144c97387",
+      "variant_hashes": [
+        "0e94130c9a20604756350d862ed4f74036206867"
+      ],
+      "line_count": 383
+    },
+    {
+      "kind": "skill",
+      "name": "using-agent-skills",
+      "category": "skills",
+      "logical_id": "skill:skills/using-agent-skills",
+      "canonical_path": "skills/using-agent-skills/SKILL.md",
+      "paths": [
+        "skills/using-agent-skills/SKILL.md"
+      ],
+      "description": "Discovers and invokes agent skills. Use when starting a session or when you need to discover which skill applies to the current task. This is the meta-skill that governs how all other skills are discovered and invoked.",
+      "content_hash": "c3f62e07f34744561bad11ac4203c0a533ee45b6",
+      "signature_hash": "16317070cad9551c7bb76eabb378910210449ae1",
+      "variant_hashes": [
+        "c3f62e07f34744561bad11ac4203c0a533ee45b6"
+      ],
+      "line_count": 191
+    }
+  ]
+}

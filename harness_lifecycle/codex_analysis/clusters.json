@@ -37,10 +37,10 @@
       "decision": "merge",
       "kinds": {
         "agent": 18,
-        "command": 3,
+        "command": 4,
         "plugin": 3,
         "rule": 2,
-        "skill": 6
+        "skill": 7
       },
       "priority": "P0",
       "problem_solved": "Review diffs for correctness, safety, maintainability, API contracts, performance, and project fit.",
@@ -56,7 +56,7 @@
         "C032-safe-refactor-and-code-simplification"
       ],
       "selection_mode": "merge complementary candidates",
-      "source_count": 32,
+      "source_count": 34,
       "source_ids": [
         "skill:cereview",
         "skill:pythonpatterns",
@@ -89,7 +89,9 @@
         "rule:zhcodereview",
         "command:codereview",
         "command:pythonreview",
-        "command:reviewpr"
+        "command:reviewpr",
+        "command:review",
+        "skill:codereviewandquality"
       ],
       "source_names": [
         "ce:review",
@@ -123,23 +125,25 @@
         "zh/code-review",
         "code-review",
         "python-review",
-        "review-pr"
+        "review-pr",
+        "review",
+        "code-review-and-quality"
       ],
       "verdict_counts": {
         "adopt": 1,
         "defer": 3,
-        "merge": 26,
-        "reject_after_review": 1,
+        "merge": 27,
+        "reject_after_review": 2,
         "rewrite": 1
       },
-      "why_this_is_better": "Consolidates 32 related candidate(s) such as ce:review, python-patterns, receiving-code-review... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 34 related candidate(s) such as ce:review, python-patterns, receiving-code-review... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 4.33,
+      "average_score": 4.29,
       "best_source_ids": [
-        "skill:systematicdebugging",
         "agent:bugreproductionvalidator",
-        "skill:diagnosingbugs"
+        "skill:systematicdebugging",
+        "agent:pytorchbuildresolver"
       ],
       "candidate_cluster_keys": [
         "agent-failure-debugging",
@@ -154,7 +158,7 @@
       "decision": "merge",
       "kinds": {
         "agent": 2,
-        "skill": 5
+        "skill": 6
       },
       "priority": "P0",
       "problem_solved": "Reproduce failures, isolate root causes, and validate fixes before implementation claims.",
@@ -164,7 +168,7 @@
       "risks_or_open_questions": "High leverage, but implementation should stay narrow and preserve existing local workflow boundaries.",
       "secondary_relationships": [],
       "selection_mode": "merge complementary candidates",
-      "source_count": 7,
+      "source_count": 8,
       "source_ids": [
         "skill:agentintrospectiondebugging",
         "skill:diagnosingbugs",
@@ -172,7 +176,8 @@
         "skill:reproducebug",
         "skill:systematicdebugging",
         "agent:bugreproductionvalidator",
-        "agent:pytorchbuildresolver"
+        "agent:pytorchbuildresolver",
+        "skill:debugginganderrorrecovery"
       ],
       "source_names": [
         "agent-introspection-debugging",
@@ -181,21 +186,22 @@
         "reproduce-bug",
         "systematic-debugging",
         "bug-reproduction-validator",
-        "pytorch-build-resolver"
+        "pytorch-build-resolver",
+        "debugging-and-error-recovery"
       ],
       "verdict_counts": {
         "adopt": 1,
         "defer": 1,
-        "merge": 5
+        "merge": 6
       },
-      "why_this_is_better": "Consolidates 7 related candidate(s) such as agent-introspection-debugging, diagnosing-bugs, qa... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 8 related candidate(s) such as agent-introspection-debugging, diagnosing-bugs, qa... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
       "average_score": 4.58,
       "best_source_ids": [
-        "skill:checkinvariants",
         "agent:specreviewer",
-        "command:checkinvariants"
+        "command:checkinvariants",
+        "skill:checkinvariants"
       ],
       "candidate_cluster_keys": [
         "codex-adapter-readiness-checks",
@@ -270,8 +276,8 @@
       "average_score": 4.49,
       "best_source_ids": [
         "agent:implementer",
-        "skill:codexrunner",
-        "plugin:codexadapter"
+        "command:codexcritique",
+        "command:codexdiagnose"
       ],
       "candidate_cluster_keys": [
         "bounded-implementation-agent",
@@ -603,9 +609,10 @@
       "why_this_is_better": "Consolidates 10 related candidate(s) such as block-generated-edits.py, block-generated-edits.sh, doc-file-warning.js... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 4.33,
+      "average_score": 4.08,
       "best_source_ids": [
-        "command:rpiimplement"
+        "command:rpiimplement",
+        "skill:incrementalimplementation"
       ],
       "candidate_cluster_keys": [
         "phased-implementation-with-validation"
@@ -614,27 +621,30 @@
       "cluster_key": "phased-implementation-with-validation",
       "decision": "merge",
       "kinds": {
-        "command": 1
+        "command": 1,
+        "skill": 1
       },
       "priority": "P1",
-      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
-      "recommended_capability": "Phased Implementation With Validation",
-      "recommended_surface": "command",
-      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
-      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "problem_solved": "Execute approved work in thin, risk-first slices with explicit tests, verification, and review checkpoints.",
+      "recommended_capability": "Incremental implementation with validation",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Fold thin-slice selection and per-slice validation into the existing phase and subagent execution workflows; retain repository-specific commit authority.",
+      "risks_or_open_questions": "Generic slice-size heuristics and unconditional commits must not override the target repository's workflow or user authority.",
       "secondary_relationships": [],
-      "selection_mode": "single superior candidate",
-      "source_count": 1,
+      "selection_mode": "merge complementary candidates",
+      "source_count": 2,
       "source_ids": [
-        "command:rpiimplement"
+        "command:rpiimplement",
+        "skill:incrementalimplementation"
       ],
       "source_names": [
-        "rpi/implement"
+        "rpi/implement",
+        "incremental-implementation"
       ],
       "verdict_counts": {
-        "merge": 1
+        "merge": 2
       },
-      "why_this_is_better": "Consolidates 1 related candidate(s) such as rpi/implement into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Combines the existing implementation command with stronger vertical-slice and feedback-loop guidance without adopting automatic commit behavior."
     },
     {
       "average_score": 4.0,
@@ -705,38 +715,44 @@
       "why_this_is_better": "Consolidates 1 related candidate(s) such as automation-audit-ops into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 4.83,
+      "average_score": 4.42,
       "best_source_ids": [
-        "command:codexresearch"
+        "command:codexresearch",
+        "skill:sourcedrivendevelopment"
       ],
       "candidate_cluster_keys": [
-        "codex-cited-research"
+        "codex-cited-research",
+        "official-documentation-lookup"
       ],
       "cluster_id": "C013-codex-cited-research",
       "cluster_key": "codex-cited-research",
-      "decision": "adopt_as_is",
+      "decision": "merge",
       "kinds": {
-        "command": 1
+        "command": 1,
+        "skill": 1
       },
       "priority": "P1",
-      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
-      "recommended_capability": "Codex Cited Research",
-      "recommended_surface": "command",
-      "reuse_or_merge_plan": "Keep or adopt the best source directly, with only path/name adjustments required by this harness.",
-      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "problem_solved": "Research current official documentation and ground implementation decisions in cited, version-aware sources.",
+      "recommended_capability": "Official-documentation-grounded research and development",
+      "recommended_surface": "skill/command",
+      "reuse_or_merge_plan": "Keep the existing cited-research command and merge the source-selection, version-detection, and citation discipline into the routed research skill.",
+      "risks_or_open_questions": "Official sources can still drift; verify versions and avoid treating citations as proof that an implementation is correct.",
       "secondary_relationships": [],
-      "selection_mode": "single superior candidate",
-      "source_count": 1,
+      "selection_mode": "merge complementary candidates",
+      "source_count": 2,
       "source_ids": [
-        "command:codexresearch"
+        "command:codexresearch",
+        "skill:sourcedrivendevelopment"
       ],
       "source_names": [
-        "codex-research"
+        "codex-research",
+        "source-driven-development"
       ],
       "verdict_counts": {
-        "adopt": 1
+        "adopt": 1,
+        "merge": 1
       },
-      "why_this_is_better": "The candidate set is already strong and narrow; adopting as-is preserves the existing behavior without extra abstraction."
+      "why_this_is_better": "Combines cited Codex research with source-driven development so official documentation informs both recommendations and implementation."
     },
     {
       "average_score": 4.83,
@@ -807,11 +823,11 @@
       "why_this_is_better": "The candidate set is already strong and narrow; adopting as-is preserves the existing behavior without extra abstraction."
     },
     {
-      "average_score": 3.76,
+      "average_score": 3.74,
       "best_source_ids": [
         "skill:codebasearchitectureresearch",
         "skill:grillme",
-        "skill:apiconnectorbuilder"
+        "agent:architecturecritic"
       ],
       "candidate_cluster_keys": [
         "adversarial-design-review",
@@ -844,7 +860,7 @@
         "agent": 4,
         "command": 3,
         "mcp": 1,
-        "skill": 16
+        "skill": 17
       },
       "priority": "P2",
       "problem_solved": "Map architecture and domain models before changing complex systems.",
@@ -856,7 +872,7 @@
         "C044-domain-and-technology-specific-packs"
       ],
       "selection_mode": "merge complementary candidates",
-      "source_count": 24,
+      "source_count": 25,
       "source_ids": [
         "skill:agentnativearchitecture",
         "skill:agentnativeaudit",
@@ -881,7 +897,8 @@
         "mcp:deepwiki",
         "command:modernizemap",
         "command:modernizereimagine",
-        "command:updatecodemaps"
+        "command:updatecodemaps",
+        "skill:apiandinterfacedesign"
       ],
       "source_names": [
         "agent-native-architecture",
@@ -907,22 +924,23 @@
         "deepwiki",
         "modernize-map",
         "modernize-reimagine",
-        "update-codemaps"
+        "update-codemaps",
+        "api-and-interface-design"
       ],
       "verdict_counts": {
         "adopt": 2,
         "defer": 8,
-        "merge": 13,
+        "merge": 14,
         "rewrite": 1
       },
-      "why_this_is_better": "Consolidates 24 related candidate(s) such as agent-native-architecture, agent-native-audit, api-connector-builder... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 25 related candidate(s) such as agent-native-architecture, agent-native-audit, api-connector-builder... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
       "average_score": 3.88,
       "best_source_ids": [
-        "skill:beads",
         "command:preparephases",
-        "command:runphases"
+        "command:runphases",
+        "skill:beads"
       ],
       "candidate_cluster_keys": [
         "beads-backed-sequential-phase-execution",
@@ -1005,29 +1023,32 @@
       "why_this_is_better": "Consolidates 17 related candidate(s) such as beads, cost-aware-llm-pipeline, git-clean-gone-branches... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 3.52,
+      "average_score": 3.29,
       "best_source_ids": [
-        "skill:graphfirst",
         "command:indexrepo",
+        "skill:graphfirst",
         "command:disableforproject"
       ],
       "candidate_cluster_keys": [
         "agentic-engineering-operating-model",
         "code-intel-enable-disable-controls",
         "code-intel-index-management",
+        "context-budget-audit",
         "context-performance-model-selection",
         "context-preserving-side-questions",
         "graph-first-code-intelligence",
         "model-routing",
-        "response-depth-and-token-budgeting"
+        "response-depth-and-token-budgeting",
+        "webfetch-cache-and-context-cost"
       ],
       "cluster_id": "C018-code-intelligence-context-and-cost-controls",
       "cluster_key": "code-intelligence-context-and-cost-controls",
       "decision": "merge",
       "kinds": {
         "command": 4,
+        "hook": 2,
         "rule": 2,
-        "skill": 3
+        "skill": 4
       },
       "priority": "P2",
       "problem_solved": "Use graph/code intelligence, context budgets, and cost/model routing to keep agent work efficient.",
@@ -1040,7 +1061,7 @@
         "C032-safe-refactor-and-code-simplification"
       ],
       "selection_mode": "merge complementary candidates",
-      "source_count": 9,
+      "source_count": 12,
       "source_ids": [
         "skill:agenticengineering",
         "skill:graphfirst",
@@ -1050,7 +1071,10 @@
         "command:aside",
         "command:disableforproject",
         "command:indexrepo",
-        "command:modelroute"
+        "command:modelroute",
+        "hook:sddcachepostsh",
+        "hook:sddcachepresh",
+        "skill:contextengineering"
       ],
       "source_names": [
         "agentic-engineering",
@@ -1061,15 +1085,18 @@
         "aside",
         "disable-for-project",
         "index-repo",
-        "model-route"
+        "model-route",
+        "sdd-cache-post.sh",
+        "sdd-cache-pre.sh",
+        "context-engineering"
       ],
       "verdict_counts": {
         "adopt": 3,
-        "merge": 3,
-        "reject_after_review": 2,
+        "merge": 4,
+        "reject_after_review": 4,
         "rewrite": 1
       },
-      "why_this_is_better": "Consolidates 9 related candidate(s) such as agentic-engineering, graph-first, token-budget-advisor... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 12 related candidate(s) such as agentic-engineering, graph-first, token-budget-advisor... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
       "average_score": 3.75,
@@ -1171,10 +1198,11 @@
       "average_score": 3.92,
       "best_source_ids": [
         "agent:docsresearcher",
-        "rule:core02knowledgediscoverability",
-        "agent:frameworkdocsresearcher"
+        "agent:frameworkdocsresearcher",
+        "rule:core02knowledgediscoverability"
       ],
       "candidate_cluster_keys": [
+        "decision-records-and-project-memory",
         "docs-and-best-practices-research",
         "docs-sync",
         "docs/code-walkthroughs",
@@ -1203,7 +1231,7 @@
         "mcp": 2,
         "plugin": 1,
         "rule": 4,
-        "skill": 9
+        "skill": 10
       },
       "priority": "P2",
       "problem_solved": "Find current docs, synthesize research, maintain project docs, and produce readable reports.",
@@ -1213,7 +1241,7 @@
       "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
       "secondary_relationships": [],
       "selection_mode": "merge complementary candidates",
-      "source_count": 25,
+      "source_count": 26,
       "source_ids": [
         "skill:cecompoundrefresh",
         "skill:codetour",
@@ -1239,7 +1267,8 @@
         "rule:zhreadme",
         "command:readme",
         "command:reviseclaudemd",
-        "command:updatedocs"
+        "command:updatedocs",
+        "skill:documentationandadrs"
       ],
       "source_names": [
         "ce:compound-refresh",
@@ -1266,16 +1295,17 @@
         "zh/README",
         "README",
         "revise-claude-md",
-        "update-docs"
+        "update-docs",
+        "documentation-and-adrs"
       ],
       "verdict_counts": {
         "adopt": 7,
         "defer": 3,
-        "merge": 11,
+        "merge": 12,
         "reject_after_review": 3,
         "rewrite": 1
       },
-      "why_this_is_better": "Consolidates 25 related candidate(s) such as ce:compound-refresh, code-tour, coding-tutor... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 26 related candidate(s) such as ce:compound-refresh, code-tour, coding-tutor... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
       "average_score": 3.67,
@@ -1312,11 +1342,11 @@
       "why_this_is_better": "Consolidates 1 related candidate(s) such as quality-gate into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 3.7,
+      "average_score": 3.66,
       "best_source_ids": [
-        "skill:resolvingmergeconflicts",
         "mcp:github",
-        "skill:gitguardrailsclaudecode"
+        "skill:gitguardrailsclaudecode",
+        "skill:resolvingmergeconflicts"
       ],
       "candidate_cluster_keys": [
         "branch-completion-and-pr-flow",
@@ -1349,7 +1379,7 @@
         "mcp": 1,
         "plugin": 2,
         "rule": 2,
-        "skill": 10
+        "skill": 11
       },
       "priority": "P2",
       "problem_solved": "Prepare commits, branches, PRs, release notes, and GitHub workflows with explicit safety.",
@@ -1362,7 +1392,7 @@
         "C028-planning-prd-and-implementation-workflows"
       ],
       "selection_mode": "merge complementary candidates",
-      "source_count": 27,
+      "source_count": 28,
       "source_ids": [
         "skill:changelog",
         "skill:deploydocs",
@@ -1390,7 +1420,8 @@
         "command:prpcommit",
         "command:prppr",
         "command:setup",
-        "command:triageprs"
+        "command:triageprs",
+        "skill:gitworkflowandversioning"
       ],
       "source_names": [
         "changelog",
@@ -1419,23 +1450,24 @@
         "prp-commit",
         "prp-pr",
         "setup",
-        "triage-prs"
+        "triage-prs",
+        "git-workflow-and-versioning"
       ],
       "verdict_counts": {
         "adopt": 3,
         "defer": 7,
-        "merge": 13,
+        "merge": 14,
         "reject_after_review": 1,
         "rewrite": 3
       },
-      "why_this_is_better": "Consolidates 27 related candidate(s) such as changelog, deploy-docs, feature-video... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 28 related candidate(s) such as changelog, deploy-docs, feature-video... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
       "average_score": 3.75,
       "best_source_ids": [
         "command:harnessstatus",
         "command:update",
-        "skill:refreshharnessfromreference"
+        "command:harnessscan"
       ],
       "candidate_cluster_keys": [
         "asset-catalog-trimming",
@@ -1540,8 +1572,8 @@
       "average_score": 3.37,
       "best_source_ids": [
         "hook:pretoolusepy",
-        "hook:userpromptsubmitpy",
-        "hook:postbashprcreatedjs"
+        "hook:postbashprcreatedjs",
+        "hook:prebashgitpushreminderjs"
       ],
       "candidate_cluster_keys": [
         "hook-autonomous-loop-stop",
@@ -1605,7 +1637,7 @@
       "best_source_ids": [
         "hook:posttoolusepy",
         "hook:mcphealthcheckjs",
-        "hook:prebashtmuxreminderjs"
+        "hook:prebashdevserverblockjs"
       ],
       "candidate_cluster_keys": [
         "hook-build-notification",
@@ -1671,7 +1703,7 @@
       "best_source_ids": [
         "hook:blockdangerouscommandssh",
         "hook:reviewapipy",
-        "hook:configprotectionjs"
+        "hook:beforereadfilejs"
       ],
       "candidate_cluster_keys": [
         "hook-authoring-and-guardrail-management",
@@ -1758,44 +1790,53 @@
       "why_this_is_better": "Consolidates 19 related candidate(s) such as _base.py, before-read-file.js, before-shell-execution.js... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 3.83,
+      "average_score": 3.33,
       "best_source_ids": [
-        "command:santaloop"
+        "command:santaloop",
+        "command:ship",
+        "skill:doubtdrivendevelopment"
       ],
       "candidate_cluster_keys": [
-        "multi-review-convergence-gates"
+        "multi-review-convergence-gates",
+        "multi-review-launch-gate"
       ],
       "cluster_id": "C027-multi-review-convergence-gates",
       "cluster_key": "multi-review-convergence-gates",
       "decision": "merge",
       "kinds": {
-        "command": 1
+        "command": 2,
+        "skill": 1
       },
       "priority": "P2",
-      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
-      "recommended_capability": "Multi Review Convergence Gates",
-      "recommended_surface": "command",
-      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
-      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "problem_solved": "Challenge consequential claims and release decisions with bounded independent review, then reconcile findings against an explicit contract.",
+      "recommended_capability": "Bounded adversarial review and convergence",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge the bounded doubt cycle into existing deep review paths and use release fan-out only when the deployment scope actually warrants it.",
+      "risks_or_open_questions": "Overuse creates review theater and latency; triggers must stay risk-based and the coordinator must independently classify reviewer findings.",
       "secondary_relationships": [],
-      "selection_mode": "single superior candidate",
-      "source_count": 1,
+      "selection_mode": "merge complementary candidates",
+      "source_count": 3,
       "source_ids": [
-        "command:santaloop"
+        "command:santaloop",
+        "command:ship",
+        "skill:doubtdrivendevelopment"
       ],
       "source_names": [
-        "santa-loop"
+        "santa-loop",
+        "ship",
+        "doubt-driven-development"
       ],
       "verdict_counts": {
-        "merge": 1
+        "merge": 1,
+        "rewrite": 2
       },
-      "why_this_is_better": "Consolidates 1 related candidate(s) such as santa-loop into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Keeps the useful claim, artifact, adversarial-review, and reconciliation loop while rejecting mandatory reviewers and cross-model ceremony for routine work."
     },
     {
-      "average_score": 3.67,
+      "average_score": 3.65,
       "best_source_ids": [
-        "agent:planner",
         "agent:coherencereviewer",
+        "agent:planner",
         "agent:scopeguardianreviewer"
       ],
       "candidate_cluster_keys": [
@@ -1820,9 +1861,11 @@
         "plan-execution-with-checkpoints",
         "planning/investigation-ticket-map",
         "planning/refactor-rfc",
+        "planning/spec-driven-development",
         "problem-first-prd-generation",
         "requirements-prd-planning",
         "research/slack-org-context",
+        "specification-workflow",
         "validated-plan-execution",
         "workflow/improvement-ideation"
       ],
@@ -1831,10 +1874,10 @@
       "decision": "merge",
       "kinds": {
         "agent": 9,
-        "command": 9,
+        "command": 10,
         "plugin": 2,
         "rule": 1,
-        "skill": 16
+        "skill": 18
       },
       "priority": "P2",
       "problem_solved": "Move from discovery to plans, specs, implementation, and verification with clear gates.",
@@ -1846,7 +1889,7 @@
         "C022-git-github-and-release-workflows"
       ],
       "selection_mode": "merge complementary candidates",
-      "source_count": 37,
+      "source_count": 40,
       "source_ids": [
         "skill:ceideate",
         "skill:ceplan",
@@ -1884,7 +1927,10 @@
         "command:prpplan",
         "command:prpprd",
         "command:rpiplan",
-        "command:rpiresearch"
+        "command:rpiresearch",
+        "command:spec",
+        "skill:planningandtaskbreakdown",
+        "skill:specdrivendevelopment"
       ],
       "source_names": [
         "ce:ideate",
@@ -1923,16 +1969,19 @@
         "prp-plan",
         "prp-prd",
         "rpi/plan",
-        "rpi/research"
+        "rpi/research",
+        "spec",
+        "planning-and-task-breakdown",
+        "spec-driven-development"
       ],
       "verdict_counts": {
         "adopt": 2,
         "defer": 3,
-        "merge": 23,
+        "merge": 26,
         "reject_after_review": 6,
         "rewrite": 3
       },
-      "why_this_is_better": "Consolidates 37 related candidate(s) such as ce:ideate, ce:plan, ce-slack-research... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 40 related candidate(s) such as ce:ideate, ce:plan, ce-slack-research... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
       "average_score": 3.6,
@@ -2030,38 +2079,45 @@
       "why_this_is_better": "Consolidates 17 related candidate(s) such as build-mcp-app, build-mcpb, build-mcp-server... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 3.83,
+      "average_score": 3.72,
       "best_source_ids": [
-        "skill:productlens"
+        "skill:idearefine",
+        "skill:productlens",
+        "skill:interviewme"
       ],
       "candidate_cluster_keys": [
-        "product/discovery-validation"
+        "product/discovery-validation",
+        "workflow/improvement-ideation"
       ],
       "cluster_id": "C030-product-discovery-validation",
       "cluster_key": "product-discovery-validation",
       "decision": "merge",
       "kinds": {
-        "skill": 1
+        "skill": 3
       },
       "priority": "P2",
-      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
-      "recommended_capability": "Product Discovery Validation",
+      "problem_solved": "Turn an ambiguous idea into tested assumptions, alternative directions, explicit non-goals, and a decision-ready concept before implementation planning.",
+      "recommended_capability": "Idea refinement and product discovery",
       "recommended_surface": "skill",
-      "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
-      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "reuse_or_merge_plan": "Fold the best idea-refine and interview patterns into brainstorming/product-lens, keeping one-question-at-a-time elicitation optional rather than obstructive.",
+      "risks_or_open_questions": "Confidence thresholds and mandatory confirmation loops can block progress; stop once assumptions and success criteria are sufficient for planning.",
       "secondary_relationships": [],
-      "selection_mode": "single superior candidate",
-      "source_count": 1,
+      "selection_mode": "merge complementary candidates",
+      "source_count": 3,
       "source_ids": [
-        "skill:productlens"
+        "skill:productlens",
+        "skill:idearefine",
+        "skill:interviewme"
       ],
       "source_names": [
-        "product-lens"
+        "product-lens",
+        "idea-refine",
+        "interview-me"
       ],
       "verdict_counts": {
-        "merge": 1
+        "merge": 3
       },
-      "why_this_is_better": "Consolidates 1 related candidate(s) such as product-lens into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Combines product validation with structured divergent/convergent refinement and targeted intent questions without duplicating the planning phase."
     },
     {
       "average_score": 3.47,
@@ -2188,22 +2244,26 @@
       "why_this_is_better": "Consolidates 29 related candidate(s) such as ce:compound, ce-sessions, ck... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 3.67,
+      "average_score": 3.47,
       "best_source_ids": [
+        "command:codesimplify",
         "agent:legacyanalyst",
-        "agent:codesimplifier",
-        "agent:refactorcleaner"
+        "agent:codesimplifier"
       ],
       "candidate_cluster_keys": [
         "code-simplification-and-refactor",
         "dead-code-cleanup",
-        "legacy-codebase-analysis"
+        "legacy-codebase-analysis",
+        "safe-code-simplification"
       ],
       "cluster_id": "C032-safe-refactor-and-code-simplification",
       "cluster_key": "safe-refactor-and-code-simplification",
       "decision": "merge",
       "kinds": {
-        "agent": 3
+        "agent": 3,
+        "command": 1,
+        "hook": 1,
+        "skill": 1
       },
       "priority": "P2",
       "problem_solved": "Simplify code or remove dead code only with behavior-preserving evidence and cleanup boundaries.",
@@ -2216,29 +2276,36 @@
         "C018-code-intelligence-context-and-cost-controls"
       ],
       "selection_mode": "merge complementary candidates",
-      "source_count": 3,
+      "source_count": 6,
       "source_ids": [
         "agent:codesimplifier",
         "agent:legacyanalyst",
-        "agent:refactorcleaner"
+        "agent:refactorcleaner",
+        "command:codesimplify",
+        "hook:simplifyignoresh",
+        "skill:codesimplification"
       ],
       "source_names": [
         "code-simplifier",
         "legacy-analyst",
-        "refactor-cleaner"
+        "refactor-cleaner",
+        "code-simplify",
+        "simplify-ignore.sh",
+        "code-simplification"
       ],
       "verdict_counts": {
-        "merge": 2,
+        "merge": 4,
+        "reject_after_review": 1,
         "rewrite": 1
       },
-      "why_this_is_better": "Consolidates 3 related candidate(s) such as code-simplifier, legacy-analyst, refactor-cleaner into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 6 related candidate(s) such as code-simplifier, legacy-analyst, refactor-cleaner into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 3.77,
+      "average_score": 3.76,
       "best_source_ids": [
         "agent:securityreviewer",
         "rule:pythonsafety",
-        "agent:securitysentinel"
+        "agent:securityauditor"
       ],
       "candidate_cluster_keys": [
         "application-security-review",
@@ -2267,21 +2334,21 @@
         "command": 2,
         "plugin": 1,
         "rule": 5,
-        "skill": 10
+        "skill": 11
       },
-      "priority": "P2",
+      "priority": "P1",
       "problem_solved": "Apply threat, privacy, hardening, and domain safety lenses to plans, code, and workflows.",
       "recommended_capability": "Security and privacy review",
       "recommended_surface": "skill/agent",
       "reuse_or_merge_plan": "Merge the strongest instructions into the existing local surface where one exists; otherwise create a single focused capability and keep rejected/weak rows only as rationale.",
-      "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
+      "risks_or_open_questions": "Security review must stay evidence-based and must not imply that a checklist or model review proves the system secure.",
       "secondary_relationships": [
         "C001-code-review-and-change-quality",
         "C019-document-requirements-and-spec-review",
         "C026-hook-security-and-command-safety"
       ],
       "selection_mode": "merge complementary candidates",
-      "source_count": 22,
+      "source_count": 23,
       "source_ids": [
         "skill:djangosecurity",
         "skill:djangoverification",
@@ -2304,7 +2371,8 @@
         "rule:websecurity",
         "rule:zhsecurity",
         "command:modernizeharden",
-        "command:security"
+        "command:security",
+        "skill:securityandhardening"
       ],
       "source_names": [
         "django-security",
@@ -2328,18 +2396,19 @@
         "web/security",
         "zh/security",
         "modernize-harden",
-        "security"
+        "security",
+        "security-and-hardening"
       ],
       "verdict_counts": {
         "adopt": 2,
         "defer": 7,
-        "merge": 10,
+        "merge": 11,
         "reject_after_review": 3
       },
-      "why_this_is_better": "Consolidates 22 related candidate(s) such as django-security, django-verification, docker-patterns... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Adds a threat-model-first security pass and stronger hardening guidance to the existing review lenses without creating another uncoordinated review surface."
     },
     {
-      "average_score": 3.74,
+      "average_score": 3.67,
       "best_source_ids": [
         "plugin:skillcreator",
         "agent:skillreviewer",
@@ -2347,9 +2416,11 @@
       ],
       "candidate_cluster_keys": [
         "authoring/skill-template",
+        "full-lifecycle-capability-pack",
         "plugin-skill-authoring",
         "prompt-authoring-agent-and-skill-development",
         "skill-authoring",
+        "skill-authoring-anti-duplication",
         "skill-authoring-example-template",
         "skill-authoring-from-repo-patterns",
         "skill-discovery-bootstrap",
@@ -2364,8 +2435,9 @@
       "kinds": {
         "agent": 5,
         "command": 2,
-        "plugin": 3,
-        "skill": 7
+        "plugin": 4,
+        "rule": 1,
+        "skill": 8
       },
       "priority": "P2",
       "problem_solved": "Author high-quality skills, review their trigger quality, and evaluate the portfolio for redundancy.",
@@ -2380,7 +2452,7 @@
         "C070-prompt-authoring-and-reasoning-guidance"
       ],
       "selection_mode": "merge complementary candidates",
-      "source_count": 17,
+      "source_count": 20,
       "source_ids": [
         "skill:examplecommand",
         "skill:exampleskill",
@@ -2398,7 +2470,10 @@
         "plugin:plugindev",
         "plugin:skillcreator",
         "command:skillcreate",
-        "command:skillhealth"
+        "command:skillhealth",
+        "plugin:agentskills",
+        "rule:skillscontributing",
+        "skill:usingagentskills"
       ],
       "source_names": [
         "example-command",
@@ -2417,23 +2492,26 @@
         "plugin-dev",
         "skill-creator",
         "skill-create",
-        "skill-health"
+        "skill-health",
+        "agent-skills",
+        "skills-contributing",
+        "using-agent-skills"
       ],
       "verdict_counts": {
         "adopt": 1,
         "defer": 4,
-        "merge": 8,
-        "reject_after_review": 3,
+        "merge": 9,
+        "reject_after_review": 5,
         "rewrite": 1
       },
-      "why_this_is_better": "Consolidates 17 related candidate(s) such as example-command, example-skill, skill-creator... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 20 related candidate(s) such as example-command, example-skill, skill-creator... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
-      "average_score": 3.82,
+      "average_score": 3.79,
       "best_source_ids": [
         "skill:verificationbeforecompletion",
-        "skill:testdrivendevelopment",
-        "mcp:playwright"
+        "mcp:playwright",
+        "skill:testdrivendevelopment"
       ],
       "candidate_cluster_keys": [
         "adversarial-multi-agent-verification",
@@ -2473,11 +2551,11 @@
       "decision": "merge",
       "kinds": {
         "agent": 8,
-        "command": 5,
+        "command": 6,
         "mcp": 1,
         "plugin": 2,
         "rule": 4,
-        "skill": 19
+        "skill": 20
       },
       "priority": "P2",
       "problem_solved": "Use TDD, characterization, coverage, browser checks, and verification gates to prove changes.",
@@ -2487,7 +2565,7 @@
       "risks_or_open_questions": "Check overlap with existing .codex/.claude assets before adding any new file.",
       "secondary_relationships": [],
       "selection_mode": "merge complementary candidates",
-      "source_count": 39,
+      "source_count": 41,
       "source_ids": [
         "skill:agentbrowser",
         "skill:airegressiontesting",
@@ -2527,7 +2605,9 @@
         "command:modernizeextractrules",
         "command:modernizetransform",
         "command:refactorclean",
-        "command:testcoverage"
+        "command:testcoverage",
+        "command:test",
+        "skill:browsertestingwithdevtools"
       ],
       "source_names": [
         "agent-browser",
@@ -2568,15 +2648,17 @@
         "modernize-extract-rules",
         "modernize-transform",
         "refactor-clean",
-        "test-coverage"
+        "test-coverage",
+        "test",
+        "browser-testing-with-devtools"
       ],
       "verdict_counts": {
         "adopt": 4,
         "defer": 6,
-        "merge": 25,
-        "reject_after_review": 4
+        "merge": 26,
+        "reject_after_review": 5
       },
-      "why_this_is_better": "Consolidates 39 related candidate(s) such as agent-browser, ai-regression-testing, browser-qa... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
+      "why_this_is_better": "Consolidates 41 related candidate(s) such as agent-browser, ai-regression-testing, browser-qa... into one routed capability, avoiding duplicate surfaces while preserving the strongest trigger and verification ideas."
     },
     {
       "average_score": 3.83,
@@ -2793,9 +2875,10 @@
       "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
     },
     {
-      "average_score": 4.17,
+      "average_score": 3.58,
       "best_source_ids": [
-        "skill:benchmark"
+        "skill:benchmark",
+        "skill:performanceoptimization"
       ],
       "candidate_cluster_keys": [
         "performance-benchmarking"
@@ -2804,27 +2887,29 @@
       "cluster_key": "performance-benchmarking",
       "decision": "defer",
       "kinds": {
-        "skill": 1
+        "skill": 2
       },
       "priority": "P2",
-      "problem_solved": "Evaluate and route this narrower capability cluster based on the worker row reviews.",
-      "recommended_capability": "Performance Benchmarking",
+      "problem_solved": "Profile a real performance problem, isolate the bottleneck, make a bounded change, and compare representative before/after measurements.",
+      "recommended_capability": "Evidence-driven performance optimization",
       "recommended_surface": "skill",
-      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
-      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "reuse_or_merge_plan": "Keep as an on-demand performance workflow; reuse profiling and regression evidence, but derive budgets and tools from the target repository.",
+      "risks_or_open_questions": "Premature optimization, unrepresentative benchmarks, and fixed web thresholds can produce confident but irrelevant improvements.",
       "secondary_relationships": [],
       "selection_mode": "defer",
-      "source_count": 1,
+      "source_count": 2,
       "source_ids": [
-        "skill:benchmark"
+        "skill:benchmark",
+        "skill:performanceoptimization"
       ],
       "source_names": [
-        "benchmark"
+        "benchmark",
+        "performance-optimization"
       ],
       "verdict_counts": {
-        "defer": 1
+        "defer": 2
       },
-      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+      "why_this_is_better": "Combines the existing benchmark discipline with a measure, improve, and re-measure workflow while keeping stack-specific budgets optional."
     },
     {
       "average_score": 2.67,
@@ -2986,8 +3071,8 @@
     {
       "average_score": 3.21,
       "best_source_ids": [
-        "skill:contenthashcachepattern",
         "skill:articlewriting",
+        "skill:contenthashcachepattern",
         "skill:marketresearch"
       ],
       "candidate_cluster_keys": [
@@ -3264,11 +3349,11 @@
       "why_this_is_better": "The idea is useful but needs this repo's constraints, trigger discipline, or artifact ownership rules before it is safe to add."
     },
     {
-      "average_score": 3.5,
+      "average_score": 3.35,
       "best_source_ids": [
         "skill:dashboardbuilder",
-        "skill:deploymentpatterns",
-        "skill:healthcareevalharness"
+        "skill:observabilityandinstrumentation",
+        "skill:deploymentpatterns"
       ],
       "candidate_cluster_keys": [
         "deployment-readiness-patterns",
@@ -3282,36 +3367,42 @@
       "decision": "defer",
       "kinds": {
         "plugin": 2,
-        "skill": 3
+        "skill": 6
       },
-      "priority": "P3",
+      "priority": "P2",
       "problem_solved": "Handle deployment readiness, containers, infrastructure, monitoring, and operational runbooks.",
-      "recommended_capability": "Deployment, DevOps, and operations",
+      "recommended_capability": "Optional production operations pack",
       "recommended_surface": "skill/agent",
-      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
-      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "reuse_or_merge_plan": "Keep the evidence as a routed optional pack and activate it only for repositories with real deployment and production-operations needs.",
+      "risks_or_open_questions": "Provider-specific examples and operational assumptions require validation against the target repository before use.",
       "secondary_relationships": [],
       "selection_mode": "defer",
-      "source_count": 5,
+      "source_count": 8,
       "source_ids": [
         "skill:dashboardbuilder",
         "skill:deploymentpatterns",
         "skill:healthcareevalharness",
         "plugin:firebase",
-        "plugin:terraform"
+        "plugin:terraform",
+        "skill:cicdandautomation",
+        "skill:observabilityandinstrumentation",
+        "skill:shippingandlaunch"
       ],
       "source_names": [
         "dashboard-builder",
         "deployment-patterns",
         "healthcare-eval-harness",
         "firebase",
-        "terraform"
+        "terraform",
+        "ci-cd-and-automation",
+        "observability-and-instrumentation",
+        "shipping-and-launch"
       ],
       "verdict_counts": {
-        "defer": 4,
+        "defer": 7,
         "reject_after_review": 1
       },
-      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+      "why_this_is_better": "Groups CI/CD, observability, staged rollout, and launch checks as an optional production pack instead of loading them into every repository."
     },
     {
       "average_score": 3.33,
@@ -3350,7 +3441,7 @@
       "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
     },
     {
-      "average_score": 3.54,
+      "average_score": 3.49,
       "best_source_ids": [
         "skill:playground",
         "skill:clickpathaudit",
@@ -3374,7 +3465,7 @@
       "kinds": {
         "agent": 4,
         "rule": 4,
-        "skill": 4
+        "skill": 5
       },
       "priority": "P3",
       "problem_solved": "Build and verify frontend, visual, Figma, UX, HTML, and presentation artifacts.",
@@ -3384,7 +3475,7 @@
       "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
       "secondary_relationships": [],
       "selection_mode": "defer",
-      "source_count": 12,
+      "source_count": 13,
       "source_ids": [
         "skill:clickpathaudit",
         "skill:designsystem",
@@ -3397,7 +3488,8 @@
         "rule:measuringtext",
         "rule:webcodingstyle",
         "rule:webdesignquality",
-        "rule:webperformance"
+        "rule:webperformance",
+        "skill:frontenduiengineering"
       ],
       "source_names": [
         "click-path-audit",
@@ -3411,21 +3503,22 @@
         "measuring-text",
         "web/coding-style",
         "web/design-quality",
-        "web/performance"
+        "web/performance",
+        "frontend-ui-engineering"
       ],
       "verdict_counts": {
         "defer": 6,
-        "merge": 4,
+        "merge": 5,
         "reject_after_review": 2
       },
       "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
     },
     {
-      "average_score": 3.4,
+      "average_score": 3.37,
       "best_source_ids": [
         "hook:bdprimesh",
         "hook:suggestcompactjs",
-        "plugin:hookify"
+        "hook:stoppy"
       ],
       "candidate_cluster_keys": [
         "hook-agent-sdk-env-check",
@@ -3442,13 +3535,14 @@
         "hook-session-self-evaluation",
         "hook-session-start-context",
         "hook-subagent-lifecycle-tracking",
-        "hook-tmux-dev-server"
+        "hook-tmux-dev-server",
+        "session-start-skill-injection"
       ],
       "cluster_id": "C053-hook-session-lifecycle-and-memory",
       "cluster_key": "hook-session-lifecycle-and-memory",
       "decision": "defer",
       "kinds": {
-        "hook": 19,
+        "hook": 20,
         "plugin": 1
       },
       "priority": "P3",
@@ -3465,7 +3559,7 @@
         "C026-hook-security-and-command-safety"
       ],
       "selection_mode": "defer",
-      "source_count": 20,
+      "source_count": 21,
       "source_ids": [
         "plugin:hookify",
         "hook:autotmuxdevjs",
@@ -3486,7 +3580,8 @@
         "hook:stoppy",
         "hook:subagentstartjs",
         "hook:subagentstopjs",
-        "hook:suggestcompactjs"
+        "hook:suggestcompactjs",
+        "hook:sessionstartsh"
       ],
       "source_names": [
         "hookify",
@@ -3508,13 +3603,14 @@
         "stop.py",
         "subagent-start.js",
         "subagent-stop.js",
-        "suggest-compact.js"
+        "suggest-compact.js",
+        "session-start.sh"
       ],
       "verdict_counts": {
         "adopt": 1,
         "defer": 10,
         "merge": 3,
-        "reject_after_review": 3,
+        "reject_after_review": 4,
         "rewrite": 3
       },
       "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
@@ -3595,46 +3691,51 @@
       "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
     },
     {
-      "average_score": 3.22,
+      "average_score": 3.38,
       "best_source_ids": [
+        "skill:deprecationandmigration",
         "command:modernizeassess",
-        "command:modernizepreflight",
-        "command:modernizestatus"
+        "command:modernizepreflight"
       ],
       "candidate_cluster_keys": [
+        "legacy-modernization-and-migration",
         "legacy-modernization-discovery-and-assessment",
         "modernization-environment-preflight",
         "modernization-workflow-status"
       ],
       "cluster_id": "C056-legacy-modernization-and-business-rule-extraction",
       "cluster_key": "legacy-modernization-and-business-rule-extraction",
-      "decision": "defer",
+      "decision": "merge",
       "kinds": {
-        "command": 3
+        "command": 3,
+        "skill": 1
       },
-      "priority": "P3",
-      "problem_solved": "Extract legacy rules and plan modernization with tests, discovery, and equivalence checks.",
-      "recommended_capability": "Legacy modernization and business rule extraction",
-      "recommended_surface": "skill/agent",
-      "reuse_or_merge_plan": "Do not implement now; keep the source IDs as backlog evidence if the matching workflow becomes active.",
-      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "priority": "P2",
+      "problem_solved": "Plan deprecation, incremental migration, business-rule preservation, and legacy modernization with explicit compatibility and rollback evidence.",
+      "recommended_capability": "Deprecation, migration, and legacy modernization",
+      "recommended_surface": "skill",
+      "reuse_or_merge_plan": "Merge deprecation decision gates and expand-contract migration patterns into one repo-grounded modernization skill.",
+      "risks_or_open_questions": "Migration safety is domain-specific; require compatibility tests, rollback plans, and explicit approval for irreversible steps.",
       "secondary_relationships": [],
-      "selection_mode": "defer",
-      "source_count": 3,
+      "selection_mode": "merge complementary candidates",
+      "source_count": 4,
       "source_ids": [
         "command:modernizeassess",
         "command:modernizepreflight",
-        "command:modernizestatus"
+        "command:modernizestatus",
+        "skill:deprecationandmigration"
       ],
       "source_names": [
         "modernize-assess",
         "modernize-preflight",
-        "modernize-status"
+        "modernize-status",
+        "deprecation-and-migration"
       ],
       "verdict_counts": {
-        "defer": 3
+        "defer": 3,
+        "merge": 1
       },
-      "why_this_is_better": "The capability is situational or depends on external tools/domains not currently central to the reusable harness."
+      "why_this_is_better": "Combines the new general deprecation workflow with the existing legacy-analysis and equivalence-testing evidence instead of treating modernization as a rewrite."
     },
     {
       "average_score": 3.17,
@@ -3971,22 +4072,23 @@
       "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
     },
     {
-      "average_score": 2.58,
+      "average_score": 2.42,
       "best_source_ids": [
         "command:hookify",
         "hook:afterfileeditjs",
-        "hook:aftertabfileeditjs"
+        "hook:sessionstarttestsh"
       ],
       "candidate_cluster_keys": [
         "hook-authoring-and-guardrail-management",
-        "hook-generic-tool-event-adapters"
+        "hook-generic-tool-event-adapters",
+        "hook-test-fixture"
       ],
       "cluster_id": "C066-hook-authoring-policy-and-plumbing",
       "cluster_key": "hook-authoring-policy-and-plumbing",
       "decision": "reject_after_review",
       "kinds": {
         "command": 1,
-        "hook": 3
+        "hook": 5
       },
       "priority": "P3",
       "problem_solved": "Turn repeated agent failures into maintainable policy hooks and reusable hook profiles.",
@@ -4002,22 +4104,26 @@
         "C026-hook-security-and-command-safety"
       ],
       "selection_mode": "reject_after_review",
-      "source_count": 4,
+      "source_count": 6,
       "source_ids": [
         "hook:afterfileeditjs",
         "hook:aftertabfileeditjs",
         "hook:beforetabfilereadjs",
-        "command:hookify"
+        "command:hookify",
+        "hook:sessionstarttestsh",
+        "hook:simplifyignoretestsh"
       ],
       "source_names": [
         "after-file-edit.js",
         "after-tab-file-edit.js",
         "before-tab-file-read.js",
-        "hookify"
+        "hookify",
+        "session-start-test.sh",
+        "simplify-ignore-test.sh"
       ],
       "verdict_counts": {
         "merge": 1,
-        "reject_after_review": 2,
+        "reject_after_review": 4,
         "rewrite": 1
       },
       "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
@@ -4057,7 +4163,7 @@
       "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
     },
     {
-      "average_score": 2.92,
+      "average_score": 2.94,
       "best_source_ids": [
         "skill:preparephases",
         "skill:cebrainstorm",
@@ -4067,6 +4173,7 @@
         "agent-repl-orchestration",
         "deprecated-skill-command-shim",
         "hookify-help",
+        "legacy-command-shim",
         "legacy-skill-command-shim",
         "org-context-slack-research",
         "requirements-discovery",
@@ -4080,7 +4187,7 @@
       "decision": "reject_after_review",
       "kinds": {
         "agent": 1,
-        "command": 18,
+        "command": 19,
         "plugin": 1,
         "skill": 4
       },
@@ -4094,7 +4201,7 @@
         "C069-overbroad-workflow-command-shims"
       ],
       "selection_mode": "reject_after_review",
-      "source_count": 24,
+      "source_count": 25,
       "source_ids": [
         "skill:brainstorming",
         "skill:cebrainstorm",
@@ -4119,7 +4226,8 @@
         "command:tdd",
         "command:teachme",
         "command:verify",
-        "command:writeplan"
+        "command:writeplan",
+        "command:build"
       ],
       "source_names": [
         "brainstorming",
@@ -4145,13 +4253,14 @@
         "tdd",
         "teach-me",
         "verify",
-        "write-plan"
+        "write-plan",
+        "build"
       ],
       "verdict_counts": {
         "adopt": 2,
         "defer": 1,
         "merge": 2,
-        "reject_after_review": 19
+        "reject_after_review": 20
       },
       "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
     },
@@ -4403,45 +4512,55 @@
       "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
     },
     {
-      "average_score": 2.0,
+      "average_score": 3.28,
       "best_source_ids": [
+        "agent:webperformanceauditor",
+        "command:webperf",
         "plugin:cwcmakers"
       ],
       "candidate_cluster_keys": [
-        "community-showcase"
+        "community-showcase",
+        "web-performance-audit"
       ],
       "cluster_id": "C075-web-quality-performance-and-growth",
       "cluster_key": "web-quality-performance-and-growth",
-      "decision": "reject_after_review",
+      "decision": "defer",
       "kinds": {
+        "agent": 1,
+        "command": 1,
         "plugin": 1
       },
-      "priority": "P3",
-      "problem_solved": "Handle browser automation, web performance, SEO, and web-specific quality checks.",
-      "recommended_capability": "Web quality, performance, and growth",
-      "recommended_surface": "skill/agent",
-      "reuse_or_merge_plan": "Do not adopt. If the problem recurs, design a fresh capability from the current local workflow instead of copying these rows.",
-      "risks_or_open_questions": "Main risk is spending context or maintenance budget on a low-frequency or weakly specified workflow.",
+      "priority": "P2",
+      "problem_solved": "Measure and review browser-facing performance, Core Web Vitals, and web-specific quality with sourced metrics and explicit quick/deep modes.",
+      "recommended_capability": "Focused web performance and quality",
+      "recommended_surface": "agent/skill",
+      "reuse_or_merge_plan": "Keep as an optional web-project capability and reuse the quick/deep audit split, metric provenance rules, and ranked findings format.",
+      "risks_or_open_questions": "Defer until a browser-facing project needs it; quick-mode findings must remain clearly labeled as potential impact rather than measured regressions.",
       "secondary_relationships": [
         "C001-code-review-and-change-quality",
         "C009-hook-edit-and-doc-quality-gates",
         "C024-hook-git-and-pr-quality-gates"
       ],
-      "selection_mode": "reject_after_review",
-      "source_count": 1,
+      "selection_mode": "defer",
+      "source_count": 3,
       "source_ids": [
-        "plugin:cwcmakers"
+        "plugin:cwcmakers",
+        "agent:webperformanceauditor",
+        "command:webperf"
       ],
       "source_names": [
-        "cwc-makers"
+        "cwc-makers",
+        "web-performance-auditor",
+        "webperf"
       ],
       "verdict_counts": {
-        "reject_after_review": 1
+        "defer": 1,
+        "reject_after_review": 2
       },
-      "why_this_is_better": "The reviewed candidates are too vague, duplicative, obsolete, or narrow for this harness in their current form."
+      "why_this_is_better": "The new auditor provides a focused, metric-honest web-performance workflow while keeping unrelated growth and generic browser tasks out of the core path."
     }
   ],
   "schema": "codex-analysis-clusters-v1",
   "total_clusters": 75,
-  "total_source_ids": 629
+  "total_source_ids": 668
 }

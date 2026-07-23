@@ -43,3 +43,9 @@
 - Several source rows are thin enough that row-level scores depend heavily on inspected reference bodies; the merged synthesis should preserve that caveat.
 - Some rows from external harnesses assume Claude Code plugin file formats and should be adapted before Codex-native adoption.
 - Local repo already has strong lean-workflow guidance; adopting duplicate persona agents would increase routing/context cost without clear benefit.
+
+## 2026-07-15 Agent-Skills Increment
+
+- Refreshed `agent:testengineer` after reading `reference_harnesses/agent-skills/agents/test-engineer.md`.
+- Appended `agent-skills` provenance without changing historical shallow judgments or the canonical description.
+- Historical Fable evaluation predates the broader source variant; the deep evaluation now records that limitation.

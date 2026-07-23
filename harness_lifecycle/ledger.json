@@ -1,5 +1,380 @@
 {
   "schema": "harness-adoption-ledger/v1",
   "_comment": "One entry per adoption decision so the gap report stops re-nagging. status: adopted|rejected|deferred. For 'adopted', source_content_hash records the reference capability's normalized hash at decision time, so a later upstream change to it can be surfaced as 'improved since adopted'.",
-  "entries": []
+  "entries": [
+    {
+      "repo": "agent-skills",
+      "logical_id": "agent:agents/code-reviewer",
+      "status": "adopted",
+      "reason": "Covered by our code-reviewer, which checks correctness, safety, maintainability, testability, project invariants, and verification evidence with less generic checklist noise.",
+      "date": "2026-07-15",
+      "our_id": "agent:agents/code-reviewer",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "12b2e9995f48eafda0ed6a86c4910f77683e6be0"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "agent:agents/security-auditor",
+      "status": "deferred",
+      "reason": "Route to an optional production-readiness plugin after removing web-centric assumptions; the exploit-focused threat-model specialist is useful but not universal-template material.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "agent:agents/test-engineer",
+      "status": "rejected",
+      "reason": "Local TDD, testing rules, spec review, and code review divide this work more precisely; its universal per-function checklist would encourage unnecessary tests.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "agent:agents/web-performance-auditor",
+      "status": "deferred",
+      "reason": "Route to an optional web-quality plugin; its metric-honest Lighthouse, CrUX, and DevTools audit is distinct but specialized and dependency-bearing.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "command:commands/build",
+      "status": "rejected",
+      "reason": "Claude-only wrapper duplicates planning, TDD, phase execution, and bounded implementation while imposing fixed SPEC and task paths plus automatic per-task commits.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "command:commands/code-simplify",
+      "status": "rejected",
+      "reason": "Thin wrapper around code-simplification; local AK guidance already requires minimal, surgical, behavior-preserving changes without another command surface.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "command:commands/plan",
+      "status": "rejected",
+      "reason": "Thin wrapper already surpassed by local planning and planner capabilities, which include invariants, risks, file scopes, and verification.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "command:commands/review",
+      "status": "rejected",
+      "reason": "Redundant launcher for review behavior already provided by the local code-reviewer and Codex review command; it adds no independent workflow.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "command:commands/ship",
+      "status": "rejected",
+      "reason": "Hard-coded Claude persona fan-out duplicates underlying deferred launch capabilities and forces broad ceremony; a future plugin should expose one cross-runtime workflow.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "command:commands/spec",
+      "status": "rejected",
+      "reason": "Forces one SPEC shape and fixed sections; local brainstorming and planning preserve repository-specific requirements paths and right-sized ceremony.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "command:commands/test",
+      "status": "rejected",
+      "reason": "Thin duplicate of local TDD, which already covers failing regression tests, characterization-first work, minimum implementation, and fresh verification.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "command:commands/webperf",
+      "status": "rejected",
+      "reason": "Launcher-only surface tied to the deferred web-performance agent; a future optional plugin should expose one canonical cross-runtime trigger.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "hook:hooks/sdd-cache-post",
+      "status": "rejected",
+      "reason": "Persists prompt-shaped fetched content using an unstable response schema; URL-only keys, private-content persistence, and extra HEAD requests outweigh speculative savings.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "hook:hooks/sdd-cache-pre",
+      "status": "rejected",
+      "reason": "Can substitute content produced for an earlier prompt; HTTP freshness validation does not prove that cached model-processed output suits the current question.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "hook:hooks/session-start",
+      "status": "rejected",
+      "reason": "Injects a 191-line meta-skill into every session, duplicating native skill discovery while adding permanent context cost and a jq dependency.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "hook:hooks/session-start-test",
+      "status": "rejected",
+      "reason": "Test fixture for session-start, not an independently invokable production capability.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "hook:hooks/simplify-ignore",
+      "status": "rejected",
+      "reason": "Temporarily replaces working-file content and relies on Stop restoration; crashes, concurrent sessions, builds, and external editors create unacceptable data-integrity risk.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "hook:hooks/simplify-ignore-test",
+      "status": "rejected",
+      "reason": "Test harness for simplify-ignore, not a production hook capability; scanner classification should not promote fixtures.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "plugin:agent-skills",
+      "status": "rejected",
+      "reason": "Umbrella packaging for the whole catalog is not separable; selective decisions avoid importing duplicate commands, risky hooks, and unrelated domain skills.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "rule:rules/skills-contributing",
+      "status": "rejected",
+      "reason": "Repo-specific pointer to upstream CONTRIBUTING and open PRs; the durable anti-duplication principle already exists in local curation and lean-canon guidance.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/api-and-interface-design",
+      "status": "deferred",
+      "reason": "Route to an optional production-readiness plugin; preserve contract, error, and boundary checks while rewriting TypeScript and REST defaults as stack-neutral guidance.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/browser-testing-with-devtools",
+      "status": "deferred",
+      "reason": "Route to an optional web-quality plugin; the runtime and browser-trust workflow is strong but requires Chrome DevTools MCP.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/ci-cd-and-automation",
+      "status": "deferred",
+      "reason": "Route to an optional production-readiness plugin after replacing Node, GitHub Actions, and Vercel assumptions with stack-aware quality-gate and rollback guidance.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/code-review-and-quality",
+      "status": "adopted",
+      "reason": "Covered by our spec and code reviewers plus adversarial Codex review across requirements, correctness, safety, maintainability, and verification.",
+      "date": "2026-07-15",
+      "our_id": "agent:agents/code-reviewer",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "3b830e73980d4c47a53d233a94de72d41ee2aec6"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/code-simplification",
+      "status": "adopted",
+      "reason": "Covered by AK guidance on simplicity, surgical scope, convention matching, read-before-write, and verifiable behavior-preserving changes.",
+      "date": "2026-07-15",
+      "our_id": "skill:skills/ak-guide",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "967a7227962bb98eba9ddc71cf1d75a2dffb0620"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/context-engineering",
+      "status": "rejected",
+      "reason": "The root read order, project overlay, docs index, and adopt workflow already implement selective context; this long generic handbook adds no distinct repeated workflow.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/debugging-and-error-recovery",
+      "status": "adopted",
+      "reason": "Covered by our reproduce, isolate, falsify, prove, fix, and verify workflow, with fewer risky generic fallback examples.",
+      "date": "2026-07-15",
+      "our_id": "skill:skills/systematic-debugging",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "afea5d2df6e973d3c58e6464d17d15580c88efe2"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/deprecation-and-migration",
+      "status": "deferred",
+      "reason": "Route to an optional production-readiness plugin; retain deprecation gates and expand-migrate-contract after removing unsafe universal rollback assumptions.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/documentation-and-adrs",
+      "status": "deferred",
+      "reason": "Route a short ADR and decision-lifecycle workflow into the template; local discoverability indexes documents but does not capture decision context.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/doubt-driven-development",
+      "status": "adopted",
+      "reason": "Covered by independent read-only Codex critique and risk-scaled review in phase execution, without mandatory adversarial cycles for every branch.",
+      "date": "2026-07-15",
+      "our_id": "command:commands/codex-critique",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "d2ed7adb9bad3d41c7a4d0fe27da6ebb7dd171fd"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/frontend-ui-engineering",
+      "status": "deferred",
+      "reason": "Route to an optional web-quality plugin; accessibility and design-system checks are valuable, but the source is React and Tailwind oriented.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/git-workflow-and-versioning",
+      "status": "rejected",
+      "reason": "Its autonomous commit cadence, trunk and Conventional Commit defaults, and destructive recovery guidance conflict with conservative Git authorization and safety rules.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/idea-refine",
+      "status": "adopted",
+      "reason": "Covered by brainstorming, which clarifies users, success, non-goals, scope, alternatives, and persists reviewed requirements with less ceremony.",
+      "date": "2026-07-15",
+      "our_id": "skill:skills/brainstorming",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "1e970fd804c14c68345f34a736d12df1e4dffa1b"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/incremental-implementation",
+      "status": "deferred",
+      "reason": "Route only the thin vertical-slicing pattern into planning and subagent execution; reject the source workflow's mandatory per-slice commits.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/interview-me",
+      "status": "adopted",
+      "reason": "Covered by one-question clarification of problem, users, success, and non-goals before planning, without an arbitrary confidence metric.",
+      "date": "2026-07-15",
+      "our_id": "skill:skills/brainstorming",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "22a0935a1e4c8b38025d0f8eb7230f8ae8c46070"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/observability-and-instrumentation",
+      "status": "deferred",
+      "reason": "Route to an optional production-readiness plugin; structured logs, RED metrics, traces, symptom alerts, and telemetry verification are useful but deployment-specific.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/performance-optimization",
+      "status": "deferred",
+      "reason": "Route to an optional production-readiness plugin; measure-profile-fix-remeasure discipline is valuable, while the broad frontend and backend catalog is too large for the template.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/planning-and-task-breakdown",
+      "status": "adopted",
+      "reason": "Covered by local planning with approved requirements, repo research, file-scoped verifiable tasks, risks, invariants, and a tracer bullet.",
+      "date": "2026-07-15",
+      "our_id": "skill:skills/planning",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "a83971b56a6786c871955799ef089b095702ca6c"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/security-and-hardening",
+      "status": "deferred",
+      "reason": "Route framework-neutral threat modeling, auth, SSRF, supply-chain, and LLM checks to an optional production-readiness plugin; exclude stack-specific bulk.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/shipping-and-launch",
+      "status": "deferred",
+      "reason": "Route staged rollout, feature flags, monitoring, rollback triggers, and post-launch checks to an optional production-readiness plugin.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/source-driven-development",
+      "status": "adopted",
+      "reason": "Covered by docs-researcher, which detects versions, queries current authoritative sources, forbids invented APIs, cites sources, and surfaces ambiguity.",
+      "date": "2026-07-15",
+      "our_id": "agent:agents/docs-researcher",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "513cc9f97961c219435854db27e7acaa31cb2922"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/spec-driven-development",
+      "status": "adopted",
+      "reason": "Covered jointly by brainstorming requirements and the planning handoff; project overlays already hold stable commands and boundaries.",
+      "date": "2026-07-15",
+      "our_id": "skill:skills/brainstorming",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "18d1b48e3fb8fb019bcb262f256020ba6ccaa258"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/test-driven-development",
+      "status": "adopted",
+      "reason": "Covered by the local behavior-first RED-GREEN-REFACTOR loop, expected-failure confirmation, minimum passing change, and characterization tests.",
+      "date": "2026-07-15",
+      "our_id": "skill:skills/test-driven-development",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "source_content_hash": "0e94130c9a20604756350d862ed4f74036206867"
+    },
+    {
+      "repo": "agent-skills",
+      "logical_id": "skill:skills/using-agent-skills",
+      "status": "rejected",
+      "reason": "Skill discovery and routing are already native platform and AGENTS behavior; another 191-line meta-skill would duplicate instructions and increase context pressure.",
+      "date": "2026-07-15",
+      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    }
+  ]
 }

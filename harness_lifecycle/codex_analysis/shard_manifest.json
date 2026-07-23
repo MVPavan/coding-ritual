@@ -2,15 +2,15 @@
   "csv_path": "harness_lifecycle/capability_usefulness.csv",
   "excluded_rows": 239,
   "included_by_kind": {
-    "agent": 108,
-    "command": 122,
-    "hook": 68,
+    "agent": 109,
+    "command": 129,
+    "hook": 74,
     "mcp": 9,
-    "plugin": 42,
-    "rule": 42,
-    "skill": 238
+    "plugin": 43,
+    "rule": 43,
+    "skill": 261
   },
-  "included_rows": 629,
+  "included_rows": 668,
   "shards": [
     {
       "first_source_id": "skill:adopt",
@@ -180,7 +180,53 @@
       "row_output": "shards/command-2.row_evaluations.jsonl",
       "rows": 61,
       "shard_id": "command-2"
+    },
+    {
+      "first_source_id": "skill:apiandinterfacedesign",
+      "input": "shards/agent-skills-skills.input.jsonl",
+      "kinds": [
+        [
+          "skill",
+          23
+        ]
+      ],
+      "last_source_id": "skill:usingagentskills",
+      "notes_output": "shards/agent-skills-skills.notes.md",
+      "row_output": "shards/agent-skills-skills.row_evaluations.jsonl",
+      "rows": 23,
+      "shard_id": "agent-skills-skills"
+    },
+    {
+      "first_source_id": "agent:webperformanceauditor",
+      "input": "shards/agent-skills-other.input.jsonl",
+      "kinds": [
+        [
+          "agent",
+          1
+        ],
+        [
+          "command",
+          7
+        ],
+        [
+          "hook",
+          6
+        ],
+        [
+          "plugin",
+          1
+        ],
+        [
+          "rule",
+          1
+        ]
+      ],
+      "last_source_id": "rule:skillscontributing",
+      "notes_output": "shards/agent-skills-other.notes.md",
+      "row_output": "shards/agent-skills-other.row_evaluations.jsonl",
+      "rows": 16,
+      "shard_id": "agent-skills-other"
     }
   ],
-  "total_rows": 868
+  "total_rows": 907
 }

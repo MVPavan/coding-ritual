@@ -31,10 +31,13 @@ Supporting inputs, when needed to understand an item beyond the CSV description:
 - `harness_lifecycle/catalogs/*.json`
 - `harness_lifecycle/aliases.json`
 - `harness_lifecycle/ledger.json`
-- Existing local harness capabilities under `.codex/`, `.claude/`, and `my_harness/`
+- Existing local harness capabilities under `.codex/`, `.claude/`, and `mvp-harness/`
 - Reference harness submodules under `reference_harnesses/` only as read-only sources
 
-Do not modify the source CSV during this analysis.
+The original analysis treated the source CSV as read-only. An explicitly
+approved incremental reconciliation may update it before deep analysis, but
+must preserve historical rows and model judgments, document the merge rules,
+and verify the final row mapping deterministically.
 
 ## Inclusion Rules
 
@@ -44,6 +47,23 @@ For every CSV row:
 - Still preserve excluded rows in an exclusion artifact so they are auditable.
 - If either `fable_useful == yes` or `gpt_useful == yes`, evaluate it thoroughly.
 - Never discard an included row during clustering or synthesis. Merged outputs must retain source row IDs.
+
+For the 2026-07-15 Codex-only `agent-skills` reconciliation:
+
+- New-only rows use `fable_useful=not_evaluated`, an explicit
+  `fable_reason`, an empty `fable_tag`, `consensus=codex_only`, and
+  `agree=n/a`.
+- Codex supplies their `gpt_*` screening fields. These are single-model
+  judgments, not a synthetic Fable/GPT consensus.
+- Include every new `agent-skills` row in deep analysis even when
+  `gpt_useful == no`; the user requested a complete Codex review of that
+  reference harness.
+- Five normalized-name matches enrich existing canonical rows. Preserve their
+  historical shallow Fable/GPT fields, append `agent-skills` provenance, and
+  refresh their deep evaluations with evidence notes stating that the Fable
+  judgment predates the newly added variant.
+- Keep the historical 239 both-rejected rows byte-identical in
+  `excluded_both_rejected.jsonl`.
 
 Priority within each capability kind:
 
@@ -86,12 +106,13 @@ Preflight:
 4. Compute included counts by kind.
 5. Update `session-board.md` with the final shard plan before launching workers.
 
-Current CSV sizing guidance:
+Current reconciled CSV sizing:
 
-- Total rows: 868.
-- Included rows: 629.
+- Total rows: 907.
+- Included rows: 668.
 - Excluded rows: 239.
-- Included by kind: `skill` 238, `command` 122, `agent` 108, `hook` 68, `plugin` 42, `rule` 42, `mcp` 9.
+- Included by kind: `skill` 261, `command` 129, `agent` 109, `hook` 74,
+  `plugin` 43, `rule` 43, `mcp` 9.
 
 Recommended initial worker split, unless the CSV changes materially before execution:
 
@@ -101,6 +122,11 @@ Recommended initial worker split, unless the CSV changes materially before execu
 - `hook-1`: all included hook rows.
 - `plugin-mcp-1`: included plugin and MCP rows.
 - `rule-1`: all included rule rows.
+
+For the incremental `agent-skills` run, retain the historical shard ownership
+for the five enriched source IDs and add bounded incremental shards for the 39
+new IDs. The current shard set must still own every included canonical source
+ID exactly once.
 
 Dynamic sharding rule: target about 50-70 included rows per row-evaluation worker. Split any kind above roughly 90 rows. Group small related kinds only when the combined shard stays reviewable and does not blur the expected output. If unexpected kinds appear, make a separate small shard for them and call that out in `run-notes.md`.
 
