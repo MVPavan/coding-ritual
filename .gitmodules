@@ -16,6 +16,9 @@
 [submodule "reference_harnesses/claude-plugins-official"]
 	path = reference_harnesses/claude-plugins-official
 	url = https://github.com/anthropics/claude-plugins-official.git
+[submodule "reference_harnesses/agent-skills"]
+	path = reference_harnesses/agent-skills
+	url = https://github.com/addyosmani/agent-skills.git
 [submodule "mvp-harness"]
 	path = mvp-harness
 	url = https://github.com/MVPavan/mvp-harness.git

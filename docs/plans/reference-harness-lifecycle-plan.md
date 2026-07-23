@@ -1,6 +1,6 @@
 # Reference-Harness Lifecycle — Plan & Research Brief
 
-**Status:** research launched 2026-07-03. No code until the synthesis is reviewed and approved.
+**Status:** implemented and verified 2026-07-03 (P0-P4); live sweep and capability reviews completed through 2026-07-10. Seventh reference harness added 2026-07-15.
 **Owner:** coding-ritual harness.
 
 ## Purpose
@@ -31,7 +31,7 @@ before any implementation.
 
 ## Current state (fresh start — prior tooling is out of scope)
 
-- **6 reference-harness submodules** (pinned SHAs), capability counts ranging from
+- **7 reference-harness submodules** (pinned SHAs), capability counts ranging from
   ~14 skills (superpowers) to **457 skills** (everything-claude-code). Scale matters.
 - **`mvp-harness`** submodule = marketplace; plugins: `mvp-plugin`, `code-intel`, `codex-adapter`.
 - **`mvp-plugin`**: install once per machine → `/adopt` copies the `template/`

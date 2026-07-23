@@ -41,3 +41,9 @@
 - `bd prime` could not run because `bd` is not installed in this environment.
 - Pre-existing unowned changes were present before writing this shard, including `session-goal.md` and untracked coordinator artifacts; these were not touched.
 - Some input descriptions are visibly truncated in the shard source; evaluations use the available CSV text and avoid inventing missing details.
+
+## 2026-07-15 Agent-Skills Increment
+
+- Refreshed `agent:codereviewer` and `agent:securityauditor` after reading their current `agent-skills` variants.
+- Appended `agent-skills` provenance without changing historical shallow judgments or descriptions.
+- Historical Fable evaluations predate this source expansion; the replacement deep evaluations state that limitation explicitly.

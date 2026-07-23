@@ -1,0 +1,1556 @@
+{
+  "schema": "codex-focused-capability-clusters/v1",
+  "requested_harnesses": [
+    "agent-skills",
+    "mattpocock_skills",
+    "superpowers"
+  ],
+  "total_clusters": 30,
+  "total_source_ids": 94,
+  "clusters": [
+    {
+      "cluster_id": "C001-code-review-and-change-quality",
+      "source_ids": [
+        "skill:receivingcodereview",
+        "skill:requestingcodereview",
+        "skill:review",
+        "agent:codereviewer",
+        "command:review",
+        "skill:codereviewandquality"
+      ],
+      "source_names": [
+        "receiving-code-review",
+        "requesting-code-review",
+        "review",
+        "code-reviewer",
+        "review",
+        "code-review-and-quality"
+      ],
+      "source_harnesses": {
+        "skill:receivingcodereview": [
+          "superpowers"
+        ],
+        "skill:requestingcodereview": [
+          "superpowers"
+        ],
+        "skill:review": [
+          "mattpocock_skills"
+        ],
+        "agent:codereviewer": [
+          "agent-skills",
+          "superpowers"
+        ],
+        "command:review": [
+          "agent-skills"
+        ],
+        "skill:codereviewandquality": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 6,
+      "kinds": {
+        "agent": 1,
+        "command": 1,
+        "skill": 4
+      },
+      "verdict_counts": {
+        "adopt": 1,
+        "merge": 4,
+        "reject_after_review": 1
+      },
+      "candidate_cluster_keys": [
+        "code-review-core",
+        "review-feedback-discipline",
+        "structured-code-review"
+      ],
+      "average_score": 4.0,
+      "best_source_ids": [
+        "skill:receivingcodereview",
+        "agent:codereviewer",
+        "command:review"
+      ],
+      "recommended_capability": "Spec-aware code review and feedback discipline",
+      "recommended_surface": "agent",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Review changes against project intent and engineering quality while evaluating incoming feedback critically before acting on it.",
+      "why_this_is_better": "The selected rows support one project-aware reviewer augmented with standards/spec checks, severity labeling, verification evidence, and disciplined feedback handling; duplicate launcher commands and broad review skills add routing noise.",
+      "reuse_or_merge_plan": "Keep the existing code-review agent as the canonical surface and merge the standards-versus-spec check, review-request gate, feedback verification, and useful five-axis lenses into its risk-scaled workflow.",
+      "risks_or_open_questions": "A universal five-axis checklist can create review theater, and mandatory pre-merge review can be excessive for small changes; trigger depth must remain proportional to scope and risk.",
+      "selection_mode": "merge complementary candidates"
+    },
+    {
+      "cluster_id": "C002-debugging-and-bug-reproduction",
+      "source_ids": [
+        "skill:diagnosingbugs",
+        "skill:qa",
+        "skill:systematicdebugging",
+        "skill:debugginganderrorrecovery"
+      ],
+      "source_names": [
+        "diagnosing-bugs",
+        "qa",
+        "systematic-debugging",
+        "debugging-and-error-recovery"
+      ],
+      "source_harnesses": {
+        "skill:diagnosingbugs": [
+          "mattpocock_skills"
+        ],
+        "skill:qa": [
+          "mattpocock_skills"
+        ],
+        "skill:systematicdebugging": [
+          "superpowers"
+        ],
+        "skill:debugginganderrorrecovery": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 4,
+      "kinds": {
+        "skill": 4
+      },
+      "verdict_counts": {
+        "adopt": 1,
+        "merge": 3
+      },
+      "candidate_cluster_keys": [
+        "conversational-bug-report-capture",
+        "systematic-bug-reproduction",
+        "systematic-debugging"
+      ],
+      "average_score": 4.17,
+      "best_source_ids": [
+        "skill:systematicdebugging",
+        "skill:diagnosingbugs",
+        "skill:debugginganderrorrecovery"
+      ],
+      "recommended_capability": "Systematic root-cause debugging",
+      "recommended_surface": "skill",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Reproduce failures, preserve evidence, isolate root causes, implement bounded fixes, and add regression protection before declaring resolution.",
+      "why_this_is_better": "Systematic-debugging is already the strongest concise candidate; the other selected rows reinforce diagnosis and regression protection but substantially overlap it, while deprecated conversational QA belongs in issue tracking rather than the debugging core.",
+      "reuse_or_merge_plan": "Retain systematic-debugging as canonical and merge only useful reproduce-localize-reduce-guard details from the adjacent skills; route conversational bug capture to Beads or GitHub workflows.",
+      "risks_or_open_questions": "Generic fallback examples can conceal missing configuration, and combining bug capture with diagnosis can blur whether the task is triage or root-cause analysis.",
+      "selection_mode": "keep canonical candidate and merge refinements"
+    },
+    {
+      "cluster_id": "C010-phased-implementation-with-validation",
+      "source_ids": [
+        "skill:incrementalimplementation"
+      ],
+      "source_names": [
+        "incremental-implementation"
+      ],
+      "source_harnesses": {
+        "skill:incrementalimplementation": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 1
+      },
+      "candidate_cluster_keys": [
+        "phased-implementation-with-validation"
+      ],
+      "average_score": 3.83,
+      "best_source_ids": [
+        "skill:incrementalimplementation"
+      ],
+      "recommended_capability": "Thin-slice incremental implementation",
+      "recommended_surface": "skill",
+      "decision": "merge",
+      "priority": "P1",
+      "problem_solved": "Deliver large changes through vertical or risk-first increments that remain testable, reviewable, and reversible after each step.",
+      "why_this_is_better": "The selected evaluation identifies vertical slicing and per-increment verification as the durable gain, while existing phase and subagent execution already own the broader workflow.",
+      "reuse_or_merge_plan": "Merge slice selection, explicit per-slice scope, and test/verify checkpoints into planning and phased execution; preserve repository-specific commit and rollout authority.",
+      "risks_or_open_questions": "Unconditional commits and generic feature-flag rules exceed user authority or may not fit the repository; slice size must follow actual dependency and risk boundaries.",
+      "selection_mode": "merge one focused pattern into existing execution"
+    },
+    {
+      "cluster_id": "C011-prototyping-throwaway-validation",
+      "source_ids": [
+        "skill:prototype"
+      ],
+      "source_names": [
+        "prototype"
+      ],
+      "source_harnesses": {
+        "skill:prototype": [
+          "mattpocock_skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 1
+      },
+      "candidate_cluster_keys": [
+        "prototyping/throwaway-validation"
+      ],
+      "average_score": 4.0,
+      "best_source_ids": [
+        "skill:prototype"
+      ],
+      "recommended_capability": "Throwaway prototype validation mode",
+      "recommended_surface": "existing brainstorming and planning skills",
+      "decision": "merge",
+      "priority": "P3",
+      "problem_solved": "Test uncertain business logic, command flows, or interface alternatives cheaply before committing to production architecture.",
+      "why_this_is_better": "The selected evaluation supports a useful uncertainty-reduction mode but explicitly routes it through existing brainstorming and planning rather than justifying another standalone skill.",
+      "reuse_or_merge_plan": "Merge an opt-in prototype mode into brainstorming and planning, with a stated hypothesis, timebox, disposal plan, and prohibition on silently promoting prototype code to production.",
+      "risks_or_open_questions": "Prototype code can become accidental production code, UI-oriented examples may not generalize, and a prototype is wasteful when a cheaper experiment or existing evidence answers the question.",
+      "selection_mode": "merge single candidate as a routed mode"
+    },
+    {
+      "cluster_id": "C013-codex-cited-research",
+      "source_ids": [
+        "skill:sourcedrivendevelopment"
+      ],
+      "source_names": [
+        "source-driven-development"
+      ],
+      "source_harnesses": {
+        "skill:sourcedrivendevelopment": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 1
+      },
+      "candidate_cluster_keys": [
+        "official-documentation-lookup"
+      ],
+      "average_score": 4.0,
+      "best_source_ids": [
+        "skill:sourcedrivendevelopment"
+      ],
+      "recommended_capability": "Version-aware official-documentation lookup",
+      "recommended_surface": "skill",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Verify framework- and library-specific implementation choices against authoritative documentation for the versions actually used by the repository.",
+      "why_this_is_better": "The selected row supports dependency detection and narrow official-source verification, but its requirement to cite every framework pattern is broader than the risk and duplicates existing research routes.",
+      "reuse_or_merge_plan": "Merge version detection, authoritative source selection, deprecation checks, and explicit uncertainty into the existing documentation-research route; require visible citations for consequential or disputed choices.",
+      "risks_or_open_questions": "Official documentation can still be ambiguous or version-mismatched, and universal citation requirements add friction without proving that the resulting implementation works.",
+      "selection_mode": "merge focused safeguards into existing research"
+    },
+    {
+      "cluster_id": "C016-architecture-codebase-and-domain-modeling",
+      "source_ids": [
+        "skill:codebasedesign",
+        "skill:designaninterface",
+        "skill:domainmodeling",
+        "skill:grillme",
+        "skill:improvecodebasearchitecture",
+        "skill:ubiquitouslanguage",
+        "skill:apiandinterfacedesign"
+      ],
+      "source_names": [
+        "codebase-design",
+        "design-an-interface",
+        "domain-modeling",
+        "grill-me",
+        "improve-codebase-architecture",
+        "ubiquitous-language",
+        "api-and-interface-design"
+      ],
+      "source_harnesses": {
+        "skill:codebasedesign": [
+          "mattpocock_skills"
+        ],
+        "skill:designaninterface": [
+          "mattpocock_skills"
+        ],
+        "skill:domainmodeling": [
+          "mattpocock_skills"
+        ],
+        "skill:grillme": [
+          "mattpocock_skills"
+        ],
+        "skill:improvecodebasearchitecture": [
+          "mattpocock_skills"
+        ],
+        "skill:ubiquitouslanguage": [
+          "mattpocock_skills"
+        ],
+        "skill:apiandinterfacedesign": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 7,
+      "kinds": {
+        "skill": 7
+      },
+      "verdict_counts": {
+        "adopt": 1,
+        "defer": 1,
+        "merge": 5
+      },
+      "candidate_cluster_keys": [
+        "adversarial-design-review",
+        "api-design-guidance",
+        "architecture-improvement-review",
+        "architecture/interface-design-exploration",
+        "domain-language-glossary",
+        "module-and-domain-design"
+      ],
+      "average_score": 3.79,
+      "best_source_ids": [
+        "skill:grillme",
+        "skill:codebasedesign",
+        "skill:domainmodeling"
+      ],
+      "recommended_capability": "Architecture, domain, and interface design review",
+      "recommended_surface": "skill",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Clarify domain vocabulary, module boundaries, public contracts, and competing architecture choices before consequential implementation.",
+      "why_this_is_better": "The selected rows provide complementary lenses—deep modules, domain terminology, contract-first interfaces, alternative designs, architecture scanning, and adversarial review—but most overlap planning, grill-me, and architecture research.",
+      "reuse_or_merge_plan": "Keep grill-me and existing planning/research routes, then merge contract validation, domain-language clarification, and bounded alternative-design prompts as selectable architecture-review lenses rather than new standalone skills.",
+      "risks_or_open_questions": "Deprecated candidates, vague design vocabulary, TypeScript/REST defaults, and mandatory parallel exploration can add ceremony; select lenses only when the decision materially affects boundaries or compatibility.",
+      "selection_mode": "merge complementary design lenses"
+    },
+    {
+      "cluster_id": "C017-beads-workstreams-and-task-tracking",
+      "source_ids": [
+        "skill:toissues",
+        "skill:triage"
+      ],
+      "source_names": [
+        "to-issues",
+        "triage"
+      ],
+      "source_harnesses": {
+        "skill:toissues": [
+          "mattpocock_skills"
+        ],
+        "skill:triage": [
+          "mattpocock_skills"
+        ]
+      },
+      "source_count": 2,
+      "kinds": {
+        "skill": 2
+      },
+      "verdict_counts": {
+        "merge": 2
+      },
+      "candidate_cluster_keys": [
+        "issue-decomposition-triage"
+      ],
+      "average_score": 4.08,
+      "best_source_ids": [
+        "skill:toissues",
+        "skill:triage"
+      ],
+      "recommended_capability": "Beads issue decomposition and triage",
+      "recommended_surface": "skill",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Convert approved plans into independently executable issue slices and turn incoming issues or pull requests into verified, agent-ready work briefs.",
+      "why_this_is_better": "The two selected rows form one coherent tracker workflow—vertical decomposition followed by evidence-based triage—but both overlap existing Beads, planning, prepare-phases, GitHub, and grill-me capabilities.",
+      "reuse_or_merge_plan": "Merge tracer-bullet issue creation and concise triage states into the Beads workflow, routing external pull-request operations through the existing GitHub path and using grill-me only for unresolved design choices.",
+      "risks_or_open_questions": "A parallel state machine can diverge from Beads status, over-decomposition increases tracking cost, and generated briefs must preserve source requirements rather than inventing scope.",
+      "selection_mode": "merge adjacent tracker patterns"
+    },
+    {
+      "cluster_id": "C018-code-intelligence-context-and-cost-controls",
+      "source_ids": [
+        "hook:sddcachepostsh",
+        "hook:sddcachepresh",
+        "skill:contextengineering"
+      ],
+      "source_names": [
+        "sdd-cache-post.sh",
+        "sdd-cache-pre.sh",
+        "context-engineering"
+      ],
+      "source_harnesses": {
+        "hook:sddcachepostsh": [
+          "agent-skills"
+        ],
+        "hook:sddcachepresh": [
+          "agent-skills"
+        ],
+        "skill:contextengineering": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 3,
+      "kinds": {
+        "hook": 2,
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 1,
+        "reject_after_review": 2
+      },
+      "candidate_cluster_keys": [
+        "context-budget-audit",
+        "webfetch-cache-and-context-cost"
+      ],
+      "average_score": 2.61,
+      "best_source_ids": [
+        "skill:contextengineering",
+        "hook:sddcachepostsh",
+        "hook:sddcachepresh"
+      ],
+      "recommended_capability": "Selective task-context loading and conflict handling",
+      "recommended_surface": "skill",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Load the smallest trustworthy context needed for a task and surface missing or conflicting information before work proceeds.",
+      "why_this_is_better": "The context-engineering row contributes useful context hierarchy and conflict handling, while both WebFetch cache hooks are weak, privacy-sensitive, prompt-insensitive mechanisms that should not be part of the capability.",
+      "reuse_or_merge_plan": "Merge selective-loading and explicit-conflict practices into the existing project read order and context routes; reject both URL-keyed WebFetch cache hooks rather than adapting them.",
+      "risks_or_open_questions": "Overly aggressive context reduction can omit decisive evidence, while persistent prompt-shaped fetch results risk stale answers and private-data retention; context sufficiency remains a judgment call.",
+      "selection_mode": "merge safe pattern and reject risky hooks"
+    },
+    {
+      "cluster_id": "C020-documentation-research-and-reporting",
+      "source_ids": [
+        "skill:documentationandadrs"
+      ],
+      "source_names": [
+        "documentation-and-adrs"
+      ],
+      "source_harnesses": {
+        "skill:documentationandadrs": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 1
+      },
+      "candidate_cluster_keys": [
+        "decision-records-and-project-memory"
+      ],
+      "average_score": 4.0,
+      "best_source_ids": [
+        "skill:documentationandadrs"
+      ],
+      "recommended_capability": "Repository-routed architectural decision records",
+      "recommended_surface": "skill",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Preserve architectural rationale, rejected alternatives, public-interface expectations, and lifecycle status for future engineers and agents.",
+      "why_this_is_better": "The selected row's ADR template and lifecycle add durable decision context, but decision memory already overlaps design evolution, learnings, and Beads and must respect repository-specific document locations.",
+      "reuse_or_merge_plan": "Merge a concise ADR trigger, rationale/alternatives template, and supersession lifecycle into existing documentation and design-memory workflows; route storage through each repository's docs index.",
+      "risks_or_open_questions": "Unnecessary ADRs create documentation debt, duplicate memory systems drift, and records become misleading unless superseded decisions are updated and discoverable.",
+      "selection_mode": "merge single candidate into existing documentation memory"
+    },
+    {
+      "cluster_id": "C022-git-github-and-release-workflows",
+      "source_ids": [
+        "skill:finishingadevelopmentbranch",
+        "skill:gitguardrailsclaudecode",
+        "skill:resolvingmergeconflicts",
+        "skill:gitworkflowandversioning"
+      ],
+      "source_names": [
+        "finishing-a-development-branch",
+        "git-guardrails-claude-code",
+        "resolving-merge-conflicts",
+        "git-workflow-and-versioning"
+      ],
+      "source_harnesses": {
+        "skill:finishingadevelopmentbranch": [
+          "superpowers"
+        ],
+        "skill:gitguardrailsclaudecode": [
+          "mattpocock_skills"
+        ],
+        "skill:resolvingmergeconflicts": [
+          "mattpocock_skills"
+        ],
+        "skill:gitworkflowandversioning": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 4,
+      "kinds": {
+        "skill": 4
+      },
+      "verdict_counts": {
+        "adopt": 1,
+        "merge": 3
+      },
+      "candidate_cluster_keys": [
+        "branch-completion-and-pr-flow",
+        "git-conflict-resolution",
+        "git-safety-guardrails",
+        "git/workflow-guidance"
+      ],
+      "average_score": 3.96,
+      "best_source_ids": [
+        "skill:gitguardrailsclaudecode",
+        "skill:resolvingmergeconflicts",
+        "skill:finishingadevelopmentbranch"
+      ],
+      "recommended_capability": "Safe Git integration and conflict resolution",
+      "recommended_surface": "skill/hook",
+      "decision": "merge",
+      "priority": "P1",
+      "problem_solved": "Complete branches, resolve merge or rebase conflicts, and prevent destructive Git operations without exceeding the user's commit, push, merge, or cleanup authority.",
+      "why_this_is_better": "The selected rows combine a distinct conflict-resolution workflow with useful branch-completion choices and mechanical guardrails, while the broad Git skill contains destructive recovery and unauthorized commit assumptions that must be excluded.",
+      "reuse_or_merge_plan": "Use the focused conflict-resolution skill as the operational core, merge branch-completion choices into the existing GitHub flow, and adapt destructive-command blocking across supported runtimes while retaining conservative approval rules.",
+      "risks_or_open_questions": "Hooks are runtime-specific, conflict resolution can silently change semantics, and no workflow may authorize reset, commit, push, merge, branch deletion, or cleanup without the governing user and repository policy.",
+      "selection_mode": "merge strongest candidate with safe complementary controls"
+    },
+    {
+      "cluster_id": "C027-multi-review-convergence-gates",
+      "source_ids": [
+        "command:ship",
+        "skill:doubtdrivendevelopment"
+      ],
+      "source_names": [
+        "ship",
+        "doubt-driven-development"
+      ],
+      "source_harnesses": {
+        "command:ship": [
+          "agent-skills"
+        ],
+        "skill:doubtdrivendevelopment": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 2,
+      "kinds": {
+        "command": 1,
+        "skill": 1
+      },
+      "verdict_counts": {
+        "rewrite": 2
+      },
+      "candidate_cluster_keys": [
+        "multi-review-convergence-gates",
+        "multi-review-launch-gate"
+      ],
+      "average_score": 3.08,
+      "best_source_ids": [
+        "command:ship",
+        "skill:doubtdrivendevelopment"
+      ],
+      "recommended_capability": "Risk-calibrated review convergence for high-stakes decisions and launches",
+      "recommended_surface": "Existing phase-execution and subagent-driven-development review gates",
+      "decision": "merge",
+      "priority": "P1",
+      "problem_solved": "Challenge consequential in-flight claims, converge independent findings, and make an evidence-backed go or no-go decision with rollback considerations.",
+      "why_this_is_better": "ship contributes independent pre-launch convergence and rollback planning; doubt-driven-development contributes a bounded claim, adversarial review, reconciliation, and stop cycle. Both are useful but overlap existing review orchestration.",
+      "reuse_or_merge_plan": "Merge a short high-risk mode into existing orchestration: extract the claim and contract, use risk-selected reviewers, reconcile findings, and require project-specific release and rollback evidence. Do not add a separate command or mandatory cycle.",
+      "risks_or_open_questions": "Mandatory fresh reviewers, repeated cross-model offers, hard-coded personas, and broad release ceremony would add cost and tool fragility. Keep the mode opt-in by risk and avoid duplicating adversarial design review.",
+      "selection_mode": "combined_patterns_from_all_selected_evaluations"
+    },
+    {
+      "cluster_id": "C028-planning-prd-and-implementation-workflows",
+      "source_ids": [
+        "skill:decisionmapping",
+        "skill:executingplans",
+        "skill:implement",
+        "skill:requestrefactorplan",
+        "skill:toprd",
+        "skill:usinggitworktrees",
+        "skill:writingplans",
+        "command:plan",
+        "command:spec",
+        "skill:planningandtaskbreakdown",
+        "skill:specdrivendevelopment"
+      ],
+      "source_names": [
+        "decision-mapping",
+        "executing-plans",
+        "implement",
+        "request-refactor-plan",
+        "to-prd",
+        "using-git-worktrees",
+        "writing-plans",
+        "plan",
+        "spec",
+        "planning-and-task-breakdown",
+        "spec-driven-development"
+      ],
+      "source_harnesses": {
+        "skill:decisionmapping": [
+          "mattpocock_skills"
+        ],
+        "skill:executingplans": [
+          "superpowers"
+        ],
+        "skill:implement": [
+          "mattpocock_skills"
+        ],
+        "skill:requestrefactorplan": [
+          "mattpocock_skills"
+        ],
+        "skill:toprd": [
+          "mattpocock_skills"
+        ],
+        "skill:usinggitworktrees": [
+          "superpowers"
+        ],
+        "skill:writingplans": [
+          "superpowers"
+        ],
+        "command:plan": [
+          "agent-skills"
+        ],
+        "command:spec": [
+          "agent-skills"
+        ],
+        "skill:planningandtaskbreakdown": [
+          "agent-skills"
+        ],
+        "skill:specdrivendevelopment": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 11,
+      "kinds": {
+        "command": 2,
+        "skill": 9
+      },
+      "verdict_counts": {
+        "merge": 9,
+        "reject_after_review": 1,
+        "rewrite": 1
+      },
+      "candidate_cluster_keys": [
+        "docs/conversation-to-prd",
+        "execution/prd-to-implementation",
+        "git-worktree-isolation",
+        "implementation-planning",
+        "implementation-planning-and-confirmation-gates",
+        "plan-execution-with-checkpoints",
+        "planning/investigation-ticket-map",
+        "planning/refactor-rfc",
+        "planning/spec-driven-development",
+        "specification-workflow"
+      ],
+      "average_score": 3.61,
+      "best_source_ids": [
+        "skill:usinggitworktrees",
+        "command:plan",
+        "skill:writingplans"
+      ],
+      "recommended_capability": "Approved-specification to dependency-aware execution planning",
+      "recommended_surface": "Existing brainstorming, planning, prepare-phases, Beads, and phase-execution surfaces",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Turn conversation or approved requirements into vertically sliced, dependency-aware tasks with acceptance criteria, verification, review checkpoints, and optional workspace isolation.",
+      "why_this_is_better": "The selected planning, specification, PRD, task-breakdown, execution, and decision-mapping rows reinforce one coherent workflow. Their useful mechanics overlap stronger local owners, while implement is underspecified and request-refactor-plan is deprecated.",
+      "reuse_or_merge_plan": "Keep local planning and Beads canonical. Merge explicit assumptions, non-goals, vertical slices, real dependency mapping, acceptance criteria, and verification checkpoints. Treat worktrees as an optional localized isolation technique, not a default planning step.",
+      "risks_or_open_questions": "Do not import fixed SPEC.md or tasks files, GitHub issue publishing, repeated approval gates, automatic tiny commits, or a duplicate execution skill. Worktree guidance must respect Codex thread behavior and existing Git safety.",
+      "selection_mode": "portfolio_synthesis_with_existing_local_owner"
+    },
+    {
+      "cluster_id": "C030-product-discovery-validation",
+      "source_ids": [
+        "skill:idearefine",
+        "skill:interviewme"
+      ],
+      "source_names": [
+        "idea-refine",
+        "interview-me"
+      ],
+      "source_harnesses": {
+        "skill:idearefine": [
+          "agent-skills"
+        ],
+        "skill:interviewme": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 2,
+      "kinds": {
+        "skill": 2
+      },
+      "verdict_counts": {
+        "merge": 2
+      },
+      "candidate_cluster_keys": [
+        "product/discovery-validation",
+        "workflow/improvement-ideation"
+      ],
+      "average_score": 3.67,
+      "best_source_ids": [
+        "skill:idearefine",
+        "skill:interviewme"
+      ],
+      "recommended_capability": "Structured product discovery with assumption testing and explicit non-goals",
+      "recommended_surface": "Existing brainstorming skill, with grill-me used only for deeper interrogation",
+      "decision": "merge",
+      "priority": "P1",
+      "problem_solved": "Convert a vague idea into grounded alternatives and a focused outcome by identifying beneficiaries, success measures, constraints, assumptions, feasibility, and non-goals.",
+      "why_this_is_better": "idea-refine supplies a strong divergent-to-convergent flow and assumption audit; interview-me adds hypothesis-backed, one-question-at-a-time outcome discovery. Both overlap the existing discovery and interrogation surfaces.",
+      "reuse_or_merge_plan": "Add concise discovery prompts to brainstorming: generate distinct directions, test the riskiest assumptions, ask only decision-changing questions, and finish with an outcome, recommendation, success measure, constraints, and non-goals.",
+      "risks_or_open_questions": "Avoid the rigid 95-percent confidence threshold, refusal of ordinary confirmations, and exhaustive interviewing when a reasonable assumption is safe. Keep boundaries clear with planning and adversarial design review.",
+      "selection_mode": "combined_patterns_from_all_selected_evaluations"
+    },
+    {
+      "cluster_id": "C031-project-memory-session-continuity-and-learning",
+      "source_ids": [
+        "skill:handoff",
+        "skill:obsidianvault",
+        "skill:teach",
+        "skill:writingshape"
+      ],
+      "source_names": [
+        "handoff",
+        "obsidian-vault",
+        "teach",
+        "writing-shape"
+      ],
+      "source_harnesses": {
+        "skill:handoff": [
+          "mattpocock_skills"
+        ],
+        "skill:obsidianvault": [
+          "mattpocock_skills"
+        ],
+        "skill:teach": [
+          "mattpocock_skills"
+        ],
+        "skill:writingshape": [
+          "mattpocock_skills"
+        ]
+      },
+      "source_count": 4,
+      "kinds": {
+        "skill": 4
+      },
+      "verdict_counts": {
+        "defer": 1,
+        "merge": 2,
+        "reject_after_review": 1
+      },
+      "candidate_cluster_keys": [
+        "agent-session-handoff",
+        "article-writing-workflows",
+        "personal-knowledge-vault-ops",
+        "teaching-and-session-explanation"
+      ],
+      "average_score": 3.38,
+      "best_source_ids": [
+        "skill:handoff",
+        "skill:writingshape",
+        "skill:obsidianvault"
+      ],
+      "recommended_capability": "Minimal session handoff checkpoint for interrupted or cross-agent work",
+      "recommended_surface": "Existing interruption, compaction, project-doc, and teach-session conventions",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Preserve the current objective, verified state, decisions, blockers, and next action so work can resume without reconstructing the session.",
+      "why_this_is_better": "handoff is the only strong continuity-specific row and fits existing resume conventions. teach is already covered by teach-session; Obsidian is dependency-specific, and writing-shape is article production rather than coding continuity.",
+      "reuse_or_merge_plan": "Merge a short handoff format into existing continuity guidance and use it only at real interruption or ownership boundaries. Keep teach-session canonical; leave personal vault management deferred and article shaping outside the harness.",
+      "risks_or_open_questions": "Routine handoff files can become stale, duplicate Beads or project docs, and add ceremony. Define one authoritative location per fact and avoid coupling continuity to Obsidian or another personal knowledge tool.",
+      "selection_mode": "strongest_selected_pattern_with_explicit_non_adoptions"
+    },
+    {
+      "cluster_id": "C032-safe-refactor-and-code-simplification",
+      "source_ids": [
+        "command:codesimplify",
+        "hook:simplifyignoresh",
+        "skill:codesimplification"
+      ],
+      "source_names": [
+        "code-simplify",
+        "simplify-ignore.sh",
+        "code-simplification"
+      ],
+      "source_harnesses": {
+        "command:codesimplify": [
+          "agent-skills"
+        ],
+        "hook:simplifyignoresh": [
+          "agent-skills"
+        ],
+        "skill:codesimplification": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 3,
+      "kinds": {
+        "command": 1,
+        "hook": 1,
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 2,
+        "reject_after_review": 1
+      },
+      "candidate_cluster_keys": [
+        "code-simplification-and-refactor",
+        "safe-code-simplification"
+      ],
+      "average_score": 3.28,
+      "best_source_ids": [
+        "command:codesimplify",
+        "skill:codesimplification",
+        "hook:simplifyignoresh"
+      ],
+      "recommended_capability": "Behavior-preserving, context-first code simplification",
+      "recommended_surface": "Existing AK guidance and code-review maintainability lens",
+      "decision": "merge",
+      "priority": "P1",
+      "problem_solved": "Reduce accidental complexity without changing behavior, weakening error handling, violating project conventions, or expanding the requested scope.",
+      "why_this_is_better": "code-simplify and code-simplification agree on caller analysis, Chesterton's Fence, bounded edits, behavior preservation, and incremental verification. simplify-ignore.sh demonstrates why source-masking hooks are too risky.",
+      "reuse_or_merge_plan": "Merge the context checklist and before-and-after behavior proof into AK and review guidance. Simplify only recently changed or explicitly scoped code, one verified step at a time; do not add a duplicate command or mutating hook.",
+      "risks_or_open_questions": "Simplification can become unsolicited churn or silently alter edge cases. Never hide source with placeholders, rely on Stop-hook restoration, optimize for line count, or proceed when callers and invariants are not understood.",
+      "selection_mode": "merge_two_positive_patterns_and_reject_unsafe_mechanism"
+    },
+    {
+      "cluster_id": "C033-security-and-privacy-review",
+      "source_ids": [
+        "agent:securityauditor",
+        "skill:securityandhardening"
+      ],
+      "source_names": [
+        "security-auditor",
+        "security-and-hardening"
+      ],
+      "source_harnesses": {
+        "agent:securityauditor": [
+          "agent-skills"
+        ],
+        "skill:securityandhardening": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 2,
+      "kinds": {
+        "agent": 1,
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 2
+      },
+      "candidate_cluster_keys": [
+        "application-security-review",
+        "security-review-and-threat-modeling"
+      ],
+      "average_score": 3.83,
+      "best_source_ids": [
+        "agent:securityauditor",
+        "skill:securityandhardening"
+      ],
+      "recommended_capability": "Threat-model-first security and privacy review",
+      "recommended_surface": "existing code-review security lens and project safety guidance",
+      "decision": "merge",
+      "priority": "P1",
+      "problem_solved": "Audit trust boundaries for exploitable authentication, authorization, injection, secrets, SSRF, supply-chain, privacy, infrastructure, integration, and LLM-specific failures with actionable evidence.",
+      "why_this_is_better": "Both selected evaluations call for merging complementary exploit-evidence and threat-model patterns into the security review problem space; neither establishes a need for another standalone specialist surface.",
+      "reuse_or_merge_plan": "Merge assets, actors, trust boundaries, abuse paths, concrete evidence, severity, SSRF, supply-chain, and LLM trust-boundary checks into the existing review and safety guidance. Add a specialist only if recurring project evidence later justifies it.",
+      "risks_or_open_questions": "Prune Node and Express assumptions, universal audit claims, and exhaustive low-signal checklists. The merged lens must remain evidence-based and must not imply that model review proves a system secure.",
+      "selection_mode": "merge complementary security review patterns"
+    },
+    {
+      "cluster_id": "C034-skill-authoring-evaluation-and-portfolio",
+      "source_ids": [
+        "skill:usingsuperpowers",
+        "skill:writinggreatskills",
+        "skill:writingskills",
+        "plugin:mattpocockskills",
+        "plugin:agentskills",
+        "rule:skillscontributing",
+        "skill:usingagentskills"
+      ],
+      "source_names": [
+        "using-superpowers",
+        "writing-great-skills",
+        "writing-skills",
+        "mattpocock-skills",
+        "agent-skills",
+        "skills-contributing",
+        "using-agent-skills"
+      ],
+      "source_harnesses": {
+        "skill:usingsuperpowers": [
+          "superpowers"
+        ],
+        "skill:writinggreatskills": [
+          "mattpocock_skills"
+        ],
+        "skill:writingskills": [
+          "superpowers"
+        ],
+        "plugin:mattpocockskills": [
+          "mattpocock_skills"
+        ],
+        "plugin:agentskills": [
+          "agent-skills"
+        ],
+        "rule:skillscontributing": [
+          "agent-skills"
+        ],
+        "skill:usingagentskills": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 7,
+      "kinds": {
+        "plugin": 2,
+        "rule": 1,
+        "skill": 4
+      },
+      "verdict_counts": {
+        "merge": 3,
+        "reject_after_review": 4
+      },
+      "candidate_cluster_keys": [
+        "full-lifecycle-capability-pack",
+        "skill-authoring",
+        "skill-authoring-anti-duplication",
+        "skill-discovery-bootstrap",
+        "typescript-skill-bundle"
+      ],
+      "average_score": 3.43,
+      "best_source_ids": [
+        "rule:skillscontributing",
+        "skill:writinggreatskills",
+        "skill:writingskills"
+      ],
+      "recommended_capability": "Skill-authoring canon with portfolio anti-duplication preflight",
+      "recommended_surface": "Existing system skill-creator plus local harness-evaluate guidance",
+      "decision": "merge",
+      "priority": "P1",
+      "problem_solved": "Create predictable, well-routed, verified skills only after proving that the existing portfolio lacks an adequate capability.",
+      "why_this_is_better": "writing-great-skills and writing-skills provide authoring and verification guidance; skills-contributing adds a high-value catalog and open-work gap check. The umbrella plugins and meta-routers are duplicative or overly rigid.",
+      "reuse_or_merge_plan": "Merge a preflight into the existing authoring path: search skills and active work, state the unmet job, choose the smallest surface, write precise triggers, and verify discovery and behavior. Continue evaluating catalog capabilities individually.",
+      "risks_or_open_questions": "Do not duplicate the system skill-creator, mandate skill invocation on every turn, import repository-specific CONTRIBUTING or open-PR mechanics, or install either broad plugin as an indivisible catalog.",
+      "selection_mode": "merge_authoring_patterns_with_negative_portfolio_evidence"
+    },
+    {
+      "cluster_id": "C035-testing-verification-and-regression",
+      "source_ids": [
+        "skill:grilling",
+        "skill:grillwithdocs",
+        "skill:tdd",
+        "skill:testdrivendevelopment",
+        "skill:verificationbeforecompletion",
+        "agent:testengineer",
+        "command:test",
+        "skill:browsertestingwithdevtools"
+      ],
+      "source_names": [
+        "grilling",
+        "grill-with-docs",
+        "tdd",
+        "test-driven-development",
+        "verification-before-completion",
+        "test-engineer",
+        "test",
+        "browser-testing-with-devtools"
+      ],
+      "source_harnesses": {
+        "skill:grilling": [
+          "mattpocock_skills"
+        ],
+        "skill:grillwithdocs": [
+          "mattpocock_skills"
+        ],
+        "skill:tdd": [
+          "mattpocock_skills"
+        ],
+        "skill:testdrivendevelopment": [
+          "agent-skills",
+          "superpowers"
+        ],
+        "skill:verificationbeforecompletion": [
+          "superpowers"
+        ],
+        "agent:testengineer": [
+          "agent-skills"
+        ],
+        "command:test": [
+          "agent-skills"
+        ],
+        "skill:browsertestingwithdevtools": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 8,
+      "kinds": {
+        "agent": 1,
+        "command": 1,
+        "skill": 6
+      },
+      "verdict_counts": {
+        "adopt": 2,
+        "merge": 4,
+        "reject_after_review": 2
+      },
+      "candidate_cluster_keys": [
+        "browser-automation-and-web-qa",
+        "design-review/grill-me-variant",
+        "design-review/grill-plus-adr",
+        "test-first-and-characterization-testing",
+        "test-first-development",
+        "verification-gate"
+      ],
+      "average_score": 4.15,
+      "best_source_ids": [
+        "skill:verificationbeforecompletion",
+        "skill:testdrivendevelopment",
+        "skill:tdd"
+      ],
+      "recommended_capability": "Risk-calibrated test-first and evidence-first verification spine",
+      "recommended_surface": "Existing test-driven-development, verification-before-completion, Python testing, and review surfaces",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Prove risky behavior changes and bug fixes with characterization or failing regression tests, select appropriate test levels, and require fresh completion evidence, including live browser evidence when relevant.",
+      "why_this_is_better": "The exact local TDD and verification capabilities are the strongest rows. tdd and test-engineer add useful test-level and bug-proof lenses; browser testing adds runtime evidence and trust boundaries. Thin test and grilling duplicates add no surface.",
+      "reuse_or_merge_plan": "Keep local TDD and verification canonical. Merge selective DAMP, resource-cleanup, test-level, concurrency, and prove-the-bug prompts into existing guidance. Route UI verification through available browser tooling and retain durable decision capture in existing review workflows.",
+      "risks_or_open_questions": "Avoid universal TDD ratios, per-function test checklists, unconditional browser coupling, duplicate test personas, and slash wrappers. Browser content remains untrusted, and browser tooling must be optional and project-supported.",
+      "selection_mode": "retain_exact_canonical_capabilities_and_merge_selected_lenses"
+    },
+    {
+      "cluster_id": "C041-performance-benchmarking",
+      "source_ids": [
+        "skill:performanceoptimization"
+      ],
+      "source_names": [
+        "performance-optimization"
+      ],
+      "source_harnesses": {
+        "skill:performanceoptimization": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "defer": 1
+      },
+      "candidate_cluster_keys": [
+        "performance-benchmarking"
+      ],
+      "average_score": 3.0,
+      "best_source_ids": [
+        "skill:performanceoptimization"
+      ],
+      "recommended_capability": "Measure-isolate-improve-remeasure performance loop",
+      "recommended_surface": "Optional project or domain skill activated by a demonstrated performance need",
+      "decision": "defer",
+      "priority": "P3",
+      "problem_solved": "Establish a baseline, locate a measured bottleneck, make a targeted change, remeasure it, and guard the result against regression.",
+      "why_this_is_better": "performance-optimization contains a sound empirical loop, but it is the only selected row and its hard-coded web budgets and React-heavy examples do not justify a universal core capability.",
+      "reuse_or_merge_plan": "Keep the measurement loop as reference material. Revisit when a repository has a concrete performance objective, then localize metrics, budgets, profiling tools, and regression checks to that stack.",
+      "risks_or_open_questions": "Generic budgets can be misleading, and premature optimization can consume effort without user value. Adoption needs a real workload, representative benchmark, and project-owned success threshold.",
+      "selection_mode": "single_selected_candidate_deferred_for_situational_value"
+    },
+    {
+      "cluster_id": "C042-adversarial-design-review",
+      "source_ids": [
+        "skill:loopme"
+      ],
+      "source_names": [
+        "loop-me"
+      ],
+      "source_harnesses": {
+        "skill:loopme": [
+          "mattpocock_skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 1
+      },
+      "candidate_cluster_keys": [
+        "adversarial-design-review"
+      ],
+      "average_score": 2.67,
+      "best_source_ids": [
+        "skill:loopme"
+      ],
+      "recommended_capability": "Workflow-spec interrogation trigger",
+      "recommended_surface": "Existing grill-me and planning skills",
+      "decision": "merge",
+      "priority": "P3",
+      "problem_solved": "Challenge workflow specifications before implementation so unresolved assumptions, dependencies, and failure modes are exposed while changes remain cheap.",
+      "why_this_is_better": "loop-me supports the useful trigger, but its selected evaluation identifies it as a narrower and less precise form of the existing grill-me and planning capabilities.",
+      "reuse_or_merge_plan": "Retain only the trigger language for workflow-spec interrogation in the existing design-review path. Do not create a separate loop skill or copy its weaker mechanics.",
+      "risks_or_open_questions": "Even a small merge may add little beyond current triggers. Keep the wording minimal and reject it entirely if it cannot improve discovery without expanding always-loaded context.",
+      "selection_mode": "single_duplicate_candidate_trigger_only_merge"
+    },
+    {
+      "cluster_id": "C043-agent-orchestration-and-autonomous-loops",
+      "source_ids": [
+        "skill:dispatchingparallelagents",
+        "skill:subagentdrivendevelopment"
+      ],
+      "source_names": [
+        "dispatching-parallel-agents",
+        "subagent-driven-development"
+      ],
+      "source_harnesses": {
+        "skill:dispatchingparallelagents": [
+          "superpowers"
+        ],
+        "skill:subagentdrivendevelopment": [
+          "superpowers"
+        ]
+      },
+      "source_count": 2,
+      "kinds": {
+        "skill": 2
+      },
+      "verdict_counts": {
+        "adopt": 1,
+        "merge": 1
+      },
+      "candidate_cluster_keys": [
+        "parallel-agent-dispatch",
+        "subagent-execution"
+      ],
+      "average_score": 4.42,
+      "best_source_ids": [
+        "skill:subagentdrivendevelopment",
+        "skill:dispatchingparallelagents"
+      ],
+      "recommended_capability": "Parallel-aware bounded subagent execution",
+      "recommended_surface": "existing subagent-driven-development skill",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Execute approved plans through bounded implementer and reviewer tasks while dispatching genuinely independent work in parallel.",
+      "why_this_is_better": "subagent-driven-development is already local and scores strongly across effectiveness, instruction quality, and structural efficiency; dispatching-parallel-agents adds a clear independence test, but its own evaluation says it needs local lifecycle and artifact-ownership rules.",
+      "reuse_or_merge_plan": "Keep the local subagent-driven-development lifecycle as the canonical surface and merge only the parallel-dispatch routing condition for two or more tasks without shared state or sequential dependencies.",
+      "risks_or_open_questions": "Parallel work can still collide through shared files or hidden dependencies, so the merged guidance must preserve explicit ownership, dependency checks, and review handoffs.",
+      "selection_mode": "merge_complementary_candidates"
+    },
+    {
+      "cluster_id": "C044-domain-and-technology-specific-packs",
+      "source_ids": [
+        "skill:editarticle",
+        "skill:scaffoldexercises",
+        "skill:writingbeats",
+        "skill:writingfragments"
+      ],
+      "source_names": [
+        "edit-article",
+        "scaffold-exercises",
+        "writing-beats",
+        "writing-fragments"
+      ],
+      "source_harnesses": {
+        "skill:editarticle": [
+          "mattpocock_skills"
+        ],
+        "skill:scaffoldexercises": [
+          "mattpocock_skills"
+        ],
+        "skill:writingbeats": [
+          "mattpocock_skills"
+        ],
+        "skill:writingfragments": [
+          "mattpocock_skills"
+        ]
+      },
+      "source_count": 4,
+      "kinds": {
+        "skill": 4
+      },
+      "verdict_counts": {
+        "merge": 1,
+        "reject_after_review": 3
+      },
+      "candidate_cluster_keys": [
+        "article-writing-workflows",
+        "course-authoring-workflows",
+        "prose-and-article-editing"
+      ],
+      "average_score": 3.33,
+      "best_source_ids": [
+        "skill:editarticle",
+        "skill:writingbeats",
+        "skill:writingfragments"
+      ],
+      "recommended_capability": "Long-form article editing",
+      "recommended_surface": "optional writing skill",
+      "decision": "defer",
+      "priority": "P3",
+      "problem_solved": "Restructure, clarify, and tighten long-form article drafts when a user explicitly needs editorial help.",
+      "why_this_is_better": "edit-article is the only selected candidate with moderate general value, while scaffold-exercises is course-specific and writing-beats and writing-fragments are low-effectiveness article-craft workflows outside routine coding work.",
+      "reuse_or_merge_plan": "Do not add a core domain pack now; if repeated article-editing demand appears, extract the restructuring and clarity checks from edit-article into a small optional skill or merge them into existing document-review guidance without bringing over the course and narrative-authoring workflows.",
+      "risks_or_open_questions": "A standalone writing surface would overlap document-review, html-artifact, brainstorming, and normal editing behavior, and there is no demonstrated recurring course- or article-authoring need in this harness.",
+      "selection_mode": "best_candidate_with_rejections"
+    },
+    {
+      "cluster_id": "C050-deployment-devops-and-operations",
+      "source_ids": [
+        "skill:cicdandautomation",
+        "skill:observabilityandinstrumentation",
+        "skill:shippingandlaunch"
+      ],
+      "source_names": [
+        "ci-cd-and-automation",
+        "observability-and-instrumentation",
+        "shipping-and-launch"
+      ],
+      "source_harnesses": {
+        "skill:cicdandautomation": [
+          "agent-skills"
+        ],
+        "skill:observabilityandinstrumentation": [
+          "agent-skills"
+        ],
+        "skill:shippingandlaunch": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 3,
+      "kinds": {
+        "skill": 3
+      },
+      "verdict_counts": {
+        "defer": 3
+      },
+      "candidate_cluster_keys": [
+        "deployment-readiness-patterns"
+      ],
+      "average_score": 3.11,
+      "best_source_ids": [
+        "skill:observabilityandinstrumentation",
+        "skill:shippingandlaunch",
+        "skill:cicdandautomation"
+      ],
+      "recommended_capability": "Deployment readiness, observability, and staged launch guidance",
+      "recommended_surface": "optional application-operations skill pack",
+      "decision": "defer",
+      "priority": "P3",
+      "problem_solved": "Prepare production changes with repository quality gates, diagnosable telemetry, incremental rollout, rollback triggers, and post-launch verification.",
+      "why_this_is_better": "observability-and-instrumentation supplies the strongest question-driven telemetry guidance, while ci-cd-and-automation and shipping-and-launch contribute quality-gate and rollout patterns; all three evaluations also identify stack-specific examples or universal mandates that make direct core adoption unsafe.",
+      "reuse_or_merge_plan": "When an application repository needs operations support, merge the lifecycle concepts into a localized pack driven by that repo's stack, risk model, and verification commands; omit fixed GitHub/Node assumptions, blanket instrumentation rules, and hard-coded rollout thresholds.",
+      "risks_or_open_questions": "The right gates, metrics, alert thresholds, feature-flag policy, rollout stages, and rollback windows are project-specific, so generic defaults could add cost or produce false confidence.",
+      "selection_mode": "synthesize_situational_pack"
+    },
+    {
+      "cluster_id": "C052-frontend-ui-design-and-visual-artifacts",
+      "source_ids": [
+        "skill:frontenduiengineering"
+      ],
+      "source_names": [
+        "frontend-ui-engineering"
+      ],
+      "source_harnesses": {
+        "skill:frontenduiengineering": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 1
+      },
+      "candidate_cluster_keys": [
+        "frontend-design-quality"
+      ],
+      "average_score": 2.83,
+      "best_source_ids": [
+        "skill:frontenduiengineering"
+      ],
+      "recommended_capability": "Accessible, responsive, state-complete frontend implementation checks",
+      "recommended_surface": "optional project-local frontend implementation skill",
+      "decision": "adapt",
+      "priority": "P2",
+      "problem_solved": "Build user interfaces that follow an established design system, cover runtime states, meet accessibility needs, and are verified in the browser.",
+      "why_this_is_better": "The selected row contributes a useful accessibility and UI-state checklist, but its general trigger masks predominantly React and Tailwind advice plus arbitrary style rules, and this focused evidence does not establish a canonical local frontend owner.",
+      "reuse_or_merge_plan": "Adapt the framework-neutral accessibility, responsive-state, design-system, and runtime-verification checks into an optional project-local skill only when a repository has recurring frontend work; otherwise keep it deferred reference evidence.",
+      "risks_or_open_questions": "The extracted checklist must not imply React or Tailwind, duplicate design-system guidance, or turn subjective style preferences into universal quality requirements.",
+      "selection_mode": "adapt single stack-biased candidate"
+    },
+    {
+      "cluster_id": "C053-hook-session-lifecycle-and-memory",
+      "source_ids": [
+        "hook:sessionstartsh"
+      ],
+      "source_names": [
+        "session-start.sh"
+      ],
+      "source_harnesses": {
+        "hook:sessionstartsh": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "hook": 1
+      },
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "candidate_cluster_keys": [
+        "session-start-skill-injection"
+      ],
+      "average_score": 2.83,
+      "best_source_ids": [
+        "hook:sessionstartsh"
+      ],
+      "recommended_capability": "Always-on session-start skill-catalog injection",
+      "recommended_surface": "no standalone surface",
+      "decision": "reject_after_review",
+      "priority": "P3",
+      "problem_solved": "Expose skill-discovery guidance at the start of every Claude session.",
+      "why_this_is_better": "session-start.sh has low effectiveness, precision, and structural efficiency, and its evaluation finds that injecting the full discovery meta-skill every session duplicates native skill routing while violating the lean context budget.",
+      "reuse_or_merge_plan": "Retain runtime-native skill discovery and reserve local SessionStart hooks for small dynamic context such as Beads or staleness information; do not port this hook.",
+      "risks_or_open_questions": "Native routing still needs periodic verification that skill triggers are discoverable, but any gap should be fixed in metadata or routing rather than with permanent catalog injection.",
+      "selection_mode": "single_candidate_rejection"
+    },
+    {
+      "cluster_id": "C056-legacy-modernization-and-business-rule-extraction",
+      "source_ids": [
+        "skill:deprecationandmigration"
+      ],
+      "source_names": [
+        "deprecation-and-migration"
+      ],
+      "source_harnesses": {
+        "skill:deprecationandmigration": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "merge": 1
+      },
+      "candidate_cluster_keys": [
+        "legacy-modernization-and-migration"
+      ],
+      "average_score": 3.83,
+      "best_source_ids": [
+        "skill:deprecationandmigration"
+      ],
+      "recommended_capability": "Measured deprecation and incremental migration lifecycle",
+      "recommended_surface": "optional project-local migration skill",
+      "decision": "adapt",
+      "priority": "P2",
+      "problem_solved": "Retire legacy APIs, systems, or features safely by identifying consumers, supplying a replacement, migrating incrementally, and delaying destructive removal.",
+      "why_this_is_better": "deprecation-and-migration is clear and effective and adds coherent consumer measurement plus expand-contract sequencing, but its cited overlaps do not prove a current local owner and it overstates the universal availability of reversible down migrations.",
+      "reuse_or_merge_plan": "Adapt the consumer inventory, replacement-first, compatibility-window, incremental migration, and removal-evidence steps into a project-local skill when recurring migration work warrants it, with rollback requirements conditioned on the specific change's reversibility.",
+      "risks_or_open_questions": "Some data transformations are irreversible, compatibility windows can prolong dual-system cost, and consumer measurement may be incomplete; the adapted workflow must require explicit mitigation rather than promise a down path.",
+      "selection_mode": "adapt single strong candidate without assumed local owner"
+    },
+    {
+      "cluster_id": "C066-hook-authoring-policy-and-plumbing",
+      "source_ids": [
+        "hook:sessionstarttestsh",
+        "hook:simplifyignoretestsh"
+      ],
+      "source_names": [
+        "session-start-test.sh",
+        "simplify-ignore-test.sh"
+      ],
+      "source_harnesses": {
+        "hook:sessionstarttestsh": [
+          "agent-skills"
+        ],
+        "hook:simplifyignoretestsh": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 2,
+      "kinds": {
+        "hook": 2
+      },
+      "verdict_counts": {
+        "reject_after_review": 2
+      },
+      "candidate_cluster_keys": [
+        "hook-test-fixture"
+      ],
+      "average_score": 2.08,
+      "best_source_ids": [
+        "hook:sessionstarttestsh",
+        "hook:simplifyignoretestsh"
+      ],
+      "recommended_capability": "Hook test fixtures as routed harness capabilities",
+      "recommended_surface": "implementation tests under their owning hooks",
+      "decision": "reject_after_review",
+      "priority": "P3",
+      "problem_solved": "Verify session-start payload handling and simplify-ignore parsing, syntax, newline, and malformed-input behavior.",
+      "why_this_is_better": "Both selected rows have effectiveness and structural-efficiency scores of one and are explicitly test scripts for parent hooks, not independent triggers or user workflows.",
+      "reuse_or_merge_plan": "Preserve such scripts only as tests beside the production hook or plugin they verify and exclude them from capability routing and adoption inventories.",
+      "risks_or_open_questions": "Automated inventory scans may continue to misclassify executable test fixtures as hooks unless classification distinguishes production entry points from supporting tests.",
+      "selection_mode": "unanimous_candidate_rejection"
+    },
+    {
+      "cluster_id": "C068-legacy-command-shims",
+      "source_ids": [
+        "skill:brainstorming",
+        "plugin:superpowers",
+        "command:brainstorm",
+        "command:executeplan",
+        "command:writeplan",
+        "command:build"
+      ],
+      "source_names": [
+        "brainstorming",
+        "superpowers",
+        "brainstorm",
+        "execute-plan",
+        "write-plan",
+        "build"
+      ],
+      "source_harnesses": {
+        "skill:brainstorming": [
+          "superpowers"
+        ],
+        "plugin:superpowers": [
+          "superpowers"
+        ],
+        "command:brainstorm": [
+          "superpowers"
+        ],
+        "command:executeplan": [
+          "superpowers"
+        ],
+        "command:writeplan": [
+          "superpowers"
+        ],
+        "command:build": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 6,
+      "kinds": {
+        "command": 4,
+        "plugin": 1,
+        "skill": 1
+      },
+      "verdict_counts": {
+        "adopt": 1,
+        "merge": 1,
+        "reject_after_review": 4
+      },
+      "candidate_cluster_keys": [
+        "deprecated-skill-command-shim",
+        "legacy-command-shim",
+        "requirements-discovery",
+        "workflow-discipline-suite"
+      ],
+      "average_score": 3.42,
+      "best_source_ids": [
+        "skill:brainstorming",
+        "plugin:superpowers",
+        "command:build"
+      ],
+      "recommended_capability": "Skill-first disciplined development workflows",
+      "recommended_surface": "existing scoped workflow skills without legacy command shims",
+      "decision": "merge",
+      "priority": "P2",
+      "problem_solved": "Route requirements discovery, planning, debugging, TDD, execution, and verification through canonical skills instead of duplicate or deprecated commands.",
+      "why_this_is_better": "brainstorming and the superpowers workflow suite are highly effective, but brainstorming already exists locally and the suite strongly overlaps local workflow skills; the three superpowers commands are explicitly deprecated, while the build command adds rigid paths and automatic commits that conflict with local authority and Beads-backed execution.",
+      "reuse_or_merge_plan": "Keep the locally scoped brainstorming, planning, TDD, debugging, verification, phase, and subagent skills as canonical; mine only missing workflow details from superpowers and do not retain brainstorm, execute-plan, write-plan, or build command wrappers.",
+      "risks_or_open_questions": "Broad mandatory triggers can create unnecessary ceremony, and importing the plugin wholesale would duplicate local skills; selective merging needs a concrete gap check for each pattern.",
+      "selection_mode": "merge_workflows_reject_shims"
+    },
+    {
+      "cluster_id": "C071-repo-specific-skill-router",
+      "source_ids": [
+        "skill:askmatt"
+      ],
+      "source_names": [
+        "ask-matt"
+      ],
+      "source_harnesses": {
+        "skill:askmatt": [
+          "mattpocock_skills"
+        ]
+      },
+      "source_count": 1,
+      "kinds": {
+        "skill": 1
+      },
+      "verdict_counts": {
+        "reject_after_review": 1
+      },
+      "candidate_cluster_keys": [
+        "repo-specific-skill-router"
+      ],
+      "average_score": 2.5,
+      "best_source_ids": [
+        "skill:askmatt"
+      ],
+      "recommended_capability": "Matt-specific skill-catalog router",
+      "recommended_surface": "no standalone surface",
+      "decision": "reject_after_review",
+      "priority": "P3",
+      "problem_solved": "Route a user to the appropriate skill or flow in Matt Pocock's repository-specific catalog.",
+      "why_this_is_better": "ask-matt has low effectiveness, instruction quality, precision, and structural efficiency, and its evaluation identifies the catalog binding as non-portable and redundant with local docs, read order, and runtime routing.",
+      "reuse_or_merge_plan": "Continue using the local docs index, AGENTS read order, and native skill metadata for routing; do not port the foreign catalog or its router.",
+      "risks_or_open_questions": "Copying the router would drift as either catalog changes and could direct users to unavailable or semantically different skills.",
+      "selection_mode": "single_candidate_rejection"
+    },
+    {
+      "cluster_id": "C075-web-quality-performance-and-growth",
+      "source_ids": [
+        "agent:webperformanceauditor",
+        "command:webperf"
+      ],
+      "source_names": [
+        "web-performance-auditor",
+        "webperf"
+      ],
+      "source_harnesses": {
+        "agent:webperformanceauditor": [
+          "agent-skills"
+        ],
+        "command:webperf": [
+          "agent-skills"
+        ]
+      },
+      "source_count": 2,
+      "kinds": {
+        "agent": 1,
+        "command": 1
+      },
+      "verdict_counts": {
+        "defer": 1,
+        "reject_after_review": 1
+      },
+      "candidate_cluster_keys": [
+        "web-performance-audit"
+      ],
+      "average_score": 3.92,
+      "best_source_ids": [
+        "agent:webperformanceauditor",
+        "command:webperf"
+      ],
+      "recommended_capability": "Evidence-aware web performance auditing",
+      "recommended_surface": "optional specialist agent with one canonical trigger",
+      "decision": "defer",
+      "priority": "P3",
+      "problem_solved": "Audit browser applications for measured or potential Core Web Vitals, loading, rendering, and network-performance problems while distinguishing field, lab, and static evidence.",
+      "why_this_is_better": "web-performance-auditor is precise, effective, and fills a gap beyond generic code review, but it is browser-specific and depends on Lighthouse, CrUX, and DevTools; webperf has no independent value and is only a lower-efficiency launcher for that agent.",
+      "reuse_or_merge_plan": "If a web application needs this depth, adapt the auditor to locally available measurement tools and expose it through one agent or skill trigger; omit the duplicate Claude-only webperf command.",
+      "risks_or_open_questions": "Tool and artifact availability varies by repository, lab findings can be mistaken for field evidence, and a specialist surface is unjustified until recurring web-performance work appears.",
+      "selection_mode": "select_agent_defer_reject_launcher"
+    }
+  ]
+}

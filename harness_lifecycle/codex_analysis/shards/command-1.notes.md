@@ -47,3 +47,9 @@
 - `bd prime` was attempted for runtime context but failed because `bd` is not installed in this shell. No Beads writes were made.
 - The project orientation docs reference `my_harness/`, but the live checkout uses `mvp-harness/`; overlap judgments used the live tree plus installed `.codex` and `.claude` assets.
 - `.codex/commands/README.md` says Codex shared workflows should be Codex skills, so external command rows were generally judged as merge/rewrite candidates unless already local or clearly optional.
+
+## 2026-07-15 Agent-Skills Increment
+
+- Refreshed `command:plan` after reading `reference_harnesses/agent-skills/.claude/commands/plan.md`.
+- Appended `agent-skills` provenance while preserving the historical shallow judgments and canonical description.
+- Historical Fable evaluation predates this source variant; the deep evaluation retains `merge` and records the stronger local overlap.

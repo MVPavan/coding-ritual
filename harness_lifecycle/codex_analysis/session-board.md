@@ -33,26 +33,34 @@ Launch control note: the coordinator attempted to launch a worker with
 therefore launched with inherited model and effort, no explicit model or effort
 downgrade, and the fast-mode requirement included in each worker prompt.
 
+Incremental reconciliation note (2026-07-15): Luna reviewed the 24-skill slice
+and Sol reviewed the 20 non-skill slice using inherited coordinator settings.
+The collaboration surface did not expose independent model, reasoning-effort,
+or service-tier overrides. Terra audited the canonical mapping and implemented
+the deterministic mapping and verification checks. The coordinator retained
+ownership of the CSV merge, cluster reconciliation, synthesis, and final
+verification. Final code review narrowed the helper to read-only verification.
+
 ## CSV Snapshot
 
 Snapshot from the current CSV:
 
 | Metric | Count |
 |---|---:|
-| Total rows | 868 |
-| Included rows | 629 |
+| Total rows | 907 |
+| Included rows | 668 |
 | Excluded rows | 239 |
 
 Included rows by kind:
 
 | Kind | Included rows |
 |---|---:|
-| skill | 238 |
-| command | 122 |
-| agent | 108 |
-| hook | 68 |
-| plugin | 42 |
-| rule | 42 |
+| skill | 261 |
+| command | 129 |
+| agent | 109 |
+| hook | 74 |
+| plugin | 43 |
+| rule | 43 |
 | mcp | 9 |
 
 The coordinator must recompute these counts at goal-run start. If they differ,
@@ -63,9 +71,9 @@ update this board before spawning subagents.
 Initial plan based on the current CSV. Status values: `planned`, `launched`,
 `complete`, `blocked`, `merged`.
 
-Preflight status: complete. The coordinator wrote
+Preflight and incremental reconciliation status: complete. The coordinator wrote
 `excluded_both_rejected.jsonl`, `shard_manifest.json`, and scoped shard input
-files under `shards/`.
+files under `shards/`. The historical exclusion artifact remained byte-identical.
 
 | Shard ID | Rows | Assignment | Status | Worker settings | Output |
 |---|---:|---|---|---|---|
@@ -80,6 +88,8 @@ files under `shards/`.
 | hook-1 | 68 | Included hook rows | complete | Worker Banach `019f37b1-cde8-7a91-a864-b1825ef2cf48`; inherited model, inherited effort, fast requested in prompt; API rejected explicit `service_tier=fast` | `shards/hook-1.row_evaluations.jsonl` |
 | command-1 | 61 | Included command rows, first shard | complete | Worker Halley `019f37b1-cf6c-73c2-a4f4-9fe5e834af56`; inherited model, inherited effort, fast requested in prompt; API rejected explicit `service_tier=fast` | `shards/command-1.row_evaluations.jsonl` |
 | command-2 | 61 | Included command rows, second shard | complete | Worker Nietzsche `019f37b2-433a-78c2-a37b-4141f2035547`; inherited model, inherited effort, fast requested in prompt; API rejected explicit `service_tier=fast` | `shards/command-2.row_evaluations.jsonl` |
+| agent-skills-skills | 23 | New skill rows; existing TDD refreshed in skill-2 | complete | Luna; inherited coordinator settings | `shards/agent-skills-skills.row_evaluations.jsonl` |
+| agent-skills-other | 16 | New non-skill rows; four existing rows refreshed in historical shards | complete | Sol; inherited coordinator settings | `shards/agent-skills-other.row_evaluations.jsonl` |
 
 ## Artifact Checklist
 
@@ -87,13 +97,13 @@ files under `shards/`.
 |---|---|---|---|
 | `session-goal.md` | coordinator | ready | Goal instructions. |
 | `session-board.md` | coordinator | ready | Update throughout the run. |
-| `excluded_both_rejected.jsonl` | coordinator | complete | 239 excluded rows preserved after preflight. |
-| `shard_manifest.json` | coordinator | complete | Exact shard counts, source ID boundaries, and input/output paths. |
-| `shards/*.input.jsonl` | coordinator | complete | Scoped CSV rows for each worker. |
-| `shards/*.row_evaluations.jsonl` | subagents | complete | 11 of 11 shard JSONL files validated. |
-| `shards/*.notes.md` | subagents | complete | 11 of 11 notes files present. |
-| `row_evaluations.jsonl` | coordinator | complete | 629 included rows merged from validated shard JSONL files. |
-| `clusters.json` | coordinator | complete | 75 primary clusters covering 629 included source IDs exactly once. |
+| `excluded_both_rejected.jsonl` | coordinator | complete | 239 historical exclusions preserved byte-identically. |
+| `shard_manifest.json` | coordinator | complete | Exact 13-shard counts, source ID boundaries, and input/output paths. |
+| `shards/*.input.jsonl` | coordinator | complete | Scoped rows; five existing records refreshed in their historical owners. |
+| `shards/*.row_evaluations.jsonl` | subagents | complete | 13 of 13 shard JSONL files validated. |
+| `shards/*.notes.md` | subagents | complete | 13 of 13 notes files present. |
+| `row_evaluations.jsonl` | coordinator | complete | 668 included rows merged from validated shard JSONL files. |
+| `clusters.json` | coordinator | complete | 75 primary clusters covering 668 included source IDs exactly once. |
 | `cluster_review.md` | coordinator | complete | Human-readable review row for every primary cluster. |
 | `final_synthesis.md` | coordinator | complete | Final recommendation table with every included source ID listed. |
 | `run-notes.md` | coordinator | complete | Execution log, assumptions, counts, and verification notes. |
@@ -104,10 +114,10 @@ Record final numbers here after verification:
 
 | Check | Expected | Actual | Status |
 |---|---:|---:|---|
-| included + excluded == total CSV rows | 868 | 868 | pass |
-| included rows == merged row evaluations | 629 | 629 | pass |
-| included rows == unique shard source IDs | 629 | 629 | pass |
-| included rows == unique primary cluster source IDs | 629 | 629 | pass |
+| included + excluded == total CSV rows | 907 | 907 | pass |
+| included rows == merged row evaluations | 668 | 668 | pass |
+| included rows == unique shard source IDs | 668 | 668 | pass |
+| included rows == unique primary cluster source IDs | 668 | 668 | pass |
 | excluded rows absent from row evaluations | 239 | 239 | pass |
 
 ## Open Risks
@@ -116,9 +126,11 @@ Record final numbers here after verification:
   subagent API. The coordinator recorded the rejection and included the
   fast-mode requirement in each worker prompt while preserving inherited model
   and effort.
-- Cluster quality remains a judgment artifact. The coordinator normalized 458
-  raw worker candidate keys into 75 primary clusters and preserved every source
-  ID for audit.
-- Several workers noted that some repo docs reference `my_harness/` while the
-  live tree uses `mvp-harness/`. Overlap judgments should be reviewed before
-  implementation work is started from this analysis.
+- Cluster quality remains a judgment artifact. The coordinator reconciled the
+  new candidate keys into 75 primary clusters and preserved every source ID for
+  audit; no new primary cluster was necessary.
+- New rows have Codex-only screening sentinels. Historical Fable judgments were
+  preserved and must not be read as evaluations of the new source variants.
+- Shard JSONL inputs and outputs remain intentionally gitignored local audit
+  intermediates; merged canonical records and shard notes are the durable
+  repository artifacts.
