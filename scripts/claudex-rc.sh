@@ -21,7 +21,7 @@
 #   claudex-rc.sh pair <name|codex>         Claude: print the connect URL; Codex: print the machine-name hint
 #   claudex-rc.sh restart <name|codex|all>  Restart one session (or all, incl. Codex)
 #   claudex-rc.sh reset <name|path|all>     Force a FRESH env: clear the cached bridge-pointer + restart (un-burn)
-#   claudex-rc.sh heal                      Watchdog: reset only sessions stuck/burned >15 min (run by the timer)
+#   claudex-rc.sh heal                      Watchdog: restart sessions wedged >15 min (restart-only, never clears env; run by the timer)
 #   claudex-rc.sh help                      This help
 #
 # Re-running `setup` never restarts already-running sessions; it only adds
@@ -48,6 +48,7 @@ PROJECTS_DIR="${HOME}/.claude/projects"             # per-project state incl. br
 HEAL_SERVICE="claudex-rc-heal"                       # watchdog: timer + oneshot service
 HEAL_INTERVAL="15min"                                # watchdog cadence
 HEAL_THRESHOLD_SECS="${HEAL_THRESHOLD_SECS:-900}"    # heal only sessions unhealthy this long (rides out ~10-min outages); env-overridable for tests
+HEAL_TROUBLE_MIN="${HEAL_TROUBLE_MIN:-3}"            # sustained Poll-failure lines required to call a session wedged; env-overridable for tests
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"  # absolute path (baked into the heal timer)
 
 # Default Claude projects used by `setup` (edit to taste). Codex is single-instance.
@@ -481,13 +482,16 @@ cmd_reset() {
 #     transient spinner is "Connecting"/"Reconnecting" — distinct words, and the
 #     lowercase c in "Reconnecting"/"Reconnected" never matches capitalized
 #     "Connected" anyway.)
-#   • no "Connected" but a burn signature present -> stuck/burned: clear the
-#     stale env pointer + restart so a fresh env is minted.
+#   • no "Connected" but >= HEAL_TROUBLE_MIN sustained Poll failures -> wedged:
+#     plain restart (CLI >= 2.1.200 re-attaches the preserved env + sessions;
+#     verified 2026-07-18). NEVER clears the env pointer — that orphans the
+#     web-UI session list; the destructive un-burn stays manual (`reset`).
+#     Benign idle blips (Reconnecting/Connecting/disconnected 0s) don't count.
 #   • no signal at all (session too quiet to judge) -> leave it alone.
 # A freshly (re)started session (up < threshold) has no full window yet -> skip.
 cmd_heal() {
   require_systemd
-  local now win envf inst dir buf conn trouble start_ts start_secs up
+  local now win envf inst buf conn trouble start_ts start_secs up
   now="$(date +%s)"
   win="@$(( now - HEAL_THRESHOLD_SECS ))"
   shopt -s nullglob
@@ -502,11 +506,9 @@ cmd_heal() {
            | tr -d '\000' | sed -E 's/\x1b\[[0-9;?]*[A-Za-z]//g' || true)"
     conn="$(printf '%s' "$buf" | grep -acE 'Connected|Ready' || true)"
     [ "${conn:-0}" -gt 0 ] && continue                         # connected/ready within window -> healthy
-    trouble="$(printf '%s' "$buf" | grep -acE 'Poll failed|timeout of|Reconnecting|Connecting|disconnected' || true)"
-    [ "${trouble:-0}" -eq 0 ] && continue                      # no signal at all -> leave alone
-    dir="$(grep -m1 '^PROJECT_DIR=' "$envf" | cut -d= -f2- || true)"
-    log "heal: ${inst}${RC_SUFFIX} burned (no 'Connected' in last ${HEAL_INTERVAL}, ${trouble} trouble hits) -> clear env + restart"
-    [ -n "$dir" ] && clear_bridge_pointer "$dir" || true
+    trouble="$(printf '%s' "$buf" | grep -acE 'Poll failed|timeout of [0-9]+ms exceeded' || true)"
+    [ "${trouble:-0}" -lt "$HEAL_TROUBLE_MIN" ] && continue    # quiet or benign blips -> leave alone
+    log "heal: ${inst}${RC_SUFFIX} wedged (no 'Connected' in last ${HEAL_INTERVAL}, ${trouble} Poll-failure hits) -> restart (env kept; run '$0 reset ${inst}' if it stays stuck)"
     uc restart "claude-rc@${inst}"
   done
   shopt -u nullglob
