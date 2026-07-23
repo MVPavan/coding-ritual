@@ -11,7 +11,7 @@ Reads only deterministic local state — the committed ``catalogs/``, our own ha
 (``gap.build_ours``), the adoption ``ledger.json``, and beads ``issues.jsonl``. No
 network: the pinned picture, not live upstream drift (that is ``/harness-status``).
 
-    python3 harness_lifecycle/dashboard.py [--out PATH]   # writes dashboard.html + dashboard.csv
+    python3 harness_lifecycle/visualizations/lifecycle-overview/generate.py
 
 Fully data-driven and re-runnable. Every number, chart, table and prose note is
 derived from whatever catalogs live in ``catalogs/`` — nothing about the harness
@@ -23,7 +23,7 @@ set is hardcoded. So:
     then re-run this — the new row/bar/column appear on their own.
 
 The only non-derived text is the single editorial "today's reading" line, read
-from an optional ``harness_lifecycle/dashboard-note.html`` (a data-driven status
+from an optional ``visualizations/lifecycle-overview/today-note.html`` (a data-driven status
 is shown when that file is absent). Editing the reading is a content edit, never
 a code change.
 """
@@ -38,12 +38,14 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+VIZ_DIR = Path(__file__).resolve().parent
+HL_DIR = Path(__file__).resolve().parents[2]
+REPO_ROOT = HL_DIR.parent
+
+sys.path.insert(0, str(HL_DIR))
 import gap  # noqa: E402  (sibling module; path injected above)
 import scan  # noqa: E402
 
-HL_DIR = Path(__file__).resolve().parent
-REPO_ROOT = HL_DIR.parent
 BEADS_JSONL = REPO_ROOT / ".beads" / "issues.jsonl"
 
 KINDS = [
@@ -91,15 +93,23 @@ def distinct_gaps(catalogs: list[scan.Catalog], ours: scan.Catalog) -> int:
 
 
 def table_rows(catalogs: list[scan.Catalog], ours: scan.Catalog) -> list[dict]:
+    our_ids = ours.by_logical_id()
+    aliases = gap.load_aliases()
+    normalized = gap._normalized_index(ours)
+    ledger = gap.ledger_index(gap.load_ledger())
     rows = []
     for cat in sorted(catalogs, key=lambda c: len(c.capabilities), reverse=True):
         counts = kind_counts(cat.capabilities)
-        n_gap = len(gap.compute_gap(cat, ours, None)[0])
         total = len(cat.capabilities)
+        covered = sum(
+            gap.match_to_ours(cap, our_ids, aliases, normalized) is not None
+            for cap in cat.capabilities
+        )
+        resolved = sum((cat.repo, cap.logical_id) in ledger for cap in cat.capabilities)
         rows.append({
             "harness": cat.repo, "pin": str(cat.source_commit or "")[:10],
             "total": total, "kinds": {k: counts.get(k, 0) for k, _ in KINDS},
-            "gap": n_gap, "covered": total - n_gap,
+            "gap": total - covered, "covered": covered, "resolved": resolved,
         })
     return rows
 
@@ -190,7 +200,11 @@ def hbar_svg(items: list[tuple[str, int]], aria: str) -> str:
     """Single-series horizontal bars (accent)."""
     maxv = max((v for _, v in items), default=1) or 1
     height = TOP * 2 + len(items) * ROWH
-    out = [_svg_open(height, aria)]
+    out = [
+        _svg_open(height, aria),
+        f"<title>{esc(aria)}</title>",
+        f'<desc>{esc("; ".join(f"{label}: {value}" for label, value in items))}</desc>',
+    ]
     for i, (label, v) in enumerate(items):
         cy = TOP + i * ROWH + ROWH / 2
         w = max(1.0, v / maxv * BARMAX)
@@ -205,7 +219,16 @@ def hbar_split_svg(rows: list[dict], aria: str) -> str:
     """Per-harness bars: neutral track = total, accent-good overlay = covered."""
     maxt = max((r["total"] for r in rows), default=1) or 1
     height = TOP * 2 + len(rows) * ROWH
-    out = [_svg_open(height, aria)]
+    out = [
+        _svg_open(height, aria),
+        f"<title>{esc(aria)}</title>",
+        "<desc>" + esc(
+            "; ".join(
+                f'{row["harness"]}: {row["total"]} total, {row["covered"]} covered'
+                for row in rows
+            )
+        ) + "</desc>",
+    ]
     for i, r in enumerate(rows):
         cy = TOP + i * ROWH + ROWH / 2
         tw = max(1.0, r["total"] / maxt * BARMAX)
@@ -230,14 +253,15 @@ def render_table(rows: list[dict], ours_counts: collections.Counter, n_ours: int
                  n_distinct_gap: int) -> str:
     head = ('<tr><th>Harness</th><th>pin</th><th class="r">total</th>'
             + "".join(f'<th class="r">{esc(lbl)}</th>' for _, lbl in KINDS)
-            + '<th class="r">covered</th><th class="r">gap</th></tr>')
+            + '<th class="r">covered</th><th class="r">ledgered</th><th class="r">gap</th></tr>')
     body = []
     for r in rows:
         cells = "".join(f'<td class="r">{r["kinds"][k] or "·"}</td>' for k, _ in KINDS)
         body.append(
             f'<tr><td class="tn">{esc(r["harness"])}</td><td class="mut">{esc(r["pin"])}</td>'
             f'<td class="r"><b>{r["total"]}</b></td>{cells}'
-            f'<td class="r good">{r["covered"] or "·"}</td><td class="r">{r["gap"]}</td></tr>'
+            f'<td class="r good">{r["covered"] or "·"}</td>'
+            f'<td class="r">{r["resolved"] or "·"}</td><td class="r">{r["gap"]}</td></tr>'
         )
     totals = {k: sum(r["kinds"][k] for r in rows) for k, _ in KINDS}
     tot_cells = "".join(f'<td class="r">{totals[k]}</td>' for k, _ in KINDS)
@@ -245,20 +269,22 @@ def render_table(rows: list[dict], ours_counts: collections.Counter, n_ours: int
         '<tr class="trow"><td class="tn">all references</td><td></td>'
         f'<td class="r"><b>{sum(r["total"] for r in rows)}</b></td>{tot_cells}'
         f'<td class="r good">{sum(r["covered"] for r in rows)}</td>'
+        f'<td class="r">{sum(r["resolved"] for r in rows)}</td>'
         f'<td class="r">{n_distinct_gap}&#8224;</td></tr>'
     )
     ours_cells = "".join(f'<td class="r">{ours_counts.get(k, 0) or "·"}</td>' for k, _ in KINDS)
     body.append(
         '<tr class="orow"><td class="tn">ours</td><td></td>'
         f'<td class="r"><b>{n_ours}</b></td>{ours_cells}'
-        '<td class="r">&#8212;</td><td class="r">&#8212;</td></tr>'
+        '<td class="r">&#8212;</td><td class="r">&#8212;</td><td class="r">&#8212;</td></tr>'
     )
     return ('<div class="twrap"><table class="grid"><thead>' + head
             + "</thead><tbody>" + "".join(body) + "</tbody></table></div>"
-            '<p class="fn">&#8224; distinct across harnesses — per-row gaps overlap, so '
-            "they don't sum to this. Full per-capability inventory (every skill, command, "
+            '<p class="fn">&#8224; unresolved and deduplicated across harnesses after ledger decisions. '
+            "Per-row gaps are equivalence gaps before ledger decisions and can overlap, so they do not "
+            "sum to this. Full per-capability inventory (every skill, command, "
             "hook, agent, rule — each tagged covered / not) is exported to "
-            "<code>dashboard.csv</code>.</p>")
+            "<code>inventory.csv</code>.</p>")
 
 
 # --- Narrative notes ----------------------------------------------------------
@@ -296,7 +322,7 @@ def cat_note(cat_items: list[tuple[str, int]]) -> str:
 def today_html(ledger: list[dict], n_gap: int) -> str:
     """The one editorial line: an author-maintained note file if present, else a
     data-driven status so the page is correct even when nobody has updated it."""
-    override = HL_DIR / "dashboard-note.html"
+    override = VIZ_DIR / "today-note.html"
     if override.exists():
         return override.read_text(encoding="utf-8")
     by = collections.Counter(str(e.get("status", "?")) for e in ledger)
@@ -321,7 +347,7 @@ def render(catalogs: list[scan.Catalog], ours: scan.Catalog) -> str:
     rows = table_rows(catalogs, ours)
     beads = beads_counts()
     ledger = gap.load_ledger()
-    n_adopted = len(ledger)
+    ledger_statuses = collections.Counter(str(entry.get("status", "unknown")) for entry in ledger)
     covered_total = sum(r["covered"] for r in rows)
 
     cat_dist: collections.Counter = collections.Counter()
@@ -334,8 +360,13 @@ def render(catalogs: list[scan.Catalog], ours: scan.Catalog) -> str:
         kpi(f"{len(ref_caps):,}", "capabilities surveyed", f"across {len(catalogs)} harnesses", accent=True),
         kpi(n_ours, "in our harness", "the baseline we compare to"),
         kpi(f"{covered_total}", "already covered", f"of {len(ref_caps):,} — {round(covered_total/len(ref_caps)*100)}%"),
-        kpi(f"{n_gap:,}", "distinct gaps", "pre-triage · deduped"),
-        kpi(n_adopted, "adopted by reflex", "default is reject / defer"),
+        kpi(f"{n_gap:,}", "unresolved gaps", "deduped after ledger"),
+        kpi(
+            len(ledger),
+            "ledger decisions",
+            f"{ledger_statuses['adopted']} adopted · {ledger_statuses['deferred']} deferred · "
+            f"{ledger_statuses['rejected']} rejected",
+        ),
     ])
 
     primary = hbar_split_svg(rows, "Capabilities per harness, with the covered share highlighted")
@@ -395,7 +426,7 @@ section{margin-top:var(--s5)}
 .sh .no{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--muted)}
 .sh h2{font-size:1.12rem;font-weight:640}
 
-.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.3rem 1.4rem;box-shadow:var(--shadow)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.3rem 1.4rem;box-shadow:var(--shadow);overflow-x:auto}
 .cap{font-size:.82rem;font-weight:600;margin-bottom:.15rem}
 .cap .win{color:var(--muted);font-weight:400}
 .note{font-size:.85rem;color:var(--muted);margin-top:.7rem;max-width:74ch}
@@ -404,7 +435,7 @@ section{margin-top:var(--s5)}
 .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:.4rem;vertical-align:middle}
 
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
-@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}.chart{min-width:600px}}
 
 .chart{width:100%;height:auto;display:block}
 .chart text{font-family:var(--sans)}
@@ -461,7 +492,7 @@ TEMPLATE = """<!doctype html>
     <h1>Harness lifecycle dashboard</h1>
     <p class="sub">Every capability the tracked agent-harnesses ship, catalogued and measured
       against our own — so nothing is adopted by reflex, only by decision.</p>
-    <div class="meta">source: harness_lifecycle/catalogs · ours: .claude + .codex + plugins · no network · regenerate: python3 harness_lifecycle/dashboard.py</div>
+    <div class="meta">source: harness_lifecycle/catalogs · ours: .claude + .codex + plugins · no network · regenerate: python3 harness_lifecycle/visualizations/lifecycle-overview/generate.py</div>
   </header>
 
   <div class="kpis">
@@ -518,8 +549,8 @@ TEMPLATE = """<!doctype html>
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out", default=str(HL_DIR / "dashboard.html"),
-                        help="output HTML path (default: harness_lifecycle/dashboard.html)")
+    parser.add_argument("--out", default=str(VIZ_DIR / "index.html"),
+                        help="output HTML path (default: lifecycle-overview/index.html)")
     args = parser.parse_args(argv)
     catalogs = load_catalogs()
     if not catalogs:
@@ -529,7 +560,7 @@ def main(argv: list[str] | None = None) -> int:
     out = Path(args.out)
     out.write_text(render(catalogs, ours), encoding="utf-8")
 
-    csv_path = out.with_suffix(".csv")
+    csv_path = out.parent / "inventory.csv"
     our_cats = our_origin_catalogs()
     inventory = inventory_rows(catalogs, ours) + our_inventory_rows(our_cats)
     inventory.sort(key=lambda r: (r["harness"], r["kind"], r["category"], r["name"]))

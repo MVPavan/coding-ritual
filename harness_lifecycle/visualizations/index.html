@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness lifecycle visualizations</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #20242b;
+      --muted: #68707c;
+      --border: #dfe3e8;
+      --accent: #3157c8;
+      --accent-soft: #edf1ff;
+      --space-1: .5rem;
+      --space-2: 1rem;
+      --space-3: 1.5rem;
+      --space-4: 2rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101216;
+        --surface: #171a1f;
+        --text: #e8ebef;
+        --muted: #9aa2ad;
+        --border: #2a3038;
+        --accent: #8ca4ff;
+        --accent-soft: #1c2542;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.6; }
+    main { max-width: 980px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+    .kicker { color: var(--accent); font-size: .75rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+    h1 { margin: .4rem 0 .75rem; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.08; letter-spacing: -.04em; }
+    .lede { max-width: 68ch; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin-top: var(--space-4); }
+    .card { display: flex; flex-direction: column; min-height: 220px; padding: var(--space-3); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+    .card.primary { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+    .eyebrow { color: var(--muted); font-size: .75rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+    h2 { margin: .45rem 0 .55rem; font-size: 1.25rem; letter-spacing: -.015em; }
+    .card p { margin: 0; color: var(--muted); }
+    .metrics { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-2) 0; font-variant-numeric: tabular-nums; }
+    .metric strong { display: block; color: var(--text); font-size: 1.25rem; }
+    .metric span { color: var(--muted); font-size: .75rem; }
+    .open { margin-top: auto; padding-top: var(--space-2); }
+    a { color: var(--accent); font-weight: 650; text-decoration-thickness: .08em; text-underline-offset: .18em; }
+    .archive { opacity: .82; }
+    footer { margin-top: var(--space-4); padding-top: var(--space-2); border-top: 1px solid var(--border); color: var(--muted); font-size: .82rem; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    @media (max-width: 720px) {
+      main { padding: 2rem 1rem 3rem; }
+      .grid { grid-template-columns: 1fr; }
+      .card.primary { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="kicker">Harness lifecycle</div>
+    <h1>Review surfaces, organized.</h1>
+    <p class="lede">Open the focused synthesis for recommendation review, use the lifecycle overview for inventory and gap context, and consult the archived dual-model page only when historical evidence is needed.</p>
+  </header>
+
+  <section class="grid" aria-label="Available visualizations">
+    <article class="card primary">
+      <div class="eyebrow">Current review surface</div>
+      <h2>Focused three-harness synthesis</h2>
+      <p>Interactive review of Agent Skills, Matt Pocock Skills, and Superpowers with recommendation filters, source evidence, risks, and the complete cluster table.</p>
+      <div class="metrics">
+        <div class="metric"><strong>97</strong><span>unique capabilities</span></div>
+        <div class="metric"><strong>94</strong><span>deep evaluations</span></div>
+        <div class="metric"><strong>30</strong><span>problem clusters</span></div>
+        <div class="metric"><strong>3</strong><span>explicit exclusions</span></div>
+      </div>
+      <div class="open"><a href="focused-three-harnesses/index.html">Open focused review →</a></div>
+    </article>
+
+    <article class="card">
+      <div class="eyebrow">Inventory</div>
+      <h2>Lifecycle overview</h2>
+      <p>All tracked reference harnesses, local coverage, unresolved gaps, capability kinds, pins, and Beads work-state context.</p>
+      <div class="open"><a href="lifecycle-overview/index.html">Open lifecycle overview →</a></div>
+    </article>
+
+    <article class="card archive">
+      <div class="eyebrow">Historical archive</div>
+      <h2>868-row capability triage</h2>
+      <p>The older Fable versus GPT triage page, retained for audit context. It is not the current focused synthesis or canonical row count.</p>
+      <div class="open"><a href="archive/capability-usefulness-868.html">Open historical snapshot →</a></div>
+    </article>
+  </section>
+
+  <footer>Canonical data stays in <code>harness_lifecycle/</code>; these pages are generated review aids and never update the adoption ledger.</footer>
+</main>
+</body>
+</html>
