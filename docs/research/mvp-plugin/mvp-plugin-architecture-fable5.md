@@ -138,7 +138,7 @@ goal (then a marketplace-pushed core beats N pull-based merges). None hold today
 
 ## 4. Fresh-eyes note on the prior decision
 
-The synthesis (`docs/research/harness-lifecycle-synthesis.md`, §E) resolved the Fable/GPT-5.5 fork
+The synthesis (`docs/research/harness-lifecycle/harness-lifecycle-synthesis.md`, §E) resolved the Fable/GPT-5.5 fork
 as "copy + three-way for core; standalone plugins for heavy/optional." Re-deriving from the
 constraints with the *built* system in hand, that resolution is confirmed — and both prerequisites
 it demanded are verifiably implemented: the curation-leak exclusion (`scripts/template-exclude.txt`,
