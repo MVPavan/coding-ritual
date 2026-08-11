@@ -17,6 +17,18 @@ Machine-readable form: `skill-buckets.csv`.
   forcing them onto a build-lifecycle spine is the main failure mode here.
 - **Same bucket does not mean redundant.** `capability_family` +
   `family_relation` answer the redundancy question — see the last section.
+- **Upstream's own staging areas are excluded.** mattpocock ships `in-progress/`
+  and `misc/` directories; those are drafts and one-offs its author has not
+  promoted, so they are not adoption candidates. All 10 carry
+  `adoption_scope=out-of-scope` in the CSV and are skipped by the comparison
+  rosters. They stay listed below — this file is the inventory of what upstream
+  ships, not of what we consider. (`deprecated/` holds a README and no skills.)
+
+**Excluded (10):** `loop-me` (1), `migrate-to-shoehorn` (4), `claude-handoff` (10),
+`git-guardrails-claude-code` · `setup-pre-commit` · `setup-ts-deep-modules` (12),
+`scaffold-exercises` · `writing-beats` · `writing-fragments` · `writing-shape` (14).
+In-scope corpus is therefore **63 of 73**; the per-bucket counts below still
+count all 73.
 
 | # | Bucket | Primary | Also | Scope |
 |---|---|---:|---:|---|
