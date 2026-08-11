@@ -9,8 +9,8 @@ Top-level layout and how to navigate.
 | `my_harness/codex-adapter/` | Codex bridge plugin: `scripts/codex-run.mjs`, `roles/`, `commands/`, `skills/codex-runner/` |
 | `my_harness/code-intel/` | Code-intelligence plugin: `bin/` shims, `hooks/`, `skills/graph-first/`, `test/` |
 | `harness_learnings/` | Synthesized canon + best-practice docs (design reference) |
-| `reference_harnesses/` | Five third-party harnesses as git submodules (read-only) |
-| `.agents/` | Codex-style local skill `refresh-harness-from-reference` + settings |
+| `reference_harnesses/` | Four third-party harnesses as git submodules (read-only) |
+| `.agents/` | Cross-runtime agent settings (`settings.json`) |
 | `.claude/` | Installed Claude harness: `rules/`, `skills/`, `agents/`, `commands/`, `hooks/`, `project/` overlay |
 | `.codex/` | Installed Codex harness (mirror of `.claude/`, Codex-flavored) |
 | `.beads/` | Beads issue tracker store (embedded Dolt) + `beads.md` |
@@ -23,7 +23,7 @@ Top-level layout and how to navigate.
 - To work on the reusable harness: start in `my_harness/mvp-plugin/`, use
   `harness_learnings/` as the design reference.
 - To evaluate/borrow from a reference repo: see
-  `harness_learnings/reference-harness-workflow.md` and the
-  `.agents/skills/refresh-harness-from-reference/` skill.
+  `harness_learnings/reference-harness-workflow.md`, run `/harness-scan <repo>`,
+  and route candidates with the `harness-evaluate` skill.
 - Submodules are pointers only — `git submodule update --init` to populate;
   don't edit their internals.

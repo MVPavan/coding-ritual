@@ -55,16 +55,21 @@ The parent repo tracks the pinned submodule commit, not the full internal file d
 
 After adding or updating a reference repo, run:
 
-```text
-Use $refresh-harness-from-reference to evaluate reference_harnesses/<repo-name> and selectively update harness_learnings plus project_agnostic_claude_setup.
+```bash
+/harness-scan <repo-name>
 ```
+
+It reports what changed upstream and what the repo ships that we don't, then
+routes each candidate through the `harness-evaluate` skill.
 
 Expected behavior:
 
-- compare the new repo against the existing reference repos
+- compare the new repo against our own harness surface (`gap.py ours`)
 - update `harness_learnings/` only where the new repo adds a better durable pattern
-- update `project_agnostic_claude_setup/` only where the smallest useful improvement is clear
+- adopt into `mvp-harness/` only where the smallest useful improvement is clear
 - reject heavier, narrower, or repo-specific patterns
+- record every decision in `harness_lifecycle/ledger.json`, so the gap report
+  stops re-surfacing it
 
 ## Borrowing Rule
 
