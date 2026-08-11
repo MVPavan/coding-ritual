@@ -121,20 +121,15 @@ One `<repo>.json` per reference harness: the last-reviewed capability state.
 Re-`catalog` + `diff` against these to see what changed since the last review.
 Schema id: `harness-capability-catalog/v1` (see `Catalog.to_dict` in `scan.py`).
 
-## `visualizations/` — local review surfaces
+## `archive/` — retired artifacts
 
-All generated HTML and its backing presentation data live under
-[`visualizations/`](visualizations/). Open
-[`visualizations/index.html`](visualizations/index.html) for the contents page.
+The earlier per-row usefulness pipelines (`codex_analysis/`, `fable_analysis/`)
+and every generated HTML dashboard (`visualizations/`). The pipelines answered
+"which reference capabilities should we take?", which `casebook/` now answers
+with current, appended rulings; the dashboards were read-only review aids that
+went stale silently whenever a submodule pin moved.
 
-- `focused-three-harnesses/` is the current recommendation-review dashboard for
-  Agent Skills, Matt Pocock Skills, and Superpowers.
-- `lifecycle-overview/` is the all-reference inventory and gap dashboard.
-- `archive/` contains explicitly historical pages that must not be read as the
-  current canonical row count.
-
-Canonical CSV, JSON, JSONL, catalogs, and ledger files stay outside this folder.
-Visualization generators never write adoption decisions.
+Nothing live reads `archive/`. See [`archive/README.md`](archive/README.md).
 
 ## Command surface (Claude Code)
 

@@ -1,0 +1,8032 @@
+[
+  {
+    "cluster_key": "code-review-core",
+    "count": 14,
+    "kinds": {
+      "agent": 2,
+      "command": 4,
+      "plugin": 3,
+      "rule": 2,
+      "skill": 3
+    },
+    "verdicts": {
+      "adopt": 1,
+      "merge": 7,
+      "rewrite": 1,
+      "reject_after_review": 3,
+      "defer": 2
+    },
+    "avg_score": 3.61,
+    "source_ids": [
+      "agent:codereviewer",
+      "agent:correctnessreviewer",
+      "command:codereview",
+      "command:codexreview",
+      "command:reviewpr",
+      "command:santaloop",
+      "plugin:codereview",
+      "plugin:greptile",
+      "plugin:prreviewtoolkit",
+      "rule:commoncodereview",
+      "rule:zhcodereview",
+      "skill:cereview",
+      "skill:requestingcodereview",
+      "skill:review"
+    ],
+    "sample_names": [
+      "code-reviewer",
+      "correctness-reviewer",
+      "code-review",
+      "codex-review",
+      "review-pr",
+      "santa-loop",
+      "code-review",
+      "greptile"
+    ]
+  },
+  {
+    "cluster_key": "implementation-planning",
+    "count": 10,
+    "kinds": {
+      "agent": 2,
+      "command": 4,
+      "skill": 4
+    },
+    "verdicts": {
+      "merge": 4,
+      "adopt": 2,
+      "reject_after_review": 4
+    },
+    "avg_score": 3.54,
+    "source_ids": [
+      "agent:codearchitect",
+      "agent:planner",
+      "command:plan",
+      "command:prpplan",
+      "command:rpiplan",
+      "command:writeplan",
+      "skill:blueprint",
+      "skill:ceplan",
+      "skill:planning",
+      "skill:writingplans"
+    ],
+    "sample_names": [
+      "code-architect",
+      "planner",
+      "plan",
+      "prp-plan",
+      "rpi/plan",
+      "write-plan",
+      "blueprint",
+      "ce:plan"
+    ]
+  },
+  {
+    "cluster_key": "systematic-debugging",
+    "count": 7,
+    "kinds": {
+      "agent": 1,
+      "command": 2,
+      "skill": 4
+    },
+    "verdicts": {
+      "merge": 5,
+      "reject_after_review": 1,
+      "adopt": 1
+    },
+    "avg_score": 3.81,
+    "source_ids": [
+      "agent:bugreproductionvalidator",
+      "command:buildfix",
+      "command:codexdiagnose",
+      "skill:agentintrospectiondebugging",
+      "skill:diagnosingbugs",
+      "skill:reproducebug",
+      "skill:systematicdebugging"
+    ],
+    "sample_names": [
+      "bug-reproduction-validator",
+      "build-fix",
+      "codex-diagnose",
+      "agent-introspection-debugging",
+      "diagnosing-bugs",
+      "reproduce-bug",
+      "systematic-debugging"
+    ]
+  },
+  {
+    "cluster_key": "harness-curation",
+    "count": 6,
+    "kinds": {
+      "command": 2,
+      "rule": 1,
+      "skill": 3
+    },
+    "verdicts": {
+      "adopt": 4,
+      "merge": 2
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "command:harnessscan",
+      "command:harnessstatus",
+      "rule:harnesslifecyclecuration",
+      "skill:agentsort",
+      "skill:harnessevaluate",
+      "skill:refreshharnessfromreference"
+    ],
+    "sample_names": [
+      "harness-scan",
+      "harness-status",
+      "harness-lifecycle/curation",
+      "agent-sort",
+      "harness-evaluate",
+      "refresh-harness-from-reference"
+    ]
+  },
+  {
+    "cluster_key": "session-continuity",
+    "count": 6,
+    "kinds": {
+      "command": 3,
+      "hook": 3
+    },
+    "verdicts": {
+      "reject_after_review": 6
+    },
+    "avg_score": 2.97,
+    "source_ids": [
+      "command:resumesession",
+      "command:savesession",
+      "command:sessions",
+      "hook:sessionendjs",
+      "hook:sessionstartjs",
+      "hook:sessionstartmjs"
+    ],
+    "sample_names": [
+      "resume-session",
+      "save-session",
+      "sessions",
+      "session-end.js",
+      "session-start.js",
+      "session-start.mjs"
+    ]
+  },
+  {
+    "cluster_key": "skill-authoring",
+    "count": 6,
+    "kinds": {
+      "command": 1,
+      "plugin": 1,
+      "skill": 4
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "adopt": 2,
+      "merge": 3
+    },
+    "avg_score": 3.56,
+    "source_ids": [
+      "command:skillcreate",
+      "plugin:skillcreator",
+      "skill:skillcreator",
+      "skill:skilldevelopment",
+      "skill:writinggreatskills",
+      "skill:writingskills"
+    ],
+    "sample_names": [
+      "skill-create",
+      "skill-creator",
+      "skill-creator",
+      "skill-development",
+      "writing-great-skills",
+      "writing-skills"
+    ]
+  },
+  {
+    "cluster_key": "automated-security-review",
+    "count": 6,
+    "kinds": {
+      "hook": 6
+    },
+    "verdicts": {
+      "merge": 5,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.47,
+    "source_ids": [
+      "hook:basepy",
+      "hook:diffstatepy",
+      "hook:ensureagentsdkpy",
+      "hook:extensibilitypy",
+      "hook:gitutilpy",
+      "hook:patternspy"
+    ],
+    "sample_names": [
+      "_base.py",
+      "diffstate.py",
+      "ensure_agent_sdk.py",
+      "extensibility.py",
+      "gitutil.py",
+      "patterns.py"
+    ]
+  },
+  {
+    "cluster_key": "generator-evaluator-loop",
+    "count": 5,
+    "kinds": {
+      "agent": 2,
+      "command": 2,
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 4,
+      "rewrite": 1
+    },
+    "avg_score": 2.6,
+    "source_ids": [
+      "agent:ganevaluator",
+      "agent:gangenerator",
+      "command:ganbuild",
+      "command:gandesign",
+      "skill:ganstyleharness"
+    ],
+    "sample_names": [
+      "gan-evaluator",
+      "gan-generator",
+      "gan-build",
+      "gan-design",
+      "gan-style-harness"
+    ]
+  },
+  {
+    "cluster_key": "claude-code-docs-drift",
+    "count": 5,
+    "kinds": {
+      "agent": 5
+    },
+    "verdicts": {
+      "merge": 5
+    },
+    "avg_score": 2.97,
+    "source_ids": [
+      "agent:workflowclaudecommandsagent",
+      "agent:workflowclaudesettingsagent",
+      "agent:workflowclaudeskillsagent",
+      "agent:workflowclaudesubagentsagent",
+      "agent:workflowconceptsagent"
+    ],
+    "sample_names": [
+      "workflow-claude-commands-agent",
+      "workflow-claude-settings-agent",
+      "workflow-claude-skills-agent",
+      "workflow-claude-subagents-agent",
+      "workflow-concepts-agent"
+    ]
+  },
+  {
+    "cluster_key": "claude-platform-doc-drift",
+    "count": 5,
+    "kinds": {
+      "command": 5
+    },
+    "verdicts": {
+      "reject_after_review": 5
+    },
+    "avg_score": 2.7,
+    "source_ids": [
+      "command:workflowsbestpracticeworkflowclaudecommands",
+      "command:workflowsbestpracticeworkflowclaudesettings",
+      "command:workflowsbestpracticeworkflowclaudeskills",
+      "command:workflowsbestpracticeworkflowclaudesubagents",
+      "command:workflowsbestpracticeworkflowconcepts"
+    ],
+    "sample_names": [
+      "workflows/best-practice/workflow-claude-commands",
+      "workflows/best-practice/workflow-claude-settings",
+      "workflows/best-practice/workflow-claude-skills",
+      "workflows/best-practice/workflow-claude-subagents",
+      "workflows/best-practice/workflow-concepts"
+    ]
+  },
+  {
+    "cluster_key": "healthcare-domain",
+    "count": 5,
+    "kinds": {
+      "skill": 5
+    },
+    "verdicts": {
+      "reject_after_review": 5
+    },
+    "avg_score": 3.13,
+    "source_ids": [
+      "skill:healthcarecdsspatterns",
+      "skill:healthcareemrpatterns",
+      "skill:healthcareevalharness",
+      "skill:healthcarephicompliance",
+      "skill:hipaacompliance"
+    ],
+    "sample_names": [
+      "healthcare-cdss-patterns",
+      "healthcare-emr-patterns",
+      "healthcare-eval-harness",
+      "healthcare-phi-compliance",
+      "hipaa-compliance"
+    ]
+  },
+  {
+    "cluster_key": "harness-adoption",
+    "count": 4,
+    "kinds": {
+      "command": 1,
+      "plugin": 1,
+      "skill": 2
+    },
+    "verdicts": {
+      "adopt": 3,
+      "merge": 1
+    },
+    "avg_score": 4.42,
+    "source_ids": [
+      "command:adopt",
+      "plugin:mvpplugin",
+      "skill:adopt",
+      "skill:harnessadopt"
+    ],
+    "sample_names": [
+      "adopt",
+      "mvp-plugin",
+      "adopt",
+      "harness-adopt"
+    ]
+  },
+  {
+    "cluster_key": "hookify-rule-management",
+    "count": 4,
+    "kinds": {
+      "command": 4
+    },
+    "verdicts": {
+      "defer": 3,
+      "reject_after_review": 1
+    },
+    "avg_score": 4.29,
+    "source_ids": [
+      "command:configure",
+      "command:hookifyconfigure",
+      "command:hookifyhelp",
+      "command:hookifylist"
+    ],
+    "sample_names": [
+      "configure",
+      "hookify-configure",
+      "hookify-help",
+      "hookify-list"
+    ]
+  },
+  {
+    "cluster_key": "learning-memory-lifecycle",
+    "count": 4,
+    "kinds": {
+      "command": 4
+    },
+    "verdicts": {
+      "reject_after_review": 4
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:learn",
+      "command:projects",
+      "command:promote",
+      "command:prune"
+    ],
+    "sample_names": [
+      "learn",
+      "projects",
+      "promote",
+      "prune"
+    ]
+  },
+  {
+    "cluster_key": "multi-model-development-workflow",
+    "count": 4,
+    "kinds": {
+      "command": 4
+    },
+    "verdicts": {
+      "reject_after_review": 4
+    },
+    "avg_score": 2.71,
+    "source_ids": [
+      "command:multibackend",
+      "command:multiexecute",
+      "command:multiplan",
+      "command:multiworkflow"
+    ],
+    "sample_names": [
+      "multi-backend",
+      "multi-execute",
+      "multi-plan",
+      "multi-workflow"
+    ]
+  },
+  {
+    "cluster_key": "agent-delegation",
+    "count": 4,
+    "kinds": {
+      "rule": 3,
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 2,
+      "adopt": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "rule:commonagents",
+      "rule:core01delegation",
+      "rule:zhagents",
+      "skill:dispatchingparallelagents"
+    ],
+    "sample_names": [
+      "common-agents",
+      "core/01-delegation",
+      "zh/agents",
+      "dispatching-parallel-agents"
+    ]
+  },
+  {
+    "cluster_key": "durable-task-tracking",
+    "count": 4,
+    "kinds": {
+      "skill": 4
+    },
+    "verdicts": {
+      "adopt": 1,
+      "reject_after_review": 3
+    },
+    "avg_score": 3.79,
+    "source_ids": [
+      "skill:beads",
+      "skill:todocreate",
+      "skill:todoresolve",
+      "skill:todotriage"
+    ],
+    "sample_names": [
+      "beads",
+      "todo-create",
+      "todo-resolve",
+      "todo-triage"
+    ]
+  },
+  {
+    "cluster_key": "docs-research",
+    "count": 3,
+    "kinds": {
+      "agent": 3
+    },
+    "verdicts": {
+      "merge": 1,
+      "reject_after_review": 1,
+      "adopt": 1
+    },
+    "avg_score": 3.89,
+    "source_ids": [
+      "agent:bestpracticesresearcher",
+      "agent:docslookup",
+      "agent:docsresearcher"
+    ],
+    "sample_names": [
+      "best-practices-researcher",
+      "docs-lookup",
+      "docs-researcher"
+    ]
+  },
+  {
+    "cluster_key": "browser-e2e-testing",
+    "count": 3,
+    "kinds": {
+      "agent": 1,
+      "command": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 3
+    },
+    "avg_score": 2.89,
+    "source_ids": [
+      "agent:e2erunner",
+      "command:e2e",
+      "skill:e2etesting"
+    ],
+    "sample_names": [
+      "e2e-runner",
+      "e2e",
+      "e2e-testing"
+    ]
+  },
+  {
+    "cluster_key": "product-requirements-planning",
+    "count": 3,
+    "kinds": {
+      "agent": 3
+    },
+    "verdicts": {
+      "reject_after_review": 2,
+      "merge": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "agent:ganplanner",
+      "agent:productmanager",
+      "agent:requirementparser"
+    ],
+    "sample_names": [
+      "gan-planner",
+      "product-manager",
+      "requirement-parser"
+    ]
+  },
+  {
+    "cluster_key": "open-source-release-prep",
+    "count": 3,
+    "kinds": {
+      "agent": 3
+    },
+    "verdicts": {
+      "rewrite": 2,
+      "merge": 1
+    },
+    "avg_score": 2.56,
+    "source_ids": [
+      "agent:opensourceforker",
+      "agent:opensourcepackager",
+      "agent:opensourcesanitizer"
+    ],
+    "sample_names": [
+      "opensource-forker",
+      "opensource-packager",
+      "opensource-sanitizer"
+    ]
+  },
+  {
+    "cluster_key": "web-research",
+    "count": 3,
+    "kinds": {
+      "command": 1,
+      "mcp": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1,
+      "reject_after_review": 2
+    },
+    "avg_score": 3.72,
+    "source_ids": [
+      "command:codexresearch",
+      "mcp:exa",
+      "skill:exasearch"
+    ],
+    "sample_names": [
+      "codex-research",
+      "exa",
+      "exa-search"
+    ]
+  },
+  {
+    "cluster_key": "security-review",
+    "count": 3,
+    "kinds": {
+      "command": 1,
+      "plugin": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1,
+      "defer": 2
+    },
+    "avg_score": 3.55,
+    "source_ids": [
+      "command:security",
+      "plugin:securityguidance",
+      "skill:securitybountyhunter"
+    ],
+    "sample_names": [
+      "security",
+      "security-guidance",
+      "security-bounty-hunter"
+    ]
+  },
+  {
+    "cluster_key": "test-driven-development",
+    "count": 3,
+    "kinds": {
+      "command": 1,
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "merge": 1,
+      "adopt": 1
+    },
+    "avg_score": 4.11,
+    "source_ids": [
+      "command:tdd",
+      "skill:tdd",
+      "skill:testdrivendevelopment"
+    ],
+    "sample_names": [
+      "tdd",
+      "tdd",
+      "test-driven-development"
+    ]
+  },
+  {
+    "cluster_key": "post-edit-quality",
+    "count": 3,
+    "kinds": {
+      "hook": 3
+    },
+    "verdicts": {
+      "reject_after_review": 3
+    },
+    "avg_score": 3.22,
+    "source_ids": [
+      "hook:afterfileeditjs",
+      "hook:aftertabfileeditjs",
+      "hook:designqualitycheckjs"
+    ],
+    "sample_names": [
+      "after-file-edit.js",
+      "after-tab-file-edit.js",
+      "design-quality-check.js"
+    ]
+  },
+  {
+    "cluster_key": "shell-lifecycle",
+    "count": 3,
+    "kinds": {
+      "hook": 3
+    },
+    "verdicts": {
+      "reject_after_review": 3
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "hook:aftershellexecutionjs",
+      "hook:autotmuxdevjs",
+      "hook:beforeshellexecutionjs"
+    ],
+    "sample_names": [
+      "after-shell-execution.js",
+      "auto-tmux-dev.js",
+      "before-shell-execution.js"
+    ]
+  },
+  {
+    "cluster_key": "sensitive-data-guard",
+    "count": 3,
+    "kinds": {
+      "hook": 3
+    },
+    "verdicts": {
+      "rewrite": 3
+    },
+    "avg_score": 3.44,
+    "source_ids": [
+      "hook:beforereadfilejs",
+      "hook:beforesubmitpromptjs",
+      "hook:beforetabfilereadjs"
+    ],
+    "sample_names": [
+      "before-read-file.js",
+      "before-submit-prompt.js",
+      "before-tab-file-read.js"
+    ]
+  },
+  {
+    "cluster_key": "declarative-hook-rules",
+    "count": 3,
+    "kinds": {
+      "hook": 3
+    },
+    "verdicts": {
+      "reject_after_review": 2,
+      "rewrite": 1
+    },
+    "avg_score": 2.89,
+    "source_ids": [
+      "hook:posttoolusepy",
+      "hook:pretoolusepy",
+      "hook:userpromptsubmitpy"
+    ],
+    "sample_names": [
+      "posttooluse.py",
+      "pretooluse.py",
+      "userpromptsubmit.py"
+    ]
+  },
+  {
+    "cluster_key": "browser-automation",
+    "count": 3,
+    "kinds": {
+      "mcp": 1,
+      "plugin": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1,
+      "defer": 2
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "mcp:playwright",
+      "plugin:playwright",
+      "skill:agentbrowser"
+    ],
+    "sample_names": [
+      "playwright",
+      "playwright",
+      "agent-browser"
+    ]
+  },
+  {
+    "cluster_key": "hook-authoring",
+    "count": 3,
+    "kinds": {
+      "plugin": 1,
+      "skill": 2
+    },
+    "verdicts": {
+      "defer": 1,
+      "rewrite": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.11,
+    "source_ids": [
+      "plugin:hookify",
+      "skill:hookdevelopment",
+      "skill:hookifyrules"
+    ],
+    "sample_names": [
+      "hookify",
+      "hook-development",
+      "hookify-rules"
+    ]
+  },
+  {
+    "cluster_key": "security-baseline",
+    "count": 3,
+    "kinds": {
+      "rule": 3
+    },
+    "verdicts": {
+      "merge": 2,
+      "adopt": 1
+    },
+    "avg_score": 4.11,
+    "source_ids": [
+      "rule:commonsecurity",
+      "rule:pythonsecurity",
+      "rule:pythonsafety"
+    ],
+    "sample_names": [
+      "common-security",
+      "python-security",
+      "python/safety"
+    ]
+  },
+  {
+    "cluster_key": "multi-agent-orchestration",
+    "count": 3,
+    "kinds": {
+      "skill": 3
+    },
+    "verdicts": {
+      "reject_after_review": 3
+    },
+    "avg_score": 3.16,
+    "source_ids": [
+      "skill:ceworkbeta",
+      "skill:claudedevfleet",
+      "skill:dmuxworkflows"
+    ],
+    "sample_names": [
+      "ce:work-beta",
+      "claude-devfleet",
+      "dmux-workflows"
+    ]
+  },
+  {
+    "cluster_key": "writing-craft",
+    "count": 3,
+    "kinds": {
+      "skill": 3
+    },
+    "verdicts": {
+      "reject_after_review": 3
+    },
+    "avg_score": 3.72,
+    "source_ids": [
+      "skill:writingbeats",
+      "skill:writingfragments",
+      "skill:writingshape"
+    ],
+    "sample_names": [
+      "writing-beats",
+      "writing-fragments",
+      "writing-shape"
+    ]
+  },
+  {
+    "cluster_key": "agent-authoring",
+    "count": 2,
+    "kinds": {
+      "agent": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 2
+    },
+    "avg_score": 2.58,
+    "source_ids": [
+      "agent:agentcreator",
+      "skill:agentdevelopment"
+    ],
+    "sample_names": [
+      "agent-creator",
+      "agent-development"
+    ]
+  },
+  {
+    "cluster_key": "skill-output-evaluation",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "rewrite": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "agent:analyzer",
+      "agent:comparator"
+    ],
+    "sample_names": [
+      "analyzer",
+      "comparator"
+    ]
+  },
+  {
+    "cluster_key": "max-effort-generalist",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "merge": 1
+    },
+    "avg_score": 3.58,
+    "source_ids": [
+      "agent:claudemax",
+      "agent:fablemax"
+    ],
+    "sample_names": [
+      "claude-max",
+      "fable-max"
+    ]
+  },
+  {
+    "cluster_key": "cli-agent-readiness",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "merge": 2
+    },
+    "avg_score": 4.25,
+    "source_ids": [
+      "agent:cliagentreadinessreviewer",
+      "agent:clireadinessreviewer"
+    ],
+    "sample_names": [
+      "cli-agent-readiness-reviewer",
+      "cli-readiness-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "code-simplicity",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "rewrite": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "agent:codesimplicityreviewer",
+      "agent:codesimplifier"
+    ],
+    "sample_names": [
+      "code-simplicity-reviewer",
+      "code-simplifier"
+    ]
+  },
+  {
+    "cluster_key": "session-learning-guardrails",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "agent:conversationanalyzer",
+      "agent:observer"
+    ],
+    "sample_names": [
+      "conversation-analyzer",
+      "observer"
+    ]
+  },
+  {
+    "cluster_key": "database-change-safety",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "rewrite": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "agent:dataintegrityguardian",
+      "agent:datamigrationexpert"
+    ],
+    "sample_names": [
+      "data-integrity-guardian",
+      "data-migration-expert"
+    ]
+  },
+  {
+    "cluster_key": "figma-fidelity-review",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "defer": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "agent:designimplementationreviewer",
+      "agent:figmadesignsync"
+    ],
+    "sample_names": [
+      "design-implementation-reviewer",
+      "figma-design-sync"
+    ]
+  },
+  {
+    "cluster_key": "documentation-maintenance",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 2.58,
+    "source_ids": [
+      "agent:docupdater",
+      "agent:documentationanalystwriter"
+    ],
+    "sample_names": [
+      "doc-updater",
+      "documentation-analyst-writer"
+    ]
+  },
+  {
+    "cluster_key": "bounded-implementation",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 4.25,
+    "source_ids": [
+      "agent:implementer",
+      "agent:seniorsoftwareengineer"
+    ],
+    "sample_names": [
+      "implementer",
+      "senior-software-engineer"
+    ]
+  },
+  {
+    "cluster_key": "python-code-review",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.75,
+    "source_ids": [
+      "agent:kieranpythonreviewer",
+      "agent:pythonreviewer"
+    ],
+    "sample_names": [
+      "kieran-python-reviewer",
+      "python-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "performance-code-review",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "merge": 1
+    },
+    "avg_score": 3.75,
+    "source_ids": [
+      "agent:performanceoracle",
+      "agent:performancereviewer"
+    ],
+    "sample_names": [
+      "performance-oracle",
+      "performance-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "pr-feedback-lifecycle",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "defer": 2
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "agent:prcommentresolver",
+      "agent:previouscommentsreviewer"
+    ],
+    "sample_names": [
+      "pr-comment-resolver",
+      "previous-comments-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "dead-code-cleanup",
+    "count": 2,
+    "kinds": {
+      "agent": 1,
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "rewrite": 1
+    },
+    "avg_score": 3.08,
+    "source_ids": [
+      "agent:refactorcleaner",
+      "command:refactorclean"
+    ],
+    "sample_names": [
+      "refactor-cleaner",
+      "refactor-clean"
+    ]
+  },
+  {
+    "cluster_key": "organizational-context-research",
+    "count": 2,
+    "kinds": {
+      "agent": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 2
+    },
+    "avg_score": 3.58,
+    "source_ids": [
+      "agent:slackresearcher",
+      "skill:ceslackresearch"
+    ],
+    "sample_names": [
+      "slack-researcher",
+      "ce-slack-research"
+    ]
+  },
+  {
+    "cluster_key": "test-first-development",
+    "count": 2,
+    "kinds": {
+      "agent": 2
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "merge": 1
+    },
+    "avg_score": 3.75,
+    "source_ids": [
+      "agent:tddguide",
+      "agent:testengineer"
+    ],
+    "sample_names": [
+      "tdd-guide",
+      "test-engineer"
+    ]
+  },
+  {
+    "cluster_key": "requirements-discovery",
+    "count": 2,
+    "kinds": {
+      "command": 2
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "merge": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:brainstorm",
+      "command:prpprd"
+    ],
+    "sample_names": [
+      "brainstorm",
+      "prp-prd"
+    ]
+  },
+  {
+    "cluster_key": "git-branch-cleanup",
+    "count": 2,
+    "kinds": {
+      "command": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "command:cleangone",
+      "skill:gitcleangonebranches"
+    ],
+    "sample_names": [
+      "clean_gone",
+      "git-clean-gone-branches"
+    ]
+  },
+  {
+    "cluster_key": "git-commit-workflow",
+    "count": 2,
+    "kinds": {
+      "command": 1,
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "command:commit",
+      "plugin:commitcommands"
+    ],
+    "sample_names": [
+      "commit",
+      "commit-commands"
+    ]
+  },
+  {
+    "cluster_key": "plugin-authoring",
+    "count": 2,
+    "kinds": {
+      "command": 1,
+      "plugin": 1
+    },
+    "verdicts": {
+      "rewrite": 1,
+      "adopt": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:createplugin",
+      "plugin:plugindev"
+    ],
+    "sample_names": [
+      "create-plugin",
+      "plugin-dev"
+    ]
+  },
+  {
+    "cluster_key": "feature-development-workflow",
+    "count": 2,
+    "kinds": {
+      "command": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "command:featuredev",
+      "command:featuredevelopment"
+    ],
+    "sample_names": [
+      "feature-dev",
+      "feature-development"
+    ]
+  },
+  {
+    "cluster_key": "learned-guidance-portability",
+    "count": 2,
+    "kinds": {
+      "command": 2
+    },
+    "verdicts": {
+      "defer": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.58,
+    "source_ids": [
+      "command:instinctexport",
+      "command:instinctimport"
+    ],
+    "sample_names": [
+      "instinct-export",
+      "instinct-import"
+    ]
+  },
+  {
+    "cluster_key": "autonomous-loop-operations",
+    "count": 2,
+    "kinds": {
+      "command": 2
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "defer": 1
+    },
+    "avg_score": 3.58,
+    "source_ids": [
+      "command:loopstart",
+      "command:loopstatus"
+    ],
+    "sample_names": [
+      "loop-start",
+      "loop-status"
+    ]
+  },
+  {
+    "cluster_key": "agent-sdk-scaffolding",
+    "count": 2,
+    "kinds": {
+      "command": 1,
+      "plugin": 1
+    },
+    "verdicts": {
+      "defer": 2
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "command:newsdkapp",
+      "plugin:agentsdkdev"
+    ],
+    "sample_names": [
+      "new-sdk-app",
+      "agent-sdk-dev"
+    ]
+  },
+  {
+    "cluster_key": "legacy-command-shims",
+    "count": 2,
+    "kinds": {
+      "command": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "command:orchestrate",
+      "command:promptoptimize"
+    ],
+    "sample_names": [
+      "orchestrate",
+      "prompt-optimize"
+    ]
+  },
+  {
+    "cluster_key": "plan-execution",
+    "count": 2,
+    "kinds": {
+      "command": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:prpimplement",
+      "skill:executingplans"
+    ],
+    "sample_names": [
+      "prp-implement",
+      "executing-plans"
+    ]
+  },
+  {
+    "cluster_key": "teaching-and-retention",
+    "count": 2,
+    "kinds": {
+      "command": 2
+    },
+    "verdicts": {
+      "merge": 2
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "command:quizme",
+      "command:teachme"
+    ],
+    "sample_names": [
+      "quiz-me",
+      "teach-me"
+    ]
+  },
+  {
+    "cluster_key": "phased-execution",
+    "count": 2,
+    "kinds": {
+      "command": 2
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "adopt": 1
+    },
+    "avg_score": 3.75,
+    "source_ids": [
+      "command:rpiimplement",
+      "command:runphases"
+    ],
+    "sample_names": [
+      "rpi/implement",
+      "run-phases"
+    ]
+  },
+  {
+    "cluster_key": "codex-invocation",
+    "count": 2,
+    "kinds": {
+      "command": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 2
+    },
+    "avg_score": 4.42,
+    "source_ids": [
+      "command:usecodex",
+      "skill:codexrunner"
+    ],
+    "sample_names": [
+      "use-codex",
+      "codex-runner"
+    ]
+  },
+  {
+    "cluster_key": "mcp-observability",
+    "count": 2,
+    "kinds": {
+      "hook": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:aftermcpexecutionjs",
+      "hook:beforemcpexecutionjs"
+    ],
+    "sample_names": [
+      "after-mcp-execution.js",
+      "before-mcp-execution.js"
+    ]
+  },
+  {
+    "cluster_key": "generated-file-protection",
+    "count": 2,
+    "kinds": {
+      "hook": 2
+    },
+    "verdicts": {
+      "merge": 2
+    },
+    "avg_score": 4.25,
+    "source_ids": [
+      "hook:blockgeneratededitspy",
+      "hook:blockgeneratededitssh"
+    ],
+    "sample_names": [
+      "block-generated-edits.py",
+      "block-generated-edits.sh"
+    ]
+  },
+  {
+    "cluster_key": "agent-event-notifications",
+    "count": 2,
+    "kinds": {
+      "hook": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "hook:desktopnotifyjs",
+      "hook:hookspy"
+    ],
+    "sample_names": [
+      "desktop-notify.js",
+      "hooks.py"
+    ]
+  },
+  {
+    "cluster_key": "long-running-process-safety",
+    "count": 2,
+    "kinds": {
+      "hook": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:prebashdevserverblockjs",
+      "hook:prebashtmuxreminderjs"
+    ],
+    "sample_names": [
+      "pre-bash-dev-server-block.js",
+      "pre-bash-tmux-reminder.js"
+    ]
+  },
+  {
+    "cluster_key": "agentic-security-review",
+    "count": 2,
+    "kinds": {
+      "hook": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "defer": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "hook:reviewapipy",
+      "hook:securityreminderhookpy"
+    ],
+    "sample_names": [
+      "review_api.py",
+      "security_reminder_hook.py"
+    ]
+  },
+  {
+    "cluster_key": "hook-profile-dispatch",
+    "count": 2,
+    "kinds": {
+      "hook": 2
+    },
+    "verdicts": {
+      "reject_after_review": 1,
+      "defer": 1
+    },
+    "avg_score": 3.25,
+    "source_ids": [
+      "hook:runwithflagsshellsh",
+      "hook:runwithflagsjs"
+    ],
+    "sample_names": [
+      "run-with-flags-shell.sh",
+      "run-with-flags.js"
+    ]
+  },
+  {
+    "cluster_key": "subagent-observability",
+    "count": 2,
+    "kinds": {
+      "hook": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "hook:subagentstartjs",
+      "hook:subagentstopjs"
+    ],
+    "sample_names": [
+      "subagent-start.js",
+      "subagent-stop.js"
+    ]
+  },
+  {
+    "cluster_key": "context-compaction",
+    "count": 2,
+    "kinds": {
+      "hook": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1,
+      "merge": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "hook:suggestcompactjs",
+      "skill:strategiccompact"
+    ],
+    "sample_names": [
+      "suggest-compact.js",
+      "strategic-compact"
+    ]
+  },
+  {
+    "cluster_key": "agent-memory",
+    "count": 2,
+    "kinds": {
+      "mcp": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "mcp:codebasememory",
+      "mcp:memory"
+    ],
+    "sample_names": [
+      "codebase-memory",
+      "memory"
+    ]
+  },
+  {
+    "cluster_key": "docs-lookup",
+    "count": 2,
+    "kinds": {
+      "mcp": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "defer": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "mcp:context7",
+      "mcp:deepwiki"
+    ],
+    "sample_names": [
+      "context7",
+      "deepwiki"
+    ]
+  },
+  {
+    "cluster_key": "git-hosting-integration",
+    "count": 2,
+    "kinds": {
+      "mcp": 1,
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "mcp:github",
+      "plugin:gitlab"
+    ],
+    "sample_names": [
+      "github",
+      "gitlab"
+    ]
+  },
+  {
+    "cluster_key": "semantic-code-intel",
+    "count": 2,
+    "kinds": {
+      "plugin": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.92,
+    "source_ids": [
+      "plugin:codeintel",
+      "plugin:serena"
+    ],
+    "sample_names": [
+      "code-intel",
+      "serena"
+    ]
+  },
+  {
+    "cluster_key": "hardware-onboarding",
+    "count": 2,
+    "kinds": {
+      "plugin": 1,
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.58,
+    "source_ids": [
+      "plugin:cwcmakers",
+      "skill:m5onboard"
+    ],
+    "sample_names": [
+      "cwc-makers",
+      "m5-onboard"
+    ]
+  },
+  {
+    "cluster_key": "chat-notification-bridge",
+    "count": 2,
+    "kinds": {
+      "plugin": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "plugin:discord",
+      "plugin:telegram"
+    ],
+    "sample_names": [
+      "discord",
+      "telegram"
+    ]
+  },
+  {
+    "cluster_key": "harness-catalog-bundle",
+    "count": 2,
+    "kinds": {
+      "plugin": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 2.92,
+    "source_ids": [
+      "plugin:ecc",
+      "plugin:mattpocockskills"
+    ],
+    "sample_names": [
+      "ecc",
+      "mattpocock-skills"
+    ]
+  },
+  {
+    "cluster_key": "output-style",
+    "count": 2,
+    "kinds": {
+      "plugin": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "plugin:explanatoryoutputstyle",
+      "plugin:learningoutputstyle"
+    ],
+    "sample_names": [
+      "explanatory-output-style",
+      "learning-output-style"
+    ]
+  },
+  {
+    "cluster_key": "coding-style-core",
+    "count": 2,
+    "kinds": {
+      "rule": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 2.92,
+    "source_ids": [
+      "rule:commoncodingstyle",
+      "rule:zhcodingstyle"
+    ],
+    "sample_names": [
+      "common-coding-style",
+      "zh/coding-style"
+    ]
+  },
+  {
+    "cluster_key": "testing-standards",
+    "count": 2,
+    "kinds": {
+      "rule": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.42,
+    "source_ids": [
+      "rule:commontesting",
+      "rule:pythontesting"
+    ],
+    "sample_names": [
+      "common-testing",
+      "python-testing"
+    ]
+  },
+  {
+    "cluster_key": "docs-conventions",
+    "count": 2,
+    "kinds": {
+      "rule": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.75,
+    "source_ids": [
+      "rule:core02knowledgediscoverability",
+      "rule:markdowndocs"
+    ],
+    "sample_names": [
+      "core/02-knowledge-discoverability",
+      "markdown-docs"
+    ]
+  },
+  {
+    "cluster_key": "python-style",
+    "count": 2,
+    "kinds": {
+      "rule": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "rule:pythoncodingstyle",
+      "rule:pythonpatterns"
+    ],
+    "sample_names": [
+      "python-coding-style",
+      "python-patterns"
+    ]
+  },
+  {
+    "cluster_key": "rule-pack-installation",
+    "count": 2,
+    "kinds": {
+      "rule": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 2.42,
+    "source_ids": [
+      "rule:readme",
+      "rule:zhreadme"
+    ],
+    "sample_names": [
+      "README",
+      "zh/README"
+    ]
+  },
+  {
+    "cluster_key": "html-artifact-design-quality",
+    "count": 2,
+    "kinds": {
+      "rule": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.42,
+    "source_ids": [
+      "rule:webcodingstyle",
+      "rule:webdesignquality"
+    ],
+    "sample_names": [
+      "web/coding-style",
+      "web/design-quality"
+    ]
+  },
+  {
+    "cluster_key": "application-security-baseline",
+    "count": 2,
+    "kinds": {
+      "rule": 2
+    },
+    "verdicts": {
+      "rewrite": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 2.92,
+    "source_ids": [
+      "rule:websecurity",
+      "rule:zhsecurity"
+    ],
+    "sample_names": [
+      "web/security",
+      "zh/security"
+    ]
+  },
+  {
+    "cluster_key": "agent-native-architecture",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:agentnativearchitecture",
+      "skill:agentnativeaudit"
+    ],
+    "sample_names": [
+      "agent-native-architecture",
+      "agent-native-audit"
+    ]
+  },
+  {
+    "cluster_key": "agentic-engineering-operating-model",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.42,
+    "source_ids": [
+      "skill:agenticengineering",
+      "skill:aifirstengineering"
+    ],
+    "sample_names": [
+      "agentic-engineering",
+      "ai-first-engineering"
+    ]
+  },
+  {
+    "cluster_key": "requirements-brainstorming",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:brainstorming",
+      "skill:cebrainstorm"
+    ],
+    "sample_names": [
+      "brainstorming",
+      "ce:brainstorm"
+    ]
+  },
+  {
+    "cluster_key": "codebase-understanding",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "rewrite": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:codebasearchitectureresearch",
+      "skill:codebaseonboarding"
+    ],
+    "sample_names": [
+      "codebase-architecture-research",
+      "codebase-onboarding"
+    ]
+  },
+  {
+    "cluster_key": "continuous-learning",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 2.42,
+    "source_ids": [
+      "skill:continuouslearning",
+      "skill:continuouslearningv2"
+    ],
+    "sample_names": [
+      "continuous-learning",
+      "continuous-learning-v2"
+    ]
+  },
+  {
+    "cluster_key": "deployment-containers",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "merge": 2
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:deploymentpatterns",
+      "skill:dockerpatterns"
+    ],
+    "sample_names": [
+      "deployment-patterns",
+      "docker-patterns"
+    ]
+  },
+  {
+    "cluster_key": "prose-editing",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:editarticle",
+      "skill:everystyleeditor"
+    ],
+    "sample_names": [
+      "edit-article",
+      "every-style-editor"
+    ]
+  },
+  {
+    "cluster_key": "skill-authoring-templates",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:examplecommand",
+      "skill:exampleskill"
+    ],
+    "sample_names": [
+      "example-command",
+      "example-skill"
+    ]
+  },
+  {
+    "cluster_key": "media-generation",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.08,
+    "source_ids": [
+      "skill:falaimedia",
+      "skill:geminiimagegen"
+    ],
+    "sample_names": [
+      "fal-ai-media",
+      "gemini-imagegen"
+    ]
+  },
+  {
+    "cluster_key": "git-change-publishing",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "merge": 2
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:gitcommit",
+      "skill:gitcommitpushpr"
+    ],
+    "sample_names": [
+      "git-commit",
+      "git-commit-push-pr"
+    ]
+  },
+  {
+    "cluster_key": "design-interrogation",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:grillwithdocs",
+      "skill:grilling"
+    ],
+    "sample_names": [
+      "grill-with-docs",
+      "grilling"
+    ]
+  },
+  {
+    "cluster_key": "issue-tracker-integration",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "defer": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:jiraintegration",
+      "skill:projectflowops"
+    ],
+    "sample_names": [
+      "jira-integration",
+      "project-flow-ops"
+    ]
+  },
+  {
+    "cluster_key": "autonomous-pipeline",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.25,
+    "source_ids": [
+      "skill:lfg",
+      "skill:ralphinhorfcpipeline"
+    ],
+    "sample_names": [
+      "lfg",
+      "ralphinho-rfc-pipeline"
+    ]
+  },
+  {
+    "cluster_key": "presentation-repo-specific",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.58,
+    "source_ids": [
+      "skill:presentationstructure",
+      "skill:presentationstyling"
+    ],
+    "sample_names": [
+      "presentation-structure",
+      "presentation-styling"
+    ]
+  },
+  {
+    "cluster_key": "manufacturing-domain",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "reject_after_review": 2
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:productionscheduling",
+      "skill:qualitynonconformance"
+    ],
+    "sample_names": [
+      "production-scheduling",
+      "quality-nonconformance"
+    ]
+  },
+  {
+    "cluster_key": "review-feedback-resolution",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "merge": 1,
+      "rewrite": 1
+    },
+    "avg_score": 3.92,
+    "source_ids": [
+      "skill:receivingcodereview",
+      "skill:resolveprfeedback"
+    ],
+    "sample_names": [
+      "receiving-code-review",
+      "resolve-pr-feedback"
+    ]
+  },
+  {
+    "cluster_key": "teaching-learning",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "defer": 1,
+      "rewrite": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:teach",
+      "skill:teachsession"
+    ],
+    "sample_names": [
+      "teach",
+      "teach-session"
+    ]
+  },
+  {
+    "cluster_key": "completion-verification",
+    "count": 2,
+    "kinds": {
+      "skill": 2
+    },
+    "verdicts": {
+      "adopt": 1,
+      "reject_after_review": 1
+    },
+    "avg_score": 3.75,
+    "source_ids": [
+      "skill:verificationbeforecompletion",
+      "skill:verificationloop"
+    ],
+    "sample_names": [
+      "verification-before-completion",
+      "verification-loop"
+    ]
+  },
+  {
+    "cluster_key": "adversarial-document-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "agent:adversarialdocumentreviewer"
+    ],
+    "sample_names": [
+      "adversarial-document-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "adversarial-code-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "agent:adversarialreviewer"
+    ],
+    "sample_names": [
+      "adversarial-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "agent-interface-parity",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "agent:agentnativereviewer"
+    ],
+    "sample_names": [
+      "agent-native-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "python-agent-sdk-verification",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "agent:agentsdkverifierpy"
+    ],
+    "sample_names": [
+      "agent-sdk-verifier-py"
+    ]
+  },
+  {
+    "cluster_key": "api-contract-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:apicontractreviewer"
+    ],
+    "sample_names": [
+      "api-contract-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "architecture-design",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.0,
+    "source_ids": [
+      "agent:architect"
+    ],
+    "sample_names": [
+      "architect"
+    ]
+  },
+  {
+    "cluster_key": "architecture-critique",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "agent:architecturecritic"
+    ],
+    "sample_names": [
+      "architecture-critic"
+    ]
+  },
+  {
+    "cluster_key": "architecture-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "agent:architecturestrategist"
+    ],
+    "sample_names": [
+      "architecture-strategist"
+    ]
+  },
+  {
+    "cluster_key": "legacy-business-rule-extraction",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:businessrulesextractor"
+    ],
+    "sample_names": [
+      "business-rules-extractor"
+    ]
+  },
+  {
+    "cluster_key": "codebase-exploration",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:codeexplorer"
+    ],
+    "sample_names": [
+      "code-explorer"
+    ]
+  },
+  {
+    "cluster_key": "document-coherence-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "agent:coherencereviewer"
+    ],
+    "sample_names": [
+      "coherence-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "comment-accuracy-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "agent:commentanalyzer"
+    ],
+    "sample_names": [
+      "comment-analyzer"
+    ]
+  },
+  {
+    "cluster_key": "principle-compliance-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 1.83,
+    "source_ids": [
+      "agent:constitutionalvalidator"
+    ],
+    "sample_names": [
+      "constitutional-validator"
+    ]
+  },
+  {
+    "cluster_key": "data-migration-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "agent:datamigrationsreviewer"
+    ],
+    "sample_names": [
+      "data-migrations-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "postgres-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "agent:databasereviewer"
+    ],
+    "sample_names": [
+      "database-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "database-deployment-readiness",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "agent:deploymentverificationagent"
+    ],
+    "sample_names": [
+      "deployment-verification-agent"
+    ]
+  },
+  {
+    "cluster_key": "ui-visual-iteration",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.0,
+    "source_ids": [
+      "agent:designiterator"
+    ],
+    "sample_names": [
+      "design-iterator"
+    ]
+  },
+  {
+    "cluster_key": "ux-spec-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "agent:designlensreviewer"
+    ],
+    "sample_names": [
+      "design-lens-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "harness-repository-research",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "agent:developmentworkflowsresearchagent"
+    ],
+    "sample_names": [
+      "development-workflows-research-agent"
+    ]
+  },
+  {
+    "cluster_key": "generalist-delegation-tier",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "agent:fablexhigh"
+    ],
+    "sample_names": [
+      "fable-xhigh"
+    ]
+  },
+  {
+    "cluster_key": "plan-feasibility-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:feasibilityreviewer"
+    ],
+    "sample_names": [
+      "feasibility-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "framework-doc-research",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "agent:frameworkdocsresearcher"
+    ],
+    "sample_names": [
+      "framework-docs-researcher"
+    ]
+  },
+  {
+    "cluster_key": "git-archaeology",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "agent:githistoryanalyzer"
+    ],
+    "sample_names": [
+      "git-history-analyzer"
+    ]
+  },
+  {
+    "cluster_key": "spec-output-grading",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "agent:grader"
+    ],
+    "sample_names": [
+      "grader"
+    ]
+  },
+  {
+    "cluster_key": "harness-optimization",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "agent:harnessoptimizer"
+    ],
+    "sample_names": [
+      "harness-optimizer"
+    ]
+  },
+  {
+    "cluster_key": "healthcare-safety-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "agent:healthcarereviewer"
+    ],
+    "sample_names": [
+      "healthcare-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "issue-landscape-analysis",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "agent:issueintelligenceanalyst"
+    ],
+    "sample_names": [
+      "issue-intelligence-analyst"
+    ]
+  },
+  {
+    "cluster_key": "prior-learnings-retrieval",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "agent:learningsresearcher"
+    ],
+    "sample_names": [
+      "learnings-researcher"
+    ]
+  },
+  {
+    "cluster_key": "legacy-codebase-analysis",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "agent:legacyanalyst"
+    ],
+    "sample_names": [
+      "legacy-analyst"
+    ]
+  },
+  {
+    "cluster_key": "autonomous-loop-supervision",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "agent:loopoperator"
+    ],
+    "sample_names": [
+      "loop-operator"
+    ]
+  },
+  {
+    "cluster_key": "maintainability-code-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "agent:maintainabilityreviewer"
+    ],
+    "sample_names": [
+      "maintainability-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "code-pattern-consistency",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "agent:patternrecognitionspecialist"
+    ],
+    "sample_names": [
+      "pattern-recognition-specialist"
+    ]
+  },
+  {
+    "cluster_key": "performance-profiling",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.0,
+    "source_ids": [
+      "agent:performanceoptimizer"
+    ],
+    "sample_names": [
+      "performance-optimizer"
+    ]
+  },
+  {
+    "cluster_key": "plugin-validation",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "agent:pluginvalidator"
+    ],
+    "sample_names": [
+      "plugin-validator"
+    ]
+  },
+  {
+    "cluster_key": "test-coverage-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "agent:prtestanalyzer"
+    ],
+    "sample_names": [
+      "pr-test-analyzer"
+    ]
+  },
+  {
+    "cluster_key": "product-document-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "agent:productlensreviewer"
+    ],
+    "sample_names": [
+      "product-lens-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "project-standards-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:projectstandardsreviewer"
+    ],
+    "sample_names": [
+      "project-standards-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "pytorch-runtime-debugging",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "agent:pytorchbuildresolver"
+    ],
+    "sample_names": [
+      "pytorch-build-resolver"
+    ]
+  },
+  {
+    "cluster_key": "reliability-code-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:reliabilityreviewer"
+    ],
+    "sample_names": [
+      "reliability-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "repository-orientation",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "agent:reporesearchanalyst"
+    ],
+    "sample_names": [
+      "repo-research-analyst"
+    ]
+  },
+  {
+    "cluster_key": "code-modernization-scaffolding",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "agent:scaffolder"
+    ],
+    "sample_names": [
+      "scaffolder"
+    ]
+  },
+  {
+    "cluster_key": "plan-scope-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "agent:scopeguardianreviewer"
+    ],
+    "sample_names": [
+      "scope-guardian-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "security-audit",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:securityauditor"
+    ],
+    "sample_names": [
+      "security-auditor"
+    ]
+  },
+  {
+    "cluster_key": "security-plan-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 5.0,
+    "source_ids": [
+      "agent:securitylensreviewer"
+    ],
+    "sample_names": [
+      "security-lens-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "security-code-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "agent:securityreviewer"
+    ],
+    "sample_names": [
+      "security-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "security-review-core",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "agent:securitysentinel"
+    ],
+    "sample_names": [
+      "security-sentinel"
+    ]
+  },
+  {
+    "cluster_key": "seo-audit",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "agent:seospecialist"
+    ],
+    "sample_names": [
+      "seo-specialist"
+    ]
+  },
+  {
+    "cluster_key": "cross-session-history",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "agent:sessionhistorian"
+    ],
+    "sample_names": [
+      "session-historian"
+    ]
+  },
+  {
+    "cluster_key": "silent-failure-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "agent:silentfailurehunter"
+    ],
+    "sample_names": [
+      "silent-failure-hunter"
+    ]
+  },
+  {
+    "cluster_key": "skill-quality-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "agent:skillreviewer"
+    ],
+    "sample_names": [
+      "skill-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "spec-flow-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:specflowanalyzer"
+    ],
+    "sample_names": [
+      "spec-flow-analyzer"
+    ]
+  },
+  {
+    "cluster_key": "spec-compliance-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 5.0,
+    "source_ids": [
+      "agent:specreviewer"
+    ],
+    "sample_names": [
+      "spec-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "architecture-decision-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 1.5,
+    "source_ids": [
+      "agent:technicalctoadvisor"
+    ],
+    "sample_names": [
+      "technical-cto-advisor"
+    ]
+  },
+  {
+    "cluster_key": "test-quality-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "agent:testingreviewer"
+    ],
+    "sample_names": [
+      "testing-reviewer"
+    ]
+  },
+  {
+    "cluster_key": "type-invariant-review",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "agent:typedesignanalyzer"
+    ],
+    "sample_names": [
+      "type-design-analyzer"
+    ]
+  },
+  {
+    "cluster_key": "ux-requirements",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "agent:uxdesigner"
+    ],
+    "sample_names": [
+      "ux-designer"
+    ]
+  },
+  {
+    "cluster_key": "stack-version-migration",
+    "count": 1,
+    "kinds": {
+      "agent": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "agent:versiondeltaanalyst"
+    ],
+    "sample_names": [
+      "version-delta-analyst"
+    ]
+  },
+  {
+    "cluster_key": "language-rules",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "command:addlanguagerules"
+    ],
+    "sample_names": [
+      "add-language-rules"
+    ]
+  },
+  {
+    "cluster_key": "capability-curation",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "command:agentsort"
+    ],
+    "sample_names": [
+      "agent-sort"
+    ]
+  },
+  {
+    "cluster_key": "conversational-context-control",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "command:aside"
+    ],
+    "sample_names": [
+      "aside"
+    ]
+  },
+  {
+    "cluster_key": "ralph-loop-control",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 5.0,
+    "source_ids": [
+      "command:cancelralph"
+    ],
+    "sample_names": [
+      "cancel-ralph"
+    ]
+  },
+  {
+    "cluster_key": "invariant-checking",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 5.0,
+    "source_ids": [
+      "command:checkinvariants"
+    ],
+    "sample_names": [
+      "check-invariants"
+    ]
+  },
+  {
+    "cluster_key": "workflow-checkpointing",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "command:checkpoint"
+    ],
+    "sample_names": [
+      "checkpoint"
+    ]
+  },
+  {
+    "cluster_key": "nanoclaw-repl-compat",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "command:claw"
+    ],
+    "sample_names": [
+      "claw"
+    ]
+  },
+  {
+    "cluster_key": "codex-delegation",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "command:codex"
+    ],
+    "sample_names": [
+      "codex"
+    ]
+  },
+  {
+    "cluster_key": "codex-readiness",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "command:codexcheck"
+    ],
+    "sample_names": [
+      "codex-check"
+    ]
+  },
+  {
+    "cluster_key": "design-critique",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "command:codexcritique"
+    ],
+    "sample_names": [
+      "codex-critique"
+    ]
+  },
+  {
+    "cluster_key": "delegated-implementation",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "command:codeximplement"
+    ],
+    "sample_names": [
+      "codex-implement"
+    ]
+  },
+  {
+    "cluster_key": "git-publish-workflow",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "command:commitpushpr"
+    ],
+    "sample_names": [
+      "commit-push-pr"
+    ]
+  },
+  {
+    "cluster_key": "context-management-compat",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "command:contextbudget"
+    ],
+    "sample_names": [
+      "context-budget"
+    ]
+  },
+  {
+    "cluster_key": "private-mcp-tunnel",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "command:createdockermcptunnel"
+    ],
+    "sample_names": [
+      "create-docker-mcp-tunnel"
+    ]
+  },
+  {
+    "cluster_key": "database-migration",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "command:databasemigration"
+    ],
+    "sample_names": [
+      "database-migration"
+    ]
+  },
+  {
+    "cluster_key": "agent-fleet-orchestration",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "command:devfleet"
+    ],
+    "sample_names": [
+      "devfleet"
+    ]
+  },
+  {
+    "cluster_key": "code-intel-lifecycle",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "command:disableforproject"
+    ],
+    "sample_names": [
+      "disable-for-project"
+    ]
+  },
+  {
+    "cluster_key": "documentation-lookup",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "command:docs"
+    ],
+    "sample_names": [
+      "docs"
+    ]
+  },
+  {
+    "cluster_key": "environment-diagnostics",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "command:doctor"
+    ],
+    "sample_names": [
+      "doctor"
+    ]
+  },
+  {
+    "cluster_key": "eval-harness",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "command:eval"
+    ],
+    "sample_names": [
+      "eval"
+    ]
+  },
+  {
+    "cluster_key": "learned-capability-promotion",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "command:evolve"
+    ],
+    "sample_names": [
+      "evolve"
+    ]
+  },
+  {
+    "cluster_key": "plan-execution-compat",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "command:executeplan"
+    ],
+    "sample_names": [
+      "execute-plan"
+    ]
+  },
+  {
+    "cluster_key": "harness-health-audit",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "command:harnessaudit"
+    ],
+    "sample_names": [
+      "harness-audit"
+    ]
+  },
+  {
+    "cluster_key": "plugin-help",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "command:help"
+    ],
+    "sample_names": [
+      "help"
+    ]
+  },
+  {
+    "cluster_key": "policy-hook-authoring",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "command:hookify"
+    ],
+    "sample_names": [
+      "hookify"
+    ]
+  },
+  {
+    "cluster_key": "code-intelligence-indexing",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "command:indexrepo"
+    ],
+    "sample_names": [
+      "index-repo"
+    ]
+  },
+  {
+    "cluster_key": "learned-guidance-audit",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "command:instinctstatus"
+    ],
+    "sample_names": [
+      "instinct-status"
+    ]
+  },
+  {
+    "cluster_key": "external-ticketing-integration",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "command:jira"
+    ],
+    "sample_names": [
+      "jira"
+    ]
+  },
+  {
+    "cluster_key": "learning-capture",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "command:learneval"
+    ],
+    "sample_names": [
+      "learn-eval"
+    ]
+  },
+  {
+    "cluster_key": "hook-rule-inventory",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "command:list"
+    ],
+    "sample_names": [
+      "list"
+    ]
+  },
+  {
+    "cluster_key": "model-routing",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:modelroute"
+    ],
+    "sample_names": [
+      "model-route"
+    ]
+  },
+  {
+    "cluster_key": "legacy-system-assessment",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:modernizeassess"
+    ],
+    "sample_names": [
+      "modernize-assess"
+    ]
+  },
+  {
+    "cluster_key": "modernization-planning",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "command:modernizebrief"
+    ],
+    "sample_names": [
+      "modernize-brief"
+    ]
+  },
+  {
+    "cluster_key": "business-rule-extraction",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "command:modernizeextractrules"
+    ],
+    "sample_names": [
+      "modernize-extract-rules"
+    ]
+  },
+  {
+    "cluster_key": "security-hardening",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "command:modernizeharden"
+    ],
+    "sample_names": [
+      "modernize-harden"
+    ]
+  },
+  {
+    "cluster_key": "architecture-mapping",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "command:modernizemap"
+    ],
+    "sample_names": [
+      "modernize-map"
+    ]
+  },
+  {
+    "cluster_key": "modernization-readiness",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "command:modernizepreflight"
+    ],
+    "sample_names": [
+      "modernize-preflight"
+    ]
+  },
+  {
+    "cluster_key": "legacy-system-rebuild",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "command:modernizereimagine"
+    ],
+    "sample_names": [
+      "modernize-reimagine"
+    ]
+  },
+  {
+    "cluster_key": "modernization-status",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "command:modernizestatus"
+    ],
+    "sample_names": [
+      "modernize-status"
+    ]
+  },
+  {
+    "cluster_key": "behavior-preserving-modernization",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "command:modernizetransform"
+    ],
+    "sample_names": [
+      "modernize-transform"
+    ]
+  },
+  {
+    "cluster_key": "runtime-version-uplift",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "command:modernizeuplift"
+    ],
+    "sample_names": [
+      "modernize-uplift"
+    ]
+  },
+  {
+    "cluster_key": "workstream-bootstrap",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "command:preparephases"
+    ],
+    "sample_names": [
+      "prepare-phases"
+    ]
+  },
+  {
+    "cluster_key": "safe-commit-workflow",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:prpcommit"
+    ],
+    "sample_names": [
+      "prp-commit"
+    ]
+  },
+  {
+    "cluster_key": "pr-creation",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "command:prppr"
+    ],
+    "sample_names": [
+      "prp-pr"
+    ]
+  },
+  {
+    "cluster_key": "python-review",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "command:pythonreview"
+    ],
+    "sample_names": [
+      "python-review"
+    ]
+  },
+  {
+    "cluster_key": "formatter-quality-gate",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "command:qualitygate"
+    ],
+    "sample_names": [
+      "quality-gate"
+    ]
+  },
+  {
+    "cluster_key": "autonomous-agent-loop",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "command:ralphloop"
+    ],
+    "sample_names": [
+      "ralph-loop"
+    ]
+  },
+  {
+    "cluster_key": "codex-command-migration",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "command:readme"
+    ],
+    "sample_names": [
+      "README"
+    ]
+  },
+  {
+    "cluster_key": "persistent-learnings",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "command:reviseclaudemd"
+    ],
+    "sample_names": [
+      "revise-claude-md"
+    ]
+  },
+  {
+    "cluster_key": "feature-viability",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "command:rpiresearch"
+    ],
+    "sample_names": [
+      "rpi/research"
+    ]
+  },
+  {
+    "cluster_key": "rules-distillation",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "command:rulesdistill"
+    ],
+    "sample_names": [
+      "rules-distill"
+    ]
+  },
+  {
+    "cluster_key": "code-intelligence-setup",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "command:setup"
+    ],
+    "sample_names": [
+      "setup"
+    ]
+  },
+  {
+    "cluster_key": "skill-portfolio-observability",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "command:skillhealth"
+    ],
+    "sample_names": [
+      "skill-health"
+    ]
+  },
+  {
+    "cluster_key": "learning-artifact-sync",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:synctutorials"
+    ],
+    "sample_names": [
+      "sync-tutorials"
+    ]
+  },
+  {
+    "cluster_key": "test-coverage-analysis",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:testcoverage"
+    ],
+    "sample_names": [
+      "test-coverage"
+    ]
+  },
+  {
+    "cluster_key": "pr-triage",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "command:triageprs"
+    ],
+    "sample_names": [
+      "triage-prs"
+    ]
+  },
+  {
+    "cluster_key": "harness-update",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "command:update"
+    ],
+    "sample_names": [
+      "update"
+    ]
+  },
+  {
+    "cluster_key": "codebase-orientation",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:updatecodemaps"
+    ],
+    "sample_names": [
+      "update-codemaps"
+    ]
+  },
+  {
+    "cluster_key": "documentation-source-sync",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "command:updatedocs"
+    ],
+    "sample_names": [
+      "update-docs"
+    ]
+  },
+  {
+    "cluster_key": "verification-before-completion",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "command:verify"
+    ],
+    "sample_names": [
+      "verify"
+    ]
+  },
+  {
+    "cluster_key": "reference-harness-comparison",
+    "count": 1,
+    "kinds": {
+      "command": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "command:workflowsdevelopmentworkflows"
+    ],
+    "sample_names": [
+      "workflows/development-workflows"
+    ]
+  },
+  {
+    "cluster_key": "package-plumbing",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 1.83,
+    "source_ids": [
+      "hook:initpy"
+    ],
+    "sample_names": [
+      "__init__.py"
+    ]
+  },
+  {
+    "cluster_key": "beads-context-priming",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "hook:bdprimesh"
+    ],
+    "sample_names": [
+      "bd-prime.sh"
+    ]
+  },
+  {
+    "cluster_key": "dangerous-command-guard",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "hook:blockdangerouscommandssh"
+    ],
+    "sample_names": [
+      "block-dangerous-commands.sh"
+    ]
+  },
+  {
+    "cluster_key": "hook-feature-flags",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "hook:checkhookenabledjs"
+    ],
+    "sample_names": [
+      "check-hook-enabled.js"
+    ]
+  },
+  {
+    "cluster_key": "config-edit-protection",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "hook:configprotectionjs"
+    ],
+    "sample_names": [
+      "config-protection.js"
+    ]
+  },
+  {
+    "cluster_key": "cost-observability",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:costtrackerjs"
+    ],
+    "sample_names": [
+      "cost-tracker.js"
+    ]
+  },
+  {
+    "cluster_key": "documentation-sprawl-control",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:docfilewarningjs"
+    ],
+    "sample_names": [
+      "doc-file-warning.js"
+    ]
+  },
+  {
+    "cluster_key": "session-learning",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "hook:evaluatesessionjs"
+    ],
+    "sample_names": [
+      "evaluate-session.js"
+    ]
+  },
+  {
+    "cluster_key": "code-index-readiness",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "hook:freshnesschecksh"
+    ],
+    "sample_names": [
+      "freshness-check.sh"
+    ]
+  },
+  {
+    "cluster_key": "governance-security-audit",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "hook:governancecapturejs"
+    ],
+    "sample_names": [
+      "governance-capture.js"
+    ]
+  },
+  {
+    "cluster_key": "reference-catalog-freshness",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "hook:harnessstalenessnudgesh"
+    ],
+    "sample_names": [
+      "harness-staleness-nudge.sh"
+    ]
+  },
+  {
+    "cluster_key": "llm-security-review",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "hook:llmpy"
+    ],
+    "sample_names": [
+      "llm.py"
+    ]
+  },
+  {
+    "cluster_key": "mcp-reliability",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "hook:mcphealthcheckjs"
+    ],
+    "sample_names": [
+      "mcp-health-check.js"
+    ]
+  },
+  {
+    "cluster_key": "continuous-learning-observation",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "hook:observesh"
+    ],
+    "sample_names": [
+      "observe.sh"
+    ]
+  },
+  {
+    "cluster_key": "build-completion-notice",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "hook:postbashbuildcompletejs"
+    ],
+    "sample_names": [
+      "post-bash-build-complete.js"
+    ]
+  },
+  {
+    "cluster_key": "command-audit-logging",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "hook:postbashcommandlogjs"
+    ],
+    "sample_names": [
+      "post-bash-command-log.js"
+    ]
+  },
+  {
+    "cluster_key": "pr-workflow-notice",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:postbashprcreatedjs"
+    ],
+    "sample_names": [
+      "post-bash-pr-created.js"
+    ]
+  },
+  {
+    "cluster_key": "batched-edit-quality",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "hook:posteditaccumulatorjs"
+    ],
+    "sample_names": [
+      "post-edit-accumulator.js"
+    ]
+  },
+  {
+    "cluster_key": "post-edit-formatting",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:posteditformatjs"
+    ],
+    "sample_names": [
+      "post-edit-format.js"
+    ]
+  },
+  {
+    "cluster_key": "post-edit-typechecking",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "hook:postedittypecheckjs"
+    ],
+    "sample_names": [
+      "post-edit-typecheck.js"
+    ]
+  },
+  {
+    "cluster_key": "commit-quality-gate",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "hook:prebashcommitqualityjs"
+    ],
+    "sample_names": [
+      "pre-bash-commit-quality.js"
+    ]
+  },
+  {
+    "cluster_key": "publication-safety",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "hook:prebashgitpushreminderjs"
+    ],
+    "sample_names": [
+      "pre-bash-git-push-reminder.js"
+    ]
+  },
+  {
+    "cluster_key": "context-compaction-continuity",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:precompactjs"
+    ],
+    "sample_names": [
+      "pre-compact.js"
+    ]
+  },
+  {
+    "cluster_key": "doc-sprawl-guard",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "hook:prewritedocwarnjs"
+    ],
+    "sample_names": [
+      "pre-write-doc-warn.js"
+    ]
+  },
+  {
+    "cluster_key": "quality-gates",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "hook:qualitygatejs"
+    ],
+    "sample_names": [
+      "quality-gate.js"
+    ]
+  },
+  {
+    "cluster_key": "observer-lifecycle",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "hook:sessionendmarkerjs"
+    ],
+    "sample_names": [
+      "session-end-marker.js"
+    ]
+  },
+  {
+    "cluster_key": "hook-bootstrap",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "hook:sessionstartbootstrapjs"
+    ],
+    "sample_names": [
+      "session-start-bootstrap.js"
+    ]
+  },
+  {
+    "cluster_key": "security-review-state",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "hook:sessionstatepy"
+    ],
+    "sample_names": [
+      "session_state.py"
+    ]
+  },
+  {
+    "cluster_key": "python-hook-launcher",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "hook:sgpythonsh"
+    ],
+    "sample_names": [
+      "sg-python.sh"
+    ]
+  },
+  {
+    "cluster_key": "autonomous-loop-control",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:stophooksh"
+    ],
+    "sample_names": [
+      "stop-hook.sh"
+    ]
+  },
+  {
+    "cluster_key": "stop-hook-dispatch",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "hook:stopjs"
+    ],
+    "sample_names": [
+      "stop.js"
+    ]
+  },
+  {
+    "cluster_key": "completion-gate",
+    "count": 1,
+    "kinds": {
+      "hook": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "hook:stoppy"
+    ],
+    "sample_names": [
+      "stop.py"
+    ]
+  },
+  {
+    "cluster_key": "reasoning-scaffold",
+    "count": 1,
+    "kinds": {
+      "mcp": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "mcp:sequentialthinking"
+    ],
+    "sample_names": [
+      "sequential-thinking"
+    ]
+  },
+  {
+    "cluster_key": "code-intelligence",
+    "count": 1,
+    "kinds": {
+      "mcp": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "mcp:serena"
+    ],
+    "sample_names": [
+      "serena"
+    ]
+  },
+  {
+    "cluster_key": "external-pm-integration",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "plugin:asana"
+    ],
+    "sample_names": [
+      "asana"
+    ]
+  },
+  {
+    "cluster_key": "harness-setup-recommendation",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "plugin:claudecodesetup"
+    ],
+    "sample_names": [
+      "claude-code-setup"
+    ]
+  },
+  {
+    "cluster_key": "claude-md-hygiene",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "plugin:claudemdmanagement"
+    ],
+    "sample_names": [
+      "claude-md-management"
+    ]
+  },
+  {
+    "cluster_key": "legacy-modernization",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "plugin:codemodernization"
+    ],
+    "sample_names": [
+      "code-modernization"
+    ]
+  },
+  {
+    "cluster_key": "code-simplification",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "plugin:codesimplifier"
+    ],
+    "sample_names": [
+      "code-simplifier"
+    ]
+  },
+  {
+    "cluster_key": "second-model-delegation",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.83,
+    "source_ids": [
+      "plugin:codexadapter"
+    ],
+    "sample_names": [
+      "codex-adapter"
+    ]
+  },
+  {
+    "cluster_key": "learning-tutor",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "plugin:codingtutor"
+    ],
+    "sample_names": [
+      "coding-tutor"
+    ]
+  },
+  {
+    "cluster_key": "learning-compounding",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "plugin:compoundengineering"
+    ],
+    "sample_names": [
+      "compound-engineering"
+    ]
+  },
+  {
+    "cluster_key": "live-docs-lookup",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "plugin:context7"
+    ],
+    "sample_names": [
+      "context7"
+    ]
+  },
+  {
+    "cluster_key": "plugin-authoring-reference",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "plugin:exampleplugin"
+    ],
+    "sample_names": [
+      "example-plugin"
+    ]
+  },
+  {
+    "cluster_key": "feature-dev-workflow",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "plugin:featuredev"
+    ],
+    "sample_names": [
+      "feature-dev"
+    ]
+  },
+  {
+    "cluster_key": "platform-integration",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "plugin:firebase"
+    ],
+    "sample_names": [
+      "firebase"
+    ]
+  },
+  {
+    "cluster_key": "github-integration",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "plugin:github"
+    ],
+    "sample_names": [
+      "github"
+    ]
+  },
+  {
+    "cluster_key": "issue-tracking-integration",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "plugin:linear"
+    ],
+    "sample_names": [
+      "linear"
+    ]
+  },
+  {
+    "cluster_key": "mcp-server-dev",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "plugin:mcpserverdev"
+    ],
+    "sample_names": [
+      "mcp-server-dev"
+    ]
+  },
+  {
+    "cluster_key": "remote-mcp-connectivity",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "plugin:mcptunnels"
+    ],
+    "sample_names": [
+      "mcp-tunnels"
+    ]
+  },
+  {
+    "cluster_key": "html-artifact-tooling",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "plugin:playground"
+    ],
+    "sample_names": [
+      "playground"
+    ]
+  },
+  {
+    "cluster_key": "project-status-reporting",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "plugin:projectartifact"
+    ],
+    "sample_names": [
+      "project-artifact"
+    ]
+  },
+  {
+    "cluster_key": "autonomous-looping",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "plugin:ralphloop"
+    ],
+    "sample_names": [
+      "ralph-loop"
+    ]
+  },
+  {
+    "cluster_key": "core-dev-methodology",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "plugin:superpowers"
+    ],
+    "sample_names": [
+      "superpowers"
+    ]
+  },
+  {
+    "cluster_key": "iac-tooling",
+    "count": 1,
+    "kinds": {
+      "plugin": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "plugin:terraform"
+    ],
+    "sample_names": [
+      "terraform"
+    ]
+  },
+  {
+    "cluster_key": "dev-workflow-pipeline",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "rule:commondevelopmentworkflow"
+    ],
+    "sample_names": [
+      "common-development-workflow"
+    ]
+  },
+  {
+    "cluster_key": "git-workflow",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "rule:commongitworkflow"
+    ],
+    "sample_names": [
+      "common-git-workflow"
+    ]
+  },
+  {
+    "cluster_key": "hooks-governance",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "rule:commonhooks"
+    ],
+    "sample_names": [
+      "common-hooks"
+    ]
+  },
+  {
+    "cluster_key": "design-patterns",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "rule:commonpatterns"
+    ],
+    "sample_names": [
+      "common-patterns"
+    ]
+  },
+  {
+    "cluster_key": "context-management",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "rule:commonperformance"
+    ],
+    "sample_names": [
+      "common-performance"
+    ]
+  },
+  {
+    "cluster_key": "llm-coding-guardrails",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "rule:core03akguidelines"
+    ],
+    "sample_names": [
+      "core/03-ak-guidelines"
+    ]
+  },
+  {
+    "cluster_key": "prompt-defense",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "rule:everythingclaudecodeguardrails"
+    ],
+    "sample_names": [
+      "everything-claude-code-guardrails"
+    ]
+  },
+  {
+    "cluster_key": "remotion-text-layout",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "rule:measuringtext"
+    ],
+    "sample_names": [
+      "measuring-text"
+    ]
+  },
+  {
+    "cluster_key": "presentation-delegation",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "rule:presentation"
+    ],
+    "sample_names": [
+      "presentation"
+    ]
+  },
+  {
+    "cluster_key": "python-automation-hooks",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "rule:pythonhooks"
+    ],
+    "sample_names": [
+      "python-hooks"
+    ]
+  },
+  {
+    "cluster_key": "frontend-application-architecture",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "rule:webpatterns"
+    ],
+    "sample_names": [
+      "web/patterns"
+    ]
+  },
+  {
+    "cluster_key": "html-artifact-performance",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "rule:webperformance"
+    ],
+    "sample_names": [
+      "web/performance"
+    ]
+  },
+  {
+    "cluster_key": "html-artifact-verification",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "rule:webtesting"
+    ],
+    "sample_names": [
+      "web/testing"
+    ]
+  },
+  {
+    "cluster_key": "development-workflow-core",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "rule:zhdevelopmentworkflow"
+    ],
+    "sample_names": [
+      "zh/development-workflow"
+    ]
+  },
+  {
+    "cluster_key": "git-workflow-core",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "rule:zhgitworkflow"
+    ],
+    "sample_names": [
+      "zh/git-workflow"
+    ]
+  },
+  {
+    "cluster_key": "hook-safety-and-tracking",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "rule:zhhooks"
+    ],
+    "sample_names": [
+      "zh/hooks"
+    ]
+  },
+  {
+    "cluster_key": "application-design-patterns",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "rule:zhpatterns"
+    ],
+    "sample_names": [
+      "zh/patterns"
+    ]
+  },
+  {
+    "cluster_key": "agent-runtime-management",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "rule:zhperformance"
+    ],
+    "sample_names": [
+      "zh/performance"
+    ]
+  },
+  {
+    "cluster_key": "testing-core",
+    "count": 1,
+    "kinds": {
+      "rule": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "rule:zhtesting"
+    ],
+    "sample_names": [
+      "zh/testing"
+    ]
+  },
+  {
+    "cluster_key": "coding-agent-benchmarking",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:agenteval"
+    ],
+    "sample_names": [
+      "agent-eval"
+    ]
+  },
+  {
+    "cluster_key": "agent-tooling-design",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:agentharnessconstruction"
+    ],
+    "sample_names": [
+      "agent-harness-construction"
+    ]
+  },
+  {
+    "cluster_key": "agent-payments",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "skill:agentpaymentx402"
+    ],
+    "sample_names": [
+      "agent-payment-x402"
+    ]
+  },
+  {
+    "cluster_key": "regression-testing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:airegressiontesting"
+    ],
+    "sample_names": [
+      "ai-regression-testing"
+    ]
+  },
+  {
+    "cluster_key": "coding-discipline",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 5.0,
+    "source_ids": [
+      "skill:akguide"
+    ],
+    "sample_names": [
+      "ak-guide"
+    ]
+  },
+  {
+    "cluster_key": "api-connector-development",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "skill:apiconnectorbuilder"
+    ],
+    "sample_names": [
+      "api-connector-builder"
+    ]
+  },
+  {
+    "cluster_key": "rest-api-design",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:apidesign"
+    ],
+    "sample_names": [
+      "api-design"
+    ]
+  },
+  {
+    "cluster_key": "architecture-decisions",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "skill:architecturedecisionrecords"
+    ],
+    "sample_names": [
+      "architecture-decision-records"
+    ]
+  },
+  {
+    "cluster_key": "long-form-writing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "skill:articlewriting"
+    ],
+    "sample_names": [
+      "article-writing"
+    ]
+  },
+  {
+    "cluster_key": "skill-routing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:askmatt"
+    ],
+    "sample_names": [
+      "ask-matt"
+    ]
+  },
+  {
+    "cluster_key": "automation-surface-audit",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "skill:automationauditops"
+    ],
+    "sample_names": [
+      "automation-audit-ops"
+    ]
+  },
+  {
+    "cluster_key": "autonomous-agent-operations",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:autonomousagentharness"
+    ],
+    "sample_names": [
+      "autonomous-agent-harness"
+    ]
+  },
+  {
+    "cluster_key": "autonomous-execution",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "skill:autonomousloops"
+    ],
+    "sample_names": [
+      "autonomous-loops"
+    ]
+  },
+  {
+    "cluster_key": "performance-benchmarking",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:benchmark"
+    ],
+    "sample_names": [
+      "benchmark"
+    ]
+  },
+  {
+    "cluster_key": "brand-voice",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:brandvoice"
+    ],
+    "sample_names": [
+      "brand-voice"
+    ]
+  },
+  {
+    "cluster_key": "browser-qa",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:browserqa"
+    ],
+    "sample_names": [
+      "browser-qa"
+    ]
+  },
+  {
+    "cluster_key": "mcp-app-development",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "skill:buildmcpapp"
+    ],
+    "sample_names": [
+      "build-mcp-app"
+    ]
+  },
+  {
+    "cluster_key": "mcp-server-development",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:buildmcpserver"
+    ],
+    "sample_names": [
+      "build-mcp-server"
+    ]
+  },
+  {
+    "cluster_key": "mcp-local-distribution",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:buildmcpb"
+    ],
+    "sample_names": [
+      "build-mcpb"
+    ]
+  },
+  {
+    "cluster_key": "post-deploy-monitoring",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "skill:canarywatch"
+    ],
+    "sample_names": [
+      "canary-watch"
+    ]
+  },
+  {
+    "cluster_key": "cardputer-device-development",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "skill:cardputerbuddy"
+    ],
+    "sample_names": [
+      "cardputer-buddy"
+    ]
+  },
+  {
+    "cluster_key": "session-history-retrieval",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "skill:cesessions"
+    ],
+    "sample_names": [
+      "ce-sessions"
+    ]
+  },
+  {
+    "cluster_key": "plugin-self-update",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "skill:ceupdate"
+    ],
+    "sample_names": [
+      "ce-update"
+    ]
+  },
+  {
+    "cluster_key": "project-learning-capture",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:cecompound"
+    ],
+    "sample_names": [
+      "ce:compound"
+    ]
+  },
+  {
+    "cluster_key": "project-learning-maintenance",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "skill:cecompoundrefresh"
+    ],
+    "sample_names": [
+      "ce:compound-refresh"
+    ]
+  },
+  {
+    "cluster_key": "project-ideation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "skill:ceideate"
+    ],
+    "sample_names": [
+      "ce:ideate"
+    ]
+  },
+  {
+    "cluster_key": "implementation-execution",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:cework"
+    ],
+    "sample_names": [
+      "ce:work"
+    ]
+  },
+  {
+    "cluster_key": "changelog-generation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:changelog"
+    ],
+    "sample_names": [
+      "changelog"
+    ]
+  },
+  {
+    "cluster_key": "repository-invariant-checking",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "skill:checkinvariants"
+    ],
+    "sample_names": [
+      "check-invariants"
+    ]
+  },
+  {
+    "cluster_key": "project-memory",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:ck"
+    ],
+    "sample_names": [
+      "ck"
+    ]
+  },
+  {
+    "cluster_key": "anthropic-api-reference",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:claudeapi"
+    ],
+    "sample_names": [
+      "claude-api"
+    ]
+  },
+  {
+    "cluster_key": "harness-automation-audit",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "skill:claudeautomationrecommender"
+    ],
+    "sample_names": [
+      "claude-automation-recommender"
+    ]
+  },
+  {
+    "cluster_key": "instruction-file-maintenance",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:claudemdimprover"
+    ],
+    "sample_names": [
+      "claude-md-improver"
+    ]
+  },
+  {
+    "cluster_key": "permission-allowlist-tuning",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:claudepermissionsoptimizer"
+    ],
+    "sample_names": [
+      "claude-permissions-optimizer"
+    ]
+  },
+  {
+    "cluster_key": "state-transition-debugging",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:clickpathaudit"
+    ],
+    "sample_names": [
+      "click-path-audit"
+    ]
+  },
+  {
+    "cluster_key": "clickhouse-data-engineering",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "skill:clickhouseio"
+    ],
+    "sample_names": [
+      "clickhouse-io"
+    ]
+  },
+  {
+    "cluster_key": "codebase-onboarding-artifacts",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:codetour"
+    ],
+    "sample_names": [
+      "code-tour"
+    ]
+  },
+  {
+    "cluster_key": "module-design",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:codebasedesign"
+    ],
+    "sample_names": [
+      "codebase-design"
+    ]
+  },
+  {
+    "cluster_key": "coding-standards-core",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:codingstandards"
+    ],
+    "sample_names": [
+      "coding-standards"
+    ]
+  },
+  {
+    "cluster_key": "codebase-teaching",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:codingtutor"
+    ],
+    "sample_names": [
+      "coding-tutor"
+    ]
+  },
+  {
+    "cluster_key": "harness-command-authoring",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:commanddevelopment"
+    ],
+    "sample_names": [
+      "command-development"
+    ]
+  },
+  {
+    "cluster_key": "harness-installation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "skill:configureecc"
+    ],
+    "sample_names": [
+      "configure-ecc"
+    ]
+  },
+  {
+    "cluster_key": "content-addressed-cache",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "skill:contenthashcachepattern"
+    ],
+    "sample_names": [
+      "content-hash-cache-pattern"
+    ]
+  },
+  {
+    "cluster_key": "context-budget",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:contextbudget"
+    ],
+    "sample_names": [
+      "context-budget"
+    ]
+  },
+  {
+    "cluster_key": "continuous-agent-execution",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "skill:continuousagentloop"
+    ],
+    "sample_names": [
+      "continuous-agent-loop"
+    ]
+  },
+  {
+    "cluster_key": "llm-cost-control",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:costawarellmpipeline"
+    ],
+    "sample_names": [
+      "cost-aware-llm-pipeline"
+    ]
+  },
+  {
+    "cluster_key": "software-cost-estimation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:costestimate"
+    ],
+    "sample_names": [
+      "cost-estimate"
+    ]
+  },
+  {
+    "cluster_key": "multi-perspective-decision",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:council"
+    ],
+    "sample_names": [
+      "council"
+    ]
+  },
+  {
+    "cluster_key": "observability-dashboard-design",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:dashboardbuilder"
+    ],
+    "sample_names": [
+      "dashboard-builder"
+    ]
+  },
+  {
+    "cluster_key": "scheduled-data-collection",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "skill:datascraperagent"
+    ],
+    "sample_names": [
+      "data-scraper-agent"
+    ]
+  },
+  {
+    "cluster_key": "database-migrations",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.67,
+    "source_ids": [
+      "skill:databasemigrations"
+    ],
+    "sample_names": [
+      "database-migrations"
+    ]
+  },
+  {
+    "cluster_key": "workstream-decomposition",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:decisionmapping"
+    ],
+    "sample_names": [
+      "decision-mapping"
+    ]
+  },
+  {
+    "cluster_key": "decision-grade-research",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "skill:deepresearch"
+    ],
+    "sample_names": [
+      "deep-research"
+    ]
+  },
+  {
+    "cluster_key": "docs-deployment",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:deploydocs"
+    ],
+    "sample_names": [
+      "deploy-docs"
+    ]
+  },
+  {
+    "cluster_key": "interface-design",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "skill:designaninterface"
+    ],
+    "sample_names": [
+      "design-an-interface"
+    ]
+  },
+  {
+    "cluster_key": "design-doc-evolution",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:designevolve"
+    ],
+    "sample_names": [
+      "design-evolve"
+    ]
+  },
+  {
+    "cluster_key": "visual-design-audit",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:designsystem"
+    ],
+    "sample_names": [
+      "design-system"
+    ]
+  },
+  {
+    "cluster_key": "django-application-patterns",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:djangopatterns"
+    ],
+    "sample_names": [
+      "django-patterns"
+    ]
+  },
+  {
+    "cluster_key": "django-security",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.0,
+    "source_ids": [
+      "skill:djangosecurity"
+    ],
+    "sample_names": [
+      "django-security"
+    ]
+  },
+  {
+    "cluster_key": "django-testing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:djangotdd"
+    ],
+    "sample_names": [
+      "django-tdd"
+    ]
+  },
+  {
+    "cluster_key": "django-verification",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 1.67,
+    "source_ids": [
+      "skill:djangoverification"
+    ],
+    "sample_names": [
+      "django-verification"
+    ]
+  },
+  {
+    "cluster_key": "document-review",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "skill:documentreview"
+    ],
+    "sample_names": [
+      "document-review"
+    ]
+  },
+  {
+    "cluster_key": "documentation-research",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:documentationlookup"
+    ],
+    "sample_names": [
+      "documentation-lookup"
+    ]
+  },
+  {
+    "cluster_key": "domain-modeling",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:domainmodeling"
+    ],
+    "sample_names": [
+      "domain-modeling"
+    ]
+  },
+  {
+    "cluster_key": "agent-ops-observability",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:enterpriseagentops"
+    ],
+    "sample_names": [
+      "enterprise-agent-ops"
+    ]
+  },
+  {
+    "cluster_key": "agent-evaluation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:evalharness"
+    ],
+    "sample_names": [
+      "eval-harness"
+    ]
+  },
+  {
+    "cluster_key": "blockchain-domain",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:evmtokendecimals"
+    ],
+    "sample_names": [
+      "evm-token-decimals"
+    ]
+  },
+  {
+    "cluster_key": "pr-evidence-capture",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:featurevideo"
+    ],
+    "sample_names": [
+      "feature-video"
+    ]
+  },
+  {
+    "cluster_key": "git-branch-finish",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:finishingadevelopmentbranch"
+    ],
+    "sample_names": [
+      "finishing-a-development-branch"
+    ]
+  },
+  {
+    "cluster_key": "html-design-quality",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "skill:frontenddesign"
+    ],
+    "sample_names": [
+      "frontend-design"
+    ]
+  },
+  {
+    "cluster_key": "html-presentations",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:frontendslides"
+    ],
+    "sample_names": [
+      "frontend-slides"
+    ]
+  },
+  {
+    "cluster_key": "git-safety-guardrails",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:gitguardrailsclaudecode"
+    ],
+    "sample_names": [
+      "git-guardrails-claude-code"
+    ]
+  },
+  {
+    "cluster_key": "git-conventions",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "skill:gitworkflow"
+    ],
+    "sample_names": [
+      "git-workflow"
+    ]
+  },
+  {
+    "cluster_key": "git-worktree-isolation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:gitworktree"
+    ],
+    "sample_names": [
+      "git-worktree"
+    ]
+  },
+  {
+    "cluster_key": "github-repository-operations",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:githubops"
+    ],
+    "sample_names": [
+      "github-ops"
+    ]
+  },
+  {
+    "cluster_key": "office-suite-ops",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:googleworkspaceops"
+    ],
+    "sample_names": [
+      "google-workspace-ops"
+    ]
+  },
+  {
+    "cluster_key": "graph-first-code-intelligence",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "skill:graphfirst"
+    ],
+    "sample_names": [
+      "graph-first"
+    ]
+  },
+  {
+    "cluster_key": "adversarial-design-review",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "skill:grillme"
+    ],
+    "sample_names": [
+      "grill-me"
+    ]
+  },
+  {
+    "cluster_key": "session-handoff-continuity",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:handoff"
+    ],
+    "sample_names": [
+      "handoff"
+    ]
+  },
+  {
+    "cluster_key": "architecture-patterns",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:hexagonalarchitecture"
+    ],
+    "sample_names": [
+      "hexagonal-architecture"
+    ]
+  },
+  {
+    "cluster_key": "human-readable-html-artifacts",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "skill:htmlartifact"
+    ],
+    "sample_names": [
+      "html-artifact"
+    ]
+  },
+  {
+    "cluster_key": "implementation-workflow",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:implement"
+    ],
+    "sample_names": [
+      "implement"
+    ]
+  },
+  {
+    "cluster_key": "architecture-assessment",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:improvecodebasearchitecture"
+    ],
+    "sample_names": [
+      "improve-codebase-architecture"
+    ]
+  },
+  {
+    "cluster_key": "business-domain-persona",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:inventorydemandplanning"
+    ],
+    "sample_names": [
+      "inventory-demand-planning"
+    ]
+  },
+  {
+    "cluster_key": "context-retrieval",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:iterativeretrieval"
+    ],
+    "sample_names": [
+      "iterative-retrieval"
+    ]
+  },
+  {
+    "cluster_key": "knowledge-management",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:knowledgeops"
+    ],
+    "sample_names": [
+      "knowledge-ops"
+    ]
+  },
+  {
+    "cluster_key": "domain-security-niche",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:llmtradingagentsecurity"
+    ],
+    "sample_names": [
+      "llm-trading-agent-security"
+    ]
+  },
+  {
+    "cluster_key": "workflow-specification",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:loopme"
+    ],
+    "sample_names": [
+      "loop-me"
+    ]
+  },
+  {
+    "cluster_key": "media-explainers",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:manimvideo"
+    ],
+    "sample_names": [
+      "manim-video"
+    ]
+  },
+  {
+    "cluster_key": "research-reporting",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:marketresearch"
+    ],
+    "sample_names": [
+      "market-research"
+    ]
+  },
+  {
+    "cluster_key": "mcp-plugin-integration",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 1.83,
+    "source_ids": [
+      "skill:mcpintegration"
+    ],
+    "sample_names": [
+      "mcp-integration"
+    ]
+  },
+  {
+    "cluster_key": "claude-codex-migration",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:migrateclaudetocodex"
+    ],
+    "sample_names": [
+      "migrate-claude-to-codex"
+    ]
+  },
+  {
+    "cluster_key": "repl-tooling",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:nanoclawrepl"
+    ],
+    "sample_names": [
+      "nanoclaw-repl"
+    ]
+  },
+  {
+    "cluster_key": "document-processing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:nutrientdocumentprocessing"
+    ],
+    "sample_names": [
+      "nutrient-document-processing"
+    ]
+  },
+  {
+    "cluster_key": "personal-notes",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:obsidianvault"
+    ],
+    "sample_names": [
+      "obsidian-vault"
+    ]
+  },
+  {
+    "cluster_key": "codebase-onboarding",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:onboarding"
+    ],
+    "sample_names": [
+      "onboarding"
+    ]
+  },
+  {
+    "cluster_key": "open-source-release",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:opensourcepipeline"
+    ],
+    "sample_names": [
+      "opensource-pipeline"
+    ]
+  },
+  {
+    "cluster_key": "beads-phase-execution",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:phaseexecution"
+    ],
+    "sample_names": [
+      "phase-execution"
+    ]
+  },
+  {
+    "cluster_key": "write-time-quality-hooks",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:planktoncodequality"
+    ],
+    "sample_names": [
+      "plankton-code-quality"
+    ]
+  },
+  {
+    "cluster_key": "interactive-html-playground",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.33,
+    "source_ids": [
+      "skill:playground"
+    ],
+    "sample_names": [
+      "playground"
+    ]
+  },
+  {
+    "cluster_key": "plugin-configuration",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.0,
+    "source_ids": [
+      "skill:pluginsettings"
+    ],
+    "sample_names": [
+      "plugin-settings"
+    ]
+  },
+  {
+    "cluster_key": "plugin-scaffolding",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "skill:pluginstructure"
+    ],
+    "sample_names": [
+      "plugin-structure"
+    ]
+  },
+  {
+    "cluster_key": "postgres-engineering",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:postgrespatterns"
+    ],
+    "sample_names": [
+      "postgres-patterns"
+    ]
+  },
+  {
+    "cluster_key": "workstream-planning",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:preparephases"
+    ],
+    "sample_names": [
+      "prepare-phases"
+    ]
+  },
+  {
+    "cluster_key": "requirements-engineering",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:productcapability"
+    ],
+    "sample_names": [
+      "product-capability"
+    ]
+  },
+  {
+    "cluster_key": "product-validation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:productlens"
+    ],
+    "sample_names": [
+      "product-lens"
+    ]
+  },
+  {
+    "cluster_key": "status-reporting",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:projectartifact"
+    ],
+    "sample_names": [
+      "project-artifact"
+    ]
+  },
+  {
+    "cluster_key": "prompt-authoring",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:promptoptimizer"
+    ],
+    "sample_names": [
+      "prompt-optimizer"
+    ]
+  },
+  {
+    "cluster_key": "doc-sharing-service",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:proof"
+    ],
+    "sample_names": [
+      "proof"
+    ]
+  },
+  {
+    "cluster_key": "prototyping",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "skill:prototype"
+    ],
+    "sample_names": [
+      "prototype"
+    ]
+  },
+  {
+    "cluster_key": "python-coding-standards",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:pythonpatterns"
+    ],
+    "sample_names": [
+      "python-patterns"
+    ]
+  },
+  {
+    "cluster_key": "python-testing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.17,
+    "source_ids": [
+      "skill:pythontesting"
+    ],
+    "sample_names": [
+      "python-testing"
+    ]
+  },
+  {
+    "cluster_key": "pytorch-training",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.5,
+    "source_ids": [
+      "skill:pytorchpatterns"
+    ],
+    "sample_names": [
+      "pytorch-patterns"
+    ]
+  },
+  {
+    "cluster_key": "issue-filing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "skill:qa"
+    ],
+    "sample_names": [
+      "qa"
+    ]
+  },
+  {
+    "cluster_key": "cloud-file-transfer",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:rclone"
+    ],
+    "sample_names": [
+      "rclone"
+    ]
+  },
+  {
+    "cluster_key": "deterministic-text-parsing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:regexvsllmstructuredtext"
+    ],
+    "sample_names": [
+      "regex-vs-llm-structured-text"
+    ]
+  },
+  {
+    "cluster_key": "repo-audit",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:reposcan"
+    ],
+    "sample_names": [
+      "repo-scan"
+    ]
+  },
+  {
+    "cluster_key": "refactor-planning",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "skill:requestrefactorplan"
+    ],
+    "sample_names": [
+      "request-refactor-plan"
+    ]
+  },
+  {
+    "cluster_key": "current-evidence-research",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:researchops"
+    ],
+    "sample_names": [
+      "research-ops"
+    ]
+  },
+  {
+    "cluster_key": "merge-conflict-resolution",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:resolvingmergeconflicts"
+    ],
+    "sample_names": [
+      "resolving-merge-conflicts"
+    ]
+  },
+  {
+    "cluster_key": "harness-rule-maintenance",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:rulesdistill"
+    ],
+    "sample_names": [
+      "rules-distill"
+    ]
+  },
+  {
+    "cluster_key": "phased-workstream-execution",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 5.0,
+    "source_ids": [
+      "skill:runphases"
+    ],
+    "sample_names": [
+      "run-phases"
+    ]
+  },
+  {
+    "cluster_key": "destructive-operation-guard",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:safetyguard"
+    ],
+    "sample_names": [
+      "safety-guard"
+    ]
+  },
+  {
+    "cluster_key": "adversarial-review",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:santamethod"
+    ],
+    "sample_names": [
+      "santa-method"
+    ]
+  },
+  {
+    "cluster_key": "course-authoring",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:scaffoldexercises"
+    ],
+    "sample_names": [
+      "scaffold-exercises"
+    ]
+  },
+  {
+    "cluster_key": "research-before-building",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:searchfirst"
+    ],
+    "sample_names": [
+      "search-first"
+    ]
+  },
+  {
+    "cluster_key": "application-security-review",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "skill:securityreview"
+    ],
+    "sample_names": [
+      "security-review"
+    ]
+  },
+  {
+    "cluster_key": "harness-security-audit",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:securityscan"
+    ],
+    "sample_names": [
+      "security-scan"
+    ]
+  },
+  {
+    "cluster_key": "web-seo",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:seo"
+    ],
+    "sample_names": [
+      "seo"
+    ]
+  },
+  {
+    "cluster_key": "agent-session-observability",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 5.0,
+    "source_ids": [
+      "skill:sessionreport"
+    ],
+    "sample_names": [
+      "session-report"
+    ]
+  },
+  {
+    "cluster_key": "skill-compliance-evaluation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:skillcomply"
+    ],
+    "sample_names": [
+      "skill-comply"
+    ]
+  },
+  {
+    "cluster_key": "capability-quality-audit",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:skillstocktake"
+    ],
+    "sample_names": [
+      "skill-stocktake"
+    ]
+  },
+  {
+    "cluster_key": "subagent-driven-development",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "skill:subagentdrivendevelopment"
+    ],
+    "sample_names": [
+      "subagent-driven-development"
+    ]
+  },
+  {
+    "cluster_key": "tdd-core",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "skill:tddworkflow"
+    ],
+    "sample_names": [
+      "tdd-workflow"
+    ]
+  },
+  {
+    "cluster_key": "agent-orchestration",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.17,
+    "source_ids": [
+      "skill:teambuilder"
+    ],
+    "sample_names": [
+      "team-builder"
+    ]
+  },
+  {
+    "cluster_key": "evidence-first-terminal-ops",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 4.5,
+    "source_ids": [
+      "skill:terminalops"
+    ],
+    "sample_names": [
+      "terminal-ops"
+    ]
+  },
+  {
+    "cluster_key": "browser-testing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:testbrowser"
+    ],
+    "sample_names": [
+      "test-browser"
+    ]
+  },
+  {
+    "cluster_key": "workstream-seeding",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.5,
+    "source_ids": [
+      "skill:toissues"
+    ],
+    "sample_names": [
+      "to-issues"
+    ]
+  },
+  {
+    "cluster_key": "requirements-capture",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "merge": 1
+    },
+    "avg_score": 3.83,
+    "source_ids": [
+      "skill:toprd"
+    ],
+    "sample_names": [
+      "to-prd"
+    ]
+  },
+  {
+    "cluster_key": "response-budgeting",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:tokenbudgetadvisor"
+    ],
+    "sample_names": [
+      "token-budget-advisor"
+    ]
+  },
+  {
+    "cluster_key": "issue-triage",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:triage"
+    ],
+    "sample_names": [
+      "triage"
+    ]
+  },
+  {
+    "cluster_key": "domain-glossary",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 4.0,
+    "source_ids": [
+      "skill:ubiquitouslanguage"
+    ],
+    "sample_names": [
+      "ubiquitous-language"
+    ]
+  },
+  {
+    "cluster_key": "browser-demo-recording",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:uidemo"
+    ],
+    "sample_names": [
+      "ui-demo"
+    ]
+  },
+  {
+    "cluster_key": "notifications-ops",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.83,
+    "source_ids": [
+      "skill:unifiednotificationsops"
+    ],
+    "sample_names": [
+      "unified-notifications-ops"
+    ]
+  },
+  {
+    "cluster_key": "codex-invocation-routing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "adopt": 1
+    },
+    "avg_score": 4.67,
+    "source_ids": [
+      "skill:usecodex"
+    ],
+    "sample_names": [
+      "use-codex"
+    ]
+  },
+  {
+    "cluster_key": "workspace-isolation",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 3.33,
+    "source_ids": [
+      "skill:usinggitworktrees"
+    ],
+    "sample_names": [
+      "using-git-worktrees"
+    ]
+  },
+  {
+    "cluster_key": "skill-routing-bootstrap",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 3.0,
+    "source_ids": [
+      "skill:usingsuperpowers"
+    ],
+    "sample_names": [
+      "using-superpowers"
+    ]
+  },
+  {
+    "cluster_key": "media-processing",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "reject_after_review": 1
+    },
+    "avg_score": 2.33,
+    "source_ids": [
+      "skill:videodb"
+    ],
+    "sample_names": [
+      "videodb"
+    ]
+  },
+  {
+    "cluster_key": "harness-surface-audit",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "rewrite": 1
+    },
+    "avg_score": 4.17,
+    "source_ids": [
+      "skill:workspacesurfaceaudit"
+    ],
+    "sample_names": [
+      "workspace-surface-audit"
+    ]
+  },
+  {
+    "cluster_key": "hooks-configuration",
+    "count": 1,
+    "kinds": {
+      "skill": 1
+    },
+    "verdicts": {
+      "defer": 1
+    },
+    "avg_score": 3.67,
+    "source_ids": [
+      "skill:writinghookifyrules"
+    ],
+    "sample_names": [
+      "writing-hookify-rules"
+    ]
+  }
+]
