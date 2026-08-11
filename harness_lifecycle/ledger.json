@@ -272,10 +272,9 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/idea-refine",
       "status": "adopted",
-      "reason": "Covered by brainstorming, which clarifies users, success, non-goals, scope, alternatives, and persists reviewed requirements with less ceremony.",
-      "date": "2026-07-15",
-      "our_id": "skill:skills/brainstorming",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
+      "reason": "Copied verbatim as its own skill (SKILL.md + frameworks/refinement-criteria/examples + scripts). Supersedes the earlier 'covered by brainstorming' ruling, which was made against a 40-line brainstorming that had no divergence step at all. brainstorming now routes here when several directions are live.",
+      "date": "2026-08-11",
+      "our_id": "skill:skills/idea-refine",
       "source_content_hash": "1e970fd804c14c68345f34a736d12df1e4dffa1b"
     },
     {
@@ -290,10 +289,9 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/interview-me",
       "status": "adopted",
-      "reason": "Covered by one-question clarification of problem, users, success, and non-goals before planning, without an arbitrary confidence metric.",
-      "date": "2026-07-15",
+      "reason": "Mechanics merged into brainstorming, not installed as a skill. Taken: predict-the-next-three stop test, approval-names-the-direction gate with the four near-misses, Q/GUESS format plus its sycophancy mitigation, six-line restate with mandatory out-of-scope, live-user guard. Dropped: numeric confidence header, rationalization table, red flags (cross-cutting warnings live in .claude/rules/core/03-ak-guidelines.md).",
+      "date": "2026-08-11",
       "our_id": "skill:skills/brainstorming",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
       "source_content_hash": "22a0935a1e4c8b38025d0f8eb7230f8ae8c46070"
     },
     {
@@ -352,10 +350,9 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/spec-driven-development",
       "status": "adopted",
-      "reason": "Covered jointly by brainstorming requirements and the planning handoff; project overlays already hold stable commands and boundaries.",
-      "date": "2026-07-15",
+      "reason": "Two mechanics only: the 'correct me now or I'll proceed' close, and 'keep the spec alive' (update the document before implementing when scope moves) which nothing here previously did. Dropped: the six spec areas (standing facts in AGENTS.md, .claude/rules/, .claude/project/verification.md), phases 2-4 (our planning -> beads -> phase-execution), and the tasks/plan.md convention which contradicts beads.",
+      "date": "2026-08-11",
       "our_id": "skill:skills/brainstorming",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
       "source_content_hash": "18d1b48e3fb8fb019bcb262f256020ba6ccaa258"
     },
     {
@@ -375,6 +372,58 @@
       "reason": "Skill discovery and routing are already native platform and AGENTS behavior; another 191-line meta-skill would duplicate instructions and increase context pressure.",
       "date": "2026-07-15",
       "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/domain-modeling",
+      "status": "adopted",
+      "reason": "Copied verbatim as grill-with-docs' dependency. Also the first skill in bucket 3 (Architecture & Modeling), which was empty - it arrived as a dependency, so it needs a deliberate review when that bucket is analysed.",
+      "date": "2026-08-11",
+      "our_id": "skill:skills/domain-modeling",
+      "source_content_hash": "4391357e14a2c46108bcc0bf40eca96041fab034"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/grill-with-docs",
+      "status": "adopted",
+      "reason": "Copied verbatim. Composes grilling with domain-modeling so ADRs and the glossary are written during the interview rather than after.",
+      "date": "2026-08-11",
+      "our_id": "skill:skills/grill-with-docs",
+      "source_content_hash": "893c1f8c9aaf1110645e755f6b9fc5b99ceef9ce"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/to-spec",
+      "status": "adopted",
+      "reason": "One mechanic: the no-interview synthesis mode, now a route in brainstorming. Skill itself not installed. Its seam-first sketch is routed to bucket 5 (test-driven-development), not dropped. Its 'no file paths in specs' rule is rejected outright - it contradicts planning/SKILL.md, which requires repo-relative create/modify/test paths for bounded implementer subagents.",
+      "date": "2026-08-11",
+      "our_id": "skill:skills/brainstorming",
+      "source_content_hash": "eb9bbc8cee69ee81d5690cc878e0b523d2400232"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/productivity/grill-me",
+      "status": "rejected",
+      "reason": "Seven-line alias whose entire body is 'Run a /grilling session'. It is a shortcut to a slash command in their harness; with grilling installed here the shortcut is redundant, and we already own the grill-me name for a 189-line skill that produces a Decision Summary artifact grilling has no equivalent for.",
+      "date": "2026-08-11"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/productivity/grilling",
+      "status": "adopted",
+      "reason": "Copied verbatim. Frontier rounds and non-blocking sub-agent fact-finding are genuinely absent from our grill-me, which paces at 1-3 questions and answers facts inline. Kept as a separate skill rather than merged so both pacing models stay available.",
+      "date": "2026-08-11",
+      "our_id": "skill:skills/grilling",
+      "source_content_hash": "b979b08ff6ad1244f093b892b534cfcdfeaf4652"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/brainstorming",
+      "status": "adopted",
+      "reason": "Merged into ours, not installed. Taken: approval gate before handoff (scoped to our task classification, not their 'EVERY project'), decompose-multi-subsystem-before-questioning, the four-check spec self-review, and the per-unit boundary questions into the requirements template's Design section. Dropped: the 298-line visual companion server (replaced by Mermaid-first references/visuals.md), the orphaned reviewer prompt, unprompted git commit, and the writing-plans terminal state.",
+      "date": "2026-08-11",
+      "our_id": "skill:skills/brainstorming",
+      "source_content_hash": "c17eefe75bddb14488aa63dd9b568c5b8effdf7f"
     }
   ]
 }
