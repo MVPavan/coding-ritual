@@ -16,8 +16,8 @@ application code.
   repo learnings.
 - `reference_harnesses/` — third-party harness repos tracked as **git submodules**
   (read-only references).
-- `.agents/skills/refresh-harness-from-reference/` — local skill for evaluating a
-  new reference repo and selectively improving the local harness.
+- `harness_lifecycle/` — curation tooling for the reference harnesses: capability
+  scanner, gap report, and the adoption ledger.
 - `.claude/` + `.codex/` — the harness installed into this repo itself (rules,
   skills, agents, commands, hooks, and the `project/` overlay of repo facts).
 - `.beads/` — Beads issue tracker store (see `.beads/beads.md`).
