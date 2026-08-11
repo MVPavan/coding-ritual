@@ -6,7 +6,9 @@
 set -u
 DIR="${CLAUDE_PROJECT_DIR:-.}/harness_lifecycle/catalogs"
 [ -d "$DIR" ] || exit 0
-if [ -z "$(find "$DIR" -name '*.json' -newermt '30 days ago' 2>/dev/null | head -1)" ]; then
+# ours.json is our own working-tree snapshot, regenerated often — it would mask
+# stale reference catalogs forever, so it never counts toward freshness here.
+if [ -z "$(find "$DIR" -name '*.json' ! -name 'ours.json' -newermt '30 days ago' 2>/dev/null | head -1)" ]; then
   echo "[harness-lifecycle] reference-harness catalogs are >30 days old — run /harness-status to check upstream drift."
 fi
 exit 0
