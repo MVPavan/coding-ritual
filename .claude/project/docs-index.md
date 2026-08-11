@@ -13,6 +13,7 @@ Authoritative docs and when to read them.
 | `README.md` | Repo overview (areas, read-first, common workflows) |
 | `mvp-harness/plugins/<plugin>/README.md` | Working inside a specific plugin |
 | `mvp-harness/plugins/mvp-plugin/skills/harness-adopt/SKILL.md` | Adapting the harness overlay to a repo |
+| `scripts/README.md` | Managing Claude/Codex remote-control sessions (`claudex-rc.sh`) — lifecycle, recovery, watchdog |
 | `.beads/beads.md` | Beads workflow, agent context profiles, session-completion protocol |
 | `.claude/rules/core/03-ak-guidelines.md` | Coding rules that reduce common LLM mistakes |
 
