@@ -1,6 +1,7 @@
 ---
 name: grill-me
 description: Relentless design-review interviewer that systematically interrogates every aspect of a plan, architecture, or design document. Use this skill whenever the user says "grill me", "interview me about this", "poke holes in my design", "stress test this plan", "challenge my architecture", "what am I missing", "help me think through this", "walk through my design", "question my assumptions", or any variant where they want an adversarial-but-constructive deep dive into a plan, spec, proposal, or system design. Also trigger when the user uploads a design doc, architecture diagram, or technical spec and asks for critique, review, or thorough questioning. This skill is about exhaustive interrogation, not surface-level feedback — it goes branch by branch through every decision until nothing is left unexamined.
+disable-model-invocation: true
 ---
 
 # Grill Me — Relentless Design Interviewer
