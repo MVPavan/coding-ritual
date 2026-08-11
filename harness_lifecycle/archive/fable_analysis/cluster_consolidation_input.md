@@ -1,0 +1,447 @@
+445 raw cluster keys over 629 rows. Consolidate into primary clusters (group keys that solve the SAME problem).
+
+- code-review-core (n=14, agent:2,command:4,plugin:3,rule:2,skill:3, avg=3.61) e.g. code-reviewer, correctness-reviewer, code-review, codex-review, review-pr, santa-loop
+- implementation-planning (n=10, agent:2,command:4,skill:4, avg=3.54) e.g. code-architect, planner, plan, prp-plan, rpi/plan, write-plan
+- systematic-debugging (n=7, agent:1,command:2,skill:4, avg=3.81) e.g. bug-reproduction-validator, build-fix, codex-diagnose, agent-introspection-debugging, diagnosing-bugs, reproduce-bug
+- harness-curation (n=6, command:2,rule:1,skill:3, avg=4.33) e.g. harness-scan, harness-status, harness-lifecycle/curation, agent-sort, harness-evaluate, refresh-harness-from-reference
+- session-continuity (n=6, command:3,hook:3, avg=2.97) e.g. resume-session, save-session, sessions, session-end.js, session-start.js, session-start.mjs
+- skill-authoring (n=6, command:1,plugin:1,skill:4, avg=3.56) e.g. skill-create, skill-creator, skill-creator, skill-development, writing-great-skills, writing-skills
+- automated-security-review (n=6, hook:6, avg=3.47) e.g. _base.py, diffstate.py, ensure_agent_sdk.py, extensibility.py, gitutil.py, patterns.py
+- generator-evaluator-loop (n=5, agent:2,command:2,skill:1, avg=2.6) e.g. gan-evaluator, gan-generator, gan-build, gan-design, gan-style-harness
+- claude-code-docs-drift (n=5, agent:5, avg=2.97) e.g. workflow-claude-commands-agent, workflow-claude-settings-agent, workflow-claude-skills-agent, workflow-claude-subagents-agent, workflow-concepts-agent
+- claude-platform-doc-drift (n=5, command:5, avg=2.7) e.g. workflows/best-practice/workflow-claude-commands, workflows/best-practice/workflow-claude-settings, workflows/best-practice/workflow-claude-skills, workflows/best-practice/workflow-claude-subagents, workflows/best-practice/workflow-concepts
+- healthcare-domain (n=5, skill:5, avg=3.13) e.g. healthcare-cdss-patterns, healthcare-emr-patterns, healthcare-eval-harness, healthcare-phi-compliance, hipaa-compliance
+- harness-adoption (n=4, command:1,plugin:1,skill:2, avg=4.42) e.g. adopt, mvp-plugin, adopt, harness-adopt
+- hookify-rule-management (n=4, command:4, avg=4.29) e.g. configure, hookify-configure, hookify-help, hookify-list
+- learning-memory-lifecycle (n=4, command:4, avg=3.33) e.g. learn, projects, promote, prune
+- multi-model-development-workflow (n=4, command:4, avg=2.71) e.g. multi-backend, multi-execute, multi-plan, multi-workflow
+- agent-delegation (n=4, rule:3,skill:1, avg=3.67) e.g. common-agents, core/01-delegation, zh/agents, dispatching-parallel-agents
+- durable-task-tracking (n=4, skill:4, avg=3.79) e.g. beads, todo-create, todo-resolve, todo-triage
+- docs-research (n=3, agent:3, avg=3.89) e.g. best-practices-researcher, docs-lookup, docs-researcher
+- browser-e2e-testing (n=3, agent:1,command:1,skill:1, avg=2.89) e.g. e2e-runner, e2e, e2e-testing
+- product-requirements-planning (n=3, agent:3, avg=3.0) e.g. gan-planner, product-manager, requirement-parser
+- open-source-release-prep (n=3, agent:3, avg=2.56) e.g. opensource-forker, opensource-packager, opensource-sanitizer
+- web-research (n=3, command:1,mcp:1,skill:1, avg=3.72) e.g. codex-research, exa, exa-search
+- security-review (n=3, command:1,plugin:1,skill:1, avg=3.55) e.g. security, security-guidance, security-bounty-hunter
+- test-driven-development (n=3, command:1,skill:2, avg=4.11) e.g. tdd, tdd, test-driven-development
+- post-edit-quality (n=3, hook:3, avg=3.22) e.g. after-file-edit.js, after-tab-file-edit.js, design-quality-check.js
+- shell-lifecycle (n=3, hook:3, avg=3.33) e.g. after-shell-execution.js, auto-tmux-dev.js, before-shell-execution.js
+- sensitive-data-guard (n=3, hook:3, avg=3.44) e.g. before-read-file.js, before-submit-prompt.js, before-tab-file-read.js
+- declarative-hook-rules (n=3, hook:3, avg=2.89) e.g. posttooluse.py, pretooluse.py, userpromptsubmit.py
+- browser-automation (n=3, mcp:1,plugin:1,skill:1, avg=4.17) e.g. playwright, playwright, agent-browser
+- hook-authoring (n=3, plugin:1,skill:2, avg=3.11) e.g. hookify, hook-development, hookify-rules
+- security-baseline (n=3, rule:3, avg=4.11) e.g. common-security, python-security, python/safety
+- multi-agent-orchestration (n=3, skill:3, avg=3.16) e.g. ce:work-beta, claude-devfleet, dmux-workflows
+- writing-craft (n=3, skill:3, avg=3.72) e.g. writing-beats, writing-fragments, writing-shape
+- agent-authoring (n=2, agent:1,skill:1, avg=2.58) e.g. agent-creator, agent-development
+- skill-output-evaluation (n=2, agent:2, avg=3.33) e.g. analyzer, comparator
+- max-effort-generalist (n=2, agent:2, avg=3.58) e.g. claude-max, fable-max
+- cli-agent-readiness (n=2, agent:2, avg=4.25) e.g. cli-agent-readiness-reviewer, cli-readiness-reviewer
+- code-simplicity (n=2, agent:2, avg=2.83) e.g. code-simplicity-reviewer, code-simplifier
+- session-learning-guardrails (n=2, agent:2, avg=2.67) e.g. conversation-analyzer, observer
+- database-change-safety (n=2, agent:2, avg=4.0) e.g. data-integrity-guardian, data-migration-expert
+- figma-fidelity-review (n=2, agent:2, avg=2.83) e.g. design-implementation-reviewer, figma-design-sync
+- documentation-maintenance (n=2, agent:2, avg=2.58) e.g. doc-updater, documentation-analyst-writer
+- bounded-implementation (n=2, agent:2, avg=4.25) e.g. implementer, senior-software-engineer
+- python-code-review (n=2, agent:2, avg=3.75) e.g. kieran-python-reviewer, python-reviewer
+- performance-code-review (n=2, agent:2, avg=3.75) e.g. performance-oracle, performance-reviewer
+- pr-feedback-lifecycle (n=2, agent:2, avg=4.5) e.g. pr-comment-resolver, previous-comments-reviewer
+- dead-code-cleanup (n=2, agent:1,command:1, avg=3.08) e.g. refactor-cleaner, refactor-clean
+- organizational-context-research (n=2, agent:1,skill:1, avg=3.58) e.g. slack-researcher, ce-slack-research
+- test-first-development (n=2, agent:2, avg=3.75) e.g. tdd-guide, test-engineer
+- requirements-discovery (n=2, command:2, avg=3.33) e.g. brainstorm, prp-prd
+- git-branch-cleanup (n=2, command:1,skill:1, avg=2.5) e.g. clean_gone, git-clean-gone-branches
+- git-commit-workflow (n=2, command:1,plugin:1, avg=3.0) e.g. commit, commit-commands
+- plugin-authoring (n=2, command:1,plugin:1, avg=3.33) e.g. create-plugin, plugin-dev
+- feature-development-workflow (n=2, command:2, avg=3.0) e.g. feature-dev, feature-development
+- learned-guidance-portability (n=2, command:2, avg=3.58) e.g. instinct-export, instinct-import
+- autonomous-loop-operations (n=2, command:2, avg=3.58) e.g. loop-start, loop-status
+- agent-sdk-scaffolding (n=2, command:1,plugin:1, avg=3.17) e.g. new-sdk-app, agent-sdk-dev
+- legacy-command-shims (n=2, command:2, avg=4.0) e.g. orchestrate, prompt-optimize
+- plan-execution (n=2, command:1,skill:1, avg=3.33) e.g. prp-implement, executing-plans
+- teaching-and-retention (n=2, command:2, avg=3.0) e.g. quiz-me, teach-me
+- phased-execution (n=2, command:2, avg=3.75) e.g. rpi/implement, run-phases
+- codex-invocation (n=2, command:1,skill:1, avg=4.42) e.g. use-codex, codex-runner
+- mcp-observability (n=2, hook:2, avg=3.17) e.g. after-mcp-execution.js, before-mcp-execution.js
+- generated-file-protection (n=2, hook:2, avg=4.25) e.g. block-generated-edits.py, block-generated-edits.sh
+- agent-event-notifications (n=2, hook:2, avg=2.5) e.g. desktop-notify.js, hooks.py
+- long-running-process-safety (n=2, hook:2, avg=3.17) e.g. pre-bash-dev-server-block.js, pre-bash-tmux-reminder.js
+- agentic-security-review (n=2, hook:2, avg=2.67) e.g. review_api.py, security_reminder_hook.py
+- hook-profile-dispatch (n=2, hook:2, avg=3.25) e.g. run-with-flags-shell.sh, run-with-flags.js
+- subagent-observability (n=2, hook:2, avg=2.67) e.g. subagent-start.js, subagent-stop.js
+- context-compaction (n=2, hook:1,skill:1, avg=3.67) e.g. suggest-compact.js, strategic-compact
+- agent-memory (n=2, mcp:2, avg=3.67) e.g. codebase-memory, memory
+- docs-lookup (n=2, mcp:2, avg=4.17) e.g. context7, deepwiki
+- git-hosting-integration (n=2, mcp:1,plugin:1, avg=3.5) e.g. github, gitlab
+- semantic-code-intel (n=2, plugin:2, avg=3.92) e.g. code-intel, serena
+- hardware-onboarding (n=2, plugin:1,skill:1, avg=3.58) e.g. cwc-makers, m5-onboard
+- chat-notification-bridge (n=2, plugin:2, avg=3.0) e.g. discord, telegram
+- harness-catalog-bundle (n=2, plugin:2, avg=2.92) e.g. ecc, mattpocock-skills
+- output-style (n=2, plugin:2, avg=3.33) e.g. explanatory-output-style, learning-output-style
+- coding-style-core (n=2, rule:2, avg=2.92) e.g. common-coding-style, zh/coding-style
+- testing-standards (n=2, rule:2, avg=3.42) e.g. common-testing, python-testing
+- docs-conventions (n=2, rule:2, avg=3.75) e.g. core/02-knowledge-discoverability, markdown-docs
+- python-style (n=2, rule:2, avg=3.5) e.g. python-coding-style, python-patterns
+- rule-pack-installation (n=2, rule:2, avg=2.42) e.g. README, zh/README
+- html-artifact-design-quality (n=2, rule:2, avg=3.42) e.g. web/coding-style, web/design-quality
+- application-security-baseline (n=2, rule:2, avg=2.92) e.g. web/security, zh/security
+- agent-native-architecture (n=2, skill:2, avg=3.17) e.g. agent-native-architecture, agent-native-audit
+- agentic-engineering-operating-model (n=2, skill:2, avg=3.42) e.g. agentic-engineering, ai-first-engineering
+- requirements-brainstorming (n=2, skill:2, avg=4.0) e.g. brainstorming, ce:brainstorm
+- codebase-understanding (n=2, skill:2, avg=3.5) e.g. codebase-architecture-research, codebase-onboarding
+- continuous-learning (n=2, skill:2, avg=2.42) e.g. continuous-learning, continuous-learning-v2
+- deployment-containers (n=2, skill:2, avg=3.0) e.g. deployment-patterns, docker-patterns
+- prose-editing (n=2, skill:2, avg=3.0) e.g. edit-article, every-style-editor
+- skill-authoring-templates (n=2, skill:2, avg=3.17) e.g. example-command, example-skill
+- media-generation (n=2, skill:2, avg=3.08) e.g. fal-ai-media, gemini-imagegen
+- git-change-publishing (n=2, skill:2, avg=3.33) e.g. git-commit, git-commit-push-pr
+- design-interrogation (n=2, skill:2, avg=3.33) e.g. grill-with-docs, grilling
+- issue-tracker-integration (n=2, skill:2, avg=3.67) e.g. jira-integration, project-flow-ops
+- autonomous-pipeline (n=2, skill:2, avg=3.25) e.g. lfg, ralphinho-rfc-pipeline
+- presentation-repo-specific (n=2, skill:2, avg=3.58) e.g. presentation-structure, presentation-styling
+- manufacturing-domain (n=2, skill:2, avg=3.5) e.g. production-scheduling, quality-nonconformance
+- review-feedback-resolution (n=2, skill:2, avg=3.92) e.g. receiving-code-review, resolve-pr-feedback
+- teaching-learning (n=2, skill:2, avg=3.5) e.g. teach, teach-session
+- completion-verification (n=2, skill:2, avg=3.75) e.g. verification-before-completion, verification-loop
+- adversarial-document-review (n=1, agent:1, avg=4.5) e.g. adversarial-document-reviewer
+- adversarial-code-review (n=1, agent:1, avg=4.67) e.g. adversarial-reviewer
+- agent-interface-parity (n=1, agent:1, avg=3.5) e.g. agent-native-reviewer
+- python-agent-sdk-verification (n=1, agent:1, avg=3.0) e.g. agent-sdk-verifier-py
+- api-contract-review (n=1, agent:1, avg=4.83) e.g. api-contract-reviewer
+- architecture-design (n=1, agent:1, avg=2.0) e.g. architect
+- architecture-critique (n=1, agent:1, avg=4.67) e.g. architecture-critic
+- architecture-review (n=1, agent:1, avg=3.17) e.g. architecture-strategist
+- legacy-business-rule-extraction (n=1, agent:1, avg=4.83) e.g. business-rules-extractor
+- codebase-exploration (n=1, agent:1, avg=4.83) e.g. code-explorer
+- document-coherence-review (n=1, agent:1, avg=4.5) e.g. coherence-reviewer
+- comment-accuracy-review (n=1, agent:1, avg=3.83) e.g. comment-analyzer
+- principle-compliance-review (n=1, agent:1, avg=1.83) e.g. constitutional-validator
+- data-migration-review (n=1, agent:1, avg=4.33) e.g. data-migrations-reviewer
+- postgres-review (n=1, agent:1, avg=2.5) e.g. database-reviewer
+- database-deployment-readiness (n=1, agent:1, avg=3.33) e.g. deployment-verification-agent
+- ui-visual-iteration (n=1, agent:1, avg=2.0) e.g. design-iterator
+- ux-spec-review (n=1, agent:1, avg=3.5) e.g. design-lens-reviewer
+- harness-repository-research (n=1, agent:1, avg=2.5) e.g. development-workflows-research-agent
+- generalist-delegation-tier (n=1, agent:1, avg=4.17) e.g. fable-xhigh
+- plan-feasibility-review (n=1, agent:1, avg=4.83) e.g. feasibility-reviewer
+- framework-doc-research (n=1, agent:1, avg=3.67) e.g. framework-docs-researcher
+- git-archaeology (n=1, agent:1, avg=4.5) e.g. git-history-analyzer
+- spec-output-grading (n=1, agent:1, avg=4.0) e.g. grader
+- harness-optimization (n=1, agent:1, avg=3.0) e.g. harness-optimizer
+- healthcare-safety-review (n=1, agent:1, avg=2.5) e.g. healthcare-reviewer
+- issue-landscape-analysis (n=1, agent:1, avg=2.5) e.g. issue-intelligence-analyst
+- prior-learnings-retrieval (n=1, agent:1, avg=3.5) e.g. learnings-researcher
+- legacy-codebase-analysis (n=1, agent:1, avg=4.67) e.g. legacy-analyst
+- autonomous-loop-supervision (n=1, agent:1, avg=2.83) e.g. loop-operator
+- maintainability-code-review (n=1, agent:1, avg=4.67) e.g. maintainability-reviewer
+- code-pattern-consistency (n=1, agent:1, avg=3.0) e.g. pattern-recognition-specialist
+- performance-profiling (n=1, agent:1, avg=2.0) e.g. performance-optimizer
+- plugin-validation (n=1, agent:1, avg=2.83) e.g. plugin-validator
+- test-coverage-review (n=1, agent:1, avg=4.17) e.g. pr-test-analyzer
+- product-document-review (n=1, agent:1, avg=3.83) e.g. product-lens-reviewer
+- project-standards-review (n=1, agent:1, avg=4.83) e.g. project-standards-reviewer
+- pytorch-runtime-debugging (n=1, agent:1, avg=2.67) e.g. pytorch-build-resolver
+- reliability-code-review (n=1, agent:1, avg=4.83) e.g. reliability-reviewer
+- repository-orientation (n=1, agent:1, avg=2.67) e.g. repo-research-analyst
+- code-modernization-scaffolding (n=1, agent:1, avg=4.33) e.g. scaffolder
+- plan-scope-review (n=1, agent:1, avg=4.33) e.g. scope-guardian-reviewer
+- security-audit (n=1, agent:1, avg=4.83) e.g. security-auditor
+- security-plan-review (n=1, agent:1, avg=5.0) e.g. security-lens-reviewer
+- security-code-review (n=1, agent:1, avg=3.67) e.g. security-reviewer
+- security-review-core (n=1, agent:1, avg=2.5) e.g. security-sentinel
+- seo-audit (n=1, agent:1, avg=4.0) e.g. seo-specialist
+- cross-session-history (n=1, agent:1, avg=4.5) e.g. session-historian
+- silent-failure-review (n=1, agent:1, avg=3.5) e.g. silent-failure-hunter
+- skill-quality-review (n=1, agent:1, avg=2.83) e.g. skill-reviewer
+- spec-flow-review (n=1, agent:1, avg=4.83) e.g. spec-flow-analyzer
+- spec-compliance-review (n=1, agent:1, avg=5.0) e.g. spec-reviewer
+- architecture-decision-review (n=1, agent:1, avg=1.5) e.g. technical-cto-advisor
+- test-quality-review (n=1, agent:1, avg=4.83) e.g. testing-reviewer
+- type-invariant-review (n=1, agent:1, avg=3.83) e.g. type-design-analyzer
+- ux-requirements (n=1, agent:1, avg=4.0) e.g. ux-designer
+- stack-version-migration (n=1, agent:1, avg=4.33) e.g. version-delta-analyst
+- language-rules (n=1, command:1, avg=2.5) e.g. add-language-rules
+- capability-curation (n=1, command:1, avg=3.17) e.g. agent-sort
+- conversational-context-control (n=1, command:1, avg=2.67) e.g. aside
+- ralph-loop-control (n=1, command:1, avg=5.0) e.g. cancel-ralph
+- invariant-checking (n=1, command:1, avg=5.0) e.g. check-invariants
+- workflow-checkpointing (n=1, command:1, avg=2.83) e.g. checkpoint
+- nanoclaw-repl-compat (n=1, command:1, avg=3.67) e.g. claw
+- codex-delegation (n=1, command:1, avg=4.17) e.g. codex
+- codex-readiness (n=1, command:1, avg=4.67) e.g. codex-check
+- design-critique (n=1, command:1, avg=4.5) e.g. codex-critique
+- delegated-implementation (n=1, command:1, avg=4.17) e.g. codex-implement
+- git-publish-workflow (n=1, command:1, avg=2.5) e.g. commit-push-pr
+- context-management-compat (n=1, command:1, avg=3.67) e.g. context-budget
+- private-mcp-tunnel (n=1, command:1, avg=3.83) e.g. create-docker-mcp-tunnel
+- database-migration (n=1, command:1, avg=2.83) e.g. database-migration
+- agent-fleet-orchestration (n=1, command:1, avg=3.67) e.g. devfleet
+- code-intel-lifecycle (n=1, command:1, avg=4.67) e.g. disable-for-project
+- documentation-lookup (n=1, command:1, avg=3.67) e.g. docs
+- environment-diagnostics (n=1, command:1, avg=4.0) e.g. doctor
+- eval-harness (n=1, command:1, avg=3.67) e.g. eval
+- learned-capability-promotion (n=1, command:1, avg=2.67) e.g. evolve
+- plan-execution-compat (n=1, command:1, avg=3.0) e.g. execute-plan
+- harness-health-audit (n=1, command:1, avg=4.17) e.g. harness-audit
+- plugin-help (n=1, command:1, avg=3.0) e.g. help
+- policy-hook-authoring (n=1, command:1, avg=2.33) e.g. hookify
+- code-intelligence-indexing (n=1, command:1, avg=4.17) e.g. index-repo
+- learned-guidance-audit (n=1, command:1, avg=2.83) e.g. instinct-status
+- external-ticketing-integration (n=1, command:1, avg=4.0) e.g. jira
+- learning-capture (n=1, command:1, avg=3.17) e.g. learn-eval
+- hook-rule-inventory (n=1, command:1, avg=3.67) e.g. list
+- model-routing (n=1, command:1, avg=3.33) e.g. model-route
+- legacy-system-assessment (n=1, command:1, avg=3.33) e.g. modernize-assess
+- modernization-planning (n=1, command:1, avg=4.5) e.g. modernize-brief
+- business-rule-extraction (n=1, command:1, avg=4.5) e.g. modernize-extract-rules
+- security-hardening (n=1, command:1, avg=3.17) e.g. modernize-harden
+- architecture-mapping (n=1, command:1, avg=3.17) e.g. modernize-map
+- modernization-readiness (n=1, command:1, avg=4.67) e.g. modernize-preflight
+- legacy-system-rebuild (n=1, command:1, avg=3.5) e.g. modernize-reimagine
+- modernization-status (n=1, command:1, avg=4.83) e.g. modernize-status
+- behavior-preserving-modernization (n=1, command:1, avg=4.5) e.g. modernize-transform
+- runtime-version-uplift (n=1, command:1, avg=4.0) e.g. modernize-uplift
+- workstream-bootstrap (n=1, command:1, avg=4.5) e.g. prepare-phases
+- safe-commit-workflow (n=1, command:1, avg=3.33) e.g. prp-commit
+- pr-creation (n=1, command:1, avg=3.83) e.g. prp-pr
+- python-review (n=1, command:1, avg=2.5) e.g. python-review
+- formatter-quality-gate (n=1, command:1, avg=4.33) e.g. quality-gate
+- autonomous-agent-loop (n=1, command:1, avg=3.17) e.g. ralph-loop
+- codex-command-migration (n=1, command:1, avg=4.0) e.g. README
+- persistent-learnings (n=1, command:1, avg=3.83) e.g. revise-claude-md
+- feature-viability (n=1, command:1, avg=2.5) e.g. rpi/research
+- rules-distillation (n=1, command:1, avg=3.83) e.g. rules-distill
+- code-intelligence-setup (n=1, command:1, avg=4.17) e.g. setup
+- skill-portfolio-observability (n=1, command:1, avg=3.83) e.g. skill-health
+- learning-artifact-sync (n=1, command:1, avg=3.33) e.g. sync-tutorials
+- test-coverage-analysis (n=1, command:1, avg=3.33) e.g. test-coverage
+- pr-triage (n=1, command:1, avg=2.83) e.g. triage-prs
+- harness-update (n=1, command:1, avg=4.5) e.g. update
+- codebase-orientation (n=1, command:1, avg=3.33) e.g. update-codemaps
+- documentation-source-sync (n=1, command:1, avg=3.33) e.g. update-docs
+- verification-before-completion (n=1, command:1, avg=3.67) e.g. verify
+- reference-harness-comparison (n=1, command:1, avg=2.5) e.g. workflows/development-workflows
+- package-plumbing (n=1, hook:1, avg=1.83) e.g. __init__.py
+- beads-context-priming (n=1, hook:1, avg=4.17) e.g. bd-prime.sh
+- dangerous-command-guard (n=1, hook:1, avg=3.67) e.g. block-dangerous-commands.sh
+- hook-feature-flags (n=1, hook:1, avg=3.67) e.g. check-hook-enabled.js
+- config-edit-protection (n=1, hook:1, avg=3.5) e.g. config-protection.js
+- cost-observability (n=1, hook:1, avg=3.17) e.g. cost-tracker.js
+- documentation-sprawl-control (n=1, hook:1, avg=3.17) e.g. doc-file-warning.js
+- session-learning (n=1, hook:1, avg=2.5) e.g. evaluate-session.js
+- code-index-readiness (n=1, hook:1, avg=3.83) e.g. freshness-check.sh
+- governance-security-audit (n=1, hook:1, avg=2.5) e.g. governance-capture.js
+- reference-catalog-freshness (n=1, hook:1, avg=4.17) e.g. harness-staleness-nudge.sh
+- llm-security-review (n=1, hook:1, avg=3.0) e.g. llm.py
+- mcp-reliability (n=1, hook:1, avg=2.67) e.g. mcp-health-check.js
+- continuous-learning-observation (n=1, hook:1, avg=2.67) e.g. observe.sh
+- build-completion-notice (n=1, hook:1, avg=2.33) e.g. post-bash-build-complete.js
+- command-audit-logging (n=1, hook:1, avg=3.33) e.g. post-bash-command-log.js
+- pr-workflow-notice (n=1, hook:1, avg=3.17) e.g. post-bash-pr-created.js
+- batched-edit-quality (n=1, hook:1, avg=4.0) e.g. post-edit-accumulator.js
+- post-edit-formatting (n=1, hook:1, avg=3.17) e.g. post-edit-format.js
+- post-edit-typechecking (n=1, hook:1, avg=2.83) e.g. post-edit-typecheck.js
+- commit-quality-gate (n=1, hook:1, avg=2.17) e.g. pre-bash-commit-quality.js
+- publication-safety (n=1, hook:1, avg=2.83) e.g. pre-bash-git-push-reminder.js
+- context-compaction-continuity (n=1, hook:1, avg=3.17) e.g. pre-compact.js
+- doc-sprawl-guard (n=1, hook:1, avg=4.17) e.g. pre-write-doc-warn.js
+- quality-gates (n=1, hook:1, avg=2.83) e.g. quality-gate.js
+- observer-lifecycle (n=1, hook:1, avg=4.17) e.g. session-end-marker.js
+- hook-bootstrap (n=1, hook:1, avg=3.67) e.g. session-start-bootstrap.js
+- security-review-state (n=1, hook:1, avg=3.33) e.g. session_state.py
+- python-hook-launcher (n=1, hook:1, avg=3.67) e.g. sg-python.sh
+- autonomous-loop-control (n=1, hook:1, avg=3.17) e.g. stop-hook.sh
+- stop-hook-dispatch (n=1, hook:1, avg=3.0) e.g. stop.js
+- completion-gate (n=1, hook:1, avg=3.17) e.g. stop.py
+- reasoning-scaffold (n=1, mcp:1, avg=3.5) e.g. sequential-thinking
+- code-intelligence (n=1, mcp:1, avg=4.67) e.g. serena
+- external-pm-integration (n=1, plugin:1, avg=3.33) e.g. asana
+- harness-setup-recommendation (n=1, plugin:1, avg=3.83) e.g. claude-code-setup
+- claude-md-hygiene (n=1, plugin:1, avg=4.0) e.g. claude-md-management
+- legacy-modernization (n=1, plugin:1, avg=3.0) e.g. code-modernization
+- code-simplification (n=1, plugin:1, avg=3.0) e.g. code-simplifier
+- second-model-delegation (n=1, plugin:1, avg=4.83) e.g. codex-adapter
+- learning-tutor (n=1, plugin:1, avg=2.5) e.g. coding-tutor
+- learning-compounding (n=1, plugin:1, avg=3.5) e.g. compound-engineering
+- live-docs-lookup (n=1, plugin:1, avg=4.0) e.g. context7
+- plugin-authoring-reference (n=1, plugin:1, avg=3.67) e.g. example-plugin
+- feature-dev-workflow (n=1, plugin:1, avg=3.83) e.g. feature-dev
+- platform-integration (n=1, plugin:1, avg=3.17) e.g. firebase
+- github-integration (n=1, plugin:1, avg=3.5) e.g. github
+- issue-tracking-integration (n=1, plugin:1, avg=3.33) e.g. linear
+- mcp-server-dev (n=1, plugin:1, avg=4.33) e.g. mcp-server-dev
+- remote-mcp-connectivity (n=1, plugin:1, avg=3.5) e.g. mcp-tunnels
+- html-artifact-tooling (n=1, plugin:1, avg=3.5) e.g. playground
+- project-status-reporting (n=1, plugin:1, avg=3.83) e.g. project-artifact
+- autonomous-looping (n=1, plugin:1, avg=3.67) e.g. ralph-loop
+- core-dev-methodology (n=1, plugin:1, avg=4.33) e.g. superpowers
+- iac-tooling (n=1, plugin:1, avg=3.5) e.g. terraform
+- dev-workflow-pipeline (n=1, rule:1, avg=3.83) e.g. common-development-workflow
+- git-workflow (n=1, rule:1, avg=3.67) e.g. common-git-workflow
+- hooks-governance (n=1, rule:1, avg=3.0) e.g. common-hooks
+- design-patterns (n=1, rule:1, avg=2.83) e.g. common-patterns
+- context-management (n=1, rule:1, avg=2.83) e.g. common-performance
+- llm-coding-guardrails (n=1, rule:1, avg=4.5) e.g. core/03-ak-guidelines
+- prompt-defense (n=1, rule:1, avg=2.17) e.g. everything-claude-code-guardrails
+- remotion-text-layout (n=1, rule:1, avg=3.67) e.g. measuring-text
+- presentation-delegation (n=1, rule:1, avg=3.33) e.g. presentation
+- python-automation-hooks (n=1, rule:1, avg=3.17) e.g. python-hooks
+- frontend-application-architecture (n=1, rule:1, avg=3.17) e.g. web/patterns
+- html-artifact-performance (n=1, rule:1, avg=3.17) e.g. web/performance
+- html-artifact-verification (n=1, rule:1, avg=3.83) e.g. web/testing
+- development-workflow-core (n=1, rule:1, avg=2.17) e.g. zh/development-workflow
+- git-workflow-core (n=1, rule:1, avg=2.5) e.g. zh/git-workflow
+- hook-safety-and-tracking (n=1, rule:1, avg=2.33) e.g. zh/hooks
+- application-design-patterns (n=1, rule:1, avg=2.17) e.g. zh/patterns
+- agent-runtime-management (n=1, rule:1, avg=2.17) e.g. zh/performance
+- testing-core (n=1, rule:1, avg=2.33) e.g. zh/testing
+- coding-agent-benchmarking (n=1, skill:1, avg=3.5) e.g. agent-eval
+- agent-tooling-design (n=1, skill:1, avg=3.67) e.g. agent-harness-construction
+- agent-payments (n=1, skill:1, avg=2.67) e.g. agent-payment-x402
+- regression-testing (n=1, skill:1, avg=2.17) e.g. ai-regression-testing
+- coding-discipline (n=1, skill:1, avg=5.0) e.g. ak-guide
+- api-connector-development (n=1, skill:1, avg=4.5) e.g. api-connector-builder
+- rest-api-design (n=1, skill:1, avg=2.83) e.g. api-design
+- architecture-decisions (n=1, skill:1, avg=4.33) e.g. architecture-decision-records
+- long-form-writing (n=1, skill:1, avg=4.33) e.g. article-writing
+- skill-routing (n=1, skill:1, avg=3.17) e.g. ask-matt
+- automation-surface-audit (n=1, skill:1, avg=4.67) e.g. automation-audit-ops
+- autonomous-agent-operations (n=1, skill:1, avg=2.17) e.g. autonomous-agent-harness
+- autonomous-execution (n=1, skill:1, avg=2.5) e.g. autonomous-loops
+- performance-benchmarking (n=1, skill:1, avg=2.83) e.g. benchmark
+- brand-voice (n=1, skill:1, avg=4.17) e.g. brand-voice
+- browser-qa (n=1, skill:1, avg=4.17) e.g. browser-qa
+- mcp-app-development (n=1, skill:1, avg=3.83) e.g. build-mcp-app
+- mcp-server-development (n=1, skill:1, avg=3.67) e.g. build-mcp-server
+- mcp-local-distribution (n=1, skill:1, avg=4.17) e.g. build-mcpb
+- post-deploy-monitoring (n=1, skill:1, avg=2.67) e.g. canary-watch
+- cardputer-device-development (n=1, skill:1, avg=4.33) e.g. cardputer-buddy
+- session-history-retrieval (n=1, skill:1, avg=3.83) e.g. ce-sessions
+- plugin-self-update (n=1, skill:1, avg=4.33) e.g. ce-update
+- project-learning-capture (n=1, skill:1, avg=3.0) e.g. ce:compound
+- project-learning-maintenance (n=1, skill:1, avg=2.33) e.g. ce:compound-refresh
+- project-ideation (n=1, skill:1, avg=2.67) e.g. ce:ideate
+- implementation-execution (n=1, skill:1, avg=2.17) e.g. ce:work
+- changelog-generation (n=1, skill:1, avg=2.17) e.g. changelog
+- repository-invariant-checking (n=1, skill:1, avg=4.5) e.g. check-invariants
+- project-memory (n=1, skill:1, avg=3.17) e.g. ck
+- anthropic-api-reference (n=1, skill:1, avg=2.83) e.g. claude-api
+- harness-automation-audit (n=1, skill:1, avg=2.67) e.g. claude-automation-recommender
+- instruction-file-maintenance (n=1, skill:1, avg=3.33) e.g. claude-md-improver
+- permission-allowlist-tuning (n=1, skill:1, avg=3.67) e.g. claude-permissions-optimizer
+- state-transition-debugging (n=1, skill:1, avg=4.0) e.g. click-path-audit
+- clickhouse-data-engineering (n=1, skill:1, avg=2.33) e.g. clickhouse-io
+- codebase-onboarding-artifacts (n=1, skill:1, avg=4.0) e.g. code-tour
+- module-design (n=1, skill:1, avg=4.0) e.g. codebase-design
+- coding-standards-core (n=1, skill:1, avg=2.17) e.g. coding-standards
+- codebase-teaching (n=1, skill:1, avg=2.83) e.g. coding-tutor
+- harness-command-authoring (n=1, skill:1, avg=2.17) e.g. command-development
+- harness-installation (n=1, skill:1, avg=2.5) e.g. configure-ecc
+- content-addressed-cache (n=1, skill:1, avg=3.83) e.g. content-hash-cache-pattern
+- context-budget (n=1, skill:1, avg=3.0) e.g. context-budget
+- continuous-agent-execution (n=1, skill:1, avg=2.33) e.g. continuous-agent-loop
+- llm-cost-control (n=1, skill:1, avg=3.17) e.g. cost-aware-llm-pipeline
+- software-cost-estimation (n=1, skill:1, avg=3.17) e.g. cost-estimate
+- multi-perspective-decision (n=1, skill:1, avg=4.17) e.g. council
+- observability-dashboard-design (n=1, skill:1, avg=4.17) e.g. dashboard-builder
+- scheduled-data-collection (n=1, skill:1, avg=2.33) e.g. data-scraper-agent
+- database-migrations (n=1, skill:1, avg=2.67) e.g. database-migrations
+- workstream-decomposition (n=1, skill:1, avg=3.5) e.g. decision-mapping
+- decision-grade-research (n=1, skill:1, avg=4.67) e.g. deep-research
+- docs-deployment (n=1, skill:1, avg=3.0) e.g. deploy-docs
+- interface-design (n=1, skill:1, avg=4.33) e.g. design-an-interface
+- design-doc-evolution (n=1, skill:1, avg=3.33) e.g. design-evolve
+- visual-design-audit (n=1, skill:1, avg=3.0) e.g. design-system
+- django-application-patterns (n=1, skill:1, avg=2.17) e.g. django-patterns
+- django-security (n=1, skill:1, avg=2.0) e.g. django-security
+- django-testing (n=1, skill:1, avg=2.17) e.g. django-tdd
+- django-verification (n=1, skill:1, avg=1.67) e.g. django-verification
+- document-review (n=1, skill:1, avg=4.5) e.g. document-review
+- documentation-research (n=1, skill:1, avg=4.17) e.g. documentation-lookup
+- domain-modeling (n=1, skill:1, avg=4.17) e.g. domain-modeling
+- agent-ops-observability (n=1, skill:1, avg=2.83) e.g. enterprise-agent-ops
+- agent-evaluation (n=1, skill:1, avg=2.17) e.g. eval-harness
+- blockchain-domain (n=1, skill:1, avg=4.0) e.g. evm-token-decimals
+- pr-evidence-capture (n=1, skill:1, avg=3.17) e.g. feature-video
+- git-branch-finish (n=1, skill:1, avg=3.5) e.g. finishing-a-development-branch
+- html-design-quality (n=1, skill:1, avg=3.83) e.g. frontend-design
+- html-presentations (n=1, skill:1, avg=3.67) e.g. frontend-slides
+- git-safety-guardrails (n=1, skill:1, avg=3.17) e.g. git-guardrails-claude-code
+- git-conventions (n=1, skill:1, avg=2.5) e.g. git-workflow
+- git-worktree-isolation (n=1, skill:1, avg=3.67) e.g. git-worktree
+- github-repository-operations (n=1, skill:1, avg=2.83) e.g. github-ops
+- office-suite-ops (n=1, skill:1, avg=3.0) e.g. google-workspace-ops
+- graph-first-code-intelligence (n=1, skill:1, avg=4.67) e.g. graph-first
+- adversarial-design-review (n=1, skill:1, avg=4.33) e.g. grill-me
+- session-handoff-continuity (n=1, skill:1, avg=3.67) e.g. handoff
+- architecture-patterns (n=1, skill:1, avg=3.5) e.g. hexagonal-architecture
+- human-readable-html-artifacts (n=1, skill:1, avg=4.5) e.g. html-artifact
+- implementation-workflow (n=1, skill:1, avg=3.67) e.g. implement
+- architecture-assessment (n=1, skill:1, avg=3.0) e.g. improve-codebase-architecture
+- business-domain-persona (n=1, skill:1, avg=3.0) e.g. inventory-demand-planning
+- context-retrieval (n=1, skill:1, avg=3.17) e.g. iterative-retrieval
+- knowledge-management (n=1, skill:1, avg=2.17) e.g. knowledge-ops
+- domain-security-niche (n=1, skill:1, avg=3.67) e.g. llm-trading-agent-security
+- workflow-specification (n=1, skill:1, avg=3.17) e.g. loop-me
+- media-explainers (n=1, skill:1, avg=3.5) e.g. manim-video
+- research-reporting (n=1, skill:1, avg=3.5) e.g. market-research
+- mcp-plugin-integration (n=1, skill:1, avg=1.83) e.g. mcp-integration
+- claude-codex-migration (n=1, skill:1, avg=4.0) e.g. migrate-claude-to-codex
+- repl-tooling (n=1, skill:1, avg=2.83) e.g. nanoclaw-repl
+- document-processing (n=1, skill:1, avg=4.0) e.g. nutrient-document-processing
+- personal-notes (n=1, skill:1, avg=3.5) e.g. obsidian-vault
+- codebase-onboarding (n=1, skill:1, avg=2.83) e.g. onboarding
+- open-source-release (n=1, skill:1, avg=2.17) e.g. opensource-pipeline
+- beads-phase-execution (n=1, skill:1, avg=4.17) e.g. phase-execution
+- write-time-quality-hooks (n=1, skill:1, avg=3.33) e.g. plankton-code-quality
+- interactive-html-playground (n=1, skill:1, avg=4.33) e.g. playground
+- plugin-configuration (n=1, skill:1, avg=2.0) e.g. plugin-settings
+- plugin-scaffolding (n=1, skill:1, avg=2.5) e.g. plugin-structure
+- postgres-engineering (n=1, skill:1, avg=3.0) e.g. postgres-patterns
+- workstream-planning (n=1, skill:1, avg=4.0) e.g. prepare-phases
+- requirements-engineering (n=1, skill:1, avg=4.17) e.g. product-capability
+- product-validation (n=1, skill:1, avg=3.5) e.g. product-lens
+- status-reporting (n=1, skill:1, avg=4.17) e.g. project-artifact
+- prompt-authoring (n=1, skill:1, avg=3.5) e.g. prompt-optimizer
+- doc-sharing-service (n=1, skill:1, avg=3.67) e.g. proof
+- prototyping (n=1, skill:1, avg=4.67) e.g. prototype
+- python-coding-standards (n=1, skill:1, avg=2.17) e.g. python-patterns
+- python-testing (n=1, skill:1, avg=2.17) e.g. python-testing
+- pytorch-training (n=1, skill:1, avg=2.5) e.g. pytorch-patterns
+- issue-filing (n=1, skill:1, avg=3.83) e.g. qa
+- cloud-file-transfer (n=1, skill:1, avg=3.17) e.g. rclone
+- deterministic-text-parsing (n=1, skill:1, avg=2.83) e.g. regex-vs-llm-structured-text
+- repo-audit (n=1, skill:1, avg=3.33) e.g. repo-scan
+- refactor-planning (n=1, skill:1, avg=3.83) e.g. request-refactor-plan
+- current-evidence-research (n=1, skill:1, avg=4.0) e.g. research-ops
+- merge-conflict-resolution (n=1, skill:1, avg=3.17) e.g. resolving-merge-conflicts
+- harness-rule-maintenance (n=1, skill:1, avg=3.5) e.g. rules-distill
+- phased-workstream-execution (n=1, skill:1, avg=5.0) e.g. run-phases
+- destructive-operation-guard (n=1, skill:1, avg=2.83) e.g. safety-guard
+- adversarial-review (n=1, skill:1, avg=3.5) e.g. santa-method
+- course-authoring (n=1, skill:1, avg=3.67) e.g. scaffold-exercises
+- research-before-building (n=1, skill:1, avg=3.0) e.g. search-first
+- application-security-review (n=1, skill:1, avg=2.33) e.g. security-review
+- harness-security-audit (n=1, skill:1, avg=3.5) e.g. security-scan
+- web-seo (n=1, skill:1, avg=3.67) e.g. seo
+- agent-session-observability (n=1, skill:1, avg=5.0) e.g. session-report
+- skill-compliance-evaluation (n=1, skill:1, avg=3.33) e.g. skill-comply
+- capability-quality-audit (n=1, skill:1, avg=3.67) e.g. skill-stocktake
+- subagent-driven-development (n=1, skill:1, avg=4.67) e.g. subagent-driven-development
+- tdd-core (n=1, skill:1, avg=2.33) e.g. tdd-workflow
+- agent-orchestration (n=1, skill:1, avg=3.17) e.g. team-builder
+- evidence-first-terminal-ops (n=1, skill:1, avg=4.5) e.g. terminal-ops
+- browser-testing (n=1, skill:1, avg=4.0) e.g. test-browser
+- workstream-seeding (n=1, skill:1, avg=3.5) e.g. to-issues
+- requirements-capture (n=1, skill:1, avg=3.83) e.g. to-prd
+- response-budgeting (n=1, skill:1, avg=2.83) e.g. token-budget-advisor
+- issue-triage (n=1, skill:1, avg=3.67) e.g. triage
+- domain-glossary (n=1, skill:1, avg=4.0) e.g. ubiquitous-language
+- browser-demo-recording (n=1, skill:1, avg=3.33) e.g. ui-demo
+- notifications-ops (n=1, skill:1, avg=2.83) e.g. unified-notifications-ops
+- codex-invocation-routing (n=1, skill:1, avg=4.67) e.g. use-codex
+- workspace-isolation (n=1, skill:1, avg=3.33) e.g. using-git-worktrees
+- skill-routing-bootstrap (n=1, skill:1, avg=3.0) e.g. using-superpowers
+- media-processing (n=1, skill:1, avg=2.33) e.g. videodb
+- harness-surface-audit (n=1, skill:1, avg=4.17) e.g. workspace-surface-audit
+- hooks-configuration (n=1, skill:1, avg=3.67) e.g. writing-hookify-rules
