@@ -49,6 +49,17 @@ The scanner deduplicates to logical units:
   comes from `plugin.json`'s `name`, not the `.claude-plugin` directory.
 - Only *true* duplicates collapse. `.cursor/rules/*` that share no name with
   `rules/*` stay distinct — the scanner never merges different capabilities.
+- **Files bundled inside a skill's own folder are recorded as that skill's
+  `assets`**, not promoted to their own rows. Harnesses ship prompt templates and
+  helper scripts next to `SKILL.md` (e.g. superpowers' `implementer-prompt.md`,
+  handed to a subagent by `subagent-driven-development`). They are part of the
+  skill, so counting them as separate agents/hooks would misrepresent the design.
+  Each asset is attributed to its **nearest** enclosing skill.
+- **Hooks**: a file under a `hooks/` dir counts when it has a hook suffix *or no
+  extension at all* — superpowers' `hooks/session-start` is extensionless and
+  invoked through a `run-hook.cmd` dispatcher. Files whose stem starts with
+  `test-` or ends with `-test` are self-test programs, not capabilities, and are
+  excluded.
 - Each capability records its **`category`** — the grouping directory it sits in
   (a skill's own folder's parent: `skills/productivity/foo/SKILL.md` → `productivity`;
   a flat `skills/foo/SKILL.md` → the generic `skills`). `gap` prints it as
@@ -138,6 +149,21 @@ kept out of the shipped template by `template-exclude.txt`:
 - **`.claude/hooks/harness-staleness-nudge.sh`** — SessionStart reminder when the
   catalogs are more than 30 days old.
 
+## `export_csv.py` — per-kind inventory CSVs
+
+Flattens catalogs into one CSV per kind, so a review question maps to one file.
+
+```bash
+python3 harness_lifecycle/export_csv.py harness_lifecycle/catalogs/superpowers.json \
+    --out-dir harness_lifecycle/inventory
+```
+
+A CSV is written for **every** kind, including kinds with zero rows (header only),
+so a genuinely absent kind is visible as an empty file rather than a missing one.
+Inventory only — adoption verdicts live in `ledger.json`, and model-judged
+usefulness ratings come from the separate analysis pipelines. Neither is
+reproducible from a scan, so neither appears here.
+
 ## Limitations (current)
 
 - Frontmatter parsing is minimal (single-line scalars); multi-line descriptions
@@ -145,4 +171,11 @@ kept out of the shipped template by `template-exclude.txt`:
 - MCP detection reads `mcp.json` / `.mcp.json` / `plugin.json` `mcpServers`; other
   bespoke MCP config layouts are not yet recognised.
 - Hook signatures use file content only (event/matcher wiring lives in
-  `settings.json`, not yet parsed).
+  `settings.json` / `hooks.json`, not yet parsed) — so a hook is recognised by
+  location, not by proof that something wires it.
+- Commands are recognised as Markdown only. Harnesses that also ship `.toml`
+  command copies for other tool families (Gemini, Antigravity) are **not**
+  inventoried — deliberate: this repo curates the Claude/Codex surface only.
+- Mirror deduplication cannot collapse copies the scanner never recognised. When
+  a platform copy uses an unparsed format, it is dropped before grouping, so
+  `variant_hashes` will not reveal that the copies have diverged.

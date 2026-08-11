@@ -2,9 +2,9 @@
   "schema": "harness-capability-catalog/v1",
   "repo": "agent-skills",
   "source": "working-tree",
-  "source_commit": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
-  "physical_scanned": 114,
-  "excluded": 12,
+  "source_commit": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5",
+  "physical_scanned": 124,
+  "excluded": 60,
   "counts": {
     "agent": {
       "physical": 4,
@@ -15,8 +15,8 @@
       "logical": 8
     },
     "hook": {
-      "physical": 6,
-      "logical": 6
+      "physical": 4,
+      "logical": 4
     },
     "plugin": {
       "physical": 1,
@@ -47,7 +47,8 @@
       "variant_hashes": [
         "12b2e9995f48eafda0ed6a86c4910f77683e6be0"
       ],
-      "line_count": 97
+      "line_count": 97,
+      "assets": []
     },
     {
       "kind": "agent",
@@ -64,7 +65,8 @@
       "variant_hashes": [
         "8c102540dc2944151c3a91f52e3476e2b2a2125b"
       ],
-      "line_count": 112
+      "line_count": 112,
+      "assets": []
     },
     {
       "kind": "agent",
@@ -81,7 +83,8 @@
       "variant_hashes": [
         "c10472e421ab0ad8d6e5ece91bd99a102a913616"
       ],
-      "line_count": 95
+      "line_count": 95,
+      "assets": []
     },
     {
       "kind": "agent",
@@ -98,7 +101,8 @@
       "variant_hashes": [
         "36af5d4779d0eaeb826ac3b31b3a4b52a5660f45"
       ],
-      "line_count": 184
+      "line_count": 184,
+      "assets": []
     },
     {
       "kind": "command",
@@ -115,7 +119,8 @@
       "variant_hashes": [
         "ec9c517ec7279c14fc635b8ca585fd483588cf29"
       ],
-      "line_count": 44
+      "line_count": 44,
+      "assets": []
     },
     {
       "kind": "command",
@@ -132,7 +137,8 @@
       "variant_hashes": [
         "1297279cebf275ed5a7ffec3b22f13f0e5737cc9"
       ],
-      "line_count": 22
+      "line_count": 22,
+      "assets": []
     },
     {
       "kind": "command",
@@ -149,7 +155,8 @@
       "variant_hashes": [
         "5ff71c8cc68ad0cfb624ef4b655974d67c23382e"
       ],
-      "line_count": 16
+      "line_count": 16,
+      "assets": []
     },
     {
       "kind": "command",
@@ -166,7 +173,8 @@
       "variant_hashes": [
         "996fda8ec1786274402cdc2786dab71b857fd79f"
       ],
-      "line_count": 16
+      "line_count": 16,
+      "assets": []
     },
     {
       "kind": "command",
@@ -183,7 +191,8 @@
       "variant_hashes": [
         "c810cf546c557d6fcef459f03a61556077c039dc"
       ],
-      "line_count": 72
+      "line_count": 72,
+      "assets": []
     },
     {
       "kind": "command",
@@ -200,7 +209,8 @@
       "variant_hashes": [
         "7894965fa0e81811ba97d9d09b437b6c5071b4eb"
       ],
-      "line_count": 15
+      "line_count": 15,
+      "assets": []
     },
     {
       "kind": "command",
@@ -217,7 +227,8 @@
       "variant_hashes": [
         "c45c6291dc572c8e8289511a86564772ec95bc5a"
       ],
-      "line_count": 19
+      "line_count": 19,
+      "assets": []
     },
     {
       "kind": "command",
@@ -234,7 +245,8 @@
       "variant_hashes": [
         "ac4ccf44ea753e292c77cbd2001e515325ddc81d"
       ],
-      "line_count": 32
+      "line_count": 32,
+      "assets": []
     },
     {
       "kind": "hook",
@@ -251,7 +263,8 @@
       "variant_hashes": [
         "d22bc981e8a8ae15c915000bfc2eb63a18f76a13"
       ],
-      "line_count": 135
+      "line_count": 135,
+      "assets": []
     },
     {
       "kind": "hook",
@@ -268,7 +281,8 @@
       "variant_hashes": [
         "d461014dcc594389a2d1eb86b1eac3062a92e2f3"
       ],
-      "line_count": 106
+      "line_count": 106,
+      "assets": []
     },
     {
       "kind": "hook",
@@ -285,24 +299,8 @@
       "variant_hashes": [
         "ab473c47edcbe17c0d6d6b46ac966b1d343b112c"
       ],
-      "line_count": 24
-    },
-    {
-      "kind": "hook",
-      "name": "session-start-test.sh",
-      "category": "hooks",
-      "logical_id": "hook:hooks/session-start-test",
-      "canonical_path": "hooks/session-start-test.sh",
-      "paths": [
-        "hooks/session-start-test.sh"
-      ],
-      "description": "",
-      "content_hash": "7050b259c880283a77302ebe17dd8d51956fc01b",
-      "signature_hash": "cb47210ccc31aecfcd8b5f65107cd9ae79899696",
-      "variant_hashes": [
-        "7050b259c880283a77302ebe17dd8d51956fc01b"
-      ],
-      "line_count": 46
+      "line_count": 24,
+      "assets": []
     },
     {
       "kind": "hook",
@@ -319,24 +317,8 @@
       "variant_hashes": [
         "a1b59747ba01a0ba984ffe61a65c0e2b68d6569b"
       ],
-      "line_count": 302
-    },
-    {
-      "kind": "hook",
-      "name": "simplify-ignore-test.sh",
-      "category": "hooks",
-      "logical_id": "hook:hooks/simplify-ignore-test",
-      "canonical_path": "hooks/simplify-ignore-test.sh",
-      "paths": [
-        "hooks/simplify-ignore-test.sh"
-      ],
-      "description": "",
-      "content_hash": "adfa7efaef1c1a4875ed9226442cb1ec5bc2b49b",
-      "signature_hash": "49295d566736557b9b1e5c88ad70ecef94cfe45b",
-      "variant_hashes": [
-        "adfa7efaef1c1a4875ed9226442cb1ec5bc2b49b"
-      ],
-      "line_count": 247
+      "line_count": 302,
+      "assets": []
     },
     {
       "kind": "plugin",
@@ -347,13 +329,14 @@
       "paths": [
         ".claude-plugin/plugin.json"
       ],
-      "description": "",
-      "content_hash": "c781ac1f9327825e5657bf9624746edde3d09e7c",
-      "signature_hash": "79444719a6f84c11b0c89047e05ef9bc4949069c",
+      "description": "Production-grade engineering skills for AI coding agents \u2014 covering the full software development lifecycle from spec to ship.",
+      "content_hash": "337b97ebe5af6c9148b983fc20cb27b9818f4f3b",
+      "signature_hash": "7fadf5bcde1bfd76038370ea44ba57e8de851a5e",
       "variant_hashes": [
-        "c781ac1f9327825e5657bf9624746edde3d09e7c"
+        "337b97ebe5af6c9148b983fc20cb27b9818f4f3b"
       ],
-      "line_count": 18
+      "line_count": 13,
+      "assets": []
     },
     {
       "kind": "rule",
@@ -370,7 +353,8 @@
       "variant_hashes": [
         "cfc6bdd2c9a9bca01c7c6b23058d438507ce662a"
       ],
-      "line_count": 15
+      "line_count": 15,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -387,7 +371,8 @@
       "variant_hashes": [
         "97accee05ccd244184573e320c928c3921c7ac3f"
       ],
-      "line_count": 294
+      "line_count": 294,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -404,7 +389,8 @@
       "variant_hashes": [
         "e2e4b18f70385669172831fe4f40cd4491e68b67"
       ],
-      "line_count": 317
+      "line_count": 317,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -421,7 +407,8 @@
       "variant_hashes": [
         "7652720b57dd289f2ed6755790b2de6afb267419"
       ],
-      "line_count": 390
+      "line_count": 390,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -433,12 +420,13 @@
         "skills/code-review-and-quality/SKILL.md"
       ],
       "description": "Conducts multi-axis code review. Use before merging any change. Use when reviewing code written by yourself, another agent, or a human. Use when you need to assess code quality across multiple dimensions before it enters the main branch.",
-      "content_hash": "3b830e73980d4c47a53d233a94de72d41ee2aec6",
+      "content_hash": "98cf7ffc76e828b2b9672815be846f7977d50b07",
       "signature_hash": "1d22d09219dd90c4934a4f010f268de8ecd79d04",
       "variant_hashes": [
-        "3b830e73980d4c47a53d233a94de72d41ee2aec6"
+        "98cf7ffc76e828b2b9672815be846f7977d50b07"
       ],
-      "line_count": 396
+      "line_count": 396,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -455,7 +443,8 @@
       "variant_hashes": [
         "967a7227962bb98eba9ddc71cf1d75a2dffb0620"
       ],
-      "line_count": 331
+      "line_count": 331,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -472,7 +461,8 @@
       "variant_hashes": [
         "38c693974b7e205f38517aa1f8a87e394b25a06c"
       ],
-      "line_count": 289
+      "line_count": 289,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -484,12 +474,13 @@
         "skills/debugging-and-error-recovery/SKILL.md"
       ],
       "description": "Guides systematic root-cause debugging. Use when tests fail, builds break, behavior doesn't match expectations, or you encounter any unexpected error. Use when you need a systematic approach to finding and fixing the root cause rather than guessing.",
-      "content_hash": "afea5d2df6e973d3c58e6464d17d15580c88efe2",
+      "content_hash": "fdf5af95b56eabc423216f11919269bc88d09d82",
       "signature_hash": "ded7b475ac5c08d050753ef1615dbfd020ae1301",
       "variant_hashes": [
-        "afea5d2df6e973d3c58e6464d17d15580c88efe2"
+        "fdf5af95b56eabc423216f11919269bc88d09d82"
       ],
-      "line_count": 300
+      "line_count": 300,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -506,7 +497,8 @@
       "variant_hashes": [
         "49fb9f0acd9c7b704d509761e167373a168cd11e"
       ],
-      "line_count": 247
+      "line_count": 247,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -518,12 +510,13 @@
         "skills/documentation-and-adrs/SKILL.md"
       ],
       "description": "Records decisions and documentation. Use when making architectural decisions, changing public APIs, shipping features, or when you need to record context that future engineers and agents will need to understand the codebase.",
-      "content_hash": "c06db424db3a7f7a8cd2c087f3e6bff084fad9dd",
+      "content_hash": "6b733c82fa6a9721bf00ad02a30696a076f29630",
       "signature_hash": "0bb9a265358fe884c7110097880acaa7ba775447",
       "variant_hashes": [
-        "c06db424db3a7f7a8cd2c087f3e6bff084fad9dd"
+        "6b733c82fa6a9721bf00ad02a30696a076f29630"
       ],
-      "line_count": 278
+      "line_count": 288,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -535,12 +528,13 @@
         "skills/doubt-driven-development/SKILL.md"
       ],
       "description": "Subjects every non-trivial decision to a fresh-context adversarial review before it stands. Use when correctness matters more than speed, when working in unfamiliar code, when stakes are high (production, security-sensitive logic, irreversible operations), or any time a confident output would be cheaper to verify now than to debug later.",
-      "content_hash": "d2ed7adb9bad3d41c7a4d0fe27da6ebb7dd171fd",
+      "content_hash": "fba35581fc086b390e82bf46fef843e54513e11b",
       "signature_hash": "17c9c9238c655b597d8d7cf901cb4922f86e11ae",
       "variant_hashes": [
-        "d2ed7adb9bad3d41c7a4d0fe27da6ebb7dd171fd"
+        "fba35581fc086b390e82bf46fef843e54513e11b"
       ],
-      "line_count": 243
+      "line_count": 243,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -552,12 +546,13 @@
         "skills/frontend-ui-engineering/SKILL.md"
       ],
       "description": "Builds production-quality, accessible, responsive user-facing UIs. Use when building or modifying interfaces and pages, creating components, implementing layouts, meeting WCAG accessibility requirements, managing state, or when the output needs to look and feel production-quality rather than AI-generated.",
-      "content_hash": "38e61056d62248b88f442660acff03688488dd1b",
+      "content_hash": "c72c515a8691222b714ac6be101d963bb19ac252",
       "signature_hash": "ed34b5668f5b4a6a7fc1ed29f7257de242ebfac4",
       "variant_hashes": [
-        "38e61056d62248b88f442660acff03688488dd1b"
+        "c72c515a8691222b714ac6be101d963bb19ac252"
       ],
-      "line_count": 328
+      "line_count": 328,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -574,7 +569,8 @@
       "variant_hashes": [
         "c0b968f6488ed4ad9ea8fb53a0d2bb77b48e7b96"
       ],
-      "line_count": 355
+      "line_count": 355,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -591,7 +587,13 @@
       "variant_hashes": [
         "1e970fd804c14c68345f34a736d12df1e4dffa1b"
       ],
-      "line_count": 178
+      "line_count": 178,
+      "assets": [
+        "skills/idea-refine/examples.md",
+        "skills/idea-refine/frameworks.md",
+        "skills/idea-refine/refinement-criteria.md",
+        "skills/idea-refine/scripts/idea-refine.sh"
+      ]
     },
     {
       "kind": "skill",
@@ -603,12 +605,13 @@
         "skills/incremental-implementation/SKILL.md"
       ],
       "description": "Delivers changes incrementally. Use when implementing any feature or change that touches more than one file. Use when you're about to write a large amount of code at once, or when a task feels too big to land in one step.",
-      "content_hash": "086c149395b626a7ee36cf48286bb3e178eb0faa",
+      "content_hash": "f9e540cb7e3712843bb0bea734b4a54e427b656d",
       "signature_hash": "eafcd5c25b18b09e0cb247da405df737c41b8005",
       "variant_hashes": [
-        "086c149395b626a7ee36cf48286bb3e178eb0faa"
+        "f9e540cb7e3712843bb0bea734b4a54e427b656d"
       ],
-      "line_count": 249
+      "line_count": 249,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -625,7 +628,8 @@
       "variant_hashes": [
         "22a0935a1e4c8b38025d0f8eb7230f8ae8c46070"
       ],
-      "line_count": 225
+      "line_count": 225,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -637,12 +641,13 @@
         "skills/observability-and-instrumentation/SKILL.md"
       ],
       "description": "Instruments code so production behavior is visible and diagnosable. Use when adding logging, metrics, tracing, or alerting. Use when shipping any feature that runs in production and you need evidence it works. Use when production issues are reported but you can't tell what happened from the available data.",
-      "content_hash": "575380ad70a84317299e8151cee1461aad1a8cb9",
+      "content_hash": "959f8a5d9ea30788a9c614414e6d9f498cda0647",
       "signature_hash": "e7762d4d74449bcd05c6680abba430342f9e66c1",
       "variant_hashes": [
-        "575380ad70a84317299e8151cee1461aad1a8cb9"
+        "959f8a5d9ea30788a9c614414e6d9f498cda0647"
       ],
-      "line_count": 203
+      "line_count": 203,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -654,12 +659,13 @@
         "skills/performance-optimization/SKILL.md"
       ],
       "description": "Optimizes application performance across frontend, backend, queries, and databases. Use when performance requirements exist, when you suspect performance regressions, when Core Web Vitals or load times need improvement, when N+1 query patterns need fixing, or when profiling reveals bottlenecks.",
-      "content_hash": "4e02eabedffe18068e3e1270b0efd4f518d5c995",
+      "content_hash": "f566efd2c632b43625b9b674c44da23a222f44c1",
       "signature_hash": "38ac04a18fc32f647ab239cfdc303ec297596078",
       "variant_hashes": [
-        "4e02eabedffe18068e3e1270b0efd4f518d5c995"
+        "f566efd2c632b43625b9b674c44da23a222f44c1"
       ],
-      "line_count": 349
+      "line_count": 395,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -671,12 +677,13 @@
         "skills/planning-and-task-breakdown/SKILL.md"
       ],
       "description": "Breaks work into ordered tasks. Use when you have a spec or clear requirements and need to break work into implementable tasks. Use when a task feels too large to start, when you need to estimate scope, or when parallel work is possible.",
-      "content_hash": "a83971b56a6786c871955799ef089b095702ca6c",
+      "content_hash": "4b03d031628c440dd59169081c01a88c74c72b45",
       "signature_hash": "0626f8e830fe9d3ee49b6aafced4a6fc034ea38a",
       "variant_hashes": [
-        "a83971b56a6786c871955799ef089b095702ca6c"
+        "4b03d031628c440dd59169081c01a88c74c72b45"
       ],
-      "line_count": 234
+      "line_count": 234,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -688,12 +695,13 @@
         "skills/security-and-hardening/SKILL.md"
       ],
       "description": "Hardens code against vulnerabilities. Use when handling user input, authentication, data storage, or external integrations. Use when building any feature that accepts untrusted data, manages user sessions, or interacts with third-party services.",
-      "content_hash": "e4ec82fc45b88646db3b208215136bf9afa0e933",
+      "content_hash": "516d76f8d674c7ccf9676fd9febe52db0aec9829",
       "signature_hash": "98bcc757476821a0051e7c51dc177900922ae466",
       "variant_hashes": [
-        "e4ec82fc45b88646db3b208215136bf9afa0e933"
+        "516d76f8d674c7ccf9676fd9febe52db0aec9829"
       ],
-      "line_count": 461
+      "line_count": 467,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -705,12 +713,13 @@
         "skills/shipping-and-launch/SKILL.md"
       ],
       "description": "Prepares production launches. Use when preparing to deploy to production. Use when you need a pre-launch checklist, when setting up monitoring, when planning a staged rollout, or when you need a rollback strategy.",
-      "content_hash": "d339fad4d6e79b30361b581f5b47f740e9bfb206",
+      "content_hash": "bd98f2250e3ee82d957765c3254cfe43987b7f3f",
       "signature_hash": "bfc52e176a0a31d2b415dc15fb330d8664eda0f4",
       "variant_hashes": [
-        "d339fad4d6e79b30361b581f5b47f740e9bfb206"
+        "bd98f2250e3ee82d957765c3254cfe43987b7f3f"
       ],
-      "line_count": 310
+      "line_count": 310,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -722,12 +731,13 @@
         "skills/source-driven-development/SKILL.md"
       ],
       "description": "Grounds every implementation decision in official documentation. Use when you want authoritative, source-cited code free from outdated patterns. Use when building with any framework or library where correctness matters.",
-      "content_hash": "513cc9f97961c219435854db27e7acaa31cb2922",
+      "content_hash": "9807144d3f85fb3aff4f0e674505a83d4358acfb",
       "signature_hash": "78f114459b2a65acd12a2d44096abcb157268180",
       "variant_hashes": [
-        "513cc9f97961c219435854db27e7acaa31cb2922"
+        "9807144d3f85fb3aff4f0e674505a83d4358acfb"
       ],
-      "line_count": 194
+      "line_count": 216,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -744,7 +754,8 @@
       "variant_hashes": [
         "18d1b48e3fb8fb019bcb262f256020ba6ccaa258"
       ],
-      "line_count": 206
+      "line_count": 206,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -756,12 +767,13 @@
         "skills/test-driven-development/SKILL.md"
       ],
       "description": "Drives development with tests. Use when implementing any logic, fixing any bug, or changing any behavior. Use when you need to prove that code works, when a bug report arrives, or when you're about to modify existing functionality.",
-      "content_hash": "0e94130c9a20604756350d862ed4f74036206867",
+      "content_hash": "d95f1dfe8bbd2411bdee0fdc5cf8166e80a51c04",
       "signature_hash": "b6dcaac12e7765fb7007a13d16802eb144c97387",
       "variant_hashes": [
-        "0e94130c9a20604756350d862ed4f74036206867"
+        "d95f1dfe8bbd2411bdee0fdc5cf8166e80a51c04"
       ],
-      "line_count": 383
+      "line_count": 398,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -773,12 +785,13 @@
         "skills/using-agent-skills/SKILL.md"
       ],
       "description": "Discovers and invokes agent skills. Use when starting a session or when you need to discover which skill applies to the current task. This is the meta-skill that governs how all other skills are discovered and invoked.",
-      "content_hash": "c3f62e07f34744561bad11ac4203c0a533ee45b6",
+      "content_hash": "3aab5b01a5a018762af2d737633819f0e103cb56",
       "signature_hash": "16317070cad9551c7bb76eabb378910210449ae1",
       "variant_hashes": [
-        "c3f62e07f34744561bad11ac4203c0a533ee45b6"
+        "3aab5b01a5a018762af2d737633819f0e103cb56"
       ],
-      "line_count": 191
+      "line_count": 191,
+      "assets": []
     }
   ]
 }

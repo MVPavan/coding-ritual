@@ -1,0 +1,6 @@
+id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
+hook:hooks/sdd-cache-post,hook,hooks,sdd-cache-post.sh,agent-skills,hooks/sdd-cache-post.sh,135,0,,
+hook:hooks/sdd-cache-pre,hook,hooks,sdd-cache-pre.sh,agent-skills,hooks/sdd-cache-pre.sh,106,0,,
+hook:hooks/session-start,hook,hooks,session-start.sh,agent-skills,hooks/session-start.sh,24,0,,
+hook:hooks/simplify-ignore,hook,hooks,simplify-ignore.sh,agent-skills,hooks/simplify-ignore.sh,302,0,,
+hook:hooks/session-start,hook,hooks,session-start,superpowers,hooks/session-start,49,0,,

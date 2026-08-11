@@ -1,0 +1,4 @@
+id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
+plugin:agent-skills,plugin,,agent-skills,agent-skills,.claude-plugin/plugin.json,13,0,,Production-grade engineering skills for AI coding agents — covering the full software development lifecycle from spec to ship.
+plugin:mattpocock-skills,plugin,,mattpocock-skills,mattpocock_skills,.claude-plugin/plugin.json,48,0,,"Matt Pocock's agent skills for real engineering — grilling, spec/ticket flows, TDD, code review, domain modelling and more. Plug-and-play, not vibe coding."
+plugin:superpowers,plugin,,superpowers,superpowers,.claude-plugin/plugin.json,20,0,,"Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques"

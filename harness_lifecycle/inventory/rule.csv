@@ -1,0 +1,2 @@
+id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
+rule:rules/skills-contributing,rule,rules,skills-contributing,agent-skills,.claude/rules/skills-contributing.md,15,0,,Anti-duplication guardrail for adding or changing skills
