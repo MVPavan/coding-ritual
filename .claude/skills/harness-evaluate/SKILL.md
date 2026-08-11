@@ -1,6 +1,6 @@
 ---
 name: harness-evaluate
-description: Evaluate a reference-harness capability (from /harness-scan drift or gap output) against our own harness and decide how to absorb it — fold into the mvp-plugin template, make a new plugin, merge into an existing plugin, or reject/defer — then drive the sync-back. Use when curating reference_harnesses/* into mvp-harness.
+description: Use when a reference-harness capability surfaced by /harness-scan drift or gap output needs a curation decision recorded in the ledger, or when an already-adopted capability needs syncing back. Use when curating reference_harnesses/* into mvp-harness.
 ---
 
 # Harness Evaluate
