@@ -11,8 +11,8 @@ signal: the disagreements below are the only places a real decision is needed.
 
 | Fact | Source | Confirmed |
 |---|---|---|
-| `install-harness.sh` **silently overwrites** any non-user-owned core file that was edited locally; `/update` re-runs it → local edits to skills/rules/agents are lost | [install-harness.sh:36-41](../../mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh#L36-L41) | ✅ read the code |
-| `build-template.sh` has **no `skills/` or `commands/` exclusion** → any lifecycle skill added to root `.claude/` leaks into the template payload shipped to every adopted repo | [build-template.sh:50-58](../../mvp-harness/plugins/mvp-plugin/scripts/build-template.sh#L50-L58) | ✅ read the code |
+| `install-harness.sh` **silently overwrites** any non-user-owned core file that was edited locally; `/update` re-runs it → local edits to skills/rules/agents are lost | [install-harness.sh:36-41](../../../mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh#L36-L41) | ✅ read the code |
+| `build-template.sh` has **no `skills/` or `commands/` exclusion** → any lifecycle skill added to root `.claude/` leaks into the template payload shipped to every adopted repo | [build-template.sh:50-58](../../../mvp-harness/plugins/mvp-plugin/scripts/build-template.sh#L50-L58) | ✅ read the code |
 | everything-claude-code: 457 `SKILL.md` / 291 commands / 175 agents in the pinned checkout | both, measured | ✅ counted earlier |
 | Those 457 collapse to **~183 unique logical skills** (mirror-tree inflation ~2.5×) | Fable, measured | ⏳ plausible; validate as scanner's first calibration test |
 

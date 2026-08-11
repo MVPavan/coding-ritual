@@ -86,9 +86,9 @@ live in the coding-ritual **root** harness to drive this lifecycle end to end?
 Two independent researchers, **same brief, no cross-talk**, then I synthesize and
 you approve:
 
-- **Fable-5 @ xhigh** (subagent) → `docs/research/harness-lifecycle-fable5.md`
-- **GPT-5.5 @ xhigh** (Codex `research` role, web search on) → `docs/research/harness-lifecycle-gpt55.md`
-- **Synthesis** (agreements, conflicts, my recommendation) → `docs/research/harness-lifecycle-synthesis.md`
+- **Fable-5 @ xhigh** (subagent) → `docs/research/harness-lifecycle/harness-lifecycle-fable5.md`
+- **GPT-5.5 @ xhigh** (Codex `research` role, web search on) → `docs/research/harness-lifecycle/harness-lifecycle-gpt55.md`
+- **Synthesis** (agreements, conflicts, my recommendation) → `docs/research/harness-lifecycle/harness-lifecycle-synthesis.md`
 - → your decision → phased build tracked in beads.
 
 Each researcher answers areas A–F with, per area: a concrete recommendation,
