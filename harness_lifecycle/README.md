@@ -164,6 +164,45 @@ Inventory only — adoption verdicts live in `ledger.json`, and model-judged
 usefulness ratings come from the separate analysis pipelines. Neither is
 reproducible from a scan, so neither appears here.
 
+## `inventory/skill-buckets.{md,csv}` — the skill routing taxonomy
+
+A hand-curated categorisation of every skill in `inventory/skill.csv` into 14
+buckets: one **primary** bucket per skill (the outcome that caused the
+invocation) plus secondary buckets where a skill genuinely spans two.
+
+Unlike everything else here it is a **judgement, not a derivation** — nothing
+regenerates it, so `skill-buckets.csv` is its own source of truth. Re-run the
+scan and it will drift; reconcile by hand against `skill.csv`.
+
+Bucket membership answers *what do I reach for?*. It does **not** answer *which of
+these are redundant?* — `frontend-ui-engineering` and `security-and-hardening` share
+a bucket and substitute for nothing. That second question is answered by
+`capability_family` plus `family_relation` (`substitutes` / `complements` /
+`pipeline` / `genus`); only the `substitutes` rows are adopt-one-not-both calls.
+`adoption_scope` marks the bucket-14 skills (teaching, prose, conversation repair)
+as out of scope — inventoried for completeness, not adoption candidates.
+
+## `casebook/` — the append-only curation record
+
+Which reference skills we adopted, which we rejected, and why — kept per bucket
+and never rewritten. Answers "we looked at this before; what did we decide, and
+has it changed since?"
+
+`rounds/*.jsonl` is the authored log; `current.json` and `views/bucket-NN.md` are
+generated. Editing a sealed round fails `casebook.py validate`. Changing a ruling
+means appending an event that supersedes the old one, not editing it.
+
+```bash
+python3 harness_lifecycle/casebook/casebook.py validate
+python3 harness_lifecycle/casebook/casebook.py build --seal
+python3 harness_lifecycle/casebook/casebook.py query <skill>
+```
+
+Distinct from `ledger.json` on purpose: the ledger is a mutable current-state
+index (`gap.py ledger add` replaces entries and only hashes adopted ones), so it
+cannot hold history or notice that a *rejected* skill changed upstream. See
+`casebook/README.md`.
+
 ## Limitations (current)
 
 - Frontmatter parsing is minimal (single-line scalars); multi-line descriptions
