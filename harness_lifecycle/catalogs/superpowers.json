@@ -2,17 +2,13 @@
   "schema": "harness-capability-catalog/v1",
   "repo": "superpowers",
   "source": "working-tree",
-  "source_commit": "917e5f53b16b115b70a3a355ed5f4993b9f8b73d",
-  "physical_scanned": 80,
-  "excluded": 64,
+  "source_commit": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+  "physical_scanned": 88,
+  "excluded": 93,
   "counts": {
-    "agent": {
+    "hook": {
       "physical": 1,
       "logical": 1
-    },
-    "command": {
-      "physical": 3,
-      "logical": 3
     },
     "plugin": {
       "physical": 1,
@@ -25,72 +21,22 @@
   },
   "capabilities": [
     {
-      "kind": "agent",
-      "name": "code-reviewer",
-      "category": "agents",
-      "logical_id": "agent:agents/code-reviewer",
-      "canonical_path": "agents/code-reviewer.md",
+      "kind": "hook",
+      "name": "session-start",
+      "category": "hooks",
+      "logical_id": "hook:hooks/session-start",
+      "canonical_path": "hooks/session-start",
       "paths": [
-        "agents/code-reviewer.md"
+        "hooks/session-start"
       ],
-      "description": "|",
-      "content_hash": "65941326ec05dd0d76e41913be6b1a399c530fe4",
-      "signature_hash": "69b5fb3574ee4fa95a9f2520ef662de7b9c92dee",
+      "description": "",
+      "content_hash": "8251dc5d1aebdde292f2c94718324a68a7e3194d",
+      "signature_hash": "38f453307a1aaa3eedeab6617a6ce9d548762bae",
       "variant_hashes": [
-        "65941326ec05dd0d76e41913be6b1a399c530fe4"
+        "8251dc5d1aebdde292f2c94718324a68a7e3194d"
       ],
-      "line_count": 48
-    },
-    {
-      "kind": "command",
-      "name": "brainstorm",
-      "category": "commands",
-      "logical_id": "command:commands/brainstorm",
-      "canonical_path": "commands/brainstorm.md",
-      "paths": [
-        "commands/brainstorm.md"
-      ],
-      "description": "Deprecated - use the superpowers:brainstorming skill instead",
-      "content_hash": "4dc7fdfe546e6f2dc64d26c69ecdbe8589763d85",
-      "signature_hash": "83ad49f0a265dfe64a35baaf85908e43f68dcec1",
-      "variant_hashes": [
-        "4dc7fdfe546e6f2dc64d26c69ecdbe8589763d85"
-      ],
-      "line_count": 5
-    },
-    {
-      "kind": "command",
-      "name": "execute-plan",
-      "category": "commands",
-      "logical_id": "command:commands/execute-plan",
-      "canonical_path": "commands/execute-plan.md",
-      "paths": [
-        "commands/execute-plan.md"
-      ],
-      "description": "Deprecated - use the superpowers:executing-plans skill instead",
-      "content_hash": "38b46ffaece896c85720b123b42dd165e635e742",
-      "signature_hash": "0f9367d5d387a209d661d57bda354928ba494b92",
-      "variant_hashes": [
-        "38b46ffaece896c85720b123b42dd165e635e742"
-      ],
-      "line_count": 5
-    },
-    {
-      "kind": "command",
-      "name": "write-plan",
-      "category": "commands",
-      "logical_id": "command:commands/write-plan",
-      "canonical_path": "commands/write-plan.md",
-      "paths": [
-        "commands/write-plan.md"
-      ],
-      "description": "Deprecated - use the superpowers:writing-plans skill instead",
-      "content_hash": "690c78ab4fc7d08c135f0f50533e9777a8e2d782",
-      "signature_hash": "b892854629aca605dfb337cb088409940f8c35f0",
-      "variant_hashes": [
-        "690c78ab4fc7d08c135f0f50533e9777a8e2d782"
-      ],
-      "line_count": 5
+      "line_count": 49,
+      "assets": []
     },
     {
       "kind": "plugin",
@@ -101,13 +47,14 @@
       "paths": [
         ".claude-plugin/plugin.json"
       ],
-      "description": "",
-      "content_hash": "73b1001e9be00b2026a7ed778d24567fa7b2ee1b",
-      "signature_hash": "ad85f643bc0a8c49ba81ff861c8d8f5cfd32bdd5",
+      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
+      "content_hash": "38761987fc6d5a7456a159587c7b3c412ad27e21",
+      "signature_hash": "87a732890d6c8acd39823f76e08ff944fd2989aa",
       "variant_hashes": [
-        "73b1001e9be00b2026a7ed778d24567fa7b2ee1b"
+        "38761987fc6d5a7456a159587c7b3c412ad27e21"
       ],
-      "line_count": 20
+      "line_count": 20,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -119,12 +66,21 @@
         "skills/brainstorming/SKILL.md"
       ],
       "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
-      "content_hash": "1b0710979c671689718d16643abfd0d9b67f74a7",
+      "content_hash": "c17eefe75bddb14488aa63dd9b568c5b8effdf7f",
       "signature_hash": "3558df0fd341630a33145815898961bfcc3e7838",
       "variant_hashes": [
-        "1b0710979c671689718d16643abfd0d9b67f74a7"
+        "c17eefe75bddb14488aa63dd9b568c5b8effdf7f"
       ],
-      "line_count": 164
+      "line_count": 151,
+      "assets": [
+        "skills/brainstorming/scripts/frame-template.html",
+        "skills/brainstorming/scripts/helper.js",
+        "skills/brainstorming/scripts/server.cjs",
+        "skills/brainstorming/scripts/start-server.sh",
+        "skills/brainstorming/scripts/stop-server.sh",
+        "skills/brainstorming/spec-document-reviewer-prompt.md",
+        "skills/brainstorming/visual-companion.md"
+      ]
     },
     {
       "kind": "skill",
@@ -136,12 +92,13 @@
         "skills/dispatching-parallel-agents/SKILL.md"
       ],
       "description": "Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies",
-      "content_hash": "fb3cf9870113a6a01b76385923528a21d0afc4e0",
+      "content_hash": "1ef03888538273a7cd18b52c3e9f64c1aa8e1361",
       "signature_hash": "55c4588cab7dd8098f0eccab1a03524810ddd23b",
       "variant_hashes": [
-        "fb3cf9870113a6a01b76385923528a21d0afc4e0"
+        "1ef03888538273a7cd18b52c3e9f64c1aa8e1361"
       ],
-      "line_count": 182
+      "line_count": 167,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -153,12 +110,13 @@
         "skills/executing-plans/SKILL.md"
       ],
       "description": "Use when you have a written implementation plan to execute in a separate session with review checkpoints",
-      "content_hash": "87a00e5f798cf82ead82097bcc80a1019a55a10a",
+      "content_hash": "9ac71371ec0db347b0f32ecf2d52a02eeb43b09f",
       "signature_hash": "2f3f8e34e0a4492cf512f270582cf7f3ff32124c",
       "variant_hashes": [
-        "87a00e5f798cf82ead82097bcc80a1019a55a10a"
+        "9ac71371ec0db347b0f32ecf2d52a02eeb43b09f"
       ],
-      "line_count": 70
+      "line_count": 64,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -169,13 +127,14 @@
       "paths": [
         "skills/finishing-a-development-branch/SKILL.md"
       ],
-      "description": "Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup",
-      "content_hash": "ad48721df9fa238a73b15dff2c5454226ced9f91",
-      "signature_hash": "a744f2e97b0b0425a623cc6f114b16cc83c1273b",
+      "description": "Use when implementation is complete, all tests pass, and you need to decide how to integrate the work",
+      "content_hash": "47793ec994aad03c8f808e0c5422c10b30656e71",
+      "signature_hash": "1e60cb7dff36049558ba6c3a40c752ce39e741e0",
       "variant_hashes": [
-        "ad48721df9fa238a73b15dff2c5454226ced9f91"
+        "47793ec994aad03c8f808e0c5422c10b30656e71"
       ],
-      "line_count": 200
+      "line_count": 201,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -187,12 +146,13 @@
         "skills/receiving-code-review/SKILL.md"
       ],
       "description": "Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation",
-      "content_hash": "1ab3e001b39f0bae77cc5af2bfbe7a2687aedbf4",
+      "content_hash": "f9c95ed02550bdca0e9576ca27c06d6b0ff8a8b6",
       "signature_hash": "22286dc2a77549234d8859dec17f86759d4e3b94",
       "variant_hashes": [
-        "1ab3e001b39f0bae77cc5af2bfbe7a2687aedbf4"
+        "f9c95ed02550bdca0e9576ca27c06d6b0ff8a8b6"
       ],
-      "line_count": 213
+      "line_count": 205,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -204,12 +164,15 @@
         "skills/requesting-code-review/SKILL.md"
       ],
       "description": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
-      "content_hash": "06f8749dd837124cde9dd9620a7f569a8c031460",
+      "content_hash": "3319538d8ec5ac38ff4e8f4461bd5494a78f6f5f",
       "signature_hash": "138c31026073c422fcd448424859ce0f3394fd48",
       "variant_hashes": [
-        "06f8749dd837124cde9dd9620a7f569a8c031460"
+        "3319538d8ec5ac38ff4e8f4461bd5494a78f6f5f"
       ],
-      "line_count": 105
+      "line_count": 95,
+      "assets": [
+        "skills/requesting-code-review/code-reviewer.md"
+      ]
     },
     {
       "kind": "skill",
@@ -221,12 +184,20 @@
         "skills/subagent-driven-development/SKILL.md"
       ],
       "description": "Use when executing implementation plans with independent tasks in the current session",
-      "content_hash": "2ea2f0b09ac81f5be335e41f2c77c846a1ce9386",
+      "content_hash": "3985007b76d15d95dc69903e7f70e6e24ddbe6b8",
       "signature_hash": "a9970a2d340c54e5516ee637bcfc1c77a710e59f",
       "variant_hashes": [
-        "2ea2f0b09ac81f5be335e41f2c77c846a1ce9386"
+        "3985007b76d15d95dc69903e7f70e6e24ddbe6b8"
       ],
-      "line_count": 277
+      "line_count": 503,
+      "assets": [
+        "skills/subagent-driven-development/implementer-prompt.md",
+        "skills/subagent-driven-development/re-review-prompt.md",
+        "skills/subagent-driven-development/scripts/review-package",
+        "skills/subagent-driven-development/scripts/sdd-workspace",
+        "skills/subagent-driven-development/scripts/task-brief",
+        "skills/subagent-driven-development/task-reviewer-prompt.md"
+      ]
     },
     {
       "kind": "skill",
@@ -238,12 +209,24 @@
         "skills/systematic-debugging/SKILL.md"
       ],
       "description": "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes",
-      "content_hash": "d5e4c57573966f4dcc6a0cdd64316cec9b221440",
+      "content_hash": "5f6d1e172658d90e3d6331727e24b33478750cbc",
       "signature_hash": "5a259c62915077d6112b74f7e52c2ee43032b19e",
       "variant_hashes": [
-        "d5e4c57573966f4dcc6a0cdd64316cec9b221440"
+        "5f6d1e172658d90e3d6331727e24b33478750cbc"
       ],
-      "line_count": 296
+      "line_count": 283,
+      "assets": [
+        "skills/systematic-debugging/CREATION-LOG.md",
+        "skills/systematic-debugging/condition-based-waiting-example.ts",
+        "skills/systematic-debugging/condition-based-waiting.md",
+        "skills/systematic-debugging/defense-in-depth.md",
+        "skills/systematic-debugging/find-polluter.sh",
+        "skills/systematic-debugging/root-cause-tracing.md",
+        "skills/systematic-debugging/test-academic.md",
+        "skills/systematic-debugging/test-pressure-1.md",
+        "skills/systematic-debugging/test-pressure-2.md",
+        "skills/systematic-debugging/test-pressure-3.md"
+      ]
     },
     {
       "kind": "skill",
@@ -255,12 +238,15 @@
         "skills/test-driven-development/SKILL.md"
       ],
       "description": "Use when implementing any feature or bugfix, before writing implementation code",
-      "content_hash": "df8bf2ef838653f74082944ba6c0c4ba202c7977",
+      "content_hash": "9bf54057abb754c1fe1894ef685d80810c95ba4f",
       "signature_hash": "27a26098f1a2f6eed4b86cb8118ac080e647dc09",
       "variant_hashes": [
-        "df8bf2ef838653f74082944ba6c0c4ba202c7977"
+        "9bf54057abb754c1fe1894ef685d80810c95ba4f"
       ],
-      "line_count": 371
+      "line_count": 320,
+      "assets": [
+        "skills/test-driven-development/writing-good-tests.md"
+      ]
     },
     {
       "kind": "skill",
@@ -271,13 +257,14 @@
       "paths": [
         "skills/using-git-worktrees/SKILL.md"
       ],
-      "description": "Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification",
-      "content_hash": "17039bc58069c31e32d06588105b5a1743043d47",
-      "signature_hash": "0ab8243234376624d4c619c1e868714d73535a62",
+      "description": "Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback",
+      "content_hash": "c8de24e34cfacd4f33fa205a453a613afd2f5698",
+      "signature_hash": "f6629231287676be4c00f5c27228bce5d70cebba",
       "variant_hashes": [
-        "17039bc58069c31e32d06588105b5a1743043d47"
+        "c8de24e34cfacd4f33fa205a453a613afd2f5698"
       ],
-      "line_count": 218
+      "line_count": 167,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -288,13 +275,19 @@
       "paths": [
         "skills/using-superpowers/SKILL.md"
       ],
-      "description": "Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions",
-      "content_hash": "87084ccfc0ee30ae2ceee8b32aa63af3cb6771f3",
-      "signature_hash": "2dc75323c1ad236656f0e4ff718964335a84a7b3",
+      "description": "Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions",
+      "content_hash": "6ec45f7bd2d1387985405621c9ac4ec12b46b9b3",
+      "signature_hash": "89035a2f893befaa3dea12f23695234e932b592a",
       "variant_hashes": [
-        "87084ccfc0ee30ae2ceee8b32aa63af3cb6771f3"
+        "6ec45f7bd2d1387985405621c9ac4ec12b46b9b3"
       ],
-      "line_count": 117
+      "line_count": 62,
+      "assets": [
+        "skills/using-superpowers/references/antigravity-tools.md",
+        "skills/using-superpowers/references/codex-tools.md",
+        "skills/using-superpowers/references/gemini-tools.md",
+        "skills/using-superpowers/references/pi-tools.md"
+      ]
     },
     {
       "kind": "skill",
@@ -306,12 +299,13 @@
         "skills/verification-before-completion/SKILL.md"
       ],
       "description": "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always",
-      "content_hash": "4521d2476a174f5a52e991deb7eb88b27f0086a0",
+      "content_hash": "ca0166b0a6759b29ed8b9929d22742359a0f9dcf",
       "signature_hash": "a3bf241010fed57b5e9f246105b09968d78d818c",
       "variant_hashes": [
-        "4521d2476a174f5a52e991deb7eb88b27f0086a0"
+        "ca0166b0a6759b29ed8b9929d22742359a0f9dcf"
       ],
-      "line_count": 139
+      "line_count": 120,
+      "assets": []
     },
     {
       "kind": "skill",
@@ -323,12 +317,15 @@
         "skills/writing-plans/SKILL.md"
       ],
       "description": "Use when you have a spec or requirements for a multi-step task, before touching code",
-      "content_hash": "be008098f3d65acdd2a7e9c8c06a7007955dbadb",
+      "content_hash": "bf0d895b76b8d7e0f4c22d9e53ae30024eb0f84b",
       "signature_hash": "ad7dd9672b668f13ae411b8be713c689b3c66598",
       "variant_hashes": [
-        "be008098f3d65acdd2a7e9c8c06a7007955dbadb"
+        "bf0d895b76b8d7e0f4c22d9e53ae30024eb0f84b"
       ],
-      "line_count": 152
+      "line_count": 168,
+      "assets": [
+        "skills/writing-plans/plan-document-reviewer-prompt.md"
+      ]
     },
     {
       "kind": "skill",
@@ -340,12 +337,20 @@
         "skills/writing-skills/SKILL.md"
       ],
       "description": "Use when creating new skills, editing existing skills, or verifying skills work before deployment",
-      "content_hash": "1e2c3584353ecb83f8260dbf5434ea0a48e027dd",
+      "content_hash": "c2445088fd89d4fdbe963a3ccfab6ac81b1962a6",
       "signature_hash": "b26fe0ac29c472c88cafc5e62caab6b419270106",
       "variant_hashes": [
-        "1e2c3584353ecb83f8260dbf5434ea0a48e027dd"
+        "c2445088fd89d4fdbe963a3ccfab6ac81b1962a6"
       ],
-      "line_count": 653
+      "line_count": 677,
+      "assets": [
+        "skills/writing-skills/anthropic-best-practices.md",
+        "skills/writing-skills/examples/CLAUDE_MD_TESTING.md",
+        "skills/writing-skills/graphviz-conventions.dot",
+        "skills/writing-skills/persuasion-principles.md",
+        "skills/writing-skills/render-graphs.js",
+        "skills/writing-skills/testing-skills-with-subagents.md"
+      ]
     }
   ]
 }

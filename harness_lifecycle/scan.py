@@ -60,6 +60,19 @@ EXCLUDE_TOPLEVEL = frozenset({"docs", "examples"})
 HOOK_SUFFIXES = frozenset({".sh", ".py", ".mjs", ".js", ".ts"})
 MCP_FILENAMES = frozenset({"mcp.json", ".mcp.json"})
 
+# Hook scripts are often shipped without an extension and invoked through a
+# dispatcher (superpowers wires `run-hook.cmd session-start`, where the real hook
+# body is the extensionless `hooks/session-start`). Treat an extensionless file
+# under a hooks/ dir as a hook so those are not silently dropped.
+HOOK_EXTENSIONLESS = ""
+HOOK_MATCH_SUFFIXES = HOOK_SUFFIXES | {HOOK_EXTENSIONLESS}
+# Self-test programs that ship alongside real hooks. They exercise the hook, they
+# are not a capability the harness offers, so they must not be counted as one.
+TEST_STEM_PREFIX = "test-"
+TEST_STEM_SUFFIX = "-test"
+
+SKILL_FILENAME = "SKILL.md"
+
 
 class Kind(str, Enum):
     """The kinds of capability a harness can ship."""
@@ -88,6 +101,10 @@ class Capability:
     signature_hash: str
     variant_hashes: tuple[str, ...]
     line_count: int
+    # Non-capability files bundled inside a skill's own folder (prompt templates
+    # handed to subagents, helper scripts). They are part of the skill, not
+    # separate capabilities, so they are recorded here rather than as own rows.
+    assets: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -102,6 +119,7 @@ class Capability:
             "signature_hash": self.signature_hash,
             "variant_hashes": list(self.variant_hashes),
             "line_count": self.line_count,
+            "assets": list(self.assets),
         }
 
     @staticmethod
@@ -118,6 +136,7 @@ class Capability:
             signature_hash=str(data["signature_hash"]),
             variant_hashes=tuple(str(h) for h in data.get("variant_hashes", [])),
             line_count=int(data.get("line_count", 0)),
+            assets=tuple(str(a) for a in data.get("assets", [])),
         )
 
 
@@ -178,6 +197,7 @@ class _Entry:
     line_count: int
     rank: int
     category: str = ""
+    assets: tuple[str, ...] = ()
 
 
 # --- Text helpers -------------------------------------------------------------
@@ -237,13 +257,19 @@ def parse_frontmatter(text: str) -> dict[str, str]:
 # --- Classification -----------------------------------------------------------
 
 
+def _is_test_script(name: str) -> bool:
+    """True for a self-test program shipped beside a real capability."""
+    stem = name.rsplit(".", 1)[0] if "." in name else name
+    return stem.startswith(TEST_STEM_PREFIX) or stem.endswith(TEST_STEM_SUFFIX)
+
+
 def classify(parts: tuple[str, ...]) -> Kind | None:
     """Map a repo-relative path to a capability kind, or None."""
     name = parts[-1]
     suffix = "." + name.rsplit(".", 1)[1] if "." in name else ""
     if name == "plugin.json" and ".claude-plugin" in parts:
         return Kind.PLUGIN
-    if name == "SKILL.md" and "skills" in parts:
+    if name == SKILL_FILENAME and "skills" in parts:
         return Kind.SKILL
     if suffix == ".md" and "commands" in parts:
         return Kind.COMMAND
@@ -251,8 +277,8 @@ def classify(parts: tuple[str, ...]) -> Kind | None:
         return Kind.AGENT
     if suffix == ".md" and "rules" in parts:
         return Kind.RULE
-    if "hooks" in parts and suffix in HOOK_SUFFIXES:
-        return Kind.HOOK
+    if "hooks" in parts and suffix in HOOK_MATCH_SUFFIXES:
+        return None if _is_test_script(name) else Kind.HOOK
     return None
 
 
@@ -389,6 +415,20 @@ def _plugin_name(text: str) -> str:
     return str(name) if isinstance(name, str) else ""
 
 
+def _plugin_description(text: str) -> str:
+    """The `description` from a plugin.json, or '' if unreadable.
+
+    Plugin manifests are JSON, so they carry no Markdown frontmatter — without
+    this the description column is blank for every plugin.
+    """
+    try:
+        data = json.loads(text)
+    except (json.JSONDecodeError, ValueError):
+        return ""
+    description = data.get("description") if isinstance(data, dict) else None
+    return str(description) if isinstance(description, str) else ""
+
+
 # --- Scanning -----------------------------------------------------------------
 
 
@@ -446,7 +486,9 @@ def _scan_mcp(path: Path, root: Path) -> list[_Entry]:
     return entries
 
 
-def _entry_for(path: Path, root: Path, kind: Kind) -> _Entry:
+def _entry_for(
+    path: Path, root: Path, kind: Kind, assets: tuple[str, ...] = ()
+) -> _Entry:
     parts = path.relative_to(root).parts
     text = read_text(path)
     fm = parse_frontmatter(text) if path.suffix == ".md" else {}
@@ -454,10 +496,12 @@ def _entry_for(path: Path, root: Path, kind: Kind) -> _Entry:
         name = _plugin_name(text) or canonical_name(kind, parts)
         surface = normalize(text)
         dkey = _plugin_dedup_key(parts, name)
+        description = _plugin_description(text)
     else:
         name = fm.get("name") or canonical_name(kind, parts)
         surface = _raw_frontmatter(text)
         dkey = dedup_key(kind, parts)
+        description = fm.get("description", "")
     normalized = normalize(text)
     return _Entry(
         kind=kind,
@@ -466,16 +510,40 @@ def _entry_for(path: Path, root: Path, kind: Kind) -> _Entry:
         dedup_key=dkey,
         content_hash=sha1(normalized),
         signature_hash=_signature_hash(kind, name, surface),
-        description=fm.get("description", ""),
+        description=description,
         line_count=normalized.count("\n"),
         rank=root_rank(kind, parts),
         category=category(kind, parts),
+        assets=assets,
     )
+
+
+def _skill_assets(files: list[Path], root: Path) -> dict[Path, tuple[str, ...]]:
+    """Map each skill directory to the non-capability files bundled inside it.
+
+    A skill often ships prompt templates and helper scripts in its own folder.
+    Those are part of the skill rather than standalone capabilities, so they are
+    attributed to the nearest enclosing skill — never promoted to their own row.
+    """
+    skill_dirs = {
+        path.parent for path in files if classify(path.relative_to(root).parts) is Kind.SKILL
+    }
+    owned: dict[Path, list[str]] = {directory: [] for directory in skill_dirs}
+    for path in files:
+        if path.name == SKILL_FILENAME:
+            continue
+        owners = [directory for directory in skill_dirs if directory in path.parents]
+        if not owners:
+            continue
+        nearest = max(owners, key=lambda directory: len(directory.parts))
+        owned[nearest].append(str(path.relative_to(root)))
+    return {directory: tuple(sorted(paths)) for directory, paths in owned.items()}
 
 
 def scan_repo(root: Path, repo: str, source: str, source_commit: str | None) -> Catalog:
     """Build a logical capability catalog from a harness working tree."""
     files, excluded = _iter_files(root)
+    assets_by_skill_dir = _skill_assets(files, root)
     entries: list[_Entry] = []
     for path in files:
         parts = path.relative_to(root).parts
@@ -483,7 +551,8 @@ def scan_repo(root: Path, repo: str, source: str, source_commit: str | None) -> 
             entries.extend(_scan_mcp(path, root))
         kind = classify(parts)
         if kind is not None:
-            entries.append(_entry_for(path, root, kind))
+            assets = assets_by_skill_dir.get(path.parent, ()) if kind is Kind.SKILL else ()
+            entries.append(_entry_for(path, root, kind, assets))
 
     groups: dict[str, list[_Entry]] = {}
     for entry in entries:
@@ -506,6 +575,7 @@ def scan_repo(root: Path, repo: str, source: str, source_commit: str | None) -> 
             signature_hash=canonical.signature_hash,
             variant_hashes=variant_hashes,
             line_count=canonical.line_count,
+            assets=canonical.assets,
         ))
     capabilities.sort(key=lambda c: c.logical_id)
 

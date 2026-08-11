@@ -1,0 +1,9 @@
+id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
+command:commands/build,command,commands,build,agent-skills,.claude/commands/build.md,44,0,,"Implement tasks incrementally — build, test, verify, commit. Add ""auto"" to run the whole plan in one approved pass."
+command:commands/code-simplify,command,commands,code-simplify,agent-skills,.claude/commands/code-simplify.md,22,0,,Simplify code for clarity and maintainability — reduce complexity without changing behavior
+command:commands/plan,command,commands,plan,agent-skills,.claude/commands/plan.md,16,0,,Break work into small verifiable tasks with acceptance criteria and dependency ordering
+command:commands/review,command,commands,review,agent-skills,.claude/commands/review.md,16,0,,"Conduct a five-axis code review — correctness, readability, architecture, security, performance"
+command:commands/ship,command,commands,ship,agent-skills,.claude/commands/ship.md,72,0,,"Run the pre-launch checklist via parallel fan-out to specialist personas, then synthesize a go/no-go decision"
+command:commands/spec,command,commands,spec,agent-skills,.claude/commands/spec.md,15,0,,Start spec-driven development — write a structured specification before writing code
+command:commands/test,command,commands,test,agent-skills,.claude/commands/test.md,19,0,,"Run TDD workflow — write failing tests, implement, verify. For bugs, use the Prove-It pattern."
+command:commands/webperf,command,commands,webperf,agent-skills,.claude/commands/webperf.md,32,0,,Run a web performance audit via the web-performance-auditor persona
