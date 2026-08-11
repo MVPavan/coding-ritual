@@ -1,9 +1,3 @@
-[submodule "reference_harnesses/compound-engineering-plugin"]
-	path = reference_harnesses/compound-engineering-plugin
-	url = https://github.com/EveryInc/compound-engineering-plugin.git
-[submodule "reference_harnesses/everything-claude-code"]
-	path = reference_harnesses/everything-claude-code
-	url = https://github.com/affaan-m/everything-claude-code.git
 [submodule "reference_harnesses/mattpocock_skills"]
 	path = reference_harnesses/mattpocock_skills
 	url = https://github.com/mattpocock/skills.git
@@ -13,9 +7,6 @@
 [submodule "reference_harnesses/claude-code-best-practice"]
 	path = reference_harnesses/claude-code-best-practice
 	url = https://github.com/shanraisshan/claude-code-best-practice.git
-[submodule "reference_harnesses/claude-plugins-official"]
-	path = reference_harnesses/claude-plugins-official
-	url = https://github.com/anthropics/claude-plugins-official.git
 [submodule "reference_harnesses/agent-skills"]
 	path = reference_harnesses/agent-skills
 	url = https://github.com/addyosmani/agent-skills.git
