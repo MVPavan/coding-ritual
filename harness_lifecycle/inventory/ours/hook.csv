@@ -1,0 +1,6 @@
+id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
+hook:hooks/bd-prime,hook,hooks,bd-prime.sh,ours,hooks/bd-prime.sh,26,0,,
+hook:hooks/block-dangerous-commands,hook,hooks,block-dangerous-commands.sh,ours,hooks/block-dangerous-commands.sh,89,0,,
+hook:hooks/block-generated-edits,hook,hooks,block-generated-edits.sh,ours,hooks/block-generated-edits.sh,28,0,,
+hook:hooks/freshness-check,hook,hooks,freshness-check.sh,ours,hooks/freshness-check.sh,21,0,,
+hook:hooks/harness-staleness-nudge,hook,hooks,harness-staleness-nudge.sh,ours,hooks/harness-staleness-nudge.sh,12,0,,

@@ -1,0 +1,1443 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "ours",
+  "source": "root .claude/.codex + plugins",
+  "source_commit": null,
+  "physical_scanned": 315,
+  "excluded": 21,
+  "counts": {
+    "agent": {
+      "physical": 8,
+      "logical": 8
+    },
+    "command": {
+      "physical": 20,
+      "logical": 20
+    },
+    "hook": {
+      "physical": 5,
+      "logical": 5
+    },
+    "mcp": {
+      "physical": 2,
+      "logical": 2
+    },
+    "plugin": {
+      "physical": 3,
+      "logical": 3
+    },
+    "rule": {
+      "physical": 7,
+      "logical": 7
+    },
+    "skill": {
+      "physical": 31,
+      "logical": 31
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "agent",
+      "name": "claude-max",
+      "category": "agents",
+      "logical_id": "agent:agents/claude-max",
+      "canonical_path": "agents/claude-max.md",
+      "paths": [
+        "agents/claude-max.md"
+      ],
+      "description": "Maximally capable, do-anything generalist. Delegate the hardest, most open-ended, ambiguous, cross-cutting, or multi-step tasks here \u2014 deep research, architecture and design, end-to-end implementation, debugging, refactoring, data work, writing, analysis, and anything that needs the strongest model with the deepest reasoning. Use when no narrower specialist agent clearly fits, or when a task spans several domains at once.",
+      "content_hash": "1678a6acec8f0fb599593e03ceceb891a67d06af",
+      "signature_hash": "a77db097f8517b6423d82d630cb8636ac47ab7f6",
+      "variant_hashes": [
+        "1678a6acec8f0fb599593e03ceceb891a67d06af"
+      ],
+      "line_count": 39,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "code-reviewer",
+      "category": "agents",
+      "logical_id": "agent:agents/code-reviewer",
+      "canonical_path": "agents/code-reviewer.md",
+      "paths": [
+        "agents/code-reviewer.md"
+      ],
+      "description": "Python-first code-quality reviewer. Checks correctness, safety, testability, and project-specific risks after spec review passes.",
+      "content_hash": "4d8a5e83186eb7934f30c80537846753489722a4",
+      "signature_hash": "cc9699ec0cabf957b1f6c826a71469cb894ee90a",
+      "variant_hashes": [
+        "4d8a5e83186eb7934f30c80537846753489722a4"
+      ],
+      "line_count": 54,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "docs-researcher",
+      "category": "agents",
+      "logical_id": "agent:agents/docs-researcher",
+      "canonical_path": "agents/docs-researcher.md",
+      "paths": [
+        "agents/docs-researcher.md"
+      ],
+      "description": "Fetches up-to-date library, framework, SDK, API, and CLI documentation via the Context7 MCP server. Use whenever you are unsure about a package's methods, signatures, config options, version-specific behavior, or migration steps \u2014 even for well-known libraries, since training data may be stale.",
+      "content_hash": "3b34ae1c8786de66438124d8c9bb24fabc9e442e",
+      "signature_hash": "f70d0fc7535200fdb546102e2ac48357f9691a2a",
+      "variant_hashes": [
+        "3b34ae1c8786de66438124d8c9bb24fabc9e442e"
+      ],
+      "line_count": 49,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "fable-max",
+      "category": "agents",
+      "logical_id": "agent:agents/fable-max",
+      "canonical_path": "agents/fable-max.md",
+      "paths": [
+        "agents/fable-max.md"
+      ],
+      "description": "Maximally capable, do-anything generalist running Fable 5 at maximum effort. Delegate the hardest, most open-ended, ambiguous, cross-cutting, or multi-step tasks here \u2014 deep research, architecture and design, end-to-end implementation, debugging, refactoring, data work, writing, analysis, and anything that needs the strongest model with the deepest reasoning. Use when no narrower specialist agent clearly fits, or when a task spans several domains at once.",
+      "content_hash": "2d97c1de6779400c2e880e37102befc7fb20e253",
+      "signature_hash": "df5575312fcc21fc5aa1ea215202d6f136c12ad7",
+      "variant_hashes": [
+        "2d97c1de6779400c2e880e37102befc7fb20e253"
+      ],
+      "line_count": 39,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "fable-xhigh",
+      "category": "agents",
+      "logical_id": "agent:agents/fable-xhigh",
+      "canonical_path": "agents/fable-xhigh.md",
+      "paths": [
+        "agents/fable-xhigh.md"
+      ],
+      "description": "Capable generalist running Fable 5 at xhigh effort \u2014 one notch below max. Use for substantial bounded work (implementation legs, annotation drafts, focused analysis) where deep reasoning matters but max-effort depth is not required. Prefer fable-max only for the hardest open-ended tasks.",
+      "content_hash": "55a69ea19f54d9f04b9afb791a46014ff51e7700",
+      "signature_hash": "7cd22bb09b7c0b48fae0d6295e8056a3890cffa7",
+      "variant_hashes": [
+        "55a69ea19f54d9f04b9afb791a46014ff51e7700"
+      ],
+      "line_count": 39,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "implementer",
+      "category": "agents",
+      "logical_id": "agent:agents/implementer",
+      "canonical_path": "agents/implementer.md",
+      "paths": [
+        "agents/implementer.md"
+      ],
+      "description": "Bounded implementation agent for file-scoped tasks. Use through the dispatch workflow or the subagent-driven-development skill.",
+      "content_hash": "0d9411c870749302f42e5150e5b5cad9db2889c1",
+      "signature_hash": "470d5679f37c8c98c8e1b6aa31874eb2d6542420",
+      "variant_hashes": [
+        "0d9411c870749302f42e5150e5b5cad9db2889c1"
+      ],
+      "line_count": 51,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "planner",
+      "category": "agents",
+      "logical_id": "agent:agents/planner",
+      "canonical_path": "agents/planner.md",
+      "paths": [
+        "agents/planner.md"
+      ],
+      "description": "Read-only planning specialist. Use for standard and deep work to turn approved requirements into file-scoped implementation tasks.",
+      "content_hash": "047a4f591a365327130809705228279c902e6cf6",
+      "signature_hash": "393837035983a5d94b762a9e82e0b8c51c31d792",
+      "variant_hashes": [
+        "047a4f591a365327130809705228279c902e6cf6"
+      ],
+      "line_count": 57,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "spec-reviewer",
+      "category": "agents",
+      "logical_id": "agent:agents/spec-reviewer",
+      "canonical_path": "agents/spec-reviewer.md",
+      "paths": [
+        "agents/spec-reviewer.md"
+      ],
+      "description": "Verifies that implementation matches requirements, plan, and project invariants before code-quality review.",
+      "content_hash": "054b064557838025f97422e5c4e324e6d9b4a073",
+      "signature_hash": "23be5cfa9c2ed7cf9fa7cf541c70b1dd7cf997c3",
+      "variant_hashes": [
+        "054b064557838025f97422e5c4e324e6d9b4a073"
+      ],
+      "line_count": 42,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "README",
+      "category": "commands",
+      "logical_id": "command:commands/README",
+      "canonical_path": "commands/README.md",
+      "paths": [
+        "commands/README.md"
+      ],
+      "description": "",
+      "content_hash": "0450667f79bb3df89a3806dd9b8cc626c47e0364",
+      "signature_hash": "bc692cae5662b9a326fef11525f32f48bb9d8255",
+      "variant_hashes": [
+        "0450667f79bb3df89a3806dd9b8cc626c47e0364"
+      ],
+      "line_count": 11,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "adopt",
+      "category": "commands",
+      "logical_id": "command:commands/adopt",
+      "canonical_path": "commands/adopt.md",
+      "paths": [
+        "commands/adopt.md"
+      ],
+      "description": "Adopt this reusable Claude setup to the current repository by refreshing only the project overlay files.",
+      "content_hash": "7a4761fcbbda944769292faaea3c7dac39bf53f0",
+      "signature_hash": "33273582b3517eab19d1e168f2236c4b4d90e804",
+      "variant_hashes": [
+        "41f73624dcb77d93bc0e7299879c47982bbc1187",
+        "7a4761fcbbda944769292faaea3c7dac39bf53f0"
+      ],
+      "line_count": 68,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "check-invariants",
+      "category": "commands",
+      "logical_id": "command:commands/check-invariants",
+      "canonical_path": "commands/check-invariants.md",
+      "paths": [
+        "commands/check-invariants.md"
+      ],
+      "description": "Run mechanically checkable invariants from the project overlay and report pass or fail.",
+      "content_hash": "ae066cbfff16a77d4f33773597611143f1201378",
+      "signature_hash": "4868197649779baff56a45e963acb45bfcbee994",
+      "variant_hashes": [
+        "ae066cbfff16a77d4f33773597611143f1201378"
+      ],
+      "line_count": 14,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "codex",
+      "category": "commands",
+      "logical_id": "command:commands/codex",
+      "canonical_path": "commands/codex.md",
+      "paths": [
+        "commands/codex.md"
+      ],
+      "description": "Delegate a task or question to OpenAI Codex (gpt-5.x) and relay its answer.",
+      "content_hash": "b0105c1d1e23519213a191cb35c0e0cc17fc35cb",
+      "signature_hash": "291c1da0cbebe15ff53f90bf202c454adbb88584",
+      "variant_hashes": [
+        "b0105c1d1e23519213a191cb35c0e0cc17fc35cb"
+      ],
+      "line_count": 20,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "codex-check",
+      "category": "commands",
+      "logical_id": "command:commands/codex-check",
+      "canonical_path": "commands/codex-check.md",
+      "paths": [
+        "commands/codex-check.md"
+      ],
+      "description": "Check that the Codex CLI is installed, on PATH, and authenticated for the adapter.",
+      "content_hash": "bf064c72562cecdef9d61807e7a7c86dfe244786",
+      "signature_hash": "11196910aef38903c68ced4a55b5853a74e49f77",
+      "variant_hashes": [
+        "bf064c72562cecdef9d61807e7a7c86dfe244786"
+      ],
+      "line_count": 22,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "codex-critique",
+      "category": "commands",
+      "logical_id": "command:commands/codex-critique",
+      "canonical_path": "commands/codex-critique.md",
+      "paths": [
+        "commands/codex-critique.md"
+      ],
+      "description": "Get an independent Codex critique / second opinion on a decision, design, or plan (read-only).",
+      "content_hash": "9af92c8ea0805f9590cc1f4688722a8d600a229d",
+      "signature_hash": "fa3909ef5a36c3275907014c3bfe3e87f0b0750e",
+      "variant_hashes": [
+        "9af92c8ea0805f9590cc1f4688722a8d600a229d"
+      ],
+      "line_count": 15,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "codex-diagnose",
+      "category": "commands",
+      "logical_id": "command:commands/codex-diagnose",
+      "canonical_path": "commands/codex-diagnose.md",
+      "paths": [
+        "commands/codex-diagnose.md"
+      ],
+      "description": "Have Codex root-cause a failure without changing files (read-only).",
+      "content_hash": "eaeadec65f1d7c2722c28a887aa9ae7bd0bd1c06",
+      "signature_hash": "82a06dc93b900dcced073bfaf0b35d5177d9b00f",
+      "variant_hashes": [
+        "eaeadec65f1d7c2722c28a887aa9ae7bd0bd1c06"
+      ],
+      "line_count": 15,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "codex-implement",
+      "category": "commands",
+      "logical_id": "command:commands/codex-implement",
+      "canonical_path": "commands/codex-implement.md",
+      "paths": [
+        "commands/codex-implement.md"
+      ],
+      "description": "Have Codex make a bounded code change and verify it (edits the working tree).",
+      "content_hash": "eb6536e8aa2ac3a65c5990683a3922c1d17ae9aa",
+      "signature_hash": "16e6187b1ab4019c679174b9fbb0183237465429",
+      "variant_hashes": [
+        "eb6536e8aa2ac3a65c5990683a3922c1d17ae9aa"
+      ],
+      "line_count": 15,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "codex-research",
+      "category": "commands",
+      "logical_id": "command:commands/codex-research",
+      "canonical_path": "commands/codex-research.md",
+      "paths": [
+        "commands/codex-research.md"
+      ],
+      "description": "Have Codex research a question using web search, with citations (read-only).",
+      "content_hash": "71605e7e358838f1f2e0682b024479d531f10773",
+      "signature_hash": "f7687671c7ce7f86d42debd44a00b889422720a7",
+      "variant_hashes": [
+        "71605e7e358838f1f2e0682b024479d531f10773"
+      ],
+      "line_count": 15,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "codex-review",
+      "category": "commands",
+      "logical_id": "command:commands/codex-review",
+      "canonical_path": "commands/codex-review.md",
+      "paths": [
+        "commands/codex-review.md"
+      ],
+      "description": "Run an adversarial Codex code review of the current changes (read-only).",
+      "content_hash": "d7f45035f877883abd1f901bd11a6d31ac33f4f5",
+      "signature_hash": "ed54892e428e616ef4b037d26fa22e3328af56bf",
+      "variant_hashes": [
+        "d7f45035f877883abd1f901bd11a6d31ac33f4f5"
+      ],
+      "line_count": 20,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "disable-for-project",
+      "category": "commands",
+      "logical_id": "command:commands/disable-for-project",
+      "canonical_path": "commands/disable-for-project.md",
+      "paths": [
+        "commands/disable-for-project.md"
+      ],
+      "description": "Explain how to turn the code-intel stack OFF for the current repo (so it doesn't start serena/CBM here), without affecting other projects.",
+      "content_hash": "38c8dfbc0e1d4e71864c651561124759bda7841e",
+      "signature_hash": "3af11acac27bc238ec94c16cb2bdd5c386041ed6",
+      "variant_hashes": [
+        "38c8dfbc0e1d4e71864c651561124759bda7841e"
+      ],
+      "line_count": 30,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "doctor",
+      "category": "commands",
+      "logical_id": "command:commands/doctor",
+      "canonical_path": "commands/doctor.md",
+      "paths": [
+        "commands/doctor.md"
+      ],
+      "description": "Diagnose the code-intel stack \u2014 check that serena, CBM, and ast-grep resolve, whether this repo is indexed, and print fix-up exports if a binary is missing.",
+      "content_hash": "ce3a1cadd3d2bf3c2d632cb9a58e9ac3649c5808",
+      "signature_hash": "3fa1a77e86521cacb168053ba0b4058d6772a14f",
+      "variant_hashes": [
+        "c903ecad98560de37153f1463e08cec9c74e782c",
+        "ce3a1cadd3d2bf3c2d632cb9a58e9ac3649c5808"
+      ],
+      "line_count": 32,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "harness-scan",
+      "category": "commands",
+      "logical_id": "command:commands/harness-scan",
+      "canonical_path": "commands/harness-scan.md",
+      "paths": [
+        "commands/harness-scan.md"
+      ],
+      "description": "Deep scan of one reference harness \u2014 what changed upstream AND what it ships that our harness doesn't \u2014 then route candidates via the harness-evaluate skill.",
+      "content_hash": "d7c9f839406af2c3e8ce55e146a852733266b4c2",
+      "signature_hash": "06a387f4fb6cb55b9c639a746646e00a0a347ff7",
+      "variant_hashes": [
+        "d7c9f839406af2c3e8ce55e146a852733266b4c2"
+      ],
+      "line_count": 26,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "harness-status",
+      "category": "commands",
+      "logical_id": "command:commands/harness-status",
+      "canonical_path": "commands/harness-status.md",
+      "paths": [
+        "commands/harness-status.md"
+      ],
+      "description": "Quick upstream-drift status across all reference_harnesses submodules \u2014 what changed since our pinned commits. Read-only (fetches, never moves pins).",
+      "content_hash": "0cb9f17da351cf44616868641456c8f621b41db5",
+      "signature_hash": "d91d3b9f3cf6c360f7a6ffcbe52e518bdffc4a7c",
+      "variant_hashes": [
+        "0cb9f17da351cf44616868641456c8f621b41db5"
+      ],
+      "line_count": 22,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "index-repo",
+      "category": "commands",
+      "logical_id": "command:commands/index-repo",
+      "canonical_path": "commands/index-repo.md",
+      "paths": [
+        "commands/index-repo.md"
+      ],
+      "description": "Index the current repo into CBM (and confirm serena activation) so graph queries work. Run once per repo; CBM auto-syncs after.",
+      "content_hash": "72cafec219aa21a6ca977542626681ddcdd0480b",
+      "signature_hash": "c86153a32584b1e063fef86055268871823d5e80",
+      "variant_hashes": [
+        "72cafec219aa21a6ca977542626681ddcdd0480b"
+      ],
+      "line_count": 33,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "prepare-phases",
+      "category": "commands",
+      "logical_id": "command:commands/prepare-phases",
+      "canonical_path": "commands/prepare-phases.md",
+      "paths": [
+        "commands/prepare-phases.md"
+      ],
+      "description": "Turn input documents or research notes into a Beads-backed workstream \u2014 brainstorm + roadmap + seeded epics/stages.",
+      "content_hash": "c52f8517d2aa520f4b8f70a16d24f8a6ce41d61b",
+      "signature_hash": "1c3fd1e34100f9b43a77e6fe4801525db0bb56ce",
+      "variant_hashes": [
+        "c52f8517d2aa520f4b8f70a16d24f8a6ce41d61b"
+      ],
+      "line_count": 106,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "run-phases",
+      "category": "commands",
+      "logical_id": "command:commands/run-phases",
+      "canonical_path": "commands/run-phases.md",
+      "paths": [
+        "commands/run-phases.md"
+      ],
+      "description": "Execute all remaining phases of a workstream sequentially with auto-approval and context management, driven off beads.",
+      "content_hash": "9e70cd9ee43afd928b89a589fc2ce35ca6a68a6b",
+      "signature_hash": "80aab2fd5443bffa7cd5739491b37327b591d703",
+      "variant_hashes": [
+        "9e70cd9ee43afd928b89a589fc2ce35ca6a68a6b"
+      ],
+      "line_count": 75,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "setup",
+      "category": "commands",
+      "logical_id": "command:commands/setup",
+      "canonical_path": "commands/setup.md",
+      "paths": [
+        "commands/setup.md"
+      ],
+      "description": "One-time per-machine setup for the code-intel stack \u2014 auto-detect serena/CBM/ast-grep, wire up the CODE_INTEL_*_BIN env vars, and print install commands for anything missing.",
+      "content_hash": "2918e00a1b0f40768ce4260ba010fb5ad1246e9f",
+      "signature_hash": "f2cc9b4c75a97cf5fda701eb260ac71680eafc3b",
+      "variant_hashes": [
+        "2918e00a1b0f40768ce4260ba010fb5ad1246e9f"
+      ],
+      "line_count": 46,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "update",
+      "category": "commands",
+      "logical_id": "command:commands/update",
+      "canonical_path": "commands/update.md",
+      "paths": [
+        "commands/update.md"
+      ],
+      "description": "Re-sync the reusable harness core into this repo from the plugin, without touching the filled project overlay.",
+      "content_hash": "db679053923e331cf275dfbcaf0de569dbaba1cb",
+      "signature_hash": "d4c19aeeab8be7546070126b669c676fc80ffdf9",
+      "variant_hashes": [
+        "db679053923e331cf275dfbcaf0de569dbaba1cb"
+      ],
+      "line_count": 18,
+      "assets": []
+    },
+    {
+      "kind": "command",
+      "name": "use-codex",
+      "category": "commands",
+      "logical_id": "command:commands/use-codex",
+      "canonical_path": "commands/use-codex.md",
+      "paths": [
+        "commands/use-codex.md"
+      ],
+      "description": "Canonical invocation rules for calling OpenAI Codex (via the codex-adapter plugin) from this repo. Subagents and the main thread must follow this for review, diagnosis, implementation, research, and critique.",
+      "content_hash": "d1a29c9c95240e35b0294f48c01701f2864798e1",
+      "signature_hash": "191055d4671c7ebe0651230315c71e90fcf1a234",
+      "variant_hashes": [
+        "d1a29c9c95240e35b0294f48c01701f2864798e1"
+      ],
+      "line_count": 70,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "bd-prime.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/bd-prime",
+      "canonical_path": "hooks/bd-prime.sh",
+      "paths": [
+        "hooks/bd-prime.sh"
+      ],
+      "description": "",
+      "content_hash": "57bd97a683b086ec8e7d4b263f7f2eafbd67587b",
+      "signature_hash": "939f8a2129098fed573f173b1dc94b31d0685d68",
+      "variant_hashes": [
+        "57bd97a683b086ec8e7d4b263f7f2eafbd67587b",
+        "58ee2d727d6bf17d2738908c3af43c1e61e03316"
+      ],
+      "line_count": 26,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "block-dangerous-commands.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/block-dangerous-commands",
+      "canonical_path": "hooks/block-dangerous-commands.sh",
+      "paths": [
+        "hooks/block-dangerous-commands.sh"
+      ],
+      "description": "",
+      "content_hash": "6cae49e24dc786b545ec062aacc3c8aa87fe513b",
+      "signature_hash": "8a6bee7649bc6f23e2b267d8661f482be2650a8b",
+      "variant_hashes": [
+        "6cae49e24dc786b545ec062aacc3c8aa87fe513b"
+      ],
+      "line_count": 89,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "block-generated-edits.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/block-generated-edits",
+      "canonical_path": "hooks/block-generated-edits.sh",
+      "paths": [
+        "hooks/block-generated-edits.py",
+        "hooks/block-generated-edits.sh"
+      ],
+      "description": "",
+      "content_hash": "db3e719469caca6a05c7df52be215a6b3872cb8b",
+      "signature_hash": "19535e14bf54f5c1498b1e51b4e48145123c0eca",
+      "variant_hashes": [
+        "36f2bf4e22c185bb7016efdc055c4978eb072960",
+        "db3e719469caca6a05c7df52be215a6b3872cb8b"
+      ],
+      "line_count": 28,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "freshness-check.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/freshness-check",
+      "canonical_path": "hooks/freshness-check.sh",
+      "paths": [
+        "hooks/freshness-check.sh"
+      ],
+      "description": "",
+      "content_hash": "eab3f2e8ee97f2732a385692ad129eaa545da764",
+      "signature_hash": "bd08183de26c4d9115c6ae4e736cf39c2a5e2956",
+      "variant_hashes": [
+        "eab3f2e8ee97f2732a385692ad129eaa545da764"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "harness-staleness-nudge.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/harness-staleness-nudge",
+      "canonical_path": "hooks/harness-staleness-nudge.sh",
+      "paths": [
+        "hooks/harness-staleness-nudge.sh"
+      ],
+      "description": "",
+      "content_hash": "f7852a077268d39093059cd9c9b96ef030a09fa3",
+      "signature_hash": "d2061dbf86c072bd6631ff388102671d165103bd",
+      "variant_hashes": [
+        "f7852a077268d39093059cd9c9b96ef030a09fa3"
+      ],
+      "line_count": 12,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "codebase-memory",
+      "category": "",
+      "logical_id": "mcp:.mcp.json#codebase-memory",
+      "canonical_path": ".mcp.json#codebase-memory",
+      "paths": [
+        ".mcp.json#codebase-memory"
+      ],
+      "description": "${CLAUDE_PLUGIN_ROOT}/bin/cbm",
+      "content_hash": "e05a3e320f90b551c6aae9adf9bc2a92495b8f9d",
+      "signature_hash": "1e87a2cdf6b55687ccbc80f728cea1ad10ad6776",
+      "variant_hashes": [
+        "e05a3e320f90b551c6aae9adf9bc2a92495b8f9d"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "serena",
+      "category": "",
+      "logical_id": "mcp:.mcp.json#serena",
+      "canonical_path": ".mcp.json#serena",
+      "paths": [
+        ".mcp.json#serena"
+      ],
+      "description": "${CLAUDE_PLUGIN_ROOT}/bin/serena",
+      "content_hash": "3d95fa56d38fd31540da94e4e0a1a60bc1ec6fb8",
+      "signature_hash": "3118ab9e6716e4a2fedcd394c216b84d1e93f915",
+      "variant_hashes": [
+        "3d95fa56d38fd31540da94e4e0a1a60bc1ec6fb8"
+      ],
+      "line_count": 18,
+      "assets": []
+    },
+    {
+      "kind": "plugin",
+      "name": "code-intel",
+      "category": "",
+      "logical_id": "plugin:code-intel",
+      "canonical_path": ".claude-plugin/plugin.json",
+      "paths": [
+        ".claude-plugin/plugin.json"
+      ],
+      "description": "Graph-first code intelligence for large codebases \u2014 serena (LSP navigation + symbol-level edits) and CBM (auto-sync knowledge graph + local semantic search) as MCP servers, plus ast-grep for structural search/rewrite. Binaries are located at runtime via env vars / PATH; no machine-local paths are committed.",
+      "content_hash": "30ccf0598a1fb9e54b13a18171b1df95b78f64b2",
+      "signature_hash": "ef0279b9dcf99398213cfefadd55dbf28a73b661",
+      "variant_hashes": [
+        "30ccf0598a1fb9e54b13a18171b1df95b78f64b2"
+      ],
+      "line_count": 9,
+      "assets": []
+    },
+    {
+      "kind": "plugin",
+      "name": "codex-adapter",
+      "category": "",
+      "logical_id": "plugin:codex-adapter",
+      "canonical_path": ".claude-plugin/plugin.json",
+      "paths": [
+        ".claude-plugin/plugin.json"
+      ],
+      "description": "Call OpenAI Codex (gpt-5.x) from Claude Code via `codex exec`. Concurrent by design \u2014 no broker, no single-instance lock.",
+      "content_hash": "12da46b0755a23b25c6b8ac84f91e03e470c0630",
+      "signature_hash": "543583dc188c5a12bca19c6f80c8635a1cf7abde",
+      "variant_hashes": [
+        "12da46b0755a23b25c6b8ac84f91e03e470c0630"
+      ],
+      "line_count": 9,
+      "assets": []
+    },
+    {
+      "kind": "plugin",
+      "name": "mvp-plugin",
+      "category": "",
+      "logical_id": "plugin:mvp-plugin",
+      "canonical_path": ".claude-plugin/plugin.json",
+      "paths": [
+        ".claude-plugin/plugin.json"
+      ],
+      "description": "Reusable agent harness. Run /mvp-plugin:adopt in any repo to copy the .claude + .codex setup, rules, hooks, and beads tracking into it; /mvp-plugin:update keeps it current via a non-destructive three-way merge. One plugin in the mvp-harness marketplace (siblings: code-intel, codex-adapter).",
+      "content_hash": "a61307a4afa3d6edc3691b69154ac18567cef016",
+      "signature_hash": "22f493fd983ece4abbeb615181c1df41f5ecbaaf",
+      "variant_hashes": [
+        "a61307a4afa3d6edc3691b69154ac18567cef016"
+      ],
+      "line_count": 9,
+      "assets": []
+    },
+    {
+      "kind": "rule",
+      "name": "core/01-delegation",
+      "category": "core",
+      "logical_id": "rule:rules/core/01-delegation",
+      "canonical_path": "rules/core/01-delegation.md",
+      "paths": [
+        "rules/core/01-delegation.md"
+      ],
+      "description": "",
+      "content_hash": "710c88344d7f385e0907448947b2cdfc210b6a4c",
+      "signature_hash": "50b5ad7f2b7716ac8fee9ae051db982372036fd0",
+      "variant_hashes": [
+        "710c88344d7f385e0907448947b2cdfc210b6a4c"
+      ],
+      "line_count": 10,
+      "assets": []
+    },
+    {
+      "kind": "rule",
+      "name": "core/02-knowledge-discoverability",
+      "category": "core",
+      "logical_id": "rule:rules/core/02-knowledge-discoverability",
+      "canonical_path": "rules/core/02-knowledge-discoverability.md",
+      "paths": [
+        "rules/core/02-knowledge-discoverability.md"
+      ],
+      "description": "",
+      "content_hash": "88d58f93f53cd9fddfa76068ab03088ad4fe0fb5",
+      "signature_hash": "a7958120a8d17c8749c3e2b42d6d61485efd09f7",
+      "variant_hashes": [
+        "88d58f93f53cd9fddfa76068ab03088ad4fe0fb5",
+        "f7398204a293a08cbdacbd3764c63a109525087d"
+      ],
+      "line_count": 6,
+      "assets": []
+    },
+    {
+      "kind": "rule",
+      "name": "core/03-ak-guidelines",
+      "category": "core",
+      "logical_id": "rule:rules/core/03-ak-guidelines",
+      "canonical_path": "rules/core/03-ak-guidelines.md",
+      "paths": [
+        "rules/core/03-ak-guidelines.md"
+      ],
+      "description": "",
+      "content_hash": "d455c1866685c72e1fc74413c398c5ea5d78067d",
+      "signature_hash": "4026b25e070603b31f4b21de0dba5c6b057322dc",
+      "variant_hashes": [
+        "d455c1866685c72e1fc74413c398c5ea5d78067d"
+      ],
+      "line_count": 103,
+      "assets": []
+    },
+    {
+      "kind": "rule",
+      "name": "harness-lifecycle/curation",
+      "category": "harness-lifecycle",
+      "logical_id": "rule:rules/harness-lifecycle/curation",
+      "canonical_path": "rules/harness-lifecycle/curation.md",
+      "paths": [
+        "rules/harness-lifecycle/curation.md"
+      ],
+      "description": "",
+      "content_hash": "8eacef01fe92eda5ad930f1063aaacad9f453a15",
+      "signature_hash": "4b91cdceecf9faafa1432c530cb4ac3d9957bc7e",
+      "variant_hashes": [
+        "8eacef01fe92eda5ad930f1063aaacad9f453a15"
+      ],
+      "line_count": 22,
+      "assets": []
+    },
+    {
+      "kind": "rule",
+      "name": "python/coding-style",
+      "category": "python",
+      "logical_id": "rule:rules/python/coding-style",
+      "canonical_path": "rules/python/coding-style.md",
+      "paths": [
+        "rules/python/coding-style.md"
+      ],
+      "description": "",
+      "content_hash": "6a927cafae53026853faeb37f8ade43bcdfa87cf",
+      "signature_hash": "3a275e32b1ba3522e2e8037a871ef1f1c44c11bc",
+      "variant_hashes": [
+        "6a927cafae53026853faeb37f8ade43bcdfa87cf"
+      ],
+      "line_count": 81,
+      "assets": []
+    },
+    {
+      "kind": "rule",
+      "name": "python/safety",
+      "category": "python",
+      "logical_id": "rule:rules/python/safety",
+      "canonical_path": "rules/python/safety.md",
+      "paths": [
+        "rules/python/safety.md"
+      ],
+      "description": "",
+      "content_hash": "117bf2174c2a345dac96c2c56fdadc90b1f6b587",
+      "signature_hash": "fb8ffad23ee6ed8cfc3d1a9f79c980fe9ab0081c",
+      "variant_hashes": [
+        "117bf2174c2a345dac96c2c56fdadc90b1f6b587"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "rule",
+      "name": "python/testing",
+      "category": "python",
+      "logical_id": "rule:rules/python/testing",
+      "canonical_path": "rules/python/testing.md",
+      "paths": [
+        "rules/python/testing.md"
+      ],
+      "description": "",
+      "content_hash": "c08a90bb88f7262f6c9470acc389a0862efe9a51",
+      "signature_hash": "0839464c3f8a09759fca44b4b6b79d8b6bb41ef5",
+      "variant_hashes": [
+        "c08a90bb88f7262f6c9470acc389a0862efe9a51",
+        "d94264c87a11960bc3dea7d5ac9479a5f6e043dd"
+      ],
+      "line_count": 10,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "adopt",
+      "category": "skills",
+      "logical_id": "skill:skills/adopt",
+      "canonical_path": "skills/adopt/SKILL.md",
+      "paths": [
+        "skills/adopt/SKILL.md"
+      ],
+      "description": "Adopt this reusable agent setup to a repository by refreshing only the Codex project overlay files. Use when asked to adapt the harness to the current repo, update repo facts, or produce an adoption report without rewriting reusable core skills, agents, hooks, or rules.",
+      "content_hash": "61500b29ddc7cd777e65e781a47f2de974eaaedc",
+      "signature_hash": "c35b46bb4ce6c59ee0355b9d7dc64569e10702e4",
+      "variant_hashes": [
+        "61500b29ddc7cd777e65e781a47f2de974eaaedc"
+      ],
+      "line_count": 51,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "agent-matrix",
+      "category": "skills",
+      "logical_id": "skill:skills/agent-matrix",
+      "canonical_path": "skills/agent-matrix/SKILL.md",
+      "paths": [
+        "skills/agent-matrix/SKILL.md"
+      ],
+      "description": "Select, validate, and invoke Claude Code or Codex subagents from the repository Agent Matrix catalog. Use when choosing a subagent model, effort, context mode, tool access, permission mode, capability configuration, or skill set; when rejecting undeclared values; or when testing runtime support without creating Cartesian agent-definition files.",
+      "content_hash": "c08e675cac0e5e5c2af3f44fa74d38338f50fbd5",
+      "signature_hash": "f3fe335f99d5a2dd395ce48e2508d41ec1e274f5",
+      "variant_hashes": [
+        "83285fc6072cdb4409dd8b794f9d3506b0658f95",
+        "c08e675cac0e5e5c2af3f44fa74d38338f50fbd5"
+      ],
+      "line_count": 130,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "ak-guide",
+      "category": "skills",
+      "logical_id": "skill:skills/ak-guide",
+      "canonical_path": "skills/ak-guide/SKILL.md",
+      "paths": [
+        "skills/ak-guide/SKILL.md"
+      ],
+      "description": "Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria.",
+      "content_hash": "13a8ee03fa2f28d43cbb758cb4302afd16155a13",
+      "signature_hash": "a712e9e1b17478f183a4d3194525bfb333588bd4",
+      "variant_hashes": [
+        "13a8ee03fa2f28d43cbb758cb4302afd16155a13",
+        "658da71e1a0ad533942a84cc3a5de6e08a0e391c"
+      ],
+      "line_count": 10,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "beads",
+      "category": "skills",
+      "logical_id": "skill:skills/beads",
+      "canonical_path": "skills/beads/SKILL.md",
+      "paths": [
+        "skills/beads/SKILL.md"
+      ],
+      "description": "Use when working in a repository that uses bd or Beads for durable project task tracking, issue dependencies, blocker management, multi-session handoff, or shared work memory. Trigger when the user asks to find ready work, claim or close tasks, create follow-up work, inspect blockers, or recover project context; also when starting a new task or implementation, choosing what to work on next, or wrapping up a work session.",
+      "content_hash": "e1c1de3fb2e3cfa3fa8e20d1388f9cbab3431329",
+      "signature_hash": "2c5b0b1f12a549cb7862ab0e92aec94100d40317",
+      "variant_hashes": [
+        "631423aa536aa8be2a6dbef3576ff9109bb4c88d",
+        "e1c1de3fb2e3cfa3fa8e20d1388f9cbab3431329"
+      ],
+      "line_count": 48,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "brainstorming",
+      "category": "skills",
+      "logical_id": "skill:skills/brainstorming",
+      "canonical_path": "skills/brainstorming/SKILL.md",
+      "paths": [
+        "skills/brainstorming/SKILL.md"
+      ],
+      "description": "Use for standard or deep feature work when requirements are ambiguous, exploratory, or not yet approved for implementation. Also use when an ask is underspecified \u2014 missing who it is for, why now, what success looks like, or the binding constraint \u2014 before any plan or spec exists.",
+      "content_hash": "16ebcc3b25f344d9e38e34a78786090e81476e74",
+      "signature_hash": "a4c9db5ec5048e2f841435d807544d73854f0481",
+      "variant_hashes": [
+        "16ebcc3b25f344d9e38e34a78786090e81476e74",
+        "d42006d5758d75ad87d2c882b58b987d56436384"
+      ],
+      "line_count": 83,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "check-invariants",
+      "category": "skills",
+      "logical_id": "skill:skills/check-invariants",
+      "canonical_path": "skills/check-invariants/SKILL.md",
+      "paths": [
+        "skills/check-invariants/SKILL.md"
+      ],
+      "description": "Run mechanically checkable invariants from the Codex project overlay and report pass or fail. Use when asked to check project invariants, validate repo structure, or audit whether documented constraints still match the working tree.",
+      "content_hash": "4c684edf442723af558f932dc495565a9b23e700",
+      "signature_hash": "072f8222f5315634a32839e67da8533ed95f09c7",
+      "variant_hashes": [
+        "4c684edf442723af558f932dc495565a9b23e700"
+      ],
+      "line_count": 15,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "codebase-architecture-research",
+      "category": "skills",
+      "logical_id": "skill:skills/codebase-architecture-research",
+      "canonical_path": "skills/codebase-architecture-research/SKILL.md",
+      "paths": [
+        "skills/codebase-architecture-research/SKILL.md"
+      ],
+      "description": "Investigate a provided source codebase or external repository and produce architecture-focused research reports for future agents and human review. Use when asked to understand a codebase such as external/<name> or external/<name>, map its core architecture, runtime lifecycle, data/state model, inner workings, integration points, or create docs/research/codebases/name/ Markdown and HTML reports while avoiding excessive focus on cosmetic UI, release plumbing, generic tooling, or process layers unless they explain core behavior.",
+      "content_hash": "e6a3b36b1f0484997da93f67bc59263f76c62165",
+      "signature_hash": "76f9428b483068f507d112ab7505bcfff932db91",
+      "variant_hashes": [
+        "e6a3b36b1f0484997da93f67bc59263f76c62165"
+      ],
+      "line_count": 103,
+      "assets": [
+        "skills/codebase-architecture-research/agents/openai.yaml",
+        "skills/codebase-architecture-research/references/report-set.md",
+        "skills/codebase-architecture-research/scripts/init_report_tree.py"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "codex-runner",
+      "category": "skills",
+      "logical_id": "skill:skills/codex-runner",
+      "canonical_path": "skills/codex-runner/SKILL.md",
+      "paths": [
+        "skills/codex-runner/SKILL.md"
+      ],
+      "description": "Use to delegate a coding, analysis or research task to OpenAI Codex (gpt-5.x) from Claude Code \u2014 for a critique, an independent implementation or diagnosis pass, or to parallelize work across multiple Codex instances. Trigger when the user asks to \"run Codex\", \"ask Codex\", \"use Codex\", get a Codex review, or hand a task to Codex.",
+      "content_hash": "cdb07df9990ea6e9e59fe417ed44f5e40ff3eb2b",
+      "signature_hash": "83661c5008cf6a67eb0095326c21cd354b9c156c",
+      "variant_hashes": [
+        "cdb07df9990ea6e9e59fe417ed44f5e40ff3eb2b"
+      ],
+      "line_count": 87,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "cost-estimate",
+      "category": "skills",
+      "logical_id": "skill:skills/cost-estimate",
+      "canonical_path": "skills/cost-estimate/SKILL.md",
+      "paths": [
+        "skills/cost-estimate/SKILL.md"
+      ],
+      "description": ">",
+      "content_hash": "6d29ad24903609b3fa6666224e44de08de479982",
+      "signature_hash": "a827d4171e8a3482082b3815282448c372f7b5b3",
+      "variant_hashes": [
+        "63692ac6682e4ad3e8786ed9e737e605c00fc3a7",
+        "6d29ad24903609b3fa6666224e44de08de479982"
+      ],
+      "line_count": 192,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "deep-research",
+      "category": "skills",
+      "logical_id": "skill:skills/deep-research",
+      "canonical_path": "skills/deep-research/SKILL.md",
+      "paths": [
+        "skills/deep-research/SKILL.md"
+      ],
+      "description": "Use only when the user explicitly invokes `$deep-research`, says \"use deep research\", or asks to run this specific skill. Produces decision-grade research with scoped depth, source strategy, synthesis, counterarguments, and HTML artifacts for human review. Do not trigger implicitly for ordinary analysis, brainstorming, codebase research, document review, cost estimates, or quick questions.",
+      "content_hash": "4dba933c2cee14be023a7734ff77f1c13354a545",
+      "signature_hash": "b3487c9ca7c53468e2243c06a29d03dca7d052ed",
+      "variant_hashes": [
+        "4dba933c2cee14be023a7734ff77f1c13354a545"
+      ],
+      "line_count": 83,
+      "assets": [
+        "skills/deep-research/agents/openai.yaml",
+        "skills/deep-research/references/examples.md",
+        "skills/deep-research/references/frameworks.md",
+        "skills/deep-research/references/playbooks.md",
+        "skills/deep-research/references/source-selection.md",
+        "skills/deep-research/references/synthesis-engine.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "design-evolve",
+      "category": "skills",
+      "logical_id": "skill:skills/design-evolve",
+      "canonical_path": "skills/design-evolve/SKILL.md",
+      "paths": [
+        "skills/design-evolve/SKILL.md"
+      ],
+      "description": ">",
+      "content_hash": "33aadcb0ac257bb9ed0fa63ae4542c97c6ac719f",
+      "signature_hash": "f8cd776a7669c2abe0d101310d0fea81719ccdf5",
+      "variant_hashes": [
+        "33aadcb0ac257bb9ed0fa63ae4542c97c6ac719f"
+      ],
+      "line_count": 329,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "document-review",
+      "category": "skills",
+      "logical_id": "skill:skills/document-review",
+      "canonical_path": "skills/document-review/SKILL.md",
+      "paths": [
+        "skills/document-review/SKILL.md"
+      ],
+      "description": "Use when a requirements or plan document exists and needs a focused review for gaps, scope bloat, missing constraints, or risky assumptions.",
+      "content_hash": "3de7b26d49ace0b70b822c15fd8afb817ba570bf",
+      "signature_hash": "58f3cb99c5bec522b48d94b5f31f4de1c59763e8",
+      "variant_hashes": [
+        "1539e116a88a59338c4b01fcf5380d9a6517cd67",
+        "3de7b26d49ace0b70b822c15fd8afb817ba570bf"
+      ],
+      "line_count": 22,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "graph-first",
+      "category": "skills",
+      "logical_id": "skill:skills/graph-first",
+      "canonical_path": "skills/graph-first/SKILL.md",
+      "paths": [
+        "skills/graph-first/SKILL.md"
+      ],
+      "description": "Token-cheap navigation, search, and editing of large codebases across sessions. Use when finding where a symbol is defined or used, tracing call paths / impact / blast radius, doing concept or natural-language code search, renaming or editing symbols, applying structural codemods, or enforcing structural lint rules \u2014 query the code graph (serena / CBM) or ast-grep BEFORE reading whole files, and stop on bounded evidence.",
+      "content_hash": "2397f6a9fb1e48a36ad18f5caacba4b739aab823",
+      "signature_hash": "008534fff74876631e31e560f5f16f8f51b2fcd5",
+      "variant_hashes": [
+        "2397f6a9fb1e48a36ad18f5caacba4b739aab823"
+      ],
+      "line_count": 57,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "grill-me",
+      "category": "skills",
+      "logical_id": "skill:skills/grill-me",
+      "canonical_path": "skills/grill-me/SKILL.md",
+      "paths": [
+        "skills/grill-me/SKILL.md"
+      ],
+      "description": "Relentless design-review interviewer that systematically interrogates every aspect of a plan, architecture, or design document. Use this skill whenever the user says \"grill me\", \"interview me about this\", \"poke holes in my design\", \"stress test this plan\", \"challenge my architecture\", \"what am I missing\", \"help me think through this\", \"walk through my design\", \"question my assumptions\", or any variant where they want an adversarial-but-constructive deep dive into a plan, spec, proposal, or system design. Also trigger when the user uploads a design doc, architecture diagram, or technical spec and asks for critique, review, or thorough questioning. This skill is about exhaustive interrogation, not surface-level feedback \u2014 it goes branch by branch through every decision until nothing is left unexamined.",
+      "content_hash": "5cec9e1344c8ba802c41ba13c65c5039714fb3c9",
+      "signature_hash": "89e42bb1d761c0e3e4071c68fc69f2a78b245453",
+      "variant_hashes": [
+        "5cec9e1344c8ba802c41ba13c65c5039714fb3c9"
+      ],
+      "line_count": 128,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "harness-adopt",
+      "category": "skills",
+      "logical_id": "skill:skills/harness-adopt",
+      "canonical_path": "skills/harness-adopt/SKILL.md",
+      "paths": [
+        "skills/harness-adopt/SKILL.md"
+      ],
+      "description": "Adapt the freshly-copied agent harness to the current repository. Use after /mvp-plugin:adopt has laid the files down, or when asked to fill the project overlay, refresh repo facts, or produce a harness adoption report. Fills .claude/project/* and .codex/project/* from repo reality and recommends repo-specific automations \u2014 without rewriting the reusable core.",
+      "content_hash": "33a00d5fcfc7501b3845939ae1891ccc704f484f",
+      "signature_hash": "b5dedd09711db0bfe26bfa7f3f28e9ea1c4d3ab4",
+      "variant_hashes": [
+        "33a00d5fcfc7501b3845939ae1891ccc704f484f"
+      ],
+      "line_count": 73,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "harness-evaluate",
+      "category": "skills",
+      "logical_id": "skill:skills/harness-evaluate",
+      "canonical_path": "skills/harness-evaluate/SKILL.md",
+      "paths": [
+        "skills/harness-evaluate/SKILL.md"
+      ],
+      "description": "Use when a reference-harness capability surfaced by /harness-scan drift or gap output needs a curation decision recorded in the ledger, or when an already-adopted capability needs syncing back. Use when curating reference_harnesses/* into mvp-harness.",
+      "content_hash": "d8d4077db7431db2a63454894497dee99dbe8b85",
+      "signature_hash": "75aa0a52d6be35355ea86807a3c51ba1adcbee3a",
+      "variant_hashes": [
+        "d8d4077db7431db2a63454894497dee99dbe8b85"
+      ],
+      "line_count": 57,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "html-artifact",
+      "category": "skills",
+      "logical_id": "skill:skills/html-artifact",
+      "canonical_path": "skills/html-artifact/SKILL.md",
+      "paths": [
+        "skills/html-artifact/SKILL.md"
+      ],
+      "description": "Create polished single-file HTML artifacts as an alternative to markdown for documents meant to be read by humans. Use whenever the user asks for an implementation plan, status report, post-mortem, architecture doc, scaling analysis, capacity dashboard, research explainer, concept walkthrough, PR writeup, or other long-form documents that benefit from richer structure than markdown \u2014 KPI tiles, charts, tables, mockups, code blocks with copy buttons, collapsibles, SVG diagrams, or small interactive controls. Also use when the user asks for \"an HTML file\", \"HTML artifact\", \"HTML doc\", \"HTML version of this\", or \"a one-pager\". Do NOT use for React components, web apps, marketing pages, or visually expressive design (use frontend-design); for READMEs, docstrings, agent prompts, CLAUDE.md, or anything destined for git/CLI/another agent (use markdown); or for content under ~50 lines where visual structure doesn't earn its weight.",
+      "content_hash": "b4efb7b6de150568041517243a036cf308a664ed",
+      "signature_hash": "7538310cf88b4d1fe3cd502375d0a80e176abac9",
+      "variant_hashes": [
+        "70ec5c0a37e54c7a84294e3f1d06c044ef1195d3",
+        "b4efb7b6de150568041517243a036cf308a664ed"
+      ],
+      "line_count": 87,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "i-have-adhd",
+      "category": "skills",
+      "logical_id": "skill:skills/i-have-adhd",
+      "canonical_path": "skills/i-have-adhd/SKILL.md",
+      "paths": [
+        "skills/i-have-adhd/SKILL.md"
+      ],
+      "description": "Shape output for a reader with ADHD. Use this skill whenever responding to ANY user message including coding tasks, debugging, explanations, planning, and casual conversation. Output should lead with concrete next actions, number multi-step work, externalize state across turns, suppress tangents, give specific time estimates, and make wins visible. Trigger even on casual messages and even when the user did not explicitly ask for brevity.",
+      "content_hash": "eb7b24b2c799705ccd4effb682ec7ee2ec0f553c",
+      "signature_hash": "59ad42b028b016408826daa00bae5f6edbfc0479",
+      "variant_hashes": [
+        "eb7b24b2c799705ccd4effb682ec7ee2ec0f553c"
+      ],
+      "line_count": 122,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "migrate-claude-to-codex",
+      "category": "skills",
+      "logical_id": "skill:skills/migrate-claude-to-codex",
+      "canonical_path": "skills/migrate-claude-to-codex/SKILL.md",
+      "paths": [
+        "skills/migrate-claude-to-codex/SKILL.md"
+      ],
+      "description": "Migrate a Claude Code harness into Codex-native repo assets. Use when a repository has .claude agents, commands, skills, hooks, rules, docs, or project overlays that should become .codex skills, agents, hooks, rules, config, and project docs; also use when verifying whether Codex can discover the migrated harness.",
+      "content_hash": "35b9caa11d3e0f2d95067b548c1e91d3793e8c0c",
+      "signature_hash": "2c671f4497d1b5fac5346dd22ce1deaad24245b3",
+      "variant_hashes": [
+        "35b9caa11d3e0f2d95067b548c1e91d3793e8c0c"
+      ],
+      "line_count": 66,
+      "assets": [
+        "skills/migrate-claude-to-codex/agents/openai.yaml",
+        "skills/migrate-claude-to-codex/references/mapping.md",
+        "skills/migrate-claude-to-codex/scripts/migrate_claude_to_codex.py"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "model-council",
+      "category": "skills",
+      "logical_id": "skill:skills/model-council",
+      "canonical_path": "skills/model-council/SKILL.md",
+      "paths": [
+        "skills/model-council/SKILL.md"
+      ],
+      "description": "Use when the user asks to run one task through named council members with a named judge \u2014 several agents/models each solving the same task independently, then consolidated. TRIGGERS: 'model council', 'convene the council', 'have <agents> each take this and <agent> judge', any brainstorming/research/design/review request that names members and a judge. Do NOT run without user-named members and judge \u2014 ask for them in chat instead of choosing.",
+      "content_hash": "90b54aa22b45b51acfc16454640b86ba1bc9edfd",
+      "signature_hash": "19c92fe61bdb7e166ca94bd745b165ae38c2e3ba",
+      "variant_hashes": [
+        "90b54aa22b45b51acfc16454640b86ba1bc9edfd"
+      ],
+      "line_count": 34,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "perspective-council",
+      "category": "skills",
+      "logical_id": "skill:skills/perspective-council",
+      "canonical_path": "skills/perspective-council/SKILL.md",
+      "paths": [
+        "skills/perspective-council/SKILL.md"
+      ],
+      "description": "Use ONLY when the user explicitly asks for the council: 'council this', 'run the council', 'perspective council', 'war room this', 'pressure-test this', 'stress-test this', 'debate this'. Never trigger on ordinary decision questions \u2014 'should I X or Y', 'which option', 'is this the right move', 'I'm torn between' \u2014 answer those directly; the user will invoke the council themselves if they want it. If the user names specific council members and a judge, use model-council instead.",
+      "content_hash": "f7ec9e006a15a2cff2fcd71d2b78eb598a5a3ed8",
+      "signature_hash": "03dd6dd771f180f7a827d755129e2e5fe4c7c6f1",
+      "variant_hashes": [
+        "f7ec9e006a15a2cff2fcd71d2b78eb598a5a3ed8"
+      ],
+      "line_count": 45,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "phase-execution",
+      "category": "skills",
+      "logical_id": "skill:skills/phase-execution",
+      "canonical_path": "skills/phase-execution/SKILL.md",
+      "paths": [
+        "skills/phase-execution/SKILL.md"
+      ],
+      "description": "Execute a development phase from a workstream roadmap, following the full cycle (plan, Codex critique, implement, verify, review) with beads as the work-state anchor.",
+      "content_hash": "5120c9902f37eaafcb3c70a01eded1f1c569f9f2",
+      "signature_hash": "ba7bfacd46b829262f92d0628ee55c18ac759dbb",
+      "variant_hashes": [
+        "5120c9902f37eaafcb3c70a01eded1f1c569f9f2",
+        "c3f97b3d0f38dd20b1e3463f5bb04dad868ad329"
+      ],
+      "line_count": 110,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "planning",
+      "category": "skills",
+      "logical_id": "skill:skills/planning",
+      "canonical_path": "skills/planning/SKILL.md",
+      "paths": [
+        "skills/planning/SKILL.md"
+      ],
+      "description": "Use when approved requirements or a clear multi-step request need a durable implementation plan before coding.",
+      "content_hash": "9d3f41a59db8a6def27465e9b18831317d9493ea",
+      "signature_hash": "04928ea60c576c928ef6308785c70176f4b73bd8",
+      "variant_hashes": [
+        "4eefc65fa89808183354cca52eeb3854fb2a3ba8",
+        "9d3f41a59db8a6def27465e9b18831317d9493ea"
+      ],
+      "line_count": 33,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "prepare-phases",
+      "category": "skills",
+      "logical_id": "skill:skills/prepare-phases",
+      "canonical_path": "skills/prepare-phases/SKILL.md",
+      "paths": [
+        "skills/prepare-phases/SKILL.md"
+      ],
+      "description": "Turn input documents or research notes into a Beads-backed workstream: brainstorm, roadmap, and seeded epics/stages. Use when asked to prepare phase execution, convert research into a workstream, or create Beads-backed implementation phases.",
+      "content_hash": "3962ba783e168a55cd9c5d41372626878eef5cac",
+      "signature_hash": "dd8822c97345f29ecb45b4ac489751db4f221d39",
+      "variant_hashes": [
+        "3962ba783e168a55cd9c5d41372626878eef5cac"
+      ],
+      "line_count": 80,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "run-phases",
+      "category": "skills",
+      "logical_id": "skill:skills/run-phases",
+      "canonical_path": "skills/run-phases/SKILL.md",
+      "paths": [
+        "skills/run-phases/SKILL.md"
+      ],
+      "description": "Execute all remaining phases of a Beads-backed workstream sequentially with context management. Use when the user explicitly asks to run every incomplete phase from a roadmap after workstream tracking is bootstrapped.",
+      "content_hash": "ea69a6e91d43546b4773738b5f89b12632898cb9",
+      "signature_hash": "e6aa79a616f095260a8abe505a505b76d293d0e2",
+      "variant_hashes": [
+        "ea69a6e91d43546b4773738b5f89b12632898cb9"
+      ],
+      "line_count": 38,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "subagent-driven-development",
+      "category": "skills",
+      "logical_id": "skill:skills/subagent-driven-development",
+      "canonical_path": "skills/subagent-driven-development/SKILL.md",
+      "paths": [
+        "skills/subagent-driven-development/SKILL.md"
+      ],
+      "description": "Use when executing an approved standard or deep plan through bounded tasks with implementer and review agents.",
+      "content_hash": "7cf81dc7a740646793c800c4969101c09c236326",
+      "signature_hash": "673bcc60d0ff75064ecaeb30d985e84ba5f6cc3c",
+      "variant_hashes": [
+        "7cf81dc7a740646793c800c4969101c09c236326",
+        "89fa20b69a987517cb710b0264aaa7e699f8703f"
+      ],
+      "line_count": 60,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "systematic-debugging",
+      "category": "skills",
+      "logical_id": "skill:skills/systematic-debugging",
+      "canonical_path": "skills/systematic-debugging/SKILL.md",
+      "paths": [
+        "skills/systematic-debugging/SKILL.md"
+      ],
+      "description": "Use for bugs, failing tests, broken integrations, or confusing behavior before proposing fixes.",
+      "content_hash": "d01ad934069992bb1b023f5250232db209315c54",
+      "signature_hash": "843696aefd278828d0bfebe455b8b4ddb93a9c3f",
+      "variant_hashes": [
+        "5653c2ad50d92bc8ac37e6455a54b7095d3abe4d",
+        "d01ad934069992bb1b023f5250232db209315c54"
+      ],
+      "line_count": 24,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "teach-session",
+      "category": "skills",
+      "logical_id": "skill:skills/teach-session",
+      "canonical_path": "skills/teach-session/SKILL.md",
+      "paths": [
+        "skills/teach-session/SKILL.md"
+      ],
+      "description": "Effective teacher who makes the learner deeply understand the work produced in specific session.",
+      "content_hash": "dca087d38d2ced9cb724be22fad48dcdb22fba4b",
+      "signature_hash": "c5df9350b970df82c24ac8f1b753ecb96d480b12",
+      "variant_hashes": [
+        "dca087d38d2ced9cb724be22fad48dcdb22fba4b"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "test-driven-development",
+      "category": "skills",
+      "logical_id": "skill:skills/test-driven-development",
+      "canonical_path": "skills/test-driven-development/SKILL.md",
+      "paths": [
+        "skills/test-driven-development/SKILL.md"
+      ],
+      "description": "Use for risky behavior changes, bug fixes, or legacy edits where test-first or characterization-first execution is the safest path.",
+      "content_hash": "eaef42efc39850d41126d52adedee61c868e5544",
+      "signature_hash": "8ec4a42abac5c0fc458ccde56396cd9baf2c595e",
+      "variant_hashes": [
+        "eaef42efc39850d41126d52adedee61c868e5544",
+        "eead98b28d11c778e84c619c179c3856509bf338"
+      ],
+      "line_count": 32,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "use-codex",
+      "category": "skills",
+      "logical_id": "skill:skills/use-codex",
+      "canonical_path": "skills/use-codex/SKILL.md",
+      "paths": [
+        "skills/use-codex/SKILL.md"
+      ],
+      "description": "Choose and invoke the right Codex surface for project automation, reviews, rescue tasks, and cross-agent workflows. Use when asked how to run Codex from this repo, review local changes, launch noninteractive Codex work, or replace old Claude-plugin Codex commands with repo-native Codex CLI/app primitives.",
+      "content_hash": "3391a66b28117935bb354d63f92ed3182a05827a",
+      "signature_hash": "b93151d8beb15a4818d8c001617e9ff4d854dab6",
+      "variant_hashes": [
+        "3391a66b28117935bb354d63f92ed3182a05827a"
+      ],
+      "line_count": 57,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "verification-before-completion",
+      "category": "skills",
+      "logical_id": "skill:skills/verification-before-completion",
+      "canonical_path": "skills/verification-before-completion/SKILL.md",
+      "paths": [
+        "skills/verification-before-completion/SKILL.md"
+      ],
+      "description": "Use before claiming a change is complete, fixed, or ready. Requires fresh verification evidence.",
+      "content_hash": "698a1c5ee9d0b0d842373b80409a3e648db67e38",
+      "signature_hash": "69c66b3c60565c4d11926d1ea63110cf99161cb4",
+      "variant_hashes": [
+        "698a1c5ee9d0b0d842373b80409a3e648db67e38",
+        "c53b7ee31960bc23d3635c8cf6774530ae2f47b3"
+      ],
+      "line_count": 20,
+      "assets": []
+    }
+  ]
+}
