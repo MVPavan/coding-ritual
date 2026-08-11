@@ -1,0 +1,7 @@
+{
+  "_comment": "sha256 of every sealed round file. casebook.py validate fails if a sealed file is modified or deleted. Never edit by hand.",
+  "rounds": {
+    "round-001-council-consolidation.jsonl": "c6b922db7312358f11cca5168f4ac1639c68349f9539759e86ce51df6de002a6",
+    "round-002-drop-ui-scope.jsonl": "2a7fdc31bdf8d4c023a412aae51d6c312e7aeb90a2b3cbb6676dbd86fc504292"
+  }
+}

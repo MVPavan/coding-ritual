@@ -10,6 +10,7 @@ Authoritative docs and when to read them.
 | `harness_learnings/harness-patterns-by-capability.md` | Need the source-by-source breakdown behind the canon |
 | `harness_learnings/reference-harness-repos.md` | Background on each tracked reference repo |
 | `harness_lifecycle/README.md` | Detecting/comparing what a reference harness ships or changed upstream (`scan.py`) |
+| `harness_lifecycle/casebook/README.md` | What we already decided about a reference skill, and why — append-only, per bucket |
 | `README.md` | Repo overview (areas, read-first, common workflows) |
 | `mvp-harness/plugins/<plugin>/README.md` | Working inside a specific plugin |
 | `mvp-harness/plugins/mvp-plugin/skills/harness-adopt/SKILL.md` | Adapting the harness overlay to a repo |
