@@ -1,0 +1,3 @@
+id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
+mcp:.mcp.json#codebase-memory,mcp,,codebase-memory,ours,.mcp.json#codebase-memory,4,0,,${CLAUDE_PLUGIN_ROOT}/bin/cbm
+mcp:.mcp.json#serena,mcp,,serena,ours,.mcp.json#serena,18,0,,${CLAUDE_PLUGIN_ROOT}/bin/serena

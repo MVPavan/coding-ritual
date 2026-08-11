@@ -121,6 +121,17 @@ One `<repo>.json` per reference harness: the last-reviewed capability state.
 Re-`catalog` + `diff` against these to see what changed since the last review.
 Schema id: `harness-capability-catalog/v1` (see `Catalog.to_dict` in `scan.py`).
 
+`ours.json` is the odd one out — **our own** harness, written by
+`gap.py ours --out` rather than `scan.py catalog`, because only `build_ours`
+knows what "ours" means (root `.claude/` + `.codex/` + every plugin, minus each
+plugin's `template/` copy of the root harness). It is a **working-tree snapshot**,
+so its `source_commit` is null; the reference catalogs are pinned, this one is
+whatever was on disk when it ran. Regenerate it rather than trusting its age.
+
+```bash
+python3 harness_lifecycle/gap.py ours --out harness_lifecycle/catalogs/ours.json
+```
+
 ## `archive/` — retired artifacts
 
 The earlier per-row usefulness pipelines (`codex_analysis/`, `fable_analysis/`)
@@ -158,6 +169,29 @@ so a genuinely absent kind is visible as an empty file rather than a missing one
 Inventory only — adoption verdicts live in `ledger.json`, and model-judged
 usefulness ratings come from the separate analysis pipelines. Neither is
 reproducible from a scan, so neither appears here.
+
+### Where each inventory lives
+
+| Path | Holds | Rebuild from |
+|---|---|---|
+| `inventory/*.csv` | the three curated reference harnesses (agent-skills, mattpocock_skills, superpowers) | their `catalogs/*.json` |
+| `inventory/ours/*.csv` | **our own** 76 capabilities | `catalogs/ours.json` |
+
+Kept apart deliberately. `inventory/skill.csv` (73 rows) and
+`inventory/skill-buckets.csv` (73 rows) are in 1:1 correspondence, and the
+casebook roster is a subset of the same set. Merging our 31 skills into
+`skill.csv` would silently break that correspondence and make the bucket file
+look incomplete when nothing is wrong.
+
+```bash
+python3 harness_lifecycle/export_csv.py harness_lifecycle/catalogs/ours.json \
+    --out-dir harness_lifecycle/inventory/ours
+```
+
+Name-matching across the two is weak on purpose: `gap.py` matches by id, alias,
+then normalized name, so it will not discover that our `grill-me` and their
+`grilling` are the same capability. Only 3 of our 31 skills name-match anything
+upstream. Capability-level comparison is judgement work, not a derivation.
 
 ## `inventory/skill-buckets.{md,csv}` — the skill routing taxonomy
 
