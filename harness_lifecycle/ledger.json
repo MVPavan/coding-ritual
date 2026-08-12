@@ -396,6 +396,13 @@
     },
     {
       "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/implement",
+      "status": "rejected",
+      "reason": "A 15-line router occupying the slot execution's routing/delegation already fills; no loop, review gate, or failure handling, and its unconditional commit violates git-safety. Its one strong line \u2014 the verification cadence (typecheck regularly / focused test files regularly / full suite once at end) \u2014 was absorbed into the implementer agent, conditional on repo-provided commands (comparison: plan-execution-engines/).",
+      "date": "2026-08-12"
+    },
+    {
+      "repo": "mattpocock_skills",
       "logical_id": "skill:skills/engineering/to-spec",
       "status": "adopted",
       "reason": "Revisited 2026-08-12: now the SKELETON of references/spec-template.md \u2014 Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope (with our deferred|rejected tags), Further Notes \u2014 plus seam-first Testing and the prototype-snippet exception. REVERSES the earlier rejection of its no-file-paths rule: adopted for specs (naming existing components is fine; prescribing create/modify paths stays planning's job \u2014 plans still carry paths, specs do not). Artifact renamed requirements doc \u2192 spec across the chain; epics carry it via --spec-id.",
@@ -470,6 +477,22 @@
       "date": "2026-08-12",
       "our_id": "skill:skills/brainstorming",
       "source_content_hash": "c17eefe75bddb14488aa63dd9b568c5b8effdf7f"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/executing-plans",
+      "status": "rejected",
+      "reason": "Self-demoting in any subagent-capable harness (its own SKILL.md:14 routes to subagent-driven-development); every other component already exists in stronger form in the execution skill. Its one durable idea \u2014 the return-to-planning trigger \u2014 was absorbed into execution/SKILL.md's shared spine (comparison: plan-execution-engines/).",
+      "date": "2026-08-12"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/subagent-driven-development",
+      "status": "adopted",
+      "reason": "Adopted-merged into the execution skill's task engine (comparison: harness_lifecycle/skill-comparisons/plan-execution-engines/): bounded 5-round fix loop with model escalation and park-with-ruling breaker, artifact-as-file handoff (task-brief/review-package scripts, rebuilt on a no-commit worktree-snapshot model), workspace ledger for sub-stage state, reviewer hardening into the code-review skill (do-not-trust-the-report, anti-pre-judging, severity calibration, scoped re-review), final whole-scope review pointed at deferred/parked findings, condensed model-selection rules. Rejected: worktree isolation + finishing-a-development-branch coupling, per-task implementer commits, continuous-execution never-check-in stance, their markdown ledger as sole truth (bd stays stage-grain truth).",
+      "date": "2026-08-12",
+      "our_id": "skill:skills/execution",
+      "source_content_hash": "3985007b76d15d95dc69903e7f70e6e24ddbe6b8"
     },
     {
       "repo": "superpowers",
