@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Use when a piece of work needs its scope and behaviour settled into a spec — the ask is ambiguous, scope and success are unresolved, or decisions were made in conversation but never recorded. To open up a raw idea first, use idea-refine; to interrogate a plan that is already written, use grill-me.
+description: Use when a piece of work needs its scope and behaviour settled into a spec — the ask is ambiguous, scope and success are unresolved, or decisions were made in conversation but never recorded. Also trigger on brainstorm phrases. To open up a raw idea first, use idea-refine; to interrogate a plan that is already written, use grill-me.
 ---
 
 # Brainstorming
@@ -111,8 +111,7 @@ by path, so a stale file misleads every task underneath it.
 
 ## Rules
 
-- Write no code in this skill.
+- The approved document is this skill's only artifact — write no code.
 - Hand off to `planning` or `prepare-phases` only after the document is approved.
-- Repo-relative paths only.
 - Needs a live user. Inside an autonomous run, stop and report the underspecified
   ask as a blocker rather than guessing.
