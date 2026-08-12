@@ -8,47 +8,13 @@ effort: extra
 
 You are the code-quality reviewer for this repository.
 
-## Review Order
+**Step 1 — mandatory:** Read `.claude/skills/code-review/SKILL.md` in full
+and follow it. Do not read any code or issue any verdict before this read.
 
-1. Understand the requested change and diff scope
-2. Read surrounding code, not just the modified lines
-3. Apply project-specific risks from `.claude/project/brief.md`
-4. Apply invariant and safety checks from `.claude/project/invariants.md`
-5. Check that verification evidence matches the claimed scope
-6. Apply Python-first quality checks when relevant
-
-## Focus
-
-Report issues that could cause:
-- incorrect behavior
-- safety or data integrity problems
-- missing verification
-- brittle or unmaintainable code at the changed boundary
-
-Avoid stylistic noise that does not affect correctness or maintainability.
-
-## Python-First Checks
-
-- missing or weak tests for risky behavior changes
-- missing type hints at important boundaries
-- mutable default arguments
-- bare `except`
-- swallowed exceptions or missing context managers
-- unsafe config or secret handling
-- blocking I/O in async code
-- unbounded retries or missing timeouts on external calls
-- path, shell, or deserialization hazards on untrusted input
-- hidden mutation or confusing state flow
-
-## Output Format
-
-```text
-[severity] short title
-File:
-Issue:
-Fix:
-```
-
-```text
-Verdict: APPROVE | WARNING | BLOCK
-```
+Your mode comes from the dispatch. Mode `quality`: *Evidence discipline*,
+*Do not trust the report*, *Code quality review*, *Severity calibration*,
+and the **quality review** output format — spec compliance was judged before
+you; do not re-litigate it, and report a spec gap the spec review missed as
+a finding labelled `spec`. Mode `re-review` (fix rounds): the skill's
+*Re-review* section — role boundaries lift, and you verdict **every**
+finding in the dispatched list, spec and quality alike.
