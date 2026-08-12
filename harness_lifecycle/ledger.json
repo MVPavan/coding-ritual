@@ -183,10 +183,9 @@
     {
       "repo": "agent-skills",
       "logical_id": "skill:skills/browser-testing-with-devtools",
-      "status": "deferred",
-      "reason": "Route to an optional web-quality plugin; the runtime and browser-trust workflow is strong but requires Chrome DevTools MCP.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "status": "rejected",
+      "reason": "User does not do frontend work; browser/DevTools testing will not be used. Supersedes the earlier web-quality-plugin deferral.",
+      "date": "2026-08-12"
     },
     {
       "repo": "agent-skills",
@@ -263,10 +262,9 @@
     {
       "repo": "agent-skills",
       "logical_id": "skill:skills/frontend-ui-engineering",
-      "status": "deferred",
-      "reason": "Route to an optional web-quality plugin; accessibility and design-system checks are valuable, but the source is React and Tailwind oriented.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "status": "rejected",
+      "reason": "User does not do frontend work; no frontend UI guidance will be used in this harness. Supersedes the earlier web-quality-plugin deferral.",
+      "date": "2026-08-12"
     },
     {
       "repo": "agent-skills",
@@ -321,12 +319,9 @@
     {
       "repo": "agent-skills",
       "logical_id": "skill:skills/planning-and-task-breakdown",
-      "status": "adopted",
-      "reason": "Covered by local planning with approved requirements, repo research, file-scoped verifiable tasks, risks, invariants, and a tracer bullet.",
-      "date": "2026-07-15",
-      "our_id": "skill:skills/planning",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
-      "source_content_hash": "a83971b56a6786c871955799ef089b095702ca6c"
+      "status": "rejected",
+      "reason": "Whole-machine-in-one-file shape rejected; our planning skill is one organ of a five-surface machine proven in bodha-complete. Vertical-slicing articulation and dependency-graph-first absorbed into the planning rewrite; tasks/plan.md+todo.md duplicate bd; XS-XL sizing, risk-first ordering, rationalization tables rejected on record evidence.",
+      "date": "2026-08-12"
     },
     {
       "repo": "agent-skills",
@@ -410,12 +405,37 @@
     },
     {
       "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/to-tickets",
+      "status": "adopted",
+      "reason": "Adopted-merged narrowly into the planning rewrite: expand-contract sequencing for wide refactors incl. non-green-batch integration-branch fallback, tracer-bullet framing. Rejected: tracker-setup coupling, per-ticket granularity quiz (our pre-seed approval gate covers it at roadmap level).",
+      "date": "2026-08-12",
+      "our_id": "skill:skills/planning",
+      "source_content_hash": "57a5add86bfc5e9058dd94c512c4012b3c014336"
+    },
+    {
+      "repo": "mattpocock_skills",
       "logical_id": "skill:skills/engineering/triage",
       "status": "adopted",
       "reason": "Adapted, not copied: state machine remapped onto beads natives (category=bd type; needs-info/human labels + bd human; wontfix=close-reason, replacing .out-of-scope/). Took the 4 intake habits (redundancy check by concept, prior-rejection search, verify-claim, Established-so-far notes) and the ready-for-agent specification gate (acceptance + current/desired + out-of-scope), separated from bd ready (unblocked). Dropped: GitHub/PR machinery, reporter lifecycle, external-author filtering, and a separate tracker-verb adapter doc (commands live in the beads skill). Vocabulary in .beads/beads.md Intake States.",
       "date": "2026-08-12",
       "our_id": "skill:skills/triage",
       "source_content_hash": "a93a8429df3ff5b4e535f51d722969b15f3d6939"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/wayfinder",
+      "status": "adopted",
+      "reason": "Copied verbatim (SKILL.md + agents/, ships user-invoked via disable-model-invocation). Adopted as-is per user decision 2026-08-12; local customization (beads-native decision tickets etc.) deferred to a later pass.",
+      "date": "2026-08-12",
+      "our_id": "skill:skills/wayfinder",
+      "source_content_hash": "7d7f7fd0490a81fd677a035b17f7c14256d144ed"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/misc/migrate-to-shoehorn",
+      "status": "rejected",
+      "reason": "Lives in upstream's misc/ staging area, which we already ruled out of adoption scope wholesale; also refactoring-shoehorn workflow has no local use.",
+      "date": "2026-08-12"
     },
     {
       "repo": "mattpocock_skills",
@@ -450,6 +470,15 @@
       "date": "2026-08-12",
       "our_id": "skill:skills/brainstorming",
       "source_content_hash": "c17eefe75bddb14488aa63dd9b568c5b8effdf7f"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/writing-plans",
+      "status": "adopted",
+      "reason": "Adopted-merged into the rewritten planning skill (Elaborate mode): file-map-before-tasks, Interfaces Consumes/Produces, reviewer right-sizing test, no-placeholders list, self-review checklist. Rejected: 2-5-min steps, code blocks in steps, their plan-file conventions (record-backed reasons in scratchpad/bucket2-planning-decision.md).",
+      "date": "2026-08-12",
+      "our_id": "skill:skills/planning",
+      "source_content_hash": "bf0d895b76b8d7e0f4c22d9e53ae30024eb0f84b"
     },
     {
       "repo": "superpowers",
