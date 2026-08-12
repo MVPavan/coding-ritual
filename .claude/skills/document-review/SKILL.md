@@ -1,6 +1,6 @@
 ---
 name: document-review
-description: Use when a requirements or plan document exists and needs a focused review for gaps, scope bloat, missing constraints, or risky assumptions.
+description: Use when a spec or plan document exists and needs a focused review for gaps, scope bloat, missing constraints, or risky assumptions.
 ---
 
 # Document Review
@@ -9,7 +9,7 @@ Review the document itself before using it as a source of truth.
 
 ## Workflow
 
-1. Read the document and classify it as requirements or plan.
+1. Read the document and classify it as spec or plan.
 2. Check it against current repo context and any authoritative project docs.
 3. Look for:
    - internal inconsistency

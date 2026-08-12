@@ -13,7 +13,7 @@ Core harness is stable; repo-specific facts live in `.codex/project/`.
 
 ## Read Order
 
-1. `AGENTS.md`
+1. `AGENTS.md`, then `CONTEXT.md` (domain glossary — use its terms, flag conflicts)
 2. `.codex/project/`: `brief.md`, `repo-map.md` (folder structure + how to orient), `docs-index.md`, `verification.md`, `invariants.md`
 3. `docs/research/` — when working from prior research, runtime comparisons, or provider/tooling decisions
 4. `docs/workstreams/<name>/roadmap.md` (active workstream plan) + generated workstream mirrors — when a workstream exists
@@ -38,8 +38,8 @@ Lean by default. Match ceremony to scope and risk.
 ## Process Before Execution
 
 - unclear or exploratory request: brainstorm first
-- approved requirements plus multi-step code work: plan first
-- newly written requirements or plan docs: review the document before execution
+- an approved spec plus multi-step code work: plan first
+- newly written spec or plan docs: review the document before execution
 - risky behavior change or fragile legacy area: test-first or characterization-first
 - bug, failure, or confusing behavior: systematic-debugging before proposing fixes
 - approved plan with bounded tasks: subagent-driven development

@@ -1,29 +1,25 @@
 ---
 name: brainstorming
-description: Use when a piece of work needs its requirements settled and written down — the ask is ambiguous, scope and success are unresolved, or decisions were made in conversation but never recorded. To open up a raw idea first, use idea-refine; to interrogate a plan that is already written, use grill-me.
+description: Use when a piece of work needs its scope and behaviour settled into a spec — the ask is ambiguous, scope and success are unresolved, or decisions were made in conversation but never recorded. To open up a raw idea first, use idea-refine; to interrogate a plan that is already written, use grill-me.
 ---
 
 # Brainstorming
 
-Turns an unsettled ask into an approved requirements document that this repo's
-planning chain consumes.
+Turns an unsettled ask into an approved spec that this repo's planning chain consumes.
 
 ## Ground
 
 Read `AGENTS.md`, `.claude/project/brief.md`, and `.claude/project/docs-index.md`.
-Then scan enough repo context to answer: does something similar already exist,
-what constraints are already real, which docs are authoritative.
+Then scan enough repo context to answer: does something similar already exist, what constraints are already real, which docs are authoritative.
 
 Done when you can name the closest existing thing, or say there is none.
 
 ## Route
 
-Answer four questions from the conversation so far. If one cannot be answered,
-that is itself the answer.
+Answer four questions from the conversation so far. If one cannot be answered, that is itself the answer.
 
 - **Shape** — one piece of work, or several independent subsystems?
-- **Intent** — are outcome, user, why now, success, and the binding constraint
-  all known?
+- **Intent** — are outcome, user, why now, success, and the binding constraint all known?
 - **Direction** — is one approach chosen, or are several still live?
 - **Detail** — is the behaviour decided, or only the direction?
 
@@ -35,7 +31,7 @@ Take the first row that matches. When a route returns, answer the four again.
 | Small, and its behaviour is already explicit | stop — this skill does not apply | — |
 | Every decision is already in the conversation | **Converge**, restate only | an approved direction |
 | Intent incomplete | **Interview** | complete intent |
-| Several directions live, idea ambiguous/complex | the **`idea-refine`** skill | one direction, its bets named |
+| Several directions live, idea ambiguous/complex | the **`idea-refine`** skill | one direction, its bets named in an idea doc |
 | One direction, behaviour undecided | **Converge** | an approved direction |
 | Direction approved | **Write** | a draft document |
 
@@ -55,8 +51,10 @@ say that something foundational is missing and step back.
 
 ## Converge
 
-Present 2-3 approaches with their trade-offs, leading with the one you recommend
-and why. Then restate, one line each:
+If the direction is already chosen — in the conversation or by an idea doc — skip
+the approaches and go straight to the restate. Otherwise present 2-3 approaches
+with their trade-offs, leading with the one you recommend and why. Then restate,
+one line each:
 
     Outcome / User / Why now / Success / Constraint / Out of scope
 
@@ -69,14 +67,23 @@ what each usually means.
 
 ## Write
 
-Fill every section of `references/requirements-template.md` and save it to
-`docs/brainstorms/YYYY-MM-DD-<topic>-requirements.md`, creating the directory if
-it does not exist. It opens as `Status: draft`.
+Fill every section of `references/spec-template.md` and save it to
+`docs/specs/YYYY-MM-DD-<topic>.md`, creating the directory if it does not exist.
+It opens as `Status: draft`.
 
 Write it every time, not only when the decisions feel durable — `prepare-phases`
-passes this path as `--design` on every epic. A section with nothing to say gets
+passes this path as `--spec-id` on every epic. A section with nothing to say gets
 "None"; keep the heading. A small ambiguous ask still ends in a document, just a
 short one.
+
+If filling a behaviour, acceptance, or testing section would be guesswork, the
+behaviour is not decided — interview those gaps first (one question at a time),
+then write.
+
+If an idea doc exists (`docs/ideas/<topic>.md`), cite it under *Solution*; the
+discarded alternatives and strategic bets stay there. The spec records only
+build decisions and exclusions, plus any explicit departure from the idea doc.
+Once the spec exists it is authoritative — do not edit the idea doc afterwards.
 
 ## Review
 
@@ -92,7 +99,9 @@ critique the document before it reaches the user.
 
 Then ask the user to read the file. Make any changes they ask for and show them
 again. Once they accept it, set `Status: approved` and record who approved it —
-`planning` needs an approved document, and a draft is not a handoff.
+`planning` needs an approved document, and a draft is not a handoff. A spec with
+a blocking open question cannot be approved: resolve it, or move it explicitly
+to *Out of Scope* or a deferred follow-up.
 
 ## Keep it current
 

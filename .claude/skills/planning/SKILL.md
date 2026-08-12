@@ -1,15 +1,17 @@
 ---
 name: planning
-description: Use when approved requirements or a clear multi-step request need a durable implementation plan before coding.
+description: Use when an approved spec or a clear multi-step request needs a durable implementation plan before coding.
 ---
 
 # Planning
 
-This skill turns approved requirements into an execution-ready plan.
+This skill turns an approved spec into an execution-ready plan.
 
 ## Workflow
 
-1. Start from approved requirements or explicit assumptions.
+1. Start from an approved spec. For phase/workstream work the spec is mandatory; explicit
+   assumptions are acceptable only for clearly scoped standalone work — record in the plan why no
+   spec was needed.
 2. If product behavior is still unclear, return to brainstorming.
 3. Research local code, tests, project docs, and prior learnings before fixing the plan shape.
 4. Write a right-sized plan at the caller-specified path. For phase work, use

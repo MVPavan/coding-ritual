@@ -22,8 +22,9 @@ memory or a hand-maintained status file. Model: `.beads/beads.md` → *Phase & w
 ## How It Works
 
 1. Determine the workstream roadmap (`docs/workstreams/<name>/roadmap.md`) and read it for **phase order**.
-2. Resolve the workstream's phase epics: `bd list --spec <roadmap.md> --json` (or `bd epic status --json`
-   filtered to that `spec_id`).
+2. Resolve the workstream's phase epics: `bd list -t epic -l ws-<name> --json`. (Workstreams seeded
+   before the label convention carry the roadmap in `spec_id` instead — fall back to
+   `bd list --spec <roadmap.md> --json`.)
 3. Find the **first phase epic in roadmap order that is not closed** and whose dependencies are met
    (`bd blocked`). That is the next phase.
 4. Execute it: `/phase-execution <phase> --roadmap <roadmap.md>`. Within it, auto-approve confirmation

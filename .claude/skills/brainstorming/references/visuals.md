@@ -33,7 +33,7 @@ offer it upfront.
 ## What survives into the document
 
 A diagram the user approved, that explains the design, goes into the
-requirements document as a Mermaid block under **Design** — not as a link to a
+spec as a Mermaid block under **Implementation Decisions** — not as a link to a
 scratchpad file, which will not exist for the next reader.
 
 If the approved artefact is an HTML mockup that cannot be reduced to Mermaid,
