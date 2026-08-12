@@ -39,6 +39,9 @@ their own skills.
     (`references/task-engine.md` → *Full path*).
   - Marked **test-first** → the implementer follows the
     **test-driven-development skill**.
+  - Touches a **trust boundary** (untrusted input, authn/authz, secrets,
+    uploads/webhooks, external integrations, LLM/agent features) → follow
+    the **security skill** before implementation; its Ask-First gate applies.
   - Unexpected test failure → **systematic-debugging skill** before retrying.
 - **Workspace** for working artifacts (briefs, reports, review packages,
   snapshots, the progress ledger): `scratchpad/execution/<slug>/` where slug =

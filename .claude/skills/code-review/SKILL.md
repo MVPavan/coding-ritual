@@ -88,6 +88,10 @@ never broaden your own search instead.
   (ignore pre-existing size).
 - **Project risks**: apply `.claude/project/brief.md` and
   `.claude/project/invariants.md`.
+- **Trust boundaries**: when the diff touches untrusted input, authn/authz,
+  secrets, uploads/webhooks, external integrations, or LLM/agent features,
+  run the **security skill's** review checklist as an additional lens —
+  findings report under this skill's severity and output contract.
 - **Python-first checks** when relevant: missing/weak tests for risky
   behaviour changes; missing type hints at important boundaries; mutable
   default arguments; bare `except`; swallowed exceptions or missing context
