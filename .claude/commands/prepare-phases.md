@@ -4,7 +4,7 @@ description: Turn input documents or research notes into a Beads-backed workstre
 
 # Prepare Phases
 
-Takes one or more input documents and stands up a **workstream**: a brainstorm, a roadmap, and the bd
+Takes one or more input documents and stands up a **workstream**: a spec, a roadmap, and the bd
 epics + stages that `/run-phases` and `/phase-execution` drive off. Work-state lives in **beads**; the
 human-readable tracking files are bd-generated (never hand-authored). Model: `.beads/beads.md` →
 *Workstream Mirrors*.
@@ -37,9 +37,9 @@ Invoke the **brainstorming skill** with the input documents as context:
 3. Identify phases, deliverables, risk levels, dependencies, and execution order.
 4. If real choices exist (e.g., new workstream vs extend existing, grouping strategy), present options.
 5. Get Codex criticism on the brainstorm (standard/deep work).
-6. Ensure `docs/brainstorms/` exists, then produce
-   `docs/brainstorms/YYYY-MM-DD-<topic>-requirements.md`. If a brainstorm lifecycle README does not
-   exist yet, do not invent lifecycle moves; keep the requirements file in place and report it.
+6. Ensure `docs/specs/` exists, then produce the spec at
+   `docs/specs/YYYY-MM-DD-<topic>.md` (brainstorming's `references/spec-template.md`), and get it
+   to `Status: approved` before seeding anything.
 
 ### Step 3 — Create the Workstream
 
@@ -47,7 +47,7 @@ Ask the user: **new workstream**, or **extend an existing one** (add phases to i
 
 For a new workstream, create `docs/workstreams/<name>/`:
 - `README.md` — the charter (one screen: what this workstream is, how it's tracked).
-- `roadmap.md` — the phased plan (the bd `--spec-id` anchor). For each phase: Goal · Deliverables table
+- `roadmap.md` — the phased plan (the bd `--design` anchor). For each phase: Goal · Deliverables table
   (task, create/modify paths, verify) · Spec references table · Exit criterion · Test focus · Risk
   (standard/deep) · for review phases, which original phases are modified.
 - `plans/` — empty (per-phase plans land here in `/phase-execution` step 2).
@@ -59,7 +59,7 @@ For flat operational work, the `README.md` charter is the anchor (no phases).
 
 This replaces the old "status rows + checklist/progress scaffolding". For each phase:
 
-1. **Epic = phase**: `bd create -t epic "<phase>" --spec-id docs/workstreams/<name>/roadmap.md --design docs/brainstorms/<brainstorm>.md --actor "cc:${CLAUDE_CODE_SESSION_ID:0:8}" -q`
+1. **Epic = phase**: `bd create -t epic "<phase>" --spec-id docs/specs/<spec>.md --design docs/workstreams/<name>/roadmap.md -l ws-<name> --actor "cc:${CLAUDE_CODE_SESSION_ID:0:8}" -q` — `--spec-id` carries the spec (what was committed), `--design` carries the roadmap (how it is sequenced), and the `ws-<name>` label is the workstream identity that `/run-phases` and `/phase-execution` filter on (a workstream accumulates epics from many specs over time, so neither doc path can serve as its key)
 2. **Flat stage children**: per deliverable, `bd create "<stage>" --parent <epic> -t task --actor "…" -q` → dotted id `<epic>.N`. Avoid sub-tasks.
 3. **Dependencies — declare only the REAL ones** (`bd dep add <stage> <prereq> --actor "…"`): add a dep only where a stage genuinely needs another's output (per the roadmap). **Do NOT blanket-chain** in listing order — genuinely independent work stays unchained so it can run in any order / in parallel. Deps mirror **reality, not sequence**; `run-phases` walks roadmap order regardless, so artificial chaining only buys premature-start bugs and a noisier ready-front.
 4. **Render**: `BD_RENDER=1 bash scripts/bd-render-tracking.sh <name>` — regenerates the workstream's
@@ -82,7 +82,7 @@ Example: "Seeded workstream `reviews`: 6 phases / 23 stages in bd. Run `/phase-e
 
 | Artifact | Path |
 |----------|------|
-| Brainstorm requirements | `docs/brainstorms/YYYY-MM-DD-<topic>-requirements.md` |
+| Spec | `docs/specs/YYYY-MM-DD-<topic>.md` |
 | Workstream charter + roadmap | `docs/workstreams/<name>/{README.md, roadmap.md}` |
 | Work-state | bd epics (phases) + flat stage children + deps |
 | Tracking trio + board | **bd-generated** via `scripts/bd-render-tracking.sh` when the renderer exists |
@@ -97,7 +97,7 @@ Example: "Seeded workstream `reviews`: 6 phases / 23 stages in bd. Run `/phase-e
 
 - Always brainstorm before seeding — do not skip to roadmap/bd creation.
 - Always ask the user about new vs extend workstream — do not assume.
-- **No orphan issues** — every epic belongs to a workstream and carries `--spec-id` + `--design`.
+- **No orphan issues** — every epic belongs to a workstream and carries `--spec-id` (the spec) + `--design` (the roadmap).
 - **Deps mirror reality** — chain only genuine deps; independent work stays unchained (parallelizable at the DD stage level, file-conflict bounded).
 - `--actor` on every bd write; never hand-edit generated tracking files. If the renderer is missing,
   leave generated mirrors absent and report the gap.

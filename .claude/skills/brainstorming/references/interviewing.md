@@ -75,7 +75,7 @@ information about the ask, not a reason to keep grinding. Say so:
 - Three or more questions in one message — that is surveying, not interviewing
 - A question with no guess attached
 - Accepting "whatever you think is best" as a final answer
-- Writing the requirements document before the restate has an explicit yes
+- Writing the spec before the restate has an explicit yes
 - Asking "what would be best practice?" instead of "what do you actually want?"
 - Three rounds with no change in what you understand — reframe, don't continue
 - Leaving "Out of scope" out of the restate

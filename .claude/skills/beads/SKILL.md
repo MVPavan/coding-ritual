@@ -15,13 +15,14 @@ Shared, durable task system for this repo — the source of truth for project wo
 | Ready (unblocked) work | `bd ready` |
 | List by status | `bd list --status=open\|in_progress\|closed` |
 | Inspect one issue | `bd show <id>` |
-| Search text | `bd search "<query>"` |
+| Search text | `bd search "<query>"` — titles + open only; add `--status all` and use `--desc-contains` for full search |
 | Create | `bd create "title" --description="why + what" -t task\|bug\|feature\|epic\|chore\|decision -p 0..4` |
 | Claim | `bd update <id> --claim` |
-| Edit fields | `bd update <id> --title/--description/--notes/--design/--priority/--status` |
+| Edit fields | `bd update <id> --title/--description/--notes/--append-notes/--design/--priority/--status` |
 | Close (one or many) | `bd close <id> [<id>…] [--reason="…"]` |
 | Dependencies | `bd dep add <id> <depends-on>` · `bd dep tree <id>` · `bd blocked` |
 | Labels | `bd label add\|remove <id> <label>` · `bd list -l <label>` · `bd label list-all` |
+| Human-attention queue | `bd human list` · `bd human respond\|dismiss <id>` |
 | Lifecycle | `bd defer <id> --until=<date>` · `bd supersede <id> --with=<id>` · `bd stale` · `bd orphans` |
 | Epics | create: `-t epic [--spec-id <path>]` · child: `bd create … --parent <epic-id>` · `bd epic status` · `bd epic close-eligible` · children: `bd list --parent <id>` · by spec: `bd list --spec <prefix>` |
 | Stats / health | `bd stats` (quick summary) · `bd lint` · `bd stale` · `bd orphans` · `bd gc` / `bd prune` |
@@ -36,7 +37,8 @@ Maintenance — on-demand, not per session: use the stats/health row above. Run 
 - **Casing:** label names are filter-case-sensitive (`-l idea` ≠ `-l Idea`) — all-lowercase, kebab-case for multi-word (`relationship-graph`), never Capitalized/PascalCase.
 - **idea** (raw, untriaged): `bd create "…" -l idea --defer 2099-01-01 -q`; triage with `bd list -l idea`.
 - **backlog** (vetted, not now): `bd create "…" -l backlog -t <type> -p <prio> --defer … -q`, or promote an idea — `bd label add <id> backlog; bd label remove <id> idea`.
-- **Epic → spec-id (mandatory check):** never create an epic without first checking for a spec, plan, or design doc. If the user named one, attach it (`--spec-id <path>`). If no such document exists, proceed without one only when the issue description captures the reason. `spec_id` does not inherit to children; filter epics by spec with `bd list --spec <prefix>`.
+- **Intake states** (`needs-triage`, `needs-info`, `ready-for-agent` + its gate, `human`, wontfix closes): vocabulary in `.beads/beads.md` → *Intake States*; move issues between them via the `triage` skill.
+- **Epic → spec-id (mandatory check):** never create an epic without first checking for a governing spec. `--spec-id` holds the spec (what was committed); the roadmap goes on `--design`; plans never go in `spec_id`. Phase epics also carry a `ws-<name>` workstream label. If no spec exists, proceed only when the issue description captures the reason. `spec_id` does not inherit to children; filter epics by spec with `bd list --spec <prefix>`.
 - **Issue shape:** keep child tasks flat as practical. Add dependencies only when work genuinely depends on another issue's output; do not chain tasks only because they appear in sequence.
 
 ## Overrides (these beat `bd prime`'s defaults)

@@ -26,7 +26,8 @@ The user says "start phase N", "execute phase N", or "begin phase N".
 
 1. Determine the workstream roadmap from `--roadmap` (a `docs/workstreams/<name>/roadmap.md`).
 2. Read the roadmap — find the phase section: deliverables, spec references, exit criterion, risk.
-3. Resolve the phase **epic** in bd: `bd list --spec <roadmap.md> --json` → the epic for this phase.
+3. Resolve the phase **epic** in bd: `bd list -t epic -l ws-<name> --json` → the epic for this phase.
+   (Legacy workstreams carry the roadmap in `spec_id` — fall back to `bd list --spec <roadmap.md> --json`.)
    Confirm it is **not closed** (`bd epic status --json` → its `.epic`). Never re-seed; the epic already
    exists from `/prepare-phases`.
 4. Check dependencies: prerequisite stages/phases closed (`bd blocked`, `bd dep tree <epic>`).

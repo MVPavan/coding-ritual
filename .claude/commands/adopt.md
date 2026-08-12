@@ -39,6 +39,10 @@ Keep the core harness stable. Update only `.claude/project/*` with facts derived
    - `.claude/project/learnings.md`
    - `.claude/project/code-intel.md`
    - `.claude/project/adoption-report.md`
+   - `CONTEXT.md` (repo root) — seed the domain glossary from repo reality: only terms actually
+     observed, each with avoid-synonyms, glossary only (no implementation details); format per the
+     `domain-modeling` skill. If the repo's vocabulary is thin, keep it short — `domain-modeling`
+     grows it lazily.
 6. Use repo-relative paths only.
 7. If running in Claude Code with Codex available and the adoption work is `standard` or `deep`, ask Codex to challenge major assumptions before finalizing.
 8. Stop and present the adoption report for review.

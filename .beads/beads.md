@@ -41,11 +41,34 @@ Use two deferred labels for parked work:
 
 Labels are case-sensitive. Use lowercase kebab-case labels.
 
+## Intake States
+
+State labels for work that has been filed but not yet dispatched. An issue carries **at most one**
+state label at a time; category is the native `-t` type (never a label), and rejection is a close,
+not a label. The `triage` skill moves issues between these states.
+
+- **`needs-triage`** — filed as real work, not yet evaluated.
+- **`needs-info`** — evaluation blocked on answers from the user; the open questions live in notes.
+- **`ready-for-agent`** — fully specified for autonomous execution. Gate, all three required:
+  `acceptance_criteria` populated (`--acceptance`), description states current and desired
+  behaviour, out-of-scope noted where the request is ambiguous.
+- **`human`** — the user executes this one; surfaces via `bd human list` / `respond` / `dismiss`.
+- **Wontfix** — `bd close --reason "wontfix: <why>"`. Closed issues are the durable rejection
+  record; check them with `bd search "<terms>" --status all` before filing similar work.
+
+**Two kinds of ready.** `bd ready` means *unblocked* (dependency truth); `ready-for-agent` means
+*specified* (content truth). An issue can be topologically ready and still be a mystery. For
+standalone/AFK work, claim only issues carrying `ready-for-agent`. Inside a phase, the roadmap's
+deliverable row specifies the stage, so `bd ready --parent <epic>` alone is sufficient there.
+
 ## Epics And Specs
 
-Before creating an epic, check whether it has a spec, plan, or design document. If yes, attach it
-with `--spec-id <path>`. If no such document exists, an epic without `--spec-id` is acceptable, but
-the reason should be clear from the issue description.
+Before creating an epic, check whether a governing spec exists (`docs/specs/…`, or another
+authoritative document). If yes, attach it with `--spec-id <path>` — `spec_id` holds the *spec*
+(what was committed to be built), never a plan. Phase epics additionally carry `--design` (the
+roadmap that sequences them) and a `ws-<name>` label (the workstream identity that `/run-phases`
+and `/phase-execution` filter on). An epic without `--spec-id` is acceptable only when the reason
+is clear from the issue description.
 
 Keep child tasks as flat as practical. Add dependencies only when work genuinely depends on another
 issue's output; do not chain tasks only because they appear in sequence.
