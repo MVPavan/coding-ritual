@@ -64,6 +64,21 @@ Explicit flags override a role's defaults (e.g. `--role implement -s read-only`,
 7. **Best-effort.** On capacity/auth error: retry once, then proceed without Codex and log the skip. `small` tasks skip Codex unless risk is unusual.
 8. **Resume** a prior thread with `--resume <session-id>` from the footer; otherwise each call is fresh.
 
+## Critique discipline (review / critique roles)
+
+- **Pass the artifact, never your conclusion.** Hand Codex the document/diff/plan plus the
+  contract it must satisfy — not your summary, your reasoning, or the claim you hope it
+  confirms. Hand over conclusions and you get validation of conclusions.
+- **Findings are data, not verdicts.** Classify each before acting: **contract-misread**
+  (the artifact or prompt was unclear — fix that first) · **valid + actionable** (act) ·
+  **valid trade-off** (record the decision and why) · **noise** (drop, with a one-line
+  reason). Never silently drop a finding.
+- **Bound the loop: 3 critique cycles per artifact.** If three cycles feel insufficient,
+  the artifact is too big — decompose it; do not lift the bound.
+- **Doubt-theater check:** two or more cycles with substantive findings and *zero*
+  classified valid-actionable means you are collecting validation, not critique — stop,
+  re-examine what you are withholding or how you framed the prompt.
+
 ## Pointers
 
 - Deep docs ship inside the installed plugin and are directly readable: `${CLAUDE_PLUGIN_ROOT}/` (`README.md`, `docs/writing-roles.md`, `roles/`, `skills/codex-runner/`) from any `/codex*` command or the `codex-runner` skill, or under `~/.claude/plugins/cache/codex-adapter/codex-adapter/<version>/` (latest dir) for a direct read.
