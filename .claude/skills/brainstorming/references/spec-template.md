@@ -29,11 +29,13 @@ the directions that lost and the strategic bets live there, not here.
 
 ## User Stories
 
-A LONG, numbered list of user stories. Each user story should be in the format of:
+A numbered list of user stories, each in the format
+"As a <actor>, I want <capability>, so that <benefit>":
 
-As an , I want a , so that
-1. As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
-This list of user stories should be extremely extensive and cover all aspects of the feature.
+1. As a mobile bank customer, I want to see the balance on my accounts,
+   so that I can make better informed decisions about my spending.
+
+Extensive enough to cover the feature's behaviour — length follows the work.
 
 ## Implementation Decisions
 
