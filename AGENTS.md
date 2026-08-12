@@ -47,9 +47,9 @@ Lean by default. Match ceremony to scope and risk.
 
 If the user already supplied a clear, approved plan, do not re-run brainstorming.
 
-## Phase Execution
+## Execution
 
-Explicit phase execution implementation work runs through `$phase-execution N` in Codex (or `/phase-execution N` in Claude Code): full cycle from planning to subagent-dev, TDD, debugging, and verification. Phase inventory: `docs/workstreams/<name>/roadmap.md`; work-state in Beads.
+Approved implementation work runs through the **execution skill** (three scopes: task / phase / workstream; entry commands `/phase-execution N` and `/run-phases` in Claude Code, `$phase-execution N` in Codex). Full cycle: planning → dispatch → review → TDD/debugging as routed → verification. Phase inventory: `docs/workstreams/<name>/roadmap.md`; work-state in Beads.
 
 ## Codex And Claude
 
