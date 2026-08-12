@@ -44,6 +44,9 @@ Approach: <prose — no code blocks>
 
 Verification: <command + expected signal that proves the Goal>
 
+Test seams: <the public observable boundaries tests attach to — required
+when the task is test-first or characterization-first; omit otherwise>
+
 Dependencies: <task numbers, or None>
 
 Risks: <including a test-first or characterization-first call when behaviour

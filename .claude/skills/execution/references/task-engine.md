@@ -76,14 +76,15 @@ The package never enters the coordinator's context — pass its path.
    scope/Constraints — plus the task section). For work with no plan file,
    write the packet to the brief file yourself: goal, owned **and forbidden**
    files, origin doc section, invariants, required tests, verification
-   commands, commit policy, test-first flag.
+   commands, commit policy, test-first flag, trust-boundary flag (routes the
+   implementer through the security skill).
 2. **Dispatch a fresh implementer** with paths, not contents: the brief path,
    a report-file path (`task-<N>-report.md`), and the constraints line. Never
    paste prior-task history or full files into the dispatch — everything
    pasted stays resident in your context for the rest of the session.
 3. **Status handling** — require one of the four values:
    - `DONE` → confirm the report file exists and names verification commands
-     + output, then verify/review per path below.
+     and output, then verify/review per path below.
    - `DONE_WITH_CONCERNS` → read the concerns from the report **first**;
      resolve each (answer it, ledger it as accepted, or dispatch a fix)
      before any review. Concerns are not noise to forward.
