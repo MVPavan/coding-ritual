@@ -102,6 +102,14 @@
     },
     {
       "repo": "agent-skills",
+      "logical_id": "doc:docs/skill-anatomy.md",
+      "status": "adopted",
+      "reason": "Adopted as the structural contract in authoring-for-agents references/skill-anatomy.md: layout, frontmatter rules, recommended body pattern, supporting-file thresholds, scripts-over-inline-code, catalog-search-before-creating. Rejected: their repo-root shared references/ convention, eval-runner and PR mechanics (repo-specific).",
+      "date": "2026-08-12",
+      "our_id": "skill:authoring-for-agents"
+    },
+    {
+      "repo": "agent-skills",
       "logical_id": "hook:hooks/sdd-cache-post",
       "status": "rejected",
       "reason": "Persists prompt-shaped fetched content using an unstable response schema; URL-only keys, private-content persistence, and extra HEAD requests outweigh speculative savings.",
@@ -426,6 +434,15 @@
       "source_content_hash": "b979b08ff6ad1244f093b892b534cfcdfeaf4652"
     },
     {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/productivity/writing-for-agents",
+      "status": "adopted",
+      "reason": "Adopted as the writing-theory core of authoring-for-agents (references/writing-principles.md): context pointers, the two loads, information hierarchy/progressive disclosure, completion criteria, leading words, negation, pruning; SKILL-MECHANICS invocation choice and router skills folded into references/skill-anatomy.md, adapted to this harness's disable-model-invocation frontmatter. Rejected: nothing structural \u2014 repackaged from pure theory into a process with verification rungs.",
+      "date": "2026-08-12",
+      "our_id": "skill:authoring-for-agents",
+      "source_content_hash": "a967162dde1e0778b78661cf3858fc6d73b21b07"
+    },
+    {
       "repo": "superpowers",
       "logical_id": "skill:skills/brainstorming",
       "status": "adopted",
@@ -433,6 +450,15 @@
       "date": "2026-08-12",
       "our_id": "skill:skills/brainstorming",
       "source_content_hash": "c17eefe75bddb14488aa63dd9b568c5b8effdf7f"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/writing-skills",
+      "status": "adopted",
+      "reason": "Adopted as one third of authoring-for-agents: Match-the-Form-to-the-Failure table, description-never-summarizes-workflow rule, rationalization tables/red flags for discipline skills, and a slimmed proportional testing ladder (baseline + stacked-pressure + wording micro-tests). Rejected: the Iron Law (no edit without failing test), the 1150-line Anthropic docs cache, persuasion-principles essay, graphviz tooling.",
+      "date": "2026-08-12",
+      "our_id": "skill:authoring-for-agents",
+      "source_content_hash": "c2445088fd89d4fdbe963a3ccfab6ac81b1962a6"
     }
   ]
 }
