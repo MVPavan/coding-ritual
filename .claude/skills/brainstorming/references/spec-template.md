@@ -103,7 +103,7 @@ Anything else the next reader needs that fits no section above.
 
 ## Why these sections
 
-`prepare-phases` passes this file as `--spec-id` on every epic it creates, so it
+The `planning` skill (Decompose) passes this file as `--spec-id` on every epic it creates, so it
 is read by people working on tasks that were split out of it long after the
 conversation ended.
 

@@ -24,8 +24,9 @@ on capacity error, then proceed and log the skip. Skip Codex for `small` tasks.
 - **`docs-researcher`** subagent — library/SDK/API/CLI facts; never invent APIs.
 - **`context7`** MCP (connected this session) — live docs for named libraries/SDKs;
   prefer over web search for library docs.
-- **planner / implementer / code-reviewer / spec-reviewer** — core harness agents
-  for bounded plan → build → review work.
+- **implementer / code-reviewer / spec-reviewer** — core harness agents for
+  bounded build → review work (reviewers follow the `code-review` skill;
+  planning lives in the `planning` skill, dispatch in `execution`).
 - **claude-max / fable-max / fable-xhigh** — heaviest, most open-ended tasks.
 - Use **brainstorming** for open-ended harness-design tradeoffs and requirements.
 

@@ -71,8 +71,8 @@ Fill every section of `references/spec-template.md` and save it to
 `docs/specs/YYYY-MM-DD-<topic>.md`, creating the directory if it does not exist.
 It opens as `Status: draft`.
 
-Write it every time, not only when the decisions feel durable — `prepare-phases`
-passes this path as `--spec-id` on every epic. A section with nothing to say gets
+Write it every time, not only when the decisions feel durable — `planning`
+(Decompose) passes this path as `--spec-id` on every epic. A section with nothing to say gets
 "None"; keep the heading. A small ambiguous ask still ends in a document, just a
 short one.
 
@@ -112,6 +112,6 @@ by path, so a stale file misleads every task underneath it.
 ## Rules
 
 - The approved document is this skill's only artifact — write no code.
-- Hand off to `planning` or `prepare-phases` only after the document is approved.
+- Hand off to `planning` only after the document is approved.
 - Needs a live user. Inside an autonomous run, stop and report the underspecified
   ask as a blocker rather than guessing.
