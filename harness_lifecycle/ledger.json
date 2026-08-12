@@ -253,11 +253,10 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/doubt-driven-development",
       "status": "adopted",
-      "reason": "Covered by independent read-only Codex critique and risk-scaled review in phase execution, without mandatory adversarial cycles for every branch.",
-      "date": "2026-07-15",
-      "our_id": "command:commands/codex-critique",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
-      "source_content_hash": "d2ed7adb9bad3d41c7a4d0fe27da6ebb7dd171fd"
+      "reason": "Superseding pointer+content update of the 2026-07-15 entry (our_id command:commands/codex-critique no longer exists). The half-coverage found by execution-disciplines/ is now closed: use-codex gained the Critique discipline section \u2014 pass-the-artifact-never-your-conclusion, four-class finding classification with no silent drops, the 3-cycle bound, the doubt-theater detector. Rejected: its cross-model CLI bootstrap section (codex-adapter owns invocation).",
+      "date": "2026-08-12",
+      "our_id": "command:commands/use-codex",
+      "source_content_hash": "fba35581fc086b390e82bf46fef843e54513e11b"
     },
     {
       "repo": "agent-skills",
@@ -286,10 +285,11 @@
     {
       "repo": "agent-skills",
       "logical_id": "skill:skills/incremental-implementation",
-      "status": "deferred",
-      "reason": "Route only the thin vertical-slicing pattern into planning and subagent execution; reject the source workflow's mandatory per-slice commits.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "status": "adopted",
+      "reason": "Closes the 2026-07-15 deferral. Ruled a discipline by execution-disciplines/; its durable content is now distributed: vertical slicing + tracer bullets in planning, Rules 0/0.5 scope discipline via the NOTICED BUT NOT TOUCHING format added to ak-guide section 3, don't-re-run-for-reassurance in the TDD skill, per-slice verification in execution's light path. Rejected (again): mandatory per-slice commits.",
+      "date": "2026-08-12",
+      "our_id": "skill:skills/planning",
+      "source_content_hash": "f9e540cb7e3712843bb0bea734b4a54e427b656d"
     },
     {
       "repo": "agent-skills",
@@ -326,10 +326,11 @@
     {
       "repo": "agent-skills",
       "logical_id": "skill:skills/security-and-hardening",
-      "status": "deferred",
-      "reason": "Route framework-neutral threat modeling, auth, SSRF, supply-chain, and LLM checks to an optional production-readiness plugin; exclude stack-specific bulk.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "status": "adopted",
+      "reason": "Closes the 2026-07-15 deferral, whose 'optional production-readiness plugin' never existed (comparison: post-implementation-passes/). Adopted as the security skill: STRIDE-per-boundary threat model, three-tier system with operational Ask-First semantics, authz-vs-authn, SSRF+TOCTOU, audit triage tree, supply-chain discovery + script-blocking, rotate-don't-scrub, corrected+completed OWASP LLM Top 10 mapping. Mounted: execution routing + task packet flag + code-review lens. Rejected: the ~150 lines of Express/Node/TS example bulk; Python controls stay in rules/python/safety.md.",
+      "date": "2026-08-12",
+      "our_id": "skill:skills/security",
+      "source_content_hash": "516d76f8d674c7ccf9676fd9febe52db0aec9829"
     },
     {
       "repo": "agent-skills",
@@ -362,11 +363,10 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/test-driven-development",
       "status": "adopted",
-      "reason": "Covered by the local behavior-first RED-GREEN-REFACTOR loop, expected-failure confirmation, minimum passing change, and characterization tests.",
-      "date": "2026-07-15",
+      "reason": "Superseding correction of the 2026-07-15 entry, whose 'covered by the local loop' claim was wrong about everything except the loop (comparison: execution-disciplines/). Now genuinely absorbed: stack-discovery-first, the Prove-It pattern, characterization path split from RED, don't-re-run-clean-suites, flakiness/isolation/snapshot warnings, rationalizations; pyramid + size model landed in rules/python/testing.md. Rejected: browser-testing/subagent orchestration sections (other surfaces own those).",
+      "date": "2026-08-12",
       "our_id": "skill:skills/test-driven-development",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
-      "source_content_hash": "0e94130c9a20604756350d862ed4f74036206867"
+      "source_content_hash": "d95f1dfe8bbd2411bdee0fdc5cf8166e80a51c04"
     },
     {
       "repo": "agent-skills",
@@ -400,6 +400,15 @@
       "status": "rejected",
       "reason": "A 15-line router occupying the slot execution's routing/delegation already fills; no loop, review gate, or failure handling, and its unconditional commit violates git-safety. Its one strong line \u2014 the verification cadence (typecheck regularly / focused test files regularly / full suite once at end) \u2014 was absorbed into the implementer agent, conditional on repo-provided commands (comparison: plan-execution-engines/).",
       "date": "2026-08-12"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/tdd",
+      "status": "adopted",
+      "reason": "Adopted-merged (comparison: execution-disciplines/): seams as pre-agreed public test boundaries \u2014 adapted from a live human gate to the plan's new 'Test seams:' field so it survives unattended runs; the tautological-test definition; implementation-coupled and horizontal-slicing anti-patterns; mock-at-system-boundaries + design-for-mockability. Rejected: refactoring-outside-the-loop (contradicts the other three and our loop).",
+      "date": "2026-08-12",
+      "our_id": "skill:skills/test-driven-development",
+      "source_content_hash": "f0170565668f30ee31ec50f7ca1b33293d54ed86"
     },
     {
       "repo": "mattpocock_skills",
@@ -493,6 +502,15 @@
       "date": "2026-08-12",
       "our_id": "skill:skills/execution",
       "source_content_hash": "3985007b76d15d95dc69903e7f70e6e24ddbe6b8"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/test-driven-development",
+      "status": "adopted",
+      "reason": "Adopted-merged into the rewritten TDD skill (comparison: execution-disciplines/): writing-good-tests content \u2014 name-the-break gate, mirror-assertion/change-detector bans, mock-at-right-level rules with the boundary-contract exception, complete mock structures, test-only-methods-out-of-production, the mutation check, warning signs. Rejected: universal application + Iron Law delete-your-code enforcement (incompatible with risk-scaled routing), hard-coded npm test commands.",
+      "date": "2026-08-12",
+      "our_id": "skill:skills/test-driven-development",
+      "source_content_hash": "9bf54057abb754c1fe1894ef685d80810c95ba4f"
     },
     {
       "repo": "superpowers",
