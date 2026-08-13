@@ -13,7 +13,7 @@ Core harness is stable; repo-specific facts live in `.codex/project/`.
 
 ## Read Order
 
-1. `AGENTS.md`, then `CONTEXT.md` (domain glossary — use its terms, flag conflicts)
+1. `AGENTS.md`, then `CONTEXT.md` (domain glossary — use its terms, flag conflicts), then `docs/adr/` if present (recorded decisions — don't re-litigate or silently undo them)
 2. `.codex/project/`: `brief.md`, `repo-map.md` (folder structure + how to orient), `docs-index.md`, `verification.md`, `invariants.md`
 3. `docs/research/` — when working from prior research, runtime comparisons, or provider/tooling decisions
 4. `docs/workstreams/<name>/roadmap.md` (active workstream plan) + generated workstream mirrors — when a workstream exists
