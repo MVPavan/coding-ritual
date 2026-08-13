@@ -26,6 +26,25 @@ Only include these when they add genuine value. Most ADRs won't need them.
 
 Scan `docs/adr/` for the highest existing number and increment by one.
 
+## Match the existing convention first
+
+Before creating an ADR, check for an established convention — existing ADRs,
+project instructions, or ADR tooling config. An established convention
+overrides the defaults here: match the location, file extension, and markup;
+continue the existing numbering and filename pattern (never restart at 001 or
+introduce a second scheme); reuse the project's heading set. If the evidence
+conflicts, surface the conflict instead of silently adding another scheme.
+
+## Lifecycle
+
+Never delete an ADR — it captures historical context. When a decision changes,
+write a new ADR that references and supersedes the old one, and mark the old
+one `superseded by ADR-NNNN`.
+
+When code contains a trap or constraint that an ADR explains, leave a short
+comment at that spot linking the ADR — an inline gotcha comment is what stops
+the next reader from "fixing" a deliberate decision.
+
 ## When to offer an ADR
 
 All three of these must be true:

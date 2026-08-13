@@ -58,8 +58,15 @@
 ## Documentation
 
 - Every function must have a concise docstring explaining what it does (not how).
-- Do not write obvious comments. Every comment must add value.
+- Comment the *why*, not the *what*: non-obvious intent, constraints, and
+  trade-offs. Comments on *why* stay true across refactors; comments that
+  restate the code go stale — never write them.
+- Document known gotchas inline where they bite (ordering requirements,
+  surprising failure modes); link the ADR when one records the rationale.
 - Prefer self-documenting names over comments where possible.
+- No commented-out code — delete it; git history keeps it.
+- No TODO comments for work you can do now. A TODO that must genuinely wait
+  becomes a bead, not a comment.
 
 ## Package Management
 
