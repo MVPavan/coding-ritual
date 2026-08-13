@@ -175,10 +175,9 @@
     {
       "repo": "agent-skills",
       "logical_id": "skill:skills/api-and-interface-design",
-      "status": "deferred",
-      "reason": "Route to an optional production-readiness plugin; preserve contract, error, and boundary checks while rewriting TypeScript and REST defaults as stack-neutral guidance.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "status": "rejected",
+      "reason": "User ruling 2026-08-13: not relevant for us as of today \u2014 no public-API surface where contract-evolution discipline (Hyrum's Law, additive-only changes) would pay off; skill is also mostly TS/REST tutorial boilerplate. Supersedes the 2026-07-15 deferral. Revisit if a project exposes an API with external consumers.",
+      "date": "2026-08-13"
     },
     {
       "repo": "agent-skills",
@@ -244,10 +243,11 @@
     {
       "repo": "agent-skills",
       "logical_id": "skill:skills/documentation-and-adrs",
-      "status": "deferred",
-      "reason": "Route a short ADR and decision-lifecycle workflow into the template; local discoverability indexes documents but does not capture decision context.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "status": "adopted",
+      "reason": "Closes the 2026-07-15 deferral. ADR portion absorbed into domain-modeling/ADR-FORMAT.md (convention-first, never-delete/supersede, comment-the-trap-link-the-ADR); comment-hygiene portion absorbed into rules/python/coding-style.md (no commented-out code; no doable-now TODOs \u2014 lasting ones become beads); ADR read-order mount in CLAUDE.md/AGENTS.md. Not adopted as its own skill: comment-why-not-what already in coding-style, API-doc part covered by docstring+mypy rules and the api-and-interface-design rejection, README/changelog/agent-docs sections generic or already our overlay discipline.",
+      "date": "2026-08-13",
+      "our_id": "skill:skills/domain-modeling",
+      "source_content_hash": "6b733c82fa6a9721bf00ad02a30696a076f29630"
     },
     {
       "repo": "agent-skills",
@@ -378,6 +378,15 @@
     },
     {
       "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/codebase-design",
+      "status": "adopted",
+      "reason": "Adopted verbatim (SKILL + DEEPENING + DESIGN-IT-TWICE; their agents/openai.yaml metadata excluded). Only source of the deep-module vocabulary (module/interface/depth/seam/adapter/leverage/locality), deletion test, one-adapter-hypothetical/two-adapters-real seam rule, and dependency-category test strategy. Also supplies the definition of 'seam' that our plan-format Test-seams field and TDD skill already depend on.",
+      "date": "2026-08-13",
+      "our_id": "skill:skills/codebase-design",
+      "source_content_hash": "5810b0cd4c7957df3bdc5d28fd437a2dff4470e3"
+    },
+    {
+      "repo": "mattpocock_skills",
       "logical_id": "skill:skills/engineering/domain-modeling",
       "status": "adopted",
       "reason": "Copied verbatim as grill-with-docs' dependency. Also the first skill in bucket 3 (Architecture & Modeling), which was empty - it arrived as a dependency, so it needs a deliberate review when that bucket is analysed.",
@@ -400,6 +409,24 @@
       "status": "rejected",
       "reason": "A 15-line router occupying the slot execution's routing/delegation already fills; no loop, review gate, or failure handling, and its unconditional commit violates git-safety. Its one strong line \u2014 the verification cadence (typecheck regularly / focused test files regularly / full suite once at end) \u2014 was absorbed into the implementer agent, conditional on repo-provided commands (comparison: plan-execution-engines/).",
       "date": "2026-08-12"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/improve-codebase-architecture",
+      "status": "adopted",
+      "reason": "Adopted verbatim per user ruling 2026-08-13 (SKILL + HTML-REPORT; agents/openai.yaml excluded), overriding the council's demote-the-CDN-report change \u2014 user will redirect the report format ad hoc if needed. Only proactive find-structural-debt capability in the harness: hot-spot scoping, deletion-test exploration, badges, ADR-conflict handling, grilling loop. Consumes codebase-design + domain-modeling + grilling.",
+      "date": "2026-08-13",
+      "our_id": "skill:skills/improve-codebase-architecture",
+      "source_content_hash": "8b13390845f9f5e60ae623f52dbe8733f4329538"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/prototype",
+      "status": "adopted",
+      "reason": "Adopted verbatim per user ruling 2026-08-13 (SKILL + LOGIC + UI; their agents/openai.yaml metadata excluded). Both branches kept: UI.md stays behind progressive disclosure and simply won't be selected in non-UI work, so trimming it buys nothing. Fills the one mode the harness otherwise forbade: answering design questions with running throwaway code, with discipline (marked throwaway, no persistence, capture verdict then park on a throwaway branch).",
+      "date": "2026-08-13",
+      "our_id": "skill:skills/prototype",
+      "source_content_hash": "e1a5444ff8d72d7d183188cad944d04b1ff302e9"
     },
     {
       "repo": "mattpocock_skills",
