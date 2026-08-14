@@ -19,4 +19,4 @@ Review the document itself before using it as a source of truth.
    - security, data, or performance risks when relevant
 4. Fix obvious wording or structure issues inline when the correction is unambiguous.
 5. Surface decision-level issues instead of silently rewriting intent.
-6. For standard/deep documents, get an independent critique from a spawned Opus 5 medium Claude subagent — once per document unless it is unusually risky.
+6. For standard/deep documents, get an independent critique from a spawned critic subagent — once per document unless it is unusually risky.

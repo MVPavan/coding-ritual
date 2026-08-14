@@ -17,8 +17,9 @@ work on the repo. The plugins are loaded by Claude Code / Codex, not built here.
 
 Codex is retired in this repo (2026-08-14 ruling; low quota) — do not invoke
 the `codex` CLI or the codex-adapter plugin. Critique of drafts, plans, and
-completed diffs runs on a **spawned Opus 5 medium Claude subagent** (Agent
-tool, `subagent_type: "claude"`, `model: "opus"`); findings come back numbered
+completed diffs runs on a **spawned critic subagent** — a fresh agent,
+separate from the implementer. The user defines which model serves as critic
+(ask if undefined; never assume one). Findings come back numbered
 BLOCKER/MAJOR/MINOR with `file:line` plus a verdict, and the coordinator
 triages them. Skip the critic for `small` tasks unless risk is unusual.
 `.claude/commands/use-codex.md` is kept as a retired reference for possible

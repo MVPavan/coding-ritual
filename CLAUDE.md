@@ -54,7 +54,7 @@ Approved implementation work runs through the **execution skill** (three scopes:
 
 ## Independent critique
 
-Codex is **retired** in this repo (2026-08-14 ruling; low quota) — do not invoke it or the codex-adapter plugin. Drafts, plans, and completed diffs get their independent critique from a **spawned Opus 5 medium Claude subagent** (Agent tool, `subagent_type: "claude"`, `model: "opus"`): numbered findings BLOCKER/MAJOR/MINOR with `file:line`, then a verdict. `small` tasks skip the critic unless risk is unusual. Detail: `.claude/project/tools.md`.
+Codex is **retired** in this repo (2026-08-14 ruling; low quota) — do not invoke it or the codex-adapter plugin. Drafts, plans, and completed diffs get their independent critique from a **spawned critic subagent** — a fresh agent, separate from whoever implemented; the user defines which model serves as critic. Findings come back numbered BLOCKER/MAJOR/MINOR with `file:line`, then a verdict. `small` tasks skip the critic unless risk is unusual. Detail: `.claude/project/tools.md`.
 
 ## Tools & Subagents
 
