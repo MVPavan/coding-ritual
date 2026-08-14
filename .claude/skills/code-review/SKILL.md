@@ -49,7 +49,9 @@ gate bounces the work back as failed verification, not into a review round.
   legitimate named risks: changed lock ordering, a changed function or API
   contract, shared mutable state — checking the call sites is the right method.
 - The review is **read-only** on this checkout: never mutate the working
-  tree, index, HEAD, or branch state.
+  tree, index, HEAD, or branch state. Need a working copy of another
+  revision? Check it out into a temporary `git worktree` — never move HEAD
+  here.
 - The implementer already ran the tests and reported the output. Do not
   re-run the suite to confirm their report. Run a test only when reading the
   code raises a specific doubt no existing run answers — then a focused
@@ -118,6 +120,10 @@ Never reconstruct the requirements from the diff itself.
   upgrade is judged by its changelog, not its version delta; unrelated
   dependency changes bundled into one diff are a finding. Supply-chain
   doubts route to the security-skill lens below.
+- **Production readiness**: a schema or persisted-data change names its
+  migration strategy; a changed public interface stays backward compatible
+  or the break is an explicit finding; docs and comments the change made
+  stale are updated in the same diff.
 - **Project risks**: apply `.claude/project/brief.md` and
   `.claude/project/invariants.md`.
 - **Trust boundaries**: when the diff touches untrusted input, authn/authz,
