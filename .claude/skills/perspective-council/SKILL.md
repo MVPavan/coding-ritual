@@ -1,6 +1,6 @@
 ---
 name: perspective-council
-description: "Use ONLY when the user explicitly asks for the council: 'council this', 'run the council', 'perspective council', 'war room this', 'pressure-test this', 'stress-test this', 'debate this'. Never trigger on ordinary decision questions — 'should I X or Y', 'which option', 'is this the right move', 'I'm torn between' — answer those directly; the user will invoke the council themselves if they want it. If the user names specific council members and a judge, use model-council instead."
+description: "Use ONLY when the user explicitly asks for the council: 'council this', 'run the council', 'perspective council', 'war room this', 'debate this'. Never trigger on 'stress-test this' or 'pressure-test this' alone — those route to grilling — and never on ordinary decision questions — 'should I X or Y', 'which option', 'is this the right move', 'I'm torn between' — answer those directly; the user will invoke the council themselves if they want it. If the user names specific council members and a judge, use model-council instead."
 ---
 
 # Perspective Council

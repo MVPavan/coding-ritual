@@ -43,9 +43,13 @@ Keep the core harness stable. Update only `.claude/project/*` with facts derived
      observed, each with avoid-synonyms, glossary only (no implementation details); format per the
      `domain-modeling` skill. If the repo's vocabulary is thin, keep it short — `domain-modeling`
      grows it lazily.
-6. Use repo-relative paths only.
-7. If running in Claude Code with Codex available and the adoption work is `standard` or `deep`, ask Codex to challenge major assumptions before finalizing.
-8. Stop and present the adoption report for review.
+6. Regenerate the skill catalog — the harness copy just installed skills and
+   commands, so run `python3 .claude/scripts/skill-catalog.py --write`, then
+   confirm `python3 .claude/scripts/skill-catalog.py --check` exits 0. Rerun
+   both after any later skill or command install.
+7. Use repo-relative paths only.
+8. If running in Claude Code with Codex available and the adoption work is `standard` or `deep`, ask Codex to challenge major assumptions before finalizing.
+9. Stop and present the adoption report for review.
 
 ## Code intelligence (code-intel plugin)
 
@@ -70,3 +74,8 @@ settings are a trust decision the user makes:
   keep the completion gate structural until real code, manifests, or CI exist.
 - If the repo has a language-specific stack, document the observed commands and any mismatch with
   `.claude/rules/` in the adoption report.
+- Root instruction files: edit the one the target repo already has — `CLAUDE.md` if present, else
+  `AGENTS.md`; if neither exists, ask which one to create. Keep a single root instruction file —
+  when one exists, all edits go into it, and its sibling is never created.
+- Re-running adopt is idempotent: update an existing overlay section in place — one copy per
+  section, never an appended duplicate — and leave user edits outside those sections untouched.

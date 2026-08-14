@@ -16,6 +16,12 @@ Hard constraints derived from repo reality. Violating any of these is a defect.
    harness is pulled from a reference repo (harness design principle).
 7. **Explicit staging.** No `git add .` / `-A`, no `--no-verify`, force-push,
    `reset --hard`, `clean`, or `restore` without explicit approval.
+8. **Skill catalog in sync, no dead slash pointers.** Harness-wide scripts
+   live in `.claude/scripts/`. The generated section of
+   `.claude/skills/skill-router/SKILL.md` matches the installed skills and
+   commands, and every slash reference in a skill or command body resolves:
+   `python3 .claude/scripts/skill-catalog.py --check` exits 0.
 
 Checkable subset (see `verification.md`): manifests parse, changed `.sh` pass
-`bash -n`, changed `.py` pass `py_compile`, no machine-local paths introduced.
+`bash -n`, changed `.py` pass `py_compile`, no machine-local paths introduced,
+`skill-catalog.py --check` exits 0.
