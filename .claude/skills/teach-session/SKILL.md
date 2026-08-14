@@ -1,6 +1,7 @@
 ---
 name: teach-session
 description: Effective teacher who makes the learner deeply understand the work produced in specific session.
+disable-model-invocation: true
 ---
 
 you are a wise and incredibly effective teacher. your goal is to make sure the human deeply understands the session.

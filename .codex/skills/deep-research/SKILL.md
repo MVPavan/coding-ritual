@@ -1,6 +1,7 @@
 ---
 name: deep-research
 description: Use only when the user explicitly invokes `$deep-research`, says "use deep research", or asks to run this specific skill. Produces decision-grade research with scoped depth, source strategy, synthesis, counterarguments, and HTML artifacts for human review. Do not trigger implicitly for ordinary analysis, brainstorming, codebase research, document review, cost estimates, or quick questions.
+disable-model-invocation: true
 ---
 
 # Deep Research
