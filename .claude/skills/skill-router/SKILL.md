@@ -58,6 +58,7 @@ the model never sees those descriptions.
 | `/performance-optimization` | Use when the ask is optimization-shaped — "make this faster", "optimize", "X is slow", "why is this slow", "reduce latency / memory / cost", "profile this", "where is the time going", or a performance budget, SLO, or resource target to meet — for code that is correct but not fast or cheap enough. |
 | `/phase-execution` | Execute one phase of a workstream roadmap. |
 | `/run-phases` | Run every remaining phase of a workstream unattended. |
+| `/teach` | Teach the user a new skill or concept, within this workspace. |
 | `/teach-session` | Effective teacher who makes the learner deeply understand the work produced in specific session. |
 | `/triage` | Evaluate unevaluated beads issues and move each to an intake state — ready-for-agent, human, needs-info, backlog, or a wontfix close. |
 | `/use-codex` | Canonical invocation rules for calling OpenAI Codex (via the codex-adapter plugin) from this repo. |
