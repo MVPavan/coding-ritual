@@ -17,7 +17,7 @@ Authoritative docs and when to read them.
 | `scripts/README.md` | Managing Claude/Codex remote-control sessions (`claudex-rc.sh`) — lifecycle, recovery, watchdog |
 | `CONTEXT.md` | Naming anything — the domain glossary; use its terms, avoid its listed synonyms |
 | `.beads/beads.md` | Beads workflow, agent context profiles, session-completion protocol |
-| `.claude/rules/core/03-ak-guidelines.md` | Coding rules that reduce common LLM mistakes |
+| `.claude/rules/core/03-coding-discipline.md` | Coding rules that reduce common LLM mistakes |
 
 Reference-harness submodule docs under `reference_harnesses/<repo>/` are external —
 read only when the task is explicitly about that reference.

@@ -101,7 +101,7 @@ This keeps the review grounded and shows the user how much territory has been co
 
 ### 7. Pacing and Batching
 
-- Ask **1–3 questions per turn**, not 10. This is a conversation, not a questionnaire.
+- Ask **1–3 questions per turn**, not 10. This is a conversation, not a questionnaire. (Composing a questionnaire for an absent respondent is a different job — the grilling skill's absent-respondent mode.)
 - Group related questions within the same branch. Don't jump between branches mid-turn.
 - If the user gives a long, multi-part answer, acknowledge each part before moving on. Don't let good answers disappear into the void.
 - If the user pushes back on a recommendation, engage seriously. They may know something you don't. But if their reasoning has gaps, say so directly.

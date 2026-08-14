@@ -59,7 +59,16 @@ load-bearing findings; the discipline gate still stops on unclosed stages.
 
 ## Context management
 
-- `/compact` between phases — never `/clear` (it kills the session).
+- Rule out continuing in the current window before reaching for compaction —
+  continuing costs nothing and loses nothing; compact only when the next
+  phase no longer fits.
+- `/compact` between phases — never `/clear` (it kills the session). Pass an
+  instruction argument stating what to preserve (e.g.
+  `/compact keep phase-N decisions, open findings, and the next phase's plan`)
+  so the summary keeps what the next phase needs.
+- Compaction turns the primary source (the session as it happened) into a
+  secondary one: it restores facts, not reasoning. Anything whose *why* must
+  survive belongs in the ledger or bd before compacting.
 - Within a large phase, `/compact` between stages; then re-read the workspace
   ledger and re-query bd (task-engine → *Workspace and ledger*).
 - Persistent state lives in: bd (`bd epic status`, `bd ready`,

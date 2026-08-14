@@ -202,6 +202,17 @@ too):
    (Chesterton's Fence — `git blame` if needed; can't answer → don't touch).
    One simplification at a time, existing tests must pass **unmodified** —
    a simplification that requires editing tests changed behaviour: revert it.
+   Behaviour includes **side effects and ordering**, which tests routinely
+   don't assert — check those by reading, not by the suite alone.
+   Scan for concrete signals, not vague smells: 3+ nesting levels, 50+ line
+   functions, nested ternaries, boolean flag parameters, repeated
+   conditionals. Clarity beats cleverness — explicit code wins over compact
+   code that needs a mental pause. Guard against the pass's own failure
+   mode, over-simplification: don't remove abstractions that exist for
+   testability or extensibility, and don't optimize for line count. Removed
+   or weakened error handling "because it's cleaner" is a red flag, not a
+   simplification. A refactor that would touch 500+ lines gets automation
+   (codemod, sed, AST transform), never hand edits.
    Skip the pass entirely when the diff is already minimal.
 
 Carry parked-finding summaries into the bd close `--reason`. The workspace is
@@ -215,4 +226,5 @@ disposable after the epic/task closes.
   files changed, concerns one-liner, report path); detail goes to the report
   file. Full file contents never enter the coordinator.
 - No parallel implementers on the same files. No raw session history to
-  workers.
+  workers. Fanning out at all requires the independence test in
+  `.claude/rules/core/01-delegation.md` to pass first.

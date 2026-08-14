@@ -332,3 +332,49 @@ forbids it, `docs-researcher.md:51`), the HTML-artifact mandate
 warrants).
 
 Component-level evidence: `components.md`.
+
+## Round 2 — deep-research unification
+
+The user ruled: the repo ends with **one** research skill, Claude-side, mirrored
+verbatim to Codex at the final one-shot sync. Prerequisite question: are
+mattpocock `research` and our `deep-research` the same thing or different?
+
+**Same role, different content — substitutes in placement, near-disjoint in
+components.** They occupy the same slot (a standalone question worth
+investigating, answered by a durable cited document), so the repo needs exactly
+one. But of `research`'s 7 components (R1-R7) and `deep-research`'s 37
+(X1-X37), only two genuinely overlap:
+
+- **Primary-source mandate** — R3/R4 ≈ X5 + X20. Same rule; `research`
+  compresses it ("follow every claim back to the source that owns it"),
+  `deep-research` operationalizes it (claim-typed source-weight matrix).
+- **Durable cited artifact** — R5 ~ X7/X24. Same intent, opposite formats:
+  `research` mandates a per-claim-cited Markdown file in the repo,
+  `deep-research` mandates HTML via Codex-side `$html-artifact`.
+
+Everything else belongs to exactly one side. `research` alone: background
+delegation (R2), the convention-matching artifact location (R6), and — as a
+liability — the ungated model-invocable trigger (R1/R7). `deep-research` alone:
+the entire method — scope gate and depth-to-risk ladder (X3/X4/X8/X9), the
+5-phase workflow with clarify cap (X10-X15), epistemic separation (X6), the
+do-not list (X17), and all five reference files (X18-X36).
+
+So "keep the stronger one" is almost, not exactly, right. The unified
+`.claude/skills/research/` is `deep-research`'s protocol as the body with three
+substitutions: (1) `research`'s artifact contract — Markdown under
+`docs/research/<topic>/` with per-claim citations — replacing the HTML mandate,
+which conflicted with repo convention and named Codex tooling; (2) a trigger
+between the two poles — model-invocable (X2/X37 made the protocol unreachable)
+but research-shaped (R1/R7 would fire on any question), with a pre-gate routing
+one-hop library facts to `docs-researcher`; (3) background delegation kept as
+an option (R2), not a mandate. It also absorbs the round-1 top borrow
+candidates that are research-time rather than build-time: the conflict stop
+(S17, generalized to sources-vs-repo), the rationalization rows that bite
+(S22a/S22b, plus the hedging and injection rows), S20's citation formatting,
+and the one-line retrieval-safety rule `deep-research` lacked (per
+`docs-researcher.md:46`). Build-time halves (S5, S16, S18, S24) stay with the
+execution path.
+
+Consequence for the mirror: `.codex/skills/deep-research/` is now redundant —
+at the one-shot Codex sync it is deleted in favour of the mirrored
+`skills/research/`.

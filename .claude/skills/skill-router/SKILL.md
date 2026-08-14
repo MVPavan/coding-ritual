@@ -40,7 +40,7 @@ the model never sees those descriptions.
 
 ## Model-invocable skills
 
-`ak-guide`, `authoring-for-agents`, `beads`, `brainstorming`, `code-review`, `codebase-design`, `cost-estimate`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `idea-refine`, `model-council`, `perspective-council`, `planning`, `prototype`, `receiving-code-review`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`, `verification-before-completion`
+`authoring-for-agents`, `beads`, `brainstorming`, `code-review`, `codebase-design`, `cost-estimate`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `idea-refine`, `model-council`, `perspective-council`, `planning`, `prototype`, `receiving-code-review`, `research`, `resolving-merge-conflicts`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`, `verification-before-completion`
 
 ## Slash-only workflows and commands
 

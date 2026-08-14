@@ -50,8 +50,14 @@ gate bounces the work back as failed verification, not into a review round.
   contract, shared mutable state — checking the call sites is the right method.
 - The review is **read-only** on this checkout: never mutate the working
   tree, index, HEAD, or branch state. Need a working copy of another
-  revision? Check it out into a temporary `git worktree` — never move HEAD
-  here.
+  revision? Use the harness's worktree isolation (the Agent tool's
+  `isolation: worktree`, or `EnterWorktree` — see `agent-matrix`), never raw
+  `git worktree add`, which leaves worktree state the harness cannot see or
+  clean up; either way, never move HEAD here. Before treating a checkout as
+  already isolated, verify true isolation: a bare `GIT_DIR != GIT_COMMON`
+  test also fires inside submodules (everything under
+  `reference_harnesses/`) — confirm
+  `git rev-parse --show-superproject-working-tree` returns nothing first.
 - The implementer already ran the tests and reported the output. Do not
   re-run the suite to confirm their report. Run a test only when reading the
   code raises a specific doubt no existing run answers — then a focused

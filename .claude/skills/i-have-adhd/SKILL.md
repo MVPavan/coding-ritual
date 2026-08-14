@@ -107,6 +107,7 @@ Override the defaults when:
 2. Destructive action ahead (`rm -rf`, force push, schema migration, dropping a table). Confirm before acting. Safety wins over brevity.
 3. Debug spiral. If the last three turns have been "still broken," stop iterating on code. Name the assumption that might be wrong. Ask one diagnostic question.
 4. Real ambiguity in the request. One short clarifying question beats guessing and rewriting.
+5. User says the last message did not land ("wait, what?", "re-pitch that"). Re-explain in plain controlled language, ASD-STE100 style: short sentences, one idea per sentence, common words — not a longer answer, a simpler one. Keep the project's own terms from `CONTEXT.md`.
 
 ## Pre-send check
 

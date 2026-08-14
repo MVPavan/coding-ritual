@@ -72,7 +72,7 @@ information about the ask, not a reason to keep grinding. Say so:
 
 ## Red flags
 
-- Three or more questions in one message — that is surveying, not interviewing
+- Three or more questions in one message — that is surveying, not interviewing (unless deliberately composing a questionnaire for an absent respondent — see the grilling skill)
 - A question with no guess attached
 - Accepting "whatever you think is best" as a final answer
 - Writing the spec before the restate has an explicit yes
