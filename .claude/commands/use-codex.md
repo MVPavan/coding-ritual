@@ -4,6 +4,11 @@ description: Canonical invocation rules for calling OpenAI Codex (via the codex-
 
 # How to use Codex
 
+> **RETIRED (2026-08-14).** Codex is not invoked in this repo — critique runs
+> on a spawned Opus 5 medium Claude subagent (CLAUDE.md §Independent
+> critique). This file is kept solely as reference for possible reactivation;
+> do not follow it.
+
 Authoritative for this repo. On disagreement, this command wins. Codex runs **GPT-5.x**
 (a different model family from Claude) and is a one-way, best-effort critic — no reverse loop.
 

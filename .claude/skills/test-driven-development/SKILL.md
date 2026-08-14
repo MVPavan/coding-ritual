@@ -104,8 +104,8 @@ never reported as RED. The sequence:
 - Test behavior through the public interface, not implementation details.
 - Do not re-run a clean suite for reassurance. Re-run after a change that
   could affect the result, not because you're nervous.
-- If the test strategy is disputed, route it through the Codex critique path
-  (`use-codex`) before wider implementation.
+- If the test strategy is disputed, route it through an independent critique
+  (spawned Opus 5 medium Claude subagent) before wider implementation.
 
 ## Red flags — stop and fix the test, not the code
 

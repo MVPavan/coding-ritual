@@ -32,8 +32,8 @@ a routing decision recorded in the ledger, and — if adopted — the sync-back 
 
 Produce a short comparison: what theirs does, what ours does (if any), dependencies,
 context cost, overlap, and the recommended route with a one-line rationale. A
-**template** route has the widest blast radius — get a Codex second opinion via
-`/codex-critique` before writing.
+**template** route has the widest blast radius — get a second opinion from a
+spawned Opus 5 medium Claude critic before writing.
 
 ## 3. Execute the decision
 

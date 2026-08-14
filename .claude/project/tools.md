@@ -8,16 +8,21 @@
 | Python 3 | system | hook/skill scripts only (`block-generated-edits.py`, skill scripts) |
 | Node.js | ≥18 | `codex-adapter` (`scripts/codex-run.mjs`) — private, not published |
 | `bd` (beads) | v1.0.5, embedded Dolt | issue tracking (see `tracking.md`) |
-| `codex` CLI | present & on PATH | Codex critique/review path is available |
+| `codex` CLI | present & on PATH | **retired** — do not invoke (see §Independent critique) |
 
 No repo-wide package manager step — nothing to `npm install` or `pip install` to
 work on the repo. The plugins are loaded by Claude Code / Codex, not built here.
 
-## Codex
+## Independent critique
 
-The `codex` CLI is installed, so the Codex one-way critic path is live. Follow
-`.claude/commands/use-codex.md` for which command to use. Best-effort: one retry
-on capacity error, then proceed and log the skip. Skip Codex for `small` tasks.
+Codex is retired in this repo (2026-08-14 ruling; low quota) — do not invoke
+the `codex` CLI or the codex-adapter plugin. Critique of drafts, plans, and
+completed diffs runs on a **spawned Opus 5 medium Claude subagent** (Agent
+tool, `subagent_type: "claude"`, `model: "opus"`); findings come back numbered
+BLOCKER/MAJOR/MINOR with `file:line` plus a verdict, and the coordinator
+triages them. Skip the critic for `small` tasks unless risk is unusual.
+`.claude/commands/use-codex.md` is kept as a retired reference for possible
+reactivation.
 
 ## Subagent / MCP routing
 

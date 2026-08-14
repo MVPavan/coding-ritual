@@ -84,8 +84,9 @@ checklist: `references/plan-format.md`.
 4. **Self-review** — spec coverage, placeholder scan, name/type consistency,
    and the gap-naming pass: "what has nobody named?"
 5. **Critique** — for standard and deep work (the repo's Working Mode
-   classification), get an external model critique of the plan — a plan
-   critique, not a git-diff review — via `use-codex`.
+   classification), get an independent critique of the plan — a plan
+   critique, not a git-diff review — from a spawned Opus 5 medium Claude
+   subagent (CLAUDE.md §Independent critique).
 6. **Approve, save, record** — show the plan to the user for standard and
    deep work; small bounded work may proceed on stated assumptions. Save
    phase plans to `docs/workstreams/<name>/plans/<phase>.md`, standalone

@@ -104,8 +104,8 @@ The package never enters the coordinator's context — pass its path.
    skill** inline — both sections, abbreviated to the changed surface).
 3. Verification fails → one re-dispatch with the specific failure; failing
    again → systematic-debugging skill. No multi-round loop on the light path.
-4. Close the unit with evidence. Codex review happens at the scope's final
-   review, not per unit.
+4. Close the unit with evidence. The independent critique happens at the
+   scope's final review, not per unit.
 
 ## Full path (deep units)
 
@@ -188,8 +188,9 @@ too):
 2. Dispatch the code-reviewer on the strongest available model, pointing it
    at the package **and the ledger's deferred-minor and parked lines** so
    they are triaged — fixed, or explicitly accepted — rather than lost.
-3. **Codex review** when available: `standard` → `/codex-review`; `deep` →
-   codex-runner `--role review -e xhigh`. Capacity policy per `AGENTS.md`.
+3. **Independent critique**: spawn a fresh Opus-class Claude critic subagent
+   on the packaged scope — pass the package path and the ledger's deferred/
+   parked lines, never your conclusions.
 4. Findings → **ONE** fix dispatch carrying the complete list (never one
    fixer per finding — each rebuilds context and re-runs suites), then
    exactly one scoped re-review (`review-package.sh fix … final-fix`).
