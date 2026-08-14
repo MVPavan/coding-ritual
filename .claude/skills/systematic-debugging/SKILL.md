@@ -119,7 +119,7 @@ task report file when dispatched, otherwise your reply), so the count is checkab
 a failed fix, return to Phase 3 and re-rank with the new evidence.
 
 - **Ranked list exhausted, or the bug crosses system boundaries** → spawn a fresh-context
-  critic subagent on an Opus-class model (e.g. the claude-max agent type). Pass artifacts,
+  critic subagent on a strong model (e.g. the claude-max agent type). Pass artifacts,
   not conclusions: the loop command and output, the minimised repro, the ranked hypotheses
   with predictions and probe results. Ask it to falsify your ranking and propose hypotheses
   you haven't.

@@ -15,7 +15,7 @@ User-named council members each solve the same task independently and blind to e
 |---|---|
 | fable, fable-max, fable-xhigh | Agent tool, that subagent_type |
 | claude/opus (+ max/xhigh/high/medium/low) | Agent tool, matching claude-* type |
-| codex, gpt | retired in this repo — tell the user Codex is retired (2026-08-14) and offer an Opus 5 medium member instead |
+| codex, gpt | retired in this repo — tell the user Codex is retired (2026-08-14) and ask which member to substitute |
 | anything else | Ask the user how to reach it |
 
 The judge resolves the same way; it gets a fresh agent even if its type matches a member's.

@@ -134,7 +134,8 @@ label, or a plan the user hands over directly).
 - Never proceed past a deep-phase plan without user approval (auto-approved
   only under workstream scope, per its enumerated list).
 - Never hand-edit generated tracking files — update bd, then render.
-- Independent-critique steps run on a spawned Opus-class Claude critic
-  subagent (see CLAUDE.md §Independent critique) — never skipped silently.
+- Independent-critique steps run on a spawned critic subagent, separate
+  from the implementer (see CLAUDE.md §Independent critique) — never
+  skipped silently.
 - If a stage blocks or fails verification, stop and report. Do not edit
   submodule internals.

@@ -52,7 +52,7 @@ apply.
 - Deep-phase plan approval (phase scope step 2) — approve immediately after
   document review.
 - Per-phase commit (step 4 above).
-- Independent critique — the spawned Opus-class Claude critic pass.
+- Independent critique — the spawned critic-subagent pass.
 
 Nothing else is auto-approved. The task engine's breaker still stops on
 load-bearing findings; the discipline gate still stops on unclosed stages.

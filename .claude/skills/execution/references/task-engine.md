@@ -188,9 +188,10 @@ too):
 2. Dispatch the code-reviewer on the strongest available model, pointing it
    at the package **and the ledger's deferred-minor and parked lines** so
    they are triaged — fixed, or explicitly accepted — rather than lost.
-3. **Independent critique**: spawn a fresh Opus-class Claude critic subagent
-   on the packaged scope — pass the package path and the ledger's deferred/
-   parked lines, never your conclusions.
+3. **Independent critique**: spawn a fresh critic subagent (separate from
+   the implementer; model per CLAUDE.md §Independent critique) on the
+   packaged scope — pass the package path and the ledger's deferred/parked
+   lines, never your conclusions.
 4. Findings → **ONE** fix dispatch carrying the complete list (never one
    fixer per finding — each rebuilds context and re-runs suites), then
    exactly one scoped re-review (`review-package.sh fix … final-fix`).
