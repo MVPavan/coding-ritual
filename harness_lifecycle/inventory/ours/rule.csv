@@ -1,8 +1,9 @@
 id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
-rule:rules/core/01-delegation,rule,core,core/01-delegation,ours,rules/core/01-delegation.md,10,0,,
+rule:rules/core/01-delegation,rule,core,core/01-delegation,ours,rules/core/01-delegation.md,13,0,,
 rule:rules/core/02-knowledge-discoverability,rule,core,core/02-knowledge-discoverability,ours,rules/core/02-knowledge-discoverability.md,6,0,,
 rule:rules/core/03-ak-guidelines,rule,core,core/03-ak-guidelines,ours,rules/core/03-ak-guidelines.md,103,0,,
+rule:rules/core/03-coding-discipline,rule,core,core/03-coding-discipline,ours,rules/core/03-coding-discipline.md,45,0,,
 rule:rules/harness-lifecycle/curation,rule,harness-lifecycle,harness-lifecycle/curation,ours,rules/harness-lifecycle/curation.md,22,0,,
-rule:rules/python/coding-style,rule,python,python/coding-style,ours,rules/python/coding-style.md,81,0,,
+rule:rules/python/coding-style,rule,python,python/coding-style,ours,rules/python/coding-style.md,88,0,,
 rule:rules/python/safety,rule,python,python/safety,ours,rules/python/safety.md,21,0,,
-rule:rules/python/testing,rule,python,python/testing,ours,rules/python/testing.md,10,0,,
+rule:rules/python/testing,rule,python,python/testing,ours,rules/python/testing.md,13,0,,
