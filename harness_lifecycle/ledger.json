@@ -198,11 +198,11 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/code-review-and-quality",
       "status": "adopted",
-      "reason": "Covered by our spec and code reviewers plus adversarial Codex review across requirements, correctness, safety, maintainability, and verification.",
-      "date": "2026-07-15",
-      "our_id": "agent:agents/code-reviewer",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
-      "source_content_hash": "3b830e73980d4c47a53d233a94de72d41ee2aec6"
+      "reason": "Re-merged 2026-08-14 into the code-review skill (evidence: skill-comparisons/review-protocols/): approval philosophy, within-bucket structural lead, review-tests-first, reviewer-side dead-code rule, dependency discipline. Label set, five-axis rubric, sizing/SLA/handbook sections rejected \u2014 Critical/Important/Minor vocabulary is load-bearing in the task-engine fix loop. Supersedes the stale 2026-07-15 entry pointing at agent:agents/code-reviewer.",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/code-review",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5",
+      "source_content_hash": "98cf7ffc76e828b2b9672815be846f7977d50b07"
     },
     {
       "repo": "agent-skills",
@@ -380,6 +380,16 @@
     },
     {
       "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/code-review",
+      "status": "adopted",
+      "reason": "Absorbed fail-fast preflight, spec-source discovery ladder, and tooling-dedupe into the code-review skill (evidence: skill-comparisons/review-protocols/). Fowler smell catalog, three-dot merge-base, parallel sub-agents, 400-word cap rejected (snapshot model; smallest-durable rule).",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/code-review",
+      "source_sha": "84fdeffd12f2ee307994d1eb6feb48173b6e0502",
+      "source_content_hash": "a114b4ed92b2fd21fe5513e24abdd56706fb72b0"
+    },
+    {
+      "repo": "mattpocock_skills",
       "logical_id": "skill:skills/engineering/codebase-design",
       "status": "adopted",
       "reason": "Adopted verbatim (SKILL + DEEPENING + DESIGN-IT-TWICE; their agents/openai.yaml metadata excluded). Only source of the deep-module vocabulary (module/interface/depth/seam/adapter/leverage/locality), deletion test, one-adapter-hypothetical/two-adapters-real seam rule, and dependency-category test strategy. Also supplies the definition of 'seam' that our plan-format Test-seams field and TDD skill already depend on.",
@@ -535,6 +545,16 @@
     },
     {
       "repo": "superpowers",
+      "logical_id": "skill:skills/receiving-code-review",
+      "status": "adopted",
+      "reason": "New standalone skill 2026-08-14 for feedback arriving outside the engine's fix loop (evidence: skill-comparisons/review-protocols/): reception order, performative-agreement ban, clarify-all gate, source-trust split, pushback/retraction, no-silent-drops. GitHub reply mechanics and YAGNI grep-check rejected; cap adjudication stays owned by task-engine.",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/receiving-code-review",
+      "source_sha": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "source_content_hash": "f9c95ed02550bdca0e9576ca27c06d6b0ff8a8b6"
+    },
+    {
+      "repo": "superpowers",
       "logical_id": "skill:skills/subagent-driven-development",
       "status": "adopted",
       "reason": "Adopted-merged into the execution skill's task engine (comparison: harness_lifecycle/skill-comparisons/plan-execution-engines/): bounded 5-round fix loop with model escalation and park-with-ruling breaker, artifact-as-file handoff (task-brief/review-package scripts, rebuilt on a no-commit worktree-snapshot model), workspace ledger for sub-stage state, reviewer hardening into the code-review skill (do-not-trust-the-report, anti-pre-judging, severity calibration, scoped re-review), final whole-scope review pointed at deferred/parked findings, condensed model-selection rules. Rejected: worktree isolation + finishing-a-development-branch coupling, per-task implementer commits, continuous-execution never-check-in stance, their markdown ledger as sole truth (bd stays stage-grain truth).",
@@ -560,6 +580,16 @@
       "date": "2026-08-12",
       "our_id": "skill:skills/test-driven-development",
       "source_content_hash": "9bf54057abb754c1fe1894ef685d80810c95ba4f"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/verification-before-completion",
+      "status": "adopted",
+      "reason": "Rebuilt ours 2026-08-14 with its armor (evidence: skill-comparisons/review-protocols/): iron law, gate function, claim-to-evidence table, red-green proof, red flags, rationalizations, paraphrase closure \u2014 anchored to verification.md/invariants.md and the git status gate step.",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/verification-before-completion",
+      "source_sha": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "source_content_hash": "ca0166b0a6759b29ed8b9929d22742359a0f9dcf"
     },
     {
       "repo": "superpowers",
