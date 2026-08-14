@@ -8,6 +8,8 @@ description: Use when two or more skills — ours, from reference_harnesses/, or
 Produces a durable three-level comparison of a set of skills so a curation
 decision can be argued from evidence instead of memory.
 
+Always ask user which subagent to use for the comparison unless the user has already specified one.
+
 ## Inputs
 
 - Two or more skill directories. Read every file each skill ships — SKILL.md
