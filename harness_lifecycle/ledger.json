@@ -16,9 +16,9 @@
       "repo": "agent-skills",
       "logical_id": "agent:agents/security-auditor",
       "status": "deferred",
-      "reason": "Route to an optional production-readiness plugin after removing web-centric assumptions; the exploit-focused threat-model specialist is useful but not universal-template material.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "reason": "Deferred for later \u2014 user ruling 2026-08-14, superseding the ghost production-readiness-plugin reason (plugin never built). Review-lens security is covered by the adopted security skill; the exploit-focused specialist agent waits for a deployable attack surface.",
+      "date": "2026-08-14",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
     },
     {
       "repo": "agent-skills",
@@ -31,10 +31,10 @@
     {
       "repo": "agent-skills",
       "logical_id": "agent:agents/web-performance-auditor",
-      "status": "deferred",
-      "reason": "Route to an optional web-quality plugin; its metric-honest Lighthouse, CrUX, and DevTools audit is distinct but specialized and dependency-bearing.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "status": "rejected",
+      "reason": "Rejected 2026-08-14, superseding the web-quality-plugin deferral: user does not do frontend work \u2014 same ruling as browser-testing-with-devtools and frontend-ui-engineering (2026-08-12). Its launcher command:commands/webperf was already rejected; this closes the family.",
+      "date": "2026-08-14",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
     },
     {
       "repo": "agent-skills",
@@ -128,9 +128,9 @@
       "repo": "agent-skills",
       "logical_id": "hook:hooks/session-start",
       "status": "rejected",
-      "reason": "Injects a 191-line meta-skill into every session, duplicating native skill discovery while adding permanent context cost and a jq dependency.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "reason": "Rejected 2026-08-14, superseding the 2026-07-15 entry with corrected reasoning (skill-comparisons/harness-bootstrap/): the objection is the payload (191-line using-agent-skills injected every session), not the plumbing \u2014 .claude/settings.json already runs SessionStart hooks. The jq dependency objection applied to this repo's variant only.",
+      "date": "2026-08-14",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
     },
     {
       "repo": "agent-skills",
@@ -190,9 +190,9 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/ci-cd-and-automation",
       "status": "deferred",
-      "reason": "Route to an optional production-readiness plugin after replacing Node, GitHub Actions, and Vercel assumptions with stack-aware quality-gate and rollback guidance.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "reason": "Deferred for later \u2014 user ruling 2026-08-14, superseding the 2026-07-15 reason that routed it to a production-readiness plugin which was never built. This repo has no CI, build, or deployment surface (verification.md declares a structural-only gate). Revisit when a project with a real pipeline adopts the harness.",
+      "date": "2026-08-14",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
     },
     {
       "repo": "agent-skills",
@@ -236,9 +236,9 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/deprecation-and-migration",
       "status": "deferred",
-      "reason": "Route to an optional production-readiness plugin; retain deprecation gates and expand-migrate-contract after removing unsafe universal rollback assumptions.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "reason": "Deferred for later \u2014 user ruling 2026-08-14, superseding the ghost production-readiness-plugin reason (plugin never built). Its deprecation gates and expand-migrate-contract pattern remain the strongest candidate in this family when a project with real consumers adopts the harness; nothing to migrate here today.",
+      "date": "2026-08-14",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
     },
     {
       "repo": "agent-skills",
@@ -304,9 +304,9 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/observability-and-instrumentation",
       "status": "deferred",
-      "reason": "Route to an optional production-readiness plugin; structured logs, RED metrics, traces, symptom alerts, and telemetry verification are useful but deployment-specific.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "reason": "Deferred for later \u2014 user ruling 2026-08-14, superseding the ghost production-readiness-plugin reason (plugin never built). Structured logs, RED metrics, traces, and telemetry verification need a running service; none exists here. Revisit when one does.",
+      "date": "2026-08-14",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
     },
     {
       "repo": "agent-skills",
@@ -338,9 +338,9 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/shipping-and-launch",
       "status": "deferred",
-      "reason": "Route staged rollout, feature flags, monitoring, rollback triggers, and post-launch checks to an optional production-readiness plugin.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "reason": "Deferred for later \u2014 user ruling 2026-08-14, superseding the ghost production-readiness-plugin reason (plugin never built). Staged rollout, flags, rollback triggers, and post-launch checks have no target here: nothing ships from this repo. Revisit when a deployable project adopts the harness.",
+      "date": "2026-08-14",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
     },
     {
       "repo": "agent-skills",
@@ -374,9 +374,17 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/using-agent-skills",
       "status": "rejected",
-      "reason": "Skill discovery and routing are already native platform and AGENTS behavior; another 191-line meta-skill would duplicate instructions and increase context pressure.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "reason": "Rejected 2026-08-14, superseding the 2026-07-15 entry with measured evidence (skill-comparisons/harness-bootstrap/): hook-injected it would add 191 lines / ~1150 words to a ~5000-word unconditional session load (+52% on hand-authored instruction text); 27 lines enumerate 24 skills we do not have, 27 route to those names, 81 restate rules/core/03-ak-guidelines.md rule-for-rule; ~10 lines portable. Without the hook it cannot fire \u2014 its description is too abstract to match a concrete task. Discovery is native; the slash-only gap is covered by skill-router's generated catalog.",
+      "date": "2026-08-14",
+      "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "plugin:mattpocock-skills",
+      "status": "rejected",
+      "reason": "Rejected 2026-08-14: umbrella packaging; member skills carry their own decisions. Its skills-array-as-promotion-boundary idea is already held by our skill-buckets.md taxonomy.",
+      "date": "2026-08-14",
+      "source_sha": "84fdeffd12f2ee307994d1eb6feb48173b6e0502"
     },
     {
       "repo": "mattpocock_skills",
@@ -534,6 +542,22 @@
     },
     {
       "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/misc/scaffold-exercises",
+      "status": "rejected",
+      "reason": "Rejected 2026-08-14 (evidence: skill-comparisons/harness-bootstrap/): course-exercise scaffolding for their teaching repo; no course content here and none planned.",
+      "date": "2026-08-14",
+      "source_sha": "84fdeffd12f2ee307994d1eb6feb48173b6e0502"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/misc/setup-pre-commit",
+      "status": "rejected",
+      "reason": "Rejected 2026-08-14 (evidence: skill-comparisons/harness-bootstrap/): Husky/lint-staged/Prettier pre-commit wiring is stack-inapplicable \u2014 no package.json, no Node, no first-party code or CI in this repo; skill-buckets.md already marks the family out-of-scope.",
+      "date": "2026-08-14",
+      "source_sha": "84fdeffd12f2ee307994d1eb6feb48173b6e0502"
+    },
+    {
+      "repo": "mattpocock_skills",
       "logical_id": "skill:skills/productivity/grill-me",
       "status": "rejected",
       "reason": "Seven-line alias whose entire body is 'Run a /grilling session'. It is a shortcut to a slash command in their harness; with grilling installed here the shortcut is redundant, and we already own the grill-me name for a 189-line skill that produces a Decision Summary artifact grilling has no equivalent for.",
@@ -556,6 +580,22 @@
       "date": "2026-08-12",
       "our_id": "skill:authoring-for-agents",
       "source_content_hash": "a967162dde1e0778b78661cf3858fc6d73b21b07"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "hook:hooks/session-start",
+      "status": "rejected",
+      "reason": "Rejected 2026-08-14 (evidence: skill-comparisons/harness-bootstrap/): the payload it injects (using-superpowers) is rejected, so the hook has no cargo. Plumbing is not the objection \u2014 .claude/settings.json already runs SessionStart hooks. Its startup|clear|compact matcher (survives /compact) is noted as a superior pattern for future reuse in our own hooks.",
+      "date": "2026-08-14",
+      "source_sha": "44c9b2d6e889982ac18c27d05a19fefe335194e1"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "plugin:superpowers",
+      "status": "rejected",
+      "reason": "Rejected 2026-08-14: umbrella packaging for the whole catalog; every member skill has its own ledger decision. Same ruling as plugin:agent-skills.",
+      "date": "2026-08-14",
+      "source_sha": "44c9b2d6e889982ac18c27d05a19fefe335194e1"
     },
     {
       "repo": "superpowers",
@@ -585,6 +625,16 @@
     },
     {
       "repo": "superpowers",
+      "logical_id": "skill:skills/requesting-code-review",
+      "status": "adopted",
+      "reason": "Adopted 2026-08-14 in part into code-review (evidence: skill-comparisons/review-protocols/ round 2): the git-worktree escape hatch on the read-only rule (prohibition-plus-alternative) and the production-readiness checks (migration strategy on schema change, backward-compat, stale docs updated in the same diff). Rest rejected: 18 of 22 components already owned by the task-engine review gate, code-review, and receiving-code-review; BASE_SHA/HEAD_SHA capture contradicts our working-tree snapshot model; its never-self-review and never-skip-review rules contradict our light path, inline mode, and Working Mode small rule. Not merged with receiving-code-review: requester and receiver are different agents in our engine (coordinator vs implementer).",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/code-review",
+      "source_sha": "44c9b2d6e889982ac18c27d05a19fefe335194e1",
+      "source_content_hash": "3319538d8ec5ac38ff4e8f4461bd5494a78f6f5f"
+    },
+    {
+      "repo": "superpowers",
       "logical_id": "skill:skills/subagent-driven-development",
       "status": "adopted",
       "reason": "Adopted-merged into the execution skill's task engine (comparison: harness_lifecycle/skill-comparisons/plan-execution-engines/): bounded 5-round fix loop with model escalation and park-with-ruling breaker, artifact-as-file handoff (task-brief/review-package scripts, rebuilt on a no-commit worktree-snapshot model), workspace ledger for sub-stage state, reviewer hardening into the code-review skill (do-not-trust-the-report, anti-pre-judging, severity calibration, scoped re-review), final whole-scope review pointed at deferred/parked findings, condensed model-selection rules. Rejected: worktree isolation + finishing-a-development-branch coupling, per-task implementer commits, continuous-execution never-check-in stance, their markdown ledger as sole truth (bd stays stage-grain truth).",
@@ -610,6 +660,14 @@
       "date": "2026-08-12",
       "our_id": "skill:skills/test-driven-development",
       "source_content_hash": "9bf54057abb754c1fe1894ef685d80810c95ba4f"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/using-superpowers",
+      "status": "rejected",
+      "reason": "Rejected 2026-08-14 (evidence: skill-comparisons/harness-bootstrap/): 62-line compliance mechanism (1%-rule + 12-row rationalization table), not a router or catalog. Its enforcement register conflicts with this repo's instruction style, and its value depends on a skill-skip rate we have not measured. Discovery/routing is covered natively plus skill-router.",
+      "date": "2026-08-14",
+      "source_sha": "44c9b2d6e889982ac18c27d05a19fefe335194e1"
     },
     {
       "repo": "superpowers",
