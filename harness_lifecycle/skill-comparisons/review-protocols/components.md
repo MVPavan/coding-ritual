@@ -492,3 +492,159 @@ the references resolve disagreement by argument quality; ours resolves it
 by *when* argument is allowed. The two are compatible — REC's evaluation
 steps describe how to adjudicate well once the cap is reached — but no
 skill of ours currently says so.
+
+---
+
+# Round 2 (2026-08-14) — components: REQ vs `REC-O`, `CR-O`, `TE`
+
+Added column keys:
+
+| Key | Skill / surface |
+|---|---|
+| `REC-O` | **ours** — `.claude/skills/receiving-code-review/SKILL.md` (built 2026-08-14) |
+| `TE` | **ours** — `.claude/skills/execution/references/task-engine.md` (engine reference, not a skill) |
+
+`CR-O` citations in this round-2 section reflect the **current** file, which has
+gained a `## Preflight` section since round 1; round-1 `CR-O` line numbers run
+~2-15 lines low and are left unedited.
+
+## Component inventory (round-2 additions)
+
+### `REC-O` — receiving-code-review (ours)
+
+| Component | Citation |
+|---|---|
+| Three-legal-end-states contract per item: implemented (with own verification) / answered with evidence / asked about; a silent skip is the named core failure | `SKILL.md:8-13` |
+| **Route-first clause**: in-engine fix loop is the engine's, this skill governs feedback arriving outside it | `SKILL.md:15-21` |
+| Five-step reception order: Read → Understand → Verify → Respond → Implement | `SKILL.md:23-34` |
+| Restate-or-block gate: any item you cannot restate blocks *all* implementation; ask first, naming understood vs not | `SKILL.md:26-30` |
+| Verify each item against the `file:line`, the test, or the deciding doc | `SKILL.md:31-32` |
+| One-item-at-a-time implementation, each fix carrying its own verification | `SKILL.md:34` |
+| Performative-agreement ban with substitutes; the acknowledgment is the fix | `SKILL.md:36-42` |
+| Trust split — human: implement after understanding, ban still holds | `SKILL.md:46-48` |
+| Trust split — critic/agent/bot: verify correctness, regression risk, Chesterton's-fence question, conflict with a recorded decision (ADR/plan) stops the item | `SKILL.md:49-53` |
+| Cannot-verify escape: say so and ask; unverified compliance and silent drop are both failures | `SKILL.md:54-56` |
+| Evidence-based pushback + no-apology-theatre retraction | `SKILL.md:58-62` |
+| Red flags (4): agreement typed pre-check; implementing item 1 with item 4 unclear; reply covering fewer items than the review; complying while privately disagreeing | `SKILL.md:64-70` |
+| Rationalization table (4 rows) | `SKILL.md:72-79` |
+
+### `TE` — task-engine review gate (ours; engine surface)
+
+| Component | Citation |
+|---|---|
+| Role split: coordinator dispatches and adjudicates, never implements or fixes findings itself | `task-engine.md:11-13` |
+| Reviewers are named agents (spec-reviewer / code-reviewer) that follow the code-review skill; re-reviews go to code-reviewer | `task-engine.md:14-18` |
+| Explicit model per dispatch; strong models for initial reviews | `task-engine.md:20-22` |
+| Save every review verbatim to a findings file before acting on it | `task-engine.md:44-48` |
+| Commit-free scoping: `SCOPE_BASE` recorded once; `review-package.sh full/fix` builds the package; the package never enters coordinator context | `task-engine.md:54-69` |
+| Curated-context dispatch: paths not contents; never prior-task history; pasted content stays resident | `task-engine.md:82-84`, `:210-219` |
+| Light path: coordinator runs verification and reviews the diff **inline** via the code-review skill | `task-engine.md:101-108` |
+| Review gate: package → dispatch spec-reviewer then code-reviewer with mode/brief/report/package/constraints → both verdicts required | `task-engine.md:118-127` |
+| Verbatim relay; annotating a finding "probably fine / pedantic / optional" is forbidden | `task-engine.md:129-131` |
+| Severity routing: Minor → ledger deferred; plan-mandated → human decides; Spec ❌ / Critical / Important / confirmed ⚠️ → fix loop | `task-engine.md:132-135` |
+| Bounded fix loop: 5 rounds, round-consumption rule, verbatim findings to the implementer, model escalation at rounds 4-5, fix report must name tests + output | `task-engine.md:137-160` |
+| Breaker at the cap: park-with-ruling / park-as-deferred / STOP on load-bearing; adjudicating earlier is pre-judging; silent discard forbidden | `task-engine.md:161-179` |
+| Breaker delegates per-finding method to `REC-O`'s Verify and Respond steps | `task-engine.md:172-174` |
+| Never move on with open Critical/Important that are neither fixed nor parked | `task-engine.md:177-179` |
+| Final review of the whole scope incl. deferred/parked triage, Codex pass, ONE fix dispatch + one re-review, no second wave | `task-engine.md:181-198` |
+
+## Round-2 cross matrix — where each `REQ` component lives
+
+Rows are `REQ`'s 22 components in inventory order. `✓` present · `~` variant
+(differs in mechanism or strength) · `—` absent · `✗` **contradicted** by ours.
+
+| # | `REQ` component | Citation | REC-O | CR-O | TE | Owner |
+|---|---|---|---|---|---|---|
+| 1 | Review early, review often | `SKILL.md:10` | — | — | ✓ `:118-127`, `:181-187` | TE |
+| 2 | Curated-context rule (never session history) | `SKILL.md:8` | — | — | ✓ `:82-84`, `:210-219` | TE |
+| 3 | Mandatory triggers (per task / feature / pre-merge) | `SKILL.md:14-17` | — | ~ `:3` (inline) | ✓ `:118-127`, `:181-187` | TE |
+| 4 | Optional triggers (stuck / pre-refactor / post-bug) | `SKILL.md:19-22` | — | — | — | **unowned (ad-hoc only)** |
+| 5 | BASE_SHA/HEAD_SHA capture | `SKILL.md:26-30` | — | ~ `:22` | ✗ `:54-69` | TE (incompatible) |
+| 6 | Dispatch `general-purpose` + 4-placeholder template | `SKILL.md:32-40` | — | ~ `:17-22` | ✓ `:120-127` | TE |
+| 7 | Post-review policy (Critical now / Important before proceeding / Minor noted / push back) | `SKILL.md:42-46` | ~ `:23-34`, `:58-62` | — | ✓ `:132-135`, `:177-179` | TE + REC-O |
+| 8 | Worked dispatch example | `SKILL.md:48-73` | — | — | — | unowned (rejected) |
+| 9 | Rationalization table (2 rows) | `SKILL.md:75-80` | — | — | row 2 ✓ `:82-84`; row 1 ✗ `:102-106` | split |
+| 10 | Red flags (skip-if-simple / ignore Critical / proceed with Important / argue with valid feedback) | `SKILL.md:85-89` | ✓ `:64-70` (argue) | — | ✓ `:177-179`; skip-if-simple ✗ (`CLAUDE.md` Working Mode) | TE + REC-O |
+| 11 | If-reviewer-wrong protocol | `SKILL.md:90-93` | ✓ `:58-62` | — | ✓ `:161-175` | REC-O |
+| 12 | Reviewer persona / purpose | `code-reviewer.md:11-13` | — | ✓ `:8-11` | — | CR-O |
+| 13 | Template context sections (what built / requirements / git range) | `code-reviewer.md:15-31` | — | ✓ `:17-22` | ✓ `:120-127` | CR-O |
+| 14 | Read-only clause **+ worktree escape hatch** | `code-reviewer.md:33-35` | — | ~ `:51-52` (prohibition only) | — | CR-O — **hatch unowned** |
+| 15 | Five check areas | `code-reviewer.md:37-67` | — | ✓ `:73-96`, `:98-139` | — | CR-O — **production-readiness sub-area unowned** |
+| 16 | Calibration: severity honesty + praise-first | `code-reviewer.md:69-74` | — | ✓ `:141-161` | — | CR-O |
+| 17 | Flag plan deviations; report plan defects | `code-reviewer.md:76-78` | — | ✓ `:76-78`, `:153-156` | ✓ `:134` | CR-O |
+| 18 | Output format (Strengths/C/I/M/Recs/Assessment) | `code-reviewer.md:80-109` | — | ✓ `:176-207` | — | CR-O |
+| 19 | Per-issue anatomy (file:line, what, why, fix) | `code-reviewer.md:96-100` | — | ✓ `:61-62`, `:195-196` | — | CR-O |
+| 20 | Ready-to-merge verdict | `code-reviewer.md:105-109` | — | ✓ `:197`, `:184` | ✓ `:127` | CR-O |
+| 21 | DO/DON'T rules | `code-reviewer.md:111-125` | — | ✓ `:34-63`, `:141-161`, `:176-180` | — | CR-O |
+| 22 | Example reviewer output | `code-reviewer.md:136-172` | — | — | — | unowned (rejected) |
+
+## Shared-component differences (round 2)
+
+**#2 Curated context.** REQ states it as a principle plus a rationalization row
+(`SKILL.md:8`, `:80`). `TE` states it as a dispatch rule with a *cost mechanism*
+— "everything pasted stays resident in your context for the rest of the
+session" (`task-engine.md:84`) — and enforces it structurally by passing package
+paths that "never enter the coordinator's context" (`:69`). Ours is stronger:
+the reference relies on the agent believing the rule; the engine makes obeying
+it the only way the packaging scripts work.
+
+**#5 Diff scoping.** REQ captures `HEAD~1..HEAD` (`SKILL.md:26-30`). Ours pins
+`SCOPE_BASE` once and diffs the *working tree* — tracked-but-uncommitted changes
+plus untracked file contents — because implementers do not commit
+(`task-engine.md:54-64`), and fix rounds diff snapshot-to-snapshot (`:65-68`).
+REQ's mechanism cannot see the work our implementers produce. Not a strength
+comparison — an incompatibility.
+
+**#7 Post-review policy.** REQ: four bullets, all executed by the same agent
+(`SKILL.md:42-46`). Ours splits the same content across two owners with a
+handoff contract: `TE` routes by severity into a *bounded* loop with a ledger
+(`task-engine.md:132-135`, `:137-160`), and `REC-O` supplies the per-item
+disposal discipline the breaker calls into (`task-engine.md:172-174` →
+`REC-O:31-34`). REQ's "note Minor issues for later" is exactly the silent drop
+`REC-O:78` names as a rationalization; ours forces Minor into a ledger line
+(`task-engine.md:133`) that the final review must triage
+(`task-engine.md:188-190`).
+
+**#9 Rationalization row 1.** REQ forbids the coordinator reviewing the diff
+itself (`SKILL.md:79`). Our light path *requires* it — "read the diff
+(`review-package.sh full`, then apply the code-review skill inline)"
+(`task-engine.md:102-106`) — and `CR-O` ships an `inline` mode for it
+(`SKILL.md:21`). The reference's premise (context burn) is answered differently
+here: the package keeps the diff out of context on the full path, while the
+light path accepts the burn deliberately because the unit is small. Adopting the
+row would break a working path.
+
+**#10 "Never skip because it's simple".** Contradicts `CLAUDE.md` Working Mode,
+which routes `small` work to "Execute directly, then self-check". This is a
+recorded decision, so under `REC-O:52-53` the conflict stops the item rather
+than being silently re-litigated.
+
+**#14 Read-only.** `CR-O:51-52` prohibits mutating tree/index/HEAD/branch —
+broader than REQ's phrasing — but offers no alternative when another revision is
+needed. REQ adds `git worktree add /tmp/review-<SHA> <SHA>`
+(`code-reviewer.md:35`). Prohibition-plus-alternative is the stronger form: it
+removes the pressure that produces the violation.
+
+**#15 Check areas.** `CR-O` is a strict superset on four of five: spec axes with
+Missing/Extra/Misunderstood plus invariants and file-scope
+(`SKILL.md:73-96`) beat REQ's three plan-alignment questions; quality adds the
+edited-existing-tests flag (`:81-84` → current `:105-108`), dead-code
+attribution, dependency discipline, a security lens and Python-first checks
+(`:98-139`). The exception is **production readiness**: migration strategy on
+schema change, backward compatibility, documentation completeness
+(`code-reviewer.md:63-67`) appear nowhere in `CR-O`. That asymmetry — four areas
+dominated, one absent — is the entire adoption case.
+
+**#18 Output.** REQ's format is prose-shaped for a human reader
+(`code-reviewer.md:80-109`). `CR-O` ships three role-specific contracts whose
+first token is a verdict the engine routes on — `COMPLIANT | ISSUES_FOUND`,
+`APPROVE | WARNING | BLOCK`, `ADDRESSED | NOT ADDRESSED`
+(`SKILL.md:176-207`), consumed at `task-engine.md:132-135` and `:151-157`.
+Ours is stronger because a caller can branch on it; REQ's cannot be parsed
+without judgment.
+
+**Absent from REQ entirely** (round-2 direction, for completeness): re-review
+mode, evidence budget on reviewer inputs, do-not-trust-the-report, the
+plan-mandated severity rule, ⚠️ cannot-verify-from-diff, preflight gates
+(`CR-O:24-32`), and every reception-side mechanism in `REC-O`. REQ is a thin
+slice of a protocol our harness already runs at higher resolution.
