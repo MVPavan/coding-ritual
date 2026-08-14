@@ -1,6 +1,6 @@
 ---
 name: document-review
-description: Use when a spec or plan document exists and needs a focused review for gaps, scope bloat, missing constraints, or risky assumptions.
+description: Use when a spec or plan document exists and needs a focused review for gaps, scope bloat, missing constraints, or risky assumptions. To interrogate the author about the plan instead, use grilling.
 ---
 
 # Document Review

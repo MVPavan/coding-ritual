@@ -15,6 +15,9 @@ test/lint/build commands to run for the repo as a whole, so the health gate is
 4. **Python tooling** — for each changed `.py` hook/script,
    `python3 -m py_compile <file>`.
 5. **Beads** — `bd ready` / `bd list` runs without error after task changes.
+6. **Skill catalog** — after changing anything under `.claude/skills/` or
+   `.claude/commands/`, `python3 .claude/scripts/skill-catalog.py --check`
+   exits 0 (generated catalog current, every slash pointer resolves).
 
 ## Plugin test harnesses (when you touch a plugin)
 
