@@ -226,11 +226,11 @@
       "repo": "agent-skills",
       "logical_id": "skill:skills/debugging-and-error-recovery",
       "status": "adopted",
-      "reason": "Covered by our reproduce, isolate, falsify, prove, fix, and verify workflow, with fewer risky generic fallback examples.",
-      "date": "2026-07-15",
+      "reason": "Re-recorded 2026-08-14, superseding the stale 2026-07-15 'covered by our workflow' claim which held only at step-name level (evidence: skill-comparisons/debugging-loop/). Now genuinely absorbed into the rebuilt systematic-debugging skill: non-reproducible diagnostic tree + flake-class diagnosis (references/non-reproducible-bugs.md), localize-by-layer tree incl. test-is-wrong branch + git bisect run recipe (references/localization.md), instrumentation add/remove/keep rules, untrusted-error-output prompt-injection defense (Conduct section). Environmental escape hatch tightened per Opus critique: end-state UNRESOLVED FINDING after Phase 3 exhaustion, never a mitigation-as-fix exit. REJECTED per council bucket-06 round-001: safe-fallback/graceful-degradation patterns (incompatible with the root-cause gate); per-error-class triage trees mostly dropped as npm/browser-shaped common knowledge.",
+      "date": "2026-08-14",
       "our_id": "skill:skills/systematic-debugging",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3",
-      "source_content_hash": "afea5d2df6e973d3c58e6464d17d15580c88efe2"
+      "source_sha": "7676817",
+      "source_content_hash": "fdf5af95b56eabc423216f11919269bc88d09d82"
     },
     {
       "repo": "agent-skills",
@@ -311,10 +311,12 @@
     {
       "repo": "agent-skills",
       "logical_id": "skill:skills/performance-optimization",
-      "status": "deferred",
-      "reason": "Route to an optional production-readiness plugin; measure-profile-fix-remeasure discipline is valuable, while the broad frontend and backend catalog is too large for the template.",
-      "date": "2026-07-15",
-      "source_sha": "6bcfeb9dae52b11eaad23511acc165109746dbc3"
+      "status": "adopted",
+      "reason": "Adopted 2026-08-14 per user ruling, superseding the 2026-07-15 deferral and modifying casebook round-002's drop-the-frontend trim: spine is generic systems-engineering, Python-first (uv/py-spy/cProfile/memray/EXPLAIN ANALYZE); UI/browser content RELOCATED to references/frontend-performance.md behind an observable load condition (slow path renders in a browser), not deleted. All 8 mandated components carried at full strength: measure-first + when-NOT, symptom-to-measurement tree, identical re-measurement, noise-vs-mean, keep-or-revert table with neutral-is-a-revert, correctness-gates-the-metric, attempt ledger (durable in bead/commit, PERF.md convention replaced), CI budgets (pytest-benchmark recipe with baseline persistence, verified live). Added: counting guards over wall-clock asserts in CI. Routing boundary with systematic-debugging cut both ways: its bare 'slow' trigger narrowed to 'got-slower', two hand-off exits added (Phase 1 no-red-state, Phase 4 no-culprit bisect). Opus 5 medium critic: 15 findings (2 blocker routing leaks), all fixed. Evidence: skill-comparisons/debugging-loop/.",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/performance-optimization",
+      "source_sha": "7676817",
+      "source_content_hash": "f566efd2c632b43625b9b674c44da23a222f44c1"
     },
     {
       "repo": "agent-skills",
@@ -384,6 +386,16 @@
       "date": "2026-08-13",
       "our_id": "skill:skills/codebase-design",
       "source_content_hash": "5810b0cd4c7957df3bdc5d28fd437a2dff4470e3"
+    },
+    {
+      "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/engineering/diagnosing-bugs",
+      "status": "adopted",
+      "reason": "Adopted as the SPINE of the rebuilt systematic-debugging skill (2026-08-14, evidence: skill-comparisons/debugging-loop/, implementing casebook bucket-06 round-001). Carried: loop-is-the-skill Phase 1 with red-capable agent-runnable exit criterion, repro-construction catalog, loop tightening, cannot-build-loop stop, minimisation with done-condition, 3-5 ranked falsifiable hypotheses with predictions, tool ladder + tagged logs, regression-test seam gate (seam criterion moved to TDD skill), cleanup + hypothesis-in-commit, secret redaction, perf branch. Dropped: HITL script (non-interactive harness; replaced by chat-native user-driven repro carve-out), skip-phases nuance valve (replaced by observable sizing branch), headless-browser method (round-002 UI scope). Opus-critic reviewed (12 findings fixed).",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/systematic-debugging",
+      "source_sha": "84fdeff",
+      "source_content_hash": "2210d6709b630ff3923d44d0bbc0b73a217fb96e"
     },
     {
       "repo": "mattpocock_skills",
@@ -529,6 +541,16 @@
       "date": "2026-08-12",
       "our_id": "skill:skills/execution",
       "source_content_hash": "3985007b76d15d95dc69903e7f70e6e24ddbe6b8"
+    },
+    {
+      "repo": "superpowers",
+      "logical_id": "skill:skills/systematic-debugging",
+      "status": "adopted",
+      "reason": "Adopted-absorbed into the rebuilt systematic-debugging skill (2026-08-14, evidence: skill-comparisons/debugging-loop/, per casebook bucket-06 round-001 absorb list). Carried: pressure armor (rationalization table merged with AER rows, red flags, ESPECIALLY-when framing, honesty rule as table row), fix counter + 3-failed-fixes architecture escalation with human gate and per-attempt written ledger line, per-boundary instrumentation as a hard multi-component conditional in Phase 3, technique assets rehomed Python-first: backward tracing + defense-in-depth (references/post-fix-hardening.md, os.environ example fixed to injected settings), condition-based waiting (typed Python wait_for), find-polluter.sh ported (runner-parameterized, pre-existing-pollution guard now exits 2 - upstream false-negative bug fixed, functionally tested). Dropped: test fixtures/CREATION-LOG (meta), human-redirection signals (low marginal value over red flags), TS helpers. NOTE: our prior Codex falsifier is retired (user ruling 2026-08-14 - Codex quota); escalation now spawns a fresh-context Opus-class critic subagent.",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/systematic-debugging",
+      "source_sha": "44c9b2d",
+      "source_content_hash": "5f6d1e172658d90e3d6331727e24b33478750cbc"
     },
     {
       "repo": "superpowers",
