@@ -169,6 +169,9 @@ context the reviewer lacks:
   the finding, the plan text, and the fix history.
 
 Adjudicate only at the cap — earlier is pre-judging with a different name.
+Rule on each open finding only after verifying it against the code and
+answering it with evidence (the receiving-code-review skill's Verify and
+Respond steps).
 Every adjudication is a ledger entry; a silent discard is forbidden.
 
 A task completes when both verdicts are clean or every open finding is parked
