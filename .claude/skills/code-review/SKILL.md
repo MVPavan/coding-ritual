@@ -21,8 +21,22 @@ Every dispatch states a **mode** and supplies its inputs:
 | `re-review` | code-reviewer | Re-review (role boundaries lift: verdict **every** finding, spec and quality alike) | findings list, brief path, report path, fix package path |
 | `inline` | the coordinator itself | all sections, abbreviated to the changed surface | the diff package; BASE = the SCOPE_BASE recorded in the workspace ledger |
 
+## Preflight — mechanical gates first
+
+Initiators — the coordinator before dispatching, the inline reviewer before
+reading the diff — check two facts before spending judgment effort: the base
+resolves with a non-empty diff or package (ad-hoc, the base is the fixed
+point the user named — ask if unspecified), and the mechanical gate
+`.claude/project/verification.md` defines for the changed file types is
+green in the implementer's report (or your own fresh run, inline). A red
+gate bounces the work back as failed verification, not into a review round.
+
 ## Evidence discipline
 
+- Work that reaches you failing preflight — an empty package, a base that
+  does not resolve, a red mechanical gate in the reported output — returns
+  `ISSUES_FOUND` (spec) or `BLOCK` (quality) with the preflight fact as the
+  sole Critical finding: no judgment findings on top of a broken foundation.
 - When the dispatch names a **diff package** (commit list + stat + `-U10`
   diff), read it once — its context lines ARE the changed files. Do not Read
   a changed file separately unless a hunk you must judge is cut off
@@ -73,19 +87,37 @@ unchanged code or spans tasks) is a **⚠️ Cannot verify from diff** item —
 report it alongside the verdict with what the coordinator should check;
 never broaden your own search instead.
 
+**No brief supplied** (ad-hoc use): locate what "correct" means before
+judging, in this order — the workspace brief under
+`scratchpad/execution/<slug>/`, the bead tracking the work (`bd show`), the
+plan under `docs/workstreams/`, a doc named in the range's commit messages,
+then ask the user. None found → report `Verdict: ISSUES_FOUND` with the
+single item "no spec available"; inline, continue with quality review only.
+Never reconstruct the requirements from the diff itself.
+
 ## Code quality review
 
 - **Correctness & design**: clean separation of concerns; proper error
   handling; DRY without premature abstraction; edge cases handled; hidden
   mutation or confusing state flow.
-- **Tests**: new/changed tests verify real behaviour, not mocks; the task's
-  edge cases are covered; no test asserts nothing. **A change that required
-  editing existing tests to keep them passing changed behaviour** — flag it
-  unless the task explicitly changed that behaviour.
+- **Tests**: judge the diff's tests before its implementation — they state
+  the intent the code is measured against. New/changed tests verify real
+  behaviour, not mocks; the task's edge cases are covered; no test asserts
+  nothing. **A change that required editing existing tests to keep them
+  passing changed behaviour** — flag it unless the task explicitly changed
+  that behaviour.
 - **Structure**: one clear responsibility per file with a defined interface;
   units understandable and testable independently; file structure follows
   the plan; flag files this change created large or grew significantly
   (ignore pre-existing size).
+- **Dead code**: code this change orphaned — made unreachable but left in
+  place — is a finding that names exactly what to delete; pre-existing dead
+  code is at most a Minor note.
+- **Dependencies** (diff touches `pyproject.toml`/`uv.lock`): a new
+  dependency needs its gap named — what the existing stack cannot do; an
+  upgrade is judged by its changelog, not its version delta; unrelated
+  dependency changes bundled into one diff are a finding. Supply-chain
+  doubts route to the security-skill lens below.
 - **Project risks**: apply `.claude/project/brief.md` and
   `.claude/project/invariants.md`.
 - **Trust boundaries**: when the diff touches untrusted input, authn/authz,
@@ -101,9 +133,16 @@ never broaden your own search instead.
 
 Report issues that could cause incorrect behaviour, safety or data-integrity
 problems, missing verification, or brittle code at the changed boundary.
-Skip stylistic noise that affects neither correctness nor maintainability.
+Findings are judgment content tooling cannot catch: skip stylistic noise
+that affects neither correctness nor maintainability, and report nothing
+this repo's configured formatter, linter, or type checker already enforces —
+a tool's failure is a preflight fact, not a finding.
 
 ## Severity calibration
+
+The bar is improvement, not perfection: a change that definitely improves
+code health is approvable even when imperfect — "not how I would build it"
+is not a finding.
 
 Not everything is Critical. **Important** = the change cannot be trusted
 until fixed: incorrect or fragile behaviour, a missed requirement, or
@@ -115,6 +154,8 @@ If the plan or brief explicitly mandates something this rubric calls a
 defect, that IS a finding — report it as Important, labelled
 **plan-mandated**. The plan's authorship does not grade its own work; the
 human decides.
+
+Within a severity bucket, lead with the structural finding.
 
 Acknowledge what was done well before listing issues — accurate praise makes
 the rest of the feedback trusted.
