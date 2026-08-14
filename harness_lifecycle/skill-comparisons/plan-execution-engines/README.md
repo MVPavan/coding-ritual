@@ -310,3 +310,202 @@ Those three are the adoption candidates worth arguing; the rest of superpowers
 SDD is convention we should not import.
 
 Level 3 component inventory and the cross-skill matrix: [`components.md`](components.md).
+
+---
+
+## Round 2 extension — ask-matt `PHASE-BOUNDARIES.md`
+
+Added 2026-08-14. The 2026-08-14 ask-matt ledger entry adopted the skill in part
+into `skill-router` and closed with: *"Its references/PHASE-BOUNDARIES.md is NOT
+decided here — evaluate separately."* This section is that separate evaluation.
+The file sits in this family rather than `../harness-bootstrap/` (which covered
+ask-matt as a **router**) because its subject is the execution loop's context
+moves, not skill discovery.
+
+> **Split ownership — read with `../session-handoff/`.** A concurrent round-2
+> audit created `../session-handoff/` (uncommitted at the time of writing) and
+> covers the same source file from the handoff angle, treating it as "the
+> routing layer" (`session-handoff/README.md:133-166`). To keep one comparison
+> per family rather than two rulings on one file, ownership splits by option:
+> **`../session-handoff/` owns `/handoff`** (Q3, `:27-34`) and the
+> portability question; **this section owns Continue, `/clear`, Subagent, and
+> `/compact`** (Q1, Q2, Q4, Q5) and the tree as a decision procedure. The
+> primary/secondary frame (`:42-51`) is cited by both — independently reached,
+> same conclusion, which is corroboration rather than duplication. Where the two
+> differ is recorded under *Where ours is clearly stronger* below.
+
+**Path remap — everything above this line predates a consolidation.** Round 1
+cited `.claude/skills/phase-execution/SKILL.md` and
+`.claude/skills/subagent-driven-development/SKILL.md`. Those two skills were
+merged into one **`execution`** skill with three scopes. Round-1 citations are
+left untouched; this section cites the current layout:
+
+| Round-1 key | Round-1 path | Current path |
+|---|---|---|
+| `PE` | `skills/phase-execution/SKILL.md` | `.claude/skills/execution/SKILL.md` → *Phase scope* (`:60-98`) |
+| `SDD⁰` | `skills/subagent-driven-development/SKILL.md` | `.claude/skills/execution/references/task-engine.md` |
+| `RP` | `.claude/commands/run-phases.md` (full body) | `.claude/skills/execution/references/workstream-mode.md`; the command is now a 17-line entry point |
+
+Round 1's three named weaknesses have since been closed inside `task-engine.md`
+(bounded five-round fix loop `:143-179`, workspace ledger `:24-51`,
+`review-package.sh` artifact handoff `:54-69`) — noted here because the round-2
+analysis runs against that closed state, not the round-1 one.
+
+### Level 1 — Placement (extension)
+
+| Skill | Repo | Bucket | Triggers when |
+|---|---|---|---|
+| `PHASE-BOUNDARIES.md` | mattpocock | *proposed* 10 Orchestration (also 4) | Not independently invocable — it is a reference under `ask-matt`, reached when the user asks the router what to do at a seam between two chunks of work (`ask-matt/SKILL.md:61-71`, which links it at `:71`). Its real firing condition is **a human deciding whether to keep, drop, compress, or export a context window**. Nothing in it fires automatically; `ask-matt` itself is `disable-model-invocation: true` (`ask-matt/SKILL.md:4`), so the model never reaches this file on its own. |
+
+### Level 2 — Capability profile (extension)
+
+#### `PHASE-BOUNDARIES.md` (mattpocock)
+
+**Achieves** — turns "what do I do with this context window now?" from a reflex
+into an ordered five-question decision, made at a seam rather than mid-work.
+
+**Can do**
+- Defines a **phase** as a session-internal chunk of work, deliberately fuzzy:
+  it ends when you think *"ok, we're done with that"* (`:3`).
+- Confines the decision to the **boundary**: mid-phase there is no decision —
+  continue, or split the remaining work into subagents — because compacting
+  mid-phase makes the agent lose the thread (`:5`).
+- Enumerates exactly five options with one-line semantics each: Continue,
+  `/clear`, `/handoff`, Subagent, `/compact` (`:9-15`).
+- Runs them as an **ordered tree, first yes wins** (`:19`).
+- Q1 Continue — two sufficient conditions: the next phase needs this one as a
+  **primary source**, or ~150k of smart zone remains; grilling → implementation
+  is the canonical yes because the implementation wants the reasoning verbatim,
+  not a summary of it; "continue costs nothing and loses nothing, so rule it out
+  before anything else" (`:21`).
+- Q2 `/clear` — is everything here disposable? Cheapest move on the board, and
+  non-terminal because the old session stays resumable (`:23`); paired with an
+  **asymmetric-cost warning** — clearing a *relevant* context loses the **why**,
+  and no amount of reading the diff back returns it (`:25`).
+- Q3 `/handoff` — a closed four-item clause (new harness, new directory/repo, a
+  colleague, forking a side task found mid-phase), with "that list is the whole
+  clause"; what it buys is **portability**, so if nothing is travelling you do
+  not need it (`:27-34`).
+- Q4 **AFK test** — is the task scoped tightly enough to run with you away from
+  the keyboard, no steering? Then subagent; automated review is the standard
+  case (`:36`).
+- Q5 `/compact` as the landing spot, **with an instruction argument** so the
+  summary keeps what the next phase needs (`:38`), plus the placement rationale:
+  it is "the **default, not the first reach**", and starting here produces a
+  fresh session that is confidently wrong about a decision the summary flattened
+  (`:40`).
+- **Primary/secondary source model** — every move except Continue converts a
+  primary source into a secondary one, with a three-axis tradeoff table
+  (Information / Noise / Room to move) (`:42-49`), which is what makes Q1 first:
+  you pay the lossiness only when staying costs more than it saves (`:51`).
+- Closes by naming itself judgement, not procedure — the value is in asking the
+  questions **in order, at the boundary** (`:53-55`).
+
+**Pros** — it is the only artifact in this comparison that treats **context
+itself as the managed resource**, and the only one that gives a *reason to not
+move*. Every engine here, ours included, reasons about work units; none reasons
+about what the window is worth keeping. Its primary/secondary framing
+(`:42-49`) is the cheapest durable idea in the whole family: six lines that give
+a name to a cost every one of our surfaces pays silently. The asymmetric-cost
+argument at `:25` is the correct shape for an irreversible operation — it does
+not claim clearing is bad, it claims the error is one-way.
+
+**Cons** — none of it is checkable. It says so itself (`:53-55`), which is
+honest but means it cannot be a gate the way `execution/SKILL.md:88-95` is. Two
+of its five options do not exist in our harness at all (`/handoff` has no
+artifact, no command, no format), and one of its rules directly contradicts our
+design: `:5` forbids mid-phase compaction, which `workstream-mode.md:63-64`
+mandates. It is also written for a **single human at a keyboard** — the AFK test
+(`:36`) and the smart-zone budget (`:21`) both presume a person deciding, where
+our equivalent decisions are made by a coordinator following a routing table.
+
+### Verdict (extension)
+
+**Does it overlap our engines? Only at one seam.** Our surfaces already own the
+*work* decision — which unit, which risk, which worker (`execution/SKILL.md:14-23`,
+`:34-45`). `PHASE-BOUNDARIES.md` owns the *context* decision, and our entire
+coverage of that is six lines in `workstream-mode.md:60-67` plus a
+post-compaction recovery contract in `task-engine.md:49-51`. So this is not a
+substitute for anything we run; it is a missing half-page next to something we
+already have.
+
+**Our mechanism is different in kind, and mostly stronger.** ask-matt tries to
+*avoid* lossy moves by choosing well. We *assume* the lossy move happens and
+rebuild from durable state afterwards: bd for work status, the workspace ledger
+for fix-round position and parked rulings (`task-engine.md:24-51`), the repo for
+plans and roadmaps. That is the more robust design because it does not depend on
+getting the choice right — but it is not a substitute, because our re-read
+contract restores **facts, not reasoning**. `task-engine.md:49-51` recovers
+which task and which round; nothing recovers *why the approach was chosen*. That
+is precisely the primary→secondary loss `:44-51` names, and our harness has no
+vocabulary for it.
+
+**Where ours is clearly stronger.** The AFK test (`:36`) is a weaker selector
+than our risk routing
+(`execution/SKILL.md:34-45`), which also bounds the dispatch (one deliverable,
+`task-engine.md:212`; no parallel implementers on the same files, `:217`) where
+ask-matt bounds nothing. And the mid-phase-compaction ban (`:5`) is advice we
+should keep rejecting — `workstream-mode.md:63-64` compacts between stages *by
+design*, and the ledger is what makes that safe.
+
+**One disagreement with `../session-handoff/`, recorded rather than averaged.**
+My first draft of this section rejected `/handoff` on the grounds that its
+portability is something we get for free, since our durable state lives in the
+repo and in bd and therefore travels by `git clone`. The session-handoff audit
+shows that reasoning is too strong on one of the four cases: this repo maintains
+a `.codex/` twin of its whole harness, so **Claude → Codex is a live harness
+swap, not a hypothetical** (`session-handoff/README.md:320-332`), and `git
+clone` moves the *state* without moving the *method* — a resuming agent learns
+what is in flight but not that the work was mid-TDD or mid-debugging-loop
+(`session-handoff/README.md:317-319`). I withdraw the "free" claim. What
+survives from this side is narrower and still holds: three of the four cases in
+`:29-32` (new directory, colleague, mid-phase side task) are covered for us —
+the last by the discovered-work rule at `execution/SKILL.md:52-54` — so if
+anything is borrowed it should be the **narrowness clause as a guard**, which is
+what `session-handoff/README.md:345-350` recommends, and not a handoff ritual.
+That folder owns the ruling; this section defers to it.
+
+**Where theirs is stronger, concretely — three items, all small.**
+1. **`/compact` takes an instruction.** `:38` passes the next phase's intent into
+   the summary. `workstream-mode.md:62` and `:63-64` say to compact and never say
+   what to tell it. One line, no design change, directly reduces the failure
+   `:40` describes.
+2. **Rule out Continue first.** No line anywhere in our harness says *not*
+   moving is an option worth checking. `workstream-mode.md:62` bans `/clear`,
+   leaving `/compact` as the only named move — so it is structurally the first
+   reach, the exact inversion `:40` warns against.
+3. **The primary/secondary vocabulary** (`:42-51`). Naming the cost is what makes
+   items 1 and 2 stick rather than read as fussiness.
+
+**One factual conflict worth resolving, not adopting.** `workstream-mode.md:62`
+bans `/clear` because "it kills the session"; `:23` says the opposite — the old
+session stays resumable. Our ban is correctly scoped to workstream mode, where
+the walk's own authorization and loop position live in the session and a clear
+genuinely would strand it. But the stated *reason* is broader than the scope,
+and if it is wrong it will be copied outward. Worth a rewording either way.
+
+**Recommendation for the coordinator: adopt-in-part, one target, no new
+surface.** The three items above are ~6 lines appended to
+`.claude/skills/execution/references/workstream-mode.md` → *Context management*
+(`:60-67`). Reject the phase definition at `:3` (collides with our
+roadmap-phase term — ours is a bd epic with a machine-checkable gate, theirs is
+a feeling about the conversation; two objects, one word), the mid-phase ban at
+`:5`, and the tree as a whole (two of its five branches are inert here once
+`/handoff` is set aside, so importing the tree would import dead options). Do
+**not** create a context-management skill: the gap is a paragraph, not a
+capability.
+
+**`/handoff` is deliberately not ruled on here** — `../session-handoff/` owns
+it, has the fuller evidence, and reaches a more careful answer than my first
+draft did (see the disagreement note above). Coordinator: read that folder's
+recommendation before ruling on Q3; nothing in this section should be read as
+rejecting it.
+
+**Sequencing note.** If the `/compact`-instruction and rule-out-Continue items
+are adopted, they touch `workstream-mode.md:62-64` — the same two lines
+`session-handoff/README.md:357-360` proposes to annotate with the
+primary/secondary frame. One edit, not two; whichever lands second should
+extend rather than replace.
+
+Level 3 component inventory and the cross-skill matrix for this extension:
+[`components.md`](components.md) → *Round 2 extension*.
