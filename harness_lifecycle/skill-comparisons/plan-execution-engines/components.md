@@ -356,3 +356,209 @@ stage with a `discovered-from` dependency — durable, tracked, schedulable.
 `SDDˢ:309-313` ledgers deferred minors and points the final review at them —
 durable only until the workspace is deleted (`SDDˢ:416-418`). **Ours is
 stronger**: our discovered work outlives the plan; theirs does not.
+
+---
+
+## Round 2 extension — ask-matt `PHASE-BOUNDARIES.md`
+
+Added 2026-08-14. Rationale, placement, and verdict: [`README.md`](README.md) →
+*Round 2 extension*. This section adds one upstream column and one "ours"
+column; the round-1 matrix above is left untouched, because its `PE`/`SDD⁰`/`RP`
+keys point at a pre-consolidation layout (remap table in the README).
+
+New column keys:
+
+| Key | Surface |
+|---|---|
+| `PB` | mattpocock — `skills/engineering/ask-matt/PHASE-BOUNDARIES.md` (+ its summary in `ask-matt/SKILL.md:61-71`) |
+| `EX` | ours — `.claude/skills/execution/` (`SKILL.md` + `references/task-engine.md` + `references/workstream-mode.md`) and `.claude/commands/{phase-execution,run-phases}.md` |
+
+Citations in this section are unprefixed within a file's own row: `PB:21` =
+`PHASE-BOUNDARIES.md:21`; ours are given with a file stem, e.g.
+`workstream-mode.md:62`.
+
+### Component inventory
+
+#### `PB` — PHASE-BOUNDARIES.md (mattpocock)
+
+| Component | Citation |
+|---|---|
+| **Phase** defined as a session-internal chunk, fuzzy on purpose ("ok, we're done with that") | `PB:3` |
+| **The decision belongs only at the boundary**; mid-phase there is no decision — continue or split into subagents | `PB:5` |
+| Mid-phase compaction makes the agent lose the thread | `PB:5` |
+| Five-option enumeration table with one-line semantics each | `PB:9-15` |
+| **Ordered tree, first yes wins**, worked top to bottom | `PB:19` |
+| Q1 Continue — sufficient condition A: next phase needs this one as a **primary source** | `PB:21` |
+| Q1 Continue — sufficient condition B: ~150k smart zone remains for the next phase | `PB:21` |
+| Q1 canonical case: grilling → implementation (wants the reasoning verbatim, not a summary) | `PB:21` |
+| Q1 placement rule: "continue costs nothing and loses nothing, so rule it out before anything else" | `PB:21` |
+| Q2 `/clear` — test is "is everything here disposable?"; cheapest move, old session stays resumable | `PB:23` |
+| Q2 **asymmetric-cost warning** — clearing relevant context loses the *why*; reading the diff back does not return it | `PB:25` |
+| Q3 `/handoff` — closed four-item clause (new harness / new directory / colleague / mid-phase side task) | `PB:27-32` |
+| Q3 "that list is the whole clause"; what it buys is **portability** — nothing travelling, no handoff | `PB:34` |
+| Q4 **AFK test** — scoped tightly enough to run with no steering → subagent | `PB:36` |
+| Q4 canonical case: automated review | `PB:36` |
+| Q5 `/compact` as the landing spot, **with an instruction argument** | `PB:38` |
+| Q5 "`/compact` is the **default, not the first reach**" + the flattened-decision failure mode | `PB:40` |
+| **Primary → secondary conversion**: every move except Continue pays it | `PB:44` |
+| Tradeoff table: Information / Noise / Room to move, primary vs secondary | `PB:46-49` |
+| Why Q1 is first — pay lossiness only when staying costs more than it saves | `PB:51` |
+| Self-declared as judgement, not procedure; the value is asking **in order, at the boundary** | `PB:53-55` |
+| Router-side summary of the five options + "make the decision **at** a boundary" | `ask-matt/SKILL.md:63-71` |
+| Router-side smart-zone rule: don't push on degraded; compact at the nearest boundary | `ask-matt/SKILL.md:32` |
+| Router-side unbroken-window rule for grilling → spec → tickets | `ask-matt/SKILL.md:30` |
+
+#### `EX` — execution (ours) — context-move components only
+
+Work-unit components are in the round-1 inventory. Listed here is only what
+bears on the context decision.
+
+| Component | Citation |
+|---|---|
+| `/compact` between phases; **`/clear` banned** ("it kills the session") | `workstream-mode.md:62` |
+| `/compact` between stages **within** a large phase, then re-read ledger + re-query bd | `workstream-mode.md:63-64` |
+| Enumerated locations of persistent state (bd, plans dir, workspace ledger) | `workstream-mode.md:65-67` |
+| Post-compaction recovery contract: re-read `progress.md`, latest findings, re-query bd + `git status` | `task-engine.md:49-51` |
+| Stated failure the contract prevents: "a coordinator that lost its place re-dispatches completed work" | `task-engine.md:51` |
+| Ledger identity line + append-one-line-per-event format | `task-engine.md:32-42` |
+| Every review saved verbatim to a findings file **before** acting on it | `task-engine.md:44-47` |
+| Walk authorization recorded in the ledger so a post-compaction session can prove the opt-in | `workstream-mode.md:15-17` |
+| Re-query bd after compaction because "bd is the source of truth, not conversation memory" | `workstream-mode.md:45-46` |
+| Artifact handoff by **path**, never by content ("the package never enters the coordinator's context") | `task-engine.md:69` |
+| Never paste prior-task history — "everything pasted stays resident for the rest of the session" | `task-engine.md:82-84` |
+| Cap the prompt / cap the result; full file contents never enter the coordinator | `task-engine.md:213-216` |
+| Route work off the coordinator by **risk** (small inline / standard light / deep full) | `SKILL.md:34-39` |
+| Coordinator "should not hold implementation context" as the stated reason for dispatch | `task-engine.md:3-7` |
+| Sequential-by-design phases, `/compact` between, for context economy | `workstream-mode.md:8-11` |
+
+### Cross-skill matrix
+
+`✓` present · `~` variant (differs in mechanism or strength) · `—` absent
+
+| Component | PB | EX |
+|---|---|---|
+| Names a unit of work | ~ | ✓ |
+| Unit is externally resolvable (tracker/roadmap) | — | ✓ |
+| Recognises a **boundary** between units as a decision point | ✓ | ~ |
+| Enumerates the available context moves | ✓ | ~ |
+| Ordered decision procedure over those moves | ✓ | — |
+| "Continue / do nothing" named as an option | ✓ | — |
+| Criterion for *staying* (primary-source need) | ✓ | — |
+| Context-budget criterion (smart zone / token headroom) | ✓ | — |
+| `/clear` treated as available | ✓ | ✗ (banned) |
+| Irreversibility / asymmetric-cost warning on a context move | ✓ | — |
+| Portable handoff artifact (`/handoff`) — *ruled on in `../session-handoff/`, not here* | ✓ | — |
+| Subagent as a context move | ✓ | ✓ |
+| Selector for the subagent move | ~ (AFK) | ✓ (risk) |
+| Bounds on the dispatched unit | — | ✓ |
+| `/compact` as a named move | ✓ | ✓ |
+| **Instruction passed to `/compact`** | ✓ | — |
+| Warning against reaching for `/compact` first | ✓ | — |
+| Mid-phase compaction permitted | ✗ (forbidden) | ✓ |
+| Recovery contract after compaction | — | ✓ |
+| Durable state enumerated for recovery | — | ✓ |
+| Vocabulary for context lossiness (primary/secondary) | ✓ | — |
+| Artifact-by-path discipline (keep content out of the window) | — | ✓ |
+| Ban on pasting prior history into a dispatch | — | ✓ |
+| Machine-checkable anything | — | ✓ |
+| Self-declared as judgement rather than procedure | ✓ | — |
+
+### Shared-component differences
+
+**Unit of work / "phase"** (`PB` `~` vs `EX` `✓`). Same word, two objects.
+`PB:3` defines a phase as a chunk of a *session*, ending when the human feels it
+ended — deliberately unresolvable. `EX` defines a phase as a roadmap row bound
+to a bd epic resolved by a bracketed join key (`SKILL.md:65-67`) and closed only
+through a jq predicate over its children (`SKILL.md:88-95`). **Ours is stronger
+for tracked work** — a lying coordinator cannot pass our gate and there is
+nothing to pass in theirs. **Theirs names something ours cannot**: the seam
+between grilling and implementation inside one session, which no roadmap row
+segments. The practical consequence is a terminology collision: importing
+`PB`'s definition would overload a word our gate depends on.
+
+**Boundary as a decision point** (`PB` `✓` vs `EX` `~`). `PB:5` makes the
+boundary the *only* legal place for the decision and forbids deciding mid-phase.
+`EX` has boundaries — between phases (`workstream-mode.md:62`) and between
+stages (`:63-65`) — but never frames them as a point where a choice is made;
+at both, the move is already fixed to `/compact`. **Theirs is stronger as a
+concept, ours as a default**: a fixed move needs no judgement and cannot be
+judged wrong, which is why our unattended walk works at all. The cost is that
+the fixed move is the lossy one, always.
+
+**Enumerated moves** (`PB` `✓` vs `EX` `~`). `PB:9-15` is a five-row table.
+Ours is scattered and partial: `/compact` (`workstream-mode.md:62`), `/clear`
+(named only to ban it, same line), subagent dispatch (`task-engine.md` passim).
+Continue and handoff are absent as concepts. **Theirs is stronger on
+completeness**; two of its five rows are dead in our harness, so the honest gap
+is two options wide, not five.
+
+**Mid-phase compaction** (`PB` ✗ forbidden vs `EX` ✓ mandated). A direct
+contradiction, and the most interesting row here. `PB:5` says compacting
+mid-phase makes the agent lose the thread, so mid-phase you may only continue or
+split into subagents. `workstream-mode.md:63-64` says to compact between stages
+inside a large phase, then re-read the ledger and re-query bd;
+`task-engine.md:49-51` makes that a contract with a named failure ("a
+coordinator that lost its place re-dispatches completed work"). **Ours is
+stronger, and the mechanism is why**: `PB` avoids the loss by not compacting,
+which only works while the window holds out; we accept the loss and reconstruct
+from state written outside the window — bd, `progress.md`, the findings files
+(`task-engine.md:44-47`). Ours degrades gracefully; theirs has no story once the
+window is genuinely full. **But `PB`'s claim is not fully answered.** Our
+contract restores *position and facts*; `PB:44-49` is about losing *reasoning*,
+and re-reading `progress.md` does not return why an approach was chosen.
+
+**Criterion for staying** (`PB` `✓`, `EX` `—`). `PB:21` gives two, and the
+first — the next phase needs this one as a **primary source** — is the one with
+no counterpart anywhere in our harness. Ours reasons about context in one
+direction only: context is cost, so shed it (`task-engine.md:3-7`, `:82-84`,
+`:213-216`). The `EX` case that most resembles `PB`'s canonical yes is
+planning → execution, and we deliberately resolve it the other way, handing over
+a plan **file** — which is exactly the primary→secondary conversion `PB:44`
+charges for, made unconsciously. **Theirs is stronger** on this component
+because ours does not have it; whether ours should is a judgement, and for
+dispatched work our answer is defensibly no.
+
+**`/clear`** (`PB` `✓` available vs `EX` ✗ banned). `PB:23` calls it the
+cheapest move and non-terminal, since the old session stays resumable.
+`workstream-mode.md:62` bans it because "it kills the session". Within
+workstream mode the ban is right for a reason `PB` never faces: our walk's
+authorization (`workstream-mode.md:15-17`) and loop position live in the
+session, so a clear strands an unattended run. **Neither is stronger; the scopes
+differ** — but our stated reason is a general claim about `/clear` used to
+justify a mode-specific need, and if the general claim is false it will be
+copied outward.
+
+**`/compact` instruction argument** (`PB` `✓`, `EX` `—`). `PB:38` passes the
+next phase's intent in (`/compact we're going to QA this area`) so the summary
+retains what will be needed. `workstream-mode.md:62` and `:63-64` name the
+command with no argument. **Theirs is stronger**, and this is the single
+cheapest borrow in the comparison: it is one clause on two existing lines, it
+costs nothing, and it targets the failure `PB:40` names — a fresh session
+confident about a decision the summary flattened. Our mitigation for that
+failure is downstream (re-read the ledger); `PB`'s is upstream (don't flatten it
+in the first place). They compose.
+
+**Subagent selector** (`PB` `~` AFK vs `EX` `✓` risk). `PB:36` asks whether the
+task can run unsteered. `SKILL.md:34-39` routes by risk class and
+`task-engine.md:3-7` by whether the coordinator should hold the context, then
+bounds the dispatch (`task-engine.md:212`, `:217`). **Ours is stronger overall**
+— it selects *and* constrains, where `PB` only selects. **`PB` is better as a
+human-facing test**: "can this run while I make coffee" is answerable
+immediately; "is this standard or deep" needs a rubric.
+
+**Vocabulary for lossiness** (`PB` `✓`, `EX` `—`). `PB:44-51` is six lines and a
+three-column table naming what every context move costs. Our harness has the
+*behaviours* that respond to this cost — artifact-by-path (`task-engine.md:69`),
+the paste ban (`:82-84`), the caps (`:213-216`) — with no shared name for what
+they are protecting. **Theirs is stronger**, and the gap is a vocabulary gap
+rather than a mechanism gap: the rules exist, the concept they serve is unnamed,
+which is why nothing in our harness ever weighs *keeping* context against
+shedding it.
+
+**Machine-checkability** (`PB` `—`, `EX` `✓`). `PB:53-55` disclaims it. `EX`
+converts as much as it can into predicates (`SKILL.md:88-95`) and file-existence
+checks (`task-engine.md:44-47`). **Ours is stronger and this is the deepest
+difference between the two harnesses** — but it cuts both ways: our preference
+for checkable rules is plausibly why the context decision was never written
+down at all, since none of `PB`'s five questions can be checked. An unverifiable
+five-question tree still beats the zero questions we currently ask.
