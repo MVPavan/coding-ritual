@@ -381,3 +381,219 @@ uncovered. Adopt/reject/absorb decisions go through `harness-evaluate` and
 the ledger, citing this folder.
 
 Level 3 inventory and matrix: [`components.md`](components.md).
+
+---
+
+# Round 2 (2026-08-14) — request vs reception, after `receiving-code-review` was installed
+
+**Why the set changed.** Round 1 (above) compared seven skills and closed with
+the finding that "`receiving-code-review` has no installed counterpart in our
+harness … the feedback-arrival moment is uncovered" (see Verdict). That gap has
+since been closed: `.claude/skills/receiving-code-review/SKILL.md` was built on
+2026-08-14 from superpowers' skill. The open question is therefore narrower and
+different from round 1's: **where, if anywhere, does `requesting-code-review`
+(REQ) land now that both the reception side and the production side exist here?**
+
+**Round-2 set.** REQ (unchanged upstream, re-read in full: `SKILL.md` +
+`code-reviewer.md`) · `REC-O` = ours `receiving-code-review` · `CR-O` = ours
+`code-review` · `TE` = `.claude/skills/execution/references/task-engine.md`,
+not a skill but the engine surface that owns the review gate and fix loop, read
+here as a component owner.
+
+**Citation drift notice.** Round 1's `CR-O` inventory was taken before the
+`## Preflight — mechanical gates first` section existed
+(`code-review/SKILL.md:24-32`); its `CR-O` line numbers now run ~2-15 lines low.
+Round-2 sections below cite the current file. Round 1's text is preserved as
+written — this notice is the correction, not an edit.
+
+## Level 1 — Placement addendum
+
+| Skill | Repo | Bucket | Triggers when |
+|---|---|---|---|
+| `requesting-code-review` | superpowers | 7 (also 10) | Unchanged from round 1 (`SKILL.md:14-22`). Re-judged against our engine: its mandatory moment "after each task in subagent-driven development" (`SKILL.md:15`) is fired **by the engine, not by a skill trigger**, at `task-engine.md:118-127`. |
+| `receiving-code-review` | **ours** | 7 (proposed) | Feedback arrives **outside the execution engine's fix loop** — pasted PR comments, a human critique in chat, a spawned critic's findings — before agreeing with, implementing, or dismissing any item (`SKILL.md:3`). The out-of-loop scoping is enforced in the body, not just the description (`SKILL.md:15-21`). |
+| `code-review` | **ours** | 7 (proposed) | Four dispatch shapes: `spec`, `quality`, `re-review`, `inline` (`SKILL.md:17-22`); inline explicitly covers a coordinator reviewing a diff before claiming completion (`SKILL.md:3`). |
+| `task-engine.md` (reference, not a skill) | **ours** | n/a — engine surface | Not trigger-fired. Consulted by `execution` when a unit routes standard or deep (`task-engine.md:3-7`); from that point the engine *procedurally* packages, dispatches, routes and re-reviews without any review-request skill being invoked (`task-engine.md:118-160`). |
+
+## Level 2 — Capability profiles (round-2 additions)
+
+### `receiving-code-review` (ours — built 2026-08-14)
+
+**Achieves** — makes an author process arriving feedback by verification and
+per-item disposal instead of performative agreement, silent compliance, or
+silent dropping.
+
+**Can do**
+- Names the failure it exists to prevent and the only three legal end-states
+  per item — implemented with its own verification, answered with evidence, or
+  asked about (`SKILL.md:8-13`).
+- **Route-first clause**: explicitly cedes the in-engine case to the engine —
+  findings relayed verbatim, ADDRESSED/NOT ADDRESSED re-review, disagreement
+  deferred to the cap — and scopes itself to feedback arriving outside that
+  loop (`SKILL.md:15-21`). This is the round-1 con ("several sections have no
+  firing surface in our engine") fixed by scoping rather than by deletion.
+- Five-step reception order READ → UNDERSTAND → VERIFY → RESPOND → IMPLEMENT,
+  with the clarify-all-before-implementing-any gate kept (`SKILL.md:23-34`).
+- Performative-agreement ban with the substitute behaviours named
+  (`SKILL.md:36-42`).
+- Trust-by-source split: human vs spawned critic/bot, with the
+  conflicts-a-recorded-decision stop and the cannot-verify escape
+  (`SKILL.md:44-56`).
+- Two-way pushback: evidence-based pushback and no-apology-theatre retraction
+  (`SKILL.md:58-62`).
+- Red flags (4) and a rationalization table (4 rows) (`SKILL.md:64-79`).
+
+**Pros vs REQ** — owns the entire "act on feedback" half of REQ
+(`REQ/SKILL.md:42-46`, `:90-93`) at far higher resolution: REQ gives four
+bullets and a three-line if-reviewer-wrong list; REC-O gives an ordering gate,
+a source-trust split, an end-state contract, and armor. **Cons** — deliberately
+says nothing about obtaining a review; an agent that never asks for one never
+reaches this skill.
+
+### `code-review` (ours) — round-2 delta only
+
+Round 1's profile stands. Two changes matter for this decision:
+
+- A **preflight** section now exists (`SKILL.md:24-32`): base resolves to a
+  non-empty diff/package, and the mechanical gate from
+  `.claude/project/verification.md` is green, checked *before* judgment effort;
+  a red gate bounces the work back as failed verification rather than into a
+  review round. This closes round 1's "no preflight ref check" con and removes
+  one of the last things any reference in this family had over ours.
+- Ad-hoc spec-source discovery now exists too (`SKILL.md:91-96`): workspace
+  brief → bead → workstream plan → commit-named doc → ask the user, with
+  "never reconstruct the requirements from the diff itself".
+
+### `task-engine.md` review gate (ours) — the component owner REQ competes with
+
+**Achieves** — turns "get this reviewed" from an agent decision into an
+unskippable procedure with packaging, dual dispatch, verbatim relay, bounded
+fix rounds and a terminal adjudication.
+
+**Can do**
+- Fires review per task without any trigger: package → dispatch spec-reviewer
+  **then** code-reviewer → save both reports → both verdicts required
+  (`task-engine.md:118-127`).
+- Curated-context dispatch as a hard rule: paths not contents, never prior-task
+  history, "everything pasted stays resident in your context"
+  (`task-engine.md:82-84`), restated at `:210-219`.
+- Commit-free diff scoping: `SCOPE_BASE` + `review-package.sh full|fix`, because
+  implementers do not commit (`task-engine.md:54-69`).
+- Verbatim relay with an explicit ban on pre-judging findings
+  (`task-engine.md:129-131`).
+- Severity routing: Minor → ledger deferred; plan-mandated → human; Spec ❌ /
+  Critical / Important / confirmed ⚠️ → fix loop (`task-engine.md:132-135`).
+- Bounded fix loop (5 rounds, round-consumption rule, model escalation at 4-5)
+  (`task-engine.md:137-160`) and the **breaker** — adjudicate each open finding
+  only at the cap, park with a ruling or STOP, every adjudication a ledger
+  entry, silent discard forbidden (`task-engine.md:161-179`). The breaker
+  explicitly delegates its per-finding method to REC-O's Verify and Respond
+  steps (`task-engine.md:172-174`).
+- Whole-scope final review incl. deferred/parked triage and Codex
+  (`task-engine.md:181-198`).
+
+**Pros vs REQ** — every REQ dispatch mechanic exists here in a stronger form,
+and as procedure rather than as a trigger an agent can rationalize past.
+**Cons** — it is engine-only: work classified `small` in `CLAUDE.md` ("execute
+directly, then self-check") never enters it, so nothing procedural fires for
+ad-hoc work.
+
+## Round-2 verdict
+
+**Ownership is the whole answer.** Of REQ's 22 catalogued components
+(`components.md` § `REQ`), 18 are owned outright — 7 by `TE`, 10 by `CR-O`, 1 by
+`REC-O` — and the 4 remainders are the optional trigger list, the rationalization
+table, and two worked examples (see the round-2 matrix). Two sub-clauses inside
+otherwise-owned rows are genuinely unowned; they are the entire adoptable
+residue. Two components are not merely owned but
+**contradicted**: REQ's `BASE_SHA`/`HEAD_SHA` capture (`REQ/SKILL.md:26-30`)
+assumes commits exist, which our snapshot model deliberately denies
+(`task-engine.md:54-60`); and REQ's rationalization row "I'll just review the
+diff myself instead of dispatching a reviewer" (`REQ/SKILL.md:79`) forbids
+exactly what our light path *mandates* — "read the diff … then apply the
+code-review skill inline" (`task-engine.md:102-106`, and `CR-O/SKILL.md:21`'s
+`inline` mode). Installing REQ verbatim would import a rule that fails our own
+engine.
+
+**On the merge tension (request + reception in one skill).** The argument
+against merging is not that two moments feel awkward in one description; it is
+that in *our* harness the two moments belong to **different agents**. In
+superpowers the requester and the receiver are the same agent — its own step 3
+"Act on feedback" (`REQ/SKILL.md:42-46`) is reception text living inside the
+request skill, and superpowers still split the pair into two skills that
+cross-reference. In ours the coordinator requests and relays but "never
+implements or fixes findings itself" (`task-engine.md:11-13`), while the
+implementer receives the findings and fixes them (`task-engine.md:143-147`). A
+merged skill would fire for the coordinator and then mandate implementer
+behaviour, or vice versa. REC-O's route-first clause (`SKILL.md:15-21`) is
+precisely the seam that keeps that separation legible; a merge would erase it
+and reintroduce the ambiguous-trigger defect the council already ruled against
+in round 1 (`bucket-07.md:33-37`). So the two are one *loop* but not one
+*role* — and skills bind roles.
+
+**Engine-owned vs ad-hoc-only (the crux).** Engine-owned, therefore
+un-adoptable: the mandatory per-task trigger, curated-context dispatch, the
+subagent-dispatch step, base/head scoping, post-review severity routing, the
+push-back-if-wrong path (`TE` breaker + `REC-O`). Ad-hoc-only, i.e. the only
+territory REQ could legitimately claim: the optional trigger list (stuck /
+pre-refactor baseline / after complex bug fix, `REQ/SKILL.md:19-22`) and
+"before merge to main" for work that never entered the engine
+(`REQ/SKILL.md:17`). That residue is a *cadence* question our `CLAUDE.md`
+Working Mode already answers by decision ("small: 1-2 files … Execute directly,
+then self-check"), and REQ's red flag "never skip review because it's simple"
+(`REQ/SKILL.md:86`) directly contradicts that recorded decision. It is a
+conflict to surface, not a gap to fill.
+
+What genuinely is *not* covered anywhere in ours: REQ's **production-readiness
+check area** — migration strategy when a schema changed, backward
+compatibility, documentation completeness (`code-reviewer.md:63-67`) — and the
+**`git worktree` escape hatch** that makes the read-only rule constructive
+(`code-reviewer.md:33-35`, vs our bare prohibition at `CR-O/SKILL.md:51-52`).
+Both are single-clause additions to `CR-O`'s quality checklist, not a skill.
+
+## Recommendation
+
+**(c) — absorb into `code-review`; reject the rest. Do not merge into
+`receiving-code-review` (a), do not install as a separate skill (b), and do not
+close it as fully covered (d).**
+
+Reasoning: (b) fails because 18 of REQ's 22 components are already owned, and
+its two dispatch-mechanic components are contradicted by our snapshot model and
+light path — an installed REQ would be wrong on first use. (a) fails on the
+role seam argued above: the requester (coordinator) and the receiver
+(implementer) are different agents in this harness, and REC-O's route-first
+clause exists to keep them apart. (d) overstates: two check-area clauses have no
+home in ours today.
+
+**Take (into `.claude/skills/code-review/SKILL.md` only):**
+
+1. **Production-readiness checks** — migration strategy when a schema changed,
+   backward compatibility, documentation completeness
+   (`code-reviewer.md:63-67`) → append as one bullet to *Code quality review*
+   (after the Structure bullet, `SKILL.md:110-114`). Nothing in `CR-O` covers migration or
+   backward compatibility today.
+2. **Read-only escape hatch** — "if you need a working copy of another
+   revision, `git worktree add` into a temp dir; never move HEAD on this
+   checkout" (`code-reviewer.md:33-35`) → append as a half-sentence to the
+   read-only bullet (`SKILL.md:51-52`), turning a prohibition into a
+   prohibition-plus-alternative.
+
+**Reject (with reason):**
+
+| REQ component | Reason |
+|---|---|
+| Mandatory/optional trigger schedule (`SKILL.md:14-22`) | Engine fires review procedurally (`task-engine.md:118-127`); ad-hoc cadence is decided by `CLAUDE.md` Working Mode. |
+| "Never skip review because it's simple" (`SKILL.md:86`) | **Conflicts** with `CLAUDE.md` — `small` work self-checks by design. Surface, don't adopt. |
+| BASE_SHA/HEAD_SHA capture (`SKILL.md:26-30`) | Contradicted by the commit-free snapshot model (`task-engine.md:54-69`). |
+| `general-purpose` subagent + 4-placeholder template (`SKILL.md:32-40`) | Superseded by named spec-/code-reviewer dispatch with mode+brief+report+package (`task-engine.md:120-127`). |
+| Curated-context rule + its rationalization row (`SKILL.md:8`, `:80`) | Owned as a hard rule (`task-engine.md:82-84`, `:210-219`; `rules/core/01-delegation.md`). |
+| "Don't review the diff yourself" rationalization row (`SKILL.md:79`) | **Conflicts** with the light path's mandated inline review (`task-engine.md:102-106`) and `CR-O`'s `inline` mode. |
+| Post-review severity policy (`SKILL.md:42-46`) | Owned, stronger: routing at `task-engine.md:132-135`, non-abandonment at `:177-179`. |
+| If-reviewer-wrong protocol (`SKILL.md:90-93`) | Owned by `REC-O:58-62` and the breaker (`task-engine.md:161-175`). |
+| Reviewer persona, context sections, five check areas (minus item 1 above), calibration, praise-first, plan-deviation flagging, output format, per-issue anatomy, verdict, DO/DON'T (`code-reviewer.md:11-125`) | Owned by `CR-O` in stronger, machine-checkable form (`SKILL.md:24-32`, `:34-63`, `:73-96`, `:98-139`, `:141-161`, `:176-207`). |
+| Worked dispatch example + example reviewer output (`SKILL.md:48-73`, `code-reviewer.md:136-172`) | Context cost with no behaviour change; the dispatch example is built on the rejected SHA model. |
+
+**Ledger note (not written here — comparison is not decision).** A subsequent
+`harness-evaluate` pass should record `skill:skills/requesting-code-review` as
+**adopted-partial** with `our_id: skill:skills/code-review`, reason citing this
+folder and the two absorbed clauses.
