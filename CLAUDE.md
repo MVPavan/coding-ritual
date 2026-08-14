@@ -52,9 +52,9 @@ If the user already supplied a clear, approved plan, do not re-run brainstorming
 
 Approved implementation work runs through the **execution skill** (three scopes: task / phase / workstream; entry commands `/phase-execution N` and `/run-phases`). Full cycle: planning → dispatch → review (code-review skill) → TDD/debugging as routed → verification. Phase inventory: `docs/workstreams/<name>/roadmap.md`; work-state in Beads.
 
-## Claude and Codex
+## Independent critique
 
-Applies only when the Codex plugin is available. Codex is a **one-way, best-effort critic** — it reviews your completed output; no reverse loop. `small` tasks: skip Codex unless risk is unusual. For **any** invocation, follow [`.claude/commands/use-codex.md`](.claude/commands/use-codex.md) (authoritative — invocation path, operational rules, which command for what). Capacity errors: retry once, then proceed without it and log the skip. Detail: `.claude/project/tools.md`.
+Codex is **retired** in this repo (2026-08-14 ruling; low quota) — do not invoke it or the codex-adapter plugin. Drafts, plans, and completed diffs get their independent critique from a **spawned Opus 5 medium Claude subagent** (Agent tool, `subagent_type: "claude"`, `model: "opus"`): numbered findings BLOCKER/MAJOR/MINOR with `file:line`, then a verdict. `small` tasks skip the critic unless risk is unusual. Detail: `.claude/project/tools.md`.
 
 ## Tools & Subagents
 

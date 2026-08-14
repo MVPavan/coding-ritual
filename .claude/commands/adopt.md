@@ -48,7 +48,7 @@ Keep the core harness stable. Update only `.claude/project/*` with facts derived
    confirm `python3 .claude/scripts/skill-catalog.py --check` exits 0. Rerun
    both after any later skill or command install.
 7. Use repo-relative paths only.
-8. If running in Claude Code with Codex available and the adoption work is `standard` or `deep`, ask Codex to challenge major assumptions before finalizing.
+8. If the adoption work is `standard` or `deep`, have a spawned Opus 5 medium Claude critic challenge major assumptions before finalizing.
 9. Stop and present the adoption report for review.
 
 ## Code intelligence (code-intel plugin)

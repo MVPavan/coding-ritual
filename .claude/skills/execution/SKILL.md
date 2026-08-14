@@ -134,7 +134,7 @@ label, or a plan the user hands over directly).
 - Never proceed past a deep-phase plan without user approval (auto-approved
   only under workstream scope, per its enumerated list).
 - Never hand-edit generated tracking files — update bd, then render.
-- Codex steps are expected when available, best-effort under the capacity
-  policy in `AGENTS.md`.
+- Independent-critique steps run on a spawned Opus-class Claude critic
+  subagent (see CLAUDE.md §Independent critique) — never skipped silently.
 - If a stage blocks or fails verification, stop and report. Do not edit
   submodule internals.

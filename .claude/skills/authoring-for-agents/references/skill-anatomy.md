@@ -78,7 +78,7 @@ House examples: `idea-refine` (red flags), `test-driven-development`,
 
 Pick model-invocation only when the agent must reach the document unprompted
 or another skill routes to it. House examples of user-invoked skills:
-`grill-me`, `i-have-adhd`, `html-artifact`.
+`grill-me`, `i-have-adhd`, `teach-session`.
 
 When human-only surfaces multiply past what the human can remember, a
 **router** — one surface that names the others and when to reach for each —

@@ -52,7 +52,7 @@ apply.
 - Deep-phase plan approval (phase scope step 2) — approve immediately after
   document review.
 - Per-phase commit (step 4 above).
-- Codex critique/review — run when available, capacity policy per `AGENTS.md`.
+- Independent critique — the spawned Opus-class Claude critic pass.
 
 Nothing else is auto-approved. The task engine's breaker still stops on
 load-bearing findings; the discipline gate still stops on unclosed stages.
