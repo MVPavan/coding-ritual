@@ -53,6 +53,12 @@ internals. Before writing tests, write down the seams under test:
 Bounding the seams up front is what points testing effort at critical paths
 instead of every edge case.
 
+For a bug-fix reproduction test, a **correct** seam exercises the real bug
+pattern as it occurred at the call site — a too-shallow seam (a single-caller
+unit test when the bug needs the chain that triggered it) gives false
+confidence. If no correct seam exists, that absence is itself a finding:
+document and report it instead of attaching the test at a wrong seam.
+
 ## The loop — test-first path
 
 1. Pick **one behavior**, not a whole feature slice.
