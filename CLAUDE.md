@@ -23,7 +23,7 @@ Core harness is stable; repo-specific facts live in `.claude/project/`.
 
 ## Coding guideline
 
-1. Follow `.claude/rules/core/03-ak-guidelines.md` — coding rules that reduce common LLM mistakes.
+1. Follow `.claude/rules/core/03-coding-discipline.md` — coding rules that reduce common LLM mistakes.
 2. Use `html-artifact` only when the user asks for HTML, or when the deliverable is purely for human reading and richer structure clearly helps. Do not use it for agent prompts, README files, harness docs, or other Markdown-native repo files.
 
 ## Working Mode
@@ -58,7 +58,7 @@ Applies only when the Codex plugin is available. Codex is a **one-way, best-effo
 
 ## Tools & Subagents
 
-Unsure about a library/SDK/API/CLI (methods, signatures, config, versions)? Use official/reference docs via the **`docs-researcher`** subagent where available; never invent APIs. Use brainstorming for open-ended project research, tradeoffs, and requirements decisions. Tool routing details live in `.claude/project/tools.md`.
+Unsure about a library/SDK/API/CLI (methods, signatures, config, versions)? Use official/reference docs via the **`docs-researcher`** subagent where available; never invent APIs. Use the **research** skill for open-ended investigation — comparing providers, evaluating tooling or architecture options, gathering and weighing sources into `docs/research/`. Use brainstorming to settle scope, tradeoffs, and requirements into a spec. Tool routing details live in `.claude/project/tools.md`.
 
 ## Verification
 
@@ -82,6 +82,7 @@ Record verified, likely-to-recur patterns in `.claude/project/learnings.md` (for
 
 - Stage explicit files only. No `git add .`, `git add -A`, `--no-verify`, force-push, `reset --hard`, `clean`, `restore`, or `checkout` rewrites without explicit approval.
 - Small reversible commits. Do not amend unless the user asks.
+- Confirm the target base branch before merging. After merging, re-run verification on the merged result — red means stop with everything intact. Destroying unmerged work requires the user to explicitly confirm after seeing exactly what would be lost.
 - Do not overwrite unrelated user changes.
 - Do not encode machine-local absolute paths in plans, prompts, docs, or rules.
 - Use `scratchpad/` for throwaway work — gitignored, never commit it.

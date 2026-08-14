@@ -94,4 +94,7 @@ Before reporting completion:
 2. Run relevant quality gates.
 3. If Beads issues changed, refresh `.beads/issues.jsonl`.
 4. Run `git status`.
-5. Report the handoff and avoid commits/pushes unless explicitly authorized.
+5. If work continues in a later session, record the method with the state: one line in the open
+   issue's notes (or the handoff report) naming which skills/approach the next session should
+   resume with — e.g. `resume with: test-driven-development, mid red-green on <test>`.
+6. Report the handoff and avoid commits/pushes unless explicitly authorized.

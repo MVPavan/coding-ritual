@@ -18,6 +18,11 @@ test/lint/build commands to run for the repo as a whole, so the health gate is
 6. **Skill catalog** — after changing anything under `.claude/skills/` or
    `.claude/commands/`, `python3 .claude/scripts/skill-catalog.py --check`
    exits 0 (generated catalog current, every slash pointer resolves).
+7. **Dangerous-commands hook** — after changing
+   `.claude/hooks/block-dangerous-commands.sh`, prove it still blocks, not
+   just parses: pipe a known-dangerous payload through it, e.g.
+   `echo '{"tool_input":{"command":"git push --force"}}' | bash .claude/hooks/block-dangerous-commands.sh`,
+   and confirm exit code 2 with a BLOCKED message on stderr.
 
 ## Plugin test harnesses (when you touch a plugin)
 

@@ -57,7 +57,7 @@ Codex-native assets live in `.codex/`: skills, custom agents, hooks, rules, conf
 
 ## Tools & Subagents
 
-Unsure about a library/SDK/API/CLI (methods, signatures, config, versions)? Use official/reference docs via the `docs-researcher` agent/skill path where available; never invent APIs. Use brainstorming for open-ended project research, tradeoffs, and requirements decisions. Tool routing details live in `.codex/project/tools.md`.
+Unsure about a library/SDK/API/CLI (methods, signatures, config, versions)? Use official/reference docs via the `docs-researcher` agent/skill path where available; never invent APIs. Use the `research` skill for open-ended investigation — comparing providers, evaluating tooling or architecture options, gathering and weighing sources into `docs/research/`. Use brainstorming to settle scope, tradeoffs, and requirements into a spec. Tool routing details live in `.codex/project/tools.md`.
 
 ## Verification
 

@@ -22,13 +22,16 @@ on capacity error, then proceed and log the skip. Skip Codex for `small` tasks.
 ## Subagent / MCP routing
 
 - **`docs-researcher`** subagent — library/SDK/API/CLI facts; never invent APIs.
+- **`research`** skill — open-ended investigation: comparing providers, evaluating
+  tooling or architecture options; produces a cited document under `docs/research/`.
 - **`context7`** MCP (connected this session) — live docs for named libraries/SDKs;
   prefer over web search for library docs.
 - **implementer / code-reviewer / spec-reviewer** — core harness agents for
   bounded build → review work (reviewers follow the `code-review` skill;
   planning lives in the `planning` skill, dispatch in `execution`).
 - **claude-max / fable-max / fable-xhigh** — heaviest, most open-ended tasks.
-- Use **brainstorming** for open-ended harness-design tradeoffs and requirements.
+- Use **brainstorming** to settle harness-design scope, tradeoffs, and
+  requirements into a spec (investigation itself routes to the `research` skill).
 
 > Note: `.claude/rules/python/` ships with the harness, but this repo has no
 > Python application/package — only small tooling scripts. Treat those rules as

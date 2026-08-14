@@ -19,4 +19,6 @@ Each round the user answers reshapes the tree — settled decisions push the fro
 
 Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it — don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report — ask the rest of the frontier now. The _decisions_ are the user's — put each to them and wait.
 
+When the knowledge sits with someone who is **not** in the conversation — the answers belong to an absent person — flip modes: stop interrogating the user about the subject and compose a **questionnaire** to send instead. Grill the _send_, not the subject. Interview the user in two exchanges — who is it going to (role, expertise, what they know that the user doesn't), and what do you need back — then write the document's questions at that gap, most-important-first, because async means you may only get one pass.
+
 The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
