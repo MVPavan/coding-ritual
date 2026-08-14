@@ -574,6 +574,16 @@
     },
     {
       "repo": "mattpocock_skills",
+      "logical_id": "skill:skills/productivity/teach",
+      "status": "adopted",
+      "reason": "Adopted VERBATIM as a slash-only work pattern \u2014 user ruling 2026-08-14, overriding the analyst reject verdict (skill-comparisons/interaction-utilities/). Ships its own disable-model-invocation: true, so it is user-run only. Installed at .claude/skills/teach/ (5 md files; upstream agents/openai.yaml packaging not copied).",
+      "date": "2026-08-14",
+      "our_id": "skill:skills/teach",
+      "source_sha": "84fdeff",
+      "source_content_hash": "e05fbfa02b5b4e8b0aac47d8ab9db0301cee3f17"
+    },
+    {
+      "repo": "mattpocock_skills",
       "logical_id": "skill:skills/productivity/writing-for-agents",
       "status": "adopted",
       "reason": "Adopted as the writing-theory core of authoring-for-agents (references/writing-principles.md): context pointers, the two loads, information hierarchy/progressive disclosure, completion criteria, leading words, negation, pruning; SKILL-MECHANICS invocation choice and router skills folded into references/skill-anatomy.md, adapted to this harness's disable-model-invocation frontmatter. Rejected: nothing structural \u2014 repackaged from pure theory into a process with verification rungs.",
