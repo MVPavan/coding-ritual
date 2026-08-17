@@ -15,8 +15,8 @@ keep a running md doc with a checklist of things the human should understand. ma
 
 make sure learner understands why (and drill down into more whys), make sure learner understands what and how as well. understanding the problem well is imperative.
 
-to get a sense of where learner's at, proactively have learner restate learner understanding first. then help learner fill in the gaps from there—learner might ask you questions or ask to eli5, eli14, or elii (explain like learner's an intern).
+to get a sense of where learner's at, proactively have the learner restate their understanding first. then help learner fill in the gaps from there—learner might ask you questions or ask to eli5, eli14, or elii (explain like learner's an intern).
 
-quiz learner with open-ended or multiple choice questions with AskUserQuestion (be sure to change up the order of the correct answer, and to not reveal the answer until after the questions are submitted). show learner code or have learner use the debugger if necessary!
+quiz learner with open-ended or multiple choice questions asked inline in chat — never a popup question tool (be sure to change up the order of the correct answer, and to not reveal the answer until the learner has answered). show learner code or have learner use the debugger if necessary!
 
-/goal the session should not end until you've verified that the human has demonstrated that learner understood everything on your list.
+Goal: the session should not end until you've verified that the human has demonstrated that learner understood everything on your list.

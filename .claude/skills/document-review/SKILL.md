@@ -17,6 +17,6 @@ Review the document itself before using it as a source of truth.
    - scope bloat
    - missing tests or verification
    - security, data, or performance risks when relevant
-4. Fix obvious wording or structure issues inline when the correction is unambiguous.
-5. Surface decision-level issues instead of silently rewriting intent.
+4. Report findings by default — a review does not edit the document. Apply unambiguous wording or structure fixes inline only when the user asked for the review to be applied (or the invoking workflow says so).
+5. Surface decision-level issues instead of rewriting intent, even when applying.
 6. For standard/deep documents, get an independent critique from a spawned critic subagent — once per document unless it is unusually risky.

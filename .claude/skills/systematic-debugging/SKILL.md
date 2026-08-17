@@ -119,7 +119,7 @@ task report file when dispatched, otherwise your reply), so the count is checkab
 a failed fix, return to Phase 3 and re-rank with the new evidence.
 
 - **Ranked list exhausted, or the bug crosses system boundaries** → spawn a fresh-context
-  critic subagent on a strong model (e.g. the claude-max agent type). Pass artifacts,
+  critic subagent (model per CLAUDE.md §Independent critique). Pass artifacts,
   not conclusions: the loop command and output, the minimised repro, the ranked hypotheses
   with predictions and probe results. Ask it to falsify your ranking and propose hypotheses
   you haven't.
@@ -136,7 +136,7 @@ Done requires every box:
 - [ ] Verification commands from `.claude/project/verification.md` run fresh and green.
 - [ ] Debug tag grepped to zero hits; deliberate keeps (boundary error reporting with context) named.
 - [ ] Throwaway harnesses deleted (`scratchpad/` contents never commit).
-- [ ] The confirmed hypothesis stated in the commit/PR message.
+- [ ] The confirmed hypothesis stated durably: in the issue/report always, and in the commit/PR message when the user or the active workstream granted commit authority (CLAUDE.md §Git Safety) — otherwise report the proposed commit.
 
 Then ask what would have prevented this bug class: a missing seam, tangled callers, or
 hidden coupling → suggest `/improve-codebase-architecture` to the user — after the fix,

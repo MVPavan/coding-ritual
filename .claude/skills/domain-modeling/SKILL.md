@@ -9,33 +9,7 @@ Actively build and sharpen the project's domain model as you design. This is the
 
 ## File structure
 
-Most repos have a single context:
-
-```
-/
-├── CONTEXT.md
-├── docs/
-│   └── adr/
-│       ├── 0001-event-sourced-orders.md
-│       └── 0002-postgres-for-write-model.md
-└── src/
-```
-
-If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The map points to where each one lives:
-
-```
-/
-├── CONTEXT-MAP.md
-├── docs/
-│   └── adr/                          ← system-wide decisions
-├── src/
-│   ├── ordering/
-│   │   ├── CONTEXT.md
-│   │   └── docs/adr/                 ← context-specific decisions
-│   └── billing/
-│       ├── CONTEXT.md
-│       └── docs/adr/
-```
+Most repos have a single context: `CONTEXT.md` at the repo root, decisions in `docs/adr/`. If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts — the map points to where each one lives (e.g. `src/ordering/CONTEXT.md`), system-wide decisions stay in the root `docs/adr/`, and context-specific ones go in `<context>/docs/adr/`. Layout, map format, and how to infer which applies: [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) § Single vs multi-context repos.
 
 Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
 
@@ -65,10 +39,4 @@ When a term is resolved, update `CONTEXT.md` right there. Don't batch these up �
 
 ### Offer ADRs sparingly
 
-Only offer to create an ADR when all three are true:
-
-1. **Hard to reverse** — the cost of changing your mind later is meaningful
-2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
-3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
-
-If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
+Only offer an ADR when the decision is hard to reverse, surprising without context, AND the result of a real trade-off — all three, or skip it. The full gate, what qualifies, and the format are in [ADR-FORMAT.md](./ADR-FORMAT.md).

@@ -42,15 +42,22 @@ the item. When a finding is correct, the acknowledgment is the fix:
 
 ## Trust by source
 
-- **The user, or a human reviewer**: implement after understanding; ask when
-  scope is unclear. Understanding still precedes implementation, and the
-  agreement ban still holds.
-- **A spawned critic, reviewer agent, or external bot**: verify before
-  complying — is it correct for this codebase; would the fix break existing
-  behaviour; why is the current code the way it is (answer before changing
-  it); does it conflict with a recorded decision (ADR, approved plan)? A
-  conflict with a recorded decision stops the item — surface it to the user
-  rather than silently re-litigating the decision.
+Step 3 (Verify) applies to every source: a factual claim about the code
+("this returns null", "this test covers it") is checked against the code no
+matter who made it. What differs by source is authority over scope and
+intent:
+
+- **The user, or a human reviewer**: they decide what they want — do not
+  second-guess scope or intent; ask when it is unclear. Understanding still
+  precedes implementation, the factual check still runs (a wrong `file:line`
+  gets a correction, not silent compliance), and the agreement ban still
+  holds.
+- **A spawned critic, reviewer agent, or external bot**: no such authority —
+  verify before complying on every axis: is it correct for this codebase;
+  would the fix break existing behaviour; why is the current code the way it
+  is (answer before changing it); does it conflict with a recorded decision
+  (ADR, approved plan)? A conflict with a recorded decision stops the item —
+  surface it to the user rather than silently re-litigating the decision.
 - **Cannot verify an item** → say so and ask for direction. Complying
   unverified and dropping it silently are both failures.
 

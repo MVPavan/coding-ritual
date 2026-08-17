@@ -42,6 +42,6 @@ Plain object in JS, single render function that reads state and writes the DOM, 
 
 ## Acceptable deviations
 
-- Alpine.js or Vue via CDN for complex editors (mention the cost in the response).
+- A small framework (Alpine.js, Vue) for complex editors only if inlined into the file — never a CDN link (mention the size cost in the response).
 - Keyboard shortcuts in addition to visible buttons. Never keyboard-only.
 - "Last export" details block so the user can review what they copied without re-clicking.

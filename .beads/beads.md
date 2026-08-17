@@ -83,7 +83,8 @@ as generated Beads mirrors, not hand-authored source files:
 - `docs/workstreams/backlog.md`
 - `docs/workstreams/*/tracking/*.md`
 
-Update Beads first, then regenerate those mirrors with the project renderer. Hand-authored files in
+Update Beads first, then regenerate those mirrors with the project renderer:
+`BD_RENDER=1 bash .claude/skills/beads/scripts/bd-render-tracking.sh [<name>]`. Hand-authored files in
 the same tree, such as `README.md`, `roadmap.md`, and `plans/*.md`, remain editable.
 
 ## Session Close

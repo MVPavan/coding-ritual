@@ -9,7 +9,7 @@ Turns an unsettled ask into an approved spec that this repo's planning chain con
 
 ## Ground
 
-Read `AGENTS.md`, `.claude/project/brief.md`, and `.claude/project/docs-index.md`.
+Read `CLAUDE.md`, `.claude/project/brief.md`, and `.claude/project/docs-index.md`.
 Then scan enough repo context to answer: does something similar already exist, what constraints are already real, which docs are authoritative.
 
 Done when you can name the closest existing thing, or say there is none.
@@ -94,8 +94,9 @@ Read the file again with fresh eyes:
 3. **Scope** — one implementation plan, or does it still need decomposing?
 4. **Ambiguity** — could a requirement be read two ways? Pick one and say which.
 
-Fix inline; do not re-review. For standard or deep work, have a second model
-critique the document before it reaches the user.
+Fix inline; do not re-review. For standard or deep work, have a spawned critic
+subagent (model per CLAUDE.md §Independent critique) critique the document
+before it reaches the user.
 
 Then ask the user to read the file. Make any changes they ask for and show them
 again. Once they accept it, set `Status: approved` and record who approved it —

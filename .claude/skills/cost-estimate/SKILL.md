@@ -9,6 +9,7 @@ description: >
   hours", "what's this codebase worth", "calculate development cost", "how long would this take
   a team to build", or "what would I pay a developer for this". Even if the user just asks
   "how much is this worth" in the context of a codebase, use this skill.
+disable-model-invocation: true
 ---
 
 # Cost Estimate Skill

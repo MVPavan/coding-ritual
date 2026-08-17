@@ -23,7 +23,7 @@ Built-in tensions: Contrarian↔Expansionist (downside/upside), First Principles
 
 ## Process
 
-1. **Frame.** Spend ≤30s finding the 2–3 workspace files that ground the question (CLAUDE.md, memory/, files the user referenced). Write one neutral framed question: the decision, key context and numbers, constraints, stakes. No opinion, no steering. If too vague, ask exactly one clarifying question, then proceed.
+1. **Frame.** Spend ≤30s finding the 2–3 workspace files that ground the question (CLAUDE.md, `.claude/project/learnings.md`, files the user referenced). Write one neutral framed question: the decision, key context and numbers, constraints, stakes. No opinion, no steering. If too vague, ask exactly one clarifying question, then proceed.
 2. **Convene — 5 sub-agents in parallel.** Each gets its lens description, the framed question, and: "Respond only from your lens. Be direct and specific; do not hedge or balance — other advisors cover the other angles. 150–300 words, no preamble."
 3. **Peer review — 5 fresh sub-agents in parallel.** Anonymize the responses as A–E with randomized mapping. Each reviewer sees all five and answers in ≤200 words: (1) strongest response and why, (2) biggest blind spot and what it misses, (3) what ALL five missed.
 4. **Chairman synthesis.** One agent gets the framed question, de-anonymized responses, and all reviews. It may side with a lone dissenter when that reasoning is strongest.
@@ -42,5 +42,5 @@ Built-in tensions: Contrarian↔Expansionist (downside/upside), First Principles
 
 - Spawn each round in parallel — sequential spawning lets responses bleed.
 - Always anonymize peer review — attribution causes lens-deference instead of merit judgment.
-- Save a transcript to docs/research/perspective-council/{topic}.md unless the user asks not to.
+- Save a transcript to `scratchpad/perspective-council/{topic}.md` only when the user asks for one.
 

@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+description: Use when the user wants to find deepening opportunities across a whole codebase or improve its module architecture — scans the codebase, presents the opportunities as a visual HTML report, then grills through whichever one you pick.
 disable-model-invocation: true
 ---
 
@@ -36,9 +36,9 @@ Apply the **deletion test** to anything you suspect is shallow: would deleting i
 
 ### 2. Present candidates as an HTML report
 
-Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.
+Write a self-contained HTML file to `scratchpad/architecture-review-<timestamp>.html` (gitignored — nothing lands in the repo) so each run gets a fresh file. Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.
 
-The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams where a graph/flow/sequence reliably communicates the structure. Mix Mermaid with hand-crafted CSS/SVG visuals — use Mermaid when relationships are graph-shaped (call graphs, dependencies, sequences), and hand-built divs/SVG when you want something more editorial (mass diagrams, cross-sections, collapse animations). Each candidate gets a **before/after visualisation**. Be visual.
+The report is fully self-contained — inline CSS in a `<style>` block and hand-built **inline SVG** for diagrams; no CDN links, so it opens offline from `file://` (same rule as the html-artifact skill). Draw graph-shaped relationships (call graphs, dependencies, sequences) as inline SVG boxes-and-arrows, and use hand-built divs/SVG for the more editorial visuals (mass diagrams, cross-sections, collapse animations). Each candidate gets a **before/after visualisation**. Be visual.
 
 For each candidate, render a card with:
 

@@ -22,16 +22,17 @@ a routing decision recorded in the ledger, and — if adopted — the sync-back 
   duplicate wording with no behavioural gain, or anything adding always-on context
   cost without clear value. Rejection is a successful outcome.
 - **Merge into an existing plugin**: same job-to-be-done and same dependency
-  boundary as `code-intel` or `codex-adapter`.
+  boundary as an existing plugin (e.g. `code-intel`; `codex-adapter` is retired).
 - **New standalone plugin**: a distinct capability with an external tool / MCP /
   binary / credential dependency, or a domain-specific workflow (the
-  `codex-adapter` / `code-intel` archetype).
+  `code-intel` archetype; the retired `codex-adapter` was another).
 - **Fold into the mvp-plugin template**: only if ALL hold — useful in ~every repo,
   low/zero external dependency, small context cost, and it can live on **both** the
   `.claude` and `.codex` sides (or is declared claude-only in the sync manifest).
 
 Produce a short comparison: what theirs does, what ours does (if any), dependencies,
-context cost, overlap, and the recommended route with a one-line rationale. A
+context cost, overlap, and the recommended route with a one-line rationale. For a
+multi-skill or deeper side-by-side, use the `harness-skill-compare` skill. A
 **template** route has the widest blast radius — get a second opinion from a
 spawned critic subagent before writing.
 
@@ -45,7 +46,10 @@ spawned critic subagent before writing.
   2. `bash mvp-harness/plugins/mvp-plugin/scripts/check-sync.sh` — reconcile drift.
   3. `bash mvp-harness/plugins/mvp-plugin/scripts/build-template.sh` — must end with
      "no project/machine-specific strings".
-  4. Commit mvp-harness; bump the submodule pointer in coding-ritual.
+  4. Publish: commit mvp-harness and bump the submodule pointer in
+     coding-ritual **only** when the user or the active workstream granted
+     commit authority (CLAUDE.md §Git Safety); otherwise report the proposed
+     commit + pointer bump and record it in the ledger reason.
   5. Ledger: `... --status adopted --our-id <our_logical_id> --source-sha <ref commit> --reason "..."`.
 - **Adopt → new / existing plugin** → implement under `mvp-harness/plugins/`, then
   ledger as adopted with the plugin as `--our-id`.

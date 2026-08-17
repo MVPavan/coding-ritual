@@ -1703,7 +1703,7 @@ def validate_skills(repo_root=REPO_ROOT):
     repo_root = Path(repo_root)
     paths = [
         repo_root / ".codex/skills/agent-matrix/SKILL.md",
-        repo_root / ".claude/skills/agent-matrix/SKILL.md",
+        repo_root / ".claude/skills/in-progress/agent-matrix/SKILL.md",
     ]
     for path in paths:
         frontmatter = _skill_frontmatter(path)

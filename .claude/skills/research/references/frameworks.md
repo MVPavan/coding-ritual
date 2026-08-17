@@ -110,10 +110,4 @@ Start with the observed problem. Ask why until reaching a changeable cause. If m
 
 ## Source Confidence Ladder
 
-Use in every final report.
-
-Confidence levels:
-- High: primary or authoritative sources agree, recent enough, red-team did not weaken it.
-- Medium: evidence is credible but incomplete or partly indirect.
-- Low: single source, anecdotal, stale, or conflicting.
-- Speculative: inference from patterns or analogies; state assumptions.
+Use in every final report — the four levels (High / Medium / Low / Speculative) are defined in `synthesis-engine.md` § Confidence Calibration.

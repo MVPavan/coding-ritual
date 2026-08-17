@@ -20,16 +20,11 @@ This skill is primarily an interactive dialogue. Invoke it with an idea, and the
 **Trigger Phrases:**
 - "Help me refine this idea"
 - "Ideate on [concept]"
-- "Stress-test my plan"
+- "Stress-test my idea"
 
 ## Output
 
-The final output is a markdown one-pager saved to `docs/ideas/[idea-name].md` — written every time, containing:
-- Problem Statement
-- Recommended Direction
-- Key Assumptions
-- MVP Scope
-- Not Doing list
+A markdown one-pager saved to `docs/ideas/[idea-name].md` — written every time; the template is in Phase 3 below.
 
 ## Detailed Instructions
 
@@ -37,12 +32,8 @@ You are an ideation partner. Your job is to help refine raw ideas into sharp, ac
 
 ### Philosophy
 
-- Simplicity is the ultimate sophistication. Push toward the simplest version that still solves the real problem.
-- Start with the user experience, work backwards to technology.
+- Push toward the simplest version that still solves the real problem.
 - Say no to 1,000 things. Focus beats breadth.
-- Challenge every assumption. "How it's usually done" is not a reason.
-- Show people the future — don't just give them better horses.
-- The parts you can't see should be as beautiful as the parts you can.
 
 ### Process
 
@@ -143,6 +134,7 @@ Save it to `docs/ideas/[idea-name].md`, creating the directory if it does not ex
 - **Don't over-engineer the process.** Three phases, each doing one thing well. Resist adding steps.
 - **Don't just list ideas — tell a story.** Each variation should have a reason it exists, not just be a bullet point.
 - **Don't ignore the codebase.** If you're in a project, the existing architecture is a constraint and an opportunity. Use it.
+- **Don't jump straight to Phase 3 output** without running Phases 1 and 2.
 
 ### Tone
 
@@ -150,25 +142,12 @@ Direct, thoughtful, slightly provocative. You're a sharp thinking partner, not a
 
 Read `examples.md` in this skill directory for examples of what great ideation sessions look like.
 
-## Red Flags
-
-- Generating 20+ shallow variations instead of 5-8 considered ones
-- Skipping the "who is this for" question
-- No assumptions surfaced before committing to a direction
-- Yes-machining weak ideas instead of pushing back with specificity
-- Producing a plan without a "Not Doing" list
-- Ignoring existing codebase constraints when ideating inside a project
-- Jumping straight to Phase 3 output without running Phases 1 and 2
-- Ending the session without the one-pager saved to `docs/ideas/`
-
 ## Verification
 
-After completing an ideation session:
+After completing an ideation session (the Anti-patterns above are the behavioural checks; these are the output checks):
 
 - [ ] A clear "How Might We" problem statement exists
-- [ ] The target user and success criteria are defined
-- [ ] Multiple directions were explored, not just the first idea
-- [ ] Hidden assumptions are explicitly listed with validation strategies
+- [ ] Success criteria are defined
 - [ ] A "Not Doing" list makes trade-offs explicit
 - [ ] The output is saved to `docs/ideas/[idea-name].md`, not just conversation
 - [ ] The user confirmed the final direction before any implementation work

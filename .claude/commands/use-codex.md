@@ -1,5 +1,5 @@
 ---
-description: Canonical invocation rules for calling OpenAI Codex (via the codex-adapter plugin) from this repo. Subagents and the main thread must follow this for review, diagnosis, implementation, research, and critique.
+description: RETIRED (2026-08-14) — Codex is not invoked in this repo; kept only as reference for possible reactivation. Formerly the canonical invocation rules for calling OpenAI Codex via the codex-adapter plugin. Do not follow.
 ---
 
 # How to use Codex
@@ -8,7 +8,7 @@ description: Canonical invocation rules for calling OpenAI Codex (via the codex-
 > on a spawned critic subagent (CLAUDE.md §Independent critique). This file
 > is kept solely as reference for possible reactivation; do not follow it.
 
-Authoritative for this repo. On disagreement, this command wins. Codex runs **GPT-5.x**
+Historical text follows (superseded by the banner above). Codex runs **GPT-5.x**
 (a different model family from Claude) and is a one-way, best-effort critic — no reverse loop.
 
 Codex is reached through the installed **codex-adapter** plugin. Each call is an independent,
@@ -86,4 +86,4 @@ Explicit flags override a role's defaults (e.g. `--role implement -s read-only`,
 ## Pointers
 
 - Deep docs ship inside the installed plugin and are directly readable: `${CLAUDE_PLUGIN_ROOT}/` (`README.md`, `docs/writing-roles.md`, `roles/`, `skills/codex-runner/`) from any `/codex*` command or the `codex-runner` skill, or under `~/.claude/plugins/cache/codex-adapter/codex-adapter/<version>/` (latest dir) for a direct read.
-- Repo pointers: [`AGENTS.md`](../../AGENTS.md) § Codex And Claude · [`CLAUDE.md`](../../CLAUDE.md) § Claude and Codex.
+- Repo pointers: [`AGENTS.md`](../../AGENTS.md) § Codex And Claude · [`CLAUDE.md`](../../CLAUDE.md) § Independent critique.

@@ -23,10 +23,8 @@ description matching. Everything else routes by skill descriptions.
 
 | Situation | Route |
 |---|---|
-| Grill or interview ask | `grilling` inline; a whole design doc or spec to walk branch-by-branch → recommend `/grill-with-docs` (working directory) or `/grill-me` |
-| Grill session with a working directory | recommend `/grill-with-docs`; no working directory → `/grill-me` |
+| Grill or interview ask | `grilling` inline; a whole design doc or spec to walk branch-by-branch → recommend `/grill-with-docs` when there is a working directory, `/grill-me` when there is not |
 | Work too big for one session, destination still foggy | recommend `/wayfinder` |
-| Correct code to make faster or cheaper | recommend `/performance-optimization`; was-fast-now-slow with a culprit change to find → `systematic-debugging` |
 | Whole-codebase scan for architecture improvements | recommend `/improve-codebase-architecture`; designing one module's interface → `codebase-design` |
 | Beads issues awaiting intake evaluation | recommend `/triage`; day-to-day bd work → `beads` |
 
@@ -40,26 +38,25 @@ the model never sees those descriptions.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `brainstorming`, `code-review`, `codebase-design`, `cost-estimate`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `idea-refine`, `model-council`, `perspective-council`, `planning`, `prototype`, `receiving-code-review`, `research`, `resolving-merge-conflicts`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`, `verification-before-completion`
+`authoring-for-agents`, `beads`, `brainstorming`, `code-review`, `codebase-design`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `idea-refine`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `receiving-code-review`, `research`, `resolving-merge-conflicts`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`, `verification-before-completion`
 
 ## Slash-only workflows and commands
 
 | Surface | Use |
 |---|---|
 | `/adopt` | Adopt this reusable Claude setup to the current repository by refreshing only the project overlay files. |
-| `/agent-matrix` | Select, validate, and invoke Claude Code or Codex subagents from the repository Agent Matrix catalog. |
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
+| `/cost-estimate` | Estimate the development cost of a codebase based on lines of code, complexity, market rates, and team composition. |
 | `/grill-me` | Relentless design-review interviewer that systematically interrogates every aspect of a plan, architecture, or design document. |
 | `/grill-with-docs` | A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go. |
 | `/harness-scan` | Deep scan of one reference harness — what changed upstream AND what it ships that our harness doesn't — then route candidates via the harness-evaluate skill. |
 | `/harness-status` | Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. |
-| `/i-have-adhd` | Shape output for a reader with ADHD. |
-| `/improve-codebase-architecture` | Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick. |
-| `/performance-optimization` | Use when the ask is optimization-shaped — "make this faster", "optimize", "X is slow", "why is this slow", "reduce latency / memory / cost", "profile this", "where is the time going", or a performance budget, SLO, or resource target to meet — for code that is correct but not fast or cheap enough. |
+| `/i-have-adhd` | Shape every response for a reader with ADHD — lead with the next action, number the steps, restate state each turn; five overrides for when a message did not land. |
+| `/improve-codebase-architecture` | Use when the user wants to find deepening opportunities across a whole codebase or improve its module architecture — scans the codebase, presents the opportunities as a visual HTML report, then grills through whichever one you pick. |
 | `/phase-execution` | Execute one phase of a workstream roadmap. |
 | `/run-phases` | Run every remaining phase of a workstream unattended. |
 | `/teach` | Teach the user a new skill or concept, within this workspace. |
 | `/teach-session` | Effective teacher who makes the learner deeply understand the work produced in specific session. |
 | `/triage` | Evaluate unevaluated beads issues and move each to an intake state — ready-for-agent, human, needs-info, backlog, or a wontfix close. |
-| `/use-codex` | Canonical invocation rules for calling OpenAI Codex (via the codex-adapter plugin) from this repo. |
+| `/use-codex` | RETIRED (2026-08-14) — Codex is not invoked in this repo; kept only as reference for possible reactivation. |
 | `/wayfinder` | Plan a huge chunk of work — more than one agent session can hold — as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear. |

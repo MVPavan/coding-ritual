@@ -2,13 +2,10 @@
 name: design-evolve
 description: >
   Evolve versioned design documents by integrating new discussion files into core specs
-  to produce a self-contained next version. Use this skill whenever the user wants to
-  create a new version of design documents by merging discussions, decisions, or new specs
-  into the existing core design docs. Triggers on phrases like "integrate discussions",
-  "new design version", "merge decisions into core", "evolve the docs", "create v2.6 from v2.5",
-  or any request to update design specifications based on recent discussions, decision logs,
-  or scratchpads. Also use when the user says "upgrade the design", "consolidate discussions
-  into core", or references a folder structure with core/ and discussions/ subfolders.
+  to produce a self-contained next version. Use when the user wants to integrate
+  discussions, decisions, or scratchpads into the core design docs, asks for a new design
+  version ("create v2.6 from v2.5"), or references a folder structure with core/ and
+  discussions/ subfolders.
 ---
 
 # Design Evolve — Versioned Design Document Integration
@@ -21,15 +18,11 @@ This is precision work. The documents you are evolving may be the architectural 
 
 ## Principles
 
-**Zero hallucination.** Every sentence in the output must trace to either the existing core or a discussion file. Never invent information, fill gaps with assumptions, or "improve" the design beyond what the sources say. If something is unclear, ask the user.
+**Zero hallucination.** Every sentence in the output must trace to either the existing core or a discussion file. The concrete rules (read before write, no gap-filling, preserve precision, flag contradictions, don't improve the design) live in the Anti-Hallucination Protocol below.
 
 **Self-contained output.** The new version's documents are a complete unit. No "see v2.5 for details" or "as discussed in the old discussions." Every piece of information that matters is present in the new version. The only place where referencing prior versions is appropriate is in a version history table (changelog).
 
-**Incremental context.** Never load all files at once. Process one concept at a time. Use sub-agents to read and analyze files so the main context stays clean and focused. This is not optional — design docs can be 20-50KB each, and loading them all degrades accuracy.
-
-**Source fidelity.** Preserve original intent, terminology, and technical precision. If the source says "5-minute TTL," write "5-minute TTL" — not "short TTL." If it says "Qdrant," write "Qdrant" — not "vector database." Maintain exact technical terms and values.
-
-**User checkpoints.** When you encounter ambiguity, vagueness, contradictions between sources, or excessive repetition, stop and ask the user before proceeding. Do not guess. The cost of a 30-second question is far less than the cost of a wrong integration.
+**Incremental context.** Never load all files at once. Process one concept at a time. Use sub-agents to read and analyze files so the main context stays clean and focused. This is the default, not optional — design docs can be 20-50KB each, and loading them all degrades accuracy. **Single exception (the small-file threshold):** a concept involving only 1-2 small files (<5KB each) may be read directly in the main context. User-facing questions and checklist presentations always happen in the main context.
 
 ---
 
@@ -192,7 +185,7 @@ For each checklist item:
 - **Version headers:** Update version number, date, and status in every file header.
 - **Version notes that describe deltas:** If the source says "v2.5 adds X" or "New in v2.5: Y" — rewrite so X and Y are described as current facts, not as additions. The version history table is the one exception where referencing prior versions is correct.
 - **Invariants and design decisions:** Preserve all unless a discussion explicitly supersedes one. When superseding, use the same numbering/naming style and note the new decision.
-- **Cross-references:** Update filenames in cross-references to the new version (e.g., `bodha-chitta-v2_5.md` → `bodha-chitta-v2_6.md`).
+- **Cross-references:** Update filenames in cross-references to the new version (e.g., `<project>-v2_5.md` → `<project>-v2_6.md`).
 - **Tables:** When adding rows to tables, match the existing column structure and style exactly.
 - **New sections:** Place them where they logically belong in the document's existing structure, not appended at the end. Match the heading level and style.
 
@@ -258,19 +251,19 @@ Present the user with:
 
 ## Anti-Hallucination Protocol
 
-These rules are non-negotiable. They exist because document integration is high-stakes precision work where a fabricated detail can propagate into implementation.
+These rules are non-negotiable. They exist because document integration is high-stakes precision work where a fabricated detail can propagate into implementation. Whenever you hit ambiguity, vagueness, a contradiction between sources, or excessive repetition, stop and ask the user before proceeding — do not guess; a 30-second question is far cheaper than a wrong integration.
 
 1. **Read before write.** Never write content without having the source material in context (directly or via a sub-agent report). "I remember it said something about caching" is not good enough — read the actual text.
 
 2. **No gap-filling.** If a discussion says "add caching" but doesn't specify the strategy, write exactly that ("caching will be added; strategy TBD") or ask the user. Do not invent a caching strategy.
 
-3. **Preserve precision.** Keep exact numbers, names, identifiers, and technical terms. `pplx-embed-v1` stays as `pplx-embed-v1`. `43,200 workflow executions/day` stays as `43,200 workflow executions/day`.
+3. **Preserve precision.** Preserve original intent, terminology, and technical precision. Keep exact numbers, names, identifiers, and technical terms: `pplx-embed-v1` stays as `pplx-embed-v1`; "5-minute TTL" stays "5-minute TTL", not "short TTL"; "Qdrant" stays "Qdrant", not "vector database".
 
 4. **Quote when uncertain.** If you're unsure how to rephrase without losing meaning, keep the original wording. Faithful reproduction beats elegant paraphrase.
 
 5. **Track provenance internally.** While working, know why you wrote each thing. "I wrote X because discussion file Y §Z says W." You don't need to output this, but you need it for verification.
 
-6. **Flag contradictions, don't resolve them.** If two sources disagree, stop and ask the user. Don't pick the one that "seems newer" or "makes more sense."
+6. **Flag contradictions, don't resolve them.** If two sources disagree (e.g., one says "use Redis" and another "use Memcached"), do not pick one — present both to the user with the relevant quotes and ask them to decide. Don't pick the one that "seems newer" or "makes more sense."
 
 7. **Don't improve the design.** Your job is integration, not design review. If you see something that seems wrong or suboptimal in the source material, integrate it faithfully and optionally mention your concern in the Phase 4 summary. Do not silently "fix" it.
 
@@ -310,7 +303,7 @@ Search all files in <target_path>/core/ for:
 Return: list of issues with file:line locations.
 ```
 
-**When not to use sub-agents:** If a concept involves only 1-2 small files (<5KB each), handle it directly. User-facing questions and checklist presentations always happen in the main context.
+**When not to use sub-agents:** only under the small-file threshold defined in *Principles → Incremental context* above.
 
 ---
 
@@ -323,7 +316,5 @@ Return: list of issues with file:line locations.
 **New core documents.** If discussions introduce a new subsystem with no existing core doc, create one following the conventions of existing core docs (same header structure, same section patterns). Confirm scope with the user.
 
 **Deprecation/removal.** If discussions remove or deprecate something, update all core docs that reference it. Ask the user whether to remove deprecated content entirely or mark it as deprecated.
-
-**Conflicting discussions.** If two discussion files disagree (e.g., one says "use Redis" and another says "use Memcached"), do not pick one. Present both to the user with the relevant quotes and ask them to decide.
 
 **Large integration guides.** Some discussion files may be detailed integration guides with step-by-step implementation instructions. These should be distilled into design specifications (the "what" and "why"), not copied verbatim as implementation steps (the "how"). The core docs are design authority, not implementation guides.

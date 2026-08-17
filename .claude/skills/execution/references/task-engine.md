@@ -9,7 +9,9 @@ delegation is the default, not a fetish.
 ## Roles
 
 - **coordinator** (this session): curates context, dispatches, tracks the
-  ledger, adjudicates at the cap. Never implements or fixes findings itself.
+  ledger, adjudicates at the cap. Does not implement or fix findings itself,
+  except under the two named delegation-failure fallbacks in *Status
+  handling* below (blocked twice; 529/timeout after the retry).
 - **implementer** (agent): one bounded task per dispatch.
 - **spec-reviewer / code-reviewer** (agents): both follow the **code-review
   skill**. Initial reviews are role-separated; **re-reviews go to the
@@ -58,15 +60,18 @@ the **working tree**, not from commit ranges:
 - `SCOPE_BASE` = `git rev-parse HEAD` recorded once in the ledger when the
   scope starts. It rarely advances; all tracked changes since it — committed
   or not — are the work under review.
-- `scripts/review-package.sh full <SCOPE_BASE> <workspace> <label> [paths…]`
+- `.claude/skills/execution/scripts/review-package.sh full <SCOPE_BASE> <workspace> <label> [paths…]`
   → one file with `git status`, `git diff <SCOPE_BASE> -- <paths>` (tracked,
   staged or not), and the full content of untracked files under the paths.
   It also snapshots those files to `snap-<label>/`.
-- Fix rounds: `scripts/review-package.sh fix <SCOPE_BASE> <prev-label> <workspace> <label> [paths…]`
+- Fix rounds: `.claude/skills/execution/scripts/review-package.sh fix <SCOPE_BASE> <prev-label> <workspace> <label> [paths…]`
   → the diff between the previous snapshot and now — exactly what changed
   since the last review. Record the label in the ledger.
 
-The package never enters the coordinator's context — pass its path.
+For dispatched (full-path) reviews the package never enters the
+coordinator's context — pass its path. The coordinator reads a package
+itself only where this document says so: the light path's inline
+code-review and the final Simplification look.
 
 ## Dispatching a task
 

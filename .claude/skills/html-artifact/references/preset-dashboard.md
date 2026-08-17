@@ -22,7 +22,7 @@ Charts have a small caption above naming the metric and time window. Below the c
 - Chart type is genuinely complex (heatmap, treemap, sankey, force graph)
 - User already uses a specific library in their pipeline — match it
 
-When a library is needed, import via CDN (Chart.js, D3, Plotly). Inline a no-script paragraph stating the headline number so the doc isn't useless without JS.
+When a library is genuinely needed, inline it into the file (vendored source in a `<script>` block) — never a CDN link; the artifact must open offline from `file://`. Prefer hand-built inline SVG. Inline a no-script paragraph stating the headline number so the doc isn't useless without JS.
 
 ## Color discipline
 

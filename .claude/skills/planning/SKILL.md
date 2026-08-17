@@ -34,7 +34,7 @@ Mechanics — workstream layout, seeding commands, approval-gate format,
 extending an existing workstream: `references/decompose.md`.
 
 1. **Ground** — read the spec (verify `Status: approved`), then the repo's
-   read order: `AGENTS.md`, `CONTEXT.md`, `.claude/project/` (`brief.md`,
+   read order: `CLAUDE.md`, `CONTEXT.md`, `.claude/project/` (`brief.md`,
    `repo-map.md`, `invariants.md`, `verification.md`, `docs-index.md`), and
    the current board state (`docs/workstreams/status.md` if it exists, else
    `bd stats` + `bd list`).

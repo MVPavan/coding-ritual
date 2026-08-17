@@ -1,6 +1,6 @@
 ---
 name: model-council
-description: "Use when the user asks to run one task through named council members with a named judge — several agents/models each solving the same task independently, then consolidated. TRIGGERS: 'model council', 'convene the council', 'have <agents> each take this and <agent> judge', any brainstorming/research/design/review request that names members and a judge. Do NOT run without user-named members and judge — ask for them in chat instead of choosing."
+description: "Use when the user asks to run one task through named council members with a named judge — several agents/models each solving the same task independently, then consolidated. TRIGGERS: 'model council', 'have <agents> each take this and <agent> judge', any brainstorming/research/design/review request that names members and a judge. Do NOT run without user-named members and judge — ask for them in chat instead of choosing."
 ---
 
 # Model Council
@@ -13,8 +13,8 @@ User-named council members each solve the same task independently and blind to e
 
 | User says | Run as |
 |---|---|
-| fable, fable-max, fable-xhigh | Agent tool, that subagent_type |
-| claude/opus (+ max/xhigh/high/medium/low) | Agent tool, matching claude-* type |
+| fable-max, fable-xhigh, claude-max | Agent tool, that installed subagent_type |
+| fable, claude, opus, sonnet, haiku (optionally + an effort word) | Agent tool, `subagent_type: "claude"` with the matching `model:` override; state the effort in the prompt |
 | codex, gpt | retired in this repo — tell the user Codex is retired (2026-08-14) and ask which member to substitute |
 | anything else | Ask the user how to reach it |
 
