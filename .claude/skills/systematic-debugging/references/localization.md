@@ -92,7 +92,8 @@ suite, or files appear where they shouldn't. Run:
 ```bash
 # run from the repo root — the script discovers test files from the cwd
 .claude/skills/systematic-debugging/scripts/find-polluter.sh <pollution-path> <test-glob> <test-command...>
-# e.g. .claude/skills/systematic-debugging/scripts/find-polluter.sh '.git' 'tests/**/test_*.py' uv run pytest
+# e.g. .claude/skills/systematic-debugging/scripts/find-polluter.sh 'scratchpad/leftover.db' 'tests/**/test_*.py' uv run pytest
+# the pollution path is an artifact the tests create — never .git, a source root, or a path outside the repo
 ```
 
 It runs test files one at a time with your runner and halts at the first file

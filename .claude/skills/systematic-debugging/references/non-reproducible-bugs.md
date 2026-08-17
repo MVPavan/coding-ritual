@@ -52,9 +52,13 @@ assert job.result == expected
 A sufficient helper (async variant: `await asyncio.sleep(interval)`):
 
 ```python
+import time
 from collections.abc import Callable
+from typing import TypeVar
 
-def wait_for[T](
+T = TypeVar("T")
+
+def wait_for(
     condition: Callable[[], T | None],
     description: str,
     timeout: float = 5.0,

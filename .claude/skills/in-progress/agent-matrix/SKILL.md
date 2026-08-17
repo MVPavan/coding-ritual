@@ -1,6 +1,6 @@
 ---
 name: agent-matrix
-description: Select, validate, and invoke Claude Code or Codex subagents from the repository Agent Matrix catalog. Use when choosing a subagent model, effort, context mode, tool access, permission mode, capability configuration, or skill set; when rejecting undeclared values; or when testing runtime support without creating Cartesian agent-definition files.
+description: Select, validate, and invoke Claude Code subagents from the repository Agent Matrix catalog. Use when choosing a subagent model, effort, context mode, tool access, permission mode, capability configuration, or skill set; when rejecting undeclared values; or when testing runtime support without creating Cartesian agent-definition files.
 disable-model-invocation: true
 ---
 

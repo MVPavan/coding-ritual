@@ -45,11 +45,11 @@ Include the strongest counterargument in the document.
 
 ## 5. Confidence Calibration
 
-Use:
-- High: strong primary/current evidence and independent agreement.
-- Medium: credible but incomplete evidence.
-- Low: narrow, anecdotal, stale, or conflicting evidence.
-- Speculative: reasoned inference; label assumptions.
+Use in every final report:
+- High: primary or authoritative sources agree, recent enough, and the red-team did not weaken it.
+- Medium: evidence is credible but incomplete or partly indirect.
+- Low: single source, narrow, anecdotal, stale, or conflicting evidence.
+- Speculative: inference from patterns or analogies; state assumptions.
 
 ## 6. Final Narrative
 

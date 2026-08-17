@@ -7,7 +7,7 @@
 # against the current working directory:
 #
 #   .claude/skills/systematic-debugging/scripts/find-polluter.sh <pollution_path> <test_glob> <test-command> [args...]
-#   .claude/skills/systematic-debugging/scripts/find-polluter.sh '.git' 'tests/**/test_*.py' uv run pytest
+#   .claude/skills/systematic-debugging/scripts/find-polluter.sh 'scratchpad/leftover.db' 'tests/**/test_*.py' uv run pytest
 #
 # The test command receives one test file path appended per run.
 #
@@ -21,13 +21,21 @@ set -euo pipefail
 
 if [ $# -lt 3 ]; then
   echo "Usage: $0 <pollution_path> <test_glob> <test-command> [args...]" >&2
-  echo "Example: $0 '.git' 'tests/**/test_*.py' uv run pytest" >&2
+  echo "Example: $0 'scratchpad/leftover.db' 'tests/**/test_*.py' uv run pytest" >&2
   exit 2
 fi
 
 POLLUTION_CHECK="$1"
 TEST_PATTERN="$2"
 shift 2
+
+# The pollution path must be a file the tests are suspected of *creating* —
+# never repository metadata, a source root, or anything outside the repo.
+case "$POLLUTION_CHECK" in
+  .git|.git/*|/*|..*|.|./|"")
+    echo "ERROR: refusing pollution path '$POLLUTION_CHECK' — must be a repo-relative artifact the tests create, never .git, a source root, or an absolute/parent path." >&2
+    exit 2 ;;
+esac
 
 # A polluter is caught right after its own run (exit 1 below), so pollution can
 # only exist here if it predates the script — any hit would blame the wrong file.

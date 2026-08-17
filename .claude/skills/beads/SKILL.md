@@ -33,10 +33,9 @@ Maintenance — on-demand, not per session: use the stats/health row above. Run 
 
 ## Conventions
 
-- **Actor (mandatory, every write):** pass `--actor "<runtime>:<session-or-purpose>"` on *all* `bd create` / `update` / `close` / `dep` / `label`. Examples: `codex:setup`, `cc:${CLAUDE_CODE_SESSION_ID:0:8}`, `gemini:<session>`. Stamps `created_by` + each change event; `owner` stays the human.
-- **Casing:** label names are filter-case-sensitive (`-l idea` ≠ `-l Idea`) — all-lowercase, kebab-case for multi-word (`relationship-graph`), never Capitalized/PascalCase.
-- **idea** (raw, untriaged): `bd create "…" -l idea --defer 2099-01-01 -q`; triage with `bd list -l idea`.
-- **backlog** (vetted, not now): `bd create "…" -l backlog -t <type> -p <prio> --defer … -q`, or promote an idea — `bd label add <id> backlog; bd label remove <id> idea`.
+- **Actor (mandatory, every write):** pass `--actor "<runtime>:<session-or-purpose>"` (e.g. `cc:${CLAUDE_CODE_SESSION_ID:0:8}`) on *all* `bd create` / `update` / `close` / `dep` / `label`. Stamps `created_by` + each change event; `owner` stays the human.
+- **Casing:** label names are filter-case-sensitive — all-lowercase kebab-case, never Capitalized.
+- **idea** (raw, untriaged) and **backlog** (vetted, not now) are deferred labels — create commands in `.beads/beads.md` → *Ideas And Backlog*; triage with `bd list -l idea`; promote an idea with `bd label add <id> backlog; bd label remove <id> idea`.
 - **Intake states** (`needs-triage`, `needs-info`, `ready-for-agent` + its gate, `human`, wontfix closes): vocabulary in `.beads/beads.md` → *Intake States*; move issues between them via the `triage` skill.
 - **Epic → spec-id (mandatory check):** never create an epic without first checking for a governing spec. `--spec-id` holds the spec (what was committed); the roadmap goes on `--design`; plans never go in `spec_id`. Phase epics also carry a `ws-<name>` workstream label. If no spec exists, proceed only when the issue description captures the reason. `spec_id` does not inherit to children; filter epics by spec with `bd list --spec <prefix>`.
 - **Issue shape:** keep child tasks flat as practical. Add dependencies only when work genuinely depends on another issue's output; do not chain tasks only because they appear in sequence.

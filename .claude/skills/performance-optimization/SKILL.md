@@ -1,7 +1,6 @@
 ---
 name: performance-optimization
 description: Use when the ask is optimization-shaped — "make this faster", "optimize", "X is slow", "why is this slow", "reduce latency / memory / cost", "profile this", "where is the time going", or a performance budget, SLO, or resource target to meet — for code that is correct but not fast or cheap enough. For was-fast-now-slow regressions with a culprit change to find, use systematic-debugging.
-disable-model-invocation: true
 ---
 
 # Performance Optimization
@@ -92,7 +91,7 @@ a different sample, not a gain.
 
 | Result vs baseline | Action |
 | --- | --- |
-| Better beyond the spread, suite green | **Keep.** Commit with before/after numbers in the message. |
+| Better beyond the spread, suite green | **Keep.** Record before/after numbers with the change — in the commit message when commit authority is granted, else in the bead/report. |
 | Within noise | **Revert.** |
 | Worse | **Revert.** |
 | Improved, but a test went red | **Revert.** A regression wearing a win's clothing. |
@@ -107,9 +106,11 @@ that was load-bearing — is a regression, not a win.
 
 **Attempt ledger** — one row per attempt, written as it happens, kept and
 reverted alike. In-session: the task report when dispatched, else your reply.
-Durable, always: verdicts land in the commit message; a multi-session effort
-keeps the ledger in the bead tracking the work. Read it before proposing any
-experiment — a reverted idea leaves no git trace.
+Durable, always: verdicts land in the bead or report tracking the work, and
+in the commit message when the user or the active workstream granted commit
+authority (CLAUDE.md §Git Safety) — otherwise report the proposed commit
+rather than making it. Read the ledger before proposing any experiment — a
+reverted idea leaves no git trace.
 
 | Idea | Baseline → result | Verdict | Why |
 | --- | --- | --- | --- |

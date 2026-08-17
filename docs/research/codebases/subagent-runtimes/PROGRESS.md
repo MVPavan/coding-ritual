@@ -54,7 +54,7 @@ From the repository root, read these in order:
    is reference material, not the runtime selection registry.
 6. The provider-facing skills:
    [Codex](../../../../.codex/skills/agent-matrix/SKILL.md) and
-   [Claude](../../../../.claude/skills/agent-matrix/SKILL.md).
+   [Claude](../../../../.claude/skills/in-progress/agent-matrix/SKILL.md).
 7. The validator and tests:
    [`agent_matrix.py`](../../../../tools/agent-matrix/agent_matrix.py) and
    [`test_agent_matrix.py`](../../../../tools/agent-matrix/test_agent_matrix.py).

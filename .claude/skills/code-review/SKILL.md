@@ -51,7 +51,7 @@ gate bounces the work back as failed verification, not into a review round.
 - The review is **read-only** on this checkout: never mutate the working
   tree, index, HEAD, or branch state. Need a working copy of another
   revision? Use the harness's worktree isolation (the Agent tool's
-  `isolation: worktree`, or `EnterWorktree` — see `agent-matrix`), never raw
+  `isolation: worktree`, or `EnterWorktree`), never raw
   `git worktree add`, which leaves worktree state the harness cannot see or
   clean up; either way, never move HEAD here. Before treating a checkout as
   already isolated, verify true isolation: a bare `GIT_DIR != GIT_COMMON`
@@ -175,9 +175,8 @@ the rest of the feedback trusted.
 ## Re-review (after a fix round)
 
 Scope = the findings list + the fix diff, nothing else. Role boundaries do
-not apply here: one re-reviewer verdicts every finding in the list, spec and
-quality alike. Verdict every
-finding **ADDRESSED** or **NOT ADDRESSED** with `file:line` evidence —
+not apply here: verdict every finding in the list, spec and quality alike,
+**ADDRESSED** or **NOT ADDRESSED** with `file:line` evidence —
 "attempted" is not addressed; the specific defect must no longer exist.
 Confirm the fix report names the covering tests and shows their output.
 Inspect the fix diff for new breakage (with severity). Issues entirely

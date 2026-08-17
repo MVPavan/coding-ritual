@@ -1,8 +1,7 @@
 ---
 name: i-have-adhd
-description: Shape output for a reader with ADHD. Use this skill whenever responding to ANY user message including coding tasks, debugging, explanations, planning, and casual conversation. Output should lead with concrete next actions, number multi-step work, externalize state across turns, suppress tangents, give specific time estimates, and make wins visible. Trigger even on casual messages and even when the user did not explicitly ask for brevity.
+description: Shape every response for a reader with ADHD — lead with the next action, number the steps, restate state each turn; five overrides for when a message did not land.
 disable-model-invocation: true
-user-invocable: true
 ---
 
 # i-have-adhd

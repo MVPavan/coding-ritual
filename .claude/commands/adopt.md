@@ -13,8 +13,7 @@ Keep the core harness stable. Update only `.claude/project/*` with facts derived
 ## Workflow
 
 1. Read:
-   - `AGENTS.md`
-   - `adopt.md`
+   - the repo's root instruction file (`CLAUDE.md`, or `AGENTS.md` if that is what the repo has)
    - `.claude/project/*.md`
 2. Scan the target repo in this order:
    - root instruction files

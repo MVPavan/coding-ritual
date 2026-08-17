@@ -16,7 +16,7 @@ Treat the current directory as a teaching workspace. The state of their learning
 - `RESOURCES.md`: A list of resources which can be explored to ground your teaching in contextual knowledge, or to acquire knowledge and wisdom. Use the format in [RESOURCES-FORMAT.md](./RESOURCES-FORMAT.md).
 - `./learning-records/*.md`: A directory of learning records, which capture what the user has learned. These are loosely equivalent to architectural decision records in software development - they capture non-obvious lessons and key insights that may need to be revised later, or drive future sessions. These should be used to calculate the zone of proximal development. They are titled `0001-<dash-case-name>.md`, where the number increments each time. Use the format in [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md).
 - `./lessons/*.html`: A directory of lessons. A **lesson** is a single, self-contained HTML output that teaches one tightly-scoped thing tied to the mission. This is the primary unit of teaching in this workspace.
-- `./assets/*`: Reusable **components** shared across lessons. See [Assets](#assets).
+- `./assets/*`: Reusable component **source** shared across lessons, inlined into each lesson at write time. See [Assets](#assets).
 - `NOTES.md`: A scratchpad for you to jot down user preferences, or working notes.
 
 ## Philosophy
@@ -46,7 +46,7 @@ Fluency can give the user an illusory sense of mastery, but storage strength is 
 
 ## Lessons
 
-A lesson is the main thing you produce — the unit in which knowledge and skills reach the user. Each lesson is one self-contained HTML file, saved to `./lessons/` and titled `0001-<dash-case-name>.html` where the number increments each time.
+A lesson is the main thing you produce — the unit in which knowledge and skills reach the user. Each lesson is one self-contained HTML file (all CSS/JS embedded — no links to files under `./assets/`), saved to `./lessons/` and titled `0001-<dash-case-name>.html` where the number increments each time.
 
 A lesson should be **beautiful** — clean, readable typography and layout — since the user will return to these later to review. Think Tufte.
 
@@ -62,11 +62,11 @@ Each lesson should contain a reminder to ask followup questions to the agent. Th
 
 ## Assets
 
-Lessons are built from reusable **components**, stored in `./assets/`: stylesheets, quiz widgets, simulators, diagram helpers — anything a second lesson could reuse.
+Lessons are built from reusable **components** whose source lives in `./assets/`: stylesheets, quiz widgets, simulators, diagram helpers — anything a second lesson could reuse. `./assets/` is a source library, not a runtime dependency: each lesson **inlines** the component source it uses at write time, so every lesson stays a self-contained file that opens anywhere on its own.
 
-Reuse is the default, not the exception. Before authoring a lesson, read `./assets/` and build from the components already there. When a lesson needs something new and reusable, write it as a component in `./assets/` and link to it — never inline code a future lesson would duplicate.
+Reuse is the default, not the exception. Before authoring a lesson, read `./assets/` and build from the components already there. When a lesson needs something new and reusable, write it as a component in `./assets/` and inline it from there — never hand-write inline code a future lesson would duplicate.
 
-A shared stylesheet is the first component every workspace earns: every lesson links it, so the lessons look like one consistent course rather than a pile of one-offs. As the workspace grows, so should the component library.
+A shared stylesheet is the first component every workspace earns: every lesson embeds it, so the lessons look like one consistent course rather than a pile of one-offs. As the workspace grows, so should the component library.
 
 ## The Mission
 
@@ -131,9 +131,9 @@ Some learning topics lend themselves to reference:
 - Algorithms and flowcharts for processes
 - Yoga poses and sequences for yoga
 - Exercises and routines for fitness
-- Glossaries for any topic with its own nomenclature
+- Glossaries for any topic with its own nomenclature. Use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md).
 
-Glossaries, in particular, are an essential reference. Once one is created, it should be adhered to in every lesson.
+Glossaries, in particular, are an essential reference — write them to the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md). Once one is created, it should be adhered to in every lesson.
 
 ## `NOTES.md`
 

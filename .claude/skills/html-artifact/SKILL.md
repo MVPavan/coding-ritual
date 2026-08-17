@@ -1,6 +1,6 @@
 ---
 name: html-artifact
-description: Create polished single-file HTML artifacts as an alternative to markdown for documents meant to be read by humans. Use whenever the user asks for an implementation plan, status report, post-mortem, architecture doc, scaling analysis, capacity dashboard, research explainer, concept walkthrough, PR writeup, or other long-form documents that benefit from richer structure than markdown — KPI tiles, charts, tables, mockups, code blocks with copy buttons, collapsibles, SVG diagrams, or small interactive controls. Also use when the user asks for "an HTML file", "HTML artifact", "HTML doc", "HTML version of this", or "a one-pager". Do NOT use for React components, web apps, marketing pages, or visually expressive design (use frontend-design); for READMEs, docstrings, agent prompts, CLAUDE.md, or anything destined for git/CLI/another agent (use markdown); or for content under ~50 lines where visual structure doesn't earn its weight.
+description: Create polished single-file HTML artifacts as an alternative to markdown, only for documents the user wants rendered for human reading (never Markdown-native repo files). Use when the user asks for HTML, or for a human-facing implementation plan, status report, post-mortem, architecture doc, scaling analysis, capacity dashboard, research explainer, concept walkthrough, PR writeup, or other long-form documents that benefit from richer structure than markdown — KPI tiles, charts, tables, mockups, code blocks with copy buttons, collapsibles, SVG diagrams, or small interactive controls. Also use when the user asks for "an HTML file", "HTML artifact", "HTML doc", "HTML version of this", or "a one-pager". Do NOT use for React components, web apps, marketing pages, or visually expressive design; for READMEs, docstrings, agent prompts, CLAUDE.md, or anything destined for git/CLI/another agent (use markdown); or for content under ~50 lines where visual structure doesn't earn its weight.
 ---
 
 # html-artifact
@@ -13,7 +13,6 @@ Standalone single-file HTML documents that replace what would otherwise be a lon
 
 **Markdown when any hold:** README, CLAUDE.md, agent prompt, docstring; lives in git and reviewed in PR diffs; ingested by another LLM, RAG, or eval system; destined for a markdown-native surface (GitHub, Linear, Slack); too short for scaffolding to pay off.
 
-**frontend-design instead when:** the aesthetic goal is "memorable / bold" rather than "readable / credible".
 
 If unsure, ask before producing.
 
@@ -83,4 +82,4 @@ Pick exactly one. Read the matching reference before writing.
 
 ## Output protocol
 
-Save to `/mnt/user-data/outputs/` with a descriptive filename. Call `present_files`. Don't paste HTML source into chat — one or two sentences of context is enough.
+Save under `scratchpad/` (gitignored) with a descriptive, timestamped filename and tell the user the path; open it locally when the environment allows. Never paste HTML source into chat — one or two sentences of context is enough.

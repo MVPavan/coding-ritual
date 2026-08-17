@@ -1,6 +1,6 @@
 ---
 name: security
-description: Use when building or changing anything that crosses a trust boundary — untrusted input, authentication or authorization, secrets, file uploads, webhooks, external integrations, dependency changes, or LLM/agent features — and when a security review of such code is requested.
+description: Use when building or changing anything that crosses a trust boundary — untrusted input, authentication or authorization, secrets, file uploads, webhooks, external integrations, dependency changes, or LLM/agent features — and to supply the review lens when such code is reviewed.
 ---
 
 # Security
@@ -106,7 +106,7 @@ stack traces exposed to users.
   remediation; verify registry signatures/provenance where the manager
   supports it; review new dependencies, lockfile diffs, and script-policy
   changes together (ownership, provenance, release age, typosquats).
-- **Secrets:** via a secrets manager per `safety.md`; grep the staged diff
+- **Secrets:** via a secrets manager per `.claude/rules/python/safety.md`; grep the staged diff
   for credential patterns before any commit; **a committed secret is
   compromised the moment it reaches a remote — rotate first, then purge;
   deleting the line is not remediation.**
