@@ -7,9 +7,12 @@ router shipped dead pointers undetected until an audit — so this script
 generates the mechanical part and lints the rest.
 
   --check (default)
-      Exit 1 if the generated section is stale, or any /name reference in a
-      skill or command body resolves to no installed skill, no installed
-      command, and no ALLOWED_SLASHES entry.
+      Exit 1 if the generated section is stale; if any /name reference in a
+      command file or in any shipped text file under a skill folder (*.md,
+      *.sh, *.py, *.yaml — references, scripts, assets included) resolves to
+      no installed skill, no installed command, and no ALLOWED_SLASHES entry;
+      or if any `.claude/...` path token in those same files names nothing on
+      disk under the repo root (placeholder/glob tokens are skipped).
   --write
       Regenerate everything below the marker line. Refuses if the marker is
       missing. Deterministic (sorted) and idempotent.
@@ -38,6 +41,7 @@ WRITE_CMD = "python3 .claude/scripts/skill-catalog.py --write"
 # .claude/commands. One-word reason each; --check warns when an entry stops
 # being referenced so the list stays minimal.
 ALLOWED_SLASHES: dict[str, str] = {
+    "/clear": "builtin",  # Claude Code built-in; execution/workstream-mode warns against it
     "/code-intel:index-repo": "plugin",
     "/code-intel:setup": "plugin",
     "/codex": "plugin",
@@ -47,11 +51,20 @@ ALLOWED_SLASHES: dict[str, str] = {
     "/codex-implement": "plugin",
     "/codex-research": "plugin",
     "/codex-review": "plugin",
-    "/goal": "prompt-syntax",  # teach-session prompt directive, not a command
+    "/compact": "builtin",  # Claude Code built-in; execution/workstream-mode between phases
     "/login": "url-path",  # i-have-adhd example: open `/login`
-    "/subtask": "builtin",  # Claude Code built-in, agent-matrix docs it
-    "/tmp": "path",  # improve-codebase-architecture temp-dir fallback
+    "/name": "placeholder",  # authoring-for-agents skill-anatomy: "the human typing `/name`"
+    "/settings": "url-path",  # prototype/UI.md example route
 }
+
+# `.claude/...` path tokens that legitimately name nothing on disk (an
+# illustrative example, a path that exists only in an adopted repo). One-word
+# reason each; --check warns when an entry stops being referenced.
+ALLOWED_PATHS: dict[str, str] = {}
+
+# Text files under a skill folder whose slash and path references are linted.
+# Everything else (images, fixtures, binaries) is skipped by suffix.
+SHIPPED_TEXT_SUFFIXES = frozenset({".md", ".sh", ".py", ".yaml", ".yml"})
 
 # A slash reference: /name preceded by line start, whitespace, an opening
 # paren/bracket/asterisk/quote, or an OPENING backtick (a backtick preceded by
@@ -63,6 +76,15 @@ SLASH_REF = re.compile(
     r"(/[a-z](?:[a-z0-9:-]*[a-z0-9])?)"
     r"(?!\.\w|[\w/-])"
 )
+
+# A repo-relative harness path token, backticked or bare: `.claude/...` not
+# preceded by `/`, `~`, or a word char — so `~/.claude/...` (home dir) and
+# `<repo>/.claude/...` (another checkout) are out of scope. Captures
+# placeholder characters too, so a glob-ish token is recognised whole and
+# skipped rather than half-matched; `:NN` line suffixes and `#fragments` end
+# the token naturally. Trailing sentence periods are stripped afterwards.
+CLAUDE_PATH = re.compile(r"(?<![\w/~])(\.claude/[\w./\-<>*{}…]*)")
+PLACEHOLDER_MARKS = ("<", ">", "*", "{", "}", "…", "...")
 
 # A backticked bare skill/command name, as the hand-owned router table uses.
 BARE_NAME = re.compile(r"`([a-z][a-z0-9-]*)`")
@@ -230,11 +252,38 @@ def split_at_marker(text: str) -> tuple[str, str] | None:
 # --- Linting ------------------------------------------------------------------
 
 
+def shipped_text_files(surface: Surface) -> list[Path]:
+    """Files linted for slash and `.claude/...` path references: every text
+    file under a skill's folder (SKILL.md, references, scripts, assets), or
+    the command file itself."""
+    if surface.kind == "command":
+        return [surface.path]
+    return sorted(
+        candidate
+        for candidate in surface.path.parent.rglob("*")
+        if candidate.is_file() and candidate.suffix in SHIPPED_TEXT_SUFFIXES
+    )
+
+
 def slash_refs(path: Path) -> list[tuple[int, str]]:
     """(line number, token) for every slash reference in the file."""
     refs: list[tuple[int, str]] = []
     for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         refs.extend((lineno, match.group(1)) for match in SLASH_REF.finditer(line))
+    return refs
+
+
+def claude_path_refs(path: Path) -> list[tuple[int, str]]:
+    """(line number, token) for every checkable `.claude/...` path token in
+    the file. Placeholder/glob tokens (`<name>`, `*`, `{a,b}`, `…`, `...`) are
+    not checkable and are omitted."""
+    refs: list[tuple[int, str]] = []
+    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        for match in CLAUDE_PATH.finditer(line):
+            token = match.group(1).rstrip(".")
+            if any(mark in token for mark in PLACEHOLDER_MARKS):
+                continue
+            refs.append((lineno, token))
     return refs
 
 
@@ -328,22 +377,40 @@ def cmd_check(root: Path) -> int:
             failures.append(f"stale generated section — run `{WRITE_CMD}`\n{excerpt}")
 
     used_allowlist: set[str] = set()
+    used_path_allowlist: set[str] = set()
     resolved = 0
+    resolved_paths = 0
     for surface in skills + commands:
-        for lineno, token in slash_refs(surface.path):
-            if token[1:] in known:
-                resolved += 1
-            elif token in ALLOWED_SLASHES:
-                used_allowlist.add(token)
-                resolved += 1
-            else:
-                failures.append(
-                    f"dead slash pointer {token} at {_rel(surface.path, root)}:{lineno}"
-                    " — no installed skill, command, or allowlist entry"
-                )
+        for shipped in shipped_text_files(surface):
+            for lineno, token in slash_refs(shipped):
+                if token[1:] in known:
+                    resolved += 1
+                elif token in ALLOWED_SLASHES:
+                    used_allowlist.add(token)
+                    resolved += 1
+                else:
+                    failures.append(
+                        f"dead slash pointer {token} at {_rel(shipped, root)}:{lineno}"
+                        " — no installed skill, command, or allowlist entry"
+                    )
+            for lineno, token in claude_path_refs(shipped):
+                if (root / token).exists():
+                    resolved_paths += 1
+                elif token in ALLOWED_PATHS:
+                    used_path_allowlist.add(token)
+                    resolved_paths += 1
+                else:
+                    failures.append(
+                        f"dead path {token} at {_rel(shipped, root)}:{lineno}"
+                        " — nothing on disk under the repo root, and no allowlist entry"
+                    )
     warnings.extend(
         f"allowlist entry {token} ({ALLOWED_SLASHES[token]}) is no longer referenced — remove it"
         for token in sorted(set(ALLOWED_SLASHES) - used_allowlist)
+    )
+    warnings.extend(
+        f"path allowlist entry {token} ({ALLOWED_PATHS[token]}) is no longer referenced — remove it"
+        for token in sorted(set(ALLOWED_PATHS) - used_path_allowlist)
     )
     warnings.extend(trigger_phrase_warnings(skills))
     warnings.extend(frontmatter_warnings(skills))
@@ -357,6 +424,10 @@ def cmd_check(root: Path) -> int:
     if not failures:
         print("OK   generated section is current")
         print(f"OK   {resolved} slash references resolve ({len(used_allowlist)} allowlisted)")
+        print(
+            f"OK   {resolved_paths} .claude/ path references resolve"
+            f" ({len(used_path_allowlist)} allowlisted)"
+        )
     for warning in warnings:
         print(f"WARN {warning}")
     for failure in failures:
