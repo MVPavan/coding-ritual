@@ -60,11 +60,11 @@ the **working tree**, not from commit ranges:
 - `SCOPE_BASE` = `git rev-parse HEAD` recorded once in the ledger when the
   scope starts. It rarely advances; all tracked changes since it — committed
   or not — are the work under review.
-- `.claude/skills/execution/scripts/review-package.sh full <SCOPE_BASE> <workspace> <label> [paths…]`
+- `<execution-skill-dir>/scripts/review-package.sh full <SCOPE_BASE> <workspace> <label> [paths…]`
   → one file with `git status`, `git diff <SCOPE_BASE> -- <paths>` (tracked,
   staged or not), and the full content of untracked files under the paths.
   It also snapshots those files to `snap-<label>/`.
-- Fix rounds: `.claude/skills/execution/scripts/review-package.sh fix <SCOPE_BASE> <prev-label> <workspace> <label> [paths…]`
+- Fix rounds: `<execution-skill-dir>/scripts/review-package.sh fix <SCOPE_BASE> <prev-label> <workspace> <label> [paths…]`
   → the diff between the previous snapshot and now — exactly what changed
   since the last review. Record the label in the ledger.
 
@@ -76,7 +76,7 @@ code-review and the final Simplification look.
 ## Dispatching a task
 
 1. **Extract the brief**:
-   `bash .claude/skills/execution/scripts/task-brief.sh <plan> <N> <workspace>`
+   `bash <execution-skill-dir>/scripts/task-brief.sh <plan> <N> <workspace>`
    writes `task-<N>-brief.md` (plan preamble — Origin/Goal/Out of
    scope/Constraints — plus the task section). For work with no plan file,
    write the packet to the brief file yourself: goal, owned **and forbidden**

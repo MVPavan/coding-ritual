@@ -22,8 +22,8 @@ separate from the implementer. The user defines which model serves as critic
 (ask if undefined; never assume one). Findings come back numbered
 BLOCKER/MAJOR/MINOR with `file:line` plus a verdict, and the coordinator
 triages them. Skip the critic for `small` tasks unless risk is unusual.
-`.claude/commands/use-codex.md` is kept as a retired reference for possible
-reactivation.
+The Codex-side `use-codex` workflow is parked under
+`.claude/skills/in-progress/use-codex/` (not loaded) for possible reactivation.
 
 ## Subagent / MCP routing
 

@@ -15,9 +15,11 @@ test/lint/build commands to run for the repo as a whole, so the health gate is
 4. **Python tooling** — for each changed `.py` hook/script,
    `python3 -m py_compile <file>`.
 5. **Beads** — `bd ready` / `bd list` runs without error after task changes.
-6. **Skill catalog** — after changing anything under `.claude/skills/` or
-   `.claude/commands/`, `python3 .claude/scripts/skill-catalog.py --check`
-   exits 0 (generated catalog current, every slash pointer resolves).
+6. **Skill catalog** — after changing anything under `.claude/skills/`,
+   `python3 .claude/scripts/skill-catalog.py --check` exits 0 (generated
+   catalog current, every slash pointer and `.claude/` path resolves, every
+   `agents/openai.yaml` sidecar matches its frontmatter; `--write` regenerates
+   both). Slash commands are slash-only skills — there is no `commands/` dir.
 7. **Dangerous-commands hook** — after changing
    `.claude/hooks/block-dangerous-commands.sh`, prove it still blocks, not
    just parses: pipe a known-dangerous payload through it, e.g.

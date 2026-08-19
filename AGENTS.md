@@ -22,7 +22,7 @@ Core harness is stable; repo-specific facts live in `.codex/project/`.
 
 ## Coding guideline
 
-1. Follow `.codex/rules/core/03-ak-guidelines.md` — coding rules that reduce common LLM mistakes.
+1. Follow `.claude/rules/core/03-coding-discipline.md` — coding rules that reduce common LLM mistakes (`.codex/rules/core` is a symlink to it).
 2. Use `html-artifact` only when the user asks for HTML, or when the deliverable is purely for human reading and richer structure clearly helps. Do not use it for agent prompts, README files, harness docs, or other Markdown-native repo files.
 
 ## Working Mode
@@ -53,7 +53,7 @@ Approved implementation work runs through the **execution skill** (three scopes:
 
 ## Codex And Claude
 
-Codex-native assets live in `.codex/`: skills, custom agents, hooks, rules, config, project facts, and legacy reference docs. Use `$use-codex` for current invocation choices. Codex review/critique remains best-effort: `small` tasks skip it unless risk is unusual; capacity errors get one retry, then proceed without it and log the skip. Claude Code assets under `.claude/` remain as a legacy/source harness for Claude-specific runs.
+`.claude/` is the canonical harness for both tools. `.codex/` holds the Codex view of it: `.codex/skills/*` and `.codex/project` are symlinks into `.claude/`, and each skill ships `agents/openai.yaml` (`policy.allow_implicit_invocation`, the Codex twin of `disable-model-invocation`). Only Codex-native residue is real under `.codex/`: `config.toml`, `rules/default.rules`, `agents/*.toml`, `hooks.json`, — every skill, including `migrate-claude-to-codex` and `codebase-architecture-research`, lives in `.claude/skills/`. Codex is retired as the critic in this repo (2026-08-14); independent critique runs on a spawned critic subagent — see CLAUDE.md §Independent critique.
 
 ## Tools & Subagents
 

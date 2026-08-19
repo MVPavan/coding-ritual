@@ -20,7 +20,7 @@ Cannot reproduce on demand — which class?
 │   ├── hunt leaked state between tests or requests
 │   ├── check globals, singletons, module-level caches, mutable class attributes
 │   └── run the failing scenario alone vs after other operations
-│       (pollution confirmed → `.claude/skills/systematic-debugging/scripts/find-polluter.sh`)
+│       (pollution confirmed → the systematic-debugging skill's `scripts/find-polluter.sh`)
 └── Truly random — none of the above reproduces it
     ├── add defensive logging at the suspected site, tagged
     ├── alert on the exact error signature

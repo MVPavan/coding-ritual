@@ -48,7 +48,8 @@ re-present the choice concretely.
 
 ## Seeding commands
 
-`--actor "cc:${CLAUDE_CODE_SESSION_ID:0:8}"` on every bd write.
+`--actor "<runtime>:<session>"` (Claude Code: `cc:${CLAUDE_CODE_SESSION_ID:0:8}`;
+Codex: `codex:<thread>`) on every bd write.
 
 1. **Epic per phase:**
    `bd create -t epic "[<phase-id>] <phase>" --spec-id docs/specs/<spec>.md --design docs/workstreams/<name>/roadmap.md -l ws-<name> --actor … -q`
@@ -63,7 +64,7 @@ re-present the choice concretely.
    stage→stage where one genuinely needs another's output; epic→epic where a
    phase gates another. Never blanket-chain listing order — independent work
    stays unchained so it can run in any order or in parallel.
-4. **Render:** `BD_RENDER=1 bash .claude/skills/beads/scripts/bd-render-tracking.sh <name>` —
+4. **Render:** `BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh <name>` —
    regenerates the workstream's `tracking/` trio and the board. If the renderer
    is missing, skip it, report the gap, and create nothing in `tracking/` by
    hand.

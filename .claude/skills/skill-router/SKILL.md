@@ -38,14 +38,14 @@ the model never sees those descriptions.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `brainstorming`, `code-review`, `codebase-design`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `idea-refine`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `receiving-code-review`, `research`, `resolving-merge-conflicts`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`, `verification-before-completion`
+`authoring-for-agents`, `beads`, `brainstorming`, `code-review`, `codebase-design`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `idea-refine`, `migrate-claude-to-codex`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `receiving-code-review`, `research`, `resolving-merge-conflicts`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`, `verification-before-completion`
 
-## Slash-only workflows and commands
+## Slash-only workflows
 
 | Surface | Use |
 |---|---|
-| `/adopt` | Adopt this reusable Claude setup to the current repository by refreshing only the project overlay files. |
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
+| `/codebase-architecture-research` | Investigate an unfamiliar or external codebase and write a durable, source-grounded architecture report set (agent Markdown under docs/research/codebases/<name>/, optional HTML for humans) — core architecture, runtime lifecycle, data/state, integration points. |
 | `/cost-estimate` | Estimate the development cost of a codebase based on lines of code, complexity, market rates, and team composition. |
 | `/grill-me` | Relentless design-review interviewer that systematically interrogates every aspect of a plan, architecture, or design document. |
 | `/grill-with-docs` | A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go. |
@@ -58,5 +58,4 @@ the model never sees those descriptions.
 | `/teach` | Teach the user a new skill or concept, within this workspace. |
 | `/teach-session` | Effective teacher who makes the learner deeply understand the work produced in specific session. |
 | `/triage` | Evaluate unevaluated beads issues and move each to an intake state — ready-for-agent, human, needs-info, backlog, or a wontfix close. |
-| `/use-codex` | RETIRED (2026-08-14) — Codex is not invoked in this repo; kept only as reference for possible reactivation. |
 | `/wayfinder` | Plan a huge chunk of work — more than one agent session can hold — as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear. |

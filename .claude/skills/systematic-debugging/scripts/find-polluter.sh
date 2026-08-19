@@ -6,8 +6,8 @@
 # Run from the repository root — test files are discovered with `find .`
 # against the current working directory:
 #
-#   .claude/skills/systematic-debugging/scripts/find-polluter.sh <pollution_path> <test_glob> <test-command> [args...]
-#   .claude/skills/systematic-debugging/scripts/find-polluter.sh 'scratchpad/leftover.db' 'tests/**/test_*.py' uv run pytest
+#   <systematic-debugging-skill-dir>/scripts/find-polluter.sh <pollution_path> <test_glob> <test-command> [args...]
+#   <systematic-debugging-skill-dir>/scripts/find-polluter.sh 'scratchpad/leftover.db' 'tests/**/test_*.py' uv run pytest
 #
 # The test command receives one test file path appended per run.
 #

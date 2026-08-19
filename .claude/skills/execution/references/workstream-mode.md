@@ -32,7 +32,7 @@ apply.
    blocked (`bd blocked`).
 3. Run it through **phase scope** (SKILL.md), with the auto-approvals below.
 4. After the phase passes its gate + exit criterion:
-   - render: `BD_RENDER=1 bash .claude/skills/beads/scripts/bd-render-tracking.sh <name>`
+   - render: `BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh <name>`
    - refresh the durable mirror and commit: `bd export -o .beads/issues.jsonl`,
      then stage **only files the phase's work actually touched** (from the
      ledger and implementer reports — explicit paths, never `git add .`)
@@ -62,7 +62,8 @@ load-bearing findings; the discipline gate still stops on unclosed stages.
 - Rule out continuing in the current window before reaching for compaction —
   continuing costs nothing and loses nothing; compact only when the next
   phase no longer fits.
-- `/compact` between phases — never `/clear` (it kills the session). Pass an
+- `/compact` between phases — never start a fresh session (`/clear`, `/new`): it
+  kills the thread. Pass an
   instruction argument stating what to preserve (e.g.
   `/compact keep phase-N decisions, open findings, and the next phase's plan`)
   so the summary keeps what the next phase needs.

@@ -33,7 +33,7 @@ Maintenance — on-demand, not per session: use the stats/health row above. Run 
 
 ## Conventions
 
-- **Actor (mandatory, every write):** pass `--actor "<runtime>:<session-or-purpose>"` (e.g. `cc:${CLAUDE_CODE_SESSION_ID:0:8}`) on *all* `bd create` / `update` / `close` / `dep` / `label`. Stamps `created_by` + each change event; `owner` stays the human.
+- **Actor (mandatory, every write):** pass `--actor "<runtime>:<session-or-purpose>"` (Claude Code: `cc:${CLAUDE_CODE_SESSION_ID:0:8}`; Codex: `codex:<thread-or-purpose>`) on *all* `bd create` / `update` / `close` / `dep` / `label`. Stamps `created_by` + each change event; `owner` stays the human.
 - **Casing:** label names are filter-case-sensitive — all-lowercase kebab-case, never Capitalized.
 - **idea** (raw, untriaged) and **backlog** (vetted, not now) are deferred labels — create commands in `.beads/beads.md` → *Ideas And Backlog*; triage with `bd list -l idea`; promote an idea with `bd label add <id> backlog; bd label remove <id> idea`.
 - **Intake states** (`needs-triage`, `needs-info`, `ready-for-agent` + its gate, `human`, wontfix closes): vocabulary in `.beads/beads.md` → *Intake States*; move issues between them via the `triage` skill.
@@ -42,7 +42,7 @@ Maintenance — on-demand, not per session: use the stats/health row above. Run 
 
 ## Overrides (these beat `bd prime`'s defaults)
 
-- **Granularity:** one bd issue per work-item, never per step — TodoWrite handles this turn's steps. Durable work found mid-task → `bd create … --deps discovered-from:<id>` before the turn ends.
+- **Granularity:** one bd issue per work-item, never per step — the session's in-turn task list handles this turn's steps. Durable work found mid-task → `bd create … --deps discovered-from:<id>` before the turn ends.
 - **Memory:** durable knowledge (facts, decisions, preferences) → `MEMORY.md`, not `bd remember`. Do **NOT** use `bd remember` / `bd memories`, and ignore `bd prime` guidance to avoid `MEMORY.md`. bd holds work items only.
 - **Git:** conservative — no commit / push / `bd dolt push` unless asked. At session close, if issues changed, refresh the mirror: `bd export -o .beads/issues.jsonl`.
 

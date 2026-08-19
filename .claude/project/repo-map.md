@@ -12,8 +12,8 @@ Top-level layout and how to navigate.
 | `reference_harnesses/` | Six third-party harnesses as git submodules (read-only) |
 | `harness_lifecycle/` | Reference-harness curation tooling: `scan.py` (catalog/diff/drift), `gap.py` (gap/ledger), committed `catalogs/` |
 | `.agents/` | Codex/agent local settings |
-| `.claude/` | Installed Claude harness: `rules/`, `skills/`, `agents/`, `commands/`, `hooks/`, `project/` overlay |
-| `.codex/` | Installed Codex harness (mirror of `.claude/`, Codex-flavored) |
+| `.claude/` | Canonical harness: `rules/`, `skills/` (slash commands are slash-only skills; each skill carries `agents/openai.yaml` for Codex), `agents/`, `hooks/`, `project/` overlay |
+| `.codex/` | Codex view of the same harness: `skills/*` and `project` are symlinks into `.claude/`; only Codex-native residue (`config.toml`, `rules/default.rules`, `agents/*.toml`, `hooks.json`) are real files |
 | `.beads/` | Beads issue tracker store (embedded Dolt) + `beads.md` |
 | `scratchpad/` | Gitignored throwaway work |
 | `CLAUDE.md` / `AGENTS.md` | Always-loaded entry points (installed by the harness) |

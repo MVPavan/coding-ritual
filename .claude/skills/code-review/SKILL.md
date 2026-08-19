@@ -50,9 +50,9 @@ gate bounces the work back as failed verification, not into a review round.
   contract, shared mutable state — checking the call sites is the right method.
 - The review is **read-only** on this checkout: never mutate the working
   tree, index, HEAD, or branch state. Need a working copy of another
-  revision? Use the harness's worktree isolation (the Agent tool's
-  `isolation: worktree`, or `EnterWorktree`), never raw
-  `git worktree add`, which leaves worktree state the harness cannot see or
+  revision? Use the harness's isolated-worktree facility (Claude Code: the
+  Agent tool's `isolation: worktree`, or `EnterWorktree`; Codex: a subagent
+  in its own worktree), never raw `git worktree add`, which leaves worktree state the harness cannot see or
   clean up; either way, never move HEAD here. Before treating a checkout as
   already isolated, verify true isolation: a bare `GIT_DIR != GIT_COMMON`
   test also fires inside submodules (everything under

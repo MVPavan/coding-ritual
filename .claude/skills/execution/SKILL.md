@@ -24,8 +24,8 @@ their own skills.
 
 ## Shared spine (every scope)
 
-- **bd is the anchor.** `--actor "cc:${CLAUDE_CODE_SESSION_ID:0:8}"` on every
-  bd write. Close with evidence:
+- **bd is the anchor.** `--actor "<runtime>:<session>"` (Claude Code:
+  `cc:${CLAUDE_CODE_SESSION_ID:0:8}`; Codex: `codex:<thread>`) on every bd write. Close with evidence:
   `bd close <id> --reason "<verification evidence>" --actor "…"` — the reason
   is what renders into progress views; if it's not in bd, it's not real.
 - **Risk comes from**: the roadmap row (phase scope — each phase states its
@@ -82,9 +82,10 @@ their own skills.
      phases have no plan: implement the stage from the roadmap row's Spec
      Reference.
    - Implement per the risk routing above. Verify the stage's acceptance
-     (the roadmap Verify cell), close with evidence, then render if
-     `.claude/skills/beads/scripts/bd-render-tracking.sh` exists
-     (`BD_RENDER=1 bash … <name>`), else report the missing renderer.
+     (the roadmap Verify cell), close with evidence, then render with
+     the beads skill's `scripts/bd-render-tracking.sh` if it exists
+     (`BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh <name>`),
+     else report the missing renderer.
 4. **Exit — the discipline gate.** A phase closes only when it has stages and
    every one is closed:
    `n=$(bd list --parent <epic> --json | jq 'length'); u=$(bd list --parent <epic> --json | jq '[.[]|select(.status!="closed")]|length'); [ "$n" -gt 0 ] && [ "$u" -eq 0 ]`.

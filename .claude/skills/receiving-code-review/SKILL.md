@@ -16,7 +16,7 @@ skill exists to prevent.
 Inside the execution engine's fix loop, the engine owns reception: findings
 are relayed verbatim, fixes are re-reviewed ADDRESSED / NOT ADDRESSED, and
 disagreement waits for adjudication at the round cap
-(`.claude/skills/execution/references/task-engine.md`). This skill governs
+(the execution skill's `references/task-engine.md`). This skill governs
 feedback arriving **outside** that loop.
 
 ## Reception order
