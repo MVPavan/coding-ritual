@@ -1,6 +1,0 @@
-interface:
-  display_name: "Deep Research"
-  short_description: "Decision-grade sourced research"
-  default_prompt: "Use $deep-research to produce a source-grounded HTML research brief for this decision."
-policy:
-  allow_implicit_invocation: false
