@@ -4,7 +4,8 @@
 > `mvp-harness` submodule (`mvp-harness/plugins/mvp-plugin`), whose own
 > [`README.md`](../../mvp-harness/plugins/mvp-plugin/README.md) is the user-facing
 > doc; this page is the maintainer's mental model and the workflow from *this* repo.
-> Updated 2026-08-19 (plugin v0.2.0 — dual-manifest, skills-as-plugin-components).
+> Updated 2026-08-19 (dual-manifest, skills-as-plugin-components; current version
+> in `mvp-harness/plugins/mvp-plugin/publish-info.txt`).
 
 ## 1. What it is
 
@@ -139,10 +140,12 @@ file; portable paths; beads; overlay filled; residue version vs plugin manifest;
 
 See `mvp-harness/plugins/mvp-plugin/test/README.md`. Host run:
 `PLUGIN_DIR=mvp-harness/plugins/mvp-plugin bash mvp-harness/plugins/mvp-plugin/test/run-tests.sh`
-(31 checks, incl. the update-merge suite). Supported platforms: Linux/macOS.
+(incl. the update-merge suite). Supported platforms: Linux/macOS.
 
 ## Current state
 
-v0.2.0 — 43 skills (26 model-invocable / 17 slash-only on publish), 4 agents,
-residue template 24 files. Plugin repo branch `plugin-dist` (not pushed); submodule
-pointer bump pending the user's word.
+43 skills (26 model-invocable / 17 slash-only on publish), 4 agents, residue
+template 24 files. Version + source commit: `mvp-harness/plugins/mvp-plugin/publish-info.txt`.
+Verified by the plugin test suites and a 12-cell live install matrix (Claude Code +
+Codex in a clean container): every install/adopt permutation, hooks firing, the
+teammate-clone path, duplicate detection, uninstall.
