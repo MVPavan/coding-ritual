@@ -7,15 +7,23 @@ router shipped dead pointers undetected until an audit — so this script
 generates the mechanical part and lints the rest.
 
   --check (default)
-      Exit 1 if the generated section is stale; if any /name reference in a
-      command file or in any shipped text file under a skill folder (*.md,
-      *.sh, *.py, *.yaml — references, scripts, assets included) resolves to
-      no installed skill, no installed command, and no ALLOWED_SLASHES entry;
-      or if any `.claude/...` path token in those same files names nothing on
-      disk under the repo root (placeholder/glob tokens are skipped).
+      Exit 1 if the generated section is stale; if any /name reference in any
+      shipped text file under a skill folder (*.md, *.sh, *.py, *.yaml —
+      references, scripts, assets included) resolves to no installed skill and
+      no ALLOWED_SLASHES entry; if any `.claude/...` path token in those same
+      files names nothing on disk under the repo root (placeholder/glob tokens
+      are skipped); or if any skill's `agents/openai.yaml` is missing or its
+      `policy.allow_implicit_invocation` disagrees with the SKILL.md
+      `disable-model-invocation` flag (the Codex twin of that flag).
   --write
-      Regenerate everything below the marker line. Refuses if the marker is
-      missing. Deterministic (sorted) and idempotent.
+      Regenerate everything below the marker line and every skill's
+      `agents/openai.yaml` policy block (an existing `interface:` block is
+      kept verbatim). Refuses if the marker is missing. Deterministic (sorted)
+      and idempotent.
+
+Slash commands were folded into slash-only skills (2026-08-19): there is no
+.claude/commands directory; a user-run workflow is a skill with
+`disable-model-invocation: true`.
 
 Warnings (reported, never exit-code failures): a quoted trigger phrase claimed
 by two or more model-invocable skill descriptions; an ALLOWED_SLASHES entry no
@@ -37,30 +45,26 @@ MARKER = "<!-- generated:skill-catalog -->"
 ROUTER_REL = Path("skills/skill-router/SKILL.md")
 WRITE_CMD = "python3 .claude/scripts/skill-catalog.py --write"
 
-# Slash tokens that legitimately resolve outside .claude/skills and
-# .claude/commands. One-word reason each; --check warns when an entry stops
+# Slash tokens that legitimately resolve outside .claude/skills. One-word
+# reason each; --check warns when an entry stops
 # being referenced so the list stays minimal.
 ALLOWED_SLASHES: dict[str, str] = {
     "/clear": "builtin",  # Claude Code built-in; execution/workstream-mode warns against it
-    "/code-intel:index-repo": "plugin",
-    "/code-intel:setup": "plugin",
-    "/codex": "plugin",
-    "/codex-check": "plugin",
-    "/codex-critique": "plugin",
-    "/codex-diagnose": "plugin",
-    "/codex-implement": "plugin",
-    "/codex-research": "plugin",
-    "/codex-review": "plugin",
     "/compact": "builtin",  # Claude Code built-in; execution/workstream-mode between phases
     "/login": "url-path",  # i-have-adhd example: open `/login`
-    "/name": "placeholder",  # authoring-for-agents skill-anatomy: "the human typing `/name`"
+    "/name": "placeholder",
+    "/new": "builtin",  # Codex built-in; execution/workstream-mode warns against it  # authoring-for-agents skill-anatomy: "the human typing `/name`"
     "/settings": "url-path",  # prototype/UI.md example route
 }
 
 # `.claude/...` path tokens that legitimately name nothing on disk (an
 # illustrative example, a path that exists only in an adopted repo). One-word
 # reason each; --check warns when an entry stops being referenced.
-ALLOWED_PATHS: dict[str, str] = {}
+ALLOWED_PATHS: dict[str, str] = {
+    # migrate-claude-to-codex converts OTHER repos' command dirs; this repo has none.
+    ".claude/commands": "foreign-repo",
+    ".claude/commands/": "foreign-repo",
+}
 
 # Text files under a skill folder whose slash and path references are linted.
 # Everything else (images, fixtures, binaries) is skipped by suffix.
@@ -101,10 +105,10 @@ SENTENCE_END = re.compile(r"(.*?[.!?])(?:\s|$)")
 
 @dataclass(frozen=True)
 class Surface:
-    """One user- or model-reachable unit: a skill or a command."""
+    """One user- or model-reachable unit: a skill."""
 
     name: str
-    kind: str  # "skill" | "command"
+    kind: str  # "skill"
     slash_only: bool
     description: str
     path: Path
@@ -185,22 +189,6 @@ def load_skills(claude_dir: Path) -> list[Surface]:
     return surfaces
 
 
-def load_commands(claude_dir: Path) -> list[Surface]:
-    """Every .claude/commands/*.md — always user-launched."""
-    surfaces: list[Surface] = []
-    for command_md in sorted(claude_dir.glob("commands/*.md")):
-        fields = parse_frontmatter(command_md.read_text(encoding="utf-8"))
-        surfaces.append(
-            Surface(
-                name=command_md.stem,
-                kind="command",
-                slash_only=True,
-                description=fields.get("description", ""),
-                path=command_md,
-            )
-        )
-    return surfaces
-
 
 def first_sentence(text: str) -> str:
     """First sentence of a description, whitespace-collapsed."""
@@ -216,12 +204,12 @@ def _cell(text: str) -> str:
     return text.replace("|", "\\|") if text else "(no description)"
 
 
-def render_catalog(skills: list[Surface], commands: list[Surface]) -> str:
+def render_catalog(skills: list[Surface]) -> str:
     """The generated section: everything below the marker line. Model-invocable
     skills are names only — the model holds their descriptions natively; the
     slash table carries gists because the model never sees those descriptions."""
     model = sorted((s for s in skills if not s.slash_only), key=lambda s: s.name)
-    slash = sorted([s for s in skills if s.slash_only] + commands, key=lambda s: s.name)
+    slash = sorted((s for s in skills if s.slash_only), key=lambda s: s.name)
     lines = [
         "",
         f"<!-- Generated by `{WRITE_CMD}` — edit above the marker only. -->",
@@ -230,7 +218,7 @@ def render_catalog(skills: list[Surface], commands: list[Surface]) -> str:
         "",
         ", ".join(f"`{s.name}`" for s in model),
         "",
-        "## Slash-only workflows and commands",
+        "## Slash-only workflows",
         "",
         "| Surface | Use |",
         "|---|---|",
@@ -254,10 +242,7 @@ def split_at_marker(text: str) -> tuple[str, str] | None:
 
 def shipped_text_files(surface: Surface) -> list[Path]:
     """Files linted for slash and `.claude/...` path references: every text
-    file under a skill's folder (SKILL.md, references, scripts, assets), or
-    the command file itself."""
-    if surface.kind == "command":
-        return [surface.path]
+    file under a skill's folder (SKILL.md, references, scripts, assets)."""
     return sorted(
         candidate
         for candidate in surface.path.parent.rglob("*")
@@ -328,6 +313,69 @@ def frontmatter_warnings(skills: list[Surface]) -> list[str]:
     ]
 
 
+# --- Codex twin of disable-model-invocation -----------------------------------
+
+OPENAI_YAML_REL = Path("agents/openai.yaml")
+POLICY_LINE = re.compile(r"^\s*allow_implicit_invocation:\s*(true|false)\s*$", re.M)
+
+
+def expected_policy(surface: Surface) -> str:
+    """Codex reads `policy.allow_implicit_invocation` from agents/openai.yaml,
+    never Claude's frontmatter, so the value mirrors `disable-model-invocation`:
+    a slash-only skill must not be auto-invoked on either tool."""
+    return "false" if surface.slash_only else "true"
+
+
+def render_openai_yaml(existing: str | None, policy: str) -> str:
+    """The sidecar text: any existing `interface:` block kept verbatim (it is
+    cosmetic, hand-owned), followed by the generated policy block."""
+    interface_lines: list[str] = []
+    if existing:
+        in_interface = False
+        for line in existing.splitlines():
+            if line.startswith("interface:"):
+                in_interface = True
+            elif line and not line[0].isspace():
+                in_interface = False
+            if in_interface:
+                interface_lines.append(line)
+    body = "\n".join(interface_lines + ["policy:", f"  allow_implicit_invocation: {policy}"])
+    return body + "\n"
+
+
+def openai_yaml_failures(skills: list[Surface]) -> list[str]:
+    """Missing sidecar, or a policy that disagrees with the frontmatter flag."""
+    failures: list[str] = []
+    for surface in skills:
+        sidecar = surface.path.parent / OPENAI_YAML_REL
+        want = expected_policy(surface)
+        if not sidecar.is_file():
+            failures.append(f"missing {sidecar.parent.parent.name}/{OPENAI_YAML_REL} — run `{WRITE_CMD}`")
+            continue
+        match = POLICY_LINE.search(sidecar.read_text(encoding="utf-8"))
+        got = match.group(1) if match else None
+        if got != want:
+            failures.append(
+                f"{surface.name}/{OPENAI_YAML_REL}: allow_implicit_invocation is {got},"
+                f" frontmatter says {want} — run `{WRITE_CMD}`"
+            )
+    return failures
+
+
+def write_openai_yamls(skills: list[Surface]) -> int:
+    """Write/refresh every skill's sidecar; returns how many files changed."""
+    changed = 0
+    for surface in skills:
+        sidecar = surface.path.parent / OPENAI_YAML_REL
+        existing = sidecar.read_text(encoding="utf-8") if sidecar.is_file() else None
+        rendered = render_openai_yaml(existing, expected_policy(surface))
+        if rendered != existing:
+            sidecar.parent.mkdir(parents=True, exist_ok=True)
+            sidecar.write_text(rendered, encoding="utf-8")
+            changed += 1
+    return changed
+
+
 # --- Commands -----------------------------------------------------------------
 
 
@@ -341,11 +389,10 @@ def _rel(path: Path, root: Path) -> str:
 def cmd_check(root: Path) -> int:
     claude_dir = root / ".claude"
     skills = load_skills(claude_dir)
-    commands = load_commands(claude_dir)
     failures: list[str] = []
     warnings: list[str] = []
 
-    known = {s.name for s in skills} | {c.name for c in commands}
+    known = {s.name for s in skills}
     router = claude_dir / ROUTER_REL
     if not router.is_file():
         failures.append(f"missing {_rel(router, root)} — create it with the marker, then run --write")
@@ -359,15 +406,15 @@ def cmd_check(root: Path) -> int:
             for lineno, line in enumerate(parts[0].splitlines(), start=1):
                 failures.extend(
                     f"unresolved skill name `{name}` at {_rel(router, root)}:{lineno}"
-                    " (hand-owned section) — no installed skill or command"
+                    " (hand-owned section) — no installed skill"
                     for name in (m.group(1) for m in BARE_NAME.finditer(line))
                     if name not in known
                 )
-        if parts is not None and parts[1] != render_catalog(skills, commands):
+        if parts is not None and parts[1] != render_catalog(skills):
             diff = list(
                 difflib.unified_diff(
                     parts[1].splitlines(),
-                    render_catalog(skills, commands).splitlines(),
+                    render_catalog(skills).splitlines(),
                     fromfile="on-disk",
                     tofile="regenerated",
                     lineterm="",
@@ -380,7 +427,7 @@ def cmd_check(root: Path) -> int:
     used_path_allowlist: set[str] = set()
     resolved = 0
     resolved_paths = 0
-    for surface in skills + commands:
+    for surface in skills:
         for shipped in shipped_text_files(surface):
             for lineno, token in slash_refs(shipped):
                 if token[1:] in known:
@@ -391,7 +438,7 @@ def cmd_check(root: Path) -> int:
                 else:
                     failures.append(
                         f"dead slash pointer {token} at {_rel(shipped, root)}:{lineno}"
-                        " — no installed skill, command, or allowlist entry"
+                        " — no installed skill or allowlist entry"
                     )
             for lineno, token in claude_path_refs(shipped):
                 if (root / token).exists():
@@ -412,15 +459,13 @@ def cmd_check(root: Path) -> int:
         f"path allowlist entry {token} ({ALLOWED_PATHS[token]}) is no longer referenced — remove it"
         for token in sorted(set(ALLOWED_PATHS) - used_path_allowlist)
     )
+    failures.extend(openai_yaml_failures(skills))
     warnings.extend(trigger_phrase_warnings(skills))
     warnings.extend(frontmatter_warnings(skills))
 
     model_count = sum(1 for s in skills if not s.slash_only)
     print(f"## skill-catalog check: {root}")
-    print(
-        f"{len(skills)} skills ({model_count} model-invocable,"
-        f" {len(skills) - model_count} slash-only), {len(commands)} commands"
-    )
+    print(f"{len(skills)} skills ({model_count} model-invocable, {len(skills) - model_count} slash-only)")
     if not failures:
         print("OK   generated section is current")
         print(f"OK   {resolved} slash references resolve ({len(used_allowlist)} allowlisted)")
@@ -428,6 +473,7 @@ def cmd_check(root: Path) -> int:
             f"OK   {resolved_paths} .claude/ path references resolve"
             f" ({len(used_path_allowlist)} allowlisted)"
         )
+        print(f"OK   {len(skills)} agents/openai.yaml sidecars match their frontmatter")
     for warning in warnings:
         print(f"WARN {warning}")
     for failure in failures:
@@ -447,13 +493,14 @@ def cmd_write(root: Path) -> int:
             " — everything above it is hand-owned; add the marker where the generated section starts"
         )
     skills = load_skills(claude_dir)
-    commands = load_commands(claude_dir)
-    updated = parts[0] + render_catalog(skills, commands)
+    updated = parts[0] + render_catalog(skills)
     if updated == parts[0] + parts[1]:
         print(f"already current: {_rel(router, root)}")
     else:
         router.write_text(updated, encoding="utf-8")
         print(f"regenerated: {_rel(router, root)}")
+    changed = write_openai_yamls(skills)
+    print(f"agents/openai.yaml sidecars: {changed} written, {len(skills) - changed} already current")
     for warning in trigger_phrase_warnings(skills) + frontmatter_warnings(skills):
         print(f"WARN {warning}")
     return 0

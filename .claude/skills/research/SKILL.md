@@ -17,6 +17,7 @@ Before running, take the first row that matches.
 |---|---|
 | One bounded library/SDK/API/CLI fact | Not this skill — dispatch the **docs-researcher** subagent and relay its answer |
 | Answerable from this repo's code or docs | Read the repo |
+| Understanding how an unfamiliar or external codebase works | Ask the user to run `/codebase-architecture-research` (slash-only; writes a durable report set) |
 | Unsettled scope, requirements, or a spec to write | The **brainstorming** skill |
 | A question that needs sources gathered and weighed | This skill |
 

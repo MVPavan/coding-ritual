@@ -2,3 +2,5 @@ interface:
   display_name: "Migrate Claude to Codex"
   short_description: "Move Claude harness assets into Codex"
   default_prompt: "Use $migrate-claude-to-codex to migrate this repository's Claude Code harness into Codex-native assets."
+policy:
+  allow_implicit_invocation: true

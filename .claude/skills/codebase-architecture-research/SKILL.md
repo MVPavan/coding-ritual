@@ -1,6 +1,7 @@
 ---
 name: codebase-architecture-research
-description: Investigate a provided source codebase or external repository and produce architecture-focused research reports for future agents and human review. Use when asked to understand a codebase such as external/<name> or external/<name>, map its core architecture, runtime lifecycle, data/state model, inner workings, integration points, or create docs/research/codebases/name/ Markdown and HTML reports while avoiding excessive focus on cosmetic UI, release plumbing, generic tooling, or process layers unless they explain core behavior.
+description: Investigate an unfamiliar or external codebase and write a durable, source-grounded architecture report set (agent Markdown under docs/research/codebases/<name>/, optional HTML for humans) — core architecture, runtime lifecycle, data/state, integration points. Descriptive, not a refactor proposal; for deepening your own code use improve-codebase-architecture.
+disable-model-invocation: true
 ---
 
 # Codebase Architecture Research
@@ -89,7 +90,7 @@ The Markdown reports should help a future agent become productive quickly:
 
 The HTML report should help the user review the same understanding quickly:
 
-- use [$html-artifact](.codex/skills/html-artifact/SKILL.md) Use index as only contents page, detailed codebase realted content move it to differenent pages, with detailed diagrams where ever possible, espicially for architectures.
+- Build it with the `html-artifact` skill. `index.html` is a contents page only; detailed codebase content goes on separate pages, with diagrams wherever possible — especially for architecture.
 - Present the architecture map, main flows, risks, and open questions.
 - Link or visibly reference the Markdown reports as the canonical source.
 - Keep it readable and structured; avoid decorative interfaces that obscure the technical content.
@@ -99,5 +100,5 @@ The HTML report should help the user review the same understanding quickly:
 ```bash
 rg --files <codebase-path>
 rg -n "main\\(|cobra|click|argparse|Command|server|worker|plugin|hook|store|db|queue|scheduler|orchestr" <codebase-path>
-python3 .codex/skills/codebase-architecture-research/scripts/init_report_tree.py external/<name>
+python3 <codebase-architecture-research-skill-dir>/scripts/init_report_tree.py external/<name>
 ```

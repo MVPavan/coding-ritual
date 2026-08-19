@@ -6,7 +6,7 @@ harness — only what changes because of the packaging.
 ## Layout
 
 ```text
-.claude/skills/<name>/
+<skills-root>/<name>/        # .claude/skills/ in a repo; skills/ in a plugin
   SKILL.md          # required
   references/       # only when SKILL.md alone is not enough
   scripts/          # only for runnable helpers
@@ -74,7 +74,6 @@ House examples: `idea-refine` (red flags), `test-driven-development`,
 | --- | --- | --- |
 | **Model-invoked skill** — the agent fires it on its own; other skills can route to it | a description carrying the trigger branches | the description is permanent context load |
 | **User-invoked skill** — only the human typing `/name` fires it; no skill can route to it | `disable-model-invocation: true`; the description turns human-facing — a one-line summary, trigger lists stripped | zero trigger load, but the human is the index that must remember it |
-| **Command** (`.claude/commands/<name>.md`) — the human launches a workflow, optionally with arguments | a prompt file, not a skill | no standing description |
 
 Pick model-invocation only when the agent must reach the document unprompted
 or another skill routes to it. House examples of user-invoked skills:

@@ -15,7 +15,7 @@
 # failure mode (re-run to fix) — divergent hand-edits are impossible.
 #
 # Run with BD_RENDER=1 (the guard whitelist that lets writes land on the generated paths):
-#   BD_RENDER=1 bash .claude/skills/beads/scripts/bd-render-tracking.sh [workstream-name]
+#   BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh [workstream-name]
 #
 # Env knobs:
 #   DOCS_ROOT  output base dir that repo-relative paths are joined to (default: repo root ".")
@@ -48,7 +48,7 @@ write_generated() {
   echo "  rendered  $path"
 }
 
-header() { printf '# %s\n_generated from bd @ %s — DO NOT EDIT (run: BD_RENDER=1 bash .claude/skills/beads/scripts/bd-render-tracking.sh)_\n' "$1" "$NOW"; }
+header() { printf '# %s\n_generated from bd @ %s — DO NOT EDIT (run: BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh)_\n' "$1" "$NOW"; }
 
 # All epics (open + closed), one per line, TSV: id <TAB> status <TAB> spec_id <TAB> title.
 # Sorted by spec_id then title so phases display in roadmap order (titles carry sortable prefixes).

@@ -1,5 +1,7 @@
 ---
+name: harness-scan
 description: Deep scan of one reference harness — what changed upstream AND what it ships that our harness doesn't — then route candidates via the harness-evaluate skill.
+disable-model-invocation: true
 ---
 
 # Harness Scan

@@ -1,5 +1,7 @@
 ---
+name: harness-status
 description: Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. Read-only (fetches, never moves pins).
+disable-model-invocation: true
 ---
 
 # Harness Status

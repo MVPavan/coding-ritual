@@ -15,14 +15,14 @@ Use this skill to perform a conservative Claude Code to Codex harness migration.
 2. Run a dry-run inventory:
 
 ```bash
-python3 .codex/skills/migrate-claude-to-codex/scripts/migrate_claude_to_codex.py migrate --repo .
+python3 <migrate-claude-to-codex-skill-dir>/scripts/migrate_claude_to_codex.py migrate --repo .
 ```
 
 3. Review the planned actions. If the target repo already has `.codex/`, decide whether to keep existing files or use `--force` for selected reruns.
 4. Apply the migration only after the dry-run looks right:
 
 ```bash
-python3 .codex/skills/migrate-claude-to-codex/scripts/migrate_claude_to_codex.py migrate --repo . --apply
+python3 <migrate-claude-to-codex-skill-dir>/scripts/migrate_claude_to_codex.py migrate --repo . --apply
 ```
 
 5. Manually review migrated content for provider-specific assumptions:
@@ -33,7 +33,7 @@ python3 .codex/skills/migrate-claude-to-codex/scripts/migrate_claude_to_codex.py
 6. Verify the result:
 
 ```bash
-python3 .codex/skills/migrate-claude-to-codex/scripts/migrate_claude_to_codex.py verify --repo .
+python3 <migrate-claude-to-codex-skill-dir>/scripts/migrate_claude_to_codex.py verify --repo .
 ```
 
 7. If `codex` is installed, also verify real discovery:

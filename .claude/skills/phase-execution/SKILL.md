@@ -1,11 +1,13 @@
 ---
+name: phase-execution
 description: Execute one phase of a workstream roadmap. Thin entry point for the execution skill's phase scope.
+disable-model-invocation: true
 ---
 
 # Phase Execution
 
 Invoke the **execution skill** in **phase scope**
-(`.claude/skills/execution/SKILL.md` → Phase scope).
+(the execution skill → Phase scope).
 
 - **Input:** phase id and roadmap path, e.g.
   `/phase-execution E --roadmap docs/workstreams/<name>/roadmap.md`. If the

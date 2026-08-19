@@ -1,5 +1,7 @@
 ---
+name: check-invariants
 description: Run mechanically checkable invariants from the project overlay and report pass or fail.
+disable-model-invocation: true
 ---
 
 # Check Invariants
