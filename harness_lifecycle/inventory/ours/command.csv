@@ -1,7 +1,4 @@
 id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
-command:commands/README,command,commands,README,ours,commands/README.md,11,0,,
-command:commands/adopt,command,commands,adopt,ours,commands/adopt.md,81,0,,Adopt this reusable Claude setup to the current repository by refreshing only the project overlay files.
-command:commands/check-invariants,command,commands,check-invariants,ours,commands/check-invariants.md,14,0,,Run mechanically checkable invariants from the project overlay and report pass or fail.
 command:commands/codex,command,commands,codex,ours,commands/codex.md,20,0,,Delegate a task or question to OpenAI Codex (gpt-5.x) and relay its answer.
 command:commands/codex-check,command,commands,codex-check,ours,commands/codex-check.md,22,0,,"Check that the Codex CLI is installed, on PATH, and authenticated for the adapter."
 command:commands/codex-critique,command,commands,codex-critique,ours,commands/codex-critique.md,15,0,,"Get an independent Codex critique / second opinion on a decision, design, or plan (read-only)."
@@ -11,11 +8,5 @@ command:commands/codex-research,command,commands,codex-research,ours,commands/co
 command:commands/codex-review,command,commands,codex-review,ours,commands/codex-review.md,20,0,,Run an adversarial Codex code review of the current changes (read-only).
 command:commands/disable-for-project,command,commands,disable-for-project,ours,commands/disable-for-project.md,30,0,,"Explain how to turn the code-intel stack OFF for the current repo (so it doesn't start serena/CBM here), without affecting other projects."
 command:commands/doctor,command,commands,doctor,ours,commands/doctor.md,32,0,,"Diagnose the code-intel stack — check that serena, CBM, and ast-grep resolve, whether this repo is indexed, and print fix-up exports if a binary is missing."
-command:commands/harness-scan,command,commands,harness-scan,ours,commands/harness-scan.md,26,0,,Deep scan of one reference harness — what changed upstream AND what it ships that our harness doesn't — then route candidates via the harness-evaluate skill.
-command:commands/harness-status,command,commands,harness-status,ours,commands/harness-status.md,22,0,,"Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. Read-only (fetches, never moves pins)."
 command:commands/index-repo,command,commands,index-repo,ours,commands/index-repo.md,33,0,,Index the current repo into CBM (and confirm serena activation) so graph queries work. Run once per repo; CBM auto-syncs after.
-command:commands/phase-execution,command,commands,phase-execution,ours,commands/phase-execution.md,14,0,,Execute one phase of a workstream roadmap. Thin entry point for the execution skill's phase scope.
-command:commands/run-phases,command,commands,run-phases,ours,commands/run-phases.md,17,0,,Run every remaining phase of a workstream unattended. Thin entry point for the execution skill's workstream scope.
 command:commands/setup,command,commands,setup,ours,commands/setup.md,46,0,,"One-time per-machine setup for the code-intel stack — auto-detect serena/CBM/ast-grep, wire up the CODE_INTEL_*_BIN env vars, and print install commands for anything missing."
-command:commands/update,command,commands,update,ours,commands/update.md,18,0,,"Re-sync the reusable harness core into this repo from the plugin, without touching the filled project overlay."
-command:commands/use-codex,command,commands,use-codex,ours,commands/use-codex.md,90,0,,"Canonical invocation rules for calling OpenAI Codex (via the codex-adapter plugin) from this repo. Subagents and the main thread must follow this for review, diagnosis, implementation, research, and critique."

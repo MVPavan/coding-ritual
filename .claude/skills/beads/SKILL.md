@@ -1,6 +1,7 @@
 ---
 name: beads
 description: Use when working in a repository that uses bd or Beads for durable project task tracking, issue dependencies, blocker management, multi-session handoff, or shared work memory. Trigger when the user asks to find ready work, claim or close tasks, create follow-up work, inspect blockers, or recover project context; also when starting a new task or implementation, choosing what to work on next, or wrapping up a work session.
+disable-model-invocation: false
 ---
 
 # Beads
