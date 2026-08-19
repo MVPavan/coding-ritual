@@ -55,8 +55,8 @@ gate bounces the work back as failed verification, not into a review round.
   in its own worktree), never raw `git worktree add`, which leaves worktree state the harness cannot see or
   clean up; either way, never move HEAD here. Before treating a checkout as
   already isolated, verify true isolation: a bare `GIT_DIR != GIT_COMMON`
-  test also fires inside submodules (everything under
-  `reference_harnesses/`) — confirm
+  test also fires inside submodules (any vendored submodule directory) —
+  confirm
   `git rev-parse --show-superproject-working-tree` returns nothing first.
 - The implementer already ran the tests and reported the output. Do not
   re-run the suite to confirm their report. Run a test only when reading the

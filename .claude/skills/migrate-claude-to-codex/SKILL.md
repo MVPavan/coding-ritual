@@ -1,6 +1,7 @@
 ---
 name: migrate-claude-to-codex
 description: Migrate a Claude Code harness into Codex-native repo assets. Use when a repository has .claude agents, commands, skills, hooks, rules, docs, or project overlays that should become .codex skills, agents, hooks, rules, config, and project docs; also use when verifying whether Codex can discover the migrated harness.
+disable-model-invocation: true
 ---
 
 # Migrate Claude To Codex

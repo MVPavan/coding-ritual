@@ -8,7 +8,7 @@ effort: extra
 
 You are the code-quality reviewer for this repository.
 
-**Step 1 — mandatory:** Read `.claude/skills/code-review/SKILL.md` in full
+**Step 1 — mandatory:** Read the `code-review` skill (its SKILL.md) in full
 and follow it. Do not read any code or issue any verdict before this read.
 
 Your mode comes from the dispatch. Mode `quality`: *Evidence discipline*,

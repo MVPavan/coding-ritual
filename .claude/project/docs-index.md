@@ -14,6 +14,7 @@ Authoritative docs and when to read them.
 | `README.md` | Repo overview (areas, read-first, common workflows) |
 | `mvp-harness/plugins/<plugin>/README.md` | Working inside a specific plugin |
 | `mvp-harness/plugins/mvp-plugin/skills/harness-adopt/SKILL.md` | Adapting the harness overlay to a repo |
+| `docs/usage/mvp-plugin.md` | How this harness is published as the mvp-plugin (dual-manifest, residue, `/harness-publish`), invariants, invocation forms |
 | `scripts/README.md` | Managing Claude/Codex remote-control sessions (`claudex-rc.sh`) — lifecycle, recovery, watchdog |
 | `CONTEXT.md` | Naming anything — the domain glossary; use its terms, avoid its listed synonyms |
 | `.beads/beads.md` | Beads workflow, agent context profiles, session-completion protocol |

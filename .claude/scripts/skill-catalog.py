@@ -42,7 +42,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 MARKER = "<!-- generated:skill-catalog -->"
-ROUTER_REL = Path("skills/skill-router/SKILL.md")
+ROUTER_REL = Path("skill-router/SKILL.md")  # relative to the skills dir
 WRITE_CMD = "python3 .claude/scripts/skill-catalog.py --write"
 
 # Slash tokens that legitimately resolve outside .claude/skills. One-word
@@ -53,7 +53,9 @@ ALLOWED_SLASHES: dict[str, str] = {
     "/compact": "builtin",  # Claude Code built-in; execution/workstream-mode between phases
     "/login": "url-path",  # i-have-adhd example: open `/login`
     "/name": "placeholder",
-    "/new": "builtin",  # Codex built-in; execution/workstream-mode warns against it  # authoring-for-agents skill-anatomy: "the human typing `/name`"
+    "/mvp-plugin": "plugin-namespace",  # skill-router: `/mvp-plugin:<name>` invocation form
+    "/new": "builtin",
+    "/plugin": "builtin",  # Claude Code built-in plugin manager; mvp-plugin update skill  # Codex built-in; execution/workstream-mode warns against it  # authoring-for-agents skill-anatomy: "the human typing `/name`"
     "/settings": "url-path",  # prototype/UI.md example route
 }
 
@@ -163,13 +165,13 @@ def _frontmatter_block(text: str) -> str:
     return "\n".join(block)
 
 
-def load_skills(claude_dir: Path) -> list[Surface]:
+def load_skills(skills_dir: Path) -> list[Surface]:
     """Every .claude/skills/*/SKILL.md, classified by invocation mode. Only an
     uncommented `disable-model-invocation: true` key blocks model invocation —
     matching the loader's observed behaviour; a commented-out key is flagged
     (warning) but never changes classification."""
     surfaces: list[Surface] = []
-    for skill_md in sorted(claude_dir.glob("skills/*/SKILL.md")):
+    for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
         raw = skill_md.read_text(encoding="utf-8")
         fields = parse_frontmatter(raw)
         block = _frontmatter_block(raw)
@@ -386,14 +388,13 @@ def _rel(path: Path, root: Path) -> str:
         return str(path)
 
 
-def cmd_check(root: Path) -> int:
-    claude_dir = root / ".claude"
-    skills = load_skills(claude_dir)
+def cmd_check(root: Path, skills_dir: Path) -> int:
+    skills = load_skills(skills_dir)
     failures: list[str] = []
     warnings: list[str] = []
 
     known = {s.name for s in skills}
-    router = claude_dir / ROUTER_REL
+    router = skills_dir / ROUTER_REL
     if not router.is_file():
         failures.append(f"missing {_rel(router, root)} — create it with the marker, then run --write")
     else:
@@ -430,7 +431,10 @@ def cmd_check(root: Path) -> int:
     for surface in skills:
         for shipped in shipped_text_files(surface):
             for lineno, token in slash_refs(shipped):
-                if token[1:] in known:
+                # `/mvp-plugin:adopt` is the plugin-namespaced form of `/adopt`:
+                # resolve by the bare name so shipped skills may use either.
+                bare = token[1:].split(":", 1)[-1]
+                if bare in known:
                     resolved += 1
                 elif token in ALLOWED_SLASHES:
                     used_allowlist.add(token)
@@ -464,7 +468,7 @@ def cmd_check(root: Path) -> int:
     warnings.extend(frontmatter_warnings(skills))
 
     model_count = sum(1 for s in skills if not s.slash_only)
-    print(f"## skill-catalog check: {root}")
+    print(f"## skill-catalog check: {skills_dir}")
     print(f"{len(skills)} skills ({model_count} model-invocable, {len(skills) - model_count} slash-only)")
     if not failures:
         print("OK   generated section is current")
@@ -481,9 +485,8 @@ def cmd_check(root: Path) -> int:
     return 1 if failures else 0
 
 
-def cmd_write(root: Path) -> int:
-    claude_dir = root / ".claude"
-    router = claude_dir / ROUTER_REL
+def cmd_write(root: Path, skills_dir: Path) -> int:
+    router = skills_dir / ROUTER_REL
     if not router.is_file():
         raise SystemExit(f"refusing: {_rel(router, root)} does not exist")
     parts = split_at_marker(router.read_text(encoding="utf-8"))
@@ -492,7 +495,7 @@ def cmd_write(root: Path) -> int:
             f"refusing: marker {MARKER} missing from {_rel(router, root)}"
             " — everything above it is hand-owned; add the marker where the generated section starts"
         )
-    skills = load_skills(claude_dir)
+    skills = load_skills(skills_dir)
     updated = parts[0] + render_catalog(skills)
     if updated == parts[0] + parts[1]:
         print(f"already current: {_rel(router, root)}")
@@ -517,11 +520,20 @@ def main(argv: list[str] | None = None) -> int:
         default=Path(__file__).resolve().parents[2],
         help="repo root containing .claude/ (default: derived from script location)",
     )
+    parser.add_argument(
+        "--skills-dir",
+        type=Path,
+        default=None,
+        help="skills directory to catalog/lint (default: <root>/.claude/skills). The publish"
+        " step points this at a plugin's skills/ so its shipped router lists only shipped skills;"
+        " `.claude/...` path tokens still resolve against --root",
+    )
     args = parser.parse_args(argv)
     root = args.root.resolve()
-    if not (root / ".claude").is_dir():
-        raise SystemExit(f"no .claude/ under {root} — pass --root")
-    return cmd_write(root) if args.write else cmd_check(root)
+    skills_dir = (args.skills_dir or root / ".claude" / "skills").resolve()
+    if not skills_dir.is_dir():
+        raise SystemExit(f"no skills directory at {skills_dir} — pass --root or --skills-dir")
+    return cmd_write(root, skills_dir) if args.write else cmd_check(root, skills_dir)
 
 
 if __name__ == "__main__":

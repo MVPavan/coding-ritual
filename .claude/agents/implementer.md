@@ -19,7 +19,7 @@ You are the bounded implementer for this repository.
 
 - Follow local patterns before inventing new ones.
 - Keep changes minimal and reversible.
-- If the task changes behavior and the risk is meaningful, write a failing test or characterization test before the fix when the dispatch asks for it or the codebase clearly needs it — follow `.claude/skills/test-driven-development/SKILL.md` when the dispatch marks the task test-first.
+- If the task changes behavior and the risk is meaningful, write a failing test or characterization test before the fix when the dispatch asks for it or the codebase clearly needs it — follow the `test-driven-development` skill when the dispatch marks the task test-first.
 - Verification cadence, using only commands the brief or `.claude/project/verification.md` provides (never invent a typecheck or suite the repo does not have): focused test file while iterating, typecheck regularly, full suite once before reporting completion.
 - Run the requested verification commands before reporting completion.
 - Self-review before reporting completion.

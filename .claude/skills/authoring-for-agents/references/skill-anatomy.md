@@ -6,7 +6,7 @@ harness — only what changes because of the packaging.
 ## Layout
 
 ```text
-<skills-root>/<name>/        # .claude/skills/ in a repo; skills/ in a plugin
+<skills-root>/<name>/        # Claude Code: .claude/skills/ in a repo; either tool: skills/ in a plugin
   SKILL.md          # required
   references/       # only when SKILL.md alone is not enough
   scripts/          # only for runnable helpers

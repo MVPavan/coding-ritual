@@ -1,304 +1,148 @@
 # mvp-plugin — structure & usage
 
-A reference for the `mvp-plugin` Claude Code plugin: what it is, how it is laid out,
-how each command and script works, and what it installs into a target repo.
-
-> **Where it lives now.** `mvp-plugin` is one of three plugins in the **`mvp-harness`**
-> marketplace, tracked in this repo as the `mvp-harness/` git submodule
-> (`MVPavan/mvp-harness`). Its path is [`mvp-harness/plugins/mvp-plugin/`](../../mvp-harness/plugins/mvp-plugin/).
-> The plugin's `README.md` and `plugin.json` are current with the `mvp-harness`
-> marketplace layout (one root marketplace, sibling plugins, no vendoring).
-
----
+> Repo-side guide to the plugin this harness is published as. The plugin lives in the
+> `mvp-harness` submodule (`mvp-harness/plugins/mvp-plugin`), whose own
+> [`README.md`](../../mvp-harness/plugins/mvp-plugin/README.md) is the user-facing
+> doc; this page is the maintainer's mental model and the workflow from *this* repo.
+> Updated 2026-08-19 (plugin v0.2.0 — dual-manifest, skills-as-plugin-components).
 
 ## 1. What it is
 
-`mvp-plugin` installs a **self-contained agent-coding harness** into any repository:
-the `.claude/` + `.codex/` trees (rules, skills, agents, commands, hooks, docs),
-the `CLAUDE.md` / `AGENTS.md` entry points, and beads (`bd`) issue tracking — then
-adapts that harness to the specific repo.
+One plugin, two tools. `mvp-plugin` carries this repo's curated skill set and
+agents as **plugin components** that both Claude Code (`.claude-plugin/plugin.json`)
+and Codex (`.codex-plugin/plugin.json`) read from the **same `skills/` directory**.
+Installing it — user-level or (Claude Code) project-level — makes every skill
+available in every repo with no files copied. `adopt` then lays the per-repo
+**residue** a plugin cannot carry.
 
-Its guiding principle is a clean split (the same one encoded in the harness's own
-`03-ak-guidelines.md` rule #5 — *"if code can answer, code answers"*):
-
-| Half | Mechanism | Responsibility |
-|---|---|---|
-| **Deterministic** | `scripts/install-harness.sh` (bash) | Copy files, init beads, wire gitignore — reproducible, idempotent, no judgement. |
-| **Judgement** | `harness-adopt` skill (model) | Read the repo and fill the per-repo overlay with real facts; recommend automations. |
-
-Enabling the plugin exposes exactly **three commands** and **one skill** — nothing
-else. The large `template/` payload is inert data the installer copies; it is not
-auto-loaded (it does not sit at the plugin root).
-
----
+| Where | What |
+|---|---|
+| `coding-ritual/.claude/` (this repo) | the canonical harness — workshop; `.codex/*` here are symlinks into it |
+| `mvp-harness/plugins/mvp-plugin/` | the build artifact: `skills/` + `agents/` (copied by publish), `template/` residue, `adopt/update/doctor` |
+| an adopted repo | residue only: `.claude/{rules,hooks,settings.json,project/*}`, `CLAUDE.md`, `AGENTS.md`, `.beads/`, `.codex/{config.toml,hooks*,rules/default.rules,agents/*.toml}` + symlinks `.codex/project`, `.codex/rules/{core,python}` |
 
 ## 2. Install & use
 
-```bash
-# 1. Register the marketplace once (local path, or the GitHub URL once cloned)
-/plugin marketplace add <path-to>/mvp-harness
+```text
+# Claude Code
+/plugin marketplace add MVPavan/mvp-harness
+/plugin install mvp-plugin@mvp-harness          # user scope (everywhere) or project scope (this repo; teammates prompted)
 
-# 2. Install the plugin
-/plugin install mvp-plugin@mvp-harness
+# Codex (CLI >= 0.122)
+codex plugin marketplace add MVPavan/mvp-harness
+codex plugin add mvp-plugin@mvp-harness          # user level; new session afterwards
 
-# 3. In any repo you want set up:
-/mvp-plugin:adopt     # copy the harness, init beads, then adapt it to this repo
-/mvp-plugin:doctor    # verify everything is wired
-/mvp-plugin:update    # later: re-sync the reusable core, keep your filled overlay
+# In any repo you want set up
+/mvp-plugin:adopt     ($adopt in Codex)          # residue + overlay adaptation
+/mvp-plugin:doctor    ($doctor)                  # verify wiring, skill availability, duplicates
+/mvp-plugin:update    ($update)                  # re-sync residue; skills update via the plugin itself
 ```
 
-External tools the adopted repo expects:
+Repo-level on Codex is "repo-discoverable, user-installed": `adopt` writes
+`.agents/plugins/marketplace.json` so teammates find the marketplace from the repo
+and run the two Codex commands once. `adopt --fork-skills` (rare) copies skills into
+the repo as editable files; it is refused while the plugin is enabled (double load)
+unless `--force-duplicate`.
 
-- **beads** (`bd`) — task tracking: `npm i -g @beads/bd` (pin `@beads/bd@1.0.4` if the
-  binary download 404s).
-- **codex** — only for the sibling `codex-adapter` plugin: `npm i -g @openai/codex && codex login`.
+## 3. Invocation forms
 
----
+Skill names are canonical; the prefix depends on where the harness is installed:
 
-## 3. The three commands
+| Context | Form |
+|---|---|
+| Claude Code, from the plugin | `/mvp-plugin:<name>` |
+| Claude Code, repo-local copy (this repo, or a forked adopt) | `/<name>` |
+| Codex | `$<name>` (or `/skills`) |
 
-Each command is a thin [`commands/*.md`](../../mvp-harness/plugins/mvp-plugin/commands/)
-wrapper; the real work is in `scripts/`. All use `${CLAUDE_PLUGIN_ROOT}` so they run
-from wherever the plugin is installed.
+Slash-only skills carry `disable-model-invocation: true` **and**
+`agents/openai.yaml` → `policy.allow_implicit_invocation: false` (generated; drift
+fails `skill-catalog.py --check`), so neither tool auto-triggers them.
 
-| Command | Runs | Effect |
-|---|---|---|
-| `/mvp-plugin:adopt` | `install-harness.sh` **+** `harness-adopt` skill | Full install: deterministic copy, then model-driven overlay fill. Ends by presenting `adoption-report.md` for review — never commits or `git add`s. |
-| `/mvp-plugin:update` | `install-harness.sh` **only** | Refresh the reusable core in place; the filled overlay and user config are preserved. Does *not* re-run overlay adaptation. |
-| `/mvp-plugin:doctor` | `doctor.sh` | PASS/WARN/FAIL wiring report. Does not change anything. |
+## 4. How `adopt` works
 
----
-
-## 4. How `/mvp-plugin:adopt` works
-
-### 4a. Deterministic — `scripts/install-harness.sh`
-
-Resolves the target repo via `hp_target()` (`$CLAUDE_PROJECT_DIR` → git top-level →
-`pwd`) and then:
-
-1. **Copies the payload** — every file under `template/` (except `beads/*`) into the
-   target, remapping the dot-less storage names back to dotted (`claude/→.claude/`,
-   `codex/→.codex/`). For each file:
-   - if it does not exist → copy (counts as *new*);
-   - if it exists and is **user-owned** → skip, never clobber (counts as *preserved*);
-   - if it exists and is core → overwrite only when content differs (counts as *updated*).
-   Hook scripts under `.claude/hooks` and `.codex/hooks` are re-`chmod +x`'d.
-2. **Drops overlay skeletons** — placeholder `# Title` + `TODO: fill from repo reality`
-   files, so the structure exists before the skill fills it. Written into **both**
-   `.claude/project/` and `.codex/project/`:
-   `brief.md`, `repo-map.md`, `docs-index.md`, `verification.md`, `invariants.md`,
-   `tools.md`, `tracking.md`, `learnings.md`, `adoption-report.md` — plus
-   `.claude/project/code-intel.md`. Existing overlay files are preserved.
-3. **Initialises beads** — `bd init --non-interactive --skip-agents` (skipped if
-   `.beads/metadata.json` already exists), copies the `beads.md` policy doc, sets
-   `export.auto true`, and points `sync.remote` at the repo's own `origin`
-   (`git+<url>`). If `bd` is absent it warns with the install hint and continues.
-4. **Appends a `.gitignore` block** (idempotent, marker-guarded) ignoring
-   `scratchpad/`, `**/scratchpad/*`, `.serena/`, `.codebase-memory/`.
-5. **Prints a summary** — `N new, N core updated, N user-owned preserved` — and the
-   NEXT hint to fill the overlay.
-
-**Guarantees:** idempotent (a second run reports `0 new, 0 core updated`),
-non-destructive (user-owned files never overwritten), and it never runs `git add`.
-
-**User-owned set** (`hp_is_user_owned` in `scripts/lib/common.sh` — the never-clobber list):
-`CLAUDE.md`, `AGENTS.md`, `.claude/settings.json`, `.codex/config.toml`,
-`.codex/hooks.json`, and everything under `.claude/project/*` and `.codex/project/*`.
-
-### 4b. Judgement — the `harness-adopt` skill
-
-After the files land, the [`harness-adopt`](../../mvp-harness/plugins/mvp-plugin/skills/harness-adopt/SKILL.md)
-skill does what code can't:
-
-1. Reads `AGENTS.md` / `CLAUDE.md` and the skeleton overlay.
-2. Scans the repo — root config, README, manifests/lock files, CI, `.gitmodules`,
-   source & tests.
-3. Applies an authority order when facts conflict:
-   **repo reality → current config/CI → maintained docs → older docs → explicit assumptions.**
-4. Fills every overlay file in **both** trees with verified facts (keeping `.claude/project/*`
-   and `.codex/project/*` consistent; only path prefixes differ).
-5. Appends **report-only** automation recommendations (modeled on Anthropic's
-   `claude-automation-recommender`): detected stack → suggested MCP servers / hooks /
-   subagents / the `code-intel` plugin. **Nothing is auto-enabled** — enablement is
-   the user's trust decision.
-6. Optionally has Codex challenge major assumptions (best-effort).
-7. Stops and presents `adoption-report.md` for review. No commit, no `git add`.
-
----
+1. **Deterministic** — `scripts/install-harness.sh`: reports plugin status per tool
+   (`claude plugin list --json`, `codex plugin list --json`), copies the residue
+   with a three-way merge (base = `.harness-manifest.txt`) that never clobbers local
+   edits (conflicts land as `<file>.template-new`), creates the Codex symlink view,
+   drops the overlay skeletons under `.claude/project/`, initialises beads and points
+   sync at origin, appends the `.gitignore` block, writes the repo marketplace file;
+   `settings.json` already carries `extraKnownMarketplaces.mvp-harness`. Idempotent;
+   never `git add`s.
+2. **Judgement** — the `harness-adopt` skill fills `.claude/project/*` from repo
+   reality and appends report-only automation recommendations. One overlay — there is
+   no `.codex/project/` to keep in step.
 
 ## 5. Plugin directory structure
 
-```
-mvp-plugin/
-├── .claude-plugin/plugin.json     # manifest (name, version 0.1.0, description, author)
-├── README.md  LICENSE  .gitignore
-├── commands/                      # the global surface — /mvp-plugin:*
-│   ├── adopt.md   doctor.md   update.md
-├── skills/harness-adopt/SKILL.md  # the judgement half of adopt
-├── scripts/                       # the machinery
-│   ├── install-harness.sh         #   deterministic install (adopt + update)
-│   ├── doctor.sh                  #   wiring verification
-│   ├── build-template.sh          #   (maintainer) regenerate template/ from source harness
-│   ├── check-sync.sh              #   (maintainer) drift check: .claude vs .codex payload
-│   ├── sync-manifest.txt          #   declared intentional .claude/.codex divergences
-│   ├── sync-baseline.txt          #   accepted-state snapshot for the drift check
-│   ├── lib/common.sh              #   shared helpers (hp_target, hp_is_user_owned, hp_* log)
-│   └── overrides/python/          #   genericised python rules swapped in at build time
-│       ├── coding-style.md   safety.md
-├── template/                      # the PAYLOAD (inert data). Stored DOT-LESS; installed dotted (see §6)
-│   ├── CLAUDE.md   AGENTS.md
-│   ├── beads/beads.md
-│   ├── claude/ …                  # 49 files (see §6) → installed as .claude/
-│   └── codex/ …                   # 69 files (see §6) → installed as .codex/
-└── test/                          # Dockerfile  run-tests.sh  from-zero.sh  README.md
+```text
+mvp-harness/
+  .claude-plugin/marketplace.json      Claude marketplace (mvp-plugin, code-intel, codex-adapter)
+  .agents/plugins/marketplace.json     Codex marketplace (mvp-plugin)
+  plugins/mvp-plugin/
+    .claude-plugin/plugin.json         skills ./skills/ (agents/ is the default dir)
+    .codex-plugin/plugin.json          skills ./skills/ + interface block
+    skills/<name>/…                    43 = 39 published from this repo + adopt/update/doctor/harness-adopt
+    agents/*.md                        4
+    template/                          residue (dot-less): CLAUDE.md AGENTS.md beads/ claude/{rules,hooks,settings.json} codex/{config.toml,hooks*,rules/default.rules,agents/*.toml} harness-manifest.txt
+    scripts/                           install-harness.sh doctor.sh build-template.sh check-sync.sh publish-plugin.sh smoke-codex.sh lib/{common,genericize}.sh overrides/ sync-manifest.txt template-exclude.txt
+    publish-manifest.txt               sources, excludes, plugin-owned, counts, neutrality audit patterns
+    publish-info.txt                   plugin version + source commit + counts (provenance)
+    test/                              run-tests.sh update-merge-test.sh from-zero.sh Dockerfile
 ```
 
-Only `commands/`, `skills/`, and `.claude-plugin/plugin.json` are plugin-active
-surfaces. `scripts/` is invoked by the commands; `template/` is pure payload.
+## 6. Publishing from this repo — `/harness-publish`
 
----
-
-## 6. The template payload (what gets installed)
-
-Two parallel harness trees are copied verbatim into the target repo. `.codex/` is a
-hand-maintained mirror of `.claude/` — they diverge by design (Markdown vs TOML
-agents, a bash vs Python hook, Codex-only skills), which is why [§7.2](#72-check-syncsh--keep-the-two-trees-in-sync)
-exists.
-
-> **Storage vs install.** In `template/` the payload dirs are stored **dot-less**
-> (`claude/`, `codex/`, `beads/`) so the source harness's own Claude Code does not
-> scan `template/.claude/skills` as project skills while you edit the payload.
-> `install-harness.sh` restores the leading dots on copy (`claude/→.claude/`, …), so
-> the adopted repo gets `.claude/` `.codex/` `.beads/`. The tables below use the
-> dotted **installed** names; the stored file contents are identical either way.
-
-### Root & tracking
-- **`CLAUDE.md` / `AGENTS.md`** — always-loaded operating guide: critical guidelines,
-  read order, working-mode classification (`small` / `standard` / `deep`),
-  process-before-execution routing, verification, git-safety.
-- **`.beads/beads.md`** — beads workflow + session-close protocol (copied; the store
-  itself is `bd init`'d, not copied).
-
-### `.claude/` tree (49 files)
-| Group | Contents |
-|---|---|
-| `agents/` | `claude-max`, `fable-max`, `fable-xhigh`, `implementer`, `planner`, `code-reviewer`, `spec-reviewer`, `docs-researcher` |
-| `commands/` | `adopt`, `check-invariants`, `prepare-phases`, `run-phases`, `use-codex` |
-| `rules/core/` | `01-delegation`, `02-knowledge-discoverability`, `03-ak-guidelines` |
-| `rules/python/` | `coding-style`, `safety`, `testing` (genericised versions) |
-| `skills/` | `ak-guide`, `brainstorming`, `planning`, `phase-execution`, `subagent-driven-development`, `test-driven-development`, `systematic-debugging`, `verification-before-completion`, `document-review`, `grill-me`, `design-evolve`, `teach-session`, `cost-estimate`, `html-artifact` |
-| `hooks/` | `bd-prime.sh` (SessionStart), `block-dangerous-commands.sh` (PreToolUse/Bash), `block-generated-edits.sh` (PreToolUse/Write\|Edit) |
-| `docs/` | beads / codex / mlflow adoption + usage guides |
-| `settings.json` | wires the three hooks (see below) |
-
-### `.codex/` tree (69 files)
-Mirrors `.claude/` for the Codex CLI, plus Codex-specific extras:
-- `config.toml`, `hooks.json`, `rules/default.rules`, `README.md`
-- agents as **`.toml`**; hooks include a **Python** `block-generated-edits.py`
-- Codex-only skills: `adopt`, `use-codex`, `deep-research`,
-  `codebase-architecture-research`, `migrate-claude-to-codex` (several ship
-  `agents/openai.yaml` + helper scripts).
-
-### Hooks wired by `.claude/settings.json`
-| Event | Matcher | Hook | Purpose |
-|---|---|---|---|
-| `PreToolUse` | `Bash` | `block-dangerous-commands.sh` | Block git working-tree/history destroyers, `--no-verify`, `bd init --force/--reinit`, and recursive `rm` outside `/tmp`. |
-| `PreToolUse` | `Write\|Edit` | `block-generated-edits.sh` | Block hand-edits to bd-generated workstream mirrors. |
-| `SessionStart` | — | `bd-prime.sh` | Load beads context at session start. |
-
-### Reusable vs per-repo (the key mental model)
-- **Reusable, copied verbatim** (updated by `adopt`/`update`): `rules/`, `skills/`,
-  `agents/`, `commands/`, `hooks/`, `docs/`, `settings.json`.
-- **Per-repo overlay, generated then filled**: `.claude/project/*`, `.codex/project/*`.
-- **Initialised per repo, never copied**: the beads store (`bd init`).
-
----
-
-## 7. Maintainer workflows
-
-These regenerate and validate the payload. They are **not** part of adopting into a
-repo — they are for whoever maintains the harness source of truth.
-
-### 7.1 `build-template.sh` — regenerate `template/` from the source harness
-
-The source of truth is the harness repo itself (this `coding-ritual` checkout — the
-script auto-discovers it by walking up from the plugin's parent for an ancestor with
-`.claude/rules` + `.codex`, or honours `HARNESS_SRC=/path`). It then:
-
-1. `rsync --delete` mirrors the source `.claude/`/`.codex/` into the dot-less
-   `template/claude`/`template/codex`, **excluding** the per-repo overlay (`/project/`)
-   and the project-flavoured python rules.
-2. Swaps in the genericised python rules from `scripts/overrides/python/`.
-3. Copies `CLAUDE.md` / `AGENTS.md` / `.beads/beads.md`, genericising a few
-   project-specific lines (submodule names, the "no first-party source tree" note).
-4. Sweeps machine-local paths & example tokens out of the payload
-   (`/home/<user>` → `$HOME`, repo root → `<repo-root>`, project/submodule names → `<name>`).
-5. **Self-checks and fails loudly** if any project/machine string survived
-   (`Bodha`, `gascity`, `gastown`, `/home/pavanmv`, `/data/codes`).
-6. Runs `check-sync.sh` as an advisory step (warn-only).
-
-### 7.2 `check-sync.sh` — keep the two trees in sync
-
-`.codex/` is not generated from `.claude/`; both are hand-edited, so a shared change
-can land on one side only. `check-sync.sh` reports two kinds of drift:
-- **structural** — a file on one side with no counterpart and not allowlisted;
-- **one-sided** — a shared file changed on one side since the last `accept`.
+Root-only skill (`.claude/skills/harness-publish/`) wrapping
+`mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh`:
 
 ```bash
-bash scripts/check-sync.sh          # report drift (exit 1 if any)
-bash scripts/check-sync.sh accept   # re-baseline after reconciling
+python3 .claude/scripts/skill-catalog.py --check                                  # root gates green
+bash mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh --check              # dry run
+bash mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh --bump patch --smoke # publish
+git -C mvp-harness add … && git -C mvp-harness commit …                            # plugin repo commit (its own branch)
+git add mvp-harness && git commit -m "chore(plugin): mvp-plugin vX.Y.Z (source <sha>)"
 ```
 
-Intentional divergences are declared in `sync-manifest.txt` (directives: `body`,
-`pair`, `claude`, `codex`); the accepted state of each compared pair is recorded in
-`sync-baseline.txt`, so the report shows only *new* drift.
+What the script enforces, in order: clean trees + source commit → rsync per
+`publish-manifest.txt` (`harness-*`, `in-progress/` excluded; plugin-owned protected)
+→ count asserts → shipped `skill-router` + sidecars regenerated → **provider-neutrality
+audit** (a shipped line naming a Claude-only tool, env var, or `.claude/skills/…` path
+must be two-branched "Claude Code: … / Codex: …") → genericise + leak check →
+`build-template.sh` + `check-sync.sh` → manifests parse + `claude plugin validate` →
+version bump in all four manifests → `publish-info.txt`. `--smoke` installs into a
+throwaway `$HOME` with `codex` and asserts the implicit-skill count.
 
----
+Never hand-edit the plugin's `skills/` or `agents/` — they are overwritten on publish.
+Plugin-owned skills and `scripts/` are edited in the plugin.
 
-## 8. `doctor.sh` checks
+## 7. Invariants
 
-`/mvp-plugin:doctor` reports PASS/WARN/FAIL and exits non-zero only on a hard FAIL
-(missing core). It checks:
+- Shipped set ⊂ this repo's `.claude/skills` (+ the 4 plugin-owned); `harness-*`
+  and `in-progress/` never ship.
+- One copy of every skill; Codex reads the same files. Forked repo copies are an
+  explicit, warned-about exception.
+- Every shipped skill: `agents/openai.yaml` policy == `disable-model-invocation`.
+- No `.claude/skills/…`, `.codex/…`, Claude-only tool names, machine paths, or
+  project names in shipped text unless two-branched / genericised.
+- `template/` = residue only; `.codex/project` and `.codex/rules/{core,python}` are
+  symlinks in adopted repos, never copies.
 
-1. Core payload dirs present (`.claude/{rules,skills,agents,commands,hooks}`,
-   `.codex/{rules,skills,agents}`) + `CLAUDE.md` / `AGENTS.md`.
-2. Hooks wired in `settings.json` and executable.
-3. No machine-local absolute path in `settings.json` (portability).
-4. beads: `bd` on PATH, store initialised, `sync.remote` set.
-5. Overlay filled (no `TODO: fill from repo reality` skeletons left).
-6. `codex` CLI present (for the sibling codex-adapter) — WARN if not.
+## 8. `doctor` checks
 
----
+Plugin status per tool (+ DUPLICATE warning when forked copies coexist with the
+plugin; "no skills reachable" when neither); residue files present; the three
+symlinks; hooks wired/executable; Codex hook trust (best-effort); repo marketplace
+file; portable paths; beads; overlay filled; residue version vs plugin manifest;
+`*.template-new` conflicts; plugin build provenance.
 
 ## 9. Testing
 
-Isolated; no Claude Code account needed (`test/README.md` has detail).
-
-```bash
-# Tier-1 suite in a clean image
-docker build -f test/Dockerfile -t mvp-plugin-test . && docker run --rm mvp-plugin-test
-
-# From-zero clean-room (no bd → install → green)
-docker run --rm -v "$PWD:/opt/mvp-plugin:ro" -e PLUGIN_DIR=/opt/mvp-plugin \
-  node:22-bookworm bash /opt/mvp-plugin/test/from-zero.sh
-
-# On the host (uses your real bd/codex/claude)
-PLUGIN_DIR=. bash test/run-tests.sh
-```
-
-`run-tests.sh` drives the plugin directly: creates a fixture git repo, runs
-`install-harness.sh`, and asserts the payload landed, hooks are wired/executable,
-paths are portable, beads is initialised with `sync.remote`, overlay skeletons +
-gitignore block exist, the payload is generic (no project/machine strings), doctor
-exits clean, install is idempotent, and `claude plugin validate` passes.
-
----
+See `mvp-harness/plugins/mvp-plugin/test/README.md`. Host run:
+`PLUGIN_DIR=mvp-harness/plugins/mvp-plugin bash mvp-harness/plugins/mvp-plugin/test/run-tests.sh`
+(31 checks, incl. the update-merge suite). Supported platforms: Linux/macOS.
 
 ## Current state
 
-The marketplace restructure is fully reconciled: `mvp-harness` is the single root
-marketplace, `codex-adapter` and `code-intel` are sibling plugins (no vendored copy,
-no per-plugin `marketplace.json`), install IDs are `…@mvp-harness`, and the plugin
-`README.md`, `plugin.json`, and `test/run-tests.sh` all match. `/mvp-plugin:update`
-is non-destructive (base/local/new three-way merge; covered by
-`test/update-merge-test.sh`).
+v0.2.0 — 43 skills (26 model-invocable / 17 slash-only on publish), 4 agents,
+residue template 24 files. Plugin repo branch `plugin-dist` (not pushed); submodule
+pointer bump pending the user's word.
