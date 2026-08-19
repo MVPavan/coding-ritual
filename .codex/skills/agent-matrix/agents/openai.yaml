@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Matrix"
-  short_description: "Select and validate subagent runtime settings"
-  default_prompt: "Use $agent-matrix to select and validate a subagent configuration."
