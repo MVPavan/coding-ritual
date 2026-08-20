@@ -382,7 +382,7 @@
       "repo": "diagram-design",
       "logical_id": "command:commands/export-diagram",
       "status": "deferred",
-      "reason": "Command surface of the diagram-design skill \u2014 skill adopted user-invoked in round-006 (2026-08-20), but its commands stay deferred: each delegates wholly to references the installed skill already routes to via /diagram-design; adopt only if the import/export/profile flows become routine enough to deserve their own slash surface.",
+      "reason": "Command surface of the diagram-design skill \u2014 rises or falls with skill:skills/diagram-design, which is adopted only in part (round-005 merge into html-artifact; round-006 full install reversed in round-007). Not usable standalone.",
       "date": "2026-08-20",
       "source_sha": "4b57361"
     },
@@ -390,7 +390,7 @@
       "repo": "diagram-design",
       "logical_id": "command:commands/import-drawio",
       "status": "deferred",
-      "reason": "Command surface of the diagram-design skill \u2014 skill adopted user-invoked in round-006 (2026-08-20), but its commands stay deferred: each delegates wholly to references the installed skill already routes to via /diagram-design; adopt only if the import/export/profile flows become routine enough to deserve their own slash surface.",
+      "reason": "Command surface of the diagram-design skill \u2014 rises or falls with skill:skills/diagram-design, which is adopted only in part (round-005 merge into html-artifact; round-006 full install reversed in round-007). Not usable standalone.",
       "date": "2026-08-20",
       "source_sha": "4b57361"
     },
@@ -398,7 +398,7 @@
       "repo": "diagram-design",
       "logical_id": "command:commands/import-mermaid",
       "status": "deferred",
-      "reason": "Command surface of the diagram-design skill \u2014 skill adopted user-invoked in round-006 (2026-08-20), but its commands stay deferred: each delegates wholly to references the installed skill already routes to via /diagram-design; adopt only if the import/export/profile flows become routine enough to deserve their own slash surface.",
+      "reason": "Command surface of the diagram-design skill \u2014 rises or falls with skill:skills/diagram-design, which is adopted only in part (round-005 merge into html-artifact; round-006 full install reversed in round-007). Not usable standalone.",
       "date": "2026-08-20",
       "source_sha": "4b57361"
     },
@@ -406,7 +406,7 @@
       "repo": "diagram-design",
       "logical_id": "command:commands/profile",
       "status": "deferred",
-      "reason": "Command surface of the diagram-design skill \u2014 skill adopted user-invoked in round-006 (2026-08-20), but its commands stay deferred: each delegates wholly to references the installed skill already routes to via /diagram-design; adopt only if the import/export/profile flows become routine enough to deserve their own slash surface.",
+      "reason": "Command surface of the diagram-design skill \u2014 rises or falls with skill:skills/diagram-design, which is adopted only in part (round-005 merge into html-artifact; round-006 full install reversed in round-007). Not usable standalone.",
       "date": "2026-08-20",
       "source_sha": "4b57361"
     },
@@ -414,7 +414,7 @@
       "repo": "diagram-design",
       "logical_id": "plugin:diagram-design",
       "status": "deferred",
-      "reason": "Plugin wrapper still not adopted \u2014 the skill itself was installed directly (round-006); we distribute via mvp-plugin, not by stacking third-party plugins.",
+      "reason": "Plugin wrapper for the diagram-design skill \u2014 skill itself is adopted only in part (round-005; round-006 full install reversed in round-007), so the wrapper stays deferred.",
       "date": "2026-08-20",
       "source_sha": "4b57361"
     },
@@ -422,9 +422,9 @@
       "repo": "diagram-design",
       "logical_id": "skill:skills/diagram-design",
       "status": "adopted",
-      "reason": "Adopted in full 2026-08-20 (round-006, user ruling; supersedes round-005 adopt-in-part). Whole skill directory (SKILL.md + 54 references + assets + self_check/extract scripts, 2.9MB, MIT + third-party icon licenses) installed at .claude/skills/diagram-design as a user-invoked skill (disable-model-invocation: true) \u2014 its own branded design system, Google Fonts included, applies only when the user explicitly invokes /diagram-design for a standalone diagram deliverable; html-artifact + references/svg-craft.md (see round-005) remain the rules for figures inside our documents. Local modifications: slash-only frontmatter, wiretext pointer -> /show-me, <repo-root> verify-script paths -> reference_harnesses/diagram-design/scripts, scratchpad output location. References and assets byte-identical to upstream; catalog allowlists cover the three unadopted command pointers.",
+      "reason": "Standing ruling = round-005 adopt-in-part (geometry grammar + honest-data doctrine into html-artifact's references/svg-craft.md; contrast/typography/dial rules into its SKILL.md; everything conflicting with our invariants rejected). Round-006 (2026-08-20) briefly adopted the full skill as a user-invoked /diagram-design; the user reversed it pre-push the same day \u2014 2.9MB skill tree too big for this harness (round-007). Full adoption may be revisited only with a slimmed packaging (no assets tree) and an explicit user request.",
       "date": "2026-08-20",
-      "our_id": "skill:skills/diagram-design",
+      "our_id": "skill:html-artifact",
       "source_sha": "4b57361",
       "source_content_hash": "876e96bb5cd4760da1e7b5642560438020da7b89"
     },

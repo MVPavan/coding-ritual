@@ -6,27 +6,21 @@
 
 ## Adopted
 
-### `diagram-design` — ADOPTED
+### `diagram-design` — ADOPTED (merged)
 
-*diagram-design · `4b57361` · ruled in round-006-diagram-design-adoption*
+*diagram-design · `4b57361` · ruled in round-007-diagram-design-reversal*
 
-User ruling: the full skill now ships as .claude/skills/diagram-design with disable-model-invocation: true — invoked only as /diagram-design, for standalone branded diagram deliverables (38 visual types, drawio/Mermaid import, brand onboarding, export). This does not reopen round-005's merge: figures inside html-artifact documents still follow references/svg-craft.md and the html-artifact invariants; diagram-design's own design system (Google Fonts, atomic-tangerine skin, min-width layouts) applies only inside its explicitly invoked outputs, which is why model invocation is disabled. The round-005 concern that its conventions conflict with our invariants is answered by the slash-only boundary, not withdrawn.
+User reversed round-006's full install before push: 2.9MB (mostly the 140-file assets tree) is too big for this harness. The standing ruling returns to round-005's adopt-merged — the geometry grammar, complexity budget, accessible-SVG contract, and honest-data doctrine live on in html-artifact's references/svg-craft.md and SKILL.md, all of which remain shipped. Nothing from the full install reached the remote; the local copy and its catalog allowlist entries were removed and the catalog regenerated (45 skills).
 
-**Absorbed:** `skills/diagram-design/** (whole directory)`, `repo LICENSE`, `repo THIRD_PARTY_LICENSES.md`
+**Absorbed:** `(unchanged from round-005 — see round-005-visual-explanation-merge:e002)`
 
 **Changes made when adopting:**
 
-- frontmatter: disable-model-invocation: true
-- SKILL.md par.2 don't-use row: wiretext pointer -> /show-me (wiretext not installed here)
-- SKILL.md 3x: <repo-root>/scripts/verify-*.py -> reference_harnesses/diagram-design/scripts/ (the submodule is our checkout)
-- SKILL.md par.12: output saved under scratchpad/ unless the user or a calling skill names a destination
-- skill-catalog.py: 6 allowlist entries so upstream references stay byte-identical (3 unadopted command pointers, /css2 font URL, /regenerate-examples, /skills path fragment)
+- (none new — this round only removes the round-006 full install)
 
 **Deliberately dropped:**
 
-- commands/ (export-diagram, import-drawio, import-mermaid, profile) — deferred in ledger; the installed skill routes to the same references
-- plugin wrapper and marketplace manifests — we distribute via mvp-plugin
-- repo-level verify/lint/test scripts and vendored icon sources — remain available read-only in the reference submodule
+- the full-skill install of round-006: whole directory, licenses, slash-only frontmatter, catalog allowlist entries — all removed pre-push
 
 ### `show-me` — ADOPTED (merged)
 
@@ -78,4 +72,6 @@ A 7-line conversational-repair macro: re-pitch the last message in Simplified Te
 - `html-artifacts` — round-005-visual-explanation-merge replaced round-004-visual-explanation:e002: Adopted-merged into html-artifact per the line-level dossier: 14 of 39 components in reduced form, 4 REMOVEs executed on our side (spacing duplicate, framing re
 
 - `diagram-design` — round-006-diagram-design-adoption replaced round-005-visual-explanation-merge:e002: User ruling: the full skill now ships as .claude/skills/diagram-design with disable-model-invocation: true — invoked only as /diagram-design, for standalone bra
+
+- `diagram-design` — round-007-diagram-design-reversal replaced round-006-diagram-design-adoption:e001: User reversed round-006's full install before push: 2.9MB (mostly the 140-file assets tree) is too big for this harness. The standing ruling returns to round-00
 

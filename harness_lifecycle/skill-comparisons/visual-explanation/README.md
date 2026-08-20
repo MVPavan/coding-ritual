@@ -249,8 +249,8 @@ separate, user-approved step):
 
 Outcome (see ledger + casebook for the authoritative rulings): round-005
 executed the merges — `svg-craft.md` + html-artifact revisions +
-`show-me` adopted slash-only. Round-006 then adopted `diagram-design`
-**in full** as a user-invoked skill (`disable-model-invocation: true`) on a
-user ruling: the never-borrow list above still holds for our own documents —
-the installed skill's design system applies only inside explicitly requested
-`/diagram-design` deliverables, which the slash-only boundary enforces.
+`show-me` adopted slash-only. Round-006 briefly adopted `diagram-design`
+in full as a user-invoked skill; round-007 reversed that the same day,
+before push, on a user size ruling (2.9MB tree). The standing ruling is
+round-005's adopt-in-part; a slimmed packaging (no assets) is the recorded
+reopening path if standalone branded diagrams are ever wanted.
