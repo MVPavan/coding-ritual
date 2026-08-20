@@ -87,7 +87,7 @@ Record verified, likely-to-recur patterns in `.codex/project/learnings.md` (form
 
 ## External Submodules
 
-Third-party **reference harness** repos are tracked as Git submodules under `reference_harnesses/` (see `.gitmodules`). The parent repo tracks their commit pointers only — they are read-only references, never copied into the local harness. Do not edit submodule internals unless the task is explicitly submodule-local; for upstream sync, update and stage the submodule path. Borrow only the smallest durable pattern (see `harness_learnings/reference-harness-workflow.md`).
+Third-party **reference harness** repos are tracked as Git submodules under `reference_harnesses/`, and third-party **reference tools** under `reference_tools/` (purpose per repo TBD; same read-only rules) — see `.gitmodules`. The parent repo tracks their commit pointers only — they are read-only references, never copied into the local harness. Do not edit submodule internals unless the task is explicitly submodule-local; for upstream sync, update and stage the submodule path. Borrow only the smallest durable pattern (see `harness_learnings/reference-harness-workflow.md`).
 
 ## Beads Issue Tracker
 
