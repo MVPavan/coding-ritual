@@ -1,0 +1,494 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "The-Claude-Protocol",
+  "source": "working-tree",
+  "source_commit": "af754ef63535a416af4894223edda1b2c730d3c2",
+  "physical_scanned": 57,
+  "excluded": 10,
+  "counts": {
+    "agent": {
+      "physical": 7,
+      "logical": 7
+    },
+    "hook": {
+      "physical": 15,
+      "logical": 15
+    },
+    "skill": {
+      "physical": 5,
+      "logical": 4
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "agent",
+      "name": "architect",
+      "category": "agents",
+      "logical_id": "agent:templates/agents/architect",
+      "canonical_path": "templates/agents/architect.md",
+      "paths": [
+        "templates/agents/architect.md"
+      ],
+      "description": "System design and implementation planning",
+      "content_hash": "59dc0f4310d7c61f9e63a7def13db9527f60275d",
+      "signature_hash": "32cea4df233dea1beee0af0b509631a1501f2946",
+      "variant_hashes": [
+        "59dc0f4310d7c61f9e63a7def13db9527f60275d"
+      ],
+      "line_count": 121,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "code-reviewer",
+      "category": "agents",
+      "logical_id": "agent:templates/agents/code-reviewer",
+      "canonical_path": "templates/agents/code-reviewer.md",
+      "paths": [
+        "templates/agents/code-reviewer.md"
+      ],
+      "description": "Adversarial code review - verify demos work, then spec compliance, then code quality",
+      "content_hash": "edb81920d55fb984b1ad4b14df2d591a5d84d742",
+      "signature_hash": "54e778ccdedaa29d20f3aff5e23137ae2adb15da",
+      "variant_hashes": [
+        "edb81920d55fb984b1ad4b14df2d591a5d84d742"
+      ],
+      "line_count": 248,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "detective",
+      "category": "agents",
+      "logical_id": "agent:templates/agents/detective",
+      "canonical_path": "templates/agents/detective.md",
+      "paths": [
+        "templates/agents/detective.md"
+      ],
+      "description": "Bug investigation and root cause analysis",
+      "content_hash": "19eb9ad0b14185c1f0c55a5439cb14b7979cb0ef",
+      "signature_hash": "d5d9bae91d42aba021f028901fa2c754612bdb78",
+      "variant_hashes": [
+        "19eb9ad0b14185c1f0c55a5439cb14b7979cb0ef"
+      ],
+      "line_count": 101,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "discovery",
+      "category": "agents",
+      "logical_id": "agent:templates/agents/discovery",
+      "canonical_path": "templates/agents/discovery.md",
+      "paths": [
+        "templates/agents/discovery.md"
+      ],
+      "description": "Tech stack detection and supervisor creation. Scans codebase, detects technologies, fetches specialist agents from external directory, and injects beads workflow.",
+      "content_hash": "385c3de53c9744b86d6ca76630cbaadd2f37a5df",
+      "signature_hash": "40d77b23ad70cd894bf989e71a2ce140fe18b8cc",
+      "variant_hashes": [
+        "385c3de53c9744b86d6ca76630cbaadd2f37a5df"
+      ],
+      "line_count": 500,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "merge-supervisor",
+      "category": "agents",
+      "logical_id": "agent:templates/agents/merge-supervisor",
+      "canonical_path": "templates/agents/merge-supervisor.md",
+      "paths": [
+        "templates/agents/merge-supervisor.md"
+      ],
+      "description": "Git merge conflict resolution - analyzes both sides, preserves intent",
+      "content_hash": "9734ce8f14b5ae7b8cf1c64e518f465e06be036e",
+      "signature_hash": "f7a8e984dca58da8a8a110a4e485b06742a2d2cd",
+      "variant_hashes": [
+        "9734ce8f14b5ae7b8cf1c64e518f465e06be036e"
+      ],
+      "line_count": 119,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "scout",
+      "category": "agents",
+      "logical_id": "agent:templates/agents/scout",
+      "canonical_path": "templates/agents/scout.md",
+      "paths": [
+        "templates/agents/scout.md"
+      ],
+      "description": "Codebase exploration and file discovery",
+      "content_hash": "95600e08f4c0da3278655b7f65b87b19fe2db6ca",
+      "signature_hash": "4fbcbb1d0cf1dd093ee7ca71dd396457bc6076e1",
+      "variant_hashes": [
+        "95600e08f4c0da3278655b7f65b87b19fe2db6ca"
+      ],
+      "line_count": 100,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "scribe",
+      "category": "agents",
+      "logical_id": "agent:templates/agents/scribe",
+      "canonical_path": "templates/agents/scribe.md",
+      "paths": [
+        "templates/agents/scribe.md"
+      ],
+      "description": "Documentation and README updates",
+      "content_hash": "b774ddd47fcdde56b417562cc2749259fc61e698",
+      "signature_hash": "8b9b7b56721afbbe7d0c1b728be9adb3288ea2a0",
+      "variant_hashes": [
+        "b774ddd47fcdde56b417562cc2749259fc61e698"
+      ],
+      "line_count": 96,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "block-branch-for-epic-child.sh",
+      "category": "hooks",
+      "logical_id": "hook:hooks/block-branch-for-epic-child",
+      "canonical_path": ".claude/hooks/block-branch-for-epic-child.sh",
+      "paths": [
+        ".claude/hooks/block-branch-for-epic-child.sh"
+      ],
+      "description": "",
+      "content_hash": "fb0efd9929afb997acaa6f359aecea9ebc387e83",
+      "signature_hash": "4811a294a3a47a7d036adf183aa1319a33c7057a",
+      "variant_hashes": [
+        "fb0efd9929afb997acaa6f359aecea9ebc387e83"
+      ],
+      "line_count": 68,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "block-orchestrator-tools.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/block-orchestrator-tools",
+      "canonical_path": "templates/hooks/block-orchestrator-tools.sh",
+      "paths": [
+        "templates/hooks/block-orchestrator-tools.sh"
+      ],
+      "description": "",
+      "content_hash": "767072b7067a7e952d2405ddfa76ea07d47087fe",
+      "signature_hash": "ef2c53a07c3644061ff9a5538d579854c192e86e",
+      "variant_hashes": [
+        "767072b7067a7e952d2405ddfa76ea07d47087fe"
+      ],
+      "line_count": 171,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "clarify-vague-request.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/clarify-vague-request",
+      "canonical_path": "templates/hooks/clarify-vague-request.sh",
+      "paths": [
+        "templates/hooks/clarify-vague-request.sh"
+      ],
+      "description": "",
+      "content_hash": "78a34207a0932de54f47b869b1ee08f9097c1ae0",
+      "signature_hash": "e01b4a93756a6d520a02da6d77683689fda1f680",
+      "variant_hashes": [
+        "78a34207a0932de54f47b869b1ee08f9097c1ae0"
+      ],
+      "line_count": 39,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "enforce-bead-for-supervisor.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/enforce-bead-for-supervisor",
+      "canonical_path": "templates/hooks/enforce-bead-for-supervisor.sh",
+      "paths": [
+        "templates/hooks/enforce-bead-for-supervisor.sh"
+      ],
+      "description": "",
+      "content_hash": "ac1eeef5a4b93cf138dfd708af667409217546f8",
+      "signature_hash": "e8ef4834caa4d40a3961b517c57c3e60db6b9c49",
+      "variant_hashes": [
+        "ac1eeef5a4b93cf138dfd708af667409217546f8"
+      ],
+      "line_count": 32,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "enforce-branch-before-edit.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/enforce-branch-before-edit",
+      "canonical_path": "templates/hooks/enforce-branch-before-edit.sh",
+      "paths": [
+        "templates/hooks/enforce-branch-before-edit.sh"
+      ],
+      "description": "",
+      "content_hash": "caf76fc4a439a17e9eb314f53462d7ace88b8846",
+      "signature_hash": "b428bc7233b85429929f6d69b24638ef3e2e1a0d",
+      "variant_hashes": [
+        "caf76fc4a439a17e9eb314f53462d7ace88b8846"
+      ],
+      "line_count": 52,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "enforce-concise-response.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/enforce-concise-response",
+      "canonical_path": "templates/hooks/enforce-concise-response.sh",
+      "paths": [
+        "templates/hooks/enforce-concise-response.sh"
+      ],
+      "description": "",
+      "content_hash": "8ae10256abdb5a663a823bb0f1db583496f56de7",
+      "signature_hash": "0ae68131cbb13d869f891f09c12329a58230afbf",
+      "variant_hashes": [
+        "8ae10256abdb5a663a823bb0f1db583496f56de7"
+      ],
+      "line_count": 41,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "enforce-sequential-dispatch.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/enforce-sequential-dispatch",
+      "canonical_path": "templates/hooks/enforce-sequential-dispatch.sh",
+      "paths": [
+        "templates/hooks/enforce-sequential-dispatch.sh"
+      ],
+      "description": "",
+      "content_hash": "4e18165d48bfea8014f0ebf160d2ba81b555c2f9",
+      "signature_hash": "d1de18dd53ae00cf898772f41b1d0aa67ffff534",
+      "variant_hashes": [
+        "4e18165d48bfea8014f0ebf160d2ba81b555c2f9"
+      ],
+      "line_count": 63,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "inject-discipline-reminder.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/inject-discipline-reminder",
+      "canonical_path": "templates/hooks/inject-discipline-reminder.sh",
+      "paths": [
+        "templates/hooks/inject-discipline-reminder.sh"
+      ],
+      "description": "",
+      "content_hash": "2db53585c90a19130ca9fd71438e5f2e0c19345e",
+      "signature_hash": "938df3e892cd42ca707ee5c55e454c7c72a21cea",
+      "variant_hashes": [
+        "2db53585c90a19130ca9fd71438e5f2e0c19345e"
+      ],
+      "line_count": 28,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "log-dispatch-prompt.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/log-dispatch-prompt",
+      "canonical_path": "templates/hooks/log-dispatch-prompt.sh",
+      "paths": [
+        "templates/hooks/log-dispatch-prompt.sh"
+      ],
+      "description": "",
+      "content_hash": "aa3543c3979b560dc20d1e7018cc405a27843c4b",
+      "signature_hash": "c876b6a210b073a407fa9e0fc0b58dec8f1a7d84",
+      "variant_hashes": [
+        "aa3543c3979b560dc20d1e7018cc405a27843c4b"
+      ],
+      "line_count": 39,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "memory-capture.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/memory-capture",
+      "canonical_path": "templates/hooks/memory-capture.sh",
+      "paths": [
+        "templates/hooks/memory-capture.sh"
+      ],
+      "description": "",
+      "content_hash": "e256d515e8714e7014cff5c0d99a46e938ce6343",
+      "signature_hash": "6e495434230100d10039b9b3b20b7fd6e618091d",
+      "variant_hashes": [
+        "e256d515e8714e7014cff5c0d99a46e938ce6343"
+      ],
+      "line_count": 104,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "nudge-claude-md-update.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/nudge-claude-md-update",
+      "canonical_path": "templates/hooks/nudge-claude-md-update.sh",
+      "paths": [
+        "templates/hooks/nudge-claude-md-update.sh"
+      ],
+      "description": "",
+      "content_hash": "5801c8379c12c4c856e4e0aa52cf84eddcc57dc2",
+      "signature_hash": "96cdc008a25d844a49e0ebe1d0b327efc7a35eee",
+      "variant_hashes": [
+        "5801c8379c12c4c856e4e0aa52cf84eddcc57dc2"
+      ],
+      "line_count": 44,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "remind-inprogress.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/remind-inprogress",
+      "canonical_path": "templates/hooks/remind-inprogress.sh",
+      "paths": [
+        "templates/hooks/remind-inprogress.sh"
+      ],
+      "description": "",
+      "content_hash": "aec9d8ed8766dcbc9de26ab7efc93fdefeb9e7e7",
+      "signature_hash": "444921e988d0d09b66bb30c074718855d80b6384",
+      "variant_hashes": [
+        "aec9d8ed8766dcbc9de26ab7efc93fdefeb9e7e7"
+      ],
+      "line_count": 14,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "session-start.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/session-start",
+      "canonical_path": "templates/hooks/session-start.sh",
+      "paths": [
+        "templates/hooks/session-start.sh"
+      ],
+      "description": "",
+      "content_hash": "a8df5b7f2bf08135e4474b072ba8553bbbec5a97",
+      "signature_hash": "9e14e39317d071e4226a5da4013583ef2ef68dc8",
+      "variant_hashes": [
+        "a8df5b7f2bf08135e4474b072ba8553bbbec5a97"
+      ],
+      "line_count": 121,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "validate-completion.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/validate-completion",
+      "canonical_path": "templates/hooks/validate-completion.sh",
+      "paths": [
+        "templates/hooks/validate-completion.sh"
+      ],
+      "description": "",
+      "content_hash": "78b225bc077e29ca276aefde90e7fdcd6772bf1e",
+      "signature_hash": "21796ec9fd2a244497d5345be1c2ef3c2b118407",
+      "variant_hashes": [
+        "78b225bc077e29ca276aefde90e7fdcd6772bf1e"
+      ],
+      "line_count": 131,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "validate-epic-close.sh",
+      "category": "hooks",
+      "logical_id": "hook:templates/hooks/validate-epic-close",
+      "canonical_path": "templates/hooks/validate-epic-close.sh",
+      "paths": [
+        "templates/hooks/validate-epic-close.sh"
+      ],
+      "description": "",
+      "content_hash": "e5eaad9e9816e5649bf226cf552d7c64f310fc8c",
+      "signature_hash": "ab82ddf344a6ebacf443f1d7357d0459400f4e8d",
+      "variant_hashes": [
+        "e5eaad9e9816e5649bf226cf552d7c64f310fc8c"
+      ],
+      "line_count": 84,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "create-beads-orchestration",
+      "category": "skills",
+      "logical_id": "skill:skills/create-beads-orchestration",
+      "canonical_path": "skills/create-beads-orchestration/SKILL.md",
+      "paths": [
+        ".claude/skills/create-beads-orchestration/SKILL.md",
+        "skills/create-beads-orchestration/SKILL.md"
+      ],
+      "description": "Bootstrap lean multi-agent orchestration with beads task tracking. Use for projects needing agent delegation without heavy MCP overhead.",
+      "content_hash": "0cb9ee1284c079ba4a60d216f67e5a64b8b2acc4",
+      "signature_hash": "b191bf6671bdac18044535e99d70972614e81e39",
+      "variant_hashes": [
+        "0cb9ee1284c079ba4a60d216f67e5a64b8b2acc4",
+        "f2719551d510f93a7d3dd8220a7283c80ee4e3f9"
+      ],
+      "line_count": 263,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "subagents-discipline",
+      "category": "skills",
+      "logical_id": "skill:skills/subagents-discipline",
+      "canonical_path": "skills/subagents-discipline/SKILL.md",
+      "paths": [
+        "skills/subagents-discipline/SKILL.md"
+      ],
+      "description": "Invoke at the start of any implementation task to enforce verification-first development",
+      "content_hash": "c28735d0dd5c4446bd618745bf98ee4a2a3f9c77",
+      "signature_hash": "40d322b542dcaa3691e1d69f785e28de4c4b32c0",
+      "variant_hashes": [
+        "c28735d0dd5c4446bd618745bf98ee4a2a3f9c77"
+      ],
+      "line_count": 158,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "react-best-practices",
+      "category": "skills",
+      "logical_id": "skill:templates/skills/react-best-practices",
+      "canonical_path": "templates/skills/react-best-practices/SKILL.md",
+      "paths": [
+        "templates/skills/react-best-practices/SKILL.md"
+      ],
+      "description": "React and Next.js performance optimization patterns. Use BEFORE implementing any React code to ensure best practices are followed.",
+      "content_hash": "bf5595d538d4d2a158dd8d5ae0c96b6709e9a705",
+      "signature_hash": "87f7fc2098bc2723f571638edf3286c40a498400",
+      "variant_hashes": [
+        "bf5595d538d4d2a158dd8d5ae0c96b6709e9a705"
+      ],
+      "line_count": 487,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "subagents-discipline",
+      "category": "skills",
+      "logical_id": "skill:templates/skills/subagents-discipline",
+      "canonical_path": "templates/skills/subagents-discipline/SKILL.md",
+      "paths": [
+        "templates/skills/subagents-discipline/SKILL.md"
+      ],
+      "description": "Core engineering principles for implementation tasks",
+      "content_hash": "dd9261c0f11596859c0b2eaee1a3b4f7ac84d2ad",
+      "signature_hash": "c35e2107945eeaed5ee5248fe4c87887a2fcf0aa",
+      "variant_hashes": [
+        "dd9261c0f11596859c0b2eaee1a3b4f7ac84d2ad"
+      ],
+      "line_count": 127,
+      "assets": []
+    }
+  ]
+}

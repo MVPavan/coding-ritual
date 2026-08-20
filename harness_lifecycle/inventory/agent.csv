@@ -1,4 +1,11 @@
 id,kind,category,name,harness,canonical_path,line_count,asset_count,assets,description
+agent:templates/agents/architect,agent,agents,architect,The-Claude-Protocol,templates/agents/architect.md,121,0,,System design and implementation planning
+agent:templates/agents/code-reviewer,agent,agents,code-reviewer,The-Claude-Protocol,templates/agents/code-reviewer.md,248,0,,"Adversarial code review - verify demos work, then spec compliance, then code quality"
+agent:templates/agents/detective,agent,agents,detective,The-Claude-Protocol,templates/agents/detective.md,101,0,,Bug investigation and root cause analysis
+agent:templates/agents/discovery,agent,agents,discovery,The-Claude-Protocol,templates/agents/discovery.md,500,0,,"Tech stack detection and supervisor creation. Scans codebase, detects technologies, fetches specialist agents from external directory, and injects beads workflow."
+agent:templates/agents/merge-supervisor,agent,agents,merge-supervisor,The-Claude-Protocol,templates/agents/merge-supervisor.md,119,0,,"Git merge conflict resolution - analyzes both sides, preserves intent"
+agent:templates/agents/scout,agent,agents,scout,The-Claude-Protocol,templates/agents/scout.md,100,0,,Codebase exploration and file discovery
+agent:templates/agents/scribe,agent,agents,scribe,The-Claude-Protocol,templates/agents/scribe.md,96,0,,Documentation and README updates
 agent:agents/code-reviewer,agent,agents,code-reviewer,agent-skills,agents/code-reviewer.md,97,0,,"Senior code reviewer that evaluates changes across five dimensions — correctness, readability, architecture, security, and performance. Use for thorough code review before merge."
 agent:agents/security-auditor,agent,agents,security-auditor,agent-skills,agents/security-auditor.md,112,0,,"Security engineer focused on vulnerability detection, threat modeling, and secure coding practices. Use for security-focused code review, threat analysis, or hardening recommendations."
 agent:agents/test-engineer,agent,agents,test-engineer,agent-skills,agents/test-engineer.md,95,0,,"QA engineer specialized in test strategy, test writing, and coverage analysis. Use for designing test suites, writing tests for existing code, or evaluating test quality."

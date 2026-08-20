@@ -1,0 +1,224 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "humanlayer_skills",
+  "source": "working-tree",
+  "source_commit": "3c2629142c5d437428269b1b722b08c0b87f574d",
+  "physical_scanned": 35,
+  "excluded": 1,
+  "counts": {
+    "plugin": {
+      "physical": 5,
+      "logical": 5
+    },
+    "skill": {
+      "physical": 5,
+      "logical": 5
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "plugin",
+      "name": "build-iterated-agentic-loop",
+      "category": "build-iterated-agentic-loop",
+      "logical_id": "plugin:plugins/build-iterated-agentic-loop/build-iterated-agentic-loop",
+      "canonical_path": "plugins/build-iterated-agentic-loop/.claude-plugin/plugin.json",
+      "paths": [
+        "plugins/build-iterated-agentic-loop/.claude-plugin/plugin.json"
+      ],
+      "description": "Build a repo-local skill plus an iterated coding-agent workflow, prompt, and memory file",
+      "content_hash": "996dd122392d94a7b78e90a17c5a3c766c299c2c",
+      "signature_hash": "f28622afa1992316ed80c5983d73a8f386106e8b",
+      "variant_hashes": [
+        "996dd122392d94a7b78e90a17c5a3c766c299c2c"
+      ],
+      "line_count": 12,
+      "assets": []
+    },
+    {
+      "kind": "plugin",
+      "name": "design-control-loop",
+      "category": "design-control-loop",
+      "logical_id": "plugin:plugins/design-control-loop/design-control-loop",
+      "canonical_path": "plugins/design-control-loop/.claude-plugin/plugin.json",
+      "paths": [
+        "plugins/design-control-loop/.claude-plugin/plugin.json"
+      ],
+      "description": "Interview the user to design an agentic control loop (sensor, controller, actuator under disturbances) for their codebase, then build it as locally-runnable components plus a scheduled coding-agent workflow",
+      "content_hash": "26b5ca0e6a33bd39b5e5a7eed0effe0939049baa",
+      "signature_hash": "168386d50851ad9e6ede1149808dc352f26b32b0",
+      "variant_hashes": [
+        "26b5ca0e6a33bd39b5e5a7eed0effe0939049baa"
+      ],
+      "line_count": 12,
+      "assets": []
+    },
+    {
+      "kind": "plugin",
+      "name": "improve-claude-md",
+      "category": "improve-claude-md",
+      "logical_id": "plugin:plugins/improve-claude-md/improve-claude-md",
+      "canonical_path": "plugins/improve-claude-md/.claude-plugin/plugin.json",
+      "paths": [
+        "plugins/improve-claude-md/.claude-plugin/plugin.json"
+      ],
+      "description": "Rewrite a CLAUDE.md file using <important if> blocks to improve instruction adherence",
+      "content_hash": "ac28ff597dee42e4151ae0e6064d6552deb56e7b",
+      "signature_hash": "4d933dc2e4ed2b5dcd8776e68970932e946b588f",
+      "variant_hashes": [
+        "ac28ff597dee42e4151ae0e6064d6552deb56e7b"
+      ],
+      "line_count": 12,
+      "assets": []
+    },
+    {
+      "kind": "plugin",
+      "name": "narrow-react-prop-types",
+      "category": "narrow-react-prop-types",
+      "logical_id": "plugin:plugins/narrow-react-prop-types/narrow-react-prop-types",
+      "canonical_path": "plugins/narrow-react-prop-types/.claude-plugin/plugin.json",
+      "paths": [
+        "plugins/narrow-react-prop-types/.claude-plugin/plugin.json"
+      ],
+      "description": "Narrow React component prop types to match live code paths",
+      "content_hash": "a295c01e636155f6c073f743ca69c0820204653c",
+      "signature_hash": "bd6aa0b1a68a78e61bac906f1db683185dfdc6fa",
+      "variant_hashes": [
+        "a295c01e636155f6c073f743ca69c0820204653c"
+      ],
+      "line_count": 12,
+      "assets": []
+    },
+    {
+      "kind": "plugin",
+      "name": "show-me",
+      "category": "show-me",
+      "logical_id": "plugin:plugins/show-me/show-me",
+      "canonical_path": "plugins/show-me/.claude-plugin/plugin.json",
+      "paths": [
+        "plugins/show-me/.claude-plugin/plugin.json"
+      ],
+      "description": "Explain the current topic with concise diagrams, code-shape sketches, and focused HTML artifacts",
+      "content_hash": "9d27bddef89af41335c640e3b14e606b8e460b05",
+      "signature_hash": "4d33e9e7996632d74209a3764000ce0b50905be8",
+      "variant_hashes": [
+        "9d27bddef89af41335c640e3b14e606b8e460b05"
+      ],
+      "line_count": 12,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "build-iterated-agentic-loop",
+      "category": "skills",
+      "logical_id": "skill:plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop",
+      "canonical_path": "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/SKILL.md",
+      "paths": [
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/SKILL.md"
+      ],
+      "description": "build a repo-local skill and install a matching iterated coding-agent GitHub Actions workflow, prompt, memory file, and reference templates",
+      "content_hash": "31d5a3d12090188032a497053b03c5ba4c922e31",
+      "signature_hash": "7381e474ee815a670bab34ee499761784ac1d5b8",
+      "variant_hashes": [
+        "31d5a3d12090188032a497053b03c5ba4c922e31"
+      ],
+      "line_count": 212,
+      "assets": [
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/references/agent-iteration.ts",
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/references/agent-runner-templates.md",
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/references/example-skill.md",
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/references/memory-template.md",
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/references/prompt-template.md",
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/references/response-template.md",
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/references/skill-template.md",
+        "plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop/references/workflow-template.yml"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "design-control-loop",
+      "category": "skills",
+      "logical_id": "skill:plugins/design-control-loop/skills/design-control-loop",
+      "canonical_path": "plugins/design-control-loop/skills/design-control-loop/SKILL.md",
+      "paths": [
+        "plugins/design-control-loop/skills/design-control-loop/SKILL.md"
+      ],
+      "description": "interview the user to design an agentic control loop (sensor, controller, actuator under disturbances) tailored to their codebase, then build it as locally-runnable components plus a scheduled coding-agent workflow",
+      "content_hash": "9892e89764f7b4c1c7b4945cde501455d21ca1d9",
+      "signature_hash": "1d1d05f9803b66e6214d52a93e4c0d127b093729",
+      "variant_hashes": [
+        "9892e89764f7b4c1c7b4945cde501455d21ca1d9"
+      ],
+      "line_count": 172,
+      "assets": [
+        "plugins/design-control-loop/skills/design-control-loop/references/agent-iteration.ts",
+        "plugins/design-control-loop/skills/design-control-loop/references/agent-runner-templates.md",
+        "plugins/design-control-loop/skills/design-control-loop/references/control-loop-taxonomy.md",
+        "plugins/design-control-loop/skills/design-control-loop/references/example-control-loop.md",
+        "plugins/design-control-loop/skills/design-control-loop/references/example-skill.md",
+        "plugins/design-control-loop/skills/design-control-loop/references/memory-template.md",
+        "plugins/design-control-loop/skills/design-control-loop/references/prompt-template.md",
+        "plugins/design-control-loop/skills/design-control-loop/references/response-template.md",
+        "plugins/design-control-loop/skills/design-control-loop/references/skill-template.md",
+        "plugins/design-control-loop/skills/design-control-loop/references/workflow-template.yml"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "improve-claude-md",
+      "category": "skills",
+      "logical_id": "skill:plugins/improve-claude-md/skills/improve-claude-md",
+      "canonical_path": "plugins/improve-claude-md/skills/improve-claude-md/SKILL.md",
+      "paths": [
+        "plugins/improve-claude-md/skills/improve-claude-md/SKILL.md"
+      ],
+      "description": "improve a CLAUDE.md file using <important if> blocks to improve instruction adherence",
+      "content_hash": "3118f3a1baded0708b6be9ce46ac8f6bdfba5c2d",
+      "signature_hash": "b0b2d44ef90a9cc3d90e20c3c1ca457688e14caf",
+      "variant_hashes": [
+        "3118f3a1baded0708b6be9ce46ac8f6bdfba5c2d"
+      ],
+      "line_count": 258,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "narrow-react-prop-types",
+      "category": "skills",
+      "logical_id": "skill:plugins/narrow-react-prop-types/skills/narrow-react-prop-types",
+      "canonical_path": "plugins/narrow-react-prop-types/skills/narrow-react-prop-types/SKILL.md",
+      "paths": [
+        "plugins/narrow-react-prop-types/skills/narrow-react-prop-types/SKILL.md"
+      ],
+      "description": "narrow React component prop types to match live code paths",
+      "content_hash": "1e3e0d88dc2cabba0f06e640c610ff0221119c3e",
+      "signature_hash": "6f9512499b6efbf00715051fe73e61611a2ceeac",
+      "variant_hashes": [
+        "1e3e0d88dc2cabba0f06e640c610ff0221119c3e"
+      ],
+      "line_count": 180,
+      "assets": [
+        "plugins/narrow-react-prop-types/skills/narrow-react-prop-types/references/agent-narrow-component-props.yml",
+        "plugins/narrow-react-prop-types/skills/narrow-react-prop-types/references/narrow-component-props-memory.md",
+        "plugins/narrow-react-prop-types/skills/narrow-react-prop-types/references/response-template.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "show-me",
+      "category": "skills",
+      "logical_id": "skill:plugins/show-me/skills/show-me",
+      "canonical_path": "plugins/show-me/skills/show-me/SKILL.md",
+      "paths": [
+        "plugins/show-me/skills/show-me/SKILL.md"
+      ],
+      "description": "Help the user understand the current topic visually with concise diagrams, code-shape sketches, and focused HTML artifacts.",
+      "content_hash": "4321b7ba5f2ec63fa0ecf26d4ef27a3a1794a947",
+      "signature_hash": "1ca84d2c904ebadf04fef284cde279b190920795",
+      "variant_hashes": [
+        "4321b7ba5f2ec63fa0ecf26d4ef27a3a1794a947"
+      ],
+      "line_count": 127,
+      "assets": []
+    }
+  ]
+}

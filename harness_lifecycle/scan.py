@@ -269,7 +269,9 @@ def classify(parts: tuple[str, ...]) -> Kind | None:
     suffix = "." + name.rsplit(".", 1)[1] if "." in name else ""
     if name == "plugin.json" and ".claude-plugin" in parts:
         return Kind.PLUGIN
-    if name == SKILL_FILENAME and "skills" in parts:
+    # Single-skill repos ship a bare `skill/SKILL.md` (singular) — e.g.
+    # html-artifacts, matching the .skill zip packaging convention.
+    if name == SKILL_FILENAME and ("skills" in parts or "skill" in parts):
         return Kind.SKILL
     if suffix == ".md" and "commands" in parts:
         return Kind.COMMAND

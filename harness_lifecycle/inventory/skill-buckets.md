@@ -1,7 +1,8 @@
 # Skill Buckets
 
-A routing taxonomy over the 73 skills in `skill.csv` (agent-skills 24,
-mattpocock_skills 35, superpowers 14). Every skill has exactly one **primary**
+A routing taxonomy over the 84 skills in `skill.csv` (agent-skills 24,
+mattpocock_skills 35, superpowers 14, humanlayer_skills 5,
+The-Claude-Protocol 4, diagram-design 1, html-artifacts 1). Every skill has exactly one **primary**
 bucket; **also** lists buckets where a reader would reasonably expect to find it.
 
 Machine-readable form: `skill-buckets.csv`.
@@ -27,26 +28,30 @@ Machine-readable form: `skill-buckets.csv`.
 **Excluded (10):** `loop-me` (1), `migrate-to-shoehorn` (4), `claude-handoff` (10),
 `git-guardrails-claude-code` · `setup-pre-commit` · `setup-ts-deep-modules` (12),
 `scaffold-exercises` · `writing-beats` · `writing-fragments` · `writing-shape` (14).
-In-scope corpus is therefore **63 of 73**; the per-bucket counts below still
-count all 73.
+humanlayer's `narrow-react-prop-types` and The-Claude-Protocol's
+`react-best-practices` are likewise `out-of-scope` (React-only; no UI work in
+this harness — round-002 ruling). In-scope corpus is therefore **72 of 84**;
+the per-bucket counts below still count all 84. The-Claude-Protocol ships
+`subagents-discipline` twice (root skill + `templates/` copy for adopted
+repos); both rows are inventoried, one taxonomy listing below.
 
 | # | Bucket | Primary | Also | Scope |
 |---|---|---:|---:|---|
-| 1 | Discovery, Requirements & Decisions | 10 | 3 | — |
-| 2 | Planning & Work Management | 5 | 2 | — |
+| 1 | Discovery, Requirements & Decisions | 10 | 4 | — |
+| 2 | Planning & Work Management | 5 | 3 | — |
 | 3 | Architecture & Modeling | 5 | 3 | — |
-| 4 | Implementation & Refactoring | 9 | 4 | — |
+| 4 | Implementation & Refactoring | 11 | 5 | — |
 | 5 | Testing & Runtime Validation | 4 | 2 | — |
 | 6 | Debugging & Optimization | 4 | 2 | — |
-| 7 | Review & Completion Assurance | 6 | 5 | — |
+| 7 | Review & Completion Assurance | 8 | 5 | — |
 | 8 | Version Control & Change Integration | 4 | 1 | — |
-| 9 | Release, Migration & Operations | 5 | 2 | — |
-| 10 | Orchestration, Handoff & Context Continuity | 4 | 7 | — |
-| 11 | Harness Routing & Agent-System Authoring | 5 | 3 | — |
-| 12 | Repository Tooling & Guardrails | 4 | 1 | — |
-| 13 | Engineering Research & Durable Documentation | 2 | 5 | — |
-| 14 | Human Learning, Content & Conversation | 6 | 1 | out of scope |
-| | **Total** | **73** | | |
+| 9 | Release, Migration & Operations | 7 | 2 | — |
+| 10 | Orchestration, Handoff & Context Continuity | 5 | 9 | — |
+| 11 | Harness Routing & Agent-System Authoring | 6 | 5 | — |
+| 12 | Repository Tooling & Guardrails | 4 | 2 | — |
+| 13 | Engineering Research & Durable Documentation | 3 | 7 | — |
+| 14 | Human Learning, Content & Conversation | 8 | 1 | out of scope (exceptions, see §14) |
+| | **Total** | **84** | | |
 
 ## 1. Discovery, Requirements & Decisions (10)
 
@@ -89,7 +94,7 @@ Choose system boundaries, interfaces, vocabulary, and structural design.
 | `improve-codebase-architecture` | M | architecture-audit | 7 |
 | `prototype` | M | design-validation | 1 |
 
-## 4. Implementation & Refactoring (9)
+## 4. Implementation & Refactoring (11)
 
 Build, modify, simplify, harden, or mechanically migrate software.
 
@@ -104,6 +109,8 @@ Build, modify, simplify, harden, or mechanically migrate software.
 | `migrate-to-shoehorn` | M | refactoring | 5 |
 | `executing-plans` | S | plan-execution | 10 |
 | `subagent-driven-development` | S | plan-execution | 10 |
+| `narrow-react-prop-types` | H | refactoring | — |
+| `react-best-practices` | T | frontend-build | — |
 
 ## 5. Testing & Runtime Validation (4)
 
@@ -127,7 +134,7 @@ Investigate anomalous or inadequate behaviour and remove its cause or bottleneck
 | `diagnosing-bugs` | M | debugging | — |
 | `systematic-debugging` | S | debugging | — |
 
-## 7. Review & Completion Assurance (6)
+## 7. Review & Completion Assurance (8)
 
 Challenge existing work or claims and decide whether they are acceptable.
 
@@ -139,6 +146,7 @@ Challenge existing work or claims and decide whether they are acceptable.
 | `receiving-code-review` | S | code-review-protocol | — |
 | `requesting-code-review` | S | code-review-protocol | 10 |
 | `verification-before-completion` | S | completion-gate | 5 |
+| `subagents-discipline` (×2: root + templates) | T | completion-gate | 4 |
 
 ## 8. Version Control & Change Integration (4)
 
@@ -151,7 +159,7 @@ Isolate, reconcile, version, and land changes through Git.
 | `finishing-a-development-branch` | S | branch-integration | 9 |
 | `using-git-worktrees` | S | workspace-isolation | 10 |
 
-## 9. Release, Migration & Operations (5)
+## 9. Release, Migration & Operations (7)
 
 Deploy, transition, instrument, or operationalise software and infrastructure.
 
@@ -162,8 +170,10 @@ Deploy, transition, instrument, or operationalise software and infrastructure.
 | `observability-and-instrumentation` | A | observability | 6 |
 | `shipping-and-launch` | A | release-management | — |
 | `wizard` | M | human-in-the-loop | 10 |
+| `build-iterated-agentic-loop` | H | agentic-control-loop | 10, 11 |
+| `design-control-loop` | H | agentic-control-loop | 10, 11, 1 |
 
-## 10. Orchestration, Handoff & Context Continuity (4)
+## 10. Orchestration, Handoff & Context Continuity (5)
 
 Distribute work or preserve context across agents, sessions, and humans.
 
@@ -173,8 +183,9 @@ Distribute work or preserve context across agents, sessions, and humans.
 | `claude-handoff` | M | handoff | — |
 | `handoff` | M | handoff | — |
 | `dispatching-parallel-agents` | S | subagent-dispatch | — |
+| `create-beads-orchestration` | T | subagent-dispatch | 2, 12 |
 
-## 11. Harness Routing & Agent-System Authoring (5)
+## 11. Harness Routing & Agent-System Authoring (6)
 
 Route among skills, or create and maintain agent-consumed instructions.
 
@@ -185,6 +196,7 @@ Route among skills, or create and maintain agent-consumed instructions.
 | `writing-for-agents` | M | agent-doc-authoring | 13 |
 | `using-superpowers` | S | skill-routing | — |
 | `writing-skills` | S | agent-doc-authoring | 13 |
+| `improve-claude-md` | H | claude-md-rewrite | — |
 
 ## 12. Repository Tooling & Guardrails (4)
 
@@ -197,7 +209,7 @@ Install or configure durable repository-level development constraints.
 | `setup-pre-commit` | M | guardrail-install | 7 |
 | `setup-ts-deep-modules` | M | guardrail-install | 3 |
 
-## 13. Engineering Research & Durable Documentation (2)
+## 13. Engineering Research & Durable Documentation (3)
 
 Establish authoritative technical knowledge or preserve engineering decisions.
 
@@ -205,14 +217,20 @@ Establish authoritative technical knowledge or preserve engineering decisions.
 |---|---|---|---|
 | `documentation-and-adrs` | A | decision-records | 3 |
 | `research` | M | source-research | 1 |
+| `html-artifacts` | HA | visual-explanation | 14 |
 
-## 14. Human Learning, Content & Conversation (6)
+## 14. Human Learning, Content & Conversation (8)
 
 Teach people, produce non-engineering content, or repair human communication.
 
 > **Out of scope for local-harness adoption.** These skills produce output
 > consumed by people, not by the software system. They are inventoried for
 > completeness; they are not adoption candidates.
+>
+> Exceptions: `show-me`, `diagram-design`, and `html-artifacts` (bucket 13) are
+> kept **in-scope** — their output is for the human, but they are
+> development-conversation and engineering-documentation aids, which is exactly
+> where our `html-artifact` already lives.
 
 | Skill | Repo | Family | Also in |
 |---|---|---|---|
@@ -222,6 +240,8 @@ Teach people, produce non-engineering content, or repair human communication.
 | `writing-beats` | M | prose-authoring | — |
 | `writing-fragments` | M | prose-authoring | — |
 | `writing-shape` | M | prose-authoring | — |
+| `show-me` | H | visual-explanation | 13 |
+| `diagram-design` | D | visual-explanation | 13 |
 
 ## Capability families
 
@@ -233,6 +253,9 @@ for, and only the `substitutes` rows are genuine adopt-one-not-both decisions.
 | Family | Relation | Members |
 |---|---|---|
 | agent-doc-authoring | **substitutes** | `writing-for-agents`[M], `writing-skills`[S] |
+| agentic-control-loop | **substitutes** | `build-iterated-agentic-loop`[H], `design-control-loop`[H] |
+| visual-explanation | **substitutes** | `show-me`[H], `diagram-design`[D], `html-artifacts`[HA] |
+| completion-gate | **substitutes** | `verification-before-completion`[S], `subagents-discipline`[T] |
 | code-review | **substitutes** | `code-review-and-quality`[A], `code-review`[M] |
 | debugging | **substitutes** | `debugging-and-error-recovery`[A], `diagnosing-bugs`[M], `systematic-debugging`[S] |
 | handoff | **substitutes** | `claude-handoff`[M], `handoff`[M] |
@@ -249,11 +272,13 @@ for, and only the `substitutes` rows are genuine adopt-one-not-both decisions.
 | human-in-the-loop | **genus** | `to-questionnaire`[M], `wizard`[M] |
 | interface-design | **genus** | `api-and-interface-design`[A], `codebase-design`[M] |
 | learning-content | **genus** | `scaffold-exercises`[M], `teach`[M] |
-| refactoring | **genus** | `code-simplification`[A], `migrate-to-shoehorn`[M] |
+| refactoring | **genus** | `code-simplification`[A], `migrate-to-shoehorn`[M], `narrow-react-prop-types`[H] |
 | task-decomposition | **genus** | `planning-and-task-breakdown`[A], `to-tickets`[M], `wayfinder`[M] |
 
 Relations: **substitutes** = adopt one, not both · **complements** = two halves of
 one protocol · **pipeline** = sequential stages · **genus** = same area, different
 scope, not interchangeable. Families with a single member are omitted.
 
-Repo key: **A** = agent-skills, **M** = mattpocock_skills, **S** = superpowers.
+Repo key: **A** = agent-skills, **M** = mattpocock_skills, **S** = superpowers,
+**H** = humanlayer_skills, **T** = The-Claude-Protocol, **D** = diagram-design,
+**HA** = html-artifacts.

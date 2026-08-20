@@ -379,6 +379,148 @@
       "source_sha": "7676817c12a1317454ae3898a0c5c1eacf5dd3d5"
     },
     {
+      "repo": "diagram-design",
+      "logical_id": "command:commands/export-diagram",
+      "status": "deferred",
+      "reason": "Command surface of the diagram-design skill \u2014 skill adopted user-invoked in round-006 (2026-08-20), but its commands stay deferred: each delegates wholly to references the installed skill already routes to via /diagram-design; adopt only if the import/export/profile flows become routine enough to deserve their own slash surface.",
+      "date": "2026-08-20",
+      "source_sha": "4b57361"
+    },
+    {
+      "repo": "diagram-design",
+      "logical_id": "command:commands/import-drawio",
+      "status": "deferred",
+      "reason": "Command surface of the diagram-design skill \u2014 skill adopted user-invoked in round-006 (2026-08-20), but its commands stay deferred: each delegates wholly to references the installed skill already routes to via /diagram-design; adopt only if the import/export/profile flows become routine enough to deserve their own slash surface.",
+      "date": "2026-08-20",
+      "source_sha": "4b57361"
+    },
+    {
+      "repo": "diagram-design",
+      "logical_id": "command:commands/import-mermaid",
+      "status": "deferred",
+      "reason": "Command surface of the diagram-design skill \u2014 skill adopted user-invoked in round-006 (2026-08-20), but its commands stay deferred: each delegates wholly to references the installed skill already routes to via /diagram-design; adopt only if the import/export/profile flows become routine enough to deserve their own slash surface.",
+      "date": "2026-08-20",
+      "source_sha": "4b57361"
+    },
+    {
+      "repo": "diagram-design",
+      "logical_id": "command:commands/profile",
+      "status": "deferred",
+      "reason": "Command surface of the diagram-design skill \u2014 skill adopted user-invoked in round-006 (2026-08-20), but its commands stay deferred: each delegates wholly to references the installed skill already routes to via /diagram-design; adopt only if the import/export/profile flows become routine enough to deserve their own slash surface.",
+      "date": "2026-08-20",
+      "source_sha": "4b57361"
+    },
+    {
+      "repo": "diagram-design",
+      "logical_id": "plugin:diagram-design",
+      "status": "deferred",
+      "reason": "Plugin wrapper still not adopted \u2014 the skill itself was installed directly (round-006); we distribute via mvp-plugin, not by stacking third-party plugins.",
+      "date": "2026-08-20",
+      "source_sha": "4b57361"
+    },
+    {
+      "repo": "diagram-design",
+      "logical_id": "skill:skills/diagram-design",
+      "status": "adopted",
+      "reason": "Adopted in full 2026-08-20 (round-006, user ruling; supersedes round-005 adopt-in-part). Whole skill directory (SKILL.md + 54 references + assets + self_check/extract scripts, 2.9MB, MIT + third-party icon licenses) installed at .claude/skills/diagram-design as a user-invoked skill (disable-model-invocation: true) \u2014 its own branded design system, Google Fonts included, applies only when the user explicitly invokes /diagram-design for a standalone diagram deliverable; html-artifact + references/svg-craft.md (see round-005) remain the rules for figures inside our documents. Local modifications: slash-only frontmatter, wiretext pointer -> /show-me, <repo-root> verify-script paths -> reference_harnesses/diagram-design/scripts, scratchpad output location. References and assets byte-identical to upstream; catalog allowlists cover the three unadopted command pointers.",
+      "date": "2026-08-20",
+      "our_id": "skill:skills/diagram-design",
+      "source_sha": "4b57361",
+      "source_content_hash": "876e96bb5cd4760da1e7b5642560438020da7b89"
+    },
+    {
+      "repo": "html-artifacts",
+      "logical_id": "skill:skill",
+      "status": "adopted",
+      "reason": "Adopted-merged 2026-08-20 (round-005, supersedes round-004 defer; evidence: skill-comparisons/visual-explanation/ + scratchpad round-004 merge-dossier). Into html-artifact: SVG craft rules + shape-and-color + copy-SVG (svg-craft.md), tokens-first (narrowed \u2014 no persisted design-system.html), any-three-restart gate, 60-75ch + 16-18px numbers, disposable carve-out + 2-4x cost line, real-layout rule, PR-writeup + option-comparison report rows and section rules, marginal glossary, the-trick, where-you'll-meet-it, FAQ, editor pre-fill/live-state/keyboard-threshold/not-generic, artifact webs, open commands. Rejected as a unit and never imported: aggressive any-of trigger, CDN allowance, working-dir output, conditional dark mode, JS-load-bearing patterns, emoji tags, localStorage permission (ban kept with corrected file:// reason + always-current-export mitigation), decks, design-and-prototypes, baseline CSS block, worked sketches (fabricate data). Editor convergence recorded as validation. Annotated-diff category ruled to code-review skill, not here.",
+      "date": "2026-08-20",
+      "our_id": "skill:html-artifact",
+      "source_sha": "c14a4ec",
+      "source_content_hash": "130e908e820512ddc1415ff9a9243039d62ff279"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "plugin:plugins/build-iterated-agentic-loop/build-iterated-agentic-loop",
+      "status": "rejected",
+      "reason": "Single-skill plugin wrapper for skill build-iterated-agentic-loop \u2014 see that skill's ledger entry (2026-08-19).",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "plugin:plugins/design-control-loop/design-control-loop",
+      "status": "deferred",
+      "reason": "Single-skill plugin wrapper for skill design-control-loop \u2014 see that skill's ledger entry (2026-08-19).",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "plugin:plugins/improve-claude-md/improve-claude-md",
+      "status": "deferred",
+      "reason": "Single-skill plugin wrapper for skill improve-claude-md \u2014 see that skill's ledger entry (2026-08-19).",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "plugin:plugins/narrow-react-prop-types/narrow-react-prop-types",
+      "status": "rejected",
+      "reason": "Single-skill plugin wrapper for skill narrow-react-prop-types \u2014 see that skill's ledger entry (2026-08-19).",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "plugin:plugins/show-me/show-me",
+      "status": "deferred",
+      "reason": "Single-skill plugin wrapper for skill show-me \u2014 see that skill's ledger entry (2026-08-19).",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "skill:plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop",
+      "status": "rejected",
+      "reason": "Rejected 2026-08-19 (evidence: skill-comparisons/agentic-control-loops/): earlier draft of design-control-loop by the same author with the same reference set minus taxonomy + worked example; no measurement, no dampener, no local-first gate, monolithic agent step. Everything it does the sibling does with more structure \u2014 evaluate only design-control-loop.",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "skill:plugins/design-control-loop/skills/design-control-loop",
+      "status": "deferred",
+      "reason": "Deferred 2026-08-19 (evidence: skill-comparisons/agentic-control-loops/). Complement, not substitute, to our execution engine \u2014 a scheduled, PR-granular, human-steered loop vs our in-session plan-granular loop with in-loop review. Borrowable pattern if a recurring-maintenance need appears in a user repo: set point / sensor / controller / actuator / disturbance vocabulary, dampener (regression gate vs baseline), open-PR throughput bound, memory injected after selection with /iterate write-back, local-first-before-CI gate. Not adoptable as shipped: GHA+Bun+gh dependency, bypassPermissions runner, git add -A in iterate path (violates Git Safety), flat-file state instead of bd, workflow-summary description. Also a candidate second graph type for the parked workflow-graphs idea (cr-o85).",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "skill:plugins/improve-claude-md/skills/improve-claude-md",
+      "status": "deferred",
+      "reason": "Deferred 2026-08-19 (evidence: skill-comparisons/agent-doc-authoring/). Narrow CLAUDE.md rewrite recipe; its pruning checklist duplicates authoring-for-agents' writing-principles. One new component \u2014 in-place conditional scoping via <important if> tags \u2014 fills a hole between 'inline' and 'behind a pointer' in our surface table, but the adherence gain is asserted not measured and is Claude-Code-specific (Codex reads AGENTS.md without the wrapper). Re-open only after a packaging/baseline test on this repo's CLAUDE.md and a Codex tolerance check; then add as one row of authoring-for-agents, never import its inline-everything principle or fixed output structure.",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "skill:plugins/narrow-react-prop-types/skills/narrow-react-prop-types",
+      "status": "rejected",
+      "reason": "Rejected 2026-08-19: React/TypeScript-specific prop-contract narrowing \u2014 UI work is out of scope for this harness (casebook round-002 ruling). Its shape (live code paths as source of truth, stories/tests adapt) is already the generic principle in our code-review and test rules. Kept in inventory as humanlayer's reference actuator skill for the control-loop family.",
+      "date": "2026-08-19",
+      "source_sha": "3c26291"
+    },
+    {
+      "repo": "humanlayer_skills",
+      "logical_id": "skill:plugins/show-me/skills/show-me",
+      "status": "adopted",
+      "reason": "Adopted 2026-08-20 (round-005, supersedes round-003 defer) as a user-invoked skill .claude/skills/show-me (disable-model-invocation: true \u2014 kills the misfire risk that motivated the defer). Kept: six inline forms + the diff-shaped-to-topic device + placement/restraint rules. Changed: trigger-only description, Mermaid marked client-dependent (never terminal), handoff bound to html-artifact's all-hold gate. Dropped: its one-sentence HTML escalation, macOS-only open.",
+      "date": "2026-08-20",
+      "our_id": "skill:show-me",
+      "source_sha": "3c26291",
+      "source_content_hash": "4321b7ba5f2ec63fa0ecf26d4ef27a3a1794a947"
+    },
+    {
       "repo": "mattpocock_skills",
       "logical_id": "plugin:mattpocock-skills",
       "status": "rejected",
