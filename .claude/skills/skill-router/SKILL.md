@@ -63,6 +63,7 @@ the model never sees those descriptions.
 | `/migrate-claude-to-codex` | Migrate a Claude Code harness into Codex-native repo assets. |
 | `/phase-execution` | Execute one phase of a workstream roadmap. |
 | `/run-phases` | Run every remaining phase of a workstream unattended. |
+| `/show-me` | Show the current topic visually, inline in the conversation. |
 | `/teach` | Teach the user a new skill or concept, within this workspace. |
 | `/teach-session` | Effective teacher who makes the learner deeply understand the work produced in specific session. |
 | `/triage` | Evaluate unevaluated beads issues and move each to an intake state — ready-for-agent, human, needs-info, backlog, or a wontfix close. |
