@@ -13,3 +13,24 @@
 [submodule "mvp-harness"]
 	path = mvp-harness
 	url = https://github.com/MVPavan/mvp-harness.git
+[submodule "reference_harnesses/humanlayer_skills"]
+	path = reference_harnesses/humanlayer_skills
+	url = https://github.com/humanlayer/skills.git
+[submodule "reference_harnesses/The-Claude-Protocol"]
+	path = reference_harnesses/The-Claude-Protocol
+	url = https://github.com/AvivK5498/The-Claude-Protocol.git
+[submodule "reference_harnesses/diagram-design"]
+	path = reference_harnesses/diagram-design
+	url = https://github.com/cathrynlavery/diagram-design.git
+[submodule "reference_harnesses/html-artifacts"]
+	path = reference_harnesses/html-artifacts
+	url = https://github.com/dogum/html-artifacts.git
+[submodule "reference_tools/Skill_Seekers"]
+	path = reference_tools/Skill_Seekers
+	url = https://github.com/yusufkaraaslan/Skill_Seekers.git
+[submodule "reference_tools/codeburn"]
+	path = reference_tools/codeburn
+	url = https://github.com/getagentseal/codeburn.git
+[submodule "reference_tools/omnigent"]
+	path = reference_tools/omnigent
+	url = https://github.com/omnigent-ai/omnigent.git

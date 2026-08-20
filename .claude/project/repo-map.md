@@ -9,7 +9,8 @@ Top-level layout and how to navigate.
 | `mvp-harness/plugins/codex-adapter/` | Codex bridge plugin: `scripts/codex-run.mjs`, `roles/`, `commands/`, `skills/codex-runner/` |
 | `mvp-harness/plugins/code-intel/` | Code-intelligence plugin: `bin/` shims, `hooks/`, `skills/graph-first/`, `test/` |
 | `harness_learnings/` | Synthesized canon + best-practice docs (design reference) |
-| `reference_harnesses/` | Six third-party harnesses as git submodules (read-only) |
+| `reference_harnesses/` | Third-party harnesses as git submodules (read-only; list in `.gitmodules`) |
+| `reference_tools/` | Third-party tool repos as git submodules (read-only; not part of the harness lifecycle) |
 | `harness_lifecycle/` | Reference-harness curation tooling: `scan.py` (catalog/diff/drift), `gap.py` (gap/ledger), committed `catalogs/` |
 | `.agents/` | Codex/agent local settings |
 | `.claude/` | Canonical harness: `rules/`, `skills/` (slash commands are slash-only skills; each skill carries `agents/openai.yaml` for Codex), `agents/`, `hooks/`, `project/` overlay |
