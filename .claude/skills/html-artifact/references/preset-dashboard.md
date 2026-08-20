@@ -12,7 +12,7 @@ A dashboard front-loads the KPI tile row, then presents one large primary chart,
 
 ## Charts: SVG inline first
 
-For bars, lines, scatter, and most distributions, hand-rolled SVG is smaller, instant-loading, dependency-free, and styled by the page's design language. Use the accent color for the primary series and neutrals for secondary. Gridlines and axis lines use the border color. Labels use the muted text color. Always include role and aria-label on the SVG.
+For bars, lines, scatter, and most distributions, hand-rolled SVG is smaller, instant-loading, dependency-free, and styled by the page's design language. Use the accent color for the primary series and neutrals for secondary. Gridlines and axis lines use the border color. Labels use the muted text color. Read `svg-craft.md` before drawing any chart — it owns the accessibility and honest-data rules.
 
 Charts have a small caption above naming the metric and time window. Below the chart, a 1-2 sentence note pointing out what the reader should notice — the outlier, the trend, the surprise. Do not restate axis labels in prose.
 
