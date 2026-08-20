@@ -4,6 +4,12 @@ Status: parked — captured from discussion 2026-08-12, not yet refined through 
 idea-refine/brainstorming session. Revisit after the lifecycle-skills wave
 (buckets 2/4/5/6/7) lands.
 
+Related (2026-08-19): humanlayer's `design-control-loop` was compared against
+this draft in `harness_lifecycle/skill-comparisons/agentic-control-loops/README.md`
+(§Orchestrator analysis). It agrees with every constraint below and adds a
+measurement-driven loop shape (set point → sensor → controller → actuator,
+scheduled) that would be a candidate *second graph type* if this idea resumes.
+
 ## Problem Statement
 
 The harness's SDLC pipeline (brainstorm → prepare-phases → planning →

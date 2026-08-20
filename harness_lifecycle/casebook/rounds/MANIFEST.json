@@ -2,6 +2,10 @@
   "_comment": "sha256 of every sealed round file. casebook.py validate fails if a sealed file is modified or deleted. Never edit by hand.",
   "rounds": {
     "round-001-council-consolidation.jsonl": "c6b922db7312358f11cca5168f4ac1639c68349f9539759e86ce51df6de002a6",
-    "round-002-drop-ui-scope.jsonl": "2a7fdc31bdf8d4c023a412aae51d6c312e7aeb90a2b3cbb6676dbd86fc504292"
+    "round-002-drop-ui-scope.jsonl": "2a7fdc31bdf8d4c023a412aae51d6c312e7aeb90a2b3cbb6676dbd86fc504292",
+    "round-003-humanlayer-skills.jsonl": "88d3929509098548214142b67b4479db58fe8c2466a041b6a0452158820858fc",
+    "round-004-visual-explanation.jsonl": "5976aec8bf3b68369f940a2398446c8a6d5197020d2c077f2c03338cb88852ae",
+    "round-005-visual-explanation-merge.jsonl": "7b03eb65e4bf8ad7f83b5f1a04f5f0a0dea0019421ef920e882094c24093e1a8",
+    "round-006-diagram-design-adoption.jsonl": "d391e4c61d5f010650932d7db58ccfab5aee855e3d9c519b00f36bd73d3d5be8"
   }
 }

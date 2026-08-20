@@ -114,7 +114,46 @@ it if UI work ever appears.
 This round is also the worked example of supersession: three events, each naming
 the round-001 event it replaces. Nothing in round 001 was touched.
 
-Two debts recorded in the round header that no roster choice avoids:
+**003 — humanlayer_skills first curation.** New submodule, 5 single-skill
+plugins, all new subjects (sk-064 … sk-068). No council; one analyst, three
+family comparisons under `skill-comparisons/` (`agentic-control-loops`,
+`agent-doc-authoring`, `visual-explanation`). Verdicts: 3 defer
+(`design-control-loop`, `improve-claude-md`, `show-me` — each with a named
+re-open precondition), 1 reject (`build-iterated-agentic-loop`, superseded by
+its sibling), 1 out-of-scope (`narrow-react-prop-types`, UI). **Adopted count
+unchanged at 39.** The control-loop comparison also carries the orchestrator
+analysis the user asked for (loop skills vs `docs/ideas/workflow-graphs.md`).
+
+**004 — visual-explanation additions.** Two new single-skill repos, both in
+one family: `diagram-design` (cathrynlavery) and `html-artifacts` (dogum —
+96 % name match to our `html-artifact`). Two Opus 5 (medium) analysts, one per
+repo, coordinator-verified citations; family folder extended to 4 skills
+rather than forked. Both **defer** (sk-069, sk-070) — diagram-design's
+geometry grammar and dogum's SVG-craft/merge borrows are named in the ledger;
+the diagram borrow is one combined decision across both repos.
+The-Claude-Protocol was cataloged in the same batch but not ruled. **Adopted
+count unchanged at 39.**
+
+**005 — visual-explanation merge executed.** User approved Package 2 + show-me
+as a user-invoked skill. `svg-craft.md` created (diagram-design grammar + dogum
+craft + honest-data), html-artifact SKILL.md and all four presets revised, four
+REMOVEs executed, `.claude/skills/show-me/` added (slash-only). Independent
+critic: 6 MAJOR + 12 MINOR, all applied (one non-issue). Three defers
+superseded → **39 → 42 adopted.** Parked: the executable verifier (Package 3)
+and the harvest §G out-of-skill items. Plugin republish pending.
+
+**006 — diagram-design adopted in full, slash-only.** User ruling upgraded
+sk-069 from adopt-in-part to adopt: the whole skill directory (2.9MB, MIT +
+icon licenses) installed at `.claude/skills/diagram-design` with
+`disable-model-invocation: true` — only `/diagram-design` fires it, so its own
+design system (Google Fonts, branded skin) never leaks into html-artifact
+documents, which keep `svg-craft.md`. Four minimal SKILL.md modifications;
+references/assets byte-identical to upstream (six slash tokens allowlisted in
+`skill-catalog.py` instead). Commands + plugin wrapper stay deferred.
+**Adopted count unchanged at 42.** Debts: publish-manifest ruling for the
+2.9MB asset tree; stale `inventory/ours/` mirror.
+
+Round-002 debts recorded in its header that no roster choice avoids:
 
 - **agent-skills `references/*.md`** — 7 shared files referenced by 11 skills, 9
   of them adopted. `doubt-driven-development`'s constraints are written against

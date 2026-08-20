@@ -7,15 +7,15 @@
 | 1. Discovery, Requirements & Decisions | 9 | 5 | [bucket-01.md](bucket-01.md) |
 | 2. Planning & Work Management | 5 | 3 | [bucket-02.md](bucket-02.md) |
 | 3. Architecture & Modeling | 5 | 5 | [bucket-03.md](bucket-03.md) |
-| 4. Implementation & Refactoring | 8 | 5 | [bucket-04.md](bucket-04.md) |
+| 4. Implementation & Refactoring | 9 | 5 | [bucket-04.md](bucket-04.md) |
 | 5. Testing & Runtime Validation | 4 | 1 | [bucket-05.md](bucket-05.md) |
 | 6. Debugging & Optimization | 4 | 2 | [bucket-06.md](bucket-06.md) |
 | 7. Review & Completion Assurance | 6 | 4 | [bucket-07.md](bucket-07.md) |
 | 8. Version Control & Change Integration | 4 | 3 | [bucket-08.md](bucket-08.md) |
-| 9. Release, Migration & Operations | 5 | 5 | [bucket-09.md](bucket-09.md) |
+| 9. Release, Migration & Operations | 7 | 5 | [bucket-09.md](bucket-09.md) |
 | 10. Orchestration, Handoff & Context Continuity | 3 | 2 | [bucket-10.md](bucket-10.md) |
-| 11. Harness Routing & Agent-System Authoring | 5 | 2 | [bucket-11.md](bucket-11.md) |
+| 11. Harness Routing & Agent-System Authoring | 6 | 2 | [bucket-11.md](bucket-11.md) |
 | 12. Repository Tooling & Guardrails | 1 | 1 | [bucket-12.md](bucket-12.md) |
-| 13. Engineering Research & Durable Documentation | 2 | 1 | [bucket-13.md](bucket-13.md) |
-| 14. Human Learning, Content & Conversation | 2 | 0 | [bucket-14.md](bucket-14.md) |
-| **Total** | **63** | **39** | |
+| 13. Engineering Research & Durable Documentation | 3 | 2 | [bucket-13.md](bucket-13.md) |
+| 14. Human Learning, Content & Conversation | 4 | 2 | [bucket-14.md](bucket-14.md) |
+| **Total** | **70** | **42** | |

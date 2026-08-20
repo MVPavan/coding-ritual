@@ -26,3 +26,11 @@ Kept only because it is a declared precondition of triage and wayfinder, which a
 
 - `performance-optimization` — round-002-drop-ui-scope replaced round-001-council-consolidation:e034: STAYS ADOPTED — scope-trimmed, not dropped. It covers frontend, backend, queries and databases; only the frontend portion is out of scope. Its load-bearing cont
 
+- `show-me` — round-005-visual-explanation-merge replaced round-003-humanlayer-skills:e004: Adopted as .claude/skills/show-me, user-invoked only (disable-model-invocation: true). The round-003 defer precondition (record a prose-vs-diagram failure first
+
+- `diagram-design` — round-005-visual-explanation-merge replaced round-004-visual-explanation:e001: Adopted in part into html-artifact — the geometry grammar and honesty doctrine, none of the machinery. references/svg-craft.md now carries the six connector rul
+
+- `html-artifacts` — round-005-visual-explanation-merge replaced round-004-visual-explanation:e002: Adopted-merged into html-artifact per the line-level dossier: 14 of 39 components in reduced form, 4 REMOVEs executed on our side (spacing duplicate, framing re
+
+- `diagram-design` — round-006-diagram-design-adoption replaced round-005-visual-explanation-merge:e002: User ruling: the full skill now ships as .claude/skills/diagram-design with disable-model-invocation: true — invoked only as /diagram-design, for standalone bra
+

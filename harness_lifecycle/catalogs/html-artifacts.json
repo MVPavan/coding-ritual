@@ -1,0 +1,43 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "html-artifacts",
+  "source": "working-tree",
+  "source_commit": "c14a4ec2a5ad09fe24163f4430d46ee4bb8c1269",
+  "physical_scanned": 13,
+  "excluded": 9,
+  "counts": {
+    "skill": {
+      "physical": 1,
+      "logical": 1
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "skill",
+      "name": "html-artifacts",
+      "category": "skill",
+      "logical_id": "skill:skill",
+      "canonical_path": "skill/SKILL.md",
+      "paths": [
+        "skill/SKILL.md"
+      ],
+      "description": "Produce a self-contained HTML artifact instead of a markdown document when the request is for content that benefits from spatial layout, color, real diagrams, interactivity, or a round-trip editor. Use this skill aggressively whenever the user asks for a \"doc,\" \"writeup,\" \"plan,\" \"spec,\" \"report,\" \"explainer,\" \"summary,\" \"comparison,\" \"review,\" \"PR description,\" \"mockup,\" \"diagram,\" \"flowchart,\" \"deck,\" \"slides,\" \"status update,\" \"post-mortem,\" \"incident report,\" \"playground,\" or a one-off \"editor\" or \"tool\" for triaging/reordering/tuning anything \u2014 even if they don't explicitly say \"HTML\" or \"artifact.\" Also trigger when the user asks Claude to \"explain,\" \"summarize,\" \"compare,\" \"explore options for,\" \"brainstorm directions for,\" or \"walk through\" a non-trivial topic. Stay in markdown only for short conversational replies, code-only outputs, terminal-style command answers, and content that's genuinely just a few sentences.",
+      "content_hash": "130e908e820512ddc1415ff9a9243039d62ff279",
+      "signature_hash": "77f15e00d0473d86874694e2fd246ca9a18357a6",
+      "variant_hashes": [
+        "130e908e820512ddc1415ff9a9243039d62ff279"
+      ],
+      "line_count": 94,
+      "assets": [
+        "skill/references/code-review-and-pr.md",
+        "skill/references/custom-editors.md",
+        "skill/references/decks.md",
+        "skill/references/design-and-prototypes.md",
+        "skill/references/diagrams-and-illustrations.md",
+        "skill/references/exploration-and-planning.md",
+        "skill/references/matching-your-style.md",
+        "skill/references/reports-and-research.md"
+      ]
+    }
+  ]
+}

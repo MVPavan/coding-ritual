@@ -174,11 +174,11 @@ reproducible from a scan, so neither appears here.
 
 | Path | Holds | Rebuild from |
 |---|---|---|
-| `inventory/*.csv` | the three curated reference harnesses (agent-skills, mattpocock_skills, superpowers) | their `catalogs/*.json` |
+| `inventory/*.csv` | the curated reference harnesses (agent-skills, mattpocock_skills, superpowers, humanlayer_skills, The-Claude-Protocol, diagram-design, html-artifacts) | their `catalogs/*.json` |
 | `inventory/ours/*.csv` | **our own** 76 capabilities | `catalogs/ours.json` |
 
-Kept apart deliberately. `inventory/skill.csv` (73 rows) and
-`inventory/skill-buckets.csv` (73 rows) are in 1:1 correspondence, and the
+Kept apart deliberately. `inventory/skill.csv` (84 rows) and
+`inventory/skill-buckets.csv` (84 rows) are in 1:1 correspondence, and the
 casebook roster is a subset of the same set. Merging our 31 skills into
 `skill.csv` would silently break that correspondence and make the bucket file
 look incomplete when nothing is wrong.
@@ -231,6 +231,16 @@ Distinct from `ledger.json` on purpose: the ledger is a mutable current-state
 index (`gap.py ledger add` replaces entries and only hashes adopted ones), so it
 cannot hold history or notice that a *rejected* skill changed upstream. See
 `casebook/README.md`.
+
+## `skill-comparisons/` — the evidence behind a ruling
+
+One folder per **capability family** (`plan-execution-engines`,
+`agentic-control-loops`, …), written with the `harness-skill-compare` skill:
+`README.md` holds the placement table and capability profiles with a verdict;
+`components.md` holds the `file:line` component inventory and cross-skill
+matrix. Ledger reasons and casebook events cite these folders as their
+evidence; extend the family folder when its set grows rather than opening a
+second one for an overlapping set.
 
 ## Limitations (current)
 
