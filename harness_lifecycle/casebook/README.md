@@ -153,6 +153,14 @@ references/assets byte-identical to upstream (six slash tokens allowlisted in
 **Adopted count unchanged at 42.** Debts: publish-manifest ruling for the
 2.9MB asset tree; stale `inventory/ours/` mirror.
 
+**007 — round-006 reversed.** The user stopped the full diagram-design
+install before push: 2.9MB is too big for this harness. Local copy deleted,
+unpushed commits rebuilt without it, catalog back to 45 skills; the ledger
+returns to round-005's adopt-in-part, which stays shipped (`svg-craft.md` +
+html-artifact merges). Round-006 remains in the log as history. Debt: a
+slimmed packaging (no assets tree) is the only sanctioned reopening path.
+**Adopted count unchanged at 42.**
+
 Round-002 debts recorded in its header that no roster choice avoids:
 
 - **agent-skills `references/*.md`** — 7 shared files referenced by 11 skills, 9

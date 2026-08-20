@@ -92,3 +92,5 @@ React/TypeScript prop-contract narrowing; UI work is out of scope for this harne
 
 - `diagram-design` — round-006-diagram-design-adoption replaced round-005-visual-explanation-merge:e002: User ruling: the full skill now ships as .claude/skills/diagram-design with disable-model-invocation: true — invoked only as /diagram-design, for standalone bra
 
+- `diagram-design` — round-007-diagram-design-reversal replaced round-006-diagram-design-adoption:e001: User reversed round-006's full install before push: 2.9MB (mostly the 140-file assets tree) is too big for this harness. The standing ruling returns to round-00
+

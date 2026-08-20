@@ -6,7 +6,8 @@
     "round-003-humanlayer-skills",
     "round-004-visual-explanation",
     "round-005-visual-explanation-merge",
-    "round-006-diagram-design-adoption"
+    "round-006-diagram-design-adoption",
+    "round-007-diagram-design-reversal"
   ],
   "subjects": {
     "sk-001": {
@@ -625,10 +626,10 @@
       "name": "diagram-design",
       "repo": "diagram-design",
       "bucket": 14,
-      "verdict": "adopt",
+      "verdict": "adopt-merged",
       "content_hash": "876e96bb5cd4760da1e7b5642560438020da7b89",
       "commit_sha": "4b57361",
-      "event_id": "round-006-diagram-design-adoption:e001"
+      "event_id": "round-007-diagram-design-reversal:e001"
     },
     "sk-070": {
       "name": "html-artifacts",
