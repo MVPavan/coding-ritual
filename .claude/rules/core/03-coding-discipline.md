@@ -14,6 +14,9 @@ verification in `.claude/project/verification.md`, testing in
 - If a simpler approach exists, say so. Push back when warranted.
 - Read exports, immediate callers, and shared utilities before adding code;
   if unsure why code is structured a way, ask.
+- Before coding against external data (API, database, file, config), run the
+  command and read the actual field names and types — code against what you
+  observed, not what docs or memory say.
 
 ## Simplicity, with its counterweight
 
