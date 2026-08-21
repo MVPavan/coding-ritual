@@ -53,7 +53,7 @@ Approved implementation work runs through the **execution skill** (three scopes:
 
 ## Codex And Claude
 
-`.claude/` is the canonical harness for both tools. `.codex/` holds the Codex view of it: `.codex/skills/*` and `.codex/project` are symlinks into `.claude/`, and each skill ships `agents/openai.yaml` (`policy.allow_implicit_invocation`, the Codex twin of `disable-model-invocation`). Only Codex-native residue is real under `.codex/`: `config.toml`, `rules/default.rules`, `agents/*.toml`, `hooks.json`, — every skill, including `migrate-claude-to-codex` and `codebase-architecture-research`, lives in `.claude/skills/`. Codex is retired as the critic in this repo (2026-08-14); independent critique runs on a spawned critic subagent — see CLAUDE.md §Independent critique.
+`.claude/` is the canonical harness for both tools. `.codex/` holds the Codex view of it: `.codex/skills/*` and `.codex/project` are symlinks into `.claude/`, and each skill ships `agents/openai.yaml` (`policy.allow_implicit_invocation`, the Codex twin of `disable-model-invocation`). Only Codex-native residue is real under `.codex/`: `config.toml`, `rules/default.rules`, `agents/*.toml`, `hooks.json`, — every skill, including `migrate-claude-to-codex` and `codebase-research`, lives in `.claude/skills/`. Codex is retired as the critic in this repo (2026-08-14); independent critique runs on a spawned critic subagent — see CLAUDE.md §Independent critique.
 
 ## Tools & Subagents
 

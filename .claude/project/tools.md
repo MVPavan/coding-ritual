@@ -32,6 +32,9 @@ The Codex-side `use-codex` workflow is parked under
   tooling or architecture options; produces a cited document under `docs/research/`.
 - **`context7`** MCP (connected this session) — live docs for named libraries/SDKs;
   prefer over web search for library docs.
+- **`/codebase-research`** on a `reference_harnesses/*` target: the committed
+  machine-generated surface inventory its L1 consumes is
+  `harness_lifecycle/catalogs/<repo>.json` (see that skill's L1 step 3).
 - **implementer / code-reviewer / spec-reviewer** — core harness agents for
   bounded build → review work (reviewers follow the `code-review` skill;
   planning lives in the `planning` skill, dispatch in `execution`).

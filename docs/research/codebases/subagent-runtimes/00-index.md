@@ -6,6 +6,15 @@ Locally verified versions: Claude Code 2.1.217; Codex CLI 0.144.4
 
 Purpose: establish the source-level facts needed before designing a cross-harness agent matrix.
 
+> **Schema: legacy-2026-07.** This report set (this index, `01`–`05`,
+> `90-open-questions.md`, `html/`) pre-dates the `codebase-research` skill's
+> artifact contracts and is read as-is — do not retrofit it. All seven files
+> form one bundle at the versions above, state `current`. Its evidence labels
+> (below) map onto the newer ladder as: *VERIFIED — readable source* ≈
+> `SOURCE-TRACED`; *VERIFIED — public contract* and *VERIFIED — compiled
+> bundle* ≈ `SOURCE-TRACED` under the closed-target provision (evidence
+> artifact named); *INFERENCE* ≈ `INFERENCE`.
+
 ## Executive finding
 
 An agent should not be modeled as one flat record containing every possible option. The two runtimes combine the same concerns at different points and with different precedence rules.

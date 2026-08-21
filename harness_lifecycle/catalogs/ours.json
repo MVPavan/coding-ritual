@@ -3,7 +3,7 @@
   "repo": "ours",
   "source": "root .claude/.codex + plugins",
   "source_commit": null,
-  "physical_scanned": 402,
+  "physical_scanned": 401,
   "excluded": 15,
   "counts": {
     "agent": {
@@ -31,8 +31,8 @@
       "logical": 7
     },
     "skill": {
-      "physical": 53,
-      "logical": 53
+      "physical": 54,
+      "logical": 54
     }
   },
   "capabilities": [
@@ -535,12 +535,12 @@
         "rules/core/03-coding-discipline.md"
       ],
       "description": "",
-      "content_hash": "5e08d2bcd20f06733bdc3b9487c4c6cb2fcce065",
+      "content_hash": "f23d8f14ce6c25da9fcfc52c99c135b8d117e63d",
       "signature_hash": "63cdef07b042a97d0498e5115cbd8a080c29f961",
       "variant_hashes": [
-        "5e08d2bcd20f06733bdc3b9487c4c6cb2fcce065"
+        "f23d8f14ce6c25da9fcfc52c99c135b8d117e63d"
       ],
-      "line_count": 45,
+      "line_count": 48,
       "assets": []
     },
     {
@@ -741,7 +741,11 @@
         "1f2c0faed55be1bfd1ba2a2ae6cd20a57db7c1d1"
       ],
       "line_count": 104,
-      "assets": []
+      "assets": [
+        "skills/codebase-architecture-research/agents/openai.yaml",
+        "skills/codebase-architecture-research/references/report-set.md",
+        "skills/codebase-architecture-research/scripts/init_report_tree.py"
+      ]
     },
     {
       "kind": "skill",
@@ -760,6 +764,27 @@
       ],
       "line_count": 114,
       "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "codebase-research",
+      "category": "skills",
+      "logical_id": "skill:skills/codebase-research",
+      "canonical_path": "skills/codebase-research/SKILL.md",
+      "paths": [
+        "skills/codebase-research/SKILL.md"
+      ],
+      "description": "Graduated research on an external or unfamiliar codebase \u2014 survey its capabilities, map its architecture, or trace one mechanism \u2014 into durable reports under docs/research/codebases/. Descriptive, not a refactor proposal; for this repo's own code use improve-codebase-architecture.",
+      "content_hash": "83f5fecf216d64ced4b68da7dc286b79ff7f2368",
+      "signature_hash": "bb919cefa4a5bede1fb14e55cf5ed731f06279b3",
+      "variant_hashes": [
+        "83f5fecf216d64ced4b68da7dc286b79ff7f2368"
+      ],
+      "line_count": 176,
+      "assets": [
+        "skills/codebase-research/agents/openai.yaml",
+        "skills/codebase-research/references/artifacts.md"
+      ]
     },
     {
       "kind": "skill",
@@ -1344,10 +1369,11 @@
         "skills/research/SKILL.md"
       ],
       "description": "Use when the ask is genuine investigation \u2014 investigate a topic or claim, compare providers, tools, or approaches, evaluate a library or architecture decision, survey the current state of a fast-moving domain, or gather and weigh sources on an open question. Not for a single library/SDK/API fact (dispatch the docs-researcher subagent), not for questions the codebase itself answers, and not for settling scope or requirements (brainstorming).",
-      "content_hash": "dbd57c65e754624d4f22b72251b5e2a250dc9b68",
+      "content_hash": "e49d29d6168fb35a2dc33ce28a4cda1551519a94",
       "signature_hash": "5599e5a9a8563281c404bbdca8403e65eee1a676",
       "variant_hashes": [
-        "dbd57c65e754624d4f22b72251b5e2a250dc9b68"
+        "dbd57c65e754624d4f22b72251b5e2a250dc9b68",
+        "e49d29d6168fb35a2dc33ce28a4cda1551519a94"
       ],
       "line_count": 138,
       "assets": []
@@ -1436,11 +1462,11 @@
         "skills/skill-router/SKILL.md"
       ],
       "description": "Use when unsure which skill or command fits a task, when two seem to overlap, or when the user asks what skills or commands exist, what one does, or which to use.",
-      "content_hash": "b86492cf7ddbd06e7535a36e9e549fd7055ea455",
+      "content_hash": "4ea56878900521d7c4afd8df6ea4cdb00c864442",
       "signature_hash": "64fd1690d8074834f3788cefed5b91660516058f",
       "variant_hashes": [
         "06892ee7e0c52fca81af9bbfd3ebb7f4f48c384f",
-        "b86492cf7ddbd06e7535a36e9e549fd7055ea455"
+        "4ea56878900521d7c4afd8df6ea4cdb00c864442"
       ],
       "line_count": 70,
       "assets": []
@@ -1565,12 +1591,13 @@
         "skills/verification-before-completion/SKILL.md"
       ],
       "description": "Use before claiming a change is complete, fixed, passing, or ready \u2014 in any wording, including paraphrases and satisfaction expressions \u2014 and before committing, creating a PR, closing a bead, or moving to the next task.",
-      "content_hash": "78e7486f96a20cc5c098ba2d075c3c8fc1375803",
+      "content_hash": "8aabad66a7ab86240830dc0792a9efcf51c26687",
       "signature_hash": "8a07b8539b83036f38053109e25f5aabf51c52bc",
       "variant_hashes": [
-        "78e7486f96a20cc5c098ba2d075c3c8fc1375803"
+        "78e7486f96a20cc5c098ba2d075c3c8fc1375803",
+        "8aabad66a7ab86240830dc0792a9efcf51c26687"
       ],
-      "line_count": 63,
+      "line_count": 72,
       "assets": []
     },
     {

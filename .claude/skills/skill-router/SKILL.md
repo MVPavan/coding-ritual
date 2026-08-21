@@ -51,7 +51,7 @@ the model never sees those descriptions.
 | Surface | Use |
 |---|---|
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
-| `/codebase-architecture-research` | Investigate an unfamiliar or external codebase and write a durable, source-grounded architecture report set (agent Markdown under docs/research/codebases/<name>/, optional HTML for humans) — core architecture, runtime lifecycle, data/state, integration points. |
+| `/codebase-research` | Graduated research on an external or unfamiliar codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
 | `/cost-estimate` | Estimate the development cost of a codebase based on lines of code, complexity, market rates, and team composition. |
 | `/grill-me` | Relentless design-review interviewer that systematically interrogates every aspect of a plan, architecture, or design document. |
 | `/grill-with-docs` | A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go. |
