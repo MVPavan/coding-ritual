@@ -11,6 +11,7 @@ Format per entry:
 - Observed: <what happened / the pattern>
 - Why it matters: <consequence>
 - Apply: <concrete guidance>
+- Source: <bead id / task / session that verified it>   (optional)
 ```
 
 ## Codex CLI silently swallows bad `-c` config values  (2026-07-10)

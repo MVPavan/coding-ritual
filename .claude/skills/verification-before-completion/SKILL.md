@@ -32,6 +32,7 @@ Skipping any step turns the claim into a guess presented as fact.
 | "Lint/types clean" | linter and type checker exit 0 on the changed files | a partial check; extrapolation |
 | "Build succeeds" | the build command, exit 0 | lint passing; logs look fine |
 | "Harness change is sound" | the structural gate rows in `verification.md` that apply to the changed file types | "it's only a markdown edit" |
+| "Feature works" | the integrated path exercised the way a user reaches it (endpoint curled, CLI invoked, flow driven end-to-end) | component/unit tests green; the pieces work in isolation |
 | "Bug fixed" | the command that showed the original symptom, now green | code changed, symptom assumed gone |
 | "Regression test works" | red-green proof: fails with the fix reverted, passes restored | the test passing once |
 | "Agent/subagent completed" | the diff (`git status` + `git diff`) shows the claimed changes | the agent's report |
@@ -42,6 +43,14 @@ Skipping any step turns the claim into a guess presented as fact.
 and passes after it is unproven. Seams and method live in the
 test-driven-development skill; this gate demands only the observed red→green
 cycle as evidence.
+
+**Partial verification is declared, never hidden.** When the end-to-end row
+is genuinely out of reach (no browser/UI automation available, rate-limited or
+costly external API, run exceeds ~5 minutes, production-only data that cannot
+be mocked), say `PARTIAL` and report three lines: **Verified** (what ran, with
+evidence), **Needs human check** (what didn't, and the exact steps to check
+it), **Why**. "Server wasn't running", "no test data", and "would take too
+long" do not qualify — remove the obstacle and run.
 
 ## Red flags — stop and run the gate
 
