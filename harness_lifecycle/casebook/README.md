@@ -161,6 +161,21 @@ html-artifact merges). Round-006 remains in the log as history. Debt: a
 slimmed packaging (no assets tree) is the only sanctioned reopening path.
 **Adopted count unchanged at 42.**
 
+**008 — The-Claude-Protocol first ruling.** Cataloged in the round-004 batch,
+ruled here: 4 logical skills, 7 agents, 15 hooks at pin `af754ef`. Two Opus 5
+(medium) analysts (orchestration core; discipline/memory/delegator),
+hook-contract facts checked against the Claude Code docs, coordinator-verified
+citations; reports under `docs/research/the-claude-protocol/`. Headline: a
+third of TCP's hooks are wired to hook-API mechanisms that don't exist,
+including both flagship gates (fail-open completion validator, dead epic-close
+env var). Verdicts: `subagents-discipline` **adopt-merged** (sk-072 — FEATURE
+row + PARTIAL format into verification-before-completion, look-at-real-data
+bullet into the discipline rule, `Source:` line into learnings.md); 6 defers
+with named re-open paths, 4 of them as beads cr-n0v / cr-ghw / cr-iqu
+(dispatch-brief logging, epic-close + reclaim guard, bd-prime surfacing);
+everything else rejected or out-of-scope, including all 7 agents and the
+uncataloged mcp-provider-delegator. **42 → 43 adopted.**
+
 Round-002 debts recorded in its header that no roster choice avoids:
 
 - **agent-skills `references/*.md`** — 7 shared files referenced by 11 skills, 9

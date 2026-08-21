@@ -7,7 +7,8 @@
     "round-004-visual-explanation",
     "round-005-visual-explanation-merge",
     "round-006-diagram-design-adoption",
-    "round-007-diagram-design-reversal"
+    "round-007-diagram-design-reversal",
+    "round-008-claude-protocol"
   ],
   "subjects": {
     "sk-001": {
@@ -639,6 +640,240 @@
       "content_hash": "130e908e820512ddc1415ff9a9243039d62ff279",
       "commit_sha": "c14a4ec",
       "event_id": "round-005-visual-explanation-merge:e003"
+    },
+    "sk-071": {
+      "name": "create-beads-orchestration",
+      "repo": "The-Claude-Protocol",
+      "bucket": 10,
+      "verdict": "reject",
+      "content_hash": "0cb9ee1284c079ba4a60d216f67e5a64b8b2acc4",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e001"
+    },
+    "sk-072": {
+      "name": "subagents-discipline",
+      "repo": "The-Claude-Protocol",
+      "bucket": 7,
+      "verdict": "adopt-merged",
+      "content_hash": "c28735d0dd5c4446bd618745bf98ee4a2a3f9c77",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e002"
+    },
+    "sk-073": {
+      "name": "subagents-discipline",
+      "repo": "The-Claude-Protocol",
+      "bucket": 7,
+      "verdict": "defer",
+      "content_hash": "dd9261c0f11596859c0b2eaee1a3b4f7ac84d2ad",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e003"
+    },
+    "sk-074": {
+      "name": "react-best-practices",
+      "repo": "The-Claude-Protocol",
+      "bucket": 4,
+      "verdict": "out-of-scope",
+      "content_hash": "bf5595d538d4d2a158dd8d5ae0c96b6709e9a705",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e004"
+    },
+    "sk-075": {
+      "name": "scout",
+      "repo": "The-Claude-Protocol",
+      "bucket": 10,
+      "verdict": "reject",
+      "content_hash": "95600e08f4c0da3278655b7f65b87b19fe2db6ca",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e005"
+    },
+    "sk-076": {
+      "name": "detective",
+      "repo": "The-Claude-Protocol",
+      "bucket": 6,
+      "verdict": "reject",
+      "content_hash": "19eb9ad0b14185c1f0c55a5439cb14b7979cb0ef",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e006"
+    },
+    "sk-077": {
+      "name": "architect",
+      "repo": "The-Claude-Protocol",
+      "bucket": 3,
+      "verdict": "reject",
+      "content_hash": "59dc0f4310d7c61f9e63a7def13db9527f60275d",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e007"
+    },
+    "sk-078": {
+      "name": "scribe",
+      "repo": "The-Claude-Protocol",
+      "bucket": 13,
+      "verdict": "reject",
+      "content_hash": "b774ddd47fcdde56b417562cc2749259fc61e698",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e008"
+    },
+    "sk-079": {
+      "name": "code-reviewer",
+      "repo": "The-Claude-Protocol",
+      "bucket": 7,
+      "verdict": "reject",
+      "content_hash": "edb81920d55fb984b1ad4b14df2d591a5d84d742",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e009"
+    },
+    "sk-080": {
+      "name": "discovery",
+      "repo": "The-Claude-Protocol",
+      "bucket": 11,
+      "verdict": "reject",
+      "content_hash": "385c3de53c9744b86d6ca76630cbaadd2f37a5df",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e010"
+    },
+    "sk-081": {
+      "name": "merge-supervisor",
+      "repo": "The-Claude-Protocol",
+      "bucket": 8,
+      "verdict": "reject",
+      "content_hash": "9734ce8f14b5ae7b8cf1c64e518f465e06be036e",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e011"
+    },
+    "sk-082": {
+      "name": "block-orchestrator-tools.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 12,
+      "verdict": "reject",
+      "content_hash": "767072b7067a7e952d2405ddfa76ea07d47087fe",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e012"
+    },
+    "sk-083": {
+      "name": "enforce-bead-for-supervisor.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 10,
+      "verdict": "defer",
+      "content_hash": "ac1eeef5a4b93cf138dfd708af667409217546f8",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e013"
+    },
+    "sk-084": {
+      "name": "enforce-sequential-dispatch.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 10,
+      "verdict": "defer",
+      "content_hash": "4e18165d48bfea8014f0ebf160d2ba81b555c2f9",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e014"
+    },
+    "sk-085": {
+      "name": "enforce-branch-before-edit.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 12,
+      "verdict": "out-of-scope",
+      "content_hash": "caf76fc4a439a17e9eb314f53462d7ace88b8846",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e015"
+    },
+    "sk-086": {
+      "name": "block-branch-for-epic-child.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 12,
+      "verdict": "out-of-scope",
+      "content_hash": "fb0efd9929afb997acaa6f359aecea9ebc387e83",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e016"
+    },
+    "sk-087": {
+      "name": "validate-completion.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 7,
+      "verdict": "reject",
+      "content_hash": "78b225bc077e29ca276aefde90e7fdcd6772bf1e",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e017"
+    },
+    "sk-088": {
+      "name": "validate-epic-close.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 12,
+      "verdict": "defer",
+      "content_hash": "e5eaad9e9816e5649bf226cf552d7c64f310fc8c",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e018"
+    },
+    "sk-089": {
+      "name": "log-dispatch-prompt.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 10,
+      "verdict": "defer",
+      "content_hash": "aa3543c3979b560dc20d1e7018cc405a27843c4b",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e019"
+    },
+    "sk-090": {
+      "name": "memory-capture.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 14,
+      "verdict": "defer",
+      "content_hash": "e256d515e8714e7014cff5c0d99a46e938ce6343",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e020"
+    },
+    "sk-091": {
+      "name": "session-start.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 12,
+      "verdict": "defer",
+      "content_hash": "a8df5b7f2bf08135e4474b072ba8553bbbec5a97",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e021"
+    },
+    "sk-092": {
+      "name": "remind-inprogress.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 10,
+      "verdict": "reject",
+      "content_hash": "aec9d8ed8766dcbc9de26ab7efc93fdefeb9e7e7",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e022"
+    },
+    "sk-093": {
+      "name": "inject-discipline-reminder.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 12,
+      "verdict": "reject",
+      "content_hash": "2db53585c90a19130ca9fd71438e5f2e0c19345e",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e023"
+    },
+    "sk-094": {
+      "name": "enforce-concise-response.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 10,
+      "verdict": "reject",
+      "content_hash": "8ae10256abdb5a663a823bb0f1db583496f56de7",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e024"
+    },
+    "sk-095": {
+      "name": "clarify-vague-request.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 1,
+      "verdict": "reject",
+      "content_hash": "78a34207a0932de54f47b869b1ee08f9097c1ae0",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e025"
+    },
+    "sk-096": {
+      "name": "nudge-claude-md-update.sh",
+      "repo": "The-Claude-Protocol",
+      "bucket": 10,
+      "verdict": "reject",
+      "content_hash": "5801c8379c12c4c856e4e0aa52cf84eddcc57dc2",
+      "commit_sha": "af754ef",
+      "event_id": "round-008-claude-protocol:e026"
     }
   }
 }
