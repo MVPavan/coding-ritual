@@ -3,6 +3,208 @@
   "_comment": "One entry per adoption decision so the gap report stops re-nagging. status: adopted|rejected|deferred. For 'adopted', source_content_hash records the reference capability's normalized hash at decision time, so a later upstream change to it can be surfaced as 'improved since adopted'.",
   "entries": [
     {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "agent:templates/agents/architect",
+      "status": "rejected",
+      "reason": "Round-008: duplicates planning/codebase-design/domain-modeling; internally broken at pin (no Write tool for the design doc its own hook requires). Casebook sk-077.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "agent:templates/agents/detective",
+      "status": "rejected",
+      "reason": "Round-008: systematic-debugging owns root-cause work with a stronger protocol. Casebook sk-076.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "agent:templates/agents/discovery",
+      "status": "rejected",
+      "reason": "Round-008: WebFetches third-party markdown into .claude/agents/ with tools:* \u2014 untrusted text as privileged system prompt; security-disqualifying. Casebook sk-080.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "agent:templates/agents/merge-supervisor",
+      "status": "rejected",
+      "reason": "Round-008: sound conflict protocol already covered by resolving-merge-conflicts. Casebook sk-081.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "agent:templates/agents/scout",
+      "status": "rejected",
+      "reason": "Round-008: read-only locator persona; built-in Explore agent covers it. Casebook sk-075.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "agent:templates/agents/scribe",
+      "status": "rejected",
+      "reason": "Round-008: docs writer with Write/Edit and no review gate \u2014 regression vs authoring-for-agents + reviewed dispatch. Casebook sk-078.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:hooks/block-branch-for-epic-child",
+      "status": "rejected",
+      "reason": "Round-008, out-of-scope: worktree/branch model we do not run, and contradicts TCP's own worker template and completion validator. Casebook sk-086.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/block-orchestrator-tools",
+      "status": "rejected",
+      "reason": "Round-008: blanket write-denial contradicts inline small-task mode; git allowlist has no default-deny arm (permits push --force / reset --hard); '-n' substring bug. bd-create floor carve-out deferred pending -l idea exemption. Casebook sk-082.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/clarify-vague-request",
+      "status": "rejected",
+      "reason": "Round-008: character count is a bad ambiguity proxy; injects an epic reminder every prompt; brainstorming/skill-router handle this semantically. Casebook sk-092.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/enforce-bead-for-supervisor",
+      "status": "deferred",
+      "reason": "Round-008: real gap (untracked dispatches) but needs a bead-id field mandated in dispatch briefs first. Re-open when the execution brief format requires it. Casebook sk-083.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/enforce-branch-before-edit",
+      "status": "rejected",
+      "reason": "Round-008, out-of-scope: presupposes worktree-per-task, which we do not run. Casebook sk-085.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/enforce-concise-response",
+      "status": "rejected",
+      "reason": "Round-008: undocumented PostToolUse field, ignored at runtime; task-engine states a richer contract. Casebook sk-091.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/enforce-sequential-dispatch",
+      "status": "deferred",
+      "reason": "Round-008: closed-bead reclaim guard deferred into bead cr-ghw; blocker check redundant (bd ready is dependency-truth); design-doc check presupposes a deadlocked flow. Casebook sk-084.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/inject-discipline-reminder",
+      "status": "rejected",
+      "reason": "Round-008: same broken PreToolUse stdout mechanism; payload duplicated in worker contract. Casebook sk-090.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/log-dispatch-prompt",
+      "status": "deferred",
+      "reason": "Round-008: TCP's most valuable mechanism \u2014 auto-log dispatch prompt onto the bead. Reimplementation + bd-write policy ruling tracked as bead cr-n0v. Casebook sk-093.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/memory-capture",
+      "status": "deferred",
+      "reason": "Round-008: fragile regex-over-command capture with Swift-specific tags; provenance idea already adopted as Source: line in learnings.md. Re-open only if manual capture demonstrably loses entries. Casebook sk-094.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/nudge-claude-md-update",
+      "status": "rejected",
+      "reason": "Round-008: PreCompact stdout effectiveness unconfirmed; our durable state is beads + learnings + MEMORY.md, not a CLAUDE.md section. Casebook sk-096.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/remind-inprogress",
+      "status": "rejected",
+      "reason": "Round-008: PreToolUse plain stdout never reaches the model; content already mandated by execution skill. Casebook sk-089.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/session-start",
+      "status": "deferred",
+      "reason": "Round-008: learnings/dirty-tree/stale-bead surfacing deferred into bead cr-iqu (bd-prime.sh extension, hard-capped); worktree cleanup + gh pr list rejected. Casebook sk-095.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/validate-completion",
+      "status": "rejected",
+      "reason": "Round-008: fails open on an undocumented SubagentStop field and undocumented block shape; checks bookkeeping, never test evidence. Our verification gate is the better specification. Casebook sk-087.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "hook:templates/hooks/validate-epic-close",
+      "status": "deferred",
+      "reason": "Round-008: shipped code is a no-op (reads nonexistent CLAUDE_TOOL_INPUT env; test validates the mock). CHECK 2 (children-closed gate) deferred into bead cr-ghw as stdin-driven reimplementation; CHECK 1 (merged-PR) rejected \u2014 deadlocks conservative authority. Casebook sk-088.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "skill:skills/create-beads-orchestration",
+      "status": "rejected",
+      "reason": "Round-008: whole-framework installer (overwrites CLAUDE.md/settings.json, gitignores .beads/ against our tracked policy, WebFetch-generated supervisors) \u2014 importing a whole catalog; execution skill + delegation rule + beads own this bucket. Casebook sk-071.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "skill:skills/subagents-discipline",
+      "status": "adopted",
+      "reason": "Round-008 adopt-in-part: skill rejected as shipped (evidence model strictly weaker than our gate; welded to bead/worktree mechanics) but three components merged \u2014 'Feature works' end-to-end row + PARTIAL declaration format into verification-before-completion, look-at-real-data bullet into rules/core/03-coding-discipline.md. Casebook sk-072.",
+      "date": "2026-08-21",
+      "our_id": "skill:verification-before-completion",
+      "source_sha": "af754ef",
+      "source_content_hash": "c28735d0dd5c4446bd618745bf98ee4a2a3f9c77"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "skill:templates/skills/react-best-practices",
+      "status": "rejected",
+      "reason": "Round-008, out-of-scope: 7 of 8 sections irreducibly React/Next; the 8th is trivial JS tips in a repo with no first-party JS/TS. Confirms round-002 UI ruling. Casebook sk-074.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
+      "repo": "The-Claude-Protocol",
+      "logical_id": "skill:templates/skills/subagents-discipline",
+      "status": "deferred",
+      "reason": "Round-008: newer variant; evidence rules already ruled via the root variant. Distinct residue = worker-side context obligation (consume dispatch context, stop and ask if missing). Re-open on a real case of a worker re-investigating \u2014 then one bullet in rules/core/01-delegation.md. Casebook sk-073.",
+      "date": "2026-08-21",
+      "source_sha": "af754ef"
+    },
+    {
       "repo": "agent-skills",
       "logical_id": "agent:agents/code-reviewer",
       "status": "adopted",
