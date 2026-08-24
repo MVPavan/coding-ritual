@@ -27,6 +27,7 @@ orchestration"). L1 establishes what it offers; the escalation path in
 |---|---|---|---|---|---|
 | `capabilities.md` | L1 | `33ec5137` | clean | current | 2026-08-21 |
 | `architecture/00-architecture.md` | L2 | `33ec5137` | clean | current | 2026-08-21 |
+| `factory-assessment.md` | assessment (adjunct, non-contract) | `33ec5137` | clean | current | 2026-08-24 |
 
 ## Current synthesis
 
@@ -84,6 +85,8 @@ orchestration"). L1 establishes what it offers; the escalation path in
 - How it does it — components, turn lifecycle, state model, routing,
   extension contracts, trust boundary, docs-vs-source, ranked risks →
   `architecture/00-architecture.md`.
+- Should it be our software factory; what to pilot and what not to build →
+  `factory-assessment.md` (three-model design opinion; decision open).
 - No deep dives exist yet for this target.
 
 ## Staleness, contradictions, and risks
