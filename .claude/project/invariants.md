@@ -22,6 +22,15 @@ Hard constraints derived from repo reality. Violating any of these is a defect.
    commands, and every slash reference in a skill or command body resolves:
    `python3 .claude/scripts/skill-catalog.py --check` exits 0.
 
+9. **Workflow pinned-body contract (`wf-canon-json/1`).** A workflow
+   instance's pinned graph body is EXACTLY the `canonical_bytes()` emission
+   of the resolved model (canonical JSON, sorted keys, aliases, nulls
+   elided, stamped `"canon": "wf-canon-json/1"`); `content_hash` = sha256
+   over those bytes. Never TOML text. Anything writing or verifying a pin
+   (phase 2+) goes through `workflow_interpreter`'s loader/canonicalizer —
+   no independent re-implementation. Spec: workflow-interpreter.md §2
+   rule 8, §3.1.
+
 Checkable subset (see `verification.md`): manifests parse, changed `.sh` pass
 `bash -n`, changed `.py` pass `py_compile`, no machine-local paths introduced,
 `skill-catalog.py --check` exits 0.

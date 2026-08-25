@@ -85,7 +85,14 @@ deciding stays intelligent.
 One graph = one TOML file under `workflows/`, validated by
 `workflows/schema.json` (**additionalProperties: false** everywhere). The
 canonical example is normative and ships as the validator's first passing
-fixture (`workflows/feature-delivery.toml`):
+fixture (`workflows/feature-delivery.toml`). *Implementation note
+(phase 1): the schema and fixtures live as library data under
+`workflow_interpreter/` until the authoring surface lands (phase 5);
+`workflows/` is the authoring location, the package copies are the
+library's.* JSON-Schema validation alone is NOT sufficient — per-kind
+field rules live in the semantic validator (schema-alone consumers lose
+them, by design; each defect needs a citable rule id for the §10.6
+sweep):
 
 ```toml
 [graph]
@@ -262,24 +269,84 @@ nothing. Unknown source name = hard error.
 1. Schema-valid, reject-unknown; exactly one `entry`; ≥1 terminal
    reachable from every node under every declared outcome and exhaustion
    path.
-2. SCC analysis: every cycle lies within one `bounded-cycle` region —
-   with exactly one exemption, encoded: a cycle whose only back-edge
-   originates at a `kind = "gate"`, `gate_type = "human"` node via a
-   declared `rebudget` outcome targeting a bounded-cycle region's
-   `entry_node`. No other cross-region back-edge is legal.
+2. Cycle analysis runs over the EFFECTIVE transition graph (declared
+   edges ∪ per-node fallback ∪ exhaustion ∪ global fallback — a
+   fallback edge can close a real runtime cycle; probed, phase-1 r2).
+   Exhaustion edges are modeled from a bounded-cycle region's
+   `entry_node` ONLY (rounds are counted there, §10.1 — member-wide
+   modeling is fail-open for reachability and fail-wrong for
+   dominance; probed). Every cycle must lie within one `bounded-cycle`
+   region — with exactly one exemption, encoded: a cycle EVERY
+   back-edge of which is a DECLARED `rebudget` edge originating at a
+   `kind = "gate"`, `gate_type = "human"` node and targeting a
+   bounded-cycle region's `entry_node` (fallback-routed edges never
+   qualify). No other cross-region back-edge is legal. "Back-edge" is
+   graph-theoretic — an edge that closes a cycle; region declaration
+   order carries ZERO semantic weight, and cross-region edges in
+   acyclic flows (including from/through unregioned nodes) are legal.
+   Additionally, a bounded-cycle region minus its `entry_node` must be
+   acyclic — an inner cycle avoiding the entry node consumes no rounds,
+   so `max_entries` would bound nothing (SCC-containment alone is
+   defeatable by one edge; probed).
 3. Gates and terminals: terminals have no exits; gates declare
    `gate_type`, `binds`, `outcomes`; every gate outcome is edge-covered.
 4. Exactly one edge per `(from, on)`; no edges on system outcomes;
    fallback targets a gate or terminal.
 5. Every `inputs` name resolves in `[[source]]`; every producer exists;
    `optional` consistent with reachability (a non-optional input whose
-   producer cannot have run yet = validation error).
-6. Every task node has non-empty `verify` (structured: `cmd`, `timeout`,
-   optional `cwd`), `allowed_paths`, `token_budget`, `max_wall`,
-   `stale_after`, `max_infra_retries`, `max_steers`;
-   `[instance].max_total_activations` present.
-7. Warn when a judgment node's `verify` set ⊆ its predecessor's.
-8. Version + content hash over the canonicalized file.
+   producer cannot have run yet = validation error). Producibility and
+   terminal-reachability run over the EFFECTIVE transition graph:
+   declared edges ∪ per-node fallback ∪ region `on_exhausted` ∪ global
+   fallback (declared-edges-only misses fallback bypasses — probed,
+   phase-1 review). `[[source]]` fields are exactly `name`, `producer`,
+   `optional`, `trim_priority` — nothing else (no `max_bytes`).
+6. Every task node declares `runner`, `writes`, `outcomes`, non-empty
+   `verify` (structured: `cmd`, `timeout` ≤ the node's `max_wall`,
+   optional `cwd`; `cmd`/`cwd` repo-relative — a check outside the
+   pinned repo cannot be provenance-hashed, §7.3), `allowed_paths`
+   (repo-relative; empty ⇔ `writes = false`), `token_budget`,
+   `max_wall`, `stale_after`, `max_infra_retries`, `max_steers`;
+   `[instance].max_total_activations` present. Acyclic regions must NOT
+   declare `max_entries`/`on_exhausted`; `on_exhausted` targets a GATE
+   (never a terminal — exhaustion materializes a keyed gate, §10.1/10.4);
+   a region's `entry_node` is never a terminal; gates declare no
+   `fallback` (their outcomes are edge-covered; a gate fallback would be
+   dead config invisible to cycle analysis); every node is reachable
+   from `entry` over the effective graph; `gate_type` is closed to
+   `human` in v1. The wrapper executes `cmd` WITHOUT a shell (argv =
+   shell-safe split, no expansion) — and the validator applies the SAME
+   semantics: `shlex.split(cmd)` must succeed and be non-empty, and
+   argv[0] — the provenance-hashed executable, §7.3 — must be
+   repo-relative (interpreters like `bash x.sh` or `env` wrappers are
+   rejected; use shebangs; later tokens are plain arguments). Validating
+   with different semantics than execution was a probed bypass
+   (phase-1 r3).
+
+   *Authoring notes (learned from the validator's own fixtures):* a
+   global or per-node fallback gate must not be able to route back into
+   a task outside a bounded-cycle region — that closes a real runtime
+   loop with no round counter and is rejected as a cycle. Inside a
+   bounded-cycle region, only the `entry_node`'s artifacts may be
+   non-optional inputs downstream of `on_exhausted`; other members'
+   artifacts must be `optional = true` (the exhaustion path is modeled
+   from `entry_node` only).
+7. Warn when a judgment node's (a TASK declaring `accept`) `verify` set
+   ⊆ its predecessor's — full structured comparison, one warning per
+   node.
+8. Version + content hash over the canonical body (below).
+
+**Canonical body (`wf-canon-json/1`).** The pinned wire format is the
+canonical JSON emission of the resolved model (sorted keys, aliases,
+nulls elided) stamped `"canon": "wf-canon-json/1"`; `content_hash` =
+sha256 over exactly those bytes. TOML is authoring syntax only — pinned
+bytes are NEVER TOML text; reformatting the TOML does not move the hash,
+any semantic edit does. The loader accepts both authored TOML and pinned
+canonical JSON through the same validation pipeline. A pinned body is
+accepted ONLY if the supplied bytes are byte-identical to the canonical
+re-emission of the parsed document (`data == canonical_bytes(doc)`) and
+the hash is computed over the supplied bytes — semantically equivalent
+but non-canonical encodings (whitespace, key order, duplicates) are
+rejected, never normalized (invariant 9; probed bypass, phase-1 r2).
 
 ## 3. Instance state in bd (cyclic template, acyclic trace)
 
@@ -292,7 +359,8 @@ gate | event` and `wf_root_id = <root bead id>` (roots carry their own id)
 ### 3.1 Root bead (`wf_kind: root`)
 
 Metadata: `graph_id`, `graph_version`, `graph_content_hash`, **the
-canonicalized graph body** (size-capped by the §11 payload probe; fallback:
+canonicalized graph body** (`wf-canon-json/1` bytes per §2 rule 8 —
+never TOML text; size-capped by the §11 payload probe; fallback:
 a dedicated child bead or content-addressed git blob referenced by hash),
 and the resolved configuration with provenance — every profile, model,
 bound, isolation, each tagged `source: graph-default | project-config |
