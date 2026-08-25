@@ -34,3 +34,12 @@
 [submodule "reference_tools/omnigent"]
 	path = reference_tools/omnigent
 	url = https://github.com/omnigent-ai/omnigent.git
+[submodule "reference_tools/beadboard"]
+	path = reference_tools/beadboard
+	url = https://github.com/jordanhindo/beadboard.git
+[submodule "reference_tools/aweb"]
+	path = reference_tools/aweb
+	url = https://github.com/awebai/aweb.git
+[submodule "reference_tools/looptroop"]
+	path = reference_tools/looptroop
+	url = https://github.com/looptroop-ai/LoopTroop.git
