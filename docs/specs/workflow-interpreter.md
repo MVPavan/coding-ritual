@@ -334,9 +334,10 @@ Append-only `(from, outcome, to, activation_id, seq, actor)` per edge
 taken. **The closed activation's outcome is the routing truth; events are
 an idempotently reconstructible audit projection** — post-crash gaps are
 backfilled, never corrupting. Carrier: bd event beads
-(`--type event --event-payload`; requires `bd config set types.custom
-event` — §11 prerequisite); floor: task beads with `wf_kind: event`.
-Never `bd audit record` (probed lossy).
+(`--type event --event-payload` — native in bd 1.1.0, no config needed;
+probed 2026-08-25). `--event-payload` MUST be inline JSON: the `@file`
+form stores the literal string `"@file"` silently (probed). Floor: task
+beads with `wf_kind: event`. Never `bd audit record` (probed lossy).
 
 ### 3.4 Gate beads (`wf_kind: gate`)
 
@@ -649,6 +650,27 @@ named fallback):
 4. `--limit 0` = unlimited on list/query; `--metadata-field` filtering;
    `--no-inherit-labels`; labels read-back; close-reason retrieval;
    timestamp granularity (expected: seconds — hence `seq`).
+
+**PROBE RESULTS (2026-08-25, bd 1.1.0 @8e4e59d, isolated dolt-embedded
+lab — GO for the §3 encoding, no fallback carriers needed):**
+
+1. PASS — nested metadata survives create→`show --json`→`list --json`
+   verbatim; `--metadata-field k=v` and `--has-metadata-key` filter
+   correctly.
+2. PASS — 70KB metadata value round-trips byte-identical.
+3. PASS, better than assumed — `event` is a NATIVE issue type; the
+   `types.custom` prerequisite is void (`bd config set types.custom` is
+   not even a recognized key). Correction: `--event-payload` accepts
+   inline JSON only — `@file` stores the literal string silently (§3.3).
+4. PASS — `--limit 0` = unlimited; `--no-inherit-labels` works (default
+   inherits); labels and `close_reason` read back via `--json`;
+   timestamps are SECOND-granularity in read paths (`seq` stands).
+
+Lab gotchas for the drill harness: a bd workspace nested inside another
+repo's workspace leaks the outer project's beads into READ paths (writes
+stay isolated) and ignores `bd init --prefix` — drill assertions must
+select by `wf_root_id`, never by "all rows"; child ids are hierarchical
+(`<parent>.1`). Evidence: `scratchpad/probes/phase0-results.md`.
 
 **Startup canary (every tick):** backend assertion (`bd context` reports
 the pinned dolt/embedded backend — any fallback/skew refuses dispatch
