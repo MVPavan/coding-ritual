@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coding-ritual.local/schemas/workflow-graph-1.json",
+  "title": "Workflow graph definition (spec v0.3.1 §2)",
+  "description": "Structural contract for a parsed workflows/*.toml graph. Unknown properties are rejected at every level (premise P2). WARNING: validating against this schema alone is NOT sufficient and accepts unsafe graphs — per-kind field rules, cross-references, cycle bounds, routing and input producibility are enforced only by the semantic validator in workflow_interpreter.schema.validator, which every consumer must run.",
+  "type": "object",
+  "required": ["graph", "instance", "node", "edge", "fallback"],
+  "properties": {
+    "graph": { "$ref": "#/$defs/graph" },
+    "instance": { "$ref": "#/$defs/instance" },
+    "region": { "type": "array", "items": { "$ref": "#/$defs/region" } },
+    "node": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/node" } },
+    "edge": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+    "fallback": { "$ref": "#/$defs/fallback" },
+    "source": { "type": "array", "items": { "$ref": "#/$defs/source" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "duration": {
+      "description": "Whole-unit duration: seconds, minutes, hours or days.",
+      "type": "string",
+      "pattern": "^[1-9][0-9]*[smhd]$"
+    },
+    "relative_path": {
+      "description": "Repo-relative path or glob. Absolute paths and parent escapes are rejected by the semantic validator, which owns the message.",
+      "type": "string",
+      "minLength": 1
+    },
+    "outcome": {
+      "description": "Closed global vocabulary (§2 'Outcome vocabulary'). System outcomes parse here so the validator can reject them with a citable rule id rather than an opaque schema error.",
+      "type": "string",
+      "enum": [
+        "done",
+        "no_diff",
+        "accept",
+        "reject",
+        "fail_code",
+        "fail_plan",
+        "approve",
+        "rebudget",
+        "abandon",
+        "error_runner",
+        "error_transport",
+        "steered",
+        "superseded"
+      ]
+    },
+    "graph": {
+      "type": "object",
+      "required": ["id", "version", "entry", "description"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "entry": { "$ref": "#/$defs/identifier" },
+        "description": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "instance": {
+      "type": "object",
+      "required": ["max_total_activations"],
+      "properties": {
+        "max_total_activations": { "type": "integer" },
+        "test_force_first_reject": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "region": {
+      "type": "object",
+      "required": ["name", "mode", "entry_node"],
+      "properties": {
+        "name": { "$ref": "#/$defs/identifier" },
+        "mode": { "type": "string", "enum": ["acyclic", "bounded-cycle"] },
+        "entry_node": { "$ref": "#/$defs/identifier" },
+        "max_entries": { "type": "integer" },
+        "on_exhausted": { "$ref": "#/$defs/identifier" }
+      },
+      "additionalProperties": false
+    },
+    "node": {
+      "type": "object",
+      "required": ["name", "kind"],
+      "properties": {
+        "name": { "$ref": "#/$defs/identifier" },
+        "kind": { "type": "string", "enum": ["task", "gate", "terminal"] },
+        "region": { "$ref": "#/$defs/identifier" },
+        "runner": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "isolation": { "type": "string", "enum": ["worktree", "in-repo"] },
+        "writes": { "type": "boolean" },
+        "allowed_paths": { "type": "array", "items": { "$ref": "#/$defs/relative_path" } },
+        "inputs": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "verify": { "type": "array", "items": { "$ref": "#/$defs/verify_check" } },
+        "token_budget": { "type": "integer" },
+        "max_wall": { "$ref": "#/$defs/duration" },
+        "stale_after": { "$ref": "#/$defs/duration" },
+        "max_infra_retries": { "type": "integer" },
+        "max_steers": { "type": "integer" },
+        "outcomes": { "type": "array", "items": { "$ref": "#/$defs/outcome" } },
+        "gate_type": { "type": "string", "enum": ["human"] },
+        "binds": { "type": "string", "enum": ["immutable", "mutable"] },
+        "fallback": { "$ref": "#/$defs/fallback" }
+      },
+      "additionalProperties": false
+    },
+    "verify_check": {
+      "type": "object",
+      "required": ["cmd", "timeout"],
+      "properties": {
+        "cmd": { "$ref": "#/$defs/relative_path" },
+        "timeout": { "$ref": "#/$defs/duration" },
+        "cwd": { "$ref": "#/$defs/relative_path" }
+      },
+      "additionalProperties": false
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "on", "to"],
+      "properties": {
+        "from": { "$ref": "#/$defs/identifier" },
+        "on": { "$ref": "#/$defs/outcome" },
+        "to": { "$ref": "#/$defs/identifier" }
+      },
+      "additionalProperties": false
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["to"],
+      "properties": {
+        "to": { "$ref": "#/$defs/identifier" }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["name", "producer", "optional", "trim_priority"],
+      "properties": {
+        "name": { "$ref": "#/$defs/identifier" },
+        "producer": { "type": "string", "pattern": "^(instance|node:[a-z0-9][a-z0-9_-]*)$" },
+        "optional": { "type": "boolean" },
+        "trim_priority": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

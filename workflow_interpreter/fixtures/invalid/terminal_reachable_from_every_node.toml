@@ -1,0 +1,114 @@
+# terminal_reachable_from_every_node: the build loop, its fallback and its exhaustion gate
+# all route back into the loop, so no node inside it can ever reach "finished".
+# "start" exists so the terminal IS reachable from the entry — the defect is the dead
+# loop, not an orphaned terminal (which nodes_reachable_from_entry owns).
+[graph]
+id = "min"
+version = "1.0.0"
+entry = "start"
+description = "minimal graph"
+
+[instance]
+max_total_activations = 5
+
+[[region]]
+name = "loop"
+mode = "bounded-cycle"
+entry_node = "work"
+max_entries = 2
+on_exhausted = "triage"
+
+[[node]]
+name = "start"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done", "no_diff"]
+
+[[node]]
+name = "work"
+kind = "task"
+region = "loop"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "rework"
+kind = "task"
+region = "loop"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["fail_plan"]
+
+[[node]]
+name = "triage"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget"]
+
+[[node]]
+name = "exit_gate"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "start"
+on = "done"
+to = "work"
+
+[[edge]]
+from = "start"
+on = "no_diff"
+to = "exit_gate"
+
+[[edge]]
+from = "exit_gate"
+on = "approve"
+to = "finished"
+
+[[edge]]
+from = "work"
+on = "done"
+to = "rework"
+
+[[edge]]
+from = "rework"
+on = "fail_plan"
+to = "work"
+
+[[edge]]
+from = "triage"
+on = "rebudget"
+to = "work"
+
+[fallback]
+to = "triage"

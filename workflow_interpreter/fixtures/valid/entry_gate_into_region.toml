@@ -1,0 +1,59 @@
+# Legal: an unregioned entry human gate routes `approve` into an acyclic region. The edge
+# closes no cycle, so it is no back-edge (§2 rule 2, phase-1 review counterexample).
+[graph]
+id = "entry-gate-into-region"
+version = "1.0.0"
+entry = "start"
+description = "entry gate into an acyclic region"
+
+[instance]
+max_total_activations = 8
+
+[[region]]
+name = "r"
+mode = "acyclic"
+entry_node = "work"
+
+[[node]]
+name = "start"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "work"
+kind = "task"
+region = "r"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "start"
+on = "approve"
+to = "work"
+
+[[edge]]
+from = "start"
+on = "abandon"
+to = "finished"
+
+[[edge]]
+from = "work"
+on = "done"
+to = "finished"
+
+[fallback]
+to = "finished"

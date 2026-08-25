@@ -1,0 +1,61 @@
+# bounded_cycle_regions_bounded: on_exhausted points at a terminal; exhaustion must
+# materialize a keyed human gate with a verified rebudget (§10.1, §10.4).
+[graph]
+id = "min"
+version = "1.0.0"
+entry = "work"
+description = "minimal graph"
+
+[instance]
+max_total_activations = 5
+
+[[region]]
+name = "loop"
+mode = "bounded-cycle"
+entry_node = "work"
+max_entries = 2
+on_exhausted = "finished"
+
+[[node]]
+name = "work"
+kind = "task"
+region = "loop"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "approval"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "work"
+on = "done"
+to = "approval"
+
+[[edge]]
+from = "approval"
+on = "approve"
+to = "finished"
+
+[[edge]]
+from = "approval"
+on = "abandon"
+to = "finished"
+
+[fallback]
+to = "approval"

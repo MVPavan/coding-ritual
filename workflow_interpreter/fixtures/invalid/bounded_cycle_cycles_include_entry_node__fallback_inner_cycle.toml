@@ -1,0 +1,91 @@
+# bounded_cycle_cycles_include_entry_node: "worker" declares `done` with no edge, so the
+# runtime takes its fallback to "approval", whose `approve` edge returns to "worker".
+# That loop lives inside the bounded region but never re-enters entry_node "start", so
+# max_entries counts nothing — a fallback edge closes just as real a cycle as a declared
+# one (§2 rule 2, phase-1 r2 counterexample).
+[graph]
+id = "effective-cycle"
+version = "1.0.0"
+entry = "start"
+description = "fallback cycle inside the region bypasses its entry_node"
+
+[instance]
+max_total_activations = 20
+
+[[region]]
+name = "loop"
+mode = "bounded-cycle"
+entry_node = "start"
+max_entries = 2
+on_exhausted = "triage"
+
+[[node]]
+name = "start"
+kind = "gate"
+region = "loop"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve"]
+
+[[node]]
+name = "worker"
+kind = "task"
+region = "loop"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "1m" }]
+token_budget = 1000
+max_wall = "2m"
+stale_after = "1m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["done"]
+fallback = { to = "approval" }
+
+[[node]]
+name = "approval"
+kind = "gate"
+region = "loop"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "triage"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "start"
+on = "approve"
+to = "worker"
+
+[[edge]]
+from = "approval"
+on = "approve"
+to = "worker"
+
+[[edge]]
+from = "approval"
+on = "abandon"
+to = "finished"
+
+[[edge]]
+from = "triage"
+on = "rebudget"
+to = "start"
+
+[[edge]]
+from = "triage"
+on = "abandon"
+to = "finished"
+
+[fallback]
+to = "triage"

@@ -1,0 +1,89 @@
+# cross_region_back_edge_illegal: "work" (region "early") and "plan" (region "later")
+# form a cycle spanning two regions, and no human-gate rebudget edge closes it.
+[graph]
+id = "min"
+version = "1.0.0"
+entry = "work"
+description = "minimal graph"
+
+[instance]
+max_total_activations = 5
+
+[[region]]
+name = "early"
+mode = "acyclic"
+entry_node = "work"
+
+[[region]]
+name = "later"
+mode = "acyclic"
+entry_node = "plan"
+
+[[node]]
+name = "work"
+kind = "task"
+region = "early"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "plan"
+kind = "task"
+region = "later"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done", "fail_plan"]
+
+[[node]]
+name = "approval"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "work"
+on = "done"
+to = "plan"
+
+[[edge]]
+from = "plan"
+on = "fail_plan"
+to = "work"
+
+[[edge]]
+from = "plan"
+on = "done"
+to = "approval"
+
+[[edge]]
+from = "approval"
+on = "approve"
+to = "finished"
+
+[[edge]]
+from = "approval"
+on = "abandon"
+to = "finished"
+
+[fallback]
+to = "approval"

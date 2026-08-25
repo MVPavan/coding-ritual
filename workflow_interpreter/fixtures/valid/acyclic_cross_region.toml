@@ -1,0 +1,89 @@
+# Legal and fully acyclic: a build region routes through an unregioned human gate into a
+# release region. No cycle exists, so no back-edge exists — region declaration order
+# carries zero semantic weight (§2 rule 2, phase-1 review counterexample).
+# "release_work" needs its own fallback: routing it to the global gate "approval" would
+# close a real runtime cycle (a system-outcome cap breach sends any task to its fallback,
+# §10.2), which cycle analysis over the effective graph rightly refuses.
+[graph]
+id = "acyclic-cross-region"
+version = "1.0.0"
+entry = "build"
+description = "build -> gate -> release, no cycles"
+
+[instance]
+max_total_activations = 8
+
+[[region]]
+name = "release"
+mode = "acyclic"
+entry_node = "release_work"
+
+[[region]]
+name = "build"
+mode = "acyclic"
+entry_node = "build"
+
+[[node]]
+name = "build"
+kind = "task"
+region = "build"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "approval"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "release_work"
+kind = "task"
+region = "release"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+fallback = { to = "shipped" }
+
+[[node]]
+name = "shipped"
+kind = "terminal"
+
+[[edge]]
+from = "build"
+on = "done"
+to = "approval"
+
+[[edge]]
+from = "approval"
+on = "approve"
+to = "release_work"
+
+[[edge]]
+from = "approval"
+on = "abandon"
+to = "shipped"
+
+[[edge]]
+from = "release_work"
+on = "done"
+to = "shipped"
+
+[fallback]
+to = "approval"

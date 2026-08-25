@@ -1,0 +1,152 @@
+# Legal: every REAL route to the exhaustion gate "og" passes through the producer "p",
+# because exhaustion can only fire after "p" was entered max_entries times (§10.1), so
+# "p" dominates the consumer "c". Modeling the exhaustion edge from every region member
+# invented a q -> og bypass and rejected this graph (§2 rule 2, phase-1 r2 probe).
+[graph]
+id = "spurious"
+version = "1.0.0"
+entry = "s"
+description = "member-wide on_exhausted edges invent a bypass"
+
+[instance]
+max_total_activations = 20
+
+[[region]]
+name = "r"
+mode = "bounded-cycle"
+entry_node = "p"
+max_entries = 2
+on_exhausted = "og"
+
+[[node]]
+name = "s"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done", "no_diff"]
+
+[[node]]
+name = "p"
+kind = "task"
+region = "r"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+fallback = { to = "fg" }
+
+[[node]]
+name = "q"
+kind = "task"
+region = "r"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+fallback = { to = "fg" }
+
+[[node]]
+name = "c"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+inputs = ["art"]
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "fg"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "og"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "term"
+kind = "terminal"
+
+[[edge]]
+from = "s"
+on = "done"
+to = "p"
+
+[[edge]]
+from = "s"
+on = "no_diff"
+to = "q"
+
+[[edge]]
+from = "p"
+on = "done"
+to = "q"
+
+[[edge]]
+from = "q"
+on = "done"
+to = "p"
+
+[[edge]]
+from = "fg"
+on = "rebudget"
+to = "p"
+
+[[edge]]
+from = "fg"
+on = "abandon"
+to = "term"
+
+[[edge]]
+from = "og"
+on = "rebudget"
+to = "p"
+
+[[edge]]
+from = "og"
+on = "abandon"
+to = "c"
+
+[[edge]]
+from = "c"
+on = "done"
+to = "term"
+
+[fallback]
+to = "fg"
+
+[[source]]
+name = "art"
+producer = "node:p"
+optional = false
+trim_priority = 1

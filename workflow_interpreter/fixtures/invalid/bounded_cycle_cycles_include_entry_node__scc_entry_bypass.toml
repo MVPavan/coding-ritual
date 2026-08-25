@@ -1,0 +1,108 @@
+# bounded_cycle_cycles_include_entry_node: the "draft" <-> "revise" sub-cycle never
+# re-enters entry_node "work", yet the extra edge revise --done--> work fuses it into
+# one SCC that DOES contain "work". SCC-level containment is therefore defeatable by a
+# single edge; the region body (members minus entry_node) must itself be acyclic.
+[graph]
+id = "min"
+version = "1.0.0"
+entry = "work"
+description = "minimal graph"
+
+[instance]
+max_total_activations = 5
+
+[[region]]
+name = "loop"
+mode = "bounded-cycle"
+entry_node = "work"
+max_entries = 2
+on_exhausted = "triage"
+
+[[node]]
+name = "work"
+kind = "task"
+region = "loop"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "draft"
+kind = "task"
+region = "loop"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "revise"
+kind = "task"
+region = "loop"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["fail_plan", "done"]
+
+[[node]]
+name = "triage"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "work"
+on = "done"
+to = "draft"
+
+[[edge]]
+from = "draft"
+on = "done"
+to = "revise"
+
+[[edge]]
+from = "revise"
+on = "fail_plan"
+to = "draft"
+
+[[edge]]
+from = "revise"
+on = "done"
+to = "work"
+
+[[edge]]
+from = "triage"
+on = "rebudget"
+to = "work"
+
+[[edge]]
+from = "triage"
+on = "abandon"
+to = "finished"
+
+[fallback]
+to = "triage"

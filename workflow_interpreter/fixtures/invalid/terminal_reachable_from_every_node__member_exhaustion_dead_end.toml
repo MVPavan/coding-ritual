@@ -1,0 +1,130 @@
+# terminal_reachable_from_every_node: at runtime "p" and "og" can NEVER reach a
+# terminal — og routes only back to p, and r2 can never exhaust because e2 is never
+# entered. Modeling the exhaustion edge from every region MEMBER used to hand the gate
+# "og" a spurious og -> og2 route purely for belonging to r2, inventing a terminal path
+# (fail-open reachability); it is modeled from the entry_node only (§2 rule 2).
+# "s" splits into the dead component and the live one, so every node is reachable from
+# the entry — the defect is the dead end alone.
+[graph]
+id = "deadend"
+version = "1.0.0"
+entry = "s"
+description = "spurious member exhaustion edge hides a dead end"
+
+[instance]
+max_total_activations = 20
+
+[[region]]
+name = "r1"
+mode = "bounded-cycle"
+entry_node = "p"
+max_entries = 2
+on_exhausted = "og"
+
+[[region]]
+name = "r2"
+mode = "bounded-cycle"
+entry_node = "e2"
+max_entries = 2
+on_exhausted = "og2"
+
+[[node]]
+name = "s"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done", "no_diff"]
+
+[[node]]
+name = "p"
+kind = "task"
+region = "r1"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "e2"
+kind = "task"
+region = "r2"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "og"
+kind = "gate"
+region = "r2"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget"]
+
+[[node]]
+name = "og2"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "term"
+kind = "terminal"
+
+[[edge]]
+from = "s"
+on = "done"
+to = "p"
+
+[[edge]]
+from = "s"
+on = "no_diff"
+to = "e2"
+
+[[edge]]
+from = "p"
+on = "done"
+to = "p"
+
+[[edge]]
+from = "og"
+on = "rebudget"
+to = "p"
+
+[[edge]]
+from = "e2"
+on = "done"
+to = "term"
+
+[[edge]]
+from = "og2"
+on = "approve"
+to = "term"
+
+[[edge]]
+from = "og2"
+on = "abandon"
+to = "term"
+
+[fallback]
+to = "og"

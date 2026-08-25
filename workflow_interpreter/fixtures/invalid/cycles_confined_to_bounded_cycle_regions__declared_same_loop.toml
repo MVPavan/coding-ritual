@@ -1,0 +1,59 @@
+# cycles_confined_to_bounded_cycle_regions: the same runtime loop as
+# `__fallback_cycle`, with a --no_diff--> gate spelled as a declared edge. Identical
+# behaviour must get an identical verdict — spelling carries no semantic weight.
+[graph]
+id = "fallback-loop"
+version = "1.0.0"
+entry = "a"
+description = "unbounded loop through the fallback route"
+
+[instance]
+max_total_activations = 20
+
+[[node]]
+name = "a"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done", "no_diff"]
+
+[[node]]
+name = "gate"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "done_t"
+kind = "terminal"
+
+[[edge]]
+from = "a"
+on = "done"
+to = "done_t"
+
+[[edge]]
+from = "a"
+on = "no_diff"
+to = "gate"
+
+[[edge]]
+from = "gate"
+on = "rebudget"
+to = "a"
+
+[[edge]]
+from = "gate"
+on = "abandon"
+to = "done_t"
+
+[fallback]
+to = "gate"

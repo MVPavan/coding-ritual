@@ -1,0 +1,79 @@
+# non_optional_inputs_producible: "work" is the entry node, yet consumes a non-optional
+# artifact produced by "audit", which cannot have run before it — "audit" runs after it.
+[graph]
+id = "min"
+version = "1.0.0"
+entry = "work"
+description = "minimal graph"
+
+[instance]
+max_total_activations = 5
+
+[[node]]
+name = "work"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+inputs = ["audit_report"]
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "audit"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "approval"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "work"
+on = "done"
+to = "audit"
+
+[[edge]]
+from = "audit"
+on = "done"
+to = "approval"
+
+[[edge]]
+from = "approval"
+on = "approve"
+to = "finished"
+
+[[edge]]
+from = "approval"
+on = "abandon"
+to = "finished"
+
+[fallback]
+to = "approval"
+
+[[source]]
+name = "audit_report"
+producer = "node:audit"
+optional = false
+trim_priority = 1

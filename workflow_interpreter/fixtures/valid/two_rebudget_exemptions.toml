@@ -1,0 +1,106 @@
+# Legal: a cycle every back-edge of which is a declared human-gate `rebudget` edge into
+# a bounded-cycle entry_node — two of them here. Each traversal increments a bounded
+# region's round counter, so the loop still exhausts (§2 rule 2 exemption).
+[graph]
+id = "two-exempt"
+version = "1.0.0"
+entry = "a1"
+description = "two bounded regions ping-ponging through two human gates"
+
+[instance]
+max_total_activations = 20
+
+[[region]]
+name = "r1"
+mode = "bounded-cycle"
+entry_node = "a1"
+max_entries = 2
+on_exhausted = "g1"
+
+[[region]]
+name = "r2"
+mode = "bounded-cycle"
+entry_node = "a2"
+max_entries = 2
+on_exhausted = "g2"
+
+[[node]]
+name = "a1"
+kind = "task"
+region = "r1"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["fail_plan"]
+
+[[node]]
+name = "a2"
+kind = "task"
+region = "r2"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["fail_plan"]
+
+[[node]]
+name = "g1"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "g2"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "done_t"
+kind = "terminal"
+
+[[edge]]
+from = "a1"
+on = "fail_plan"
+to = "g1"
+
+[[edge]]
+from = "g1"
+on = "rebudget"
+to = "a2"
+
+[[edge]]
+from = "g1"
+on = "abandon"
+to = "done_t"
+
+[[edge]]
+from = "a2"
+on = "fail_plan"
+to = "g2"
+
+[[edge]]
+from = "g2"
+on = "rebudget"
+to = "a1"
+
+[[edge]]
+from = "g2"
+on = "abandon"
+to = "done_t"
+
+[fallback]
+to = "g1"

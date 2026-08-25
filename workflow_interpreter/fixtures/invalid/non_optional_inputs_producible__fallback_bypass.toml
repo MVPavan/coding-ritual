@@ -1,0 +1,100 @@
+# non_optional_inputs_producible: the declared edges make "producer" dominate "consumer",
+# but start's fallback route (start -> bypass -> consumer) reaches the consumer with the
+# artifact unproduced. Producibility runs over the effective transition graph (§2 rule 5).
+[graph]
+id = "min"
+version = "1.0.0"
+entry = "start"
+description = "fallback bypass"
+
+[instance]
+max_total_activations = 10
+
+[[node]]
+name = "start"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "1m" }]
+token_budget = 1000
+max_wall = "2m"
+stale_after = "1m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["done", "fail_plan"]
+fallback = { to = "bypass" }
+
+[[node]]
+name = "producer"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "1m" }]
+token_budget = 1000
+max_wall = "2m"
+stale_after = "1m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["done"]
+
+[[node]]
+name = "consumer"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+inputs = ["artifact"]
+verify = [{ cmd = "scripts/verify.sh", timeout = "1m" }]
+token_budget = 1000
+max_wall = "2m"
+stale_after = "1m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["done"]
+
+[[node]]
+name = "bypass"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "start"
+on = "done"
+to = "producer"
+
+[[edge]]
+from = "producer"
+on = "done"
+to = "consumer"
+
+[[edge]]
+from = "bypass"
+on = "approve"
+to = "consumer"
+
+[[edge]]
+from = "bypass"
+on = "abandon"
+to = "finished"
+
+[[edge]]
+from = "consumer"
+on = "done"
+to = "finished"
+
+[fallback]
+to = "finished"
+
+[[source]]
+name = "artifact"
+producer = "node:producer"
+optional = false
+trim_priority = 1
