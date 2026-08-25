@@ -83,6 +83,11 @@ MSG_BACK_EDGE: Final[str] = (
     "is one closed by a human-gate rebudget edge into a bounded-cycle "
     "entry_node (§2 rule 2)"
 )
+MSG_CROSS_REGION_INGRESS: Final[str] = (
+    "edge {source} -{outcome}-> {target} enters region {region!r} at a node "
+    "that is not its entry_node {entry_node!r}; the arrival would consume a "
+    "round max_entries never counted (§2 rule 6, §10.1)"
+)
 MSG_CYCLE_MISSES_ENTRY_NODE: Final[str] = (
     "cycle {members} lies inside bounded-cycle region {region!r} but does not "
     "pass through its entry_node {entry_node!r}; max_entries would bound "

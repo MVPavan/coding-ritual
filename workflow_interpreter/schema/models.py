@@ -145,6 +145,7 @@ class RuleId(StrEnum):
         "cycles_confined_to_bounded_cycle_regions"
     )
     CROSS_REGION_BACK_EDGE_ILLEGAL = "cross_region_back_edge_illegal"
+    CROSS_REGION_EDGES_TARGET_ENTRY = "cross_region_edges_target_entry"
     BOUNDED_CYCLE_CYCLES_INCLUDE_ENTRY_NODE = "bounded_cycle_cycles_include_entry_node"
     TERMINAL_REACHABLE_FROM_EVERY_NODE = "terminal_reachable_from_every_node"
     NODES_REACHABLE_FROM_ENTRY = "nodes_reachable_from_entry"

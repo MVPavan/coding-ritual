@@ -26,6 +26,7 @@ from workflow_interpreter.schema.graph_index import (
 )
 from workflow_interpreter.schema.messages import (
     MSG_BACK_EDGE,
+    MSG_CROSS_REGION_INGRESS,
     MSG_CYCLE_MISSES_ENTRY_NODE,
     MSG_CYCLE_UNBOUNDED,
     MSG_MAX_TOTAL_ACTIVATIONS,
@@ -161,6 +162,40 @@ def cross_region_back_edge_illegal(index: GraphIndex) -> list[Finding]:
                 ),
             )
         )
+    return findings
+
+
+def cross_region_edges_target_entry(index: GraphIndex) -> list[Finding]:
+    """An edge entering a region from outside it targets its entry_node (§2 rule 6).
+
+    Rounds are counted at the region's `entry_node` (§10.1). An edge arriving at
+    any other member is an entry nobody counted: the wrapper has to give it a
+    round of its own, which silently spends one of `max_entries` without an
+    entry-node arrival ever happening (probed, phase-2 r3).
+
+    Only DECLARED edges can carry it — fallback and `on_exhausted` routes target
+    gates or terminals (§2 rule 4), and no activation is ever minted at one.
+    """
+    findings: list[Finding] = []
+    for position, edge in enumerate(index.edges):
+        target_region = index.nodes[edge.to].region
+        if target_region is None or index.nodes[edge.from_node].region == target_region:
+            continue
+        entry_node = index.regions[target_region].entry_node
+        if edge.to != entry_node:
+            findings.append(
+                finding_error(
+                    RuleId.CROSS_REGION_EDGES_TARGET_ENTRY,
+                    at("edge", position, "to"),
+                    MSG_CROSS_REGION_INGRESS.format(
+                        source=edge.from_node,
+                        outcome=edge.on.value,
+                        target=edge.to,
+                        region=target_region,
+                        entry_node=entry_node,
+                    ),
+                )
+            )
     return findings
 
 

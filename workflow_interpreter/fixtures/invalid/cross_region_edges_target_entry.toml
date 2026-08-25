@@ -1,0 +1,113 @@
+# cross_region_edges_target_entry: "gather" (region "intake") routes into region
+# "build" at "polish", which is not that region's entry_node "draft". The arrival
+# would consume a round no entry-node arrival opened, shrinking max_entries by one
+# (§2 rule 6, §10.1; probed, phase-2 r3).
+[graph]
+id = "min"
+version = "1.0.0"
+entry = "gather"
+description = "minimal graph"
+
+[instance]
+max_total_activations = 5
+
+[[region]]
+name = "intake"
+mode = "acyclic"
+entry_node = "gather"
+
+[[region]]
+name = "build"
+mode = "bounded-cycle"
+entry_node = "draft"
+max_entries = 2
+on_exhausted = "approval"
+
+[[node]]
+name = "gather"
+kind = "task"
+region = "intake"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "draft"
+kind = "task"
+region = "build"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "polish"
+kind = "task"
+region = "build"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done", "reject"]
+
+[[node]]
+name = "approval"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "gather"
+on = "done"
+to = "polish"
+
+[[edge]]
+from = "draft"
+on = "done"
+to = "polish"
+
+[[edge]]
+from = "polish"
+on = "reject"
+to = "draft"
+
+[[edge]]
+from = "polish"
+on = "done"
+to = "finished"
+
+[[edge]]
+from = "approval"
+on = "rebudget"
+to = "draft"
+
+[[edge]]
+from = "approval"
+on = "abandon"
+to = "finished"
+
+[fallback]
+to = "approval"

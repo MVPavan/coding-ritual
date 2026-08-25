@@ -2,6 +2,8 @@
 # because exhaustion can only fire after "p" was entered max_entries times (§10.1), so
 # "p" dominates the consumer "c". Modeling the exhaustion edge from every region member
 # invented a q -> og bypass and rejected this graph (§2 rule 2, phase-1 r2 probe).
+# "s" is a MEMBER of region "r" (not its entry_node): an edge into "q" from outside the
+# region would be a non-entry ingress, which §2 rule 6 refuses (phase-2 r3).
 [graph]
 id = "spurious"
 version = "1.0.0"
@@ -21,6 +23,7 @@ on_exhausted = "og"
 [[node]]
 name = "s"
 kind = "task"
+region = "r"
 runner = "profile:x"
 writes = false
 allowed_paths = []

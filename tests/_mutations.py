@@ -28,6 +28,27 @@ from tests._helpers import (
 from workflow_interpreter import RuleId
 from workflow_interpreter.schema.models import Finding
 
+REGION_MEMBER_NODE: Final[str] = """
+[[node]]
+name = "extra"
+kind = "task"
+region = "r"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+fallback = { to = "finished" }
+"""
+"""A second member of region `r`, reachable only from OUTSIDE the region — the
+non-entry ingress §2 rule 6 refuses. Its own fallback goes to the terminal so
+the global fallback gate does not close a cross-region cycle as well."""
+
 
 def source_block(
     producer: str, *, optional: bool = False, trim_priority: int = 1
@@ -309,6 +330,23 @@ MUTATION_CASES: Final[tuple[tuple[str, Replacements, RuleId], ...]] = (
             ),
         ),
         RuleId.TEST_FLAGS_REQUIRE_OPT_IN,
+    ),
+    (
+        "cross-region-ingress-at-non-entry-node",
+        (
+            (
+                FINISHED_NODE,
+                FINISHED_NODE + REGION_MEMBER_NODE,
+            ),
+            (
+                '[[edge]]\nfrom = "approval"\non = "approve"\nto = "finished"\n',
+                (
+                    '[[edge]]\nfrom = "approval"\non = "approve"\nto = "extra"\n\n'
+                    '[[edge]]\nfrom = "extra"\non = "done"\nto = "finished"\n'
+                ),
+            ),
+        ),
+        RuleId.CROSS_REGION_EDGES_TARGET_ENTRY,
     ),
     (
         "input-produced-by-itself",

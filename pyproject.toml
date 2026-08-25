@@ -9,6 +9,7 @@ dependencies = [
     "pydantic>=2.13.4",
     "pyyaml>=6.0.3",
     "ruff>=0.16.2",
+    "structlog>=26.1.0",
 ]
 
 [dependency-groups]
@@ -23,3 +24,6 @@ dev = [
 # `workflow_interpreter` from the repo root.
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+    "bd: needs the real bd binary; runs against a throwaway workspace under tmp_path",
+]

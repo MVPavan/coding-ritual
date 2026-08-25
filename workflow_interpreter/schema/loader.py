@@ -130,6 +130,18 @@ def _pinned_schema() -> dict[str, Any]:
     return schema
 
 
+def canonical_json_bytes(payload: Any) -> bytes:
+    """Canonical JSON: sorted keys, no incidental whitespace, UTF-8.
+
+    The single encoding convention for every byte string this project hashes,
+    signs, pins or hands to bd — a second convention would silently move
+    digests (§2 rule 8).
+    """
+    return json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+
+
 def canonical_bytes(document: GraphDocument) -> bytes:
     """The `wf-canon-json/1` pinned body — the pre-image of `content_hash`.
 
@@ -140,9 +152,7 @@ def canonical_bytes(document: GraphDocument) -> bytes:
     """
     payload = document.model_dump(mode="json", by_alias=True, exclude_none=True)
     payload[CANON_KEY] = CANON_VERSION
-    return json.dumps(
-        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
+    return canonical_json_bytes(payload)
 
 
 def content_hash(document: GraphDocument) -> str:
