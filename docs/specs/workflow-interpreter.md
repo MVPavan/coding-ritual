@@ -41,13 +41,25 @@ Premises (settled):
 
 **Threat model.** bd actor identity is unauthenticated free text;
 `bd close --force`, `bd delete`, and `--set-metadata` exist. bd records are
-therefore **tamper-evident, not tamper-proof**. Enforcement consequences:
+therefore **tamper-evident, not tamper-proof**. The wrapper's sealed
+surface is an IN-PROCESS convention (Python privacy is not a security
+boundary — probed, phase-2 review): the threat model assumes cooperative
+in-process callers; the enforcement backstop against a non-cooperative
+one is the §10.6 audit sweep, which such writes remain visible to (an
+out-of-band close leaves carrier state inconsistent with bd status).
+An out-of-process authority holder is deferred (§14). Cheap hardening
+still applies: verified-approval objects are not exported, and repair
+paths re-verify the signature they hold rather than trusting carrier
+state. Enforcement consequences:
 
 1. **Write boundary (settled):** all bd writes go through a **typed
-   wrapper API** — `mint_activation`, `record_dispatch`, `record_exit`,
-   `record_evidence`, `close_activation`, `supersede_activation`,
-   `open_gate`, `close_gate_verified`, `append_event`, `update_root_bounds`
-   — which constructs every invocation. The model never emits a bd write
+   wrapper API** — `startup_canary`, `create_root`, `mint_activation`,
+   `record_dispatch`, `record_exit`, `record_evidence`,
+   `close_activation`, `supersede_activation`, `open_gate`,
+   `close_gate_verified`, `append_event` — which constructs every
+   invocation. Bound mutation is NOT a public operation: it happens
+   only inside `close_gate_verified`'s verified-rebudget path
+   (phase-2 ruling; a public `update_root_bounds` was a §9 bypass). The model never emits a bd write
    string; it may issue bd **reads** freely (§4 read vocabulary). The
    wrapper never constructs `--force`, `--ignore-schema-skew`,
    `bd close --continue`, `--claim-next`, or `bd delete`.
@@ -312,8 +324,11 @@ nothing. Unknown source name = hard error.
    a region's `entry_node` is never a terminal; gates declare no
    `fallback` (their outcomes are edge-covered; a gate fallback would be
    dead config invisible to cycle analysis); every node is reachable
-   from `entry` over the effective graph; `gate_type` is closed to
-   `human` in v1. The wrapper executes `cmd` WITHOUT a shell (argv =
+   from `entry` over the effective graph; every edge entering a region
+   from OUTSIDE it targets that region's `entry_node` (a non-entry
+   ingress would consume a round no entry-node arrival opened,
+   silently shrinking `max_entries` — probed, phase-2 r3; this keeps
+   §10.1's counting exact); `gate_type` is closed to `human` in v1. The wrapper executes `cmd` WITHOUT a shell (argv =
    shell-safe split, no expansion) — and the validator applies the SAME
    semantics: `shlex.split(cmd)` must succeed and be non-empty, and
    argv[0] — the provenance-hashed executable, §7.3 — must be
@@ -365,7 +380,11 @@ a dedicated child bead or content-addressed git blob referenced by hash),
 and the resolved configuration with provenance — every profile, model,
 bound, isolation, each tagged `source: graph-default | project-config |
 instance-override` (instance overrides arrive as an instantiation-time
-JSON validated against the schema subset). The interpreter executes from
+JSON validated against the schema subset). The root also records its
+CREATION-TIME config signature; `create_root` idempotency-by-key
+compares against that signature, not the live config — a verified
+rebudget mutates the live config and must never break root re-creation
+recovery (probed, phase-2 r2). The interpreter executes from
 the pinned copy; the file is for authoring. Hash mismatch → instance
 halts.
 
@@ -379,9 +398,21 @@ foreman-assigned — bd timestamps are second-granularity),
 `pre_attempt_commit` of the most recent WRITING activation at the target
 node in the current region (rework edge), else the instance branch head.
 Salvage (tier 2) = setting `intended_base_commit` to the rejected artifact
-commit + a deviation record. Never derived through
+commit + a deviation record — expressed through a dedicated
+deviation-recording API (phase 3+), NEVER as a mint parameter (mint
+facts are derived; phase-2 ruling). Never derived through
 `predecessor_activation_id` (on a reject edge the predecessor is the
 reviewer, whose base IS the rejected commit).
+
+Mint facts are DERIVED by the wrapper, never accepted from the caller:
+`region` from the pinned graph, `round_no` and `intended_base_commit`
+from recorded activations, `outcome_taken` from the recorded predecessor
+close (a caller-labeled mint could dodge its cap; probed, phase-2
+review). Carrier carry-forward: `pre_attempt_commit`,
+`reset_verified_commit`, `pre_attempt_dirty_state` exist as optional
+carrier fields from phase 2, written by the phase-3 supervisor — the
+`intended_base_commit` rule consumes `pre_attempt_commit`, so it must be
+recorded from the first writing activation onward.
 
 On dispatch: the process handle (§5.3). On exit: the mirrored exit record.
 On close: outcome, evidence (verify exit codes, artifact identity,
@@ -392,9 +423,18 @@ predecessor_activation_id, outcome_taken, target_node)` (entry:
 `hash(root_id, "entry")`). Exactly one untransitioned head per instance;
 violations fail closed to triage. **Race residue** (post-mint duplicate
 despite the lock): append-only **supersede** — the loser closes
-`superseded` with `superseded_by=<winner>`; winner = lowest `seq`, tie →
-lexicographically lowest bead id. Superseded activations are excluded from
-frontier and `round_no` counting but COUNT toward the §10.3 ceiling.
+`superseded` with `superseded_by=<winner>`; winner = a COMPLETED
+activation first (recorded terminal outcomes are routing truth and are
+never destroyed by race residue; two completed duplicates = refuse to
+triage — ruling, phase-2 r2/r3), then lowest `seq`, tie →
+lexicographically lowest bead id. A supersede names a winner that
+exists, shares root AND idempotency key, and wins this rule — anything
+else is refused. Root convergence follows its own rule: a root that
+OWNS instance beads is never superseded; converge onto the owner
+regardless of bead id; both own → hard error to triage (bd ids are
+unordered — probed, phase-2 r3). Superseded activations are excluded
+from frontier and `round_no` counting but COUNT toward the §10.3
+ceiling.
 
 ### 3.3 Transition events (`wf_kind: event`) — derived audit
 
@@ -648,15 +688,33 @@ fingerprint is on an **allow-list pinned outside the workspace** (in the
 validator's own configuration; not the repo, not the ambient keyring).
 The wrapper verifies signature AND fingerprint equality (never just
 `verify-tag` exit 0) before `close_gate_verified` takes the declared
-edge. `rebudget` payloads carry the new bound; the wrapper writes it to
-the root with provenance. Unsigned / wrong-hash / wrong-signer / replayed
-nonce → refused. A gate bead closed by any other path is tampering: the
+edge. `rebudget` payloads carry the new bound; the wrapper records the
+mutation ON THE GATE BEAD in the same write that closes it — bound
+authority is the root's creation-time config ⊕ the mutations of the
+instance's CLOSED rebudget gates (max per key). No root-config write
+ever happens after create: per-bead writes cannot clobber each other,
+so concurrent rebudgets both survive structurally (a root-metadata
+merge was wholesale-replace and provably lost one — probed, phase-2
+r3/r4), and the bound landing atomically with the close removes the
+apply/close crash window outright. `bound_mutation` is legal IFF the
+outcome is `rebudget`, its key must be in the closed bound-setting
+vocabulary, and values are raise-only against the effective bound;
+`schema_version` must equal the pinned payload version. Unsigned / wrong-hash / wrong-signer / replayed
+nonce → refused. Nonce uniqueness is scoped PER ROOT (ruling, phase-2
+review): the signed payload binds `root_id` and `gate_key`, so a
+cross-root replay fails payload/root matching before the nonce is ever
+consulted — per-root scope plus a mandatory gate-ownership check
+(`gate.wf_root_id == root`) is sufficient and avoids cross-instance
+scans. A gate bead closed by any other path is tampering: the
 audit sweep halts the instance.
 
 Artifact classes: `binds = "immutable"` — the payload names the commit
 being approved (signature over the OID is the authority; the hash check
 is a cross-check). `binds = "mutable"` — the document is committed at
-gate-open; payload carries its file sha256; re-hash at close; mismatch →
+gate-open; payload carries its file sha256; re-hash at close — computed
+by the WRAPPER through an injected workspace-scoped artifact reader,
+never accepted from the caller (a caller-echoed digest is no re-hash;
+ruling, phase-2 review); mismatch or unreadable artifact →
 `StaleApproval`, gate stays open, edit receipt recorded. Honesty note: a
 foreman with write access to the allow-list could forge approvals — the
 allow-list lives where the foreman cannot write, and the sweep audits it.
@@ -682,9 +740,21 @@ All bounds are **pre-mint predicates** with explicit operators:
 3. **Instance ceiling.** Refuse ANY mint (activation or gate) when
    `count(all activation + gate beads of the instance) ≥
    max_total_activations` — open, closed, superseded, unclassified all
-   count (fail-closed) → halt gate (the halt gate itself is exempt from
-   the predicate it enforces, and unique by key). No outcome class is
-   exempt. The single auditable boundedness statement.
+   count (fail-closed) → halt gate. The halt gate is exempt from the
+   PREDICATE it enforces (so it can be minted at the ceiling), NEVER
+   from the count — every bead counts, no metadata flag may remove a
+   bead from the count (ruling, phase-2 review). Halt-gate identity:
+   key = `hash(root_id, halt_ordinal)` where the ordinal is the count
+   of the root's existing halt gates; a NEW halt gate may be minted
+   only when every prior one is CLOSED (one open at a time), so the
+   exempt path stays bounded by human-verified closes — a static
+   per-root key made the gate one-shot and wedged §10.4 re-entry
+   (probed, phase-2 r3), a caller-shaped key made the exemption
+   unbounded (probed, r2). `halt_reason` is metadata, mandatory. A
+   CLOSED gate is never silently re-found as success: re-find applies
+   to OPEN gates only (and must match the recorded gate's shape);
+   a closed re-find is a loud conflict. No outcome class is exempt.
+   The single auditable boundedness statement.
 4. **Exhaust re-entry** only via a verified `rebudget` payload writing
    the raised bound with provenance. Exhaustion gates are unique by key
    (§3.4) — never re-minted by re-ticking.
@@ -872,6 +942,9 @@ graph editor, live-instance version migration, non-human gate types.
 | Deferred | Trigger / owner |
 |---|---|
 | Concurrent instances: claim-lease, band scheduling, merge-slot one-per-rig | S1; LoopTroop's enforced band + aweb's ownership-vs-lease split |
+| Out-of-process authority holder (owns BdClient + verifier + rebudget; typed ops become a real capability boundary) | when the threat model must cover adversarial in-process callers (§0.3) |
+| Salvage / deviation-recording API (tier-2 intended_base override) | phase 3+; §3.2 |
+| Closed resolved-config key vocabulary (beyond the 4 bound keys) | when configs are graph-resolved (phase 5) |
 | Human-gate timeout policy | after v1 gate experience |
 | Formula materialization | after loop-schema verification on pinned bd |
 | Cost enforcement (usage records exist from v1) | when spend constrains |
