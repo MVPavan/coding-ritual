@@ -1,359 +1,790 @@
-# Workflow Interpreter — design spec (DRAFT for review)
+# Workflow Interpreter — design spec (v0.3, implementation-ready)
 
-Status: **draft v0.1.1 — reviewed, revision pending** — bead cr-o85.
-Two-reviewer verdict (Sol xhigh + Opus 5 high, 2026-08-24): unanimous REVISE —
-architecture affirmed, failure model missing; fix plan in
-`scratchpad/research/three-repos/spec-review-consolidation.md`, to be applied
-as v0.2. Sections §10–§12 below are user design rulings (2026-08-25) accepted
-AFTER that review and normative for v0.2. Supersedes the parked idea in
-`docs/ideas/workflow-graphs.md` (its "no loops in the graph format" constraint
-is overturned here, with argument). Inputs: the workflow-graph brainstorm
-consolidation, the omnigent/direct-CLI council ruling, and the
-beadboard/aweb/looptroop assessment
-(`docs/research/orchestration-decision-record.md` is the decision ledger).
+Status: **v0.3 — final after two review rounds** — bead cr-o85.
+Round 1 (Sol xhigh + Opus 5 high) and round 2 (Sol high + Opus 5 medium)
+both REVISE verdicts applied; consolidations in
+`scratchpad/research/three-repos/spec-review-consolidation.md` and
+`spec-r2-consolidation.md`. Supersedes `docs/ideas/workflow-graphs.md`.
+Decision trail: `docs/research/orchestration-decision-record.md`.
+Remaining pre-code obligations: the §11 **precondition probes** and the
+[PROBE]-marked rows of the §4 command table — run them before writing v1
+code; a failed probe triggers the named fallback, not silent adaptation.
 
-## 0. Purpose and premises
+## 0. Purpose, premises, threat model
 
 One unit of work (a feature, a bug, later an ML experiment) moves through a
-**workflow graph**: implement → review → (rework)* → verify → ship, with
-human gates where placed. Many units run concurrently, autonomously, across
-different models and agent CLIs. This spec defines the graph format, its bd
-encoding, the interpreter that executes it, and the runner floor beneath it.
+**workflow graph**: implement → review → (rework)* → ship, with human gates
+where placed. Many units run concurrently and autonomously across different
+models and agent CLIs. This spec defines the graph format, its bd encoding,
+the interpreter (foreman) contract, the supervisor wrapper, the runner
+floor, and the v1 proof.
 
-Settled premises (not re-litigated here):
+Premises (settled):
 
-- **P1 — bd is the only durable state.** Crash recovery = re-read bd from a
-  fresh context. No SQLite, no sidecar DB, no state in chat or scratchpad.
-- **P2 — the graph is data.** TOML + JSON Schema, versioned, content-hashed,
-  reject-unknown-fields. Never compiled code (LoopTroop's 571-line XState
-  machine is the cautionary tale), never prose (aweb's playbooks).
-- **P3 — the orchestrator is model-agnostic.** Any capable model + the bd CLI
-  + this spec's interpreter contract can be the foreman. Claude is merely the
-  first implementation.
+- **P1 — three stores, one authority order.** **bd is the sole authority
+  for intent and decision state** (what was decided, attempted, bounded,
+  approved); **git holds artifacts** (commits, refs, worktrees); the
+  **wrapper directory** (`.wf/<root_id>/` beside the repo) is an
+  observation cache (handles, exit files, event logs) whose durable facts
+  are mirrored into bd (§5.3) — losing it costs telemetry, never
+  correctness. Reconciliation order on recovery: bd says what was intended;
+  git says what exists; a bd record naming a missing commit halts the
+  instance (§7.4). The graph definition is pinned into bd at instantiation
+  (§3.1), so routing needs no file.
+- **P2 — the graph is data.** TOML + JSON Schema, versioned,
+  content-hashed, reject-unknown-fields. Never compiled code, never prose.
+- **P3 — the orchestrator is model-agnostic.** Any capable model + this
+  contract + the typed wrapper can be the foreman. Claude is the first
+  implementation, not a dependency.
 - **P4 — the runner floor is vendor-neutral.** claude / codex / opencode
   profiles first; one invocation contract.
 
-## 1. Graph definition format
+**Threat model.** bd actor identity is unauthenticated free text;
+`bd close --force`, `bd delete`, and `--set-metadata` exist. bd records are
+therefore **tamper-evident, not tamper-proof**. Enforcement consequences:
 
-One graph = one TOML file under `workflows/`, validated by a JSON Schema
-(`workflows/schema.json`) that **rejects unknown fields** (bd's own layers
-silently drop them — the definition layer must be the opposite).
+1. **Write boundary (settled):** all bd writes go through a **typed
+   wrapper API** — `mint_activation`, `record_dispatch`, `record_exit`,
+   `record_evidence`, `close_activation`, `supersede_activation`,
+   `open_gate`, `close_gate_verified`, `append_event`, `update_root_bounds`
+   — which constructs every invocation. The model never emits a bd write
+   string; it may issue bd **reads** freely (§4 read vocabulary). The
+   wrapper never constructs `--force`, `--ignore-schema-skew`,
+   `bd close --continue`, `--claim-next`, or `bd delete`.
+2. Runner agents hold `bd --readonly` or no bd at all.
+3. Human approval is anchored in a signed payload no agent can produce
+   (§9); against a malicious foreman it is tamper-evident (the audit sweep
+   detects an unverified gate close), proof only against runners.
+4. The pinned-config hash on the root bead is re-verified every tick.
+
+## 1. Control model — three tiers
+
+The foreman is a **model**; this spec does not compile its intelligence
+away.
+
+1. **Invariants — enforced by deterministic code** (validator, typed
+   wrapper, supervisor wrapper, completion checker): bound ceilings (§10);
+   gate transitions require a verified signed payload (§9); no edge
+   advances without §7's computed clauses; the bd trace is append-only
+   (supersede, never delete); runners are bd-read-only; the model selects
+   declared edges only; every dispatch passes the worktree precondition
+   (§5.4).
+2. **Defaults with override — the foreman may deviate; every deviation
+   writes a deviation record** on the activation: reset-vs-salvage (§5.5);
+   retry vs replan; context composition within the allowlist; early human
+   escalation; steer (§8.1); in-repo reset confirmation (§12).
+3. **Pure judgment**: interpreting ambiguous failures, briefing workers,
+   cross-feature sequencing, choosing when tier-2 override is warranted.
+
+Rationale: every evaluated system failed where a model graded its own work
+— grading stays deterministic; scripted recovery fails on messy reality —
+deciding stays intelligent.
+
+## 2. Graph definition format
+
+One graph = one TOML file under `workflows/`, validated by
+`workflows/schema.json` (**additionalProperties: false** everywhere). The
+canonical example is normative and ships as the validator's first passing
+fixture (`workflows/feature-delivery.toml`):
 
 ```toml
 [graph]
 id          = "feature-delivery"
 version     = "1.0.0"
-description = "One feature: plan-approved → implemented → reviewed → shipped"
+entry       = "implement"
+description = "One feature: implemented → reviewed → shipped"
 
-[[region]]                      # regions are ordered; back-edges may not
-name = "build-review"           # cross into an earlier region
-mode = "bounded-cycle"          # "acyclic" | "bounded-cycle"
-max_entries = 3                 # mandatory for bounded-cycle
-on_exhausted = "gate:human-triage"
+[instance]
+max_total_activations  = 20      # counts every activation AND gate bead
+test_force_first_reject = false  # schema'd; validator refuses true without --allow-test-flags
+
+[[region]]
+name         = "build-review"
+mode         = "bounded-cycle"           # "acyclic" | "bounded-cycle"
+entry_node   = "implement"
+max_entries  = 3
+on_exhausted = "triage"
 
 [[node]]
-name    = "implement"           # "node", never "stage" (CONTEXT.md reserves Stage)
-region  = "build-review"
-runner  = "profile:implementer" # resolved at instantiation, pinned on the instance
-inputs  = ["task_brief", "prior_failure_notes"]   # context allowlist — closed set
-outcomes = ["done", "fail_code", "fail_plan"]
+name          = "implement"
+kind          = "task"                   # task | gate | terminal
+region        = "build-review"
+runner        = "profile:implementer"
+model         = "default"
+isolation     = "worktree"               # worktree | in-repo
+writes        = true                     # repo-worktree write access only
+allowed_paths = ["src/**", "tests/**"]   # static effect bound
+inputs        = ["task_brief", "review_findings"]
+verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
+token_budget  = 120000                   # context TRIM budget (not a runaway bound)
+max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 2
+outcomes      = ["done", "no_diff", "fail_plan"]
 
 [[node]]
-name    = "review"
-region  = "build-review"
-runner  = "profile:critic"
-inputs  = ["task_brief", "diff_artifact"]         # NOT the implementer's reasoning
-outcomes = ["accept", "reject"]
+name          = "review"
+kind          = "task"
+region        = "build-review"
+runner        = "profile:critic"
+model         = "default"
+isolation     = "worktree"
+writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo
+allowed_paths = []
+inputs        = ["task_brief", "diff_artifact"]
+verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" },
+                 { cmd = "scripts/review-checks.sh",  timeout = "5m"  }]
+                # deliberately a STRICT SUPERSET of implement's set; the
+                # validator warns when a judgment node's verify ⊆ its
+                # predecessor's (anti-drift cross-check would be vacuous)
+token_budget  = 80000
+max_wall      = "30m"
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 2
+outcomes      = ["accept", "reject"]
+
+[[node]]
+name      = "ship"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["approve", "abandon"]
+
+[[node]]
+name      = "triage"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["rebudget", "abandon"]
+
+[[node]]
+name = "shipped"
+kind = "terminal"
+
+[[node]]
+name = "abandoned"
+kind = "terminal"
+
+[[edge]]
+from = "implement"
+on   = "done"
+to   = "review"
+
+[[edge]]
+from = "implement"
+on   = "fail_plan"
+to   = "triage"
+
+[[edge]]
+from = "implement"
+on   = "no_diff"
+to   = "triage"
 
 [[edge]]
 from = "review"
 on   = "reject"
-to   = "implement"              # the back-edge: legal because region is bounded-cycle
+to   = "implement"
 
 [[edge]]
 from = "review"
 on   = "accept"
-to   = "gate:ship"              # human gate node
+to   = "ship"
 
-[fallback]                      # deterministic fallback edge: any outcome not
-to = "gate:human-triage"        # matched by a declared edge routes here
+[[edge]]
+from = "ship"
+on   = "approve"
+to   = "shipped"
+
+[[edge]]
+from = "ship"
+on   = "abandon"
+to   = "abandoned"
+
+[[edge]]
+from = "triage"
+on   = "rebudget"
+to   = "implement"
+
+[[edge]]
+from = "triage"
+on   = "abandon"
+to   = "abandoned"
+
+[fallback]
+to = "triage"          # per-node [node.fallback] may override
+
+[[source]]
+name          = "task_brief"
+producer      = "instance"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "diff_artifact"
+producer      = "node:implement"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "review_findings"
+producer      = "node:review"
+optional      = true                     # absent on round 1 by construction
+trim_priority = 2
 ```
 
-Validator (deterministic script, runs pre-instantiation and in lint sweeps):
-schema-validate reject-unknown; SCC analysis — every cycle must sit inside one
-`bounded-cycle` region; every `bounded-cycle` has `max_entries` ≥ 1 and an
-`on_exhausted` that reaches a human gate or terminal; terminals have no exits;
-no back-edge crosses regions backward; every node reachable, every declared
-outcome covered by an edge or the fallback. **An unbounded loop is
-unwritable**, not merely discouraged.
+**Outcome vocabulary.** Global closed enum, two classes:
 
-Outcome vocabulary is closed per node and drawn from a global enum:
-`done | accept | reject | pass | fail_code | fail_plan | error_runner |
-error_transport`. The distinction `fail_code` (work wrong) vs `fail_plan`
-(task spec wrong) vs `error_runner`/`error_transport` (infrastructure) drives
-different edges and different counters — runner failures do not consume
-review-cycle budget.
+- **Graph outcomes** (edge-routed, node-declared):
+  `done | no_diff | accept | reject | fail_code | fail_plan | approve |
+  rebudget | abandon`.
+- **System outcomes** (NEVER edge-routed; wrapper-handled per §10.2):
+  `error_runner | error_transport | steered | superseded`. The validator
+  **rejects** any declared edge on a system outcome. They reach the graph
+  only when a cap is breached, at which point the transition is to the
+  node's fallback (or the region's `on_exhausted` for round exhaustion).
 
-## 2. Instance state in bd (cyclic template, acyclic trace)
+An outcome a node declares but has no edge for routes to the (per-node or
+global) fallback. An outcome a node does NOT declare, or an unparseable /
+absent / duplicate marker, is `fail_code` (fail-closed) — never fallback
+routing. `no_progress` is not an outcome: it is a wrapper-computed breaker
+recorded as evidence (§10.5).
 
-The bd record never contains a cycle. A back-edge executes by **minting new
-beads**, never reopening old ones.
+**Input binding.** At mint, each non-optional input is bound to an
+immutable tuple `(producer_activation_id, artifact_ref, digest)` — the
+latest CLOSED producer activation in the current region (current round
+first, else most recent). Optional inputs absent on round 1 bind to
+nothing. Unknown source name = hard error.
 
-- **Root bead** (type `task`, one per instance): pins `graph_id`,
-  `graph_version`, `graph_content_hash`, plus the full **resolved
-  configuration with provenance** — runner profiles, models, every bound,
-  each tagged with its source layer (graph default / project config /
-  per-instance override). A live instance can never be rerouted or re-budgeted
-  by editing a file (LoopTroop's `locked_*` + `*_source` pattern).
-- **Activation bead** (type `task`, child of root, one per node VISIT):
-  `node`, `attempt_no`, `runner_profile`, `model`, `session_id`,
-  `idempotency_key`, `pre_attempt_commit`, and on close: structured outcome,
-  artifact identity, usage record. Attempts are counted by **counting
-  activation beads** — structural, unfalsifiable by any agent.
-- **Transition events**: append-only record of each edge taken
-  (`from`, `outcome`, `to`, `activation_id`, actor). Intended carrier:
-  bd **event beads** (`bd create --type event --event-payload`), which a live
-  probe showed round-trips payloads — **never `bd audit record`**, which
-  silently drops them. Gate: §7 probe suite must pass before this carrier is
-  final; the degradation floor is plain beads + labels.
-- **Gates**: bd gate beads. Human gates are closed only by humans
-  (`--actor`-audited) and only with a `--reason` carrying the sha256 of the
-  artifact reviewed (§5).
-- **Wisps**: interpreter tick/heartbeat noise uses `--ephemeral --wisp-type`
-  so high-frequency records never pollute the durable trace.
+**Validator rules** (pre-instantiation + lint sweep):
 
-Idempotency: `idempotency_key = hash(root_id, node, attempt_no)`. Before
-dispatch, the interpreter queries for an existing activation with that key;
-recovery after a crash therefore re-attaches instead of double-dispatching.
+1. Schema-valid, reject-unknown; exactly one `entry`; ≥1 terminal
+   reachable from every node under every declared outcome and exhaustion
+   path.
+2. SCC analysis: every cycle lies within one `bounded-cycle` region —
+   with exactly one exemption, encoded: a cycle whose only back-edge
+   originates at a `kind = "gate"`, `gate_type = "human"` node via a
+   declared `rebudget` outcome targeting a bounded-cycle region's
+   `entry_node`. No other cross-region back-edge is legal.
+3. Gates and terminals: terminals have no exits; gates declare
+   `gate_type`, `binds`, `outcomes`; every gate outcome is edge-covered.
+4. Exactly one edge per `(from, on)`; no edges on system outcomes;
+   fallback targets a gate or terminal.
+5. Every `inputs` name resolves in `[[source]]`; every producer exists;
+   `optional` consistent with reachability (a non-optional input whose
+   producer cannot have run yet = validation error).
+6. Every task node has non-empty `verify` (structured: `cmd`, `timeout`,
+   optional `cwd`), `allowed_paths`, `token_budget`, `max_wall`,
+   `stale_after`, `max_infra_retries`, `max_steers`;
+   `[instance].max_total_activations` present.
+7. Warn when a judgment node's `verify` set ⊆ its predecessor's.
+8. Version + content hash over the canonicalized file.
 
-## 3. The interpreter (foreman contract)
+## 3. Instance state in bd (cyclic template, acyclic trace)
 
-A stateless-between-ticks process. Each tick:
+A back-edge executes by **minting new beads**, never reopening old ones.
+Every workflow bead: created via the typed wrapper with
+`--no-inherit-labels`, carrying metadata `wf_kind = root | activation |
+gate | event` and `wf_root_id = <root bead id>` (roots carry their own id)
+— the discriminator + linkage every query uses.
+
+### 3.1 Root bead (`wf_kind: root`)
+
+Metadata: `graph_id`, `graph_version`, `graph_content_hash`, **the
+canonicalized graph body** (size-capped by the §11 payload probe; fallback:
+a dedicated child bead or content-addressed git blob referenced by hash),
+and the resolved configuration with provenance — every profile, model,
+bound, isolation, each tagged `source: graph-default | project-config |
+instance-override` (instance overrides arrive as an instantiation-time
+JSON validated against the schema subset). The interpreter executes from
+the pinned copy; the file is for authoring. Hash mismatch → instance
+halts.
+
+### 3.2 Activation beads (`wf_kind: activation`)
+
+Minted with: `node`, `region`, `round_no`, `seq` (monotonic per-instance,
+foreman-assigned — bd timestamps are second-granularity),
+`predecessor_activation_id`, `idempotency_key`, bound input tuples,
+`runner_profile`, `model`, pre-assigned `session_id`,
+**`intended_base_commit`** — resolved AT MINT as: the
+`pre_attempt_commit` of the most recent WRITING activation at the target
+node in the current region (rework edge), else the instance branch head.
+Salvage (tier 2) = setting `intended_base_commit` to the rejected artifact
+commit + a deviation record. Never derived through
+`predecessor_activation_id` (on a reject edge the predecessor is the
+reviewer, whose base IS the rejected commit).
+
+On dispatch: the process handle (§5.3). On exit: the mirrored exit record.
+On close: outcome, evidence (verify exit codes, artifact identity,
+effects reconciliation, breaker flags), usage, deviations.
+
+**Identity:** `idempotency_key = hash(root_id,
+predecessor_activation_id, outcome_taken, target_node)` (entry:
+`hash(root_id, "entry")`). Exactly one untransitioned head per instance;
+violations fail closed to triage. **Race residue** (post-mint duplicate
+despite the lock): append-only **supersede** — the loser closes
+`superseded` with `superseded_by=<winner>`; winner = lowest `seq`, tie →
+lexicographically lowest bead id. Superseded activations are excluded from
+frontier and `round_no` counting but COUNT toward the §10.3 ceiling.
+
+### 3.3 Transition events (`wf_kind: event`) — derived audit
+
+Append-only `(from, outcome, to, activation_id, seq, actor)` per edge
+taken. **The closed activation's outcome is the routing truth; events are
+an idempotently reconstructible audit projection** — post-crash gaps are
+backfilled, never corrupting. Carrier: bd event beads
+(`--type event --event-payload`; requires `bd config set types.custom
+event` — §11 prerequisite); floor: task beads with `wf_kind: event`.
+Never `bd audit record` (probed lossy).
+
+### 3.4 Gate beads (`wf_kind: gate`)
+
+**v1 does not use native `bd gate` machinery** (its resolve/close paths
+are unauthenticated and `gate create` demands blocking targets); a gate is
+a plain bead whose transition happens only via
+`close_gate_verified` after §9 signature verification. Deterministic gate
+key from the OPENING transition: `hash(root_id, gate_node,
+source_activation_id, outcome)`; exhaustion gates:
+`hash(root_id, region, round_no_at_exhaustion)` — re-ticking re-finds the
+same key and never re-mints (drill 6). Gate beads count toward the
+instance ceiling.
+
+Wisps: the §11 canary is the ONE permitted decision-irrelevant ephemeral
+wisp. No decision-relevant datum may ever be a wisp.
+
+## 4. Interpreter (foreman) contract
+
+A stateless-between-ticks process run by a model. **v1 ticks are manual**;
+every tick is single-flight: host `flock` on the repo path (this lock IS
+the in-repo execution band, §12) + a bd-side holder record (`bd
+merge-slot`; one per rig — an S1 design input).
 
 ```text
 tick:
-  frontier  = derive from bd alone (bd ready + open gates + running activations)
-  for each instance in frontier:
-    if running activation:        check runner terminal state; if terminal → §4 completion
-    elif gate open:               nothing (humans close gates)
-    else:
-      next_node = edge lookup (last outcome → declared edge, else fallback)
-      enforce bounds (§6): count activation beads vs max_entries; no-progress check
-      if bound exhausted:         materialize on_exhausted gate; stop
-      mint activation bead (idempotency-checked)
-      dispatch via runner floor (§4)
-  write transition events; exit
+  0  flock; §11 canary (backend assertion + round-trip); verify pinned-config hash
+  1  frontier from bd (reads below): open activations | open gates | last closed head
+  2  open activation  → wrapper lifecycle (§5.6): exit-recorded? live? dead?
+     open gate        → check for a submitted signed payload (§9); verified → take edge
+     else             → edge lookup on the head's outcome (declared edge → target;
+                        undeclared-but-listed → fallback)
+  3  dispatchable next node → §10 pre-mint predicates → mint → dispatch (§5.2–5.3)
+  4  terminal runner → §7 completion (compute, never trust)
+  5  close + append transition event (backfill missing events); release lock
 ```
 
-Signals (file watchers, SSE, notifications) are **hints only**: they may wake
-the interpreter early, but the frontier is always recomputed from bd — a lost
-signal can never lose work (aweb's principle; BeadBoard's watcher-bus is the
-anti-example). The tick is host-cron-driven; the interpreter holds no memory
-between ticks, so any model, or a different model per tick, can run it.
+Signals are hints that may trigger a tick early; the frontier is always
+recomputed from bd.
 
-Two-iteration-layers ruling (ratified): for graph-driven work, **the graph's
-review loop replaces the execution engine's internal fix loop**. Node-internal
-iteration is red-green only. Resume of a session is legal only for
-`error_transport` (the transport failed); `fail_*`/`reject` always
-abandon-and-reset (§5) — the failed reasoning is a liability, not an asset.
+**Read vocabulary (model-issued) and wrapper write API — the command
+table.** Every row pins flags; [PROBE] rows are §11 obligations. All list
+reads: `--json --limit 0 --all --include-gates` (bd's default limit is
+50-documented/observed-varying — never rely on it) [PROBE: `--limit 0` =
+unlimited].
 
-## 4. Runner floor
+| Purpose | Invocation (shape) | Expect | On failure |
+|---|---|---|---|
+| Load roots | `bd list --json --limit 0 --metadata-field wf_kind=root` [PROBE: metadata filter+read-back] | id, metadata incl. pinned body | halt: carrier probe failed |
+| Instance beads | `bd list --json --limit 0 --all --include-gates --metadata-field wf_root_id=<id>` | every activation/gate/event | halt |
+| Idempotency lookup | same + `--metadata-field idempotency_key=<k>` (must include closed) | 0 or 1 bead | >1 → supersede rule |
+| Round count | client-side over instance beads: distinct `round_no`, region-filtered, superseded excluded | int | fail-closed (count opens) |
+| Ceiling count | client-side: ALL activation+gate beads of instance | int | fail-closed |
+| Mint | wrapper: `bd create --type task --no-inherit-labels --metadata @…` (typed API only) | id | no retry without idempotency re-check |
+| State/evidence/close | wrapper: `bd update --set-metadata …` / `bd close --reason <structured>` | — | halt on error |
+| Event append | wrapper: `bd create --type event --event-payload @…` [PROBE: create+enumerate `-t event`] | id | floor: task bead `wf_kind=event` |
+| Gate open/close | wrapper: plain bead create / close after §9 verify | — | unverified close attempt → refuse + audit flag |
 
-Per-CLI profiles (claude, codex, opencode) implementing one interface, shaped
-on aweb's `Provider` (6 methods, proven on two vendors) with two amendments:
+**Two-iteration-layers ruling.** The graph's review loop replaces the
+execution engine's internal fix loop; node-internal iteration is red-green
+only. Session resume is legal only for transport failure and steer
+continuations.
+
+## 5. Dispatch lifecycle (crash-atomic)
+
+### 5.1 States
+
+`minted → dispatched → exit-recorded → evidence-recorded → closed`
+(plus `superseded`). Each change is one typed-wrapper write; writes are
+idempotent (re-applying a recorded state is a no-op).
+
+### 5.2 Two-phase activation
+
+Phase A: mint (state `minted`), with idempotency key, bound inputs,
+`intended_base_commit`, and the **pre-assigned session id** (from the
+profile's `prepare()` — never discovered from output). Phase B: launch via
+the supervisor wrapper; state `dispatched` only after the handle is
+durable. **Fork barrier:** the wrapper commits the launch receipt (atomic
+write: temp + rename) BEFORE the child may exec; the child blocks on the
+barrier until the receipt exists. An exec is also one appended line in the
+activation's **exec ledger** (append-only file in the wrapper dir; drill
+evidence for exactly-once).
+
+### 5.3 Supervisor wrapper (deterministic, per activation)
+
+One wrapper process per activation, alive for the child's lifetime.
+Records in the handle (bd + wrapper dir): `{pid, pgid, host,
+host_boot_id, proc_start_time, started_at, log_path, session_id}` — boot
+id + start time defeat PID reuse and host reboots. Captures the runner's
+machine event stream (`claude -p --output-format stream-json`,
+`codex exec --json`, opencode equivalent) to `log_path`. **Owns runtime
+enforcement** (this answers "who polls" under manual ticks): raises a
+stale flag (file + bd metadata) when `stale_after` passes with no new
+event; TERMs the group on `max_wall` breach (and on token breach where
+the profile reports live usage — best-effort, wall-clock is the universal
+ceiling); on child exit writes the exit file `{exit_code, ended_at,
+reason}` AND **mirrors the exit record into bd as its final act**
+(state `exit-recorded`). The on-disk exit file is thereafter a
+crash-window fallback: a missing file with a bd exit record is still
+`exit-recorded`.
+
+### 5.4 Worktree precondition
+
+Before exec, the wrapper asserts `HEAD == intended_base_commit` and a
+clean tree in the activation's worktree — performing the idempotent reset
+itself if needed — and records `reset_verified_commit`. A precondition
+survives crashes; a trailing cleanup does not. (In-repo: §12.)
+
+**Worktree record** (per instance band): path
+`.wf/<root_id>/worktree`, branch `wf/<root_id>`, owner = current
+activation, expected HEAD = its `intended_base_commit`; created by the
+wrapper at first dispatch, removed at terminal. A `writes = false` node
+(the reviewer) gets a read-only checkout at the reviewed commit; its
+outputs go to `$WF_ARTIFACT_DIR`.
+
+### 5.5 Back-edge failure handling (tier-2 default)
+
+Default: the rejected attempt's tree state is abandoned (next dispatch's
+precondition resets to the recorded `intended_base_commit`); the lesson
+crosses as data — (a) intra-session failure (`fail_code`/`fail_plan` from
+the node's own runner): dying-session bounded note, deterministic
+fallback note if it cannot; (b) cross-node rejection: **the reviewer's
+findings artifact IS the note** (source `review_findings`). Salvage
+override per §3.2.
+
+### 5.6 Recovery classification (liveness-proving)
+
+Open activation found at tick:
+
+1. bd exit record (or exit file) present → `exit-recorded`; proceed to §7.
+2. Neither, and the process is alive (pgid + matching boot id/start time)
+   → running; wrapper flags govern (§8.2).
+3. Neither, process provably dead (or identity mismatch) → TERM the group
+   (idempotent), close `error_transport` with `evidence:
+   exit_unobserved`; fresh attempt subject to §10.2 caps. If the wrapper
+   finds a commit ahead of `intended_base_commit` with no ref, it
+   **pins it first** (orphan-pin fallback), preserving evidence. No edge
+   ever advances on a partial artifact.
+
+## 6. Runner floor
+
+Profiles (claude, codex, opencode) implement:
 
 ```text
 Profile:
   name()
-  build_command(task)          # one-shot headless invocation
-  build_resume_command(session)# machine resume (transport-failure path only)
-  build_resume_hint(session)   # human-pasteable reattach — recorded on gate beads
-  parse_output(stream) -> Event{type, text, session_id, duration, usage?, cost?, is_error}
-  session_id(events)
+  prepare(activation) -> session_id
+  build_command(task, session_id)
+  launch(cmd) -> handle                    # via supervisor wrapper
+  inspect(handle) -> alive|dead|exit_code
+  collect_terminal_envelope(handle) -> {marker, usage, session_id, duration}
+  terminate(handle)                        # TERM → wait → KILL, with proof
+  build_resume_command(session_id, instructions)
+  build_resume_hint(session_id)            # human-pasteable; recorded on gate beads
+  parse_output(stream) -> Event{type, text, session, usage?, cost?, is_error}
+  capabilities() -> {live_usage: bool, resume: bool, ...}
 ```
 
-- **Danger defaults inverted**: profiles run sandboxed/read-only by default;
-  write access is per-node opt-in in the graph, never a CLI default (aweb
-  ships `--dangerously-*` as the default — do the opposite).
-- **Unsupported option = loud error**, never a silent drop (aweb's
-  `AllowedTools` on codex errors; bd's silent drops are the anti-pattern).
-- **Usage/cost normalization is owned here**: every profile emits a normalized
-  usage record; a profile that cannot (codex JSON omits cost) records
-  `usage: unknown` explicitly — never a fabricated zero. Bounds never depend
-  on cost telemetry (structural counting only), so missing telemetry degrades
-  reporting, not safety.
+Rules: danger defaults inverted — sandboxed/read-only unless the node
+declares `writes = true` (repo worktree only); unsupported option = loud
+error; usage normalization owned here (`usage: unknown` is legal and
+disables only the best-effort token ceiling — `max_wall` always holds).
 
-**Completion contract (five clauses, all computed by the interpreter):**
-1. Runner process terminal (exit observed, not inferred).
-2. Structured outcome marker parsed from output — this is the agent's CLAIM.
-3. ≥1 independent computed check per contract: verification command exit code,
-   artifact hash, diff non-emptiness (claim ≠ proof; LoopTroop's self-reported
-   `tests: pass` is the anti-example).
-4. Artifact identity recorded: **a commit in the runner-owned worktree** —
-   every attempt ends in a commit (or `no-diff` outcome); the commit sha is
-   the artifact id (resolves the uncommitted-work question).
-5. Declared-vs-observed effects reconciled: the runner declares touched paths;
-   the interpreter diffs the worktree; surprises recorded as
-   `undeclared_effect` on the activation bead.
+**Runner channels** (wrapper-provided env, writable regardless of
+`writes`): `$WF_OUTCOME_FILE` — exactly one schema-validated outcome
+marker (THE reserved channel; zero, duplicate, or unparseable →
+`fail_code`); `$WF_ARTIFACT_DIR` — structured outputs (findings, notes);
+`$WF_EFFECTS_FILE` — the declared-paths manifest (missing/unparseable →
+fail-closed).
 
-## 5. Adopted mechanisms (from the evaluation, normative here)
+## 7. Completion contract (claim ≠ proof)
 
-1. **Hash-bound human gates.** Gate close requires the sha256 of the reviewed
-   artifact; interpreter refuses the transition on mismatch
-   (`StaleApproval`); approval receipt (actor, time, artifact, hash) written
-   to the gate bead. Artifact edits after approval write an edit receipt and
-   invalidate downstream approvals.
-2. **Bounded attempt envelope.** Every activation records
-   `pre_attempt_commit`. On a reject/fail edge: hard-reset the runner-owned
-   worktree to it (preserving the instance-state directory), require the
-   failing session to emit a bounded structured failure note before teardown
-   (deterministic fallback note if it can't), abandon the session. The next
-   activation gets fresh context + the notes via its `inputs` allowlist.
-   Applies **only** inside runner-owned worktrees, never a shared tree; no
-   auto-push; no `--no-verify` ever.
-3. **Context allowlists** (§1 `inputs`): enforced at prompt assembly; unknown
-   source name = hard error; ordered trim priority under token budget. The
-   critic never sees the implementer's reasoning — only the artifact.
-4. **Recovery taxonomy.** On startup/tick after a crash, running activations
-   are classified `reconnected | preserved-unverified | abandoned`;
-   `preserved-unverified` can never advance an edge until the completion
-   contract re-verifies it.
+Computed by the foreman wrapper at `exit-recorded`:
 
-## 6. Bounds — four layers, all mandatory
+1. **Terminal observed**: bd exit record (§5.3) — post-crash observable.
+2. **Claim parsed**: the `$WF_OUTCOME_FILE` marker; it must name an
+   outcome the node declares.
+3. **Evidence computed**: ALL `verify` entries exit 0, executed by the
+   wrapper with the declared timeout, **from a trusted pinned source** —
+   the verify script content-hash is recorded at instantiation and
+   checked before execution (a writing runner must not be able to edit
+   its own examiner); a hash mismatch is `fail_code` + audit flag.
+   Outcome-specific: `done` requires all checks; **`accept` requires all
+   checks pass on the reviewed commit and reviewed identity = verified
+   identity** (an anti-drift cross-check — the fixture additionally gives
+   the reviewer checks the implementer does not run); `reject` requires
+   the findings artifact to parse; `fail_plan`/`reject` claims are NOT
+   overwritten by failing verify (a failing check on a failure claim is
+   consistent evidence, recorded as-is).
+4. **Artifact identity** (honest naming): every writing attempt ends in a
+   commit (else `no_diff`). Ordering: **git commit + ref first, bd write
+   second — the bd write is the commit point**; ref
+   `refs/wf/<root_id>/<activation_id>` pinned by the WRAPPER immediately
+   post-exit, before any bd write. Identity recorded = commit OID + tree
+   OID (git object ids — SHA-1 on current repos, named as such);
+   sha256 digests are used only for mutable documents (§9).
+5. **Effects reconciled**: observed = status/diff over
+   `intended_base_commit..artifact_commit` + uncommitted/untracked;
+   declared = `$WF_EFFECTS_FILE`; static bound = `allowed_paths`.
+   `undeclared_effect` = observed ∖ (declared ∪ allowed) → transition
+   blocked (release: human gate accepting that exact artifact, or foreman
+   discard + deviation record).
 
-1. **Declared** in the graph data (`max_entries`, `on_exhausted`) — validator
-   makes unbounded graphs unwritable.
-2. **Counted** structurally in bd (activation beads per region per instance).
-3. **Enforced** by the interpreter at each materialization, before dispatch.
-4. **Audited** by a lint sweep (deterministic script) over live instances.
+## 8. Supervision
 
-No-progress breakers, checked at back-edge time: artifact-hash equality with
-the rejected attempt (`no_progress` → exhaust path early), finding-fingerprint
-stability across review rounds. Missing telemetry for a breaker =
-**fail-closed** (route to human gate, do not loop). Distinct counters for
-review cycles vs runner failures vs plan invalidations (§1 vocabulary) so an
-infra flake cannot silently consume the rework budget.
+### 8.1 Steer (tier 2)
 
-## 7. bd round-trip probe suite (blocking obligation)
+Order matters: **persist steer intent** (reason, instructions digest) on
+the activation → `terminate(handle)` (TERM → bounded wait → KILL; death
+proven via the handle identity) → close `steered` → mint exactly one
+continuation via `build_resume_command`. Steers are capped per node by
+`max_steers` (separate from infra retries — guidance is not
+infrastructure failure); both under the §10.3 ceiling. Guidance steers
+never consume review rounds. Capability facts: all three CLIs accept new
+instructions between turns; none supports mid-turn input (mid-turn
+supervision remains the omnigent reopen trigger).
 
-bd's extension surfaces are lossy-by-default (two probes: formula top-level
-fields; `bd audit record` payloads — both silently dropped, exit 0). Before
-any bd field carries graph state, a probe writes it and reads it back on the
-pinned bd version; the validator runs a canary round-trip at startup and
-refuses to tick on mismatch. Fields requiring probes: event-bead
-`--event-payload`, bead metadata used for pinning, labels, close-reason
-structure, gate types, `--ref` bonds.
+### 8.2 Monitoring (zero model tokens in the loop)
 
-## 8. v1 scope (the proof)
+The **supervisor wrapper** owns detection and enforcement (it is alive
+while the child runs; the foreman may not be):
 
-One graph (`feature-delivery`), one real small feature, Claude as first
-foreman (contract vendor-neutral), direct bd seeding (no formula), forced
-first rejection via a test-only instance flag with a predetermined innocuous
-finding. Acceptance:
+| Signal | Mechanism (token-free) | Enforcement |
+|---|---|---|
+| Alive/dead | pgid + boot id + start time; exit record | — |
+| Completed | bd exit record / exit file | — |
+| Activity | JSONL event count + byte growth (activity, not proof of progress) | — |
+| Stale | no new event for `stale_after` | wrapper raises flag (file + bd) |
+| Runaway | `max_wall` wall-clock; token ceiling best-effort where `live_usage` | wrapper TERMs, exit reason recorded |
 
-1. Crash drill: kill the foreman mid-loop; a fresh zero-context session
-   resumes correctly from bd alone.
-2. Bound drill: `max_entries = 1` → exhaust gate opens; human closes it.
-3. Human ship gate closed with hash-bound approval; receipt present.
-4. Exactly one activation per idempotency key; rework artifact hash ≠
-   rejected hash; reviewed hash = verified hash; no workflow state outside bd.
-5. Validator rejects a deliberately unbounded and an escape-less graph.
+The foreman's model reads bytes only at transitions: terminal → marker +
+§7 (never the log); stale flag → last ~2KB tail, then wait / steer /
+terminate (tier 2). Full-log reads are exceptional and byte-budgeted.
+
+## 9. Human gates (signed payloads)
+
+A human decision is a **signed canonical payload**, not a bd state:
+`{schema_version, graph_id, root_id, gate_key, outcome, artifact: {commit_oid,
+tree_oid | sha256}, bound_mutation?, nonce}` — signed with a key whose
+fingerprint is on an **allow-list pinned outside the workspace** (in the
+validator's own configuration; not the repo, not the ambient keyring).
+The wrapper verifies signature AND fingerprint equality (never just
+`verify-tag` exit 0) before `close_gate_verified` takes the declared
+edge. `rebudget` payloads carry the new bound; the wrapper writes it to
+the root with provenance. Unsigned / wrong-hash / wrong-signer / replayed
+nonce → refused. A gate bead closed by any other path is tampering: the
+audit sweep halts the instance.
+
+Artifact classes: `binds = "immutable"` — the payload names the commit
+being approved (signature over the OID is the authority; the hash check
+is a cross-check). `binds = "mutable"` — the document is committed at
+gate-open; payload carries its file sha256; re-hash at close; mismatch →
+`StaleApproval`, gate stays open, edit receipt recorded. Honesty note: a
+foreman with write access to the allow-list could forge approvals — the
+allow-list lives where the foreman cannot write, and the sweep audits it.
+Gates wait indefinitely in v1.
+
+## 10. Bounds — total by construction
+
+All bounds are **pre-mint predicates** with explicit operators:
+
+1. **Region rounds.** `round_no` increments on entry into the region's
+   `entry_node` (initial + each back-edge arrival); infra/steer
+   re-dispatches INHERIT the current `round_no`. Predicate: refuse a mint
+   that would create a NEW round in region R when
+   `distinct_round_no(R) ≥ max_entries` → materialize the exhaustion
+   gate. Worked example (`max_entries = 3`): rounds 1, 2, 3 execute; the
+   4th back-edge arrival exhausts.
+2. **System-outcome caps.** `max_infra_retries = N` permits N additional
+   attempts after the first per node per round (consecutive
+   `error_runner`/`error_transport` closes, with backoff); `max_steers`
+   caps steer continuations separately. Breach → the node's fallback
+   edge. System outcomes never consume rounds; rounds never absorb infra
+   noise; both consume the ceiling.
+3. **Instance ceiling.** Refuse ANY mint (activation or gate) when
+   `count(all activation + gate beads of the instance) ≥
+   max_total_activations` — open, closed, superseded, unclassified all
+   count (fail-closed) → halt gate (the halt gate itself is exempt from
+   the predicate it enforces, and unique by key). No outcome class is
+   exempt. The single auditable boundedness statement.
+4. **Exhaust re-entry** only via a verified `rebudget` payload writing
+   the raised bound with provenance. Exhaustion gates are unique by key
+   (§3.4) — never re-minted by re-ticking.
+5. **No-progress breaker** (wrapper-computed, evaluated when the NEXT
+   attempt completes): identical artifact identity (tree OID) with the
+   rejected attempt → record `breaker: no_progress` in evidence and route
+   to the region's `on_exhausted` regardless of remaining rounds.
+   Finding-fingerprint stability is advisory evidence for tier-2
+   judgment only. Missing breaker evidence → fail-closed to triage.
+6. **Audit sweep**: re-runs the validator + bound queries + gate-close
+   verification over live instances; a violation **opens a halt gate on
+   the instance**.
+
+Honesty: these counts are tamper-evident under §0 — enforced against
+runners by read-only bd, against the foreman by the sweep — not
+"unfalsifiable".
+
+## 11. bd probes
+
+**Precondition probes — run BEFORE v1 code is written** (each with its
+named fallback):
+
+1. Metadata write→enumerate→read-back through `--json` (list + show) —
+   the entire §3 encoding rests on it. Fallback: child beads carrying
+   payloads in `description`, or a git-side sidecar indexed from bd
+   (→ v0.4, not a patch).
+2. Large metadata payload (≥64KB — the pinned graph body). Fallback:
+   dedicated child bead or content-addressed git blob referenced by hash.
+3. `bd config set types.custom event` → create + `bd list -t event`
+   enumeration. Fallback: task beads with `wf_kind: event`.
+4. `--limit 0` = unlimited on list/query; `--metadata-field` filtering;
+   `--no-inherit-labels`; labels read-back; close-reason retrieval;
+   timestamp granularity (expected: seconds — hence `seq`).
+
+**Startup canary (every tick):** backend assertion (`bd context` reports
+the pinned dolt/embedded backend — any fallback/skew refuses dispatch
+loudly) + one metadata round-trip written as an `--ephemeral --wisp-type`
+canary (the one permitted wisp; TTL-compacted, no delete authority
+needed).
+
+Prior probe facts standing: `bd audit record` lossy (never use);
+`bd bond`/`--ref` do not exist (relationships via `bd dep`/`bd link`).
+
+## 12. Isolation modes
+
+Per node, overridable per instance: `isolation = "worktree" | "in-repo"`,
+default worktree. In-repo keeps all invariants minus physical isolation:
+(a) the execution band = the §4 single-flight `flock` scoped to the repo
+path — one active runner, ever; (b) provenance is recorded, not
+inferred: at dispatch the wrapper snapshots dirty state
+(`git stash create`, digest set stored as `pre_attempt_dirty_state`); at
+reset, files matching the snapshot are the runner's and resettable,
+anything else is human work → tier-2 confirmation required, never
+auto-reset. An unresolvable dirty tree blocks the instance on a human,
+by design.
+
+## 13. v1 scope and drill suite
+
+One graph (§2 fixture), one real small feature, Claude as first foreman,
+manual ticks, direct bd seeding, human gates only, forced first rejection
+via `test_force_first_reject` (schema'd; validator requires
+`--allow-test-flags`).
+
+**Drills.** Every drill names its injection point and a measurable
+assertion (refusal or exact post-condition). Instrumentation: the exec
+ledger (§5.2), wrapper dir artifacts, foreman transcript byte counts.
+
+*Crash drills (injection points):*
+
+1. After mint / before exec: restart → same idempotency key found, no
+   second mint; **exec ledger `wc -l == 1`** across the whole drill.
+2. After receipt durable / before child exec (fork barrier): child never
+   started → ledger empty for that launch; relaunch appends exactly one.
+3. After child exit / before bd exit-record mirror: exit file present →
+   classified `exit-recorded` from the fallback path; work preserved.
+4. After outcome close / before reset: next dispatch's precondition
+   resets; rework runner observes `HEAD == intended_base_commit`, clean
+   tree.
+5. Mid-reset: precondition idempotent; rerun converges.
+6. Gate ops: crash between gate-open and first notification, and between
+   payload verification and edge-taking → re-tick converges, no duplicate
+   gate (same key), no duplicate edge.
+
+*Integrity drills (assertions are refusals):*
+
+7. Unsigned close, wrong-hash payload, non-allow-listed signer, replayed
+   nonce → each REFUSED; the verified payload passes; receipt records
+   fingerprint. A gate bead force-closed out-of-band → audit sweep halts
+   the instance.
+8. StaleApproval (mutable): document edited after gate-open → close
+   refused, edit receipt present.
+9. Pinned graph: edit the TOML mid-instance (add an edge) → routing
+   unchanged; corrupt the pinned body → halt on hash mismatch.
+10. Single-flight race: two concurrent ticks → one mint survives, loser
+    closed `superseded`, exec ledger total = 1.
+11. Degraded backend: bd pointed at fallback/skewed store → dispatch
+    refused loudly.
+12. git/bd reconciliation: bd record naming a deleted commit → instance
+    halts.
+13. Verifier provenance: runner edits a verify script → hash mismatch →
+    `fail_code` + audit flag, not a pass.
+
+*Monitoring drills (the token-free property is measured, not assumed):*
+
+14. Hung runner: alive, silent past `stale_after` → wrapper writes the
+    stale flag with timestamp ≤ `stale_after + ε` of last event, **while
+    the foreman process is not running**; foreman then reads ≤ 2KB
+    (transcript byte count asserted) and steers; prior activation closed
+    `steered`; exactly one continuation (ledger); session id identical;
+    review rounds unchanged.
+15. Lying completion: marker `done`, one verify fails → `fail_code`, no
+    edge advance; verifier ran at the exact artifact commit (evidence
+    records OID). Sub-cases: zero markers and two markers → `fail_code`,
+    no fallback routing.
+16. Wall-clock runaway: `max_wall` breach → wrapper TERMs; exit reason
+    `max_wall`; closed `error_runner`; infra cap consumed.
+17. Dead-without-exit: kill wrapper + child mid-run → case-3 recovery:
+    `error_transport`, `evidence: exit_unobserved`, orphan commit pinned
+    if present.
+18. Malformed artifacts: truncated exit file, corrupt JSONL tail →
+    recovery still classifies deterministically (fail toward case 3);
+    no crash-loop.
+19. TERM-resistant child: ignores TERM → KILL escalation with proof;
+    ledger and handle consistent.
+20. Normal completion audit: a clean `done` run → foreman transcript
+    contains ZERO bytes of runner log (only marker + verify output).
+
+*Functional drills:*
+
+21. Bound drill: `max_entries = 1` → round 1 EXECUTES (worked example
+    §10.1), the first back-edge arrival exhausts; gate unique across
+    re-ticks; `rebudget` writes the raised bound with provenance;
+    `abandon` reaches the terminal.
+22. Infra isolation: broken CLI on a node → exactly
+    `1 + max_infra_retries` attempts (ledger), `round_no` unchanged, no
+    fallback shortcut before the cap, ceiling incremented per attempt.
+23. No-progress: two attempts with distinct commits but identical tree
+    OID, `max_entries = 3`, varied findings → routed to `on_exhausted`
+    with `breaker: no_progress` recorded (not ordinary exhaustion —
+    rounds remain).
+24. Undeclared effect: runner touches a path outside declared ∪ allowed →
+    transition blocked; released only by human accept or recorded
+    discard.
+25. Fallback + closed enum: a node-declared outcome with no edge →
+    fallback gate; an outcome the node does not declare, and an
+    unparseable marker → `fail_code`, no routing.
+26. In-repo isolation: in-repo node with uncommitted human edits →
+    auto-reset refused, tier-2 confirmation recorded, human work intact;
+    runner's own dirty state (stash-snapshot-matched) resettable.
+27. End-to-end: the forced-rejection feature run, killing the foreman at
+    injection points 1–6 across the run; a fresh zero-context session
+    completes it from bd + git + wrapper dir; final assertions: one
+    activation per idempotency key, rework artifact ≠ rejected artifact
+    (tree OID), reviewed identity = verified identity, every bead
+    carries `wf_root_id`, ceiling arithmetic consistent.
 
 Out of scope for v1: second graph type, concurrent instances/merge-slots,
-cost enforcement, cron tick (manual tick is fine), non-Claude foreman build,
-formula materialization, communication layer, graph editor, live-instance
-version migration.
+cost enforcement, cron tick, non-Claude foreman build, formula
+materialization, agent-to-agent communication (hub-and-spoke ruling),
+graph editor, live-instance version migration, non-human gate types.
 
-## 9. Open questions — dispositions
+## 14. Deferred (with triggers)
 
-| # | Question (from brainstorm consolidation) | Disposition in this draft |
-|---|---|---|
-| 1 | Activation record encoding | Task beads for activations + event beads for transitions (§2), gated on §7 probes; verdicts in structured close reasons. |
-| 2 | Artifact identity for uncommitted work | Commit-per-attempt in runner-owned worktree; sha is the id (§4 clause 4). |
-| 3 | Cost telemetry normalization | Owned by runner profiles; `unknown` is legal; bounds never depend on it (§4). |
-| 4 | Formula loop schema verification | Deferred with formula itself; v1 formula-free (§8). |
-| 5 | Two-iteration-layers ruling | Ratified: graph loop replaces engine fix loop; resume only on transport failure (§3). |
-| 6 | Concurrent-tick claim-lease | Deferred to S1; v1 single foreman + single execution band derived from bd query. |
-| 7 | Human-gate timeout / graph-version retention | v1: gates wait indefinitely (timeout policy deferred); definitions immutable once instantiated — a change is a new version, old versions retained while any instance pins them. |
-| 8 | Engine-reopen threshold | Measured after v1; reopen criteria stand in the decision record. |
-
-## 10. Control model — three tiers (normative; supersedes any "fixed route" reading)
-
-The foreman is a **model**, and the spec must not compile its intelligence
-away. Every behavior in this document belongs to exactly one tier:
-
-1. **Invariants — never overridable, enforced by deterministic code** (the
-   validator, the supervisor wrapper, the completion checker — never the
-   model's judgment): bound ceilings (§6, incl. the per-instance total
-   activation ceiling); human gates require an externally verifiable
-   credential; no edge advances without the computed-evidence clauses of §4;
-   the bd trace is append-only; runner agents hold `bd --readonly` or no bd;
-   the model selects only declared edges, never invents one.
-2. **Defaults with override — the foreman may deviate, and every deviation
-   writes a deviation record** (reason, alternative taken) on the activation
-   bead: hard-reset vs salvage of a failed attempt (§5.2 is the DEFAULT
-   policy, not a fixed route — salvage is legal when the foreman judges the
-   prior work sound and the objection narrow, provided the attempt is still
-   counted and the artifact still verified); retry vs replan; context
-   composition within the allowlist; early escalation to a human before a
-   bound forces it.
-3. **Pure judgment — entirely the model's**: interpreting ambiguous
-   failures; briefing workers; sequencing observations ("these two features
-   will collide"); choosing when a situation warrants the tier-2 override.
-
-Rationale (from the three-repo evidence): every evaluated system failed where
-a model's claim was trusted without a check (BeadBoard's `agent_end`,
-LoopTroop's self-reported gates) — so **grading stays deterministic**; and
-LoopTroop's rigidity shows scripted recovery fails on messy reality — so
-**deciding stays intelligent**. The interpreter contract (§3) is therefore
-how-to knowledge plus guardrails, not a script: the normative command table
-exists so a non-Claude foreman doesn't stumble on bd's sharp edges, not to
-remove judgment.
-
-## 11. Isolation modes (worktree optional)
-
-Per node (overridable per instance): `isolation = "worktree" | "in-repo"`,
-**default `worktree`**. In-repo mode keeps every invariant — same
-verification, same attempt commits, same bounds — minus physical isolation,
-with two stated consequences: (a) exactly one active execution band at a
-time (two runners must never share a dirty tree); (b) reset-on-reject
-touches the shared working copy, so it drops from tier 1 to tier 2 — the
-foreman confirms or records a deviation before resetting a tree it does not
-own, and never resets uncommitted human work.
-
-## 12. Supervision: steer, and token-free monitoring
-
-**Steer action** (tier 2, foreman toolkit): terminate a running activation's
-process group → record the reason → mint a continuation attempt via the
-profile's resume-with-instructions path (same session id). A steer whose
-cause is guidance (not wrong work) closes the prior activation
-`error_transport`-class (steered), not `fail_*` — it does not consume rework
-budget (§6 counters). Capability facts this rests on: claude
-(`--resume`/`--continue`), codex (`exec resume`), opencode (session
-continuation) all accept new instructions BETWEEN turns; none supports
-mid-turn input in one-shot mode — mid-turn supervision remains the recorded
-omnigent reopen trigger, not a reason for new infrastructure.
-
-**Monitoring — the polling loop spends zero model tokens.** All liveness,
-progress, and staleness detection is done by deterministic code over the
-supervisor wrapper's outputs; the foreman's model reads bytes only at state
-transitions:
-
-| Signal | Mechanism (deterministic, token-free) |
+| Deferred | Trigger / owner |
 |---|---|
-| Alive / dead | `kill -0` on the recorded pgid + the wrapper's exit file |
-| Completed | exit file exists → exit code + duration, no log read needed |
-| Progressing | event count + byte growth of the wrapper-captured JSONL log (claude `--output-format stream-json`, codex `--json` both emit machine-parseable event streams; a script counts events, extracts last event type/timestamp, tool-call count, token usage) |
-| Stale | process alive AND no new events for `stale_after` (per-node, default e.g. 10 min) → raises a flag for the foreman |
-| Runaway | wall-clock / token-usage ceilings from the node contract, checked by script |
-
-Foreman token spend is bounded and event-driven: on **terminal** → parse the
-structured outcome marker + run §4 verification (never stream the full log);
-on **stale flag** → read only the last ~2KB tail to judge steer / wait /
-terminate (tier 2); full-log reads are exceptional and always bounded by an
-explicit byte budget. "It said it completed" is never trusted by
-construction — completion is the wrapper's exit file plus §4's computed
-clauses, and the §5.4 recovery taxonomy already covers died-without-exit.
-The v0.2 drill set must include: a hung runner (alive, silent → stale flag →
-steer), and a lying completion (marker says done, verify fails → outcome
-`fail_code`, no advance).
+| Concurrent instances: claim-lease, band scheduling, merge-slot one-per-rig | S1; LoopTroop's enforced band + aweb's ownership-vs-lease split |
+| Human-gate timeout policy | after v1 gate experience |
+| Formula materialization | after loop-schema verification on pinned bd |
+| Cost enforcement (usage records exist from v1) | when spend constrains |
+| Native bd gate types (timer/gh:run/bead) | with non-human gates |
+| Engine-reopen threshold | measured after v1 |
+| Plugin distribution (skill + workflows/ template via /harness-publish) | bead cr-3ss, after v1 |
