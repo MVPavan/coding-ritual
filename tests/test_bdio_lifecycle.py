@@ -66,12 +66,19 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
         "record_dispatch",
         "record_evidence",
         "record_exit",
+        "record_precondition",
+        "record_stale_flag",
         "startup_canary",
         "supersede_activation",
     }
 )
 """Every public name on `WorkflowStore`. Adding one is a design change; the
-point of the set is that a generic write cannot quietly join it."""
+point of the set is that a generic write cannot quietly join it.
+
+`record_precondition` and `record_stale_flag` joined it in phase 3, as the
+narrowest typed writes for the two facts the supervisor owns and §3.2/§8.2
+require in bd: the carry-forward trio proven before the exec, and the stale
+flag. Each takes one frozen carrier and touches only its own keys."""
 
 
 @pytest.fixture(scope="session")

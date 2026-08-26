@@ -27,7 +27,15 @@ from typing import Final
 
 import structlog
 
-from workflow_interpreter.bdio import bounds, canary, finalize, gates, mint, reads
+from workflow_interpreter.bdio import (
+    bounds,
+    canary,
+    gates,
+    mint,
+    reads,
+    supervision,
+    transitions,
+)
 from workflow_interpreter.bdio.bounds import BoundRefusal
 from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadReader
 from workflow_interpreter.bdio.client import BdClient
@@ -45,7 +53,6 @@ from workflow_interpreter.bdio.records import (
     GateRecord,
     MintResult,
     RootRecord,
-    parse_activation,
 )
 from workflow_interpreter.bdio.roots import create_root
 from workflow_interpreter.bdio.signing import GateVerifier
@@ -61,8 +68,10 @@ from workflow_interpreter.bdio.wire import (
     Lifecycle,
     MintReason,
     MintRequest,
+    PreconditionRecord,
     ProcessHandle,
     ResolvedSetting,
+    StaleFlagRecord,
     Usage,
     metadata_dict,
 )
@@ -76,10 +85,6 @@ _REASON_SUPERSEDED: Final[str] = "outcome=superseded superseded_by={winner}"
 
 _MSG_ALL_SUPERSEDED: Final[str] = (
     "every activation for idempotency_key={key!r} is superseded"
-)
-_MSG_LIFECYCLE: Final[str] = (
-    "activation {activation_id} is {found}, cannot apply {wanted} "
-    "(the recorded state wins; §5.1)"
 )
 _MSG_CLOSE_CONFLICT: Final[str] = (
     "activation {activation_id} is already closed {found}, refusing to close {wanted}"
@@ -98,8 +103,8 @@ _MSG_CLOSE_SUPERSEDED: Final[str] = (
     "would resurrect a lost race into routing truth (§3.2)"
 )
 _MSG_SUPERSEDE_COMPLETED: Final[str] = (
-    "activation {activation_id} already closed {outcome}; superseding a "
-    "COMPLETED activation would destroy the outcome the frontier routed on "
+    "activation {activation_id} already recorded outcome {outcome}; superseding "
+    "a COMPLETED activation would destroy the outcome the frontier routed on "
     "(§3.2, §3.3)"
 )
 _MSG_SUPERSEDE_NO_WINNER: Final[str] = (
@@ -114,11 +119,6 @@ _MSG_SUPERSEDE_DEAD_WINNER: Final[str] = (
 _MSG_SUPERSEDE_LOSES: Final[str] = (
     "supersede names winner {winner!r}, which does not win the §3.2 tie-break "
     "against {activation_id} (completed first, then lowest seq, then lowest id)"
-)
-_MSG_CLOSE_PAYLOAD: Final[str] = (
-    "activation {activation_id} is already closed {outcome}; this close "
-    "carries a different {field}, which the recorded close would silently drop "
-    "(§3.3)"
 )
 _MSG_TWO_COMPLETED: Final[str] = (
     "idempotency_key={key!r} has more than one COMPLETED activation "
@@ -302,35 +302,88 @@ class WorkflowStore:
             created=winner.activation_id == record.id,
         )
 
+    def record_precondition(
+        self, activation_id: str, record: PreconditionRecord
+    ) -> ActivationRecord:
+        """Write the §3.2 carry-forward trio the §5.4 precondition proved.
+
+        Called between the mint and the exec, and durably BEFORE the fork
+        barrier releases the child: a crash after the exec must never leave a
+        dispatched activation whose `pre_attempt_commit` was never recorded,
+        because §3.2 derives a later rework's `intended_base_commit` from it
+        and silently falls through to the branch head — which after a reject IS
+        the rejected artifact.
+
+        No lifecycle move: the trio is a fact about the tree, not a state
+        (`supervision.py` holds the rule, and does its own fresh read so the
+        lifecycle check sits as close to the write as bd allows).
+        """
+        return supervision.record_precondition(
+            self._client, self._load_activation, activation_id, record
+        )
+
+    def record_stale_flag(
+        self, activation_id: str, flag: StaleFlagRecord
+    ) -> ActivationRecord:
+        """Mirror the §8.2 stale flag into bd; the FIRST raise wins.
+
+        Staleness is a hint for a tier-2 decision, not a verdict, so a re-raise
+        must not rewrite when the runner actually went quiet — the recorded
+        flag is returned unchanged rather than overwritten (§8.2). Refused
+        outright unless the activation is still `dispatched`: the flag is a
+        statement about a RUNNING child.
+        """
+        return supervision.record_stale_flag(
+            self._client, self._load_activation, activation_id, flag
+        )
+
     def record_dispatch(
         self, activation_id: str, handle: ProcessHandle
     ) -> ActivationRecord:
-        """Phase B: the state moves only after the handle is durable (§5.2)."""
+        """Phase B: the state moves only after the handle is durable (§5.2).
+
+        The settled guard runs FIRST, before the idempotence short-circuit: a
+        recorded outcome is terminal even where a losing race left `lifecycle`
+        saying `dispatched`, and a short-circuit that returns such a row reports
+        success for a state write nobody may make (`transitions.py`).
+        """
         record = self._load_activation(activation_id)
+        transitions.assert_not_settled(record, Lifecycle.DISPATCHED)
         if record.metadata.lifecycle is Lifecycle.DISPATCHED:
-            self._assert_same(
+            transitions.assert_same(
                 activation_id, record.metadata.handle, handle, Lifecycle.DISPATCHED
             )
             return record
-        self._assert_lifecycle(record, Lifecycle.MINTED, Lifecycle.DISPATCHED)
-        return self._apply(record, lifecycle=Lifecycle.DISPATCHED, handle=handle)
+        transitions.assert_lifecycle(record, Lifecycle.MINTED, Lifecycle.DISPATCHED)
+        return self._apply(
+            activation_id,
+            lifecycle=Lifecycle.DISPATCHED,
+            allowed=frozenset({Lifecycle.MINTED}),
+            handle=handle,
+        )
 
     def record_exit(
         self, activation_id: str, exit_record: ExitRecord
     ) -> ActivationRecord:
         """Mirror the wrapper's exit record into bd (§5.3) — the §7.1 observable."""
         record = self._load_activation(activation_id)
+        transitions.assert_not_settled(record, Lifecycle.EXIT_RECORDED)
         if record.metadata.lifecycle is Lifecycle.EXIT_RECORDED:
-            self._assert_same(
+            transitions.assert_same(
                 activation_id,
                 record.metadata.exit_record,
                 exit_record,
                 Lifecycle.EXIT_RECORDED,
             )
             return record
-        self._assert_lifecycle(record, Lifecycle.DISPATCHED, Lifecycle.EXIT_RECORDED)
+        transitions.assert_lifecycle(
+            record, Lifecycle.DISPATCHED, Lifecycle.EXIT_RECORDED
+        )
         return self._apply(
-            record, lifecycle=Lifecycle.EXIT_RECORDED, exit_record=exit_record
+            activation_id,
+            lifecycle=Lifecycle.EXIT_RECORDED,
+            allowed=frozenset({Lifecycle.DISPATCHED}),
+            exit_record=exit_record,
         )
 
     def record_evidence(
@@ -341,20 +394,22 @@ class WorkflowStore:
     ) -> ActivationRecord:
         """Record computed §7 evidence before the outcome is decided."""
         record = self._load_activation(activation_id)
+        transitions.assert_not_settled(record, Lifecycle.EVIDENCE_RECORDED)
         if record.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED:
-            self._assert_same(
+            transitions.assert_same(
                 activation_id,
                 record.metadata.evidence,
                 evidence,
                 Lifecycle.EVIDENCE_RECORDED,
             )
             return record
-        self._assert_lifecycle(
+        transitions.assert_lifecycle(
             record, Lifecycle.EXIT_RECORDED, Lifecycle.EVIDENCE_RECORDED
         )
         return self._apply(
-            record,
+            activation_id,
             lifecycle=Lifecycle.EVIDENCE_RECORDED,
+            allowed=frozenset({Lifecycle.EXIT_RECORDED}),
             evidence=evidence,
             usage=usage,
         )
@@ -379,6 +434,16 @@ class WorkflowStore:
         too, and closing over it would turn a lost race back into an edge a
         successor can be minted from — forged routing truth in two typed calls
         with no signature anywhere (probed, phase-2 review).
+
+        The "already closed" test is the RECORDED OUTCOME, not the lifecycle. A
+        transition whose merge landed after a concurrent close leaves the row
+        `status=closed lifecycle=exit-recorded outcome=steered`; keying this
+        guard on `is_completed` (which needs `lifecycle == closed`) let a second
+        close walk straight through it and overwrite the `steered` a
+        continuation was already minted from (probed, round 3). A bd row that is
+        closed with NO recorded outcome is a different state — the §5.1 crash
+        window — and is still repaired forward, which is why bd's status does
+        not appear here.
         """
         if outcome is Outcome.SUPERSEDED:
             raise LifecycleConflictError(
@@ -394,7 +459,7 @@ class WorkflowStore:
                 )
             )
         reason = _REASON_ACTIVATION.format(outcome=outcome.value)
-        if record.metadata.lifecycle is Lifecycle.CLOSED:
+        if record.metadata.is_settled:
             if record.metadata.outcome is not outcome:
                 raise LifecycleConflictError(
                     _MSG_CLOSE_CONFLICT.format(
@@ -403,11 +468,12 @@ class WorkflowStore:
                         wanted=outcome.value,
                     )
                 )
-            self._assert_close_payload(record, evidence, usage, deviations)
+            transitions.assert_close_payload(record, evidence, usage, deviations)
             return self._finish(record, reason)
         applied = self._apply(
-            record,
+            activation_id,
             lifecycle=Lifecycle.CLOSED,
+            allowed=transitions.OPEN_LIFECYCLES,
             outcome=outcome,
             evidence=evidence if evidence is not None else record.metadata.evidence,
             usage=usage if usage is not None else record.metadata.usage,
@@ -430,9 +496,18 @@ class WorkflowStore:
         §3.2 tie-break. Without that, superseding the sole activation of an
         instance onto `"wf-does-not-exist"` succeeded and left the key with
         nothing live under it — the next mint refused (probed, phase-2 r3).
+
+        "Never a loser" is the RECORDED OUTCOME, not `is_completed`: that
+        property requires `lifecycle == closed`, and a losing merge drags the
+        lifecycle back under a row that already carries one — leaving
+        `status=closed lifecycle=exit-recorded outcome=steered`, which walked
+        straight through this guard and overwrote the `steered` a continuation
+        was minted from (probed, r4). An already-SUPERSEDED activation is the
+        one settled row this still accepts, because superseding it again is the
+        idempotent re-run below.
         """
         record = self._load_activation(loser_id)
-        if record.metadata.is_completed:
+        if record.metadata.is_settled and not record.metadata.is_superseded:
             raise CarrierIntegrityError(
                 _MSG_SUPERSEDE_COMPLETED.format(
                     activation_id=loser_id,
@@ -454,8 +529,9 @@ class WorkflowStore:
                 )
             return self._finish(record, reason)
         applied = self._apply(
-            record,
+            loser_id,
             lifecycle=Lifecycle.SUPERSEDED,
+            allowed=transitions.OPEN_LIFECYCLES,
             outcome=Outcome.SUPERSEDED,
             superseded_by=winner_id,
         )
@@ -533,41 +609,6 @@ class WorkflowStore:
         for loser in losers:
             self.supersede_activation(loser.activation_id, winner.activation_id)
         return self._load_activation(winner.activation_id)
-
-    @staticmethod
-    def _assert_close_payload(
-        record: ActivationRecord,
-        evidence: Evidence | None,
-        usage: Usage | None,
-        deviations: Sequence[Deviation],
-    ) -> None:
-        """A repeated close must carry the SAME payload, or it is dropping data.
-
-        The recorded close wins (§5.1), so re-closing with new evidence, usage
-        or deviations used to succeed while writing none of them — a caller
-        could believe its late evidence was recorded (probed, phase-2 r3). The
-        same payload is idempotent; a different one fails loud.
-        """
-        recorded = record.metadata
-        mismatches = (
-            ("evidence", evidence is not None and evidence != recorded.evidence),
-            ("usage", usage is not None and usage != recorded.usage),
-            (
-                "deviations",
-                any(deviation not in recorded.deviations for deviation in deviations),
-            ),
-        )
-        for field, differs in mismatches:
-            if differs:
-                raise CarrierIntegrityError(
-                    _MSG_CLOSE_PAYLOAD.format(
-                        activation_id=record.activation_id,
-                        outcome=None
-                        if recorded.outcome is None
-                        else recorded.outcome.value,
-                        field=field,
-                    )
-                )
 
     def _assert_race_winner(self, loser: ActivationRecord, winner_id: str) -> None:
         """§3.2: prove the named winner is one, before anything is destroyed.
@@ -684,50 +725,27 @@ class WorkflowStore:
         """Read one activation through the carrier contract."""
         return self._reads.load_activation(activation_id)
 
-    def _apply(self, record: ActivationRecord, **changes: object) -> ActivationRecord:
-        """Write a state change as the full merged carrier and verify it landed.
-
-        The whole carrier is written, not a delta: bd merges metadata, so
-        re-writing the full object is idempotent, and building it through the
-        model keeps every value JSON-typed exactly as the read-back comparison
-        expects.
-        """
-        metadata = record.metadata.model_copy(update=dict(changes))
-        merged = self._client._merge_metadata(
-            record.activation_id, metadata_dict(metadata)
+    def _apply(
+        self,
+        activation_id: str,
+        *,
+        lifecycle: Lifecycle,
+        allowed: frozenset[Lifecycle],
+        **changes: object,
+    ) -> ActivationRecord:
+        """Move the §5.1 state through the delta-only writer (`transitions.py`)."""
+        return transitions.apply(
+            self._client,
+            self._load_activation,
+            activation_id,
+            lifecycle=lifecycle,
+            allowed=allowed,
+            **changes,
         )
-        return parse_activation(merged)
 
     def _finish(self, record: ActivationRecord, reason: str) -> ActivationRecord:
         """Drive this activation's bd close to completion, idempotently."""
-        return parse_activation(
-            finalize.close_forward(self._client, record.bead, reason)
-        )
+        return transitions.finish(self._client, record, reason)
 
-    @staticmethod
-    def _assert_lifecycle(
-        record: ActivationRecord, expected: Lifecycle, wanted: Lifecycle
-    ) -> None:
-        """Refuse a state write that contradicts the recorded state (§5.1)."""
-        if record.metadata.lifecycle is not expected:
-            raise LifecycleConflictError(
-                _MSG_LIFECYCLE.format(
-                    activation_id=record.activation_id,
-                    found=record.metadata.lifecycle.value,
-                    wanted=wanted.value,
-                )
-            )
 
-    @staticmethod
-    def _assert_same(
-        activation_id: str, found: object, wanted: object, state: Lifecycle
-    ) -> None:
-        """Re-applying a recorded state is a no-op; contradicting it is an error."""
-        if found != wanted:
-            raise LifecycleConflictError(
-                _MSG_LIFECYCLE.format(
-                    activation_id=activation_id,
-                    found=f"{state.value} with a different record",
-                    wanted=state.value,
-                )
-            )
+__all__ = ["WorkflowStore"]

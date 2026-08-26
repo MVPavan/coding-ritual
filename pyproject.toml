@@ -26,4 +26,5 @@ pythonpath = ["."]
 testpaths = ["tests"]
 markers = [
     "bd: needs the real bd binary; runs against a throwaway workspace under tmp_path",
+    "proc: forks real child processes and signals them; Linux-only, tmp_path-scoped",
 ]

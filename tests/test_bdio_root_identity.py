@@ -390,6 +390,10 @@ def test_a_store_can_be_built_from_configuration_alone(
         "InputBinding",
         "VerifyOutcome",
         "ArtifactIdentity",
+        # `Evidence` carries a `Breaker`, so a caller that can build one has to
+        # be able to name one: reaching into `bdio.wire` for it (two imports
+        # did) is a hole in the sealed boundary, not a workaround for it.
+        "Breaker",
         "BoundSetting",
         "ConfigSource",
         "MintReason",

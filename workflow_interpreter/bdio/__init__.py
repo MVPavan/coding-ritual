@@ -16,7 +16,9 @@ between `GateVerifier.verify` and the write it authorizes (§0.3).
 
 Everything a caller needs to CALL a write method is exported, though — every
 request and value type in a public signature, plus `WorkflowStore.from_config`
-so a sealed transport does not mean an unbuildable store (phase-2 r3).
+so a sealed transport does not mean an unbuildable store (phase-2 r3). That
+includes `Breaker`, which `Evidence` carries: a value type reachable only by
+importing `bdio.wire` is a sealed boundary with a hole in it.
 """
 
 from workflow_interpreter.bdio.api import WorkflowStore
@@ -65,6 +67,7 @@ from workflow_interpreter.bdio.wire import (
     ArtifactIdentity,
     BindsMode,
     BoundSetting,
+    Breaker,
     ConfigSource,
     Deviation,
     EventPayload,
@@ -78,8 +81,10 @@ from workflow_interpreter.bdio.wire import (
     Lifecycle,
     MintReason,
     MintRequest,
+    PreconditionRecord,
     ProcessHandle,
     ResolvedSetting,
+    StaleFlagRecord,
     Usage,
     VerifyOutcome,
     WfKind,
@@ -105,6 +110,7 @@ __all__ = [
     "BoundRefusal",
     "BoundSetting",
     "BranchHeadReader",
+    "Breaker",
     "CanaryFailedError",
     "CanaryResult",
     "CarrierIntegrityError",
@@ -135,6 +141,7 @@ __all__ = [
     "Outcome",
     "PayloadMismatchError",
     "PinnedGraphMismatchError",
+    "PreconditionRecord",
     "ProcessHandle",
     "ResolvedSetting",
     "RootRecord",
@@ -142,6 +149,7 @@ __all__ = [
     "SignerNotAllowedError",
     "SigningConfig",
     "StaleApprovalError",
+    "StaleFlagRecord",
     "Usage",
     "VerifyOutcome",
     "WfKind",

@@ -12,11 +12,20 @@ re-declared — the closed enum has exactly one definition.
 
 from __future__ import annotations
 
+import json
 import re
 from enum import StrEnum
 from typing import Annotated, Final
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    JsonValue,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.schema.loader import canonical_json_bytes
@@ -56,10 +65,12 @@ __all__ = [
     "Metadata",
     "MintReason",
     "MintRequest",
+    "PreconditionRecord",
     "ProcessHandle",
     "ResolvedSetting",
     "RootMetadata",
     "ScopedBound",
+    "StaleFlagRecord",
     "Usage",
     "VerifyOutcome",
     "WfKind",
@@ -92,6 +103,24 @@ fact; this bound refuses it before the write."""
 JsonSafeInt = Annotated[int, Field(ge=-JSON_SAFE_INT_LIMIT, le=JSON_SAFE_INT_LIMIT)]
 """Every carrier integer: exactly representable through bd's JSON path."""
 
+COMMIT_OID_PATTERN: Final[str] = r"^[0-9a-f]{40}$"
+CommitOid = Annotated[str, StringConstraints(pattern=COMMIT_OID_PATTERN)]
+"""A full git object id, lowercase hex. Where §3.2 states a commit it must BE a
+commit: `""` used to satisfy the type, and an all-empty carrier then compared
+equal to an activation that had nothing recorded at all — so the write that
+should have happened was skipped as "already recorded"."""
+
+_MSG_DIRTY_STATE_JSON: Final[str] = (
+    "pre_attempt_dirty_state must be the canonical JSON object of a §12 dirty "
+    "snapshot; {reason}"
+)
+_REASON_UNPARSEABLE: Final[str] = "it does not parse as JSON ({error})"
+_REASON_NOT_OBJECT: Final[str] = "it parses as {kind}, not an object"
+_REASON_NOT_CANONICAL: Final[str] = (
+    "it is not canonical (sorted keys, no incidental whitespace) — a value that "
+    "re-serializes differently cannot be compared for idempotence"
+)
+
 # --- metadata keys the §4 read vocabulary filters on --------------------
 KEY_WF_KIND: Final[str] = "wf_kind"
 KEY_WF_ROOT_ID: Final[str] = "wf_root_id"
@@ -102,6 +131,9 @@ KEY_INSTANCE_KEY: Final[str] = "instance_key"
 KEY_SEQ: Final[str] = "seq"
 KEY_NONCE: Final[str] = "nonce"
 KEY_SUPERSEDED_BY: Final[str] = "superseded_by"
+KEY_LIFECYCLE: Final[str] = "lifecycle"
+"""The one key EVERY §5.1 transition owns, and therefore the one key a losing
+race can still drag backwards (`transitions.py`)."""
 
 CANON_EVENT_PAYLOAD: Final[str] = "wf-event-payload/1"
 CANON_GATE_PAYLOAD: Final[str] = "wf-gate-payload/1"
@@ -149,6 +181,12 @@ class Lifecycle(StrEnum):
     EVIDENCE_RECORDED = "evidence-recorded"
     CLOSED = "closed"
     SUPERSEDED = "superseded"
+
+
+TERMINAL_LIFECYCLES: Final[frozenset[Lifecycle]] = frozenset(
+    {Lifecycle.CLOSED, Lifecycle.SUPERSEDED}
+)
+"""The two §5.1 states nothing is ever written past."""
 
 
 class GateState(StrEnum):
@@ -381,6 +419,85 @@ class Deviation(BaseModel):
     recorded_at: str
 
 
+def _dirty_state_defect(value: str) -> str | None:
+    """Why a `pre_attempt_dirty_state` is unusable, or `None` when it is fine.
+
+    The three ways it can be: not JSON at all, JSON that is not an object, and
+    an object whose serialization is not canonical. The last one matters as
+    much as the first two — `record_precondition`'s idempotence is a string
+    comparison, and two spellings of one snapshot compare unequal forever.
+    """
+    try:
+        parsed = json.loads(value)
+    except ValueError as exc:
+        return _REASON_UNPARSEABLE.format(error=exc)
+    if not isinstance(parsed, dict):
+        return _REASON_NOT_OBJECT.format(kind=type(parsed).__name__)
+    if canonical_json_bytes(parsed).decode("utf-8") != value:
+        return _REASON_NOT_CANONICAL
+    return None
+
+
+class PreconditionRecord(BaseModel):
+    """The §3.2 carry-forward trio, proven by the §5.4 precondition.
+
+    Intent-only, like every other request carrier here: the supervisor states
+    what it PROVED about the working tree before the child could exec, and
+    `record_precondition` is the only thing that writes those three keys.
+
+    Validated rather than trusted, because bd cannot help here: the write is a
+    key-scoped merge with no compare-and-set, so a malformed trio would simply
+    land and be read back by a LATER activation deriving its base from it.
+
+    - the two commits must be real object ids. `""` used to type-check, which
+      made an activation with nothing recorded compare EQUAL to a record of two
+      empty strings — the idempotence short-circuit then skipped the write that
+      was supposed to happen;
+    - the dirty state must be a canonical JSON object, the exact form
+      `encode_dirty_state` produces. Anything else either fails to decode at
+      reset time or compares unequal to itself across a re-serialization.
+
+    `supervision.py` re-reads the activation and re-checks the lifecycle
+    immediately before the write, and writes only these three keys — bd merges
+    metadata per key, so a stale carrier can no longer carry a lifecycle or a
+    handle backwards with it.
+    """
+
+    model_config = WIRE_MODEL
+
+    pre_attempt_commit: CommitOid
+    reset_verified_commit: CommitOid
+    pre_attempt_dirty_state: str | None = None
+    """Canonical JSON of the §12 dirty snapshot; `None` in worktree mode."""
+
+    @field_validator("pre_attempt_dirty_state")
+    @classmethod
+    def _canonical_dirty_state(cls, value: str | None) -> str | None:
+        """Refuse a dirty state that is not the canonical JSON object it claims."""
+        reason = None if value is None else _dirty_state_defect(value)
+        if reason is not None:
+            raise ValueError(_MSG_DIRTY_STATE_JSON.format(reason=reason))
+        return value
+
+
+class StaleFlagRecord(BaseModel):
+    """The §8.2 stale flag as bd records it — "file AND bd metadata".
+
+    Carries the two timestamps a tier-2 decision reads and nothing else: the
+    node's `stale_after` is already in the pinned graph, and a float duration
+    would ride bd's JSON float64 path for no gain (see `Usage.cost_usd`).
+
+    Written once. §8.2 keeps the FIRST timestamp on a re-raise, so
+    `record_stale_flag` is idempotent by returning the recorded flag rather
+    than overwriting it.
+    """
+
+    model_config = WIRE_MODEL
+
+    raised_at: str
+    last_activity_at: str
+
+
 # --- wf_kind carriers ---------------------------------------------------
 
 
@@ -451,6 +568,9 @@ class ActivationMetadata(BaseModel):
     pre_attempt_dirty_state: str | None = None
     lifecycle: Lifecycle = Lifecycle.MINTED
     handle: ProcessHandle | None = None
+    stale_flag: StaleFlagRecord | None = None
+    """§8.2 requires the stale flag in the wrapper dir AND in bd metadata. The
+    file alone loses a decision-relevant datum with the `.wf/` cache (§P1)."""
     exit_record: ExitRecord | None = None
     evidence: Evidence | None = None
     outcome: Outcome | None = None
@@ -462,6 +582,22 @@ class ActivationMetadata(BaseModel):
     def is_superseded(self) -> bool:
         """Excluded from the frontier and round counting, counted by the ceiling."""
         return self.superseded_by is not None or self.outcome is Outcome.SUPERSEDED
+
+    @property
+    def is_settled(self) -> bool:
+        """A terminal outcome is RECORDED here, whatever `lifecycle` now says.
+
+        The guard every §5.1 transition refuses on, and deliberately weaker than
+        `is_completed`: it counts a superseded activation too, and it does NOT
+        require `lifecycle` to be terminal. bd has no compare-and-set, so a
+        transition whose merge lands after a concurrent close writes its own
+        `lifecycle` over the closed one — leaving `status=closed
+        lifecycle=exit-recorded outcome=steered`. Keying the refusals on the
+        lifecycle let the next write straight through that row and overwrite the
+        outcome a continuation had already been minted from (probed, round 3).
+        A recorded outcome is the routing truth; nothing may be written past it.
+        """
+        return self.outcome is not None or self.lifecycle in TERMINAL_LIFECYCLES
 
     @property
     def is_completed(self) -> bool:
