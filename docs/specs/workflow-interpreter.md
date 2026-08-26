@@ -637,8 +637,9 @@ Computed by the foreman wrapper at `exit-recorded`:
 4. **Artifact identity** (honest naming): every writing attempt ends in a
    commit (else `no_diff`). Ordering: **git commit + ref first, bd write
    second — the bd write is the commit point**; ref
-   `refs/wf/<root_id>/<activation_id>` pinned by the WRAPPER immediately
-   post-exit, before any bd write. Identity recorded = commit OID + tree
+   `refs/wf/<root_id>/artifact/<activation_id>` pinned by the WRAPPER
+   immediately post-exit, before any bd write (three sibling namespaces —
+   see the §14 ref-namespace row). Identity recorded = commit OID + tree
    OID (git object ids — SHA-1 on current repos, named as such);
    sha256 digests are used only for mutable documents (§9).
 5. **Effects reconciled**: observed = status/diff over
@@ -951,3 +952,6 @@ graph editor, live-instance version migration, non-human gate types.
 | Native bd gate types (timer/gh:run/bead) | with non-human gates |
 | Engine-reopen threshold | measured after v1 |
 | Plugin distribution (skill + workflows/ template via /harness-publish) | bead cr-3ss, after v1 |
+| §12 band-lock siting deviation: the execution band is a `flock` on `<wrapper_root>/repo-band.lock`, NOT on the repo path §4 names — a lock inside the workspace is one a `git clean -fdx` deletes. One band per wrapper root, so two wrapper roots over one repo would not exclude each other | phase 5, when the foreman resolves wrapper roots; §4, §12 (phase-3 ruling) |
+| §7.4 ref namespace deviation: the wrapper writes THREE sibling namespaces, `refs/wf/<root_id>/{artifact,orphan,prereset}/<activation_id>`, not the flat `refs/wf/<root_id>/<activation_id>` §7.4 names. Only `artifact/` is the §7.4 pin, and only `artifact/` is the §12 authority to reset HEAD off a commit; `orphan/` preserves a commit §5.6 recovery could not attribute and `prereset/` preserves what a reset was about to destroy — a flat prefix made every ref the wrapper wrote for any reason a licence to destroy its commit | phase 5, if a ref-layout consumer outside the wrapper appears; §7.4, §12 (phase-3 ruling) |
+| §7.4 committer-identity attribution: a runner's commits are stamped with `GIT_COMMITTER_NAME/EMAIL` carrying the activation id (`runner+<activation_id>@workflow-interpreter.invalid`), and in-repo `pin_artifact` requires that identity in ADDITION to descent from `intended_base_commit` and declaration in `$WF_EFFECTS_FILE`. It is an attribution mechanism, not an authorization one — a runner can unset the variables; what it removes is the accident of a human's commit becoming an attempt's artifact on path containment alone. The stamp is applied in ONE place, `RunnerChannels.env()`, so a profile that builds its own child environment instead of routing through it leaves every in-repo commit unattributable — `pin_artifact` refuses, and a `done` claim on a writing node with no artifact grades `fail_code` (§7.3 clause 4) | phase 4, with the first real runner profile; §6, §7.4, §12 (phase-3 ruling) |
