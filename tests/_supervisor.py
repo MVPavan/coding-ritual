@@ -534,12 +534,20 @@ class FakeProfile:
         """Not used: the supervisor owns termination proof (§8.1)."""
         raise NotImplementedError
 
-    def build_resume_command(self, session_id: str, instructions: str) -> RunnerCommand:
-        """The steer continuation's invocation."""
+    def build_resume_command(
+        self, session_id: str, instructions: str, task: TaskSpec
+    ) -> RunnerCommand:
+        """The steer continuation's invocation, bounded by the continuation's task.
+
+        Signature follows the §6 Protocol's M4 change: the task is passed in
+        rather than remembered, so this double runs its child in the SAME place
+        and with the same channels a launch would.
+        """
         return RunnerCommand(
-            argv=(SHELL, "-c", "exit 0"),
-            cwd="/",
-            log_path="/dev/null",
+            argv=(SHELL, "-c", self.script.shell()),
+            env={"PATH": "/usr/bin:/bin", **task.channels.env()},
+            cwd=task.cwd,
+            log_path=task.channels.log_path,
             session_id=session_id,
         )
 

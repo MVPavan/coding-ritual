@@ -10,10 +10,13 @@ quietly becoming the trust boundary:
   ledger are the crash-atomicity contract; a profile that forked its own child
   would not have them. `launch.py` verifies the receipt and the ledger after
   every launch, so an adapter that ignores this is caught rather than trusted.
-- **The three runner channels are wrapper-provided** (§6): `$WF_OUTCOME_FILE`,
-  `$WF_ARTIFACT_DIR` and `$WF_EFFECTS_FILE` live in the wrapper directory and
-  are writable regardless of the node's `writes`, so a `writes = false`
-  reviewer can still report.
+- **The runner channels are wrapper-provided** (§6): `$WF_OUTCOME_FILE`,
+  `$WF_ARTIFACT_DIR` and `$WF_EFFECTS_FILE` — plus `$WF_SCRATCH_DIR`, the
+  wrapper-owned `TMPDIR` a sandboxed child would otherwise not have — live
+  together under `<activation>/channels/` and are writable regardless of the
+  node's `writes`, so a `writes = false` reviewer can still report. The nesting
+  is load-bearing: a sandbox grants directories, so the channels must not share
+  one with the wrapper's own crash records (`paths.CHANNELS_DIR`).
 
 `usage: unknown` is legal and disables only the best-effort token ceiling —
 `max_wall` always holds (§6).
@@ -35,11 +38,13 @@ from workflow_interpreter.supervisor.channels import (
     ENV_GIT_COMMITTER_NAME,
     runner_committer_email,
 )
-from workflow_interpreter.supervisor.models import OutcomeMarker, TerminationProof
+from workflow_interpreter.supervisor.models import TerminationProof
 from workflow_interpreter.supervisor.paths import (
     ARTIFACT_DIR,
+    CHANNELS_DIR,
     EFFECTS_FILE,
     OUTCOME_FILE,
+    SCRATCH_DIR,
 )
 
 PROFILE_MODEL: Final[ConfigDict] = ConfigDict(
@@ -49,6 +54,7 @@ PROFILE_MODEL: Final[ConfigDict] = ConfigDict(
 ENV_OUTCOME_FILE: Final[str] = "WF_OUTCOME_FILE"
 ENV_ARTIFACT_DIR: Final[str] = "WF_ARTIFACT_DIR"
 ENV_EFFECTS_FILE: Final[str] = "WF_EFFECTS_FILE"
+ENV_SCRATCH_DIR: Final[str] = "WF_SCRATCH_DIR"
 
 
 class ProcessStatus(StrEnum):
@@ -69,13 +75,23 @@ class EventType(StrEnum):
 
 
 class RunnerChannels(BaseModel):
-    """The §6 wrapper-provided channels for one activation."""
+    """The §6 wrapper-provided channels for one activation.
+
+    All of them live under ONE directory (`paths.CHANNELS_DIR`), which is what
+    lets a directory-granularity sandbox grant exactly the runner's channels and
+    nothing of the wrapper's own crash-atomicity records.
+    """
 
     model_config = PROFILE_MODEL
 
     outcome_file: str
     artifact_dir: str
     effects_file: str
+    scratch_dir: str = ""
+    """`$WF_SCRATCH_DIR`, the fourth channel — a `writes = true` node's only
+    writable temp space once the sandbox stops granting `/tmp` (`paths.SCRATCH_DIR`).
+    Empty only for a caller that built channels by hand; `channels_for` always
+    supplies it, and an empty one is simply not exported."""
     log_path: str
     activation_id: str = ""
     """Empty only where a caller built channels without one; production always
@@ -104,6 +120,8 @@ class RunnerChannels(BaseModel):
             ENV_ARTIFACT_DIR: self.artifact_dir,
             ENV_EFFECTS_FILE: self.effects_file,
         }
+        if self.scratch_dir:
+            channels[ENV_SCRATCH_DIR] = self.scratch_dir
         if not self.activation_id:
             return channels
         return {
@@ -161,11 +179,20 @@ class InspectResult(BaseModel):
 
 
 class TerminalEnvelope(BaseModel):
-    """`collect_terminal_envelope(handle) -> {marker, usage, session_id, duration}`."""
+    """`collect_terminal_envelope(handle) -> {usage, session_id, duration}` (§6).
+
+    §6 sketches a `marker` here too and this deliberately does not carry one.
+    Nothing ever consumed it: §7.2 makes the CLAIM the foreman wrapper's to
+    parse, and `exit.py::_collect` re-reads `$WF_OUTCOME_FILE` itself with the
+    node's declared outcome set — precisely so a vendor adapter's parse of a
+    vendor's stream cannot become a second, unvalidated way for a runner to name
+    its own outcome. Reporting one anyway meant a profile deriving the reserved
+    channel's path by convention from `handle.log_path`, which is the coupling
+    `ProcessHandle` should have carried explicitly and did not.
+    """
 
     model_config = PROFILE_MODEL
 
-    marker: OutcomeMarker | None = None
     usage: Usage = Usage(known=False)
     session_id: str | None = None
     duration_s: float | None = None
@@ -185,12 +212,29 @@ class RunnerEvent(BaseModel):
 
 
 class Capabilities(BaseModel):
-    """What a runner supports; unsupported options are a loud error (§6)."""
+    """What a runner supports; unsupported options are a loud error (§6).
+
+    Every field is a claim the wrapper can be held to, so each defaults to the
+    pessimistic answer. `sandboxed` and `denies_network` in particular are the
+    difference between "the vendor refuses" and "the vendor was asked nicely",
+    and a profile that reported them optimistically would make the foreman's
+    isolation decisions on a fiction — they were `ClassVar`s outside this model,
+    where nothing that consumes `capabilities()` could see them at all.
+    """
 
     model_config = PROFILE_MODEL
 
     live_usage: bool = False
     resume: bool = False
+    sandboxed: bool = False
+    """Whether the vendor ENFORCES the wrapper's write bound rather than
+    honouring it. An OS sandbox qualifies; a permission engine inside the same
+    process as the shell it grants does not."""
+    denies_network: bool = False
+    """Whether egress is impossible for the child, not merely un-asked-for."""
+    reports_cost: bool = False
+    """Whether the stream carries money at all; tokens are a separate question
+    (`live_usage`)."""
 
 
 class ChildLauncher(Protocol):
@@ -225,15 +269,26 @@ class Profile(Protocol):
         ...  # pragma: no cover - protocol
 
     def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
-        """Read the runner's terminal facts from its own channels."""
+        """The runner's terminal facts; the outcome CLAIM is §7's, not a profile's."""
         ...  # pragma: no cover - protocol
 
     def terminate(self, handle: ProcessHandle) -> TerminationProof:
         """TERM → bounded wait → KILL, with proof of death (§8.1)."""
         ...  # pragma: no cover - protocol
 
-    def build_resume_command(self, session_id: str, instructions: str) -> RunnerCommand:
-        """The steer continuation's invocation (§8.1)."""
+    def build_resume_command(
+        self, session_id: str, instructions: str, task: TaskSpec
+    ) -> RunnerCommand:
+        """The steer continuation's invocation (§8.1), bounded by `task`.
+
+        The `TaskSpec` is not optional and used to be absent. A `RunnerCommand`
+        needs a working directory and the §6 channels; with neither in the
+        signature the adapters remembered the launch they had built, which is
+        per-object state on an object the registry mints fresh per lookup — so a
+        real steer either refused outright or, on a reused profile, resumed
+        inside the PREVIOUS activation's channels. Passing the continuation's
+        own task removes the hidden state and the wrong answer with it.
+        """
         ...  # pragma: no cover - protocol
 
     def build_resume_hint(self, session_id: str) -> str:
@@ -253,16 +308,22 @@ class Profile(Protocol):
 def channels_for(
     activation_dir: Path, log_path: Path, activation_id: str = ""
 ) -> RunnerChannels:
-    """The three §6 channels for an activation, rooted in its wrapper dir.
+    """The §6 channels for an activation, rooted in `<activation>/channels/`.
+
+    The nesting is the whole point and is stated in exactly two places — here
+    and `WrapperPaths.channels_dir` — because a producer and a reader that
+    render a layout separately render two layouts eventually.
 
     `activation_id` is what stamps the §7.4 committer identity onto the child;
     omitting it produces channels with no identity, which makes any in-repo
     commit unattributable rather than misattributed.
     """
+    channels_dir = activation_dir / CHANNELS_DIR
     return RunnerChannels(
-        outcome_file=str(activation_dir / OUTCOME_FILE),
-        artifact_dir=str(activation_dir / ARTIFACT_DIR),
-        effects_file=str(activation_dir / EFFECTS_FILE),
+        outcome_file=str(channels_dir / OUTCOME_FILE),
+        artifact_dir=str(channels_dir / ARTIFACT_DIR),
+        effects_file=str(channels_dir / EFFECTS_FILE),
+        scratch_dir=str(channels_dir / SCRATCH_DIR),
         log_path=str(log_path),
         activation_id=activation_id,
     )

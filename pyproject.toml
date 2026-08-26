@@ -27,4 +27,7 @@ testpaths = ["tests"]
 markers = [
     "bd: needs the real bd binary; runs against a throwaway workspace under tmp_path",
     "proc: forks real child processes and signals them; Linux-only, tmp_path-scoped",
+    "live: runs a real vendor CLI (claude/codex/opencode); needs auth, spends tokens, deselected unless --run-live",
 ]
+# No `addopts = -m 'not live'`: any command-line `-m` REPLACES it, so it was not
+# a gate at all. `tests/conftest.py` deselects the marker at collection instead.

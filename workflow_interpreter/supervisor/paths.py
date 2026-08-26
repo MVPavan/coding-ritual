@@ -44,9 +44,45 @@ BAND_LOCK: Final[str] = "repo-band.lock"
 RECEIPT_FILE: Final[str] = "launch-receipt.json"
 LEDGER_FILE: Final[str] = "exec.ledger"
 LOG_FILE: Final[str] = "run.jsonl"
+CHANNELS_DIR: Final[str] = "channels"
+"""The subdirectory holding everything the RUNNER may write (§6).
+
+It exists because a sandbox grants DIRECTORIES. Codex's `workspace-write` makes
+its working root writable and nothing else, so making `$WF_OUTCOME_FILE`
+writable — which §6 requires regardless of `writes` — necessarily made every
+other file in the same directory writable too. Those files are the wrapper's
+own crash-atomicity records: a `writes = false` reviewer could forge `exit.json`
+(§5.6 then classifies an unobserved exit), delete `launch-receipt.json` (the
+next dispatch refuses, burning an infra retry), append to `exec.ledger` (the
+exactly-once evidence drills 1/2/10/22 rest on) or pre-write `completion.json`.
+
+One level of nesting fixes it for every directory-granularity sandbox: the
+runner's grant is `<activation>/channels/`, and the records sit in
+`<activation>/` where no runner bound reaches them. Claude is unaffected either
+way — its grants are path-exact — but it follows the same layout so there is one
+answer to "where do the channels live".
+
+GOTCHA: `LOG_FILE` is the exception to "the records are outside the grant", and
+it is one by construction rather than by oversight. The launcher dup2s
+`run.jsonl` onto the child's fd 1 and fd 2 (`launch.py::_child`), so the runner
+holds a write handle to a file in `<activation>/` no sandbox bound mentions —
+that IS the runner's own stream. What follows is that `BaseProfile.scan_log`
+reads a session id and token counts back out of a file the runner controls, so a
+runner can name its own session and its own usage. Nothing routes on either
+today (§6 makes `usage: unknown` legal and `max_wall` is the ceiling that holds),
+but a phase-5 caller that starts routing on them is routing on runner input."""
 OUTCOME_FILE: Final[str] = "outcome.json"
 EFFECTS_FILE: Final[str] = "effects.json"
 ARTIFACT_DIR: Final[str] = "artifacts"
+SCRATCH_DIR: Final[str] = "scratch"
+"""`$WF_SCRATCH_DIR` — the fourth channel, and `TMPDIR` for the child.
+
+§6 names three channels and none of them is a place to put a temporary file.
+That was survivable until the codex sandbox stopped granting `/tmp` (probe 12a,
+where a checkout under `/tmp` made the read-only bound evaporate): a
+`writes = true` node then had nowhere an ordinary toolchain could write, and a
+`writes = false` one would have had to pollute `$WF_ARTIFACT_DIR`, which §7
+walks as the runner's declared outputs."""
 EXIT_FILE: Final[str] = "exit.json"
 COMPLETION_FILE: Final[str] = "completion.json"
 STALE_FLAG: Final[str] = "stale.flag"
@@ -206,9 +242,10 @@ class WrapperPaths:
         return self.instance_dir / activation_id
 
     def ensure_activation_dir(self, activation_id: str) -> Path:
-        """Create the activation directory (and its artifact dir) if absent."""
+        """Create the activation directory and every §6 channel under it."""
         directory = self.activation_dir(activation_id)
-        (directory / ARTIFACT_DIR).mkdir(parents=True, exist_ok=True)
+        for channel in (ARTIFACT_DIR, SCRATCH_DIR):
+            (directory / CHANNELS_DIR / channel).mkdir(parents=True, exist_ok=True)
         return directory
 
     def receipt(self, activation_id: str) -> Path:
@@ -223,17 +260,29 @@ class WrapperPaths:
         """`log_path`: the runner's machine event stream (§5.3)."""
         return self.activation_dir(activation_id) / LOG_FILE
 
+    def channels_dir(self, activation_id: str) -> Path:
+        """`<activation>/channels/` — the whole of what the runner may write.
+
+        THE unit of a directory-granularity sandbox grant; see `CHANNELS_DIR`
+        for why the §6 channels are not simply loose in the activation dir.
+        """
+        return self.activation_dir(activation_id) / CHANNELS_DIR
+
     def outcome(self, activation_id: str) -> Path:
         """`$WF_OUTCOME_FILE` — THE reserved outcome channel (§6)."""
-        return self.activation_dir(activation_id) / OUTCOME_FILE
+        return self.channels_dir(activation_id) / OUTCOME_FILE
 
     def effects(self, activation_id: str) -> Path:
         """`$WF_EFFECTS_FILE` — the declared-paths manifest (§6)."""
-        return self.activation_dir(activation_id) / EFFECTS_FILE
+        return self.channels_dir(activation_id) / EFFECTS_FILE
 
     def artifacts(self, activation_id: str) -> Path:
         """`$WF_ARTIFACT_DIR` — structured outputs, writable regardless of `writes`."""
-        return self.activation_dir(activation_id) / ARTIFACT_DIR
+        return self.channels_dir(activation_id) / ARTIFACT_DIR
+
+    def scratch(self, activation_id: str) -> Path:
+        """`$WF_SCRATCH_DIR` — the child's `TMPDIR` (see `SCRATCH_DIR`)."""
+        return self.channels_dir(activation_id) / SCRATCH_DIR
 
     def exit_file(self, activation_id: str) -> Path:
         """The §5.3 exit file, demoted to a crash-window fallback once bd has it."""

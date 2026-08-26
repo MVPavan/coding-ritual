@@ -509,15 +509,27 @@ class StaleFlag(BaseModel):
 class SteerIntent(BaseModel):
     """§8.1 steer intent — persisted DURABLY before the child is signalled.
 
-    Carries the continuation REQUEST, not just the reason: a tick that finds
-    this file has to be able to FINISH the steer, and a continuation it cannot
-    reconstruct is a steer the human asked for that silently never happened.
+    Carries the continuation REQUEST and the instructions TEXT, not just the
+    reason: a tick that finds this file has to be able to FINISH the steer, and
+    a continuation it cannot reconstruct is a steer the human asked for that
+    silently never happened. With the digest alone it could not be
+    reconstructed — `Dispatcher` refuses a continuation with no instructions,
+    so a §5.6 recovery that re-dispatched one had nothing to resume with.
+
+    The prose lives HERE and nowhere else. The wrapper directory is the
+    observation cache §P1 already allows to hold a runner's own bytes, while bd
+    is durable project state a human reads; `instructions_digest` is the form
+    §8.1 records where the prose must not go, and the only form that may ever be
+    written there. Nothing writes even the digest to bd today — the `steered`
+    close carries the steer's REASON, which is a sentence about the run, not the
+    guidance itself.
     """
 
     model_config = RECORD_MODEL
 
     activation_id: str
     reason: str
+    instructions: str
     instructions_digest: str
     requested_at: str
     continuation: MintRequest

@@ -12,6 +12,42 @@ Same three properties as `bdio.client`, for the same reasons:
 Working directories are checked, not trusted: every call must run inside the
 repo the config names or inside the wrapper directory's worktree, so a caller
 cannot aim a `clean -f` at an unrelated checkout.
+
+4. **Three named config keys are pinned, and the ambient files are dropped**
+   (`HARDENING`, `ENV_HARDENING`). Every key git reads can come from
+   `.git/config`, and several of them name a PROGRAM the supervisor's own git
+   would then run as the wrapper — outside the sandbox that bounded the runner.
+   `core.hooksPath` is redirected at an empty directory the wrapper owns (the
+   live one: `git worktree add` runs `post-checkout`, and that is a call §5.4
+   makes on a tree the runner just had), `core.pager` and `core.fsmonitor` are
+   pinned beside it, `GIT_CONFIG_NOSYSTEM` drops `/etc/gitconfig` and
+   `GIT_CONFIG_GLOBAL` drops `~/.gitconfig`.
+
+   **What that is NOT is "the repository's configuration is not trusted".** It
+   said so, and the claim was false: `filter.<name>.clean` alone survives it,
+   runs on `git add --all` — which `snapshot_commit` uses for the §5.4
+   pre-destruction snapshot — and cannot be pinned generically, because the
+   driver name is chosen by the repository's own `.gitattributes` (Opus r2 #20,
+   probed against this class). `diff.external`, `core.sshCommand`,
+   `credential.helper`, `init.templateDir`, `core.alternateRefsCommand` and
+   `uploadpack.packObjectsHook` are the same shape. The honest statement is that
+   `.git/config` is kept OUT OF THE RUNNER'S REACH rather than distrusted here,
+   and the pins above are belt-and-braces for the keys that can be named:
+
+   - **codex** — the sandbox makes `<root>/.git` read-only inside every writable
+     root, whether it is a directory or a worktree's `gitdir:` file, in both
+     `writes` modes (probes P2.2/P2.3, and the executable ruling in
+     `tests/test_profiles_git_isolation.py`). OS-enforced, not requested.
+   - **claude** — `Edit(//<cwd>/.git)` and `Edit(//<cwd>/.git/**)` deny both
+     shapes, and `Bash` on a `writes = true` node is the §0.3 cooperative
+     residual: claude has no sandbox, so a shell it grants can write `.git/config`
+     whatever the permission engine says (`ClaudeProfile.sandboxed = False`).
+
+   The residual that remains for BOTH vendors is a nested repository inside a
+   granted tree — a submodule checkout's own `.git` is not the root's, so
+   codex's sandbox does not protect it (P2.3). Nothing follows from it wrapper-side:
+   `GitSubcommand` is a closed set and none of its members recurses into a
+   submodule, so no wrapper git ever reads that config.
 """
 
 from __future__ import annotations
@@ -63,6 +99,42 @@ _MSG_UNKNOWN: Final[str] = "git subcommand {subcommand!r} is not in the closed s
 _MSG_OUTSIDE: Final[str] = (
     "refusing to run git in {cwd}: outside both the repo and the wrapper dir"
 )
+
+HOOKS_DIR: Final[str] = "empty-hooks"
+"""A wrapper-owned directory with no hooks in it (see `Git._hardening`)."""
+
+HARDENING: Final[tuple[str, ...]] = (
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.pager=cat",
+)
+"""Three program-naming config keys, pinned rather than inherited.
+
+`core.hooksPath` is the third and is added per call, because its value is a path
+the wrapper has to make exist first.
+
+Three keys, not "the keys that name a program": `filter.<name>.clean` is the
+counterexample that cannot be pinned generically — the driver NAME comes from
+the repository's own `.gitattributes`, so there is no fixed `-c` that neutralises
+it. See the module docstring for what actually keeps `.git/config` out of a
+runner's hands, and for the residual that is left."""
+
+ENV_HARDENING: Final[Mapping[str, str]] = {
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": os.devnull,
+}
+"""The ambient config files, dropped: `/etc/gitconfig` and `~/.gitconfig`.
+
+Both are outside the wrapper's control and both can name programs. The global
+one is also why two hosts disagreed about what a supervisor git call does —
+whatever the operator happens to have in `~/.gitconfig` was in effect. Every
+identity the wrapper needs is supplied explicitly (`SNAPSHOT_IDENTITY`), so
+there is nothing left for it to contribute.
+
+Applied LAST, so no caller overlay can drop either."""
+
+CORE_HOOKS_PATH: Final[str] = "core.hooksPath={path}"
 
 GIT_INDEX_FILE: Final[str] = "GIT_INDEX_FILE"
 """Points `read-tree` / `add` / `write-tree` at a THROWAWAY index, so the
@@ -131,6 +203,20 @@ class Git:
 
     def __init__(self, config: SupervisorConfig) -> None:
         self._config = config
+        self._hooks_dir: Path | None = None
+
+    def _hardening(self) -> list[str]:
+        """The `-c` overrides every invocation carries (see `HARDENING`).
+
+        The empty hooks directory is created on first use rather than in
+        `__init__`: constructing a transport should not touch the filesystem,
+        and by the time a git command runs the wrapper root exists anyway.
+        """
+        if self._hooks_dir is None:
+            hooks = self._config.wrapper_root / HOOKS_DIR
+            hooks.mkdir(parents=True, exist_ok=True)
+            self._hooks_dir = hooks
+        return [*HARDENING, "-c", CORE_HOOKS_PATH.format(path=self._hooks_dir)]
 
     def _assert_inside(self, cwd: Path) -> None:
         """Refuse a working directory the wrapper does not own."""
@@ -155,11 +241,20 @@ class Git:
         transport ever passes are `snapshot_commit`'s throwaway index and
         author identity. No supervisor DECISION reads the environment
         (`rules/python/safety.md`); this is subprocess plumbing.
+
+        `HARDENING` and `ENV_HARDENING` are applied to EVERY call and cannot be
+        overridden by a caller — the repository being operated on may be one a
+        runner was just granted, and its `.git/` is inside that grant.
         """
         if subcommand not in set(GitSubcommand):  # pragma: no cover - enum guard
             raise GitCommandError(_MSG_UNKNOWN.format(subcommand=subcommand))
         self._assert_inside(cwd)
-        argv = [self._config.git_binary, subcommand.value, *args]
+        argv = [
+            self._config.git_binary,
+            *self._hardening(),
+            subcommand.value,
+            *args,
+        ]
         try:
             completed = subprocess.run(
                 argv,
@@ -168,7 +263,7 @@ class Git:
                 text=True,
                 timeout=self._config.git_timeout_s,
                 check=False,
-                env=None if env is None else {**os.environ, **env},
+                env={**os.environ, **(env or {}), **ENV_HARDENING},
             )
         except subprocess.TimeoutExpired as exc:
             raise GitCommandError(

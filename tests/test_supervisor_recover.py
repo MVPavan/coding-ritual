@@ -62,6 +62,7 @@ RUNNER_FILE = "src/orphan.py"
 HUMAN_FILE = "docs/human-chapter.md"
 OTHER_BOOT_ID = "boot-after-the-reboot"
 STEER_REASON = "the runner is looping on the same test"
+STEER_INSTRUCTIONS = "stop looping"
 
 
 class Lab:
@@ -455,7 +456,8 @@ def _persist_steer_intent(lab: Lab) -> SteerIntent:
     intent = SteerIntent(
         activation_id=lab.activation.activation_id,
         reason=STEER_REASON,
-        instructions_digest=instructions_digest("stop looping"),
+        instructions=STEER_INSTRUCTIONS,
+        instructions_digest=instructions_digest(STEER_INSTRUCTIONS),
         requested_at="2026-08-25T12:01:00Z",
         continuation=entry_mint(
             mint_reason=MintReason.STEER_CONTINUATION,

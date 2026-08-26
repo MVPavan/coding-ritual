@@ -9,7 +9,11 @@ answers in front of them that the spec's three cannot express:
     DELIBERATE, and the human is owed the continuation the intent names.
     Reading this as case 3 closed `error_transport`, spent an infra retry, and
     dropped the continuation; recovery finishes the steer instead, idempotently
-    (`Steerer.resume`).
+    (`Steerer.resume`). Finishing the steer MINTS the continuation; dispatching
+    it is the caller's next tick, and it reads the instructions back off this
+    same intent file (`Dispatcher._steer_instructions`) — which is why nothing
+    here deletes the intent once the steer is finished, and why `_OPEN_LIFECYCLES`
+    stops it being re-acted on rather than removing it.
 0b. **indeterminate** — liveness could not be answered at all (`/proc`
     unreadable for a reason other than "gone"). Nothing is closed and nothing
     is signalled: the question §5.6 asks needs an answer, and a guess here

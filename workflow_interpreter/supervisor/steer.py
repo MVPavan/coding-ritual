@@ -9,12 +9,21 @@ Read backwards, every step is there to make a crash survivable:
 - **Intent first, and RESUMABLE.** A crash after the kill but before the close
   leaves an activation that is dead with no recorded reason; the durable intent
   file is what tells the next tick that the death was deliberate rather than a
-  §5.6 case-3 transport failure. It therefore carries the continuation REQUEST,
-  not just a reason and a digest: recovery has to be able to FINISH the steer,
-  and the three steps after the intent are all idempotent, so `resume` runs
-  them again from wherever the crash landed. An intent recovery could recognise
-  but not act on would still cost the human their continuation and spend an
-  infra retry naming the deliberate kill a transport failure.
+  §5.6 case-3 transport failure. It therefore carries the continuation REQUEST
+  **and the instructions text**, not just a reason and a digest: recovery has to
+  be able to FINISH the steer, and the three steps after the intent are all
+  idempotent, so `resume` runs them again from wherever the crash landed. An
+  intent recovery could recognise but not act on would still cost the human
+  their continuation and spend an infra retry naming the deliberate kill a
+  transport failure — and a digest is not something `build_resume_command` can
+  resume with, so the text is what `Dispatcher` reads back off this file.
+- **Refused before anything is destroyed.** Both refusals — no handle to prove
+  death against, and no session the continuation could rejoin — are checked
+  ahead of the intent write and therefore ahead of the kill. `build_resume_command`
+  refuses an unknown session too, but that refusal lands after the runner is
+  dead and the activation is closed `steered`: the round is spent and the
+  continuation cannot be made. Order is the difference between fail-closed and
+  fail-destructive.
 - **Terminate before close.** Closing `steered` while the child still runs
   would let the continuation's runner and the steered runner write the same
   worktree at once. Death is PROVEN through the handle's identity, never
@@ -50,7 +59,10 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import TerminationFailed
+from workflow_interpreter.supervisor.errors import (
+    ContinuationRefused,
+    TerminationFailed,
+)
 from workflow_interpreter.supervisor.models import (
     RECORD_MODEL,
     ExitReason,
@@ -74,11 +86,63 @@ _MSG_NO_HANDLE: Final[str] = (
     "activation {activation_id} has no recorded handle; there is nothing to "
     "steer and no proof of death to record (§5.3)"
 )
+_MSG_NO_SESSION: Final[str] = (
+    "activation {activation_id} has no session a continuation could rejoin; "
+    "refusing to kill a runner whose §8.1 continuation could only be dispatched "
+    "as a fresh session carrying the node's original brief"
+)
 
 
 def instructions_digest(instructions: str) -> str:
-    """The sha256 of the steer instructions — recorded, never the text itself."""
+    """The sha256 of the steer instructions — the form a bd record may carry."""
     return hashlib.sha256(instructions.encode("utf-8")).hexdigest()
+
+
+def _resumable_session(activation: ActivationRecord) -> str:
+    """The session a continuation of this activation would rejoin.
+
+    Raises rather than returning `""`, and the CALLER's position matters more
+    than the check: an empty id means the vendor never named a session (codex
+    assigns its thread id in its first event and there is nothing to resume
+    until it does, §5.2), so `build_resume_command` would refuse — after the
+    kill, with the activation already closed `steered`.
+
+    The HANDLE is preferred over the activation's own metadata because the
+    handle records what `Profile.prepare` pre-assigned at launch, which for a
+    vendor that mints its own id is the only place the real one exists (§5.2,
+    §5.3).
+    """
+    handle = activation.metadata.handle
+    session_id = (handle.session_id if handle else "") or activation.metadata.session_id
+    if not session_id:
+        raise ContinuationRefused(
+            _MSG_NO_SESSION.format(activation_id=activation.activation_id)
+        )
+    return session_id
+
+
+def _continue_session(
+    activation_id: str, session_id: str, continuation: MintRequest
+) -> MintRequest:
+    """Force the continuation onto the session the steered child actually ran.
+
+    §8.1 continues a session; a continuation minted with some other id would be
+    dispatched through `build_resume_command` naming a session the vendor has
+    never heard of, and both CLIs answer that with a transport failure. The
+    caller supplying the id was the weak link — it is derivable here.
+
+    `session_id` is not part of the §3.2 idempotency key, so rewriting it cannot
+    make a re-run mint a second continuation (drill 14).
+    """
+    if continuation.session_id == session_id:
+        return continuation
+    _LOG.info(
+        "wf.steer.session_pinned",
+        activation_id=activation_id,
+        requested=continuation.session_id,
+        pinned=session_id,
+    )
+    return continuation.model_copy(update={"session_id": session_id})
 
 
 class SteerResult(BaseModel):
@@ -115,19 +179,24 @@ class Steerer:
         instructions: str,
         continuation: MintRequest,
     ) -> SteerResult:
-        """Persist, terminate with proof, close `steered`, mint one continuation."""
+        """Persist, terminate with proof, close `steered`, mint one continuation.
+
+        Both refusals are checked BEFORE the intent is written, because a
+        persisted intent is an INSTRUCTION to §5.6 recovery: one recovery could
+        never carry out would wedge the activation on every later tick, and one
+        written after the kill would have spent the round to learn that.
+        """
         activation_id = activation.activation_id
         if activation.metadata.handle is None:
-            # Checked BEFORE the intent is written: a persisted intent is an
-            # instruction to recovery, and one it could never carry out would
-            # wedge the activation on every later tick.
             raise TerminationFailed(_MSG_NO_HANDLE.format(activation_id=activation_id))
+        session_id = _resumable_session(activation)
         intent = SteerIntent(
             activation_id=activation_id,
             reason=reason,
+            instructions=instructions,
             instructions_digest=instructions_digest(instructions),
             requested_at=to_iso(self._clock.now()),
-            continuation=continuation,
+            continuation=_continue_session(activation_id, session_id, continuation),
         )
         write_record(self._paths.steer_intent(activation_id), intent)
         return self.resume(activation, intent)

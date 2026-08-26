@@ -1,4 +1,4 @@
-"""Shared fixtures: a throwaway bd workspace and a throwaway signing key.
+"""Shared fixtures, plus the opt-in gate that keeps token-spending tests off.
 
 The bd workspace is created per test SESSION under `tmp_path_factory` — never
 this repo's own `.beads`. It is deliberately outside the repo tree: a bd
@@ -6,19 +6,29 @@ workspace nested inside another repo's workspace leaks the outer project's
 beads into read paths (probed 2026-08-25), which would make "count the
 instance's beads" assertions meaningless. Every assertion still selects by
 `wf_root_id`, as the spec's §11 lab note requires.
+
+**`live` tests are deselected unless `--run-live` is passed**, and that is a
+collection hook rather than a marker expression on purpose. `addopts =
+-m 'not live'` looked equivalent and was not: any `-m` on the command line
+REPLACES it, so the gate recipe every earlier phase used
+(`pytest -q -m "not bd"`) selected the four real-CLI tests and spent tokens.
+An option gate cannot be overridden by an `-m` the way a default marker
+expression can, and deselecting rather than skipping is what makes
+`--collect-only` show the truth about what a run would execute.
 """
 
 from __future__ import annotations
 
 import shutil
 import subprocess
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Final
 
 import pytest
 
 from tests._fake_bd import FakeBd
+from tests._profiles import Lab
 from workflow_interpreter.bdio import BdConfig, GateVerifier, SigningConfig
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.client import BdClient
@@ -36,6 +46,39 @@ _SKIP_NO_BD: Final[str] = "the bd binary is not on PATH"
 _SKIP_NO_SSH_KEYGEN: Final[str] = "ssh-keygen is not on PATH"
 
 FAKE_WORKSPACE: Final[Path] = Path("/tmp/wf-fake-lab")
+
+RUN_LIVE_OPTION: Final[str] = "--run-live"
+LIVE_MARKER: Final[str] = "live"
+_RUN_LIVE_HELP: Final[str] = (
+    "run the `live` tests, which invoke a real vendor CLI, need working auth "
+    "and spend tokens; without it they are deselected at collection"
+)
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register the explicit opt-in the `live` family requires."""
+    parser.addoption(
+        RUN_LIVE_OPTION, action="store_true", default=False, help=_RUN_LIVE_HELP
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    """Drop every `live`-marked test from the run unless `--run-live` was given.
+
+    Deselected, not skipped: a skip still shows up in `--collect-only`, so
+    nobody can read the output and tell whether a recipe is about to spend
+    money. This is the only gate — the marker alone never was one.
+    """
+    if config.getoption(RUN_LIVE_OPTION):
+        return
+    deselected = [item for item in items if item.get_closest_marker(LIVE_MARKER)]
+    if not deselected:
+        return
+    config.hook.pytest_deselected(items=deselected)
+    items[:] = [item for item in items if item not in deselected]
+
 
 PLAN_REF: Final[str] = "docs/plan.md"
 APPROVED_TEXT: Final[bytes] = b"the plan as approved\n"
@@ -212,3 +255,18 @@ def sign_payload(signing_key: Path, tmp_path: Path) -> Signer:
         return signature
 
     return _sign
+
+
+@pytest.fixture
+def lab(tmp_path: Path) -> Iterator[Lab]:
+    """A supervisor over a throwaway repo, ready to exec a stub vendor CLI.
+
+    Here rather than in a `test_profiles_*` module because two of them now drive
+    the same `Lab` (`tests/_profiles.py`), and a fixture imported into a test
+    module reads as an unused import to every linter that looks at it.
+    """
+    built = Lab(tmp_path)
+    try:
+        yield built
+    finally:
+        built.cleanup()

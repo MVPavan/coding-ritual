@@ -61,6 +61,29 @@ class LockUnavailable(SupervisorError):
     """The §12 in-repo execution band is held by another runner."""
 
 
+class ContinuationRefused(SupervisorError):
+    """A §8.1 continuation has nothing to continue WITH, at either end.
+
+    §8.1 mints exactly one continuation and dispatches it via
+    `build_resume_command`. Falling back to `build_command` there would start a
+    fresh session carrying the node's ORIGINAL brief, so the human's steer would
+    vanish silently and the round would simply be re-run — the one outcome a
+    steer exists to prevent.
+
+    One class for both ends of that sentence, because the foreman's remediation
+    is the same one (do not treat this steer as taken):
+
+    - `Steerer.steer` raises it when the activation has no resumable session,
+      BEFORE the intent is written and the child is killed. `build_resume_command`
+      also refuses an empty session, but by then the runner is dead and the
+      activation is closed `steered` — a refusal that costs the work it was
+      protecting is not fail-closed.
+    - `Dispatcher.dispatch` raises it when a `steer-continuation` reaches the
+      launch with no instructions, and when instructions reach a mint that is
+      not one.
+    """
+
+
 class TerminationFailed(SupervisorError):
     """A child survived TERM and KILL, so no proof of death exists (§8.1)."""
 

@@ -32,6 +32,17 @@ to END the loop, because a failed hint must not cost an exit record.
 band is what makes "one active runner per repo path" true for the child's
 lifetime, and `ExitObserver` still needs it when it records what that runner
 left dirty.
+
+**A §8.1 continuation comes through here like any other activation.** It used
+to be undispatchable in production: `Dispatcher` requires the steer
+instructions for a `steer-continuation` mint and this composition has no
+argument for them, so every continuation — including the one §5.6 recovery
+mints from a crashed steer — was refused at the launch. It is not a signature
+problem, and adding a `instructions` parameter here would only move the
+forgetting one frame up: the dispatcher reads the text off the predecessor's
+own durable steer intent (`Dispatcher._steer_instructions`), so a caller that
+holds nothing but the `MintRequest` `Steerer` produced can still run the
+continuation to `exit-recorded`.
 """
 
 from __future__ import annotations
@@ -186,6 +197,13 @@ class Supervisor:
         here — `waitpid` answers ECHILD — and records it as
         `EXIT_STATUS_UNOBSERVABLE_REATTACHED` (§5.2, §5.6).
         """
+        # A §8.1 continuation runs the same §5.4 precondition as any other
+        # activation, so a writing node's continuation is reset to the steered
+        # attempt's pre_attempt_commit BEFORE the resumed session's first turn
+        # — the killed runner's edits are pinned under prereset/ first, but the
+        # session rejoins a tree that no longer matches its context. §5.4 as
+        # written is what this obeys; whether §8.1 should exempt continuations
+        # is the open ruling in bead cr-o85.18.
         dispatch = self._dispatcher.dispatch(
             request,
             profile,
