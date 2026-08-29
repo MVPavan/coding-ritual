@@ -378,9 +378,13 @@ canonicalized graph body** (`wf-canon-json/1` bytes per §2 rule 8 —
 never TOML text; size-capped by the §11 payload probe; fallback:
 a dedicated child bead or content-addressed git blob referenced by hash),
 and the resolved configuration with provenance — every profile, model,
-bound, isolation, each tagged `source: graph-default | project-config |
-instance-override` (instance overrides arrive as an instantiation-time
-JSON validated against the schema subset). The root also records its
+bound, isolation, each tagged `source: graph-default | role-binding |
+project-config | instance-override` (instance overrides arrive as an
+instantiation-time JSON validated against the schema subset;
+`role-binding` is a value supplied by the foreman config's `roles` map,
+which resolves a graph's `profile:<role>` runner alias to a concrete
+runner and model — it ranks above a graph default and below both
+project config and an instance override). The root also records its
 CREATION-TIME config signature; `create_root` idempotency-by-key
 compares against that signature, not the live config — a verified
 rebudget mutates the live config and must never break root re-creation
