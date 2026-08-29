@@ -41,6 +41,7 @@ from tests._supervisor import (
     make_repo,
     make_root,
     make_store,
+    make_workspace,
     node_of,
     task_builder,
 )
@@ -52,7 +53,6 @@ from workflow_interpreter.supervisor import (
     MonitorVerdict,
     SupervisionResult,
     Supervisor,
-    Workspace,
     pinned_verifier_digests,
 )
 
@@ -85,6 +85,7 @@ from tests._supervisor import (
     make_git,
     make_paths,
     make_persistent_store,
+    make_workspace,
     node_of,
     task_builder,
 )
@@ -104,7 +105,7 @@ root = store.reads.load_root(root_id)
 paths = make_paths(config, root_id)
 git = make_git(config)
 clock = SystemClock()
-workspace = Workspace(paths, git, clock)
+workspace = make_workspace(paths, git, clock)
 node = node_of(root.definition.document, IMPLEMENT)
 profile = FakeProfile(
     ChildScript(
@@ -152,7 +153,7 @@ class Lab:
         self.paths = make_paths(self.config, self.root.root_id)
         self.clock = FrozenClock()
         self.git = make_git(self.config)
-        self.workspace = Workspace(self.paths, self.git, self.clock)
+        self.workspace = make_workspace(self.paths, self.git, self.clock)
         self.node = node_of(self.root.definition.document, IMPLEMENT)
         self.supervisor = Supervisor(
             self.config, self.paths, self.git, self.store, self.workspace, self.clock

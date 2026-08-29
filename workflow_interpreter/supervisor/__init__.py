@@ -26,7 +26,9 @@ Not implemented here: runner PROFILES (phase 4 — this package declares the §6
 Protocol only) and the foreman tick loop (phase 5).
 """
 
+from workflow_interpreter.supervisor.artifact import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.band import BandLock
+from workflow_interpreter.supervisor.branch import BranchAdvance, BranchAdvanceOutcome
 from workflow_interpreter.supervisor.channels import (
     pin_verifier_digests,
     pinned_verifier_digests,
@@ -35,12 +37,14 @@ from workflow_interpreter.supervisor.channels import (
 from workflow_interpreter.supervisor.clock import Clock, SystemClock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.errors import (
+    BandNotHeld,
     DirtyTreeRefused,
     ExecLedgerError,
     ForkBarrierError,
     GitCommandError,
     LockUnavailable,
     PreconditionRefused,
+    SnapshotFailed,
     SupervisorConfigError,
     SupervisorError,
     TerminationFailed,
@@ -127,8 +131,12 @@ from workflow_interpreter.supervisor.workspace import (
 __all__ = [
     "EVIDENCE_EXIT_UNOBSERVED",
     "EXIT_CODE_UNOBSERVED",
+    "INSTANCE_BRANCH_REF",
     "AuditFlag",
     "BandLock",
+    "BandNotHeld",
+    "BranchAdvance",
+    "BranchAdvanceOutcome",
     "Capabilities",
     "ChildLauncher",
     "Clock",
@@ -183,6 +191,7 @@ __all__ = [
     "RunnerChannels",
     "RunnerCommand",
     "RunnerEvent",
+    "SnapshotFailed",
     "StaleFlag",
     "SteerIntent",
     "SteerResult",

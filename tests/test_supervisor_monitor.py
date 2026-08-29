@@ -308,6 +308,46 @@ def test_a_max_wall_breach_that_cannot_prove_death_is_not_terminal(
     assert result.termination.confirmed_dead is False
 
 
+def test_an_unconfirmed_max_wall_kill_is_reported_on_the_next_reap(
+    watched: Watched, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A delayed reap after an unconfirmed kill is still this wrapper's wall breach."""
+    stat = watched.config.proc_root / str(FAKE_PID) / "stat"
+    reaped: list[int] = []
+
+    def make_proc_indeterminate() -> None:
+        stat.unlink()
+        stat.mkdir()
+
+    def record_reap(pid: int) -> None:
+        reaped.append(pid)
+
+    watched.clock.on_sleep.append(lambda: None)
+    watched.clock.on_sleep.append(make_proc_indeterminate)
+    monkeypatch.setattr(procfs_module, "reap", record_reap)
+    watched.clock.advance(MAX_WALL_S + 1)
+
+    first = watched.monitor.observe()
+
+    assert first.verdict is MonitorVerdict.INDETERMINATE
+    assert first.termination is not None
+    assert first.termination.confirmed_dead is False
+    assert reaped == []
+
+    stat.rmdir()
+    write_proc_entry(watched.config.proc_root, FAKE_PID)
+    monkeypatch.setattr(
+        procfs_module, "collect", lambda pid: ReapResult(exit_code=-signal.SIGKILL)
+    )
+
+    result = watched.monitor.observe()
+
+    assert result.verdict is MonitorVerdict.MAX_WALL_BREACH
+    assert result.exit_reason is ExitReason.MAX_WALL
+    assert result.exit_code == -signal.SIGKILL
+    assert result.termination == first.termination
+
+
 def test_watch_returns_on_the_first_terminal_verdict(watched: Watched) -> None:
     """The loop polls at the configured interval and stops when the child is gone."""
     watched.clock.on_sleep.append(

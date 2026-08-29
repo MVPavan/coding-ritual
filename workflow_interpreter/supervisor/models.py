@@ -26,6 +26,8 @@ from workflow_interpreter.bdio import (
     ProcessHandle,
 )
 from workflow_interpreter.schema.models import IsolationMode, Outcome
+from workflow_interpreter.supervisor.branch import BranchAdvance, BranchAdvanceOutcome
+from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
 
 RECORD_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -44,6 +46,8 @@ __all__ = [
     "EXIT_CODE_UNOBSERVED",
     "ArtifactIdentity",
     "AuditFlag",
+    "BranchAdvance",
+    "BranchAdvanceOutcome",
     "CollectedExit",
     "CompletionEvidence",
     "ConfirmedPath",
@@ -64,6 +68,7 @@ __all__ = [
     "MonitorResult",
     "MonitorVerdict",
     "OutcomeMarker",
+    "OutputsWalk",
     "PinOutcome",
     "PinResult",
     "PreconditionRecord",
@@ -77,6 +82,8 @@ __all__ = [
     "StaleFlag",
     "SteerIntent",
     "TerminationProof",
+    "UnsafeEntry",
+    "UnsafeKind",
     "VerifyResult",
     "WorkspaceRecord",
 ]
@@ -161,6 +168,7 @@ class RecoveryCase(StrEnum):
       needs an answer, not a guess).
     """
 
+    NOT_LAUNCHED = "not-launched"
     EXIT_RECORDED = "exit-recorded"
     RUNNING = "running"
     DEAD_WITHOUT_EXIT = "dead-without-exit"
@@ -208,6 +216,8 @@ class AuditFlag(StrEnum):
     UNDECLARED_EFFECT = "undeclared_effect"
     ANTI_DRIFT = "anti_drift"
     EFFECTS_MANIFEST_MISSING = "effects_manifest_missing"
+    OUTPUTS_UNSAFE = "outputs_unsafe"
+    INSTANCE_BRANCH_DIVERGED = "instance_branch_diverged"
 
 
 # --- wrapper-dir records -------------------------------------------------
@@ -452,6 +462,7 @@ class PinResult(BaseModel):
     """The commit the decision was about, whatever the outcome."""
     ref: str | None = None
     reason: str | None = None
+    branch: BranchAdvance | None = None
 
     @property
     def settled(self) -> bool:
@@ -662,6 +673,8 @@ class CollectedExit(BaseModel):
     effects: EffectsManifest | None = None
     effects_error: str | None = None
     artifact_paths: tuple[str, ...] = ()
+    outputs_unsafe: tuple[UnsafeEntry, ...] = ()
+    outputs_truncated: bool = False
     session_id: str | None = None
     duration_s: float | None = None
 
@@ -682,6 +695,7 @@ class CompletionEvidence(BaseModel):
     verify_results: tuple[VerifyResult, ...] = ()
     audit_flags: tuple[AuditFlag, ...] = ()
     reasons: tuple[str, ...] = ()
+    branch: BranchAdvance | None = None
 
 
 class RecoveryClassification(BaseModel):

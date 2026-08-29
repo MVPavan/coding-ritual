@@ -15,6 +15,7 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.bdio.constants import DEVIATION_PRECONDITION_REFUSED
 from workflow_interpreter.bdio.errors import BoundEvaluationError
 from workflow_interpreter.bdio.records import GateRecord, RootRecord
 from workflow_interpreter.bdio.wire import (
@@ -355,6 +356,11 @@ def consecutive_infra_closes(
     run = 0
     for view in reversed(_at_node_round(activations, node, round_no)):
         if view.metadata.lifecycle is not Lifecycle.CLOSED:
+            continue
+        if any(
+            deviation.kind == DEVIATION_PRECONDITION_REFUSED
+            for deviation in view.metadata.deviations
+        ):
             continue
         if view.metadata.outcome in INFRA_OUTCOMES:
             run += 1

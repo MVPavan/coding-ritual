@@ -32,6 +32,7 @@ from tests._supervisor import (
     make_repo,
     make_root,
     make_store,
+    make_workspace,
     node_of,
     verifier_pins,
 )
@@ -41,6 +42,7 @@ from workflow_interpreter.bdio import (
     Breaker,
     ExitRecord,
     Lifecycle,
+    LossyWriteError,
     Outcome,
 )
 from workflow_interpreter.schema.models import IsolationMode, Node
@@ -84,7 +86,7 @@ class Lab:
         self.paths: WrapperPaths = make_paths(self.config, self.root.root_id)
         self.clock = FrozenClock()
         self.git = make_git(self.config)
-        self.workspace = Workspace(self.paths, self.git, self.clock)
+        self.workspace = make_workspace(self.paths, self.git, self.clock)
         self.node: Node = node_of(self.root.definition.document, node_name)
         if in_repo:
             # §12: the human's own checkout, so the band is a precondition of
@@ -580,21 +582,21 @@ def test_an_unreadable_wrapper_dir_still_records_the_exit(
     assert observation.collected.marker is None
 
 
-def test_a_foreman_close_during_the_exit_does_not_kill_the_observer(
-    lab: Lab,
+def test_a_foreman_close_during_the_exit_is_skipped_without_a_write(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The §8.1 steer race, from the resident supervisor's side (round 3).
+    """A settled activation is returned without a conflicting bd write."""
 
-    A dead child is exactly what provokes a foreman close, and the supervisor
-    that owns the watch reaches `record_exit` afterwards. `record_exit` refuses
-    now — the recorded outcome IS the §3.3 routing truth and an exit must not
-    be written over it — so the observer absorbs the refusal instead of dying
-    on a race its own design creates. The exit file keeps the observation.
-    """
+    def unexpected_error(*_: object, **__: object) -> None:
+        pytest.fail("an already-settled exit must not be logged as an error")
+
+    monkeypatch.setattr(
+        "workflow_interpreter.supervisor.exit._LOG.error", unexpected_error
+    )
     lab.store.close_activation(lab.activation.activation_id, Outcome.STEERED)
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
-
+    updates_before = lab.bd.command_count(BD_UPDATE)
     observation = lab.observe(exit_code=-15)
 
     assert observation.activation.metadata.outcome is Outcome.STEERED
@@ -605,6 +607,7 @@ def test_a_foreman_close_during_the_exit_does_not_kill_the_observer(
     )
     assert recorded is not None
     assert recorded.exit_code == -15
+    assert lab.bd.command_count(BD_UPDATE) == updates_before
 
 
 def test_an_out_of_band_dirty_state_still_records_the_exit(tmp_path: Path) -> None:
@@ -641,19 +644,10 @@ def test_an_out_of_band_dirty_state_still_records_the_exit(tmp_path: Path) -> No
     assert attribution.entries == ()
 
 
-def test_a_foreman_close_one_bd_command_later_does_not_kill_the_observer(
+def test_a_foreman_close_one_bd_command_later_propagates_to_the_wrapper_boundary(
     lab: Lab,
 ) -> None:
-    """The same §8.1 race, landing between the write and its read-back (r4).
-
-    `client._merge_metadata` verifies every write by reading it back, so a close
-    that lands in THAT window makes `record_exit` raise `LossyWriteError` —
-    "wrote lifecycle=exit-recorded, read back closed" — and not the
-    `LifecycleConflictError` the guard above it raises. Absorbing only the
-    latter left the resident supervisor dying on the same race one bd command
-    later, so both race members are absorbed — and only when the re-read
-    proves the race (settled, or an exit record already there).
-    """
+    """A race after the bd write is left for the wrapper boundary to classify."""
 
     def steer() -> None:
         lab.store.close_activation(lab.activation.activation_id, Outcome.STEERED)
@@ -664,19 +658,83 @@ def test_a_foreman_close_one_bd_command_later_does_not_kill_the_observer(
     lab.bd.pause_before(BD_UPDATE, arm)
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
+    with pytest.raises(LossyWriteError):
+        lab.observe(exit_code=-15)
 
-    observation = lab.observe(exit_code=-15)
-
-    assert observation.activation.metadata.outcome is Outcome.STEERED
-    assert observation.activation.metadata.lifecycle is Lifecycle.CLOSED
+    activation = lab.reload()
+    assert activation.metadata.outcome is Outcome.STEERED
+    assert activation.metadata.lifecycle is Lifecycle.CLOSED
     # The later race, so the merge itself LANDED and only its verification
     # lost: bd carries this exit under the foreman's close.
-    assert observation.activation.metadata.exit_record is not None
+    assert activation.metadata.exit_record is not None
     recorded = read_record(
         lab.paths.exit_file(lab.activation.activation_id), ExitRecord
     )
     assert recorded is not None
     assert recorded.exit_code == -15
+
+
+def test_observe_is_idempotent_on_a_recorded_exit(lab: Lab) -> None:
+    """A repeated observation reuses the first record and durable completion."""
+    lab.commit_work()
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(FEATURE_FILE)
+    first = lab.observe(exit_code=0)
+    updates_before = lab.bd.command_count(BD_UPDATE)
+    lab.clock.sleep(1)
+    second = lab.observer.observe(
+        lab.reload(),
+        lab.node,
+        lab.profile,
+        exit_code=9,
+        reason=ExitReason.EXITED,
+        pinned_digests=lab.pins(),
+    )
+    assert second.exit_record == first.exit_record
+    assert second.completion == first.completion
+    assert second.activation.metadata.exit_record == first.exit_record
+    assert lab.bd.command_count(BD_UPDATE) == updates_before
+
+
+def test_observe_reuses_the_exit_file_in_the_crash_window(lab: Lab) -> None:
+    """An on-disk exit is the source of truth before its bd mirror lands."""
+    exit_record = ExitRecord(
+        exit_code=-15,
+        ended_at="2026-08-25T12:00:00Z",
+        reason=ExitReason.EXITED.value,
+    )
+    write_record(lab.paths.exit_file(lab.activation.activation_id), exit_record)
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(FEATURE_FILE)
+    observation = lab.observe(exit_code=0)
+    assert observation.exit_record == exit_record
+    assert observation.activation.metadata.exit_record == exit_record
+
+
+def test_replay_recomputes_only_when_completion_is_absent(lab: Lab) -> None:
+    """Replay uses durable completion, but re-runs §7 after an incomplete crash."""
+    lab.commit_work()
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(FEATURE_FILE)
+    first = lab.observe(exit_code=0)
+    replayed = lab.observer.replay(
+        lab.reload(),
+        lab.node,
+        lab.profile,
+        first.exit_record,
+        pinned_digests=lab.pins(),
+    )
+    assert replayed.completion == first.completion
+    lab.paths.completion(lab.activation.activation_id).unlink()
+    recomputed = lab.observer.replay(
+        lab.reload(),
+        lab.node,
+        lab.profile,
+        first.exit_record,
+        pinned_digests=lab.pins(),
+    )
+    assert recomputed.completion == first.completion
+    assert lab.paths.completion(lab.activation.activation_id).exists()
 
 
 def test_an_unknown_pre_attempt_state_retires_an_earlier_attribution(

@@ -45,6 +45,7 @@ RECEIPT_FILE: Final[str] = "launch-receipt.json"
 LEDGER_FILE: Final[str] = "exec.ledger"
 LOG_FILE: Final[str] = "run.jsonl"
 CHANNELS_DIR: Final[str] = "channels"
+OUTPUTS_SNAPSHOT_DIR: Final[str] = "outputs-snapshot"
 """The subdirectory holding everything the RUNNER may write (§6).
 
 It exists because a sandbox grants DIRECTORIES. Codex's `workspace-write` makes
@@ -267,6 +268,10 @@ class WrapperPaths:
         for why the §6 channels are not simply loose in the activation dir.
         """
         return self.activation_dir(activation_id) / CHANNELS_DIR
+
+    def outputs_snapshot(self, activation_id: str) -> Path:
+        """The wrapper-owned capture of one runner artifact directory."""
+        return self.activation_dir(activation_id) / OUTPUTS_SNAPSHOT_DIR
 
     def outcome(self, activation_id: str) -> Path:
         """`$WF_OUTCOME_FILE` — THE reserved outcome channel (§6)."""

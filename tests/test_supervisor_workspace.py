@@ -15,6 +15,7 @@ behind tier-2 confirmation.
 from __future__ import annotations
 
 import os
+import subprocess
 import time
 from pathlib import Path
 
@@ -61,6 +62,7 @@ from workflow_interpreter.supervisor import (
     HumanConfirmation,
     LockUnavailable,
     PreconditionRefused,
+    SnapshotFailed,
     WorkspaceRecord,
     encode_dirty_state,
     namespaced_ref,
@@ -524,10 +526,42 @@ def test_a_reset_refuses_when_its_snapshot_cannot_be_pinned(
 
     monkeypatch.setattr(Git, "snapshot_commit", refuse)
 
-    with pytest.raises(PreconditionRefused, match="pre-destruction snapshot"):
+    with pytest.raises(SnapshotFailed, match="pre-destruction snapshot"):
         worktree.workspace.prepare(worktree.activation, worktree.node)
 
     assert (tree / SCRATCH_FILE).read_text(encoding="utf-8") == SCRATCH_TEXT
+
+
+def test_a_snapshot_does_not_run_a_clean_filter(worktree: Fixture) -> None:
+    """R8: snapshot bytes come from the worktree, never an attributes filter."""
+    worktree.workspace.prepare(worktree.activation, worktree.node)
+    tree = worktree.paths.worktree
+    sentinel = tree.parent / "filter-ran"
+    script = tree.parent / "filter.sh"
+    script.write_text(
+        "#!/bin/sh\nprintf filter-ran > \"$1\"\nsed 's/HELLO/MANGLED/'\n",
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    (tree / ".gitattributes").write_text("* filter=evil\n", encoding="utf-8")
+    commit_all(tree, "attributes")
+    subprocess.run(
+        ["git", "config", "filter.evil.clean", f"{script} {sentinel}"],
+        cwd=tree,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    (tree / TRACKED_FILE).write_text("HELLO\n", encoding="utf-8")
+    snapshot = make_git(worktree.config).snapshot_commit(
+        message="filter-free snapshot",
+        parents=(head_of(tree),),
+        index_path=worktree.paths.snapshot_index,
+        cwd=tree,
+    )
+
+    assert not sentinel.exists()
+    assert blob_at(worktree.repo, snapshot, TRACKED_FILE) == "HELLO\n"
 
 
 # --- directory entries: the shape `git hash-object` cannot answer --------

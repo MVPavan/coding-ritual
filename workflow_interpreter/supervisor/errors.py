@@ -36,6 +36,14 @@ class PreconditionRefused(SupervisorError):
     """The §5.4 worktree precondition does not hold and cannot be repaired."""
 
 
+class SnapshotFailed(SupervisorError):
+    """A pre-destruction snapshot could not be safely created or pinned."""
+
+
+class BandNotHeld(PreconditionRefused):
+    """An in-repo caller omitted the already-required execution band."""
+
+
 class DirtyTreeRefused(PreconditionRefused):
     """§12: resetting would destroy work the wrapper cannot attribute to the runner.
 

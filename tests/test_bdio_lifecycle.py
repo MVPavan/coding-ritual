@@ -59,6 +59,7 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
         "close_activation",
         "close_gate_verified",
         "create_root",
+        "for_root",
         "from_config",
         "mint_activation",
         "open_gate",
@@ -75,6 +76,7 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
 """Every public name on `WorkflowStore`. Adding one is a design change; the
 point of the set is that a generic write cannot quietly join it.
 
+`for_root` derives a root-scoped reader without exposing the sealed client.
 `record_precondition` and `record_stale_flag` joined it in phase 3, as the
 narrowest typed writes for the two facts the supervisor owns and §3.2/§8.2
 require in bd: the carry-forward trio proven before the exec, and the stale

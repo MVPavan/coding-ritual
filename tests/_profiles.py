@@ -45,6 +45,7 @@ from tests._supervisor import (
     make_repo,
     make_root,
     make_store,
+    make_workspace,
     node_of,
 )
 from workflow_interpreter.bdio import ActivationRecord, MintRequest, ProcessHandle
@@ -60,7 +61,6 @@ from workflow_interpreter.supervisor import (
     Supervisor,
     SupervisorConfig,
     TaskSpec,
-    Workspace,
     channels_for,
     pinned_verifier_digests,
     procfs,
@@ -470,7 +470,7 @@ class Lab:
         self.paths = make_paths(self.config, self.root.root_id)
         self.clock = FrozenClock()
         self.git = make_git(self.config)
-        self.workspace = Workspace(self.paths, self.git, self.clock)
+        self.workspace = make_workspace(self.paths, self.git, self.clock)
         self.supervisor = Supervisor(
             self.config, self.paths, self.git, self.store, self.workspace, self.clock
         )

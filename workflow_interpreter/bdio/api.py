@@ -65,6 +65,7 @@ from workflow_interpreter.bdio.wire import (
     Evidence,
     ExitRecord,
     GateOpenRequest,
+    InstanceInput,
     Lifecycle,
     MintReason,
     MintRequest,
@@ -189,6 +190,19 @@ class WorkflowStore:
             branch_head_reader=branch_head_reader,
         )
 
+    def for_root(self, *, branch_head_reader: BranchHeadReader) -> WorkflowStore:
+        """Derive a root-scoped store without replacing injected capabilities.
+
+        The transport, verifier, and artifact reader are process-scoped
+        authority.  A root contributes only its branch-head reader.
+        """
+        return WorkflowStore(
+            self._client,
+            self._verifier,
+            artifact_reader=self._artifact_reader,
+            branch_head_reader=branch_head_reader,
+        )
+
     @property
     def reads(self) -> reads.WorkflowReads:
         """The §4 read vocabulary — the only bd handle this store hands out."""
@@ -208,6 +222,9 @@ class WorkflowStore:
         instance_key: str,
         definition: GraphDefinition,
         resolved_config: Sequence[ResolvedSetting],
+        instance_inputs: Sequence[InstanceInput] = (),
+        allow_test_flags: bool = False,
+        instance_base_commit: str | None = None,
     ) -> RootRecord:
         """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
         return create_root(
@@ -215,6 +232,9 @@ class WorkflowStore:
             instance_key=instance_key,
             definition=definition,
             resolved_config=resolved_config,
+            instance_inputs=instance_inputs,
+            allow_test_flags=allow_test_flags,
+            instance_base_commit=instance_base_commit,
         )
 
     # -- activations -----------------------------------------------------
@@ -241,8 +261,9 @@ class WorkflowStore:
         # activation views, the key lookup and the derivation.
         beads = self._reads.instance_beads(root_id)
         activations = reads.activations_of(beads)
+        gates_of_instance = reads.gates_of(beads)
         facts = mint.derive_mint_facts(
-            root, request, activations, self._branch_head_reader
+            root, request, activations, self._branch_head_reader, gates_of_instance
         )
         existing = tuple(
             record
@@ -268,6 +289,7 @@ class WorkflowStore:
             round_no=facts.round_no,
             seq=seq,
             predecessor_activation_id=facts.predecessor_activation_id,
+            predecessor_gate_id=facts.predecessor_gate_id,
             outcome_taken=facts.outcome_taken,
             idempotency_key=facts.idempotency_key,
             mint_reason=facts.mint_reason,
@@ -570,9 +592,11 @@ class WorkflowStore:
             artifact_reader=self._artifact_reader,
         )
 
-    def append_event(self, root_id: str, payload: EventPayload) -> BeadRecord:
+    def append_event(
+        self, root_id: str, payload: EventPayload, *, seq: int | None = None
+    ) -> BeadRecord:
         """Append one transition event, idempotently and INLINE (§3.3)."""
-        return gates.append_event(self._client, root_id, payload)
+        return gates.append_event(self._client, root_id, payload, seq=seq)
 
     # -- internals -------------------------------------------------------
 

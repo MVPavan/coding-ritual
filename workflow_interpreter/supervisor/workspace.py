@@ -64,29 +64,45 @@ survives crashes, a trailing cleanup does not (§5.4, drills 4, 5, 26).
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import Final
 
 import structlog
-from pydantic import ValidationError
 
 from workflow_interpreter.bdio import ActivationRecord, ArtifactIdentity
-from workflow_interpreter.schema.loader import canonical_json_bytes
 from workflow_interpreter.schema.models import IsolationMode, Node
+from workflow_interpreter.supervisor.artifact import (
+    ARTIFACT_NAMESPACE,
+    BRANCH_TEMPLATE,
+    INSTANCE_BRANCH_REF,
+    ORPHAN_NAMESPACE,
+    PRERESET_NAMESPACE,
+    REF_TEMPLATE,
+    ArtifactManager,
+    activation_ref,
+    namespace_prefix,
+    namespaced_ref,
+)
+from workflow_interpreter.supervisor.attribution import (
+    AttributionManager,
+    decode_dirty_state,
+    encode_dirty_state,
+)
 from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.channels import runner_committer_email
+from workflow_interpreter.supervisor.branch import BranchAdvance, BranchAdvanceOutcome
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.errors import (
+    BandNotHeld,
     DirtyTreeRefused,
     GitCommandError,
     PreconditionRefused,
-    WrapperDirError,
+    SnapshotFailed,
 )
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.models import (
     DirtyEntry,
     DirtySnapshot,
-    EntryKind,
     HumanConfirmation,
     PinOutcome,
     PinResult,
@@ -95,32 +111,31 @@ from workflow_interpreter.supervisor.models import (
     RunnerAttribution,
     WorkspaceRecord,
 )
-from workflow_interpreter.supervisor.paths import (
-    WrapperPaths,
-    read_record,
-    write_record,
-)
+from workflow_interpreter.supervisor.paths import WrapperPaths, write_record
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
-BRANCH_TEMPLATE: Final[str] = "wf/{root_id}"
-
-ARTIFACT_NAMESPACE: Final[str] = "artifact"
-ORPHAN_NAMESPACE: Final[str] = "orphan"
-PRERESET_NAMESPACE: Final[str] = "prereset"
-REF_TEMPLATE: Final[str] = "refs/wf/{root_id}/{namespace}/{activation_id}"
-"""Three SIBLING namespaces under one instance's refs, and the separation is
-load-bearing rather than tidy. `artifact/` is the §7.4 pin, and a commit under
-it is also the §12 authority to reset HEAD off it. `orphan/` preserves a commit
-recovery could not attribute, and `prereset/` preserves what a reset was about
-to destroy — neither is authority for anything, and `_is_runner_lineage` reads
-only `artifact/`. A flat `refs/wf/<root_id>/…` prefix could not express that:
-every ref the wrapper wrote for any reason would have blessed its commit."""
+__all__ = [
+    "ARTIFACT_NAMESPACE",
+    "BRANCH_TEMPLATE",
+    "INSTANCE_BRANCH_REF",
+    "ORPHAN_NAMESPACE",
+    "PRERESET_NAMESPACE",
+    "REF_TEMPLATE",
+    "Workspace",
+    "activation_ref",
+    "decode_dirty_state",
+    "encode_dirty_state",
+    "namespace_prefix",
+    "namespaced_ref",
+]
 
 _SNAPSHOT_MESSAGE: Final[str] = (
     "wf pre-reset snapshot of {activation_id} at {head} (§12): the full dirty "
     "state, untracked content included, as it stood before the reset"
 )
+_OUTPUTS_MESSAGE: Final[str] = "wf pinned outputs for {activation_id}"
+_OUTPUTS_NAMESPACE: Final[str] = "outputs"
 
 _MSG_MISSING_COMMIT: Final[str] = (
     "intended_base_commit {commit} does not exist in {repo}; a bd record naming "
@@ -145,87 +160,33 @@ _MSG_NO_SNAPSHOT: Final[str] = (
     "pinned ({error}), so the reset would not be recoverable if the wrapper's "
     "attribution is wrong (§12)"
 )
-_REASON_NOT_DESCENDANT: Final[str] = (
-    "it does not descend from intended_base_commit {intended}"
-)
-_REASON_UNDECLARED: Final[str] = (
-    "it touches {paths}, which the runner did not declare in $WF_EFFECTS_FILE"
-)
-_REASON_NO_MANIFEST: Final[str] = (
-    "no $WF_EFFECTS_FILE manifest exists for this attempt, so in-repo there is "
-    "nothing separating a commit the runner made from one the human made"
-)
-_REASON_NOT_OUR_COMMITTER: Final[str] = (
-    "it was committed by {found!r}, not by this activation's runner identity "
-    "{wanted!r}; path containment alone made a commit the HUMAN made in their "
-    "own checkout attributable whenever the dead runner's manifest happened to "
-    "name the same path (§7.4)"
-)
 _MSG_BAND_REQUIRED: Final[str] = (
     "in-repo isolation requires the §12 execution band; acquire it before "
     "preparing the workspace"
 )
 
 
-def activation_ref(root_id: str, activation_id: str) -> str:
-    """`refs/wf/<root_id>/artifact/<activation_id>` — the §7.4 artifact pin."""
-    return namespaced_ref(root_id, ARTIFACT_NAMESPACE, activation_id)
-
-
-def namespaced_ref(root_id: str, namespace: str, activation_id: str) -> str:
-    """One instance ref in one of the three namespaces (see `REF_TEMPLATE`)."""
-    return REF_TEMPLATE.format(
-        root_id=root_id, namespace=namespace, activation_id=activation_id
-    )
-
-
-def namespace_prefix(root_id: str, namespace: str) -> str:
-    """Everything under one namespace — the set `refs_under` answers about."""
-    return namespaced_ref(root_id, namespace, "")
-
-
-def encode_dirty_state(snapshot: DirtySnapshot) -> str:
-    """The §3.2 `pre_attempt_dirty_state` carrier value (canonical JSON)."""
-    return canonical_json_bytes(snapshot.model_dump(mode="json")).decode("utf-8")
-
-
-def decode_dirty_state(value: str | None) -> DirtySnapshot | None:
-    """Parse a recorded `pre_attempt_dirty_state`; `None` when absent or corrupt.
-
-    `wire.py` validates that the carrier is canonical JSON of an OBJECT, and
-    nothing validates that the object is a `DirtySnapshot` — so a row whose §3.2
-    trio was written out of band (a hand edit, an older tool, a direct `bd
-    update`; bead cr-too) decodes to a `ValidationError`. That is a `ValueError`,
-    which is neither an `OSError` nor a `SupervisorError`, so it escaped
-    `ExitObserver._post_exit`'s catch and took `observe()` down BEFORE
-    `record_exit` ran — a provably-exited child left recorded as `dispatched`,
-    re-classified as an infra failure on every subsequent tick (probed, r4).
-
-    Corrupt provenance is therefore treated as NO provenance, which is the
-    answer this package already gives a missing record and the direction §12
-    resolves toward: with no snapshot, `_plan` has no attribution to match
-    against, `record_attribution` records nothing, and every dirty path lands
-    on the protected side. The warning is loud so the anomaly is seen.
-    """
-    if not value:
-        return None
-    try:
-        return DirtySnapshot.model_validate_json(value)
-    except ValidationError as exc:
-        _LOG.warning("wf.dirty_state.undecodable", error=str(exc), value=value)
-        return None
-
-
 class Workspace:
     """Creates, asserts and resets the activation's working tree (§5.4, §12)."""
 
     def __init__(
-        self, paths: WrapperPaths, git: Git, clock: Clock, band: BandLock | None = None
+        self,
+        paths: WrapperPaths,
+        git: Git,
+        clock: Clock,
+        band: BandLock,
+        *,
+        advance_branch: bool = False,
     ) -> None:
         self._paths = paths
         self._git = git
         self._clock = clock
-        self._band = band if band is not None else BandLock(paths.band_lock)
+        self._band = band
+        self._advance_branch = advance_branch
+        self._artifacts = ArtifactManager(paths, git, self.path_for)
+        self._attribution = AttributionManager(
+            paths, git, clock, self.path_for, self._entry
+        )
 
     @property
     def band(self) -> BandLock:
@@ -257,7 +218,7 @@ class Workspace:
         intended = activation.metadata.intended_base_commit
         in_repo = node.isolation is IsolationMode.IN_REPO
         if in_repo and not self._band.held:
-            raise PreconditionRefused(_MSG_BAND_REQUIRED)
+            raise BandNotHeld(_MSG_BAND_REQUIRED)
         cwd = self._ensure_tree(intended, in_repo=in_repo)
 
         snapshot = self._snapshot(cwd) if in_repo else None
@@ -364,11 +325,11 @@ class Workspace:
             dirty = tuple(path for path, _ in self._git.status_paths(cwd=cwd))
             return ResetPlan(resettable=dirty, head_move_required=head_move_required)
 
-        attribution = self._attribution()
+        attribution = self._attribution.read()
         resettable: list[str] = []
         protected: list[str] = []
         for entry in snapshot.entries:
-            if self._is_runner_output(
+            if self._attribution.is_runner_output(
                 entry, attribution, prior, confirmation, activation_id
             ):
                 resettable.append(entry.path)
@@ -385,87 +346,9 @@ class Workspace:
             protected_head=head if head_protected else None,
         )
 
-    @staticmethod
-    def _is_runner_output(
-        entry: DirtyEntry,
-        attribution: RunnerAttribution | None,
-        prior: DirtySnapshot | None,
-        confirmation: HumanConfirmation | None,
-        activation_id: str,
-    ) -> bool:
-        """Can the wrapper PROVE the runner left this exact content here? (§12)
-
-        Two ways to answer yes, and every other answer is no:
-
-        0. …unless the entry is not a regular FILE, which is refused before
-           either. A directory (and a FIFO, and a symlink to one) has no blob,
-           so its digest is `""` — and `""` is what every other such entry
-           hashes to as well, which turns both the attribution test AND a
-           tier-2 confirmation's content binding into `"" == ""`. A
-           confirmation given when a nested checkout held one thing would
-           release whatever it holds later, and `clean -f -d` on it takes the
-           whole subtree (§12).
-        1. a human released this path at this content, in THIS activation
-           (tier-2, digest-bound and activation-bound);
-        2. the path is TRACKED, the wrapper attributed it at a runner's exit,
-           and nothing has changed it since — the recorded digest still equals
-           what is on disk;
-        3. …there is no third way. Absence of evidence is not attribution.
-
-        Condition 2 is restricted to tracked paths because attribution partly
-        rests on the runner's own `$WF_EFFECTS_FILE`, and the runner writes
-        that file. A declaration naming a human's mid-run file — from malice or
-        from a manifest built out of `git status` — would otherwise put
-        never-committed content on the destroyable side, where the mistake has
-        no undo at all: no blob, no commit, no reflog (probed). For a tracked
-        path the content is in the object store either way.
-
-        It carries a second guard even though `ExitObserver` already applies
-        it: a path that was dirty when the attempt STARTED pre-existed that
-        runner, so the runner cannot have produced it whatever else the record
-        says.
-        """
-        if entry.kind is not EntryKind.FILE:
-            return False
-        if confirmation is not None and confirmation.releases(
-            activation_id, entry.path, entry.digest
-        ):
-            return True
-        if not entry.tracked:
-            return False
-        if prior is not None and entry.path in prior.paths:
-            return False
-        if attribution is None:
-            return False
-        return attribution.digest_of(entry.path) == entry.digest
-
     def _is_runner_lineage(self, cwd: Path, intended: str, head: str) -> bool:
-        """Whether HEAD sits on a commit the WRAPPER pinned, descended from the base.
-
-        The commit half of positive attribution, and it reads the `artifact/`
-        namespace ALONE. A commit under `artifact/` is one `pin_artifact`
-        decided was an attempt's artifact; a commit under `orphan/` or
-        `prereset/` is one the wrapper only PRESERVED, which is the opposite
-        claim — recovery pinning a human's commit for safekeeping must not
-        thereby hand the next reset permission to destroy it (probed).
-        """
-        pinned = self._git.refs_under(
-            namespace_prefix(self._paths.root_id, ARTIFACT_NAMESPACE), cwd=cwd
-        )
-        return head in pinned and self._git.is_ancestor(intended, head, cwd=cwd)
-
-    def _attribution(self) -> RunnerAttribution | None:
-        """The §12 attribution record, or `None` when there is nothing proven.
-
-        A malformed record is treated as absent rather than raised: the effect
-        is that everything becomes protected, which is the direction a
-        corrupted provenance file must fail in.
-        """
-        try:
-            return read_record(self._paths.attribution_record, RunnerAttribution)
-        except WrapperDirError as exc:
-            _LOG.warning("wf.attribution.unreadable", error=str(exc))
-            return None
+        """Delegate the instance-lineage check to artifact ownership."""
+        return self._artifacts.is_runner_lineage(cwd, intended, head)
 
     @staticmethod
     def _refusal(plan: ResetPlan) -> str:
@@ -519,12 +402,10 @@ class Workspace:
             )
             self._git.update_ref(ref, commit, cwd=cwd)
             pinned = self._git.ref_target(ref, cwd=cwd)
-        except (GitCommandError, OSError) as exc:
-            raise PreconditionRefused(
-                _MSG_NO_SNAPSHOT.format(path=cwd, error=exc)
-            ) from exc
+        except (GitCommandError, OSError, UnicodeDecodeError) as exc:
+            raise SnapshotFailed(_MSG_NO_SNAPSHOT.format(path=cwd, error=exc)) from exc
         if pinned != commit:
-            raise PreconditionRefused(
+            raise SnapshotFailed(
                 _MSG_NO_SNAPSHOT.format(path=cwd, error=f"{ref} reads back as {pinned}")
             )
         _LOG.info(
@@ -587,137 +468,75 @@ class Workspace:
         declared: frozenset[str] | None = None,
         quarantine: bool = False,
     ) -> PinResult:
-        """Pin THIS attempt's commit under `refs/wf/…` BEFORE any bd write (§7.4).
-
-        The result is typed rather than an `ArtifactIdentity | None`, because
-        "no commit" and "a commit this attempt cannot claim" are different
-        facts and §5.6 used to close on both. `PINNED` is the wrapper's
-        statement that this activation produced this commit, and that statement
-        also becomes the §12 authority to move HEAD off it — so a commit pinned
-        on a guess is a commit a later reset destroys.
-
-        Two attribution tests, both refusing rather than guessing:
-
-        - **Descent** (both modes): `intended_base_commit` must be an ancestor.
-          A HEAD on unrelated history is not this attempt's artifact.
-        - **Declaration** (in-repo only): every path the commit range touches
-          must be in `declared` — the runner's own `$WF_EFFECTS_FILE`. In-repo
-          the human's checkout IS the runner's workspace, so a commit made
-          during the run may be either party's, and the declaration is the only
-          evidence separating them. `declared=None` means NO manifest exists,
-          which in-repo is unattributable — not a licence to skip the test.
-          Worktree mode never applies it: the tree is the wrapper's and nobody
-          else commits in it.
-        - **Authorship** (in-repo only): the commit's COMMITTER must be this
-          activation's runner identity, which `RunnerChannels.env()` stamps on
-          the child (§6, §7.4). Containment is a statement about PATHS and says
-          nothing about who wrote them: a dead runner's manifest naming a path
-          the human later committed in their own checkout made the human's
-          commit this activation's artifact — and an artifact pin is the §12
-          authority for the next reset to move HEAD off it, so the human's work
-          was reset away (probed, Opus#21).
-
-        `quarantine` is §5.6's need: an unattributable commit found at recovery
-        must still survive, so it is pinned under `orphan/` — preserved,
-        never claimed, and never lineage `_is_runner_lineage` will bless.
-        """
-        cwd = self.path_for(node)
-        head = self._git.head_commit(cwd=cwd)
-        intended = activation.metadata.intended_base_commit
-        if head == intended:
-            return PinResult(outcome=PinOutcome.NO_COMMIT)
-        in_repo = node.isolation is IsolationMode.IN_REPO
-        reason = self._unattributed(
-            cwd,
-            intended,
-            head,
-            declared,
-            activation.activation_id,
-            in_repo=in_repo,
+        """Delegate artifact claiming while preserving Workspace's public seam."""
+        result = self._artifacts.pin_artifact(
+            activation, node, declared=declared, quarantine=quarantine
         )
-        if reason is not None:
-            return self._unclaimed(activation, cwd, head, reason, quarantine)
-        ref = activation_ref(self._paths.root_id, activation.activation_id)
-        self._git.update_ref(ref, head, cwd=cwd)
-        _LOG.info(
-            "wf.artifact.pinned",
-            activation_id=activation.activation_id,
-            ref=ref,
-            commit=head,
+        if not self._advance_branch or result.identity is None:
+            return result
+        branch = self.advance_instance_branch(
+            result.identity.commit_oid, cwd=self.path_for(node)
         )
-        return PinResult(
+        return result.model_copy(update={"branch": branch})
+
+    def advance_instance_branch(self, commit: str, *, cwd: Path) -> BranchAdvance:
+        """Advance the instance branch without mistaking divergence for transport failure."""
+        branch = INSTANCE_BRANCH_REF.format(root_id=self._paths.root_id)
+        current = self._git.ref_target(branch, cwd=cwd)
+        if current is None:
+            return BranchAdvance(outcome=BranchAdvanceOutcome.MISSING, target=commit)
+        if current == commit:
+            return BranchAdvance(
+                outcome=BranchAdvanceOutcome.UNCHANGED, target=commit, previous=current
+            )
+        if not self._git.is_ancestor(current, commit, cwd=cwd):
+            return BranchAdvance(
+                outcome=BranchAdvanceOutcome.DIVERGED, target=commit, previous=current
+            )
+        if self._git.update_ref_cas(branch, commit, current, cwd=cwd):
+            return BranchAdvance(
+                outcome=BranchAdvanceOutcome.ADVANCED, target=commit, previous=current
+            )
+        again = self._git.ref_target(branch, cwd=cwd)
+        if again is None:
+            return BranchAdvance(outcome=BranchAdvanceOutcome.MISSING, target=commit)
+        if again == commit:
+            return BranchAdvance(
+                outcome=BranchAdvanceOutcome.UNCHANGED, target=commit, previous=again
+            )
+        if again == current:
+            raise GitCommandError("instance branch compare-and-swap failed")
+        return BranchAdvance(
+            outcome=BranchAdvanceOutcome.DIVERGED, target=commit, previous=again
+        )
+
+    def pin_outputs(
+        self, activation: ActivationRecord, output_paths: tuple[str, ...]
+    ) -> PinResult:
+        """Pin the collected wrapper-owned outputs and then remove their snapshot."""
+        snapshot = self._paths.outputs_snapshot(activation.activation_id)
+        cwd = self._paths.config.repo_root
+        ref = namespaced_ref(
+            self._paths.root_id, _OUTPUTS_NAMESPACE, activation.activation_id
+        )
+        commit = self._git.commit_directory(
+            output_paths,
+            root=snapshot,
+            message=_OUTPUTS_MESSAGE.format(activation_id=activation.activation_id),
+            index_path=snapshot.parent / f"{activation.activation_id}.outputs.index",
+            cwd=cwd,
+        )
+        self._git.update_ref(ref, commit, cwd=cwd)
+        result = PinResult(
             outcome=PinOutcome.PINNED,
             identity=ArtifactIdentity(
-                commit_oid=head, tree_oid=self._git.tree_oid(head, cwd=cwd)
+                commit_oid=commit, tree_oid=self._git.tree_oid(commit, cwd=cwd)
             ),
-            commit=head,
+            commit=commit,
             ref=ref,
         )
-
-    def _unclaimed(
-        self,
-        activation: ActivationRecord,
-        cwd: Path,
-        head: str,
-        reason: str,
-        quarantine: bool,
-    ) -> PinResult:
-        """Handle a commit this attempt may not claim: quarantine it, or refuse.
-
-        Quarantining is not a weaker pin — it is the opposite statement. The
-        commit is preserved so no reset can orphan it and no gc can collect it,
-        while `identity` stays empty so nothing downstream can record it as
-        this activation's artifact (§7.4 honest naming).
-        """
-        _LOG.error(
-            "wf.artifact.unattributed",
-            activation_id=activation.activation_id,
-            commit=head,
-            reason=reason,
-            quarantined=quarantine,
-        )
-        if not quarantine:
-            return PinResult(outcome=PinOutcome.REFUSED, commit=head, reason=reason)
-        ref = namespaced_ref(
-            self._paths.root_id, ORPHAN_NAMESPACE, activation.activation_id
-        )
-        self._git.update_ref(ref, head, cwd=cwd)
-        _LOG.warning(
-            "wf.artifact.quarantined",
-            activation_id=activation.activation_id,
-            ref=ref,
-            commit=head,
-        )
-        return PinResult(
-            outcome=PinOutcome.QUARANTINED, commit=head, ref=ref, reason=reason
-        )
-
-    def _unattributed(
-        self,
-        cwd: Path,
-        intended: str,
-        head: str,
-        declared: frozenset[str] | None,
-        activation_id: str,
-        *,
-        in_repo: bool,
-    ) -> str | None:
-        """Why `head` is not this attempt's artifact, or `None` when it is."""
-        if not self._git.is_ancestor(intended, head, cwd=cwd):
-            return _REASON_NOT_DESCENDANT.format(intended=intended)
-        if not in_repo:
-            return None
-        if declared is None:
-            return _REASON_NO_MANIFEST
-        touched = self._git.diff_names(intended, head, cwd=cwd)
-        undeclared = tuple(sorted(set(touched) - declared))
-        if undeclared:
-            return _REASON_UNDECLARED.format(paths=", ".join(undeclared))
-        wanted = runner_committer_email(activation_id)
-        found = self._git.committer_email(head, cwd=cwd)
-        if found != wanted:
-            return _REASON_NOT_OUR_COMMITTER.format(found=found, wanted=wanted)
-        return None
+        shutil.rmtree(snapshot, ignore_errors=True)
+        return result
 
     def record_attribution(
         self,
@@ -726,71 +545,8 @@ class Workspace:
         *,
         declared: frozenset[str],
     ) -> RunnerAttribution | None:
-        """Record what this runner provably left dirty, for a later reset (§12).
-
-        Called once, from `ExitObserver`, while the dead runner's activation
-        still owns the §12 band — so `git status` here is the wrapper's own
-        observation of what that runner left, not a guess made later.
-
-        Entries survive three filters: the wrapper saw the path dirty, the
-        runner DECLARED it, and it was not already dirty when this attempt
-        started. Prior entries are carried forward untouched — a file the
-        implementer left is still its work after a reviewer has run — because
-        the reset-time digest comparison is what expires them: anything that
-        edits a path breaks its match and returns it to protected.
-
-        Untracked paths are recorded like any other — this file is an
-        OBSERVATION, and a wrapper that edited its own observations to match
-        its policy would be worth nothing. `_is_runner_output` is where the
-        policy lives, and it never resets an untracked path on this evidence.
-
-        Worktree mode records nothing: that tree has no other author.
-        """
-        if node.isolation is not IsolationMode.IN_REPO:
-            return None
-        cwd = self.path_for(node)
-        pre_attempt = decode_dirty_state(activation.metadata.pre_attempt_dirty_state)
-        if pre_attempt is None:
-            # Unknown pre-attempt state cannot answer "was it already dirty",
-            # so nothing is attributable — and the on-disk record is REPLACED
-            # with an empty one, or an earlier attempt's entries would stay
-            # live and authorize a reset this attempt cannot vouch for.
-            _LOG.warning(
-                "wf.attribution.no_pre_attempt_state",
-                activation_id=activation.activation_id,
-            )
-            entries: tuple[DirtyEntry, ...] = ()
-            carried: tuple[DirtyEntry, ...] = ()
-        else:
-            entries = tuple(
-                self._entry(cwd, path, tracked)
-                for path, tracked in self._git.status_paths(cwd=cwd)
-                if path in declared and path not in pre_attempt.paths
-            )
-            carried = self._carry_forward(entries)
-        record = RunnerAttribution(
-            activation_id=activation.activation_id,
-            observed_at=to_iso(self._clock.now()),
-            head_commit=self._git.head_commit(cwd=cwd),
-            entries=carried,
-        )
-        write_record(self._paths.attribution_record, record)
-        _LOG.info(
-            "wf.attribution.recorded",
-            activation_id=activation.activation_id,
-            paths=[entry.path for entry in entries],
-        )
-        return record
-
-    def _carry_forward(self, entries: tuple[DirtyEntry, ...]) -> tuple[DirtyEntry, ...]:
-        """This attempt's entries plus every earlier one it does not supersede."""
-        existing = self._attribution()
-        if existing is None:
-            return entries
-        fresh = {entry.path for entry in entries}
-        return entries + tuple(
-            entry for entry in existing.entries if entry.path not in fresh
-        )
+        """Delegate durable dirty-tree attribution to its focused component."""
+        return self._attribution.record_attribution(activation, node, declared=declared)
 
     def remove_worktree(self) -> None:
         """Remove the instance worktree at terminal (§5.4). Never the repo."""

@@ -23,6 +23,7 @@ from workflow_interpreter.bdio.wire import (
     GateMetadata,
     RootMetadata,
     WfKind,
+    config_signature,
 )
 from workflow_interpreter.schema.graph_index import GraphIndex, build_index
 from workflow_interpreter.schema.loader import GraphValidationError, load_pinned_body
@@ -71,7 +72,9 @@ class RootRecord(BaseModel):
     @property
     def index(self) -> GraphIndex:
         """Node and region lookups over the pinned graph."""
-        return build_index(self.definition.document, allow_test_flags=False)
+        return build_index(
+            self.definition.document, allow_test_flags=self.metadata.allow_test_flags
+        )
 
 
 class ActivationRecord(BaseModel):
@@ -189,7 +192,10 @@ def parse_root(bead: BeadRecord) -> RootRecord:
             _MSG_SELF_ID.format(bead_id=bead.id, found=metadata.wf_root_id)
         )
     try:
-        definition = load_pinned_body(metadata.graph_body.encode("utf-8"))
+        definition = load_pinned_body(
+            metadata.graph_body.encode("utf-8"),
+            allow_test_flags=metadata.allow_test_flags,
+        )
     except GraphValidationError as exc:
         raise PinnedGraphMismatchError(
             _MSG_BODY_INVALID.format(bead_id=bead.id, reason=exc)
@@ -200,6 +206,15 @@ def parse_root(bead: BeadRecord) -> RootRecord:
                 bead_id=bead.id,
                 actual=definition.content_hash,
                 expected=metadata.graph_content_hash,
+            )
+        )
+    if (
+        metadata.config_signature is not None
+        and metadata.config_signature != config_signature(metadata.resolved_config)
+    ):
+        raise PinnedGraphMismatchError(
+            _MSG_BODY_INVALID.format(
+                bead_id=bead.id, reason="config signature mismatch"
             )
         )
     return RootRecord(bead=bead, metadata=metadata, definition=definition)

@@ -15,12 +15,10 @@ survives, the loser is superseded, nothing is deleted.
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Sequence
 from typing import Final
 
 import structlog
-from pydantic import JsonValue
 
 from workflow_interpreter.bdio import finalize, reads
 from workflow_interpreter.bdio.client import BdClient
@@ -30,16 +28,19 @@ from workflow_interpreter.bdio.wire import (
     KEY_SUPERSEDED_BY,
     KEY_WF_ROOT_ID,
     BeadRecord,
+    InstanceInput,
     ResolvedSetting,
     RootMetadata,
+    config_signature,
     metadata_dict,
 )
-from workflow_interpreter.schema.loader import canonical_bytes, canonical_json_bytes
+from workflow_interpreter.schema.loader import canonical_bytes
 from workflow_interpreter.schema.models import GraphDefinition
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 ROOT_SEQ: Final[int] = 0
+MAX_INSTANCE_INPUT_BYTES: Final[int] = 65536
 MAX_REPORTED_KEYS: Final[int] = 10
 """How many differing configuration keys a mismatch message names."""
 _TITLE_ROOT: Final[str] = "wf root {graph_id} {instance_key}"
@@ -66,6 +67,7 @@ _MSG_TWO_OWNING_ROOTS: Final[str] = (
 )
 _MSG_CONFIG_KEYS: Final[str] = "differing keys: {keys}"
 _MSG_CONFIG_KEYS_TRUNCATED: Final[str] = "differing keys: {keys} (+{more} more)"
+_MSG_INSTANCE_INPUT_BYTES: Final[str] = "instance inputs exceed {limit} bytes"
 
 
 def create_root(
@@ -74,14 +76,33 @@ def create_root(
     instance_key: str,
     definition: GraphDefinition,
     resolved_config: Sequence[ResolvedSetting],
+    instance_inputs: Sequence[InstanceInput] = (),
+    allow_test_flags: bool = False,
+    instance_base_commit: str | None = None,
 ) -> RootRecord:
     """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
     if not resolved_config:
         raise CarrierIntegrityError(_MSG_EMPTY_CONFIG.format(instance_key=instance_key))
     existing = _converged_root(client, instance_key)
     if existing is not None:
-        _assert_same_instance(existing, instance_key, definition, resolved_config)
+        _assert_same_instance(
+            existing,
+            instance_key,
+            definition,
+            resolved_config,
+            instance_inputs,
+            allow_test_flags,
+            instance_base_commit,
+        )
         return existing
+    inputs = tuple(instance_inputs)
+    if (
+        sum(len(item.body.encode("utf-8")) for item in inputs)
+        > MAX_INSTANCE_INPUT_BYTES
+    ):
+        raise CarrierIntegrityError(
+            _MSG_INSTANCE_INPUT_BYTES.format(limit=MAX_INSTANCE_INPUT_BYTES)
+        )
     metadata = RootMetadata(
         instance_key=instance_key,
         graph_id=definition.document.graph.id,
@@ -89,6 +110,10 @@ def create_root(
         graph_content_hash=definition.content_hash,
         graph_body=canonical_bytes(definition.document).decode("utf-8"),
         resolved_config=tuple(resolved_config),
+        instance_inputs=inputs,
+        config_signature=config_signature(tuple(resolved_config)),
+        allow_test_flags=allow_test_flags,
+        instance_base_commit=instance_base_commit,
         seq=ROOT_SEQ,
     )
     record = client._create_bead(
@@ -110,7 +135,15 @@ def create_root(
     # under this key with a different graph or resolution must be an identity
     # error, exactly as reuse-by-key is. Without this, the loser silently
     # inherits an instance it did not configure (probed, phase-2 review).
-    _assert_same_instance(converged, instance_key, definition, resolved_config)
+    _assert_same_instance(
+        converged,
+        instance_key,
+        definition,
+        resolved_config,
+        inputs,
+        allow_test_flags,
+        instance_base_commit,
+    )
     return converged
 
 
@@ -184,6 +217,9 @@ def _assert_same_instance(
     instance_key: str,
     definition: GraphDefinition,
     resolved_config: Sequence[ResolvedSetting],
+    instance_inputs: Sequence[InstanceInput],
+    allow_test_flags: bool,
+    instance_base_commit: str | None,
 ) -> None:
     """Refuse to alias a different graph or resolution onto an existing key."""
     comparisons = (
@@ -192,10 +228,17 @@ def _assert_same_instance(
             root.metadata.graph_content_hash,
             definition.content_hash,
         ),
+        ("instance_inputs", root.metadata.instance_inputs, tuple(instance_inputs)),
+        ("allow_test_flags", root.metadata.allow_test_flags, allow_test_flags),
+        (
+            "instance_base_commit",
+            root.metadata.instance_base_commit,
+            instance_base_commit,
+        ),
         (
             _FIELD_RESOLVED_CONFIG,
-            _config_signature(root.metadata.resolved_config),
-            _config_signature(resolved_config),
+            config_signature(root.metadata.resolved_config),
+            config_signature(tuple(resolved_config)),
         ),
     )
     for field, found, wanted in comparisons:
@@ -238,30 +281,6 @@ def _differing_keys(
             keys=rendered, more=len(differing) - len(shown)
         )
     return _MSG_CONFIG_KEYS.format(keys=rendered)
-
-
-def _config_signature(settings: Sequence[ResolvedSetting]) -> str:
-    """An order-independent identity digest of a resolved configuration.
-
-    Order-independent because resolution order carries no meaning. A root's
-    `resolved_config` is written once, at create, and never again — a §10.4
-    rebudget records its raise on the gate bead — so the live resolution IS
-    the creation-time one and a re-tick under the original config stays
-    idempotent. A separately recorded creation signature existed only to
-    survive the root-config write that no longer happens.
-
-    Values are hashed with their JSON TYPE, never through `str()`: stringifying
-    made the integer `1` and the string `"1"` (and `True` and `"True"`) the
-    same instance, so a re-tick under a differently TYPED resolution silently
-    reused a root configured otherwise (probed, phase-2 r3). Ordering is by the
-    entry's canonical encoding, which is total across mixed value types where
-    tuple comparison is not.
-    """
-    entries: list[list[JsonValue]] = [
-        [setting.key, setting.value, setting.source.value] for setting in settings
-    ]
-    ordered = sorted(entries, key=canonical_json_bytes)
-    return hashlib.sha256(canonical_json_bytes(ordered)).hexdigest()
 
 
 def _ensure_self_id(client: BdClient, bead: BeadRecord) -> RootRecord:

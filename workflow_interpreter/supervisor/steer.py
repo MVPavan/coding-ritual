@@ -229,6 +229,7 @@ class Steerer:
                     kind=DEVIATION_KIND_STEER,
                     reason=intent.reason,
                     recorded_at=intent.requested_at,
+                    instructions_digest=intent.instructions_digest,
                 ),
             ),
         )

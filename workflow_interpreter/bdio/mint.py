@@ -22,10 +22,13 @@ from pydantic import BaseModel
 
 from workflow_interpreter.bdio import bounds, keys
 from workflow_interpreter.bdio.capabilities import BranchHeadReader
+from workflow_interpreter.bdio.constants import _MSG_ENTRY_PREDECESSOR
 from workflow_interpreter.bdio.errors import BdConfigError, CarrierIntegrityError
-from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
+from workflow_interpreter.bdio.records import ActivationRecord, GateRecord, RootRecord
 from workflow_interpreter.bdio.wire import (
     WIRE_MODEL,
+    GateReason,
+    GateState,
     Lifecycle,
     MintReason,
     MintRequest,
@@ -56,9 +59,6 @@ _MSG_NOT_A_TASK: Final[str] = (
 _MSG_ENTRY_NODE: Final[str] = (
     "an entry mint must target the graph's entry node {entry!r}, not {node!r}"
 )
-_MSG_ENTRY_PREDECESSOR: Final[str] = (
-    "an entry mint has no predecessor; {predecessor!r} was supplied (§3.2)"
-)
 _MSG_NO_PREDECESSOR: Final[str] = (
     "a {reason} mint into {node!r} needs a predecessor activation to derive "
     "its outcome and idempotency key (§3.2)"
@@ -84,6 +84,15 @@ _MSG_NO_HEAD_READER: Final[str] = (
     "no branch_head_reader was injected; §3.2 resolves intended_base_commit "
     "at mint and will not take it from the caller"
 )
+_MSG_GATE_PREDECESSOR_MISSING: Final[str] = (
+    "predecessor gate {gate_id!r} is not this instance"
+)
+_MSG_GATE_PREDECESSOR_UNVERIFIED: Final[str] = (
+    "predecessor gate {gate_id!r} is not verified closed"
+)
+_MSG_GATE_ROUND_MISMATCH: Final[str] = (
+    "predecessor gate region or round does not match target"
+)
 
 
 class MintFacts(BaseModel):
@@ -96,6 +105,7 @@ class MintFacts(BaseModel):
     round_no: int
     mint_reason: MintReason
     predecessor_activation_id: str | None
+    predecessor_gate_id: str | None
     outcome_taken: Outcome | None
     intended_base_commit: str
     idempotency_key: str
@@ -106,20 +116,29 @@ def derive_mint_facts(
     request: MintRequest,
     activations: Sequence[ActivationRecord],
     branch_head_reader: BranchHeadReader | None,
+    gates: Sequence[GateRecord] = (),
 ) -> MintFacts:
     """Resolve a mint's §3.2 facts from the pinned graph and recorded trace."""
     node = _assert_declared_node(root, request.node)
+    gate = _resolve_gate_predecessor(request, gates)
     predecessor = _resolve_predecessor(request, activations)
-    outcome_taken = None if predecessor is None else predecessor.metadata.outcome
+    outcome_taken = (
+        predecessor.metadata.outcome
+        if predecessor is not None
+        else None
+        if gate is None
+        else gate.metadata.outcome
+    )
     _assert_reason_matches(request, predecessor, outcome_taken)
     region = node.region
-    round_no = _derive_round(root, request, region, predecessor, activations)
+    round_no = _derive_round(root, request, region, predecessor, gate, activations)
     return MintFacts(
         node=request.node,
         region=region,
         round_no=round_no,
         mint_reason=request.mint_reason,
         predecessor_activation_id=request.predecessor_activation_id,
+        predecessor_gate_id=request.predecessor_gate_id,
         outcome_taken=outcome_taken,
         intended_base_commit=_derive_base_commit(
             root, request.node, region, activations, branch_head_reader
@@ -152,12 +171,16 @@ def _resolve_predecessor(
     """The recorded predecessor bead this mint claims to follow."""
     predecessor_id = request.predecessor_activation_id
     if request.mint_reason is MintReason.ENTRY:
-        if predecessor_id is not None:
+        if predecessor_id is not None or request.predecessor_gate_id is not None:
             raise CarrierIntegrityError(
-                _MSG_ENTRY_PREDECESSOR.format(predecessor=predecessor_id)
+                _MSG_ENTRY_PREDECESSOR.format(
+                    predecessor=predecessor_id or request.predecessor_gate_id
+                )
             )
         return None
     if predecessor_id is None:
+        if request.predecessor_gate_id is not None:
+            return None
         raise CarrierIntegrityError(
             _MSG_NO_PREDECESSOR.format(
                 reason=request.mint_reason.value, node=request.node
@@ -185,12 +208,48 @@ def _resolve_predecessor(
     return found
 
 
+def _resolve_gate_predecessor(
+    request: MintRequest, gates: Sequence[GateRecord]
+) -> GateRecord | None:
+    """Return a verified closed gate predecessor, when the request names one."""
+    gate_id = request.predecessor_gate_id
+    if gate_id is None:
+        return None
+    found = next((gate for gate in gates if gate.gate_id == gate_id), None)
+    if found is None:
+        raise CarrierIntegrityError(
+            _MSG_GATE_PREDECESSOR_MISSING.format(gate_id=gate_id)
+        )
+    metadata = found.metadata
+    if (
+        metadata.state is not GateState.CLOSED
+        or metadata.outcome is None
+        or metadata.verified_fingerprint is None
+        or metadata.payload_digest is None
+    ):
+        raise CarrierIntegrityError(
+            _MSG_GATE_PREDECESSOR_UNVERIFIED.format(gate_id=gate_id)
+        )
+    return found
+
+
 def _assert_reason_matches(
     request: MintRequest,
     predecessor: ActivationRecord | None,
     outcome_taken: Outcome | None,
 ) -> None:
     """Refuse a mint whose reason contradicts the predecessor's recorded close."""
+    if request.predecessor_gate_id is not None:
+        if request.mint_reason is not MintReason.EDGE:
+            raise CarrierIntegrityError(
+                _MSG_WRONG_REASON.format(
+                    reason=request.mint_reason.value,
+                    expected=MintReason.EDGE.value,
+                    predecessor=request.predecessor_gate_id,
+                    outcome=("none" if outcome_taken is None else outcome_taken.value),
+                )
+            )
+        return
     if predecessor is None or outcome_taken is None:
         return
     if request.mint_reason is MintReason.INFRA_RETRY:
@@ -227,6 +286,7 @@ def _derive_round(
     request: MintRequest,
     region: str | None,
     predecessor: ActivationRecord | None,
+    gate: GateRecord | None,
     activations: Sequence[ActivationRecord],
 ) -> int:
     """§10.1: `round_no` increments on entry into the region's `entry_node`.
@@ -249,6 +309,17 @@ def _derive_round(
     """
     if request.mint_reason in _SAME_NODE_REASONS and predecessor is not None:
         return predecessor.metadata.round_no
+    if gate is not None:
+        if gate.metadata.region != region or gate.metadata.round_no is None:
+            raise CarrierIntegrityError(_MSG_GATE_ROUND_MISMATCH)
+        if (
+            gate.metadata.gate_reason in {GateReason.TRANSITION, GateReason.EXHAUSTION}
+            and region is not None
+            and root.index.regions.get(region) is not None
+            and root.index.regions[region].entry_node == request.node
+        ):
+            return _next_round(activations, region)
+        return gate.metadata.round_no
     declared_region = None if region is None else root.index.regions.get(region)
     if (
         region is not None
@@ -309,6 +380,9 @@ def _derive_key(
             )
         return keys.entry_idempotency_key(root.root_id)
     predecessor_id = request.predecessor_activation_id
+    gate_id = request.predecessor_gate_id
+    if gate_id is not None and outcome_taken is not None:
+        return keys.idempotency_key(root.root_id, gate_id, outcome_taken, request.node)
     if predecessor_id is None or outcome_taken is None:  # pragma: no cover - guarded
         raise CarrierIntegrityError(
             _MSG_NO_PREDECESSOR.format(

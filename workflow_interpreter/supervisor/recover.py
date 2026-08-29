@@ -67,14 +67,17 @@ from pydantic import BaseModel
 from workflow_interpreter.bdio import (
     ActivationRecord,
     ArtifactIdentity,
+    Deviation,
     Evidence,
     ExitRecord,
     Lifecycle,
     Outcome,
     WorkflowStore,
 )
+from workflow_interpreter.bdio.constants import DEVIATION_INSTANCE_BRANCH_DIVERGED
 from workflow_interpreter.schema.models import Node
 from workflow_interpreter.supervisor import procfs
+from workflow_interpreter.supervisor.branch import BranchAdvanceOutcome
 from workflow_interpreter.supervisor.channels import read_effects
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
@@ -126,7 +129,6 @@ _NOTE_QUARANTINED: Final[str] = (
 
 _OPEN_LIFECYCLES: Final[frozenset[Lifecycle]] = frozenset(
     {
-        Lifecycle.MINTED,
         Lifecycle.DISPATCHED,
         Lifecycle.EXIT_RECORDED,
         Lifecycle.EVIDENCE_RECORDED,
@@ -185,6 +187,11 @@ def classify(
     """Answer §5.6's question for one activation. Pure: nothing is written."""
     activation_id = activation.activation_id
     malformed: list[str] = []
+    if activation.metadata.lifecycle is Lifecycle.MINTED:
+        return RecoveryClassification(
+            case=RecoveryCase.NOT_LAUNCHED,
+            activation_id=activation_id,
+        )
 
     recorded = activation.metadata.exit_record
     from_file = False
@@ -429,8 +436,26 @@ class Recovery:
         note = EVIDENCE_EXIT_UNOBSERVED
         if pin.outcome is PinOutcome.QUARANTINED:
             note = f"{note}; {_NOTE_QUARANTINED.format(commit=pin.commit, ref=pin.ref)}"
+        deviations: tuple[Deviation, ...] = ()
+        if (
+            pin.branch is not None
+            and pin.branch.outcome is BranchAdvanceOutcome.DIVERGED
+        ):
+            deviations = (
+                Deviation(
+                    kind=DEVIATION_INSTANCE_BRANCH_DIVERGED,
+                    reason=f"{pin.branch.previous}->{pin.branch.target}",
+                    recorded_at=to_iso(self._clock.now()),
+                ),
+            )
+        elif (
+            pin.branch is not None
+            and pin.branch.outcome is BranchAdvanceOutcome.MISSING
+        ):
+            note = f"{note}; instance branch missing"
         return self._store.close_activation(
             activation_id,
             Outcome.ERROR_TRANSPORT,
             evidence=Evidence(artifact=pin.identity, note=note),
+            deviations=deviations,
         )

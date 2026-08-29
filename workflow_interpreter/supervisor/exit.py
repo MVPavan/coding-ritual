@@ -50,8 +50,6 @@ from workflow_interpreter.bdio import (
     Breaker,
     Evidence,
     ExitRecord,
-    LifecycleConflictError,
-    LossyWriteError,
     Outcome,
     Usage,
     VerifyOutcome,
@@ -65,20 +63,28 @@ from workflow_interpreter.supervisor.channels import (
     pinned_verifier_digests,
     read_effects,
     read_marker,
+    walk_outputs,
 )
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import SupervisorError
+from workflow_interpreter.supervisor.errors import SupervisorError, WrapperDirError
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.models import (
     RECORD_MODEL,
     AuditFlag,
+    BranchAdvance,
+    BranchAdvanceOutcome,
     CollectedExit,
     CompletionEvidence,
     ExitReason,
+    PinResult,
     VerifyResult,
 )
-from workflow_interpreter.supervisor.paths import WrapperPaths, write_record
+from workflow_interpreter.supervisor.paths import (
+    WrapperPaths,
+    read_record,
+    write_record,
+)
 from workflow_interpreter.supervisor.profile import Profile, TerminalEnvelope
 from workflow_interpreter.supervisor.verify import VerifyTree, run_checks
 from workflow_interpreter.supervisor.workspace import Workspace
@@ -93,6 +99,7 @@ burden. `fail_plan` and `reject` are failure claims: a failing check on them is
 consistent evidence, recorded as-is and never overwritten (§7.3)."""
 
 _REASON_VERIFY_FAILED: Final[str] = "verify check {cmd!r} exited {exit_code}"
+_REASON_OUTPUTS_TRUNCATED: Final[str] = "output walk was truncated"
 _REASON_PROVENANCE: Final[str] = (
     "verify check {cmd!r} hashes to {actual}, pinned {expected} — refused (§7.3)"
 )
@@ -182,21 +189,100 @@ class ExitObserver:
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None = None,
     ) -> ExitObservation:
-        """Record the exit, compute §7, then mirror the exit into bd as the final act."""
+        """Observe an exit once, reusing the first durable exit record."""
         activation_id = activation.activation_id
-        exit_record = ExitRecord(
-            exit_code=exit_code,
-            ended_at=to_iso(self._clock.now()),
-            reason=reason.value,
-        )
-        # FIRST, before anything that can take minutes. From here on a crash is
-        # "exited, evidence incomplete" and §7 is re-run; before it, the same
-        # crash lost a finished run to §5.6 case 3.
-        write_record(self._paths.exit_file(activation_id), exit_record)
+        exit_record = activation.metadata.exit_record
+        if exit_record is None:
+            exit_record = self._exit_file_record(activation_id)
+        if exit_record is None:
+            exit_record = ExitRecord(
+                exit_code=exit_code,
+                ended_at=to_iso(self._clock.now()),
+                reason=reason.value,
+            )
+            # FIRST, before anything that can take minutes. From here on a crash
+            # is "exited, evidence incomplete" and §7 is re-run; before it, the
+            # same crash lost a finished run to §5.6 case 3.
+            write_record(self._paths.exit_file(activation_id), exit_record)
+        elif exit_record.exit_code != exit_code or exit_record.reason != reason.value:
+            _LOG.info(
+                "wf.activation.exit_reused",
+                activation_id=activation_id,
+                recorded_exit_code=exit_record.exit_code,
+                recorded_reason=exit_record.reason,
+                passed_exit_code=exit_code,
+                passed_reason=reason.value,
+            )
 
-        post = self._post_exit(
-            activation, node, profile, pinned_digests, previous_tree_oid
+        return self._observe_recorded(
+            activation,
+            node,
+            profile,
+            exit_record,
+            pinned_digests=pinned_digests,
+            previous_tree_oid=previous_tree_oid,
         )
+
+    def replay(
+        self,
+        activation: ActivationRecord,
+        node: Node,
+        profile: Profile,
+        exit_record: ExitRecord,
+        *,
+        pinned_digests: dict[str, str],
+        previous_tree_oid: str | None = None,
+    ) -> ExitObservation:
+        """Resume observation from its durable exit record, with cache-miss effects.
+
+        When ``completion.json`` is absent, replay re-runs attribution and
+        artifact/output pinning and rewrites that completion cache before it
+        mirrors the exit record.
+        """
+        return self._observe_recorded(
+            activation,
+            node,
+            profile,
+            exit_record,
+            pinned_digests=pinned_digests,
+            previous_tree_oid=previous_tree_oid,
+        )
+
+    def _exit_file_record(self, activation_id: str) -> ExitRecord | None:
+        """Read a parseable crash-window exit record without trusting a bad file."""
+        try:
+            return read_record(self._paths.exit_file(activation_id), ExitRecord)
+        except WrapperDirError:
+            return None
+
+    def _observe_recorded(
+        self,
+        activation: ActivationRecord,
+        node: Node,
+        profile: Profile,
+        exit_record: ExitRecord,
+        *,
+        pinned_digests: dict[str, str],
+        previous_tree_oid: str | None,
+    ) -> ExitObservation:
+        """Compute missing evidence, then mirror the already-chosen exit record."""
+        completion = self._completion_record(activation.activation_id)
+        if completion is None:
+            post = self._post_exit(
+                activation,
+                node,
+                profile,
+                exit_record,
+                pinned_digests,
+                previous_tree_oid,
+            )
+        else:
+            post = PostExit(
+                collected=CollectedExit(marker=None),
+                completion=completion,
+                artifact=completion.evidence.artifact,
+            )
+
         record = self._record_exit(activation, exit_record, post.completion)
         return ExitObservation(
             collected=post.collected,
@@ -207,11 +293,21 @@ class ExitObserver:
             usage=post.usage,
         )
 
+    def _completion_record(self, activation_id: str) -> CompletionEvidence | None:
+        """Read reusable §7 evidence, treating a bad file as incomplete work."""
+        try:
+            return read_record(
+                self._paths.completion(activation_id), CompletionEvidence
+            )
+        except WrapperDirError:
+            return None
+
     def _post_exit(
         self,
         activation: ActivationRecord,
         node: Node,
         profile: Profile,
+        exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
     ) -> PostExit:
@@ -233,7 +329,12 @@ class ExitObserver:
         """
         try:
             return self._collect_and_grade(
-                activation, node, profile, pinned_digests, previous_tree_oid
+                activation,
+                node,
+                profile,
+                exit_record,
+                pinned_digests,
+                previous_tree_oid,
             )
         except (OSError, SupervisorError) as exc:
             _LOG.error(
@@ -254,6 +355,7 @@ class ExitObserver:
         activation: ActivationRecord,
         node: Node,
         profile: Profile,
+        exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
     ) -> PostExit:
@@ -268,6 +370,7 @@ class ExitObserver:
             activation, node, declared=frozenset() if declared is None else declared
         )
         pin = self._workspace.pin_artifact(activation, node, declared=declared)
+        outputs_pin = self._workspace.pin_outputs(activation, collected.artifact_paths)
         return PostExit(
             collected=collected,
             completion=self._evidence(
@@ -275,6 +378,9 @@ class ExitObserver:
                 node,
                 collected,
                 pin.identity,
+                pin.branch,
+                outputs_pin,
+                exit_record,
                 pinned_digests,
                 previous_tree_oid,
             ),
@@ -288,42 +394,12 @@ class ExitObserver:
         exit_record: ExitRecord,
         completion: CompletionEvidence,
     ) -> ActivationRecord:
-        """Mirror the exit into bd — the §7.4 commit point and the wrapper's last act.
-
-        A `LifecycleConflictError` here means a foreman tick already CLOSED this
-        activation, and a dead child is precisely what provokes one (§8.1 steer).
-        The refusal is correct — the recorded outcome IS the §3.3 routing truth
-        and this exit must not be written over it — but dying on it would leave
-        the resident supervisor crashing on a race its own design creates, and
-        the child is already gone. So the closed record is read back and
-        returned; the exit file keeps the observation either way (§5.3).
-
-        Only the two RACE members of `BdioError` are absorbed, and only when
-        the re-read PROVES the race: `LifecycleConflictError` (the close landed
-        before this write) and `LossyWriteError` (one bd command later — after
-        the `bd update`, before the read-back that verifies it; probed, r4).
-        In both, the reloaded record must be settled or already carry an exit
-        record, or the error is re-raised. A transient command, timeout or
-        output failure is NOT a race and is never swallowed: returning
-        normally from it would leave `dispatched` with no durable exit record
-        while claiming the exit was mirrored (probed, micro-fix confirm).
-        """
+        """Mirror the exit unless a settled or recorded activation already owns it."""
         activation_id = activation.activation_id
-        try:
-            record = self._store.record_exit(activation_id, exit_record)
-        except (LifecycleConflictError, LossyWriteError) as exc:
-            reloaded = self._store.reads.load_activation(activation_id)
-            if not (
-                reloaded.metadata.is_settled
-                or reloaded.metadata.exit_record is not None
-            ):
-                raise
-            _LOG.error(
-                "wf.activation.exit_not_recorded",
-                activation_id=activation_id,
-                error=str(exc),
-            )
+        reloaded = self._store.reads.load_activation(activation_id)
+        if reloaded.metadata.is_settled or reloaded.metadata.exit_record is not None:
             return reloaded
+        record = self._store.record_exit(activation_id, exit_record)
         _LOG.info(
             "wf.activation.exit_recorded",
             activation_id=activation_id,
@@ -339,6 +415,9 @@ class ExitObserver:
         node: Node,
         collected: CollectedExit,
         artifact: ArtifactIdentity | None,
+        branch: BranchAdvance | None,
+        outputs_pin: PinResult,
+        exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
     ) -> CompletionEvidence:
@@ -356,7 +435,13 @@ class ExitObserver:
         activation_id = activation.activation_id
         try:
             completion = self._compute(
-                activation, node, collected, artifact, pinned_digests
+                activation,
+                node,
+                collected,
+                artifact,
+                exit_record,
+                pinned_digests,
+                branch,
             )
         except (OSError, SupervisorError) as exc:
             _LOG.error(
@@ -368,7 +453,14 @@ class ExitObserver:
         completion = completion.model_copy(
             update={
                 "evidence": completion.evidence.model_copy(
-                    update={"breaker": no_progress_breaker(previous_tree_oid, artifact)}
+                    update={
+                        "breaker": no_progress_breaker(previous_tree_oid, artifact),
+                        "outputs_ref": outputs_pin.ref,
+                        "outputs_tree_oid": None
+                        if outputs_pin.identity is None
+                        else outputs_pin.identity.tree_oid,
+                        "claimed_outcome": completion.claimed_outcome,
+                    }
                 )
             }
         )
@@ -411,24 +503,22 @@ class ExitObserver:
             self._paths.outcome(activation_id), declared, node.name
         )
         effects, effects_error = read_effects(self._paths.effects(activation_id))
-        artifact_dir = self._paths.artifacts(activation_id)
-        artifacts = (
-            tuple(
-                sorted(
-                    str(item.relative_to(artifact_dir))
-                    for item in artifact_dir.rglob("*")
-                    if item.is_file()
-                )
-            )
-            if artifact_dir.exists()
-            else ()
+        walk = walk_outputs(
+            self._paths.artifacts(activation_id),
+            self._paths.outputs_snapshot(activation_id),
+            max_files=self._config.max_output_files,
+            max_bytes=self._config.max_output_bytes,
+            max_walk_entries=self._config.max_output_entries,
+            max_depth=self._config.max_output_depth,
         )
         return CollectedExit(
             marker=marker,
             marker_error=marker_error,
             effects=effects,
             effects_error=effects_error,
-            artifact_paths=artifacts,
+            artifact_paths=walk.paths,
+            outputs_unsafe=walk.unsafe,
+            outputs_truncated=walk.truncated,
             session_id=None if envelope is None else envelope.session_id,
             duration_s=None if envelope is None else envelope.duration_s,
         )
@@ -441,7 +531,9 @@ class ExitObserver:
         node: Node,
         collected: CollectedExit,
         artifact: ArtifactIdentity | None,
+        exit_record: ExitRecord,
         pinned_digests: dict[str, str],
+        branch: BranchAdvance | None,
     ) -> CompletionEvidence:
         """Decide the outcome the evidence supports — never the one claimed.
 
@@ -477,10 +569,34 @@ class ExitObserver:
         )
         reasons: list[str] = []
         flags: list[AuditFlag] = []
+        output_reasons = [
+            f"unsafe output {entry.path} ({entry.kind.value})"
+            for entry in collected.outputs_unsafe
+        ]
+        if collected.outputs_truncated:
+            output_reasons.append(_REASON_OUTPUTS_TRUNCATED)
+        output_flags = (
+            [AuditFlag.OUTPUTS_UNSAFE]
+            if collected.outputs_unsafe or collected.outputs_truncated
+            else []
+        )
+
+        if exit_record.exit_code != 0 and collected.marker is None:
+            return CompletionEvidence(
+                outcome=Outcome.ERROR_RUNNER,
+                claimed_outcome=None,
+                evidence=evidence,
+                verify_results=results,
+                audit_flags=tuple(output_flags),
+                reasons=(f"runner exited {exit_record.exit_code}", *output_reasons),
+                branch=branch,
+            )
 
         if collected.marker is None:
             reasons.append(collected.marker_error or REASON_MARKER_ABSENT)
             flags.append(AuditFlag.MARKER_INVALID)
+            reasons.extend(output_reasons)
+            flags.extend(output_flags)
             return CompletionEvidence(
                 outcome=Outcome.FAIL_CODE,
                 claimed_outcome=None,
@@ -526,6 +642,13 @@ class ExitObserver:
             flags.append(AuditFlag.UNDECLARED_EFFECT)
         if collected.effects is None:
             flags.append(AuditFlag.EFFECTS_MANIFEST_MISSING)
+        flags.extend(output_flags)
+        reasons.extend(output_reasons)
+        if branch is not None and branch.outcome is BranchAdvanceOutcome.DIVERGED:
+            flags.append(AuditFlag.INSTANCE_BRANCH_DIVERGED)
+            reasons.append("instance branch diverged")
+        elif branch is not None and branch.outcome is BranchAdvanceOutcome.MISSING:
+            reasons.append("instance branch missing")
         return CompletionEvidence(
             outcome=outcome,
             claimed_outcome=claimed,
@@ -533,6 +656,7 @@ class ExitObserver:
             verify_results=results,
             audit_flags=tuple(flags),
             reasons=tuple(reasons),
+            branch=branch,
         )
 
     def _grade_success_claim(

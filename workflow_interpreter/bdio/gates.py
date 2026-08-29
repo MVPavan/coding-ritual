@@ -402,7 +402,9 @@ def _repair_closed_gate(
     return parse_gate(repaired)
 
 
-def append_event(client: BdClient, root_id: str, payload: EventPayload) -> BeadRecord:
+def append_event(
+    client: BdClient, root_id: str, payload: EventPayload, *, seq: int | None = None
+) -> BeadRecord:
     """Append one transition event, idempotently (§3.3).
 
     Events are an audit projection: backfilling after a crash must not
@@ -422,7 +424,9 @@ def append_event(client: BdClient, root_id: str, payload: EventPayload) -> BeadR
         return existing
     beads = reads.instance_beads(client, root_id)
     metadata = EventMetadata(
-        wf_root_id=root_id, event_key=event_key, seq=reads.next_seq(beads)
+        wf_root_id=root_id,
+        event_key=event_key,
+        seq=reads.next_seq(beads) if seq is None else seq,
     )
     record = client._create_bead(
         title=_TITLE_EVENT.format(
@@ -478,6 +482,31 @@ def _assert_payload_matches(
             )
         )
     _assert_artifact_shape(gate, payload)
+    if gate.metadata.binds is BindsMode.IMMUTABLE:
+        if (
+            gate.metadata.artifact_ref is not None
+            and payload.artifact.commit_oid != gate.metadata.artifact_ref
+        ):
+            raise PayloadMismatchError(
+                _MSG_GATE_MISMATCH.format(
+                    field="commit_oid",
+                    found=payload.artifact.commit_oid,
+                    gate_id=gate.gate_id,
+                    expected=gate.metadata.artifact_ref,
+                )
+            )
+        if (
+            gate.metadata.artifact_digest is not None
+            and payload.artifact.tree_oid != gate.metadata.artifact_digest
+        ):
+            raise PayloadMismatchError(
+                _MSG_GATE_MISMATCH.format(
+                    field="tree_oid",
+                    found=payload.artifact.tree_oid,
+                    gate_id=gate.gate_id,
+                    expected=gate.metadata.artifact_digest,
+                )
+            )
 
 
 def _assert_artifact_shape(gate: GateRecord, payload: GatePayload) -> None:

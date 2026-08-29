@@ -262,7 +262,8 @@ def terminate(
       this as death closes an activation whose child may still be running
       (§5.6).
     - **anything else** → TERM the group if the leader is running, wait, then
-      ALWAYS escalate to KILL while the group is still provably ours, then reap.
+      ALWAYS escalate to KILL while the group is still provably ours, then reap
+      only after death is confirmed.
 
     The escalation is unconditional on purpose, and the ORDER around the reap is
     the whole of it. §8.1's grace is owed to the process GROUP, and the leader's
@@ -294,11 +295,12 @@ def terminate(
         signals.append(signal.SIGKILL.name)
     if proof.alive:
         proof = _await_death(config, handle, clock, config.kill_grace_s)
+    confirmed_dead = proof.status is not Liveness.INDETERMINATE and not proof.alive
     return TerminationProof(
         pid=handle.pid,
         pgid=handle.pgid,
         signals_sent=tuple(signals),
-        confirmed_dead=proof.status is not Liveness.INDETERMINATE and not proof.alive,
+        confirmed_dead=confirmed_dead,
         proof=proof,
-        exit_code=reap(handle.pid),
+        exit_code=reap(handle.pid) if confirmed_dead else None,
     )

@@ -78,6 +78,7 @@ from workflow_interpreter.bdio import (
     ProcessHandle,
     WorkflowStore,
 )
+from workflow_interpreter.bdio.preflight import steer_ancestor
 from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
@@ -594,27 +595,27 @@ class Dispatcher:
         `infra-retry` predecessor and a one-hop check would let it through.
         How a retry carries the steer forward is bead cr-o85.19.
         """
-        metadata = activation.metadata
-        if metadata.mint_reason is not MintReason.INFRA_RETRY:
-            return
-        seen: set[str] = {activation.activation_id}
-        predecessor_id = metadata.predecessor_activation_id
-        while predecessor_id and predecessor_id not in seen:
-            seen.add(predecessor_id)
-            predecessor = self._store.reads.load_activation(predecessor_id)
-            reason = predecessor.metadata.mint_reason
-            if reason is MintReason.STEER_CONTINUATION:
-                raise ContinuationRefused(
-                    _MSG_RETRY_OF_CONTINUATION.format(
-                        activation_id=activation.activation_id,
-                        reason=MintReason.INFRA_RETRY.value,
-                        predecessor=predecessor_id,
-                        continuation=MintReason.STEER_CONTINUATION.value,
-                    )
+        predecessor = steer_ancestor(
+            self._store.reads,
+            MintRequest(
+                node=activation.metadata.node,
+                mint_reason=activation.metadata.mint_reason,
+                runner_profile="",
+                model="",
+                session_id="",
+                predecessor_activation_id=activation.metadata.predecessor_activation_id,
+                predecessor_gate_id=activation.metadata.predecessor_gate_id,
+            ),
+        )
+        if predecessor is not None:
+            raise ContinuationRefused(
+                _MSG_RETRY_OF_CONTINUATION.format(
+                    activation_id=activation.activation_id,
+                    reason=MintReason.INFRA_RETRY.value,
+                    predecessor=predecessor,
+                    continuation=MintReason.STEER_CONTINUATION.value,
                 )
-            if reason is not MintReason.INFRA_RETRY:
-                return
-            predecessor_id = predecessor.metadata.predecessor_activation_id
+            )
 
     @staticmethod
     def _assert_continuation(

@@ -25,6 +25,7 @@ from tests._supervisor import (
     make_repo,
     make_root,
     make_store,
+    make_workspace,
     node_of,
 )
 from workflow_interpreter.bdio import ActivationRecord, PreconditionRecord
@@ -35,7 +36,6 @@ from workflow_interpreter.supervisor import (
     DirtySnapshot,
     HumanConfirmation,
     RunnerAttribution,
-    Workspace,
     encode_dirty_state,
 )
 
@@ -65,7 +65,7 @@ class Fixture:
         self.root = make_root(self.store, self.repo, "wt-instance")
         self.paths = make_paths(self.config, self.root.root_id)
         self.clock = FrozenClock()
-        self.workspace = Workspace(self.paths, make_git(self.config), self.clock)
+        self.workspace = make_workspace(self.paths, make_git(self.config), self.clock)
         self.node = _with_isolation(
             node_of(self.root.definition.document, IMPLEMENT), isolation
         )

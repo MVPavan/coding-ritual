@@ -1,0 +1,144 @@
+[graph]
+id          = "feature-delivery"
+version     = "1.0.0"
+entry       = "implement"
+description = "One feature: implemented → reviewed → shipped"
+
+[instance]
+max_total_activations  = 20      # counts every activation AND gate bead
+test_force_first_reject = false  # schema'd; validator refuses true without --allow-test-flags
+
+[[region]]
+name         = "build-review"
+mode         = "bounded-cycle"           # "acyclic" | "bounded-cycle"
+entry_node   = "implement"
+max_entries  = 3
+on_exhausted = "triage"
+
+[[node]]
+name          = "implement"
+kind          = "task"                   # task | gate | terminal
+region        = "build-review"
+runner        = "profile:implementer"
+model         = "default"
+isolation     = "worktree"               # worktree | in-repo
+writes        = true                     # repo-worktree write access only
+allowed_paths = ["src/**", "tests/**"]   # static effect bound
+inputs        = ["task_brief", "review_findings"]
+verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
+token_budget  = 120000                   # context TRIM budget (not a runaway bound)
+max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 2
+outcomes      = ["done", "no_diff", "fail_plan"]
+
+[[node]]
+name          = "review"
+kind          = "task"
+region        = "build-review"
+runner        = "profile:critic"
+model         = "default"
+isolation     = "worktree"
+writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo
+allowed_paths = []
+inputs        = ["task_brief", "diff_artifact"]
+verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" },
+                 { cmd = "scripts/review-checks.sh",  timeout = "5m"  }]
+                # deliberately a STRICT SUPERSET of implement's set; the
+                # validator warns when a judgment node's verify ⊆ its
+                # predecessor's (anti-drift cross-check would be vacuous)
+token_budget  = 80000
+max_wall      = "30m"
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 2
+outcomes      = ["accept", "reject"]
+
+[[node]]
+name      = "ship"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["approve", "abandon"]
+
+[[node]]
+name      = "triage"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["rebudget", "abandon"]
+
+[[node]]
+name = "shipped"
+kind = "terminal"
+
+[[node]]
+name = "abandoned"
+kind = "terminal"
+
+[[edge]]
+from = "implement"
+on   = "done"
+to   = "review"
+
+[[edge]]
+from = "implement"
+on   = "fail_plan"
+to   = "triage"
+
+[[edge]]
+from = "implement"
+on   = "no_diff"
+to   = "triage"
+
+[[edge]]
+from = "review"
+on   = "reject"
+to   = "implement"
+
+[[edge]]
+from = "review"
+on   = "accept"
+to   = "ship"
+
+[[edge]]
+from = "ship"
+on   = "approve"
+to   = "shipped"
+
+[[edge]]
+from = "ship"
+on   = "abandon"
+to   = "abandoned"
+
+[[edge]]
+from = "triage"
+on   = "rebudget"
+to   = "implement"
+
+[[edge]]
+from = "triage"
+on   = "abandon"
+to   = "abandoned"
+
+[fallback]
+to = "triage"          # per-node [node.fallback] may override
+
+[[source]]
+name          = "task_brief"
+producer      = "instance"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "diff_artifact"
+producer      = "node:implement"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "review_findings"
+producer      = "node:review"
+optional      = true                     # absent on round 1 by construction
+trim_priority = 2

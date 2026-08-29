@@ -26,6 +26,7 @@ from tests._supervisor import (
     make_repo,
     make_root,
     make_store,
+    make_workspace,
     node_of,
     remove_proc_entry,
     runner_commit,
@@ -34,6 +35,7 @@ from tests._supervisor import (
 from workflow_interpreter.bdio import (
     ActivationRecord,
     ExitRecord,
+    Lifecycle,
     MintReason,
     Outcome,
 )
@@ -49,11 +51,11 @@ from workflow_interpreter.supervisor import (
     RecoveryCase,
     SteerIntent,
     SupervisorConfig,
-    Workspace,
     WrapperPaths,
     activation_ref,
     namespaced_ref,
 )
+from workflow_interpreter.supervisor.artifact import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.paths import write_record
 from workflow_interpreter.supervisor.steer import instructions_digest
 from workflow_interpreter.supervisor.workspace import ORPHAN_NAMESPACE
@@ -69,7 +71,11 @@ class Lab:
     """A dispatched activation the wrapper has lost track of."""
 
     def __init__(
-        self, tmp_path: Path, isolation: IsolationMode = IsolationMode.WORKTREE
+        self,
+        tmp_path: Path,
+        isolation: IsolationMode = IsolationMode.WORKTREE,
+        *,
+        advance_branch: bool = False,
     ) -> None:
         self.repo = make_repo(tmp_path)
         self.base = head_of(self.repo)
@@ -79,7 +85,9 @@ class Lab:
         self.paths: WrapperPaths = make_paths(self.config, self.root.root_id)
         self.clock = FrozenClock()
         self.git = make_git(self.config)
-        self.workspace = Workspace(self.paths, self.git, self.clock)
+        self.workspace = make_workspace(
+            self.paths, self.git, self.clock, advance_branch=advance_branch
+        )
         self.node = node_of(self.root.definition.document, IMPLEMENT).model_copy(
             update={"isolation": isolation}
         )
@@ -148,6 +156,25 @@ def test_a_bd_exit_record_is_case_one(lab: Lab) -> None:
 
     assert classification.case is RecoveryCase.EXIT_RECORDED
     assert classification.exit_from_file is False
+
+
+def test_a_minted_activation_is_not_launched_and_never_closed(lab: Lab) -> None:
+    """R5: recovery does not turn an unlaunched activation into transport noise."""
+    minted = lab.activation.model_copy(
+        update={
+            "metadata": lab.activation.metadata.model_copy(
+                update={"lifecycle": Lifecycle.MINTED}
+            )
+        }
+    )
+
+    result = lab.recovery.resolve(minted, lab.node)
+
+    assert result.classification.case is RecoveryCase.NOT_LAUNCHED
+    assert result.closed is None
+    assert (
+        lab.store.reads.load_activation(minted.activation_id).metadata.outcome is None
+    )
 
 
 def test_the_exit_file_is_the_crash_window_fallback(lab: Lab) -> None:
@@ -449,6 +476,40 @@ def test_a_steer_intent_beside_a_closed_activation_is_residue(lab: Lab) -> None:
 
     assert classification.case is not RecoveryCase.STEER_PENDING
     assert classification.steer_intent is None
+
+
+def test_recovery_records_instance_branch_divergence(tmp_path: Path) -> None:
+    """R5: a moved instance ref closes with the routing-visible deviation."""
+    lab = Lab(tmp_path, IsolationMode.IN_REPO, advance_branch=True)
+    lab.effects(RUNNER_FILE)
+    (lab.repo / "src" / "other.py").write_text("other\n", encoding="utf-8")
+    moved = runner_commit(lab.repo, "other branch", "other-activation")
+    lab.git.reset_hard(lab.base, cwd=lab.repo)
+    lab.orphan_commit()
+    branch = INSTANCE_BRANCH_REF.format(root_id=lab.root.root_id)
+    lab.git.update_ref(branch, moved, cwd=lab.repo)
+
+    resolution = lab.recovery.resolve(lab.activation, lab.node)
+
+    assert resolution.closed is not None
+    deviations = resolution.closed.metadata.deviations
+    assert len(deviations) == 1
+    assert deviations[0].kind == "instance_branch_diverged"
+
+
+def test_recovery_records_missing_instance_branch_as_note(tmp_path: Path) -> None:
+    """R5: a deleted instance ref is a note-only reconciliation condition."""
+    lab = Lab(tmp_path, IsolationMode.IN_REPO, advance_branch=True)
+    lab.effects(RUNNER_FILE)
+    lab.orphan_commit()
+
+    resolution = lab.recovery.resolve(lab.activation, lab.node)
+
+    assert resolution.closed is not None
+    evidence = resolution.closed.metadata.evidence
+    assert evidence is not None
+    assert "instance branch missing" in (evidence.note or "")
+    assert resolution.closed.metadata.deviations == ()
 
 
 def _persist_steer_intent(lab: Lab) -> SteerIntent:

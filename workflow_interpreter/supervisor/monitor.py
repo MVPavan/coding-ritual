@@ -110,6 +110,8 @@ class Monitor:
         STARTED, not `stale_after` after somebody happened to look (§8.2)."""
         self._last_proof_error: str | None = None
         """Why the last liveness question could not be answered, for the log."""
+        self._pending_max_wall: TerminationProof | None = None
+        """An unconfirmed max-wall termination awaiting the child's reap."""
 
     def observe(self) -> MonitorResult:
         """One cycle: reaped status, then unknown, then exit, runaway, staleness.
@@ -131,6 +133,15 @@ class Monitor:
 
         status, reaped = self._exited()
         if reaped.exit_code is not None:
+            if self._pending_max_wall is not None:
+                return self._result(
+                    MonitorVerdict.MAX_WALL_BREACH,
+                    now,
+                    size,
+                    exit_code=reaped.exit_code,
+                    reason=ExitReason.MAX_WALL,
+                    termination=self._pending_max_wall,
+                )
             code = reaped.exit_code
             reason = ExitReason.TERMINATED if code < 0 else ExitReason.EXITED
             return self._result(
@@ -250,14 +261,10 @@ class Monitor:
         and KILL, or `/proc` could not be read at all — either way it may still
         be writing the working tree, and `MAX_WALL_BREACH` would end the watch,
         write an exit record and release §5.6 to reset that tree underneath it.
-        So the breach is re-enforced on the next cycle instead; `terminate` is
-        idempotent and paces itself through its own grace periods (§8.1).
-
-        The exit code comes off the TERMINATION PROOF, never from a second
-        `reap`. `terminate` reaps as its last act, a status can be collected
-        exactly once, and asking again always answered `None` — recorded as
-        `EXIT_CODE_UNOBSERVED`, which claims the wrapper never saw the death it
-        had just carried out (Opus#23, Sol#18). The real value is `-9`.
+        The proof stays pending until a later reap confirms the child died, so
+        the status is recorded as this max-wall breach rather than an ordinary
+        termination. `terminate` remains idempotent and paces itself through
+        its own grace periods (§8.1).
         """
         _LOG.warning(
             "wf.child.max_wall",
@@ -267,6 +274,7 @@ class Monitor:
         )
         termination = procfs.terminate(self._config, self._handle, self._clock)
         if not termination.confirmed_dead:
+            self._pending_max_wall = termination
             self._last_proof_error = termination.proof.read_error
             _LOG.error(
                 "wf.child.max_wall_unconfirmed",

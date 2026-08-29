@@ -47,6 +47,7 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.client import BdClient, CompletedCommand
 from workflow_interpreter.schema.models import GraphDocument, Node
 from workflow_interpreter.supervisor import (
+    BandLock,
     Capabilities,
     ChildLauncher,
     EventType,
@@ -59,6 +60,7 @@ from workflow_interpreter.supervisor import (
     TaskSpec,
     TerminalEnvelope,
     TerminationProof,
+    Workspace,
     WrapperPaths,
 )
 from workflow_interpreter.supervisor.channels import (
@@ -263,6 +265,34 @@ def blob_at(repo: Path, commit: str, path: str) -> str:
     return completed.stdout
 
 
+def tree_modes(repo: Path, commit: str) -> dict[str, str]:
+    """Return each recursive tree path's Git mode for snapshot assertions."""
+    entries: dict[str, str] = {}
+    for record in _git(repo, "ls-tree", "-r", "-z", commit).split("\0"):
+        if not record:
+            continue
+        header, _, path = record.partition("\t")
+        mode, _, _ = header.split(maxsplit=2)
+        entries[path] = mode
+    return entries
+
+
+def add_submodule(repo: Path, name: str) -> Path:
+    """Add a committed local submodule without modifying the fixture factory."""
+    source = repo.parent / f"{name}-source"
+    source.mkdir()
+    _git(source, "init", "--quiet", "--initial-branch=main")
+    _git(source, "config", "user.email", "wf@test")
+    _git(source, "config", "user.name", "wf test")
+    (source / "module.txt").write_text("module\n", encoding="utf-8")
+    _git(source, "add", "-A")
+    _git(source, "commit", "--quiet", "-m", "initial")
+    _git(
+        repo, "-c", "protocol.file.allow=always", "submodule", "add", str(source), name
+    )
+    return source
+
+
 # --- supervisor wiring ---------------------------------------------------
 
 
@@ -406,6 +436,19 @@ def make_git(config: SupervisorConfig) -> Git:
     return Git(config)
 
 
+def make_workspace(
+    paths: WrapperPaths,
+    git: Git,
+    clock: FrozenClock,
+    *,
+    advance_branch: bool = False,
+) -> Workspace:
+    """Create a workspace with its one required execution band."""
+    return Workspace(
+        paths, git, clock, BandLock(paths.band_lock), advance_branch=advance_branch
+    )
+
+
 def handle_for(
     pid: int,
     *,
@@ -442,6 +485,14 @@ class ChildScript(BaseModel):
     marker sub-cases are expressible)."""
     effects: str | None = None
     """Raw bytes written to `$WF_EFFECTS_FILE`."""
+    write_path: str | None = None
+    """One worktree-relative file written by the child for artifact drills."""
+    write_body: str = ""
+    commit: bool = False
+    """Commit the written artifact with the wrapper's runner identity."""
+    artifact_path: str | None = None
+    """One wrapper-artifact-relative finding written by a non-writing child."""
+    artifact_body: str = ""
     sleep_s: float = 0.0
     ignore_term: bool = False
     """Drill 19: the child traps TERM and loops, so only KILL can end it.
@@ -463,6 +514,19 @@ class ChildScript(BaseModel):
             lines.append(f'printf %s {_quote(self.marker)} > "$WF_OUTCOME_FILE"')
         if self.effects is not None:
             lines.append(f'printf %s {_quote(self.effects)} > "$WF_EFFECTS_FILE"')
+        if self.write_path is not None:
+            lines.append(
+                f"printf %s {_quote(self.write_body)} > {_quote(self.write_path)}"
+            )
+        if self.commit:
+            if self.write_path is None:
+                raise ValueError("a committing ChildScript needs a write_path")
+            lines.append(f"git add -- {_quote(self.write_path)}")
+            lines.append("git commit --quiet -m 'runner artifact'")
+        if self.artifact_path is not None:
+            destination = f'"$WF_ARTIFACT_DIR"/{_quote(self.artifact_path)}'
+            lines.append(f'mkdir -p "$(dirname {destination})"')
+            lines.append(f"printf %s {_quote(self.artifact_body)} > {destination}")
         if self.ignore_term:
             lines.append("while :; do sleep 0.2; done")
         elif self.sleep_s:

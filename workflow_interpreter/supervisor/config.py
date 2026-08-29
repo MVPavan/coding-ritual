@@ -34,6 +34,10 @@ DEFAULT_KILL_GRACE_S: Final[float] = 5.0
 DEFAULT_BARRIER_TIMEOUT_S: Final[float] = 30.0
 DEFAULT_POLL_INTERVAL_S: Final[float] = 1.0
 DEFAULT_LOG_TAIL_BYTES: Final[int] = 2048
+DEFAULT_MAX_OUTPUT_FILES: Final[int] = 2000
+DEFAULT_MAX_OUTPUT_BYTES: Final[int] = 32 * 1024 * 1024
+DEFAULT_MAX_OUTPUT_ENTRIES: Final[int] = 10000
+DEFAULT_MAX_OUTPUT_DEPTH: Final[int] = 32
 """§8.2: the foreman reads at most a ~2KB tail on a stale flag."""
 
 WRAPPER_DIR_NAME: Final[str] = ".wf"
@@ -68,6 +72,10 @@ class SupervisorConfig(BaseModel):
     barrier_timeout_s: float = Field(default=DEFAULT_BARRIER_TIMEOUT_S, gt=0)
     poll_interval_s: float = Field(default=DEFAULT_POLL_INTERVAL_S, gt=0)
     log_tail_bytes: int = Field(default=DEFAULT_LOG_TAIL_BYTES, gt=0)
+    max_output_files: int = Field(default=DEFAULT_MAX_OUTPUT_FILES, gt=0)
+    max_output_bytes: int = Field(default=DEFAULT_MAX_OUTPUT_BYTES, gt=0)
+    max_output_entries: int = Field(default=DEFAULT_MAX_OUTPUT_ENTRIES, gt=0)
+    max_output_depth: int = Field(default=DEFAULT_MAX_OUTPUT_DEPTH, gt=0)
 
     def model_post_init(self, context: object, /) -> None:
         """Refuse a configuration the §P1 store separation cannot hold under."""

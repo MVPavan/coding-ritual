@@ -19,7 +19,9 @@ convention that drifts.
 from __future__ import annotations
 
 import hashlib
+import os
 import shlex
+import shutil
 from pathlib import Path, PurePosixPath
 from typing import Final
 
@@ -32,7 +34,9 @@ from workflow_interpreter.bdio import (
     RootRecord,
 )
 from workflow_interpreter.schema.models import GraphDocument
+from workflow_interpreter.supervisor import fswalk
 from workflow_interpreter.supervisor.models import EffectsManifest, OutcomeMarker
+from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
 from workflow_interpreter.supervisor.paths import read_json_documents
 
 VERIFIER_DIGEST_KEY: Final[str] = "verify.{node}.{program}.sha256"
@@ -65,6 +69,156 @@ REASON_MARKER_UNDECLARED: Final[str] = (
     "marker claims {outcome}, which node {node} does not declare"
 )
 REASON_EFFECTS: Final[str] = "$WF_EFFECTS_FILE {detail}"
+
+
+def _capture_file(source_fd: int, destination: Path, size: int) -> None:
+    """Copy a held regular inode into the wrapper-owned output snapshot."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    output_fd: int | None = None
+    input_fd: int | None = None
+    try:
+        output_fd = os.open(
+            destination,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
+            0o600,
+        )
+        input_fd = os.open(f"/proc/self/fd/{source_fd}", os.O_RDONLY | os.O_CLOEXEC)
+        offset = 0
+        while offset < size:
+            sent = os.sendfile(output_fd, input_fd, offset, size - offset)
+            if sent == 0:
+                break
+            offset += sent
+    except OSError:
+        destination.unlink(missing_ok=True)
+        raise
+    finally:
+        if input_fd is not None:
+            os.close(input_fd)
+        if output_fd is not None:
+            os.close(output_fd)
+
+
+def walk_outputs(
+    root: Path,
+    snapshot: Path,
+    *,
+    max_files: int,
+    max_bytes: int,
+    max_walk_entries: int,
+    max_depth: int,
+) -> OutputsWalk:
+    """Capture bounded regular output files without following runner links."""
+    shutil.rmtree(snapshot, ignore_errors=True)
+    snapshot.mkdir(parents=True, exist_ok=True)
+    try:
+        root_fd = fswalk.open_root(root)
+    except OSError:
+        return OutputsWalk(unsafe=(UnsafeEntry(path=".", kind=UnsafeKind.ROOT),))
+    paths: list[str] = []
+    unsafe: list[UnsafeEntry] = []
+    total = 0
+    truncated = False
+    seen = 0
+    stack: list[tuple[str, int, int, list[os.DirEntry[str]] | None, int]] = [
+        ("", root_fd, 0, None, 0)
+    ]
+    try:
+        while stack:
+            relative_dir, dir_fd, depth, ordered, index = stack[-1]
+            if ordered is None:
+                too_wide = False
+                try:
+                    with os.scandir(dir_fd) as entries:
+                        buffered: list[os.DirEntry[str]] = []
+                        remaining = max_walk_entries - seen
+                        for entry in entries:
+                            buffered.append(entry)
+                            seen += 1
+                            if len(buffered) > remaining:
+                                too_wide = True
+                                break
+                except OSError:
+                    unsafe.append(
+                        UnsafeEntry(
+                            path=relative_dir or ".", kind=UnsafeKind.CAPTURE_FAILED
+                        )
+                    )
+                    _, closed_fd, _, _, _ = stack.pop()
+                    os.close(closed_fd)
+                    continue
+                if too_wide:
+                    unsafe.append(
+                        UnsafeEntry(path=relative_dir or ".", kind=UnsafeKind.TOO_WIDE)
+                    )
+                    truncated = True
+                    break
+                ordered = sorted(buffered, key=lambda entry: entry.name)
+                stack[-1] = (relative_dir, dir_fd, depth, ordered, 0)
+                continue
+            if index == len(ordered):
+                _, closed_fd, _, _, _ = stack.pop()
+                os.close(closed_fd)
+                continue
+            entry = ordered[index]
+            stack[-1] = (relative_dir, dir_fd, depth, ordered, index + 1)
+            relative = f"{relative_dir}/{entry.name}" if relative_dir else entry.name
+            try:
+                entry_fd = fswalk.open_entry(dir_fd, entry.name)
+                kind = fswalk.classify(entry_fd)
+            except OSError:
+                unsafe.append(
+                    UnsafeEntry(path=relative, kind=UnsafeKind.CAPTURE_FAILED)
+                )
+                continue
+            if kind is fswalk.FsKind.DIRECTORY:
+                os.close(entry_fd)
+                if depth + 1 >= max_depth:
+                    unsafe.append(UnsafeEntry(path=relative, kind=UnsafeKind.TOO_DEEP))
+                    truncated = True
+                    continue
+                try:
+                    child_fd = fswalk.open_child_dir(dir_fd, entry.name)
+                except OSError:
+                    unsafe.append(
+                        UnsafeEntry(path=relative, kind=UnsafeKind.CAPTURE_FAILED)
+                    )
+                    continue
+                stack.append((relative, child_fd, depth + 1, None, 0))
+                continue
+            if kind is fswalk.FsKind.SYMLINK:
+                unsafe.append(UnsafeEntry(path=relative, kind=UnsafeKind.SYMLINK))
+                os.close(entry_fd)
+                continue
+            if kind is not fswalk.FsKind.REGULAR:
+                unsafe.append(UnsafeEntry(path=relative, kind=UnsafeKind.SPECIAL))
+                os.close(entry_fd)
+                continue
+            size = os.fstat(entry_fd).st_size
+            if len(paths) >= max_files or total + size > max_bytes:
+                truncated = True
+                os.close(entry_fd)
+                continue
+            try:
+                _capture_file(entry_fd, snapshot / relative, size)
+            except OSError:
+                unsafe.append(
+                    UnsafeEntry(path=relative, kind=UnsafeKind.CAPTURE_FAILED)
+                )
+            else:
+                paths.append(relative)
+                total += size
+            finally:
+                os.close(entry_fd)
+    finally:
+        for _, descriptor, _, _, _ in stack:
+            os.close(descriptor)
+    return OutputsWalk(
+        paths=tuple(sorted(paths)),
+        unsafe=tuple(sorted(unsafe, key=lambda item: (item.path, item.kind.value))),
+        truncated=truncated,
+        total_bytes=total,
+    )
 
 
 def runner_committer_email(activation_id: str) -> str:
