@@ -31,6 +31,7 @@ from workflow_interpreter.bdio.wire import EventPayload
 from workflow_interpreter.foreman.config import RunnerBinding
 from workflow_interpreter.foreman.constants import DEVIATION_UNDECLARED_EFFECTS_ACCEPTED
 from workflow_interpreter.foreman.gates import exhaustion_gate
+from workflow_interpreter.foreman.routing import RouteKind, route
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
 from workflow_interpreter.profiles.registry import ProfileRegistry
@@ -298,7 +299,9 @@ def test_drill_23_no_progress_and_exhaustion_open_distinct_region_gates(
     source = lab.store.reads.load_activation(rework)
     assert source.metadata.evidence is not None
     assert source.metadata.evidence.breaker is Breaker.NO_PROGRESS
-    exhaustion = lab.store.open_gate(root.root_id, exhaustion_gate(source, "triage"))
+    exhaustion = lab.store.open_gate(
+        root.root_id, exhaustion_gate(root.index, source, "triage")
+    )
     no_progress = lab.store.reads.load_gate(no_progress_id)
 
     assert no_progress.metadata.gate_reason is GateReason.TRANSITION
@@ -306,6 +309,69 @@ def test_drill_23_no_progress_and_exhaustion_open_distinct_region_gates(
     assert no_progress.metadata.region == exhaustion.metadata.region == "build-review"
     assert no_progress.metadata.round_no == exhaustion.metadata.round_no
     assert no_progress.metadata.gate_key != exhaustion.metadata.gate_key
+
+
+def test_a_breaker_gate_only_offers_outcomes_its_own_node_can_route(
+    tmp_path: Path,
+) -> None:
+    """cr-mub: every verb a gate offers a human must lead somewhere.
+
+    Found live, not in the lab. `no_progress_gate` and `exhaustion_gate`
+    hardcoded a vocabulary per gate KIND while their target node declares its
+    own; in the shipped graph `triage` declares `rebudget`/`abandon`, so the
+    offered `approve` had no edge, fell to the graph fallback (`triage`, a
+    GATE), and `cases.py` stalled with "gate route is not a task" on every
+    subsequent tick — after consuming a valid signed approval. Picking the
+    first offered outcome bricked the instance.
+
+    Drill 23's own test asserts these two gates' region, round and key, and
+    never their outcomes, which is why the lab stayed green.
+    """
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    initial = lab.tick().dispatched
+    assert initial is not None
+    assert lab.tick().settled == initial
+    lab.profiles.next_script(
+        ChildScript(
+            marker='{"outcome":"reject"}\n',
+            effects='{"paths":[]}',
+            artifact_path="review.md",
+            artifact_body="rework this",
+        )
+    )
+    review = lab.tick().dispatched
+    assert review is not None
+    assert lab.tick().settled == review
+    lab.profiles.next_script(
+        ChildScript(
+            marker='{"outcome":"done"}\n',
+            effects='{"paths":["src/feature.py"]}',
+            write_path="src/feature.py",
+            write_body="value = 2\n",
+            commit=True,
+        )
+    )
+    rework = lab.tick().dispatched
+    assert rework is not None
+    assert lab.tick().settled == rework
+
+    no_progress_id = lab.tick().opened_gate
+    assert no_progress_id is not None
+    source = lab.store.reads.load_activation(rework)
+    exhaustion = lab.store.open_gate(
+        root.root_id, exhaustion_gate(root.index, source, "triage")
+    )
+
+    for gate in (lab.store.reads.load_gate(no_progress_id), exhaustion):
+        node = root.index.nodes[gate.metadata.gate_node]
+        assert gate.metadata.outcomes, "a human gate must offer at least one verb"
+        for outcome in gate.metadata.outcomes:
+            decision = route(root.index, node, outcome)
+            assert decision.kind in {RouteKind.TASK, RouteKind.TERMINAL}, (
+                f"{gate.metadata.gate_node} offers {outcome.value}, "
+                f"which routes {decision.kind}"
+            )
 
 
 def test_drill_25_distinguishes_a_declared_fallback_from_an_undeclared_claim(

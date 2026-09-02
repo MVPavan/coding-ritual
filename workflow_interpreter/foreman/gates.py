@@ -89,11 +89,21 @@ def transition_gate(
     )
 
 
-def exhaustion_gate(source: ActivationRecord, target: str) -> GateOpenRequest:
-    """Build the bounded-region approval gate for one exhausted round."""
+def exhaustion_gate(
+    index: GraphIndex, source: ActivationRecord, target: str
+) -> GateOpenRequest:
+    """Build the bounded-region approval gate for one exhausted round.
+
+    Outcomes come from the TARGET NODE, exactly as `transition_gate` takes
+    them, and not from a vocabulary fixed per gate kind. A verb the node does
+    not declare has no edge, so it routes to the graph fallback — and when the
+    fallback is itself a gate node, the instance stalls on "gate route is not
+    a task" forever, having already consumed the human's signed approval
+    (cr-mub, found by the live DRILL-27 run, not by the lab).
+    """
     return GateOpenRequest(
         gate_node=target,
-        outcomes=(Outcome.APPROVE, Outcome.REBUDGET, Outcome.ABANDON),
+        outcomes=index.nodes[target].outcomes or (),
         gate_reason=GateReason.EXHAUSTION,
         source_activation_id=source.activation_id,
         opening_outcome=source.metadata.outcome,
@@ -102,11 +112,17 @@ def exhaustion_gate(source: ActivationRecord, target: str) -> GateOpenRequest:
     )
 
 
-def no_progress_gate(source: ActivationRecord, target: str) -> GateOpenRequest:
-    """Build the human gate that resolves a no-progress breaker."""
+def no_progress_gate(
+    index: GraphIndex, source: ActivationRecord, target: str
+) -> GateOpenRequest:
+    """Build the human gate that resolves a no-progress breaker.
+
+    Offers the target node's own declared outcomes — see `exhaustion_gate`
+    for why a fixed per-kind vocabulary is a dead end.
+    """
     return GateOpenRequest(
         gate_node=target,
-        outcomes=(Outcome.APPROVE, Outcome.ABANDON),
+        outcomes=index.nodes[target].outcomes or (),
         source_activation_id=source.activation_id,
         opening_outcome=source.metadata.outcome,
         region=source.metadata.region,
@@ -201,6 +217,21 @@ def intake(
     return IntakeResult(gate=closed)
 
 
+def _template_outcome(outcomes: tuple[Outcome, ...]) -> Outcome:
+    """Pick a template outcome that is signable with the nonce alone.
+
+    The template's contract is that replacing the nonce yields the exact bytes
+    a human signs, so it must not render an outcome whose payload needs a field
+    the template cannot supply: §9 makes `bound_mutation` legal IFF the outcome
+    is `rebudget`, and required by it. Taking `outcomes[0]` happened to be safe
+    only while every gate offered `approve` first; once a gate offers its own
+    node's verbs (cr-mub), `triage` leads with `rebudget`.
+    """
+    return next(
+        (item for item in outcomes if item is not Outcome.REBUDGET), outcomes[0]
+    )
+
+
 def payload_template(root: RootRecord, gate: GateRecord) -> str:
     """Render the unsigned canonical approval shape for one gate inbox."""
     artifact = GateArtifact(
@@ -212,7 +243,7 @@ def payload_template(root: RootRecord, gate: GateRecord) -> str:
             graph_id=root.definition.document.graph.id,
             root_id=root.root_id,
             gate_key=gate.metadata.gate_key,
-            outcome=gate.metadata.outcomes[0],
+            outcome=_template_outcome(gate.metadata.outcomes),
             artifact=artifact,
             nonce="replace-with-a-unique-nonce",
         )

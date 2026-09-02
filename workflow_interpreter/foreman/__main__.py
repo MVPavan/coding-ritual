@@ -11,7 +11,7 @@ import traceback
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
-from workflow_interpreter.bdio import WorkflowStore
+from workflow_interpreter.bdio import GateRecord, WorkflowStore
 from workflow_interpreter.foreman.compose import Composition, DetachedSpawner
 from workflow_interpreter.foreman.config import load_config
 from workflow_interpreter.foreman.constants import (
@@ -230,14 +230,35 @@ def _run(
             if activation.metadata.stale_flag is not None
         ),
     }
-    if frontier.open_halt is not None:
-        gate = frontier.open_halt
-        status["open_halt"] = {
+
+    def inbox_entry(gate: GateRecord) -> dict[str, str]:
+        """Render the two things a §9 approver cannot derive by hand."""
+        return {
             "inbox": str(
                 wiring.paths.instance_dir / GATES_DIR / gate.metadata.gate_key
             ),
             "template": payload_template(root, gate),
         }
+
+    # EVERY open gate, halt and transition alike. `status` is the only command
+    # that renders a gate's inbox path and unsigned payload template, and §9
+    # approval is exactly "drop payload.json and payload.json.sig into that
+    # inbox" — so reporting halt gates only left a human waiting on `ship` or
+    # `triage` (both `gate_type = "human"` in the shipped feature-delivery
+    # graph) with no way to learn either without recomputing the gate key.
+    # A gate whose payload has already been submitted still appears: the
+    # inbox is the truth, and the next tick consumes what is in it.
+    status["open_gates"] = tuple(
+        {
+            "gate_id": gate.gate_id,
+            "node": gate.metadata.gate_node,
+            "reason": gate.metadata.gate_reason.value,
+            **inbox_entry(gate),
+        }
+        for gate in sorted(frontier.open_gates, key=lambda item: item.gate_id)
+    )
+    if frontier.open_halt is not None:
+        status["open_halt"] = inbox_entry(frontier.open_halt)
     emit(json.dumps(status, sort_keys=True), MAX_TRANSCRIPT_BYTES)
     return 0
 

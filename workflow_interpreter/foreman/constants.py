@@ -31,6 +31,9 @@ __all__ = [
     "INSTANCE_BRANCH",
     "MAX_TRANSCRIPT_BYTES",
     "NO_ARTIFACT_OID",
+    "RUNNER_PROTOCOL",
+    "RUNNER_PROTOCOL_NO_WRITE_STEP",
+    "RUNNER_PROTOCOL_WRITE_STEP",
     "WRAPPER_HANDLE",
     "WRAPPER_LOCK",
 ]
@@ -44,6 +47,36 @@ WRAPPER_HANDLE: Final[str] = "wrapper.json"
 FORCED_FIRST_REJECT: Final[str] = (
     "§13 test switch: this is the first review round of the instance — return "
     "the outcome `reject` with findings, whatever the artifact looks like"
+)
+RUNNER_PROTOCOL: Final[str] = """## How this run is judged (§6)
+
+Your work is read from three files whose paths are in your environment, never
+from what you say in your reply. Skip any step and the run grades `fail_code`
+however good the work was.
+
+{write_step}- Write the repository paths you changed to `$WF_EFFECTS_FILE`, as JSON:
+  `{{"paths": ["a/b.py"]}}`. Write `{{"paths": []}}` if you changed none.
+- Write EXACTLY ONE JSON object to `$WF_OUTCOME_FILE`:
+  `{{"outcome": "<one of: {outcomes}>", "note": "<one line>"}}`. Zero markers,
+  two markers, or an outcome outside that list all grade `fail_code`.
+- Put structured output that is not a repository change — findings, notes — in
+  `$WF_ARTIFACT_DIR`.
+"""
+"""The §6 channel contract, told to the runner in its own brief.
+
+§6 defines the three channels and their fail-closed semantics but assigns
+nobody the duty of COMMUNICATING them, so nothing did: a real runner did the
+task, passed verify, and exited 0 having written neither channel (cr-0zc,
+found by the live DRILL-27 run). It is composed per node because the legal
+outcome set and the write permission are both the node's own.
+"""
+RUNNER_PROTOCOL_WRITE_STEP: Final[str] = (
+    "- `git add` and `git commit` what you change in the repository. "
+    "Uncommitted\n  work does not exist to this harness.\n"
+)
+RUNNER_PROTOCOL_NO_WRITE_STEP: Final[str] = (
+    "- Do NOT write to the repository. This node is `writes = false`; anything "
+    "it\n  leaves in the tree is graded as an undeclared effect (§7.5).\n"
 )
 GATES_DIR: Final[str] = "gates"
 MAX_TRANSCRIPT_BYTES: Final[int] = 4096

@@ -240,7 +240,7 @@ def _refusal_case(
         and source is not None
     ):
         gate = wiring.store.open_gate(
-            root.root_id, exhaustion_gate(source, decision.target)
+            root.root_id, exhaustion_gate(root.index, source, decision.target)
         )
         return CaseResult(opened_gates=(gate.gate_id,))
     if decision.kind is RouteKind.FALLBACK and decision.target is not None:
@@ -477,12 +477,14 @@ def route_head(
         return CaseResult(opened_gates=(gate.gate_id,))
     if decision.kind is RouteKind.EXHAUSTED and decision.target is not None:
         gate = wiring.store.open_gate(
-            root.root_id, exhaustion_gate(head, decision.target)
+            root.root_id, exhaustion_gate(root.index, head, decision.target)
         )
         return CaseResult(opened_gates=(gate.gate_id,))
     if decision.kind is RouteKind.NO_PROGRESS:
         target = (node.fallback or root.definition.document.fallback).to
-        gate = wiring.store.open_gate(root.root_id, no_progress_gate(head, target))
+        gate = wiring.store.open_gate(
+            root.root_id, no_progress_gate(root.index, head, target)
+        )
         return CaseResult(opened_gates=(gate.gate_id,))
     if decision.kind is RouteKind.FALLBACK and decision.target is not None:
         target_node = root.index.nodes[decision.target]

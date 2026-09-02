@@ -142,3 +142,39 @@ Format per entry:
   reversed; the safety conclusion was unchanged.)
 - Source: S1 batch 2 + the Fable 5.1 high sign-off (MINOR 8),
   `scratchpad/probes/s1-triage.md`.
+
+## `bd` resolves its workspace by walking UP — a test rig inside this repo binds to the repo's own beads  (2026-09-02)
+
+- Observed: building the DRILL-27 live rig under `scratchpad/live-drill/beads`
+  and running `bd init` there answered "This workspace is already initialized"
+  with the directory empty — `bd` had resolved upward to
+  `/data/codes/coding-ritual/.beads`. The same `bd init` in `/tmp` created its
+  own workspace immediately.
+- Why it matters: the standing rule is that test labs must never touch this
+  repo's own `.beads/`. A rig sited anywhere under the project silently
+  violates it, and `bd` reports success rather than refusing — the failure is
+  invisible until something writes.
+- Apply: site any rig that runs real `bd` OUTSIDE `/data/codes/coding-ritual`
+  (the session scratchpad under `/tmp` works). `bd init` printing "already
+  initialized" in a directory you just created is the tell. Verify with
+  `git status` on `.beads/` afterwards either way.
+- Source: cr-o85.32 live acceptance run.
+
+## A test double that satisfies a protocol hides whether anything TEACHES the protocol  (2026-09-02)
+
+- Observed: every lab test of the foreman drove `ShellProfile`, whose child
+  script the test itself authored — so the child always wrote
+  `$WF_OUTCOME_FILE` and `$WF_EFFECTS_FILE`. The first live run with a real
+  `claude` did the task correctly, passed verify, and then exited 0 without
+  writing either file or committing, because nothing in the composed brief ever
+  mentions them (`foreman/inputs.py::DefaultComposer` joins inputs and stops).
+  Graded `fail_code`; 980 green lab tests had said nothing.
+- Why it matters: this is a whole class, not one bug. Wherever a double is
+  built to satisfy a contract, the tests cannot see whether the production path
+  COMMUNICATES that contract to a real participant. The double's compliance is
+  authored, not earned.
+- Apply: when a component's job includes instructing an external agent, at
+  least one test must exercise a participant that was NOT told the protocol by
+  the test author — or the gap ships. Ask of any double: "what does this know
+  that a real one would have to be told?"
+- Source: cr-0zc, found by the cr-o85.32 live run.

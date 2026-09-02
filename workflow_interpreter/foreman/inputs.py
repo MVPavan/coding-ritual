@@ -8,7 +8,12 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ActivationRecord, InputBinding, RootRecord
 from workflow_interpreter.bdio.mint import FIRST_ROUND
-from workflow_interpreter.foreman.constants import FORCED_FIRST_REJECT
+from workflow_interpreter.foreman.constants import (
+    FORCED_FIRST_REJECT,
+    RUNNER_PROTOCOL,
+    RUNNER_PROTOCOL_NO_WRITE_STEP,
+    RUNNER_PROTOCOL_WRITE_STEP,
+)
 from workflow_interpreter.schema.graph_index import GraphIndex, producer_node
 from workflow_interpreter.schema.models import Node, Outcome
 from workflow_interpreter.supervisor import activation_ref
@@ -171,6 +176,16 @@ def materialize(
     )
 
 
+def _runner_protocol(node: Node) -> str:
+    """Render the §6 channel contract for one node's own permissions."""
+    return RUNNER_PROTOCOL.format(
+        write_step=(
+            RUNNER_PROTOCOL_WRITE_STEP if node.writes else RUNNER_PROTOCOL_NO_WRITE_STEP
+        ),
+        outcomes=", ".join(item.value for item in node.outcomes or ()),
+    )
+
+
 class DefaultComposer:
     """Join materialized inputs and add the narrowly opted-in test clause."""
 
@@ -181,8 +196,8 @@ class DefaultComposer:
         inputs: tuple[Materialized, ...],
     ) -> str:
         """Compose the profile brief from immutable inputs and pinned flags."""
-        brief = "\n".join(item.text for item in inputs)
         node = root.index.nodes[activation.metadata.node]
+        brief = "\n".join((_runner_protocol(node), *(item.text for item in inputs)))
         forced = (
             root.metadata.allow_test_flags
             and root.definition.document.instance.test_force_first_reject

@@ -436,3 +436,54 @@ def test_inspect_rejects_an_activation_owned_by_another_root(tmp_path: Path) -> 
 
     with pytest.raises(ValueError, match="does not belong to root"):
         lab.foreman.inspect(root.root_id, activation.activation_id)
+
+
+def test_status_reports_an_open_transition_gate_with_its_inbox_and_template(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """cr-tl3: a human waiting on `ship` needs the same surface `halt` gets.
+
+    `status` is the ONLY command that renders a gate's inbox path and its
+    unsigned payload template, and §9 approval is exactly "drop payload.json
+    and payload.json.sig into that inbox". Reporting only `open_halt` left the
+    operator of a human TRANSITION gate — `ship` and `triage` in the shipped
+    feature-delivery graph — with no way to learn either without recomputing
+    the gate key by hand.
+    """
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    lab.profiles.next_script(
+        ChildScript(
+            marker='{"outcome":"done"}\n',
+            effects='{"paths":["src/feature.py"]}',
+            write_path="src/feature.py",
+            write_body="value = 3\n",
+            commit=True,
+        )
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    ship_id = lab.tick().opened_gate
+    assert ship_id is not None
+    ship = lab.store.reads.load_gate(ship_id)
+    assert ship.metadata.gate_node == "ship"
+
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+    # `transcript` captures structlog's stderr alongside the one emitted report,
+    # so select the report line rather than parsing the whole capture.
+    report = json.loads(
+        next(line for line in transcript.splitlines() if '"root_id"' in line)
+    )
+
+    reported = {entry["gate_id"]: entry for entry in report["open_gates"]}
+    assert ship_id in reported
+    entry = reported[ship_id]
+    assert entry["node"] == "ship"
+    assert entry["inbox"].endswith(ship.metadata.gate_key)
+    assert json.loads(entry["template"])["gate_key"] == ship.metadata.gate_key

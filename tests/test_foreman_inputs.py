@@ -650,3 +650,42 @@ def test_default_composer_pins_every_forced_reject_clause(
     )
     brief = DefaultComposer().compose(root, activation, (Materialized(text="body"),))
     assert (FORCED_FIRST_REJECT in brief) is contains
+
+
+@pytest.mark.parametrize(
+    ("node", "writes", "outcomes"),
+    (
+        ("implement", True, ("done", "no_diff", "fail_plan")),
+        ("review", False, ("accept", "reject")),
+    ),
+)
+def test_compose_tells_the_runner_the_channel_protocol_for_its_own_node(
+    fake_store: WorkflowStore, node: str, writes: bool, outcomes: tuple[str, ...]
+) -> None:
+    """cr-0zc: a real runner is told the §6 contract, or it fails closed.
+
+    Found by the live DRILL-27 run, and structurally invisible to the lab: the
+    `ShellProfile` double always wrote `$WF_OUTCOME_FILE` because the TEST
+    authored the script that wrote it. A real `claude` did the task, passed
+    verify, then exited 0 having written neither channel and committed nothing
+    — because the composed brief was the task text and nothing else.
+    """
+    root = make_root(fake_store, load_definition())
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    activation = activation.model_copy(
+        update={"metadata": activation.metadata.model_copy(update={"node": node})}
+    )
+
+    brief = DefaultComposer().compose(root, activation, (Materialized(text="body"),))
+
+    assert "$WF_OUTCOME_FILE" in brief
+    assert "$WF_EFFECTS_FILE" in brief
+    assert "$WF_ARTIFACT_DIR" in brief
+    # The node's OWN declared outcomes, not a fixed vocabulary: a marker
+    # carrying an outcome the node does not declare grades `fail_code` (§6).
+    for outcome in outcomes:
+        assert outcome in brief
+    # A non-writing node must be told so; §7.5 grades its repo writes as
+    # undeclared effects regardless of what it intended.
+    assert ("commit" in brief) is writes
+    assert brief.endswith("body")

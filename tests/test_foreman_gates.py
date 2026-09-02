@@ -127,13 +127,13 @@ def test_each_gate_opener_carries_its_distinguishing_fields(
         ),
         Outcome.ACCEPT,
     )
-    exhaustion = exhaustion_gate(source, "triage")
+    exhaustion = exhaustion_gate(root.index, source, "triage")
     no_progress_source = source.model_copy(
         update={
             "metadata": source.metadata.model_copy(update={"outcome": Outcome.NO_DIFF})
         }
     )
-    no_progress = no_progress_gate(no_progress_source, "triage")
+    no_progress = no_progress_gate(root.index, no_progress_source, "triage")
     effects = effects_gate(
         source,
         Outcome.DONE,
@@ -158,8 +158,8 @@ def test_no_progress_and_exhaustion_gates_open_in_one_region_and_round(
     source = fake_store.mint_activation(root.root_id, entry_request()).activation
     source = fake_store.close_activation(source.activation_id, Outcome.NO_DIFF)
 
-    no_progress_request = no_progress_gate(source, "triage")
-    exhaustion_request = exhaustion_gate(source, "triage")
+    no_progress_request = no_progress_gate(root.index, source, "triage")
+    exhaustion_request = exhaustion_gate(root.index, source, "triage")
     first, second = (
         (no_progress_request, exhaustion_request)
         if no_progress_first
@@ -390,9 +390,9 @@ def test_payload_template_closes_each_human_gate_kind(
                 Outcome.ACCEPT,
             )
         elif gate_kind == "exhaustion":
-            request = exhaustion_gate(source, "triage")
+            request = exhaustion_gate(root.index, source, "triage")
         elif gate_kind == "no_progress":
-            request = no_progress_gate(source, "ship")
+            request = no_progress_gate(root.index, source, "ship")
         else:
             request = halt_gate("ceiling:20")
 
