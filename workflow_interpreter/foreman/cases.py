@@ -406,11 +406,21 @@ def route_head(
                 else resolution.closed.activation_id,
                 stalled=resolution.halted,
             )
-        request = _request(composition, root, head).model_copy(
-            update={
-                "mint_reason": retry,
-                "predecessor_activation_id": head.activation_id,
-            }
+        # Built field by field rather than copied from `_request`: a retry's
+        # only predecessor is the activation it re-attempts, never the gate that
+        # originally minted it, and `MintRequest` refuses both at once
+        # (`wire.py` `_validate_predecessors`). `model_copy(update=…)` skips
+        # after-validators, so a copy carried the stale `predecessor_gate_id`
+        # into a non-EDGE mint and stranded the instance (cr-o85.33.8).
+        head_meta = head.metadata
+        request = MintRequest(
+            node=head_meta.node,
+            mint_reason=retry,
+            runner_profile=head_meta.runner_profile,
+            model=head_meta.model,
+            session_id=head_meta.session_id,
+            predecessor_activation_id=head.activation_id,
+            inputs=head_meta.inputs,
         )
         if steer_ancestor(wiring.store.reads, request) is not None:
             fallback = node.fallback or root.definition.document.fallback

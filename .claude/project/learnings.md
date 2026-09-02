@@ -71,3 +71,74 @@ Format per entry:
 - Apply: filter plugin rows by `projectPath`; JSON-merge settings.json; check
   `hooks.state` counts; test install flows in a clean container with real
   CLIs (`mvp-harness/plugins/mvp-plugin/test/` + a long-lived lab container).
+
+## `ForemanLab` timing and rebuild traps in crash/staleness drills  (2026-09-02)
+
+- Observed, three independent traps, each cost a worker a failing run:
+  (1) `ForemanLab` wires a `FrozenClock` whose `sleep()` advances virtual time
+  for free, so a real-fork staleness test gets NO stale-but-alive window — the
+  wrapper's poll loop races through the node's `stale_after` AND its 45m
+  `max_wall` in an eyeblink and kills its own child before the test can steer
+  it (`LifecycleConflictError`). (2) Dispatch and settle are SEPARATE ticks
+  even in the synchronous `InlineSpawner` lab, so `crash_on("update", n)`
+  armed one tick late silently never fires (`DID NOT RAISE`). (3)
+  `lab.rebuild()` discards `_Profiles` and any queued `ChildScript`, so a
+  script queued before a rebuild is lost and the relaunch runs the stale
+  default.
+- Why it matters: each trap produces a *green or plausibly-red* test that is
+  not testing what it claims — the exact failure mode the §5 drill inventory
+  overclaim (S1) was about.
+- Apply: set `lab.clock.real_sleep_s = 0.05` before forking in any real-fork
+  timing test (the only precedent is
+  `tests/test_supervisor_run.py::test_a_stale_child_raises_the_flag_on_disk_and_in_bd`,
+  invisible from `tests/_foreman.py`); arm a crash BEFORE the dispatch attempt
+  it must land in, not after; requeue the next `ChildScript` AFTER the rebuild
+  that consumes it.
+- Source: S1 batches 4a/4b, `scratchpad/probes/s1-triage.md`.
+
+## A liveness assertion placed after a barrier proves nothing  (2026-09-02)
+
+- Observed: `assert not _runner_alive(pid)` sat after
+  `ProcSpawner.await_barrier(timeout_s=15.0)` while the child slept 6s. A
+  mutant aiming `terminate` at a bogus pid SURVIVED — the assertion was
+  satisfied by the child timing out on its own and could not tell a real kill
+  from a natural exit. Moving the same assertion to immediately after
+  `steer()` returns passes clean and kills the mutant.
+- Why it matters: the one assertion whose whole job was proving a live child
+  got killed proved nothing, and only mutation exposed it.
+- Apply: assert a process died at the earliest point the product guarantees it
+  (here: `steer()` terminates with proof before returning), never after a wait
+  long enough for the process to end by itself. Same rule for any timeout-
+  bounded barrier.
+- Source: S1 batch 4b mutant B4B-M4, `tests/test_foreman_steer.py`.
+
+## `model_copy(update=)` silently skips `model_validator(mode="after")`  (2026-09-02)
+
+- Observed: `foreman/cases.py` built an infra-retry `MintRequest` with
+  `_request(...).model_copy(update={…})`. Pydantic's `model_copy` does NOT
+  re-run validation, so the copy carried a stale `predecessor_gate_id`
+  alongside a `predecessor_activation_id` — a combination `MintRequest`'s own
+  `_validate_predecessors` (`bdio/wire.py:523`) exists to forbid. `mint.py`
+  then raised `CarrierIntegrityError` uncaught inside `Foreman.tick()`,
+  permanently: a stranded instance with no human escape (P1, `cr-o85.33.8`).
+- Why it matters: the invariant was written, tested, and correct — and simply
+  not run. A guard one level above the check is invisible to every test that
+  only exercises the constructor.
+- Apply: never `model_copy(update=…)` a model that carries an after-validator
+  unless the updated fields are provably disjoint from everything the
+  validator reads. Prefer field-by-field construction, which forces the
+  validator to run and makes the invariant *enforced* rather than *assumed*.
+  AUDITED the other five sites in this repo after the fix
+  (`supervisor/steer.py:145`, `foreman/config.py:75`,
+  `supervisor/workspace.py:480`, `bdio/transitions.py:220`,
+  `bdio/roots.py:207`): none is a live defect — THREE target models with no
+  after-validator at all (`RootMetadata`, `ActivationMetadata`, `PinResult`)
+  and TWO that update a field the validator never reads
+  (`MintRequest.session_id`, `ForemanConfig.config_path`). Note WHY the latter
+  two are safe: field-disjointness, which nothing enforces and any later edit
+  can break — `steer.py:145` is the identical construct on the identical model
+  that caused the P1, separated from it only by which field is updated.
+  (Classification corrected 2026-09-02 after a sign-off caught the counts
+  reversed; the safety conclusion was unchanged.)
+- Source: S1 batch 2 + the Fable 5.1 high sign-off (MINOR 8),
+  `scratchpad/probes/s1-triage.md`.

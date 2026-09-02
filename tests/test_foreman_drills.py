@@ -20,24 +20,45 @@ from tests._foreman import (
     LockedPersistentBd,
     ProcSpawner,
 )
-from tests._helpers import VALID_FIXTURE, write
-from tests._supervisor import ChildScript
+from tests._helpers import VALID_FIXTURE, mutate, write
+from tests._supervisor import ChildScript, head_of
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
+    ActivationRecord,
     BoundMutation,
     Evidence,
     Lifecycle,
+    MintReason,
     Outcome,
     SigningConfig,
 )
 from workflow_interpreter.bdio.carriers import ExitRecord
 from workflow_interpreter.bdio.wire import EventPayload
+from workflow_interpreter.foreman.constants import (
+    DEVIATION_INSTANCE_BRANCH_DIVERGED,
+    HALT_NODE,
+    INSTANCE_BRANCH,
+)
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import halt_gate
+from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.supervise import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
+from workflow_interpreter.schema.models import Node
+from workflow_interpreter.supervisor import (
+    AuditFlag,
+    BranchAdvanceOutcome,
+    CompletionEvidence,
+    PinResult,
+)
 from workflow_interpreter.supervisor.band import BandLock
+from workflow_interpreter.supervisor.gitcmd import GIT_INDEX_FILE, GitSubcommand
+from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.paths import ExecLedger, read_record
+from workflow_interpreter.supervisor.workspace import Workspace
+
+# Every test in this file is a §5 drill row (D1 crash, lock, event, halt).
+pytestmark = pytest.mark.acceptance
 
 
 def _persistent_lab(
@@ -395,13 +416,51 @@ def test_halt_intake_closes_each_signed_outcome_before_dispatch(
         assert report.closed_gates == (gate.gate_id,)
         assert report.halted is False
         assert closed.metadata.outcome is outcome
+        assert closed.metadata.state.value == "closed"
+        assert closed.metadata.gate_node == HALT_NODE
         assert report.dispatched is None
         if outcome is Outcome.REBUDGET:
             assert closed.metadata.bound_key == "region.build-review.max_entries"
         if outcome is Outcome.ABANDON:
             terminal = lab.tick()
             assert terminal.terminal is True
-            assert len(lab.beads("event")) == 1
+            events = [
+                EventPayload.model_validate_json(row["payload"])
+                for row in lab.beads("event")
+                if isinstance(row["payload"], str)
+            ]
+            assert len(events) == 1
+            assert events[0].from_node == "halt"
+            assert events[0].to_node == "abandoned"
+
+
+def test_halt_intake_open_gate_admits_no_dispatch_and_no_write_but_the_refusal(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """HALT-INTAKE catches a tick that dispatches or writes past a still-open gate."""
+    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    root = lab.instantiate()
+    gate = lab.store.open_gate(root.root_id, halt_gate("ceiling:20"))
+    lab.refuse(gate.gate_id)
+    before_updates = lab.count("update")
+    before_closes = lab.count("close")
+    before_creates = lab.count("create")
+
+    report = lab.tick()
+    still_open = lab.store.reads.load_gate(gate.gate_id)
+
+    assert report.dispatched is None
+    assert report.closed_gates == ()
+    assert still_open.metadata.state.value == "open"
+    assert report.refusals == (lab.refusal(gate.gate_id),)
+    assert lab.beads("activation") == []
+    assert lab.count("update") == before_updates
+    assert lab.count("close") == before_closes
+    # The canary is exactly ONE `create` per tick (`crash_on_tick_create` skips
+    # it with `occurrence + 1`, `tests/_foreman.py`), so "no write beyond the
+    # canary" means the create count grows by exactly one. Snapshotting only
+    # `update`/`close` left a duplicate gate or event bead invisible.
+    assert lab.count("create") == before_creates + 1
 
 
 def test_halt_rebudget_restarts_the_fail_code_node_without_a_new_round(
@@ -634,3 +693,232 @@ def test_drill_12_halts_on_a_missing_intended_base_commit(tmp_path: Path) -> Non
     assert (
         gate.metadata.halt_reason == "missing_commit intended_base_commit " + "f" * 40
     )
+
+
+def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch(
+    tmp_path: Path,
+) -> None:
+    """FRESH (F1) drives the production `instantiate` seam: it pins the repo
+    head as the instance base and creates the branch, tick 1 mints and
+    dispatches the entry activation from that same head, and a deleted branch
+    is repaired by re-`instantiate`-ing the same key."""
+    lab = ForemanLab(tmp_path)
+    brief = tmp_path / "brief.md"
+    brief.write_text("implement the fresh drill fixture", encoding="utf-8")
+    head = head_of(lab.repo)
+
+    root = instantiate(
+        lab.composition,
+        VALID_FIXTURE,
+        instance_key="fresh-f1",
+        brief_path=brief,
+        allow_test_flags=False,
+        overrides={},
+    )
+    lab.root = root
+    branch = INSTANCE_BRANCH.format(root_id=root.root_id)
+
+    assert lab.git.ref_target(branch, cwd=lab.repo) == head_of(lab.repo)
+    assert root.metadata.instance_base_commit == head
+
+    report = lab.tick()
+
+    assert report.dispatched is not None
+    activation = lab.store.reads.load_activation(report.dispatched)
+    assert activation.metadata.mint_reason is MintReason.ENTRY
+    assert activation.metadata.intended_base_commit == head
+    assert len(lab.spawner.launches) == 1
+
+    before = lab.beads("activation")
+    lab.git.run(GitSubcommand.UPDATE_REF, "-d", branch, cwd=lab.repo)
+    stalled = lab.tick()
+
+    assert stalled.stalled is not None
+    assert lab.beads("activation") == before
+
+    instantiate(
+        lab.composition,
+        VALID_FIXTURE,
+        instance_key="fresh-f1",
+        brief_path=brief,
+        allow_test_flags=False,
+        overrides={},
+    )
+
+    assert lab.git.ref_target(branch, cwd=lab.repo) is not None
+    assert len(lab.beads("root")) == 1
+
+
+def _in_repo_implement_graph(tmp_path: Path) -> Path:
+    """The feature-delivery fixture with `implement` alone pinned to in-repo."""
+    return write(
+        tmp_path,
+        mutate(
+            VALID_FIXTURE.read_text(encoding="utf-8"),
+            (
+                (
+                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "worktree"',
+                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "in-repo"',
+                ),
+            ),
+        ),
+    )
+
+
+def _unrelated_commit(git: Git, repo: Path, tmp_path: Path) -> str:
+    """A parentless commit sharing no ancestry with the repo's real history."""
+    index = tmp_path / "unrelated.index"
+    env = {GIT_INDEX_FILE: str(index)}
+    git.run(GitSubcommand.READ_TREE, "HEAD", cwd=repo, env=env)
+    tree = git.run(GitSubcommand.WRITE_TREE, cwd=repo, env=env).text
+    return git.run(
+        GitSubcommand.COMMIT_TREE, tree, "-m", "unrelated", cwd=repo, env=env
+    ).text
+
+
+def _missing_branch_before_the_pin(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> tuple[ForemanLab, str, str]:
+    """Drive cr-o85.33.10(b) through the stalled tick and the branch's rebirth.
+
+    Deletes the instance branch strictly before the wrapper's own §7.4 pin, on
+    an `implement` node pinned in-repo so the runner's commit lands on `main`
+    (the row's shared IN-REPO premise). A single `lab.tick()` runs mint,
+    precondition, launch AND `pin_artifact` inline (`InlineSpawner` is
+    synchronous) with no test-visible pause between them: mint reads the
+    branch to derive `intended_base_commit` (`mint.py::_derive_base_commit`)
+    and precondition verifies HEAD against it, so the branch has to stay in
+    place until `pin_artifact` runs — deleting it any earlier corrupts the
+    mint or the precondition instead of reaching row (b) at all. So the
+    deletion is injected by wrapping `Workspace.pin_artifact` itself: the
+    first call deletes the branch immediately before delegating to the real
+    implementation, the only point that is honestly "before the pin".
+
+    Asserts every clause up to (but not including) the settle tick that
+    re-runs the advance, then returns the lab with the branch already
+    recreated at `instance_base_commit` so the caller can choose the row's
+    main path or its variant from there.
+    """
+    graph = _in_repo_implement_graph(tmp_path)
+    lab = ForemanLab(tmp_path, toml=graph)
+    lab.instantiate()
+    assert lab.root is not None
+    branch = INSTANCE_BRANCH.format(root_id=lab.root.root_id)
+
+    original_pin_artifact = Workspace.pin_artifact
+    deleted = False
+
+    def _pin_after_the_branch_is_deleted(
+        self: Workspace,
+        activation: ActivationRecord,
+        node: Node,
+        *,
+        declared: frozenset[str] | None = None,
+        quarantine: bool = False,
+    ) -> PinResult:
+        nonlocal deleted
+        if not deleted:
+            lab.git.run(GitSubcommand.UPDATE_REF, "-d", branch, cwd=lab.repo)
+            deleted = True
+        return original_pin_artifact(
+            self, activation, node, declared=declared, quarantine=quarantine
+        )
+
+    monkeypatch.setattr(Workspace, "pin_artifact", _pin_after_the_branch_is_deleted)
+
+    report = lab.tick()
+    activation_id = report.dispatched
+    assert activation_id is not None
+
+    # branch DELETED before the pin => completion.branch.outcome == missing,
+    # no flag, a reason line, `done` graded, completion.json cached.
+    completion = read_record(
+        lab.wiring().paths.completion(activation_id), CompletionEvidence
+    )
+    assert completion is not None
+    assert completion.branch is not None
+    assert completion.branch.outcome is BranchAdvanceOutcome.MISSING
+    assert AuditFlag.INSTANCE_BRANCH_DIVERGED not in completion.audit_flags
+    assert "instance branch missing" in completion.reasons
+    assert completion.outcome is Outcome.DONE
+
+    # next tick => stalled from reconcile, no settle, no halt gate,
+    # count("update") == 0 beyond the canary.
+    lifecycle_before = lab.store.reads.load_activation(activation_id).metadata.lifecycle
+    before_updates = lab.count("update")
+    stalled = lab.tick()
+
+    assert stalled.stalled == "instance branch missing"
+    assert stalled.settled is None
+    assert stalled.opened_gate is None
+    assert lab.count("update") == before_updates
+    assert (
+        lab.store.reads.load_activation(activation_id).metadata.lifecycle
+        == lifecycle_before
+    )
+
+    # re-instantiate => branch recreated at instance_base_commit.
+    lab.instantiate()
+    return lab, activation_id, branch
+
+
+def test_missing_branch_before_the_pin_stalls_then_advances_at_settle(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """cr-o85.33.10(b): settle re-runs the branch advance before record_evidence.
+
+    After the branch is recreated at `instance_base_commit`, the next tick's
+    settle re-attempts the advance BEFORE `record_evidence`, moves the branch
+    to the artifact commit, and records the settle-time advance in the
+    evidence note; the successor `review` is then minted from that commit.
+    """
+    lab, activation_id, branch = _missing_branch_before_the_pin(tmp_path, monkeypatch)
+
+    settled = lab.tick()
+    assert settled.settled == activation_id
+    closed = lab.store.reads.load_activation(activation_id)
+    evidence = closed.metadata.evidence
+    assert evidence is not None
+    artifact = evidence.artifact
+    assert artifact is not None
+    assert lab.git.ref_target(branch, cwd=lab.repo) == artifact.commit_oid
+    assert (
+        evidence.note == f"instance branch advanced at settle to {artifact.commit_oid}"
+    )
+
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    review = lab.tick().dispatched
+    assert review is not None
+    assert (
+        lab.store.reads.load_activation(review).metadata.intended_base_commit
+        == artifact.commit_oid
+    )
+
+
+def test_missing_branch_before_the_pin_diverges_at_settle_if_recreated_branch_moves(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """cr-o85.33.10(b) variant: the recreated branch moves before that tick.
+
+    Moving the recreated branch to an unrelated commit before the settle tick
+    makes the settle-time advance diverge instead of advancing; the activation
+    still closes (carrying the divergence deviation) and no `review` is
+    minted — the rest of that halt chain belongs to sub-case (a)'s test.
+    """
+    lab, activation_id, branch = _missing_branch_before_the_pin(tmp_path, monkeypatch)
+
+    unrelated = _unrelated_commit(lab.git, lab.repo, tmp_path)
+    lab.git.update_ref(branch, unrelated, cwd=lab.repo)
+
+    settled = lab.tick()
+    assert settled.settled == activation_id
+    closed = lab.store.reads.load_activation(activation_id)
+    assert any(
+        item.kind == DEVIATION_INSTANCE_BRANCH_DIVERGED and item.recorded_at == "settle"
+        for item in closed.metadata.deviations
+    )
+
+    report = lab.tick()
+    assert report.dispatched is None

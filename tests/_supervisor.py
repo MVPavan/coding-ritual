@@ -494,6 +494,14 @@ class ChildScript(BaseModel):
     """One wrapper-artifact-relative finding written by a non-writing child."""
     artifact_body: str = ""
     sleep_s: float = 0.0
+    assert_clean_tree: bool = False
+    """Spec:857-859, injection point 4: have the CHILD observe its OWN
+    worktree before it does anything else. Only the runner's own process can
+    see whether its worktree is genuinely clean at start — a `git reset
+    --hard` the orchestrator ran before dispatch only touches tracked paths,
+    so an untracked or otherwise unstaged leftover can survive it invisibly
+    to any outside observer that only ever diffs committed trees. This
+    fails the CHILD, from inside, before it writes or commits anything."""
     ignore_term: bool = False
     """Drill 19: the child traps TERM and loops, so only KILL can end it.
 
@@ -508,6 +516,9 @@ class ChildScript(BaseModel):
         lines = [] if self.ignore_term else ["set -e"]
         if self.ignore_term:
             lines.append("trap '' TERM")
+        if self.assert_clean_tree:
+            lines.append('dirty="$(git status --porcelain)"')
+            lines.append('if [ -n "$dirty" ]; then printf %s "$dirty" >&2; exit 1; fi')
         if self.emit:
             lines.append(f"printf '%s' {_quote(self.emit)}")
         if self.marker is not None:

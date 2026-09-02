@@ -63,6 +63,7 @@ def test_lab_transcript_captures_the_entrypoint_stream(tmp_path: Path) -> None:
     assert byte_count == len(text.encode("utf-8"))
 
 
+@pytest.mark.acceptance
 def test_audit_20_keeps_clean_runner_log_bytes_out_of_every_transcript(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
