@@ -204,7 +204,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/relative_path"
-          }
+          },
+          "description": "Paths whose changes are exempt from undeclared-effect reporting (\u00a77.5). NOT a containment bound: the same rule also exempts whatever the runner declares in $WF_EFFECTS_FILE, so a runner may modify any path, declare it, and be graded done. See ADR 0001."
         },
         "inputs": {
           "type": "array",

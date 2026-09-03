@@ -795,3 +795,42 @@ def test_a_transient_bd_failure_on_the_exit_write_is_not_swallowed(
 
     assert lab.reload().metadata.lifecycle is Lifecycle.DISPATCHED
     assert lab.reload().metadata.exit_record is None
+
+
+def test_a_declared_effect_outside_allowed_paths_is_still_flagged_for_audit(
+    lab: Lab,
+) -> None:
+    """ADR 0001: `allowed_paths` exempts from reporting; it bounds nothing.
+
+    §7.5 subtracts `declared ∪ allowed`, so a runner may edit any path, list
+    it in its own manifest, and be graded `done` with no signal at all. The
+    transition still proceeds — that is the recorded decision — but an
+    operator now gets `observed ∖ allowed` as a distinct flag, so a node
+    writing outside its declared scope is visible rather than invisible.
+    """
+    lab.commit_work(OUTSIDE_FILE)
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(OUTSIDE_FILE)
+
+    observation = lab.observe()
+
+    # Unchanged: the declaration still reconciles the transition.
+    assert observation.completion.evidence.undeclared_effects == ()
+    assert observation.completion.outcome is Outcome.DONE
+    assert AuditFlag.UNDECLARED_EFFECT not in observation.completion.audit_flags
+    # New: and it is no longer silent.
+    assert AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS in observation.completion.audit_flags
+
+
+def test_an_effect_inside_allowed_paths_raises_no_audit_flag(lab: Lab) -> None:
+    """The flag must distinguish scope, or it fires on every ordinary run."""
+    lab.commit_work()
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects()
+
+    observation = lab.observe()
+
+    assert observation.completion.outcome is Outcome.DONE
+    assert (
+        AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS not in observation.completion.audit_flags
+    )

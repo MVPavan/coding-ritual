@@ -214,6 +214,14 @@ class AuditFlag(StrEnum):
     as `error_transport` until the §10.2 infra cap burns."""
     MARKER_INVALID = "marker_invalid"
     UNDECLARED_EFFECT = "undeclared_effect"
+    EFFECT_OUTSIDE_ALLOWED_PATHS = "effect_outside_allowed_paths"
+    """A path was modified outside the node's `allowed_paths`, whether or not
+    the runner declared it. §7.5 subtracts `declared UNION allowed`, so a
+    declared path outside the set reconciles the transition and is graded
+    `done`; `allowed_paths` is an exemption from reporting, never a bound
+    (ADR 0001). Recorded, never raised: this flags scope for an operator and
+    changes no outcome. Real containment is enforcement at the runner layer,
+    which does not exist yet."""
     ANTI_DRIFT = "anti_drift"
     EFFECTS_MANIFEST_MISSING = "effects_manifest_missing"
     OUTPUTS_UNSAFE = "outputs_unsafe"

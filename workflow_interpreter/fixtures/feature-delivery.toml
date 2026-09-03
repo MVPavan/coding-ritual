@@ -35,7 +35,7 @@ when `task_brief` cannot be implemented as written and needs a human.
 """
 isolation     = "worktree"               # worktree | in-repo
 writes        = true                     # repo-worktree write access only
-allowed_paths = ["src/**", "tests/**"]   # static effect bound
+allowed_paths = ["src/**", "tests/**"]   # reporting exemption, not a bound
 inputs        = ["task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
 token_budget  = 120000                   # context TRIM budget (not a runaway bound)

@@ -339,6 +339,11 @@ def read_effects(path: Path) -> tuple[EffectsManifest | None, str | None]:
 
 
 def path_allowed(path: str, allowed_paths: tuple[str, ...]) -> bool:
-    """Whether an observed path falls inside the node's static effect bound."""
+    """Whether an observed path is exempt from undeclared-effect reporting.
+
+    Not a containment check: §7.5 also exempts whatever the runner declares,
+    so this answers "was this change expected here", never "was it allowed"
+    (ADR 0001).
+    """
     candidate = PurePosixPath(path)
     return any(candidate.full_match(pattern) for pattern in allowed_paths)

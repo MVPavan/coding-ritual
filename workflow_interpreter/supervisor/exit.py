@@ -104,6 +104,9 @@ _REASON_PROVENANCE: Final[str] = (
     "verify check {cmd!r} hashes to {actual}, pinned {expected} — refused (§7.3)"
 )
 _REASON_UNDECLARED: Final[str] = "undeclared effects: {paths}"
+_REASON_OUT_OF_SCOPE: Final[str] = (
+    "modified outside allowed_paths (declared, so not blocking): {paths}"
+)
 _REASON_ANTI_DRIFT: Final[str] = (
     "reviewed identity {reviewed} is not the verified identity {verified}"
 )
@@ -555,6 +558,9 @@ class ExitObserver:
         undeclared = self._undeclared_effects(
             activation, node, collected, artifact, cwd
         )
+        out_of_scope = self._effects_outside_allowed_paths(
+            activation, node, artifact, cwd
+        )
         evidence = Evidence(
             verify=tuple(
                 VerifyOutcome(
@@ -640,6 +646,9 @@ class ExitObserver:
         if undeclared:
             reasons.append(_REASON_UNDECLARED.format(paths=", ".join(undeclared)))
             flags.append(AuditFlag.UNDECLARED_EFFECT)
+        if out_of_scope:
+            reasons.append(_REASON_OUT_OF_SCOPE.format(paths=", ".join(out_of_scope)))
+            flags.append(AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS)
         if collected.effects is None:
             flags.append(AuditFlag.EFFECTS_MANIFEST_MISSING)
         flags.extend(output_flags)
@@ -703,6 +712,29 @@ class ExitObserver:
             outcome = Outcome.FAIL_CODE
         return outcome, reasons, flags
 
+    def _effects_outside_allowed_paths(
+        self,
+        activation: ActivationRecord,
+        node: Node,
+        artifact: ArtifactIdentity | None,
+        cwd: Path,
+    ) -> tuple[str, ...]:
+        """observed ∖ allowed — scope, ignoring what the runner declared.
+
+        The §7.5 set subtracts the runner's own manifest too, so a node that
+        writes anywhere and says so is graded clean. This is the same observed
+        set measured against the node's DECLARED scope alone, which is the
+        only question an operator can act on (ADR 0001).
+        """
+        allowed = node.allowed_paths or ()
+        return tuple(
+            sorted(
+                path
+                for path in self._observed_paths(activation, artifact, cwd)
+                if not path_allowed(path, allowed)
+            )
+        )
+
     def _undeclared_effects(
         self,
         activation: ActivationRecord,
@@ -712,6 +744,27 @@ class ExitObserver:
         cwd: Path,
     ) -> tuple[str, ...]:
         """§7.5: observed ∖ (declared ∪ allowed) — the set that blocks a transition."""
+        declared = frozenset(collected.effects.paths if collected.effects else ())
+        allowed = node.allowed_paths or ()
+        return tuple(
+            sorted(
+                path
+                for path in self._observed_paths(activation, artifact, cwd)
+                if path not in declared and not path_allowed(path, allowed)
+            )
+        )
+
+    def _observed_paths(
+        self,
+        activation: ActivationRecord,
+        artifact: ArtifactIdentity | None,
+        cwd: Path,
+    ) -> frozenset[str]:
+        """Every path this activation changed: committed diff plus working tree.
+
+        One definition, because §7.5's blocking set and the ADR 0001 scope flag
+        must measure the same observation and differ only in what they subtract.
+        """
         observed: set[str] = set()
         if artifact is not None:
             observed.update(
@@ -722,15 +775,7 @@ class ExitObserver:
                 )
             )
         observed.update(path for path, _ in self._git.status_paths(cwd=cwd))
-        declared = frozenset(collected.effects.paths if collected.effects else ())
-        allowed = node.allowed_paths or ()
-        return tuple(
-            sorted(
-                path
-                for path in observed
-                if path not in declared and not path_allowed(path, allowed)
-            )
-        )
+        return frozenset(observed)
 
 
 __all__ = [

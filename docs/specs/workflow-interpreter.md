@@ -132,7 +132,7 @@ runner        = "profile:implementer"
 model         = "default"
 isolation     = "worktree"               # worktree | in-repo
 writes        = true                     # repo-worktree write access only
-allowed_paths = ["src/**", "tests/**"]   # static effect bound
+allowed_paths = ["src/**", "tests/**"]   # reporting exemption, NOT a bound
 inputs        = ["task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
 token_budget  = 120000                   # context TRIM budget (not a runaway bound)
@@ -316,7 +316,8 @@ nothing. Unknown source name = hard error.
    `verify` (structured: `cmd`, `timeout` ≤ the node's `max_wall`,
    optional `cwd`; `cmd`/`cwd` repo-relative — a check outside the
    pinned repo cannot be provenance-hashed, §7.3), `allowed_paths`
-   (repo-relative; empty ⇔ `writes = false`), `token_budget`,
+   (repo-relative; empty ⇔ `writes = false`; a reporting exemption, not a
+   bound — see §7.5), `token_budget`,
    `max_wall`, `stale_after`, `max_infra_retries`, `max_steers`;
    `[instance].max_total_activations` present. Acyclic regions must NOT
    declare `max_entries`/`on_exhausted`; `on_exhausted` targets a GATE
@@ -648,10 +649,18 @@ Computed by the foreman wrapper at `exit-recorded`:
    sha256 digests are used only for mutable documents (§9).
 5. **Effects reconciled**: observed = status/diff over
    `intended_base_commit..artifact_commit` + uncommitted/untracked;
-   declared = `$WF_EFFECTS_FILE`; static bound = `allowed_paths`.
+   declared = `$WF_EFFECTS_FILE`; `allowed_paths` = paths exempt from
+   undeclared-effect reporting.
    `undeclared_effect` = observed ∖ (declared ∪ allowed) → transition
    blocked (release: human gate accepting that exact artifact, or foreman
    discard + deviation record).
+   **`allowed_paths` is NOT containment and never was** (ADR 0001). The
+   union subtracts the runner's own manifest, so a runner may modify any
+   path, declare it, and be graded `done`; no profile consumes
+   `allowed_paths` as a sandbox restriction. A declared path outside the
+   set raises the `effect_outside_allowed_paths` audit flag — recorded for
+   an operator, blocking nothing. Real enforcement belongs at the runner
+   layer and does not exist yet.
 
 ## 8. Supervision
 

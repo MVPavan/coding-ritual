@@ -1,4 +1,4 @@
-# allowed_paths_well_formed: the static effect bound points outside the repo.
+# allowed_paths_well_formed: the reporting exemption points outside the repo.
 [graph]
 id = "min"
 version = "1.0.0"

@@ -262,7 +262,11 @@ def gate_outcomes_edge_covered(index: GraphIndex) -> list[Finding]:
 
 
 def allowed_paths_well_formed(index: GraphIndex) -> list[Finding]:
-    """The static effect bound is repo-relative and matches the node's write access (§2, §7.5)."""
+    """`allowed_paths` is repo-relative and agrees with the node's write access.
+
+    The set exempts paths from undeclared-effect reporting (§7.5); it does
+    not bound what a node may write (ADR 0001).
+    """
     findings: list[Finding] = []
     for position, node in enumerate(index.document.node):
         if node.allowed_paths is None:

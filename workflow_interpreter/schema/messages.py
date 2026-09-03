@@ -129,7 +129,7 @@ MSG_ALLOWED_PATHS_NON_WRITER: Final[str] = (
 )
 MSG_ALLOWED_PATHS_WRITER: Final[str] = (
     "node {node!r} declares writes = true but no allowed_paths; "
-    "every effect would be undeclared (§7.5)"
+    "every effect would need the runner to declare it (§7.5)"
 )
 MSG_MAX_TOTAL_ACTIVATIONS: Final[str] = (
     "max_total_activations must be >= 1, got {value}"

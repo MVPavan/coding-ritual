@@ -78,8 +78,9 @@ RUNNER_PROTOCOL_WRITE_STEP: Final[str] = (
     "Uncommitted\n  work does not exist to this harness.\n"
 )
 RUNNER_PROTOCOL_NO_WRITE_STEP: Final[str] = (
-    "- Do NOT write to the repository. This node is `writes = false`; anything "
-    "it\n  leaves in the tree is graded as an undeclared effect (§7.5).\n"
+    "- Do NOT write to the repository. This node is `writes = false`, so any "
+    "change\n  it leaves in the tree is out of scope and is flagged for a "
+    "human to read.\n"
 )
 FACT_FRAME: Final[str] = """## What this node is (pinned, §3.1)
 

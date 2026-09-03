@@ -1,6 +1,6 @@
 # ADR 0001 — `allowed_paths` is a disclosure exemption, not a containment bound
 
-- **Status:** Accepted
+- **Status:** Accepted; points 1, 2 and 4 implemented 2026-09-03, point 3 open
 - **Date:** 2026-09-03
 - **Deciders:** repo owner
 - **Reviewed by:** Fable 5.1 (high), Sol (xhigh) — `scratchpad/probes/decisions-fable.md`, `scratchpad/probes/decisions-sol.md`
@@ -54,12 +54,16 @@ prevention.**
    false under the union); `workflows/README.md`; the graph JSON Schema
    description; the `feature-delivery.toml:26` comment.
 
-2. **Detection lands now.** Record `observed − allowed_paths` as a distinct
-   audit flag alongside the existing undeclared-effect set. This is a small
-   addition to `_undeclared_effects` and gives an operator a visible signal
-   that a node wrote outside its declared scope, without blocking a transition.
-   Fixture TOML comments do not affect the content hash — `canonical_bytes`
-   dumps the model (`schema/loader.py:153`) — so the prose corrections are free.
+2. **Detection lands now.** `AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS` records
+   `observed ∖ allowed` — scope, ignoring what the runner declared — beside
+   the existing §7.5 blocking set. Recorded, never raised: the transition is
+   unaffected, but a node writing outside its declared scope is now visible
+   instead of silent.
+
+   Both computations share one `_observed_paths` helper, so they measure the
+   same observation and differ only in what they subtract. Fixture TOML
+   comments do not affect the content hash — `canonical_bytes` dumps the
+   model (`schema/loader.py:153`) — so the prose corrections were free.
 
 3. **Prevention is deferred, with an explicit trigger.** Real enforcement
    means the write cannot happen, at the runner/tool layer, and is per-profile.
