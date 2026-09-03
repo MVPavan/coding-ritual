@@ -420,8 +420,8 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             1,
         )
         .replace(
-            'inputs        = ["task_brief", "diff_artifact"]',
-            'inputs        = ["diff_artifact"]',
+            'inputs        = ["task_brief", "diff_artifact", "review_findings"]',
+            'inputs        = ["diff_artifact", "review_findings"]',
             1,
         ),
         encoding="utf-8",

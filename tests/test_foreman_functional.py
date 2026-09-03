@@ -10,7 +10,12 @@ from pathlib import Path
 import pytest
 
 from tests._foreman import ForemanLab
-from tests._helpers import VALID_FIXTURE, mutate, write
+from tests._helpers import (
+    VALID_FIXTURE,
+    mutate,
+    undeclared_fail_code_graph,
+    write,
+)
 from tests._supervisor import ChildScript
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
@@ -408,8 +413,13 @@ def test_drill_25_distinguishes_a_declared_fallback_from_an_undeclared_claim(
     assert gate_id is not None
     assert fallback.store.reads.load_gate(gate_id).metadata.gate_node == "triage"
 
+    (tmp_path / "invalid").mkdir()
+    undeclared = undeclared_fail_code_graph(tmp_path / "invalid")
     invalid = ForemanLab(
-        tmp_path / "invalid", signing=signing_config, signer=sign_payload
+        tmp_path / "invalid",
+        toml=undeclared,
+        signing=signing_config,
+        signer=sign_payload,
     )
     invalid.instantiate()
     invalid.profiles.next_script(
@@ -432,7 +442,10 @@ def test_drill_25_distinguishes_a_declared_fallback_from_an_undeclared_claim(
     assert len(invalid.beads("activation")) == 1
 
     empty = ForemanLab(
-        tmp_path / "invalid-empty", signing=signing_config, signer=sign_payload
+        tmp_path / "invalid-empty",
+        toml=undeclared,
+        signing=signing_config,
+        signer=sign_payload,
     )
     empty.instantiate()
     empty.profiles.next_script(ChildScript(marker="{}\n", effects='{"paths":[]}'))
@@ -457,7 +470,12 @@ def _undeclared_fail_code_halt(
     tmp_path: Path, signing: SigningConfig, signer: Signer
 ) -> tuple[ForemanLab, str, str]:
     """Close `implement` on an undeclared claim and open its dead-end halt."""
-    lab = ForemanLab(tmp_path, signing=signing, signer=signer)
+    lab = ForemanLab(
+        tmp_path,
+        toml=undeclared_fail_code_graph(tmp_path),
+        signing=signing,
+        signer=signer,
+    )
     lab.instantiate()
     lab.profiles.next_script(
         ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
@@ -535,14 +553,13 @@ def test_drill_25_a_declared_fail_code_outcome_opens_triage_directly(
             VALID_FIXTURE.read_text(encoding="utf-8"),
             (
                 (
-                    'outcomes      = ["done", "no_diff", "fail_plan"]',
-                    'outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]',
-                ),
-                (
-                    '[[edge]]\nfrom = "implement"\non   = "no_diff"\nto   = "triage"\n\n',
                     (
-                        '[[edge]]\nfrom = "implement"\non   = "no_diff"\nto   = "triage"\n\n'
-                        '[[edge]]\nfrom = "implement"\non   = "fail_code"\nto   = "triage"\n\n'
+                        '[[edge]]\nfrom = "implement"\non   = "fail_code"\n'
+                        'to   = "implement"       '
+                    ),
+                    (
+                        '[[edge]]\nfrom = "implement"\non   = "fail_code"\n'
+                        'to   = "triage"          '
                     ),
                 ),
             ),

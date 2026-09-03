@@ -41,7 +41,7 @@ MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 # The §2 fixture is pinned by hash (§3.1); a change here means the graph's
 # meaning changed and every live instance's pinned body is stale.
 FEATURE_DELIVERY_CONTENT_HASH = (
-    "a6e4029f379ab3c1416d58d2a707a2e96d644c53771ce327fcaaac44ba2073d4"
+    "7cf41852b2b00cd5b8d76698fa9f9a2233dc536b1ae404ca8e232e7efb56465f"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.
@@ -125,6 +125,37 @@ def write(tmp_path: Path, text: str, name: str = "graph.toml") -> Path:
     path = tmp_path / name
     path.write_text(text, encoding="utf-8")
     return path
+
+
+# Slice A gave the shipped graph a declared `fail_code` on `implement` with an
+# edge back to itself, so the dead-end half of §13 drill 25 needs a copy of the
+# graph that withholds both. Anchored on the exact authored lines: a comment
+# edit in the fixture must fail loudly here, not silently stop removing them.
+UNDECLARED_FAIL_CODE_EDITS: Final[tuple[tuple[str, str], ...]] = (
+    (
+        'outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]',
+        'outcomes      = ["done", "no_diff", "fail_plan"]',
+    ),
+    (
+        (
+            '[[edge]]\nfrom = "implement"\non   = "fail_code"\n'
+            'to   = "implement"       '
+            "# a red check is a rework, not a human halt; the\n"
+            "                         "
+            "# region entry re-enters, so rounds still cap it\n\n"
+        ),
+        "",
+    ),
+)
+
+
+def undeclared_fail_code_graph(directory: Path) -> Path:
+    """The §2 fixture with `implement`'s `fail_code` outcome and edge removed."""
+    return write(
+        directory,
+        mutate(VALID_FIXTURE.read_text(encoding="utf-8"), UNDECLARED_FAIL_CODE_EDITS),
+        "undeclared-fail-code.toml",
+    )
 
 
 def mutate(text: str, replacements: Iterable[tuple[str, str]]) -> str:

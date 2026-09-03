@@ -450,7 +450,6 @@ def route_head(
         root.index,
         node,
         outcome,
-        claimed_outcome=None if evidence is None else evidence.claimed_outcome,
         no_progress=False if evidence is None else evidence.breaker is not None,
     )
     if decision.kind is RouteKind.TASK and decision.target is not None:

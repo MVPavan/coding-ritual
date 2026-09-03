@@ -71,16 +71,16 @@ def route(
     node: Node,
     outcome: Outcome,
     *,
-    claimed_outcome: Outcome | None = None,
     no_progress: bool = False,
 ) -> Route:
     """Route one recorded outcome without reading or writing external state."""
     if no_progress:
         return Route(kind=RouteKind.NO_PROGRESS)
-    if outcome is Outcome.FAIL_CODE and (
-        claimed_outcome is not Outcome.FAIL_CODE
-        or Outcome.FAIL_CODE not in (node.outcomes or ())
-    ):
+    # A `fail_code` the node declares is an ordinary outcome, however it was
+    # reached: the graph, not the runner's claim, decides whether a failing
+    # check is routable (ADR 0004). Only an undeclared one dead-ends; a
+    # declared one with no edge falls through to the fallback below.
+    if outcome is Outcome.FAIL_CODE and Outcome.FAIL_CODE not in (node.outcomes or ()):
         return Route(kind=RouteKind.DEAD_END)
     target = next(
         (

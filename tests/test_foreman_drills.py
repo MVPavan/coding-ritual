@@ -20,7 +20,12 @@ from tests._foreman import (
     LockedPersistentBd,
     ProcSpawner,
 )
-from tests._helpers import VALID_FIXTURE, mutate, write
+from tests._helpers import (
+    VALID_FIXTURE,
+    mutate,
+    undeclared_fail_code_graph,
+    write,
+)
 from tests._supervisor import ChildScript, head_of
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
@@ -112,7 +117,11 @@ def _drive_to_ship(lab: ForemanLab) -> str:
 
 
 def _halt_from_fail_code(lab: ForemanLab) -> tuple[str, str]:
-    """Create the fail-code dead end used by the halt re-budget drill."""
+    """Create the fail-code dead end used by the halt re-budget drill.
+
+    The lab must be built on `undeclared_fail_code_graph`: since slice A a
+    `fail_code` the node declares is routed, not halted.
+    """
     assert lab.root is not None
     activation_id = (
         lab.wiring()
@@ -466,7 +475,12 @@ def test_halt_rebudget_restarts_the_fail_code_node_without_a_new_round(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:
     """HALT-REBUDGET catches a re-mint that loses the halt provenance or round."""
-    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    lab = ForemanLab(
+        tmp_path,
+        toml=undeclared_fail_code_graph(tmp_path),
+        signing=signing_config,
+        signer=sign_payload,
+    )
     lab.instantiate()
     failed_id, gate_id = _halt_from_fail_code(lab)
     failed = lab.store.reads.load_activation(failed_id)
@@ -494,7 +508,12 @@ def test_halt_rebudget_without_a_mutation_is_refused_and_reported(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:
     """HALT-REBUDGET rejects a carrier that violates the mutation biconditional."""
-    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    lab = ForemanLab(
+        tmp_path,
+        toml=undeclared_fail_code_graph(tmp_path),
+        signing=signing_config,
+        signer=sign_payload,
+    )
     lab.instantiate()
     _, gate_id = _halt_from_fail_code(lab)
     lab.approve(gate_id, Outcome.REBUDGET)

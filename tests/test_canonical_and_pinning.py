@@ -54,15 +54,15 @@ HASH_SENSITIVITY_CASES = (
     pytest.param(
         (
             (
-                'outcomes      = ["done", "no_diff", "fail_plan"]',
-                'outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]',
+                'outcomes      = ["accept", "reject", "fail_code", "fail_plan"]',
+                'outcomes      = ["accept", "reject", "fail_code", "fail_plan", "no_diff"]',
             ),
             (
-                '[[edge]]\nfrom = "implement"\non   = "fail_plan"\nto   = "triage"\n',
+                '[[edge]]\nfrom = "review"\non   = "accept"\nto   = "ship"\n',
                 (
-                    '[[edge]]\nfrom = "implement"\non   = "fail_plan"\n'
-                    'to   = "triage"\n\n[[edge]]\nfrom = "implement"\n'
-                    'on   = "fail_code"\nto   = "triage"\n'
+                    '[[edge]]\nfrom = "review"\non   = "accept"\n'
+                    'to   = "ship"\n\n[[edge]]\nfrom = "review"\n'
+                    'on   = "no_diff"\nto   = "triage"\n'
                 ),
             ),
         ),

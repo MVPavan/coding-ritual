@@ -103,11 +103,11 @@ def _dead_end(index: GraphIndex, activation: ActivationRecord) -> DeadEndKind | 
     if any(item.kind == DEVIATION_PRECONDITION_REFUSED for item in meta.deviations):
         return DeadEndKind.PRECONDITION_REFUSED
     node = index.nodes.get(meta.node)
+    # Kept in step with `routing.route`: a `fail_code` dead-ends only where the
+    # node does not declare it, whatever the runner claimed (ADR 0004). A
+    # computed `fail_code` on a declaring node is a routing head like any other.
     if meta.outcome is Outcome.FAIL_CODE and (
-        meta.evidence is None
-        or meta.evidence.claimed_outcome is not Outcome.FAIL_CODE
-        or node is None
-        or Outcome.FAIL_CODE not in (node.outcomes or ())
+        node is None or Outcome.FAIL_CODE not in (node.outcomes or ())
     ):
         return DeadEndKind.FAIL_CODE
     return None

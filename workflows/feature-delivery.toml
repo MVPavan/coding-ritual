@@ -43,7 +43,7 @@ max_wall      = "45m"                    # universal runaway ceiling (wrapper-en
 stale_after   = "10m"
 max_infra_retries = 2
 max_steers    = 2
-outcomes      = ["done", "no_diff", "fail_plan"]
+outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]
 
 [[node]]
 name          = "review"
@@ -60,11 +60,13 @@ You have no repo write access. Do not fix what you find and do not propose
 patches — the implementer acts on your findings next round.
 
 Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
+Report `fail_plan` when the same BLOCKER stands for a second round or the
+task as briefed cannot be satisfied; do not spend a round restating it.
 """
 isolation     = "worktree"
 writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo
 allowed_paths = []
-inputs        = ["task_brief", "diff_artifact"]
+inputs        = ["task_brief", "diff_artifact", "review_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" },
                  { cmd = "scripts/review-checks.sh",  timeout = "5m"  }]
                 # deliberately a STRICT SUPERSET of implement's set; the
@@ -75,7 +77,7 @@ max_wall      = "30m"
 stale_after   = "10m"
 max_infra_retries = 2
 max_steers    = 2
-outcomes      = ["accept", "reject"]
+outcomes      = ["accept", "reject", "fail_code", "fail_plan"]
 
 [[node]]
 name      = "ship"
@@ -115,6 +117,12 @@ on   = "no_diff"
 to   = "triage"
 
 [[edge]]
+from = "implement"
+on   = "fail_code"
+to   = "implement"       # a red check is a rework, not a human halt; the
+                         # region entry re-enters, so rounds still cap it
+
+[[edge]]
 from = "review"
 on   = "reject"
 to   = "implement"
@@ -123,6 +131,18 @@ to   = "implement"
 from = "review"
 on   = "accept"
 to   = "ship"
+
+[[edge]]
+from = "review"
+on   = "fail_code"
+to   = "implement"       # the reviewer's checks went red on the diff under
+                         # review; the implementer is what can fix that
+
+[[edge]]
+from = "review"
+on   = "fail_plan"
+to   = "triage"          # early abandon: the loop must be able to end in
+                         # both directions, not only by running out of rounds
 
 [[edge]]
 from = "ship"

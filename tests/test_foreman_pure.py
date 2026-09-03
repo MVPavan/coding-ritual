@@ -55,7 +55,14 @@ from workflow_interpreter.foreman.routing import (
 )
 from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.schema.graph_index import build_index
-from workflow_interpreter.schema.models import BindsMode, Edge, FallbackRoute, Outcome
+from workflow_interpreter.schema.loader import content_hash
+from workflow_interpreter.schema.models import (
+    BindsMode,
+    Edge,
+    FallbackRoute,
+    GraphDefinition,
+    Outcome,
+)
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.models import CompletionEvidence
@@ -296,8 +303,17 @@ def test_route_declared_task_and_fail_code_dead_end() -> None:
     definition = load_definition()
     index = build_index(definition.document, allow_test_flags=False)
     node = index.nodes["implement"]
+    undeclared = node.model_copy(
+        update={
+            "outcomes": tuple(
+                outcome
+                for outcome in node.outcomes or ()
+                if outcome is not Outcome.FAIL_CODE
+            )
+        }
+    )
     assert route(index, node, Outcome.DONE).kind is RouteKind.TASK
-    assert route(index, node, Outcome.FAIL_CODE).kind is RouteKind.DEAD_END
+    assert route(index, undeclared, Outcome.FAIL_CODE).kind is RouteKind.DEAD_END
 
 
 def test_route_rejects_an_unused_carrier_argument() -> None:
@@ -348,15 +364,7 @@ def test_route_terminal_fallback_declared_fail_code_and_gate_refusals() -> None:
             ),
         }
     )
-    assert (
-        route(
-            declared_index,
-            declared,
-            Outcome.FAIL_CODE,
-            claimed_outcome=Outcome.FAIL_CODE,
-        ).kind
-        is RouteKind.TASK
-    )
+    assert route(declared_index, declared, Outcome.FAIL_CODE).kind is RouteKind.TASK
     gate_source = ship.model_copy(update={"outcomes": (Outcome.ACCEPT,)})
     gate_index = index.model_copy(
         update={
@@ -908,6 +916,40 @@ def test_frontier_does_not_consume_a_non_terminal_event(
     assert frontier.head_activation.activation_id == activation.activation_id
 
 
+def _undeclared_fail_code(definition: GraphDefinition) -> GraphDefinition:
+    """The fixture with `implement` no longer declaring `fail_code`.
+
+    Slice A made `fail_code` a declared outcome of the shipped graph, so the
+    dead-end clause now needs a graph that withholds it.
+    """
+    document = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(
+                    update={
+                        "outcomes": tuple(
+                            outcome
+                            for outcome in node.outcomes or ()
+                            if outcome is not Outcome.FAIL_CODE
+                        )
+                    }
+                )
+                if node.name == "implement"
+                else node
+                for node in definition.document.node
+            ),
+            "edge": tuple(
+                edge
+                for edge in definition.document.edge
+                if not (edge.from_node == "implement" and edge.on is Outcome.FAIL_CODE)
+            ),
+        }
+    )
+    return definition.model_copy(
+        update={"document": document, "content_hash": content_hash(document)}
+    )
+
+
 @pytest.mark.parametrize(
     ("outcome", "evidence", "kinds", "expected"),
     [
@@ -929,7 +971,7 @@ def test_frontier_classifies_every_dead_end_kind(
     expected: str,
 ) -> None:
     """Dead ends win before ordinary retry handling can consume them."""
-    root = make_root(fake_store, load_definition())
+    root = make_root(fake_store, _undeclared_fail_code(load_definition()))
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     fake_store.close_activation(
         activation.activation_id,
@@ -948,7 +990,7 @@ def test_frontier_excludes_a_dead_end_from_routing_heads(
     fake_store: WorkflowStore,
 ) -> None:
     """An undeclared fail-code close must stop at its halt rather than route."""
-    root = make_root(fake_store, load_definition())
+    root = make_root(fake_store, _undeclared_fail_code(load_definition()))
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     fake_store.close_activation(
         activation.activation_id,
@@ -995,31 +1037,18 @@ def test_frontier_does_not_dead_end_a_declared_fail_code(
     assert frontier.head is not None
 
 
-@pytest.mark.parametrize(
-    ("declares_fail_code", "claimed_outcome"),
-    [(True, Outcome.DONE), (False, Outcome.FAIL_CODE)],
-)
-def test_frontier_fail_code_requires_both_claim_and_declaration(
+@pytest.mark.parametrize("claimed_outcome", [Outcome.DONE, Outcome.FAIL_CODE])
+@pytest.mark.parametrize("declares_fail_code", [True, False])
+def test_frontier_fail_code_depends_only_on_the_declaration(
     fake_store: WorkflowStore,
     declares_fail_code: bool,
     claimed_outcome: Outcome,
 ) -> None:
-    """The crossed fail-code cases keep frontier aligned with routing's dead end."""
-    root = make_root(fake_store, load_definition())
-    document = root.definition.document.model_copy(
-        update={
-            "node": tuple(
-                node.model_copy(
-                    update={"outcomes": (*(node.outcomes or ()), Outcome.FAIL_CODE)}
-                )
-                if declares_fail_code and node.name == "implement"
-                else node
-                for node in root.definition.document.node
-            )
-        }
-    )
-    root = root.model_copy(
-        update={"definition": root.definition.model_copy(update={"document": document})}
+    """The claim no longer decides: only the node's own vocabulary does."""
+    definition = load_definition()
+    root = make_root(
+        fake_store,
+        definition if declares_fail_code else _undeclared_fail_code(definition),
     )
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     fake_store.close_activation(
@@ -1027,10 +1056,8 @@ def test_frontier_fail_code_requires_both_claim_and_declaration(
         Outcome.FAIL_CODE,
         evidence=Evidence(claimed_outcome=claimed_outcome),
     )
-    assert (
-        build_frontier(root, fake_store.reads.instance_beads(root.root_id)).dead_end
-        is not None
-    )
+    frontier = build_frontier(root, fake_store.reads.instance_beads(root.root_id))
+    assert (frontier.dead_end is None) is declares_fail_code
 
 
 @pytest.mark.parametrize(
@@ -1047,8 +1074,12 @@ def test_frontier_fail_code_requires_every_dead_end_clause(
     evidence: Evidence | None,
     node_name: str,
 ) -> None:
-    """Fail-code routing requires completion, proof, claim, and declaration."""
-    root = make_root(fake_store, load_definition())
+    """Fail-code routing requires completion and a node that declares it.
+
+    `missing` covers the unknown-node clause; the rest cover a node whose
+    vocabulary withholds `fail_code`, whatever the runner claimed.
+    """
+    root = make_root(fake_store, _undeclared_fail_code(load_definition()))
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     fake_store.close_activation(
         activation.activation_id, Outcome.FAIL_CODE, evidence=evidence
@@ -1204,17 +1235,12 @@ def test_config_derives_wrapper_root_from_the_real_repo_path(tmp_path: Path) -> 
 
 
 def test_route_pins_declared_fail_code_retry_and_distinct_fallbacks() -> None:
-    """Fail-code requires both facts; system retries and fallback scopes stay distinct."""
+    """A declared fail-code takes its edge; retries and fallback scopes stay distinct."""
     definition = load_definition()
     document = definition.document.model_copy(
         update={
             "node": tuple(
-                node.model_copy(
-                    update={
-                        "outcomes": (*(node.outcomes or ()), Outcome.FAIL_CODE),
-                        "fallback": FallbackRoute(to="abandoned"),
-                    }
-                )
+                node.model_copy(update={"fallback": FallbackRoute(to="abandoned")})
                 if node.name == "implement"
                 else node
                 for node in definition.document.node
@@ -1227,9 +1253,8 @@ def test_route_pins_declared_fail_code_retry_and_distinct_fallbacks() -> None:
     )
     index = build_index(document, allow_test_flags=False)
     node = index.nodes["implement"]
-    assert (
-        route(index, node, Outcome.FAIL_CODE, claimed_outcome=Outcome.DONE).kind
-        is RouteKind.DEAD_END
+    assert route(index, node, Outcome.FAIL_CODE) == Route(
+        kind=RouteKind.TASK, target="implement"
     )
     assert retry_kind(Outcome.ERROR_TRANSPORT) is MintReason.INFRA_RETRY
     assert exhausted(index, node).target == "shipped"
@@ -1569,14 +1594,14 @@ def test_frontier_forgets_a_dead_end_consumed_by_an_approved_halt(
 
 
 def test_route_requires_a_declared_fail_code() -> None:
-    """A fail-code claim without declaration is a dead end, not a fallback."""
+    """An undeclared fail-code is a dead end, not a fallback."""
     index = build_index(load_definition().document, allow_test_flags=False)
+    node = index.nodes["implement"]
 
     result = route(
         index,
-        index.nodes["implement"],
+        node.model_copy(update={"outcomes": (Outcome.DONE,)}),
         Outcome.FAIL_CODE,
-        claimed_outcome=Outcome.FAIL_CODE,
     )
     assert result.kind is RouteKind.DEAD_END
 

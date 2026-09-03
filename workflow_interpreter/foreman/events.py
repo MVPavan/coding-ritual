@@ -149,9 +149,6 @@ def expected_intents(
             root.index,
             root.index.nodes[meta.node],
             meta.outcome,
-            claimed_outcome=None
-            if meta.evidence is None
-            else meta.evidence.claimed_outcome,
             no_progress=False
             if meta.evidence is None
             else meta.evidence.breaker is not None,
