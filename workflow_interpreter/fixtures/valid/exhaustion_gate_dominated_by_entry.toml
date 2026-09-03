@@ -25,6 +25,7 @@ name = "s"
 kind = "task"
 region = "r"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -40,6 +41,7 @@ name = "p"
 kind = "task"
 region = "r"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -56,6 +58,7 @@ name = "q"
 kind = "task"
 region = "r"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -71,6 +74,7 @@ fallback = { to = "fg" }
 name = "c"
 kind = "task"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 inputs = ["art"]

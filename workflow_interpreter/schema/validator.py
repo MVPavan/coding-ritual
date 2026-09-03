@@ -34,6 +34,7 @@ from workflow_interpreter.schema.rules_nodes import (
     no_edges_on_system_outcomes,
     node_fields_match_kind,
     node_outcome_declarations_valid,
+    task_nodes_instructed,
     terminals_have_no_exits,
 )
 from workflow_interpreter.schema.rules_references import (
@@ -77,6 +78,7 @@ PHASE_B_RULES: Final[tuple[SemanticRule, ...]] = (
     instance_bounds_valid,
     test_flags_require_opt_in,
     judgment_verify_superset,
+    task_nodes_instructed,
 )
 
 

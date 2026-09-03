@@ -155,6 +155,7 @@ class RuleId(StrEnum):
     INSTANCE_BOUNDS_VALID = "instance_bounds_valid"
     TEST_FLAGS_REQUIRE_OPT_IN = "test_flags_require_opt_in"
     JUDGMENT_VERIFY_SUPERSET = "judgment_verify_superset"
+    TASK_NODES_INSTRUCTED = "task_nodes_instructed"
 
 
 class Finding(BaseModel):

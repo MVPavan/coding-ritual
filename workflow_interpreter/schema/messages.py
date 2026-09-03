@@ -141,3 +141,9 @@ MSG_VERIFY_SUBSET: Final[str] = (
     "judgment node {node!r} verify set is a subset of predecessor(s) {predecessor}; "
     "the anti-drift cross-check would be vacuous (§2 rule 7)"
 )
+
+MSG_TASK_UNINSTRUCTED: Final[str] = (
+    "task node {node!r} carries no instructions; it will be refused at "
+    "root creation and its runner would be told nothing about its job "
+    "(ADR 0002)"
+)

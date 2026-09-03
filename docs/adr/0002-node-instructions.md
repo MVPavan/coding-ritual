@@ -1,6 +1,6 @@
 # ADR 0002 — a task node carries its own instructions, enforced at root creation
 
-- **Status:** Accepted; slice 1 implemented 2026-09-03
+- **Status:** Accepted; slices 1-2 implemented 2026-09-03, slice 3 (composer frame) open
 - **Date:** 2026-09-03
 - **Deciders:** repo owner
 - **Reviewed by:** Fable 5.1 (high), Sol (xhigh)
@@ -70,11 +70,24 @@ frame, enforced at `WorkflowStore.create_root`.**
    only existing instances are in a scratch rig. This is the cheapest moment in
    the project's life to make this change.
 
-4. **A WARNING-severity validator rule** reports a task node without
-   instructions, so a graph fails early at authoring time rather than only at
-   root creation. `Severity` is error/warning only
-   (`schema/models.py:108-112`), which suffices. The valid-fixture zero-warning
-   assertion (`tests/test_cycles_and_regions.py:25-31`) must be reconciled.
+4. **A WARNING-severity validator rule**, `task_nodes_instructed`, reports a
+   task node without instructions, so the omission surfaces while authoring
+   rather than only at root creation. It is a warning, not an error, because
+   an error would reject every previously pinned body on read
+   (`bdio/records.py:174-220` revalidates on every root load).
+
+   The valid-fixture zero-warning assertion
+   (`tests/test_cycles_and_regions.py:25-31`) was reconciled by **instructing
+   the fixtures, not weakening the assertion** — a fixture under `valid/`
+   claims to be a legal graph, and a graph no instance could be created from
+   is not one. Eleven task nodes across `fixtures/valid/` and
+   `fixtures/warning/` gained instructions. The rule has its own fixture,
+   `fixtures/warning/task_nodes_instructed.toml`, required by
+   `test_every_semantic_rule_has_a_fixture`.
+
+   Warnings never enter `GraphValidationError.findings`
+   (`schema/loader.py:66-71`), so the 26 invalid fixtures' exactly-one-rule
+   assertion is unaffected.
 
 5. **Excluded from resolution.** `instructions` is blacklisted from the
    `resolve()` override reflection (`foreman/resolve.py:54-63`). It is not a

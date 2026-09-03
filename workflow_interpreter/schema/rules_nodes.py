@@ -11,6 +11,7 @@ from workflow_interpreter.schema.graph_index import (
     at,
     duplicates,
     finding_error,
+    finding_warning,
     is_repo_relative,
     path,
 )
@@ -28,6 +29,7 @@ from workflow_interpreter.schema.messages import (
     MSG_GATE_UNCOVERED,
     MSG_OUTCOME_DUPLICATE,
     MSG_OUTCOME_SYSTEM,
+    MSG_TASK_UNINSTRUCTED,
     MSG_TERMINAL_EXIT,
 )
 from workflow_interpreter.schema.models import (
@@ -294,3 +296,22 @@ def allowed_paths_well_formed(index: GraphIndex) -> list[Finding]:
                 )
             )
     return findings
+
+
+def task_nodes_instructed(index: GraphIndex) -> list[Finding]:
+    """Warn when a task node does not state what it must do (ADR 0002).
+
+    A warning, not an error: `create_root` is the enforcement chokepoint, and
+    making this an error would reject every previously pinned body on read.
+    This exists so the omission surfaces while authoring rather than at the
+    moment an instance is created.
+    """
+    return [
+        finding_warning(
+            RuleId.TASK_NODES_INSTRUCTED,
+            at("node", position, "instructions"),
+            MSG_TASK_UNINSTRUCTED.format(node=node.name),
+        )
+        for position, node in enumerate(index.document.node)
+        if node.kind is NodeKind.TASK and not (node.instructions or "").strip()
+    ]

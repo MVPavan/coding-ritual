@@ -29,6 +29,7 @@ name = "a1"
 kind = "task"
 region = "r1"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -44,6 +45,7 @@ name = "a2"
 kind = "task"
 region = "r2"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

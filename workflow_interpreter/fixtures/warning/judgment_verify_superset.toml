@@ -14,6 +14,7 @@ max_total_activations = 5
 name = "work"
 kind = "task"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" },
@@ -29,6 +30,7 @@ outcomes = ["done"]
 name = "review"
 kind = "task"
 runner = "profile:critic"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

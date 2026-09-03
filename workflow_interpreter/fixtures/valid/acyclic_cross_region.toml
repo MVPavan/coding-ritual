@@ -28,6 +28,7 @@ name = "build"
 kind = "task"
 region = "build"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -50,6 +51,7 @@ name = "release_work"
 kind = "task"
 region = "release"
 runner = "profile:x"
+instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
