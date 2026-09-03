@@ -98,16 +98,24 @@ def test_tick_checks_an_open_halt_before_advancing_a_lifecycle(
     assert advanced == []
 
 
-def test_tick_maps_band_contention_to_the_listed_stalled_result(tmp_path: Path) -> None:
-    """The first ordered operation has no acquired lock to release on refusal."""
+def test_tick_maps_band_contention_to_a_contended_result(tmp_path: Path) -> None:
+    """The first ordered operation has no acquired lock to release on refusal.
+
+    Contention is reported as its own field rather than as a stall: it is the
+    one "nothing happened" a later tick may simply win (`Foreman.run` polls
+    past it), while `stalled` is a condition a human has to clear.
+    """
     lab = ForemanLab(tmp_path)
     lab.instantiate()
     held = lab.wiring().band
     held.acquire()
     try:
-        assert lab.tick().stalled is not None
+        report = lab.tick()
     finally:
         held.release()
+
+    assert report.contended is True
+    assert report.stalled is None
 
 
 def test_tick_reports_a_live_wrapper_as_blocked(tmp_path: Path) -> None:
@@ -482,7 +490,6 @@ def test_inline_in_repo_dispatch_uses_the_tick_wiring(tmp_path: Path) -> None:
         ),
         (ContinuationRefused("continuation"), "continuation"),
         (GateVerificationError("gate"), "gate"),
-        (LockUnavailable("lock"), "lock"),
         (CanaryFailedError("canary"), "canary"),
         (PinnedGraphMismatchError("pin"), "pin"),
         (InstanceBranchMissing("branch"), "branch"),
@@ -492,7 +499,6 @@ def test_inline_in_repo_dispatch_uses_the_tick_wiring(tmp_path: Path) -> None:
         "bound-exceeded",
         "continuation-refused",
         "gate-verification",
-        "lock-unavailable",
         "canary-failed",
         "pinned-graph-mismatch",
         "instance-branch-missing",
@@ -511,6 +517,24 @@ def test_tick_stalls_on_each_listed_exception(
 
     monkeypatch.setattr(tick_module, "audit", fail)
     assert lab.tick().stalled == expected
+
+
+def test_a_lock_miss_deeper_in_the_tick_is_contended_too(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`LockUnavailable` is the same transient wherever the tick meets it."""
+    lab = ForemanLab(tmp_path)
+    lab.instantiate()
+
+    def fail(*_args: object, **_kwargs: object) -> NoReturn:
+        raise LockUnavailable("lock")
+
+    monkeypatch.setattr(tick_module, "audit", fail)
+
+    report = lab.tick()
+
+    assert report.contended is True
+    assert report.stalled is None
 
 
 @pytest.mark.parametrize(

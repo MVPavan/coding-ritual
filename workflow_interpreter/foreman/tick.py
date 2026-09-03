@@ -33,7 +33,11 @@ from workflow_interpreter.foreman.compose import (
     InstanceBranchMissing,
     InstanceWiring,
 )
-from workflow_interpreter.foreman.constants import HALT_AUDIT, HALT_MISSING_COMMIT
+from workflow_interpreter.foreman.constants import (
+    HALT_AUDIT,
+    HALT_MISSING_COMMIT,
+    RUN_MAX_WALL,
+)
 from workflow_interpreter.foreman.events import backfill, expected_intents
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import halt_gate
@@ -52,20 +56,39 @@ from workflow_interpreter.supervisor.steer import Steerer
 
 
 class TickReport(BaseModel):
-    """The bounded durable work one tick performed."""
+    """The bounded durable work one tick performed.
+
+    Three fields say "this tick did nothing", and they are not the same thing:
+    `stalled` is a condition a human has to clear, `contended` is a band-lock
+    miss that the next tick may well win, and `waiting_gate` names the open
+    gate whose approval is the only thing that can move the instance. Without
+    the last two, an automatic loop (`Foreman.run`) could neither poll past a
+    lock nor tell a wait from the all-default report it used to spin on.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     blocked: bool = False
     halted: bool = False
     stalled: str | None = None
+    contended: bool = False
     dispatched: str | None = None
     settled: str | None = None
     opened_gate: str | None = None
+    waiting_gate: str | None = None
     closed_gates: tuple[str, ...] = ()
     refusals: tuple[str, ...] = ()
     events_backfilled: int = 0
     terminal: bool = False
+
+
+class RunReport(BaseModel):
+    """One `Foreman.run` loop: how many ticks it took and how it ended."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    ticks: int
+    report: TickReport
 
 
 class Inspection(BaseModel):
@@ -193,8 +216,8 @@ class Foreman:
         wiring = self._composition.for_root(root_id)
         try:
             wiring.band.acquire()
-        except LockUnavailable as exc:
-            return TickReport(stalled=str(exc))
+        except LockUnavailable:
+            return TickReport(contended=True)
         try:
             wiring.store.startup_canary()
             root = wiring.store.reads.load_root(root_id)
@@ -296,13 +319,26 @@ class Foreman:
                 )
             if frontier.terminal:
                 self._cleanup_terminal_worktree(wiring, root)
-            return TickReport(terminal=frontier.terminal)
+                return TickReport(terminal=True)
+            if frontier.open_gates:
+                # Nothing else advanced and an OPEN gate exists, so the next
+                # actor is a human: an open gate is never a routing head
+                # (`frontier.candidates_g` requires a decided one), which makes
+                # every later tick a repeat of this one. The LOWEST gate id is
+                # named for determinism — the report says "a human is needed",
+                # not "here is the list".
+                return TickReport(
+                    waiting_gate=min(gate.gate_id for gate in frontier.open_gates)
+                )
+            return TickReport()
+        except LockUnavailable:
+            # Same transient as the band miss above, met deeper in the tick.
+            return TickReport(contended=True)
         except (
             BoundExceededError,
             CanaryFailedError,
             ContinuationRefused,
             GateVerificationError,
-            LockUnavailable,
             PinnedGraphMismatchError,
             InstanceBranchMissing,
             GitCommandError,
@@ -312,6 +348,37 @@ class Foreman:
             )
         finally:
             wiring.band.release()
+
+    def run(self, root_id: str, *, poll_s: float, max_wall_s: float) -> RunReport:
+        """Tick until a human, a terminal, a stall, or the wall ends the loop.
+
+        The clock is the injected one, so a drill neither sleeps nor waits:
+        `Clock.sleep` is the same capability `SystemClock` implements with
+        `time.sleep` and `FrozenClock` implements as "advance `now()`".
+
+        `tick()` is unchanged by this loop — the startup canary still runs per
+        tick — because a run is exactly repeated ticks and nothing else.
+        """
+        clock = self._composition.clock
+        started = clock.now()
+        ticks = 0
+        while True:
+            report = self.tick(root_id)
+            ticks += 1
+            if (
+                report.halted
+                or report.terminal
+                or report.opened_gate
+                or report.waiting_gate
+                or report.stalled
+            ):
+                return RunReport(ticks=ticks, report=report)
+            if (clock.now() - started).total_seconds() > max_wall_s:
+                # The run's own verdict, not a tick's: rendered as a stall so
+                # one field answers "why did this stop" for every caller.
+                return RunReport(ticks=ticks, report=TickReport(stalled=RUN_MAX_WALL))
+            if report.blocked or report.contended:
+                clock.sleep(poll_s)
 
     def _backfill(self, wiring: InstanceWiring, root: RootRecord) -> int:
         """Append every newly implied trace event after its source is durable."""

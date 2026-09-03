@@ -92,6 +92,7 @@ class _Profiles(ProfileResolver):
             ),
         )
         self._next: ChildScript | None = None
+        self._by_node: dict[str, ChildScript] = {}
 
     def profile_for(self, name: str) -> Profile:
         if name not in {"fake", "profile:implementer", "profile:critic"}:
@@ -114,6 +115,21 @@ class _Profiles(ProfileResolver):
         """Select the next wrapper child without bypassing its launcher."""
         self._next = script
 
+    def bind_node(self, node: str, script: ChildScript) -> None:
+        """Bind one script to a NODE, for a test that cannot queue per tick.
+
+        `next_script` is single-shot and consumed at launch, which works only
+        where the test ticks by hand; an unattended `Foreman.run` dispatches
+        several nodes with no seam in between, so those tests declare what each
+        node's runner does once, up front. An explicitly queued script still
+        wins over the node binding.
+        """
+        self._by_node[node] = script
+
+    def script_for_node(self, node: str) -> ChildScript | None:
+        """The script bound to a node, if any."""
+        return self._by_node.get(node)
+
 
 class _QueuedProfile(FakeProfile):
     """A fake profile that consumes lab scripts only when building a child."""
@@ -126,7 +142,9 @@ class _QueuedProfile(FakeProfile):
     def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
         """Build the next child without consuming a script during settlement."""
         self.tasks.append(task)
-        next_script = self._profiles.next_script_for_launch()
+        next_script = self._profiles.next_script_for_launch() or (
+            self._profiles.script_for_node(task.node)
+        )
         if next_script is not None:
             self.script = next_script
         return super().build_command(task, session_id)

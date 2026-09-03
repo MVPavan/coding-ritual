@@ -8,18 +8,30 @@ import json
 import os
 import sys
 import traceback
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
-from workflow_interpreter.bdio import GateRecord, WorkflowStore
-from workflow_interpreter.foreman.compose import Composition, DetachedSpawner
+from workflow_interpreter.bdio import ActivationRecord, GateRecord, WorkflowStore
+from workflow_interpreter.bdio.reads import activations_of
+from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.foreman.compose import (
+    Composition,
+    DetachedSpawner,
+    InstanceWiring,
+)
 from workflow_interpreter.foreman.config import load_config
 from workflow_interpreter.foreman.constants import (
     GATES_DIR,
     INSTANCE_BRANCH,
+    MAX_GATE_DIFF_BYTES,
     MAX_TRANSCRIPT_BYTES,
+    NO_ARTIFACT,
+    NO_ARTIFACT_OID,
+    RUN_DEFAULT_MAX_WALL_S,
+    RUN_DEFAULT_POLL_S,
 )
-from workflow_interpreter.foreman.frontier import build_frontier
+from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import payload_template
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.resolve import ResolutionError, instantiate
@@ -49,7 +61,7 @@ def _composition(path: Path | None) -> Composition:
 
 
 def _parser() -> argparse.ArgumentParser:
-    """Create the six public, deliberately small command forms.
+    """Create the seven public, deliberately small command forms.
 
     `--config` is a top-level option for every command, `supervise` included:
     the detached wrapper spawn passes it in that one position too, so there is
@@ -66,6 +78,10 @@ def _parser() -> argparse.ArgumentParser:
     for name in ("tick", "status"):
         child = commands.add_parser(name)
         child.add_argument("root_id")
+    run = commands.add_parser("run")
+    run.add_argument("root_id")
+    run.add_argument("--poll", type=float, default=RUN_DEFAULT_POLL_S)
+    run.add_argument("--max-wall", type=float, default=RUN_DEFAULT_MAX_WALL_S)
     supervise = commands.add_parser("supervise")
     supervise.add_argument("root_id")
     supervise.add_argument("activation_id")
@@ -148,6 +164,107 @@ def _emit(value: str, *, limit: int = MAX_TRANSCRIPT_BYTES) -> None:
     if len((rendered + "\n").encode("utf-8")) > limit:
         rendered = '{"truncated":true}'
     sys.stdout.write(rendered + "\n")
+
+
+@dataclass(frozen=True)
+class _InstanceView:
+    """The durable reads every root-scoped report shares, taken once."""
+
+    wiring: InstanceWiring
+    root: RootRecord
+    frontier: Frontier
+    activations: Mapping[str, ActivationRecord]
+
+
+def _view(composition: Composition, root_id: str) -> _InstanceView:
+    """Load one instance's beads a single time for a whole rendered report."""
+    wiring = composition.for_root(root_id)
+    root = wiring.store.reads.load_root(root_id)
+    beads = wiring.store.reads.instance_beads(root_id)
+    return _InstanceView(
+        wiring=wiring,
+        root=root,
+        frontier=build_frontier(root, beads),
+        activations={item.activation_id: item for item in activations_of(tuple(beads))},
+    )
+
+
+def _diff_stat(composition: Composition, root: RootRecord, gate: GateRecord) -> str:
+    """The cumulative diff a §9 approver signs off on, base to artifact."""
+    artifact = gate.metadata.artifact_ref
+    base = root.metadata.instance_base_commit
+    # A halt gate pins no artifact, and a root with no pinned base never
+    # dispatched anything: both leave the approver nothing to diff.
+    if artifact is None or artifact == NO_ARTIFACT_OID or base is None:
+        return NO_ARTIFACT
+    return bounded_tail(
+        composition.git.diff_stat(
+            base,
+            artifact,
+            cwd=composition.config.repo_root,
+        ),
+        MAX_GATE_DIFF_BYTES,
+    )
+
+
+def _findings(
+    composition: Composition, view: _InstanceView, gate: GateRecord
+) -> tuple[str, ...]:
+    """The paths of the findings the gate's source activation produced.
+
+    Evidence pins outputs as a git tree rather than as a path list
+    (`outputs_tree_oid`), so the paths are read from the object store. A source
+    that pinned nothing renders its `$WF_ARTIFACT_DIR` instead — the directory
+    where those bytes would have been.
+    """
+    source = gate.metadata.source_activation_id
+    if source is None:
+        return ()
+    activation = view.activations.get(source)
+    evidence = None if activation is None else activation.metadata.evidence
+    tree = None if evidence is None else evidence.outputs_tree_oid
+    if tree is None:
+        return (str(view.wiring.paths.artifacts(source)),)
+    return composition.git.tree_entries(tree, cwd=composition.config.repo_root)
+
+
+def _gate_entry(
+    composition: Composition, view: _InstanceView, gate: GateRecord
+) -> dict[str, object]:
+    """Render the four things a §9 approver cannot derive by hand."""
+    return {
+        "inbox": str(
+            view.wiring.paths.instance_dir / GATES_DIR / gate.metadata.gate_key
+        ),
+        "template": payload_template(view.root, gate),
+        "diff_stat": _diff_stat(composition, view.root, gate),
+        "findings": _findings(composition, view, gate),
+    }
+
+
+def _open_gates(
+    composition: Composition, view: _InstanceView
+) -> tuple[dict[str, object], ...]:
+    """EVERY open gate, halt and transition alike.
+
+    `status` and `run` are the only commands that render a gate's inbox path
+    and unsigned payload template, and §9 approval is exactly "drop
+    payload.json and payload.json.sig into that inbox" — so reporting halt
+    gates only left a human waiting on `ship` or `triage` (both
+    `gate_type = "human"` in the shipped feature-delivery graph) with no way to
+    learn either without recomputing the gate key. A gate whose payload has
+    already been submitted still appears: the inbox is the truth, and the next
+    tick consumes what is in it.
+    """
+    return tuple(
+        {
+            "gate_id": gate.gate_id,
+            "node": gate.metadata.gate_node,
+            "reason": gate.metadata.gate_reason.value,
+            **_gate_entry(composition, view, gate),
+        }
+        for gate in sorted(view.frontier.open_gates, key=lambda item: item.gate_id)
+    )
 
 
 def _is_supervise(argv: Sequence[str] | None) -> bool:
@@ -260,12 +377,26 @@ def _run(
             limit,
         )
         return 0
-    wiring = composition.for_root(args.root_id)
-    root = wiring.store.reads.load_root(args.root_id)
-    frontier = build_frontier(root, wiring.store.reads.instance_beads(args.root_id))
+    if args.command == "run":
+        result = foreman.run(args.root_id, poll_s=args.poll, max_wall_s=args.max_wall)
+        emit(
+            json.dumps(
+                {
+                    **result.model_dump(mode="json"),
+                    "open_gates": _open_gates(
+                        composition, _view(composition, args.root_id)
+                    ),
+                },
+                sort_keys=True,
+            ),
+            MAX_TRANSCRIPT_BYTES,
+        )
+        return 1 if result.report.stalled is not None else 0
+    view = _view(composition, args.root_id)
+    root, frontier = view.root, view.frontier
     status: dict[str, object] = {
         "root_id": args.root_id,
-        "activations": len(wiring.store.reads.list_activations(args.root_id)),
+        "activations": len(view.activations),
         "instance_base_commit": root.metadata.instance_base_commit,
         "instance_branch_head": composition.git.ref_target(
             INSTANCE_BRANCH.format(root_id=args.root_id),
@@ -274,39 +405,13 @@ def _run(
         "stale": tuple(
             f"stale {activation.activation_id} since "
             f"{activation.metadata.stale_flag.raised_at}; inspect for the tail"
-            for activation in wiring.store.reads.list_activations(args.root_id)
+            for activation in view.activations.values()
             if activation.metadata.stale_flag is not None
         ),
     }
-
-    def inbox_entry(gate: GateRecord) -> dict[str, str]:
-        """Render the two things a §9 approver cannot derive by hand."""
-        return {
-            "inbox": str(
-                wiring.paths.instance_dir / GATES_DIR / gate.metadata.gate_key
-            ),
-            "template": payload_template(root, gate),
-        }
-
-    # EVERY open gate, halt and transition alike. `status` is the only command
-    # that renders a gate's inbox path and unsigned payload template, and §9
-    # approval is exactly "drop payload.json and payload.json.sig into that
-    # inbox" — so reporting halt gates only left a human waiting on `ship` or
-    # `triage` (both `gate_type = "human"` in the shipped feature-delivery
-    # graph) with no way to learn either without recomputing the gate key.
-    # A gate whose payload has already been submitted still appears: the
-    # inbox is the truth, and the next tick consumes what is in it.
-    status["open_gates"] = tuple(
-        {
-            "gate_id": gate.gate_id,
-            "node": gate.metadata.gate_node,
-            "reason": gate.metadata.gate_reason.value,
-            **inbox_entry(gate),
-        }
-        for gate in sorted(frontier.open_gates, key=lambda item: item.gate_id)
-    )
+    status["open_gates"] = _open_gates(composition, view)
     if frontier.open_halt is not None:
-        status["open_halt"] = inbox_entry(frontier.open_halt)
+        status["open_halt"] = _gate_entry(composition, view, frontier.open_halt)
     emit(json.dumps(status, sort_keys=True), MAX_TRANSCRIPT_BYTES)
     return 0
 

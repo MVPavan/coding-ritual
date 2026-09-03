@@ -689,7 +689,7 @@ def test_drill_10_supersedes_race_residue_before_dispatching_one_wrapper(
     finally:
         band.release()
 
-    assert blocked.stalled is not None
+    assert blocked.contended is True  # a band miss, not a stall (slice D)
 
 
 def test_drill_12_halts_on_a_missing_intended_base_commit(tmp_path: Path) -> None:

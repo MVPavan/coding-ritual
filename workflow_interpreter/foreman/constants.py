@@ -32,11 +32,16 @@ __all__ = [
     "HALT_PRECONDITION_REFUSED",
     "INPUT_LABEL",
     "INSTANCE_BRANCH",
+    "MAX_GATE_DIFF_BYTES",
     "MAX_TRANSCRIPT_BYTES",
+    "NO_ARTIFACT",
     "NO_ARTIFACT_OID",
     "RUNNER_PROTOCOL",
     "RUNNER_PROTOCOL_NO_WRITE_STEP",
     "RUNNER_PROTOCOL_WRITE_STEP",
+    "RUN_DEFAULT_MAX_WALL_S",
+    "RUN_DEFAULT_POLL_S",
+    "RUN_MAX_WALL",
     "WRAPPER_HANDLE",
     "WRAPPER_LOCK",
 ]
@@ -105,6 +110,17 @@ INPUT_LABEL: Final[str] = "## Input `{name}` (from {producer})"
 """Inputs arrive concatenated; without a label two of them are one wall of text."""
 GATES_DIR: Final[str] = "gates"
 MAX_TRANSCRIPT_BYTES: Final[int] = 4096
+MAX_GATE_DIFF_BYTES: Final[int] = 1024
+"""A rendered gate diff is bounded HERE, not by `_emit`: `_emit` truncates only
+its `tail` and `stalled` fields and otherwise drops the whole report for
+`{"truncated": true}`, so an unbounded `--stat` would cost the approver the
+inbox path and template as well as the diff."""
+NO_ARTIFACT: Final[str] = "(no artifact)"
+"""What a gate with no committed artifact renders instead of a diff: every halt
+gate, and any transition gate whose source pinned nothing."""
+RUN_DEFAULT_POLL_S: Final[float] = 30.0
+RUN_DEFAULT_MAX_WALL_S: Final[float] = 8 * 60 * 60
+RUN_MAX_WALL: Final[str] = "run max_wall"
 INSTANCE_BRANCH: Final[str] = INSTANCE_BRANCH_REF
 HALT_AUDIT: Final[str] = "audit:{reason}"
 HALT_MISSING_COMMIT: Final[str] = "missing_commit intended_base_commit {commit}"

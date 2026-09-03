@@ -221,6 +221,14 @@ class Git(GitTransport):
         """Read the text diff between two pinned commits."""
         return self.run(GitSubcommand.DIFF, base, head, cwd=cwd).stdout
 
+    def diff_stat(self, base: str, head: str, *, cwd: Path) -> str:
+        """The `--stat` summary between two commits — §9's cumulative gate view.
+
+        `DIFF` is already a member of the closed subcommand set, so this adds a
+        rendering and not a capability.
+        """
+        return self.run(GitSubcommand.DIFF, "--stat", base, head, cwd=cwd).stdout
+
     def hash_working_file(self, path: str, *, cwd: Path) -> str:
         """The blob OID of a working-tree file, or `NO_BLOB` where there is none.
 
