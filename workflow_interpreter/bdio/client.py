@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import json
 import subprocess
-from collections.abc import Mapping, Sequence
+import tempfile
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Final, Protocol
@@ -136,6 +138,27 @@ class CommandRunner(Protocol):
     def __call__(
         self, argv: Sequence[str], timeout_s: float
     ) -> CompletedCommand: ...  # pragma: no cover - protocol
+
+
+@contextmanager
+def _metadata_file(metadata: Metadata) -> Iterator[str]:
+    """Yield the `--metadata` argv value for `metadata`, via a temporary file.
+
+    Passing canonical JSON inline made the transport's ceiling the kernel's
+    `MAX_ARG_STRLEN` (32 x page size = 131,072 bytes on Linux), which fails as
+    `OSError: [Errno 7] Argument list too long` before bd is executed. The
+    `@file` form has no such bound — probed byte-identical to 4 MB on create
+    and 300 KB on the update merge (ADR 0003).
+
+    Read-back verification stays mandatory regardless: `@file` is exactly the
+    surface bd is lossy on for `--event-payload`, which stores the literal
+    string and exits 0, so only `_assert_metadata` can tell a faithful write
+    from a silent one.
+    """
+    with tempfile.TemporaryDirectory(prefix="wf-metadata-") as directory:
+        path = Path(directory) / "metadata.json"
+        path.write_bytes(canonical_json_bytes(metadata))
+        yield f"@{path}"
 
 
 def run_subprocess(argv: Sequence[str], timeout_s: float) -> CompletedCommand:
@@ -325,29 +348,31 @@ class BdClient:
         wisp_type: str | None = None,
     ) -> BeadRecord:
         """Create a workflow bead and verify it read back exactly as written."""
-        args = [
-            BdFlag.TITLE.value,
-            title,
-            BdFlag.TYPE.value,
-            issue_type.value,
-            BdFlag.NO_INHERIT_LABELS.value,
-            BdFlag.METADATA.value,
-            canonical_json_bytes(metadata).decode("utf-8"),
-            BdFlag.SILENT.value,
-        ]
-        if event_payload is not None:
-            # Inline JSON only: the `@file` form stores the literal string
-            # "@file" and exits 0 (probed 2026-08-25, §3.3).
-            args += [
-                BdFlag.EVENT_PAYLOAD.value,
-                canonical_json_bytes(event_payload).decode("utf-8"),
+        with _metadata_file(metadata) as metadata_arg:
+            args = [
+                BdFlag.TITLE.value,
+                title,
+                BdFlag.TYPE.value,
+                issue_type.value,
+                BdFlag.NO_INHERIT_LABELS.value,
+                BdFlag.METADATA.value,
+                metadata_arg,
+                BdFlag.SILENT.value,
             ]
-        if ephemeral:
-            args.append(BdFlag.EPHEMERAL.value)
-        if wisp_type is not None:
-            args += [BdFlag.WISP_TYPE.value, wisp_type]
+            if event_payload is not None:
+                # Inline JSON only: the `@file` form stores the literal string
+                # "@file" and exits 0 (probed 2026-08-25, §3.3). Event payloads
+                # are small by nature, so the argv ceiling does not bind here.
+                args += [
+                    BdFlag.EVENT_PAYLOAD.value,
+                    canonical_json_bytes(event_payload).decode("utf-8"),
+                ]
+            if ephemeral:
+                args.append(BdFlag.EPHEMERAL.value)
+            if wisp_type is not None:
+                args += [BdFlag.WISP_TYPE.value, wisp_type]
 
-        bead_id = self._run(self._argv(BdSubcommand.CREATE, *args)).strip()
+            bead_id = self._run(self._argv(BdSubcommand.CREATE, *args)).strip()
         if not bead_id:
             raise BdOutputError(_MSG_NO_ID)
         record = self.show(bead_id)
@@ -364,14 +389,15 @@ class BdClient:
         `--set-metadata k=v` surface stringifies structured values (probed)
         and is therefore not on the flag allow-list at all.
         """
-        self._run(
-            self._argv(
-                BdSubcommand.UPDATE,
-                bead_id,
-                BdFlag.METADATA.value,
-                canonical_json_bytes(metadata).decode("utf-8"),
+        with _metadata_file(metadata) as metadata_arg:
+            self._run(
+                self._argv(
+                    BdSubcommand.UPDATE,
+                    bead_id,
+                    BdFlag.METADATA.value,
+                    metadata_arg,
+                )
             )
-        )
         record = self.show(bead_id)
         self._assert_metadata(record, metadata)
         _LOG.debug("bd.update", bead_id=bead_id, keys=sorted(metadata))

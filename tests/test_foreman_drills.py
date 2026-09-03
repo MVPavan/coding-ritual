@@ -275,8 +275,7 @@ def test_lock_c_killed_tick_leaves_one_wrapper_writer(tmp_path: Path) -> None:
     exit_writes = [
         call
         for call in calls
-        if call["argv"][5] == "update"
-        and any("exit_record" in argument for argument in call["argv"])
+        if call["argv"][5] == "update" and "exit_record" in call["metadata_keys"]
     ]
     spawned_writers = {
         call["pid"]

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import uuid
 from pathlib import Path
@@ -138,6 +139,35 @@ def test_root_pins_the_canonical_body_byte_identically(
     reloaded = store.reads.load_root(root.root_id)
     assert reloaded.definition.content_hash == definition.content_hash
     assert reloaded.metadata.graph_content_hash == definition.content_hash
+
+
+def test_metadata_larger_than_the_kernel_argv_limit_round_trips(
+    bd_config: BdConfig,
+) -> None:
+    """ADR 0003: the ceiling was the kernel's, and the §11 probe missed it.
+
+    Probe 2 measured `--metadata=@file.json` and recorded "70KB round-trips
+    byte-identical". Production passed the canonical JSON inline as ONE argv
+    element, which Linux caps at MAX_ARG_STRLEN = 32 x page size and rejects
+    with `OSError: [Errno 7] Argument list too long` before bd is executed.
+    Measured on this host: 130,818 chars verified inline, 131,329 refused.
+
+    Driven at the transport rather than through `create_root`, because
+    instance inputs are separately capped at 64 KiB (`roots.py`), so no root
+    can carry a payload big enough to prove this.
+    """
+    max_arg_strlen = 32 * os.sysconf("SC_PAGE_SIZE")
+    oversized = "x" * (2 * max_arg_strlen)
+    client = BdClient(bd_config)
+
+    record = client._create_bead(
+        title=f"argv-ceiling-{uuid.uuid4()}",
+        metadata={"wf_kind": "probe", "body": oversized},
+    )
+
+    # `_create_bead` already read back and compared; assert independently so
+    # a weakened `_assert_metadata` cannot make this vacuous.
+    assert client.show(record.id).metadata["body"] == oversized
 
 
 def test_create_root_is_idempotent_on_its_instance_key(

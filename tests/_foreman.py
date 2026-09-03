@@ -275,6 +275,9 @@ class _PersistentCall(TypedDict):
 
     pid: int
     argv: list[str]
+    # Metadata travels as `@<path>` and its file is unlinked on return, so the
+    # keys a call wrote are captured here or not at all (ADR 0003).
+    metadata_keys: list[str]
 
 
 class ForemanLab:
@@ -547,7 +550,17 @@ class LockedPersistentBd(PersistentBd):
             try:
                 self._restore()
                 result = FakeBd.__call__(self, argv, timeout_s)
-                self._call_log.append({"pid": os.getpid(), "argv": list(argv)})
+                # `metadata_keys` rather than the argv alone: metadata travels
+                # as `@<path>` (ADR 0003) and the transport unlinks the file
+                # on return, so a later reader of this log could no longer
+                # answer "which keys did this call write" from argv.
+                self._call_log.append(
+                    {
+                        "pid": os.getpid(),
+                        "argv": list(argv),
+                        "metadata_keys": sorted(self.metadata_writes[-1]),
+                    }
+                )
                 self._state.write_text(
                     json.dumps(
                         {
@@ -583,9 +596,19 @@ class LockedPersistentBd(PersistentBd):
                 or not all(isinstance(part, str) for part in argv)
             ):
                 raise ValueError("persistent fake-bd call has an invalid shape")
-            calls.append({"pid": pid, "argv": argv})
+            keys = entry.get("metadata_keys", [])
+            if not isinstance(keys, list) or not all(
+                isinstance(part, str) for part in keys
+            ):
+                raise ValueError("persistent fake-bd call has an invalid shape")
+            calls.append({"pid": pid, "argv": argv, "metadata_keys": keys})
         self._call_log = calls
         self.calls = [
             (str(entry["argv"][3]), tuple(str(part) for part in entry["argv"]))
             for entry in self._call_log
+        ]
+        # Restored in lockstep with `calls`: the two are indexed together by
+        # anything asking which keys a given call wrote.
+        self.metadata_writes = [
+            dict.fromkeys(entry["metadata_keys"]) for entry in self._call_log
         ]

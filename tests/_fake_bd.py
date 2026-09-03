@@ -21,6 +21,7 @@ reads return a list of rows.
 from __future__ import annotations
 
 import json
+import pathlib
 from collections.abc import Callable, Sequence
 from typing import Any, Final
 
@@ -60,6 +61,20 @@ _BOOL_FLAGS: Final[frozenset[str]] = frozenset(
 _REPEATED_FLAG: Final[str] = "--metadata-field"
 
 
+def _metadata(value: str) -> dict[str, object]:
+    """Read a `--metadata` argument in either form real bd accepts.
+
+    The transport writes metadata as `@<path>` because inline JSON made the
+    ceiling the kernel's `MAX_ARG_STRLEN` (ADR 0003). A double that only
+    understood inline JSON would stop being a faithful stand-in the moment
+    production switched — and every fake-bd test would fail loudly, which is
+    exactly what happened when it did.
+    """
+    if value.startswith("@"):
+        return dict(json.loads(pathlib.Path(value[1:]).read_text(encoding="utf-8")))
+    return dict(json.loads(value))
+
+
 class InjectedCrash(Exception):
     """The bd process died mid-command — what a real crash looks like here."""
 
@@ -71,6 +86,7 @@ class FakeBd:
         self.workspace = workspace
         self.rows: dict[str, dict[str, Any]] = {}
         self.calls: list[tuple[str, tuple[str, ...]]] = []
+        self.metadata_writes: list[dict[str, object]] = []
         self._next_id = 1
         self._crashes: list[tuple[str, int]] = []
         self._pauses: list[tuple[str, Callable[[], None]]] = []
@@ -102,6 +118,14 @@ class FakeBd:
         args = list(argv[_SUBCOMMAND_INDEX + 1 :])
         self._fire_pause(subcommand)
         self.calls.append((subcommand, tuple(argv)))
+        # Metadata travels as `@<path>` (ADR 0003) and the transport deletes
+        # the file the moment the call returns, so anything that wants to ask
+        # "which keys did this call write" must capture it HERE.
+        self.metadata_writes.append(
+            _metadata(argv[argv.index("--metadata") + 1])
+            if "--metadata" in argv
+            else {}
+        )
         self._seen[subcommand] = self._seen.get(subcommand, 0) + 1
         if (subcommand, self._seen[subcommand]) in self._crashes:
             raise InjectedCrash(f"bd {subcommand} died mid-command")
@@ -135,7 +159,7 @@ class FakeBd:
             "title": flags.get("--title", ""),
             "status": _STATUS_OPEN,
             "issue_type": flags.get("--type", "task"),
-            "metadata": json.loads(flags.get("--metadata", "{}")),
+            "metadata": _metadata(flags.get("--metadata", "{}")),
             "payload": payload,
             "close_reason": None,
             "ephemeral": "--ephemeral" in args,
@@ -146,7 +170,7 @@ class FakeBd:
     def _update(self, args: list[str]) -> str:
         flags = _parse(args[1:])
         # bd MERGES top-level metadata keys rather than replacing the object.
-        self.rows[args[0]]["metadata"].update(json.loads(flags["--metadata"]))
+        self.rows[args[0]]["metadata"].update(_metadata(flags["--metadata"]))
         return ""
 
     def _close(self, args: list[str]) -> str:

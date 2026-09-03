@@ -41,9 +41,17 @@ class RecordingRunner:
     def __init__(self, responses: Sequence[str]) -> None:
         self.responses = list(responses)
         self.calls: list[tuple[tuple[str, ...], float]] = []
+        self.metadata_bodies: list[str] = []
 
     def __call__(self, argv: Sequence[str], timeout_s: float) -> CompletedCommand:
         self.calls.append((tuple(argv), timeout_s))
+        # Metadata travels as `@<path>` (ADR 0003) and the transport deletes
+        # the file as soon as the call returns, so a faithful stand-in must
+        # read it here — exactly when real bd would.
+        if "--metadata" in argv:
+            value = argv[argv.index("--metadata") + 1]
+            if value.startswith("@"):
+                self.metadata_bodies.append(Path(value[1:]).read_text(encoding="utf-8"))
         stdout = self.responses.pop(0) if self.responses else ""
         return CompletedCommand(returncode=0, stdout=stdout, stderr="")
 
@@ -95,9 +103,16 @@ def test_no_argv_token_is_a_shell_string() -> None:
     client, runner = _client([BEAD_ID, _row({"k": "v; rm -rf /"})])
     client._create_bead(title="a; rm -rf /", metadata={"k": "v; rm -rf /"})
     argv, _ = runner.calls[0]
-    # The hostile text travels as its own argv element; nothing splits it.
+    # The hostile title travels as its own argv element; nothing splits it.
     assert "a; rm -rf /" in argv
-    assert '{"k":"v; rm -rf /"}' in argv
+    # The metadata VALUE reaches argv not at all: it travels as `@<path>`
+    # since ADR 0003, so a hostile value is never a command-line token. What
+    # argv carries is the path, and the file holds the exact canonical JSON.
+    assert argv[argv.index("--metadata") + 1].startswith("@")
+    assert not any(token.startswith("{") for token in argv)
+    assert runner.metadata_bodies == [
+        json.dumps({"k": "v; rm -rf /"}, separators=(",", ":"))
+    ]
 
 
 def test_list_reads_are_always_unlimited_and_include_closed_and_gates() -> None:

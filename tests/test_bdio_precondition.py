@@ -22,7 +22,6 @@ interleaving tests below are the proof.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Final
@@ -398,8 +397,12 @@ def _last_metadata_keys(bd: FakeBd) -> frozenset[str]:
     key that was WRITTEN from one that was merely already there — and "which
     keys did this transition emit" is the whole question.
     """
-    argv = next(argv for name, argv in reversed(bd.calls) if name == UPDATE)
-    return frozenset(json.loads(argv[argv.index(FLAG_METADATA) + 1]))
+    index = next(
+        position
+        for position in reversed(range(len(bd.calls)))
+        if bd.calls[position][0] == UPDATE
+    )
+    return frozenset(bd.metadata_writes[index])
 
 
 def _clobber_lifecycle(bd: FakeBd, activation_id: str, lifecycle: Lifecycle) -> None:
