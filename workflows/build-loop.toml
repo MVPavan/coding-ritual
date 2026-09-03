@@ -1,0 +1,351 @@
+[graph]
+id          = "build-loop"
+version     = "1.0.0"
+entry       = "write_tests"
+description = "One slice: acceptance tests reviewed, implemented, reviewed, critiqued, signed off"
+
+[instance]
+max_total_activations = 30
+
+[[region]]
+name         = "tests"
+mode         = "bounded-cycle"
+entry_node   = "write_tests"
+max_entries  = 2
+on_exhausted = "triage_tests"
+
+[[region]]
+name         = "build"
+mode         = "bounded-cycle"
+entry_node   = "implement"
+max_entries  = 3
+on_exhausted = "triage_build"
+
+[[node]]
+name          = "write_tests"
+kind          = "task"
+region        = "tests"
+runner        = "profile:test-author"
+model         = "default"
+instructions = """
+Write acceptance tests for the slice described in `task_brief`, against the
+interface fixed in `seam_contract`. On a later round, `test_findings` lists
+what the test critic rejected — address every BLOCKER and MAJOR.
+
+Tests only. Do not write the implementation; a test that passes because you
+implemented the feature proves nothing about the tests.
+
+Each test must be able to fail: state, in the test's own docstring, the
+concrete input and wrong output it catches.
+
+Report `done` when the tests are written and fail for the right reason
+(the feature is absent); `fail_plan` when `seam_contract` is too vague to
+test against.
+"""
+isolation     = "worktree"
+writes        = true
+allowed_paths = ["tests/acceptance/**"]
+inputs        = ["task_brief", "seam_contract", "test_findings"]
+verify        = [{ cmd = "scripts/checks/tests-parse.sh",   timeout = "5m" },
+                 { cmd = "scripts/checks/rows-vs-names.sh", timeout = "2m" }]
+token_budget  = 80000
+max_wall      = "30m"
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 2
+outcomes      = ["done", "fail_plan"]
+
+[[node]]
+name          = "review_tests"
+kind          = "task"
+region        = "tests"
+runner        = "profile:test-critic"
+model         = "default"
+instructions = """
+Review the tests in `acceptance_tests` against `task_brief` and
+`seam_contract`. Findings go to $WF_ARTIFACT_DIR as numbered
+BLOCKER / MAJOR / MINOR entries with `file:line`.
+
+Judge whether each test CAN FAIL and whether it tests behaviour through the
+public seam rather than internals. A test that passes against an empty
+implementation is a BLOCKER.
+
+You have no repo write access. Do not fix or rewrite tests.
+
+Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
+"""
+isolation     = "worktree"
+writes        = false
+allowed_paths = []
+inputs        = ["task_brief", "seam_contract", "acceptance_tests"]
+verify        = [{ cmd = "scripts/checks/tests-parse.sh",        timeout = "5m" },
+                 { cmd = "scripts/checks/rows-vs-names.sh",      timeout = "2m" },
+                 { cmd = "scripts/checks/assertion-strength.sh", timeout = "5m" }]
+token_budget  = 60000
+max_wall      = "20m"
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 1
+outcomes      = ["accept", "reject"]
+
+[[node]]
+name          = "implement"
+kind          = "task"
+region        = "build"
+runner        = "profile:implementer"
+model         = "default"
+instructions = """
+Make the tests in `acceptance_tests` pass. `task_brief` states the intent;
+`impl_findings` on a later round lists what the implementation critic
+rejected.
+
+Do not edit, weaken, skip or delete any test in `acceptance_tests`. If a
+test looks wrong, report `fail_plan` and say why — changing it yourself
+destroys the only evidence this loop produces.
+
+Report `done` when the verify commands pass; `no_diff` when the tests
+already pass unchanged; `fail_plan` when they cannot be satisfied as
+written.
+"""
+isolation     = "worktree"
+writes        = true
+allowed_paths = ["workflow_interpreter/**", "tests/unit/**"]
+inputs        = ["task_brief", "acceptance_tests", "impl_findings", "critic_findings"]
+verify        = [{ cmd = "scripts/checks/gate.sh",            timeout = "20m" },
+                 { cmd = "scripts/checks/tests-untouched.sh", timeout = "2m"  },
+                 { cmd = "scripts/checks/mutate.sh",          timeout = "25m" }]
+token_budget  = 120000
+max_wall      = "60m"
+stale_after   = "15m"
+max_infra_retries = 2
+max_steers    = 2
+outcomes      = ["done", "no_diff", "fail_plan"]
+
+[[node]]
+name          = "review_impl"
+kind          = "task"
+region        = "build"
+runner        = "profile:impl-critic"
+model         = "default"
+instructions = """
+Review `diff_artifact` against `acceptance_tests` and `task_brief`.
+Findings go to $WF_ARTIFACT_DIR as numbered BLOCKER / MAJOR / MINOR entries
+with `file:line` and a concrete failure scenario.
+
+Check specifically that the implementation did not weaken, skip or delete a
+test to pass. That is always a BLOCKER.
+
+You have no repo write access. Do not propose patches.
+
+Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
+"""
+isolation     = "worktree"
+writes        = false
+allowed_paths = []
+inputs        = ["task_brief", "acceptance_tests", "diff_artifact"]
+verify        = [{ cmd = "scripts/checks/gate.sh",             timeout = "20m" },
+                 { cmd = "scripts/checks/tests-untouched.sh",  timeout = "2m"  },
+                 { cmd = "scripts/checks/mutate.sh",           timeout = "25m" },
+                 { cmd = "scripts/checks/review-artifact.sh",  timeout = "5m"  }]
+token_budget  = 80000
+max_wall      = "45m"
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 1
+outcomes      = ["accept", "reject"]
+
+[[node]]
+name          = "critic"
+kind          = "task"
+region        = "build"
+runner        = "profile:critic"
+model         = "default"
+instructions = """
+Independent final critique of the whole slice: `diff_artifact` against
+`task_brief`, `seam_contract` and `acceptance_tests`. You are the last
+reader before a human gate.
+
+Report what the per-stage reviewers could not see — whether the slice as a
+whole does what `task_brief` asked, and whether the tests and the
+implementation agree about the same seam. Do not re-report findings already
+in `test_findings` or `impl_findings`.
+
+Findings go to $WF_ARTIFACT_DIR as numbered BLOCKER / MAJOR / MINOR with
+`file:line`. You have no repo write access.
+
+Report `reject` if any BLOCKER stands, otherwise `accept`.
+"""
+isolation     = "worktree"
+writes        = false
+allowed_paths = []
+inputs        = ["task_brief", "diff_artifact", "impl_findings"]
+verify        = [{ cmd = "scripts/checks/gate.sh",            timeout = "20m" },
+                 { cmd = "scripts/checks/tests-untouched.sh", timeout = "2m"  },
+                 { cmd = "scripts/checks/mutate.sh",          timeout = "25m" },
+                 { cmd = "scripts/checks/review-artifact.sh", timeout = "5m"  },
+                 { cmd = "scripts/checks/claims-cited.sh",    timeout = "5m"  }]
+token_budget  = 80000
+max_wall      = "45m"
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 1
+outcomes      = ["accept", "reject"]
+
+[[node]]
+name      = "slice_gate"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["approve", "abandon"]
+
+[[node]]
+name      = "triage_tests"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["rebudget", "abandon"]
+
+[[node]]
+name      = "triage_build"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["rebudget", "abandon"]
+
+[[node]]
+name = "slice_done"
+kind = "terminal"
+
+[[node]]
+name = "abandoned"
+kind = "terminal"
+
+[[edge]]
+from = "write_tests"
+on   = "done"
+to   = "review_tests"
+
+[[edge]]
+from = "write_tests"
+on   = "fail_plan"
+to   = "triage_tests"
+
+[[edge]]
+from = "review_tests"
+on   = "reject"
+to   = "write_tests"
+
+[[edge]]
+from = "review_tests"
+on   = "accept"
+to   = "implement"
+
+[[edge]]
+from = "implement"
+on   = "done"
+to   = "review_impl"
+
+[[edge]]
+from = "implement"
+on   = "no_diff"
+to   = "triage_build"
+
+[[edge]]
+from = "implement"
+on   = "fail_plan"
+to   = "triage_build"
+
+[[edge]]
+from = "review_impl"
+on   = "reject"
+to   = "implement"
+
+[[edge]]
+from = "review_impl"
+on   = "accept"
+to   = "critic"
+
+[[edge]]
+from = "critic"
+on   = "reject"
+to   = "implement"
+
+[[edge]]
+from = "critic"
+on   = "accept"
+to   = "slice_gate"
+
+[[edge]]
+from = "slice_gate"
+on   = "approve"
+to   = "slice_done"
+
+[[edge]]
+from = "slice_gate"
+on   = "abandon"
+to   = "abandoned"
+
+[[edge]]
+from = "triage_tests"
+on   = "rebudget"
+to   = "write_tests"
+
+[[edge]]
+from = "triage_tests"
+on   = "abandon"
+to   = "abandoned"
+
+[[edge]]
+from = "triage_build"
+on   = "rebudget"
+to   = "implement"
+
+[[edge]]
+from = "triage_build"
+on   = "abandon"
+to   = "abandoned"
+
+[fallback]
+to = "triage_build"
+
+[[source]]
+name          = "task_brief"
+producer      = "instance"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "seam_contract"
+producer      = "instance"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "acceptance_tests"
+producer      = "node:write_tests"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "test_findings"
+producer      = "node:review_tests"
+optional      = true
+trim_priority = 2
+
+[[source]]
+name          = "diff_artifact"
+producer      = "node:implement"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "impl_findings"
+producer      = "node:review_impl"
+optional      = true
+trim_priority = 2
+
+[[source]]
+name          = "critic_findings"
+producer      = "node:critic"
+optional      = true
+trim_priority = 2
