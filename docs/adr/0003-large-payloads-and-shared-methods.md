@@ -1,6 +1,6 @@
 # ADR 0003 — large payload storage, and how shared method libraries will work
 
-- **Status:** Accepted, with the storage mechanism deliberately unresolved
+- **Status:** Accepted; storage mechanism **resolved 2026-09-03 by probe** (see Probe results)
 - **Date:** 2026-09-03
 - **Deciders:** repo owner
 - **Reviewed by:** Fable 5.1 (high), Sol (xhigh)
@@ -20,7 +20,38 @@ dedicated child bead or content-addressed git blob referenced by hash"*
 **3b — shared, improvable methods.** The stated future requirement: a library
 of common methods, improved once, picked up by every new graph.
 
-## Decision 3a — establish the real ceiling before choosing a mechanism
+## Probe results (2026-09-03) — the storage question is settled
+
+Run against an isolated bd workspace in `/tmp`, replicating the production
+argv exactly (`bd -C <ws> --actor <a> create --title ... --metadata <JSON>
+--silent`). Every success was read back and compared byte-for-byte.
+
+| Path | Result |
+|---|---|
+| Inline argv (**production today**) | largest payload created **and verified: 130,818 chars**. Fails at 131,329 with `OSError: [Errno 7] Argument list too long` |
+| `--metadata @file` on `create` | **verified exact at 70KB, 200KB, 1MB and 4MB** |
+| `--metadata @file` on `update` (root self-ID merge) | **verified exact at 300KB**, sibling keys preserved |
+| Inline, multibyte UTF-8 | limit is **bytes, not characters** — 60,000 B verified, 120,000 B fails |
+
+**Conclusion.** The ceiling is the kernel's `MAX_ARG_STRLEN`
+(32 x 4096 = 131,072 bytes on this host), not bd's, and it is hit before bd
+runs. Fable's hypothesis is confirmed: the phase-0 probe measured a path
+production never takes. Switching `BdClient` to `--metadata @file` lifts the
+ceiling by **at least 30x** on both the create and merge paths.
+
+The inline failure mode is **safe**: a loud `OSError` at exec time, never
+silent truncation or corruption. Nothing shipped is at risk today — measured
+bodies are 2,253 and 5,307 bytes against a ~130 KB ceiling.
+
+Not re-verified here: `--event-payload @file`, recorded as lossy at
+`bdio/client.py:337-338` (probed 2026-08-25). That hazard is
+event-payload-specific and does not affect the `--metadata` switch; event
+payloads are small by nature. It stays as recorded.
+
+**Decision: switch `BdClient` metadata writes to the `@file` form, keeping
+the existing read-back verification. Git-object bodies are NOT built.**
+
+## Decision 3a — establish the real ceiling before choosing a mechanism (SUPERSEDED BY THE PROBE ABOVE)
 
 **The pre-review draft committed to content-addressed git objects. That is
 downgraded to plan B, because the review found the ceiling is probably not
@@ -57,7 +88,8 @@ on this host). So:
    (`client.py:404`) already read-back-verifies metadata, so a broken `@file`
    would be caught loudly rather than silently.
 
-3. **Only if both fail**, adopt content-addressed storage — and then it must be
+3. **Only if both fail** — they did not; this branch is now moot, retained
+   for the record — adopt content-addressed storage — and then it must be
    a **git object referenced by hash, never a filesystem path**. A path is
    mutable; it destroys the reproducibility guarantee that put the body in bd
    in the first place. That work is not small, and the ADR records what it must
@@ -126,9 +158,14 @@ content hash and config signature (`bdio/roots.py:225-243`), provided the body
 ## Consequences
 
 - ADR 0002 is not blocked by any of this. Instructions go inline now.
-- The probe is the next concrete action and gates only the storage mechanism
-  and ADR 0002's size caps.
-- Until the probe runs, no claim should be made about how large a graph may be.
+- ADR 0002's size caps can now be set against a measured number: ~130 KB
+  today, ~4 MB+ after the `@file` switch. Caps should still exist, but to
+  bound prompt cost and keep `token_budget` meaningful — not to dodge a
+  storage cliff.
+- The `@file` switch is a small, well-bounded change to one client method
+  with read-back verification already in place.
+- No new ref namespace, no retention policy, no P1 amendment, no injected
+  payload reader. All of that work is avoided.
 
 ## Rejected
 

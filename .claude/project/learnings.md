@@ -178,3 +178,22 @@ Format per entry:
   the test author — or the gap ships. Ask of any double: "what does this know
   that a real one would have to be told?"
 - Source: cr-0zc, found by the cr-o85.32 live run.
+
+## A probe that measures the wrong code path proves nothing
+
+**Verified 2026-09-03.** Phase-0 probe 2 recorded "70KB metadata value
+round-trips byte-identical" and was cited in the spec (§11) and by three
+separate reviews as the evidence that pinned graph bodies fit. It used
+`bd --metadata=@file.json`. Production passes canonical JSON inline as one
+argv element (`bdio/client.py:334-335`), which caps at the kernel's
+`MAX_ARG_STRLEN` (32 x page size = 131,072 bytes) and fails with
+`OSError: [Errno 7] Argument list too long` before bd is reached.
+
+Re-probed on the production path: 130,818 chars verified, 131,329 fails.
+On `@file`: 4 MB verified. The recorded number was real; the path was not.
+
+**Rule:** a probe's argv/API shape must match the production call site, and
+the probe record must name that call site by `file:line`. A number without
+the path it measured is not evidence. Same species as "a test double that
+satisfies a protocol hides whether anything TEACHES the protocol" — both are
+harnesses proving a property of themselves.
