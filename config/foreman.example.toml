@@ -1,0 +1,60 @@
+# Foreman configuration — EXAMPLE, not a live config.
+#
+# `repo_root` and `wrapper_home` must be ABSOLUTE (`foreman/config.py`
+# `_shares_one_repository_identity`), and `supervisor.wrapper_root` must equal
+# the hash-derived `wrapper_home/<sha256(repo_root)[:16]>` — so a working config
+# is machine-specific, which CLAUDE.md forbids checking in. Render this file
+# for the current checkout instead:
+#
+#   scripts/make-foreman-config.sh [output-path]   # default scratchpad/foreman.toml
+#
+# Every @PLACEHOLDER@ below is substituted by that script.
+
+repo_root    = "@REPO_ROOT@"
+wrapper_home = "@WRAPPER_HOME@"
+host         = "@HOST@"
+actor        = "@ACTOR@"
+
+# The bd workspace is the repository itself: `bd init` puts `.beads/` there and
+# every invocation is scoped with `-C <workspace>` (`bdio/client.py`).
+[bd]
+workspace = "@REPO_ROOT@"
+actor     = "@ACTOR@"
+
+# §9 gate approval. `close_gate_verified` raises `BdConfigError` when no
+# verifier is configured (`bdio/api.py`), so a signed `ship` gate needs this
+# section AND the key pair it names. Generate them once, outside the repo:
+#
+#   ssh-keygen -t ed25519 -N "" -C <principal> -f @WRAPPER_HOME@/signers/gate_key
+#   printf '%s %s\n' <principal> "$(cat @WRAPPER_HOME@/signers/gate_key.pub)" \
+#       > @WRAPPER_HOME@/signers/allowed_signers
+#
+# The allow-list must live OUTSIDE the bd workspace — a foreman that can write
+# its own allow-list can forge approvals, and `GateVerifier` refuses a path
+# inside the workspace at construction (`bdio/config.py`).
+[signing]
+allowed_signers_path = "@WRAPPER_HOME@/signers/allowed_signers"
+
+[supervisor]
+repo_root    = "@REPO_ROOT@"
+wrapper_root = "@WRAPPER_ROOT@"
+host         = "@HOST@"
+
+# Role bindings (§3.1 provenance source `role-binding`). The keys are the graph's
+# own `runner = "profile:<role>"` names — `feature-delivery.toml` declares
+# `implementer` and `critic` — and instantiation refuses a graph whose roles are
+# not all bound here ("unknown runner roles").
+#
+# The writer is claude and the reviewer is codex, not the other way round: the
+# codex sandbox makes `<root>/.git` read-only inside every writable root in BOTH
+# `writes` modes (`tests/test_profiles_git_isolation.py`), so a codex writer
+# cannot commit its own work. As the reviewer it is the stronger choice —
+# `writes = false` roots it in the activation's `channels/` directory, leaving
+# the checkout readable-but-unwritable while its findings channel stays writable
+# (`profiles/codex.py` `_workspace_root`). `model` is left unset so each vendor
+# CLI picks its own default.
+[roles.implementer]
+profile = "claude"
+
+[roles.critic]
+profile = "codex"

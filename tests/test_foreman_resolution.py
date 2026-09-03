@@ -10,10 +10,12 @@ from typing import cast
 import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
+from tests._fake_bd import FakeBd
 from tests._helpers import VALID_FIXTURE
 from workflow_interpreter.bdio import BdConfig
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import BdConfigError
+from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -355,7 +357,7 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
         composition,
         VALID_FIXTURE,
         instance_key="instance",
-        brief_path=brief,
+        instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
     )
@@ -373,7 +375,7 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
         composition,
         VALID_FIXTURE,
         instance_key="instance",
-        brief_path=brief,
+        instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
     )
@@ -395,7 +397,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             composition,
             VALID_FIXTURE,
             instance_key="oversized",
-            brief_path=oversized,
+            instance_inputs={"task_brief": oversized},
             allow_test_flags=False,
             overrides={},
         )
@@ -406,7 +408,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             composition,
             VALID_FIXTURE,
             instance_key="empty",
-            brief_path=empty,
+            instance_inputs={"task_brief": empty},
             allow_test_flags=False,
             overrides={},
         )
@@ -431,7 +433,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             composition,
             wrong_source,
             instance_key="wrong-source",
-            brief_path=brief,
+            instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
         )
@@ -445,7 +447,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             unstaffed,
             VALID_FIXTURE,
             instance_key="unstaffed",
-            brief_path=brief,
+            instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
         )
@@ -464,11 +466,132 @@ def test_instantiate_refuses_missing_base_before_creating_a_branch(
             composition,
             VALID_FIXTURE,
             instance_key="missing-base",
-            brief_path=brief,
+            instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
         )
     assert git.updated == []
+
+
+def _two_instance_input_graph(tmp_path: Path) -> Path:
+    """A feature-delivery variant with a second `producer = "instance"` source.
+
+    The shipped graph declares exactly one instance input, so neither the
+    sort order of the pinned tuple nor the aggregate byte cap (which only a
+    second body can push past while each body stays under the per-input cap)
+    is observable against it.
+    """
+    variant = tmp_path / "two-inputs.toml"
+    variant.write_text(
+        VALID_FIXTURE.read_text(encoding="utf-8").replace(
+            'inputs        = ["task_brief", "review_findings"]',
+            'inputs        = ["task_brief", "extra_brief", "review_findings"]',
+            1,
+        )
+        + "\n[[source]]\n"
+        'name          = "extra_brief"\n'
+        'producer      = "instance"\n'
+        "optional      = false\n"
+        "trim_priority = 1\n",
+        encoding="utf-8",
+    )
+    return variant
+
+
+def test_instantiate_pins_every_named_instance_input_sorted_by_name(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """Each supplied input is pinned under its own name, in a stable order."""
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    bodies = {"task_brief": "implement this", "extra_brief": "and also this"}
+    paths = {}
+    for name, body in bodies.items():
+        path = tmp_path / f"{name}.md"
+        path.write_text(body, encoding="utf-8")
+        paths[name] = path
+
+    root = instantiate(
+        composition,
+        _two_instance_input_graph(tmp_path),
+        instance_key="two-inputs",
+        instance_inputs=paths,
+        allow_test_flags=False,
+        overrides={},
+    )
+
+    pinned = root.metadata.instance_inputs
+    assert [item.name for item in pinned] == ["extra_brief", "task_brief"]
+    assert {item.name: item.body for item in pinned} == bodies
+    assert [item.sha256 for item in pinned] == [
+        hashlib.sha256(bodies[item.name].encode("utf-8")).hexdigest() for item in pinned
+    ]
+
+
+def test_instantiate_refuses_a_missing_required_input_before_any_bd_write(
+    fake_store: WorkflowStore, fake_bd: FakeBd, tmp_path: Path
+) -> None:
+    """A required input nobody supplied names itself and creates no root."""
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    brief = tmp_path / "brief.md"
+    brief.write_text("implement this", encoding="utf-8")
+
+    with pytest.raises(ResolutionError, match="extra_brief"):
+        instantiate(
+            composition,
+            _two_instance_input_graph(tmp_path),
+            instance_key="missing-input",
+            instance_inputs={"task_brief": brief},
+            allow_test_flags=False,
+            overrides={},
+        )
+
+    assert fake_bd.command_count("create") == 0
+
+
+def test_instantiate_refuses_an_undeclared_instance_input_name(
+    fake_store: WorkflowStore, fake_bd: FakeBd, tmp_path: Path
+) -> None:
+    """An input the graph never declared is named and refused."""
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    brief = tmp_path / "brief.md"
+    brief.write_text("implement this", encoding="utf-8")
+
+    with pytest.raises(ResolutionError, match="stowaway"):
+        instantiate(
+            composition,
+            VALID_FIXTURE,
+            instance_key="undeclared",
+            instance_inputs={"task_brief": brief, "stowaway": brief},
+            allow_test_flags=False,
+            overrides={},
+        )
+
+    assert fake_bd.command_count("create") == 0
+
+
+def test_instantiate_refuses_inputs_over_the_aggregate_root_cap(
+    fake_store: WorkflowStore, fake_bd: FakeBd, tmp_path: Path
+) -> None:
+    """Two individually legal bodies still cannot exceed what `create_root` takes."""
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    half = MAX_INSTANCE_INPUT_BYTES // 2 + 1
+    paths = {}
+    for name in ("task_brief", "extra_brief"):
+        path = tmp_path / f"{name}.md"
+        path.write_text("x" * half, encoding="utf-8")
+        paths[name] = path
+
+    with pytest.raises(ResolutionError, match="aggregate"):
+        instantiate(
+            composition,
+            _two_instance_input_graph(tmp_path),
+            instance_key="over-aggregate",
+            instance_inputs=paths,
+            allow_test_flags=False,
+            overrides={},
+        )
+
+    assert fake_bd.command_count("create") == 0
 
 
 def test_ensure_instance_branch_refuses_a_null_base_before_any_write(
@@ -648,8 +771,14 @@ def test_detached_spawner_uses_a_no_shell_session_and_records_its_handle(
     )
     argv, kwargs = calls[0]
     assert argv[0] == sys.executable
-    assert argv[1:4] == ("-m", "workflow_interpreter.foreman", "supervise")
-    assert argv[4:] == ("root", "activation", "--config", str(config_path))
+    assert argv[1:3] == ("-m", "workflow_interpreter.foreman")
+    assert argv[3:] == (
+        "--config",
+        str(config_path),
+        "supervise",
+        "root",
+        "activation",
+    )
     assert kwargs["start_new_session"] is True
     assert kwargs["stdin"] is subprocess.DEVNULL
     assert kwargs["stdout"] is kwargs["stderr"]

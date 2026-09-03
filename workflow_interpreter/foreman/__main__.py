@@ -22,6 +22,7 @@ from workflow_interpreter.foreman.constants import (
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import payload_template
 from workflow_interpreter.foreman.identifiers import validate_bead_id
+from workflow_interpreter.foreman.resolve import ResolutionError, instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.transcript import bounded_tail
@@ -33,7 +34,7 @@ from workflow_interpreter.supervisor.gitio import Git
 def _composition(path: Path | None) -> Composition:
     """Build production collaborators from the explicitly supplied TOML file."""
     if path is None:
-        raise ValueError("foreman configuration path is required")
+        raise ValueError("foreman configuration path is required: pass --config")
     config = load_config(path)
     clock = SystemClock()
     return Composition(
@@ -48,17 +49,26 @@ def _composition(path: Path | None) -> Composition:
 
 
 def _parser() -> argparse.ArgumentParser:
-    """Create the five public, deliberately small command forms."""
+    """Create the six public, deliberately small command forms.
+
+    `--config` is a top-level option for every command, `supervise` included:
+    the detached wrapper spawn passes it in that one position too, so there is
+    a single spelling to keep in step with `DetachedSpawner`.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path)
     commands = parser.add_subparsers(dest="command", required=True)
+    create = commands.add_parser("create")
+    create.add_argument("graph", type=Path)
+    create.add_argument("--instance-key", required=True)
+    create.add_argument("--input", action="append", default=[], metavar="NAME=PATH")
+    create.add_argument("--allow-test-flags", action="store_true")
     for name in ("tick", "status"):
         child = commands.add_parser(name)
         child.add_argument("root_id")
     supervise = commands.add_parser("supervise")
     supervise.add_argument("root_id")
     supervise.add_argument("activation_id")
-    supervise.add_argument("--config", type=Path, required=True)
     inspect = commands.add_parser("inspect")
     inspect.add_argument("root_id")
     inspect.add_argument("activation_id")
@@ -68,6 +78,42 @@ def _parser() -> argparse.ArgumentParser:
     steer.add_argument("--reason", required=True)
     steer.add_argument("--instructions-file", type=Path, required=True)
     return parser
+
+
+def _instance_inputs(pairs: Sequence[str]) -> dict[str, Path]:
+    """Parse the repeated `--input NAME=PATH` pairs into one named mapping."""
+    inputs: dict[str, Path] = {}
+    for pair in pairs:
+        name, separator, path = pair.partition("=")
+        if not separator or not name or not path:
+            raise ResolutionError(f"--input must be NAME=PATH, got {pair}")
+        if name in inputs:
+            raise ResolutionError(f"--input {name} was given twice")
+        inputs[name] = Path(path)
+    return inputs
+
+
+def _create(args: argparse.Namespace) -> int:
+    """Pin one new instance root and print nothing but its id.
+
+    The root id is the only thing a caller needs to reach every other command,
+    so it is written as a bare line rather than through the JSON report
+    renderer the root-scoped commands share.
+    """
+    try:
+        root = instantiate(
+            _composition(args.config),
+            args.graph,
+            instance_key=args.instance_key,
+            instance_inputs=_instance_inputs(args.input),
+            allow_test_flags=args.allow_test_flags,
+            overrides={},
+        )
+    except ResolutionError as refusal:
+        sys.stderr.write(f"{refusal}\n")
+        return 1
+    sys.stdout.write(f"{root.root_id}\n")
+    return 0
 
 
 def _emit(value: str, *, limit: int = MAX_TRANSCRIPT_BYTES) -> None:
@@ -181,6 +227,8 @@ def _run(
 ) -> int:
     """Execute one command while its caller owns the transcript renderer."""
     args = _parser().parse_args(argv)
+    if args.command == "create":
+        return _create(args)
     validate_bead_id(args.root_id)
     if hasattr(args, "activation_id"):
         validate_bead_id(args.activation_id)

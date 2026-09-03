@@ -729,7 +729,7 @@ def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch
         lab.composition,
         VALID_FIXTURE,
         instance_key="fresh-f1",
-        brief_path=brief,
+        instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
     )
@@ -758,7 +758,7 @@ def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch
         lab.composition,
         VALID_FIXTURE,
         instance_key="fresh-f1",
-        brief_path=brief,
+        instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
     )

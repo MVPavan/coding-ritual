@@ -13,7 +13,11 @@ from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.loader import load_graph
-from workflow_interpreter.schema.models import GraphDefinition, Node
+from workflow_interpreter.schema.models import (
+    PRODUCER_INSTANCE,
+    GraphDefinition,
+    Node,
+)
 from workflow_interpreter.schema.rules_nodes import forbidden_fields
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.channels import pin_verifier_digests
@@ -132,27 +136,78 @@ def ensure_instance_branch(composition: Composition, root: RootRecord) -> None:
         composition.git.update_ref(branch, base, cwd=composition.config.repo_root)
 
 
+def _pinned_instance_inputs(
+    definition: GraphDefinition,
+    instance_inputs: Mapping[str, Path],
+    *,
+    allow_test_flags: bool,
+) -> tuple[InstanceInput, ...]:
+    """Read and pin every named instance input the graph declares.
+
+    Every refusal is raised here, before `instantiate` reaches bd: a root is
+    immutable once written (§3.1), so an input the graph never declared or a
+    body `create_root` would reject must cost nothing but an error.
+    """
+    sources = build_index(
+        definition.document, allow_test_flags=allow_test_flags
+    ).sources
+    declared = {
+        name for name, source in sources.items() if source.producer == PRODUCER_INSTANCE
+    }
+    undeclared = sorted(set(instance_inputs) - declared)
+    if undeclared:
+        raise ResolutionError(
+            "inputs not declared with producer=instance: " + ", ".join(undeclared)
+        )
+    absent = sorted(
+        name
+        for name in declared
+        if not sources[name].optional and name not in instance_inputs
+    )
+    if absent:
+        raise ResolutionError("missing required instance inputs: " + ", ".join(absent))
+    pinned: list[InstanceInput] = []
+    # Sorted, so the pinned tuple — and the root identity it feeds — does not
+    # depend on the order the caller happened to name its inputs in.
+    for name in sorted(instance_inputs):
+        body = instance_inputs[name].read_text(encoding="utf-8")
+        size = len(body.encode("utf-8"))
+        if not body:
+            raise ResolutionError(f"instance input {name} must not be empty")
+        if size > MAX_INSTANCE_INPUT_BYTES:
+            raise ResolutionError(
+                f"instance input {name} exceeds the {MAX_INSTANCE_INPUT_BYTES}-byte cap"
+            )
+        pinned.append(
+            InstanceInput(
+                name=name,
+                sha256=hashlib.sha256(body.encode("utf-8")).hexdigest(),
+                body=body,
+            )
+        )
+    total = sum(len(item.body.encode("utf-8")) for item in pinned)
+    if total > MAX_INSTANCE_INPUT_BYTES:
+        raise ResolutionError(
+            f"instance inputs are {total} bytes, over the aggregate "
+            f"{MAX_INSTANCE_INPUT_BYTES}-byte cap `create_root` enforces"
+        )
+    return tuple(pinned)
+
+
 def instantiate(
     composition: Composition,
     toml_path: Path,
     *,
     instance_key: str,
-    brief_path: Path,
+    instance_inputs: Mapping[str, Path],
     allow_test_flags: bool,
     overrides: Mapping[str, object],
 ) -> RootRecord:
-    """Pin graph, brief, config and branch base into one idempotent root."""
+    """Pin graph, inputs, config and branch base into one idempotent root."""
     definition = load_graph(toml_path, allow_test_flags=allow_test_flags)
-    body = brief_path.read_text(encoding="utf-8")
-    if not body:
-        raise ResolutionError("task brief must not be empty")
-    if len(body.encode("utf-8")) > MAX_INSTANCE_INPUT_BYTES:
-        raise ResolutionError("task brief exceeds the instance input byte cap")
-    source = build_index(
-        definition.document, allow_test_flags=allow_test_flags
-    ).sources.get("task_brief")
-    if source is None or source.producer != "instance":
-        raise ResolutionError("task_brief must be declared with producer=instance")
+    pinned = _pinned_instance_inputs(
+        definition, instance_inputs, allow_test_flags=allow_test_flags
+    )
     roles = {
         node.name: node.runner.removeprefix("profile:")
         for node in definition.document.node
@@ -166,13 +221,7 @@ def instantiate(
         instance_key=instance_key,
         definition=definition,
         resolved_config=_resolved_config(composition, definition, overrides),
-        instance_inputs=(
-            InstanceInput(
-                name="task_brief",
-                sha256=hashlib.sha256(body.encode("utf-8")).hexdigest(),
-                body=body,
-            ),
-        ),
+        instance_inputs=pinned,
         allow_test_flags=allow_test_flags,
         instance_base_commit=base,
     )

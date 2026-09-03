@@ -204,11 +204,11 @@ def test_main_leaves_supervise_output_in_its_redirected_wrapper_log(
     byte_count, text = lab.transcript(
         lambda: main_module.main(
             [
+                "--config",
+                str(tmp_path / "foreman.toml"),
                 "supervise",
                 root.root_id,
                 activation.activation_id,
-                "--config",
-                str(tmp_path / "foreman.toml"),
             ]
         )
     )
@@ -296,11 +296,11 @@ host = "host"
             sys.executable,
             "-m",
             "workflow_interpreter.foreman",
+            "--config",
+            str(config),
             "supervise",
             "root-id",
             "activation-id",
-            "--config",
-            str(config),
         ],
         check=False,
         capture_output=True,
@@ -487,3 +487,91 @@ def test_status_reports_an_open_transition_gate_with_its_inbox_and_template(
     assert entry["node"] == "ship"
     assert entry["inbox"].endswith(ship.metadata.gate_key)
     assert json.loads(entry["template"])["gate_key"] == ship.metadata.gate_key
+
+
+def test_create_prints_a_root_id_that_status_then_accepts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`create` is the one command that mints its own root, from a graph file."""
+    lab = ForemanLab(tmp_path)
+    brief = tmp_path / "brief.md"
+    brief.write_text("implement the lab fixture", encoding="utf-8")
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    config = tmp_path / "foreman.toml"
+
+    _, created = lab.transcript(
+        lambda: main_module.main(
+            [
+                "--config",
+                str(config),
+                "create",
+                str(VALID_FIXTURE),
+                "--instance-key",
+                "cli-created",
+                "--input",
+                f"task_brief={brief}",
+            ]
+        )
+    )
+
+    root_id = created.strip().splitlines()[-1]
+    root = lab.store.reads.load_root(root_id)
+    assert root.metadata.instance_key == "cli-created"
+    assert [item.name for item in root.metadata.instance_inputs] == ["task_brief"]
+
+    _, reported = lab.transcript(
+        lambda: main_module.main(["--config", str(config), "status", root_id])
+    )
+    assert f'"root_id":"{root_id}"' in reported
+
+
+def test_create_reports_a_refused_instantiation_without_a_traceback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A resolution refusal is the message, on stderr, with a failing status."""
+    lab = ForemanLab(tmp_path)
+    brief = tmp_path / "brief.md"
+    brief.write_text("implement the lab fixture", encoding="utf-8")
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    codes: list[int] = []
+
+    _, transcript = lab.transcript(
+        lambda: codes.append(
+            main_module.main(
+                [
+                    "--config",
+                    str(tmp_path / "foreman.toml"),
+                    "create",
+                    str(VALID_FIXTURE),
+                    "--instance-key",
+                    "cli-refused",
+                    "--input",
+                    f"stowaway={brief}",
+                ]
+            )
+        )
+    )
+
+    assert codes == [1]
+    assert "stowaway" in transcript
+    assert "Traceback" not in transcript
+    assert lab.fake_bd.command_count("create") == 0
+
+
+def test_config_is_accepted_before_every_subcommand() -> None:
+    """One `--config` position for all six commands, including `supervise`."""
+    parser = main_module._parser()
+    common = ["--config", "/tmp/foreman.toml"]
+    forms = (
+        ["create", "graph.toml", "--instance-key", "k", "--input", "a=b"],
+        ["tick", "root"],
+        ["status", "root"],
+        ["supervise", "root", "activation"],
+        ["inspect", "root", "activation"],
+        ["steer", "root", "activation", "--reason", "r", "--instructions-file", "f"],
+    )
+
+    for form in forms:
+        args = parser.parse_args(common + form)
+        assert args.command == form[0]
+        assert args.config == Path("/tmp/foreman.toml")
