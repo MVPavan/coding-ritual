@@ -197,3 +197,57 @@ the probe record must name that call site by `file:line`. A number without
 the path it measured is not evidence. Same species as "a test double that
 satisfies a protocol hides whether anything TEACHES the protocol" — both are
 harnesses proving a property of themselves.
+
+## `claude -p` exits 0 when the API call itself failed  (2026-09-03)
+
+- Observed: a `claude -p ... --model claude-fable-5-1` run that hit an API 500
+  returned exit status 0 with a 161-byte error body on stdout. Nothing in the
+  exit status distinguishes it from a completed run.
+- Why it matters: any wrapper, drill, or orchestrator step that treats
+  `exit == 0` as "the model answered" will accept an error line as the answer
+  and route on it.
+- Apply: judge a `claude -p` run by its output — size and first line — never
+  by exit status alone; pre-assign `--session-id <uuid>` so a failed run can be
+  resumed rather than re-prompted from scratch. (`codex exec` is unaffected.)
+
+## Verify scripts run as `/proc/self/fd/<n>` — `$0`-relative paths do not exist  (2026-09-03)
+
+- Observed: `supervisor/verify.py` executes a pinned verifier through an open
+  descriptor, so inside the script `$0` is `/proc/self/fd/<n>` and
+  `dirname "$0"` is `/proc/self/fd`. The process gets no `$WF_*` variables and
+  no arguments (`verify.py:302`); only `argv[0]` is hashed.
+- Why it matters: the usual `cd "$(dirname "$0")/.."` idiom silently runs
+  every check from the wrong directory, and sibling-script calls by relative
+  path fail.
+- Apply: a verify script anchors on `git rev-parse --show-toplevel` (cwd is the
+  §7.3 checkout) and derives everything else from git in that cwd; it calls
+  siblings by repo-relative path from that root. See `scripts/verify-feature.sh`.
+- Source: cr-o85.34.3
+
+## `_emit` bounds only `tail` and `stalled` — every other report field must arrive bounded  (2026-09-03)
+
+- Observed: `foreman/__main__.py:_emit` fits a report to `MAX_TRANSCRIPT_BYTES`
+  by shrinking the `tail` / `stalled` strings alone; an oversized value in any
+  other field is emitted as-is (or, if the budget is already blown by them,
+  cannot be recovered by `_emit` at all).
+- Why it matters: a new rendered field that can grow with the run (a diff stat,
+  a findings listing, a gate list) is unbounded output unless its producer
+  caps it.
+- Apply: cap at render time (`MAX_GATE_DIFF_BYTES` for `diff_stat`) rather than
+  extending `_emit`'s field list; keep `_emit`'s two-field contract a
+  documented invariant.
+- Source: cr-o85.34.4
+
+## A codex-profile writer cannot commit — reviewers on codex, writers on claude  (2026-09-03)
+
+- Observed: the codex sandbox makes `<root>/.git` read-only in both `writes`
+  modes, including the `gitdir:` file a worktree carries
+  (`tests/test_profiles_git_isolation.py`, probes P2.2/P2.3). A node bound to a
+  codex profile can edit files but its commit fails, so it can never produce a
+  committed artifact — `no_diff` at best.
+- Why it matters: a graph that binds an implementing node to `profile:codex`
+  is a dead-end by construction; nothing in resolution rejects it.
+- Apply: bind writers (`writes = true`) to claude profiles and reviewers to
+  codex; `config/foreman.example.toml` encodes this default. Treat a
+  codex-bound writer as a graph authoring error at plan time.
+- Source: phase-6 plan §0 D5
