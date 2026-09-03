@@ -298,6 +298,16 @@ def allowed_paths_well_formed(index: GraphIndex) -> list[Finding]:
     return findings
 
 
+def forbidden_fields(kind: NodeKind) -> frozenset[str]:
+    """The `Node` fields this kind may not carry (spec §2 rule 3).
+
+    Public so configuration resolution can close its key vocabulary against
+    the SAME table the validator enforces, rather than keeping a parallel list
+    that drifts (spec §14, "closed resolved-config key vocabulary").
+    """
+    return frozenset(_KIND_FORBIDDEN[kind])
+
+
 def task_nodes_instructed(index: GraphIndex) -> list[Finding]:
     """Warn when a task node does not state what it must do (ADR 0002).
 

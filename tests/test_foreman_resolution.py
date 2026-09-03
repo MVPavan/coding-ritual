@@ -206,13 +206,18 @@ def test_resolve_refuses_an_unknown_override() -> None:
 
 
 def test_resolve_accepts_schema_known_unset_values_and_validates_their_type() -> None:
-    """An omitted graph field is still a legal typed instance override."""
+    """An omitted graph field is still a legal typed instance override.
+
+    The key must be one the node's KIND can carry: this asserted
+    `node.ship.model` until spec §14 closed the vocabulary, and `ship` is a
+    gate, which `node_fields_match_kind` forbids `model` on.
+    """
     definition = load_definition()
     settings = {
         setting.key: setting
-        for setting in resolve(definition, {}, {"node.ship.model": "chosen"})
+        for setting in resolve(definition, {}, {"node.review.isolation": "in-repo"})
     }
-    assert settings["node.ship.model"].value == "chosen"
+    assert settings["node.review.isolation"].value == "in-repo"
     with pytest.raises(ResolutionError, match="unsupported value"):
         resolve(definition, {}, {"instance.max_total_activations": "unlimited"})
 
@@ -700,3 +705,49 @@ def test_resolve_never_registers_instructions_as_a_configuration_key() -> None:
 
     keys = {item.key for item in resolve(load_definition(), {}, {})}
     assert not any(key.endswith(".instructions") for key in keys)
+
+
+def test_resolve_refuses_a_field_its_node_kind_forbids() -> None:
+    """Spec §14: the resolved-config vocabulary is closed to what a node can have.
+
+    `ship` is a gate. `node_fields_match_kind` already refuses `model` on a
+    gate in the graph file, so accepting `node.ship.model` as configuration
+    let an instance record a fully provenance-tagged setting for a field the
+    node cannot possess and nothing will ever read.
+    """
+    with pytest.raises(ResolutionError, match="unknown override"):
+        resolve(load_definition(), {}, {"node.ship.model": "chosen"})
+
+    with pytest.raises(ResolutionError, match="unknown project config"):
+        resolve(load_definition(), {"node.ship.model": "chosen"}, {})
+
+
+def test_resolve_still_offers_every_field_the_node_kind_allows() -> None:
+    """Closing the vocabulary must not narrow a task node's real settings."""
+    keys = {item.key for item in resolve(load_definition(), {}, {})}
+
+    assert "node.implement.model" in keys
+    assert "node.implement.runner" in keys
+    assert "node.implement.isolation" in keys
+    assert "node.implement.max_steers" in keys
+    # A gate carries no execution field; its own `gate_type`/`binds` are
+    # structural, so no gate or terminal contributes any key at all.
+    assert not any(key.startswith("node.ship.") for key in keys)
+    assert not any(key.startswith("node.triage.") for key in keys)
+    assert not any(key.startswith("node.shipped.") for key in keys)
+    assert not any(key.endswith(".region") for key in keys)
+
+
+def test_resolve_refuses_a_gate_field_on_a_task_node() -> None:
+    """The closure runs both ways: a task cannot be configured like a gate."""
+    with pytest.raises(ResolutionError, match="unknown override"):
+        resolve(load_definition(), {}, {"node.implement.gate_type": "human"})
+
+
+def test_resolve_refuses_to_configure_whether_a_human_must_approve() -> None:
+    """§9: `gate_type` is never read from resolved config, so accepting it
+    recorded a provenance-tagged setting that silently did nothing — while
+    reading as though a project had removed an approval requirement."""
+    for key in ("node.ship.gate_type", "node.ship.binds"):
+        with pytest.raises(ResolutionError, match="unknown override"):
+            resolve(load_definition(), {}, {key: "human"})

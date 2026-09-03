@@ -14,15 +14,24 @@ from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import GraphDefinition, Node
+from workflow_interpreter.schema.rules_nodes import forbidden_fields
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.channels import pin_verifier_digests
 
-UNRESOLVABLE_NODE_FIELDS: Final[frozenset[str]] = frozenset({"instructions"})
-"""Node fields the reflection must never expose as configuration (ADR 0002).
+UNRESOLVABLE_NODE_FIELDS: Final[frozenset[str]] = frozenset(
+    {"instructions", "region", "gate_type", "binds"}
+)
+"""Node fields that state what the graph MEANS, not how much it may spend.
 
-A node's instructions are graph text pinned into the content hash, not a
-project-config knob: overriding them per project would let the same graph
-hash mean two different jobs.
+Both would let one content hash describe two different graphs if a project
+could override them: `instructions` changes what a node is asked to do
+(ADR 0002); `region` moves a node between the loop bounds and exhaustion
+routing that phase-A `region_membership_valid` validated it into; and
+`gate_type`/`binds` decide whether a human must approve a transition at all
+(§9). None is read from resolved config at runtime, so exposing them let a
+project record a fully provenance-tagged setting that is silently ignored —
+worst of all for `gate_type`, where the ignored setting looks like it
+removed an approval requirement.
 """
 
 
@@ -60,12 +69,16 @@ def resolve(
     }
     allowed: dict[str, type[str | int | bool]] = {"instance.max_total_activations": int}
     for node in definition.document.node:
+        # The vocabulary is closed against the validator's own per-kind table:
+        # a field the node's kind cannot carry is not configurable for it.
+        forbidden = forbidden_fields(node.kind)
         for field, field_info in Node.model_fields.items():
             setting_type = _scalar_setting_type(field_info.annotation)
             if (
                 field_info.is_required()
                 or setting_type is None
                 or field in UNRESOLVABLE_NODE_FIELDS
+                or field in forbidden
             ):
                 continue
             key = f"node.{node.name}.{field}"
