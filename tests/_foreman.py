@@ -26,6 +26,7 @@ from tests._supervisor import (
     FakeProfile,
     FrozenClock,
     PersistentBd,
+    commit_all,
     head_of,
     make_config,
     make_git,
@@ -358,6 +359,20 @@ class ForemanLab:
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)
+
+    def pin_checks(self, bodies: Mapping[str, str]) -> None:
+        """Commit `bodies` as the repo's check scripts, before they are pinned.
+
+        The §7.3 digests are read from the repo when the root is created and
+        the checks execute from a checkout of the artifact commit, so a test
+        that wants its own check bytes has to make them executable AND commit
+        them before `instantiate`.
+        """
+        for name, body in bodies.items():
+            path = self.repo / name
+            path.write_text(body, encoding="utf-8")
+            path.chmod(0o755)
+        self.head = commit_all(self.repo, "lab check scripts")
 
     def instantiate(self) -> RootRecord:
         """Pin the graph and create the instance branch, like resolve does."""
