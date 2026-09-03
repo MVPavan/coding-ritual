@@ -1,6 +1,6 @@
 # ADR 0002 — a task node carries its own instructions, enforced at root creation
 
-- **Status:** Accepted; slices 1-2 implemented 2026-09-03, slice 3 (composer frame) open
+- **Status:** Accepted; fully implemented 2026-09-03 (slices 1-3)
 - **Date:** 2026-09-03
 - **Deciders:** repo owner
 - **Reviewed by:** Fable 5.1 (high), Sol (xhigh)
@@ -94,12 +94,25 @@ frame, enforced at `WorkflowStore.create_root`.**
    project-config knob and must not become one.
 
 6. **Composed as a separate section, not inside `RUNNER_PROTOCOL`.** Order:
-   protocol → authoritative fact frame → instructions → labeled inputs. The
-   frame states that **declared facts win over instructions**. `Materialized`
-   currently retains only text (`foreman/inputs.py:27-32`) and must also carry
-   source name, producer and digest before labeled composition is possible.
-   At least one test must drive `DefaultComposer` with a participant the test
-   did not author.
+   protocol → authoritative fact frame → instructions → labeled inputs,
+   separated by blank lines. The frame states that **declared facts win over
+   instructions**, and carries what a runner cannot derive from its inputs:
+   node, graph id and version, round, write permission, expected paths, and
+   the verify commands that will run. `Materialized` gained `name` and
+   `producer`, populated at all three `materialize()` return sites, so each
+   input renders under a `## Input <name> (from <producer>)` heading instead
+   of concatenating into one unattributed wall of text.
+
+   Per ADR 0001, the frame describes `allowed_paths` as *"paths whose changes
+   are expected here"* — never as a containment bound, which it is not.
+
+   **The frame is proved on the production path, not only in the composer.**
+   Bypassing `composer.compose` in `_task_builder` was originally killed by
+   exactly one test, and that test asserts the §13 forced-reject clause — so
+   instructions and the frame would have become silently droppable the moment
+   §13 changed. `test_a_dispatched_task_carries_its_nodes_instructions_and_facts`
+   now asserts on a `TaskSpec` built by a real dispatch, and independently
+   kills that mutant.
 
 7. **Size caps.** Per-node instructions are capped at **8192 bytes**, declared
    in both the JSON Schema (`maxLength`) and the Pydantic constraint, and

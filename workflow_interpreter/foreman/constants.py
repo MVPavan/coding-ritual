@@ -17,6 +17,8 @@ __all__ = [
     "DEVIATION_UNDECLARED_EFFECTS_DISCARDED",
     "DISPATCH_REQUEST",
     "EFFECTS_NODE",
+    "FACT_FRAME",
+    "FACT_FRAME_NO_PATHS",
     "FORCED_FIRST_REJECT",
     "GATES_DIR",
     "HALT_AUDIT",
@@ -28,6 +30,7 @@ __all__ = [
     "HALT_MISSING_COMMIT",
     "HALT_NODE",
     "HALT_PRECONDITION_REFUSED",
+    "INPUT_LABEL",
     "INSTANCE_BRANCH",
     "MAX_TRANSCRIPT_BYTES",
     "NO_ARTIFACT_OID",
@@ -78,6 +81,27 @@ RUNNER_PROTOCOL_NO_WRITE_STEP: Final[str] = (
     "- Do NOT write to the repository. This node is `writes = false`; anything "
     "it\n  leaves in the tree is graded as an undeclared effect (§7.5).\n"
 )
+FACT_FRAME: Final[str] = """## What this node is (pinned, §3.1)
+
+- node: `{node}` in graph `{graph_id}` v{graph_version}
+- round: {round_no}
+- repository writes: {writes}
+- paths whose changes are expected here: {allowed_paths}
+- checks that will run against your work: {verify}
+
+These facts come from the pinned graph and decide how the run is graded. Where
+the instructions below disagree with them, the declared facts win.
+"""
+"""The activation-level facts a runner cannot derive from its inputs (ADR 0002).
+
+Separate from `RUNNER_PROTOCOL`, which states the §6 channel contract: that is
+per-node and stable, this is per-activation. `allowed_paths` is described as
+what §7.5 makes it — an exemption from undeclared-effect reporting — never as a
+containment bound, which ADR 0001 records it is not.
+"""
+FACT_FRAME_NO_PATHS: Final[str] = "none declared"
+INPUT_LABEL: Final[str] = "## Input `{name}` (from {producer})"
+"""Inputs arrive concatenated; without a label two of them are one wall of text."""
 GATES_DIR: Final[str] = "gates"
 MAX_TRANSCRIPT_BYTES: Final[int] = 4096
 INSTANCE_BRANCH: Final[str] = INSTANCE_BRANCH_REF

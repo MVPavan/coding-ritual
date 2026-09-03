@@ -1068,3 +1068,39 @@ def test_in_repo_implement_happy_path_advances_branch_and_binds_ship_gate(
     # above, the same way `test_drill_27_...`'s final invariant (c) reads the
     # SAME field for the worktree-isolation case (test_foreman_e2e.py).
     assert ship_gate.metadata.artifact_ref == artifact.commit_oid
+
+
+def test_a_dispatched_task_carries_its_nodes_instructions_and_facts(
+    tmp_path: Path,
+) -> None:
+    """ADR 0002: the brief a REAL dispatch builds, not one a test composed.
+
+    `DefaultComposer` is unit-tested directly, but that proves nothing about
+    the production wiring at `_task_builder`. Bypassing the composer there was
+    killed by exactly one test, and that test is about the §13 forced-reject
+    clause — so instructions and the fact frame would have been silently
+    droppable the moment §13 changed. Same species as the defect recorded at
+    `.claude/project/learnings.md` on test doubles satisfying a protocol.
+    """
+    lab = ForemanLab(tmp_path)
+    lab.instantiate()
+    implement_id = lab.tick().dispatched
+    assert implement_id is not None
+
+    task = next(
+        item
+        for item in lab.profiles.profile.tasks
+        if item.activation_id == implement_id
+    )
+    node = next(
+        item for item in lab.definition.document.node if item.name == "implement"
+    )
+
+    assert node.instructions is not None
+    assert node.instructions.strip() in task.brief
+    # The facts the runner cannot derive from its inputs.
+    assert "implement" in task.brief
+    assert lab.definition.document.graph.id in task.brief
+    assert "declared facts" in task.brief.lower()
+    # And the §6 protocol is still there — the frame is an addition, not a swap.
+    assert "$WF_OUTCOME_FILE" in task.brief

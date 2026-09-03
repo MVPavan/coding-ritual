@@ -9,7 +9,10 @@ from pydantic import BaseModel, ConfigDict
 from workflow_interpreter.bdio import ActivationRecord, InputBinding, RootRecord
 from workflow_interpreter.bdio.mint import FIRST_ROUND
 from workflow_interpreter.foreman.constants import (
+    FACT_FRAME,
+    FACT_FRAME_NO_PATHS,
     FORCED_FIRST_REJECT,
+    INPUT_LABEL,
     RUNNER_PROTOCOL,
     RUNNER_PROTOCOL_NO_WRITE_STEP,
     RUNNER_PROTOCOL_WRITE_STEP,
@@ -25,11 +28,18 @@ class InputsUnavailable(ValueError):
 
 
 class Materialized(BaseModel):
-    """Immutable text recovered from one previously bound input."""
+    """Immutable text recovered from one previously bound input.
+
+    Carries its own provenance because the composer renders several of these
+    into one brief: without a name and producer they concatenate into a
+    single unattributed wall of text (ADR 0002).
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     text: str
+    name: str = ""
+    producer: str = ""
 
 
 def select_bindings(
@@ -140,7 +150,7 @@ def materialize(
         )
         if instance is None:
             raise InputsUnavailable("instance input does not match its binding")
-        return Materialized(text=instance.body)
+        return Materialized(text=instance.body, name=binding.name, producer="instance")
     if producer.activation_id != binding.producer_activation_id:
         raise InputsUnavailable("input producer does not match its binding")
     evidence = producer.metadata.evidence
@@ -161,7 +171,9 @@ def materialize(
             or producer.metadata.intended_base_commit
         )
         return Materialized(
-            text=git.diff_text(base, artifact.commit_oid, cwd=repo_root)
+            text=git.diff_text(base, artifact.commit_oid, cwd=repo_root),
+            name=binding.name,
+            producer=producer.metadata.node,
         )
     if (
         evidence.outputs_ref != binding.artifact_ref
@@ -172,7 +184,9 @@ def materialize(
         text="\n".join(
             f"--- {path} ---\n{git.blob_text(f'{binding.digest}:{path}', cwd=repo_root)}"
             for path in git.tree_entries(binding.digest, cwd=repo_root)
-        )
+        ),
+        name=binding.name,
+        producer=producer.metadata.node,
     )
 
 
@@ -183,6 +197,33 @@ def _runner_protocol(node: Node) -> str:
             RUNNER_PROTOCOL_WRITE_STEP if node.writes else RUNNER_PROTOCOL_NO_WRITE_STEP
         ),
         outcomes=", ".join(item.value for item in node.outcomes or ()),
+    )
+
+
+def _fact_frame(root: RootRecord, activation: ActivationRecord, node: Node) -> str:
+    """Render the pinned facts that decide how this activation is graded."""
+    graph = root.definition.document.graph
+    return FACT_FRAME.format(
+        node=node.name,
+        graph_id=graph.id,
+        graph_version=graph.version,
+        round_no=activation.metadata.round_no,
+        writes="yes" if node.writes else "no",
+        allowed_paths=", ".join(node.allowed_paths or ()) or FACT_FRAME_NO_PATHS,
+        verify=", ".join(check.cmd for check in node.verify or ())
+        or FACT_FRAME_NO_PATHS,
+    )
+
+
+def _labelled(item: Materialized) -> str:
+    """Attribute one input to its source, or pass it through when unattributed."""
+    if not item.name:
+        return item.text
+    return "\n".join(
+        (
+            INPUT_LABEL.format(name=item.name, producer=item.producer or "unknown"),
+            item.text,
+        )
     )
 
 
@@ -197,7 +238,19 @@ class DefaultComposer:
     ) -> str:
         """Compose the profile brief from immutable inputs and pinned flags."""
         node = root.index.nodes[activation.metadata.node]
-        brief = "\n".join((_runner_protocol(node), *(item.text for item in inputs)))
+        # One blank line between sections: the runner reads a document, not a
+        # run-on. Each part is stripped so section spacing is the joiner's
+        # job alone, whatever trailing newlines a template or input carries.
+        brief = "\n\n".join(
+            part.strip()
+            for part in (
+                _runner_protocol(node),
+                _fact_frame(root, activation, node),
+                node.instructions or "",
+                *(_labelled(item) for item in inputs),
+            )
+            if part.strip()
+        )
         forced = (
             root.metadata.allow_test_flags
             and root.definition.document.instance.test_force_first_reject

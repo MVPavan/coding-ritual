@@ -689,3 +689,81 @@ def test_compose_tells_the_runner_the_channel_protocol_for_its_own_node(
     # undeclared effects regardless of what it intended.
     assert ("commit" in brief) is writes
     assert brief.endswith("body")
+
+
+@pytest.mark.parametrize("node", ("implement", "review"))
+def test_compose_tells_the_runner_what_its_own_node_must_do(
+    fake_store: WorkflowStore, node: str
+) -> None:
+    """ADR 0002: instructions are pinned, hashed and enforced — and must arrive.
+
+    The shipped graph is the participant here; the test authors none of the
+    text it asserts on. A composer that stored instructions without rendering
+    them would satisfy slices 1 and 2 and still tell the runner nothing.
+    """
+    root = make_root(fake_store, load_definition())
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    activation = activation.model_copy(
+        update={"metadata": activation.metadata.model_copy(update={"node": node})}
+    )
+    instructions = root.index.nodes[node].instructions
+    assert instructions, (
+        "fixture must carry instructions for this test to mean anything"
+    )
+
+    brief = DefaultComposer().compose(root, activation, (Materialized(text="body"),))
+
+    assert instructions.strip() in brief
+
+
+def test_compose_states_that_declared_facts_beat_instructions(
+    fake_store: WorkflowStore,
+) -> None:
+    """Prose can contradict the pinned graph; the graph is what grades the run."""
+    root = make_root(fake_store, load_definition())
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+
+    brief = DefaultComposer().compose(root, activation, (Materialized(text="body"),))
+
+    assert "declared facts" in brief.lower()
+
+
+def test_compose_carries_the_activation_facts_a_runner_cannot_derive(
+    fake_store: WorkflowStore,
+) -> None:
+    """§6 gaps: the runner is told its node, round, graph and the checks that run."""
+    root = make_root(fake_store, load_definition())
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    node = root.index.nodes[activation.metadata.node]
+
+    brief = DefaultComposer().compose(root, activation, (Materialized(text="body"),))
+
+    assert activation.metadata.node in brief
+    assert root.definition.document.graph.id in brief
+    assert str(activation.metadata.round_no) in brief
+    for check in node.verify or ():
+        assert check.cmd in brief
+
+
+def test_compose_labels_each_input_with_its_name_and_producer(
+    fake_store: WorkflowStore,
+) -> None:
+    """Unlabeled concatenation makes two inputs one wall of text (§6)."""
+    root = make_root(fake_store, load_definition())
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+
+    brief = DefaultComposer().compose(
+        root,
+        activation,
+        (
+            Materialized(text="the brief", name="task_brief", producer="instance"),
+            Materialized(
+                text="the findings", name="review_findings", producer="review"
+            ),
+        ),
+    )
+
+    assert "task_brief" in brief
+    assert "review_findings" in brief
+    assert brief.index("task_brief") < brief.index("review_findings")
+    assert "the brief" in brief and "the findings" in brief
