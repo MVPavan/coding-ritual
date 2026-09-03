@@ -20,6 +20,9 @@ from workflow_interpreter.schema.models import Finding
 PACKAGE_ROOT = Path(workflow_interpreter.__file__).parent
 FIXTURES = PACKAGE_ROOT / "fixtures"
 VALID_FIXTURE = FIXTURES / "feature-delivery.toml"
+# The `workflows/` authoring copy of the same graph (spec §2 `:100-102`,
+# temporary until phase 5 collapses the split).
+AUTHORING_FIXTURE = PACKAGE_ROOT.parent / "workflows" / "feature-delivery.toml"
 INVALID_FIXTURES = sorted((FIXTURES / "invalid").glob("*.toml"))
 WARNING_FIXTURES = sorted((FIXTURES / "warning").glob("*.toml"))
 VALID_FIXTURES = [VALID_FIXTURE, *sorted((FIXTURES / "valid").glob("*.toml"))]

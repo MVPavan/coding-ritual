@@ -15,6 +15,7 @@ from pathlib import Path
 import pytest
 
 from tests._helpers import (
+    AUTHORING_FIXTURE,
     FEATURE_DELIVERY_CONTENT_HASH,
     MINIMAL_GRAPH,
     VALID_FIXTURE,
@@ -139,6 +140,17 @@ def test_valid_fixture_content_hash_is_stable() -> None:
     graph = load_graph(VALID_FIXTURE, allow_test_flags=True)
 
     assert graph.content_hash == FEATURE_DELIVERY_CONTENT_HASH
+
+
+def test_the_authoring_copy_is_byte_identical_to_the_library_fixture() -> None:
+    """`workflows/` authors; the package ships. Nothing else keeps them equal.
+
+    Spec §2 (`:100-102`) duplicates the canonical graph deliberately and calls
+    the split temporary. `workflows/README.md` asserts the two are
+    byte-identical, and until phase 5 collapses them this is the only thing
+    that makes that claim true.
+    """
+    assert AUTHORING_FIXTURE.read_bytes() == VALID_FIXTURE.read_bytes()
 
 
 def test_content_hash_ignores_formatting(tmp_path: Path) -> None:

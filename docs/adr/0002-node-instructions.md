@@ -54,10 +54,13 @@ frame, enforced at `WorkflowStore.create_root`.**
    non-empty, non-whitespace `instructions`.
 
 3. **Accept the fixture cost, which is smaller than feared.** Only graphs that
-   are actually *rooted* need the field: `workflow_interpreter/fixtures/`
-   `feature-delivery.toml`, the `tests/_bdio.py` graph builder, and
-   `workflows/build-loop.toml`. The other 38 fixtures are validator inputs and
-   are never rooted — they stay byte-identical.
+   are actually *rooted* need the field: `feature-delivery.toml` (**both
+   copies** — `workflow_interpreter/fixtures/` and `workflows/`, which are
+   byte-identical duplicates per spec §2 `:100-102`, now enforced by
+   `test_the_authoring_copy_is_byte_identical_to_the_library_fixture`), the
+   `tests/_bdio.py` graph builder, and `workflows/build-loop.toml`. The other
+   38 fixtures are validator inputs and are never rooted — they stay
+   byte-identical.
    `FEATURE_DELIVERY_CONTENT_HASH` (`tests/_helpers.py:38-42`) re-pins once.
    **This is acceptable because no live root is pinned on that hash** — the
    only existing instances are in a scratch rig. This is the cheapest moment in
