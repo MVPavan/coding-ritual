@@ -5,7 +5,7 @@ import types
 from collections.abc import Mapping
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Union, get_args, get_origin
+from typing import Annotated, Final, Union, get_args, get_origin
 
 from workflow_interpreter.bdio import ConfigSource, InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.records import RootRecord
@@ -16,6 +16,14 @@ from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import GraphDefinition, Node
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.channels import pin_verifier_digests
+
+UNRESOLVABLE_NODE_FIELDS: Final[frozenset[str]] = frozenset({"instructions"})
+"""Node fields the reflection must never expose as configuration (ADR 0002).
+
+A node's instructions are graph text pinned into the content hash, not a
+project-config knob: overriding them per project would let the same graph
+hash mean two different jobs.
+"""
 
 
 class ResolutionError(ValueError):
@@ -54,7 +62,11 @@ def resolve(
     for node in definition.document.node:
         for field, field_info in Node.model_fields.items():
             setting_type = _scalar_setting_type(field_info.annotation)
-            if field_info.is_required() or setting_type is None:
+            if (
+                field_info.is_required()
+                or setting_type is None
+                or field in UNRESOLVABLE_NODE_FIELDS
+            ):
                 continue
             key = f"node.{node.name}.{field}"
             allowed[key] = setting_type

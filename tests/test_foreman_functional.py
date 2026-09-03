@@ -613,8 +613,8 @@ def test_drill_26_refuses_human_dirty_in_repo_state_without_counting_infra(
             VALID_FIXTURE.read_text(encoding="utf-8"),
             (
                 (
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "worktree"',
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "in-repo"',
+                    'isolation     = "worktree"               # worktree | in-repo',
+                    'isolation     = "in-repo"                # worktree | in-repo',
                 ),
                 ("max_entries  = 3", "max_entries  = 1"),
             ),
@@ -684,8 +684,8 @@ def test_drill_26_a_real_infra_failure_after_the_dirty_tree_recovery_keeps_the_f
             VALID_FIXTURE.read_text(encoding="utf-8"),
             (
                 (
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "worktree"',
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "in-repo"',
+                    'isolation     = "worktree"               # worktree | in-repo',
+                    'isolation     = "in-repo"                # worktree | in-repo',
                 ),
                 ("max_entries  = 3", "max_entries  = 1"),
             ),
@@ -748,8 +748,8 @@ def _in_repo_implement_graph(tmp_path: Path) -> Path:
             VALID_FIXTURE.read_text(encoding="utf-8"),
             (
                 (
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "worktree"',
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "in-repo"',
+                    'isolation     = "worktree"               # worktree | in-repo',
+                    'isolation     = "in-repo"                # worktree | in-repo',
                 ),
             ),
         ),

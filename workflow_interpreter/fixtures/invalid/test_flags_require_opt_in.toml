@@ -13,6 +13,7 @@ test_force_first_reject = true
 name = "work"
 kind = "task"
 runner = "profile:x"
+instructions = "Minimal task: this fixture is rooted to prove the test-flag opt-in."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

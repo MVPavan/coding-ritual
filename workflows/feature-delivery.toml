@@ -21,6 +21,18 @@ kind          = "task"                   # task | gate | terminal
 region        = "build-review"
 runner        = "profile:implementer"
 model         = "default"
+instructions = """
+Implement the feature described in `task_brief`. On a later round,
+`review_findings` lists what the reviewer rejected — address every BLOCKER
+and MAJOR before claiming done.
+
+Write only production and test code. Do not edit the review's findings, and
+do not weaken or delete a test to make a check pass.
+
+Report `done` when the verify command passes against your commit;
+`no_diff` when the feature already exists and needs no change; `fail_plan`
+when `task_brief` cannot be implemented as written and needs a human.
+"""
 isolation     = "worktree"               # worktree | in-repo
 writes        = true                     # repo-worktree write access only
 allowed_paths = ["src/**", "tests/**"]   # static effect bound
@@ -39,6 +51,16 @@ kind          = "task"
 region        = "build-review"
 runner        = "profile:critic"
 model         = "default"
+instructions = """
+Review `diff_artifact` against `task_brief`. Findings go to
+$WF_ARTIFACT_DIR as numbered BLOCKER / MAJOR / MINOR entries, each with a
+`file:line` and a concrete failure scenario.
+
+You have no repo write access. Do not fix what you find and do not propose
+patches — the implementer acts on your findings next round.
+
+Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
+"""
 isolation     = "worktree"
 writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo
 allowed_paths = []

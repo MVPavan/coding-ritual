@@ -377,3 +377,21 @@ def test_schema_description_warns_that_it_is_not_sufficient() -> None:
 
     assert "NOT sufficient" in description
     assert "validator" in description
+
+
+def test_node_instructions_are_size_capped(tmp_path: Path) -> None:
+    """ADR 0002 §7: an uncapped field would bypass the inert `token_budget`.
+
+    The cap is declared twice — JSON Schema `maxLength` and the Pydantic
+    constraint — so this proves at least one of them is live.
+    """
+    oversized = write(
+        tmp_path,
+        MINIMAL_GRAPH.replace(
+            'instructions = "Minimal task: the graph exists to be mutated, not to run."',
+            f'instructions = "{"x" * 8193}"',
+        ),
+    )
+
+    with pytest.raises(GraphValidationError):
+        load_graph(oversized)

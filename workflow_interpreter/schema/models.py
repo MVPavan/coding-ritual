@@ -228,6 +228,9 @@ class Node(BaseModel):
     region: Identifier | None = None
     runner: Annotated[str, StringConstraints(min_length=1)] | None = None
     model: Annotated[str, StringConstraints(min_length=1)] | None = None
+    instructions: (
+        Annotated[str, StringConstraints(min_length=1, max_length=8192)] | None
+    ) = None
     isolation: IsolationMode | None = None
     writes: bool | None = None
     allowed_paths: tuple[RelativePath, ...] | None = None

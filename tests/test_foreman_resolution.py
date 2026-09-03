@@ -686,3 +686,17 @@ def test_detached_spawner_records_an_immediately_exited_wrapper(
         "pid": 42,
         "start_time": None,
     }
+
+
+def test_resolve_never_registers_instructions_as_a_configuration_key() -> None:
+    """ADR 0002: a node's job is graph text, never a project-config knob.
+
+    `resolve()` derives override keys by reflection over every non-required
+    scalar `Node` field, so a new string field is registered automatically
+    unless it is excluded.
+    """
+    with pytest.raises(ResolutionError, match="unknown override"):
+        resolve(load_definition(), {}, {"node.implement.instructions": "do it"})
+
+    keys = {item.key for item in resolve(load_definition(), {}, {})}
+    assert not any(key.endswith(".instructions") for key in keys)

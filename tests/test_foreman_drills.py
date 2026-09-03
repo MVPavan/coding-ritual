@@ -757,8 +757,8 @@ def _in_repo_implement_graph(tmp_path: Path) -> Path:
             VALID_FIXTURE.read_text(encoding="utf-8"),
             (
                 (
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "worktree"',
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "in-repo"',
+                    'isolation     = "worktree"               # worktree | in-repo',
+                    'isolation     = "in-repo"                # worktree | in-repo',
                 ),
             ),
         ),

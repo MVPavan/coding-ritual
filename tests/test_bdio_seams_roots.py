@@ -16,6 +16,7 @@ from workflow_interpreter.bdio.errors import (
 )
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.bdio.wire import InstanceInput
+from workflow_interpreter.schema.models import NodeKind
 
 
 def test_instance_input_cap_is_enforced_at_root_creation(
@@ -116,3 +117,74 @@ def test_test_flag_opt_in_reaches_both_root_read_paths(
     fake_store._client._merge_metadata(root.root_id, {"allow_test_flags": False})
     with pytest.raises(PinnedGraphMismatchError):
         fake_store.reads.load_root(root.root_id)
+
+
+def test_create_root_refuses_a_task_node_without_instructions(
+    fake_store: WorkflowStore,
+) -> None:
+    """ADR 0002: `create_root` is the chokepoint, so it owns the requirement.
+
+    Enforcing anywhere else is bypassable — `tests/_bdio.py`,
+    `tests/_foreman.py` and `tests/_supervisor.py` all call `create_root`
+    directly, and there is no link step in the CLI.
+    """
+    definition = load_definition()
+    stripped = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"instructions": None})
+                if node.kind is NodeKind.TASK
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="instructions"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": stripped}),
+            resolved_config=RESOLVED_CONFIG,
+        )
+
+
+def test_create_root_refuses_whitespace_only_instructions(
+    fake_store: WorkflowStore,
+) -> None:
+    """Presence is not enough: blank text would satisfy a naive check."""
+    definition = load_definition()
+    blanked = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"instructions": "   \n\t "})
+                if node.kind is NodeKind.TASK
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="instructions"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": blanked}),
+            resolved_config=RESOLVED_CONFIG,
+        )
+
+
+def test_create_root_does_not_require_instructions_on_gates_or_terminals(
+    fake_store: WorkflowStore,
+) -> None:
+    """Only a task dispatches a runner; a gate or terminal has no job to state."""
+    definition = load_definition()
+    assert any(node.kind is not NodeKind.TASK for node in definition.document.node), (
+        "fixture must carry a non-task node for this test to mean anything"
+    )
+
+    root = fake_store.create_root(
+        instance_key=instance_key(),
+        definition=definition,
+        resolved_config=RESOLVED_CONFIG,
+    )
+
+    assert root.root_id

@@ -1,6 +1,6 @@
 # ADR 0002 — a task node carries its own instructions, enforced at root creation
 
-- **Status:** Accepted
+- **Status:** Accepted; slice 1 implemented 2026-09-03
 - **Date:** 2026-09-03
 - **Deciders:** repo owner
 - **Reviewed by:** Fable 5.1 (high), Sol (xhigh)
@@ -58,9 +58,13 @@ frame, enforced at `WorkflowStore.create_root`.**
    copies** — `workflow_interpreter/fixtures/` and `workflows/`, which are
    byte-identical duplicates per spec §2 `:100-102`, now enforced by
    `test_the_authoring_copy_is_byte_identical_to_the_library_fixture`), the
-   `tests/_bdio.py` graph builder, and `workflows/build-loop.toml`. The other
-   38 fixtures are validator inputs and are never rooted — they stay
-   byte-identical.
+   `tests/_bdio.py` graph builder, and `workflows/build-loop.toml`. Also
+   `tests/_helpers.py`'s `MINIMAL_GRAPH` and — found during implementation,
+   correcting this ADR's first draft — `fixtures/invalid/`
+   `test_flags_require_opt_in.toml`, which despite living under `invalid/`
+   is rooted by `test_test_flag_opt_in_reaches_both_root_read_paths` with
+   `allow_test_flags=True`. The remaining 37 fixtures are validator inputs,
+   are never rooted, and stay byte-identical.
    `FEATURE_DELIVERY_CONTENT_HASH` (`tests/_helpers.py:38-42`) re-pins once.
    **This is acceptable because no live root is pinned on that hash** — the
    only existing instances are in a scratch rig. This is the cheapest moment in
@@ -84,11 +88,14 @@ frame, enforced at `WorkflowStore.create_root`.**
    At least one test must drive `DefaultComposer` with a participant the test
    did not author.
 
-7. **Size caps.** Per-node instruction bytes, total graph body bytes, and total
-   composed prompt bytes each need an explicit cap. Without them,
-   `instructions = ""` satisfies presence and large inline text bypasses the
-   currently inert `token_budget` (`foreman/supervise.py:149-160`). Cap values
-   depend on ADR 0003's probe.
+7. **Size caps.** Per-node instructions are capped at **8192 bytes**, declared
+   in both the JSON Schema (`maxLength`) and the Pydantic constraint, and
+   covered by `test_node_instructions_are_size_capped`. The value is chosen so
+   a ten-node graph stays under the **current** ~130 KB inline argv ceiling
+   measured in ADR 0003 — i.e. it holds even before the `@file` switch.
+   Whitespace-only text does not satisfy presence (`create_root` strips before
+   checking). Total graph-body and total composed-prompt caps are **not yet
+   implemented** and remain open.
 
 ## Consequences
 

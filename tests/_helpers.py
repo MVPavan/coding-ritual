@@ -41,7 +41,7 @@ MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 # The §2 fixture is pinned by hash (§3.1); a change here means the graph's
 # meaning changed and every live instance's pinned body is stale.
 FEATURE_DELIVERY_CONTENT_HASH = (
-    "2c9cf15e1107eb42df774d30b66ab993c724c89b4bbb874b88c4187bdee74635"
+    "a6e4029f379ab3c1416d58d2a707a2e96d644c53771ce327fcaaac44ba2073d4"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.
@@ -65,6 +65,7 @@ name = "work"
 kind = "task"
 region = "r"
 runner = "profile:x"
+instructions = "Minimal task: the graph exists to be mutated, not to run."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

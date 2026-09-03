@@ -442,8 +442,8 @@ def test_inline_in_repo_dispatch_uses_the_tick_wiring(tmp_path: Path) -> None:
             VALID_FIXTURE.read_text(encoding="utf-8"),
             (
                 (
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "worktree"',
-                    'runner        = "profile:implementer"\nmodel         = "default"\nisolation     = "in-repo"',
+                    'isolation     = "worktree"               # worktree | in-repo',
+                    'isolation     = "in-repo"                # worktree | in-repo',
                 ),
             ),
         ),

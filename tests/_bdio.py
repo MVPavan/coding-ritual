@@ -95,6 +95,7 @@ name = "a1"
 kind = "task"
 region = "ra"
 runner = "profile:x"
+instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -110,6 +111,7 @@ name = "b2"
 kind = "task"
 region = "rb"
 runner = "profile:x"
+instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -125,6 +127,7 @@ name = "b1"
 kind = "task"
 region = "rb"
 runner = "profile:x"
+instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

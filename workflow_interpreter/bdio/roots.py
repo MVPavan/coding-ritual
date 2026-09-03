@@ -35,7 +35,7 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
 )
 from workflow_interpreter.schema.loader import canonical_bytes
-from workflow_interpreter.schema.models import GraphDefinition
+from workflow_interpreter.schema.models import GraphDefinition, NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -68,6 +68,29 @@ _MSG_TWO_OWNING_ROOTS: Final[str] = (
 _MSG_CONFIG_KEYS: Final[str] = "differing keys: {keys}"
 _MSG_CONFIG_KEYS_TRUNCATED: Final[str] = "differing keys: {keys} (+{more} more)"
 _MSG_INSTANCE_INPUT_BYTES: Final[str] = "instance inputs exceed {limit} bytes"
+_MSG_UNINSTRUCTED_TASKS: Final[str] = (
+    "task nodes carry no instructions and cannot be dispatched: {nodes}"
+)
+
+
+def _assert_tasks_are_instructed(definition: GraphDefinition) -> None:
+    """Refuse a graph whose task nodes do not state what they must do (ADR 0002).
+
+    This lives at `create_root` rather than at an authoring or link surface
+    because `create_root` is the only chokepoint every root passes through:
+    the CLI exposes no instantiate command, `instantiate()` is a private
+    helper, and the test labs build roots by calling this directly. Enforcing
+    anywhere else would leave §13 drills running on uninstructed roots.
+    """
+    uninstructed = tuple(
+        node.name
+        for node in definition.document.node
+        if node.kind is NodeKind.TASK and not (node.instructions or "").strip()
+    )
+    if uninstructed:
+        raise CarrierIntegrityError(
+            _MSG_UNINSTRUCTED_TASKS.format(nodes=", ".join(uninstructed))
+        )
 
 
 def create_root(
@@ -95,6 +118,7 @@ def create_root(
             instance_base_commit,
         )
         return existing
+    _assert_tasks_are_instructed(definition)
     inputs = tuple(instance_inputs)
     if (
         sum(len(item.body.encode("utf-8")) for item in inputs)
