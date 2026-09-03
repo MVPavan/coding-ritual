@@ -11,6 +11,7 @@ import traceback
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, GateRecord, WorkflowStore
 from workflow_interpreter.bdio.reads import activations_of
@@ -20,7 +21,7 @@ from workflow_interpreter.foreman.compose import (
     DetachedSpawner,
     InstanceWiring,
 )
-from workflow_interpreter.foreman.config import load_config
+from workflow_interpreter.foreman.config import ForemanConfig, load_config
 from workflow_interpreter.foreman.constants import (
     GATES_DIR,
     INSTANCE_BRANCH,
@@ -41,6 +42,22 @@ from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.clock import SystemClock
 from workflow_interpreter.supervisor.gitio import Git
+
+MSG_NO_SIGNING: Final[str] = (
+    "refusing to create a root this config cannot approve: no [signing] "
+    "allowed_signers_path, so every gate close raises BdConfigError — render a "
+    "config with scripts/make-foreman-config.sh, or pass --allow-unsigned-gates "
+    "for a lab instance that will never be approved"
+)
+MSG_ALLOW_LIST_UNREADABLE: Final[str] = (
+    "refusing to create a root this config cannot approve: gate allow-list "
+    "{path} is unreadable ({reason}); scripts/make-foreman-config.sh generates it"
+)
+MSG_ALLOW_LIST_EMPTY: Final[str] = (
+    "refusing to create a root this config cannot approve: gate allow-list "
+    "{path} is empty, so no signer exists; scripts/make-foreman-config.sh "
+    "generates a key and lists it"
+)
 
 
 def _composition(path: Path | None) -> Composition:
@@ -75,6 +92,7 @@ def _parser() -> argparse.ArgumentParser:
     create.add_argument("--instance-key", required=True)
     create.add_argument("--input", action="append", default=[], metavar="NAME=PATH")
     create.add_argument("--allow-test-flags", action="store_true")
+    create.add_argument("--allow-unsigned-gates", action="store_true")
     for name in ("tick", "status"):
         child = commands.add_parser(name)
         child.add_argument("root_id")
@@ -109,6 +127,25 @@ def _instance_inputs(pairs: Sequence[str]) -> dict[str, Path]:
     return inputs
 
 
+def _signing_preflight(config: ForemanConfig, *, allow_unsigned: bool) -> str | None:
+    """Refuse, in one line, a root whose gates nobody would be able to close.
+
+    `close_gate_verified` raises `BdConfigError` when no verifier is configured
+    (`bdio/api.py`) and `GateVerifier` needs a readable allow-list, so an
+    unsigned or empty-allow-list config fails first at the `ship` gate — after
+    a whole run, with a human already waiting. Both are decidable at `create`,
+    which is the last moment before anything durable exists.
+    """
+    if config.signing is None:
+        return None if allow_unsigned else MSG_NO_SIGNING
+    path = config.signing.allowed_signers_path
+    try:
+        empty = not path.read_text(encoding="utf-8").strip()
+    except OSError as unreadable:
+        return MSG_ALLOW_LIST_UNREADABLE.format(path=path, reason=unreadable)
+    return MSG_ALLOW_LIST_EMPTY.format(path=path) if empty else None
+
+
 def _create(args: argparse.Namespace) -> int:
     """Pin one new instance root and print nothing but its id.
 
@@ -116,17 +153,24 @@ def _create(args: argparse.Namespace) -> int:
     so it is written as a bare line rather than through the JSON report
     renderer the root-scoped commands share.
     """
+    composition = _composition(args.config)
+    refusal = _signing_preflight(
+        composition.config, allow_unsigned=args.allow_unsigned_gates
+    )
+    if refusal is not None:
+        sys.stderr.write(f"{refusal}\n")
+        return 1
     try:
         root = instantiate(
-            _composition(args.config),
+            composition,
             args.graph,
             instance_key=args.instance_key,
             instance_inputs=_instance_inputs(args.input),
             allow_test_flags=args.allow_test_flags,
             overrides={},
         )
-    except ResolutionError as refusal:
-        sys.stderr.write(f"{refusal}\n")
+    except ResolutionError as refused:
+        sys.stderr.write(f"{refused}\n")
         return 1
     sys.stdout.write(f"{root.root_id}\n")
     return 0

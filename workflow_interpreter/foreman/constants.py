@@ -21,6 +21,7 @@ __all__ = [
     "FACT_FRAME_NO_PATHS",
     "FORCED_FIRST_REJECT",
     "GATES_DIR",
+    "GATE_NONCE_PLACEHOLDER",
     "HALT_AUDIT",
     "HALT_BRANCH_DIVERGED",
     "HALT_CEILING",
@@ -109,6 +110,12 @@ FACT_FRAME_NO_PATHS: Final[str] = "none declared"
 INPUT_LABEL: Final[str] = "## Input `{name}` (from {producer})"
 """Inputs arrive concatenated; without a label two of them are one wall of text."""
 GATES_DIR: Final[str] = "gates"
+GATE_NONCE_PLACEHOLDER: Final[str] = "replace-with-a-unique-nonce"
+"""The one token an approver must replace in a rendered payload template.
+
+`scripts/approve-gate.sh` substitutes exactly this string, so the token is
+shared rather than spelled twice: a payload whose nonce is still the
+placeholder is refused as a replay by the second gate that sees it."""
 MAX_TRANSCRIPT_BYTES: Final[int] = 4096
 MAX_GATE_DIFF_BYTES: Final[int] = 1024
 """A rendered gate diff is bounded HERE, not by `_emit`: `_emit` truncates only

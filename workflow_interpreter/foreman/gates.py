@@ -23,6 +23,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.foreman.constants import (
     EFFECTS_NODE,
+    GATE_NONCE_PLACEHOLDER,
     HALT_BRANCH_DIVERGED,
     HALT_FAIL_CODE,
     HALT_NODE,
@@ -245,6 +246,6 @@ def payload_template(root: RootRecord, gate: GateRecord) -> str:
             gate_key=gate.metadata.gate_key,
             outcome=_template_outcome(gate.metadata.outcomes),
             artifact=artifact,
-            nonce="replace-with-a-unique-nonce",
+            nonce=GATE_NONCE_PLACEHOLDER,
         )
     ).decode("utf-8")

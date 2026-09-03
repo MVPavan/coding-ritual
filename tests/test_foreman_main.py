@@ -18,6 +18,7 @@ from tests._helpers import VALID_FIXTURE, mutate
 from tests._supervisor import ChildScript, make_config, make_repo
 from workflow_interpreter.bdio import BdConfig, Outcome
 from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver, Spawner
 from workflow_interpreter.foreman.config import ForemanConfig
@@ -510,6 +511,9 @@ def test_create_prints_a_root_id_that_status_then_accepts(
                 "cli-created",
                 "--input",
                 f"task_brief={brief}",
+                # The lab config configures no §9 verifier, which `create`
+                # otherwise refuses (E1a preflight).
+                "--allow-unsigned-gates",
             ]
         )
     )
@@ -547,6 +551,7 @@ def test_create_reports_a_refused_instantiation_without_a_traceback(
                     "cli-refused",
                     "--input",
                     f"stowaway={brief}",
+                    "--allow-unsigned-gates",
                 ]
             )
         )
@@ -575,3 +580,109 @@ def test_config_is_accepted_before_every_subcommand() -> None:
         args = parser.parse_args(common + form)
         assert args.command == form[0]
         assert args.config == Path("/tmp/foreman.toml")
+
+
+def _create_argv(tmp_path: Path, brief: Path, *extra: str) -> list[str]:
+    """The `create` command line every E1 preflight test shares."""
+    return [
+        "--config",
+        str(tmp_path / "foreman.toml"),
+        "create",
+        str(VALID_FIXTURE),
+        "--instance-key",
+        "preflight",
+        "--input",
+        f"task_brief={brief}",
+        *extra,
+    ]
+
+
+def _brief(tmp_path: Path) -> Path:
+    """The one instance input the lab fixture declares."""
+    brief = tmp_path / "brief.md"
+    brief.write_text("implement the lab fixture", encoding="utf-8")
+    return brief
+
+
+def test_create_refuses_a_config_that_configures_no_gate_verifier(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A root nobody can approve is refused before bd is written (E1a).
+
+    `close_gate_verified` raises `BdConfigError` with no verifier, which is
+    discovered only once a human is already waiting at `ship`.
+    """
+    lab = ForemanLab(tmp_path)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    codes: list[int] = []
+
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(_create_argv(tmp_path, _brief(tmp_path))))
+    )
+
+    assert codes == [1]
+    assert "allowed_signers_path" in transcript
+    assert "make-foreman-config.sh" in transcript
+    assert "--allow-unsigned-gates" in transcript
+    assert lab.fake_bd.command_count("create") == 0
+
+
+def test_create_accepts_an_unsigned_lab_config_when_the_flag_is_passed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`--allow-unsigned-gates` is the lab escape hatch, and only that (E1a)."""
+    lab = ForemanLab(tmp_path)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    codes: list[int] = []
+
+    _, transcript = lab.transcript(
+        lambda: codes.append(
+            main_module.main(
+                _create_argv(tmp_path, _brief(tmp_path), "--allow-unsigned-gates")
+            )
+        )
+    )
+
+    assert codes == [0]
+    root_id = transcript.strip().splitlines()[-1]
+    assert lab.store.reads.load_root(root_id).metadata.instance_key == "preflight"
+
+
+def test_create_refuses_a_signing_config_whose_allow_list_went_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config: SigningConfig
+) -> None:
+    """The allow-list is read at `create`, not first at the gate (E1a)."""
+    lab = ForemanLab(tmp_path, signing=signing_config)
+    signing_config.allowed_signers_path.rename(tmp_path / "moved-allow-list")
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    codes: list[int] = []
+
+    try:
+        _, transcript = lab.transcript(
+            lambda: codes.append(
+                main_module.main(_create_argv(tmp_path, _brief(tmp_path)))
+            )
+        )
+    finally:
+        (tmp_path / "moved-allow-list").rename(signing_config.allowed_signers_path)
+
+    assert codes == [1]
+    assert str(signing_config.allowed_signers_path) in transcript
+    assert lab.fake_bd.command_count("create") == 0
+
+
+def test_create_proceeds_when_the_allow_list_exists_and_is_not_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config: SigningConfig
+) -> None:
+    """A signed-gate config is the ordinary path and passes the preflight (E1a)."""
+    lab = ForemanLab(tmp_path, signing=signing_config)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    codes: list[int] = []
+
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(_create_argv(tmp_path, _brief(tmp_path))))
+    )
+
+    assert codes == [0]
+    root_id = transcript.strip().splitlines()[-1]
+    assert lab.store.reads.load_root(root_id).metadata.instance_key == "preflight"
