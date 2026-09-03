@@ -16,6 +16,7 @@ Authoritative docs and when to read them.
 | `mvp-harness/plugins/mvp-plugin/skills/harness-adopt/SKILL.md` | Adapting the harness overlay to a repo |
 | `docs/usage/mvp-plugin.md` | How this harness is published as the mvp-plugin (dual-manifest, residue, `/harness-publish`), invariants, invocation forms |
 | `workflows/README.md` | Authoring or validating workflow graph definitions |
+| `docs/adr/` | **Before changing interpreter semantics** — recorded decisions (`allowed_paths`, node instructions, payload storage); supersede, never silently undo |
 | `docs/specs/workflow-interpreter.md` | Implementing or operating the workflow interpreter |
 | `scripts/README.md` | Managing Claude/Codex remote-control sessions (`claudex-rc.sh`) — lifecycle, recovery, watchdog |
 | `CONTEXT.md` | Naming anything — the domain glossary; use its terms, avoid its listed synonyms |
