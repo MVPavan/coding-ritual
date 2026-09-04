@@ -26,9 +26,13 @@ cannot aim a `clean -f` at an unrelated checkout.
    **What that is NOT is "the repository's configuration is not trusted".** It
    said so, and the claim was false: `filter.<name>.clean` alone survives it,
    ran on the former `git add --all` snapshot implementation — and cannot be
-   pinned generically, because the
+   pinned by a FIXED `-c`, because the
    driver name is chosen by the repository's own `.gitattributes` (Opus r2 #20,
-   probed against this class). `diff.external`, `core.sshCommand`,
+   probed against this class). It can be pinned by a computed one:
+   `status_paths` lists the drivers configuration defines and blanks each
+   (`Git._filter_overrides`, cr-o85.29), which is a read, not trust — the
+   listing is where a program name can only come from.
+   `diff.external`, `core.sshCommand`,
    `credential.helper`, `init.templateDir`, `core.alternateRefsCommand` and
    `uploadpack.packObjectsHook` are the same shape. The honest statement is that
    `.git/config` is kept OUT OF THE RUNNER'S REACH rather than distrusted here,
@@ -81,6 +85,14 @@ DELETED_CODE: Final[str] = "D"
 STATUS_CODE_WIDTH: Final[int] = 2
 _STATUS_PATH_OFFSET: Final[int] = 3
 """`XY <path>` — two status codes and the space that follows them."""
+
+_FILTER_SECTION: Final[str] = "filter."
+_FILTER_PROGRAM_KEYS: Final[frozenset[str]] = frozenset({"clean", "smudge", "process"})
+"""The three `filter.<name>.*` keys whose VALUE is a program git spawns.
+
+`filter.<name>.required` is deliberately absent — it is a boolean, and blanking
+it would make git reject the invocation rather than harden it."""
+_CONFIG_LIST_ARGS: Final[tuple[str, ...]] = ("--list", "--name-only", "-z")
 
 COMMITTER_PREFIX: Final[str] = "committer "
 EMAIL_OPEN: Final[str] = "<"
@@ -144,11 +156,57 @@ class Git(GitTransport):
             return False
         raise GitCommandError(f"git merge-base failed (exit {result.returncode})")
 
+    def _filter_overrides(self, *, cwd: Path) -> tuple[str, ...]:
+        """`-c filter.<name>.<clean|smudge|process>=` for every driver defined here.
+
+        The half of cr-o85.29 that can be pinned. A filter driver needs BOTH a
+        `.gitattributes` naming it — runner-writable — and a `filter.<name>.*`
+        entry in configuration, and only the second names a PROGRAM. Config is
+        therefore the complete enumeration, and `--list` resolves every scope
+        git will consult (local, `include.path`, and `--worktree`; the system
+        and global files are already dropped by `ENV_HARDENING`) — probed, as
+        was the case preservation of the subsection, which is why the key is
+        replayed verbatim rather than rebuilt.
+
+        BOTH directions are blanked, because the wrapper runs calls in both:
+        `status_paths` and `stash_create` convert working-tree bytes INTO the
+        object store (`clean`), while `reset_hard`, `worktree_add` and
+        `worktree_add_detached` write files OUT of it (`smudge`) — and
+        `filter.<name>.process` serves either. Those five are the consumers.
+
+        Listing config executes nothing; the emptied `-c` values then outrank
+        `.git/config` on the invocation that would have spawned them. What this
+        does NOT cover is a driver written into `.git/config` between this call
+        and its consumer — the module docstring's residual, where a sandbox and
+        not this function keeps `.git/config` out of the runner's reach.
+        """
+        names = self.run(
+            GitSubcommand.CONFIG, *_CONFIG_LIST_ARGS, cwd=cwd
+        ).stdout.split(NUL)
+        overrides: list[str] = []
+        for name in names:
+            if not name.startswith(_FILTER_SECTION):
+                continue
+            if name.rpartition(".")[2] not in _FILTER_PROGRAM_KEYS:
+                continue
+            overrides.extend(("-c", f"{name}="))
+        return tuple(overrides)
+
     def status_paths(self, *, cwd: Path) -> tuple[tuple[str, bool], ...]:
         """Every dirty path as `(path, tracked)` — `-z`, so no path is quoted.
 
         Renames report two paths in one record; both are returned, because a
         rename dirties the source as much as the destination.
+
+        Run with every configured filter driver blanked (cr-o85.29): `status`
+        content-compares any entry whose size still matches the index, and a
+        `.gitattributes` the runner wrote would make that comparison SPAWN the
+        driver as the wrapper. The one visible consequence is that comparison
+        is now against the file's raw bytes — the same basis
+        `hash-object --no-filters` already gives the §12 snapshot — so a path
+        that is clean only AFTER a clean filter now reports as dirty. Dirty is
+        the safe direction for all seven callers: it over-reports work to
+        attribute and preserve, never under-reports it.
         """
         raw = self.run(
             GitSubcommand.STATUS,
@@ -156,6 +214,7 @@ class Git(GitTransport):
             "-z",
             "--untracked-files=all",
             cwd=cwd,
+            config=self._filter_overrides(cwd=cwd),
         ).stdout
         records = [record for record in raw.split(NUL) if record]
         found: list[tuple[str, bool]] = []
@@ -282,8 +341,20 @@ class Git(GitTransport):
         Creates a dangling commit and touches neither the index nor the working
         tree, which is what makes it safe to run against a human's checkout
         (§12).
+
+        Filter-free (cr-o85.29): storing the working tree runs `clean`, so this
+        records the same raw bytes `snapshot_commit` does rather than whatever
+        a runner's `.gitattributes` would have had git compute.
         """
-        return self.run(GitSubcommand.STASH, "create", cwd=cwd).text or None
+        return (
+            self.run(
+                GitSubcommand.STASH,
+                "create",
+                cwd=cwd,
+                config=self._filter_overrides(cwd=cwd),
+            ).text
+            or None
+        )
 
     def snapshot_commit(
         self, *, message: str, parents: Sequence[str], index_path: Path, cwd: Path
@@ -335,7 +406,13 @@ class Git(GitTransport):
         )
 
     def worktree_add(self, path: Path, branch: str, commit: str, *, cwd: Path) -> None:
-        """Create the §5.4 per-instance worktree at `commit` on `branch`."""
+        """Create the §5.4 per-instance worktree at `commit` on `branch`.
+
+        Filter-free (cr-o85.29): a checkout WRITES files, so it runs `smudge`
+        for whatever driver the checked-out `.gitattributes` names — the same
+        program execution `status_paths` refuses, on the call that creates the
+        tree a runner is about to be handed.
+        """
         self.run(
             GitSubcommand.WORKTREE,
             "add",
@@ -345,6 +422,7 @@ class Git(GitTransport):
             str(path),
             commit,
             cwd=cwd,
+            config=self._filter_overrides(cwd=cwd),
         )
 
     def worktree_add_detached(self, path: Path, commit: str, *, cwd: Path) -> None:
@@ -353,8 +431,18 @@ class Git(GitTransport):
         Detached and branchless on purpose: this checkout exists to be graded
         and thrown away, and a branch would tie it to the instance's own
         history where a later reset could move it.
+
+        Filter-free for the same reason as `worktree_add` (cr-o85.29).
         """
-        self.run(GitSubcommand.WORKTREE, "add", "--detach", str(path), commit, cwd=cwd)
+        self.run(
+            GitSubcommand.WORKTREE,
+            "add",
+            "--detach",
+            str(path),
+            commit,
+            cwd=cwd,
+            config=self._filter_overrides(cwd=cwd),
+        )
 
     def worktree_remove(self, path: Path, *, cwd: Path, check: bool = True) -> None:
         """Remove the worktree at terminal (§5.4).
@@ -416,8 +504,19 @@ class Git(GitTransport):
         )
 
     def reset_hard(self, commit: str, *, cwd: Path) -> None:
-        """Move HEAD and the tracked tree to `commit`."""
-        self.run(GitSubcommand.RESET, "--hard", commit, cwd=cwd)
+        """Move HEAD and the tracked tree to `commit`.
+
+        Filter-free (cr-o85.29): restoring a file WRITES it, so `smudge` runs —
+        on the wrapper's most destructive call, against a tree whose
+        `.gitattributes` the runner had just been free to write.
+        """
+        self.run(
+            GitSubcommand.RESET,
+            "--hard",
+            commit,
+            cwd=cwd,
+            config=self._filter_overrides(cwd=cwd),
+        )
 
     def clean_paths(self, paths: Sequence[str], *, cwd: Path) -> None:
         """Remove exactly the named untracked paths — never a blanket `-fdx`.

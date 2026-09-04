@@ -433,3 +433,90 @@ def test_a_git_failure_during_orphan_pinning_leaves_recovery_open(
 
     assert resolution.closed is None
     assert resolution.halted is not None
+
+
+@pytest.mark.proc
+def test_status_paths_never_runs_an_attribute_selected_clean_filter(
+    tmp_path: Path,
+) -> None:
+    """cr-o85.29: `status` content-compares, and that RAN the runner's program.
+
+    A `.gitattributes` inside the tree is runner-writable, and the driver it
+    names only has to exist in `.git/config` for `git status` to spawn it AS
+    THE WRAPPER. Git content-compares every entry whose size still matches the
+    index, so an UNTOUCHED tree is enough to fire it — no modification needed,
+    which is why the first assertion here is on a clean checkout.
+    """
+    repo = make_repo(tmp_path)
+    sentinel = tmp_path / "status-filter-ran"
+    filter_program = tmp_path / "status-clean-filter.sh"
+    filter_program.write_text(
+        f"#!/bin/sh\nprintf ran > {sentinel}\ncat\n", encoding="utf-8"
+    )
+    filter_program.chmod(0o755)
+    subprocess.run(
+        ["git", "config", "filter.runner.clean", str(filter_program)],
+        cwd=repo,
+        check=True,
+    )
+    (repo / ".gitattributes").write_text("* filter=runner\n", encoding="utf-8")
+    commit_all(repo, "runner attributes")
+    git = make_git(make_config(repo, tmp_path))
+    assert sentinel.exists(), "the rig is inert: the human's own commit never filtered"
+    sentinel.unlink()
+
+    assert git.status_paths(cwd=repo) == ()
+    assert not sentinel.exists()
+
+    (repo / "src" / "feature.py").write_text("value = 2\n", encoding="utf-8")
+    (repo / "src" / "new.txt").write_text("new\n", encoding="utf-8")
+
+    assert set(git.status_paths(cwd=repo)) == {
+        ("src/feature.py", True),
+        ("src/new.txt", False),
+    }
+    assert not sentinel.exists()
+
+
+@pytest.mark.proc
+def test_the_writing_git_calls_never_run_an_attribute_selected_smudge_filter(
+    tmp_path: Path,
+) -> None:
+    """cr-o85.29's other direction: a checkout WRITES, and writing smudges.
+
+    `worktree add` and `reset --hard` restore files through the same attribute
+    machinery, so the driver a committed `.gitattributes` names runs as the
+    wrapper — on the call that hands a runner its tree, and on the destructive
+    one that takes it back.
+    """
+    repo = make_repo(tmp_path)
+    sentinel = tmp_path / "smudge-filter-ran"
+    filter_program = tmp_path / "smudge-filter.sh"
+    filter_program.write_text(
+        f"#!/bin/sh\nprintf ran > {sentinel}\ncat\n", encoding="utf-8"
+    )
+    filter_program.chmod(0o755)
+    subprocess.run(
+        ["git", "config", "filter.evil.smudge", str(filter_program)],
+        cwd=repo,
+        check=True,
+    )
+    (repo / ".gitattributes").write_text("* filter=evil\n", encoding="utf-8")
+    head = commit_all(repo, "runner attributes")
+    (repo / "src" / "feature.py").unlink()
+    subprocess.run(["git", "checkout", "--", "src/feature.py"], cwd=repo, check=True)
+    assert sentinel.exists(), "the rig is inert: a plain checkout never smudged"
+    sentinel.unlink()
+    git = make_git(make_config(repo, tmp_path))
+
+    git.worktree_add(tmp_path / ".wf" / "live", "wf/live", head, cwd=repo)
+    assert not sentinel.exists()
+
+    git.worktree_add_detached(tmp_path / ".wf" / "graded", head, cwd=repo)
+    assert not sentinel.exists()
+
+    (repo / "src" / "feature.py").write_text("value = 2\n", encoding="utf-8")
+    git.reset_hard(head, cwd=repo)
+
+    assert not sentinel.exists()
+    assert (repo / "src" / "feature.py").read_text(encoding="utf-8") == "value = 1\n"

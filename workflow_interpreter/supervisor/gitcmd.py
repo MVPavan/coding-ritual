@@ -67,10 +67,11 @@ HARDENING: Final[tuple[str, ...]] = (
 the wrapper has to make exist first.
 
 Three keys, not "the keys that name a program": `filter.<name>.clean` is the
-counterexample that cannot be pinned generically — the driver NAME comes from
-the repository's own `.gitattributes`, so there is no fixed `-c` that neutralises
-it. See the module docstring for what actually keeps `.git/config` out of a
-runner's hands, and for the residual that is left."""
+counterexample that no FIXED `-c` neutralises — the driver NAME comes from the
+repository's own `.gitattributes`. It is pinned per call instead, by the
+overlay `gitio.Git._filter_overrides` computes (cr-o85.29). See the `gitio`
+module docstring for what actually keeps `.git/config` out of a runner's hands,
+and for the residual that is left."""
 ENV_HARDENING: Final[Mapping[str, str]] = {
     "GIT_CONFIG_NOSYSTEM": "1",
     "GIT_CONFIG_GLOBAL": os.devnull,
@@ -110,6 +111,12 @@ class GitSubcommand(StrEnum):
     `GIT_INDEX_FILE` pointed at a throwaway index none of them touches the
     repository's index or working tree, and `commit-tree` writes a commit OBJECT
     without moving any ref — which is why it is here while `commit` still is not.
+
+    `config` is READ-ONLY here by construction: the only call site asks it to
+    LIST names (`gitio.Git._filter_overrides`, cr-o85.29), and listing config
+    is the one way to learn the filter-driver names a repository defines
+    without letting `status` execute them. It never writes a key — no member of
+    this set may be used to mutate configuration.
     """
 
     REV_PARSE = "rev-parse"
@@ -130,6 +137,7 @@ class GitSubcommand(StrEnum):
     UPDATE_INDEX = "update-index"
     WRITE_TREE = "write-tree"
     COMMIT_TREE = "commit-tree"
+    CONFIG = "config"
 
 
 class GitResult:
@@ -176,12 +184,26 @@ class GitTransport:
         cwd: Path,
         check: bool = True,
         env: Mapping[str, str] | None = None,
+        config: Sequence[str] = (),
     ) -> GitResult:
-        """Run one bounded Git command without a shell."""
+        """Run one bounded Git command without a shell.
+
+        `config` holds extra `-c key=value` pairs for pins a CALLER has to
+        compute, where `HARDENING`'s fixed set cannot: the filter-driver
+        blanking in `gitio` is the one such caller (cr-o85.29). They are placed
+        BEFORE the hardening pins, and a later `-c` wins, so a caller overlay
+        can never displace one of the three hardened keys.
+        """
         if subcommand not in set(GitSubcommand):  # pragma: no cover
             raise GitCommandError(_MSG_UNKNOWN.format(subcommand=subcommand))
         self._assert_inside(cwd)
-        argv = [self._config.git_binary, *self._hardening(), subcommand.value, *args]
+        argv = [
+            self._config.git_binary,
+            *config,
+            *self._hardening(),
+            subcommand.value,
+            *args,
+        ]
         try:
             completed = subprocess.run(
                 argv,
