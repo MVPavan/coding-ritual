@@ -251,3 +251,17 @@ harnesses proving a property of themselves.
   codex; `config/foreman.example.toml` encodes this default. Treat a
   codex-bound writer as a graph authoring error at plan time.
 - Source: phase-6 plan §0 D5
+
+## Agent worktrees can start behind the orchestrator's HEAD  (2026-09-04)
+
+- Observed: an implementer dispatched with `isolation: worktree` right after
+  three fresh commits found its worktree checked out at the commit three
+  behind; the brief named the intended base, so it fast-forwarded
+  (`git merge --ff-only <base>`) before editing. Its patch then applied cleanly.
+- Why it matters: a patch built on a stale base fails `git apply --check` at
+  landing, or worse applies with silently reverted context on files the newer
+  commits touched (cases.py was changed by both waves here).
+- Apply: every worktree brief names the base commit and asks the worker to
+  confirm `git log --oneline -1` matches (fast-forward if not) before editing;
+  the orchestrator lands only patches whose report confirms the base.
+- Source: followups-p1-p2 session, beads cr-o85.4 / cr-o85.34.9
