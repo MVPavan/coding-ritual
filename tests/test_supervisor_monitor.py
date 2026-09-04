@@ -70,6 +70,13 @@ LATE_EXIT_CODE = 3
 ADOPTED_EXIT_CODE = 7
 """The status a REATTACHED child really exits with, and which no `waitpid` in
 the adopting process can ever collect."""
+REAL_PROC_ROOT = "/proc"
+CHILD_SLEEP_S = 30
+REAL_CHILD_TIMEOUT_S = 10.0
+REAL_CHILD_POLL_S = 0.02
+REAL_GRACE_SLEEP_S = 0.05
+"""Real seconds per polled TERM/KILL grace tick — the only wall time a real
+child needs, everything else being arithmetic over `FrozenClock`."""
 
 
 class Watched:
@@ -459,6 +466,121 @@ def test_an_unconfirmed_kill_is_reported_on_the_next_reap(
     assert result.exit_code == -signal.SIGKILL
     assert result.termination == first.termination
     assert _exit_reason(result) is reason
+
+
+@pytest.mark.proc
+@pytest.mark.parametrize(
+    ("silence_s", "verdict", "reason"),
+    [
+        (MAX_WALL_S + 1, MonitorVerdict.MAX_WALL_BREACH, ExitReason.MAX_WALL),
+        (2 * STALE_AFTER_S + 1, MonitorVerdict.STALE_BREACH, ExitReason.STALE),
+    ],
+    ids=["max_wall", "stale"],
+)
+def test_an_unconfirmed_kill_never_calls_our_own_child_reattached(
+    tmp_path: Path,
+    silence_s: float,
+    verdict: MonitorVerdict,
+    reason: ExitReason,
+) -> None:
+    """Opus#19: a kill we could not PROVE must not turn our child into an adoption.
+
+    `terminate` reaping as its last act even when `confirmed_dead` is False
+    spent the one status `waitpid` will ever hand over: the next poll answered
+    ECHILD, `ReapResult.ours` was False, and the wrapper recorded
+    `EXIT_STATUS_UNOBSERVABLE_REATTACHED` — the reason reserved for a child
+    ANOTHER wrapper exec'd and can never wait for — over a child it forked and
+    killed itself. The real status has to survive to the cycle that consumes
+    the pending proof.
+
+    A REAL child behind a FAKE `/proc`, because each half is load-bearing: only
+    a real fork and a real `waitpid` can produce ECHILD at all, and only a fake
+    `/proc` entry that never dies keeps `terminate` unable to confirm the death
+    it just caused.
+    """
+    repo = make_repo(tmp_path)
+    config = make_config(repo, tmp_path)
+    paths = make_paths(config, ROOT_ID)
+    activation_id = "wf-unconfirmed"
+    paths.ensure_activation_dir(activation_id)
+    pid = _child_in_its_own_group()
+    write_proc_entry(config.proc_root, pid)
+    clock = FrozenClock(real_sleep_s=REAL_GRACE_SLEEP_S)
+    monitor = Monitor(
+        config,
+        paths,
+        clock,
+        activation_id=activation_id,
+        handle=handle_for(pid, log_path=str(paths.log(activation_id))),
+        limits=Limits(stale_after_s=STALE_AFTER_S, max_wall_s=MAX_WALL_S),
+    )
+    clock.advance(silence_s)
+
+    first = monitor.observe()
+
+    assert first.verdict is MonitorVerdict.INDETERMINATE
+    assert first.termination is not None
+    assert first.termination.confirmed_dead is False
+    assert signal.SIGTERM.name in first.termination.signals_sent
+
+    _await_zombie(pid)
+    remove_proc_entry(config.proc_root, pid)
+
+    result = monitor.observe()
+
+    assert result.exit_reason is not ExitReason.EXIT_STATUS_UNOBSERVABLE_REATTACHED
+    assert result.verdict is verdict
+    assert result.exit_reason is reason
+    assert result.exit_code == -signal.SIGTERM
+    assert _exit_code(result) == -signal.SIGTERM
+    _reap(pid)
+
+
+def _child_in_its_own_group() -> int:
+    """Fork a real child into its own session, the way the launcher does.
+
+    Returns only once the group EXISTS: `killpg` before the child reaches
+    `setsid` raises ESRCH, which would leave the runaway running and the test
+    green for the wrong reason.
+    """
+    pid = os.fork()
+    if pid == 0:  # pragma: no cover - child
+        try:
+            os.setsid()
+            os.execvp("sleep", ["sleep", str(CHILD_SLEEP_S)])
+        finally:
+            os._exit(1)
+    deadline = time.monotonic() + REAL_CHILD_TIMEOUT_S
+    while time.monotonic() < deadline:
+        try:
+            if os.getpgid(pid) == pid:
+                return pid
+        except ProcessLookupError:  # pragma: no cover - the child died early
+            break
+        time.sleep(REAL_CHILD_POLL_S)
+    raise AssertionError(f"child {pid} never became its own group leader")
+
+
+def _await_zombie(pid: int) -> None:
+    """Wait until the real child is dead-but-unreaped, so a status is there.
+
+    Reading the REAL `/proc` rather than the fixture's fake one: the fake entry
+    is the test's way of denying `terminate` its proof, so it is the last thing
+    that can say whether the child actually died. A vanished entry means it was
+    already reaped — which is the defect, and the assertions say so.
+    """
+    stat = Path(REAL_PROC_ROOT) / str(pid) / procfs_module.STAT_FILE
+    deadline = time.monotonic() + REAL_CHILD_TIMEOUT_S
+    while time.monotonic() < deadline:
+        try:
+            raw = stat.read_text(encoding="utf-8", errors="replace")
+        except FileNotFoundError:
+            return
+        fields = raw[raw.rfind(procfs_module.COMM_CLOSE) + 1 :].split()
+        if fields and fields[0] == procfs_module.ZOMBIE_STATE:
+            return
+        time.sleep(REAL_CHILD_POLL_S)
+    raise AssertionError(f"child {pid} was still running after the kill")
 
 
 def test_watch_returns_on_the_first_terminal_verdict(watched: Watched) -> None:

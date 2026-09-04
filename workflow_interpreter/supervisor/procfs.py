@@ -273,6 +273,14 @@ def terminate(
     window in which `killpg` was demonstrably safe — after that, `pgid` is a
     number the kernel may have recycled. Holding the leader as an unreaped
     zombie keeps the group ours through the whole TERM → KILL sequence.
+
+    The reap is conditional for a second reason: a status can be collected
+    exactly once. Reaping when death was NOT confirmed threw that one status
+    away — the caller's next poll got ECHILD, read `ReapResult.ours = False`
+    and recorded `EXIT_STATUS_UNOBSERVABLE_REATTACHED`, a §5.2 reason that
+    belongs to a child ANOTHER wrapper exec'd, for one this wrapper forked and
+    killed itself (Opus#19). An unconfirmed kill leaves the status where the
+    pending re-check can still collect it (`monitor._enforce_ceiling`).
     """
     proof = prove_liveness(config, handle)
     if proof.status is Liveness.INDETERMINATE:
