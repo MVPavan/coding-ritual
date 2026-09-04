@@ -40,7 +40,7 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.events import backfill, expected_intents
 from workflow_interpreter.foreman.frontier import build_frontier
-from workflow_interpreter.foreman.gates import halt_gate
+from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.owner import ensure_owner
 from workflow_interpreter.foreman.reconcile import reconcile
@@ -192,6 +192,20 @@ def _verify_inspections(
     )
 
 
+def _opened_gate(wiring: InstanceWiring, gate_id: str | None) -> str | None:
+    """Create a just-opened gate's inbox, and pass its id through to the report.
+
+    Every `opened_gate` a tick reports is a gate a human must now approve by
+    dropping a signed payload into that directory, and `scripts/approve-gate.sh`
+    refuses a missing inbox — so the directory is made where the gate is made,
+    not by hand between `status` and the signature.
+    """
+    if gate_id is None:
+        return None
+    ensure_inbox(wiring.paths, wiring.store.reads.load_gate(gate_id))
+    return gate_id
+
+
 class Foreman:
     """Coordinates durable workflow work while retaining no tick-local state."""
 
@@ -294,7 +308,9 @@ class Foreman:
                     root.root_id,
                     halt_gate(HALT_AUDIT.format(reason=checked.violation)),
                 )
-                return TickReport(halted=True, opened_gate=gate.gate_id)
+                return TickReport(
+                    halted=True, opened_gate=_opened_gate(wiring, gate.gate_id)
+                )
             state = reconcile(
                 root,
                 activations_of(beads),
@@ -309,7 +325,9 @@ class Foreman:
                             HALT_MISSING_COMMIT.format(commit=state.missing_commit)
                         ),
                     )
-                    return TickReport(halted=True, opened_gate=gate.gate_id)
+                    return TickReport(
+                        halted=True, opened_gate=_opened_gate(wiring, gate.gate_id)
+                    )
                 return TickReport(stalled=state.stalled)
             for activation in activations_of(beads):
                 if (
@@ -355,7 +373,9 @@ class Foreman:
                     frontier.dead_end.kind,
                     frontier.dead_end.activation,
                 )
-                return TickReport(opened_gate=result.opened_gates[0])
+                return TickReport(
+                    opened_gate=_opened_gate(wiring, result.opened_gates[0])
+                )
             if frontier.abandoned_halt is not None:
                 backfilled = self._backfill(wiring, root)
                 self._cleanup_terminal_worktree(wiring, root)
@@ -370,8 +390,9 @@ class Foreman:
                     dispatched=result.dispatched,
                     settled=result.settled,
                     stalled=result.stalled,
-                    opened_gate=(
-                        result.opened_gates[0] if result.opened_gates else None
+                    opened_gate=_opened_gate(
+                        wiring,
+                        result.opened_gates[0] if result.opened_gates else None,
                     ),
                     events_backfilled=backfilled,
                     terminal=terminal,

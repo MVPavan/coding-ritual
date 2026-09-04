@@ -281,3 +281,27 @@ def test_the_run_command_exits_zero_at_a_gate_and_one_on_a_stall(
 
     assert codes == [0, 1]
     assert "instance base commit is missing" in stalled
+
+
+def test_the_reported_gate_inbox_exists_as_soon_as_the_gate_opens(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """cr-o85.34.16: `status` names a directory the approver can write into.
+
+    Nothing but the tick that opens the gate knows the inbox is needed, and
+    `scripts/approve-gate.sh` refuses a missing one, so an absent directory
+    made every approval start with a hand-run `mkdir -p`.
+    """
+    lab = _unattended(ForemanLab(tmp_path))
+    root = lab.instantiate()
+    gate_id = _drive_to_ship(lab)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+
+    _, status = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+
+    entry = next(
+        gate
+        for gate in _report_line(status, '"root_id"')["open_gates"]
+        if gate["gate_id"] == gate_id
+    )
+    assert Path(entry["inbox"]).is_dir()

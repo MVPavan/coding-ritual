@@ -30,6 +30,16 @@ from workflow_interpreter.supervisor.errors import PreconditionRefused
 from workflow_interpreter.supervisor.gitio import Git
 
 
+def _created_root_id(transcript: str) -> str:
+    """Take `create`'s one stdout line out of a merged stdout+stderr capture.
+
+    `main` writes the whole captured stdout before the captured stderr, and
+    `create` writes nothing to stdout but the root id, so the id leads the
+    transcript — the log lines that follow it are stderr's (cr-o85.34.15).
+    """
+    return transcript.strip().splitlines()[0]
+
+
 def test_module_entrypoint_is_spawnable() -> None:
     """The detached spawner's exact module command reaches its config gate."""
     completed = subprocess.run(
@@ -181,7 +191,8 @@ def test_main_tick_caps_structlog_without_dropping_its_report(
     byte_count, text = lab.transcript(lambda: main_module.main(["tick", root.root_id]))
 
     assert byte_count <= MAX_TRANSCRIPT_BYTES
-    assert json.loads(text.splitlines()[-1])["dispatched"] is not None
+    report = next(line for line in text.splitlines() if '"dispatched"' in line)
+    assert json.loads(report)["dispatched"] is not None
 
 
 def test_main_leaves_supervise_output_in_its_redirected_wrapper_log(
@@ -518,7 +529,7 @@ def test_create_prints_a_root_id_that_status_then_accepts(
         )
     )
 
-    root_id = created.strip().splitlines()[-1]
+    root_id = _created_root_id(created)
     root = lab.store.reads.load_root(root_id)
     assert root.metadata.instance_key == "cli-created"
     assert [item.name for item in root.metadata.instance_inputs] == ["task_brief"]
@@ -644,7 +655,7 @@ def test_create_accepts_an_unsigned_lab_config_when_the_flag_is_passed(
     )
 
     assert codes == [0]
-    root_id = transcript.strip().splitlines()[-1]
+    root_id = _created_root_id(transcript)
     assert lab.store.reads.load_root(root_id).metadata.instance_key == "preflight"
 
 
@@ -684,7 +695,7 @@ def test_create_proceeds_when_the_allow_list_exists_and_is_not_empty(
     )
 
     assert codes == [0]
-    root_id = transcript.strip().splitlines()[-1]
+    root_id = _created_root_id(transcript)
     assert lab.store.reads.load_root(root_id).metadata.instance_key == "preflight"
 
 
@@ -742,3 +753,28 @@ def test_inspect_reports_no_verify_for_an_activation_that_never_completed(
     report = lab.foreman.inspect(root.root_id, activation.activation_id)
 
     assert report.verify == ()
+
+
+def test_main_status_writes_the_report_alone_to_stdout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """cr-o85.34.15: `jq` on captured stdout parses the whole stream.
+
+    Nothing configured structlog, so its default `PrintLogger` wrote every git
+    and bd line to STDOUT ahead of the report — `capsys` keeps the two streams
+    apart where the lab's merged `transcript` cannot.
+    """
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    # Everything the lab logged while driving the instance was written
+    # before `main` configured structlog, so it is not this assertion's
+    # stdout: drop it and read only what the command itself emits.
+    capsys.readouterr()
+
+    assert main_module.main(["status", root.root_id]) == 0
+
+    captured = capsys.readouterr()
+    report = json.loads(captured.out)
+    assert isinstance(report, dict)
+    assert report["root_id"] == root.root_id

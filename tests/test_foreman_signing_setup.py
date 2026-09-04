@@ -18,13 +18,14 @@ from pathlib import Path
 import pytest
 
 from tests._foreman import ForemanLab
-from tests._supervisor import make_repo
+from tests._supervisor import ChildScript, make_repo
 from workflow_interpreter.bdio.carriers import GateState
 from workflow_interpreter.bdio.config import (
     GATE_SIGNATURE_NAMESPACE,
     SigningConfig,
 )
 from workflow_interpreter.bdio.signing import GateVerifier
+from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.config import load_config
 from workflow_interpreter.foreman.constants import GATE_NONCE_PLACEHOLDER, GATES_DIR
 from workflow_interpreter.foreman.gates import halt_gate, payload_template
@@ -119,3 +120,71 @@ def test_the_approver_signs_a_template_the_store_then_accepts(
     )
 
     assert closed.metadata.state is GateState.CLOSED
+
+
+# implement dispatch, implement settle, review dispatch, review settle, and the
+# routed tick that opens `ship`: the shipped feature-delivery graph's whole
+# unattended lifecycle, exactly as `test_foreman_run.py` counts it.
+TICKS_TO_SHIP = 5
+IMPLEMENT_SCRIPT = ChildScript(
+    marker='{"outcome":"done"}\n',
+    effects='{"paths":["src/feature.py"]}',
+    write_path="src/feature.py",
+    write_body="value = 3\n",
+    commit=True,
+)
+REVIEW_SCRIPT = ChildScript(
+    marker='{"outcome":"accept"}\n',
+    effects='{"paths":[]}',
+    artifact_path="review.md",
+    artifact_body="no blockers",
+)
+
+
+def test_status_hands_the_approver_everything_it_needs_with_no_mkdir(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    signing_config: SigningConfig,
+    signing_key: Path,
+) -> None:
+    """cr-o85.34.15 + .16: `status` stdout parses, and its inbox already exists.
+
+    The whole §9 approval as an operator performs it — parse stdout as JSON,
+    feed the reported `inbox` and `template` straight to the approver, tick —
+    with neither a `mkdir -p` nor a hand-picked report line anywhere in it.
+    """
+    lab = ForemanLab(tmp_path, signing=signing_config)
+    root = lab.instantiate()
+    lab.profiles.bind_node("implement", IMPLEMENT_SCRIPT)
+    lab.profiles.bind_node("review", REVIEW_SCRIPT)
+    for _ in range(TICKS_TO_SHIP - 1):
+        lab.tick()
+    gate_id = lab.tick().opened_gate
+    assert gate_id is not None
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    # Everything the lab logged while driving the instance was written
+    # before `main` configured structlog, so it is not this assertion's
+    # stdout: drop it and read only what the command itself emits.
+    capsys.readouterr()
+
+    assert main_module.main(["status", root.root_id]) == 0
+
+    report = json.loads(capsys.readouterr().out)
+    entry = next(gate for gate in report["open_gates"] if gate["gate_id"] == gate_id)
+    template = tmp_path / "template.json"
+    template.write_text(entry["template"], encoding="utf-8")
+
+    subprocess.run(
+        [APPROVER, entry["inbox"], str(signing_key), str(template)],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=SCRIPT_TIMEOUT_S,
+    )
+
+    assert lab.tick().closed_gates == (gate_id,)
+    closed = lab.store.reads.load_gate(gate_id)
+    assert closed.metadata.state is GateState.CLOSED
+    assert closed.metadata.outcome is not None
+    assert closed.metadata.verified_fingerprint is not None

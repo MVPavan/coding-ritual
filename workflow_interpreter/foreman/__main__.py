@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import logging
 import os
 import sys
 import traceback
@@ -12,6 +13,8 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
+
+import structlog
 
 from workflow_interpreter.bdio import ActivationRecord, GateRecord, WorkflowStore
 from workflow_interpreter.bdio.reads import activations_of
@@ -23,7 +26,6 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.config import ForemanConfig, load_config
 from workflow_interpreter.foreman.constants import (
-    GATES_DIR,
     INSTANCE_BRANCH,
     MAX_GATE_DIFF_BYTES,
     MAX_TRANSCRIPT_BYTES,
@@ -33,7 +35,7 @@ from workflow_interpreter.foreman.constants import (
     RUN_DEFAULT_POLL_S,
 )
 from workflow_interpreter.foreman.frontier import Frontier, build_frontier
-from workflow_interpreter.foreman.gates import payload_template
+from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.resolve import ResolutionError, instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
@@ -42,6 +44,11 @@ from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.clock import SystemClock
 from workflow_interpreter.supervisor.gitio import Git
+
+# The per-subprocess `debug` chatter every git and bd call emits is worthless in
+# an operator transcript, while `wf.verify.rerun` and every error must stay
+# visible — INFO is the line between the two.
+LOG_LEVEL: Final[int] = logging.INFO
 
 MSG_NO_SIGNING: Final[str] = (
     "refusing to create a root this config cannot approve: no [signing] "
@@ -58,6 +65,32 @@ MSG_ALLOW_LIST_EMPTY: Final[str] = (
     "{path} is empty, so no signer exists; scripts/make-foreman-config.sh "
     "generates a key and lists it"
 )
+
+
+def _stderr_logger(*_args: object) -> structlog.PrintLogger:
+    """Build a logger bound to whatever `sys.stderr` is at the moment of the call."""
+    return structlog.PrintLogger(file=sys.stderr)
+
+
+def _configure_logging() -> None:
+    """Send every log line to stderr so stdout carries the one JSON report alone.
+
+    The sink is resolved per call, not captured here: `main` swaps `sys.stderr`
+    for a capturing wrapper and the `supervise` branch runs under the wrapper's
+    own redirected streams, so a factory holding today's stderr object would
+    write to a stream nobody is reading. That also forbids
+    `cache_logger_on_first_use`.
+    """
+    structlog.configure(
+        processors=[
+            structlog.processors.add_log_level,
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.KeyValueRenderer(key_order=["event"]),
+        ],
+        wrapper_class=structlog.make_filtering_bound_logger(LOG_LEVEL),
+        logger_factory=_stderr_logger,
+        cache_logger_on_first_use=False,
+    )
 
 
 def _composition(path: Path | None) -> Composition:
@@ -277,9 +310,7 @@ def _gate_entry(
 ) -> dict[str, object]:
     """Render the four things a §9 approver cannot derive by hand."""
     return {
-        "inbox": str(
-            view.wiring.paths.instance_dir / GATES_DIR / gate.metadata.gate_key
-        ),
+        "inbox": str(inbox_dir(view.wiring.paths, gate)),
         "template": payload_template(view.root, gate),
         "diff_stat": _diff_stat(composition, view.root, gate),
         "findings": _findings(composition, view, gate),
@@ -329,6 +360,7 @@ def _is_supervise(argv: Sequence[str] | None) -> bool:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one command, exempting the redirected wrapper log from the transcript cap."""
+    _configure_logging()
     if _is_supervise(argv):
         try:
             return _run(argv, lambda value, limit: _emit(value, limit=limit))

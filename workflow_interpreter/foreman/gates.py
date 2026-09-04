@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Final
 
+import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import (
@@ -24,6 +26,7 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.foreman.constants import (
     EFFECTS_NODE,
     GATE_NONCE_PLACEHOLDER,
+    GATES_DIR,
     HALT_BRANCH_DIVERGED,
     HALT_FAIL_CODE,
     HALT_NODE,
@@ -33,8 +36,10 @@ from workflow_interpreter.foreman.constants import (
 from workflow_interpreter.schema.graph_index import GraphIndex
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import fsync_dir, write_durable
+from workflow_interpreter.supervisor.paths import WrapperPaths, fsync_dir, write_durable
 from workflow_interpreter.supervisor.profile import Profile
+
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _PAYLOAD = "payload.json"
 _SIGNATURE = "payload.json.sig"
@@ -177,6 +182,28 @@ def resume_hint(profile: Profile, activation: ActivationRecord) -> str | None:
         handle.session_id if handle is not None else ""
     ) or activation.metadata.session_id
     return None if not session_id else profile.build_resume_hint(session_id)
+
+
+def inbox_dir(paths: WrapperPaths, gate: GateRecord) -> Path:
+    """Name the one directory a §9 approval for this gate is dropped into.
+
+    The single expression `status`/`run` render and `ensure_inbox` create, so
+    the reported path and the created directory cannot drift apart.
+    """
+    return paths.instance_dir / GATES_DIR / gate.metadata.gate_key
+
+
+def ensure_inbox(paths: WrapperPaths, gate: GateRecord) -> Path:
+    """Create the gate's inbox directory as the gate opens, and name it."""
+    directory = inbox_dir(paths, gate)
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+    except OSError as failed:
+        # The gate bead is already durable, so losing it here would be worse
+        # than an absent directory: report the path anyway and let the next
+        # `status` show the operator what is missing.
+        _LOG.error("wf.gate.inbox_unwritable", path=str(directory), error=str(failed))
+    return directory
 
 
 def intake(
