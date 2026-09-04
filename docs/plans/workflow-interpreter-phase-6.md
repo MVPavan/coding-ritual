@@ -223,6 +223,16 @@ E3. Record the baseline: bytes the foreman read, bd/git process counts
 Verification: drills 1-6, 13, 15, 16, 21-25, 27 green; `git status`
 clean.
 
+**E2 result (2026-09-04).** Two live roots on a `/tmp` rig, real claude
+implementer + real codex critic. Root 1 (forced first rejection) reached the
+`triage` gate, not `ship`: review r2's own verify failed on the racy steer
+test (cr-us7), the graph sent that `fail_code` to the implementer, and the
+unchanged tree tripped the §10.5 no-progress breaker; signed `abandon` →
+`abandoned`. Root 2 (no forcing) reached `ship`, was signed `approve` and
+ended `shipped` in ≈36 min. Baseline + defects: `cr-o85.34.12`–`.17`, and
+the local `scratchpad/probes/phase6-live/BASELINE.md`. Mitigation landed:
+`scripts/verify-feature.sh` deselects the racy test from the live verify set.
+
 ## 3. Deferred — recorded so nobody rediscovers them
 
 | Item | Found by | Trigger |
