@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from collections.abc import Iterable
 
 from pydantic import BaseModel, ConfigDict
@@ -19,7 +18,6 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.errors import BoundExceededError
-from workflow_interpreter.bdio.preflight import steer_ancestor
 from workflow_interpreter.foreman.bounds import refusal_route
 from workflow_interpreter.foreman.close import settle
 from workflow_interpreter.foreman.compose import (
@@ -171,7 +169,10 @@ def _successor_request(
         predecessor_gate_id=predecessor_gate_id,
         runner_profile=view.runner_profile,
         model=view.model,
-        session_id=str(uuid.uuid4()) if view.runner_profile == "claude" else "",
+        # §5.2: `Profile.prepare` is the only minter of session ids, and it
+        # runs at launch; the dispatch writes the one the child ran under back
+        # onto this activation (`record_dispatch`).
+        session_id="",
         inputs=select_bindings(
             root.index,
             root,
@@ -271,7 +272,7 @@ def mint_entry(
         mint_reason=MintReason.ENTRY,
         runner_profile=view.runner_profile,
         model=view.model,
-        session_id=str(uuid.uuid4()) if view.runner_profile == "claude" else "",
+        session_id="",  # minted by `Profile.prepare` at launch (§5.2)
         inputs=select_bindings(root.index, root, view.node, (), 1),
     )
     try:
@@ -416,22 +417,10 @@ def route_head(
             predecessor_activation_id=head.activation_id,
             inputs=head_meta.inputs,
         )
-        if steer_ancestor(wiring.store.reads, request) is not None:
-            fallback = node.fallback or root.definition.document.fallback
-            if root.index.nodes[fallback.to].kind.value == "gate":
-                gate = wiring.store.open_gate(
-                    root.root_id,
-                    transition_gate(
-                        composition.git,
-                        wiring.repo_root,
-                        root.index,
-                        fallback.to,
-                        head,
-                        outcome,
-                    ),
-                )
-                return CaseResult(opened_gates=(gate.gate_id,))
-            return CaseResult(stalled="infra retry of a steer continuation is refused")
+        # A retry descended from a §8.1 continuation is minted like any other
+        # (and capped the same way): the dispatcher resumes the steered session
+        # with the same instructions rather than relaunching the original brief
+        # (§8.1, §10.2 — cr-o85.19).
         try:
             minted = wiring.store.mint_activation(root.root_id, request).activation
         except BoundExceededError as exc:

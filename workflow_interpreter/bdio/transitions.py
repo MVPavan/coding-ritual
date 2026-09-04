@@ -83,6 +83,11 @@ _MSG_RACED: Final[str] = (
     "activation {activation_id} moved to {found} between this transition's "
     "guard and its write; refusing to apply {wanted} (§5.1)"
 )
+_MSG_SESSION_DRIFT: Final[str] = (
+    "activation {activation_id} recorded session {recorded!r} at dispatch and "
+    "this dispatch carries {found!r}; renaming it would point every "
+    "continuation and infra retry at a session the child never ran (§5.2)"
+)
 _MSG_CLOSE_PAYLOAD: Final[str] = (
     "activation {activation_id} is already closed {outcome}; this close "
     "carries a different {field}, which the recorded close would silently drop "
@@ -132,6 +137,23 @@ def assert_not_settled(record: ActivationRecord, wanted: Lifecycle) -> None:
             wanted=wanted.value,
         )
     )
+
+
+def assert_same_session(activation_id: str, recorded: str, found: str) -> None:
+    """A recorded session id is the one the child ran; a second one contradicts it.
+
+    Silently keeping the first would be the quiet half of the same bug §5.2
+    exists to prevent: every continuation and infra retry copies this id, so a
+    dispatch carrying a DIFFERENT non-empty session means one of the two rows
+    describes a child nobody can resume. Fails loud, like every other guard
+    here; an empty id on either side is simply nothing to compare.
+    """
+    if recorded and found and recorded != found:
+        raise LifecycleConflictError(
+            _MSG_SESSION_DRIFT.format(
+                activation_id=activation_id, recorded=recorded, found=found
+            )
+        )
 
 
 def assert_same(
@@ -282,6 +304,7 @@ __all__ = [
     "assert_lifecycle",
     "assert_not_settled",
     "assert_same",
+    "assert_same_session",
     "finish",
     "repair_forward",
 ]

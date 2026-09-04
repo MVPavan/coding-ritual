@@ -6,10 +6,12 @@ from typing import cast
 
 from tests._bdio import entry_request, handle
 from tests._foreman import FAKE_PROFILE, ForemanLab
-from tests._supervisor import ChildScript
+from tests._supervisor import SESSION_ID, ChildScript
 from workflow_interpreter.bdio import Lifecycle
 from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry
+from workflow_interpreter.foreman.compose import WrapperLaunch
 from workflow_interpreter.foreman.config import RunnerBinding
+from workflow_interpreter.foreman.constants import DISPATCH_REQUEST
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.supervisor import Recovery
 from workflow_interpreter.supervisor.models import CompletionEvidence
@@ -139,6 +141,34 @@ def test_evidence_recorded_lifecycle_closes_from_the_saved_completion(
 
     assert result.settled == activation_id
     assert _bd_writes(lab) - before == 2
+
+
+def test_the_mint_carries_no_session_and_the_dispatch_records_the_prepared_one(
+    tmp_path: Path,
+) -> None:
+    """§5.2: `prepare()` is the only minter of session ids (cr-o85.34.9).
+
+    The mint used to pre-assign a UUID whenever the bound profile happened to
+    be named `claude`, which made the id a property of a string comparison in
+    the foreman rather than of the profile that owns the session. The durable
+    request the wrapper reads carries none, and the id the child actually ran
+    under is written back by the dispatch that recorded the handle.
+    """
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+
+    mint_entry(lab.composition, lab.wiring(), root)
+
+    activation = lab.store.reads.list_activations(root.root_id)[0]
+    launch = read_record(
+        lab.wiring().paths.activation_dir(activation.activation_id) / DISPATCH_REQUEST,
+        WrapperLaunch,
+    )
+    assert launch is not None
+    assert launch.request.session_id == ""
+    assert activation.metadata.session_id == SESSION_ID
+    assert activation.metadata.handle is not None
+    assert activation.metadata.handle.session_id == SESSION_ID
 
 
 def test_entry_mint_and_task_construction_read_the_roots_resolution(

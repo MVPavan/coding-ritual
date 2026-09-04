@@ -368,20 +368,36 @@ class WorkflowStore:
         recorded outcome is terminal even where a losing race left `lifecycle`
         saying `dispatched`, and a short-circuit that returns such a row reports
         success for a state write nobody may make (`transitions.py`).
+
+        The session id travels with the handle. `Profile.prepare` is the only
+        minter of one (§5.2), and it runs at LAUNCH, so an activation whose
+        mint carried none would leave every continuation and infra retry
+        copying an empty id off its metadata. It is written only when the
+        recorded id is EMPTY, and a handle naming a different non-empty session
+        is refused rather than dropped (`assert_same_session`).
         """
         record = self._load_activation(activation_id)
         transitions.assert_not_settled(record, Lifecycle.DISPATCHED)
+        transitions.assert_same_session(
+            activation_id, record.metadata.session_id, handle.session_id
+        )
         if record.metadata.lifecycle is Lifecycle.DISPATCHED:
             transitions.assert_same(
                 activation_id, record.metadata.handle, handle, Lifecycle.DISPATCHED
             )
             return record
         transitions.assert_lifecycle(record, Lifecycle.MINTED, Lifecycle.DISPATCHED)
+        session: dict[str, object] = (
+            {"session_id": handle.session_id}
+            if handle.session_id and not record.metadata.session_id
+            else {}
+        )
         return self._apply(
             activation_id,
             lifecycle=Lifecycle.DISPATCHED,
             allowed=frozenset({Lifecycle.MINTED}),
             handle=handle,
+            **session,
         )
 
     def record_exit(

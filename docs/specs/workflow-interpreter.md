@@ -410,7 +410,8 @@ Hash mismatch → instance halts.
 Minted with: `node`, `region`, `round_no`, `seq` (monotonic per-instance,
 foreman-assigned — bd timestamps are second-granularity),
 `predecessor_activation_id`, `idempotency_key`, bound input tuples,
-`runner_profile`, `model`, pre-assigned `session_id`,
+`runner_profile`, `model`, an EMPTY `session_id` (the profile's
+`prepare()` mints it at launch and the dispatch writes it back, §5.2),
 **`intended_base_commit`** — resolved AT MINT as: the
 `pre_attempt_commit` of the most recent WRITING activation at the target
 node in the current region (rework edge), else the instance branch head.
@@ -535,11 +536,12 @@ idempotent (re-applying a recorded state is a no-op).
 
 ### 5.2 Two-phase activation
 
-Phase A: mint (state `minted`), with idempotency key, bound inputs,
-`intended_base_commit`, and the **pre-assigned session id** (from the
-profile's `prepare()` — never discovered from output). Phase B: launch via
-the supervisor wrapper; state `dispatched` only after the handle is
-durable. **Fork barrier:** the wrapper commits the launch receipt (atomic
+Phase A: mint (state `minted`), with idempotency key, bound inputs and
+`intended_base_commit` — but NO session id. Phase B: launch via the
+supervisor wrapper; state `dispatched` only after the handle is durable,
+and the **pre-assigned session id** (from the profile's `prepare()` —
+never discovered from output) is written onto the activation by that same
+transition. **Fork barrier:** the wrapper commits the launch receipt (atomic
 write: temp + rename) BEFORE the child may exec; the child blocks on the
 barrier until the receipt exists. An exec is also one appended line in the
 activation's **exec ledger** (append-only file in the wrapper dir; drill
@@ -692,8 +694,12 @@ proven via the handle identity) → close `steered` → mint exactly one
 continuation via `build_resume_command`. Steers are capped per node by
 `max_steers` (separate from infra retries — guidance is not
 infrastructure failure); both under the §10.3 ceiling. Guidance steers
-never consume review rounds. Capability facts: all three CLIs accept new
-instructions between turns; none supports mid-turn input (mid-turn
+never consume review rounds. An **infra retry descended from a
+continuation is itself a continuation**: it resumes the same session with
+the same steer text (read back from the steered activation's persisted
+intent), and is refused rather than launched fresh if that intent is gone.
+Capability facts: all three CLIs accept new instructions between turns;
+none supports mid-turn input (mid-turn
 supervision remains the omnigent reopen trigger).
 
 ### 8.2 Monitoring (zero model tokens in the loop)

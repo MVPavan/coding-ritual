@@ -128,8 +128,14 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
     instructions = "Finish the review with the recorded constraints."
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
+    # Minted with no session of its own: `prepare()` is the only minter of ids
+    # and the dispatch is what makes it durable, so a continuation that copies
+    # `metadata.session_id` has one to copy only because of that write
+    # (cr-o85.34.9).
     activation = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+        lab.wiring()
+        .store.mint_activation(root.root_id, entry_request(session_id=""))
+        .activation
     )
     activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
     lab.go_stale(activation.activation_id, tail_bytes=b"\xff" * 4096)
@@ -181,6 +187,10 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
     )
     assert activation.metadata.handle is not None
     assert continuation.metadata.session_id == activation.metadata.handle.session_id
+    # The continuation COPIES `metadata.session_id` (tick.py), so the steered
+    # activation must already carry the id `prepare()` produced at dispatch —
+    # the mint carries none of its own (cr-o85.34.9).
+    assert activation.metadata.session_id == activation.metadata.handle.session_id
     assert continuation.metadata.round_no == activation.metadata.round_no
     rounds_after = bounds.distinct_rounds(
         mint.views_of(lab.store.reads.list_activations(root.root_id)), region
@@ -242,6 +252,60 @@ def test_steer_refuses_a_sessionless_continuation_before_the_intent(
     assert reloaded.metadata.lifecycle is Lifecycle.DISPATCHED
     assert lab.count("update") == before_updates
     assert not lab.wiring().paths.steer_intent(activation.activation_id).exists()
+
+
+def test_a_carried_steer_with_no_intent_burns_the_infra_budget_then_falls_back(
+    tmp_path: Path,
+) -> None:
+    """cr-o85.19: the retry that carries a steer is BOUNDED like any other.
+
+    With the intent file gone there is nothing to continue, so the continuation
+    and every retry behind it are refused at the launch and closed
+    `error_transport` with a `continuation_refused` deviation. That deviation is
+    deliberately NOT exempt from the §10.2 count (`bounds._RETRY_EXEMPT_DEVIATIONS`):
+    exempt, the instance would re-dispatch the same refusal forever. Instead the
+    node spends `1 + max_infra_retries` attempts and the fallback gate opens.
+    """
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring()
+        .store.mint_activation(root.root_id, entry_request(session_id=""))
+        .activation
+    )
+    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    lab.go_stale(activation.activation_id)
+    lab.steer(
+        activation.activation_id,
+        reason="silent past stale_after",
+        instructions="finish the review with the recorded constraints",
+    )
+    lab.wiring().paths.steer_intent(activation.activation_id).unlink()
+
+    budget = lab.store.reads.load_root(root.root_id).index.nodes["implement"]
+    assert budget.max_infra_retries is not None
+    attempts = [lab.tick().dispatched for _ in range(1 + budget.max_infra_retries)]
+    opened = lab.tick().opened_gate
+
+    refused = [
+        record
+        for record in lab.store.reads.list_activations(root.root_id)
+        if record.activation_id in attempts
+    ]
+    assert [record.activation_id for record in refused] == attempts
+    assert [record.metadata.mint_reason for record in refused] == [
+        MintReason.STEER_CONTINUATION,
+        *[MintReason.INFRA_RETRY] * budget.max_infra_retries,
+    ]
+    for record in refused:
+        assert record.metadata.outcome is Outcome.ERROR_TRANSPORT
+        assert [deviation.kind for deviation in record.metadata.deviations] == [
+            "continuation_refused"
+        ]
+    assert opened is not None
+    gate = lab.store.reads.load_gate(opened)
+    assert gate.metadata.gate_node == root.definition.document.fallback.to
+    assert gate.metadata.opening_outcome is Outcome.ERROR_TRANSPORT
 
 
 def _proc_steer_lab(tmp_path: Path) -> tuple[ForemanLab, ProcSpawner]:

@@ -41,7 +41,12 @@ _RETRY_EXEMPT_DEVIATIONS: Final[frozenset[str]] = frozenset(
     {DEVIATION_PRECONDITION_REFUSED, DEVIATION_INPUTS_UNAVAILABLE}
 )
 """Deviations whose close is a dead end, not a spent §10.2 retry: the runner
-never ran, and the frontier sends both of them to a halt gate."""
+never ran, and the frontier sends both of them to a halt gate.
+
+`continuation_refused` is deliberately NOT here. A refused §8.1 continuation
+(no session to rejoin, or a steer intent that has gone) is a real infra close
+and must consume the budget: exempt, it would never reach the fallback gate and
+the instance would re-dispatch the same refusal forever (cr-o85.19)."""
 
 _UNCOUNTED_KINDS: Final[frozenset[str]] = frozenset(
     {WfKind.EVENT.value, WfKind.ROOT.value}

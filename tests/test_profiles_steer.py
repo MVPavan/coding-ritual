@@ -299,20 +299,20 @@ def test_the_steer_intent_keeps_the_prose_out_of_every_bd_record(lab: Lab) -> No
 
 
 @pytest.mark.proc
-def test_an_infra_retry_of_a_continuation_is_refused_not_relaunched_fresh(
-    lab: Lab,
-) -> None:
-    """A retry minted behind a §8.1 continuation must not drop the steer.
+def test_an_infra_retry_of_a_continuation_carries_the_steer_forward(lab: Lab) -> None:
+    """cr-o85.19: a retry of a §8.1 continuation IS a continuation (§8.1/§10.2).
 
-    Only a `steer-continuation` reads the intent back, so an `infra-retry`
-    whose predecessor IS the continuation would satisfy every check and take
-    the `build_command` branch: a fresh session, the node's original brief,
-    the human's guidance gone without a log line. Until phase 5 decides how a
-    retry carries the steer forward (bead cr-o85.19) the dispatcher refuses
-    it, loudly and before anything is launched.
+    Only the continuation itself used to read the steer back, so a transport
+    failure of the continuation left the dispatcher with a choice between
+    relaunching the node's ORIGINAL brief in a fresh session and refusing the
+    retry outright; it refused. Neither is what §8.1 means: the retry re-attempts
+    the same steered work, so it resumes the same session with the same text,
+    read off the STEERED activation's intent file one hop further back.
     """
     launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
     parent = launched.activation
+    assert launched.handle is not None
+    session = launched.handle.session_id
     steered = steer(lab, parent.activation_id)
     continuation = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
     continuation_id = continuation.dispatch.activation.activation_id
@@ -320,26 +320,31 @@ def test_an_infra_retry_of_a_continuation_is_refused_not_relaunched_fresh(
     retry = entry_mint(
         mint_reason=MintReason.INFRA_RETRY,
         predecessor_activation_id=continuation_id,
-        session_id=str(uuid.uuid4()),
+        session_id=session,
     )
 
-    with pytest.raises(ContinuationRefused, match="infra-retry"):
-        lab.dispatch(RunnerName.CLAUDE, request=retry)
-    assert lab.paths.receipt(continuation_id).exists()
+    result = lab.dispatch(RunnerName.CLAUDE, request=retry)
+
+    receipt = result.receipt
+    assert receipt is not None
+    assert_resumes(receipt.argv, session)
+    assert result.handle is not None
+    assert result.handle.session_id == session
 
 
 @pytest.mark.proc
-def test_a_retry_of_a_refused_retry_still_cannot_drop_the_steer(lab: Lab) -> None:
-    """The guard walks the whole retry ancestry, not one hop.
+def test_a_retry_of_a_retry_still_finds_the_steer(lab: Lab) -> None:
+    """The ancestry is walked, not one hop: R2 → R1 → C → S still resumes.
 
-    A refused retry is never dispatched, but it stays `minted`, and a minted
-    activation may still be closed `error_transport`; a second retry behind it
-    then has an `infra-retry` predecessor and, with a one-hop check, would take
-    the fresh-launch branch with the original brief — the same silent loss one
-    activation further down the chain.
+    A retry may itself fail in transport, and the intent lives two (or more)
+    hops back on the STEERED activation; a one-hop reading would relaunch the
+    original brief in a fresh session — the silent loss, one activation further
+    down the chain.
     """
     launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
     parent = launched.activation
+    assert launched.handle is not None
+    session = launched.handle.session_id
     steered = steer(lab, parent.activation_id)
     continuation = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
     continuation_id = continuation.dispatch.activation.activation_id
@@ -349,15 +354,69 @@ def test_a_retry_of_a_refused_retry_still_cannot_drop_the_steer(lab: Lab) -> Non
         entry_mint(
             mint_reason=MintReason.INFRA_RETRY,
             predecessor_activation_id=continuation_id,
-            session_id=str(uuid.uuid4()),
+            session_id=session,
         ),
     ).activation
     lab.store.close_activation(first_retry.activation_id, Outcome.ERROR_TRANSPORT)
     second_retry = entry_mint(
         mint_reason=MintReason.INFRA_RETRY,
         predecessor_activation_id=first_retry.activation_id,
+        session_id=session,
+    )
+
+    result = lab.dispatch(RunnerName.CLAUDE, request=second_retry)
+
+    receipt = result.receipt
+    assert receipt is not None
+    assert_resumes(receipt.argv, session)
+
+
+@pytest.mark.proc
+def test_a_retry_that_carries_a_steer_but_no_session_is_refused(lab: Lab) -> None:
+    """A carried steer with no session to rejoin is refused BEFORE `prepare`.
+
+    `prepare` mints a fresh uuid for a vendor that pre-assigns one, so a
+    launch here would "resume" a session that has never existed — the CLI
+    starting a brand-new one with the steer text as its first turn. Checked
+    where `Steerer` checks it before the kill (`steer.py`), for the same
+    reason: the answer is knowable before anything is spent.
+    """
+    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    steered = steer(lab, launched.activation.activation_id)
+    continuation = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
+    continuation_id = continuation.dispatch.activation.activation_id
+    lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
+    retry = entry_mint(
+        mint_reason=MintReason.INFRA_RETRY,
+        predecessor_activation_id=continuation_id,
+        session_id="",
+    )
+
+    with pytest.raises(ContinuationRefused, match="no session to rejoin"):
+        lab.dispatch(RunnerName.CLAUDE, request=retry)
+
+
+@pytest.mark.proc
+def test_a_retry_of_a_continuation_whose_intent_is_gone_is_refused(lab: Lab) -> None:
+    """No intent file, no carry-forward: refuse rather than launch fresh.
+
+    The intent file is the only place the steer's prose is durable (bd never
+    sees it), so a retry that cannot read it back has nothing to continue —
+    and relaunching the node's original brief is exactly the silent loss this
+    family exists to prevent.
+    """
+    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    parent = launched.activation
+    steered = steer(lab, parent.activation_id)
+    continuation = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
+    continuation_id = continuation.dispatch.activation.activation_id
+    lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
+    lab.paths.steer_intent(parent.activation_id).unlink()
+    retry = entry_mint(
+        mint_reason=MintReason.INFRA_RETRY,
+        predecessor_activation_id=continuation_id,
         session_id=str(uuid.uuid4()),
     )
 
     with pytest.raises(ContinuationRefused, match="infra-retry"):
-        lab.dispatch(RunnerName.CLAUDE, request=second_retry)
+        lab.dispatch(RunnerName.CLAUDE, request=retry)

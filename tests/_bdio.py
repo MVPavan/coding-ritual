@@ -294,12 +294,17 @@ def race_residue(
 
 
 def entry_request(**overrides: object) -> MintRequest:
-    """An entry mint into the fixture's entry node."""
+    """An entry mint into the fixture's entry node.
+
+    No session id, because the foreman mints none: `Profile.prepare` assigns it
+    at launch and the dispatch writes it back (§5.2). A test that needs one on
+    the mint passes it explicitly.
+    """
     base: dict[str, object] = {
         "node": IMPLEMENT,
         "mint_reason": MintReason.ENTRY,
         "runner_profile": "profile:implementer",
         "model": "default",
-        "session_id": "sess-1",
+        "session_id": "",
     }
     return MintRequest.model_validate(base | overrides)

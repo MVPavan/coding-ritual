@@ -26,6 +26,7 @@ from tests._supervisor import (
     FakeProfile,
     FrozenClock,
     entry_mint,
+    handle_for,
     head_of,
     make_config,
     make_paths,
@@ -36,6 +37,7 @@ from tests._supervisor import (
     task_builder,
 )
 from workflow_interpreter.bdio import Lifecycle
+from workflow_interpreter.bdio.errors import LifecycleConflictError
 from workflow_interpreter.supervisor import (
     Dispatcher,
     ExecLedger,
@@ -134,6 +136,95 @@ def test_handle_carries_the_liveness_facts(lab: Lab) -> None:
     assert result.activation.metadata.lifecycle is Lifecycle.DISPATCHED
     assert result.activation.metadata.handle == handle
     _wait(handle.pid)
+
+
+def test_dispatch_makes_the_prepared_session_id_durable_on_the_activation(
+    lab: Lab,
+) -> None:
+    """§5.2: `prepare()` is the only minter of ids, and dispatch records it.
+
+    The mint carries no session id at all — the foreman used to pre-assign a
+    UUID for one hard-coded profile name — so the id a continuation resumes
+    exists only because the same bd write that records the handle also writes
+    it back onto the activation (cr-o85.34.9).
+    """
+    result = lab.dispatcher.dispatch(
+        entry_mint(session_id=""), lab.profile, lab.build_task
+    )
+
+    assert result.session_id == SESSION_ID
+    assert result.activation.metadata.session_id == SESSION_ID
+    assert (
+        lab.store.reads.load_activation(
+            result.activation.activation_id
+        ).metadata.session_id
+        == SESSION_ID
+    )
+    assert result.handle is not None
+    _wait(result.handle.pid)
+
+
+def test_a_second_dispatch_never_renames_a_recorded_session(lab: Lab) -> None:
+    """The recorded id wins, and a contradicting one fails loud (§5.1, §5.2).
+
+    Re-dispatching short-circuits before the guard, so the guard is exercised
+    where a REATTACH would reach it: `record_dispatch` called again on the
+    dispatched row with a handle naming another session. Silently keeping the
+    first would leave two rows describing a child nobody can resume.
+    """
+    first = lab.dispatcher.dispatch(
+        entry_mint(session_id=""), lab.profile, lab.build_task
+    )
+    assert first.handle is not None
+    _wait(first.handle.pid)
+    activation_id = first.activation.activation_id
+
+    again = lab.dispatcher.dispatch(
+        entry_mint(session_id=""),
+        FakeProfile(session_id="a-different-session"),
+        lab.build_task,
+    )
+    assert again.outcome is LaunchOutcome.ALREADY_DISPATCHED
+    assert again.activation.metadata.session_id == SESSION_ID
+
+    assert (
+        lab.store.record_dispatch(activation_id, first.handle).metadata.session_id
+        == SESSION_ID
+    )
+    with pytest.raises(LifecycleConflictError, match="a-different-session"):
+        lab.store.record_dispatch(
+            activation_id,
+            first.handle.model_copy(update={"session_id": "a-different-session"}),
+        )
+    assert (
+        lab.store.reads.load_activation(activation_id).metadata.session_id == SESSION_ID
+    )
+
+
+def test_a_handle_that_renames_a_minted_session_is_refused(tmp_path: Path) -> None:
+    """The silent case: a MINTED session and a handle naming another one.
+
+    Nothing raises on this path — the lifecycle is legal and the handle is the
+    first one recorded — so the divergent id used to be simply dropped, leaving
+    the row claiming a session the child never ran (§5.2).
+    """
+    lab = Lab(tmp_path)
+    minted = lab.store.mint_activation(
+        lab.paths.root_id, entry_mint(session_id="minted-session")
+    ).activation
+
+    with pytest.raises(LifecycleConflictError, match="minted-session"):
+        lab.store.record_dispatch(
+            minted.activation_id,
+            handle_for(1, log_path=str(lab.paths.log(minted.activation_id))).model_copy(
+                update={"session_id": "a-different-session"}
+            ),
+        )
+
+    assert (
+        lab.store.reads.load_activation(minted.activation_id).metadata.lifecycle
+        is Lifecycle.MINTED
+    )
 
 
 def test_child_writes_through_the_runner_channels(lab: Lab) -> None:

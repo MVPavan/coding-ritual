@@ -78,7 +78,7 @@ from workflow_interpreter.bdio import (
     ProcessHandle,
     WorkflowStore,
 )
-from workflow_interpreter.bdio.preflight import steer_ancestor
+from workflow_interpreter.bdio.preflight import steer_ancestor_of
 from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
@@ -150,17 +150,15 @@ _MSG_UNEXPLAINED: Final[str] = (
     "exec ledger for {activation_id} holds {count} line(s) that no durable "
     "receipt explains; refusing to exec a second child (§5.2)"
 )
+_MSG_NO_SESSION: Final[str] = (
+    "activation {activation_id} was minted as {reason!r} but carries no session "
+    "to rejoin; §8.1 resumes a session, and a launch here would mint a fresh "
+    "one and resume something the runner never ran"
+)
 _MSG_NO_INSTRUCTIONS: Final[str] = (
-    "activation {activation_id} was minted as a {reason} but dispatch was given "
+    "activation {activation_id} was minted as {reason!r} but dispatch was given "
     "no steer instructions; §8.1 continues a session via build_resume_command, "
     "and launching it fresh would discard the guidance the steer was for"
-)
-_MSG_RETRY_OF_CONTINUATION: Final[str] = (
-    "activation {activation_id} is an {reason} descended from {predecessor}, a "
-    "{continuation}; only a continuation reads the steer back, so this retry "
-    "would relaunch the node's original brief in a fresh session and drop the "
-    "guidance silently — refused until the retry can carry the steer forward "
-    "(bead cr-o85.19)"
 )
 _MSG_NOT_A_CONTINUATION: Final[str] = (
     "dispatch was given steer instructions for activation {activation_id}, whose "
@@ -534,9 +532,14 @@ class Dispatcher:
                 handle=reattached.handle,
                 receipt=reattached,
             )
-        self._refuse_retry_of_continuation(activation)
-        instructions = self._steer_instructions(activation, instructions)
-        self._assert_continuation(activation, instructions)
+        source = self._steer_source(activation)
+        instructions = self._steer_instructions(activation, instructions, source)
+        self._assert_continuation(
+            activation,
+            instructions,
+            carries_steer=source is not None
+            or activation.metadata.mint_reason is MintReason.STEER_CONTINUATION,
+        )
         activation, prepared = self._prepare(activation, precondition)
         return self._launch(
             activation,
@@ -549,16 +552,38 @@ class Dispatcher:
             instructions,
         )
 
-    def _steer_instructions(
-        self, activation: ActivationRecord, instructions: str | None
-    ) -> str | None:
-        """Recover a continuation's steer text from the predecessor's intent file.
+    def _steer_source(self, activation: ActivationRecord) -> str | None:
+        """The activation whose persisted steer intent this launch must read.
 
-        The caller's value always wins; this only fills the gap. It is narrow on
-        purpose — a `steer-continuation` mint, a predecessor to read, and that
-        predecessor's own `steer-intent.json`, which `Steerer.steer` wrote
-        durably before it killed anything. Nothing else can reach
-        `build_resume_command` this way.
+        For a `steer-continuation` that is its predecessor — the activation
+        `Steerer.steer` killed, which wrote `steer-intent.json` before it did.
+        For an INFRA RETRY the intent is one hop further back: the ancestry
+        `R(→R…)→C→S` is walked to the continuation `C` (a retry may itself fail
+        in transport, so a one-hop check is not enough), and the intent belongs
+        to the activation `C` continued (§8.1, §10.2 — cr-o85.19).
+        """
+        metadata = activation.metadata
+        if metadata.mint_reason is MintReason.STEER_CONTINUATION:
+            return metadata.predecessor_activation_id
+        continuation = steer_ancestor_of(self._store.reads, activation)
+        if continuation is None:
+            return None
+        return self._store.reads.load_activation(
+            continuation
+        ).metadata.predecessor_activation_id
+
+    def _steer_instructions(
+        self,
+        activation: ActivationRecord,
+        instructions: str | None,
+        source: str | None,
+    ) -> str | None:
+        """Recover the steer text from the steered activation's intent file.
+
+        The caller's value always wins; this only fills the gap. `source` is
+        what `_steer_source` resolved — the activation whose own
+        `steer-intent.json` `Steerer.steer` wrote durably before it killed
+        anything. Nothing else can reach `build_resume_command` this way.
 
         A malformed intent classifies as ABSENT rather than raising, for the
         reason `_reattach` gives: the refusal that follows is deterministic and
@@ -567,72 +592,52 @@ class Dispatcher:
         """
         if instructions is not None:
             return instructions
-        metadata = activation.metadata
-        predecessor = metadata.predecessor_activation_id
-        if metadata.mint_reason is not MintReason.STEER_CONTINUATION or not predecessor:
+        if not source:
             return None
         try:
-            intent = read_record(self._paths.steer_intent(predecessor), SteerIntent)
+            intent = read_record(self._paths.steer_intent(source), SteerIntent)
         except WrapperDirError as exc:
             _LOG.warning(
                 "wf.dispatch.steer_intent_malformed",
                 activation_id=activation.activation_id,
-                predecessor_activation_id=predecessor,
+                predecessor_activation_id=source,
                 error=str(exc),
             )
             return None
         return None if intent is None else intent.instructions
 
-    def _refuse_retry_of_continuation(self, activation: ActivationRecord) -> None:
-        """Fail closed on an infra retry descended from a §8.1 continuation.
-
-        `_steer_instructions` keys on the mint reason, so a retry of a
-        continuation passes every continuation check and takes the fresh-launch
-        branch with the node's ORIGINAL brief — the steer evaporating with no
-        refusal and no log line. The WHOLE retry ancestry is walked: a refused
-        retry is never dispatched but stays `minted`, and a minted activation
-        may still be closed `error_transport`, so a retry behind it has an
-        `infra-retry` predecessor and a one-hop check would let it through.
-        How a retry carries the steer forward is bead cr-o85.19.
-        """
-        predecessor = steer_ancestor(
-            self._store.reads,
-            MintRequest(
-                node=activation.metadata.node,
-                mint_reason=activation.metadata.mint_reason,
-                runner_profile="",
-                model="",
-                session_id="",
-                predecessor_activation_id=activation.metadata.predecessor_activation_id,
-                predecessor_gate_id=activation.metadata.predecessor_gate_id,
-            ),
-        )
-        if predecessor is not None:
-            raise ContinuationRefused(
-                _MSG_RETRY_OF_CONTINUATION.format(
-                    activation_id=activation.activation_id,
-                    reason=MintReason.INFRA_RETRY.value,
-                    predecessor=predecessor,
-                    continuation=MintReason.STEER_CONTINUATION.value,
-                )
-            )
-
     @staticmethod
     def _assert_continuation(
-        activation: ActivationRecord, instructions: str | None
+        activation: ActivationRecord, instructions: str | None, carries_steer: bool
     ) -> None:
-        """Refuse a §8.1 mismatch between the mint reason and the invocation."""
-        is_continuation = (
-            activation.metadata.mint_reason is MintReason.STEER_CONTINUATION
-        )
-        if is_continuation and instructions is None:
+        """Refuse a §8.1 mismatch between the mint reason and the invocation.
+
+        `carries_steer` covers both activations §8.1 continues a session for:
+        the continuation itself and an infra retry descended from one, which
+        re-attempts the same steered work and must resume it with the same text
+        (cr-o85.19). Either with no instructions is refused rather than launched
+        fresh — including a retry whose intent file has gone.
+
+        The session is checked BEFORE `Profile.prepare` runs, and for the same
+        reason `Steerer` checks it before the kill (`steer.py`): a profile that
+        mints its own id would answer an empty session with a FRESH uuid, and
+        the child would then "resume" a session no vendor has ever heard of.
+        """
+        if carries_steer and not activation.metadata.session_id:
+            raise ContinuationRefused(
+                _MSG_NO_SESSION.format(
+                    activation_id=activation.activation_id,
+                    reason=activation.metadata.mint_reason.value,
+                )
+            )
+        if carries_steer and instructions is None:
             raise ContinuationRefused(
                 _MSG_NO_INSTRUCTIONS.format(
                     activation_id=activation.activation_id,
-                    reason=MintReason.STEER_CONTINUATION.value,
+                    reason=activation.metadata.mint_reason.value,
                 )
             )
-        if not is_continuation and instructions is not None:
+        if not carries_steer and instructions is not None:
             raise ContinuationRefused(
                 _MSG_NOT_A_CONTINUATION.format(
                     activation_id=activation.activation_id,
@@ -718,10 +723,11 @@ class Dispatcher:
         )
         task = build_task(activation, channels)
         # §5.2: the session id is PRE-ASSIGNED by the profile and never
-        # discovered from output. Nothing used to call `prepare`, so the id was
-        # whatever the mint request happened to carry — for claude, a value the
-        # CLI refuses unless the caller had already minted a UUID by hand, and
-        # for a continuation, no link to the session being resumed at all.
+        # discovered from output. `prepare` is its ONLY minter — the foreman
+        # used to pre-assign a UUID at mint whenever the bound profile happened
+        # to be named `claude` — and `record_dispatch` writes what it returned
+        # back onto the activation, which is where a continuation or an infra
+        # retry reads the session to carry forward.
         session_id = profile.prepare(activation)
         command = (
             profile.build_command(task, session_id)

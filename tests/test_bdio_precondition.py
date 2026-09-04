@@ -443,7 +443,9 @@ def test_a_transition_writes_only_the_keys_it_owns(
     """
     activation_id = _minted(store, definition)
     store.record_dispatch(activation_id, handle())
-    assert _last_metadata_keys(bd) == frozenset({KEY_LIFECYCLE, "handle"})
+    # The session id is part of THIS transition's own delta: `prepare` assigns
+    # it at launch, so the dispatch is the write that makes it durable (§5.2).
+    assert _last_metadata_keys(bd) == frozenset({KEY_LIFECYCLE, "handle", "session_id"})
 
     store.record_exit(
         activation_id, ExitRecord(exit_code=0, ended_at=RAISED_AT, reason="exited")
