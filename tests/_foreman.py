@@ -32,7 +32,6 @@ from tests._supervisor import (
     make_config,
     make_git,
     make_repo,
-    pinned_config,
 )
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import (
@@ -62,6 +61,7 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
 from workflow_interpreter.foreman.gates import payload_template
+from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
 from workflow_interpreter.profiles.config import RUNNER_PREFIX
@@ -389,6 +389,7 @@ class ForemanLab:
         self.supervisor_config = make_config(
             self.repo, tmp_path, fake_proc=False, wrapper_root=wrapper_root
         )
+        self._toml = toml
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
         self._build_fresh()
         self.root: RootRecord | None = None
@@ -455,6 +456,33 @@ class ForemanLab:
             path.write_text(body, encoding="utf-8")
             path.chmod(0o755)
         self.head = commit_all(self.repo, "lab check scripts")
+
+    def instantiate_resolved(
+        self, overrides: Mapping[str, OverrideValue] | None = None
+    ) -> RootRecord:
+        """Pin the root through the REAL `resolve.instantiate`, overrides and all.
+
+        `instantiate` is the only path that runs an override through
+        `resolve()`'s vocabulary, type and usability checks before the
+        immutable write, so a test about what an OVERRIDE does to a run has to
+        come through here rather than through the hand-built resolution.
+        """
+        directory = self.repo.parent / "instance-inputs"
+        directory.mkdir(parents=True, exist_ok=True)
+        paths: dict[str, Path] = {}
+        for name, body in self._instance_inputs.items():
+            path = directory / f"{name}.md"
+            path.write_text(body, encoding="utf-8")
+            paths[name] = path
+        self.root = instantiate(
+            self.composition,
+            self._toml,
+            instance_key="foreman-lab",
+            instance_inputs=paths,
+            allow_test_flags=self.allow_test_flags,
+            overrides=dict(overrides or {}),
+        )
+        return self.root
 
     def instantiate(self) -> RootRecord:
         """Pin the graph and create the instance branch, like resolve does."""
@@ -619,8 +647,22 @@ class ForemanLab:
         return len(text.encode("utf-8")), text
 
     def _overrides(self) -> tuple[ResolvedSetting, ...]:
-        """Pin explicit lab overrides with the same typed carrier as resolution."""
-        base = {setting.key: setting for setting in pinned_config(self.repo)}
+        """Resolve the lab's root exactly as `resolve.instantiate` would.
+
+        Through the real `_resolved_config`, not a canned tuple: it is what
+        pins the role bindings and the graph's own defaults, and the execution
+        path reads the ROOT's resolution for every field it acts on (§3.1), so
+        a hand-built resolution that disagreed with the graph would drive the
+        lab through a configuration no real instance could have.
+
+        The lab's own `overrides` are layered ON TOP rather than passed in:
+        several tests pin a §7.3 verifier digest through them, which is a key
+        `resolve()` deliberately refuses as an instance override.
+        """
+        base = {
+            setting.key: setting
+            for setting in _resolved_config(self.composition, self.definition, {})
+        }
         base.update(
             {
                 key: ResolvedSetting(

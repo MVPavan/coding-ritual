@@ -17,6 +17,7 @@ from workflow_interpreter.foreman.constants import (
     RUNNER_PROTOCOL_NO_WRITE_STEP,
     RUNNER_PROTOCOL_WRITE_STEP,
 )
+from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.schema.graph_index import GraphIndex, producer_node
 from workflow_interpreter.schema.models import Node, Outcome
 from workflow_interpreter.supervisor import activation_ref
@@ -109,7 +110,10 @@ def select_bindings(
         evidence = producer.metadata.evidence
         if evidence is None:
             raise InputsUnavailable("completed input producer has no evidence")
-        if index.nodes[producer_node_name].writes:
+        # The producer's EFFECTIVE `writes`: it ran under the root's
+        # resolution, so binding it under the raw pinned value looks for an
+        # artifact that was never produced (cr-7h8 review).
+        if resolved_node(root, producer_node_name).node.writes:
             artifact = evidence.artifact
             if artifact is None:
                 raise InputsUnavailable("writing input producer has no artifact")
@@ -163,7 +167,7 @@ def materialize(
     if producer.activation_id != binding.producer_activation_id:
         raise InputsUnavailable("input producer does not match its binding")
     evidence = producer.metadata.evidence
-    node = root.index.nodes[producer.metadata.node]
+    node = resolved_node(root, producer.metadata.node).node
     if evidence is None:
         raise InputsUnavailable("input producer has no evidence")
     if node.writes:
@@ -245,8 +249,8 @@ class DefaultComposer:
         activation: ActivationRecord,
         inputs: tuple[Materialized, ...],
     ) -> str:
-        """Compose the profile brief from immutable inputs and pinned flags."""
-        node = root.index.nodes[activation.metadata.node]
+        """Compose the profile brief from immutable inputs and resolved flags."""
+        node = resolved_node(root, activation.metadata.node).node
         # One blank line between sections: the runner reads a document, not a
         # run-on. Each part is stripped so section spacing is the joiner's
         # job alone, whatever trailing newlines a template or input carries.

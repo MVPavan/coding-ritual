@@ -5,9 +5,11 @@ from pathlib import Path
 from typing import cast
 
 from tests._bdio import entry_request, handle
-from tests._foreman import ForemanLab
+from tests._foreman import FAKE_PROFILE, ForemanLab
+from tests._supervisor import ChildScript
 from workflow_interpreter.bdio import Lifecycle
 from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry
+from workflow_interpreter.foreman.config import RunnerBinding
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.supervisor import Recovery
 from workflow_interpreter.supervisor.models import CompletionEvidence
@@ -137,3 +139,72 @@ def test_evidence_recorded_lifecycle_closes_from_the_saved_completion(
 
     assert result.settled == activation_id
     assert _bd_writes(lab) - before == 2
+
+
+def test_entry_mint_and_task_construction_read_the_roots_resolution(
+    tmp_path: Path,
+) -> None:
+    """§3.1: an instance override reaches the mint AND the built task (cr-7h8).
+
+    Both were recorded with provenance and then ignored — the mint re-read the
+    live role map, and the task builder read the raw pinned node.
+    """
+    lab = ForemanLab(
+        tmp_path,
+        overrides={
+            "node.implement.model": "override-model",
+            "node.implement.token_budget": 1234,
+        },
+    )
+    root = lab.instantiate()
+
+    mint_entry(lab.composition, lab.wiring(), root)
+
+    activation = lab.store.reads.list_activations(root.root_id)[0]
+    assert activation.metadata.model == "override-model"
+    task = lab.profiles.profile.tasks[-1]
+    assert task.model == "override-model"
+    assert task.token_budget == 1234
+
+
+def test_a_role_rebinding_after_instantiation_never_reaches_a_mint(
+    tmp_path: Path,
+) -> None:
+    """§3.1: the live roles map is consulted at instantiation only (cr-7h8)."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    lab.composition.config.roles["implementer"] = RunnerBinding(
+        profile=FAKE_PROFILE, model="drifted-model"
+    )
+
+    mint_entry(lab.composition, lab.wiring(), root)
+
+    activation = lab.store.reads.list_activations(root.root_id)[0]
+    assert activation.metadata.runner_profile == FAKE_PROFILE
+    assert activation.metadata.model == "default"
+
+
+def test_a_real_override_reaches_the_brief_the_task_and_the_workspace(
+    tmp_path: Path,
+) -> None:
+    """§3.1 end to end through the REAL `instantiate` (cr-7h8 review).
+
+    `writes` and `isolation` are resolved once and then read by everything:
+    the brief the runner is given, the task it is launched with, and the
+    directory it runs in. Driven through `resolve()`'s own checks, not a
+    hand-built resolution.
+    """
+    lab = ForemanLab(tmp_path)
+    lab.instantiate_resolved(
+        {"node.implement.writes": False, "node.implement.isolation": "in-repo"}
+    )
+    lab.profiles.next_script(ChildScript(marker='{"outcome":"done"}\n'))
+
+    report = lab.tick()
+
+    assert report.dispatched is not None
+    task = lab.profiles.profile.tasks[-1]
+    assert task.writes is False
+    assert task.cwd == str(lab.repo)
+    assert "repository writes: no" in task.brief
+    assert "Do NOT write to the repository" in task.brief

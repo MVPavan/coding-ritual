@@ -27,6 +27,7 @@ from workflow_interpreter.foreman.compose import (
     WrapperLaunch,
 )
 from workflow_interpreter.foreman.constants import DISPATCH_REQUEST, WRAPPER_LOCK
+from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.identifiers import activation_dir, validate_bead_id
 from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
@@ -136,7 +137,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
 
     def build(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
         current = wiring.store.reads.load_activation(activation.activation_id)
-        node = root.index.nodes[current.metadata.node]
+        node = resolved_node(root, current.metadata.node).node
         by_id = {
             item.activation_id: item
             for item in wiring.store.reads.list_activations(root.root_id)
@@ -193,7 +194,10 @@ def run_wrapper(
             return WrapperExit.STALE
         root = resolved.store.reads.load_root(root_id)
         request = _request(activation_id, resolved)
-        node = root.index.nodes[activation.metadata.node]
+        # The EFFECTIVE node: everything downstream of here — the §5.4
+        # precondition, workspace isolation, the §8.2 monitor limits — must
+        # read the resolution the root pinned, not the graph body alone (§3.1).
+        node = resolved_node(root, activation.metadata.node).node
         profile = composition.profiles.profile_for(request.runner_profile)
         deadline = monotonic() + composition.config.band_wait_s
         while True:

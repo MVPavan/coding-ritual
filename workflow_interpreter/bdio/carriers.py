@@ -46,6 +46,11 @@ commit: `""` used to satisfy the type, and an all-empty carrier then compared
 equal to an activation that had nothing recorded at all — so the write that
 should have happened was skipped as "already recorded"."""
 
+NODE_SETTING_KEY: Final[str] = "node.{scope}.{field}"
+"""The generic per-node resolved-config key `BoundSetting` and `NodeSetting`
+both spell out; `resolve()` derives its whole node vocabulary from it, so the
+syntax has exactly one home."""
+
 _SCOPE_PLACEHOLDER: Final[str] = "{scope}"
 _SCOPE_CAPTURE: Final[str] = "([^.]+)"
 
@@ -125,12 +130,29 @@ class GateReason(StrEnum):
     HALT = "halt"
 
 
-class BoundSetting(StrEnum):
+class SettingKey(StrEnum):
+    """A resolved-config key template, optionally scoped by `{scope}`.
+
+    Dotted scope + field. The spec fixes the §3.1 provenance tagging but not
+    the key syntax; this is the wrapper's convention, and every reader of a
+    resolved setting spells its key through one of these enums rather than
+    formatting the dotted string a second time.
+    """
+
+    def at(self, scope: str = "") -> str:
+        """The concrete resolved-config key for this setting at `scope`."""
+        return self.value.format(scope=scope)
+
+    @property
+    def scoped(self) -> bool:
+        """Whether this setting is scoped to a named region or node."""
+        return _SCOPE_PLACEHOLDER in self.value
+
+
+class BoundSetting(SettingKey):
     """Resolved-config keys that override a pinned bound (§3.1, §10.4).
 
-    Dotted scope + field. The spec fixes the provenance tagging but not the
-    key syntax; this is the wrapper's convention, applied consistently by
-    `bounds.effective_bound`.
+    Read by `bounds.effective_bound`.
     """
 
     MAX_TOTAL_ACTIVATIONS = "instance.max_total_activations"
@@ -138,14 +160,21 @@ class BoundSetting(StrEnum):
     MAX_INFRA_RETRIES = "node.{scope}.max_infra_retries"
     MAX_STEERS = "node.{scope}.max_steers"
 
-    def at(self, scope: str = "") -> str:
-        """The concrete resolved-config key for this bound at `scope`."""
-        return self.value.format(scope=scope)
 
-    @property
-    def scoped(self) -> bool:
-        """Whether this bound is scoped to a named region or node."""
-        return _SCOPE_PLACEHOLDER in self.value
+class NodeSetting(SettingKey):
+    """Resolved-config keys that decide how one task node EXECUTES (§3.1).
+
+    Read by `foreman.execution.resolved_node`, which is the only thing the
+    mint, task-construction and wrapper-limit paths may read them through.
+    """
+
+    RUNNER = "node.{scope}.runner"
+    MODEL = "node.{scope}.model"
+    ISOLATION = "node.{scope}.isolation"
+    WRITES = "node.{scope}.writes"
+    TOKEN_BUDGET = "node.{scope}.token_budget"
+    MAX_WALL = "node.{scope}.max_wall"
+    STALE_AFTER = "node.{scope}.stale_after"
 
 
 class ScopedBound(BaseModel):

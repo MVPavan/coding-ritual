@@ -396,9 +396,14 @@ project config and an instance override). The root also records its
 CREATION-TIME config signature; `create_root` idempotency-by-key
 compares against that signature, not the live config — a verified
 rebudget mutates the live config and must never break root re-creation
-recovery (probed, phase-2 r2). The interpreter executes from
-the pinned copy; the file is for authoring. Hash mismatch → instance
-halts.
+recovery (probed, phase-2 r2). Minting, brief composition, input
+binding, task construction, the wrapper's runtime limits and grading and
+recovery all read this pinned resolution — only `allowed_paths` and
+`verify`, which no resolution can express, stay the graph body's — and
+the live `roles` map is consulted only at instantiation, so a role
+rebound after a root exists never changes how that instance runs. The
+interpreter executes from the pinned copy; the file is for authoring.
+Hash mismatch → instance halts.
 
 ### 3.2 Activation beads (`wf_kind: activation`)
 

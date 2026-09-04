@@ -44,8 +44,11 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
     ),
     ResolvedSetting(
         key="node.implement.runner",
-        value="profile:implementer",
-        source=ConfigSource.GRAPH_DEFAULT,
+        # The BOUND profile, not the graph's `profile:<role>` reference:
+        # `_resolved_config` resolves every role at instantiation, and the
+        # execution path reads this key as the profile it dispatches (§3.1).
+        value="fake",
+        source=ConfigSource.ROLE_BINDING,
     ),
     ResolvedSetting(
         key="node.implement.model", value="default", source=ConfigSource.GRAPH_DEFAULT
@@ -54,6 +57,15 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
         key="node.implement.isolation",
         value="worktree",
         source=ConfigSource.GRAPH_DEFAULT,
+    ),
+    # `review` is the fixture's other `profile:<role>` node, and the execution
+    # view reads its runner from the root too — a root that bound only one of
+    # them is not one `_resolved_config` could write.
+    ResolvedSetting(
+        key="node.review.runner", value="fake", source=ConfigSource.ROLE_BINDING
+    ),
+    ResolvedSetting(
+        key="node.review.model", value="default", source=ConfigSource.ROLE_BINDING
     ),
 )
 """A §3.1-shaped resolution: bounds, profile, model and isolation with

@@ -64,6 +64,7 @@ from workflow_interpreter.bdio.signing import (
     canonical_payload_bytes,
 )
 from workflow_interpreter.bdio.wire import (
+    NODE_SETTING_KEY,
     ArtifactIdentity,
     BindsMode,
     BoundSetting,
@@ -82,6 +83,7 @@ from workflow_interpreter.bdio.wire import (
     Lifecycle,
     MintReason,
     MintRequest,
+    NodeSetting,
     PreconditionRecord,
     ProcessHandle,
     ResolvedSetting,
@@ -93,6 +95,7 @@ from workflow_interpreter.bdio.wire import (
 from workflow_interpreter.schema.models import Outcome
 
 __all__ = [
+    "NODE_SETTING_KEY",
     "ActivationRecord",
     "AllowedSigner",
     "ArtifactIdentity",
@@ -139,6 +142,7 @@ __all__ = [
     "MintReason",
     "MintRequest",
     "MintResult",
+    "NodeSetting",
     "NonceReplayError",
     "Outcome",
     "PayloadMismatchError",

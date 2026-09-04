@@ -26,6 +26,7 @@ from pydantic import (
 )
 
 from workflow_interpreter.bdio.carriers import (
+    NODE_SETTING_KEY,
     TERMINAL_LIFECYCLES,
     WIRE_MODEL,
     ArtifactIdentity,
@@ -45,6 +46,7 @@ from workflow_interpreter.bdio.carriers import (
     Lifecycle,
     Metadata,
     MintReason,
+    NodeSetting,
     ProcessHandle,
     ResolvedSetting,
     ScopedBound,
@@ -69,6 +71,7 @@ from workflow_interpreter.schema.models import (
 
 __all__ = [
     "GRAPH_OUTCOMES",
+    "NODE_SETTING_KEY",
     "SYSTEM_OUTCOMES",
     "WIRE_MODEL",
     "ActivationMetadata",
@@ -97,6 +100,7 @@ __all__ = [
     "Metadata",
     "MintReason",
     "MintRequest",
+    "NodeSetting",
     "PreconditionRecord",
     "ProcessHandle",
     "ResolvedSetting",

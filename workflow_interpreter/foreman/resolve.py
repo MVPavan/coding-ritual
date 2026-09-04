@@ -7,10 +7,20 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Final, Union, get_args, get_origin
 
-from workflow_interpreter.bdio import ConfigSource, InstanceInput, ResolvedSetting
+from pydantic import ValidationError
+
+from workflow_interpreter.bdio import (
+    NODE_SETTING_KEY,
+    ConfigSource,
+    InstanceInput,
+    NodeSetting,
+    ResolvedSetting,
+)
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.foreman.compose import Composition
+from workflow_interpreter.foreman.errors import ResolutionError
+from workflow_interpreter.profiles.config import RUNNER_PREFIX
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import (
@@ -21,6 +31,21 @@ from workflow_interpreter.schema.models import (
 from workflow_interpreter.schema.rules_nodes import forbidden_fields
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.channels import pin_verifier_digests
+
+RUNNER_FIELD: Final[str] = "runner"
+
+MSG_UNUSABLE: Final[str] = (
+    "unusable value for {key!r}: {value!r} is not something the node's own "
+    "field accepts ({detail})"
+)
+MSG_ROLE_REFERENCE: Final[str] = (
+    "{key!r} from {source} is a `profile:<role>` reference; only the foreman "
+    "config's roles map resolves those, so state the profile itself"
+)
+MSG_RUNNER_WITHOUT_MODEL: Final[str] = (
+    "{key!r} from {source} chooses a runner without {model!r} from the same "
+    "source — the model would stay the graph role's, a pairing nobody stated"
+)
 
 UNRESOLVABLE_NODE_FIELDS: Final[frozenset[str]] = frozenset(
     {"instructions", "region", "gate_type", "binds"}
@@ -37,10 +62,6 @@ project record a fully provenance-tagged setting that is silently ignored —
 worst of all for `gate_type`, where the ignored setting looks like it
 removed an approval requirement.
 """
-
-
-class ResolutionError(ValueError):
-    """A caller supplied a setting that has no declared configuration home."""
 
 
 def _scalar_setting_type(
@@ -72,6 +93,7 @@ def resolve(
         "instance.max_total_activations": definition.document.instance.max_total_activations
     }
     allowed: dict[str, type[str | int | bool]] = {"instance.max_total_activations": int}
+    owners: dict[str, tuple[Node, str]] = {}
     for node in definition.document.node:
         # The vocabulary is closed against the validator's own per-kind table:
         # a field the node's kind cannot carry is not configurable for it.
@@ -85,8 +107,9 @@ def resolve(
                 or field in forbidden
             ):
                 continue
-            key = f"node.{node.name}.{field}"
+            key = NODE_SETTING_KEY.format(scope=node.name, field=field)
             allowed[key] = setting_type
+            owners[key] = (node, field)
             value = getattr(node, field)
             if value is not None:
                 defaults[key] = value.value if hasattr(value, "value") else value
@@ -120,8 +143,65 @@ def resolve(
             continue
         if type(value) is not allowed[key]:
             raise ResolutionError(f"unsupported value for {key!r}")
+        owner = owners.get(key)
+        if owner is not None and source is not ConfigSource.GRAPH_DEFAULT:
+            owner_node, owner_field = owner
+            _refuse_unusable(owner_node, owner_field, key, value)
+            if owner_field == RUNNER_FIELD:
+                _refuse_half_bound_runner(
+                    owner_node.name,
+                    value,
+                    source,
+                    overrides if source is ConfigSource.INSTANCE_OVERRIDE else config,
+                )
         values.append(ResolvedSetting(key=key, value=value, source=source))
     return tuple(values)
+
+
+def _refuse_unusable(node: Node, field: str, key: str, value: str | int | bool) -> None:
+    """Refuse a value the node's OWN field cannot hold, before the root exists.
+
+    The scalar type check above accepts `max_wall = "banana"` and
+    `isolation = "sandbox"`: both are `str`. A root is immutable, so a value
+    only the execution view would reject makes an instance permanently
+    un-tickable — the refusal has to happen here (cr-7h8 review).
+    """
+    try:
+        Node.model_validate(node.model_dump() | {field: value})
+    except ValidationError as error:
+        raise ResolutionError(
+            MSG_UNUSABLE.format(key=key, value=value, detail=error.errors()[0]["msg"])
+        ) from error
+
+
+def _refuse_half_bound_runner(
+    node_name: str,
+    value: str | int | bool,
+    source: ConfigSource,
+    supplied: Mapping[str, object],
+) -> None:
+    """Keep a configured runner a COMPLETE, already-resolved binding (§3.1).
+
+    A `profile:<role>` value is a role reference, and only `_resolved_config`
+    resolves those — accepting one here pins a root whose execution view has
+    no runner to read. A runner without its model is the other half: the
+    profile would come from config while the model stayed the graph role's,
+    a pairing nobody stated (cr-7h8 review).
+    """
+    if isinstance(value, str) and value.startswith(RUNNER_PREFIX):
+        raise ResolutionError(
+            MSG_ROLE_REFERENCE.format(
+                key=NodeSetting.RUNNER.at(node_name), source=source.value
+            )
+        )
+    if NodeSetting.MODEL.at(node_name) not in supplied:
+        raise ResolutionError(
+            MSG_RUNNER_WITHOUT_MODEL.format(
+                key=NodeSetting.RUNNER.at(node_name),
+                model=NodeSetting.MODEL.at(node_name),
+                source=source.value,
+            )
+        )
 
 
 def ensure_instance_branch(composition: Composition, root: RootRecord) -> None:

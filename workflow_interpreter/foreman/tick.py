@@ -40,6 +40,7 @@ from workflow_interpreter.foreman.constants import (
     RUN_MAX_WALL,
 )
 from workflow_interpreter.foreman.events import backfill, expected_intents
+from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
 from workflow_interpreter.foreman.identifiers import validate_bead_id
@@ -507,7 +508,7 @@ class Foreman:
             return
         activations = wiring.store.reads.list_activations(root.root_id)
         if any(
-            root.index.nodes[activation.metadata.node].writes
+            resolved_node(root, activation.metadata.node).node.writes
             and (
                 activation.metadata.evidence is None
                 or activation.metadata.evidence.artifact is None

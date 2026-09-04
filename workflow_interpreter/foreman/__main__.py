@@ -34,10 +34,11 @@ from workflow_interpreter.foreman.constants import (
     RUN_DEFAULT_MAX_WALL_S,
     RUN_DEFAULT_POLL_S,
 )
+from workflow_interpreter.foreman.errors import ResolutionError
 from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.identifiers import validate_bead_id
-from workflow_interpreter.foreman.resolve import ResolutionError, instantiate
+from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.transcript import bounded_tail

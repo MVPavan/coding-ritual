@@ -38,6 +38,7 @@ from workflow_interpreter.foreman.constants import (
     HALT_NODE,
     HALT_PRECONDITION_REFUSED,
 )
+from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.frontier import DeadEndKind
 from workflow_interpreter.foreman.gates import (
     IntakeResult,
@@ -153,7 +154,6 @@ def dispatch_minted(
 
 
 def _successor_request(
-    composition: Composition,
     wiring: InstanceWiring,
     root: RootRecord,
     target: str,
@@ -161,25 +161,21 @@ def _successor_request(
     predecessor_activation_id: str | None = None,
     predecessor_gate_id: str | None = None,
     round_no: int,
-) -> MintRequest | None:
+) -> MintRequest:
     """Build the one graph-edge request permitted by a completed head."""
-    node = root.index.nodes[target]
-    role_name = (node.runner or "").removeprefix("profile:")
-    binding = composition.config.roles.get(role_name)
-    if binding is None:
-        return None
+    view = resolved_node(root, target)
     return MintRequest(
         node=target,
         mint_reason=MintReason.EDGE,
         predecessor_activation_id=predecessor_activation_id,
         predecessor_gate_id=predecessor_gate_id,
-        runner_profile=binding.profile,
-        model=binding.model,
-        session_id=str(uuid.uuid4()) if binding.profile == "claude" else "",
+        runner_profile=view.runner_profile,
+        model=view.model,
+        session_id=str(uuid.uuid4()) if view.runner_profile == "claude" else "",
         inputs=select_bindings(
             root.index,
             root,
-            node,
+            view.node,
             wiring.store.reads.list_activations(root.root_id),
             round_no,
         ),
@@ -198,7 +194,6 @@ def _mint_successor(
 ) -> CaseResult:
     """Mint then dispatch one graph successor, or report a closed refusal."""
     request = _successor_request(
-        composition,
         wiring,
         root,
         target,
@@ -206,8 +201,6 @@ def _mint_successor(
         predecessor_gate_id=predecessor_gate_id,
         round_no=round_no,
     )
-    if request is None:
-        return CaseResult(stalled=f"unknown runner role for {target!r}")
     try:
         minted = wiring.store.mint_activation(root.root_id, request).activation
     except BoundExceededError as exc:
@@ -272,18 +265,14 @@ def mint_entry(
 ) -> CaseResult:
     """Mint and dispatch the graph entry with bindings derived from the pin."""
     node_name = root.definition.document.graph.entry
-    node = root.index.nodes[node_name]
-    role_name = (node.runner or "").removeprefix("profile:")
-    binding = composition.config.roles.get(role_name)
-    if binding is None:
-        return CaseResult(stalled=f"unknown runner role {role_name!r}")
+    view = resolved_node(root, node_name)
     request = MintRequest(
         node=node_name,
         mint_reason=MintReason.ENTRY,
-        runner_profile=binding.profile,
-        model=binding.model,
-        session_id=str(uuid.uuid4()) if binding.profile == "claude" else "",
-        inputs=select_bindings(root.index, root, node, (), 1),
+        runner_profile=view.runner_profile,
+        model=view.model,
+        session_id=str(uuid.uuid4()) if view.runner_profile == "claude" else "",
+        inputs=select_bindings(root.index, root, view.node, (), 1),
     )
     try:
         minted = wiring.store.mint_activation(root.root_id, request).activation
@@ -307,8 +296,12 @@ def advance_lifecycle(
     if lifecycle is Lifecycle.DISPATCHED:
         if wrapper_alive(wiring, activation.activation_id):
             return CaseResult(blocked=True)
+        # The EFFECTIVE node on the grading leg too: an activation that RAN
+        # under the root's resolution must be recovered, replayed and graded
+        # under it (§3.1) — reading `writes` or `isolation` off the raw
+        # pinned body here graded it as a different node (cr-7h8 review).
         resolution = wiring.recovery.resolve(
-            activation, root.index.nodes[activation.metadata.node]
+            activation, resolved_node(root, activation.metadata.node).node
         )
         classification = getattr(resolution, "classification", None)
         exit_record = None if classification is None else classification.exit_record
@@ -318,7 +311,7 @@ def advance_lifecycle(
             result = settle(
                 wiring,
                 root,
-                root.index.nodes[recorded.metadata.node],
+                resolved_node(root, recorded.metadata.node).node,
                 recorded,
                 profile,
             )
@@ -339,7 +332,7 @@ def advance_lifecycle(
         result = settle(
             wiring,
             root,
-            root.index.nodes[activation.metadata.node],
+            resolved_node(root, activation.metadata.node).node,
             activation,
             profile,
         )
@@ -396,7 +389,7 @@ def route_head(
     outcome = head.metadata.outcome
     if outcome is None:
         return CaseResult(stalled="completed activation has no outcome")
-    node = root.index.nodes[head.metadata.node]
+    node = resolved_node(root, head.metadata.node).node
     retry = retry_kind(outcome)
     if retry is not None:
         if retry is MintReason.STEER_CONTINUATION:

@@ -9,9 +9,20 @@ from typing import Final, cast
 
 import pytest
 
-from tests._bdio import entry_request, instance_key, load_definition, make_root
+from tests._bdio import (
+    IMPLEMENT,
+    entry_request,
+    instance_key,
+    load_definition,
+    make_root,
+)
 from tests._fake_bd import FakeBd
-from tests._foreman import BUILD_LOOP_INSTANCE_INPUTS, BUILD_LOOP_ROLES
+from tests._foreman import (
+    BUILD_LOOP_INSTANCE_INPUTS,
+    BUILD_LOOP_ROLES,
+    FAKE_PROFILE,
+    ForemanLab,
+)
 from tests._helpers import BUILD_LOOP_GRAPH, VALID_FIXTURE
 from workflow_interpreter.bdio import BdConfig
 from workflow_interpreter.bdio.api import WorkflowStore
@@ -28,13 +39,18 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
 from workflow_interpreter.foreman.constants import INSTANCE_BRANCH
+from workflow_interpreter.foreman.errors import ResolutionError
+from workflow_interpreter.foreman.execution import (
+    UnresolvedRunnerError,
+    resolved_node,
+)
 from workflow_interpreter.foreman.owner import OwnerConflict, OwnerRecord, ensure_owner
 from workflow_interpreter.foreman.resolve import (
-    ResolutionError,
     _resolved_config,
     instantiate,
     resolve,
 )
+from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.gitio import Git
@@ -943,3 +959,140 @@ def test_resolve_refuses_to_configure_whether_a_human_must_approve() -> None:
     for key in ("node.ship.gate_type", "node.ship.binds"):
         with pytest.raises(ResolutionError, match="unknown override"):
             resolve(load_definition(), {}, {key: "human"})
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("node.implement.max_wall", "banana"),
+        ("node.implement.stale_after", "9 minutes"),
+        ("node.implement.isolation", "sandbox"),
+    ],
+)
+def test_resolve_refuses_a_value_the_node_field_cannot_hold(
+    key: str, value: str
+) -> None:
+    """A root is immutable, so an unusable value must never reach one.
+
+    The scalar type check alone accepts all three — they are `str` — and the
+    execution view would then raise on every tick of an instance nobody can
+    repair (cr-7h8 review).
+    """
+    with pytest.raises(ResolutionError, match="unusable value"):
+        resolve(load_definition(), {}, {key: value})
+
+    with pytest.raises(ResolutionError, match="unusable value"):
+        resolve(load_definition(), {key: value}, {})
+
+
+def test_instantiate_refuses_an_unusable_override_before_writing_the_root(
+    tmp_path: Path,
+) -> None:
+    """The refusal is at instantiation, where it is still recoverable."""
+    lab = ForemanLab(tmp_path)
+
+    with pytest.raises(ResolutionError, match="unusable value"):
+        lab.instantiate_resolved({"node.implement.max_wall": "banana"})
+
+    assert lab.store.reads.list_roots() == ()
+
+
+def test_resolve_refuses_a_configured_runner_that_is_still_a_role() -> None:
+    """Only the roles map resolves `profile:<role>`; config must state a profile."""
+    with pytest.raises(ResolutionError, match="role.*reference|profile:"):
+        resolve(
+            load_definition(),
+            {},
+            {
+                "node.implement.runner": "profile:reviewer",
+                "node.implement.model": "chosen",
+            },
+        )
+
+
+def test_resolve_refuses_a_configured_runner_without_its_model() -> None:
+    """Half a binding pairs a chosen profile with the graph role's model."""
+    with pytest.raises(ResolutionError, match="without"):
+        resolve(load_definition(), {}, {"node.implement.runner": "claude"})
+
+    settled = {
+        item.key: item
+        for item in resolve(
+            load_definition(),
+            {},
+            {"node.implement.runner": "claude", "node.implement.model": "opus"},
+        )
+    }
+    assert settled["node.implement.runner"].value == "claude"
+    assert settled["node.implement.model"].value == "opus"
+
+
+def test_resolved_node_falls_back_to_the_pinned_node(tmp_path: Path) -> None:
+    """An unresolved field keeps the value the pinned graph body declares."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    pinned = root.index.nodes[IMPLEMENT]
+
+    view = resolved_node(root, IMPLEMENT)
+
+    assert view.runner_profile == FAKE_PROFILE
+    assert view.node.max_wall == pinned.max_wall
+    assert view.node.token_budget == pinned.token_budget
+    # A list is outside the resolvable vocabulary, so it is never overlaid.
+    assert view.node.allowed_paths == pinned.allowed_paths
+
+
+def test_resolved_node_overlays_every_resolvable_execution_field(
+    tmp_path: Path,
+) -> None:
+    """Each scalar the root resolved wins over the pinned graph body (§3.1)."""
+    lab = ForemanLab(
+        tmp_path,
+        overrides={
+            "node.implement.model": "override-model",
+            "node.implement.isolation": "in-repo",
+            "node.implement.writes": False,
+            "node.implement.token_budget": 1234,
+            "node.implement.max_wall": "9m",
+            "node.implement.stale_after": "3m",
+        },
+    )
+    root = lab.instantiate()
+
+    view = resolved_node(root, IMPLEMENT)
+
+    assert view.model == "override-model"
+    assert view.node.model == "override-model"
+    assert view.node.isolation is IsolationMode.IN_REPO
+    assert view.node.writes is False
+    assert view.node.token_budget == 1234
+    assert view.node.max_wall == "9m"
+    assert view.node.stale_after == "3m"
+
+
+def test_resolved_node_refuses_a_root_that_never_resolved_its_role(
+    tmp_path: Path,
+) -> None:
+    """A role reference is not a runner: an unresolved one fails loud, not late.
+
+    `profile:<role>` names nothing a profile resolver can answer, and reading
+    the live role map instead is the drift `resolved_node` exists to prevent.
+    """
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    stripped = root.model_copy(
+        update={
+            "metadata": root.metadata.model_copy(
+                update={
+                    "resolved_config": tuple(
+                        item
+                        for item in root.metadata.resolved_config
+                        if item.key != "node.implement.runner"
+                    )
+                }
+            )
+        }
+    )
+
+    with pytest.raises(UnresolvedRunnerError, match="implementer"):
+        resolved_node(stripped, IMPLEMENT)
