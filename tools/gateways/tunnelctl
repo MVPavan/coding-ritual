@@ -1,0 +1,298 @@
+#!/usr/bin/env bash
+#
+# tunnelctl — create, manage, and update reverse SSH tunnels
+#             as independently-supervised systemd *user* services.
+#
+# Model: one systemd template unit (model-tunnel@.service) drives N
+# instances, one per remote. Each instance reads a tiny .conf file:
+#
+#     ~/.config/model-tunnel/<name>.conf
+#         LISTEN=127.0.0.1:18317      # bound ON the remote
+#         TARGET=192.168.0.176:8317   # dialed FROM this (WSL) client
+#         SSHHOST=ythuil              # ssh alias / user@host, key-based
+#
+# Each remote fails, restarts, and logs on its own. Auth is your
+# existing key-based SSH config; this script never touches keys.
+#
+set -euo pipefail
+shopt -s nullglob
+
+# ------------------------------------------------------------------ paths
+CFG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}"
+UNIT_DIR="$CFG_ROOT/systemd/user"
+UNIT_FILE="$UNIT_DIR/model-tunnel@.service"
+CONF_DIR="$CFG_ROOT/model-tunnel"
+PREFIX="model-tunnel@"
+DEFAULT_ADDR="127.0.0.1"
+
+# --------------------------------------------------------------- helpers
+die()  { echo "error: $*" >&2; exit 1; }
+info() { echo ">> $*"; }
+need() { command -v "$1" >/dev/null 2>&1 || die "'$1' not found in PATH"; }
+
+valid_name() { [[ "$1" =~ ^[A-Za-z0-9_-]+$ ]]; }
+valid_port() { [[ "$1" =~ ^[0-9]+$ ]] && (( $1 >= 1 && $1 <= 65535 )); }
+
+conf_path() { echo "$CONF_DIR/$1.conf"; }
+unit_of()   { echo "${PREFIX}$1"; }
+
+# normalise a --listen value: bare PORT -> ADDR:PORT ; ADDR:PORT -> as-is
+norm_listen() {
+  local l="$1"
+  if [[ "$l" == *:* ]]; then echo "$l"; else echo "${ADDR}:$l"; fi
+}
+
+# resolve one instance unit, or every defined instance if no name given
+resolve_units() {
+  if [[ -n "${1:-}" ]]; then
+    valid_name "$1" || die "invalid name '$1'"
+    unit_of "$1"
+    return
+  fi
+  local f
+  for f in "$CONF_DIR"/*.conf; do
+    unit_of "$(basename "$f" .conf)"
+  done
+}
+
+# ------------------------------------------------------------- bootstrap
+# Idempotent: writes the template unit if missing, ensures dirs exist,
+# and enables lingering so tunnels survive shell exit / logout / reboot.
+bootstrap() {
+  need ssh
+  need systemctl
+  mkdir -p "$UNIT_DIR" "$CONF_DIR"
+
+  if [[ ! -f "$UNIT_FILE" ]]; then
+    info "writing template unit -> $UNIT_FILE"
+    cat > "$UNIT_FILE" <<'UNIT'
+[Unit]
+Description=Reverse SSH tunnel to %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=%h/.config/model-tunnel/%i.conf
+ExecStart=/usr/bin/ssh -N \
+  -o ExitOnForwardFailure=yes \
+  -o ServerAliveInterval=30 \
+  -o ServerAliveCountMax=3 \
+  -o StrictHostKeyChecking=accept-new \
+  -R ${LISTEN}:${TARGET} \
+  ${SSHHOST}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+UNIT
+    systemctl --user daemon-reload
+  fi
+
+  # linger keeps user services alive without an open session
+  local user="${USER:-$(id -un)}"
+  if command -v loginctl >/dev/null 2>&1; then
+    if ! loginctl show-user "$user" 2>/dev/null | grep -q 'Linger=yes'; then
+      info "enabling linger for $user (may prompt for sudo)…"
+      sudo loginctl enable-linger "$user" \
+        || echo "warn: linger not enabled; tunnels won't survive logout" >&2
+    fi
+  fi
+}
+
+write_conf() {
+  local name="$1" listen="$2" target="$3" sshhost="$4"
+  cat > "$(conf_path "$name")" <<EOF
+LISTEN=$listen
+TARGET=$target
+SSHHOST=$sshhost
+EOF
+}
+
+# --------------------------------------------------------- flag parsing
+# Sets globals: SSHHOST LISTEN TARGET ADDR (LISTEN/TARGET/SSHHOST empty
+# means "not supplied", used by update to keep existing values).
+parse_flags() {
+  SSHHOST=""; LISTEN=""; TARGET=""; ADDR="$DEFAULT_ADDR"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --ssh-host)    SSHHOST="${2:-}"; shift 2;;
+      --listen)      LISTEN="${2:-}";  shift 2;;
+      --listen-addr) ADDR="${2:-}";    shift 2;;
+      --target)      TARGET="${2:-}";  shift 2;;
+      *) die "unknown option: $1";;
+    esac
+  done
+}
+
+# validate a HOST:PORT string ($2 = label for errors)
+check_hostport() {
+  [[ "$1" == *:* ]] || die "$2 must be HOST:PORT (got '$1')"
+  local p="${1##*:}"
+  valid_port "$p" || die "$2 has bad port '$p'"
+}
+
+# ------------------------------------------------------------- commands
+cmd_add() {
+  local name="${1:-}"; shift || true
+  [[ -n "$name" ]] || die "usage: tunnelctl add NAME --ssh-host H --listen [ADDR:]PORT --target IP:PORT"
+  valid_name "$name" || die "invalid name '$name' (allowed: A-Z a-z 0-9 _ -)"
+  [[ -f "$(conf_path "$name")" ]] && die "tunnel '$name' already exists (use 'update')"
+
+  parse_flags "$@"
+  [[ -n "$SSHHOST" ]] || die "--ssh-host is required"
+  [[ -n "$LISTEN"  ]] || die "--listen is required"
+  [[ -n "$TARGET"  ]] || die "--target is required"
+
+  check_hostport "$TARGET" "--target"
+  local listen; listen="$(norm_listen "$LISTEN")"
+  check_hostport "$listen" "--listen"
+
+  bootstrap
+  write_conf "$name" "$listen" "$TARGET" "$SSHHOST"
+  systemctl --user enable --now "$(unit_of "$name")"
+  info "added '$name': remote $listen  ->  $TARGET  via $SSHHOST"
+  cmd_status "$name" || true
+}
+
+cmd_update() {
+  local name="${1:-}"; shift || true
+  [[ -n "$name" ]] || die "usage: tunnelctl update NAME [--ssh-host H] [--listen ...] [--target IP:PORT]"
+  local cf; cf="$(conf_path "$name")"
+  [[ -f "$cf" ]] || die "no such tunnel '$name'"
+
+  # load current values, then override with any supplied flags
+  unset LISTEN TARGET SSHHOST
+  # shellcheck disable=SC1090
+  source "$cf"
+  local cur_listen="$LISTEN" cur_target="$TARGET" cur_host="$SSHHOST"
+
+  parse_flags "$@"
+  [[ -n "$SSHHOST" ]] || SSHHOST="$cur_host"
+  [[ -n "$TARGET"  ]] || TARGET="$cur_target"
+  local listen
+  if [[ -n "$LISTEN" ]]; then listen="$(norm_listen "$LISTEN")"; else listen="$cur_listen"; fi
+
+  check_hostport "$TARGET" "target"
+  check_hostport "$listen" "listen"
+
+  write_conf "$name" "$listen" "$TARGET" "$SSHHOST"
+  systemctl --user restart "$(unit_of "$name")"
+  info "updated '$name': remote $listen  ->  $TARGET  via $SSHHOST"
+}
+
+cmd_rm() {
+  local name="${1:-}"; [[ -n "$name" ]] || die "usage: tunnelctl rm NAME"
+  local unit; unit="$(unit_of "$name")"
+  systemctl --user disable --now "$unit" 2>/dev/null || true
+  rm -f "$(conf_path "$name")"
+  info "removed '$name'"
+}
+
+cmd_list() {
+  local files=("$CONF_DIR"/*.conf)
+  [[ ${#files[@]} -gt 0 ]] || { echo "no tunnels defined"; return; }
+  printf '%-14s %-16s %-24s %-20s %s\n' NAME SSHHOST TARGET LISTEN STATE
+  local f name state
+  for f in "${files[@]}"; do
+    name="$(basename "$f" .conf)"
+    unset LISTEN TARGET SSHHOST
+    # shellcheck disable=SC1090
+    source "$f"
+    state="$(systemctl --user is-active "$(unit_of "$name")" 2>/dev/null || echo unknown)"
+    printf '%-14s %-16s %-24s %-20s %s\n' \
+      "$name" "${SSHHOST:-?}" "${TARGET:-?}" "${LISTEN:-?}" "$state"
+  done
+}
+
+cmd_status() {
+  mapfile -t u < <(resolve_units "${1:-}")
+  [[ ${#u[@]} -gt 0 ]] || { echo "no tunnels defined"; return; }
+  systemctl --user --no-pager status "${u[@]}" || true
+}
+
+cmd_start()   { mapfile -t u < <(resolve_units "${1:-}"); [[ ${#u[@]} -gt 0 ]] || die "no tunnels"; systemctl --user start   "${u[@]}"; info "started: ${u[*]}"; }
+cmd_stop()    { mapfile -t u < <(resolve_units "${1:-}"); [[ ${#u[@]} -gt 0 ]] || die "no tunnels"; systemctl --user stop    "${u[@]}"; info "stopped: ${u[*]}"; }
+cmd_restart() { mapfile -t u < <(resolve_units "${1:-}"); [[ ${#u[@]} -gt 0 ]] || die "no tunnels"; systemctl --user restart "${u[@]}"; info "restarted: ${u[*]}"; }
+
+cmd_logs() {
+  local name="${1:-}"; [[ -n "$name" ]] || die "usage: tunnelctl logs NAME [-f]"
+  shift
+  journalctl --user -u "$(unit_of "$name")" "$@"
+}
+
+# Verify the tunnel end-to-end: SSH into the remote and confirm the
+# forwarded port is actually bound there.
+cmd_test() {
+  local name="${1:-}"; [[ -n "$name" ]] || die "usage: tunnelctl test NAME"
+  local cf; cf="$(conf_path "$name")"; [[ -f "$cf" ]] || die "no such tunnel '$name'"
+  unset LISTEN TARGET SSHHOST
+  # shellcheck disable=SC1090
+  source "$cf"
+  local port="${LISTEN##*:}"
+  info "checking $SSHHOST for a listener on $LISTEN …"
+  local res
+  res="$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$SSHHOST" \
+          "ss -ltn 2>/dev/null | grep -q ':$port ' && echo UP || echo DOWN")" \
+    || die "ssh to '$SSHHOST' failed (check key/host config)"
+  echo "listener $LISTEN on $SSHHOST: $res"
+  [[ "$res" == "UP" ]] || die "port not bound — tunnel likely down; see: tunnelctl logs $name"
+}
+
+usage() {
+  cat <<'EOF'
+tunnelctl — reverse SSH tunnels as systemd user services (one per remote)
+
+Usage:
+  tunnelctl add    NAME --ssh-host HOST --listen [ADDR:]PORT --target IP:PORT
+  tunnelctl update NAME [--ssh-host HOST] [--listen [ADDR:]PORT] [--target IP:PORT]
+  tunnelctl rm     NAME
+  tunnelctl list
+  tunnelctl status  [NAME]                 (no NAME = all)
+  tunnelctl start   [NAME]                 (no NAME = all)
+  tunnelctl stop    [NAME]                 (no NAME = all)
+  tunnelctl restart [NAME]                 (no NAME = all)
+  tunnelctl enable  NAME                   (start on boot)
+  tunnelctl disable NAME
+  tunnelctl logs    NAME [-f]
+  tunnelctl test    NAME                   (verify listener on the remote)
+  tunnelctl bootstrap                      (write template unit + linger)
+
+Notes:
+  --listen is the port opened ON the remote  (bare PORT => 127.0.0.1:PORT)
+  --target is HOST:PORT dialed FROM this client (WSL side)
+  Auth uses your existing key-based SSH config; keys are never touched.
+
+Examples:
+  tunnelctl add sol     --ssh-host ythuil  --listen 18317 --target 192.168.0.176:8317
+  tunnelctl add office2 --ssh-host office2 --listen 18317 --target 192.168.0.176:8317
+  tunnelctl update sol  --target 192.168.0.180:8317
+  tunnelctl restart                 # bounce every tunnel
+  tunnelctl logs sol -f
+  tunnelctl test office2
+EOF
+}
+
+# ------------------------------------------------------------- dispatch
+main() {
+  local cmd="${1:-}"; shift || true
+  case "$cmd" in
+    add)                cmd_add "$@";;
+    update|set)         cmd_update "$@";;
+    rm|remove|delete)   cmd_rm "$@";;
+    ls|list)            cmd_list;;
+    status|st)          cmd_status "${1:-}";;
+    start)              cmd_start "${1:-}";;
+    stop)               cmd_stop "${1:-}";;
+    restart)            cmd_restart "${1:-}";;
+    enable)             [[ -n "${1:-}" ]] || die "usage: tunnelctl enable NAME";  systemctl --user enable  "$(unit_of "$1")";;
+    disable)            [[ -n "${1:-}" ]] || die "usage: tunnelctl disable NAME"; systemctl --user disable "$(unit_of "$1")";;
+    logs|log)           cmd_logs "$@";;
+    test)               cmd_test "${1:-}";;
+    bootstrap)          bootstrap;;
+    ""|-h|--help|help)  usage;;
+    *) die "unknown command '$cmd' (try: tunnelctl help)";;
+  esac
+}
+
+main "$@"

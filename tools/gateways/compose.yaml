@@ -1,0 +1,31 @@
+name: gateways
+
+# Two independent gateways on the home box, one compose project. Manage them
+# per service through gw.sh; images are pinned so a recreate never changes
+# the running version by accident.
+services:
+  cpa:
+    image: eceasy/cli-proxy-api:${CPA_IMAGE_TAG:-v7.2.149}
+    pull_policy: missing
+    container_name: cpa
+    restart: unless-stopped
+    ports:
+      - "${CPA_API_PORT:-58317}:58317"
+      - "${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}:${CPA_ANTIGRAVITY_CALLBACK_PORT:-15121}"
+    volumes:
+      - ./cpa/config.yaml:/CLIProxyAPI/config.yaml
+      - ./cpa/auths:/root/.cli-proxy-api
+      - ./cpa/logs:/CLIProxyAPI/logs
+      - ./cpa/plugins:/CLIProxyAPI/plugins
+    environment:
+      MANAGEMENT_PASSWORD: ${CPA_MANAGEMENT_PASSWORD:?Set CPA_MANAGEMENT_PASSWORD in .env}
+
+  claude-relay:
+    image: nginx:1.31.5-alpine
+    pull_policy: missing
+    container_name: claude-relay
+    restart: unless-stopped
+    ports:
+      - "${CLAUDE_RELAY_PORT:-58380}:80"
+    volumes:
+      - ./claude-relay/nginx.conf:/etc/nginx/nginx.conf:ro

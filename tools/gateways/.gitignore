@@ -1,0 +1,4 @@
+.env
+cpa/auths/
+cpa/logs/
+cpa/plugins/
