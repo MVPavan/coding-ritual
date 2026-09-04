@@ -68,6 +68,19 @@ PROC_FD_TEMPLATE: Final[str] = "/proc/self/fd/{descriptor}"
 package (§5.3), and the only argv[0] that cannot name a different file from
 the one the digest was taken from."""
 
+BASE_COMMIT_ENV: Final[str] = "WF_BASE_COMMIT"
+"""The one `WF_*` variable a §7.3 check is given: the activation's
+`intended_base_commit`.
+
+A check runs in a detached checkout whose HEAD is the artifact commit and which
+has no branch, no upstream and no reflog of its own — so a check that must ask
+what THIS round changed (`tests-untouched.sh`, `mutate.sh`) has no other way to
+name where the round started. It is injected for every check, not only the ones
+that read it, so the environment a check sees does not depend on the node.
+
+For a non-writing node the base equals the verified head (phase 7, D5), which
+makes a diff-based check empty there by design rather than by accident."""
+
 READ_CHUNK: Final[int] = 65536
 
 REFUSED_EXIT_CODE: Final[int] = 126
@@ -220,9 +233,17 @@ def _escape_reason(
 
 
 def run_checks(
-    node: Node, tree: Path, pinned_digests: dict[str, str]
+    node: Node,
+    tree: Path,
+    pinned_digests: dict[str, str],
+    *,
+    base_commit: str,
 ) -> tuple[VerifyResult, ...]:
-    """Execute the PINNED graph's checks in `tree`: provenance first, no shell."""
+    """Execute the PINNED graph's checks in `tree`: provenance first, no shell.
+
+    `base_commit` is the activation's `intended_base_commit`, passed to every
+    check as `BASE_COMMIT_ENV`.
+    """
     results: list[VerifyResult] = []
     for check in node.verify or ():
         resolved = ResolvedCheck(tree, check)
@@ -246,7 +267,7 @@ def run_checks(
                 )
                 results.append(_refused(resolved, digest, pinned))
                 continue
-            results.append(_execute(resolved, descriptor, digest, pinned))
+            results.append(_execute(resolved, descriptor, digest, pinned, base_commit))
         finally:
             if descriptor is not None:
                 os.close(descriptor)
@@ -325,7 +346,11 @@ def _digest_of(descriptor: int) -> str:
 
 
 def _execute(
-    resolved: ResolvedCheck, descriptor: int, digest: str, pinned: str
+    resolved: ResolvedCheck,
+    descriptor: int,
+    digest: str,
+    pinned: str,
+    base_commit: str,
 ) -> VerifyResult:
     """Run the check, re-running a RED one `RED_CHECK_RERUNS` times.
 
@@ -339,7 +364,7 @@ def _execute(
     attempt = 1
     tails: list[str] = []
     while True:
-        result = _run_once(resolved, descriptor, digest, pinned, attempt)
+        result = _run_once(resolved, descriptor, digest, pinned, attempt, base_commit)
         # Every attempt's tail is kept, not just the surviving result's: when a
         # rerun turns the check green, the RED attempt's output is the one a
         # human wants to read (cr-o85.34.12).
@@ -359,7 +384,12 @@ def _execute(
 
 
 def _run_once(
-    resolved: ResolvedCheck, descriptor: int, digest: str, pinned: str, attempts: int
+    resolved: ResolvedCheck,
+    descriptor: int,
+    digest: str,
+    pinned: str,
+    attempts: int,
+    base_commit: str,
 ) -> VerifyResult:
     """Run the HASHED descriptor with its declared timeout, argv only, no shell.
 
@@ -384,6 +414,7 @@ def _run_once(
             timeout=resolved.timeout_s,
             check=False,
             pass_fds=(descriptor,),
+            env={**os.environ, BASE_COMMIT_ENV: base_commit},
         )
     except subprocess.TimeoutExpired as expired:
         return VerifyResult(
@@ -441,6 +472,7 @@ def _output_tail(stdout: bytes | None, stderr: bytes | None) -> str:
 
 
 __all__ = [
+    "BASE_COMMIT_ENV",
     "RED_CHECK_RERUNS",
     "REFUSED_EXIT_CODE",
     "TIMEOUT_EXIT_CODE",

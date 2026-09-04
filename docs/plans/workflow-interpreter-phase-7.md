@@ -214,7 +214,7 @@ D4. Live run — **user decision, not in the estimate.** Same rig recipe
 | Mutant-survivor routing to the orchestrator vs implementer (build-loop.md "Routing") | this plan | a verify script can only pass/fail; a survivor is `fail_code → implement` in v1 |
 | `WF_ARTIFACT_OID` and the rest of cr-o85.34.10 | D5 | first script that needs the OID |
 | feature-delivery: `review-checks.sh` sees only the last commit; `verify-feature.sh` header says no `$WF_*` | C1 | next feature-delivery graph edit (a byte change re-pins both digests; declare `tests-untouched.sh` on its `implement` then) |
-| Pinned dependency manifest (cr-o85.34.11): `mutate.py` is unpinned | C5 | first non-cooperative-runner assumption |
+| Pinned dependency manifest (cr-o85.34.11) — `mutate.py` itself is now pinned by a sha256 embedded in `mutate.sh` (slice C critic, MAJOR); the general manifest stays open | C5 | first non-cooperative-runner assumption |
 | Config-layering deletion + pinned-role runtime (cr-7h8, P1) | phase 6 | not a build-loop blocker; next after this epic |
 | Persist `prepare()`'s session id (cr-o85.34.9) | phase 6 | next after this epic |
 | Stale policy (cr-o85.34.8) | phase 6 | first live run that burns `max_wall` on a silent runner |

@@ -554,7 +554,12 @@ class ExitObserver:
             else artifact.commit_oid
         )
         with VerifyTree(self._git, self._paths, verified) as tree:
-            results = run_checks(node, tree, pinned_digests)
+            results = run_checks(
+                node,
+                tree,
+                pinned_digests,
+                base_commit=activation.metadata.intended_base_commit,
+            )
         undeclared = self._undeclared_effects(
             activation, node, collected, artifact, cwd
         )

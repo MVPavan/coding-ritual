@@ -37,6 +37,7 @@ from workflow_interpreter.supervisor import (
 from workflow_interpreter.supervisor import verify as verify_module
 from workflow_interpreter.supervisor.channels import sha256_file
 from workflow_interpreter.supervisor.verify import (
+    BASE_COMMIT_ENV,
     RED_CHECK_RERUNS,
     REFUSED_EXIT_CODE,
     TIMEOUT_EXIT_CODE,
@@ -51,6 +52,8 @@ RERUN_MARKER = ".rerun"
 WITNESS = "evil-ran"
 HONEST = "#!/bin/sh\nexit 0\n"
 ESCAPE_CWD = "../outside"
+BASE_COMMIT = "0" * 40
+"""The activation's `intended_base_commit`, as the wrapper passes it on."""
 
 
 def _node(*extra: object, **check: object) -> Node:
@@ -87,7 +90,9 @@ def test_a_check_cwd_cannot_swap_the_program_that_was_hashed(tmp_path: Path) -> 
     witness = tmp_path / WITNESS
     _script(tmp_path / "sub" / PROGRAM, f"#!/bin/sh\ntouch {witness}\nexit 0\n")
 
-    results = run_checks(_node(cwd="sub"), tmp_path, _pins(honest))
+    results = run_checks(
+        _node(cwd="sub"), tmp_path, _pins(honest), base_commit=BASE_COMMIT
+    )
 
     assert not witness.exists()
     assert results[0].provenance_ok is False
@@ -100,7 +105,9 @@ def test_a_check_cwd_still_runs_the_program_it_vouched_for(tmp_path: Path) -> No
     _script(tmp_path / PROGRAM, "#!/bin/sh\nexit 3\n")
     under_cwd = _script(tmp_path / "sub" / PROGRAM, "#!/bin/sh\nexit 0\n")
 
-    results = run_checks(_node(cwd="sub"), tmp_path, _pins(under_cwd, "sub"))
+    results = run_checks(
+        _node(cwd="sub"), tmp_path, _pins(under_cwd, "sub"), base_commit=BASE_COMMIT
+    )
 
     assert results[0].provenance_ok is True
     assert results[0].exit_code == 0
@@ -121,7 +128,7 @@ def test_two_checks_sharing_a_program_name_get_separate_pins(tmp_path: Path) -> 
     )
     pins = {**_pins(here), **_pins(there, "sub")}
 
-    results = run_checks(node, tmp_path, pins)
+    results = run_checks(node, tmp_path, pins, base_commit=BASE_COMMIT)
 
     assert len(pins) == 2
     assert [result.provenance_ok for result in results] == [True, True]
@@ -143,7 +150,10 @@ def test_a_check_cannot_reach_outside_the_verify_tree(tmp_path: Path) -> None:
     _script(tmp_path / ESCAPE_CWD / PROGRAM, f"#!/bin/sh\ntouch {witness}\nexit 0\n")
 
     results = run_checks(
-        _node(cwd=ESCAPE_CWD), tree, _pins(tmp_path / ESCAPE_CWD / PROGRAM)
+        _node(cwd=ESCAPE_CWD),
+        tree,
+        _pins(tmp_path / ESCAPE_CWD / PROGRAM),
+        base_commit=BASE_COMMIT,
     )
 
     assert not witness.exists()
@@ -169,7 +179,7 @@ def test_a_symlinked_program_cannot_smuggle_the_check_out_of_the_tree(
     outside = _script(tmp_path / "outside.sh", f"#!/bin/sh\ntouch {witness}\nexit 0\n")
     (tree / PROGRAM).symlink_to(outside)
 
-    results = run_checks(_node(), tree, _pins(outside))
+    results = run_checks(_node(), tree, _pins(outside), base_commit=BASE_COMMIT)
 
     assert not witness.exists()
     assert results[0].provenance_ok is False
@@ -201,7 +211,7 @@ def test_the_program_that_runs_is_the_inode_that_was_hashed(
     pins = _pins(honest)
     monkeypatch.setattr(verify_module.subprocess, "run", swap_then_run)
 
-    results = run_checks(_node(), tmp_path, pins)
+    results = run_checks(_node(), tmp_path, pins, base_commit=BASE_COMMIT)
 
     assert results[0].provenance_ok is True
     assert results[0].exit_code == 0
@@ -221,7 +231,7 @@ def test_a_verifier_that_cannot_be_executed_is_a_result_not_an_exception(
     program = _script(tmp_path / PROGRAM, HONEST, executable=False)
     assert not tmp_path.joinpath(PROGRAM).stat().st_mode & stat.S_IXUSR
 
-    results = run_checks(_node(), tmp_path, _pins(program))
+    results = run_checks(_node(), tmp_path, _pins(program), base_commit=BASE_COMMIT)
 
     assert results[0].provenance_ok is True
     assert results[0].exit_code == REFUSED_EXIT_CODE
@@ -237,7 +247,7 @@ def test_an_unpinned_program_is_refused_before_it_can_run(tmp_path: Path) -> Non
     witness = tmp_path / WITNESS
     _script(tmp_path / PROGRAM, f"#!/bin/sh\ntouch {witness}\nexit 0\n")
 
-    results = run_checks(_node(), tmp_path, {})
+    results = run_checks(_node(), tmp_path, {}, base_commit=BASE_COMMIT)
 
     assert not witness.exists()
     assert results[0].provenance_ok is False
@@ -289,7 +299,7 @@ def test_the_verify_tree_is_rebuilt_over_a_crashed_predecessor(
 def test_an_empty_verify_command_is_refused(tmp_path: Path) -> None:
     """A check with no program cannot be hashed, so it is not run."""
     with pytest.raises(VerifyTreeError, match="no program"):
-        run_checks(_node(cmd=" "), tmp_path, {})
+        run_checks(_node(cmd=" "), tmp_path, {}, base_commit=BASE_COMMIT)
 
 
 def test_the_pinned_digests_have_a_producer_that_matches_the_reader(
@@ -316,7 +326,12 @@ def test_the_pinned_digests_have_a_producer_that_matches_the_reader(
     assert produced
     assert read_back == produced
     assert config.repo_root == repo
-    executed = run_checks(node_of(definition.document, IMPLEMENT), repo, read_back)
+    executed = run_checks(
+        node_of(definition.document, IMPLEMENT),
+        repo,
+        read_back,
+        base_commit=BASE_COMMIT,
+    )
     assert executed[0].provenance_ok is True
 
 
@@ -335,7 +350,7 @@ def test_a_directory_at_the_verifier_path_is_refused_not_raised(
     (tmp_path / PROGRAM).mkdir(parents=True)
     honest = _script(tmp_path / "elsewhere.sh", HONEST)
 
-    results = run_checks(_node(), tmp_path, _pins(honest))
+    results = run_checks(_node(), tmp_path, _pins(honest), base_commit=BASE_COMMIT)
 
     assert results[0].provenance_ok is False
     assert results[0].exit_code == REFUSED_EXIT_CODE
@@ -356,7 +371,7 @@ def test_a_fifo_at_the_verifier_path_is_refused_rather_than_read(
     os.mkfifo(program)
     honest = _script(tmp_path / "elsewhere.sh", HONEST)
 
-    results = run_checks(_node(), tmp_path, _pins(honest))
+    results = run_checks(_node(), tmp_path, _pins(honest), base_commit=BASE_COMMIT)
 
     assert results[0].provenance_ok is False
     assert results[0].exit_code == REFUSED_EXIT_CODE
@@ -379,7 +394,7 @@ def test_a_check_red_only_on_its_first_run_is_rerun_and_passes(
         f"touch {RERUN_MARKER}\necho {FIRST_RED} >&2\nexit 1\n",
     )
 
-    results = run_checks(_node(), tmp_path, _pins(program))
+    results = run_checks(_node(), tmp_path, _pins(program), base_commit=BASE_COMMIT)
 
     assert (tmp_path / RERUN_MARKER).exists()
     assert results[0].provenance_ok is True
@@ -401,7 +416,7 @@ def test_a_check_red_on_both_runs_stays_red(tmp_path: Path) -> None:
     """
     program = _script(tmp_path / PROGRAM, f"#!/bin/sh\necho {FIRST_RED}\nexit 3\n")
 
-    results = run_checks(_node(), tmp_path, _pins(program))
+    results = run_checks(_node(), tmp_path, _pins(program), base_commit=BASE_COMMIT)
 
     assert results[0].provenance_ok is True
     assert results[0].exit_code == 3
@@ -419,7 +434,9 @@ def test_a_timed_out_check_is_not_rerun(tmp_path: Path) -> None:
     """
     program = _script(tmp_path / PROGRAM, "#!/bin/sh\necho before-sleep\nsleep 30\n")
 
-    results = run_checks(_node(timeout="1s"), tmp_path, _pins(program))
+    results = run_checks(
+        _node(timeout="1s"), tmp_path, _pins(program), base_commit=BASE_COMMIT
+    )
 
     assert results[0].provenance_ok is True
     assert results[0].timed_out is True
@@ -447,7 +464,7 @@ def test_a_chatty_check_keeps_only_the_last_bytes_of_its_output(
         f"echo {final}\nexit 1\n",
     )
 
-    results = run_checks(_node(), tmp_path, _pins(program))
+    results = run_checks(_node(), tmp_path, _pins(program), base_commit=BASE_COMMIT)
 
     tail = results[0].output_tails[0]
     assert len(tail.encode("utf-8")) <= VERIFY_OUTPUT_TAIL_BYTES
@@ -465,8 +482,30 @@ def test_a_check_printing_invalid_utf8_is_a_result_not_an_exception(
     """
     program = _script(tmp_path / PROGRAM, "#!/bin/sh\nprintf '\\377'\nexit 1\n")
 
-    results = run_checks(_node(), tmp_path, _pins(program))
+    results = run_checks(_node(), tmp_path, _pins(program), base_commit=BASE_COMMIT)
 
     assert results[0].provenance_ok is True
     assert results[0].exit_code == 1
     assert all("\ufffd" in tail for tail in results[0].output_tails)
+
+
+def test_a_check_sees_the_activations_base_commit_in_its_environment(
+    tmp_path: Path,
+) -> None:
+    """D5/C1: the wrapper injects `WF_BASE_COMMIT` into the check's environment.
+
+    A diff-based check (`tests-untouched.sh`, `mutate.sh`) has no other way to
+    learn where the round started: the verify tree is a detached checkout whose
+    HEAD is the artifact, with no branch and no upstream to diff against. The
+    script asserts the variable itself, so a wrapper that stopped passing `env=`
+    fails here rather than silently grading an empty diff.
+    """
+    program = _script(
+        tmp_path / PROGRAM,
+        f'#!/bin/sh\n[ "${{{BASE_COMMIT_ENV}}}" = "{BASE_COMMIT}" ] || exit 3\n',
+    )
+
+    results = run_checks(_node(), tmp_path, _pins(program), base_commit=BASE_COMMIT)
+
+    assert results[0].provenance_ok is True
+    assert results[0].exit_code == 0
