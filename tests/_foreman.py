@@ -92,6 +92,25 @@ DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
     {"task_brief": "implement the lab fixture"}
 )
 
+# build-loop's five `runner = "profile:<role>"` names, all inert in the lab, and
+# its two non-optional `producer = "instance"` sources. Shared by every test that
+# puts the second graph on the lab.
+BUILD_LOOP_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
+    {
+        role: RunnerBinding(profile="fake")
+        for role in (
+            "test-author",
+            "test-critic",
+            "implementer",
+            "impl-critic",
+            "critic",
+        )
+    }
+)
+BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
+    {"task_brief": "add the lab slice", "seam_contract": "def lab() -> int"}
+)
+
 # The resolver is asked for the runner name as the GRAPH spells it, so the
 # accepted set is derived per graph; `fake` is the lab's own inert profile.
 FAKE_PROFILE: Final[str] = "fake"

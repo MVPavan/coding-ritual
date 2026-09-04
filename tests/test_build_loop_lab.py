@@ -11,24 +11,15 @@ from pathlib import Path
 from typing import Final
 
 from tests._foreman import (
+    BUILD_LOOP_INSTANCE_INPUTS,
+    BUILD_LOOP_ROLES,
     DEFAULT_LAB_INSTANCE_INPUTS,
     DEFAULT_LAB_ROLES,
     ForemanLab,
 )
 from tests._helpers import BUILD_LOOP_GRAPH, runner_roles
 from tests._supervisor import ChildScript, verifier_pins
-from workflow_interpreter.foreman.config import RunnerBinding
 
-# build-loop's five `runner = "profile:<role>"` names, all inert in the lab.
-BUILD_LOOP_LAB_ROLES: Final[dict[str, RunnerBinding]] = {
-    role: RunnerBinding(profile="fake")
-    for role in ("test-author", "test-critic", "implementer", "impl-critic", "critic")
-}
-# Its two non-optional `producer = "instance"` sources.
-BUILD_LOOP_LAB_INPUTS: Final[dict[str, str]] = {
-    "task_brief": "add the lab slice",
-    "seam_contract": "def lab() -> int",
-}
 ENTRY_NODE: Final[str] = "write_tests"
 ACCEPTANCE_TEST: Final[str] = "tests/acceptance/test_lab.py"
 ACCEPTANCE_SEED: Final[str] = "tests/acceptance/__init__.py"
@@ -51,8 +42,8 @@ def _build_loop_lab(tmp_path: Path) -> ForemanLab:
     lab = ForemanLab(
         tmp_path,
         toml=BUILD_LOOP_GRAPH,
-        roles=BUILD_LOOP_LAB_ROLES,
-        instance_inputs=BUILD_LOOP_LAB_INPUTS,
+        roles=BUILD_LOOP_ROLES,
+        instance_inputs=BUILD_LOOP_INSTANCE_INPUTS,
     )
     # `pin_checks` is the lab's "commit this before the root is pinned" seam. The
     # seed file is here because the fixture repo has no `tests/acceptance/`, and a
@@ -70,12 +61,12 @@ def test_the_lab_instantiates_build_loop(tmp_path: Path) -> None:
 
     root = lab.instantiate()
 
-    assert runner_roles(lab.definition) == set(BUILD_LOOP_LAB_ROLES)
-    assert set(lab.config.roles) == set(BUILD_LOOP_LAB_ROLES)
+    assert runner_roles(lab.definition) == set(BUILD_LOOP_ROLES)
+    assert set(lab.config.roles) == set(BUILD_LOOP_ROLES)
     assert root.metadata.graph_content_hash == lab.definition.content_hash
     assert {
         pinned.name: pinned.body for pinned in root.metadata.instance_inputs
-    } == BUILD_LOOP_LAB_INPUTS
+    } == BUILD_LOOP_INSTANCE_INPUTS
 
 
 def test_the_lab_dispatches_the_build_loop_entry_node(tmp_path: Path) -> None:
@@ -96,10 +87,7 @@ def test_the_lab_dispatches_the_build_loop_entry_node(tmp_path: Path) -> None:
     assert not report.halted
     dispatched = lab.store.reads.load_activation(report.dispatched)
     assert dispatched.metadata.node == ENTRY_NODE
-    assert (
-        dispatched.metadata.runner_profile
-        == BUILD_LOOP_LAB_ROLES["test-author"].profile
-    )
+    assert dispatched.metadata.runner_profile == BUILD_LOOP_ROLES["test-author"].profile
     # The close (and with it the graded outcome) belongs to the NEXT tick; what
     # this one proves is that the child ran under the right runner and exited
     # cleanly.
