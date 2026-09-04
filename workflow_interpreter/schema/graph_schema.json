@@ -177,8 +177,9 @@
           "$ref": "#/$defs/identifier"
         },
         "runner": {
+          "description": "A `profile:<role>` alias only (§3.1). The role is bound to a concrete profile and model by the foreman config's `roles` map; any other spelling names nothing that map can resolve and would fail at dispatch instead of here.",
           "type": "string",
-          "minLength": 1
+          "pattern": "^profile:[a-z0-9][a-z0-9_-]*$"
         },
         "model": {
           "type": "string",

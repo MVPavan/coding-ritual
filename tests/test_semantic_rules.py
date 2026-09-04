@@ -161,3 +161,25 @@ def test_two_phase_b_violations_are_both_reported(tmp_path: Path) -> None:
     assert excinfo.value.rule_ids == frozenset(
         {RuleId.INSTANCE_BOUNDS_VALID, RuleId.NODE_FIELDS_MATCH_KIND}
     )
+
+
+@pytest.mark.parametrize(
+    "runner",
+    [
+        pytest.param('runner = "script:checks/route.sh"', id="unknown-prefix"),
+        pytest.param('runner = "implementer"', id="bare-word"),
+        pytest.param('runner = "profile:"', id="empty-role"),
+    ],
+)
+def test_runner_must_be_a_profile_role_alias(tmp_path: Path, runner: str) -> None:
+    """A runner the foreman's roles map could never resolve is refused at load.
+
+    `profile:<role>` is the only spelling §3.1 binds; anything else used to
+    pass validation and instantiation and die later at dispatch (cr-0jd).
+    """
+    path = write(tmp_path, mutate(MINIMAL_GRAPH, (('runner = "profile:x"', runner),)))
+
+    with pytest.raises(GraphValidationError) as excinfo:
+        load_graph(path)
+
+    assert excinfo.value.rule_ids == frozenset({RuleId.SCHEMA})
