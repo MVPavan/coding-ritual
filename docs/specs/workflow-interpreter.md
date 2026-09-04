@@ -550,12 +550,14 @@ machine event stream (`claude -p --output-format stream-json`,
 `codex exec --json`, opencode equivalent) to `log_path`. **Owns runtime
 enforcement** (this answers "who polls" under manual ticks): raises a
 stale flag (file + bd metadata) when `stale_after` passes with no new
-event; TERMs the group on `max_wall` breach (and on token breach where
-the profile reports live usage — best-effort, wall-clock is the universal
-ceiling); on child exit writes the exit file `{exit_code, ended_at,
-reason}` AND **mirrors the exit record into bd as its final act**
-(state `exit-recorded`). The on-disk exit file is thereafter a
-crash-window fallback: a missing file with a bd exit record is still
+event, and TERMs the group (exit reason `stale`) if one further
+`stale_after` passes with no new event; TERMs the group on `max_wall`
+breach (and on token breach where the profile reports live usage —
+best-effort, wall-clock is the universal ceiling); on child exit writes
+the exit file `{exit_code, ended_at, reason}` AND **mirrors the exit
+record into bd as its final act** (state `exit-recorded`). The on-disk
+exit file is thereafter a crash-window fallback: a missing file with a
+bd exit record is still
 `exit-recorded`.
 
 ### 5.4 Worktree precondition
@@ -699,12 +701,14 @@ while the child runs; the foreman may not be):
 | Alive/dead | pgid + boot id + start time; exit record | — |
 | Completed | bd exit record / exit file | — |
 | Activity | JSONL event count + byte growth (activity, not proof of progress) | — |
-| Stale | no new event for `stale_after` | wrapper raises flag (file + bd) |
+| Stale | no new event for `stale_after` | wrapper raises flag (file + bd); a second `stale_after` of silence → wrapper TERMs, exit reason `stale`, closed `error_runner` (one infra retry, as `max_wall`) |
 | Runaway | `max_wall` wall-clock; token ceiling best-effort where `live_usage` | wrapper TERMs, exit reason recorded |
 
 The foreman's model reads bytes only at transitions: terminal → marker +
 §7 (never the log); stale flag → last ~2KB tail, then wait / steer /
-terminate (tier 2). Full-log reads are exceptional and byte-budgeted.
+terminate (tier 2) — a bounded wait, since the wrapper itself TERMs the
+group after one further `stale_after` of silence. Full-log reads are
+exceptional and byte-budgeted.
 
 ## 9. Human gates (signed payloads)
 

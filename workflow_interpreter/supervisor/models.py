@@ -94,6 +94,11 @@ class ExitReason(StrEnum):
 
     EXITED = "exited"
     MAX_WALL = "max_wall"
+    STALE = "stale"
+    """The child was silent through a SECOND `stale_after` window and the
+    wrapper ended it (§8.2). The kill is the `max_wall` one — same proof, same
+    `error_runner` close costing one infra retry — and only this reason says
+    which ceiling was breached."""
     STEERED = "steered"
     TERMINATED = "terminated"
     EXIT_UNOBSERVED = "exit_unobserved"
@@ -148,6 +153,10 @@ class MonitorVerdict(StrEnum):
     STALE = "stale"
     EXITED = "exited"
     MAX_WALL_BREACH = "max-wall-breach"
+    STALE_BREACH = "stale-breach"
+    """A second `stale_after` window of silence, ended by the wrapper (§8.2).
+    Terminal for the same reason `MAX_WALL_BREACH` is: the child is PROVEN
+    dead, and the exit that gets recorded is this termination."""
     INDETERMINATE = "indeterminate"
     """Liveness could not be answered, or a `max_wall` termination could not be
     PROVEN. Deliberately non-terminal: the loop holds position and keeps

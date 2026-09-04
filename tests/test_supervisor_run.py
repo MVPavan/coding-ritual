@@ -46,9 +46,10 @@ from tests._supervisor import (
     task_builder,
 )
 from workflow_interpreter.bdio import Lifecycle, MintReason
-from workflow_interpreter.schema.models import IsolationMode
+from workflow_interpreter.schema.models import IsolationMode, Outcome
 from workflow_interpreter.supervisor import (
     ExecLedger,
+    ExitReason,
     LaunchOutcome,
     MonitorVerdict,
     SteerIntent,
@@ -322,26 +323,85 @@ def test_a_malformed_steer_intent_does_not_suppress_the_exit(lab: Lab) -> None:
     assert metadata.lifecycle is Lifecycle.EXIT_RECORDED
 
 
+def test_a_malformed_steer_intent_reads_as_no_intent_at_all(lab: Lab) -> None:
+    """The same rule as the drill above, at the seam and without a child.
+
+    The end-to-end version is `proc`-marked, so the unit suite — the one §7.3's
+    mutation check runs — never exercised the `WrapperDirError` branch at all:
+    making it answer "a steer is pending" killed no test, and that mutant
+    suppresses the exit record of every activation with a corrupt byte in its
+    wrapper dir. A valid intent is asserted beside it so the test cannot pass
+    by answering `False` to everything.
+    """
+    activation_id = lab.store.mint_activation(
+        lab.root.root_id, entry_mint()
+    ).activation.activation_id
+    path = lab.paths.steer_intent(activation_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("{not json", encoding="utf-8")
+
+    unreadable = lab.supervisor._steer_pending(activation_id)
+    # The §3.2 idempotency key re-finds the same activation, so this replaces
+    # the corrupt bytes with a well-formed intent on the same path.
+    assert _persist_steer_intent(lab) == activation_id
+
+    assert unreadable is False
+    assert lab.supervisor._steer_pending(activation_id) is True
+
+
 @pytest.mark.proc
-def test_a_stale_child_raises_the_flag_on_disk_and_in_bd(tmp_path: Path) -> None:
+def test_a_stale_child_is_flagged_on_disk_and_in_bd_then_terminated(
+    tmp_path: Path,
+) -> None:
     """M11: §8.2 says "file AND bd metadata"; only the file existed.
 
     Losing `.wf/` therefore lost a decision-relevant datum, which §P1 says the
     observation cache is never allowed to hold alone. The mirror lives in the
     supervisor, not in the loop: `Monitor` still cannot reach bd at all.
+
+    The child here stays silent for the whole watch, so it runs the §8.2 order
+    end to end: the flag is raised and mirrored in the first window, and the
+    second one ends the child. The mirror has to happen BEFORE the kill, which
+    is the ordering this asserts by reading both afterwards.
     """
     lab = Lab(tmp_path)
     lab.node = lab.node.model_copy(update={"stale_after": STALE_AFTER})
     lab.clock.real_sleep_s = 0.05
 
-    result = lab.supervise(ChildScript(sleep_s=CHILD_SECONDS, marker=MARKER_JSON))
+    result = lab.supervise(ChildScript(sleep_s=CHILD_SECONDS))
 
     activation_id = result.dispatch.activation.activation_id
+    assert result.monitor is not None
+    assert result.monitor.verdict is MonitorVerdict.STALE_BREACH
     assert result.stale_recorded is True
     assert lab.paths.stale_flag(activation_id).exists()
     recorded = lab.store.reads.load_activation(activation_id).metadata.stale_flag
     assert recorded is not None
     assert recorded.raised_at != ""
+
+
+@pytest.mark.proc
+def test_a_stale_termination_is_graded_as_a_runner_error(tmp_path: Path) -> None:
+    """§8.2: a second silent window ends the child, and §7 grades what is left.
+
+    The route to `error_runner` — and so to one infra retry (§10.2) — is the
+    `max_wall` one exactly: nothing reads the exit REASON, and a TERMed child
+    with no marker is a runner error whichever ceiling ended it. The reason is
+    still recorded, because it is the only place the difference survives.
+    """
+    lab = Lab(tmp_path)
+    lab.node = lab.node.model_copy(update={"stale_after": STALE_AFTER})
+    lab.clock.real_sleep_s = 0.05
+
+    result = lab.supervise(ChildScript(sleep_s=CHILD_SECONDS))
+
+    assert result.monitor is not None
+    assert result.monitor.verdict is MonitorVerdict.STALE_BREACH
+    assert result.observation is not None
+    assert result.observation.exit_record.reason == ExitReason.STALE.value
+    assert result.observation.exit_record.exit_code == -signal.SIGTERM
+    assert result.observation.completion.outcome is Outcome.ERROR_RUNNER
+    assert result.observation.activation.metadata.lifecycle is Lifecycle.EXIT_RECORDED
 
 
 @pytest.mark.proc

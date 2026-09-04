@@ -172,13 +172,18 @@ def test_silence_past_stale_after_raises_the_flag(watched: Watched) -> None:
     assert flag.last_activity_at == watched.handle.started_at
     assert flag.stale_after_s == STALE_AFTER_S
     assert result.stale == flag
+    # The FIRST window only flags: §8.2's stale watch gives the runner one more
+    # `stale_after` before it becomes terminable.
+    assert result.termination is None
 
 
 def test_the_stale_flag_keeps_its_first_timestamp(watched: Watched) -> None:
     """A re-raise must not rewrite when the runner actually went quiet."""
     watched.clock.advance(STALE_AFTER_S + 1)
     first = watched.monitor.observe()
-    watched.clock.advance(STALE_AFTER_S)
+    # Still inside the second window, which is what keeps this a re-raise
+    # rather than the termination the window's end brings.
+    watched.clock.advance(STALE_AFTER_S / 2)
 
     second = watched.monitor.observe()
 
@@ -186,6 +191,95 @@ def test_the_stale_flag_keeps_its_first_timestamp(watched: Watched) -> None:
     assert first.stale is not None
     assert second.stale is not None
     assert second.stale.raised_at == first.stale.raised_at
+
+
+def test_activity_after_the_flag_defers_the_stale_termination(
+    watched: Watched,
+) -> None:
+    """§8.2: the second window is silence, so any byte restarts the count.
+
+    A runner that goes quiet, is flagged, and then speaks again is working —
+    terminating it at a fixed `2 x stale_after` after the flag would kill it
+    for a silence that ended.
+    """
+    watched.clock.advance(STALE_AFTER_S + 1)
+    flagged = watched.monitor.observe()
+    watched.emit("event\n")
+    watched.clock.advance(STALE_AFTER_S)
+    busy = watched.monitor.observe()
+    watched.clock.advance(STALE_AFTER_S + 1)
+
+    quiet_again = watched.monitor.observe()
+
+    assert flagged.verdict is MonitorVerdict.STALE
+    assert busy.verdict is MonitorVerdict.RUNNING
+    assert quiet_again.verdict is MonitorVerdict.STALE
+    assert quiet_again.termination is None
+
+
+def test_a_second_stale_window_of_silence_is_terminable(watched: Watched) -> None:
+    """§8.2: the watch ENDS a runner that stays silent through both windows.
+
+    The fake `/proc` entry never goes away, so this is the unkillable shape:
+    the kill is not confirmed, so it is not terminal — the same rule the
+    `max_wall` ceiling obeys.
+    """
+    watched.clock.advance(2 * STALE_AFTER_S + 1)
+
+    result = watched.monitor.observe()
+
+    assert result.verdict is MonitorVerdict.INDETERMINATE
+    assert result.verdict not in TERMINAL_VERDICTS
+    assert result.termination is not None
+    assert result.termination.confirmed_dead is False
+    assert watched.paths.stale_flag(watched.activation_id).exists()
+
+
+def test_max_wall_outranks_staleness_in_the_same_cycle(
+    watched: Watched, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Both ceilings breached is a runaway: the universal ceiling is recorded.
+
+    A `max_wall` breach is silent by definition long before it is old enough,
+    so the check order is the whole policy — and the flag file is the tell,
+    since the staleness path raises it before it terminates.
+    """
+    watched.clock.advance(MAX_WALL_S + 1)
+
+    first = watched.monitor.observe()
+
+    assert first.verdict is MonitorVerdict.INDETERMINATE
+    assert not watched.paths.stale_flag(watched.activation_id).exists()
+
+    monkeypatch.setattr(
+        procfs_module, "collect", lambda pid: ReapResult(exit_code=-signal.SIGKILL)
+    )
+
+    result = watched.monitor.observe()
+
+    assert result.verdict is MonitorVerdict.MAX_WALL_BREACH
+    assert result.exit_reason is ExitReason.MAX_WALL
+
+
+def test_a_node_without_stale_after_is_never_terminated_for_silence(
+    watched: Watched,
+) -> None:
+    """`stale_after` unset is §2's "no staleness policy", not a zero deadline."""
+    monitor = Monitor(
+        watched.config,
+        watched.paths,
+        watched.clock,
+        activation_id=watched.activation_id,
+        handle=watched.handle,
+        limits=Limits(stale_after_s=0.0, max_wall_s=MAX_WALL_S),
+    )
+    watched.clock.advance(MAX_WALL_S - 1)
+
+    result = monitor.observe()
+
+    assert result.verdict is MonitorVerdict.RUNNING
+    assert result.termination is None
+    assert not watched.paths.stale_flag(watched.activation_id).exists()
 
 
 def test_a_vanished_process_reads_as_exited(watched: Watched) -> None:
@@ -308,10 +402,27 @@ def test_a_max_wall_breach_that_cannot_prove_death_is_not_terminal(
     assert result.termination.confirmed_dead is False
 
 
-def test_an_unconfirmed_max_wall_kill_is_reported_on_the_next_reap(
-    watched: Watched, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(
+    ("silence_s", "verdict", "reason"),
+    [
+        (MAX_WALL_S + 1, MonitorVerdict.MAX_WALL_BREACH, ExitReason.MAX_WALL),
+        (2 * STALE_AFTER_S + 1, MonitorVerdict.STALE_BREACH, ExitReason.STALE),
+    ],
+    ids=["max_wall", "stale"],
+)
+def test_an_unconfirmed_kill_is_reported_on_the_next_reap(
+    watched: Watched,
+    monkeypatch: pytest.MonkeyPatch,
+    silence_s: float,
+    verdict: MonitorVerdict,
+    reason: ExitReason,
 ) -> None:
-    """A delayed reap after an unconfirmed kill is still this wrapper's wall breach."""
+    """A delayed reap after an unconfirmed kill is still this wrapper's breach.
+
+    One dance for both ceilings: the proof stays pending, so the status — when
+    it finally arrives, cycles later — is recorded as the breach that caused
+    the kill and not as an ordinary signal death.
+    """
     stat = watched.config.proc_root / str(FAKE_PID) / "stat"
     reaped: list[int] = []
 
@@ -325,7 +436,7 @@ def test_an_unconfirmed_max_wall_kill_is_reported_on_the_next_reap(
     watched.clock.on_sleep.append(lambda: None)
     watched.clock.on_sleep.append(make_proc_indeterminate)
     monkeypatch.setattr(procfs_module, "reap", record_reap)
-    watched.clock.advance(MAX_WALL_S + 1)
+    watched.clock.advance(silence_s)
 
     first = watched.monitor.observe()
 
@@ -342,10 +453,12 @@ def test_an_unconfirmed_max_wall_kill_is_reported_on_the_next_reap(
 
     result = watched.monitor.observe()
 
-    assert result.verdict is MonitorVerdict.MAX_WALL_BREACH
-    assert result.exit_reason is ExitReason.MAX_WALL
+    assert result.verdict is verdict
+    assert result.verdict in TERMINAL_VERDICTS
+    assert result.exit_reason is reason
     assert result.exit_code == -signal.SIGKILL
     assert result.termination == first.termination
+    assert _exit_reason(result) is reason
 
 
 def test_watch_returns_on_the_first_terminal_verdict(watched: Watched) -> None:
@@ -361,10 +474,27 @@ def test_watch_returns_on_the_first_terminal_verdict(watched: Watched) -> None:
 
 
 @pytest.mark.proc
-def test_max_wall_breach_terms_the_group_and_records_the_reason(
+@pytest.mark.parametrize(
+    ("silence_s", "verdict", "reason"),
+    [
+        (MAX_WALL_S + 1, MonitorVerdict.MAX_WALL_BREACH, ExitReason.MAX_WALL),
+        (2 * STALE_AFTER_S + 1, MonitorVerdict.STALE_BREACH, ExitReason.STALE),
+    ],
+    ids=["max_wall", "stale"],
+)
+def test_a_breached_ceiling_terms_the_group_and_records_the_reason(
     tmp_path: Path,
+    silence_s: float,
+    verdict: MonitorVerdict,
+    reason: ExitReason,
 ) -> None:
-    """Drill 16: a runaway is TERMed by the wrapper and `max_wall` is recorded."""
+    """Drill 16 for both ceilings: TERM the group, record why (§8.2).
+
+    The second case is the staleness one: a runner that stayed silent through
+    a second `stale_after` window is ended exactly as a runaway is, so the
+    same real child is signalled and the same proof is demanded — only the
+    recorded reason differs.
+    """
     repo = make_repo(tmp_path)
     config = make_config(repo, tmp_path, fake_proc=False)
     _, store = make_store(tmp_path, head_of(repo))
@@ -387,7 +517,7 @@ def test_max_wall_breach_terms_the_group_and_records_the_reason(
         config, paths, clock, activation_id=activation_id, launch_id="runaway-1"
     )(command)
 
-    clock.advance(MAX_WALL_S + 1)
+    clock.advance(silence_s)
     monitor = Monitor(
         config,
         paths,
@@ -398,8 +528,8 @@ def test_max_wall_breach_terms_the_group_and_records_the_reason(
     )
     result = monitor.observe()
 
-    assert result.verdict is MonitorVerdict.MAX_WALL_BREACH
-    assert result.exit_reason is ExitReason.MAX_WALL
+    assert result.verdict is verdict
+    assert result.exit_reason is reason
     assert result.termination is not None
     assert result.termination.confirmed_dead is True
     assert "SIGTERM" in result.termination.signals_sent
@@ -410,6 +540,7 @@ def test_max_wall_breach_terms_the_group_and_records_the_reason(
     assert result.exit_code == -signal.SIGTERM
     assert result.termination.exit_code == result.exit_code
     assert _exit_code(result) == -signal.SIGTERM
+    assert _exit_reason(result) is reason
     _reap(handle.pid)
 
 

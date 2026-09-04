@@ -385,6 +385,8 @@ def _exit_reason(result: MonitorResult) -> ExitReason:
     """Why the child stopped, per the §8.2 verdict that ended the watch."""
     if result.verdict is MonitorVerdict.MAX_WALL_BREACH:
         return ExitReason.MAX_WALL
+    if result.verdict is MonitorVerdict.STALE_BREACH:
+        return ExitReason.STALE
     if result.exit_reason is not None:
         return result.exit_reason
     return ExitReason.EXIT_UNOBSERVED

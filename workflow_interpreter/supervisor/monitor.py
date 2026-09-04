@@ -10,8 +10,11 @@ child's lifetime, and the foreman under manual ticks usually is not.
 Two enforcement powers, per §8.2's table:
 
 - **Stale** — no new event for `stale_after`: raise the flag (file now, bd
-  metadata when the foreman next ticks) and KEEP WATCHING. Staleness is a hint
-  for a tier-2 decision, not a verdict.
+  metadata when the foreman next ticks) and KEEP WATCHING. The flag is a hint
+  for a tier-2 decision, not a verdict — but the watch is terminable: one
+  further `stale_after` of silence and the wrapper TERMs the group exactly as
+  a runaway is TERMed, with `stale` as the recorded reason. Any byte in
+  between restarts the count, so only a runner that stays silent is ended.
 - **Runaway** — `max_wall` breached: TERM the group and record the exit reason.
   This one is a ceiling, and it is the universal one; the token ceiling is
   best-effort and only where the profile reports live usage (§6).
@@ -63,8 +66,17 @@ from workflow_interpreter.supervisor.paths import (
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 TERMINAL_VERDICTS: Final[frozenset[MonitorVerdict]] = frozenset(
-    {MonitorVerdict.EXITED, MonitorVerdict.MAX_WALL_BREACH}
+    {
+        MonitorVerdict.EXITED,
+        MonitorVerdict.MAX_WALL_BREACH,
+        MonitorVerdict.STALE_BREACH,
+    }
 )
+
+STALE_WINDOWS_BEFORE_TERMINATION: Final[int] = 2
+"""§8.2: one `stale_after` raises the flag, a SECOND one of unbroken silence
+ends the child. Counted from the last activity, not from the flag, so a runner
+that speaks again buys itself the whole policy back."""
 
 
 class Limits(BaseModel):
@@ -82,6 +94,21 @@ class Limits(BaseModel):
             stale_after_s=duration_seconds(node.stale_after or "0s"),
             max_wall_s=duration_seconds(node.max_wall or "0s"),
         )
+
+
+class PendingTermination(BaseModel):
+    """A kill this wrapper carried out but could not prove, and what it was.
+
+    The verdict and reason travel with the proof because the death may only be
+    confirmed cycles later, by a reap — and a status collected then is still
+    the ceiling breach that caused it, not an ordinary signal death.
+    """
+
+    model_config = RECORD_MODEL
+
+    proof: TerminationProof
+    verdict: MonitorVerdict
+    reason: ExitReason
 
 
 class Monitor:
@@ -110,8 +137,8 @@ class Monitor:
         STARTED, not `stale_after` after somebody happened to look (§8.2)."""
         self._last_proof_error: str | None = None
         """Why the last liveness question could not be answered, for the log."""
-        self._pending_max_wall: TerminationProof | None = None
-        """An unconfirmed max-wall termination awaiting the child's reap."""
+        self._pending_termination: PendingTermination | None = None
+        """An unconfirmed ceiling termination awaiting the child's reap."""
 
     def observe(self) -> MonitorResult:
         """One cycle: reaped status, then unknown, then exit, runaway, staleness.
@@ -133,14 +160,15 @@ class Monitor:
 
         status, reaped = self._exited()
         if reaped.exit_code is not None:
-            if self._pending_max_wall is not None:
+            pending = self._pending_termination
+            if pending is not None:
                 return self._result(
-                    MonitorVerdict.MAX_WALL_BREACH,
+                    pending.verdict,
                     now,
                     size,
                     exit_code=reaped.exit_code,
-                    reason=ExitReason.MAX_WALL,
-                    termination=self._pending_max_wall,
+                    reason=pending.reason,
+                    termination=pending.proof,
                 )
             code = reaped.exit_code
             reason = ExitReason.TERMINATED if code < 0 else ExitReason.EXITED
@@ -160,10 +188,15 @@ class Monitor:
         if elapsed_seconds(self._handle.started_at, now) > self._limits.max_wall_s > 0:
             return self._enforce_max_wall(now, size)
 
-        if elapsed_seconds(self._last_activity, now) > self._limits.stale_after_s > 0:
-            return self._result(
-                MonitorVerdict.STALE, now, size, stale=self._raise_stale_flag(now)
-            )
+        silence_s = elapsed_seconds(self._last_activity, now)
+        if silence_s > self._limits.stale_after_s > 0:
+            flag = self._raise_stale_flag(now)
+            if (
+                silence_s
+                > STALE_WINDOWS_BEFORE_TERMINATION * self._limits.stale_after_s
+            ):
+                return self._enforce_stale(now, size, stale=flag)
+            return self._result(MonitorVerdict.STALE, now, size, stale=flag)
         return self._result(MonitorVerdict.RUNNING, now, size)
 
     def watch(
@@ -254,43 +287,106 @@ class Monitor:
             return 0
 
     def _enforce_max_wall(self, now: datetime, size: int) -> MonitorResult:
-        """TERM the group on a runaway, and record `max_wall` only if it DIED.
-
-        A termination that could not prove death is not a terminal observation.
-        `TerminationProof.confirmed_dead = False` means the child survived TERM
-        and KILL, or `/proc` could not be read at all — either way it may still
-        be writing the working tree, and `MAX_WALL_BREACH` would end the watch,
-        write an exit record and release §5.6 to reset that tree underneath it.
-        The proof stays pending until a later reap confirms the child died, so
-        the status is recorded as this max-wall breach rather than an ordinary
-        termination. `terminate` remains idempotent and paces itself through
-        its own grace periods (§8.1).
-        """
+        """TERM the group on a runaway, and record `max_wall` only if it DIED."""
         _LOG.warning(
             "wf.child.max_wall",
             activation_id=self._activation_id,
             pid=self._handle.pid,
             max_wall_s=self._limits.max_wall_s,
         )
+        return self._enforce_ceiling(
+            now,
+            size,
+            verdict=MonitorVerdict.MAX_WALL_BREACH,
+            reason=ExitReason.MAX_WALL,
+            unconfirmed_event="wf.child.max_wall_unconfirmed",
+        )
+
+    def _enforce_stale(
+        self, now: datetime, size: int, *, stale: StaleFlag
+    ) -> MonitorResult:
+        """TERM the group after a SECOND silent `stale_after` window (§8.2).
+
+        The flag alone was only ever a hint, so a runner that went quiet and
+        stayed quiet was watched forever: nothing but `max_wall` — often hours
+        away, and unset on plenty of nodes — could end it. The second window is
+        what makes the flag a watch: the first is the warning that reaches bd,
+        and any byte written in it resets the count.
+
+        One corner is deliberate: an ADOPTED (§5.2 REATTACHED) child whose
+        `started_at` is already more than two windows old and whose log is
+        empty is TERMed on this wrapper's FIRST observation, raising the flag
+        and terminating in one cycle, so the foreman never gets its tier-2
+        steer window. That is the honest reading of the evidence — a wrapper
+        adopting a runner that has not written one byte in two full windows has
+        nothing suggesting it ever spoke — and the flag is still written to
+        disk and mirrored to bd, so the decision remains visible after the
+        fact.
+        """
+        _LOG.warning(
+            "wf.child.stale_terminated",
+            activation_id=self._activation_id,
+            pid=self._handle.pid,
+            stale_after_s=self._limits.stale_after_s,
+            last_activity_at=self._last_activity,
+        )
+        return self._enforce_ceiling(
+            now,
+            size,
+            verdict=MonitorVerdict.STALE_BREACH,
+            reason=ExitReason.STALE,
+            unconfirmed_event="wf.child.stale_terminated_unconfirmed",
+            stale=stale,
+        )
+
+    def _enforce_ceiling(
+        self,
+        now: datetime,
+        size: int,
+        *,
+        verdict: MonitorVerdict,
+        reason: ExitReason,
+        unconfirmed_event: str,
+        stale: StaleFlag | None = None,
+    ) -> MonitorResult:
+        """End the child on a breached ceiling, terminal only if it DIED.
+
+        A termination that could not prove death is not a terminal observation.
+        `TerminationProof.confirmed_dead = False` means the child survived TERM
+        and KILL, or `/proc` could not be read at all — either way it may still
+        be writing the working tree, and a breach verdict would end the watch,
+        write an exit record and release §5.6 to reset that tree underneath it.
+        The proof stays pending until a later reap confirms the child died, so
+        the status is recorded as this breach rather than an ordinary
+        termination. `terminate` remains idempotent and paces itself through
+        its own grace periods (§8.1).
+        """
         termination = procfs.terminate(self._config, self._handle, self._clock)
         if not termination.confirmed_dead:
-            self._pending_max_wall = termination
+            self._pending_termination = PendingTermination(
+                proof=termination, verdict=verdict, reason=reason
+            )
             self._last_proof_error = termination.proof.read_error
             _LOG.error(
-                "wf.child.max_wall_unconfirmed",
+                unconfirmed_event,
                 activation_id=self._activation_id,
                 pid=self._handle.pid,
                 signals=termination.signals_sent,
             )
             return self._result(
-                MonitorVerdict.INDETERMINATE, now, size, termination=termination
+                MonitorVerdict.INDETERMINATE,
+                now,
+                size,
+                stale=stale,
+                termination=termination,
             )
         return self._result(
-            MonitorVerdict.MAX_WALL_BREACH,
+            verdict,
             now,
             size,
             exit_code=termination.exit_code,
-            reason=ExitReason.MAX_WALL,
+            reason=reason,
+            stale=stale,
             termination=termination,
         )
 
