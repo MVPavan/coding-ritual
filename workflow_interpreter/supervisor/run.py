@@ -64,6 +64,7 @@ from workflow_interpreter.schema.models import IsolationMode, Node
 from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.config import SupervisorConfig
+from workflow_interpreter.supervisor.errors import WrapperDirError
 from workflow_interpreter.supervisor.exit import ExitObservation, ExitObserver
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.launch import (
@@ -81,9 +82,10 @@ from workflow_interpreter.supervisor.models import (
     MonitorResult,
     MonitorVerdict,
     PreconditionResult,
+    SteerIntent,
 )
 from workflow_interpreter.supervisor.monitor import Limits, Monitor
-from workflow_interpreter.supervisor.paths import WrapperPaths
+from workflow_interpreter.supervisor.paths import WrapperPaths, read_record
 from workflow_interpreter.supervisor.profile import Profile
 from workflow_interpreter.supervisor.workspace import Workspace
 
@@ -182,7 +184,9 @@ class Supervisor:
         Returns without observing an exit only where the child is not this
         wrapper's to watch: `ALREADY_DISPATCHED` means bd already records a
         handle, so another wrapper may be alive on it and adopting it here would
-        put two watchers on one child (§5.6 answers that question instead).
+        put two watchers on one child (§5.6 answers that question instead) — and
+        where a durable §8.1 steer intent already claims the death, which the
+        steerer or §5.6 closes itself (see `_steer_pending`).
 
         A REATTACHED child IS adopted. It is the §5.2 crash window — our own
         receipt and ledger line exist while bd still said `minted`, which can
@@ -238,6 +242,23 @@ class Supervisor:
         )
         mirror = _StaleMirror(self._store, activation.activation_id)
         result = monitor.watch(mirror)
+        if self._steer_pending(activation.activation_id):
+            # §8.1 writes the intent DURABLY before the kill, so a child that
+            # dies with one on disk died BECAUSE of the steer — the same rule
+            # §5.6 recovery applies when it lets the intent outrank the exit
+            # record. Grading that death here would name it `exit_unobserved` →
+            # `error_transport`: an infra retry spent on a deliberate kill, and
+            # a close racing the steerer's own `steered` close (cr-us7). The
+            # steerer that wrote the intent — or recovery's STEER_PENDING case
+            # on the next tick — owns the close; both are idempotent.
+            _LOG.info(
+                "wf.supervise.steer_pending",
+                activation_id=activation.activation_id,
+                verdict=result.verdict.value,
+            )
+            return SupervisionResult(
+                dispatch=dispatch, monitor=result, stale_recorded=mirror.recorded
+            )
         observation = self._observer.observe(
             activation,
             node,
@@ -253,6 +274,24 @@ class Supervisor:
             observation=observation,
             stale_recorded=mirror.recorded,
         )
+
+    def _steer_pending(self, activation_id: str) -> bool:
+        """Whether a durable §8.1 intent claims this activation's death.
+
+        A malformed intent is treated as absent: an unreadable file is §5.6's
+        to report (`MALFORMED_STEER_INTENT`), and letting it suppress the exit
+        record here would lose the observation to a corrupt byte.
+        """
+        try:
+            intent = read_record(self._paths.steer_intent(activation_id), SteerIntent)
+        except WrapperDirError as exc:
+            _LOG.warning(
+                "wf.supervise.steer_intent_unreadable",
+                activation_id=activation_id,
+                error=str(exc),
+            )
+            return False
+        return intent is not None
 
     def _precondition(
         self,

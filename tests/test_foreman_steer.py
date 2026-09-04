@@ -23,6 +23,11 @@ from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.supervisor.errors import ContinuationRefused
 from workflow_interpreter.supervisor.models import StaleFlag
 from workflow_interpreter.supervisor.paths import ExecLedger, read_record
+from workflow_interpreter.supervisor.procfs import (
+    COMM_CLOSE,
+    STAT_FILE,
+    ZOMBIE_STATE,
+)
 from workflow_interpreter.supervisor.steer import instructions_digest
 
 # Every test in this file is a §5 drill row (INSPECT and STEER).
@@ -265,8 +270,23 @@ def _proc_steer_lab(tmp_path: Path) -> tuple[ForemanLab, ProcSpawner]:
 
 
 def _runner_alive(pid: int) -> bool:
-    """Whether `/proc` still has an entry for the real forked runner's pid."""
-    return Path(f"/proc/{pid}").exists()
+    """Whether the real forked runner is still RUNNING, zombies excluded.
+
+    A zombie is dead by `prove_liveness`'s own rule (procfs.py:137-141) — it has
+    exited and only its unreaped status remains — but it keeps its `/proc` entry
+    until the forked wrapper's next `Monitor` cycle waitpids it. Asking bare path
+    existence therefore made this a race with that reap rather than a question
+    about the kill, and it flaked under load (cr-us7 follow-up). `/proc` is read
+    directly rather than through `prove_liveness`, which would need a
+    `SupervisorConfig` and the handle's boot id and start time to answer the same
+    question this pid alone can answer.
+    """
+    try:
+        stat = Path(f"/proc/{pid}/{STAT_FILE}").read_text(encoding="utf-8")
+    except OSError:
+        return False
+    state = stat.rpartition(COMM_CLOSE)[2].split()
+    return bool(state) and state[0] != ZOMBIE_STATE
 
 
 @pytest.mark.proc

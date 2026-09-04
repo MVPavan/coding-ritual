@@ -246,6 +246,16 @@ implementer, then §10.5. Residual: a deterministic environment failure at
 `review` still ends at `triage` with no way to re-review the same tree short of
 `abandon`.
 
+**Phase 6.5, the rest (2026-09-04).** cr-o85.34.12: each check attempt keeps a
+2 KB tail of its output in `completion.json` (`VerifyResult.output_tails`) and
+`foreman inspect` shows the red ones. cr-o85.34.15: structlog is configured
+once in `main()`, stderr only, so `run`/`status` stdout is one JSON object.
+cr-o85.34.16: the gate inbox is created at gate open (`gates.py ensure_inbox`).
+cr-us7 / cr-o85.34.13: the wrapper defers to a durable steer intent before it
+records an exit (`run.py _steer_pending`), the same rule §5.6 recovery applies;
+the steer proc test's liveness probe now treats a zombie as dead, which was a
+second, ~3% load flake; the test is back in `scripts/verify-feature.sh`.
+
 ## 3. Deferred — recorded so nobody rediscovers them
 
 | Item | Found by | Trigger |

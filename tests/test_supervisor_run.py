@@ -45,16 +45,19 @@ from tests._supervisor import (
     node_of,
     task_builder,
 )
-from workflow_interpreter.bdio import Lifecycle
+from workflow_interpreter.bdio import Lifecycle, MintReason
 from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.supervisor import (
     ExecLedger,
     LaunchOutcome,
     MonitorVerdict,
+    SteerIntent,
     SupervisionResult,
     Supervisor,
     pinned_verifier_digests,
 )
+from workflow_interpreter.supervisor.paths import write_record
+from workflow_interpreter.supervisor.steer import instructions_digest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MARKER_JSON = '{"outcome":"done"}'
@@ -62,6 +65,10 @@ EFFECTS_JSON = '{"paths":[]}'
 STALE_AFTER = "1s"
 CHILD_SECONDS = 3.0
 SENTINEL_TIMEOUT_S = 90.0
+BD_UPDATE = "update"
+STEER_REASON = "the runner is repeating itself"
+STEER_INSTRUCTIONS = "start from the failing test instead"
+REQUESTED_AT = "2026-09-02T09:00:00Z"
 
 WRAPPER_MAIN = '''
 """A supervisor wrapper in its own process, for the parent-death drill."""
@@ -238,6 +245,81 @@ def test_a_re_dispatch_does_not_rewrite_a_recorded_precondition(lab: Lab) -> Non
     assert second.observation is None
     assert second.dispatch.precondition is None
     assert lab.fake_bd.command_count("update") == before
+
+
+def _persist_steer_intent(lab: Lab) -> str:
+    """Mint the activation the run will re-find, with a §8.1 intent already on disk.
+
+    Pre-minting is how the other tests here learn an activation id before the
+    run (§3.2's idempotency key makes the supervisor re-find this one), and it
+    is what makes the race deterministic: the intent is durable before the
+    watch ends, exactly as `Steerer.steer` writes it before the kill.
+    """
+    activation_id = lab.store.mint_activation(
+        lab.root.root_id, entry_mint()
+    ).activation.activation_id
+    write_record(
+        lab.paths.steer_intent(activation_id),
+        SteerIntent(
+            activation_id=activation_id,
+            reason=STEER_REASON,
+            instructions=STEER_INSTRUCTIONS,
+            instructions_digest=instructions_digest(STEER_INSTRUCTIONS),
+            requested_at=REQUESTED_AT,
+            continuation=entry_mint(
+                mint_reason=MintReason.STEER_CONTINUATION,
+                predecessor_activation_id=activation_id,
+            ),
+        ),
+    )
+    return activation_id
+
+
+@pytest.mark.proc
+def test_a_pending_steer_intent_leaves_the_exit_to_the_steerer(lab: Lab) -> None:
+    """cr-us7: the wrapper raced the steerer and won, wedging the steer.
+
+    A child killed by §8.1 dies with no reaped status, so the watch ends
+    `exited` with no code and the observer graded it `exit_unobserved` →
+    `error_transport`: an infra retry spent on a deliberate kill, and a close
+    that made the steerer's own `steered` close raise
+    `LifecycleConflictError`. The durable intent is the same evidence §5.6
+    lets outrank an exit record, so the wrapper now defers too.
+    """
+    activation_id = _persist_steer_intent(lab)
+    updates_before = lab.fake_bd.command_count(BD_UPDATE)
+
+    result = lab.supervise(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
+
+    assert result.dispatch.activation.activation_id == activation_id
+    assert result.monitor is not None
+    assert result.observation is None
+    assert not lab.paths.exit_file(activation_id).exists()
+    metadata = lab.store.reads.load_activation(activation_id).metadata
+    assert metadata.lifecycle is Lifecycle.DISPATCHED
+    assert metadata.exit_record is None
+    # The §3.2 trio and the dispatch, and nothing after them: no `record_exit`
+    # and no close reached bd, so the steerer's own close cannot conflict.
+    assert lab.fake_bd.command_count(BD_UPDATE) == updates_before + 2
+
+
+@pytest.mark.proc
+def test_a_malformed_steer_intent_does_not_suppress_the_exit(lab: Lab) -> None:
+    """An unreadable intent is §5.6's to report, not the wrapper's to act on."""
+    activation_id = lab.store.mint_activation(
+        lab.root.root_id, entry_mint()
+    ).activation.activation_id
+    path = lab.paths.steer_intent(activation_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("{not json", encoding="utf-8")
+
+    result = lab.supervise(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
+
+    assert result.observation is not None
+    assert result.observation.exit_record.exit_code == 0
+    assert lab.paths.exit_file(activation_id).exists()
+    metadata = lab.store.reads.load_activation(activation_id).metadata
+    assert metadata.lifecycle is Lifecycle.EXIT_RECORDED
 
 
 @pytest.mark.proc
