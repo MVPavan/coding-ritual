@@ -406,8 +406,15 @@ def _run(
         emit(foreman.tick(args.root_id).model_dump_json(), MAX_TRANSCRIPT_BYTES)
         return 0
     if args.command == "inspect":
-        limit = MAX_TRANSCRIPT_BYTES + composition.supervisor_config.log_tail_bytes
-        emit(foreman.inspect(args.root_id, args.activation_id).model_dump_json(), limit)
+        inspection = foreman.inspect(args.root_id, args.activation_id)
+        # Each red §7.3 tail is bounded by `log_tail_bytes` in its own right, so
+        # the budget grows by exactly one such tail per red attempt in the
+        # report — otherwise a verdict with output collapses to `truncated`.
+        red_tails = sum(len(check.red_tails) for check in inspection.verify)
+        limit = MAX_TRANSCRIPT_BYTES + composition.supervisor_config.log_tail_bytes * (
+            1 + red_tails
+        )
+        emit(inspection.model_dump_json(), limit)
         return 0
     if args.command == "steer":
         limit = MAX_TRANSCRIPT_BYTES + composition.supervisor_config.log_tail_bytes

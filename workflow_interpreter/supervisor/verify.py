@@ -59,7 +59,7 @@ from workflow_interpreter.supervisor.channels import verifier_digest_key
 from workflow_interpreter.supervisor.errors import VerifyTreeError
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.models import VerifyResult
-from workflow_interpreter.supervisor.paths import WrapperPaths
+from workflow_interpreter.supervisor.paths import ENCODING, WrapperPaths
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -88,6 +88,24 @@ TWICE at the same commit, with the same descriptor and the same timeout, is the
 artifact's problem and grades `fail_code` exactly as before. Deliberately not
 configurable: a graph that could raise this could re-roll a red check until it
 passed, and §7.3 evidence would stop meaning anything."""
+
+VERIFY_OUTPUT_TAIL_BYTES: Final[int] = 2048
+"""How many bytes of one attempt's combined output are kept as evidence.
+
+A `fail_code` that names only an exit code makes a human infer the cause: live,
+`scripts/review-checks.sh` exited 1 and neither `completion.json` nor the bead
+held a byte of what it printed (cr-o85.34.12). The tail is that byte record.
+
+Bounded PER ATTEMPT rather than per check so `completion.json` stays small and
+a chatty check cannot bloat a durable record: the tail is for a human reading a
+verdict after the fact, not a full transcript, and the failing lines of a check
+are the last ones it prints."""
+
+STDERR_SEPARATOR: Final[bytes] = b"\n--- stderr ---\n"
+"""Marks where a captured stdout ends and its stderr begins in one tail.
+
+The two streams are captured separately, so a tail that just concatenated them
+would read as one stream and put a diagnostic line in the wrong place."""
 
 _MSG_TREE_DIRTY: Final[str] = (
     "the §7.3 verify checkout at {path} is not a clean {commit} (HEAD {head}, "
@@ -319,13 +337,18 @@ def _execute(
     object the first attempt was.
     """
     attempt = 1
+    tails: list[str] = []
     while True:
         result = _run_once(resolved, descriptor, digest, pinned, attempt)
+        # Every attempt's tail is kept, not just the surviving result's: when a
+        # rerun turns the check green, the RED attempt's output is the one a
+        # human wants to read (cr-o85.34.12).
+        tails.extend(result.output_tails)
         rerunnable = (
             result.exit_code != 0 and not result.timed_out and result.error is None
         )
         if not rerunnable or attempt >= 1 + RED_CHECK_RERUNS:
-            return result
+            return result.model_copy(update={"output_tails": tuple(tails)})
         attempt += 1
         _LOG.warning(
             "wf.verify.rerun",
@@ -346,18 +369,23 @@ def _run_once(
     inode over the old name, and a path-based exec would then run bytes nobody
     vouched for. The descriptor cannot: it names the inode that was hashed,
     even once nothing links to it any more.
+
+    Output is captured as BYTES, not text: `text=True` decodes strictly, so a
+    check that printed a single non-UTF-8 byte would raise `UnicodeDecodeError`
+    out of `subprocess.run` — an exception neither handler below catches, from
+    a check that ran perfectly well. The tail decodes leniently instead.
     """
     try:
         completed = subprocess.run(
             [PROC_FD_TEMPLATE.format(descriptor=descriptor), *resolved.argv_tail],
             cwd=resolved.run_dir,
             capture_output=True,
-            text=True,
+            text=False,
             timeout=resolved.timeout_s,
             check=False,
             pass_fds=(descriptor,),
         )
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as expired:
         return VerifyResult(
             cmd=resolved.cmd,
             exit_code=TIMEOUT_EXIT_CODE,
@@ -367,6 +395,9 @@ def _run_once(
             timed_out=True,
             program=str(resolved.program),
             attempts=attempts,
+            # Whatever the check printed before the kill is the only evidence
+            # of WHERE it hung; both streams are `None` when it printed nothing.
+            output_tails=(_output_tail(expired.stdout, expired.stderr),),
         )
     except OSError as exc:
         # Not executable, no interpreter, a run_dir that is not a directory:
@@ -381,6 +412,8 @@ def _run_once(
             program=str(resolved.program),
             error=_MSG_UNRUNNABLE.format(program=resolved.program, error=exc),
             attempts=attempts,
+            # Nothing was started, so there is no output to keep — the `error`
+            # above is the whole story of this result.
         )
     return VerifyResult(
         cmd=resolved.cmd,
@@ -390,13 +423,28 @@ def _run_once(
         provenance_ok=True,
         program=str(resolved.program),
         attempts=attempts,
+        output_tails=(_output_tail(completed.stdout, completed.stderr),),
     )
+
+
+def _output_tail(stdout: bytes | None, stderr: bytes | None) -> str:
+    """The last `VERIFY_OUTPUT_TAIL_BYTES` of one attempt's combined output.
+
+    Decoded leniently, like every other tail in the wrapper: the cut lands on
+    an arbitrary byte, so a partial UTF-8 sequence at the front is expected and
+    is never a reason to lose the evidence.
+    """
+    combined = stdout or b""
+    if stderr:
+        combined = combined + STDERR_SEPARATOR + stderr
+    return combined[-VERIFY_OUTPUT_TAIL_BYTES:].decode(ENCODING, errors="replace")
 
 
 __all__ = [
     "RED_CHECK_RERUNS",
     "REFUSED_EXIT_CODE",
     "TIMEOUT_EXIT_CODE",
+    "VERIFY_OUTPUT_TAIL_BYTES",
     "ResolvedCheck",
     "VerifyTree",
     "run_checks",

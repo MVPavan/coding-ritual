@@ -40,10 +40,13 @@ from workflow_interpreter.supervisor.verify import (
     RED_CHECK_RERUNS,
     REFUSED_EXIT_CODE,
     TIMEOUT_EXIT_CODE,
+    VERIFY_OUTPUT_TAIL_BYTES,
     VerifyTree,
 )
 
 PROGRAM = "scripts/check.sh"
+STDERR_MARK = "--- stderr ---"
+FIRST_RED = "first-red"
 RERUN_MARKER = ".rerun"
 WITNESS = "evil-ran"
 HONEST = "#!/bin/sh\nexit 0\n"
@@ -241,6 +244,8 @@ def test_an_unpinned_program_is_refused_before_it_can_run(tmp_path: Path) -> Non
     assert results[0].exit_code == REFUSED_EXIT_CODE
     # Refused means NOT RUN; there is nothing for the rerun to disambiguate.
     assert results[0].attempts == 1
+    # And nothing ran, so there is no output to keep either.
+    assert results[0].output_tails == ()
 
 
 def test_the_verify_tree_is_a_clean_checkout_of_the_named_commit(
@@ -370,7 +375,8 @@ def test_a_check_red_only_on_its_first_run_is_rerun_and_passes(
     """
     program = _script(
         tmp_path / PROGRAM,
-        f"#!/bin/sh\ntest -f {RERUN_MARKER} && exit 0\ntouch {RERUN_MARKER}\nexit 1\n",
+        f"#!/bin/sh\ntest -f {RERUN_MARKER} && exit 0\n"
+        f"touch {RERUN_MARKER}\necho {FIRST_RED} >&2\nexit 1\n",
     )
 
     results = run_checks(_node(), tmp_path, _pins(program))
@@ -379,6 +385,11 @@ def test_a_check_red_only_on_its_first_run_is_rerun_and_passes(
     assert results[0].provenance_ok is True
     assert results[0].exit_code == 0
     assert results[0].attempts == 1 + RED_CHECK_RERUNS
+    # cr-o85.34.12: the RED attempt is the one a human needs to read, and a
+    # green final exit code is exactly when its output would otherwise be lost.
+    assert len(results[0].output_tails) == 1 + RED_CHECK_RERUNS
+    assert FIRST_RED in results[0].output_tails[0]
+    assert STDERR_MARK in results[0].output_tails[0]
 
 
 def test_a_check_red_on_both_runs_stays_red(tmp_path: Path) -> None:
@@ -388,13 +399,15 @@ def test_a_check_red_on_both_runs_stays_red(tmp_path: Path) -> None:
     `fail_code` with its own exit code — the evidence is not re-rolled until
     it passes.
     """
-    program = _script(tmp_path / PROGRAM, "#!/bin/sh\nexit 3\n")
+    program = _script(tmp_path / PROGRAM, f"#!/bin/sh\necho {FIRST_RED}\nexit 3\n")
 
     results = run_checks(_node(), tmp_path, _pins(program))
 
     assert results[0].provenance_ok is True
     assert results[0].exit_code == 3
     assert results[0].attempts == 1 + RED_CHECK_RERUNS
+    assert len(results[0].output_tails) == 1 + RED_CHECK_RERUNS
+    assert all(FIRST_RED in tail for tail in results[0].output_tails)
 
 
 def test_a_timed_out_check_is_not_rerun(tmp_path: Path) -> None:
@@ -404,7 +417,7 @@ def test_a_timed_out_check_is_not_rerun(tmp_path: Path) -> None:
     clock inside §7's post-exit work, which the wrapper's own `max_wall` does
     not cover.
     """
-    program = _script(tmp_path / PROGRAM, "#!/bin/sh\nsleep 30\n")
+    program = _script(tmp_path / PROGRAM, "#!/bin/sh\necho before-sleep\nsleep 30\n")
 
     results = run_checks(_node(timeout="1s"), tmp_path, _pins(program))
 
@@ -412,3 +425,48 @@ def test_a_timed_out_check_is_not_rerun(tmp_path: Path) -> None:
     assert results[0].timed_out is True
     assert results[0].exit_code == TIMEOUT_EXIT_CODE
     assert results[0].attempts == 1
+    # Whatever the check printed before the kill says WHERE it hung.
+    assert "before-sleep" in results[0].output_tails[0]
+
+
+def test_a_chatty_check_keeps_only_the_last_bytes_of_its_output(
+    tmp_path: Path,
+) -> None:
+    """cr-o85.34.12: the tail is bounded, so a chatty check cannot bloat a record.
+
+    The LAST bytes are the ones kept: a check that fails prints its diagnosis
+    at the end, and the record has to stay small enough to live in
+    `completion.json` beside every other check's.
+    """
+    final = "the-line-that-explains-it"
+    program = _script(
+        tmp_path / PROGRAM,
+        "#!/bin/sh\n"
+        f"i=0\nwhile [ $i -lt {VERIFY_OUTPUT_TAIL_BYTES} ]; do "
+        'echo "noise noise noise"; i=$((i + 1)); done\n'
+        f"echo {final}\nexit 1\n",
+    )
+
+    results = run_checks(_node(), tmp_path, _pins(program))
+
+    tail = results[0].output_tails[0]
+    assert len(tail.encode("utf-8")) <= VERIFY_OUTPUT_TAIL_BYTES
+    assert tail.endswith(f"{final}\n")
+
+
+def test_a_check_printing_invalid_utf8_is_a_result_not_an_exception(
+    tmp_path: Path,
+) -> None:
+    """`text=True` decoded STRICTLY: one stray byte raised out of `subprocess`.
+
+    `UnicodeDecodeError` is neither `TimeoutExpired` nor `OSError`, so it would
+    have escaped `observe()` entirely — the §5.6 hole M14 closed, reopened by a
+    check that merely printed a binary byte. The tail decodes leniently.
+    """
+    program = _script(tmp_path / PROGRAM, "#!/bin/sh\nprintf '\\377'\nexit 1\n")
+
+    results = run_checks(_node(), tmp_path, _pins(program))
+
+    assert results[0].provenance_ok is True
+    assert results[0].exit_code == 1
+    assert all("\ufffd" in tail for tail in results[0].output_tails)

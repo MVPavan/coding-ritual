@@ -246,6 +246,10 @@ class VerifyOutcome(BaseModel):
     cmd: str
     exit_code: JsonSafeInt
     script_digest: str
+    attempts: JsonSafeInt = 1
+    """How many times the check ran before this exit code was recorded; 2 means
+    the first run was red and the rerun decided it (cr-o85.34.14). The check's
+    OUTPUT deliberately stays out of bd — the tails live in `completion.json`."""
 
 
 class Evidence(BaseModel):

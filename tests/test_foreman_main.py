@@ -15,7 +15,7 @@ import pytest
 from tests._bdio import entry_request, handle, load_definition, make_root
 from tests._foreman import ForemanLab
 from tests._helpers import VALID_FIXTURE, mutate
-from tests._supervisor import ChildScript, make_config, make_repo
+from tests._supervisor import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from workflow_interpreter.bdio import BdConfig, Outcome
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.config import SigningConfig
@@ -686,3 +686,59 @@ def test_create_proceeds_when_the_allow_list_exists_and_is_not_empty(
     assert codes == [0]
     root_id = transcript.strip().splitlines()[-1]
     assert lab.store.reads.load_root(root_id).metadata.instance_key == "preflight"
+
+
+RED_CHECK_LINE = "the-check-said-why"
+RED_CHECK = f"#!/bin/sh\necho {RED_CHECK_LINE} >&2\nexit 1\n"
+
+
+def test_inspect_reports_the_red_output_of_a_fail_code_activations_checks(
+    tmp_path: Path,
+) -> None:
+    """cr-o85.34.12: a `fail_code` used to name an exit code and nothing else.
+
+    Live, a red `scripts/review-checks.sh` left neither `completion.json` nor
+    the bead holding a byte of what it printed, so the cause had to be
+    inferred. Both attempts of the rerun policy are surfaced, because the
+    check is red at both.
+    """
+    lab = ForemanLab(tmp_path)
+    lab.pin_checks({VERIFY_SCRIPT: RED_CHECK})
+    root = lab.instantiate()
+    lab.profiles.next_script(
+        ChildScript(
+            marker='{"outcome":"done"}\n',
+            effects='{"paths":["src/feature.py"]}',
+            write_path="src/feature.py",
+            write_body="value = 2\n",
+            commit=True,
+        )
+    )
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+    assert lab.tick().settled == activation_id
+    settled = lab.store.reads.load_activation(activation_id)
+    assert settled.metadata.outcome is Outcome.FAIL_CODE
+
+    report = lab.foreman.inspect(root.root_id, activation_id)
+
+    check = next(item for item in report.verify if item.cmd == VERIFY_SCRIPT)
+    assert check.exit_code != 0
+    assert check.attempts == 2
+    assert len(check.red_tails) == 2
+    assert all(RED_CHECK_LINE in tail for tail in check.red_tails)
+
+
+def test_inspect_reports_no_verify_for_an_activation_that_never_completed(
+    tmp_path: Path,
+) -> None:
+    """A read-only view of an ungraded activation is empty, never an error."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+
+    report = lab.foreman.inspect(root.root_id, activation.activation_id)
+
+    assert report.verify == ()

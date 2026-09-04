@@ -567,6 +567,7 @@ class ExitObserver:
                     cmd=result.cmd,
                     exit_code=result.exit_code,
                     script_digest=result.script_digest,
+                    attempts=result.attempts,
                 )
                 for result in results
             ),

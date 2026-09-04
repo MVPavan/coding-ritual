@@ -49,8 +49,13 @@ from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     GitCommandError,
     LockUnavailable,
+    WrapperDirError,
 )
-from workflow_interpreter.supervisor.models import SteerIntent
+from workflow_interpreter.supervisor.models import (
+    CompletionEvidence,
+    SteerIntent,
+    VerifyResult,
+)
 from workflow_interpreter.supervisor.paths import read_record, read_tail
 from workflow_interpreter.supervisor.steer import Steerer
 
@@ -91,6 +96,24 @@ class RunReport(BaseModel):
     report: TickReport
 
 
+class VerifyInspection(BaseModel):
+    """One §7.3 check of a settled activation, as a human reads it back.
+
+    `red_tails` carries only the output of the attempts that came back
+    non-zero: a green attempt's chatter is noise in a report whose whole
+    purpose is explaining a `fail_code` (cr-o85.34.12).
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    cmd: str
+    exit_code: int
+    attempts: int
+    timed_out: bool
+    provenance_ok: bool
+    red_tails: tuple[str, ...]
+
+
 class Inspection(BaseModel):
     """The read-only stale-tail view a human or model sees before steering."""
 
@@ -103,6 +126,7 @@ class Inspection(BaseModel):
     stale_flag: str | None
     tail: str
     tail_bytes: int
+    verify: tuple[VerifyInspection, ...] = ()
 
 
 class SteerReport(BaseModel):
@@ -127,6 +151,47 @@ def _stale_tail(
     )
 
 
+def _red_tails(result: VerifyResult, limit: int) -> tuple[str, ...]:
+    """The output of the attempts that came back non-zero, re-bounded.
+
+    Which attempts were red is derived rather than recorded: the rerun policy
+    only re-runs a RED attempt, so every attempt before the last was red by
+    construction and the last is red exactly when the recorded exit code is.
+    """
+    tails = result.output_tails if result.exit_code != 0 else result.output_tails[:-1]
+    return tuple(bounded_tail(tail, limit) for tail in tails)
+
+
+def _verify_inspections(
+    wiring: InstanceWiring, activation_id: str, limit: int
+) -> tuple[VerifyInspection, ...]:
+    """The §7.3 results of a settled activation, or nothing at all.
+
+    `inspect` is a read-only view, so an activation that has not been graded
+    yet and a `completion.json` a crash left half-written are the same answer:
+    no verify section, never an exception out of a report.
+    """
+    try:
+        completion = read_record(
+            wiring.paths.completion(activation_id), CompletionEvidence
+        )
+    except WrapperDirError:
+        return ()
+    if completion is None:
+        return ()
+    return tuple(
+        VerifyInspection(
+            cmd=result.cmd,
+            exit_code=result.exit_code,
+            attempts=result.attempts,
+            timed_out=result.timed_out,
+            provenance_ok=result.provenance_ok,
+            red_tails=_red_tails(result, limit),
+        )
+        for result in completion.verify_results
+    )
+
+
 class Foreman:
     """Coordinates durable workflow work while retaining no tick-local state."""
 
@@ -141,9 +206,8 @@ class Foreman:
         activation = wiring.store.reads.load_activation(activation_id)
         if activation.metadata.wf_root_id != root_id:
             raise ValueError("activation does not belong to root")
-        tail = _stale_tail(
-            wiring, self._composition.supervisor_config.log_tail_bytes, activation
-        )
+        limit = self._composition.supervisor_config.log_tail_bytes
+        tail = _stale_tail(wiring, limit, activation)
         flag = activation.metadata.stale_flag
         return Inspection(
             activation_id=activation_id,
@@ -153,6 +217,7 @@ class Foreman:
             stale_flag=None if flag is None else flag.raised_at,
             tail=tail,
             tail_bytes=len(tail.encode("utf-8")),
+            verify=_verify_inspections(wiring, activation_id, limit),
         )
 
     def steer(

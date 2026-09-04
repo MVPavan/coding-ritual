@@ -672,6 +672,13 @@ class VerifyResult(BaseModel):
     attempts: int = 1
     """How many times the program ran; 2 means the first run was red and the
     rerun's exit code is the one recorded (cr-o85.34.14)."""
+    output_tails: tuple[str, ...] = ()
+    """One bounded tail of combined stdout+stderr per attempt, in attempt order.
+
+    `len(output_tails) == attempts` whenever the program actually ran, and it is
+    empty for a check that never ran at all — refused on provenance, or unable
+    to start. A `fail_code` used to name an exit code and nothing else, so the
+    cause had to be inferred from outside the record (cr-o85.34.12)."""
 
 
 class CollectedExit(BaseModel):
