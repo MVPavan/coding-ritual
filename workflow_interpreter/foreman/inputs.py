@@ -74,17 +74,26 @@ def select_bindings(
                 )
             )
             continue
+        # `round_no` counts entries into ONE region (§10.1), so it orders a
+        # producer only when producer and consumer share that counter. Across a
+        # boundary the latest CLOSED activation is the whole candidate set and
+        # `seq` is the only ordering left (spec §2 "Input binding").
+        same_region = index.nodes[producer_node_name].region == node.region
         candidates = tuple(
             activation
             for activation in activations
             if activation.metadata.is_completed
             and activation.metadata.node == producer_node_name
-            and activation.metadata.region == node.region
+            and (not same_region or activation.metadata.region == node.region)
         )
-        current_round = tuple(
-            activation
-            for activation in candidates
-            if activation.metadata.round_no == round_no
+        current_round = (
+            tuple(
+                activation
+                for activation in candidates
+                if activation.metadata.round_no == round_no
+            )
+            if same_region
+            else ()
         )
         producer = max(
             current_round or candidates,

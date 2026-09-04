@@ -26,6 +26,7 @@ from workflow_interpreter.foreman import gates as gates_module
 from workflow_interpreter.foreman.constants import (
     HALT_BRANCH_DIVERGED,
     HALT_FAIL_CODE,
+    HALT_INPUTS_UNAVAILABLE,
     HALT_PRECONDITION_REFUSED,
 )
 from workflow_interpreter.foreman.gates import (
@@ -93,7 +94,12 @@ def test_halt_gate_carries_a_source_only_for_dead_end_reasons(
 
 @pytest.mark.parametrize(
     "reason",
-    (HALT_FAIL_CODE, HALT_BRANCH_DIVERGED, HALT_PRECONDITION_REFUSED),
+    (
+        HALT_FAIL_CODE,
+        HALT_BRANCH_DIVERGED,
+        HALT_PRECONDITION_REFUSED,
+        HALT_INPUTS_UNAVAILABLE,
+    ),
 )
 def test_dead_end_halts_require_their_source(reason: str) -> None:
     """D-H2 refuses a dead-end halt that could not resume its source."""

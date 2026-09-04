@@ -14,6 +14,7 @@ from workflow_interpreter.bdio import (
     Lifecycle,
 )
 from workflow_interpreter.bdio.constants import (
+    DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_INSTANCE_BRANCH_DIVERGED,
     DEVIATION_PRECONDITION_REFUSED,
 )
@@ -38,6 +39,7 @@ class DeadEndKind(StrEnum):
     FAIL_CODE = "fail-code"
     BRANCH_DIVERGED = "branch-diverged"
     PRECONDITION_REFUSED = "precondition-refused"
+    INPUTS_UNAVAILABLE = "inputs-unavailable"
 
 
 class DeadEnd(BaseModel):
@@ -102,6 +104,8 @@ def _dead_end(index: GraphIndex, activation: ActivationRecord) -> DeadEndKind | 
         return DeadEndKind.BRANCH_DIVERGED
     if any(item.kind == DEVIATION_PRECONDITION_REFUSED for item in meta.deviations):
         return DeadEndKind.PRECONDITION_REFUSED
+    if any(item.kind == DEVIATION_INPUTS_UNAVAILABLE for item in meta.deviations):
+        return DeadEndKind.INPUTS_UNAVAILABLE
     node = index.nodes.get(meta.node)
     # Kept in step with `routing.route`: a `fail_code` dead-ends only where the
     # node does not declare it, whatever the runner claimed (ADR 0004). A

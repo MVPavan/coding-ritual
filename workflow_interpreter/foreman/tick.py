@@ -35,6 +35,7 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.constants import (
     HALT_AUDIT,
+    HALT_INPUTS,
     HALT_MISSING_COMMIT,
     RUN_MAX_WALL,
 )
@@ -42,6 +43,7 @@ from workflow_interpreter.foreman.events import backfill, expected_intents
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
 from workflow_interpreter.foreman.identifiers import validate_bead_id
+from workflow_interpreter.foreman.inputs import InputsUnavailable
 from workflow_interpreter.foreman.owner import ensure_owner
 from workflow_interpreter.foreman.reconcile import reconcile
 from workflow_interpreter.foreman.transcript import bounded_tail
@@ -420,6 +422,19 @@ class Foreman:
         except LockUnavailable:
             # Same transient as the band miss above, met deeper in the tick.
             return TickReport(contended=True)
+        except InputsUnavailable as exc:
+            # On a validated graph a bound input is unprovable only when the
+            # durable trace contradicts itself (§10.6), so this is the audit
+            # violation's sibling, not a stall a later tick could clear. It sits
+            # before the stall tuple below — no member of that tuple is a
+            # superclass of `InputsUnavailable` today, and this ordering keeps
+            # the halt correct whatever the tuple grows to catch.
+            gate = wiring.store.open_gate(
+                root_id, halt_gate(HALT_INPUTS.format(reason=str(exc)))
+            )
+            return TickReport(
+                halted=True, opened_gate=_opened_gate(wiring, gate.gate_id)
+            )
         except (
             BoundExceededError,
             CanaryFailedError,

@@ -961,6 +961,12 @@ def _undeclared_fail_code(definition: GraphDefinition) -> GraphDefinition:
             ("precondition_refused",),
             "precondition-refused",
         ),
+        (
+            Outcome.ERROR_TRANSPORT,
+            Evidence(),
+            ("inputs_unavailable",),
+            "inputs-unavailable",
+        ),
     ],
 )
 def test_frontier_classifies_every_dead_end_kind(

@@ -29,6 +29,7 @@ from workflow_interpreter.foreman.constants import (
     GATES_DIR,
     HALT_BRANCH_DIVERGED,
     HALT_FAIL_CODE,
+    HALT_INPUTS_UNAVAILABLE,
     HALT_NODE,
     HALT_PRECONDITION_REFUSED,
     NO_ARTIFACT_OID,
@@ -50,6 +51,7 @@ _DEAD_END_REASONS = frozenset(
         HALT_FAIL_CODE,
         HALT_BRANCH_DIVERGED,
         HALT_PRECONDITION_REFUSED,
+        HALT_INPUTS_UNAVAILABLE,
     )
 )
 

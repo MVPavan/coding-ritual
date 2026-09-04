@@ -28,6 +28,8 @@ __all__ = [
     "HALT_FAIL_CLOSED",
     "HALT_FAIL_CODE",
     "HALT_INDETERMINATE",
+    "HALT_INPUTS",
+    "HALT_INPUTS_UNAVAILABLE",
     "HALT_MISSING_COMMIT",
     "HALT_NODE",
     "HALT_PRECONDITION_REFUSED",
@@ -133,6 +135,12 @@ HALT_AUDIT: Final[str] = "audit:{reason}"
 HALT_MISSING_COMMIT: Final[str] = "missing_commit intended_base_commit {commit}"
 HALT_CEILING: Final[str] = "ceiling:{detail}"
 HALT_INDETERMINATE: Final[str] = "indeterminate:{detail}"
+HALT_INPUTS: Final[str] = "inputs:{reason}"
+"""A mint or in-tick dispatch that could not bind its inputs: there is no
+activation to resume, so this halt carries the binder's own reason."""
+HALT_INPUTS_UNAVAILABLE: Final[str] = "inputs_unavailable:{node}:{activation_id}"
+"""The dead-end sibling: the WRAPPER could not materialize an already-bound
+input, so a closed activation names itself the way every other dead end does."""
 HALT_FAIL_CLOSED: Final[str] = "fail_closed:{reason}"
 HALT_FAIL_CODE: Final[str] = "fail_code:{node}:{activation_id}"
 HALT_BRANCH_DIVERGED: Final[str] = "instance_branch_diverged:{node}:{activation_id}"

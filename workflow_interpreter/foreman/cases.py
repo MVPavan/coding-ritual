@@ -34,6 +34,7 @@ from workflow_interpreter.foreman.constants import (
     HALT_CEILING,
     HALT_FAIL_CLOSED,
     HALT_FAIL_CODE,
+    HALT_INPUTS_UNAVAILABLE,
     HALT_NODE,
     HALT_PRECONDITION_REFUSED,
 )
@@ -540,6 +541,7 @@ def halt_dead_end(
         DeadEndKind.FAIL_CODE: HALT_FAIL_CODE,
         DeadEndKind.BRANCH_DIVERGED: HALT_BRANCH_DIVERGED,
         DeadEndKind.PRECONDITION_REFUSED: HALT_PRECONDITION_REFUSED,
+        DeadEndKind.INPUTS_UNAVAILABLE: HALT_INPUTS_UNAVAILABLE,
     }[kind].format(
         node=activation.metadata.node, activation_id=activation.activation_id
     )

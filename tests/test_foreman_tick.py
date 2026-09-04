@@ -3,7 +3,7 @@
 from collections.abc import Iterable
 from pathlib import Path
 from time import monotonic
-from typing import NoReturn
+from typing import Final, NoReturn
 
 import pytest
 
@@ -17,6 +17,7 @@ from workflow_interpreter.bdio import ArtifactIdentity, Evidence, ExitRecord
 from workflow_interpreter.bdio.bounds import BoundKind, BoundRefusal
 from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.config import SigningConfig
+from workflow_interpreter.bdio.constants import DEVIATION_INPUTS_UNAVAILABLE
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
     CanaryFailedError,
@@ -31,9 +32,14 @@ from workflow_interpreter.foreman import tick as tick_module
 from workflow_interpreter.foreman.audit import AuditResult, audit
 from workflow_interpreter.foreman.cases import CaseResult
 from workflow_interpreter.foreman.compose import InstanceBranchMissing
+from workflow_interpreter.foreman.constants import (
+    HALT_INPUTS,
+    HALT_INPUTS_UNAVAILABLE,
+)
 from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import halt_gate
 from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.supervisor import activation_ref
 from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     GitCommandError,
@@ -579,3 +585,225 @@ def test_tick_releases_its_band_when_an_unlisted_exception_propagates(
     held = lab.wiring().band
     held.acquire()
     held.release()
+
+
+CROSS_REGION_INPUTS_GRAPH: Final[str] = """
+[graph]
+id = "cross-region-inputs"
+version = "1.0.0"
+entry = "implement"
+description = "one region produces what the other region consumes"
+
+[instance]
+max_total_activations = 20
+
+[[region]]
+name = "build"
+mode = "bounded-cycle"
+entry_node = "implement"
+max_entries = 2
+on_exhausted = "triage"
+
+[[region]]
+name = "audit"
+mode = "bounded-cycle"
+entry_node = "review"
+max_entries = 2
+on_exhausted = "triage"
+
+[[node]]
+name = "implement"
+kind = "task"
+region = "build"
+runner = "profile:implementer"
+model = "default"
+instructions = "Implement what task_brief describes."
+isolation = "worktree"
+writes = true
+allowed_paths = ["src/**"]
+inputs = ["task_brief"]
+verify = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "review"
+kind = "task"
+region = "audit"
+runner = "profile:critic"
+model = "default"
+instructions = "Read diff_artifact and report done."
+isolation = "worktree"
+writes = false
+allowed_paths = []
+inputs = ["task_brief", "diff_artifact"]
+verify = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" },
+          { cmd = "scripts/review-checks.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done"]
+
+[[node]]
+name = "triage"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["rebudget", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "implement"
+on = "done"
+to = "review"
+
+[[edge]]
+from = "review"
+on = "done"
+to = "finished"
+
+[[edge]]
+from = "triage"
+on = "rebudget"
+to = "implement"
+
+[[edge]]
+from = "triage"
+on = "abandon"
+to = "finished"
+
+[fallback]
+to = "triage"
+
+[[source]]
+name = "task_brief"
+producer = "instance"
+optional = false
+trim_priority = 1
+
+[[source]]
+name = "diff_artifact"
+producer = "node:implement"
+optional = false
+trim_priority = 1
+"""
+"""The §2 fixture's two task nodes split across two bounded-cycle regions, so
+`review` declares a required input produced in the OTHER region — the shape D1's
+binding rule exists for. Node names are the fixture's because the lab pins its
+§7.3 verify digests by node name (`tests/_supervisor.py:388-400`)."""
+
+
+def _cross_region_lab(tmp_path: Path) -> ForemanLab:
+    """A lab on the two-region graph, with the fixture's verify script."""
+    return ForemanLab(
+        tmp_path,
+        toml=write(tmp_path, CROSS_REGION_INPUTS_GRAPH, "cross-region-inputs.toml"),
+    )
+
+
+def _closed_producer(lab: ForemanLab) -> str:
+    """Drive the producing region's only node to a completed close."""
+    produce = lab.tick().dispatched
+    assert produce is not None
+    assert lab.tick().settled == produce
+    return produce
+
+
+def test_tick_binds_a_cross_region_producer_when_it_mints_the_consumer(
+    tmp_path: Path,
+) -> None:
+    """D1 on the real seam: the consumer binds a producer from another region."""
+    lab = _cross_region_lab(tmp_path)
+    lab.instantiate()
+    produce = _closed_producer(lab)
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"done"}\n', effects='{"paths":[]}')
+    )
+
+    consume = lab.tick().dispatched
+
+    assert consume is not None
+    metadata = lab.store.reads.load_activation(consume).metadata
+    assert metadata.node == "review"
+    assert metadata.region != lab.store.reads.load_activation(produce).metadata.region
+    assert tuple(binding.name for binding in metadata.inputs) == (
+        "task_brief",
+        "diff_artifact",
+    )
+    assert metadata.inputs[1].producer_activation_id == produce
+
+
+def test_tick_halts_on_a_gate_when_a_bound_input_is_unavailable(
+    tmp_path: Path,
+) -> None:
+    """D2: an unprovable input opens a halt gate instead of escaping the tick."""
+    lab = _cross_region_lab(tmp_path)
+    lab.instantiate()
+    produce = _closed_producer(lab)
+    lab.fake_bd.rows[produce]["metadata"]["evidence"] = {}
+
+    report = lab.tick()
+
+    assert report.halted is True
+    assert report.opened_gate is not None
+    gate = lab.store.reads.load_gate(report.opened_gate)
+    assert gate.metadata.halt_reason == HALT_INPUTS.format(
+        reason="writing input producer has no artifact"
+    )
+
+
+def test_wrapper_close_of_an_unmaterializable_input_halts_without_redispatch(
+    tmp_path: Path,
+) -> None:
+    """The BLOCKER case: the binder succeeds at mint and the WRAPPER cannot read it.
+
+    The wrapper is a separate process in production, so an escaping
+    `InputsUnavailable` would leave the activation MINTED and let every later
+    tick re-dispatch it. `InlineSpawner` still enters through `run_wrapper`,
+    which is where the close lives; the out-of-process spawner adds only the
+    fork, so the seam under test is the same one.
+    """
+    lab = _cross_region_lab(tmp_path)
+    root = lab.instantiate()
+    produce = _closed_producer(lab)
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"done"}\n', effects='{"paths":[]}')
+    )
+    # The binding still names a live activation; only the artifact it pins is
+    # gone, which is exactly what `materialize` refuses to read past.
+    lab.git.run(
+        GitSubcommand.UPDATE_REF,
+        "-d",
+        activation_ref(root.root_id, produce),
+        cwd=lab.repo,
+    )
+
+    consume = lab.tick().dispatched
+
+    assert consume is not None
+    closed = lab.store.reads.load_activation(consume)
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert [item.kind for item in closed.metadata.deviations] == [
+        DEVIATION_INPUTS_UNAVAILABLE
+    ]
+    assert "artifact" in closed.metadata.deviations[0].reason
+
+    halt = lab.tick().opened_gate
+
+    assert halt is not None
+    assert lab.store.reads.load_gate(halt).metadata.halt_reason == (
+        HALT_INPUTS_UNAVAILABLE.format(node="review", activation_id=consume)
+    )
+    launches = len(lab.spawner.launches)
+    lab.tick()
+    assert len(lab.spawner.launches) == launches
+    assert len(lab.beads("activation")) == 2

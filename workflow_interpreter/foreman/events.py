@@ -15,6 +15,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.bdio.constants import (
+    DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_INSTANCE_BRANCH_DIVERGED,
     DEVIATION_PRECONDITION_REFUSED,
     DEVIATION_UNDECLARED_EFFECTS_ACCEPTED,
@@ -141,6 +142,7 @@ def expected_intents(
             in {
                 DEVIATION_INSTANCE_BRANCH_DIVERGED,
                 DEVIATION_PRECONDITION_REFUSED,
+                DEVIATION_INPUTS_UNAVAILABLE,
             }
             for deviation in meta.deviations
         ):

@@ -15,7 +15,10 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict
 
-from workflow_interpreter.bdio.constants import DEVIATION_PRECONDITION_REFUSED
+from workflow_interpreter.bdio.constants import (
+    DEVIATION_INPUTS_UNAVAILABLE,
+    DEVIATION_PRECONDITION_REFUSED,
+)
 from workflow_interpreter.bdio.errors import BoundEvaluationError
 from workflow_interpreter.bdio.records import GateRecord, RootRecord
 from workflow_interpreter.bdio.wire import (
@@ -33,6 +36,12 @@ INFRA_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
     {Outcome.ERROR_RUNNER, Outcome.ERROR_TRANSPORT}
 )
 """§10.2: the system outcomes `max_infra_retries` counts."""
+
+_RETRY_EXEMPT_DEVIATIONS: Final[frozenset[str]] = frozenset(
+    {DEVIATION_PRECONDITION_REFUSED, DEVIATION_INPUTS_UNAVAILABLE}
+)
+"""Deviations whose close is a dead end, not a spent §10.2 retry: the runner
+never ran, and the frontier sends both of them to a halt gate."""
 
 _UNCOUNTED_KINDS: Final[frozenset[str]] = frozenset(
     {WfKind.EVENT.value, WfKind.ROOT.value}
@@ -357,8 +366,10 @@ def consecutive_infra_closes(
     for view in reversed(_at_node_round(activations, node, round_no)):
         if view.metadata.lifecycle is not Lifecycle.CLOSED:
             continue
+        # A refusal the wrapper recorded before the runner could work is a
+        # halt-gate dead end (§10.6), never a consumed infra retry.
         if any(
-            deviation.kind == DEVIATION_PRECONDITION_REFUSED
+            deviation.kind in _RETRY_EXEMPT_DEVIATIONS
             for deviation in view.metadata.deviations
         ):
             continue

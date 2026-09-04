@@ -3,17 +3,19 @@
 import hashlib
 from pathlib import Path
 from types import SimpleNamespace
-from typing import cast
+from typing import Final, cast
 
 import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
 from tests._supervisor import make_config, make_git, make_repo
 from workflow_interpreter.bdio import (
+    ActivationRecord,
     Evidence,
     InputBinding,
     InstanceInput,
     Lifecycle,
+    RootRecord,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
@@ -25,7 +27,7 @@ from workflow_interpreter.foreman.inputs import (
     materialize,
     select_bindings,
 )
-from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.schema.models import Outcome, Region, RegionMode
 from workflow_interpreter.supervisor import activation_ref
 from workflow_interpreter.supervisor.gitio import Git
 
@@ -767,3 +769,180 @@ def test_compose_labels_each_input_with_its_name_and_producer(
     assert "review_findings" in brief
     assert brief.index("task_brief") < brief.index("review_findings")
     assert "the brief" in brief and "the findings" in brief
+
+
+REVIEW_REGION: Final[str] = "review-only"
+"""A second region for `review`, so `implement` produces across a boundary."""
+
+
+def _with_task_brief(root: RootRecord) -> RootRecord:
+    """Give an instance the one pinned instance input every binding test needs."""
+    return root.model_copy(
+        update={
+            "metadata": root.metadata.model_copy(
+                update={
+                    "instance_inputs": (
+                        InstanceInput(
+                            name="task_brief",
+                            sha256=hashlib.sha256(b"brief").hexdigest(),
+                            body="brief",
+                        ),
+                    )
+                }
+            )
+        }
+    )
+
+
+def _split_regions(root: RootRecord) -> RootRecord:
+    """Move `review` into its own region, leaving `implement` where it is."""
+    document = root.definition.document
+    document = document.model_copy(
+        update={
+            "region": (
+                *document.region,
+                Region(
+                    name=REVIEW_REGION,
+                    mode=RegionMode.ACYCLIC,
+                    entry_node="review",
+                ),
+            ),
+            "node": tuple(
+                item.model_copy(update={"region": REVIEW_REGION})
+                if item.name == "review"
+                else item
+                for item in document.node
+            ),
+        }
+    )
+    return _with_task_brief(
+        root.model_copy(
+            update={
+                "definition": root.definition.model_copy(update={"document": document})
+            }
+        )
+    )
+
+
+def _closed_implement(
+    fake_store: WorkflowStore,
+    root: RootRecord,
+    *,
+    round_no: int,
+    seq_delta: int = 0,
+    tree_oid: str = "t" * 40,
+) -> ActivationRecord:
+    """A completed `implement` activation with a proved artifact."""
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    return activation.model_copy(
+        update={
+            "metadata": activation.metadata.model_copy(
+                update={
+                    "lifecycle": Lifecycle.CLOSED,
+                    "outcome": Outcome.DONE,
+                    "round_no": round_no,
+                    "seq": int(activation.metadata.seq) + seq_delta,
+                    "evidence": Evidence(
+                        artifact=ArtifactIdentity(
+                            commit_oid="c" * 40, tree_oid=tree_oid
+                        )
+                    ),
+                }
+            )
+        }
+    )
+
+
+def test_select_bindings_takes_the_latest_closed_producer_across_regions(
+    fake_store: WorkflowStore,
+) -> None:
+    """D1: rounds are per-region counters, so they cannot order a foreign producer."""
+    root = _split_regions(make_root(fake_store, load_definition()))
+    older = _closed_implement(fake_store, root, round_no=3)
+    latest = _closed_implement(
+        fake_store, root, round_no=1, seq_delta=1, tree_oid="u" * 40
+    )
+
+    bindings = select_bindings(
+        root.index, root, root.index.nodes["review"], (older, latest), 3
+    )
+
+    assert bindings[1] == InputBinding(
+        name="diff_artifact",
+        producer_activation_id=latest.activation_id,
+        artifact_ref=activation_ref(root.root_id, latest.activation_id),
+        digest="u" * 40,
+    )
+
+
+def test_select_bindings_falls_back_to_the_latest_round_in_the_same_region(
+    fake_store: WorkflowStore,
+) -> None:
+    """Same-region binding is unchanged: current round first, else most recent."""
+    root = _with_task_brief(make_root(fake_store, load_definition()))
+    first = _closed_implement(fake_store, root, round_no=1)
+    second = _closed_implement(
+        fake_store, root, round_no=2, seq_delta=1, tree_oid="u" * 40
+    )
+
+    assert (
+        select_bindings(root.index, root, root.index.nodes["review"], (first,), 2)[
+            1
+        ].producer_activation_id
+        == first.activation_id
+    )
+    assert (
+        select_bindings(
+            root.index, root, root.index.nodes["review"], (first, second), 2
+        )[1].producer_activation_id
+        == second.activation_id
+    )
+
+
+def test_select_bindings_binds_an_optional_cross_region_producer_once_closed(
+    fake_store: WorkflowStore,
+) -> None:
+    """An optional foreign input binds nothing while absent, its producer once closed."""
+    root = _split_regions(make_root(fake_store, load_definition()))
+    review = fake_store.mint_activation(root.root_id, entry_request()).activation
+    review = review.model_copy(
+        update={
+            "metadata": review.metadata.model_copy(
+                update={
+                    "node": "review",
+                    "region": REVIEW_REGION,
+                    "lifecycle": Lifecycle.CLOSED,
+                    "outcome": Outcome.ACCEPT,
+                    "evidence": Evidence(
+                        outputs_ref="refs/wf/outputs/review",
+                        outputs_tree_oid="o" * 40,
+                    ),
+                }
+            )
+        }
+    )
+
+    absent = select_bindings(root.index, root, root.index.nodes["implement"], (), 1)
+    present = select_bindings(
+        root.index, root, root.index.nodes["implement"], (review,), 1
+    )
+
+    assert tuple(binding.name for binding in absent) == ("task_brief",)
+    assert tuple(binding.name for binding in present) == (
+        "task_brief",
+        "review_findings",
+    )
+    assert present[1].producer_activation_id == review.activation_id
+
+
+def test_select_bindings_refuses_a_required_absent_cross_region_producer(
+    fake_store: WorkflowStore,
+) -> None:
+    """A required foreign input with no closed producer is still unavailable."""
+    root = _split_regions(make_root(fake_store, load_definition()))
+    open_producer = fake_store.mint_activation(root.root_id, entry_request()).activation
+
+    with pytest.raises(InputsUnavailable, match="implement"):
+        select_bindings(
+            root.index, root, root.index.nodes["review"], (open_producer,), 1
+        )

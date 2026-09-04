@@ -16,7 +16,10 @@ from workflow_interpreter.bdio import (
     Outcome,
     RootRecord,
 )
-from workflow_interpreter.bdio.constants import DEVIATION_PRECONDITION_REFUSED
+from workflow_interpreter.bdio.constants import (
+    DEVIATION_INPUTS_UNAVAILABLE,
+    DEVIATION_PRECONDITION_REFUSED,
+)
 from workflow_interpreter.foreman.close import _previous_tree_oid
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -25,7 +28,11 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.constants import DISPATCH_REQUEST, WRAPPER_LOCK
 from workflow_interpreter.foreman.identifiers import activation_dir, validate_bead_id
-from workflow_interpreter.foreman.inputs import DefaultComposer, materialize
+from workflow_interpreter.foreman.inputs import (
+    DefaultComposer,
+    InputsUnavailable,
+    materialize,
+)
 from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.channels import pinned_verifier_digests
@@ -226,6 +233,25 @@ def run_wrapper(
             deviations=(
                 Deviation(
                     kind=_DEVIATION_CONTINUATION_REFUSED,
+                    reason=str(exc),
+                    recorded_at="wrapper",
+                ),
+            ),
+        )
+    except InputsUnavailable as exc:
+        # The wrapper runs in its own process (`DetachedSpawner`), so an input
+        # that no longer materializes must become a durable CLOSE here: left to
+        # propagate, the child dies with the activation still MINTED and every
+        # later tick re-dispatches it. The deviation is what turns the close
+        # into a halt gate instead of an infra retry (`frontier._dead_end`).
+        return _close_error(
+            resolved,
+            activation_id,
+            Outcome.ERROR_TRANSPORT,
+            exc,
+            deviations=(
+                Deviation(
+                    kind=DEVIATION_INPUTS_UNAVAILABLE,
                     reason=str(exc),
                     recorded_at="wrapper",
                 ),

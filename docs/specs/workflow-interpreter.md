@@ -273,8 +273,15 @@ recorded as evidence (§10.5).
 **Input binding.** At mint, each non-optional input is bound to an
 immutable tuple `(producer_activation_id, artifact_ref, digest)` — the
 latest CLOSED producer activation in the current region (current round
-first, else most recent). Optional inputs absent on round 1 bind to
-nothing. Unknown source name = hard error.
+first, else most recent). A producer whose region differs from the
+consumer's — including one regioned and one not — binds to its latest CLOSED
+activation whatever its `round_no`: rounds are per-region counters (§10.1),
+so they cannot order a foreign producer. The
+binding is per-activation, and topology — not the binder — is what rules out
+a producer re-running underneath a consumer mid-round: the only legal
+cross-region back-edge is the human-gate `rebudget` exemption of rule 2.
+Optional inputs absent on round 1 bind to nothing. Unknown source name =
+hard error.
 
 **Validator rules** (pre-instantiation + lint sweep):
 
