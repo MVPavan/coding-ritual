@@ -669,6 +669,9 @@ class VerifyResult(BaseModel):
     digest and the exec cannot name different files (§7.3)."""
     error: str | None = None
     """Why the check could not be executed at all, when it could not."""
+    attempts: int = 1
+    """How many times the program ran; 2 means the first run was red and the
+    rerun's exit code is the one recorded (cr-o85.34.14)."""
 
 
 class CollectedExit(BaseModel):

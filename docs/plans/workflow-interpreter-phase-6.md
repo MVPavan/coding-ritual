@@ -233,6 +233,19 @@ ended `shipped` in ≈36 min. Baseline + defects: `cr-o85.34.12`–`.17`, and
 the local `scratchpad/probes/phase6-live/BASELINE.md`. Mitigation landed:
 `scripts/verify-feature.sh` deselects the racy test from the live verify set.
 
+**Phase 6.5 (2026-09-04), cr-o85.34.14.** The fix is in the verifier, not the
+graph: a check that ran red is re-run once at the same commit before it grades
+`fail_code` (`supervisor/verify.py` `RED_CHECK_RERUNS`, evidence field
+`attempts`). `review --fail_code--> implement` stays. The edge-only alternative,
+`review --fail_code--> review`, is refused by the validator (a bounded-cycle
+region minus its entry node must be acyclic, `rules_flow.py`
+`bounded_cycle_cycles_include_entry_node`) and would not advance the round
+anyway; and a check red twice is either `review-checks.sh`'s tests-untouched
+guard, which only the implementer can fix, or a real red — both belong with the
+implementer, then §10.5. Residual: a deterministic environment failure at
+`review` still ends at `triage` with no way to re-review the same tree short of
+`abandon`.
+
 ## 3. Deferred — recorded so nobody rediscovers them
 
 | Item | Found by | Trigger |

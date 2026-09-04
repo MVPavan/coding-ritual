@@ -638,7 +638,13 @@ Computed by the foreman wrapper at `exit-recorded`:
    the reviewer checks the implementer does not run); `reject` requires
    the findings artifact to parse; `fail_plan`/`reject` claims are NOT
    overwritten by failing verify (a failing check on a failure claim is
-   consistent evidence, recorded as-is).
+   consistent evidence, recorded as-is). A check that ran to completion
+   red is re-run ONCE at the same commit before it counts
+   (`supervisor/verify.py` `RED_CHECK_RERUNS`); the recorded exit code is
+   the last attempt's and `attempts` says how many ran. Timeouts and
+   provenance refusals are never re-run. One rerun is what tells a flaky
+   check from a red artifact — a check red twice at one commit is the
+   artifact's problem (cr-o85.34.14, phase 6.5).
 4. **Artifact identity** (honest naming): every writing attempt ends in a
    commit (else `no_diff`). Ordering: **git commit + ref first, bd write
    second — the bd write is the commit point**; ref

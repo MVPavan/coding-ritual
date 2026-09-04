@@ -77,6 +77,18 @@ examiner the runner could have rewritten. A check that could not be started at
 all lands on the same code for the same reason: it did not pass."""
 TIMEOUT_EXIT_CODE: Final[int] = 124
 
+RED_CHECK_RERUNS: Final[int] = 1
+"""How many extra times a check that RAN and came back non-zero is run again.
+
+One rerun is what tells a flaky check from a red artifact (cr-o85.34.14). A
+racy test graded the activation `fail_code`, the graph routed it to the
+implementer, who had nothing to change, re-committed an identical tree, and
+§10.5's no-progress breaker sent the run to a human gate. A check that is red
+TWICE at the same commit, with the same descriptor and the same timeout, is the
+artifact's problem and grades `fail_code` exactly as before. Deliberately not
+configurable: a graph that could raise this could re-roll a red check until it
+passed, and §7.3 evidence would stop meaning anything."""
+
 _MSG_TREE_DIRTY: Final[str] = (
     "the §7.3 verify checkout at {path} is not a clean {commit} (HEAD {head}, "
     "{dirty} dirty path(s)); evidence computed there would not be about the "
@@ -297,6 +309,35 @@ def _digest_of(descriptor: int) -> str:
 def _execute(
     resolved: ResolvedCheck, descriptor: int, digest: str, pinned: str
 ) -> VerifyResult:
+    """Run the check, re-running a RED one `RED_CHECK_RERUNS` times.
+
+    Only a check that ran to completion and came back non-zero is re-run — a
+    timeout and a program that could not be started are results about the
+    check itself, and repeating them buys nothing but the timeout again. The
+    rerun is the same tree, the same already-hashed descriptor and the same
+    timeout, so the final attempt's exit code is evidence about the same
+    object the first attempt was.
+    """
+    attempt = 1
+    while True:
+        result = _run_once(resolved, descriptor, digest, pinned, attempt)
+        rerunnable = (
+            result.exit_code != 0 and not result.timed_out and result.error is None
+        )
+        if not rerunnable or attempt >= 1 + RED_CHECK_RERUNS:
+            return result
+        attempt += 1
+        _LOG.warning(
+            "wf.verify.rerun",
+            cmd=resolved.cmd,
+            exit_code=result.exit_code,
+            attempt=attempt,
+        )
+
+
+def _run_once(
+    resolved: ResolvedCheck, descriptor: int, digest: str, pinned: str, attempts: int
+) -> VerifyResult:
     """Run the HASHED descriptor with its declared timeout, argv only, no shell.
 
     `argv[0]` is `/proc/self/fd/<n>` rather than the program's path, and the
@@ -325,6 +366,7 @@ def _execute(
             provenance_ok=True,
             timed_out=True,
             program=str(resolved.program),
+            attempts=attempts,
         )
     except OSError as exc:
         # Not executable, no interpreter, a run_dir that is not a directory:
@@ -338,6 +380,7 @@ def _execute(
             provenance_ok=True,
             program=str(resolved.program),
             error=_MSG_UNRUNNABLE.format(program=resolved.program, error=exc),
+            attempts=attempts,
         )
     return VerifyResult(
         cmd=resolved.cmd,
@@ -346,10 +389,12 @@ def _execute(
         pinned_digest=pinned,
         provenance_ok=True,
         program=str(resolved.program),
+        attempts=attempts,
     )
 
 
 __all__ = [
+    "RED_CHECK_RERUNS",
     "REFUSED_EXIT_CODE",
     "TIMEOUT_EXIT_CODE",
     "ResolvedCheck",

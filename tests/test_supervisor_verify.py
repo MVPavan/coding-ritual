@@ -36,9 +36,15 @@ from workflow_interpreter.supervisor import (
 )
 from workflow_interpreter.supervisor import verify as verify_module
 from workflow_interpreter.supervisor.channels import sha256_file
-from workflow_interpreter.supervisor.verify import REFUSED_EXIT_CODE, VerifyTree
+from workflow_interpreter.supervisor.verify import (
+    RED_CHECK_RERUNS,
+    REFUSED_EXIT_CODE,
+    TIMEOUT_EXIT_CODE,
+    VerifyTree,
+)
 
 PROGRAM = "scripts/check.sh"
+RERUN_MARKER = ".rerun"
 WITNESS = "evil-ran"
 HONEST = "#!/bin/sh\nexit 0\n"
 ESCAPE_CWD = "../outside"
@@ -218,6 +224,9 @@ def test_a_verifier_that_cannot_be_executed_is_a_result_not_an_exception(
     assert results[0].exit_code == REFUSED_EXIT_CODE
     assert results[0].error is not None
     assert "Permission denied" in results[0].error
+    # A program that could not be STARTED is not a flaky red check: rerunning
+    # it would fail the same way, so it is recorded from its single attempt.
+    assert results[0].attempts == 1
 
 
 def test_an_unpinned_program_is_refused_before_it_can_run(tmp_path: Path) -> None:
@@ -229,6 +238,9 @@ def test_an_unpinned_program_is_refused_before_it_can_run(tmp_path: Path) -> Non
 
     assert not witness.exists()
     assert results[0].provenance_ok is False
+    assert results[0].exit_code == REFUSED_EXIT_CODE
+    # Refused means NOT RUN; there is nothing for the rerun to disambiguate.
+    assert results[0].attempts == 1
 
 
 def test_the_verify_tree_is_a_clean_checkout_of_the_named_commit(
@@ -343,3 +355,60 @@ def test_a_fifo_at_the_verifier_path_is_refused_rather_than_read(
 
     assert results[0].provenance_ok is False
     assert results[0].exit_code == REFUSED_EXIT_CODE
+
+
+def test_a_check_red_only_on_its_first_run_is_rerun_and_passes(
+    tmp_path: Path,
+) -> None:
+    """cr-o85.34.14: one rerun tells a FLAKY check from a red artifact.
+
+    Observed live: a racy test came back non-zero once, graded the activation
+    `fail_code`, and the implementer it routed to had nothing to change — the
+    identical re-commit tripped §10.5's no-progress breaker and burned a human
+    gate. The script here is red exactly once, which is what a flake looks
+    like, and the second attempt's exit code is the one recorded.
+    """
+    program = _script(
+        tmp_path / PROGRAM,
+        f"#!/bin/sh\ntest -f {RERUN_MARKER} && exit 0\ntouch {RERUN_MARKER}\nexit 1\n",
+    )
+
+    results = run_checks(_node(), tmp_path, _pins(program))
+
+    assert (tmp_path / RERUN_MARKER).exists()
+    assert results[0].provenance_ok is True
+    assert results[0].exit_code == 0
+    assert results[0].attempts == 1 + RED_CHECK_RERUNS
+
+
+def test_a_check_red_on_both_runs_stays_red(tmp_path: Path) -> None:
+    """The other side: red twice at the same commit is the ARTIFACT's problem.
+
+    The rerun is bounded at one, so a genuinely failing check still grades
+    `fail_code` with its own exit code — the evidence is not re-rolled until
+    it passes.
+    """
+    program = _script(tmp_path / PROGRAM, "#!/bin/sh\nexit 3\n")
+
+    results = run_checks(_node(), tmp_path, _pins(program))
+
+    assert results[0].provenance_ok is True
+    assert results[0].exit_code == 3
+    assert results[0].attempts == 1 + RED_CHECK_RERUNS
+
+
+def test_a_timed_out_check_is_not_rerun(tmp_path: Path) -> None:
+    """A timeout is a result about the check, not a coin flip worth re-tossing.
+
+    Rerunning it buys nothing but the timeout again — twice the declared wall
+    clock inside §7's post-exit work, which the wrapper's own `max_wall` does
+    not cover.
+    """
+    program = _script(tmp_path / PROGRAM, "#!/bin/sh\nsleep 30\n")
+
+    results = run_checks(_node(timeout="1s"), tmp_path, _pins(program))
+
+    assert results[0].provenance_ok is True
+    assert results[0].timed_out is True
+    assert results[0].exit_code == TIMEOUT_EXIT_CODE
+    assert results[0].attempts == 1
