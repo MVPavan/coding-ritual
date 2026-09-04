@@ -14,8 +14,9 @@ from typing import Final
 
 import workflow_interpreter
 from workflow_interpreter import GraphValidationError, RuleId, load_graph
+from workflow_interpreter.profiles.config import RUNNER_PREFIX
 from workflow_interpreter.schema import messages
-from workflow_interpreter.schema.models import Finding
+from workflow_interpreter.schema.models import Finding, GraphDefinition
 
 PACKAGE_ROOT = Path(workflow_interpreter.__file__).parent
 FIXTURES = PACKAGE_ROOT / "fixtures"
@@ -23,6 +24,9 @@ VALID_FIXTURE = FIXTURES / "feature-delivery.toml"
 # The `workflows/` authoring copy of the same graph (spec §2 `:100-102`,
 # temporary until phase 5 collapses the split).
 AUTHORING_FIXTURE = PACKAGE_ROOT.parent / "workflows" / "feature-delivery.toml"
+# The second live graph (phase 7 D3): `workflows/` is its ONLY copy — the
+# feature-delivery split above is not extended to it.
+BUILD_LOOP_GRAPH = PACKAGE_ROOT.parent / "workflows" / "build-loop.toml"
 INVALID_FIXTURES = sorted((FIXTURES / "invalid").glob("*.toml"))
 WARNING_FIXTURES = sorted((FIXTURES / "warning").glob("*.toml"))
 VALID_FIXTURES = [VALID_FIXTURE, *sorted((FIXTURES / "valid").glob("*.toml"))]
@@ -42,6 +46,11 @@ MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 # meaning changed and every live instance's pinned body is stale.
 FEATURE_DELIVERY_CONTENT_HASH = (
     "7cf41852b2b00cd5b8d76698fa9f9a2233dc536b1ae404ca8e232e7efb56465f"
+)
+
+# Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
+BUILD_LOOP_CONTENT_HASH = (
+    "ceb44452f48368420a50a9dfd42f70f0fbcf27949be6e3faca357360357fc0b0"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.
@@ -118,6 +127,20 @@ Replacements = tuple[tuple[str, str], ...]
 def rule_of(path: Path) -> RuleId:
     """The rule a fixture file is named for, ignoring its `__variant` suffix."""
     return RuleId(path.stem.split(VARIANT_SEPARATOR, 1)[0])
+
+
+def runner_roles(definition: GraphDefinition) -> set[str]:
+    """The `profile:<role>` names a graph binds a runner to (§3.1 role-binding).
+
+    `resolve.instantiate` refuses a graph whose roles are not all bound in the
+    config ("unknown runner roles"), so both the example config and the lab are
+    checked against this set.
+    """
+    return {
+        node.runner.removeprefix(RUNNER_PREFIX)
+        for node in definition.document.node
+        if node.runner is not None and node.runner.startswith(RUNNER_PREFIX)
+    }
 
 
 def write(tmp_path: Path, text: str, name: str = "graph.toml") -> Path:

@@ -17,10 +17,11 @@ import time
 import uuid
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import TypedDict
+from types import MappingProxyType
+from typing import Final, TypedDict
 
 from tests._fake_bd import FakeBd, InjectedCrash
-from tests._helpers import VALID_FIXTURE
+from tests._helpers import VALID_FIXTURE, runner_roles
 from tests._supervisor import (
     ChildScript,
     FakeProfile,
@@ -63,6 +64,7 @@ from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
 from workflow_interpreter.foreman.gates import payload_template
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
+from workflow_interpreter.profiles.config import RUNNER_PREFIX
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.models import StaleFlag
@@ -76,11 +78,35 @@ from workflow_interpreter.supervisor.profile import (
 
 type OverrideValue = str | int | bool
 
+# The lab's defaults are feature-delivery's: its two roles and the one instance
+# input every drill written before phase 7 relies on. A graph with other roles
+# or sources (build-loop) passes its own through `ForemanLab(roles=…,
+# instance_inputs=…)`.
+DEFAULT_LAB_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
+    {
+        "implementer": RunnerBinding(profile="fake"),
+        "critic": RunnerBinding(profile="fake"),
+    }
+)
+DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
+    {"task_brief": "implement the lab fixture"}
+)
+
+# The resolver is asked for the runner name as the GRAPH spells it, so the
+# accepted set is derived per graph; `fake` is the lab's own inert profile.
+FAKE_PROFILE: Final[str] = "fake"
+
 
 class _Profiles(ProfileResolver):
-    """A scriptable resolver that keeps wrapper execution inside the real seam."""
+    """A scriptable resolver that keeps wrapper execution inside the real seam.
 
-    def __init__(self) -> None:
+    `accepted` is the runner-name allow-list: a name outside it is a wiring bug
+    in the lab, and failing loudly there beats silently handing every node the
+    same profile.
+    """
+
+    def __init__(self, accepted: frozenset[str]) -> None:
+        self.accepted = accepted
         self.profile = _QueuedProfile(
             self,
             ChildScript(
@@ -95,7 +121,7 @@ class _Profiles(ProfileResolver):
         self._by_node: dict[str, ChildScript] = {}
 
     def profile_for(self, name: str) -> Profile:
-        if name not in {"fake", "profile:implementer", "profile:critic"}:
+        if name not in self.accepted:
             raise AssertionError(f"unexpected wrapper profile: {name}")
         return self.profile
 
@@ -313,7 +339,17 @@ class ForemanLab:
         signer: Callable[[bytes, Path | None], bytes] | None = None,
         bd_factory: Callable[[str], FakeBd] = FakeBd,
         band_wait_s: float = 30.0,
+        roles: Mapping[str, RunnerBinding] = DEFAULT_LAB_ROLES,
+        instance_inputs: Mapping[str, str] = DEFAULT_LAB_INSTANCE_INPUTS,
     ) -> None:
+        """Wire a throwaway repo to a real foreman.
+
+        `roles` binds each `runner = "profile:<role>"` name the graph declares —
+        the real `resolve.instantiate` refuses a graph with an unbound role —
+        and `instance_inputs` maps each `producer = "instance"` source name to
+        its body. Both default to feature-delivery's, which `toml` also
+        defaults to.
+        """
         self.repo = make_repo(tmp_path)
         self.head = head_of(self.repo)
         self._workspace = tmp_path / "bd-workspace"
@@ -323,6 +359,8 @@ class ForemanLab:
         self._band_wait_s = band_wait_s
         self.signer = signer
         self.overrides = {} if overrides is None else dict(overrides)
+        self._roles = dict(roles)
+        self._instance_inputs = dict(instance_inputs)
         self.allow_test_flags = allow_test_flags
         self._wrapper_home = tmp_path / "foreman"
         wrapper_root = (
@@ -335,6 +373,13 @@ class ForemanLab:
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
         self._build_fresh()
         self.root: RootRecord | None = None
+
+    def _accepted_profiles(self) -> frozenset[str]:
+        """Every runner name the pinned graph can ask the resolver for."""
+        return frozenset(
+            {FAKE_PROFILE}
+            | {f"{RUNNER_PREFIX}{role}" for role in runner_roles(self.definition)}
+        )
 
     def _build_fresh(self) -> None:
         """Construct no composition collaborator from a prior process."""
@@ -350,7 +395,7 @@ class ForemanLab:
         )
         self.git = make_git(self.supervisor_config)
         self.clock = FrozenClock()
-        self.profiles = _Profiles()
+        self.profiles = _Profiles(self._accepted_profiles())
         self.spawner = InlineSpawner()
         self.config = ForemanConfig(
             repo_root=self.repo,
@@ -361,10 +406,7 @@ class ForemanLab:
             supervisor=self.supervisor_config,
             actor="test",
             band_wait_s=self._band_wait_s,
-            roles={
-                "implementer": RunnerBinding(profile="fake"),
-                "critic": RunnerBinding(profile="fake"),
-            },
+            roles=self._roles,
         )
         self.composition = Composition(
             self.config,
@@ -388,6 +430,9 @@ class ForemanLab:
         """
         for name, body in bodies.items():
             path = self.repo / name
+            # build-loop's checks live in `scripts/checks/`, which the fixture
+            # repo does not have.
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(body, encoding="utf-8")
             path.chmod(0o755)
         self.head = commit_all(self.repo, "lab check scripts")
@@ -398,12 +443,13 @@ class ForemanLab:
             instance_key="foreman-lab",
             definition=self.definition,
             resolved_config=self._overrides(),
-            instance_inputs=(
+            instance_inputs=tuple(
                 InstanceInput(
-                    name="task_brief",
-                    body="implement the lab fixture",
-                    sha256=hashlib.sha256(b"implement the lab fixture").hexdigest(),
-                ),
+                    name=name,
+                    body=body,
+                    sha256=hashlib.sha256(body.encode("utf-8")).hexdigest(),
+                )
+                for name, body in self._instance_inputs.items()
             ),
             allow_test_flags=self.allow_test_flags,
             instance_base_commit=self.head,

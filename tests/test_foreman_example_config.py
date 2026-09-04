@@ -13,13 +13,20 @@ import os
 import subprocess
 from pathlib import Path
 
+from tests._helpers import AUTHORING_FIXTURE, BUILD_LOOP_GRAPH, runner_roles
 from tests._supervisor import make_repo
+from workflow_interpreter import load_graph
 from workflow_interpreter.foreman.config import load_config
 
 GENERATOR = (
     Path(__file__).resolve().parent.parent / "scripts" / "make-foreman-config.sh"
 )
 RENDER_TIMEOUT_S = 30.0
+
+# Every graph `foreman create` may be pointed at. `instantiate` refuses one
+# whose roles are not all bound ("unknown runner roles", `resolve.py:218`), so
+# an example config that misses a role makes the graph uninstantiable.
+LIVE_GRAPHS = (AUTHORING_FIXTURE, BUILD_LOOP_GRAPH)
 
 
 def test_the_example_config_renders_into_a_loadable_foreman_config(
@@ -53,3 +60,10 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     assert config.signing is not None
     # §9: a foreman that can write its own allow-list can forge approvals.
     assert not config.signing.allowed_signers_path.is_relative_to(config.bd.workspace)
+    # build-loop adds `test-author`, `test-critic` and `impl-critic`; writers
+    # go to claude because a codex sandbox cannot commit (phase 6 D5).
+    assert config.roles["test-author"].profile == "claude"
+    assert config.roles["test-critic"].profile == "codex"
+    assert config.roles["impl-critic"].profile == "codex"
+    for graph_path in LIVE_GRAPHS:
+        assert not runner_roles(load_graph(graph_path)) - set(config.roles)

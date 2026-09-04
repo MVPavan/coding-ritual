@@ -58,3 +58,16 @@ profile = "claude"
 
 [roles.critic]
 profile = "codex"
+
+# build-loop's three further roles. The test author writes, so it is claude for
+# the same reason.
+[roles.test-author]
+profile = "claude"
+
+# Reviews the acceptance tests; read-only, so codex.
+[roles.test-critic]
+profile = "codex"
+
+# Reviews the implementation diff; read-only, so codex.
+[roles.impl-critic]
+profile = "codex"

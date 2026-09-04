@@ -46,14 +46,13 @@ isolation     = "worktree"
 writes        = true
 allowed_paths = ["tests/acceptance/**"]
 inputs        = ["task_brief", "seam_contract", "test_findings"]
-verify        = [{ cmd = "scripts/checks/tests-parse.sh",   timeout = "5m" },
-                 { cmd = "scripts/checks/rows-vs-names.sh", timeout = "2m" }]
+verify        = [{ cmd = "scripts/checks/tests-parse.sh", timeout = "5m" }]
 token_budget  = 80000
 max_wall      = "30m"
 stale_after   = "10m"
 max_infra_retries = 2
 max_steers    = 2
-outcomes      = ["done", "fail_plan"]
+outcomes      = ["done", "fail_plan", "fail_code"]
 
 [[node]]
 name          = "review_tests"
@@ -73,20 +72,21 @@ implementation is a BLOCKER.
 You have no repo write access. Do not fix or rewrite tests.
 
 Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
+Report `fail_plan` when the same BLOCKER stands for a second round (your
+prior round's findings are `test_findings`).
 """
 isolation     = "worktree"
 writes        = false
 allowed_paths = []
-inputs        = ["task_brief", "seam_contract", "acceptance_tests"]
+inputs        = ["task_brief", "seam_contract", "acceptance_tests", "test_findings"]
 verify        = [{ cmd = "scripts/checks/tests-parse.sh",        timeout = "5m" },
-                 { cmd = "scripts/checks/rows-vs-names.sh",      timeout = "2m" },
                  { cmd = "scripts/checks/assertion-strength.sh", timeout = "5m" }]
 token_budget  = 60000
 max_wall      = "20m"
 stale_after   = "10m"
 max_infra_retries = 2
 max_steers    = 1
-outcomes      = ["accept", "reject"]
+outcomes      = ["accept", "reject", "fail_code", "fail_plan"]
 
 [[node]]
 name          = "implement"
@@ -111,7 +111,7 @@ isolation     = "worktree"
 writes        = true
 allowed_paths = ["workflow_interpreter/**", "tests/unit/**"]
 inputs        = ["task_brief", "acceptance_tests", "impl_findings", "critic_findings"]
-verify        = [{ cmd = "scripts/checks/gate.sh",            timeout = "20m" },
+verify        = [{ cmd = "scripts/verify-feature.sh",        timeout = "20m" },
                  { cmd = "scripts/checks/tests-untouched.sh", timeout = "2m"  },
                  { cmd = "scripts/checks/mutate.sh",          timeout = "25m" }]
 token_budget  = 120000
@@ -119,7 +119,7 @@ max_wall      = "60m"
 stale_after   = "15m"
 max_infra_retries = 2
 max_steers    = 2
-outcomes      = ["done", "no_diff", "fail_plan"]
+outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]
 
 [[node]]
 name          = "review_impl"
@@ -138,21 +138,21 @@ test to pass. That is always a BLOCKER.
 You have no repo write access. Do not propose patches.
 
 Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
+Report `fail_plan` when the same BLOCKER stands for a second round (your
+prior round's findings are `impl_findings`).
 """
 isolation     = "worktree"
 writes        = false
 allowed_paths = []
-inputs        = ["task_brief", "acceptance_tests", "diff_artifact"]
-verify        = [{ cmd = "scripts/checks/gate.sh",             timeout = "20m" },
-                 { cmd = "scripts/checks/tests-untouched.sh",  timeout = "2m"  },
-                 { cmd = "scripts/checks/mutate.sh",           timeout = "25m" },
-                 { cmd = "scripts/checks/review-artifact.sh",  timeout = "5m"  }]
+inputs        = ["task_brief", "acceptance_tests", "diff_artifact", "impl_findings"]
+verify        = [{ cmd = "scripts/checks/tests-parse.sh",        timeout = "5m" },
+                 { cmd = "scripts/checks/assertion-strength.sh", timeout = "5m" }]
 token_budget  = 80000
 max_wall      = "45m"
 stale_after   = "10m"
 max_infra_retries = 2
 max_steers    = 1
-outcomes      = ["accept", "reject"]
+outcomes      = ["accept", "reject", "fail_code", "fail_plan"]
 
 [[node]]
 name          = "critic"
@@ -178,18 +178,16 @@ Report `reject` if any BLOCKER stands, otherwise `accept`.
 isolation     = "worktree"
 writes        = false
 allowed_paths = []
-inputs        = ["task_brief", "diff_artifact", "impl_findings"]
-verify        = [{ cmd = "scripts/checks/gate.sh",            timeout = "20m" },
-                 { cmd = "scripts/checks/tests-untouched.sh", timeout = "2m"  },
-                 { cmd = "scripts/checks/mutate.sh",          timeout = "25m" },
-                 { cmd = "scripts/checks/review-artifact.sh", timeout = "5m"  },
-                 { cmd = "scripts/checks/claims-cited.sh",    timeout = "5m"  }]
+inputs        = ["task_brief", "seam_contract", "acceptance_tests", "diff_artifact",
+                 "test_findings", "impl_findings"]
+verify        = [{ cmd = "scripts/checks/tests-parse.sh",        timeout = "5m" },
+                 { cmd = "scripts/checks/assertion-strength.sh", timeout = "5m" }]
 token_budget  = 80000
 max_wall      = "45m"
 stale_after   = "10m"
 max_infra_retries = 2
 max_steers    = 1
-outcomes      = ["accept", "reject"]
+outcomes      = ["accept", "reject", "fail_code"]
 
 [[node]]
 name      = "slice_gate"
@@ -231,9 +229,27 @@ on   = "fail_plan"
 to   = "triage_tests"
 
 [[edge]]
+from = "write_tests"
+on   = "fail_code"
+to   = "write_tests"     # a red check is a rework, not a human halt; the
+                         # region entry re-enters, so rounds still cap it
+
+[[edge]]
 from = "review_tests"
 on   = "reject"
 to   = "write_tests"
+
+[[edge]]
+from = "review_tests"
+on   = "fail_code"
+to   = "write_tests"     # the critic's checks went red on the tests under
+                         # review; the test author is what can fix that
+
+[[edge]]
+from = "review_tests"
+on   = "fail_plan"
+to   = "triage_tests"    # early abandon: a BLOCKER that stands twice ends
+                         # the region, rather than spending its last round
 
 [[edge]]
 from = "review_tests"
@@ -256,9 +272,24 @@ on   = "fail_plan"
 to   = "triage_build"
 
 [[edge]]
+from = "implement"
+on   = "fail_code"
+to   = "implement"       # same rework rule as the tests region
+
+[[edge]]
 from = "review_impl"
 on   = "reject"
 to   = "implement"
+
+[[edge]]
+from = "review_impl"
+on   = "fail_code"
+to   = "implement"
+
+[[edge]]
+from = "review_impl"
+on   = "fail_plan"
+to   = "triage_build"    # early abandon, as in the tests region
 
 [[edge]]
 from = "review_impl"
@@ -269,6 +300,12 @@ to   = "critic"
 from = "critic"
 on   = "reject"
 to   = "implement"
+
+[[edge]]
+from = "critic"
+on   = "fail_code"
+to   = "implement"       # the last reader's checks went red; only the
+                         # implementer can turn them green again
 
 [[edge]]
 from = "critic"
