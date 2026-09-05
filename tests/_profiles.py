@@ -210,6 +210,7 @@ def make_task(
     model: str = MODEL,
     node: str = "implement",
     cwd: Path | None = None,
+    allowed_paths: tuple[str, ...] = (),
 ) -> TaskSpec:
     """A `TaskSpec` for one node, with a checkout directory that exists."""
     worktree = cwd or (tmp_path / ".wf" / ROOT_ID / "worktree")
@@ -220,6 +221,7 @@ def make_task(
         node=node,
         model=model,
         writes=writes,
+        allowed_paths=allowed_paths,
         cwd=str(worktree),
         channels=make_channels(tmp_path),
         brief=brief,

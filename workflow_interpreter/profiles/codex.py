@@ -266,6 +266,19 @@ class CodexProfile(BaseProfile):
         receipt, exec ledger, exit file and completion evidence live one level
         above the grant, where no runner can forge or delete them
         (`paths.CHANNELS_DIR`).
+
+        Phase 2 of `docs/plans/allowed-paths-enforcement.md` deliberately does
+        NOT narrow this to the node's `allowed_paths`: `workspace-write` always
+        makes the working root writable and 0.153.3's `sandbox_workspace_write`
+        has no key that takes that back, so the only vendor-side expression of a
+        read-only checkout is to move the root off it — which would leave a
+        writer's cwd outside the repo its brief names paths relative to, and its
+        `git add`/`git commit` nowhere. A writer's checkout therefore stays
+        vendor-writable and the §2 bubblewrap mount bound
+        (`supervisor/sandbox.py`) is the containment. Revisit when 0.153's
+        `permission_profiles` can express a read-only cwd — it is already the
+        surface `codex sandbox` takes as a required `--permission-profile`,
+        which the profile has not probed.
         """
         if task.writes:
             return require_absolute(self.runner, "task cwd", task.cwd)

@@ -37,7 +37,7 @@ import json
 import shlex
 from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from decimal import Decimal, InvalidOperation
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import ClassVar, Final
 
 import structlog
@@ -70,6 +70,7 @@ from workflow_interpreter.supervisor.sandbox import (
     ENV_UV_PROJECT_ENVIRONMENT,
     PYTEST_CACHE_OPTION,
     UV_FROZEN_VALUE,
+    grant_directory,
 )
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -353,6 +354,23 @@ def fold_usage(events: Iterable[RunnerEvent]) -> Usage:
         output_tokens=output_tokens,
         cost_usd=None if cost is None else str(cost),
     )
+
+
+def grant_dirs(runner: RunnerName, task: TaskSpec) -> tuple[str, ...]:
+    """The absolute directories a task's `allowed_paths` grant, in declared order.
+
+    The one mapping both write-capable profiles express in their own permission
+    layer (phase 2 of `docs/plans/allowed-paths-enforcement.md`): claude turns
+    each into an `Edit` allow-rule, codex into a `writable_roots` entry. Shared
+    rather than copied because two spellings of "what this grant means" is one
+    too many, and `grant_directory` keeps both in step with the §2 mount bound —
+    a shape the box would refuse to bind is refused here, with the same error.
+
+    A grant nested inside another stays its own directory: folding it into the
+    parent would state a wider bound than the mounts hold.
+    """
+    cwd = PurePosixPath(require_absolute(runner, "task cwd", task.cwd))
+    return tuple(str(cwd / grant_directory(grant)) for grant in task.allowed_paths)
 
 
 def require_absolute(runner: RunnerName, label: str, value: str) -> str:

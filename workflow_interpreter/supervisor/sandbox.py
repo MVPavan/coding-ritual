@@ -34,7 +34,7 @@ import shutil
 import subprocess
 import tempfile
 from enum import StrEnum
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Final
 
 from pydantic import BaseModel, ConfigDict
@@ -275,13 +275,25 @@ def _refuse_bad_shape(grant: str) -> str:
     return relative
 
 
+def grant_directory(grant: str) -> PurePosixPath:
+    """The repo-relative directory one `<dir>/**` grant names, as pure path math.
+
+    Public because the §6 profiles express the SAME grant set in their own
+    permission layers (phase 2 of `docs/plans/allowed-paths-enforcement.md`), and
+    a second copy of the mapping is a second answer to "what does this grant
+    mean". Pure on purpose: `_grant_path` resolves and PRE-CREATES a mount
+    source, which is work a profile building argv must never do.
+    """
+    return PurePosixPath(_refuse_bad_shape(grant))
+
+
 def _grant_path(grant: str, checkout: Path) -> Path:
     """Map one `<dir>/**` grant to the real directory it may write.
 
     `realpath` before the containment check, because a symlink inside the
     checkout pointing out of it is exactly the escape a lexical check misses.
     """
-    relative = _refuse_bad_shape(grant)
+    relative = grant_directory(grant)
     resolved = (checkout / relative).resolve()
     if not resolved.is_relative_to(checkout):
         raise SandboxPathRefused(

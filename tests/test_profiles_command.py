@@ -82,6 +82,34 @@ BYPASS_TOKENS: Final[tuple[str, ...]] = (
 output during the probes. A profile that emitted any of them would hand the
 child more authority than the node declares, whatever else its flags said."""
 
+GRANTS: Final[tuple[str, ...]] = ("src/**", "tests/unit/**")
+GRANT_DIRS: Final[tuple[str, ...]] = ("src", "tests/unit")
+NESTED_GRANTS: Final[tuple[str, ...]] = ("src/**", "src/inner/**")
+NESTED_GRANT_DIRS: Final[tuple[str, ...]] = ("src", "src/inner")
+"""Two `allowed_paths` sets in the only shape §4 accepts, and the nested pair.
+
+Phase 2 of `docs/plans/allowed-paths-enforcement.md`: claude expresses THIS set
+in its own permission engine, so a write outside it is a tool refusal in the
+transcript rather than a mid-command `Read-only file system` from the §2 mount
+bound underneath. Codex is deliberately not in that list — its sandbox cannot
+make a writer's working root read-only, so the mount bound is its whole bound
+(`CodexProfile._workspace_root`). A grant nested inside another is still its own
+rule; collapsing it to the parent would widen the bound."""
+
+CLAUDE_WRITE_DENIALS: Final[tuple[str, ...]] = (
+    "Bash(git push)",
+    "Bash(git push:*)",
+    "Bash(git:* push:*)",
+    "NotebookEdit",
+    "Task",
+    "WebFetch",
+    "WebSearch",
+)
+"""The `writes = true` deny list after the two `.git` rules, snapshotted whole.
+
+Narrowing the ALLOW rules must not touch a single denial, and a snapshot is the
+only assertion that notices one going missing."""
+
 
 def values_after(argv: tuple[str, ...], flag: str) -> tuple[str, ...]:
     """The variadic values a flag takes, up to the next flag."""
@@ -126,21 +154,28 @@ def test_claude_read_only_grants_write_to_the_channels_and_nothing_else(
     assert "Bash" in values_after(command.argv, "--disallowedTools")
 
 
-def test_claude_writes_grants_the_checkout_and_denies_every_push_spelling(
+def test_claude_writes_grants_one_rule_per_allowed_path_and_never_the_checkout(
     tmp_path: Path,
 ) -> None:
-    """`writes = true` is repo-worktree write access only, and never a push (§6)."""
-    task = make_task(tmp_path, writes=True)
+    """Phase 2: `writes = true` grants the node's `allowed_paths`, not the tree.
+
+    One `Edit` rule per grant and no checkout-wide rule at all. `Edit` is the
+    only file tool the rules name because `Edit(path)` rules govern every
+    file-editing tool including `Write`, and a `Write(path)` rule matches
+    nothing (probed — see the profile's module docstring).
+    """
+    task = make_task(tmp_path, writes=True, allowed_paths=GRANTS)
     profile = make_claude(tmp_path, FrozenClock())
 
     command = profile.build_command(task, new_session())
 
     allowed = values_after(command.argv, "--allowedTools")
-    denied = values_after(command.argv, "--disallowedTools")
-    assert f"Edit(/{task.cwd}/**)" in allowed
+    checkout_rules = [rule for rule in allowed if f"(/{task.cwd}" in rule]
+    assert checkout_rules == [f"Edit(/{task.cwd}/{name}/**)" for name in GRANT_DIRS]
+    assert f"Edit(/{task.cwd}/**)" not in allowed
     assert f"Edit(/{task.channels.artifact_dir}/**)" in allowed
+    # Kept: under the §2 mount bound the bare `Bash` grant is no longer the hole.
     assert "Bash" in allowed
-    assert {"Bash(git push)", "Bash(git push:*)", "Bash(git:* push:*)"} <= set(denied)
     assert values_after(command.argv, "--tools") == (
         "Read",
         "Glob",
@@ -148,6 +183,69 @@ def test_claude_writes_grants_the_checkout_and_denies_every_push_spelling(
         "Edit",
         "Write",
         "Bash",
+    )
+
+
+def test_claude_writes_with_no_declared_grant_can_write_no_repository_path(
+    tmp_path: Path,
+) -> None:
+    """No grants means no file-tool allow inside the checkout — as the mounts do.
+
+    Unreachable through a validated graph: `rules_nodes.py:281` makes
+    `writes = true` with empty `allowed_paths` a schema ERROR
+    (`MSG_ALLOWED_PATHS_WRITER`). Asserted at the profile boundary anyway, the
+    same way the mount bound re-checks a grant shape the schema already vets —
+    a `TaskSpec` reaches `build_command` from fixtures and future callers too.
+    """
+    task = make_task(tmp_path, writes=True)
+    profile = make_claude(tmp_path, FrozenClock())
+
+    command = profile.build_command(task, new_session())
+
+    allowed = values_after(command.argv, "--allowedTools")
+    assert not [rule for rule in allowed if f"(/{task.cwd}" in rule]
+
+
+def test_claude_read_only_grants_no_path_rule_even_when_paths_are_declared(
+    tmp_path: Path,
+) -> None:
+    """`allowed_paths` is a WRITE grant; a `writes = false` node has none (§6)."""
+    task = make_task(tmp_path, writes=False, allowed_paths=GRANTS)
+    profile = make_claude(tmp_path, FrozenClock())
+
+    command = profile.build_command(task, new_session())
+
+    allowed = values_after(command.argv, "--allowedTools")
+    assert not [rule for rule in allowed if f"(/{task.cwd}" in rule]
+    assert "Edit" not in values_after(command.argv, "--tools")
+
+
+def test_claude_nests_a_grant_inside_another_as_its_own_rule(tmp_path: Path) -> None:
+    """A nested grant is emitted whole: rules are matched, not folded together."""
+    task = make_task(tmp_path, writes=True, allowed_paths=NESTED_GRANTS)
+    profile = make_claude(tmp_path, FrozenClock())
+
+    command = profile.build_command(task, new_session())
+
+    allowed = values_after(command.argv, "--allowedTools")
+    for name in NESTED_GRANT_DIRS:
+        assert f"Edit(/{task.cwd}/{name}/**)" in allowed
+
+
+@pytest.mark.parametrize("allowed_paths", [(), GRANTS])
+def test_claude_denials_are_the_same_list_whatever_the_grants_are(
+    tmp_path: Path, allowed_paths: tuple[str, ...]
+) -> None:
+    """Narrowing the allow rules must leave every deny rule exactly where it was."""
+    task = make_task(tmp_path, writes=True, allowed_paths=allowed_paths)
+    profile = make_claude(tmp_path, FrozenClock())
+
+    command = profile.build_command(task, new_session())
+
+    assert values_after(command.argv, "--disallowedTools") == (
+        f"Edit(/{task.cwd}/.git)",
+        f"Edit(/{task.cwd}/.git/**)",
+        *CLAUDE_WRITE_DENIALS,
     )
 
 

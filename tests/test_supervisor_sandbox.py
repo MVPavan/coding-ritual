@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Final, NamedTuple
 
 import pytest
@@ -36,6 +36,7 @@ from workflow_interpreter.supervisor.sandbox import (
     REASON_OFF,
     SandboxMode,
     SandboxPlan,
+    grant_directory,
     plan_for,
     probe,
     reset_probe_cache,
@@ -313,6 +314,30 @@ def test_grant_directory_is_created_when_absent(tmp_path: Path) -> None:
     assert not (rig.checkout / GRANT_DIR).exists()
     assert _plan(rig).grants == (rig.checkout / GRANT_DIR,)
     assert (rig.checkout / GRANT_DIR).is_dir()
+
+
+@pytest.mark.parametrize(
+    ("grant", "expected"),
+    [("tests/acceptance/**", "tests/acceptance"), ("src/**", "src")],
+)
+def test_grant_directory_is_the_same_mapping_with_no_filesystem_work(
+    grant: str, expected: str
+) -> None:
+    """Phase 2's seam: the §6 profiles express THIS grant set in their own layer.
+
+    Pure on purpose — a profile builds argv and must never create the directory
+    `_grant_path` pre-creates as a mount source.
+    """
+    assert grant_directory(grant) == PurePosixPath(expected)
+
+
+@pytest.mark.parametrize("grant", [".git/**", "./**", "**", "tests", "/abs/**"])
+def test_grant_directory_refuses_every_shape_the_mount_bound_refuses(
+    grant: str,
+) -> None:
+    """One shape check, so a profile cannot widen a grant the bound would reject."""
+    with pytest.raises(SandboxPathRefused):
+        grant_directory(grant)
 
 
 def test_grant_resolving_outside_the_checkout_is_refused(tmp_path: Path) -> None:

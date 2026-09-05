@@ -172,6 +172,41 @@ def test_codex_read_only_really_is_read_only(tmp_path: Path) -> None:
     assert continued[0].session == thread
 
 
+GRANT: Final[str] = "src/**"
+GRANT_DIR: Final[str] = "src"
+"""One `allowed_paths` grant, for the phase-2 bound claude now expresses in its
+own permission engine. Codex has no such case: its sandbox cannot make a
+writer's working root read-only, so the mount bound is its whole bound."""
+
+
+@pytest.mark.live
+def test_claude_writes_only_inside_its_declared_grant(tmp_path: Path) -> None:
+    """Phase 2, against the real permission engine: the grant is the bound.
+
+    `writes = true` used to grant the whole checkout, so the denied file below
+    would simply have been written. The refusal is claude's own — no mount bound
+    is applied here, because `run` execs the argv the profile built rather than
+    the wrapped one the launcher would.
+    """
+    require("claude")
+    profile = ClaudeProfile(
+        make_profile_config(),
+        make_supervisor_config(tmp_path),
+        FrozenClock(),
+        host_env(),
+    )
+    task = make_task(tmp_path, writes=True, model="default", allowed_paths=(GRANT,))
+    granted = Path(task.cwd, GRANT_DIR)
+    granted.mkdir(parents=True, exist_ok=True)
+    task = task.model_copy(update={"brief": bound_brief(task.cwd, str(granted))})
+
+    completed = run(profile.build_command(task, new_session()))
+
+    assert completed.returncode == 0, completed.stderr
+    assert Path(granted, ALLOWED).exists(), completed.stdout
+    assert not Path(task.cwd, DENIED).exists()
+
+
 @pytest.mark.live
 def test_codex_resume_still_lacks_the_flags_the_profile_routes_around() -> None:
     """The asymmetry the codex profile is built around — no tokens spent.

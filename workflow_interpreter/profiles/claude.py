@@ -32,6 +32,7 @@ from workflow_interpreter.bdio import ActivationRecord, Usage
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     decimal_at,
+    grant_dirs,
     int_at,
     mapping_at,
     optional_text_at,
@@ -255,6 +256,9 @@ class ClaudeProfile(BaseProfile):
         may touch; the deny-rules outrank both. `writes = false` keeps the
         checkout as the working directory — claude bounds writes by path, so a
         readable-but-unwritable checkout needs no second directory.
+
+        `writes = true` grants the node's `allowed_paths` and nothing wider
+        (`_grant_rules`); the §2 mount bound underneath grants the same set.
         """
         channels = _channel_rules(task)
         if not task.writes:
@@ -274,7 +278,7 @@ class ClaudeProfile(BaseProfile):
             ALLOWED_TOOLS,
             *READ_TOOLS,
             "Bash",
-            _tree_rule(cwd),
+            *_grant_rules(task),
             *channels,
             DISALLOWED_TOOLS,
             *_git_dir_denials(cwd),
@@ -354,6 +358,26 @@ def _message_event(payload: Mapping[str, object], session: str | None) -> Runner
     if tools:
         return RunnerEvent(type=EventType.TOOL, text=" ".join(tools), session=session)
     return RunnerEvent(type=EventType.MESSAGE, text="\n".join(texts), session=session)
+
+
+def _grant_rules(task: TaskSpec) -> list[str]:
+    """One allow-rule per `allowed_paths` grant — never the checkout as a tree.
+
+    Phase 2 of `docs/plans/allowed-paths-enforcement.md`: the §2 mount bound is
+    the real containment, and this states the SAME grant set in claude's own
+    permission engine, so a write outside it arrives as a tool refusal in the
+    transcript (and in `permission_denials`) instead of as a mid-command
+    `Read-only file system` from a bind the model cannot see.
+
+    `Edit` is the only tool named because `Edit(path)` rules govern every
+    file-editing tool including `Write`, and a `Write(path)` rule matches
+    nothing (module docstring, probed). The directories come from `grant_dirs`,
+    which is the mount bound's own mapping rather than a second one.
+
+    A `writes = true` node that declares no grant therefore gets no repository
+    path at all, which is exactly what its mount plan gives it.
+    """
+    return [_tree_rule(path) for path in grant_dirs(RunnerName.CLAUDE, task)]
 
 
 def _tree_rule(directory: str) -> str:
