@@ -104,15 +104,19 @@ prevention.**
      re-opened (probed). `<main>/.git/logs` joins the writable set (a commit
      cannot append its reflog without it), and `<main>/.git/refs/wf` joins the
      pins so a runner cannot forge the wrapper's own evidence refs as loose
-     refs. **Residual, accepted:** `refs/` and `packed-refs` stay writable, so
-     `packed-refs` rewriting and moving the instance branch remain possible;
-     hardening that is a separate bead.
+     refs. The `info` pin is the whole directory (not `info/attributes` alone),
+     and a worktree checkout also pins `<gitdir>/config.worktree`, in-repo mode
+     `modules/*/config`. **Residual, accepted:** `refs/` and `packed-refs` stay
+     writable, so `packed-refs` rewriting and moving the instance branch remain
+     possible; hardening that is a separate bead.
    - **O3 — glob expressiveness.** Refuse inexpressible globs at instantiation.
      The only accepted `allowed_paths` shape is a directory-prefix glob
      `<relative dir>/**` (no `..`, no leading `/`, no wildcard segments, no
      file-level pattern), enforced as a JSON-Schema `pattern` on the items
-     (precedent: cr-0jd did this for `node.runner`). A refusing constraint does
-     not change content hashes. A grant directory that does not exist in the
+     (precedent: cr-0jd did this for `node.runner`), and no segment may begin
+     with `.` — so a hidden directory such as `.claude/**` can never be a grant
+     and can never re-open a read-only pin. A refusing constraint does not
+     change content hashes. A grant directory that does not exist in the
      checkout is created (empty) before the bind.
    - **O4 — network.** No `--unshare-net`. Codex keeps its
      `network_access=false`.

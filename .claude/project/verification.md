@@ -35,3 +35,10 @@ test/lint/build commands to run for the repo as a whole, so the health gate is
 Run the relevant harness after changing that plugin; these are the closest thing
 to CI the repo has. Report actual exit status and output — no completion claim
 without fresh evidence.
+
+## Workflow interpreter — sandbox tests
+
+The `proc`-marked sandbox tests exercise the real bubblewrap mount bound, so a
+green run on a host with no working `bwrap` proves nothing about that bound —
+those tests skip loudly with the probe's reason — whereas the refusal-path test
+and the `plan_for`/`wrap` unit tests use no real `bwrap` and must never skip.

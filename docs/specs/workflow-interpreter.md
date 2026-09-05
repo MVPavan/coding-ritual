@@ -132,7 +132,7 @@ runner        = "profile:implementer"
 model         = "default"
 isolation     = "worktree"               # worktree | in-repo
 writes        = true                     # repo-worktree write access only
-allowed_paths = ["src/**", "tests/**"]   # reporting exemption, NOT a bound
+allowed_paths = ["src/**", "tests/**"]   # exemption AND writable mounts
 inputs        = ["task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
 token_budget  = 120000                   # context TRIM budget (not a runaway bound)
@@ -323,8 +323,11 @@ hard error.
    `verify` (structured: `cmd`, `timeout` ≤ the node's `max_wall`,
    optional `cwd`; `cmd`/`cwd` repo-relative — a check outside the
    pinned repo cannot be provenance-hashed, §7.3), `allowed_paths`
-   (repo-relative; empty ⇔ `writes = false`; a reporting exemption, not a
-   bound — see §7.5), `token_budget`,
+   (entries are `<dir>/**` directory-prefix grants — no segment may
+   start with `.`, so a hidden directory is never a grant — hence
+   repo-relative by construction; empty ⇔ `writes = false`; a reporting
+   exemption AND, with `sandbox = bwrap` (the default), the node's
+   writable mount set, §6/§7.5), `token_budget`,
    `max_wall`, `stale_after`, `max_infra_retries`, `max_steers`;
    `[instance].max_total_activations` present. Acyclic regions must NOT
    declare `max_entries`/`on_exhausted`; `on_exhausted` targets a GATE
@@ -629,6 +632,14 @@ declares `writes = true` (repo worktree only); unsupported option = loud
 error; usage normalization owned here (`usage: unknown` is legal and
 disables only the best-effort token ceiling — `max_wall` always holds).
 
+The wrapper wraps every profile's argv in the bubblewrap mount bound
+before exec: the checkout is read-only except the node's `allowed_paths`
+grants, `channels/` and the git object/ref stores, which are writable,
+while `config`, `hooks/`, `info/` and `refs/wf` are pinned read-only.
+Profiles neither opt in nor out. `sandbox = off` is an unsafe switch,
+recorded on the close as `AuditFlag.SANDBOX_OFF`; a host without a
+working `bwrap` refuses to dispatch — a halt, never an infra retry.
+
 **Runner channels** (wrapper-provided env, writable regardless of
 `writes`): `$WF_OUTCOME_FILE` — exactly one schema-validated outcome
 marker (THE reserved channel; zero, duplicate, or unparseable →
@@ -681,8 +692,10 @@ Computed by the foreman wrapper at `exit-recorded`:
    path, declare it, and be graded `done`; no profile consumes
    `allowed_paths` as a sandbox restriction. A declared path outside the
    set raises the `effect_outside_allowed_paths` audit flag — recorded for
-   an operator, blocking nothing. Real enforcement belongs at the runner
-   layer and does not exist yet.
+   an operator, blocking nothing. Enforcement is the §6 mount bound, one
+   layer down: the grants ARE the writable mounts, so under
+   `sandbox = bwrap` an `effect_outside_allowed_paths` flag is a
+   should-never-fire regression signal rather than a routine report.
 
 ## 8. Supervision
 
