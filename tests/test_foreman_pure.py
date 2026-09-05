@@ -1175,10 +1175,17 @@ def test_finalize_preserves_an_unblocked_completion_and_deviations(
     assert decision.deviations == ()
 
 
-def test_finalize_preserves_the_claim_and_existing_deviations(
+def test_finalize_preserves_the_claim_and_adds_no_prior_deviation(
     fake_store: WorkflowStore,
 ) -> None:
-    """Finalization does not replace a runner claim or discard prior deviations."""
+    """Finalization does not replace a runner claim, nor re-return prior deviations.
+
+    `decide` returns what THIS close ADDS and nothing else, because
+    `WorkflowStore.close_activation` stores `(*record.metadata.deviations,
+    *deviations)` — returning the carried ones made the store record each of
+    them twice (cr-n2z.9). Nothing is lost: they are already on the record, and
+    the merge keeps them ahead of whatever this close adds.
+    """
     root = make_root(fake_store, load_definition())
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     activation = activation.model_copy(
@@ -1199,7 +1206,8 @@ def test_finalize_preserves_the_claim_and_existing_deviations(
     )
     decision = decide(root.index.nodes["implement"], activation, completion)
     assert decision.claimed_outcome is Outcome.DONE
-    assert decision.deviations == activation.metadata.deviations
+    assert decision.outcome is Outcome.FAIL_PLAN
+    assert decision.deviations == ()
 
 
 def test_config_derives_wrapper_root_from_the_real_repo_path(tmp_path: Path) -> None:

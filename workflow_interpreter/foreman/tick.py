@@ -338,6 +338,13 @@ class Foreman:
                     and activation.bead.status != STATUS_CLOSED
                     and activation.metadata.outcome is not None
                 ):
+                    # The one close that re-passes the record's OWN deviations
+                    # and is not the cr-n2z.9 duplication: an activation with a
+                    # recorded outcome is `is_settled`, so `close_activation`
+                    # takes its repair-forward branch — it asserts this payload
+                    # agrees with the recorded one and merges nothing. This
+                    # close adds no deviation; it re-states the recorded ones so
+                    # `assert_close_payload` can check them.
                     repaired = wiring.store.close_activation(
                         activation.activation_id,
                         activation.metadata.outcome,

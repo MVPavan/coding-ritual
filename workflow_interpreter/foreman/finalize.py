@@ -25,6 +25,10 @@ class FinalDecision(BaseModel):
     claimed_outcome: Outcome | None
     blocked: bool
     deviations: tuple[Deviation, ...]
+    """ONLY what this close ADDS. `WorkflowStore.close_activation` stores
+    `(*record.metadata.deviations, *deviations)`, so it is the single owner of
+    the merge; returning the activation's existing deviations here recorded
+    every carried one two or three times (cr-n2z.9)."""
 
 
 def bound_violated(completion: CompletionEvidence) -> Deviation | None:
@@ -47,7 +51,13 @@ def bound_violated(completion: CompletionEvidence) -> Deviation | None:
 def decide(
     node: Node, activation: ActivationRecord, completion: CompletionEvidence
 ) -> FinalDecision:
-    """Make the close decision from already-computed wrapper evidence."""
+    """Make the close decision from already-computed wrapper evidence.
+
+    What it returns about deviations is what THIS close ADDS — the activation's
+    own are already on the record, and the store appends these after them. So
+    `activation` is now, like `node`, part of the call's shape rather than
+    something the decision reads (cr-n2z.9).
+    """
     violation = bound_violated(completion)
     if violation is not None:
         # Never `blocked`: the §7.5 effects gate asks a human to accept or
@@ -58,12 +68,12 @@ def decide(
             outcome=completion.outcome,
             claimed_outcome=completion.claimed_outcome,
             blocked=False,
-            deviations=(*activation.metadata.deviations, violation),
+            deviations=(violation,),
         )
     blocked = bool(completion.evidence.undeclared_effects)
     return FinalDecision(
         outcome=completion.outcome,
         claimed_outcome=completion.claimed_outcome,
         blocked=blocked,
-        deviations=activation.metadata.deviations,
+        deviations=(),
     )

@@ -81,7 +81,6 @@ def settle(
                 Outcome.ERROR_TRANSPORT,
                 evidence=evidence,
                 usage=activation.metadata.usage,
-                deviations=activation.metadata.deviations,
             )
             return Settlement(activation=closed)
         if completion is None:
@@ -127,7 +126,7 @@ def settle(
                 awaiting=halt.metadata.state is GateState.OPEN,
                 opened=halt.gate_id,
             )
-        deviations = _completion_deviations(activation, completion)
+        deviations = _completion_deviations(completion)
         if AuditFlag.BOUND_VIOLATED in completion.audit_flags:
             # Ahead of the effects gate for the reason `finalize.decide` gives
             # on the fresh-observation path: a bound that did not hold is not a
@@ -250,11 +249,7 @@ def settle(
         artifact = evidence.artifact
         if artifact is None:
             return _close_effects_discarded(
-                wiring,
-                recorded,
-                evidence,
-                observation.usage,
-                recorded.metadata.deviations,
+                wiring, recorded, evidence, observation.usage, decision.deviations
             )
         gate = wiring.store.open_gate(
             root.root_id,
@@ -272,12 +267,12 @@ def settle(
                 recorded,
                 evidence,
                 observation.usage,
-                recorded.metadata.deviations,
+                decision.deviations,
                 gate.gate_id,
             )
         if gate.metadata.outcome is Outcome.APPROVE:
             deviations = (
-                *recorded.metadata.deviations,
+                *decision.deviations,
                 Deviation(
                     kind=DEVIATION_UNDECLARED_EFFECTS_ACCEPTED,
                     reason="undeclared effects approved",
@@ -290,11 +285,13 @@ def settle(
                 activation=recorded, stalled="effects gate has invalid outcome"
             )
     else:
-        deviations = decision.deviations
-        recorded = wiring.store.record_evidence(
+        wiring.store.record_evidence(
             activation.activation_id, evidence, observation.usage
         )
-        deviations = (*recorded.metadata.deviations, *deviations)
+        # Only what this close adds: `close_activation` appends it after every
+        # deviation the record already carries, so re-reading them here recorded
+        # each of them twice more (cr-n2z.9).
+        deviations = decision.deviations
     if diverged:
         deviations = (
             *deviations,
@@ -356,10 +353,14 @@ def _close_recorded_effects_approved(
 
 
 def _completion_deviations(
-    activation: ActivationRecord, completion: CompletionEvidence
+    completion: CompletionEvidence,
 ) -> tuple[Deviation, ...]:
-    """Preserve persisted wrapper facts across a crash-window close."""
-    deviations = activation.metadata.deviations
+    """The persisted wrapper facts a crash-window close ADDS, in order.
+
+    Starts empty: the activation's own deviations are already on the record and
+    `close_activation` merges them ahead of these (cr-n2z.9).
+    """
+    deviations: tuple[Deviation, ...] = ()
     violation = bound_violated(completion)
     if violation is not None:
         deviations = (*deviations, violation)
