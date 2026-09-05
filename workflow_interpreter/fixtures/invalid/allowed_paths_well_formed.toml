@@ -1,4 +1,4 @@
-# allowed_paths_well_formed: the reporting exemption points outside the repo.
+# allowed_paths_well_formed: a non-writer declares a reporting exemption.
 [graph]
 id = "min"
 version = "1.0.0"
@@ -12,8 +12,8 @@ max_total_activations = 5
 name = "work"
 kind = "task"
 runner = "profile:x"
-writes = true
-allowed_paths = ["/etc/**"]
+writes = false
+allowed_paths = ["docs/**"]
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
 token_budget = 1000
 max_wall = "10m"

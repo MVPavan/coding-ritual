@@ -240,11 +240,6 @@ MUTATION_CASES: Final[tuple[tuple[str, Replacements, RuleId], ...]] = (
         RuleId.GATE_OUTCOMES_EDGE_COVERED,
     ),
     (
-        "allowed-path-escapes-repo",
-        (("allowed_paths = []", 'allowed_paths = ["../outside/**"]'),),
-        RuleId.ALLOWED_PATHS_WELL_FORMED,
-    ),
-    (
         "writer-without-allowed-paths",
         (("writes = false", "writes = true"),),
         RuleId.ALLOWED_PATHS_WELL_FORMED,

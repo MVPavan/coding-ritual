@@ -12,11 +12,9 @@ from workflow_interpreter.schema.graph_index import (
     duplicates,
     finding_error,
     finding_warning,
-    is_repo_relative,
     path,
 )
 from workflow_interpreter.schema.messages import (
-    MSG_ALLOWED_PATH,
     MSG_ALLOWED_PATHS_NON_WRITER,
     MSG_ALLOWED_PATHS_WRITER,
     MSG_EDGE_DUPLICATE,
@@ -272,17 +270,6 @@ def allowed_paths_well_formed(index: GraphIndex) -> list[Finding]:
         if node.allowed_paths is None:
             continue
         location = at("node", position, "allowed_paths")
-        for path_index, value in enumerate(node.allowed_paths):
-            if not is_repo_relative(value):
-                findings.append(
-                    finding_error(
-                        RuleId.ALLOWED_PATHS_WELL_FORMED,
-                        location,
-                        MSG_ALLOWED_PATH.format(
-                            node=node.name, index=path_index, value=value
-                        ),
-                    )
-                )
         if node.writes is False and node.allowed_paths:
             findings.append(
                 finding_error(

@@ -60,6 +60,11 @@
       "type": "string",
       "pattern": "^[1-9][0-9]*[smhd]$"
     },
+    "grant_glob": {
+      "description": "A directory-prefix grant `<dir>/**`. No segment may start with `.`, so `.git/**`, `.claude/**` and `./**` are refused and a hidden directory can never be a grant. These are the paths whose changes are exempt from undeclared-effect reporting and, with `sandbox = bwrap`, the node's writable mount set.",
+      "type": "string",
+      "pattern": "^(?:[A-Za-z0-9_-][A-Za-z0-9._-]*/)+\\*\\*$"
+    },
     "relative_path": {
       "description": "Repo-relative path or glob. Absolute paths and parent escapes are rejected by the semantic validator, which owns the message.",
       "type": "string",
@@ -204,7 +209,7 @@
         "allowed_paths": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/relative_path"
+            "$ref": "#/$defs/grant_glob"
           },
           "description": "Paths whose changes are exempt from undeclared-effect reporting (\u00a77.5). NOT a containment bound: the same rule also exempts whatever the runner declares in $WF_EFFECTS_FILE, so a runner may modify any path, declare it, and be graded done. See ADR 0001."
         },

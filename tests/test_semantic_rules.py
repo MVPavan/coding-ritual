@@ -183,3 +183,76 @@ def test_runner_must_be_a_profile_role_alias(tmp_path: Path, runner: str) -> Non
         load_graph(path)
 
     assert excinfo.value.rule_ids == frozenset({RuleId.SCHEMA})
+
+
+@pytest.mark.parametrize(
+    "grant",
+    [
+        pytest.param(".git/**", id="dot-git"),
+        pytest.param("a/.git/**", id="nested-dot-git"),
+        pytest.param("./**", id="dot-slash"),
+        pytest.param(".venv/**", id="dot-venv"),
+        pytest.param("a/./b/**", id="dot-segment"),
+        pytest.param("a/../b/**", id="parent-escape"),
+        pytest.param("../outside/**", id="leading-parent"),
+        pytest.param("a//b/**", id="empty-segment"),
+        pytest.param("**", id="whole-repo"),
+        pytest.param("a/**/**", id="double-star-segment"),
+        pytest.param("docs/*.md", id="file-glob"),
+        pytest.param("tests/**/*_test.py", id="interior-double-star"),
+        pytest.param("/abs/**", id="absolute"),
+        pytest.param("a/**/", id="trailing-slash"),
+    ],
+)
+def test_allowed_paths_entry_must_be_a_directory_prefix_grant(
+    tmp_path: Path, grant: str
+) -> None:
+    """Anything but `<dir>/**` is refused at load, by the schema pattern alone.
+
+    With `sandbox = bwrap` an entry is the node's writable mount set, so a
+    `.`-leading segment would re-open the wrapper's read-only git pins
+    (cr-n2z.2); `$defs/grant_glob` is the sole owner of that refusal.
+    """
+    path = write(
+        tmp_path,
+        mutate(
+            MINIMAL_GRAPH,
+            (
+                ("writes = false", "writes = true"),
+                ("allowed_paths = []", f'allowed_paths = ["{grant}"]'),
+            ),
+        ),
+    )
+
+    with pytest.raises(GraphValidationError) as excinfo:
+        load_graph(path)
+
+    assert excinfo.value.rule_ids == frozenset({RuleId.SCHEMA})
+
+
+@pytest.mark.parametrize(
+    "grant",
+    [
+        "tests/acceptance/**",
+        "workflow_interpreter/**",
+        "tests/unit/**",
+        "src/**",
+        "tests/**",
+    ],
+)
+def test_shipped_allowed_paths_values_stay_valid(tmp_path: Path, grant: str) -> None:
+    """Every value the two shipped graphs declare must survive the pattern."""
+    graph = load_graph(
+        write(
+            tmp_path,
+            mutate(
+                MINIMAL_GRAPH,
+                (
+                    ("writes = false", "writes = true"),
+                    ("allowed_paths = []", f'allowed_paths = ["{grant}"]'),
+                ),
+            ),
+        )
+    )
+
+    assert graph.warnings == ()

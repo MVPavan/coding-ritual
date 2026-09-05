@@ -121,9 +121,6 @@ MSG_VERIFY_CMD_EXECUTABLE: Final[str] = (
 MSG_VERIFY_TIMEOUT: Final[str] = (
     "node {node!r} verify[{index}] timeout {timeout} exceeds max_wall {max_wall}"
 )
-MSG_ALLOWED_PATH: Final[str] = (
-    "node {node!r} allowed_paths[{index}] {value!r} is not repo-relative"
-)
 MSG_ALLOWED_PATHS_NON_WRITER: Final[str] = (
     "node {node!r} declares writes = false but non-empty allowed_paths"
 )
