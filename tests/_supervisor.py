@@ -223,6 +223,24 @@ def commit_all(repo: Path, message: str) -> str:
     return head_of(repo)
 
 
+def runner_git(repo: Path, *args: str, activation_id: str) -> str:
+    """Run one raw git command under the §7.4 runner identity.
+
+    `runner_commit` is the whole-worktree version and stages with `add -A`. A
+    test that forges the INDEX alone — `rm --cached`, `update-index
+    --cacheinfo` — needs the identity without the staging, because `add -A`
+    would put the very file back that the forgery removed.
+    """
+    return _git(
+        repo,
+        *args,
+        env={
+            ENV_GIT_COMMITTER_NAME: COMMITTER_NAME,
+            ENV_GIT_COMMITTER_EMAIL: runner_committer_email(activation_id),
+        },
+    )
+
+
 def runner_commit(repo: Path, message: str, activation_id: str) -> str:
     """Commit everything under the §7.4 identity a real runner would carry.
 

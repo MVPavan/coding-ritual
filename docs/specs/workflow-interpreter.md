@@ -695,9 +695,18 @@ Computed by the foreman wrapper at `exit-recorded`:
    an operator, blocking nothing. Enforcement is the §6 mount bound, one
    layer down: the grants ARE the writable mounts, so under
    `sandbox = bwrap` an `effect_outside_allowed_paths` flag is a
-   should-never-fire regression signal rather than a routine report — the
-   bound itself failed, so the close is `error_transport` with a
-   `bound_violated` deviation: retry-exempt, and it halts (drill 28).
+   should-never-fire regression signal rather than a routine report.
+   The escalation needs a PHYSICAL write, not the flag: `.git` is mounted
+   writable under the bound, so `git rm --cached` or `git update-index
+   --cacheinfo` puts an out-of-grant path into the observed set (both the
+   commit diff and `git status`) with nothing written outside the grant. So
+   the close is `error_transport` with a retry-exempt `bound_violated`
+   deviation, and it halts, ONLY when an out-of-grant path's working-tree
+   state (blob of the file on disk, ABSENT counted as a state) differs from
+   `intended_base_commit:<path>`; an equal state is an index-only forgery
+   and stays with the ordinary effects gate above. A physical check that
+   cannot be computed does not escalate — the halt is the strong claim
+   (drill 28).
 
 ## 8. Supervision
 
@@ -992,13 +1001,18 @@ ledger (§5.2), wrapper dir artifacts, foreman transcript byte counts.
     (`EROFS`) and the exit grades `fail_code`, not absorbed
     (`tests/test_supervisor_sandbox_bound.py`
     `test_a_write_outside_the_grant_is_refused_and_grades_fail_code`); an
-    effect outside the grant that somehow lands is a BOUND VIOLATION, not a
-    runner outcome → `error_transport` + `bound_violated`, retry-exempt,
-    halt (same file,
+    out-of-grant path that somehow lands ON DISK differently from
+    `intended_base_commit` is a BOUND VIOLATION, not a runner outcome →
+    `error_transport` + `bound_violated`, retry-exempt, halt (same file,
     `test_an_effect_outside_the_grant_under_the_bound_halts_the_instance`;
     observer side in `tests/test_supervisor_exit.py`
     `test_an_effect_outside_allowed_paths_under_the_bound_is_a_bound_violation`
-    and its `sandbox = off` pair).
+    and its `sandbox = off` pair). The same path forged through the index
+    alone — `git rm --cached`, `git update-index --cacheinfo`, both legal
+    inside an intact bound because `.git` is writable — is NOT a violation:
+    the flag stays advisory and the §7.5 effects gate handles it (same
+    file, `test_a_cached_removal_under_the_bound_is_not_a_bound_violation`
+    and `test_a_cacheinfo_forgery_of_an_absent_path_is_not_a_violation`).
 
 Out of scope for v1: second graph type, concurrent instances/merge-slots,
 cost enforcement, cron tick, non-Claude foreman build, formula

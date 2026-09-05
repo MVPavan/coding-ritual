@@ -84,6 +84,8 @@ HEAD: Final[str] = "HEAD"
 TREE_SUFFIX: Final[str] = "^{tree}"
 COMMIT_SUFFIX: Final[str] = "^{commit}"
 PATH_SEPARATOR: Final[str] = "--"
+REVISION_PATH_SEPARATOR: Final[str] = ":"
+"""`<commit>:<path>` — the repository-root-relative object inside a commit."""
 RENAME_CODES: Final[frozenset[str]] = frozenset({"R", "C"})
 UNTRACKED_CODE: Final[str] = "?"
 DELETED_CODE: Final[str] = "D"
@@ -292,6 +294,30 @@ class Git(GitTransport):
         rendering and not a capability.
         """
         return self.run(GitSubcommand.DIFF, "--stat", base, head, cwd=cwd).stdout
+
+    def blob_oid_at(self, commit: str, path: str, *, cwd: Path) -> str:
+        """The object id one commit records at `path`, or `NO_BLOB` where it has none.
+
+        The committed counterpart of `hash_working_file`, and the reason it is
+        `rev-parse --verify -q` rather than `cat-file`: a path the commit does
+        not contain is an ANSWER here ("absent"), not an error, and `-q` is what
+        turns git's fatal into exit 1 (probed). A directory resolves to its tree
+        id, which is a state like any other — the caller compares two states for
+        equality and never interprets the id.
+        """
+        result = self.run(
+            GitSubcommand.REV_PARSE,
+            "--verify",
+            "-q",
+            f"{commit}{REVISION_PATH_SEPARATOR}{path}",
+            cwd=cwd,
+            check=False,
+        )
+        if result.returncode == 0:
+            return result.text
+        if result.returncode == 1:
+            return NO_BLOB
+        raise GitCommandError(f"git rev-parse failed (exit {result.returncode})")
 
     def hash_working_file(self, path: str, *, cwd: Path) -> str:
         """The blob OID of a working-tree file, or `NO_BLOB` where there is none.

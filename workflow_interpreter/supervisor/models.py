@@ -238,13 +238,21 @@ class AuditFlag(StrEnum):
     defence, and it is joined there by `BOUND_VIOLATED`. It still fires
     honestly, and alone, under `sandbox = off`."""
     BOUND_VIOLATED = "bound_violated"
-    """`EFFECT_OUTSIDE_ALLOWED_PATHS` fired on a child the RECEIPT says ran
-    under the §2 mount bound (cr-n2z.4). The write it names was physically
-    impossible there, so this is not a runner outcome at all: the bound did not
-    hold. Unlike every other flag it CHANGES the verdict — `error_transport`,
-    which `foreman/finalize.decide` turns into the retry-exempt
-    `bound_violated` deviation that halts. A broken bound must never be
-    retried into."""
+    """A child the RECEIPT says ran under the §2 mount bound left an
+    out-of-grant path whose WORKING-TREE state differs from the intended base
+    commit's (cr-n2z.4). That write was physically impossible under the bound,
+    so this is not a runner outcome at all: the bound did not hold. The flag
+    needs the physical difference and not just
+    `EFFECT_OUTSIDE_ALLOWED_PATHS` — `.git` is writable under the bound, so an
+    index-only or commit-only forgery puts an out-of-grant path in the
+    observation without any write outside the grant (`exit.py`).
+
+    Unlike every other flag it CHANGES the verdict — `error_transport`, which
+    `foreman/finalize.decide` turns into the retry-exempt `bound_violated`
+    deviation that halts. That halt is a STOP and not a rollback: §7.4 has
+    already pinned the artifact ref and the instance branch may already have
+    been advanced. What it buys is that nothing further is dispatched into a
+    bound the wrapper cannot vouch for."""
     SANDBOX_OFF = "sandbox_off"
     """This activation's child ran WITHOUT the §2 mount bound (O5). Evidence
     side, so it renders to the operator and blocks nothing: `sandbox = off` is a

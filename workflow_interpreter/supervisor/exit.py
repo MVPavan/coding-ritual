@@ -76,6 +76,7 @@ from workflow_interpreter.supervisor.models import (
     BranchAdvanceOutcome,
     CollectedExit,
     CompletionEvidence,
+    EntryKind,
     ExitReason,
     LaunchReceipt,
     PinResult,
@@ -125,6 +126,10 @@ _REASON_POST_EXIT_FAILED: Final[str] = (
     "({error})"
 )
 
+_STATE_NON_REGULAR: Final[str] = "non-regular"
+"""The working-tree state of a path that is not a regular file. Distinct from
+`NO_BLOB` (absent), which `hash_working_file` also returns for one."""
+
 
 class ExitObservation(BaseModel):
     """Everything one child exit produced, in the order §7 produced it."""
@@ -137,6 +142,23 @@ class ExitObservation(BaseModel):
     artifact: ArtifactIdentity | None
     activation: ActivationRecord
     usage: Usage = Usage(known=False)
+
+
+class ComputedEvidence(BaseModel):
+    """The §7 verdict plus the one fact the sandbox verdict cannot recompute.
+
+    `physically_written` is the out-of-grant subset whose on-disk state differs
+    from the intended base commit's, measured at the single observation §7.5
+    already made. It travels with the verdict because `_with_sandbox_verdict`
+    runs where the worktree and the base commit are no longer in scope, and
+    re-deriving it there would be a SECOND observation of a tree the first
+    observation is the record of.
+    """
+
+    model_config = RECORD_MODEL
+
+    completion: CompletionEvidence
+    physically_written: tuple[str, ...] = ()
 
 
 class PostExit(BaseModel):
@@ -439,7 +461,7 @@ class ExitObserver:
         """
         activation_id = activation.activation_id
         try:
-            completion = self._compute(
+            computed = self._compute(
                 activation,
                 node,
                 collected,
@@ -455,9 +477,10 @@ class ExitObserver:
                 error=str(exc),
             )
             return self._with_sandbox_verdict(
-                activation_id, self._uncomputable(artifact, exc)
+                activation_id,
+                ComputedEvidence(completion=self._uncomputable(artifact, exc)),
             )
-        completion = self._with_sandbox_verdict(activation_id, completion)
+        completion = self._with_sandbox_verdict(activation_id, computed)
         completion = completion.model_copy(
             update={
                 "evidence": completion.evidence.model_copy(
@@ -476,7 +499,7 @@ class ExitObserver:
         return completion
 
     def _with_sandbox_verdict(
-        self, activation_id: str, completion: CompletionEvidence
+        self, activation_id: str, computed: ComputedEvidence
     ) -> CompletionEvidence:
         """Fold the bound this child actually ran under into the §7 verdict.
 
@@ -484,19 +507,35 @@ class ExitObserver:
         receipt records what the child actually ran under; the config can be
         changed between the dispatch and the close. Applied on every §7 verdict
         including the uncomputable one — an operator who turned the bound off
-        must learn it from the close whatever else went wrong.
+        must learn it from the close whatever else went wrong. An uncomputable
+        verdict carries no observation at all, so the only thing it can ever
+        append is `SANDBOX_OFF`.
 
         Unbounded (O5): append `SANDBOX_OFF`, which blocks nothing.
 
-        Bounded: `allowed_paths` are the node's writable mounts, so a path
-        observed outside them was a write the kernel refused — the flag can
-        only mean the bound did not hold. That is a wrapper invariant
-        violation rather than anything the runner did, so it also overrules the
-        outcome to `error_transport` and carries `BOUND_VIOLATED`
-        (`foreman/finalize.decide` turns that into the retry-exempt deviation
-        that halts). An ABSENT receipt asserts nothing about the bound and
-        therefore changes nothing.
+        Bounded: `allowed_paths` are the node's writable mounts, so a PHYSICAL
+        working-tree write outside them was one the kernel had to refuse — and
+        the only thing it can mean is that the bound did not hold. The
+        observation on its own does not show that. `.git` is mounted writable
+        by design, so a runner inside an intact bound can put an out-of-grant
+        path into the §7.5 observation with no write outside its grant at all
+        (`git rm --cached`, `git update-index --cacheinfo`) — both halves of
+        `_observed_paths` report it. Only `physically_written` is evidence of
+        the bound failing, and only it escalates: the outcome is overruled to
+        `error_transport` carrying `BOUND_VIOLATED`, which
+        `foreman/finalize.decide` turns into the retry-exempt deviation that
+        halts. Without it the flag stays advisory and the ordinary §7.5 effects
+        gate handles the residue.
+
+        The halt is a STOP, not a rollback. By the time it is decided the
+        artifact ref is pinned and the instance branch may already have been
+        advanced (§7.4 runs before this); what the overrule buys is that no
+        further activation is dispatched into a bound the wrapper cannot vouch
+        for, and that the close spends no §10.2 infra retry.
+
+        An ABSENT receipt asserts nothing about the bound and changes nothing.
         """
+        completion = computed.completion
         try:
             receipt = read_record(self._paths.receipt(activation_id), LaunchReceipt)
         except WrapperDirError:
@@ -509,9 +548,17 @@ class ExitObserver:
             )
         if AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS not in completion.audit_flags:
             return completion
+        if not computed.physically_written:
+            _LOG.warning(
+                "wf.sandbox.out_of_grant_without_physical_write",
+                activation_id=activation_id,
+                reasons=completion.reasons,
+            )
+            return completion
         _LOG.error(
             "wf.sandbox.bound_violated",
             activation_id=activation_id,
+            paths=computed.physically_written,
             reasons=completion.reasons,
         )
         return completion.model_copy(
@@ -588,7 +635,7 @@ class ExitObserver:
         exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         branch: BranchAdvance | None,
-    ) -> CompletionEvidence:
+    ) -> ComputedEvidence:
         """Decide the outcome the evidence supports — never the one claimed.
 
         `verified` is the commit the checks actually ran at, which is the
@@ -616,6 +663,12 @@ class ExitObserver:
         )
         out_of_scope = self._effects_outside_allowed_paths(
             activation, node, artifact, cwd
+        )
+        physically_written = self._physically_written(
+            out_of_scope,
+            base_commit=activation.metadata.intended_base_commit,
+            cwd=cwd,
+            activation_id=activation.activation_id,
         )
         evidence = Evidence(
             verify=tuple(
@@ -645,14 +698,16 @@ class ExitObserver:
         )
 
         if exit_record.exit_code != 0 and collected.marker is None:
-            return CompletionEvidence(
-                outcome=Outcome.ERROR_RUNNER,
-                claimed_outcome=None,
-                evidence=evidence,
-                verify_results=results,
-                audit_flags=tuple(output_flags),
-                reasons=(f"runner exited {exit_record.exit_code}", *output_reasons),
-                branch=branch,
+            return ComputedEvidence(
+                completion=CompletionEvidence(
+                    outcome=Outcome.ERROR_RUNNER,
+                    claimed_outcome=None,
+                    evidence=evidence,
+                    verify_results=results,
+                    audit_flags=tuple(output_flags),
+                    reasons=(f"runner exited {exit_record.exit_code}", *output_reasons),
+                    branch=branch,
+                )
             )
 
         if collected.marker is None:
@@ -660,13 +715,15 @@ class ExitObserver:
             flags.append(AuditFlag.MARKER_INVALID)
             reasons.extend(output_reasons)
             flags.extend(output_flags)
-            return CompletionEvidence(
-                outcome=Outcome.FAIL_CODE,
-                claimed_outcome=None,
-                evidence=evidence,
-                verify_results=results,
-                audit_flags=tuple(flags),
-                reasons=tuple(reasons),
+            return ComputedEvidence(
+                completion=CompletionEvidence(
+                    outcome=Outcome.FAIL_CODE,
+                    claimed_outcome=None,
+                    evidence=evidence,
+                    verify_results=results,
+                    audit_flags=tuple(flags),
+                    reasons=tuple(reasons),
+                )
             )
 
         claimed = collected.marker.outcome
@@ -715,14 +772,17 @@ class ExitObserver:
             reasons.append("instance branch diverged")
         elif branch is not None and branch.outcome is BranchAdvanceOutcome.MISSING:
             reasons.append("instance branch missing")
-        return CompletionEvidence(
-            outcome=outcome,
-            claimed_outcome=claimed,
-            evidence=evidence,
-            verify_results=results,
-            audit_flags=tuple(flags),
-            reasons=tuple(reasons),
-            branch=branch,
+        return ComputedEvidence(
+            completion=CompletionEvidence(
+                outcome=outcome,
+                claimed_outcome=claimed,
+                evidence=evidence,
+                verify_results=results,
+                audit_flags=tuple(flags),
+                reasons=tuple(reasons),
+                branch=branch,
+            ),
+            physically_written=physically_written,
         )
 
     def _grade_success_claim(
@@ -810,6 +870,64 @@ class ExitObserver:
                 if path not in declared and not path_allowed(path, allowed)
             )
         )
+
+    def _physically_written(
+        self,
+        paths: tuple[str, ...],
+        *,
+        base_commit: str,
+        cwd: Path,
+        activation_id: str,
+    ) -> tuple[str, ...]:
+        """Of `paths`, those the working tree actually holds differently from base.
+
+        The evidence `_with_sandbox_verdict` needs and the §7.5 observation
+        cannot supply. `_observed_paths` reads the committed diff and `git
+        status`, and BOTH of those are reachable through the index alone: under
+        the §2 mount bound `.git` is writable by design (`sandbox.plan_for`),
+        so `git rm --cached <path> && git commit` names an out-of-grant path in
+        the diff while leaving the file untouched on disk, and `git
+        update-index --cacheinfo` names one that is not on disk at all. Neither
+        is a write the kernel had to refuse, so neither is evidence that the
+        bound failed.
+
+        The physical question is asked directly instead: the blob the working
+        file hashes to now, against the blob the base commit records at that
+        path, with ABSENT (`NO_BLOB`) counted as a state on either side. Equal
+        means the forgery reached the index and never the filesystem.
+
+        An UNCOMPUTABLE check answers nothing, so it answers "no evidence":
+        escalation is the strong claim, and a `rev-parse` that failed for its
+        own reasons must not be the thing that halts an instance.
+        """
+        written: list[str] = []
+        try:
+            for path in paths:
+                disk = self._disk_state(path, cwd=cwd)
+                if disk != self._git.blob_oid_at(base_commit, path, cwd=cwd):
+                    written.append(path)
+        except (OSError, SupervisorError) as exc:
+            _LOG.error(
+                "wf.sandbox.physical_check_uncomputable",
+                activation_id=activation_id,
+                paths=paths,
+                error=str(exc),
+            )
+            return ()
+        return tuple(written)
+
+    def _disk_state(self, path: str, *, cwd: Path) -> str:
+        """What the working tree holds at `path`, as one comparable token.
+
+        A blob id for a regular file, `NO_BLOB` for an absent one, and
+        `_STATE_NON_REGULAR` for a directory, symlink-to-directory or device —
+        which `hash_working_file` also reports as `NO_BLOB`, and which must not
+        therefore be read as "absent" and compared equal to a path the base
+        commit does not have.
+        """
+        if Git.entry_kind(path, cwd=cwd) is not EntryKind.FILE:
+            return _STATE_NON_REGULAR
+        return self._git.hash_working_file(path, cwd=cwd)
 
     def _observed_paths(
         self,

@@ -22,10 +22,11 @@ from pathlib import Path
 from typing import Final
 
 import pytest
+from structlog.testing import capture_logs
 
 from tests._foreman import ForemanLab
 from tests._profiles import GRANDCHILD_PID_FILE, Lab
-from tests._supervisor import ChildScript
+from tests._supervisor import ChildScript, commit_all, runner_git
 from tests.conftest import Signer
 from workflow_interpreter.bdio import Outcome, SigningConfig
 from workflow_interpreter.bdio.bounds import consecutive_infra_closes
@@ -35,10 +36,13 @@ from workflow_interpreter.bdio.constants import (
 )
 from workflow_interpreter.bdio.mint import views_of
 from workflow_interpreter.foreman.constants import (
+    EFFECTS_NODE,
     HALT_BOUND_VIOLATED,
     HALT_SANDBOX_UNAVAILABLE,
 )
 from workflow_interpreter.profiles import RunnerName
+from workflow_interpreter.supervisor.errors import GitCommandError
+from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.launch import (
     EXIT_EXEC_FAILED,
     DispatchResult,
@@ -66,6 +70,11 @@ REFUSED_TEXT: Final[str] = "Read-only file system"
 IMPLEMENT: Final[str] = "implement"
 FIRST_ROUND: Final[int] = 1
 PROBE_REASON: Final[str] = "bwrap is not on PATH (forced red by the test)"
+OUTSIDE_TRACKED: Final[str] = "docs/notes.md"
+OUTSIDE_TRACKED_BODY: Final[str] = "notes the implementer may not touch\n"
+GHOST_FILE: Final[str] = "ghost.md"
+PHYSICAL_CHECK_FAILED: Final[str] = "the physical check itself is broken"
+UNCOMPUTABLE_EVENT: Final[str] = "wf.sandbox.physical_check_uncomputable"
 
 
 def handle_activation(result: DispatchResult) -> str:
@@ -275,17 +284,51 @@ def test_a_host_that_cannot_hold_the_bound_halts_without_spending_a_retry(
 # --- a bound that FAILED is not a runner outcome (drill 28, cr-n2z.4) -------
 
 
+def _say_the_bound_was_on(lab: ForemanLab, activation_id: str) -> None:
+    """Amend the receipt to `bwrap` and drop the cached verdict, so §7 re-runs.
+
+    The bound is exactly what makes an out-of-grant observation impossible, so
+    every test below runs UNBOUNDED and then says the bound was on. `sandbox`
+    is read from the receipt, and §7 is deterministic over git and the wrapper
+    dir — so deleting `completion.json` makes the settle tick recompute the
+    whole verdict against whatever the worktree now holds.
+    """
+    paths = lab.wiring().paths
+    receipt_path = paths.receipt(activation_id)
+    body = json.loads(receipt_path.read_text(encoding="utf-8"))
+    body["sandbox"] = SandboxMode.BWRAP.value
+    receipt_path.write_text(json.dumps(body), encoding="utf-8")
+    paths.completion(activation_id).unlink()
+
+
+def _open_gate_nodes(lab: ForemanLab) -> list[str]:
+    """The `gate_node` of every gate bead this instance has opened."""
+    return [str(row["metadata"]["gate_node"]) for row in lab.beads("gate")]
+
+
+def _with_tracked_outside_file(lab: ForemanLab) -> None:
+    """Put an out-of-grant TRACKED file in the commit the instance is pinned at.
+
+    `make_repo` tracks nothing outside `src/` and `scripts/`, and an index-only
+    forgery needs a path the base commit already has.
+    """
+    path = lab.repo / OUTSIDE_TRACKED
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(OUTSIDE_TRACKED_BODY, encoding="utf-8")
+    lab.head = commit_all(lab.repo, "notes outside the implementer grant")
+
+
 def test_an_effect_outside_the_grant_under_the_bound_halts_the_instance(
     tmp_path: Path,
 ) -> None:
-    """Drill 28, second half: `effect_outside_allowed_paths` is never-expected.
+    """Drill 28, second half: a NEW untracked out-of-grant file with content.
 
-    The bound is exactly what makes this observation impossible, so the only
-    honest way to exercise the wrapper's response to a bound that FAILED is to
-    run unbounded, then say the bound was on and drop the cached verdict so the
-    settle tick recomputes §7 from the amended receipt. Never skipped: it uses
-    no real `bwrap`, and the invariant it pins is about the wrapper, not the
-    host.
+    The physically-written shape the bound makes impossible — the file is on
+    disk and the base commit has no such path — so the only honest way to
+    exercise the wrapper's response to a bound that FAILED is to run unbounded,
+    then say the bound was on and drop the cached verdict so the settle tick
+    recomputes §7 from the amended receipt. Never skipped: it uses no real
+    `bwrap`, and the invariant it pins is about the wrapper, not the host.
 
     The infra count is load-bearing in the same way as the `sandbox_unavailable`
     drill: retrying into a bound that is not holding would keep dispatching
@@ -304,12 +347,7 @@ def test_an_effect_outside_the_grant_under_the_bound_halts_the_instance(
     activation_id = lab.tick().dispatched
     assert activation_id is not None
 
-    paths = lab.wiring().paths
-    receipt_path = paths.receipt(activation_id)
-    body = json.loads(receipt_path.read_text(encoding="utf-8"))
-    body["sandbox"] = SandboxMode.BWRAP.value
-    receipt_path.write_text(json.dumps(body), encoding="utf-8")
-    paths.completion(activation_id).unlink()
+    _say_the_bound_was_on(lab, activation_id)
 
     assert lab.tick().settled == activation_id
     closed = lab.store.reads.load_activation(activation_id)
@@ -334,6 +372,189 @@ def test_an_effect_outside_the_grant_under_the_bound_halts_the_instance(
     assert gate.metadata.halt_reason == HALT_BOUND_VIOLATED.format(
         node=IMPLEMENT, activation_id=activation_id
     )
+
+
+# --- an out-of-grant OBSERVATION is not the same claim (cr-n2z.4 repair) ----
+
+
+def test_a_cached_removal_under_the_bound_is_not_a_bound_violation(
+    tmp_path: Path,
+) -> None:
+    """`git rm --cached docs/notes.md` + commit, file untouched on disk.
+
+    `.git` is mounted writable under the bound (`sandbox.plan_for`), so this is
+    something a runner can do INSIDE an intact bound: the commit diff names
+    `docs/notes.md`, `git status` names it untracked, and not one byte outside
+    `src/**` was written. Escalating it — the shape this catches — reports a
+    healthy contained run as a failed mount bound, halts the instance,
+    retry-exempt, and points the operator at the wrapper instead of at the
+    runner. It must stay an advisory flag whose residue the §7.5 effects gate
+    puts in front of a human, exactly as it did before cr-n2z.4.
+    """
+    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    _with_tracked_outside_file(lab)
+    lab.instantiate()
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+
+    worktree = lab.wiring().paths.worktree
+    runner_git(
+        worktree,
+        "rm",
+        "--cached",
+        "--quiet",
+        "--",
+        OUTSIDE_TRACKED,
+        activation_id=activation_id,
+    )
+    runner_git(
+        worktree,
+        "commit",
+        "--quiet",
+        "-m",
+        "forged removal",
+        activation_id=activation_id,
+    )
+    _say_the_bound_was_on(lab, activation_id)
+
+    # The blocked close does not report `settled`: it records the evidence and
+    # awaits a human at the §7.5 gate (`advance_lifecycle`), which is exactly
+    # the pre-cr-n2z.4 shape this must return to.
+    lab.tick()
+    assert (worktree / OUTSIDE_TRACKED).read_text(
+        encoding="utf-8"
+    ) == OUTSIDE_TRACKED_BODY
+
+    completion = _completion(lab, activation_id)
+    assert AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS in completion.audit_flags
+    assert AuditFlag.BOUND_VIOLATED not in completion.audit_flags
+    assert completion.outcome is Outcome.DONE
+
+    closed = lab.store.reads.load_activation(activation_id)
+    assert [item.kind for item in closed.metadata.deviations] == []
+    assert closed.metadata.evidence is not None
+    assert OUTSIDE_TRACKED in closed.metadata.evidence.undeclared_effects
+    assert _open_gate_nodes(lab) == [EFFECTS_NODE]
+
+
+def test_a_cacheinfo_forgery_of_an_absent_path_is_not_a_violation(
+    tmp_path: Path,
+) -> None:
+    """`git update-index --cacheinfo` for `ghost.md`: in the diff, absent on disk.
+
+    The other index-only shape, and the one that proves the physical check
+    compares STATES rather than looking for a file: `ghost.md` is absent on
+    disk and absent from the base commit, so "no physical write" has to be read
+    out of two absences being equal. A check that treated an unhashable path as
+    evidence would escalate this and halt a contained run.
+    """
+    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    lab.instantiate()
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+
+    worktree = lab.wiring().paths.worktree
+    blob = runner_git(
+        worktree, "rev-parse", f"HEAD:{GRANTED_FILE}", activation_id=activation_id
+    )
+    runner_git(
+        worktree,
+        "update-index",
+        "--add",
+        "--cacheinfo",
+        f"100644,{blob},{GHOST_FILE}",
+        activation_id=activation_id,
+    )
+    runner_git(
+        worktree,
+        "commit",
+        "--quiet",
+        "-m",
+        "forged addition",
+        activation_id=activation_id,
+    )
+    _say_the_bound_was_on(lab, activation_id)
+
+    lab.tick()
+    assert not (worktree / GHOST_FILE).exists()
+
+    completion = _completion(lab, activation_id)
+    assert AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS in completion.audit_flags
+    assert AuditFlag.BOUND_VIOLATED not in completion.audit_flags
+    assert completion.outcome is not Outcome.ERROR_TRANSPORT
+    closed = lab.store.reads.load_activation(activation_id)
+    assert [item.kind for item in closed.metadata.deviations] == []
+    assert _open_gate_nodes(lab) == [EFFECTS_NODE]
+
+
+def test_a_modified_tracked_file_outside_the_grant_still_halts(
+    tmp_path: Path,
+) -> None:
+    """`docs/notes.md` edited on disk: a real write the bound had to refuse.
+
+    The escalating half of the pair, and the one the untracked-file drill above
+    does not cover: the path EXISTS in the base commit, so a physical check
+    that only looked for new files would miss it and let a genuinely broken
+    bound close as an ordinary effects gate the human is invited to approve.
+    """
+    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    _with_tracked_outside_file(lab)
+    lab.instantiate()
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+
+    worktree = lab.wiring().paths.worktree
+    (worktree / OUTSIDE_TRACKED).write_text("edited past the bound\n", encoding="utf-8")
+    _say_the_bound_was_on(lab, activation_id)
+
+    assert lab.tick().settled == activation_id
+
+    completion = _completion(lab, activation_id)
+    assert AuditFlag.BOUND_VIOLATED in completion.audit_flags
+    assert completion.outcome is Outcome.ERROR_TRANSPORT
+    closed = lab.store.reads.load_activation(activation_id)
+    assert [item.kind for item in closed.metadata.deviations] == [
+        DEVIATION_BOUND_VIOLATED
+    ]
+
+
+def test_a_physical_check_that_cannot_be_computed_does_not_escalate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`blob_oid_at` raises on the same tree the halt test escalates.
+
+    Same input as the test above — a real out-of-grant write — with the one
+    difference that the evidence cannot be read. Escalation is the strong claim
+    (`error_transport`, retry-exempt, halt), so a git call that failed for its
+    own reasons must not be what makes it: the run stays advisory and the
+    failure is logged. The shape this catches is a bare `except` that treated
+    "could not check" as "violated".
+    """
+    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    _with_tracked_outside_file(lab)
+    lab.instantiate()
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+
+    worktree = lab.wiring().paths.worktree
+    (worktree / OUTSIDE_TRACKED).write_text("edited past the bound\n", encoding="utf-8")
+    _say_the_bound_was_on(lab, activation_id)
+
+    def _raise(self: Git, commit: str, path: str, *, cwd: Path) -> str:
+        raise GitCommandError(PHYSICAL_CHECK_FAILED)
+
+    monkeypatch.setattr(Git, "blob_oid_at", _raise)
+    with capture_logs() as captured:
+        lab.tick()
+
+    completion = _completion(lab, activation_id)
+    assert AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS in completion.audit_flags
+    assert AuditFlag.BOUND_VIOLATED not in completion.audit_flags
+    closed = lab.store.reads.load_activation(activation_id)
+    assert [item.kind for item in closed.metadata.deviations] == []
+    uncomputable = [entry for entry in captured if entry["event"] == UNCOMPUTABLE_EVENT]
+    assert len(uncomputable) == 1
+    assert PHYSICAL_CHECK_FAILED in uncomputable[0]["error"]
 
 
 # --- the exit-127 sentinel (drill 22 stays honest) --------------------------
