@@ -9,6 +9,7 @@ from workflow_interpreter.bdio import Deviation, ExitRecord, MintReason, Outcome
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.bounds import consecutive_infra_closes
 from workflow_interpreter.bdio.constants import (
+    DEVIATION_BOUND_VIOLATED,
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
     DEVIATION_SANDBOX_UNAVAILABLE,
@@ -22,6 +23,7 @@ from workflow_interpreter.bdio.mint import views_of
         DEVIATION_PRECONDITION_REFUSED,
         DEVIATION_INPUTS_UNAVAILABLE,
         DEVIATION_SANDBOX_UNAVAILABLE,
+        DEVIATION_BOUND_VIOLATED,
     ),
 )
 def test_an_exempt_refusal_neither_counts_nor_breaks_an_infra_run(

@@ -23,6 +23,7 @@ __all__ = [
     "GATES_DIR",
     "GATE_NONCE_PLACEHOLDER",
     "HALT_AUDIT",
+    "HALT_BOUND_VIOLATED",
     "HALT_BRANCH_DIVERGED",
     "HALT_CEILING",
     "HALT_FAIL_CLOSED",
@@ -148,6 +149,11 @@ HALT_FAIL_CLOSED: Final[str] = "fail_closed:{reason}"
 HALT_FAIL_CODE: Final[str] = "fail_code:{node}:{activation_id}"
 HALT_BRANCH_DIVERGED: Final[str] = "instance_branch_diverged:{node}:{activation_id}"
 HALT_PRECONDITION_REFUSED: Final[str] = "precondition_refused:{node}:{activation_id}"
+HALT_BOUND_VIOLATED: Final[str] = "bound_violated:{node}:{activation_id}"
+"""An effect landed outside the node's grants although the §2 mount bound was
+on: the bound did not hold, which is a wrapper invariant violation rather than
+a runner outcome. A dead end for the same reason as the row below — the next
+dispatch would run unbounded too (cr-n2z.4)."""
 HALT_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable:{node}:{activation_id}"
 """This host cannot hold the §2 mount bound, so O1 refuses to dispatch. A dead
 end rather than an infra retry: a missing `bwrap` does not fix itself, and the

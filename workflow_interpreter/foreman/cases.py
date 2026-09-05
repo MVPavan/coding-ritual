@@ -28,6 +28,7 @@ from workflow_interpreter.foreman.compose import (
 from workflow_interpreter.foreman.constants import (
     DISPATCH_REQUEST,
     GATES_DIR,
+    HALT_BOUND_VIOLATED,
     HALT_BRANCH_DIVERGED,
     HALT_CEILING,
     HALT_FAIL_CLOSED,
@@ -526,6 +527,7 @@ def halt_dead_end(
         DeadEndKind.PRECONDITION_REFUSED: HALT_PRECONDITION_REFUSED,
         DeadEndKind.INPUTS_UNAVAILABLE: HALT_INPUTS_UNAVAILABLE,
         DeadEndKind.SANDBOX_UNAVAILABLE: HALT_SANDBOX_UNAVAILABLE,
+        DeadEndKind.BOUND_VIOLATED: HALT_BOUND_VIOLATED,
     }[kind].format(
         node=activation.metadata.node, activation_id=activation.activation_id
     )

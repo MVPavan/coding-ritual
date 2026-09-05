@@ -695,7 +695,9 @@ Computed by the foreman wrapper at `exit-recorded`:
    an operator, blocking nothing. Enforcement is the §6 mount bound, one
    layer down: the grants ARE the writable mounts, so under
    `sandbox = bwrap` an `effect_outside_allowed_paths` flag is a
-   should-never-fire regression signal rather than a routine report.
+   should-never-fire regression signal rather than a routine report — the
+   bound itself failed, so the close is `error_transport` with a
+   `bound_violated` deviation: retry-exempt, and it halts (drill 28).
 
 ## 8. Supervision
 
@@ -986,6 +988,17 @@ ledger (§5.2), wrapper dir artifacts, foreman transcript byte counts.
     activation per idempotency key, rework artifact ≠ rejected artifact
     (tree OID), reviewed identity = verified identity, every bead
     carries `wf_root_id`, ceiling arithmetic consistent.
+28. Mount bound: a write outside the grant under the bound is refused
+    (`EROFS`) and the exit grades `fail_code`, not absorbed
+    (`tests/test_supervisor_sandbox_bound.py`
+    `test_a_write_outside_the_grant_is_refused_and_grades_fail_code`); an
+    effect outside the grant that somehow lands is a BOUND VIOLATION, not a
+    runner outcome → `error_transport` + `bound_violated`, retry-exempt,
+    halt (same file,
+    `test_an_effect_outside_the_grant_under_the_bound_halts_the_instance`;
+    observer side in `tests/test_supervisor_exit.py`
+    `test_an_effect_outside_allowed_paths_under_the_bound_is_a_bound_violation`
+    and its `sandbox = off` pair).
 
 Out of scope for v1: second graph type, concurrent instances/merge-slots,
 cost enforcement, cron tick, non-Claude foreman build, formula

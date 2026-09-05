@@ -10,6 +10,7 @@ DEVIATION_INSTANCE_BRANCH_DIVERGED: Final[str] = "instance_branch_diverged"
 DEVIATION_PRECONDITION_REFUSED: Final[str] = "precondition_refused"
 DEVIATION_INPUTS_UNAVAILABLE: Final[str] = "inputs_unavailable"
 DEVIATION_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable"
+DEVIATION_BOUND_VIOLATED: Final[str] = "bound_violated"
 _MSG_ENTRY_PREDECESSOR: Final[str] = (
     "an entry mint has no predecessor; {predecessor!r} was supplied (§3.2)"
 )

@@ -235,7 +235,16 @@ class AuditFlag(StrEnum):
     Containment itself is the §2 mount bound (`supervisor/sandbox.py`), which
     makes the grants the node's writable mounts — so under `sandbox = bwrap`
     this flag is a should-never-fire signal rather than the only line of
-    defence. It still fires honestly under `sandbox = off`."""
+    defence, and it is joined there by `BOUND_VIOLATED`. It still fires
+    honestly, and alone, under `sandbox = off`."""
+    BOUND_VIOLATED = "bound_violated"
+    """`EFFECT_OUTSIDE_ALLOWED_PATHS` fired on a child the RECEIPT says ran
+    under the §2 mount bound (cr-n2z.4). The write it names was physically
+    impossible there, so this is not a runner outcome at all: the bound did not
+    hold. Unlike every other flag it CHANGES the verdict — `error_transport`,
+    which `foreman/finalize.decide` turns into the retry-exempt
+    `bound_violated` deviation that halts. A broken bound must never be
+    retried into."""
     SANDBOX_OFF = "sandbox_off"
     """This activation's child ran WITHOUT the §2 mount bound (O5). Evidence
     side, so it renders to the operator and blocks nothing: `sandbox = off` is a

@@ -16,6 +16,7 @@ from typing import Final
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio.constants import (
+    DEVIATION_BOUND_VIOLATED,
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
     DEVIATION_SANDBOX_UNAVAILABLE,
@@ -43,6 +44,7 @@ _RETRY_EXEMPT_DEVIATIONS: Final[frozenset[str]] = frozenset(
         DEVIATION_PRECONDITION_REFUSED,
         DEVIATION_INPUTS_UNAVAILABLE,
         DEVIATION_SANDBOX_UNAVAILABLE,
+        DEVIATION_BOUND_VIOLATED,
     }
 )
 """Deviations whose close is a dead end, not a spent §10.2 retry: the runner
@@ -50,6 +52,11 @@ never ran, and the frontier sends every one of them to a halt gate.
 
 `sandbox_unavailable` earns its place the same way: a host with no `bwrap` will
 not grow one on a retry, and O1 refuses to dispatch unbounded (ADR 0001).
+
+`bound_violated` is the same fact discovered one layer later: an effect landed
+outside the node's grants although the mount bound was on, so the bound is not
+holding on this host. Retrying would dispatch the next runner into the same
+unbounded checkout (cr-n2z.4).
 
 `continuation_refused` is deliberately NOT here. A refused §8.1 continuation
 (no session to rejoin, or a steer intent that has gone) is a real infra close

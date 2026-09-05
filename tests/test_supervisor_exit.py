@@ -60,8 +60,10 @@ from workflow_interpreter.supervisor import (
     Workspace,
     WrapperPaths,
 )
+from workflow_interpreter.supervisor.models import LaunchReceipt
 from workflow_interpreter.supervisor.paths import read_record, write_record
 from workflow_interpreter.supervisor.recover import classify
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 FEATURE_FILE = "src/feature.py"
 OUTSIDE_FILE = "docs/notes.md"
@@ -156,6 +158,21 @@ class Lab:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("value = 2\n", encoding="utf-8")
         return commit_all(self.tree, "the attempt")
+
+    def receipt(self, sandbox: SandboxMode) -> None:
+        """Write the launch receipt that says which bound this child ran under."""
+        write_record(
+            self.paths.receipt(self.activation.activation_id),
+            LaunchReceipt(
+                launch_id="launch-1",
+                root_id=self.root.root_id,
+                activation_id=self.activation.activation_id,
+                argv=("/bin/true",),
+                cwd=str(self.tree),
+                handle=handle_for(dead_pid()),
+                sandbox=sandbox,
+            ),
+        )
 
     def reload(self) -> ActivationRecord:
         """Re-read the activation from bd."""
@@ -820,6 +837,53 @@ def test_a_declared_effect_outside_allowed_paths_is_still_flagged_for_audit(
     assert AuditFlag.UNDECLARED_EFFECT not in observation.completion.audit_flags
     # New: and it is no longer silent.
     assert AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS in observation.completion.audit_flags
+
+
+def test_an_effect_outside_allowed_paths_under_the_bound_is_a_bound_violation(
+    lab: Lab,
+) -> None:
+    """cr-n2z.4: under `sandbox = bwrap` the grants ARE the writable mounts.
+
+    So `observed ∖ allowed` cannot be a runner outcome — the write it names was
+    physically impossible — and the only thing it can report is that the bound
+    itself did not hold. That is a wrapper invariant violation: the flag is
+    still recorded, and the §7 verdict becomes `error_transport` carrying
+    `bound_violated`, which is what makes the close a retry-exempt dead end
+    instead of something the instance re-dispatches into a broken bound.
+    """
+    lab.receipt(SandboxMode.BWRAP)
+    lab.commit_work(OUTSIDE_FILE)
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(OUTSIDE_FILE)
+
+    observation = lab.observe()
+
+    assert AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS in observation.completion.audit_flags
+    assert AuditFlag.BOUND_VIOLATED in observation.completion.audit_flags
+    assert observation.completion.outcome is Outcome.ERROR_TRANSPORT
+    # Still the runner's own claim, unedited: the wrapper overrules the verdict,
+    # never the record of what was claimed.
+    assert observation.completion.claimed_outcome is Outcome.DONE
+
+
+def test_the_same_effect_with_the_bound_off_stays_advisory(lab: Lab) -> None:
+    """The other side of the pair: with no bound there is nothing to violate.
+
+    `sandbox = off` is a legitimate operator escape hatch, so `observed ∖
+    allowed` under it is exactly what ADR 0001 says it is — a scope report that
+    changes no outcome.
+    """
+    lab.receipt(SandboxMode.OFF)
+    lab.commit_work(OUTSIDE_FILE)
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(OUTSIDE_FILE)
+
+    observation = lab.observe()
+
+    assert AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS in observation.completion.audit_flags
+    assert AuditFlag.BOUND_VIOLATED not in observation.completion.audit_flags
+    assert AuditFlag.SANDBOX_OFF in observation.completion.audit_flags
+    assert observation.completion.outcome is Outcome.DONE
 
 
 def test_an_effect_inside_allowed_paths_raises_no_audit_flag(lab: Lab) -> None:

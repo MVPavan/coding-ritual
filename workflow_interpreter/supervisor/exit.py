@@ -454,10 +454,10 @@ class ExitObserver:
                 activation_id=activation_id,
                 error=str(exc),
             )
-            return self._with_sandbox_flag(
+            return self._with_sandbox_verdict(
                 activation_id, self._uncomputable(artifact, exc)
             )
-        completion = self._with_sandbox_flag(activation_id, completion)
+        completion = self._with_sandbox_verdict(activation_id, completion)
         completion = completion.model_copy(
             update={
                 "evidence": completion.evidence.model_copy(
@@ -475,25 +475,50 @@ class ExitObserver:
         write_record(self._paths.completion(activation_id), completion)
         return completion
 
-    def _with_sandbox_flag(
+    def _with_sandbox_verdict(
         self, activation_id: str, completion: CompletionEvidence
     ) -> CompletionEvidence:
-        """Append `SANDBOX_OFF` when this activation's child ran unbounded (O5).
+        """Fold the bound this child actually ran under into the §7 verdict.
 
         Read from the launch RECEIPT rather than from the config, because the
         receipt records what the child actually ran under; the config can be
         changed between the dispatch and the close. Applied on every §7 verdict
         including the uncomputable one — an operator who turned the bound off
         must learn it from the close whatever else went wrong.
+
+        Unbounded (O5): append `SANDBOX_OFF`, which blocks nothing.
+
+        Bounded: `allowed_paths` are the node's writable mounts, so a path
+        observed outside them was a write the kernel refused — the flag can
+        only mean the bound did not hold. That is a wrapper invariant
+        violation rather than anything the runner did, so it also overrules the
+        outcome to `error_transport` and carries `BOUND_VIOLATED`
+        (`foreman/finalize.decide` turns that into the retry-exempt deviation
+        that halts). An ABSENT receipt asserts nothing about the bound and
+        therefore changes nothing.
         """
         try:
             receipt = read_record(self._paths.receipt(activation_id), LaunchReceipt)
         except WrapperDirError:
             return completion
-        if receipt is None or receipt.sandbox is not SandboxMode.OFF:
+        if receipt is None:
             return completion
+        if receipt.sandbox is SandboxMode.OFF:
+            return completion.model_copy(
+                update={"audit_flags": (*completion.audit_flags, AuditFlag.SANDBOX_OFF)}
+            )
+        if AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS not in completion.audit_flags:
+            return completion
+        _LOG.error(
+            "wf.sandbox.bound_violated",
+            activation_id=activation_id,
+            reasons=completion.reasons,
+        )
         return completion.model_copy(
-            update={"audit_flags": (*completion.audit_flags, AuditFlag.SANDBOX_OFF)}
+            update={
+                "outcome": Outcome.ERROR_TRANSPORT,
+                "audit_flags": (*completion.audit_flags, AuditFlag.BOUND_VIOLATED),
+            }
         )
 
     @staticmethod

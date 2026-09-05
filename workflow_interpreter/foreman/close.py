@@ -27,7 +27,7 @@ from workflow_interpreter.foreman.constants import (
     EFFECTS_NODE,
     HALT_INDETERMINATE,
 )
-from workflow_interpreter.foreman.finalize import decide
+from workflow_interpreter.foreman.finalize import bound_violated, decide
 from workflow_interpreter.foreman.gates import effects_gate, halt_gate
 from workflow_interpreter.schema.models import Node, Outcome
 from workflow_interpreter.supervisor import (
@@ -128,6 +128,19 @@ def settle(
                 opened=halt.gate_id,
             )
         deviations = _completion_deviations(activation, completion)
+        if AuditFlag.BOUND_VIOLATED in completion.audit_flags:
+            # Ahead of the effects gate for the reason `finalize.decide` gives
+            # on the fresh-observation path: a bound that did not hold is not a
+            # runner outcome, so there is nothing for a human to accept about
+            # the effects it let through. Closing here dead-ends it at a halt.
+            closed = wiring.store.close_activation(
+                activation.activation_id,
+                completion.outcome,
+                evidence=evidence,
+                usage=activation.metadata.usage,
+                deviations=deviations,
+            )
+            return Settlement(activation=closed)
         gate = (
             _effects_gate(wiring, root, activation)
             if evidence.undeclared_effects
@@ -345,8 +358,11 @@ def _close_recorded_effects_approved(
 def _completion_deviations(
     activation: ActivationRecord, completion: CompletionEvidence
 ) -> tuple[Deviation, ...]:
-    """Preserve a persisted branch-divergence fact across a crash-window close."""
+    """Preserve persisted wrapper facts across a crash-window close."""
     deviations = activation.metadata.deviations
+    violation = bound_violated(completion)
+    if violation is not None:
+        deviations = (*deviations, violation)
     if AuditFlag.INSTANCE_BRANCH_DIVERGED not in completion.audit_flags:
         return deviations
     return (

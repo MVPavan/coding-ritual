@@ -29,9 +29,15 @@ from tests._supervisor import ChildScript
 from tests.conftest import Signer
 from workflow_interpreter.bdio import Outcome, SigningConfig
 from workflow_interpreter.bdio.bounds import consecutive_infra_closes
-from workflow_interpreter.bdio.constants import DEVIATION_SANDBOX_UNAVAILABLE
+from workflow_interpreter.bdio.constants import (
+    DEVIATION_BOUND_VIOLATED,
+    DEVIATION_SANDBOX_UNAVAILABLE,
+)
 from workflow_interpreter.bdio.mint import views_of
-from workflow_interpreter.foreman.constants import HALT_SANDBOX_UNAVAILABLE
+from workflow_interpreter.foreman.constants import (
+    HALT_BOUND_VIOLATED,
+    HALT_SANDBOX_UNAVAILABLE,
+)
 from workflow_interpreter.profiles import RunnerName
 from workflow_interpreter.supervisor.launch import (
     EXIT_EXEC_FAILED,
@@ -262,6 +268,70 @@ def test_a_host_that_cannot_hold_the_bound_halts_without_spending_a_retry(
     assert gate_id is not None
     gate = lab.store.reads.load_gate(gate_id)
     assert gate.metadata.halt_reason == HALT_SANDBOX_UNAVAILABLE.format(
+        node=IMPLEMENT, activation_id=activation_id
+    )
+
+
+# --- a bound that FAILED is not a runner outcome (drill 28, cr-n2z.4) -------
+
+
+def test_an_effect_outside_the_grant_under_the_bound_halts_the_instance(
+    tmp_path: Path,
+) -> None:
+    """Drill 28, second half: `effect_outside_allowed_paths` is never-expected.
+
+    The bound is exactly what makes this observation impossible, so the only
+    honest way to exercise the wrapper's response to a bound that FAILED is to
+    run unbounded, then say the bound was on and drop the cached verdict so the
+    settle tick recomputes §7 from the amended receipt. Never skipped: it uses
+    no real `bwrap`, and the invariant it pins is about the wrapper, not the
+    host.
+
+    The infra count is load-bearing in the same way as the `sandbox_unavailable`
+    drill: retrying into a bound that is not holding would keep dispatching
+    runners into an unbounded checkout until the §10.2 cap burned.
+    """
+    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    lab.instantiate()
+    lab.profiles.next_script(
+        ChildScript(
+            marker='{"outcome":"done"}\n',
+            effects='{"paths":[]}',
+            write_path=UNGRANTED_FILE,
+            write_body="escaped = True\n",
+        )
+    )
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+
+    paths = lab.wiring().paths
+    receipt_path = paths.receipt(activation_id)
+    body = json.loads(receipt_path.read_text(encoding="utf-8"))
+    body["sandbox"] = SandboxMode.BWRAP.value
+    receipt_path.write_text(json.dumps(body), encoding="utf-8")
+    paths.completion(activation_id).unlink()
+
+    assert lab.tick().settled == activation_id
+    closed = lab.store.reads.load_activation(activation_id)
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert [item.kind for item in closed.metadata.deviations] == [
+        DEVIATION_BOUND_VIOLATED
+    ]
+    # The undeclared write is recorded, but it does NOT reach the §7.5 effects
+    # gate: there is nothing for a human to accept about effects produced under
+    # a bound the wrapper cannot vouch for.
+    assert closed.metadata.evidence is not None
+    assert UNGRANTED_FILE in closed.metadata.evidence.undeclared_effects
+
+    activations = lab.store.reads.list_activations(closed.metadata.wf_root_id)
+    assert consecutive_infra_closes(views_of(activations), IMPLEMENT, FIRST_ROUND) == 0
+
+    report = lab.tick()
+    assert report.dispatched is None
+    gate_id = report.opened_gate
+    assert gate_id is not None
+    gate = lab.store.reads.load_gate(gate_id)
+    assert gate.metadata.halt_reason == HALT_BOUND_VIOLATED.format(
         node=IMPLEMENT, activation_id=activation_id
     )
 
