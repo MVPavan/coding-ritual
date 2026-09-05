@@ -19,6 +19,7 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.constants import (
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
+    DEVIATION_SANDBOX_UNAVAILABLE,
 )
 from workflow_interpreter.foreman.close import _previous_tree_oid
 from workflow_interpreter.foreman.compose import (
@@ -45,6 +46,7 @@ from workflow_interpreter.supervisor.errors import (
     ForkBarrierError,
     LockUnavailable,
     PreconditionRefused,
+    SandboxUnavailable,
     SupervisorError,
 )
 from workflow_interpreter.supervisor.gitio import Git
@@ -256,6 +258,25 @@ def run_wrapper(
             deviations=(
                 Deviation(
                     kind=DEVIATION_INPUTS_UNAVAILABLE,
+                    reason=str(exc),
+                    recorded_at="wrapper",
+                ),
+            ),
+        )
+    except SandboxUnavailable as exc:
+        # BEFORE the generic `(SupervisorError, OSError)` catch below, which
+        # would spend a §10.2 infra retry on it. O1 makes an unbounded dispatch
+        # impossible, and a host with no `bwrap` will not grow one on the next
+        # tick — so this closes as a dead end that opens a halt gate, exactly
+        # the `InputsUnavailable` shape.
+        return _close_error(
+            resolved,
+            activation_id,
+            Outcome.ERROR_TRANSPORT,
+            exc,
+            deviations=(
+                Deviation(
+                    kind=DEVIATION_SANDBOX_UNAVAILABLE,
                     reason=str(exc),
                     recorded_at="wrapper",
                 ),

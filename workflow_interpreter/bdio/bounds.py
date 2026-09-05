@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict
 from workflow_interpreter.bdio.constants import (
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
+    DEVIATION_SANDBOX_UNAVAILABLE,
 )
 from workflow_interpreter.bdio.errors import BoundEvaluationError
 from workflow_interpreter.bdio.records import GateRecord, RootRecord
@@ -38,10 +39,17 @@ INFRA_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
 """§10.2: the system outcomes `max_infra_retries` counts."""
 
 _RETRY_EXEMPT_DEVIATIONS: Final[frozenset[str]] = frozenset(
-    {DEVIATION_PRECONDITION_REFUSED, DEVIATION_INPUTS_UNAVAILABLE}
+    {
+        DEVIATION_PRECONDITION_REFUSED,
+        DEVIATION_INPUTS_UNAVAILABLE,
+        DEVIATION_SANDBOX_UNAVAILABLE,
+    }
 )
 """Deviations whose close is a dead end, not a spent §10.2 retry: the runner
-never ran, and the frontier sends both of them to a halt gate.
+never ran, and the frontier sends every one of them to a halt gate.
+
+`sandbox_unavailable` earns its place the same way: a host with no `bwrap` will
+not grow one on a retry, and O1 refuses to dispatch unbounded (ADR 0001).
 
 `continuation_refused` is deliberately NOT here. A refused §8.1 continuation
 (no session to rejoin, or a steer intent that has gone) is a real infra close

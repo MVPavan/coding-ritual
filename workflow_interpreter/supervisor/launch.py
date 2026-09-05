@@ -63,8 +63,10 @@ from __future__ import annotations
 
 import os
 import select
+import shutil
 import signal
 import uuid
+from collections.abc import Mapping
 from typing import Final, Protocol
 
 import structlog
@@ -86,6 +88,7 @@ from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     ExecLedgerError,
     ForkBarrierError,
+    SandboxUnavailable,
     WrapperDirError,
 )
 from workflow_interpreter.supervisor.models import (
@@ -110,6 +113,13 @@ from workflow_interpreter.supervisor.profile import (
     TaskSpec,
     channels_for,
 )
+from workflow_interpreter.supervisor.sandbox import (
+    SandboxMode,
+    SandboxPlan,
+    plan_for,
+    probe,
+    wrap,
+)
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -122,6 +132,7 @@ EXIT_SETUP_FAILED: Final[int] = 120
 EXIT_BARRIER_CLOSED: Final[int] = 121
 EXIT_NO_RECEIPT: Final[int] = 122
 EXIT_EXEC_FAILED: Final[int] = 127
+_ENV_PATH: Final[str] = "PATH"
 
 _MSG_NO_READY: Final[str] = (
     "child {pid} never reached the fork barrier within {timeout_s}s"
@@ -159,6 +170,10 @@ _MSG_NO_INSTRUCTIONS: Final[str] = (
     "activation {activation_id} was minted as {reason!r} but dispatch was given "
     "no steer instructions; §8.1 continues a session via build_resume_command, "
     "and launching it fresh would discard the guidance the steer was for"
+)
+_MSG_SANDBOX_UNAVAILABLE: Final[str] = (
+    "this host cannot hold the §2 mount bound ({reason}); refusing to dispatch "
+    "activation {activation_id} rather than run a node unbounded (O1)"
 )
 _MSG_NOT_A_CONTINUATION: Final[str] = (
     "dispatch was given steer instructions for activation {activation_id}, whose "
@@ -266,12 +281,21 @@ class ForkBarrierLauncher:
         *,
         activation_id: str,
         launch_id: str,
+        plan: SandboxPlan,
+        sandbox: SandboxMode,
     ) -> None:
         self._config = config
         self._paths = paths
         self._clock = clock
         self._activation_id = activation_id
         self._launch_id = launch_id
+        self._plan = plan
+        self._sandbox = sandbox
+        """The §2 mount bound, injected rather than computed here: `plan_for`
+        needs the `TaskSpec`, and this class is deliberately handed a built
+        `RunnerCommand` and nothing else. Both are REQUIRED keywords — a default
+        would let a caller launch unbounded by forgetting an argument, which is
+        the one failure mode O1 exists to prevent."""
 
     @property
     def launch_id(self) -> str:
@@ -279,11 +303,26 @@ class ForkBarrierLauncher:
         return self._launch_id
 
     def __call__(self, command: RunnerCommand) -> ProcessHandle:
-        """Start the child behind the barrier and return its durable handle."""
+        """Start the child behind the barrier and return its durable handle.
+
+        The mount bound is the LAST transform before the receipt: everything a
+        profile built is already decided, and the WRAPPED argv is what the
+        receipt records, because `handle.pid` names `bwrap` rather than the
+        vendor (bwrap forks). The inner argv would describe a process the handle
+        does not name, and the wrapped one is the durable audit record of the
+        exact bound this child ran under.
+        """
         receipt_path = self._paths.receipt(self._activation_id)
         ledger_path = self._paths.ledger(self._activation_id)
         log_path = self._paths.log(self._activation_id)
         log_path.parent.mkdir(parents=True, exist_ok=True)
+        # Resolved BEFORE wrapping, because `bwrap` makes argv[0] always exist:
+        # a vanished vendor CLI inside the box would grade as a plain non-zero
+        # exit and drill 22's exit-127 sentinel would stop meaning anything.
+        vendor_missing = not _vendor_resolves(command.argv[0], command.env)
+        wrapped = command.model_copy(
+            update={"argv": wrap(command.argv, self._plan, mode=self._sandbox)}
+        )
 
         ready_read, ready_write = os.pipe()
         go_read, go_write = os.pipe()
@@ -297,7 +336,8 @@ class ForkBarrierLauncher:
                 receipt_path=str(receipt_path),
                 ledger_path=str(ledger_path),
                 log_path=str(log_path),
-                command=command,
+                command=wrapped,
+                vendor_missing=vendor_missing,
             )
         os.close(ready_write)
         os.close(go_read)
@@ -306,7 +346,7 @@ class ForkBarrierLauncher:
                 pid,
                 ready_read=ready_read,
                 go_write=go_write,
-                command=command,
+                command=wrapped,
                 log_path=str(log_path),
             )
         finally:
@@ -356,6 +396,7 @@ class ForkBarrierLauncher:
                 argv=command.argv,
                 cwd=command.cwd,
                 handle=handle,
+                sandbox=self._sandbox,
             ),
         )
         line = ExecLedger.line(
@@ -377,6 +418,28 @@ class ForkBarrierLauncher:
             pid=pid,
         )
         return handle
+
+
+def _vendor_resolves(program: str, env: Mapping[str, str]) -> bool:
+    """Whether the vendor `argv[0]` names something the CHILD could exec.
+
+    Against `command.env`, never `os.environ`: `_child` execs with
+    `dict(command.env)` and nothing else, so a vendor the profile put on a
+    private `PATH` is perfectly runnable and a vendor on the WRAPPER's `PATH`
+    alone is not. Resolving against the wrapper's environment answers a
+    different question and gets it wrong in both directions.
+
+    `shutil.which` first (it applies `PATH` and the executable bit), then a bare
+    `os.stat`, so a path-shaped `argv[0]` that exists but is on no `PATH` is not
+    mistaken for a vanished CLI.
+    """
+    if shutil.which(program, path=env.get(_ENV_PATH)) is not None:
+        return True
+    try:
+        os.stat(program)
+    except OSError:
+        return False
+    return True
 
 
 def _abandon(pid: int) -> None:
@@ -417,6 +480,7 @@ def _child(
     ledger_path: str,
     log_path: str,
     command: RunnerCommand,
+    vendor_missing: bool,
 ) -> None:  # pragma: no cover - executed only in the forked child
     """The barrier side of the fork. Never returns: it execs or `_exit`s.
 
@@ -456,6 +520,12 @@ def _child(
         os._exit(EXIT_NO_RECEIPT)
     except OSError:
         os._exit(EXIT_SETUP_FAILED)
+    # The sentinel fires HERE and never on the parent path: the receipt is
+    # already durable, and an `os._exit` in the parent would kill the wrapper
+    # mid-dispatch. This is the status `execvpe` itself would have produced
+    # without the box, so drill 22 keeps observing what it always observed.
+    if vendor_missing:
+        os._exit(EXIT_EXEC_FAILED)
     try:
         os.execvpe(command.argv[0], list(command.argv), dict(command.env))
     except OSError:
@@ -722,6 +792,7 @@ class Dispatcher:
             activation_id,
         )
         task = build_task(activation, channels)
+        plan, mode = self._sandbox(activation_id, task)
         # §5.2: the session id is PRE-ASSIGNED by the profile and never
         # discovered from output. `prepare` is its ONLY minter — the foreman
         # used to pre-assign a UUID at mint whenever the bound profile happened
@@ -740,6 +811,8 @@ class Dispatcher:
             self._clock,
             activation_id=activation_id,
             launch_id=uuid.uuid4().hex,
+            plan=plan,
+            sandbox=mode,
         )
         before = ledger.count()
         handle = profile.launch(command, launcher)
@@ -756,6 +829,45 @@ class Dispatcher:
             receipt=self._read_receipt(activation_id),
             precondition=prepared,
         )
+
+    def _sandbox(
+        self, activation_id: str, task: TaskSpec
+    ) -> tuple[SandboxPlan, SandboxMode]:
+        """Prove this host can hold the §2 bound, then compute this task's mounts.
+
+        BEFORE `Profile.prepare`, so no vendor session is minted for a launch
+        that may not happen (O1). A missing or non-enforcing `bwrap` is
+        permanent, so it raises rather than degrades: `foreman/supervise.py`
+        turns it into a typed close and the frontier into a halt gate.
+
+        `sandbox = off` builds NO plan. The mounts would be discarded by `wrap`
+        anyway, and `plan_for` has real side effects — it pre-creates bind
+        sources and refuses a missing root — which an operator who turned the
+        bound off has not asked for.
+        """
+        config = self._paths.config
+        capability = probe(config)
+        if not capability.available:
+            raise SandboxUnavailable(
+                _MSG_SANDBOX_UNAVAILABLE.format(
+                    reason=capability.reason, activation_id=activation_id
+                )
+            )
+        if config.sandbox is SandboxMode.OFF:
+            _LOG.warning(
+                "wf.dispatch.sandbox_off",
+                activation_id=activation_id,
+                node=task.node,
+            )
+            return SandboxPlan(), SandboxMode.OFF
+        plan = plan_for(
+            task,
+            repo_root=config.repo_root,
+            wrapper_root=config.wrapper_root,
+            channels_dir=self._paths.channels_dir(activation_id),
+            binary=capability.binary,
+        )
+        return plan, SandboxMode.BWRAP
 
     def _assert_barrier_held(
         self,

@@ -35,8 +35,13 @@ cannot aim a `clean -f` at an unrelated checkout.
    `diff.external`, `core.sshCommand`,
    `credential.helper`, `init.templateDir`, `core.alternateRefsCommand` and
    `uploadpack.packObjectsHook` are the same shape. The honest statement is that
-   `.git/config` is kept OUT OF THE RUNNER'S REACH rather than distrusted here,
-   and the pins above are belt-and-braces for the keys that can be named:
+   `.git/config` is kept OUT OF THE RUNNER'S REACH rather than distrusted here.
+   The wrapper-owned mechanism for that is the §2 mount bound
+   (`supervisor/sandbox.py`), which read-only pins `config`, `hooks/`, `info/`
+   and the worktree pointer files under `sandbox = bwrap`. It does NOT hold
+   under `sandbox = off`, and it does not reach a nested repository's own
+   `.git`; the vendor-side reach below is what remains, and the pins above are
+   belt-and-braces for the keys that can be named:
 
    - **codex** — the sandbox makes `<root>/.git` read-only inside every writable
      root, whether it is a directory or a worktree's `gitdir:` file, in both

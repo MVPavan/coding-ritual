@@ -33,6 +33,7 @@ __all__ = [
     "HALT_MISSING_COMMIT",
     "HALT_NODE",
     "HALT_PRECONDITION_REFUSED",
+    "HALT_SANDBOX_UNAVAILABLE",
     "INPUT_LABEL",
     "INSTANCE_BRANCH",
     "MAX_GATE_DIFF_BYTES",
@@ -95,7 +96,7 @@ FACT_FRAME: Final[str] = """## What this node is (pinned, §3.1)
 - node: `{node}` in graph `{graph_id}` v{graph_version}
 - round: {round_no}
 - repository writes: {writes}
-- paths whose changes are expected here: {allowed_paths}
+- the only paths this node can write (its mount grants): {allowed_paths}
 - checks that will run against your work: {verify}
 
 These facts come from the pinned graph and decide how the run is graded. Where
@@ -105,8 +106,10 @@ the instructions below disagree with them, the declared facts win.
 
 Separate from `RUNNER_PROTOCOL`, which states the §6 channel contract: that is
 per-node and stable, this is per-activation. `allowed_paths` is described as
-what §7.5 makes it — an exemption from undeclared-effect reporting — never as a
-containment bound, which ADR 0001 records it is not.
+what the §2 mount bound makes it under `sandbox = bwrap`: the node's writable
+mount set. Telling the runner it is merely a reporting exemption — which is all
+ADR 0001 recorded before the bound existed — would have it plan work the box
+will refuse.
 """
 FACT_FRAME_NO_PATHS: Final[str] = "none declared"
 INPUT_LABEL: Final[str] = "## Input `{name}` (from {producer})"
@@ -145,3 +148,7 @@ HALT_FAIL_CLOSED: Final[str] = "fail_closed:{reason}"
 HALT_FAIL_CODE: Final[str] = "fail_code:{node}:{activation_id}"
 HALT_BRANCH_DIVERGED: Final[str] = "instance_branch_diverged:{node}:{activation_id}"
 HALT_PRECONDITION_REFUSED: Final[str] = "precondition_refused:{node}:{activation_id}"
+HALT_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable:{node}:{activation_id}"
+"""This host cannot hold the §2 mount bound, so O1 refuses to dispatch. A dead
+end rather than an infra retry: a missing `bwrap` does not fix itself, and the
+halt is what puts the decision in front of a human."""

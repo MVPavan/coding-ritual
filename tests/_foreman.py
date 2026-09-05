@@ -75,6 +75,7 @@ from workflow_interpreter.supervisor.profile import (
     RunnerCommand,
     TaskSpec,
 )
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 type OverrideValue = str | int | bool
 
@@ -360,6 +361,7 @@ class ForemanLab:
         band_wait_s: float = 30.0,
         roles: Mapping[str, RunnerBinding] = DEFAULT_LAB_ROLES,
         instance_inputs: Mapping[str, str] = DEFAULT_LAB_INSTANCE_INPUTS,
+        sandbox: SandboxMode = SandboxMode.BWRAP,
     ) -> None:
         """Wire a throwaway repo to a real foreman.
 
@@ -368,6 +370,14 @@ class ForemanLab:
         and `instance_inputs` maps each `producer = "instance"` source name to
         its body. Both default to feature-delivery's, which `toml` also
         defaults to.
+
+        `sandbox` defaults to the O5 value, so the whole foreman family runs
+        under the REAL §2 mount bound on a host that has `bwrap`. A test whose
+        PREMISE is a runner writing outside its own grants — the verifier
+        provenance, undeclared-effect and reviewer-commit drills — has to turn
+        it off and say why: those drills exist to prove that the layer ABOVE the
+        bound still holds, and the bound would otherwise stop the child before
+        that layer is ever reached.
         """
         self.repo = make_repo(tmp_path)
         self.head = head_of(self.repo)
@@ -387,7 +397,11 @@ class ForemanLab:
             / hashlib.sha256(str(self.repo.resolve()).encode("utf-8")).hexdigest()[:16]
         )
         self.supervisor_config = make_config(
-            self.repo, tmp_path, fake_proc=False, wrapper_root=wrapper_root
+            self.repo,
+            tmp_path,
+            fake_proc=False,
+            wrapper_root=wrapper_root,
+            sandbox=sandbox,
         )
         self._toml = toml
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)

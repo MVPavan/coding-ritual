@@ -14,6 +14,7 @@ a bypass flag or an unguarded push on an argv.
 from __future__ import annotations
 
 import json
+import shlex
 from pathlib import Path
 from typing import Final
 
@@ -30,6 +31,7 @@ from tests._profiles import (
     make_supervisor_config,
     make_task,
     new_session,
+    profile_host_env,
 )
 from tests._supervisor import FrozenClock
 from workflow_interpreter.profiles import (
@@ -40,7 +42,15 @@ from workflow_interpreter.profiles import (
     UnsupportedOptionError,
     runner_name,
 )
-from workflow_interpreter.profiles._base import BaseProfile
+from workflow_interpreter.profiles._base import (
+    ENV_MYPY_CACHE_DIR,
+    ENV_PYTEST_ADDOPTS,
+    ENV_RUFF_CACHE_DIR,
+    ENV_UV_FROZEN,
+    ENV_UV_PROJECT_ENVIRONMENT,
+    BaseProfile,
+    toolchain_env,
+)
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import KEY_WRITABLE_ROOTS as WRITABLE_ROOTS_KEY
 from workflow_interpreter.profiles.codex import CodexProfile
@@ -714,3 +724,41 @@ def test_the_registry_builds_a_profile_of_the_right_vendor(tmp_path: Path) -> No
         profile = registry.profile_for(name)
         assert profile.name() == name
         assert isinstance(profile, BaseProfile)
+
+
+def test_the_toolchain_cache_option_survives_a_path_with_a_space(
+    tmp_path: Path,
+) -> None:
+    """`PYTEST_ADDOPTS` is shlex-split by pytest, so the path must be quoted.
+
+    An unquoted `-o cache_dir=/a b/pytest` reaches pytest as two words and the
+    run dies on an unrecognised argument — which is the whole gate of a
+    `writes = true` node failing for a reason that has nothing to do with it.
+    """
+    scratch = tmp_path / "a dir" / "scratch"
+    env = toolchain_env(str(scratch))
+
+    assert shlex.split(env[ENV_PYTEST_ADDOPTS]) == [
+        "-o",
+        f"cache_dir={scratch / 'pytest'}",
+    ]
+    assert env[ENV_UV_PROJECT_ENVIRONMENT] == str(scratch / "venv")
+
+
+def test_the_toolchain_env_reaches_every_child(tmp_path: Path) -> None:
+    """Set plainly, not appended: the child inherits no `PYTEST_ADDOPTS` at all.
+
+    `child_env` copies only `passthrough_env` keys, and `PYTEST_ADDOPTS` is not
+    one of them — so there is never an inherited value to preserve, and an
+    append branch would be code that cannot run.
+    """
+    clock = FrozenClock()
+    profile = make_claude(tmp_path, clock)
+    task = make_task(tmp_path)
+    env = profile.child_env(task.channels)
+    scratch = Path(task.channels.scratch_dir)
+
+    assert env[ENV_RUFF_CACHE_DIR] == str(scratch / "ruff")
+    assert env[ENV_MYPY_CACHE_DIR] == str(scratch / "mypy")
+    assert env[ENV_UV_FROZEN] == "1"
+    assert ENV_PYTEST_ADDOPTS not in profile_host_env()

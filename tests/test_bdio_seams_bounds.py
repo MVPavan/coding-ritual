@@ -11,12 +11,18 @@ from workflow_interpreter.bdio.bounds import consecutive_infra_closes
 from workflow_interpreter.bdio.constants import (
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
+    DEVIATION_SANDBOX_UNAVAILABLE,
 )
 from workflow_interpreter.bdio.mint import views_of
 
 
 @pytest.mark.parametrize(
-    "kind", (DEVIATION_PRECONDITION_REFUSED, DEVIATION_INPUTS_UNAVAILABLE)
+    "kind",
+    (
+        DEVIATION_PRECONDITION_REFUSED,
+        DEVIATION_INPUTS_UNAVAILABLE,
+        DEVIATION_SANDBOX_UNAVAILABLE,
+    ),
 )
 def test_an_exempt_refusal_neither_counts_nor_breaks_an_infra_run(
     fake_store: WorkflowStore, kind: str

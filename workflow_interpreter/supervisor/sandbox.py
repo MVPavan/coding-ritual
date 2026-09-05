@@ -68,6 +68,16 @@ budget."""
 GIT_ENTRY: Final[str] = ".git"
 GITDIR_PREFIX: Final[str] = "gitdir:"
 COMMONDIR_FILE: Final[str] = "commondir"
+GITDIR_FILE: Final[str] = "gitdir"
+WORKTREES_DIR: Final[str] = "worktrees"
+"""`<G>`'s two POINTER files, and the directory that holds every `<G>`.
+
+`commondir` decides which `config` git reads and `gitdir` decides which
+checkout `<G>` belongs to. `<G>` itself must stay read-write (`index.lock`
+is created in it), so both are pinned back — a runner that can repoint
+`commondir` at a directory it controls makes the WRAPPER's own next
+`git status`, run outside the box, execute the `core.fsmonitor` it plants
+there. Probed: the escape works without these pins."""
 OBJECTS_DIR: Final[str] = "objects"
 REFS_DIR: Final[str] = "refs"
 LOGS_DIR: Final[str] = "logs"
@@ -139,6 +149,10 @@ _MSG_ESCAPES: Final[str] = (
     "allowed_paths entry {grant!r} resolves to {resolved}, outside the checkout "
     "{checkout}; a grant may never widen the bound"
 )
+_MSG_GRANT_SHAPE: Final[str] = (
+    "allowed_paths entry {grant!r} is not a directory grant; every entry must "
+    "be <dir>/** with no empty segment and no segment starting with a dot"
+)
 _MSG_RELATIVE: Final[str] = "every sandbox bind must be absolute, got {path}"
 
 _FIELD_REPO_ROOT: Final[str] = "repo_root"
@@ -164,6 +178,13 @@ class SandboxCapability(BaseModel):
     available: bool
     version: str | None = None
     reason: str = ""
+    binary: str = BWRAP_BINARY
+    """The ABSOLUTE path `probe` resolved, so nothing has to resolve it twice.
+
+    A bare `bwrap` in the wrapped argv would let the CHILD's `PATH` — a
+    passthrough value the runner's environment carries — decide which binary
+    holds the bound. Defaulted to the bare name only for the unresolved case,
+    which never reaches `wrap` because the dispatch is refused first."""
 
 
 class SandboxPlan(BaseModel):
@@ -177,6 +198,12 @@ class SandboxPlan(BaseModel):
 
     model_config = SANDBOX_MODEL
 
+    binary: str = BWRAP_BINARY
+    """What `wrap` execs, as `probe` resolved it (`SandboxCapability.binary`).
+
+    On the PLAN rather than passed alongside it because the launcher already
+    carries the plan and `wrap` already takes it: one object decides the whole
+    invocation, and there is no second argument a caller can forget."""
     ro_roots: tuple[Path, ...] = ()
     git_rw: tuple[Path, ...] = ()
     grants: tuple[Path, ...] = ()
@@ -222,13 +249,39 @@ def _ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def _refuse_bad_shape(grant: str) -> str:
+    """Refuse anything that is not `<dir>/(<dir>/)*` + `/**`; return the relative dir.
+
+    Defence in depth behind the §4 schema pattern, and NOT redundant with it:
+    `plan_for` is reachable from a graph the schema never validated (a fixture,
+    a test, a future caller), and each rejected shape is a real hole. `./**` and
+    a bare `**` map to the WHOLE checkout; `tests` with no suffix is taken
+    literally as a directory of that name; any `.`-leading segment reaches a pin
+    (`.git/**` would re-open every one of them); an empty segment or a leading
+    `/` makes the join mean something other than it reads.
+
+    A typed refusal rather than whatever `mkdir` happens to raise: `.git/**` used
+    to surface as a bare `FileExistsError`, and an `OSError` out of here is spent
+    as a §10.2 infra retry by `supervise.py`'s generic catch instead of halting.
+    """
+    if not grant.endswith(GRANT_SUFFIX):
+        raise SandboxPathRefused(_MSG_GRANT_SHAPE.format(grant=grant))
+    relative = grant.removesuffix(GRANT_SUFFIX)
+    segments = relative.split("/")
+    if not segments or any(
+        not segment or segment.startswith(".") for segment in segments
+    ):
+        raise SandboxPathRefused(_MSG_GRANT_SHAPE.format(grant=grant))
+    return relative
+
+
 def _grant_path(grant: str, checkout: Path) -> Path:
     """Map one `<dir>/**` grant to the real directory it may write.
 
     `realpath` before the containment check, because a symlink inside the
     checkout pointing out of it is exactly the escape a lexical check misses.
     """
-    relative = grant.removesuffix(GRANT_SUFFIX)
+    relative = _refuse_bad_shape(grant)
     resolved = (checkout / relative).resolve()
     if not resolved.is_relative_to(checkout):
         raise SandboxPathRefused(
@@ -266,6 +319,23 @@ def _common_dir(gitdir: Path) -> Path:
     return named.resolve()
 
 
+def _sibling_worktree_pins(git_dir: Path) -> tuple[Path, ...]:
+    """Every OTHER worktree's pointer and config files, under an in-repo `.git`.
+
+    In-repo mode binds `.git` read-write as a whole, which hands the node every
+    sibling instance's `<G>` as well as its own. Each of those carries the same
+    `commondir` escape aimed at a different instance, so they are pinned the
+    same way — sorted, and existence-gated by `_existing` at the call site.
+    """
+    return tuple(
+        sorted(
+            path
+            for name in (COMMONDIR_FILE, GITDIR_FILE, CONFIG_WORKTREE_FILE)
+            for path in git_dir.glob(f"{WORKTREES_DIR}/*/{name}")
+        )
+    )
+
+
 def _in_repo_binds(git_dir: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     """In-repo shape: `.git` read-write as a WHOLE, minus what executes programs.
 
@@ -274,6 +344,10 @@ def _in_repo_binds(git_dir: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     git run a program: `config` and `config.worktree` name filters and hooks
     paths, `hooks/` holds the programs, `info/attributes` selects filter
     drivers, and `modules/*/config` is the same surface per submodule.
+
+    `worktrees/*/{commondir,gitdir,config.worktree}` is the same surface for
+    every OTHER instance's worktree, which a whole-`.git` bind also hands over
+    (`_sibling_worktree_pins`).
     """
     _ensure_file(git_dir / CONFIG_WORKTREE_FILE)
     _ensure_dir(git_dir / INFO_DIR)
@@ -284,6 +358,7 @@ def _in_repo_binds(git_dir: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
             git_dir / HOOKS_DIR,
             git_dir / INFO_DIR,
             *sorted(git_dir.glob(MODULES_CONFIG_GLOB)),
+            *_sibling_worktree_pins(git_dir),
             git_dir / WF_REFS_DIR,
         )
     )
@@ -294,12 +369,20 @@ def _worktree_binds(git_file: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]
     """Worktree shape: the common object store plus this worktree's own git dir.
 
     `logs` is load-bearing and was missed first: without it `git commit` dies
-    `unable to append to '.git/logs/refs/heads/<branch>'`. It is still
-    existence-gated because a repo with no ref update yet has no `logs/`, and a
-    missing bind source fails the whole box.
+    `unable to append to '.git/logs/refs/heads/<branch>'`. It is PRE-CREATED
+    rather than existence-gated: a repo whose first ref update has not happened
+    yet has no `logs/` at all, and gating it there would leave the runner's own
+    commit failing EROFS trying to create it under a read-only `.git`.
+
+    `commondir` and `gitdir` are pinned back out of the read-write `<G>`: they
+    are POINTERS, and a runner that repoints `commondir` at a directory it
+    controls plants the `config` — and therefore the `core.fsmonitor` command —
+    that the WRAPPER's own next `git status` executes, outside the box, as the
+    wrapper. Probed: without these pins the marker file appears.
     """
     gitdir = _parse_gitdir(git_file)
     common = _common_dir(gitdir)
+    _ensure_dir(common / LOGS_DIR)
     _ensure_file(common / PACKED_REFS_FILE)
     _ensure_file(gitdir / CONFIG_WORKTREE_FILE)
     _ensure_dir(gitdir / INFO_DIR)
@@ -315,6 +398,8 @@ def _worktree_binds(git_file: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]
     pins = _existing(
         (
             common / WF_REFS_DIR,
+            gitdir / COMMONDIR_FILE,
+            gitdir / GITDIR_FILE,
             gitdir / CONFIG_WORKTREE_FILE,
             gitdir / INFO_DIR,
         )
@@ -342,8 +427,12 @@ def plan_for(
     repo_root: Path,
     wrapper_root: Path,
     channels_dir: Path,
+    binary: str = BWRAP_BINARY,
 ) -> SandboxPlan:
     """Compute one dispatch's mount set from its `TaskSpec` and the wrapper roots.
+
+    `binary` is what `probe` resolved; it is threaded through rather than
+    re-resolved here because this function deliberately runs no subprocess.
 
     A `writes = false` node gets the three read-only roots and `channels/` and
     nothing more — it can still report (§6), and there is no writable git state
@@ -357,10 +446,11 @@ def plan_for(
     )
     channels = (channels_dir.resolve(),)
     if not task.writes:
-        return SandboxPlan(ro_roots=ro_roots, channels=channels)
+        return SandboxPlan(binary=binary, ro_roots=ro_roots, channels=channels)
     grants = tuple(_grant_path(grant, checkout) for grant in task.allowed_paths)
     git_rw, ro_pins = _git_binds(checkout)
     return SandboxPlan(
+        binary=binary,
         ro_roots=ro_roots,
         git_rw=git_rw,
         grants=grants,
@@ -392,7 +482,7 @@ def wrap(
     if mode is SandboxMode.OFF:
         return tuple(argv)
     words = [
-        BWRAP_BINARY,
+        plan.binary,
         ARG_DIE_WITH_PARENT,
         ARG_DEV_BIND,
         FS_ROOT,
@@ -496,9 +586,12 @@ def _measure() -> SandboxCapability:
         return SandboxCapability(
             available=False,
             version=version,
+            binary=binary,
             reason=REASON_SELF_TEST.format(detail=detail),
         )
-    return SandboxCapability(available=True, version=version, reason=REASON_OK)
+    return SandboxCapability(
+        available=True, version=version, binary=binary, reason=REASON_OK
+    )
 
 
 def probe(config: SupervisorConfig) -> SandboxCapability:

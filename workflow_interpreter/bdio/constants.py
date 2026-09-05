@@ -9,6 +9,7 @@ DEVIATION_UNDECLARED_EFFECTS_DISCARDED: Final[str] = "undeclared_effects_discard
 DEVIATION_INSTANCE_BRANCH_DIVERGED: Final[str] = "instance_branch_diverged"
 DEVIATION_PRECONDITION_REFUSED: Final[str] = "precondition_refused"
 DEVIATION_INPUTS_UNAVAILABLE: Final[str] = "inputs_unavailable"
+DEVIATION_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable"
 _MSG_ENTRY_PREDECESSOR: Final[str] = (
     "an entry mint has no predecessor; {predecessor!r} was supplied (§3.2)"
 )

@@ -32,6 +32,7 @@ from workflow_interpreter.foreman.constants import (
     HALT_INPUTS_UNAVAILABLE,
     HALT_NODE,
     HALT_PRECONDITION_REFUSED,
+    HALT_SANDBOX_UNAVAILABLE,
     NO_ARTIFACT_OID,
 )
 from workflow_interpreter.schema.graph_index import GraphIndex
@@ -52,6 +53,7 @@ _DEAD_END_REASONS = frozenset(
         HALT_BRANCH_DIVERGED,
         HALT_PRECONDITION_REFUSED,
         HALT_INPUTS_UNAVAILABLE,
+        HALT_SANDBOX_UNAVAILABLE,
     )
 )
 

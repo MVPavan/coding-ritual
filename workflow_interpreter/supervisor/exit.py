@@ -77,6 +77,7 @@ from workflow_interpreter.supervisor.models import (
     CollectedExit,
     CompletionEvidence,
     ExitReason,
+    LaunchReceipt,
     PinResult,
     VerifyResult,
 )
@@ -86,6 +87,7 @@ from workflow_interpreter.supervisor.paths import (
     write_record,
 )
 from workflow_interpreter.supervisor.profile import Profile, TerminalEnvelope
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 from workflow_interpreter.supervisor.verify import VerifyTree, run_checks
 from workflow_interpreter.supervisor.workspace import Workspace
 
@@ -452,7 +454,10 @@ class ExitObserver:
                 activation_id=activation_id,
                 error=str(exc),
             )
-            return self._uncomputable(artifact, exc)
+            return self._with_sandbox_flag(
+                activation_id, self._uncomputable(artifact, exc)
+            )
+        completion = self._with_sandbox_flag(activation_id, completion)
         completion = completion.model_copy(
             update={
                 "evidence": completion.evidence.model_copy(
@@ -469,6 +474,27 @@ class ExitObserver:
         )
         write_record(self._paths.completion(activation_id), completion)
         return completion
+
+    def _with_sandbox_flag(
+        self, activation_id: str, completion: CompletionEvidence
+    ) -> CompletionEvidence:
+        """Append `SANDBOX_OFF` when this activation's child ran unbounded (O5).
+
+        Read from the launch RECEIPT rather than from the config, because the
+        receipt records what the child actually ran under; the config can be
+        changed between the dispatch and the close. Applied on every §7 verdict
+        including the uncomputable one — an operator who turned the bound off
+        must learn it from the close whatever else went wrong.
+        """
+        try:
+            receipt = read_record(self._paths.receipt(activation_id), LaunchReceipt)
+        except WrapperDirError:
+            return completion
+        if receipt is None or receipt.sandbox is not SandboxMode.OFF:
+            return completion
+        return completion.model_copy(
+            update={"audit_flags": (*completion.audit_flags, AuditFlag.SANDBOX_OFF)}
+        )
 
     @staticmethod
     def _uncomputable(

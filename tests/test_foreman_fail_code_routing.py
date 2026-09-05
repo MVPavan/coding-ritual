@@ -31,6 +31,7 @@ from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import Outcome, SigningConfig
 from workflow_interpreter.foreman.routing import RouteKind, route
 from workflow_interpreter.schema.graph_index import build_index
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 # A check whose bytes are constant — so its pinned digest keeps matching — and
 # whose verdict depends on a file the runner may commit. That is the only way
@@ -53,8 +54,21 @@ def _lab(
     verify: str | None = None,
     review: str | None = None,
 ) -> ForemanLab:
-    """A lab whose pinned check scripts are the ones this test needs."""
-    lab = ForemanLab(tmp_path, toml=toml, signing=signing, signer=signer)
+    """A lab whose pinned check scripts are the ones this test needs.
+
+    `sandbox = off`: this family stages its §7.3 cases by having the runner
+    commit a rewritten `scripts/` check, which is outside every node's grants
+    and which the §2 mount bound refuses before the provenance check is ever
+    reached. The bound is proven elsewhere; what these assert is the layer
+    above it.
+    """
+    lab = ForemanLab(
+        tmp_path,
+        toml=toml,
+        signing=signing,
+        signer=signer,
+        sandbox=SandboxMode.OFF,
+    )
     bodies = {VERIFY_SCRIPT: verify, REVIEW_SCRIPT: review}
     written = False
     for name, body in bodies.items():

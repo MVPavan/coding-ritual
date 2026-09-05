@@ -53,6 +53,7 @@ from workflow_interpreter.supervisor import (
 )
 from workflow_interpreter.supervisor import launch as launch_module
 from workflow_interpreter.supervisor.paths import read_record, write_record
+from workflow_interpreter.supervisor.sandbox import SandboxMode, SandboxPlan
 
 pytestmark = pytest.mark.proc
 
@@ -287,6 +288,8 @@ def test_exec_without_record_dispatch_reattaches(lab: Lab) -> None:
         lab.clock,
         activation_id=activation_id,
         launch_id="crashed-before-bd",
+        plan=SandboxPlan(),
+        sandbox=SandboxMode.OFF,
     )
     channels = channels_for(
         lab.paths.activation_dir(activation_id), lab.paths.log(activation_id)

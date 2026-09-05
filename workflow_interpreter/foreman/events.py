@@ -18,6 +18,7 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_INSTANCE_BRANCH_DIVERGED,
     DEVIATION_PRECONDITION_REFUSED,
+    DEVIATION_SANDBOX_UNAVAILABLE,
     DEVIATION_UNDECLARED_EFFECTS_ACCEPTED,
 )
 from workflow_interpreter.bdio.keys import event_key
@@ -143,6 +144,7 @@ def expected_intents(
                 DEVIATION_INSTANCE_BRANCH_DIVERGED,
                 DEVIATION_PRECONDITION_REFUSED,
                 DEVIATION_INPUTS_UNAVAILABLE,
+                DEVIATION_SANDBOX_UNAVAILABLE,
             }
             for deviation in meta.deviations
         ):

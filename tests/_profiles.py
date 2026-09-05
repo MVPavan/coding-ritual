@@ -65,6 +65,7 @@ from workflow_interpreter.supervisor import (
     pinned_verifier_digests,
     procfs,
 )
+from workflow_interpreter.supervisor.artifact import BRANCH_TEMPLATE
 from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.launch import DispatchResult, TaskBuilder
 from workflow_interpreter.supervisor.paths import (
@@ -73,6 +74,7 @@ from workflow_interpreter.supervisor.paths import (
     SCRATCH_DIR,
 )
 from workflow_interpreter.supervisor.profile import Profile, RunnerChannels
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 FIXTURES: Final[Path] = Path(__file__).parent / "fixtures" / "profiles"
 
@@ -156,16 +158,30 @@ def read_stream(vendor: str, name: str) -> list[str]:
     return (FIXTURES / vendor / name).read_text(encoding="utf-8").splitlines()
 
 
-def make_supervisor_config(tmp_path: Path, **overrides: object) -> SupervisorConfig:
-    """A supervisor configuration the profiles can prove liveness against."""
-    return SupervisorConfig.model_validate(
-        {
-            "repo_root": tmp_path / "repo",
-            "wrapper_root": tmp_path / ".wf",
-            "host": HOST,
-            **overrides,
-        }
-    )
+def make_supervisor_config(
+    tmp_path: Path,
+    *,
+    sandbox: SandboxMode = SandboxMode.BWRAP,
+    **overrides: object,
+) -> SupervisorConfig:
+    """A supervisor configuration the profiles can prove liveness against.
+
+    Both roots are CREATED, not merely named: `sandbox.plan_for` read-only binds
+    them and refuses a root that is not on disk, so a config whose `repo_root`
+    never existed would make every sandboxed dispatch through this rig fail for
+    a reason that is about the rig rather than about the bound.
+    """
+    values: dict[str, object] = {
+        "repo_root": tmp_path / "repo",
+        "wrapper_root": tmp_path / ".wf",
+        "host": HOST,
+        "sandbox": sandbox,
+    }
+    values.update(overrides)
+    config = SupervisorConfig.model_validate(values)
+    config.repo_root.mkdir(parents=True, exist_ok=True)
+    config.wrapper_root.mkdir(parents=True, exist_ok=True)
+    return config
 
 
 def make_profile_config(**overrides: object) -> ProfileConfig:
@@ -325,6 +341,16 @@ printf '%s\\n' '{"type":"step_finish","sessionID":"SID","part":"""
     ),
 }
 
+GRANDCHILD_PID_FILE: Final[str] = "grandchild.pid"
+_GRANDCHILD: Final[str] = f"""
+# A process the runner spawned, which the wrapper never knew about. It reports
+# its pid through the artifact channel because that is the only writable place
+# a sandboxed child has, and it outlives the stub unless the whole GROUP is
+# signalled — which is the property a termination test needs.
+sh -c 'while :; do sleep 0.2; done' &
+printf '%s' "$!" > "$WF_ARTIFACT_DIR/{GRANDCHILD_PID_FILE}"
+"""
+
 FD0_FILE: Final[str] = "fd0.txt"
 _FD0_PROBE: Final[str] = f"""
 # What the launcher left on the child's fd 0 (M9). `readlink` on /proc/self/fd/0
@@ -378,6 +404,7 @@ def write_stub(
     sleep_s: float = 0.0,
     push_probe: bool = False,
     fd0_probe: bool = False,
+    grandchild: bool = False,
 ) -> Path:
     """Write an executable stub for one vendor and return its path.
 
@@ -395,6 +422,7 @@ def write_stub(
         + (_FORGE if forge else "")
         + (_PUSH_PROBE if push_probe else "")
         + (_FD0_PROBE if fd0_probe else "")
+        + (_GRANDCHILD if grandchild else "")
         + (f"sleep {sleep_s}\n" if sleep_s else "")
         + f"exit {exit_code}\n"
     )
@@ -409,6 +437,11 @@ def stub_env(
 ) -> dict[str, str]:
     """The extra passthrough keys the stubs read their channel payloads from."""
     return {"WF_MARKER": marker, "WF_EFFECTS": effects}
+
+
+def profile_host_env() -> dict[str, str]:
+    """The stand-in host environment, for a test asserting what is NOT in it."""
+    return dict(HOST_ENV)
 
 
 def host_env_with(**extra: str) -> dict[str, str]:
@@ -460,11 +493,13 @@ def task_builder(cwd: Path, node: Node) -> TaskBuilder:
 class Lab:
     """One instance wired to run a real profile against a stub vendor CLI."""
 
-    def __init__(self, tmp_path: Path) -> None:
+    def __init__(
+        self, tmp_path: Path, *, sandbox: SandboxMode = SandboxMode.BWRAP
+    ) -> None:
         self.tmp_path = tmp_path
         self.repo = make_repo(tmp_path)
         self.base = head_of(self.repo)
-        self.config = make_config(self.repo, tmp_path, fake_proc=False)
+        self.config = make_config(self.repo, tmp_path, fake_proc=False, sandbox=sandbox)
         self.fake_bd, self.store = make_store(tmp_path, self.base)
         self.root = make_root(self.store, self.repo, "profiles-instance")
         self.paths = make_paths(self.config, self.root.root_id)
@@ -482,6 +517,29 @@ class Lab:
 
         A `dispatch()` child is `setsid`-detached and sleeping; without this a
         failing assertion would leave it running for its full sleep."""
+
+    def ensure_worktree(self) -> None:
+        """Create the instance worktree the way §5.4 does, if it is not there.
+
+        A REAL `git worktree add`, not a bare `mkdir`: `dispatch()` runs with no
+        precondition, and `_child` chdirs into the checkout before exec, so it
+        has to exist. A bare directory used to do — until the §2 mount bound
+        started pre-creating the node's grants inside the checkout, which left a
+        NON-EMPTY directory that a later `Workspace._ensure_tree` could no
+        longer `git worktree add` into. Making the rig's shortcut produce the
+        same shape production does removes the divergence rather than papering
+        over it, and it also gives `plan_for` the worktree shape to bind.
+        """
+        worktree = self.paths.worktree
+        if (worktree / ".git").exists():
+            return
+        worktree.parent.mkdir(parents=True, exist_ok=True)
+        self.git.worktree_add(
+            worktree,
+            BRANCH_TEMPLATE.format(root_id=self.paths.root_id),
+            self.base,
+            cwd=self.repo,
+        )
 
     def cleanup(self) -> None:
         """End and reap every parked child, whatever the test did."""
@@ -560,6 +618,7 @@ class Lab:
         sleep_s: float = PARKED_S,
         push_probe: bool = False,
         fd0_probe: bool = False,
+        grandchild: bool = False,
         extra_env: dict[str, str] | None = None,
     ) -> DispatchResult:
         """Run §5.2 phase B alone, with no watch loop over the child.
@@ -572,10 +631,7 @@ class Lab:
         receipt and the real exec ledger, one layer down.
         """
         extra = extra_env or {}
-        # §5.4 normally creates this; `dispatch()` runs with no precondition, and
-        # `_child` chdirs into it before exec — so without it the child dies at
-        # the barrier's setup step and every assertion downstream is vacuous.
-        self.paths.worktree.mkdir(parents=True, exist_ok=True)
+        self.ensure_worktree()
         stub = write_stub(
             self.bin,
             runner,
@@ -583,6 +639,7 @@ class Lab:
             sleep_s=sleep_s,
             push_probe=push_probe,
             fd0_probe=fd0_probe,
+            grandchild=grandchild,
         )
         node = node_of(self.root.definition.document, IMPLEMENT).model_copy(
             update={"writes": writes}

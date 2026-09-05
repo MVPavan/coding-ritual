@@ -28,6 +28,7 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.schema.models import IsolationMode, Outcome
 from workflow_interpreter.supervisor.branch import BranchAdvance, BranchAdvanceOutcome
 from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 RECORD_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -227,10 +228,19 @@ class AuditFlag(StrEnum):
     """A path was modified outside the node's `allowed_paths`, whether or not
     the runner declared it. §7.5 subtracts `declared UNION allowed`, so a
     declared path outside the set reconciles the transition and is graded
-    `done`; `allowed_paths` is an exemption from reporting, never a bound
+    `done`; as a REPORTING rule `allowed_paths` is an exemption, never a bound
     (ADR 0001). Recorded, never raised: this flags scope for an operator and
-    changes no outcome. Real containment is enforcement at the runner layer,
-    which does not exist yet."""
+    changes no outcome.
+
+    Containment itself is the §2 mount bound (`supervisor/sandbox.py`), which
+    makes the grants the node's writable mounts — so under `sandbox = bwrap`
+    this flag is a should-never-fire signal rather than the only line of
+    defence. It still fires honestly under `sandbox = off`."""
+    SANDBOX_OFF = "sandbox_off"
+    """This activation's child ran WITHOUT the §2 mount bound (O5). Evidence
+    side, so it renders to the operator and blocks nothing: `sandbox = off` is a
+    legitimate operator escape hatch, and the only requirement is that it is
+    never silent."""
     ANTI_DRIFT = "anti_drift"
     EFFECTS_MANIFEST_MISSING = "effects_manifest_missing"
     OUTPUTS_UNSAFE = "outputs_unsafe"
@@ -255,8 +265,20 @@ class LaunchReceipt(BaseModel):
     root_id: str
     activation_id: str
     argv: tuple[str, ...]
+    """The WRAPPED argv under `sandbox = bwrap`: `handle.pid` names `bwrap`, not
+    the vendor, so the inner argv would describe a process this receipt's handle
+    does not name (plan §2)."""
     cwd: str
     handle: ProcessHandle
+    sandbox: SandboxMode = SandboxMode.OFF
+    """Which bound this child ran under.
+
+    Defaulted to `off`, which is the FLAGGING value and the only honest one: a
+    receipt carrying no `sandbox` key can only have been written by a launcher
+    that predates the field, and such a launch ran with no mount bound at all.
+    Defaulting to `bwrap` would have silently certified precisely the runs that
+    were never bounded. Every launcher-written receipt states the mode
+    explicitly, so the default is only ever reached by such a record."""
 
 
 class ExecLedgerEntry(BaseModel):

@@ -34,6 +34,7 @@ and `max_wall` always holds.
 from __future__ import annotations
 
 import json
+import shlex
 from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -60,6 +61,15 @@ from workflow_interpreter.supervisor.profile import (
     RunnerEvent,
     TaskSpec,
     TerminalEnvelope,
+)
+from workflow_interpreter.supervisor.sandbox import (
+    ENV_MYPY_CACHE_DIR,
+    ENV_PYTEST_ADDOPTS,
+    ENV_RUFF_CACHE_DIR,
+    ENV_UV_FROZEN,
+    ENV_UV_PROJECT_ENVIRONMENT,
+    PYTEST_CACHE_OPTION,
+    UV_FROZEN_VALUE,
 )
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -101,10 +111,51 @@ phrased around a prefix rule; a hostile child is bounded only by the OS
 network sandbox (codex) or by nothing (claude, which reports
 `denies_network=False` for exactly this reason)."""
 
+UV_VENV_DIR: Final[str] = "venv"
+RUFF_CACHE_DIR: Final[str] = "ruff"
+MYPY_CACHE_DIR: Final[str] = "mypy"
+PYTEST_CACHE_DIR: Final[str] = "pytest"
+"""Subdirectories of `$WF_SCRATCH_DIR` the §2 toolchain env names."""
+
 ENV_GIT_CONFIG_COUNT: Final[str] = "GIT_CONFIG_COUNT"
 ENV_GIT_CONFIG_KEY: Final[str] = "GIT_CONFIG_KEY_{index}"
 ENV_GIT_CONFIG_VALUE: Final[str] = "GIT_CONFIG_VALUE_{index}"
 PUSH_INSTEAD_OF: Final[str] = "url.{sink}.pushInsteadOf"
+
+
+def toolchain_env(scratch_dir: str) -> dict[str, str]:
+    """Point every toolchain cache at `$WF_SCRATCH_DIR` (plan §2, blocker 2).
+
+    A read-only checkout breaks the node's OWN `verify` command: `uv run`
+    creates `.venv` in the checkout, and ruff and mypy create their caches
+    there. Probed under a bwrap'd read-only checkout of this repo: with none of
+    these, `uv run pytest` dies `failed to create directory '<C>/.venv':
+    Read-only file system`; with `UV_PROJECT_ENVIRONMENT` alone, ruff and mypy
+    still die on their own caches; with all four, all three tools pass.
+
+    `PYTEST_ADDOPTS` is SET, not appended: `child_env` copies only
+    `passthrough_env` keys and `PYTEST_ADDOPTS` is not one of them, so there is
+    never an inherited value to preserve and an append branch would be code that
+    can never run. Its path is `shlex.quote`d because pytest shlex-SPLITS the
+    variable — an unquoted cache dir containing a space arrives as two arguments
+    and the run dies on an unrecognised one. That one is a nicety rather than
+    load-bearing (pytest degrades to a warning when it cannot write its cache),
+    but a nicety that breaks the gate is not a nicety.
+
+    Applied for every profile and in every mode. The bound is not the only
+    reason it is right, and a cache location that changed with the sandbox
+    setting would make an `off` run stop reproducing a `bwrap` one.
+    """
+    scratch = Path(scratch_dir)
+    return {
+        ENV_UV_PROJECT_ENVIRONMENT: str(scratch / UV_VENV_DIR),
+        ENV_UV_FROZEN: UV_FROZEN_VALUE,
+        ENV_RUFF_CACHE_DIR: str(scratch / RUFF_CACHE_DIR),
+        ENV_MYPY_CACHE_DIR: str(scratch / MYPY_CACHE_DIR),
+        ENV_PYTEST_ADDOPTS: PYTEST_CACHE_OPTION.format(
+            path=shlex.quote(str(scratch / PYTEST_CACHE_DIR))
+        ),
+    }
 
 
 def push_backstop() -> dict[str, str]:
@@ -378,6 +429,11 @@ class BaseProfile:
         why the codex profile no longer excludes `$TMPDIR` from the writable
         set: the variable is now the wrapper's own, and it names a directory
         already inside the grant.
+
+        `toolchain_env` rides on the same channel and for the same reason: this
+        is the merge that sees the INHERITED environment, which is what the
+        `PYTEST_ADDOPTS` append needs and what `RunnerChannels.env()` — merged
+        last, and taking no env at all — cannot have.
         """
         env = {
             key: self._host_env[key]
@@ -386,6 +442,7 @@ class BaseProfile:
         }
         if channels.scratch_dir:
             env[ENV_TMPDIR] = channels.scratch_dir
+            env.update(toolchain_env(channels.scratch_dir))
         return {**env, **push_backstop(), **channels.env()}
 
     def command(

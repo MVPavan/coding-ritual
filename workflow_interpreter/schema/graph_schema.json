@@ -211,7 +211,7 @@
           "items": {
             "$ref": "#/$defs/grant_glob"
           },
-          "description": "Paths whose changes are exempt from undeclared-effect reporting (\u00a77.5). NOT a containment bound: the same rule also exempts whatever the runner declares in $WF_EFFECTS_FILE, so a runner may modify any path, declare it, and be graded done. See ADR 0001."
+          "description": "The directories this node may write. Under `sandbox = bwrap` these are its writable MOUNTS: everything else in the checkout is read-only to the runner. They are also the \u00a77.5 undeclared-effect exemption, which is a weaker rule — it also exempts whatever the runner declares in $WF_EFFECTS_FILE. See ADR 0001."
         },
         "inputs": {
           "type": "array",

@@ -53,6 +53,7 @@ from workflow_interpreter.supervisor.procfs import (
     read_start_time,
     terminate,
 )
+from workflow_interpreter.supervisor.sandbox import SandboxMode, SandboxPlan
 
 ACTIVATION_ID = "wf-1"
 
@@ -320,7 +321,13 @@ def test_a_term_resistant_descendant_dies_when_its_leader_does_not(
         session_id="sess-group",
     )
     handle = ForkBarrierLauncher(
-        config, paths, clock, activation_id=ACTIVATION_ID, launch_id="group-1"
+        config,
+        paths,
+        clock,
+        activation_id=ACTIVATION_ID,
+        launch_id="group-1",
+        plan=SandboxPlan(),
+        sandbox=SandboxMode.OFF,
     )(command)
     grandchild = int(_await_file(pid_file).strip())
     os.kill(grandchild, 0)  # it is alive, and it is not one of our children

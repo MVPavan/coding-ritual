@@ -22,6 +22,7 @@ from tests.conftest import Signer
 from workflow_interpreter.bdio import Outcome, SigningConfig
 from workflow_interpreter.supervisor.models import AuditFlag, CompletionEvidence
 from workflow_interpreter.supervisor.paths import read_record
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 pytestmark = pytest.mark.proc
 
@@ -39,7 +40,17 @@ def test_drill_13_refuses_the_real_verifier_when_it_is_edited_after_create(
     """An edited pinned verifier is REFUSED, and the claim becomes `fail_code`."""
     pinned_body = VERIFY_FEATURE.read_text(encoding="utf-8")
     edited_body = pinned_body + EDIT
-    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    # `sandbox = off`: the drill stages its edit by having the RUNNER commit a
+    # rewritten `scripts/verify-feature.sh`, which is outside the implement
+    # node's grants and which the §2 mount bound refuses outright. The bound
+    # stopping it is a different (and welcome) fact; what has to keep holding
+    # here is the §7.3 provenance check, one layer above.
+    lab = ForemanLab(
+        tmp_path,
+        signing=signing_config,
+        signer=sign_payload,
+        sandbox=SandboxMode.OFF,
+    )
     lab.pin_checks({VERIFY_SCRIPT: pinned_body})
     lab.instantiate()
     lab.profiles.next_script(

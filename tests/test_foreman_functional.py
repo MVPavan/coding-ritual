@@ -49,6 +49,7 @@ from workflow_interpreter.supervisor import (
 )
 from workflow_interpreter.supervisor.models import CompletionEvidence, PinResult
 from workflow_interpreter.supervisor.paths import read_record
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 from workflow_interpreter.supervisor.workspace import Workspace
 
 # Every test in this file is a §5 drill row (D2 functional drills).
@@ -589,8 +590,19 @@ def test_drill_25_a_declared_fail_code_outcome_opens_triage_directly(
 def test_drill_24_requires_a_signed_decision_for_undeclared_effects(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:
-    """Drill 24 catches an out-of-bound artifact that advances without a gate."""
-    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    """Drill 24 catches an out-of-bound artifact that advances without a gate.
+
+    `sandbox = off`: the drill's whole premise is a child writing `outside.py`,
+    which is outside the node's grants and which the §2 mount bound now refuses
+    outright. That refusal is a second, lower layer — this drill exists to prove
+    the §7.5 audit layer above it, which must keep holding whatever the bound is.
+    """
+    lab = ForemanLab(
+        tmp_path,
+        signing=signing_config,
+        signer=sign_payload,
+        sandbox=SandboxMode.OFF,
+    )
     lab.instantiate()
     lab.profiles.next_script(
         ChildScript(
@@ -952,7 +964,16 @@ def test_in_repo_worktree_review_branch_advance_is_unchanged(
     do (`BranchAdvance.unchanged`), and never calls `update_ref_cas`.
     """
     graph = _in_repo_implement_graph(tmp_path)
-    lab = ForemanLab(tmp_path, toml=graph, signing=signing_config, signer=sign_payload)
+    # `sandbox = off`: the row's mechanism is the REVIEW node's own commit, and
+    # review is `writes = false` — under the §2 mount bound its checkout has no
+    # writable path at all, so the commit that moves the branch cannot happen.
+    lab = ForemanLab(
+        tmp_path,
+        toml=graph,
+        signing=signing_config,
+        signer=sign_payload,
+        sandbox=SandboxMode.OFF,
+    )
     lab.instantiate()
 
     impl_id = lab.tick().dispatched
