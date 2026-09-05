@@ -20,6 +20,7 @@ from typing import Final
 from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.supervisor.errors import SupervisorConfigError
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 CONFIG_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -63,6 +64,11 @@ class SupervisorConfig(BaseModel):
     repo_root: Path
     wrapper_root: Path
     host: str = Field(min_length=1)
+    sandbox: SandboxMode = SandboxMode.BWRAP
+    """O5: the §2 mount bound is ON for every node of both shipped graphs.
+
+    `off` is an operator escape hatch that is RECORDED, never silent — the
+    launch receipt carries the mode and the close carries an audit flag."""
     git_binary: str = DEFAULT_GIT_BINARY
     git_timeout_s: float = Field(default=DEFAULT_GIT_TIMEOUT_S, gt=0)
     proc_root: Path = DEFAULT_PROC_ROOT

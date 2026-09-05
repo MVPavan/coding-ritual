@@ -65,6 +65,25 @@ class DirtyTreeRefused(PreconditionRefused):
         super().__init__(detail)
 
 
+class SandboxUnavailable(SupervisorError):
+    """This host cannot hold the §2 mount bound, so no dispatch may happen (O1).
+
+    Permanent by nature — a missing `bwrap` or a self-test that does not enforce
+    will not fix itself on a retry — so the foreman closes it as a dead end
+    rather than burning §10.2 infra retries on it.
+    """
+
+
+class SandboxPathRefused(SupervisorError):
+    """A path could not be made into a mount bind the bound may safely carry.
+
+    Defence in depth behind the §4 schema pattern: a grant resolving outside the
+    checkout, or a mandatory read-only root that is not on disk. Refusing here
+    beats handing bwrap a bad bind source, which fails as an ambiguous `rc=1`
+    (plan §8).
+    """
+
+
 class LockUnavailable(SupervisorError):
     """The §12 in-repo execution band is held by another runner."""
 
