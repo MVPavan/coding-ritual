@@ -1,7 +1,10 @@
 # ADR 0001 — `allowed_paths` is a disclosure exemption, not a containment bound
 
-- **Status:** Accepted; points 1, 2 and 4 implemented 2026-09-03, point 3 open
-- **Date:** 2026-09-03
+- **Status:** Accepted; points 1, 2 and 4 implemented 2026-09-03. Point 3 **decided
+  2026-09-04** (trigger fired) and now under implementation — see
+  `docs/plans/allowed-paths-enforcement.md` (options) and
+  `docs/plans/allowed-paths-enforcement-phase-1.md` (the phase-1 plan, bead `cr-n2z.1`).
+- **Date:** 2026-09-03; amended 2026-09-04
 - **Deciders:** repo owner
 - **Reviewed by:** Fable 5.1 (high), Sol (xhigh) — `scratchpad/probes/decisions-fable.md`, `scratchpad/probes/decisions-sol.md`
 - **Supersedes wording in:** spec §2 (`:135`), §7.5 (`:649-654`), §6, §12, drill 24 in §13
@@ -78,6 +81,51 @@ prevention.**
    dispatches without mandatory full-diff review
    (`workflow_interpreter/foreman/tick.py:240-296`).
 
+   **DECIDED 2026-09-04.** The first two triggers fired with the phase-5 foreman
+   landing (`foreman/__main__.py:132,463`). `docs/plans/allowed-paths-enforcement.md`
+   recommended option C phased B→A, and the owner ruled on its five open
+   questions. Recorded verbatim:
+
+   - **O1 — unsupported host.** bubblewrap (`bwrap`) is the bound. When it is
+     absent or the self-test fails, the wrapper REFUSES to dispatch (every node,
+     writing or not). No fallback mode.
+   - **O2 — `.git`.** Least destructive to the existing protocol: the RUNNER
+     keeps committing its artifact (`RUNNER_PROTOCOL_WRITE_STEP` stays), so the
+     git directory stays writable, EXCEPT the parts that make git execute
+     programs — `config`, `hooks/`, `info/attributes` are read-only binds
+     (`.gitattributes` handling is already covered by the wrapper's own filter
+     overrides). For a worktree checkout the gitdir is
+     `<main>/.git/worktrees/<name>` plus `<main>/.git/objects`, `refs`,
+     `packed-refs`; for in-repo mode it is `<checkout>/.git`.
+
+     *Implementation note (phase-1 plan, 2026-09-05):* the read-only pins must be
+     emitted LAST — after every read-write bind — because bind order is mount
+     order and a pin placed before a later read-write bind of its parent is
+     re-opened (probed). `<main>/.git/logs` joins the writable set (a commit
+     cannot append its reflog without it), and `<main>/.git/refs/wf` joins the
+     pins so a runner cannot forge the wrapper's own evidence refs as loose
+     refs. **Residual, accepted:** `refs/` and `packed-refs` stay writable, so
+     `packed-refs` rewriting and moving the instance branch remain possible;
+     hardening that is a separate bead.
+   - **O3 — glob expressiveness.** Refuse inexpressible globs at instantiation.
+     The only accepted `allowed_paths` shape is a directory-prefix glob
+     `<relative dir>/**` (no `..`, no leading `/`, no wildcard segments, no
+     file-level pattern), enforced as a JSON-Schema `pattern` on the items
+     (precedent: cr-0jd did this for `node.runner`). A refusing constraint does
+     not change content hashes. A grant directory that does not exist in the
+     checkout is created (empty) before the bind.
+   - **O4 — network.** No `--unshare-net`. Codex keeps its
+     `network_access=false`.
+   - **O5 — rollout.** Both shipped graphs; enforcement is on by default for
+     every node (a `writes = false` node gets the checkout read-only with only
+     `channels/` writable). One `SupervisorConfig` key `sandbox` (enum: `bwrap`
+     default | `off`); `off` is a deliberate unsafe switch, logged at every
+     dispatch and recorded on the activation so a run without the bound is
+     visible in bd.
+
+   Phase 2 (profile-native expression) is `cr-n2z.3`; phase 3 (the §13 drill and
+   the never-expected-flag invariant) is `cr-n2z.4`.
+
 4. **Record today's safety envelope explicitly.** The system is currently safe
    because (a) runners are assumed cooperative, and (b) every writing artifact
    reaches a human gate that shows the cumulative diff. Both are assumptions,
@@ -86,14 +134,25 @@ prevention.**
 ## Consequences
 
 - Nothing bounds what any node writes today. That is now written down rather
-  than implied otherwise.
+  than implied otherwise. **Amended 2026-09-04:** true until point 3 ships; under
+  `sandbox = bwrap` `allowed_paths` becomes the node's writable mount set as well
+  as its reporting exemption, for every profile and through any interpreter.
 - Reviewer nodes (`writes = false`) are told nothing about the reviewed
   writer's declared bound; build-loop has two writers before `slice_gate` with
   only non-writing reviewers between them.
 - A residual gap survives even under prevention: verifier provenance pins only
   the executable (`supervisor/channels.py:286-289`), and checks run in a
   detached checkout of the artifact commit (`exit.py:548-554`), so a writing
-  runner can edit what the examiner depends on.
+  runner can edit what the examiner depends on. **Amended 2026-09-04:** the mount
+  bound closes the *examiner-editing* half for everything outside the node's own
+  grant — `scripts/**` is in no node's `allowed_paths` in either shipped graph, so
+  no writer can reach its own examiner. Two parts stay open: inside the grant
+  (`implement` writing `tests/unit/**` still shapes what its own test check
+  measures), and ref integrity (see the O2 residual — `packed-refs` and the
+  instance branch remain writable).
+- `AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS` (point 2, `exit.py:657`) becomes a
+  should-never-fire invariant once the bound is on: an observed write outside the
+  grant means the sandbox did not hold. Asserting that is `cr-n2z.4`.
 
 ## Open
 
