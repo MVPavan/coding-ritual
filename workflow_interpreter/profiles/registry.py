@@ -1,8 +1,7 @@
 """Name → profile, over the closed vendor set (§P4).
 
-A registry rather than a dict because a profile needs four injected things and
+A registry rather than a dict because a profile needs three injected things and
 none of them may be discovered from the process: the profile configuration, the
-supervisor configuration `inspect`/`terminate` prove liveness against, the
 clock, and the host environment the child's passthrough keys are copied from.
 Building them at the composition root and handing the registry out keeps every
 `os.environ` read in one place — the one `rules/python/safety.md` allows.
@@ -27,14 +26,11 @@ from workflow_interpreter.profiles.config import (
 from workflow_interpreter.profiles.errors import UnknownProfileError
 from workflow_interpreter.profiles.opencode import OpencodeProfile
 from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.profile import Profile
 
 _MSG_UNKNOWN: Final[str] = "no runner profile named {name!r}; the closed set is {known}"
 
-ProfileBuilder = Callable[
-    [ProfileConfig, SupervisorConfig, Clock, Mapping[str, str]], Profile
-]
+ProfileBuilder = Callable[[ProfileConfig, Clock, Mapping[str, str]], Profile]
 
 BUILDERS: Final[dict[RunnerName, ProfileBuilder]] = {
     RunnerName.CLAUDE: ClaudeProfile,
@@ -70,17 +66,13 @@ class ProfileRegistry:
     def __init__(
         self,
         config: ProfileConfig,
-        supervisor_config: SupervisorConfig,
         clock: Clock,
         host_env: Mapping[str, str],
     ) -> None:
         self._config = config
-        self._supervisor_config = supervisor_config
         self._clock = clock
         self._host_env = host_env
 
     def profile_for(self, name: str) -> Profile:
         """The profile for one vendor name; unknown names raise (see module doc)."""
-        return BUILDERS[runner_name(name)](
-            self._config, self._supervisor_config, self._clock, self._host_env
-        )
+        return BUILDERS[runner_name(name)](self._config, self._clock, self._host_env)

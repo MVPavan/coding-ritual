@@ -239,7 +239,6 @@ def test_drill_22_missing_registry_binary_exhausts_infra_retries_to_fallback(
     )
     profiles = ProfileRegistry(
         ProfileConfig(binary_overrides={RunnerName.CODEX: str(missing_binary)}),
-        lab.supervisor_config,
         lab.clock,
         {},
     )

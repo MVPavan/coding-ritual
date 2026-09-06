@@ -8,7 +8,7 @@ from typing import Final
 from pydantic import ValidationError
 
 from workflow_interpreter.bdio import (
-    NODE_SETTING_KEY,
+    BoundSetting,
     ConfigSource,
     InstanceInput,
     NodeSetting,
@@ -45,17 +45,25 @@ MSG_RUNNER_WITHOUT_MODEL: Final[str] = (
     "source — the model would stay the graph role's, a pairing nobody stated"
 )
 
-TASK_SETTING_TYPES: Final[Mapping[str, type[str | int | bool]]] = {
-    "runner": str,
-    "model": str,
-    "isolation": str,
-    "max_wall": str,
-    "stale_after": str,
-    "writes": bool,
-    "token_budget": int,
-    "max_infra_retries": int,
-    "max_steers": int,
+TASK_SETTING_TYPES: Final[
+    Mapping[NodeSetting | BoundSetting, type[str | int | bool]]
+] = {
+    NodeSetting.RUNNER: str,
+    NodeSetting.MODEL: str,
+    NodeSetting.ISOLATION: str,
+    NodeSetting.MAX_WALL: str,
+    NodeSetting.STALE_AFTER: str,
+    NodeSetting.WRITES: bool,
+    NodeSetting.TOKEN_BUDGET: int,
+    BoundSetting.MAX_INFRA_RETRIES: int,
+    BoundSetting.MAX_STEERS: int,
 }
+"""The closed task-resolution vocabulary.
+
+`instructions`, `region`, `gate_type`, and `binds` are never configurable:
+they change what the graph MEANS under one content hash (ADR 0002), and an
+ignored `gate_type` would look like a removed approval (§9).
+"""
 
 
 def resolve(
@@ -72,8 +80,9 @@ def resolve(
     for node in definition.document.node:
         if node.kind is not NodeKind.TASK:
             continue
-        for field, setting_type in TASK_SETTING_TYPES.items():
-            key = NODE_SETTING_KEY.format(scope=node.name, field=field)
+        for setting, setting_type in TASK_SETTING_TYPES.items():
+            key = setting.at(node.name)
+            field = setting.value.rsplit(".", maxsplit=1)[-1]
             allowed[key] = setting_type
             owners[key] = (node, field)
             value = getattr(node, field)

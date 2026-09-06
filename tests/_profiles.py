@@ -236,10 +236,9 @@ def new_session() -> str:
 def make_claude(
     tmp_path: Path, clock: Clock, config: ProfileConfig | None = None
 ) -> ClaudeProfile:
-    """A claude profile wired to a throwaway supervisor configuration."""
+    """A claude profile wired to its profile configuration."""
     return ClaudeProfile(
         config or make_profile_config(),
-        make_supervisor_config(tmp_path),
         clock,
         HOST_ENV,
     )
@@ -248,10 +247,9 @@ def make_claude(
 def make_codex(
     tmp_path: Path, clock: Clock, config: ProfileConfig | None = None
 ) -> CodexProfile:
-    """A codex profile wired to a throwaway supervisor configuration."""
+    """A codex profile wired to its profile configuration."""
     return CodexProfile(
         config or make_profile_config(),
-        make_supervisor_config(tmp_path),
         clock,
         HOST_ENV,
     )
@@ -260,10 +258,9 @@ def make_codex(
 def make_opencode(
     tmp_path: Path, clock: Clock, config: ProfileConfig | None = None
 ) -> OpencodeProfile:
-    """An opencode profile wired to a throwaway supervisor configuration."""
+    """An opencode profile wired to its profile configuration."""
     return OpencodeProfile(
         config or make_profile_config(),
-        make_supervisor_config(tmp_path),
         clock,
         HOST_ENV,
     )
@@ -557,9 +554,7 @@ class Lab:
         config = ProfileConfig(
             binary_overrides={runner: str(binary)}, passthrough_env=PASSTHROUGH
         )
-        registry = ProfileRegistry(
-            config, self.config, self.clock, host_env_with(**stub_env())
-        )
+        registry = ProfileRegistry(config, self.clock, host_env_with(**stub_env()))
         return registry.profile_for(runner.value)
 
     def run(
@@ -597,7 +592,6 @@ class Lab:
         )
         registry = ProfileRegistry(
             config,
-            self.config,
             self.clock,
             host_env_with(**stub_env(marker=marker, effects=effects)),
         )
@@ -651,7 +645,7 @@ class Lab:
             passthrough_env=(*PASSTHROUGH, *sorted(extra)),
         )
         registry = ProfileRegistry(
-            config, self.config, self.clock, host_env_with(**stub_env(), **extra)
+            config, self.clock, host_env_with(**stub_env(), **extra)
         )
         dispatcher = Dispatcher(self.paths, self.store, self.clock)
         result = dispatcher.dispatch(

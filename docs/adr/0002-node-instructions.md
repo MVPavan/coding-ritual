@@ -136,20 +136,9 @@ frame, enforced at `WorkflowStore.create_root`.**
   — there are no legacy roots worth protecting, and the attestation is cheap to
   add when there are.
 
-## Open — inherited, not created by this ADR
+## Resolved — inherited, not created by this ADR
 
-**The `resolve()` reflection needs replacing, not just blacklisting.** Both
-reviewers flagged the one-field blacklist as an acceptable immediate guard and
-an unacceptable final policy. `resolve()` registers every non-required scalar
-node field as a configuration key, including nonsensical ones such as
-`node.ship.model`, which a test asserts is accepted
-(`tests/test_foreman_resolution.py:208-251`). Meanwhile minting rereads the
-**live** role map (`foreman/cases.py:154-185, 269-286`) and task construction
-reads the **raw pinned node** (`foreman/supervise.py:126-160`), so recorded
-overrides are inert. The spec's §14 row *"Closed resolved-config key
-vocabulary, trigger: phase 5"* (`:952`) has fired. It is **explicitly
-re-deferred** here to keep this ADR's scope bounded, and tracked as its own
-item.
+**2026-09-06:** `foreman.resolve.TASK_SETTING_TYPES` now defines the closed task-resolution vocabulary.
 
 ## Rejected
 

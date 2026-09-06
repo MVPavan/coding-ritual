@@ -64,7 +64,6 @@ from workflow_interpreter.bdio.signing import (
     canonical_payload_bytes,
 )
 from workflow_interpreter.bdio.wire import (
-    NODE_SETTING_KEY,
     ArtifactIdentity,
     BindsMode,
     BoundSetting,
@@ -91,11 +90,11 @@ from workflow_interpreter.bdio.wire import (
     Usage,
     VerifyOutcome,
     WfKind,
+    resolved_settings,
 )
 from workflow_interpreter.schema.models import Outcome
 
 __all__ = [
-    "NODE_SETTING_KEY",
     "ActivationRecord",
     "AllowedSigner",
     "ArtifactIdentity",
@@ -162,4 +161,5 @@ __all__ = [
     "WorkflowReads",
     "WorkflowStore",
     "canonical_payload_bytes",
+    "resolved_settings",
 ]

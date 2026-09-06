@@ -106,7 +106,7 @@ def _composition(path: Path | None) -> Composition:
         supervisor_config=config.supervisor,
         git=Git(config.supervisor),
         clock=clock,
-        profiles=ProfileRegistry(config.profiles, config.supervisor, clock, os.environ),
+        profiles=ProfileRegistry(config.profiles, clock, os.environ),
         spawner=DetachedSpawner(config.supervisor, path),
     )
 

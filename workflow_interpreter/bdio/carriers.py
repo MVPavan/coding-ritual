@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Mapping
 from enum import StrEnum
-from typing import Annotated, Final
+from typing import TYPE_CHECKING, Annotated, Final
 
 from pydantic import (
     BaseModel,
@@ -21,6 +22,9 @@ from pydantic import (
 )
 
 from workflow_interpreter.schema.models import Outcome
+
+if TYPE_CHECKING:
+    from workflow_interpreter.bdio.wire import RootMetadata
 
 WIRE_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True,
@@ -45,11 +49,6 @@ CommitOid = Annotated[str, StringConstraints(pattern=COMMIT_OID_PATTERN)]
 commit: `""` used to satisfy the type, and an all-empty carrier then compared
 equal to an activation that had nothing recorded at all — so the write that
 should have happened was skipped as "already recorded"."""
-
-NODE_SETTING_KEY: Final[str] = "node.{scope}.{field}"
-"""The generic per-node resolved-config key `BoundSetting` and `NodeSetting`
-both spell out; `resolve()` derives its whole node vocabulary from it, so the
-syntax has exactly one home."""
 
 _SCOPE_PLACEHOLDER: Final[str] = "{scope}"
 _SCOPE_CAPTURE: Final[str] = "([^.]+)"
@@ -175,6 +174,11 @@ class NodeSetting(SettingKey):
     TOKEN_BUDGET = "node.{scope}.token_budget"
     MAX_WALL = "node.{scope}.max_wall"
     STALE_AFTER = "node.{scope}.stale_after"
+
+
+def resolved_settings(root_metadata: RootMetadata) -> Mapping[str, str | int | bool]:
+    """Expose a root's pinned resolution as settings keyed for execution reads."""
+    return {item.key: item.value for item in root_metadata.resolved_config}
 
 
 class ScopedBound(BaseModel):

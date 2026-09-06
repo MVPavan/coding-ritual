@@ -26,7 +26,6 @@ from pydantic import (
 )
 
 from workflow_interpreter.bdio.carriers import (
-    NODE_SETTING_KEY,
     TERMINAL_LIFECYCLES,
     WIRE_MODEL,
     ArtifactIdentity,
@@ -54,6 +53,7 @@ from workflow_interpreter.bdio.carriers import (
     VerifyOutcome,
     WfKind,
     parse_bound_key,
+    resolved_settings,
 )
 from workflow_interpreter.bdio.constants import (
     _MSG_BOTH_PREDECESSORS,
@@ -71,7 +71,6 @@ from workflow_interpreter.schema.models import (
 
 __all__ = [
     "GRAPH_OUTCOMES",
-    "NODE_SETTING_KEY",
     "SYSTEM_OUTCOMES",
     "WIRE_MODEL",
     "ActivationMetadata",
@@ -114,6 +113,7 @@ __all__ = [
     "config_signature",
     "metadata_dict",
     "parse_bound_key",
+    "resolved_settings",
 ]
 
 ROW_MODEL: Final[ConfigDict] = ConfigDict(

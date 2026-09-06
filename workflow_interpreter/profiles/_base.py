@@ -47,7 +47,6 @@ from workflow_interpreter.bdio import ProcessHandle, Usage
 from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
 from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.supervisor.clock import Clock, elapsed_seconds
-from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.profile import (
     ChildLauncher,
     EventType,
@@ -388,7 +387,6 @@ class BaseProfile:
     def __init__(
         self,
         config: ProfileConfig,
-        supervisor_config: SupervisorConfig,
         clock: Clock,
         host_env: Mapping[str, str],
     ) -> None:

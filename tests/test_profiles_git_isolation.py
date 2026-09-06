@@ -220,7 +220,7 @@ def _sandbox_write(cwd: Path, target: str) -> str:
 def test_the_codex_sandbox_makes_dot_git_read_only_in_the_layout_it_is_given(
     tmp_path: Path, layout: str, target: str
 ) -> None:
-    """The ruling behind `sandboxed = True`, run against the real sandbox.
+    """The real sandbox keeps `.git` read-only while the worktree stays writable.
 
     Two layouts, because `.git` has two shapes and the earlier claim covered
     neither honestly. In the §12 in-repo band the runner's root is the repo and

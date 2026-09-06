@@ -35,7 +35,6 @@ import pytest
 from tests._profiles import (
     HOST_ENV,
     make_profile_config,
-    make_supervisor_config,
     make_task,
     new_session,
 )
@@ -109,7 +108,6 @@ def test_claude_read_only_really_is_read_only(tmp_path: Path) -> None:
     require("claude")
     profile = ClaudeProfile(
         make_profile_config(),
-        make_supervisor_config(tmp_path),
         FrozenClock(),
         host_env(),
     )
@@ -146,7 +144,6 @@ def test_codex_read_only_really_is_read_only(tmp_path: Path) -> None:
     require("codex")
     profile = CodexProfile(
         make_profile_config(),
-        make_supervisor_config(tmp_path),
         FrozenClock(),
         host_env(),
     )
@@ -190,7 +187,6 @@ def test_claude_writes_only_inside_its_declared_grant(tmp_path: Path) -> None:
     require("claude")
     profile = ClaudeProfile(
         make_profile_config(),
-        make_supervisor_config(tmp_path),
         FrozenClock(),
         host_env(),
     )

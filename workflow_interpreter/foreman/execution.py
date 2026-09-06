@@ -15,7 +15,7 @@ from typing import Final
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.bdio.records import RootRecord
-from workflow_interpreter.bdio.wire import NodeSetting
+from workflow_interpreter.bdio.wire import NodeSetting, resolved_settings
 from workflow_interpreter.foreman.errors import (
     UnresolvedRunnerError,
     UnusableResolutionError,
@@ -76,7 +76,7 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
     drift this view exists to prevent.
     """
     pinned = root.index.nodes[node_name]
-    settings = {item.key: item.value for item in root.metadata.resolved_config}
+    settings = resolved_settings(root.metadata)
     updates = {
         field: settings[setting.at(node_name)]
         for field, setting in _EFFECTIVE_FIELDS

@@ -28,7 +28,6 @@ from tests._profiles import (
     make_codex,
     make_opencode,
     make_profile_config,
-    make_supervisor_config,
     make_task,
     new_session,
     profile_host_env,
@@ -729,7 +728,6 @@ def test_a_channel_cannot_be_shadowed_by_a_passthrough_key(tmp_path: Path) -> No
     config = make_profile_config(passthrough_env=("PATH", ENV_OUTCOME_FILE))
     profile = ClaudeProfile(
         config,
-        make_supervisor_config(tmp_path),
         FrozenClock(),
         {"PATH": "/usr/bin", ENV_OUTCOME_FILE: "/tmp/attacker.json"},
     )
@@ -804,19 +802,15 @@ def test_an_unknown_runner_name_is_a_typed_refusal(tmp_path: Path, name: str) ->
     where the registry keys on VENDORS, and the mapping between them belongs to
     the foreman — flagged, and fail-closed until it exists.
     """
-    registry = ProfileRegistry(
-        make_profile_config(), make_supervisor_config(tmp_path), FrozenClock(), {}
-    )
+    registry = ProfileRegistry(make_profile_config(), FrozenClock(), {})
 
     with pytest.raises(UnknownProfileError, match="closed set"):
         registry.profile_for(name)
 
 
 def test_the_registry_builds_a_profile_of_the_right_vendor(tmp_path: Path) -> None:
-    """One construction point, four injected dependencies (see `registry.py`)."""
-    registry = ProfileRegistry(
-        make_profile_config(), make_supervisor_config(tmp_path), FrozenClock(), {}
-    )
+    """One construction point, three injected dependencies (see `registry.py`)."""
+    registry = ProfileRegistry(make_profile_config(), FrozenClock(), {})
 
     for name in ("claude", "codex", "opencode"):
         profile = registry.profile_for(name)

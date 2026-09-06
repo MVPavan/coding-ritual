@@ -24,7 +24,7 @@ from tests._foreman import (
     ForemanLab,
 )
 from tests._helpers import BUILD_LOOP_GRAPH, VALID_FIXTURE
-from workflow_interpreter.bdio import BdConfig
+from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import BdConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
@@ -46,6 +46,7 @@ from workflow_interpreter.foreman.execution import (
 )
 from workflow_interpreter.foreman.owner import OwnerConflict, OwnerRecord, ensure_owner
 from workflow_interpreter.foreman.resolve import (
+    TASK_SETTING_TYPES,
     _resolved_config,
     instantiate,
     resolve,
@@ -153,6 +154,15 @@ def test_composition_for_root_uses_the_injected_store(
         fake_store.mint_activation(root.root_id, entry_request())
     with pytest.raises(InstanceBranchMissing, match="instance branch"):
         wiring.supervisor._store.mint_activation(root.root_id, entry_request())
+
+
+def test_task_setting_types_tracks_the_configurable_task_setting_vocabulary() -> None:
+    """A renamed setting cannot leave resolution writing a key nothing reads."""
+    assert set(TASK_SETTING_TYPES) == {
+        *NodeSetting,
+        BoundSetting.MAX_INFRA_RETRIES,
+        BoundSetting.MAX_STEERS,
+    }
 
 
 def test_resolve_tags_defaults_and_explicit_overrides() -> None:
