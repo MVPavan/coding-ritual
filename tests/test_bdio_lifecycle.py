@@ -69,6 +69,7 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
         "record_exit",
         "record_precondition",
         "record_stale_flag",
+        "settle_root",
         "startup_canary",
         "supersede_activation",
     }
@@ -80,7 +81,10 @@ point of the set is that a generic write cannot quietly join it.
 `record_precondition` and `record_stale_flag` joined it in phase 3, as the
 narrowest typed writes for the two facts the supervisor owns and §3.2/§8.2
 require in bd: the carry-forward trio proven before the exec, and the stale
-flag. Each takes one frozen carrier and touches only its own keys."""
+flag. Each takes one frozen carrier and touches only its own keys.
+
+`settle_root` joined it in phase 8 (cr-o85.34.24): the one write that records
+which terminal an instance reached and closes its root on that fact."""
 
 
 @pytest.fixture(scope="session")

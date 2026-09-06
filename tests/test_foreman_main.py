@@ -14,15 +14,23 @@ import pytest
 
 from tests._bdio import entry_request, handle, load_definition, make_root
 from tests._foreman import ForemanLab
-from tests._helpers import VALID_FIXTURE, mutate
+from tests._helpers import (
+    AMBIGUOUS_ABANDON_EDITS,
+    VALID_FIXTURE,
+    mutate,
+    unnameable_abandon_graph,
+)
 from tests._supervisor import VERIFY_SCRIPT, ChildScript, make_config, make_repo
+from tests.conftest import Signer
 from workflow_interpreter.bdio import BdConfig, Outcome
 from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver, Spawner
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
+from workflow_interpreter.foreman.gates import halt_gate
 from workflow_interpreter.foreman.supervise import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.supervisor.clock import Clock
@@ -499,6 +507,105 @@ def test_status_reports_an_open_transition_gate_with_its_inbox_and_template(
     assert entry["node"] == "ship"
     assert entry["inbox"].endswith(ship.metadata.gate_key)
     assert json.loads(entry["template"])["gate_key"] == ship.metadata.gate_key
+
+
+def test_status_names_the_terminal_an_instance_reached_and_its_root_state(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
+) -> None:
+    """cr-o85.34.24: `status` must answer "is it over, and where did it end?".
+
+    The live build-loop run reached its terminal with `status` reporting only
+    activations and gates, so the operator had to read the tick log to learn
+    that the instance was finished at all.
+    """
+    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    root = lab.instantiate()
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    ship_id = lab.tick().opened_gate
+    assert ship_id is not None
+    lab.approve(ship_id, Outcome.APPROVE)
+    assert lab.tick().closed_gates == (ship_id,)
+    assert lab.tick().terminal_node == "shipped"
+
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+    report = json.loads(
+        next(line for line in transcript.splitlines() if '"root_id"' in line)
+    )
+
+    assert report["terminal"] == "shipped"
+    assert report["root_state"] == STATUS_CLOSED
+
+
+def test_status_reports_no_terminal_when_the_abandoned_end_has_no_unique_name(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
+) -> None:
+    """Two abandon edges, two terminals: the end is real but has no ONE name.
+
+    The tick still reports `terminal`, because the instance IS over — but the
+    root stays open and unsettled rather than closing on one of two guesses,
+    and `status` says exactly that.
+    """
+    graph = unnameable_abandon_graph(
+        tmp_path, AMBIGUOUS_ABANDON_EDITS, "ambiguous-abandon.toml"
+    )
+    lab = ForemanLab(tmp_path, toml=graph, signing=signing_config, signer=sign_payload)
+    root = lab.instantiate()
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    halt_id = lab.tick().opened_gate
+    assert halt_id is not None
+    lab.approve(halt_id, Outcome.ABANDON)
+    assert lab.tick().closed_gates == (halt_id,)
+    report = lab.tick()
+    assert report.terminal is True
+    assert report.terminal_node is None
+
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+    status = json.loads(
+        next(line for line in transcript.splitlines() if '"root_id"' in line)
+    )
+
+    assert status["terminal"] is None
+    assert status["root_state"] != STATUS_CLOSED
+
+
+def test_status_distinguishes_a_halted_instance_from_a_settled_one(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A halt is a human's turn, not an end: the root stays open and unsettled."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    gate = lab.store.open_gate(root.root_id, halt_gate("ceiling:20"))
+    assert lab.tick().halted is True
+
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+    status = json.loads(
+        next(line for line in transcript.splitlines() if '"root_id"' in line)
+    )
+
+    assert status["terminal"] is None
+    assert status["root_state"] != STATUS_CLOSED
+    assert "open_halt" in status
+    assert lab.store.reads.load_root(root.root_id).metadata.terminal is None
+    assert gate.gate_id in {entry["gate_id"] for entry in status["open_gates"]}
 
 
 def test_create_prints_a_root_id_that_status_then_accepts(

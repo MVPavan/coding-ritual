@@ -482,6 +482,10 @@ def _run(
         "root_id": args.root_id,
         "activations": len(view.activations),
         "instance_base_commit": root.metadata.instance_base_commit,
+        # The two fields that say an instance is OVER: which terminal it
+        # reached and whether its root bead is closed on that fact (§3.1).
+        "terminal": frontier.terminal_node,
+        "root_state": root.bead.status,
         "instance_branch_head": composition.git.ref_target(
             INSTANCE_BRANCH.format(root_id=args.root_id),
             cwd=composition.config.repo_root,

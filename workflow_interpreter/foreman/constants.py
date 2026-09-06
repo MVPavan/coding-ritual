@@ -47,6 +47,8 @@ __all__ = [
     "RUN_DEFAULT_MAX_WALL_S",
     "RUN_DEFAULT_POLL_S",
     "RUN_MAX_WALL",
+    "TERMINAL_SKIP_AMBIGUOUS_ABANDON",
+    "TERMINAL_SKIP_NOT_A_TERMINAL",
     "WRAPPER_HANDLE",
     "WRAPPER_LOCK",
 ]
@@ -158,3 +160,15 @@ HALT_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable:{node}:{activation_i
 """This host cannot hold the §2 mount bound, so O1 refuses to dispatch. A dead
 end rather than an infra retry: a missing `bwrap` does not fix itself, and the
 halt is what puts the decision in front of a human."""
+TERMINAL_SKIP_AMBIGUOUS_ABANDON: Final[str] = (
+    "the graph's abandon edges do not name one unique target"
+)
+"""Why an approved abandon halt settled no terminal on the root (§3.1). Not a
+halt reason: the instance IS over either way, but the end has no name to
+record, so the root stays open for a human rather than closing on a guess."""
+TERMINAL_SKIP_NOT_A_TERMINAL: Final[str] = (
+    "the abandon target {node} is not a terminal node"
+)
+"""The same skip for the other shape §2 permits: nothing in the schema requires
+an `abandon` edge to reach a terminal, so the target's kind is checked before
+the root is settled on it."""

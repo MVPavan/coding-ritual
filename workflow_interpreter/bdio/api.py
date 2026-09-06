@@ -54,7 +54,7 @@ from workflow_interpreter.bdio.records import (
     MintResult,
     RootRecord,
 )
-from workflow_interpreter.bdio.roots import create_root
+from workflow_interpreter.bdio.roots import create_root, settle_root
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
@@ -236,6 +236,17 @@ class WorkflowStore:
             allow_test_flags=allow_test_flags,
             instance_base_commit=instance_base_commit,
         )
+
+    def settle_root(self, root_id: str, terminal: str) -> RootRecord:
+        """Record the terminal an instance reached and close its root (§3.1).
+
+        The only durable statement that an instance is OVER: the tick log and
+        the trace events say which edge was taken, but nothing said "this
+        instance is settled" where `status` or a human could read it, so the
+        root bead stayed open forever (cr-o85.34.24). Idempotent — a re-tick
+        after the terminal rewrites nothing.
+        """
+        return settle_root(self._client, root_id, terminal)
 
     # -- activations -----------------------------------------------------
 

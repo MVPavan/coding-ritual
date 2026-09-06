@@ -142,6 +142,7 @@ KEY_INSTANCE_KEY: Final[str] = "instance_key"
 KEY_SEQ: Final[str] = "seq"
 KEY_NONCE: Final[str] = "nonce"
 KEY_SUPERSEDED_BY: Final[str] = "superseded_by"
+KEY_TERMINAL: Final[str] = "terminal"
 KEY_LIFECYCLE: Final[str] = "lifecycle"
 """The one key EVERY §5.1 transition owns, and therefore the one key a losing
 race can still drag backwards (`transitions.py`)."""
@@ -325,6 +326,13 @@ class RootMetadata(BaseModel):
     superseded_by: str | None = None
     """Set on the loser of a concurrent create under one `instance_key`; the
     surviving root is the lowest bead id (same rule as §3.2 race residue)."""
+    terminal: str | None = None
+    """The terminal node this instance reached, written once when routing
+    enters it (`WorkflowStore.settle_root`). Deliberately OUTSIDE
+    `config_signature` and the `_assert_same_instance` comparisons in
+    `roots.py`: an instance's identity is its pinned graph plus its
+    creation-time resolution, so recording where it ENDED must not change the
+    hash a signed §9 payload and root re-creation recovery compare against."""
 
     @property
     def is_superseded(self) -> bool:

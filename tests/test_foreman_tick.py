@@ -216,6 +216,103 @@ def test_tick_drives_the_fixture_from_entry_to_shipped(
     ]
 
 
+def test_the_reached_terminal_settles_and_closes_the_root_and_a_re_tick_is_inert(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """cr-o85.34.24: the terminal must be durable on the ROOT, not tick-log-only.
+
+    Before this, an instance that reached `shipped` left its root bead OPEN
+    with nothing naming the terminal — the live build-loop run's D4 — so the
+    only way to learn how an instance ended was to read the tick transcript.
+    """
+    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    root = lab.instantiate()
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    ship = lab.tick().opened_gate
+    assert ship is not None
+    lab.approve(ship, Outcome.APPROVE)
+    assert lab.tick().closed_gates == (ship,)
+
+    report = lab.tick()
+    settled = lab.store.reads.load_root(root.root_id)
+
+    # The §11 canary round-trips a wisp on EVERY tick, so "wrote nothing" is
+    # counted over the workflow rows and the two mutating surfaces, not over
+    # every `bd create` the tick issued.
+    def durable() -> tuple[int, ...]:
+        return (
+            len(lab.beads("activation")),
+            len(lab.beads("gate")),
+            len(lab.beads("event")),
+            lab.count("update"),
+            lab.count("close"),
+        )
+
+    writes = durable()
+    again = lab.tick()
+
+    assert report.terminal is True
+    assert report.terminal_node == "shipped"
+    assert settled.metadata.terminal == "shipped"
+    assert settled.bead.status == STATUS_CLOSED
+    assert settled.bead.close_reason == "outcome=terminal terminal=shipped"
+    # A re-tick against a settled root writes NOTHING and still reports the
+    # terminal: no re-mint of the entry, no dead end, no second close.
+    assert again.terminal is True
+    assert again.terminal_node == "shipped"
+    assert durable() == writes
+
+
+def test_a_crash_between_the_terminal_record_and_the_root_close_repairs_forward(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """The §3.1 settle is metadata first, close second — so it has a crash window.
+
+    The half-written state (root names its terminal, bead still open) is the
+    one every §5.1 transition leaves, and the answer is the same: the next tick
+    FINISHES it rather than refusing or re-writing it.
+    """
+    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    root = lab.instantiate()
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    ship = lab.tick().opened_gate
+    assert ship is not None
+    lab.approve(ship, Outcome.APPROVE)
+    assert lab.tick().closed_gates == (ship,)
+
+    # The root close is the first `bd close` this tick issues; the gate's own
+    # close landed on the tick before.
+    lab.fake_bd.crash_on("close", 1)
+    with pytest.raises(InjectedCrash):
+        lab.tick()
+    half_written = lab.store.reads.load_root(root.root_id)
+
+    repaired = lab.tick()
+    closes = lab.count("close")
+    inert = lab.tick()
+
+    assert half_written.metadata.terminal == "shipped"
+    assert half_written.bead.status != STATUS_CLOSED
+    assert repaired.terminal_node == "shipped"
+    settled = lab.store.reads.load_root(root.root_id)
+    assert settled.bead.status == STATUS_CLOSED
+    assert settled.bead.close_reason == "outcome=terminal terminal=shipped"
+    assert inert.terminal_node == "shipped"
+    assert lab.count("close") == closes
+
+
 def test_tick_distinguishes_absent_refused_and_verified_gate_intake(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:

@@ -11,9 +11,11 @@ import pytest
 
 from tests._foreman import ForemanLab
 from tests._helpers import (
+    ABANDON_TO_TASK_EDITS,
     VALID_FIXTURE,
     mutate,
     undeclared_fail_code_graph,
+    unnameable_abandon_graph,
     write,
 )
 from tests._supervisor import ChildScript
@@ -28,6 +30,7 @@ from workflow_interpreter.bdio import (
     SigningConfig,
     keys,
 )
+from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.constants import (
     DEVIATION_INSTANCE_BRANCH_DIVERGED,
     DEVIATION_PRECONDITION_REFUSED,
@@ -467,12 +470,16 @@ def test_drill_25_distinguishes_a_declared_fallback_from_an_undeclared_claim(
 
 
 def _undeclared_fail_code_halt(
-    tmp_path: Path, signing: SigningConfig, signer: Signer
+    tmp_path: Path,
+    signing: SigningConfig,
+    signer: Signer,
+    *,
+    toml: Path | None = None,
 ) -> tuple[ForemanLab, str, str]:
     """Close `implement` on an undeclared claim and open its dead-end halt."""
     lab = ForemanLab(
         tmp_path,
-        toml=undeclared_fail_code_graph(tmp_path),
+        toml=undeclared_fail_code_graph(tmp_path) if toml is None else toml,
         signing=signing,
         signer=signer,
     )
@@ -540,7 +547,47 @@ def test_drill_25_halt_abandon_reaches_terminal(
     lab, _, halt_id = _undeclared_fail_code_halt(tmp_path, signing_config, sign_payload)
     lab.approve(halt_id, Outcome.ABANDON)
     assert lab.tick().closed_gates == (halt_id,)
-    assert lab.tick().terminal is True
+    report = lab.tick()
+
+    assert report.terminal is True
+    # The abandoned end is as durable as the shipped one (§3.1, cr-o85.34.24):
+    # an operator reads WHICH terminal off the root, not off the tick log.
+    assert report.terminal_node == "abandoned"
+    assert lab.root is not None
+    settled = lab.store.reads.load_root(lab.root.root_id)
+    assert settled.metadata.terminal == "abandoned"
+    assert settled.bead.status == STATUS_CLOSED
+
+
+def test_an_abandon_edge_that_reaches_no_terminal_settles_nothing_and_still_ticks(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """A schema-valid `abandon` edge may target a TASK; the root must survive it.
+
+    `abandon_target` names the unique abandon edge's target whatever its kind,
+    so settling the root on it unchecked raised `CarrierIntegrityError` out of
+    every later tick — an exception the tick does not route — and skipped the
+    terminal worktree cleanup with it.
+    """
+    graph = unnameable_abandon_graph(
+        tmp_path, ABANDON_TO_TASK_EDITS, "abandon-to-task.toml"
+    )
+    lab, _, halt_id = _undeclared_fail_code_halt(
+        tmp_path, signing_config, sign_payload, toml=graph
+    )
+    lab.approve(halt_id, Outcome.ABANDON)
+    assert lab.tick().closed_gates == (halt_id,)
+
+    report = lab.tick()
+    again = lab.tick()
+
+    assert report.terminal is True
+    assert report.terminal_node is None
+    assert again.terminal is True
+    assert lab.root is not None
+    unsettled = lab.store.reads.load_root(lab.root.root_id)
+    assert unsettled.metadata.terminal is None
+    assert unsettled.bead.status != STATUS_CLOSED
 
 
 def test_drill_25_a_declared_fail_code_outcome_opens_triage_directly(

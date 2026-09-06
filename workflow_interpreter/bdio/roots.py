@@ -26,6 +26,7 @@ from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.records import RootRecord, parse_root
 from workflow_interpreter.bdio.wire import (
     KEY_SUPERSEDED_BY,
+    KEY_TERMINAL,
     KEY_WF_ROOT_ID,
     BeadRecord,
     InstanceInput,
@@ -45,6 +46,7 @@ MAX_REPORTED_KEYS: Final[int] = 10
 """How many differing configuration keys a mismatch message names."""
 _TITLE_ROOT: Final[str] = "wf root {graph_id} {instance_key}"
 _REASON_ROOT_SUPERSEDED: Final[str] = "outcome=superseded superseded_by={winner}"
+_REASON_ROOT_TERMINAL: Final[str] = "outcome=terminal terminal={terminal}"
 
 _MSG_EMPTY_CONFIG: Final[str] = (
     "instance {instance_key!r} carries no resolved configuration; §3.1 "
@@ -68,6 +70,18 @@ _MSG_TWO_OWNING_ROOTS: Final[str] = (
 _MSG_CONFIG_KEYS: Final[str] = "differing keys: {keys}"
 _MSG_CONFIG_KEYS_TRUNCATED: Final[str] = "differing keys: {keys} (+{more} more)"
 _MSG_INSTANCE_INPUT_BYTES: Final[str] = "instance inputs exceed {limit} bytes"
+_MSG_TERMINAL_CONFLICT: Final[str] = (
+    "root {root_id} already recorded terminal {found!r}; recording {wanted!r} "
+    "would rewrite the settled end of the instance (§3.1)"
+)
+_MSG_NOT_A_TERMINAL: Final[str] = (
+    "{terminal!r} is not a terminal node of the pinned graph of root {root_id}"
+)
+_MSG_SETTLE_SUPERSEDED: Final[str] = (
+    "root {root_id} is superseded by {winner}; settling it on terminal "
+    "{terminal!r} would overwrite the supersede close reason and resurrect a "
+    "lost create race into instance truth (§3.1)"
+)
 _MSG_UNINSTRUCTED_TASKS: Final[str] = (
     "task nodes carry no instructions and cannot be dispatched: {nodes}"
 )
@@ -312,3 +326,47 @@ def _ensure_self_id(client: BdClient, bead: BeadRecord) -> RootRecord:
     if bead.metadata.get(KEY_WF_ROOT_ID) != bead.id:
         bead = client._merge_metadata(bead.id, {KEY_WF_ROOT_ID: bead.id})
     return parse_root(bead)
+
+
+def settle_root(client: BdClient, root_id: str, terminal: str) -> RootRecord:
+    """Record the terminal this instance reached and close its root (§3.1).
+
+    Metadata first, close second — the same order every §5.1 transition uses,
+    for the same reason: a crash between the two leaves a root that already
+    names its terminal, and the next call finishes the close. Re-recording the
+    SAME terminal is a no-op; a different one is refused, because the end an
+    instance reached is routing truth and is never rewritten.
+    """
+    record = parse_root(client.show(root_id))
+    node = record.index.nodes.get(terminal)
+    if node is None or node.kind is not NodeKind.TERMINAL:
+        raise CarrierIntegrityError(
+            _MSG_NOT_A_TERMINAL.format(terminal=terminal, root_id=root_id)
+        )
+    if record.metadata.is_superseded:
+        # `close_forward` repairs a transition FORWARD, but only its own: this
+        # root's close already landed as `outcome=superseded`, and re-driving
+        # `bd close` overwrites the reason (probed). Refusing matches the
+        # activation sibling (`api._MSG_CLOSE_SUPERSEDED`) — a lost race is
+        # never reopened as routing truth.
+        raise CarrierIntegrityError(
+            _MSG_SETTLE_SUPERSEDED.format(
+                root_id=root_id,
+                winner=record.metadata.superseded_by,
+                terminal=terminal,
+            )
+        )
+    found = record.metadata.terminal
+    if found is not None and found != terminal:
+        raise CarrierIntegrityError(
+            _MSG_TERMINAL_CONFLICT.format(root_id=root_id, found=found, wanted=terminal)
+        )
+    bead = record.bead
+    if found is None:
+        bead = client._merge_metadata(root_id, {KEY_TERMINAL: terminal})
+        _LOG.info("wf.root.terminal", root_id=root_id, terminal=terminal)
+    return parse_root(
+        finalize.close_forward(
+            client, bead, _REASON_ROOT_TERMINAL.format(terminal=terminal)
+        )
+    )

@@ -34,6 +34,7 @@ from workflow_interpreter.bdio import (
     Outcome,
     SigningConfig,
 )
+from workflow_interpreter.bdio.client import STATUS_CLOSED
 
 # Every test in this file is a phase-7 D1 drill row.
 pytestmark = pytest.mark.acceptance
@@ -44,6 +45,7 @@ NODE_IMPLEMENT: Final[str] = "implement"
 NODE_REVIEW_IMPL: Final[str] = "review_impl"
 NODE_CRITIC: Final[str] = "critic"
 NODE_SLICE_GATE: Final[str] = "slice_gate"
+NODE_SLICE_DONE: Final[str] = "slice_done"
 NODE_TRIAGE_TESTS: Final[str] = "triage_tests"
 NODE_TRIAGE_BUILD: Final[str] = "triage_build"
 
@@ -211,7 +213,16 @@ def test_the_happy_path_runs_both_regions_to_slice_done(
     assert gate.metadata.gate_node == NODE_SLICE_GATE
     lab.approve(gate_id, Outcome.APPROVE)
     assert lab.tick().closed_gates == (gate_id,)
-    assert lab.tick().terminal is True
+    report = lab.tick()
+
+    assert report.terminal is True
+    # D4 of the first live run: the signed `slice_gate` approve reached
+    # `slice_done` and the root stayed open, naming no terminal (cr-o85.34.24).
+    assert report.terminal_node == NODE_SLICE_DONE
+    assert lab.root is not None
+    settled = lab.store.reads.load_root(lab.root.root_id)
+    assert settled.metadata.terminal == NODE_SLICE_DONE
+    assert settled.bead.status == STATUS_CLOSED
 
     assert _bindings(lab, implement)[INPUT_ACCEPTANCE_TESTS] == write_tests
     assert _bindings(lab, critic)[INPUT_TEST_FINDINGS] == review_tests

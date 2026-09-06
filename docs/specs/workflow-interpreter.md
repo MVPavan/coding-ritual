@@ -408,6 +408,25 @@ rebound after a root exists never changes how that instance runs. The
 interpreter executes from the pinned copy; the file is for authoring.
 Hash mismatch → instance halts.
 
+The root also carries the one fact that is written after creation:
+`terminal`, the name of the terminal node routing entered, written
+once when it does and never rewritten (a different terminal is
+refused). The root bead is then CLOSED with reason
+`outcome=terminal terminal=<name>`. It sits deliberately outside the
+creation-time config signature and outside every field root
+re-creation compares (`graph_content_hash`, `instance_inputs`,
+`allow_test_flags`, `instance_base_commit`, the config signature), so
+recording where an instance ENDED never changes its identity. A root
+carrying `terminal` is SETTLED: the frontier treats it as having no
+routing head, so a re-tick mints nothing, opens no dead-end halt, and
+simply re-reports the terminal. Like `superseded_by`, `terminal` is a
+field an OLDER binary does not know, and workflow carriers are read
+`extra = "forbid"` — so an older foreman meeting a settled root fails
+loud on the unknown key rather than routing an instance it cannot
+tell is over. That is the intended failure, not a compatibility gap.
+A settled root is also never superseded and a superseded root is never
+settled: either would overwrite the other's close reason.
+
 ### 3.2 Activation beads (`wf_kind: activation`)
 
 Minted with: `node`, `region`, `round_no`, `seq` (monotonic per-instance,
@@ -500,7 +519,9 @@ tick:
                         undeclared-but-listed → fallback)
   3  dispatchable next node → §10 pre-mint predicates → mint → dispatch (§5.2–5.3)
   4  terminal runner → §7 completion (compute, never trust)
-  5  close + append transition event (backfill missing events); release lock
+  5  close + append transition event (backfill missing events); a route INTO
+     a terminal also records `terminal` on the root and closes it (§3.1),
+     which `status` reports as `terminal` + `root_state`; release lock
 ```
 
 Signals are hints that may trigger a tick early; the frontier is always
@@ -971,7 +992,12 @@ ledger (§5.2), wrapper dir artifacts, foreman transcript byte counts.
 21. Bound drill: `max_entries = 1` → round 1 EXECUTES (worked example
     §10.1), the first back-edge arrival exhausts; gate unique across
     re-ticks; `rebudget` writes the raised bound with provenance;
-    `abandon` reaches the terminal.
+    `abandon` reaches the terminal — and reaching ANY terminal settles the
+    root: it records that terminal's name, closes, is reported by `status`,
+    and makes the next tick a no-op (`tests/test_foreman_tick.py`
+    `test_the_reached_terminal_settles_and_closes_the_root_and_a_re_tick_is_inert`,
+    `tests/test_foreman_functional.py`
+    `test_drill_25_halt_abandon_reaches_terminal`).
 22. Infra isolation: broken CLI on a node → exactly
     `1 + max_infra_retries` attempts (ledger), `round_no` unchanged, no
     fallback shortcut before the cap, ceiling incremented per attempt.

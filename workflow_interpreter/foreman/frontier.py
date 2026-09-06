@@ -74,6 +74,9 @@ class Frontier(BaseModel):
     head_activation: ActivationRecord | None = None
     head_gate: GateRecord | None = None
     terminal: bool = False
+    terminal_node: str | None = None
+    """Which terminal the instance reached — from the root's settled record if
+    it has one, otherwise from the durable terminal event (§3.1, §3.3)."""
     empty: bool = False
 
     @property
@@ -171,6 +174,26 @@ def build_frontier(root: RootRecord, beads: Iterable[BeadRecord]) -> Frontier:
         item.metadata.predecessor_gate_id for item in live_activations
     } | {event.activation_id for event in terminal_events}
     terminal = bool(terminal_events)
+    terminal_node = (
+        min(terminal_events, key=lambda event: (event.seq, event.to_node)).to_node
+        if terminal_events
+        else None
+    )
+    open_gates = tuple(
+        item for item in parsed_gates if item.metadata.state is GateState.OPEN
+    )
+    decided = tuple(item for item in parsed_gates if _is_decided(item))
+    settled = root.metadata.terminal
+    if settled is not None:
+        # A root that already recorded its terminal is SETTLED: no completed
+        # row is a routing head any more, so a re-tick mints nothing, reports
+        # no dead end and never re-enters the entry mint (§3.1, cr-o85.34.24).
+        return Frontier(
+            open_gates=open_gates,
+            decided_gates=decided,
+            terminal=True,
+            terminal_node=settled,
+        )
     unconsumed_activations = tuple(
         item
         for item in live_activations
@@ -179,10 +202,6 @@ def build_frontier(root: RootRecord, beads: Iterable[BeadRecord]) -> Frontier:
     unconsumed_gates = tuple(
         item for item in live_gates if item.gate_id not in consumed_gates
     )
-    open_gates = tuple(
-        item for item in parsed_gates if item.metadata.state is GateState.OPEN
-    )
-    decided = tuple(item for item in parsed_gates if _is_decided(item))
     dead = next(
         (
             DeadEnd(activation=item, kind=kind)
@@ -262,5 +281,6 @@ def build_frontier(root: RootRecord, beads: Iterable[BeadRecord]) -> Frontier:
         else None,
         head_gate=heads[0] if heads and isinstance(heads[0], GateRecord) else None,
         terminal=terminal,
+        terminal_node=terminal_node,
         empty=not live_activations and not live_gate_exists and not terminal,
     )

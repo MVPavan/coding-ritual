@@ -111,6 +111,7 @@ def test_a_tick_against_an_open_gate_reports_the_gate_it_waits_on(
         "refusals": (),
         "events_backfilled": 0,
         "terminal": False,
+        "terminal_node": None,
     }
 
 

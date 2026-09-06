@@ -44,6 +44,7 @@ from workflow_interpreter.bdio import (
     BoundExceededError,
     BoundMutation,
     CanaryFailedError,
+    CarrierIntegrityError,
     GateArtifact,
     GatePayload,
     GateVerifier,
@@ -181,6 +182,36 @@ def test_create_root_is_idempotent_on_its_instance_key(
         instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
     )
     assert first.root_id == second.root_id
+
+
+def test_settle_root_records_the_terminal_and_closes_the_root_idempotently(
+    store: WorkflowStore, definition: GraphDefinition
+) -> None:
+    # Only a real bd can show that the §3.1 terminal record survives ITS
+    # storage layer: the metadata merge onto an already-CLOSED bead, and a
+    # second `bd close` with the same reason (cr-o85.34.24).
+    root = make_root(store, definition)
+
+    settled = store.settle_root(root.root_id, "shipped")
+    again = store.settle_root(root.root_id, "shipped")
+
+    assert settled.metadata.terminal == "shipped"
+    assert settled.bead.status == "closed"
+    assert settled.bead.close_reason == "outcome=terminal terminal=shipped"
+    assert again.bead.close_reason == settled.bead.close_reason
+    # The end an instance reached is routing truth, so it is never rewritten.
+    with pytest.raises(CarrierIntegrityError, match="already recorded terminal"):
+        store.settle_root(root.root_id, "abandoned")
+    # Nothing the root's IDENTITY is compared on moved, so re-creating the
+    # instance by key still converges on it (§3.1 signature boundary).
+    assert (
+        store.create_root(
+            instance_key=root.metadata.instance_key,
+            definition=definition,
+            resolved_config=RESOLVED_CONFIG,
+        ).root_id
+        == root.root_id
+    )
 
 
 # --- §3.2 mint idempotency ----------------------------------------------

@@ -181,6 +181,80 @@ def undeclared_fail_code_graph(directory: Path) -> Path:
     )
 
 
+# Neither §2 nor the validator requires an `abandon` edge to reach a terminal,
+# and two abandon edges may name two different targets. Both shapes load, and
+# both leave the abandoned end UNNAMEABLE — the two graphs below pin that so
+# the tick's terminal record is never written on a guess (cr-o85.34.24).
+_ABANDON_TASK_NODE: Final[str] = '''[[node]]
+name          = "wrapup"
+kind          = "task"
+runner        = "profile:critic"
+model         = "default"
+instructions = """
+Record why the slice was abandoned.
+"""
+isolation     = "worktree"
+writes        = false
+allowed_paths = []
+inputs        = ["task_brief"]
+verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
+token_budget  = 20000
+max_wall      = "10m"
+stale_after   = "5m"
+max_infra_retries = 0
+max_steers    = 0
+outcomes      = ["done"]
+fallback      = { to = "abandoned" }
+
+[[edge]]
+from = "wrapup"
+on   = "done"
+to   = "abandoned"
+
+[[node]]
+name = "shipped"'''
+
+ABANDON_TO_TASK_EDITS: Final[Replacements] = (
+    ('[[node]]\nname = "shipped"', _ABANDON_TASK_NODE),
+    (
+        '[[edge]]\nfrom = "ship"\non   = "abandon"\nto   = "abandoned"',
+        '[[edge]]\nfrom = "ship"\non   = "abandon"\nto   = "wrapup"',
+    ),
+    (
+        '[[edge]]\nfrom = "triage"\non   = "abandon"\nto   = "abandoned"',
+        '[[edge]]\nfrom = "triage"\non   = "abandon"\nto   = "wrapup"',
+    ),
+)
+
+AMBIGUOUS_ABANDON_EDITS: Final[Replacements] = (
+    (
+        '[[node]]\nname = "abandoned"\nkind = "terminal"',
+        (
+            '[[node]]\nname = "abandoned"\nkind = "terminal"\n\n'
+            '[[node]]\nname = "dropped"\nkind = "terminal"'
+        ),
+    ),
+    (
+        '[[edge]]\nfrom = "triage"\non   = "abandon"\nto   = "abandoned"',
+        '[[edge]]\nfrom = "triage"\non   = "abandon"\nto   = "dropped"',
+    ),
+)
+
+
+def unnameable_abandon_graph(directory: Path, edits: Replacements, name: str) -> Path:
+    """The dead-end halt graph with `abandon` edited to name no one terminal."""
+    return write(
+        directory,
+        mutate(
+            mutate(
+                VALID_FIXTURE.read_text(encoding="utf-8"), UNDECLARED_FAIL_CODE_EDITS
+            ),
+            edits,
+        ),
+        name,
+    )
+
+
 def mutate(text: str, replacements: Iterable[tuple[str, str]]) -> str:
     """Apply unique, asserted text replacements to a graph file."""
     for original, replacement in replacements:

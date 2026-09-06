@@ -153,6 +153,40 @@ def test_concurrent_duplicate_roots_converge_on_the_lowest_bead_id(
     assert losers[0]["metadata"]["superseded_by"] == second.root_id
 
 
+def test_settling_a_superseded_root_is_refused(
+    fake_store: WorkflowStore, fake_bd: FakeBd, definition: GraphDefinition
+) -> None:
+    """A lost create race is never reopened as an instance's recorded end.
+
+    `close_forward` repairs a transition forward, but only its OWN: the loser's
+    close already landed as `outcome=superseded`, and `bd close` overwrites the
+    reason (probed). So this refuses, exactly as closing a superseded
+    ACTIVATION does.
+    """
+    key = "settle-race"
+
+    def interleave() -> None:
+        fake_store.create_root(
+            instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
+        )
+
+    fake_bd.pause_before("create", interleave)
+    winner = fake_store.create_root(
+        instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
+    )
+    loser = next(
+        row
+        for row in fake_bd.rows.values()
+        if row["metadata"].get("instance_key") == key and row["id"] != winner.root_id
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="is superseded by"):
+        fake_store.settle_root(str(loser["id"]), "shipped")
+
+    assert loser["metadata"].get("terminal") is None
+    assert loser["close_reason"] == f"outcome=superseded superseded_by={winner.root_id}"
+
+
 def test_a_concurrent_create_that_converges_on_another_resolution_is_refused(
     fake_store: WorkflowStore, fake_bd: FakeBd, definition: GraphDefinition
 ) -> None:

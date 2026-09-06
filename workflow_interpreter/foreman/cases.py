@@ -66,6 +66,9 @@ class CaseResult(BaseModel):
     stalled: str | None = None
     opened_gates: tuple[str, ...] = ()
     terminal: bool = False
+    terminal_node: str | None = None
+    """The terminal this route entered — the name the tick settles the root
+    with (§3.1); `terminal` without it is not a routable end."""
 
 
 class IntakeBatch(BaseModel):
@@ -386,7 +389,7 @@ def route_head(
                 round_no=head.metadata.round_no or 1,
             )
         if result.kind is RouteKind.TERMINAL:
-            return CaseResult(terminal=True)
+            return CaseResult(terminal=True, terminal_node=result.target)
         return CaseResult(stalled=result.reason or "gate route is not a task")
 
     outcome = head.metadata.outcome
@@ -495,7 +498,7 @@ def route_head(
                 round_no=head.metadata.round_no,
             )
         if target_node.kind is NodeKind.TERMINAL:
-            return CaseResult(terminal=True)
+            return CaseResult(terminal=True, terminal_node=decision.target)
     if decision.kind in {RouteKind.FALLBACK, RouteKind.FAIL_CLOSED}:
         reason = HALT_FAIL_CLOSED.format(reason=decision.reason or "fallback")
         gate = wiring.store.open_gate(root.root_id, halt_gate(reason))
@@ -510,7 +513,7 @@ def route_head(
         )
         return CaseResult(opened_gates=(gate.gate_id,))
     if decision.kind is RouteKind.TERMINAL:
-        return CaseResult(terminal=True)
+        return CaseResult(terminal=True, terminal_node=decision.target)
     return CaseResult(stalled=decision.reason or "route is unsupported")
 
 

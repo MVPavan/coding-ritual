@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Final
+
+import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import (
@@ -38,6 +41,8 @@ from workflow_interpreter.foreman.constants import (
     HALT_INPUTS,
     HALT_MISSING_COMMIT,
     RUN_MAX_WALL,
+    TERMINAL_SKIP_AMBIGUOUS_ABANDON,
+    TERMINAL_SKIP_NOT_A_TERMINAL,
 )
 from workflow_interpreter.foreman.events import backfill, expected_intents
 from workflow_interpreter.foreman.execution import resolved_node
@@ -47,7 +52,9 @@ from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.inputs import InputsUnavailable
 from workflow_interpreter.foreman.owner import ensure_owner
 from workflow_interpreter.foreman.reconcile import reconcile
+from workflow_interpreter.foreman.routing import abandon_target
 from workflow_interpreter.foreman.transcript import bounded_tail
+from workflow_interpreter.schema.models import NodeKind
 from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     GitCommandError,
@@ -61,6 +68,8 @@ from workflow_interpreter.supervisor.models import (
 )
 from workflow_interpreter.supervisor.paths import read_record, read_tail
 from workflow_interpreter.supervisor.steer import Steerer
+
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 
 class TickReport(BaseModel):
@@ -88,6 +97,10 @@ class TickReport(BaseModel):
     refusals: tuple[str, ...] = ()
     events_backfilled: int = 0
     terminal: bool = False
+    terminal_node: str | None = None
+    """The terminal this instance reached, as recorded on the root (§3.1).
+    `terminal` alone said an instance was over without saying where, which
+    left an operator reading tick logs to find out (cr-o85.34.24)."""
 
 
 class RunReport(BaseModel):
@@ -193,6 +206,35 @@ def _verify_inspections(
         )
         for result in completion.verify_results
     )
+
+
+def _abandon_terminal(root: RootRecord) -> str | None:
+    """The terminal an approved abandon halt reaches, when the graph names one.
+
+    Nothing in §2 makes an `abandon` edge target a terminal, and the validator
+    does not either, so the kind is CHECKED here: settling the root on a task
+    or gate target would raise out of the tick (`settle_root` refuses a
+    non-terminal), and that exception routes nowhere — every later tick would
+    raise before the worktree cleanup. Both unnameable ends are logged and left
+    unsettled instead.
+    """
+    target = abandon_target(root.index)
+    if target is None:
+        _LOG.warning(
+            "wf.root.terminal_skipped",
+            root_id=root.root_id,
+            reason=TERMINAL_SKIP_AMBIGUOUS_ABANDON,
+        )
+        return None
+    node = root.index.nodes.get(target)
+    if node is None or node.kind is not NodeKind.TERMINAL:
+        _LOG.warning(
+            "wf.root.terminal_skipped",
+            root_id=root.root_id,
+            reason=TERMINAL_SKIP_NOT_A_TERMINAL.format(node=target),
+        )
+        return None
+    return target
 
 
 def _opened_gate(wiring: InstanceWiring, gate_id: str | None) -> str | None:
@@ -388,14 +430,17 @@ class Foreman:
                 )
             if frontier.abandoned_halt is not None:
                 backfilled = self._backfill(wiring, root)
-                self._cleanup_terminal_worktree(wiring, root)
-                return TickReport(events_backfilled=backfilled, terminal=True)
+                return TickReport(
+                    events_backfilled=backfilled,
+                    terminal=True,
+                    terminal_node=self._settle_terminal(
+                        wiring, root, _abandon_terminal(root)
+                    ),
+                )
             if frontier.head is not None:
                 result = route_head(self._composition, wiring, root, frontier.head)
                 backfilled = self._backfill(wiring, root)
                 terminal = result.terminal
-                if terminal:
-                    self._cleanup_terminal_worktree(wiring, root)
                 return TickReport(
                     dispatched=result.dispatched,
                     settled=result.settled,
@@ -406,6 +451,11 @@ class Foreman:
                     ),
                     events_backfilled=backfilled,
                     terminal=terminal,
+                    terminal_node=self._settle_terminal(
+                        wiring, root, result.terminal_node
+                    )
+                    if terminal
+                    else None,
                 )
             if frontier.empty:
                 result = mint_entry(self._composition, wiring, root)
@@ -414,8 +464,12 @@ class Foreman:
                     stalled=result.stalled,
                 )
             if frontier.terminal:
-                self._cleanup_terminal_worktree(wiring, root)
-                return TickReport(terminal=True)
+                return TickReport(
+                    terminal=True,
+                    terminal_node=self._settle_terminal(
+                        wiring, root, frontier.terminal_node
+                    ),
+                )
             if frontier.open_gates:
                 # Nothing else advanced and an OPEN gate exists, so the next
                 # actor is a human: an open gate is never a routing head
@@ -505,6 +559,29 @@ class Foreman:
             existing=existing,
             first_seq=next_seq(beads),
         )
+
+    def _settle_terminal(
+        self, wiring: InstanceWiring, root: RootRecord, terminal: str | None
+    ) -> str | None:
+        """Record the reached terminal on the root, then clean the worktree.
+
+        The root is settled FIRST: it is the durable statement that the
+        instance is over, and it must land even if the worktree cleanup below
+        cannot (a later tick re-tries the cleanup, because a settled root
+        still reports terminal). `settle_root` is idempotent, so every tick
+        after the first writes nothing.
+
+        A terminal the graph cannot name — an `abandon` halt in a graph with no
+        unique abandon edge, where no terminal event is written either — settles
+        nothing: the root must not close on a guess.
+        """
+        recorded = (
+            None
+            if terminal is None
+            else wiring.store.settle_root(root.root_id, terminal).metadata.terminal
+        )
+        self._cleanup_terminal_worktree(wiring, root)
+        return recorded
 
     def _cleanup_terminal_worktree(
         self, wiring: InstanceWiring, root: RootRecord
