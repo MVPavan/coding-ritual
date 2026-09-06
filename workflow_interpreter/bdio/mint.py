@@ -32,6 +32,7 @@ from workflow_interpreter.bdio.wire import (
     Lifecycle,
     MintReason,
     MintRequest,
+    NodeSetting,
 )
 from workflow_interpreter.schema.models import (
     GRAPH_OUTCOMES,
@@ -63,6 +64,7 @@ _MSG_NO_PREDECESSOR: Final[str] = (
     "a {reason} mint into {node!r} needs a predecessor activation to derive "
     "its outcome and idempotency key (§3.2)"
 )
+_MSG_WRITE_MODE: Final[str] = "node {node!r} has a non-boolean pinned write mode"
 _MSG_PREDECESSOR_MISSING: Final[str] = (
     "predecessor {predecessor!r} is not an activation of this instance"
 )
@@ -353,7 +355,14 @@ def _derive_base_commit(
     predecessor is the reviewer, whose base IS the rejected commit.
     """
     declared = root.index.nodes.get(node)
-    if declared is not None and declared.writes:
+    settings = {item.key: item.value for item in root.metadata.resolved_config}
+    writes = settings.get(
+        NodeSetting.WRITES.at(node), declared.writes if declared is not None else False
+    )
+    if not isinstance(writes, bool):
+        raise CarrierIntegrityError(_MSG_WRITE_MODE.format(node=node))
+    # Base selection must use the same pinned write mode as execution.
+    if writes:
         for record in reversed(list(activations)):
             metadata = record.metadata
             if (

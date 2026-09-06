@@ -48,18 +48,14 @@ from workflow_interpreter.bdio.client import BdClient, CompletedCommand
 from workflow_interpreter.schema.models import GraphDocument, Node
 from workflow_interpreter.supervisor import (
     BandLock,
-    Capabilities,
     ChildLauncher,
     EventType,
-    InspectResult,
-    ProcessStatus,
     RunnerChannels,
     RunnerCommand,
     RunnerEvent,
     SupervisorConfig,
     TaskSpec,
     TerminalEnvelope,
-    TerminationProof,
     Workspace,
     WrapperPaths,
 )
@@ -578,11 +574,9 @@ class FakeProfile:
         script: ChildScript | None = None,
         *,
         session_id: str = SESSION_ID,
-        capabilities: Capabilities | None = None,
     ) -> None:
         self.script = script or ChildScript()
         self.session_id = session_id
-        self._capabilities = capabilities or Capabilities()
         self.launched: list[RunnerCommand] = []
         self.bypass_launcher = False
         """Set by the test that asserts the wrapper CATCHES a profile which
@@ -613,19 +607,11 @@ class FakeProfile:
             return handle_for(dead_pid(), log_path=command.log_path)
         return launcher(command)
 
-    def inspect(self, handle: ProcessHandle) -> InspectResult:
-        """Liveness as the profile sees it (the supervisor proves it itself)."""
-        return InspectResult(status=ProcessStatus.DEAD)
-
     def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
         """Usage is unknown, which §6 says is legal."""
         return TerminalEnvelope(
             usage=Usage(known=False), session_id=handle.session_id, duration_s=1.0
         )
-
-    def terminate(self, handle: ProcessHandle) -> TerminationProof:
-        """Not used: the supervisor owns termination proof (§8.1)."""
-        raise NotImplementedError
 
     def build_resume_command(
         self, session_id: str, instructions: str, task: TaskSpec
@@ -651,10 +637,6 @@ class FakeProfile:
     def parse_output(self, stream: Iterable[str]) -> Iterator[RunnerEvent]:
         """Normalize the stream; the fake runner emits plain text."""
         return iter(RunnerEvent(type=EventType.MESSAGE, text=line) for line in stream)
-
-    def capabilities(self) -> Capabilities:
-        """Declared capabilities."""
-        return self._capabilities
 
 
 def task_builder(

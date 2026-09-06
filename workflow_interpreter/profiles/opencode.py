@@ -114,19 +114,6 @@ class OpencodeProfile(BaseProfile):
         "XDG_CONFIG_HOME",
         "XDG_DATA_HOME",
     )
-    sandboxed = False
-    denies_network = False
-    reports_cost = True
-    live_usage = True
-    """`step_finish` carries per-step tokens and cost, several times per run,
-    and the counts are genuinely per step rather than repeated — so a running
-    total is available while the child is still going (probed)."""
-    supports_resume = False
-    """The vendor supports `-s <session>`; the WRAPPER cannot use it, because a
-    §8.1 continuation would be exactly as unbounded as the launch it continues.
-    `capabilities().resume` describes what the wrapper can do, so it is False —
-    the human-facing `build_resume_hint` is still offered, because a human
-    pasting it is choosing that risk knowingly."""
 
     def prepare(self, activation: ActivationRecord) -> str:
         """The recorded session id, or `""` — opencode assigns `ses_…` itself."""
@@ -190,7 +177,7 @@ def _step_event(part: Mapping[str, object], session: str | None) -> RunnerEvent:
 
     Several steps make up one run and each reports its own tokens, so only the
     step whose reason is `stop` is terminal; the rest are `USAGE`, which is what
-    lets a token ceiling watch a run that is still going.
+    records usage telemetry while a run is still going.
     """
     tokens = mapping_at(part, KEY_TOKENS)
     cost = decimal_at(part, KEY_COST)

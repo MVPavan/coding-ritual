@@ -27,34 +27,21 @@ from tests._profiles import (
     FD0_FILE,
     FORGED_LINE,
     FORGED_RECORDS,
-    HOST_ENV,
     PUSH_PROBE_FILE,
     PUSH_PROBE_REMOTES,
     STUB_SESSION,
     Lab,
     add_remote,
-    make_profile_config,
-    make_supervisor_config,
 )
 from tests._supervisor import (
-    BOOT_ID,
-    START_TIME,
-    FrozenClock,
-    dead_pid,
-    handle_for,
-    make_fake_proc,
     make_repo,
-    remove_proc_entry,
-    write_proc_entry,
 )
 from workflow_interpreter.bdio import Lifecycle
 from workflow_interpreter.profiles import RunnerName
 from workflow_interpreter.profiles._base import PUSH_SINK
-from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.supervisor import ExecLedger
 from workflow_interpreter.supervisor.models import LaunchReceipt
 from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.profile import ProcessStatus
 
 MISSING_BINARY: Final[str] = "/nonexistent/vendor-cli"
 EXIT_EXEC_FAILED: Final[int] = 127
@@ -147,8 +134,8 @@ def test_a_child_cannot_forge_the_wrapper_records_from_inside_its_grant(
       inside `repo_root` so the activation directory is outside both.
       Enforcement itself is the `live` family's to show; this shows the layout it
       enforces.
-    - `claude-layout-only` — wrapper-side only. Claude has no sandbox
-      (`ClaudeProfile.sandboxed = False`): its `Edit` rules name the three §6
+    - `claude-layout-only` — wrapper-side only. Claude has no OS sandbox:
+      its `Edit` rules name the three §6
       channels by exact path and never the activation directory, but a
       `writes = true` node also grants `Bash`, and a shell can write any path the
       permission engine was not asked about. That residual is §0.3's cooperative
@@ -388,66 +375,3 @@ def test_a_push_from_inside_the_child_env_is_rewritten_to_the_sink(
         assert rewritten[name] != url, (name, observed)
     assert "remote-wf-no-push" in observed, observed
     assert "push_rc=0" not in observed, observed
-
-
-# --- liveness and termination -------------------------------------------
-
-
-def make_inspecting_profile(
-    tmp_path: Path, boot_id: str = BOOT_ID
-) -> tuple[ClaudeProfile, Path, Path]:
-    """A profile whose liveness proofs read a fake `/proc` the test controls."""
-    proc_root, boot_path = make_fake_proc(tmp_path / "sys", boot_id)
-    profile = ClaudeProfile(
-        make_profile_config(),
-        make_supervisor_config(tmp_path, proc_root=proc_root, boot_id_path=boot_path),
-        FrozenClock(),
-        HOST_ENV,
-    )
-    return profile, proc_root, boot_path
-
-
-@pytest.mark.proc
-def test_inspect_answers_alive_and_dead_from_the_handle_identity(
-    tmp_path: Path,
-) -> None:
-    """§5.3: a pid alone is not evidence; the boot id and start time are."""
-    profile, proc_root, _ = make_inspecting_profile(tmp_path)
-    write_proc_entry(proc_root, 4242, START_TIME)
-
-    assert profile.inspect(handle_for(4242)).status is ProcessStatus.ALIVE
-
-    remove_proc_entry(proc_root, 4242)
-
-    assert profile.inspect(handle_for(4242)).status is ProcessStatus.DEAD
-
-
-@pytest.mark.proc
-def test_an_unreadable_proc_is_reported_alive_not_dead(tmp_path: Path) -> None:
-    """`InspectResult` has no third state, so the conservative one is the safe one.
-
-    Calling an unreadable `/proc` DEAD is what let a retry run concurrently with
-    a survivor (`procfs`), and a profile is the last place that should be
-    guessing about it.
-    """
-    profile, proc_root, boot_path = make_inspecting_profile(tmp_path)
-    write_proc_entry(proc_root, 4242, START_TIME)
-    boot_path.unlink()
-
-    assert profile.inspect(handle_for(4242)).status is ProcessStatus.ALIVE
-
-
-@pytest.mark.proc
-def test_terminate_returns_proof_for_a_process_that_is_already_gone(
-    tmp_path: Path,
-) -> None:
-    """§8.1's TERM → wait → KILL is the supervisor's; the profile delegates to it."""
-    profile = ClaudeProfile(
-        make_profile_config(), make_supervisor_config(tmp_path), FrozenClock(), HOST_ENV
-    )
-    gone = dead_pid()
-
-    proof = profile.terminate(handle_for(gone))
-
-    assert proof.pid == gone
-    assert proof.confirmed_dead is True

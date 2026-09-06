@@ -86,8 +86,7 @@ def test_claude_usage_is_the_terminal_total_not_the_sum_of_the_messages(
 
     Six `assistant` lines carry two distinct messages, so summing them yields
     in=12/out=24 against a real in=6/out=643. Taking the cumulative `result`
-    total is the only arithmetic that matches what was spent — which is also
-    why `ClaudeProfile.live_usage` is False.
+    total is the only arithmetic that matches what was spent.
     """
     profile = make_claude(tmp_path, FrozenClock())
 
@@ -177,7 +176,7 @@ def test_codex_shell_steps_normalize_to_tool_events(tmp_path: Path) -> None:
 def test_a_failing_codex_run_yields_error_events_and_unknown_usage(
     tmp_path: Path,
 ) -> None:
-    """§6: `usage: unknown` is legal; it disables only the token ceiling.
+    """§6: `usage: unknown` is legal telemetry.
 
     The stream is a real 401 run — the shape a broken or unauthenticated CLI
     produces, which drill 22 has to classify as transport rather than verdict.
@@ -378,54 +377,6 @@ def test_no_committed_fixture_carries_a_host_or_credential_string() -> None:
         text = path.read_text(encoding="utf-8")
         for pattern in FORBIDDEN:
             assert not re.search(pattern, text), (path.name, pattern)
-
-
-# --- capabilities ---------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    ("vendor", "live_usage", "resume", "sandboxed", "denies_network", "cost"),
-    [
-        ("claude", False, True, False, False, True),
-        ("codex", False, True, True, True, False),
-        ("opencode", True, False, False, False, True),
-    ],
-)
-def test_the_capability_matrix_is_the_probed_one(
-    tmp_path: Path,
-    vendor: str,
-    live_usage: bool,
-    resume: bool,
-    sandboxed: bool,
-    denies_network: bool,
-    cost: bool,
-) -> None:
-    """Truthful per vendor (§6), including the awkward truths.
-
-    opencode is the only one with genuinely live usage AND the only one with no
-    bound at all; claude's cumulative usage arrives only at the end; codex is
-    the only one that can deny the network, which is the only ENFORCED "never
-    pushes" of the three.
-
-    **claude is `sandboxed = False`**, and used to claim otherwise. Its bound is
-    the CLI's own permission engine, running in the same process as the shell a
-    `writes = true` node is granted — real, and not a sandbox. 2.1.227 offers no
-    alternative (round-1 addendum, A1.4). All five facts now travel on
-    `Capabilities`, where a caller can actually read them.
-    """
-    profile = {
-        "claude": make_claude,
-        "codex": make_codex,
-        "opencode": make_opencode,
-    }[vendor](tmp_path, FrozenClock())
-
-    declared = profile.capabilities()
-
-    assert declared.live_usage is live_usage
-    assert declared.resume is resume
-    assert declared.sandboxed is sandboxed
-    assert declared.denies_network is denies_network
-    assert declared.reports_cost is cost
 
 
 # --- the terminal envelope ------------------------------------------------

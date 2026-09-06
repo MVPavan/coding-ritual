@@ -163,33 +163,6 @@ class ClaudeProfile(BaseProfile):
         "ANTHROPIC_BASE_URL",
         "CLAUDE_CODE_OAUTH_TOKEN",
     )
-    sandboxed = False
-    """NOT a sandbox, and it used to say otherwise.
-
-    The bound is the CLI's own permission engine: it refuses the TOOL CALL, the
-    denial lands in `permission_denials`, and no bytes reach the file — probed,
-    and real. But it runs in the same process as the shell it can be asked to
-    grant, so on a `writes = true` node the bare `Bash` allow walks straight out
-    of it: anything the model can phrase past three prefix deny-rules executes
-    unconfined. `sandboxed = True` would have told the foreman it could treat
-    this vendor the way it treats codex's OS sandbox, which is false.
-
-    2.1.227 offers nothing better: `--help` carries no sandbox flag, `doctor`
-    reports no sandbox subsystem, and the captured `system/init` advertises no
-    `/sandbox` command (round-1 addendum, A1.4). The residual is `writes = true`
-    on claude, and it is the vendor's, not a modelling choice."""
-    denies_network = False
-    """`WebFetch` and `WebSearch` are denied and `--strict-mcp-config` empties
-    the MCP set, but a granted `Bash` can open a socket. Asked, not enforced."""
-    reports_cost = True
-    live_usage = False
-    """`result.usage` is the run's cumulative total and arrives only at the end.
-    The per-message `usage` on `assistant` events is repeated once per content
-    block (6 assistant lines carrying 2 distinct messages, probed), so summing
-    it overcounts — the wrapper's token ceiling would fire on arithmetic rather
-    than on spend. §6 makes that legal: `max_wall` is the universal ceiling."""
-    supports_resume = True
-
     # -- §5.2 session identity -------------------------------------------
 
     def prepare(self, activation: ActivationRecord) -> str:
@@ -338,8 +311,8 @@ def _result_event(payload: Mapping[str, object], session: str | None) -> RunnerE
 def _message_event(payload: Mapping[str, object], session: str | None) -> RunnerEvent:
     """An `assistant` / `user` turn: a tool step when it carries tool blocks.
 
-    No usage is attached even though `message.usage` is present — see
-    `ClaudeProfile.live_usage`.
+    No usage is attached even though `message.usage` is present: its counts
+    repeat across content blocks and do not represent per-event telemetry.
     """
     content = mapping_at(payload, KEY_MESSAGE).get(KEY_CONTENT)
     blocks: Sequence[object] = content if isinstance(content, list) else ()

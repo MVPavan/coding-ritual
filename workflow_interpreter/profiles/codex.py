@@ -168,23 +168,6 @@ class CodexProfile(BaseProfile):
         "OPENAI_BASE_URL",
         "CODEX_HOME",
     )
-    sandboxed = True
-    """An OS sandbox: the refusal is `patch rejected: writing is blocked`, from
-    the sandbox rather than from a rule the model was asked to respect."""
-    denies_network = True
-    """`network_access = false` makes a `curl` inside the box fail to resolve a
-    host (probed). It is a claim about the SANDBOXED child, and it only became
-    true again with `IGNORE_AMBIENT_CONFIG`: this host's `config.toml` carried a
-    remote MCP server whose client runs in the unsandboxed codex parent, which
-    is egress the node never declared. Web search is a flag (`--search`) this
-    profile never emits."""
-    reports_cost = False
-    """`--json` carries token counts and no money field at all (probed). §6's
-    usage normalization keeps the tokens and leaves `cost_usd` unset."""
-    live_usage = False
-    """Usage arrives once, on `turn.completed`, at the end of the turn."""
-    supports_resume = True
-
     # -- §5.2 session identity -------------------------------------------
 
     def prepare(self, activation: ActivationRecord) -> str:

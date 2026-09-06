@@ -50,7 +50,7 @@ cannot aim a `clean -f` at an unrelated checkout.
    - **claude** — `Edit(//<cwd>/.git)` and `Edit(//<cwd>/.git/**)` deny both
      shapes, and `Bash` on a `writes = true` node is the §0.3 cooperative
      residual: claude has no sandbox, so a shell it grants can write `.git/config`
-     whatever the permission engine says (`ClaudeProfile.sandboxed = False`).
+     whatever the permission engine says.
 
    The residual that remains for BOTH vendors is a nested repository inside a
    granted tree — a submodule checkout's own `.git` is not the root's, so

@@ -1,11 +1,9 @@
 """Pure configuration resolution and root instantiation helpers."""
 
 import hashlib
-import types
 from collections.abc import Mapping
-from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Final, Union, get_args, get_origin
+from typing import Final
 
 from pydantic import ValidationError
 
@@ -27,8 +25,8 @@ from workflow_interpreter.schema.models import (
     PRODUCER_INSTANCE,
     GraphDefinition,
     Node,
+    NodeKind,
 )
-from workflow_interpreter.schema.rules_nodes import forbidden_fields
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.channels import pin_verifier_digests
 
@@ -47,40 +45,17 @@ MSG_RUNNER_WITHOUT_MODEL: Final[str] = (
     "source — the model would stay the graph role's, a pairing nobody stated"
 )
 
-UNRESOLVABLE_NODE_FIELDS: Final[frozenset[str]] = frozenset(
-    {"instructions", "region", "gate_type", "binds"}
-)
-"""Node fields that state what the graph MEANS, not how much it may spend.
-
-Both would let one content hash describe two different graphs if a project
-could override them: `instructions` changes what a node is asked to do
-(ADR 0002); `region` moves a node between the loop bounds and exhaustion
-routing that phase-A `region_membership_valid` validated it into; and
-`gate_type`/`binds` decide whether a human must approve a transition at all
-(§9). None is read from resolved config at runtime, so exposing them let a
-project record a fully provenance-tagged setting that is silently ignored —
-worst of all for `gate_type`, where the ignored setting looks like it
-removed an approval requirement.
-"""
-
-
-def _scalar_setting_type(
-    annotation: object,
-) -> type[str] | type[int] | type[bool] | None:
-    """Return the persisted scalar representation for one optional node field."""
-    origin = get_origin(annotation)
-    if origin is Annotated:
-        return _scalar_setting_type(get_args(annotation)[0])
-    if origin in {Union, types.UnionType}:
-        members = [
-            member for member in get_args(annotation) if member is not type(None)
-        ]
-        return _scalar_setting_type(members[0]) if len(members) == 1 else None
-    if annotation in {str, int, bool}:
-        return annotation
-    if isinstance(annotation, type) and issubclass(annotation, StrEnum):
-        return str
-    return None
+TASK_SETTING_TYPES: Final[Mapping[str, type[str | int | bool]]] = {
+    "runner": str,
+    "model": str,
+    "isolation": str,
+    "max_wall": str,
+    "stale_after": str,
+    "writes": bool,
+    "token_budget": int,
+    "max_infra_retries": int,
+    "max_steers": int,
+}
 
 
 def resolve(
@@ -95,18 +70,9 @@ def resolve(
     allowed: dict[str, type[str | int | bool]] = {"instance.max_total_activations": int}
     owners: dict[str, tuple[Node, str]] = {}
     for node in definition.document.node:
-        # The vocabulary is closed against the validator's own per-kind table:
-        # a field the node's kind cannot carry is not configurable for it.
-        forbidden = forbidden_fields(node.kind)
-        for field, field_info in Node.model_fields.items():
-            setting_type = _scalar_setting_type(field_info.annotation)
-            if (
-                field_info.is_required()
-                or setting_type is None
-                or field in UNRESOLVABLE_NODE_FIELDS
-                or field in forbidden
-            ):
-                continue
+        if node.kind is not NodeKind.TASK:
+            continue
+        for field, setting_type in TASK_SETTING_TYPES.items():
             key = NODE_SETTING_KEY.format(scope=node.name, field=field)
             allowed[key] = setting_type
             owners[key] = (node, field)

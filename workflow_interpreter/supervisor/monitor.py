@@ -16,8 +16,6 @@ Two enforcement powers, per §8.2's table:
   a runaway is TERMed, with `stale` as the recorded reason. Any byte in
   between restarts the count, so only a runner that stays silent is ended.
 - **Runaway** — `max_wall` breached: TERM the group and record the exit reason.
-  This one is a ceiling, and it is the universal one; the token ceiling is
-  best-effort and only where the profile reports live usage (§6).
 
 **Nothing terminal is ever recorded without proof.** Two observations end a
 cycle in `INDETERMINATE` and keep the loop polling: a `/proc` that cannot be

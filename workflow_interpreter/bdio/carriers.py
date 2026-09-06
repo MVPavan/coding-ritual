@@ -164,8 +164,8 @@ class BoundSetting(SettingKey):
 class NodeSetting(SettingKey):
     """Resolved-config keys that decide how one task node EXECUTES (§3.1).
 
-    Read by `foreman.execution.resolved_node`, which is the only thing the
-    mint, task-construction and wrapper-limit paths may read them through.
+    Read by `foreman.execution.resolved_node` for execution and by minting
+    for the write mode that determines a retry's base commit.
     """
 
     RUNNER = "node.{scope}.runner"

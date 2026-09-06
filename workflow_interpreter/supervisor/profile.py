@@ -18,8 +18,8 @@ quietly becoming the trust boundary:
   is load-bearing: a sandbox grants directories, so the channels must not share
   one with the wrapper's own crash records (`paths.CHANNELS_DIR`).
 
-`usage: unknown` is legal and disables only the best-effort token ceiling —
-`max_wall` always holds (§6).
+`usage: unknown` is legal telemetry; `max_wall` is enforced by the supervisor
+(§6).
 """
 
 from __future__ import annotations
@@ -38,7 +38,6 @@ from workflow_interpreter.supervisor.channels import (
     ENV_GIT_COMMITTER_NAME,
     runner_committer_email,
 )
-from workflow_interpreter.supervisor.models import TerminationProof
 from workflow_interpreter.supervisor.paths import (
     ARTIFACT_DIR,
     CHANNELS_DIR,
@@ -55,13 +54,6 @@ ENV_OUTCOME_FILE: Final[str] = "WF_OUTCOME_FILE"
 ENV_ARTIFACT_DIR: Final[str] = "WF_ARTIFACT_DIR"
 ENV_EFFECTS_FILE: Final[str] = "WF_EFFECTS_FILE"
 ENV_SCRATCH_DIR: Final[str] = "WF_SCRATCH_DIR"
-
-
-class ProcessStatus(StrEnum):
-    """What `Profile.inspect` reports about a handle (§6)."""
-
-    ALIVE = "alive"
-    DEAD = "dead"
 
 
 class EventType(StrEnum):
@@ -169,15 +161,6 @@ class RunnerCommand(BaseModel):
     session_id: str
 
 
-class InspectResult(BaseModel):
-    """`Profile.inspect(handle) -> alive | dead | exit_code` (§6)."""
-
-    model_config = PROFILE_MODEL
-
-    status: ProcessStatus
-    exit_code: int | None = None
-
-
 class TerminalEnvelope(BaseModel):
     """`collect_terminal_envelope(handle) -> {usage, session_id, duration}` (§6).
 
@@ -211,32 +194,6 @@ class RunnerEvent(BaseModel):
     is_error: bool = False
 
 
-class Capabilities(BaseModel):
-    """What a runner supports; unsupported options are a loud error (§6).
-
-    Every field is a claim the wrapper can be held to, so each defaults to the
-    pessimistic answer. `sandboxed` and `denies_network` in particular are the
-    difference between "the vendor refuses" and "the vendor was asked nicely",
-    and a profile that reported them optimistically would make the foreman's
-    isolation decisions on a fiction — they were `ClassVar`s outside this model,
-    where nothing that consumes `capabilities()` could see them at all.
-    """
-
-    model_config = PROFILE_MODEL
-
-    live_usage: bool = False
-    resume: bool = False
-    sandboxed: bool = False
-    """Whether the vendor ENFORCES the wrapper's write bound rather than
-    honouring it. An OS sandbox qualifies; a permission engine inside the same
-    process as the shell it grants does not."""
-    denies_network: bool = False
-    """Whether egress is impossible for the child, not merely un-asked-for."""
-    reports_cost: bool = False
-    """Whether the stream carries money at all; tokens are a separate question
-    (`live_usage`)."""
-
-
 class ChildLauncher(Protocol):
     """The supervisor's fork-barrier exec, handed to a profile at launch (§5.2)."""
 
@@ -264,16 +221,8 @@ class Profile(Protocol):
         """Exec THROUGH the supervisor's launcher; the barrier is not optional."""
         ...  # pragma: no cover - protocol
 
-    def inspect(self, handle: ProcessHandle) -> InspectResult:
-        """Alive, dead, or dead with an exit code."""
-        ...  # pragma: no cover - protocol
-
     def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
         """The runner's terminal facts; the outcome CLAIM is §7's, not a profile's."""
-        ...  # pragma: no cover - protocol
-
-    def terminate(self, handle: ProcessHandle) -> TerminationProof:
-        """TERM → bounded wait → KILL, with proof of death (§8.1)."""
         ...  # pragma: no cover - protocol
 
     def build_resume_command(
@@ -297,11 +246,6 @@ class Profile(Protocol):
 
     def parse_output(self, stream: Iterable[str]) -> Iterator[RunnerEvent]:
         """Normalize the runner's machine event stream (§6)."""
-        ...  # pragma: no cover - protocol
-
-    def capabilities(self) -> Capabilities:
-        """Declared capabilities; `live_usage = False` disables only the token
-        ceiling (§6)."""
         ...  # pragma: no cover - protocol
 
 

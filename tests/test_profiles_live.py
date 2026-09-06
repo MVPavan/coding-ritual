@@ -43,7 +43,6 @@ from tests._supervisor import FrozenClock
 from workflow_interpreter.profiles import fold_usage
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
-from workflow_interpreter.profiles.opencode import OpencodeProfile
 from workflow_interpreter.supervisor.profile import EventType, RunnerCommand
 
 TIMEOUT_S: Final[float] = 300.0
@@ -265,4 +264,3 @@ def test_opencode_still_has_no_bound_to_offer(tmp_path: Path) -> None:
     assert completed.returncode == 0, completed.stderr
     assert '"permission": "*"' in completed.stdout
     assert '"action": "allow"' in completed.stdout
-    assert OpencodeProfile.sandboxed is False

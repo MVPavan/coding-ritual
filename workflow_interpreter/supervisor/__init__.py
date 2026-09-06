@@ -98,11 +98,8 @@ from workflow_interpreter.supervisor.models import (
 from workflow_interpreter.supervisor.monitor import Limits, Monitor
 from workflow_interpreter.supervisor.paths import ExecLedger, WrapperPaths
 from workflow_interpreter.supervisor.profile import (
-    Capabilities,
     ChildLauncher,
     EventType,
-    InspectResult,
-    ProcessStatus,
     Profile,
     RunnerChannels,
     RunnerCommand,
@@ -137,7 +134,6 @@ __all__ = [
     "BandNotHeld",
     "BranchAdvance",
     "BranchAdvanceOutcome",
-    "Capabilities",
     "ChildLauncher",
     "Clock",
     "CollectedExit",
@@ -162,7 +158,6 @@ __all__ = [
     "Git",
     "GitCommandError",
     "HumanConfirmation",
-    "InspectResult",
     "LaunchOutcome",
     "LaunchReceipt",
     "Limits",
@@ -179,7 +174,6 @@ __all__ = [
     "PreconditionRecord",
     "PreconditionRefused",
     "PreconditionResult",
-    "ProcessStatus",
     "Profile",
     "ReapResult",
     "Recovery",

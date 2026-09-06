@@ -22,13 +22,6 @@ class RouteKind(StrEnum):
     FAIL_CLOSED = "fail-closed"
 
 
-class RetryKind(StrEnum):
-    """The only system-outcome continuation mechanisms."""
-
-    INFRA = "infra"
-    STEER = "steer"
-
-
 class Route(BaseModel):
     """A routing result; target is absent only where no graph edge is taken."""
 

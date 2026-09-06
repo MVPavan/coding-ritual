@@ -562,8 +562,7 @@ enforcement** (this answers "who polls" under manual ticks): raises a
 stale flag (file + bd metadata) when `stale_after` passes with no new
 event, and TERMs the group (exit reason `stale`) if one further
 `stale_after` passes with no new event; TERMs the group on `max_wall`
-breach (and on token breach where the profile reports live usage —
-best-effort, wall-clock is the universal ceiling); on child exit writes
+breach; on child exit writes
 the exit file `{exit_code, ended_at, reason}` AND **mirrors the exit
 record into bd as its final act** (state `exit-recorded`). The on-disk
 exit file is thereafter a crash-window fallback: a missing file with a
@@ -617,20 +616,18 @@ Profile:
   name()
   prepare(activation) -> session_id
   build_command(task, session_id)
-  launch(cmd) -> handle                    # via supervisor wrapper
-  inspect(handle) -> alive|dead|exit_code
-  collect_terminal_envelope(handle) -> {marker, usage, session_id, duration}
-  terminate(handle)                        # TERM → wait → KILL, with proof
-  build_resume_command(session_id, instructions)
+  launch(cmd, launcher) -> handle          # via supervisor wrapper
+  collect_terminal_envelope(handle) -> {usage, session_id, duration}
+  build_resume_command(session_id, instructions, task)
   build_resume_hint(session_id)            # human-pasteable; recorded on gate beads
   parse_output(stream) -> Event{type, text, session, usage?, cost?, is_error}
-  capabilities() -> {live_usage: bool, resume: bool, ...}
 ```
 
 Rules: danger defaults inverted — sandboxed/read-only unless the node
 declares `writes = true` (repo worktree only); unsupported option = loud
-error; usage normalization owned here (`usage: unknown` is legal and
-disables only the best-effort token ceiling — `max_wall` always holds).
+error; usage normalization owned here (`usage: unknown` is legal telemetry).
+The supervisor owns process identity, liveness and death proof, and enforces
+`max_wall` independently of profile output.
 
 The wrapper wraps every profile's argv in the bubblewrap mount bound
 before exec: the checkout is read-only except the node's `allowed_paths`
@@ -737,7 +734,7 @@ while the child runs; the foreman may not be):
 | Completed | bd exit record / exit file | — |
 | Activity | JSONL event count + byte growth (activity, not proof of progress) | — |
 | Stale | no new event for `stale_after` | wrapper raises flag (file + bd); a second `stale_after` of silence → wrapper TERMs, exit reason `stale`, closed `error_runner` (one infra retry, as `max_wall`) |
-| Runaway | `max_wall` wall-clock; token ceiling best-effort where `live_usage` | wrapper TERMs, exit reason recorded |
+| Runaway | `max_wall` wall-clock | wrapper TERMs, exit reason recorded |
 
 The foreman's model reads bytes only at transitions: terminal → marker +
 §7 (never the log); stale flag → last ~2KB tail, then wait / steer /

@@ -27,8 +27,8 @@ be invisible until production:
   these events (`exit.py` reads the reserved channel itself, `monitor.py`
   measures byte growth), so a misclassified stderr line costs nothing.
 
-`usage: unknown` is legal (§6): it disables only the best-effort token ceiling,
-and `max_wall` always holds.
+`usage: unknown` is legal (§6) telemetry, and the supervisor always enforces
+`max_wall`.
 """
 
 from __future__ import annotations
@@ -46,16 +46,11 @@ from pydantic import BaseModel, ConfigDict
 from workflow_interpreter.bdio import ProcessHandle, Usage
 from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
 from workflow_interpreter.profiles.errors import TaskRefused
-from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.clock import Clock, elapsed_seconds
 from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.models import Liveness, TerminationProof
 from workflow_interpreter.supervisor.profile import (
-    Capabilities,
     ChildLauncher,
     EventType,
-    InspectResult,
-    ProcessStatus,
     RunnerChannels,
     RunnerCommand,
     RunnerEvent,
@@ -108,9 +103,8 @@ child can unset the variables, and — because the match is longest-prefix — a
 child can add its own LONGER-prefix `pushInsteadOf` (`git -c url.<x>.pushInsteadOf=https://`
 or a `GIT_CONFIG_COUNT=2` entry of its own) and that entry wins over this one
 (probed, git 2.43). What this removes is every accidental push and every push
-phrased around a prefix rule; a hostile child is bounded only by the OS
-network sandbox (codex) or by nothing (claude, which reports
-`denies_network=False` for exactly this reason)."""
+phrased around a prefix rule; a hostile child is bounded only by Codex's OS
+network sandbox, not by Claude's permission engine."""
 
 UV_VENV_DIR: Final[str] = "venv"
 RUFF_CACHE_DIR: Final[str] = "ruff"
@@ -327,10 +321,10 @@ def fold_usage(events: Iterable[RunnerEvent]) -> Usage:
 
     Tokens are SUMMED rather than last-wins: opencode reports per-step counts
     that are not cumulative (probed), and every step's input tokens are really
-    billed, so a sum is what a token ceiling should be measuring. claude and
+    billed, so a sum is the run's total token usage. Claude and
     codex each report one terminal total per exec, for which a sum is that
-    total. `known = False` when no event carried usage at all — legal, and it
-    disables only the best-effort ceiling (§6).
+    total. `known = False` when no event carried usage at all — legal telemetry
+    (§6).
     """
     seen = False
     input_tokens = 0
@@ -390,13 +384,6 @@ class BaseProfile:
     """Vendor credential keys copied from the host env when present. Named
     explicitly rather than pattern-matched: a prefix rule would hand a runner
     whatever new secret a future release happens to name."""
-    sandboxed: ClassVar[bool] = False
-    """Whether the vendor enforces the wrapper's write bound itself, rather than
-    the wrapper merely asking it to. Reported through `capabilities()`."""
-    denies_network: ClassVar[bool] = False
-    reports_cost: ClassVar[bool] = False
-    live_usage: ClassVar[bool] = False
-    supports_resume: ClassVar[bool] = False
 
     def __init__(
         self,
@@ -406,7 +393,6 @@ class BaseProfile:
         host_env: Mapping[str, str],
     ) -> None:
         self._config = config
-        self._supervisor_config = supervisor_config
         self._clock = clock
         self._host_env = dict(host_env)
 
@@ -419,16 +405,6 @@ class BaseProfile:
     def binary(self) -> str:
         """The executable this profile execs."""
         return self._config.binary_for(self.runner)
-
-    def capabilities(self) -> Capabilities:
-        """Declared capabilities; `live_usage = False` disables only the ceiling."""
-        return Capabilities(
-            live_usage=self.live_usage,
-            resume=self.supports_resume,
-            sandboxed=self.sandboxed,
-            denies_network=self.denies_network,
-            reports_cost=self.reports_cost,
-        )
 
     # -- command construction --------------------------------------------
 
@@ -509,25 +485,6 @@ class BaseProfile:
             program=command.argv[0],
         )
         return launcher(command)
-
-    def inspect(self, handle: ProcessHandle) -> InspectResult:
-        """Alive or dead, proven by the §5.3 handle identity rather than the pid.
-
-        An INDETERMINATE `/proc` read reports ALIVE. `InspectResult` has no third
-        state, and the conservative direction is the only safe one: calling an
-        unreadable `/proc` DEAD is what let a retry run concurrently with a
-        survivor (`procfs`). The exit code stays `None` — reading it means
-        reaping, and reaping is `ExitObserver`'s, not a vendor adapter's.
-        """
-        proof = procfs.prove_liveness(self._supervisor_config, handle)
-        alive = proof.alive or proof.status is Liveness.INDETERMINATE
-        return InspectResult(
-            status=ProcessStatus.ALIVE if alive else ProcessStatus.DEAD
-        )
-
-    def terminate(self, handle: ProcessHandle) -> TerminationProof:
-        """TERM → bounded wait → KILL, with proof of death (§8.1)."""
-        return procfs.terminate(self._supervisor_config, handle, self._clock)
 
     def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
         """The runner's terminal facts, read from its own log (§6).

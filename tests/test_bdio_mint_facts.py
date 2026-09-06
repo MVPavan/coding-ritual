@@ -13,6 +13,7 @@ from typing import Final
 import pytest
 
 from tests._bdio import (
+    IMPLEMENT,
     NODE_A1,
     NODE_B1,
     NODE_B2,
@@ -36,7 +37,15 @@ from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
 )
 from workflow_interpreter.bdio.records import ActivationRecord
-from workflow_interpreter.bdio.wire import Lifecycle, MintReason, metadata_dict
+from workflow_interpreter.bdio.wire import (
+    ConfigSource,
+    Lifecycle,
+    MintReason,
+    NodeSetting,
+    PreconditionRecord,
+    ResolvedSetting,
+    metadata_dict,
+)
 from workflow_interpreter.schema.models import Outcome
 
 PRE_ATTEMPT: Final[str] = "a" * 40
@@ -434,6 +443,54 @@ def test_a_non_writing_node_never_reuses_a_pre_attempt_commit(
         ),
     ).activation
     assert review.metadata.intended_base_commit == BRANCH_HEAD
+
+
+@pytest.mark.parametrize("node", [IMPLEMENT, REVIEW])
+@pytest.mark.parametrize("writes", [False, True])
+def test_retry_base_uses_the_pinned_write_mode(
+    fake_store: WorkflowStore, definition: GraphDefinition, node: str, writes: bool
+) -> None:
+    """A retry uses the same write mode as execution, even when overridden."""
+    root = make_root(
+        fake_store,
+        definition,
+        ResolvedSetting(
+            key=NodeSetting.WRITES.at(node),
+            value=writes,
+            source=ConfigSource.INSTANCE_OVERRIDE,
+        ),
+    )
+    attempt = fake_store.mint_activation(root.root_id, entry_request()).activation
+    if node == REVIEW:
+        run_to_close(fake_store, attempt.activation_id, Outcome.DONE)
+        attempt = fake_store.mint_activation(
+            root.root_id,
+            entry_request(
+                node=REVIEW,
+                mint_reason=MintReason.EDGE,
+                predecessor_activation_id=attempt.activation_id,
+            ),
+        ).activation
+    fake_store.record_precondition(
+        attempt.activation_id,
+        PreconditionRecord(
+            pre_attempt_commit=PRE_ATTEMPT, reset_verified_commit=PRE_ATTEMPT
+        ),
+    )
+    run_to_close(fake_store, attempt.activation_id, Outcome.ERROR_RUNNER)
+
+    retry = fake_store.mint_activation(
+        root.root_id,
+        entry_request(
+            node=node,
+            mint_reason=MintReason.INFRA_RETRY,
+            predecessor_activation_id=attempt.activation_id,
+        ),
+    ).activation
+
+    assert retry.metadata.intended_base_commit == (
+        PRE_ATTEMPT if writes else BRANCH_HEAD
+    )
 
 
 def test_without_a_branch_head_reader_the_mint_refuses(
