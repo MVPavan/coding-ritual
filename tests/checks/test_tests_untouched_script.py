@@ -13,10 +13,12 @@ import pytest
 from tests.checks._project import (
     ACCEPTANCE_DIR,
     BASE_COMMIT_ENV,
+    STRONG_TEST_FILE,
     TESTS_UNTOUCHED,
     WEAK_TEST_BODY,
     WEAK_TEST_FILE,
     commit_file,
+    git,
     head_commit,
     run_script,
 )
@@ -63,6 +65,29 @@ def test_tests_untouched_names_the_acceptance_file_the_round_moved(
     )
     assert lines[1] == WEAK_TEST_FILE
     assert len(lines) <= 8
+
+
+def test_tests_untouched_names_an_acceptance_file_the_round_deleted(
+    project: Path, uv_environment: Path
+) -> None:
+    """Deleting the yardstick fails too, not only editing it.
+
+    Since cr-o85.34.21 the `implement` grant is `tests/**`, so the acceptance
+    suite is inside the writable mount set and `rm` is the cheapest way to make
+    a failing test stop failing; this check is what stands in the way.
+    """
+    base = head_commit(project)
+    git(project, "rm", "--quiet", STRONG_TEST_FILE)
+    git(project, "commit", "--quiet", "-m", "delete the yardstick")
+
+    completed = run_script(TESTS_UNTOUCHED, project, uv_environment, base_commit=base)
+
+    assert completed.returncode != 0
+    lines = completed.stdout.splitlines()
+    assert lines[0] == (
+        f"FAIL tests-untouched: 1 file(s) changed under {ACCEPTANCE_DIR}"
+    )
+    assert lines[1] == STRONG_TEST_FILE
 
 
 def test_tests_untouched_refuses_to_pass_when_the_base_commit_is_unset(

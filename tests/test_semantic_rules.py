@@ -235,7 +235,6 @@ def test_allowed_paths_entry_must_be_a_directory_prefix_grant(
     [
         "tests/acceptance/**",
         "workflow_interpreter/**",
-        "tests/unit/**",
         "src/**",
         "tests/**",
     ],

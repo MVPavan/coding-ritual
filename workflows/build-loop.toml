@@ -109,7 +109,13 @@ written.
 """
 isolation     = "worktree"
 writes        = true
-allowed_paths = ["workflow_interpreter/**", "tests/unit/**"]
+# `tests/**`, not `tests/unit/**`: this repo's unit suite is flat under
+# `tests/`, so a fix that must touch an existing unit test was unreachable
+# (cr-o85.34.21). The grant no longer excludes the acceptance tests; what
+# keeps this round from editing its own yardstick is the pinned
+# `tests-untouched.sh` verifier below, which fails the round on any diff
+# under `tests/acceptance/`.
+allowed_paths = ["workflow_interpreter/**", "tests/**"]
 inputs        = ["task_brief", "acceptance_tests", "impl_findings", "critic_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh",        timeout = "20m" },
                  { cmd = "scripts/checks/tests-untouched.sh", timeout = "2m"  },

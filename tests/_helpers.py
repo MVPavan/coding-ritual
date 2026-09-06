@@ -50,7 +50,7 @@ FEATURE_DELIVERY_CONTENT_HASH = (
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
 BUILD_LOOP_CONTENT_HASH = (
-    "ceb44452f48368420a50a9dfd42f70f0fbcf27949be6e3faca357360357fc0b0"
+    "bebf79d00034c9f7ee364090cb4463c0dcbe7fa3a3e284e18050416663c2a478"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.

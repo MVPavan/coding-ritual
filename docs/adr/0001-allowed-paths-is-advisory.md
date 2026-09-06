@@ -151,8 +151,11 @@ prevention.**
   bound closes the *examiner-editing* half for everything outside the node's own
   grant — `scripts/**` is in no node's `allowed_paths` in either shipped graph, so
   no writer can reach its own examiner. Two parts stay open: inside the grant
-  (`implement` writing `tests/unit/**` still shapes what its own test check
-  measures), and ref integrity (see the O2 residual — `packed-refs` and the
+  (`implement` writing `tests/**` still shapes what its own test check
+  measures — and since cr-o85.34.21 widened that grant from `tests/unit/**`,
+  `tests/acceptance/**` is inside it, so the acceptance tests are policed by
+  the pinned `tests-untouched.sh` verifier rather than by the mount bound),
+  and ref integrity (see the O2 residual — `packed-refs` and the
   instance branch remain writable).
 - `AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS` (point 2, `exit.py:657`) becomes a
   should-never-fire invariant once the bound is on: an observed write outside the
