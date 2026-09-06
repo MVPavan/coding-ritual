@@ -45,8 +45,10 @@ from workflow_interpreter.profiles._base import (
     ENV_MYPY_CACHE_DIR,
     ENV_PYTEST_ADDOPTS,
     ENV_RUFF_CACHE_DIR,
+    ENV_UV_CACHE_DIR,
     ENV_UV_FROZEN,
     ENV_UV_PROJECT_ENVIRONMENT,
+    ENV_UV_PYTHON_INSTALL_DIR,
     BaseProfile,
     toolchain_env,
 )
@@ -821,7 +823,9 @@ def test_the_registry_builds_a_profile_of_the_right_vendor(tmp_path: Path) -> No
 def test_the_toolchain_cache_option_survives_a_path_with_a_space(
     tmp_path: Path,
 ) -> None:
-    """`PYTEST_ADDOPTS` is shlex-split by pytest, so the path must be quoted.
+    """`scratch=/a dir/scratch` emits `UV_CACHE_DIR`, not an env without uv cache.
+
+    `PYTEST_ADDOPTS` is shlex-split by pytest, so the path must be quoted.
 
     An unquoted `-o cache_dir=/a b/pytest` reaches pytest as two words and the
     run dies on an unrecognised argument — which is the whole gate of a
@@ -835,6 +839,8 @@ def test_the_toolchain_cache_option_survives_a_path_with_a_space(
         f"cache_dir={scratch / 'pytest'}",
     ]
     assert env[ENV_UV_PROJECT_ENVIRONMENT] == str(scratch / "venv")
+    assert env[ENV_UV_CACHE_DIR] == str(scratch / "uv-cache")
+    assert env[ENV_UV_PYTHON_INSTALL_DIR] == str(scratch / "uv-cache" / "python")
 
 
 def test_the_toolchain_env_reaches_every_child(tmp_path: Path) -> None:

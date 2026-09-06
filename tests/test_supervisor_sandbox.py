@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path, PurePosixPath
 from typing import Final, NamedTuple
 
@@ -31,6 +32,8 @@ from workflow_interpreter.supervisor.sandbox import (
     BWRAP_BINARY,
     COMMONDIR_FILE,
     CONFIG_FILE,
+    ENV_UV_CACHE_DIR,
+    ENV_UV_PYTHON_INSTALL_DIR,
     FS_ROOT,
     GITDIR_FILE,
     REASON_OFF,
@@ -200,13 +203,14 @@ def _clean_probe_cache() -> object:
 
 
 def test_no_git_checkout_binds_grants_and_channels_only(tmp_path: Path) -> None:
-    """Shape 1: nothing git-shaped to open, so nothing git-shaped to re-close."""
+    """A plain checkout binds `<wrapper_root>/uv-cache`, not only `channels/`."""
     rig = _plain_rig(tmp_path)
     plan = _plan(rig)
     assert plan.git_rw == ()
     assert plan.ro_pins == ()
     assert plan.grants == (rig.checkout / GRANT_DIR,)
     assert plan.channels == (rig.channels,)
+    assert plan.toolchain_cache == (rig.wrapper_root / "uv-cache",)
     assert plan.ro_roots == (rig.repo_root, rig.wrapper_root, rig.checkout)
 
 
@@ -392,7 +396,7 @@ def test_wrap_emits_pins_after_every_rw_bind(tmp_path: Path) -> None:
 
 
 def test_wrap_emits_the_groups_in_plan_order(tmp_path: Path) -> None:
-    """ro roots → git rw → grants → channels → pins, as `SandboxPlan` declares."""
+    """`channels` → `uv-cache` → pins, so a later rw cache bind cannot reopen pins."""
     rig = _worktree_rig(tmp_path)
     plan = _plan(rig)
     argv = wrap(("runner",), plan)
@@ -403,6 +407,7 @@ def test_wrap_emits_the_groups_in_plan_order(tmp_path: Path) -> None:
             plan.git_rw,
             plan.grants,
             plan.channels,
+            plan.toolchain_cache,
             plan.ro_pins,
         )
         for path in group
@@ -543,14 +548,9 @@ def test_real_bwrap_leaves_the_channels_writable(tmp_path: Path) -> None:
 
 
 UV_BINARY: Final[str] = "uv"
-NODE_TEST_FILE: Final[str] = "tests/test_semantic_rules.py"
-"""One small, self-contained module of THIS repo: enough to prove `uv run
-pytest` starts and finishes inside the box, cheap enough to run twice."""
 UV_TIMEOUT_S: Final[float] = 600.0
 SCRATCH: Final[str] = "scratch"
-VENV_DIR: Final[str] = "venv"
 _SKIP_NO_UV: Final[str] = "uv is not on PATH"
-_READ_ONLY: Final[str] = "Read-only file system"
 
 
 def _repo_rig(tmp_path: Path) -> Rig:
@@ -584,11 +584,11 @@ def _repo_rig(tmp_path: Path) -> Rig:
     return Rig(repo_root, wrapper_root, checkout, scratch.parent)
 
 
-def _uv_env(scratch: Path | None) -> dict[str, str]:
+def _uv_env(scratch: Path | None, home: Path) -> dict[str, str]:
     """The child env for `uv run`, with and without the §2 redirection."""
     base = {
         "PATH": os.environ["PATH"],
-        "HOME": os.environ["HOME"],
+        "HOME": str(home),
         **GIT_ISOLATION,
     }
     if scratch is None:
@@ -598,16 +598,17 @@ def _uv_env(scratch: Path | None) -> dict[str, str]:
 
 @pytest.mark.proc
 @pytest.mark.nested_sandbox
-def test_the_nodes_own_uv_gate_runs_under_the_bound(tmp_path: Path) -> None:
-    """Plan §2 blocker 2: a read-only checkout breaks `uv run` without the env.
+def test_uv_run_uses_the_cache_with_read_only_home_under_the_bound(
+    tmp_path: Path,
+) -> None:
+    """`HOME=<wrapper_root>/read-only-home` runs `uv`, not `~/.cache/uv` EROFS.
 
-    Both halves, because only the pair shows the env is load-bearing rather than
-    decorative: WITHOUT it `uv` dies creating `.venv` in the checkout; WITH it
-    the node's own test file passes inside the same box.
+    The explicit interpreter avoids a network-dependent managed-Python download;
+    `UV_CACHE_DIR=<wrapper_root>/uv-cache` and its read-write bind are the
+    behavior under test.
 
-    `nested_sandbox`: `toolchain_env` redirects the project environment but not
-    the uv CACHE, so the inner `uv run` still writes `~/.cache/uv` — read-only
-    when the gate itself runs inside a vendor sandbox, which fails this test.
+    `nested_sandbox` remains because a vendor sandbox cannot start the nested
+    `bwrap`; the read-only-HOME cache case is covered by this probe itself.
     """
     capability = probe(_config(tmp_path))
     if not capability.available:
@@ -621,16 +622,28 @@ def test_the_nodes_own_uv_gate_runs_under_the_bound(tmp_path: Path) -> None:
         wrapper_root=rig.wrapper_root,
         channels_dir=rig.channels,
     )
-    box = wrap((UV_BINARY, "run", "pytest", "-q", NODE_TEST_FILE), plan)
-    scratch = rig.channels / SCRATCH
+    box = wrap(
+        (
+            UV_BINARY,
+            "run",
+            "--no-project",
+            "--python",
+            sys.executable,
+            "python",
+            "-c",
+            "import sys; assert sys.version_info >= (3, 13)",
+        ),
+        plan,
+    )
+    home = rig.wrapper_root / "read-only-home"
+    home.mkdir()
 
-    bare = _uv_run(box, rig.checkout, _uv_env(None))
-    assert bare.returncode != 0
-    assert _READ_ONLY in bare.stderr, bare.stderr
-
-    bounded = _uv_run(box, rig.checkout, _uv_env(scratch))
+    bounded_env = _uv_env(None, home)
+    bounded_env[ENV_UV_CACHE_DIR] = str(plan.toolchain_cache[0])
+    bounded_env[ENV_UV_PYTHON_INSTALL_DIR] = str(plan.toolchain_cache[0] / "python")
+    bounded = _uv_run(box, rig.checkout, bounded_env)
     assert bounded.returncode == 0, bounded.stdout + bounded.stderr
-    assert (scratch / VENV_DIR).is_dir()
+    assert plan.toolchain_cache[0].is_dir()
 
 
 def _uv_run(

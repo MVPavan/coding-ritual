@@ -53,7 +53,11 @@ from workflow_interpreter.supervisor.procfs import (
     read_start_time,
     terminate,
 )
-from workflow_interpreter.supervisor.sandbox import SandboxMode, SandboxPlan
+from workflow_interpreter.supervisor.sandbox import (
+    UV_CACHE_DIRECTORY,
+    SandboxMode,
+    SandboxPlan,
+)
 
 ACTIVATION_ID = "wf-1"
 
@@ -326,7 +330,7 @@ def test_a_term_resistant_descendant_dies_when_its_leader_does_not(
         clock,
         activation_id=ACTIVATION_ID,
         launch_id="group-1",
-        plan=SandboxPlan(),
+        plan=SandboxPlan(toolchain_cache=(config.wrapper_root / UV_CACHE_DIRECTORY,)),
         sandbox=SandboxMode.OFF,
     )(command)
     grandchild = int(_await_file(pid_file).strip())

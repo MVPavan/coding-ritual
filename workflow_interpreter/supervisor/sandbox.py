@@ -100,19 +100,24 @@ GRANT_SUFFIX: Final[str] = "/**"
 repo-relative DIRECTORY, which is what a mount source has to be."""
 
 ENV_UV_PROJECT_ENVIRONMENT: Final[str] = "UV_PROJECT_ENVIRONMENT"
+ENV_UV_CACHE_DIR: Final[str] = "UV_CACHE_DIR"
+ENV_UV_PYTHON_INSTALL_DIR: Final[str] = "UV_PYTHON_INSTALL_DIR"
 ENV_UV_FROZEN: Final[str] = "UV_FROZEN"
 ENV_RUFF_CACHE_DIR: Final[str] = "RUFF_CACHE_DIR"
 ENV_MYPY_CACHE_DIR: Final[str] = "MYPY_CACHE_DIR"
 ENV_PYTEST_ADDOPTS: Final[str] = "PYTEST_ADDOPTS"
 UV_FROZEN_VALUE: Final[str] = "1"
 PYTEST_CACHE_OPTION: Final[str] = "-o cache_dir={path}"
+UV_CACHE_DIRECTORY: Final[str] = "uv-cache"
+UV_PYTHON_DIRECTORY: Final[str] = "python"
 """The §2 toolchain env, named here so the launcher and `profiles/_base.py`
 IMPORT it rather than re-spell it.
 
 A read-only checkout breaks the node's own `verify`: `uv run` creates `.venv`
-in the checkout, ruff and mypy create caches there. Pointing all four at
-`$WF_SCRATCH_DIR` is what makes a `writes = true` node's gate runnable under
-the bound (probed, plan §2). `-o cache_dir=` is chosen over
+in the checkout, ruff and mypy create caches there. Profiles point all five
+toolchain locations at `$WF_SCRATCH_DIR`; the launcher replaces `UV_CACHE_DIR`
+and `UV_PYTHON_INSTALL_DIR` with locations below the wrapper-root cache that
+this plan binds read-write. `-o cache_dir=` is chosen over
 `-p no:cacheprovider` because the latter also disables `--lf`/`--ff`/`--sw`.
 `UV_FROZEN` is a stated limitation, not a nicety: a node under the bound cannot
 `uv add` a dependency, and reports `fail_plan` instead."""
@@ -208,6 +213,7 @@ class SandboxPlan(BaseModel):
     git_rw: tuple[Path, ...] = ()
     grants: tuple[Path, ...] = ()
     channels: tuple[Path, ...] = ()
+    toolchain_cache: tuple[Path, ...] = ()
     ro_pins: tuple[Path, ...] = ()
 
     def model_post_init(self, context: object, /) -> None:
@@ -217,6 +223,7 @@ class SandboxPlan(BaseModel):
             self.git_rw,
             self.grants,
             self.channels,
+            self.toolchain_cache,
             self.ro_pins,
         ):
             for path in group:
@@ -457,8 +464,14 @@ def plan_for(
         checkout,
     )
     channels = (channels_dir.resolve(),)
+    toolchain_cache = toolchain_cache_for(wrapper_root)
     if not task.writes:
-        return SandboxPlan(binary=binary, ro_roots=ro_roots, channels=channels)
+        return SandboxPlan(
+            binary=binary,
+            ro_roots=ro_roots,
+            channels=channels,
+            toolchain_cache=toolchain_cache,
+        )
     grants = tuple(_grant_path(grant, checkout) for grant in task.allowed_paths)
     git_rw, ro_pins = _git_binds(checkout)
     return SandboxPlan(
@@ -467,8 +480,16 @@ def plan_for(
         git_rw=git_rw,
         grants=grants,
         channels=channels,
+        toolchain_cache=toolchain_cache,
         ro_pins=ro_pins,
     )
+
+
+def toolchain_cache_for(wrapper_root: Path) -> tuple[Path, ...]:
+    """Create the wrapper-wide uv cache used by both sandbox modes."""
+    cache_dir = (wrapper_root / UV_CACHE_DIRECTORY).resolve()
+    _ensure_dir(cache_dir)
+    return (cache_dir,)
 
 
 def _binds(flag: str, paths: tuple[Path, ...]) -> list[str]:
@@ -503,6 +524,7 @@ def wrap(
         *_binds(ARG_BIND, plan.git_rw),
         *_binds(ARG_BIND, plan.grants),
         *_binds(ARG_BIND, plan.channels),
+        *_binds(ARG_BIND, plan.toolchain_cache),
         *_binds(ARG_RO_BIND, plan.ro_pins),
     ]
     return (*words, ARG_END, *argv)

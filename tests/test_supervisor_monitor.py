@@ -60,7 +60,11 @@ from workflow_interpreter.supervisor.models import EXIT_CODE_UNOBSERVED
 from workflow_interpreter.supervisor.monitor import TERMINAL_VERDICTS
 from workflow_interpreter.supervisor.paths import read_record
 from workflow_interpreter.supervisor.run import _exit_code, _exit_reason, _StaleMirror
-from workflow_interpreter.supervisor.sandbox import SandboxMode, SandboxPlan
+from workflow_interpreter.supervisor.sandbox import (
+    UV_CACHE_DIRECTORY,
+    SandboxMode,
+    SandboxPlan,
+)
 
 STALE_AFTER_S = 600.0
 MAX_WALL_S = 2700.0
@@ -642,7 +646,7 @@ def test_a_breached_ceiling_terms_the_group_and_records_the_reason(
         clock,
         activation_id=activation_id,
         launch_id="runaway-1",
-        plan=SandboxPlan(),
+        plan=SandboxPlan(toolchain_cache=(config.wrapper_root / UV_CACHE_DIRECTORY,)),
         sandbox=SandboxMode.OFF,
     )(command)
 

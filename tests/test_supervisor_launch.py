@@ -53,7 +53,15 @@ from workflow_interpreter.supervisor import (
 )
 from workflow_interpreter.supervisor import launch as launch_module
 from workflow_interpreter.supervisor.paths import read_record, write_record
-from workflow_interpreter.supervisor.sandbox import SandboxMode, SandboxPlan
+from workflow_interpreter.supervisor.sandbox import (
+    ENV_UV_CACHE_DIR,
+    ENV_UV_PYTHON_INSTALL_DIR,
+    UV_CACHE_DIRECTORY,
+    UV_PYTHON_DIRECTORY,
+    SandboxMode,
+    SandboxPlan,
+    wrap,
+)
 
 pytestmark = pytest.mark.proc
 
@@ -288,7 +296,9 @@ def test_exec_without_record_dispatch_reattaches(lab: Lab) -> None:
         lab.clock,
         activation_id=activation_id,
         launch_id="crashed-before-bd",
-        plan=SandboxPlan(),
+        plan=SandboxPlan(
+            toolchain_cache=(lab.config.wrapper_root / UV_CACHE_DIRECTORY,)
+        ),
         sandbox=SandboxMode.OFF,
     )
     channels = channels_for(
@@ -306,6 +316,63 @@ def test_exec_without_record_dispatch_reattaches(lab: Lab) -> None:
     assert result.handle == handle
     assert lab.wc_l(activation_id) == 1
     assert result.activation.metadata.lifecycle is Lifecycle.DISPATCHED
+
+
+def test_off_mode_uses_the_shared_uv_cache_without_a_bwrap_bind(lab: Lab) -> None:
+    """`sandbox=off` replaces scratch `UV_CACHE_DIR`, not leaving it cold."""
+    minted = lab.store.mint_activation(lab.root.root_id, entry_mint())
+    activation_id = minted.activation.activation_id
+    lab.paths.ensure_activation_dir(activation_id)
+    channels = channels_for(
+        lab.paths.activation_dir(activation_id), lab.paths.log(activation_id)
+    )
+    task = lab.build_task(minted.activation, channels)
+    off_config = lab.config.model_copy(update={"sandbox": SandboxMode.OFF})
+    off_paths = WrapperPaths(off_config, lab.root.root_id)
+    plan, mode = Dispatcher(off_paths, lab.store, lab.clock)._sandbox(
+        activation_id, task
+    )
+    scratch_cache = Path(channels.scratch_dir) / UV_CACHE_DIRECTORY
+    command = lab.profile.build_command(task, SESSION_ID)
+    command = command.model_copy(
+        update={
+            "argv": (
+                "/bin/sh",
+                "-c",
+                (
+                    'mkdir -p "$WF_ARTIFACT_DIR"; '
+                    'printf "%s\\n%s\\n" "$UV_CACHE_DIR" '
+                    '"$UV_PYTHON_INSTALL_DIR" '
+                    '> "$WF_ARTIFACT_DIR/toolchain-env"'
+                ),
+            ),
+            "env": {
+                **command.env,
+                ENV_UV_CACHE_DIR: str(scratch_cache),
+                ENV_UV_PYTHON_INSTALL_DIR: str(scratch_cache / UV_PYTHON_DIRECTORY),
+            },
+        }
+    )
+
+    handle = ForkBarrierLauncher(
+        off_config,
+        off_paths,
+        lab.clock,
+        activation_id=activation_id,
+        launch_id="off-shared-cache",
+        plan=plan,
+        sandbox=mode,
+    )(command)
+    _wait(handle.pid)
+
+    assert mode is SandboxMode.OFF
+    assert wrap(command.argv, plan, mode=mode) == command.argv
+    assert (Path(channels.artifact_dir) / "toolchain-env").read_text(
+        encoding="utf-8"
+    ).splitlines() == [
+        str(off_config.wrapper_root / UV_CACHE_DIRECTORY),
+        str(off_config.wrapper_root / UV_CACHE_DIRECTORY / UV_PYTHON_DIRECTORY),
+    ]
 
 
 def test_unexplained_ledger_line_refuses_to_exec_again(lab: Lab) -> None:

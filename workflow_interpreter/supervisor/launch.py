@@ -114,10 +114,14 @@ from workflow_interpreter.supervisor.profile import (
     channels_for,
 )
 from workflow_interpreter.supervisor.sandbox import (
+    ENV_UV_CACHE_DIR,
+    ENV_UV_PYTHON_INSTALL_DIR,
+    UV_PYTHON_DIRECTORY,
     SandboxMode,
     SandboxPlan,
     plan_for,
     probe,
+    toolchain_cache_for,
     wrap,
 )
 
@@ -311,6 +315,9 @@ class ForkBarrierLauncher:
         vendor (bwrap forks). The inner argv would describe a process the handle
         does not name, and the wrapped one is the durable audit record of the
         exact bound this child ran under.
+
+        The launcher rewrites the uv cache paths in both modes, so `off` and
+        `bwrap` runs share the same toolchain state; only `wrap` emits a bind.
         """
         receipt_path = self._paths.receipt(self._activation_id)
         ledger_path = self._paths.ledger(self._activation_id)
@@ -320,8 +327,16 @@ class ForkBarrierLauncher:
         # a vanished vendor CLI inside the box would grade as a plain non-zero
         # exit and drill 22's exit-127 sentinel would stop meaning anything.
         vendor_missing = not _vendor_resolves(command.argv[0], command.env)
+        env = dict(command.env)
+        env[ENV_UV_CACHE_DIR] = str(self._plan.toolchain_cache[0])
+        env[ENV_UV_PYTHON_INSTALL_DIR] = str(
+            self._plan.toolchain_cache[0] / UV_PYTHON_DIRECTORY
+        )
         wrapped = command.model_copy(
-            update={"argv": wrap(command.argv, self._plan, mode=self._sandbox)}
+            update={
+                "argv": wrap(command.argv, self._plan, mode=self._sandbox),
+                "env": env,
+            }
         )
 
         ready_read, ready_write = os.pipe()
@@ -840,10 +855,9 @@ class Dispatcher:
         permanent, so it raises rather than degrades: `foreman/supervise.py`
         turns it into a typed close and the frontier into a halt gate.
 
-        `sandbox = off` builds NO plan. The mounts would be discarded by `wrap`
-        anyway, and `plan_for` has real side effects — it pre-creates bind
-        sources and refuses a missing root — which an operator who turned the
-        bound off has not asked for.
+        `sandbox = off` builds only the shared toolchain-cache plan. It avoids
+        `plan_for`'s mount-source side effects while keeping uv's state the same
+        as a bounded launch; `wrap` still discards the bind in this mode.
         """
         config = self._paths.config
         capability = probe(config)
@@ -859,7 +873,10 @@ class Dispatcher:
                 activation_id=activation_id,
                 node=task.node,
             )
-            return SandboxPlan(), SandboxMode.OFF
+            return (
+                SandboxPlan(toolchain_cache=toolchain_cache_for(config.wrapper_root)),
+                SandboxMode.OFF,
+            )
         plan = plan_for(
             task,
             repo_root=config.repo_root,

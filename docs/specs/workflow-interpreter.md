@@ -655,6 +655,8 @@ The wrapper wraps every profile's argv in the bubblewrap mount bound
 before exec: the checkout is read-only except the node's `allowed_paths`
 grants, `channels/` and the git object/ref stores, which are writable,
 while `config`, `hooks/`, `info/` and `refs/wf` are pinned read-only.
+The wrapper-root `uv-cache` is also bound read-write so `UV_CACHE_DIR` and
+`UV_PYTHON_INSTALL_DIR` never fall back to `$HOME` and activations reuse a warm tool cache.
 Profiles neither opt in nor out. `sandbox = off` is an unsafe switch,
 recorded on the close as `AuditFlag.SANDBOX_OFF`; a host without a
 working `bwrap` refuses to dispatch — a halt, never an infra retry.

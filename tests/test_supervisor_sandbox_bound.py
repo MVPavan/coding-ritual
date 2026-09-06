@@ -58,6 +58,7 @@ from workflow_interpreter.supervisor.paths import ARTIFACT_DIR, read_record
 from workflow_interpreter.supervisor.procfs import prove_liveness, terminate
 from workflow_interpreter.supervisor.sandbox import (
     BWRAP_BINARY,
+    UV_CACHE_DIRECTORY,
     SandboxCapability,
     SandboxMode,
     probe,
@@ -192,7 +193,7 @@ def test_a_writes_false_node_cannot_write_anywhere_in_the_checkout(
 
 
 def test_the_receipt_records_the_wrapped_argv_and_the_mode(tmp_path: Path) -> None:
-    """`handle.pid` names `bwrap`, so the receipt has to name what `bwrap` ran."""
+    """A bounded receipt names its `uv-cache` bind, not only the vendor argv."""
     lab = ForemanLab(tmp_path)
     _skip_without_bwrap(lab)
     lab.instantiate()
@@ -203,6 +204,7 @@ def test_the_receipt_records_the_wrapped_argv_and_the_mode(tmp_path: Path) -> No
     assert receipt is not None
     assert receipt.sandbox is SandboxMode.BWRAP
     assert receipt.argv[0] == probe(lab.supervisor_config).binary
+    assert str(lab.supervisor_config.wrapper_root / UV_CACHE_DIRECTORY) in receipt.argv
     assert "--" in receipt.argv
     inner = receipt.argv[receipt.argv.index("--") + 1 :]
     assert inner[0] == "/bin/sh"

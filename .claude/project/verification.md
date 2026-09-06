@@ -57,7 +57,8 @@ place the `nested_sandbox` family runs:
 
 `scripts/verify-feature.sh` is the same recipe minus `-m bd` and minus
 `nested_sandbox`, because the wrapper runs it INSIDE a vendor sandbox, where a
-nested `codex sandbox` cannot start and a nested `uv run` cannot write
-`~/.cache/uv` (cr-o85.34.22, phase-7 live D2). Those tests are not weaker — they
+nested `codex sandbox` cannot start (cr-o85.34.22, phase-7 live D2). The wrapper
+sets `UV_CACHE_DIR` and `UV_PYTHON_INSTALL_DIR` below its writable `uv-cache`, so
+a read-only `$HOME` is covered by the sandbox probe. Those tests are not weaker — they
 are simply unrunnable there — so the repo gate above must be run on any change
 that touches `sandbox.py`, `profiles/`, or the git-isolation tests.

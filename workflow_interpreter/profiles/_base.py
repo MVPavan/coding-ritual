@@ -60,10 +60,14 @@ from workflow_interpreter.supervisor.sandbox import (
     ENV_MYPY_CACHE_DIR,
     ENV_PYTEST_ADDOPTS,
     ENV_RUFF_CACHE_DIR,
+    ENV_UV_CACHE_DIR,
     ENV_UV_FROZEN,
     ENV_UV_PROJECT_ENVIRONMENT,
+    ENV_UV_PYTHON_INSTALL_DIR,
     PYTEST_CACHE_OPTION,
+    UV_CACHE_DIRECTORY,
     UV_FROZEN_VALUE,
+    UV_PYTHON_DIRECTORY,
     grant_directory,
 )
 
@@ -125,7 +129,7 @@ def toolchain_env(scratch_dir: str) -> dict[str, str]:
     there. Probed under a bwrap'd read-only checkout of this repo: with none of
     these, `uv run pytest` dies `failed to create directory '<C>/.venv':
     Read-only file system`; with `UV_PROJECT_ENVIRONMENT` alone, ruff and mypy
-    still die on their own caches; with all four, all three tools pass.
+    still die on their own caches; with all five, all three tools pass.
 
     `PYTEST_ADDOPTS` is SET, not appended: `child_env` copies only
     `passthrough_env` keys and `PYTEST_ADDOPTS` is not one of them, so there is
@@ -136,13 +140,18 @@ def toolchain_env(scratch_dir: str) -> dict[str, str]:
     load-bearing (pytest degrades to a warning when it cannot write its cache),
     but a nicety that breaks the gate is not a nicety.
 
-    Applied for every profile and in every mode. The bound is not the only
-    reason it is right, and a cache location that changed with the sandbox
-    setting would make an `off` run stop reproducing a `bwrap` one.
+    Applied for every profile and in every mode. The launcher replaces the
+    scratch-local uv cache with the shared wrapper-root cache in both modes, so
+    an `off` run reproduces a bounded run's toolchain state; only `bwrap` binds
+    that cache into its mount plan.
     """
     scratch = Path(scratch_dir)
     return {
         ENV_UV_PROJECT_ENVIRONMENT: str(scratch / UV_VENV_DIR),
+        ENV_UV_CACHE_DIR: str(scratch / UV_CACHE_DIRECTORY),
+        ENV_UV_PYTHON_INSTALL_DIR: str(
+            scratch / UV_CACHE_DIRECTORY / UV_PYTHON_DIRECTORY
+        ),
         ENV_UV_FROZEN: UV_FROZEN_VALUE,
         ENV_RUFF_CACHE_DIR: str(scratch / RUFF_CACHE_DIR),
         ENV_MYPY_CACHE_DIR: str(scratch / MYPY_CACHE_DIR),
