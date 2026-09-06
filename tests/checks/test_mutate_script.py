@@ -73,8 +73,66 @@ def test_a_small_value_is_small() -> None:
     assert is_small(9)
 '''
 
+_NOTHING_EXECUTABLE = (
+    "PASS mutate: no executable Python line added under workflow_interpreter/"
+)
+
 _README_FILE = "README.md"
 _README_BODY = "# no python changed\n"
+
+_UNMUTABLE_FILE = "workflow_interpreter/plain.py"
+_UNMUTABLE_BODY = '''\
+"""A docstring and a signature: nothing the operator set can touch."""
+
+from __future__ import annotations
+
+
+def noop() -> None:
+    """Do nothing at all."""
+'''
+_UNMUTABLE_EXECUTABLE_LINES = 1
+"""Only `def noop() -> None:` — the docstrings and the import are not code."""
+
+_COMMENTARY_FILE = "workflow_interpreter/notes.py"
+_COMMENTARY_BODY = '''\
+"""Why the close order matters.
+
+A module of prose: a documentation round adds lines like these and nothing a
+mutation could bite.
+"""
+
+from __future__ import annotations
+
+# The store owns the merge; the caller returns only what it adds.
+'''
+
+_ASSIGNED_FILE = "workflow_interpreter/steps.py"
+_ASSIGNED_BODY = '''\
+"""One assignment, in the shape of the round that planted no mutant."""
+
+from __future__ import annotations
+
+
+def steps() -> tuple[str, ...]:
+    """The step names this workflow runs."""
+    names = ("plan", "build")
+    return names
+'''
+_ASSIGNED_LINE = 8
+_ASSIGNED_SITE = f'{_ASSIGNED_FILE}:{_ASSIGNED_LINE} ("plan", "build") -> ()'
+_ASSIGNED_TEST_FILE = "tests/test_steps.py"
+_ASSIGNED_TEST = '''\
+"""The step names, asserted by value."""
+
+from __future__ import annotations
+
+from workflow_interpreter.steps import steps
+
+
+def test_the_step_names_are_returned() -> None:
+    """An empty tuple is what this kills."""
+    assert steps() == ("plan", "build")
+'''
 
 
 def _timed(
@@ -134,7 +192,11 @@ def test_mutate_names_the_site_no_test_covers(
 def test_mutate_passes_in_one_line_when_no_python_changed(
     project: Path, uv_environment: Path
 ) -> None:
-    """Nothing to mutate is a pass, not an error and not a silent green."""
+    """A round that only committed `README.md` has nothing to mutate.
+
+    Zero mutants is a pass ONLY here; the wrong output is the FAIL the next
+    case demands, raised against a round that touched no Python at all.
+    """
     base = head_commit(project)
     commit_file(project, _README_FILE, _README_BODY, "docs only")
 
@@ -142,9 +204,74 @@ def test_mutate_passes_in_one_line_when_no_python_changed(
     _report("no sites", elapsed, completed)
 
     assert completed.returncode == 0, completed.stdout + completed.stderr
-    assert completed.stdout.splitlines() == [
-        "PASS mutate: no mutable line changed under workflow_interpreter/"
-    ]
+    assert completed.stdout.splitlines() == [_NOTHING_EXECUTABLE]
+
+
+def test_mutate_fails_when_changed_python_yields_no_mutant(
+    project: Path, uv_environment: Path
+) -> None:
+    """A new `workflow_interpreter/plain.py` whose only code is a signature.
+
+    The wrong output is the PASS this reported before cr-o85.34.25: the first
+    live round rewrote three modules in lines like
+    `deviations = decision.deviations`, planted ZERO mutants, and was graded
+    green — a verifier that ran and measured nothing.
+    """
+    base = head_commit(project)
+    commit_file(project, _UNMUTABLE_FILE, _UNMUTABLE_BODY, "unmutable python")
+
+    completed, elapsed = _timed(project, uv_environment, base)
+    _report("no mutable token", elapsed, completed)
+
+    assert completed.returncode != 0
+    expected = (
+        f"FAIL mutate: no mutable token in {_UNMUTABLE_EXECUTABLE_LINES} "
+        "changed lines under workflow_interpreter/"
+    )
+    assert completed.stdout.splitlines() == [expected]
+
+
+def test_mutate_passes_a_docstring_and_comment_only_python_diff(
+    project: Path, uv_environment: Path
+) -> None:
+    """A new `workflow_interpreter/notes.py` of docstring, import and comment.
+
+    The wrong output is the FAIL the case above demands: `implement` re-enters
+    its region on `fail_code`, so a documentation round graded red would be
+    graded red identically on every retry until a human triaged it.
+    """
+    base = head_commit(project)
+    commit_file(project, _COMMENTARY_FILE, _COMMENTARY_BODY, "prose only")
+
+    completed, elapsed = _timed(project, uv_environment, base)
+    _report("prose only", elapsed, completed)
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert completed.stdout.splitlines() == [_NOTHING_EXECUTABLE]
+
+
+def test_mutate_empties_the_value_an_assignment_binds(
+    project: Path, uv_environment: Path
+) -> None:
+    """`names = ("plan", "build")` becomes `names = ()`, and the test kills it.
+
+    This is the operator the D5 diff needed and the fixed table lacked: without
+    it the site count is zero and the wrong output is a mutation PASS over a
+    round whose every changed line was an assignment.
+    """
+    base = head_commit(project)
+    commit_file(project, _ASSIGNED_FILE, _ASSIGNED_BODY, "an assignment")
+    commit_file(project, _ASSIGNED_TEST_FILE, _ASSIGNED_TEST, "and its test")
+
+    completed, elapsed = _timed(project, uv_environment, base)
+    _report("assignment mutant", elapsed, completed)
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    lines = completed.stdout.splitlines()
+    assert lines[0].startswith("PASS mutate: 1/1 mutants killed (see ")
+    log = Path(lines[0].split("(see ", 1)[1].rstrip(")")).read_text(encoding="utf-8")
+    assert _ASSIGNED_SITE in log
+    assert "test_the_step_names_are_returned" in log
 
 
 def test_mutate_reports_a_red_baseline_instead_of_planting_mutants(

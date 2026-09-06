@@ -10,6 +10,13 @@
 # commit under test — so the repo root comes from git in cwd, never from `$0`,
 # which names a descriptor in /proc.
 #
+# Zero mutants is a verdict, not an absence: a round that added EXECUTABLE
+# Python under `workflow_interpreter/` and yielded no mutable token FAILS
+# naming the count, because a mutation check that plants nothing has graded
+# nothing. Comments, blank lines, docstrings and imports are not executable, so
+# a documentation round still passes on zero mutants — failing it would fail it
+# identically on every re-entry of the region (cr-o85.34.25).
+#
 # `$WF_BASE_COMMIT` is the activation's `intended_base_commit`, injected by the
 # wrapper (`verify.py`, phase 7 D5); unset — or naming a commit this checkout
 # does not have — is a FAILURE, never a silent "nothing changed" pass.
@@ -36,7 +43,7 @@ LOG="${TMPDIR:-/tmp}/mutate.$$.log"
 : >"$LOG"
 
 MUTATE_PY="scripts/checks/mutate.py"
-MUTATE_PY_SHA256="44e24d4bfe6bd8ce1f0d5351af392e3c5e6b5fa29ec1660f844f89741b22e68a"
+MUTATE_PY_SHA256="498c511ff432a0a00571e00a69c7d1fb03e9560a29ed1147729c75f1b8767467"
 
 # How long one mutant may run before it is killed. A mutation can turn a loop
 # guard into a non-terminating one (`and` -> `or`), and an unbounded child
@@ -139,9 +146,24 @@ if ! uv run python "$ROOT/$MUTATE_PY" sites "$WF_BASE_COMMIT" \
 fi
 
 total=$(wc -l <"$SITES" | tr -d ' ')
+# Zero sites used to be a bare PASS, and the first live round spent it: a diff
+# that rewrote three modules in lines like `deviations = decision.deviations`
+# planted no mutant and reported green (cr-o85.34.25). Zero mutants can only be
+# a pass when the round added no executable Python line here at all.
 if [ "$total" -eq 0 ]; then
-    printf 'PASS mutate: no mutable line changed under workflow_interpreter/\n'
-    exit 0
+    if ! changed="$(uv run python "$ROOT/$MUTATE_PY" changed "$WF_BASE_COMMIT" \
+        2>>"$LOG")"; then
+        printf 'FAIL mutate: could not read the changed lines (see %s)\n' "$LOG"
+        exit 1
+    fi
+    if [ "$changed" -eq 0 ]; then
+        printf 'PASS mutate: no executable Python line added under %s\n' \
+            "workflow_interpreter/"
+        exit 0
+    fi
+    printf 'FAIL mutate: no mutable token in %s changed lines under %s\n' \
+        "$changed" "workflow_interpreter/"
+    exit 1
 fi
 
 SURVIVORS="$WORK/survivors.txt"
