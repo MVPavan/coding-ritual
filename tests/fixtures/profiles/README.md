@@ -52,3 +52,13 @@ throughout — these runs authenticated from a subscription, not from a key.
 | `opencode/oneshot.jsonl` | `opencode run --format json` |
 | `opencode/resume.jsonl` | `-s <session>` of it |
 | `opencode/tools.jsonl` | a tool call plus per-step usage |
+
+Two files come from a later run and are labelled so nobody reads them as
+phase-4: the first live build-loop run of 2026-09-05
+(`scratchpad/probes/phase7-live/`, `claude 2.1.258`), whose `usage: unknown`
+records put the vendor streams under suspicion (defect D3, bead cr-o85.34.23).
+
+| File | The run it came from |
+|---|---|
+| `claude/live-result.jsonl` | the `wf-so4` activation's terminal `result` line — 2.1.258 adds `modelUsage`, `iterations` and `speed` beside the same `usage`/`total_cost_usd` pair |
+| `codex/live-turn-completed.jsonl` | the `wf-v8x` reviewer's terminal `turn.completed` line |

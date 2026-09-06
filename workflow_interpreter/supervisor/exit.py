@@ -177,6 +177,11 @@ class PostExit(BaseModel):
     usage: Usage = Usage(known=False)
 
 
+def _envelope_usage(envelope: TerminalEnvelope | None) -> Usage:
+    """What an envelope says was spent — unknown when there is no envelope (§6)."""
+    return Usage(known=False) if envelope is None else envelope.usage
+
+
 def no_progress_breaker(
     previous_tree_oid: str | None, artifact: ArtifactIdentity | None
 ) -> Breaker | None:
@@ -304,10 +309,16 @@ class ExitObserver:
                 previous_tree_oid,
             )
         else:
+            # Usage is re-read even here. The foreman settles through `replay`
+            # AFTER some earlier observation already wrote `completion.json`,
+            # so this branch — not `_post_exit` — is the one whose usage reaches
+            # bd, and omitting it took the `known = False` default for every
+            # activation that did not crash mid-grade (cr-o85.34.23).
             post = PostExit(
                 collected=CollectedExit(marker=None),
                 completion=completion,
                 artifact=completion.evidence.artifact,
+                usage=_envelope_usage(self._envelope(activation, profile)),
             )
 
         record = self._record_exit(activation, exit_record, post.completion)
@@ -387,8 +398,7 @@ class ExitObserver:
         previous_tree_oid: str | None,
     ) -> PostExit:
         """Read the §6 channels, record §12 attribution, pin §7.4, grade §7."""
-        handle = activation.metadata.handle
-        envelope = None if handle is None else profile.collect_terminal_envelope(handle)
+        envelope = self._envelope(activation, profile)
         collected = self._collect(activation.activation_id, node, envelope)
         declared = (
             None if collected.effects is None else frozenset(collected.effects.paths)
@@ -412,8 +422,19 @@ class ExitObserver:
                 previous_tree_oid,
             ),
             artifact=pin.identity,
-            usage=Usage(known=False) if envelope is None else envelope.usage,
+            usage=_envelope_usage(envelope),
         )
+
+    def _envelope(
+        self, activation: ActivationRecord, profile: Profile
+    ) -> TerminalEnvelope | None:
+        """The runner's own terminal facts, re-read from its log (§6).
+
+        `None` when §5.3 recorded no handle: there is no log to name, which is
+        a different thing from a log that reported nothing.
+        """
+        handle = activation.metadata.handle
+        return None if handle is None else profile.collect_terminal_envelope(handle)
 
     def _record_exit(
         self,

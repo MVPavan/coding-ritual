@@ -97,6 +97,48 @@ def test_claude_usage_is_the_terminal_total_not_the_sum_of_the_messages(
     assert usage.output_tokens == 643
 
 
+def test_the_live_claude_terminal_line_still_folds_to_known_usage(
+    tmp_path: Path,
+) -> None:
+    """cr-o85.34.23: the 2.1.258 `result` shape, straight out of the live run.
+
+    The build-loop run recorded `usage: unknown` for six of seven activations
+    (`scratchpad/probes/phase7-live/BASELINE.md`, D3) and the vendor stream was
+    the suspect. It is not: this IS one of those six logs' terminal line and it
+    parses. The loss was `exit.py`'s cached-completion branch. The fixture stays
+    as the version guard the accusation deserved — 2.1.258 added `modelUsage`,
+    `iterations` and `speed` around the same `usage`/`total_cost_usd` pair the
+    2.1.227 captures carry.
+    """
+    profile = make_claude(tmp_path, FrozenClock())
+
+    usage = fold_usage(profile.parse_output(read_stream("claude", "live-result.jsonl")))
+
+    assert usage.known is True
+    assert usage.input_tokens == 92
+    assert usage.output_tokens == 35631
+    assert usage.cost_usd == "3.9299935"
+
+
+def test_the_live_codex_terminal_line_still_folds_to_known_usage(
+    tmp_path: Path,
+) -> None:
+    """The same check for codex's `turn.completed`, from the same live run.
+
+    All four codex activations of that run recorded unknown usage too, and
+    their streams were as parseable as this one — one seam, both vendors.
+    """
+    profile = make_codex(tmp_path, FrozenClock())
+
+    usage = fold_usage(
+        profile.parse_output(read_stream("codex", "live-turn-completed.jsonl"))
+    )
+
+    assert usage.known is True
+    assert (usage.input_tokens, usage.output_tokens) == (714365, 3795)
+    assert usage.cost_usd is None
+
+
 def test_money_keeps_the_vendors_own_decimal_repr(tmp_path: Path) -> None:
     """`bdio.Usage` stores cost as a STRING because JSON floats are not exact."""
     profile = make_claude(tmp_path, FrozenClock())

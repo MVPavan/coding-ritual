@@ -44,6 +44,8 @@ from workflow_interpreter.bdio import (
     Lifecycle,
     LossyWriteError,
     Outcome,
+    ProcessHandle,
+    Usage,
 )
 from workflow_interpreter.schema.models import IsolationMode, Node
 from workflow_interpreter.supervisor import (
@@ -56,6 +58,7 @@ from workflow_interpreter.supervisor import (
     RecoveryCase,
     RunnerAttribution,
     SupervisorConfig,
+    TerminalEnvelope,
     VerifyTreeError,
     Workspace,
     WrapperPaths,
@@ -70,6 +73,22 @@ OUTSIDE_FILE = "docs/notes.md"
 DONE_MARKER = {"outcome": "done"}
 BD_UPDATE = "update"
 BD_SHOW = "show"
+
+LIVE_USAGE = Usage(
+    known=True, input_tokens=92, output_tokens=35631, cost_usd="3.9299935"
+)
+"""One real terminal total: the `write_tests` round-1 activation of the first
+live build-loop run (`wrapper-wf-5uc/wf-so4/run.jsonl`, claude 2.1.258)."""
+
+
+class SpendingProfile(FakeProfile):
+    """A runner whose log reports what the run spent, unlike `FakeProfile`."""
+
+    def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
+        """The §6 envelope with usage the observer must not drop."""
+        return TerminalEnvelope(
+            usage=LIVE_USAGE, session_id=handle.session_id, duration_s=1.0
+        )
 
 
 class Lab:
@@ -752,6 +771,56 @@ def test_replay_recomputes_only_when_completion_is_absent(lab: Lab) -> None:
     )
     assert recomputed.completion == first.completion
     assert lab.paths.completion(lab.activation.activation_id).exists()
+
+
+def test_replay_reports_the_runners_usage_even_from_cached_completion(
+    lab: Lab,
+) -> None:
+    """cr-o85.34.23: the settling observation is the one that carries §6 usage.
+
+    The foreman never closes an activation from the observation that first
+    graded it: `close.settle` re-observes through `replay`, and by then
+    `completion.json` exists, so the cached branch is the branch whose usage
+    reaches bd. It used to omit `usage` entirely and take the `known = False`
+    default — which is why the first live build-loop run recorded unknown spend
+    for six of seven activations whose run logs each carried a terminal total
+    (`scratchpad/probes/phase7-live/BASELINE.md`, D3).
+    """
+    lab.profile = SpendingProfile()
+    lab.commit_work()
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(FEATURE_FILE)
+    first = lab.observe(exit_code=0)
+    assert first.usage == LIVE_USAGE
+
+    settled = lab.observer.replay(
+        lab.reload(),
+        lab.node,
+        lab.profile,
+        first.exit_record,
+        pinned_digests=lab.pins(),
+    )
+
+    assert lab.paths.completion(lab.activation.activation_id).exists()
+    assert settled.usage == LIVE_USAGE
+
+
+def test_replay_keeps_usage_unknown_when_the_runner_reported_none(lab: Lab) -> None:
+    """§6: absent telemetry stays absent — the cached branch invents nothing."""
+    lab.commit_work()
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(FEATURE_FILE)
+    first = lab.observe(exit_code=0)
+
+    settled = lab.observer.replay(
+        lab.reload(),
+        lab.node,
+        lab.profile,
+        first.exit_record,
+        pinned_digests=lab.pins(),
+    )
+
+    assert settled.usage.known is False
 
 
 def test_an_unknown_pre_attempt_state_retires_an_earlier_attribution(
