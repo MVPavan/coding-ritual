@@ -217,7 +217,7 @@ def test_a_role_rebinding_after_instantiation_never_reaches_a_mint(
 def test_a_real_override_reaches_the_brief_the_task_and_the_workspace(
     tmp_path: Path,
 ) -> None:
-    """§3.1 end to end through the REAL `instantiate` (cr-7h8 review).
+    """An in-repo writer reaches every execution reader without becoming a non-writer.
 
     `writes` and `isolation` are resolved once and then read by everything:
     the brief the runner is given, the task it is launched with, and the
@@ -226,7 +226,7 @@ def test_a_real_override_reaches_the_brief_the_task_and_the_workspace(
     """
     lab = ForemanLab(tmp_path)
     lab.instantiate_resolved(
-        {"node.implement.writes": False, "node.implement.isolation": "in-repo"}
+        {"node.implement.writes": True, "node.implement.isolation": "in-repo"}
     )
     lab.profiles.next_script(ChildScript(marker='{"outcome":"done"}\n'))
 
@@ -234,7 +234,6 @@ def test_a_real_override_reaches_the_brief_the_task_and_the_workspace(
 
     assert report.dispatched is not None
     task = lab.profiles.profile.tasks[-1]
-    assert task.writes is False
+    assert task.writes is True
     assert task.cwd == str(lab.repo)
-    assert "repository writes: no" in task.brief
-    assert "Do NOT write to the repository" in task.brief
+    assert "repository writes: yes" in task.brief

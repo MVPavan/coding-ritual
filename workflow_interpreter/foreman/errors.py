@@ -15,9 +15,10 @@ class UnresolvedRunnerError(ResolutionError):
 
 
 class UnusableResolutionError(ResolutionError):
-    """A root pins a resolved value the node's own field cannot hold.
+    """A root pins an effective node that fails field or semantic validation.
 
-    `resolve()` refuses these before a root is written, so reaching this is
-    tamper or a root written by an older, laxer resolution — either way it is
-    a typed refusal, never a bare `ValidationError` out of the tick loop.
+    `resolve()` refuses these before a root is written, so reaching this at
+    execution is tamper or a root written by an older, laxer resolver — either
+    way it is a typed refusal, never a bare `ValidationError` out of the tick
+    loop.
     """

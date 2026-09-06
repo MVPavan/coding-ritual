@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Final, cast
 
 import pytest
+from structlog.testing import capture_logs
 
 from tests._bdio import (
     IMPLEMENT,
@@ -51,7 +52,9 @@ from workflow_interpreter.foreman.resolve import (
     instantiate,
     resolve,
 )
+from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode
+from workflow_interpreter.schema.validator import PHASE_B_RULES
 from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.gitio import Git
@@ -252,7 +255,7 @@ def test_resolve_accepts_schema_known_unset_values_and_validates_their_type() ->
 
 
 def test_resolve_supports_explicit_task_settings() -> None:
-    """Supported task settings can be overridden with their declared scalar types."""
+    """`max_wall=20m` keeps the 10m verifier valid while scalars resolve."""
     settings = {
         item.key: item
         for item in resolve(
@@ -260,7 +263,7 @@ def test_resolve_supports_explicit_task_settings() -> None:
             {},
             {
                 "node.implement.token_budget": 42,
-                "node.implement.max_wall": "2m",
+                "node.implement.max_wall": "20m",
                 "node.implement.stale_after": "1m",
                 "node.implement.writes": True,
                 "node.implement.isolation": "in-repo",
@@ -278,7 +281,7 @@ def test_resolve_supports_explicit_task_settings() -> None:
         )
     } == {
         "node.implement.token_budget": 42,
-        "node.implement.max_wall": "2m",
+        "node.implement.max_wall": "20m",
         "node.implement.stale_after": "1m",
         "node.implement.writes": True,
         "node.implement.isolation": "in-repo",
@@ -1054,16 +1057,18 @@ def test_resolved_node_falls_back_to_the_pinned_node(tmp_path: Path) -> None:
 def test_resolved_node_overlays_every_resolvable_execution_field(
     tmp_path: Path,
 ) -> None:
-    """Each scalar the root resolved wins over the pinned graph body (§3.1)."""
+    """A valid 20m writer resolution replaces each pinned execution scalar (§3.1)."""
     lab = ForemanLab(
         tmp_path,
         overrides={
             "node.implement.model": "override-model",
             "node.implement.isolation": "in-repo",
-            "node.implement.writes": False,
+            "node.implement.writes": True,
             "node.implement.token_budget": 1234,
-            "node.implement.max_wall": "9m",
+            "node.implement.max_wall": "20m",
             "node.implement.stale_after": "3m",
+            "node.implement.max_infra_retries": 3,
+            "node.implement.max_steers": 4,
         },
     )
     root = lab.instantiate()
@@ -1073,10 +1078,55 @@ def test_resolved_node_overlays_every_resolvable_execution_field(
     assert view.model == "override-model"
     assert view.node.model == "override-model"
     assert view.node.isolation is IsolationMode.IN_REPO
-    assert view.node.writes is False
+    assert view.node.writes is True
     assert view.node.token_budget == 1234
-    assert view.node.max_wall == "9m"
+    assert view.node.max_wall == "20m"
     assert view.node.stale_after == "3m"
+    assert view.node.max_infra_retries == 3
+    assert view.node.max_steers == 4
+
+
+def test_instantiate_refuses_writes_false_with_non_empty_pinned_allowed_paths(
+    tmp_path: Path,
+) -> None:
+    """`node.implement.writes=false` cannot pin the authored non-empty paths."""
+    lab = ForemanLab(tmp_path)
+
+    with pytest.raises(ResolutionError, match="allowed_paths_well_formed"):
+        lab.instantiate_resolved({"node.implement.writes": False})
+
+    assert lab.store.reads.list_roots() == ()
+
+
+def test_instantiate_refuses_max_wall_below_pinned_verify_timeout(
+    tmp_path: Path,
+) -> None:
+    """`node.implement.max_wall=9m` cannot undercut its 10m verifier timeout."""
+    lab = ForemanLab(tmp_path)
+
+    with pytest.raises(ResolutionError, match="verify_entries_well_formed"):
+        lab.instantiate_resolved({"node.implement.max_wall": "9m"})
+
+    assert lab.store.reads.list_roots() == ()
+
+
+def test_resolve_does_not_log_an_unchanged_nodes_warning(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`node.implement.model` must not log the critic's pinned warning."""
+    definition = load_graph(BUILD_LOOP_GRAPH)
+    monkeypatch.setattr(
+        "workflow_interpreter.foreman.resolve._EFFECTIVE_NODE_RULES", PHASE_B_RULES
+    )
+
+    with capture_logs() as captured:
+        resolve(definition, {}, {"node.implement.model": "override-model"})
+
+    assert [
+        entry
+        for entry in captured
+        if entry["event"] == "foreman.effective_node_warning"
+    ] == []
 
 
 def test_resolved_node_refuses_a_root_that_never_resolved_its_role(

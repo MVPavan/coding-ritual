@@ -10,12 +10,14 @@ changes underneath it.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.bdio.records import RootRecord
-from workflow_interpreter.bdio.wire import NodeSetting, resolved_settings
+from workflow_interpreter.bdio.wire import BoundSetting, NodeSetting, resolved_settings
 from workflow_interpreter.foreman.errors import (
     UnresolvedRunnerError,
     UnusableResolutionError,
@@ -34,13 +36,15 @@ _MSG_UNUSABLE_ROOT: Final[str] = (
     "under ({detail}) — the pinned resolution is corrupt (§3.1)"
 )
 
-_EFFECTIVE_FIELDS: Final[tuple[tuple[str, NodeSetting], ...]] = (
+_EFFECTIVE_FIELDS: Final[tuple[tuple[str, NodeSetting | BoundSetting], ...]] = (
     ("model", NodeSetting.MODEL),
     ("isolation", NodeSetting.ISOLATION),
     ("writes", NodeSetting.WRITES),
     ("token_budget", NodeSetting.TOKEN_BUDGET),
     ("max_wall", NodeSetting.MAX_WALL),
     ("stale_after", NodeSetting.STALE_AFTER),
+    ("max_infra_retries", BoundSetting.MAX_INFRA_RETRIES),
+    ("max_steers", BoundSetting.MAX_STEERS),
 )
 """Node fields the execution path reads and `resolve()` can override.
 
@@ -50,6 +54,21 @@ bound to, so the two cannot share one field. It is carried as
 `ResolvedNode.runner_profile` instead. `allowed_paths` is a list, which
 `resolve()` cannot express, so the pinned value stands.
 """
+
+EFFECTIVE_FIELD_SETTINGS: Final[Mapping[str, NodeSetting | BoundSetting]] = (
+    MappingProxyType(dict(_EFFECTIVE_FIELDS))
+)
+"""The resolved setting that overlays each effective `Node` scalar field."""
+
+
+def effective_node(pinned: Node, settings: Mapping[str, str | int | bool]) -> Node:
+    """Overlay one node's resolvable scalar settings onto its pinned body."""
+    updates = {
+        field: settings[setting.at(pinned.name)]
+        for field, setting in _EFFECTIVE_FIELDS
+        if setting.at(pinned.name) in settings
+    }
+    return Node.model_validate(pinned.model_dump() | updates)
 
 
 class ResolvedNode(BaseModel):
@@ -77,17 +96,12 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
     """
     pinned = root.index.nodes[node_name]
     settings = resolved_settings(root.metadata)
-    updates = {
-        field: settings[setting.at(node_name)]
-        for field, setting in _EFFECTIVE_FIELDS
-        if setting.at(node_name) in settings
-    }
     # Re-validated rather than `model_copy`d: an override reaches here as a
     # bare scalar off the root's metadata, and `model_copy` skips the
     # validators that turn "worktree" into `IsolationMode` and refuse a
     # duration the pattern does not accept.
     try:
-        effective = Node.model_validate(pinned.model_dump() | updates)
+        effective = effective_node(pinned, settings)
     except ValidationError as error:
         # `resolve()` refuses these before the root is written, so this is a
         # root nothing legitimate produced — it still leaves the tick loop as

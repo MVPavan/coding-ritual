@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Final
 
+import structlog
 from pydantic import ValidationError
 
 from workflow_interpreter.bdio import (
@@ -17,20 +18,30 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.foreman.compose import Composition
-from workflow_interpreter.foreman.errors import ResolutionError
+from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
+from workflow_interpreter.foreman.execution import (
+    EFFECTIVE_FIELD_SETTINGS,
+    effective_node,
+)
 from workflow_interpreter.profiles.config import RUNNER_PREFIX
-from workflow_interpreter.schema.graph_index import build_index
+from workflow_interpreter.schema.graph_index import at, build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import (
     PRODUCER_INSTANCE,
+    Finding,
     GraphDefinition,
     Node,
     NodeKind,
+    RuleId,
+    Severity,
 )
+from workflow_interpreter.schema.validator import PHASE_B_RULES
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.channels import pin_verifier_digests
 
 RUNNER_FIELD: Final[str] = "runner"
+
+_LOG = structlog.get_logger()
 
 MSG_UNUSABLE: Final[str] = (
     "unusable value for {key!r}: {value!r} is not something the node's own "
@@ -44,6 +55,11 @@ MSG_RUNNER_WITHOUT_MODEL: Final[str] = (
     "{key!r} from {source} chooses a runner without {model!r} from the same "
     "source — the model would stay the graph role's, a pairing nobody stated"
 )
+MSG_EFFECTIVE_NODE_UNUSABLE: Final[str] = (
+    "effective node {node!r} is unusable under {key!r}: rule {rule} reports {detail}"
+)
+
+_EFFECTIVE_NODE_RULES: Final = PHASE_B_RULES
 
 TASK_SETTING_TYPES: Final[
     Mapping[NodeSetting | BoundSetting, type[str | int | bool]]
@@ -130,7 +146,73 @@ def resolve(
                     overrides if source is ConfigSource.INSTANCE_OVERRIDE else config,
                 )
         values.append(ResolvedSetting(key=key, value=value, source=source))
+    _refuse_semantically_unusable(definition, values)
     return tuple(values)
+
+
+def _refuse_semantically_unusable(
+    definition: GraphDefinition, settings: list[ResolvedSetting]
+) -> None:
+    """Refuse effective task nodes that violate their authored semantic rules."""
+    values = {setting.key: setting.value for setting in settings}
+    for position, node in enumerate(definition.document.node):
+        if node.kind is not NodeKind.TASK:
+            continue
+        effective = effective_node(node, values)
+        if effective == node:
+            continue
+        document = definition.document.model_copy(
+            update={
+                "node": tuple(
+                    effective if candidate.name == node.name else candidate
+                    for candidate in definition.document.node
+                )
+            }
+        )
+        index = build_index(document, allow_test_flags=False)
+        for rule in _EFFECTIVE_NODE_RULES:
+            for finding in rule(index):
+                if not _finding_targets_node(finding, position):
+                    continue
+                if finding.severity is Severity.ERROR:
+                    key = _effective_finding_key(
+                        node.name, finding.rule, finding.location
+                    )
+                    raise UnusableResolutionError(
+                        MSG_EFFECTIVE_NODE_UNUSABLE.format(
+                            node=node.name,
+                            key=key,
+                            rule=finding.rule.value,
+                            detail=finding.message,
+                        )
+                    )
+                _LOG.warning(
+                    "foreman.effective_node_warning",
+                    node=node.name,
+                    rule=finding.rule.value,
+                    detail=finding.message,
+                )
+
+
+def _finding_targets_node(finding: Finding, position: int) -> bool:
+    """Whether a semantic finding addresses the substituted node."""
+    return finding.location.startswith(at("node", position))
+
+
+def _effective_finding_key(node_name: str, rule: RuleId, location: str) -> str:
+    """Name the resolved key responsible for one effective-node finding."""
+    if rule is RuleId.ALLOWED_PATHS_WELL_FORMED:
+        return NodeSetting.WRITES.at(node_name)
+    if rule is RuleId.VERIFY_ENTRIES_WELL_FORMED:
+        return NodeSetting.MAX_WALL.at(node_name)
+    field = location.rsplit(".", maxsplit=1)[-1]
+    try:
+        setting = EFFECTIVE_FIELD_SETTINGS[field]
+    except KeyError as error:
+        raise RuntimeError(
+            f"effective-node finding names non-configurable field {field!r}"
+        ) from error
+    return setting.at(node_name)
 
 
 def _refuse_unusable(node: Node, field: str, key: str, value: str | int | bool) -> None:

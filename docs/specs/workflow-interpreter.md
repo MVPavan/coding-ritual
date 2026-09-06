@@ -405,7 +405,8 @@ recovery all read this pinned resolution — only `allowed_paths` and
 `verify`, which no resolution can express, stay the graph body's — and
 the live `roles` map is consulted only at instantiation, so a role
 rebound after a root exists never changes how that instance runs. The
-interpreter executes from the pinned copy; the file is for authoring.
+interpreter revalidates each effective node against the §2 per-node rules
+at instantiation and then executes from the pinned copy; the file is for authoring.
 Hash mismatch → instance halts.
 
 The root also carries the one fact that is written after creation:
