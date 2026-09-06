@@ -29,6 +29,7 @@ markers = [
     "proc: forks real child processes and signals them; Linux-only, tmp_path-scoped",
     "live: runs a real vendor CLI (claude/codex/opencode); needs auth, spends tokens, deselected unless --run-live",
     "acceptance: a §5 drill row of the phase-5 plan, asserted end to end at a real foreman seam",
+    "nested_sandbox: needs a writable uv cache and an un-nested vendor sandbox; deselected by scripts/verify-feature.sh, which runs inside one",
 ]
 # `--strict-markers` only: a typo'd or unregistered marker is a collection
 # ERROR, not a warning that leaves the test silently passing unfiltered. It is

@@ -597,12 +597,17 @@ def _uv_env(scratch: Path | None) -> dict[str, str]:
 
 
 @pytest.mark.proc
+@pytest.mark.nested_sandbox
 def test_the_nodes_own_uv_gate_runs_under_the_bound(tmp_path: Path) -> None:
     """Plan §2 blocker 2: a read-only checkout breaks `uv run` without the env.
 
     Both halves, because only the pair shows the env is load-bearing rather than
     decorative: WITHOUT it `uv` dies creating `.venv` in the checkout; WITH it
     the node's own test file passes inside the same box.
+
+    `nested_sandbox`: `toolchain_env` redirects the project environment but not
+    the uv CACHE, so the inner `uv run` still writes `~/.cache/uv` — read-only
+    when the gate itself runs inside a vendor sandbox, which fails this test.
     """
     capability = probe(_config(tmp_path))
     if not capability.available:

@@ -214,6 +214,7 @@ def _sandbox_write(cwd: Path, target: str) -> str:
 
 
 @pytest.mark.proc
+@pytest.mark.nested_sandbox
 @pytest.mark.parametrize(
     ("layout", "target"), [("repo", ".git/config"), ("worktree", ".git")]
 )
@@ -232,6 +233,10 @@ def test_the_codex_sandbox_makes_dot_git_read_only_in_the_layout_it_is_given(
 
     Skipped rather than assumed when codex is absent: an assertion about an OS
     sandbox that silently does not run is worse than no assertion (§0.3).
+
+    `nested_sandbox`: codex's sandbox cannot start inside another one — its own
+    bwrap mount registry lock lands on a read-only path — so this test fails
+    rather than skips when the gate runs from inside a vendor activation.
     """
     if shutil.which(CODEX) is None:
         pytest.skip(_SKIP_NO_CODEX)

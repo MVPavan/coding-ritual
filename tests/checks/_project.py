@@ -63,6 +63,7 @@ markers = [
     "bd: unused here; declared so the gate's marker expression selects nothing",
     "proc: the fixture's own proc-marked test",
     "live: unused here",
+    "nested_sandbox: unused here; declared because the gate's `-m` names it",
 ]
 """
 

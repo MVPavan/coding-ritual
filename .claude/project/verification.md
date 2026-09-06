@@ -42,3 +42,22 @@ The `proc`-marked sandbox tests exercise the real bubblewrap mount bound, so a
 green run on a host with no working `bwrap` proves nothing about that bound —
 those tests skip loudly with the probe's reason — whereas the refusal-path test
 and the `plan_for`/`wrap` unit tests use no real `bwrap` and must never skip.
+
+## Workflow interpreter — the repo gate
+
+Run all five from the repo root; this is the full gate, and it is the ONLY
+place the `nested_sandbox` family runs:
+
+1. `uv run pytest -q -m "not bd and not live"`
+2. `uv run pytest -q -m bd` (needs the real `bd` binary)
+3. `uv run pytest -q -m proc`
+4. `uv run ruff check workflow_interpreter/ tests/` and
+   `uv run ruff format --check workflow_interpreter/ tests/`
+5. `MYPYPATH=. uv run mypy --strict --explicit-package-bases workflow_interpreter/`
+
+`scripts/verify-feature.sh` is the same recipe minus `-m bd` and minus
+`nested_sandbox`, because the wrapper runs it INSIDE a vendor sandbox, where a
+nested `codex sandbox` cannot start and a nested `uv run` cannot write
+`~/.cache/uv` (cr-o85.34.22, phase-7 live D2). Those tests are not weaker — they
+are simply unrunnable there — so the repo gate above must be run on any change
+that touches `sandbox.py`, `profiles/`, or the git-isolation tests.

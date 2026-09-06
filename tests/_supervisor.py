@@ -81,6 +81,24 @@ REVIEW_SCRIPT: Final[str] = "scripts/review-checks.sh"
 SHELL: Final[str] = "/bin/sh"
 GIT_TIMEOUT_S: Final[float] = 60.0
 
+HUMAN_NAME: Final[str] = "wf test"
+HUMAN_EMAIL: Final[str] = "wf@test"
+ENV_GIT_AUTHOR_NAME: Final[str] = "GIT_AUTHOR_NAME"
+ENV_GIT_AUTHOR_EMAIL: Final[str] = "GIT_AUTHOR_EMAIL"
+HUMAN_IDENTITY: Final[dict[str, str]] = {
+    ENV_GIT_AUTHOR_NAME: HUMAN_NAME,
+    ENV_GIT_AUTHOR_EMAIL: HUMAN_EMAIL,
+    ENV_GIT_COMMITTER_NAME: HUMAN_NAME,
+    ENV_GIT_COMMITTER_EMAIL: HUMAN_EMAIL,
+}
+"""The human identity every throwaway repo commits under, as ENVIRONMENT.
+
+Repo config alone was not enough: `GIT_COMMITTER_EMAIL` OVERRIDES `user.email`,
+and the wrapper exports the §7.4 runner identity into every child environment
+— so a suite run from inside an activation committed as `runner+<id>@...` and
+`test_commit_helpers_reject_non_commits_and_git_failures` failed on it
+(cr-o85.34.22, phase-7 live D2)."""
+
 PASSING_SCRIPT: Final[str] = "#!/bin/sh\nexit 0\n"
 FAILING_SCRIPT: Final[str] = "#!/bin/sh\nexit 1\n"
 
@@ -174,7 +192,11 @@ def dead_pid() -> int:
 
 
 def _git(repo: Path, *args: str, env: dict[str, str] | None = None) -> str:
-    """Run git in a throwaway repo with an explicit timeout."""
+    """Run git in a throwaway repo with an explicit timeout and identity.
+
+    `HUMAN_IDENTITY` is merged BEFORE the caller's `env`, so `runner_git` still
+    commits as the runner while everything else is pinned to the human.
+    """
     completed = subprocess.run(
         ["git", *args],
         cwd=repo,
@@ -182,7 +204,7 @@ def _git(repo: Path, *args: str, env: dict[str, str] | None = None) -> str:
         capture_output=True,
         text=True,
         timeout=GIT_TIMEOUT_S,
-        env=None if env is None else {**os.environ, **env},
+        env={**os.environ, **HUMAN_IDENTITY, **(env or {})},
     )
     return completed.stdout.strip()
 
@@ -192,8 +214,8 @@ def make_repo(tmp_path: Path, name: str = "repo") -> Path:
     repo = tmp_path / name
     repo.mkdir(parents=True, exist_ok=True)
     _git(repo, "init", "--quiet", "--initial-branch=main")
-    _git(repo, "config", "user.email", "wf@test")
-    _git(repo, "config", "user.name", "wf test")
+    _git(repo, "config", "user.email", HUMAN_EMAIL)
+    _git(repo, "config", "user.name", HUMAN_NAME)
     _git(repo, "config", "commit.gpgsign", "false")
     (repo / "scripts").mkdir(exist_ok=True)
     (repo / "src").mkdir(exist_ok=True)

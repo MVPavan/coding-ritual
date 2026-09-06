@@ -36,8 +36,12 @@ check() {
 # that is not about the commit under test.
 # The steer proc test was deselected here for cr-o85.34.13 while cr-us7 was open.
 # It is back: the wrapper now defers to a durable §8.1 steer intent (cr-us7).
-check tests uv run pytest -q -m "not bd and not live"
-check proc-tests uv run pytest -q -m proc
+# `nested_sandbox` is deselected in BOTH selections because this script's own
+# runs happen inside a vendor sandbox: a nested `codex sandbox` cannot start and
+# a nested `uv run` cannot write `~/.cache/uv` (cr-o85.34.22, phase-7 live D2).
+# The repo gate still runs them — see `.claude/project/verification.md`.
+check tests uv run pytest -q -m "not bd and not live and not nested_sandbox"
+check proc-tests uv run pytest -q -m "proc and not nested_sandbox"
 check ruff-check uv run ruff check workflow_interpreter/ tests/
 check ruff-format uv run ruff format --check workflow_interpreter/ tests/
 check mypy env MYPYPATH=. uv run mypy --strict --explicit-package-bases workflow_interpreter/
