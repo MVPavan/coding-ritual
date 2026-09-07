@@ -13,8 +13,8 @@ assumed (plan §2):
 - **Bind order IS mount order.** A read-only pin emitted BEFORE a later
   read-write bind of its parent is re-opened by that bind. `wrap` therefore
   emits, unconditionally: broad ro roots → git rw → grants → channels →
-  **ro pins LAST**. `SandboxPlan`'s field order is that order; nothing else
-  keeps them in step.
+  uv-cache → **ro pins LAST**. `SandboxPlan`'s field order is that order;
+  nothing else keeps them in step.
 - **`--dev-bind / /` leaves everything not explicitly bound WRITABLE.** The
   `repo_root`/`wrapper_root` ro-binds are load-bearing, not defensive. `$HOME`
   and `/tmp` stay writable by design — an accepted residual (plan §8).
@@ -153,6 +153,10 @@ _MSG_GITDIR: Final[str] = (
 _MSG_ESCAPES: Final[str] = (
     "allowed_paths entry {grant!r} resolves to {resolved}, outside the checkout "
     "{checkout}; a grant may never widen the bound"
+)
+_MSG_GRANT_SYMLINK: Final[str] = (
+    "allowed_paths entry {grant!r} has symlinked directory segment {segment!r} "
+    "at {path}; a grant must name the same path git will report"
 )
 _MSG_GRANT_SHAPE: Final[str] = (
     "allowed_paths entry {grant!r} is not a directory grant; every entry must "
@@ -301,6 +305,13 @@ def _grant_path(grant: str, checkout: Path) -> Path:
     checkout pointing out of it is exactly the escape a lexical check misses.
     """
     relative = grant_directory(grant)
+    named = checkout
+    for segment in relative.parts:
+        named /= segment
+        if named.is_symlink():
+            raise SandboxPathRefused(
+                _MSG_GRANT_SYMLINK.format(grant=grant, segment=segment, path=named)
+            )
     resolved = (checkout / relative).resolve()
     if not resolved.is_relative_to(checkout):
         raise SandboxPathRefused(
@@ -338,24 +349,9 @@ def _common_dir(gitdir: Path) -> Path:
     return named.resolve()
 
 
-def _sibling_worktree_pins(git_dir: Path) -> tuple[Path, ...]:
-    """Every OTHER worktree's pointer and config files, under an in-repo `.git`.
-
-    In-repo mode binds `.git` read-write as a whole, which hands the node every
-    sibling instance's `<G>` as well as its own. Each of those carries the same
-    `commondir` escape aimed at a different instance, so they are pinned the
-    same way — sorted, and existence-gated by `_existing` at the call site.
-    """
-    return tuple(
-        sorted(
-            path
-            for name in (COMMONDIR_FILE, GITDIR_FILE, CONFIG_WORKTREE_FILE)
-            for path in git_dir.glob(f"{WORKTREES_DIR}/*/{name}")
-        )
-    )
-
-
-def _in_repo_binds(git_dir: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+def _in_repo_binds(
+    git_dir: Path,
+) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     """In-repo shape: `.git` read-write as a WHOLE, minus what executes programs.
 
     Whole, because `index.lock` is created directly in `.git/` and a runner that
@@ -364,12 +360,14 @@ def _in_repo_binds(git_dir: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     paths, `hooks/` holds the programs, `info/attributes` selects filter
     drivers, and `modules/*/config` is the same surface per submodule.
 
-    `worktrees/*/{commondir,gitdir,config.worktree}` is the same surface for
-    every OTHER instance's worktree, which a whole-`.git` bind also hands over
-    (`_sibling_worktree_pins`).
+    The complete `worktrees/` directory is pinned, rather than enumerating its
+    current children: a sibling created after planning is otherwise writable
+    until this dispatch ends.
     """
     _ensure_file(git_dir / CONFIG_WORKTREE_FILE)
     _ensure_dir(git_dir / INFO_DIR)
+    worktrees = git_dir / WORKTREES_DIR
+    _ensure_dir(worktrees)
     pins = _existing(
         (
             git_dir / CONFIG_FILE,
@@ -377,14 +375,16 @@ def _in_repo_binds(git_dir: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
             git_dir / HOOKS_DIR,
             git_dir / INFO_DIR,
             *sorted(git_dir.glob(MODULES_CONFIG_GLOB)),
-            *_sibling_worktree_pins(git_dir),
             git_dir / WF_REFS_DIR,
+            worktrees,
         )
     )
     return ((git_dir,), pins)
 
 
-def _worktree_binds(git_file: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+def _worktree_binds(
+    git_file: Path,
+) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     """Worktree shape: the common object store plus this worktree's own git dir.
 
     `logs` is load-bearing and was missed first: without it `git commit` dies
@@ -426,7 +426,9 @@ def _worktree_binds(git_file: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]
     return (git_rw, pins)
 
 
-def _git_binds(checkout: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+def _git_binds(
+    checkout: Path,
+) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     """Route on what `<C>/.git` actually IS — directory, file, or nothing.
 
     No subprocess: the shape is on disk, and asking git would mean running git

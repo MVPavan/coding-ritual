@@ -655,6 +655,12 @@ The wrapper wraps every profile's argv in the bubblewrap mount bound
 before exec: the checkout is read-only except the node's `allowed_paths`
 grants, `channels/` and the git object/ref stores, which are writable,
 while `config`, `hooks/`, `info/` and `refs/wf` are pinned read-only.
+Each grant directory and every segment leading to it must be a real directory:
+a symlink is refused before dispatch as a retry-exempt sandbox-unavailable
+condition, because mounting its realpath would disagree with the lexical path
+that git reports. In an in-repo checkout, the wrapper pins the complete
+`<git-dir>/worktrees` directory; this keeps sibling worktrees created after
+plan construction read-only.
 The wrapper-root `uv-cache` is also bound read-write so `UV_CACHE_DIR` and
 `UV_PYTHON_INSTALL_DIR` never fall back to `$HOME` and activations reuse a warm tool cache.
 Profiles neither opt in nor out. `sandbox = off` is an unsafe switch,

@@ -21,8 +21,12 @@ from typing import Final, NamedTuple
 import pytest
 
 from workflow_interpreter.profiles._base import toolchain_env
+from workflow_interpreter.supervisor.channels import path_allowed
 from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import SandboxPathRefused
+from workflow_interpreter.supervisor.errors import (
+    SandboxPathRefused,
+    SandboxUnavailable,
+)
 from workflow_interpreter.supervisor.profile import TaskSpec, channels_for
 from workflow_interpreter.supervisor.sandbox import (
     ARG_BIND,
@@ -344,6 +348,15 @@ def test_grant_directory_refuses_every_shape_the_mount_bound_refuses(
         grant_directory(grant)
 
 
+def test_a_bare_grant_directory_is_allowed_by_the_shared_grant_mapping() -> None:
+    """`src` and `src/` must not be false outside `src/**` for a dirty submodule."""
+    grant = "src/**"
+
+    assert grant_directory(grant) == PurePosixPath("src")
+    assert path_allowed("src", (grant,)) is True
+    assert path_allowed("src/", (grant,)) is True
+
+
 def test_grant_resolving_outside_the_checkout_is_refused(tmp_path: Path) -> None:
     """A symlinked grant is the escape `realpath` containment exists to catch."""
     rig = _plain_rig(tmp_path)
@@ -352,6 +365,17 @@ def test_grant_resolving_outside_the_checkout_is_refused(tmp_path: Path) -> None
     (rig.checkout / "escape").symlink_to(outside)
     with pytest.raises(SandboxPathRefused):
         _plan(rig, allowed_paths=("escape/**",))
+
+
+def test_a_grant_with_a_symlinked_directory_segment_is_refused(tmp_path: Path) -> None:
+    """`link/child/**` must not mount `real/child` and misclassify `link/x`."""
+    rig = _plain_rig(tmp_path)
+    real = rig.checkout / "real"
+    real.mkdir()
+    (rig.checkout / "link").symlink_to(real, target_is_directory=True)
+
+    with pytest.raises(SandboxUnavailable, match="link"):
+        _plan(rig, allowed_paths=("link/child/**",))
 
 
 def test_writes_false_gets_no_grants_and_no_git_rw(tmp_path: Path) -> None:
@@ -705,21 +729,19 @@ def test_the_worktree_gitdir_pointers_cannot_be_repointed(tmp_path: Path) -> Non
 
 
 @pytest.mark.proc
-def test_the_in_repo_shape_pins_every_sibling_worktree_pointer(tmp_path: Path) -> None:
-    """In-repo mode binds `.git` WHOLE, so a node reaches other instances' worktrees.
-
-    `.git/worktrees/<other>/commondir` is the same escape aimed at a sibling
-    instance rather than at this one.
-    """
+def test_the_in_repo_shape_blocks_a_sibling_worktree_added_after_planning(
+    tmp_path: Path,
+) -> None:
+    """A post-plan sibling `commondir` write must fail, not receive `.git` rw."""
     capability = probe(_config(tmp_path))
     if not capability.available:
         pytest.skip(capability.reason)
     rig = _in_repo_rig(tmp_path)
+    plan = _plan(rig)
     sibling = tmp_path / "sibling"
     _git(rig.repo_root, "worktree", "add", "--quiet", str(sibling), "-b", "wf-other")
     pointer = rig.checkout / ".git" / "worktrees" / sibling.name / COMMONDIR_FILE
-    plan = _plan(rig)
-    assert pointer in plan.ro_pins
+    assert rig.checkout / ".git" / "worktrees" in plan.ro_pins
 
     repointed = _run(wrap((), plan), f"echo /tmp > {pointer}", rig.checkout)
     assert repointed.returncode != 0

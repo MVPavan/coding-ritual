@@ -74,13 +74,14 @@ class SandboxUnavailable(SupervisorError):
     """
 
 
-class SandboxPathRefused(SupervisorError):
+class SandboxPathRefused(SandboxUnavailable):
     """A path could not be made into a mount bind the bound may safely carry.
 
     Defence in depth behind the §4 schema pattern: a grant resolving outside the
     checkout, or a mandatory read-only root that is not on disk. Refusing here
     beats handing bwrap a bad bind source, which fails as an ambiguous `rc=1`
-    (plan §8).
+    (plan §8). It is a permanent bound refusal, so inheriting
+    `SandboxUnavailable` sends it through the same retry-exempt halt path.
     """
 
 

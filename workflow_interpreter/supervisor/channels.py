@@ -38,6 +38,7 @@ from workflow_interpreter.supervisor import fswalk
 from workflow_interpreter.supervisor.models import EffectsManifest, OutcomeMarker
 from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
 from workflow_interpreter.supervisor.paths import read_json_documents
+from workflow_interpreter.supervisor.sandbox import grant_directory
 
 VERIFIER_DIGEST_KEY: Final[str] = "verify.{node}.{program}.sha256"
 """The §7.3 pinned-digest convention in the root's resolved config. §14 defers
@@ -346,4 +347,7 @@ def path_allowed(path: str, allowed_paths: tuple[str, ...]) -> bool:
     (ADR 0001).
     """
     candidate = PurePosixPath(path)
-    return any(candidate.full_match(pattern) for pattern in allowed_paths)
+    return any(
+        candidate == grant_directory(pattern) or candidate.full_match(pattern)
+        for pattern in allowed_paths
+    )
