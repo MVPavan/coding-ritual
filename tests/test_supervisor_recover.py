@@ -45,6 +45,8 @@ from workflow_interpreter.supervisor import (
     EXIT_CODE_UNOBSERVED,
     DirtyTreeRefused,
     GitCommandError,
+    LaunchReceipt,
+    LaunchReceiptState,
     Liveness,
     PinOutcome,
     Recovery,
@@ -56,7 +58,7 @@ from workflow_interpreter.supervisor import (
     namespaced_ref,
 )
 from workflow_interpreter.supervisor.artifact import INSTANCE_BRANCH_REF
-from workflow_interpreter.supervisor.paths import write_record
+from workflow_interpreter.supervisor.paths import read_record, write_record
 from workflow_interpreter.supervisor.steer import instructions_digest
 from workflow_interpreter.supervisor.workspace import ORPHAN_NAMESPACE
 
@@ -175,6 +177,37 @@ def test_a_minted_activation_is_not_launched_and_never_closed(lab: Lab) -> None:
     assert (
         lab.store.reads.load_activation(minted.activation_id).metadata.outcome is None
     )
+
+
+def test_abort_pending_receipt_is_terminated_until_it_becomes_aborted(lab: Lab) -> None:
+    """Barrier cleanup owns its receipt even when bd never recorded a runner."""
+    handle = lab.activation.metadata.handle
+    assert handle is not None
+    write_record(
+        lab.paths.receipt(lab.activation.activation_id),
+        LaunchReceipt(
+            launch_id="barrier-abort",
+            root_id=lab.root.root_id,
+            activation_id=lab.activation.activation_id,
+            argv=("/bin/false",),
+            cwd=str(lab.repo),
+            handle=handle,
+            state=LaunchReceiptState.ABORT_PENDING,
+        ),
+    )
+
+    classification = lab.recovery.classify(lab.reload())
+    result = lab.recovery.resolve(lab.reload(), lab.node)
+    receipt = read_record(
+        lab.paths.receipt(lab.activation.activation_id), LaunchReceipt
+    )
+
+    assert classification.case is RecoveryCase.ABORT_PENDING
+    assert result.termination is not None
+    assert result.termination.confirmed_dead is True
+    assert receipt is not None
+    assert receipt.state is LaunchReceiptState.ABORTED
+    assert receipt.abort_exit_code == result.termination.exit_code
 
 
 def test_the_exit_file_is_the_crash_window_fallback(lab: Lab) -> None:

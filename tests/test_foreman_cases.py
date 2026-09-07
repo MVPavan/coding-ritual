@@ -8,13 +8,13 @@ from tests._bdio import entry_request, handle
 from tests._foreman import FAKE_PROFILE, ForemanLab
 from tests._supervisor import SESSION_ID, ChildScript
 from workflow_interpreter.bdio import Lifecycle
-from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry
+from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry, route_head
 from workflow_interpreter.foreman.compose import WrapperLaunch
 from workflow_interpreter.foreman.config import RunnerBinding
 from workflow_interpreter.foreman.constants import DISPATCH_REQUEST
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.supervisor import Recovery
-from workflow_interpreter.supervisor.models import CompletionEvidence
+from workflow_interpreter.supervisor.models import CompletionEvidence, RecoveryCase
 from workflow_interpreter.supervisor.paths import read_record
 
 
@@ -105,6 +105,34 @@ def test_dispatched_lifecycle_counts_the_two_writes_of_a_closing_recovery(
 
     assert result.settled == activation.activation_id
     assert _bd_writes(lab) - before == 2
+
+
+def test_infra_retry_waits_for_pending_barrier_abort_cleanup(tmp_path: Path) -> None:
+    """A closed transport retry cannot bypass the receipt's pending kill."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    minted = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    dispatched = lab.wiring().store.record_dispatch(minted.activation_id, handle())
+    closed = lab.wiring().store.close_activation(
+        dispatched.activation_id, Outcome.ERROR_TRANSPORT
+    )
+
+    class PendingAbortRecovery:
+        def classify(self, *_args: object) -> object:
+            return type("Classification", (), {"case": RecoveryCase.ABORT_PENDING})()
+
+        def resolve(self, *_args: object) -> object:
+            termination = type("Termination", (), {"confirmed_dead": False})()
+            return type("Resolution", (), {"termination": termination})()
+
+    wiring = replace(lab.wiring(), recovery=cast(Recovery, PendingAbortRecovery()))
+
+    result = route_head(lab.composition, wiring, root, closed)
+
+    assert result.stalled == "barrier abort cleanup is still pending"
+    assert len(lab.store.reads.list_activations(root.root_id)) == 1
 
 
 def test_exit_recorded_lifecycle_records_evidence_then_closes(tmp_path: Path) -> None:

@@ -13,6 +13,8 @@ exec→`record_dispatch` window the receipt exists to close.
 from __future__ import annotations
 
 import os
+import signal
+import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -43,6 +45,7 @@ from workflow_interpreter.supervisor import (
     ExecLedger,
     ExecLedgerEntry,
     ExecLedgerError,
+    ForkBarrierAbortError,
     ForkBarrierError,
     ForkBarrierLauncher,
     LaunchOutcome,
@@ -52,7 +55,9 @@ from workflow_interpreter.supervisor import (
     channels_for,
 )
 from workflow_interpreter.supervisor import launch as launch_module
+from workflow_interpreter.supervisor.models import LaunchReceiptState
 from workflow_interpreter.supervisor.paths import read_record, write_record
+from workflow_interpreter.supervisor.profile import RunnerCommand
 from workflow_interpreter.supervisor.sandbox import (
     ENV_UV_CACHE_DIR,
     ENV_UV_PYTHON_INSTALL_DIR,
@@ -283,6 +288,50 @@ def test_receipt_without_a_ledger_line_relaunches_once(lab: Lab) -> None:
     assert not lab.ledger_for(activation_id).has_launch("never-crossed")
     assert result.handle is not None
     _wait(result.handle.pid)
+
+
+def test_aborted_receipt_never_reattaches_even_with_a_ledger_line(
+    lab: Lab,
+) -> None:
+    """A barrier abort is never adopted as a launched runner.
+
+    The concrete input includes a ledger line because a child can append before
+    its ACK is lost. Neither an `aborted` receipt nor that line authorizes
+    `record_dispatch` or a second child.
+    """
+    minted = lab.store.mint_activation(lab.root.root_id, entry_mint())
+    activation_id = minted.activation.activation_id
+    lab.paths.ensure_activation_dir(activation_id)
+    receipt = LaunchReceipt(
+        launch_id="abort-pending",
+        root_id=lab.root.root_id,
+        activation_id=activation_id,
+        argv=("/bin/false",),
+        cwd=str(lab.repo),
+        handle=handle_for(1, log_path=str(lab.paths.log(activation_id))),
+        state=LaunchReceiptState.ABORTED,
+        abort_exit_code=-signal.SIGKILL,
+    )
+    write_record(lab.paths.receipt(activation_id), receipt)
+    lab.paths.ledger(activation_id).write_bytes(
+        ExecLedger.line(
+            ExecLedgerEntry(
+                launch_id=receipt.launch_id,
+                activation_id=activation_id,
+                pid=receipt.handle.pid,
+                at="2026-09-07T00:00:00Z",
+            )
+        )
+    )
+
+    with pytest.raises(ForkBarrierAbortError, match="never acknowledged"):
+        lab.dispatch()
+
+    assert (
+        lab.store.reads.load_activation(activation_id).metadata.lifecycle
+        is Lifecycle.MINTED
+    )
+    assert lab.wc_l(activation_id) == 1
 
 
 def test_exec_without_record_dispatch_reattaches(lab: Lab) -> None:
@@ -516,10 +565,187 @@ def test_abandoning_a_stuck_child_kills_its_whole_group(tmp_path: Path) -> None:
     assert os.getpgid(pid) == pid
     assert _alive(grandchild_pid)
 
-    launch_module._abandon(pid)
-    os.waitpid(pid, 0)
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    config = make_config(repo, tmp_path, fake_proc=False)
+    launch_module._abandon(config, FrozenClock(real_sleep_s=0.01), pid)
+    with pytest.raises(ChildProcessError):
+        os.waitpid(pid, os.WNOHANG)
 
     _await(lambda: not _alive(grandchild_pid))
+
+
+def test_abort_child_that_exits_on_term_reaps_once_and_marks_the_receipt_aborted(
+    tmp_path: Path,
+) -> None:
+    """A SIGTERM-exiting child used to leave a live-looking receipt after abort.
+
+    The concrete input is a real launcher child blocked in `sleep 60`; the
+    wrong output is a receipt still claiming `started`, or a second successful
+    `waitpid` after the abort already consumed the child's status.
+    """
+    lab = Lab(tmp_path, ChildScript(sleep_s=60))
+    lab.config = lab.config.model_copy(
+        update={"term_grace_s": 0.2, "kill_grace_s": 0.2, "poll_interval_s": 0.01}
+    )
+    lab.paths = WrapperPaths(lab.config, lab.root.root_id)
+    lab.clock = FrozenClock(real_sleep_s=0.01)
+    activation = lab.store.mint_activation(lab.root.root_id, entry_mint()).activation
+    activation_id = activation.activation_id
+    launcher = ForkBarrierLauncher(
+        lab.config,
+        lab.paths,
+        lab.clock,
+        activation_id=activation_id,
+        launch_id="abort-term-launch",
+        plan=SandboxPlan(
+            toolchain_cache=(lab.config.wrapper_root / UV_CACHE_DIRECTORY,)
+        ),
+        sandbox=SandboxMode.OFF,
+    )
+    lab.paths.ensure_activation_dir(activation_id)
+    command = lab.profile.build_command(
+        lab.build_task(
+            activation,
+            channels_for(
+                lab.paths.activation_dir(activation_id), lab.paths.log(activation_id)
+            ),
+        ),
+        SESSION_ID,
+    )
+    handle = launcher(command)
+
+    proof = launch_module._abort_child(
+        lab.config, lab.clock, lab.paths.receipt(activation_id), handle
+    )
+
+    receipt = read_record(lab.paths.receipt(activation_id), LaunchReceipt)
+    assert proof.confirmed_dead is True
+    assert proof.exit_code == -signal.SIGTERM
+    assert signal.SIGTERM.name in proof.signals_sent
+    assert receipt is not None
+    assert receipt.state.value == "aborted"
+    with pytest.raises(ChildProcessError):
+        os.waitpid(handle.pid, os.WNOHANG)
+
+
+def test_ack_timeout_aborts_and_marks_the_real_launch_receipt(tmp_path: Path) -> None:
+    """A child blocked before ACK used to be reaped without recording its abort.
+
+    The concrete input is a real child blocked opening a FIFO exec ledger; the
+    wrong output is a receipt still marked `started`, which makes a later
+    observer mistake this launch cleanup for a reattached child.
+    """
+    lab = Lab(tmp_path, ChildScript(sleep_s=60))
+    lab.config = lab.config.model_copy(
+        update={
+            "barrier_timeout_s": 0.1,
+            "term_grace_s": 0.2,
+            "kill_grace_s": 0.2,
+            "poll_interval_s": 0.01,
+        }
+    )
+    lab.paths = WrapperPaths(lab.config, lab.root.root_id)
+    lab.clock = FrozenClock(real_sleep_s=0.01)
+    activation = lab.store.mint_activation(lab.root.root_id, entry_mint()).activation
+    activation_id = activation.activation_id
+    lab.paths.ensure_activation_dir(activation_id)
+    os.mkfifo(lab.paths.ledger(activation_id))
+    launcher = ForkBarrierLauncher(
+        lab.config,
+        lab.paths,
+        lab.clock,
+        activation_id=activation_id,
+        launch_id="abort-ack-timeout-launch",
+        plan=SandboxPlan(
+            toolchain_cache=(lab.config.wrapper_root / UV_CACHE_DIRECTORY,)
+        ),
+        sandbox=SandboxMode.OFF,
+    )
+    command = lab.profile.build_command(
+        lab.build_task(
+            activation,
+            channels_for(
+                lab.paths.activation_dir(activation_id), lab.paths.log(activation_id)
+            ),
+        ),
+        SESSION_ID,
+    )
+
+    with pytest.raises(ForkBarrierAbortError, match="never acknowledged"):
+        launcher(command)
+
+    receipt = read_record(lab.paths.receipt(activation_id), LaunchReceipt)
+    assert receipt is not None
+    assert receipt.state is LaunchReceiptState.ABORTED
+    with pytest.raises(ChildProcessError):
+        os.waitpid(receipt.handle.pid, os.WNOHANG)
+
+
+def test_abort_child_ignoring_term_escalates_without_reattached_status(
+    tmp_path: Path,
+) -> None:
+    """A TERM-trapping real child must be KILLed, not reclassified as reattached.
+
+    The concrete input is a real Python runner which has installed a SIGTERM
+    trap; the wrong output is an unconsumed status or a receipt left
+    `abort-pending` after the bounded TERM → KILL escalation.
+    """
+    lab = Lab(tmp_path)
+    lab.config = lab.config.model_copy(
+        update={"term_grace_s": 0.2, "kill_grace_s": 0.2, "poll_interval_s": 0.01}
+    )
+    lab.paths = WrapperPaths(lab.config, lab.root.root_id)
+    lab.clock = FrozenClock(real_sleep_s=0.01)
+    activation = lab.store.mint_activation(lab.root.root_id, entry_mint()).activation
+    activation_id = activation.activation_id
+    launcher = ForkBarrierLauncher(
+        lab.config,
+        lab.paths,
+        lab.clock,
+        activation_id=activation_id,
+        launch_id="abort-ignore-term-launch",
+        plan=SandboxPlan(
+            toolchain_cache=(lab.config.wrapper_root / UV_CACHE_DIRECTORY,)
+        ),
+        sandbox=SandboxMode.OFF,
+    )
+    lab.paths.ensure_activation_dir(activation_id)
+    channels = channels_for(
+        lab.paths.activation_dir(activation_id), lab.paths.log(activation_id)
+    )
+    term_ready = tmp_path / "term-ready"
+    command = RunnerCommand(
+        argv=(
+            sys.executable,
+            "-c",
+            (
+                "import pathlib, signal, time; "
+                "signal.signal(signal.SIGTERM, lambda *_: None); "
+                f"pathlib.Path({str(term_ready)!r}).write_text('ready'); "
+                "exec('while True: time.sleep(0.01)')"
+            ),
+        ),
+        env={"PATH": "/usr/bin:/bin", **channels.env()},
+        cwd=str(lab.repo),
+        log_path=str(lab.paths.log(activation_id)),
+        session_id=SESSION_ID,
+    )
+    handle = launcher(command)
+    _await(term_ready.exists)
+
+    proof = launch_module._abort_child(
+        lab.config, lab.clock, lab.paths.receipt(activation_id), handle
+    )
+
+    receipt = read_record(lab.paths.receipt(activation_id), LaunchReceipt)
+    assert proof.confirmed_dead is True
+    assert proof.exit_code == -signal.SIGKILL
+    assert proof.signals_sent == (signal.SIGTERM.name, signal.SIGKILL.name)
+    assert receipt is not None
+    assert receipt.state.value == "aborted"
+    with pytest.raises(ChildProcessError):
+        os.waitpid(handle.pid, os.WNOHANG)
 
 
 def _alive(pid: int) -> bool:

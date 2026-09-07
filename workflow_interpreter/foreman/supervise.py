@@ -17,6 +17,7 @@ from workflow_interpreter.bdio import (
     RootRecord,
 )
 from workflow_interpreter.bdio.constants import (
+    DEVIATION_FORK_BARRIER_ABORT,
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
     DEVIATION_SANDBOX_UNAVAILABLE,
@@ -43,6 +44,7 @@ from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     DirtyTreeRefused,
     ExecLedgerError,
+    ForkBarrierAbortError,
     ForkBarrierError,
     LockUnavailable,
     PreconditionRefused,
@@ -222,6 +224,22 @@ def run_wrapper(
             WrapperExit.STALE
             if dispatch.dispatch.outcome is LaunchOutcome.ALREADY_DISPATCHED
             else WrapperExit.DONE
+        )
+    except ForkBarrierAbortError as exc:
+        # This is deliberately not in bdio.bounds' retry-exempt set: it closes
+        # `error_transport` and consumes the normal §10.2 infra retry.
+        return _close_error(
+            resolved,
+            activation_id,
+            Outcome.ERROR_TRANSPORT,
+            exc,
+            deviations=(
+                Deviation(
+                    kind=DEVIATION_FORK_BARRIER_ABORT,
+                    reason=str(exc),
+                    recorded_at="wrapper",
+                ),
+            ),
         )
     except (
         ForkBarrierError,

@@ -52,7 +52,10 @@ from workflow_interpreter.foreman.inputs import select_bindings
 from workflow_interpreter.foreman.routing import RouteKind, retry_kind, route
 from workflow_interpreter.foreman.supervise import wrapper_alive
 from workflow_interpreter.schema.models import NodeKind
+from workflow_interpreter.supervisor.models import RecoveryCase
 from workflow_interpreter.supervisor.paths import write_record
+
+_STALL_ABORT_PENDING = "barrier abort cleanup is still pending"
 
 
 class CaseResult(BaseModel):
@@ -406,6 +409,14 @@ def route_head(
                 else resolution.closed.activation_id,
                 stalled=resolution.halted,
             )
+        classification = wiring.recovery.classify(head)
+        if classification.case is RecoveryCase.ABORT_PENDING:
+            resolution = wiring.recovery.resolve(head, node)
+            if (
+                resolution.termination is None
+                or not resolution.termination.confirmed_dead
+            ):
+                return CaseResult(stalled=_STALL_ABORT_PENDING)
         # Built field by field rather than copied from `_request`: a retry's
         # only predecessor is the activation it re-attempts, never the gate that
         # originally minted it, and `MintRequest` refuses both at once

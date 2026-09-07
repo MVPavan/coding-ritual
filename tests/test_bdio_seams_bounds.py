@@ -10,6 +10,7 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.bounds import consecutive_infra_closes
 from workflow_interpreter.bdio.constants import (
     DEVIATION_BOUND_VIOLATED,
+    DEVIATION_FORK_BARRIER_ABORT,
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
     DEVIATION_SANDBOX_UNAVAILABLE,
@@ -68,6 +69,41 @@ def test_an_exempt_refusal_neither_counts_nor_breaks_an_infra_run(
         ),
     ).activation
     run_to_close(fake_store, last.activation_id, Outcome.ERROR_TRANSPORT)
+
+    activations = fake_store.reads.list_activations(root.root_id)
+    assert consecutive_infra_closes(views_of(activations), "implement", 1) == 2
+
+
+def test_barrier_abort_deviation_counts_as_a_consecutive_infra_close(
+    fake_store: WorkflowStore,
+) -> None:
+    """Barrier aborts are transport failures, unlike halt-gate refusals."""
+    root = make_root(fake_store, load_definition())
+    first = fake_store.mint_activation(root.root_id, entry_request()).activation
+    run_to_close(fake_store, first.activation_id, Outcome.ERROR_TRANSPORT)
+    second = fake_store.mint_activation(
+        root.root_id,
+        entry_request(
+            mint_reason=MintReason.INFRA_RETRY,
+            predecessor_activation_id=first.activation_id,
+        ),
+    ).activation
+    fake_store.record_dispatch(second.activation_id, handle())
+    fake_store.record_exit(
+        second.activation_id,
+        ExitRecord(exit_code=1, ended_at="2026-09-07T00:00:00Z", reason="abort"),
+    )
+    fake_store.close_activation(
+        second.activation_id,
+        Outcome.ERROR_TRANSPORT,
+        deviations=(
+            Deviation(
+                kind=DEVIATION_FORK_BARRIER_ABORT,
+                reason="barrier abort",
+                recorded_at="wrapper",
+            ),
+        ),
+    )
 
     activations = fake_store.reads.list_activations(root.root_id)
     assert consecutive_infra_closes(views_of(activations), "implement", 1) == 2

@@ -24,6 +24,10 @@ class ForkBarrierError(SupervisorError):
     """The child never reached the barrier, or crossed it without a receipt (§5.2)."""
 
 
+class ForkBarrierAbortError(ForkBarrierError):
+    """An unacknowledged barrier child was aborted and was never a runner (§5.2)."""
+
+
 class ExecLedgerError(SupervisorError):
     """The exec ledger disagrees with what the launch claims happened (§5.2)."""
 

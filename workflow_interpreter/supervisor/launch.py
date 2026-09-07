@@ -67,6 +67,7 @@ import shutil
 import signal
 import uuid
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Final, Protocol
 
 import structlog
@@ -87,6 +88,7 @@ from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     ExecLedgerError,
+    ForkBarrierAbortError,
     ForkBarrierError,
     SandboxUnavailable,
     WrapperDirError,
@@ -96,8 +98,10 @@ from workflow_interpreter.supervisor.models import (
     ExecLedgerEntry,
     LaunchOutcome,
     LaunchReceipt,
+    LaunchReceiptState,
     PreconditionResult,
     SteerIntent,
+    TerminationProof,
 )
 from workflow_interpreter.supervisor.paths import (
     ExecLedger,
@@ -379,7 +383,7 @@ class ForkBarrierLauncher:
     ) -> ProcessHandle:
         """Prove the child is parked, make the receipt durable, then release it."""
         if not _await_byte(ready_read, READY, self._config.barrier_timeout_s):
-            _abandon(pid)
+            _abandon(self._config, self._clock, pid)
             raise ForkBarrierError(
                 _MSG_NO_READY.format(pid=pid, timeout_s=self._config.barrier_timeout_s)
             )
@@ -389,7 +393,7 @@ class ForkBarrierLauncher:
             # Both are halves of the §5.3 identity §5.6 proves liveness with.
             # `read_boot_id` answers `None` rather than raising now (§8.2's
             # INDETERMINATE contract), so the refusal has to be made here.
-            _abandon(pid)
+            _abandon(self._config, self._clock, pid)
             missing = "start time" if start_time is None else "boot id"
             raise ForkBarrierError(_MSG_NO_IDENTITY.format(pid=pid, missing=missing))
         handle = ProcessHandle(
@@ -424,8 +428,13 @@ class ForkBarrierLauncher:
         )
         os.write(go_write, len(line).to_bytes(LENGTH_BYTES, LENGTH_ORDER) + line)
         if not _await_byte(ready_read, ACK, self._config.barrier_timeout_s):
-            _abandon(pid)
-            raise ForkBarrierError(_MSG_NO_ACK.format(pid=pid))
+            _abort_child(
+                self._config,
+                self._clock,
+                self._paths.receipt(self._activation_id),
+                handle,
+            )
+            raise ForkBarrierAbortError(_MSG_NO_ACK.format(pid=pid))
         _LOG.info(
             "wf.child.launched",
             activation_id=self._activation_id,
@@ -457,7 +466,7 @@ def _vendor_resolves(program: str, env: Mapping[str, str]) -> bool:
     return True
 
 
-def _abandon(pid: int) -> None:
+def _abandon(config: SupervisorConfig, clock: Clock, pid: int) -> None:
     """Kill and reap a child that never became a runner. Best effort by design.
 
     The GROUP, not the pid, whenever the child got as far as `setsid` — which
@@ -470,6 +479,14 @@ def _abandon(pid: int) -> None:
     before `setsid` is still in the SUPERVISOR's group, and `killpg` on its pid
     would then either hit nothing or hit a group that is not ours — so that
     case gets a plain `kill`.
+
+    Both callers run before the parent writes either the receipt or the release:
+    the no-READY path has no handle, and the no-identity path refuses to create
+    one. That child therefore cannot have appended an exec-ledger line or become
+    a reattachable runner, so no later monitor or §5.6 recovery observer needs
+    its wait status. After SIGKILL, this path waits one short, identity-proven
+    interval before collecting so the wrapper does not carry a zombie; without
+    an identity it keeps `collect` non-blocking rather than guessing.
     """
     try:
         owns_group = os.getpgid(pid) == pid
@@ -482,7 +499,57 @@ def _abandon(pid: int) -> None:
             os.kill(pid, signal.SIGKILL)
     except (ProcessLookupError, PermissionError):
         return
-    procfs.reap(pid)
+    start_time = procfs.read_start_time(config, pid)
+    boot_id = procfs.read_boot_id(config)
+    if start_time is not None and boot_id is not None:
+        handle = ProcessHandle(
+            pid=pid,
+            pgid=pid if owns_group else os.getpgrp(),
+            host=config.host,
+            host_boot_id=boot_id,
+            proc_start_time=start_time,
+            started_at=to_iso(clock.now()),
+            log_path="",
+            session_id="",
+        )
+        procfs.await_death(config, handle, clock, config.kill_grace_s)
+    # `collect` consumes a status only when the kernel has already confirmed death.
+    procfs.collect(pid)
+
+
+def _abort_child(
+    config: SupervisorConfig,
+    clock: Clock,
+    receipt_path: Path,
+    handle: ProcessHandle,
+) -> TerminationProof:
+    """Terminate an ACK-timeout child and make its receipt say what was proven.
+
+    `terminate` alone is allowed to reap, and only after handle identity proves
+    death. If that proof is unavailable, `abort-pending` preserves the durable
+    handle solely for recovery to finish the kill; dispatch never adopts it.
+    """
+    termination = procfs.terminate(config, handle, clock)
+    try:
+        receipt = read_record(receipt_path, LaunchReceipt)
+    except WrapperDirError as exc:
+        _LOG.warning(
+            "wf.abort.receipt_malformed", path=str(receipt_path), error=str(exc)
+        )
+        receipt = None
+    if receipt is not None and receipt.handle == handle:
+        state = (
+            LaunchReceiptState.ABORTED
+            if termination.confirmed_dead
+            else LaunchReceiptState.ABORT_PENDING
+        )
+        write_record(
+            receipt_path,
+            receipt.model_copy(
+                update={"state": state, "abort_exit_code": termination.exit_code}
+            ),
+        )
+    return termination
 
 
 def _child(
@@ -767,6 +834,8 @@ class Dispatcher:
         deterministic answer (drill 18).
         """
         receipt = self._read_receipt(activation_id)
+        if receipt is not None and receipt.state is not LaunchReceiptState.STARTED:
+            raise ForkBarrierAbortError(_MSG_NO_ACK.format(pid=receipt.handle.pid))
         if receipt is not None and ledger.has_launch(receipt.launch_id):
             return receipt
         count = ledger.count()
@@ -895,7 +964,7 @@ class Dispatcher:
         before: int,
     ) -> None:
         """Verify the launch went through the barrier — never assume it did (§6)."""
-        receipt = read_record(self._paths.receipt(activation_id), LaunchReceipt)
+        receipt = self._read_receipt(activation_id)
         if receipt is None or receipt.launch_id != launcher.launch_id:
             raise ForkBarrierError(_MSG_NO_RECEIPT.format(launch_id=launcher.launch_id))
         if receipt.handle != handle:

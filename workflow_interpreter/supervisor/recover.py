@@ -87,6 +87,8 @@ from workflow_interpreter.supervisor.models import (
     RECORD_MODEL,
     CompletionEvidence,
     ExitReason,
+    LaunchReceipt,
+    LaunchReceiptState,
     Liveness,
     LivenessProof,
     PinOutcome,
@@ -100,6 +102,7 @@ from workflow_interpreter.supervisor.paths import (
     WrapperPaths,
     read_record,
     read_tail,
+    write_record,
 )
 from workflow_interpreter.supervisor.steer import Steerer, SteerResult
 from workflow_interpreter.supervisor.workspace import Workspace
@@ -113,6 +116,7 @@ MALFORMED_EXIT_FILE: Final[str] = "exit-file"
 MALFORMED_LOG: Final[str] = "log"
 MALFORMED_COMPLETION: Final[str] = "completion"
 MALFORMED_STEER_INTENT: Final[str] = "steer-intent"
+MALFORMED_RECEIPT: Final[str] = "receipt"
 
 _HALT_INDETERMINATE: Final[str] = (
     "liveness could not be proven either way; closing would let a retry run "
@@ -187,6 +191,16 @@ def classify(
     """Answer §5.6's question for one activation. Pure: nothing is written."""
     activation_id = activation.activation_id
     malformed: list[str] = []
+    receipt = _read_optional(
+        paths.receipt(activation_id), LaunchReceipt, MALFORMED_RECEIPT, malformed
+    )
+    if receipt is not None and receipt.state is LaunchReceiptState.ABORT_PENDING:
+        return RecoveryClassification(
+            case=RecoveryCase.ABORT_PENDING,
+            activation_id=activation_id,
+            proof=procfs.prove_liveness(config, receipt.handle),
+            malformed=tuple(malformed),
+        )
     if activation.metadata.lifecycle is Lifecycle.MINTED:
         return RecoveryClassification(
             case=RecoveryCase.NOT_LAUNCHED,
@@ -296,6 +310,8 @@ class Recovery:
         on. `steer-pending` is finished rather than closed.
         """
         classification = self.classify(activation)
+        if classification.case is RecoveryCase.ABORT_PENDING:
+            return self._finish_abort(activation, classification)
         if classification.case is RecoveryCase.STEER_PENDING:
             return self._finish_steer(activation, classification)
         if classification.case is RecoveryCase.INDETERMINATE:
@@ -342,6 +358,33 @@ class Recovery:
             termination=termination,
             pin=pin,
             closed=closed,
+        )
+
+    def _finish_abort(
+        self, activation: ActivationRecord, classification: RecoveryClassification
+    ) -> RecoveryResolution:
+        """Repeat a pending barrier abort until the receipt proves its child dead."""
+        receipt = _read_optional(
+            self._paths.receipt(activation.activation_id),
+            LaunchReceipt,
+            MALFORMED_RECEIPT,
+            [],
+        )
+        if receipt is None:  # pragma: no cover - classification read it first
+            return RecoveryResolution(classification=classification)
+        termination = procfs.terminate(self._config, receipt.handle, self._clock)
+        if termination.confirmed_dead:
+            write_record(
+                self._paths.receipt(activation.activation_id),
+                receipt.model_copy(
+                    update={
+                        "state": LaunchReceiptState.ABORTED,
+                        "abort_exit_code": termination.exit_code,
+                    }
+                ),
+            )
+        return RecoveryResolution(
+            classification=classification, termination=termination
         )
 
     def _finish_steer(

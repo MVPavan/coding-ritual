@@ -570,7 +570,9 @@ transition. **Fork barrier:** the wrapper commits the launch receipt (atomic
 write: temp + rename) BEFORE the child may exec; the child blocks on the
 barrier until the receipt exists. An exec is also one appended line in the
 activation's **exec ledger** (append-only file in the wrapper dir; drill
-evidence for exactly-once).
+evidence for exactly-once). A child that never ACKed the barrier is never a
+launched runner, so its receipt records `aborted` (with its status) or
+`abort-pending` and dispatch raises an infra failure without adopting its handle.
 
 ### 5.3 Supervisor wrapper (deterministic, per activation)
 
@@ -628,6 +630,9 @@ Open activation found at tick:
    finds a commit ahead of `intended_base_commit` with no ref, it
    **pins it first** (orphan-pin fallback), preserving evidence. No edge
    ever advances on a partial artifact.
+
+An `abort-pending` receipt is its own recovery case: recovery repeats the
+identity-proven termination on each tick until it rewrites the receipt `aborted`.
 
 ## 6. Runner floor
 

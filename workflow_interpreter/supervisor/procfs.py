@@ -237,6 +237,13 @@ def _await_death(
     return proof
 
 
+def await_death(
+    config: SupervisorConfig, handle: ProcessHandle, clock: Clock, grace_s: float
+) -> LivenessProof:
+    """Wait a bounded interval for an identity-proven handle to stop running."""
+    return _await_death(config, handle, clock, grace_s)
+
+
 def _group_is_ours(proof: LivenessProof) -> bool:
     """Whether `pgid` provably still names OUR group, so `killpg` is safe.
 

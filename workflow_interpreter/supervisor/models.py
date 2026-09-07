@@ -64,6 +64,7 @@ __all__ = [
     "IsolationMode",
     "LaunchOutcome",
     "LaunchReceipt",
+    "LaunchReceiptState",
     "Liveness",
     "LivenessProof",
     "MonitorResult",
@@ -179,6 +180,7 @@ class RecoveryCase(StrEnum):
     """
 
     NOT_LAUNCHED = "not-launched"
+    ABORT_PENDING = "abort-pending"
     EXIT_RECORDED = "exit-recorded"
     RUNNING = "running"
     DEAD_WITHOUT_EXIT = "dead-without-exit"
@@ -267,6 +269,14 @@ class AuditFlag(StrEnum):
 # --- wrapper-dir records -------------------------------------------------
 
 
+class LaunchReceiptState(StrEnum):
+    """Whether a receipt's child launched normally or was aborted at the barrier."""
+
+    STARTED = "started"
+    ABORTED = "aborted"
+    ABORT_PENDING = "abort-pending"
+
+
 class LaunchReceipt(BaseModel):
     """The §5.2 fork barrier's durable artifact — written BEFORE the child execs.
 
@@ -296,6 +306,10 @@ class LaunchReceipt(BaseModel):
     Defaulting to `bwrap` would have silently certified precisely the runs that
     were never bounded. Every launcher-written receipt states the mode
     explicitly, so the default is only ever reached by such a record."""
+    state: LaunchReceiptState = LaunchReceiptState.STARTED
+    """The abort result, when the parent gave up waiting for the barrier ACK."""
+    abort_exit_code: int | None = None
+    """The `TerminationProof` status when a barrier abort proved the child dead."""
 
 
 class ExecLedgerEntry(BaseModel):

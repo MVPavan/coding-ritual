@@ -24,7 +24,10 @@ from workflow_interpreter.bdio import (
     Outcome,
 )
 from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.constants import DEVIATION_PRECONDITION_REFUSED
+from workflow_interpreter.bdio.constants import (
+    DEVIATION_FORK_BARRIER_ABORT,
+    DEVIATION_PRECONDITION_REFUSED,
+)
 from workflow_interpreter.foreman.compose import InstanceWiring
 from workflow_interpreter.foreman.supervise import (
     WrapperExit,
@@ -38,6 +41,7 @@ from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     DirtyTreeRefused,
     ExecLedgerError,
+    ForkBarrierAbortError,
     ForkBarrierError,
     PreconditionRefused,
     SnapshotFailed,
@@ -177,6 +181,24 @@ def test_continuation_refusal_records_a_transport_deviation(
     assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
     assert closed.metadata.evidence == Evidence(note="no resumable session")
     assert closed.metadata.deviations[0].kind == "continuation_refused"
+
+
+def test_barrier_abort_is_a_retry_counting_transport_deviation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An unacknowledged child is infrastructure failure, never runner failure."""
+    error = ForkBarrierAbortError("child 42 never acknowledged")
+    lab, root_id, activation_id, wiring = _wrapper_with_failure(
+        tmp_path, monkeypatch, error
+    )
+
+    assert (
+        run_wrapper(lab.composition, root_id, activation_id, wiring=wiring)
+        is WrapperExit.DONE
+    )
+    closed = lab.store.reads.load_activation(activation_id)
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert closed.metadata.deviations[0].kind == DEVIATION_FORK_BARRIER_ABORT
 
 
 @pytest.mark.parametrize(
