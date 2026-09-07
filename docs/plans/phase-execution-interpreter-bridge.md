@@ -99,7 +99,8 @@ matching root id ([workflow_interpreter/bdio/reads.py:90-93](../../workflow_inte
 
 Each created root is one admission attempt. A red scratch gate or final
 fast-forward race requires a new root and consumes the next attempt. A stage has
-at most three attempts. An escalated D11 scratch-merge conflict is the explicit
+at most three attempts. Only an escalated D11 scratch-merge conflict whose
+conflicting path matches the recorded expected fixture path is the explicit
 exception: it resumes and lands the same recorded attempt after human
 resolution, and consumes no new attempt. That rule takes precedence over the
 ordinary retry rule; every other scratch-merge conflict requires a new root and
@@ -127,14 +128,15 @@ the lock location is specified at
 
 Merge only in a detached scratch worktree until the final operation. At final
 landing, the coordinator remains attached and clean at captured `B_land`, and
-runs `git merge --ff-only L`, where `L` is the gated scratch HEAD OID captured
-when the full gate goes green. No ref name is ever a merge argument: `S` is
-retained evidence only. Git then moves the branch ref, index, and working tree
-together; a changed tip or non-fast-forward refuses, supplying the concurrency
-check. The bridge never uses `update-ref` on the working ref. It may CAS the
-un-checked-out scratch ref from `B_land` to its detached scratch HEAD before
-gating; that ref update does not desynchronize a checkout. A successful
-coordinator merge is followed by a porcelain-clean check, not `reset --hard`.
+runs `git merge --ff-only L`, where `L` is the detached scratch HEAD OID CASed
+into `S` before the full gate. After that gate, require `git -C <scratch>
+rev-parse HEAD == L == S`, refusing otherwise. No ref name is ever a merge
+argument: `S` is retained evidence only. Git then moves the branch ref, index,
+and working tree together; a changed tip or non-fast-forward refuses, supplying
+the concurrency check. The bridge never uses `update-ref` on the working ref.
+It may CAS the un-checked-out scratch ref from `B_land` to `L` before gating;
+that ref update does not desynchronize a checkout. A successful coordinator
+merge is followed by a porcelain-clean check, not `reset --hard`.
 
 Human or tooling landings during the bridge run must take this band. Raw Git
 cannot be locked by convention, but cannot silently win the final fast-forward.
@@ -174,6 +176,10 @@ verifies its digest if the copy has gone.
 ship, and shipped, plus triage/abandon. Writers grant only
 `workflow_interpreter/**` and `tests/**`; bwrap derives writable grants directly
 from `allowed_paths` ([workflow_interpreter/supervisor/sandbox.py:462-486](../../workflow_interpreter/supervisor/sandbox.py)).
+Every graph node pins `isolation = "worktree"`, so the coordinator checkout stays
+attached and clean rather than becoming the runner workspace as it would under
+`in-repo` isolation ([workflows/feature-delivery.toml:36,66](../../workflows/feature-delivery.toml),
+[workflow_interpreter/supervisor/workspace.py:8-12](../../workflow_interpreter/supervisor/workspace.py)).
 Implement verifies `scripts/verify-feature.sh`; code review verifies that command
 plus `scripts/review-checks.sh`. This strict superset is pinned, and the graph
 definition test asserts `warnings == ()`, including absence of the
@@ -202,15 +208,17 @@ artifact OID. A diff-stat alone cannot authorize an O2 code landing.
 
 Under D3, after the payload/ref checks, capture the coordinator's current tip as
 `B_land`; it is distinct from the admission-time instance base `B0`. Let S be
-`refs/phase-bridge/<root_id>/<activation_id>`. Create S at `B_land`, create a
-detached worktree below a fresh `mktemp -d` directory outside the repository
-tree, and run `git merge --no-ff <signed-artifact-oid>` there. A clean scratch
-merge yields the candidate whose parents are `B_land` and the signed artifact;
-CAS S from `B_land` to that detached scratch HEAD before the gate. A conflict
-preserves S and the worktree and reports every conflicting path. This tests the
-artifact against the branch that will actually receive it: runner lineage makes
-an artifact descend from `B0`, but a parallel landing can already be part of
-`B_land` ([workflow_interpreter/supervisor/artifact.py:165-170](../../workflow_interpreter/supervisor/artifact.py)).
+`refs/phase-bridge/<root_id>/<activation_id>`. Require `git merge-base
+--is-ancestor B0 B_land`; failure returns `halted: branch-diverged`. Create S at
+`B_land`, create a detached worktree below a fresh `mktemp -d` directory outside
+the repository tree, and run `git merge --no-ff <signed-artifact-oid>` there. A
+clean scratch merge yields the candidate whose parents are `B_land` and the
+signed artifact; set `L` to that detached scratch HEAD and CAS S from `B_land`
+to `L` before the gate. A conflict preserves S and the worktree and reports every
+conflicting path. This tests the artifact against the branch that will actually
+receive it: runner lineage makes an artifact descend from `B0`, but a parallel
+landing can already be part of `B_land`
+([workflow_interpreter/supervisor/artifact.py:165-170](../../workflow_interpreter/supervisor/artifact.py)).
 
 Before the full repository gate, the bridge itself sets `UV_CACHE_DIR` below its
 wrapper root and provisions that fresh checkout with `uv sync --locked`; the
@@ -222,7 +230,7 @@ A provisioning failure is `stalled: environment-unavailable`, not a red gate and
 not a new attempt; it preserves S and is retried after the environment is
 repaired. On provisioning success, run the five-step repository gate at S.
 
-Only if green, capture the gated scratch HEAD as landing OID `L`, prove
+Only if green, require `git -C <scratch> rev-parse HEAD == L == S`, prove
 `B_land` is an ancestor of L, and recheck that the attached coordinator is clean
 at `B_land`. Run `git merge --ff-only L` in that coordinator checkout; S remains
 evidence and is never re-resolved for a merge. If the coordinator tip moved
@@ -250,11 +258,14 @@ eight-hour-default run ([workflow_interpreter/foreman/constants.py:137](../../wo
 It returns exactly one of:
 
 - `running`: dispatchable/routable state, including D7's
-  `retry-required` final-fast-forward race; skill may reinvoke.
-- `awaiting_approval`: ordinary open human gate; reinvoke after gate action.
+  `retry-required` final-fast-forward race and `TickReport.contended` or
+  `TickReport.blocked`; skill may reinvoke.
+- `awaiting_approval`: ordinary open human gate or `TickReport.refusals` while
+  its gate remains open; reinvoke after corrected gate action.
 - `halted`: audit/dead-end halt with gate id and one of `fail-code`,
   `branch-diverged`, `precondition-refused`, `inputs-unavailable`,
   `sandbox-unavailable`, or `bound-violated`; also `attempt-cap`.
+  A `TickReport.refusals` that accompanies `TickReport.halted` remains `halted`.
 - `stalled`: recoverable wrapper, transport, provisioning, or post-landing
   closure-pending state with reason.
 - `escalated`: D7 conflict or red gate, with S.
@@ -318,7 +329,7 @@ judgment about ancestry or a cosmetic reference.
 Slice 0 creates the dedicated writable fixture
 `tests/fixtures/phase_bridge_conflict.txt`; Stages 1–2 must not modify it.
 Slice 0 records its path, complete preimage, and required Stage-3 replacement,
-but not a blob OID or line number. At Stage-3 root creation, after Slices 1–2
+but not a blob OID or line number. At Stage-3 root creation, after Stages 1–2
 have landed, the bridge re-pins the fixture's then-current blob OID and line
 number at `B0` and verifies the recorded complete preimage. The Stage-3 brief carries
 the literal unified patch with context and requires `git apply --check`;
@@ -326,28 +337,32 @@ acceptance and review require that exact replacement. The fixture is within the
 real `tests/**` bwrap grant
 ([workflow_interpreter/supervisor/sandbox.py:477-486](../../workflow_interpreter/supervisor/sandbox.py)).
 
-After Stage 3 creates its root, an intentional interloper commit changes that
-preimage on the working branch. Stage 3's signed artifact changes it to the
-specified Stage-3 value. At landing, `B_land` includes that interloper, so D7's
-scratch merge must report a same-hunk conflict with S/path and record the
-escalated attempt, `B0`, `B_land`, signed artifact OID, scratch pre-conflict
-HEAD, and expected conflict path.
+After Stage 3 creates its root, the coordinator makes an intentional ordinary
+interloper commit in its attached checkout under the band, only after the
+Stage-3 activation has released it; that commit changes the preimage on the
+working branch. Stage 3's signed artifact changes it to the specified Stage-3
+value. At landing, `B_land` includes that interloper, so D7's scratch merge must
+report a same-hunk conflict with S/path and record the escalated attempt, `B0`,
+`B_land`, signed artifact OID, scratch pre-conflict HEAD, and expected conflict
+path.
 
 The human resolves only in that retained detached scratch worktree, commits H
 with parents `B_land` and the signed artifact OID, and asks the bridge to resume
 the recorded attempt with H. This D11 escalation is the D2 no-new-attempt
-exception. Under the band, the bridge checks that relation, re-verifies H's full
-repository gate, and requires a new immutable human resolution gate whose
-re-verified payload binds root, attempt, `B0`, `B_land`, original artifact OID,
-conflict path, H, full-gate evidence digest, and full-diff/review artifact
-digests. It then CASes the un-checked-out S from its recorded pre-resolution
-value to H as retained evidence, captures gated landing OID `L = H`, proves
-`B_land` is ancestral to H, and lands only via coordinator `git merge --ff-only
-L` and dual-Bead closure as a clean D7 landing. The relation records H, L, and
-the resolution-gate OID/digest. A different attempt, parent set, payload, or
-gate is refused. A coordinator movement after `B_land` capture is a D7 retry,
-not an escalation. Every human-resolved landing therefore has the same
-cryptographic, review, gate, and closure evidence as a clean landing.
+exception. Under the band, the bridge first checks that the coordinator tip is
+the recorded `B_land`, returning the D7 retry on a mismatch before any resolution
+ceremony; it then checks that relation, re-verifies H's full repository gate, and
+requires a new immutable human resolution gate whose re-verified payload binds
+root, attempt, `B0`, `B_land`, original artifact OID, conflict path, H, full-gate
+evidence digest, and full-diff/review artifact digests. It then CASes the
+un-checked-out S from its recorded pre-resolution value to H as retained evidence,
+captures gated landing OID `L = H`, proves `B_land` is ancestral to H, and lands
+only via coordinator `git merge --ff-only L` and dual-Bead closure as a clean D7
+landing. The relation records H, L, and the resolution-gate OID/digest. A
+different attempt, parent set, payload, or gate is refused. A coordinator
+movement after `B_land` capture is a D7 retry, not an escalation. Every
+human-resolved landing therefore has the same cryptographic, review, gate, and
+closure evidence as a clean landing.
 
 ### D12. Retain evidence, then clean eligible attempts
 
