@@ -34,6 +34,7 @@ be invisible until production:
 from __future__ import annotations
 
 import json
+import re
 import shlex
 from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from decimal import Decimal, InvalidOperation
@@ -205,6 +206,9 @@ _MSG_RELATIVE: Final[str] = (
     "{runner}: {label} must be an absolute path, got {value!r}; a relative path "
     "in a sandbox rule silently anchors somewhere else"
 )
+_WRAPPER_EVENT_LINE: Final[re.Pattern[str]] = re.compile(
+    r"(?:^|\s)event=(?:'|\")wf\.[^'\"]+(?:'|\")"
+)
 
 
 class LogScan(BaseModel):
@@ -239,9 +243,10 @@ def parse_lines(
 ) -> Iterator[RunnerEvent]:
     """Drive a vendor decoder over a stream, tolerating everything else.
 
-    Blank lines are dropped (they carry nothing). Anything that is not a JSON
-    object becomes an `ERROR` event holding the raw line, so a caller can see
-    exactly what the wrapper could not read.
+    Blank lines and wrapper structlog records are dropped (they carry nothing
+    about the runner). Anything else that is not a JSON object becomes an
+    `ERROR` event holding the raw line, so a caller can see exactly what the
+    wrapper could not read.
 
     So does anything the DECODER cannot turn into an event. Guarding only the
     JSON parse was half a guard: a well-formed line whose numbers are outside
@@ -258,7 +263,11 @@ def parse_lines(
             text = line.strip()
             if not text:
                 continue
+            if _WRAPPER_EVENT_LINE.search(text):
+                continue
             yield RunnerEvent(type=EventType.ERROR, text=text, is_error=True)
+            continue
+        if _is_wrapper_record(payload):
             continue
         try:
             event = decode(payload)
@@ -274,6 +283,12 @@ def parse_lines(
             continue
         if event is not None:
             yield event
+
+
+def _is_wrapper_record(payload: Mapping[str, object]) -> bool:
+    """Whether a JSON structlog record belongs to the wrapper, not a runner."""
+    event = payload.get("event")
+    return isinstance(event, str) and event.startswith("wf.")
 
 
 def mapping_at(payload: Mapping[str, object], key: str) -> Mapping[str, object]:
@@ -336,12 +351,22 @@ def fold_usage(events: Iterable[RunnerEvent]) -> Usage:
     """
     seen = False
     input_tokens = 0
+    cache_read_input_tokens = 0
+    saw_cache_read_input_tokens = False
+    cache_creation_input_tokens = 0
+    saw_cache_creation_input_tokens = False
     output_tokens = 0
     cost: Decimal | None = None
     for event in events:
         if event.usage is not None and event.usage.known:
             seen = True
             input_tokens += event.usage.input_tokens or 0
+            if event.usage.cache_read_input_tokens is not None:
+                saw_cache_read_input_tokens = True
+                cache_read_input_tokens += event.usage.cache_read_input_tokens
+            if event.usage.cache_creation_input_tokens is not None:
+                saw_cache_creation_input_tokens = True
+                cache_creation_input_tokens += event.usage.cache_creation_input_tokens
             output_tokens += event.usage.output_tokens or 0
         if event.cost_usd is not None:
             try:
@@ -353,6 +378,12 @@ def fold_usage(events: Iterable[RunnerEvent]) -> Usage:
     return Usage(
         known=True,
         input_tokens=input_tokens,
+        cache_read_input_tokens=(
+            cache_read_input_tokens if saw_cache_read_input_tokens else None
+        ),
+        cache_creation_input_tokens=(
+            cache_creation_input_tokens if saw_cache_creation_input_tokens else None
+        ),
         output_tokens=output_tokens,
         cost_usd=None if cost is None else str(cost),
     )

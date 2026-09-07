@@ -18,7 +18,7 @@ from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.exit import ExitObserver
 from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import LOG_FILE, WrapperPaths, write_durable
+from workflow_interpreter.supervisor.paths import WrapperPaths, write_durable
 from workflow_interpreter.supervisor.profile import Profile
 from workflow_interpreter.supervisor.recover import Recovery
 from workflow_interpreter.supervisor.run import Supervisor
@@ -85,7 +85,10 @@ class DetachedSpawner:
         """Detach the wrapper and leave an informational process identity record."""
         paths = WrapperPaths(self._supervisor_config, launch.root_id)
         directory = paths.ensure_activation_dir(launch.activation_id)
-        with (paths.activation_dir(launch.activation_id) / LOG_FILE).open("ab") as log:
+        with (
+            paths.wrapper_log(launch.activation_id).open("ab") as wrapper_stdout,
+            paths.wrapper_log(launch.activation_id).open("ab") as wrapper_stderr,
+        ):
             process = subprocess.Popen(
                 (
                     sys.executable,
@@ -100,8 +103,8 @@ class DetachedSpawner:
                     launch.activation_id,
                 ),
                 stdin=subprocess.DEVNULL,
-                stdout=log,
-                stderr=log,
+                stdout=wrapper_stdout,
+                stderr=wrapper_stderr,
                 start_new_session=True,
             )
         handle = WrapperHandle(

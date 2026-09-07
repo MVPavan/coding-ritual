@@ -141,6 +141,8 @@ KEY_COST: Final[str] = "total_cost_usd"
 KEY_IS_ERROR: Final[str] = "is_error"
 KEY_TEXT: Final[str] = "text"
 KEY_INPUT_TOKENS: Final[str] = "input_tokens"
+KEY_CACHE_READ_INPUT_TOKENS: Final[str] = "cache_read_input_tokens"
+KEY_CACHE_CREATION_INPUT_TOKENS: Final[str] = "cache_creation_input_tokens"
 KEY_OUTPUT_TOKENS: Final[str] = "output_tokens"
 BLOCK_TEXT: Final[str] = "text"
 BLOCK_TOOL_USE: Final[str] = "tool_use"
@@ -299,6 +301,8 @@ def _result_event(payload: Mapping[str, object], session: str | None) -> RunnerE
         usage=Usage(
             known=True,
             input_tokens=int_at(usage, KEY_INPUT_TOKENS),
+            cache_read_input_tokens=int_at(usage, KEY_CACHE_READ_INPUT_TOKENS),
+            cache_creation_input_tokens=int_at(usage, KEY_CACHE_CREATION_INPUT_TOKENS),
             output_tokens=int_at(usage, KEY_OUTPUT_TOKENS),
         )
         if usage

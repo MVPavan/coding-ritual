@@ -100,22 +100,16 @@ def test_claude_usage_is_the_terminal_total_not_the_sum_of_the_messages(
 def test_the_live_claude_terminal_line_still_folds_to_known_usage(
     tmp_path: Path,
 ) -> None:
-    """cr-o85.34.23: the 2.1.258 `result` shape, straight out of the live run.
-
-    The build-loop run recorded `usage: unknown` for six of seven activations
-    (`scratchpad/probes/phase7-live/BASELINE.md`, D3) and the vendor stream was
-    the suspect. It is not: this IS one of those six logs' terminal line and it
-    parses. The loss was `exit.py`'s cached-completion branch. The fixture stays
-    as the version guard the accusation deserved — 2.1.258 added `modelUsage`,
-    `iterations` and `speed` around the same `usage`/`total_cost_usd` pair the
-    2.1.227 captures carry.
-    """
+    """Claude's archived 92/3714505/117782 input must not render total as 92."""
     profile = make_claude(tmp_path, FrozenClock())
 
     usage = fold_usage(profile.parse_output(read_stream("claude", "live-result.jsonl")))
 
     assert usage.known is True
     assert usage.input_tokens == 92
+    assert usage.cache_read_input_tokens == 3714505
+    assert usage.cache_creation_input_tokens == 117782
+    assert usage.total_input_tokens == 3832379
     assert usage.output_tokens == 35631
     assert usage.cost_usd == "3.9299935"
 
@@ -123,11 +117,7 @@ def test_the_live_claude_terminal_line_still_folds_to_known_usage(
 def test_the_live_codex_terminal_line_still_folds_to_known_usage(
     tmp_path: Path,
 ) -> None:
-    """The same check for codex's `turn.completed`, from the same live run.
-
-    All four codex activations of that run recorded unknown usage too, and
-    their streams were as parseable as this one — one seam, both vendors.
-    """
+    """Codex's archived 714365 input must not render uncached input as 714365."""
     profile = make_codex(tmp_path, FrozenClock())
 
     usage = fold_usage(
@@ -135,7 +125,13 @@ def test_the_live_codex_terminal_line_still_folds_to_known_usage(
     )
 
     assert usage.known is True
-    assert (usage.input_tokens, usage.output_tokens) == (714365, 3795)
+    assert (
+        usage.input_tokens,
+        usage.cache_read_input_tokens,
+        usage.cache_creation_input_tokens,
+        usage.total_input_tokens,
+        usage.output_tokens,
+    ) == (43005, 671360, 0, 714365, 3795)
     assert usage.cost_usd is None
 
 
@@ -195,12 +191,16 @@ def test_codex_resume_reports_the_same_thread_id_as_the_launch(
 
 
 def test_codex_reports_tokens_and_no_cost(tmp_path: Path) -> None:
-    """`codex exec --json` carries no money field at all (probed)."""
+    """Codex's 104208/82944 input split must not report uncached input as 104208."""
     profile = make_codex(tmp_path, FrozenClock())
 
     usage = fold_usage(profile.parse_output(read_stream("codex", "commands.jsonl")))
 
-    assert (usage.input_tokens, usage.output_tokens) == (104208, 564)
+    assert (usage.input_tokens, usage.total_input_tokens, usage.output_tokens) == (
+        21264,
+        104208,
+        564,
+    )
     assert usage.cost_usd is None
 
 
@@ -235,7 +235,7 @@ def test_a_failing_codex_run_yields_error_events_and_unknown_usage(
 def test_opencode_reports_usage_per_step_and_a_result_only_at_the_stop(
     tmp_path: Path,
 ) -> None:
-    """Per-step counts are not cumulative (probed), so they are summed."""
+    """OpenCode's 7268/44 stream without cache keys must not report cache zero."""
     profile = make_opencode(tmp_path, FrozenClock())
 
     events = list(profile.parse_output(read_stream("opencode", "tools.jsonl")))
@@ -246,6 +246,8 @@ def test_opencode_reports_usage_per_step_and_a_result_only_at_the_stop(
     assert kinds.count(EventType.TOOL) == 1
     usage = fold_usage(events)
     assert (usage.input_tokens, usage.output_tokens) == (7268, 44)
+    assert usage.cache_read_input_tokens is None
+    assert usage.cache_creation_input_tokens is None
 
 
 def test_opencode_carries_the_session_on_every_line(tmp_path: Path) -> None:
@@ -346,6 +348,20 @@ def test_blank_lines_are_dropped_and_everything_else_is_kept(tmp_path: Path) -> 
         )
 
 
+def test_a_real_wrapper_structlog_line_is_not_a_runner_error(tmp_path: Path) -> None:
+    """The archived `wf.precondition.verified` line must not become `ERROR`."""
+    profile = make_codex(tmp_path, FrozenClock())
+    wrapper_line = (
+        "event='wf.precondition.verified' activation_id='wf-v8x' "
+        "isolation='worktree' commit='<redacted>' reset_applied=False "
+        "pre_reset_commit=None level='info' timestamp='2026-09-05T11:16:28.281309Z'"
+    )
+
+    events = list(profile.parse_output((wrapper_line,)))
+
+    assert events == []
+
+
 def test_a_foreign_vendors_stream_parses_without_raising(tmp_path: Path) -> None:
     """The log is shared with stderr; nothing guarantees the lines are ours."""
     claude = make_claude(tmp_path, FrozenClock())
@@ -439,7 +455,7 @@ def write_log(tmp_path: Path, vendor: str, name: str) -> Path:
 
 
 def test_the_envelope_reports_usage_session_and_duration(tmp_path: Path) -> None:
-    """§6's `collect_terminal_envelope(handle) -> {usage, session, duration}`."""
+    """The archived 104208/82944 Codex usage must keep its rendered total at 104208."""
     clock = FrozenClock()
     log = write_log(tmp_path, "codex", "commands.jsonl")
     profile = make_codex(tmp_path, clock)
@@ -448,7 +464,8 @@ def test_the_envelope_reports_usage_session_and_duration(tmp_path: Path) -> None
     envelope = profile.collect_terminal_envelope(handle_for(1, log_path=str(log)))
 
     assert envelope.session_id == "01a03d91-f8e8-7310-85f1-6ca11d1d45a1"
-    assert envelope.usage.input_tokens == 104208
+    assert envelope.usage.input_tokens == 21264
+    assert envelope.usage.total_input_tokens == 104208
     assert envelope.duration_s == pytest.approx(90.0)
 
 

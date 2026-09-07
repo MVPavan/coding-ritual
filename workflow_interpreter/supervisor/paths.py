@@ -44,6 +44,7 @@ BAND_LOCK: Final[str] = "repo-band.lock"
 RECEIPT_FILE: Final[str] = "launch-receipt.json"
 LEDGER_FILE: Final[str] = "exec.ledger"
 LOG_FILE: Final[str] = "run.jsonl"
+WRAPPER_LOG_FILE: Final[str] = "wrapper.log"
 CHANNELS_DIR: Final[str] = "channels"
 OUTPUTS_SNAPSHOT_DIR: Final[str] = "outputs-snapshot"
 """The subdirectory holding everything the RUNNER may write (§6).
@@ -260,6 +261,10 @@ class WrapperPaths:
     def log(self, activation_id: str) -> Path:
         """`log_path`: the runner's machine event stream (§5.3)."""
         return self.activation_dir(activation_id) / LOG_FILE
+
+    def wrapper_log(self, activation_id: str) -> Path:
+        """The detached wrapper's diagnostics, kept out of the runner stream."""
+        return self.activation_dir(activation_id) / WRAPPER_LOG_FILE
 
     def channels_dir(self, activation_id: str) -> Path:
         """`<activation>/channels/` — the whole of what the runner may write.

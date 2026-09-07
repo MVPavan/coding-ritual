@@ -150,6 +150,8 @@ KEY_MESSAGE: Final[str] = "message"
 KEY_TEXT: Final[str] = "text"
 KEY_COMMAND: Final[str] = "command"
 KEY_INPUT_TOKENS: Final[str] = "input_tokens"
+KEY_CACHED_INPUT_TOKENS: Final[str] = "cached_input_tokens"
+KEY_CACHE_WRITE_INPUT_TOKENS: Final[str] = "cache_write_input_tokens"
 KEY_OUTPUT_TOKENS: Final[str] = "output_tokens"
 
 _MSG_NO_SESSION: Final[str] = (
@@ -336,7 +338,11 @@ class CodexProfile(BaseProfile):
                 text=kind,
                 usage=Usage(
                     known=True,
-                    input_tokens=int_at(usage, KEY_INPUT_TOKENS),
+                    input_tokens=_uncached_input_tokens(usage),
+                    cache_read_input_tokens=int_at(usage, KEY_CACHED_INPUT_TOKENS),
+                    cache_creation_input_tokens=int_at(
+                        usage, KEY_CACHE_WRITE_INPUT_TOKENS
+                    ),
                     output_tokens=int_at(usage, KEY_OUTPUT_TOKENS),
                 )
                 if usage
@@ -351,6 +357,18 @@ class CodexProfile(BaseProfile):
         if kind in ITEM_TYPES:
             return _item_event(mapping_at(payload, KEY_ITEM), kind)
         return RunnerEvent(type=EventType.MESSAGE, text=kind)
+
+
+def _uncached_input_tokens(usage: Mapping[str, object]) -> int | None:
+    """Remove Codex's cached and cache-write subsets from its total input count."""
+    input_tokens = int_at(usage, KEY_INPUT_TOKENS)
+    if input_tokens is None:
+        return None
+    return (
+        input_tokens
+        - (int_at(usage, KEY_CACHED_INPUT_TOKENS) or 0)
+        - (int_at(usage, KEY_CACHE_WRITE_INPUT_TOKENS) or 0)
+    )
 
 
 def _item_event(item: Mapping[str, object], kind: str) -> RunnerEvent:

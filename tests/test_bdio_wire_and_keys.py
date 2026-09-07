@@ -100,6 +100,15 @@ def test_metadata_dict_elides_nulls_so_a_merge_never_clears() -> None:
     assert dumped["wf_kind"] == WfKind.ACTIVATION.value
 
 
+def test_usage_from_an_old_wire_record_defaults_new_cache_fields() -> None:
+    """A stored `input_tokens=92` record must parse with cache fields as `None`."""
+    usage = Usage.model_validate({"known": True, "input_tokens": 92})
+
+    assert usage.cache_read_input_tokens is None
+    assert usage.cache_creation_input_tokens is None
+    assert usage.total_input_tokens == 92
+
+
 def test_event_payload_uses_the_reserved_from_and_to_keys() -> None:
     payload = EventPayload(
         from_node="implement",

@@ -343,6 +343,36 @@ def _open_gates(
     )
 
 
+def _usage_summary(
+    activations: Mapping[str, ActivationRecord],
+) -> dict[str, int | None]:
+    """Sum reported usage fields while keeping absent input telemetry unknown."""
+    usages = [
+        activation.metadata.usage
+        for activation in activations.values()
+        if activation.metadata.usage is not None
+    ]
+
+    def total(values: list[int | None]) -> int | None:
+        """Sum one optional token field unless every activation omitted it."""
+        return (
+            None
+            if not any(value is not None for value in values)
+            else sum(value or 0 for value in values)
+        )
+
+    return {
+        "input_tokens": total([usage.input_tokens for usage in usages]),
+        "cache_read_input_tokens": total(
+            [usage.cache_read_input_tokens for usage in usages]
+        ),
+        "cache_creation_input_tokens": total(
+            [usage.cache_creation_input_tokens for usage in usages]
+        ),
+        "total_input_tokens": total([usage.total_input_tokens for usage in usages]),
+    }
+
+
 def _is_supervise(argv: Sequence[str] | None) -> bool:
     """Recognize the subcommand without moving non-wrapper parser errors."""
     arguments = tuple(sys.argv[1:] if argv is None else argv)
@@ -496,6 +526,7 @@ def _run(
             for activation in view.activations.values()
             if activation.metadata.stale_flag is not None
         ),
+        "usage": _usage_summary(view.activations),
     }
     status["open_gates"] = _open_gates(composition, view)
     if frontier.open_halt is not None:

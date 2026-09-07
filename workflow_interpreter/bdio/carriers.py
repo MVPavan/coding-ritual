@@ -301,16 +301,32 @@ class Evidence(BaseModel):
 
 
 class Usage(BaseModel):
-    """Normalized runner usage; `known = False` is legal (§6)."""
+    """Normalized runner usage; `input_tokens` excludes cache layers (§6)."""
 
     model_config = WIRE_MODEL
 
     known: bool
     input_tokens: JsonSafeInt | None = None
+    cache_read_input_tokens: JsonSafeInt | None = None
+    cache_creation_input_tokens: JsonSafeInt | None = None
     output_tokens: JsonSafeInt | None = None
     cost_usd: str | None = None
     """Money as a decimal string: JSON floats are not exact, and bd's JSON
     path silently rounds large numerics (probed)."""
+
+    @property
+    def total_input_tokens(self) -> int | None:
+        """Return uncached input plus every reported cache layer for rendering."""
+        values = (
+            self.input_tokens,
+            self.cache_read_input_tokens,
+            self.cache_creation_input_tokens,
+        )
+        return (
+            None
+            if all(value is None for value in values)
+            else sum(value or 0 for value in values)
+        )
 
 
 class Deviation(BaseModel):

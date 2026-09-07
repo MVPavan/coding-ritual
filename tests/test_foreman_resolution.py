@@ -830,10 +830,10 @@ def test_composition_refuses_a_different_supervisor_instance(
         )
 
 
-def test_detached_spawner_uses_a_no_shell_session_and_records_its_handle(
+def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_handle(
     fake_store: WorkflowStore, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Production dispatch has no terminal or shell through which to escape."""
+    """The `supervise root activation` spawn must not send wrapper output to `run.jsonl`."""
     composition, _ = _instance_composition(fake_store, tmp_path)
     calls: list[tuple[tuple[str, ...], dict[str, object]]] = []
 
@@ -873,7 +873,9 @@ def test_detached_spawner_uses_a_no_shell_session_and_records_its_handle(
     )
     assert kwargs["start_new_session"] is True
     assert kwargs["stdin"] is subprocess.DEVNULL
-    assert kwargs["stdout"] is kwargs["stderr"]
+    assert kwargs["stdout"] is not kwargs["stderr"]
+    assert Path(kwargs["stdout"].name).name == "wrapper.log"
+    assert Path(kwargs["stderr"].name).name == "wrapper.log"
     record = composition.supervisor_config.wrapper_root / "root" / "activation"
     assert json.loads((record / "wrapper.json").read_text(encoding="utf-8")) == {
         "boot_id": "boot",

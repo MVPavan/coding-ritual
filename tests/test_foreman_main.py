@@ -22,7 +22,7 @@ from tests._helpers import (
 )
 from tests._supervisor import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from tests.conftest import Signer
-from workflow_interpreter.bdio import BdConfig, Outcome
+from workflow_interpreter.bdio import BdConfig, Outcome, Usage
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.config import SigningConfig
@@ -235,6 +235,31 @@ def test_main_leaves_supervise_output_in_its_redirected_wrapper_log(
 
     assert byte_count == len(marker.encode("utf-8"))
     assert text == marker
+
+
+def test_status_renders_total_input_tokens_including_cache_layers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A stored 92/3/5 usage record must render total input tokens as 100."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    lab.fake_bd.rows[activation.activation_id]["metadata"]["usage"] = Usage(
+        known=True,
+        input_tokens=92,
+        cache_read_input_tokens=3,
+        cache_creation_input_tokens=5,
+    ).model_dump(mode="json", exclude_none=True)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+    report = json.loads(
+        next(line for line in transcript.splitlines() if '"root_id"' in line)
+    )
+
+    assert report["usage"]["total_input_tokens"] == 100
 
 
 def test_emit_bounds_an_oversize_stalled_report_without_dropping_it(
