@@ -84,6 +84,9 @@ HEAD: Final[str] = "HEAD"
 TREE_SUFFIX: Final[str] = "^{tree}"
 COMMIT_SUFFIX: Final[str] = "^{commit}"
 PATH_SEPARATOR: Final[str] = "--"
+NO_FILTERS: Final[str] = "--no-filters"
+NO_EXT_DIFF: Final[str] = "--no-ext-diff"
+NO_TEXTCONV: Final[str] = "--no-textconv"
 REVISION_PATH_SEPARATOR: Final[str] = ":"
 """`<commit>:<path>` — the repository-root-relative object inside a commit."""
 RENAME_CODES: Final[frozenset[str]] = frozenset({"R", "C"})
@@ -268,7 +271,14 @@ class Git(GitTransport):
     def diff_names(self, base: str, head: str, *, cwd: Path) -> tuple[str, ...]:
         """Paths changed between two commits (§7.5 observed effects)."""
         raw = self.run(
-            GitSubcommand.DIFF, "--name-only", "-z", base, head, cwd=cwd
+            GitSubcommand.DIFF,
+            NO_EXT_DIFF,
+            NO_TEXTCONV,
+            "--name-only",
+            "-z",
+            base,
+            head,
+            cwd=cwd,
         ).stdout
         return tuple(path for path in raw.split(NUL) if path)
 
@@ -285,7 +295,9 @@ class Git(GitTransport):
 
     def diff_text(self, base: str, head: str, *, cwd: Path) -> str:
         """Read the text diff between two pinned commits."""
-        return self.run(GitSubcommand.DIFF, base, head, cwd=cwd).stdout
+        return self.run(
+            GitSubcommand.DIFF, NO_EXT_DIFF, NO_TEXTCONV, base, head, cwd=cwd
+        ).stdout
 
     def diff_stat(self, base: str, head: str, *, cwd: Path) -> str:
         """The `--stat` summary between two commits — §9's cumulative gate view.
@@ -293,7 +305,15 @@ class Git(GitTransport):
         `DIFF` is already a member of the closed subcommand set, so this adds a
         rendering and not a capability.
         """
-        return self.run(GitSubcommand.DIFF, "--stat", base, head, cwd=cwd).stdout
+        return self.run(
+            GitSubcommand.DIFF,
+            NO_EXT_DIFF,
+            NO_TEXTCONV,
+            "--stat",
+            base,
+            head,
+            cwd=cwd,
+        ).stdout
 
     def blob_oid_at(self, commit: str, path: str, *, cwd: Path) -> str:
         """The object id one commit records at `path`, or `NO_BLOB` where it has none.
@@ -343,7 +363,14 @@ class Git(GitTransport):
         """
         if not (cwd / path).is_file():
             return NO_BLOB
-        return self.run(GitSubcommand.HASH_OBJECT, PATH_SEPARATOR, path, cwd=cwd).text
+        return self.run(
+            GitSubcommand.HASH_OBJECT,
+            NO_FILTERS,
+            PATH_SEPARATOR,
+            path,
+            cwd=cwd,
+            config=self._filter_overrides(cwd=cwd),
+        ).text
 
     @staticmethod
     def entry_kind(path: str, *, cwd: Path) -> EntryKind:

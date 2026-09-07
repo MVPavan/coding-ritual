@@ -2,6 +2,7 @@
 
 import subprocess
 from collections.abc import Mapping
+from hashlib import sha1
 from pathlib import Path
 
 import pytest
@@ -205,6 +206,36 @@ def test_a_runner_gitattributes_cannot_run_a_clean_filter(tmp_path: Path) -> Non
 
     assert not sentinel.exists()
     assert blob_at(repo, commit, "result.txt") == "runner bytes\n"
+
+
+@pytest.mark.proc
+def test_hash_working_file_uses_raw_runner_bytes_without_a_clean_filter(
+    tmp_path: Path,
+) -> None:
+    """`runner bytes\\n` must not hash as the filter's `mangled\\n` output."""
+    repo = make_repo(tmp_path)
+    sentinel = tmp_path / "hash-filter-ran"
+    filter_program = tmp_path / "hash-clean-filter.sh"
+    filter_program.write_text(
+        f"#!/bin/sh\nprintf ran > {sentinel}\nprintf mangled\n",
+        encoding="utf-8",
+    )
+    filter_program.chmod(0o755)
+    subprocess.run(
+        ["git", "config", "filter.runner.clean", str(filter_program)],
+        cwd=repo,
+        check=True,
+    )
+    (repo / ".gitattributes").write_text("target.txt filter=runner\n", encoding="utf-8")
+    (repo / "target.txt").write_text("runner bytes\n", encoding="utf-8")
+
+    digest = make_git(make_config(repo, tmp_path)).hash_working_file(
+        "target.txt", cwd=repo
+    )
+
+    raw = b"runner bytes\n"
+    assert digest == sha1(f"blob {len(raw)}\0".encode() + raw).hexdigest()
+    assert not sentinel.exists()
 
 
 def test_a_glob_named_output_is_pinned_literally(tmp_path: Path) -> None:

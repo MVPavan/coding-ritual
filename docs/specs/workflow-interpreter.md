@@ -725,7 +725,9 @@ Computed by the foreman wrapper at `exit-recorded`:
    deviation, and it halts, ONLY when an out-of-grant path's working-tree
    state (blob of the file on disk, ABSENT counted as a state) differs from
    `intended_base_commit:<path>`; an equal state is an index-only forgery
-   and stays with the ordinary effects gate above. A physical check that
+   and stays with the ordinary effects gate above. Its working-tree digest is
+   raw bytes, so a clean filter that changes bytes differs from its own stored
+   blob by definition. A physical check that
    cannot be computed does not escalate — the halt is the strong claim
    (drill 28).
 
@@ -917,7 +919,7 @@ inferred: at dispatch the wrapper snapshots dirty state
 reset, files matching the snapshot are the runner's and resettable,
 anything else is human work → tier-2 confirmation required, never
 auto-reset. An unresolvable dirty tree blocks the instance on a human,
-by design.
+by design. Every snapshot and attribution digest uses raw working-tree bytes.
 
 ## 13. v1 scope and drill suite
 
