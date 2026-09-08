@@ -165,7 +165,6 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             node=node.name,
             model=current.metadata.model,
             effort=resolved.effort,
-            fallback_models=resolved.fallback_models,
             writes=bool(node.writes),
             allowed_paths=node.allowed_paths or (),
             cwd=str(wiring.workspace.path_for(node)),

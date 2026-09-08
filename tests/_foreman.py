@@ -145,10 +145,6 @@ class _Profiles(ProfileResolver):
             raise AssertionError(f"unexpected wrapper profile: {name}")
         return self.profile
 
-    def model_available(self, name: str, model: str) -> bool:
-        """Treat inert lab profiles as available for resolution tests."""
-        return name in self.accepted
-
     def next_script_for_launch(self) -> ChildScript | None:
         """Expose the queued script without consuming it before the spawn succeeds."""
         return self._next

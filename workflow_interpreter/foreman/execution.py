@@ -85,7 +85,6 @@ class ResolvedNode(BaseModel):
     runner_profile: str
     model: str
     effort: str | None
-    fallback_models: tuple[str, ...]
 
 
 def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
@@ -118,9 +117,6 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
         ),
         model=effective.model or "",
         effort=_effort(node_name, settings.get(NodeSetting.EFFORT.at(node_name))),
-        fallback_models=_fallback_models(
-            node_name, settings.get(NodeSetting.FALLBACK_MODELS.at(node_name))
-        ),
     )
 
 
@@ -148,19 +144,4 @@ def _effort(node_name: str, resolved: str | int | bool | None) -> str | None:
         return resolved
     raise UnusableResolutionError(
         _MSG_UNUSABLE_ROOT.format(node=node_name, detail="effort is not a string")
-    )
-
-
-def _fallback_models(
-    node_name: str, resolved: str | int | bool | None
-) -> tuple[str, ...]:
-    """Read the role's ordered fallback model chain from its pinned string."""
-    if resolved is None:
-        return ()
-    if isinstance(resolved, str):
-        return tuple(item for item in resolved.split(",") if item)
-    raise UnusableResolutionError(
-        _MSG_UNUSABLE_ROOT.format(
-            node=node_name, detail="fallback models are not a string"
-        )
     )

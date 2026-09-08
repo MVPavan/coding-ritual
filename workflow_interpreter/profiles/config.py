@@ -21,7 +21,6 @@ Each value is passed through verbatim and validated by the CLI that owns it —
 
 from __future__ import annotations
 
-import shlex
 from collections.abc import Mapping
 from enum import StrEnum
 from types import MappingProxyType
@@ -93,24 +92,6 @@ def _no_overrides() -> VendorMap:
     return MappingProxyType({})
 
 
-def _model_probe_map(value: VendorMap) -> VendorMap:
-    """Freeze model probes only when every command names its model argument."""
-    for runner, command in value.items():
-        if "{model}" not in command:
-            raise ValueError(
-                f"model probe for {runner.value!r} must contain '{{model}}'"
-            )
-        try:
-            argv = shlex.split(command)
-        except ValueError as error:
-            raise ValueError(
-                f"model probe for {runner.value!r} is not a valid argv template"
-            ) from error
-        if not argv:
-            raise ValueError(f"model probe for {runner.value!r} cannot be empty")
-    return _freeze(value)
-
-
 class ProfileConfig(BaseModel):
     """Everything a profile needs that is not in the `TaskSpec` (§6)."""
 
@@ -126,19 +107,8 @@ class ProfileConfig(BaseModel):
     """Host env keys copied into the child, in addition to the vendor's own
     named auth keys. A key that is absent from the host env is simply not set;
     it is never invented."""
-    model_probe: Annotated[VendorMap, AfterValidator(_model_probe_map)] = Field(
-        default_factory=_no_overrides
-    )
-    """Optional vendor model-existence commands, each containing ``{model}``.
 
-    An omitted vendor is treated as available without executing a probe. This
-    keeps a deployment that cannot verify a CLI's model catalog deterministic:
-    it pins the requested primary rather than guessing a replacement.
-    """
-    model_probe_timeout_s: float = Field(default=10.0, gt=0)
-    """The bounded wait for each configured model-existence command."""
-
-    @field_serializer("binary_overrides", "model_probe")
+    @field_serializer("binary_overrides")
     def _dump_vendor_map(self, value: VendorMap) -> dict[str, str]:
         """Dump the read-only view as a plain object.
 
@@ -152,7 +122,3 @@ class ProfileConfig(BaseModel):
     def binary_for(self, runner: RunnerName) -> str:
         """The executable for one vendor: the override, or the vendor's name."""
         return self.binary_overrides.get(runner, runner.value)
-
-    def model_probe_for(self, runner: RunnerName) -> str | None:
-        """Return one vendor's configured model-existence command, if any."""
-        return self.model_probe.get(runner)

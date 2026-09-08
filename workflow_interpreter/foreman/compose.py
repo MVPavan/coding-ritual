@@ -71,8 +71,6 @@ class ProfileResolver(Protocol):
 
     def profile_for(self, name: str) -> Profile: ...
 
-    def model_available(self, name: str, model: str) -> bool: ...
-
 
 class DetachedSpawner:
     """Start one wrapper without a shell or a borrowed terminal."""

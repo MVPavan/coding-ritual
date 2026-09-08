@@ -59,10 +59,8 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     assert config.roles["critic"].profile == "codex"
     assert config.roles["implementer"].model == "claude-opus-5"
     assert config.roles["implementer"].effort == "high"
-    assert config.roles["implementer"].fallback == ("claude-sonnet-5",)
     assert config.roles["critic"].model == "gpt-5.6-sol"
     assert config.roles["critic"].effort == "high"
-    assert config.roles["critic"].fallback == ("gpt-5.6-terra",)
     assert config.signing is not None
     # §9: a foreman that can write its own allow-list can forge approvals.
     assert not config.signing.allowed_signers_path.is_relative_to(config.bd.workspace)
@@ -73,10 +71,8 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     assert config.roles["impl-critic"].profile == "codex"
     assert config.roles["test-author"].model == "claude-opus-5"
     assert config.roles["test-author"].effort == "high"
-    assert config.roles["test-author"].fallback == ("claude-sonnet-5",)
     for role in ("test-critic", "impl-critic"):
         assert config.roles[role].model == "gpt-5.6-sol"
         assert config.roles[role].effort == "high"
-        assert config.roles[role].fallback == ("gpt-5.6-terra",)
     for graph_path in LIVE_GRAPHS:
         assert not runner_roles(load_graph(graph_path)) - set(config.roles)

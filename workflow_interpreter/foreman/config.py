@@ -3,8 +3,9 @@
 import hashlib
 import tomllib
 from pathlib import Path
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
@@ -17,9 +18,8 @@ class RunnerBinding(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     profile: str
-    model: str
-    effort: str
-    fallback: tuple[str, ...] = ()
+    model: Annotated[str, StringConstraints(min_length=1)]
+    effort: Annotated[str, StringConstraints(min_length=1)]
 
 
 class ForemanConfig(BaseModel):

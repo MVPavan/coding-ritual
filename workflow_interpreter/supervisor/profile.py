@@ -138,7 +138,6 @@ class TaskSpec(BaseModel):
     node: str
     model: str
     effort: str | None = None
-    fallback_models: tuple[str, ...] = ()
     writes: bool
     allowed_paths: tuple[str, ...] = ()
     cwd: str

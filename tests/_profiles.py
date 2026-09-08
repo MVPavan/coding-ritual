@@ -212,7 +212,6 @@ def make_task(
     cwd: Path | None = None,
     allowed_paths: tuple[str, ...] = (),
     effort: str | None = None,
-    fallback_models: tuple[str, ...] = (),
 ) -> TaskSpec:
     """A `TaskSpec` for one node, with a checkout directory that exists."""
     worktree = cwd or (tmp_path / ".wf" / ROOT_ID / "worktree")
@@ -223,7 +222,6 @@ def make_task(
         node=node,
         model=model,
         effort=effort,
-        fallback_models=fallback_models,
         writes=writes,
         allowed_paths=allowed_paths,
         cwd=str(worktree),
@@ -479,7 +477,6 @@ def task_builder(
     node: Node,
     *,
     effort: str | None = None,
-    fallback_models: tuple[str, ...] = (),
 ) -> TaskBuilder:
     """A `TaskBuilder` that supplies a brief, which a real profile requires."""
 
@@ -490,7 +487,6 @@ def task_builder(
             node=node.name,
             model=activation.metadata.model,
             effort=effort,
-            fallback_models=fallback_models,
             writes=bool(node.writes),
             allowed_paths=node.allowed_paths or (),
             cwd=str(cwd),
@@ -629,7 +625,6 @@ class Lab:
         grandchild: bool = False,
         extra_env: dict[str, str] | None = None,
         effort: str | None = None,
-        fallback_models: tuple[str, ...] = (),
     ) -> DispatchResult:
         """Run §5.2 phase B alone, with no watch loop over the child.
 
@@ -669,7 +664,6 @@ class Lab:
                 self.paths.worktree,
                 node,
                 effort=effort,
-                fallback_models=fallback_models,
             ),
             instructions=instructions,
         )
