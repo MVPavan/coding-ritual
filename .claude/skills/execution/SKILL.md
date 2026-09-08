@@ -87,13 +87,16 @@ their own skills.
      (`BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh <name>`),
      else report the missing renderer.
 4. **Exit — the discipline gate.** A phase closes only when it has stages and
-   every one is closed:
-   `n=$(bd list --parent <epic> --json | jq 'length'); u=$(bd list --parent <epic> --json | jq '[.[]|select(.status!="closed")]|length'); [ "$n" -gt 0 ] && [ "$u" -eq 0 ]`.
+   every one is closed. `bd list --parent` hides closed children by default, so
+   count with `--all` or the gate can never pass:
+   `n=$(bd list --parent <epic> --all --json | jq 'length'); u=$(bd list --parent <epic> --all --json | jq '[.[]|select(.status!="closed")]|length'); [ "$n" -gt 0 ] && [ "$u" -eq 0 ]`.
    On failure print the unclosed stages
-   (`bd list --parent <epic> --json | jq -r '.[]|select(.status!="closed")|.id+" "+.status'`)
+   (`bd list --parent <epic> --all --json | jq -r '.[]|select(.status!="closed")|.id+" "+.status'`)
    and **STOP**. Then run the roadmap's exit criterion, then the
    **verification-before-completion skill**. Close the epic with the
    exit-criterion evidence.
+   Worked both directions: `cr-o85.33` fully closed → `n=12 u=0` → gate passes;
+   `cr-o85.34` partially closed → `n=30 u=5` → gate fails and names the 5.
 5. **Report.** Re-render, `git status` (do not commit unless asked or under
    workstream scope), summarize: built, test results, open items, parked
    findings from the ledger.
