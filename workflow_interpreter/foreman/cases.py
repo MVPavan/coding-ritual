@@ -120,11 +120,12 @@ def _request(
 ) -> MintRequest:
     """Reconstruct the durable request shape needed by the wrapper."""
     meta = activation.metadata
+    view = resolved_node(root, meta.node)
     return MintRequest(
         node=meta.node,
         mint_reason=meta.mint_reason,
-        runner_profile=meta.runner_profile,
-        model=meta.model,
+        runner_profile=view.runner_profile,
+        model=view.model,
         session_id=meta.session_id,
         predecessor_activation_id=meta.predecessor_activation_id,
         predecessor_gate_id=meta.predecessor_gate_id,
@@ -317,11 +318,12 @@ def advance_lifecycle(
         exit_record = None if classification is None else classification.exit_record
         if exit_record is not None:
             recorded = wiring.store.record_exit(activation.activation_id, exit_record)
-            profile = composition.profiles.profile_for(recorded.metadata.runner_profile)
+            view = resolved_node(root, recorded.metadata.node)
+            profile = composition.profiles.profile_for(view.runner_profile)
             result = settle(
                 wiring,
                 root,
-                resolved_node(root, recorded.metadata.node).node,
+                view.node,
                 recorded,
                 profile,
             )
@@ -338,11 +340,12 @@ def advance_lifecycle(
             stalled=resolution.halted,
         )
     if lifecycle in {Lifecycle.EXIT_RECORDED, Lifecycle.EVIDENCE_RECORDED}:
-        profile = composition.profiles.profile_for(activation.metadata.runner_profile)
+        view = resolved_node(root, activation.metadata.node)
+        profile = composition.profiles.profile_for(view.runner_profile)
         result = settle(
             wiring,
             root,
-            resolved_node(root, activation.metadata.node).node,
+            view.node,
             activation,
             profile,
         )
@@ -425,11 +428,12 @@ def route_head(
         # after-validators, so a copy carried the stale `predecessor_gate_id`
         # into a non-EDGE mint and stranded the instance (cr-o85.33.8).
         head_meta = head.metadata
+        view = resolved_node(root, head_meta.node)
         request = MintRequest(
             node=head_meta.node,
             mint_reason=retry,
-            runner_profile=head_meta.runner_profile,
-            model=head_meta.model,
+            runner_profile=view.runner_profile,
+            model=view.model,
             session_id=head_meta.session_id,
             predecessor_activation_id=head.activation_id,
             inputs=head_meta.inputs,

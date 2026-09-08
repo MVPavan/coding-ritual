@@ -30,6 +30,7 @@ from workflow_interpreter.bdio.wire import (
     KEY_WF_ROOT_ID,
     BeadRecord,
     InstanceInput,
+    NodeSetting,
     ResolvedSetting,
     RootMetadata,
     config_signature,
@@ -85,6 +86,9 @@ _MSG_SETTLE_SUPERSEDED: Final[str] = (
 _MSG_UNINSTRUCTED_TASKS: Final[str] = (
     "task nodes carry no instructions and cannot be dispatched: {nodes}"
 )
+_MSG_UNPINNED_TASK_MODELS: Final[str] = (
+    "task nodes carry no resolved model pin and cannot be dispatched: {nodes}"
+)
 
 
 def _assert_tasks_are_instructed(definition: GraphDefinition) -> None:
@@ -104,6 +108,26 @@ def _assert_tasks_are_instructed(definition: GraphDefinition) -> None:
     if uninstructed:
         raise CarrierIntegrityError(
             _MSG_UNINSTRUCTED_TASKS.format(nodes=", ".join(uninstructed))
+        )
+
+
+def _assert_task_models_are_pinned(
+    definition: GraphDefinition, resolved_config: Sequence[ResolvedSetting]
+) -> None:
+    """Refuse roots whose task mints could not carry a resolved model."""
+    settings = {setting.key: setting.value for setting in resolved_config}
+    unpinned = tuple(
+        node.name
+        for node in definition.document.node
+        if node.kind is NodeKind.TASK
+        and not (
+            isinstance(value := settings.get(NodeSetting.MODEL.at(node.name)), str)
+            and value.strip()
+        )
+    )
+    if unpinned:
+        raise CarrierIntegrityError(
+            _MSG_UNPINNED_TASK_MODELS.format(nodes=", ".join(unpinned))
         )
 
 
@@ -133,6 +157,7 @@ def create_root(
         )
         return existing
     _assert_tasks_are_instructed(definition)
+    _assert_task_models_are_pinned(definition, resolved_config)
     inputs = tuple(instance_inputs)
     if (
         sum(len(item.body.encode("utf-8")) for item in inputs)

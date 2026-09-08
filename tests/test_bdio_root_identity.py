@@ -42,6 +42,15 @@ def definition() -> GraphDefinition:
     return load_definition()
 
 
+def _config(*overrides: ResolvedSetting) -> tuple[ResolvedSetting, ...]:
+    """Keep identity fixtures executable while varying only their identity fact."""
+    replaced = {setting.key for setting in overrides}
+    return (
+        *(setting for setting in RESOLVED_CONFIG if setting.key not in replaced),
+        *overrides,
+    )
+
+
 # --- root identity (§3.1) -----------------------------------------------
 
 
@@ -63,7 +72,7 @@ def test_reusing_a_key_with_a_different_resolution_is_refused(
     fake_store.create_root(
         instance_key=key,
         definition=definition,
-        resolved_config=(
+        resolved_config=_config(
             ResolvedSetting(
                 key="instance.max_total_activations",
                 value=20,
@@ -75,7 +84,7 @@ def test_reusing_a_key_with_a_different_resolution_is_refused(
         fake_store.create_root(
             instance_key=key,
             definition=definition,
-            resolved_config=(
+            resolved_config=_config(
                 ResolvedSetting(
                     key="instance.max_total_activations",
                     value=99,
@@ -88,7 +97,7 @@ def test_reusing_a_key_with_a_different_resolution_is_refused(
 def test_reusing_a_key_with_the_same_resolution_is_idempotent(
     fake_store: WorkflowStore, definition: GraphDefinition
 ) -> None:
-    config = (
+    config = _config(
         ResolvedSetting(
             key="instance.max_total_activations",
             value=20,
@@ -118,7 +127,7 @@ def test_concurrent_duplicate_roots_converge_on_the_lowest_bead_id(
         fake_store.create_root(
             instance_key=key,
             definition=definition,
-            resolved_config=(
+            resolved_config=_config(
                 ResolvedSetting(
                     key="instance.max_total_activations",
                     value=20,
@@ -131,7 +140,7 @@ def test_concurrent_duplicate_roots_converge_on_the_lowest_bead_id(
     second = fake_store.create_root(
         instance_key=key,
         definition=definition,
-        resolved_config=(
+        resolved_config=_config(
             ResolvedSetting(
                 key="instance.max_total_activations",
                 value=20,
@@ -199,7 +208,7 @@ def test_a_concurrent_create_that_converges_on_another_resolution_is_refused(
         fake_store.create_root(
             instance_key=key,
             definition=definition,
-            resolved_config=(
+            resolved_config=_config(
                 ResolvedSetting(
                     key="instance.max_total_activations",
                     value=20,
@@ -213,7 +222,7 @@ def test_a_concurrent_create_that_converges_on_another_resolution_is_refused(
         fake_store.create_root(
             instance_key=key,
             definition=definition,
-            resolved_config=(
+            resolved_config=_config(
                 ResolvedSetting(
                     key="instance.max_total_activations",
                     value=99,
@@ -227,7 +236,14 @@ def test_a_concurrent_create_that_converges_on_another_resolution_is_refused(
         if row["metadata"].get("instance_key") == key
         and row["metadata"].get("superseded_by") is None
     ]
-    assert [row["metadata"]["resolved_config"][0]["value"] for row in live] == [20]
+    assert [
+        next(
+            setting["value"]
+            for setting in row["metadata"]["resolved_config"]
+            if setting["key"] == "instance.max_total_activations"
+        )
+        for row in live
+    ] == [20]
 
 
 def test_convergence_never_supersedes_the_root_that_owns_the_instance(
@@ -312,41 +328,21 @@ def test_a_configuration_identity_distinguishes_value_types(
     fake_store.create_root(
         instance_key=key,
         definition=definition,
-        resolved_config=(
+        resolved_config=_config(
             ResolvedSetting(
-                key="instance.max_total_activations",
-                value=20,
-                source=ConfigSource.GRAPH_DEFAULT,
-            ),
-            ResolvedSetting(
-                key="node.implement.model", value=1, source=ConfigSource.GRAPH_DEFAULT
-            ),
-            ResolvedSetting(
-                key="node.implement.isolation",
-                value=True,
-                source=ConfigSource.GRAPH_DEFAULT,
+                key="identity.type-probe", value=1, source=ConfigSource.GRAPH_DEFAULT
             ),
         ),
     )
-    for typed, stringified in (("model", "1"), ("isolation", "True")):
+    for stringified in ("1", "True"):
         with pytest.raises(CarrierIntegrityError, match="resolved_config"):
             fake_store.create_root(
                 instance_key=key,
                 definition=definition,
-                resolved_config=(
+                resolved_config=_config(
                     ResolvedSetting(
-                        key="instance.max_total_activations",
-                        value=20,
-                        source=ConfigSource.GRAPH_DEFAULT,
-                    ),
-                    ResolvedSetting(
-                        key="node.implement.model",
-                        value=stringified if typed == "model" else 1,
-                        source=ConfigSource.GRAPH_DEFAULT,
-                    ),
-                    ResolvedSetting(
-                        key="node.implement.isolation",
-                        value=stringified if typed == "isolation" else True,
+                        key="identity.type-probe",
+                        value=stringified,
                         source=ConfigSource.GRAPH_DEFAULT,
                     ),
                 ),

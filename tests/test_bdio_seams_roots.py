@@ -15,7 +15,7 @@ from workflow_interpreter.bdio.errors import (
     PinnedGraphMismatchError,
 )
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
-from workflow_interpreter.bdio.wire import InstanceInput
+from workflow_interpreter.bdio.wire import ConfigSource, InstanceInput, ResolvedSetting
 from workflow_interpreter.schema.models import NodeKind
 
 
@@ -108,7 +108,14 @@ def test_test_flag_opt_in_reaches_both_root_read_paths(
     root = fake_store.create_root(
         instance_key=instance_key(),
         definition=definition,
-        resolved_config=RESOLVED_CONFIG,
+        resolved_config=(
+            *RESOLVED_CONFIG,
+            ResolvedSetting(
+                key="node.work.model",
+                value="fake-model",
+                source=ConfigSource.GRAPH_DEFAULT,
+            ),
+        ),
         allow_test_flags=True,
     )
     assert root.index.allow_test_flags is True
@@ -169,6 +176,33 @@ def test_create_root_refuses_whitespace_only_instructions(
             instance_key=instance_key(),
             definition=definition.model_copy(update={"document": blanked}),
             resolved_config=RESOLVED_CONFIG,
+        )
+
+
+def test_create_root_refuses_a_task_without_a_model_pin(
+    fake_store: WorkflowStore,
+) -> None:
+    """A programmatic non-role runner needs its model pinned before creation."""
+    definition = load_definition()
+    unpinned = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"runner": "claude", "model": None})
+                if node.name == "implement"
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+    config = tuple(
+        setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.model"
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="model"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": unpinned}),
+            resolved_config=config,
         )
 
 

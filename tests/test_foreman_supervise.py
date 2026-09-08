@@ -20,6 +20,7 @@ from workflow_interpreter.bdio import (
     Lifecycle,
     LifecycleConflictError,
     LossyWriteError,
+    MintRequest,
     Outcome,
 )
 from workflow_interpreter.bdio.client import BdClient
@@ -47,6 +48,7 @@ from workflow_interpreter.supervisor.errors import (
     PreconditionRefused,
     SnapshotFailed,
 )
+from workflow_interpreter.supervisor.models import LaunchOutcome
 from workflow_interpreter.supervisor.profile import Profile
 
 FailureFactory = Callable[[], Exception]
@@ -98,6 +100,36 @@ def test_plain_precondition_reason_preserves_its_message() -> None:
         _precondition_reason(PreconditionRefused("not a git worktree"))
         == "not a git worktree"
     )
+
+
+def test_wrapper_fallback_request_rebuilds_the_root_execution_pin(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A missing dispatch file cannot revive stale activation vendor metadata."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    wiring = lab.wiring()
+    activation = wiring.store.mint_activation(root.root_id, entry_request()).activation
+    lab.fake_bd.rows[activation.activation_id]["metadata"].update(
+        {"runner_profile": "legacy-runner", "model": "legacy-model"}
+    )
+    received: list[MintRequest] = []
+
+    def capture(request: MintRequest, *_args: object, **_kwargs: object) -> object:
+        received.append(request)
+        return SimpleNamespace(dispatch=SimpleNamespace(outcome=LaunchOutcome.LAUNCHED))
+
+    monkeypatch.setattr(wiring.supervisor, "run", capture)
+
+    assert (
+        run_wrapper(
+            lab.composition, root.root_id, activation.activation_id, wiring=wiring
+        )
+        is WrapperExit.DONE
+    )
+    request = received[0]
+    assert request.runner_profile == "fake"
+    assert request.model == "fake"
 
 
 def test_wrapper_error_close_records_transport_evidence() -> None:

@@ -153,7 +153,7 @@ def _race_order(record: ActivationRecord) -> tuple[bool, int, str]:
     )
 
 
-def _pinned_execution_setting(root: RootRecord, node: str, setting: NodeSetting) -> str:
+def pinned_execution_setting(root: RootRecord, node: str, setting: NodeSetting) -> str:
     """Read one text execution pin from the root's immutable resolution."""
     value = resolved_settings(root.metadata).get(setting.at(node))
     if not isinstance(value, str):
@@ -329,8 +329,8 @@ class WorkflowStore:
                 created=False,
             )
 
-        runner_profile = _pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
-        model = _pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
+        runner_profile = pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
+        model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
         _assert_pinned_execution_setting(
             node=facts.node,
             field=_FIELD_RUNNER_PROFILE,

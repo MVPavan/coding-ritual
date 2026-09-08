@@ -21,7 +21,7 @@ includes `Breaker`, which `Evidence` carries: a value type reachable only by
 importing `bdio.wire` is a sealed boundary with a hole in it.
 """
 
-from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.bdio.api import WorkflowStore, pinned_execution_setting
 from workflow_interpreter.bdio.bounds import BoundKind, BoundRefusal
 from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadReader
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
@@ -161,5 +161,6 @@ __all__ = [
     "WorkflowReads",
     "WorkflowStore",
     "canonical_payload_bytes",
+    "pinned_execution_setting",
     "resolved_settings",
 ]

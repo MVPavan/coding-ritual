@@ -115,7 +115,9 @@ class WrapperExit(StrEnum):
     FAILED = "failed"
 
 
-def _request(activation_id: str, wiring: InstanceWiring) -> MintRequest:
+def _request(
+    activation_id: str, wiring: InstanceWiring, root: RootRecord
+) -> MintRequest:
     """Load the durable dispatch request, rebuilding only crash-safe metadata."""
     launch = read_record(
         wiring.paths.activation_dir(activation_id) / DISPATCH_REQUEST,
@@ -125,11 +127,12 @@ def _request(activation_id: str, wiring: InstanceWiring) -> MintRequest:
         return launch.request
     activation = wiring.store.reads.load_activation(activation_id)
     meta = activation.metadata
+    view = resolved_node(root, meta.node)
     return MintRequest(
         node=meta.node,
         mint_reason=meta.mint_reason,
-        runner_profile=meta.runner_profile,
-        model=meta.model,
+        runner_profile=view.runner_profile,
+        model=view.model,
         session_id=meta.session_id,
         predecessor_activation_id=meta.predecessor_activation_id,
         predecessor_gate_id=meta.predecessor_gate_id,
@@ -201,7 +204,7 @@ def run_wrapper(
         if activation.metadata.lifecycle is not Lifecycle.MINTED:
             return WrapperExit.STALE
         root = resolved.store.reads.load_root(root_id)
-        request = _request(activation_id, resolved)
+        request = _request(activation_id, resolved, root)
         # The EFFECTIVE node: everything downstream of here — the §5.4
         # precondition, workspace isolation, the §8.2 monitor limits — must
         # read the resolution the root pinned, not the graph body alone (§3.1).

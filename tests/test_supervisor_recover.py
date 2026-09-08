@@ -500,6 +500,28 @@ def test_finishing_a_crashed_steer_mints_exactly_one_continuation(lab: Lab) -> N
     assert _continuations(lab) == [first.steer.continuation.activation.activation_id]
 
 
+def test_recovery_rebuilds_a_persisted_steer_request_from_the_root_pin(
+    lab: Lab,
+) -> None:
+    """A legacy intent cannot make crash recovery re-mint a divergent vendor."""
+    intent = _persist_steer_intent(lab)
+    divergent = intent.model_copy(
+        update={
+            "continuation": intent.continuation.model_copy(
+                update={"runner_profile": "legacy-runner", "model": "legacy-model"}
+            )
+        }
+    )
+    write_record(lab.paths.steer_intent(lab.activation.activation_id), divergent)
+
+    resolution = lab.recovery.resolve(lab.activation, lab.node)
+
+    assert resolution.steer is not None
+    continuation = resolution.steer.continuation.activation.metadata
+    assert continuation.runner_profile == "fake"
+    assert continuation.model == "fake-model"
+
+
 def test_a_steer_intent_beside_a_closed_activation_is_residue(lab: Lab) -> None:
     """A finished steer's intent file must not re-open a settled activation."""
     _persist_steer_intent(lab)
