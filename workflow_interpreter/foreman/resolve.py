@@ -23,7 +23,7 @@ from workflow_interpreter.foreman.execution import (
     EFFECTIVE_FIELD_SETTINGS,
     effective_node,
 )
-from workflow_interpreter.profiles.config import RUNNER_PREFIX
+from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RUNNER_PREFIX
 from workflow_interpreter.schema.graph_index import at, build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import (
@@ -51,9 +51,13 @@ MSG_ROLE_REFERENCE: Final[str] = (
     "{key!r} from {source} is a `profile:<role>` reference; only the foreman "
     "config's roles map resolves those, so state the profile itself"
 )
-MSG_RUNNER_WITHOUT_MODEL: Final[str] = (
-    "{key!r} from {source} chooses a runner without {model!r} from the same "
-    "source — the model would stay the graph role's, a pairing nobody stated"
+MSG_RUNNER_WITHOUT_BINDING: Final[str] = (
+    "{key!r} from {source} chooses a runner without {binding!r} from the same "
+    "source — the binding would stay the graph role's, a pairing nobody stated"
+)
+MSG_EMPTY_EFFORT: Final[str] = "{key!r} must not be empty"
+MSG_VENDOR_DEFAULT_MODEL: Final[str] = (
+    "{key!r} from {source} cannot use the vendor default model"
 )
 MSG_EFFECTIVE_NODE_UNUSABLE: Final[str] = (
     "effective node {node!r} is unusable under {key!r}: rule {rule} reports {detail}"
@@ -66,6 +70,7 @@ TASK_SETTING_TYPES: Final[
 ] = {
     NodeSetting.RUNNER: str,
     NodeSetting.MODEL: str,
+    NodeSetting.EFFORT: str,
     NodeSetting.ISOLATION: str,
     NodeSetting.MAX_WALL: str,
     NodeSetting.STALE_AFTER: str,
@@ -100,8 +105,9 @@ def resolve(
             key = setting.at(node.name)
             field = setting.value.rsplit(".", maxsplit=1)[-1]
             allowed[key] = setting_type
-            owners[key] = (node, field)
-            value = getattr(node, field)
+            if hasattr(node, field):
+                owners[key] = (node, field)
+            value = getattr(node, field, None)
             if value is not None:
                 defaults[key] = value.value if hasattr(value, "value") else value
     for region in definition.document.region:
@@ -134,6 +140,16 @@ def resolve(
             continue
         if type(value) is not allowed[key]:
             raise ResolutionError(f"unsupported value for {key!r}")
+        if key.endswith(".effort") and value == "":
+            raise ResolutionError(MSG_EMPTY_EFFORT.format(key=key))
+        if (
+            key.endswith(".model")
+            and value == MODEL_VENDOR_DEFAULT
+            and source in (ConfigSource.PROJECT_CONFIG, ConfigSource.INSTANCE_OVERRIDE)
+        ):
+            raise ResolutionError(
+                MSG_VENDOR_DEFAULT_MODEL.format(key=key, source=source.value)
+            )
         owner = owners.get(key)
         if owner is not None and source is not ConfigSource.GRAPH_DEFAULT:
             owner_node, owner_field = owner
@@ -241,9 +257,8 @@ def _refuse_half_bound_runner(
 
     A `profile:<role>` value is a role reference, and only `_resolved_config`
     resolves those — accepting one here pins a root whose execution view has
-    no runner to read. A runner without its model is the other half: the
-    profile would come from config while the model stayed the graph role's,
-    a pairing nobody stated (cr-7h8 review).
+    no runner to read. A runner without its model or effort leaves one setting
+    from the graph role, a pairing nobody stated (cr-7h8 review).
     """
     if isinstance(value, str) and value.startswith(RUNNER_PREFIX):
         raise ResolutionError(
@@ -251,14 +266,15 @@ def _refuse_half_bound_runner(
                 key=NodeSetting.RUNNER.at(node_name), source=source.value
             )
         )
-    if NodeSetting.MODEL.at(node_name) not in supplied:
-        raise ResolutionError(
-            MSG_RUNNER_WITHOUT_MODEL.format(
-                key=NodeSetting.RUNNER.at(node_name),
-                model=NodeSetting.MODEL.at(node_name),
-                source=source.value,
+    for binding in (NodeSetting.MODEL, NodeSetting.EFFORT):
+        if binding.at(node_name) not in supplied:
+            raise ResolutionError(
+                MSG_RUNNER_WITHOUT_BINDING.format(
+                    key=NodeSetting.RUNNER.at(node_name),
+                    binding=binding.at(node_name),
+                    source=source.value,
+                )
             )
-        )
 
 
 def ensure_instance_branch(composition: Composition, root: RootRecord) -> None:
@@ -382,6 +398,7 @@ def _resolved_config(
         binding = composition.config.roles[node.runner.removeprefix("profile:")]
         runner_key = f"node.{node.name}.runner"
         model_key = f"node.{node.name}.model"
+        effort_key = f"node.{node.name}.effort"
         if settings.get(runner_key) is None or (
             settings[runner_key].source is ConfigSource.GRAPH_DEFAULT
         ):
@@ -396,6 +413,14 @@ def _resolved_config(
             settings[model_key] = ResolvedSetting(
                 key=model_key,
                 value=binding.model,
+                source=ConfigSource.ROLE_BINDING,
+            )
+        if settings.get(effort_key) is None or (
+            settings[effort_key].source is ConfigSource.GRAPH_DEFAULT
+        ):
+            settings[effort_key] = ResolvedSetting(
+                key=effort_key,
+                value=binding.effort,
                 source=ConfigSource.ROLE_BINDING,
             )
     settings.update(

@@ -21,6 +21,7 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
     DEVIATION_SANDBOX_UNAVAILABLE,
+    DEVIATION_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.foreman.close import _previous_tree_oid
 from workflow_interpreter.foreman.compose import (
@@ -29,6 +30,7 @@ from workflow_interpreter.foreman.compose import (
     WrapperLaunch,
 )
 from workflow_interpreter.foreman.constants import DISPATCH_REQUEST, WRAPPER_LOCK
+from workflow_interpreter.foreman.errors import UnusableResolutionError
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.identifiers import activation_dir, validate_bead_id
 from workflow_interpreter.foreman.inputs import (
@@ -141,7 +143,8 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
 
     def build(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
         current = wiring.store.reads.load_activation(activation.activation_id)
-        node = resolved_node(root, current.metadata.node).node
+        resolved = resolved_node(root, current.metadata.node)
+        node = resolved.node
         by_id = {
             item.activation_id: item
             for item in wiring.store.reads.list_activations(root.root_id)
@@ -163,6 +166,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             activation_id=current.activation_id,
             node=node.name,
             model=current.metadata.model,
+            effort=resolved.effort,
             writes=bool(node.writes),
             allowed_paths=node.allowed_paths or (),
             cwd=str(wiring.workspace.path_for(node)),
@@ -236,6 +240,22 @@ def run_wrapper(
             deviations=(
                 Deviation(
                     kind=DEVIATION_FORK_BARRIER_ABORT,
+                    reason=str(exc),
+                    recorded_at="wrapper",
+                ),
+            ),
+        )
+    except UnusableResolutionError as exc:
+        # The root's immutable resolution could not make a task, so no runner
+        # invocation occurred and an infra retry cannot repair the root.
+        return _close_error(
+            resolved,
+            activation_id,
+            Outcome.ERROR_TRANSPORT,
+            exc,
+            deviations=(
+                Deviation(
+                    kind=DEVIATION_UNUSABLE_RESOLUTION,
                     reason=str(exc),
                     recorded_at="wrapper",
                 ),

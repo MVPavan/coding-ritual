@@ -137,6 +137,7 @@ class TaskSpec(BaseModel):
     activation_id: str
     node: str
     model: str
+    effort: str | None = None
     writes: bool
     allowed_paths: tuple[str, ...] = ()
     cwd: str

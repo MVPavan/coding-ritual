@@ -11,7 +11,7 @@ reads — so this follows the established convention instead. The host
 environment still reaches the child, but only through `passthrough_env`: a
 named allow-list, read once by the composition root and injected as data.
 
-`effort` is a per-vendor free string on purpose. The three CLIs do not share an
+`effort` is a per-role free string on purpose. The three CLIs do not share an
 effort vocabulary (`claude --effort low|medium|high|xhigh|max`,
 `opencode --variant <provider-specific>`, `codex -c model_reasoning_effort=…`),
 and inventing a translation table would silently mistranslate rather than fail.
@@ -107,12 +107,8 @@ class ProfileConfig(BaseModel):
     """Host env keys copied into the child, in addition to the vendor's own
     named auth keys. A key that is absent from the host env is simply not set;
     it is never invented."""
-    effort: Annotated[VendorMap, AfterValidator(_freeze)] = Field(
-        default_factory=_no_overrides
-    )
-    """Per-vendor effort, in that vendor's own vocabulary (see module docstring)."""
 
-    @field_serializer("binary_overrides", "effort")
+    @field_serializer("binary_overrides")
     def _dump_vendor_map(self, value: VendorMap) -> dict[str, str]:
         """Dump the read-only view as a plain object.
 
@@ -126,7 +122,3 @@ class ProfileConfig(BaseModel):
     def binary_for(self, runner: RunnerName) -> str:
         """The executable for one vendor: the override, or the vendor's name."""
         return self.binary_overrides.get(runner, runner.value)
-
-    def effort_for(self, runner: RunnerName) -> str | None:
-        """The configured effort for one vendor, or `None` when unset."""
-        return self.effort.get(runner)

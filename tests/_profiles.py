@@ -211,6 +211,7 @@ def make_task(
     node: str = "implement",
     cwd: Path | None = None,
     allowed_paths: tuple[str, ...] = (),
+    effort: str | None = "medium",
 ) -> TaskSpec:
     """A `TaskSpec` for one node, with a checkout directory that exists."""
     worktree = cwd or (tmp_path / ".wf" / ROOT_ID / "worktree")
@@ -220,6 +221,7 @@ def make_task(
         activation_id=ACTIVATION,
         node=node,
         model=model,
+        effort=effort,
         writes=writes,
         allowed_paths=allowed_paths,
         cwd=str(worktree),
@@ -470,7 +472,12 @@ def add_remote(repo: Path, name: str, url: str) -> None:
     )
 
 
-def task_builder(cwd: Path, node: Node) -> TaskBuilder:
+def task_builder(
+    cwd: Path,
+    node: Node,
+    *,
+    effort: str | None = "medium",
+) -> TaskBuilder:
     """A `TaskBuilder` that supplies a brief, which a real profile requires."""
 
     def build(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
@@ -479,6 +486,7 @@ def task_builder(cwd: Path, node: Node) -> TaskBuilder:
             activation_id=activation.activation_id,
             node=node.name,
             model=activation.metadata.model,
+            effort=effort,
             writes=bool(node.writes),
             allowed_paths=node.allowed_paths or (),
             cwd=str(cwd),
@@ -616,6 +624,7 @@ class Lab:
         fd0_probe: bool = False,
         grandchild: bool = False,
         extra_env: dict[str, str] | None = None,
+        effort: str | None = "medium",
     ) -> DispatchResult:
         """Run §5.2 phase B alone, with no watch loop over the child.
 
@@ -651,7 +660,11 @@ class Lab:
         result = dispatcher.dispatch(
             request or entry_mint(session_id=session_id),
             registry.profile_for(runner.value),
-            task_builder(self.paths.worktree, node),
+            task_builder(
+                self.paths.worktree,
+                node,
+                effort=effort,
+            ),
             instructions=instructions,
         )
         if result.handle is not None:

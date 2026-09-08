@@ -19,6 +19,7 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_INSTANCE_BRANCH_DIVERGED,
     DEVIATION_PRECONDITION_REFUSED,
     DEVIATION_SANDBOX_UNAVAILABLE,
+    DEVIATION_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.bdio.records import RootRecord, parse_activation, parse_gate
 from workflow_interpreter.bdio.wire import BeadRecord, EventPayload, WfKind
@@ -43,6 +44,7 @@ class DeadEndKind(StrEnum):
     PRECONDITION_REFUSED = "precondition-refused"
     INPUTS_UNAVAILABLE = "inputs-unavailable"
     SANDBOX_UNAVAILABLE = "sandbox-unavailable"
+    UNUSABLE_RESOLUTION = "unusable-resolution"
     BOUND_VIOLATED = "bound-violated"
 
 
@@ -115,6 +117,8 @@ def _dead_end(index: GraphIndex, activation: ActivationRecord) -> DeadEndKind | 
         return DeadEndKind.INPUTS_UNAVAILABLE
     if any(item.kind == DEVIATION_SANDBOX_UNAVAILABLE for item in meta.deviations):
         return DeadEndKind.SANDBOX_UNAVAILABLE
+    if any(item.kind == DEVIATION_UNUSABLE_RESOLUTION for item in meta.deviations):
+        return DeadEndKind.UNUSABLE_RESOLUTION
     if any(item.kind == DEVIATION_BOUND_VIOLATED for item in meta.deviations):
         return DeadEndKind.BOUND_VIOLATED
     node = index.nodes.get(meta.node)

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Final, cast
 
 import pytest
+from pydantic import ValidationError
 from structlog.testing import capture_logs
 
 from tests._bdio import (
@@ -40,7 +41,7 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
 from workflow_interpreter.foreman.constants import INSTANCE_BRANCH
-from workflow_interpreter.foreman.errors import ResolutionError
+from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
     UnresolvedRunnerError,
     resolved_node,
@@ -59,6 +60,49 @@ from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.paths import read_record, write_record
+
+
+class _AvailableProfiles:
+    """A resolver double for pure resolution tests."""
+
+
+def test_runner_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> None:
+    """A role cannot leave either output-affecting setting to a vendor default."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    wrapper_home = tmp_path / "home"
+    wrapper_root = (
+        wrapper_home
+        / hashlib.sha256(str(repo.resolve()).encode("utf-8")).hexdigest()[:16]
+    )
+
+    def config(binding: dict[str, str]) -> ForemanConfig:
+        return ForemanConfig.model_validate(
+            {
+                "repo_root": repo,
+                "wrapper_home": wrapper_home,
+                "bd": {"workspace": tmp_path / "bd", "actor": "actor"},
+                "host": "host",
+                "actor": "actor",
+                "supervisor": {
+                    "repo_root": repo,
+                    "wrapper_root": wrapper_root,
+                    "host": "host",
+                },
+                "roles": {"implementer": binding},
+            }
+        )
+
+    with pytest.raises(ValidationError, match="roles.implementer.model"):
+        config({"profile": "claude", "effort": "high"})
+    with pytest.raises(ValidationError, match="roles.implementer.effort"):
+        config({"profile": "claude", "model": "claude-opus-4-1"})
+    with pytest.raises(ValidationError, match="roles.implementer.model"):
+        config({"profile": "claude", "model": "", "effort": "high"})
+    with pytest.raises(ValidationError, match="roles.implementer.effort"):
+        config({"profile": "claude", "model": "claude-opus-4-1", "effort": ""})
+    with pytest.raises(ValidationError, match="implementer"):
+        config({"profile": "claude", "model": "default", "effort": "high"})
 
 
 def test_instance_head_refuses_a_missing_instance_branch(tmp_path: Path) -> None:
@@ -104,7 +148,7 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
         supervisor_config=config.supervisor,
         git=cast(Git, Heads()),
         clock=cast(Clock, object()),
-        profiles=cast(ProfileResolver, object()),
+        profiles=cast(ProfileResolver, _AvailableProfiles()),
         spawner=cast(Spawner, object()),
     )
     wiring_a = composition.for_root("a")
@@ -193,6 +237,7 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
             {
                 "node.implement.model": "opus-5",
                 "node.implement.runner": "operator-runner",
+                "node.implement.effort": "high",
             },
         )
     }
@@ -200,13 +245,17 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
     assert settings["node.implement.model"].source.value == "instance-override"
     assert settings["node.implement.runner"].value == "operator-runner"
     assert settings["node.implement.runner"].source.value == "instance-override"
+    assert settings["node.implement.effort"].value == "high"
+    assert settings["node.implement.effort"].source.value == "instance-override"
 
     bound_composition, _ = _instance_composition(
         fake_store,
         tmp_path / "bound",
         roles={
-            "implementer": RunnerBinding(profile="bound-runner", model="bound-model"),
-            "critic": RunnerBinding(profile="critic"),
+            "implementer": RunnerBinding(
+                profile="bound-runner", model="bound-model", effort="high"
+            ),
+            "critic": RunnerBinding(profile="critic", model="critic", effort="medium"),
         },
     )
     bound_settings = {
@@ -217,11 +266,16 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
     assert bound_settings["node.implement.runner"].source.value == "role-binding"
     assert bound_settings["node.implement.model"].value == "bound-model"
     assert bound_settings["node.implement.model"].source.value == "role-binding"
+    assert bound_settings["node.implement.effort"].value == "high"
+    assert bound_settings["node.implement.effort"].source.value == "role-binding"
 
     project_composition, _ = _instance_composition(
         fake_store,
         tmp_path / "project",
-        project_config={"node.implement.model": "project-model"},
+        project_config={
+            "node.implement.model": "project-model",
+            "node.implement.effort": "project-effort",
+        },
     )
     project_settings = {
         item.key: item
@@ -229,6 +283,8 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
     }
     assert project_settings["node.implement.model"].value == "project-model"
     assert project_settings["node.implement.model"].source.value == "project-config"
+    assert project_settings["node.implement.effort"].value == "project-effort"
+    assert project_settings["node.implement.effort"].source.value == "project-config"
 
 
 def test_resolve_refuses_an_unknown_override() -> None:
@@ -332,6 +388,7 @@ def _instance_composition(
     *,
     project_config: dict[str, str | int | bool] | None = None,
     roles: dict[str, RunnerBinding] | None = None,
+    profiles: ProfileResolver | None = None,
 ) -> tuple[Composition, _InstanceGit]:
     repo = tmp_path / "repo"
     repo.mkdir(parents=True)
@@ -348,8 +405,12 @@ def _instance_composition(
         project_config={} if project_config is None else project_config,
         roles=(
             {
-                "implementer": RunnerBinding(profile="implementer"),
-                "critic": RunnerBinding(profile="critic"),
+                "implementer": RunnerBinding(
+                    profile="implementer", model="implementer", effort="medium"
+                ),
+                "critic": RunnerBinding(
+                    profile="critic", model="critic", effort="medium"
+                ),
             }
             if roles is None
             else roles
@@ -367,7 +428,7 @@ def _instance_composition(
             supervisor_config=config.supervisor,
             git=cast(Git, git),
             clock=cast(Clock, object()),
-            profiles=cast(ProfileResolver, object()),
+            profiles=_AvailableProfiles() if profiles is None else profiles,
             spawner=cast(Spawner, object()),
         ),
         git,
@@ -401,7 +462,10 @@ def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
     composition, _ = _instance_composition(
         store,
         tmp_path,
-        roles={role: RunnerBinding(profile=role) for role in BUILD_LOOP_ROLES},
+        roles={
+            role: RunnerBinding(profile=role, model=f"{role}-model", effort="medium")
+            for role in BUILD_LOOP_ROLES
+        },
     )
     inputs: dict[str, Path] = {}
     for name, body in BUILD_LOOP_INSTANCE_INPUTS.items():
@@ -532,7 +596,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
     unstaffed, _ = _instance_composition(
         fake_store,
         tmp_path / "unstaffed",
-        roles={"other": RunnerBinding(profile="other")},
+        roles={"other": RunnerBinding(profile="other", model="other", effort="medium")},
     )
     with pytest.raises(ResolutionError, match="unknown runner roles"):
         instantiate(
@@ -999,6 +1063,18 @@ def test_resolve_refuses_a_value_the_node_field_cannot_hold(
         resolve(load_definition(), {key: value}, {})
 
 
+def test_resolve_refuses_the_vendor_default_model_from_project_config() -> None:
+    """A root cannot pin a model selected later by the runner CLI."""
+    with pytest.raises(ResolutionError, match="vendor default"):
+        resolve(load_definition(), {"node.implement.model": "default"}, {})
+
+
+def test_resolve_refuses_the_vendor_default_model_from_instance_override() -> None:
+    """An override cannot substitute the runner CLI's mutable default model."""
+    with pytest.raises(ResolutionError, match="vendor default"):
+        resolve(load_definition(), {}, {"node.implement.model": "default"})
+
+
 def test_instantiate_refuses_an_unusable_override_before_writing_the_root(
     tmp_path: Path,
 ) -> None:
@@ -1024,21 +1100,42 @@ def test_resolve_refuses_a_configured_runner_that_is_still_a_role() -> None:
         )
 
 
-def test_resolve_refuses_a_configured_runner_without_its_model() -> None:
-    """Half a binding pairs a chosen profile with the graph role's model."""
+def test_resolve_refuses_a_configured_runner_without_its_model_and_effort() -> None:
+    """A runner override must name the complete runner-model-effort binding."""
     with pytest.raises(ResolutionError, match="without"):
         resolve(load_definition(), {}, {"node.implement.runner": "claude"})
+    with pytest.raises(ResolutionError, match="effort"):
+        resolve(
+            load_definition(),
+            {},
+            {"node.implement.runner": "claude", "node.implement.model": "opus"},
+        )
+    with pytest.raises(ResolutionError, match="effort"):
+        resolve(
+            load_definition(),
+            {},
+            {
+                "node.implement.runner": "claude",
+                "node.implement.model": "opus",
+                "node.implement.effort": "",
+            },
+        )
 
     settled = {
         item.key: item
         for item in resolve(
             load_definition(),
             {},
-            {"node.implement.runner": "claude", "node.implement.model": "opus"},
+            {
+                "node.implement.runner": "claude",
+                "node.implement.model": "opus",
+                "node.implement.effort": "high",
+            },
         )
     }
     assert settled["node.implement.runner"].value == "claude"
     assert settled["node.implement.model"].value == "opus"
+    assert settled["node.implement.effort"].value == "high"
 
 
 def test_resolved_node_falls_back_to_the_pinned_node(tmp_path: Path) -> None:
@@ -1156,4 +1253,36 @@ def test_resolved_node_refuses_a_root_that_never_resolved_its_role(
     )
 
     with pytest.raises(UnresolvedRunnerError, match="implementer"):
+        resolved_node(stripped, IMPLEMENT)
+
+
+@pytest.mark.parametrize("field", ("model", "effort"))
+def test_resolved_node_refuses_a_role_bound_node_without_usable_vendor_setting(
+    tmp_path: Path, field: str
+) -> None:
+    """A role-bound task cannot defer a model or effort to a vendor."""
+    root = ForemanLab(tmp_path).instantiate()
+    model_key = "node.implement.model"
+    effort_key = "node.implement.effort"
+    resolved_config = (
+        tuple(
+            item.model_copy(update={"value": "default"})
+            if item.key == model_key
+            else item
+            for item in root.metadata.resolved_config
+        )
+        if field == "model"
+        else tuple(
+            item for item in root.metadata.resolved_config if item.key != effort_key
+        )
+    )
+    stripped = root.model_copy(
+        update={
+            "metadata": root.metadata.model_copy(
+                update={"resolved_config": resolved_config}
+            )
+        }
+    )
+
+    with pytest.raises(UnusableResolutionError, match=rf"node 'implement'.*{field}"):
         resolved_node(stripped, IMPLEMENT)

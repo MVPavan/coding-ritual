@@ -29,7 +29,6 @@ from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.profile import Profile
 
 _MSG_UNKNOWN: Final[str] = "no runner profile named {name!r}; the closed set is {known}"
-
 ProfileBuilder = Callable[[ProfileConfig, Clock, Mapping[str, str]], Profile]
 
 BUILDERS: Final[dict[RunnerName, ProfileBuilder]] = {

@@ -20,14 +20,20 @@ a session. Three ways it used to cost more, all asserted here —
 from __future__ import annotations
 
 import uuid
+from pathlib import Path
 from typing import Final
 
 import pytest
 
-from tests._profiles import Lab
-from tests._supervisor import IMPLEMENT, entry_mint, node_of
-from workflow_interpreter.bdio import Lifecycle, MintReason
-from workflow_interpreter.profiles import RunnerName
+from tests._foreman import ForemanLab
+from tests._profiles import Lab, host_env_with, stub_env
+from tests._supervisor import IMPLEMENT, ChildScript, entry_mint, node_of
+from workflow_interpreter.bdio import Lifecycle, MintReason, ProcessHandle
+from workflow_interpreter.foreman.compose import Composition, ProfileResolver
+from workflow_interpreter.foreman.config import RunnerBinding
+from workflow_interpreter.foreman.tick import Foreman
+from workflow_interpreter.profiles import ProfileConfig, RunnerName
+from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.supervisor import (
     ExecLedger,
@@ -39,6 +45,12 @@ from workflow_interpreter.supervisor import (
 from workflow_interpreter.supervisor.errors import ContinuationRefused
 from workflow_interpreter.supervisor.models import MonitorVerdict
 from workflow_interpreter.supervisor.paths import write_record
+from workflow_interpreter.supervisor.profile import (
+    ChildLauncher,
+    RunnerCommand,
+    TaskSpec,
+)
+from workflow_interpreter.supervisor.sandbox import SandboxMode
 from workflow_interpreter.supervisor.steer import instructions_digest
 
 STEER_REASON: Final[str] = "the runner is looping on the same failing test"
@@ -65,6 +77,106 @@ def assert_resumes(argv: tuple[str, ...], session: str) -> None:
     assert argv[argv.index("--resume") + 1] == session, argv
     assert "--session-id" not in argv, argv
     assert STEER_INSTRUCTIONS in argv, argv
+
+
+@pytest.mark.proc
+def test_routed_claude_roles_keep_their_own_pinned_efforts(
+    tmp_path: Path,
+) -> None:
+    """One root routes both roles to one vendor without sharing an effort."""
+
+    class RecordingClaude(ClaudeProfile):
+        """Keep the real vendor command for each routed task."""
+
+        def __init__(self, config: ProfileConfig) -> None:
+            super().__init__(config, lab.clock, host_env_with(**stub_env()))
+            self.commands: dict[str, RunnerCommand] = {}
+
+        def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+            command = super().build_command(task, session_id)
+            self.commands[task.node] = command
+            return command
+
+        def launch(
+            self, command: RunnerCommand, launcher: ChildLauncher
+        ) -> ProcessHandle:
+            """Run the foreman fixture child after retaining Claude's invocation."""
+            if "review" in self.commands and self.commands["review"] == command:
+                script = ChildScript(
+                    marker='{"outcome":"accept"}',
+                    effects='{"paths":[]}',
+                    artifact_path="finding.md",
+                    artifact_body="no findings",
+                )
+            else:
+                script = ChildScript(
+                    marker='{"outcome":"done"}',
+                    effects='{"paths":["src/feature.py"]}',
+                    write_path="src/feature.py",
+                    write_body="value = 2\n",
+                    commit=True,
+                )
+            return launcher(
+                command.model_copy(update={"argv": ("/bin/sh", "-c", script.shell())})
+            )
+
+    class RecordingProfiles(ProfileResolver):
+        """Route both roles through the same recording Claude profile."""
+
+        def __init__(self, profile: RecordingClaude) -> None:
+            self._profile = profile
+
+        def profile_for(self, name: str) -> RecordingClaude:
+            assert name == RunnerName.CLAUDE.value
+            return self._profile
+
+    lab = ForemanLab(
+        tmp_path,
+        roles={
+            "implementer": RunnerBinding(
+                profile="claude", model="claude-opus-5", effort="high"
+            ),
+            "critic": RunnerBinding(
+                profile="claude", model="claude-opus-5", effort="medium"
+            ),
+        },
+        sandbox=SandboxMode.OFF,
+    )
+    profile = RecordingClaude(ProfileConfig())
+    lab.profiles = RecordingProfiles(profile)
+    lab.composition = Composition(
+        lab.config,
+        lab.store,
+        lab.supervisor_config,
+        lab.git,
+        lab.clock,
+        lab.profiles,
+        lab.spawner,
+    )
+    lab.spawner.bind(lab.composition)
+    lab.foreman = Foreman(lab.composition)
+    lab.instantiate_resolved()
+
+    for _ in range(12):
+        lab.tick()
+        if set(profile.commands) == {"implement", "review"}:
+            break
+
+    assert set(profile.commands) == {"implement", "review"}
+    for command in profile.commands.values():
+        assert command.argv[command.argv.index("--model") + 1] == "claude-opus-5"
+    assert (
+        profile.commands["implement"].argv[
+            profile.commands["implement"].argv.index("--effort") + 1
+        ]
+        == "high"
+    )
+    assert (
+        profile.commands["review"].argv[
+            profile.commands["review"].argv.index("--effort") + 1
+        ]
+        == "medium"
+    )
 
 
 @pytest.mark.proc

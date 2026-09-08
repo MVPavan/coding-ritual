@@ -169,6 +169,7 @@ class NodeSetting(SettingKey):
 
     RUNNER = "node.{scope}.runner"
     MODEL = "node.{scope}.model"
+    EFFORT = "node.{scope}.effort"
     ISOLATION = "node.{scope}.isolation"
     WRITES = "node.{scope}.writes"
     TOKEN_BUDGET = "node.{scope}.token_budget"

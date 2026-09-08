@@ -127,6 +127,15 @@ KEY_NETWORK_ACCESS: Final[str] = "sandbox_workspace_write.network_access"
 KEY_EXCLUDE_SLASH_TMP: Final[str] = "sandbox_workspace_write.exclude_slash_tmp"
 KEY_REASONING_EFFORT: Final[str] = "model_reasoning_effort"
 
+_MSG_UNUSABLE_MODEL: Final[str] = (
+    "codex: node {node!r} has no usable model; a task must pin an explicit "
+    "non-default model before argv construction"
+)
+_MSG_UNUSABLE_EFFORT: Final[str] = (
+    "codex: node {node!r} has no usable effort; a task must pin effort before "
+    "argv construction"
+)
+
 TYPE_THREAD_STARTED: Final[str] = "thread.started"
 TYPE_TURN_COMPLETED: Final[str] = "turn.completed"
 TYPE_TURN_FAILED: Final[str] = "turn.failed"
@@ -311,13 +320,12 @@ class CodexProfile(BaseProfile):
 
     def _shared_flags(self, task: TaskSpec) -> list[str]:
         """Model and effort, in codex's own vocabulary."""
-        flags: list[str] = []
-        if task.model and task.model != MODEL_VENDOR_DEFAULT:
-            flags += [MODEL, task.model]
-        effort = self._config.effort_for(self.runner)
-        if effort:
-            flags += [CONFIG, _toml(KEY_REASONING_EFFORT, effort)]
-        return flags
+        return [
+            MODEL,
+            _required_model(task),
+            CONFIG,
+            _toml(KEY_REASONING_EFFORT, _required_effort(task)),
+        ]
 
     # -- §6 stream normalization -----------------------------------------
 
@@ -399,6 +407,22 @@ def _channels_dir(task: TaskSpec) -> Path:
     return Path(
         require_absolute(RunnerName.CODEX, "outcome file", task.channels.outcome_file)
     ).parent
+
+
+def _required_model(task: TaskSpec) -> str:
+    """Refuse a task whose model would otherwise be omitted from argv."""
+    model = task.model
+    if not isinstance(model, str) or not model.strip() or model == MODEL_VENDOR_DEFAULT:
+        raise TaskRefused(_MSG_UNUSABLE_MODEL.format(node=task.node))
+    return model
+
+
+def _required_effort(task: TaskSpec) -> str:
+    """Refuse a task whose effort would otherwise be omitted from argv."""
+    effort = task.effort
+    if not isinstance(effort, str) or not effort.strip():
+        raise TaskRefused(_MSG_UNUSABLE_EFFORT.format(node=task.node))
+    return effort
 
 
 def _toml(key: str, value: str) -> str:

@@ -37,6 +37,7 @@ from workflow_interpreter.foreman.constants import (
     HALT_NODE,
     HALT_PRECONDITION_REFUSED,
     HALT_SANDBOX_UNAVAILABLE,
+    HALT_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.frontier import DeadEndKind
@@ -541,6 +542,7 @@ def halt_dead_end(
         DeadEndKind.PRECONDITION_REFUSED: HALT_PRECONDITION_REFUSED,
         DeadEndKind.INPUTS_UNAVAILABLE: HALT_INPUTS_UNAVAILABLE,
         DeadEndKind.SANDBOX_UNAVAILABLE: HALT_SANDBOX_UNAVAILABLE,
+        DeadEndKind.UNUSABLE_RESOLUTION: HALT_UNUSABLE_RESOLUTION,
         DeadEndKind.BOUND_VIOLATED: HALT_BOUND_VIOLATED,
     }[kind].format(
         node=activation.metadata.node, activation_id=activation.activation_id

@@ -232,14 +232,14 @@ def test_a_role_rebinding_after_instantiation_never_reaches_a_mint(
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     lab.composition.config.roles["implementer"] = RunnerBinding(
-        profile=FAKE_PROFILE, model="drifted-model"
+        profile=FAKE_PROFILE, model="drifted-model", effort="high"
     )
 
     mint_entry(lab.composition, lab.wiring(), root)
 
     activation = lab.store.reads.list_activations(root.root_id)[0]
     assert activation.metadata.runner_profile == FAKE_PROFILE
-    assert activation.metadata.model == "default"
+    assert activation.metadata.model == "fake"
 
 
 def test_a_real_override_reaches_the_brief_the_task_and_the_workspace(

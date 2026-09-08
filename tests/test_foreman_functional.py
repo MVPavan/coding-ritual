@@ -235,8 +235,12 @@ def test_drill_22_missing_registry_binary_exhausts_infra_retries_to_fallback(
     config = lab.config.model_copy(
         update={
             "roles": {
-                "implementer": RunnerBinding(profile="codex"),
-                "critic": RunnerBinding(profile="codex"),
+                "implementer": RunnerBinding(
+                    profile="codex", model="gpt-5", effort="medium"
+                ),
+                "critic": RunnerBinding(
+                    profile="codex", model="gpt-5", effort="medium"
+                ),
             }
         }
     )
@@ -1188,3 +1192,4 @@ def test_a_dispatched_task_carries_its_nodes_instructions_and_facts(
     assert "declared facts" in task.brief.lower()
     # And the §6 protocol is still there — the frame is an addition, not a swap.
     assert "$WF_OUTCOME_FILE" in task.brief
+    assert task.effort == "medium"

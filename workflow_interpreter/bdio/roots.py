@@ -297,6 +297,21 @@ def _assert_same_instance(
             )
 
 
+def _differing_config_keys(
+    recorded: Sequence[ResolvedSetting], requested: Sequence[ResolvedSetting]
+) -> tuple[str, ...]:
+    """Return the resolved-setting keys whose complete values differ."""
+    by_key = {setting.key: setting for setting in recorded}
+    other = {setting.key: setting for setting in requested}
+    return tuple(
+        sorted(
+            key
+            for key in by_key.keys() | other.keys()
+            if by_key.get(key) != other.get(key)
+        )
+    )
+
+
 def _differing_keys(
     recorded: Sequence[ResolvedSetting], requested: Sequence[ResolvedSetting]
 ) -> str:
@@ -305,11 +320,7 @@ def _differing_keys(
     The digests alone are unactionable, and printing both whole resolutions is
     unbounded — the names are a debugging aid, the digests are the verdict.
     """
-    by_key = {setting.key: setting for setting in recorded}
-    other = {setting.key: setting for setting in requested}
-    differing = sorted(
-        key for key in by_key.keys() | other.keys() if by_key.get(key) != other.get(key)
-    )
+    differing = _differing_config_keys(recorded, requested)
     if not differing:
         return ""
     shown = differing[:MAX_REPORTED_KEYS]

@@ -27,7 +27,9 @@ from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import (
     DEVIATION_FORK_BARRIER_ABORT,
     DEVIATION_PRECONDITION_REFUSED,
+    DEVIATION_UNUSABLE_RESOLUTION,
 )
+from workflow_interpreter.bdio.wire import config_signature
 from workflow_interpreter.foreman.compose import InstanceWiring
 from workflow_interpreter.foreman.supervise import (
     WrapperExit,
@@ -115,6 +117,47 @@ def test_wrapper_error_close_records_transport_evidence() -> None:
     assert result is WrapperExit.DONE
     assert calls[0][0][1] is Outcome.ERROR_TRANSPORT
     assert calls[0][1]["evidence"] == Evidence(note="disk")
+
+
+@pytest.mark.parametrize("field", ("model", "effort"))
+def test_unusable_role_resolution_closes_and_the_next_tick_does_not_redispatch(
+    tmp_path: Path, field: str
+) -> None:
+    """A legacy incomplete role resolution halts instead of wedging MINTED."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    root_row = lab.fake_bd.rows[root.root_id]
+    resolved_config = tuple(
+        item
+        for item in root.metadata.resolved_config
+        if item.key != f"node.implement.{field}"
+    )
+    root_row["metadata"]["resolved_config"] = [
+        item.model_dump(mode="json") for item in resolved_config
+    ]
+    root_row["metadata"]["config_signature"] = config_signature(resolved_config)
+    activation = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+
+    assert (
+        run_wrapper(lab.composition, root.root_id, activation.activation_id)
+        is WrapperExit.DONE
+    )
+    closed = lab.store.reads.load_activation(activation.activation_id)
+    assert closed.metadata.lifecycle is Lifecycle.CLOSED
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert [item.kind for item in closed.metadata.deviations] == [
+        DEVIATION_UNUSABLE_RESOLUTION
+    ]
+
+    launches = len(lab.spawner.launches)
+    report = lab.tick()
+
+    assert report.dispatched is None
+    assert report.opened_gate is not None
+    assert len(lab.spawner.launches) == launches
+    assert len(lab.beads("activation")) == 1
 
 
 @pytest.mark.parametrize(

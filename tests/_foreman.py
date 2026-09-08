@@ -85,8 +85,8 @@ type OverrideValue = str | int | bool
 # instance_inputs=…)`.
 DEFAULT_LAB_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
     {
-        "implementer": RunnerBinding(profile="fake"),
-        "critic": RunnerBinding(profile="fake"),
+        "implementer": RunnerBinding(profile="fake", model="fake", effort="medium"),
+        "critic": RunnerBinding(profile="fake", model="fake", effort="medium"),
     }
 )
 DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
@@ -98,7 +98,7 @@ DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
 # puts the second graph on the lab.
 BUILD_LOOP_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
     {
-        role: RunnerBinding(profile="fake")
+        role: RunnerBinding(profile="fake", model="fake", effort="medium")
         for role in (
             "test-author",
             "test-critic",

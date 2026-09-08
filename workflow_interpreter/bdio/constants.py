@@ -10,6 +10,7 @@ DEVIATION_INSTANCE_BRANCH_DIVERGED: Final[str] = "instance_branch_diverged"
 DEVIATION_PRECONDITION_REFUSED: Final[str] = "precondition_refused"
 DEVIATION_INPUTS_UNAVAILABLE: Final[str] = "inputs_unavailable"
 DEVIATION_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable"
+DEVIATION_UNUSABLE_RESOLUTION: Final[str] = "unusable_resolution"
 DEVIATION_BOUND_VIOLATED: Final[str] = "bound_violated"
 DEVIATION_FORK_BARRIER_ABORT: Final[str] = "fork_barrier_abort"
 _MSG_ENTRY_PREDECESSOR: Final[str] = (

@@ -23,7 +23,6 @@ import pytest
 from tests._profiles import (
     BRIEF,
     INSTRUCTIONS,
-    MODEL,
     make_claude,
     make_codex,
     make_opencode,
@@ -297,23 +296,45 @@ def test_claude_refuses_a_session_id_the_cli_cannot_carry(tmp_path: Path) -> Non
         profile.build_command(make_task(tmp_path), "sess-super-1")
 
 
-def test_claude_omits_the_model_flag_for_the_vendor_default(tmp_path: Path) -> None:
-    """The §2 fixture's `model = "default"` is not a model name any CLI accepts."""
+@pytest.mark.parametrize("runner", ("claude", "codex"))
+def test_adapters_refuse_the_vendor_default_model(tmp_path: Path, runner: str) -> None:
+    """A vendor default is not a model pin and must never reach argv."""
+    if runner == "claude":
+        profile = make_claude(tmp_path, FrozenClock())
+        session_id = new_session()
+    else:
+        profile = make_codex(tmp_path, FrozenClock())
+        session_id = ""
+
+    with pytest.raises(TaskRefused, match=r"node 'implement'.*model"):
+        profile.build_command(make_task(tmp_path, model="default"), session_id)
+
+
+@pytest.mark.parametrize("runner", ("claude", "codex"))
+def test_adapters_refuse_a_missing_effort(tmp_path: Path, runner: str) -> None:
+    """An absent effort must never become an argv with a missing output setting."""
+    if runner == "claude":
+        profile = make_claude(tmp_path, FrozenClock())
+        session_id = new_session()
+    else:
+        profile = make_codex(tmp_path, FrozenClock())
+        session_id = ""
+
+    with pytest.raises(TaskRefused, match=r"node 'implement'.*effort"):
+        profile.build_command(make_task(tmp_path, effort=None), session_id)
+
+
+def test_claude_carries_the_tasks_effort(tmp_path: Path) -> None:
+    """A role's pinned effort reaches Claude verbatim."""
     profile = make_claude(tmp_path, FrozenClock())
 
-    default = profile.build_command(make_task(tmp_path, model="default"), new_session())
-    named = profile.build_command(make_task(tmp_path, model=MODEL), new_session())
-
-    assert "--model" not in default.argv
-    assert values_after(named.argv, "--model") == (MODEL,)
-
-
-def test_claude_carries_the_configured_effort(tmp_path: Path) -> None:
-    """Effort is per-vendor and passed through verbatim (`config.effort`)."""
-    config = make_profile_config(effort={RunnerName.CLAUDE: "high"})
-    profile = make_claude(tmp_path, FrozenClock(), config)
-
-    command = profile.build_command(make_task(tmp_path), new_session())
+    command = profile.build_command(
+        make_task(
+            tmp_path,
+            effort="high",
+        ),
+        new_session(),
+    )
 
     assert values_after(command.argv, "--effort") == ("high",)
 
@@ -743,24 +764,19 @@ def test_a_channel_cannot_be_shadowed_by_a_passthrough_key(tmp_path: Path) -> No
 def test_the_injected_profile_config_is_actually_frozen() -> None:
     """m15: `frozen = True` freezes attributes, not the objects behind them.
 
-    `binary_overrides` and `effort` were `dict` fields, so a "frozen" config
-    handed to three profiles could be edited in place by any of them — and this
-    is the object that decides which binary gets exec'd. A mapping is still
-    accepted at the boundary; what is STORED is immutable.
+    `binary_overrides` is a mapping field, so a "frozen" config handed to three
+    profiles could be edited in place by any of them — and this is the object
+    that decides which binary gets exec'd. A mapping is still accepted at the
+    boundary; what is STORED is immutable.
     """
     config = make_profile_config(
         binary_overrides={RunnerName.CODEX: "/opt/codex"},
-        effort={RunnerName.CLAUDE: "high"},
     )
 
     assert config.binary_for(RunnerName.CODEX) == "/opt/codex"
     assert config.binary_for(RunnerName.CLAUDE) == "claude"
-    assert config.effort_for(RunnerName.CLAUDE) == "high"
-    assert config.effort_for(RunnerName.CODEX) is None
     with pytest.raises(TypeError):
         config.binary_overrides[RunnerName.CLAUDE] = "/opt/evil"  # type: ignore[index]
-    with pytest.raises(TypeError):
-        config.effort[RunnerName.CODEX] = "max"  # type: ignore[index]
     assert make_profile_config().binary_overrides == {}
 
 

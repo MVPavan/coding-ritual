@@ -22,8 +22,8 @@ from workflow_interpreter.foreman.errors import (
     UnresolvedRunnerError,
     UnusableResolutionError,
 )
-from workflow_interpreter.profiles.config import RUNNER_PREFIX
-from workflow_interpreter.schema.models import Node
+from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RUNNER_PREFIX
+from workflow_interpreter.schema.models import Node, NodeKind
 
 _MSG_UNRESOLVED_RUNNER: Final[str] = (
     "node {node!r} binds the runner role {role!r}, but the root's resolved "
@@ -34,6 +34,11 @@ _MSG_UNRESOLVED_RUNNER: Final[str] = (
 _MSG_UNUSABLE_ROOT: Final[str] = (
     "the root's resolved config holds a value node {node!r} cannot execute "
     "under ({detail}) — the pinned resolution is corrupt (§3.1)"
+)
+_MSG_UNUSABLE_ROLE_BOUND_SETTING: Final[str] = (
+    "role-bound task node {node!r} has no usable {field} in the root's resolved "
+    "config — the pinned resolution is incomplete and the instance cannot be "
+    "executed from it (§3.1)"
 )
 
 _EFFECTIVE_FIELDS: Final[tuple[tuple[str, NodeSetting | BoundSetting], ...]] = (
@@ -48,11 +53,11 @@ _EFFECTIVE_FIELDS: Final[tuple[tuple[str, NodeSetting | BoundSetting], ...]] = (
 )
 """Node fields the execution path reads and `resolve()` can override.
 
-`runner` is deliberately absent: the pinned node names a ROLE
+`runner` and `effort` are deliberately absent: the pinned node names a ROLE
 (`profile:<role>`), while the resolved key holds the profile that role was
-bound to, so the two cannot share one field. It is carried as
-`ResolvedNode.runner_profile` instead. `allowed_paths` is a list, which
-`resolve()` cannot express, so the pinned value stands.
+bound to, and the graph schema has no effort field. They are carried as
+`ResolvedNode.runner_profile` and `ResolvedNode.effort` instead. `allowed_paths`
+is a list, which `resolve()` cannot express, so the pinned value stands.
 """
 
 EFFECTIVE_FIELD_SETTINGS: Final[Mapping[str, NodeSetting | BoundSetting]] = (
@@ -84,6 +89,7 @@ class ResolvedNode(BaseModel):
     node: Node
     runner_profile: str
     model: str
+    effort: str | None
 
 
 def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
@@ -109,12 +115,27 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
         raise UnusableResolutionError(
             _MSG_UNUSABLE_ROOT.format(node=node_name, detail=error.errors()[0]["msg"])
         ) from error
+    runner_profile = _runner_profile(
+        pinned, settings.get(NodeSetting.RUNNER.at(node_name))
+    )
+    model = effective.model or ""
+    effort = _effort(node_name, settings.get(NodeSetting.EFFORT.at(node_name)))
+    if pinned.kind is NodeKind.TASK and (pinned.runner or "").startswith(RUNNER_PREFIX):
+        model = _required_role_text(
+            node_name, "model", settings.get(NodeSetting.MODEL.at(node_name))
+        )
+        if model == MODEL_VENDOR_DEFAULT:
+            raise UnusableResolutionError(
+                _MSG_UNUSABLE_ROLE_BOUND_SETTING.format(node=node_name, field="model")
+            )
+        effort = _required_role_text(
+            node_name, "effort", settings.get(NodeSetting.EFFORT.at(node_name))
+        )
     return ResolvedNode(
         node=effective,
-        runner_profile=_runner_profile(
-            pinned, settings.get(NodeSetting.RUNNER.at(node_name))
-        ),
-        model=effective.model or "",
+        runner_profile=runner_profile,
+        model=model,
+        effort=effort,
     )
 
 
@@ -132,3 +153,25 @@ def _runner_profile(pinned: Node, resolved: str | int | bool | None) -> str:
             key=NodeSetting.RUNNER.at(pinned.name),
         )
     )
+
+
+def _effort(node_name: str, resolved: str | int | bool | None) -> str | None:
+    """Read an optional per-role effort from the pinned resolution."""
+    if resolved is None:
+        return None
+    if isinstance(resolved, str):
+        return resolved
+    raise UnusableResolutionError(
+        _MSG_UNUSABLE_ROOT.format(node=node_name, detail="effort is not a string")
+    )
+
+
+def _required_role_text(
+    node_name: str, field: str, resolved: str | int | bool | None
+) -> str:
+    """Read a non-blank model or effort role bindings must pin."""
+    if not isinstance(resolved, str) or not resolved.strip():
+        raise UnusableResolutionError(
+            _MSG_UNUSABLE_ROLE_BOUND_SETTING.format(node=node_name, field=field)
+        )
+    return resolved
