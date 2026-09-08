@@ -20,6 +20,7 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_INPUTS_UNAVAILABLE,
     DEVIATION_PRECONDITION_REFUSED,
     DEVIATION_SANDBOX_UNAVAILABLE,
+    DEVIATION_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.bdio.errors import BoundEvaluationError
 from workflow_interpreter.bdio.records import GateRecord, RootRecord
@@ -44,6 +45,7 @@ _RETRY_EXEMPT_DEVIATIONS: Final[frozenset[str]] = frozenset(
         DEVIATION_PRECONDITION_REFUSED,
         DEVIATION_INPUTS_UNAVAILABLE,
         DEVIATION_SANDBOX_UNAVAILABLE,
+        DEVIATION_UNUSABLE_RESOLUTION,
         DEVIATION_BOUND_VIOLATED,
     }
 )

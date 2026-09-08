@@ -35,6 +35,7 @@ __all__ = [
     "HALT_NODE",
     "HALT_PRECONDITION_REFUSED",
     "HALT_SANDBOX_UNAVAILABLE",
+    "HALT_UNUSABLE_RESOLUTION",
     "INPUT_LABEL",
     "INSTANCE_BRANCH",
     "MAX_GATE_DIFF_BYTES",
@@ -160,6 +161,8 @@ HALT_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable:{node}:{activation_i
 """This host cannot hold the §2 mount bound, so O1 refuses to dispatch. A dead
 end rather than an infra retry: a missing `bwrap` does not fix itself, and the
 halt is what puts the decision in front of a human."""
+HALT_UNUSABLE_RESOLUTION: Final[str] = "unusable_resolution:{node}:{activation_id}"
+"""A legacy or corrupt root cannot yield a task, so retrying cannot repair it."""
 TERMINAL_SKIP_AMBIGUOUS_ABANDON: Final[str] = (
     "the graph's abandon edges do not name one unique target"
 )
