@@ -154,6 +154,9 @@ pins its content hash, and `tests/test_build_loop_drills.py` runs its lifecycle
 on the lab). What the file declares differs from the prose above in three
 recorded ways.
 
+Which of the loop's rules that file actually ENFORCES, and by what mechanism,
+is recorded per rule in `docs/graph-loops/build-loop-tdd-enforcement.md`.
+
 **Verify set per node, exactly as the TOML declares it:**
 
 | Node | Verify commands |
