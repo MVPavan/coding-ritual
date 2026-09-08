@@ -23,7 +23,6 @@ import pytest
 from tests._profiles import (
     BRIEF,
     INSTRUCTIONS,
-    MODEL,
     make_claude,
     make_codex,
     make_opencode,
@@ -297,15 +296,32 @@ def test_claude_refuses_a_session_id_the_cli_cannot_carry(tmp_path: Path) -> Non
         profile.build_command(make_task(tmp_path), "sess-super-1")
 
 
-def test_claude_omits_the_model_flag_for_the_vendor_default(tmp_path: Path) -> None:
-    """The §2 fixture's `model = "default"` is not a model name any CLI accepts."""
-    profile = make_claude(tmp_path, FrozenClock())
+@pytest.mark.parametrize("runner", ("claude", "codex"))
+def test_adapters_refuse_the_vendor_default_model(tmp_path: Path, runner: str) -> None:
+    """A vendor default is not a model pin and must never reach argv."""
+    if runner == "claude":
+        profile = make_claude(tmp_path, FrozenClock())
+        session_id = new_session()
+    else:
+        profile = make_codex(tmp_path, FrozenClock())
+        session_id = ""
 
-    default = profile.build_command(make_task(tmp_path, model="default"), new_session())
-    named = profile.build_command(make_task(tmp_path, model=MODEL), new_session())
+    with pytest.raises(TaskRefused, match=r"node 'implement'.*model"):
+        profile.build_command(make_task(tmp_path, model="default"), session_id)
 
-    assert "--model" not in default.argv
-    assert values_after(named.argv, "--model") == (MODEL,)
+
+@pytest.mark.parametrize("runner", ("claude", "codex"))
+def test_adapters_refuse_a_missing_effort(tmp_path: Path, runner: str) -> None:
+    """An absent effort must never become an argv with a missing output setting."""
+    if runner == "claude":
+        profile = make_claude(tmp_path, FrozenClock())
+        session_id = new_session()
+    else:
+        profile = make_codex(tmp_path, FrozenClock())
+        session_id = ""
+
+    with pytest.raises(TaskRefused, match=r"node 'implement'.*effort"):
+        profile.build_command(make_task(tmp_path, effort=None), session_id)
 
 
 def test_claude_carries_the_tasks_effort(tmp_path: Path) -> None:

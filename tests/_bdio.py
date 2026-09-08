@@ -51,7 +51,10 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
         source=ConfigSource.ROLE_BINDING,
     ),
     ResolvedSetting(
-        key="node.implement.model", value="default", source=ConfigSource.GRAPH_DEFAULT
+        key="node.implement.model", value="fake-model", source=ConfigSource.ROLE_BINDING
+    ),
+    ResolvedSetting(
+        key="node.implement.effort", value="medium", source=ConfigSource.ROLE_BINDING
     ),
     ResolvedSetting(
         key="node.implement.isolation",
@@ -65,10 +68,13 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
         key="node.review.runner", value="fake", source=ConfigSource.ROLE_BINDING
     ),
     ResolvedSetting(
-        key="node.review.model", value="default", source=ConfigSource.ROLE_BINDING
+        key="node.review.model", value="fake-model", source=ConfigSource.ROLE_BINDING
+    ),
+    ResolvedSetting(
+        key="node.review.effort", value="medium", source=ConfigSource.ROLE_BINDING
     ),
 )
-"""A §3.1-shaped resolution: bounds, profile, model and isolation with
+"""A §3.1-shaped resolution: bounds, profile, model, effort and isolation with
 provenance. `create_root` refuses an empty one."""
 
 

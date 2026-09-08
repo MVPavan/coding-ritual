@@ -456,7 +456,7 @@ def entry_mint(node: str = IMPLEMENT, **overrides: object) -> MintRequest:
         "node": node,
         "mint_reason": MintReason.ENTRY,
         "runner_profile": "profile:implementer",
-        "model": "default",
+        "model": "fake-model",
         "session_id": SESSION_ID,
     }
     return MintRequest.model_validate(base | overrides)
@@ -665,7 +665,7 @@ def task_builder(
     cwd: Path,
     node: Node,
     *,
-    effort: str | None = None,
+    effort: str | None = "medium",
 ) -> Callable[[ActivationRecord, RunnerChannels], TaskSpec]:
     """A `TaskBuilder` for one node and working directory."""
 

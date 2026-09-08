@@ -98,6 +98,22 @@ def _git_dir_denials(cwd: str) -> list[str]:
     ]
 
 
+def _required_model(task: TaskSpec) -> str:
+    """Refuse a task whose model would otherwise be omitted from argv."""
+    model = task.model
+    if not isinstance(model, str) or not model.strip() or model == MODEL_VENDOR_DEFAULT:
+        raise TaskRefused(_MSG_UNUSABLE_MODEL.format(node=task.node))
+    return model
+
+
+def _required_effort(task: TaskSpec) -> str:
+    """Refuse a task whose effort would otherwise be omitted from argv."""
+    effort = task.effort
+    if not isinstance(effort, str) or not effort.strip():
+        raise TaskRefused(_MSG_UNUSABLE_EFFORT.format(node=task.node))
+    return effort
+
+
 PUSH_DENIALS: Final[tuple[str, ...]] = (
     "Bash(git push)",
     "Bash(git push:*)",
@@ -152,6 +168,14 @@ _MSG_NOT_A_UUID: Final[str] = (
     "claude: --session-id requires a UUID and the activation carries {value!r}; "
     "claude is the one vendor whose session id §5.2 can pre-assign, so a "
     "non-UUID here means the mint did not use `prepare()`"
+)
+_MSG_UNUSABLE_MODEL: Final[str] = (
+    "claude: node {node!r} has no usable model; a task must pin an explicit "
+    "non-default model before argv construction"
+)
+_MSG_UNUSABLE_EFFORT: Final[str] = (
+    "claude: node {node!r} has no usable effort; a task must pin effort before "
+    "argv construction"
 )
 
 
@@ -217,10 +241,8 @@ class ClaudeProfile(BaseProfile):
             STRICT_MCP,
             *PERMISSION_MODE,
         ]
-        if task.model and task.model != MODEL_VENDOR_DEFAULT:
-            flags += [MODEL, task.model]
-        if task.effort:
-            flags += [EFFORT, task.effort]
+        flags += [MODEL, _required_model(task)]
+        flags += [EFFORT, _required_effort(task)]
         return [*flags, *self._bounds(task)]
 
     def _bounds(self, task: TaskSpec) -> list[str]:

@@ -41,7 +41,7 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
 from workflow_interpreter.foreman.constants import INSTANCE_BRANCH
-from workflow_interpreter.foreman.errors import ResolutionError
+from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
     UnresolvedRunnerError,
     resolved_node,
@@ -1253,4 +1253,36 @@ def test_resolved_node_refuses_a_root_that_never_resolved_its_role(
     )
 
     with pytest.raises(UnresolvedRunnerError, match="implementer"):
+        resolved_node(stripped, IMPLEMENT)
+
+
+@pytest.mark.parametrize("field", ("model", "effort"))
+def test_resolved_node_refuses_a_role_bound_node_without_usable_vendor_setting(
+    tmp_path: Path, field: str
+) -> None:
+    """A role-bound task cannot defer a model or effort to a vendor."""
+    root = ForemanLab(tmp_path).instantiate()
+    model_key = "node.implement.model"
+    effort_key = "node.implement.effort"
+    resolved_config = (
+        tuple(
+            item.model_copy(update={"value": "default"})
+            if item.key == model_key
+            else item
+            for item in root.metadata.resolved_config
+        )
+        if field == "model"
+        else tuple(
+            item for item in root.metadata.resolved_config if item.key != effort_key
+        )
+    )
+    stripped = root.model_copy(
+        update={
+            "metadata": root.metadata.model_copy(
+                update={"resolved_config": resolved_config}
+            )
+        }
+    )
+
+    with pytest.raises(UnusableResolutionError, match=rf"node 'implement'.*{field}"):
         resolved_node(stripped, IMPLEMENT)

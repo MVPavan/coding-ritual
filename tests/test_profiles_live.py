@@ -111,7 +111,7 @@ def test_claude_read_only_really_is_read_only(tmp_path: Path) -> None:
         FrozenClock(),
         host_env(),
     )
-    task = make_task(tmp_path, writes=False, model="default")
+    task = make_task(tmp_path, writes=False)
     task = task.model_copy(
         update={"brief": bound_brief(task.cwd, task.channels.artifact_dir)}
     )
@@ -147,7 +147,7 @@ def test_codex_read_only_really_is_read_only(tmp_path: Path) -> None:
         FrozenClock(),
         host_env(),
     )
-    task = make_task(tmp_path, writes=False, model="default")
+    task = make_task(tmp_path, writes=False)
     task = task.model_copy(
         update={"brief": bound_brief(task.cwd, task.channels.artifact_dir)}
     )
@@ -190,7 +190,7 @@ def test_claude_writes_only_inside_its_declared_grant(tmp_path: Path) -> None:
         FrozenClock(),
         host_env(),
     )
-    task = make_task(tmp_path, writes=True, model="default", allowed_paths=(GRANT,))
+    task = make_task(tmp_path, writes=True, allowed_paths=(GRANT,))
     granted = Path(task.cwd, GRANT_DIR)
     granted.mkdir(parents=True, exist_ok=True)
     task = task.model_copy(update={"brief": bound_brief(task.cwd, str(granted))})

@@ -211,7 +211,7 @@ def make_task(
     node: str = "implement",
     cwd: Path | None = None,
     allowed_paths: tuple[str, ...] = (),
-    effort: str | None = None,
+    effort: str | None = "medium",
 ) -> TaskSpec:
     """A `TaskSpec` for one node, with a checkout directory that exists."""
     worktree = cwd or (tmp_path / ".wf" / ROOT_ID / "worktree")
@@ -476,7 +476,7 @@ def task_builder(
     cwd: Path,
     node: Node,
     *,
-    effort: str | None = None,
+    effort: str | None = "medium",
 ) -> TaskBuilder:
     """A `TaskBuilder` that supplies a brief, which a real profile requires."""
 
@@ -624,7 +624,7 @@ class Lab:
         fd0_probe: bool = False,
         grandchild: bool = False,
         extra_env: dict[str, str] | None = None,
-        effort: str | None = None,
+        effort: str | None = "medium",
     ) -> DispatchResult:
         """Run §5.2 phase B alone, with no watch loop over the child.
 
