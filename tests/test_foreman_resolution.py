@@ -1063,6 +1063,18 @@ def test_resolve_refuses_a_value_the_node_field_cannot_hold(
         resolve(load_definition(), {key: value}, {})
 
 
+def test_resolve_refuses_the_vendor_default_model_from_project_config() -> None:
+    """A root cannot pin a model selected later by the runner CLI."""
+    with pytest.raises(ResolutionError, match="vendor default"):
+        resolve(load_definition(), {"node.implement.model": "default"}, {})
+
+
+def test_resolve_refuses_the_vendor_default_model_from_instance_override() -> None:
+    """An override cannot substitute the runner CLI's mutable default model."""
+    with pytest.raises(ResolutionError, match="vendor default"):
+        resolve(load_definition(), {}, {"node.implement.model": "default"})
+
+
 def test_instantiate_refuses_an_unusable_override_before_writing_the_root(
     tmp_path: Path,
 ) -> None:

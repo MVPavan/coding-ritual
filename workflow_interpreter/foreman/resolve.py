@@ -23,7 +23,7 @@ from workflow_interpreter.foreman.execution import (
     EFFECTIVE_FIELD_SETTINGS,
     effective_node,
 )
-from workflow_interpreter.profiles.config import RUNNER_PREFIX
+from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RUNNER_PREFIX
 from workflow_interpreter.schema.graph_index import at, build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import (
@@ -56,6 +56,9 @@ MSG_RUNNER_WITHOUT_BINDING: Final[str] = (
     "source — the binding would stay the graph role's, a pairing nobody stated"
 )
 MSG_EMPTY_EFFORT: Final[str] = "{key!r} must not be empty"
+MSG_VENDOR_DEFAULT_MODEL: Final[str] = (
+    "{key!r} from {source} cannot use the vendor default model"
+)
 MSG_EFFECTIVE_NODE_UNUSABLE: Final[str] = (
     "effective node {node!r} is unusable under {key!r}: rule {rule} reports {detail}"
 )
@@ -139,6 +142,14 @@ def resolve(
             raise ResolutionError(f"unsupported value for {key!r}")
         if key.endswith(".effort") and value == "":
             raise ResolutionError(MSG_EMPTY_EFFORT.format(key=key))
+        if (
+            key.endswith(".model")
+            and value == MODEL_VENDOR_DEFAULT
+            and source in (ConfigSource.PROJECT_CONFIG, ConfigSource.INSTANCE_OVERRIDE)
+        ):
+            raise ResolutionError(
+                MSG_VENDOR_DEFAULT_MODEL.format(key=key, source=source.value)
+            )
         owner = owners.get(key)
         if owner is not None and source is not ConfigSource.GRAPH_DEFAULT:
             owner_node, owner_field = owner

@@ -394,7 +394,7 @@ project-config | instance-override` (instance overrides arrive as an
 instantiation-time JSON validated against the schema subset;
 `role-binding` is a value supplied by the foreman config's `roles` map,
 which resolves a graph's `profile:<role>` runner alias to a concrete
-runner and model — it ranks above a graph default and below both
+runner, model, and effort — it ranks above a graph default and below both
 project config and an instance override). The root also records its
 CREATION-TIME config signature; `create_root` idempotency-by-key
 compares against that signature, not the live config — a verified
