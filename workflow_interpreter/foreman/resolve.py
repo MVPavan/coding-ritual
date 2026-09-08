@@ -18,12 +18,13 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.foreman.compose import Composition
+from workflow_interpreter.foreman.config import RunnerBinding
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
     EFFECTIVE_FIELD_SETTINGS,
     effective_node,
 )
-from workflow_interpreter.profiles.config import RUNNER_PREFIX
+from workflow_interpreter.profiles.config import RUNNER_PREFIX, RunnerName
 from workflow_interpreter.schema.graph_index import at, build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import (
@@ -66,6 +67,8 @@ TASK_SETTING_TYPES: Final[
 ] = {
     NodeSetting.RUNNER: str,
     NodeSetting.MODEL: str,
+    NodeSetting.EFFORT: str,
+    NodeSetting.FALLBACK_MODELS: str,
     NodeSetting.ISOLATION: str,
     NodeSetting.MAX_WALL: str,
     NodeSetting.STALE_AFTER: str,
@@ -100,8 +103,9 @@ def resolve(
             key = setting.at(node.name)
             field = setting.value.rsplit(".", maxsplit=1)[-1]
             allowed[key] = setting_type
-            owners[key] = (node, field)
-            value = getattr(node, field)
+            if hasattr(node, field):
+                owners[key] = (node, field)
+            value = getattr(node, field, None)
             if value is not None:
                 defaults[key] = value.value if hasattr(value, "value") else value
     for region in definition.document.region:
@@ -382,6 +386,8 @@ def _resolved_config(
         binding = composition.config.roles[node.runner.removeprefix("profile:")]
         runner_key = f"node.{node.name}.runner"
         model_key = f"node.{node.name}.model"
+        effort_key = f"node.{node.name}.effort"
+        fallback_models_key = f"node.{node.name}.fallback_models"
         if settings.get(runner_key) is None or (
             settings[runner_key].source is ConfigSource.GRAPH_DEFAULT
         ):
@@ -393,9 +399,26 @@ def _resolved_config(
         if settings.get(model_key) is None or (
             settings[model_key].source is ConfigSource.GRAPH_DEFAULT
         ):
+            model, source = _available_model(composition, binding)
             settings[model_key] = ResolvedSetting(
                 key=model_key,
-                value=binding.model,
+                value=model,
+                source=source,
+            )
+        if settings.get(effort_key) is None or (
+            settings[effort_key].source is ConfigSource.GRAPH_DEFAULT
+        ):
+            settings[effort_key] = ResolvedSetting(
+                key=effort_key,
+                value=binding.effort,
+                source=ConfigSource.ROLE_BINDING,
+            )
+        if settings.get(fallback_models_key) is None or (
+            settings[fallback_models_key].source is ConfigSource.GRAPH_DEFAULT
+        ):
+            settings[fallback_models_key] = ResolvedSetting(
+                key=fallback_models_key,
+                value=",".join(binding.fallback),
                 source=ConfigSource.ROLE_BINDING,
             )
     settings.update(
@@ -407,3 +430,20 @@ def _resolved_config(
         }
     )
     return tuple(settings[key] for key in sorted(settings))
+
+
+def _available_model(
+    composition: Composition, binding: RunnerBinding
+) -> tuple[str, ConfigSource]:
+    """Choose the pinned primary or the first probe-confirmed fallback."""
+    if binding.profile == RunnerName.CLAUDE or composition.profiles.model_available(
+        binding.profile, binding.model
+    ):
+        return binding.model, ConfigSource.ROLE_BINDING
+    for fallback in binding.fallback:
+        if composition.profiles.model_available(binding.profile, fallback):
+            return fallback, ConfigSource.ROLE_BINDING_FALLBACK
+    raise ResolutionError(
+        f"no available model for role binding profile {binding.profile!r}; "
+        "the primary and every fallback probe failed"
+    )

@@ -13,6 +13,8 @@ dispatch.
 
 from __future__ import annotations
 
+import shlex
+import subprocess
 from collections.abc import Callable, Mapping
 from typing import Final
 
@@ -29,6 +31,7 @@ from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.profile import Profile
 
 _MSG_UNKNOWN: Final[str] = "no runner profile named {name!r}; the closed set is {known}"
+MODEL_PLACEHOLDER: Final[str] = "{model}"
 
 ProfileBuilder = Callable[[ProfileConfig, Clock, Mapping[str, str]], Profile]
 
@@ -76,3 +79,29 @@ class ProfileRegistry:
     def profile_for(self, name: str) -> Profile:
         """The profile for one vendor name; unknown names raise (see module doc)."""
         return BUILDERS[runner_name(name)](self._config, self._clock, self._host_env)
+
+    def model_available(self, name: str, model: str) -> bool:
+        """Run a configured vendor probe, or accept an intentionally unprobed model."""
+        command = self._config.model_probe_for(runner_name(name))
+        if command is None:
+            return True
+        argv = tuple(
+            item.replace(MODEL_PLACEHOLDER, model) for item in shlex.split(command)
+        )
+        environment = {
+            key: self._host_env[key]
+            for key in self._config.passthrough_env
+            if key in self._host_env
+        }
+        try:
+            completed = subprocess.run(
+                argv,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=self._config.model_probe_timeout_s,
+                env=environment,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return False
+        return completed.returncode == 0

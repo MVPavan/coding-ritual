@@ -20,6 +20,7 @@ a session. Three ways it used to cost more, all asserted here —
 from __future__ import annotations
 
 import uuid
+from pathlib import Path
 from typing import Final
 
 import pytest
@@ -65,6 +66,43 @@ def assert_resumes(argv: tuple[str, ...], session: str) -> None:
     assert argv[argv.index("--resume") + 1] == session, argv
     assert "--session-id" not in argv, argv
     assert STEER_INSTRUCTIONS in argv, argv
+
+
+@pytest.mark.proc
+def test_dispatched_claude_nodes_carry_their_own_pinned_model_effort_and_fallback(
+    lab: Lab,
+    tmp_path: Path,
+) -> None:
+    """Each real Claude exec receives the role-specific invocation choices."""
+    writer = lab.dispatch(
+        RunnerName.CLAUDE,
+        request=entry_mint(model="claude-opus-4-1", session_id=str(uuid.uuid4())),
+        effort="high",
+        fallback_models=("claude-sonnet-4-5", "claude-haiku-4-5"),
+    )
+    reviewer_lab = Lab(tmp_path / "reviewer")
+    try:
+        reviewer = reviewer_lab.dispatch(
+            RunnerName.CLAUDE,
+            request=entry_mint(model="claude-opus-4-1", session_id=str(uuid.uuid4())),
+            effort="medium",
+        )
+    finally:
+        reviewer_lab.cleanup()
+
+    assert writer.receipt is not None
+    assert reviewer.receipt is not None
+    assert (
+        writer.receipt.argv[writer.receipt.argv.index("--model") + 1]
+        == "claude-opus-4-1"
+    )
+    assert writer.receipt.argv[writer.receipt.argv.index("--effort") + 1] == "high"
+    assert writer.receipt.argv[writer.receipt.argv.index("--fallback-model") + 1] == (
+        "claude-sonnet-4-5,claude-haiku-4-5"
+    )
+    assert (
+        reviewer.receipt.argv[reviewer.receipt.argv.index("--effort") + 1] == "medium"
+    )
 
 
 @pytest.mark.proc

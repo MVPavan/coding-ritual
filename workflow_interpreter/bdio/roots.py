@@ -29,6 +29,7 @@ from workflow_interpreter.bdio.wire import (
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
     BeadRecord,
+    ConfigSource,
     InstanceInput,
     ResolvedSetting,
     RootMetadata,
@@ -69,6 +70,10 @@ _MSG_TWO_OWNING_ROOTS: Final[str] = (
 )
 _MSG_CONFIG_KEYS: Final[str] = "differing keys: {keys}"
 _MSG_CONFIG_KEYS_TRUNCATED: Final[str] = "differing keys: {keys} (+{more} more)"
+_MSG_MODEL_SUBSTITUTION_CHANGED: Final[str] = (
+    "model substitution changed the resolution; choose a new instance key or "
+    "restore the prior availability"
+)
 _MSG_INSTANCE_INPUT_BYTES: Final[str] = "instance inputs exceed {limit} bytes"
 _MSG_TERMINAL_CONFLICT: Final[str] = (
     "root {root_id} already recorded terminal {found!r}; recording {wanted!r} "
@@ -286,6 +291,12 @@ def _assert_same_instance(
                 if field == _FIELD_RESOLVED_CONFIG
                 else ""
             )
+            if field == _FIELD_RESOLVED_CONFIG and _model_substitution_changed(
+                root.metadata.resolved_config,
+                resolved_config,
+                _differing_config_keys(root.metadata.resolved_config, resolved_config),
+            ):
+                detail = f"{detail}; {_MSG_MODEL_SUBSTITUTION_CHANGED}"
             raise CarrierIntegrityError(
                 _MSG_REUSE_MISMATCH.format(
                     instance_key=instance_key,
@@ -297,6 +308,35 @@ def _assert_same_instance(
             )
 
 
+def _model_substitution_changed(
+    found: Sequence[ResolvedSetting],
+    wanted: Sequence[ResolvedSetting],
+    keys: Sequence[str],
+) -> bool:
+    """Whether a differing model setting includes a fallback substitution."""
+    return any(
+        setting.key in keys
+        and setting.source is ConfigSource.ROLE_BINDING_FALLBACK
+        and setting.key.endswith(".model")
+        for setting in (*found, *wanted)
+    )
+
+
+def _differing_config_keys(
+    recorded: Sequence[ResolvedSetting], requested: Sequence[ResolvedSetting]
+) -> tuple[str, ...]:
+    """Return the resolved-setting keys whose complete values differ."""
+    by_key = {setting.key: setting for setting in recorded}
+    other = {setting.key: setting for setting in requested}
+    return tuple(
+        sorted(
+            key
+            for key in by_key.keys() | other.keys()
+            if by_key.get(key) != other.get(key)
+        )
+    )
+
+
 def _differing_keys(
     recorded: Sequence[ResolvedSetting], requested: Sequence[ResolvedSetting]
 ) -> str:
@@ -305,11 +345,7 @@ def _differing_keys(
     The digests alone are unactionable, and printing both whole resolutions is
     unbounded — the names are a debugging aid, the digests are the verdict.
     """
-    by_key = {setting.key: setting for setting in recorded}
-    other = {setting.key: setting for setting in requested}
-    differing = sorted(
-        key for key in by_key.keys() | other.keys() if by_key.get(key) != other.get(key)
-    )
+    differing = _differing_config_keys(recorded, requested)
     if not differing:
         return ""
     shown = differing[:MAX_REPORTED_KEYS]

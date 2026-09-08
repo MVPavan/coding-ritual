@@ -314,9 +314,8 @@ class CodexProfile(BaseProfile):
         flags: list[str] = []
         if task.model and task.model != MODEL_VENDOR_DEFAULT:
             flags += [MODEL, task.model]
-        effort = self._config.effort_for(self.runner)
-        if effort:
-            flags += [CONFIG, _toml(KEY_REASONING_EFFORT, effort)]
+        if task.effort:
+            flags += [CONFIG, _toml(KEY_REASONING_EFFORT, task.effort)]
         return flags
 
     # -- §6 stream normalization -----------------------------------------

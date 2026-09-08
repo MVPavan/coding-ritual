@@ -662,7 +662,11 @@ class FakeProfile:
 
 
 def task_builder(
-    cwd: Path, node: Node
+    cwd: Path,
+    node: Node,
+    *,
+    effort: str | None = None,
+    fallback_models: tuple[str, ...] = (),
 ) -> Callable[[ActivationRecord, RunnerChannels], TaskSpec]:
     """A `TaskBuilder` for one node and working directory."""
 
@@ -672,6 +676,8 @@ def task_builder(
             activation_id=activation.activation_id,
             node=node.name,
             model=activation.metadata.model,
+            effort=effort,
+            fallback_models=fallback_models,
             writes=bool(node.writes),
             allowed_paths=node.allowed_paths or (),
             cwd=str(cwd),

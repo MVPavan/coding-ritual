@@ -48,11 +48,11 @@ _EFFECTIVE_FIELDS: Final[tuple[tuple[str, NodeSetting | BoundSetting], ...]] = (
 )
 """Node fields the execution path reads and `resolve()` can override.
 
-`runner` is deliberately absent: the pinned node names a ROLE
+`runner` and `effort` are deliberately absent: the pinned node names a ROLE
 (`profile:<role>`), while the resolved key holds the profile that role was
-bound to, so the two cannot share one field. It is carried as
-`ResolvedNode.runner_profile` instead. `allowed_paths` is a list, which
-`resolve()` cannot express, so the pinned value stands.
+bound to, and the graph schema has no effort field. They are carried as
+`ResolvedNode.runner_profile` and `ResolvedNode.effort` instead. `allowed_paths`
+is a list, which `resolve()` cannot express, so the pinned value stands.
 """
 
 EFFECTIVE_FIELD_SETTINGS: Final[Mapping[str, NodeSetting | BoundSetting]] = (
@@ -84,6 +84,8 @@ class ResolvedNode(BaseModel):
     node: Node
     runner_profile: str
     model: str
+    effort: str | None
+    fallback_models: tuple[str, ...]
 
 
 def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
@@ -115,6 +117,10 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
             pinned, settings.get(NodeSetting.RUNNER.at(node_name))
         ),
         model=effective.model or "",
+        effort=_effort(node_name, settings.get(NodeSetting.EFFORT.at(node_name))),
+        fallback_models=_fallback_models(
+            node_name, settings.get(NodeSetting.FALLBACK_MODELS.at(node_name))
+        ),
     )
 
 
@@ -130,5 +136,31 @@ def _runner_profile(pinned: Node, resolved: str | int | bool | None) -> str:
             node=pinned.name,
             role=runner.removeprefix(RUNNER_PREFIX),
             key=NodeSetting.RUNNER.at(pinned.name),
+        )
+    )
+
+
+def _effort(node_name: str, resolved: str | int | bool | None) -> str | None:
+    """Read an optional per-role effort from the pinned resolution."""
+    if resolved is None:
+        return None
+    if isinstance(resolved, str):
+        return resolved
+    raise UnusableResolutionError(
+        _MSG_UNUSABLE_ROOT.format(node=node_name, detail="effort is not a string")
+    )
+
+
+def _fallback_models(
+    node_name: str, resolved: str | int | bool | None
+) -> tuple[str, ...]:
+    """Read the role's ordered fallback model chain from its pinned string."""
+    if resolved is None:
+        return ()
+    if isinstance(resolved, str):
+        return tuple(item for item in resolved.split(",") if item)
+    raise UnusableResolutionError(
+        _MSG_UNUSABLE_ROOT.format(
+            node=node_name, detail="fallback models are not a string"
         )
     )

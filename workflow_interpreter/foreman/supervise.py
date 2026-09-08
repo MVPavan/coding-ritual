@@ -141,7 +141,8 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
 
     def build(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
         current = wiring.store.reads.load_activation(activation.activation_id)
-        node = resolved_node(root, current.metadata.node).node
+        resolved = resolved_node(root, current.metadata.node)
+        node = resolved.node
         by_id = {
             item.activation_id: item
             for item in wiring.store.reads.list_activations(root.root_id)
@@ -163,6 +164,8 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             activation_id=current.activation_id,
             node=node.name,
             model=current.metadata.model,
+            effort=resolved.effort,
+            fallback_models=resolved.fallback_models,
             writes=bool(node.writes),
             allowed_paths=node.allowed_paths or (),
             cwd=str(wiring.workspace.path_for(node)),

@@ -85,8 +85,8 @@ type OverrideValue = str | int | bool
 # instance_inputs=…)`.
 DEFAULT_LAB_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
     {
-        "implementer": RunnerBinding(profile="fake"),
-        "critic": RunnerBinding(profile="fake"),
+        "implementer": RunnerBinding(profile="fake", model="fake", effort="medium"),
+        "critic": RunnerBinding(profile="fake", model="fake", effort="medium"),
     }
 )
 DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
@@ -98,7 +98,7 @@ DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
 # puts the second graph on the lab.
 BUILD_LOOP_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
     {
-        role: RunnerBinding(profile="fake")
+        role: RunnerBinding(profile="fake", model="fake", effort="medium")
         for role in (
             "test-author",
             "test-critic",
@@ -144,6 +144,10 @@ class _Profiles(ProfileResolver):
         if name not in self.accepted:
             raise AssertionError(f"unexpected wrapper profile: {name}")
         return self.profile
+
+    def model_available(self, name: str, model: str) -> bool:
+        """Treat inert lab profiles as available for resolution tests."""
+        return name in self.accepted
 
     def next_script_for_launch(self) -> ChildScript | None:
         """Expose the queued script without consuming it before the spawn succeeds."""

@@ -7,17 +7,19 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
-from workflow_interpreter.profiles.config import ProfileConfig
+from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
 from workflow_interpreter.supervisor.config import SupervisorConfig
 
 
 class RunnerBinding(BaseModel):
-    """The runner/model pair selected for a graph node."""
+    """The profile and pinned invocation choices selected for a graph role."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     profile: str
-    model: str = "default"
+    model: str
+    effort: str
+    fallback: tuple[str, ...] = ()
 
 
 class ForemanConfig(BaseModel):
@@ -65,6 +67,11 @@ class ForemanConfig(BaseModel):
             raise ValueError("supervisor repo_root must match foreman repo_root")
         if self.supervisor.wrapper_root != self.wrapper_root:
             raise ValueError("supervisor wrapper_root must match foreman wrapper_root")
+        for role, binding in self.roles.items():
+            if binding.model == MODEL_VENDOR_DEFAULT:
+                raise ValueError(
+                    f"role {role!r} cannot bind model {MODEL_VENDOR_DEFAULT!r}"
+                )
         return self
 
 

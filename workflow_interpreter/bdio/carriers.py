@@ -104,6 +104,7 @@ class ConfigSource(StrEnum):
 
     GRAPH_DEFAULT = "graph-default"
     ROLE_BINDING = "role-binding"
+    ROLE_BINDING_FALLBACK = "role-binding-fallback"
     PROJECT_CONFIG = "project-config"
     INSTANCE_OVERRIDE = "instance-override"
 
@@ -169,6 +170,8 @@ class NodeSetting(SettingKey):
 
     RUNNER = "node.{scope}.runner"
     MODEL = "node.{scope}.model"
+    EFFORT = "node.{scope}.effort"
+    FALLBACK_MODELS = "node.{scope}.fallback_models"
     ISOLATION = "node.{scope}.isolation"
     WRITES = "node.{scope}.writes"
     TOKEN_BUDGET = "node.{scope}.token_budget"

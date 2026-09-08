@@ -308,14 +308,23 @@ def test_claude_omits_the_model_flag_for_the_vendor_default(tmp_path: Path) -> N
     assert values_after(named.argv, "--model") == (MODEL,)
 
 
-def test_claude_carries_the_configured_effort(tmp_path: Path) -> None:
-    """Effort is per-vendor and passed through verbatim (`config.effort`)."""
-    config = make_profile_config(effort={RunnerName.CLAUDE: "high"})
-    profile = make_claude(tmp_path, FrozenClock(), config)
+def test_claude_carries_the_tasks_effort_and_fallback(tmp_path: Path) -> None:
+    """A role's pinned effort and fallback reach Claude verbatim."""
+    profile = make_claude(tmp_path, FrozenClock())
 
-    command = profile.build_command(make_task(tmp_path), new_session())
+    command = profile.build_command(
+        make_task(
+            tmp_path,
+            effort="high",
+            fallback_models=("claude-sonnet-4-5", "claude-haiku-4-5"),
+        ),
+        new_session(),
+    )
 
     assert values_after(command.argv, "--effort") == ("high",)
+    assert values_after(command.argv, "--fallback-model") == (
+        "claude-sonnet-4-5,claude-haiku-4-5",
+    )
 
 
 def test_claude_resume_keeps_the_bounds_and_swaps_the_session_flag(
@@ -743,24 +752,23 @@ def test_a_channel_cannot_be_shadowed_by_a_passthrough_key(tmp_path: Path) -> No
 def test_the_injected_profile_config_is_actually_frozen() -> None:
     """m15: `frozen = True` freezes attributes, not the objects behind them.
 
-    `binary_overrides` and `effort` were `dict` fields, so a "frozen" config
+    `binary_overrides` and `model_probe` are mapping fields, so a "frozen" config
     handed to three profiles could be edited in place by any of them — and this
     is the object that decides which binary gets exec'd. A mapping is still
     accepted at the boundary; what is STORED is immutable.
     """
     config = make_profile_config(
         binary_overrides={RunnerName.CODEX: "/opt/codex"},
-        effort={RunnerName.CLAUDE: "high"},
+        model_probe={RunnerName.CODEX: "codex models show {model}"},
     )
 
     assert config.binary_for(RunnerName.CODEX) == "/opt/codex"
     assert config.binary_for(RunnerName.CLAUDE) == "claude"
-    assert config.effort_for(RunnerName.CLAUDE) == "high"
-    assert config.effort_for(RunnerName.CODEX) is None
+    assert config.model_probe_for(RunnerName.CODEX) == "codex models show {model}"
     with pytest.raises(TypeError):
         config.binary_overrides[RunnerName.CLAUDE] = "/opt/evil"  # type: ignore[index]
     with pytest.raises(TypeError):
-        config.effort[RunnerName.CODEX] = "max"  # type: ignore[index]
+        config.model_probe[RunnerName.CODEX] = "codex models show {model}"  # type: ignore[index]
     assert make_profile_config().binary_overrides == {}
 
 

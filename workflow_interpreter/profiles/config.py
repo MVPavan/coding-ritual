@@ -11,7 +11,7 @@ reads — so this follows the established convention instead. The host
 environment still reaches the child, but only through `passthrough_env`: a
 named allow-list, read once by the composition root and injected as data.
 
-`effort` is a per-vendor free string on purpose. The three CLIs do not share an
+`effort` is a per-role free string on purpose. The three CLIs do not share an
 effort vocabulary (`claude --effort low|medium|high|xhigh|max`,
 `opencode --variant <provider-specific>`, `codex -c model_reasoning_effort=…`),
 and inventing a translation table would silently mistranslate rather than fail.
@@ -21,6 +21,7 @@ Each value is passed through verbatim and validated by the CLI that owns it —
 
 from __future__ import annotations
 
+import shlex
 from collections.abc import Mapping
 from enum import StrEnum
 from types import MappingProxyType
@@ -92,6 +93,24 @@ def _no_overrides() -> VendorMap:
     return MappingProxyType({})
 
 
+def _model_probe_map(value: VendorMap) -> VendorMap:
+    """Freeze model probes only when every command names its model argument."""
+    for runner, command in value.items():
+        if "{model}" not in command:
+            raise ValueError(
+                f"model probe for {runner.value!r} must contain '{{model}}'"
+            )
+        try:
+            argv = shlex.split(command)
+        except ValueError as error:
+            raise ValueError(
+                f"model probe for {runner.value!r} is not a valid argv template"
+            ) from error
+        if not argv:
+            raise ValueError(f"model probe for {runner.value!r} cannot be empty")
+    return _freeze(value)
+
+
 class ProfileConfig(BaseModel):
     """Everything a profile needs that is not in the `TaskSpec` (§6)."""
 
@@ -107,12 +126,19 @@ class ProfileConfig(BaseModel):
     """Host env keys copied into the child, in addition to the vendor's own
     named auth keys. A key that is absent from the host env is simply not set;
     it is never invented."""
-    effort: Annotated[VendorMap, AfterValidator(_freeze)] = Field(
+    model_probe: Annotated[VendorMap, AfterValidator(_model_probe_map)] = Field(
         default_factory=_no_overrides
     )
-    """Per-vendor effort, in that vendor's own vocabulary (see module docstring)."""
+    """Optional vendor model-existence commands, each containing ``{model}``.
 
-    @field_serializer("binary_overrides", "effort")
+    An omitted vendor is treated as available without executing a probe. This
+    keeps a deployment that cannot verify a CLI's model catalog deterministic:
+    it pins the requested primary rather than guessing a replacement.
+    """
+    model_probe_timeout_s: float = Field(default=10.0, gt=0)
+    """The bounded wait for each configured model-existence command."""
+
+    @field_serializer("binary_overrides", "model_probe")
     def _dump_vendor_map(self, value: VendorMap) -> dict[str, str]:
         """Dump the read-only view as a plain object.
 
@@ -127,6 +153,6 @@ class ProfileConfig(BaseModel):
         """The executable for one vendor: the override, or the vendor's name."""
         return self.binary_overrides.get(runner, runner.value)
 
-    def effort_for(self, runner: RunnerName) -> str | None:
-        """The configured effort for one vendor, or `None` when unset."""
-        return self.effort.get(runner)
+    def model_probe_for(self, runner: RunnerName) -> str | None:
+        """Return one vendor's configured model-existence command, if any."""
+        return self.model_probe.get(runner)

@@ -55,6 +55,7 @@ SESSION_ID: Final[str] = "--session-id"
 RESUME: Final[str] = "--resume"
 MODEL: Final[str] = "--model"
 EFFORT: Final[str] = "--effort"
+FALLBACK_MODEL: Final[str] = "--fallback-model"
 PERMISSION_MODE: Final[tuple[str, str]] = ("--permission-mode", "dontAsk")
 SETTING_SOURCES: Final[tuple[str, str]] = ("--setting-sources", "")
 STRICT_MCP: Final[str] = "--strict-mcp-config"
@@ -219,9 +220,10 @@ class ClaudeProfile(BaseProfile):
         ]
         if task.model and task.model != MODEL_VENDOR_DEFAULT:
             flags += [MODEL, task.model]
-        effort = self._config.effort_for(self.runner)
-        if effort:
-            flags += [EFFORT, effort]
+        if task.effort:
+            flags += [EFFORT, task.effort]
+        if task.fallback_models:
+            flags += [FALLBACK_MODEL, ",".join(task.fallback_models)]
         return [*flags, *self._bounds(task)]
 
     def _bounds(self, task: TaskSpec) -> list[str]:
