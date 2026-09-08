@@ -7,9 +7,9 @@ from typing import Final, NoReturn
 
 import pytest
 
-from tests._bdio import entry_request, handle, race_residue
+from tests._bdio import handle, race_residue
 from tests._fake_bd import InjectedCrash
-from tests._foreman import ForemanLab
+from tests._foreman import ForemanLab, entry_request
 from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._supervisor import ChildScript
 from tests.conftest import Signer

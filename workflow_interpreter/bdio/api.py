@@ -69,12 +69,14 @@ from workflow_interpreter.bdio.wire import (
     Lifecycle,
     MintReason,
     MintRequest,
+    NodeSetting,
     PreconditionRecord,
     ProcessHandle,
     ResolvedSetting,
     StaleFlagRecord,
     Usage,
     metadata_dict,
+    resolved_settings,
 )
 from workflow_interpreter.schema.models import GraphDefinition, Outcome
 
@@ -126,6 +128,16 @@ _MSG_TWO_COMPLETED: Final[str] = (
     "({found}); the race cannot be resolved without destroying a recorded "
     "outcome — triage it (§3.2)"
 )
+_FIELD_RUNNER_PROFILE: Final[str] = "runner_profile"
+_FIELD_MODEL: Final[str] = "model"
+_MSG_PINNED_EXECUTION_SETTING_MISSING: Final[str] = (
+    "root {root_id} has no text execution pin for node {node!r} at {key!r}; "
+    "an activation cannot carry a value the root did not resolve (§3.1)"
+)
+_MSG_PINNED_EXECUTION_SETTING_MISMATCH: Final[str] = (
+    "mint for node {node!r} requested {field} {requested!r}, but the root pins "
+    "{pinned!r} (§3.1)"
+)
 
 
 def _race_order(record: ActivationRecord) -> tuple[bool, int, str]:
@@ -139,6 +151,35 @@ def _race_order(record: ActivationRecord) -> tuple[bool, int, str]:
         record.metadata.seq,
         record.bead.id,
     )
+
+
+def _pinned_execution_setting(root: RootRecord, node: str, setting: NodeSetting) -> str:
+    """Read one text execution pin from the root's immutable resolution."""
+    value = resolved_settings(root.metadata).get(setting.at(node))
+    if not isinstance(value, str):
+        raise CarrierIntegrityError(
+            _MSG_PINNED_EXECUTION_SETTING_MISSING.format(
+                root_id=root.root_id,
+                node=node,
+                key=setting.at(node),
+            )
+        )
+    return value
+
+
+def _assert_pinned_execution_setting(
+    *, node: str, field: str, requested: str, pinned: str
+) -> None:
+    """Refuse an execution binding that contradicts the pinned root."""
+    if requested != pinned:
+        raise CarrierIntegrityError(
+            _MSG_PINNED_EXECUTION_SETTING_MISMATCH.format(
+                node=node,
+                field=field,
+                requested=requested,
+                pinned=pinned,
+            )
+        )
 
 
 class WorkflowStore:
@@ -288,6 +329,20 @@ class WorkflowStore:
                 created=False,
             )
 
+        runner_profile = _pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
+        model = _pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
+        _assert_pinned_execution_setting(
+            node=facts.node,
+            field=_FIELD_RUNNER_PROFILE,
+            requested=request.runner_profile,
+            pinned=runner_profile,
+        )
+        _assert_pinned_execution_setting(
+            node=facts.node,
+            field=_FIELD_MODEL,
+            requested=request.model,
+            pinned=model,
+        )
         refusal = self._pre_mint_refusal(root, facts, beads, activations)
         if refusal is not None:
             raise BoundExceededError(refusal)
@@ -305,8 +360,8 @@ class WorkflowStore:
             idempotency_key=facts.idempotency_key,
             mint_reason=facts.mint_reason,
             inputs=request.inputs,
-            runner_profile=request.runner_profile,
-            model=request.model,
+            runner_profile=runner_profile,
+            model=model,
             session_id=request.session_id,
             intended_base_commit=facts.intended_base_commit,
             deviations=request.deviations,

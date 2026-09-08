@@ -13,8 +13,7 @@ from typing import NoReturn, cast
 
 import pytest
 
-from tests._bdio import entry_request
-from tests._foreman import ForemanLab, LockedPersistentBd
+from tests._foreman import ForemanLab, LockedPersistentBd, entry_request
 from workflow_interpreter.bdio import (
     BdConfig,
     Evidence,
@@ -126,6 +125,9 @@ def test_unusable_role_resolution_closes_and_the_next_tick_does_not_redispatch(
     """A legacy incomplete role resolution halts instead of wedging MINTED."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
+    activation = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
     root_row = lab.fake_bd.rows[root.root_id]
     resolved_config = tuple(
         item
@@ -136,10 +138,6 @@ def test_unusable_role_resolution_closes_and_the_next_tick_does_not_redispatch(
         item.model_dump(mode="json") for item in resolved_config
     ]
     root_row["metadata"]["config_signature"] = config_signature(resolved_config)
-    activation = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
-    )
-
     assert (
         run_wrapper(lab.composition, root.root_id, activation.activation_id)
         is WrapperExit.DONE

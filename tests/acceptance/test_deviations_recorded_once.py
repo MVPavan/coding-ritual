@@ -27,8 +27,8 @@ from typing import Final
 
 import pytest
 
-from tests._bdio import entry_request, handle
-from tests._foreman import ForemanLab
+from tests._bdio import handle
+from tests._foreman import ForemanLab, entry_request
 from tests._supervisor import ChildScript
 from tests.conftest import Signer
 from workflow_interpreter.bdio import Deviation, Outcome, SigningConfig
@@ -87,7 +87,10 @@ def _mint_carrying_a_prior_deviation(lab: ForemanLab) -> str:
     )
     minted = (
         lab.wiring()
-        .store.mint_activation(lab.root.root_id, entry_request(deviations=(carried,)))
+        .store.mint_activation(
+            lab.root.root_id,
+            entry_request(deviations=(carried,)),
+        )
         .activation
     )
     return minted.activation_id

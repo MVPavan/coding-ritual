@@ -4,8 +4,8 @@ from dataclasses import replace
 from pathlib import Path
 from typing import cast
 
-from tests._bdio import entry_request, handle
-from tests._foreman import FAKE_PROFILE, ForemanLab
+from tests._bdio import handle
+from tests._foreman import FAKE_PROFILE, ForemanLab, entry_request
 from tests._supervisor import SESSION_ID, ChildScript
 from workflow_interpreter.bdio import Lifecycle
 from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry, route_head

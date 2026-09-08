@@ -28,9 +28,10 @@ import pytest
 from tests._foreman import ForemanLab
 from tests._profiles import Lab, host_env_with, stub_env
 from tests._supervisor import IMPLEMENT, ChildScript, entry_mint, node_of
-from workflow_interpreter.bdio import Lifecycle, MintReason, ProcessHandle
+from workflow_interpreter.bdio import Lifecycle, MintReason, MintRequest, ProcessHandle
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver
 from workflow_interpreter.foreman.config import RunnerBinding
+from workflow_interpreter.foreman.supervise import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.profiles import ProfileConfig, RunnerName
 from workflow_interpreter.profiles.claude import ClaudeProfile
@@ -55,6 +56,8 @@ from workflow_interpreter.supervisor.steer import instructions_digest
 
 STEER_REASON: Final[str] = "the runner is looping on the same failing test"
 STEER_INSTRUCTIONS: Final[str] = "stop rewriting the fixture; fix the assertion"
+PINNED_MODEL: Final[str] = "claude-opus-5"
+DIVERGENT_MODEL: Final[str] = "claude-haiku-4-5"
 
 
 def steer(lab: Lab, parent_id: str, *, session_id: str = "made-up") -> SteerResult:
@@ -134,10 +137,10 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
         tmp_path,
         roles={
             "implementer": RunnerBinding(
-                profile="claude", model="claude-opus-5", effort="high"
+                profile="claude", model=PINNED_MODEL, effort="high"
             ),
             "critic": RunnerBinding(
-                profile="claude", model="claude-opus-5", effort="medium"
+                profile="claude", model=PINNED_MODEL, effort="medium"
             ),
         },
         sandbox=SandboxMode.OFF,
@@ -155,7 +158,27 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
     )
     lab.spawner.bind(lab.composition)
     lab.foreman = Foreman(lab.composition)
-    lab.instantiate_resolved()
+    root = lab.instantiate_resolved()
+    minted = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id,
+            MintRequest(
+                node=IMPLEMENT,
+                mint_reason=MintReason.ENTRY,
+                runner_profile=RunnerName.CLAUDE.value,
+                model=PINNED_MODEL,
+                session_id="",
+            ),
+        )
+        .activation
+    )
+    lab.fake_bd.rows[minted.activation_id]["metadata"]["model"] = DIVERGENT_MODEL
+
+    assert (
+        run_wrapper(lab.composition, root.root_id, minted.activation_id)
+        is WrapperExit.DONE
+    )
 
     for _ in range(12):
         lab.tick()
@@ -164,7 +187,7 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
 
     assert set(profile.commands) == {"implement", "review"}
     for command in profile.commands.values():
-        assert command.argv[command.argv.index("--model") + 1] == "claude-opus-5"
+        assert command.argv[command.argv.index("--model") + 1] == PINNED_MODEL
     assert (
         profile.commands["implement"].argv[
             profile.commands["implement"].argv.index("--effort") + 1

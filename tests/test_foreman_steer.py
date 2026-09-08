@@ -12,8 +12,14 @@ from typing import Any, Final, cast
 
 import pytest
 
-from tests._bdio import entry_request, handle
-from tests._foreman import ForemanLab, InlineSpawner, LockedPersistentBd, ProcSpawner
+from tests._bdio import handle
+from tests._foreman import (
+    ForemanLab,
+    InlineSpawner,
+    LockedPersistentBd,
+    ProcSpawner,
+    entry_request,
+)
 from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._supervisor import ChildScript
 from workflow_interpreter.bdio import Lifecycle, MintReason, Outcome, bounds, mint

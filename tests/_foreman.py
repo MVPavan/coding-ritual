@@ -23,6 +23,7 @@ from typing import Final, TypedDict
 from tests._fake_bd import FakeBd, InjectedCrash
 from tests._helpers import VALID_FIXTURE, runner_roles
 from tests._supervisor import (
+    IMPLEMENT,
     ChildScript,
     FakeProfile,
     FrozenClock,
@@ -43,6 +44,8 @@ from workflow_interpreter.bdio import (
     GateRecord,
     GateVerifier,
     InstanceInput,
+    MintReason,
+    MintRequest,
     Outcome,
     ProcessHandle,
     ResolvedSetting,
@@ -115,6 +118,19 @@ BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
 # The resolver is asked for the runner name as the GRAPH spells it, so the
 # accepted set is derived per graph; `fake` is the lab's own inert profile.
 FAKE_PROFILE: Final[str] = "fake"
+FAKE_MODEL: Final[str] = "fake"
+
+
+def entry_request(**overrides: object) -> MintRequest:
+    """Build an entry mint request matching ForemanLab's default root pins."""
+    base: dict[str, object] = {
+        "node": IMPLEMENT,
+        "mint_reason": MintReason.ENTRY,
+        "runner_profile": FAKE_PROFILE,
+        "model": FAKE_MODEL,
+        "session_id": "",
+    }
+    return MintRequest.model_validate(base | overrides)
 
 
 class _Profiles(ProfileResolver):

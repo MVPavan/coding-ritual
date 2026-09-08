@@ -455,7 +455,7 @@ def entry_mint(node: str = IMPLEMENT, **overrides: object) -> MintRequest:
     base: dict[str, object] = {
         "node": node,
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": "profile:implementer",
+        "runner_profile": "fake",
         "model": "fake-model",
         "session_id": SESSION_ID,
     }

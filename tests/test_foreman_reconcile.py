@@ -5,8 +5,7 @@ from typing import NoReturn
 
 import pytest
 
-from tests._bdio import entry_request
-from tests._foreman import ForemanLab
+from tests._foreman import ForemanLab, entry_request
 from workflow_interpreter.foreman.reconcile import reconcile
 from workflow_interpreter.supervisor.errors import GitCommandError
 from workflow_interpreter.supervisor.gitcmd import GitSubcommand

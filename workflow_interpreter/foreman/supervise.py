@@ -165,7 +165,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             root_id=root.root_id,
             activation_id=current.activation_id,
             node=node.name,
-            model=current.metadata.model,
+            model=resolved.model,
             effort=resolved.effort,
             writes=bool(node.writes),
             allowed_paths=node.allowed_paths or (),

@@ -12,8 +12,10 @@ from typing import Any, cast
 
 import pytest
 
-from tests._bdio import entry_request, handle, load_definition, make_root
+from tests._bdio import entry_request as bdio_entry_request
+from tests._bdio import handle, load_definition, make_root
 from tests._foreman import ForemanLab
+from tests._foreman import entry_request as foreman_entry_request
 from tests._helpers import (
     AMBIGUOUS_ABANDON_EDITS,
     VALID_FIXTURE,
@@ -172,7 +174,9 @@ def test_main_inspect_keeps_a_bounded_escaped_tail_inside_its_extra_allowance(
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     activation = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+        lab.wiring()
+        .store.mint_activation(root.root_id, foreman_entry_request())
+        .activation
     )
     activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
     lab.go_stale(activation.activation_id, tail_bytes=b"\x1b" * 4096)
@@ -210,7 +214,9 @@ def test_main_leaves_supervise_output_in_its_redirected_wrapper_log(
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     activation = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+        lab.wiring()
+        .store.mint_activation(root.root_id, foreman_entry_request())
+        .activation
     )
     marker = "wrapper diagnostic\n" * MAX_TRANSCRIPT_BYTES
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
@@ -244,7 +250,9 @@ def test_status_renders_total_input_tokens_including_cache_layers(
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     activation = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+        lab.wiring()
+        .store.mint_activation(root.root_id, foreman_entry_request())
+        .activation
     )
     lab.fake_bd.rows[activation.activation_id]["metadata"]["usage"] = Usage(
         known=True,
@@ -378,7 +386,9 @@ def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
         ),
     )
     root = make_root(fake_store, load_definition())
-    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    activation = fake_store.mint_activation(
+        root.root_id, bdio_entry_request()
+    ).activation
     composition = Composition(
         config=config,
         store=fake_store,
@@ -422,7 +432,9 @@ def test_wrapper_records_a_non_dirty_precondition_refusal(
         ),
     )
     root = make_root(fake_store, load_definition())
-    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    activation = fake_store.mint_activation(
+        root.root_id, bdio_entry_request()
+    ).activation
 
     class Profiles:
         def profile_for(self, name: str) -> object:
@@ -475,7 +487,9 @@ def test_inspect_rejects_an_activation_owned_by_another_root(tmp_path: Path) -> 
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     activation = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+        lab.wiring()
+        .store.mint_activation(root.root_id, foreman_entry_request())
+        .activation
     )
     lab.fake_bd.rows[activation.activation_id]["metadata"]["wf_root_id"] = "wf-other"
 
@@ -879,7 +893,9 @@ def test_inspect_reports_no_verify_for_an_activation_that_never_completed(
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     activation = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+        lab.wiring()
+        .store.mint_activation(root.root_id, foreman_entry_request())
+        .activation
     )
 
     report = lab.foreman.inspect(root.root_id, activation.activation_id)
