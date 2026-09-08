@@ -45,7 +45,6 @@ ROOT_SEQ: Final[int] = 0
 MAX_INSTANCE_INPUT_BYTES: Final[int] = 65536
 MAX_REPORTED_KEYS: Final[int] = 10
 """How many differing configuration keys a mismatch message names."""
-_ROLE_RUNNER_PREFIX: Final[str] = "profile:"
 _TITLE_ROOT: Final[str] = "wf root {graph_id} {instance_key}"
 _REASON_ROOT_SUPERSEDED: Final[str] = "outcome=superseded superseded_by={winner}"
 _REASON_ROOT_TERMINAL: Final[str] = "outcome=terminal terminal={terminal}"
@@ -121,9 +120,12 @@ def _assert_task_execution_settings_are_pinned(
     for node in definition.document.node:
         if node.kind is not NodeKind.TASK:
             continue
-        required = [NodeSetting.RUNNER, NodeSetting.MODEL]
-        if (node.runner or "").startswith(_ROLE_RUNNER_PREFIX):
-            required.append(NodeSetting.EFFORT)
+        # Effort is not role-specific: every profile's dispatch appends
+        # `--effort` unconditionally, so a task missing it cannot launch under
+        # any runner. Requiring it only for `profile:` runners let an
+        # unrunnable root be created, and root identity then refuses to
+        # recreate that key with the pin supplied (cr-xb2).
+        required = (NodeSetting.RUNNER, NodeSetting.MODEL, NodeSetting.EFFORT)
         missing = tuple(
             setting.value.rsplit(".", maxsplit=1)[-1]
             for setting in required

@@ -264,6 +264,41 @@ def test_create_root_refuses_a_role_bound_task_without_an_effort_pin(
     assert fake_bd.command_count("create") == 0
 
 
+def test_create_root_refuses_a_literal_runner_task_without_an_effort_pin(
+    fake_bd: FakeBd, fake_store: WorkflowStore
+) -> None:
+    """Every dispatch passes `--effort`, so a literal runner needs it pinned too.
+
+    Scoping the effort requirement to `profile:` runners let a root with
+    complete runner and model pins but no effort through to `_create_bead`;
+    root identity then blocks recreating that key with the missing pin, so the
+    instance is unrunnable forever (cr-xb2).
+    """
+    definition = load_definition()
+    literal_runner = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"runner": "claude", "model": "fake-model"})
+                if node.name == "implement"
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+    config = tuple(
+        setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.effort"
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="effort"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": literal_runner}),
+            resolved_config=config,
+        )
+
+    assert fake_bd.command_count("create") == 0
+
+
 def test_create_root_does_not_require_instructions_on_gates_or_terminals(
     fake_store: WorkflowStore,
 ) -> None:
