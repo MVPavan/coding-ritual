@@ -205,8 +205,9 @@ def run_wrapper(
         # The EFFECTIVE node: everything downstream of here — the §5.4
         # precondition, workspace isolation, the §8.2 monitor limits — must
         # read the resolution the root pinned, not the graph body alone (§3.1).
-        node = resolved_node(root, activation.metadata.node).node
-        profile = composition.profiles.profile_for(request.runner_profile)
+        resolved_node_view = resolved_node(root, activation.metadata.node)
+        node = resolved_node_view.node
+        profile = composition.profiles.profile_for(resolved_node_view.runner_profile)
         deadline = monotonic() + composition.config.band_wait_s
         while True:
             try:

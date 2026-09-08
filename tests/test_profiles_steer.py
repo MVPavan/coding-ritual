@@ -48,6 +48,7 @@ from workflow_interpreter.supervisor.models import MonitorVerdict
 from workflow_interpreter.supervisor.paths import write_record
 from workflow_interpreter.supervisor.profile import (
     ChildLauncher,
+    Profile,
     RunnerCommand,
     TaskSpec,
 )
@@ -200,6 +201,75 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
         ]
         == "medium"
     )
+
+
+@pytest.mark.proc
+def test_wrapper_selects_root_pinned_runner_after_activation_runner_corruption(
+    tmp_path: Path,
+) -> None:
+    """The wrapper launches the root-pinned vendor, never corrupt activation metadata."""
+
+    lab = ForemanLab(
+        tmp_path,
+        roles={
+            "implementer": RunnerBinding(
+                profile="claude", model=PINNED_MODEL, effort="high"
+            ),
+            "critic": RunnerBinding(
+                profile="claude", model=PINNED_MODEL, effort="medium"
+            ),
+        },
+        sandbox=SandboxMode.OFF,
+    )
+    profile = lab.profiles.profile
+
+    class RecordingProfiles(ProfileResolver):
+        """Record the vendor the wrapper selects at the profile boundary."""
+
+        def __init__(self) -> None:
+            self.selected: list[str] = []
+
+        def profile_for(self, name: str) -> Profile:
+            self.selected.append(name)
+            return profile
+
+    profiles = RecordingProfiles()
+    lab.profiles = profiles
+    lab.composition = Composition(
+        lab.config,
+        lab.store,
+        lab.supervisor_config,
+        lab.git,
+        lab.clock,
+        lab.profiles,
+        lab.spawner,
+    )
+    lab.spawner.bind(lab.composition)
+    root = lab.instantiate_resolved()
+    minted = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id,
+            MintRequest(
+                node=IMPLEMENT,
+                mint_reason=MintReason.ENTRY,
+                runner_profile=RunnerName.CLAUDE.value,
+                model=PINNED_MODEL,
+                session_id="",
+            ),
+        )
+        .activation
+    )
+    lab.fake_bd.rows[minted.activation_id]["metadata"]["runner_profile"] = (
+        RunnerName.CODEX.value
+    )
+
+    assert (
+        run_wrapper(lab.composition, root.root_id, minted.activation_id)
+        is WrapperExit.DONE
+    )
+
+    assert profiles.selected == [RunnerName.CLAUDE.value]
 
 
 @pytest.mark.proc
