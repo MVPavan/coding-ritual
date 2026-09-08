@@ -52,6 +52,13 @@ max_wall      = "30m"
 stale_after   = "10m"
 max_infra_retries = 2
 max_steers    = 2
+# Both bounds that can end this region must hand the human the same vocabulary.
+# `on_exhausted` covers the round bound; an infra-retry refusal happens before
+# the mint, takes no edge, and would otherwise land on the document fallback —
+# the BUILD region's gate, whose only non-abandon route is `implement`, i.e. a
+# resume that skips `review_tests.accept` (cr-5fs). Every tests-region node
+# therefore names its own region's triage gate.
+fallback      = { to = "triage_tests" }
 outcomes      = ["done", "fail_plan", "fail_code"]
 
 [[node]]
@@ -86,6 +93,7 @@ max_wall      = "20m"
 stale_after   = "10m"
 max_infra_retries = 2
 max_steers    = 1
+fallback      = { to = "triage_tests" }   # same region rule as `write_tests`
 outcomes      = ["accept", "reject", "fail_code", "fail_plan"]
 
 [[node]]

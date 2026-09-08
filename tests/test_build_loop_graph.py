@@ -13,7 +13,11 @@ from typing import Final
 
 from tests._helpers import BUILD_LOOP_CONTENT_HASH, BUILD_LOOP_GRAPH
 from workflow_interpreter import RuleId, load_graph
-from workflow_interpreter.schema.models import Outcome, Severity
+from workflow_interpreter.bdio.bounds import BoundKind, BoundRefusal
+from workflow_interpreter.foreman.bounds import refusal_route
+from workflow_interpreter.foreman.routing import RouteKind
+from workflow_interpreter.schema.graph_index import build_index
+from workflow_interpreter.schema.models import NodeKind, Outcome, Severity
 
 # D7: reviewers run the two cheap tree checks only, so `critic`'s set EQUALS
 # `review_impl`'s and the superset lint fires exactly once. `review_impl` is
@@ -46,6 +50,20 @@ REVIEWER_FAIL_PLAN_EDGES: Final[frozenset[tuple[str, str]]] = frozenset(
         ("review_tests", "triage_tests"),
         ("review_impl", "triage_build"),
     }
+)
+
+# An infra-retry exhaustion is refused before the mint, so it never takes an
+# edge: it lands on the node's `fallback`, and the document-level one names the
+# BUILD region's gate. A tests-region node routed there would offer `rebudget →
+# implement` as its only non-abandon option, i.e. a human resuming the instance
+# would skip `review_tests.accept` entirely — the ordering the topology exists
+# to enforce (cr-5fs).
+INFRA_REFUSAL: Final[BoundRefusal] = BoundRefusal(
+    bound=BoundKind.INFRA_RETRIES,
+    observed=3,
+    limit=3,
+    operator="consecutive_infra_closes >= max_infra_retries + 1",
+    detail="build-loop infra-retry exhaustion",
 )
 
 # B1: the critic's instructions name all six; before slice B its `inputs` did
@@ -108,3 +126,24 @@ def test_the_critic_declares_every_input_its_instructions_name() -> None:
 
     assert critic.inputs is not None
     assert frozenset(critic.inputs) == CRITIC_INPUTS
+
+
+def test_infra_retry_exhaustion_recovers_inside_the_failing_region() -> None:
+    """Every task node's fallback is its OWN region's triage gate, not the build one."""
+    graph = load_graph(BUILD_LOOP_GRAPH)
+    index = build_index(graph.document, allow_test_flags=False)
+    # The region's `on_exhausted` gate is the expected target: both bounds end
+    # the same region, so both must hand the human the same vocabulary.
+    expected = {
+        node.name: index.regions[node.region].on_exhausted
+        for node in graph.document.node
+        if node.kind is NodeKind.TASK and node.region is not None
+    }
+
+    routes = {
+        name: refusal_route(index, index.nodes[name], INFRA_REFUSAL)
+        for name in expected
+    }
+
+    assert {name: route.target for name, route in routes.items()} == expected
+    assert {route.kind for route in routes.values()} == {RouteKind.FALLBACK}
