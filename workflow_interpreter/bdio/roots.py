@@ -45,6 +45,7 @@ ROOT_SEQ: Final[int] = 0
 MAX_INSTANCE_INPUT_BYTES: Final[int] = 65536
 MAX_REPORTED_KEYS: Final[int] = 10
 """How many differing configuration keys a mismatch message names."""
+_ROLE_RUNNER_PREFIX: Final[str] = "profile:"
 _TITLE_ROOT: Final[str] = "wf root {graph_id} {instance_key}"
 _REASON_ROOT_SUPERSEDED: Final[str] = "outcome=superseded superseded_by={winner}"
 _REASON_ROOT_TERMINAL: Final[str] = "outcome=terminal terminal={terminal}"
@@ -86,8 +87,8 @@ _MSG_SETTLE_SUPERSEDED: Final[str] = (
 _MSG_UNINSTRUCTED_TASKS: Final[str] = (
     "task nodes carry no instructions and cannot be dispatched: {nodes}"
 )
-_MSG_UNPINNED_TASK_MODELS: Final[str] = (
-    "task nodes carry no resolved model pin and cannot be dispatched: {nodes}"
+_MSG_UNPINNED_TASK_EXECUTION_SETTINGS: Final[str] = (
+    "task nodes carry no resolved execution setting pin and cannot be dispatched: {nodes}"
 )
 
 
@@ -111,23 +112,31 @@ def _assert_tasks_are_instructed(definition: GraphDefinition) -> None:
         )
 
 
-def _assert_task_models_are_pinned(
+def _assert_task_execution_settings_are_pinned(
     definition: GraphDefinition, resolved_config: Sequence[ResolvedSetting]
 ) -> None:
-    """Refuse roots whose task mints could not carry a resolved model."""
+    """Refuse roots whose task mints or dispatches lack execution settings."""
     settings = {setting.key: setting.value for setting in resolved_config}
-    unpinned = tuple(
-        node.name
-        for node in definition.document.node
-        if node.kind is NodeKind.TASK
-        and not (
-            isinstance(value := settings.get(NodeSetting.MODEL.at(node.name)), str)
-            and value.strip()
+    unpinned: list[str] = []
+    for node in definition.document.node:
+        if node.kind is not NodeKind.TASK:
+            continue
+        required = [NodeSetting.RUNNER, NodeSetting.MODEL]
+        if (node.runner or "").startswith(_ROLE_RUNNER_PREFIX):
+            required.append(NodeSetting.EFFORT)
+        missing = tuple(
+            setting.value.rsplit(".", maxsplit=1)[-1]
+            for setting in required
+            if not (
+                isinstance(value := settings.get(setting.at(node.name)), str)
+                and value.strip()
+            )
         )
-    )
+        if missing:
+            unpinned.append(f"{node.name} ({', '.join(missing)})")
     if unpinned:
         raise CarrierIntegrityError(
-            _MSG_UNPINNED_TASK_MODELS.format(nodes=", ".join(unpinned))
+            _MSG_UNPINNED_TASK_EXECUTION_SETTINGS.format(nodes=", ".join(unpinned))
         )
 
 
@@ -157,7 +166,7 @@ def create_root(
         )
         return existing
     _assert_tasks_are_instructed(definition)
-    _assert_task_models_are_pinned(definition, resolved_config)
+    _assert_task_execution_settings_are_pinned(definition, resolved_config)
     inputs = tuple(instance_inputs)
     if (
         sum(len(item.body.encode("utf-8")) for item in inputs)

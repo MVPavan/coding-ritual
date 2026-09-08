@@ -55,6 +55,7 @@ _CROSS_REGION_EXECUTION_CONFIG: Final[tuple[ResolvedSetting, ...]] = tuple(
     for setting, value in (
         (NodeSetting.RUNNER, "fake"),
         (NodeSetting.MODEL, "fake-model"),
+        (NodeSetting.EFFORT, "medium"),
     )
 )
 
