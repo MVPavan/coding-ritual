@@ -12,8 +12,8 @@ answers in front of them that the spec's three cannot express:
     (`Steerer.resume`). Finishing the steer MINTS the continuation; dispatching
     it is the caller's next tick, and it reads the instructions back off this
     same intent file (`Dispatcher._steer_instructions`) — which is why nothing
-    here deletes the intent once the steer is finished, and why `_OPEN_LIFECYCLES`
-    stops it being re-acted on rather than removing it.
+    here deletes the intent once the steer is finished. A closed `steered` row
+    retains it so recovery can re-find a continuation whose mint crashed.
 0b. **indeterminate** — liveness could not be answered at all (`/proc`
     unreadable for a reason other than "gone"). Nothing is closed and nothing
     is signalled: the question §5.6 asks needs an answer, and a guess here
@@ -138,9 +138,10 @@ _OPEN_LIFECYCLES: Final[frozenset[Lifecycle]] = frozenset(
         Lifecycle.EVIDENCE_RECORDED,
     }
 )
-"""States a steer can still be finished from. A CLOSED or SUPERSEDED activation
-has already reached its terminal, and a leftover intent file beside it is
-residue, not an instruction."""
+"""States a steer can still be finished from. A closed `steered` activation
+with its persisted intent is the one terminal state that can still be missing
+its idempotent continuation mint; other closed or superseded rows treat an
+intent as residue."""
 
 
 class RecoveryResolution(BaseModel):
@@ -226,7 +227,10 @@ def classify(
         MALFORMED_STEER_INTENT,
         malformed,
     )
-    if activation.metadata.lifecycle not in _OPEN_LIFECYCLES:
+    if activation.metadata.lifecycle not in _OPEN_LIFECYCLES and not (
+        activation.metadata.lifecycle is Lifecycle.CLOSED
+        and activation.metadata.outcome is Outcome.STEERED
+    ):
         intent = None
 
     try:

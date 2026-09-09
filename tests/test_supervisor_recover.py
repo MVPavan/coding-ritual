@@ -484,11 +484,9 @@ def test_a_crashed_steer_is_finished_rather_than_called_a_transport_failure(
 def test_finishing_a_crashed_steer_mints_exactly_one_continuation(lab: Lab) -> None:
     """Drill 14: however many ticks find the intent, one continuation exists.
 
-    The second tick finds a CLOSED activation, so the intent beside it is
-    residue and recovery does nothing at all — §5.6 is about
-    dispatched-not-closed work. The remaining window (closed `steered`, the
-    continuation not yet minted) is a half-finished transition the §4 frontier
-    owns, exactly like every other close/mint pair.
+    The second recovery re-finds the continuation through the same idempotency
+    key, so a closed `steered` activation stays safe to finish until its
+    continuation exists.
     """
     _persist_steer_intent(lab)
     first = lab.recovery.resolve(lab.activation, lab.node)
@@ -496,7 +494,8 @@ def test_finishing_a_crashed_steer_mints_exactly_one_continuation(lab: Lab) -> N
     second = lab.recovery.resolve(lab.reload(), lab.node)
 
     assert first.steer is not None
-    assert second.steer is None
+    assert second.steer is not None
+    assert not second.steer.continuation.created
     assert _continuations(lab) == [first.steer.continuation.activation.activation_id]
 
 
@@ -522,15 +521,15 @@ def test_recovery_rebuilds_a_persisted_steer_request_from_the_root_pin(
     assert continuation.model == "fake-model"
 
 
-def test_a_steer_intent_beside_a_closed_activation_is_residue(lab: Lab) -> None:
-    """A finished steer's intent file must not re-open a settled activation."""
+def test_a_steer_intent_beside_a_closed_activation_stays_recoverable(lab: Lab) -> None:
+    """A closed `steered` row preserves its intent for an idempotent re-mint."""
     _persist_steer_intent(lab)
     lab.recovery.resolve(lab.activation, lab.node)
 
     classification = lab.recovery.classify(lab.reload())
 
-    assert classification.case is not RecoveryCase.STEER_PENDING
-    assert classification.steer_intent is None
+    assert classification.case is RecoveryCase.STEER_PENDING
+    assert classification.steer_intent is not None
 
 
 def test_recovery_records_instance_branch_divergence(tmp_path: Path) -> None:

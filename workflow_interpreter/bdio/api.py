@@ -67,6 +67,7 @@ from workflow_interpreter.bdio.wire import (
     GateOpenRequest,
     InstanceInput,
     Lifecycle,
+    Metadata,
     MintReason,
     MintRequest,
     NodeSetting,
@@ -151,6 +152,48 @@ def _race_order(record: ActivationRecord) -> tuple[bool, int, str]:
         record.metadata.seq,
         record.bead.id,
     )
+
+
+def _may_be_superseded(record: ActivationRecord) -> bool:
+    """Whether a race record may be changed into a superseded loser."""
+    metadata = record.metadata
+    return not (metadata.is_settled and not metadata.is_superseded)
+
+
+def _unsupersedable_error(record: ActivationRecord) -> CarrierIntegrityError:
+    """Build the refusal for a record whose routing outcome is terminal."""
+    return CarrierIntegrityError(
+        _MSG_SUPERSEDE_COMPLETED.format(
+            activation_id=record.activation_id,
+            outcome=None
+            if record.metadata.outcome is None
+            else record.metadata.outcome.value,
+        )
+    )
+
+
+def _race_decision(
+    found: Sequence[ActivationRecord], key: str
+) -> tuple[ActivationRecord, tuple[ActivationRecord, ...]]:
+    """Choose a §3.2 race winner without mutating the losing residue."""
+    live = [record for record in found if not record.metadata.is_superseded]
+    if not live:
+        raise CarrierIntegrityError(_MSG_ALL_SUPERSEDED.format(key=key))
+    if len(live) == 1:
+        return live[0], ()
+    completed = [record for record in live if record.metadata.is_completed]
+    if len(completed) > 1:
+        raise CarrierIntegrityError(
+            _MSG_TWO_COMPLETED.format(
+                key=key,
+                found=", ".join(record.activation_id for record in completed),
+            )
+        )
+    winner, *losers = sorted(live, key=_race_order)
+    for loser in losers:
+        if not _may_be_superseded(loser):
+            raise _unsupersedable_error(loser)
+    return winner, tuple(losers)
 
 
 def pinned_execution_setting(root: RootRecord, node: str, setting: NodeSetting) -> str:
@@ -313,14 +356,8 @@ class WorkflowStore:
         # activation views, the key lookup and the derivation.
         beads = self._reads.instance_beads(root_id)
         activations = reads.activations_of(beads)
-        gates_of_instance = reads.gates_of(beads)
-        facts = mint.derive_mint_facts(
-            root, request, activations, self._branch_head_reader, gates_of_instance
-        )
-        existing = tuple(
-            record
-            for record in activations
-            if record.metadata.idempotency_key == facts.idempotency_key
+        facts, existing, metadata, metadata_payload = self._prepare_mint(
+            root_id, request, root, beads, activations
         )
         if existing:
             return MintResult(
@@ -329,48 +366,12 @@ class WorkflowStore:
                 created=False,
             )
 
-        runner_profile = pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
-        model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
-        _assert_pinned_execution_setting(
-            node=facts.node,
-            field=_FIELD_RUNNER_PROFILE,
-            requested=request.runner_profile,
-            pinned=runner_profile,
-        )
-        _assert_pinned_execution_setting(
-            node=facts.node,
-            field=_FIELD_MODEL,
-            requested=request.model,
-            pinned=model,
-        )
-        refusal = self._pre_mint_refusal(root, facts, beads, activations)
-        if refusal is not None:
-            raise BoundExceededError(refusal)
-
-        seq = reads.next_seq(beads)
-        metadata = ActivationMetadata(
-            wf_root_id=root_id,
-            node=facts.node,
-            region=facts.region,
-            round_no=facts.round_no,
-            seq=seq,
-            predecessor_activation_id=facts.predecessor_activation_id,
-            predecessor_gate_id=facts.predecessor_gate_id,
-            outcome_taken=facts.outcome_taken,
-            idempotency_key=facts.idempotency_key,
-            mint_reason=facts.mint_reason,
-            inputs=request.inputs,
-            runner_profile=runner_profile,
-            model=model,
-            session_id=request.session_id,
-            intended_base_commit=facts.intended_base_commit,
-            deviations=request.deviations,
-        )
+        assert metadata is not None and metadata_payload is not None
         record = self._client._create_bead(
             title=_TITLE_ACTIVATION.format(
-                node=facts.node, round_no=facts.round_no, seq=seq
+                node=facts.node, round_no=facts.round_no, seq=metadata.seq
             ),
-            metadata=metadata_dict(metadata),
+            metadata=metadata_payload,
         )
         _LOG.info(
             "wf.activation.minted",
@@ -389,6 +390,94 @@ class WorkflowStore:
             idempotency_key=facts.idempotency_key,
             created=winner.activation_id == record.id,
         )
+
+    def _preflight_steer_continuation(
+        self,
+        root_id: str,
+        activation: ActivationRecord,
+        continuation: MintRequest,
+    ) -> None:
+        """Check a fresh steer continuation as if its parent were closed `steered`.
+
+        A fresh steer must ask this before its intent write and termination, but
+        `derive_mint_facts` correctly refuses an open predecessor. Replacing
+        only that predecessor's lifecycle and outcome creates the precise
+        post-close view without writing any durable state.
+        """
+        root = self._reads.load_root(root_id)
+        beads = self._reads.instance_beads(root_id)
+        activations = reads.activations_of(beads)
+        prospective = activation.model_copy(
+            update={
+                "metadata": activation.metadata.model_copy(
+                    update={"lifecycle": Lifecycle.CLOSED, "outcome": Outcome.STEERED}
+                )
+            }
+        )
+        prospective_activations = tuple(
+            prospective if record.activation_id == activation.activation_id else record
+            for record in activations
+        )
+        self._prepare_mint(root_id, continuation, root, beads, prospective_activations)
+
+    def _prepare_mint(
+        self,
+        root_id: str,
+        request: MintRequest,
+        root: RootRecord,
+        beads: Sequence[BeadRecord],
+        activations: Sequence[ActivationRecord],
+    ) -> tuple[
+        MintFacts,
+        tuple[ActivationRecord, ...],
+        ActivationMetadata | None,
+        Metadata | None,
+    ]:
+        """Perform the complete non-mutating portion of ``mint_activation``.
+
+        The caller resolves an existing key after this method validates its
+        race residue; otherwise the returned metadata is the exact payload for
+        the sole write. Steer recovery uses the same preparation against its
+        prospective post-close trace before it changes parent or child state.
+        """
+        facts = mint.derive_mint_facts(
+            root,
+            request,
+            activations,
+            self._branch_head_reader,
+            reads.gates_of(beads),
+        )
+        existing = tuple(
+            record
+            for record in activations
+            if record.metadata.idempotency_key == facts.idempotency_key
+        )
+        if existing:
+            _race_decision(existing, facts.idempotency_key)
+            return facts, existing, None, None
+
+        runner_profile, model = self._assert_mint_permitted(
+            root, facts, beads, activations, request
+        )
+        metadata = ActivationMetadata(
+            wf_root_id=root_id,
+            node=facts.node,
+            region=facts.region,
+            round_no=facts.round_no,
+            seq=reads.next_seq(beads),
+            predecessor_activation_id=facts.predecessor_activation_id,
+            predecessor_gate_id=facts.predecessor_gate_id,
+            outcome_taken=facts.outcome_taken,
+            idempotency_key=facts.idempotency_key,
+            mint_reason=facts.mint_reason,
+            inputs=request.inputs,
+            runner_profile=runner_profile,
+            model=model,
+            session_id=request.session_id,
+            intended_base_commit=facts.intended_base_commit,
+            deviations=request.deviations,
+        )
+        return facts, (), metadata, metadata_dict(metadata)
 
     def record_precondition(
         self, activation_id: str, record: PreconditionRecord
@@ -611,15 +700,8 @@ class WorkflowStore:
         idempotent re-run below.
         """
         record = self._load_activation(loser_id)
-        if record.metadata.is_settled and not record.metadata.is_superseded:
-            raise CarrierIntegrityError(
-                _MSG_SUPERSEDE_COMPLETED.format(
-                    activation_id=loser_id,
-                    outcome=None
-                    if record.metadata.outcome is None
-                    else record.metadata.outcome.value,
-                )
-            )
+        if not _may_be_superseded(record):
+            raise _unsupersedable_error(record)
         self._assert_race_winner(record, winner_id)
         reason = _REASON_SUPERSEDED.format(winner=winner_id)
         if record.metadata.superseded_by is not None:
@@ -697,21 +779,7 @@ class WorkflowStore:
         lowest bead id — deterministic, so two ticks racing to resolve the same
         residue pick the same winner and the loser is closed exactly once.
         """
-        live = [record for record in found if not record.metadata.is_superseded]
-        if not live:
-            raise CarrierIntegrityError(_MSG_ALL_SUPERSEDED.format(key=key))
-        if len(live) == 1:
-            return live[0]
-        completed = [record for record in live if record.metadata.is_completed]
-        if len(completed) > 1:
-            raise CarrierIntegrityError(
-                _MSG_TWO_COMPLETED.format(
-                    key=key,
-                    found=", ".join(record.activation_id for record in completed),
-                )
-            )
-        ordered = sorted(live, key=_race_order)
-        winner, *losers = ordered
+        winner, losers = _race_decision(found, key)
         for loser in losers:
             self.supersede_activation(loser.activation_id, winner.activation_id)
         return self._load_activation(winner.activation_id)
@@ -755,6 +823,34 @@ class WorkflowStore:
                     winner=winner_id, activation_id=loser.activation_id
                 )
             )
+
+    def _assert_mint_permitted(
+        self,
+        root: RootRecord,
+        facts: MintFacts,
+        beads: Sequence[BeadRecord],
+        activations: Sequence[ActivationRecord],
+        request: MintRequest,
+    ) -> tuple[str, str]:
+        """Verify the execution pins and every deterministic pre-mint bound."""
+        runner_profile = pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
+        model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
+        _assert_pinned_execution_setting(
+            node=facts.node,
+            field=_FIELD_RUNNER_PROFILE,
+            requested=request.runner_profile,
+            pinned=runner_profile,
+        )
+        _assert_pinned_execution_setting(
+            node=facts.node,
+            field=_FIELD_MODEL,
+            requested=request.model,
+            pinned=model,
+        )
+        refusal = self._pre_mint_refusal(root, facts, beads, activations)
+        if refusal is not None:
+            raise BoundExceededError(refusal)
+        return runner_profile, model
 
     def _pre_mint_refusal(
         self,
