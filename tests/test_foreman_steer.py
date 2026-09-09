@@ -22,7 +22,15 @@ from tests._foreman import (
 )
 from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._supervisor import ChildScript
-from workflow_interpreter.bdio import Lifecycle, MintReason, Outcome, bounds, mint
+from workflow_interpreter.bdio import (
+    Lifecycle,
+    MintReason,
+    MintRequest,
+    Outcome,
+    WorkflowStore,
+    bounds,
+    mint,
+)
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.tick import Foreman
@@ -229,6 +237,54 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
     assert (
         ExecLedger(lab.wiring().paths.ledger(continuation.activation_id)).count() == 1
     )
+
+
+def test_tick_finishes_a_steer_crashed_after_its_close(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A closed `steered` head resumes its persisted continuation mint."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    lab.go_stale(activation.activation_id)
+    original_mint = WorkflowStore.mint_activation
+
+    def crash_before_continuation(
+        store: WorkflowStore, root_id: str, request: MintRequest
+    ) -> object:
+        if request.mint_reason is MintReason.STEER_CONTINUATION:
+            raise RuntimeError("crash after close before continuation mint")
+        return original_mint(store, root_id, request)
+
+    monkeypatch.setattr(WorkflowStore, "mint_activation", crash_before_continuation)
+    with pytest.raises(RuntimeError, match="crash after close"):
+        lab.steer(
+            activation.activation_id,
+            reason="silent past stale_after",
+            instructions="finish the review with the recorded constraints",
+        )
+    monkeypatch.setattr(WorkflowStore, "mint_activation", original_mint)
+
+    stranded = lab.store.reads.load_activation(activation.activation_id)
+    assert stranded.metadata.lifecycle is Lifecycle.CLOSED
+    assert stranded.metadata.outcome is Outcome.STEERED
+    assert all(
+        record.metadata.mint_reason is not MintReason.STEER_CONTINUATION
+        for record in lab.store.reads.list_activations(root.root_id)
+    )
+
+    repaired = lab.tick()
+    continuation = next(
+        record
+        for record in lab.store.reads.list_activations(root.root_id)
+        if record.metadata.mint_reason is MintReason.STEER_CONTINUATION
+    )
+
+    assert repaired.settled == activation.activation_id
+    assert lab.tick().dispatched == continuation.activation_id
 
 
 def test_steer_refuses_a_sessionless_continuation_before_the_intent(

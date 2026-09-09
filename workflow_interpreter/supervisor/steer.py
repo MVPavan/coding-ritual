@@ -192,6 +192,7 @@ class Steerer:
         if activation.metadata.handle is None:
             raise TerminationFailed(_MSG_NO_HANDLE.format(activation_id=activation_id))
         session_id = _resumable_session(activation)
+        continuation = self._pinned_continuation(continuation)
         intent = SteerIntent(
             activation_id=activation_id,
             reason=reason,
@@ -235,21 +236,8 @@ class Steerer:
                 ),
             ),
         )
-        root = self._store.reads.load_root(self._paths.root_id)
-        continuation = intent.continuation
         intent = intent.model_copy(
-            update={
-                "continuation": continuation.model_copy(
-                    update={
-                        "runner_profile": pinned_execution_setting(
-                            root, continuation.node, NodeSetting.RUNNER
-                        ),
-                        "model": pinned_execution_setting(
-                            root, continuation.node, NodeSetting.MODEL
-                        ),
-                    }
-                )
-            }
+            update={"continuation": self._pinned_continuation(intent.continuation)}
         )
         minted = self._store.mint_activation(self._paths.root_id, intent.continuation)
         _LOG.info(
@@ -260,6 +248,20 @@ class Steerer:
         )
         return SteerResult(
             intent=intent, termination=proof, closed=closed, continuation=minted
+        )
+
+    def _pinned_continuation(self, continuation: MintRequest) -> MintRequest:
+        """Normalize execution bindings against the immutable root pins."""
+        root = self._store.reads.load_root(self._paths.root_id)
+        return continuation.model_copy(
+            update={
+                "runner_profile": pinned_execution_setting(
+                    root, continuation.node, NodeSetting.RUNNER
+                ),
+                "model": pinned_execution_setting(
+                    root, continuation.node, NodeSetting.MODEL
+                ),
+            }
         )
 
     def _write_exit_file(self, activation_id: str) -> None:

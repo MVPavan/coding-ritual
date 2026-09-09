@@ -172,9 +172,9 @@ class RecoveryCase(StrEnum):
     Plus two the spec's three cannot express and that both fail CLOSED — they
     never close an activation, they hand it back for another tick or a human:
 
-    - `STEER_PENDING`: a durable §8.1 steer intent with no close. The death was
-      deliberate; classifying it case 3 would spend an infra retry on it and
-      drop the continuation the human asked for.
+    - `STEER_PENDING`: a durable §8.1 steer intent before its continuation is
+      durably found. The death was deliberate; classifying it case 3 would
+      spend an infra retry on it and drop the continuation the human asked for.
     - `INDETERMINATE`: liveness could not be answered at all (§5.6's question
       needs an answer, not a guess).
     """
