@@ -9,7 +9,7 @@ import pytest
 from tests._bdio import RESOLVED_CONFIG, instance_key, load_definition
 from tests._fake_bd import FakeBd
 from tests._helpers import INVALID_FIXTURES
-from workflow_interpreter import load_graph
+from workflow_interpreter import GraphValidationError, load_graph
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
@@ -17,6 +17,7 @@ from workflow_interpreter.bdio.errors import (
 )
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.bdio.wire import ConfigSource, InstanceInput, ResolvedSetting
+from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import NodeKind
 
 
@@ -161,7 +162,7 @@ def test_create_root_refuses_a_task_node_without_instructions(
     with pytest.raises(CarrierIntegrityError, match="instructions"):
         fake_store.create_root(
             instance_key=instance_key(),
-            definition=definition.model_copy(update={"document": stripped}),
+            definition=load_pinned_body(canonical_bytes(stripped)),
             resolved_config=RESOLVED_CONFIG,
         )
 
@@ -185,7 +186,7 @@ def test_create_root_refuses_whitespace_only_instructions(
     with pytest.raises(CarrierIntegrityError, match="instructions"):
         fake_store.create_root(
             instance_key=instance_key(),
-            definition=definition.model_copy(update={"document": blanked}),
+            definition=load_pinned_body(canonical_bytes(blanked)),
             resolved_config=RESOLVED_CONFIG,
         )
 
@@ -193,18 +194,7 @@ def test_create_root_refuses_whitespace_only_instructions(
 def test_create_root_refuses_a_task_without_a_model_pin(
     fake_store: WorkflowStore,
 ) -> None:
-    """A programmatic non-role runner needs its model pinned before creation."""
-    definition = load_definition()
-    unpinned = definition.document.model_copy(
-        update={
-            "node": tuple(
-                node.model_copy(update={"runner": "claude", "model": None})
-                if node.name == "implement"
-                else node
-                for node in definition.document.node
-            )
-        }
-    )
+    """A task needs its model pinned before root creation."""
     config = tuple(
         setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.model"
     )
@@ -212,26 +202,15 @@ def test_create_root_refuses_a_task_without_a_model_pin(
     with pytest.raises(CarrierIntegrityError, match="model"):
         fake_store.create_root(
             instance_key=instance_key(),
-            definition=definition.model_copy(update={"document": unpinned}),
+            definition=load_definition(),
             resolved_config=config,
         )
 
 
-def test_create_root_refuses_a_literal_runner_without_a_runner_pin(
+def test_create_root_refuses_a_task_without_a_runner_pin(
     fake_bd: FakeBd, fake_store: WorkflowStore
 ) -> None:
-    """A literal runner still needs the mint-time runner pin before root creation."""
-    definition = load_definition()
-    literal_runner = definition.document.model_copy(
-        update={
-            "node": tuple(
-                node.model_copy(update={"runner": "claude", "model": "fake-model"})
-                if node.name == "implement"
-                else node
-                for node in definition.document.node
-            )
-        }
-    )
+    """A task needs its mint-time runner pin before root creation."""
     config = tuple(
         setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.runner"
     )
@@ -239,7 +218,7 @@ def test_create_root_refuses_a_literal_runner_without_a_runner_pin(
     with pytest.raises(CarrierIntegrityError, match="runner"):
         fake_store.create_root(
             instance_key=instance_key(),
-            definition=definition.model_copy(update={"document": literal_runner}),
+            definition=load_definition(),
             resolved_config=config,
         )
 
@@ -264,27 +243,16 @@ def test_create_root_refuses_a_role_bound_task_without_an_effort_pin(
     assert fake_bd.command_count("create") == 0
 
 
-def test_create_root_refuses_a_literal_runner_task_without_an_effort_pin(
+def test_create_root_refuses_a_task_without_an_effort_pin(
     fake_bd: FakeBd, fake_store: WorkflowStore
 ) -> None:
-    """Every dispatch passes `--effort`, so a literal runner needs it pinned too.
+    """Every dispatch passes `--effort`, so every task needs it pinned.
 
-    Scoping the effort requirement to `profile:` runners let a root with
+    Scoping the effort requirement to a subset of runners let a root with
     complete runner and model pins but no effort through to `_create_bead`;
     root identity then blocks recreating that key with the missing pin, so the
     instance is unrunnable forever (cr-xb2).
     """
-    definition = load_definition()
-    literal_runner = definition.document.model_copy(
-        update={
-            "node": tuple(
-                node.model_copy(update={"runner": "claude", "model": "fake-model"})
-                if node.name == "implement"
-                else node
-                for node in definition.document.node
-            )
-        }
-    )
     config = tuple(
         setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.effort"
     )
@@ -292,11 +260,89 @@ def test_create_root_refuses_a_literal_runner_task_without_an_effort_pin(
     with pytest.raises(CarrierIntegrityError, match="effort"):
         fake_store.create_root(
             instance_key=instance_key(),
-            definition=definition.model_copy(update={"document": literal_runner}),
+            definition=load_definition(),
             resolved_config=config,
         )
 
     assert fake_bd.command_count("create") == 0
+
+
+def test_create_root_validates_the_pinned_body_before_writing(
+    fake_bd: FakeBd, fake_store: WorkflowStore
+) -> None:
+    """A schema-invalid programmatic definition must not poison an instance key."""
+    definition = load_definition()
+    invalid = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"runner": "claude"})
+                if node.name == "implement"
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+
+    with pytest.raises(
+        (GraphValidationError, PinnedGraphMismatchError), match="runner"
+    ):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": invalid}),
+            resolved_config=RESOLVED_CONFIG,
+        )
+
+    assert fake_bd.command_count("create") == 0
+
+
+def test_create_root_refuses_a_stale_hash_before_writing(
+    fake_bd: FakeBd, fake_store: WorkflowStore
+) -> None:
+    """A valid changed body must not be pinned under its former hash."""
+    definition = load_definition()
+    changed = definition.document.model_copy(
+        update={
+            "graph": definition.document.graph.model_copy(
+                update={"description": "A different graph description"}
+            )
+        }
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="content hash"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": changed}),
+            resolved_config=RESOLVED_CONFIG,
+        )
+
+    assert fake_bd.command_count("create") == 0
+
+
+def test_create_root_refuses_a_stale_hash_before_reusing_an_existing_key(
+    fake_store: WorkflowStore,
+) -> None:
+    """A changed body cannot inherit an existing instance through its old hash."""
+    key = instance_key()
+    definition = load_definition()
+    fake_store.create_root(
+        instance_key=key,
+        definition=definition,
+        resolved_config=RESOLVED_CONFIG,
+    )
+    changed = definition.document.model_copy(
+        update={
+            "graph": definition.document.graph.model_copy(
+                update={"description": "A different graph description"}
+            )
+        }
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="content hash"):
+        fake_store.create_root(
+            instance_key=key,
+            definition=definition.model_copy(update={"document": changed}),
+            resolved_config=RESOLVED_CONFIG,
+        )
 
 
 def test_create_root_does_not_require_instructions_on_gates_or_terminals(

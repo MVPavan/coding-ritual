@@ -36,7 +36,7 @@ from workflow_interpreter.bdio.wire import (
     config_signature,
     metadata_dict,
 )
-from workflow_interpreter.schema.loader import canonical_bytes
+from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import GraphDefinition, NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -88,6 +88,10 @@ _MSG_UNINSTRUCTED_TASKS: Final[str] = (
 )
 _MSG_UNPINNED_TASK_EXECUTION_SETTINGS: Final[str] = (
     "task nodes carry no resolved execution setting pin and cannot be dispatched: {nodes}"
+)
+_MSG_DEFINITION_HASH_MISMATCH: Final[str] = (
+    "definition content hash {declared!r} does not match canonical pinned body "
+    "hash {actual!r}"
 )
 
 
@@ -157,6 +161,23 @@ def create_root(
     """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
     if not resolved_config:
         raise CarrierIntegrityError(_MSG_EMPTY_CONFIG.format(instance_key=instance_key))
+    # Validate the pinned body and retain the resulting definition BEFORE
+    # looking up an existing key: `create_root` is the programmatic entry
+    # point and never runs the TOML loader, so a schema-invalid body could
+    # reach bd and was only rejected afterwards by `_ensure_self_id` ->
+    # `parse_root`. More subtly, a changed document carrying its old hash
+    # could be mistaken for the same existing instance. The canonical body,
+    # validated definition, and persisted hash are one exact pair.
+    body = canonical_bytes(definition.document)
+    validated_definition = load_pinned_body(body, allow_test_flags=allow_test_flags)
+    if definition.content_hash != validated_definition.content_hash:
+        raise CarrierIntegrityError(
+            _MSG_DEFINITION_HASH_MISMATCH.format(
+                declared=definition.content_hash,
+                actual=validated_definition.content_hash,
+            )
+        )
+    definition = validated_definition
     existing = _converged_root(client, instance_key)
     if existing is not None:
         _assert_same_instance(
@@ -184,7 +205,7 @@ def create_root(
         graph_id=definition.document.graph.id,
         graph_version=definition.document.graph.version,
         graph_content_hash=definition.content_hash,
-        graph_body=canonical_bytes(definition.document).decode("utf-8"),
+        graph_body=body.decode("utf-8"),
         resolved_config=tuple(resolved_config),
         instance_inputs=inputs,
         config_signature=config_signature(tuple(resolved_config)),
