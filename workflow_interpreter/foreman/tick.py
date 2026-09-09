@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Final
 
 import structlog
@@ -44,7 +45,7 @@ from workflow_interpreter.foreman.constants import (
     TERMINAL_SKIP_AMBIGUOUS_ABANDON,
     TERMINAL_SKIP_NOT_A_TERMINAL,
 )
-from workflow_interpreter.foreman.events import backfill, expected_intents
+from workflow_interpreter.foreman.events import EventIntent, backfill, expected_intents
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
@@ -441,7 +442,7 @@ class Foreman:
                 )
             if frontier.head is not None:
                 result = route_head(self._composition, wiring, root, frontier.head)
-                backfilled = self._backfill(wiring, root)
+                backfilled = self._backfill(wiring, root, result.event_intents)
                 terminal = result.terminal
                 return TickReport(
                     dispatched=result.dispatched,
@@ -545,7 +546,12 @@ class Foreman:
             if report.blocked or report.contended:
                 clock.sleep(poll_s)
 
-    def _backfill(self, wiring: InstanceWiring, root: RootRecord) -> int:
+    def _backfill(
+        self,
+        wiring: InstanceWiring,
+        root: RootRecord,
+        intents: Iterable[EventIntent] = (),
+    ) -> int:
         """Append every newly implied trace event after its source is durable."""
         beads = wiring.store.reads.instance_beads(root.root_id)
         existing = {
@@ -556,7 +562,7 @@ class Foreman:
         return backfill(
             wiring.store,
             root.root_id,
-            expected_intents(root, activations_of(beads), gates_of(beads)),
+            (*expected_intents(root, activations_of(beads), gates_of(beads)), *intents),
             actor=self._composition.config.actor,
             existing=existing,
             first_seq=next_seq(beads),

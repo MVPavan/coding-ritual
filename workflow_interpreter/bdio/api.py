@@ -67,6 +67,7 @@ from workflow_interpreter.bdio.wire import (
     GateOpenRequest,
     InstanceInput,
     Lifecycle,
+    Metadata,
     MintReason,
     MintRequest,
     NodeSetting,
@@ -151,6 +152,27 @@ def _race_order(record: ActivationRecord) -> tuple[bool, int, str]:
         record.metadata.seq,
         record.bead.id,
     )
+
+
+def _race_decision(
+    found: Sequence[ActivationRecord], key: str
+) -> tuple[ActivationRecord, tuple[ActivationRecord, ...]]:
+    """Choose a §3.2 race winner without mutating the losing residue."""
+    live = [record for record in found if not record.metadata.is_superseded]
+    if not live:
+        raise CarrierIntegrityError(_MSG_ALL_SUPERSEDED.format(key=key))
+    if len(live) == 1:
+        return live[0], ()
+    completed = [record for record in live if record.metadata.is_completed]
+    if len(completed) > 1:
+        raise CarrierIntegrityError(
+            _MSG_TWO_COMPLETED.format(
+                key=key,
+                found=", ".join(record.activation_id for record in completed),
+            )
+        )
+    winner, *losers = sorted(live, key=_race_order)
+    return winner, tuple(losers)
 
 
 def pinned_execution_setting(root: RootRecord, node: str, setting: NodeSetting) -> str:
@@ -313,14 +335,8 @@ class WorkflowStore:
         # activation views, the key lookup and the derivation.
         beads = self._reads.instance_beads(root_id)
         activations = reads.activations_of(beads)
-        gates_of_instance = reads.gates_of(beads)
-        facts = mint.derive_mint_facts(
-            root, request, activations, self._branch_head_reader, gates_of_instance
-        )
-        existing = tuple(
-            record
-            for record in activations
-            if record.metadata.idempotency_key == facts.idempotency_key
+        facts, existing, metadata, metadata_payload = self._prepare_mint(
+            root_id, request, root, beads, activations
         )
         if existing:
             return MintResult(
@@ -329,34 +345,12 @@ class WorkflowStore:
                 created=False,
             )
 
-        runner_profile, model = self._assert_mint_permitted(
-            root, facts, beads, activations, request
-        )
-
-        seq = reads.next_seq(beads)
-        metadata = ActivationMetadata(
-            wf_root_id=root_id,
-            node=facts.node,
-            region=facts.region,
-            round_no=facts.round_no,
-            seq=seq,
-            predecessor_activation_id=facts.predecessor_activation_id,
-            predecessor_gate_id=facts.predecessor_gate_id,
-            outcome_taken=facts.outcome_taken,
-            idempotency_key=facts.idempotency_key,
-            mint_reason=facts.mint_reason,
-            inputs=request.inputs,
-            runner_profile=runner_profile,
-            model=model,
-            session_id=request.session_id,
-            intended_base_commit=facts.intended_base_commit,
-            deviations=request.deviations,
-        )
+        assert metadata is not None and metadata_payload is not None
         record = self._client._create_bead(
             title=_TITLE_ACTIVATION.format(
-                node=facts.node, round_no=facts.round_no, seq=seq
+                node=facts.node, round_no=facts.round_no, seq=metadata.seq
             ),
-            metadata=metadata_dict(metadata),
+            metadata=metadata_payload,
         )
         _LOG.info(
             "wf.activation.minted",
@@ -403,23 +397,66 @@ class WorkflowStore:
             prospective if record.activation_id == activation.activation_id else record
             for record in activations
         )
+        self._prepare_mint(root_id, continuation, root, beads, prospective_activations)
+
+    def _prepare_mint(
+        self,
+        root_id: str,
+        request: MintRequest,
+        root: RootRecord,
+        beads: Sequence[BeadRecord],
+        activations: Sequence[ActivationRecord],
+    ) -> tuple[
+        MintFacts,
+        tuple[ActivationRecord, ...],
+        ActivationMetadata | None,
+        Metadata | None,
+    ]:
+        """Perform the complete non-mutating portion of ``mint_activation``.
+
+        The caller resolves an existing key after this method validates its
+        race residue; otherwise the returned metadata is the exact payload for
+        the sole write. Steer recovery uses the same preparation against its
+        prospective post-close trace before it changes parent or child state.
+        """
         facts = mint.derive_mint_facts(
             root,
-            continuation,
-            prospective_activations,
+            request,
+            activations,
             self._branch_head_reader,
             reads.gates_of(beads),
         )
         existing = tuple(
             record
-            for record in prospective_activations
+            for record in activations
             if record.metadata.idempotency_key == facts.idempotency_key
         )
         if existing:
-            return
-        self._assert_mint_permitted(
-            root, facts, beads, prospective_activations, continuation
+            _race_decision(existing, facts.idempotency_key)
+            return facts, existing, None, None
+
+        runner_profile, model = self._assert_mint_permitted(
+            root, facts, beads, activations, request
         )
+        metadata = ActivationMetadata(
+            wf_root_id=root_id,
+            node=facts.node,
+            region=facts.region,
+            round_no=facts.round_no,
+            seq=reads.next_seq(beads),
+            predecessor_activation_id=facts.predecessor_activation_id,
+            predecessor_gate_id=facts.predecessor_gate_id,
+            outcome_taken=facts.outcome_taken,
+            idempotency_key=facts.idempotency_key,
+            mint_reason=facts.mint_reason,
+            inputs=request.inputs,
+            runner_profile=runner_profile,
+            model=model,
+            session_id=request.session_id,
+            intended_base_commit=facts.intended_base_commit,
+            deviations=request.deviations,
+        )
+        return facts, (), metadata, metadata_dict(metadata)
 
     def record_precondition(
         self, activation_id: str, record: PreconditionRecord
@@ -728,21 +765,7 @@ class WorkflowStore:
         lowest bead id — deterministic, so two ticks racing to resolve the same
         residue pick the same winner and the loser is closed exactly once.
         """
-        live = [record for record in found if not record.metadata.is_superseded]
-        if not live:
-            raise CarrierIntegrityError(_MSG_ALL_SUPERSEDED.format(key=key))
-        if len(live) == 1:
-            return live[0]
-        completed = [record for record in live if record.metadata.is_completed]
-        if len(completed) > 1:
-            raise CarrierIntegrityError(
-                _MSG_TWO_COMPLETED.format(
-                    key=key,
-                    found=", ".join(record.activation_id for record in completed),
-                )
-            )
-        ordered = sorted(live, key=_race_order)
-        winner, *losers = ordered
+        winner, losers = _race_decision(found, key)
         for loser in losers:
             self.supersede_activation(loser.activation_id, winner.activation_id)
         return self._load_activation(winner.activation_id)

@@ -39,6 +39,7 @@ from workflow_interpreter.foreman.constants import (
     HALT_SANDBOX_UNAVAILABLE,
     HALT_UNUSABLE_RESOLUTION,
 )
+from workflow_interpreter.foreman.events import EventIntent
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.frontier import DeadEndKind
 from workflow_interpreter.foreman.gates import (
@@ -73,6 +74,8 @@ class CaseResult(BaseModel):
     terminal_node: str | None = None
     """The terminal this route entered — the name the tick settles the root
     with (§3.1); `terminal` without it is not a routable end."""
+    event_intents: tuple[EventIntent, ...] = ()
+    """Audit events proven by this stateful routing decision."""
 
 
 class IntakeBatch(BaseModel):
@@ -250,6 +253,27 @@ def _refusal_case(
         return CaseResult(opened_gates=(gate.gate_id,))
     if decision.kind is RouteKind.FALLBACK and decision.target is not None:
         target = root.index.nodes[decision.target]
+        if target.kind is NodeKind.TERMINAL:
+            opening_outcome = (
+                None
+                if source is None
+                else source.metadata.outcome or source.metadata.outcome_taken
+            )
+            intents = (
+                ()
+                if opening_outcome is None or source is None
+                else (
+                    EventIntent(
+                        from_node=source.metadata.node,
+                        outcome=opening_outcome,
+                        to_node=decision.target,
+                        activation_id=source.activation_id,
+                    ),
+                )
+            )
+            return CaseResult(
+                terminal=True, terminal_node=decision.target, event_intents=intents
+            )
         if target.kind.value == "gate" and source is not None:
             opening_outcome = source.metadata.outcome or source.metadata.outcome_taken
             if opening_outcome is not None:

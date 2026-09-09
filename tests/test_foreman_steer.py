@@ -24,6 +24,7 @@ from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._supervisor import ChildScript
 from workflow_interpreter.bdio import (
     BoundExceededError,
+    CarrierIntegrityError,
     Deviation,
     Lifecycle,
     MintReason,
@@ -31,6 +32,7 @@ from workflow_interpreter.bdio import (
     Outcome,
     WorkflowStore,
     bounds,
+    keys,
     mint,
 )
 from workflow_interpreter.foreman import __main__ as main_module
@@ -387,15 +389,105 @@ def test_steer_preflights_a_bound_before_killing_or_closing_its_child(
                 process.join(timeout=5)
 
 
-def test_tick_routes_a_stranded_steer_bound_refusal_to_a_halt_gate(
+@pytest.mark.proc
+@pytest.mark.parametrize(
+    ("residue", "outcomes", "match"),
+    [
+        ("all-superseded", (Outcome.SUPERSEDED,), "every activation"),
+        ("multiple-completed", (Outcome.DONE, Outcome.DONE), "COMPLETED"),
+    ],
+)
+def test_steer_preflights_invalid_existing_key_residue_before_killing_its_child(
     tmp_path: Path,
+    residue: str,
+    outcomes: tuple[Outcome, ...],
+    match: str,
 ) -> None:
-    """A legacy closed steer must not re-raise its rejected continuation forever."""
+    """Invalid §3.2 residue must refuse while the fresh steer's parent is live."""
+    lab, spawner = _proc_steer_lab(tmp_path)
+    root = lab.instantiate()
+    lab.profiles.next_script(ChildScript(sleep_s=_PROC_SLEEP_S))
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+
+    try:
+        activation = lab.store.reads.load_activation(activation_id)
+        deadline = time.monotonic() + 10.0
+        while activation.metadata.handle is None:
+            if time.monotonic() > deadline:
+                raise AssertionError("the live child never recorded its handle")
+            time.sleep(0.05)
+            activation = lab.store.reads.load_activation(activation_id)
+        assert activation.metadata.handle is not None
+        assert _runner_alive(activation.metadata.handle.pid)
+
+        key = keys.idempotency_key(
+            root.root_id,
+            activation.activation_id,
+            Outcome.STEERED,
+            activation.metadata.node,
+        )
+        for offset, outcome in enumerate(outcomes, start=1):
+            metadata = activation.metadata.model_copy(
+                update={
+                    "seq": activation.metadata.seq + offset,
+                    "idempotency_key": key,
+                    "mint_reason": MintReason.STEER_CONTINUATION,
+                    "lifecycle": Lifecycle.CLOSED,
+                    "outcome": outcome,
+                    "superseded_by": "wf-winner"
+                    if outcome is Outcome.SUPERSEDED
+                    else None,
+                }
+            )
+            lab.store._client._create_bead(
+                title=f"wf {residue} steer residue",
+                metadata=metadata.model_dump(mode="json", exclude_none=True),
+            )
+
+        with pytest.raises(CarrierIntegrityError, match=match):
+            lab.steer(
+                activation_id,
+                reason="silent past stale_after",
+                instructions="finish the review with the recorded constraints",
+            )
+
+        unchanged = lab.store.reads.load_activation(activation_id)
+        assert _runner_alive(activation.metadata.handle.pid)
+        assert unchanged.metadata.lifecycle is Lifecycle.DISPATCHED
+        assert not lab.wiring().paths.steer_intent(activation_id).exists()
+    finally:
+        for process in cast(list[BaseProcess], spawner.processes):
+            if process.is_alive():
+                process.kill()
+                process.join(timeout=5)
+
+
+@pytest.mark.parametrize(
+    ("fallback", "expected_gate", "expected_terminal"),
+    [("triage", True, None), ("shipped", False, "shipped")],
+)
+def test_tick_routes_a_stranded_steer_cap_refusal_to_its_declared_fallback(
+    tmp_path: Path,
+    fallback: str,
+    expected_gate: bool,
+    expected_terminal: str | None,
+) -> None:
+    """A legacy closed steer takes its §10.2 fallback, gate or terminal."""
     fixture = write(
         tmp_path,
         mutate(
             VALID_FIXTURE.read_text(encoding="utf-8"),
-            [("max_total_activations  = 20", "max_total_activations  = 1")],
+            [
+                (
+                    'max_steers    = 2\noutcomes      = ["done", "no_diff", "fail_plan", "fail_code"]',
+                    (
+                        "max_steers    = 0\n"
+                        f'fallback      = {{ to = "{fallback}" }}\n'
+                        'outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]'
+                    ),
+                )
+            ],
         ),
     )
     lab = ForemanLab(tmp_path, toml=fixture)
@@ -442,13 +534,27 @@ def test_tick_routes_a_stranded_steer_bound_refusal_to_a_halt_gate(
         ),
     )
 
-    assert root.definition.document.instance.max_total_activations == 1
-    with pytest.raises(BoundExceededError, match="instance ceiling"):
+    with pytest.raises(BoundExceededError, match="steer continuations"):
         lab.wiring().store.mint_activation(root.root_id, continuation)
     report = lab.tick()
 
-    assert report.opened_gate is not None
-    assert lab.tick().halted is True
+    if expected_gate:
+        assert report.opened_gate is not None
+        assert (
+            lab.store.reads.load_gate(report.opened_gate).metadata.gate_node == fallback
+        )
+    else:
+        assert report.opened_gate is None
+    assert report.terminal_node == expected_terminal
+    if expected_terminal is not None:
+        payloads = [json.loads(str(event["payload"])) for event in lab.beads("event")]
+        expected = {
+            "from": activation.metadata.node,
+            "outcome": Outcome.STEERED.value,
+            "to": expected_terminal,
+            "activation_id": activation.activation_id,
+        }
+        assert all(payloads[0][key] == value for key, value in expected.items())
 
 
 def test_a_carried_steer_with_no_intent_burns_the_infra_budget_then_falls_back(

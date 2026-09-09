@@ -33,7 +33,7 @@ def refusal_route(index: GraphIndex, node: Node, refusal: BoundRefusal) -> Route
     """Map each §10 refusal to its declared human or graph recovery path."""
     if refusal.bound is BoundKind.REGION_ROUNDS:
         return exhausted(index, node)
-    if refusal.bound is BoundKind.INFRA_RETRIES:
+    if refusal.bound in {BoundKind.INFRA_RETRIES, BoundKind.STEERS}:
         fallback = node.fallback or index.document.fallback
         return Route(kind=RouteKind.FALLBACK, target=fallback.to)
     return Route(kind=RouteKind.FAIL_CLOSED, reason=refusal.detail)
