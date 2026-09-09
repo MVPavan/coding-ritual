@@ -89,6 +89,10 @@ _MSG_UNINSTRUCTED_TASKS: Final[str] = (
 _MSG_UNPINNED_TASK_EXECUTION_SETTINGS: Final[str] = (
     "task nodes carry no resolved execution setting pin and cannot be dispatched: {nodes}"
 )
+_MSG_DEFINITION_HASH_MISMATCH: Final[str] = (
+    "definition content hash {declared!r} does not match canonical pinned body "
+    "hash {actual!r}"
+)
 
 
 def _assert_tasks_are_instructed(definition: GraphDefinition) -> None:
@@ -157,6 +161,23 @@ def create_root(
     """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
     if not resolved_config:
         raise CarrierIntegrityError(_MSG_EMPTY_CONFIG.format(instance_key=instance_key))
+    # Validate the pinned body and retain the resulting definition BEFORE
+    # looking up an existing key: `create_root` is the programmatic entry
+    # point and never runs the TOML loader, so a schema-invalid body could
+    # reach bd and was only rejected afterwards by `_ensure_self_id` ->
+    # `parse_root`. More subtly, a changed document carrying its old hash
+    # could be mistaken for the same existing instance. The canonical body,
+    # validated definition, and persisted hash are one exact pair.
+    body = canonical_bytes(definition.document)
+    validated_definition = load_pinned_body(body, allow_test_flags=allow_test_flags)
+    if definition.content_hash != validated_definition.content_hash:
+        raise CarrierIntegrityError(
+            _MSG_DEFINITION_HASH_MISMATCH.format(
+                declared=definition.content_hash,
+                actual=validated_definition.content_hash,
+            )
+        )
+    definition = validated_definition
     existing = _converged_root(client, instance_key)
     if existing is not None:
         _assert_same_instance(
@@ -171,16 +192,6 @@ def create_root(
         return existing
     _assert_tasks_are_instructed(definition)
     _assert_task_execution_settings_are_pinned(definition, resolved_config)
-    # Validate the pinned body BEFORE the write: `create_root` is the
-    # programmatic entry point and never runs the TOML loader, so a
-    # schema-invalid body reached bd and was only rejected afterwards, by
-    # `_ensure_self_id` -> `parse_root`. That left the caller an exception AND
-    # a root every later read raises on, under a key no corrected body can
-    # reclaim (cr-yqm). Called for the raise alone, hence the discarded result;
-    # `parse_root` still validates, for bodies read back later.
-    load_pinned_body(
-        canonical_bytes(definition.document), allow_test_flags=allow_test_flags
-    )
     inputs = tuple(instance_inputs)
     if (
         sum(len(item.body.encode("utf-8")) for item in inputs)
@@ -194,7 +205,7 @@ def create_root(
         graph_id=definition.document.graph.id,
         graph_version=definition.document.graph.version,
         graph_content_hash=definition.content_hash,
-        graph_body=canonical_bytes(definition.document).decode("utf-8"),
+        graph_body=body.decode("utf-8"),
         resolved_config=tuple(resolved_config),
         instance_inputs=inputs,
         config_signature=config_signature(tuple(resolved_config)),
