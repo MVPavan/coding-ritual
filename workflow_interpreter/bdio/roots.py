@@ -120,11 +120,13 @@ def _assert_task_execution_settings_are_pinned(
     for node in definition.document.node:
         if node.kind is not NodeKind.TASK:
             continue
-        # Effort is not role-specific: every profile's dispatch appends
-        # `--effort` unconditionally, so a task missing it cannot launch under
-        # any runner. Requiring it only for `profile:` runners let an
-        # unrunnable root be created, and root identity then refuses to
-        # recreate that key with the pin supplied (cr-xb2).
+        # Effort is not role-specific: every launch-capable profile demands
+        # one, only the spelling differs (claude `--effort`, codex
+        # `-c model_reasoning_effort=`), and opencode refuses to build a
+        # command at all before effort is ever read. So a task missing it
+        # cannot launch under any runner. Requiring it only for `profile:`
+        # runners let an unrunnable root be created, and root identity then
+        # refuses to recreate that key with the pin supplied (cr-xb2).
         required = (NodeSetting.RUNNER, NodeSetting.MODEL, NodeSetting.EFFORT)
         missing = tuple(
             setting.value.rsplit(".", maxsplit=1)[-1]
