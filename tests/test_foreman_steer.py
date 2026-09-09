@@ -23,6 +23,8 @@ from tests._foreman import (
 from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._supervisor import ChildScript
 from workflow_interpreter.bdio import (
+    BoundExceededError,
+    Deviation,
     Lifecycle,
     MintReason,
     MintRequest,
@@ -34,9 +36,10 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.tick import Foreman
+from workflow_interpreter.supervisor.clock import to_iso
 from workflow_interpreter.supervisor.errors import ContinuationRefused
-from workflow_interpreter.supervisor.models import StaleFlag
-from workflow_interpreter.supervisor.paths import ExecLedger, read_record
+from workflow_interpreter.supervisor.models import StaleFlag, SteerIntent
+from workflow_interpreter.supervisor.paths import ExecLedger, read_record, write_record
 from workflow_interpreter.supervisor.procfs import (
     COMM_CLOSE,
     STAT_FILE,
@@ -316,6 +319,138 @@ def test_steer_refuses_a_sessionless_continuation_before_the_intent(
     assert not lab.wiring().paths.steer_intent(activation.activation_id).exists()
 
 
+@pytest.mark.proc
+def test_steer_preflights_a_bound_before_killing_or_closing_its_child(
+    tmp_path: Path,
+) -> None:
+    """A fresh §8.1 steer must not spend its live parent on a known refusal."""
+    fixture = write(
+        tmp_path,
+        mutate(
+            VALID_FIXTURE.read_text(encoding="utf-8"),
+            [
+                (
+                    (
+                        "token_budget  = 120000                   # context TRIM budget (not a runaway bound)\n"
+                        'max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)\n'
+                        'stale_after   = "10m"\n'
+                        "max_infra_retries = 2\n"
+                        "max_steers    = 2"
+                    ),
+                    (
+                        "token_budget  = 120000                   # context TRIM budget (not a runaway bound)\n"
+                        'max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)\n'
+                        'stale_after   = "10m"\n'
+                        "max_infra_retries = 2\n"
+                        "max_steers    = 0"
+                    ),
+                )
+            ],
+        ),
+    )
+    lab, spawner = _proc_steer_lab(tmp_path, fixture)
+    root = lab.instantiate()
+    lab.profiles.next_script(ChildScript(sleep_s=_PROC_SLEEP_S))
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+
+    try:
+        activation = lab.store.reads.load_activation(activation_id)
+        deadline = time.monotonic() + 10.0
+        while activation.metadata.handle is None:
+            if time.monotonic() > deadline:
+                raise AssertionError("the live child never recorded its handle")
+            time.sleep(0.05)
+            activation = lab.store.reads.load_activation(activation_id)
+        assert activation.metadata.handle is not None
+        assert _runner_alive(activation.metadata.handle.pid)
+
+        with pytest.raises(BoundExceededError, match="steer continuations"):
+            lab.steer(
+                activation_id,
+                reason="silent past stale_after",
+                instructions="finish the review with the recorded constraints",
+            )
+
+        unchanged = lab.store.reads.load_activation(activation_id)
+        assert _runner_alive(activation.metadata.handle.pid)
+        assert unchanged.metadata.lifecycle is Lifecycle.DISPATCHED
+        assert not lab.wiring().paths.steer_intent(activation_id).exists()
+        assert all(
+            record.metadata.mint_reason is not MintReason.STEER_CONTINUATION
+            for record in lab.store.reads.list_activations(root.root_id)
+        )
+    finally:
+        for process in cast(list[BaseProcess], spawner.processes):
+            if process.is_alive():
+                process.kill()
+                process.join(timeout=5)
+
+
+def test_tick_routes_a_stranded_steer_bound_refusal_to_a_halt_gate(
+    tmp_path: Path,
+) -> None:
+    """A legacy closed steer must not re-raise its rejected continuation forever."""
+    fixture = write(
+        tmp_path,
+        mutate(
+            VALID_FIXTURE.read_text(encoding="utf-8"),
+            [("max_total_activations  = 20", "max_total_activations  = 1")],
+        ),
+    )
+    lab = ForemanLab(tmp_path, toml=fixture)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    continuation = MintRequest(
+        node=activation.metadata.node,
+        mint_reason=MintReason.STEER_CONTINUATION,
+        runner_profile="fake",
+        model="fake",
+        session_id=activation.metadata.session_id,
+        predecessor_activation_id=activation.activation_id,
+        inputs=activation.metadata.inputs,
+    )
+    requested_at = to_iso(lab.clock.now())
+    write_record(
+        lab.wiring().paths.steer_intent(activation.activation_id),
+        SteerIntent(
+            activation_id=activation.activation_id,
+            reason="stale",
+            instructions="finish the review with the recorded constraints",
+            instructions_digest=instructions_digest(
+                "finish the review with the recorded constraints"
+            ),
+            requested_at=requested_at,
+            continuation=continuation,
+        ),
+    )
+    lab.wiring().store.close_activation(
+        activation.activation_id,
+        Outcome.STEERED,
+        deviations=(
+            Deviation(
+                kind="steer",
+                reason="stale",
+                recorded_at=requested_at,
+                instructions_digest=instructions_digest(
+                    "finish the review with the recorded constraints"
+                ),
+            ),
+        ),
+    )
+
+    assert root.definition.document.instance.max_total_activations == 1
+    with pytest.raises(BoundExceededError, match="instance ceiling"):
+        lab.wiring().store.mint_activation(root.root_id, continuation)
+    report = lab.tick()
+
+    assert report.opened_gate is not None
+    assert lab.tick().halted is True
+
+
 def test_a_carried_steer_with_no_intent_burns_the_infra_budget_then_falls_back(
     tmp_path: Path,
 ) -> None:
@@ -370,7 +505,9 @@ def test_a_carried_steer_with_no_intent_burns_the_infra_budget_then_falls_back(
     assert gate.metadata.opening_outcome is Outcome.ERROR_TRANSPORT
 
 
-def _proc_steer_lab(tmp_path: Path) -> tuple[ForemanLab, ProcSpawner]:
+def _proc_steer_lab(
+    tmp_path: Path, toml: Path = VALID_FIXTURE
+) -> tuple[ForemanLab, ProcSpawner]:
     """A lab whose entry node goes stale in seconds and whose spawner forks a
     real wrapper, with bd durable enough for the fork to mirror into it."""
     state = tmp_path / "persistent-bd.json"
@@ -381,7 +518,7 @@ def _proc_steer_lab(tmp_path: Path) -> tuple[ForemanLab, ProcSpawner]:
     fixture = write(
         tmp_path,
         mutate(
-            VALID_FIXTURE.read_text(encoding="utf-8"),
+            toml.read_text(encoding="utf-8"),
             [(_PROC_ANCHOR, _PROC_ANCHOR.replace('"10m"', f'"{_PROC_STALE_AFTER}"'))],
         ),
     )

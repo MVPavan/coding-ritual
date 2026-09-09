@@ -193,6 +193,9 @@ class Steerer:
             raise TerminationFailed(_MSG_NO_HANDLE.format(activation_id=activation_id))
         session_id = _resumable_session(activation)
         continuation = self._pinned_continuation(continuation)
+        self._store._preflight_steer_continuation(
+            self._paths.root_id, activation, continuation
+        )
         intent = SteerIntent(
             activation_id=activation_id,
             reason=reason,

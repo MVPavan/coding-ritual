@@ -329,23 +329,9 @@ class WorkflowStore:
                 created=False,
             )
 
-        runner_profile = pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
-        model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
-        _assert_pinned_execution_setting(
-            node=facts.node,
-            field=_FIELD_RUNNER_PROFILE,
-            requested=request.runner_profile,
-            pinned=runner_profile,
+        runner_profile, model = self._assert_mint_permitted(
+            root, facts, beads, activations, request
         )
-        _assert_pinned_execution_setting(
-            node=facts.node,
-            field=_FIELD_MODEL,
-            requested=request.model,
-            pinned=model,
-        )
-        refusal = self._pre_mint_refusal(root, facts, beads, activations)
-        if refusal is not None:
-            raise BoundExceededError(refusal)
 
         seq = reads.next_seq(beads)
         metadata = ActivationMetadata(
@@ -388,6 +374,51 @@ class WorkflowStore:
             activation=winner,
             idempotency_key=facts.idempotency_key,
             created=winner.activation_id == record.id,
+        )
+
+    def _preflight_steer_continuation(
+        self,
+        root_id: str,
+        activation: ActivationRecord,
+        continuation: MintRequest,
+    ) -> None:
+        """Check a fresh steer continuation as if its parent were closed `steered`.
+
+        A fresh steer must ask this before its intent write and termination, but
+        `derive_mint_facts` correctly refuses an open predecessor. Replacing
+        only that predecessor's lifecycle and outcome creates the precise
+        post-close view without writing any durable state.
+        """
+        root = self._reads.load_root(root_id)
+        beads = self._reads.instance_beads(root_id)
+        activations = reads.activations_of(beads)
+        prospective = activation.model_copy(
+            update={
+                "metadata": activation.metadata.model_copy(
+                    update={"lifecycle": Lifecycle.CLOSED, "outcome": Outcome.STEERED}
+                )
+            }
+        )
+        prospective_activations = tuple(
+            prospective if record.activation_id == activation.activation_id else record
+            for record in activations
+        )
+        facts = mint.derive_mint_facts(
+            root,
+            continuation,
+            prospective_activations,
+            self._branch_head_reader,
+            reads.gates_of(beads),
+        )
+        existing = tuple(
+            record
+            for record in prospective_activations
+            if record.metadata.idempotency_key == facts.idempotency_key
+        )
+        if existing:
+            return
+        self._assert_mint_permitted(
+            root, facts, beads, prospective_activations, continuation
         )
 
     def record_precondition(
@@ -755,6 +786,34 @@ class WorkflowStore:
                     winner=winner_id, activation_id=loser.activation_id
                 )
             )
+
+    def _assert_mint_permitted(
+        self,
+        root: RootRecord,
+        facts: MintFacts,
+        beads: Sequence[BeadRecord],
+        activations: Sequence[ActivationRecord],
+        request: MintRequest,
+    ) -> tuple[str, str]:
+        """Verify the execution pins and every deterministic pre-mint bound."""
+        runner_profile = pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
+        model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
+        _assert_pinned_execution_setting(
+            node=facts.node,
+            field=_FIELD_RUNNER_PROFILE,
+            requested=request.runner_profile,
+            pinned=runner_profile,
+        )
+        _assert_pinned_execution_setting(
+            node=facts.node,
+            field=_FIELD_MODEL,
+            requested=request.model,
+            pinned=model,
+        )
+        refusal = self._pre_mint_refusal(root, facts, beads, activations)
+        if refusal is not None:
+            raise BoundExceededError(refusal)
+        return runner_profile, model
 
     def _pre_mint_refusal(
         self,

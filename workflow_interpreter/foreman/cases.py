@@ -406,7 +406,21 @@ def route_head(
     retry = retry_kind(outcome)
     if retry is not None:
         if retry is MintReason.STEER_CONTINUATION:
-            resolution = wiring.recovery.resolve(head, node)
+            classification = wiring.recovery.classify(head)
+            try:
+                resolution = wiring.recovery.resolve(head, node)
+            except BoundExceededError as exc:
+                intent = classification.steer_intent
+                if intent is None:  # pragma: no cover - only resume can raise this
+                    raise
+                return _refusal_case(
+                    composition,
+                    wiring,
+                    root,
+                    head.metadata.node,
+                    intent.continuation,
+                    exc,
+                )
             return CaseResult(
                 settled=None
                 if resolution.closed is None
