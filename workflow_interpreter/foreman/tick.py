@@ -288,17 +288,19 @@ class Foreman:
         wiring = self._composition.for_root(root_id)
         wiring.band.acquire()
         try:
+            root = wiring.store.reads.load_root(root_id)
             activation = wiring.store.reads.load_activation(activation_id)
             if activation.metadata.wf_root_id != root_id:
                 raise ValueError("activation does not belong to root")
             tail = _stale_tail(
                 wiring, self._composition.supervisor_config.log_tail_bytes, activation
             )
+            view = resolved_node(root, activation.metadata.node)
             continuation = MintRequest(
                 node=activation.metadata.node,
                 mint_reason=MintReason.STEER_CONTINUATION,
-                runner_profile=activation.metadata.runner_profile,
-                model=activation.metadata.model,
+                runner_profile=view.runner_profile,
+                model=view.model,
                 session_id=activation.metadata.session_id,
                 predecessor_activation_id=activation.activation_id,
                 inputs=activation.metadata.inputs,

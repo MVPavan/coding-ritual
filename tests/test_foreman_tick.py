@@ -7,13 +7,18 @@ from typing import Final, NoReturn
 
 import pytest
 
-from tests._bdio import entry_request, handle, race_residue
+from tests._bdio import handle, race_residue
 from tests._fake_bd import InjectedCrash
-from tests._foreman import ForemanLab
+from tests._foreman import ForemanLab, entry_request
 from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._supervisor import ChildScript
 from tests.conftest import Signer
-from workflow_interpreter.bdio import ArtifactIdentity, Evidence, ExitRecord
+from workflow_interpreter.bdio import (
+    ArtifactIdentity,
+    Evidence,
+    ExitRecord,
+    MintRequest,
+)
 from workflow_interpreter.bdio.bounds import BoundKind, BoundRefusal
 from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.config import SigningConfig
@@ -102,6 +107,55 @@ def test_tick_checks_an_open_halt_before_advancing_a_lifecycle(
 
     assert lab.tick().halted is True
     assert advanced == []
+
+
+def test_steer_request_rebuilds_its_execution_pin_from_the_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A fresh steer never persists divergent activation vendor metadata."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    lab.fake_bd.rows[activation.activation_id]["metadata"].update(
+        {"runner_profile": "legacy-runner", "model": "legacy-model"}
+    )
+    continuations: list[MintRequest] = []
+
+    class CapturingSteerer:
+        def __init__(self, *_args: object) -> None:
+            pass
+
+        def steer(
+            self, *_args: object, continuation: MintRequest, **_kwargs: object
+        ) -> object:
+            continuations.append(continuation)
+            return type(
+                "Result",
+                (),
+                {
+                    "closed": type("Closed", (), {"activation_id": "closed"})(),
+                    "continuation": type(
+                        "Continuation",
+                        (),
+                        {
+                            "activation": type(
+                                "Activation", (), {"activation_id": "next"}
+                            )()
+                        },
+                    )(),
+                },
+            )()
+
+    monkeypatch.setattr(tick_module, "Steerer", CapturingSteerer)
+
+    lab.steer(activation.activation_id, reason="stale", instructions="continue")
+
+    request = continuations[0]
+    assert request.runner_profile == "fake"
+    assert request.model == "fake"
 
 
 def test_tick_maps_band_contention_to_a_contended_result(tmp_path: Path) -> None:

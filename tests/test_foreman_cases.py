@@ -4,10 +4,13 @@ from dataclasses import replace
 from pathlib import Path
 from typing import cast
 
-from tests._bdio import entry_request, handle
-from tests._foreman import FAKE_PROFILE, ForemanLab
+import pytest
+
+from tests._bdio import handle
+from tests._foreman import FAKE_PROFILE, ForemanLab, entry_request
 from tests._supervisor import SESSION_ID, ChildScript
-from workflow_interpreter.bdio import Lifecycle
+from workflow_interpreter.bdio import ExitRecord, Lifecycle
+from workflow_interpreter.foreman import cases as cases_module
 from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry, route_head
 from workflow_interpreter.foreman.compose import WrapperLaunch
 from workflow_interpreter.foreman.config import RunnerBinding
@@ -59,6 +62,25 @@ def test_minted_lifecycle_dispatches_and_records_its_exit(tmp_path: Path) -> Non
     assert [launch.activation_id for launch in lab.spawner.launches] == [
         minted.activation_id,
     ]
+
+
+def test_minted_dispatch_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> None:
+    """A legacy activation cannot select a different launch vendor."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    minted = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    lab.fake_bd.rows[minted.activation_id]["metadata"].update(
+        {"runner_profile": "legacy-runner", "model": "legacy-model"}
+    )
+    activation = lab.store.reads.load_activation(minted.activation_id)
+
+    advance_lifecycle(lab.composition, lab.wiring(), root, activation)
+
+    request = lab.spawner.launches[-1].request
+    assert request.runner_profile == FAKE_PROFILE
+    assert request.model == "fake"
 
 
 def test_dispatched_lifecycle_recovers_without_a_second_bd_write(
@@ -135,6 +157,30 @@ def test_infra_retry_waits_for_pending_barrier_abort_cleanup(tmp_path: Path) -> 
     assert len(lab.store.reads.list_activations(root.root_id)) == 1
 
 
+def test_infra_retry_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> None:
+    """A legacy retry request cannot trip the mint boundary guard."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    minted = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    dispatched = lab.wiring().store.record_dispatch(minted.activation_id, handle())
+    closed = lab.wiring().store.close_activation(
+        dispatched.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    lab.fake_bd.rows[closed.activation_id]["metadata"].update(
+        {"runner_profile": "legacy-runner", "model": "legacy-model"}
+    )
+    legacy = lab.store.reads.load_activation(closed.activation_id)
+
+    result = route_head(lab.composition, lab.wiring(), root, legacy)
+
+    assert result.dispatched is not None
+    retried = lab.store.reads.load_activation(result.dispatched)
+    assert retried.metadata.runner_profile == FAKE_PROFILE
+    assert retried.metadata.model == "fake"
+
+
 def test_exit_recorded_lifecycle_records_evidence_then_closes(tmp_path: Path) -> None:
     """Settlement owns one evidence update plus the close update and close command."""
     lab = ForemanLab(tmp_path)
@@ -148,6 +194,105 @@ def test_exit_recorded_lifecycle_records_evidence_then_closes(tmp_path: Path) ->
 
     assert result.settled == activation_id
     assert _bd_writes(lab) - before == 3
+
+
+def test_exit_recorded_settlement_uses_the_root_pinned_profile(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A replayed exit is parsed by the vendor the root says ran."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    minted = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    dispatched = lab.wiring().store.record_dispatch(minted.activation_id, handle())
+    activation = lab.wiring().store.record_exit(
+        dispatched.activation_id,
+        ExitRecord(exit_code=0, ended_at="2026-09-08T00:00:00Z", reason="ok"),
+    )
+    lab.fake_bd.rows[activation.activation_id]["metadata"]["runner_profile"] = (
+        "legacy-runner"
+    )
+    activation = lab.store.reads.load_activation(activation.activation_id)
+    profiles: list[str] = []
+
+    monkeypatch.setattr(
+        lab.composition.profiles,
+        "profile_for",
+        lambda name: profiles.append(name) or lab.profiles.profile,
+    )
+    monkeypatch.setattr(
+        cases_module,
+        "settle",
+        lambda *_args: type(
+            "Settlement",
+            (),
+            {"activation": activation, "stalled": None},
+        )(),
+    )
+
+    advance_lifecycle(lab.composition, lab.wiring(), root, activation)
+
+    assert profiles == [FAKE_PROFILE]
+
+
+def test_dispatched_settlement_uses_the_root_pinned_profile(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A recovered exit is parsed by the vendor the root says ran."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    minted = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    activation = lab.wiring().store.record_dispatch(minted.activation_id, handle())
+    lab.fake_bd.rows[activation.activation_id]["metadata"]["runner_profile"] = (
+        "legacy-runner"
+    )
+    activation = lab.store.reads.load_activation(activation.activation_id)
+    profiles: list[str] = []
+
+    class ExitRecordedRecovery:
+        def resolve(self, *_args: object) -> object:
+            return type(
+                "Resolution",
+                (),
+                {
+                    "classification": type(
+                        "Classification",
+                        (),
+                        {
+                            "exit_record": ExitRecord(
+                                exit_code=0,
+                                ended_at="2026-09-08T00:00:00Z",
+                                reason="ok",
+                            )
+                        },
+                    )(),
+                    "closed": None,
+                    "halted": None,
+                },
+            )()
+
+    wiring = replace(lab.wiring(), recovery=cast(Recovery, ExitRecordedRecovery()))
+    monkeypatch.setattr(
+        lab.composition.profiles,
+        "profile_for",
+        lambda name: profiles.append(name) or lab.profiles.profile,
+    )
+    monkeypatch.setattr(
+        cases_module,
+        "settle",
+        lambda *_args: type(
+            "Settlement",
+            (),
+            {"activation": activation, "stalled": None},
+        )(),
+    )
+
+    advance_lifecycle(lab.composition, wiring, root, activation)
+
+    assert profiles == [FAKE_PROFILE]
 
 
 def test_evidence_recorded_lifecycle_closes_from_the_saved_completion(

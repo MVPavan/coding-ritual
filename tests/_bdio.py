@@ -309,8 +309,8 @@ def entry_request(**overrides: object) -> MintRequest:
     base: dict[str, object] = {
         "node": IMPLEMENT,
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": "profile:implementer",
-        "model": "default",
+        "runner_profile": "fake",
+        "model": "fake-model",
         "session_id": "",
     }
     return MintRequest.model_validate(base | overrides)

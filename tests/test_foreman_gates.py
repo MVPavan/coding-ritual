@@ -7,8 +7,10 @@ from typing import cast
 
 import pytest
 
-from tests._bdio import entry_request, load_definition, make_root
+from tests._bdio import entry_request as bdio_entry_request
+from tests._bdio import load_definition, make_root
 from tests._foreman import ForemanLab
+from tests._foreman import entry_request as foreman_entry_request
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     Evidence,
@@ -50,7 +52,7 @@ def test_transition_gate_copies_source_round_and_verified_identity(
 ) -> None:
     """D-G1 binds the gate to the source artifact and preserves round facts."""
     root = make_root(fake_store, load_definition())
-    source = fake_store.mint_activation(root.root_id, entry_request()).activation
+    source = fake_store.mint_activation(root.root_id, bdio_entry_request()).activation
     source = source.model_copy(
         update={
             "metadata": source.metadata.model_copy(
@@ -83,7 +85,7 @@ def test_halt_gate_carries_a_source_only_for_dead_end_reasons(
 ) -> None:
     """Q14 keeps regular halts source-less while dead ends remain resumable."""
     root = make_root(fake_store, load_definition())
-    source = fake_store.mint_activation(root.root_id, entry_request()).activation
+    source = fake_store.mint_activation(root.root_id, bdio_entry_request()).activation
     dead_end = halt_gate(f"fail_code:implement:{source.activation_id}", source=source)
     ordinary = halt_gate("ceiling:20", source=source)
     assert dead_end.source_activation_id == source.activation_id
@@ -112,7 +114,7 @@ def test_each_gate_opener_carries_its_distinguishing_fields(
 ) -> None:
     """The five constructors cannot collapse distinct gate semantics together."""
     root = make_root(fake_store, load_definition())
-    source = fake_store.mint_activation(root.root_id, entry_request()).activation
+    source = fake_store.mint_activation(root.root_id, bdio_entry_request()).activation
     transition = transition_gate(
         cast(Git, object()),
         Path("."),
@@ -161,7 +163,7 @@ def test_no_progress_and_exhaustion_gates_open_in_one_region_and_round(
 ) -> None:
     """Their distinct semantics must not share the exhaustion key."""
     root = make_root(fake_store, load_definition())
-    source = fake_store.mint_activation(root.root_id, entry_request()).activation
+    source = fake_store.mint_activation(root.root_id, bdio_entry_request()).activation
     source = fake_store.close_activation(source.activation_id, Outcome.NO_DIFF)
 
     no_progress_request = no_progress_gate(root.index, source, "triage")
@@ -191,7 +193,7 @@ def test_resume_hint_and_refused_intake_report_a_durable_refusal(
 ) -> None:
     """A missing session and a refused signature cannot fabricate a gate close."""
     root = make_root(fake_store, load_definition())
-    source = fake_store.mint_activation(root.root_id, entry_request()).activation
+    source = fake_store.mint_activation(root.root_id, bdio_entry_request()).activation
     source = source.model_copy(
         update={"metadata": source.metadata.model_copy(update={"session_id": ""})}
     )
@@ -372,7 +374,9 @@ def test_payload_template_closes_each_human_gate_kind(
     """§3 #7 templates are the exact bytes a human signs to close each gate."""
     for gate_kind in ("transition", "exhaustion", "no_progress", "halt"):
         root = make_root(gate_store, load_definition())
-        source = gate_store.mint_activation(root.root_id, entry_request()).activation
+        source = gate_store.mint_activation(
+            root.root_id, bdio_entry_request()
+        ).activation
         source = source.model_copy(
             update={
                 "metadata": source.metadata.model_copy(update={"outcome": Outcome.DONE})
@@ -444,7 +448,9 @@ def test_lab_intake_closes_halt_before_another_ready_gate(
     root = lab.instantiate()
     halt = lab.store.open_gate(root.root_id, halt_gate("ceiling:20"))
     source = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+        lab.wiring()
+        .store.mint_activation(root.root_id, foreman_entry_request())
+        .activation
     )
     ship = lab.store.open_gate(
         root.root_id,

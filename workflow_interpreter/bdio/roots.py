@@ -30,6 +30,7 @@ from workflow_interpreter.bdio.wire import (
     KEY_WF_ROOT_ID,
     BeadRecord,
     InstanceInput,
+    NodeSetting,
     ResolvedSetting,
     RootMetadata,
     config_signature,
@@ -85,6 +86,9 @@ _MSG_SETTLE_SUPERSEDED: Final[str] = (
 _MSG_UNINSTRUCTED_TASKS: Final[str] = (
     "task nodes carry no instructions and cannot be dispatched: {nodes}"
 )
+_MSG_UNPINNED_TASK_EXECUTION_SETTINGS: Final[str] = (
+    "task nodes carry no resolved execution setting pin and cannot be dispatched: {nodes}"
+)
 
 
 def _assert_tasks_are_instructed(definition: GraphDefinition) -> None:
@@ -104,6 +108,39 @@ def _assert_tasks_are_instructed(definition: GraphDefinition) -> None:
     if uninstructed:
         raise CarrierIntegrityError(
             _MSG_UNINSTRUCTED_TASKS.format(nodes=", ".join(uninstructed))
+        )
+
+
+def _assert_task_execution_settings_are_pinned(
+    definition: GraphDefinition, resolved_config: Sequence[ResolvedSetting]
+) -> None:
+    """Refuse roots whose task mints or dispatches lack execution settings."""
+    settings = {setting.key: setting.value for setting in resolved_config}
+    unpinned: list[str] = []
+    for node in definition.document.node:
+        if node.kind is not NodeKind.TASK:
+            continue
+        # Effort is not role-specific: every launch-capable profile demands
+        # one, only the spelling differs (claude `--effort`, codex
+        # `-c model_reasoning_effort=`), and opencode refuses to build a
+        # command at all before effort is ever read. So a task missing it
+        # cannot launch under any runner. Requiring it only for `profile:`
+        # runners let an unrunnable root be created, and root identity then
+        # refuses to recreate that key with the pin supplied (cr-xb2).
+        required = (NodeSetting.RUNNER, NodeSetting.MODEL, NodeSetting.EFFORT)
+        missing = tuple(
+            setting.value.rsplit(".", maxsplit=1)[-1]
+            for setting in required
+            if not (
+                isinstance(value := settings.get(setting.at(node.name)), str)
+                and value.strip()
+            )
+        )
+        if missing:
+            unpinned.append(f"{node.name} ({', '.join(missing)})")
+    if unpinned:
+        raise CarrierIntegrityError(
+            _MSG_UNPINNED_TASK_EXECUTION_SETTINGS.format(nodes=", ".join(unpinned))
         )
 
 
@@ -133,6 +170,7 @@ def create_root(
         )
         return existing
     _assert_tasks_are_instructed(definition)
+    _assert_task_execution_settings_are_pinned(definition, resolved_config)
     inputs = tuple(instance_inputs)
     if (
         sum(len(item.body.encode("utf-8")) for item in inputs)

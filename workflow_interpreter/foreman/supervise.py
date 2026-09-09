@@ -115,7 +115,9 @@ class WrapperExit(StrEnum):
     FAILED = "failed"
 
 
-def _request(activation_id: str, wiring: InstanceWiring) -> MintRequest:
+def _request(
+    activation_id: str, wiring: InstanceWiring, root: RootRecord
+) -> MintRequest:
     """Load the durable dispatch request, rebuilding only crash-safe metadata."""
     launch = read_record(
         wiring.paths.activation_dir(activation_id) / DISPATCH_REQUEST,
@@ -125,11 +127,12 @@ def _request(activation_id: str, wiring: InstanceWiring) -> MintRequest:
         return launch.request
     activation = wiring.store.reads.load_activation(activation_id)
     meta = activation.metadata
+    view = resolved_node(root, meta.node)
     return MintRequest(
         node=meta.node,
         mint_reason=meta.mint_reason,
-        runner_profile=meta.runner_profile,
-        model=meta.model,
+        runner_profile=view.runner_profile,
+        model=view.model,
         session_id=meta.session_id,
         predecessor_activation_id=meta.predecessor_activation_id,
         predecessor_gate_id=meta.predecessor_gate_id,
@@ -165,7 +168,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             root_id=root.root_id,
             activation_id=current.activation_id,
             node=node.name,
-            model=current.metadata.model,
+            model=resolved.model,
             effort=resolved.effort,
             writes=bool(node.writes),
             allowed_paths=node.allowed_paths or (),
@@ -201,12 +204,13 @@ def run_wrapper(
         if activation.metadata.lifecycle is not Lifecycle.MINTED:
             return WrapperExit.STALE
         root = resolved.store.reads.load_root(root_id)
-        request = _request(activation_id, resolved)
+        request = _request(activation_id, resolved, root)
         # The EFFECTIVE node: everything downstream of here — the §5.4
         # precondition, workspace isolation, the §8.2 monitor limits — must
         # read the resolution the root pinned, not the graph body alone (§3.1).
-        node = resolved_node(root, activation.metadata.node).node
-        profile = composition.profiles.profile_for(request.runner_profile)
+        resolved_node_view = resolved_node(root, activation.metadata.node)
+        node = resolved_node_view.node
+        profile = composition.profiles.profile_for(resolved_node_view.runner_profile)
         deadline = monotonic() + composition.config.band_wait_s
         while True:
             try:

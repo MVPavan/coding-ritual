@@ -49,6 +49,15 @@ from workflow_interpreter.bdio.wire import (
 from workflow_interpreter.schema.models import Outcome
 
 PRE_ATTEMPT: Final[str] = "a" * 40
+_CROSS_REGION_EXECUTION_CONFIG: Final[tuple[ResolvedSetting, ...]] = tuple(
+    ResolvedSetting(key=setting.at(node), value=value, source=ConfigSource.ROLE_BINDING)
+    for node in (NODE_A1, NODE_B1, NODE_B2)
+    for setting, value in (
+        (NodeSetting.RUNNER, "fake"),
+        (NodeSetting.MODEL, "fake-model"),
+        (NodeSetting.EFFORT, "medium"),
+    )
+)
 
 
 @pytest.fixture(scope="session")
@@ -67,6 +76,81 @@ def test_region_comes_from_the_pinned_graph_not_the_caller(
     minted = fake_store.mint_activation(root.root_id, entry_request())
     assert minted.activation.metadata.region == REGION
     assert minted.activation.metadata.round_no == 1
+
+
+@pytest.mark.parametrize(
+    ("field", "requested", "pinned"),
+    (
+        ("model", "claude-haiku-4-5", "claude-opus-5"),
+        ("runner_profile", "alternate-runner", "pinned-runner"),
+    ),
+)
+def test_mint_refuses_execution_bindings_that_disagree_with_the_root(
+    fake_store: WorkflowStore,
+    definition: GraphDefinition,
+    field: str,
+    requested: str,
+    pinned: str,
+) -> None:
+    """A caller cannot mint an activation that names a different execution pin."""
+    root = make_root(
+        fake_store,
+        definition,
+        ResolvedSetting(
+            key=NodeSetting.MODEL.at(IMPLEMENT),
+            value="claude-opus-5",
+            source=ConfigSource.ROLE_BINDING,
+        ),
+        ResolvedSetting(
+            key=NodeSetting.RUNNER.at(IMPLEMENT),
+            value="pinned-runner",
+            source=ConfigSource.ROLE_BINDING,
+        ),
+    )
+    with pytest.raises(CarrierIntegrityError) as refusal:
+        fake_store.mint_activation(
+            root.root_id,
+            entry_request(
+                **{
+                    "model": "claude-opus-5",
+                    "runner_profile": "pinned-runner",
+                    field: requested,
+                }
+            ),
+        )
+
+    detail = str(refusal.value)
+    assert IMPLEMENT in detail
+    assert requested in detail
+    assert pinned in detail
+
+
+def test_mint_records_execution_bindings_derived_from_the_root(
+    fake_store: WorkflowStore, definition: GraphDefinition
+) -> None:
+    """The bead read back from the store carries the root's execution pins."""
+    root = make_root(
+        fake_store,
+        definition,
+        ResolvedSetting(
+            key=NodeSetting.MODEL.at(IMPLEMENT),
+            value="claude-opus-5",
+            source=ConfigSource.ROLE_BINDING,
+        ),
+        ResolvedSetting(
+            key=NodeSetting.RUNNER.at(IMPLEMENT),
+            value="pinned-runner",
+            source=ConfigSource.ROLE_BINDING,
+        ),
+    )
+    minted = fake_store.mint_activation(
+        root.root_id,
+        entry_request(model="claude-opus-5", runner_profile="pinned-runner"),
+    )
+
+    stored = fake_store.reads.load_activation(minted.activation.activation_id)
+    assert stored.metadata.model == "claude-opus-5"
+    assert stored.metadata.runner_profile == "pinned-runner"
 
 
 def test_a_node_the_pinned_graph_does_not_declare_is_refused(
@@ -182,7 +266,7 @@ def test_a_cross_region_arrival_starts_the_target_regions_own_round(
     # budget. `rb` declares max_entries = 2, and both of them must still be
     # spendable after the arrival (probed, round-3 review).
     definition = load_cross_region(tmp_path)
-    root = make_root(fake_store, definition)
+    root = make_root(fake_store, definition, *_CROSS_REGION_EXECUTION_CONFIG)
     third = _run_region_a_to_round_three(fake_store, root.root_id)
     assert third.metadata.round_no == 3
 
@@ -228,7 +312,7 @@ def test_an_arrival_deeper_in_a_region_stays_in_its_predecessors_round(
 ) -> None:
     """A non-entry member is reached from INSIDE its region and inherits."""
     definition = load_cross_region(tmp_path)
-    root = make_root(fake_store, definition)
+    root = make_root(fake_store, definition, *_CROSS_REGION_EXECUTION_CONFIG)
     first = _run_region_a_to_round_three(fake_store, root.root_id)
     entry = fake_store.mint_activation(
         root.root_id,

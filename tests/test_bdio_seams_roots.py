@@ -7,6 +7,7 @@ from hashlib import sha256
 import pytest
 
 from tests._bdio import RESOLVED_CONFIG, instance_key, load_definition
+from tests._fake_bd import FakeBd
 from tests._helpers import INVALID_FIXTURES
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio.api import WorkflowStore
@@ -15,7 +16,7 @@ from workflow_interpreter.bdio.errors import (
     PinnedGraphMismatchError,
 )
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
-from workflow_interpreter.bdio.wire import InstanceInput
+from workflow_interpreter.bdio.wire import ConfigSource, InstanceInput, ResolvedSetting
 from workflow_interpreter.schema.models import NodeKind
 
 
@@ -108,7 +109,24 @@ def test_test_flag_opt_in_reaches_both_root_read_paths(
     root = fake_store.create_root(
         instance_key=instance_key(),
         definition=definition,
-        resolved_config=RESOLVED_CONFIG,
+        resolved_config=(
+            *RESOLVED_CONFIG,
+            ResolvedSetting(
+                key="node.work.model",
+                value="fake-model",
+                source=ConfigSource.GRAPH_DEFAULT,
+            ),
+            ResolvedSetting(
+                key="node.work.runner",
+                value="fake",
+                source=ConfigSource.ROLE_BINDING,
+            ),
+            ResolvedSetting(
+                key="node.work.effort",
+                value="medium",
+                source=ConfigSource.ROLE_BINDING,
+            ),
+        ),
         allow_test_flags=True,
     )
     assert root.index.allow_test_flags is True
@@ -170,6 +188,115 @@ def test_create_root_refuses_whitespace_only_instructions(
             definition=definition.model_copy(update={"document": blanked}),
             resolved_config=RESOLVED_CONFIG,
         )
+
+
+def test_create_root_refuses_a_task_without_a_model_pin(
+    fake_store: WorkflowStore,
+) -> None:
+    """A programmatic non-role runner needs its model pinned before creation."""
+    definition = load_definition()
+    unpinned = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"runner": "claude", "model": None})
+                if node.name == "implement"
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+    config = tuple(
+        setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.model"
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="model"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": unpinned}),
+            resolved_config=config,
+        )
+
+
+def test_create_root_refuses_a_literal_runner_without_a_runner_pin(
+    fake_bd: FakeBd, fake_store: WorkflowStore
+) -> None:
+    """A literal runner still needs the mint-time runner pin before root creation."""
+    definition = load_definition()
+    literal_runner = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"runner": "claude", "model": "fake-model"})
+                if node.name == "implement"
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+    config = tuple(
+        setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.runner"
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="runner"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": literal_runner}),
+            resolved_config=config,
+        )
+
+    assert fake_bd.command_count("create") == 0
+
+
+def test_create_root_refuses_a_role_bound_task_without_an_effort_pin(
+    fake_bd: FakeBd, fake_store: WorkflowStore
+) -> None:
+    """A role-bound task must pin the effort supplied to its TaskSpec."""
+    config = tuple(
+        setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.effort"
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="effort"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=load_definition(),
+            resolved_config=config,
+        )
+
+    assert fake_bd.command_count("create") == 0
+
+
+def test_create_root_refuses_a_literal_runner_task_without_an_effort_pin(
+    fake_bd: FakeBd, fake_store: WorkflowStore
+) -> None:
+    """Every dispatch passes `--effort`, so a literal runner needs it pinned too.
+
+    Scoping the effort requirement to `profile:` runners let a root with
+    complete runner and model pins but no effort through to `_create_bead`;
+    root identity then blocks recreating that key with the missing pin, so the
+    instance is unrunnable forever (cr-xb2).
+    """
+    definition = load_definition()
+    literal_runner = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"runner": "claude", "model": "fake-model"})
+                if node.name == "implement"
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+    config = tuple(
+        setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.effort"
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="effort"):
+        fake_store.create_root(
+            instance_key=instance_key(),
+            definition=definition.model_copy(update={"document": literal_runner}),
+            resolved_config=config,
+        )
+
+    assert fake_bd.command_count("create") == 0
 
 
 def test_create_root_does_not_require_instructions_on_gates_or_terminals(

@@ -54,8 +54,10 @@ from workflow_interpreter.bdio import (
     ExitRecord,
     MintRequest,
     MintResult,
+    NodeSetting,
     Outcome,
     WorkflowStore,
+    pinned_execution_setting,
 )
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
@@ -232,6 +234,22 @@ class Steerer:
                     instructions_digest=intent.instructions_digest,
                 ),
             ),
+        )
+        root = self._store.reads.load_root(self._paths.root_id)
+        continuation = intent.continuation
+        intent = intent.model_copy(
+            update={
+                "continuation": continuation.model_copy(
+                    update={
+                        "runner_profile": pinned_execution_setting(
+                            root, continuation.node, NodeSetting.RUNNER
+                        ),
+                        "model": pinned_execution_setting(
+                            root, continuation.node, NodeSetting.MODEL
+                        ),
+                    }
+                )
+            }
         )
         minted = self._store.mint_activation(self._paths.root_id, intent.continuation)
         _LOG.info(

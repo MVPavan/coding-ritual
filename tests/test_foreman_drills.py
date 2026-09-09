@@ -13,12 +13,13 @@ from typing import cast
 
 import pytest
 
-from tests._bdio import entry_request, race_residue
+from tests._bdio import race_residue
 from tests._foreman import (
     ForemanLab,
     InlineSpawner,
     LockedPersistentBd,
     ProcSpawner,
+    entry_request,
 )
 from tests._helpers import (
     VALID_FIXTURE,

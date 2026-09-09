@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._bdio import load_definition
+from tests._bdio import RESOLVED_CONFIG, load_definition
 from tests._supervisor import (
     IMPLEMENT,
     commit_all,
@@ -315,12 +315,13 @@ def test_the_pinned_digests_have_a_producer_that_matches_the_reader(
     config = make_config(repo, tmp_path, fake_proc=False)
     _, store = make_store(tmp_path, head_of(repo))
     definition = load_definition()
-    settings = pin_verifier_digests(definition.document, repo)
+    digest_settings = pin_verifier_digests(definition.document, repo)
+    settings = (*RESOLVED_CONFIG, *digest_settings)
     root = store.create_root(
         instance_key="pins", definition=definition, resolved_config=settings
     )
 
-    produced = {setting.key: str(setting.value) for setting in settings}
+    produced = {setting.key: str(setting.value) for setting in digest_settings}
     read_back = pinned_verifier_digests(root)
 
     assert produced
