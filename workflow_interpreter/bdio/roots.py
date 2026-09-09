@@ -36,7 +36,7 @@ from workflow_interpreter.bdio.wire import (
     config_signature,
     metadata_dict,
 )
-from workflow_interpreter.schema.loader import canonical_bytes
+from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import GraphDefinition, NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -171,6 +171,16 @@ def create_root(
         return existing
     _assert_tasks_are_instructed(definition)
     _assert_task_execution_settings_are_pinned(definition, resolved_config)
+    # Validate the pinned body BEFORE the write: `create_root` is the
+    # programmatic entry point and never runs the TOML loader, so a
+    # schema-invalid body reached bd and was only rejected afterwards, by
+    # `_ensure_self_id` -> `parse_root`. That left the caller an exception AND
+    # a root every later read raises on, under a key no corrected body can
+    # reclaim (cr-yqm). Called for the raise alone, hence the discarded result;
+    # `parse_root` still validates, for bodies read back later.
+    load_pinned_body(
+        canonical_bytes(definition.document), allow_test_flags=allow_test_flags
+    )
     inputs = tuple(instance_inputs)
     if (
         sum(len(item.body.encode("utf-8")) for item in inputs)
