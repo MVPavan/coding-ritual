@@ -154,6 +154,24 @@ def _race_order(record: ActivationRecord) -> tuple[bool, int, str]:
     )
 
 
+def _may_be_superseded(record: ActivationRecord) -> bool:
+    """Whether a race record may be changed into a superseded loser."""
+    metadata = record.metadata
+    return not (metadata.is_settled and not metadata.is_superseded)
+
+
+def _unsupersedable_error(record: ActivationRecord) -> CarrierIntegrityError:
+    """Build the refusal for a record whose routing outcome is terminal."""
+    return CarrierIntegrityError(
+        _MSG_SUPERSEDE_COMPLETED.format(
+            activation_id=record.activation_id,
+            outcome=None
+            if record.metadata.outcome is None
+            else record.metadata.outcome.value,
+        )
+    )
+
+
 def _race_decision(
     found: Sequence[ActivationRecord], key: str
 ) -> tuple[ActivationRecord, tuple[ActivationRecord, ...]]:
@@ -172,6 +190,9 @@ def _race_decision(
             )
         )
     winner, *losers = sorted(live, key=_race_order)
+    for loser in losers:
+        if not _may_be_superseded(loser):
+            raise _unsupersedable_error(loser)
     return winner, tuple(losers)
 
 
@@ -679,15 +700,8 @@ class WorkflowStore:
         idempotent re-run below.
         """
         record = self._load_activation(loser_id)
-        if record.metadata.is_settled and not record.metadata.is_superseded:
-            raise CarrierIntegrityError(
-                _MSG_SUPERSEDE_COMPLETED.format(
-                    activation_id=loser_id,
-                    outcome=None
-                    if record.metadata.outcome is None
-                    else record.metadata.outcome.value,
-                )
-            )
+        if not _may_be_superseded(record):
+            raise _unsupersedable_error(record)
         self._assert_race_winner(record, winner_id)
         reason = _REASON_SUPERSEDED.format(winner=winner_id)
         if record.metadata.superseded_by is not None:

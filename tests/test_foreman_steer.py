@@ -35,6 +35,7 @@ from workflow_interpreter.bdio import (
     keys,
     mint,
 )
+from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.tick import Foreman
@@ -391,16 +392,35 @@ def test_steer_preflights_a_bound_before_killing_or_closing_its_child(
 
 @pytest.mark.proc
 @pytest.mark.parametrize(
-    ("residue", "outcomes", "match"),
+    ("residue", "states", "match"),
     [
-        ("all-superseded", (Outcome.SUPERSEDED,), "every activation"),
-        ("multiple-completed", (Outcome.DONE, Outcome.DONE), "COMPLETED"),
+        (
+            "all-superseded",
+            ((Lifecycle.CLOSED, Outcome.SUPERSEDED),),
+            "every activation",
+        ),
+        (
+            "multiple-completed",
+            (
+                (Lifecycle.CLOSED, Outcome.DONE),
+                (Lifecycle.CLOSED, Outcome.DONE),
+            ),
+            "COMPLETED",
+        ),
+        (
+            "settled-not-completed",
+            (
+                (Lifecycle.MINTED, None),
+                (Lifecycle.EXIT_RECORDED, Outcome.DONE),
+            ),
+            "COMPLETED",
+        ),
     ],
 )
 def test_steer_preflights_invalid_existing_key_residue_before_killing_its_child(
     tmp_path: Path,
     residue: str,
-    outcomes: tuple[Outcome, ...],
+    states: tuple[tuple[Lifecycle, Outcome | None], ...],
     match: str,
 ) -> None:
     """Invalid §3.2 residue must refuse while the fresh steer's parent is live."""
@@ -427,13 +447,13 @@ def test_steer_preflights_invalid_existing_key_residue_before_killing_its_child(
             Outcome.STEERED,
             activation.metadata.node,
         )
-        for offset, outcome in enumerate(outcomes, start=1):
+        for offset, (lifecycle, outcome) in enumerate(states, start=1):
             metadata = activation.metadata.model_copy(
                 update={
                     "seq": activation.metadata.seq + offset,
                     "idempotency_key": key,
                     "mint_reason": MintReason.STEER_CONTINUATION,
-                    "lifecycle": Lifecycle.CLOSED,
+                    "lifecycle": lifecycle,
                     "outcome": outcome,
                     "superseded_by": "wf-winner"
                     if outcome is Outcome.SUPERSEDED
@@ -455,6 +475,7 @@ def test_steer_preflights_invalid_existing_key_residue_before_killing_its_child(
         unchanged = lab.store.reads.load_activation(activation_id)
         assert _runner_alive(activation.metadata.handle.pid)
         assert unchanged.metadata.lifecycle is Lifecycle.DISPATCHED
+        assert unchanged.bead.status != STATUS_CLOSED
         assert not lab.wiring().paths.steer_intent(activation_id).exists()
     finally:
         for process in cast(list[BaseProcess], spawner.processes):
