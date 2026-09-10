@@ -249,7 +249,7 @@ A red full gate after `shipped` cannot re-enter the terminal graph. It returns
 full review, and a new signature after the cause is fixed; the three-attempt cap
 applies. This explicitly covers the `bd` and `nested_sandbox` checks omitted by
 the in-graph verifier ([scripts/verify-feature.sh:34-43](../../scripts/verify-feature.sh),
-[.claude/project/verification.md:46-64](../../.claude/project/verification.md)).
+[.repo-context/verification.md:46-64](../../.repo-context/verification.md)).
 
 ### D8. Report one status observation
 
@@ -441,7 +441,7 @@ closure; all-stages-closed exit; skill catalog; repository gate.
 ### Repository gate for every implementation slice
 
 Run from repository root, per
-[.claude/project/verification.md:46-64](../../.claude/project/verification.md):
+[.repo-context/verification.md:46-64](../../.repo-context/verification.md):
 
 1. `uv run pytest -q -m "not bd and not live"`
 2. `uv run pytest -q -m bd`

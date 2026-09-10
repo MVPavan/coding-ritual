@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Check Invariants
 
-Read `.claude/project/invariants.md` and run each listed check.
+Read `.repo-context/invariants.md` and run each listed check.
 
 ## Rules
 

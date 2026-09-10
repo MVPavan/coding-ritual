@@ -242,7 +242,7 @@ docs/research/skill-consolidation/
   SUMMARY.md                 final skill list + merges + losses
 ```
 
-`.claude/project/docs-index.md` gets one pointer row on completion.
+`.repo-context/docs-index.md` gets one pointer row on completion.
 
 ## Execution mechanics
 

@@ -85,7 +85,7 @@ Mapping: strip the trailing `/**` ⇒ repo-relative directory; join to the check
 - `:679-686` (§7.5): replace "Real enforcement belongs at the runner layer and does not exist yet." with the mount bound + `effect_outside_allowed_paths` as a should-never-fire regression signal.
 - `graph_schema.json:209`: second sentence naming the mount bound under `sandbox = bwrap`.
 - `workflows/README.md`: entries must be `<dir>/**`, no hidden directories, and become the node's writable mounts.
-- `.claude/project/verification.md`: a green run on a host without `bwrap` does not evidence the bound.
+- `.repo-context/verification.md`: a green run on a host without `bwrap` does not evidence the bound.
 - ADR 0001: status, point 3 → decided, consequences (see the ADR diff).
 
 ## 6. Tests (red first)

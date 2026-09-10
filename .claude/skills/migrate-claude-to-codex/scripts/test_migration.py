@@ -12,14 +12,14 @@ from migrate_claude_to_codex import main
 
 
 class SharedMigrationTests(unittest.TestCase):
-    def make_source(self, repo: Path) -> Path:
+    def make_source(self, repo: Path, project_dir: str = ".repo-context") -> Path:
         skill = repo / ".claude" / "skills" / "example" / "SKILL.md"
         skill.parent.mkdir(parents=True)
         skill.write_text(
             "---\nname: example\ndescription: Example workflow.\n---\n"
-            "Read .claude/project/verification.md and AGENTS.md.\n"
+            f"Read {project_dir}/verification.md and AGENTS.md.\n"
         )
-        project = repo / ".claude/project/verification.md"
+        project = repo / project_dir / "verification.md"
         project.parent.mkdir(parents=True)
         project.write_text("Shared conventions.\n")
         rule = repo / ".claude" / "rules" / "example.md"
@@ -75,7 +75,27 @@ class SharedMigrationTests(unittest.TestCase):
             self.assertEqual(
                 (target / "SKILL.md").read_text(), "User-owned destination.\n"
             )
-            self.assertIn("Read .claude/project/", skill.read_text())
+            self.assertIn("Read .repo-context/", skill.read_text())
+
+    def test_preserves_shared_docs_in_current_and_legacy_layouts(self) -> None:
+        for project_dir in (".repo-context", ".claude/project"):
+            with (
+                self.subTest(project_dir=project_dir),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                repo = Path(directory)
+                skill = self.make_source(repo, project_dir)
+                glossary = repo / project_dir / "CONTEXT.md"
+                glossary.write_text("Domain vocabulary.\n")
+                before = skill.read_bytes()
+                self.run_migration(repo, "--apply")
+                self.assertEqual(skill.read_bytes(), before)
+                self.assertEqual(glossary.read_text(), "Domain vocabulary.\n")
+                self.assertEqual(
+                    (repo / project_dir / "verification.md").read_text(),
+                    "Shared conventions.\n",
+                )
+                self.assertFalse((repo / ".codex/project").exists())
 
     def test_command_collision_cannot_overwrite_canonical_skill(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

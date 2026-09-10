@@ -371,7 +371,8 @@ Review the migrated assets before treating them as semantically equivalent to th
 - `.claude/skills/` -> shared links under `.codex/skills/`
 - `.claude/commands/` -> `.codex/skills/`
 - `.claude/agents/` -> `.codex/agents/`
-- `.claude/project/` and `.claude/docs/` stay shared in place.
+- Shared repository docs stay at their declared location; `.repo-context/` is the new-layout convention.
+- Legacy documentation is not relocated by this helper; preserve references until a move is authorized.
 - `.claude/rules/` requires manual policy routing to AGENTS.md or conditional shared docs.
 - No Codex execution-policy rules are generated from Markdown guidance.
 - `.claude/hooks/` and `.claude/settings.json` -> `.codex/hooks/` and `.codex/hooks.json`

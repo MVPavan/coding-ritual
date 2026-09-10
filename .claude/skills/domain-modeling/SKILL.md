@@ -9,9 +9,17 @@ Actively build and sharpen the project's domain model as you design. This is the
 
 ## File structure
 
-Most repos have a single context: `CONTEXT.md` at the repo root, decisions in `docs/adr/`. If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts — the map points to where each one lives (e.g. `src/ordering/CONTEXT.md`), system-wide decisions stay in the root `docs/adr/`, and context-specific ones go in `<context>/docs/adr/`. Layout, map format, and how to infer which applies: [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) § Single vs multi-context repos.
+Use the glossary location declared by `AGENTS.md`; this harness defaults to
+`.repo-context/CONTEXT.md`, with decisions in `docs/adr/`. Reuse an existing
+root `CONTEXT.md` in other repos rather than creating a competing glossary.
+If a `CONTEXT-MAP.md` exists at the root, follow its per-context locations.
+Layout and selection: [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) § Single vs multi-context repos.
 
-Create files lazily — only when documentation work is authorized and you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+Create files lazily — only when documentation work is authorized and you have
+something to write. If no glossary exists, use the declared location or
+`.repo-context/CONTEXT.md` when the first term is resolved. If no `docs/adr/`
+exists, create it when the first ADR is needed. Below, `CONTEXT.md` means the
+selected glossary, not necessarily a root file.
 
 ## During the session
 

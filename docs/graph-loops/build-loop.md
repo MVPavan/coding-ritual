@@ -1,7 +1,7 @@
 # Build loop — orchestration graph (v4.1)
 
 **Audience: the orchestrator only.** Deliberately NOT a rule under
-`.claude/rules/` and deliberately NOT listed in `.claude/project/docs-index.md` —
+`.claude/rules/` and deliberately NOT listed in `.repo-context/docs-index.md` —
 loading this into every agent's context is the exact cost this protocol exists to
 avoid. Workers receive the parts that apply to them, in their brief.
 

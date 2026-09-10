@@ -8,7 +8,7 @@ general style checklist.
 - Use Ruff: `uv run ruff format <paths>` and `uv run ruff check <paths>`.
   Follow repository configuration; keep formatting scoped to the requested work.
 - Use strict mypy and explicit function signatures. Run the applicable commands
-  in `.claude/project/verification.md`, including its repository-specific options.
+  in `.repo-context/verification.md`, including its repository-specific options.
 - `uv run ty check workflow_interpreter/` is optional feedback, not a replacement
   gate; see `docs/research/python-tooling/ty-vs-mypy.md` before changing checkers.
 

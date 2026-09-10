@@ -2,8 +2,8 @@
 
 This repo is a workspace for building and maintaining reusable agent harnesses
 (Claude Code + Codex), studying strong reference harness repos, and keeping the
-resulting learnings in one place. It is a meta-repo — there is no first-party
-application code.
+resulting learnings in one place. It also contains the first-party Python
+workflow interpreter and its tests.
 
 ## Main Areas
 
@@ -18,8 +18,9 @@ application code.
   (read-only references).
 - `harness_lifecycle/` — curation tooling for the reference harnesses: capability
   scanner, gap report, and the adoption ledger.
-- `.claude/` + `.codex/` — the harness installed into this repo itself (rules,
-  skills, agents, commands, hooks, and the `project/` overlay of repo facts).
+- `.claude/` + `.codex/` — shared skills, agent definitions, and runtime integrations.
+- `.repo-context/` — shared repository guidance and `CONTEXT.md` domain vocabulary;
+  `AGENTS.md` defines when agents read it.
 - `.beads/` — Beads issue tracker store (see `.beads/beads.md`).
 
 ## Read First
@@ -27,7 +28,7 @@ application code.
 1. `harness_learnings/coding-harness-best-practices.md`
 2. `harness_learnings/claude-codex-collaboration.md`
 3. `harness_learnings/reference-harness-workflow.md`
-4. `.claude/project/brief.md` — repo facts for agents
+4. `.repo-context/brief.md` — repo facts for agents
 
 ## Common Workflows
 

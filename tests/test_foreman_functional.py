@@ -1168,7 +1168,7 @@ def test_a_dispatched_task_carries_its_nodes_instructions_and_facts(
     killed by exactly one test, and that test is about the §13 forced-reject
     clause — so instructions and the fact frame would have been silently
     droppable the moment §13 changed. Same species as the defect recorded at
-    `.claude/project/learnings.md` on test doubles satisfying a protocol.
+    `.repo-context/learnings.md` on test doubles satisfying a protocol.
     """
     lab = ForemanLab(tmp_path)
     lab.instantiate()

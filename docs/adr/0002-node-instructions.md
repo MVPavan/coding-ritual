@@ -48,7 +48,7 @@ frame, enforced at `WorkflowStore.create_root`.**
    `tests/_foreman.py:361` and `tests/_supervisor.py:405`. Enforcing anywhere
    but `create_root` leaves every §13 drill running on roots without
    instructions — precisely the defect class recorded at
-   `.claude/project/learnings.md:163-180`.
+   `.repo-context/learnings.md:163-180`.
 
    `create_root` refuses a definition in which any `kind = "task"` node lacks
    non-empty, non-whitespace `instructions`.

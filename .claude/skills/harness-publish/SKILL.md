@@ -17,6 +17,11 @@ Claude Code and Codex install. Publishing is a manual, user-run step.
    Read the current publish manifest/help. Confirm publication and commit
    authority separately; a no-commit instruction remains binding.
 
+   For the `.repo-context/` layout, verify the plugin-owned template, installer,
+   updater, and doctor use that shared location and preserve the glossary. See
+   `docs/usage/mvp-plugin.md` for the migration boundary; publishing skills alone
+   does not update the adoption contract.
+
    **Preflight here.** Required root gates must pass; the publish script may
    require committed source unless an explicitly authorized dirty-tree mode applies:
 

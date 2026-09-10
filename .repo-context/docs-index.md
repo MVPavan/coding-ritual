@@ -1,10 +1,11 @@
 # Docs Index
 
-Authoritative docs and when to read them.
+Task-specific pointers. Read this index for orientation, then open only the
+references relevant to the task. Historical reports are evidence, not policy.
 
 | Doc | Read when |
 |---|---|
-| `harness_learnings/coding-harness-best-practices.md` | **First** — canonical guide for harness design (principles, surfaces, scope routing) |
+| `harness_learnings/coding-harness-best-practices.md` | Substantive harness design: principles, surfaces, scope routing |
 | `harness_learnings/claude-codex-collaboration.md` | Designing how Claude and Codex divide work |
 | `harness_learnings/reference-harness-workflow.md` | Adding or updating a reference repo / borrowing a pattern |
 | `harness_learnings/harness-patterns-by-capability.md` | Need the source-by-source breakdown behind the canon |
@@ -20,10 +21,17 @@ Authoritative docs and when to read them.
 | `docs/adr/` | **Before changing interpreter semantics** — recorded decisions (`allowed_paths`, node instructions, payload storage); supersede, never silently undo |
 | `docs/specs/workflow-interpreter.md` | Implementing or operating the workflow interpreter |
 | `scripts/README.md` | Managing Claude/Codex remote-control sessions (`claudex-rc.sh`) — lifecycle, recovery, watchdog |
-| `CONTEXT.md` | Naming anything — the domain glossary; use its terms, avoid its listed synonyms |
+| `.repo-context/CONTEXT.md` | Interpreting or introducing domain terminology |
 | `.beads/beads.md` | Beads workflow, agent context profiles, session-completion protocol |
-| `.claude/project/coding-style.md` | Before writing or changing Python code: Ruff, strict mypy, Pydantic, uv |
-| `.claude/project/delegation.md` | Before worker dispatch or independent critique; workflow risk labels |
+| `.repo-context/coding-style.md` | Before writing or changing Python code: Ruff, strict mypy, Pydantic, uv |
+| `.repo-context/delegation.md` | Before worker dispatch or independent critique; workflow risk labels |
+| `.repo-context/brief.md` | Project purpose and scope |
+| `.repo-context/verification.md` | Selecting checks for the affected component |
+| `.repo-context/invariants.md` | Changing architecture, contracts, or harness packaging; read applicable constraints |
+| `.repo-context/tools.md` | Selecting or troubleshooting repository tools; verify runtime availability |
+| `.repo-context/learnings.md` | Investigation or unfamiliar work; search and read matching entries, verify changing claims |
+| `.repo-context/tracking.md` | Locating the authoritative tracking policy and current task state |
+| `.repo-context/adoption-report.md` / `code-intel.md` | Historical adoption or tooling rationale only; reassess against current repository evidence |
 | `docs/research/python-tooling/ty-vs-mypy.md` | Evaluating a change to the Python type-check gate: local timing, diagnostic coverage, and migration gaps |
 
 Reference-harness submodule docs under `reference_harnesses/<repo>/` are external —

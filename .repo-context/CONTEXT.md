@@ -17,7 +17,7 @@ A third-party harness tracked read-only as a git submodule under `reference_harn
 _Avoid_: upstream (ambiguous with git), vendor
 
 **Project overlay**:
-The repo-specific facts in `.claude/project/` and `.codex/project/`, refreshed per repo; the harness core stays identical across repos.
+The repo-specific facts in `.repo-context/`, shared by all agents and refreshed per repo; the harness core stays identical across repos.
 _Avoid_: project config
 
 **Template**:

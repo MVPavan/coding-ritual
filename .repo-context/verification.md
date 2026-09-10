@@ -1,8 +1,9 @@
 # Verification
 
-This repo has **no first-party application code, build, or CI**. There are no
-test/lint/build commands to run for the repo as a whole, so the health gate is
-**structural** — do not invent commands.
+Select checks for the affected component. Harness documentation/configuration
+uses the applicable structural checks below; interpreter changes use the
+interpreter gate; plugin changes use their test harness. Documentation-only
+edits do not require the interpreter suite.
 
 ## Structural gate (run what applies to your change)
 
@@ -17,7 +18,7 @@ test/lint/build commands to run for the repo as a whole, so the health gate is
 5. **Beads** — `bd ready` / `bd list` runs without error after task changes.
 6. **Skill catalog** — after changing anything under `.claude/skills/`,
    `python3 .claude/scripts/skill-catalog.py --check` exits 0 (generated
-   catalog current, every slash pointer and `.claude/` path resolves, every
+   catalog current, every slash pointer and `.claude/` / `.repo-context/` path resolves, every
    `agents/openai.yaml` sidecar matches its frontmatter; `--write` regenerates
    both). Slash commands are slash-only skills — there is no `commands/` dir.
 7. **Dangerous-commands hook** — after changing

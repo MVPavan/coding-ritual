@@ -54,10 +54,12 @@ ALLOWED_SLASHES: dict[str, str] = {}
 # illustrative example, a path that exists only in an adopted repo). One-word
 # reason each; --check warns when an entry stops being referenced.
 ALLOWED_PATHS: dict[str, str] = {
+    # Regression fixture proves foreign legacy overlays are preserved by migration.
+    ".claude/project": "foreign-repo",
     # migrate-claude-to-codex converts OTHER repos' command dirs; this repo has none.
     ".claude/commands": "foreign-repo",
     ".claude/commands/": "foreign-repo",
-    # Migration also handles OTHER repos' rule dirs; local guidance is in project/.
+    # Migration handles OTHER repos' rule dirs; local guidance is in .repo-context/.
     ".claude/rules": "foreign-repo",
     ".claude/rules/": "foreign-repo",
 }
@@ -83,7 +85,7 @@ SLASH_REF = re.compile(
 # placeholder characters too, so a glob-ish token is recognised whole and
 # skipped rather than half-matched; `:NN` line suffixes and `#fragments` end
 # the token naturally. Trailing sentence periods are stripped afterwards.
-CLAUDE_PATH = re.compile(r"(?<![\w/~])(\.claude/[\w./\-<>*{}…]*)")
+CLAUDE_PATH = re.compile(r"(?<![\w/~])((?:\.claude|\.repo-context)/[\w./\-<>*{}…]*)")
 PLACEHOLDER_MARKS = ("<", ">", "*", "{", "}", "…", "...")
 
 # A backticked bare skill/command name, as the hand-owned router table uses.
@@ -265,7 +267,7 @@ def slash_refs(path: Path) -> list[tuple[int, str]]:
 
 
 def claude_path_refs(path: Path) -> list[tuple[int, str]]:
-    """(line number, token) for every checkable `.claude/...` path token in
+    """(line number, token) for every checkable `.claude/` or `.repo-context/` token in
     the file. Placeholder/glob tokens (`<name>`, `*`, `{a,b}`, `…`, `...`) are
     not checkable and are omitted."""
     refs: list[tuple[int, str]] = []
@@ -492,7 +494,7 @@ def cmd_check(root: Path, skills_dir: Path) -> int:
             f"OK   {resolved} slash references resolve ({len(used_allowlist)} allowlisted)"
         )
         print(
-            f"OK   {resolved_paths} .claude/ path references resolve"
+            f"OK   {resolved_paths} shared path references resolve"
             f" ({len(used_path_allowlist)} allowlisted)"
         )
         print(f"OK   {len(skills)} agents/openai.yaml sidecars match their frontmatter")

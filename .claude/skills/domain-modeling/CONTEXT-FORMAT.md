@@ -31,7 +31,9 @@ _Avoid_: Client, buyer, account
 
 ## Single vs multi-context repos
 
-**Single context (most repos):** One `CONTEXT.md` at the repo root.
+**Single context:** One glossary at the location declared by `AGENTS.md`,
+defaulting to `.repo-context/CONTEXT.md`. Preserve an existing root `CONTEXT.md`
+when adopting another repo unless relocation is authorized.
 
 **Multiple contexts:** A `CONTEXT-MAP.md` at the repo root lists the contexts, where they live, and how they relate to each other:
 
@@ -53,8 +55,11 @@ _Avoid_: Client, buyer, account
 
 The skill infers which structure applies:
 
-- If `CONTEXT-MAP.md` exists, read it to find contexts
-- If only a root `CONTEXT.md` exists, single context
-- If neither exists, create a root `CONTEXT.md` lazily when the first term is resolved
+- Follow explicit repository routing first; otherwise use `CONTEXT-MAP.md` if present.
+- For a single context, use `.repo-context/CONTEXT.md` or an existing root glossary.
+- If both exist without a declared owner, resolve ownership before editing; do not
+  maintain duplicate glossaries.
+- If none exists, create `.repo-context/CONTEXT.md` lazily when the first term is
+  resolved and documentation work is authorized.
 
 When multiple contexts exist, infer which one the current topic relates to. If unclear, ask. Context-specific ADRs live in `<context>/docs/adr/`; system-wide ones stay in the root `docs/adr/`.

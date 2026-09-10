@@ -38,11 +38,11 @@ Complete the authorized task with the least total work, including rework without
   Change approach when repeated attempts produce no new evidence.
 - Delegate bounded independent work when it materially improves speed, context
   use, or review quality within budget and runtime limits; keep small work local.
-  Before dispatch or independent critique, read `.claude/project/delegation.md`.
+  Before dispatch or independent critique, read `.repo-context/delegation.md`.
 
 ## Verification
 
-- Run applicable checks from `.claude/project/verification.md`. Add tests according
+- Run applicable checks from `.repo-context/verification.md`. Add tests according
   to behavioral risk, using existing tooling; bug checks must detect the original
   failure. Repeat or broaden checks only for changes, failures, or unresolved risk.
 - Inspect the final diff and Git status. Report outcomes, actual checks, and
@@ -63,19 +63,36 @@ Complete the authorized task with the least total work, including rework without
 
 ## Repository
 
-- Shared policy lives here; `CLAUDE.md` imports it. `.claude/` holds shared skills
-  and project docs; `.codex/` holds its integration. Runtime configuration owns
-  model settings and enforcement.
-- Orientation: `.claude/project/repo-map.md` and `docs-index.md` in that directory.
-  Domain terms: `CONTEXT.md`. Architectural changes: relevant `docs/adr/` and
-  `.claude/project/invariants.md`.
-- Before writing or changing Python code, read `.claude/project/coding-style.md`.
-- Phase/workstream execution: use the `execution` skill and relevant
-  `docs/workstreams/<name>/roadmap.md`. Generated tracking mirrors are read-only.
+- Shared policy lives here; `CLAUDE.md` imports it. `.repo-context/` holds shared
+  repository guidance; `.claude/` holds skills and `.codex/` its integration.
+  Runtime configuration owns model settings and enforcement.
 - Use repo-relative paths in committed material; temporary artifacts go in
   gitignored `scratchpad/`. `reference_harnesses/` and `reference_tools/` are
   read-only submodules except for explicitly authorized submodule work or pointer
   updates; borrow only the smallest justified pattern.
+
+### New session
+
+Read `.repo-context/repo-map.md` and `.repo-context/docs-index.md` once unless
+already supplied. The index is a routing map, not a reading list. For resumed
+work, also recover the active Bead and handoff.
+
+### When needed
+
+- Python changes: `.repo-context/coding-style.md`.
+- Domain terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
+  and `.repo-context/invariants.md`.
+- Phase/workstream execution: `execution` skill and relevant
+  `docs/workstreams/<name>/roadmap.md`. Generated tracking mirrors are read-only.
+- Other project references: follow the task-specific triggers in
+  `.repo-context/docs-index.md`; delegation and verification are routed above.
+
+### Do not preload
+
+Do not bulk-read project files, skills, learnings, historical reports, unrelated
+workstreams, or external references. Search for relevant sections when needed.
+Read shared repository guidance from `.repo-context/`.
+Keep conditional references as plain paths, not automatic imports.
 
 ## Track durable work
 
