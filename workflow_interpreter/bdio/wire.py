@@ -206,6 +206,7 @@ class BeadRecord(BaseModel):
     updated_at: str | None = None
     ephemeral: bool = False
     wisp_type: str | None = None
+    parent: str | None = None
 
 
 # --- shared value objects -----------------------------------------------

@@ -46,6 +46,7 @@ _VALUE_FLAGS: Final[frozenset[str]] = frozenset(
         "--wisp-type",
         "--reason",
         "--limit",
+        "--parent",
     }
 )
 _BOOL_FLAGS: Final[frozenset[str]] = frozenset(
@@ -56,6 +57,7 @@ _BOOL_FLAGS: Final[frozenset[str]] = frozenset(
         "--json",
         "--all",
         "--include-gates",
+        "--claim",
     }
 )
 _REPEATED_FLAG: Final[str] = "--metadata-field"
@@ -135,6 +137,7 @@ class FakeBd:
             "close": self._close,
             "show": self._show,
             "list": self._list,
+            "dep": self._dependencies,
             "context": self._context,
         }[subcommand]
         return CompletedCommand(returncode=0, stdout=handler(args), stderr="")
@@ -171,6 +174,8 @@ class FakeBd:
         flags = _parse(args[1:])
         # bd MERGES top-level metadata keys rather than replacing the object.
         self.rows[args[0]]["metadata"].update(_metadata(flags["--metadata"]))
+        if "--claim" in flags:
+            self.rows[args[0]]["status"] = "in_progress"
         return ""
 
     def _close(self, args: list[str]) -> str:
@@ -190,6 +195,7 @@ class FakeBd:
             row
             for row in self.rows.values()
             if _matches(row, flags.get(_REPEATED_FLAG, []), flags.get("--type"))
+            and ("--parent" not in flags or row.get("parent") == flags["--parent"])
         ]
         return json.dumps(sorted(selected, key=lambda row: str(row["id"])))
 
@@ -203,6 +209,10 @@ class FakeBd:
                 "beads_dir": f"{self.workspace}/{BEADS_DIR_NAME}",
             }
         )
+
+    def _dependencies(self, args: list[str]) -> str:
+        """Return the empty dependency fixture for fixed adapter inspection."""
+        return "[]"
 
 
 def _parse(args: list[str]) -> dict[str, Any]:

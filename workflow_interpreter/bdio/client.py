@@ -85,6 +85,7 @@ class BdSubcommand(StrEnum):
     CLOSE = "close"
     SHOW = "show"
     LIST = "list"
+    DEP = "dep"
     CONTEXT = "context"
 
 
@@ -106,6 +107,8 @@ class BdFlag(StrEnum):
     ALL = "--all"
     INCLUDE_GATES = "--include-gates"
     METADATA_FIELD = "--metadata-field"
+    PARENT = "--parent"
+    CLAIM = "--claim"
     REASON = "--reason"
 
 
@@ -329,6 +332,29 @@ class BdClient:
         rows = self._run_json(self._argv(BdSubcommand.LIST, *args))
         return tuple(BeadRecord.model_validate(row) for row in rows)
 
+    def list_children(self, parent_id: str) -> tuple[BeadRecord, ...]:
+        """List a parent's descendants for callers that filter direct children."""
+        rows = self._run_json(
+            self._argv(
+                BdSubcommand.LIST,
+                BdFlag.JSON.value,
+                BdFlag.LIMIT.value,
+                UNLIMITED,
+                BdFlag.ALL.value,
+                BdFlag.INCLUDE_GATES.value,
+                BdFlag.PARENT.value,
+                parent_id,
+            )
+        )
+        return tuple(BeadRecord.model_validate(row) for row in rows)
+
+    def list_dependencies(self, bead_id: str) -> tuple[dict[str, Any], ...]:
+        """List one bead's dependency records through a fixed command shape."""
+        rows = self._run_json(
+            self._argv(BdSubcommand.DEP, "list", bead_id, BdFlag.JSON.value)
+        )
+        return tuple(rows)
+
     # -- writes (each followed by read-back verification) -----------------
     #
     # Package-private on purpose (§0.1). A generic `close_bead` or
@@ -401,6 +427,31 @@ class BdClient:
         record = self.show(bead_id)
         self._assert_metadata(record, metadata)
         _LOG.debug("bd.update", bead_id=bead_id, keys=sorted(metadata))
+        return record
+
+    def _claim_and_merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+        """Claim a bead and merge metadata in the one supported bd invocation."""
+        with _metadata_file(metadata) as metadata_arg:
+            self._run(
+                self._argv(
+                    BdSubcommand.UPDATE,
+                    bead_id,
+                    BdFlag.CLAIM.value,
+                    BdFlag.METADATA.value,
+                    metadata_arg,
+                )
+            )
+        record = self.show(bead_id)
+        self._assert_metadata(record, metadata)
+        if record.status != "in_progress":
+            raise LossyWriteError(
+                bead_id,
+                SURFACE_METADATA,
+                _MSG_MANGLED.format(
+                    key="status", written="in_progress", stored=record.status
+                ),
+            )
+        _LOG.debug("bd.update.claim", bead_id=bead_id, keys=sorted(metadata))
         return record
 
     def _close_bead(self, bead_id: str, reason: str) -> BeadRecord:
