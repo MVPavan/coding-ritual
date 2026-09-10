@@ -1,488 +1,335 @@
-# Phase-Execution Interpreter Bridge Plan
+# Phase-Execution Interpreter Bridge Plan (v12)
 
-**Origin:** Bead cr-o85.39; graphs supply process, roadmaps supply ordered content
-([docs/ideas/workflow-graphs.md:54-57](../ideas/workflow-graphs.md)).
+**Purpose.** Prove one real multi-stage roadmap phase through the interpreter,
+entered from `/phase-execution`, with graph-owned gate rendering and stage closure,
+and without a prose stage loop running alongside it. The proof is reproducible from
+Beads, Git, and the wrapper directory.
 
-**Goal:** Route eligible deep-phase stages through one interpreter instance each,
-without graph-owned decomposition or a parallel prose stage loop.
+In this plan, the target ref is the attached mainline branch of the coordinator
+checkout; it is not the interpreter's per-instance branch (`INSTANCE_BRANCH_REF`).
 
-## Owner rulings — 2026-09-07
+**Scope.** This is the **sequential bridge only** (owner ruling 2026-09-10).
+It runs one named stage, returns evidence and computed phase state to the LLM, and
+lands its signed artifact only while the target remains at its recorded base. It is
+not a selector, scheduler, automatic signer, general merge tool, or a solution for
+two graphs landing to one branch. It does not commit, push, rebase, reset, or delete
+evidence.
 
-### O1. Auto-land only a re-verified signed artifact through a scratch ref
+**Acceptance criterion.** Stage 1 lands and closes through the graph; Stage 2 starts
+from that landed state and does the same. The LLM invokes each named stage separately;
+the bridge never advances the phase itself. A changed target ref is a clean refusal,
+not an opportunity to construct or resolve a merge.
 
-A graph terminal follows the implementer checks, effects gate, reviewer accept,
-and immutable human ship gate
-([scripts/verify-feature.sh:34-47](../../scripts/verify-feature.sh),
-[workflows/feature-delivery.toml:48-80](../../workflows/feature-delivery.toml),
-[workflows/feature-delivery.toml:147-155](../../workflows/feature-delivery.toml)).
-The signature binds the approved commit OID; the hash is a cross-check
-([docs/specs/workflow-interpreter.md:811-818](../specs/workflow-interpreter.md)).
+**Status.** v12, 2026-09-10. Every `file:line` citation below was read in this
+worktree. Citations describe observed code; implementation requirements are marked
+as such.
 
-The bridge reads the serialized ship payload and signature from
-`<instance_dir>/gates/<gate_key>/payload.json{,.sig}`, cryptographically
-re-verifies them against the current allow-list, then compares the newly derived
-fingerprint and payload digest with the closed-gate metadata. It does not merely
-trust recorded `verified_fingerprint` and `payload_digest`
-([workflow_interpreter/foreman/gates.py:47-48,193-248](../../workflow_interpreter/foreman/gates.py),
-[workflow_interpreter/bdio/gates.py:330-364](../../workflow_interpreter/bdio/gates.py)).
-The payload must name this root, gate, outcome, and exact artifact OID. The
-bridge verifies that an **artifact-producing activation's** ref under
-`refs/wf/<root_id>/artifact/` dereferences to that OID (never the ship gate's
-`source_activation_id`, which can be the non-writing review activation), and
-that `refs/heads/wf/<root_id>` does too. Artifact, orphan, and prereset are
-siblings; only artifact blesses a commit
-([workflow_interpreter/foreman/gates.py:80-100](../../workflow_interpreter/foreman/gates.py),
-[workflows/feature-delivery.toml:55-70](../../workflows/feature-delivery.toml),
-[workflow_interpreter/supervisor/artifact.py:26-39,59-73,165-170](../../workflow_interpreter/supervisor/artifact.py)).
+## Numbered decisions
 
-The branch-tip comparison is tamper detection: merging the signed OID already
-prevents a moved instance branch from landing unsigned code. A mismatch therefore
-causes a conservative false refusal, not prevention of a possible unsigned merge
-([docs/adr/0001-allowed-paths-is-advisory.md:101-111](../adr/0001-allowed-paths-is-advisory.md)).
+### D1. The LLM owns phase advancement; the interpreter owns the stage loop
 
-The bridge gates a detached scratch worktree, then fast-forwards the attached
-coordinator checkout. It never moves the working branch with `update-ref`.
-Conflict, a red gate, a changed branch, or a failed fast-forward leaves the
-working branch untouched and reports the retained scratch ref. It never pushes,
-force-pushes, rebases, auto-resolves, or rolls back.
+`phase-bridge <epic> <stage> [--retry] [--trace]` validates one open, direct-child
+stage; it never selects one. It returns stage evidence plus computed state:
+`phase-exhausted` when every direct child is closed, `blocked` when open work prevents
+the requested stage, otherwise that stage's result. This is a fact for the LLM, not a
+decision to continue.
 
-### O2. One disposable substrate; real code only
+Keep the execution skill's phase-loop header, but replace only its stage-loop body
+with a call for the LLM-selected stage and handling of the returned state. The present
+body selects and claims direct children at `.claude/skills/execution/SKILL.md:74-88`.
+`Foreman.run` remains the hidden hot loop: it repeats ticks until a halt, terminal,
+gate, stall, or wall limit (`workflow_interpreter/foreman/tick.py:518-547`).
 
-There is no existing workstream or phase epic. A second supposed real backlog
-phase would author a roadmap solely for this proof. Use one disposable
-bridge-proof roadmap and epic. Roadmap, epic, and stage Beads are disposable
-process scaffolding; every proof stage also implements one small, open,
-independently worthwhile code Bead. Its landing closes that real source Bead.
+The bridge validates attached, clean coordinator state; direct-child membership;
+the named stage's open state; and that no other direct child has unfinished bridge
+admission. It uses a narrow phase adapter for list/show, metadata merge/read-back,
+claim, dependency inspection, and closure with fixed argv and an actor on every
+write. It does not expand `BdClient` into a phase scheduler.
 
-Slice 0 selects three only when each real source Bead is open and implementable
-within `workflow_interpreter/**` and/or `tests/**`. Stage 1 introduces a useful
-named symbol. Stage 2's distinct Bead must require that fully qualified symbol
-through a production call or extension and through a named test that fails when
-the symbol is absent. Stage 3 has its own acceptance criteria plus the D11
-one-line conflict contract. Current candidates are cr-o85.40, cr-o85.43, and
-cr-o85.46, but none is preselected: no reviewed pair yet establishes the
-Stage-1/Stage-2 dependency. If no three meet these conditions, do not invent
-proof work.
+### D2. Admit durably before claim, then repair owner-first
 
-After the proof report, close, never delete, the bridge epic and its stage Beads;
-remove the generated roadmap and phase plan in a separate cleanup commit. The
-successful code remains; D12 governs refs and worktrees.
+Store typed `phase_bridge` metadata on the stage. Before claim, write and read back:
 
-### O3. Keep BdClient closed; use a narrow adapter
+```text
+schema = "phase-bridge/3"
+state = "prepared" | "admitted" | "landing" | "landed" | "gate-red" | "closed"
+epic_id, stage_id, attempt, instance_key
+target_ref, expected_base_commit, root_id?
+landed_oid?, tree?, gate_receipt_digest?, landing_receipt_digest?
+previous_attempts[]
+```
 
-`BdClient` omits the needed ready-parent and claim interface
-([workflow_interpreter/bdio/client.py:80-121](../../workflow_interpreter/bdio/client.py),
-[workflow_interpreter/bdio/client.py:222-242](../../workflow_interpreter/bdio/client.py)).
-A separate phase adapter performs exact ready-parent, exact-stage claim, metadata
-update, and close with read-back verification. It accepts resolved ids, never
-arbitrary `bd` argv or workflow-root operations.
+`prepared` and `admitted` are stage-metadata writes, each read back; `landing` is
+recorded by the durable wrapper-directory landing intent before CAS and is the
+authoritative record that CAS may be in flight; `landed` is the stage-metadata
+write/read-back after a successful CAS and durable receipt.
 
-## Decisions
+The prepared intent makes a crash between metadata write and claim discoverable by
+scanning all direct children, not by `bd ready`. It records the target ref and expected
+base before root creation. The root remains authoritative for pinned graph, inputs,
+configuration, terminal, and its persisted base; the stage relation is a bridge
+journal, not a duplicate root record.
 
-### D1. One root per stage
+For attempt 1, derive `instance_key` as
+`phase-bridge:<epic_id>:<stage_id>:attempt:<attempt>`; recovery reuses the recorded
+key. An eligible `--retry` creates the next attempt number and its distinct key, never
+a second root for the prior attempt's key.
 
-`max_entries` is a graph ceiling, not a stage-list iterator
-([workflow_interpreter/schema/models.py:192-201](../../workflow_interpreter/schema/models.py),
-[docs/specs/workflow-interpreter.md:292-308](../specs/workflow-interpreter.md)).
-Root reuse compares instance inputs byte-exact
-([workflow_interpreter/bdio/roots.py:253-284](../../workflow_interpreter/bdio/roots.py)).
-Roadmaps, not graphs, own work units and order.
+On every entry, before a new claim or root, run this five-row repair table. Its first
+row deliberately requires `HEAD == expected_base_commit`: `instantiate` currently
+captures repository HEAD as its root base (`workflow_interpreter/foreman/resolve.py:350-381`).
 
-### D2. Persist one `phase_bridge` relation and cap attempts
+| Observed evidence | Required action |
+| --- | --- |
+| Prepared intent, no root for its key, and `HEAD == expected_base_commit`, with recorded branch/stage still valid | Create the recorded root and continue. |
+| Root without a self-link | Use existing raw-record convergence, which repairs the self-link before parsing (`workflow_interpreter/bdio/roots.py:247-265`). |
+| Valid root, missing instance branch | Re-create the branch from the root's persisted base, without reading current HEAD (`workflow_interpreter/foreman/resolve.py:280-289`). |
+| Root and branch exist, but relation is incomplete | Validate key, stage, target ref, expected base, and root identity; complete and read back the relation. |
+| Conflicting identity, two roots with instance beads, or evidence selecting no unique action | Return evidence for human attention; create no root and move no ref. |
 
-Typed metadata on the exact stage holds root id, attempt, pinned admission base
-`B0`, authoritative brief digest, working-branch ref, source-Bead id, landing
-SHA, scratch ref, scratch-worktree path, resolution gate id, and cleanup
-eligibility.
-Do not add `wf_root_id` to product-stage metadata: `instance_beads` returns every
-matching root id ([workflow_interpreter/bdio/reads.py:90-93](../../workflow_interpreter/bdio/reads.py)).
+Never resurrect “lowest ID wins” as the primary rule. Existing convergence prefers the
+root that owns instance beads and refuses two owners (`workflow_interpreter/bdio/roots.py:268-305`).
+An unavailable Beads store or missing metadata halts recovery rather than creating a
+second journal.
 
-Each created root is one admission attempt. A red scratch gate or final
-fast-forward race requires a new root and consumes the next attempt. A stage has
-at most three attempts. Only an escalated D11 scratch-merge conflict whose
-conflicting path matches the recorded expected fixture path is the explicit
-exception: it resumes and lands the same recorded attempt after human
-resolution, and consumes no new attempt. That rule takes precedence over the
-ordinary retry rule; every other scratch-merge conflict requires a new root and
-consumes the next attempt. At the cap the bridge returns `halted: attempt-cap`,
-retains all attempt evidence, and requires an owner decision to abandon or
-authorize a new quota. It never silently creates a fourth root. Escalated
-attempts are retained until a human resolution closes them or explicitly abandons
-them; they are not eligible for automatic D12 cleanup.
+### D3. Graph terminal and gate evidence are the closure authority
 
-### D3. Identify the working branch, take the band, and never update it by ref
+The selected stage supplies the root's brief; the bridge runs the approved graph and
+requires a closed, accepted immutable `ship` gate before landing. The current
+`feature-delivery` graph has a bounded implement/review region and immutable human
+`ship` and `triage` gates (`workflows/feature-delivery.toml:11-16,18-94,119-165`).
+Its writer is explicitly allowed production and test changes
+(`workflows/feature-delivery.toml:29-40`).
 
-The working branch is the attached symbolic `refs/heads/<name>` read from the
-coordinator checkout at first admission; detached HEAD refuses. Record that full
-ref in D2 and require it on every entry. This is the Git Safety target-base
-confirmation ([CLAUDE.md:81-88](../../CLAUDE.md)).
+Re-verify the gate payload and signature; require its root, gate, outcome, artifact
+OID, tree OID, fingerprint, digest, and artifact reference to agree. Gate verification
+precedes carrier repair (`workflow_interpreter/bdio/gates.py:318-341`), and immutable
+gates compare payload commit and tree OIDs with recorded artifact values
+(`workflow_interpreter/bdio/gates.py:484-508`). The standard signed payload has root,
+gate, outcome, artifact, and nonce—not a bridge-specific review schema
+(`workflow_interpreter/bdio/signing.py:196-214`).
 
-Take the existing non-blocking exclusive flock at `<wrapper_root>/repo-band.lock`
-for admission-base capture and each entire landing critical section: clean-tree
-check, payload/ref checks, capture of the landing tip, scratch creation/merge,
-scratch gate, coordinator clean-tree recheck, coordinator fast-forward, relation
-write, and both closes. `BandLock` refuses contention rather than queueing
-([workflow_interpreter/supervisor/band.py:24-67](../../workflow_interpreter/supervisor/band.py));
-the lock location is specified at
-[docs/specs/workflow-interpreter.md:1075](../specs/workflow-interpreter.md).
+`--retry` cannot outrank a halt. `Foreman.tick` already returns an unresolved halt as
+halted (`workflow_interpreter/foreman/tick.py:400-410`); before the bridge considers a
+new root, it must load the old root and make the equivalent check. Keep the numeric
+retry cap **cut**. Record `attempt` and `previous_attempts` in the bridge gate view that
+the human reads before signing; the human must be able to see whether this is a new root
+and the evidence for all prior attempts.
 
-Merge only in a detached scratch worktree until the final operation. At final
-landing, the coordinator remains attached and clean at captured `B_land`, and
-runs `git merge --ff-only L`, where `L` is the detached scratch HEAD OID CASed
-into `S` before the full gate. After that gate, require `git -C <scratch>
-rev-parse HEAD == L == S`, refusing otherwise. No ref name is ever a merge
-argument: `S` is retained evidence only. Git then moves the branch ref, index,
-and working tree together; a changed tip or non-fast-forward refuses, supplying
-the concurrency check. The bridge never uses `update-ref` on the working ref.
-It may CAS the un-checked-out scratch ref from `B_land` to `L` before gating;
-that ref update does not desynchronize a checkout. A successful coordinator
-merge is followed by a porcelain-clean check, not `reset --hard`.
+Make the no-cap reasoning executable. Add an explicit
+`[instance].phase_bridge_retry_terminals` schema field, listing the only terminal names
+for which this bridge may create a new root; for this proof it names `shipped` and
+`abandoned`. `gate-red` is eligible only when it arose after the declared `shipped`
+terminal and its approved `ship` gate. The phase-bridge CLI rejects `--retry` from any
+other terminal or unlisted event.
 
-Human or tooling landings during the bridge run must take this band. Raw Git
-cannot be locked by convention, but cannot silently win the final fast-forward.
+Add a semantic rule that reverse-walks every entry-to-listed-terminal path and errors
+unless each path crosses a `gate_type = "human"` node. The rule belongs in the existing
+semantic validator and normal graph loader, which already turn semantic errors into
+`GraphValidationError` (`workflow_interpreter/schema/validator.py:85-97`,
+`workflow_interpreter/schema/loader.py:199-231,252-264`). The invalidating trigger is
+therefore mechanically enforced: **any path reaching a new root without a human
+signature**. A graph that lacks the declaration or fails the traversal is ineligible
+for the bridge rather than silently retaining no cap.
 
-### D4. Pin recovery base and budget the required production seam
+### D4. Landing is one signed fast-forward, protected by a durable intent
 
-Use `phase-bridge/v1/<epic>/<stage>/<attempt>` as the `--instance-key`. Under
-the admission lock capture the working tip as `B0`, pass and record it as
-`--instance-base-commit`, and re-supply it on every re-entry. `B0` is the pinned
-instance base, not the later landing tip `B_land`; parallel landings can make
-them differ. A requested retry advances attempt first. Admit N+1 only after N
-completes D7.
+Let `H` be the recorded `expected_base_commit` and `A` the signed artifact OID. Before
+moving the target ref, require the ref still names `H`, `H` is an ancestor of `A`, and
+the verified immutable gate names `A` and its recorded tree. Thus `A` is both the
+signed commit and the landed commit. Run the five-item/six-command repository gate in
+a detached checkout at `A`; only complete, green results naming `A` and its tree may
+proceed. A red, incomplete, or mismatched result leaves the target unchanged and does
+not authorize a new landing attempt.
 
-Slice 1 changes `foreman.resolve.instantiate` to accept an optional
-`instance_base_commit`; it passes that value to `create_root`, falling back to
-the current HEAD only when absent. This is a production change, not a CLI-only
-flag: `instantiate` currently unconditionally reads HEAD
-([workflow_interpreter/foreman/resolve.py:334-364](../../workflow_interpreter/foreman/resolve.py)),
-and reuse compares the supplied base byte-exact
-([workflow_interpreter/bdio/roots.py:253-284](../../workflow_interpreter/bdio/roots.py)).
-The CLI validates and forwards `--instance-base-commit`. Slice 1 tests the
-default, explicit pin, retry after an intervening commit, and reuse mismatch.
+Persist **and read back** a landing intent in the wrapper directory before the ref
+move:
 
-### D5. Bd owns brief bytes
+```text
+schema = "phase-bridge-landing/1"
+ref, expected_base = H, artifact_oid = A, tree
+gate_receipt_digest, stage, attempt
+```
 
-Build `task_brief` from the stage, acceptance, dependencies, user notes, roadmap
-row, plan tasks, and (for Stage 2) symbol contract. Pass these bytes to
-`create_root`. Root metadata stores the input body and compares it byte-exact on
-reuse ([workflow_interpreter/bdio/roots.py:125-154](../../workflow_interpreter/bdio/roots.py),
-[workflow_interpreter/bdio/roots.py:253-284](../../workflow_interpreter/bdio/roots.py)).
-A scratchpad/execution copy is convenience only: re-entry reads the bd body and
-verifies its digest if the copy has gone.
+Use durable old-or-new writes for this intent and the later receipt; `write_durable`
+flushes the new file and directory so a crash yields a complete old or new record,
+never a partial one (`workflow_interpreter/supervisor/paths.py:114-130`). Then call
+the existing `update_ref_cas(ref, A, H)`, whose contract is “advance `ref` only when
+it still names `old`” (`workflow_interpreter/supervisor/gitio.py:555-562`). A failed
+CAS leaves every Bead open and returns `halted: branch-moved` with the intent and
+observed target. It does not retry, merge, or select another stage.
 
-### D6. One static `phase-delivery` graph, with the shared deep spine preserved
+Only after a successful CAS: write the durable landing receipt, update/read back stage
+metadata, then close/read back the stage. The pre-close receipt includes the intent
+digest, target ref, expected base, signed/landed OID, tree, gate digest, repo-gate
+results, and `closure_state = "pending"`; the close reason names its digest. The
+post-close read-back is the closure evidence and changes the stage relation to `closed`.
 
-`workflows/phase-delivery.toml` has implement, code-review, immutable signed
-ship, and shipped, plus triage/abandon. Writers grant only
-`workflow_interpreter/**` and `tests/**`; bwrap derives writable grants directly
-from `allowed_paths` ([workflow_interpreter/supervisor/sandbox.py:462-486](../../workflow_interpreter/supervisor/sandbox.py)).
-Every graph node pins `isolation = "worktree"`, so the coordinator checkout stays
-attached and clean rather than becoming the runner workspace as it would under
-`in-repo` isolation ([workflows/feature-delivery.toml:36,66](../../workflows/feature-delivery.toml),
-[workflow_interpreter/supervisor/workspace.py:8-12](../../workflow_interpreter/supervisor/workspace.py)).
-Implement verifies `scripts/verify-feature.sh`; code review verifies that command
-plus `scripts/review-checks.sh`. This strict superset is pinned, and the graph
-definition test asserts `warnings == ()`, including absence of the
-`judgment_verify_superset` warning
-([workflows/feature-delivery.toml:48-80](../../workflows/feature-delivery.toml),
-[workflow_interpreter/schema/rules_flow.py:432-462](../../workflow_interpreter/schema/rules_flow.py)).
+Recovery reconciles unfinished landing intent **before any other bridge action**.
+After re-verifying immutable gate and repository-gate evidence, it may reconstruct a
+missing pre-close receipt from the durable intent and finish closure only when the
+target is exactly `A`, or when `A` is an ancestor of the current target.
+An intact intent with the target still exactly `H` is the benign `intent-before-CAS`
+case: an operator may resume it manually after revalidation, but recovery refuses for
+human attention rather than automatically re-attempting CAS because v12 makes ref
+motion a one-shot landing boundary.
+Unrelated history, a target that does not contain `A`, a mismatched tree or gate digest,
+or ambiguous stage/attempt identity refuses for human attention. No recovery path moves
+a ref.
 
-The static graph replaces dispatch mechanics, not the execution skill's shared
-spine. Admission records the roadmap's risk; this proof is deep. Before any
-trust-boundary stage is admitted, the bridge invokes the security skill and
-honors its Ask-First result. For each deep stage, an out-of-graph spec-reviewer
-reviews the brief/plan contract and the graph's critic supplies the code review;
-both artifacts and their dispositions are required before the signer can approve.
-This preserves risk routing, security routing, and the deep two-role review
-([.claude/skills/execution/SKILL.md:25-45](../../.claude/skills/execution/SKILL.md),
-[.claude/skills/execution/references/task-engine.md:115-140](../../.claude/skills/execution/references/task-engine.md)).
+v11's “no CAS needed because the lock guarantees one writer” rationale is withdrawn.
+There is no lock in v12; CAS is the mechanism for “move only if still `H`.” This is a
+fast-forward-only bridge—not a construction policy for any other commit shape.
 
-The rendered ship view contains only a bounded diff-stat
-([workflow_interpreter/foreman/__main__.py:270-285](../../workflow_interpreter/foreman/__main__.py)).
-The critic artifact is therefore the content review of record. Before signing,
-the human signer must open the full immutable artifact diff out of band and the
-two review artifacts; the signed payload records their digests and the reviewed
-artifact OID. A diff-stat alone cannot authorize an O2 code landing.
+### D5. The landing gate has an explicit, large trust assumption
 
-### D7. Scratch-gate, then coordinator fast-forward and close both Beads
+**T1 — trusted gate code.** The landing gate executes candidate-controlled tests and
+their dependencies as trusted code. They may change host-visible shared refs, wrapper
+receipts, or other filesystem state; the bridge does not claim to contain them. This is
+the largest trust assumption in this plan and must appear in operator output before a
+landing gate runs.
 
-Under D3, after the payload/ref checks, capture the coordinator's current tip as
-`B_land`; it is distinct from the admission-time instance base `B0`. Let S be
-`refs/phase-bridge/<root_id>/<activation_id>`. Require `git merge-base
---is-ancestor B0 B_land`; failure returns `halted: branch-diverged`. Create S at
-`B_land`, create a detached worktree below a fresh `mktemp -d` directory outside
-the repository tree, and run `git merge --no-ff <signed-artifact-oid>` there. A
-clean scratch merge yields the candidate whose parents are `B_land` and the
-signed artifact; set `L` to that detached scratch HEAD and CAS S from `B_land`
-to `L` before the gate. A conflict preserves S and the worktree and reports every
-conflicting path. This tests the artifact against the branch that will actually
-receive it: runner lineage makes an artifact descend from `B0`, but a parallel
-landing can already be part of `B_land`
-([workflow_interpreter/supervisor/artifact.py:165-170](../../workflow_interpreter/supervisor/artifact.py)).
+The full repository gate contains five numbered items and six commands, including
+pytest (`.claude/project/verification.md:48-56`). The verifier executes a hashed
+program through argv only, but uses `subprocess.run` with inherited `os.environ` and
+no sandbox (`workflow_interpreter/supervisor/verify.py:386-418`). A detached clean
+checkout does not change that host-process trust boundary
+(`workflow_interpreter/supervisor/verify.py:137-167`). Do not describe argv-only
+execution as containment.
 
-Before the full repository gate, the bridge itself sets `UV_CACHE_DIR` below its
-wrapper root and provisions that fresh checkout with `uv sync --locked`; the
-scratch gate is not sandboxed, so the wrapper's sandbox cache grant does not
-apply. The project requires Python 3.13 and defines the dev test tools
-([pyproject.toml:6-20](../../pyproject.toml),
-[workflow_interpreter/supervisor/sandbox.py:103-120,490-494](../../workflow_interpreter/supervisor/sandbox.py)).
-A provisioning failure is `stalled: environment-unavailable`, not a red gate and
-not a new attempt; it preserves S and is retried after the environment is
-repaired. On provisioning success, run the five-step repository gate at S.
+**Supported-writer contract.** The bridge guarantees safety only for cooperative callers
+that invoke one bridge stage at a time: expected-base validation, CAS, durable intent,
+and recovery/refusal. The direct-child admission check detects a persisted unfinished
+admission; it is not a lock or CAS across two simultaneous calls. Concurrent bridge
+calls and arbitrary interlopers are outside v12's guarantee and belong to `cr-g3e`.
+A write-capable runner receives shared object, `refs`, log, and `packed-refs` paths read-write
+(`workflow_interpreter/supervisor/sandbox.py:385-425,477-486`); it can also be
+candidate-controlled gate code under T1. External writers that move the target are
+detected only at CAS or recovery and are not blocked or resolved.
 
-Only if green, require `git -C <scratch> rev-parse HEAD == L == S`, prove
-`B_land` is an ancestor of L, and recheck that the attached coordinator is clean
-at `B_land`. Run `git merge --ff-only L` in that coordinator checkout; S remains
-evidence and is never re-resolved for a merge. If the coordinator tip moved
-between `B_land` capture and this operation, the fast-forward refuses, retains S,
-and returns `running: retry-required`: this is a new-attempt retry under D2, not
-an escalation. A dirty tree likewise refuses without updating the working ref.
-On success, record landing SHA L, full-gate evidence, signed payload
-digest/fingerprint, review artifact digests, and S in D2. Then close both the
-bridge stage and its real source code Bead through O3, placing the same landing
-evidence on each. Do not select N+1 until read-back proves both are closed. If
-one close fails after the irreversible merge, return `stalled: closure-pending`
-and retry only the idempotent close/read-back, never the landing.
+### D6. The proof is two real stages in recorded order
 
-A red full gate after `shipped` cannot re-enter the terminal graph. It returns
-`escalated: gate-red`, retains S, and requires a new attempt with a new root,
-full review, and a new signature after the cause is fixed; the three-attempt cap
-applies. This explicitly covers the `bd` and `nested_sandbox` checks omitted by
-the in-graph verifier ([scripts/verify-feature.sh:34-43](../../scripts/verify-feature.sh),
-[.claude/project/verification.md:46-64](../../.claude/project/verification.md)).
+Use `cr-7rp` as Stage 1 and `cr-0yc` as Stage 2 only after live eligibility confirms
+they are open, real, independently worthwhile work and have no genuine output
+dependency. Add **no** fabricated `bd dep`: policy permits dependencies only when one
+task relies on another's output, not merely because it is sequenced
+(`.beads/beads.md:73-74`).
 
-### D8. Report one status observation
-
-One bridge call makes one tick/status observation and exits; it never calls the
-eight-hour-default run ([workflow_interpreter/foreman/constants.py:137](../../workflow_interpreter/foreman/constants.py)).
-It returns exactly one of:
-
-- `running`: dispatchable/routable state, including D7's
-  `retry-required` final-fast-forward race and `TickReport.contended` or
-  `TickReport.blocked`; skill may reinvoke.
-- `awaiting_approval`: ordinary open human gate or `TickReport.refusals` while
-  its gate remains open; reinvoke after corrected gate action.
-- `halted`: audit/dead-end halt with gate id and one of `fail-code`,
-  `branch-diverged`, `precondition-refused`, `inputs-unavailable`,
-  `sandbox-unavailable`, or `bound-violated`; also `attempt-cap`.
-  A `TickReport.refusals` that accompanies `TickReport.halted` remains `halted`.
-- `stalled`: recoverable wrapper, transport, provisioning, or post-landing
-  closure-pending state with reason.
-- `escalated`: D7 conflict or red gate, with S.
-- `abandoned` or `shipped`: graph terminal; only `shipped` proceeds to D7.
-- `closed`: D7 recorded the landing and read back closure of both Beads.
-
-The six dead-end kinds are exactly `fail-code`, `branch-diverged`,
-`precondition-refused`, `inputs-unavailable`, `sandbox-unavailable`, and
-`bound-violated` ([workflow_interpreter/foreman/frontier.py:38-46](../../workflow_interpreter/foreman/frontier.py)); audit halts are surfaced by tick
-([workflow_interpreter/foreman/tick.py:353-407](../../workflow_interpreter/foreman/tick.py)).
-Pre-admission refusal is specifically `halted: precondition-refused`, not an
-untyped claim to “fail closed.” Delegates may return evidence but never select,
-claim, merge, or close stages.
-
-### D9. Replace phase ownership at one CLI seam, after the retained gate is fixed
-
-Add typed `phase_bridge.py` and one `phase-bridge` subcommand. Replace only
-phase scope's select/claim/dispatch/close loop; retain context, deep-plan
-approval, roadmap exit, and report. `phase-execution` remains the thin entry
-point ([.claude/skills/phase-execution/SKILL.md:7-16](../../.claude/skills/phase-execution/SKILL.md)).
-
-The pre-existing retained all-stages-closed gate is defective: without `--all`,
-closed child stages are omitted, so its own `n > 0` predicate cannot pass. The
-bridge proof depends on P2 bead `cr-dbk`: Slice 0 adds `cr-dbk` as a blocking
-dependency of its proof epic and refuses dispatch until the fix is closed and
-read back. Its replacement gate is:
-
-    n=$(bd list --all --parent <epic> --json | jq 'length')
-    u=$(bd list --all --parent <epic> --json | jq '[.[]|select(.status!="closed")]|length')
-    [ "$n" -gt 0 ] && [ "$u" -eq 0 ]
-
-On failure it prints unclosed children using the same `--all` query. This
-preserves the execution skill's intended discipline gate while making it
-satisfiable ([.claude/skills/execution/SKILL.md:89-99](../../.claude/skills/execution/SKILL.md)).
-
-### D10. Execute the Stage-2 counterfactual
-
-Slice 0 records Stage 1's module, exported symbol, and signature; Stage 2's
-required production call/extension; and one named Stage-2 test with the expected
-missing-symbol failure. Admission rejects a pair that cannot name this test.
-Stage 2's brief carries all of those facts.
-
-Before Stage 2 creation, the bridge verifies its base contains Stage 1's landing
-SHA and the symbol exists there. After Stage 2 lands, at proof time (never
-Slice-0 admission, when neither SHA exists), Slice 3 proves causality: create a
-temporary detached worktree at Stage 1's parent `B0`; apply the recorded,
-binary-safe Stage-2 counterfactual patch with `git apply --3way` (the Stage-2
-consumer and named test, generated as `git diff --binary <stage1-sha>
-<stage2-sha> -- <recorded-paths>`) to `B0`; and run the named test there. The
-three-way apply permits the Stage-2 consumer to extend a file Stage 1 changed;
-an apply conflict or failure rejects the proof. The test must fail with the
-recorded missing fully-qualified-symbol diagnostic. A passing test or another
-failure rejects the proof. Remove this temporary worktree after recording the
-command and result.
-
-Thus the proof executes Stage 2 without Stage 1, rather than relying on review
-judgment about ancestry or a cosmetic reference.
-
-### D11. Deterministic conflict, then an OID-bound human resolution
-
-Slice 0 creates the dedicated writable fixture
-`tests/fixtures/phase_bridge_conflict.txt`; Stages 1–2 must not modify it.
-Slice 0 records its path, complete preimage, and required Stage-3 replacement,
-but not a blob OID or line number. At Stage-3 root creation, after Stages 1–2
-have landed, the bridge re-pins the fixture's then-current blob OID and line
-number at `B0` and verifies the recorded complete preimage. The Stage-3 brief carries
-the literal unified patch with context and requires `git apply --check`;
-acceptance and review require that exact replacement. The fixture is within the
-real `tests/**` bwrap grant
-([workflow_interpreter/supervisor/sandbox.py:477-486](../../workflow_interpreter/supervisor/sandbox.py)).
-
-After Stage 3 creates its root, the coordinator makes an intentional ordinary
-interloper commit in its attached checkout under the band, only after the
-Stage-3 activation has released it; that commit changes the preimage on the
-working branch. Stage 3's signed artifact changes it to the specified Stage-3
-value. At landing, `B_land` includes that interloper, so D7's scratch merge must
-report a same-hunk conflict with S/path and record the escalated attempt, `B0`,
-`B_land`, signed artifact OID, scratch pre-conflict HEAD, and expected conflict
-path.
-
-The human resolves only in that retained detached scratch worktree, commits H
-with parents `B_land` and the signed artifact OID, and asks the bridge to resume
-the recorded attempt with H. This D11 escalation is the D2 no-new-attempt
-exception. Under the band, the bridge first checks that the coordinator tip is
-the recorded `B_land`, returning the D7 retry on a mismatch before any resolution
-ceremony; it then checks that relation, re-verifies H's full repository gate, and
-requires a new immutable human resolution gate whose re-verified payload binds
-root, attempt, `B0`, `B_land`, original artifact OID, conflict path, H, full-gate
-evidence digest, and full-diff/review artifact digests. It then CASes the
-un-checked-out S from its recorded pre-resolution value to H as retained evidence,
-captures gated landing OID `L = H`, proves `B_land` is ancestral to H, and lands
-only via coordinator `git merge --ff-only L` and dual-Bead closure as a clean D7
-landing. The relation records H, L, and the resolution-gate OID/digest. A
-different attempt, parent set, payload, or gate is refused. A coordinator
-movement after `B_land` capture is a D7 retry, not an escalation. Every
-human-resolved landing therefore has the same cryptographic, review, gate, and
-closure evidence as a clean landing.
-
-### D12. Retain evidence, then clean eligible attempts
-
-After successful closure, remove the per-attempt scratch worktree immediately
-but retain scratch ref, instance branch, all three `refs/wf` namespaces, and the
-D2 OIDs for 30 days. After 30 days cleanup may delete only a closed attempt whose
-recorded landing evidence still matches. It never deletes active, halted, or
-escalated attempts. O2 teardown follows this retention rule.
+Prove the sequence with (1) Stage 2's admission-intent record after Stage 1's landing
+and closure evidence, and (2) `git merge-base --is-ancestor <stage1-landed-oid>
+<stage2-instance-base-commit>`. Those prove order and inherited Git state; they do
+not pretend to prove dependency enforcement. The stage/epic record, the two committed
+landings, and the wrapper intents/receipts are the reproduction package.
 
 ## Landable slices
 
-### Slice 0: admit one proof substrate (0.5–1 engineering day)
+### Slice 0 — substrate and live probes (no interpreter code)
 
-First read back that `cr-dbk` is closed and that its `--all` gate is present;
-then create the disposable bridge-proof roadmap, `ws-bridge-proof` epic, approved
-deep plan, dedicated D11 fixture, and exactly three child stages only after
-O2/D10/D11 pass. The proof epic explicitly depends on `cr-dbk`. This changes no
-interpreter code, so a repository gate would not prove bridge behavior. Its
-admission check is this bd/plan join; the plan writes `Stage: <stage-id>` exactly
-once per task:
+Create the disposable bridge-proof roadmap and phase only after rechecking the two
+source Beads. Record their proof order and trust-boundary decision; do not create a
+Stage 1 → Stage 2 dependency. Probe and retain direct-child listing, metadata-before-
+claim read-back, claim/metadata atomicity if available, and a real dependency fixture.
 
-    PLAN=docs/workstreams/bridge-proof/plans/bridge-proof.md
-    epic="$(bd list -t epic -l ws-bridge-proof --json | jq -er 'if length == 1 then .[0].id else error("expected one bridge-proof epic") end')"
-    rows="$(bd list --all --parent "$epic" --json)"
-    actual="$(jq -c '[.[].id] | sort' <<<"$rows")"
-    planned="$(rg -o '^Stage: [[:alnum:]][[:alnum:].-]*[[:alnum:]]$' "$PLAN" | sed -E 's/^Stage: //' | sort | jq -Rsc 'split("\n") | map(select(length > 0))')"
-    jq -en --argjson rows "$rows" --argjson actual "$actual" --argjson planned "$planned" '
-      ($rows|length) == 3 and ($actual|length) == 3 and
-      ($planned|length) == 3 and ($actual|unique|length) == 3 and
-      ($planned|unique|length) == 3 and (($actual|sort) == ($planned|sort)) and
-      all($rows[]; .issue_type == "task")'
+**Verify:** roadmap-to-epic-to-stage join resolves; both admission records remain
+discoverable before and after claim; no fabricated dependency exists; the fixture shows
+a genuine dependency blocks; and T1 is displayed in the landing-gate operator output.
 
-Separately read back that Stage 2 depends directly on Stage 1 and Stage 3 depends
-directly on Stage 2; reject any extra direct proof-stage dependency. For every
-stage, read its recorded source-Bead id, resolve that Bead, and require an open
-real source Bead meeting O2. Record the Stage-1/Stage-2 symbol and
-counterfactual-test contract, plus the Stage-3 fixture contract. `false` is an
-admission failure, not a graph run. Verify the generated fixture's exact initial
-preimage and run `git diff --check`.
+### Slice 1 — vertical admission-to-closure slice (test first)
 
-### Slice 1: identity, recovery, graph definition, and shared-spine preflight (1.5–2 engineering days)
+First write a test using `FakeBd`, a temporary Git repository, and signing fixtures.
+It persists intent, admits one stage, interrupts, rediscovers, resumes, fast-forwards
+the signed artifact with CAS, writes receipt evidence, and closes the stage. `FakeBd`
+already provides deterministic crash injection (`tests/_fake_bd.py:1-18`), and the
+real transport is available through the `fake_client` fixture
+(`tests/conftest.py:213-222`). Use injected composition seams; do not add a supported
+`--fault` CLI surface.
 
-Implement D2–D6, including the `instantiate` base parameter and CLI forwarding.
-Test detached HEAD/ref changes, lock contention, explicit-base re-entry after an
-intervening commit, bd brief reconstruction after scratchpad loss, exact-parent
-claim refusal, attempt cap, security preflight, two-role review evidence, and the
-phase-delivery strict-superset/no-warning pin.
+Run three separate fault experiments:
 
-**Verification:** focused bridge, identity, graph, and CLI tests; then repository
-gate.
+1. Interrupt admission across root creation, self-link, branch, and relation writes;
+   prove the five D2 rows, exactly one recoverable root, and owner-first refusal.
+2. Interrupt after CAS and before landing receipt/closure; prove recovery finalizes only
+   the recorded artifact (or a target containing it) and never moves the ref again.
+3. Move the target after interruption to history that does not contain the artifact;
+   prove recovery refuses with no closure and no bridge ref mutation. A descendant that
+   contains the artifact is the separate D4 finalization case.
 
-### Slice 2: scratch landing, human resolution, and status (2.5–3.5 engineering days)
+**Verify:** focused tests exercise immutable gate selection, the graph-load no-bypass
+validator, halt-over-retry, gate-view `attempt`/`previous_attempts`, receipt completeness,
+and all three fault experiments against real temporary Git history. Run the repository
+gate after the slice.
 
-Implement D7–D8. Test signed OID/artifact/instance-tip agreement and every
-refusal; cryptographic re-verification; merge-by-OID only; coordinator index and
-working-tree synchronization after fast-forward; conflict/red-gate/fast-forward
-preservation; provisioning classification; branch immutability before green;
-all statuses; landing-path band contention refusal before `B_land` capture,
-scratch creation, gating, or coordinator merge; dual-Bead closure recovery;
-D11's OID-bound resolution; retention; and no push.
+### Slice 2 — routing and the two-stage proof
 
-**Verification:** focused bridge, tick/status, merge, landing, and resolution
-tests; then repository gate.
+Add `phase-bridge`, trace rendering, and the surgical execution-skill body replacement.
+The trace reads current stage relation, root/base/terminal, gate evidence, landing intent,
+receipt digest, closure result, and computed phase state. It never selects the next stage.
+Run the LLM-selected Stage 1 to closure; only then call Stage 2.
 
-### Slice 3: phase routing and proof (1–1.5 engineering days plus graph time)
+**Verify:** both stages reach graph-rendered human gates, resume under their recorded
+roots, land their signed OIDs, and close with read-back receipts; the ordering and
+ancestry commands in D6 pass; the phase's all-closed exit gate passes; and the five
+numbered/six-command repository gate runs. If the execution skill changes, also run its
+catalog check prescribed by `.claude/project/verification.md`.
 
-Implement D9, run the admitted proof sequentially, retain Stage-3 escalation
-evidence until human-resolved closure, and execute D10's counterfactual. Re-run
-the Slice-0 join with `--all`; verify the repaired all-stages-closed exit; run
-skill catalog check and cold reread for skill docs.
+## Cost and measurement
 
-**Verification:** Slice-0 join; Stage-1 dual closure; Stage-2 real consumption
-and failing counterfactual; Stage-3 escalation then OID-bound human-resolved dual
-closure; all-stages-closed exit; skill catalog; repository gate.
+No human-engineering-day estimates are used. Planning estimates separate AI execution
+from AI integration/review:
 
-### Repository gate for every implementation slice
+| Slice | AI execution | AI integration/review |
+| --- | ---: | ---: |
+| 0 | 30–45 min | about 15 min |
+| 1 | 4–6 h | 2–3 h, bounded review rounds |
+| 2 | 1–2 h | about 1 h, plus live proof |
 
-Run from repository root, per
-[.claude/project/verification.md:46-64](../../.claude/project/verification.md):
+Measured graph baseline carried from the prior live runs: a shipped two-round root was
+about 36 minutes, $2.12 Claude, and 742k Codex input tokens; an abandoned three-round
+root was about 55 minutes, $4.16, and 311k tokens. Record graph hours, dollars, and
+Codex tokens separately from AI execution, AI integration/review, and the repository
+gate. For the two-stage proof, retain the actual values rather than treating the
+baseline as a promise.
 
-1. `uv run pytest -q -m "not bd and not live"`
-2. `uv run pytest -q -m bd`
-3. `uv run pytest -q -m proc`
-4. `uv run ruff check workflow_interpreter/ tests/` and `uv run ruff format --check workflow_interpreter/ tests/`
-5. `MYPYPATH=. uv run mypy --strict --explicit-package-bases workflow_interpreter/`
+## Cut from v11, and what it protected
 
-## Cost and limits
+| Cut from v11 | What it protected then; v12 disposition |
+| --- | --- |
+| Landing queue, lock, and batching | Serialized competing landings and reduced repeated gates; deferred to `cr-g3e`. |
+| Scratch merge construction and merge-commit paths | Admitted an artifact after target movement; sequential proof instead requires signed fast-forward. |
+| Parked collisions, collision records, decomposition signal, resolution graph | Retained and routed concurrent conflicts; v12 refuses before conflict resolution exists. |
+| “Clean merge needs no new signature” | Justified an unsigned constructed merge; moot because v12 lands the signed OID only. |
+| Three landing paths | Modeled unchanged, clean-merge, and conflicted target states; v12 has one CAS fast-forward path. |
+| No-CAS-under-lock reasoning | Assumed a sole writer; explicitly withdrawn because v12 has no lock. |
+| Production `--fault` | Exposed test-only failure controls; replaced by injected seams and three isolated experiments. |
+| Automatic bridge-owned phase advancement | Hid the stage boundary from the LLM; retain LLM-owned advancement. |
+| False Stage 1 → Stage 2 `bd dep` | Misrepresented sequence as a dependency; preserve intent ordering plus Git ancestry instead. |
+| Numeric retry cap | Tried to bound retries procedurally; replace with graph-load enforcement of human-signature dominance. |
 
-An engineering day is active human or agent engineering time, excluding
-approval/signing wait. The amended slices are **5.5–8 engineering days**:
-0.5–1 (Slice 0), 1.5–2 (Slice 1, including the new production base seam),
-2.5–3.5 (Slice 2, including landing-tip/OID handling, provisioning, and
-resolution), and 1–1.5 (Slice 3).
+## Deferred work and invalidating evidence
 
-Graph-time estimates use the feature-delivery live baseline, not the unrelated
-phase-7 build-loop: a shipped two-round root measured about 36 minutes, $2.12
-Claude, and 742k Codex input tokens; an abandoned three-round root measured
-about 55 minutes, $4.16 Claude, and 311k Codex input tokens
-([scratchpad/probes/phase6-live/BASELINE.md:20-35](../../scratchpad/probes/phase6-live/BASELINE.md)).
-Assuming Stages 1–2 each take two rounds and deliberately conflicted Stage 3
-takes three, the center estimate is about **2.1 graph hours, $8.40 Claude, and
-2.23M Codex input tokens**. The three-round proxy is the abandoned 311k-input
-root, below the shipped two-round root's 742k; that inversion is a caching
-artifact rather than less work, so 1.80M was likely low. Allowing the observed
-variance and one 55-minute bounded re-attempt yields **1.8–3.1 graph hours,
-$6–$13 Claude, and 1–3M Codex input tokens**. Scratch `uv sync`, the five-step
-scratch gate, and D10's counterfactual are outside graph time; three signing
-ceremonies and Stage-3 resolution wait are also additional. Record actuals
-before expansion.
+**Concurrency is `cr-g3e`.** Its trigger is **“more than one graph may land to the
+same branch.”** The deferred design is a merge queue, established prior art: GitHub
+Merge Queue, GitLab Merge Trains, Bors-NG, Zuul/Prow, Mergify, and Aviator. Its standard
+shape is a temporary branch that merges a candidate onto a target snapshot, re-runs
+required checks there, speculatively batches candidates, and bisects to eject an
+offender while innocent candidates proceed. The earlier independent design matched
+that pattern point for point.
 
-## Deferred and invalidating evidence
+The open decision is build our own queue or adopt GitHub's; that is fundamentally a
+choice about remote and CI dependence. Do not pre-empt it here. Sol's four contracts
+and eight corrections live in `cr-g3e` and its children; S1 crash-atomic landing,
+S2 gate-code trust, and S3 cooperative-writer safety are the three that apply here.
 
-- General small/standard routing, dynamic grants, graph-per-phase graphs,
-  decomposition in graphs, automatic signing, gate timeouts, and spend limits.
-- Signed-OID/ref mismatch, a non-green scratch gate, or fast-forward refusal
-  never closes a Bead or selects N+1.
-- A provisioning failure is recoverable `stalled`, not gate evidence; a red full
-  gate is `escalated` and requires a new signed attempt within D2's cap.
-- If `cr-dbk` is not closed, or no three Beads meet O2/D10/D11, do not create or
-  dispatch a proof phase.
-- Widening grants, bypassing the band, pushing, force/rebase, auto-resolution,
-  deleting retained evidence, or raising the attempt quota needs a new owner
-  ruling.
+The following invalidate or stop v12 rather than expanding it:
+
+- A target move before CAS, or an unfinished intent whose target excludes the artifact:
+  refuse and hand evidence to a human; it is the `cr-g3e` trigger, not a local merge task.
+  A post-CAS descendant containing the artifact instead follows D4's closure-only recovery.
+- Any graph path that could reach a new root without a human signature: loader rejection
+  and owner review; do not reintroduce a cap silently.
+- Gate code that cannot be trusted under T1: stop landing and seek a separate containment
+  design; do not claim detached checkout or argv-only invocation is a sandbox.
+- Missing/ambiguous Beads, root, gate, intent, tree, stage identity, or a receipt that
+  cannot be reconstructed from durable evidence: do not close a stage or create a new root.
+- A need for orchestrator signatures: defer to `cr-bwo`; v12 uses the graph's existing
+  human-gate model.
