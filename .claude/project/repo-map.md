@@ -13,7 +13,7 @@ Top-level layout and how to navigate.
 | `reference_tools/` | Third-party tool repos as git submodules (read-only; not part of the harness lifecycle) |
 | `harness_lifecycle/` | Reference-harness curation tooling: `scan.py` (catalog/diff/drift), `gap.py` (gap/ledger), committed `catalogs/` |
 | `.agents/` | Codex/agent local settings |
-| `.claude/` | Canonical harness: `rules/`, `skills/` (slash commands are slash-only skills; each skill carries `agents/openai.yaml` for Codex), `agents/`, `hooks/`, `project/` overlay |
+| `.claude/` | Canonical harness: `skills/` (slash commands are slash-only skills; each skill carries `agents/openai.yaml` for Codex), `agents/`, `hooks/`, `project/` docs loaded when needed |
 | `.codex/` | Codex view of the same harness: `skills/*` and `project` are symlinks into `.claude/`; only Codex-native residue (`config.toml`, `rules/default.rules`, `agents/*.toml`, `hooks.json`) are real files |
 | `.beads/` | Beads issue tracker store (embedded Dolt) + `beads.md` |
 | `scratchpad/` | Gitignored throwaway work |

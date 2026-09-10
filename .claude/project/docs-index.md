@@ -22,7 +22,9 @@ Authoritative docs and when to read them.
 | `scripts/README.md` | Managing Claude/Codex remote-control sessions (`claudex-rc.sh`) — lifecycle, recovery, watchdog |
 | `CONTEXT.md` | Naming anything — the domain glossary; use its terms, avoid its listed synonyms |
 | `.beads/beads.md` | Beads workflow, agent context profiles, session-completion protocol |
-| `.claude/rules/core/03-coding-discipline.md` | Coding rules that reduce common LLM mistakes |
+| `.claude/project/coding-style.md` | Before writing or changing Python code: Ruff, strict mypy, Pydantic, uv |
+| `.claude/project/delegation.md` | Before worker dispatch or independent critique; workflow risk labels |
+| `docs/research/python-tooling/ty-vs-mypy.md` | Evaluating a change to the Python type-check gate: local timing, diagnostic coverage, and migration gaps |
 
 Reference-harness submodule docs under `reference_harnesses/<repo>/` are external —
 read only when the task is explicitly about that reference.

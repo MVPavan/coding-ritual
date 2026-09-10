@@ -5,25 +5,20 @@
 | Tool | Version / note | Used by |
 |---|---|---|
 | Bash | system | install/test scripts, hooks (~23 `.sh`) |
-| Python 3 | system | hook/skill scripts only (`block-generated-edits.py`, skill scripts) |
+| Python | version constraint in `pyproject.toml` | workflow interpreter, tests, hooks, and tooling |
 | Node.js | ≥18 | `codex-adapter` (`scripts/codex-run.mjs`) — private, not published |
 | `bd` (beads) | v1.0.5, embedded Dolt | issue tracking (see `tracking.md`) |
-| `codex` CLI | present & on PATH | **retired** — do not invoke (see §Independent critique) |
+| `codex` CLI | availability and configuration are runtime-specific | Codex sessions and permitted delegation |
 
-No repo-wide package manager step — nothing to `npm install` or `pip install` to
-work on the repo. The plugins are loaded by Claude Code / Codex, not built here.
+For Python tooling, package management, and data modeling, read
+`.claude/project/coding-style.md`. Verification commands live in
+`.claude/project/verification.md`.
 
 ## Independent critique
 
-Codex is retired in this repo (2026-08-14 ruling; low quota) — do not invoke
-the `codex` CLI or the codex-adapter plugin. Critique of drafts, plans, and
-completed diffs runs on a **spawned critic subagent** — a fresh agent,
-separate from the implementer. The user defines which model serves as critic
-(ask if undefined; never assume one). Findings come back numbered
-BLOCKER/MAJOR/MINOR with `file:line` plus a verdict, and the coordinator
-triages them. Skip the critic for `small` tasks unless risk is unusual.
-The Codex-side `use-codex` workflow is parked under
-`.claude/skills/in-progress/use-codex/` (not loaded) for possible reactivation.
+For worker dispatch and independent review, follow
+`.claude/project/delegation.md`. Model selection follows the user or active
+runtime configuration.
 
 ## Subagent / MCP routing
 
@@ -41,7 +36,3 @@ The Codex-side `use-codex` workflow is parked under
 - **claude-max / fable-max / fable-xhigh** — heaviest, most open-ended tasks.
 - Use **brainstorming** to settle harness-design scope, tradeoffs, and
   requirements into a spec (investigation itself routes to the `research` skill).
-
-> Note: `.claude/rules/python/` ships with the harness, but this repo has no
-> Python application/package — only small tooling scripts. Treat those rules as
-> applying to the scripts, or trim them (see adoption-report).
