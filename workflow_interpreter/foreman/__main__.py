@@ -19,6 +19,7 @@ import structlog
 from workflow_interpreter.bdio import ActivationRecord, GateRecord, WorkflowStore
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -307,7 +308,10 @@ def _findings(
 
 
 def _gate_entry(
-    composition: Composition, view: _InstanceView, gate: GateRecord
+    composition: Composition,
+    view: _InstanceView,
+    gate: GateRecord,
+    bridge_view: Mapping[str, object],
 ) -> dict[str, object]:
     """Render the four things a §9 approver cannot derive by hand."""
     return {
@@ -315,11 +319,12 @@ def _gate_entry(
         "template": payload_template(view.root, gate),
         "diff_stat": _diff_stat(composition, view.root, gate),
         "findings": _findings(composition, view, gate),
+        **bridge_view,
     }
 
 
 def _open_gates(
-    composition: Composition, view: _InstanceView
+    composition: Composition, view: _InstanceView, bridge_view: Mapping[str, object]
 ) -> tuple[dict[str, object], ...]:
     """EVERY open gate, halt and transition alike.
 
@@ -337,7 +342,7 @@ def _open_gates(
             "gate_id": gate.gate_id,
             "node": gate.metadata.gate_node,
             "reason": gate.metadata.gate_reason.value,
-            **_gate_entry(composition, view, gate),
+            **_gate_entry(composition, view, gate, bridge_view),
         }
         for gate in sorted(view.frontier.open_gates, key=lambda item: item.gate_id)
     )
@@ -493,13 +498,15 @@ def _run(
         return 0
     if args.command == "run":
         result = foreman.run(args.root_id, poll_s=args.poll, max_wall_s=args.max_wall)
+        view = _view(composition, args.root_id)
+        bridge_view = phase_bridge_gate_view(
+            view.root.metadata.instance_key, composition.config.bd
+        )
         emit(
             json.dumps(
                 {
                     **result.model_dump(mode="json"),
-                    "open_gates": _open_gates(
-                        composition, _view(composition, args.root_id)
-                    ),
+                    "open_gates": _open_gates(composition, view, bridge_view),
                 },
                 sort_keys=True,
             ),
@@ -528,9 +535,14 @@ def _run(
         ),
         "usage": _usage_summary(view.activations),
     }
-    status["open_gates"] = _open_gates(composition, view)
+    bridge_view = phase_bridge_gate_view(
+        root.metadata.instance_key, composition.config.bd
+    )
+    status["open_gates"] = _open_gates(composition, view, bridge_view)
     if frontier.open_halt is not None:
-        status["open_halt"] = _gate_entry(composition, view, frontier.open_halt)
+        status["open_halt"] = _gate_entry(
+            composition, view, frontier.open_halt, bridge_view
+        )
     emit(json.dumps(status, sort_keys=True), MAX_TRANSCRIPT_BYTES)
     return 0
 

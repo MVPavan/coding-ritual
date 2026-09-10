@@ -124,6 +124,12 @@
         "max_total_activations": {
           "type": "integer"
         },
+        "phase_bridge_retry_terminals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          }
+        },
         "test_force_first_reject": {
           "type": "boolean"
         }

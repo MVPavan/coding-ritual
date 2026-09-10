@@ -1,0 +1,58 @@
+# phase_bridge_retry_terminals_human_gated: a retry terminal cannot bypass a human gate.
+[graph]
+id = "min"
+version = "1.0.0"
+entry = "work"
+description = "minimal graph"
+
+[instance]
+max_total_activations = 5
+phase_bridge_retry_terminals = ["finished"]
+
+[[node]]
+name = "work"
+kind = "task"
+runner = "profile:x"
+writes = false
+allowed_paths = []
+verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
+token_budget = 1000
+max_wall = "10m"
+stale_after = "5m"
+max_infra_retries = 1
+max_steers = 1
+outcomes = ["done", "no_diff"]
+
+[[node]]
+name = "approval"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "finished"
+kind = "terminal"
+
+[[edge]]
+from = "work"
+on = "done"
+to = "approval"
+
+[[edge]]
+from = "work"
+on = "no_diff"
+to = "finished"
+
+[[edge]]
+from = "approval"
+on = "approve"
+to = "finished"
+
+[[edge]]
+from = "approval"
+on = "abandon"
+to = "finished"
+
+[fallback]
+to = "approval"

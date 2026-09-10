@@ -26,8 +26,14 @@ from tests._supervisor import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import BdConfig, Outcome, Usage
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import STATUS_CLOSED
+from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
 from workflow_interpreter.bdio.config import SigningConfig
+from workflow_interpreter.bridge import (
+    PhaseAdapter,
+    PhaseAdapterError,
+    PhaseBridgeRecord,
+)
+from workflow_interpreter.bridge import gate_view as gate_view_module
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver, Spawner
 from workflow_interpreter.foreman.config import ForemanConfig
@@ -546,6 +552,220 @@ def test_status_reports_an_open_transition_gate_with_its_inbox_and_template(
     assert entry["node"] == "ship"
     assert entry["inbox"].endswith(ship.metadata.gate_key)
     assert json.loads(entry["template"])["gate_key"] == ship.metadata.gate_key
+    assert "attempt" not in entry
+    assert "previous_attempts" not in entry
+
+
+def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A historical bridge root still renders the stage's retry evidence."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    first = PhaseBridgeRecord.prepared(
+        epic_id="phase-1",
+        stage_id="stage-a",
+        attempt=1,
+        target_ref="refs/heads/main",
+        expected_base_commit=lab.head,
+    )
+    record = first.next_attempt().admitted("current-root")
+    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = first.instance_key
+    lab.fake_bd.rows["stage-a"] = {
+        "id": "stage-a",
+        "title": "bridge stage",
+        "status": "in_progress",
+        "issue_type": "task",
+        "metadata": {"phase_bridge": record.model_dump(by_alias=True, mode="json")},
+        "parent": "phase-1",
+    }
+    lab.profiles.next_script(
+        ChildScript(
+            marker='{"outcome":"done"}\n',
+            effects='{"paths":["src/feature.py"]}',
+            write_path="src/feature.py",
+            write_body="value = 3\n",
+            commit=True,
+        )
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    ship_id = lab.tick().opened_gate
+    assert ship_id is not None
+
+    monkeypatch.setattr(
+        gate_view_module.PhaseAdapter,
+        "from_config",
+        classmethod(
+            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+        ),
+    )
+    assert gate_view_module.phase_bridge_gate_view(
+        first.instance_key, lab.config.bd
+    ) == {
+        "attempt": 2,
+        "is_current_attempt": False,
+        "previous_attempts": (first.instance_key,),
+    }
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+    report = json.loads(
+        next(line for line in transcript.splitlines() if '"root_id"' in line)
+    )
+    entry = next(item for item in report["open_gates"] if item["gate_id"] == ship_id)
+
+    assert entry["attempt"] == 2
+    assert entry["is_current_attempt"] is False
+    assert entry["previous_attempts"] == [first.instance_key]
+
+
+def test_status_renders_current_bridge_attempt_evidence_at_an_open_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The running bridge root renders its stage's retry evidence."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    first = PhaseBridgeRecord.prepared(
+        epic_id="phase-1",
+        stage_id="stage-a",
+        attempt=1,
+        target_ref="refs/heads/main",
+        expected_base_commit=lab.head,
+    )
+    record = first.next_attempt().admitted(root.root_id)
+    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = record.instance_key
+    lab.fake_bd.rows["stage-a"] = {
+        "id": "stage-a",
+        "title": "bridge stage",
+        "status": "in_progress",
+        "issue_type": "task",
+        "metadata": {"phase_bridge": record.model_dump(by_alias=True, mode="json")},
+        "parent": "phase-1",
+    }
+    lab.profiles.next_script(
+        ChildScript(
+            marker='{"outcome":"done"}\n',
+            effects='{"paths":["src/feature.py"]}',
+            write_path="src/feature.py",
+            write_body="value = 3\n",
+            commit=True,
+        )
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    ship_id = lab.tick().opened_gate
+    assert ship_id is not None
+
+    monkeypatch.setattr(
+        gate_view_module.PhaseAdapter,
+        "from_config",
+        classmethod(
+            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+        ),
+    )
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+    report = json.loads(
+        next(line for line in transcript.splitlines() if '"root_id"' in line)
+    )
+    entry = next(item for item in report["open_gates"] if item["gate_id"] == ship_id)
+
+    assert entry["attempt"] == 2
+    assert entry["is_current_attempt"] is True
+    assert entry["previous_attempts"] == [first.instance_key]
+
+
+def test_phase_bridge_gate_view_rejects_a_root_outside_stage_attempts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A similarly named root remains foreign unless the record names it."""
+    lab = ForemanLab(tmp_path)
+    record = PhaseBridgeRecord.prepared(
+        epic_id="phase-1",
+        stage_id="stage-a",
+        attempt=1,
+        target_ref="refs/heads/main",
+        expected_base_commit=lab.head,
+    ).next_attempt()
+    lab.fake_bd.rows["stage-a"] = {
+        "id": "stage-a",
+        "title": "bridge stage",
+        "status": "in_progress",
+        "issue_type": "task",
+        "metadata": {"phase_bridge": record.model_dump(by_alias=True, mode="json")},
+        "parent": "phase-1",
+    }
+    monkeypatch.setattr(
+        gate_view_module.PhaseAdapter,
+        "from_config",
+        classmethod(
+            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+        ),
+    )
+
+    with pytest.raises(PhaseAdapterError, match="does not own root instance_key"):
+        gate_view_module.phase_bridge_gate_view(
+            "phase-bridge:phase-1:stage-a:attempt:3", lab.config.bd
+        )
+
+
+def test_status_resolves_bridge_view_once_for_an_open_halt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The duplicate halt presentation shares one root-scoped bridge read."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    record = (
+        PhaseBridgeRecord.prepared(
+            epic_id="phase-1",
+            stage_id="stage-a",
+            attempt=1,
+            target_ref="refs/heads/main",
+            expected_base_commit=lab.head,
+        )
+        .next_attempt()
+        .admitted(root.root_id)
+    )
+    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = record.instance_key
+    lab.fake_bd.rows["stage-a"] = {
+        "id": "stage-a",
+        "title": "bridge stage",
+        "status": "in_progress",
+        "issue_type": "task",
+        "metadata": {"phase_bridge": record.model_dump(by_alias=True, mode="json")},
+        "parent": "phase-1",
+    }
+    lab.store.open_gate(root.root_id, halt_gate("ceiling:20"))
+    resolutions = 0
+
+    def adapter_from_config(
+        _cls: type[PhaseAdapter], _config: BdConfig
+    ) -> PhaseAdapter:
+        nonlocal resolutions
+        resolutions += 1
+        return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+
+    monkeypatch.setattr(
+        gate_view_module.PhaseAdapter,
+        "from_config",
+        classmethod(adapter_from_config),
+    )
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+
+    assert '"open_halt"' in transcript
+    assert resolutions == 1
 
 
 def test_status_names_the_terminal_an_instance_reached_and_its_root_state(

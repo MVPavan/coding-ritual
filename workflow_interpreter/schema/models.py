@@ -153,6 +153,9 @@ class RuleId(StrEnum):
     VERIFY_ENTRIES_WELL_FORMED = "verify_entries_well_formed"
     ALLOWED_PATHS_WELL_FORMED = "allowed_paths_well_formed"
     INSTANCE_BOUNDS_VALID = "instance_bounds_valid"
+    PHASE_BRIDGE_RETRY_TERMINALS_HUMAN_GATED = (
+        "phase_bridge_retry_terminals_human_gated"
+    )
     TEST_FLAGS_REQUIRE_OPT_IN = "test_flags_require_opt_in"
     JUDGMENT_VERIFY_SUPERSET = "judgment_verify_superset"
     TASK_NODES_INSTRUCTED = "task_nodes_instructed"
@@ -181,11 +184,12 @@ class GraphMeta(BaseModel):
 
 
 class InstanceBounds(BaseModel):
-    """`[instance]` — the §10.3 instance ceiling and v1 test switches."""
+    """`[instance]` — the §10.3 ceiling, bridge eligibility, and test switches."""
 
     model_config = MODEL_CONFIG
 
     max_total_activations: int
+    phase_bridge_retry_terminals: tuple[Identifier, ...] | None = None
     test_force_first_reject: bool = False
 
 

@@ -7,6 +7,7 @@ from typing import Final
 
 from workflow_interpreter.bdio import finalize
 from workflow_interpreter.bdio.client import BdClient, DependencyRecord
+from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
 
@@ -25,6 +26,11 @@ class PhaseAdapter:
 
     def __init__(self, client: BdClient) -> None:
         self._client = client
+
+    @classmethod
+    def from_config(cls, config: BdConfig) -> PhaseAdapter:
+        """Build the bridge's read/write adapter without exposing bd transport."""
+        return cls(BdClient(config))
 
     def show(self, stage_id: str) -> BeadRecord:
         """Read one resolved stage by id."""
