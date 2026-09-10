@@ -1,4 +1,4 @@
-# Phase-Execution Interpreter Bridge Plan (v12)
+# Phase-Execution Interpreter Bridge Plan (v12.1)
 
 **Purpose.** Prove one real multi-stage roadmap phase through the interpreter,
 entered from `/phase-execution`, with graph-owned gate rendering and stage closure,
@@ -20,9 +20,11 @@ from that landed state and does the same. The LLM invokes each named stage separ
 the bridge never advances the phase itself. A changed target ref is a clean refusal,
 not an opportunity to construct or resolve a merge.
 
-**Status.** v12, 2026-09-10. Every `file:line` citation below was read in this
+**Status.** v12.1, 2026-09-10. Every `file:line` citation below was read in this
 worktree. Citations describe observed code; implementation requirements are marked
 as such.
+
+**Amendment (2026-09-10).** P6 established that bd metadata updates replace nested objects rather than merging them.
 
 ## Numbered decisions
 
@@ -58,6 +60,10 @@ target_ref, expected_base_commit, root_id?
 landed_oid?, tree?, gate_receipt_digest?, landing_receipt_digest?
 previous_attempts[]
 ```
+
+Every write of `phase_bridge` must serialize the whole object, including
+`previous_attempts[]`: `--metadata` replaces a nested object rather than merging it,
+so a partial write silently drops `schema`, `attempt`, and the attempt history.
 
 `prepared` and `admitted` are stage-metadata writes, each read back; `landing` is
 recorded by the durable wrapper-directory landing intent before CAS and is the
