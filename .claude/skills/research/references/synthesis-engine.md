@@ -1,10 +1,11 @@
 # Synthesis Engine
 
-Run this after source collection and before writing the research document.
+Use relevant parts when a complex research question needs structured synthesis;
+a short factual answer does not require this template.
 
 ## 1. Claim Table
 
-List the 5-10 claims that matter most.
+List the claims that could materially change the answer.
 
 For each claim record:
 - Evidence.
@@ -45,7 +46,7 @@ Include the strongest counterargument in the document.
 
 ## 5. Confidence Calibration
 
-Use in every final report:
+For reports that benefit from explicit confidence labels:
 - High: primary or authoritative sources agree, recent enough, and the red-team did not weaken it.
 - Medium: evidence is credible but incomplete or partly indirect.
 - Low: single source, narrow, anecdotal, stale, or conflicting evidence.

@@ -1,6 +1,6 @@
 ---
 name: harness-status
-description: Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. Read-only (fetches, never moves pins).
+description: Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. Fetches upstream refs without moving pinned commits.
 disable-model-invocation: true
 ---
 
@@ -19,6 +19,7 @@ Report, per reference harness, whether upstream has material changes since our p
 
 ## Rules
 
-- Read-only: never run `git submodule update` or anything that moves a pinned commit.
+- Fetch updates the local ref cache; it is not a pin update. Never move pinned
+  commits as part of a status request.
 - If a fetch fails (offline), note it and continue with the other repos.
 - Keep output to the summary table plus a one-line recommendation; do not dump full diffs.

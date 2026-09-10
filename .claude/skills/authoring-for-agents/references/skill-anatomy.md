@@ -1,95 +1,34 @@
-# Skill anatomy
+# Skill packaging
 
-Structure and mechanics when the document is a skill or command in this
-harness — only what changes because of the packaging.
+Keep one canonical directory per workflow with `SKILL.md`; add references only
+for substantial conditional material and scripts for reusable mechanical work.
+Inline the common contract. Avoid mandatory chains of references.
 
-## Layout
+## Frontmatter and invocation
 
-```text
-<skills-root>/<name>/        # Claude Code: .claude/skills/ in a repo; either tool: skills/ in a plugin
-  SKILL.md          # required
-  references/       # only when SKILL.md alone is not enough
-  scripts/          # only for runnable helpers
-```
+Require `name` matching the directory and a concise `description` naming the
+activation boundary. Put important exclusions near the positive trigger. A short
+outcome phrase is acceptable when it improves selection; do not duplicate the
+whole workflow or assume any wording technique guarantees invocation behavior.
 
-- Keep `SKILL.md` lean — this harness's skills run near 100 lines. The real
-  bound is branch relevance, not a line count: inline what every run needs,
-  push into `references/` what only some branches reach. As a rough gauge,
-  material under ~50 lines that every run touches stays inline; reference
-  consulted on demand earns its own file as it grows past that.
-- References stay one level deep: `SKILL.md` points at a file; that file never
-  chains to another.
-- Prefer a script over inline code the agent must retype — executing costs no
-  context, only the output does.
-- No empty `scripts/` or `references/` directories to mirror other skills.
+Use `disable-model-invocation: true` for manual workflows and compatibility
+aliases. The paired Codex policy is `agents/openai.yaml` →
+`policy.allow_implicit_invocation: false`. This repository's catalog generator
+updates that sidecar and the router together. Actual catalog exposure and context
+loading depend on the harness; inspect discovery instead of assuming zero cost.
 
-## Frontmatter
+A manual entrypoint can delegate to a shared workflow when explicitly requested.
+Keep its body thin and preserve the user's authority boundaries. Other skills
+should select the canonical owner rather than automatically activating aliases.
 
-`name` (kebab-case, matches the directory) and `description` are required.
-House-used optional fields: `disable-model-invocation: true` makes a skill
-user-invoked (see below); `license` when the content is imported under one.
+## Cross-references and verification
 
-The description is the skill's always-loaded pointer — the pointer-writing
-rules apply in full, plus one hard rule of its own:
+Name the owner and the condition for reading a reference. Use relative links for
+nearby skill material and repository paths for project policy. Keep model IDs,
+reasoning controls and tool-interface differences in runtime integration.
 
-- **Triggers only, never a workflow summary.** A description that summarises
-  the process becomes a shortcut: the agent follows the summary and skips the
-  body. (Observed: "code review between tasks" in a description produced one
-  review where the skill's body required two.)
-- Third person, starting "Use when…", naming symptoms and situations the
-  agent will actually see — error text, task shapes, tool names.
-- When routing between neighbours is ambiguous, name them: "To open up a raw
-  idea first, use idea-refine; to interrogate a plan that is already written,
-  use grill-me."
-
-```yaml
-# bad — summarises the workflow; the agent may execute this line instead of the body
-description: Use for TDD — write a failing test first, then minimal code, then refactor
-
-# good — triggering conditions only
-description: Use for risky behavior changes, bug fixes, or legacy edits where test-first execution is the safest path
-```
-
-## Body pattern
-
-Recommended shape, not a rigid template — equivalent headings are fine:
-
-- a purpose line: what the skill turns into what
-- the process, as steps with completion criteria ("done when…")
-- rules the process must hold to
-- verification / done-when for the whole skill
-
-A discipline skill — one enforcing a rule the agent will want to skip — adds
-two sections, both built from excuses observed in testing, never invented:
-
-- a rationalization table: `| Excuse | Reality |`
-- a red-flags list: the thoughts that mean "stop, start over"
-
-House examples: `idea-refine` (red flags), `test-driven-development`,
-`verification-before-completion`.
-
-## Invocation: three reaches
-
-| Reach | Mechanics | Cost |
-| --- | --- | --- |
-| **Model-invoked skill** — the agent fires it on its own; other skills can route to it | a description carrying the trigger branches | the description is permanent context load |
-| **User-invoked skill** — only the human typing `/name` fires it; no skill can route to it | `disable-model-invocation: true`; the description turns human-facing — a one-line summary, trigger lists stripped | zero trigger load, but the human is the index that must remember it |
-
-Pick model-invocation only when the agent must reach the document unprompted
-or another skill routes to it. House examples of user-invoked skills:
-`grill-me`, `i-have-adhd`, `teach-session`.
-
-When human-only surfaces multiply past what the human can remember, a
-**router** — one surface that names the others and when to reach for each —
-trades one description for many memorized names. It can only hint at
-user-invoked skills, never fire them.
-
-## Cross-references
-
-- Name other skills by name in prose — "the `planning` skill" — and route to
-  them; never duplicate a neighbour's content.
-- Before creating a skill, search the catalog; extending the nearest existing
-  skill beats a near-duplicate directory.
-- Discoverability is the frontmatter's job: a skill is found through its
-  description, a command through its name. `.claude/project/docs-index.md`
-  indexes durable docs, not the skill catalog.
+After metadata or routing edits, regenerate the catalog/sidecars and run the
+catalog check. Check caller references and existing integration links before
+removing an entrypoint. Compatibility pointers are appropriate when an authorized
+edit scope excludes those integration files. Structural validity does not prove
+behavioral routing; test representative positive and negative tasks when feasible.

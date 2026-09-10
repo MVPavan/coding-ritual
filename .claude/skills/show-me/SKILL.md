@@ -27,3 +27,9 @@ The strongest device here: when the point is *what changes* and the surrounding 
 - Real names from the actual code — never invented placeholders.
 - Prefer the text forms over Mermaid when the reader is in a terminal; prefer a table over any of these when the content is a flat list or comparison.
 - Escalate to the **html-artifact** skill when its own "HTML when all hold" gate is met — never on a single criterion. Its `references/svg-craft.md` owns rendered figures; this skill never emits HTML.
+
+## Discovery
+
+This is a manual skill. Some Codex integrations do not link this entrypoint;
+when explicitly requested by path, read this file directly. Adding a discovery
+link is separate integration work and must fit the authorized write scope.

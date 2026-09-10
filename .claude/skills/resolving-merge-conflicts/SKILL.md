@@ -5,7 +5,8 @@ description: Use when a git merge, rebase, or cherry-pick is already in a confli
 
 1. **See the current state** of the merge/rebase. Check git history, and the conflicting files — capture the conflict set now: `git diff --name-only --diff-filter=U`.
 
-2. **Find the primary sources** for each conflict. Understand deeply why each change was made, and what the original intent was. Read the commit messages, check the PRs, check original issues/tickets.
+2. **Find the primary sources** for each conflict. Understand deeply why each change was made, and what the original intent was. Use commit messages and relevant requirements first; expand to PRs/issues only
+   when a disputed hunk needs that history.
 
 3. **Resolve each hunk.** Preserve both intents where possible. Where incompatible, pick the one matching the merge's stated goal and note the trade-off. Do **not** invent new behaviour. Resolve rather than reflexively aborting; if the two intents cannot be reconciled, or the merge/rebase itself turns out to be the wrong operation, stop and ask the user before `--abort`.
 

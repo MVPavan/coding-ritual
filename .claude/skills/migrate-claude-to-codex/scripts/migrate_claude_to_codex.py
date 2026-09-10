@@ -10,40 +10,17 @@ import re
 import shutil
 import subprocess
 import sys
-import textwrap
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-
+# Shared policy/reference paths remain canonical under .claude.
 PATH_REPLACEMENTS = (
-    (".claude/project", ".codex/project"),
-    (".claude/skills", ".codex/skills"),
     (".claude/commands", ".codex/skills"),
     (".claude/agents", ".codex/agents"),
     (".claude/hooks", ".codex/hooks"),
-    (".claude/rules", ".codex/rules"),
-    (".claude/docs", ".codex/docs"),
-    (".claude/", ".codex/"),
 )
-
-DEFAULT_RULES = """\
-def main(ctx):
-    deny = [
-        (["git", "reset", "--hard"], "Do not destroy local worktree/history state without explicit approval."),
-        (["git", "clean"], "Do not remove untracked files without explicit approval."),
-        (["git", "push", "--force"], "Do not force-push without explicit approval."),
-        (["git", "push", "-f"], "Do not force-push without explicit approval."),
-        (["git", "branch", "-D"], "Do not delete branches without explicit approval."),
-        (["git", "checkout", "."], "Do not rewrite the worktree without explicit approval."),
-        (["git", "restore", "."], "Do not rewrite the worktree without explicit approval."),
-        (["bd", "init", "--force"], "Do not reinitialize the Beads store without explicit approval."),
-        (["bd", "init", "--reinit-local"], "Do not reinitialize the Beads store without explicit approval."),
-    ]
-    for prefix, reason in deny:
-        prefix_rule(prefix, "forbidden", reason)
-"""
 
 
 @dataclass
@@ -134,7 +111,9 @@ def read_text_if_possible(path: Path) -> str | None:
         return None
 
 
-def write_text(path: Path, text: str, *, apply: bool, force: bool, report: Report) -> None:
+def write_text(
+    path: Path, text: str, *, apply: bool, force: bool, report: Report
+) -> None:
     if path.exists() and not force:
         report.skip(f"{path} exists; use --force to overwrite")
         return
@@ -145,7 +124,9 @@ def write_text(path: Path, text: str, *, apply: bool, force: bool, report: Repor
     path.write_text(text, encoding="utf-8")
 
 
-def copy_file(src: Path, dest: Path, *, apply: bool, force: bool, report: Report) -> None:
+def copy_file(
+    src: Path, dest: Path, *, apply: bool, force: bool, report: Report
+) -> None:
     if dest.exists() and not force:
         report.skip(f"{dest} exists; use --force to overwrite")
         return
@@ -160,7 +141,9 @@ def copy_file(src: Path, dest: Path, *, apply: bool, force: bool, report: Report
         dest.write_text(normalize_text(text), encoding="utf-8")
 
 
-def copy_tree(src: Path, dest: Path, *, apply: bool, force: bool, report: Report) -> None:
+def copy_tree(
+    src: Path, dest: Path, *, apply: bool, force: bool, report: Report
+) -> None:
     if not src.exists():
         report.skip(f"{src} not present")
         return
@@ -171,7 +154,44 @@ def copy_tree(src: Path, dest: Path, *, apply: bool, force: bool, report: Report
         rel_parts = list(rel.parts)
         if rel_parts and rel_parts[-1] == "SKILL.MD":
             rel_parts[-1] = "SKILL.md"
-        copy_file(path, dest.joinpath(*rel_parts), apply=apply, force=force, report=report)
+        copy_file(
+            path, dest.joinpath(*rel_parts), apply=apply, force=force, report=report
+        )
+
+
+def link_skills(repo: Path, *, apply: bool, report: Report) -> None:
+    """Expose canonical skills without copying policy or overwriting destinations."""
+    source = repo / ".claude" / "skills"
+    if not source.exists():
+        report.skip(f"{source} not present")
+        return
+    for skill in sorted(source.iterdir()):
+        if not skill.is_dir():
+            continue
+        entrypoint = skill / "SKILL.md"
+        legacy = skill / "SKILL.MD"
+        if not entrypoint.is_file() and not legacy.is_file():
+            continue
+        target = repo / ".codex" / "skills" / skill.name
+        if target.exists() or target.is_symlink():
+            report.skip(f"{target} exists; reconcile manually (including with --force)")
+            continue
+        report.action(f"link {target} -> {skill}")
+        if not apply:
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if entrypoint.is_file():
+            target.symlink_to(
+                os.path.relpath(skill, target.parent), target_is_directory=True
+            )
+        else:
+            # Preserve legacy casing without changing the shared source file.
+            target.mkdir()
+            for child in sorted(skill.iterdir()):
+                name = "SKILL.md" if child.name == "SKILL.MD" else child.name
+                (target / name).symlink_to(
+                    os.path.relpath(child, target), target_is_directory=child.is_dir()
+                )
 
 
 def command_skill_name(rel: Path) -> str:
@@ -187,6 +207,18 @@ def convert_commands(repo: Path, *, apply: bool, force: bool, report: Report) ->
     for path in sorted(src.rglob("*.md")):
         rel = path.relative_to(src)
         name = command_skill_name(rel)
+        target = repo / ".codex" / "skills" / name
+        canonical = repo / ".claude" / "skills" / name
+        if (
+            target.exists()
+            or target.is_symlink()
+            or (canonical / "SKILL.md").is_file()
+            or (canonical / "SKILL.MD").is_file()
+        ):
+            report.skip(
+                f"command {path} collides with skill {name}; reconcile manually"
+            )
+            continue
         text = path.read_text(encoding="utf-8")
         meta, body = split_frontmatter(text)
         original_desc = str(meta.get("description") or "").strip()
@@ -209,15 +241,28 @@ This skill was migrated from `.claude/commands/{rel.as_posix()}`. Treat provider
 
 {normalize_text(body).rstrip()}
 """
-        write_text(repo / ".codex" / "skills" / name / "SKILL.md", skill, apply=apply, force=force, report=report)
+        write_text(
+            repo / ".codex" / "skills" / name / "SKILL.md",
+            skill,
+            apply=apply,
+            force=force,
+            report=report,
+        )
 
 
 def infer_sandbox(name: str, meta: dict[str, Any], body: str) -> str:
     tools = meta.get("tools")
-    if isinstance(tools, list) and tools and set(tools).issubset({"Read", "Grep", "Glob"}):
+    if (
+        isinstance(tools, list)
+        and tools
+        and set(tools).issubset({"Read", "Grep", "Glob"})
+    ):
         return "read-only"
     text = f"{name}\n{meta.get('description', '')}\n{body}".lower()
-    if any(word in text for word in ("read-only", "review", "research", "planner", "planning")):
+    if any(
+        word in text
+        for word in ("read-only", "review", "research", "planner", "planning")
+    ):
         return "read-only"
     return "workspace-write"
 
@@ -247,8 +292,16 @@ def convert_agents(repo: Path, *, apply: bool, force: bool, report: Report) -> N
             ]
         )
         if "model" in meta:
-            report.warn(f"did not carry Claude model id from {path}; review Codex model selection manually")
-        write_text(repo / ".codex" / "agents" / f"{name}.toml", toml, apply=apply, force=force, report=report)
+            report.warn(
+                f"did not carry Claude model id from {path}; review Codex model selection manually"
+            )
+        write_text(
+            repo / ".codex" / "agents" / f"{name}.toml",
+            toml,
+            apply=apply,
+            force=force,
+            report=report,
+        )
 
 
 def convert_hook_command(command: str) -> str:
@@ -282,8 +335,16 @@ def convert_hooks_json(repo: Path, *, apply: bool, force: bool, report: Report) 
             for hook in entry.get("hooks", []):
                 if isinstance(hook, dict) and isinstance(hook.get("command"), str):
                     hook["command"] = convert_hook_command(hook["command"])
-    write_text(dest, json.dumps({"hooks": hooks}, indent=2) + "\n", apply=apply, force=force, report=report)
-    report.warn("review migrated hooks against Codex hook payload schemas before relying on enforcement")
+    write_text(
+        dest,
+        json.dumps({"hooks": hooks}, indent=2) + "\n",
+        apply=apply,
+        force=force,
+        report=report,
+    )
+    report.warn(
+        "review migrated hooks against Codex hook payload schemas before relying on enforcement"
+    )
 
 
 def write_defaults(repo: Path, *, apply: bool, force: bool, report: Report) -> None:
@@ -295,8 +356,9 @@ hooks = true
 max_depth = 1
 max_threads = 6
 """
-    write_text(repo / ".codex" / "config.toml", config, apply=apply, force=force, report=report)
-    write_text(repo / ".codex" / "rules" / "default.rules", DEFAULT_RULES, apply=apply, force=force, report=report)
+    write_text(
+        repo / ".codex" / "config.toml", config, apply=apply, force=force, report=report
+    )
     notes = """\
 # Codex Migration Notes
 
@@ -306,22 +368,30 @@ Review the migrated assets before treating them as semantically equivalent to th
 
 ## Mechanical Mapping
 
-- `.claude/skills/` -> `.codex/skills/`
+- `.claude/skills/` -> shared links under `.codex/skills/`
 - `.claude/commands/` -> `.codex/skills/`
 - `.claude/agents/` -> `.codex/agents/`
-- `.claude/project/` -> `.codex/project/`
-- `.claude/docs/` -> `.codex/docs/`
-- `.claude/rules/` -> `.codex/rules/`
+- `.claude/project/` and `.claude/docs/` stay shared in place.
+- `.claude/rules/` requires manual policy routing to AGENTS.md or conditional shared docs.
+- No Codex execution-policy rules are generated from Markdown guidance.
 - `.claude/hooks/` and `.claude/settings.json` -> `.codex/hooks/` and `.codex/hooks.json`
 
 ## Required Manual Review
 
 - Remove or adapt Claude-only model IDs and tool names.
 - Validate Codex hook payload handling with fixtures.
-- Update `AGENTS.md` or repo entrypoints to point at `.codex/project`.
+- Keep shared policy in AGENTS.md with conditional pointers to shared project docs.
+- Review rule activation conditions before integrating them; migration does not edit AGENTS.md.
+- Existing skill destinations are preserved, even with --force; reconcile them manually.
 - Run Codex discovery with `codex debug prompt-input` when available.
 """
-    write_text(repo / ".codex" / "docs" / "codex-migration-notes.md", notes, apply=apply, force=force, report=report)
+    write_text(
+        repo / ".codex" / "docs" / "codex-migration-notes.md",
+        notes,
+        apply=apply,
+        force=force,
+        report=report,
+    )
 
 
 def migrate(args: argparse.Namespace) -> int:
@@ -330,19 +400,30 @@ def migrate(args: argparse.Namespace) -> int:
         print(f"error: {repo}/.claude does not exist", file=sys.stderr)
         return 2
     report = Report(dry_run=not args.apply)
-    copy_tree(repo / ".claude" / "skills", repo / ".codex" / "skills", apply=args.apply, force=args.force, report=report)
+    link_skills(repo, apply=args.apply, report=report)
     convert_commands(repo, apply=args.apply, force=args.force, report=report)
     convert_agents(repo, apply=args.apply, force=args.force, report=report)
-    copy_tree(repo / ".claude" / "project", repo / ".codex" / "project", apply=args.apply, force=args.force, report=report)
-    copy_tree(repo / ".claude" / "docs", repo / ".codex" / "docs", apply=args.apply, force=args.force, report=report)
-    copy_tree(repo / ".claude" / "rules", repo / ".codex" / "rules", apply=args.apply, force=args.force, report=report)
-    copy_tree(repo / ".claude" / "hooks", repo / ".codex" / "hooks", apply=args.apply, force=args.force, report=report)
+    copy_tree(
+        repo / ".claude" / "hooks",
+        repo / ".codex" / "hooks",
+        apply=args.apply,
+        force=args.force,
+        report=report,
+    )
+    if (repo / ".claude" / "rules").exists():
+        report.warn(
+            "manual policy review required: route .claude/rules into AGENTS.md or shared conditional docs"
+        )
     convert_hooks_json(repo, apply=args.apply, force=args.force, report=report)
     write_defaults(repo, apply=args.apply, force=args.force, report=report)
     if (repo / "AGENTS.md").exists():
-        report.warn("review AGENTS.md manually so it points at .codex/project and Codex skills")
+        report.warn(
+            "review AGENTS.md manually; keep shared project references and preserve rule activation scope"
+        )
     else:
-        report.warn("add AGENTS.md or another Codex entrypoint for repo-specific instructions")
+        report.warn(
+            "add AGENTS.md or another Codex entrypoint for repo-specific instructions"
+        )
     report.print()
     return 0
 
@@ -357,7 +438,9 @@ def validate_skill_frontmatter(skill: Path) -> list[str]:
         errors.append(f"{skill}: missing description")
     expected = skill.parent.name
     if meta.get("name") != expected:
-        errors.append(f"{skill}: name {meta.get('name')!r} does not match folder {expected!r}")
+        errors.append(
+            f"{skill}: name {meta.get('name')!r} does not match folder {expected!r}"
+        )
     return errors
 
 
@@ -365,14 +448,9 @@ def run_codex_discovery(repo: Path) -> tuple[bool, str]:
     codex = shutil.which("codex")
     if not codex:
         return False, "codex executable not found"
-    env = os.environ.copy()
-    codex_home = Path(env.get("CODEX_HOME") or "/tmp/codex-harness-verify")
-    codex_home.mkdir(parents=True, exist_ok=True)
-    env["CODEX_HOME"] = str(codex_home)
     proc = subprocess.run(
         [codex, "debug", "prompt-input", "verify codex harness discovery"],
         cwd=repo,
-        env=env,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -421,7 +499,7 @@ def verify(args: argparse.Namespace) -> int:
         for error in errors:
             print(f"  - {error}")
         return 1
-    print("verification passed")
+    print("structural verification passed")
     for warning in warnings:
         print(f"warning: {warning}")
     return 0
@@ -430,22 +508,38 @@ def verify(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
-    migrate_parser = sub.add_parser("migrate", help="Plan or apply a Claude-to-Codex migration")
-    migrate_parser.add_argument("--repo", default=".", help="repository root, default: current directory")
-    migrate_parser.add_argument("--apply", action="store_true", help="write files; default is dry-run")
-    migrate_parser.add_argument("--force", action="store_true", help="overwrite existing migrated files")
-    migrate_parser.set_defaults(func=migrate)
-    verify_parser = sub.add_parser("verify", help="verify migrated Codex harness structure")
-    verify_parser.add_argument("--repo", default=".", help="repository root, default: current directory")
-    verify_parser.add_argument("--skip-codex", action="store_true", help="skip codex debug prompt-input discovery")
-    verify_parser.set_defaults(func=verify)
+    migrate_parser = sub.add_parser(
+        "migrate", help="Plan or apply a Claude-to-Codex migration"
+    )
+    migrate_parser.add_argument(
+        "--repo", default=".", help="repository root, default: current directory"
+    )
+    migrate_parser.add_argument(
+        "--apply", action="store_true", help="write files; default is dry-run"
+    )
+    migrate_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite generated scaffolds; existing skill destinations remain protected",
+    )
+    verify_parser = sub.add_parser(
+        "verify", help="verify migrated Codex harness structure"
+    )
+    verify_parser.add_argument(
+        "--repo", default=".", help="repository root, default: current directory"
+    )
+    verify_parser.add_argument(
+        "--skip-codex",
+        action="store_true",
+        help="skip codex debug prompt-input discovery",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    return args.func(args)
+    return migrate(args) if args.command == "migrate" else verify(args)
 
 
 if __name__ == "__main__":

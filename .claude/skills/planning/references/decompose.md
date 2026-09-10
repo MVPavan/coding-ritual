@@ -36,15 +36,15 @@ Seed plain tasks labelled `ws-<name>` — no epics, no roadmap.
 
 ## Approval gate — what to present
 
-Before seeding, show and iterate until approved:
+For material structure not already authorized, present before seeding:
 
 - the phase list in execution order, one line each: name · goal · risk
 - stage counts per phase
 - every dependency edge (epic→epic and stage→stage), each with its reason
 - open questions
 
-Approval must name the structure ("yes, this split") — vague assent means
-re-present the choice concretely.
+Use existing approval covering the concrete structure or delegated routine
+choices. Clarify only material ambiguity; do not demand a repeated approval phrase.
 
 ## Seeding commands
 

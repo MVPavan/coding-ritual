@@ -11,10 +11,17 @@ Claude Code and Codex install. Publishing is a manual, user-run step.
 
 ## Steps
 
-1. **Preflight here.** Root gates must be green and committed:
+1. **Prerequisites and scope.** Confirm this is the source workshop and the
+   mvp-harness submodule is initialized with `publish-plugin.sh` available. If
+   absent, report the missing prerequisite; do not pretend publication ran.
+   Read the current publish manifest/help. Confirm publication and commit
+   authority separately; a no-commit instruction remains binding.
+
+   **Preflight here.** Required root gates must pass; the publish script may
+   require committed source unless an explicitly authorized dirty-tree mode applies:
 
    ```bash
-   python3 .claude/scripts/skill-catalog.py --check     # 0 FAIL, 0 WARN
+   python3 .claude/scripts/skill-catalog.py --check     # no failures; assess warnings
    git status --short                                     # clean (or know why not)
    ```
 
@@ -39,8 +46,8 @@ Claude Code and Codex install. Publishing is a manual, user-run step.
    asserts discovery; drop it if `codex` is not on PATH. `--allow-dirty` only
    when the user has explicitly accepted publishing from an uncommitted tree.
 
-4. **Review + commit the plugin repo** (it is a separate git repo on its own
-   branch):
+4. **Review the plugin repo** (a separate repository on its own branch).
+   Commit only when commit authority was granted:
 
    ```bash
    git -C mvp-harness status --short
@@ -51,14 +58,16 @@ Claude Code and Codex install. Publishing is a manual, user-run step.
    and the source commit from `plugins/mvp-plugin/publish-info.txt`. Do not
    push; the user pushes and decides the branch/merge.
 
-5. **Bump the submodule pointer here** and commit it:
+5. **Bump the submodule pointer and commit only when authorized.** Otherwise
+   report the prepared plugin state and proposed pointer update:
 
    ```bash
    git add mvp-harness && git commit -m "chore(plugin): mvp-plugin vX.Y.Z (source <sha>)"
    ```
 
-   Consumers pick the new version up with `/plugin update mvp-plugin` (Claude
-   Code) or `codex plugin marketplace upgrade` + a new session (Codex).
+   Give consumers the update command verified against their current local CLI
+   help, then start a new session to verify discovery. Do not assume a historical
+   marketplace command is supported.
 
 ## What the script enforces (so you know what a failure means)
 

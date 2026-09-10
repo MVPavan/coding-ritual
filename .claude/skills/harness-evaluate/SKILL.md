@@ -1,61 +1,38 @@
 ---
 name: harness-evaluate
-description: Use when a reference-harness capability surfaced by /harness-scan drift or gap output needs a curation decision recorded in the ledger, or when an already-adopted capability needs syncing back. Use when curating reference_harnesses/* into mvp-harness.
+description: Use when evaluating a reference-harness capability for adoption, rejection, deferral, or synchronization. Inspection alone does not authorize adoption.
 ---
 
 # Harness Evaluate
 
-The judgement half of the reference-harness lifecycle. Input: one capability
-(skill / command / agent / rule / hook / mcp) surfaced by `/harness-scan`. Output:
-a routing decision recorded in the ledger, and — if adopted — the sync-back done.
+Evaluate a reference capability against the maintained shared harness. Read the
+candidate's canonical source, relevant prior ledger decision and closest local
+implementation. Reference repositories remain read-only evidence.
 
-## 1. Understand the candidate
+Compare behavioral gain, overlap, dependencies, context cost and maintenance.
+Choose reject/defer, merge into an existing capability, a separate plugin for a
+distinct dependency/domain boundary, or shared template adoption for broadly
+useful low-cost guidance. Use harness-skill-compare for a substantive comparison.
 
-- Read the capability's canonical file(s) under `reference_harnesses/<repo>/`.
-- Read our closest equivalent (use the gap report's "similar to ours" hint, or
-  search `.claude/` + `mvp-harness/plugins/`). Is it genuinely new, or a variant
-  of something we already ship?
+Evaluation alone produces a recommendation. Record a curation decision only when
+ledger changes are authorized:
 
-## 2. Route it — apply in order, first that fits wins (default = reject/defer)
+```text
+python3 harness_lifecycle/gap.py ledger add --repo <repo> --id <logical_id> --status <rejected|deferred> --reason <evidence>
+```
 
-- **Reject / defer** *(the default)*: giant catalogs, repo/org-specific assumptions,
-  duplicate wording with no behavioural gain, or anything adding always-on context
-  cost without clear value. Rejection is a successful outcome.
-- **Merge into an existing plugin**: same job-to-be-done and same dependency
-  boundary as an existing plugin (e.g. `code-intel`; `codex-adapter` is retired).
-- **New standalone plugin**: a distinct capability with an external tool / MCP /
-  binary / credential dependency, or a domain-specific workflow (the
-  `code-intel` archetype; the retired `codex-adapter` was another).
-- **Fold into the mvp-plugin template**: only if ALL hold — useful in ~every repo,
-  low/zero external dependency, small context cost, and it can live on **both** the
-  `.claude` and `.codex` sides (or is declared claude-only in the sync manifest).
+Authorized adoption edits the actual canonical source. Shared policy belongs in
+AGENTS.md and shared skills/project docs; Codex integration links or adapts them.
+Do not duplicate semantic edits across provider directories. Inspect current sync
+and publish manifests before selecting destination; template output is generated.
 
-Produce a short comparison: what theirs does, what ours does (if any), dependencies,
-context cost, overlap, and the recommended route with a one-line rationale. For a
-multi-skill or deeper side-by-side, use the `harness-skill-compare` skill. A
-**template** route has the widest blast radius — get a second opinion from a
-spawned critic subagent before writing.
+For template adoption, verify the initialized mvp-harness tools exist, run
+`check-sync.sh` and `build-template.sh` under its mvp-plugin scripts directory,
+and inspect neutrality/leak results. Obtain independent review when the broad
+blast radius warrants it under shared delegation policy. New/existing plugin
+implementation also requires authorization for that submodule work.
 
-## 3. Execute the decision
-
-- **Reject / defer** → record only:
-  `python3 harness_lifecycle/gap.py ledger add --repo <repo> --id <logical_id> --status rejected|deferred --reason "..."`
-- **Adopt → template**:
-  1. Edit the canonical source under `.claude/` **and** `.codex/` (never edit
-     `mvp-harness/.../template/` — it is generated).
-  2. `bash mvp-harness/plugins/mvp-plugin/scripts/check-sync.sh` — reconcile drift.
-  3. `bash mvp-harness/plugins/mvp-plugin/scripts/build-template.sh` — must end with
-     "no project/machine-specific strings".
-  4. Publish: commit mvp-harness and bump the submodule pointer in
-     coding-ritual **only** when the user or the active workstream granted
-     commit authority (CLAUDE.md §Git Safety); otherwise report the proposed
-     commit + pointer bump and record it in the ledger reason.
-  5. Ledger: `... --status adopted --our-id <our_logical_id> --source-sha <ref commit> --reason "..."`.
-- **Adopt → new / existing plugin** → implement under `mvp-harness/plugins/`, then
-  ledger as adopted with the plugin as `--our-id`.
-
-## Guardrails
-
-- Reference harnesses are read-only inspiration — never edit submodule internals.
-- No adoption without a ledger entry (so the gap report stops re-nagging).
-- Borrow the smallest durable pattern; do not import whole workflows.
+Record adoption with `--status adopted --our-id <local-id> --source-sha <ref-sha>`
+and a source-backed reason only after the adopted state exists. Publication,
+commits and pointer updates require their own existing authority; otherwise
+report the prepared result. Borrow the smallest useful pattern.

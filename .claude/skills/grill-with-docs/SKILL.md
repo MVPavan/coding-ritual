@@ -1,12 +1,12 @@
 ---
 name: grill-with-docs
-description: A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.
+description: Start a grilling interview and record authorized domain terminology and architectural decisions.
 disable-model-invocation: true
 ---
 
-Run a `/grilling` session, using the `/domain-modeling` skill.
+# Grill with docs
 
-Prefer this over `/grill-me` whenever a working directory exists: both run the
-same interview, but this one leaves a paper trail (docs, ADRs, glossary) in the
-repo — which makes it strictly the better of the two when there is a repo to
-leave it in. No working directory → `/grill-me`.
+Run the grilling skill with documentation enabled for settled domain terms and
+qualifying architectural decisions, using domain-modeling. Respect the requested
+file scope and preserve unresolved decisions as questions. This manual invocation
+requests a documented interview; other interviews do not inherit that authority.

@@ -1,237 +1,116 @@
-# Task engine — dispatched execution
+# Task engine — delegated work and review
 
-Consulted from `execution` when a unit routes **standard** (Light path) or
-**deep** (Full path), or whenever the coordinator should not hold
-implementation context. The coordinator coordinates; fresh workers implement;
-reviewers gate. Inline fallback stays valid when delegation itself fails —
-delegation is the default, not a fetish.
-
-## Roles
-
-- **coordinator** (this session): curates context, dispatches, tracks the
-  ledger, adjudicates at the cap. Does not implement or fix findings itself,
-  except under the two named delegation-failure fallbacks in *Status
-  handling* below (blocked twice; 529/timeout after the retry).
-- **implementer** (agent): one bounded task per dispatch.
-- **spec-reviewer / code-reviewer** (agents): both follow the **code-review
-  skill**. Initial reviews are role-separated; **re-reviews go to the
-  code-reviewer, whose re-review mode covers spec and quality findings alike**
-  (the skill says so).
-
-Specify the model explicitly on every dispatch — an omitted model silently
-inherits the session's. Implementer as pinned in its agent file; initial
-reviewers strong; scoped re-reviews of small fix diffs may take a cheaper
-tier. Prefer fewer turns over cheaper tokens.
+Use when delegation or review coordination adds value. Risk labels do not force
+extra agents. Follow the available interface and configuration from the shared
+delegation policy; the coordinator may implement or fix locally when that is
+more efficient and ownership is clear.
 
 ## Workspace and ledger
 
-Create `scratchpad/execution/<slug>/` (slug rule in SKILL.md). It holds task
-briefs, implementer report files, review packages, snapshots, saved review
-findings, and `progress.md` — the ledger. bd remains the truth at stage
-grain; the ledger records what bd cannot: fix-round position, snapshot
-labels, parked rulings, deferred minors.
+Keep briefs, reports, review packages and snapshots under
+`scratchpad/execution/<slug>/`. Beads owns task status; `progress.md` records
+review rounds, evidence, snapshot labels and finding dispositions.
 
-`progress.md` line 1 is its identity: `# <plan path> — <epic/task id> — SCOPE_BASE <sha7>`.
-Append one line per event:
+Its first line identifies plan, task/epic and `SCOPE_BASE` revision. Record the
+starting dirty paths and contents needed to distinguish pre-existing changes.
+Save reviewer reports before acting; retain source wording alongside your
+assessment. After context recovery, read the ledger and latest open findings,
+then re-query Beads and Git before dispatching.
+
+## Scoped snapshots without commits
+
+Record `SCOPE_BASE = git rev-parse HEAD` once. Packages include working-tree
+changes and untracked contents, so always pass the authorized path list:
 
 ```text
-Task 3: dispatched (brief task-3-brief.md, report task-3-report.md)
-Task 3: review r0 — 1 critical, 2 important, 1 minor (findings review-t3-r0-findings.md, package review-t3-r0.diff)
-Task 3: minor (deferred): <one-liner>
-Task 3: fix round 2/5 (2 addressed, 1 open — <one-liners>; snapshot t3-r2)
-Task 3: parked — <finding> — ruling: <why the code stands>
-Task 3: complete (review clean | 2 parked)
+scripts/review-package.sh full <SCOPE_BASE> <workspace> <label> <owned paths…>
+scripts/review-package.sh fix <SCOPE_BASE> <previous-label> <workspace> <label> <owned paths…>
 ```
 
-**Save every review verbatim**: when a reviewer returns, write its full
-report to `review-<task>-r<round>-findings.md` before acting on it. The open
-findings list, round number, and snapshot labels must be recoverable from
-files alone.
+These script paths are relative to the execution skill directory. A full package
+contains status, tracked diff and untracked content; the fix package compares
+against the saved snapshot. Pass both kinds the same scope. A baseline-dirty
+file may contain unrelated changes even inside owned paths: provide the starting
+snapshot or identify excluded hunks. Never attribute its whole HEAD diff to this task.
+Pass package paths to reviewers; read source/callers when a concrete finding needs
+verification rather than loading every package into coordination context.
 
-**After any compaction:** re-read `progress.md`, the latest findings file,
-and re-query bd + `git status` before dispatching anything. A coordinator
-that lost its place re-dispatches completed work.
+## Dispatch and recovery
 
-## Diffs without commits — the snapshot model
+Extract a plan task with `scripts/task-brief.sh <plan> <N> <workspace>`, or write
+its brief directly when planless. Include goal, acceptance, owned/forbidden paths,
+relevant source sections, invariants, dependencies, checks and commit authority.
+Tell each worker it shares the checkout and must preserve others' edits.
 
-Implementers do not commit (conservative git), so reviews are packaged from
-the **working tree**, not from commit ranges:
+Require a report path and a short status:
 
-- `SCOPE_BASE` = `git rev-parse HEAD` recorded once in the ledger when the
-  scope starts. It rarely advances; all tracked changes since it — committed
-  or not — are the work under review.
-- `<execution-skill-dir>/scripts/review-package.sh full <SCOPE_BASE> <workspace> <label> [paths…]`
-  → one file with `git status`, `git diff <SCOPE_BASE> -- <paths>` (tracked,
-  staged or not), and the full content of untracked files under the paths.
-  It also snapshots those files to `snap-<label>/`.
-- Fix rounds: `<execution-skill-dir>/scripts/review-package.sh fix <SCOPE_BASE> <prev-label> <workspace> <label> [paths…]`
-  → the diff between the previous snapshot and now — exactly what changed
-  since the last review. Record the label in the ledger.
+- `DONE`: report identifies changes and checks; validate the evidence.
+- `DONE_WITH_CONCERNS`: assess concerns before closing or forwarding the work.
+- `NEEDS_CONTEXT`: supply the missing relevant context; preserve task identity.
+- `BLOCKED`: determine whether the cause is missing access, faulty assumptions,
+  excessive scope, or an implementation failure. Supply context, split, debug or
+  replan as appropriate; repetition alone is not recovery.
 
-For dispatched (full-path) reviews the package never enters the
-coordinator's context — pass its path. The coordinator reads a package
-itself only where this document says so: the light path's inline
-code-review and the final Simplification look.
+Transient runtime errors may merit a bounded retry after checking that the child
+is not still running. Honor provider backoff and prevent overlapping writers.
+If delegation is unavailable, use a permitted local fallback and report any
+required independent check that could not run. Do not silently substitute models.
 
-## Dispatching a task
+## Review paths
 
-1. **Extract the brief**:
-   `bash <execution-skill-dir>/scripts/task-brief.sh <plan> <N> <workspace>`
-   writes `task-<N>-brief.md` (plan preamble — Origin/Goal/Out of
-   scope/Constraints — plus the task section). For work with no plan file,
-   write the packet to the brief file yourself: goal, owned **and forbidden**
-   files, origin doc section, invariants, required tests, verification
-   commands, commit policy, test-first flag, trust-boundary flag (routes the
-   implementer through the security skill).
-2. **Dispatch a fresh implementer** with paths, not contents: the brief path,
-   a report-file path (`task-<N>-report.md`), and the constraints line. Never
-   paste prior-task history or full files into the dispatch — everything
-   pasted stays resident in your context for the rest of the session.
-3. **Status handling** — require one of the four values:
-   - `DONE` → confirm the report file exists and names verification commands
-     and output, then verify/review per path below.
-   - `DONE_WITH_CONCERNS` → read the concerns from the report **first**;
-     resolve each (answer it, ledger it as accepted, or dispatch a fix)
-     before any review. Concerns are not noise to forward.
-   - `NEEDS_CONTEXT` → answer from the plan/spec, re-dispatch the same task.
-   - `BLOCKED` → **systematic-debugging skill**, then: missing context →
-     supply it; task too big → split it; the plan itself is wrong → return
-     to planning. Blocked twice → split smaller or implement inline.
-   - 529 / timeout / API overload → wait 5s, retry once, then implement
-     inline.
-   - Never force the same model to retry with an unchanged prompt.
+**Light path:** one worker or local implementation; coordinator checks acceptance,
+applicable verification and the diff. Invoke substantive code review only when
+needed. A failed check calls for diagnosis and a scoped fix, not a new reviewer chain.
 
-## Light path (standard units)
+**Full path:** review the brief against binding constraints before implementation.
+Use the code-review skill's spec, quality or combined modes for independent review.
+If separate spec and quality reviewers were required, collect both verdicts.
+Independent reviews may run concurrently on a stable snapshot when permitted.
 
-1. Brief → dispatch one implementer → status handling as above.
-2. Coordinator verifies: run the unit's verification commands yourself and
-   read the diff (`review-package.sh full`, then apply the **code-review
-   skill** inline — both sections, abbreviated to the changed surface).
-3. Verification fails → one re-dispatch with the specific failure; failing
-   again → systematic-debugging skill. No multi-round loop on the light path.
-4. Close the unit with evidence. The independent critique happens at the
-   scope's final review, not per unit.
+Verify every finding promptly against requirements and primary evidence:
 
-## Full path (deep units)
+| Finding | Disposition |
+|---|---|
+| Confirmed, in scope | Fix and verify |
+| Incorrect | Answer with evidence; retain the ruling |
+| Unclear or conflicting with an approved decision | Resolve the material question; continue independent work |
+| Real but outside scope | Record follow-up; do not expand implementation |
+| Deferred minor | Record reason and revisit condition |
 
-**Preflight (once per plan, before Task 1):** scan the plan against the
-binding constraints and `.claude/project/invariants.md`. Contradictions and
-ambiguities become **one batched question** to the user now — not N
-interruptions mid-loop. Under workstream mode, a blocking contradiction is a
-plan defect: stop the run.
+Reviewer severity is a claim to assess. Do not park an unmet acceptance criterion,
+a material safety defect, or a dependency-breaking issue just to close work.
+Deferral that changes agreed scope or accepts material risk needs authorization.
 
-### Review gate (per task)
+## Bounded fix loop
 
-1. Package: `review-package.sh full <SCOPE_BASE> <workspace> t<N>-r0 [owned paths]`.
-2. **Dispatch spec-reviewer, then code-reviewer**, each with: mode, brief
-   path, report path, package path, and the plan's global constraints copied
-   verbatim. The protocol lives in the **code-review skill** — do not restate
-   it in the dispatch. Save each returned report to its findings file. Both
-   verdicts are required — a task is never complete with one missing.
-3. **Relay findings verbatim.** Never annotate a finding with "probably
-   fine", "seems pedantic", or "optional" — pre-judging corrupts the loop.
-   Adjudication happens only at the cap.
-4. Route the results:
-   - **Minor** → ledger as `minor (deferred)`. Never enters the fix loop; the
-     final review triages them.
-   - **Plan-mandated** (the plan's text requires the flagged behaviour) → the
-     human decides. Present the finding and the plan text.
-   - Spec ❌, Critical, Important, or a confirmed ⚠️ item → the fix loop.
+Group compatible confirmed findings into one fix unit. Record the finding IDs,
+change, covering checks and result. Package only the fix delta and request a
+scoped re-review where independent review was required or risk warrants it.
+Re-review resolves every original finding plus new breakage caused by the fix;
+unrelated observations do not extend the loop.
 
-### The fix loop — five rounds maximum
+Choose a round/time budget for the scope before repeated dispatch. Five completed
+fix/re-review rounds is a ceiling, not a target; stop earlier if no new evidence
+appears. Infrastructure failures do not consume a completed round, but still
+consume the overall budget. Change strategy based on evidence; a stronger model
+is an option only within configured budget and availability.
 
-A round = one fix dispatch + one scoped re-review. **A round is consumed only
-when a valid fix report exists and its re-review ran.** `BLOCKED`,
-`NEEDS_CONTEXT`, 529/timeout, or a missing/incomplete fix report are recovery
-events (handled per *Status handling*), not rounds.
-
-- **Rounds 1–3**: re-dispatch the implementer with the open findings verbatim
-  plus the brief and report paths — the report file is the persistent memory
-  across dispatches.
-- **Rounds 4–5**: fresh implementer on a **stronger model**, with brief path,
-  report path, open findings, and the framing: "A prior implementer attempted
-  this task N times; you own it now. Read the report file for what was
-  tried." Three failed resumes usually means the implementer cannot see its
-  own problem.
-- **Every round**: the fix report must name the covering tests, the command
-  run, and its output before you dispatch the re-review. Then package the fix
-  delta only — `review-package.sh fix <SCOPE_BASE> <prev-label> <workspace> t<N>-r<R>` —
-  and dispatch the **code-reviewer** in re-review mode with the findings
-  list, brief, report, and package paths. New Critical/Important breakage in
-  the fix diff joins the open findings; out-of-scope observations go to the
-  ledger as deferred minors — they never extend the loop.
-- **Every round**: save the re-review to its findings file and append the
-  ledger line (with the snapshot label).
-
-**The breaker.** If round 5 still leaves findings open, stop dispatching and
-adjudicate each open finding yourself — you hold the plan and cross-task
-context the reviewer lacks:
-
-- Reviewer wrong or contestable → park with a ruling for why the code stands.
-- Real but nothing builds on it → park with a ruling saying real-and-deferred.
-- Real and load-bearing (a later unit builds on it, or it reveals a plan
-  defect) → **STOP**: ledger `BLOCKED — <reason>`, report to the user with
-  the finding, the plan text, and the fix history.
-
-Adjudicate only at the cap — earlier is pre-judging with a different name.
-Rule on each open finding only after verifying it against the code and
-answering it with evidence (the receiving-code-review skill's Verify and
-Respond steps).
-Every adjudication is a ledger entry; a silent discard is forbidden.
-
-A task completes when both verdicts are clean or every open finding is parked
-with a ruling at the cap. Never move on with open Critical/Important findings
-that are neither fixed nor parked.
+At the limit, preserve state and report remaining blockers. Adjudication occurs
+every round, never only after exhausting the budget.
 
 ## Final review
 
-After all units are complete (this applies to inline- and light-path work
-too):
+Inspect the integrated authorized scope, acceptance and verification evidence.
+Reuse adequate reviews of unchanged parts. For small work this is a local check;
+for deep work obtain the required independent coverage without automatically
+adding both a code reviewer and a second critic.
 
-1. Package the whole scope:
-   `review-package.sh full <SCOPE_BASE> <workspace> final`.
-2. Dispatch the code-reviewer on the strongest available model, pointing it
-   at the package **and the ledger's deferred-minor and parked lines** so
-   they are triaged — fixed, or explicitly accepted — rather than lost.
-3. **Independent critique**: spawn a fresh critic subagent (separate from
-   the implementer; model per CLAUDE.md §Independent critique) on the
-   packaged scope — pass the package path and the ledger's deferred/parked
-   lines, never your conclusions.
-4. Findings → **ONE** fix dispatch carrying the complete list (never one
-   fixer per finding — each rebuilds context and re-runs suites), then
-   exactly one scoped re-review (`review-package.sh fix … final-fix`).
-   Residual findings get the breaker's adjudication matrix: park with a
-   ruling, or STOP on load-bearing ones and report to the user. No second
-   fix wave.
-5. **Simplification look (deep scope only).** Read the final diff and ask:
-   would a new team member understand this faster than a simpler version?
-   Before touching anything, answer why the code is the way it is
-   (Chesterton's Fence — `git blame` if needed; can't answer → don't touch).
-   One simplification at a time, existing tests must pass **unmodified** —
-   a simplification that requires editing tests changed behaviour: revert it.
-   Behaviour includes **side effects and ordering**, which tests routinely
-   don't assert — check those by reading, not by the suite alone.
-   Scan for concrete signals, not vague smells: 3+ nesting levels, 50+ line
-   functions, nested ternaries, boolean flag parameters, repeated
-   conditionals. Clarity beats cleverness — explicit code wins over compact
-   code that needs a mental pause. Guard against the pass's own failure
-   mode, over-simplification: don't remove abstractions that exist for
-   testability or extensibility, and don't optimize for line count. Removed
-   or weakened error handling "because it's cleaner" is a red flag, not a
-   simplification. A refactor that would touch 500+ lines gets automation
-   (codemod, sed, AST transform), never hand edits.
-   Skip the pass entirely when the diff is already minimal.
+When another package is needed, include owned paths even for the final package.
+Triage deferred findings explicitly. Fix confirmed in-scope issues and recheck the
+affected surface. Close only when acceptance holds and material unresolved issues
+are reported accurately; carry accepted limitations into the Beads close reason.
 
-Carry parked-finding summaries into the bd close `--reason`. The workspace is
-disposable after the epic/task closes.
-
-## Task sizing
-
-- One deliverable per dispatch — never bundle.
-- Cap the prompt: only the files and spec sections the task needs.
-- Cap the result: short status contract inline (status, one-line summary,
-  files changed, concerns one-liner, report path); detail goes to the report
-  file. Full file contents never enter the coordinator.
-- No parallel implementers on the same files. No raw session history to
-  workers. Fanning out at all requires the independence test in
-  `.claude/rules/core/01-delegation.md` to pass first.
+Simplify only when a concrete change improves this task without altering required
+behavior. Understand load-bearing reasons first, preserve side effects and safety,
+and validate afterward. Changed tests need assessment; their mere presence does
+not prove a refactor changed behavior.

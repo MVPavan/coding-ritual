@@ -1,3 +1,6 @@
+> Optional exploration material, not a required sequence or numerical quota.
+> Illustrative market claims are examples to verify before relying on them.
+
 # Ideation Session Examples
 
 These examples demonstrate what good ideation sessions look like across different kinds of ideas. Study the rhythm, tone, and structure — not just the content. The skill should feel equally at home with a vague startup concept, a feature for an existing product, or a process improvement.

@@ -11,7 +11,7 @@ Actively build and sharpen the project's domain model as you design. This is the
 
 Most repos have a single context: `CONTEXT.md` at the repo root, decisions in `docs/adr/`. If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts — the map points to where each one lives (e.g. `src/ordering/CONTEXT.md`), system-wide decisions stay in the root `docs/adr/`, and context-specific ones go in `<context>/docs/adr/`. Layout, map format, and how to infer which applies: [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) § Single vs multi-context repos.
 
-Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+Create files lazily — only when documentation work is authorized and you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
 
 ## During the session
 
@@ -33,7 +33,9 @@ When the user states how something works, check whether the code agrees. If you 
 
 ### Update CONTEXT.md inline
 
-When a term is resolved, update `CONTEXT.md` right there. Don't batch these up — capture them as they happen. Use the format in [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md).
+When a term is resolved and documentation changes are authorized, update
+`CONTEXT.md` using [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md). During analysis-only
+work, report proposed terms and decisions without creating or editing files.
 
 `CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 

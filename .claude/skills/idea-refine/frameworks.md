@@ -1,3 +1,6 @@
+> Optional exploration material, not a required sequence or numerical quota.
+> Illustrative market claims are examples to verify before relying on them.
+
 # Ideation Frameworks Reference
 
 Use these frameworks selectively. Pick the lens that fits the idea — don't mechanically run every framework. The goal is to unlock thinking, not to follow a checklist.

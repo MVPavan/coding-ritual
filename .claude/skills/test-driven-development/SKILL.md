@@ -1,145 +1,55 @@
 ---
 name: test-driven-development
-description: Use for risky behavior changes, bug fixes needing proof, legacy edits needing characterization, tasks marked test-first or characterization-first, or whenever tests are written or changed.
+description: Use for risky behavior changes, regression proof, legacy characterization, or substantive test design. Trivial test renames do not require a test-first workflow.
 ---
 
 # Test-Driven Development
 
-Write one test first. Watch it fail for the right reason. Write the minimum
-code to pass. This skill is deliberately risk-scaled, not universal — it fires
-on the triggers below, not on every code change.
+## Choose the mode first
 
-## Use it when
+| Task | Mode |
+|---|---|
+| New risky behavior or bug fix needing proof | Test-first |
+| Preserve poorly understood existing behavior during an edit | Characterization |
+| Add, rename or improve tests without changing behavior | Test quality only |
 
-- a bug fix needs proof
-- behavior is changing in a risky area
-- legacy behavior needs characterization before edits
-- the plan or dispatch explicitly says `test-first` or `characterization-first`
-- tests are being written or changed for any reason → the quality bar in
-  `references/writing-good-tests.md` applies even outside the loop
+Use existing test tooling and applicable commands in project verification docs.
+Read `references/writing-good-tests.md` when designing or changing substantive
+tests. A trivial rename needs a focused check, not a test-first ceremony.
 
-## Discover the stack first
+Choose the smallest boundary that exercises the real failure or contract. Public
+behavior is usually stable; internal algorithm tests are appropriate when they
+prove meaningful behavior without mirroring implementation. Use the plan's test
+seams as guidance; routine seam selection needs no separate approval. Surface a
+missing seam only when it materially changes scope or the evidence obtainable.
 
-The cycle is universal; the commands are not. Before the first test, find how
-*this* repository tests, and use its commands for every RED, GREEN, and
-verification step:
+## Test-first
 
-- build system and test framework from the manifests (`pyproject.toml`,
-  `package.json`, `Makefile`, …); prefer checked-in wrappers and the commands
-  in `.claude/project/verification.md` over globally installed tools
-- how to run one focused test vs the full suite
-- where tests live, how files are named, what neighbouring tests do
-- what CI actually runs — those commands gate merges
+1. Select one behavior and derive expected results from the spec, a worked example
+   or another independent source.
+2. Run its test before the fix and confirm the intended failure, not an import or
+   setup error. A passing test does not demonstrate the reported regression.
+3. Implement the owning fix, rerun the proving check and relevant affected tests.
+4. Refactor while preserving the behavior and repeat checks affected by edits.
 
-Never assume a default like `npm test` or bare `pytest` without checking.
-If the repo has no test infrastructure at all, say so and agree the approach
-with the user before inventing one.
+If code already changed, prove the regression against an isolated earlier version
+when feasible; do not destroy existing edits to recreate RED. Report missing
+before/after proof accurately.
 
-## Where tests attach — seams
+## Characterization
 
-A seam is the public boundary you test at. Tests live at seams, never against
-internals. Before writing tests, write down the seams under test:
+Capture current behavior and run a passing baseline before editing. When useful,
+make a safe isolated perturbation to establish sensitivity. Record intentional
+behavior changes in expectations; accidental differences remain regressions.
+A passing characterization baseline is not RED.
 
-- With a plan: use the task's **Test seams** field — the public observable
-  boundaries the plan names for this task (the Interfaces block lists exact
-  names passed between tasks, which may include internals — it is not the
-  seam list). A test-first task with no Test seams field, or a needed seam
-  the plan never named, is a plan gap to raise.
-- Without a plan, attended: name the seams in one line and confirm with the
-  user before the first test.
-- Without a plan, unattended: derive seams from the public interface of the
-  changed module and record them in your report.
+## Test quality and completion
 
-Bounding the seams up front is what points testing effort at critical paths
-instead of every edge case.
+Prefer independent expectations, deterministic inputs and isolated state. Fakes
+and partial mocks are valid at appropriate boundaries if they do not replace the
+behavior under test. Avoid tests whose expectations repeat the implementation.
 
-For a bug-fix reproduction test, a **correct** seam exercises the real bug
-pattern as it occurred at the call site — a too-shallow seam (a single-caller
-unit test when the bug needs the chain that triggered it) gives false
-confidence. If no correct seam exists, that absence is itself a finding:
-document and report it instead of attaching the test at a wrong seam.
-
-## The loop — test-first path
-
-1. Pick **one behavior**, not a whole feature slice.
-2. Write a test for it at the seam, through the public interface.
-3. **RED**: run the focused test; confirm it fails *for the expected reason*.
-   Wrong failure (import error, typo, wrong assertion) → fix the test, back
-   to RED. A test-first test that passes immediately proves nothing —
-   rewrite it until it fails against current code.
-4. **GREEN**: write the smallest change that makes it pass. No speculative
-   structure for tests you haven't written yet.
-5. Re-run the focused test, then the tests covering what you touched.
-6. Refactor only while green; re-run after each refactor step.
-7. Repeat, one behavior at a time. Full suite once before completion.
-
-For bug fixes this is the **Prove-It pattern**: do not start with the fix.
-Reproduce the bug as a failing test → watch it fail (bug confirmed) → fix →
-watch it pass (fix proven) → full suite (no regressions). A bug fix without
-a reproduction test is unproven.
-
-## The characterization path (legacy code)
-
-A characterization test pins current behavior before you change it — so it
-**passes** against the existing code, and that passing run is the baseline,
-never reported as RED. The sequence:
-
-1. Write the test at the seam, capturing what the code does now (however
-   odd); run it and record the passing baseline.
-2. Where practical, prove the test can fail with a safe, reversible
-   perturbation (temporarily alter a return value or input, watch it fail,
-   revert). If no safe perturbation exists, say so in the report.
-3. Make the intended change; the characterization tests tell you what you
-   actually altered. Intended behavior changes update the test —
-   deliberately and named as such — everything else stays green.
-
-## Rules
-
-- Do not write a whole batch of tests first — bulk tests verify *imagined*
-  behavior and commit you to structure before the implementation teaches you
-  anything. One test → one implementation → repeat.
-- Expected values come from an independent source (hand-derived literal,
-  worked example, the spec) — never recomputed the way the code computes
-  them.
-- Test behavior through the public interface, not implementation details.
-- Do not re-run a clean suite for reassurance. Re-run after a change that
-  could affect the result, not because you're nervous.
-- If the test strategy is disputed, route it through an independent critique
-  (spawned critic subagent) before wider implementation.
-
-## Red flags — stop and fix the test, not the code
-
-- A test-first test that passed on its first run (a characterization
-  baseline is supposed to pass — but then step 2 of that path applies).
-- Flaky behavior: timing sleeps, order-dependence, shared state between
-  tests — use deterministic time/randomness and isolated per-test state.
-- A broad snapshot nobody reviews; keep snapshots narrow and review every
-  change to them.
-- The expected value is built by a loop, builder, or helper that shares
-  logic with the code under test.
-- The test breaks when you refactor but behavior hasn't changed
-  (implementation-coupled).
-- "All tests pass" but no test command output is in hand.
-- A skipped or disabled test making the suite green.
-- Reaching for a default test command without checking what the repo uses.
-
-## Verification
-
-**For a test-first or characterization-first run:** every behavior in scope
-has a test; bug fixes have a reproduction test that failed before the fix;
-the full suite passes with the repository's own command and its output is in
-hand; no tests skipped or disabled; the mutation check from
-`references/writing-good-tests.md` was run on new test files.
-
-**For test work outside the loop** (this skill fired only because tests were
-being written or changed): the changed tests meet the quality reference, and
-the verification the task itself asked for passes. No universal
-test-everything demand rides in through this skill.
-
-| Rationalization | Reality |
-| --- | --- |
-| "I'll write tests after the code works" | After-the-fact tests mirror the implementation instead of specifying behavior. |
-| "This is too simple to test" | If it's risky enough to trigger this skill, it's not too simple. Otherwise the skill shouldn't have fired. |
-| "I tested it manually" | Manual testing doesn't persist. Tomorrow's change breaks it silently. |
-| "The test passing immediately is fine, the code already existed" | Then it's a characterization test — run it against broken code once (mutate mentally at minimum) to prove it can fail. |
-| "Let me run the suite again to be sure" | Re-running unchanged code adds no information — only tokens. |
+Run checks required by the task and repository plus coverage justified by affected
+behavior. A full suite or mutation trial is not mandatory for every edit; required
+project gates still apply. Explain skipped, unavailable or pre-existing failing
+checks. Keep enough evidence to distinguish a demonstrated fix from an inference.
