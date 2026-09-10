@@ -211,8 +211,9 @@ class FakeBd:
         )
 
     def _dependencies(self, args: list[str]) -> str:
-        """Return the empty dependency fixture for fixed adapter inspection."""
-        return "[]"
+        """Return the selected row's own dependency records, like `bd dep list`."""
+        bead_id = args[1]
+        return json.dumps(self.rows[bead_id].get("dependencies", []))
 
 
 def _parse(args: list[str]) -> dict[str, Any]:

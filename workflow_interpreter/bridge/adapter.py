@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, Final
+from typing import Final
 
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio import finalize
+from workflow_interpreter.bdio.client import BdClient, DependencyRecord
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
 
 PHASE_BRIDGE_METADATA_KEY: Final[str] = "phase_bridge"
 MSG_WRONG_STAGE: Final[str] = "phase bridge record belongs to stage {stage_id!r}"
 MSG_WRONG_STATE: Final[str] = "expected phase bridge state {state!r}, got {actual!r}"
+MSG_CLOSE_REASON: Final[str] = "phase bridge landing receipt={digest}"
 
 
 class PhaseAdapterError(ValueError):
@@ -36,9 +38,13 @@ class PhaseAdapter:
             if bead.parent == epic_id
         )
 
-    def dependencies(self, stage_id: str) -> tuple[dict[str, Any], ...]:
+    def dependencies(self, stage_id: str) -> tuple[DependencyRecord, ...]:
         """Inspect the selected stage's declared dependencies."""
         return self._client.list_dependencies(stage_id)
+
+    def record(self, stage_id: str) -> PhaseBridgeRecord:
+        """Read the complete bridge relation currently persisted on a stage."""
+        return self._record(self.show(stage_id).metadata)
 
     def prepare(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
         """Persist and read back a complete pre-claim admission intent."""
@@ -58,6 +64,27 @@ class PhaseAdapter:
             stage_id, self._metadata(admitted)
         )
         return self._record(stored.metadata)
+
+    def land(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
+        """Persist and read back the artifact relation after a successful CAS."""
+        self._assert_stage(stage_id, record)
+        self._assert_state(record, PhaseBridgeState.LANDED)
+        stored = self._client._merge_metadata(stage_id, self._metadata(record))
+        return self._record(stored.metadata)
+
+    def close(
+        self, stage_id: str, record: PhaseBridgeRecord, receipt_digest: str
+    ) -> PhaseBridgeRecord:
+        """Close and read back a stage whose durable relation names its receipt."""
+        self._assert_stage(stage_id, record)
+        self._assert_state(record, PhaseBridgeState.CLOSED)
+        stored = self._client._merge_metadata(stage_id, self._metadata(record))
+        closed = finalize.close_forward(
+            self._client,
+            stored,
+            MSG_CLOSE_REASON.format(digest=receipt_digest),
+        )
+        return self._record(closed.metadata)
 
     @staticmethod
     def _metadata(record: PhaseBridgeRecord) -> Metadata:

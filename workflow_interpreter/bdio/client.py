@@ -135,6 +135,12 @@ class CompletedCommand(BaseModel):
     stderr: str
 
 
+class DependencyRecord(BaseModel):
+    """One dependency row returned by the bounded Beads dependency surface."""
+
+    model_config = ConfigDict(frozen=True, extra="allow")
+
+
 class CommandRunner(Protocol):
     """How a bd argv is executed. Injected so unit tests need no bd binary."""
 
@@ -348,12 +354,12 @@ class BdClient:
         )
         return tuple(BeadRecord.model_validate(row) for row in rows)
 
-    def list_dependencies(self, bead_id: str) -> tuple[dict[str, Any], ...]:
+    def list_dependencies(self, bead_id: str) -> tuple[DependencyRecord, ...]:
         """List one bead's dependency records through a fixed command shape."""
         rows = self._run_json(
             self._argv(BdSubcommand.DEP, "list", bead_id, BdFlag.JSON.value)
         )
-        return tuple(rows)
+        return tuple(DependencyRecord.model_validate(row) for row in rows)
 
     # -- writes (each followed by read-back verification) -----------------
     #

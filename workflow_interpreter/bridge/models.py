@@ -92,3 +92,25 @@ class PhaseBridgeRecord(BaseModel):
         return self.model_copy(
             update={"state": PhaseBridgeState.ADMITTED, "root_id": root_id}
         )
+
+    def landed(
+        self,
+        artifact_oid: str,
+        tree: str,
+        gate_receipt_digest: str,
+        receipt_digest: str,
+    ) -> PhaseBridgeRecord:
+        """Record the signed artifact that won the one landing CAS."""
+        return self.model_copy(
+            update={
+                "state": PhaseBridgeState.LANDED,
+                "landed_oid": artifact_oid,
+                "tree": tree,
+                "gate_receipt_digest": gate_receipt_digest,
+                "landing_receipt_digest": receipt_digest,
+            }
+        )
+
+    def closed(self) -> PhaseBridgeRecord:
+        """Mark a relation closed immediately before its verified bead close."""
+        return self.model_copy(update={"state": PhaseBridgeState.CLOSED})
