@@ -11,7 +11,7 @@ Use this skill to choose Codex-native surfaces. The old Claude Code Codex plugin
 
 1. Current official Codex manual or current `codex --help` output.
 2. `docs/research/codex-usage-options.md`.
-3. `.repo-context/tools.md`.
+3. `AGENTS.md` and the active runtime's tool configuration.
 4. Legacy `.codex/docs/codex-usage-guide.md` only as historical context.
 
 If sources disagree, prefer the current official manual and verified local CLI behavior.

@@ -1,36 +1,26 @@
-# Invariants
+# Repository Contracts
 
-Hard constraints derived from repo reality. Violating any of these is a defect.
+Read the contracts affected by the change. Authority and Git safety live in
+`AGENTS.md`; checks live in `.repo-context/verification.md`.
 
-1. **Repo-relative paths only.** No machine-local absolute paths in any committed
-   file (docs, prompts, rules, scripts, plugin manifests).
-2. **Reference repos stay external.** They live as git submodules under
-   `reference_harnesses/`; never copy their contents into the local harness, and
-   never edit submodule internals except to bump the tracked commit pointer.
-3. **Valid manifests.** Every `plugin.json` and `marketplace.json` must remain
-   parseable JSON.
-4. **No scratchpad commits.** `scratchpad/` is gitignored throwaway.
-5. **Beads sync remote = the repo's own git remote**
-   (`git+https://github.com/MVPavan/coding-ritual.git`).
-6. **Borrow minimally.** Only the smallest durable pattern that improves the
-   harness is pulled from a reference repo (harness design principle).
-7. **Explicit staging.** No `git add .` / `-A`, no `--no-verify`, force-push,
-   `reset --hard`, `clean`, or `restore` without explicit approval.
-8. **Skill catalog in sync, no dead slash pointers.** Harness-wide scripts
-   live in `.claude/scripts/`. The generated section of
-   `.claude/skills/skill-router/SKILL.md` matches the installed skills and
-   commands, and every slash reference in a skill or command body resolves:
-   `python3 .claude/scripts/skill-catalog.py --check` exits 0.
+- **Valid manifests:** plugin and marketplace manifests must parse as JSON.
+- **Shared skill catalog:** generated routing and `agents/openai.yaml` invocation
+  policies match canonical skills; slash and shared-context references resolve.
+  Check: `python3 .claude/scripts/skill-catalog.py --check`.
+- **Canonical workflow pins:** `content_hash` is SHA-256 of `canonical_bytes()`
+  from `workflow_interpreter/schema/loader.py`, never authored TOML. The resolved
+  model uses sorted JSON keys, aliases, omitted nulls and `wf-canon-json/1`.
+  Reuse this canonicalizer for pinning and verification; do not recreate it.
 
-9. **Workflow pinned-body contract (`wf-canon-json/1`).** A workflow
-   instance's pinned graph body is EXACTLY the `canonical_bytes()` emission
-   of the resolved model (canonical JSON, sorted keys, aliases, nulls
-   elided, stamped `"canon": "wf-canon-json/1"`); `content_hash` = sha256
-   over those bytes. Never TOML text. Anything writing or verifying a pin
-   (phase 2+) goes through `workflow_interpreter`'s loader/canonicalizer —
-   no independent re-implementation. Spec: workflow-interpreter.md §2
-   rule 8, §3.1.
+## Accepted decision boundaries
 
-Checkable subset (see `verification.md`): manifests parse, changed `.sh` pass
-`bash -n`, changed `.py` pass `py_compile`, no machine-local paths introduced,
-`skill-catalog.py --check` exits 0.
+Consult `docs/adr/README.md` and the relevant decision before changing semantics:
+
+| Change | Governing ADR |
+|---|---|
+| Declared-path exemptions versus containment | `docs/adr/0001-allowed-paths-is-advisory.md` |
+| Pinned node instructions and rendering | `docs/adr/0002-node-instructions.md` |
+| Payload transport and resolved shared methods | `docs/adr/0003-large-payloads-and-shared-methods.md` |
+| Deterministic routing and model-gate deferral | `docs/adr/0004-deterministic-routing.md` |
+
+The ADRs own rationale and exceptions; this index does not replace their contracts.

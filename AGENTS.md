@@ -38,7 +38,13 @@ Complete the authorized task with the least total work, including rework without
   Change approach when repeated attempts produce no new evidence.
 - Delegate bounded independent work when it materially improves speed, context
   use, or review quality within budget and runtime limits; keep small work local.
-  Before dispatch or independent critique, read `.repo-context/delegation.md`.
+- Give workers an outcome, owned paths, constraints, acceptance checks, and
+  relevant context pointers. Require preservation of others' edits.
+- Avoid duplicating delegated work. Collect every result; the coordinator owns
+  integration, disposition of findings, and final verification.
+- When independent critique is required, use a fresh reviewer separate from the
+  author. If delegation is unavailable, continue useful local work and report
+  any required review left unperformed.
 
 ## Verification
 
@@ -80,12 +86,12 @@ work, also recover the active Bead and handoff.
 ### When needed
 
 - Python changes: `.repo-context/coding-style.md`.
-- Domain terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
+- Domain/repo terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
   and `.repo-context/invariants.md`.
 - Phase/workstream execution: `execution` skill and relevant
   `docs/workstreams/<name>/roadmap.md`. Generated tracking mirrors are read-only.
 - Other project references: follow the task-specific triggers in
-  `.repo-context/docs-index.md`; delegation and verification are routed above.
+  `.repo-context/docs-index.md`; verification is routed above.
 
 ### Do not preload
 

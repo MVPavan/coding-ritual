@@ -52,7 +52,7 @@ risky changes test-first or characterization-first as appropriate.
 
 Check requirement coverage, compatibility, unresolved decisions and integration
 risks. Use independent critique when required by the task or justified by risk,
-following `.repo-context/delegation.md`; do not require a critic for every plan.
+following `AGENTS.md`; do not require a critic for every plan.
 
 Save phase plans under `docs/workstreams/<name>/plans/`, standalone plans under
 `docs/plans/`, or the supplied path. Put `plan: <path>` in Beads notes. An epic's

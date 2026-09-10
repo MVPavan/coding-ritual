@@ -28,7 +28,7 @@ workflow interpreter and its tests.
 1. `harness_learnings/coding-harness-best-practices.md`
 2. `harness_learnings/claude-codex-collaboration.md`
 3. `harness_learnings/reference-harness-workflow.md`
-4. `.repo-context/brief.md` — repo facts for agents
+4. `.repo-context/repo-map.md` — repository purpose and navigation
 
 ## Common Workflows
 

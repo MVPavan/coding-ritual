@@ -19,7 +19,9 @@ durable task state; a plan document is not a prerequisite for a clear task.
 | Material scope/behavior unresolved | Resolve that gap through planning or brainstorming |
 
 Carry authorization through necessary fixes; a review finding cannot authorize
-scope expansion. Use `.repo-context/delegation.md` for risk labels and dispatch.
+scope expansion. Follow the delegation policy in `AGENTS.md`.
+Risk labels: `small` is bounded, low-risk work; `standard` is a bounded behavior
+change; `deep` is cross-cutting, high-risk, or materially unresolved work.
 Small work stays inline. Standard work may stay inline or use one bounded worker
 when beneficial. Deep work needs risk-appropriate independent review; separate
 spec and quality reviewers only when the task requires them or the risks justify

@@ -5,61 +5,63 @@ uses the applicable structural checks below; interpreter changes use the
 interpreter gate; plugin changes use their test harness. Documentation-only
 edits do not require the interpreter suite.
 
-## Structural gate (run what applies to your change)
+## Structural checks
 
-1. **Working tree** — `git status` shows only the files you intended to change;
-   no `scratchpad/`, no submodule-internal edits, no machine-local paths.
-2. **Shell scripts** — for each changed `.sh`, `bash -n <file>` parses clean
-   (and `shellcheck <file>` if available).
-3. **JSON manifests** — for each changed `plugin.json` / `marketplace.json` /
-   `*.json`, validate it parses (e.g. `python3 -m json.tool <file> >/dev/null`).
-4. **Python tooling** — for each changed `.py` hook/script,
-   `python3 -m py_compile <file>`.
-5. **Beads** — `bd ready` / `bd list` runs without error after task changes.
-6. **Skill catalog** — after changing anything under `.claude/skills/`,
-   `python3 .claude/scripts/skill-catalog.py --check` exits 0 (generated
-   catalog current, every slash pointer and `.claude/` / `.repo-context/` path resolves, every
-   `agents/openai.yaml` sidecar matches its frontmatter; `--write` regenerates
-   both). Slash commands are slash-only skills — there is no `commands/` dir.
-7. **Dangerous-commands hook** — after changing
+| Changed material | Check |
+|---|---|
+| All changes | `git diff --check`; inspect diff/status and preserve unrelated work |
+| Documentation | Validate changed paths and links; distinguish historical evidence from active guidance |
+| Shell | `bash -n <file>`; `shellcheck <file>` when available |
+| JSON | `python3 -m json.tool <file> >/dev/null` |
+| Python hooks/scripts | `python3 -m py_compile <file>`; scoped lint/type checks from `.repo-context/coding-style.md` |
+| Beads | `bd ready` or `bd list` succeeds; refresh the export per `.beads/beads.md` |
+| Skills | `python3 .claude/scripts/skill-catalog.py --check` validates catalog, pointers and invocation metadata; `--write` regenerates them |
+
+**Dangerous-commands hook** — after changing
    `.claude/hooks/block-dangerous-commands.sh`, prove it still blocks, not
    just parses: pipe a known-dangerous payload through it, e.g.
    `echo '{"tool_input":{"command":"git push --force"}}' | bash .claude/hooks/block-dangerous-commands.sh`,
    and confirm exit code 2 with a BLOCKED message on stderr.
 
-## Plugin test harnesses (when you touch a plugin)
+## Plugin checks
+
+These paths require the initialized `mvp-harness/` submodule. Read the relevant
+plugin README for its current environment and prerequisites before running:
 
 - `mvp-harness/plugins/mvp-plugin/test/run-tests.sh` — Docker-based from-zero install test
   for the installer (`from-zero.sh`).
 - `mvp-harness/plugins/code-intel/test/run-tests.sh` — code-intel plugin tests.
 
-Run the relevant harness after changing that plugin; these are the closest thing
-to CI the repo has. Report actual exit status and output — no completion claim
-without fresh evidence.
+Run the affected plugin's harness. If unavailable, report it as unverified.
+Distribution compatibility, including the outstanding context-path migration,
+is tracked in `docs/usage/mvp-plugin.md`.
 
-## Workflow interpreter — sandbox tests
+## Interpreter: full host gate
 
-The `proc`-marked sandbox tests exercise the real bubblewrap mount bound, so a
-green run on a host with no working `bwrap` proves nothing about that bound —
-those tests skip loudly with the probe's reason — whereas the refusal-path test
-and the `plan_for`/`wrap` unit tests use no real `bwrap` and must never skip.
+Run all five stages from the repo root, outside a vendor sandbox:
 
-## Workflow interpreter — the repo gate
+| Stage | Command | Prerequisite |
+|---|---|---|
+| Non-live suite | `uv run pytest -q -m "not bd and not live"` | Project dependencies; working sandbox facilities for `nested_sandbox` cases |
+| Beads integration | `uv run pytest -q -m bd` | Real `bd` binary and an isolated test database |
+| Process/sandbox suite | `uv run pytest -q -m proc` | Working `bwrap` for real mount-bound tests |
+| Lint/format | `uv run ruff check workflow_interpreter/ tests/` and `uv run ruff format --check workflow_interpreter/ tests/` | Project Ruff |
+| Types | `MYPYPATH=. uv run mypy --strict --explicit-package-bases workflow_interpreter/` | Project mypy |
 
-Run all five from the repo root; this is the full gate, and it is the ONLY
-place the `nested_sandbox` family runs:
+The pytest selections overlap. These are the existing gate stages; removing
+duplicate execution requires a separately validated gate change. The verifier's
+five-stage output is covered by `tests/checks/test_verify_feature_script.py`.
 
-1. `uv run pytest -q -m "not bd and not live"`
-2. `uv run pytest -q -m bd` (needs the real `bd` binary)
-3. `uv run pytest -q -m proc`
-4. `uv run ruff check workflow_interpreter/ tests/` and
-   `uv run ruff format --check workflow_interpreter/ tests/`
-5. `MYPYPATH=. uv run mypy --strict --explicit-package-bases workflow_interpreter/`
+Real sandbox tests may skip with the probe's reason; a skip does not verify the
+mount boundary. Refusal-path and `plan_for`/`wrap` unit tests need no real `bwrap`
+and must not skip. Changes to `workflow_interpreter/supervisor/sandbox.py`,
+`workflow_interpreter/profiles/`, or Git-isolation tests
+require this host gate, including `nested_sandbox` coverage.
 
-`scripts/verify-feature.sh` is the same recipe minus `-m bd` and minus
-`nested_sandbox`, because the wrapper runs it INSIDE a vendor sandbox, where a
-nested `codex sandbox` cannot start (cr-o85.34.22, phase-7 live D2). The wrapper
-sets `UV_CACHE_DIR` and `UV_PYTHON_INSTALL_DIR` below its writable `uv-cache`, so
-a read-only `$HOME` is covered by the sandbox probe. Those tests are not weaker — they
-are simply unrunnable there — so the repo gate above must be run on any change
-that touches `sandbox.py`, `profiles/`, or the git-isolation tests.
+## Interpreter: checks inside a vendor sandbox
+
+`scripts/verify-feature.sh` excludes `bd` and `nested_sandbox`; it does not replace
+the full host gate. The wrapper places `UV_CACHE_DIR` and
+`UV_PYTHON_INSTALL_DIR` under writable `uv-cache`. The pinned verifier may run
+through a file descriptor: use the checkout working directory, not `$0`, to
+locate the repo, and do not assume workflow protocol variables are supplied.
