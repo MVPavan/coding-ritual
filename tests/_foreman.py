@@ -457,6 +457,7 @@ class ForemanLab:
             actor="test",
             band_wait_s=self._band_wait_s,
             roles=self._roles,
+            bridge_graph=self._toml,
         )
         self.composition = Composition(
             self.config,

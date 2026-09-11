@@ -19,6 +19,7 @@ import structlog
 from workflow_interpreter.bdio import ActivationRecord, GateRecord, WorkflowStore
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.bridge.command import execute_phase_bridge
 from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -113,7 +114,7 @@ def _composition(path: Path | None) -> Composition:
 
 
 def _parser() -> argparse.ArgumentParser:
-    """Create the seven public, deliberately small command forms.
+    """Create the eight public, deliberately small command forms.
 
     `--config` is a top-level option for every command, `supervise` included:
     the detached wrapper spawn passes it in that one position too, so there is
@@ -135,6 +136,11 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("root_id")
     run.add_argument("--poll", type=float, default=RUN_DEFAULT_POLL_S)
     run.add_argument("--max-wall", type=float, default=RUN_DEFAULT_MAX_WALL_S)
+    phase_bridge = commands.add_parser("phase-bridge")
+    phase_bridge.add_argument("epic_id")
+    phase_bridge.add_argument("stage_id")
+    phase_bridge.add_argument("--retry", action="store_true")
+    phase_bridge.add_argument("--trace", action="store_true")
     supervise = commands.add_parser("supervise")
     supervise.add_argument("root_id")
     supervise.add_argument("activation_id")
@@ -458,6 +464,19 @@ def _run(
     args = _parser().parse_args(argv)
     if args.command == "create":
         return _create(args)
+    if args.command == "phase-bridge":
+        validate_bead_id(args.epic_id)
+        validate_bead_id(args.stage_id)
+        composition = _composition(args.config)
+        outcome = execute_phase_bridge(
+            composition,
+            epic_id=args.epic_id,
+            stage_id=args.stage_id,
+            retry=args.retry,
+            trace=args.trace,
+        )
+        emit(json.dumps(outcome.report, sort_keys=True), MAX_TRANSCRIPT_BYTES)
+        return outcome.exit_code
     validate_bead_id(args.root_id)
     if hasattr(args, "activation_id"):
         validate_bead_id(args.activation_id)

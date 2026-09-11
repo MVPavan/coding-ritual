@@ -367,10 +367,10 @@ def test_adapter_writes_the_whole_record_then_claims_with_admission(
 @pytest.mark.parametrize(
     "stored_state", (PhaseBridgeState.ADMITTED, PhaseBridgeState.CLOSED)
 )
-def test_prepare_refuses_to_overwrite_a_later_stored_journal(
+def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
     fake_bd: FakeBd, fake_client: BdClient, stored_state: PhaseBridgeState
 ) -> None:
-    """A fresh retry journal cannot replace admitted or closed stage evidence."""
+    """A same-attempt write cannot replace admitted or closed stage evidence."""
     stored = PhaseBridgeRecord.prepared(
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -384,9 +384,56 @@ def test_prepare_refuses_to_overwrite_a_later_stored_journal(
     stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
     fake_bd.rows[STAGE_ID] = stage
 
-    with pytest.raises(
-        PhaseAdapterError, match="stored phase bridge record expected state"
-    ):
+    incoming = stored.model_copy(update={"state": PhaseBridgeState.PREPARED})
+
+    with pytest.raises(PhaseAdapterError, match="requires stored state prepared"):
+        PhaseAdapter(fake_client).prepare(STAGE_ID, incoming)
+
+
+@pytest.mark.parametrize(
+    "stored_state", (PhaseBridgeState.ADMITTED, PhaseBridgeState.GATE_RED)
+)
+def test_prepare_accepts_a_valid_successor_over_an_unsettled_journal(
+    fake_bd: FakeBd, fake_client: BdClient, stored_state: PhaseBridgeState
+) -> None:
+    """A retry advances a settled-not-closed stage journal by one attempt."""
+    stored = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    ).admitted(ROOT_ID)
+    stored = stored.model_copy(update={"state": stored_state})
+    stage = _stage_row()
+    stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
+    fake_bd.rows[STAGE_ID] = stage
+
+    successor = PhaseAdapter(fake_client).prepare(STAGE_ID, stored.next_attempt())
+
+    assert successor == stored.next_attempt()
+
+
+def test_prepare_refuses_a_structural_successor_over_a_closed_journal(
+    fake_bd: FakeBd, fake_client: BdClient
+) -> None:
+    """No retry structure can reopen evidence for a stage that landed and closed."""
+    stored = (
+        PhaseBridgeRecord.prepared(
+            epic_id=EPIC_ID,
+            stage_id=STAGE_ID,
+            attempt=1,
+            target_ref=TARGET_REF,
+            expected_base_commit=BASE_COMMIT,
+        )
+        .admitted(ROOT_ID)
+        .closed()
+    )
+    stage = _stage_row()
+    stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
+    fake_bd.rows[STAGE_ID] = stage
+
+    with pytest.raises(PhaseAdapterError, match="refuses a closed stored record"):
         PhaseAdapter(fake_client).prepare(STAGE_ID, stored.next_attempt())
 
 

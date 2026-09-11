@@ -34,6 +34,7 @@ class ForemanConfig(BaseModel):
     profiles: ProfileConfig = Field(default_factory=ProfileConfig)
     project_config: dict[str, str | int | bool] = Field(default_factory=dict)
     roles: dict[str, RunnerBinding] = Field(default_factory=dict)
+    bridge_graph: Path | None = None
     host: str
     supervisor: SupervisorConfig
     band_wait_s: float = Field(default=30.0, gt=0)

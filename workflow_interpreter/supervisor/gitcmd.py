@@ -117,6 +117,12 @@ class GitSubcommand(StrEnum):
     is the one way to learn the filter-driver names a repository defines
     without letting `status` execute them. It never writes a key — no member of
     this set may be used to mutate configuration.
+
+    `symbolic-ref` is READ-ONLY here by construction: the only call site asks
+    `--quiet HEAD` whether the coordinator checkout is attached
+    (`gitio.Git.attached_branch_ref`). Its wrapper accepts no ref name or value,
+    so it cannot use `git symbolic-ref HEAD refs/heads/x` to rewrite HEAD.
+    Adding a wrapper that accepts either argument would make this member unsafe.
     """
 
     REV_PARSE = "rev-parse"
@@ -138,6 +144,7 @@ class GitSubcommand(StrEnum):
     WRITE_TREE = "write-tree"
     COMMIT_TREE = "commit-tree"
     CONFIG = "config"
+    SYMBOLIC_REF = "symbolic-ref"
 
 
 class GitResult:

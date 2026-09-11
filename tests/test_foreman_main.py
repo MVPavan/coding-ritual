@@ -7,8 +7,9 @@ import json
 import subprocess
 import sys
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, NoReturn, cast
 
 import pytest
 
@@ -18,13 +19,14 @@ from tests._foreman import ForemanLab
 from tests._foreman import entry_request as foreman_entry_request
 from tests._helpers import (
     AMBIGUOUS_ABANDON_EDITS,
+    BUILD_LOOP_GRAPH,
     VALID_FIXTURE,
     mutate,
     unnameable_abandon_graph,
 )
 from tests._supervisor import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from tests.conftest import Signer
-from workflow_interpreter.bdio import BdConfig, Outcome, Usage
+from workflow_interpreter.bdio import BdConfig, BdOutputError, Outcome, Usage
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
 from workflow_interpreter.bdio.config import SigningConfig
@@ -32,7 +34,9 @@ from workflow_interpreter.bridge import (
     PhaseAdapter,
     PhaseAdapterError,
     PhaseBridgeRecord,
+    RetryRefusal,
 )
+from workflow_interpreter.bridge import command as bridge_command_module
 from workflow_interpreter.bridge import gate_view as gate_view_module
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver, Spawner
@@ -40,7 +44,7 @@ from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.gates import halt_gate
 from workflow_interpreter.foreman.supervise import WrapperExit, run_wrapper
-from workflow_interpreter.foreman.tick import Foreman
+from workflow_interpreter.foreman.tick import Foreman, RunReport, TickReport
 from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.errors import PreconditionRefused
 from workflow_interpreter.supervisor.gitio import Git
@@ -941,13 +945,15 @@ def test_create_reports_a_refused_instantiation_without_a_traceback(
 
 
 def test_config_is_accepted_before_every_subcommand() -> None:
-    """One `--config` position for all six commands, including `supervise`."""
+    """One `--config` position for all commands, including `phase-bridge`."""
     parser = main_module._parser()
     common = ["--config", "/tmp/foreman.toml"]
     forms = (
         ["create", "graph.toml", "--instance-key", "k", "--input", "a=b"],
         ["tick", "root"],
         ["status", "root"],
+        ["run", "root"],
+        ["phase-bridge", "phase", "stage"],
         ["supervise", "root", "activation"],
         ["inspect", "root", "activation"],
         ["steer", "root", "activation", "--reason", "r", "--instructions-file", "f"],
@@ -957,6 +963,448 @@ def test_config_is_accepted_before_every_subcommand() -> None:
         args = parser.parse_args(common + form)
         assert args.command == form[0]
         assert args.config == Path("/tmp/foreman.toml")
+
+
+def _bridge_stage(
+    stage_id: str, *, status: str = "open", description: str | None = None
+) -> dict[str, object]:
+    """Build one direct phase child for the command's public CLI seam."""
+    return {
+        "id": stage_id,
+        "title": "summary only",
+        "description": description,
+        "status": status,
+        "issue_type": "task",
+        "metadata": {},
+        "parent": "phase",
+    }
+
+
+def _bridge_adapter(lab: ForemanLab) -> PhaseAdapter:
+    """Keep the command's bridge adapter on the lab's real fake-bd transport."""
+    return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+
+
+def test_phase_bridge_reports_exhaustion_before_named_stage_membership(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An exhausted phase is a fact even if the caller names a stale stage id."""
+    lab = ForemanLab(tmp_path)
+    lab.fake_bd.rows["closed-stage"] = _bridge_stage("closed-stage", status="closed")
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+
+    codes: list[int] = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(["phase-bridge", "phase", "missing"]))
+    )
+
+    assert codes == [0]
+    assert json.loads(transcript)["state"] == "phase-exhausted"
+
+
+def test_phase_bridge_refuses_an_empty_stage_description_before_writing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The title never substitutes for a stage's task_brief input."""
+    lab = ForemanLab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description=None)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+
+    codes: list[int] = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+    )
+
+    report = json.loads(transcript.splitlines()[0])
+    assert codes == [2]
+    assert report["state"] == "refused"
+    assert "description" in report["reason"]
+    assert lab.fake_bd.command_count("update") == 0
+    assert lab.fake_bd.command_count("create") == 0
+
+
+def test_phase_bridge_refuses_without_a_configured_bridge_graph(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A graphless foreman config cannot mint an unpinned bridge root."""
+    lab = ForemanLab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    composition = replace(
+        lab.composition,
+        config=lab.config.model_copy(update={"bridge_graph": None}),
+    )
+    monkeypatch.setattr(main_module, "_composition", lambda _: composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+
+    codes: list[int] = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+    )
+
+    report = json.loads(transcript.splitlines()[0])
+    assert codes == [2]
+    assert report["state"] == "refused"
+    assert "bridge_graph" in report["reason"]
+    assert lab.fake_bd.command_count("update") == 0
+    assert lab.fake_bd.command_count("create") == 0
+
+
+def test_phase_bridge_refuses_a_configured_required_input_it_cannot_supply(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Only task_brief is bridge-owned; another required input costs no root."""
+    lab = ForemanLab(tmp_path, toml=BUILD_LOOP_GRAPH)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+
+    codes: list[int] = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+    )
+
+    report = json.loads(transcript.splitlines()[0])
+    assert codes == [2]
+    assert report["state"] == "refused"
+    assert "seam_contract" in report["reason"]
+    assert lab.fake_bd.command_count("update") == 0
+    assert lab.fake_bd.command_count("create") == 0
+
+
+def test_phase_bridge_trace_is_read_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Trace renders absent evidence without admitting, minting, or changing refs."""
+    lab = ForemanLab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    before = lab.git.head_commit(cwd=lab.repo)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+
+    codes: list[int] = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(
+            main_module.main(["phase-bridge", "phase", "stage", "--trace"])
+        )
+    )
+
+    report = json.loads(transcript)
+    assert codes == [0]
+    assert report["relation"] is None
+    assert report["landing_intent"] is None
+    assert report["receipt_digest"] is None
+    assert lab.fake_bd.command_count("update") == 0
+    assert lab.fake_bd.command_count("create") == 0
+    assert lab.git.head_commit(cwd=lab.repo) == before
+
+
+def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Bridge polling must not shorten the run before its human ship gate."""
+    lab = ForemanLab(tmp_path, band_wait_s=7.0)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    calls: list[tuple[float, float]] = []
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+
+    def run(
+        _self: Foreman, _root_id: str, *, poll_s: float, max_wall_s: float
+    ) -> RunReport:
+        """Capture the public run boundary without advancing the lab clock."""
+        calls.append((poll_s, max_wall_s))
+        return RunReport(ticks=1, report=TickReport())
+
+    monkeypatch.setattr(Foreman, "run", run)
+    codes: list[int] = []
+
+    lab.transcript(
+        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+    )
+
+    assert codes == [0]
+    assert calls == [(30.0, 28_800.0)]
+
+
+@pytest.mark.parametrize("trace", (False, True))
+def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, trace: bool
+) -> None:
+    """A bd read miss is caller input, in ordinary and trace command forms."""
+    lab = ForemanLab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    adapter = _bridge_adapter(lab)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: adapter),
+    )
+
+    def missing(_stage_id: str) -> NoReturn:
+        """Model the typed bd read failure for the caller's nonexistent id."""
+        raise BdOutputError("bd show missing returned no row")
+
+    if trace:
+        monkeypatch.setattr(adapter, "blocking_dependencies", lambda _stage_id: ())
+        monkeypatch.setattr(adapter, "show", missing)
+    else:
+        monkeypatch.setattr(adapter, "blocking_dependencies", missing)
+    codes: list[int] = []
+    arguments = ["phase-bridge", "phase", "missing"]
+    if trace:
+        arguments.append("--trace")
+
+    _, transcript = lab.transcript(lambda: codes.append(main_module.main(arguments)))
+
+    report = json.loads(transcript)
+    assert codes == [2]
+    assert report["state"] == "refused"
+    assert "missing" in report["reason"]
+    assert "Traceback" not in transcript
+
+
+@pytest.mark.parametrize("trace", (False, True))
+def test_phase_bridge_refuses_an_epic_without_stages(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, trace: bool
+) -> None:
+    """An empty epic cannot tell a caller that its phase is exhausted."""
+    lab = ForemanLab(tmp_path)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+    codes: list[int] = []
+    arguments = ["phase-bridge", "phase", "missing"]
+    if trace:
+        arguments.append("--trace")
+
+    _, transcript = lab.transcript(lambda: codes.append(main_module.main(arguments)))
+
+    report = json.loads(transcript)
+    assert codes == [2]
+    assert report["state"] == "refused"
+    assert "no stages" in report["reason"]
+
+
+@pytest.mark.parametrize(
+    ("guard", "reason"),
+    (("detached", "detached"), ("dirty", "not clean")),
+)
+def test_phase_bridge_refuses_a_detached_or_dirty_coordinator(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, guard: str, reason: str
+) -> None:
+    """The coordinator preflight refuses before any bridge or bd operation."""
+    lab = ForemanLab(tmp_path)
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    if guard == "detached":
+        monkeypatch.setattr(lab.git, "attached_branch_ref", lambda **_kwargs: None)
+    else:
+        monkeypatch.setattr(
+            lab.git, "status_paths", lambda **_kwargs: (("uncommitted.txt", True),)
+        )
+    codes: list[int] = []
+
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+    )
+
+    report = json.loads(transcript)
+    assert codes == [2]
+    assert report["state"] == "refused"
+    assert reason in report["reason"]
+    assert lab.fake_bd.calls == []
+
+
+def test_phase_bridge_reports_another_open_admission_as_blocked(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A sibling's unfinished admission is waiting work, not a caller refusal."""
+    lab = ForemanLab(tmp_path)
+    held = PhaseBridgeRecord.prepared(
+        epic_id="phase",
+        stage_id="other-stage",
+        attempt=1,
+        target_ref="refs/heads/main",
+        expected_base_commit=lab.head,
+    )
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    lab.fake_bd.rows["other-stage"] = _bridge_stage(
+        "other-stage", description="held brief"
+    )
+    lab.fake_bd.rows["other-stage"]["metadata"] = {
+        "phase_bridge": held.model_dump(by_alias=True, mode="json")
+    }
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+    codes: list[int] = []
+
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+    )
+
+    report = json.loads(transcript)
+    assert codes == [0]
+    assert report["state"] == "blocked"
+    assert "other-stage" in report["reason"]
+    assert report["blocking_ids"] == ["other-stage"]
+    assert report["record"] is None
+    assert report["result"] is None
+
+
+def test_phase_bridge_reports_open_blocking_dependencies(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An open blocking dependency returns its durable ids without admission."""
+    lab = ForemanLab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    lab.fake_bd.rows["stage"]["dependencies"] = [
+        {"id": "blocking-stage", "status": "open", "dependency_type": "blocks"}
+    ]
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+
+    def unexpected_graph(_composition: Composition) -> NoReturn:
+        """Make a removed dependency return fail before it can admit work."""
+        raise AssertionError("blocking dependency reached graph admission")
+
+    monkeypatch.setattr(bridge_command_module, "_bridge_graph", unexpected_graph)
+    codes: list[int] = []
+
+    _, transcript = lab.transcript(
+        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+    )
+
+    report = json.loads(transcript)
+    assert codes == [0]
+    assert report["state"] == "blocked"
+    assert report["blocking_ids"] == ["blocking-stage"]
+
+
+def test_phase_bridge_retry_mints_a_distinct_successor_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An eligible retry uses the explicit successor admission path once."""
+    lab = ForemanLab(tmp_path)
+    prior_root = lab.instantiate()
+    lab.fake_bd.rows[prior_root.root_id]["metadata"]["terminal"] = "shipped"
+    first = PhaseBridgeRecord.prepared(
+        epic_id="phase",
+        stage_id="stage",
+        attempt=1,
+        target_ref="refs/heads/main",
+        expected_base_commit=lab.head,
+    ).admitted(prior_root.root_id)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    lab.fake_bd.rows["stage"]["status"] = "in_progress"
+    lab.fake_bd.rows["stage"]["metadata"] = {
+        "phase_bridge": first.model_dump(by_alias=True, mode="json")
+    }
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+
+    codes: list[int] = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(
+            main_module.main(["phase-bridge", "phase", "stage", "--retry"])
+        )
+    )
+
+    report = json.loads(transcript.splitlines()[0])
+    stored = PhaseBridgeRecord.model_validate(
+        lab.fake_bd.rows["stage"]["metadata"]["phase_bridge"]
+    )
+    assert codes == [0]
+    assert report["state"] == "result"
+    assert stored.attempt == 2
+    assert stored.instance_key != first.instance_key
+    assert stored.previous_attempts == (first.instance_key,)
+
+
+@pytest.mark.parametrize("reason", tuple(RetryRefusal))
+def test_phase_bridge_reports_each_retry_predicate_refusal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, reason: RetryRefusal
+) -> None:
+    """Every pure retry refusal is carried to the CLI without a stage write."""
+    lab = ForemanLab(tmp_path)
+    prior_root = lab.instantiate()
+    record = PhaseBridgeRecord.prepared(
+        epic_id="phase",
+        stage_id="stage",
+        attempt=1,
+        target_ref="refs/heads/main",
+        expected_base_commit=lab.head,
+    ).admitted(prior_root.root_id)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    lab.fake_bd.rows["stage"]["status"] = "in_progress"
+    lab.fake_bd.rows["stage"]["metadata"] = {
+        "phase_bridge": record.model_dump(by_alias=True, mode="json")
+    }
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+    monkeypatch.setattr(
+        bridge_command_module,
+        "retry_refusal",
+        lambda _state, _terminals, _frontier: reason,
+    )
+    writes = lab.fake_bd.command_count("update")
+
+    codes: list[int] = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(
+            main_module.main(["phase-bridge", "phase", "stage", "--retry"])
+        )
+    )
+
+    report = json.loads(transcript.splitlines()[0])
+    assert codes == [2]
+    assert report["state"] == "refused"
+    assert report["reason"] == reason.value
+    assert lab.fake_bd.command_count("update") == writes
 
 
 def _create_argv(tmp_path: Path, brief: Path, *extra: str) -> list[str]:

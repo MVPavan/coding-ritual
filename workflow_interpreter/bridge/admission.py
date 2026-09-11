@@ -8,8 +8,6 @@ from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict
 
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.reads import find_roots
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.bridge.adapter import PhaseAdapter
@@ -28,6 +26,14 @@ MSG_HEAD_MOVED = "coordinator HEAD differs from the recorded expected base"
 
 class AdmissionRefused(ValueError):
     """Durable evidence is ambiguous and needs human attention."""
+
+    def __init__(
+        self, reason: str, *, blocked: bool = False, blocking_ids: tuple[str, ...] = ()
+    ) -> None:
+        """Name whether a refusal represents another stage's unfinished work."""
+        super().__init__(reason)
+        self.blocked = blocked
+        self.blocking_ids = blocking_ids
 
 
 class BridgeRoot(BaseModel):
@@ -58,19 +64,19 @@ class WorkflowRootProvisioner:
 
     def __init__(
         self,
-        client: BdClient,
+        adapter: PhaseAdapter,
         create_root: Callable[[str], RootRecord],
         git: Git,
         repo_root: Path,
     ) -> None:
-        self._client = client
+        self._adapter = adapter
         self._create_root = create_root
         self._git = git
         self._repo_root = repo_root
 
     def find(self, instance_key: str) -> BridgeRoot | None:
         """Repair a discovered raw root through the existing convergence path."""
-        if not find_roots(self._client, instance_key):
+        if not self._adapter.has_root(instance_key):
             return None
         return self._bridge_root(self._create_root(instance_key))
 
@@ -114,14 +120,60 @@ class PhaseAdmission:
         self, epic_id: str, stage_id: str, target_ref: str, expected_base_commit: str
     ) -> PhaseBridgeRecord:
         """Recover or complete durable admission for the named open stage."""
-        stage = self._selected_stage(epic_id, stage_id)
-        self._refuse_other_admission(epic_id, stage_id)
-        record = self._record_or_prepare(
-            stage.metadata.get("phase_bridge"),
+        return self._admit(
             epic_id,
             stage_id,
             target_ref,
             expected_base_commit,
+            successor=None,
+        )
+
+    def admit_successor(
+        self,
+        epic_id: str,
+        stage_id: str,
+        target_ref: str,
+        expected_base_commit: str,
+        successor: PhaseBridgeRecord,
+    ) -> PhaseBridgeRecord:
+        """Admit the caller-declared next attempt after the retry policy approved it."""
+        return self._admit(
+            epic_id,
+            stage_id,
+            target_ref,
+            expected_base_commit,
+            successor=successor,
+        )
+
+    def _admit(
+        self,
+        epic_id: str,
+        stage_id: str,
+        target_ref: str,
+        expected_base_commit: str,
+        *,
+        successor: PhaseBridgeRecord | None,
+    ) -> PhaseBridgeRecord:
+        """Run the shared validation and convergence path for one declared record."""
+        stage = self._selected_stage(epic_id, stage_id)
+        self._refuse_other_admission(epic_id, stage_id)
+        record = (
+            self._record_or_prepare(
+                stage.metadata.get("phase_bridge"),
+                epic_id,
+                stage_id,
+                target_ref,
+                expected_base_commit,
+            )
+            if successor is None
+            else self._prepare_successor(
+                stage.metadata.get("phase_bridge"),
+                epic_id,
+                stage_id,
+                target_ref,
+                expected_base_commit,
+                successor,
+            )
         )
         root = self._roots.find(record.instance_key)
         if root is None:
@@ -160,7 +212,31 @@ class PhaseAdmission:
             except ValueError as error:
                 raise AdmissionRefused(MSG_IDENTITY_CONFLICT) from error
             if stage.status != STATUS_CLOSED:
-                raise AdmissionRefused(MSG_OTHER_ADMISSION.format(stage_id=stage.id))
+                raise AdmissionRefused(
+                    MSG_OTHER_ADMISSION.format(stage_id=stage.id),
+                    blocked=True,
+                    blocking_ids=(stage.id,),
+                )
+
+    def _prepare_successor(
+        self,
+        raw: object | None,
+        epic_id: str,
+        stage_id: str,
+        target_ref: str,
+        expected_base_commit: str,
+        successor: PhaseBridgeRecord,
+    ) -> PhaseBridgeRecord:
+        """Validate and persist only an explicitly supplied successor intent."""
+        if raw is None or (
+            successor.epic_id != epic_id
+            or successor.stage_id != stage_id
+            or successor.target_ref != target_ref
+            or successor.expected_base_commit != expected_base_commit
+            or successor.state is not PhaseBridgeState.PREPARED
+        ):
+            raise AdmissionRefused(MSG_IDENTITY_CONFLICT)
+        return self._adapter.prepare(stage_id, successor)
 
     def _record_or_prepare(
         self,

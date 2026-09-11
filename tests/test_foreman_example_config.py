@@ -53,6 +53,7 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     assert config.wrapper_home.is_dir()
     assert config.supervisor.wrapper_root == config.wrapper_root
     assert config.actor == "wf-tester"
+    assert config.bridge_graph == repo / "workflows" / "feature-delivery.toml"
     # feature-delivery names its two runner roles `implementer` and `critic`
     # (`runner = "profile:<role>"`); the reviewer role is the critic one.
     assert config.roles["implementer"].profile == "claude"

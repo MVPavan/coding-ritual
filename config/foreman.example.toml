@@ -15,6 +15,10 @@ wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
 actor        = "@ACTOR@"
 
+# The validated graph `phase-bridge` pins for a selected stage. It is a normal
+# configurable graph path, not a bridge implementation default.
+bridge_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"
+
 # The bd workspace is the repository itself: `bd init` puts `.beads/` there and
 # every invocation is scoped with `-C <workspace>` (`bdio/client.py`).
 [bd]

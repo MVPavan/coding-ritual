@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from workflow_interpreter.bdio import finalize
 from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
 from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.reads import find_roots
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
 
@@ -18,8 +19,20 @@ MSG_WRONG_STAGE: Final[str] = "phase bridge record belongs to stage {stage_id!r}
 MSG_WRONG_INCOMING_STATE: Final[str] = (
     "incoming phase bridge record expected state {state!r}, got {actual!r}"
 )
-MSG_WRONG_STORED_STATE: Final[str] = (
-    "stored phase bridge record expected state {state!r}, got {actual!r}"
+MSG_IDEMPOTENT_STATE: Final[str] = (
+    "idempotent phase bridge re-prepare requires stored state prepared, got {actual!r}"
+)
+MSG_IDEMPOTENT_RECORD: Final[str] = (
+    "idempotent phase bridge re-prepare requires an incoming record identical to stored"
+)
+MSG_SUCCESSION_CLOSED: Final[str] = (
+    "valid phase bridge succession refuses a closed stored record"
+)
+MSG_SUCCESSION_ATTEMPT: Final[str] = (
+    "valid phase bridge succession requires incoming attempt {expected}, got {actual}"
+)
+MSG_SUCCESSION_HISTORY: Final[str] = (
+    "valid phase bridge succession requires incoming previous_attempts to extend stored"
 )
 MSG_STORED_RECORD_UNREADABLE: Final[str] = (
     "stored phase bridge record is unreadable: {reason}"
@@ -72,6 +85,10 @@ class PhaseAdapter:
         """Read the complete bridge relation currently persisted on a stage."""
         return self._record(self.show(stage_id).metadata)
 
+    def has_root(self, instance_key: str) -> bool:
+        """Report whether raw durable evidence exists for one bridge identity."""
+        return bool(find_roots(self._client, instance_key))
+
     def prepare(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
         """Persist and read back a complete pre-claim admission intent."""
         self._assert_stage(stage_id, record)
@@ -84,9 +101,7 @@ class PhaseAdapter:
                 raise PhaseAdapterError(
                     MSG_STORED_RECORD_UNREADABLE.format(reason=exc)
                 ) from exc
-            self._assert_state(
-                stored_record, PhaseBridgeState.PREPARED, MSG_WRONG_STORED_STATE
-            )
+            self._assert_prepare_shape(stored_record, record)
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         return self._record(stored.metadata)
 
@@ -150,3 +165,29 @@ class PhaseAdapter:
             raise PhaseAdapterError(
                 message.format(state=state.value, actual=record.state.value)
             )
+
+    @staticmethod
+    def _assert_prepare_shape(
+        stored: PhaseBridgeRecord, incoming: PhaseBridgeRecord
+    ) -> None:
+        """Allow only exact recovery or one non-closed successor journal."""
+        if incoming.attempt == stored.attempt:
+            if stored.state is not PhaseBridgeState.PREPARED:
+                raise PhaseAdapterError(
+                    MSG_IDEMPOTENT_STATE.format(actual=stored.state.value)
+                )
+            if incoming != stored:
+                raise PhaseAdapterError(MSG_IDEMPOTENT_RECORD)
+            return
+        if stored.state is PhaseBridgeState.CLOSED:
+            raise PhaseAdapterError(MSG_SUCCESSION_CLOSED)
+        expected_attempt = stored.attempt + 1
+        if incoming.attempt != expected_attempt:
+            raise PhaseAdapterError(
+                MSG_SUCCESSION_ATTEMPT.format(
+                    expected=expected_attempt, actual=incoming.attempt
+                )
+            )
+        expected_history = (*stored.previous_attempts, stored.instance_key)
+        if incoming.previous_attempts != expected_history:
+            raise PhaseAdapterError(MSG_SUCCESSION_HISTORY)

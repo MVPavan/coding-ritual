@@ -196,6 +196,7 @@ class BeadRecord(BaseModel):
 
     id: str
     title: str
+    description: str | None = None
     status: str
     issue_type: str
     metadata: Metadata = Field(default_factory=dict)
