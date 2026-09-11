@@ -265,3 +265,32 @@ harnesses proving a property of themselves.
   confirm `git log --oneline -1` matches (fast-forward if not) before editing;
   the orchestrator lands only patches whose report confirms the base.
 - Source: followups-p1-p2 session, beads cr-o85.4 / cr-o85.34.9
+
+## A last-line-only gate recipe destroys the identity of a failure  (2026-09-11)
+
+- Observed: the seven-gate recipe compressed each command to
+  `echo "[$st] $(echo "$out"|tail -1)"`. When acceptance returned
+  `1 failed, 65 passed`, the failing test's name had already been thrown away,
+  and the failure never reproduced in 25+ replays — so it could not be
+  diagnosed at all, only filed (`cr-l4a`).
+- Why it matters: a gate's summary line proves red/green but carries no
+  identity. A flake is exactly the case where the evidence exists once.
+- Apply: write each gate's full output to its own log file, print the summary
+  line, then `grep -h '^FAILED' <logs>` so a red gate names its tests. Keep the
+  logs until the slice is committed.
+
+## A file-scoped pytest run is not the marked gate that covers that file  (2026-09-11)
+
+- Observed: a worker was briefed to verify with `pytest tests/test_foreman_main.py`
+  and reported 34 passed; the same tree then failed the `-m acceptance` gate.
+  That path selects 34 tests, exactly one of which is acceptance-marked
+  (`tests/test_foreman_main.py:93`); the gate selects 66 across the suite, in a
+  different order and process shape. Ten files carry a module-level
+  `pytestmark` that a path-scoped brief silently ignores — verified with
+  `grep -ln '^pytestmark' tests/*.py tests/acceptance/*.py`.
+- Why it matters: green on a path is not evidence for the marker gate the
+  orchestrator must pass, and the orchestrator is the one who finds out.
+- Apply: brief workers with the marker expression from
+  `.claude/project/verification.md`, never a file path, whenever the change
+  touches a marked test. A worker's green is a signal, never the gate.
+- Source: Slice 1c, bead cr-l4a
