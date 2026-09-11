@@ -5,16 +5,27 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Final
 
+from pydantic import ValidationError
+
 from workflow_interpreter.bdio import finalize
-from workflow_interpreter.bdio.client import BdClient, DependencyRecord
+from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
 
 PHASE_BRIDGE_METADATA_KEY: Final[str] = "phase_bridge"
 MSG_WRONG_STAGE: Final[str] = "phase bridge record belongs to stage {stage_id!r}"
-MSG_WRONG_STATE: Final[str] = "expected phase bridge state {state!r}, got {actual!r}"
+MSG_WRONG_INCOMING_STATE: Final[str] = (
+    "incoming phase bridge record expected state {state!r}, got {actual!r}"
+)
+MSG_WRONG_STORED_STATE: Final[str] = (
+    "stored phase bridge record expected state {state!r}, got {actual!r}"
+)
+MSG_STORED_RECORD_UNREADABLE: Final[str] = (
+    "stored phase bridge record is unreadable: {reason}"
+)
 MSG_CLOSE_REASON: Final[str] = "phase bridge landing receipt={digest}"
+STATUS_CLOSED: Final[str] = "closed"
 
 
 class PhaseAdapterError(ValueError):
@@ -48,6 +59,15 @@ class PhaseAdapter:
         """Inspect the selected stage's declared dependencies."""
         return self._client.list_dependencies(stage_id)
 
+    def blocking_dependencies(self, stage_id: str) -> tuple[DependencyRecord, ...]:
+        """Return only unfinished blocking dependencies for a selected stage."""
+        return tuple(
+            dependency
+            for dependency in self.dependencies(stage_id)
+            if dependency.dependency_type is DependencyType.BLOCKS
+            and dependency.status != STATUS_CLOSED
+        )
+
     def record(self, stage_id: str) -> PhaseBridgeRecord:
         """Read the complete bridge relation currently persisted on a stage."""
         return self._record(self.show(stage_id).metadata)
@@ -55,7 +75,18 @@ class PhaseAdapter:
     def prepare(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
         """Persist and read back a complete pre-claim admission intent."""
         self._assert_stage(stage_id, record)
-        self._assert_state(record, PhaseBridgeState.PREPARED)
+        self._assert_state(record, PhaseBridgeState.PREPARED, MSG_WRONG_INCOMING_STATE)
+        existing = self.show(stage_id).metadata.get(PHASE_BRIDGE_METADATA_KEY)
+        if existing is not None:
+            try:
+                stored_record = PhaseBridgeRecord.model_validate(existing)
+            except ValidationError as exc:
+                raise PhaseAdapterError(
+                    MSG_STORED_RECORD_UNREADABLE.format(reason=exc)
+                ) from exc
+            self._assert_state(
+                stored_record, PhaseBridgeState.PREPARED, MSG_WRONG_STORED_STATE
+            )
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         return self._record(stored.metadata)
 
@@ -64,7 +95,7 @@ class PhaseAdapter:
     ) -> PhaseBridgeRecord:
         """Atomically claim a stage while writing its complete admitted relation."""
         self._assert_stage(stage_id, record)
-        self._assert_state(record, PhaseBridgeState.PREPARED)
+        self._assert_state(record, PhaseBridgeState.PREPARED, MSG_WRONG_INCOMING_STATE)
         admitted = record.admitted(root_id)
         stored = self._client._claim_and_merge_metadata(
             stage_id, self._metadata(admitted)
@@ -74,7 +105,7 @@ class PhaseAdapter:
     def land(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
         """Persist and read back the artifact relation after a successful CAS."""
         self._assert_stage(stage_id, record)
-        self._assert_state(record, PhaseBridgeState.LANDED)
+        self._assert_state(record, PhaseBridgeState.LANDED, MSG_WRONG_INCOMING_STATE)
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         return self._record(stored.metadata)
 
@@ -83,7 +114,7 @@ class PhaseAdapter:
     ) -> PhaseBridgeRecord:
         """Close and read back a stage whose durable relation names its receipt."""
         self._assert_stage(stage_id, record)
-        self._assert_state(record, PhaseBridgeState.CLOSED)
+        self._assert_state(record, PhaseBridgeState.CLOSED, MSG_WRONG_INCOMING_STATE)
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         closed = finalize.close_forward(
             self._client,
@@ -111,9 +142,11 @@ class PhaseAdapter:
             raise PhaseAdapterError(MSG_WRONG_STAGE.format(stage_id=stage_id))
 
     @staticmethod
-    def _assert_state(record: PhaseBridgeRecord, state: PhaseBridgeState) -> None:
-        """Keep prepare and admission from overwriting later lifecycle states."""
+    def _assert_state(
+        record: PhaseBridgeRecord, state: PhaseBridgeState, message: str
+    ) -> None:
+        """Refuse a phase bridge record that is not in an expected lifecycle state."""
         if record.state is not state:
             raise PhaseAdapterError(
-                MSG_WRONG_STATE.format(state=state.value, actual=record.state.value)
+                message.format(state=state.value, actual=record.state.value)
             )

@@ -7,6 +7,7 @@ description = "One feature: implemented → reviewed → shipped"
 [instance]
 max_total_activations  = 20      # counts every activation AND gate bead
 test_force_first_reject = false  # schema'd; validator refuses true without --allow-test-flags
+phase_bridge_retry_terminals = ["shipped", "abandoned"]
 
 [[region]]
 name         = "build-review"

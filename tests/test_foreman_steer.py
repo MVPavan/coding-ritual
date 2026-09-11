@@ -501,13 +501,17 @@ def test_tick_routes_a_stranded_steer_cap_refusal_to_its_declared_fallback(
             VALID_FIXTURE.read_text(encoding="utf-8"),
             [
                 (
+                    'phase_bridge_retry_terminals = ["shipped", "abandoned"]\n',
+                    "",
+                ),
+                (
                     'max_steers    = 2\noutcomes      = ["done", "no_diff", "fail_plan", "fail_code"]',
                     (
                         "max_steers    = 0\n"
                         f'fallback      = {{ to = "{fallback}" }}\n'
                         'outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]'
                     ),
-                )
+                ),
             ],
         ),
     )

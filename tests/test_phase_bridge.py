@@ -16,11 +16,14 @@ from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     GateArtifact,
     GatePayload,
+    GateState,
     GateVerifier,
     canonical_payload_bytes,
 )
 from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.records import GateRecord, parse_gate
 from workflow_interpreter.bdio.signing import payload_digest
+from workflow_interpreter.bdio.wire import BeadRecord, GateMetadata
 from workflow_interpreter.bridge import (
     AdmissionRefused,
     BridgeRoot,
@@ -31,6 +34,7 @@ from workflow_interpreter.bridge import (
     LandingIntent,
     LandingReceipt,
     PhaseAdapter,
+    PhaseAdapterError,
     PhaseAdmission,
     PhaseBridgeRecord,
     PhaseBridgeState,
@@ -40,6 +44,8 @@ from workflow_interpreter.bridge import (
 from workflow_interpreter.bridge.adapter import MSG_CLOSE_REASON
 from workflow_interpreter.bridge.landing import LANDING_RECEIPT_FILE, T1_MESSAGE
 from workflow_interpreter.bridge.models import INSTANCE_KEY_TEMPLATE
+from workflow_interpreter.bridge.retry import RetryRefusal, retry_refusal
+from workflow_interpreter.foreman.frontier import Frontier
 from workflow_interpreter.schema.models import IsolationMode, Outcome
 from workflow_interpreter.supervisor import Git
 from workflow_interpreter.supervisor.config import SupervisorConfig
@@ -71,6 +77,35 @@ def _stage_row() -> dict[str, object]:
         "metadata": {"unrelated": {"preserved": True}},
         "parent": EPIC_ID,
     }
+
+
+def _gate(
+    state: GateState,
+    *,
+    gate_node: str,
+    outcome: Outcome = Outcome.APPROVE,
+) -> GateRecord:
+    """Build one valid gate record for a retry-frontier observation."""
+    metadata = GateMetadata(
+        wf_root_id=ROOT_ID,
+        gate_key=f"gate-{gate_node}",
+        gate_node=gate_node,
+        outcomes=(Outcome.APPROVE, Outcome.REJECT),
+        seq=1,
+        state=state,
+        outcome=outcome if state is GateState.CLOSED else None,
+        verified_fingerprint="fingerprint" if state is GateState.CLOSED else None,
+        payload_digest="digest" if state is GateState.CLOSED else None,
+    )
+    return parse_gate(
+        BeadRecord(
+            id=f"gate-{gate_node}",
+            title=gate_node,
+            status="open",
+            issue_type="task",
+            metadata=metadata.model_dump(mode="json", exclude_none=True),
+        )
+    )
 
 
 def test_attempt_key_is_stable_and_distinct_per_attempt() -> None:
@@ -190,6 +225,115 @@ def test_phase_bridge_prepared_refuses_a_nonfirst_attempt() -> None:
         )
 
 
+def test_retry_refusal_allows_a_declared_terminal() -> None:
+    """A listed terminal may mint the bridge's next root."""
+    frontier = Frontier(terminal=True, terminal_node="abandoned")
+
+    assert retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier) is None
+
+
+def test_retry_refusal_refuses_an_unlisted_terminal() -> None:
+    """A terminal outside the retry declaration cannot mint another root."""
+    frontier = Frontier(terminal=True, terminal_node="failed")
+
+    assert (
+        retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier)
+        is RetryRefusal.UNLISTED_TERMINAL
+    )
+
+
+def test_retry_refusal_refuses_a_root_without_a_terminal() -> None:
+    """A root still in flight has no terminal eligible for retry."""
+    frontier = Frontier()
+
+    assert (
+        retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier)
+        is RetryRefusal.NO_TERMINAL
+    )
+
+
+def test_retry_refusal_open_halt_outranks_a_declared_terminal() -> None:
+    """An unresolved halt prevents retry even after a listed terminal."""
+    frontier = Frontier(
+        terminal=True,
+        terminal_node="abandoned",
+        open_halt=_gate(GateState.OPEN, gate_node="halt"),
+    )
+
+    assert (
+        retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier)
+        is RetryRefusal.OPEN_HALT
+    )
+
+
+def test_retry_refusal_refuses_the_realistic_open_halt_frontier() -> None:
+    """A live halt has no terminal until the foreman settles the root."""
+    frontier = Frontier(open_halt=_gate(GateState.OPEN, gate_node="halt"))
+
+    assert (
+        retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier)
+        is RetryRefusal.OPEN_HALT
+    )
+
+
+def test_retry_refusal_gate_red_requires_an_approved_shipped_terminal() -> None:
+    """A gate-red retry cannot bypass the prior root's ship approval."""
+    frontier = Frontier(terminal=True, terminal_node="shipped")
+
+    assert (
+        retry_refusal(PhaseBridgeState.GATE_RED, ("shipped", "abandoned"), frontier)
+        is RetryRefusal.GATE_RED_NOT_APPROVED_SHIPPED
+    )
+
+
+def test_retry_refusal_allows_gate_red_after_approved_shipped_terminal() -> None:
+    """A gate-red retry follows the prior root's accepted immutable ship gate."""
+    frontier = Frontier(
+        terminal=True,
+        terminal_node="shipped",
+        decided_gates=(_gate(GateState.CLOSED, gate_node="ship"),),
+    )
+
+    assert (
+        retry_refusal(PhaseBridgeState.GATE_RED, ("shipped", "abandoned"), frontier)
+        is None
+    )
+
+
+@pytest.mark.parametrize(
+    ("gate_node", "outcome"),
+    (("ship", Outcome.REJECT), ("review", Outcome.APPROVE)),
+)
+def test_retry_refusal_refuses_gate_red_without_an_approved_ship_gate(
+    gate_node: str, outcome: Outcome
+) -> None:
+    """A gate-red root needs an approving decision at the declared ship gate."""
+    frontier = Frontier(
+        terminal=True,
+        terminal_node="shipped",
+        decided_gates=(_gate(GateState.CLOSED, gate_node=gate_node, outcome=outcome),),
+    )
+
+    assert (
+        retry_refusal(PhaseBridgeState.GATE_RED, ("shipped",), frontier)
+        is RetryRefusal.GATE_RED_NOT_APPROVED_SHIPPED
+    )
+
+
+def test_retry_refusal_refuses_gate_red_without_the_shipped_terminal() -> None:
+    """An approved ship gate cannot qualify a different declared terminal."""
+    frontier = Frontier(
+        terminal=True,
+        terminal_node="abandoned",
+        decided_gates=(_gate(GateState.CLOSED, gate_node="ship"),),
+    )
+
+    assert (
+        retry_refusal(PhaseBridgeState.GATE_RED, ("abandoned",), frontier)
+        is RetryRefusal.GATE_RED_NOT_APPROVED_SHIPPED
+    )
+
+
 def test_adapter_writes_the_whole_record_then_claims_with_admission(
     fake_bd: FakeBd, fake_client: BdClient
 ) -> None:
@@ -218,6 +362,72 @@ def test_adapter_writes_the_whole_record_then_claims_with_admission(
         by_alias=True, mode="json"
     )
     assert adapter.dependencies(STAGE_ID) == ()
+
+
+@pytest.mark.parametrize(
+    "stored_state", (PhaseBridgeState.ADMITTED, PhaseBridgeState.CLOSED)
+)
+def test_prepare_refuses_to_overwrite_a_later_stored_journal(
+    fake_bd: FakeBd, fake_client: BdClient, stored_state: PhaseBridgeState
+) -> None:
+    """A fresh retry journal cannot replace admitted or closed stage evidence."""
+    stored = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    ).admitted(ROOT_ID)
+    if stored_state is PhaseBridgeState.CLOSED:
+        stored = stored.closed()
+    stage = _stage_row()
+    stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
+    fake_bd.rows[STAGE_ID] = stage
+
+    with pytest.raises(
+        PhaseAdapterError, match="stored phase bridge record expected state"
+    ):
+        PhaseAdapter(fake_client).prepare(STAGE_ID, stored.next_attempt())
+
+
+def test_prepare_refuses_a_nonprepared_incoming_journal(
+    fake_bd: FakeBd, fake_client: BdClient
+) -> None:
+    """The supplied record is named when it is not a prepare intent."""
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    incoming = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    ).admitted(ROOT_ID)
+
+    with pytest.raises(
+        PhaseAdapterError, match="incoming phase bridge record expected state"
+    ):
+        PhaseAdapter(fake_client).prepare(STAGE_ID, incoming)
+
+
+def test_prepare_wraps_unreadable_stored_journal(
+    fake_bd: FakeBd, fake_client: BdClient
+) -> None:
+    """Corrupt stored bridge metadata stays behind the adapter error boundary."""
+    stage = _stage_row()
+    stage["metadata"] = {"phase_bridge": {"state": "not-a-bridge-state"}}
+    fake_bd.rows[STAGE_ID] = stage
+    incoming = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    )
+
+    with pytest.raises(
+        PhaseAdapterError, match="stored phase bridge record is unreadable"
+    ):
+        PhaseAdapter(fake_client).prepare(STAGE_ID, incoming)
 
 
 class _Roots:
@@ -981,21 +1191,78 @@ def test_recovery_closes_when_a_descendant_contains_the_signed_artifact(
     assert fake_bd.rows[STAGE_ID]["status"] == "closed"
 
 
-def test_fake_dependencies_reflect_its_row_instead_of_a_vacuous_empty_fixture(
+def test_blocking_dependencies_tolerate_the_open_bd_relation_vocabulary(
     fake_bd: FakeBd, fake_client: BdClient
 ) -> None:
-    """A dependency assertion can now fail when the fake stage actually has one."""
+    """Only unfinished blocks rows prevent admission as bd adds relation types."""
     stage = _stage_row()
-    stage["dependencies"] = [{"issue_id": STAGE_ID, "depends_on_id": "blocker"}]
+    stage["dependencies"] = [
+        {
+            "id": "epic",
+            "status": "open",
+            "dependency_type": "parent-child",
+        },
+        {
+            "id": "closed-blocker",
+            "status": "closed",
+            "dependency_type": "blocks",
+        },
+        {
+            "id": "tracks",
+            "status": "open",
+            "dependency_type": "tracks",
+        },
+        {
+            "id": "related",
+            "status": "open",
+            "dependency_type": "related",
+        },
+        {
+            "id": "discovered-from",
+            "status": "open",
+            "dependency_type": "discovered-from",
+        },
+        {
+            "id": "until",
+            "status": "open",
+            "dependency_type": "until",
+        },
+        {
+            "id": "caused-by",
+            "status": "open",
+            "dependency_type": "caused-by",
+        },
+        {
+            "id": "validates",
+            "status": "open",
+            "dependency_type": "validates",
+        },
+        {
+            "id": "relates-to",
+            "status": "open",
+            "dependency_type": "relates-to",
+        },
+        {
+            "id": "supersedes",
+            "status": "open",
+            "dependency_type": "supersedes",
+        },
+        {
+            "id": "future-dependency",
+            "status": "open",
+            "dependency_type": "future-dependency",
+        },
+        {
+            "id": "open-blocker",
+            "status": "open",
+            "dependency_type": "blocks",
+        },
+    ]
     fake_bd.rows[STAGE_ID] = stage
 
-    dependencies = PhaseAdapter(fake_client).dependencies(STAGE_ID)
+    dependencies = PhaseAdapter(fake_client).blocking_dependencies(STAGE_ID)
 
-    assert len(dependencies) == 1
-    assert dependencies[0].model_dump() == {
-        "issue_id": STAGE_ID,
-        "depends_on_id": "blocker",
-    }
+    assert tuple(dependency.id for dependency in dependencies) == ("open-blocker",)
 
 
 def test_intent_before_cas_refuses_without_restarting_the_landing(

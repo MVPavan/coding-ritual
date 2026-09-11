@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any, Final, Protocol
 
 import structlog
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.errors import (
@@ -39,6 +39,7 @@ from workflow_interpreter.bdio.errors import (
     LossyWriteError,
 )
 from workflow_interpreter.bdio.wire import (
+    ROW_MODEL,
     BeadRecord,
     IssueType,
     Metadata,
@@ -135,10 +136,41 @@ class CompletedCommand(BaseModel):
     stderr: str
 
 
+class DependencyType(StrEnum):
+    """The dependency relations that Beads reports for an issue."""
+
+    BLOCKS = "blocks"
+    TRACKS = "tracks"
+    RELATED = "related"
+    PARENT_CHILD = "parent-child"
+    DISCOVERED_FROM = "discovered-from"
+    UNTIL = "until"
+    CAUSED_BY = "caused-by"
+    VALIDATES = "validates"
+    RELATES_TO = "relates-to"
+    SUPERSEDES = "supersedes"
+    UNKNOWN = "unknown"
+
+
 class DependencyRecord(BaseModel):
     """One dependency row returned by the bounded Beads dependency surface."""
 
-    model_config = ConfigDict(frozen=True, extra="allow")
+    model_config = ROW_MODEL
+
+    id: str
+    status: str
+    dependency_type: DependencyType
+
+    @field_validator("dependency_type", mode="before")
+    @classmethod
+    def _unknown_dependency_type_is_nonblocking(cls, value: object) -> object:
+        """Map future Beads relation names to the non-blocking enum member."""
+        if isinstance(value, str):
+            try:
+                return DependencyType(value)
+            except ValueError:
+                return DependencyType.UNKNOWN
+        return value
 
 
 class CommandRunner(Protocol):

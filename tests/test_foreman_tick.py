@@ -403,6 +403,10 @@ def test_tick_backfills_an_activation_terminal_edge_without_a_gate(
             VALID_FIXTURE.read_text(encoding="utf-8"),
             (
                 (
+                    'phase_bridge_retry_terminals = ["shipped", "abandoned"]\n',
+                    "",
+                ),
+                (
                     """[[node]]
 name      = "ship"
 kind      = "gate"

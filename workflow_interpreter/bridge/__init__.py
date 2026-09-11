@@ -20,6 +20,7 @@ from workflow_interpreter.bridge.landing import (
     RepositoryGateResult,
 )
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
+from workflow_interpreter.bridge.retry import RetryRefusal, retry_refusal
 
 __all__ = [
     "AdmissionRefused",
@@ -38,6 +39,8 @@ __all__ = [
     "PhaseBridgeState",
     "PhaseLanding",
     "RepositoryGateResult",
+    "RetryRefusal",
     "RootProvisioner",
     "WorkflowRootProvisioner",
+    "retry_refusal",
 ]
