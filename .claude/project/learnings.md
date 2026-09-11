@@ -294,3 +294,19 @@ harnesses proving a property of themselves.
   `.claude/project/verification.md`, never a file path, whenever the change
   touches a marked test. A worker's green is a signal, never the gate.
 - Source: Slice 1c, bead cr-l4a
+
+## Assembling a brief by text extraction silently drops the sections above the anchor  (2026-09-11)
+
+- Observed: a worker brief was rebuilt across dispatches with
+  `sed -n '/^--- ITEM 1/,$p' previous-brief.md`, which starts the extract at the
+  first item and drops everything above it. Two design rulings the orchestrator
+  had already made (where the CLI gets its graph, which bead field carries the
+  task brief) lived in that header and vanished. The worker blocked on exactly
+  those two questions a second time, costing a full dispatch.
+- Why it matters: the worker sees only the assembled artifact. A section the
+  orchestrator "already decided" does not exist unless it is in the bytes sent,
+  and re-answering looks like worker failure rather than orchestrator error.
+- Apply: after assembling any brief from parts, grep the finished file for one
+  distinctive string per required section and print the counts BEFORE
+  dispatching. Treat the assembled file, not the intent, as the specification.
+- Source: Slice 2b, dispatches 3-5
