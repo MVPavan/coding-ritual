@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import subprocess
 import tempfile
 from pathlib import Path
@@ -28,6 +29,7 @@ from workflow_interpreter.bridge import (
     LandingDisposition,
     LandingHooks,
     LandingIntent,
+    LandingReceipt,
     PhaseAdapter,
     PhaseAdmission,
     PhaseBridgeRecord,
@@ -35,11 +37,18 @@ from workflow_interpreter.bridge import (
     PhaseLanding,
     RepositoryGateResult,
 )
-from workflow_interpreter.bridge.landing import T1_MESSAGE
+from workflow_interpreter.bridge.adapter import MSG_CLOSE_REASON
+from workflow_interpreter.bridge.landing import LANDING_RECEIPT_FILE, T1_MESSAGE
+from workflow_interpreter.bridge.models import INSTANCE_KEY_TEMPLATE
 from workflow_interpreter.schema.models import IsolationMode, Outcome
 from workflow_interpreter.supervisor import Git
 from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.paths import WrapperPaths, write_record
+from workflow_interpreter.supervisor.paths import (
+    WrapperPaths,
+    read_record,
+    record_bytes,
+    write_record,
+)
 from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 EPIC_ID = "phase-1"
@@ -47,6 +56,9 @@ STAGE_ID = "stage-a"
 TARGET_REF = "refs/heads/main"
 BASE_COMMIT = "a" * 40
 ROOT_ID: Final[str] = "bridge-root"
+FUTURE_PHASE_BRIDGE_SCHEMA: Final[str] = "future-schema/99"
+WRONG_INSTANCE_KEY: Final[str] = "not-the-derived-key"
+REPEATED_PREVIOUS_ATTEMPT: Final[str] = "x"
 
 
 def _stage_row() -> dict[str, object]:
@@ -75,6 +87,107 @@ def test_attempt_key_is_stable_and_distinct_per_attempt() -> None:
     assert first.instance_key == "phase-bridge:phase-1:stage-a:attempt:1"
     assert retry.instance_key == "phase-bridge:phase-1:stage-a:attempt:2"
     assert retry.previous_attempts == (first.instance_key,)
+
+
+def test_phase_bridge_record_rejects_an_unknown_schema() -> None:
+    """A journal must declare the pinned schema instead of accepting future records."""
+    record = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    )
+    raw = record.model_dump(by_alias=True)
+    raw["schema"] = FUTURE_PHASE_BRIDGE_SCHEMA
+
+    with pytest.raises(ValueError, match="schema"):
+        PhaseBridgeRecord.model_validate(raw)
+
+
+def test_phase_bridge_record_rejects_an_underived_instance_key() -> None:
+    """A journal key must identify its epic, stage, and attempt exactly."""
+    record = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    )
+    raw = record.model_dump(by_alias=True)
+    raw["instance_key"] = WRONG_INSTANCE_KEY
+
+    with pytest.raises(ValueError, match="instance_key"):
+        PhaseBridgeRecord.model_validate(raw)
+
+
+def test_phase_bridge_record_rejects_invalid_previous_attempt_history() -> None:
+    """A retry journal must retain each earlier attempt once and only once."""
+    record = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    )
+    raw = record.model_dump(by_alias=True)
+    raw.update(
+        {
+            "attempt": 3,
+            "instance_key": INSTANCE_KEY_TEMPLATE.format(
+                epic_id=EPIC_ID, stage_id=STAGE_ID, attempt=3
+            ),
+            "previous_attempts": (
+                REPEATED_PREVIOUS_ATTEMPT,
+                REPEATED_PREVIOUS_ATTEMPT,
+            ),
+        }
+    )
+
+    with pytest.raises(ValueError, match="previous_attempts"):
+        PhaseBridgeRecord.model_validate(raw)
+
+
+@pytest.mark.parametrize("field", ("schema", "previous_attempts"))
+def test_phase_bridge_record_rejects_truncated_journal_fields(field: str) -> None:
+    """A nested metadata replacement cannot silently re-default identity fields."""
+    record = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    )
+    raw = record.model_dump(by_alias=True)
+    del raw[field]
+
+    with pytest.raises(ValueError, match=field):
+        PhaseBridgeRecord.model_validate(raw)
+
+
+def test_phase_bridge_next_attempt_round_trips_through_validation() -> None:
+    """The normal retry constructor remains a valid complete journal record."""
+    retry = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    ).next_attempt()
+
+    assert PhaseBridgeRecord.model_validate(retry.model_dump(by_alias=True)) == retry
+
+
+def test_phase_bridge_prepared_refuses_a_nonfirst_attempt() -> None:
+    """Only next_attempt may attach genuine prior-attempt history."""
+    with pytest.raises(ValueError, match="first attempt"):
+        PhaseBridgeRecord.prepared(
+            epic_id=EPIC_ID,
+            stage_id=STAGE_ID,
+            attempt=3,
+            target_ref=TARGET_REF,
+            expected_base_commit=BASE_COMMIT,
+        )
 
 
 def test_adapter_writes_the_whole_record_then_claims_with_admission(
@@ -267,6 +380,33 @@ def test_admission_recovers_after_the_relation_write_is_interrupted(
     assert fake_bd.command_count("create") == 1
 
 
+def test_admission_refuses_an_open_stage_with_a_landed_relation(
+    fake_bd: FakeBd, fake_client: BdClient, tmp_path: Path
+) -> None:
+    """A landed relation remains unfinished until its stage bead is closed."""
+    other_stage_id = "stage-b"
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    other_stage = _stage_row()
+    other_stage["id"] = other_stage_id
+    fake_bd.rows[other_stage_id] = other_stage
+    repo, base = _temporary_repo(tmp_path)
+    roots = _Roots(fake_client, repo, base)
+    adapter = PhaseAdapter(fake_client)
+    admission = PhaseAdmission(adapter, roots, lambda: base)
+
+    admitted = admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
+    landed = admitted.landed(base, "b" * 40, "gate-receipt", "landing-receipt")
+    adapter.land(STAGE_ID, landed)
+
+    with pytest.raises(AdmissionRefused, match="unfinished bridge admission"):
+        admission.admit(EPIC_ID, other_stage_id, TARGET_REF, base)
+
+    adapter.close(STAGE_ID, landed.closed(), "landing-receipt")
+    other = admission.admit(EPIC_ID, other_stage_id, TARGET_REF, base)
+
+    assert other.state is PhaseBridgeState.ADMITTED
+
+
 def test_conflicting_record_refuses_without_creating_a_root(
     fake_bd: FakeBd, fake_client: BdClient, tmp_path: Path
 ) -> None:
@@ -342,9 +482,15 @@ class _GateAuthority:
 class _RepositoryGate:
     """Record the real detached tree the injected gate was asked to grade."""
 
-    def __init__(self, artifact_oid: str, tree: str) -> None:
+    def __init__(
+        self,
+        artifact_oid: str,
+        tree: str,
+        results: tuple[str, ...] = ("repository gate green",),
+    ) -> None:
         self._artifact_oid = artifact_oid
         self._tree = tree
+        self._results = results
         self.calls = 0
 
     def verify(self, artifact_oid: str, tree: str) -> RepositoryGateResult:
@@ -357,7 +503,7 @@ class _RepositoryGate:
             tree=tree,
             complete=True,
             green=True,
-            results=("repository gate green",),
+            results=self._results,
         )
 
 
@@ -408,6 +554,44 @@ def _landing_context(repo: Path, tmp_path: Path) -> tuple[Git, WrapperPaths]:
         sandbox=SandboxMode.OFF,
     )
     return Git(config), WrapperPaths(config, ROOT_ID)
+
+
+def test_landing_refuses_a_prepared_stage_without_cas_or_close(
+    fake_bd: FakeBd,
+    fake_client: BdClient,
+    gate_verifier: GateVerifier,
+    sign_payload: Signer,
+    tmp_path: Path,
+) -> None:
+    """Only an admitted stage may enter the one-shot landing path."""
+    repo, base = _temporary_repo(tmp_path)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    adapter = PhaseAdapter(fake_client)
+    prepared = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=base,
+    )
+    adapter.prepare(STAGE_ID, prepared)
+    git, paths = _landing_context(repo, tmp_path)
+    landing = PhaseLanding(
+        adapter,
+        git,
+        repo,
+        paths,
+        _GateAuthority(base, "b" * 40, gate_verifier, sign_payload),
+        _RepositoryGate(base, "b" * 40),
+    )
+    before_reflog = _reflog(repo)
+
+    result = landing.land(STAGE_ID)
+
+    assert result.disposition is LandingDisposition.HUMAN_ATTENTION
+    assert _ref_target(repo) == base
+    assert _reflog(repo) == before_reflog
+    assert fake_bd.command_count("close") == 0
 
 
 def test_post_cas_recovery_closes_only_the_signed_artifact(
@@ -468,6 +652,200 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     assert fake_bd.rows[STAGE_ID]["status"] == "closed"
     assert gate.calls == 2
     assert repository_gate.calls == 2
+
+
+def test_closed_recovery_uses_the_disk_receipt_digest_without_redriving_close(
+    fake_bd: FakeBd,
+    fake_client: BdClient,
+    gate_verifier: GateVerifier,
+    sign_payload: Signer,
+    tmp_path: Path,
+) -> None:
+    """A closed stage keeps the close reason named by its durable receipt."""
+    repo, base = _temporary_repo(tmp_path)
+    artifact_oid, tree = _commit_artifact(repo)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    adapter = PhaseAdapter(fake_client)
+    prepared = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=base,
+    )
+    adapter.prepare(STAGE_ID, prepared)
+    adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
+    gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
+    git, paths = _landing_context(repo, tmp_path)
+
+    landed = PhaseLanding(
+        adapter,
+        git,
+        repo,
+        paths,
+        gate,
+        _RepositoryGate(artifact_oid, tree, ("receipt written to disk",)),
+    ).land(STAGE_ID)
+    receipt = read_record(paths.instance_dir / LANDING_RECEIPT_FILE, LandingReceipt)
+    assert receipt is not None
+    receipt_digest = hashlib.sha256(record_bytes(receipt)).hexdigest()
+    before_closes = fake_bd.command_count("close")
+
+    recovered = PhaseLanding(
+        adapter,
+        git,
+        repo,
+        paths,
+        gate,
+        _RepositoryGate(artifact_oid, tree, ("rebuilt green diagnostic",)),
+    ).recover(STAGE_ID)
+
+    assert landed.disposition is LandingDisposition.CLOSED
+    assert recovered.disposition is LandingDisposition.CLOSED
+    assert fake_bd.rows[STAGE_ID]["close_reason"] == MSG_CLOSE_REASON.format(
+        digest=receipt_digest
+    )
+    assert fake_bd.command_count("close") == before_closes
+
+
+def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
+    fake_bd: FakeBd,
+    fake_client: BdClient,
+    gate_verifier: GateVerifier,
+    sign_payload: Signer,
+    tmp_path: Path,
+) -> None:
+    """A pre-relation crash records the receipt digest read back during recovery."""
+    repo, base = _temporary_repo(tmp_path)
+    artifact_oid, tree = _commit_artifact(repo)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    adapter = PhaseAdapter(fake_client)
+    prepared = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=base,
+    )
+    adapter.prepare(STAGE_ID, prepared)
+    adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
+    gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
+    git, paths = _landing_context(repo, tmp_path)
+    fake_bd.crash_on("update")
+
+    with pytest.raises(InjectedCrash, match="bd update died"):
+        PhaseLanding(
+            adapter,
+            git,
+            repo,
+            paths,
+            gate,
+            _RepositoryGate(artifact_oid, tree, ("receipt written to disk",)),
+        ).land(STAGE_ID)
+
+    receipt = read_record(paths.instance_dir / LANDING_RECEIPT_FILE, LandingReceipt)
+    assert receipt is not None
+    receipt_digest = hashlib.sha256(record_bytes(receipt)).hexdigest()
+    before_closes = fake_bd.command_count("close")
+
+    recovered = PhaseLanding(
+        adapter,
+        git,
+        repo,
+        paths,
+        gate,
+        _RepositoryGate(artifact_oid, tree, ("rebuilt green diagnostic",)),
+    ).recover(STAGE_ID)
+
+    assert recovered.disposition is LandingDisposition.CLOSED
+    assert adapter.record(STAGE_ID).landing_receipt_digest == receipt_digest
+    assert fake_bd.rows[STAGE_ID]["close_reason"] == MSG_CLOSE_REASON.format(
+        digest=receipt_digest
+    )
+    assert fake_bd.command_count("close") == before_closes + 1
+
+
+@pytest.mark.parametrize("field", ("signed_oid", "landed_oid"))
+def test_recovery_returns_human_attention_for_mismatched_receipt_identity(
+    fake_bd: FakeBd,
+    fake_client: BdClient,
+    gate_verifier: GateVerifier,
+    sign_payload: Signer,
+    tmp_path: Path,
+    field: str,
+) -> None:
+    """A receipt bound to another artifact remains for an operator to reconcile."""
+    repo, base = _temporary_repo(tmp_path)
+    artifact_oid, tree = _commit_artifact(repo)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    adapter = PhaseAdapter(fake_client)
+    prepared = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=base,
+    )
+    adapter.prepare(STAGE_ID, prepared)
+    adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
+    gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
+    repository_gate = _RepositoryGate(artifact_oid, tree)
+    git, paths = _landing_context(repo, tmp_path)
+    fake_bd.crash_on("close")
+
+    with pytest.raises(InjectedCrash, match="bd close died"):
+        PhaseLanding(adapter, git, repo, paths, gate, repository_gate).land(STAGE_ID)
+
+    receipt_path = paths.instance_dir / LANDING_RECEIPT_FILE
+    receipt = read_record(receipt_path, LandingReceipt)
+    assert receipt is not None
+    write_record(receipt_path, receipt.model_copy(update={field: base}))
+
+    recovered = PhaseLanding(adapter, git, repo, paths, gate, repository_gate).recover(
+        STAGE_ID
+    )
+
+    assert recovered.disposition is LandingDisposition.HUMAN_ATTENTION
+    assert fake_bd.rows[STAGE_ID]["status"] == "in_progress"
+
+
+def test_landing_closed_stage_routes_to_recovery_without_a_second_cas(
+    fake_bd: FakeBd,
+    fake_client: BdClient,
+    gate_verifier: GateVerifier,
+    sign_payload: Signer,
+    tmp_path: Path,
+) -> None:
+    """A human restore of H cannot make a completed stage land its old artifact again."""
+    repo, base = _temporary_repo(tmp_path)
+    artifact_oid, tree = _commit_artifact(repo)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    adapter = PhaseAdapter(fake_client)
+    prepared = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=base,
+    )
+    adapter.prepare(STAGE_ID, prepared)
+    adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
+    gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
+    repository_gate = _RepositoryGate(artifact_oid, tree)
+    git, paths = _landing_context(repo, tmp_path)
+    landing = PhaseLanding(adapter, git, repo, paths, gate, repository_gate)
+
+    assert landing.land(STAGE_ID).disposition is LandingDisposition.CLOSED
+    subprocess.run(["git", "update-ref", TARGET_REF, base], cwd=repo, check=True)
+    before_reflog = _reflog(repo)
+    before_closes = fake_bd.command_count("close")
+
+    repeated = landing.land(STAGE_ID)
+
+    assert repeated.disposition is LandingDisposition.HUMAN_ATTENTION
+    assert _ref_target(repo) == base
+    assert _reflog(repo) == before_reflog
+    assert fake_bd.command_count("close") == before_closes
 
 
 def _ref_target(repo: Path) -> str:

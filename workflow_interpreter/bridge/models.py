@@ -3,13 +3,24 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Final
+from typing import Annotated, Final, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
-PHASE_BRIDGE_SCHEMA: Final[str] = "phase-bridge/3"
+type PhaseBridgeSchema = Literal["phase-bridge/3"]
+PHASE_BRIDGE_SCHEMA: Final[PhaseBridgeSchema] = "phase-bridge/3"
 INSTANCE_KEY_TEMPLATE: Final[str] = (
     "phase-bridge:{epic_id}:{stage_id}:attempt:{attempt}"
+)
+MSG_INSTANCE_KEY: Final[str] = "phase bridge instance_key is not derived from identity"
+MSG_PREVIOUS_ATTEMPTS_COUNT: Final[str] = (
+    "phase bridge previous_attempts does not match attempt count"
+)
+MSG_PREVIOUS_ATTEMPTS_UNIQUE: Final[str] = (
+    "phase bridge previous_attempts must contain unique identities"
+)
+MSG_PREPARED_NOT_FIRST_ATTEMPT: Final[str] = (
+    "phase bridge prepared records must be the first attempt"
 )
 
 CommitOid = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
@@ -32,8 +43,7 @@ class PhaseBridgeRecord(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    schema_version: str = Field(
-        default=PHASE_BRIDGE_SCHEMA,
+    schema_version: PhaseBridgeSchema = Field(
         alias="schema",
         serialization_alias="schema",
         frozen=True,
@@ -50,7 +60,21 @@ class PhaseBridgeRecord(BaseModel):
     tree: CommitOid | None = None
     gate_receipt_digest: NonEmptyText | None = None
     landing_receipt_digest: NonEmptyText | None = None
-    previous_attempts: tuple[NonEmptyText, ...] = ()
+    previous_attempts: tuple[NonEmptyText, ...]
+
+    @model_validator(mode="after")
+    def _assert_attempt_identity(self) -> PhaseBridgeRecord:
+        """Require one derived current key and one unique key for each prior attempt."""
+        expected_key = INSTANCE_KEY_TEMPLATE.format(
+            epic_id=self.epic_id, stage_id=self.stage_id, attempt=self.attempt
+        )
+        if self.instance_key != expected_key:
+            raise ValueError(MSG_INSTANCE_KEY)
+        if len(self.previous_attempts) != self.attempt - 1:
+            raise ValueError(MSG_PREVIOUS_ATTEMPTS_COUNT)
+        if len(set(self.previous_attempts)) != len(self.previous_attempts):
+            raise ValueError(MSG_PREVIOUS_ATTEMPTS_UNIQUE)
+        return self
 
     @classmethod
     def prepared(
@@ -63,7 +87,10 @@ class PhaseBridgeRecord(BaseModel):
         expected_base_commit: str,
     ) -> PhaseBridgeRecord:
         """Build a new pre-claim admission intent."""
+        if attempt != 1:
+            raise ValueError(MSG_PREPARED_NOT_FIRST_ATTEMPT)
         return cls(
+            schema=PHASE_BRIDGE_SCHEMA,
             state=PhaseBridgeState.PREPARED,
             epic_id=epic_id,
             stage_id=stage_id,
@@ -73,18 +100,23 @@ class PhaseBridgeRecord(BaseModel):
             ),
             target_ref=target_ref,
             expected_base_commit=expected_base_commit,
+            previous_attempts=(),
         )
 
     def next_attempt(self) -> PhaseBridgeRecord:
         """Mint the next distinct root identity after an eligible retry."""
-        return self.prepared(
+        return PhaseBridgeRecord(
+            schema=PHASE_BRIDGE_SCHEMA,
+            state=PhaseBridgeState.PREPARED,
             epic_id=self.epic_id,
             stage_id=self.stage_id,
             attempt=self.attempt + 1,
+            instance_key=INSTANCE_KEY_TEMPLATE.format(
+                epic_id=self.epic_id, stage_id=self.stage_id, attempt=self.attempt + 1
+            ),
             target_ref=self.target_ref,
             expected_base_commit=self.expected_base_commit,
-        ).model_copy(
-            update={"previous_attempts": (*self.previous_attempts, self.instance_key)}
+            previous_attempts=(*self.previous_attempts, self.instance_key),
         )
 
     def admitted(self, root_id: str) -> PhaseBridgeRecord:

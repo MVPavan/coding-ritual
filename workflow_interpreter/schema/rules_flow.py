@@ -426,6 +426,10 @@ def phase_bridge_retry_terminals_human_gated(index: GraphIndex) -> list[Finding]
     backward while stopping at human gates searches precisely for the unsafe
     complement: an entry-to-terminal route containing no human approval. The
     visited set makes bounded-cycle graphs finite without weakening that test.
+
+    An ``on_exhausted`` route cannot create this bypass: it targets only a gate,
+    every v1 gate is human, and this traversal stops at human gates. Revisit
+    this structural property before adding a non-human ``GateType``.
     """
     terminals = index.document.instance.phase_bridge_retry_terminals
     if not terminals:

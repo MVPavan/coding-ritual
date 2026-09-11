@@ -19,6 +19,7 @@ from workflow_interpreter.supervisor.gitio import Git
 
 STATUS_OPEN = "open"
 STATUS_IN_PROGRESS = "in_progress"
+STATUS_CLOSED = "closed"
 MSG_STAGE_NOT_DIRECT = "stage {stage_id!r} is not an open direct child of {epic_id!r}"
 MSG_OTHER_ADMISSION = "stage {stage_id!r} has unfinished bridge admission"
 MSG_IDENTITY_CONFLICT = "phase bridge identity conflicts with durable admission"
@@ -155,10 +156,10 @@ class PhaseAdmission:
             if raw is None:
                 continue
             try:
-                record = PhaseBridgeRecord.model_validate(raw)
+                PhaseBridgeRecord.model_validate(raw)
             except ValueError as error:
                 raise AdmissionRefused(MSG_IDENTITY_CONFLICT) from error
-            if record.state in (PhaseBridgeState.PREPARED, PhaseBridgeState.ADMITTED):
+            if stage.status != STATUS_CLOSED:
                 raise AdmissionRefused(MSG_OTHER_ADMISSION.format(stage_id=stage.id))
 
     def _record_or_prepare(

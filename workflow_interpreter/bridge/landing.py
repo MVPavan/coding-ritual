@@ -202,6 +202,10 @@ class PhaseLanding:
     def land(self, stage_id: str) -> LandingResult:
         """Execute the one allowed CAS after all landing evidence is green."""
         record = self._adapter.record(stage_id)
+        if record.state in (PhaseBridgeState.LANDED, PhaseBridgeState.CLOSED):
+            return self.recover(stage_id)
+        if record.state not in (PhaseBridgeState.ADMITTED, PhaseBridgeState.LANDING):
+            return LandingResult(disposition=LandingDisposition.HUMAN_ATTENTION)
         evidence = self._gate_evidence(record)
         observed_target = self._git.ref_target(record.target_ref, cwd=self._repo_root)
         if observed_target != record.expected_base_commit:
@@ -288,8 +292,12 @@ class PhaseLanding:
         existing = read_record(self._receipt_path(), LandingReceipt)
         if existing is None:
             write_record(self._receipt_path(), receipt)
-        elif existing != receipt:
-            raise ValueError(MSG_IDENTITY)
+        elif not self._receipt_identity_matches(existing, receipt):
+            return LandingResult(
+                disposition=LandingDisposition.HUMAN_ATTENTION, intent=intent
+            )
+        else:
+            receipt_digest = _digest_record(existing)
         landed = (
             record
             if record.state is PhaseBridgeState.CLOSED
@@ -359,6 +367,21 @@ class PhaseLanding:
             intent.artifact_oid == evidence.artifact_oid
             and intent.tree == evidence.tree
             and intent.gate_receipt_digest == evidence.digest
+        )
+
+    @staticmethod
+    def _receipt_identity_matches(
+        existing: LandingReceipt, receipt: LandingReceipt
+    ) -> bool:
+        """Compare only receipt fields derived from the immutable landing intent."""
+        return (
+            existing.intent_digest == receipt.intent_digest
+            and existing.ref == receipt.ref
+            and existing.expected_base == receipt.expected_base
+            and existing.signed_oid == receipt.signed_oid
+            and existing.landed_oid == receipt.landed_oid
+            and existing.tree == receipt.tree
+            and existing.gate_receipt_digest == receipt.gate_receipt_digest
         )
 
     def _write_intent(self, intent: LandingIntent) -> None:
