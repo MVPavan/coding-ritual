@@ -203,7 +203,7 @@ def make_channels(tmp_path: Path, activation_id: str = ACTIVATION) -> RunnerChan
     return channels_for(activation_dir, activation_dir / "run.jsonl", activation_id)
 
 
-CHECKOUT_BRANCH: Final[str] = "wf/lab-checkout"
+CHECKOUT_BRANCH: Final[str] = BRANCH_TEMPLATE.format(root_id=ROOT_ID)
 """The branch a lab checkout is put on, so a commit made in it updates a real
 `<common>/refs/heads/...` instead of moving a detached HEAD only."""
 

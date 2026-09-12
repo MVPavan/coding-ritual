@@ -101,7 +101,7 @@ def test_first_dispatch_creates_the_worktree_at_the_expected_head(
     assert head_of(worktree.paths.worktree) == worktree.base
     record = read_record(worktree.paths.workspace_record, WorkspaceRecord)
     assert record is not None
-    assert record.branch == f"wf/{worktree.root.root_id}"
+    assert record.branch == f"wf/{worktree.root.root_id}/candidate"
     assert record.owner_activation_id == worktree.activation.activation_id
     assert record.read_only is False
 

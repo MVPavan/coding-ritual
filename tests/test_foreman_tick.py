@@ -56,7 +56,7 @@ from workflow_interpreter.supervisor.gitcmd import GitSubcommand
 def test_tick_reconciles_before_it_mints(tmp_path: Path) -> None:
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
-    branch = "refs/heads/wf/" + root.root_id
+    branch = "refs/heads/wf/" + root.root_id + "/candidate"
     lab.git.run(GitSubcommand.UPDATE_REF, "-d", branch, cwd=lab.repo)
     report = lab.tick()
     assert report.stalled == "instance branch missing"
@@ -556,7 +556,7 @@ def test_tick_reconciles_before_repairing_a_completed_open_row(tmp_path: Path) -
     lab.git.run(
         GitSubcommand.UPDATE_REF,
         "-d",
-        f"refs/heads/wf/{root.root_id}",
+        f"refs/heads/wf/{root.root_id}/candidate",
         cwd=lab.repo,
     )
     before = lab.count("close")

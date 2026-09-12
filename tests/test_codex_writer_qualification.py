@@ -1,67 +1,8 @@
-"""Whether a codex WRITER can actually produce the commit §6 grades it on.
+"""Real Codex sandbox qualification, with no model calls.
 
-Everything here runs the real stack — the real `sandbox.plan_for` mount bound,
-wrapping the real permission configuration `CodexProfile` emits — against a real
-throwaway repository. No fake backend and no stub: the outer wrapper launches
-codex as a PROCESS, so the thing that has to be true is a property of the flags
-and mounts, and a test that asserted against a stand-in would assert about the
-stand-in.
-
-**The defect.** `workspace-write` makes the working root writable, so a codex
-writer edited source and reported success. But §5.4 isolation puts the checkout
-in a LINKED WORKTREE: `<C>/.git` is a `gitdir:` link file and the index lives in
-`<G>`, under the parent repository's `.git/worktrees/<name>/`, outside the
-working root. The first `git add` therefore died
-
-    fatal: Unable to create '<G>/index.lock': Read-only file system
-
-while every other assertion about the run passed. A writing node that cannot
-stage cannot commit, and §6 grades a writer on its candidate commit — so the
-node burned a full activation and graded `fail_code` with the work sitting
-uncommitted in the tree. Reproduced with no model call and no tokens, in a
-temporary repository, by `test_the_pre_fix_configuration_cannot_take_the_index_lock`
-below; that test is the RED half and it runs the OLD configuration on purpose.
-
-**The fix, and its shape.** `_writable_roots` grants the directories a commit
-touches (`supervisor/sandbox.py::worktree_git_write_roots`) and nothing else:
-`<G>`, the shared object store, and the two directories holding THIS checkout's
-own branch ref and its own reflog. Not `<common>` — that is `config` and
-`hooks/`, the surface that names programs the wrapper's own git later executes.
-
-Not `<common>/refs/heads` and not `<common>/logs` either, and that pair is the
-second thing this file got wrong. Those hold every branch's ref and every branch's
-and worktree's REFLOG, so a writer granted them could overwrite the parent
-checkout's `main` history and — since the outer plan bound `logs` whole with no
-pin behind it, unlike `refs/wf` — the wrapper's own evidence reflog at
-`logs/refs/wf/...`. The grant now descends one level further, to
-`refs/heads/<namespace>` and `logs/refs/heads/<namespace>`, which for a §5.4
-candidate on `wf/<root_id>` is a directory holding only other instances'
-branches. `test_the_superseded_wide_reflog_grant_is_what_opened_those_reflogs`
-runs the superseded configuration and shows those paths open; the negative below
-shows them closed on production's.
-
-The residual is stated, not hidden: directory granularity is the VENDOR's
-constraint — codex 0.154 panics when a writable root is a file, because it
-creates synthetic bubblewrap mount targets inside each one — so a candidate
-branch shares its grant with its namespace siblings, and a checkout on a
-TOP-LEVEL branch would get `refs/heads` and `logs/refs/heads` themselves.
-
-**What the outer bound still owns.** One residual cannot be expressed inside
-codex at all: `<G>` holds the `commondir` and `gitdir` POINTER files, and a
-vendor layer that grants directories grants them with it. Repointing `commondir`
-is a real escape — it decides which `config`, and therefore which
-`core.fsmonitor` command, the WRAPPER's own next `git status` runs outside the
-box. It is closed by `plan_for`'s `ro_pins`, which are emitted last, and
-`test_the_protected_git_surface_stays_refused_through_the_whole_stack` asserts
-it through both layers rather than reasoning about it. The bubblewrap mount
-bound remains the authority; this change only stops the inner layer from being
-uselessly wide AND uselessly narrow at the same time.
-
-**Marked `proc` and `nested_sandbox`.** These fork real processes, and codex's
-own sandbox is itself bubblewrap: it cannot start inside a vendor activation,
-where its mount registry lock lands on a read-only path. `scripts/verify-feature.sh`
-runs inside one and deselects the marker; `scripts/verify-engine-bootstrap-full.sh`
-runs on the host, where it must PASS rather than skip.
+Prove edit/check/stage/commit under both sandbox layers, and deny writes to
+other workflows, protected Git metadata and out-of-grant source. The outer
+sandbox is also tested alone. Explicit old configurations retain red evidence.
 """
 
 from __future__ import annotations
@@ -224,7 +165,15 @@ def _plant_neighbours(tmp_path: Path, task: TaskSpec) -> None:
     if sibling.exists():
         return
     subprocess.run(
-        ["git", "worktree", "add", "--quiet", "--detach", str(sibling)],
+        [
+            "git",
+            "worktree",
+            "add",
+            "--quiet",
+            "-b",
+            "wf/sibling/candidate",
+            str(sibling),
+        ],
         cwd=common.parent,
         check=True,
         capture_output=True,
@@ -268,6 +217,8 @@ def _run(
     permission_config: list[str],
     script: str,
     tmp_path: Path,
+    *,
+    vendor_layer: bool = True,
 ) -> str:
     """Run one `sh` script inside BOTH bounds: the mount bound, then codex's."""
     inner = (
@@ -279,6 +230,8 @@ def _run(
         "-c",
         script,
     )
+    if not vendor_layer:
+        inner = ("sh", "-c", script)
     done = subprocess.run(
         wrap(inner, plan),
         cwd=command.cwd,
@@ -442,8 +395,10 @@ def _git(cwd: Path, *args: str) -> str:
 
 @pytest.mark.proc
 @pytest.mark.nested_sandbox
+@pytest.mark.parametrize("vendor_layer", [True, False])
 def test_the_protected_git_surface_stays_refused_through_the_whole_stack(
     tmp_path: Path,
+    vendor_layer: bool,
 ) -> None:
     """Every path the writer must NOT reach, asked one at a time under both bounds.
 
@@ -476,10 +431,22 @@ def test_the_protected_git_surface_stays_refused_through_the_whole_stack(
     """
     _requirements()
     task, plan = _lab(tmp_path)
+    # A neighbour created after planning must be protected too.
+    common = _common_of(task)
+    for prefix in ("refs/heads", "logs/refs/heads"):
+        late = common / prefix / "wf/late/candidate"
+        late.parent.mkdir(parents=True)
+        late.write_text("late neighbour\n")
     roots = git_write_roots_of(Path(task.cwd))
     gitdir = Path(roots[0])
     common = Path(roots[1]).parent
     protected = {
+        "late-ref": common / "refs/heads/wf/late/candidate",
+        "late-reflog": common / "logs/refs/heads/wf/late/candidate",
+        "sibling-ref": common / "refs/heads/wf/sibling/candidate",
+        "sibling-reflog": common / "logs/refs/heads/wf/sibling/candidate",
+        "worktree-config": gitdir / "config.worktree",
+        "worktree-info": gitdir / "info/attributes",
         "config": common / "config",
         "hooks": common / "hooks" / "pre-commit",
         "info": common / "info" / "attributes",
@@ -505,6 +472,7 @@ def test_the_protected_git_surface_stays_refused_through_the_whole_stack(
         _permission_config(command.argv),
         "\n".join(_write_probe(path, label) for label, path in protected.items()),
         tmp_path,
+        vendor_layer=vendor_layer,
     )
 
     for label in protected:
@@ -540,7 +508,11 @@ def test_the_superseded_wide_reflog_grant_is_what_opened_those_reflogs(
     wide_plan = plan.model_copy(
         update={
             "git_rw": tuple(
-                common / "logs" if str(path) == branch_logs else path
+                common / "logs"
+                if str(path) == branch_logs
+                else common / "refs"
+                if str(path) == _branch_refs
+                else path
                 for path in plan.git_rw
             )
         }
@@ -675,18 +647,23 @@ def test_the_granted_git_roots_are_the_four_a_commit_touches(tmp_path: Path) -> 
 
     The last two entries are the branch's own directories, not `refs/heads` and
     `logs`: the lab checkout is on `wf/lab-checkout` exactly as §5.4 puts a
-    candidate on `wf/<root_id>`, so both end in the `wf` NAMESPACE and the
+    candidate on `wf/<root_id>/candidate`, with separate instance directories; the
     parent checkout's `main` ref and reflog are outside the grant.
     """
     task = make_task(tmp_path, writes=True)
     common = _common_of(task)
 
-    granted = worktree_git_write_roots(Path(task.cwd))
+    granted = worktree_git_write_roots(Path(task.cwd), task.root_id)
 
     assert tuple(str(path) for path in granted) == git_write_roots_of(Path(task.cwd))
-    assert [path.name for path in granted] == ["worktree", "objects", "wf", "wf"]
-    assert granted[2] == common / "refs" / "heads" / "wf"
-    assert granted[3] == common / "logs" / "refs" / "heads" / "wf"
+    assert [path.name for path in granted] == [
+        "worktree",
+        "objects",
+        task.root_id,
+        task.root_id,
+    ]
+    assert granted[2] == common / "refs" / "heads" / "wf" / task.root_id
+    assert granted[3] == common / "logs" / "refs" / "heads" / "wf" / task.root_id
 
 
 def test_a_detached_writer_is_granted_no_shared_ref_or_reflog_directory(
@@ -708,7 +685,7 @@ def test_a_detached_writer_is_granted_no_shared_ref_or_reflog_directory(
         timeout=GIT_TIMEOUT_S,
     )
 
-    granted = worktree_git_write_roots(checkout)
+    granted = worktree_git_write_roots(checkout, task.root_id)
 
     assert [path.name for path in granted] == ["worktree", "objects"]
     assert tuple(str(path) for path in granted) == git_write_roots_of(checkout)
@@ -729,6 +706,25 @@ def test_a_head_that_walks_out_of_refs_heads_grants_no_directory(
     gitdir = Path(git_write_roots_of(checkout)[0])
     (gitdir / "HEAD").write_text("ref: refs/heads/../../hooks/x\n", encoding="utf-8")
 
-    granted = worktree_git_write_roots(checkout)
+    granted = worktree_git_write_roots(checkout, task.root_id)
 
     assert [path.name for path in granted] == ["worktree", "objects"]
+
+
+@pytest.mark.parametrize("branch", ["main", "wf/legacy", "wf/sibling/candidate"])
+def test_writer_head_cannot_select_another_instances_grants(
+    tmp_path: Path, branch: str
+) -> None:
+    task, _ = _lab(tmp_path)
+    gitdir = Path(git_write_roots_of(Path(task.cwd))[0])
+    (gitdir / "HEAD").write_text(f"ref: refs/heads/{branch}\n")
+    config = make_supervisor_config(tmp_path)
+    with pytest.raises(SandboxPathRefused, match="isolated instance branch"):
+        plan_for(
+            task,
+            repo_root=config.repo_root,
+            wrapper_root=config.wrapper_root,
+            channels_dir=Path(task.channels.outcome_file).parent,
+        )
+    with pytest.raises(SandboxPathRefused, match="isolated instance branch"):
+        CodexProfile(ProfileConfig(), FrozenClock(), {}).build_command(task, "")

@@ -14,7 +14,7 @@ from workflow_interpreter.supervisor.gitcmd import GitSubcommand
 def test_reconcile_requires_the_instance_branch(tmp_path: Path) -> None:
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
-    branch = "refs/heads/wf/" + root.root_id
+    branch = "refs/heads/wf/" + root.root_id + "/candidate"
     lab.git.run(GitSubcommand.UPDATE_REF, "-d", branch, cwd=lab.repo)
     result = reconcile(root, (), lab.git, repo_root=lab.repo)
     assert result.stalled == "instance branch missing"

@@ -30,6 +30,7 @@ runner. `launch.py` applies `wrap` as the last transform before exec, and
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import tempfile
@@ -403,54 +404,35 @@ def _branch_ref(gitdir: Path) -> PurePosixPath | None:
     return ref
 
 
-def _branch_write_dirs(gitdir: Path, common: Path) -> tuple[Path, Path] | None:
-    """The two shared directories this checkout's own branch update writes in.
+def _branch_write_dirs(
+    gitdir: Path, common: Path, root_id: str
+) -> tuple[Path, Path] | None:
+    """Grant only the branch directory reserved for this trusted workflow ID.
 
-    A commit on `refs/heads/wf/<root-id>` rewrites the LOOSE ref through
-    `refs/heads/wf/<root-id>.lock`, which is created in `<common>/refs/heads/wf`,
-    and appends one line to `<common>/logs/refs/heads/wf/<root-id>`. Both are
-    named as the DIRECTORY that holds them, and both stop one level above the
-    ref rather than at `refs/heads` and `logs`:
-
-    - `<common>/logs` as a whole is every branch's and every worktree's reflog.
-      Granting it lets a writer overwrite `logs/refs/heads/main` — the parent
-      checkout's history — and `logs/refs/wf/...`, the wrapper's own evidence
-      reflog, on both layers at once. That was a real overgrant and this
-      function is the fix for it.
-    - `<common>/refs/heads` as a whole is every branch. The mount bound could
-      pin `refs/wf` back out of it, but nothing pins `refs/heads/main`, and the
-      vendor layer cannot pin anything back at all.
-
-    The directory, not the file, because directory granularity is the VENDOR's
-    constraint and not a preference: codex 0.154 creates synthetic bubblewrap
-    mount targets (`<root>/.git`, `<root>/.codex`, `<root>/.agents`) inside each
-    writable root, and handing it a file panics the launcher outright
-    (`failed to inspect synthetic bubblewrap mount target ...: Not a directory`).
-    Measured, not assumed. The residual is therefore one directory wide: a
-    candidate branch shares its directory with its siblings under the same
-    namespace. §5.4 names every candidate branch `wf/<root_id>`
-    (`supervisor/artifact.py::BRANCH_TEMPLATE`), so in production that namespace
-    holds only other instances' branches — never `main`, never `refs/wf`. A
-    checkout sitting directly on a top-level branch gets `refs/heads` and
-    `logs/refs/heads` themselves, which is the widest this can be and is
-    recorded as the residual it is.
-
-    `None` for a detached head, which needs no shared-ref grant: its commit moves
-    `<G>/HEAD` and appends to `<G>/logs/HEAD`, both inside `<G>` already. `None`
-    too for a SYMLINKED segment, for the same reason `_grant_path` refuses one:
-    the mount bound binds by real path, so a `refs/heads/wf` replaced with a
-    link to `<common>/hooks` would make this name `hooks` — and the outer bind
-    would close it while the vendor layer, told the same name, granted the
-    programs the wrapper's own git runs.
+    Codex accepts directory grants, so each instance needs its own directory.
+    Never derive authority from runner-writable HEAD: it must match the trusted
+    instance identity. Legacy/shared branch layouts require a fresh instance.
+    Detached verification checkouts need no shared branch writes.
     """
+    if (
+        re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", root_id) is None
+        or ".." in root_id
+        or root_id.endswith(".lock")
+    ):
+        raise SandboxPathRefused("invalid workflow ID for Git write grants")
     ref = _branch_ref(gitdir)
     if ref is None:
         return None
-    dirs = (common / ref.parent, common / LOGS_DIR / ref.parent)
-    relatives = (ref.parent, PurePosixPath(LOGS_DIR) / ref.parent)
+    expected = PurePosixPath("refs/heads/wf") / root_id / "candidate"
+    if ref != expected:
+        raise SandboxPathRefused(
+            f"writer branch {ref} is not the isolated instance branch {expected}; "
+            "start a fresh workflow instance (legacy branches are not migrated)"
+        )
+    relatives = (expected.parent, PurePosixPath(LOGS_DIR) / expected.parent)
     if not all(_unlinked_descent(common, relative) for relative in relatives):
-        return None
-    return dirs
+        raise SandboxPathRefused("symlink in workflow branch write directory")
+    return (common / relatives[0], common / relatives[1])
 
 
 def _unlinked_descent(root: Path, relative: PurePosixPath) -> bool:
@@ -502,69 +484,24 @@ def _in_repo_binds(
 
 
 def _worktree_binds(
-    git_file: Path,
+    git_file: Path, root_id: str
 ) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
-    """Worktree shape: the common object store plus this worktree's own git dir.
+    """Bind per-worktree state and only this instance's branch directories.
 
-    The reflog half is load-bearing and was got wrong TWICE. Omitted first, and
-    `git commit` dies `unable to append to '.git/logs/refs/heads/<branch>'`.
-    Then granted as the whole of `<common>/logs`, which is every branch's and
-    every worktree's reflog: with `main` already advanced in the parent checkout
-    a runner could overwrite `logs/refs/heads/main`, and with a §6 evidence ref
-    pinned it could overwrite `logs/refs/wf/...` — the one directory in `logs`
-    the wrapper's own bookkeeping depends on, and unlike `refs/wf` it had no pin
-    standing behind it. `_branch_write_dirs` narrows it to the directory holding
-    THIS checkout's own branch reflog, which is the same directory the vendor
-    layer is told about, so neither bound is wider than the other.
-
-    Both branch directories are PRE-CREATED rather than existence-gated, for two
-    different reasons that arrive at the same place. A repo whose first ref
-    update has not happened yet has no `logs/` at all, and gating it there would
-    leave the runner's own commit failing EROFS trying to create it under a
-    read-only `.git`. And `<common>/refs/heads/<namespace>` disappears once the
-    branch is PACKED (`git pack-refs` prunes the empty directory), after which a
-    commit has to recreate the loose ref in a directory that is no longer there.
-    The refs directory is created but not bound: `<common>/refs` above already
-    covers it, and a second read-write bind of a child of a read-write bind
-    means nothing. A DETACHED head creates and binds neither — it has no branch
-    reflog, and `<G>/logs/HEAD` is already inside `<G>`.
-
-    One residual, stated rather than hidden: a runner whose own work wants a
-    reflog OUTSIDE its branch — `git stash` writes `logs/refs/stash` — no longer
-    gets it. That is this module's contract read literally (the writable set is
-    "the git state a commit needs"), it fails loudly in git rather than
-    silently, and it is the price of not handing every writer the parent
-    checkout's history.
-
-    `commondir` and `gitdir` are pinned back out of the read-write `<G>`: they
-    are POINTERS, and a runner that repoints `commondir` at a directory it
-    controls plants the `config` — and therefore the `core.fsmonitor` command —
-    that the WRAPPER's own next `git status` executes, outside the box, as the
-    wrapper. Probed: without these pins the marker file appears.
+    Shared refs, packed refs and other workflows' reflogs remain read-only,
+    including siblings created after planning. Config and pointer files inside
+    the writable per-worktree directory are pinned read-only last.
     """
     gitdir = _parse_gitdir(git_file)
     common = _common_dir(gitdir)
-    branch_dirs = _branch_write_dirs(gitdir, common)
-    reflog_dirs: tuple[Path, ...] = ()
-    if branch_dirs is not None:
-        for path in branch_dirs:
-            _ensure_dir(path)
-        reflog_dirs = (branch_dirs[1],)
-    _ensure_file(common / PACKED_REFS_FILE)
+    branch_dirs = _branch_write_dirs(gitdir, common, root_id) or ()
+    for path in branch_dirs:
+        _ensure_dir(path)
     _ensure_file(gitdir / CONFIG_WORKTREE_FILE)
     _ensure_dir(gitdir / INFO_DIR)
-    git_rw = _existing(
-        (
-            common / OBJECTS_DIR,
-            common / REFS_DIR,
-            *reflog_dirs,
-            common / PACKED_REFS_FILE,
-            gitdir,
-        )
-    )
+    git_rw = _existing((common / OBJECTS_DIR, *branch_dirs, gitdir))
     pins = _existing(
         (
-            common / WF_REFS_DIR,
             gitdir / COMMONDIR_FILE,
             gitdir / GITDIR_FILE,
             gitdir / CONFIG_WORKTREE_FILE,
@@ -576,6 +513,7 @@ def _worktree_binds(
 
 def _git_binds(
     checkout: Path,
+    root_id: str,
 ) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     """Route on what `<C>/.git` actually IS — directory, file, or nothing.
 
@@ -586,65 +524,17 @@ def _git_binds(
     if entry.is_dir():
         return _in_repo_binds(entry)
     if entry.is_file():
-        return _worktree_binds(entry)
+        return _worktree_binds(entry, root_id)
     return ((), ())
 
 
-def worktree_git_write_roots(checkout: Path) -> tuple[Path, ...]:
-    """The DIRECTORIES a §5.4 worktree writer must write to stage and commit.
+def worktree_git_write_roots(checkout: Path, root_id: str) -> tuple[Path, ...]:
+    """Directory grants for the vendor sandbox, bounded again by the outer plan.
 
-    Public for the same reason `grant_directory` is: a vendor whose sandbox
-    grants directories has to be told the same git write set the §2 mount bound
-    holds, and two spellings of it would be two answers. `_worktree_binds` is
-    the mount-bound half; this is the half a profile hands to a vendor.
-
-    The set is what a real probe needed and nothing more (edit → `git add` →
-    `git commit`, executed under `codex sandbox`, no model turn):
-
-    - **`<G>`**, this worktree's own git dir. `index.lock` is created HERE, in
-      the parent repository, and its absence from a vendor's writable set is the
-      whole bug this function exists for: `workspace-write` makes the working
-      root writable, `<G>` is not under it, and `git add` dies
-      `Unable to create '<G>/index.lock': Read-only file system` while ordinary
-      source edits succeed. `HEAD`, `ORIG_HEAD`, `COMMIT_EDITMSG` and
-      `logs/HEAD` are per-worktree and live here too.
-    - **`<common>/objects`**, where the new blobs, trees and commit go.
-    - **the branch pair from `_branch_write_dirs`** — the directory holding this
-      checkout's own loose ref and the directory holding its own reflog, e.g.
-      `<common>/refs/heads/wf` and `<common>/logs/refs/heads/wf` for a
-      `wf/<root-id>` candidate. Not `<common>/refs`, not `<common>/refs/heads`
-      and emphatically not `<common>/logs`: those are every branch's ref and
-      every branch's and worktree's reflog, so granting them hands a writer the
-      parent checkout's `main` history and the wrapper's own `refs/wf` evidence
-      reflog. A detached head contributes NEITHER — it has no branch to move.
-
-    Three things are deliberately NOT here. `<common>` itself, because that is
-    `config` and `hooks/` and `info/` — blanket write on the parent repository's
-    program-naming surface, which is the one grant a writer must never hold.
-    `<common>/packed-refs`, because it is a FILE and granting it would mean
-    granting its parent; a commit writes a LOOSE ref and never needs it, so a
-    repository whose branch is packed still commits (probed) — if some future
-    caller does need it, it fails loudly rather than silently widening anything.
-    And `<G>`'s own `commondir`/`gitdir` POINTER files, which this cannot
-    subtract: they sit inside `<G>` and a vendor grant of `<G>` necessarily
-    includes them. That residual is closed by the mount bound's `ro_pins`, which
-    are emitted LAST and re-close them (probed end to end, red and green:
-    `tests/test_codex_writer_qualification.py`). **The outer bound stays the
-    authority; this narrows what the inner layer is told, it does not replace
-    it.**
-
-    Fail-closed in both directions. A checkout that is not a worktree link —
-    an in-repo `.git` DIRECTORY, or no `.git` at all — is refused rather than
-    approximated, because the in-repo shape puts `index.lock` directly inside
-    the directory that also holds `config` and `hooks/`, and no directory grant
-    can separate them. A derived root that is not on disk is refused too: a
-    vendor sandbox handed a bind source that does not exist fails as an
-    unattributable `rc=1` (codex's own sandbox is `bwrap`, and it reports
-    `Can't bind mount ...: No such file or directory`), which is exactly the
-    ambiguous failure this module refuses to hand anybody. `plan_for` runs
-    BEFORE any profile builds argv and pre-creates both branch directories, so
-    the refusal means the topology is wrong, never merely that git has not
-    written there yet.
+    A linked worktree stores its index outside the checkout. Grant that Git
+    directory, the object store, and this instance's isolated branch directories.
+    The outer plan pins config/info/pointer files within the Git directory.
+    Refuse unsupported topology rather than widening permissions.
     """
     entry = checkout / GIT_ENTRY
     if not entry.is_file():
@@ -659,7 +549,7 @@ def worktree_git_write_roots(checkout: Path) -> tuple[Path, ...]:
     roots = (
         gitdir,
         common / OBJECTS_DIR,
-        *(_branch_write_dirs(gitdir, common) or ()),
+        *(_branch_write_dirs(gitdir, common, root_id) or ()),
     )
     for path in roots:
         if not path.is_dir():
@@ -700,7 +590,7 @@ def plan_for(
             toolchain_cache=toolchain_cache,
         )
     grants = tuple(_grant_path(grant, checkout) for grant in task.allowed_paths)
-    git_rw, ro_pins = _git_binds(checkout)
+    git_rw, ro_pins = _git_binds(checkout, task.root_id)
     return SandboxPlan(
         binary=binary,
         ro_roots=ro_roots,

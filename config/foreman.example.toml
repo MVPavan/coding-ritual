@@ -79,12 +79,13 @@ host         = "@HOST@"
 # holding its OWN branch ref and reflog, never `refs/heads` or `logs` whole —
 # qualified end to end against the real sandbox by
 # `tests/test_codex_writer_qualification.py`, so binding `implementer` to codex
-# is supported — with one condition: the node must run in worktree isolation.
+# requires a fresh isolated workflow branch wf/<root_id>/candidate.
+# Legacy wf/<root_id> writers need a new instance; no automatic migration.
 # In the §12 in-repo band `index.lock` shares a directory with `config` and
 # `hooks/`, which a directory-granularity sandbox cannot separate, and the
 # profile refuses such a dispatch with that explanation instead of widening.
 #
-# As the reviewer codex remains the stronger choice — `writes = false` roots it
+# For reviewers, `writes = false` roots codex
 # in the activation's `channels/` directory, leaving the checkout
 # readable-but-unwritable while its findings channel stays writable
 # (`profiles/codex.py` `_workspace_root`), and it gains no git grant at all.

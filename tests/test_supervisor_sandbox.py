@@ -135,13 +135,13 @@ def _in_repo_rig(tmp_path: Path) -> Rig:
     return rig
 
 
-WORKTREE_BRANCH: Final[str] = "wf/run"
+WORKTREE_BRANCH: Final[str] = f"wf/{ROOT_ID}/candidate"
 """Namespaced, because §5.4 names every candidate branch `wf/<root_id>`
 (`supervisor/artifact.py::BRANCH_TEMPLATE`) and the git write set descends to
 the directory holding THIS branch. A rig on a top-level branch would have made
 `refs/heads` and `logs/refs/heads` themselves the grant and hidden the whole
 point of the narrowing."""
-BRANCH_DIR: Final[str] = "wf"
+BRANCH_DIR: Final[str] = f"wf/{ROOT_ID}"
 
 
 def _worktree_rig(tmp_path: Path) -> Rig:
@@ -257,9 +257,8 @@ def test_worktree_checkout_binds_the_common_dir_and_the_worktree_gitdir(
     gitdir = _gitdir(rig)
     assert plan.git_rw == (
         common / "objects",
-        common / "refs",
+        common / "refs" / "heads" / BRANCH_DIR,
         common / "logs" / "refs" / "heads" / BRANCH_DIR,
-        common / "packed-refs",
         gitdir,
     )
     assert plan.ro_pins == (
@@ -290,7 +289,7 @@ def test_worktree_precreates_only_the_fixed_set(tmp_path: Path) -> None:
     assert not (rig.repo_root / ".git" / "packed-refs").exists()
     assert not (gitdir / "config.worktree").exists()
     _plan(rig)
-    assert (rig.repo_root / ".git" / "packed-refs").is_file()
+    assert not (rig.repo_root / ".git" / "packed-refs").exists()
     assert (gitdir / "config.worktree").is_file()
     assert (gitdir / "info").is_dir()
     assert not (rig.repo_root / ".git" / "refs" / "wf").exists()
@@ -309,7 +308,7 @@ def test_worktree_precreates_the_reflog_dir(tmp_path: Path) -> None:
     assert branch_logs.is_dir()
 
 
-def test_worktree_precreates_the_branch_ref_dir_without_binding_it(
+def test_worktree_precreates_and_binds_the_branch_ref_dir(
     tmp_path: Path,
 ) -> None:
     """`git pack-refs` prunes `refs/heads/wf` and the next commit must recreate
@@ -322,7 +321,7 @@ def test_worktree_precreates_the_branch_ref_dir_without_binding_it(
     assert not branch_refs.exists()
     plan = _plan(rig)
     assert branch_refs.is_dir()
-    assert branch_refs not in plan.git_rw
+    assert branch_refs in plan.git_rw
 
 
 def test_the_plan_binds_no_reflog_but_this_branch_s_own(tmp_path: Path) -> None:
@@ -418,20 +417,20 @@ def test_a_symlinked_branch_directory_grants_nothing(tmp_path: Path) -> None:
     shutil.rmtree(branch_refs)
     branch_refs.symlink_to(common / "hooks")
 
-    git_rw = _plan(rig).git_rw
-
-    assert common / "hooks" not in git_rw
-    assert not any(path.is_relative_to(common / "logs") for path in git_rw)
+    with pytest.raises(SandboxPathRefused, match="symlink"):
+        _plan(rig)
 
 
-def test_refs_wf_is_pinned_only_once_the_evidence_ref_exists(tmp_path: Path) -> None:
+def test_evidence_refs_remain_outside_the_write_grant(tmp_path: Path) -> None:
     """No evidence ref yet ⇒ no bind source ⇒ no pin; one ref ⇒ the pin appears."""
     rig = _worktree_rig(tmp_path)
     common = rig.repo_root / ".git"
     assert common / "refs" / "wf" not in _plan(rig).ro_pins
     (common / "refs" / "wf").mkdir(parents=True)
     (common / "refs" / "wf" / "evidence").write_text("0" * 40 + "\n", encoding="utf-8")
-    assert _plan(rig).ro_pins[0] == common / "refs" / "wf"
+    assert not any(
+        (common / "refs" / "wf").is_relative_to(p) for p in _plan(rig).git_rw
+    )
 
 
 def test_in_repo_pins_only_submodule_configs_that_exist(tmp_path: Path) -> None:
@@ -666,7 +665,7 @@ def test_real_bwrap_refuses_git_config_and_the_evidence_refs(tmp_path: Path) -> 
         _git(rig.repo_root, "rev-parse", "HEAD") + "\n", encoding="utf-8"
     )
     plan = _plan(rig)
-    assert rig.repo_root / ".git" / "refs" / "wf" in plan.ro_pins
+    assert not any(evidence.is_relative_to(p) for p in plan.git_rw)
     box = wrap((), plan)
 
     configured = _run(box, "git config user.name intruder", rig.checkout)

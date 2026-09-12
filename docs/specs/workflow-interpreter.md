@@ -601,7 +601,7 @@ itself if needed — and records `reset_verified_commit`. A precondition
 survives crashes; a trailing cleanup does not. (In-repo: §12.)
 
 **Worktree record** (per instance band): path
-`.wf/<root_id>/worktree`, branch `wf/<root_id>`, owner = current
+`.wf/<root_id>/worktree`, branch `wf/<root_id>/candidate`, owner = current
 activation, expected HEAD = its `intended_base_commit`; created by the
 wrapper at first dispatch, removed at terminal. A `writes = false` node
 (the reviewer) gets a read-only checkout at the reviewed commit; its
@@ -672,25 +672,22 @@ Profiles neither opt in nor out. `sandbox = off` is an unsafe switch,
 recorded on the close as `AuditFlag.SANDBOX_OFF`; a host without a
 working `bwrap` refuses to dispatch — a halt, never an infra retry.
 
-A profile with a permission layer of its own restates that same set in it,
-narrower where it can and never wider. For a `writes = true` node in §5.4
-worktree isolation this includes the git state a commit touches, which is NOT
-under the working root: the index lives in `<git-dir>/worktrees/<name>`, so a
-vendor layer told only about the checkout lets the node edit and then fails its
-first `git add` with `Read-only file system`. The restated set is `<G>`, the
-shared `objects`, and the two directories holding the checkout's OWN branch ref
-and its own reflog — never the shared git directory itself, which holds `config`
-and `hooks/`, and never `refs/heads` or `logs` as a whole, which hold every
-branch's ref and every branch's and worktree's reflog. Both bounds state the
-same set: a grant of `logs` lets a node rewrite the parent checkout's history
-and the reflog of the workflow's own evidence refs, and no read-only pin can
-enumerate the branches it would have to take back. A detached checkout has no
-branch and is granted neither directory. A vendor that grants whole directories
-cannot express the in-repo shape at all, because there the index and those
-program-naming files share one directory; such a node is refused before dispatch
-rather than granted. The mount bound remains the authority: where a vendor layer
-cannot subtract a path — a worktree's `commondir`/`gitdir` pointer files, which
-sit inside `<G>` — the read-only pins are what close it.
+A profile with a permission layer of its own restates the outer write grants.
+A linked-worktree writer needs its per-worktree Git directory and shared object
+store, plus `refs/heads/wf/<root_id>` and `logs/refs/heads/wf/<root_id>` for its
+`candidate` branch. The outer sandbox grants only those directories, leaving
+shared refs, packed refs and sibling workflows read-only, including siblings
+created after planning. Both layers compare the branch to the trusted task ID;
+runner-controlled `HEAD` cannot select another instance's directory. Detached
+checkouts receive no shared branch grants. Config, info and pointer files inside
+the per-worktree directory remain pinned read-only by the outer sandbox.
+
+This changes the instance branch layout. Legacy `wf/<root_id>` branches are not
+migrated or resumed as writers by this runtime: preserve their original engine
+and records, and start a fresh instance with the new version. Codex in-repo
+writers are also refused before dispatch. Codex 0.154 requires `.agents` and
+`.codex` mount targets already present in the checkout; missing targets cause a
+launch failure rather than granting additional source writes.
 
 **Runner channels** (wrapper-provided env, writable regardless of
 `writes`): `$WF_OUTCOME_FILE` — exactly one schema-validated outcome

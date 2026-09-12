@@ -23,7 +23,7 @@ from workflow_interpreter.supervisor.paths import WrapperPaths
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
-BRANCH_TEMPLATE: Final[str] = "wf/{root_id}"
+BRANCH_TEMPLATE: Final[str] = "wf/{root_id}/candidate"
 INSTANCE_BRANCH_REF: Final[str] = "refs/heads/" + BRANCH_TEMPLATE
 
 ARTIFACT_NAMESPACE: Final[str] = "artifact"
