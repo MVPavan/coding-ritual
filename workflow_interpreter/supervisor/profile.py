@@ -32,6 +32,7 @@ from typing import Final, Protocol
 from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio import ActivationRecord, ProcessHandle, Usage
+from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor.channels import (
     COMMITTER_NAME,
     ENV_GIT_COMMITTER_EMAIL,
@@ -144,6 +145,7 @@ class TaskSpec(BaseModel):
     channels: RunnerChannels
     brief: str = ""
     token_budget: int | None = None
+    artifact_input_mode: ArtifactInputMode = ArtifactInputMode.INLINE
 
 
 class RunnerCommand(BaseModel):

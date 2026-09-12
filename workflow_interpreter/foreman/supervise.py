@@ -10,6 +10,7 @@ from workflow_interpreter.bdio import (
     ActivationRecord,
     Deviation,
     Evidence,
+    InputBinding,
     Lifecycle,
     LifecycleConflictError,
     LossyWriteError,
@@ -32,14 +33,17 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.constants import DISPATCH_REQUEST, WRAPPER_LOCK
 from workflow_interpreter.foreman.errors import UnusableResolutionError
+from workflow_interpreter.foreman.evidence_export import export_reference
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.identifiers import activation_dir, validate_bead_id
 from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
     InputsUnavailable,
+    Materialized,
     bounded_materialize,
 )
 from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
+from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.channels import pinned_verifier_digests
 from workflow_interpreter.supervisor.errors import (
@@ -154,8 +158,28 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             item.activation_id: item
             for item in wiring.store.reads.list_activations(root.root_id)
         }
-        inputs = tuple(
-            bounded_materialize(
+
+        def materialized(binding: InputBinding) -> Materialized:
+            if (
+                binding.producer_activation_id != "instance"
+                and node.artifact_input_mode is ArtifactInputMode.REFERENCES
+            ):
+                producer = by_id.get(binding.producer_activation_id)
+                if producer is None:
+                    raise InputsUnavailable("input producer is unavailable")
+                return Materialized(
+                    name=binding.name,
+                    producer=producer.metadata.node,
+                    text=export_reference(
+                        git,
+                        wiring.repo_root,
+                        wiring.paths.activation_dir(current.activation_id),
+                        root,
+                        binding,
+                        producer,
+                    ),
+                )
+            return bounded_materialize(
                 git,
                 wiring.repo_root,
                 root,
@@ -165,8 +189,8 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
                 else by_id.get(binding.producer_activation_id),
                 limit=node.context_budget_bytes or 262144,
             )
-            for binding in current.metadata.inputs
-        )
+
+        inputs = tuple(materialized(binding) for binding in current.metadata.inputs)
         envelope = composer.envelope(root, current, inputs)
         wiring.store.record_envelope(
             current.activation_id, envelope.model_dump(mode="json", exclude={"text"})
@@ -183,6 +207,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             channels=channels,
             brief=envelope.text,
             token_budget=node.token_budget,
+            artifact_input_mode=node.artifact_input_mode or ArtifactInputMode.INLINE,
         )
 
     return build

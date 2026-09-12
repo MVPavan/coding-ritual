@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from workflow_interpreter.bdio import ActivationRecord, InputBinding, RootRecord
 from workflow_interpreter.bdio.mint import FIRST_ROUND
 from workflow_interpreter.foreman.constants import (
+    EVIDENCE_REFERENCE_INSTRUCTIONS,
     FACT_FRAME,
     FACT_FRAME_NO_PATHS,
     FORCED_FIRST_REJECT,
@@ -26,7 +27,7 @@ from workflow_interpreter.foreman.envelope import (
 )
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.schema.graph_index import GraphIndex, producer_node
-from workflow_interpreter.schema.models import Node, Outcome
+from workflow_interpreter.schema.models import ArtifactInputMode, Node, Outcome
 from workflow_interpreter.supervisor import activation_ref
 from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
 from workflow_interpreter.supervisor.gitio import Git
@@ -365,6 +366,11 @@ class DefaultComposer:
                     else ""
                 ),
                 node.instructions or "",
+                (
+                    EVIDENCE_REFERENCE_INSTRUCTIONS
+                    if node.artifact_input_mode is ArtifactInputMode.REFERENCES
+                    else ""
+                ),
             )
             if part.strip()
         )

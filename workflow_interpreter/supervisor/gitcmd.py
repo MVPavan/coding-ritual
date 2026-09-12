@@ -198,6 +198,14 @@ class GitTransport:
         self, subcommand: GitSubcommand, *args: str, cwd: Path, limit: int
     ) -> str:
         """Read at most limit UTF-8 bytes, draining pipes with a hard timeout."""
+        return self.bounded_bytes(subcommand, *args, cwd=cwd, limit=limit).decode(
+            "utf-8"
+        )
+
+    def bounded_bytes(
+        self, subcommand: GitSubcommand, *args: str, cwd: Path, limit: int
+    ) -> bytes:
+        """Read a bounded Git object without assuming it is UTF-8 text."""
         self._assert_inside(cwd)
         argv = [self._config.git_binary, *self._hardening(), subcommand.value, *args]
         with subprocess.Popen(
@@ -232,7 +240,7 @@ class GitTransport:
                 process.kill()
                 process.wait()
                 raise
-        return data.decode("utf-8")
+        return bytes(data)
 
     def run(
         self,

@@ -82,6 +82,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.bdio.preflight import steer_ancestor_of
+from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
@@ -182,6 +183,10 @@ _MSG_NO_INSTRUCTIONS: Final[str] = (
 _MSG_SANDBOX_UNAVAILABLE: Final[str] = (
     "this host cannot hold the §2 mount bound ({reason}); refusing to dispatch "
     "activation {activation_id} rather than run a node unbounded (O1)"
+)
+_MSG_REFERENCE_REVIEW_NEEDS_BOUND: Final[str] = (
+    "reference-mode task {node!r} requires sandbox = bwrap; exported evidence "
+    "must remain protected by the wrapper-root read-only mount"
 )
 _MSG_NOT_A_CONTINUATION: Final[str] = (
     "dispatch was given steer instructions for activation {activation_id}, whose "
@@ -950,6 +955,10 @@ class Dispatcher:
                 )
             )
         if config.sandbox is SandboxMode.OFF:
+            if task.artifact_input_mode is ArtifactInputMode.REFERENCES:
+                raise SandboxUnavailable(
+                    _MSG_REFERENCE_REVIEW_NEEDS_BOUND.format(node=task.node)
+                )
             _LOG.warning(
                 "wf.dispatch.sandbox_off",
                 activation_id=activation_id,

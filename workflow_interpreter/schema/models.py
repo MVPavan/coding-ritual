@@ -60,6 +60,13 @@ class IsolationMode(StrEnum):
     IN_REPO = "in-repo"
 
 
+class ArtifactInputMode(StrEnum):
+    """How a task receives already-bound producer evidence."""
+
+    INLINE = "inline"
+    REFERENCES = "references"
+
+
 class RegionMode(StrEnum):
     """Region modes of §2."""
 
@@ -278,6 +285,7 @@ class Node(BaseModel):
     instructions: (
         Annotated[str, StringConstraints(min_length=1, max_length=8192)] | None
     ) = None
+    artifact_input_mode: ArtifactInputMode | None = None
     isolation: IsolationMode | None = None
     writes: bool | None = None
     allowed_paths: tuple[RelativePath, ...] | None = None

@@ -69,6 +69,7 @@ from workflow_interpreter.supervisor.errors import GitCommandError
 from workflow_interpreter.supervisor.gitcmd import (
     MAX_ARGV_BYTES,
     SNAPSHOT_IDENTITY,
+    GitOutputTooLarge,
     GitResult,
     GitSubcommand,
     GitTransport,
@@ -306,6 +307,29 @@ class Git(GitTransport):
             GitSubcommand.LS_TREE, "-r", "-z", "--name-only", tree, cwd=cwd
         ).stdout
         return tuple(path for path in raw.split(NUL) if path)
+
+    def tree_blobs(
+        self, tree: str, *, cwd: Path, limit: int, max_entries: int
+    ) -> tuple[tuple[str, str, str], ...]:
+        """Return bounded ``(mode, oid, path)`` records from an immutable tree."""
+        raw = self.bounded_bytes(
+            GitSubcommand.LS_TREE, "-r", "-z", tree, cwd=cwd, limit=limit
+        )
+        entries: list[tuple[str, str, str]] = []
+        for record in raw.split(b"\0"):
+            if not record:
+                continue
+            header, separator, path = record.partition(b"\t")
+            fields = header.split()
+            if not separator or len(fields) != 3:
+                raise GitCommandError("invalid git ls-tree record")
+            mode, kind, oid = (field.decode("ascii") for field in fields)
+            if kind != "blob":
+                raise GitCommandError("report tree contains a non-blob entry")
+            entries.append((mode, oid, path.decode("utf-8", "surrogateescape")))
+            if len(entries) > max_entries:
+                raise GitOutputTooLarge(max_entries)
+        return tuple(entries)
 
     def blob_text(self, oid: str, *, cwd: Path) -> str:
         """Read one pinned blob as text."""

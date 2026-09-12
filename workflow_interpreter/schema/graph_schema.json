@@ -206,6 +206,11 @@
           "maxLength": 8192,
           "description": "What this task node must do. Required on task nodes at root creation (ADR 0002); rendered to the runner beneath the authoritative fact frame, which wins on conflict."
         },
+        "artifact_input_mode": {
+          "type": "string",
+          "enum": ["inline", "references"],
+          "description": "How producer evidence is delivered to this task. Omit for the legacy inline behavior."
+        },
         "isolation": {
           "type": "string",
           "enum": [
