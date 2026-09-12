@@ -23,6 +23,8 @@ Authoritative docs and when to read them.
 | `CONTEXT.md` | Naming anything — the domain glossary; use its terms, avoid its listed synonyms |
 | `.beads/beads.md` | Beads workflow, agent context profiles, session-completion protocol |
 | `.claude/rules/core/03-coding-discipline.md` | Coding rules that reduce common LLM mistakes |
+| `docs/research/codebases/<repo>/luna-exploration.md` | Comparing the phase-bridge design against a cloned orchestration reference (cli-agent-orchestrator, metaswarm) — raw agent reports, unverified `file:line`, resumable sessions |
+| `docs/workstreams/agent-bridge/state.md` | **Resuming the phase-bridge work** — branch/commit ledger, the seven gates, the open schema decision, known defects in committed code |
 
 Reference-harness submodule docs under `reference_harnesses/<repo>/` are external —
 read only when the task is explicitly about that reference.
