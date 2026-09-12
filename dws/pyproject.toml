@@ -1,0 +1,41 @@
+[project]
+name = "dws"
+version = "0.0.1"
+description = "DWS scaffold: package boundary and tooling only, no product capability yet"
+readme = "README.md"
+requires-python = ">=3.13"
+# Runtime code is standard library only. Dependencies are added by the stage
+# that actually needs them, not in advance.
+dependencies = []
+
+[project.scripts]
+dws = "dws.cli:main"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.2",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dws"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers"]
+
+[tool.ruff]
+line-length = 96
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "SIM", "UP", "W"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
