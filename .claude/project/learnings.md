@@ -310,3 +310,10 @@ harnesses proving a property of themselves.
   distinctive string per required section and print the counts BEFORE
   dispatching. Treat the assembled file, not the intent, as the specification.
 - Source: Slice 2b, dispatches 3-5
+
+## Compact status is not backend identity  (2026-09-11)
+
+- Observed: integration status exceeded the transcript cap and lost every useful field; a live test also searched ordinary status for a model name that it does not render.
+- Why it matters: copying full pinned policies into status wastes context, while prose or absent fields cannot prove backend identity.
+- Apply: retain bounded state/receipt/target summaries with explicit omissions. Prove model identity from activation pins plus actual runner/native session records. Resume expensive live proofs using saved identities validated against fresh durable state, never cached status masquerading as a new observation.
+- Source: `cr-thh.1`, [P5 verification](../../docs/workstreams/agent-bridge/verification/P5.md).

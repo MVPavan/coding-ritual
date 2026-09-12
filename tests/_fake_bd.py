@@ -46,6 +46,7 @@ _VALUE_FLAGS: Final[frozenset[str]] = frozenset(
         "--wisp-type",
         "--reason",
         "--limit",
+        "--parent",
     }
 )
 _BOOL_FLAGS: Final[frozenset[str]] = frozenset(
@@ -56,6 +57,7 @@ _BOOL_FLAGS: Final[frozenset[str]] = frozenset(
         "--json",
         "--all",
         "--include-gates",
+        "--claim",
     }
 )
 _REPEATED_FLAG: Final[str] = "--metadata-field"
@@ -89,6 +91,7 @@ class FakeBd:
         self.metadata_writes: list[dict[str, object]] = []
         self._next_id = 1
         self._crashes: list[tuple[str, int]] = []
+        self._lost_responses: list[tuple[str, int]] = []
         self._pauses: list[tuple[str, Callable[[], None]]] = []
         self._seen: dict[str, int] = {}
 
@@ -101,6 +104,12 @@ class FakeBd:
         normal API and then arm the crash without counting the setup's calls.
         """
         self._crashes.append((subcommand, self._seen.get(subcommand, 0) + occurrence))
+
+    def lose_response_on(self, subcommand: str, occurrence: int = 1) -> None:
+        """Persist the command, then lose its response to model a real write window."""
+        self._lost_responses.append(
+            (subcommand, self._seen.get(subcommand, 0) + occurrence)
+        )
 
     def pause_before(self, subcommand: str, callback: Callable[[], None]) -> None:
         """Run `callback` once, immediately before the next `subcommand`."""
@@ -135,9 +144,13 @@ class FakeBd:
             "close": self._close,
             "show": self._show,
             "list": self._list,
+            "dep": self._dependencies,
             "context": self._context,
         }[subcommand]
-        return CompletedCommand(returncode=0, stdout=handler(args), stderr="")
+        stdout = handler(args)
+        if (subcommand, self._seen[subcommand]) in self._lost_responses:
+            raise InjectedCrash(f"bd {subcommand} response lost after persistence")
+        return CompletedCommand(returncode=0, stdout=stdout, stderr="")
 
     def _fire_pause(self, subcommand: str) -> None:
         """Run and consume a one-shot pause registered for this subcommand."""
@@ -171,6 +184,8 @@ class FakeBd:
         flags = _parse(args[1:])
         # bd MERGES top-level metadata keys rather than replacing the object.
         self.rows[args[0]]["metadata"].update(_metadata(flags["--metadata"]))
+        if "--claim" in flags:
+            self.rows[args[0]]["status"] = "in_progress"
         return ""
 
     def _close(self, args: list[str]) -> str:
@@ -190,6 +205,7 @@ class FakeBd:
             row
             for row in self.rows.values()
             if _matches(row, flags.get(_REPEATED_FLAG, []), flags.get("--type"))
+            and ("--parent" not in flags or row.get("parent") == flags["--parent"])
         ]
         return json.dumps(sorted(selected, key=lambda row: str(row["id"])))
 
@@ -203,6 +219,11 @@ class FakeBd:
                 "beads_dir": f"{self.workspace}/{BEADS_DIR_NAME}",
             }
         )
+
+    def _dependencies(self, args: list[str]) -> str:
+        """Return the selected row's own dependency records, like `bd dep list`."""
+        bead_id = args[1]
+        return json.dumps(self.rows[bead_id].get("dependencies", []))
 
 
 def _parse(args: list[str]) -> dict[str, Any]:

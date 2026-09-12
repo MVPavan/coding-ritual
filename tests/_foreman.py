@@ -71,7 +71,7 @@ from workflow_interpreter.profiles.config import RUNNER_PREFIX
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.models import StaleFlag
-from workflow_interpreter.supervisor.paths import fsync_dir, write_record
+from workflow_interpreter.supervisor.paths import fsync_dir, write_durable, write_record
 from workflow_interpreter.supervisor.profile import (
     ChildLauncher,
     Profile,
@@ -155,6 +155,9 @@ class _Profiles(ProfileResolver):
         )
         self._next: ChildScript | None = None
         self._by_node: dict[str, ChildScript] = {}
+        self.decision_action: str | None = None
+        self.decision_patch: dict[str, object] = {}
+        self.decision_body: str | None = None
 
     def profile_for(self, name: str) -> Profile:
         if name not in self.accepted:
@@ -207,6 +210,39 @@ class _QueuedProfile(FakeProfile):
         next_script = self._profiles.next_script_for_launch() or (
             self._profiles.script_for_node(task.node)
         )
+        if task.node == "decide" and self._profiles.decision_action is not None:
+            request = json.loads(
+                task.brief.split("DECISION_REQUEST_JSON\n", 1)[1].split(
+                    "\nEND_DECISION_REQUEST_JSON", 1
+                )[0]
+            )
+            response = {
+                key: request[key]
+                for key in (
+                    "request_id",
+                    "request_digest",
+                    "parent_generation",
+                    "artifact_digest",
+                )
+            }
+            response.update(
+                version=1,
+                producing_root_id=task.root_id,
+                producing_activation_id=task.activation_id,
+                action=self._profiles.decision_action,
+                rationale="declared useful work may proceed",
+            )
+            if self._profiles.decision_action == "replace":
+                response["revision"] = (
+                    "Use the corrected approach; preserve the original requirements."
+                )
+            response.update(self._profiles.decision_patch)
+            next_script = ChildScript(
+                marker='{"outcome":"no_diff"}',
+                effects='{"paths":[]}',
+                artifact_path="decision.json",
+                artifact_body=self._profiles.decision_body or json.dumps(response),
+            )
         if next_script is not None:
             self.script = next_script
         return super().build_command(task, session_id)
@@ -457,6 +493,7 @@ class ForemanLab:
             actor="test",
             band_wait_s=self._band_wait_s,
             roles=self._roles,
+            bridge_graph=self._toml,
         )
         self.composition = Composition(
             self.config,
@@ -731,15 +768,15 @@ class LockedPersistentBd(PersistentBd):
                         "metadata_keys": sorted(self.metadata_writes[-1]),
                     }
                 )
-                self._state.write_text(
+                write_durable(
+                    self._state,
                     json.dumps(
                         {
                             "rows": self.rows,
                             "next_id": self._next_id,
                             "calls": self._call_log,
                         }
-                    ),
-                    encoding="utf-8",
+                    ).encode("utf-8"),
                 )
                 return result
             finally:
@@ -747,10 +784,11 @@ class LockedPersistentBd(PersistentBd):
 
     def _restore(self) -> None:
         """Restore rows and the cross-process audit log together."""
-        super()._restore()
         if not self._state.exists():
             return
-        stored: dict[str, object] = json.loads(self._state.read_text(encoding="utf-8"))
+        stored = json.loads(self._state.read_text(encoding="utf-8"))
+        self.rows = stored["rows"]
+        self._next_id = stored["next_id"]
         raw_calls = stored.get("calls", [])
         if not isinstance(raw_calls, list):
             raise TypeError("persistent fake-bd calls must be a list")

@@ -81,6 +81,7 @@ from workflow_interpreter.supervisor.models import EntryKind
 
 NUL: Final[str] = "\0"
 HEAD: Final[str] = "HEAD"
+QUIET: Final[str] = "--quiet"
 TREE_SUFFIX: Final[str] = "^{tree}"
 COMMIT_SUFFIX: Final[str] = "^{commit}"
 PATH_SEPARATOR: Final[str] = "--"
@@ -132,6 +133,19 @@ class Git(GitTransport):
         """The working tree's current commit OID (§5.4's assertion subject)."""
         return self.rev_parse(HEAD, cwd=cwd)
 
+    def attached_branch_ref(self, *, cwd: Path) -> str | None:
+        """The attached HEAD branch ref, or ``None`` when HEAD is detached.
+
+        This fixed-argument query cannot rewrite HEAD: unlike the general Git
+        command, it exposes neither a symbolic ref name nor a replacement value.
+        """
+        result = self.run(GitSubcommand.SYMBOLIC_REF, QUIET, HEAD, cwd=cwd, check=False)
+        if result.returncode == 1:
+            return None
+        if result.returncode != 0:
+            raise GitCommandError(f"git symbolic-ref failed (exit {result.returncode})")
+        return result.text
+
     def tree_oid(self, commit: str, *, cwd: Path) -> str:
         """The tree OID of a commit — §10.5's no-progress identity."""
         return self.rev_parse(f"{commit}{TREE_SUFFIX}", cwd=cwd)
@@ -165,6 +179,10 @@ class Git(GitTransport):
         if result.returncode == 1:
             return False
         raise GitCommandError(f"git merge-base failed (exit {result.returncode})")
+
+    def filter_overrides(self, *, cwd: Path) -> tuple[str, ...]:
+        """Expose the existing filter-disable prefix to guarded bridge plumbing."""
+        return self._filter_overrides(cwd=cwd)
 
     def _filter_overrides(self, *, cwd: Path) -> tuple[str, ...]:
         """`-c filter.<name>.<clean|smudge|process>=` for every driver defined here.

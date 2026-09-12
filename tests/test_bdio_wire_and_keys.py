@@ -154,6 +154,21 @@ def test_bead_record_ignores_unknown_bd_columns() -> None:
     assert record.id == "wf-1"
 
 
+def test_bead_record_reads_an_optional_description() -> None:
+    """A stage description is available to the bridge without requiring it."""
+    record = BeadRecord.model_validate(
+        {
+            "id": "wf-1",
+            "title": "summary only",
+            "description": "the stage's full brief",
+            "status": "open",
+            "issue_type": "task",
+        }
+    )
+
+    assert record.description == "the stage's full brief"
+
+
 def test_bound_setting_keys_are_scoped() -> None:
     assert (
         BoundSetting.MAX_ENTRIES.at("build-review") == "region.build-review.max_entries"

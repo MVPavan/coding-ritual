@@ -45,7 +45,7 @@ MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 # The §2 fixture is pinned by hash (§3.1); a change here means the graph's
 # meaning changed and every live instance's pinned body is stale.
 FEATURE_DELIVERY_CONTENT_HASH = (
-    "7cf41852b2b00cd5b8d76698fa9f9a2233dc536b1ae404ca8e232e7efb56465f"
+    "9d0b5fb9199843f5f6932ec31c5b72069a860ef8fa86789072cc16ea8a364312"
 )
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.

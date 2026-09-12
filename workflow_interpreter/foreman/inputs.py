@@ -17,15 +17,28 @@ from workflow_interpreter.foreman.constants import (
     RUNNER_PROTOCOL_NO_WRITE_STEP,
     RUNNER_PROTOCOL_WRITE_STEP,
 )
+from workflow_interpreter.foreman.envelope import (
+    ComposedEnvelope,
+    EnvelopeSection,
+    InputOmission,
+    InputsUnavailable,
+    compose_envelope,
+)
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.schema.graph_index import GraphIndex, producer_node
 from workflow_interpreter.schema.models import Node, Outcome
 from workflow_interpreter.supervisor import activation_ref
+from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
 from workflow_interpreter.supervisor.gitio import Git
 
-
-class InputsUnavailable(ValueError):
-    """A bound input cannot be proved against its pinned producer state."""
+__all__ = [
+    "DefaultComposer",
+    "InputsUnavailable",
+    "Materialized",
+    "bounded_materialize",
+    "materialize",
+    "select_bindings",
+]
 
 
 class Materialized(BaseModel):
@@ -41,6 +54,7 @@ class Materialized(BaseModel):
     text: str
     name: str = ""
     producer: str = ""
+    omission: InputOmission | None = None
 
 
 def select_bindings(
@@ -61,7 +75,9 @@ def select_bindings(
                 None,
             )
             if instance is None:
-                if source.optional:
+                if source.optional and name not in (
+                    root.metadata.essential_inputs or ()
+                ):
                     continue
                 raise InputsUnavailable(
                     f"required instance input {name!r} is unavailable"
@@ -145,6 +161,8 @@ def materialize(
     root: RootRecord,
     binding: InputBinding,
     producer: ActivationRecord | None,
+    *,
+    limit: int | None = None,
 ) -> Materialized:
     """Read one bound input exclusively from the pinned git objects."""
     if producer is None:
@@ -184,7 +202,19 @@ def materialize(
             or producer.metadata.intended_base_commit
         )
         return Materialized(
-            text=git.diff_text(base, artifact.commit_oid, cwd=repo_root),
+            text=(
+                git.diff_text(base, artifact.commit_oid, cwd=repo_root)
+                if limit is None
+                else git.bounded_text(
+                    GitSubcommand.DIFF,
+                    "--no-ext-diff",
+                    "--no-textconv",
+                    base,
+                    artifact.commit_oid,
+                    cwd=repo_root,
+                    limit=limit,
+                )
+            ),
             name=binding.name,
             producer=producer.metadata.node,
         )
@@ -193,14 +223,84 @@ def materialize(
         or evidence.outputs_tree_oid != binding.digest
     ):
         raise InputsUnavailable("output tree does not match its binding")
-    return Materialized(
-        text="\n".join(
-            f"--- {path} ---\n{git.blob_text(f'{binding.digest}:{path}', cwd=repo_root)}"
-            for path in git.tree_entries(binding.digest, cwd=repo_root)
-        ),
-        name=binding.name,
-        producer=producer.metadata.node,
+    paths = (
+        git.tree_entries(binding.digest, cwd=repo_root)
+        if limit is None
+        else tuple(
+            filter(
+                None,
+                git.bounded_text(
+                    GitSubcommand.LS_TREE,
+                    "-r",
+                    "-z",
+                    "--name-only",
+                    binding.digest,
+                    cwd=repo_root,
+                    limit=limit,
+                ).split("\0"),
+            )
+        )
     )
+    parts: list[str] = []
+    remaining = limit
+    for path in paths:
+        label = f"--- {path} ---\n"
+        if remaining is not None:
+            remaining -= len(label.encode()) + (1 if parts else 0)
+            if remaining < 0:
+                raise GitOutputTooLarge(limit or 0)
+        text = (
+            git.blob_text(f"{binding.digest}:{path}", cwd=repo_root)
+            if remaining is None
+            else git.bounded_text(
+                GitSubcommand.CAT_FILE,
+                "blob",
+                f"{binding.digest}:{path}",
+                cwd=repo_root,
+                limit=remaining,
+            )
+        )
+        parts.append(label + text)
+        if remaining is not None:
+            remaining -= len(text.encode())
+    return Materialized(
+        text="\n".join(parts), name=binding.name, producer=producer.metadata.node
+    )
+
+
+def bounded_materialize(
+    git: Git,
+    repo_root: Path,
+    root: RootRecord,
+    binding: InputBinding,
+    producer: ActivationRecord | None,
+    *,
+    limit: int,
+) -> Materialized:
+    """Overflowing optional objects stay by reference; essential ones refuse."""
+    try:
+        return materialize(git, repo_root, root, binding, producer, limit=limit)
+    except GitOutputTooLarge:
+        source = root.index.sources[binding.name]
+        if source.optional and binding.name not in (
+            root.metadata.essential_inputs or ()
+        ):
+            return Materialized(
+                text="",
+                name=binding.name,
+                producer=source.producer,
+                omission=InputOmission(
+                    name=binding.name,
+                    reason="budget",
+                    reference=binding.artifact_ref,
+                    digest=binding.digest,
+                    measured_bytes=limit + 1,
+                    exact=False,
+                ),
+            )
+        from workflow_interpreter.foreman.envelope import EnvelopeRefusal
+
+        raise EnvelopeRefusal(limit + 1, limit, exact=False) from None
 
 
 def _runner_protocol(node: Node) -> str:
@@ -243,12 +343,12 @@ def _labelled(item: Materialized) -> str:
 class DefaultComposer:
     """Join materialized inputs and add the narrowly opted-in test clause."""
 
-    def compose(
+    def envelope(
         self,
         root: RootRecord,
         activation: ActivationRecord,
         inputs: tuple[Materialized, ...],
-    ) -> str:
+    ) -> ComposedEnvelope:
         """Compose the profile brief from immutable inputs and resolved flags."""
         node = resolved_node(root, activation.metadata.node).node
         # One blank line between sections: the runner reads a document, not a
@@ -259,8 +359,12 @@ class DefaultComposer:
             for part in (
                 _runner_protocol(node),
                 _fact_frame(root, activation, node),
+                (
+                    f"Execution identity: producing_root_id={root.root_id}; producing_activation_id={activation.activation_id}"
+                    if root.metadata.coordination is not None
+                    else ""
+                ),
                 node.instructions or "",
-                *(_labelled(item) for item in inputs),
             )
             if part.strip()
         )
@@ -270,6 +374,60 @@ class DefaultComposer:
             and Outcome.REJECT in (node.outcomes or ())
             and activation.metadata.round_no == FIRST_ROUND
         )
-        return "\n".join(
-            (*filter(None, (brief, FORCED_FIRST_REJECT if forced else "")),)
+        mandatory = "\n".join(
+            filter(None, (brief, FORCED_FIRST_REJECT if forced else ""))
         )
+        sources = root.index.sources
+        bindings = {binding.name: binding for binding in activation.metadata.inputs}
+        supplied = {item.name for item in inputs}
+        omissions = [item.omission for item in inputs if item.omission is not None]
+        omissions.extend(
+            InputOmission(name=name, reason="missing")
+            for name in node.inputs or ()
+            if name not in supplied and sources[name].optional
+        )
+        essential = root.metadata.essential_inputs or ()
+        if any(
+            name not in supplied for name in essential if name in (node.inputs or ())
+        ):
+            raise InputsUnavailable("essential replacement advice is missing")
+        sections = []
+        for item in inputs:
+            if item.omission is not None:
+                continue
+            source = sources.get(item.name)
+            binding = bindings.get(item.name)
+            sections.append(
+                EnvelopeSection(
+                    text=_labelled(item),
+                    name=item.name,
+                    optional=source.optional and item.name not in essential
+                    if source
+                    else False,
+                    trim_priority=source.trim_priority if source else 0,
+                    reference=binding.artifact_ref if binding else None,
+                    digest=binding.digest if binding else None,
+                )
+            )
+        return compose_envelope(
+            mandatory,
+            tuple(sections),
+            limit=node.context_budget_bytes or 262144,
+            reference=f"wf-activation://{activation.activation_id}/envelope",
+            omissions=tuple(omissions),
+            limit_source="pinned"
+            if node.context_budget_bytes
+            else "legacy_safety_default",
+            diagnostics=("legacy_token_budget_ignored",)
+            if node.token_budget is not None
+            else (),
+        )
+
+    def compose(
+        self,
+        root: RootRecord,
+        activation: ActivationRecord,
+        inputs: tuple[Materialized, ...],
+    ) -> str:
+        """Compatibility text view of the complete checked envelope."""
+        return self.envelope(root, activation, inputs).text

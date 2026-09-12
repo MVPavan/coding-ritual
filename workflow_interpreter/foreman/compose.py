@@ -156,8 +156,25 @@ class Composition:
         branch_head_reader = lambda: instance_head(
             self.git, self.config.repo_root, root_id
         )
-        store = self.store.for_root(branch_head_reader=branch_head_reader)
-        band = BandLock(paths.band_lock)
+        root = self.store.reads.load_root(root_id)
+        coordinator = self.store.coordination_store()
+        link = root.metadata.coordination
+        band_path = paths.band_lock
+        if link is not None:
+            child = coordinator.child_for_root(root)
+            if child is not None:
+                if (
+                    Path(child.wrapper_root)
+                    != self.supervisor_config.wrapper_root.resolve()
+                ):
+                    from workflow_interpreter.schema.decisions import CoordinationError
+
+                    raise CoordinationError("conflicting child wrapper location")
+                band_path = coordinator.member_lock_path(root_id)
+        band = BandLock(band_path)
+        store = self.store.for_root(
+            branch_head_reader=branch_head_reader, member_band=band
+        )
         workspace = Workspace(paths, self.git, self.clock, band, advance_branch=True)
         return InstanceWiring(
             paths=paths,

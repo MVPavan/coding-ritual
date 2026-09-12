@@ -124,6 +124,10 @@ def test_valid_fixture_loads() -> None:
 
     assert graph.document.graph.id == "feature-delivery"
     assert graph.document.graph.entry == "implement"
+    assert graph.document.instance.phase_bridge_retry_terminals == (
+        "shipped",
+        "abandoned",
+    )
     assert [node.name for node in graph.document.node] == [
         "implement",
         "review",

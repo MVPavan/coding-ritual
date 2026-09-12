@@ -338,6 +338,12 @@ class Foreman:
             wiring.band.release()
 
     def tick(self, root_id: str) -> TickReport:
+        """Advance the owner through ordinary member execution and decision intents."""
+        from workflow_interpreter.foreman.decisions import advance_decision
+
+        return advance_decision(self._composition, root_id, self._tick_local)
+
+    def _tick_local(self, root_id: str) -> TickReport:
         """Advance at most one lifecycle action after auditing fresh durable state."""
         validate_bead_id(root_id)
         wiring = self._composition.for_root(root_id)
@@ -348,6 +354,7 @@ class Foreman:
         try:
             wiring.store.startup_canary()
             root = wiring.store.reads.load_root(root_id)
+            wiring.store.assert_member(root_id)
             ensure_owner(self._composition.config)
             beads = wiring.store.reads.instance_beads(root_id)
             checked = audit(root, beads)
@@ -422,6 +429,16 @@ class Foreman:
                     stalled=result.stalled,
                 )
             if frontier.dead_end is not None:
+                source = frontier.dead_end.activation
+                if any(
+                    "envelope requires" in d.reason for d in source.metadata.deviations
+                ):
+                    from workflow_interpreter.foreman.decisions import queue_boundary
+
+                    if queue_boundary(
+                        self._composition, wiring, root, source, "input_oversize"
+                    ):
+                        return TickReport(blocked=True)
                 result = halt_dead_end(
                     wiring,
                     root,

@@ -166,7 +166,14 @@ def effective_bound(
     )
     base = override if override is not None else _pinned_bound(root, setting, scope)
     values = [value for value in (base, *_gate_raises(gates, key)) if value is not None]
-    return max(values) if values else None
+    value = max(values) if values else None
+    if setting is BoundSetting.MAX_TOTAL_ACTIVATIONS:
+        from workflow_interpreter.bdio.coordination import member_ceiling
+
+        ceiling = member_ceiling(root)
+        if ceiling is not None:
+            return min(value, ceiling) if value is not None else ceiling
+    return value
 
 
 def _gate_raises(gates: Iterable[GateRecord], key: str) -> tuple[int, ...]:

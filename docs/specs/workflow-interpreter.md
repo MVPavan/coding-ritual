@@ -135,7 +135,7 @@ writes        = true                     # repo-worktree write access only
 allowed_paths = ["src/**", "tests/**"]   # exemption AND writable mounts
 inputs        = ["task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
-token_budget  = 120000                   # context TRIM budget (not a runaway bound)
+token_budget  = 120000                   # deprecated legacy field; not enforced as tokens; see bounded input notes
 max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)
 stale_after   = "10m"
 max_infra_retries = 2
@@ -1075,3 +1075,25 @@ graph editor, live-instance version migration, non-human gate types.
 | §12 band-lock siting deviation: the execution band is a `flock` on `<wrapper_root>/repo-band.lock`, NOT on the repo path §4 names — a lock inside the workspace is one a `git clean -fdx` deletes. One band per wrapper root, so two wrapper roots over one repo would not exclude each other | phase 5, when the foreman resolves wrapper roots; §4, §12 (phase-3 ruling) |
 | §7.4 ref namespace deviation: the wrapper writes THREE sibling namespaces, `refs/wf/<root_id>/{artifact,orphan,prereset}/<activation_id>`, not the flat `refs/wf/<root_id>/<activation_id>` §7.4 names. Only `artifact/` is the §7.4 pin, and only `artifact/` is the §12 authority to reset HEAD off a commit; `orphan/` preserves a commit §5.6 recovery could not attribute and `prereset/` preserves what a reset was about to destroy — a flat prefix made every ref the wrapper wrote for any reason a licence to destroy its commit | phase 5, if a ref-layout consumer outside the wrapper appears; §7.4, §12 (phase-3 ruling) |
 | §7.4 committer-identity attribution: a runner's commits are stamped with `GIT_COMMITTER_NAME/EMAIL` carrying the activation id (`runner+<activation_id>@workflow-interpreter.invalid`), and in-repo `pin_artifact` requires that identity in ADDITION to descent from `intended_base_commit` and declaration in `$WF_EFFECTS_FILE`. It is an attribution mechanism, not an authorization one — a runner can unset the variables; what it removes is the accident of a human's commit becoming an attempt's artifact on path containment alone. The stamp is applied in ONE place, `RunnerChannels.env()`, so a profile that builds its own child environment instead of routing through it leaves every in-repo commit unattributable — `pin_artifact` refuses, and a `done` claim on a writing node with no artifact grades `fail_code` (§7.3 clause 4) | phase 4, with the first real runner profile; §6, §7.4, §12 (phase-3 ruling) |
+
+
+### Bounded input and decision extension (P2)
+
+`context_budget_bytes` bounds the entire interpreter-produced brief in UTF-8 bytes,
+including protocol, facts, instructions, identity and input framing. Task declarations
+accept this field without `token_budget`. The old token field is retained for pin
+compatibility and reported as `legacy_token_budget_ignored`; legacy roots without an
+explicit byte limit use a reported 262144-byte safety ceiling. This is neither a vendor
+token bound nor a bound on vendor-added prompts/tool results.
+
+Optional sources are omitted whole, by descending trim priority then source name,
+with immutable references and omission reasons recorded in activation envelope metadata.
+Essential content, including replacement advice for its bound consumers, refuses before
+dispatch if it cannot fit. Full content stays at its original pinned reference.
+
+Declared decision policies run a nonrecursive `DecisionTask` as an ordinary generated
+one-task workflow, not an executable gate. Whole-member reservations reserve each
+member's complete finite local maximum once; local immutable ceilings include HALT
+creation and reject new human total-ceiling rebudget above allocation. Legacy pins and
+uncoordinated human-gate behavior remain unchanged. See `workflows/README.md` for entry
+commands and the P3 bridge replacement boundary.

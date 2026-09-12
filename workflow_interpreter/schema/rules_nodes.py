@@ -46,6 +46,8 @@ _EXECUTION_FIELDS: Final[tuple[str, ...]] = (
     "inputs",
     "verify",
     "token_budget",
+    "context_budget_bytes",
+    "decision",
     "max_wall",
     "stale_after",
     "max_infra_retries",
@@ -57,7 +59,6 @@ _TASK_REQUIRED: Final[tuple[str, ...]] = (
     "writes",
     "allowed_paths",
     "verify",
-    "token_budget",
     "max_wall",
     "stale_after",
     "max_infra_retries",
@@ -68,6 +69,7 @@ _GATE_REQUIRED: Final[tuple[str, ...]] = ("gate_type", "binds", "outcomes")
 _NON_EMPTY_FIELDS: Final[frozenset[str]] = frozenset({"verify", "outcomes"})
 _MINIMUMS: Final[Mapping[str, int]] = {
     "token_budget": 1,
+    "context_budget_bytes": 1,
     "max_infra_retries": 0,
     "max_steers": 0,
 }
@@ -94,6 +96,22 @@ def node_fields_match_kind(index: GraphIndex) -> list[Finding]:
     findings: list[Finding] = []
     for position, node in enumerate(index.document.node):
         kind = node.kind.value
+        if (
+            node.kind is NodeKind.TASK
+            and node.token_budget is None
+            and node.context_budget_bytes is None
+        ):
+            findings.append(
+                finding_error(
+                    RuleId.NODE_FIELDS_MATCH_KIND,
+                    at("node", position, "token_budget"),
+                    MSG_FIELD_REQUIRED.format(
+                        kind=kind,
+                        node=node.name,
+                        field="token_budget or context_budget_bytes",
+                    ),
+                )
+            )
         for field in _KIND_REQUIRED[node.kind]:
             value = getattr(node, field)
             if value is None:

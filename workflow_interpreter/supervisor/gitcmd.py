@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import selectors
 import subprocess
+import time
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
 from pathlib import Path
@@ -117,6 +119,12 @@ class GitSubcommand(StrEnum):
     is the one way to learn the filter-driver names a repository defines
     without letting `status` execute them. It never writes a key — no member of
     this set may be used to mutate configuration.
+
+    `symbolic-ref` is READ-ONLY here by construction: the only call site asks
+    `--quiet HEAD` whether the coordinator checkout is attached
+    (`gitio.Git.attached_branch_ref`). Its wrapper accepts no ref name or value,
+    so it cannot use `git symbolic-ref HEAD refs/heads/x` to rewrite HEAD.
+    Adding a wrapper that accepts either argument would make this member unsafe.
     """
 
     REV_PARSE = "rev-parse"
@@ -138,6 +146,7 @@ class GitSubcommand(StrEnum):
     WRITE_TREE = "write-tree"
     COMMIT_TREE = "commit-tree"
     CONFIG = "config"
+    SYMBOLIC_REF = "symbolic-ref"
 
 
 class GitResult:
@@ -152,6 +161,14 @@ class GitResult:
     def text(self) -> str:
         """Stdout with trailing whitespace stripped."""
         return self.stdout.strip()
+
+
+class GitOutputTooLarge(GitCommandError):
+    """The output exceeded a caller's explicit byte bound."""
+
+    def __init__(self, limit: int) -> None:
+        self.limit = limit
+        super().__init__(f"git output exceeds {limit} bytes")
 
 
 class GitTransport:
@@ -176,6 +193,46 @@ class GitTransport:
             or cwd.is_relative_to(self._config.wrapper_root)
         ):
             raise GitCommandError(_MSG_OUTSIDE.format(cwd=cwd))
+
+    def bounded_text(
+        self, subcommand: GitSubcommand, *args: str, cwd: Path, limit: int
+    ) -> str:
+        """Read at most limit UTF-8 bytes, draining pipes with a hard timeout."""
+        self._assert_inside(cwd)
+        argv = [self._config.git_binary, *self._hardening(), subcommand.value, *args]
+        with subprocess.Popen(
+            argv,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env={**os.environ, **ENV_HARDENING},
+        ) as process:
+            assert process.stdout is not None and process.stderr is not None
+            data = bytearray()
+            deadline = time.monotonic() + self._config.git_timeout_s
+            try:
+                with selectors.DefaultSelector() as selector:
+                    selector.register(process.stdout, selectors.EVENT_READ, True)
+                    selector.register(process.stderr, selectors.EVENT_READ, False)
+                    while selector.get_map():
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+                            raise GitCommandError("bounded git read timed out")
+                        for key, _ in selector.select(remaining):
+                            chunk = os.read(key.fd, min(65536, limit + 1))
+                            if not chunk:
+                                selector.unregister(key.fileobj)
+                            elif key.data:
+                                data.extend(chunk)
+                                if len(data) > limit:
+                                    raise GitOutputTooLarge(limit)
+                if process.wait(timeout=max(0.01, deadline - time.monotonic())) != 0:
+                    raise GitCommandError("bounded git object read failed")
+            except BaseException:
+                process.kill()
+                process.wait()
+                raise
+        return data.decode("utf-8")
 
     def run(
         self,

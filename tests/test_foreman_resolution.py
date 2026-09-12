@@ -120,6 +120,8 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
     fake_store: WorkflowStore, tmp_path: Path
 ) -> None:
     """The per-root wiring owns one band and a root-scoped mint-base reader."""
+    root_a = make_root(fake_store, load_definition())
+    root_b = make_root(fake_store, load_definition())
     repo = tmp_path / "repo"
     repo.mkdir()
     wrapper_root = (
@@ -140,7 +142,10 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
 
     class Heads:
         def ref_target(self, ref: str, *, cwd: Path) -> str | None:
-            return {"refs/heads/wf/a": "a" * 40, "refs/heads/wf/b": "b" * 40}.get(ref)
+            return {
+                INSTANCE_BRANCH.format(root_id=root_a.root_id): "a" * 40,
+                INSTANCE_BRANCH.format(root_id=root_b.root_id): "b" * 40,
+            }.get(ref)
 
     composition = Composition(
         config=config,
@@ -151,9 +156,9 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
         profiles=cast(ProfileResolver, _AvailableProfiles()),
         spawner=cast(Spawner, object()),
     )
-    wiring_a = composition.for_root("a")
-    wiring_b = composition.for_root("b")
-    assert wiring_a.paths.root_id == "a"
+    wiring_a = composition.for_root(root_a.root_id)
+    wiring_b = composition.for_root(root_b.root_id)
+    assert wiring_a.paths.root_id == root_a.root_id
     assert wiring_a.band._path == wiring_a.paths.band_lock
     assert wiring_a.band is wiring_a.workspace._band
     assert wiring_a.workspace._advance_branch is True
@@ -170,7 +175,8 @@ def test_composition_scopes_mint_reads_to_each_instance_branch(
     composition, git = _instance_composition(fake_store, tmp_path)
     git.refs[INSTANCE_BRANCH.format(root_id=root.root_id)] = "a" * 40
     wiring_a = composition.for_root(root.root_id)
-    composition.for_root("b")
+    root_b = make_root(fake_store, load_definition())
+    composition.for_root(root_b.root_id)
     assert wiring_a.branch_head_reader() == "a" * 40
     wiring_missing = composition.for_root(missing.root_id)
     with pytest.raises(InstanceBranchMissing, match="instance branch"):

@@ -64,6 +64,18 @@ def test_strict_git_helpers_distinguish_absence_from_git_failure(
         git.refs_under("refs/", cwd=config.wrapper_root)
 
 
+def test_attached_branch_ref_distinguishes_a_detached_head(tmp_path: Path) -> None:
+    """An attached checkout names its branch while detached HEAD is an empty answer."""
+    repo = make_repo(tmp_path)
+    config = make_config(repo, tmp_path)
+    git = make_git(config)
+
+    assert git.attached_branch_ref(cwd=repo) == "refs/heads/main"
+    subprocess.run(["git", "checkout", "--detach"], cwd=repo, check=True)
+
+    assert git.attached_branch_ref(cwd=repo) is None
+
+
 def test_commit_helpers_reject_non_commits_and_git_failures(tmp_path: Path) -> None:
     """A tree or unreadable object is never mistaken for a usable commit."""
     repo = make_repo(tmp_path)

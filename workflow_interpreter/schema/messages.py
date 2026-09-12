@@ -131,6 +131,12 @@ MSG_ALLOWED_PATHS_WRITER: Final[str] = (
 MSG_MAX_TOTAL_ACTIVATIONS: Final[str] = (
     "max_total_activations must be >= 1, got {value}"
 )
+MSG_PHASE_BRIDGE_RETRY_TERMINAL_INVALID: Final[str] = (
+    "phase_bridge_retry_terminals entry {terminal!r} must name a terminal node"
+)
+MSG_PHASE_BRIDGE_RETRY_TERMINAL_BYPASS: Final[str] = (
+    "phase_bridge_retry_terminal {terminal!r} has an entry path without a human gate"
+)
 MSG_TEST_FLAG: Final[str] = (
     "test_force_first_reject = true requires loading with allow_test_flags (§13)"
 )

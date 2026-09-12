@@ -899,9 +899,22 @@ class Dispatcher:
             sandbox=mode,
         )
         before = ledger.count()
-        handle = profile.launch(command, launcher)
-        self._assert_barrier_held(activation_id, launcher, handle, ledger, before)
-        record = self._store.record_dispatch(activation_id, handle)
+        from contextlib import nullcontext
+
+        from workflow_interpreter.supervisor.band import BandLock
+
+        root = self._store.reads.load_root(self._paths.root_id)
+        coordinator = self._store.coordination_store()
+        guard = (
+            BandLock(coordinator.member_lock_path(root.root_id, "launch"))
+            if root.metadata.coordination is not None
+            else nullcontext()
+        )
+        with guard:
+            self._store.assert_member(root.root_id)
+            handle = profile.launch(command, launcher)
+            self._assert_barrier_held(activation_id, launcher, handle, ledger, before)
+            record = self._store.record_dispatch(activation_id, handle)
         return DispatchResult(
             activation=record,
             outcome=LaunchOutcome.LAUNCHED,

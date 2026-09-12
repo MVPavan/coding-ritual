@@ -60,6 +60,12 @@ from workflow_interpreter.bdio.constants import (
     _MSG_ENTRY_PREDECESSOR,
 )
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
+from workflow_interpreter.schema.decisions import (
+    BoundaryIdentity,
+    CoordinationLink,
+    CoordinationState,
+    DecisionTemplate,
+)
 from workflow_interpreter.schema.loader import canonical_json_bytes
 from workflow_interpreter.schema.models import (
     GRAPH_OUTCOMES,
@@ -196,6 +202,7 @@ class BeadRecord(BaseModel):
 
     id: str
     title: str
+    description: str | None = None
     status: str
     issue_type: str
     metadata: Metadata = Field(default_factory=dict)
@@ -206,6 +213,7 @@ class BeadRecord(BaseModel):
     updated_at: str | None = None
     ephemeral: bool = False
     wisp_type: str | None = None
+    parent: str | None = None
 
 
 # --- shared value objects -----------------------------------------------
@@ -320,6 +328,12 @@ class RootMetadata(BaseModel):
     closed rebudget gates — `bounds.effective_bound`."""
     seq: JsonSafeInt = 0
     instance_inputs: tuple[InstanceInput, ...] = ()
+    essential_inputs: tuple[str, ...] | None = None
+    essential_consumers: dict[str, tuple[str, ...]] | None = None
+    coordination: CoordinationLink | None = None
+    coordination_state: CoordinationState | None = None
+    decision_boundary: BoundaryIdentity | None = None
+    decision_templates: dict[str, DecisionTemplate] | None = None
     config_signature: str | None = None
     allow_test_flags: bool = False
     instance_base_commit: str | None = None
@@ -359,6 +373,7 @@ class ActivationMetadata(BaseModel):
     idempotency_key: str
     mint_reason: MintReason
     inputs: tuple[InputBinding, ...] = ()
+    envelope: dict[str, JsonValue] | None = None
     runner_profile: str
     model: str
     session_id: str

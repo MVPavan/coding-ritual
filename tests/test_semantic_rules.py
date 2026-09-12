@@ -22,10 +22,123 @@ from tests._helpers import (
 from tests._mutations import MUTATION_CASES
 from workflow_interpreter import GraphValidationError, RuleId, load_graph
 
+PHASE_BRIDGE_RETRY_TERMINALS_RULE = "phase_bridge_retry_terminals_human_gated"
+
 
 def test_minimal_graph_is_valid(tmp_path: Path) -> None:
     """The mutation base must be clean, or every mutation case proves nothing."""
     graph = load_graph(write(tmp_path, MINIMAL_GRAPH))
+
+    assert graph.warnings == ()
+
+
+def test_phase_bridge_retry_terminals_are_optional_and_human_gated(
+    tmp_path: Path,
+) -> None:
+    """The opt-in declaration accepts a terminal that follows human approval."""
+    text = mutate(
+        MINIMAL_GRAPH,
+        (
+            (
+                "max_total_activations = 5",
+                'max_total_activations = 5\nphase_bridge_retry_terminals = ["finished"]',
+            ),
+        ),
+    )
+
+    graph = load_graph(write(tmp_path, text))
+
+    assert graph.document.instance.phase_bridge_retry_terminals == ("finished",)
+
+
+def test_empty_phase_bridge_retry_terminals_do_not_enable_bridge_validation(
+    tmp_path: Path,
+) -> None:
+    """An empty declaration leaves a graph bridge-ineligible without rejecting it."""
+    text = mutate(
+        MINIMAL_GRAPH,
+        (
+            (
+                "max_total_activations = 5",
+                "max_total_activations = 5\nphase_bridge_retry_terminals = []",
+            ),
+        ),
+    )
+
+    graph = load_graph(write(tmp_path, text))
+
+    assert graph.document.instance.phase_bridge_retry_terminals == ()
+
+
+def test_phase_bridge_retry_terminal_rejects_an_entry_bypass(
+    tmp_path: Path,
+) -> None:
+    """A retryable terminal cannot be reachable without first crossing a human gate."""
+    text = mutate(
+        MINIMAL_GRAPH,
+        (
+            (
+                "max_total_activations = 5",
+                'max_total_activations = 5\nphase_bridge_retry_terminals = ["finished"]',
+            ),
+            ('outcomes = ["done"]', 'outcomes = ["done", "no_diff"]'),
+            (
+                WORK_EDGE,
+                WORK_EDGE
+                + '\n[[edge]]\nfrom = "work"\non = "no_diff"\nto = "finished"\n',
+            ),
+        ),
+    )
+
+    with pytest.raises(GraphValidationError) as excinfo:
+        load_graph(write(tmp_path, text))
+
+    assert excinfo.value.rule_ids == frozenset({PHASE_BRIDGE_RETRY_TERMINALS_RULE})
+
+
+@pytest.mark.parametrize("terminal", ("approval", "missing"))
+def test_phase_bridge_retry_terminal_rejects_a_nonterminal_name(
+    tmp_path: Path, terminal: str
+) -> None:
+    """A bridge declaration can name only an actual terminal node."""
+    text = mutate(
+        MINIMAL_GRAPH,
+        (
+            (
+                "max_total_activations = 5",
+                f'max_total_activations = 5\nphase_bridge_retry_terminals = ["{terminal}"]',
+            ),
+        ),
+    )
+
+    with pytest.raises(GraphValidationError) as excinfo:
+        load_graph(write(tmp_path, text))
+
+    assert excinfo.value.rule_ids == frozenset({PHASE_BRIDGE_RETRY_TERMINALS_RULE})
+
+
+def test_phase_bridge_retry_terminal_handles_a_bounded_cycle(tmp_path: Path) -> None:
+    """A cycle that can only exit through a human gate still validates promptly."""
+    text = mutate(
+        MINIMAL_GRAPH,
+        (
+            (
+                "max_total_activations = 5",
+                'max_total_activations = 5\nphase_bridge_retry_terminals = ["finished"]',
+            ),
+            (
+                'mode = "acyclic"\nentry_node = "work"',
+                'mode = "bounded-cycle"\nentry_node = "work"\nmax_entries = 2\non_exhausted = "approval"',
+            ),
+            ('outcomes = ["done"]', 'outcomes = ["done", "no_diff"]'),
+            (
+                WORK_EDGE,
+                WORK_EDGE + '\n[[edge]]\nfrom = "work"\non = "no_diff"\nto = "work"\n',
+            ),
+        ),
+    )
+
+    graph = load_graph(write(tmp_path, text))
 
     assert graph.warnings == ()
 

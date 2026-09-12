@@ -200,6 +200,67 @@ def create_root(
         raise CarrierIntegrityError(
             _MSG_INSTANCE_INPUT_BYTES.format(limit=MAX_INSTANCE_INPUT_BYTES)
         )
+    from workflow_interpreter.schema.decisions import DecisionTemplate, lower_decision
+
+    templates: dict[str, DecisionTemplate] = {}
+    settings = {item.key: item.value for item in resolved_config}
+    for node in definition.document.node:
+        if node.token_budget is not None:
+            _LOG.warning(
+                "wf.context_budget.legacy_token_budget_ignored",
+                node=node.name,
+                limit_source="pinned"
+                if settings.get(
+                    f"node.{node.name}.context_budget_bytes", node.context_budget_bytes
+                )
+                else "legacy_safety_default",
+            )
+        policy = node.decision
+        if policy is None:
+            continue
+        if definition.document.instance.coordination_limits is None:
+            raise CarrierIntegrityError(
+                "decision policy requires finite coordination limits"
+            )
+        if not settings.get(
+            f"node.{node.name}.context_budget_bytes", node.context_budget_bytes
+        ):
+            raise CarrierIntegrityError("decision work requires context_budget_bytes")
+        if "replace" in policy.actions:
+            source = next(
+                (
+                    x
+                    for x in definition.document.source
+                    if x.name == policy.replacement_input
+                ),
+                None,
+            )
+            consumers = [
+                n
+                for n in definition.document.node
+                if policy.replacement_input in (n.inputs or ())
+            ]
+            if (
+                source is None
+                or source.producer != "instance"
+                or not source.optional
+                or not consumers
+            ):
+                raise CarrierIntegrityError(
+                    "replacement source must be optional instance input bound to work consumers"
+                )
+        raw = settings.get(f"decision.{node.name}.template")
+        if not isinstance(raw, str):
+            raise CarrierIntegrityError("decision task must be resolved at admission")
+        template = DecisionTemplate.model_validate_json(raw)
+        if (
+            template.graph_body
+            != canonical_bytes(lower_decision(policy).document).decode()
+        ):
+            raise CarrierIntegrityError(
+                "decision template differs from pinned declaration"
+            )
+        templates[node.name] = template
     metadata = RootMetadata(
         instance_key=instance_key,
         graph_id=definition.document.graph.id,
@@ -212,6 +273,7 @@ def create_root(
         allow_test_flags=allow_test_flags,
         instance_base_commit=instance_base_commit,
         seq=ROOT_SEQ,
+        decision_templates=templates or None,
     )
     record = client._create_bead(
         title=_TITLE_ROOT.format(

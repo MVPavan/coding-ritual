@@ -15,6 +15,30 @@ wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
 actor        = "@ACTOR@"
 
+# The validated graph `phase-bridge` pins for a selected stage. It is a normal
+# configurable graph path, not a bridge implementation default.
+bridge_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"
+# For a specification stage, select workflows/design-spec.toml instead.
+# Basic work uses workflows/basic.toml through children admit; it returns an
+# artifact without bridge landing. Integration uses workflows/integration.toml
+# through explicit integration prepare and the same phase-bridge command.
+# These templates reuse the implementer/critic role bindings below.
+
+# Bridge admission requires an explicit complete nonempty check policy. Uncomment
+# and adapt the example only after provisioning uv under the PATH below and its
+# pinned Python under UV_PYTHON_INSTALL_DIR. This example calls the repository's
+# feature verifier; it is not a claim to run all seven parent milestone gates.
+# argv[0] is a tracked repository executable or an explicit absolute host tool,
+# never a bare command resolved through PATH. See docs/usage/phase-bridge.md for
+# the fixed environment, detached checkout, policy pinning and retry contract.
+# BEGIN BRIDGE CHECK EXAMPLE
+# [[bridge_checks]]
+# name = "repository-feature-verifier"
+# argv = ["scripts/verify-feature.sh"]
+# timeout_s = 1800
+# environment = [["PATH", "@WRAPPER_HOME@/tools/bin:/usr/bin:/bin"], ["UV_PYTHON_INSTALL_DIR", "@WRAPPER_HOME@/python"]]
+# END BRIDGE CHECK EXAMPLE
+
 # The bd workspace is the repository itself: `bd init` puts `.beads/` there and
 # every invocation is scoped with `-C <workspace>` (`bdio/client.py`).
 [bd]
