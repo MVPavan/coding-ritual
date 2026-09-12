@@ -1,0 +1,183 @@
+[graph]
+id          = "engine-bootstrap"
+version     = "1.0.0"
+entry       = "implement"
+description = "One feature: implemented → reviewed → shipped"
+
+[instance]
+max_total_activations  = 10      # counts every activation AND gate bead
+test_force_first_reject = false  # schema'd; validator refuses true without --allow-test-flags
+phase_bridge_retry_terminals = ["shipped", "abandoned"]
+
+[[region]]
+name         = "build-review"
+mode         = "bounded-cycle"           # "acyclic" | "bounded-cycle"
+entry_node   = "implement"
+max_entries  = 2
+on_exhausted = "triage"
+
+[[node]]
+name          = "implement"
+kind          = "task"                   # task | gate | terminal
+region        = "build-review"
+runner        = "profile:implementer"
+model         = "default"
+instructions = """
+Implement the feature described in `task_brief`. On a later round,
+`review_findings` lists what the reviewer rejected — address every BLOCKER
+and MAJOR before claiming done.
+
+Write only production and test code. Do not edit the review's findings, and
+do not weaken or delete a test to make a check pass.
+
+Report `done` when the verify command passes against your commit;
+`no_diff` when the feature already exists and needs no change; `fail_plan`
+when `task_brief` cannot be implemented as written and needs a human.
+"""
+isolation     = "worktree"               # worktree | in-repo
+writes        = true                     # repo-worktree write access only
+allowed_paths = ["workflow_interpreter/profiles/**", "workflow_interpreter/supervisor/**", "tests/**", "docs/usage/**", "docs/specs/**", "config/**"]   # the writable mounts under bwrap
+inputs        = ["task_brief", "review_findings"]
+verify        = [{ cmd = "scripts/verify-engine-bootstrap.sh", timeout = "10m" }]
+context_budget_bytes = 48000                   # context TRIM budget (not a runaway bound)
+max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)
+stale_after   = "10m"
+max_infra_retries = 0
+max_steers    = 0
+outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]
+
+[[node]]
+name          = "review"
+kind          = "task"
+region        = "build-review"
+runner        = "profile:critic"
+model         = "default"
+instructions = """
+Review `diff_artifact` against `task_brief`. Findings go to
+$WF_ARTIFACT_DIR as numbered BLOCKER / MAJOR / MINOR entries, each with a
+`file:line` and a concrete failure scenario.
+
+You have no repo write access. Do not fix what you find and do not propose
+patches — the implementer acts on your findings next round.
+
+Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
+Report `fail_plan` when the same BLOCKER stands for a second round or the
+task as briefed cannot be satisfied; do not spend a round restating it.
+"""
+isolation     = "worktree"
+writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo
+allowed_paths = []
+inputs        = ["task_brief", "diff_artifact", "review_findings"]
+verify        = [{ cmd = "scripts/verify-engine-bootstrap.sh", timeout = "15m" }]
+context_budget_bytes = 524288
+max_wall      = "30m"
+stale_after   = "10m"
+max_infra_retries = 0
+max_steers    = 0
+outcomes      = ["accept", "reject", "fail_code", "fail_plan"]
+
+[[node]]
+name      = "ship"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["approve", "abandon"]
+
+[[node]]
+name      = "triage"
+kind      = "gate"
+gate_type = "human"
+binds     = "immutable"
+outcomes  = ["rebudget", "abandon"]
+
+[[node]]
+name = "shipped"
+kind = "terminal"
+
+[[node]]
+name = "abandoned"
+kind = "terminal"
+
+[[edge]]
+from = "implement"
+on   = "done"
+to   = "review"
+
+[[edge]]
+from = "implement"
+on   = "fail_plan"
+to   = "triage"
+
+[[edge]]
+from = "implement"
+on   = "no_diff"
+to   = "triage"
+
+[[edge]]
+from = "implement"
+on   = "fail_code"
+to   = "implement"       # a red check is a rework, not a human halt; the
+                         # region entry re-enters, so rounds still cap it
+
+[[edge]]
+from = "review"
+on   = "reject"
+to   = "implement"
+
+[[edge]]
+from = "review"
+on   = "accept"
+to   = "ship"
+
+[[edge]]
+from = "review"
+on   = "fail_code"
+to   = "implement"       # the reviewer's checks went red on the diff under
+                         # review; the implementer is what can fix that
+
+[[edge]]
+from = "review"
+on   = "fail_plan"
+to   = "triage"          # early abandon: the loop must be able to end in
+                         # both directions, not only by running out of rounds
+
+[[edge]]
+from = "ship"
+on   = "approve"
+to   = "shipped"
+
+[[edge]]
+from = "ship"
+on   = "abandon"
+to   = "abandoned"
+
+[[edge]]
+from = "triage"
+on   = "rebudget"
+to   = "implement"
+
+[[edge]]
+from = "triage"
+on   = "abandon"
+to   = "abandoned"
+
+[fallback]
+to = "triage"          # per-node [node.fallback] may override
+
+[[source]]
+name          = "task_brief"
+producer      = "instance"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "diff_artifact"
+producer      = "node:implement"
+optional      = false
+trim_priority = 1
+
+[[source]]
+name          = "review_findings"
+producer      = "node:review"
+optional      = true                     # absent on round 1 by construction
+trim_priority = 2
