@@ -32,9 +32,9 @@ pytestmark = pytest.mark.acceptance
 
 # The exit-record mirror is the 3rd `update` call of a fresh dispatch attempt
 # (mint's `create` does not count): `record_precondition` (1), `record_dispatch`
-# (2), then the exit-record mirror itself (3). `crash_on` is relative to when
+# (3), with envelope persistence (2), then the exit-record mirror itself (4). `crash_on` is relative to when
 # it is armed, so this offset holds regardless of the lab's prior history.
-_EXIT_MIRROR_UPDATE_OFFSET = 3
+_EXIT_MIRROR_UPDATE_OFFSET = 4
 
 # `record_precondition` is the FIRST `update` call of a dispatch attempt —
 # armed here, its own write never lands, even though the real git reset it
@@ -112,7 +112,7 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
 
     # --- injection point 3: after child exit / before the bd exit mirror ---
     # (this same dispatch attempt: precondition and dispatch succeed, and the
-    # exit-mirror write — the 3rd `update` of a fresh attempt — is what dies)
+    # exit-mirror write — the 4th `update` of a fresh attempt — is what dies)
     lab.fake_bd.crash_on("update", _EXIT_MIRROR_UPDATE_OFFSET)
     with pytest.raises(Exception, match="bd update died"):
         lab.tick()

@@ -1,0 +1,115 @@
+[graph]
+id = "integration"
+version = "1.0.0"
+entry = "integrate"
+description = "Fresh combined tree, independent review, explicit human ship"
+[instance]
+max_total_activations = 4
+phase_bridge_retry_terminals = ["shipped", "abandoned"]
+[fallback]
+to = "halt"
+[[node]]
+name = "integrate"
+kind = "task"
+runner = "profile:implementer"
+model = "default"
+instructions = """
+Integrate EVERY repository contribution in integration_sources on target_base.
+Preserve independent target edits and tracked Markdown. Read each immutable
+source base/artifact diff; never treat a collection or child approval as ship
+permission. Resolve conflicts against stage_brief, or report fail_plan.
+Commit the complete combined tree. The runtime supplies candidate_diff from
+your committed artifact against target_base. Report done only after pinned checks pass.
+"""
+isolation = "worktree"
+writes = true
+allowed_paths = ["workflow_interpreter/**", "workflows/**", "config/**", "src/**", "tests/**", "docs/**"]
+inputs = ["integration_sources", "stage_brief", "target_base"]
+verify = [{cmd="scripts/verify-feature.sh", timeout="10m"}]
+context_budget_bytes = 64000
+max_wall = "45m"
+stale_after = "10m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["done", "fail_code", "fail_plan"]
+[[node]]
+name = "review"
+kind = "task"
+runner = "profile:critic"
+model = "default"
+instructions = """
+Review the actual candidate tree and candidate_diff against EVERY contribution
+in integration_sources, stage_brief, and target_base. Check Markdown and target
+edits too. Membership is not semantic proof. Reject omissions, partial writes,
+unresolved conflicts, stale evidence, or a diff that describes another tree.
+Write findings to WF_ARTIFACT_DIR; accept only the complete verified candidate.
+"""
+isolation = "worktree"
+writes = false
+allowed_paths = []
+inputs = ["integration_sources", "stage_brief", "target_base", "candidate_diff"]
+verify = [{cmd="scripts/verify-feature.sh", timeout="10m"}, {cmd="scripts/review-checks.sh", timeout="5m"}]
+context_budget_bytes = 64000
+max_wall = "30m"
+stale_after = "10m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["accept", "reject", "fail_code", "fail_plan"]
+[[node]]
+name = "ship"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+[[node]]
+name = "halt"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["abandon"]
+[[node]]
+name = "shipped"
+kind = "terminal"
+[[node]]
+name = "abandoned"
+kind = "terminal"
+[[edge]]
+from = "integrate"
+on = "done"
+to = "review"
+[[edge]]
+from = "review"
+on = "accept"
+to = "ship"
+[[edge]]
+from = "ship"
+on = "approve"
+to = "shipped"
+[[edge]]
+from = "ship"
+on = "abandon"
+to = "abandoned"
+[[edge]]
+from = "halt"
+on = "abandon"
+to = "abandoned"
+[[source]]
+name = "integration_sources"
+producer = "instance"
+optional = false
+trim_priority = 1
+[[source]]
+name = "stage_brief"
+producer = "instance"
+optional = false
+trim_priority = 1
+[[source]]
+name = "target_base"
+producer = "instance"
+optional = false
+trim_priority = 1
+[[source]]
+name = "candidate_diff"
+producer = "node:integrate"
+optional = false
+trim_priority = 1

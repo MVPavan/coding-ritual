@@ -39,7 +39,7 @@ from workflow_interpreter.foreman.constants import (
 from workflow_interpreter.foreman.errors import ResolutionError
 from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
-from workflow_interpreter.foreman.identifiers import validate_bead_id
+from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
@@ -99,7 +99,7 @@ def _configure_logging() -> None:
 def _composition(path: Path | None) -> Composition:
     """Build production collaborators from the explicitly supplied TOML file."""
     if path is None:
-        raise ValueError("foreman configuration path is required: pass --config")
+        raise InvalidIdentifier("foreman configuration path is required: pass --config")
     config = load_config(path)
     clock = SystemClock()
     return Composition(
@@ -140,6 +140,7 @@ def _parser() -> argparse.ArgumentParser:
     phase_bridge.add_argument("epic_id")
     phase_bridge.add_argument("stage_id")
     phase_bridge.add_argument("--retry", action="store_true")
+    phase_bridge.add_argument("--retry-landing", action="store_true")
     phase_bridge.add_argument("--trace", action="store_true")
     supervise = commands.add_parser("supervise")
     supervise.add_argument("root_id")
@@ -152,6 +153,43 @@ def _parser() -> argparse.ArgumentParser:
     steer.add_argument("activation_id")
     steer.add_argument("--reason", required=True)
     steer.add_argument("--instructions-file", type=Path, required=True)
+    integration = commands.add_parser("integration").add_subparsers(
+        dest="integration_command", required=True
+    )
+    prepare = integration.add_parser("prepare")
+    prepare.add_argument("--request", type=Path, required=True)
+    for name in ("status", "retry"):
+        operation = integration.add_parser(name)
+        operation.add_argument("epic_id")
+        operation.add_argument("stage_id")
+    children = commands.add_parser("children").add_subparsers(
+        dest="child_command", required=True
+    )
+    replacement = children.add_parser("replace")
+    replacement.add_argument("owner_id")
+    replacement.add_argument("--slot", required=True)
+    replacement.add_argument("--generation", required=True, type=int)
+    replacement.add_argument("--request", required=True, type=Path)
+    for name in ("admit", "start", "status", "collect", "cancel", "recover", "drive"):
+        child = children.add_parser(name)
+        child.add_argument("owner_id")
+        if name in ("admit", "start", "collect", "cancel", "recover"):
+            child.add_argument("slot")
+        if name in ("collect", "cancel", "recover"):
+            child.add_argument("generation", type=int)
+        if name == "admit":
+            child.add_argument("--graph", type=Path, required=True)
+            child.add_argument(
+                "--input", action="append", default=[], metavar="NAME=FILE"
+            )
+        if name == "start":
+            child.add_argument("--admission", type=Path, required=True)
+        if name == "cancel":
+            child.add_argument("--request-key", required=True)
+            child.add_argument("--reason", required=True)
+        if name == "drive":
+            child.add_argument("--max-concurrent", type=int, required=True)
+            child.add_argument("--max-wall", type=float, required=True)
     return parser
 
 
@@ -261,8 +299,25 @@ class _InstanceView:
     activations: Mapping[str, ActivationRecord]
 
 
+def _coordination_report(
+    composition: Composition, root: RootRecord
+) -> dict[str, object]:
+    """Reserved capacity is separate from actual activation/provider usage."""
+    link = root.metadata.coordination
+    if link is None:
+        return {}
+    return {
+        "coordination": composition.store.coordination_store()
+        .coordination_view(link.owner_id)
+        .model_dump(mode="json")
+    }
+
+
 def _view(composition: Composition, root_id: str) -> _InstanceView:
     """Load one instance's beads a single time for a whole rendered report."""
+    requested = composition.store.reads.load_root(root_id)
+    if requested.metadata.coordination_state is not None:
+        root_id = requested.metadata.coordination_state.active.get("work") or root_id
     wiring = composition.for_root(root_id)
     root = wiring.store.reads.load_root(root_id)
     beads = wiring.store.reads.instance_beads(root_id)
@@ -462,6 +517,49 @@ def _run(
 ) -> int:
     """Execute one command while its caller owns the transcript renderer."""
     args = _parser().parse_args(argv)
+    if args.command in ("children", "integration"):
+        from tomllib import TOMLDecodeError
+
+        from pydantic import ValidationError
+
+        from workflow_interpreter.bdio.errors import BdioError
+        from workflow_interpreter.bridge.adapter import PhaseAdapterError
+        from workflow_interpreter.bridge.errors import BridgeRefusal
+        from workflow_interpreter.foreman.children import command
+        from workflow_interpreter.schema.decisions import CoordinationError
+        from workflow_interpreter.schema.loader import GraphValidationError
+        from workflow_interpreter.supervisor.errors import SupervisorError
+
+        try:
+            if args.command == "children":
+                validate_bead_id(args.owner_id)
+                value = command(_composition(args.config), args)
+            else:
+                from workflow_interpreter.bridge.integration import (
+                    command as integration_command,
+                )
+
+                value = integration_command(_composition(args.config), args)
+        except (
+            InvalidIdentifier,
+            BridgeRefusal,
+            PhaseAdapterError,
+            GraphValidationError,
+            CoordinationError,
+            ResolutionError,
+            ValidationError,
+            TOMLDecodeError,
+            OSError,
+            BdioError,
+            SupervisorError,
+        ) as exc:
+            emit(
+                json.dumps({"state": "refused", "reason": str(exc)[:2048]}),
+                MAX_TRANSCRIPT_BYTES,
+            )
+            return 2
+        emit(value, MAX_TRANSCRIPT_BYTES)
+        return 0
     if args.command == "create":
         return _create(args)
     if args.command == "phase-bridge":
@@ -473,6 +571,7 @@ def _run(
             epic_id=args.epic_id,
             stage_id=args.stage_id,
             retry=args.retry,
+            retry_landing=args.retry_landing,
             trace=args.trace,
         )
         emit(json.dumps(outcome.report, sort_keys=True), MAX_TRANSCRIPT_BYTES)
@@ -519,13 +618,16 @@ def _run(
         result = foreman.run(args.root_id, poll_s=args.poll, max_wall_s=args.max_wall)
         view = _view(composition, args.root_id)
         bridge_view = phase_bridge_gate_view(
-            view.root.metadata.instance_key, composition.config.bd
+            view.root.metadata.instance_key,
+            composition.config.bd,
+            root_id=view.root.root_id,
         )
         emit(
             json.dumps(
                 {
                     **result.model_dump(mode="json"),
                     "open_gates": _open_gates(composition, view, bridge_view),
+                    **_coordination_report(composition, view.root),
                 },
                 sort_keys=True,
             ),
@@ -535,7 +637,8 @@ def _run(
     view = _view(composition, args.root_id)
     root, frontier = view.root, view.frontier
     status: dict[str, object] = {
-        "root_id": args.root_id,
+        "root_id": root.root_id,
+        **_coordination_report(composition, root),
         "activations": len(view.activations),
         "instance_base_commit": root.metadata.instance_base_commit,
         # The two fields that say an instance is OVER: which terminal it
@@ -543,7 +646,7 @@ def _run(
         "terminal": frontier.terminal_node,
         "root_state": root.bead.status,
         "instance_branch_head": composition.git.ref_target(
-            INSTANCE_BRANCH.format(root_id=args.root_id),
+            INSTANCE_BRANCH.format(root_id=root.root_id),
             cwd=composition.config.repo_root,
         ),
         "stale": tuple(
@@ -553,9 +656,14 @@ def _run(
             if activation.metadata.stale_flag is not None
         ),
         "usage": _usage_summary(view.activations),
+        "input_envelopes": {
+            a.activation_id: a.metadata.envelope
+            for a in view.activations.values()
+            if a.metadata.envelope is not None
+        },
     }
     bridge_view = phase_bridge_gate_view(
-        root.metadata.instance_key, composition.config.bd
+        root.metadata.instance_key, composition.config.bd, root_id=root.root_id
     )
     status["open_gates"] = _open_gates(composition, view, bridge_view)
     if frontier.open_halt is not None:

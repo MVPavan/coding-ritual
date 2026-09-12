@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Final
 
 import structlog
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from workflow_interpreter.bdio import (
     BoundSetting,
@@ -76,6 +76,7 @@ TASK_SETTING_TYPES: Final[
     NodeSetting.STALE_AFTER: str,
     NodeSetting.WRITES: bool,
     NodeSetting.TOKEN_BUDGET: int,
+    NodeSetting.CONTEXT_BUDGET_BYTES: int,
     BoundSetting.MAX_INFRA_RETRIES: int,
     BoundSetting.MAX_STEERS: int,
 }
@@ -378,6 +379,13 @@ def instantiate(
         allow_test_flags=allow_test_flags,
         instance_base_commit=base,
     )
+    if definition.document.instance.coordination_limits is not None:
+        from workflow_interpreter.foreman.decisions import admission_of
+
+        composition.store.coordination_store().initialize(
+            root.root_id, admission_of(root, slot="work", generation=0)
+        )
+        root = composition.store.reads.load_root(root.root_id)
     ensure_instance_branch(composition, root)
     return root
 
@@ -431,4 +439,22 @@ def _resolved_config(
             )
         }
     )
+    from workflow_interpreter.schema.decisions import DecisionTemplate, lower_decision
+    from workflow_interpreter.schema.loader import canonical_bytes
+
+    for node in definition.document.node:
+        if node.decision is not None:
+            lowered = lower_decision(node.decision)
+            template = DecisionTemplate(
+                graph_body=canonical_bytes(lowered.document).decode(),
+                config_json=TypeAdapter(tuple[ResolvedSetting, ...])
+                .dump_json(_resolved_config(composition, lowered, {}))
+                .decode(),
+            )
+            key = f"decision.{node.name}.template"
+            settings[key] = ResolvedSetting(
+                key=key,
+                value=template.model_dump_json(),
+                source=ConfigSource.GRAPH_DEFAULT,
+            )
     return tuple(settings[key] for key in sorted(settings))

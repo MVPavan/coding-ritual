@@ -1,0 +1,62 @@
+[graph]
+id = "basic"
+version = "1.0.0"
+entry = "write"
+description = "One bounded ordinary writer that returns an immutable artifact"
+
+[instance]
+max_total_activations = 2
+
+[fallback]
+to = "failed"
+
+[[node]]
+name = "write"
+kind = "task"
+runner = "profile:implementer"
+model = "default"
+instructions = """
+Implement the bounded change described in `task_brief` and commit it.
+Write only under the declared grant. Report `done` after the pinned check passes;
+report `fail_plan` when the brief cannot be completed within that grant.
+"""
+isolation = "worktree"
+writes = true
+allowed_paths = ["src/**"]
+inputs = ["task_brief"]
+verify = [{cmd="scripts/verify-feature.sh", timeout="10m"}]
+context_budget_bytes = 16000
+max_wall = "30m"
+stale_after = "10m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["done", "fail_code", "fail_plan"]
+
+[[node]]
+name = "done"
+kind = "terminal"
+
+[[node]]
+name = "failed"
+kind = "terminal"
+
+[[edge]]
+from = "write"
+on = "done"
+to = "done"
+
+[[edge]]
+from = "write"
+on = "fail_code"
+to = "failed"
+
+[[edge]]
+from = "write"
+on = "fail_plan"
+to = "failed"
+
+[[source]]
+name = "task_brief"
+producer = "instance"
+optional = false
+trim_priority = 1

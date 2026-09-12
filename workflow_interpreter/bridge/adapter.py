@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from pydantic import ValidationError
 
@@ -13,6 +13,9 @@ from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import find_roots
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
+
+if TYPE_CHECKING:
+    from workflow_interpreter.bridge.integration import IntegrationGuard
 
 PHASE_BRIDGE_METADATA_KEY: Final[str] = "phase_bridge"
 MSG_WRONG_STAGE: Final[str] = "phase bridge record belongs to stage {stage_id!r}"
@@ -50,11 +53,55 @@ class PhaseAdapter:
 
     def __init__(self, client: BdClient) -> None:
         self._client = client
+        self.integration_guard: IntegrationGuard | None = None
 
     @classmethod
     def from_config(cls, config: BdConfig) -> PhaseAdapter:
         """Build the bridge's read/write adapter without exposing bd transport."""
         return cls(BdClient(config))
+
+    def guard_integration(
+        self, record: PhaseBridgeRecord, *, post_cas: bool = False
+    ) -> None:
+        """Integration records are unusable without their runtime authority."""
+        if self.integration_guard is not None:
+            from workflow_interpreter.foreman.replacement import guard_bridge
+
+            guard_bridge(self.integration_guard.composition, record)
+        elif record.successor_key is not None:
+            raise PhaseAdapterError("successor bridge requires runtime guard")
+        stored = self.show(record.stage_id).metadata.get(PHASE_BRIDGE_METADATA_KEY)
+        if (
+            isinstance(stored, dict)
+            and stored.get("integration_digest") is not None
+            and stored.get("integration_digest") != record.integration_digest
+        ):
+            raise PhaseAdapterError(
+                "cannot strip or change stored integration authority"
+            )
+        if (
+            isinstance(stored, dict)
+            and stored.get("successor_key") is not None
+            and (stored.get("successor_owner"), stored.get("successor_key"))
+            != (record.successor_owner, record.successor_key)
+        ):
+            raise PhaseAdapterError("cannot strip or change stored successor authority")
+        if record.integration_digest is None:
+            if any(
+                (
+                    record.integration_owner,
+                    record.integration_slot,
+                    record.integration_generation is not None,
+                )
+            ):
+                raise PhaseAdapterError("incomplete integration binding")
+            return
+        if self.integration_guard is None:
+            raise PhaseAdapterError("integration requires runtime guard")
+        if post_cas:
+            self.integration_guard.post_cas(record)
+        else:
+            self.integration_guard.binding(record)
 
     def show(self, stage_id: str) -> BeadRecord:
         """Read one resolved stage by id."""
@@ -85,6 +132,15 @@ class PhaseAdapter:
         """Read the complete bridge relation currently persisted on a stage."""
         return self._record(self.show(stage_id).metadata)
 
+    def owns_root(self, instance_key: str, root_id: str) -> bool:
+        """Require a uniquely persisted root, not an inferred key-shaped owner."""
+        roots = find_roots(self._client, instance_key)
+        return (
+            len(roots) == 1
+            and roots[0].id == root_id
+            and roots[0].metadata.get("wf_root_id") == root_id
+        )
+
     def has_root(self, instance_key: str) -> bool:
         """Report whether raw durable evidence exists for one bridge identity."""
         return bool(find_roots(self._client, instance_key))
@@ -101,6 +157,17 @@ class PhaseAdapter:
                 raise PhaseAdapterError(
                     MSG_STORED_RECORD_UNREADABLE.format(reason=exc)
                 ) from exc
+            if (
+                stored_record.integration_digest is not None
+                and record.integration_digest is None
+            ):
+                raise PhaseAdapterError("cannot strip stored integration authority")
+            if (
+                stored_record.successor_key is not None
+                and record.successor_key is None
+                and record.integration_digest is None
+            ):
+                raise PhaseAdapterError("cannot strip stored successor authority")
             self._assert_prepare_shape(stored_record, record)
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         return self._record(stored.metadata)
@@ -112,15 +179,25 @@ class PhaseAdapter:
         self._assert_stage(stage_id, record)
         self._assert_state(record, PhaseBridgeState.PREPARED, MSG_WRONG_INCOMING_STATE)
         admitted = record.admitted(root_id)
+        self.guard_integration(admitted)
         stored = self._client._claim_and_merge_metadata(
             stage_id, self._metadata(admitted)
         )
+        return self._record(stored.metadata)
+
+    def gate_red(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
+        """Keep a failed verification eligible only for the explicit retry contract."""
+        self._assert_stage(stage_id, record)
+        self.guard_integration(record)
+        updated = record.model_copy(update={"state": PhaseBridgeState.GATE_RED})
+        stored = self._client._merge_metadata(stage_id, self._metadata(updated))
         return self._record(stored.metadata)
 
     def land(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
         """Persist and read back the artifact relation after a successful CAS."""
         self._assert_stage(stage_id, record)
         self._assert_state(record, PhaseBridgeState.LANDED, MSG_WRONG_INCOMING_STATE)
+        self.guard_integration(record, post_cas=True)
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         return self._record(stored.metadata)
 
@@ -130,13 +207,19 @@ class PhaseAdapter:
         """Close and read back a stage whose durable relation names its receipt."""
         self._assert_stage(stage_id, record)
         self._assert_state(record, PhaseBridgeState.CLOSED, MSG_WRONG_INCOMING_STATE)
+        self.guard_integration(record, post_cas=True)
+        if record.landing_receipt_digest != receipt_digest:
+            raise PhaseAdapterError("close receipt does not match landed relation")
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         closed = finalize.close_forward(
             self._client,
             stored,
             MSG_CLOSE_REASON.format(digest=receipt_digest),
         )
-        return self._record(closed.metadata)
+        result = self._record(closed.metadata)
+        if result.integration_digest is not None and self.integration_guard is not None:
+            self.integration_guard.finished(result)
+        return result
 
     @staticmethod
     def _metadata(record: PhaseBridgeRecord) -> Metadata:
@@ -188,6 +271,17 @@ class PhaseAdapter:
                     expected=expected_attempt, actual=incoming.attempt
                 )
             )
+        if (
+            incoming.epic_id != stored.epic_id
+            or incoming.stage_id != stored.stage_id
+            or incoming.target_ref != stored.target_ref
+            or (
+                incoming.integration_digest is None
+                and incoming.expected_base_commit != stored.expected_base_commit
+            )
+            or incoming.verification_policy != stored.verification_policy
+        ):
+            raise PhaseAdapterError("successor changes admitted identity or policy")
         expected_history = (*stored.previous_attempts, stored.instance_key)
         if incoming.previous_attempts != expected_history:
             raise PhaseAdapterError(MSG_SUCCESSION_HISTORY)

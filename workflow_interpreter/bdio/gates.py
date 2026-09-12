@@ -197,7 +197,10 @@ def open_gate(client: BdClient, root_id: str, request: GateOpenRequest) -> GateR
         )
         or 0,
     )
-    if refusal is not None and request.gate_reason is not GateReason.HALT:
+    if refusal is not None and (
+        request.gate_reason is not GateReason.HALT
+        or root.metadata.coordination is not None
+    ):
         raise BoundExceededError(refusal)
     seq = reads.next_seq(beads)
     metadata = GateMetadata(
@@ -573,6 +576,12 @@ def _assert_raises_bound(
     if parsed is None:  # pragma: no cover - guarded by the payload validator
         raise PayloadMismatchError(_MSG_MUTATION_UNPARSEABLE.format(key=mutation.key))
     _assert_known_scope(root, parsed, mutation.key)
+    if (
+        parsed.setting is BoundSetting.MAX_TOTAL_ACTIVATIONS
+        and root.metadata.coordination is not None
+        and mutation.value > root.metadata.coordination.ceiling
+    ):
+        raise PayloadMismatchError("rebudget exceeds immutable member allocation")
     current = bounds.effective_bound(root, instance_gates, parsed.setting, parsed.scope)
     if current is not None and mutation.value <= current:
         raise PayloadMismatchError(

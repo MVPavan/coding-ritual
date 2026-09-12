@@ -68,6 +68,7 @@ from workflow_interpreter.supervisor.channels import (
     sha256_file,
 )
 from workflow_interpreter.supervisor.gitio import Git
+from workflow_interpreter.supervisor.paths import write_durable
 
 TEST_ACTOR: Final[str] = "wf-test-supervisor"
 TEST_HOST: Final[str] = "lab"
@@ -384,9 +385,9 @@ class PersistentBd(FakeBd):
         """Run one bd argv against the shared on-disk rows."""
         self._restore()
         result = super().__call__(argv, timeout_s)
-        self._state.write_text(
-            json.dumps({"rows": self.rows, "next_id": self._next_id}),
-            encoding="utf-8",
+        write_durable(
+            self._state,
+            json.dumps({"rows": self.rows, "next_id": self._next_id}).encode("utf-8"),
         )
         return result
 

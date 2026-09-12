@@ -37,7 +37,7 @@ def test_empty_lifecycle_mints_and_runs_one_real_wrapper(tmp_path: Path) -> None
     activation = lab.store.reads.list_activations(root.root_id)[0]
     assert report.dispatched == activation.activation_id
     assert activation.metadata.lifecycle is Lifecycle.EXIT_RECORDED
-    assert _bd_writes(lab) - before == 4
+    assert _bd_writes(lab) - before == 5  # includes the immutable envelope record
     assert [launch.activation_id for launch in lab.spawner.launches] == [
         activation.activation_id
     ]
@@ -58,7 +58,7 @@ def test_minted_lifecycle_dispatches_and_records_its_exit(tmp_path: Path) -> Non
     assert lab.store.reads.load_activation(minted.activation_id).metadata.lifecycle is (
         Lifecycle.EXIT_RECORDED
     )
-    assert _bd_writes(lab) - before == 3
+    assert _bd_writes(lab) - before == 4  # precondition, envelope, dispatch, exit
     assert [launch.activation_id for launch in lab.spawner.launches] == [
         minted.activation_id,
     ]

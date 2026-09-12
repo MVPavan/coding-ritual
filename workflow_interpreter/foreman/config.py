@@ -8,6 +8,7 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
+from workflow_interpreter.bridge.verification import CheckCommand
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
 from workflow_interpreter.supervisor.config import SupervisorConfig
 
@@ -35,6 +36,9 @@ class ForemanConfig(BaseModel):
     project_config: dict[str, str | int | bool] = Field(default_factory=dict)
     roles: dict[str, RunnerBinding] = Field(default_factory=dict)
     bridge_graph: Path | None = None
+    bridge_checks: tuple[CheckCommand, ...] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     host: str
     supervisor: SupervisorConfig
     band_wait_s: float = Field(default=30.0, gt=0)

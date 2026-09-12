@@ -8,6 +8,7 @@ from workflow_interpreter.bridge.admission import (
     RootProvisioner,
     WorkflowRootProvisioner,
 )
+from workflow_interpreter.bridge.authority import BeadGateAuthority
 from workflow_interpreter.bridge.landing import (
     DetachedRepositoryGate,
     GateEvidence,
@@ -21,10 +22,18 @@ from workflow_interpreter.bridge.landing import (
 )
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
 from workflow_interpreter.bridge.retry import RetryRefusal, retry_refusal
+from workflow_interpreter.bridge.verification import (
+    CheckCommand,
+    CheckResult,
+    VerificationPolicy,
+)
 
 __all__ = [
     "AdmissionRefused",
+    "BeadGateAuthority",
     "BridgeRoot",
+    "CheckCommand",
+    "CheckResult",
     "DetachedRepositoryGate",
     "GateEvidence",
     "LandingDisposition",
@@ -41,6 +50,7 @@ __all__ = [
     "RepositoryGateResult",
     "RetryRefusal",
     "RootProvisioner",
+    "VerificationPolicy",
     "WorkflowRootProvisioner",
     "retry_refusal",
 ]

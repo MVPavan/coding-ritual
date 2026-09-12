@@ -188,6 +188,10 @@ class Steerer:
         never carry out would wedge the activation on every later tick, and one
         written after the kill would have spent the round to learn that.
         """
+        coordinator = self._store.coordination_store()
+        root = self._store.reads.load_root(self._paths.root_id)
+        coordinator.validate_member(root)
+        coordinator.assert_child_progress(root)
         activation_id = activation.activation_id
         if activation.metadata.handle is None:
             raise TerminationFailed(_MSG_NO_HANDLE.format(activation_id=activation_id))
@@ -217,6 +221,10 @@ class Steerer:
         forward, and the continuation's idempotency key re-finds rather than
         re-mints (drill 14).
         """
+        coordinator = self._store.coordination_store()
+        root = self._store.reads.load_root(self._paths.root_id)
+        coordinator.validate_member(root)
+        coordinator.assert_child_progress(root)
         activation_id = activation.activation_id
         handle = activation.metadata.handle
         if handle is None:

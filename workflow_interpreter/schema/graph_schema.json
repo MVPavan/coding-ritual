@@ -80,6 +80,7 @@
         "reject",
         "fail_code",
         "fail_plan",
+        "doubt",
         "approve",
         "rebudget",
         "abandon",
@@ -132,6 +133,9 @@
         },
         "test_force_first_reject": {
           "type": "boolean"
+        },
+        "coordination_limits": {
+          "$ref": "#/$defs/coordination_limits"
         }
       },
       "additionalProperties": false
@@ -188,7 +192,7 @@
           "$ref": "#/$defs/identifier"
         },
         "runner": {
-          "description": "A `profile:<role>` alias only (§3.1). The role is bound to a concrete profile and model by the foreman config's `roles` map; any other spelling names nothing that map can resolve and would fail at dispatch instead of here.",
+          "description": "A `profile:<role>` alias only (\u00a73.1). The role is bound to a concrete profile and model by the foreman config's `roles` map; any other spelling names nothing that map can resolve and would fail at dispatch instead of here.",
           "type": "string",
           "pattern": "^profile:[a-z0-9][a-z0-9_-]*$"
         },
@@ -217,7 +221,7 @@
           "items": {
             "$ref": "#/$defs/grant_glob"
           },
-          "description": "The directories this node may write. Under `sandbox = bwrap` these are its writable MOUNTS: everything else in the checkout is read-only to the runner. They are also the \u00a77.5 undeclared-effect exemption, which is a weaker rule — it also exempts whatever the runner declares in $WF_EFFECTS_FILE. See ADR 0001."
+          "description": "The directories this node may write. Under `sandbox = bwrap` these are its writable MOUNTS: everything else in the checkout is read-only to the runner. They are also the \u00a77.5 undeclared-effect exemption, which is a weaker rule \u2014 it also exempts whatever the runner declares in $WF_EFFECTS_FILE. See ADR 0001."
         },
         "inputs": {
           "type": "array",
@@ -267,6 +271,13 @@
         },
         "fallback": {
           "$ref": "#/$defs/fallback"
+        },
+        "context_budget_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "decision": {
+          "$ref": "#/$defs/decision_policy"
         }
       },
       "additionalProperties": false
@@ -346,6 +357,206 @@
         }
       },
       "additionalProperties": false
+    },
+    "DecisionTask": {
+      "additionalProperties": false,
+      "description": "Nonrecursive data lowered into a normal task at admission.",
+      "properties": {
+        "runner": {
+          "minLength": 1,
+          "title": "Runner",
+          "type": "string"
+        },
+        "model": {
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "instructions": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "verify": {
+          "items": {
+            "$ref": "#/$defs/VerifyCheck"
+          },
+          "minItems": 1,
+          "title": "Verify",
+          "type": "array"
+        },
+        "context_budget_bytes": {
+          "exclusiveMinimum": 0,
+          "title": "Context Budget Bytes",
+          "type": "integer"
+        },
+        "max_wall": {
+          "pattern": "^[1-9][0-9]*[smhd]$",
+          "title": "Max Wall",
+          "type": "string"
+        },
+        "stale_after": {
+          "pattern": "^[1-9][0-9]*[smhd]$",
+          "title": "Stale After",
+          "type": "string"
+        },
+        "max_infra_retries": {
+          "minimum": 0,
+          "title": "Max Infra Retries",
+          "type": "integer"
+        },
+        "max_steers": {
+          "minimum": 0,
+          "title": "Max Steers",
+          "type": "integer"
+        },
+        "max_total_activations": {
+          "exclusiveMinimum": 0,
+          "title": "Max Total Activations",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "runner",
+        "model",
+        "instructions",
+        "verify",
+        "context_budget_bytes",
+        "max_wall",
+        "stale_after",
+        "max_infra_retries",
+        "max_steers",
+        "max_total_activations"
+      ],
+      "title": "DecisionTask",
+      "type": "object"
+    },
+    "VerifyCheck": {
+      "additionalProperties": false,
+      "description": "One structured check executed by the wrapper from a trusted pinned source (\u00a77.3).",
+      "properties": {
+        "cmd": {
+          "minLength": 1,
+          "title": "Cmd",
+          "type": "string"
+        },
+        "timeout": {
+          "pattern": "^[1-9][0-9]*[smhd]$",
+          "title": "Timeout",
+          "type": "string"
+        },
+        "cwd": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cwd"
+        }
+      },
+      "required": [
+        "cmd",
+        "timeout"
+      ],
+      "title": "VerifyCheck",
+      "type": "object"
+    },
+    "decision_policy": {
+      "additionalProperties": false,
+      "description": "Author-granted actions; responses cannot extend this set.",
+      "properties": {
+        "triggers": {
+          "items": {
+            "enum": [
+              "fail_plan",
+              "doubt",
+              "allowance_exhausted",
+              "input_oversize"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Triggers",
+          "type": "array"
+        },
+        "actions": {
+          "items": {
+            "enum": [
+              "continue_declared",
+              "replace",
+              "human"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Actions",
+          "type": "array"
+        },
+        "decision_task": {
+          "$ref": "#/$defs/DecisionTask"
+        },
+        "replacement_input": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Replacement Input"
+        }
+      },
+      "required": [
+        "triggers",
+        "actions",
+        "decision_task"
+      ],
+      "title": "DecisionPolicy",
+      "type": "object"
+    },
+    "coordination_limits": {
+      "additionalProperties": false,
+      "description": "Finite original-owner reservation caps; never mutable by a model.",
+      "properties": {
+        "max_members": {
+          "exclusiveMinimum": 0,
+          "title": "Max Members",
+          "type": "integer"
+        },
+        "max_activations": {
+          "exclusiveMinimum": 0,
+          "title": "Max Activations",
+          "type": "integer"
+        },
+        "max_decision_attempts": {
+          "exclusiveMinimum": 0,
+          "title": "Max Decision Attempts",
+          "type": "integer"
+        },
+        "max_replacements": {
+          "exclusiveMinimum": 0,
+          "title": "Max Replacements",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_members",
+        "max_activations",
+        "max_decision_attempts",
+        "max_replacements"
+      ],
+      "title": "CoordinationLimits",
+      "type": "object"
     }
   }
 }

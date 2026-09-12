@@ -12,6 +12,7 @@ from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.bridge.adapter import PhaseAdapter
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
+from workflow_interpreter.bridge.verification import VerificationPolicy
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.gitio import Git
 
@@ -111,10 +112,12 @@ class PhaseAdmission:
         adapter: PhaseAdapter,
         roots: RootProvisioner,
         head_commit: Callable[[], str],
+        verification_policy: VerificationPolicy | None = None,
     ) -> None:
         self._adapter = adapter
         self._roots = roots
         self._head_commit = head_commit
+        self._verification_policy = verification_policy
 
     def admit(
         self, epic_id: str, stage_id: str, target_ref: str, expected_base_commit: str
@@ -155,6 +158,8 @@ class PhaseAdmission:
         successor: PhaseBridgeRecord | None,
     ) -> PhaseBridgeRecord:
         """Run the shared validation and convergence path for one declared record."""
+        if self._verification_policy is None:
+            raise AdmissionRefused("bridge verification policy is missing")
         stage = self._selected_stage(epic_id, stage_id)
         self._refuse_other_admission(epic_id, stage_id)
         record = (
@@ -175,6 +180,11 @@ class PhaseAdmission:
                 successor,
             )
         )
+        if (
+            record.verification_policy is None
+            or record.verification_policy != self._verification_policy
+        ):
+            raise AdmissionRefused("bridge verification policy missing or changed")
         root = self._roots.find(record.instance_key)
         if root is None:
             if self._head_commit() != record.expected_base_commit:
@@ -254,6 +264,7 @@ class PhaseAdmission:
                 attempt=1,
                 target_ref=target_ref,
                 expected_base_commit=expected_base_commit,
+                verification_policy=self._verification_policy,
             )
             return self._adapter.prepare(stage_id, prepared)
         try:
@@ -261,7 +272,9 @@ class PhaseAdmission:
         except ValueError as error:
             raise AdmissionRefused(MSG_IDENTITY_CONFLICT) from error
         if (
-            record.epic_id != epic_id
+            record.verification_policy is None
+            or record.verification_policy != self._verification_policy
+            or record.epic_id != epic_id
             or record.stage_id != stage_id
             or record.target_ref != target_ref
             or record.expected_base_commit != expected_base_commit

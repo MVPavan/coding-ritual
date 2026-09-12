@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from enum import StrEnum
 from time import monotonic, sleep
 
@@ -36,7 +37,7 @@ from workflow_interpreter.foreman.identifiers import activation_dir, validate_be
 from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
     InputsUnavailable,
-    materialize,
+    bounded_materialize,
 )
 from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
 from workflow_interpreter.supervisor.band import BandLock
@@ -56,7 +57,7 @@ from workflow_interpreter.supervisor.errors import (
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.launch import TaskBuilder
 from workflow_interpreter.supervisor.models import LaunchOutcome
-from workflow_interpreter.supervisor.paths import read_record
+from workflow_interpreter.supervisor.paths import WrapperPaths, read_record
 from workflow_interpreter.supervisor.profile import RunnerChannels, TaskSpec
 
 _DEVIATION_CONTINUATION_REFUSED = "continuation_refused"
@@ -145,6 +146,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
     composer = DefaultComposer()
 
     def build(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
+        wiring.store.assert_member(root.root_id)
         current = wiring.store.reads.load_activation(activation.activation_id)
         resolved = resolved_node(root, current.metadata.node)
         node = resolved.node
@@ -153,7 +155,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             for item in wiring.store.reads.list_activations(root.root_id)
         }
         inputs = tuple(
-            materialize(
+            bounded_materialize(
                 git,
                 wiring.repo_root,
                 root,
@@ -161,8 +163,13 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
                 None
                 if binding.producer_activation_id == "instance"
                 else by_id.get(binding.producer_activation_id),
+                limit=node.context_budget_bytes or 262144,
             )
             for binding in current.metadata.inputs
+        )
+        envelope = composer.envelope(root, current, inputs)
+        wiring.store.record_envelope(
+            current.activation_id, envelope.model_dump(mode="json", exclude={"text"})
         )
         return TaskSpec(
             root_id=root.root_id,
@@ -174,7 +181,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             allowed_paths=node.allowed_paths or (),
             cwd=str(wiring.workspace.path_for(node)),
             channels=channels,
-            brief=composer.compose(root, current, inputs),
+            brief=envelope.text,
             token_budget=node.token_budget,
         )
 
@@ -190,14 +197,19 @@ def run_wrapper(
 ) -> WrapperExit:
     """Run one wrapper from its durable request and close only mapped failures."""
     validate_bead_id(root_id)
-    resolved = composition.for_root(root_id) if wiring is None else wiring
-    directory = activation_dir(resolved.paths, activation_id)
+    paths = (
+        WrapperPaths(composition.supervisor_config, root_id)
+        if wiring is None
+        else wiring.paths
+    )
+    directory = activation_dir(paths, activation_id)
     lock = BandLock(directory / WRAPPER_LOCK)
     try:
         lock.acquire()
     except LockUnavailable:
         return WrapperExit.LOCKED
     try:
+        resolved = composition.for_root(root_id) if wiring is None else wiring
         activation = resolved.store.reads.load_activation(activation_id)
         if activation.metadata.wf_root_id != root_id:
             raise ValueError("activation does not belong to root")
@@ -214,20 +226,31 @@ def run_wrapper(
         deadline = monotonic() + composition.config.band_wait_s
         while True:
             try:
-                dispatch = resolved.supervisor.run(
-                    request,
-                    node,
-                    profile,
-                    _task_builder(root, resolved, composition.git),
-                    pinned_digests=pinned_verifier_digests(root),
-                    previous_tree_oid=_previous_tree_oid(resolved, activation),
+                # Coordinated worktree dispatch shares the same local fence as
+                # mints and replacement. Inline callers may already own it.
+                guard = (
+                    resolved.band
+                    if root.metadata.coordination is not None and not resolved.band.held
+                    else nullcontext()
                 )
+                with guard:
+                    dispatch = resolved.supervisor.run(
+                        request,
+                        node,
+                        profile,
+                        _task_builder(root, resolved, composition.git),
+                        pinned_digests=pinned_verifier_digests(root),
+                        previous_tree_oid=_previous_tree_oid(resolved, activation),
+                    )
                 break
             except LockUnavailable:
                 remaining = deadline - monotonic()
                 if remaining <= 0:
                     raise
                 sleep(min(0.05, remaining))
+        from workflow_interpreter.foreman.children import record_late_evidence
+
+        record_late_evidence(composition, root_id)
         return (
             WrapperExit.STALE
             if dispatch.dispatch.outcome is LaunchOutcome.ALREADY_DISPATCHED

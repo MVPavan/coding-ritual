@@ -75,7 +75,7 @@ their own skills.
    - **Select a ready direct child, then call the bridge:** select the stage by
      judgment; its parent relationship, not its id shape, determines membership
      and the bridge validates that choice. Run
-     `python -m workflow_interpreter.foreman phase-bridge <epic_id> <stage_id>`.
+     `uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> phase-bridge <epic_id> <stage_id>`.
      **Do not claim it:** the bridge claims atomically. Add `--retry` to mint a
      new attempt for an unfinished stage, or `--trace` to render current
      evidence read-only without running anything.
@@ -113,6 +113,12 @@ their own skills.
 5. **Report.** Re-render, `git status` (do not commit unless asked or under
    workstream scope), summarize: built, test results, open items, parked
    findings from the ledger.
+
+## Independent child workflows
+
+When the selected work calls for parallel independent graphs, the orchestrator chooses the graphs, role/model configuration and task inputs. Use an admitted coordination owner with finite capacity, then the normal `children admit`, `drive`, `status` and `collect` commands documented in `docs/usage/children.md`. The runtime routes declared outcomes and bounded loops; consult the LLM only at a declared decision or unresolved attention state. Collection is evidence, not stage closure.
+
+Select the required receipt set explicitly and use `integration prepare`, then the existing `phase-bridge` command for fresh combined review, checks, ship approval and landing; see `docs/usage/phase-bridge.md`. Do not invent child dependencies or automatic result binding. A changed graph/model uses the trusted `children replace` operation; ordinary model decisions retain admitted pins and cannot bypass human gates or pending landing recovery.
 
 ## Task scope
 

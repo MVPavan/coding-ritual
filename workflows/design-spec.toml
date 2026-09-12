@@ -1,0 +1,142 @@
+[graph]
+id = "design-spec"
+version = "1.0.0"
+entry = "draft"
+description = "One tracked Markdown design reviewed before an authenticated human ship gate"
+
+[instance]
+max_total_activations = 4
+phase_bridge_retry_terminals = ["shipped", "abandoned"]
+
+[fallback]
+to = "halt"
+
+[[node]]
+name = "draft"
+kind = "task"
+runner = "profile:implementer"
+model = "default"
+instructions = """
+Write the tracked Markdown design described in `task_brief` and commit it.
+Keep every repository write under the declared grant. The runtime supplies the
+committed candidate as `candidate_diff` to review. Report `done` only after the
+pinned check passes; report `fail_plan` when the brief cannot be made coherent.
+"""
+isolation = "worktree"
+writes = true
+allowed_paths = ["docs/**"]
+inputs = ["task_brief"]
+verify = [{cmd="scripts/verify-feature.sh", timeout="10m"}]
+context_budget_bytes = 16000
+max_wall = "30m"
+stale_after = "10m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["done", "fail_code", "fail_plan"]
+
+[[node]]
+name = "review"
+kind = "task"
+runner = "profile:critic"
+model = "default"
+instructions = """
+Review `candidate_diff` against `task_brief`. Verify that the proposed Markdown
+is complete, tracked, and within the writer's declared scope. Record findings
+in WF_ARTIFACT_DIR without changing repository files. Report `accept` only for
+the reviewed candidate; otherwise report `reject` or `fail_plan`.
+"""
+isolation = "worktree"
+writes = false
+allowed_paths = []
+inputs = ["task_brief", "candidate_diff"]
+verify = [{cmd="scripts/verify-feature.sh", timeout="10m"}, {cmd="scripts/review-checks.sh", timeout="5m"}]
+context_budget_bytes = 16000
+max_wall = "20m"
+stale_after = "10m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["accept", "reject", "fail_code", "fail_plan"]
+
+[[node]]
+name = "ship"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+
+[[node]]
+name = "halt"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["abandon"]
+
+[[node]]
+name = "shipped"
+kind = "terminal"
+
+[[node]]
+name = "abandoned"
+kind = "terminal"
+
+[[edge]]
+from = "draft"
+on = "done"
+to = "review"
+
+[[edge]]
+from = "draft"
+on = "fail_code"
+to = "halt"
+
+[[edge]]
+from = "draft"
+on = "fail_plan"
+to = "halt"
+
+[[edge]]
+from = "review"
+on = "accept"
+to = "ship"
+
+[[edge]]
+from = "review"
+on = "reject"
+to = "halt"
+
+[[edge]]
+from = "review"
+on = "fail_code"
+to = "halt"
+
+[[edge]]
+from = "review"
+on = "fail_plan"
+to = "halt"
+
+[[edge]]
+from = "ship"
+on = "approve"
+to = "shipped"
+
+[[edge]]
+from = "ship"
+on = "abandon"
+to = "abandoned"
+
+[[edge]]
+from = "halt"
+on = "abandon"
+to = "abandoned"
+
+[[source]]
+name = "task_brief"
+producer = "instance"
+optional = false
+trim_priority = 1
+
+[[source]]
+name = "candidate_diff"
+producer = "node:draft"
+optional = false
+trim_priority = 1

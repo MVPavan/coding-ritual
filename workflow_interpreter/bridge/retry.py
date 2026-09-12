@@ -16,6 +16,8 @@ SHIPPED_TERMINAL: Final[str] = "shipped"
 class RetryRefusal(StrEnum):
     """Reasons a phase-bridge retry must not create another root."""
 
+    LANDING_RECOVERABLE = "landing-recoverable"
+    INELIGIBLE_STATE = "ineligible-state"
     OPEN_HALT = "open-halt"
     NO_TERMINAL = "no-terminal"
     UNLISTED_TERMINAL = "unlisted-terminal"
@@ -27,7 +29,13 @@ def retry_refusal(
     retry_terminals: tuple[str, ...],
     frontier: Frontier,
 ) -> RetryRefusal | None:
-    """Return why retry is refused, or ``None`` when the root may be retried."""
+    """Evaluate public frontier eligibility, not authenticated landing authority.
+
+    The command separately validates canonical graph and closure marks for a
+    gate-red retry. Callers of this pure predicate retain the cheap APPROVE guard.
+    """
+    if prior_state not in (PhaseBridgeState.ADMITTED, PhaseBridgeState.GATE_RED):
+        return RetryRefusal.INELIGIBLE_STATE
     if frontier.open_halt is not None:
         return RetryRefusal.OPEN_HALT
     if frontier.terminal_node is None:
@@ -44,6 +52,8 @@ def retry_refusal(
         ):
             return None
         return RetryRefusal.GATE_RED_NOT_APPROVED_SHIPPED
+    if frontier.terminal_node == SHIPPED_TERMINAL:
+        return RetryRefusal.LANDING_RECOVERABLE
     if frontier.terminal_node in retry_terminals:
         return None
     return RetryRefusal.UNLISTED_TERMINAL

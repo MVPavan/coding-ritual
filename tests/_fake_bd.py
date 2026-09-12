@@ -91,6 +91,7 @@ class FakeBd:
         self.metadata_writes: list[dict[str, object]] = []
         self._next_id = 1
         self._crashes: list[tuple[str, int]] = []
+        self._lost_responses: list[tuple[str, int]] = []
         self._pauses: list[tuple[str, Callable[[], None]]] = []
         self._seen: dict[str, int] = {}
 
@@ -103,6 +104,12 @@ class FakeBd:
         normal API and then arm the crash without counting the setup's calls.
         """
         self._crashes.append((subcommand, self._seen.get(subcommand, 0) + occurrence))
+
+    def lose_response_on(self, subcommand: str, occurrence: int = 1) -> None:
+        """Persist the command, then lose its response to model a real write window."""
+        self._lost_responses.append(
+            (subcommand, self._seen.get(subcommand, 0) + occurrence)
+        )
 
     def pause_before(self, subcommand: str, callback: Callable[[], None]) -> None:
         """Run `callback` once, immediately before the next `subcommand`."""
@@ -140,7 +147,10 @@ class FakeBd:
             "dep": self._dependencies,
             "context": self._context,
         }[subcommand]
-        return CompletedCommand(returncode=0, stdout=handler(args), stderr="")
+        stdout = handler(args)
+        if (subcommand, self._seen[subcommand]) in self._lost_responses:
+            raise InjectedCrash(f"bd {subcommand} response lost after persistence")
+        return CompletedCommand(returncode=0, stdout=stdout, stderr="")
 
     def _fire_pause(self, subcommand: str) -> None:
         """Run and consume a one-shot pause registered for this subcommand."""

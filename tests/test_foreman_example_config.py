@@ -77,3 +77,39 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
         assert config.roles[role].effort == "high"
     for graph_path in LIVE_GRAPHS:
         assert not runner_roles(load_graph(graph_path)) - set(config.roles)
+
+
+def test_commented_bridge_checks_example_round_trips_with_environment(
+    tmp_path: Path,
+) -> None:
+    """The documented check is actual load_config syntax, including environment pairs."""
+    repo = make_repo(tmp_path)
+    home = tmp_path / "home"
+    home.mkdir()
+    rendered = tmp_path / "foreman.toml"
+    subprocess.run(
+        [str(GENERATOR), str(rendered)],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        timeout=RENDER_TIMEOUT_S,
+        env={"HOME": str(home), "PATH": os.environ["PATH"], "USER": "tester"},
+    )
+    body = rendered.read_text()
+    begin = "# BEGIN BRIDGE CHECK EXAMPLE\n"
+    end = "# END BRIDGE CHECK EXAMPLE"
+    assert begin in body
+    sample = body.split(begin, 1)[1].split(end, 1)[0]
+    active = "\n".join(line.removeprefix("# ") for line in sample.splitlines())
+    rendered.write_text(body.replace(sample, active + "\n"))
+    config = load_config(rendered)
+    assert config.bridge_checks is not None
+    assert config.bridge_checks[0].argv == ("scripts/verify-feature.sh",)
+    assert config.bridge_checks[0].environment == (
+        ("PATH", str(home / ".wf/tools/bin") + ":/usr/bin:/bin"),
+        ("UV_PYTHON_INSTALL_DIR", str(home / ".wf/python")),
+    )
+    assert config.bridge_checks[0].timeout_s == 1800
+    assert (
+        config.model_validate(config.model_dump()).bridge_checks == config.bridge_checks
+    )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Iterable
 
 from pydantic import BaseModel, ConfigDict
@@ -53,7 +54,7 @@ from workflow_interpreter.foreman.gates import (
 from workflow_interpreter.foreman.inputs import select_bindings
 from workflow_interpreter.foreman.routing import RouteKind, retry_kind, route
 from workflow_interpreter.foreman.supervise import wrapper_alive
-from workflow_interpreter.schema.models import NodeKind
+from workflow_interpreter.schema.models import NodeKind, Outcome
 from workflow_interpreter.supervisor.models import RecoveryCase
 from workflow_interpreter.supervisor.paths import write_record
 
@@ -231,6 +232,21 @@ def _refusal_case(
     error: BoundExceededError,
 ) -> CaseResult:
     """Turn a bounded refusal into its declared halt, exhaustion, or fallback."""
+    if request.predecessor_activation_id is not None:
+        from workflow_interpreter.foreman.decisions import queue_boundary
+
+        boundary_source = wiring.store.reads.load_activation(
+            request.predecessor_activation_id
+        )
+        if queue_boundary(
+            composition,
+            wiring,
+            root,
+            boundary_source,
+            "allowance_exhausted",
+            route_digest=hashlib.sha256(request.model_dump_json().encode()).hexdigest(),
+        ):
+            return CaseResult(blocked=True)
     node = root.index.nodes[node_name]
     decision = refusal_route(root.index, node, error.refusal)
     source: ActivationRecord | None = None
@@ -427,6 +443,17 @@ def route_head(
     if outcome is None:
         return CaseResult(stalled="completed activation has no outcome")
     node = resolved_node(root, head.metadata.node).node
+    if outcome in (Outcome.FAIL_PLAN, Outcome.DOUBT):
+        from workflow_interpreter.foreman.decisions import queue_boundary
+
+        if queue_boundary(
+            composition,
+            wiring,
+            root,
+            head,
+            "doubt" if outcome is Outcome.DOUBT else "fail_plan",
+        ):
+            return CaseResult(blocked=True)
     retry = retry_kind(outcome)
     if retry is not None:
         if retry is MintReason.STEER_CONTINUATION:

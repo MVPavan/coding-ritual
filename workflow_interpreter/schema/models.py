@@ -8,7 +8,7 @@ Mirrors `graph_schema.json` one-to-one. Field names use the TOML spelling
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Final
+from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
@@ -76,6 +76,7 @@ class Outcome(StrEnum):
     REJECT = "reject"
     FAIL_CODE = "fail_code"
     FAIL_PLAN = "fail_plan"
+    DOUBT = "doubt"
     APPROVE = "approve"
     REBUDGET = "rebudget"
     ABANDON = "abandon"
@@ -183,12 +184,23 @@ class GraphMeta(BaseModel):
     description: Annotated[str, StringConstraints(min_length=1)]
 
 
+class CoordinationLimits(BaseModel):
+    """Finite original-owner reservation caps; never mutable by a model."""
+
+    model_config = MODEL_CONFIG
+    max_members: int = Field(gt=0)
+    max_activations: int = Field(gt=0)
+    max_decision_attempts: int = Field(gt=0)
+    max_replacements: int = Field(gt=0)
+
+
 class InstanceBounds(BaseModel):
     """`[instance]` — the §10.3 ceiling, bridge eligibility, and test switches."""
 
     model_config = MODEL_CONFIG
 
     max_total_activations: int
+    coordination_limits: CoordinationLimits | None = None
     phase_bridge_retry_terminals: tuple[Identifier, ...] | None = None
     test_force_first_reject: bool = False
 
@@ -213,6 +225,36 @@ class VerifyCheck(BaseModel):
     cmd: RelativePath
     timeout: Duration
     cwd: RelativePath | None = None
+
+
+class DecisionTask(BaseModel):
+    """Nonrecursive data lowered into a normal task at admission."""
+
+    model_config = MODEL_CONFIG
+    runner: str = Field(min_length=1)
+    model: str = Field(min_length=1)
+    instructions: str = Field(min_length=1, max_length=8192)
+    verify: tuple[VerifyCheck, ...] = Field(min_length=1)
+    context_budget_bytes: int = Field(gt=0)
+    max_wall: Duration
+    stale_after: Duration
+    max_infra_retries: int = Field(ge=0)
+    max_steers: int = Field(ge=0)
+    max_total_activations: int = Field(gt=0)
+
+
+DecisionAction = Literal["continue_declared", "replace", "human"]
+DecisionTrigger = Literal["fail_plan", "doubt", "allowance_exhausted", "input_oversize"]
+
+
+class DecisionPolicy(BaseModel):
+    """Author-granted actions; responses cannot extend this set."""
+
+    model_config = MODEL_CONFIG
+    triggers: tuple[DecisionTrigger, ...] = Field(min_length=1)
+    actions: tuple[DecisionAction, ...] = Field(min_length=1)
+    decision_task: DecisionTask
+    replacement_input: Identifier | None = None
 
 
 class FallbackRoute(BaseModel):
@@ -242,6 +284,8 @@ class Node(BaseModel):
     inputs: tuple[Identifier, ...] | None = None
     verify: tuple[VerifyCheck, ...] | None = None
     token_budget: int | None = None
+    context_budget_bytes: int | None = None
+    decision: DecisionPolicy | None = None
     max_wall: Duration | None = None
     stale_after: Duration | None = None
     max_infra_retries: int | None = None

@@ -566,7 +566,7 @@ def test_drill_3_replays_the_exit_file_after_the_bd_exit_mirror_crashes(
     """Drill 3 catches a dispatched tick that never enters exit-file replay."""
     lab = _persistent_lab(tmp_path)
     lab.instantiate()
-    lab.fake_bd.crash_on("update", 3)
+    lab.fake_bd.crash_on("update", 4)  # precondition, envelope, dispatch, exit
 
     with pytest.raises(Exception, match="bd update died"):
         lab.tick()

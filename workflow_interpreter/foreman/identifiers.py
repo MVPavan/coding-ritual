@@ -8,10 +8,14 @@ from workflow_interpreter.supervisor.paths import WrapperPaths
 _BEAD_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 
 
+class InvalidIdentifier(ValueError):
+    """An identifier is unsafe for use as a path component."""
+
+
 def validate_bead_id(value: str) -> str:
     """Return one safe single-component bead id or refuse it before path use."""
     if not _BEAD_ID.fullmatch(value):
-        raise ValueError(f"invalid bead id: {value!r}")
+        raise InvalidIdentifier(f"invalid bead id: {value!r}")
     return value
 
 
@@ -22,7 +26,7 @@ def activation_dir(paths: WrapperPaths, activation_id: str) -> Path:
     try:
         candidate.relative_to(root)
     except ValueError as exc:
-        raise ValueError(
+        raise InvalidIdentifier(
             f"activation path escapes wrapper root: {activation_id!r}"
         ) from exc
     return candidate

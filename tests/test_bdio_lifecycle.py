@@ -56,6 +56,10 @@ creation time (probed), and this is how that looks deterministically."""
 PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
     {
         "append_event",
+        "assert_member",
+        "queue_decision",
+        "record_envelope",
+        "coordination_store",
         "close_activation",
         "close_gate_verified",
         "create_root",
@@ -112,6 +116,8 @@ def test_the_store_exposes_no_write_that_skips_verification(
     assert public == PUBLIC_STORE_SURFACE
     # The two named escape hatches the review found, specifically:
     assert not hasattr(fake_store, "client")
+    assert not hasattr(fake_store.coordination_store(), "client")
+    assert not hasattr(fake_store.coordination_store(), "save")
     assert not hasattr(fake_store, "update_root_bounds")
 
 

@@ -46,6 +46,7 @@ _EFFECTIVE_FIELDS: Final[tuple[tuple[str, NodeSetting | BoundSetting], ...]] = (
     ("isolation", NodeSetting.ISOLATION),
     ("writes", NodeSetting.WRITES),
     ("token_budget", NodeSetting.TOKEN_BUDGET),
+    ("context_budget_bytes", NodeSetting.CONTEXT_BUDGET_BYTES),
     ("max_wall", NodeSetting.MAX_WALL),
     ("stale_after", NodeSetting.STALE_AFTER),
     ("max_infra_retries", BoundSetting.MAX_INFRA_RETRIES),

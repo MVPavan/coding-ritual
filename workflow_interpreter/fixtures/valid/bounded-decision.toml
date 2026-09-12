@@ -1,0 +1,93 @@
+[graph]
+id = "bounded-decision-proof"
+version = "1.0.0"
+entry = "assess"
+description = "Declared doubt, an ordinary decision task, useful work and a human gate."
+[instance]
+max_total_activations = 8
+coordination_limits = {max_members=5, max_activations=28, max_decision_attempts=4, max_replacements=2}
+[fallback]
+to = "abandoned"
+[[source]]
+name = "revision"
+producer = "instance"
+optional = true
+trim_priority = 99
+[[node]]
+name = "assess"
+kind = "task"
+runner = "profile:implementer"
+writes = false
+isolation = "worktree"
+allowed_paths = []
+inputs = ["revision"]
+instructions = "For this decision proof, emit fail_plan immediately when no revision input is present. If revision is present, read it and emit no_diff. Write empty effects. This is an intentional emitted doubt signal, not a request for human authorization."
+verify = [{cmd="scripts/verify-feature.sh", timeout="20s"}]
+context_budget_bytes = 16000
+max_wall = "3m"
+stale_after = "2m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["fail_plan", "no_diff"]
+[node.decision]
+triggers = ["fail_plan", "allowance_exhausted", "input_oversize"]
+actions = ["continue_declared", "replace", "human"]
+replacement_input = "revision"
+[node.decision.decision_task]
+runner = "profile:critic"
+model = "gpt-6-astra"
+instructions = "Decide how to proceed using the bound request. For this proof, choose continue_declared when available: the declared next work computes and records a small verifiable result. Otherwise choose replace with concise revision advice. Never claim human approval. Follow the requested response schema and channel protocol."
+verify = [{cmd="scripts/verify-feature.sh", timeout="20s"}]
+context_budget_bytes = 16000
+max_wall = "3m"
+stale_after = "2m"
+max_infra_retries = 1
+max_steers = 0
+max_total_activations = 2
+[[node]]
+name = "work"
+kind = "task"
+runner = "profile:implementer"
+writes = false
+isolation = "worktree"
+allowed_paths = []
+instructions = "Compute the sum of integers 1 through 10. Write result.json containing {\"sum\":55} into WF_ARTIFACT_DIR, then emit no_diff and empty effects through the normal channels. This result is the useful work after the decision."
+verify = [{cmd="scripts/verify-feature.sh", timeout="20s"}]
+context_budget_bytes = 16000
+max_wall = "3m"
+stale_after = "2m"
+max_infra_retries = 0
+max_steers = 0
+outcomes = ["no_diff"]
+[[node]]
+name = "ship"
+kind = "gate"
+gate_type = "human"
+binds = "immutable"
+outcomes = ["approve", "abandon"]
+[[node]]
+name = "done"
+kind = "terminal"
+[[node]]
+name = "abandoned"
+kind = "terminal"
+[[edge]]
+from = "assess"
+on = "fail_plan"
+to = "work"
+[[edge]]
+from = "assess"
+on = "no_diff"
+to = "work"
+[[edge]]
+from = "work"
+on = "no_diff"
+to = "ship"
+[[edge]]
+from = "ship"
+on = "approve"
+to = "done"
+[[edge]]
+from = "ship"
+on = "abandon"
+to = "abandoned"

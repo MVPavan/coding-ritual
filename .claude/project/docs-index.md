@@ -26,3 +26,6 @@ Authoritative docs and when to read them.
 
 Reference-harness submodule docs under `reference_harnesses/<repo>/` are external —
 read only when the task is explicitly about that reference.
+
+| `docs/specs/2026-09-11-workflow-coordination.md` | Implementing the approved bridge, model decisions, child coordination and serialized integration scope |
+| `docs/workstreams/agent-bridge/roadmap.md` | Resuming the approved six-phase workflow coordination execution |

@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import hashlib
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Final
 
 import pytest
 
 from tests._fake_bd import FakeBd, InjectedCrash
+from tests._helpers import VALID_FIXTURE
 from tests._workspace import Fixture
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
@@ -42,10 +45,18 @@ from workflow_interpreter.bridge import (
     RepositoryGateResult,
 )
 from workflow_interpreter.bridge.adapter import MSG_CLOSE_REASON
+from workflow_interpreter.bridge.authority import BeadGateAuthority
 from workflow_interpreter.bridge.landing import LANDING_RECEIPT_FILE, T1_MESSAGE
 from workflow_interpreter.bridge.models import INSTANCE_KEY_TEMPLATE
 from workflow_interpreter.bridge.retry import RetryRefusal, retry_refusal
+from workflow_interpreter.bridge.verification import (
+    CheckCommand,
+    CheckResult,
+    VerificationPolicy,
+)
 from workflow_interpreter.foreman.frontier import Frontier
+from workflow_interpreter.schema.graph_index import build_index
+from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode, Outcome
 from workflow_interpreter.supervisor import Git
 from workflow_interpreter.supervisor.config import SupervisorConfig
@@ -65,6 +76,16 @@ ROOT_ID: Final[str] = "bridge-root"
 FUTURE_PHASE_BRIDGE_SCHEMA: Final[str] = "future-schema/99"
 WRONG_INSTANCE_KEY: Final[str] = "not-the-derived-key"
 REPEATED_PREVIOUS_ATTEMPT: Final[str] = "x"
+
+
+def _policy():
+    return VerificationPolicy.pin(
+        (CheckCommand(name="source", argv=(sys.executable, "-c", "pass")),), Path.cwd()
+    )
+
+
+def _admission(adapter, roots, head_commit):
+    return PhaseAdmission(adapter, roots, head_commit, verification_policy=_policy())
 
 
 def _stage_row() -> dict[str, object]:
@@ -111,6 +132,7 @@ def _gate(
 def test_attempt_key_is_stable_and_distinct_per_attempt() -> None:
     """Keep a recovered attempt on its recorded root identity."""
     first = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -127,6 +149,7 @@ def test_attempt_key_is_stable_and_distinct_per_attempt() -> None:
 def test_phase_bridge_record_rejects_an_unknown_schema() -> None:
     """A journal must declare the pinned schema instead of accepting future records."""
     record = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -143,6 +166,7 @@ def test_phase_bridge_record_rejects_an_unknown_schema() -> None:
 def test_phase_bridge_record_rejects_an_underived_instance_key() -> None:
     """A journal key must identify its epic, stage, and attempt exactly."""
     record = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -159,6 +183,7 @@ def test_phase_bridge_record_rejects_an_underived_instance_key() -> None:
 def test_phase_bridge_record_rejects_invalid_previous_attempt_history() -> None:
     """A retry journal must retain each earlier attempt once and only once."""
     record = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -187,6 +212,7 @@ def test_phase_bridge_record_rejects_invalid_previous_attempt_history() -> None:
 def test_phase_bridge_record_rejects_truncated_journal_fields(field: str) -> None:
     """A nested metadata replacement cannot silently re-default identity fields."""
     record = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -203,6 +229,7 @@ def test_phase_bridge_record_rejects_truncated_journal_fields(field: str) -> Non
 def test_phase_bridge_next_attempt_round_trips_through_validation() -> None:
     """The normal retry constructor remains a valid complete journal record."""
     retry = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -217,6 +244,7 @@ def test_phase_bridge_prepared_refuses_a_nonfirst_attempt() -> None:
     """Only next_attempt may attach genuine prior-attempt history."""
     with pytest.raises(ValueError, match="first attempt"):
         PhaseBridgeRecord.prepared(
+            verification_policy=_policy(),
             epic_id=EPIC_ID,
             stage_id=STAGE_ID,
             attempt=3,
@@ -229,7 +257,7 @@ def test_retry_refusal_allows_a_declared_terminal() -> None:
     """A listed terminal may mint the bridge's next root."""
     frontier = Frontier(terminal=True, terminal_node="abandoned")
 
-    assert retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier) is None
+    assert retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier) is None
 
 
 def test_retry_refusal_refuses_an_unlisted_terminal() -> None:
@@ -237,7 +265,7 @@ def test_retry_refusal_refuses_an_unlisted_terminal() -> None:
     frontier = Frontier(terminal=True, terminal_node="failed")
 
     assert (
-        retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier)
+        retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier)
         is RetryRefusal.UNLISTED_TERMINAL
     )
 
@@ -247,7 +275,7 @@ def test_retry_refusal_refuses_a_root_without_a_terminal() -> None:
     frontier = Frontier()
 
     assert (
-        retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier)
+        retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier)
         is RetryRefusal.NO_TERMINAL
     )
 
@@ -261,7 +289,7 @@ def test_retry_refusal_open_halt_outranks_a_declared_terminal() -> None:
     )
 
     assert (
-        retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier)
+        retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier)
         is RetryRefusal.OPEN_HALT
     )
 
@@ -271,7 +299,7 @@ def test_retry_refusal_refuses_the_realistic_open_halt_frontier() -> None:
     frontier = Frontier(open_halt=_gate(GateState.OPEN, gate_node="halt"))
 
     assert (
-        retry_refusal(PhaseBridgeState.CLOSED, ("abandoned",), frontier)
+        retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier)
         is RetryRefusal.OPEN_HALT
     )
 
@@ -341,6 +369,7 @@ def test_adapter_writes_the_whole_record_then_claims_with_admission(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -372,6 +401,7 @@ def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
 ) -> None:
     """A same-attempt write cannot replace admitted or closed stage evidence."""
     stored = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -398,6 +428,7 @@ def test_prepare_accepts_a_valid_successor_over_an_unsettled_journal(
 ) -> None:
     """A retry advances a settled-not-closed stage journal by one attempt."""
     stored = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -420,6 +451,7 @@ def test_prepare_refuses_a_structural_successor_over_a_closed_journal(
     """No retry structure can reopen evidence for a stage that landed and closed."""
     stored = (
         PhaseBridgeRecord.prepared(
+            verification_policy=_policy(),
             epic_id=EPIC_ID,
             stage_id=STAGE_ID,
             attempt=1,
@@ -443,6 +475,7 @@ def test_prepare_refuses_a_nonprepared_incoming_journal(
     """The supplied record is named when it is not a prepare intent."""
     fake_bd.rows[STAGE_ID] = _stage_row()
     incoming = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -464,6 +497,7 @@ def test_prepare_wraps_unreadable_stored_journal(
     stage["metadata"] = {"phase_bridge": {"state": "not-a-bridge-state"}}
     fake_bd.rows[STAGE_ID] = stage
     incoming = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -549,7 +583,7 @@ def test_admission_recovers_after_root_creation_crash(
     fake_bd.rows[STAGE_ID] = _stage_row()
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
-    admission = PhaseAdmission(PhaseAdapter(fake_client), roots, lambda: base)
+    admission = _admission(PhaseAdapter(fake_client), roots, lambda: base)
     fake_bd.crash_on("create")
 
     with pytest.raises(InjectedCrash, match="bd create died"):
@@ -572,7 +606,7 @@ def test_admission_repairs_a_root_interrupted_before_its_self_link(
     fake_bd.rows[STAGE_ID] = _stage_row()
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
-    admission = PhaseAdmission(PhaseAdapter(fake_client), roots, lambda: base)
+    admission = _admission(PhaseAdapter(fake_client), roots, lambda: base)
     fake_bd.crash_on("update", occurrence=2)
 
     with pytest.raises(InjectedCrash, match="bd update died"):
@@ -595,7 +629,7 @@ def test_admission_reuses_a_root_when_branch_creation_is_interrupted(
     roots = _Roots(fake_client, repo, base)
     roots.fail_branch = True
     head = [base]
-    admission = PhaseAdmission(PhaseAdapter(fake_client), roots, lambda: head[0])
+    admission = _admission(PhaseAdapter(fake_client), roots, lambda: head[0])
 
     with pytest.raises(InjectedCrash, match="branch creation died"):
         admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
@@ -625,7 +659,7 @@ def test_admission_recovers_after_the_relation_write_is_interrupted(
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
     prepared_root = roots.create("phase-bridge:phase-1:stage-a:attempt:1")
-    admission = PhaseAdmission(PhaseAdapter(fake_client), roots, lambda: base)
+    admission = _admission(PhaseAdapter(fake_client), roots, lambda: base)
     fake_bd.crash_on("update", occurrence=2)
 
     with pytest.raises(InjectedCrash, match="bd update died"):
@@ -649,7 +683,7 @@ def test_admission_refuses_an_open_stage_with_a_landed_relation(
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
     adapter = PhaseAdapter(fake_client)
-    admission = PhaseAdmission(adapter, roots, lambda: base)
+    admission = _admission(adapter, roots, lambda: base)
 
     admitted = admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
     landed = admitted.landed(base, "b" * 40, "gate-receipt", "landing-receipt")
@@ -669,6 +703,7 @@ def test_conflicting_record_refuses_without_creating_a_root(
 ) -> None:
     """Leave ambiguous identity for a human instead of opening another journal."""
     conflicting = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -680,7 +715,7 @@ def test_conflicting_record_refuses_without_creating_a_root(
     fake_bd.rows[STAGE_ID] = stage
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
-    admission = PhaseAdmission(PhaseAdapter(fake_client), roots, lambda: base)
+    admission = _admission(PhaseAdapter(fake_client), roots, lambda: base)
 
     with pytest.raises(AdmissionRefused, match="identity conflicts"):
         admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
@@ -711,7 +746,7 @@ class _GateAuthority:
             graph_id="phase-bridge",
             root_id=root_id,
             gate_key="ship",
-            outcome=Outcome.ACCEPT,
+            outcome=Outcome.APPROVE,
             artifact=GateArtifact(commit_oid=self._artifact_oid, tree_oid=self._tree),
             nonce="reverified-ship-gate",
         )
@@ -722,18 +757,38 @@ class _GateAuthority:
                 signature=self._signer(encoded, None),
                 work_dir=Path(directory),
             )
-        return GateEvidence(
-            root_id=root_id,
+        metadata = GateMetadata(
+            wf_root_id=root_id,
+            gate_key="ship",
             gate_node="ship",
-            closed=True,
-            immutable=True,
-            accepted=True,
-            artifact_oid=self._artifact_oid,
-            tree=self._tree,
-            fingerprint=approval.fingerprint,
-            digest=payload_digest(encoded),
+            outcomes=(Outcome.APPROVE, Outcome.ABANDON),
+            seq=1,
+            state=GateState.CLOSED,
+            outcome=Outcome.APPROVE,
+            verified_fingerprint=approval.fingerprint,
+            payload_digest=payload_digest(encoded),
             artifact_ref=self._artifact_oid,
+            artifact_digest=self._tree,
         )
+        gate = parse_gate(
+            BeadRecord(
+                id="signed-ship",
+                title="ship",
+                status="closed",
+                issue_type="task",
+                metadata=metadata.model_dump(mode="json"),
+            )
+        )
+        reads = SimpleNamespace(
+            list_gates=lambda _: (gate,),
+            load_root=lambda _: SimpleNamespace(
+                root_id=root_id,
+                index=build_index(
+                    load_graph(VALID_FIXTURE).document, allow_test_flags=False
+                ),
+            ),
+        )
+        return BeadGateAuthority(reads).verify(root_id)
 
 
 class _RepositoryGate:
@@ -760,7 +815,16 @@ class _RepositoryGate:
             tree=tree,
             complete=True,
             green=True,
-            results=self._results,
+            policy_digest=_policy().digest,
+            results=(
+                CheckResult(
+                    name="source",
+                    command=_policy().checks[0].command,
+                    executable_digest=_policy().checks[0].executable_digest,
+                    exit_code=0,
+                    source_unchanged=True,
+                ),
+            ),
         )
 
 
@@ -825,6 +889,7 @@ def test_landing_refuses_a_prepared_stage_without_cas_or_close(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -863,6 +928,7 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     admitted = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -924,6 +990,7 @@ def test_closed_recovery_uses_the_disk_receipt_digest_without_redriving_close(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -978,6 +1045,7 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1037,6 +1105,7 @@ def test_recovery_returns_human_attention_for_mismatched_receipt_identity(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1079,6 +1148,7 @@ def test_landing_closed_stage_routes_to_recovery_without_a_second_cas(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1099,7 +1169,8 @@ def test_landing_closed_stage_routes_to_recovery_without_a_second_cas(
 
     repeated = landing.land(STAGE_ID)
 
-    assert repeated.disposition is LandingDisposition.HUMAN_ATTENTION
+    assert repeated.disposition is LandingDisposition.CLOSED
+    assert repeated.reason == "validated historical completion"
     assert _ref_target(repo) == base
     assert _reflog(repo) == before_reflog
     assert fake_bd.command_count("close") == before_closes
@@ -1142,6 +1213,7 @@ def test_recovery_refuses_unrelated_history_without_closing_or_moving_a_ref(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1196,6 +1268,7 @@ def test_recovery_closes_when_a_descendant_contains_the_signed_artifact(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1325,6 +1398,7 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
     prepared = PhaseBridgeRecord.prepared(
+        verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1337,6 +1411,8 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
     repository_gate = _RepositoryGate(artifact_oid, tree)
     git, paths = _landing_context(repo, tmp_path)
     intent = LandingIntent(
+        root_id=ROOT_ID,
+        policy_digest=_policy().digest,
         ref=TARGET_REF,
         expected_base=base,
         artifact_oid=artifact_oid,
@@ -1352,7 +1428,7 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
         STAGE_ID
     )
 
-    assert result.disposition is LandingDisposition.HUMAN_ATTENTION
+    assert result.disposition is LandingDisposition.PENDING
     assert result.observed_target == base
     assert _ref_target(repo) == base
     assert _reflog(repo) == before_recovery
@@ -1368,24 +1444,142 @@ def test_repository_gate_discloses_t1_before_running_the_detached_checkout(
     git, paths = _landing_context(repo, tmp_path)
     events: list[str] = []
 
-    def checks(checkout: Path, candidate: str) -> tuple[str, ...]:
-        """Prove the production gate receives a clean detached candidate tree."""
-        assert candidate == artifact_oid
-        assert (
-            subprocess.run(
-                ["git", "rev-parse", "HEAD"],
-                cwd=checkout,
-                check=True,
-                capture_output=True,
-                text=True,
-            ).stdout.strip()
-            == artifact_oid
-        )
-        assert events == [T1_MESSAGE]
-        return ("five numbered items / six commands green",)
-
-    result = DetachedRepositoryGate(git, paths, checks, events.append).verify(
+    result = DetachedRepositoryGate(git, paths, _policy(), events.append).verify(
         artifact_oid, tree
     )
+    assert events == [T1_MESSAGE]
+    assert result.green
+    assert result.results[0].exit_code == 0
 
-    assert result.results == ("five numbered items / six commands green",)
+
+def test_admitted_shipped_attempt_cannot_skip_landing_by_retry() -> None:
+    assert (
+        retry_refusal(
+            PhaseBridgeState.ADMITTED, ("shipped",), Frontier(terminal_node="shipped")
+        )
+        is not None
+    )
+
+
+def test_landing_refuses_wrong_root_directory(
+    fake_bd, fake_client, gate_verifier, sign_payload, tmp_path
+):
+    repo, base = _temporary_repo(tmp_path)
+    oid, tree = _commit_artifact(repo)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    record = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=base,
+        verification_policy=_policy(),
+    ).admitted(ROOT_ID)
+    fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
+        by_alias=True, mode="json"
+    )
+    git, paths = _landing_context(repo, tmp_path)
+    landing = PhaseLanding(
+        PhaseAdapter(fake_client),
+        git,
+        repo,
+        WrapperPaths(paths.config, "other-root"),
+        _GateAuthority(oid, tree, gate_verifier, sign_payload),
+        _RepositoryGate(oid, tree),
+    )
+    with pytest.raises(ValueError, match="ambiguous"):
+        landing.land(STAGE_ID)
+    assert _ref_target(repo) == base
+
+
+def test_gate_view_refuses_a_different_root_with_same_key(
+    fake_bd, fake_client, monkeypatch
+):
+    from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
+
+    record = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    ).admitted(ROOT_ID)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
+        by_alias=True, mode="json"
+    )
+    monkeypatch.setattr(
+        PhaseAdapter, "from_config", classmethod(lambda *_: PhaseAdapter(fake_client))
+    )
+    with pytest.raises(PhaseAdapterError, match="does not own"):
+        phase_bridge_gate_view(
+            record.instance_key, fake_client.config, root_id="impostor"
+        )
+
+
+@pytest.mark.parametrize(
+    "corruption",
+    (
+        "wrong-policy",
+        "wrong-artifact",
+        "missing",
+        "duplicate",
+        "failed",
+        "wrong-command",
+        "legacy",
+        "target-moved",
+    ),
+)
+def test_policy_correspondence_refuses_before_cas(
+    fake_bd, fake_client, gate_verifier, sign_payload, tmp_path, monkeypatch, corruption
+):
+    repo, base = _temporary_repo(tmp_path)
+    oid, tree = _commit_artifact(repo)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    record = PhaseBridgeRecord.prepared(
+        epic_id=EPIC_ID,
+        stage_id=STAGE_ID,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=base,
+        verification_policy=None if corruption == "legacy" else _policy(),
+    ).admitted(ROOT_ID)
+    fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
+        by_alias=True, mode="json"
+    )
+    git, paths = _landing_context(repo, tmp_path)
+    repository = _RepositoryGate(oid, tree)
+    observed = repository.verify(oid, tree)
+    if corruption == "wrong-policy":
+        observed = observed.model_copy(update={"policy_digest": "other"})
+    if corruption == "wrong-artifact":
+        observed = observed.model_copy(update={"artifact_oid": base})
+    if corruption == "missing":
+        observed = observed.model_copy(update={"results": ()})
+    if corruption == "duplicate":
+        observed = observed.model_copy(update={"results": observed.results * 2})
+    if corruption in ("failed", "wrong-command"):
+        item = observed.results[0].model_copy(
+            update={"exit_code": 1} if corruption == "failed" else {"name": "different"}
+        )
+        observed = observed.model_copy(update={"results": (item,)})
+    monkeypatch.setattr(repository, "verify", lambda *_: observed)
+    if corruption == "target-moved":
+        git.update_ref(TARGET_REF, oid, cwd=repo)
+    before = _ref_target(repo)
+    landing = PhaseLanding(
+        PhaseAdapter(fake_client),
+        git,
+        repo,
+        paths,
+        _GateAuthority(oid, tree, gate_verifier, sign_payload),
+        repository,
+    )
+    if corruption == "legacy":
+        with pytest.raises(ValueError, match="policy"):
+            landing.land(STAGE_ID)
+    else:
+        assert landing.land(STAGE_ID).disposition is not LandingDisposition.CLOSED
+    assert _ref_target(repo) == before
+    assert fake_bd.command_count("close") == 0
+    assert not (paths.instance_dir / LANDING_RECEIPT_FILE).exists()

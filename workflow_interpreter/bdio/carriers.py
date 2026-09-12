@@ -173,6 +173,7 @@ class NodeSetting(SettingKey):
     ISOLATION = "node.{scope}.isolation"
     WRITES = "node.{scope}.writes"
     TOKEN_BUDGET = "node.{scope}.token_budget"
+    CONTEXT_BUDGET_BYTES = "node.{scope}.context_budget_bytes"
     MAX_WALL = "node.{scope}.max_wall"
     STALE_AFTER = "node.{scope}.stale_after"
 

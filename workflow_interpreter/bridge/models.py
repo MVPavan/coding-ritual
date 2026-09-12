@@ -7,6 +7,8 @@ from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from workflow_interpreter.bridge.verification import VerificationPolicy
+
 type PhaseBridgeSchema = Literal["phase-bridge/3"]
 PHASE_BRIDGE_SCHEMA: Final[PhaseBridgeSchema] = "phase-bridge/3"
 INSTANCE_KEY_TEMPLATE: Final[str] = (
@@ -32,6 +34,8 @@ class PhaseBridgeState(StrEnum):
 
     PREPARED = "prepared"
     ADMITTED = "admitted"
+    # Read compatibility for the existing phase-bridge/3 wire vocabulary.
+    # No producer writes this state; removing it requires an explicit migration.
     LANDING = "landing"
     LANDED = "landed"
     GATE_RED = "gate-red"
@@ -55,6 +59,20 @@ class PhaseBridgeRecord(BaseModel):
     instance_key: NonEmptyText
     target_ref: NonEmptyText
     expected_base_commit: CommitOid
+    verification_policy: VerificationPolicy | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    integration_digest: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    integration_owner: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    integration_slot: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    integration_generation: int | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    successor_owner: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    successor_key: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    execution_base_commit: CommitOid | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
     root_id: NonEmptyText | None = None
     landed_oid: CommitOid | None = None
     tree: CommitOid | None = None
@@ -85,6 +103,7 @@ class PhaseBridgeRecord(BaseModel):
         attempt: int,
         target_ref: str,
         expected_base_commit: str,
+        verification_policy: VerificationPolicy | None = None,
     ) -> PhaseBridgeRecord:
         """Build a new pre-claim admission intent."""
         if attempt != 1:
@@ -101,6 +120,7 @@ class PhaseBridgeRecord(BaseModel):
             target_ref=target_ref,
             expected_base_commit=expected_base_commit,
             previous_attempts=(),
+            verification_policy=verification_policy,
         )
 
     def next_attempt(self) -> PhaseBridgeRecord:
@@ -117,6 +137,7 @@ class PhaseBridgeRecord(BaseModel):
             target_ref=self.target_ref,
             expected_base_commit=self.expected_base_commit,
             previous_attempts=(*self.previous_attempts, self.instance_key),
+            verification_policy=self.verification_policy,
         )
 
     def admitted(self, root_id: str) -> PhaseBridgeRecord:

@@ -22,10 +22,11 @@ Three invariants shape almost every method:
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Final
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Final
 
 import structlog
+from pydantic import JsonValue
 
 from workflow_interpreter.bdio import (
     bounds,
@@ -40,6 +41,7 @@ from workflow_interpreter.bdio.bounds import BoundRefusal
 from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadReader
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
+from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.errors import (
     BdConfigError,
     BoundExceededError,
@@ -79,7 +81,16 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
     resolved_settings,
 )
+from workflow_interpreter.schema.decisions import (
+    BoundaryIdentity,
+    CoordinationError,
+    DecisionRequest,
+    DecisionResponse,
+)
 from workflow_interpreter.schema.models import GraphDefinition, Outcome
+
+if TYPE_CHECKING:
+    from workflow_interpreter.foreman.compose import Composition
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -242,7 +253,9 @@ class WorkflowStore:
         *,
         artifact_reader: ArtifactReader | None = None,
         branch_head_reader: BranchHeadReader | None = None,
+        member_band: object | None = None,
     ) -> None:
+        self._member_band = member_band
         self._client = client
         self._verifier = verifier
         self._artifact_reader = artifact_reader
@@ -274,7 +287,9 @@ class WorkflowStore:
             branch_head_reader=branch_head_reader,
         )
 
-    def for_root(self, *, branch_head_reader: BranchHeadReader) -> WorkflowStore:
+    def for_root(
+        self, *, branch_head_reader: BranchHeadReader, member_band: object | None = None
+    ) -> WorkflowStore:
         """Derive a root-scoped store without replacing injected capabilities.
 
         The transport, verifier, and artifact reader are process-scoped
@@ -285,6 +300,7 @@ class WorkflowStore:
             self._verifier,
             artifact_reader=self._artifact_reader,
             branch_head_reader=branch_head_reader,
+            member_band=member_band,
         )
 
     @property
@@ -334,6 +350,62 @@ class WorkflowStore:
 
     # -- activations -----------------------------------------------------
 
+    def coordination_store(
+        self,
+        *,
+        verify_decision: Callable[[DecisionRequest], DecisionResponse] | None = None,
+        composition: Composition | None = None,
+    ) -> CoordinationStore:
+        """Durable admission/consumption operations, distinct from local lifecycle."""
+        return CoordinationStore(self._client, verify_decision, composition=composition)
+
+    def assert_member(self, root_id: str) -> None:
+        """Validate opt-in membership and the local single-flight capability."""
+        root = self._reads.load_root(root_id)
+        coordinator = self.coordination_store()
+        coordinator.validate_member(root)
+        coordinator.assert_child_progress(root)
+        if root.metadata.coordination is not None:
+            state = coordinator.state(root.metadata.coordination.owner_id)
+            child = state.children.get(root.metadata.coordination.slot)
+            reservation = state.reservations.get(
+                root.metadata.coordination.reservation_id
+            )
+            if reservation is not None and reservation.capacity.kind == "child":
+                if child is None:
+                    raise CoordinationError("child admission incomplete")
+                if child.cancellation is not None:
+                    raise CoordinationError("child cancellation fences dispatch")
+                if child.collection is not None:
+                    raise CoordinationError("collected child cannot dispatch")
+            if state.human_attention:
+                raise CoordinationError("owner requires human attention")
+            boundary = root.metadata.decision_boundary
+            if boundary is not None:
+                from workflow_interpreter.schema.decisions import digest_record
+
+                request = state.requests.get(digest_record(boundary))
+                if (
+                    request is None
+                    or request.state != "applied"
+                    or request.response is None
+                    or request.response.action != "continue_declared"
+                ):
+                    raise CoordinationError(
+                        "decision boundary blocks ordinary dispatch"
+                    )
+        if root.metadata.coordination is not None and not getattr(
+            self._member_band, "held", False
+        ):
+            raise CoordinationError("coordinated mutation requires the member band")
+
+    def queue_decision(self, root_id: str, boundary: BoundaryIdentity) -> None:
+        """Persist boundary under the member band; owner reconciliation runs later."""
+        self.assert_member(root_id)
+        self._client._merge_metadata(
+            root_id, {"decision_boundary": metadata_dict(boundary)}
+        )
+
     def mint_activation(self, root_id: str, request: MintRequest) -> MintResult:
         """Mint an activation, or re-find the one this key already minted (§3.2).
 
@@ -351,6 +423,22 @@ class WorkflowStore:
         of leaving two live heads until some later tick (§3.2, drill 10).
         `created` then reports whether OUR bead is the surviving one.
         """
+        from contextlib import nullcontext
+
+        from workflow_interpreter.supervisor.band import BandLock
+
+        coordinator = self.coordination_store()
+        root = self._reads.load_root(root_id)
+        guard = (
+            BandLock(coordinator.member_lock_path(root_id, "launch"))
+            if coordinator.child_for_root(root) is not None
+            else nullcontext()
+        )
+        with guard:
+            return self._mint_activation(root_id, request)
+
+    def _mint_activation(self, root_id: str, request: MintRequest) -> MintResult:
+        self.assert_member(root_id)
         root = self._reads.load_root(root_id)
         # ONE fetch of the instance's beads serves the ceiling count, the
         # activation views, the key lookup and the derivation.
@@ -479,6 +567,16 @@ class WorkflowStore:
         )
         return facts, (), metadata, metadata_dict(metadata)
 
+    def record_envelope(
+        self, activation_id: str, envelope: dict[str, JsonValue]
+    ) -> None:
+        """Persist exact brief accounting before dispatch; replay must agree."""
+        current = self._reads.load_activation(activation_id).metadata.envelope
+        if current is not None and current != envelope:
+            raise CarrierIntegrityError("envelope changed after preparation")
+        if current is None:
+            self._client._merge_metadata(activation_id, {"envelope": envelope})
+
     def record_precondition(
         self, activation_id: str, record: PreconditionRecord
     ) -> ActivationRecord:
@@ -547,13 +645,27 @@ class WorkflowStore:
             if handle.session_id and not record.metadata.session_id
             else {}
         )
-        return self._apply(
-            activation_id,
-            lifecycle=Lifecycle.DISPATCHED,
-            allowed=frozenset({Lifecycle.MINTED}),
-            handle=handle,
-            **session,
-        )
+        try:
+            return self._apply(
+                activation_id,
+                lifecycle=Lifecycle.DISPATCHED,
+                allowed=frozenset({Lifecycle.MINTED}),
+                handle=handle,
+                **session,
+            )
+        except LifecycleConflictError:
+            # Receipt recovery can race the original launch publisher. A matching
+            # winner is already the requested fact; a different handle is not.
+            winner = self._load_activation(activation_id)
+            if winner.metadata.lifecycle is not Lifecycle.DISPATCHED:
+                raise
+            transitions.assert_same(
+                activation_id, winner.metadata.handle, handle, Lifecycle.DISPATCHED
+            )
+            transitions.assert_same_session(
+                activation_id, winner.metadata.session_id, handle.session_id
+            )
+            return winner
 
     def record_exit(
         self, activation_id: str, exit_record: ExitRecord
@@ -599,13 +711,35 @@ class WorkflowStore:
         transitions.assert_lifecycle(
             record, Lifecycle.EXIT_RECORDED, Lifecycle.EVIDENCE_RECORDED
         )
-        return self._apply(
-            activation_id,
-            lifecycle=Lifecycle.EVIDENCE_RECORDED,
-            allowed=frozenset({Lifecycle.EXIT_RECORDED}),
-            evidence=evidence,
-            usage=usage,
-        )
+        try:
+            return self._apply(
+                activation_id,
+                lifecycle=Lifecycle.EVIDENCE_RECORDED,
+                allowed=frozenset({Lifecycle.EXIT_RECORDED}),
+                evidence=evidence,
+                usage=usage,
+            )
+        except LifecycleConflictError:
+            # A wrapper and cancellation recovery can publish the same durable
+            # completion between the initial read and the transition's guard.
+            # Reconcile exactly that winner; do not retry a write or roll back
+            # a later lifecycle, and never accept contradictory evidence.
+            winner = self._load_activation(activation_id)
+            if winner.metadata.lifecycle is not Lifecycle.EVIDENCE_RECORDED:
+                raise
+            transitions.assert_same(
+                activation_id,
+                winner.metadata.evidence,
+                evidence,
+                Lifecycle.EVIDENCE_RECORDED,
+            )
+            transitions.assert_same(
+                activation_id,
+                winner.metadata.usage,
+                usage,
+                Lifecycle.EVIDENCE_RECORDED,
+            )
+            return winner
 
     def close_activation(
         self,
@@ -728,6 +862,7 @@ class WorkflowStore:
 
     def open_gate(self, root_id: str, request: GateOpenRequest) -> GateRecord:
         """Open a gate under its deterministic key — a re-tick re-finds it (§3.4)."""
+        self.assert_member(root_id)
         return gates.open_gate(self._client, root_id, request)
 
     def close_gate_verified(

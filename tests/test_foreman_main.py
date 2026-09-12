@@ -38,6 +38,7 @@ from workflow_interpreter.bridge import (
 )
 from workflow_interpreter.bridge import command as bridge_command_module
 from workflow_interpreter.bridge import gate_view as gate_view_module
+from workflow_interpreter.bridge.verification import CheckCommand, VerificationPolicy
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver, Spawner
 from workflow_interpreter.foreman.config import ForemanConfig
@@ -610,7 +611,7 @@ def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
         ),
     )
     assert gate_view_module.phase_bridge_gate_view(
-        first.instance_key, lab.config.bd
+        first.instance_key, lab.config.bd, root_id=root.root_id
     ) == {
         "attempt": 2,
         "is_current_attempt": False,
@@ -719,7 +720,7 @@ def test_phase_bridge_gate_view_rejects_a_root_outside_stage_attempts(
 
     with pytest.raises(PhaseAdapterError, match="does not own root instance_key"):
         gate_view_module.phase_bridge_gate_view(
-            "phase-bridge:phase-1:stage-a:attempt:3", lab.config.bd
+            "phase-bridge:phase-1:stage-a:attempt:3", lab.config.bd, root_id="impostor"
         )
 
 
@@ -965,6 +966,26 @@ def test_config_is_accepted_before_every_subcommand() -> None:
         assert args.config == Path("/tmp/foreman.toml")
 
 
+def _bridge_lab(tmp_path: Path, **kwargs) -> ForemanLab:
+    lab = ForemanLab(tmp_path, **kwargs)
+    lab.config = lab.config.model_copy(
+        update={
+            "bridge_checks": (
+                CheckCommand(
+                    name="source",
+                    argv=(
+                        sys.executable,
+                        "-c",
+                        "from pathlib import Path; assert Path('src/feature.py').is_file()",
+                    ),
+                ),
+            )
+        }
+    )
+    lab.composition = replace(lab.composition, config=lab.config)
+    return lab
+
+
 def _bridge_stage(
     stage_id: str, *, status: str = "open", description: str | None = None
 ) -> dict[str, object]:
@@ -989,7 +1010,7 @@ def test_phase_bridge_reports_exhaustion_before_named_stage_membership(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """An exhausted phase is a fact even if the caller names a stale stage id."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     lab.fake_bd.rows["closed-stage"] = _bridge_stage("closed-stage", status="closed")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
@@ -1011,7 +1032,7 @@ def test_phase_bridge_refuses_an_empty_stage_description_before_writing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The title never substitutes for a stage's task_brief input."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description=None)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
@@ -1037,7 +1058,7 @@ def test_phase_bridge_refuses_without_a_configured_bridge_graph(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A graphless foreman config cannot mint an unpinned bridge root."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     composition = replace(
         lab.composition,
@@ -1067,7 +1088,7 @@ def test_phase_bridge_refuses_a_configured_required_input_it_cannot_supply(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Only task_brief is bridge-owned; another required input costs no root."""
-    lab = ForemanLab(tmp_path, toml=BUILD_LOOP_GRAPH)
+    lab = _bridge_lab(tmp_path, toml=BUILD_LOOP_GRAPH)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
@@ -1093,7 +1114,7 @@ def test_phase_bridge_trace_is_read_only(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Trace renders absent evidence without admitting, minting, or changing refs."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     before = lab.git.head_commit(cwd=lab.repo)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
@@ -1124,7 +1145,7 @@ def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Bridge polling must not shorten the run before its human ship gate."""
-    lab = ForemanLab(tmp_path, band_wait_s=7.0)
+    lab = _bridge_lab(tmp_path, band_wait_s=7.0)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     calls: list[tuple[float, float]] = []
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
@@ -1157,7 +1178,7 @@ def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, trace: bool
 ) -> None:
     """A bd read miss is caller input, in ordinary and trace command forms."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     adapter = _bridge_adapter(lab)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
@@ -1195,7 +1216,7 @@ def test_phase_bridge_refuses_an_epic_without_stages(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, trace: bool
 ) -> None:
     """An empty epic cannot tell a caller that its phase is exhausted."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
@@ -1222,8 +1243,8 @@ def test_phase_bridge_refuses_an_epic_without_stages(
 def test_phase_bridge_refuses_a_detached_or_dirty_coordinator(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, guard: str, reason: str
 ) -> None:
-    """The coordinator preflight refuses before any bridge or bd operation."""
-    lab = ForemanLab(tmp_path)
+    """The coordinator preflight refuses before any stage write, after reading possible recovery evidence."""
+    lab = _bridge_lab(tmp_path)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     if guard == "detached":
         monkeypatch.setattr(lab.git, "attached_branch_ref", lambda **_kwargs: None)
@@ -1231,6 +1252,10 @@ def test_phase_bridge_refuses_a_detached_or_dirty_coordinator(
         monkeypatch.setattr(
             lab.git, "status_paths", lambda **_kwargs: (("uncommitted.txt", True),)
         )
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="brief")
+    monkeypatch.setattr(
+        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+    )
     codes: list[int] = []
 
     _, transcript = lab.transcript(
@@ -1241,15 +1266,17 @@ def test_phase_bridge_refuses_a_detached_or_dirty_coordinator(
     assert codes == [2]
     assert report["state"] == "refused"
     assert reason in report["reason"]
-    assert lab.fake_bd.calls == []
+    assert lab.fake_bd.command_count("update") == 0
+    assert lab.fake_bd.command_count("create") == 0
 
 
 def test_phase_bridge_reports_another_open_admission_as_blocked(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A sibling's unfinished admission is waiting work, not a caller refusal."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     held = PhaseBridgeRecord.prepared(
+        verification_policy=VerificationPolicy.pin(lab.config.bridge_checks, lab.repo),
         epic_id="phase",
         stage_id="other-stage",
         attempt=1,
@@ -1288,7 +1315,7 @@ def test_phase_bridge_reports_open_blocking_dependencies(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """An open blocking dependency returns its durable ids without admission."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["dependencies"] = [
         {"id": "blocking-stage", "status": "open", "dependency_type": "blocks"}
@@ -1321,16 +1348,20 @@ def test_phase_bridge_retry_mints_a_distinct_successor_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """An eligible retry uses the explicit successor admission path once."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     prior_root = lab.instantiate()
-    lab.fake_bd.rows[prior_root.root_id]["metadata"]["terminal"] = "shipped"
+    lab.fake_bd.rows[prior_root.root_id]["metadata"]["terminal"] = "abandoned"
     first = PhaseBridgeRecord.prepared(
+        verification_policy=VerificationPolicy.pin(lab.config.bridge_checks, lab.repo),
         epic_id="phase",
         stage_id="stage",
         attempt=1,
         target_ref="refs/heads/main",
         expected_base_commit=lab.head,
     ).admitted(prior_root.root_id)
+    lab.fake_bd.rows[prior_root.root_id]["metadata"]["instance_key"] = (
+        first.instance_key
+    )
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["status"] = "in_progress"
     lab.fake_bd.rows["stage"]["metadata"] = {
@@ -1366,15 +1397,19 @@ def test_phase_bridge_reports_each_retry_predicate_refusal(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, reason: RetryRefusal
 ) -> None:
     """Every pure retry refusal is carried to the CLI without a stage write."""
-    lab = ForemanLab(tmp_path)
+    lab = _bridge_lab(tmp_path)
     prior_root = lab.instantiate()
     record = PhaseBridgeRecord.prepared(
+        verification_policy=VerificationPolicy.pin(lab.config.bridge_checks, lab.repo),
         epic_id="phase",
         stage_id="stage",
         attempt=1,
         target_ref="refs/heads/main",
         expected_base_commit=lab.head,
     ).admitted(prior_root.root_id)
+    lab.fake_bd.rows[prior_root.root_id]["metadata"]["instance_key"] = (
+        record.instance_key
+    )
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["status"] = "in_progress"
     lab.fake_bd.rows["stage"]["metadata"] = {

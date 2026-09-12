@@ -180,6 +180,10 @@ class Git(GitTransport):
             return False
         raise GitCommandError(f"git merge-base failed (exit {result.returncode})")
 
+    def filter_overrides(self, *, cwd: Path) -> tuple[str, ...]:
+        """Expose the existing filter-disable prefix to guarded bridge plumbing."""
+        return self._filter_overrides(cwd=cwd)
+
     def _filter_overrides(self, *, cwd: Path) -> tuple[str, ...]:
         """`-c filter.<name>.<clean|smudge|process>=` for every driver defined here.
 
