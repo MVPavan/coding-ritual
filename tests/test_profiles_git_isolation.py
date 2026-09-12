@@ -14,7 +14,11 @@ answer. That is WRONG and the probes say so. What each vendor actually gives:
   root, in both `writes` modes, whether `.git` is a directory (in-repo band) or
   the `gitdir:` FILE a worktree has (probes P2.2/P2.3). OS-enforced. The ruling
   is executed here rather than quoted: `codex sandbox` runs a command under the
-  real sandbox with no model turn, so it costs nothing to assert.
+  real sandbox with no model turn, so it costs nothing to assert. What it does
+  NOT say is where a writer's git state is: in worktree mode the index lives in
+  the parent repository, outside every root asserted here, and
+  `tests/test_codex_writer_qualification.py` is the file that qualifies what a
+  writer may reach there.
 - **claude** — no sandbox at all. `Edit(//<cwd>/.git)` and `Edit(//<cwd>/.git/**)`
   deny both shapes at the permission engine, and a granted `Bash` is the §0.3
   cooperative residual that no rule closes.

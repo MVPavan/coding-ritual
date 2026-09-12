@@ -135,11 +135,28 @@ def _in_repo_rig(tmp_path: Path) -> Rig:
     return rig
 
 
+WORKTREE_BRANCH: Final[str] = "wf/run"
+"""Namespaced, because §5.4 names every candidate branch `wf/<root_id>`
+(`supervisor/artifact.py::BRANCH_TEMPLATE`) and the git write set descends to
+the directory holding THIS branch. A rig on a top-level branch would have made
+`refs/heads` and `logs/refs/heads` themselves the grant and hidden the whole
+point of the narrowing."""
+BRANCH_DIR: Final[str] = "wf"
+
+
 def _worktree_rig(tmp_path: Path) -> Rig:
     """A real `git worktree`: `<C>/.git` is a FILE naming `<G>`."""
     rig = _rig(tmp_path, tmp_path / ".wf" / ROOT_ID / "worktree")
     _init(rig.repo_root)
-    _git(rig.repo_root, "worktree", "add", "--quiet", str(rig.checkout), "-b", "wf-run")
+    _git(
+        rig.repo_root,
+        "worktree",
+        "add",
+        "--quiet",
+        str(rig.checkout),
+        "-b",
+        WORKTREE_BRANCH,
+    )
     return rig
 
 
@@ -241,7 +258,7 @@ def test_worktree_checkout_binds_the_common_dir_and_the_worktree_gitdir(
     assert plan.git_rw == (
         common / "objects",
         common / "refs",
-        common / "logs",
+        common / "logs" / "refs" / "heads" / BRANCH_DIR,
         common / "packed-refs",
         gitdir,
     )
@@ -280,15 +297,131 @@ def test_worktree_precreates_only_the_fixed_set(tmp_path: Path) -> None:
 
 
 def test_worktree_precreates_the_reflog_dir(tmp_path: Path) -> None:
-    """`logs/` is pre-created, not existence-gated: a repo whose first ref update
-    has not happened has no `logs/`, and the runner's own commit then dies
-    trying to CREATE it under a read-only `.git` (plan §2)."""
+    """The BRANCH's reflog directory is pre-created, not existence-gated: a repo
+    whose first ref update has not happened has no `logs/`, and the runner's own
+    commit then dies trying to CREATE it under a read-only `.git` (plan §2)."""
     rig = _worktree_rig(tmp_path)
-    logs = rig.repo_root / ".git" / "logs"
-    shutil.rmtree(logs)
-    assert not logs.exists()
-    assert logs in _plan(rig).git_rw
-    assert logs.is_dir()
+    common = rig.repo_root / ".git"
+    shutil.rmtree(common / "logs")
+    assert not (common / "logs").exists()
+    branch_logs = common / "logs" / "refs" / "heads" / BRANCH_DIR
+    assert branch_logs in _plan(rig).git_rw
+    assert branch_logs.is_dir()
+
+
+def test_worktree_precreates_the_branch_ref_dir_without_binding_it(
+    tmp_path: Path,
+) -> None:
+    """`git pack-refs` prunes `refs/heads/wf` and the next commit must recreate
+    the loose ref there, so the directory is made; it is not bound because
+    `<common>/refs` above already covers it."""
+    rig = _worktree_rig(tmp_path)
+    common = rig.repo_root / ".git"
+    branch_refs = common / "refs" / "heads" / BRANCH_DIR
+    shutil.rmtree(branch_refs)
+    assert not branch_refs.exists()
+    plan = _plan(rig)
+    assert branch_refs.is_dir()
+    assert branch_refs not in plan.git_rw
+
+
+def test_the_plan_binds_no_reflog_but_this_branch_s_own(tmp_path: Path) -> None:
+    """The reflog grant may not reach another branch's or the wrapper's history.
+
+    `<common>/logs` holds `logs/refs/heads/main` — the parent checkout's own
+    history — and `logs/refs/wf/...`, the reflog of the §6 evidence refs, which
+    unlike `refs/wf` has no read-only pin standing behind it. Binding the
+    directory whole made both writable on the outer layer; this asserts the
+    three paths one at a time rather than restating the tuple above.
+    """
+    rig = _worktree_rig(tmp_path)
+    common = rig.repo_root / ".git"
+    logs = common / "logs"
+    (logs / "refs" / "wf").mkdir(parents=True, exist_ok=True)
+    (logs / "refs" / "wf" / "evidence").write_text("entry\n", encoding="utf-8")
+    git_rw = _plan(rig).git_rw
+
+    assert logs not in git_rw
+    assert logs / "refs" not in git_rw
+    assert logs / "refs" / "heads" not in git_rw
+    assert logs / "refs" / "wf" not in git_rw
+    assert logs / "refs" / "heads" / BRANCH_DIR in git_rw
+
+
+def test_a_detached_worktree_gets_no_shared_ref_or_reflog_grant(
+    tmp_path: Path,
+) -> None:
+    """A detached head moves `<G>/HEAD` and `<G>/logs/HEAD` and nothing shared.
+
+    §7.3's grading checkout is branchless on purpose, and a checkout with no
+    branch has no branch reflog to append to — so it is granted none. Fail-closed
+    is the point: the alternative is deriving a directory from a `HEAD` whose
+    contents name no branch.
+    """
+    rig = _worktree_rig(tmp_path)
+    common = rig.repo_root / ".git"
+    _git(rig.checkout, "checkout", "--quiet", "--detach")
+
+    git_rw = _plan(rig).git_rw
+
+    assert not any(path.is_relative_to(common / "logs") for path in git_rw)
+    assert common / "objects" in git_rw
+    assert _gitdir(rig) in git_rw
+
+
+def test_a_head_naming_a_path_outside_refs_heads_grants_nothing(
+    tmp_path: Path,
+) -> None:
+    """`<G>/HEAD` is inside the writable `<G>`, so it is runner-controlled text.
+
+    A `HEAD` that walks out of `refs/heads` is the escape this closes: without
+    the check it would name `<common>/hooks` as a branch directory and hand the
+    next dispatch write access to the programs the wrapper's own git runs.
+    """
+    rig = _worktree_rig(tmp_path)
+    common = rig.repo_root / ".git"
+    (common / "hooks").mkdir(exist_ok=True)
+    (_gitdir(rig) / "HEAD").write_text(
+        "ref: refs/heads/../../hooks/x\n", encoding="utf-8"
+    )
+
+    git_rw = _plan(rig).git_rw
+
+    assert common / "hooks" not in git_rw
+    assert not any(path.is_relative_to(common / "logs") for path in git_rw)
+
+
+def test_a_head_naming_refs_heads_itself_grants_nothing(tmp_path: Path) -> None:
+    """`ref: refs/heads` has no branch NAME, so its parent is `refs` — the whole
+    ref namespace, evidence refs included. A ref must be strictly deeper than
+    `refs/heads` before a directory is derived from it."""
+    rig = _worktree_rig(tmp_path)
+    common = rig.repo_root / ".git"
+    (_gitdir(rig) / "HEAD").write_text("ref: refs/heads\n", encoding="utf-8")
+
+    git_rw = _plan(rig).git_rw
+
+    assert common / "logs" / "refs" not in git_rw
+    assert not any(path.is_relative_to(common / "logs") for path in git_rw)
+
+
+def test_a_symlinked_branch_directory_grants_nothing(tmp_path: Path) -> None:
+    """A runner can write in `<common>/refs/heads`, so the directory the NEXT
+    dispatch derives from `HEAD` is attacker-reachable. Replacing it with a link
+    to `hooks/` would have the vendor layer grant the programs the wrapper's own
+    git executes; the mount bound binds by real path and would refuse, so the
+    two layers must not be allowed to disagree about what the name means."""
+    rig = _worktree_rig(tmp_path)
+    common = rig.repo_root / ".git"
+    (common / "hooks").mkdir(exist_ok=True)
+    branch_refs = common / "refs" / "heads" / BRANCH_DIR
+    shutil.rmtree(branch_refs)
+    branch_refs.symlink_to(common / "hooks")
+
+    git_rw = _plan(rig).git_rw
+
+    assert common / "hooks" not in git_rw
+    assert not any(path.is_relative_to(common / "logs") for path in git_rw)
 
 
 def test_refs_wf_is_pinned_only_once_the_evidence_ref_exists(tmp_path: Path) -> None:

@@ -13,7 +13,6 @@ a bypass flag or an unguarded push on an argv.
 
 from __future__ import annotations
 
-import json
 import shlex
 from pathlib import Path
 from typing import Final
@@ -23,6 +22,7 @@ import pytest
 from tests._profiles import (
     BRIEF,
     INSTRUCTIONS,
+    git_write_roots_of,
     make_claude,
     make_codex,
     make_opencode,
@@ -30,6 +30,7 @@ from tests._profiles import (
     make_task,
     new_session,
     profile_host_env,
+    writable_roots_in,
 )
 from tests._supervisor import FrozenClock
 from workflow_interpreter.profiles import (
@@ -52,7 +53,6 @@ from workflow_interpreter.profiles._base import (
     toolchain_env,
 )
 from workflow_interpreter.profiles.claude import ClaudeProfile
-from workflow_interpreter.profiles.codex import KEY_WRITABLE_ROOTS as WRITABLE_ROOTS_KEY
 from workflow_interpreter.profiles.codex import CodexProfile
 from workflow_interpreter.supervisor.channels import (
     ENV_GIT_COMMITTER_EMAIL,
@@ -120,6 +120,18 @@ def values_after(argv: tuple[str, ...], flag: str) -> tuple[str, ...]:
             break
         values.append(item)
     return tuple(values)
+
+
+def repeated_values(argv: tuple[str, ...], flag: str) -> tuple[str, ...]:
+    """The value after EVERY occurrence of a repeatable flag, in order.
+
+    `values_after` reads one variadic flag; `--add-dir` is the other shape —
+    one directory each, stated as many times as there are directories — and
+    reading it with `values_after` silently sees only the first.
+    """
+    return tuple(
+        argv[index + 1] for index, word in enumerate(argv[:-1]) if word == flag
+    )
 
 
 # --- claude ---------------------------------------------------------------
@@ -428,19 +440,25 @@ def test_codex_read_only_roots_the_sandbox_at_the_wrapper_directory(
 def test_codex_writes_roots_the_sandbox_at_the_checkout_and_adds_the_channels(
     tmp_path: Path,
 ) -> None:
-    """`--add-dir` DOES grant write in `workspace-write` (probed)."""
+    """`--add-dir` DOES grant write in `workspace-write` (probed).
+
+    The channels and the worktree's git state travel together, because a writer
+    needs both and neither is under the working root: `$WF_OUTCOME_FILE` is the
+    channel §6 grades on, and `<G>` is where `git add` creates `index.lock`.
+    The git half is named independently of the code that emits it
+    (`git_write_roots_of` walks the pointer files itself).
+    """
     task = make_task(tmp_path, writes=True)
-    activation_dir = str(Path(task.channels.outcome_file).parent)
+    channels_dir = str(Path(task.channels.outcome_file).parent)
+    expected = (channels_dir, *git_write_roots_of(Path(task.cwd)))
     profile = make_codex(tmp_path, FrozenClock())
 
     command = profile.build_command(task, "")
 
     assert values_after(command.argv, "-C") == (task.cwd,)
     assert command.cwd == task.cwd
-    assert values_after(command.argv, "--add-dir") == (activation_dir,)
-    assert (
-        f'sandbox_workspace_write.writable_roots=["{activation_dir}"]' in command.argv
-    )
+    assert repeated_values(command.argv, "--add-dir") == expected
+    assert writable_roots_in(command.argv) == expected
 
 
 @pytest.mark.parametrize("writes", [True, False])
@@ -481,9 +499,14 @@ def test_codex_grants_the_channels_directory_and_never_the_activation_dir(
     Codex's sandbox grants DIRECTORIES, so before the channels moved into their
     own subdirectory, making `$WF_OUTCOME_FILE` writable — which §6 requires
     regardless of `writes` — also made `exec.ledger`, `launch-receipt.json`,
-    `exit.json` and `completion.json` writable. Every path this argv grants must
-    now be the channels directory, and the activation directory must appear
-    nowhere.
+    `exit.json` and `completion.json` writable. Every path this argv grants is
+    enumerated here and the activation directory must appear nowhere.
+
+    A `writes = true` node grants its worktree's git state on top, and that is
+    checked for the same property from the other side: `<G>` and the three
+    `<common>` directories are exactly what a commit touches, and the parent
+    repository's `.git` itself — `config`, `hooks/`, `info/`, `refs/wf` — is
+    never among them.
     """
     task = make_task(tmp_path, writes=writes)
     channels_dir = Path(task.channels.outcome_file).parent
@@ -493,15 +516,25 @@ def test_codex_grants_the_channels_directory_and_never_the_activation_dir(
     command = profile.build_command(task, "")
 
     granted = set(values_after(command.argv, "-C"))
-    if "--add-dir" in command.argv:
-        granted |= set(values_after(command.argv, "--add-dir"))
-    for item in command.argv:
-        if item.startswith(f"{WRITABLE_ROOTS_KEY}="):
-            granted |= set(json.loads(item.split("=", 1)[1]))
-    expected = {str(channels_dir)} | ({task.cwd} if writes else set())
+    granted |= set(repeated_values(command.argv, "--add-dir"))
+    granted |= set(writable_roots_in(command.argv))
+    git_state = set(git_write_roots_of(Path(task.cwd))) if writes else set()
+    expected = {str(channels_dir)} | ({task.cwd} if writes else set()) | git_state
     assert granted == expected
     assert str(activation_dir) not in granted
     assert channels_dir.name == CHANNELS_DIR
+    if writes:
+        common = Path(git_write_roots_of(Path(task.cwd))[1]).parent
+        forbidden = (
+            common,
+            common / "config",
+            common / "hooks",
+            common / "info",
+            common / "refs",
+            common / "refs" / "wf",
+        )
+        for path in forbidden:
+            assert str(path) not in granted, path
 
 
 @pytest.mark.parametrize("writes", [True, False])
@@ -550,18 +583,23 @@ def test_a_writing_codex_resume_never_emits_the_flag_resume_cannot_parse(
 
     Emitting it there is not a soft failure — clap exits 2 before the model is
     reached, so every §8.1 continuation on a writing node would die as a
-    transport error. The grant travels as `writable_roots` instead, which both
-    subcommands accept.
+    transport error. The whole grant travels as `writable_roots` instead, which
+    both subcommands accept — and it must be the SAME grant the launch made,
+    channels and worktree git state alike, or the continuation would be running
+    in a box the node was never admitted to.
     """
     task = make_task(tmp_path, writes=True)
     channels_dir = str(Path(task.channels.outcome_file).parent)
+    expected = (channels_dir, *git_write_roots_of(Path(task.cwd)))
     profile = make_codex(tmp_path, FrozenClock())
-    profile.build_command(task, "")
+    launched = profile.build_command(task, "")
 
     resumed = profile.build_resume_command("01a03d87", INSTRUCTIONS, task)
 
     assert "--add-dir" not in resumed.argv
-    assert f'sandbox_workspace_write.writable_roots=["{channels_dir}"]' in resumed.argv
+    assert writable_roots_in(resumed.argv) == expected
+    assert writable_roots_in(launched.argv) == writable_roots_in(resumed.argv)
+    assert resumed.cwd == launched.cwd == task.cwd
 
 
 def test_codex_refuses_to_resume_a_thread_it_was_never_told_about(

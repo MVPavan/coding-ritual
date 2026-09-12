@@ -25,12 +25,13 @@ Not a test module. Three things live here:
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import signal
 import subprocess
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Final
 
 from tests._supervisor import (
@@ -202,6 +203,91 @@ def make_channels(tmp_path: Path, activation_id: str = ACTIVATION) -> RunnerChan
     return channels_for(activation_dir, activation_dir / "run.jsonl", activation_id)
 
 
+CHECKOUT_BRANCH: Final[str] = "wf/lab-checkout"
+"""The branch a lab checkout is put on, so a commit made in it updates a real
+`<common>/refs/heads/...` instead of moving a detached HEAD only."""
+
+
+def make_checkout(tmp_path: Path, worktree: Path) -> Path:
+    """A real §5.4 linked worktree under `tmp_path`, created once.
+
+    The shape is what makes a writer's bound assertable: `<C>/.git` is the
+    `gitdir:` LINK FILE, the index lives in `<G>` inside the parent repository,
+    and the object store, branch refs and reflogs are all outside the working
+    root. A bare `mkdir` has none of that, so a profile that must grant `<G>`
+    could not be tested against it at all.
+
+    Idempotent on the worktree path, because the profile builders call it for
+    every task and a second `git worktree add` on the same path fails.
+    """
+    if (worktree / ".git").is_file():
+        return worktree
+    repo = make_repo(tmp_path)
+    worktree.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [
+            "git",
+            "worktree",
+            "add",
+            "--quiet",
+            "-b",
+            CHECKOUT_BRANCH,
+            str(worktree),
+            head_of(repo),
+        ],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        timeout=GIT_TIMEOUT_S,
+    )
+    return worktree
+
+
+WRITABLE_ROOTS_PREFIX: Final[str] = "sandbox_workspace_write.writable_roots="
+
+
+def writable_roots_in(argv: tuple[str, ...]) -> tuple[str, ...]:
+    """The `writable_roots` list one codex argv carries, decoded, in order.
+
+    One reader for every test that asks the question, because the answer is a
+    TOML list inside a shell word and comparing the word itself makes an
+    assertion about `json.dumps` spacing rather than about the grant.
+    """
+    for word in argv:
+        if word.startswith(WRITABLE_ROOTS_PREFIX):
+            decoded: list[str] = json.loads(word.removeprefix(WRITABLE_ROOTS_PREFIX))
+            return tuple(decoded)
+    return ()
+
+
+def git_write_roots_of(checkout: Path) -> tuple[str, ...]:
+    """The git directories a commit in a linked worktree touches, read off disk.
+
+    Spelled out here rather than imported from
+    `supervisor/sandbox.py::worktree_git_write_roots`: an assertion that calls
+    the function it is asserting about states nothing at all. This walks the
+    three files by hand — `<C>/.git` names `<G>`, `<G>/commondir` names the
+    shared git dir, `<G>/HEAD` names the branch — and names the directories
+    independently.
+
+    The branch is what keeps the last two entries from being `refs/heads` and
+    `logs`: a commit on `refs/heads/wf/<id>` takes its ref lock in
+    `<common>/refs/heads/wf` and appends its reflog line in
+    `<common>/logs/refs/heads/wf`, and the directories ABOVE those hold every
+    other branch's ref and reflog. A detached head names neither.
+    """
+    link = (checkout / ".git").read_text(encoding="utf-8").strip()
+    gitdir = Path(link.removeprefix("gitdir:").strip()).resolve()
+    relative = (gitdir / "commondir").read_text(encoding="utf-8").strip()
+    common = (gitdir / relative).resolve()
+    head = (gitdir / "HEAD").read_text(encoding="utf-8").strip()
+    roots = [str(gitdir), str(common / "objects")]
+    if head.startswith("ref: refs/heads/"):
+        branch_dir = PurePosixPath(head.removeprefix("ref: ")).parent
+        roots += [str(common / branch_dir), str(common / "logs" / branch_dir)]
+    return tuple(roots)
+
+
 def make_task(
     tmp_path: Path,
     *,
@@ -213,9 +299,22 @@ def make_task(
     allowed_paths: tuple[str, ...] = (),
     effort: str | None = "medium",
 ) -> TaskSpec:
-    """A `TaskSpec` for one node, with a checkout directory that exists."""
-    worktree = cwd or (tmp_path / ".wf" / ROOT_ID / "worktree")
-    worktree.mkdir(parents=True, exist_ok=True)
+    """A `TaskSpec` for one node, over a checkout shaped like production's.
+
+    The checkout is a REAL §5.4 linked worktree, not a bare directory. It used
+    to be `mkdir` and that quietly made every writer assertion in this family
+    optimistic: a writer's git state lives in the parent repository, a bare
+    directory has none, and a profile that had to name `<G>` could be asserted
+    against a task no production dispatch could ever look like.
+    `make_checkout` is idempotent, so the cost is one `git worktree add` per
+    `tmp_path` rather than one per task. An explicit `cwd` is taken EXACTLY as
+    given and never converted: the tests that pass one are asking what a profile
+    does about a checkout of some other shape, and silently making it a worktree
+    would answer a different question.
+    """
+    if cwd is not None:
+        cwd.mkdir(parents=True, exist_ok=True)
+    worktree = cwd or make_checkout(tmp_path, tmp_path / ".wf" / ROOT_ID / "worktree")
     return TaskSpec(
         root_id=ROOT_ID,
         activation_id=ACTIVATION,

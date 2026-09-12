@@ -80,7 +80,19 @@ is created in it), so both are pinned back — a runner that can repoint
 there. Probed: the escape works without these pins."""
 OBJECTS_DIR: Final[str] = "objects"
 REFS_DIR: Final[str] = "refs"
+HEADS_DIR: Final[str] = "refs/heads"
+"""The branch half of `<common>/refs`. Neither layer is told about this
+directory as a whole: `_branch_write_dirs` descends to the directory that holds
+THIS checkout's own branch, so `refs/heads/main` is outside the writable set of
+a `wf/<root-id>` candidate rather than merely unpinned."""
 LOGS_DIR: Final[str] = "logs"
+HEAD_FILE: Final[str] = "HEAD"
+HEAD_REF_PREFIX: Final[str] = "ref: "
+"""`<G>/HEAD` says which branch this checkout is on, and it is the ONLY thing
+either layer consults to decide which ref and which reflog it may write. A
+detached HEAD has no `ref: ` line and therefore earns no shared-ref grant at
+all — its commit moves `<G>/HEAD` and `<G>/logs/HEAD`, both already inside
+`<G>`."""
 PACKED_REFS_FILE: Final[str] = "packed-refs"
 CONFIG_FILE: Final[str] = "config"
 CONFIG_WORKTREE_FILE: Final[str] = "config.worktree"
@@ -163,6 +175,18 @@ _MSG_GRANT_SHAPE: Final[str] = (
     "be <dir>/** with no empty segment and no segment starting with a dot"
 )
 _MSG_RELATIVE: Final[str] = "every sandbox bind must be absolute, got {path}"
+_MSG_NOT_A_WORKTREE: Final[str] = (
+    "{checkout} is not a §5.4 linked worktree ({shape}); a writer's git state "
+    "can only be handed to a vendor sandbox as directories when <C>/.git is the "
+    "{prefix!r} link file, so the git write roots are refused rather than guessed"
+)
+_MSG_GIT_ROOT_ABSENT: Final[str] = (
+    "git write root {path} does not exist; a vendor sandbox is told about "
+    "directories that are already on disk, never about ones it might create"
+)
+
+_SHAPE_DIR: Final[str] = "<C>/.git is a directory, so this is an in-repo checkout"
+_SHAPE_NONE: Final[str] = "<C>/.git is not there at all"
 
 _FIELD_REPO_ROOT: Final[str] = "repo_root"
 _FIELD_WRAPPER_ROOT: Final[str] = "wrapper_root"
@@ -349,6 +373,101 @@ def _common_dir(gitdir: Path) -> Path:
     return named.resolve()
 
 
+def _branch_ref(gitdir: Path) -> PurePosixPath | None:
+    """The branch ref `<G>/HEAD` names, or `None` when there is no such branch.
+
+    `None` for a DETACHED head, for a `HEAD` that is missing or unreadable, and
+    for anything that does not spell a plain `refs/heads/...` ref — which is the
+    fail-closed direction, because `None` grants a commit NOTHING outside `<G>`
+    rather than granting a directory derived from text a runner might control.
+    `<G>/HEAD` is inside the writable `<G>` and so IS runner-controlled between
+    dispatches: the sanitising below is why that cannot become a grant of
+    `<common>/hooks` via a `HEAD` reading `ref: refs/heads/../../hooks/x`.
+    """
+    head = gitdir / HEAD_FILE
+    if not head.is_file():
+        return None
+    try:
+        text = head.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    if not text.startswith(HEAD_REF_PREFIX):
+        return None
+    ref = PurePosixPath(text[len(HEAD_REF_PREFIX) :].strip())
+    if ref.is_absolute() or not ref.is_relative_to(HEADS_DIR):
+        return None
+    if len(ref.parts) <= len(PurePosixPath(HEADS_DIR).parts):
+        return None
+    if any(segment in ("", ".", "..") for segment in ref.parts):
+        return None
+    return ref
+
+
+def _branch_write_dirs(gitdir: Path, common: Path) -> tuple[Path, Path] | None:
+    """The two shared directories this checkout's own branch update writes in.
+
+    A commit on `refs/heads/wf/<root-id>` rewrites the LOOSE ref through
+    `refs/heads/wf/<root-id>.lock`, which is created in `<common>/refs/heads/wf`,
+    and appends one line to `<common>/logs/refs/heads/wf/<root-id>`. Both are
+    named as the DIRECTORY that holds them, and both stop one level above the
+    ref rather than at `refs/heads` and `logs`:
+
+    - `<common>/logs` as a whole is every branch's and every worktree's reflog.
+      Granting it lets a writer overwrite `logs/refs/heads/main` — the parent
+      checkout's history — and `logs/refs/wf/...`, the wrapper's own evidence
+      reflog, on both layers at once. That was a real overgrant and this
+      function is the fix for it.
+    - `<common>/refs/heads` as a whole is every branch. The mount bound could
+      pin `refs/wf` back out of it, but nothing pins `refs/heads/main`, and the
+      vendor layer cannot pin anything back at all.
+
+    The directory, not the file, because directory granularity is the VENDOR's
+    constraint and not a preference: codex 0.154 creates synthetic bubblewrap
+    mount targets (`<root>/.git`, `<root>/.codex`, `<root>/.agents`) inside each
+    writable root, and handing it a file panics the launcher outright
+    (`failed to inspect synthetic bubblewrap mount target ...: Not a directory`).
+    Measured, not assumed. The residual is therefore one directory wide: a
+    candidate branch shares its directory with its siblings under the same
+    namespace. §5.4 names every candidate branch `wf/<root_id>`
+    (`supervisor/artifact.py::BRANCH_TEMPLATE`), so in production that namespace
+    holds only other instances' branches — never `main`, never `refs/wf`. A
+    checkout sitting directly on a top-level branch gets `refs/heads` and
+    `logs/refs/heads` themselves, which is the widest this can be and is
+    recorded as the residual it is.
+
+    `None` for a detached head, which needs no shared-ref grant: its commit moves
+    `<G>/HEAD` and appends to `<G>/logs/HEAD`, both inside `<G>` already. `None`
+    too for a SYMLINKED segment, for the same reason `_grant_path` refuses one:
+    the mount bound binds by real path, so a `refs/heads/wf` replaced with a
+    link to `<common>/hooks` would make this name `hooks` — and the outer bind
+    would close it while the vendor layer, told the same name, granted the
+    programs the wrapper's own git runs.
+    """
+    ref = _branch_ref(gitdir)
+    if ref is None:
+        return None
+    dirs = (common / ref.parent, common / LOGS_DIR / ref.parent)
+    relatives = (ref.parent, PurePosixPath(LOGS_DIR) / ref.parent)
+    if not all(_unlinked_descent(common, relative) for relative in relatives):
+        return None
+    return dirs
+
+
+def _unlinked_descent(root: Path, relative: PurePosixPath) -> bool:
+    """Whether every segment from `root` down to `relative` is a real directory.
+
+    Existence is NOT required — `_worktree_binds` pre-creates these — but a
+    segment that is already a symlink is, because resolving it would silently
+    move the grant somewhere the caller never named.
+    """
+    named = root
+    for segment in relative.parts:
+        named /= segment
+        if named.is_symlink():
+            return False
+    return True
+
+
 def _in_repo_binds(
     git_dir: Path,
 ) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
@@ -387,11 +506,35 @@ def _worktree_binds(
 ) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     """Worktree shape: the common object store plus this worktree's own git dir.
 
-    `logs` is load-bearing and was missed first: without it `git commit` dies
-    `unable to append to '.git/logs/refs/heads/<branch>'`. It is PRE-CREATED
-    rather than existence-gated: a repo whose first ref update has not happened
-    yet has no `logs/` at all, and gating it there would leave the runner's own
-    commit failing EROFS trying to create it under a read-only `.git`.
+    The reflog half is load-bearing and was got wrong TWICE. Omitted first, and
+    `git commit` dies `unable to append to '.git/logs/refs/heads/<branch>'`.
+    Then granted as the whole of `<common>/logs`, which is every branch's and
+    every worktree's reflog: with `main` already advanced in the parent checkout
+    a runner could overwrite `logs/refs/heads/main`, and with a §6 evidence ref
+    pinned it could overwrite `logs/refs/wf/...` — the one directory in `logs`
+    the wrapper's own bookkeeping depends on, and unlike `refs/wf` it had no pin
+    standing behind it. `_branch_write_dirs` narrows it to the directory holding
+    THIS checkout's own branch reflog, which is the same directory the vendor
+    layer is told about, so neither bound is wider than the other.
+
+    Both branch directories are PRE-CREATED rather than existence-gated, for two
+    different reasons that arrive at the same place. A repo whose first ref
+    update has not happened yet has no `logs/` at all, and gating it there would
+    leave the runner's own commit failing EROFS trying to create it under a
+    read-only `.git`. And `<common>/refs/heads/<namespace>` disappears once the
+    branch is PACKED (`git pack-refs` prunes the empty directory), after which a
+    commit has to recreate the loose ref in a directory that is no longer there.
+    The refs directory is created but not bound: `<common>/refs` above already
+    covers it, and a second read-write bind of a child of a read-write bind
+    means nothing. A DETACHED head creates and binds neither — it has no branch
+    reflog, and `<G>/logs/HEAD` is already inside `<G>`.
+
+    One residual, stated rather than hidden: a runner whose own work wants a
+    reflog OUTSIDE its branch — `git stash` writes `logs/refs/stash` — no longer
+    gets it. That is this module's contract read literally (the writable set is
+    "the git state a commit needs"), it fails loudly in git rather than
+    silently, and it is the price of not handing every writer the parent
+    checkout's history.
 
     `commondir` and `gitdir` are pinned back out of the read-write `<G>`: they
     are POINTERS, and a runner that repoints `commondir` at a directory it
@@ -401,7 +544,12 @@ def _worktree_binds(
     """
     gitdir = _parse_gitdir(git_file)
     common = _common_dir(gitdir)
-    _ensure_dir(common / LOGS_DIR)
+    branch_dirs = _branch_write_dirs(gitdir, common)
+    reflog_dirs: tuple[Path, ...] = ()
+    if branch_dirs is not None:
+        for path in branch_dirs:
+            _ensure_dir(path)
+        reflog_dirs = (branch_dirs[1],)
     _ensure_file(common / PACKED_REFS_FILE)
     _ensure_file(gitdir / CONFIG_WORKTREE_FILE)
     _ensure_dir(gitdir / INFO_DIR)
@@ -409,7 +557,7 @@ def _worktree_binds(
         (
             common / OBJECTS_DIR,
             common / REFS_DIR,
-            common / LOGS_DIR,
+            *reflog_dirs,
             common / PACKED_REFS_FILE,
             gitdir,
         )
@@ -440,6 +588,83 @@ def _git_binds(
     if entry.is_file():
         return _worktree_binds(entry)
     return ((), ())
+
+
+def worktree_git_write_roots(checkout: Path) -> tuple[Path, ...]:
+    """The DIRECTORIES a §5.4 worktree writer must write to stage and commit.
+
+    Public for the same reason `grant_directory` is: a vendor whose sandbox
+    grants directories has to be told the same git write set the §2 mount bound
+    holds, and two spellings of it would be two answers. `_worktree_binds` is
+    the mount-bound half; this is the half a profile hands to a vendor.
+
+    The set is what a real probe needed and nothing more (edit → `git add` →
+    `git commit`, executed under `codex sandbox`, no model turn):
+
+    - **`<G>`**, this worktree's own git dir. `index.lock` is created HERE, in
+      the parent repository, and its absence from a vendor's writable set is the
+      whole bug this function exists for: `workspace-write` makes the working
+      root writable, `<G>` is not under it, and `git add` dies
+      `Unable to create '<G>/index.lock': Read-only file system` while ordinary
+      source edits succeed. `HEAD`, `ORIG_HEAD`, `COMMIT_EDITMSG` and
+      `logs/HEAD` are per-worktree and live here too.
+    - **`<common>/objects`**, where the new blobs, trees and commit go.
+    - **the branch pair from `_branch_write_dirs`** — the directory holding this
+      checkout's own loose ref and the directory holding its own reflog, e.g.
+      `<common>/refs/heads/wf` and `<common>/logs/refs/heads/wf` for a
+      `wf/<root-id>` candidate. Not `<common>/refs`, not `<common>/refs/heads`
+      and emphatically not `<common>/logs`: those are every branch's ref and
+      every branch's and worktree's reflog, so granting them hands a writer the
+      parent checkout's `main` history and the wrapper's own `refs/wf` evidence
+      reflog. A detached head contributes NEITHER — it has no branch to move.
+
+    Three things are deliberately NOT here. `<common>` itself, because that is
+    `config` and `hooks/` and `info/` — blanket write on the parent repository's
+    program-naming surface, which is the one grant a writer must never hold.
+    `<common>/packed-refs`, because it is a FILE and granting it would mean
+    granting its parent; a commit writes a LOOSE ref and never needs it, so a
+    repository whose branch is packed still commits (probed) — if some future
+    caller does need it, it fails loudly rather than silently widening anything.
+    And `<G>`'s own `commondir`/`gitdir` POINTER files, which this cannot
+    subtract: they sit inside `<G>` and a vendor grant of `<G>` necessarily
+    includes them. That residual is closed by the mount bound's `ro_pins`, which
+    are emitted LAST and re-close them (probed end to end, red and green:
+    `tests/test_codex_writer_qualification.py`). **The outer bound stays the
+    authority; this narrows what the inner layer is told, it does not replace
+    it.**
+
+    Fail-closed in both directions. A checkout that is not a worktree link —
+    an in-repo `.git` DIRECTORY, or no `.git` at all — is refused rather than
+    approximated, because the in-repo shape puts `index.lock` directly inside
+    the directory that also holds `config` and `hooks/`, and no directory grant
+    can separate them. A derived root that is not on disk is refused too: a
+    vendor sandbox handed a bind source that does not exist fails as an
+    unattributable `rc=1` (codex's own sandbox is `bwrap`, and it reports
+    `Can't bind mount ...: No such file or directory`), which is exactly the
+    ambiguous failure this module refuses to hand anybody. `plan_for` runs
+    BEFORE any profile builds argv and pre-creates both branch directories, so
+    the refusal means the topology is wrong, never merely that git has not
+    written there yet.
+    """
+    entry = checkout / GIT_ENTRY
+    if not entry.is_file():
+        shape = _SHAPE_DIR if entry.is_dir() else _SHAPE_NONE
+        raise SandboxPathRefused(
+            _MSG_NOT_A_WORKTREE.format(
+                checkout=checkout, shape=shape, prefix=GITDIR_PREFIX
+            )
+        )
+    gitdir = _parse_gitdir(entry)
+    common = _common_dir(gitdir)
+    roots = (
+        gitdir,
+        common / OBJECTS_DIR,
+        *(_branch_write_dirs(gitdir, common) or ()),
+    )
+    for path in roots:
+        if not path.is_dir():
+            raise SandboxPathRefused(_MSG_GIT_ROOT_ABSENT.format(path=path))
+    return roots
 
 
 def plan_for(

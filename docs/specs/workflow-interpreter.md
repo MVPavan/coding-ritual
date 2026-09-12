@@ -672,6 +672,26 @@ Profiles neither opt in nor out. `sandbox = off` is an unsafe switch,
 recorded on the close as `AuditFlag.SANDBOX_OFF`; a host without a
 working `bwrap` refuses to dispatch — a halt, never an infra retry.
 
+A profile with a permission layer of its own restates that same set in it,
+narrower where it can and never wider. For a `writes = true` node in §5.4
+worktree isolation this includes the git state a commit touches, which is NOT
+under the working root: the index lives in `<git-dir>/worktrees/<name>`, so a
+vendor layer told only about the checkout lets the node edit and then fails its
+first `git add` with `Read-only file system`. The restated set is `<G>`, the
+shared `objects`, and the two directories holding the checkout's OWN branch ref
+and its own reflog — never the shared git directory itself, which holds `config`
+and `hooks/`, and never `refs/heads` or `logs` as a whole, which hold every
+branch's ref and every branch's and worktree's reflog. Both bounds state the
+same set: a grant of `logs` lets a node rewrite the parent checkout's history
+and the reflog of the workflow's own evidence refs, and no read-only pin can
+enumerate the branches it would have to take back. A detached checkout has no
+branch and is granted neither directory. A vendor that grants whole directories
+cannot express the in-repo shape at all, because there the index and those
+program-naming files share one directory; such a node is refused before dispatch
+rather than granted. The mount bound remains the authority: where a vendor layer
+cannot subtract a path — a worktree's `commondir`/`gitdir` pointer files, which
+sit inside `<G>` — the read-only pins are what close it.
+
 **Runner channels** (wrapper-provided env, writable regardless of
 `writes`): `$WF_OUTCOME_FILE` — exactly one schema-validated outcome
 marker (THE reserved channel; zero, duplicate, or unparseable →

@@ -47,6 +47,34 @@ probes and both shape this file:
   checkout — is not `<root>/.git` and is writable. Nothing follows from it
   wrapper-side, because `gitio.GitSubcommand` is a closed set and none of its
   members recurses into a submodule, so no wrapper git ever reads that config.
+- **A `writes = true` node needs git state the working root does not contain.**
+  That rule above says where a writer's git state may NOT be; it said nothing
+  about where it IS, and for §5.4 worktree isolation the answer is "in the parent
+  repository". `<C>/.git` is a link file, the index lives in `<G>` under
+  `<parent>/.git/worktrees/<name>/`, and `workspace-write` grants the working
+  root — so a codex writer edited source, reported success, and then died
+  `Unable to create '<G>/index.lock': Read-only file system` the moment it
+  staged. `_writable_roots` grants the directories a commit actually touches —
+  `<G>`, the shared object store, and the two directories holding THIS
+  checkout's own branch ref and its own reflog — derived by
+  `supervisor/sandbox.py::worktree_git_write_roots` from the same topology the
+  §2 mount bound binds. Not `refs/heads` and not `logs`: those hold every
+  branch's ref and every branch's and worktree's reflog, so a node granted them
+  could rewrite the parent checkout's `main` history and the wrapper's own
+  `refs/wf` evidence reflog. The in-repo band gets a refusal instead: there
+  `index.lock` shares a directory with `config` and `hooks/`, and a vendor layer
+  that grants directories cannot separate them.
+- **Codex's own sandbox is `bwrap`, and it needs synthetic mount targets in the
+  working root.** 0.154 creates and then removes `<cwd>/.agents`, `<cwd>/.codex`
+  and `<root>/.git` for every writable root, so each of those directories must
+  either already hold those entries or be writable by the codex PARENT process.
+  Under the §2 mount bound a writer's checkout is read-only outside its grants,
+  which means a checkout with no `.agents` and no `.codex` fails at launch with
+  a bare `bwrap: Can't mkdir ...: Read-only file system` and no model turn. This
+  repository commits both, so the production path is satisfied; it is recorded
+  as a residual rather than worked around, because pre-creating vendor-named
+  directories inside somebody's checkout is a side effect the wrapper should not
+  have and the mount planner is deliberately vendor-neutral.
 - **Codex cannot pre-assign a session id.** `thread_id` is emitted in the first
   `--json` line and is settable nowhere. §5.2 wants it pre-assigned; this is
   recorded as a deviation, not worked around.
@@ -69,13 +97,14 @@ from workflow_interpreter.profiles._base import (
     text_at,
 )
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RunnerName
-from workflow_interpreter.profiles.errors import TaskRefused
+from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
 from workflow_interpreter.supervisor.profile import (
     EventType,
     RunnerCommand,
     RunnerEvent,
     TaskSpec,
 )
+from workflow_interpreter.supervisor.sandbox import GIT_ENTRY, worktree_git_write_roots
 
 EXEC: Final[str] = "exec"
 RESUME: Final[str] = "resume"
@@ -162,6 +191,17 @@ KEY_INPUT_TOKENS: Final[str] = "input_tokens"
 KEY_CACHED_INPUT_TOKENS: Final[str] = "cached_input_tokens"
 KEY_CACHE_WRITE_INPUT_TOKENS: Final[str] = "cache_write_input_tokens"
 KEY_OUTPUT_TOKENS: Final[str] = "output_tokens"
+
+_MSG_IN_REPO: Final[str] = (
+    "codex: node {node!r} writes and its checkout {checkout} is an in-repo "
+    "band checkout, which this runner cannot be bounded for. `git add` creates "
+    "`index.lock` directly inside `<C>/.git`, and that same directory holds "
+    "`config`, `hooks/` and `info/` — the surface that names PROGRAMS the "
+    "wrapper's own git later executes. `sandbox_workspace_write` grants whole "
+    "directories and has no key that takes a subdirectory back, so granting the "
+    "one would grant the others. Run this node in §5.4 worktree isolation, or "
+    "bind the role to a runner whose permission layer is path-exact."
+)
 
 _MSG_NO_SESSION: Final[str] = (
     "codex: cannot resume without a thread id; codex assigns one in its first "
@@ -299,12 +339,12 @@ class CodexProfile(BaseProfile):
             CONFIG,
             _toml_bool(KEY_EXCLUDE_SLASH_TMP, value=True),
         ]
-        channels_dir = str(_channels_dir(task))
-        if channels_dir == root:
+        roots = _writable_roots(task, root)
+        if not roots:
             return flags
         return [
             CONFIG,
-            _toml_list(KEY_WRITABLE_ROOTS, (channels_dir,)),
+            _toml_list(KEY_WRITABLE_ROOTS, roots),
             *flags,
         ]
 
@@ -313,10 +353,15 @@ class CodexProfile(BaseProfile):
 
         Redundant with `writable_roots` by design rather than by accident: the
         launch states the grant both ways so the flag path and the config path
-        cannot disagree, and the resume states it the only way it can.
+        cannot disagree, and the resume states it the only way it can. Both
+        spellings come off the SAME `_writable_roots` call for the same reason —
+        the §8.1 continuation has to describe the box the launch described, and
+        two lists built two ways is how that stops being true.
         """
-        channels_dir = str(_channels_dir(task))
-        return [] if channels_dir == root else [ADD_DIR, channels_dir]
+        words: list[str] = []
+        for granted in _writable_roots(task, root):
+            words += [ADD_DIR, granted]
+        return words
 
     def _shared_flags(self, task: TaskSpec) -> list[str]:
         """Model and effort, in codex's own vocabulary."""
@@ -393,6 +438,51 @@ def _item_event(item: Mapping[str, object], kind: str) -> RunnerEvent:
     if item_type == ITEM_AGENT_MESSAGE:
         return RunnerEvent(type=EventType.MESSAGE, text=text_at(item, KEY_TEXT))
     return RunnerEvent(type=EventType.MESSAGE, text=item_type or kind)
+
+
+def _writable_roots(task: TaskSpec, root: str) -> tuple[str, ...]:
+    """Every directory this invocation grants BESIDES the workspace root.
+
+    Two groups, and the second is the whole point of this function existing:
+
+    - the §6 channels, whenever they are not already the root (a `writes = false`
+      node IS rooted there, and a grant of the root is not a second grant);
+    - for a `writes = true` node, the git state a commit touches — `<G>` in the
+      PARENT repository where `index.lock` is created, the shared object store,
+      and the two directories holding this checkout's OWN branch ref and its own
+      reflog (`worktree_git_write_roots`). Neither `refs/heads` nor `logs`
+      wholesale: a grant of those is a grant of every other branch's history.
+
+    The second group is the fix for a defect that looked like success:
+    `workspace-write` made the checkout writable, so a codex writer edited
+    source happily and then died on `git add` with
+    `Unable to create '<G>/index.lock': Read-only file system`, because a linked
+    worktree keeps its index OUTSIDE the working root. §6 requires a writing
+    node to produce a candidate COMMIT, so a runner that can edit and not stage
+    is a runner that cannot finish, and every such node graded `fail_code` with
+    the edits sitting uncommitted.
+
+    The set is the supervisor's, not this file's: `worktree_git_write_roots`
+    derives it from the same `<C>/.git` topology `sandbox.plan_for` binds, which
+    is what keeps the vendor layer from ever claiming a grant the §2 mount bound
+    does not hold. It refuses a checkout that is not a linked worktree; the
+    in-repo band is turned into a §6 "unsupported option" refusal HERE, before
+    dispatch, because the reason is about this vendor's permission model rather
+    than about the path being unbindable.
+    """
+    roots: list[str] = []
+    channels_dir = str(_channels_dir(task))
+    if channels_dir != root:
+        roots.append(channels_dir)
+    if not task.writes:
+        return tuple(roots)
+    checkout = Path(require_absolute(RunnerName.CODEX, "task cwd", task.cwd))
+    if (checkout / GIT_ENTRY).is_dir():
+        raise UnsupportedOptionError(
+            _MSG_IN_REPO.format(node=task.node, checkout=checkout)
+        )
+    roots += [str(path) for path in worktree_git_write_roots(checkout)]
+    return tuple(roots)
 
 
 def _channels_dir(task: TaskSpec) -> Path:

@@ -69,14 +69,26 @@ host         = "@HOST@"
 # `implementer` and `critic` — and instantiation refuses a graph whose roles are
 # not all bound here ("unknown runner roles").
 #
-# The writer is claude and the reviewer is codex, not the other way round: the
-# codex sandbox makes `<root>/.git` read-only inside every writable root in BOTH
-# `writes` modes (`tests/test_profiles_git_isolation.py`), so a codex writer
-# cannot commit its own work. As the reviewer it is the stronger choice —
-# `writes = false` roots it in the activation's `channels/` directory, leaving
-# the checkout readable-but-unwritable while its findings channel stays writable
-# (`profiles/codex.py` `_workspace_root`). Each role states the model and effort
-# that its root pins.
+# The writer is claude and the reviewer is codex here, and that is a default
+# rather than a constraint. It used to be a constraint: the codex sandbox makes
+# `<root>/.git` read-only inside every writable root, and a §5.4 worktree keeps
+# its index OUTSIDE the working root, so a codex writer edited source happily and
+# then died `Unable to create '<G>/index.lock': Read-only file system` on its
+# first `git add`. A codex writer now grants the git directories a commit touches
+# and nothing else — its own `<G>`, the shared object store, and the directories
+# holding its OWN branch ref and reflog, never `refs/heads` or `logs` whole —
+# qualified end to end against the real sandbox by
+# `tests/test_codex_writer_qualification.py`, so binding `implementer` to codex
+# is supported — with one condition: the node must run in worktree isolation.
+# In the §12 in-repo band `index.lock` shares a directory with `config` and
+# `hooks/`, which a directory-granularity sandbox cannot separate, and the
+# profile refuses such a dispatch with that explanation instead of widening.
+#
+# As the reviewer codex remains the stronger choice — `writes = false` roots it
+# in the activation's `channels/` directory, leaving the checkout
+# readable-but-unwritable while its findings channel stays writable
+# (`profiles/codex.py` `_workspace_root`), and it gains no git grant at all.
+# Each role states the model and effort that its root pins.
 [roles.implementer]
 profile = "claude"
 model = "claude-opus-5"
