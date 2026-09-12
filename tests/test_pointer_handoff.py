@@ -11,7 +11,13 @@ import pytest
 from tests._bdio import entry_request, load_definition, make_root
 from tests._foreman import ForemanLab
 from tests._foreman import entry_request as lab_entry_request
-from tests._supervisor import make_config, make_git, make_repo
+from tests._supervisor import (
+    add_submodule,
+    commit_all,
+    make_config,
+    make_git,
+    make_repo,
+)
 from workflow_interpreter.bdio import Evidence, InputBinding, MintReason, Outcome
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
 from workflow_interpreter.foreman.envelope import InputsUnavailable
@@ -27,7 +33,7 @@ from workflow_interpreter.schema.loader import (
 )
 from workflow_interpreter.schema.models import ArtifactInputMode, RuleId
 from workflow_interpreter.supervisor import activation_ref, channels_for
-from workflow_interpreter.supervisor.errors import SandboxUnavailable
+from workflow_interpreter.supervisor.errors import GitCommandError, SandboxUnavailable
 from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 
@@ -92,6 +98,26 @@ def _pinned_writer(fake_store, tmp_path: Path):
         digest=evidence.artifact.tree_oid,
     )
     return repo, git, root, producer, binding
+
+
+def _with_reports(producer, git, repo: Path, ref: str, commit: str):
+    evidence = producer.metadata.evidence
+    assert evidence is not None
+    git.update_ref(ref, commit, cwd=repo)
+    return producer.model_copy(
+        update={
+            "metadata": producer.metadata.model_copy(
+                update={
+                    "evidence": evidence.model_copy(
+                        update={
+                            "outputs_ref": ref,
+                            "outputs_tree_oid": git.tree_oid(commit, cwd=repo),
+                        }
+                    )
+                }
+            )
+        }
+    )
 
 
 def test_mode_is_task_only_and_absent_mode_keeps_legacy_canonical_bytes(
@@ -321,6 +347,137 @@ def test_export_rejects_unsafe_report_entries_and_rebuilds_stale_directory(
         )
     )
     assert not (Path(rebuilt["index_path"]).parent / "partial").exists()
+
+
+def test_export_rejects_a_symlink_from_a_real_git_tree(
+    fake_store, tmp_path: Path
+) -> None:
+    repo, git, root, producer, binding = _pinned_writer(fake_store, tmp_path)
+    (repo / "report-link").symlink_to("source.txt")
+    report_commit = git.snapshot_commit(
+        message="symlink report",
+        parents=(git.head_commit(cwd=repo),),
+        index_path=tmp_path / "symlink.index",
+        cwd=repo,
+    )
+    producer = _with_reports(producer, git, repo, "refs/wf/test/symlink", report_commit)
+
+    with pytest.raises(InputsUnavailable, match="unsupported entry"):
+        export_reference(git, repo, tmp_path, root, binding, producer)
+
+
+def test_export_rejects_a_gitlink_from_a_real_git_tree(
+    fake_store, tmp_path: Path
+) -> None:
+    repo, git, root, producer, binding = _pinned_writer(fake_store, tmp_path)
+    add_submodule(repo, "vendored")
+    report_commit = commit_all(repo, "gitlink report")
+    producer = _with_reports(producer, git, repo, "refs/wf/test/gitlink", report_commit)
+
+    with pytest.raises(InputsUnavailable, match="non-blob entry"):
+        export_reference(git, repo, tmp_path, root, binding, producer)
+
+
+def test_output_snapshot_export_requires_the_declared_tree(
+    fake_store, tmp_path: Path
+) -> None:
+    repo, git, root, producer, _ = _pinned_writer(fake_store, tmp_path)
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    (reports / "finding.md").write_text("output-only finding\n", encoding="utf-8")
+    report_commit = git.commit_directory(
+        ("finding.md",),
+        root=reports,
+        message="output snapshot",
+        index_path=tmp_path / "outputs.index",
+        cwd=repo,
+    )
+    report_ref = "refs/wf/test/output-only"
+    git.update_ref(report_ref, report_commit, cwd=repo)
+    tree = git.tree_oid(report_commit, cwd=repo)
+    producer = producer.model_copy(
+        update={
+            "metadata": producer.metadata.model_copy(
+                update={
+                    "node": "review",
+                    "evidence": Evidence(
+                        outputs_ref=report_ref,
+                        outputs_tree_oid=tree,
+                    ),
+                }
+            )
+        }
+    )
+    binding = InputBinding(
+        name="review_findings",
+        producer_activation_id=producer.activation_id,
+        artifact_ref=report_ref,
+        digest=tree,
+    )
+    activation = tmp_path / "activation"
+    activation.mkdir()
+
+    index = json.loads(
+        Path(
+            json.loads(
+                export_reference(git, repo, activation, root, binding, producer)
+            )["index_path"]
+        ).read_text(encoding="utf-8")
+    )
+    assert "diff_path" not in index
+    assert Path(index["reports"][0]["path"]).read_text(encoding="utf-8") == (
+        "output-only finding\n"
+    )
+
+    git.update_ref(report_ref, git.head_commit(cwd=repo), cwd=repo)
+    with pytest.raises(InputsUnavailable, match="report tree does not resolve"):
+        export_reference(git, repo, activation, root, binding, producer)
+
+
+def test_repeat_export_reclaims_an_interrupted_stage(
+    fake_store, tmp_path: Path
+) -> None:
+    repo, git, root, producer, binding = _pinned_writer(fake_store, tmp_path)
+    activation = tmp_path / "activation"
+    activation.mkdir()
+    pointer = json.loads(
+        export_reference(git, repo, activation, root, binding, producer)
+    )
+    destination = Path(pointer["index_path"]).parent
+    stale = destination.parent / f".{destination.name}.{'0' * 32}.stage"
+    stale.mkdir()
+    (stale / "partial").write_text("interrupted", encoding="utf-8")
+    unrelated = destination.parent / ".unrelated.00000000000000000000000000000000.stage"
+    unrelated.mkdir()
+
+    export_reference(git, repo, activation, root, binding, producer)
+
+    assert not stale.exists()
+    assert unrelated.is_dir()
+
+
+def test_tree_entry_limit_reports_entries_not_bytes(tmp_path: Path) -> None:
+    repo = make_repo(tmp_path)
+    git = make_git(make_config(repo, tmp_path))
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    for name in ("one.txt", "two.txt"):
+        (reports / name).write_text(name, encoding="utf-8")
+    commit = git.commit_directory(
+        ("one.txt", "two.txt"),
+        root=reports,
+        message="two reports",
+        index_path=tmp_path / "reports.index",
+        cwd=repo,
+    )
+
+    with pytest.raises(GitCommandError, match="exceeds 1 entries"):
+        git.tree_blobs(
+            git.tree_oid(commit, cwd=repo),
+            cwd=repo,
+            limit=1024,
+            max_entries=1,
+        )
 
 
 def test_unusual_report_path_is_index_data_not_an_export_path(

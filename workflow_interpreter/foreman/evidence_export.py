@@ -213,6 +213,7 @@ def _publish(
     """Publish a complete staged set; index is written only after all bodies."""
     parent = destination.parent
     _safe_directory(parent)
+    _reclaim_interrupted_stages(destination)
     if os.path.lexists(destination):
         _remove_engine_tree(destination)
     stage = parent / f".{destination.name}.{uuid.uuid4().hex}.stage"
@@ -259,6 +260,21 @@ def _publish(
         except (OSError, InputsUnavailable):
             pass
         raise
+
+
+def _reclaim_interrupted_stages(destination: Path) -> None:
+    """Remove only stage directories a prior publish of this set could own."""
+    prefix = f".{destination.name}."
+    suffix = ".stage"
+    for path in destination.parent.iterdir():
+        name = path.name
+        if not name.startswith(prefix) or not name.endswith(suffix):
+            continue
+        nonce = name[len(prefix) : -len(suffix)]
+        if len(nonce) == 32 and all(
+            character in "0123456789abcdef" for character in nonce
+        ):
+            _remove_engine_tree(path)
 
 
 def _remove_engine_tree(path: Path) -> None:

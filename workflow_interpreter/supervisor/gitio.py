@@ -69,7 +69,6 @@ from workflow_interpreter.supervisor.errors import GitCommandError
 from workflow_interpreter.supervisor.gitcmd import (
     MAX_ARGV_BYTES,
     SNAPSHOT_IDENTITY,
-    GitOutputTooLarge,
     GitResult,
     GitSubcommand,
     GitTransport,
@@ -328,7 +327,7 @@ class Git(GitTransport):
                 raise GitCommandError("report tree contains a non-blob entry")
             entries.append((mode, oid, path.decode("utf-8", "surrogateescape")))
             if len(entries) > max_entries:
-                raise GitOutputTooLarge(max_entries)
+                raise GitCommandError(f"git tree exceeds {max_entries} entries")
         return tuple(entries)
 
     def blob_text(self, oid: str, *, cwd: Path) -> str:

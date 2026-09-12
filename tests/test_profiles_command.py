@@ -54,6 +54,7 @@ from workflow_interpreter.profiles._base import (
 )
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
+from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor.channels import (
     ENV_GIT_COMMITTER_EMAIL,
     ENV_GIT_COMMITTER_NAME,
@@ -64,6 +65,7 @@ from workflow_interpreter.supervisor.profile import (
     ENV_EFFECTS_FILE,
     ENV_OUTCOME_FILE,
     RunnerCommand,
+    TaskSpec,
 )
 
 BYPASS_TOKENS: Final[tuple[str, ...]] = (
@@ -131,6 +133,24 @@ def repeated_values(argv: tuple[str, ...], flag: str) -> tuple[str, ...]:
     """
     return tuple(
         argv[index + 1] for index, word in enumerate(argv[:-1]) if word == flag
+    )
+
+
+def reference_task(tmp_path: Path) -> tuple[TaskSpec, Path]:
+    """A reviewer task pointing outside its writable channels directory."""
+    task = make_task(tmp_path, writes=False)
+    activation_dir = Path(task.channels.outcome_file).parent.parent
+    index = activation_dir / "evidence" / "published" / "index.json"
+    index.parent.mkdir(parents=True)
+    index.write_text('{"diff_path":"diff-000.patch"}\n', encoding="utf-8")
+    return (
+        task.model_copy(
+            update={
+                "artifact_input_mode": ArtifactInputMode.REFERENCES,
+                "brief": f"Inspect exported evidence at {index}",
+            }
+        ),
+        index,
     )
 
 
@@ -371,6 +391,28 @@ def test_claude_resume_keeps_the_bounds_and_swaps_the_session_flag(
     assert resumed.cwd == launch.cwd
 
 
+def test_claude_launch_and_resume_keep_unscoped_read_for_reference_exports(
+    tmp_path: Path,
+) -> None:
+    """The outer mount protects exports; Claude's tool layer must still read them."""
+    task, index = reference_task(tmp_path)
+    profile = make_claude(tmp_path, FrozenClock())
+    session = new_session()
+    continuation = f"Continue by reading {index}"
+
+    commands = (
+        profile.build_command(task, session),
+        profile.build_resume_command(session, continuation, task),
+    )
+
+    channels_dir = Path(task.channels.outcome_file).parent
+    assert not index.is_relative_to(channels_dir)
+    for command in commands:
+        assert any(str(index) in argument for argument in command.argv)
+        assert "Read" in values_after(command.argv, "--tools")
+        assert "Read" in values_after(command.argv, "--allowedTools")
+
+
 def test_a_resume_is_bounded_by_the_task_it_is_given_not_by_a_remembered_one(
     tmp_path: Path, tmp_path_factory: pytest.TempPathFactory
 ) -> None:
@@ -574,6 +616,36 @@ def test_codex_resume_carries_the_sandbox_as_config_because_it_has_no_flag(
     assert "sandbox_workspace_write.network_access=false" in resumed.argv
     assert "sandbox_workspace_write.exclude_slash_tmp=true" in resumed.argv
     assert resumed.cwd == launch.cwd
+
+
+def test_codex_launch_and_resume_leave_reference_exports_readable_not_writable(
+    tmp_path: Path,
+) -> None:
+    """Workspace-write limits writes; an absolute export pointer remains readable."""
+    task, index = reference_task(tmp_path)
+    profile = make_codex(tmp_path, FrozenClock())
+    continuation = f"Continue by reading {index}"
+
+    commands = (
+        profile.build_command(task, ""),
+        profile.build_resume_command("01a03d87", continuation, task),
+    )
+
+    channels_dir = Path(task.channels.outcome_file).parent
+    assert not index.is_relative_to(channels_dir)
+    for command in commands:
+        assert any(str(index) in argument for argument in command.argv)
+        assert command.cwd == str(channels_dir)
+        writable = {
+            Path(command.cwd),
+            *(Path(path) for path in repeated_values(command.argv, "--add-dir")),
+            *(Path(path) for path in writable_roots_in(command.argv)),
+        }
+        assert not any(index.is_relative_to(root) for root in writable)
+        assert (
+            "workspace-write" in command.argv
+            or 'sandbox_mode="workspace-write"' in command.argv
+        )
 
 
 def test_a_writing_codex_resume_never_emits_the_flag_resume_cannot_parse(
