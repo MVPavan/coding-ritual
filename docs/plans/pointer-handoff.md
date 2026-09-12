@@ -1,6 +1,6 @@
 # Pointer-based artifact handoffs
 
-Stage: `cr-02ze.2`
+Stage: `cr-wi82.1`; feedback item: `cr-02ze.2`
 
 Approved scope: implementation-to-review artifact references, implemented through
 the workflow using Terra high and reviewed by Opus medium. Independent plan
