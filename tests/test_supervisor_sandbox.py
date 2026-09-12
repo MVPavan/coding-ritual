@@ -703,6 +703,41 @@ def test_real_bwrap_leaves_the_channels_writable(tmp_path: Path) -> None:
     assert staged.returncode != 0, staged.stdout
 
 
+@pytest.mark.proc
+@pytest.mark.nested_sandbox
+def test_real_bwrap_reads_reference_exports_but_refuses_export_and_engine_writes(
+    tmp_path: Path,
+) -> None:
+    """Reference evidence is visible through the wrapper root, never writable."""
+    capability = probe(_config(tmp_path))
+    if not capability.available:
+        pytest.skip(capability.reason)
+    rig = _worktree_rig(tmp_path)
+    activation = rig.channels.parent
+    evidence = activation / "evidence" / "published"
+    evidence.mkdir(parents=True)
+    index = evidence / "index.json"
+    index.write_text('{"diff_path":"diff-000.patch"}\n', encoding="utf-8")
+    (evidence / "diff-000.patch").write_text("pinned diff\n", encoding="utf-8")
+    engine_record = activation / "launch-receipt.json"
+    engine_record.write_text("engine\n", encoding="utf-8")
+    box = wrap((), _plan(rig, writes=False, allowed_paths=()))
+
+    observed = _run(
+        box,
+        f"cat {index} > {rig.channels}/observed.json",
+        rig.checkout,
+    )
+    assert observed.returncode == 0, observed.stderr
+    assert (rig.channels / "observed.json").read_text(
+        encoding="utf-8"
+    ) == index.read_text(encoding="utf-8")
+    for target in (index, rig.checkout / "seed.txt", engine_record):
+        blocked = _run(box, f"echo tamper > {target}", rig.checkout)
+        assert blocked.returncode != 0
+        assert any(text in blocked.stderr for text in REFUSED_TEXT), blocked.stderr
+
+
 UV_BINARY: Final[str] = "uv"
 UV_TIMEOUT_S: Final[float] = 600.0
 SCRATCH: Final[str] = "scratch"
