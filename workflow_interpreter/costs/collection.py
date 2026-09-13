@@ -35,6 +35,10 @@ from workflow_interpreter.supervisor.errors import WrapperDirError
 from workflow_interpreter.supervisor.models import ExecLedgerEntry, LaunchReceipt
 from workflow_interpreter.supervisor.paths import read_record, record_bytes
 
+EXTERNAL_ATTRIBUTION_SCOPE_GAP = (
+    "coordinator, planning, and child usage needs explicit supplement attribution"
+)
+
 
 class ReadClient(Protocol):
     """The BdClient read subset used by task-cost collection."""
@@ -291,9 +295,7 @@ def collect_task(
         )
         usage_complete = False
         observations = []
-    uncovered = (
-        "coordinator, planning, and child usage needs explicit supplement attribution",
-    )
+    uncovered = (EXTERNAL_ATTRIBUTION_SCOPE_GAP,)
     coverage_complete = completion.verified and usage_complete and not uncovered
     return TaskCollection(
         task_id=stage_id,

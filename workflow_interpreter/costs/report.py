@@ -56,6 +56,7 @@ class TaskCostReport(BaseModel):
     pricebook_hash: str
     price_sources: tuple[str, ...]
     pricing_basis: str
+    price_snapshot_selection: str
 
 
 class RoleModelSubtotal(BaseModel):
@@ -105,6 +106,11 @@ class CohortReport(BaseModel):
     median_completed_task_cost_usd: Decimal | None
     total_observed_spend_usd: Decimal
     observed_spend_partial: bool
+    pricing_basis: str | None
+    completed_cost_statistics_pricing_basis: str | None
+    total_observed_spend_pricing_basis: str | None
+    price_snapshot_selection: str | None
+    pricebook_dates: tuple[str, ...]
 
 
 def build_task_report(
@@ -160,6 +166,9 @@ def build_task_report(
         pricebook_hash=pricing.pricebook_hash,
         price_sources=pricing.source_urls,
         pricing_basis=pricing.pricing_basis,
+        price_snapshot_selection=(
+            "latest-available" if as_of is None else "explicit-as-of"
+        ),
     )
 
 
@@ -274,7 +283,28 @@ def cohort_report(reports: tuple[TaskCostReport, ...]) -> CohortReport:
         ),
         total_observed_spend_usd=total,
         observed_spend_partial=partial,
+        pricing_basis=_combined_value([report.pricing_basis for report in ordered]),
+        completed_cost_statistics_pricing_basis=_combined_value(
+            [report.pricing_basis for report in comparable]
+        ),
+        total_observed_spend_pricing_basis=_combined_value(
+            [report.pricing_basis for report in ordered if report.priced_usage]
+        ),
+        price_snapshot_selection=_combined_value(
+            [report.price_snapshot_selection for report in ordered]
+        ),
+        pricebook_dates=tuple(sorted({report.pricebook_date for report in ordered})),
     )
+
+
+def _combined_value(values: list[str]) -> str | None:
+    """Return one cohort provenance value, or mark heterogeneous inputs mixed."""
+    distinct = set(values)
+    if not distinct:
+        return None
+    if len(distinct) == 1:
+        return next(iter(distinct))
+    return "mixed"
 
 
 def text_report(report: TaskCostReport) -> str:
@@ -283,11 +313,17 @@ def text_report(report: TaskCostReport) -> str:
         f"task: {report.task_id}",
         f"completion verified: {str(report.completion.verified).lower()}",
         f"coverage complete: {str(report.coverage_complete).lower()}",
+        "cost interpretation: API-equivalent estimate; not actual billing",
         f"cost basis: {report.cost_basis}",
+        f"pricing basis: {report.pricing_basis}",
         f"known priced subtotal USD: {report.known_priced_subtotal_usd}",
         f"whole task cost USD: {report.whole_task_cost_usd}",
         f"attempts: {len(report.roots)}; activations: {len(report.activations)}",
         f"pricebook: {report.pricebook_date} sha256:{report.pricebook_hash}",
+        (
+            f"price snapshot: {report.price_snapshot_selection} "
+            f"({report.pricebook_date})"
+        ),
     ]
     if report.missing_usage:
         lines.append(f"missing usage: {', '.join(report.missing_usage)}")
@@ -295,4 +331,47 @@ def text_report(report: TaskCostReport) -> str:
         lines.append(f"missing rates: {', '.join(report.missing_rates)}")
     if report.uncovered_scope:
         lines.append(f"uncovered scope: {'; '.join(report.uncovered_scope)}")
+    lines.extend(
+        f"diagnostic: {item.code}: {item.detail}" for item in report.diagnostics
+    )
     return "\n".join(lines) + "\n"
+
+
+def cohort_text_report(report: CohortReport) -> str:
+    """Render cohort statistics with their API repricing provenance."""
+    dates = ", ".join(report.pricebook_dates) or "none"
+    return (
+        "\n".join(
+            (
+                f"tasks: {report.task_count}",
+                f"completed: {report.completed_count}",
+                "cost interpretation: API-equivalent estimate; not actual billing",
+                f"pricing basis: {report.pricing_basis}",
+                (
+                    "completed cost statistics pricing basis: "
+                    f"{report.completed_cost_statistics_pricing_basis}"
+                ),
+                (
+                    "total observed spend pricing basis: "
+                    f"{report.total_observed_spend_pricing_basis}"
+                ),
+                f"price snapshot: {report.price_snapshot_selection} ({dates})",
+                (
+                    "completely measured completed denominator: "
+                    f"{report.completed_task_cost_denominator}"
+                ),
+                f"success rate: {report.success_rate}",
+                f"mean completed task cost USD: {report.mean_completed_task_cost_usd}",
+                (
+                    "median completed task cost USD: "
+                    f"{report.median_completed_task_cost_usd}"
+                ),
+                f"total observed spend USD: {report.total_observed_spend_usd}",
+                (
+                    "observed spend partial: "
+                    f"{str(report.observed_spend_partial).lower()}"
+                ),
+            )
+        )
+        + "\n"
+    )

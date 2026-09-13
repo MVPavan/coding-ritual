@@ -17,6 +17,7 @@ from workflow_interpreter.costs.report import (
     TaskCostReport,
     build_task_report,
     cohort_report,
+    cohort_text_report,
     text_report,
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
@@ -80,24 +81,7 @@ def _emit_cohort(report: CohortReport, output_format: str) -> None:
     if output_format == "json":
         sys.stdout.write(report.model_dump_json(by_alias=True) + "\n")
         return
-    sys.stdout.write(
-        "\n".join(
-            (
-                f"tasks: {report.task_count}",
-                f"completed: {report.completed_count}",
-                (
-                    "completely measured completed denominator: "
-                    f"{report.completed_task_cost_denominator}"
-                ),
-                f"success rate: {report.success_rate}",
-                f"mean completed task cost USD: {report.mean_completed_task_cost_usd}",
-                f"median completed task cost USD: {report.median_completed_task_cost_usd}",
-                f"total observed spend USD: {report.total_observed_spend_usd}",
-                f"observed spend partial: {str(report.observed_spend_partial).lower()}",
-            )
-        )
-        + "\n"
-    )
+    sys.stdout.write(cohort_text_report(report))
 
 
 def main(argv: Sequence[str] | None = None) -> int:

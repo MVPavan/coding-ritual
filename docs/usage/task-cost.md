@@ -20,13 +20,18 @@ python -m workflow_interpreter.costs \
   cohort STAGE_ID [STAGE_ID ...] --format text
 ```
 
-The cohort command accepts IDs only; it never scans a repository.
-`--as-of YYYY-MM-DD` selects an exact price snapshot. It does not silently apply today's
-rates to historical runs. `--runtime-root ROOT_ID=/absolute/wrapper/instance`
-may be repeated when richer raw telemetry is available. The mapping identifies
-the instance directory containing `<activation-id>/run.jsonl`, its launch
-receipt, and exec ledger. Any missing path, symlink escape, malformed receipt,
-or ambiguous exec identity is diagnosed without reading outside that root.
+The cohort command accepts IDs only; it never scans a repository. By default,
+the command selects the latest snapshot in the supplied pricebook. This gives a
+common latest-rate comparison even when a task ran earlier; it is not
+historical billing. `--as-of YYYY-MM-DD` instead selects the snapshot with that
+exact retrieval date and fails if the pricebook has no exact match. It supports
+explicit common-date comparisons, not automatic execution-date pricing. There
+is no `--run-date` mode, and neither selection reconstructs historical actual
+billing. `--runtime-root ROOT_ID=/absolute/wrapper/instance` may be repeated
+when richer raw telemetry is available. The mapping identifies the instance
+directory containing `<activation-id>/run.jsonl`, its launch receipt, and exec
+ledger. Any missing path, symlink escape, malformed receipt, or ambiguous exec
+identity is diagnosed without reading outside that root.
 
 Runner logs are streamed with finite byte and event limits. Only terminal
 usage/model fields are retained. Output uses an allowlisted report schema and
@@ -49,9 +54,10 @@ A missing service tier is not priced by default. Pass `--normalize-standard`
 to deliberately apply standard API rates to observations whose tier is absent;
 the report then labels its `pricing_basis` as `standard-rate-normalization`.
 An observed but unlisted tier remains unpriced even with normalization. This is
-a comparison price, not a claim about actual billing. Vendor-reported cost
-remains a separate field. Unknown cache-write TTLs and unavailable OpenAI
-cache-write rates remain missing whenever their token count is nonzero.
+an API-equivalent comparison estimate, not a claim about actual billing.
+Vendor-reported cost remains a separate field. Unknown cache-write TTLs and
+unavailable OpenAI cache-write rates remain missing whenever their token count
+is nonzero.
 
 A report exposes `whole_task_cost_usd` only when task completion, engine usage,
 rates, and external attribution are all complete. Otherwise it reports
@@ -112,9 +118,13 @@ JSON reports contain completion evidence, all attempts and activations,
 requested and observed model identity, role/model subtotals, raw token
 categories, known repriced subtotal, separately preserved vendor cost, missing
 rates, uncovered scope, measurable activation durations, and pricebook
-date/hash/source URLs. No generation timestamp is emitted, so repeated reads of
-unchanged inputs are byte-stable. Cohorts report success rate and total observed
-spend separately from mean/median completely measured completed-task cost;
-zero qualifying completions produce `null` statistics. Mixed-model work remains
-mixed, and these descriptive totals do not establish that one model caused a
-better cost or outcome across unmatched tasks.
+date/hash/source URLs. Task text always labels the API-equivalent interpretation,
+pricing basis, and whether the dated snapshot was the latest available or an
+explicit `--as-of` selection. No generation timestamp is emitted, so repeated
+reads of unchanged inputs are byte-stable. Cohorts report success rate and total
+observed spend separately from mean/median completely measured completed-task
+cost. Their JSON and text identify the pricing basis for both statistic groups,
+using `mixed` when constituent task reports differ, and list their snapshot
+selection and dates. Zero qualifying completions produce `null` statistics.
+Mixed-model work remains mixed, and these descriptive totals do not establish
+that one model caused a better cost or outcome across unmatched tasks.

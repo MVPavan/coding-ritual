@@ -21,7 +21,12 @@ from workflow_interpreter.costs.collection import (
 from workflow_interpreter.costs.models import Measurement, TokenUsage, UsageObservation
 from workflow_interpreter.costs.pricing import PriceBook, price_observations
 from workflow_interpreter.costs.profiles import LogContext, parse_log
-from workflow_interpreter.costs.report import build_task_report, cohort_report
+from workflow_interpreter.costs.report import (
+    build_task_report,
+    cohort_report,
+    cohort_text_report,
+    text_report,
+)
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
 
 
@@ -692,6 +697,23 @@ def test_task_report_is_partial_without_explicit_external_attribution() -> None:
     ]
 
 
+def test_task_text_labels_explicit_as_of_as_api_estimate() -> None:
+    report = build_task_report(
+        collect_task(FakeReadClient(_task_rows()), "stage-1"),
+        _pricebook(),
+        as_of="2026-09-13",
+    )
+
+    rendered = text_report(report)
+
+    assert report.price_snapshot_selection == "explicit-as-of"
+    assert (
+        "cost interpretation: API-equivalent estimate; not actual billing" in rendered
+    )
+    assert "pricing basis: observed-tier" in rendered
+    assert "price snapshot: explicit-as-of (2026-09-13)" in rendered
+
+
 def test_task_report_aggregates_generic_and_ttl_cache_write_representations() -> None:
     common = {
         "provider": "openai",
@@ -788,6 +810,40 @@ def test_strict_supplement_supplies_usage_and_explicit_coverage_basis() -> None:
     assert report.cost_basis == "whole-task"
     assert report.whole_task_cost_usd == Decimal("0.00046")
     assert report.uncovered_scope == ()
+
+
+def test_complete_external_declaration_preserves_unreadable_task_scope() -> None:
+    rows = _task_rows()
+    rows[0]["metadata"]["phase_bridge"] = {"invalid": "identity"}
+    collected = collect_task(FakeReadClient(rows), "stage-1")
+    supplemented = apply_supplement(
+        collected,
+        UsageSupplement.model_validate(
+            {
+                "schema": "task-cost-supplement/1",
+                "records": [],
+                "scope_declarations": [
+                    {
+                        "task_id": "stage-1",
+                        "source_reference": "operator-ledger:coverage",
+                        "coordinator_complete": True,
+                        "children_complete": True,
+                    }
+                ],
+            }
+        ),
+    )
+
+    report = build_task_report(supplemented, _pricebook())
+    rendered = text_report(report)
+
+    assert supplemented.uncovered_scope == ("task execution identity is unavailable",)
+    assert supplemented.diagnostics == collected.diagnostics
+    assert supplemented.coverage_complete is False
+    assert "uncovered scope: task execution identity is unavailable" in rendered
+    assert (
+        "diagnostic: phase-bridge-invalid: phase bridge metadata is invalid" in rendered
+    )
 
 
 def test_supplement_exact_duplicates_dedupe_and_conflicts_fail() -> None:
@@ -913,6 +969,67 @@ def test_cohort_unions_parent_child_supplement_usage_identity() -> None:
     cohort = cohort_report((complete, child))
 
     assert cohort.total_observed_spend_usd == complete.known_priced_subtotal_usd
+
+
+def test_mixed_pricing_basis_is_explicit_in_cohort_json_and_text() -> None:
+    collected = apply_supplement(
+        collect_task(FakeReadClient(_task_rows()), "stage-1"),
+        UsageSupplement.model_validate(
+            {
+                "schema": "task-cost-supplement/1",
+                "records": [],
+                "scope_declarations": [
+                    {
+                        "task_id": "stage-1",
+                        "source_reference": "operator-ledger:coverage",
+                        "coordinator_complete": True,
+                        "children_complete": True,
+                    }
+                ],
+            }
+        ),
+    )
+    observed_collection = collected.model_copy(
+        update={
+            "observations": tuple(
+                item.model_copy(update={"service_tier": "standard"})
+                for item in collected.observations
+            )
+        }
+    )
+    observed = build_task_report(observed_collection, _pricebook())
+    normalized = build_task_report(collected, _pricebook(), normalize_standard=True)
+    normalized = normalized.model_copy(
+        update={
+            "task_id": "stage-2",
+            "priced_usage": tuple(
+                item.model_copy(
+                    update={
+                        "observation": item.observation.model_copy(
+                            update={"identity": f"stage-2/{item.observation.identity}"}
+                        )
+                    }
+                )
+                for item in normalized.priced_usage
+            ),
+        }
+    )
+
+    cohort = cohort_report((observed, normalized))
+    payload = json.loads(cohort.model_dump_json())
+    rendered = cohort_text_report(cohort)
+
+    assert payload["pricing_basis"] == "mixed"
+    assert payload["completed_cost_statistics_pricing_basis"] == "mixed"
+    assert payload["total_observed_spend_pricing_basis"] == "mixed"
+    assert payload["price_snapshot_selection"] == "latest-available"
+    assert payload["pricebook_dates"] == ["2026-09-13"]
+    assert (
+        "cost interpretation: API-equivalent estimate; not actual billing" in rendered
+    )
+    assert "completed cost statistics pricing basis: mixed" in rendered
+    assert "total observed spend pricing basis: mixed" in rendered
+    assert "price snapshot: latest-available (2026-09-13)" in rendered
 
 
 def test_claude_unambiguous_cache_creation_splits_ttls(tmp_path: Path) -> None:
@@ -1308,3 +1425,20 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
     assert report["task_id"] == "stage-1"
     assert report["cost_basis"] == "whole-task"
     assert report["pricing_basis"] == "standard-rate-normalization"
+
+    text_command = [item for item in completed.args if item not in ("--format", "json")]
+    text_completed = subprocess.run(
+        text_command,
+        cwd=project_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert text_completed.returncode == 0, text_completed.stderr
+    assert (
+        "cost interpretation: API-equivalent estimate; not actual billing"
+        in text_completed.stdout
+    )
+    assert "pricing basis: standard-rate-normalization" in text_completed.stdout
+    assert "price snapshot: latest-available (2026-09-13)" in text_completed.stdout

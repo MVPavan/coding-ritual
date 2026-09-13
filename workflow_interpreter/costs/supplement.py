@@ -7,7 +7,10 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from workflow_interpreter.costs.collection import TaskCollection
+from workflow_interpreter.costs.collection import (
+    EXTERNAL_ATTRIBUTION_SCOPE_GAP,
+    TaskCollection,
+)
 from workflow_interpreter.costs.models import (
     COST_MODEL,
     Measurement,
@@ -175,12 +178,15 @@ def apply_supplement(
         and declaration.coordinator_complete
         and declaration.children_complete
     )
+    collector_scope = tuple(
+        item
+        for item in collection.uncovered_scope
+        if item != EXTERNAL_ATTRIBUTION_SCOPE_GAP
+    )
     uncovered = (
-        ()
+        collector_scope
         if external_complete
-        else (
-            "coordinator, planning, and child usage needs explicit supplement attribution",
-        )
+        else (*collector_scope, EXTERNAL_ATTRIBUTION_SCOPE_GAP)
     )
     return collection.model_copy(
         update={
