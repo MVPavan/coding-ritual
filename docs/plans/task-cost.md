@@ -1,4 +1,6 @@
 # Task cost reporting implementation plan
+Stage: cr-7uhd.1 (execution epic cr-7uhd).
+
 Approved scope: cr-02ze.8, task-level token and API-equivalent cost reporting. Read-only reporting; no scheduling, sandbox or landing behavior changes. Implementation through Sol high / Opus medium workflow after current pointer-handoff lands.
 
 Deliver one CLI and typed library under workflow_interpreter/costs/ (models, pricing, collection, report, __main__ split only as needed), focused tests/test_task_cost.py and docs/usage/task-cost.md, plus a dated standard API pricebook under config/. Prefer existing BdClient/read functions and root/activation carriers over a new persistence layer. No new DB or dependencies. Optional tiny foreman routing glue only if materially simpler; primary CLI is python -m workflow_interpreter.costs --config FOREMAN_CONFIG --prices PRICEBOOK task STAGE_ID [--format json|text]. A cohort command takes explicit task IDs; no unbounded repository scan.
