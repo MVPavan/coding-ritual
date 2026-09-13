@@ -559,6 +559,15 @@ PARKED_S: Final[float] = 30.0
 """How long a `dispatch()` child stays alive when the test needs one to kill.
 The fixture ends every one of them, so nothing outlives the test."""
 
+REAL_PROCESS_SLEEP_S: Final[float] = 0.05
+"""Real scheduling window per virtual poll in this real-process-only lab.
+
+The two virtual polls in each 2-second TERM/KILL grace window give a child
+0.1 seconds of real CPU opportunity. Production uses a real clock and waits
+the full poll interval; this compressed test clock leaves termination semantics
+unchanged while preventing virtual deadlines from outrunning the scheduler.
+"""
+
 
 def add_remote(repo: Path, name: str, url: str) -> None:
     """Give a throwaway repo a remote the backstop has to rewrite."""
@@ -609,7 +618,7 @@ class Lab:
         self.fake_bd, self.store = make_store(tmp_path, self.base)
         self.root = make_root(self.store, self.repo, "profiles-instance")
         self.paths = make_paths(self.config, self.root.root_id)
-        self.clock = FrozenClock()
+        self.clock = FrozenClock(real_sleep_s=REAL_PROCESS_SLEEP_S)
         self.git = make_git(self.config)
         self.workspace = make_workspace(self.paths, self.git, self.clock)
         self.supervisor = Supervisor(

@@ -20,6 +20,7 @@ a session. Three ways it used to cost more, all asserted here —
 from __future__ import annotations
 
 import uuid
+from datetime import timedelta
 from pathlib import Path
 from typing import Final
 
@@ -59,6 +60,21 @@ STEER_REASON: Final[str] = "the runner is looping on the same failing test"
 STEER_INSTRUCTIONS: Final[str] = "stop rewriting the fixture; fix the assertion"
 PINNED_MODEL: Final[str] = "claude-opus-5"
 DIVERGENT_MODEL: Final[str] = "claude-haiku-4-5"
+
+
+@pytest.mark.proc
+def test_real_process_lab_grants_scheduler_time_per_virtual_poll(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A virtual process poll also yields a bounded real scheduling window."""
+    real_sleeps: list[float] = []
+    before = lab.clock.now()
+    monkeypatch.setattr("tests._supervisor.time.sleep", real_sleeps.append)
+
+    lab.clock.sleep(lab.config.poll_interval_s)
+
+    assert real_sleeps == [0.05]
+    assert lab.clock.now() == before + timedelta(seconds=1.0)
 
 
 def steer(lab: Lab, parent_id: str, *, session_id: str = "made-up") -> SteerResult:
