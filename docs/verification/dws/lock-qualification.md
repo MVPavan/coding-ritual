@@ -55,19 +55,35 @@ descriptor ownership allows a contender to print `ACQUIRED` after the parent
 dies, whereas the inherited-descriptor test requires `BUSY` until the child
 dies. Thus an omitted descriptor transfer fails the safe-lifecycle assertion.
 
-The following commands were run against the committed qualification source:
+The bounded maintenance correction characterized cleanup through that existing
+negative-control seam. Its `finally` now terminates the exact child PID it
+created and waits for that PID to disappear; an owned child that does not exit
+within the bounded deadline now fails the test. The safe-path `finally` retains
+one corresponding exit confirmation (the duplicate wait was removed). The
+focused negative control passed after this correction: `1 passed, 5 deselected
+in 0.10s`.
+
+The following commands were run against the corrected qualification source:
 
 ```text
 cd dws
 python3 -m pytest -q -s tests/qualification
   TARGET=<dynamic pytest directory> FILESYSTEM=ext4 MOUNT=<local mount path>
-  6 passed in 0.38s
+  6 passed in 0.35s
+
+python3 -m pytest -q -s tests/qualification/test_slot_lock_lifecycle.py \
+  -k parent_only_lock_ownership_releases_early_while_the_child_survives
+  1 passed, 5 deselected in 0.10s
 
 ruff check .
   All checks passed!
 
 ruff format --check .
   8 files already formatted
+
+ruff format --check --verbose .
+  8 files already formatted; verbose `format_path` output includes dws/README.md
+  plus the seven Python files. The count is correctly 8, not 7.
 
 python3 -m py_compile tests/qualification/lock_probe.py \
   tests/qualification/test_slot_lock_lifecycle.py
@@ -80,10 +96,13 @@ mypy --strict src/dws
 `python3 -m pytest -q` was also attempted, but is not an equivalent package
 check in this sandbox: collection stopped at `tests/test_package.py` because
 the current interpreter has not installed the `dws` distribution
-(`ModuleNotFoundError: No module named 'dws'`). That is recorded as an
-environment limitation, not a passing suite. The declared HOST gate remains
-the authority for `uv sync --locked` and `scripts/verify-dws-pilot.py`; neither
-host-only command was run here.
+(`ModuleNotFoundError: No module named 'dws'`). `uv run --locked ruff check .`
+was also attempted, but this sandbox sets `UV_FROZEN=1`; uv rejects combining
+that implicit `--frozen` with explicit `--locked` before it runs Ruff. The
+already-installed `ruff` and `mypy` commands above are the available local
+tooling evidence, not a substitute for the locked package gate. The declared
+HOST gate remains the authority for `uv sync --locked` and
+`scripts/verify-dws-pilot.py`; neither host-only command was run here.
 
 ## Deployment-volume rerun
 

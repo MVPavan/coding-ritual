@@ -172,7 +172,6 @@ def test_parent_crash_does_not_release_a_lock_held_by_surviving_child(
         if child_pid is not None:
             stop_owned_child(child_pid)
             wait_for_owned_child_exit(child_pid)
-            wait_for_owned_child_exit(child_pid)
 
 
 def test_target_filesystem_is_observed_and_emitted(lock_directory: Path) -> None:
@@ -221,6 +220,7 @@ def test_parent_only_lock_ownership_releases_early_while_the_child_survives(
             stop_owned_process(supervisor)
         if child_pid is not None:
             stop_owned_child(child_pid)
+            wait_for_owned_child_exit(child_pid)
 
 
 def test_one_slot_excludes_an_independent_contender(lock_directory: Path) -> None:
