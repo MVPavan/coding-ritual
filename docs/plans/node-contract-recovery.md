@@ -10,6 +10,7 @@ Architecture: extend existing provider-neutral envelope composition and existing
 
 File map and ownership:
 - workflow_interpreter/foreman/inputs.py and constants.py: mandatory leaf execution contract and actual delivered envelope composition/accounting.
+- workflow_interpreter/foreman/close.py: preserve before ordinary/cached-evidence settlement; failed preservation leaves activation open and retryable.
 - workflow_interpreter/foreman/supervise.py and supervisor/launch.py: initial/resume delivery integration only where needed; preserve the original task, current node instructions and steer advice.
 - workflow_interpreter/profiles/codex.py and claude.py: resume payload compatibility only if required by the shared delivery seam; no new CLI flags.
 - workflow_interpreter/supervisor/workspace.py: reusable non-destructive recovery snapshot using existing gitsnapshot/ref operations.
@@ -56,3 +57,6 @@ Acceptance: both requirements proven, independent review has no unresolved block
 - M3: Workspaces can be reused by successive activations; do not assume a dead activation still owns current bytes. Take preservation under the existing band/coordination guard before successor dispatch. On replay, reuse/validate existing producer evidence; refuse to capture a successor-owned/live/foreign workspace for the older producer. Persist producer identity, observed HEAD and intended base for validation. If late legacy recovery cannot establish ownership, report unavailable/refused rather than relabel current files. Test stale producer replay with successor data.
 - M4: Reuse _pin_pre_reset's tree-based semantics: same tree keeps existing pinned identity without a new ref write; divergent content must preserve prior history via chaining under validated ownership. Do not assume snapshot commit timestamps are deterministic. A failed reference write must never discard the prior pin.
 - Minor resolutions: pre-reset refs identify the resetting activation, which is why earlier producer evidence is useful. Document excluded gitlinks/ignored content. Prove recovery refs are excluded from artifact selection without a new candidate subsystem. Existing terminal dirty-tree retention stays intact.
+
+## Scope correction from the first implementation probe
+Astra committed partial da30bd4 and a failing actual-foreman test proving close.py still swallows preservation failure and bypasses preservation for cached evidence. foreman/close.py is explicitly owned to close that gap; this implements the existing failure-retryability requirement. Preserve completed work by cherry-picking the partial commit into the new attempt, then finish all plan coverage and usage docs. The node instruction permits the plan-owned documentation; no code-only restriction applies. Original review/check/gate requirements remain.
