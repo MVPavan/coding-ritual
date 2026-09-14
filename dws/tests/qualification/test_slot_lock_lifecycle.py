@@ -74,6 +74,17 @@ def contend(lock_directory: Path, slot_count: int) -> subprocess.CompletedProces
     )
 
 
+def inspect_filesystem(lock_directory: Path) -> subprocess.CompletedProcess[str]:
+    """Ask the probe to report the mount that contains the lock directory."""
+    return subprocess.run(
+        probe("filesystem", "--target-dir", str(lock_directory)),
+        capture_output=True,
+        text=True,
+        timeout=PROCESS_TIMEOUT_SECONDS,
+        check=False,
+    )
+
+
 def read_line(process: subprocess.Popen[str]) -> str:
     """Read one readiness line with a bounded selector wait."""
     assert process.stdout is not None
@@ -99,6 +110,19 @@ def stop_owned_child(child_pid: int) -> None:
         os.kill(child_pid, signal.SIGTERM)
     except ProcessLookupError:
         return
+
+
+def wait_for_owned_child_exit(child_pid: int) -> None:
+    """Confirm a signalled probe child exited before test cleanup completes."""
+    deadline = time.monotonic() + PROCESS_TIMEOUT_SECONDS
+    while True:
+        try:
+            os.kill(child_pid, 0)
+        except ProcessLookupError:
+            return
+        if time.monotonic() >= deadline:
+            pytest.fail(f"probe child PID {child_pid} did not exit before the deadline")
+        time.sleep(POLL_INTERVAL_SECONDS)
 
 
 def wait_for_available_slot(lock_directory: Path) -> subprocess.CompletedProcess[str]:
@@ -138,6 +162,7 @@ def test_parent_crash_does_not_release_a_lock_held_by_surviving_child(
         assert competing.returncode == BUSY_EXIT
 
         stop_owned_child(child_pid)
+        wait_for_owned_child_exit(child_pid)
         child_pid = None
         released = wait_for_available_slot(lock_directory)
         assert released.stdout == "ACQUIRED\n"
@@ -146,6 +171,19 @@ def test_parent_crash_does_not_release_a_lock_held_by_surviving_child(
             stop_owned_process(supervisor)
         if child_pid is not None:
             stop_owned_child(child_pid)
+            wait_for_owned_child_exit(child_pid)
+            wait_for_owned_child_exit(child_pid)
+
+
+def test_target_filesystem_is_observed_and_emitted(lock_directory: Path) -> None:
+    """The qualification output identifies the filesystem that supplied its lock semantics."""
+    result = inspect_filesystem(lock_directory)
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.startswith("TARGET=")
+    assert " FILESYSTEM=" in result.stdout
+    assert " MOUNT=" in result.stdout
+    print(result.stdout, end="")
 
 
 def test_parent_only_lock_ownership_releases_early_while_the_child_survives(

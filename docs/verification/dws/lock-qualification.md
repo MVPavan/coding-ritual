@@ -2,18 +2,21 @@
 
 ## Verdict and scope
 
-The local Linux `fcntl.flock` prototype is qualified on the filesystem used by
-this run for the narrow behavior below. It is a characterization of Python
+The local Linux `fcntl.flock` prototype is qualified on the filesystem observed
+by this run for the narrow behavior below. It is a characterization of Python
 process and descriptor lifetime, not production DWS runtime code.
 
-The tested target was Linux `6.6.87.2-microsoft-standard-WSL2` on an `ext4`
-filesystem. Tests use pytest's isolated temporary directory by default. The
-target directory can instead be selected with `DWS_LOCK_QUALIFICATION_DIR` to
-repeat the probe on an intended container volume.
+The latest local run used Linux `6.6.87.2-microsoft-standard-WSL2` on
+`x86_64 GNU/Linux` (from `uname -srmo`). Its pytest temporary lock directory
+emitted `FILESYSTEM=ext4` after the probe read `/proc/self/mountinfo`. The
+dynamic target and mount paths are deliberately not copied into this committed
+record: they are machine-local. Tests use pytest's isolated temporary directory
+by default. Select a deployment-volume parent with
+`DWS_LOCK_QUALIFICATION_DIR` to qualify that particular mount.
 
 This result does **not** complete G-03 or establish actual QMD inheritance,
-QMD startup/update behavior, container filesystem semantics, or the deployed
-volume's behavior. Those remain separate qualification work.
+QMD startup/update behavior, container filesystem semantics, or deployed-volume
+behavior. Those remain separate qualification work.
 
 ## Mechanism characterized
 
@@ -27,48 +30,60 @@ Python subprocesses contend with `LOCK_NB`.
 - In the safe lifecycle pattern, the supervisor passes the already-locked file
   descriptor to its child with `subprocess.Popen(..., pass_fds=(fd,))`.
   Killing the supervisor with `SIGKILL` while that child survives leaves a
-  competing contender denied. After the test terminates that exact announced
-  child PID, a contender acquires the slot.
+  competing contender denied. After the test terminates the exact announced
+  child PID and confirms its exit, a contender acquires the slot.
 - The negative control starts the same child without the descriptor. Killing
   the supervisor then lets a competing contender acquire the slot while the
   child is still alive. This is an observed early-release failure, not a safe
-  ownership pattern.
+  ownership pattern. Its cleanup confirms the signalled child exits.
 
-The probe has readiness handshakes, five-second process/selector deadlines, a
-15-second maximum helper lifetime, and `finally` cleanup. It targets only PIDs
-created and announced by the probe; it never signals a process group or scans
-for a process to kill.
+The probe has readiness handshakes, test-side five-second process/selector
+deadlines, a three-second supervisor child-readiness deadline, a 15-second
+maximum helper lifetime, and `finally` cleanup. It targets only PIDs created
+and announced by the probe; it never signals a process group or scans for a
+process to kill.
 
-## Test-first evidence and observed commands
+## Test-first evidence and local commands
 
-Before descriptor inheritance was implemented, the lifecycle test was run as:
+The filesystem-observation test was added before the probe role. Its focused
+RED run failed with exit status 1 because `filesystem` was not a recognized
+probe role. After adding the `/proc/self/mountinfo` reader, its focused GREEN
+run passed and emitted an `ext4` target record.
 
-```sh
-cd dws
-python3 -m pytest -q \
-  tests/qualification/test_slot_lock_lifecycle.py::test_parent_crash_does_not_release_a_lock_held_by_surviving_child
-```
+The lifecycle suite retains a real-process negative control: parent-only
+descriptor ownership allows a contender to print `ACQUIRED` after the parent
+dies, whereas the inherited-descriptor test requires `BUSY` until the child
+dies. Thus an omitted descriptor transfer fails the safe-lifecycle assertion.
 
-It failed as intended: one failure reported `assert 0 == 75` after the parent
-was killed, because the competing process printed `ACQUIRED`. That is the
-unsafe parent-only control the final suite retains explicitly.
-
-After passing the locked descriptor into the child, the same focused command
-reported `1 passed in 0.09s`. The final local run reported:
+The following commands were run against the committed qualification source:
 
 ```text
-python3 -m pytest -q tests/qualification                         5 passed in 0.30s
-ruff check tests/qualification                                    All checks passed!
-ruff format --check tests/qualification                           2 files already formatted
+cd dws
+python3 -m pytest -q -s tests/qualification
+  TARGET=<dynamic pytest directory> FILESYSTEM=ext4 MOUNT=<local mount path>
+  6 passed in 0.38s
+
+ruff check .
+  All checks passed!
+
+ruff format --check .
+  8 files already formatted
+
 python3 -m py_compile tests/qualification/lock_probe.py \
-  tests/qualification/test_slot_lock_lifecycle.py                 exit 0
+  tests/qualification/test_slot_lock_lifecycle.py
+  exit 0
+
+mypy --strict src/dws
+  Success: no issues found in 3 source files
 ```
 
-The locked `uv` command could not be exercised in this model sandbox: its
-injected frozen environment conflicted with `--locked`; after unsetting that
-flag, uv attempted to download its managed Python and DNS was unavailable.
-No dependency installation was retried. The declared host gate remains the
-authority for `uv sync --locked` and `scripts/verify-dws-pilot.py`.
+`python3 -m pytest -q` was also attempted, but is not an equivalent package
+check in this sandbox: collection stopped at `tests/test_package.py` because
+the current interpreter has not installed the `dws` distribution
+(`ModuleNotFoundError: No module named 'dws'`). That is recorded as an
+environment limitation, not a passing suite. The declared HOST gate remains
+the authority for `uv sync --locked` and `scripts/verify-dws-pilot.py`; neither
+host-only command was run here.
 
 ## Deployment-volume rerun
 
@@ -78,20 +93,21 @@ container volume, then run:
 ```sh
 cd dws
 DWS_LOCK_QUALIFICATION_DIR=/path/on/intended-volume/lock-qualification \
-  uv run --locked pytest -q tests/qualification
+  uv run --locked pytest -q -s tests/qualification
 ```
 
 The suite creates a UUID-named child directory beneath that parent and removes
-only that child during fixture cleanup. A failure on the intended target is a
-qualification failure: do not silently fall back to per-process semaphores or
-a different filesystem. Record the target's platform, mount type, command
-output, and the resulting coordination decision before using this mechanism.
+only that child during fixture cleanup. The emitted `TARGET`, `FILESYSTEM`, and
+`MOUNT` record is the evidence of the precise mount tested. Preserve that output
+with the platform command output and resulting coordination decision. A failure
+on the intended target is a qualification failure: do not silently fall back to
+per-process semaphores or a different filesystem.
 
 ## Remaining limitations
 
 - This uses Python fixture children, not the pinned QMD executable. A future
-  QMD adapter must prove its own descriptor inheritance and process-group
-  supervision behavior.
+  QMD adapter must prove its own descriptor inheritance and process-supervision
+  behavior.
 - `flock` behavior is qualified only for the observed local Linux filesystem.
   Network filesystems, Docker/Compose mounts, overlay configurations, and the
   deployment volume are unverified until rerun there.

@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import fcntl
 import os
+import re
 import select
 import signal
 import subprocess
@@ -46,6 +47,52 @@ def write_line(line: str) -> None:
     sys.stdout.flush()
 
 
+def decode_mount_path(value: str) -> str:
+    """Decode the octal escapes used for path fields in Linux mountinfo."""
+    return re.sub(
+        r"\\([0-7]{3})",
+        lambda match: chr(int(match.group(1), 8)),
+        value,
+    )
+
+
+def mounted_filesystem(target_directory: Path) -> tuple[str, str]:
+    """Return the longest matching Linux mount point and its filesystem type."""
+    resolved_target = os.path.realpath(target_directory)
+    candidates: list[tuple[str, str]] = []
+    for line in Path("/proc/self/mountinfo").read_text(encoding="utf-8").splitlines():
+        fields = line.split()
+        separator = fields.index("-")
+        mount_point = decode_mount_path(fields[4])
+        is_target_mount = mount_point == "/" or resolved_target == mount_point
+        is_descendant = resolved_target.startswith(f"{mount_point.rstrip('/')}/")
+        if is_target_mount or is_descendant:
+            candidates.append((mount_point, fields[separator + 1]))
+    if not candidates:
+        raise ValueError(f"no Linux mount record contains {resolved_target}")
+    return max(candidates, key=lambda candidate: len(candidate[0]))
+
+
+def filesystem(arguments: argparse.Namespace) -> int:
+    """Emit the actual mount type that supplies the requested lock directory."""
+    target_directory = Path(arguments.target_dir)
+    try:
+        mount_point, filesystem_type = mounted_filesystem(target_directory)
+    except (OSError, ValueError) as error:
+        sys.stderr.write(f"cannot inspect lock target filesystem: {error}\\n")
+        return 1
+    write_line(
+        " ".join(
+            (
+                f"TARGET={os.path.realpath(target_directory)}",
+                f"FILESYSTEM={filesystem_type}",
+                f"MOUNT={mount_point}",
+            )
+        )
+    )
+    return 0
+
+
 def wait_for_release(maximum_seconds: float) -> None:
     """Keep a probe role alive until termination or its bounded lifetime expires."""
     stop = threading.Event()
@@ -59,7 +106,7 @@ def wait_for_release(maximum_seconds: float) -> None:
 
 
 def hold(arguments: argparse.Namespace) -> int:
-    """Hold the requested slot files until input closes or a bounded timeout expires."""
+    """Hold the requested slot files until termination or a bounded timeout expires."""
     file_descriptors = [lock_file(Path(path)) for path in arguments.lock_path]
     try:
         write_line(READY_PREFIX)
@@ -145,6 +192,10 @@ def build_parser() -> argparse.ArgumentParser:
     contend_parser.add_argument("--lock-dir", required=True)
     contend_parser.add_argument("--slot-count", type=int, required=True)
     contend_parser.set_defaults(handler=contend)
+
+    filesystem_parser = subcommands.add_parser("filesystem")
+    filesystem_parser.add_argument("--target-dir", required=True)
+    filesystem_parser.set_defaults(handler=filesystem)
 
     child_parser = subcommands.add_parser("child")
     child_parser.add_argument("--inherited-fd", type=int)
