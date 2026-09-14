@@ -1,6 +1,6 @@
 [graph]
 id = "integration"
-version = "1.0.0"
+version = "1.0.1"
 entry = "integrate"
 description = "Fresh combined tree, independent review, explicit human ship"
 [instance]
@@ -19,7 +19,22 @@ Preserve independent target edits and tracked Markdown. Read each immutable
 source base/artifact diff; never treat a collection or child approval as ship
 permission. Resolve conflicts against stage_brief, or report fail_plan.
 Commit the complete combined tree. The runtime supplies candidate_diff from
-your committed artifact against target_base. Report done only after pinned checks pass.
+your committed artifact against target_base. Report done when the combined tree
+is complete, committed, and supported local checks pass.
+
+Your verdict is a claim; full declared HOST verification remains mandatory and
+gates advancement after you return. Perform available supported local checks;
+do not run host-only checks (including nested sandbox probes) inside the model
+sandbox. Record each command and result, or a not-run reason, in $WF_ARTIFACT_DIR.
+Unavailable sandbox/network/tooling is not evidence of a source defect and must
+not alone cause `fail_code` or `reject`. Do not retry dependency installs for an
+unavailable environment. Real code/test failures must be reported and never
+relabeled as environment problems. Review decisions are source/spec judgments;
+local evidence does not waive the host gate.
+
+Inspect the provided environment paths first. Use $WF_SCRATCH_DIR (the supplied
+$TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
+output evidence/findings, not scratch work.
 """
 isolation = "worktree"
 writes = true
@@ -42,7 +57,21 @@ Review the actual candidate tree and candidate_diff against EVERY contribution
 in integration_sources, stage_brief, and target_base. Check Markdown and target
 edits too. Membership is not semantic proof. Reject omissions, partial writes,
 unresolved conflicts, stale evidence, or a diff that describes another tree.
-Write findings to WF_ARTIFACT_DIR; accept only the complete verified candidate.
+Write findings to WF_ARTIFACT_DIR; accept only the complete candidate supported by your source/spec review.
+
+Your verdict is a claim; full declared HOST verification remains mandatory and
+gates advancement after you return. Perform available supported local checks;
+do not run host-only checks (including nested sandbox probes) inside the model
+sandbox. Record each command and result, or a not-run reason, in $WF_ARTIFACT_DIR.
+Unavailable sandbox/network/tooling is not evidence of a source defect and must
+not alone cause `fail_code` or `reject`. Do not retry dependency installs for an
+unavailable environment. Real code/test failures must be reported and never
+relabeled as environment problems. Review decisions are source/spec judgments;
+local evidence does not waive the host gate.
+
+Inspect the provided environment paths first. Use $WF_SCRATCH_DIR (the supplied
+$TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
+output evidence/findings, not scratch work.
 """
 isolation = "worktree"
 writes = false

@@ -42,15 +42,15 @@ VARIANT_SEPARATOR: Final[str] = "__"
 # no whitespace, or the comma-separated list several templates interpolate.
 MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 
-# The §2 fixture is pinned by hash (§3.1); a change here means the graph's
-# meaning changed and every live instance's pinned body is stale.
+# Current shipped example hash (§3.1). Versioned authoring edits update this
+# expectation; admitted instances retain their own immutable body and hash.
 FEATURE_DELIVERY_CONTENT_HASH = (
-    "9d0b5fb9199843f5f6932ec31c5b72069a860ef8fa86789072cc16ea8a364312"
+    "0dbcd2b74c63ec3424273babea7fe4e85d41b78920a15777a16ca52fb989284a"
 )
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
 BUILD_LOOP_CONTENT_HASH = (
-    "b1009b405a8e718c4779c6be2817f1216bc39f65f5ab1da12780f80e993b4fea"
+    "371179567a683787c87ecc2b4640aba0c628a00bad56e55d25ae9e0e50bb6816"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.

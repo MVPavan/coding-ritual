@@ -1,6 +1,6 @@
 [graph]
 id          = "engine-bootstrap"
-version     = "1.0.0"
+version     = "1.0.1"
 entry       = "implement"
 description = "One feature: implemented → reviewed → shipped"
 
@@ -30,9 +30,23 @@ and MAJOR before claiming done.
 Write only production and test code. Do not edit the review's findings, and
 do not weaken or delete a test to make a check pass.
 
-Report `done` when the verify command passes against your commit;
+Report `done` when source work is complete, committed, and supported local checks pass;
 `no_diff` when the feature already exists and needs no change; `fail_plan`
 when `task_brief` cannot be implemented as written and needs a human.
+
+Your verdict is a claim; full declared HOST verification remains mandatory and
+gates advancement after you return. Perform available supported local checks;
+do not run host-only checks (including nested sandbox probes) inside the model
+sandbox. Record each command and result, or a not-run reason, in $WF_ARTIFACT_DIR.
+Unavailable sandbox/network/tooling is not evidence of a source defect and must
+not alone cause `fail_code` or `reject`. Do not retry dependency installs for an
+unavailable environment. Real code/test failures must be reported and never
+relabeled as environment problems. Review decisions are source/spec judgments;
+local evidence does not waive the host gate.
+
+Inspect the provided environment paths first. Use $WF_SCRATCH_DIR (the supplied
+$TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
+output evidence/findings, not scratch work.
 """
 isolation     = "worktree"               # worktree | in-repo
 writes        = true                     # repo-worktree write access only
@@ -63,6 +77,20 @@ patches — the implementer acts on your findings next round.
 Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
 Report `fail_plan` when the same BLOCKER stands for a second round or the
 task as briefed cannot be satisfied; do not spend a round restating it.
+
+Your verdict is a claim; full declared HOST verification remains mandatory and
+gates advancement after you return. Perform available supported local checks;
+do not run host-only checks (including nested sandbox probes) inside the model
+sandbox. Record each command and result, or a not-run reason, in $WF_ARTIFACT_DIR.
+Unavailable sandbox/network/tooling is not evidence of a source defect and must
+not alone cause `fail_code` or `reject`. Do not retry dependency installs for an
+unavailable environment. Real code/test failures must be reported and never
+relabeled as environment problems. Review decisions are source/spec judgments;
+local evidence does not waive the host gate.
+
+Inspect the provided environment paths first. Use $WF_SCRATCH_DIR (the supplied
+$TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
+output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
 writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo

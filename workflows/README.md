@@ -59,3 +59,27 @@ reported diagnostic; without bytes the explicit legacy safety ceiling is 262144 
 Decision-enabled tasks require explicit bytes. New fields are null-elided for unchanged
 canonical graph pins. Run the real decision proof explicitly with
 `uv run pytest -q --run-live -m live tests/test_decision_live.py`.
+
+## Model-local evidence and host verification
+
+Every reusable task carries inline verification instructions because the loader
+has no instruction include mechanism. The model reports a claim based on its
+source/spec judgment and available supported local checks. The engine still runs
+the full declared `verify` commands on the HOST; that mandatory evidence gates
+advancement and can override an optimistic claim. Neither reviewer acceptance
+nor a local pass substitutes for host verification or an authenticated ship gate.
+
+Record commands, results, and unavailable-check reasons in output artifacts.
+Sandbox DNS/download restrictions, missing tooling, and host-only nested sandbox
+probes do not alone justify a model `fail_code`/`reject` or repeated dependency
+installs. Actual source/test failures must still be reported as failures.
+Build-loop additionally requires observed semantic red-test evidence; when it
+cannot be obtained, `write_tests` reports `fail_plan` to `triage_tests`, never
+claims the tests failed correctly. See [verification guidance](../docs/usage/verification.md)
+for local evidence and scratch conventions.
+
+Instruction changes affect canonical content hashes. These templates are now
+version 1.0.1; instantiate new work from that version. Previously admitted roots
+retain their immutable graph body/hash. Update shipped example hash expectations
+through the canonical loader and keep the feature-delivery copies byte-identical;
+do not rewrite stored historical pins.

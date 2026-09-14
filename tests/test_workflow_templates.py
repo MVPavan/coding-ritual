@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from tests._foreman import ForemanLab
 from tests._supervisor import ChildScript, commit_all
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import Outcome
 from workflow_interpreter.bridge.command import _bridge_graph
-from workflow_interpreter.schema.models import BindsMode, GateType
+from workflow_interpreter.schema.models import BindsMode, GateType, NodeKind
 from workflow_interpreter.supervisor.models import SandboxMode
 
 WORKFLOWS = Path(__file__).parents[1] / "workflows"
@@ -109,3 +111,120 @@ def test_design_spec_admits_and_exposes_only_the_existing_bridge_gate(
     lab.approve(ship, Outcome.APPROVE)
     assert lab.tick().closed_gates == (ship,)
     assert lab.tick().terminal is True
+
+
+@pytest.mark.parametrize(
+    "template", sorted(WORKFLOWS.glob("*.toml")), ids=lambda p: p.stem
+)
+def test_loaded_tasks_separate_local_evidence_from_mandatory_host_verify(
+    template: Path,
+) -> None:
+    """Catch lost verification guidance at the loader seam, not model compliance.
+
+    Removing a task's host gate, evidence slot, or environment/failure distinction
+    must fail. These prose assertions do not prove that a model obeys them.
+    """
+    graph = load_graph(template)
+    for node in graph.document.node:
+        if node.kind is not NodeKind.TASK:
+            continue
+        assert node.verify, node.name
+        text = " ".join((node.instructions or "").split())
+        for clause in (
+            "Your verdict is a claim",
+            "full declared HOST verification remains mandatory and gates advancement",
+            "available supported local checks",
+            "command and result, or a not-run reason",
+            "must not alone cause `fail_code` or `reject`",
+            "Do not retry dependency installs",
+            "Real code/test failures must be reported",
+            "never relabeled as environment problems",
+            "$WF_SCRATCH_DIR",
+            "temporary repositories and caches",
+        ):
+            assert clause in text, (template.name, node.name, clause)
+        for obsolete in (
+            "after the pinned check passes",
+            "after pinned checks pass",
+            "when the verify command passes",
+            "when the verify commands pass",
+        ):
+            assert obsolete not in text, (template.name, node.name, obsolete)
+        if Outcome.ACCEPT in node.outcomes:
+            assert "source/spec judgments" in text
+
+
+@pytest.mark.parametrize(
+    ("template", "expected"),
+    [
+        ("basic", {"write": ("scripts/verify-feature.sh",)}),
+        (
+            "design-spec",
+            {
+                "draft": ("scripts/verify-feature.sh",),
+                "review": ("scripts/verify-feature.sh", "scripts/review-checks.sh"),
+            },
+        ),
+        (
+            "integration",
+            {
+                "integrate": ("scripts/verify-feature.sh",),
+                "review": ("scripts/verify-feature.sh", "scripts/review-checks.sh"),
+            },
+        ),
+        (
+            "feature-delivery",
+            {
+                "implement": ("scripts/verify-feature.sh",),
+                "review": ("scripts/verify-feature.sh", "scripts/review-checks.sh"),
+            },
+        ),
+        (
+            "engine-bootstrap",
+            {
+                "implement": ("scripts/verify-engine-bootstrap.sh",),
+                "review": ("scripts/verify-engine-bootstrap.sh",),
+            },
+        ),
+        (
+            "pointer-handoff",
+            {
+                "implement": ("scripts/verify-pointer-handoff.sh",),
+                "review": ("scripts/verify-pointer-handoff.sh",),
+            },
+        ),
+        (
+            "build-loop",
+            {
+                "write_tests": ("scripts/checks/tests-parse.sh",),
+                "review_tests": (
+                    "scripts/checks/tests-parse.sh",
+                    "scripts/checks/assertion-strength.sh",
+                ),
+                "implement": (
+                    "scripts/verify-feature.sh",
+                    "scripts/checks/tests-untouched.sh",
+                    "scripts/checks/mutate.sh",
+                ),
+                "review_impl": (
+                    "scripts/checks/tests-parse.sh",
+                    "scripts/checks/assertion-strength.sh",
+                ),
+                "critic": (
+                    "scripts/checks/tests-parse.sh",
+                    "scripts/checks/assertion-strength.sh",
+                ),
+            },
+        ),
+    ],
+)
+def test_local_guidance_preserves_declared_host_checks(
+    template: str, expected: dict[str, tuple[str, ...]]
+) -> None:
+    """Moving obligations to the host must not drop any of its declared checks."""
+    graph = load_graph(WORKFLOWS / f"{template}.toml")
+    assert {
+        node.name: tuple(check.cmd for check in node.verify or ())
+        for node in graph.document.node
+        if node.kind is NodeKind.TASK
+    } == expected

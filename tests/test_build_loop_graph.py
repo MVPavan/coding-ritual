@@ -147,3 +147,25 @@ def test_infra_retry_exhaustion_recovers_inside_the_failing_region() -> None:
 
     assert {name: route.target for name, route in routes.items()} == expected
     assert {route.kind for route in routes.values()} == {RouteKind.FALLBACK}
+
+
+def test_red_evidence_is_required_or_escalated_without_inventing_a_failure() -> None:
+    """Unavailable execution cannot certify a semantic red or bypass test review."""
+    graph = load_graph(BUILD_LOOP_GRAPH)
+    nodes = {node.name: node for node in graph.document.node}
+    author = " ".join((nodes["write_tests"].instructions or "").split())
+    assert "fail for the right reason (the feature is absent)" in author
+    assert "Record the red-test command, result, and semantic failure reason" in author
+    assert "Missing red-test evidence is not proof of a correct failure" in author
+    assert "report `fail_plan`" in author
+    assert "required semantic evidence cannot be obtained" in author
+    assert ("write_tests", "triage_tests") in _edges(Outcome.FAIL_PLAN)
+    assert ("write_tests", "review_tests") in _edges(Outcome.DONE)
+    assert ("review_tests", "implement") in _edges(Outcome.ACCEPT)
+    implement = " ".join((nodes["implement"].instructions or "").split())
+    assert "Do not edit, weaken, skip or delete any test" in implement
+    assert {check.cmd for check in nodes["implement"].verify or ()} == {
+        "scripts/verify-feature.sh",
+        "scripts/checks/tests-untouched.sh",
+        "scripts/checks/mutate.sh",
+    }

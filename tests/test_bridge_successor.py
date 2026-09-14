@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._helpers import mutate
 from tests.test_integration_lifecycle import approve_integration, entry, prepared_lab
 from workflow_interpreter.bridge.adapter import PhaseAdapter
 from workflow_interpreter.bridge.integration import IntegrationGuard
@@ -23,9 +24,10 @@ def integration_request(tmp_path, lab, record):
         inputs[item.name] = str(path)
     graph = tmp_path / "replacement.toml"
     graph.write_text(
-        Path("workflows/integration.toml")
-        .read_text()
-        .replace('version = "1.0.0"', 'version = "1.0.1"')
+        mutate(
+            Path("workflows/integration.toml").read_text(),
+            (('version = "1.0.1"', 'version = "1.0.2"'),),
+        )
     )
     return TrustedReplacementRequest(
         request_key="replace-integration",
@@ -210,7 +212,10 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
     assert a != previous.expected_base_commit
     if mode == "trusted":
         graph.write_text(
-            graph.read_text().replace('version     = "1.0.0"', 'version     = "1.0.1"')
+            mutate(
+                graph.read_text(),
+                (('version     = "1.0.1"', 'version     = "1.0.2"'),),
+            )
         )
         receipt = replace_checked(
             lab.composition,
