@@ -28,6 +28,9 @@ packages = ["src/dws"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["--strict-markers"]
+markers = [
+    "qmd: real QMD lexical qualification requiring qmd and bwrap",
+]
 
 [tool.ruff]
 line-length = 96
