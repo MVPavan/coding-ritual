@@ -46,7 +46,7 @@ from workflow_interpreter.bdio.carriers import ArtifactIdentity
 from workflow_interpreter.foreman import close as close_module
 from workflow_interpreter.foreman.close import settle
 from workflow_interpreter.foreman.compose import InstanceWiring
-from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.schema.models import Node, Outcome
 from workflow_interpreter.supervisor import (
     BranchAdvance,
     BranchAdvanceOutcome,
@@ -55,6 +55,22 @@ from workflow_interpreter.supervisor import (
     ExitReason,
 )
 from workflow_interpreter.supervisor.paths import write_record
+
+
+class WorkspaceDouble(SimpleNamespace):
+    """Settlement workspace interface; these fixtures have no checkout bytes."""
+
+    def preserve_interrupted(self, activation: ActivationRecord, node: Node) -> None:
+        self.preserved = (activation.activation_id, node.name)
+
+
+class WiringDouble(SimpleNamespace):
+    """Supply the required workspace collaborator to settlement-only fixtures."""
+
+    def __init__(self, *, workspace: object | None = None, **kwargs: object) -> None:
+        super().__init__(
+            workspace=WorkspaceDouble() if workspace is None else workspace, **kwargs
+        )
 
 
 class StoreDouble:
@@ -112,9 +128,18 @@ def test_settle_closes_evidence_recorded_without_replaying(
             )
         }
     )
-    store = StoreDouble(activation)
-    wiring = SimpleNamespace(
-        store=store, paths=_completion_paths(tmp_path, root, activation)
+    workspace = WorkspaceDouble()
+
+    class OrderedStore(StoreDouble):
+        def close_activation(self, *args: object, **kwargs: object) -> object:
+            assert workspace.preserved == (activation.activation_id, "implement")
+            return super().close_activation(*args, **kwargs)
+
+    store = OrderedStore(activation)
+    wiring = WiringDouble(
+        workspace=workspace,
+        store=store,
+        paths=_completion_paths(tmp_path, root, activation),
     )
     result = settle(
         cast(InstanceWiring, wiring),
@@ -153,7 +178,7 @@ def test_settle_closes_a_real_recorded_done_from_its_completion(
         ),
     )
     settled = settle(
-        cast(InstanceWiring, SimpleNamespace(store=fake_store, paths=paths)),
+        cast(InstanceWiring, WiringDouble(store=fake_store, paths=paths)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -195,7 +220,7 @@ def test_settle_replays_an_uncomputable_verdict_after_completion_loss(
     settled = settle(
         cast(
             InstanceWiring,
-            SimpleNamespace(
+            WiringDouble(
                 store=fake_store, observer=SimpleNamespace(replay=replay), paths=paths
             ),
         ),
@@ -231,7 +256,7 @@ def test_settle_halts_when_missing_completion_cannot_be_replayed(
     result = settle(
         cast(
             InstanceWiring,
-            SimpleNamespace(store=fake_store, observer=observer, paths=paths),
+            WiringDouble(store=fake_store, observer=observer, paths=paths),
         ),
         root,
         root.index.nodes["implement"],
@@ -261,7 +286,7 @@ def test_settle_maps_a_malformed_recorded_completion_to_transport_error(
     paths.completion(activation.activation_id).write_text("not json", encoding="utf-8")
 
     settled = settle(
-        cast(InstanceWiring, SimpleNamespace(store=fake_store, paths=paths)),
+        cast(InstanceWiring, WiringDouble(store=fake_store, paths=paths)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -320,7 +345,7 @@ def test_settle_halts_when_real_replay_contradicts_recorded_evidence(
     result = settle(
         cast(
             InstanceWiring,
-            SimpleNamespace(
+            WiringDouble(
                 store=store,
                 observer=observer,
                 workspace=workspace,
@@ -387,7 +412,7 @@ def test_settle_halts_when_real_replay_cannot_restore_missing_exit_record(
     result = settle(
         cast(
             InstanceWiring,
-            SimpleNamespace(
+            WiringDouble(
                 store=store,
                 observer=observer,
                 workspace=workspace,
@@ -423,7 +448,7 @@ def test_settle_stalls_when_recorded_evidence_is_missing(
     )
     store = StoreDouble(activation)
     result = settle(
-        cast(InstanceWiring, SimpleNamespace(store=store)),
+        cast(InstanceWiring, WiringDouble(store=store)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -490,7 +515,7 @@ def test_settle_uses_the_recorded_effects_gate_without_replaying(
     result = settle(
         cast(
             InstanceWiring,
-            SimpleNamespace(
+            WiringDouble(
                 store=store, paths=_completion_paths(tmp_path, root, activation)
             ),
         ),
@@ -552,7 +577,7 @@ def test_settle_approved_recorded_effects_uses_the_gate_verdict(
     settle(
         cast(
             InstanceWiring,
-            SimpleNamespace(
+            WiringDouble(
                 store=store, paths=_completion_paths(tmp_path, root, activation)
             ),
         ),
@@ -581,7 +606,7 @@ def test_settle_awaits_a_lifecycle_that_is_not_ready_to_close(
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     store = StoreDouble(activation)
     result = settle(
-        cast(InstanceWiring, SimpleNamespace(store=store)),
+        cast(InstanceWiring, WiringDouble(store=store)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -618,7 +643,7 @@ def test_settle_closes_an_exit_without_a_record_as_transport_error(
     store = OutcomeStore(activation)
     paths = make_paths(make_config(tmp_path / "repo", tmp_path), root.root_id)
     result = settle(
-        cast(InstanceWiring, SimpleNamespace(store=store, paths=paths)),
+        cast(InstanceWiring, WiringDouble(store=store, paths=paths)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -670,9 +695,7 @@ def test_settle_replays_an_exit_record_recovered_from_the_wrapper_file(
     store = RecordingStore(activation)
 
     result = settle(
-        cast(
-            InstanceWiring, SimpleNamespace(store=store, observer=observer, paths=paths)
-        ),
+        cast(InstanceWiring, WiringDouble(store=store, observer=observer, paths=paths)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -754,7 +777,7 @@ def test_settle_records_evidence_then_awaits_the_effects_gate(
         )
     )
     result = settle(
-        cast(InstanceWiring, SimpleNamespace(store=store, observer=observer)),
+        cast(InstanceWiring, WiringDouble(store=store, observer=observer)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -823,7 +846,7 @@ def test_settle_closes_each_verified_effects_decision(
         )
     )
     result = settle(
-        cast(InstanceWiring, SimpleNamespace(store=store, observer=observer)),
+        cast(InstanceWiring, WiringDouble(store=store, observer=observer)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -874,7 +897,7 @@ def test_settle_stalls_on_an_invalid_closed_effects_gate(
     )
 
     result = settle(
-        cast(InstanceWiring, SimpleNamespace(store=store, observer=observer)),
+        cast(InstanceWiring, WiringDouble(store=store, observer=observer)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -904,7 +927,7 @@ def test_settle_maps_replay_failures_to_error_transport(
         replay=lambda *args, **kwargs: (_ for _ in ()).throw(OSError())
     )
     settle(
-        cast(InstanceWiring, SimpleNamespace(store=store, observer=observer)),
+        cast(InstanceWiring, WiringDouble(store=store, observer=observer)),
         root,
         root.index.nodes["implement"],
         activation,
@@ -994,7 +1017,7 @@ def test_settle_replay_walks_back_to_the_prior_artifact_at_the_same_node(
     settle(
         cast(
             InstanceWiring,
-            SimpleNamespace(
+            WiringDouble(
                 store=PreviousStore(), observer=SimpleNamespace(replay=replay)
             ),
         ),
@@ -1066,7 +1089,7 @@ def test_settle_bounds_a_cyclic_predecessor_walk(
     monkeypatch.setattr(close_module, "_MAX_PREDECESSOR_HOPS", 2)
 
     settle(
-        cast(InstanceWiring, SimpleNamespace(store=store, observer=observer)),
+        cast(InstanceWiring, WiringDouble(store=store, observer=observer)),
         root,
         root.index.nodes["implement"],
         current,
@@ -1112,7 +1135,7 @@ def test_settle_replays_missing_branch_before_recording_evidence(
         ),
         branch=BranchAdvance(outcome=BranchAdvanceOutcome.MISSING, target="c" * 40),
     )
-    workspace = SimpleNamespace(
+    workspace = WorkspaceDouble(
         advance_instance_branch=lambda *args, **kwargs: BranchAdvance(
             outcome=again, target="c" * 40
         )
@@ -1125,7 +1148,7 @@ def test_settle_replays_missing_branch_before_recording_evidence(
     result = settle(
         cast(
             InstanceWiring,
-            SimpleNamespace(
+            WiringDouble(
                 store=store, observer=observer, workspace=workspace, repo_root="."
             ),
         ),

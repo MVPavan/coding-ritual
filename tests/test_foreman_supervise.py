@@ -516,3 +516,63 @@ def test_locked_persistent_bd_blocks_a_second_process_and_records_calls(
     calls = json.loads(state.read_text(encoding="utf-8"))["calls"]
     assert calls[-1]["pid"] == os.getpid()
     assert calls[-1]["argv"][5] == "context"
+
+
+@pytest.mark.parametrize("phase", ["pre_reset", "interrupted"])
+def test_snapshot_pin_failure_at_wrapper_lifecycle_seam(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, phase: str
+) -> None:
+    """Reset refusal closes for infra retry; producer recovery blocks settlement."""
+    from tests._supervisor import ChildScript
+    from workflow_interpreter.supervisor import Git, GitCommandError
+
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    wiring = lab.wiring()
+    activation = wiring.store.mint_activation(root.root_id, entry_request()).activation
+    node = root.index.nodes["implement"]
+    path = wiring.paths.worktree / "src/feature.py"
+    if phase == "pre_reset":
+        wiring.workspace.prepare(activation, node)
+        path.write_text("unfinished\n")
+    else:
+        lab.profiles.next_script(
+            ChildScript(write_path="src/feature.py", write_body="unfinished\n")
+        )
+    original = Git.update_ref
+
+    def refuse(self: Git, ref: str, commit: str, *, cwd: Path) -> None:
+        if ("/recovery/" in ref) == (phase == "interrupted"):
+            raise GitCommandError("injected snapshot pin failure")
+        original(self, ref, commit, cwd=cwd)
+
+    monkeypatch.setattr(Git, "update_ref", refuse)
+    result = run_wrapper(
+        lab.composition, root.root_id, activation.activation_id, wiring=wiring
+    )
+    current = lab.store.reads.load_activation(activation.activation_id)
+    assert path.read_text() == "unfinished\n"
+    assert current.metadata.deviations == ()
+    if phase == "pre_reset":
+        assert result is WrapperExit.DONE
+        assert current.metadata.lifecycle is Lifecycle.CLOSED
+        assert current.metadata.outcome is Outcome.ERROR_TRANSPORT
+        assert current.metadata.handle is None
+        assert lab.profiles.profile.tasks == []
+    else:
+        assert result is WrapperExit.FAILED
+        assert current.metadata.lifecycle is Lifecycle.DISPATCHED
+        assert wiring.paths.exit_file(activation.activation_id).exists()
+        assert current.metadata.outcome is None
+        assert current.metadata.evidence is None
+        assert not wiring.paths.completion(activation.activation_id).exists()
+        assert lab.tick().settled is None
+        assert path.read_text() == "unfinished\n"
+        monkeypatch.setattr(Git, "update_ref", original)
+        assert lab.tick().settled == activation.activation_id
+        recovery = wiring.workspace.read_recovery(current)
+        assert recovery is not None and recovery.pinned
+        assert (
+            lab.git.blob_text(f"{recovery.commit}:src/feature.py", cwd=lab.repo)
+            == "unfinished\n"
+        )

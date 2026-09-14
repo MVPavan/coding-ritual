@@ -97,6 +97,7 @@ from workflow_interpreter.supervisor.errors import (
     BandNotHeld,
     DirtyTreeRefused,
     GitCommandError,
+    InterruptedWorkPreservationFailed,
     PreconditionRefused,
     SnapshotFailed,
     WrapperDirError,
@@ -491,6 +492,15 @@ class Workspace:
         return record
 
     def preserve_interrupted(
+        self, activation: ActivationRecord, node: Node
+    ) -> RecoverySnapshot | None:
+        """Keep recovery failures distinct from retryable pre-reset refusals."""
+        try:
+            return self._preserve_interrupted(activation, node)
+        except (SnapshotFailed, WrapperDirError, OSError, UnicodeDecodeError) as exc:
+            raise InterruptedWorkPreservationFailed(str(exc)) from exc
+
+    def _preserve_interrupted(
         self, activation: ActivationRecord, node: Node
     ) -> RecoverySnapshot | None:
         """Preserve confirmed-dead owned writer content before grading or close.

@@ -125,7 +125,7 @@ def test_steer_request_rebuilds_its_execution_pin_from_the_root(
     continuations: list[MintRequest] = []
 
     class CapturingSteerer:
-        def __init__(self, *_args: object) -> None:
+        def __init__(self, *_args: object, workspace: object) -> None:
             pass
 
         def steer(

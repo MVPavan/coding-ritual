@@ -44,6 +44,10 @@ class SnapshotFailed(SupervisorError):
     """A pre-destruction snapshot could not be safely created or pinned."""
 
 
+class InterruptedWorkPreservationFailed(SnapshotFailed):
+    """Producer recovery failed; leave its activation open until preservation retries."""
+
+
 class BandNotHeld(PreconditionRefused):
     """An in-repo caller omitted the already-required execution band."""
 

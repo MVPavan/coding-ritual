@@ -56,7 +56,11 @@ record to force advancement. A missing legacy ownership record is reported as
 unavailable, rather than attributing today's checkout to an old activation.
 
 Clean and read-only exits create no unnecessary snapshots. Existing pre-reset
-snapshot chains and terminal dirty-worktree retention remain in place.
+snapshot chains and terminal dirty-worktree retention remain in place. A generic
+pre-dispatch/pre-reset snapshot failure prevents reset and runner launch, leaves
+the checkout intact, and closes as `error_transport` without a deviation. That
+close remains eligible for the normal infrastructure retry decision. Interrupted
+producer preservation instead keeps the activation open until recovery succeeds.
 
 ## Read-only inspection
 

@@ -53,10 +53,10 @@ from workflow_interpreter.supervisor.errors import (
     ExecLedgerError,
     ForkBarrierAbortError,
     ForkBarrierError,
+    InterruptedWorkPreservationFailed,
     LockUnavailable,
     PreconditionRefused,
     SandboxUnavailable,
-    SnapshotFailed,
     SupervisorError,
 )
 from workflow_interpreter.supervisor.gitio import Git
@@ -398,7 +398,9 @@ def run_wrapper(
             if refreshed.metadata.is_settled
             else WrapperExit.FAILED
         )
-    except SnapshotFailed:
+    except InterruptedWorkPreservationFailed:
+        # Recovery must finish before settlement; pre-reset SnapshotFailed still
+        # takes the ordinary transport close below and remains infra-retryable.
         return WrapperExit.FAILED
     except (SupervisorError, OSError) as exc:
         return _close_error(resolved, activation_id, Outcome.ERROR_TRANSPORT, exc)
