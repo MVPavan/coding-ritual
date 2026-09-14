@@ -34,6 +34,7 @@ from workflow_interpreter.supervisor import (
     AuditFlag,
     BranchAdvanceOutcome,
     CompletionEvidence,
+    SnapshotFailed,
     SupervisorError,
 )
 from workflow_interpreter.supervisor.channels import pinned_verifier_digests
@@ -67,6 +68,17 @@ def settle(
     A missing completion record invokes replay, which may re-run attribution and
     artifact/output pinning before it writes a replacement completion record.
     """
+    if activation.metadata.lifecycle in (
+        Lifecycle.EXIT_RECORDED,
+        Lifecycle.EVIDENCE_RECORDED,
+    ):
+        try:
+            wiring.workspace.preserve_interrupted(activation, node)
+        except (OSError, SupervisorError) as exc:
+            return Settlement(
+                activation=activation,
+                stalled=f"interrupted work preservation: {exc}",
+            )
     if activation.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED:
         evidence = activation.metadata.evidence
         if evidence is None:
@@ -98,6 +110,8 @@ def settle(
                     pinned_digests=pinned_verifier_digests(root),
                     previous_tree_oid=_previous_tree_oid(wiring, activation),
                 ).completion
+            except SnapshotFailed as exc:
+                return Settlement(activation=activation, stalled=str(exc))
             except (OSError, SupervisorError, BdioError) as exc:
                 halt = wiring.store.open_gate(
                     root.root_id,
@@ -206,6 +220,8 @@ def settle(
             pinned_digests=pinned_verifier_digests(root),
             previous_tree_oid=_previous_tree_oid(wiring, activation),
         )
+    except SnapshotFailed as exc:
+        return Settlement(activation=activation, stalled=str(exc))
     except (OSError, SupervisorError) as exc:
         closed = wiring.store.close_activation(
             activation.activation_id,

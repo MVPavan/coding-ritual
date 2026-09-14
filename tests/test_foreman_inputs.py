@@ -986,3 +986,54 @@ def test_leaf_contract_budget_and_mandatory_steer(fake_store: WorkflowStore) -> 
     assert "保留 advice" in envelope.text
     with pytest.raises(EnvelopeRefusal):
         DefaultComposer().envelope(root, activation, (), instructions="x" * 16000)
+    trimmed = DefaultComposer().envelope(
+        root.model_copy(
+            update={
+                "index": root.index.model_copy(
+                    update={
+                        "sources": {
+                            **root.index.sources,
+                            "review_findings": root.index.sources[
+                                "review_findings"
+                            ].model_copy(update={"optional": True}),
+                        }
+                    }
+                )
+            }
+        ),
+        activation,
+        (
+            Materialized(text="original intent", name="task_brief"),
+            Materialized(text="x" * 16000, name="review_findings"),
+        ),
+    )
+    assert LEAF_EXECUTION_CONTRACT in trimmed.text
+    assert "original intent" in trimmed.text
+    assert any(
+        item.name == "review_findings" and item.reason == "budget"
+        for item in trimmed.omissions
+    )
+    small_document = document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(
+                    update={"instructions": "Do the task.", "context_budget_bytes": 512}
+                )
+                if node.name == activation.metadata.node
+                else node
+                for node in document.node
+            )
+        }
+    )
+    with pytest.raises(EnvelopeRefusal):
+        DefaultComposer().envelope(
+            root.model_copy(
+                update={
+                    "definition": root.definition.model_copy(
+                        update={"document": small_document}
+                    )
+                }
+            ),
+            activation,
+            (),
+        )

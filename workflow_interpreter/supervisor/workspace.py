@@ -467,6 +467,12 @@ class Workspace:
             raise SnapshotFailed("recovery producer identity mismatch")
         if record.commit is not None:
             cwd = self._paths.config.repo_root
+            if (
+                record.observed_head is None
+                or self._git.rev_parse(f"{record.commit}^1", cwd=cwd)
+                != record.observed_head
+            ):
+                raise SnapshotFailed("recovery head identity mismatch")
             if self._git.tree_oid(record.commit, cwd=cwd) != record.tree:
                 raise SnapshotFailed("recovery tree identity mismatch")
             target = self._git.ref_target(ref, cwd=cwd)

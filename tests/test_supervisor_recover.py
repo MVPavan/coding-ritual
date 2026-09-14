@@ -725,3 +725,109 @@ def test_clean_and_readonly_work_need_no_recovery_pin(lab: Lab) -> None:
         is None
     )
     assert not lab.paths.recovery_snapshot(lab.activation.activation_id).exists()
+
+
+@pytest.mark.parametrize("already_preserved", [False, True])
+def test_in_repo_recovery_does_not_capture_another_roots_writer(
+    tmp_path: Path, already_preserved: bool
+) -> None:
+    """The shared band owner outranks a stale per-instance workspace record."""
+    from workflow_interpreter.supervisor import LockUnavailable
+
+    lab = Lab(tmp_path, IsolationMode.IN_REPO)
+    path = lab.repo / RUNNER_FILE
+    prior = None
+    if already_preserved:
+        path.write_text("old producer\n")
+        prior = lab.workspace.preserve_interrupted(lab.activation, lab.node)
+        path.unlink()
+    lab.workspace.band.release()
+    successor_root = make_root(lab.store, lab.repo, "successor-instance")
+    successor_paths = make_paths(lab.config, successor_root.root_id)
+    successor_workspace = make_workspace(successor_paths, lab.git, lab.clock)
+    successor = lab.store.mint_activation(
+        successor_root.root_id, entry_mint()
+    ).activation
+    successor_paths.ensure_activation_dir(successor.activation_id)
+    with successor_workspace.band:
+        successor_workspace.prepare(successor, lab.node)
+        path.write_text("another roots live writer\n")
+        with pytest.raises(LockUnavailable):
+            lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    # Even after the successor wrapper releases its lock, its ownership persists.
+    record = lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert path.read_text() == "another roots live writer\n"
+    assert record is not None
+    if already_preserved:
+        assert record == prior
+        assert (
+            lab.git.blob_text(f"{record.commit}:{RUNNER_FILE}", cwd=lab.repo)
+            == "old producer\n"
+        )
+    else:
+        assert record.unavailable and not record.pinned
+        assert lab.git.ref_target(record.ref, cwd=lab.repo) is None
+    assert not successor_paths.recovery_snapshot(successor.activation_id).exists()
+
+
+@pytest.mark.parametrize("pinned_write", [False, True])
+def test_divergent_recovery_record_failure_preserves_history_and_retries(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch, pinned_write: bool
+) -> None:
+    """Both durable-record crash windows retain files and the prior snapshot."""
+    from pydantic import BaseModel
+
+    from workflow_interpreter.supervisor import SnapshotFailed
+    from workflow_interpreter.supervisor import workspace as workspace_module
+    from workflow_interpreter.supervisor.models import RecoverySnapshot
+
+    path = lab.tree / RUNNER_FILE
+    path.write_text("first producer bytes\n")
+    first = lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert first is not None and first.pinned
+    path.write_text("later producer bytes\n")
+    original = workspace_module.write_record
+
+    def refuse(path: Path, record: BaseModel) -> None:
+        if isinstance(record, RecoverySnapshot) and record.pinned == pinned_write:
+            raise OSError("injected record persistence failure")
+        original(path, record)
+
+    monkeypatch.setattr(workspace_module, "write_record", refuse)
+    with pytest.raises(SnapshotFailed, match="persistence failure"):
+        lab.recovery.resolve(lab.activation, lab.node)
+    assert not lab.reload().metadata.is_settled
+    assert path.read_text() == "later producer bytes\n"
+    pinned = lab.git.ref_target(first.ref, cwd=lab.repo)
+    assert pinned is not None
+    assert lab.git.is_ancestor(first.commit, pinned, cwd=lab.repo)
+    monkeypatch.setattr(workspace_module, "write_record", original)
+    assert lab.recovery.resolve(lab.reload(), lab.node).closed is not None
+    final = lab.workspace.read_recovery(lab.activation)
+    assert final is not None and final.pinned
+    assert lab.git.is_ancestor(first.commit, final.commit, cwd=lab.repo)
+    assert (
+        lab.git.blob_text(f"{first.commit}:{RUNNER_FILE}", cwd=lab.repo)
+        == "first producer bytes\n"
+    )
+    assert (
+        lab.git.blob_text(f"{final.commit}:{RUNNER_FILE}", cwd=lab.repo)
+        == "later producer bytes\n"
+    )
+
+
+def test_recovery_rejects_mismatched_observed_head(lab: Lab) -> None:
+    """Producer evidence must bind the recorded HEAD to its snapshot parent."""
+    from workflow_interpreter.supervisor import SnapshotFailed
+
+    (lab.tree / RUNNER_FILE).write_text("producer bytes\n")
+    record = lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert record is not None and record.pinned
+    write_record(
+        lab.paths.recovery_snapshot(lab.activation.activation_id),
+        record.model_copy(update={"observed_head": record.commit}),
+    )
+    with pytest.raises(SnapshotFailed, match="head identity"):
+        lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert lab.git.ref_target(record.ref, cwd=lab.repo) == record.commit
+    assert (lab.tree / RUNNER_FILE).read_text() == "producer bytes\n"

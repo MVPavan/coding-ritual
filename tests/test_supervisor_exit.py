@@ -1043,3 +1043,28 @@ def test_recovery_bytes_are_not_a_verification_candidate(tmp_path: Path) -> None
         )
         is None
     )
+
+
+@pytest.mark.parametrize("reason", [ExitReason.EXITED, ExitReason.MAX_WALL])
+def test_error_exit_preserves_bytes_without_claiming_success(
+    tmp_path: Path, reason: ExitReason
+) -> None:
+    """Transport and timeout outcomes retain recoverable content before grading."""
+    lab = Lab(tmp_path)
+    (lab.tree / FEATURE_FILE).write_text("failed attempt bytes\n")
+    observed = lab.observer.observe(
+        lab.activation,
+        lab.node,
+        lab.profile,
+        exit_code=1,
+        reason=reason,
+        pinned_digests=lab.pins(),
+    )
+    record = lab.workspace.read_recovery(lab.activation)
+    assert record is not None and record.pinned
+    assert (
+        lab.git.blob_text(f"{record.commit}:{FEATURE_FILE}", cwd=lab.repo)
+        == "failed attempt bytes\n"
+    )
+    assert observed.completion.outcome is not Outcome.DONE
+    assert observed.completion.evidence.artifact is None

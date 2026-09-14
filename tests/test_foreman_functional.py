@@ -1232,3 +1232,75 @@ def test_preservation_failure_blocks_foreman_settlement(
     report = lab.tick()
     assert report.settled is None
     assert not lab.store.reads.load_activation(activation_id).metadata.is_settled
+    monkeypatch.setattr(Git, "update_ref", original)
+    assert lab.tick().settled == activation_id
+    recovered = wiring.workspace.read_recovery(
+        lab.store.reads.load_activation(activation_id)
+    )
+    assert recovered is not None and recovered.pinned
+    assert lab.git.blob_text(f"{recovered.commit}:src/feature.py", cwd=lab.repo) == (
+        "unfinished after cached completion\n"
+    )
+
+
+@pytest.mark.parametrize("failure", ["pin", "pending_record", "pinned_record"])
+def test_cached_evidence_preservation_failure_retries_before_close(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
+) -> None:
+    """Even an already recorded verdict cannot advance past failed preservation."""
+    from pydantic import BaseModel
+
+    from workflow_interpreter.supervisor import Git, GitCommandError
+    from workflow_interpreter.supervisor import workspace as workspace_module
+    from workflow_interpreter.supervisor.models import RecoverySnapshot
+
+    lab = ForemanLab(tmp_path)
+    lab.instantiate()
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+    wiring = lab.wiring()
+    completion = read_record(wiring.paths.completion(activation_id), CompletionEvidence)
+    assert completion is not None
+    evidence = completion.evidence.model_copy(
+        update={"claimed_outcome": completion.claimed_outcome}
+    )
+    lab.store.record_evidence(activation_id, evidence)
+    path = wiring.paths.worktree / "src/feature.py"
+    path.write_text("unfinished cached evidence\n")
+    original_pin = Git.update_ref
+    original_write = workspace_module.write_record
+
+    def refuse_pin(self: Git, ref: str, commit: str, *, cwd: Path) -> None:
+        if failure == "pin" and "/recovery/" in ref:
+            raise GitCommandError("injected recovery pin failure")
+        original_pin(self, ref, commit, cwd=cwd)
+
+    def refuse_record(path: Path, record: BaseModel) -> None:
+        if isinstance(record, RecoverySnapshot) and (
+            (failure == "pending_record" and not record.pinned)
+            or (failure == "pinned_record" and record.pinned)
+        ):
+            raise OSError("injected recovery record failure")
+        original_write(path, record)
+
+    monkeypatch.setattr(Git, "update_ref", refuse_pin)
+    monkeypatch.setattr(workspace_module, "write_record", refuse_record)
+    report = lab.tick()
+    assert report.settled is None
+    activation = lab.store.reads.load_activation(activation_id)
+    assert activation.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED
+    assert not activation.metadata.is_settled
+    assert path.read_text() == "unfinished cached evidence\n"
+    monkeypatch.setattr(Git, "update_ref", original_pin)
+    monkeypatch.setattr(workspace_module, "write_record", original_write)
+    assert lab.tick().settled == activation_id
+    record = wiring.workspace.read_recovery(activation)
+    assert record is not None and record.pinned
+    assert lab.foreman.inspect(lab.root.root_id, activation_id).recovery == record
+    assert lab.git.blob_text(f"{record.commit}:src/feature.py", cwd=lab.repo) == (
+        "unfinished cached evidence\n"
+    )
+    assert (
+        lab.store.reads.load_activation(activation_id).metadata.outcome
+        == completion.outcome
+    )

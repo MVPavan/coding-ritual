@@ -234,3 +234,44 @@ def test_steer_preserves_dirty_writer_before_continuation(tmp_path: Path) -> Non
         make_git(lab.config).blob_text(f"{record.commit}:src/draft.txt", cwd=lab.repo)
         == "steered draft\n"
     )
+
+
+def test_steer_pin_failure_keeps_producer_open_until_retry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A persisted steer intent must not mint its continuation before preservation."""
+    from tests._supervisor import make_git, make_workspace
+    from workflow_interpreter.bdio.reads import activations_of
+    from workflow_interpreter.supervisor import Git, GitCommandError, SnapshotFailed
+
+    lab = Lab(tmp_path)
+    activation = lab.dispatched(handle_for(dead_pid()))
+    git = make_git(lab.config)
+    workspace = make_workspace(lab.paths, git, lab.clock)
+    workspace.prepare(activation, lab.node)
+    path = workspace.path_for(lab.node) / "src/feature.py"
+    path.write_text("interrupted steer bytes\n")
+    original = Git.update_ref
+
+    def refuse(self: Git, ref: str, commit: str, *, cwd: Path) -> None:
+        if "/recovery/" in ref:
+            raise GitCommandError("injected steer pin failure")
+        original(self, ref, commit, cwd=cwd)
+
+    monkeypatch.setattr(Git, "update_ref", refuse)
+    with pytest.raises(SnapshotFailed):
+        _steer(lab, activation)
+    assert not lab.store.reads.load_activation(
+        activation.activation_id
+    ).metadata.is_settled
+    assert len(activations_of(lab.store.reads.instance_beads(lab.root.root_id))) == 1
+    assert path.read_text() == "interrupted steer bytes\n"
+    monkeypatch.setattr(Git, "update_ref", original)
+    result = _steer(lab, activation)
+    assert result.closed.metadata.outcome is Outcome.STEERED
+    record = workspace.read_recovery(activation)
+    assert record is not None and record.pinned
+    assert (
+        git.blob_text(f"{record.commit}:src/feature.py", cwd=lab.repo)
+        == "interrupted steer bytes\n"
+    )
