@@ -244,7 +244,15 @@ def classify(
         None if handle is None else procfs.prove_liveness(config, handle)
     )
     return RecoveryClassification(
-        case=_case(intent, recorded, proof),
+        case=_case(
+            intent,
+            None
+            if recorded is not None
+            and recorded.reason == ExitReason.EXIT_UNOBSERVED.value
+            and not activation.metadata.is_settled
+            else recorded,
+            proof,
+        ),
         activation_id=activation_id,
         proof=proof,
         exit_record=recorded,
@@ -295,7 +303,7 @@ class Recovery:
         self._store = store
         self._workspace = workspace
         self._clock = clock
-        self._steerer = Steerer(config, paths, store, clock)
+        self._steerer = Steerer(config, paths, store, clock, workspace=workspace)
 
     def classify(self, activation: ActivationRecord) -> RecoveryClassification:
         """The §5.6 case for this activation, computed from evidence alone."""
@@ -338,6 +346,21 @@ class Recovery:
             if handle is None
             else procfs.terminate(self._config, handle, self._clock)
         )
+        if termination is None or not termination.confirmed_dead:
+            return RecoveryResolution(
+                classification=classification,
+                termination=termination,
+                halted="interrupted writer death is unconfirmed",
+            )
+        write_record(
+            self._paths.exit_file(activation.activation_id),
+            ExitRecord(
+                exit_code=EXIT_CODE_UNOBSERVED,
+                ended_at=to_iso(self._clock.now()),
+                reason=ExitReason.EXIT_UNOBSERVED.value,
+            ),
+        )
+        self._workspace.preserve_interrupted(activation, node)
         pin = self._pin_orphan(activation, node)
         if not pin.settled:
             # §5.6 pins the ahead commit FIRST for a reason: the close is what

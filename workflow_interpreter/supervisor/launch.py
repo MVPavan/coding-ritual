@@ -66,7 +66,7 @@ import select
 import shutil
 import signal
 import uuid
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Final, Protocol
 
@@ -226,6 +226,30 @@ class TaskBuilder(Protocol):
     def __call__(
         self, activation: ActivationRecord, channels: RunnerChannels
     ) -> TaskSpec: ...  # pragma: no cover - protocol
+
+
+class EnvelopeTaskBuilder:
+    """Foreman composer that accounts for the exact initial or resumed payload.
+
+    Plain two-argument builders remain supported for low-level profile callers.
+    """
+
+    def __init__(
+        self,
+        build: Callable[[ActivationRecord, RunnerChannels, str | None], TaskSpec],
+    ) -> None:
+        self._build = build
+
+    def __call__(
+        self, activation: ActivationRecord, channels: RunnerChannels
+    ) -> TaskSpec:
+        return self._build(activation, channels, None)
+
+    def continuation(
+        self, activation: ActivationRecord, channels: RunnerChannels, instructions: str
+    ) -> TaskSpec:
+        """Compose raw, already-validated steer advice before recording bytes."""
+        return self._build(activation, channels, instructions)
 
 
 class Precondition(Protocol):
@@ -880,7 +904,14 @@ class Dispatcher:
             self._paths.log(activation_id),
             activation_id,
         )
-        task = build_task(activation, channels)
+        composed_resume = instructions is not None and isinstance(
+            build_task, EnvelopeTaskBuilder
+        )
+        task = (
+            build_task.continuation(activation, channels, instructions)
+            if isinstance(build_task, EnvelopeTaskBuilder) and instructions is not None
+            else build_task(activation, channels)
+        )
         plan, mode = self._sandbox(activation_id, task)
         # §5.2: the session id is PRE-ASSIGNED by the profile and never
         # discovered from output. `prepare` is its ONLY minter — the foreman
@@ -892,7 +923,9 @@ class Dispatcher:
         command = (
             profile.build_command(task, session_id)
             if instructions is None
-            else profile.build_resume_command(session_id, instructions, task)
+            else profile.build_resume_command(
+                session_id, task.brief if composed_resume else instructions, task
+            )
         )
         launcher = ForkBarrierLauncher(
             self._paths.config,

@@ -343,6 +343,23 @@ class WorkspaceRecord(BaseModel):
     created_at: str
 
 
+class RecoverySnapshot(BaseModel):
+    """Producer evidence only; never an approved artifact or retry base."""
+
+    model_config = RECORD_MODEL
+
+    root_id: str
+    activation_id: str
+    intended_base: str
+    observed_head: str | None = None
+    ref: str
+    commit: str | None = None
+    tree: str | None = None
+    previous_commit: str | None = None
+    pinned: bool = False
+    unavailable: str | None = None
+
+
 class DirtyEntry(BaseModel):
     """One dirty path of a §12 snapshot, identified by content, not by mtime."""
 

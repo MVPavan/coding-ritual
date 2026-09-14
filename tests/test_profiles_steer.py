@@ -641,3 +641,108 @@ def test_a_retry_of_a_continuation_whose_intent_is_gone_is_refused(lab: Lab) -> 
 
     with pytest.raises(ContinuationRefused, match="infra-retry"):
         lab.dispatch(RunnerName.CLAUDE, request=retry)
+
+
+@pytest.mark.parametrize("runner", [RunnerName.CLAUDE, RunnerName.CODEX])
+def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
+    tmp_path: Path, runner: RunnerName
+) -> None:
+    """Serialize the real composed task, resume, and infra retry via vendor stubs."""
+    import hashlib
+
+    from tests._profiles import PASSTHROUGH, write_stub
+    from workflow_interpreter.foreman.inputs import select_bindings
+    from workflow_interpreter.foreman.supervise import _task_builder
+    from workflow_interpreter.profiles.registry import ProfileRegistry
+    from workflow_interpreter.supervisor import Dispatcher, Steerer
+    from workflow_interpreter.supervisor.launch import DispatchResult
+
+    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    root = lab.instantiate()
+    wiring = lab.wiring()
+    node = root.index.nodes[IMPLEMENT]
+    bindings = select_bindings(root.index, root, node, (), 1)
+    request = entry_mint(model="fake", session_id=str(uuid.uuid4()), inputs=bindings)
+    binary = write_stub(tmp_path, runner)
+    profile = ProfileRegistry(
+        ProfileConfig(
+            binary_overrides={runner: str(binary)}, passthrough_env=PASSTHROUGH
+        ),
+        lab.clock,
+        host_env_with(**stub_env()),
+    ).profile_for(runner.value)
+    dispatcher = Dispatcher(wiring.paths, wiring.store, lab.clock)
+    builder = _task_builder(root, wiring, lab.git)
+
+    def launch(request: MintRequest) -> DispatchResult:
+        result = dispatcher.dispatch(
+            request,
+            profile,
+            builder,
+            lambda activation: wiring.workspace.prepare(activation, node),
+        )
+        assert result.handle is not None
+        try:
+            assert result.receipt is not None
+            argv = result.receipt.argv
+            payload = (
+                argv[argv.index("-p") + 1] if runner is RunnerName.CLAUDE else argv[-1]
+            )
+            assert "Do not spawn or delegate" in payload
+            assert "implement the lab fixture" in payload
+            assert node.instructions is not None and node.instructions in payload
+            metadata = wiring.store.reads.load_activation(
+                result.activation.activation_id
+            ).metadata
+            assert metadata.envelope is not None
+            assert metadata.envelope["byte_count"] == len(payload.encode())
+            assert (
+                metadata.envelope["sha256"]
+                == hashlib.sha256(payload.encode()).hexdigest()
+            )
+            if request.mint_reason is not MintReason.ENTRY:
+                assert STEER_INSTRUCTIONS in payload
+            return result
+        finally:
+            assert procfs.terminate(
+                lab.supervisor_config, result.handle, lab.clock
+            ).confirmed_dead
+
+    first = launch(request)
+    steered = Steerer(
+        lab.supervisor_config,
+        wiring.paths,
+        wiring.store,
+        lab.clock,
+        workspace=wiring.workspace,
+    ).steer(
+        first.activation,
+        reason=STEER_REASON,
+        instructions=STEER_INSTRUCTIONS,
+        continuation=entry_mint(
+            model="fake",
+            mint_reason=MintReason.STEER_CONTINUATION,
+            predecessor_activation_id=first.activation.activation_id,
+            inputs=bindings,
+        ),
+    )
+    continued = launch(steered.intent.continuation)
+    wiring.store.close_activation(
+        continued.activation.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    retry = entry_mint(
+        model="fake",
+        mint_reason=MintReason.INFRA_RETRY,
+        predecessor_activation_id=continued.activation.activation_id,
+        session_id=continued.handle.session_id,
+        inputs=bindings,
+    )
+    # Original RAW intent remains required, even though the builder could
+    # construct a nonempty task without it.
+    intent_path = wiring.paths.steer_intent(first.activation.activation_id)
+    raw_intent = intent_path.read_bytes()
+    intent_path.unlink()
+    with pytest.raises(ContinuationRefused):
+        dispatcher.dispatch(retry, profile, builder)
+    intent_path.write_bytes(raw_intent)
+    launch(retry)

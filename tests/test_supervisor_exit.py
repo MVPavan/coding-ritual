@@ -967,3 +967,79 @@ def test_an_effect_inside_allowed_paths_raises_no_audit_flag(lab: Lab) -> None:
     assert (
         AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS not in observation.completion.audit_flags
     )
+
+
+def test_dirty_exit_preserved_before_cached_completion_replay(tmp_path: Path) -> None:
+    """A cached verdict must not hide unfinished tracked and untracked bytes."""
+    lab = Lab(tmp_path)
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects()
+    lab.observe()
+    (lab.tree / FEATURE_FILE).write_text("unfinished tracked\n")
+    (lab.tree / "src/unfinished.txt").write_text("unfinished untracked\n")
+    lab.observe()
+    ref = f"refs/wf/{lab.root.root_id}/recovery/{lab.activation.activation_id}"
+    commit = lab.git.ref_target(ref, cwd=lab.repo)
+    assert commit is not None
+    assert (
+        lab.git.blob_text(f"{commit}:{FEATURE_FILE}", cwd=lab.repo)
+        == "unfinished tracked\n"
+    )
+    assert (
+        lab.git.blob_text(f"{commit}:src/unfinished.txt", cwd=lab.repo)
+        == "unfinished untracked\n"
+    )
+    lab.observe()
+    assert lab.git.ref_target(ref, cwd=lab.repo) == commit
+
+
+def test_cached_completion_cannot_swallow_recovery_pin_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Preservation failure escapes grading and leaves the checkout recoverable."""
+    from workflow_interpreter.supervisor import SnapshotFailed
+
+    lab = Lab(tmp_path)
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects()
+    lab.observe()
+    (lab.tree / FEATURE_FILE).write_text("unfinished\n")
+    original = lab.git.update_ref
+
+    def refuse(ref: str, commit: str, *, cwd: Path) -> None:
+        if "/recovery/" in ref:
+            raise GitCommandError("injected pin failure")
+        original(ref, commit, cwd=cwd)
+
+    monkeypatch.setattr(lab.git, "update_ref", refuse)
+    with pytest.raises(SnapshotFailed):
+        lab.observe()
+    assert (lab.tree / FEATURE_FILE).read_text() == "unfinished\n"
+    record = lab.workspace.read_recovery(lab.activation)
+    assert record is not None and not record.pinned
+    monkeypatch.setattr(lab.git, "update_ref", original)
+    lab.observe()
+    record = lab.workspace.read_recovery(lab.activation)
+    assert record is not None and record.pinned
+
+
+def test_recovery_bytes_are_not_a_verification_candidate(tmp_path: Path) -> None:
+    """With no committed candidate, verification still runs at the original base."""
+    lab = Lab(tmp_path)
+    (lab.tree / FEATURE_FILE).write_text("unfinished\n")
+    lab.effects(FEATURE_FILE)
+    lab.marker(json.dumps(DONE_MARKER))
+    observed = lab.observe()
+    assert observed.artifact is None
+    assert observed.completion.evidence.artifact is None
+    assert observed.completion.outcome is not Outcome.DONE
+    recovery = lab.workspace.read_recovery(lab.activation)
+    assert recovery is not None and recovery.pinned
+    from workflow_interpreter.supervisor import activation_ref
+
+    assert (
+        lab.git.ref_target(
+            activation_ref(lab.root.root_id, lab.activation.activation_id), cwd=lab.repo
+        )
+        is None
+    )

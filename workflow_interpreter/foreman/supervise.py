@@ -56,10 +56,11 @@ from workflow_interpreter.supervisor.errors import (
     LockUnavailable,
     PreconditionRefused,
     SandboxUnavailable,
+    SnapshotFailed,
     SupervisorError,
 )
 from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.launch import TaskBuilder
+from workflow_interpreter.supervisor.launch import EnvelopeTaskBuilder, TaskBuilder
 from workflow_interpreter.supervisor.models import LaunchOutcome
 from workflow_interpreter.supervisor.paths import WrapperPaths, read_record
 from workflow_interpreter.supervisor.profile import RunnerChannels, TaskSpec
@@ -149,7 +150,9 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
     """Build a real profile task from the activation's immutable bindings."""
     composer = DefaultComposer()
 
-    def build(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
+    def build(
+        activation: ActivationRecord, channels: RunnerChannels, instructions: str | None
+    ) -> TaskSpec:
         wiring.store.assert_member(root.root_id)
         current = wiring.store.reads.load_activation(activation.activation_id)
         resolved = resolved_node(root, current.metadata.node)
@@ -191,7 +194,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             )
 
         inputs = tuple(materialized(binding) for binding in current.metadata.inputs)
-        envelope = composer.envelope(root, current, inputs)
+        envelope = composer.envelope(root, current, inputs, instructions=instructions)
         wiring.store.record_envelope(
             current.activation_id, envelope.model_dump(mode="json", exclude={"text"})
         )
@@ -210,7 +213,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             artifact_input_mode=node.artifact_input_mode or ArtifactInputMode.INLINE,
         )
 
-    return build
+    return EnvelopeTaskBuilder(build)
 
 
 def run_wrapper(
@@ -395,6 +398,8 @@ def run_wrapper(
             if refreshed.metadata.is_settled
             else WrapperExit.FAILED
         )
+    except SnapshotFailed:
+        return WrapperExit.FAILED
     except (SupervisorError, OSError) as exc:
         return _close_error(resolved, activation_id, Outcome.ERROR_TRANSPORT, exc)
     finally:

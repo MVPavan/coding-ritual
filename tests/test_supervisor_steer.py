@@ -213,3 +213,24 @@ def _kill_group(handle: ProcessHandle) -> None:
         os.waitpid(handle.pid, 0)
     except ChildProcessError:
         return
+
+
+def test_steer_preserves_dirty_writer_before_continuation(tmp_path: Path) -> None:
+    """Confirmed steer death pins unfinished bytes before the successor is minted."""
+    from tests._supervisor import make_git, make_workspace
+
+    lab = Lab(tmp_path)
+    activation = lab.dispatched(handle_for(dead_pid()))
+    workspace = make_workspace(lab.paths, make_git(lab.config), lab.clock)
+    workspace.prepare(activation, lab.node)
+    tree = workspace.path_for(lab.node)
+    (tree / "src/feature.py").write_text("steered tracked\n")
+    (tree / "src/draft.txt").write_text("steered draft\n")
+    result = _steer(lab, activation)
+    assert result.closed.metadata.outcome is Outcome.STEERED
+    record = workspace.read_recovery(activation)
+    assert record is not None and record.pinned
+    assert (
+        make_git(lab.config).blob_text(f"{record.commit}:src/draft.txt", cwd=lab.repo)
+        == "steered draft\n"
+    )

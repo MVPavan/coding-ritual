@@ -59,12 +59,16 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
     pinned_execution_setting,
 )
+from workflow_interpreter.bdio.wire import resolved_settings
+from workflow_interpreter.schema.models import Node
+from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     TerminationFailed,
 )
+from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.models import (
     RECORD_MODEL,
     ExitReason,
@@ -73,6 +77,7 @@ from workflow_interpreter.supervisor.models import (
 )
 from workflow_interpreter.supervisor.paths import WrapperPaths, write_record
 from workflow_interpreter.supervisor.procfs import terminate
+from workflow_interpreter.supervisor.workspace import Workspace
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -167,11 +172,16 @@ class Steerer:
         paths: WrapperPaths,
         store: WorkflowStore,
         clock: Clock,
+        *,
+        workspace: Workspace | None = None,
     ) -> None:
         self._config = config
         self._paths = paths
         self._store = store
         self._clock = clock
+        self._workspace = workspace or Workspace(
+            paths, Git(config), clock, BandLock(paths.band_lock)
+        )
 
     def steer(
         self,
@@ -234,6 +244,20 @@ class Steerer:
         if not proof.confirmed_dead:
             raise TerminationFailed(_MSG_SURVIVED.format(activation_id=activation_id))
         self._write_exit_file(activation_id)
+        pinned = root.index.nodes[activation.metadata.node]
+        settings = resolved_settings(root.metadata)
+        recovery_node = Node.model_validate(
+            pinned.model_dump()
+            | {
+                field: settings[setting.at(pinned.name)]
+                for field, setting in (
+                    ("writes", NodeSetting.WRITES),
+                    ("isolation", NodeSetting.ISOLATION),
+                )
+                if setting.at(pinned.name) in settings
+            }
+        )
+        self._workspace.preserve_interrupted(activation, recovery_node)
 
         closed = self._store.close_activation(
             activation_id,

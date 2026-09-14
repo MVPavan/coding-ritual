@@ -1193,3 +1193,42 @@ def test_a_dispatched_task_carries_its_nodes_instructions_and_facts(
     # And the §6 protocol is still there — the frame is an addition, not a swap.
     assert "$WF_OUTCOME_FILE" in task.brief
     assert task.effort == "medium"
+
+
+def test_delivered_task_has_mandatory_leaf_contract(tmp_path: Path) -> None:
+    """The engine owns coordination even when repository rules ask for delegates."""
+    lab = ForemanLab(tmp_path)
+    lab.instantiate()
+    activation_id = lab.tick().dispatched
+    task = next(
+        t for t in lab.profiles.profile.tasks if t.activation_id == activation_id
+    )
+    assert "Do not spawn or delegate" in task.brief
+    assert "enclosing engine owns" in task.brief
+
+
+def test_preservation_failure_blocks_foreman_settlement(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The outer settlement seam must not close past a failed recovery pin."""
+    from workflow_interpreter.supervisor import Git, GitCommandError
+
+    lab = ForemanLab(tmp_path)
+    lab.instantiate()
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+    wiring = lab.wiring()
+    (wiring.paths.worktree / "src/feature.py").write_text(
+        "unfinished after cached completion\n"
+    )
+    original = Git.update_ref
+
+    def refuse(self: Git, ref: str, commit: str, *, cwd: Path) -> None:
+        if "/recovery/" in ref:
+            raise GitCommandError("injected recovery pin failure")
+        original(self, ref, commit, cwd=cwd)
+
+    monkeypatch.setattr(Git, "update_ref", refuse)
+    report = lab.tick()
+    assert report.settled is None
+    assert not lab.store.reads.load_activation(activation_id).metadata.is_settled

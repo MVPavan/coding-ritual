@@ -65,6 +65,7 @@ survives crashes, a trailing cleanup does not (§5.4, drills 4, 5, 26).
 from __future__ import annotations
 
 import shutil
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Final
 
@@ -98,20 +99,28 @@ from workflow_interpreter.supervisor.errors import (
     GitCommandError,
     PreconditionRefused,
     SnapshotFailed,
+    WrapperDirError,
 )
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.models import (
     DirtyEntry,
     DirtySnapshot,
     HumanConfirmation,
+    Liveness,
     PinOutcome,
     PinResult,
     PreconditionResult,
+    RecoverySnapshot,
     ResetPlan,
     RunnerAttribution,
     WorkspaceRecord,
 )
-from workflow_interpreter.supervisor.paths import WrapperPaths, write_record
+from workflow_interpreter.supervisor.paths import (
+    WrapperPaths,
+    read_record,
+    write_record,
+)
+from workflow_interpreter.supervisor.procfs import prove_liveness
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -215,6 +224,25 @@ class Workspace:
         state every time, so a crash mid-reset converges on re-run (drill 5) and
         a re-run against an already-correct tree does nothing (drill 4).
         """
+        if node.isolation is IsolationMode.IN_REPO and not self._band.held:
+            raise BandNotHeld(_MSG_BAND_REQUIRED)
+        with nullcontext() if self._band.held else self._band:
+            return self._prepare_owned(
+                activation,
+                node,
+                prior_dirty_state=prior_dirty_state,
+                confirmation=confirmation,
+            )
+
+    def _prepare_owned(
+        self,
+        activation: ActivationRecord,
+        node: Node,
+        *,
+        prior_dirty_state: str | None,
+        confirmation: HumanConfirmation | None,
+    ) -> PreconditionResult:
+        """Prepare and transfer ownership under the preservation fence."""
         intended = activation.metadata.intended_base_commit
         in_repo = node.isolation is IsolationMode.IN_REPO
         if in_repo and not self._band.held:
@@ -232,10 +260,11 @@ class Workspace:
                 plan.protected,
                 protected_head=plan.protected_head,
             )
+        # Reserve ownership before mutation: a crash during reset must not leave
+        # the previous producer entitled to capture these bytes on a late replay.
+        self._write_record(activation, node, cwd, intended)
         pre_reset = self._apply(cwd, intended, plan, activation.activation_id)
         self._assert_clean(cwd, intended)
-
-        self._write_record(activation, node, cwd, intended)
         _LOG.info(
             "wf.precondition.verified",
             activation_id=activation.activation_id,
@@ -400,6 +429,10 @@ class Workspace:
                 index_path=self._paths.snapshot_index,
                 cwd=cwd,
             )
+            if previous is not None and self._git.tree_oid(
+                previous, cwd=cwd
+            ) == self._git.tree_oid(commit, cwd=cwd):
+                return previous
             self._git.update_ref(ref, commit, cwd=cwd)
             pinned = self._git.ref_target(ref, cwd=cwd)
         except (GitCommandError, OSError, UnicodeDecodeError) as exc:
@@ -415,6 +448,141 @@ class Workspace:
             commit=commit,
         )
         return commit
+
+    def read_recovery(self, activation: ActivationRecord) -> RecoverySnapshot | None:
+        """Read and validate producer evidence without reading checkout content."""
+        record = read_record(
+            self._paths.recovery_snapshot(activation.activation_id), RecoverySnapshot
+        )
+        if record is None:
+            return None
+        ref = namespaced_ref(self._paths.root_id, "recovery", activation.activation_id)
+        if (
+            activation.metadata.wf_root_id != self._paths.root_id
+            or record.root_id != self._paths.root_id
+            or record.activation_id != activation.activation_id
+            or record.intended_base != activation.metadata.intended_base_commit
+            or record.ref != ref
+        ):
+            raise SnapshotFailed("recovery producer identity mismatch")
+        if record.commit is not None:
+            cwd = self._paths.config.repo_root
+            if self._git.tree_oid(record.commit, cwd=cwd) != record.tree:
+                raise SnapshotFailed("recovery tree identity mismatch")
+            target = self._git.ref_target(ref, cwd=cwd)
+            if target != record.commit and (
+                record.pinned or target != record.previous_commit
+            ):
+                raise SnapshotFailed("recovery pin identity mismatch")
+        return record
+
+    def _finish_recovery_pin(self, record: RecoverySnapshot) -> RecoverySnapshot:
+        """Repair pin/persist crashes using the recorded object, never current files."""
+        if record.commit is None or record.pinned:
+            return record
+        cwd = self._paths.config.repo_root
+        if self._git.ref_target(record.ref, cwd=cwd) != record.commit:
+            self._git.update_ref(record.ref, record.commit, cwd=cwd)
+        if self._git.ref_target(record.ref, cwd=cwd) != record.commit:
+            raise SnapshotFailed("recovery pin failed read-back")
+        record = record.model_copy(update={"pinned": True})
+        write_record(self._paths.recovery_snapshot(record.activation_id), record)
+        return record
+
+    def preserve_interrupted(
+        self, activation: ActivationRecord, node: Node
+    ) -> RecoverySnapshot | None:
+        """Preserve confirmed-dead owned writer content before grading or close.
+
+        Missing legacy ownership is explicitly unavailable. A previous producer's
+        evidence can be replayed after reuse, but cannot capture its successor.
+        The pending record precedes the ref write so pin failures are retryable.
+        """
+        if activation.metadata.wf_root_id != self._paths.root_id:
+            raise SnapshotFailed("foreign recovery activation")
+        if not node.writes:
+            return None
+        with nullcontext() if self._band.held else self._band:
+            try:
+                record = self.read_recovery(activation)
+                if record is not None:
+                    record = self._finish_recovery_pin(record)
+                owner = read_record(
+                    self._paths.in_repo_owner_record
+                    if node.isolation is IsolationMode.IN_REPO
+                    else self._paths.workspace_record,
+                    WorkspaceRecord,
+                )
+                cwd = self.path_for(node)
+                owned = (
+                    owner is not None
+                    and owner.owner_activation_id == activation.activation_id
+                    and owner.path == str(cwd)
+                    and owner.isolation == (node.isolation or IsolationMode.WORKTREE)
+                    and owner.expected_head == activation.metadata.intended_base_commit
+                    and not owner.read_only
+                )
+                if not owned or activation.metadata.handle is None:
+                    if record is not None and record.pinned:
+                        return record
+                    unavailable = RecoverySnapshot(
+                        root_id=self._paths.root_id,
+                        activation_id=activation.activation_id,
+                        intended_base=activation.metadata.intended_base_commit,
+                        ref=namespaced_ref(
+                            self._paths.root_id, "recovery", activation.activation_id
+                        ),
+                        unavailable="producer ownership or process identity unavailable",
+                    )
+                    write_record(
+                        self._paths.recovery_snapshot(activation.activation_id),
+                        unavailable,
+                    )
+                    return unavailable
+                proof = prove_liveness(self._paths.config, activation.metadata.handle)
+                if proof.status not in (Liveness.DEAD, Liveness.IDENTITY_MISMATCH):
+                    raise SnapshotFailed("recovery requires confirmed process death")
+                if not self._git.status_paths(cwd=cwd):
+                    return record
+                head = self._git.head_commit(cwd=cwd)
+                previous = record.commit if record is not None else None
+                ref = namespaced_ref(
+                    self._paths.root_id, "recovery", activation.activation_id
+                )
+                if self._git.ref_target(ref, cwd=cwd) != previous:
+                    raise SnapshotFailed("unrecorded recovery ref")
+                commit = self._git.snapshot_commit(
+                    message=f"wf interrupted work from {activation.activation_id} at {head}",
+                    parents=(head,) if previous is None else (head, previous),
+                    index_path=self._paths.snapshot_index,
+                    cwd=cwd,
+                )
+                tree = self._git.tree_oid(commit, cwd=cwd)
+                if record is not None and record.pinned and tree == record.tree:
+                    return record
+                pending = RecoverySnapshot(
+                    root_id=self._paths.root_id,
+                    activation_id=activation.activation_id,
+                    intended_base=activation.metadata.intended_base_commit,
+                    observed_head=head,
+                    ref=ref,
+                    commit=commit,
+                    tree=tree,
+                    previous_commit=previous,
+                )
+                write_record(
+                    self._paths.recovery_snapshot(activation.activation_id), pending
+                )
+                return self._finish_recovery_pin(pending)
+            except (
+                GitCommandError,
+                OSError,
+                UnicodeDecodeError,
+                WrapperDirError,
+            ) as exc:
+                raise SnapshotFailed(
+                    f"interrupted work preservation failed: {exc}"
+                ) from exc
 
     def _untracked(self, cwd: Path, resettable: tuple[str, ...]) -> tuple[str, ...]:
         """The resettable paths git will not restore for us — untracked files."""
@@ -441,22 +609,22 @@ class Workspace:
     ) -> None:
         """Record the §5.4 worktree / §12 band ownership for this activation."""
         isolation = node.isolation or IsolationMode.WORKTREE
-        write_record(
-            self._paths.workspace_record,
-            WorkspaceRecord(
-                isolation=isolation,
-                path=str(cwd),
-                branch=(
-                    None
-                    if isolation is IsolationMode.IN_REPO
-                    else BRANCH_TEMPLATE.format(root_id=self._paths.root_id)
-                ),
-                owner_activation_id=activation.activation_id,
-                expected_head=intended,
-                read_only=not bool(node.writes),
-                created_at=to_iso(self._clock.now()),
+        record = WorkspaceRecord(
+            isolation=isolation,
+            path=str(cwd),
+            branch=(
+                None
+                if isolation is IsolationMode.IN_REPO
+                else BRANCH_TEMPLATE.format(root_id=self._paths.root_id)
             ),
+            owner_activation_id=activation.activation_id,
+            expected_head=intended,
+            read_only=not bool(node.writes),
+            created_at=to_iso(self._clock.now()),
         )
+        if isolation is IsolationMode.IN_REPO:
+            write_record(self._paths.in_repo_owner_record, record)
+        write_record(self._paths.workspace_record, record)
 
     # -- artifact identity (§7.4) ----------------------------------------
 

@@ -946,3 +946,43 @@ def test_select_bindings_refuses_a_required_absent_cross_region_producer(
         select_bindings(
             root.index, root, root.index.nodes["review"], (open_producer,), 1
         )
+
+
+def test_leaf_contract_budget_and_mandatory_steer(fake_store: WorkflowStore) -> None:
+    """Max legal instructions fit 16 KB; required context never silently drops."""
+    from workflow_interpreter.foreman.constants import LEAF_EXECUTION_CONTRACT
+    from workflow_interpreter.foreman.envelope import EnvelopeRefusal
+
+    assert len(LEAF_EXECUTION_CONTRACT.encode()) <= 768
+    root = make_root(fake_store, load_definition())
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    instructions = "Delegate to reviewers. " + "x" * (
+        8192 - len("Delegate to reviewers. ")
+    )
+    document = root.definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(
+                    update={"instructions": instructions, "context_budget_bytes": 16000}
+                )
+                if node.name == activation.metadata.node
+                else node
+                for node in root.definition.document.node
+            )
+        }
+    )
+    root = root.model_copy(
+        update={"definition": root.definition.model_copy(update={"document": document})}
+    )
+    envelope = DefaultComposer().envelope(
+        root,
+        activation,
+        (Materialized(text="original intent"),),
+        instructions="保留 advice",
+    )
+    assert envelope.byte_count <= 16000
+    assert instructions in envelope.text
+    assert LEAF_EXECUTION_CONTRACT in envelope.text
+    assert "保留 advice" in envelope.text
+    with pytest.raises(EnvelopeRefusal):
+        DefaultComposer().envelope(root, activation, (), instructions="x" * 16000)

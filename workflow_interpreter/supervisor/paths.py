@@ -239,6 +239,15 @@ class WrapperPaths:
         """
         return self._config.wrapper_root / BAND_LOCK
 
+    @property
+    def in_repo_owner_record(self) -> Path:
+        """Current checkout owner across roots sharing the repository band."""
+        return self._config.wrapper_root / "repo-workspace.json"
+
+    def recovery_snapshot(self, activation_id: str) -> Path:
+        """Wrapper-owned producer-linked interruption evidence."""
+        return self.activation_dir(activation_id) / "recovery.json"
+
     def activation_dir(self, activation_id: str) -> Path:
         """`.wf/<root_id>/<activation_id>/` — one activation's artifacts."""
         return self.instance_dir / activation_id

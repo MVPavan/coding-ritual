@@ -593,3 +593,135 @@ def _continuations(lab: Lab) -> list[str]:
         for record in activations_of(beads)
         if record.activation_id != lab.activation.activation_id
     ]
+
+
+def test_interrupted_dirty_writer_is_recoverable_before_retry(lab: Lab) -> None:
+    """Dirty bytes survive case-three close/reset without becoming an artifact."""
+    (lab.tree / "src/feature.py").write_text("unfinished tracked\n")
+    (lab.tree / RUNNER_FILE).write_text("unfinished untracked\n")
+    result = lab.recovery.resolve(lab.activation, lab.node)
+    assert result.closed is not None
+    assert result.closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert result.orphan is None
+    record = lab.workspace.read_recovery(lab.activation)
+    assert record is not None and record.pinned
+    assert record.observed_head == lab.base
+    assert record.intended_base == lab.base
+    assert (
+        lab.git.blob_text(f"{record.commit}:{RUNNER_FILE}", cwd=lab.repo)
+        == "unfinished untracked\n"
+    )
+    retry = lab.store.mint_activation(
+        lab.root.root_id,
+        entry_mint(
+            mint_reason=MintReason.INFRA_RETRY,
+            predecessor_activation_id=lab.activation.activation_id,
+        ),
+    ).activation
+    lab.workspace.prepare(retry, lab.node)
+    (lab.tree / RUNNER_FILE).write_text("successor work\n")
+    assert lab.workspace.preserve_interrupted(lab.activation, lab.node) == record
+    assert (
+        lab.git.blob_text(f"{record.commit}:src/feature.py", cwd=lab.repo)
+        == "unfinished tracked\n"
+    )
+    assert (lab.tree / RUNNER_FILE).read_text() == "successor work\n"
+
+
+def test_interrupted_pin_failure_remains_retryable(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failed pin leaves the writer open and the original files intact."""
+    from workflow_interpreter.supervisor import SnapshotFailed
+
+    (lab.tree / RUNNER_FILE).write_text("recover me\n")
+    original = lab.git.update_ref
+
+    def fail(ref: str, commit: str, *, cwd: Path) -> None:
+        if "/recovery/" in ref:
+            raise GitCommandError("injected recovery pin failure")
+        original(ref, commit, cwd=cwd)
+
+    monkeypatch.setattr(lab.git, "update_ref", fail)
+    with pytest.raises(SnapshotFailed):
+        lab.recovery.resolve(lab.activation, lab.node)
+    assert not lab.reload().metadata.is_settled
+    assert (lab.tree / RUNNER_FILE).read_text() == "recover me\n"
+    monkeypatch.setattr(lab.git, "update_ref", original)
+    result = lab.recovery.resolve(lab.reload(), lab.node)
+    assert result.closed is not None
+    assert result.closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert lab.workspace.read_recovery(lab.activation).pinned
+
+
+def test_recovery_chains_divergent_bytes_and_keeps_prior_pin_on_failure(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Tree identity, not commit timestamps, decides idempotency and chaining."""
+    from workflow_interpreter.supervisor import SnapshotFailed
+
+    path = lab.tree / RUNNER_FILE
+    path.write_text("first\n")
+    first = lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert first is not None and first.pinned
+    original = lab.git.update_ref
+
+    def refuse(ref: str, commit: str, *, cwd: Path) -> None:
+        raise GitCommandError("injected ref failure")
+
+    monkeypatch.setattr(lab.git, "update_ref", refuse)
+    assert lab.workspace.preserve_interrupted(lab.activation, lab.node) == first
+    path.write_text("second\n")
+    with pytest.raises(SnapshotFailed):
+        lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert lab.git.ref_target(first.ref, cwd=lab.repo) == first.commit
+    assert path.read_text() == "second\n"
+    monkeypatch.setattr(lab.git, "update_ref", original)
+    second = lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert second is not None and second.pinned
+    assert lab.git.is_ancestor(first.commit, second.commit, cwd=lab.repo)
+    assert lab.git.blob_text(f"{first.commit}:{RUNNER_FILE}", cwd=lab.repo) == "first\n"
+    assert (
+        lab.git.blob_text(f"{second.commit}:{RUNNER_FILE}", cwd=lab.repo) == "second\n"
+    )
+
+
+def test_recovery_refuses_live_foreign_and_unowned_content(lab: Lab) -> None:
+    """No live/successor bytes acquire an old producer's identity."""
+    from workflow_interpreter.supervisor import SnapshotFailed
+
+    (lab.tree / RUNNER_FILE).write_text("owned work\n")
+    write_proc_entry(lab.config.proc_root, lab.pid)
+    with pytest.raises(SnapshotFailed, match="confirmed process death"):
+        lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert lab.workspace.read_recovery(lab.activation) is None
+    remove_proc_entry(lab.config.proc_root, lab.pid)
+    foreign = lab.activation.model_copy(
+        update={
+            "metadata": lab.activation.metadata.model_copy(
+                update={"wf_root_id": "wf-foreign"}
+            )
+        }
+    )
+    with pytest.raises(SnapshotFailed, match="foreign"):
+        lab.workspace.preserve_interrupted(foreign, lab.node)
+    lab.paths.workspace_record.unlink()
+    unavailable = lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert (
+        unavailable is not None and unavailable.unavailable and not unavailable.pinned
+    )
+    assert lab.git.ref_target(unavailable.ref, cwd=lab.repo) is None
+    assert (lab.tree / RUNNER_FILE).read_text() == "owned work\n"
+
+
+def test_clean_and_readonly_work_need_no_recovery_pin(lab: Lab) -> None:
+    """Do not create snapshots for clean or read-only exits."""
+    assert lab.workspace.preserve_interrupted(lab.activation, lab.node) is None
+    (lab.tree / RUNNER_FILE).write_text("not writer content\n")
+    assert (
+        lab.workspace.preserve_interrupted(
+            lab.activation, lab.node.model_copy(update={"writes": False})
+        )
+        is None
+    )
+    assert not lab.paths.recovery_snapshot(lab.activation.activation_id).exists()

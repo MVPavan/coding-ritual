@@ -64,6 +64,7 @@ from workflow_interpreter.supervisor.errors import (
 )
 from workflow_interpreter.supervisor.models import (
     CompletionEvidence,
+    RecoverySnapshot,
     SteerIntent,
     VerifyResult,
 )
@@ -144,6 +145,7 @@ class Inspection(BaseModel):
     tail: str
     tail_bytes: int
     verify: tuple[VerifyInspection, ...] = ()
+    recovery: RecoverySnapshot | None = None
 
 
 class SteerReport(BaseModel):
@@ -278,6 +280,7 @@ class Foreman:
             tail=tail,
             tail_bytes=len(tail.encode("utf-8")),
             verify=_verify_inspections(wiring, activation_id, limit),
+            recovery=wiring.workspace.read_recovery(activation),
         )
 
     def steer(
@@ -311,6 +314,7 @@ class Foreman:
                 wiring.paths,
                 wiring.store,
                 self._composition.clock,
+                workspace=wiring.workspace,
             )
             if activation.metadata.is_settled:
                 intent = read_record(

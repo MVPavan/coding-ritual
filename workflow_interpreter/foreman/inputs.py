@@ -14,6 +14,7 @@ from workflow_interpreter.foreman.constants import (
     FACT_FRAME_NO_PATHS,
     FORCED_FIRST_REJECT,
     INPUT_LABEL,
+    LEAF_EXECUTION_CONTRACT,
     RUNNER_PROTOCOL,
     RUNNER_PROTOCOL_NO_WRITE_STEP,
     RUNNER_PROTOCOL_WRITE_STEP,
@@ -349,6 +350,8 @@ class DefaultComposer:
         root: RootRecord,
         activation: ActivationRecord,
         inputs: tuple[Materialized, ...],
+        *,
+        instructions: str | None = None,
     ) -> ComposedEnvelope:
         """Compose the profile brief from immutable inputs and resolved flags."""
         node = resolved_node(root, activation.metadata.node).node
@@ -360,12 +363,16 @@ class DefaultComposer:
             for part in (
                 _runner_protocol(node),
                 _fact_frame(root, activation, node),
+                LEAF_EXECUTION_CONTRACT,
                 (
                     f"Execution identity: producing_root_id={root.root_id}; producing_activation_id={activation.activation_id}"
                     if root.metadata.coordination is not None
                     else ""
                 ),
                 node.instructions or "",
+                f"## Steer advice\n\n{instructions}"
+                if instructions is not None
+                else "",
                 (
                     EVIDENCE_REFERENCE_INSTRUCTIONS
                     if node.artifact_input_mode is ArtifactInputMode.REFERENCES
