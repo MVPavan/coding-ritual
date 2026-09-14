@@ -226,13 +226,12 @@ class Workspace:
         """
         if node.isolation is IsolationMode.IN_REPO and not self._band.held:
             raise BandNotHeld(_MSG_BAND_REQUIRED)
-        with nullcontext() if self._band.held else self._band:
-            return self._prepare_owned(
-                activation,
-                node,
-                prior_dirty_state=prior_dirty_state,
-                confirmation=confirmation,
-            )
+        return self._prepare_owned(
+            activation,
+            node,
+            prior_dirty_state=prior_dirty_state,
+            confirmation=confirmation,
+        )
 
     def _prepare_owned(
         self,
@@ -260,11 +259,11 @@ class Workspace:
                 plan.protected,
                 protected_head=plan.protected_head,
             )
-        # Reserve ownership before mutation: a crash during reset must not leave
-        # the previous producer entitled to capture these bytes on a late replay.
-        self._write_record(activation, node, cwd, intended)
         pre_reset = self._apply(cwd, intended, plan, activation.activation_id)
         self._assert_clean(cwd, intended)
+        # Transfer only after the precondition succeeds. A refused reset still
+        # leaves the preceding producer's bytes and ownership intact.
+        self._write_record(activation, node, cwd, intended)
         _LOG.info(
             "wf.precondition.verified",
             activation_id=activation.activation_id,
@@ -429,10 +428,6 @@ class Workspace:
                 index_path=self._paths.snapshot_index,
                 cwd=cwd,
             )
-            if previous is not None and self._git.tree_oid(
-                previous, cwd=cwd
-            ) == self._git.tree_oid(commit, cwd=cwd):
-                return previous
             self._git.update_ref(ref, commit, cwd=cwd)
             pinned = self._git.ref_target(ref, cwd=cwd)
         except (GitCommandError, OSError, UnicodeDecodeError) as exc:
@@ -508,7 +503,14 @@ class Workspace:
             raise SnapshotFailed("foreign recovery activation")
         if not node.writes:
             return None
-        with nullcontext() if self._band.held else self._band:
+        # Worktree callers already hold their activation/coordination guard.
+        # Only in-repo isolation needs the shared execution band.
+        guard = (
+            self._band
+            if node.isolation is IsolationMode.IN_REPO and not self._band.held
+            else nullcontext()
+        )
+        with guard:
             try:
                 record = self.read_recovery(activation)
                 if record is not None:

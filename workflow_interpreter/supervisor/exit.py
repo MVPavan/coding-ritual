@@ -298,7 +298,6 @@ class ExitObserver:
         previous_tree_oid: str | None,
     ) -> ExitObservation:
         """Compute missing evidence, then mirror the already-chosen exit record."""
-        write_record(self._paths.exit_file(activation.activation_id), exit_record)
         self._workspace.preserve_interrupted(activation, node)
         completion = self._completion_record(activation.activation_id)
         if completion is None:

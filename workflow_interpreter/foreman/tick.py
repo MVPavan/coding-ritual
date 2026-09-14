@@ -39,6 +39,7 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.constants import (
     HALT_AUDIT,
+    HALT_INDETERMINATE,
     HALT_INPUTS,
     HALT_MISSING_COMMIT,
     RUN_MAX_WALL,
@@ -60,6 +61,8 @@ from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
     GitCommandError,
     LockUnavailable,
+    SnapshotFailed,
+    TerminationFailed,
     WrapperDirError,
 )
 from workflow_interpreter.supervisor.models import (
@@ -146,6 +149,7 @@ class Inspection(BaseModel):
     tail_bytes: int
     verify: tuple[VerifyInspection, ...] = ()
     recovery: RecoverySnapshot | None = None
+    recovery_error: str | None = None
 
 
 class SteerReport(BaseModel):
@@ -271,6 +275,12 @@ class Foreman:
         limit = self._composition.supervisor_config.log_tail_bytes
         tail = _stale_tail(wiring, limit, activation)
         flag = activation.metadata.stale_flag
+        recovery = None
+        recovery_error = None
+        try:
+            recovery = wiring.workspace.read_recovery(activation)
+        except (SnapshotFailed, WrapperDirError, GitCommandError, OSError) as exc:
+            recovery_error = str(exc)
         return Inspection(
             activation_id=activation_id,
             lifecycle=activation.metadata.lifecycle,
@@ -280,7 +290,8 @@ class Foreman:
             tail=tail,
             tail_bytes=len(tail.encode("utf-8")),
             verify=_verify_inspections(wiring, activation_id, limit),
-            recovery=wiring.workspace.read_recovery(activation),
+            recovery=recovery,
+            recovery_error=recovery_error,
         )
 
     def steer(
@@ -508,6 +519,13 @@ class Foreman:
         except LockUnavailable:
             # Same transient as the band miss above, met deeper in the tick.
             return TickReport(contended=True)
+        except TerminationFailed as exc:
+            gate = wiring.store.open_gate(
+                root_id, halt_gate(HALT_INDETERMINATE.format(detail=str(exc)))
+            )
+            return TickReport(
+                halted=True, opened_gate=_opened_gate(wiring, gate.gate_id)
+            )
         except InputsUnavailable as exc:
             # On a validated graph a bound input is unprovable only when the
             # durable trace contradicts itself (§10.6), so this is the audit
@@ -529,6 +547,7 @@ class Foreman:
             PinnedGraphMismatchError,
             InstanceBranchMissing,
             GitCommandError,
+            SnapshotFailed,
         ) as exc:
             return TickReport(
                 stalled=f"git: {exc}" if isinstance(exc, GitCommandError) else str(exc)

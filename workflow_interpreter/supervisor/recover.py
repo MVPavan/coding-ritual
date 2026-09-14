@@ -81,7 +81,11 @@ from workflow_interpreter.supervisor.branch import BranchAdvanceOutcome
 from workflow_interpreter.supervisor.channels import read_effects
 from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import SupervisorError, WrapperDirError
+from workflow_interpreter.supervisor.errors import (
+    SupervisorError,
+    TerminationFailed,
+    WrapperDirError,
+)
 from workflow_interpreter.supervisor.models import (
     EXIT_CODE_UNOBSERVED,
     RECORD_MODEL,
@@ -121,6 +125,9 @@ MALFORMED_RECEIPT: Final[str] = "receipt"
 _HALT_INDETERMINATE: Final[str] = (
     "liveness could not be proven either way; closing would let a retry run "
     "beside a child that may still be alive (§5.6)"
+)
+_HALT_DEATH_UNCONFIRMED: Final[str] = (
+    "interrupted writer death is unconfirmed; inspect process identity before retrying"
 )
 _HALT_ORPHAN_PIN: Final[str] = (
     "the ahead commit could neither be pinned nor ruled out; closing would "
@@ -243,20 +250,24 @@ def classify(
     proof: LivenessProof | None = (
         None if handle is None else procfs.prove_liveness(config, handle)
     )
+    case = _case(
+        intent,
+        None
+        if recorded is not None
+        and recorded.reason == ExitReason.EXIT_UNOBSERVED.value
+        and not activation.metadata.is_settled
+        else recorded,
+        proof,
+    )
     return RecoveryClassification(
-        case=_case(
-            intent,
-            None
-            if recorded is not None
-            and recorded.reason == ExitReason.EXIT_UNOBSERVED.value
-            and not activation.metadata.is_settled
-            else recorded,
-            proof,
-        ),
+        case=case,
         activation_id=activation_id,
         proof=proof,
-        exit_record=recorded,
-        exit_from_file=from_file,
+        # Only ordinary observation may hand an exit to the caller to settle.
+        # Unobserved recovery and pending steer must first finish their own
+        # preservation/close protocol, including on a second tick.
+        exit_record=recorded if case is RecoveryCase.EXIT_RECORDED else None,
+        exit_from_file=from_file if case is RecoveryCase.EXIT_RECORDED else False,
         evidence_complete=completion is not None,
         steer_intent=intent,
         log_tail=tail,
@@ -347,11 +358,7 @@ class Recovery:
             else procfs.terminate(self._config, handle, self._clock)
         )
         if termination is None or not termination.confirmed_dead:
-            return RecoveryResolution(
-                classification=classification,
-                termination=termination,
-                halted="interrupted writer death is unconfirmed",
-            )
+            raise TerminationFailed(_HALT_DEATH_UNCONFIRMED)
         write_record(
             self._paths.exit_file(activation.activation_id),
             ExitRecord(

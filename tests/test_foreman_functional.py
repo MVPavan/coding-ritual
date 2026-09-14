@@ -1304,3 +1304,194 @@ def test_cached_evidence_preservation_failure_retries_before_close(
         lab.store.reads.load_activation(activation_id).metadata.outcome
         == completion.outcome
     )
+
+
+def _dead_writer_lab(tmp_path: Path) -> tuple[ForemanLab, ActivationRecord]:
+    """Leave a real dispatched writer without an observed exit."""
+    from tests._foreman import entry_request
+    from tests._supervisor import dead_pid, handle_for
+    from workflow_interpreter.bdio import PreconditionRecord
+
+    lab = ForemanLab(tmp_path)
+    lab.instantiate()
+    wiring = lab.wiring()
+    activation = wiring.store.mint_activation(
+        lab.root.root_id, entry_request()
+    ).activation
+    wiring.paths.ensure_activation_dir(activation.activation_id)
+    node = lab.root.index.nodes[activation.metadata.node]
+    prepared = wiring.workspace.prepare(activation, node)
+    lab.store.record_precondition(
+        activation.activation_id,
+        PreconditionRecord(
+            pre_attempt_commit=prepared.pre_attempt_commit,
+            reset_verified_commit=prepared.reset_verified_commit,
+            pre_attempt_dirty_state=prepared.pre_attempt_dirty_state,
+        ),
+    )
+    activation = lab.store.record_dispatch(
+        activation.activation_id, handle_for(dead_pid())
+    )
+    return lab, activation
+
+
+def test_orphan_pin_refusal_survives_repeated_foreman_ticks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An unobserved exit file never bypasses recovery's pin-first refusal."""
+    from tests._supervisor import runner_commit
+    from workflow_interpreter.supervisor import Git, GitCommandError
+
+    lab, activation = _dead_writer_lab(tmp_path)
+    wiring = lab.wiring()
+    (wiring.paths.worktree / "src/feature.py").write_text("ahead\n")
+    commit = runner_commit(wiring.paths.worktree, "ahead", activation.activation_id)
+    original = Git.update_ref
+
+    def refuse(self: Git, ref: str, commit: str, *, cwd: Path) -> None:
+        if "/artifact/" in ref or "/orphan/" in ref:
+            raise GitCommandError("injected orphan pin failure")
+        original(self, ref, commit, cwd=cwd)
+
+    monkeypatch.setattr(Git, "update_ref", refuse)
+    for _ in range(2):
+        report = lab.tick()
+        assert report.stalled is not None
+        assert report.settled is None
+        assert (
+            lab.store.reads.load_activation(activation.activation_id).metadata.lifecycle
+            is Lifecycle.DISPATCHED
+        )
+    monkeypatch.setattr(Git, "update_ref", original)
+    assert lab.tick().settled == activation.activation_id
+    assert (
+        lab.git.ref_target(
+            activation_ref(lab.root.root_id, activation.activation_id), cwd=lab.repo
+        )
+        == commit
+    )
+
+
+@pytest.mark.parametrize("steer", [False, True])
+def test_recovery_preservation_failure_is_a_retryable_foreman_stall(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, steer: bool
+) -> None:
+    """Both dead-run recovery and interrupted steer report rather than crash."""
+    from tests._foreman import entry_request
+    from workflow_interpreter.bdio import MintReason
+    from workflow_interpreter.supervisor import Git, GitCommandError, SteerIntent
+    from workflow_interpreter.supervisor.paths import write_record
+    from workflow_interpreter.supervisor.steer import instructions_digest
+
+    lab, activation = _dead_writer_lab(tmp_path)
+    wiring = lab.wiring()
+    path = wiring.paths.worktree / "src/feature.py"
+    path.write_text("recover before closing\n")
+    if steer:
+        write_record(
+            wiring.paths.steer_intent(activation.activation_id),
+            SteerIntent(
+                activation_id=activation.activation_id,
+                reason="change approach",
+                instructions="keep the work",
+                instructions_digest=instructions_digest("keep the work"),
+                requested_at="2026-08-25T12:00:00Z",
+                continuation=entry_request(
+                    mint_reason=MintReason.STEER_CONTINUATION,
+                    predecessor_activation_id=activation.activation_id,
+                ),
+            ),
+        )
+    original = Git.update_ref
+
+    def refuse(self: Git, ref: str, commit: str, *, cwd: Path) -> None:
+        if "/recovery/" in ref:
+            raise GitCommandError("injected recovery failure")
+        original(self, ref, commit, cwd=cwd)
+
+    monkeypatch.setattr(Git, "update_ref", refuse)
+    for _ in range(2):
+        report = lab.tick()
+        assert report.stalled is not None and "recovery" in report.stalled
+        assert not lab.store.reads.load_activation(
+            activation.activation_id
+        ).metadata.is_settled
+        assert path.read_text() == "recover before closing\n"
+    monkeypatch.setattr(Git, "update_ref", original)
+    assert lab.tick().settled == activation.activation_id
+    record = wiring.workspace.read_recovery(activation)
+    assert record is not None and record.pinned
+
+
+@pytest.mark.parametrize("damage", ["identity", "json", "missing_commit"])
+def test_inspection_reports_unusable_recovery_without_writes(
+    tmp_path: Path, damage: str
+) -> None:
+    """Bad recovery evidence remains visible without crashing or repairing it."""
+    import json
+
+    lab, activation = _dead_writer_lab(tmp_path)
+    wiring = lab.wiring()
+    (wiring.paths.worktree / "src/feature.py").write_text("unfinished\n")
+    record = wiring.workspace.preserve_interrupted(
+        activation, lab.root.index.nodes[activation.metadata.node]
+    )
+    assert record is not None and record.pinned
+    path = wiring.paths.recovery_snapshot(activation.activation_id)
+    payload = record.model_dump(mode="json")
+    if damage == "identity":
+        payload["activation_id"] = "wf-foreign"
+    if damage == "missing_commit":
+        payload["commit"] = "f" * 40
+    raw = "{" if damage == "json" else json.dumps(payload)
+    path.write_text(raw)
+    inspected = lab.foreman.inspect(lab.root.root_id, activation.activation_id)
+    assert inspected.recovery is None
+    assert inspected.recovery_error
+    assert path.read_text() == raw
+    assert lab.git.ref_target(record.ref, cwd=lab.repo) == record.commit
+
+
+def test_unconfirmed_recovery_death_opens_human_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Losing death proof halts visibly without preserving or closing the run."""
+    from workflow_interpreter.supervisor import procfs
+    from workflow_interpreter.supervisor.models import (
+        Liveness,
+        LivenessProof,
+        TerminationProof,
+    )
+
+    lab, activation = _dead_writer_lab(tmp_path)
+    wiring = lab.wiring()
+    path = wiring.paths.worktree / "src/feature.py"
+    path.write_text("possibly still live\n")
+    handle = activation.metadata.handle
+    assert handle is not None
+
+    def uncertain(*_: object) -> TerminationProof:
+        return TerminationProof(
+            pid=handle.pid,
+            pgid=handle.pgid,
+            proof=LivenessProof(
+                status=Liveness.INDETERMINATE,
+                pid=handle.pid,
+                pid_present=False,
+                boot_id_matches=False,
+                start_time_matches=False,
+                read_error="injected unreadable proc",
+            ),
+        )
+
+    monkeypatch.setattr(procfs, "terminate", uncertain)
+    report = lab.tick()
+    assert report.halted and report.opened_gate is not None
+    assert not lab.store.reads.load_activation(
+        activation.activation_id
+    ).metadata.is_settled
+    assert not wiring.paths.recovery_snapshot(activation.activation_id).exists()
+    assert not wiring.paths.exit_file(activation.activation_id).exists()
+    assert path.read_text() == "possibly still live\n"
+    assert lab.tick().halted
+    assert len(lab.beads("gate")) == 1

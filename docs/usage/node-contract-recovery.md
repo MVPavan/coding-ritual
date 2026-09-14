@@ -26,9 +26,12 @@ composed without it.
 After confirmed process death, the supervisor preserves dirty content from the
 writer's owned workspace before grading, closing, or replaying cached completion.
 This includes ordinary error and timeout exits, dead-without-exit recovery, and
-steer before the continuation is minted. Preservation and workspace ownership
-transfer use the existing repository execution band. A prior producer cannot
-snapshot a successor's checkout, including another root's in-repo writer.
+steer before the continuation is minted. In-repo preservation uses the existing
+repository execution band. Worktree isolation keeps its existing activation and
+coordination guards; it does not acquire the shared in-repo band. Ownership
+transfers only after a successful reset and clean-tree assertion. A prior
+producer cannot snapshot a successor's checkout, including another root's
+in-repo writer.
 
 Recovery snapshots use the existing Git snapshot machinery and are pinned at:
 
@@ -63,8 +66,10 @@ Use the same configuration as the running instance:
 python -m workflow_interpreter.foreman --config workflow-config.yaml inspect ROOT_ID ACTIVATION_ID
 ```
 
-The JSON `recovery` field is null when no record exists. A successful preservation
-has `pinned: true` and commit/tree/ref identities. A pending record has
+The JSON `recovery` field is null when no record exists. Invalid identity, tree,
+pin, or malformed-record evidence is reported in `recovery_error`, with
+`recovery` null; inspection neither repairs nor trusts that record. A successful
+preservation has `pinned: true` and commit/tree/ref identities. A pending record has
 `pinned: false`; `unavailable` explains when ownership or process identity could
 not be established. Inspection does not repair pending pins or restore files.
 
@@ -94,3 +99,11 @@ lineage, or a retry base. Without a committed candidate, verification still uses
 the original intended base. There is no automatic restore, promotion, or change
 to signed approval gates. Unknown interrupted or nested token usage remains
 unknown; recovery adds no inferred cost telemetry.
+
+A failed recovery pin or record write on ordinary settlement, dead-run recovery,
+or interrupted steer leaves the activation open and reports a retryable stall.
+Clear the storage failure and tick again; no infra retry is consumed by the
+preservation failure. An unobserved exit file cannot bypass orphan pinning on a
+later tick. If termination cannot confirm death, a human halt gate opens before
+any exit record, snapshot, or close; inspect process identity before approving a
+retry. Existing signed gate handling applies.

@@ -831,3 +831,42 @@ def test_recovery_rejects_mismatched_observed_head(lab: Lab) -> None:
         lab.workspace.preserve_interrupted(lab.activation, lab.node)
     assert lab.git.ref_target(record.ref, cwd=lab.repo) == record.commit
     assert (lab.tree / RUNNER_FILE).read_text() == "producer bytes\n"
+
+
+def test_failed_successor_reset_retains_previous_producer_ownership(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A refused pre-reset pin does not relabel the preceding writer's bytes."""
+    from workflow_interpreter.supervisor import SnapshotFailed, WorkspaceRecord
+
+    path = lab.tree / RUNNER_FILE
+    path.write_text("previous producer work\n")
+    lab.store.close_activation(lab.activation.activation_id, Outcome.ERROR_TRANSPORT)
+    successor = lab.store.mint_activation(
+        lab.root.root_id,
+        entry_mint(
+            mint_reason=MintReason.INFRA_RETRY,
+            predecessor_activation_id=lab.activation.activation_id,
+        ),
+    ).activation
+    lab.paths.ensure_activation_dir(successor.activation_id)
+    original = lab.git.update_ref
+
+    def refuse(ref: str, commit: str, *, cwd: Path) -> None:
+        if "/prereset/" in ref:
+            raise GitCommandError("injected pre-reset failure")
+        original(ref, commit, cwd=cwd)
+
+    monkeypatch.setattr(lab.git, "update_ref", refuse)
+    with pytest.raises(SnapshotFailed):
+        lab.workspace.prepare(successor, lab.node)
+    owner = read_record(lab.paths.workspace_record, WorkspaceRecord)
+    assert (
+        owner is not None and owner.owner_activation_id == lab.activation.activation_id
+    )
+    record = lab.workspace.preserve_interrupted(lab.activation, lab.node)
+    assert record is not None and record.pinned
+    assert lab.git.blob_text(f"{record.commit}:{RUNNER_FILE}", cwd=lab.repo) == (
+        "previous producer work\n"
+    )
+    assert path.read_text() == "previous producer work\n"

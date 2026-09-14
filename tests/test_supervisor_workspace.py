@@ -767,3 +767,19 @@ def test_an_in_repo_reset_snapshot_holds_the_humans_untracked_content(
         blob_at(in_repo.repo, result.pre_reset_commit, TRACKED_FILE)
         == "half-finished\n"
     )
+
+
+def test_same_tree_reset_snapshot_still_records_current_head(worktree: Fixture) -> None:
+    """Pre-reset history records each destroyed HEAD even for identical trees."""
+    worktree.workspace.prepare(worktree.activation, worktree.node)
+    tree = worktree.paths.worktree
+    (tree / TRACKED_FILE).write_text("same contents\n")
+    first = worktree.workspace.prepare(worktree.activation, worktree.node)
+    (tree / TRACKED_FILE).write_text("same contents\n")
+    current = commit_all(tree, "new HEAD with the same snapshot tree")
+    second = worktree.workspace.prepare(worktree.activation, worktree.node)
+    assert first.pre_reset_commit is not None
+    assert second.pre_reset_commit is not None
+    git = make_git(worktree.config)
+    assert git.rev_parse(f"{second.pre_reset_commit}^1", cwd=tree) == current
+    assert git.is_ancestor(first.pre_reset_commit, second.pre_reset_commit, cwd=tree)

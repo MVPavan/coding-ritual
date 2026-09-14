@@ -1068,3 +1068,69 @@ def test_error_exit_preserves_bytes_without_claiming_success(
     )
     assert observed.completion.outcome is not Outcome.DONE
     assert observed.completion.evidence.artifact is None
+
+
+@pytest.mark.parametrize("phase", ["prepare", "exit"])
+def test_worktree_lifecycle_ignores_another_process_band(
+    tmp_path: Path, phase: str
+) -> None:
+    """A foreman holding the band cannot refuse an isolated writer's work."""
+    import subprocess
+    import sys
+
+    lab = Lab(tmp_path)
+    holder = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import fcntl,sys; "
+                "f=open(sys.argv[1], 'a+'); "
+                "fcntl.flock(f, fcntl.LOCK_EX); "
+                "print('held', flush=True); sys.stdin.read()"
+            ),
+            str(lab.paths.band_lock),
+        ],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        assert holder.stdout is not None
+        assert holder.stdout.readline() == "held\n"
+        if phase == "prepare":
+            result = lab.workspace.prepare(lab.activation, lab.node)
+            assert result.reset_verified_commit == lab.base
+        else:
+            (lab.tree / FEATURE_FILE).write_text("unfinished\n")
+            lab.marker('{"outcome":"fail_code"}')
+            lab.effects(FEATURE_FILE)
+            lab.observe()
+            record = lab.workspace.read_recovery(lab.activation)
+            assert record is not None and record.pinned
+            assert (
+                lab.store.reads.load_activation(
+                    lab.activation.activation_id
+                ).metadata.lifecycle
+                is Lifecycle.EXIT_RECORDED
+            )
+    finally:
+        holder.communicate(timeout=10)
+    assert holder.returncode == 0
+
+
+def test_exit_replay_does_not_rewrite_durable_exit(lab: Lab) -> None:
+    """Replay consumes durable metadata without replacing crash-window bytes."""
+    lab.marker('{"outcome":"fail_code"}')
+    lab.effects()
+    lab.observe()
+    activation = lab.store.reads.load_activation(lab.activation.activation_id)
+    record = activation.metadata.exit_record
+    assert record is not None
+    path = lab.paths.exit_file(activation.activation_id)
+    original = path.read_bytes()
+    path.write_bytes(original + b"\n")
+    lab.observer.replay(
+        activation, lab.node, lab.profile, record, pinned_digests=lab.pins()
+    )
+    assert path.read_bytes() == original + b"\n"
