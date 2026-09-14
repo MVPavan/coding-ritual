@@ -1,7 +1,7 @@
 # Node execution contracts and interrupted-work recovery
 
 Status: approved scope; independent Opus critique resolved below; ready for bounded implementation.
-Stage: cr-s8xg.1 (execution epic cr-s8xg).
+Stage: cr-s8xg.2 (execution epic cr-s8xg).
 Origin: cr-02ze.10 and user authorization to fix both gaps with Astra low. No separate spec: the user approved the two concrete behaviors in discussion. One bounded workflow stage implements two separately testable requirements, reviewed together to avoid duplicate coordination and full gates.
 
 Goal: ordinary workflow task nodes execute directly, including after resume; interrupted writer content has durable producer-linked recovery evidence before a later retry is required. Preserve explicit orchestrator child-workflow APIs, signed gates, verified artifact semantics, and existing isolation.
