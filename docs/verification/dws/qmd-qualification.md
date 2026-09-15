@@ -73,6 +73,21 @@ That command is the required evidence for the real `bwrap --unshare-net`
 probes. It must not be replaced by a direct QMD run or a test skip. Run the
 declared `scripts/verify-dws-pilot.py` HOST gate separately after this node.
 
+## Round-two lint repair
+
+The adopted candidate's host gate identified six test lines over the configured
+96-character limit and an import-spacing violation. This round wraps those
+task-owned lines only; fixture content, command arguments, assertions, and
+timeouts are unchanged.
+
+The required local Ruff commands are run with the engine-provided
+`UV_FROZEN=1` removed because it conflicts with `uv run --locked`. Their exact
+results are recorded in the node artifact. Both returned exit 2 before Ruff
+started because the supplied `UV_CACHE_DIR` is read-only. This is a sandbox
+tooling limitation, not a lint pass or a substitute for the required HOST
+Ruff gate. Local `py_compile`, JSON parsing, and `git diff --check` returned
+exit 0.
+
 ## Limitations
 
 - The tests intentionally do not prove that a future DWS runtime correctly

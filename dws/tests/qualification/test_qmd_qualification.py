@@ -14,7 +14,6 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-
 from qmd_qualification import (
     PROCESS_TIMEOUT_SECONDS,
     QmdState,
@@ -40,7 +39,10 @@ def qmd_state(tmp_path: Path) -> Iterator[QmdState]:
         f"# Retained note\n\n{NEEDLE} appears here.\n\n{RETAINED_TEXT}\n",
         encoding="utf-8",
     )
-    (state.corpus / "other.md").write_text("# Other note\n\nNot the target.\n", encoding="utf-8")
+    (state.corpus / "other.md").write_text(
+        "# Other note\n\nNot the target.\n",
+        encoding="utf-8",
+    )
     run(state, "collection", "add", str(state.corpus), "--name", COLLECTION)
     run(state, "status")
     run(state, "update")
@@ -63,7 +65,7 @@ def matching_paths(results: list[dict[str, object]]) -> set[str]:
 
 
 def test_cold_registration_status_search_and_get_are_model_free(qmd_state: QmdState) -> None:
-    """Cold state registers, indexes, returns parseable lexical JSON, and retains document text."""
+    """Cold state registers, indexes, searches JSON, and retains document text."""
     matches = matching_paths(search(qmd_state, NEEDLE))
     assert f"qmd://{COLLECTION}/retained.md" in matches
 
@@ -93,7 +95,9 @@ def test_update_reflects_changed_and_new_markdown_without_mtime_assumptions(
     assert search(qmd_state, NEEDLE) == []
 
 
-def test_two_independent_lexical_startups_share_one_isolated_database(qmd_state: QmdState) -> None:
+def test_two_independent_lexical_startups_share_one_isolated_database(
+    qmd_state: QmdState,
+) -> None:
     """Two independently started lexical CLI processes produce valid matching JSON."""
     barrier = threading.Barrier(3)
     results: list[subprocess.CompletedProcess[str] | None] = [None, None]
@@ -120,10 +124,14 @@ def test_two_independent_lexical_startups_share_one_isolated_database(qmd_state:
 
 
 def test_interrupted_update_recovers_after_observable_execution(qmd_state: QmdState) -> None:
-    """A real update is killed only after it reports execution, then recovery restores search/get."""
+    """Kill an update only after it reports execution, then recover search/get."""
     for position in range(80):
+        content = (
+            f"# Bulk {position}\n\ninterruptiblelexicalneedle {position}\n"
+            + ("payload " * 1200)
+        )
         (qmd_state.corpus / f"bulk-{position}.md").write_text(
-            f"# Bulk {position}\n\ninterruptiblelexicalneedle {position}\n" + ("payload " * 1200),
+            content,
             encoding="utf-8",
         )
 
@@ -137,7 +145,9 @@ def test_interrupted_update_recovers_after_observable_execution(qmd_state: QmdSt
         assert events, "QMD update produced no observable execution output before its deadline"
         observed_output = process.stdout.readline()
         assert observed_output.strip(), "QMD update output was empty before interruption"
-        assert process.poll() is None, "QMD update completed before an in-flight interruption was possible"
+        assert process.poll() is None, (
+            "QMD update completed before an in-flight interruption was possible"
+        )
         process.kill()
         process.wait(timeout=PROCESS_TIMEOUT_SECONDS)
     finally:
