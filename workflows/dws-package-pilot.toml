@@ -1,11 +1,11 @@
 [graph]
 id          = "dws-package-pilot"
-version     = "1.0.0"
+version     = "1.0.1"
 entry       = "implement"
 description = "One feature: implemented → reviewed → shipped"
 
 [instance]
-max_total_activations  = 8      # counts every activation AND gate bead
+max_total_activations  = 8       # counts every activation AND gate bead
 test_force_first_reject = false  # schema'd; validator refuses true without --allow-test-flags
 phase_bridge_retry_terminals = ["shipped", "abandoned"]
 
@@ -30,16 +30,30 @@ and MAJOR before claiming done.
 Write only production and test code. Do not edit the review's findings, and
 do not weaken or delete a test to make a check pass.
 
-Report `done` when the verify command passes against your commit;
+Report `done` when source work is complete, committed, and supported local checks pass;
 `no_diff` when the feature already exists and needs no change; `fail_plan`
 when `task_brief` cannot be implemented as written and needs a human.
+
+Your verdict is a claim; full declared HOST verification remains mandatory and
+gates advancement after you return. Perform available supported local checks;
+do not run host-only checks (including nested sandbox probes) inside the model
+sandbox. Record each command and result, or a not-run reason, in $WF_ARTIFACT_DIR.
+Unavailable sandbox/network/tooling is not evidence of a source defect and must
+not alone cause `fail_code` or `reject`. Do not retry dependency installs for an
+unavailable environment. Real code/test failures must be reported and never
+relabeled as environment problems. Review decisions are source/spec judgments;
+local evidence does not waive the host gate.
+
+Inspect the provided environment paths first. Use $WF_SCRATCH_DIR (the supplied
+$TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
+output evidence/findings, not scratch work.
 """
 isolation     = "worktree"               # worktree | in-repo
 writes        = true                     # repo-worktree write access only
-allowed_paths = ["dws/**"]   # the writable mounts under bwrap
+allowed_paths = ["dws/**", "docs/verification/dws/**"]   # the writable mounts under bwrap
 inputs        = ["task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-dws-pilot.py", timeout = "10m" }]
-context_budget_bytes = 24000                   # UTF-8 input budget, not a spending cap
+context_budget_bytes = 64000
 max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)
 stale_after   = "10m"
 max_infra_retries = 0
@@ -48,6 +62,7 @@ outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]
 
 [[node]]
 name          = "review"
+artifact_input_mode = "references"
 kind          = "task"
 region        = "build-review"
 runner        = "profile:critic"
@@ -63,13 +78,41 @@ patches — the implementer acts on your findings next round.
 Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
 Report `fail_plan` when the same BLOCKER stands for a second round or the
 task as briefed cannot be satisfied; do not spend a round restating it.
+
+Evidence discipline: label observed/source-proven facts, producer-reported evidence, inference.
+Source logic can prove defects without execution; reject proven serious defects.
+Unverified hypotheses are questions, not MAJOR. Missing tools do not falsify reports;
+never call output impossible from remembered defaults or file counts.
+For disputes cite exact evidence, candidate, tool version/environment, failure scenario.
+If unavailable, request the smallest non-mutating host command in findings;
+never auto-execute proposed commands. Never fabricate success or waive mandatory evidence.
+Report required-evidence gaps; unresolved material gaps: `fail_plan` with
+review/evidence blockage, not a code defect. Coordinator examines requests at existing
+attention/approval boundaries; reporting convention, no automatic host probes.
+
+Your verdict is a claim; full declared HOST verification remains mandatory and
+gates advancement after you return. Perform available supported local checks;
+do not run host-only checks (including nested sandbox probes) inside the model
+sandbox. Record each command and result, or a not-run reason, in $WF_ARTIFACT_DIR.
+Unavailable sandbox/network/tooling is not evidence of a source defect and must
+not alone cause `fail_code` or `reject`. Do not retry dependency installs for an
+unavailable environment. Real code/test failures must be reported and never
+relabeled as environment problems. Review decisions are source/spec judgments;
+local evidence does not waive the host gate.
+
+Inspect the provided environment paths first. Use $WF_SCRATCH_DIR (the supplied
+$TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
+output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
 writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo
 allowed_paths = []
 inputs        = ["task_brief", "diff_artifact", "review_findings"]
-verify        = [{ cmd = "scripts/verify-dws-pilot.py", timeout = "10m" }]
-context_budget_bytes = 32000
+verify = [{ cmd = "scripts/verify-dws-pilot.py", timeout = "10m" }]
+                # deliberately a STRICT SUPERSET of implement's set; the
+                # validator warns when a judgment node's verify ⊆ its
+                # predecessor's (anti-drift cross-check would be vacuous)
+context_budget_bytes = 64000
 max_wall      = "30m"
 stale_after   = "10m"
 max_infra_retries = 0
