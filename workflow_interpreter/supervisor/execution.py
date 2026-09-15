@@ -13,7 +13,7 @@ from workflow_interpreter.contracts.execution import (
     ToolNetwork,
     policy_for,
 )
-from workflow_interpreter.profiles.errors import UnsupportedOptionError
+from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
 from workflow_interpreter.supervisor.errors import SandboxPathRefused
 from workflow_interpreter.supervisor.profile import TaskSpec
 from workflow_interpreter.supervisor.sandbox import (
@@ -33,7 +33,10 @@ __all__ = [
 
 def resolve_grants(task: TaskSpec, plan: SandboxPlan, runner: str) -> ExecutionGrants:
     """Bind named policy to this activation's exact, nonredirected private paths."""
-    runner_name = RunnerName.from_profile(runner)
+    try:
+        runner_name = RunnerName.from_profile(runner)
+    except ValueError as error:
+        raise TaskRefused(str(error)) from error
     policy = task.execution_policy
     if policy is None or task.execution_profile is None:
         raise SandboxPathRefused(MSG_POLICY_MISMATCH)

@@ -215,7 +215,7 @@ def test_named_launch_and_resume_share_grants(
             tools = launch.argv[
                 launch.argv.index("--tools") + 1 : launch.argv.index("--allowedTools")
             ]
-            assert set(tools) == {"Read", "Glob", "Grep", "Bash"}
+            assert set(tools) == {"Read", "Glob", "Grep", "Bash", "Write"}
         assert (
             launch.argv[launch.argv.index("--tools") :]
             == (resume.argv[resume.argv.index("--tools") :])
@@ -426,3 +426,118 @@ def test_policy_mismatch_names_pinned_and_expected_contracts(
         resolve_grants(task, plan, "codex")
     assert f"pinned={pinned.model_dump_json()}" in str(error.value)
     assert f"expected={expected.model_dump_json()}" in str(error.value)
+
+
+@pytest.mark.proc
+def test_named_claude_reviewer_can_report_without_checkout_write(
+    tmp_path: Path,
+) -> None:
+    """Check tool grants and run a reporting fixture inside the real outer bound."""
+    import subprocess
+    import sys
+
+    from tests._profiles import host_env_with, make_supervisor_config, make_task
+    from tests._supervisor import FrozenClock
+    from workflow_interpreter.contracts.execution import policy_for
+    from workflow_interpreter.profiles import ProfileConfig, RunnerName
+    from workflow_interpreter.profiles.claude import ClaudeProfile
+    from workflow_interpreter.supervisor.execution import resolve_grants
+    from workflow_interpreter.supervisor.sandbox import plan_for, wrap
+
+    task = make_task(tmp_path, writes=False).model_copy(
+        update={
+            "execution_profile": ExecutionProfileName.REVIEWER,
+            "execution_policy": policy_for(
+                ExecutionProfileName.REVIEWER, RunnerName.CLAUDE
+            ),
+        }
+    )
+    config = make_supervisor_config(tmp_path)
+    plan = plan_for(
+        task,
+        repo_root=config.repo_root,
+        wrapper_root=config.wrapper_root,
+        channels_dir=Path(task.channels.outcome_file).parent,
+    )
+    task = task.model_copy(
+        update={"execution_grants": resolve_grants(task, plan, "claude")}
+    )
+    binary = tmp_path / "reporting-claude"
+    binary.write_text(
+        f"#!{sys.executable}\n"
+        + """
+import errno, os
+from pathlib import Path
+Path(os.environ["WF_OUTCOME_FILE"]).write_text('{"outcome":"accept"}')
+Path(os.environ["WF_ARTIFACT_DIR"], "outcome").write_text("accept")
+Path(os.environ["WF_ARTIFACT_DIR"], "findings.md").write_text("No blocking findings")
+try:
+    Path("forbidden.md").write_text("checkout write")
+except OSError as error:
+    assert error.errno in (errno.EROFS, errno.EACCES), error
+else:
+    raise AssertionError("reviewer wrote the checkout")
+"""
+    )
+    binary.chmod(0o755)
+    profile = ClaudeProfile(
+        ProfileConfig(binary_overrides={RunnerName.CLAUDE: str(binary)}),
+        FrozenClock(),
+        host_env_with(),
+    )
+    command = profile.build_command(task, "00000000-0000-4000-8000-000000000001")
+    tools = command.argv[
+        command.argv.index("--tools") + 1 : command.argv.index("--allowedTools")
+    ]
+    assert "Write" in tools and "Edit" not in tools
+    allowed = command.argv[
+        command.argv.index("--allowedTools") + 1 : command.argv.index(
+            "--disallowedTools"
+        )
+    ]
+    channels = task.channels
+    assert set(allowed) == {
+        "Read",
+        "Glob",
+        "Grep",
+        "Bash",
+        f"Edit(/{channels.artifact_dir}/**)",
+        f"Edit(/{channels.outcome_file})",
+        f"Edit(/{channels.effects_file})",
+        f"Edit(/{channels.scratch_dir}/**)",
+        f"Edit(/{task.execution_grants.private_cache}/**)",
+    }
+    completed = subprocess.run(
+        wrap(command.argv, plan),
+        check=False,
+        cwd=command.cwd,
+        env=dict(command.env),
+        capture_output=True,
+        timeout=15,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert Path(channels.outcome_file).read_text() == '{"outcome":"accept"}'
+    assert Path(channels.artifact_dir, "outcome").read_text() == "accept"
+    assert (
+        Path(channels.artifact_dir, "findings.md").read_text() == "No blocking findings"
+    )
+    assert not Path(task.cwd, "forbidden.md").exists()
+
+
+def test_unknown_profile_identity_closes_dispatch_as_error_runner(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A miswired profile name becomes durable ERROR_RUNNER through real dispatch."""
+    from tests._foreman import ForemanLab
+    from tests._helpers import SHIPPED_FIXTURE
+    from workflow_interpreter.bdio import Outcome
+
+    lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
+    lab.instantiate()
+    monkeypatch.setattr(lab.profiles.profile, "name", lambda: "unknown-runner")
+    report = lab.tick()
+    assert report.dispatched is not None
+    activation = lab.store.reads.load_activation(report.dispatched)
+    assert activation.metadata.outcome is Outcome.ERROR_RUNNER
+    assert "unknown-runner" in activation.metadata.evidence.note
+    assert activation.metadata.handle is None

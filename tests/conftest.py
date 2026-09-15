@@ -28,6 +28,12 @@ from typing import Final
 import pytest
 
 from tests._fake_bd import FakeBd
+from tests._helpers import (
+    AUTHORING_FIXTURE,
+    BUILD_LOOP_GRAPH,
+    LEGACY_BUILD_LOOP_GRAPH,
+    VALID_FIXTURE,
+)
 from tests._profiles import Lab
 from workflow_interpreter.bdio import BdConfig, GateVerifier, SigningConfig
 from workflow_interpreter.bdio.api import WorkflowStore
@@ -275,14 +281,10 @@ def lab(tmp_path: Path) -> Iterator[Lab]:
 @pytest.fixture(params=["shipped", "legacy"])
 def feature_graph(request: pytest.FixtureRequest) -> Path:
     """Exercise the shipped graph first and its immutable legacy predecessor."""
-    from tests._helpers import AUTHORING_FIXTURE, VALID_FIXTURE
-
     return AUTHORING_FIXTURE if request.param == "shipped" else VALID_FIXTURE
 
 
 @pytest.fixture(params=["shipped", "legacy"])
 def build_loop_graph(request: pytest.FixtureRequest) -> Path:
     """Run build-loop behavior against both execution-contract generations."""
-    from tests._helpers import BUILD_LOOP_GRAPH, LEGACY_BUILD_LOOP_GRAPH
-
     return BUILD_LOOP_GRAPH if request.param == "shipped" else LEGACY_BUILD_LOOP_GRAPH

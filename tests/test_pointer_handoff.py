@@ -30,6 +30,7 @@ from workflow_interpreter.schema.loader import (
     GraphValidationError,
     canonical_bytes,
     load_graph,
+    load_pinned_body,
 )
 from workflow_interpreter.schema.models import ArtifactInputMode, RuleId
 from workflow_interpreter.supervisor import activation_ref, channels_for
@@ -121,10 +122,13 @@ def _with_reports(producer, git, repo: Path, ref: str, commit: str):
 
 
 def test_mode_is_task_only_and_absent_mode_keeps_legacy_canonical_bytes(
-    feature_graph: Path, fake_store, tmp_path: Path
+    feature_graph: Path, tmp_path: Path
 ) -> None:
-    root = make_root(fake_store, load_definition())
-    assert b"artifact_input_mode" not in canonical_bytes(root.definition.document)
+    """Both graph generations omit the default mode from their pinned bytes."""
+    definition = load_graph(feature_graph)
+    body = canonical_bytes(definition.document)
+    assert b"artifact_input_mode" not in body
+    assert canonical_bytes(load_pinned_body(body).document) == body
     invalid = tmp_path / "invalid.toml"
     invalid.write_text(
         feature_graph.read_text(encoding="utf-8").replace(
