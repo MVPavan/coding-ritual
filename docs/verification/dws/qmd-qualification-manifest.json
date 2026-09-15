@@ -1,0 +1,25 @@
+{
+  "schema": "dws-qmd-qualification/v1",
+  "candidate": {
+    "package": "@tobilu/qmd",
+    "version": "2.8.3",
+    "npm_integrity": "sha512-zjfVwrObPB618B6x8SdhlGv/tX9OxRHsbQnr5DUtBvqPK6HGQ27lM+9/BAY5okpjrHVnW56hLyDkqoTcsrVLzA==",
+    "node_version": "v22.22.0",
+    "sqlite_version": "3.53.4"
+  },
+  "allowed_commands": ["collection add", "status", "search", "get", "update"],
+  "excluded_commands": ["embed", "vsearch", "query", "rerank", "mcp", "pull"],
+  "isolation": {
+    "state_environment": ["INDEX_PATH", "QMD_CONFIG_DIR", "XDG_CACHE_HOME", "HOME"],
+    "network_denial": "bwrap --unshare-net",
+    "model_cache_must_remain_empty": true,
+    "uses_disposable_generated_markdown": true
+  },
+  "host_command": "cd dws && DWS_QMD_BIN=<configured-qmd> uv run --locked pytest -q -m qmd -s",
+  "local_status": "candidate record: ruff format/check/lint exit 0 and non-QMD pytest 16 passed; QMD probes require HOST because nested bwrap cannot create NETLINK_ROUTE; this node's UV retry was blocked before Ruff by uncached hatchling and denied DNS; see qmd-qualification.md",
+  "limitations": [
+    "No DWS production adapter is qualified.",
+    "No G-03, container deployment, or release claim is made.",
+    "Empty cache and network denial demonstrate only the tested lexical paths."
+  ]
+}
