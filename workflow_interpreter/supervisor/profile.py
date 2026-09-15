@@ -143,6 +143,13 @@ class TaskSpec(BaseModel):
     allowed_paths: tuple[str, ...] = ()
     cwd: str
     channels: RunnerChannels
+    toolchain_cache: str | None = None
+    """Supervisor-owned uv cache path, injected from the sandbox plan.
+
+    None for standalone profile callers; dispatch always replaces it with the
+    same path the launcher exports as UV_CACHE_DIR. Profiles must not derive
+    this shared grant from the activation's channels layout.
+    """
     brief: str = ""
     token_budget: int | None = None
     artifact_input_mode: ArtifactInputMode = ArtifactInputMode.INLINE

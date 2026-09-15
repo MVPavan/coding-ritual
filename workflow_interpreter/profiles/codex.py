@@ -422,7 +422,7 @@ def _item_event(item: Mapping[str, object], kind: str) -> RunnerEvent:
 
 
 def _writable_roots(task: TaskSpec, root: str) -> tuple[str, ...]:
-    """Grant channels plus the writer's isolated Git state on launch and resume."""
+    """Grant channels plus writer-only Git state and the supervisor uv cache."""
     roots: list[str] = []
     channels_dir = str(_channels_dir(task))
     if channels_dir != root:
@@ -435,6 +435,12 @@ def _writable_roots(task: TaskSpec, root: str) -> tuple[str, ...]:
             _MSG_IN_REPO.format(node=task.node, checkout=checkout)
         )
     roots += [str(path) for path in worktree_git_write_roots(checkout, task.root_id)]
+    # The wrapper-wide cache is a cross-node write channel: never grant it to
+    # reviewers, and never infer its location from the channels directory.
+    if task.toolchain_cache is not None:
+        roots.append(
+            require_absolute(RunnerName.CODEX, "toolchain cache", task.toolchain_cache)
+        )
     return tuple(roots)
 
 
