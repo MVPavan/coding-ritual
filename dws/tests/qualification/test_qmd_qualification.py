@@ -90,7 +90,7 @@ def test_update_reflects_changed_and_new_markdown_without_mtime_assumptions(
     verdant_paths = matching_paths(search(qmd_state, "verdantlexicalneedle"))
     assert f"qmd://{COLLECTION}/retained.md" in amber_paths
     assert f"qmd://{COLLECTION}/new.md" in verdant_paths
-    assert f"qmd://{COLLECTION}/retained.md" not in matching_paths(search(qmd_state, NEEDLE))
+    assert search(qmd_state, NEEDLE) == []
 
 
 def test_two_independent_lexical_startups_share_one_isolated_database(qmd_state: QmdState) -> None:
