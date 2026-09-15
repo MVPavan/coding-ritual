@@ -37,6 +37,7 @@ from workflow_interpreter.foreman.constants import (
     RUN_DEFAULT_POLL_S,
 )
 from workflow_interpreter.foreman.errors import ResolutionError
+from workflow_interpreter.foreman.execution import execution_status
 from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
@@ -664,6 +665,9 @@ def _run(
             if activation.metadata.stale_flag is not None
         ),
         "usage": _usage_summary(view.activations),
+        "execution_contracts": execution_status(
+            composition.for_root(root.root_id).paths, tuple(view.activations)
+        ),
         "input_envelopes": {
             a.activation_id: a.metadata.envelope
             for a in view.activations.values()

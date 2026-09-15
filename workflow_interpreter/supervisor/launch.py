@@ -82,6 +82,11 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.bdio.preflight import steer_ancestor_of
+from workflow_interpreter.contracts.execution import (
+    MSG_NAMED_SANDBOX,
+    ExecutionGrants,
+    policy_for,
+)
 from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.clock import Clock, to_iso
@@ -324,6 +329,7 @@ class ForkBarrierLauncher:
         plan: SandboxPlan,
         sandbox: SandboxMode,
         seed_receipts: tuple[SeedReceipt, ...] = (),
+        execution_grants: ExecutionGrants | None = None,
     ) -> None:
         self._config = config
         self._paths = paths
@@ -332,6 +338,7 @@ class ForkBarrierLauncher:
         self._launch_id = launch_id
         self._plan = plan
         self._seed_receipts = seed_receipts
+        self._execution_grants = execution_grants
         self._sandbox = sandbox
         """The §2 mount bound, injected rather than computed here: `plan_for`
         needs the `TaskSpec`, and this class is deliberately handed a built
@@ -452,6 +459,12 @@ class ForkBarrierLauncher:
                 handle=handle,
                 sandbox=self._sandbox,
                 seed_receipts=self._seed_receipts,
+                execution_grants=self._execution_grants,
+                tool_network=(
+                    self._execution_grants.policy.tool_network
+                    if self._execution_grants
+                    else None
+                ),
             ),
         )
         line = ExecLedger.line(
@@ -922,6 +935,14 @@ class Dispatcher:
             if isinstance(build_task, EnvelopeTaskBuilder) and instructions is not None
             else build_task(activation, channels)
         )
+        if task.execution_profile is not None:
+            task = task.model_copy(
+                update={
+                    "execution_policy": task.execution_policy
+                    or policy_for(task.execution_profile, profile.name()),
+                    "checkout_read_root": task.checkout_read_root or task.cwd,
+                }
+            )
         plan, mode = self._sandbox(activation_id, task)
         task = task.model_copy(update={"toolchain_cache": str(plan.toolchain_cache[0])})
         root = self._store.reads.load_root(self._paths.root_id)
@@ -933,6 +954,20 @@ class Dispatcher:
         plan = plan.model_copy(
             update={"ro_pins": (*plan.ro_pins, *seed.protected_roots)}
         )
+        if task.execution_profile is not None:
+            from workflow_interpreter.supervisor.execution import resolve_grants
+
+            grants = resolve_grants(task, plan, profile.name())
+            task = task.model_copy(
+                update={"execution_grants": grants, "cwd": grants.process_cwd}
+            )
+            plan = plan_for(
+                task,
+                repo_root=self._paths.config.repo_root,
+                wrapper_root=self._paths.config.wrapper_root,
+                channels_dir=Path(grants.channels),
+                binary=plan.binary,
+            )
         # §5.2: the session id is PRE-ASSIGNED by the profile and never
         # discovered from output. `prepare` is its ONLY minter — the foreman
         # used to pre-assign a UUID at mint whenever the bound profile happened
@@ -956,6 +991,7 @@ class Dispatcher:
             plan=plan,
             sandbox=mode,
             seed_receipts=seed.receipts,
+            execution_grants=task.execution_grants,
         )
         before = ledger.count()
         from contextlib import nullcontext
@@ -1000,6 +1036,8 @@ class Dispatcher:
         as a bounded launch; `wrap` still discards the bind in this mode.
         """
         config = self._paths.config
+        if task.execution_profile is not None and config.sandbox is SandboxMode.OFF:
+            raise SandboxUnavailable(MSG_NAMED_SANDBOX)
         capability = probe(config)
         if not capability.available:
             raise SandboxUnavailable(

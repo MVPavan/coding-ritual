@@ -295,6 +295,8 @@ class CodexProfile(BaseProfile):
         surface `codex sandbox` takes as a required `--permission-profile`,
         which the profile has not probed.
         """
+        if task.execution_grants is not None:
+            return task.execution_grants.process_cwd
         if task.writes:
             return require_absolute(self.runner, "task cwd", task.cwd)
         return str(_channels_dir(task))
@@ -423,6 +425,8 @@ def _item_event(item: Mapping[str, object], kind: str) -> RunnerEvent:
 
 def _writable_roots(task: TaskSpec, root: str) -> tuple[str, ...]:
     """Grant the private cache and channels, plus writer-only Git state."""
+    if task.execution_grants is not None:
+        return task.execution_grants.writable_directories
     roots: list[str] = []
     channels_dir = str(_channels_dir(task))
     if channels_dir != root:

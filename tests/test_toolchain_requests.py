@@ -23,7 +23,6 @@ seed_lab = test_toolchain_seeding.seed_lab
         "/checkout/python",
         "3.13\n--no-managed-python",
         "3" * 129,
-        "",
     ],
 )
 def test_candidate_request_refuses_before_host_uv(
@@ -82,3 +81,26 @@ def test_project_materialization_uses_validated_request(
     pins.write(destination)
     assert (destination / ".python-version").read_text() == "3.13.9\n"
     assert pins.python == raw
+
+
+@pytest.mark.parametrize("empty", ["", " \n "])
+def test_empty_python_selection_falls_through(seed_lab: SeedLab, empty: str) -> None:
+    """Blank interpreter files fall back to project constraints, then defaults."""
+    (seed_lab.repo / ".python-version").write_text(empty)
+    pins = seed_lab.seeder._pins(seed_lab.repo, seed_lab.base, ".")
+    assert pins is not None and pins.python_request == ">=3.13"
+    project = seed_lab.repo / "pyproject.toml"
+    project.write_text(project.read_text().replace('">=3.13"', '""'))
+    pins = seed_lab.seeder._pins(seed_lab.repo, seed_lab.base, ".")
+    assert pins is not None and pins.python_request is None
+
+
+def test_project_range_is_not_materialized_as_python_version(
+    seed_lab: SeedLab, tmp_path: Path
+) -> None:
+    """SYNC supplies an interpreter; a project range is not a version file."""
+    pins = seed_lab.seeder._pins(seed_lab.repo, seed_lab.base, ".")
+    assert pins is not None
+    destination = tmp_path / "metadata"
+    pins.write(destination)
+    assert not (destination / ".python-version").exists()

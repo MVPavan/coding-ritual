@@ -208,7 +208,10 @@
         },
         "artifact_input_mode": {
           "type": "string",
-          "enum": ["inline", "references"],
+          "enum": [
+            "inline",
+            "references"
+          ],
           "description": "How producer evidence is delivered to this task. Omit for the legacy inline behavior."
         },
         "isolation": {
@@ -283,6 +286,13 @@
         },
         "decision": {
           "$ref": "#/$defs/decision_policy"
+        },
+        "execution_profile": {
+          "type": "string",
+          "enum": [
+            "writer",
+            "reviewer"
+          ]
         }
       },
       "additionalProperties": false

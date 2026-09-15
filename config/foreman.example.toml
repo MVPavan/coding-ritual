@@ -23,6 +23,8 @@ bridge_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"
 # artifact without bridge landing. Integration uses workflows/integration.toml
 # through explicit integration prepare and the same phase-bridge command.
 # These templates reuse the implementer/critic role bindings below.
+# Named writer/reviewer policies require bwrap. Receipts/status record tool_network:
+# codex = denied; claude = not_enforced (both Claude policies may launch).
 
 # Bridge admission requires an explicit complete nonempty check policy. Uncomment
 # and adapt the example only after provisioning uv under the PATH below and its

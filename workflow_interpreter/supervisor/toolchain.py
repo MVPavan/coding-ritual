@@ -74,6 +74,8 @@ class ProjectPins(BaseModel):
         if not isinstance(value, str) or len(value) > tc.PYTHON_REQUEST_MAX_LENGTH:
             raise ValueError(tc.MSG_PYTHON_REQUEST)
         request = value.strip()
+        if not request:
+            return None
         if (
             request.startswith("-")
             or re.fullmatch(tc.PYTHON_REQUEST_PATTERN, request) is None
@@ -86,7 +88,9 @@ class ProjectPins(BaseModel):
         directory.mkdir(parents=True, exist_ok=True)
         (directory / tc.LOCK_FILE).write_bytes(self.lock)
         (directory / tc.PROJECT_FILE).write_bytes(self.admitted_project)
-        if self.python_request is not None:
+        if self.python_request is not None and re.fullmatch(
+            tc.PYTHON_EXACT_REQUEST, self.python_request
+        ):
             (directory / tc.PYTHON_FILE).write_text(self.python_request + "\n")
 
 
@@ -315,7 +319,7 @@ class ToolchainSeeder:
         python_bytes = values[tc.PYTHON_FILE]
         request = (
             python_bytes.decode()
-            if python_bytes is not None
+            if python_bytes is not None and python_bytes.strip()
             else project_data.get("requires-python")
         )
         return ProjectPins(

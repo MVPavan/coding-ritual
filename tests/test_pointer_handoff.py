@@ -127,7 +127,7 @@ def test_mode_is_task_only_and_absent_mode_keeps_legacy_canonical_bytes(
     assert b"artifact_input_mode" not in canonical_bytes(root.definition.document)
     invalid = tmp_path / "invalid.toml"
     invalid.write_text(
-        Path("workflow_interpreter/fixtures/feature-delivery.toml")
+        Path("workflow_interpreter/fixtures/legacy/feature-delivery.toml")
         .read_text(encoding="utf-8")
         .replace(
             'name      = "ship"\nkind      = "gate"',

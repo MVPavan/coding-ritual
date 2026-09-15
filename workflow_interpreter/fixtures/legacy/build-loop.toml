@@ -61,7 +61,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-execution_profile = "writer"
+writes        = true
 allowed_paths = ["tests/acceptance/**"]
 inputs        = ["task_brief", "seam_contract", "test_findings"]
 verify        = [{ cmd = "scripts/checks/tests-parse.sh", timeout = "5m" }]
@@ -125,7 +125,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-execution_profile = "reviewer"
+writes        = false
 allowed_paths = []
 inputs        = ["task_brief", "seam_contract", "acceptance_tests", "test_findings"]
 verify        = [{ cmd = "scripts/checks/tests-parse.sh",        timeout = "5m" },
@@ -172,7 +172,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-execution_profile = "writer"
+writes        = true
 # `tests/**`, not `tests/unit/**`: this repo's unit suite is flat under
 # `tests/`, so a fix that must touch an existing unit test was unreachable
 # (cr-o85.34.21). The grant no longer excludes the acceptance tests; what
@@ -236,7 +236,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-execution_profile = "reviewer"
+writes        = false
 allowed_paths = []
 inputs        = ["task_brief", "acceptance_tests", "diff_artifact", "impl_findings"]
 verify        = [{ cmd = "scripts/checks/tests-parse.sh",        timeout = "5m" },
@@ -295,7 +295,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-execution_profile = "reviewer"
+writes        = false
 allowed_paths = []
 inputs        = ["task_brief", "seam_contract", "acceptance_tests", "diff_artifact",
                  "test_findings", "impl_findings"]

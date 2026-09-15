@@ -634,6 +634,22 @@ Open activation found at tick:
 An `abort-pending` receipt is its own recovery case: recovery repeats the
 identity-proven termination on each tick until it rewrites the receipt `aborted`.
 
+### Named execution contracts
+
+Task nodes may select `execution_profile = "writer" | "reviewer"` instead of
+`writes`. Named nodes reject authored/configured `writes`; effective write
+semantics derive from the profile for base selection and grading. Reviewers
+reject nonempty `allowed_paths`. Policy version and meaning are pinned at root
+creation, while absent profiles preserve legacy canonical bodies and resolution.
+Named dispatch requires the outer sandbox. `TaskSpec.checkout_read_root` is
+separate from process cwd; reviewers receive only private channels, scratch and
+cache writes outside the checkout. One resolved `ExecutionGrants` supplies
+outer mounts and vendor flags. Launch receipts and status report `tool_network`:
+Codex `denied`, Claude `not_enforced`. Network enforcement never gates either
+Claude profile; named Claude reviewers gain local Bash checks within the outer
+filesystem bound. Existing Opencode refusal is unchanged. Local checks are claims;
+the host verification path supplies evidence.
+
 ## 6. Runner floor
 
 Profiles (claude, codex, opencode) implement:

@@ -94,3 +94,5 @@ MSG_PYTHON_REQUEST: Final[str] = (
     "invalid Python request: use a version or numeric version specifier "
     f"of at most {PYTHON_REQUEST_MAX_LENGTH} characters"
 )
+
+PYTHON_EXACT_REQUEST: Final[str] = r"(?:cpython@|python)?" + _PYTHON_VERSION

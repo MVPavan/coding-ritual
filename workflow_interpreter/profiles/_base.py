@@ -45,6 +45,7 @@ import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ProcessHandle, Usage
+from workflow_interpreter.contracts.execution import MSG_GRANTS_MISSING
 from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
 from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.supervisor.clock import Clock, elapsed_seconds
@@ -404,6 +405,8 @@ def grant_dirs(runner: RunnerName, task: TaskSpec) -> tuple[str, ...]:
     A grant nested inside another stays its own directory: folding it into the
     parent would state a wider bound than the mounts hold.
     """
+    if task.execution_grants is not None:
+        return task.execution_grants.checkout_write_dirs
     cwd = PurePosixPath(require_absolute(runner, "task cwd", task.cwd))
     return tuple(str(cwd / grant_directory(grant)) for grant in task.allowed_paths)
 
@@ -492,6 +495,8 @@ class BaseProfile:
         `argv` is executed without a shell, so every element is a literal — no
         quoting, no metacharacters, no interpreter prefix.
         """
+        if task.execution_profile is not None and task.execution_grants is None:
+            raise TaskRefused(MSG_GRANTS_MISSING)
         return RunnerCommand(
             argv=tuple(argv),
             env=self.child_env(task.channels),

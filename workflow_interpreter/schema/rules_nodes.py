@@ -40,6 +40,7 @@ from workflow_interpreter.schema.models import (
 _EXECUTION_FIELDS: Final[tuple[str, ...]] = (
     "runner",
     "artifact_input_mode",
+    "execution_profile",
     "model",
     "isolation",
     "writes",

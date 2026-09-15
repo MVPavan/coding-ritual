@@ -142,7 +142,7 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
 
     graph = tmp_path / "ordinary.toml"
     graph.write_text(
-        Path("workflow_interpreter/fixtures/feature-delivery.toml")
+        Path("workflow_interpreter/fixtures/legacy/feature-delivery.toml")
         .read_text()
         .replace(
             "[instance]",

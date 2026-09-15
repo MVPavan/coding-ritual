@@ -257,7 +257,7 @@ class ClaudeProfile(BaseProfile):
         (`_grant_rules`); the §2 mount bound underneath grants the same set.
         """
         channels = _channel_rules(task)
-        if not task.writes:
+        if not task.writes and task.execution_profile is None:
             return [
                 TOOLS,
                 *READ_ONLY_TOOLS,
@@ -414,4 +414,6 @@ def _channel_rules(task: TaskSpec) -> list[str]:
                 require_absolute(RunnerName.CLAUDE, "scratch dir", channels.scratch_dir)
             )
         )
+    if task.execution_grants is not None:
+        rules.append(_tree_rule(task.execution_grants.private_cache))
     return rules

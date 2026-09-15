@@ -17,7 +17,7 @@ from tests._foreman import (
     DEFAULT_LAB_ROLES,
     ForemanLab,
 )
-from tests._helpers import BUILD_LOOP_GRAPH, runner_roles
+from tests._helpers import LEGACY_BUILD_LOOP_GRAPH, runner_roles
 from tests._supervisor import ChildScript, verifier_pins
 
 ENTRY_NODE: Final[str] = "write_tests"
@@ -41,7 +41,7 @@ def _build_loop_lab(tmp_path: Path) -> ForemanLab:
     """A lab wired for build-loop's roles, instance inputs and entry check."""
     lab = ForemanLab(
         tmp_path,
-        toml=BUILD_LOOP_GRAPH,
+        toml=LEGACY_BUILD_LOOP_GRAPH,
         roles=BUILD_LOOP_ROLES,
         instance_inputs=BUILD_LOOP_INSTANCE_INPUTS,
     )

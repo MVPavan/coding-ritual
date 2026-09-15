@@ -29,12 +29,18 @@ from workflow_interpreter.bdio.wire import (
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
     BeadRecord,
+    ConfigSource,
     InstanceInput,
     NodeSetting,
     ResolvedSetting,
     RootMetadata,
     config_signature,
     metadata_dict,
+)
+from workflow_interpreter.contracts.execution import (
+    EXECUTION_POLICY_KEY,
+    MSG_PROFILE_WRITES,
+    policy_for,
 )
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import GraphDefinition, NodeKind
@@ -148,6 +154,42 @@ def _assert_task_execution_settings_are_pinned(
         )
 
 
+def pin_execution_policies(
+    definition: GraphDefinition, resolved_config: Sequence[ResolvedSetting]
+) -> tuple[ResolvedSetting, ...]:
+    """Pin named authority before admission; preserve legacy settings verbatim."""
+    execution_settings = {item.key: item for item in resolved_config}
+    for node in definition.document.node:
+        if node.execution_profile is None:
+            continue
+        writes_key = NodeSetting.WRITES.at(node.name)
+        writes = execution_settings.get(writes_key)
+        if writes is not None and (
+            writes.value != node.writes
+            or writes.source is not ConfigSource.GRAPH_DEFAULT
+        ):
+            raise CarrierIntegrityError(MSG_PROFILE_WRITES)
+        runner = execution_settings.get(NodeSetting.RUNNER.at(node.name))
+        execution_policy = policy_for(
+            node.execution_profile, str(runner.value) if runner else ""
+        )
+        key = EXECUTION_POLICY_KEY.format(node=node.name)
+        expected = execution_policy.model_dump_json()
+        if key in execution_settings and execution_settings[key].value != expected:
+            raise CarrierIntegrityError(MSG_PROFILE_WRITES)
+        execution_settings[key] = ResolvedSetting(
+            key=key, value=expected, source=ConfigSource.GRAPH_DEFAULT
+        )
+        execution_settings[writes_key] = ResolvedSetting(
+            key=writes_key,
+            value=execution_policy.writes,
+            source=ConfigSource.GRAPH_DEFAULT,
+        )
+    if any(node.execution_profile is not None for node in definition.document.node):
+        return tuple(execution_settings[key] for key in sorted(execution_settings))
+    return tuple(resolved_config)
+
+
 def create_root(
     client: BdClient,
     *,
@@ -178,6 +220,7 @@ def create_root(
             )
         )
     definition = validated_definition
+    resolved_config = pin_execution_policies(definition, resolved_config)
     existing = _converged_root(client, instance_key)
     if existing is not None:
         _assert_same_instance(

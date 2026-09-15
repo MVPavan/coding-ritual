@@ -23,6 +23,7 @@ from tests._profiles import (
     writable_roots_in,
 )
 from tests._supervisor import GIT_TIMEOUT_S, FrozenClock, head_of
+from workflow_interpreter.contracts.execution import ExecutionProfileName, policy_for
 from workflow_interpreter.profiles._base import ENV_TMPDIR
 from workflow_interpreter.profiles.codex import (
     CONFIG,
@@ -34,6 +35,7 @@ from workflow_interpreter.profiles.codex import (
 from workflow_interpreter.profiles.config import ProfileConfig
 from workflow_interpreter.profiles.errors import UnsupportedOptionError
 from workflow_interpreter.supervisor.errors import SandboxPathRefused
+from workflow_interpreter.supervisor.execution import resolve_grants
 from workflow_interpreter.supervisor.profile import RunnerCommand, TaskSpec
 from workflow_interpreter.supervisor.sandbox import (
     SandboxPlan,
@@ -549,8 +551,10 @@ def test_the_superseded_wide_reflog_grant_is_what_opened_those_reflogs(
 
 @pytest.mark.proc
 @pytest.mark.nested_sandbox
+@pytest.mark.parametrize("named", [False, True])
 def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
     tmp_path: Path,
+    named: bool,
 ) -> None:
     """A `writes = false` node gains nothing from the writer's git grant.
 
@@ -563,9 +567,25 @@ def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
     _requirements()
     task, plan = _lab(tmp_path, writes=False)
     task = task.model_copy(update={"toolchain_cache": str(plan.toolchain_cache[0])})
+    if named:
+        task = task.model_copy(
+            update={
+                "execution_profile": ExecutionProfileName.REVIEWER,
+                "execution_policy": policy_for(ExecutionProfileName.REVIEWER, "codex"),
+                "checkout_read_root": task.cwd,
+            }
+        )
+        grants = resolve_grants(task, plan, "codex")
+        task = task.model_copy(update={"execution_grants": grants})
     profile = CodexProfile(ProfileConfig(), FrozenClock(), {})
     command = profile.build_command(task, "")
-    assert writable_roots_in(command.argv) == (str(plan.toolchain_cache[0]),)
+    if named:
+        assert task.execution_grants is not None
+        assert writable_roots_in(command.argv) == (
+            task.execution_grants.writable_directories
+        )
+    else:
+        assert writable_roots_in(command.argv) == (str(plan.toolchain_cache[0]),)
     assert not plan.toolchain_cache[0].is_relative_to(Path(task.cwd))
     roots_a_writer_would_get = git_write_roots_of(Path(task.cwd))
 

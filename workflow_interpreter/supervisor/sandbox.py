@@ -576,7 +576,18 @@ def plan_for(
     nothing more — it can still report (§6), and there is no writable git state
     to re-close, so it carries no pins either.
     """
-    checkout = Path(task.cwd).resolve()
+    if task.execution_grants is not None:
+        contract = task.execution_grants
+        return SandboxPlan(
+            binary=binary,
+            ro_roots=tuple(map(Path, contract.read_only_roots)),
+            git_rw=tuple(map(Path, contract.git_dirs)),
+            grants=tuple(map(Path, contract.checkout_write_dirs)),
+            channels=(Path(contract.channels),),
+            toolchain_cache=(Path(contract.private_cache),),
+            ro_pins=tuple(map(Path, contract.read_only_pins)),
+        )
+    checkout = Path(task.checkout_read_root or task.cwd).resolve()
     ro_roots = (
         _require_dir(_FIELD_REPO_ROOT, repo_root),
         _require_dir(_FIELD_WRAPPER_ROOT, wrapper_root),

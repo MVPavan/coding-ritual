@@ -25,6 +25,7 @@ from workflow_interpreter.bdio import (
     PreconditionRecord,
     ProcessHandle,
 )
+from workflow_interpreter.contracts.execution import ExecutionGrants, ToolNetwork
 from workflow_interpreter.schema.models import IsolationMode, Outcome
 from workflow_interpreter.supervisor.branch import BranchAdvance, BranchAdvanceOutcome
 from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
@@ -299,6 +300,8 @@ class LaunchReceipt(BaseModel):
     cwd: str
     handle: ProcessHandle
     seed_receipts: tuple[SeedReceipt, ...] = ()
+    execution_grants: ExecutionGrants | None = None
+    tool_network: ToolNetwork | None = None
     sandbox: SandboxMode = SandboxMode.OFF
     """Which bound this child ran under.
 

@@ -20,7 +20,10 @@ from workflow_interpreter.schema.models import Finding, GraphDefinition
 
 PACKAGE_ROOT = Path(workflow_interpreter.__file__).parent
 FIXTURES = PACKAGE_ROOT / "fixtures"
-VALID_FIXTURE = FIXTURES / "feature-delivery.toml"
+# Historical pins exercise compatibility without weakening legacy test cases.
+VALID_FIXTURE = FIXTURES / "legacy" / "feature-delivery.toml"
+SHIPPED_FIXTURE = FIXTURES / "feature-delivery.toml"
+LEGACY_BUILD_LOOP_GRAPH = FIXTURES / "legacy" / "build-loop.toml"
 # The `workflows/` authoring copy of the same graph (spec §2 `:100-102`,
 # temporary until phase 5 collapses the split).
 AUTHORING_FIXTURE = PACKAGE_ROOT.parent / "workflows" / "feature-delivery.toml"
@@ -50,7 +53,7 @@ FEATURE_DELIVERY_CONTENT_HASH = (
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
 BUILD_LOOP_CONTENT_HASH = (
-    "9335b8e328d908a2e5b975e8d5a09e3802f5a975b07277b71f9626991bf87646"
+    "2f46ad55384b1ad2098aec741c14987a2dcd337bb9210d7e8665797a146383b7"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.

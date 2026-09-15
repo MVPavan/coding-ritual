@@ -17,6 +17,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
+from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
@@ -102,6 +103,11 @@ def resolve(
     for node in definition.document.node:
         if node.kind is not NodeKind.TASK:
             continue
+        writes_key = NodeSetting.WRITES.at(node.name)
+        if node.execution_profile is not None and (
+            writes_key in config or writes_key in overrides
+        ):
+            raise ResolutionError(MSG_PROFILE_WRITES)
         for setting, setting_type in TASK_SETTING_TYPES.items():
             key = setting.at(node.name)
             field = setting.value.rsplit(".", maxsplit=1)[-1]
@@ -457,4 +463,8 @@ def _resolved_config(
                 value=template.model_dump_json(),
                 source=ConfigSource.GRAPH_DEFAULT,
             )
-    return tuple(settings[key] for key in sorted(settings))
+    from workflow_interpreter.bdio.roots import pin_execution_policies
+
+    return pin_execution_policies(
+        definition, tuple(settings[key] for key in sorted(settings))
+    )

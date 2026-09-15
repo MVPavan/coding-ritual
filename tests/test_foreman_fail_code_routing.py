@@ -17,6 +17,7 @@ from tests._foreman import ForemanLab
 from tests._helpers import (
     AUTHORING_FIXTURE,
     FEATURE_DELIVERY_CONTENT_HASH,
+    SHIPPED_FIXTURE,
     VALID_FIXTURE,
     undeclared_fail_code_graph,
 )
@@ -294,4 +295,8 @@ def test_both_copies_of_the_graph_still_validate(path: Path) -> None:
     graph = load_graph(path)
 
     assert graph.warnings == ()
-    assert graph.content_hash == FEATURE_DELIVERY_CONTENT_HASH
+    assert graph.content_hash == (
+        FEATURE_DELIVERY_CONTENT_HASH
+        if path == VALID_FIXTURE
+        else load_graph(SHIPPED_FIXTURE).content_hash
+    )

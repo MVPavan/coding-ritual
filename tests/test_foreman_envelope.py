@@ -6,7 +6,9 @@ from workflow_interpreter.schema.loader import load_graph
 
 
 def test_byte_only_graph_loads_without_obsolete_token_field(tmp_path: Path) -> None:
-    original = Path("workflow_interpreter/fixtures/feature-delivery.toml").read_text()
+    original = Path(
+        "workflow_interpreter/fixtures/legacy/feature-delivery.toml"
+    ).read_text()
     path = tmp_path / "bytes.toml"
     path.write_text(original.replace("token_budget", "context_budget_bytes"))
     graph = load_graph(path)

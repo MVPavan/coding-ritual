@@ -32,6 +32,11 @@ from typing import Final, Protocol
 from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio import ActivationRecord, ProcessHandle, Usage
+from workflow_interpreter.contracts.execution import (
+    ExecutionGrants,
+    ExecutionPolicy,
+    ExecutionProfileName,
+)
 from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor.channels import (
     COMMITTER_NAME,
@@ -140,6 +145,10 @@ class TaskSpec(BaseModel):
     model: str
     effort: str | None = None
     writes: bool
+    execution_profile: ExecutionProfileName | None = None
+    execution_policy: ExecutionPolicy | None = None
+    execution_grants: ExecutionGrants | None = None
+    checkout_read_root: str | None = None
     allowed_paths: tuple[str, ...] = ()
     cwd: str
     channels: RunnerChannels

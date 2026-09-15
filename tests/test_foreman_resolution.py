@@ -26,7 +26,7 @@ from tests._foreman import (
     FAKE_PROFILE,
     ForemanLab,
 )
-from tests._helpers import BUILD_LOOP_GRAPH, VALID_FIXTURE
+from tests._helpers import LEGACY_BUILD_LOOP_GRAPH, VALID_FIXTURE
 from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import BdConfigError
@@ -484,7 +484,7 @@ def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
 
     root = instantiate(
         composition,
-        BUILD_LOOP_GRAPH,
+        LEGACY_BUILD_LOOP_GRAPH,
         instance_key=instance_key(),
         instance_inputs=inputs,
         allow_test_flags=False,
@@ -1223,7 +1223,7 @@ def test_resolve_does_not_log_an_unchanged_nodes_warning(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """`node.implement.model` must not log the critic's pinned warning."""
-    definition = load_graph(BUILD_LOOP_GRAPH)
+    definition = load_graph(LEGACY_BUILD_LOOP_GRAPH)
     monkeypatch.setattr(
         "workflow_interpreter.foreman.resolve._EFFECTIVE_NODE_RULES", PHASE_B_RULES
     )

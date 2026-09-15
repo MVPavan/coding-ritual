@@ -1,11 +1,11 @@
 [graph]
-id          = "engine-bootstrap"
+id          = "feature-delivery"
 version     = "1.0.2"
 entry       = "implement"
 description = "One feature: implemented → reviewed → shipped"
 
 [instance]
-max_total_activations  = 10      # counts every activation AND gate bead
+max_total_activations  = 20      # counts every activation AND gate bead
 test_force_first_reject = false  # schema'd; validator refuses true without --allow-test-flags
 phase_bridge_retry_terminals = ["shipped", "abandoned"]
 
@@ -13,7 +13,7 @@ phase_bridge_retry_terminals = ["shipped", "abandoned"]
 name         = "build-review"
 mode         = "bounded-cycle"           # "acyclic" | "bounded-cycle"
 entry_node   = "implement"
-max_entries  = 2
+max_entries  = 3
 on_exhausted = "triage"
 
 [[node]]
@@ -49,15 +49,15 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"               # worktree | in-repo
-execution_profile = "writer"                     # repo-worktree write access only
-allowed_paths = ["workflow_interpreter/profiles/**", "workflow_interpreter/supervisor/**", "tests/**", "docs/usage/**", "docs/specs/**", "config/**"]   # the writable mounts under bwrap
+writes        = true                     # repo-worktree write access only
+allowed_paths = ["src/**", "tests/**"]   # the writable mounts under bwrap
 inputs        = ["task_brief", "review_findings"]
-verify        = [{ cmd = "scripts/verify-engine-bootstrap.sh", timeout = "10m" }]
-context_budget_bytes = 48000                   # context TRIM budget (not a runaway bound)
+verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
+token_budget  = 120000                   # context TRIM budget (not a runaway bound)
 max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)
 stale_after   = "10m"
-max_infra_retries = 0
-max_steers    = 0
+max_infra_retries = 2
+max_steers    = 2
 outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]
 
 [[node]]
@@ -103,15 +103,19 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-execution_profile = "reviewer"                    # findings go to $WF_ARTIFACT_DIR, not the repo
+writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo
 allowed_paths = []
 inputs        = ["task_brief", "diff_artifact", "review_findings"]
-verify        = [{ cmd = "scripts/verify-engine-bootstrap.sh", timeout = "15m" }]
-context_budget_bytes = 524288
+verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" },
+                 { cmd = "scripts/review-checks.sh",  timeout = "5m"  }]
+                # deliberately a STRICT SUPERSET of implement's set; the
+                # validator warns when a judgment node's verify ⊆ its
+                # predecessor's (anti-drift cross-check would be vacuous)
+token_budget  = 80000
 max_wall      = "30m"
 stale_after   = "10m"
-max_infra_retries = 0
-max_steers    = 0
+max_infra_retries = 2
+max_steers    = 2
 outcomes      = ["accept", "reject", "fail_code", "fail_plan"]
 
 [[node]]

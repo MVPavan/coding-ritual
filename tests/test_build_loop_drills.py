@@ -24,7 +24,7 @@ from tests._foreman import (
     BUILD_LOOP_ROLES,
     ForemanLab,
 )
-from tests._helpers import BUILD_LOOP_GRAPH
+from tests._helpers import LEGACY_BUILD_LOOP_GRAPH
 from tests._supervisor import ChildScript, verifier_pins
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
@@ -114,7 +114,7 @@ def _build_loop_lab(
     """A lab wired for build-loop with every declared verify script pinned."""
     lab = ForemanLab(
         tmp_path,
-        toml=BUILD_LOOP_GRAPH,
+        toml=LEGACY_BUILD_LOOP_GRAPH,
         roles=BUILD_LOOP_ROLES,
         instance_inputs=BUILD_LOOP_INSTANCE_INPUTS,
         signing=signing,

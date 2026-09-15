@@ -50,6 +50,7 @@ from tests._supervisor import (
     node_of,
 )
 from workflow_interpreter.bdio import ActivationRecord, MintRequest, ProcessHandle
+from workflow_interpreter.contracts.execution import ExecutionProfileName
 from workflow_interpreter.profiles import ProfileConfig, ProfileRegistry, RunnerName
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
@@ -596,6 +597,8 @@ def task_builder(
             model=activation.metadata.model,
             effort=effort,
             writes=bool(node.writes),
+            execution_profile=node.execution_profile,
+            checkout_read_root=str(cwd),
             allowed_paths=node.allowed_paths or (),
             cwd=str(cwd),
             channels=channels,
@@ -679,6 +682,7 @@ class Lab:
         *,
         request: MintRequest | None = None,
         writes: bool = True,
+        execution_profile: ExecutionProfileName | None = None,
         marker: str = DEFAULT_MARKER,
         effects: str = DEFAULT_EFFECTS,
         binary: Path | str | None = None,
@@ -701,7 +705,7 @@ class Lab:
             self.bin, runner, exit_code=exit_code, channels=channels, forge=forge
         )
         node = node_of(self.root.definition.document, IMPLEMENT).model_copy(
-            update={"writes": writes}
+            update={"writes": writes, "execution_profile": execution_profile}
         )
         config = ProfileConfig(
             binary_overrides={runner: str(stub)}, passthrough_env=PASSTHROUGH

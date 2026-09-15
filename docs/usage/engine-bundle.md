@@ -81,5 +81,25 @@ never executed on the host for a new validation probe. Prelaunch retries may
 reuse matching completed preparation only after another offline probe.
 
 Local checks remain claims; host checks supply verification. Tests needing nested
-bubblewrap remain host-only. This slice does not change vendor network enforcement
-or Claude reviewer Bash permissions.
+bubblewrap remain host-only. Named contracts record vendor network enforcement as described below.
+
+## Named execution contracts
+
+New task nodes select `execution_profile = "writer"` or `"reviewer"`.
+Do not also set or override `writes`. Writers keep `allowed_paths` as the
+checkout directory subset; reviewers require an empty subset. Both can run
+local checks with private offline caches. Host verification remains authoritative.
+
+The root pins policy version 1 and its effective write authority. Existing roots
+without a named profile retain their original resolved settings and canonical
+hash. Named profiles require the outer sandbox. One resolved grant record drives
+both mounts and vendor permission flags, including resume invocations.
+
+`launch-receipt.json` records `execution_grants` and `tool_network`;
+`foreman status` exposes these facts under `execution_contracts`. Codex records
+`denied` through its existing tool-network configuration. Both Claude profiles
+record `not_enforced` and are allowed to launch. Named Claude reviewers gain Bash
+for local checks under the read-only checkout mount; legacy reviewers keep their
+old tool rules. Opencode retains its existing permission/configuration refusal.
+These facts do not claim host read confidentiality or change residual home/tmp
+access. Local checks needing nested bubblewrap must run on the host.
