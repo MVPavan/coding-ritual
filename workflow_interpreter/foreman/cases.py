@@ -109,7 +109,11 @@ def intake_all(
     refusals: list[str] = []
     for gate in ordered:
         result: IntakeResult = intake(
-            wiring.store, root, gate, wiring.paths.instance_dir / GATES_DIR
+            wiring.store,
+            root,
+            gate,
+            wiring.paths.instance_dir / GATES_DIR,
+            journal_dir=wiring.paths.instance_dir,
         )
         if result.gate is not None:
             closed.append(result.gate)

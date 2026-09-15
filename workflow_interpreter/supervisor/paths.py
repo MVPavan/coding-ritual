@@ -35,6 +35,8 @@ from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.errors import WrapperDirError
 from workflow_interpreter.supervisor.models import ExecLedgerEntry
 
+HEARTBEAT_FILE: Final[str] = "driver-heartbeat.json"
+
 WORKTREE_DIR: Final[str] = "worktree"
 VERIFY_TREE_DIR: Final[str] = "verify-tree"
 WORKSPACE_RECORD: Final[str] = "workspace.json"
@@ -186,6 +188,11 @@ class WrapperPaths:
     def instance_dir(self) -> Path:
         """`.wf/<root_id>/` — the instance's observation cache."""
         return self._config.wrapper_root / self._root_id
+
+    @property
+    def driver_heartbeat(self) -> Path:
+        """Host-owned driver responsiveness, outside every runner channel."""
+        return self.instance_dir / HEARTBEAT_FILE
 
     @property
     def worktree(self) -> Path:

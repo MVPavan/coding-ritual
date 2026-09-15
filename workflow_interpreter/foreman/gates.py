@@ -37,10 +37,26 @@ from workflow_interpreter.foreman.constants import (
     HALT_UNUSABLE_RESOLUTION,
     NO_ARTIFACT_OID,
 )
+from workflow_interpreter.foreman.refusals import (
+    ObservationStatus,
+    append_refusal,
+    bounded,
+)
+from workflow_interpreter.foreman.wake_constants import (
+    DEFAULT_EVENT_CAP,
+    LOG_DURABILITY,
+    MSG_DURABILITY,
+    OBSERVATION_STATUS,
+)
 from workflow_interpreter.schema.graph_index import GraphIndex
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import WrapperPaths, fsync_dir, write_durable
+from workflow_interpreter.supervisor.paths import (
+    WrapperPaths,
+    fsync_dir,
+    write_durable,
+    write_record,
+)
 from workflow_interpreter.supervisor.profile import Profile
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -215,23 +231,46 @@ def ensure_inbox(paths: WrapperPaths, gate: GateRecord) -> Path:
 
 
 def intake(
-    store: WorkflowStore, root: RootRecord, gate: GateRecord, inbox: Path
+    store: WorkflowStore,
+    root: RootRecord,
+    gate: GateRecord,
+    inbox: Path,
+    *,
+    refusal_limit: int = DEFAULT_EVENT_CAP,
+    journal_dir: Path | None = None,
 ) -> IntakeResult:
     """Verify and close one open gate when its complete signed payload exists."""
+    journal_dir = journal_dir or inbox
     directory = inbox / gate.metadata.gate_key
     payload = directory / _PAYLOAD
     signature = directory / _SIGNATURE
     if not payload.exists() or not signature.exists():
         return IntakeResult()
+    payload_bytes, signature_bytes = payload.read_bytes(), signature.read_bytes()
     try:
         closed = store.close_gate_verified(
             root.root_id,
             gate.gate_id,
-            payload_bytes=payload.read_bytes(),
-            signature=signature.read_bytes(),
+            payload_bytes=payload_bytes,
+            signature=signature_bytes,
         )
     except GateVerificationError as exc:
-        reason = str(exc)
+        reason = bounded(str(exc))
+        durability_errors: list[str] = []
+        try:
+            append_refusal(
+                journal_dir,
+                gate_id=gate.gate_id,
+                gate_key=gate.metadata.gate_key,
+                payload=payload_bytes,
+                signature=signature_bytes,
+                error=type(exc).__name__,
+                reason=reason,
+                path=directory / _REFUSAL,
+                limit=refusal_limit,
+            )
+        except (OSError, ValueError) as failed:
+            durability_errors.append(str(failed))
         try:
             write_durable(
                 directory / _REFUSAL,
@@ -242,8 +281,18 @@ def intake(
                     + "\n"
                 ).encode("utf-8"),
             )
-        except OSError:
-            pass
+        except OSError as failed:
+            durability_errors.append(str(failed))
+        if durability_errors:
+            detail = MSG_DURABILITY.format(error=bounded("; ".join(durability_errors)))
+            _LOG.error(LOG_DURABILITY, gate_id=gate.gate_id, reason=detail)
+            try:
+                write_record(
+                    journal_dir / OBSERVATION_STATUS, ObservationStatus(error=detail)
+                )
+            except OSError as failed:
+                _LOG.error(LOG_DURABILITY, gate_id=gate.gate_id, reason=str(failed))
+            reason = f"{reason}; {detail}"
         return IntakeResult(refusal=reason)
     try:
         (directory / _REFUSAL).unlink(missing_ok=True)

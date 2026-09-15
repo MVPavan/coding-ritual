@@ -39,7 +39,6 @@ from workflow_interpreter.profiles import (
     TaskRefused,
     UnknownProfileError,
     UnsupportedOptionError,
-    runner_name,
 )
 from workflow_interpreter.profiles._base import (
     ENV_MYPY_CACHE_DIR,
@@ -919,7 +918,12 @@ def test_the_registry_resolves_the_closed_vendor_set(
     name: str, expected: RunnerName
 ) -> None:
     """§6 records `runner = "profile:<name>"`, so both spellings resolve."""
-    assert runner_name(name) is expected
+    assert (
+        ProfileRegistry(make_profile_config(), FrozenClock(), {})
+        .profile_for(name)
+        .name()
+        == expected
+    )
 
 
 @pytest.mark.parametrize("name", ["", "gpt", "profile:implementer", "CLAUDE"])
@@ -932,6 +936,7 @@ def test_an_unknown_runner_name_is_a_typed_refusal(tmp_path: Path, name: str) ->
     """
     registry = ProfileRegistry(make_profile_config(), FrozenClock(), {})
 
+    assert not issubclass(UnknownProfileError, ValueError)
     with pytest.raises(UnknownProfileError, match="registered profiles"):
         registry.profile_for(name)
 

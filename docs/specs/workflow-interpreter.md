@@ -845,6 +845,16 @@ terminate (tier 2) — a bounded wait, since the wrapper itself TERMs the
 group after one further `stale_after` of silence. Full-log reads are
 exceptional and byte-budgeted.
 
+The **driver** additionally writes a protected `driver-heartbeat.json` at startup,
+after every completed tick, and on shutdown, including process identity,
+generation, active activation/gate IDs, log identities/offsets and distinct
+refusal count. A hanging tick leaves a stale heartbeat. Gate intake journals
+bounded, deduplicated refusal identities independently of the mutable inbox
+receipt. Corrected approval does not erase refusal history. Journal/receipt
+write errors are surfaced as degraded durability. `run` stops with attention
+and a nonzero CLI exit on refusal; the child driver and phase bridge propagate
+that attention. None of these observations changes gate authority or routing.
+
 ## 9. Human gates (signed payloads)
 
 A human decision is a **signed canonical payload**, not a bd state:

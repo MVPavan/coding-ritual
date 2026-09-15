@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from contextlib import ExitStack
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
 
 from workflow_interpreter.bdio.errors import BdioError
 from workflow_interpreter.foreman.compose import Composition
+from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.schema.decisions import (
     CancellationReceipt,
     ChildCoordinationView,
@@ -341,7 +343,8 @@ def drive(
     contended: set[str] = set()
     deadline = time.monotonic() + max_wall_s
     # Independent drivers share this session exclusion, never the metadata lock.
-    with BandLock(coordinator.member_lock_path(owner, "drive")):
+    observers: dict[str, DriverObserver] = {}
+    with BandLock(coordinator.member_lock_path(owner, "drive")), ExitStack() as stack:
         while time.monotonic() < deadline:
             rows = [
                 observe(composition, r)
@@ -370,7 +373,12 @@ def drive(
                         continue
                     composition.for_root(row.root_id)
                     eligible = True
+                    if row.root_id not in observers:
+                        observers[row.root_id] = stack.enter_context(
+                            DriverObserver(composition, row.root_id)
+                        )
                     report = Foreman(composition).tick(row.root_id)
+                    observers[row.root_id].observe(report)
                     if report.contended:
                         contended.add(row.slot)
                     current = coordinator.child_record(owner, row.slot, row.generation)
@@ -378,7 +386,12 @@ def drive(
                     if (
                         updated.attention_source != "decision"
                         and (report.stalled or report.halted or report.refusals)
-                        and not (updated.attention or "").startswith("waiting at gate ")
+                        and (
+                            report.refusals
+                            or not (updated.attention or "").startswith(
+                                "waiting at gate "
+                            )
+                        )
                     ):
                         updated = updated.model_copy(
                             update={

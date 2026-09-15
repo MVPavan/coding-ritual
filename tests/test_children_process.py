@@ -121,6 +121,16 @@ def test_real_writer_collection_keeps_immutable_evidence(tmp_path: Path) -> None
                 process.kill()
                 process.join(timeout=5)
 
+    from workflow_interpreter.foreman.heartbeat import DriverHeartbeat
+    from workflow_interpreter.foreman.wake_constants import DriverState
+    from workflow_interpreter.supervisor.paths import read_record
+
+    heartbeat = read_record(
+        composition.for_root(child.root_id).paths.driver_heartbeat, DriverHeartbeat
+    )
+    assert heartbeat.state is DriverState.STOPPED
+    assert heartbeat.ticks > 0
+
 
 @pytest.mark.proc
 @pytest.mark.parametrize("cap", [1, 2])

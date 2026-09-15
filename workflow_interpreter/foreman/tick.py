@@ -50,6 +50,7 @@ from workflow_interpreter.foreman.events import EventIntent, backfill, expected_
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
+from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.inputs import InputsUnavailable
 from workflow_interpreter.foreman.owner import ensure_owner
@@ -115,6 +116,11 @@ class RunReport(BaseModel):
 
     ticks: int
     report: TickReport
+
+    @property
+    def attention(self) -> bool:
+        """Refusals require deliberate correction before another driver invocation."""
+        return bool(self.report.refusals)
 
 
 class VerifyInspection(BaseModel):
@@ -571,14 +577,23 @@ class Foreman:
         `tick()` is unchanged by this loop — the startup canary still runs per
         tick — because a run is exactly repeated ticks and nothing else.
         """
+        with DriverObserver(self._composition, root_id) as observer:
+            return self._drive(root_id, poll_s, max_wall_s, observer)
+
+    def _drive(
+        self, root_id: str, poll_s: float, max_wall_s: float, observer: DriverObserver
+    ) -> RunReport:
+        """Drive a bounded loop while publishing every completed tick."""
         clock = self._composition.clock
         started = clock.now()
         ticks = 0
         while True:
             report = self.tick(root_id)
             ticks += 1
+            observer.observe(report)
             if (
-                report.halted
+                report.refusals
+                or report.halted
                 or report.terminal
                 or report.opened_gate
                 or report.waiting_gate
@@ -588,7 +603,9 @@ class Foreman:
             if (clock.now() - started).total_seconds() > max_wall_s:
                 # The run's own verdict, not a tick's: rendered as a stall so
                 # one field answers "why did this stop" for every caller.
-                return RunReport(ticks=ticks, report=TickReport(stalled=RUN_MAX_WALL))
+                report = TickReport(stalled=RUN_MAX_WALL)
+                observer.observe(report, advance=False)
+                return RunReport(ticks=ticks, report=report)
             if report.blocked or report.contended:
                 clock.sleep(poll_s)
 

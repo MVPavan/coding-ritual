@@ -43,24 +43,6 @@ BUILDERS: Final[dict[RunnerName, ProfileBuilder]] = {
 the type checker confirming that the vendor half is not optional."""
 
 
-def runner_name(name: str) -> RunnerName:
-    """Resolve a runner name, accepting the §6 `profile:<name>` spelling.
-
-    §6 records a runner as `runner = "profile:<name>"`, so a bead's
-    `runner_profile` is looked up as it was written rather than re-derived by
-    every caller.
-    """
-    bare = name.removeprefix(RUNNER_PREFIX)
-    try:
-        return RunnerName(bare)
-    except ValueError as error:
-        raise UnknownProfileError(
-            _MSG_UNKNOWN.format(
-                name=name, known=", ".join(sorted(item.value for item in RunnerName))
-            )
-        ) from error
-
-
 class ProfileRegistry:
     """The one place a §6 profile is constructed."""
 

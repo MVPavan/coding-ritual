@@ -46,7 +46,7 @@ class RunnerName(StrEnum):
     OPENCODE = "opencode"
 
 
-class UnregisteredRunnerError(ValueError):
+class UnregisteredRunnerError(Exception):
     """The selected runner is absent from the injected profile registry."""
 
 

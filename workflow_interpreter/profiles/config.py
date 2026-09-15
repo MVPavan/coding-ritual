@@ -90,7 +90,8 @@ class ProfileConfig(BaseModel):
     binary_overrides: Annotated[VendorMap, AfterValidator(_freeze)] = Field(
         default_factory=_no_overrides
     )
-    """Where to find each CLI, when it is not simply on PATH under its own name.
+    """Vendor-only overrides; registered non-vendor profiles own binary selection.
+    Where to find each CLI, when it is not simply on PATH under its own name.
     The `proc`-marked tests point these at stub executables, which is how a real
     `Supervisor.run` can be driven end to end without spending tokens."""
     passthrough_env: tuple[str, ...] = BASE_PASSTHROUGH_ENV

@@ -43,6 +43,7 @@ from workflow_interpreter.contracts.execution import (
     MSG_PROFILE_WRITES,
     MSG_UNREGISTERED_RUNNER,
     ExecutionRegistry,
+    UnregisteredRunnerError,
     policy_for,
     tool_network_for,
 )
@@ -183,7 +184,7 @@ def pin_execution_policies(
             execution_policy = policy_for(
                 node.execution_profile, tool_network_for(runner.value, profiles)
             )
-        except ValueError as error:
+        except UnregisteredRunnerError as error:
             raise CarrierIntegrityError(str(error)) from error
         key = EXECUTION_POLICY_KEY.format(node=node.name)
         expected = execution_policy.model_dump_json()

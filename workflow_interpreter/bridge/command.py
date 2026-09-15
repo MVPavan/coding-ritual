@@ -394,12 +394,17 @@ def _run_record(
         record = latest
     if run.report.terminal_node == "shipped":
         return _land(composition, adapter, record, recover=False)
-    return _result(
+    result = _result(
         PhaseBridgeCommandState.RESULT,
         epic_id=record.epic_id,
         stage_id=record.stage_id,
         record=record.model_dump(by_alias=True, mode="json"),
         result=run.model_dump(mode="json"),
+    )
+    return (
+        result.model_copy(update={"exit_code": EXIT_REFUSED})
+        if run.attention or run.report.stalled
+        else result
     )
 
 

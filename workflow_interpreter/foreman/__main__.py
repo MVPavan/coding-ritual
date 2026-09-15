@@ -40,6 +40,7 @@ from workflow_interpreter.foreman.errors import ResolutionError
 from workflow_interpreter.foreman.execution import execution_status
 from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
+from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
@@ -642,11 +643,14 @@ def _run(
             ),
             MAX_TRANSCRIPT_BYTES,
         )
-        return 1 if result.report.stalled is not None else 0
+        return 1 if result.report.stalled is not None or result.attention else 0
     view = _view(composition, args.root_id)
     root, frontier = view.root, view.frontier
     status: dict[str, object] = {
         "root_id": root.root_id,
+        "observation": observation_status(
+            view.wiring.paths.instance_dir, composition.clock
+        ),
         **_coordination_report(composition, root),
         "activations": len(view.activations),
         "instance_base_commit": root.metadata.instance_base_commit,
