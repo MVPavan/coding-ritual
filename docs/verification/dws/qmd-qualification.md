@@ -46,7 +46,8 @@ Observed locally through the supplied executable/module:
 
 ## Local evidence and required HOST evidence
 
-The following local commands succeeded (exit 0):
+The candidate formatter/test record reports these local commands succeeding
+(exit 0):
 
 ```text
 node --version
@@ -55,14 +56,17 @@ qmd --help
 python3 -m py_compile tests/qualification/qmd_qualification.py \
   tests/qualification/test_qmd_qualification.py
 git diff --check
+cd dws && env -u UV_FROZEN uv run --locked ruff format .
+cd dws && env -u UV_FROZEN uv run --locked ruff format --check .
+cd dws && env -u UV_FROZEN uv run --locked ruff check .
+cd dws && env -u UV_FROZEN uv run --locked pytest -q -m "not qmd"
 ```
 
-The actual network-denied pytest qualification was not run locally. The
-provided sandbox pins UV's Python/cache locations outside its writable mount;
-redirecting them to the supplied scratch location caused UV to seek a Python
-3.13 build, whose download could not resolve in the network-restricted
-sandbox. This is a local tooling limitation, not a result for or against QMD.
-The HOST must run:
+The non-QMD pytest command reported `16 passed`. The full pytest run reached
+the QMD probes, but nested `bwrap --unshare-net` could not create its
+`NETLINK_ROUTE` socket in the model sandbox. That is the current reason the
+four real network-denied QMD probes require HOST execution; it is not a QMD
+result. The HOST must run:
 
 ```text
 cd dws
@@ -75,18 +79,16 @@ declared `scripts/verify-dws-pilot.py` HOST gate separately after this node.
 
 ## Round-two lint repair
 
-The adopted candidate's host gate identified six test lines over the configured
-96-character limit and an import-spacing violation. This round wraps those
-task-owned lines only; fixture content, command arguments, assertions, and
-timeouts are unchanged.
+The formatter repair was applied by `ruff format`; it did not hand-wrap test
+source. The candidate record above reports `ruff format .`, its format check,
+and `ruff check .` all exiting 0.
 
-The required local Ruff commands are run with the engine-provided
-`UV_FROZEN=1` removed because it conflicts with `uv run --locked`. Their exact
-results are recorded in the node artifact. Both returned exit 2 before Ruff
-started because the supplied `UV_CACHE_DIR` is read-only. This is a sandbox
-tooling limitation, not a lint pass or a substitute for the required HOST
-Ruff gate. Local `py_compile`, JSON parsing, and `git diff --check` returned
-exit 0.
+This node's fresh first invocation with the engine-injected `UV_FROZEN=1`
+exited 2 before Ruff because `--frozen` conflicts with `--locked`. Retrying
+with only that variable removed exited 1 before Ruff because the writable UV
+cache lacked `hatchling>=1.27` and network DNS is denied. No dependency
+installation was retried. Those local tooling limitations do not replace the
+required HOST Ruff gate.
 
 ## Limitations
 

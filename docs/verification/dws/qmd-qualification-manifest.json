@@ -16,7 +16,7 @@
     "uses_disposable_generated_markdown": true
   },
   "host_command": "cd dws && DWS_QMD_BIN=<configured-qmd> uv run --locked pytest -q -m qmd -s",
-  "local_status": "not_run: UV Python/cache mount is unavailable in the model sandbox; see qmd-qualification.md",
+  "local_status": "candidate record: ruff format/check/lint exit 0 and non-QMD pytest 16 passed; QMD probes require HOST because nested bwrap cannot create NETLINK_ROUTE; this node's UV retry was blocked before Ruff by uncached hatchling and denied DNS; see qmd-qualification.md",
   "limitations": [
     "No DWS production adapter is qualified.",
     "No G-03, container deployment, or release claim is made.",
