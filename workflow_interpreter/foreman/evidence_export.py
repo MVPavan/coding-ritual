@@ -16,8 +16,15 @@ from workflow_interpreter.bdio import (
     InputBinding,
     RootRecord,
 )
+from workflow_interpreter.bdio.feedback import MSG_BINDING
+from workflow_interpreter.foreman.constants import (
+    MSG_INPUT_SOURCE_UNDECLARED,
+    MSG_VERIFY_EXPORT_FAILURE,
+    VERIFY_FAILURE_REPORT,
+)
 from workflow_interpreter.foreman.envelope import InputsUnavailable
 from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.schema.models import EngineProducer
 from workflow_interpreter.supervisor.errors import GitCommandError
 from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
 from workflow_interpreter.supervisor.gitio import Git
@@ -43,6 +50,13 @@ def export_reference(
     producer: ActivationRecord,
 ) -> str:
     """Re-verify bound evidence, publish it atomically, and return one pointer."""
+    source = root.index.sources.get(binding.name)
+    if source is None:
+        raise InputsUnavailable(MSG_INPUT_SOURCE_UNDECLARED)
+    if binding.verify_failure is not None or (
+        source.producer == EngineProducer.VERIFY_FAILURE
+    ):
+        return _export_feedback(git, repo_root, activation_dir, root, binding, producer)
     if producer.activation_id != binding.producer_activation_id:
         raise InputsUnavailable("input producer does not match its binding")
     evidence = producer.metadata.evidence
@@ -292,3 +306,40 @@ def _fsync(directory: Path) -> None:
         os.fsync(descriptor)
     finally:
         os.close(descriptor)
+
+
+def _export_feedback(
+    git: Git,
+    repo_root: Path,
+    activation_dir: Path,
+    root: RootRecord,
+    binding: InputBinding,
+    producer: ActivationRecord,
+) -> str:
+    """Publish verified diagnostic bytes through the same protected evidence boundary."""
+    from workflow_interpreter.foreman.verify_feedback import read_payload
+
+    body = read_payload(git, repo_root, root, binding, producer)
+    proof = binding.verify_failure
+    if proof is None:
+        raise InputsUnavailable(MSG_BINDING)
+    reports = ((VERIFY_FAILURE_REPORT, proof.blob_oid, body),)
+    try:
+        publication = _publication_dir(
+            activation_dir, binding, producer, None, None, None, reports
+        )
+        _publish(publication, None, reports, producer, None, None, None)
+    except OSError as error:
+        raise InputsUnavailable(
+            MSG_VERIFY_EXPORT_FAILURE.format(error=error)
+        ) from error
+    return json.dumps(
+        {
+            "index_path": str(publication / _INDEX_NAME),
+            "producer_activation_id": producer.activation_id,
+            "producer": EngineProducer.VERIFY_FAILURE.value,
+            "payload_digest": binding.digest,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )

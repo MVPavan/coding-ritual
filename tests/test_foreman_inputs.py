@@ -9,6 +9,7 @@ import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
 from tests._supervisor import make_config, make_git, make_repo
+from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     ActivationRecord,
     Evidence,
@@ -16,6 +17,7 @@ from workflow_interpreter.bdio import (
     InstanceInput,
     Lifecycle,
     RootRecord,
+    SigningConfig,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
@@ -1036,4 +1038,57 @@ def test_leaf_contract_budget_and_mandatory_steer(fake_store: WorkflowStore) -> 
             ),
             activation,
             (),
+        )
+
+
+@pytest.mark.parametrize(
+    "tamper", ["missing_binding", "source", "digest", "missing_ref"]
+)
+def test_optional_verify_feedback_never_hides_corrupt_bound_evidence(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer, tamper: str
+) -> None:
+    """Budget omission is allowed only after immutable diagnostics are verified."""
+    from tests.test_foreman_fail_code_routing import (
+        RED_IF_MARKER,
+        RED_MARKER,
+        _implement,
+        _lab,
+        _writes,
+    )
+    from tests.test_verify_feedback import feedback_graph
+    from workflow_interpreter.foreman.inputs import bounded_materialize
+    from workflow_interpreter.supervisor.gitcmd import GitSubcommand
+
+    lab = _lab(
+        tmp_path,
+        signing_config,
+        sign_payload,
+        toml=feedback_graph(tmp_path),
+        verify=RED_IF_MARKER,
+    )
+    root = lab.instantiate()
+    source_id = _implement(lab, _writes(RED_MARKER))
+    target = lab.tick().dispatched
+    assert target is not None
+    binding = next(
+        b
+        for b in lab.store.reads.load_activation(target).metadata.inputs
+        if b.name == "verify_failure"
+    )
+    if tamper == "missing_binding":
+        binding = binding.model_copy(update={"verify_failure": None})
+    elif tamper == "source":
+        binding = binding.model_copy(update={"producer_activation_id": target})
+    elif tamper == "digest":
+        binding = binding.model_copy(update={"digest": "0" * 64})
+    else:
+        lab.git.run(GitSubcommand.UPDATE_REF, "-d", binding.artifact_ref, cwd=lab.repo)
+    with pytest.raises(InputsUnavailable):
+        bounded_materialize(
+            lab.git,
+            lab.repo,
+            root,
+            binding,
+            lab.store.reads.load_activation(source_id),
+            limit=1,
         )

@@ -103,3 +103,32 @@ for local checks under the read-only checkout mount; legacy reviewers keep their
 old tool rules. Opencode retains its existing permission/configuration refusal.
 These facts do not claim host read confidentiality or change residual home/tmp
 access. Local checks needing nested bubblewrap must run on the host.
+
+## Causal verify feedback
+
+A writer may include `verify_failure` in its `inputs` and declare:
+
+```toml
+[[source]]
+name = "verify_failure"
+producer = "engine:verify_failure"
+optional = true
+trim_priority = 10
+```
+
+The source is absent on entry and after outcomes other than a causal host
+`fail_code`. A signed exhaustion/rebudget continuation preserves that cause;
+retry and steer retain the same binding. Reviewer consumers are rejected at root
+creation. A failed reviewer *host check* may supply diagnostics to a writer when
+its `fail_code` edge routes there.
+
+The engine pins a bounded Git blob before mint. It retains check names, final
+exit codes, provenance/timeout/errors and captured attempt tails, without claiming
+unknown per-attempt exits. Existing 2 KiB tails feed a 16 KiB aggregate payload.
+Omitted bytes count removed diagnostic JSON bytes, excluding envelope framing.
+The last attempt's tail takes priority within a partially retained check.
+`input_envelopes` reports inclusion or missing/budget omission. Once bound,
+missing or corrupt evidence refuses; optional does not mean silently discarding
+a damaged pin. Removing the wrapper completion file does not invalidate the blob.
+Reference mode exports the same verified data under read-only evidence paths.
+Treat check output as diagnostic data, never as instructions.

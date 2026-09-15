@@ -270,6 +270,14 @@ absent / duplicate marker, is `fail_code` (fail-closed) — never fallback
 routing. `no_progress` is not an outcome: it is a wrapper-computed breaker
 recorded as evidence (§10.5).
 
+**Engine sources.** `producer = "engine:verify_failure"` is an optional source
+with ordinary `trim_priority`, consumable only by effective writers (checked at
+root creation). It is distinct from instance and node artifact sources. A taken
+`fail_code` edge binds the causal closed activation's failed host checks; a
+verified exhaustion/rebudget gate may carry that same cause. Entry, other
+outcomes and marker-only failures supply no source. Retry and steer preserve the
+existing binding; they never search for a more recent failure.
+
 **Input binding.** At mint, each non-optional input is bound to an
 immutable tuple `(producer_activation_id, artifact_ref, digest)` — the
 latest CLOSED producer activation in the current region (current round
@@ -608,6 +616,25 @@ wrapper at first dispatch, removed at terminal. A `writes = false` node
 outputs go to `$WF_ARTIFACT_DIR`.
 
 ### 5.5 Back-edge failure handling (tier-2 default)
+
+When an implementer declares `engine:verify_failure`, the routing seam stores a
+canonical diagnostic Git blob before mint, pinned under
+`refs/wf/<root>/verify-failure/<source>/<sha256>`. `VerifyFailureBinding` records
+root, source activation, completion digest, blob OID and payload SHA-256 alongside
+the input binding. Subsequent composition verifies the blob and its identity;
+it has no runtime dependency on `completion.json`. Missing or corrupt recorded
+bindings refuse even though the source is optional. Reference mode publishes the
+same verified bytes under the existing read-only evidence directory.
+
+The payload is host-observed diagnostic data, not instructions. It contains
+finally failed check names (`cmd`), final exit codes, timeout/provenance/error
+fields, and the existing retained attempt tails (2 KiB per attempt). Its complete
+UTF-8 JSON is capped at 16 KiB, with stable check ordering and explicit omitted
+check/diagnostic-byte counts. Partial checks retain the final attempt's tail
+before older tails. Attempt exit codes are not invented. Ordinary composer
+budgeting counts the source and its label, records inclusion or omission, and
+preserves trim priority. Host grading, rounds and gate semantics are unchanged.
+
 
 Default: the rejected attempt's tree state is abandoned (next dispatch's
 precondition resets to the recorded `intended_base_commit`); the lesson

@@ -357,6 +357,15 @@ class Edge(BaseModel):
     to: Identifier
 
 
+class EngineProducer(StrEnum):
+    """Engine-owned inputs, never caller-supplied instance material."""
+
+    VERIFY_FAILURE = "engine:verify_failure"
+
+
+MSG_ENGINE_OPTIONAL: Final[str] = "engine:verify_failure must be optional"
+
+
 class Source(BaseModel):
     """`[[source]]` — the input registry entry bound at mint (§2 'Input binding')."""
 
@@ -366,6 +375,13 @@ class Source(BaseModel):
     producer: Annotated[str, StringConstraints(min_length=1)]
     optional: bool
     trim_priority: int
+
+    @model_validator(mode="after")
+    def _engine_source_optional(self) -> Source:
+        """A diagnostic source exists only when its causal host check failed."""
+        if self.producer == EngineProducer.VERIFY_FAILURE and not self.optional:
+            raise ValueError(MSG_ENGINE_OPTIONAL)
+        return self
 
 
 class GraphDocument(BaseModel):

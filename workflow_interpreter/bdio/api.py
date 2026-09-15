@@ -535,6 +535,9 @@ class WorkflowStore:
             self._branch_head_reader,
             reads.gates_of(beads),
         )
+        from workflow_interpreter.bdio.feedback import validate_feedback_bindings
+
+        validate_feedback_bindings(root, request, activations, reads.gates_of(beads))
         existing = tuple(
             record
             for record in activations

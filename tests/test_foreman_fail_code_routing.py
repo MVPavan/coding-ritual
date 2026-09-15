@@ -54,6 +54,7 @@ def _lab(
     toml: Path = VALID_FIXTURE,
     verify: str | None = None,
     review: str | None = None,
+    sandbox: SandboxMode = SandboxMode.OFF,
 ) -> ForemanLab:
     """A lab whose pinned check scripts are the ones this test needs.
 
@@ -68,7 +69,7 @@ def _lab(
         toml=toml,
         signing=signing,
         signer=signer,
-        sandbox=SandboxMode.OFF,
+        sandbox=sandbox,
     )
     bodies = {VERIFY_SCRIPT: verify, REVIEW_SCRIPT: review}
     written = False

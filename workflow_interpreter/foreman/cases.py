@@ -216,6 +216,9 @@ def _mint_successor(
         predecessor_gate_id=predecessor_gate_id,
         round_no=round_no,
     )
+    from workflow_interpreter.foreman.verify_feedback import bind_feedback
+
+    request = bind_feedback(composition.git, wiring, root, request)
     try:
         minted = wiring.store.mint_activation(root.root_id, request).activation
     except BoundExceededError as exc:

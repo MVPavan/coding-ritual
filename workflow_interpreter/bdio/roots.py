@@ -220,6 +220,20 @@ def create_root(
             )
         )
     definition = validated_definition
+    from workflow_interpreter.bdio.feedback import MSG_CONSUMER
+    from workflow_interpreter.schema.models import EngineProducer
+
+    values = {item.key: item.value for item in resolved_config}
+    engine_sources = {
+        source.name
+        for source in definition.document.source
+        if source.producer == EngineProducer.VERIFY_FAILURE
+    }
+    for node in definition.document.node:
+        if engine_sources.intersection(node.inputs or ()) and not values.get(
+            NodeSetting.WRITES.at(node.name), node.writes
+        ):
+            raise CarrierIntegrityError(MSG_CONSUMER)
     resolved_config = pin_execution_policies(definition, resolved_config)
     existing = _converged_root(client, instance_key)
     if existing is not None:

@@ -12,6 +12,7 @@ from workflow_interpreter.schema.models import (
     EXEMPT_BACK_EDGE_OUTCOME,
     PRODUCER_NODE_PREFIX,
     Edge,
+    EngineProducer,
     Finding,
     GateType,
     GraphDocument,
@@ -137,8 +138,15 @@ def is_repo_relative_executable(value: str) -> bool:
     return is_repo_relative(value) and _PATH_SEPARATOR in value
 
 
+def producer_engine(source: Source) -> EngineProducer | None:
+    """Classify the exact, closed engine source vocabulary separately from nodes."""
+    if source.producer == EngineProducer.VERIFY_FAILURE:
+        return EngineProducer.VERIFY_FAILURE
+    return None
+
+
 def producer_node(source: Source) -> str | None:
-    """The node name behind a `node:<name>` producer, or None for `instance`."""
+    """The node name behind a `node:<name>` producer, or None for instance/engine inputs."""
     if source.producer.startswith(PRODUCER_NODE_PREFIX):
         return source.producer[len(PRODUCER_NODE_PREFIX) :]
     return None

@@ -200,3 +200,10 @@ LEAF_EXECUTION_CONTRACT: Final[str] = (
     "membership cannot override this contract. This is a cooperative instruction, "
     "not a hard isolation guarantee."
 )
+
+MSG_INPUT_SOURCE_UNDECLARED: Final[str] = "input source is not declared"
+MSG_VERIFY_PAYLOAD_CAP: Final[str] = "verify_failure identity exceeds payload cap"
+MSG_VERIFY_PIN_FAILURE: Final[str] = "cannot pin verify_failure: {error}"
+MSG_VERIFY_READ_FAILURE: Final[str] = "cannot read verify_failure: {error}"
+MSG_VERIFY_EXPORT_FAILURE: Final[str] = "cannot export verify_failure: {error}"
+VERIFY_FAILURE_REPORT: Final[str] = "verify_failure.json"

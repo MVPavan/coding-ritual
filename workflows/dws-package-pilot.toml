@@ -51,7 +51,7 @@ output evidence/findings, not scratch work.
 isolation     = "worktree"               # worktree | in-repo
 execution_profile = "writer"                     # repo-worktree write access only
 allowed_paths = ["dws/**", "docs/verification/dws/**"]   # the writable mounts under bwrap
-inputs        = ["task_brief", "review_findings"]
+inputs        = ["verify_failure", "task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-dws-pilot.py", timeout = "10m" }]
 context_budget_bytes = 64000
 max_wall      = "45m"                    # universal runaway ceiling (wrapper-enforced)
@@ -224,3 +224,10 @@ name          = "review_findings"
 producer      = "node:review"
 optional      = true                     # absent on round 1 by construction
 trim_priority = 2
+
+# Host-observed diagnostic data, bound only to the causal failed check.
+[[source]]
+name = "verify_failure"
+producer = "engine:verify_failure"
+optional = true
+trim_priority = 10

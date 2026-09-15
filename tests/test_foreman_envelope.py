@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from tests.conftest import Signer
+from workflow_interpreter.bdio import SigningConfig
 from workflow_interpreter.schema.loader import load_graph
 
 
@@ -67,3 +69,65 @@ def test_utf8_exact_fit_and_one_byte_overflow() -> None:
     compose_envelope("é", (), limit=measured.byte_count, reference="manifest")
     with pytest.raises(EnvelopeRefusal):
         compose_envelope("é", (), limit=measured.byte_count - 1, reference="manifest")
+
+
+def test_verify_feedback_obeys_budget_and_trim_priority(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """Feedback is a normal optional section, with measured budget omission."""
+    from tests.test_foreman_fail_code_routing import (
+        RED_IF_MARKER,
+        RED_MARKER,
+        _implement,
+        _lab,
+        _writes,
+    )
+    from tests.test_verify_feedback import feedback_graph
+    from workflow_interpreter.bdio.carriers import ConfigSource, ResolvedSetting
+    from workflow_interpreter.foreman.inputs import DefaultComposer, materialize
+
+    lab = _lab(
+        tmp_path,
+        signing_config,
+        sign_payload,
+        toml=feedback_graph(tmp_path),
+        verify=RED_IF_MARKER,
+    )
+    root = lab.instantiate()
+    source_id = _implement(lab, _writes(RED_MARKER))
+    target = lab.tick().dispatched
+    assert target is not None
+    activation = lab.store.reads.load_activation(target)
+    binding = next(b for b in activation.metadata.inputs if b.name == "verify_failure")
+    item = materialize(
+        lab.git, lab.repo, root, binding, lab.store.reads.load_activation(source_id)
+    )
+    composer = DefaultComposer()
+    full = composer.envelope(root, activation, (item,))
+    assert "verify_failure" in full.included
+    settings = tuple(
+        s
+        for s in root.metadata.resolved_config
+        if s.key != "node.implement.context_budget_bytes"
+    )
+    root = root.model_copy(
+        update={
+            "metadata": root.metadata.model_copy(
+                update={
+                    "resolved_config": (
+                        *settings,
+                        ResolvedSetting(
+                            key="node.implement.context_budget_bytes",
+                            value=full.byte_count - 1,
+                            source=ConfigSource.INSTANCE_OVERRIDE,
+                        ),
+                    ),
+                }
+            )
+        }
+    )
+    trimmed = composer.envelope(root, activation, (item,))
+    assert "verify_failure" not in trimmed.included
+    omitted = next(o for o in trimmed.omissions if o.name == "verify_failure")
+    assert omitted.reason == "budget" and omitted.digest == binding.digest
+    assert omitted.reference == binding.artifact_ref

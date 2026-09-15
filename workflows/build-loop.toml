@@ -63,7 +63,7 @@ output evidence/findings, not scratch work.
 isolation     = "worktree"
 execution_profile = "writer"
 allowed_paths = ["tests/acceptance/**"]
-inputs        = ["task_brief", "seam_contract", "test_findings"]
+inputs        = ["verify_failure", "task_brief", "seam_contract", "test_findings"]
 verify        = [{ cmd = "scripts/checks/tests-parse.sh", timeout = "5m" }]
 token_budget  = 80000
 max_wall      = "30m"
@@ -180,7 +180,7 @@ execution_profile = "writer"
 # `tests-untouched.sh` verifier below, which fails the round on any diff
 # under `tests/acceptance/`.
 allowed_paths = ["workflow_interpreter/**", "tests/**"]
-inputs        = ["task_brief", "acceptance_tests", "impl_findings", "critic_findings"]
+inputs        = ["verify_failure", "task_brief", "acceptance_tests", "impl_findings", "critic_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh",        timeout = "20m" },
                  { cmd = "scripts/checks/tests-untouched.sh", timeout = "2m"  },
                  { cmd = "scripts/checks/mutate.sh",          timeout = "25m" }]
@@ -505,3 +505,10 @@ name          = "critic_findings"
 producer      = "node:critic"
 optional      = true
 trim_priority = 2
+
+# Host-observed diagnostic data, bound only to the causal failed check.
+[[source]]
+name = "verify_failure"
+producer = "engine:verify_failure"
+optional = true
+trim_priority = 10
