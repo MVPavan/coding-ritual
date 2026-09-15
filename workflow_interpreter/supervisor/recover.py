@@ -321,6 +321,17 @@ class Recovery:
         return classify(self._config, self._paths, activation)
 
     def resolve(self, activation: ActivationRecord, node: Node) -> RecoveryResolution:
+        """Classify and settle recovery before deleting any private toolchain."""
+        from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+        result = self._resolve(activation, node)
+        if result.closed is not None:
+            cleanup_toolchain(self._paths, result.closed)
+        elif activation.metadata.is_completed:
+            cleanup_toolchain(self._paths, activation)
+        return result
+
+    def _resolve(self, activation: ActivationRecord, node: Node) -> RecoveryResolution:
         """Classify, then resolve the cases that have a safe resolution.
 
         Case 3's order is the §5.6 order and matters: TERM the group before

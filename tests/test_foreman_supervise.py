@@ -132,22 +132,26 @@ def test_wrapper_fallback_request_rebuilds_the_root_execution_pin(
     assert request.model == "fake"
 
 
-def test_wrapper_error_close_records_transport_evidence() -> None:
-    calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
-    wiring = SimpleNamespace(
-        store=SimpleNamespace(
-            close_activation=lambda *args, **kwargs: calls.append((args, kwargs))
-        )
-    )
+def test_wrapper_error_close_records_transport_evidence(tmp_path: Path) -> None:
+    """Preparation failure closes durably and deletes its unlaunched private copy."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    wiring = lab.wiring()
+    activation = wiring.store.mint_activation(root.root_id, entry_request()).activation
+    private = wiring.paths.activation_dir(activation.activation_id) / "toolchain"
+    private.mkdir(parents=True)
+    (private / "partial").write_text("not evidence")
     result = _close_error(
-        cast(InstanceWiring, wiring),
-        "activation",
+        wiring,
+        activation.activation_id,
         Outcome.ERROR_TRANSPORT,
         OSError("disk"),
     )
     assert result is WrapperExit.DONE
-    assert calls[0][0][1] is Outcome.ERROR_TRANSPORT
-    assert calls[0][1]["evidence"] == Evidence(note="disk")
+    closed = wiring.store.reads.load_activation(activation.activation_id)
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert closed.metadata.evidence == Evidence(note="disk")
+    assert not private.exists()
 
 
 @pytest.mark.parametrize("field", ("model", "effort"))

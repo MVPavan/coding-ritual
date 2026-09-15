@@ -98,7 +98,7 @@ def _close_error(
 ) -> WrapperExit:
     """Persist a mapped wrapper failure while the activation is still minted."""
     try:
-        wiring.store.close_activation(
+        closed = wiring.store.close_activation(
             activation_id,
             outcome,
             evidence=Evidence(note=str(error)),
@@ -108,6 +108,9 @@ def _close_error(
         if wiring.store.reads.load_activation(activation_id).metadata.is_settled:
             return WrapperExit.CLOSED_BY_TICK
         raise
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+    cleanup_toolchain(wiring.paths, closed)
     return WrapperExit.DONE
 
 

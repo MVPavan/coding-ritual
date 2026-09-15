@@ -203,9 +203,13 @@ def test_settle_replays_an_uncomputable_verdict_after_completion_loss(
     evidence = Evidence(claimed_outcome=None)
     activation = fake_store.record_evidence(activation.activation_id, evidence)
 
+    private = tmp_path / ".wf" / root.root_id / activation.activation_id / "toolchain"
+    private.mkdir(parents=True)
+    (private / "runner-data").write_text("must survive host verification")
     replayed: list[ExitRecord] = []
 
     def replay(*args: object, **kwargs: object) -> object:
+        assert private.exists()
         replayed.append(cast(ExitRecord, args[3]))
         return SimpleNamespace(
             completion=CompletionEvidence(
@@ -234,6 +238,8 @@ def test_settle_replays_an_uncomputable_verdict_after_completion_loss(
     assert settled.metadata.lifecycle is Lifecycle.CLOSED
     assert settled.metadata.outcome is Outcome.FAIL_CODE
     assert settled.metadata.evidence == evidence
+
+    assert not private.exists()
 
 
 def test_settle_halts_when_missing_completion_cannot_be_replayed(

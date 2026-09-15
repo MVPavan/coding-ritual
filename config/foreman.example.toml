@@ -13,6 +13,7 @@
 repo_root    = "@REPO_ROOT@"
 wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
+
 actor        = "@ACTOR@"
 
 # The validated graph `phase-bridge` pins for a selected stage. It is a normal
@@ -63,6 +64,20 @@ allowed_signers_path = "@WRAPPER_HOME@/signers/allowed_signers"
 repo_root    = "@REPO_ROOT@"
 wrapper_root = "@WRAPPER_ROOT@"
 host         = "@HOST@"
+
+[supervisor.toolchain]
+# Explicit standalone uv projects; default root is used only when uv.lock exists.
+projects = ["."]
+# Optional absolute host paths. Omitted cache/python paths use uv discovery;
+# the default seed root is <wrapper_root>/toolchain-seeds.
+# seed_root = "@WRAPPER_ROOT@/toolchain-seeds"
+# Set host_cache/python_root to absolute host paths to override discovery.
+allow_host_fetch = true
+# Bounds apply to each preparation command/copy and lock wait.
+timeout_s = 120.0
+max_bytes = 2147483648
+max_entries = 100000
+reserve_bytes = 67108864
 
 # Role bindings (§3.1 provenance source `role-binding`). The keys are the graph's
 # own `runner = "profile:<role>"` names — `feature-delivery.toml` declares

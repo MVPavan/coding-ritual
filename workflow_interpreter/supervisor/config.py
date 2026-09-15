@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.supervisor.errors import SupervisorConfigError
 from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.supervisor.toolchain_models import ToolchainConfig
 
 CONFIG_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -69,6 +70,7 @@ class SupervisorConfig(BaseModel):
 
     `off` is an operator escape hatch that is RECORDED, never silent — the
     launch receipt carries the mode and the close carries an audit flag."""
+    toolchain: ToolchainConfig = Field(default_factory=ToolchainConfig)
     git_binary: str = DEFAULT_GIT_BINARY
     git_timeout_s: float = Field(default=DEFAULT_GIT_TIMEOUT_S, gt=0)
     proc_root: Path = DEFAULT_PROC_ROOT

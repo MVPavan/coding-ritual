@@ -121,6 +121,8 @@ ENV_MYPY_CACHE_DIR: Final[str] = "MYPY_CACHE_DIR"
 ENV_PYTEST_ADDOPTS: Final[str] = "PYTEST_ADDOPTS"
 UV_FROZEN_VALUE: Final[str] = "1"
 PYTEST_CACHE_OPTION: Final[str] = "-o cache_dir={path}"
+ENV_UV_OFFLINE: Final[str] = "UV_OFFLINE"
+TOOLCHAIN_DIRECTORY: Final[str] = "toolchain"
 UV_CACHE_DIRECTORY: Final[str] = "uv-cache"
 UV_PYTHON_DIRECTORY: Final[str] = "python"
 """The §2 toolchain env, named here so the launcher and `profiles/_base.py`
@@ -129,7 +131,7 @@ IMPORT it rather than re-spell it.
 A read-only checkout breaks the node's own `verify`: `uv run` creates `.venv`
 in the checkout, ruff and mypy create caches there. Profiles point all five
 toolchain locations at `$WF_SCRATCH_DIR`; the launcher replaces `UV_CACHE_DIR`
-and `UV_PYTHON_INSTALL_DIR` with locations below the wrapper-root cache that
+and `UV_PYTHON_INSTALL_DIR` with locations below the activation-private cache that
 this plan binds read-write. `-o cache_dir=` is chosen over
 `-p no:cacheprovider` because the latter also disables `--lf`/`--ff`/`--sw`.
 `UV_FROZEN` is a stated limitation, not a nicety: a node under the bound cannot
@@ -581,7 +583,7 @@ def plan_for(
         checkout,
     )
     channels = (channels_dir.resolve(),)
-    toolchain_cache = toolchain_cache_for(wrapper_root)
+    toolchain_cache = toolchain_cache_for(channels_dir.parent)
     if not task.writes:
         return SandboxPlan(
             binary=binary,
@@ -602,9 +604,11 @@ def plan_for(
     )
 
 
-def toolchain_cache_for(wrapper_root: Path) -> tuple[Path, ...]:
-    """Create the wrapper-wide uv cache used by both sandbox modes."""
-    cache_dir = (wrapper_root / UV_CACHE_DIRECTORY).resolve()
+def toolchain_cache_for(activation_dir: Path) -> tuple[Path, ...]:
+    """Create one activation's private cache in either sandbox mode."""
+    cache_dir = activation_dir / TOOLCHAIN_DIRECTORY / UV_CACHE_DIRECTORY
+    if cache_dir.resolve() != cache_dir or cache_dir.is_symlink():
+        raise SandboxPathRefused("private toolchain path contains a symlink")
     _ensure_dir(cache_dir)
     return (cache_dir,)
 

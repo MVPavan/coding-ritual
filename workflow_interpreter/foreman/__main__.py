@@ -101,6 +101,13 @@ def _composition(path: Path | None) -> Composition:
     if path is None:
         raise InvalidIdentifier("foreman configuration path is required: pass --config")
     config = load_config(path)
+    # Capture host uv authority before profile child_env points at private caches.
+    supervisor = config.supervisor.model_copy(
+        update={
+            "toolchain": config.supervisor.toolchain.with_host_env(os.environ),
+        }
+    )
+    config = config.model_copy(update={"supervisor": supervisor})
     clock = SystemClock()
     return Composition(
         config=config,

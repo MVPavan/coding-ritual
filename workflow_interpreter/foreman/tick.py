@@ -399,7 +399,14 @@ class Foreman:
                         halted=True, opened_gate=_opened_gate(wiring, gate.gate_id)
                     )
                 return TickReport(stalled=state.stalled)
+            from workflow_interpreter.supervisor.toolchain_cleanup import (
+                cleanup_toolchain,
+            )
+
             for activation in activations_of(beads):
+                cleanup_error = cleanup_toolchain(wiring.paths, activation)
+                if cleanup_error is not None:
+                    return TickReport(stalled=cleanup_error)
                 if (
                     activation.metadata.is_completed
                     and activation.bead.status != STATUS_CLOSED
@@ -419,6 +426,7 @@ class Foreman:
                         usage=activation.metadata.usage,
                         deviations=activation.metadata.deviations,
                     )
+                    cleanup_toolchain(wiring.paths, repaired)
                     return TickReport(settled=repaired.activation_id)
             frontier = build_frontier(root, beads)
             intake = intake_all(wiring, root, gates_of(beads))

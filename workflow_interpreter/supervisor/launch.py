@@ -120,6 +120,7 @@ from workflow_interpreter.supervisor.profile import (
 )
 from workflow_interpreter.supervisor.sandbox import (
     ENV_UV_CACHE_DIR,
+    ENV_UV_OFFLINE,
     ENV_UV_PYTHON_INSTALL_DIR,
     UV_PYTHON_DIRECTORY,
     SandboxMode,
@@ -129,6 +130,8 @@ from workflow_interpreter.supervisor.sandbox import (
     toolchain_cache_for,
     wrap,
 )
+from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
+from workflow_interpreter.supervisor.toolchain_models import SeedReceipt
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -320,6 +323,7 @@ class ForkBarrierLauncher:
         launch_id: str,
         plan: SandboxPlan,
         sandbox: SandboxMode,
+        seed_receipts: tuple[SeedReceipt, ...] = (),
     ) -> None:
         self._config = config
         self._paths = paths
@@ -327,6 +331,7 @@ class ForkBarrierLauncher:
         self._activation_id = activation_id
         self._launch_id = launch_id
         self._plan = plan
+        self._seed_receipts = seed_receipts
         self._sandbox = sandbox
         """The §2 mount bound, injected rather than computed here: `plan_for`
         needs the `TaskSpec`, and this class is deliberately handed a built
@@ -350,7 +355,7 @@ class ForkBarrierLauncher:
         exact bound this child ran under.
 
         The launcher rewrites the uv cache paths in both modes, so `off` and
-        `bwrap` runs share the same toolchain state; only `wrap` emits a bind.
+        `bwrap` runs use the same private layout; only `wrap` emits a bind.
         """
         receipt_path = self._paths.receipt(self._activation_id)
         ledger_path = self._paths.ledger(self._activation_id)
@@ -361,6 +366,7 @@ class ForkBarrierLauncher:
         # exit and drill 22's exit-127 sentinel would stop meaning anything.
         vendor_missing = not _vendor_resolves(command.argv[0], command.env)
         env = dict(command.env)
+        env[ENV_UV_OFFLINE] = "1"
         env[ENV_UV_CACHE_DIR] = str(self._plan.toolchain_cache[0])
         env[ENV_UV_PYTHON_INSTALL_DIR] = str(
             self._plan.toolchain_cache[0] / UV_PYTHON_DIRECTORY
@@ -445,6 +451,7 @@ class ForkBarrierLauncher:
                 cwd=command.cwd,
                 handle=handle,
                 sandbox=self._sandbox,
+                seed_receipts=self._seed_receipts,
             ),
         )
         line = ExecLedger.line(
@@ -928,6 +935,15 @@ class Dispatcher:
                 session_id, task.brief if composed_resume else instructions, task
             )
         )
+        root = self._store.reads.load_root(self._paths.root_id)
+        seed = ToolchainSeeder(self._paths.config, command.env).prepare(
+            Path(task.cwd),
+            root.metadata.instance_base_commit,
+            self._paths.activation_dir(activation_id),
+        )
+        plan = plan.model_copy(
+            update={"ro_pins": (*plan.ro_pins, *seed.protected_roots)}
+        )
         launcher = ForkBarrierLauncher(
             self._paths.config,
             self._paths,
@@ -936,6 +952,7 @@ class Dispatcher:
             launch_id=uuid.uuid4().hex,
             plan=plan,
             sandbox=mode,
+            seed_receipts=seed.receipts,
         )
         before = ledger.count()
         from contextlib import nullcontext
@@ -976,7 +993,7 @@ class Dispatcher:
         permanent, so it raises rather than degrades: `foreman/supervise.py`
         turns it into a typed close and the frontier into a halt gate.
 
-        `sandbox = off` builds only the shared toolchain-cache plan. It avoids
+        `sandbox = off` builds only the private toolchain-cache plan. It avoids
         `plan_for`'s mount-source side effects while keeping uv's state the same
         as a bounded launch; `wrap` still discards the bind in this mode.
         """
@@ -999,7 +1016,11 @@ class Dispatcher:
                 node=task.node,
             )
             return (
-                SandboxPlan(toolchain_cache=toolchain_cache_for(config.wrapper_root)),
+                SandboxPlan(
+                    toolchain_cache=toolchain_cache_for(
+                        self._paths.activation_dir(activation_id)
+                    )
+                ),
                 SandboxMode.OFF,
             )
         plan = plan_for(

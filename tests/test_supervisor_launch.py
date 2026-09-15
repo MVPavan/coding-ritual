@@ -38,7 +38,7 @@ from tests._supervisor import (
     node_of,
     task_builder,
 )
-from workflow_interpreter.bdio import ActivationRecord, Lifecycle
+from workflow_interpreter.bdio import ActivationRecord, Lifecycle, ProcessHandle
 from workflow_interpreter.bdio.errors import LifecycleConflictError
 from workflow_interpreter.supervisor import (
     Dispatcher,
@@ -338,7 +338,10 @@ def test_aborted_receipt_never_reattaches_even_with_a_ledger_line(
     assert lab.wc_l(activation_id) == 1
 
 
-def test_exec_without_record_dispatch_reattaches(lab: Lab) -> None:
+def test_exec_without_record_dispatch_reattaches(
+    lab: Lab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """The §5.2 residual window: a child ran, bd never heard — never exec twice."""
     minted = lab.store.mint_activation(lab.root.root_id, entry_mint())
     activation_id = minted.activation.activation_id
@@ -362,7 +365,13 @@ def test_exec_without_record_dispatch_reattaches(lab: Lab) -> None:
     )
     handle = launcher(command)
     _wait(handle.pid)
+    from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
 
+    def tainted(*args: object, **kwargs: object) -> None:
+        """A crashed dispatch's cache cannot be probed by the host."""
+        raise AssertionError("seeder called after exec")
+
+    monkeypatch.setattr(ToolchainSeeder, "prepare", tainted)
     result = lab.dispatch()
 
     assert result.outcome is LaunchOutcome.REATTACHED
@@ -371,7 +380,7 @@ def test_exec_without_record_dispatch_reattaches(lab: Lab) -> None:
     assert result.activation.metadata.lifecycle is Lifecycle.DISPATCHED
 
 
-def test_off_mode_uses_the_shared_uv_cache_without_a_bwrap_bind(lab: Lab) -> None:
+def test_off_mode_uses_the_private_uv_cache_without_a_bwrap_bind(lab: Lab) -> None:
     """`sandbox=off` replaces scratch `UV_CACHE_DIR`, not leaving it cold."""
     minted = lab.store.mint_activation(lab.root.root_id, entry_mint())
     activation_id = minted.activation.activation_id
@@ -423,8 +432,13 @@ def test_off_mode_uses_the_shared_uv_cache_without_a_bwrap_bind(lab: Lab) -> Non
     assert (Path(channels.artifact_dir) / "toolchain-env").read_text(
         encoding="utf-8"
     ).splitlines() == [
-        str(off_config.wrapper_root / UV_CACHE_DIRECTORY),
-        str(off_config.wrapper_root / UV_CACHE_DIRECTORY / UV_PYTHON_DIRECTORY),
+        str(off_paths.activation_dir(activation_id) / "toolchain" / UV_CACHE_DIRECTORY),
+        str(
+            off_paths.activation_dir(activation_id)
+            / "toolchain"
+            / UV_CACHE_DIRECTORY
+            / UV_PYTHON_DIRECTORY
+        ),
     ]
 
 
@@ -816,6 +830,96 @@ def test_dispatch_passes_the_effective_uv_cache_to_the_profile(
     assert _wait(result.handle.pid) == 0
     assert len(seen) == 1
     task = seen[0]
-    expected = str(lab.config.wrapper_root / UV_CACHE_DIRECTORY)
+    expected = str(
+        lab.paths.activation_dir(result.activation.activation_id)
+        / "toolchain"
+        / UV_CACHE_DIRECTORY
+    )
     assert task.toolchain_cache == expected
     assert (Path(task.channels.artifact_dir) / "cache").read_text() == expected
+
+
+def test_toolchain_preparation_failure_never_releases_vendor(
+    lab: Lab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A named seed refusal leaves no exec-ledger line or launch receipt."""
+    from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
+    from workflow_interpreter.supervisor.toolchain_models import ToolchainUnavailable
+
+    def refuse(*args: object, **kwargs: object) -> None:
+        """Model a bounded dependency preparation failure before the fork."""
+        raise ToolchainUnavailable("offline seed unavailable")
+
+    monkeypatch.setattr(ToolchainSeeder, "prepare", refuse)
+    with pytest.raises(ToolchainUnavailable, match="offline seed unavailable"):
+        lab.dispatcher.dispatch(entry_mint(), lab.profile, lab.build_task)
+    assert not tuple(lab.config.wrapper_root.rglob("exec.ledger"))
+    assert not tuple(lab.config.wrapper_root.rglob("launch-receipt.json"))
+
+
+def test_dispatch_records_seed_provenance_and_pins_host_sources_last(
+    lab: Lab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Seed provenance reaches the real barrier receipt and offline child env."""
+    from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
+    from workflow_interpreter.supervisor.toolchain_models import (
+        CopyMethod,
+        SeedPreparation,
+        SeedReceipt,
+    )
+
+    receipt = SeedReceipt(
+        project=".",
+        seed_key="fixture",
+        lock_digest="lock",
+        project_digest="project",
+        interpreter_version="python",
+        uv_version="uv fixture",
+        copied_bytes=42,
+        copy_method=CopyMethod.AUTO,
+        offline_probe="ruff fixture",
+        host_fetch=False,
+    )
+    protected = lab.config.wrapper_root / "host-seed"
+    protected.mkdir(parents=True)
+    observed_plans: list[SandboxPlan] = []
+    original_launcher = ForkBarrierLauncher.__call__
+
+    def prepare(
+        self: ToolchainSeeder, checkout: Path, base: str | None, activation_dir: Path
+    ) -> SeedPreparation:
+        """Supply an already qualified host preparation result."""
+        return SeedPreparation(
+            cache=activation_dir / "toolchain" / "uv-cache",
+            protected_roots=(protected,),
+            receipts=(receipt,),
+        )
+
+    def launch(self: ForkBarrierLauncher, command: RunnerCommand) -> ProcessHandle:
+        """Observe the actual plan and let the real fork barrier run."""
+        observed_plans.append(self._plan)
+        return original_launcher(self, command)
+
+    monkeypatch.setattr(ToolchainSeeder, "prepare", prepare)
+    monkeypatch.setattr(ForkBarrierLauncher, "__call__", launch)
+    result = lab.dispatcher.dispatch(entry_mint(), lab.profile, lab.build_task)
+    assert result.handle is not None
+    _wait(result.handle.pid)
+    assert result.receipt is not None
+    assert result.receipt.seed_receipts == (receipt,)
+    assert observed_plans[0].ro_pins[-1] == protected
+
+    def tainted(*args: object, **kwargs: object) -> None:
+        """Reattachment must never execute or probe a previously writable cache."""
+        raise AssertionError("seeder called after launch")
+
+    monkeypatch.setattr(ToolchainSeeder, "prepare", tainted)
+    reattached = lab.dispatcher.dispatch(entry_mint(), lab.profile, lab.build_task)
+    assert reattached.outcome is LaunchOutcome.ALREADY_DISPATCHED
+    retained = read_record(
+        lab.paths.receipt(result.activation.activation_id), LaunchReceipt
+    )
+    assert retained is not None
+    assert retained.seed_receipts == (receipt,)

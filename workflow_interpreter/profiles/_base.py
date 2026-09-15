@@ -63,6 +63,7 @@ from workflow_interpreter.supervisor.sandbox import (
     ENV_RUFF_CACHE_DIR,
     ENV_UV_CACHE_DIR,
     ENV_UV_FROZEN,
+    ENV_UV_OFFLINE,
     ENV_UV_PROJECT_ENVIRONMENT,
     ENV_UV_PYTHON_INSTALL_DIR,
     PYTEST_CACHE_OPTION,
@@ -142,7 +143,7 @@ def toolchain_env(scratch_dir: str) -> dict[str, str]:
     but a nicety that breaks the gate is not a nicety.
 
     Applied for every profile and in every mode. The launcher replaces the
-    scratch-local uv cache with the shared wrapper-root cache in both modes, so
+    scratch-local uv cache with the activation-private cache in both modes, so
     an `off` run reproduces a bounded run's toolchain state; only `bwrap` binds
     that cache into its mount plan.
     """
@@ -150,6 +151,7 @@ def toolchain_env(scratch_dir: str) -> dict[str, str]:
     return {
         ENV_UV_PROJECT_ENVIRONMENT: str(scratch / UV_VENV_DIR),
         ENV_UV_CACHE_DIR: str(scratch / UV_CACHE_DIRECTORY),
+        ENV_UV_OFFLINE: "1",
         ENV_UV_PYTHON_INSTALL_DIR: str(
             scratch / UV_CACHE_DIRECTORY / UV_PYTHON_DIRECTORY
         ),

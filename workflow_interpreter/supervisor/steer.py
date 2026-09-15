@@ -271,6 +271,9 @@ class Steerer:
                 ),
             ),
         )
+        from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+        cleanup_toolchain(self._paths, closed)
         intent = intent.model_copy(
             update={"continuation": self._pinned_continuation(intent.continuation)}
         )

@@ -103,7 +103,11 @@ def test_steer_persists_intent_kills_closes_and_mints_one_continuation(
     lab = Lab(tmp_path)
     activation = lab.dispatched(handle_for(dead_pid()))
 
+    private = lab.paths.activation_dir(activation.activation_id) / "toolchain"
+    private.mkdir(parents=True)
+    (private / "runner-tools").write_text("private")
     result = _steer(lab, activation)
+    assert not private.exists()
 
     intent = read_record(lab.paths.steer_intent(activation.activation_id), SteerIntent)
     assert intent is not None

@@ -148,7 +148,7 @@ class TaskSpec(BaseModel):
 
     None for standalone profile callers; dispatch always replaces it with the
     same path the launcher exports as UV_CACHE_DIR. Profiles must not derive
-    this shared grant from the activation's channels layout.
+    this private grant from the activation's channels layout.
     """
     brief: str = ""
     token_budget: int | None = None

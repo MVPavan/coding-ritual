@@ -870,3 +870,83 @@ def test_failed_successor_reset_retains_previous_producer_ownership(
         "previous producer work\n"
     )
     assert path.read_text() == "previous producer work\n"
+
+
+def test_private_toolchain_survives_until_recovery_closes_dead_runner(lab: Lab) -> None:
+    """Crash files are retained while alive and deleted only after classified close."""
+    private = lab.paths.activation_dir(lab.activation.activation_id) / "toolchain"
+    private.mkdir()
+    (private / "payload").write_text("runner mutable")
+    receipt = private.parent / "toolchain-seed.json"
+    receipt.write_text("retained provenance")
+    lab.alive()
+    running = lab.recovery.resolve(lab.activation, lab.node)
+    assert running.closed is None
+    assert private.exists()
+    remove_proc_entry(lab.config.proc_root, lab.pid)
+    closed = lab.recovery.resolve(lab.activation, lab.node)
+    assert closed.closed is not None
+    assert not private.exists()
+    assert receipt.read_text() == "retained provenance"
+
+
+def test_cleanup_retries_after_close_without_touching_other_activation(
+    lab: Lab,
+) -> None:
+    """Recovery can retry a crash after durable close but before cache deletion."""
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+    resolution = lab.recovery.resolve(lab.activation, lab.node)
+    assert resolution.closed is not None
+    private = lab.paths.activation_dir(lab.activation.activation_id) / "toolchain"
+    private.mkdir()
+    (private / "payload").write_text("left after close")
+    other = private.parent.parent / "other" / "toolchain"
+    other.mkdir(parents=True)
+    (other / "payload").write_text("another activation")
+    assert cleanup_toolchain(lab.paths, resolution.closed) is None
+    assert cleanup_toolchain(lab.paths, resolution.closed) is None
+    assert not private.exists()
+    assert (other / "payload").read_text() == "another activation"
+
+
+def test_cleanup_removes_unpublished_staging_only_after_close(lab: Lab) -> None:
+    """A crash during copying leaves no complete cache but still needs cleanup."""
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+    staged = lab.paths.activation_dir(lab.activation.activation_id) / ".toolchain-crash"
+    staged.mkdir()
+    (staged / "partial").write_text("partial private copy")
+    assert cleanup_toolchain(lab.paths, lab.activation) is None
+    assert staged.exists()
+    result = lab.recovery.resolve(lab.activation, lab.node)
+    assert result.closed is not None
+    assert not staged.exists()
+
+
+def test_cleanup_failure_is_reported_and_retryable(
+    lab: Lab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Deletion failure cannot erase provenance or prevent a later retry."""
+    import shutil
+
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+    result = lab.recovery.resolve(lab.activation, lab.node)
+    assert result.closed is not None
+    private = lab.paths.activation_dir(lab.activation.activation_id) / "toolchain"
+    private.mkdir()
+    (private / "payload").write_text("private")
+    original = shutil.rmtree
+
+    def fail(*args: object, **kwargs: object) -> None:
+        """Model a transient host filesystem error."""
+        raise OSError("disk busy")
+
+    monkeypatch.setattr(shutil, "rmtree", fail)
+    assert "disk busy" in (cleanup_toolchain(lab.paths, result.closed) or "")
+    assert private.exists()
+    monkeypatch.setattr(shutil, "rmtree", original)
+    assert cleanup_toolchain(lab.paths, result.closed) is None
+    assert not private.exists()

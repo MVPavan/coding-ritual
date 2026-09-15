@@ -557,14 +557,16 @@ def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
     The grant is conditional on `writes`, so the thing to prove is that a
     reviewer — which is what every codex node in `config/foreman.example.toml`
     still is — can report and cannot touch source or git metadata. Rooted at
-    `channels/`, with no writable root added and no mount-bound grant, it is
+    `channels/`, with only its external private toolchain added, it is
     bounded twice over.
     """
     _requirements()
     task, plan = _lab(tmp_path, writes=False)
+    task = task.model_copy(update={"toolchain_cache": str(plan.toolchain_cache[0])})
     profile = CodexProfile(ProfileConfig(), FrozenClock(), {})
     command = profile.build_command(task, "")
-    assert writable_roots_in(command.argv) == ()
+    assert writable_roots_in(command.argv) == (str(plan.toolchain_cache[0]),)
+    assert not plan.toolchain_cache[0].is_relative_to(Path(task.cwd))
     roots_a_writer_would_get = git_write_roots_of(Path(task.cwd))
 
     observed = _run(
@@ -576,6 +578,8 @@ def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
                 _write_probe(
                     Path(task.channels.artifact_dir) / "findings.md", "report"
                 ),
+                _write_probe(plan.toolchain_cache[0] / "probe", "cache"),
+                _write_probe(Path(task.channels.log_path), "wrapper-record"),
                 _write_probe(Path(task.cwd) / GRANTED_FILE, "source"),
                 _write_probe(Path(roots_a_writer_would_get[0]) / "index", "index"),
                 _write_probe(Path(roots_a_writer_would_get[1]) / "planted", "objects"),
@@ -585,7 +589,8 @@ def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
     )
 
     assert f"{ALLOWED}:report" in observed, observed
-    for label in ("source", "index", "objects"):
+    assert f"{ALLOWED}:cache" in observed, observed
+    for label in ("source", "index", "objects", "wrapper-record"):
         assert f"{DENIED}:{label}" in observed, f"{label}\n{observed}"
 
 

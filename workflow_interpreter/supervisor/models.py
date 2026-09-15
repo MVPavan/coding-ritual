@@ -29,6 +29,7 @@ from workflow_interpreter.schema.models import IsolationMode, Outcome
 from workflow_interpreter.supervisor.branch import BranchAdvance, BranchAdvanceOutcome
 from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
 from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.supervisor.toolchain_models import SeedReceipt
 
 RECORD_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -297,6 +298,7 @@ class LaunchReceipt(BaseModel):
     does not name (plan §2)."""
     cwd: str
     handle: ProcessHandle
+    seed_receipts: tuple[SeedReceipt, ...] = ()
     sandbox: SandboxMode = SandboxMode.OFF
     """Which bound this child ran under.
 

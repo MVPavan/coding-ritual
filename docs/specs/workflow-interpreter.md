@@ -666,8 +666,15 @@ condition, because mounting its realpath would disagree with the lexical path
 that git reports. In an in-repo checkout, the wrapper pins the complete
 `<git-dir>/worktrees` directory; this keeps sibling worktrees created after
 plan construction read-only.
-The wrapper-root `uv-cache` is also bound read-write so `UV_CACHE_DIR` and
-`UV_PYTHON_INSTALL_DIR` never fall back to `$HOME` and activations reuse a warm tool cache.
+Each activation's `toolchain/uv-cache` is bound read-write; its `python` child
+holds a private managed interpreter. Before the fork barrier, the host seeds
+this cache from a per-project seed keyed by admitted lock digest, importing only
+locked artifacts from the host cache. The host seed/cache/interpreter sources
+are pinned read-only last. `UV_OFFLINE=1` applies to every dispatched child.
+Codex reviewers receive the external private-cache grant without checkout or Git
+writes. Host verification uses its own environment. Durable close and proof of
+runner death permit private-copy deletion; launch receipts retain `SeedReceipt`.
+Recovery retries deletion after crashes. See [toolchain operation](../usage/engine-bundle.md).
 Profiles neither opt in nor out. `sandbox = off` is an unsafe switch,
 recorded on the close as `AuditFlag.SANDBOX_OFF`; a host without a
 working `bwrap` refuses to dispatch — a halt, never an infra retry.
