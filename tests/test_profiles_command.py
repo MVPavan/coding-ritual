@@ -932,7 +932,7 @@ def test_an_unknown_runner_name_is_a_typed_refusal(tmp_path: Path, name: str) ->
     """
     registry = ProfileRegistry(make_profile_config(), FrozenClock(), {})
 
-    with pytest.raises(UnknownProfileError, match="closed set"):
+    with pytest.raises(UnknownProfileError, match="registered profiles"):
         registry.profile_for(name)
 
 

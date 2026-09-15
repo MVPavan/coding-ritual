@@ -957,7 +957,7 @@ class Dispatcher:
             update={"ro_pins": (*plan.ro_pins, *seed.protected_roots)}
         )
         if task.execution_profile is not None:
-            grants = resolve_grants(task, plan, profile.name())
+            grants = resolve_grants(task, plan, profile)
             task = task.model_copy(
                 update={"execution_grants": grants, "cwd": grants.process_cwd}
             )

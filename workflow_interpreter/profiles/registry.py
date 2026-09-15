@@ -1,4 +1,4 @@
-"""Name → profile, over the closed vendor set (§P4).
+"""Name → profile, over the registered runner set (§P4).
 
 A registry rather than a dict because a profile needs three injected things and
 none of them may be discovered from the process: the profile configuration, the
@@ -28,7 +28,9 @@ from workflow_interpreter.profiles.opencode import OpencodeProfile
 from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.profile import Profile
 
-_MSG_UNKNOWN: Final[str] = "no runner profile named {name!r}; the closed set is {known}"
+_MSG_UNKNOWN: Final[str] = (
+    "no runner profile named {name!r}; registered profiles are {known}"
+)
 ProfileBuilder = Callable[[ProfileConfig, Clock, Mapping[str, str]], Profile]
 
 BUILDERS: Final[dict[RunnerName, ProfileBuilder]] = {
@@ -67,11 +69,22 @@ class ProfileRegistry:
         config: ProfileConfig,
         clock: Clock,
         host_env: Mapping[str, str],
+        *,
+        builders: Mapping[str, ProfileBuilder] | None = None,
     ) -> None:
         self._config = config
         self._clock = clock
         self._host_env = host_env
+        self._builders: dict[str, ProfileBuilder] = {
+            name.value: builder for name, builder in BUILDERS.items()
+        }
+        self._builders.update(builders or {})
 
     def profile_for(self, name: str) -> Profile:
-        """The profile for one vendor name; unknown names raise (see module doc)."""
-        return BUILDERS[runner_name(name)](self._config, self._clock, self._host_env)
+        """The registered runner profile; unknown names raise (see module doc)."""
+        builder = self._builders.get(name.removeprefix(RUNNER_PREFIX))
+        if builder is None:
+            raise UnknownProfileError(
+                _MSG_UNKNOWN.format(name=name, known=", ".join(sorted(self._builders)))
+            )
+        return builder(self._config, self._clock, self._host_env)

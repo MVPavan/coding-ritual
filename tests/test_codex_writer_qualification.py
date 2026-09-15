@@ -567,17 +567,19 @@ def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
     _requirements()
     task, plan = _lab(tmp_path, writes=False)
     task = task.model_copy(update={"toolchain_cache": str(plan.toolchain_cache[0])})
+    profile = CodexProfile(ProfileConfig(), FrozenClock(), {})
     if named:
         task = task.model_copy(
             update={
                 "execution_profile": ExecutionProfileName.REVIEWER,
-                "execution_policy": policy_for(ExecutionProfileName.REVIEWER, "codex"),
+                "execution_policy": policy_for(
+                    ExecutionProfileName.REVIEWER, profile.tool_network
+                ),
                 "checkout_read_root": task.cwd,
             }
         )
-        grants = resolve_grants(task, plan, "codex")
+        grants = resolve_grants(task, plan, profile)
         task = task.model_copy(update={"execution_grants": grants})
-    profile = CodexProfile(ProfileConfig(), FrozenClock(), {})
     command = profile.build_command(task, "")
     if named:
         assert task.execution_grants is not None

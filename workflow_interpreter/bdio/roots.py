@@ -40,9 +40,11 @@ from workflow_interpreter.bdio.wire import (
 )
 from workflow_interpreter.contracts.execution import (
     EXECUTION_POLICY_KEY,
-    MSG_KNOWN_RUNNER,
     MSG_PROFILE_WRITES,
+    MSG_UNREGISTERED_RUNNER,
+    ExecutionRegistry,
     policy_for,
+    tool_network_for,
 )
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import EngineProducer, GraphDefinition, NodeKind
@@ -157,7 +159,10 @@ def _assert_task_execution_settings_are_pinned(
 
 
 def pin_execution_policies(
-    definition: GraphDefinition, resolved_config: Sequence[ResolvedSetting]
+    definition: GraphDefinition,
+    resolved_config: Sequence[ResolvedSetting],
+    *,
+    profiles: ExecutionRegistry | None = None,
 ) -> tuple[ResolvedSetting, ...]:
     """Pin named authority before admission; preserve legacy settings verbatim."""
     execution_settings = {item.key: item for item in resolved_config}
@@ -173,9 +178,11 @@ def pin_execution_policies(
             raise CarrierIntegrityError(MSG_PROFILE_WRITES)
         runner = execution_settings.get(NodeSetting.RUNNER.at(node.name))
         if runner is None or not isinstance(runner.value, str):
-            raise CarrierIntegrityError(MSG_KNOWN_RUNNER.format(runner=runner))
+            raise CarrierIntegrityError(MSG_UNREGISTERED_RUNNER.format(runner=runner))
         try:
-            execution_policy = policy_for(node.execution_profile, runner.value)
+            execution_policy = policy_for(
+                node.execution_profile, tool_network_for(runner.value, profiles)
+            )
         except ValueError as error:
             raise CarrierIntegrityError(str(error)) from error
         key = EXECUTION_POLICY_KEY.format(node=node.name)
@@ -204,6 +211,7 @@ def create_root(
     instance_inputs: Sequence[InstanceInput] = (),
     allow_test_flags: bool = False,
     instance_base_commit: str | None = None,
+    profiles: ExecutionRegistry | None = None,
 ) -> RootRecord:
     """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
     if not resolved_config:
@@ -237,7 +245,9 @@ def create_root(
             NodeSetting.WRITES.at(node.name), node.writes
         ):
             raise CarrierIntegrityError(MSG_CONSUMER)
-    resolved_config = pin_execution_policies(definition, resolved_config)
+    resolved_config = pin_execution_policies(
+        definition, resolved_config, profiles=profiles
+    )
     existing = _converged_root(client, instance_key)
     if existing is not None:
         _assert_same_instance(

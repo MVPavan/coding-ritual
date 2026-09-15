@@ -387,6 +387,7 @@ def instantiate(
         instance_inputs=pinned,
         allow_test_flags=allow_test_flags,
         instance_base_commit=base,
+        profiles=composition.profiles,
     )
     if definition.document.instance.coordination_limits is not None:
         from workflow_interpreter.foreman.decisions import admission_of
@@ -468,5 +469,7 @@ def _resolved_config(
             )
 
     return pin_execution_policies(
-        definition, tuple(settings[key] for key in sorted(settings))
+        definition,
+        tuple(settings[key] for key in sorted(settings)),
+        profiles=composition.profiles,
     )

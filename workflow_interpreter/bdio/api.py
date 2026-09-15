@@ -82,6 +82,7 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
     resolved_settings,
 )
+from workflow_interpreter.contracts.execution import ExecutionRegistry
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
     CoordinationError,
@@ -326,6 +327,7 @@ class WorkflowStore:
         instance_inputs: Sequence[InstanceInput] = (),
         allow_test_flags: bool = False,
         instance_base_commit: str | None = None,
+        profiles: ExecutionRegistry | None = None,
     ) -> RootRecord:
         """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
         return create_root(
@@ -336,6 +338,7 @@ class WorkflowStore:
             instance_inputs=instance_inputs,
             allow_test_flags=allow_test_flags,
             instance_base_commit=instance_base_commit,
+            profiles=profiles,
         )
 
     def settle_root(self, root_id: str, terminal: str) -> RootRecord:

@@ -69,7 +69,7 @@ from pathlib import Path
 from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, Usage
-from workflow_interpreter.contracts.execution import MSG_CODEX_IN_REPO
+from workflow_interpreter.contracts.execution import MSG_CODEX_IN_REPO, ToolNetwork
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     int_at,
@@ -185,6 +185,7 @@ _MSG_NO_SESSION: Final[str] = (
 class CodexProfile(BaseProfile):
     """`codex exec` as a §6 runner: an OS sandbox, and no network."""
 
+    tool_network = ToolNetwork.DENIED
     runner = RunnerName.CODEX
     auth_env = (
         "OPENAI_API_KEY",

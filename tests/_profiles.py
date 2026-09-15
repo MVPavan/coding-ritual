@@ -728,7 +728,9 @@ class Lab:
             task_builder(
                 self.paths.worktree,
                 node,
-                execution_policy=policy_for(execution_profile, runner)
+                execution_policy=policy_for(
+                    execution_profile, registry.profile_for(runner).tool_network
+                )
                 if execution_profile is not None
                 else None,
             ),

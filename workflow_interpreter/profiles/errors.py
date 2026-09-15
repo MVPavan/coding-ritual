@@ -9,6 +9,8 @@ authority than the node declared.
 
 from __future__ import annotations
 
+from workflow_interpreter.contracts.execution import UnregisteredRunnerError
+
 
 class ProfileError(Exception):
     """Base class for every failure raised by a runner profile."""
@@ -23,8 +25,8 @@ class UnsupportedOptionError(ProfileError):
     """
 
 
-class UnknownProfileError(ProfileError):
-    """A runner name outside the closed vendor set (`registry.profile_for`)."""
+class UnknownProfileError(ProfileError, UnregisteredRunnerError):
+    """A runner name absent from the registry (`registry.profile_for`)."""
 
 
 class TaskRefused(ProfileError):

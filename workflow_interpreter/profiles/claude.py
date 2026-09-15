@@ -29,6 +29,7 @@ from collections.abc import Mapping, Sequence
 from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, Usage
+from workflow_interpreter.contracts.execution import ToolNetwork
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     decimal_at,
@@ -183,6 +184,7 @@ _MSG_UNUSABLE_EFFORT: Final[str] = (
 class ClaudeProfile(BaseProfile):
     """`claude -p` as a §6 runner: bounded by permission rules, not a sandbox."""
 
+    tool_network = ToolNetwork.NOT_ENFORCED
     runner = RunnerName.CLAUDE
     auth_env = (
         "ANTHROPIC_API_KEY",

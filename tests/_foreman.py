@@ -68,6 +68,7 @@ from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
 from workflow_interpreter.profiles.config import RUNNER_PREFIX
+from workflow_interpreter.profiles.errors import UnknownProfileError
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.models import StaleFlag
@@ -161,7 +162,7 @@ class _Profiles(ProfileResolver):
 
     def profile_for(self, name: str) -> Profile:
         if name not in self.accepted:
-            raise AssertionError(f"unexpected wrapper profile: {name}")
+            raise UnknownProfileError(f"unregistered wrapper profile: {name}")
         self.profile.selected_runner = name.removeprefix(RUNNER_PREFIX)
         return self.profile
 
@@ -463,15 +464,6 @@ class ForemanLab:
         )
         self._toml = toml
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
-        if any(
-            node.execution_profile is not None for node in self.definition.document.node
-        ):
-            self._roles = {
-                role: binding.model_copy(update={"profile": "claude"})
-                if binding.profile == FAKE_PROFILE
-                else binding
-                for role, binding in self._roles.items()
-            }
         self._build_fresh()
         self.root: RootRecord | None = None
 
@@ -571,6 +563,7 @@ class ForemanLab:
         """Pin the graph and create the instance branch, like resolve does."""
         root = self.store.create_root(
             instance_key="foreman-lab",
+            profiles=self.profiles,
             definition=self.definition,
             resolved_config=self._overrides(),
             instance_inputs=tuple(

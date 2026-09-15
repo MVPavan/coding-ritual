@@ -322,6 +322,7 @@ class CoordinationStore:
                     admission.inputs_json
                 ),
                 instance_base_commit=admission.base_commit,
+                profiles=self._composition.profiles if self._composition else None,
             )
             return self._bind(owner_id, reservation, root.root_id)
 

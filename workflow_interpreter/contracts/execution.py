@@ -1,7 +1,7 @@
 """Closed, versioned execution authority shared across engine layers."""
 
 from enum import StrEnum
-from typing import Final, Literal
+from typing import Final, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -32,35 +32,51 @@ class ToolNetwork(StrEnum):
 
 
 RUNNER_PREFIX: Final[str] = "profile:"
-MSG_KNOWN_RUNNER: Final[str] = (
-    "named execution policy requires a known runner: {runner!r}"
+MSG_UNREGISTERED_RUNNER: Final[str] = (
+    "named execution policy requires a registered runner; unregistered runner: {runner!r}"
 )
 MSG_PINNED_POLICY: Final[str] = "named execution_profile requires a pinned policy"
 
 
 class RunnerName(StrEnum):
-    """Registered vendor identities, each with an explicit network capability."""
+    """Built-in vendor identities; registration and capabilities live on profiles."""
 
     CLAUDE = "claude"
     CODEX = "codex"
     OPENCODE = "opencode"
 
+
+class UnregisteredRunnerError(ValueError):
+    """The selected runner is absent from the injected profile registry."""
+
+
+class NetworkProfile(Protocol):
+    """The runner capability needed by durable execution policy admission."""
+
     @property
     def tool_network(self) -> ToolNetwork:
-        """Return the declared fact; additions cannot inherit an implicit fallback."""
-        return {
-            RunnerName.CLAUDE: ToolNetwork.NOT_ENFORCED,
-            RunnerName.CODEX: ToolNetwork.DENIED,
-            RunnerName.OPENCODE: ToolNetwork.NOT_ENFORCED,
-        }[self]
+        """The enforcement fact declared by this registered runner."""
+        ...
 
-    @classmethod
-    def from_profile(cls, value: str) -> "RunnerName":
-        """Validate the bare or profile-prefixed spelling at a boundary."""
-        try:
-            return cls(value.removeprefix(RUNNER_PREFIX))
-        except ValueError as error:
-            raise ValueError(MSG_KNOWN_RUNNER.format(runner=value)) from error
+
+class ExecutionRegistry(Protocol):
+    """Resolve registered runners without depending on concrete adapters."""
+
+    def profile_for(self, name: str) -> NetworkProfile:
+        """Resolve a profile or raise UnregisteredRunnerError."""
+        ...
+
+
+def tool_network_for(runner: str, profiles: ExecutionRegistry | None) -> ToolNetwork:
+    """Read the registry capability; never infer a fact from a vendor spelling."""
+    if not runner or profiles is None:
+        raise UnregisteredRunnerError(MSG_UNREGISTERED_RUNNER.format(runner=runner))
+    try:
+        return profiles.profile_for(runner).tool_network
+    except UnregisteredRunnerError as error:
+        raise UnregisteredRunnerError(
+            MSG_UNREGISTERED_RUNNER.format(runner=runner)
+        ) from error
 
 
 class ExecutionPolicy(BaseModel):
@@ -80,12 +96,14 @@ class ExecutionPolicy(BaseModel):
         return self
 
 
-def policy_for(name: ExecutionProfileName, runner: str) -> ExecutionPolicy:
+def policy_for(
+    name: ExecutionProfileName, tool_network: ToolNetwork
+) -> ExecutionPolicy:
     """Resolve current named authority and the runner's network enforcement fact."""
     return ExecutionPolicy(
         name=name,
         writes=name is ExecutionProfileName.WRITER,
-        tool_network=RunnerName.from_profile(runner).tool_network,
+        tool_network=tool_network,
     )
 
 

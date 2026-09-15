@@ -27,6 +27,7 @@ from tests._foreman import (
     ForemanLab,
 )
 from tests._helpers import VALID_FIXTURE
+from tests._supervisor import FakeProfile, FrozenClock
 from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import BdConfigError
@@ -54,6 +55,8 @@ from workflow_interpreter.foreman.resolve import (
     instantiate,
     resolve,
 )
+from workflow_interpreter.profiles import ProfileConfig
+from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.schema.validator import PHASE_B_RULES
@@ -63,8 +66,16 @@ from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.paths import read_record, write_record
 
 
-class _AvailableProfiles:
-    """A resolver double for pure resolution tests."""
+class _AvailableProfiles(ProfileRegistry):
+    """A registry with built-in vendors and the registered lab runner."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            ProfileConfig(),
+            FrozenClock(),
+            {},
+            builders={"fake": lambda *_: FakeProfile()},
+        )
 
 
 def test_runner_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> None:

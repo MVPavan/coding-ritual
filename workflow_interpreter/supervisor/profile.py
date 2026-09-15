@@ -36,6 +36,7 @@ from workflow_interpreter.contracts.execution import (
     ExecutionGrants,
     ExecutionPolicy,
     ExecutionProfileName,
+    NetworkProfile,
 )
 from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor.channels import (
@@ -221,7 +222,7 @@ class ChildLauncher(Protocol):
     ) -> ProcessHandle: ...  # pragma: no cover - protocol
 
 
-class Profile(Protocol):
+class Profile(NetworkProfile, Protocol):
     """The §6 runner floor. One invocation contract, three vendors (phase 4)."""
 
     def name(self) -> str:

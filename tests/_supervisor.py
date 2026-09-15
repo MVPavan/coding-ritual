@@ -45,6 +45,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.bdio.client import BdClient, CompletedCommand
+from workflow_interpreter.contracts.execution import ToolNetwork
 from workflow_interpreter.schema.models import GraphDocument, Node
 from workflow_interpreter.supervisor import (
     BandLock,
@@ -591,6 +592,8 @@ def _quote(text: str) -> str:
 
 class FakeProfile:
     """A scriptable §6 profile: real `/bin/sh` children, real supervisor launcher."""
+
+    tool_network = ToolNetwork.NOT_ENFORCED
 
     def __init__(
         self,

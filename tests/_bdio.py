@@ -28,6 +28,7 @@ from workflow_interpreter.bdio.wire import (
     ProcessHandle,
     ResolvedSetting,
 )
+from workflow_interpreter.contracts.execution import ExecutionRegistry
 from workflow_interpreter.schema.models import Outcome
 
 REGION: Final[str] = "build-review"
@@ -233,6 +234,7 @@ def make_root(
     store: WorkflowStore,
     definition: GraphDefinition,
     *overrides: ResolvedSetting,
+    profiles: ExecutionRegistry | None = None,
 ) -> RootRecord:
     """Create a fresh instance whose resolution carries `overrides`."""
     replaced = {setting.key for setting in overrides}
@@ -241,7 +243,10 @@ def make_root(
         + overrides
     )
     return store.create_root(
-        instance_key=instance_key(), definition=definition, resolved_config=config
+        instance_key=instance_key(),
+        definition=definition,
+        resolved_config=config,
+        profiles=profiles,
     )
 
 
