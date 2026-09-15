@@ -42,7 +42,7 @@ def _pending(paths: WrapperPaths, activation: ActivationRecord, reason: str) -> 
     )
 
 
-def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> str | None:
+def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> None:
     """Retry close-time cleanup; report failures while keeping provenance intact.
 
     A receipt can hold the handle missing from bd after a dispatch crash. Missing
@@ -50,7 +50,7 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> str 
     No cache bytes or symlink targets are executed or followed during deletion.
     """
     if not activation.metadata.is_completed or activation.bead.status != STATUS_CLOSED:
-        return None
+        return
     directory = paths.activation_dir(activation.activation_id)
     private = directory / tc.TOOLCHAIN
     try:
@@ -63,7 +63,7 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> str 
         )
         if not targets:
             (directory / tc.CLEANUP_PENDING).unlink(missing_ok=True)
-            return None
+            return
         if any(path.is_symlink() for path in targets):
             raise OSError(tc.MSG_CLEANUP_LINK)
         try:
@@ -72,7 +72,7 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> str 
             )
         except SupervisorError as exc:
             _pending(paths, activation, str(exc))
-            return None
+            return
         handles = [activation.metadata.handle]
         if receipt is not None:
             handles.append(receipt.handle)
@@ -80,12 +80,12 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> str 
         ledger = paths.ledger(activation.activation_id)
         if not identified and ledger.exists() and ledger.stat().st_size:
             _pending(paths, activation, tc.MSG_NO_IDENTITY)
-            return None
+            return
         for handle in identified:
             proof = procfs.prove_liveness(paths.config, handle)
             if proof.status not in (Liveness.DEAD, Liveness.IDENTITY_MISMATCH):
                 _pending(paths, activation, tc.MSG_NOT_DEAD)
-                return None
+                return
         for target in targets:
             shutil.rmtree(target)
         (directory / tc.CLEANUP_PENDING).unlink(missing_ok=True)
@@ -97,5 +97,3 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> str 
             activation_id=activation.activation_id,
             error=error,
         )
-        return error
-    return None

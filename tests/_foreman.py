@@ -503,6 +503,7 @@ class ForemanLab:
             self.clock,
             self.profiles,
             self.spawner,
+            host_env={"PATH": os.defpath, "HOME": str(self.repo.parent)},
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)

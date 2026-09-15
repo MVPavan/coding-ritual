@@ -77,3 +77,20 @@ HOST_ENV_KEYS: Final[tuple[str, ...]] = (
     "SSL_CERT_FILE",
 )
 CLEANUP_PENDING: Final[str] = "toolchain-cleanup.json"
+
+PYTHON_REQUEST_MAX_LENGTH: Final[int] = 128
+_PYTHON_VERSION: Final[str] = r"[0-9]+(?:\.[0-9]+){0,2}"
+_PYTHON_SPECIFIER: Final[str] = r"(?:===|==|!=|~=|<=|>=|<|>) *" + _PYTHON_VERSION
+PYTHON_REQUEST_PATTERN: Final[str] = (
+    r"(?:cpython@|python)?(?:"
+    + _PYTHON_VERSION
+    + "|"
+    + _PYTHON_SPECIFIER
+    + r"(?: *, *"
+    + _PYTHON_SPECIFIER
+    + r")*)"
+)
+MSG_PYTHON_REQUEST: Final[str] = (
+    "invalid Python request: use a version or numeric version specifier "
+    f"of at most {PYTHON_REQUEST_MAX_LENGTH} characters"
+)

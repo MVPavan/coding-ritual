@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from collections.abc import Callable
@@ -408,6 +409,7 @@ def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, object()),
         spawner=cast(Spawner, object()),
+        host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
     )
     paths = composition.for_root(root.root_id).paths
     paths.ensure_activation_dir(activation.activation_id)
@@ -459,6 +461,7 @@ def test_wrapper_records_a_non_dirty_precondition_refusal(
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, Profiles()),
         spawner=cast(Spawner, object()),
+        host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
     )
     wiring = composition.for_root(root.root_id)
 

@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -155,6 +156,7 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, _AvailableProfiles()),
         spawner=cast(Spawner, object()),
+        host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
     )
     wiring_a = composition.for_root(root_a.root_id)
     wiring_b = composition.for_root(root_b.root_id)
@@ -436,6 +438,7 @@ def _instance_composition(
             clock=cast(Clock, object()),
             profiles=_AvailableProfiles() if profiles is None else profiles,
             spawner=cast(Spawner, object()),
+            host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
         ),
         git,
     )
@@ -897,6 +900,7 @@ def test_composition_refuses_a_different_supervisor_instance(
             clock=composition.clock,
             profiles=composition.profiles,
             spawner=composition.spawner,
+            host_env=composition.host_env,
         )
 
 
@@ -1292,3 +1296,17 @@ def test_resolved_node_refuses_a_role_bound_node_without_usable_vendor_setting(
 
     with pytest.raises(UnusableResolutionError, match=rf"node 'implement'.*{field}"):
         resolved_node(stripped, IMPLEMENT)
+
+
+def test_composition_requires_explicit_host_environment(tmp_path: Path) -> None:
+    """A missing host environment is rejected while composing, before dispatch."""
+    from dataclasses import fields
+
+    lab = ForemanLab(tmp_path)
+    arguments = {
+        field.name: getattr(lab.composition, field.name)
+        for field in fields(Composition)
+        if field.name != "host_env"
+    }
+    with pytest.raises(TypeError, match="host_env"):
+        Composition(**arguments)

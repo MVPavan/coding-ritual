@@ -2,6 +2,7 @@
 
 import fcntl
 import hashlib
+import re
 import shutil
 import subprocess
 import tempfile
@@ -12,7 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Final
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from workflow_interpreter.supervisor import toolchain_constants as tc
 from workflow_interpreter.supervisor.config import SupervisorConfig
@@ -54,7 +55,7 @@ SYNC: Final[tuple[str, ...]] = (
 
 
 class ProjectPins(BaseModel):
-    """Admitted metadata copied into host-owned preparation directories."""
+    """Raw receipt inputs plus admitted metadata and a validated Python selector."""
 
     model_config = MODEL
     project: str
@@ -62,14 +63,31 @@ class ProjectPins(BaseModel):
     pyproject: bytes
     admitted_project: bytes
     python: bytes | None = None
+    python_request: str | None
+
+    @field_validator("python_request", mode="before")
+    @classmethod
+    def _validated_request(cls, value: object) -> str | None:
+        """Accept bounded numeric selectors, never host uv options or paths."""
+        if value is None:
+            return None
+        if not isinstance(value, str) or len(value) > tc.PYTHON_REQUEST_MAX_LENGTH:
+            raise ValueError(tc.MSG_PYTHON_REQUEST)
+        request = value.strip()
+        if (
+            request.startswith("-")
+            or re.fullmatch(tc.PYTHON_REQUEST_PATTERN, request) is None
+        ):
+            raise ValueError(tc.MSG_PYTHON_REQUEST)
+        return request
 
     def write(self, directory: Path) -> None:
-        """Materialize only admitted metadata, never candidate project code."""
+        """Write admitted lock/project metadata and the validated Python selector."""
         directory.mkdir(parents=True, exist_ok=True)
         (directory / tc.LOCK_FILE).write_bytes(self.lock)
         (directory / tc.PROJECT_FILE).write_bytes(self.admitted_project)
-        if self.python is not None:
-            (directory / tc.PYTHON_FILE).write_bytes(self.python)
+        if self.python_request is not None:
+            (directory / tc.PYTHON_FILE).write_text(self.python_request + "\n")
 
 
 def digest(value: bytes) -> str:
@@ -291,12 +309,22 @@ class ToolchainSeeder:
         admitted_project = admitted[tc.PROJECT_FILE]
         if project_bytes is None or admitted_project is None:
             raise ToolchainUnavailable(tc.MSG_NO_PROJECT)
+        project_data = tomllib.loads(project_bytes.decode()).get("project", {})
+        if not isinstance(project_data, dict):
+            raise ToolchainUnavailable(tc.MSG_PYTHON_REQUEST)
+        python_bytes = values[tc.PYTHON_FILE]
+        request = (
+            python_bytes.decode()
+            if python_bytes is not None
+            else project_data.get("requires-python")
+        )
         return ProjectPins(
             project=project,
             lock=lock,
             pyproject=project_bytes,
             admitted_project=admitted_project,
-            python=values[tc.PYTHON_FILE],
+            python=python_bytes,
+            python_request=request,
         )
 
     def _host_path(self, configured: Path | None, args: tuple[str, ...]) -> Path:
@@ -310,13 +338,6 @@ class ToolchainSeeder:
 
     def _interpreter(self, pin: ProjectPins, root: Path, cwd: Path) -> Path:
         """Select an installed managed interpreter for the current Python request."""
-        data = tomllib.loads(pin.pyproject.decode())
-        project = data.get("project", {})
-        request = (
-            pin.python.decode().strip()
-            if pin.python
-            else str(project.get("requires-python", ""))
-        )
         args: tuple[str, ...] = (
             tc.PYTHON,
             "find",
@@ -324,8 +345,8 @@ class ToolchainSeeder:
             "--managed-python",
             "--no-python-downloads",
         )
-        if request:
-            args += (request,)
+        if pin.python_request is not None:
+            args += ("--", pin.python_request)
         executable = Path(
             self._run(
                 args,

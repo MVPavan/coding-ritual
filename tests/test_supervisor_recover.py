@@ -904,8 +904,8 @@ def test_cleanup_retries_after_close_without_touching_other_activation(
     other = private.parent.parent / "other" / "toolchain"
     other.mkdir(parents=True)
     (other / "payload").write_text("another activation")
-    assert cleanup_toolchain(lab.paths, resolution.closed) is None
-    assert cleanup_toolchain(lab.paths, resolution.closed) is None
+    cleanup_toolchain(lab.paths, resolution.closed)
+    cleanup_toolchain(lab.paths, resolution.closed)
     assert not private.exists()
     assert (other / "payload").read_text() == "another activation"
 
@@ -917,7 +917,7 @@ def test_cleanup_removes_unpublished_staging_only_after_close(lab: Lab) -> None:
     staged = lab.paths.activation_dir(lab.activation.activation_id) / ".toolchain-crash"
     staged.mkdir()
     (staged / "partial").write_text("partial private copy")
-    assert cleanup_toolchain(lab.paths, lab.activation) is None
+    cleanup_toolchain(lab.paths, lab.activation)
     assert staged.exists()
     result = lab.recovery.resolve(lab.activation, lab.node)
     assert result.closed is not None
@@ -930,6 +930,8 @@ def test_cleanup_failure_is_reported_and_retryable(
 ) -> None:
     """Deletion failure cannot erase provenance or prevent a later retry."""
     import shutil
+
+    from structlog.testing import capture_logs
 
     from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
 
@@ -945,10 +947,12 @@ def test_cleanup_failure_is_reported_and_retryable(
         raise OSError("disk busy")
 
     monkeypatch.setattr(shutil, "rmtree", fail)
-    assert "disk busy" in (cleanup_toolchain(lab.paths, result.closed) or "")
+    with capture_logs() as logs:
+        cleanup_toolchain(lab.paths, result.closed)
+    assert any("disk busy" in entry.get("error", "") for entry in logs)
     assert private.exists()
     monkeypatch.setattr(shutil, "rmtree", original)
-    assert cleanup_toolchain(lab.paths, result.closed) is None
+    cleanup_toolchain(lab.paths, result.closed)
     assert not private.exists()
 
 
@@ -963,10 +967,10 @@ def test_closed_live_runner_defers_cleanup_until_death(lab: Lab) -> None:
     private = lab.paths.activation_dir(closed.activation_id) / "toolchain"
     private.mkdir()
     pending = private.parent / "toolchain-cleanup.json"
-    assert cleanup_toolchain(lab.paths, closed) is None
+    cleanup_toolchain(lab.paths, closed)
     assert private.exists()
     assert "pending" in pending.read_text()
     remove_proc_entry(lab.config.proc_root, lab.pid)
-    assert cleanup_toolchain(lab.paths, closed) is None
+    cleanup_toolchain(lab.paths, closed)
     assert not private.exists()
     assert not pending.exists()

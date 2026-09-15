@@ -144,7 +144,7 @@ class Composition:
     clock: Clock
     profiles: ProfileResolver
     spawner: Spawner
-    host_env: Mapping[str, str] | None = None
+    host_env: Mapping[str, str]
 
     def __post_init__(self) -> None:
         """Keep the explicit supervisor dependency aligned with the config guard."""
