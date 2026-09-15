@@ -103,6 +103,7 @@ def test_the_graph_content_hash_is_stable() -> None:
     """The pin every live instance's body is checked against (§2 rule 8, §3.1)."""
     graph = load_graph(BUILD_LOOP_GRAPH)
 
+    assert graph.document.graph.version == "1.0.3"
     assert graph.content_hash == BUILD_LOOP_CONTENT_HASH
 
 

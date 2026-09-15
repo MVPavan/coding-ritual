@@ -45,12 +45,12 @@ MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 # Current shipped example hash (§3.1). Versioned authoring edits update this
 # expectation; admitted instances retain their own immutable body and hash.
 FEATURE_DELIVERY_CONTENT_HASH = (
-    "0dbcd2b74c63ec3424273babea7fe4e85d41b78920a15777a16ca52fb989284a"
+    "c929cb817742c2b5684aa4e4b5451a89865734b8fc86148ed02303166ebb458b"
 )
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
 BUILD_LOOP_CONTENT_HASH = (
-    "371179567a683787c87ecc2b4640aba0c628a00bad56e55d25ae9e0e50bb6816"
+    "9335b8e328d908a2e5b975e8d5a09e3802f5a975b07277b71f9626991bf87646"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.

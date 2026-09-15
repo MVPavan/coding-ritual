@@ -1,6 +1,6 @@
 [graph]
 id = "design-spec"
-version = "1.0.1"
+version = "1.0.2"
 entry = "draft"
 description = "One tracked Markdown design reviewed before an authenticated human ship gate"
 
@@ -58,6 +58,16 @@ Review `candidate_diff` against `task_brief`. Verify that the proposed Markdown
 is complete, tracked, and within the writer's declared scope. Record findings
 in WF_ARTIFACT_DIR without changing repository files. Report `accept` only for
 the reviewed candidate; otherwise report `reject` or `fail_plan`.
+
+Evidence discipline: Label observed/source-proven facts, producer-reported evidence,
+and inference. Source-proven defects reject without execution; hypotheses are
+questions, not MAJOR. Neither tool absence, remembered defaults nor file counts
+prove output impossible or a producer report false. Disputes: cite exact evidence, candidate/tool version/environment
+and failure scenario; lacking direct proof, request the smallest non-mutating host command,
+never auto-run requests. Report required-evidence gaps; never invent success or waive evidence.
+Unresolved material gaps: `fail_plan` for review/evidence blockage, not an invented defect.
+Coordinator examines requests at existing attention/approval boundaries;
+this report convention adds no automatic probe.
 
 Your verdict is a claim; full declared HOST verification remains mandatory and
 gates advancement after you return. Perform available supported local checks;
