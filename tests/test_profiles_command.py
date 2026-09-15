@@ -986,3 +986,74 @@ def test_the_toolchain_env_reaches_every_child(tmp_path: Path) -> None:
     assert env[ENV_MYPY_CACHE_DIR] == str(scratch / "mypy")
     assert env[ENV_UV_FROZEN] == "1"
     assert ENV_PYTEST_ADDOPTS not in profile_host_env()
+
+
+@pytest.mark.parametrize("writes", [True, False])
+def test_codex_shared_uv_cache_is_writable_only_for_writers(
+    tmp_path: Path, writes: bool
+) -> None:
+    """The launcher's cache is granted on launch and resume only to writers."""
+    cache = tmp_path / "wrapper cache" / "uv-cache"
+    task = make_task(tmp_path, writes=writes).model_copy(
+        update={"toolchain_cache": str(cache)}
+    )
+    profile = make_codex(tmp_path, FrozenClock())
+    commands = (
+        profile.build_command(task, ""),
+        profile.build_resume_command("thread-id", INSTRUCTIONS, task),
+    )
+
+    for command in commands:
+        roots = writable_roots_in(command.argv)
+        effective_env = {**command.env, ENV_UV_CACHE_DIR: str(cache)}
+        effective_cache = Path(effective_env[ENV_UV_CACHE_DIR])
+        writable = (Path(command.cwd), *(Path(root) for root in roots))
+        assert any(effective_cache.is_relative_to(root) for root in writable) is writes
+        if writes:
+            assert str(cache) in roots
+        else:
+            assert roots == ()
+            assert "--add-dir" not in command.argv
+    assert not cache.exists()
+
+
+@pytest.mark.parametrize("writes", [True, False])
+def test_codex_cache_grant_does_not_depend_on_channels_layout(
+    tmp_path: Path, writes: bool
+) -> None:
+    """An unusual channels layout cannot turn an ancestor into a cache grant."""
+    task = make_task(tmp_path, writes=writes)
+    channels = task.channels.model_copy(
+        update={"outcome_file": str(tmp_path / "unexpected" / "outcome.json")}
+    )
+    cache = tmp_path / "authoritative" / "uv-cache"
+    task = task.model_copy(
+        update={"channels": channels, "toolchain_cache": str(cache)},
+    )
+    profile = make_codex(tmp_path, FrozenClock())
+    before = set(tmp_path.rglob("*"))
+    commands = (
+        profile.build_command(task, ""),
+        profile.build_resume_command("thread-id", INSTRUCTIONS, task),
+    )
+    expected = ()
+    if writes:
+        expected = (
+            str(tmp_path / "unexpected"),
+            *git_write_roots_of(Path(task.cwd)),
+            str(cache),
+        )
+    for command in commands:
+        assert writable_roots_in(command.argv) == expected
+    assert set(tmp_path.rglob("*")) == before
+
+
+def test_codex_rejects_a_relative_toolchain_cache(tmp_path: Path) -> None:
+    """A writer's explicit cache grant must be absolute."""
+    task = make_task(tmp_path, writes=True).model_copy(
+        update={"toolchain_cache": "relative/uv-cache"}
+    )
+    profile = make_codex(tmp_path, FrozenClock())
+
+    with pytest.raises(TaskRefused, match="toolchain cache"):
+        profile.build_command(task, "")

@@ -38,7 +38,7 @@ from tests._supervisor import (
     node_of,
     task_builder,
 )
-from workflow_interpreter.bdio import Lifecycle
+from workflow_interpreter.bdio import ActivationRecord, Lifecycle
 from workflow_interpreter.bdio.errors import LifecycleConflictError
 from workflow_interpreter.supervisor import (
     Dispatcher,
@@ -57,7 +57,11 @@ from workflow_interpreter.supervisor import (
 from workflow_interpreter.supervisor import launch as launch_module
 from workflow_interpreter.supervisor.models import LaunchReceiptState
 from workflow_interpreter.supervisor.paths import read_record, write_record
-from workflow_interpreter.supervisor.profile import RunnerCommand
+from workflow_interpreter.supervisor.profile import (
+    RunnerChannels,
+    RunnerCommand,
+    TaskSpec,
+)
 from workflow_interpreter.supervisor.sandbox import (
     ENV_UV_CACHE_DIR,
     ENV_UV_PYTHON_INSTALL_DIR,
@@ -777,3 +781,41 @@ def _placeholder_handle(lab: Lab, activation_id: str) -> object:
     from tests._supervisor import handle_for
 
     return handle_for(1, log_path=str(lab.paths.log(activation_id)))
+
+
+@pytest.mark.parametrize("writes", [True, False])
+def test_dispatch_passes_the_effective_uv_cache_to_the_profile(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch, writes: bool
+) -> None:
+    """Dispatch overwrites caller cache hints with the plan used by exec."""
+    seen: list[TaskSpec] = []
+    original = lab.profile.build_command
+
+    def capture(task: TaskSpec, session_id: str) -> RunnerCommand:
+        """Record the profile input and emit the child's effective cache."""
+        seen.append(task)
+        command = original(task, session_id)
+        return command.model_copy(
+            update={
+                "argv": (
+                    "/bin/sh",
+                    "-c",
+                    'printf "%s" "$UV_CACHE_DIR" > "$WF_ARTIFACT_DIR/cache"',
+                ),
+            }
+        )
+
+    def build_task(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
+        """Supply a deliberately wrong cache hint before supervisor planning."""
+        return lab.build_task(activation, channels).model_copy(
+            update={"writes": writes, "toolchain_cache": str(lab.repo.parent)}
+        )
+
+    monkeypatch.setattr(lab.profile, "build_command", capture)
+    result = lab.dispatcher.dispatch(entry_mint(), lab.profile, build_task)
+    assert _wait(result.handle.pid) == 0
+    assert len(seen) == 1
+    task = seen[0]
+    expected = str(lab.config.wrapper_root / UV_CACHE_DIRECTORY)
+    assert task.toolchain_cache == expected
+    assert (Path(task.channels.artifact_dir) / "cache").read_text() == expected

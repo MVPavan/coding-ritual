@@ -913,6 +913,7 @@ class Dispatcher:
             else build_task(activation, channels)
         )
         plan, mode = self._sandbox(activation_id, task)
+        task = task.model_copy(update={"toolchain_cache": str(plan.toolchain_cache[0])})
         # §5.2: the session id is PRE-ASSIGNED by the profile and never
         # discovered from output. `prepare` is its ONLY minter — the foreman
         # used to pre-assign a UUID at mint whenever the bound profile happened
