@@ -404,9 +404,7 @@ class Foreman:
             )
 
             for activation in activations_of(beads):
-                cleanup_error = cleanup_toolchain(wiring.paths, activation)
-                if cleanup_error is not None:
-                    return TickReport(stalled=cleanup_error)
+                cleanup_toolchain(wiring.paths, activation)
                 if (
                     activation.metadata.is_completed
                     and activation.bead.status != STATUS_CLOSED

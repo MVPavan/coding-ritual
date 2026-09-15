@@ -13,7 +13,6 @@
 repo_root    = "@REPO_ROOT@"
 wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
-
 actor        = "@ACTOR@"
 
 # The validated graph `phase-bridge` pins for a selected stage. It is a normal

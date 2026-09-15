@@ -658,10 +658,13 @@ class Dispatcher:
         paths: WrapperPaths,
         store: WorkflowStore,
         clock: Clock,
+        *,
+        host_env: Mapping[str, str] | None = None,
     ) -> None:
         self._paths = paths
         self._store = store
         self._clock = clock
+        self._host_env = dict(host_env or {})
 
     def dispatch(
         self,
@@ -921,6 +924,15 @@ class Dispatcher:
         )
         plan, mode = self._sandbox(activation_id, task)
         task = task.model_copy(update={"toolchain_cache": str(plan.toolchain_cache[0])})
+        root = self._store.reads.load_root(self._paths.root_id)
+        seed = ToolchainSeeder(self._paths.config, self._host_env).prepare(
+            Path(task.cwd),
+            root.metadata.instance_base_commit,
+            self._paths.activation_dir(activation_id),
+        )
+        plan = plan.model_copy(
+            update={"ro_pins": (*plan.ro_pins, *seed.protected_roots)}
+        )
         # §5.2: the session id is PRE-ASSIGNED by the profile and never
         # discovered from output. `prepare` is its ONLY minter — the foreman
         # used to pre-assign a UUID at mint whenever the bound profile happened
@@ -934,15 +946,6 @@ class Dispatcher:
             else profile.build_resume_command(
                 session_id, task.brief if composed_resume else instructions, task
             )
-        )
-        root = self._store.reads.load_root(self._paths.root_id)
-        seed = ToolchainSeeder(self._paths.config, command.env).prepare(
-            Path(task.cwd),
-            root.metadata.instance_base_commit,
-            self._paths.activation_dir(activation_id),
-        )
-        plan = plan.model_copy(
-            update={"ro_pins": (*plan.ro_pins, *seed.protected_roots)}
         )
         launcher = ForkBarrierLauncher(
             self._paths.config,
@@ -959,7 +962,6 @@ class Dispatcher:
 
         from workflow_interpreter.supervisor.band import BandLock
 
-        root = self._store.reads.load_root(self._paths.root_id)
         coordinator = self._store.coordination_store()
         guard = (
             BandLock(coordinator.member_lock_path(root.root_id, "launch"))

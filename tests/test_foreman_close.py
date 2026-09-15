@@ -189,8 +189,15 @@ def test_settle_closes_a_real_recorded_done_from_its_completion(
     assert settled.metadata.outcome is Outcome.DONE
 
 
+@pytest.mark.parametrize(
+    ("live", "cleanup_error"), [(False, False), (True, False), (False, True)]
+)
 def test_settle_replays_an_uncomputable_verdict_after_completion_loss(
-    fake_store: WorkflowStore, tmp_path: Path
+    fake_store: WorkflowStore,
+    tmp_path: Path,
+    live: bool,
+    cleanup_error: bool,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The durable evidence closes from a freshly re-derived fail-code outcome."""
     root = make_root(fake_store, load_definition())
@@ -221,7 +228,30 @@ def test_settle_replays_an_uncomputable_verdict_after_completion_loss(
         )
 
     paths = make_paths(make_config(tmp_path / "repo", tmp_path), root.root_id)
-    settled = settle(
+    from workflow_interpreter.supervisor import procfs
+    from workflow_interpreter.supervisor.models import Liveness
+
+    original = procfs.prove_liveness
+    if live:
+        monkeypatch.setattr(
+            procfs,
+            "prove_liveness",
+            lambda config, runner: original(config, runner).model_copy(
+                update={"status": Liveness.ALIVE}
+            ),
+        )
+    if cleanup_error:
+        import shutil
+
+        original_remove = shutil.rmtree
+
+        def fail(path: str | Path, *args: object, **kwargs: object) -> None:
+            if Path(path) == private:
+                raise PermissionError("cleanup permission denied")
+            original_remove(path, *args, **kwargs)
+
+        monkeypatch.setattr(shutil, "rmtree", fail)
+    result = settle(
         cast(
             InstanceWiring,
             WiringDouble(
@@ -232,14 +262,16 @@ def test_settle_replays_an_uncomputable_verdict_after_completion_loss(
         root.index.nodes["implement"],
         activation,
         SimpleNamespace(),
-    ).activation
+    )
+    assert result.stalled is None
+    settled = result.activation
 
     assert replayed == [activation.metadata.exit_record]
     assert settled.metadata.lifecycle is Lifecycle.CLOSED
     assert settled.metadata.outcome is Outcome.FAIL_CODE
     assert settled.metadata.evidence == evidence
 
-    assert not private.exists()
+    assert private.exists() is (live or cleanup_error)
 
 
 def test_settle_halts_when_missing_completion_cannot_be_replayed(

@@ -117,6 +117,7 @@ def _composition(path: Path | None) -> Composition:
         clock=clock,
         profiles=ProfileRegistry(config.profiles, clock, os.environ),
         spawner=DetachedSpawner(config.supervisor, path),
+        host_env=dict(os.environ),
     )
 
 

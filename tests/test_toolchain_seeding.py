@@ -114,10 +114,18 @@ def seed_lab(tmp_path: Path) -> SeedLab:
         'with calls.open("a") as f:\n'
         ' f.write(json.dumps([args, os.environ.get("UV_OFFLINE")]) + "\\n")\n'
         'if args == ["--version"]: print("uv fixture")\n'
-        f'elif args[:2] == ["python", "find"]: print({str(interpreter)!r})\n'
+        'elif args[:2] == ["python", "find"]:\n'
+        " request = args[-1]\n"
+        f" selected = pathlib.Path({str(interpreter)!r})\n"
+        ' if request == "3.14":\n'
+        '  selected = selected.parents[2] / "cpython-3.14-linux/bin/python3"\n'
+        ' if not selected.exists(): sys.exit("managed interpreter unavailable")\n'
+        " print(selected)\n"
         'elif args[:1] == ["sync"]:\n'
         ' assert "--locked" in args and "--no-build" in args\n'
         ' assert "--no-install-project" in args\n'
+        ' if "--python" in args:\n'
+        '  assert pathlib.Path(args[args.index("--python") + 1]).is_file()\n'
         ' cache = pathlib.Path(os.environ["UV_CACHE_DIR"])\n'
         ' assert (cache / "wheels-v5/pypi/ruff/1.0-py3-none-any/ruff.py").exists()\n'
         'elif args[:1] == ["run"]: print("ruff 1.0")\n'
@@ -218,7 +226,7 @@ def test_receipts_predating_seeding_still_load(tmp_path: Path) -> None:
     assert LaunchReceipt.model_fields["seed_receipts"].default == ()
 
 
-@pytest.mark.parametrize("pin", ["uv.lock", "pyproject.toml", ".python-version"])
+@pytest.mark.parametrize("pin", ["uv.lock"])
 def test_changed_dependency_pins_never_invoke_uv(seed_lab: SeedLab, pin: str) -> None:
     """Candidate dependencies are refused before host preparation."""
     (seed_lab.repo / pin).write_text("candidate dependency input")
@@ -672,3 +680,73 @@ def test_host_sources_stay_read_only_under_the_outer_bound(seed_lab: SeedLab) ->
     assert result.returncode == 0, result.stderr
     assert (seeded.cache / "write-probe").read_text().strip() == "private"
     assert not any((root / "write-probe").exists() for root in seeded.protected_roots)
+
+
+@pytest.mark.parametrize(
+    ("warm", "reuse_private"), [(False, False), (True, False), (True, True)]
+)
+def test_metadata_change_keeps_lock_seed(
+    seed_lab: SeedLab, warm: bool, reuse_private: bool
+) -> None:
+    """A project version edit can be reviewed with the same dependency seed."""
+    from workflow_interpreter.supervisor.toolchain import digest
+
+    activation = seed_lab.config.wrapper_root / "activation"
+    if warm:
+        seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
+    if not reuse_private:
+        activation = activation.with_name("next-activation")
+    project = seed_lab.repo / "pyproject.toml"
+    project.write_text(
+        project.read_text().replace('version = "1.0"', 'version = "1.1"')
+    )
+    result = seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
+    assert result.receipts[0].project_digest == digest(project.read_bytes())
+
+
+def test_changed_python_selection_uses_available_managed_python(
+    seed_lab: SeedLab,
+) -> None:
+    """An available interpreter selection is allowed and recorded."""
+    from workflow_interpreter.supervisor.toolchain import digest
+
+    selection = seed_lab.repo / ".python-version"
+    selection.write_text("3.13.9\n")
+    result = seed_lab.seeder.prepare(
+        seed_lab.repo, seed_lab.base, seed_lab.config.wrapper_root / "activation"
+    )
+    assert result.receipts[0].python_digest == digest(selection.read_bytes())
+
+
+def test_reused_cache_requires_its_private_interpreter(seed_lab: SeedLab) -> None:
+    """A system Python cannot rescue a missing private interpreter on retry."""
+    activation = seed_lab.config.wrapper_root / "activation"
+    first = seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
+    private_python = first.cache / "python" / seed_lab.interpreter.parent.parent.name
+    (private_python / "bin/python3").unlink()
+    with pytest.raises(ToolchainUnavailable):
+        seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
+
+
+@pytest.mark.parametrize("available", [False, True])
+def test_new_interpreter_selection_after_prelaunch(
+    seed_lab: SeedLab, available: bool
+) -> None:
+    """A changed selection only refuses when the host cannot supply it."""
+    activation = seed_lab.config.wrapper_root / "activation"
+    first = seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
+    (seed_lab.repo / ".python-version").write_text("3.14\n")
+    if not available:
+        with pytest.raises(
+            ToolchainUnavailable, match="managed interpreter unavailable"
+        ):
+            seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
+        assert first.cache.exists()
+        return
+    interpreter = seed_lab.interpreter.parents[2] / "cpython-3.14-linux/bin/python3"
+    interpreter.parent.mkdir(parents=True)
+    interpreter.write_text("another trusted interpreter")
+    second = seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
+    assert second.receipts[0].interpreter_version == "cpython-3.14-linux"
+    assert (second.cache / "python/cpython-3.14-linux/bin/python3").exists()
+    assert second.receipts[0].seed_key == first.receipts[0].seed_key

@@ -37,9 +37,7 @@ MSG_INTERRUPTED_LINK: Final[str] = "interrupted toolchain path is a symlink"
 MSG_NO_BASE: Final[str] = "uv project requires an admitted base commit"
 MSG_SOURCE_LINK: Final[str] = "toolchain source path contains a symlink"
 MSG_HOST_OVERLAP: Final[str] = "overlapping host toolchain roots"
-MSG_PRIVATE_PINS: Final[str] = "private seed dependency pins changed"
 MSG_RECEIPT_PATH: Final[str] = "private seed receipt path mismatch"
-MSG_SEED_PINS: Final[str] = "seed pins changed without a lock change"
 MSG_SEED_LINK: Final[str] = "interrupted seed path is a symlink"
 MSG_OVERLAP: Final[str] = "overlapping toolchain source and destination"
 MSG_LOCK_TIMEOUT: Final[str] = "toolchain preparation lock timed out"
@@ -70,3 +68,12 @@ MSG_ESCAPE: Final[str] = "escaping toolchain link: {path}"
 MSG_SPECIAL: Final[str] = "special toolchain file: {path}"
 MSG_CLEANUP: Final[str] = "toolchain cleanup: {error}"
 LOG_CLEANUP: Final[str] = "wf.toolchain.cleanup_failed"
+
+HOST_ENV_KEYS: Final[tuple[str, ...]] = (
+    "PATH",
+    "HOME",
+    "LANG",
+    "LC_ALL",
+    "SSL_CERT_FILE",
+)
+CLEANUP_PENDING: Final[str] = "toolchain-cleanup.json"

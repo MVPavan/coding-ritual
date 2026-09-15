@@ -69,8 +69,8 @@ def settle(
     result = _settle(wiring, root, node, activation, profile)
     if not result.activation.metadata.is_completed:
         return result
-    error = cleanup_toolchain(wiring.paths, result.activation)
-    return result if error is None else result.model_copy(update={"stalled": error})
+    cleanup_toolchain(wiring.paths, result.activation)
+    return result
 
 
 def _settle(

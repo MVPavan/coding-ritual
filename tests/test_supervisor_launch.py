@@ -851,6 +851,10 @@ def test_toolchain_preparation_failure_never_releases_vendor(
         """Model a bounded dependency preparation failure before the fork."""
         raise ToolchainUnavailable("offline seed unavailable")
 
+    def mint_forbidden(*args: object, **kwargs: object) -> str:
+        raise AssertionError("seed refusal must precede session minting")
+
+    monkeypatch.setattr(lab.profile, "prepare", mint_forbidden)
     monkeypatch.setattr(ToolchainSeeder, "prepare", refuse)
     with pytest.raises(ToolchainUnavailable, match="offline seed unavailable"):
         lab.dispatcher.dispatch(entry_mint(), lab.profile, lab.build_task)
@@ -923,3 +927,40 @@ def test_dispatch_records_seed_provenance_and_pins_host_sources_last(
     )
     assert retained is not None
     assert retained.seed_receipts == (receipt,)
+
+
+def test_seed_host_environment_ignores_empty_profile_passthrough(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Host discovery survives a child profile that passes neither PATH nor HOME."""
+    from tests._profiles import make_codex
+    from workflow_interpreter.profiles import ProfileConfig
+    from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
+    from workflow_interpreter.supervisor.toolchain_models import SeedPreparation
+
+    vendor = make_codex(tmp_path, lab.clock, ProfileConfig(passthrough_env=()))
+    host_bin = tmp_path / "host-bin"
+    host_bin.mkdir()
+    uv = host_bin / "uv"
+    uv.write_text("#!/bin/sh\nprintf 'host uv discovered'\n")
+    uv.chmod(0o755)
+    host_env = {"PATH": str(host_bin), "HOME": str(tmp_path)}
+    lab.dispatcher = Dispatcher(lab.paths, lab.store, lab.clock, host_env=host_env)
+    original = lab.profile.build_command
+    probes: list[str] = []
+
+    def command(task: TaskSpec, session: str) -> RunnerCommand:
+        child_env = vendor.child_env(task.channels)
+        assert "PATH" not in child_env and "HOME" not in child_env
+        return original(task, session).model_copy(update={"env": child_env})
+
+    def prepare(
+        seeder: ToolchainSeeder, checkout: Path, base: str | None, activation: Path
+    ) -> SeedPreparation:
+        probes.append(seeder._run(("--version",), checkout, seeder._env))
+        return SeedPreparation(cache=activation / "toolchain" / "uv-cache")
+
+    monkeypatch.setattr(lab.profile, "build_command", command)
+    monkeypatch.setattr(ToolchainSeeder, "prepare", prepare)
+    lab.dispatch()
+    assert probes == ["host uv discovered"]

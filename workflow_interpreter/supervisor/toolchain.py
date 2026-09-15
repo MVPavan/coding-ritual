@@ -60,13 +60,14 @@ class ProjectPins(BaseModel):
     project: str
     lock: bytes
     pyproject: bytes
+    admitted_project: bytes
     python: bytes | None = None
 
     def write(self, directory: Path) -> None:
         """Materialize only admitted metadata, never candidate project code."""
         directory.mkdir(parents=True, exist_ok=True)
         (directory / tc.LOCK_FILE).write_bytes(self.lock)
-        (directory / tc.PROJECT_FILE).write_bytes(self.pyproject)
+        (directory / tc.PROJECT_FILE).write_bytes(self.admitted_project)
         if self.python is not None:
             (directory / tc.PYTHON_FILE).write_bytes(self.python)
 
@@ -84,9 +85,7 @@ class ToolchainSeeder:
         self._supervisor = config
         self._config = config.toolchain
         self._env = {
-            key: value
-            for key, value in env.items()
-            if key in ("PATH", "HOME", "LANG", "LC_ALL", "SSL_CERT_FILE")
+            key: value for key, value in env.items() if key in tc.HOST_ENV_KEYS
         }
 
     def prepare(
@@ -157,35 +156,47 @@ class ToolchainSeeder:
             seeds.mkdir(parents=True, exist_ok=True)
             host.mkdir(parents=True, exist_ok=True)
             version = self._run(("--version",), seeds, self._env)
+            interpreters = tuple(self._interpreter(pin, python, seeds) for pin in pins)
             prepared = read_record(activation / tc.PREPARED, SeedPreparation)
             expected = tuple(digest(pin.lock) for pin in pins)
             if (
                 prepared is not None
                 and tuple(r.lock_digest for r in prepared.receipts) == expected
+                and tuple(r.interpreter_version for r in prepared.receipts)
+                == tuple(interpreter.name for interpreter in interpreters)
             ):
-                if tuple(
-                    (r.project_digest, r.python_digest) for r in prepared.receipts
-                ) != tuple(
-                    (digest(pin.pyproject), digest(pin.python) if pin.python else None)
-                    for pin in pins
-                ):
-                    raise ToolchainUnavailable(tc.MSG_PRIVATE_PINS)
                 if prepared.protected_roots != roots:
                     raise ToolchainUnavailable(tc.MSG_RECEIPT_PATH)
                 if prepared.cache != cache:
                     raise ToolchainUnavailable(tc.MSG_RECEIPT_PATH)
-                for pin in pins:
-                    self._probe(pin, cache, activation, python=None)
-                return prepared
+                receipts = []
+                for pin, receipt, interpreter in zip(
+                    pins, prepared.receipts, interpreters, strict=True
+                ):
+                    probe = self._probe(pin, cache, python=interpreter.name)
+                    receipts.append(
+                        receipt.model_copy(
+                            update={
+                                "project_digest": digest(pin.pyproject),
+                                "python_digest": digest(pin.python)
+                                if pin.python
+                                else None,
+                                "interpreter_version": interpreter.name,
+                                "offline_probe": probe,
+                            }
+                        )
+                    )
+                result = prepared.model_copy(update={"receipts": tuple(receipts)})
+                write_record(activation / tc.PREPARED, result)
+                return result
             if cache.parent.is_symlink():
                 raise ToolchainUnavailable(tc.MSG_PRIVATE_ROOT_LINK)
             stage = Path(tempfile.mkdtemp(prefix=tc.STAGING_PREFIX, dir=activation))
             try:
                 private = stage / tc.CACHE
                 private.mkdir()
-                receipts: list[SeedReceipt] = []
-                for pin in pins:
-                    interpreter = self._interpreter(pin, python, seeds)
+                receipts = []
+                for pin, interpreter in zip(pins, interpreters, strict=True):
                     seed, receipt = self._seed(pin, seeds, host, interpreter, version)
                     total_bytes = sum(
                         measure(path, self._config)
@@ -203,9 +214,7 @@ class ToolchainSeeder:
                         private / tc.PYTHON / interpreter.name,
                         self._config,
                     )
-                    probe = self._probe(
-                        pin, private, activation, python=interpreter.name
-                    )
+                    probe = self._probe(pin, private, python=interpreter.name)
                     receipts.append(
                         receipt.model_copy(
                             update={
@@ -218,6 +227,10 @@ class ToolchainSeeder:
                                 "offline_probe": probe,
                                 "interpreter_version": interpreter.name,
                                 "uv_version": version,
+                                "project_digest": digest(pin.pyproject),
+                                "python_digest": (
+                                    digest(pin.python) if pin.python else None
+                                ),
                             }
                         )
                     )
@@ -236,9 +249,10 @@ class ToolchainSeeder:
                     shutil.rmtree(stage)
 
     def _pins(self, checkout: Path, base: str, project: str) -> ProjectPins | None:
-        """Compare dependency inputs with regular-file blobs at admitted base."""
+        """Gate the lock; retain current digests and trusted sync metadata separately."""
         git = Git(self._supervisor)
         values: dict[str, bytes | None] = {}
+        admitted: dict[str, bytes | None] = {}
         for name in (tc.LOCK_FILE, tc.PROJECT_FILE, tc.PYTHON_FILE):
             relative = (Path(project) / name).as_posix()
             listing = git.run(
@@ -265,20 +279,23 @@ class ToolchainSeeder:
             if current.exists() and current.stat().st_size > PIN_LIMIT:
                 raise ToolchainUnavailable(tc.MSG_PIN_SIZE.format(path=relative))
             actual = read_regular(current, PIN_LIMIT)
-            if actual != value:
+            if name == tc.LOCK_FILE and actual != value:
                 raise ToolchainUnavailable(tc.MSG_PIN_CHANGED.format(path=relative))
-            values[name] = value
+            values[name] = actual
+            admitted[name] = value
             if name == tc.LOCK_FILE and value is None:
                 return None
         lock, project_bytes = values[tc.LOCK_FILE], values[tc.PROJECT_FILE]
         if lock is None:
             return None
-        if project_bytes is None:
+        admitted_project = admitted[tc.PROJECT_FILE]
+        if project_bytes is None or admitted_project is None:
             raise ToolchainUnavailable(tc.MSG_NO_PROJECT)
         return ProjectPins(
             project=project,
             lock=lock,
             pyproject=project_bytes,
+            admitted_project=admitted_project,
             python=values[tc.PYTHON_FILE],
         )
 
@@ -292,7 +309,7 @@ class ToolchainSeeder:
         return value
 
     def _interpreter(self, pin: ProjectPins, root: Path, cwd: Path) -> Path:
-        """Select a managed interpreter matching admitted Python requirements."""
+        """Select an installed managed interpreter for the current Python request."""
         data = tomllib.loads(pin.pyproject.decode())
         project = data.get("project", {})
         request = (
@@ -340,12 +357,6 @@ class ToolchainSeeder:
                 raise ToolchainUnavailable(tc.MSG_SEED_LINK)
             existing = read_record(seed / tc.MANIFEST, SeedReceipt)
             if existing is not None:
-                if existing.project_digest != digest(
-                    pin.pyproject
-                ) or existing.python_digest != (
-                    digest(pin.python) if pin.python else None
-                ):
-                    raise ToolchainUnavailable(tc.MSG_SEED_PINS)
                 return seed, existing
             for interrupted in seeds.glob(f".{key}-*"):
                 if interrupted.is_symlink():
@@ -408,9 +419,7 @@ class ToolchainSeeder:
                 if stage.exists():
                     shutil.rmtree(stage)
 
-    def _probe(
-        self, pin: ProjectPins, cache: Path, activation: Path, python: str | None
-    ) -> str:
+    def _probe(self, pin: ProjectPins, cache: Path, python: str) -> str:
         """Probe only prelaunch tools, using admitted metadata and a scratch venv."""
         with tempfile.TemporaryDirectory(
             prefix=tc.PROBE_PREFIX, dir=cache.parent
@@ -418,12 +427,10 @@ class ToolchainSeeder:
             project = Path(directory)
             pin.write(project)
             env = self._uv_env(cache, project / "venv", cache / tc.PYTHON)
-            args = SYNC
-            if python is not None:
-                args += (
-                    "--python",
-                    str(cache / tc.PYTHON / python / "bin" / "python3"),
-                )
+            args = SYNC + (
+                "--python",
+                str(cache / tc.PYTHON / python / "bin" / "python3"),
+            )
             self._run(args, project, env)
             relocate_links(cache, self._config)
             return self._run(

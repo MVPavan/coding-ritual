@@ -950,3 +950,23 @@ def test_cleanup_failure_is_reported_and_retryable(
     monkeypatch.setattr(shutil, "rmtree", original)
     assert cleanup_toolchain(lab.paths, result.closed) is None
     assert not private.exists()
+
+
+def test_closed_live_runner_defers_cleanup_until_death(lab: Lab) -> None:
+    """A durable close can precede process death without blocking the driver."""
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+    lab.alive()
+    closed = lab.store.close_activation(
+        lab.activation.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    private = lab.paths.activation_dir(closed.activation_id) / "toolchain"
+    private.mkdir()
+    pending = private.parent / "toolchain-cleanup.json"
+    assert cleanup_toolchain(lab.paths, closed) is None
+    assert private.exists()
+    assert "pending" in pending.read_text()
+    remove_proc_entry(lab.config.proc_root, lab.pid)
+    assert cleanup_toolchain(lab.paths, closed) is None
+    assert not private.exists()
+    assert not pending.exists()

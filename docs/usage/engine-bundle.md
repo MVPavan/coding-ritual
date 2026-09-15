@@ -18,11 +18,13 @@ before constructing runner environments; explicit configuration paths win.
 Operator `UV_OFFLINE=1` disables host fetching as well as runner fetching.
 
 Install the required managed Python on the host before launching a workflow.
-The admitted `.python-version` or `requires-python` selects that installation.
+The current `.python-version` or `requires-python` selects that installation.
 Missing managed interpreters produce a preparation refusal; they are never
-silently replaced by system Python. Dependency metadata comes from the root's
-admitted base commit. Changes to `uv.lock`, `pyproject.toml`, or `.python-version`
-require admitting the updated dependency inputs before dispatch.
+silently replaced by system Python. A changed `uv.lock` requires admitting the
+updated dependencies before dispatch. A project version edit with an unchanged
+lock can dispatch; preparation still uses the admitted project metadata. A changed
+Python selection can dispatch when the host has the requested managed interpreter.
+Activation receipts record all three current file digests.
 
 On a project-seed miss, the host imports only matching locked wheel versions and
 metadata from uv's `wheels-v5`/`archive-v0` cache. It does not copy the whole host
@@ -60,7 +62,7 @@ retains its original host-fetch provenance; it does not imply another fetch.
 Defaults bound each command/copy/lock wait to 120 seconds, cache/interpreter data
 to 2 GiB and 100,000 entries, and preserve 64 MiB of free disk. Command diagnostics
 are bounded to 16 KiB. Preparation failure raises `ToolchainUnavailable` before
-the fork barrier, using the existing retry-exempt preparation-refusal path.
+vendor session creation, using the existing retry-exempt preparation-refusal path.
 No vendor is released with a partly prepared seed.
 
 ## Cleanup and recovery
@@ -69,8 +71,10 @@ Private toolchains are disposable. After host verification and durable activatio
 close, cleanup removes that activation's toolchain and interrupted copy staging.
 `SeedReceipt` and the host-owned project seed remain. An unclassified, running,
 or indeterminate activation retains its private copy. A receipt/ledger indicating
-an unidentified runner also prevents deletion. Cleanup failures are logged and
-retried by recovery and subsequent foreman ticks, including crashes after close.
+an unidentified runner also prevents deletion. A closed activation whose runner
+may still be alive gets a `toolchain-cleanup.json` pending record. Subsequent ticks
+and recovery retry disposal; successful cleanup removes that record. Filesystem
+failures are logged and retried, without stalling settlement or the driver.
 
 Receipt reattachment precedes preparation. A previously launched private cache is
 never executed on the host for a new validation probe. Prelaunch retries may

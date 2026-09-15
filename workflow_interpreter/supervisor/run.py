@@ -47,6 +47,7 @@ continuation to `exit-recorded`.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Final
 
 import structlog
@@ -115,13 +116,15 @@ class Supervisor:
         store: WorkflowStore,
         workspace: Workspace,
         clock: Clock,
+        *,
+        host_env: Mapping[str, str] | None = None,
     ) -> None:
         self._config = config
         self._paths = paths
         self._store = store
         self._clock = clock
         self._workspace = workspace
-        self._dispatcher = Dispatcher(paths, store, clock)
+        self._dispatcher = Dispatcher(paths, store, clock, host_env=host_env)
         self._observer = ExitObserver(config, paths, git, store, workspace, clock)
 
     def run(
