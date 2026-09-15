@@ -78,8 +78,19 @@ cannot be obtained, `write_tests` reports `fail_plan` to `triage_tests`, never
 claims the tests failed correctly. See [verification guidance](../docs/usage/verification.md)
 for local evidence and scratch conventions.
 
-Instruction changes affect canonical content hashes. These templates are now
-version 1.0.1; instantiate new work from that version. Previously admitted roots
+Instruction changes affect canonical content hashes. Reviewer-bearing templates are now
+version 1.0.2, except build-loop at 1.0.3; basic remains 1.0.1. Instantiate new work
+from the current version. Previously admitted roots
 retain their immutable graph body/hash. Update shipped example hash expectations
 through the canonical loader and keep the feature-delivery copies byte-identical;
 do not rewrite stored historical pins.
+
+Reviewer instructions distinguish observed/source-proven facts, producer-reported
+evidence, and inference. Static source logic can justify rejection without a run;
+ordinary hypotheses remain questions. Disputed tool output needs candidate-specific
+evidence, not remembered defaults or a file count. Required evidence gaps remain
+explicit and use existing outcomes and routing; see the
+[review evidence convention](../docs/usage/verification.md#review-evidence).
+The coordinator examines evidence requests at existing attention/approval boundaries.
+This reporting convention adds no automatic host-probe mechanism and grants no
+permission to execute arbitrary proposed commands.

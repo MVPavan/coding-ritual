@@ -1,6 +1,6 @@
 [graph]
 id          = "build-loop"
-version     = "1.0.1"
+version     = "1.0.3"
 entry       = "write_tests"
 description = "One slice: acceptance tests reviewed, implemented, reviewed, critiqued, signed off"
 
@@ -99,6 +99,16 @@ You have no repo write access. Do not fix or rewrite tests.
 Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
 Report `fail_plan` when the same BLOCKER stands for a second round (your
 prior round's findings are `test_findings`).
+
+Evidence discipline: Label observed/source-proven facts, producer-reported evidence,
+and inference. Source-proven defects reject without execution; hypotheses are
+questions, not MAJOR. Neither tool absence, remembered defaults nor file counts
+prove output impossible or a producer report false. Disputes: cite exact evidence, candidate/tool version/environment
+and failure scenario; lacking direct proof, request the smallest non-mutating host command,
+never auto-run requests. Report required-evidence gaps; never invent success or waive evidence.
+Unresolved material gaps: `fail_plan` for review/evidence blockage, not an invented defect.
+Coordinator examines requests at existing attention/approval boundaries;
+this report convention adds no automatic probe.
 
 Your verdict is a claim; full declared HOST verification remains mandatory and
 gates advancement after you return. Perform available supported local checks;
@@ -201,6 +211,16 @@ Report `reject` if any BLOCKER or MAJOR stands, otherwise `accept`.
 Report `fail_plan` when the same BLOCKER stands for a second round (your
 prior round's findings are `impl_findings`).
 
+Evidence discipline: Label observed/source-proven facts, producer-reported evidence,
+and inference. Source-proven defects reject without execution; hypotheses are
+questions, not MAJOR. Neither tool absence, remembered defaults nor file counts
+prove output impossible or a producer report false. Disputes: cite exact evidence, candidate/tool version/environment
+and failure scenario; lacking direct proof, request the smallest non-mutating host command,
+never auto-run requests. Report required-evidence gaps; never invent success or waive evidence.
+Unresolved material gaps: `fail_plan` for review/evidence blockage, not an invented defect.
+Coordinator examines requests at existing attention/approval boundaries;
+this report convention adds no automatic probe.
+
 Your verdict is a claim; full declared HOST verification remains mandatory and
 gates advancement after you return. Perform available supported local checks;
 do not run host-only checks (including nested sandbox probes) inside the model
@@ -247,15 +267,26 @@ in `test_findings` or `impl_findings`.
 Findings go to $WF_ARTIFACT_DIR as numbered BLOCKER / MAJOR / MINOR with
 `file:line`. You have no repo write access.
 
-Report `reject` if any BLOCKER stands, otherwise `accept`.
+Report `reject` if any BLOCKER stands, otherwise `accept` only when no material evidence gap remains.
+
+Evidence discipline: Label observed/source-proven facts, producer-reported evidence,
+and inference. Source-proven defects reject without execution; hypotheses are
+questions, not MAJOR. Neither tool absence, remembered defaults nor file counts
+prove output impossible or a producer report false. Disputes: cite exact evidence, candidate/tool version/environment
+and failure scenario; lacking direct proof, request the smallest non-mutating host command,
+never auto-run requests. Report required-evidence gaps; never invent success or waive evidence.
+Unresolved material gaps: `reject` for review/evidence blockage, not an invented defect.
+Coordinator examines requests at existing attention/approval boundaries;
+this report convention adds no automatic probe.
 
 Your verdict is a claim; full declared HOST verification remains mandatory and
 gates advancement after you return. Perform available supported local checks;
 do not run host-only checks (including nested sandbox probes) inside the model
 sandbox. Record each command and result, or a not-run reason, in $WF_ARTIFACT_DIR.
 Unavailable sandbox/network/tooling is not evidence of a source defect and must
-not alone cause `fail_code` or `reject`. Do not retry dependency installs for an
-unavailable environment. Real code/test failures must be reported and never
+not alone cause `fail_code` or `reject`.
+An unresolved mandatory review-evidence gap still requires `reject`.
+Do not retry dependency installs for an unavailable environment. Real code/test failures must be reported and never
 relabeled as environment problems. Review decisions are source/spec judgments;
 local evidence does not waive the host gate.
 

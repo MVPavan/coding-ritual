@@ -47,3 +47,33 @@ work directories, and caches belong there. `$WF_ARTIFACT_DIR` holds deliverable
 findings and evidence only: its contents are collected as outputs. Do not use
 it as temporary storage. If a provided path is unavailable, record that limitation
 rather than inventing a machine-specific path or changing sandbox permissions.
+
+## Review evidence
+
+Label each claim as observed/source-proven, producer-reported, or inference.
+Source logic can establish a serious defect without execution: cite the source
+and a concrete failure scenario and reject a well-founded defect. Ordinary
+unverified hypotheses are questions, not MAJOR findings. Missing execution tools
+prove neither that a producer report is false nor that its output is impossible.
+Remembered tool defaults and enumerating Python files cannot settle a formatter
+count; inspect the exact candidate and tool's actual inputs and configuration.
+
+For a disputed factual claim, record the exact evidence reference (log/command or
+source location), candidate commit, tool version, environment, and concrete
+failure scenario. Mark unavailable fields explicitly. If direct evidence is
+unavailable, request the smallest non-mutating host command that would resolve
+the question. The coordinator examines requests at existing attention/approval
+boundaries and assesses their scope and safety before execution. Never automatically
+execute arbitrary proposed commands. This is a report convention, not a new
+automatic host-probe mechanism.
+
+Explicitly identify missing mandatory evidence; never fabricate check success or
+waive the requirement. An unresolved material evidence gap uses `fail_plan` where
+declared: review routes to triage (build-loop's stage-specific triage gates), or
+halt for design-spec and integration (integration uses its existing fallback).
+Build-loop's final `critic` has no `fail_plan`: use `reject`, whose existing edge
+returns to implement and whose bounded region eventually reaches triage_build.
+Identify this as review/evidence blockage, not an invented code defect. The writer
+must not invent a code change to satisfy an evidence request. Tool unavailability
+alone is not a rejection; an unresolved material review obligation is the blockage.
+Full declared host verification and build-loop semantic red evidence remain mandatory.

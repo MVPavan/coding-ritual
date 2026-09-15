@@ -26,7 +26,7 @@ def integration_request(tmp_path, lab, record):
     graph.write_text(
         mutate(
             Path("workflows/integration.toml").read_text(),
-            (('version = "1.0.1"', 'version = "1.0.2"'),),
+            (('version = "1.0.2"', 'version = "1.0.3"'),),
         )
     )
     return TrustedReplacementRequest(
@@ -214,7 +214,7 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
         graph.write_text(
             mutate(
                 graph.read_text(),
-                (('version     = "1.0.1"', 'version     = "1.0.2"'),),
+                (('version     = "1.0.2"', 'version     = "1.0.3"'),),
             )
         )
         receipt = replace_checked(
