@@ -49,7 +49,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"               # worktree | in-repo
-execution_profile = "writer"                     # repo-worktree write access only
+execution_profile = "writer"            # repo-worktree write access only
 allowed_paths = ["src/**", "tests/**"]   # the writable mounts under bwrap
 inputs        = ["verify_failure", "task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" }]
@@ -103,7 +103,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-execution_profile = "reviewer"                    # findings go to $WF_ARTIFACT_DIR, not the repo
+execution_profile = "reviewer"          # findings go to $WF_ARTIFACT_DIR, not the repo
 allowed_paths = []
 inputs        = ["task_brief", "diff_artifact", "review_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" },

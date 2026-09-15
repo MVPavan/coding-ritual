@@ -48,6 +48,7 @@ from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     LifecycleConflictError,
 )
+from workflow_interpreter.bdio.feedback import validate_feedback_bindings
 from workflow_interpreter.bdio.mint import MintFacts
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
@@ -535,7 +536,6 @@ class WorkflowStore:
             self._branch_head_reader,
             reads.gates_of(beads),
         )
-        from workflow_interpreter.bdio.feedback import validate_feedback_bindings
 
         validate_feedback_bindings(root, request, activations, reads.gates_of(beads))
         existing = tuple(

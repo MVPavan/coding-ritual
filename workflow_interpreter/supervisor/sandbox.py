@@ -40,6 +40,7 @@ from typing import TYPE_CHECKING, Final
 
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.contracts.execution import MSG_POLICY_MISMATCH
 from workflow_interpreter.supervisor.errors import SandboxPathRefused
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard for type checking only
@@ -566,6 +567,7 @@ def plan_for(
     wrapper_root: Path,
     channels_dir: Path,
     binary: str = BWRAP_BINARY,
+    protected_roots: tuple[Path, ...] = (),
 ) -> SandboxPlan:
     """Compute one dispatch's mount set from its `TaskSpec` and the wrapper roots.
 
@@ -576,9 +578,32 @@ def plan_for(
     nothing more — it can still report (§6), and there is no writable git state
     to re-close, so it carries no pins either.
     """
+    checkout = _require_dir("checkout", Path(task.checkout_read_root or task.cwd))
+    ro_roots = (
+        _require_dir(_FIELD_REPO_ROOT, repo_root),
+        _require_dir(_FIELD_WRAPPER_ROOT, wrapper_root),
+        checkout,
+    )
+    channels = (channels_dir.resolve(),)
+    toolchain_cache = toolchain_cache_for(channels_dir.parent)
+    grants = (
+        tuple(_grant_path(grant, checkout) for grant in task.allowed_paths)
+        if task.writes
+        else ()
+    )
+    git_rw, ro_pins = _git_binds(checkout, task.root_id) if task.writes else ((), ())
+    plan = SandboxPlan(
+        binary=binary,
+        ro_roots=ro_roots,
+        git_rw=git_rw,
+        grants=grants,
+        channels=channels,
+        toolchain_cache=toolchain_cache,
+        ro_pins=(*ro_pins, *protected_roots),
+    )
     if task.execution_grants is not None:
         contract = task.execution_grants
-        return SandboxPlan(
+        supplied = SandboxPlan(
             binary=binary,
             ro_roots=tuple(map(Path, contract.read_only_roots)),
             git_rw=tuple(map(Path, contract.git_dirs)),
@@ -587,32 +612,17 @@ def plan_for(
             toolchain_cache=(Path(contract.private_cache),),
             ro_pins=tuple(map(Path, contract.read_only_pins)),
         )
-    checkout = Path(task.checkout_read_root or task.cwd).resolve()
-    ro_roots = (
-        _require_dir(_FIELD_REPO_ROOT, repo_root),
-        _require_dir(_FIELD_WRAPPER_ROOT, wrapper_root),
-        checkout,
-    )
-    channels = (channels_dir.resolve(),)
-    toolchain_cache = toolchain_cache_for(channels_dir.parent)
-    if not task.writes:
-        return SandboxPlan(
-            binary=binary,
-            ro_roots=ro_roots,
-            channels=channels,
-            toolchain_cache=toolchain_cache,
-        )
-    grants = tuple(_grant_path(grant, checkout) for grant in task.allowed_paths)
-    git_rw, ro_pins = _git_binds(checkout, task.root_id)
-    return SandboxPlan(
-        binary=binary,
-        ro_roots=ro_roots,
-        git_rw=git_rw,
-        grants=grants,
-        channels=channels,
-        toolchain_cache=toolchain_cache,
-        ro_pins=ro_pins,
-    )
+        if (
+            supplied != plan
+            or contract.policy != task.execution_policy
+            or contract.policy.writes != task.writes
+            or contract.checkout_read_root != str(checkout)
+            or contract.process_cwd != task.cwd
+            or contract.scratch
+            != str(task.channels.scratch_dir or channels_dir / "scratch")
+        ):
+            raise SandboxPathRefused(MSG_POLICY_MISMATCH)
+    return plan
 
 
 def toolchain_cache_for(activation_dir: Path) -> tuple[Path, ...]:

@@ -12,11 +12,11 @@ from pathlib import Path
 
 import pytest
 
-from tests._bdio import load_definition
 from tests._foreman import ForemanLab
 from tests._helpers import (
     AUTHORING_FIXTURE,
     FEATURE_DELIVERY_CONTENT_HASH,
+    SHIPPED_FEATURE_DELIVERY_CONTENT_HASH,
     SHIPPED_FIXTURE,
     VALID_FIXTURE,
     undeclared_fail_code_graph,
@@ -51,25 +51,29 @@ def _lab(
     signing: SigningConfig,
     signer: Signer,
     *,
-    toml: Path = VALID_FIXTURE,
+    toml: Path = SHIPPED_FIXTURE,
     verify: str | None = None,
     review: str | None = None,
-    sandbox: SandboxMode = SandboxMode.OFF,
+    sandbox: SandboxMode | None = None,
 ) -> ForemanLab:
     """A lab whose pinned check scripts are the ones this test needs.
 
-    `sandbox = off`: this family stages its §7.3 cases by having the runner
-    commit a rewritten `scripts/` check, which is outside every node's grants
-    and which the §2 mount bound refuses before the provenance check is ever
-    reached. The bound is proven elsewhere; what these assert is the layer
-    above it.
+    Named graphs exercise the real outer bound. Historical graphs retain their
+    original off-mode lab; the provenance drill explicitly grants scripts/ so
+    it tests host digest enforcement after an otherwise permitted writer edit.
     """
     lab = ForemanLab(
         tmp_path,
         toml=toml,
         signing=signing,
         signer=signer,
-        sandbox=sandbox,
+        sandbox=sandbox
+        if sandbox is not None
+        else (
+            SandboxMode.BWRAP
+            if any(n.execution_profile for n in load_graph(toml).document.node)
+            else SandboxMode.OFF
+        ),
     )
     bodies = {VERIFY_SCRIPT: verify, REVIEW_SCRIPT: review}
     written = False
@@ -118,10 +122,15 @@ def _reviews(outcome: str, *, findings: bool = True) -> ChildScript:
 
 
 def test_a_writers_computed_fail_code_takes_the_declared_self_edge(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+    feature_graph: Path,
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
 ) -> None:
     """A red check on a `done` claim reworks the node instead of halting."""
-    lab = _lab(tmp_path, signing_config, sign_payload, verify=RED_IF_MARKER)
+    lab = _lab(
+        tmp_path, signing_config, sign_payload, toml=feature_graph, verify=RED_IF_MARKER
+    )
     lab.instantiate()
     failed_id = _implement(lab, _writes(RED_MARKER))
     failed = lab.store.reads.load_activation(failed_id)
@@ -139,10 +148,19 @@ def test_a_writers_computed_fail_code_takes_the_declared_self_edge(
 
 
 def test_a_reviewers_computed_fail_code_routes_back_to_implement(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+    feature_graph: Path,
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
 ) -> None:
     """A red reviewer check is a rework, not a human halt."""
-    lab = _lab(tmp_path, signing_config, sign_payload, review=REVIEW_RED_IF_MARKER)
+    lab = _lab(
+        tmp_path,
+        signing_config,
+        sign_payload,
+        toml=feature_graph,
+        review=REVIEW_RED_IF_MARKER,
+    )
     lab.instantiate()
     _implement(lab, _writes(REVIEW_RED_MARKER))
     lab.profiles.next_script(_reviews("accept"))
@@ -164,10 +182,13 @@ def test_a_reviewers_computed_fail_code_routes_back_to_implement(
 
 
 def test_an_undeclared_fail_code_still_opens_a_halt_gate(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+    feature_graph: Path,
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
 ) -> None:
     """§13 drill 25: a node that does not declare `fail_code` cannot route it."""
-    graph = undeclared_fail_code_graph(tmp_path)
+    graph = undeclared_fail_code_graph(tmp_path, feature_graph)
     lab = _lab(
         tmp_path,
         signing_config,
@@ -189,9 +210,9 @@ def test_an_undeclared_fail_code_still_opens_a_halt_gate(
     assert gate.metadata.halt_reason == f"fail_code:implement:{failed_id}"
 
 
-def test_a_declared_fail_code_without_an_edge_falls_back() -> None:
+def test_a_declared_fail_code_without_an_edge_falls_back(feature_graph: Path) -> None:
     """Declared but unrouted is the graph's fallback, never a dead end."""
-    document = load_definition().document
+    document = load_graph(feature_graph).document
     index = build_index(
         document.model_copy(
             update={
@@ -210,10 +231,19 @@ def test_a_declared_fail_code_without_an_edge_falls_back() -> None:
 
 
 def test_review_fail_plan_survives_a_red_check_but_not_a_rewritten_one(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+    feature_graph: Path,
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
 ) -> None:
     """§7.3 overwrites only success claims — except on verifier provenance."""
-    lab = _lab(tmp_path, signing_config, sign_payload, review=REVIEW_RED_IF_MARKER)
+    lab = _lab(
+        tmp_path,
+        signing_config,
+        sign_payload,
+        toml=feature_graph,
+        review=REVIEW_RED_IF_MARKER,
+    )
     lab.instantiate()
     _implement(lab, _writes(REVIEW_RED_MARKER))
     lab.profiles.next_script(_reviews("fail_plan", findings=False))
@@ -231,10 +261,20 @@ def test_review_fail_plan_survives_a_red_check_but_not_a_rewritten_one(
 
 
 def test_a_rewritten_reviewer_check_overwrites_even_a_failure_claim(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+    feature_graph: Path,
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
 ) -> None:
     """The examinee may not edit its examiner, whatever it claims (§7.3)."""
-    lab = _lab(tmp_path, signing_config, sign_payload)
+    graph = tmp_path / "rewritten-check.toml"
+    graph.write_text(
+        feature_graph.read_text().replace(
+            'allowed_paths = ["src/**", "tests/**"]',
+            'allowed_paths = ["src/**", "tests/**", "scripts/**"]',
+        )
+    )
+    lab = _lab(tmp_path, signing_config, sign_payload, toml=graph)
     lab.instantiate()
     _implement(
         lab,
@@ -265,10 +305,13 @@ def test_a_rewritten_reviewer_check_overwrites_even_a_failure_claim(
 
 
 def test_round_two_review_binds_round_one_findings(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+    feature_graph: Path,
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
 ) -> None:
     """`review_findings` is the reviewer's own prior round (`inputs.py:87-93`)."""
-    lab = _lab(tmp_path, signing_config, sign_payload)
+    lab = _lab(tmp_path, signing_config, sign_payload, toml=feature_graph)
     lab.instantiate()
     _implement(lab, _writes("src/feature.py"))
     lab.profiles.next_script(_reviews("reject"))
@@ -290,7 +333,7 @@ def test_round_two_review_binds_round_one_findings(
     assert findings.producer_activation_id == first_review
 
 
-@pytest.mark.parametrize("path", [VALID_FIXTURE, AUTHORING_FIXTURE])
+@pytest.mark.parametrize("path", [AUTHORING_FIXTURE, SHIPPED_FIXTURE, VALID_FIXTURE])
 def test_both_copies_of_the_graph_still_validate(path: Path) -> None:
     """Slice A's edits keep both copies free of ERROR findings (§2 rule 8)."""
     graph = load_graph(path)
@@ -299,5 +342,5 @@ def test_both_copies_of_the_graph_still_validate(path: Path) -> None:
     assert graph.content_hash == (
         FEATURE_DELIVERY_CONTENT_HASH
         if path == VALID_FIXTURE
-        else load_graph(SHIPPED_FIXTURE).content_hash
+        else SHIPPED_FEATURE_DELIVERY_CONTENT_HASH
     )

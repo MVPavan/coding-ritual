@@ -7,10 +7,10 @@ import pytest
 from workflow_interpreter.schema.loader import GraphValidationError, load_graph
 
 
-def test_declared_decision_loads_as_data_not_an_executable_gate(tmp_path: Path) -> None:
-    text = Path(
-        "workflow_interpreter/fixtures/legacy/feature-delivery.toml"
-    ).read_text()
+def test_declared_decision_loads_as_data_not_an_executable_gate(
+    feature_graph: Path, tmp_path: Path
+) -> None:
+    text = feature_graph.read_text()
     text = text.replace(
         "[instance]",
         "[instance]\ncoordination_limits = {max_members=4, max_activations=500, max_decision_attempts=4, max_replacements=1}",

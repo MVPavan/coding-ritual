@@ -162,6 +162,7 @@ class _Profiles(ProfileResolver):
     def profile_for(self, name: str) -> Profile:
         if name not in self.accepted:
             raise AssertionError(f"unexpected wrapper profile: {name}")
+        self.profile.selected_runner = name.removeprefix(RUNNER_PREFIX)
         return self.profile
 
     def next_script_for_launch(self) -> ChildScript | None:
@@ -203,6 +204,11 @@ class _QueuedProfile(FakeProfile):
         super().__init__(script)
         self._profiles = profiles
         self.tasks: list[TaskSpec] = []
+        self.selected_runner = FAKE_PROFILE
+
+    def name(self) -> str:
+        """Keep the selected vendor identity while replacing its process boundary."""
+        return self.selected_runner
 
     def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
         """Build the next child without consuming a script during settlement."""
@@ -457,13 +463,22 @@ class ForemanLab:
         )
         self._toml = toml
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
+        if any(
+            node.execution_profile is not None for node in self.definition.document.node
+        ):
+            self._roles = {
+                role: binding.model_copy(update={"profile": "claude"})
+                if binding.profile == FAKE_PROFILE
+                else binding
+                for role, binding in self._roles.items()
+            }
         self._build_fresh()
         self.root: RootRecord | None = None
 
     def _accepted_profiles(self) -> frozenset[str]:
         """Every runner name the pinned graph can ask the resolver for."""
         return frozenset(
-            {FAKE_PROFILE}
+            {FAKE_PROFILE, *(binding.profile for binding in self._roles.values())}
             | {f"{RUNNER_PREFIX}{role}" for role in runner_roles(self.definition)}
         )
 

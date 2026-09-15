@@ -22,11 +22,14 @@ Each value is passed through verbatim and validated by the CLI that owns it —
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import StrEnum
 from types import MappingProxyType
 from typing import Annotated, Final
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_serializer
+
+from workflow_interpreter.contracts.execution import RUNNER_PREFIX, RunnerName
+
+__all__ = ["RUNNER_PREFIX", "ProfileConfig", "RunnerName"]
 
 PROFILE_CONFIG_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -39,19 +42,6 @@ None of the three CLIs accepts the literal word `default` as a model name;
 each takes an alias or a full name. The sentinel makes "unset" expressible
 in a `TaskSpec` whose `model` is a required non-optional string, and the
 model flag is then omitted rather than passed a word the CLI would reject."""
-
-RUNNER_PREFIX: Final[str] = "profile:"
-"""§6 records a runner as `runner = "profile:<name>"`; the registry accepts
-either spelling so a bead's `runner_profile` can be looked up directly."""
-
-
-class RunnerName(StrEnum):
-    """The closed set of vendor runners phase 4 implements (§P4)."""
-
-    CLAUDE = "claude"
-    CODEX = "codex"
-    OPENCODE = "opencode"
-
 
 BASE_PASSTHROUGH_ENV: Final[tuple[str, ...]] = (
     "PATH",

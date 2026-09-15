@@ -54,6 +54,7 @@ from workflow_interpreter.foreman.gates import (
 from workflow_interpreter.foreman.inputs import select_bindings
 from workflow_interpreter.foreman.routing import RouteKind, retry_kind, route
 from workflow_interpreter.foreman.supervise import wrapper_alive
+from workflow_interpreter.foreman.verify_feedback import bind_feedback
 from workflow_interpreter.schema.models import NodeKind, Outcome
 from workflow_interpreter.supervisor.models import RecoveryCase
 from workflow_interpreter.supervisor.paths import write_record
@@ -134,6 +135,7 @@ def _request(
         predecessor_activation_id=meta.predecessor_activation_id,
         predecessor_gate_id=meta.predecessor_gate_id,
         inputs=meta.inputs,
+        deviations=meta.deviations,
     )
 
 
@@ -216,9 +218,7 @@ def _mint_successor(
         predecessor_gate_id=predecessor_gate_id,
         round_no=round_no,
     )
-    from workflow_interpreter.foreman.verify_feedback import bind_feedback
-
-    request = bind_feedback(composition.git, wiring, root, request)
+    request = bind_feedback(composition.git, wiring, root, request, composition.clock)
     try:
         minted = wiring.store.mint_activation(root.root_id, request).activation
     except BoundExceededError as exc:

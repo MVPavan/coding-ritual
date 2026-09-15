@@ -1,6 +1,7 @@
 """Causal, immutable host diagnostics survive rework and wrapper cleanup."""
 
 import json
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 import pytest
@@ -397,3 +398,66 @@ def test_payload_digest_detects_replaced_blob_even_when_ref_matches(
     binding = binding.model_copy(update={"verify_failure": proof})
     with pytest.raises(InputsUnavailable, match="causal host failure"):
         materialize(lab.git, lab.repo, root, binding, source)
+
+
+@pytest.mark.parametrize("boundary", ["blob", "ref"])
+def test_optional_pin_creation_failure_degrades_with_visible_deviation(
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
+    monkeypatch: pytest.MonkeyPatch,
+    boundary: str,
+) -> None:
+    """A failed initial pin leaves a dispatchable, auditable optional omission."""
+    from workflow_interpreter.foreman import __main__ as main_module
+    from workflow_interpreter.supervisor.gitcmd import GitResult, GitSubcommand
+    from workflow_interpreter.supervisor.gitio import Git
+
+    lab = _lab(
+        tmp_path,
+        signing_config,
+        sign_payload,
+        toml=feedback_graph(tmp_path),
+        verify=RED_IF_MARKER,
+    )
+    root = lab.instantiate()
+    _implement(lab, _writes(RED_MARKER))
+    original = Git.run
+
+    def fail_pin(
+        self: Git,
+        command: GitSubcommand,
+        *args: str,
+        cwd: Path,
+        check: bool = True,
+        env: Mapping[str, str] | None = None,
+        config: Sequence[str] = (),
+    ) -> GitResult:
+        """Fail only the optional feedback write at the Git boundary."""
+        if (
+            boundary == "blob"
+            and command is GitSubcommand.HASH_OBJECT
+            or boundary == "ref"
+            and command is GitSubcommand.UPDATE_REF
+            and any("/verify-failure/" in arg for arg in args)
+        ):
+            raise OSError("injected pin write failure")
+        return original(
+            self, command, *args, cwd=cwd, check=check, env=env, config=config
+        )
+
+    monkeypatch.setattr(Git, "run", fail_pin)
+    report = lab.tick()
+    assert report.stalled is None and report.opened_gate is None
+    assert report.dispatched is not None
+    activation = lab.store.reads.load_activation(report.dispatched)
+    assert not any(b.name == "verify_failure" for b in activation.metadata.inputs)
+    deviation = next(
+        d
+        for d in activation.metadata.deviations
+        if d.kind == "verify_feedback_unpinned"
+    )
+    assert "injected pin write failure" in deviation.reason
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
+    assert "verify_feedback_unpinned" in transcript

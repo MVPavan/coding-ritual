@@ -23,6 +23,7 @@ import structlog
 from workflow_interpreter.bdio import finalize, reads
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
+from workflow_interpreter.bdio.feedback import MSG_CONSUMER
 from workflow_interpreter.bdio.records import RootRecord, parse_root
 from workflow_interpreter.bdio.wire import (
     KEY_SUPERSEDED_BY,
@@ -39,11 +40,12 @@ from workflow_interpreter.bdio.wire import (
 )
 from workflow_interpreter.contracts.execution import (
     EXECUTION_POLICY_KEY,
+    MSG_KNOWN_RUNNER,
     MSG_PROFILE_WRITES,
     policy_for,
 )
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
-from workflow_interpreter.schema.models import GraphDefinition, NodeKind
+from workflow_interpreter.schema.models import EngineProducer, GraphDefinition, NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -170,9 +172,12 @@ def pin_execution_policies(
         ):
             raise CarrierIntegrityError(MSG_PROFILE_WRITES)
         runner = execution_settings.get(NodeSetting.RUNNER.at(node.name))
-        execution_policy = policy_for(
-            node.execution_profile, str(runner.value) if runner else ""
-        )
+        if runner is None or not isinstance(runner.value, str):
+            raise CarrierIntegrityError(MSG_KNOWN_RUNNER.format(runner=runner))
+        try:
+            execution_policy = policy_for(node.execution_profile, runner.value)
+        except ValueError as error:
+            raise CarrierIntegrityError(str(error)) from error
         key = EXECUTION_POLICY_KEY.format(node=node.name)
         expected = execution_policy.model_dump_json()
         if key in execution_settings and execution_settings[key].value != expected:
@@ -220,8 +225,6 @@ def create_root(
             )
         )
     definition = validated_definition
-    from workflow_interpreter.bdio.feedback import MSG_CONSUMER
-    from workflow_interpreter.schema.models import EngineProducer
 
     values = {item.key: item.value for item in resolved_config}
     engine_sources = {

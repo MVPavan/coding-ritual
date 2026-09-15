@@ -16,7 +16,10 @@ from workflow_interpreter.bdio import (
     ResolvedSetting,
 )
 from workflow_interpreter.bdio.records import RootRecord
-from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
+from workflow_interpreter.bdio.roots import (
+    MAX_INSTANCE_INPUT_BYTES,
+    pin_execution_policies,
+)
 from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
@@ -463,7 +466,6 @@ def _resolved_config(
                 value=template.model_dump_json(),
                 source=ConfigSource.GRAPH_DEFAULT,
             )
-    from workflow_interpreter.bdio.roots import pin_execution_policies
 
     return pin_execution_policies(
         definition, tuple(settings[key] for key in sorted(settings))

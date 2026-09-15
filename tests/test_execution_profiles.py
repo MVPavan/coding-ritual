@@ -89,7 +89,20 @@ def test_named_root_pins_policy_and_legacy_body_stays_unchanged(
     before = canonical_bytes(legacy.document)
     assert canonical_bytes(load_pinned_body(before).document) == before
     graph = load_graph(named_graph(tmp_path))
-    root = make_root(fake_store, graph)
+    from workflow_interpreter.bdio import ConfigSource, ResolvedSetting
+
+    root = make_root(
+        fake_store,
+        graph,
+        *(
+            ResolvedSetting(
+                key=f"node.{name}.runner",
+                value="claude",
+                source=ConfigSource.ROLE_BINDING,
+            )
+            for name in ("implement", "review")
+        ),
+    )
     policy = resolved_node(root, "review").execution_policy
     assert isinstance(policy, ExecutionPolicy)
     assert policy.name is ExecutionProfileName.REVIEWER
@@ -198,6 +211,11 @@ def test_named_launch_and_resume_share_grants(
         assert writable_roots_in(launch.argv) == grants.writable_directories
         assert writable_roots_in(resume.argv) == grants.writable_directories
     else:
+        if name is ExecutionProfileName.REVIEWER:
+            tools = launch.argv[
+                launch.argv.index("--tools") + 1 : launch.argv.index("--allowedTools")
+            ]
+            assert set(tools) == {"Read", "Glob", "Grep", "Bash"}
         assert (
             launch.argv[launch.argv.index("--tools") :]
             == (resume.argv[resume.argv.index("--tools") :])
@@ -242,3 +260,169 @@ def test_named_reviewer_refuses_private_grant_escape(
         )
     with pytest.raises(SandboxPathRefused, match="private roots"):
         resolve_grants(task, plan, "codex")
+
+
+@pytest.mark.parametrize("runner", [None, "unknown-runner", ""])
+def test_named_pin_requires_known_runner(tmp_path: Path, runner: str | None) -> None:
+    """A missing or unknown runner never becomes a not-enforced network fact."""
+    from workflow_interpreter.bdio import CarrierIntegrityError, ConfigSource
+    from workflow_interpreter.bdio.roots import pin_execution_policies
+    from workflow_interpreter.bdio.wire import NodeSetting, ResolvedSetting
+
+    graph = load_graph(named_graph(tmp_path))
+    settings = tuple(
+        ResolvedSetting(
+            key=NodeSetting.RUNNER.at(node.name),
+            value=runner,
+            source=ConfigSource.GRAPH_DEFAULT,
+        )
+        for node in graph.document.node
+        if node.execution_profile is not None and runner is not None
+    )
+    with pytest.raises(CarrierIntegrityError, match="known runner"):
+        pin_execution_policies(graph, settings)
+
+
+def test_network_capability_is_declared_for_every_registered_runner() -> None:
+    """Registry additions must have an explicit network capability."""
+    from workflow_interpreter.profiles import RunnerName
+    from workflow_interpreter.profiles.registry import BUILDERS
+
+    assert {runner: runner.tool_network for runner in BUILDERS} == {
+        RunnerName.CODEX: ToolNetwork.DENIED,
+        RunnerName.CLAUDE: ToolNetwork.NOT_ENFORCED,
+        RunnerName.OPENCODE: ToolNetwork.NOT_ENFORCED,
+    }
+
+
+@pytest.mark.parametrize(
+    "field", ["checkout_write_dirs", "read_only_roots", "git_dirs", "read_only_pins"]
+)
+def test_named_plan_revalidates_supplied_grants(tmp_path: Path, field: str) -> None:
+    """Pre-resolved grants cannot substitute unchecked roots or omit Git pins."""
+    from tests._profiles import make_supervisor_config, make_task
+    from workflow_interpreter.contracts.execution import policy_for
+    from workflow_interpreter.supervisor.errors import SandboxPathRefused
+    from workflow_interpreter.supervisor.execution import resolve_grants
+    from workflow_interpreter.supervisor.sandbox import plan_for
+
+    task = make_task(tmp_path, writes=True)
+    task = task.model_copy(
+        update={
+            "execution_profile": ExecutionProfileName.WRITER,
+            "execution_policy": policy_for(ExecutionProfileName.WRITER, "codex"),
+        }
+    )
+    config = make_supervisor_config(tmp_path)
+    kwargs = {
+        "repo_root": config.repo_root,
+        "wrapper_root": config.wrapper_root,
+        "channels_dir": Path(task.channels.outcome_file).parent,
+    }
+    plan = plan_for(task, **kwargs)
+    grants = resolve_grants(task, plan, "codex")
+    changed = () if field == "read_only_pins" else (str(tmp_path / "unchecked"),)
+    task = task.model_copy(
+        update={"execution_grants": grants.model_copy(update={field: changed})}
+    )
+    with pytest.raises(SandboxPathRefused):
+        plan_for(task, **kwargs)
+
+
+def test_named_codex_in_repo_refusal_keeps_runner_error(tmp_path: Path) -> None:
+    """Unsupported Codex isolation retains its actionable runner refusal."""
+    from tests._profiles import make_supervisor_config, make_task
+    from workflow_interpreter.contracts.execution import policy_for
+    from workflow_interpreter.profiles.errors import UnsupportedOptionError
+    from workflow_interpreter.supervisor.execution import resolve_grants
+    from workflow_interpreter.supervisor.sandbox import plan_for
+
+    task = make_task(tmp_path, writes=True)
+    config = make_supervisor_config(tmp_path)
+    task = task.model_copy(
+        update={
+            "cwd": str(config.repo_root),
+            "checkout_read_root": str(config.repo_root),
+            "execution_profile": ExecutionProfileName.WRITER,
+            "execution_policy": policy_for(ExecutionProfileName.WRITER, "codex"),
+        }
+    )
+    plan = plan_for(
+        task,
+        repo_root=config.repo_root,
+        wrapper_root=config.wrapper_root,
+        channels_dir=Path(task.channels.outcome_file).parent,
+    )
+    with pytest.raises(UnsupportedOptionError, match="in-repo"):
+        resolve_grants(task, plan, "codex")
+
+
+def test_named_dispatch_requires_pinned_policy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dispatch cannot quietly derive authority when a builder forgets its pin."""
+    from tests import _profiles
+    from workflow_interpreter.profiles import RunnerName
+    from workflow_interpreter.profiles.errors import TaskRefused
+
+    original = _profiles.task_builder
+
+    from workflow_interpreter.schema.models import Node
+    from workflow_interpreter.supervisor.launch import TaskBuilder
+
+    def unpinned(
+        cwd: Path,
+        node: Node,
+        *,
+        effort: str | None = "medium",
+        execution_policy: ExecutionPolicy | None = None,
+    ) -> TaskBuilder:
+        """Simulate a builder that drops the persisted policy."""
+        build = original(cwd, node, effort=effort, execution_policy=execution_policy)
+        return lambda activation, channels: build(activation, channels).model_copy(
+            update={"execution_policy": None}
+        )
+
+    monkeypatch.setattr(_profiles, "task_builder", unpinned)
+    lab = Lab(tmp_path)
+    with pytest.raises(TaskRefused, match="pinned policy"):
+        lab.run(RunnerName.CODEX, execution_profile=ExecutionProfileName.WRITER)
+
+
+@pytest.mark.parametrize("mismatch", ["network", "name", "writes"])
+def test_policy_mismatch_names_pinned_and_expected_contracts(
+    tmp_path: Path, mismatch: str
+) -> None:
+    """A policy refusal describes both contracts rather than an opaque mismatch."""
+    from tests._profiles import make_supervisor_config, make_task
+    from workflow_interpreter.contracts.execution import policy_for
+    from workflow_interpreter.supervisor.errors import SandboxPathRefused
+    from workflow_interpreter.supervisor.execution import resolve_grants
+    from workflow_interpreter.supervisor.sandbox import plan_for
+
+    expected = policy_for(ExecutionProfileName.WRITER, "codex")
+    pinned = (
+        policy_for(ExecutionProfileName.REVIEWER, "codex")
+        if mismatch == "name"
+        else policy_for(ExecutionProfileName.WRITER, "claude")
+        if mismatch == "network"
+        else expected
+    )
+    task = make_task(tmp_path, writes=True).model_copy(
+        update={
+            "execution_profile": ExecutionProfileName.WRITER,
+            "execution_policy": pinned,
+            "writes": mismatch != "writes",
+        }
+    )
+    config = make_supervisor_config(tmp_path)
+    plan = plan_for(
+        task,
+        repo_root=config.repo_root,
+        wrapper_root=config.wrapper_root,
+        channels_dir=Path(task.channels.outcome_file).parent,
+    )
+    with pytest.raises(SandboxPathRefused) as error:
+        resolve_grants(task, plan, "codex")
+    assert f"pinned={pinned.model_dump_json()}" in str(error.value)
+    assert f"expected={expected.model_dump_json()}" in str(error.value)

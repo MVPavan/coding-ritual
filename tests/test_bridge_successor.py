@@ -127,7 +127,7 @@ def test_integration_successor_crash_repaired_by_normal_stage_entry(
 
 @pytest.mark.parametrize("mode", ["trusted", "p2"])
 def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
-    tmp_path, monkeypatch, signing_config, sign_payload, mode
+    feature_graph: Path, tmp_path, monkeypatch, signing_config, sign_payload, mode
 ):
     from tests._supervisor import ChildScript
     from tests.test_foreman_main import _bridge_adapter, _bridge_lab, _bridge_stage
@@ -142,9 +142,7 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
 
     graph = tmp_path / "ordinary.toml"
     graph.write_text(
-        Path("workflow_interpreter/fixtures/legacy/feature-delivery.toml")
-        .read_text()
-        .replace(
+        feature_graph.read_text().replace(
             "[instance]",
             "[instance]\ncoordination_limits = {max_members=3, max_activations=60, max_decision_attempts=2, max_replacements=1}",
         )
@@ -155,8 +153,8 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
             'name          = "review"\ncontext_budget_bytes = 32000\ndecision = {triggers=["fail_plan"], actions=["replace"], replacement_input="revision", decision_task={runner="profile:critic", model="test", instructions="Decide.", verify=[{cmd="scripts/verify-feature.sh",timeout="10s"}], context_budget_bytes=16000, max_wall="30s", stale_after="10s", max_infra_retries=0, max_steers=0, max_total_activations=2}}',
         )
         text = text.replace(
-            '["task_brief", "diff_artifact", "review_findings"]',
-            '["task_brief", "diff_artifact", "review_findings", "revision"]',
+            '"task_brief", "diff_artifact", "review_findings"',
+            '"task_brief", "diff_artifact", "review_findings", "revision"',
         )
         text += '\n[[source]]\nname="revision"\nproducer="instance"\noptional=true\ntrim_priority=99\n'
         graph.write_text(text)
@@ -165,7 +163,7 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
         toml=graph,
         signing=signing_config,
         signer=sign_payload,
-        sandbox=SandboxMode.OFF,
+        sandbox=SandboxMode.BWRAP,
     )
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="Implement feature")
     monkeypatch.setattr(

@@ -68,6 +68,7 @@ READ_ONLY_TOOLS: Final[tuple[str, ...]] = (*READ_TOOLS, "Write")
 channels writable regardless of `writes`, so a reviewer that cannot write has
 no way to report and every review would grade `fail_code` (zero markers). The
 allow-rules below are what keep that `Write` inside the wrapper directory."""
+REVIEW_TOOLS: Final[tuple[str, ...]] = (*READ_TOOLS, "Bash")
 WRITE_TOOLS: Final[tuple[str, ...]] = (*READ_TOOLS, "Edit", "Write", "Bash")
 
 GIT_DIR_SEGMENT: Final[str] = ".git"
@@ -270,7 +271,7 @@ class ClaudeProfile(BaseProfile):
         cwd = require_absolute(self.runner, "task cwd", task.cwd)
         return [
             TOOLS,
-            *WRITE_TOOLS,
+            *(WRITE_TOOLS if task.writes else REVIEW_TOOLS),
             ALLOWED_TOOLS,
             *READ_TOOLS,
             "Bash",

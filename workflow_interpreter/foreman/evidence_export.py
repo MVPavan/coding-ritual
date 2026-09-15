@@ -24,6 +24,7 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.envelope import InputsUnavailable
 from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.verify_feedback import read_payload
 from workflow_interpreter.schema.models import EngineProducer
 from workflow_interpreter.supervisor.errors import GitCommandError
 from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
@@ -317,7 +318,6 @@ def _export_feedback(
     producer: ActivationRecord,
 ) -> str:
     """Publish verified diagnostic bytes through the same protected evidence boundary."""
-    from workflow_interpreter.foreman.verify_feedback import read_payload
 
     body = read_payload(git, repo_root, root, binding, producer)
     proof = binding.verify_failure

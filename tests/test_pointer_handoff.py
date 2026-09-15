@@ -121,15 +121,13 @@ def _with_reports(producer, git, repo: Path, ref: str, commit: str):
 
 
 def test_mode_is_task_only_and_absent_mode_keeps_legacy_canonical_bytes(
-    fake_store, tmp_path: Path
+    feature_graph: Path, fake_store, tmp_path: Path
 ) -> None:
     root = make_root(fake_store, load_definition())
     assert b"artifact_input_mode" not in canonical_bytes(root.definition.document)
     invalid = tmp_path / "invalid.toml"
     invalid.write_text(
-        Path("workflow_interpreter/fixtures/legacy/feature-delivery.toml")
-        .read_text(encoding="utf-8")
-        .replace(
+        feature_graph.read_text(encoding="utf-8").replace(
             'name      = "ship"\nkind      = "gate"',
             'name      = "ship"\nkind      = "gate"\nartifact_input_mode = "references"',
         ),

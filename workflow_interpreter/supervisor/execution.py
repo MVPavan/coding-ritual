@@ -3,17 +3,21 @@
 from pathlib import Path
 
 from workflow_interpreter.contracts.execution import (
+    MSG_CODEX_IN_REPO,
     MSG_POLICY_MISMATCH,
     MSG_PRIVATE_GRANTS,
     ExecutionGrants,
     ExecutionPolicy,
     ExecutionProfileName,
+    RunnerName,
     ToolNetwork,
     policy_for,
 )
+from workflow_interpreter.profiles.errors import UnsupportedOptionError
 from workflow_interpreter.supervisor.errors import SandboxPathRefused
 from workflow_interpreter.supervisor.profile import TaskSpec
 from workflow_interpreter.supervisor.sandbox import (
+    GIT_ENTRY,
     SandboxPlan,
     worktree_git_write_roots,
 )
@@ -29,14 +33,17 @@ __all__ = [
 
 def resolve_grants(task: TaskSpec, plan: SandboxPlan, runner: str) -> ExecutionGrants:
     """Bind named policy to this activation's exact, nonredirected private paths."""
+    runner_name = RunnerName.from_profile(runner)
     policy = task.execution_policy
-    if (
-        policy is None
-        or policy.name != task.execution_profile
-        or policy.writes != task.writes
-        or policy != policy_for(policy.name, runner)
-    ):
+    if policy is None or task.execution_profile is None:
         raise SandboxPathRefused(MSG_POLICY_MISMATCH)
+    expected = policy_for(task.execution_profile, runner_name)
+    if policy != expected or task.writes != expected.writes:
+        raise SandboxPathRefused(
+            f"{MSG_POLICY_MISMATCH}: pinned={policy.model_dump_json()}; "
+            f"runner={runner_name.value}, expected={expected.model_dump_json()}; "
+            f"task writes={task.writes}"
+        )
     checkout = Path(task.checkout_read_root or task.cwd)
     channels = Path(task.channels.outcome_file).parent
     scratch = Path(task.channels.scratch_dir or channels / "scratch")
@@ -59,9 +66,15 @@ def resolve_grants(task: TaskSpec, plan: SandboxPlan, runner: str) -> ExecutionG
         raise SandboxPathRefused(MSG_PRIVATE_GRANTS)
     if not policy.writes and (plan.grants or plan.git_rw):
         raise SandboxPathRefused(MSG_POLICY_MISMATCH)
-    if policy.writes and runner == "codex":
+    if policy.writes and runner_name is RunnerName.CODEX:
+        if (checkout / GIT_ENTRY).is_dir():
+            raise UnsupportedOptionError(
+                MSG_CODEX_IN_REPO.format(node=task.node, checkout=checkout)
+            )
         worktree_git_write_roots(checkout, task.root_id)
-    cwd = channels if runner == "codex" and not policy.writes else checkout
+    cwd = (
+        channels if runner_name is RunnerName.CODEX and not policy.writes else checkout
+    )
     return ExecutionGrants(
         policy=policy,
         checkout_read_root=str(checkout),

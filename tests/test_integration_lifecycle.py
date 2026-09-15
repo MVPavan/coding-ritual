@@ -332,6 +332,10 @@ trim_priority = 1
     assert entries[1]["writer_activations"]
 
     class CombiningProfile(FakeProfile):
+        def name(self) -> str:
+            """Keep the registered vendor identity pinned by the integration root."""
+            return "claude"
+
         def build_command(self, task, session_id):
             assert manifest in task.brief
             script = """

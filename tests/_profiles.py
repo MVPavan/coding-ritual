@@ -50,7 +50,11 @@ from tests._supervisor import (
     node_of,
 )
 from workflow_interpreter.bdio import ActivationRecord, MintRequest, ProcessHandle
-from workflow_interpreter.contracts.execution import ExecutionProfileName
+from workflow_interpreter.contracts.execution import (
+    ExecutionPolicy,
+    ExecutionProfileName,
+    policy_for,
+)
 from workflow_interpreter.profiles import ProfileConfig, ProfileRegistry, RunnerName
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
@@ -586,6 +590,7 @@ def task_builder(
     node: Node,
     *,
     effort: str | None = "medium",
+    execution_policy: ExecutionPolicy | None = None,
 ) -> TaskBuilder:
     """A `TaskBuilder` that supplies a brief, which a real profile requires."""
 
@@ -598,6 +603,7 @@ def task_builder(
             effort=effort,
             writes=bool(node.writes),
             execution_profile=node.execution_profile,
+            execution_policy=execution_policy,
             checkout_read_root=str(cwd),
             allowed_paths=node.allowed_paths or (),
             cwd=str(cwd),
@@ -719,7 +725,13 @@ class Lab:
             request or entry_mint(session_id=str(uuid.uuid4())),
             node,
             registry.profile_for(runner.value),
-            task_builder(self.paths.worktree, node),
+            task_builder(
+                self.paths.worktree,
+                node,
+                execution_policy=policy_for(execution_profile, runner)
+                if execution_profile is not None
+                else None,
+            ),
             pinned_digests=pinned_verifier_digests(self.root),
         )
 

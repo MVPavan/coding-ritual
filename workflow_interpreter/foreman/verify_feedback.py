@@ -9,12 +9,17 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.bdio import (
     ActivationRecord,
+    Deviation,
     Evidence,
     InputBinding,
     RootRecord,
 )
 from workflow_interpreter.bdio.carriers import VerifyFailureBinding
-from workflow_interpreter.bdio.feedback import MSG_BINDING, causal_failure
+from workflow_interpreter.bdio.feedback import (
+    DEVIATION_VERIFY_UNPINNED,
+    MSG_BINDING,
+    causal_failure,
+)
 from workflow_interpreter.bdio.wire import MintRequest
 from workflow_interpreter.foreman.compose import InstanceWiring
 from workflow_interpreter.foreman.constants import (
@@ -24,6 +29,7 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.envelope import InputsUnavailable
 from workflow_interpreter.schema.models import EngineProducer, Outcome
+from workflow_interpreter.supervisor.clock import Clock, to_iso
 from workflow_interpreter.supervisor.errors import GitCommandError
 from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
 from workflow_interpreter.supervisor.gitio import Git
@@ -174,7 +180,11 @@ def bounded_payload(
 
 
 def bind_feedback(
-    git: Git, wiring: InstanceWiring, root: RootRecord, request: MintRequest
+    git: Git,
+    wiring: InstanceWiring,
+    root: RootRecord,
+    request: MintRequest,
+    clock: Clock,
 ) -> MintRequest:
     """Pin the causal host completion before an activation's mint becomes durable."""
     names = tuple(
@@ -226,6 +236,9 @@ def bind_feedback(
         body = bounded_payload(
             root.root_id, source.activation_id, completion, recorded_evidence=recorded
         )
+    except (OSError, ValueError) as error:
+        raise InputsUnavailable(MSG_VERIFY_PIN_FAILURE.format(error=error)) from error
+    try:
         with tempfile.NamedTemporaryFile() as temporary:
             temporary.write(body)
             temporary.flush()
@@ -246,7 +259,20 @@ def bind_feedback(
         )
         git.update_ref(proof.ref, oid, cwd=wiring.repo_root)
     except (OSError, ValueError, GitCommandError) as error:
-        raise InputsUnavailable(MSG_VERIFY_PIN_FAILURE.format(error=error)) from error
+        # No binding has been recorded: this optional source can be omitted.
+        # Existing bindings are read by read_payload, which still refuses damage.
+        return request.model_copy(
+            update={
+                "deviations": (
+                    *request.deviations,
+                    Deviation(
+                        kind=DEVIATION_VERIFY_UNPINNED,
+                        reason=MSG_VERIFY_PIN_FAILURE.format(error=error),
+                        recorded_at=to_iso(clock.now()),
+                    ),
+                )
+            }
+        )
     bindings = tuple(
         InputBinding(
             name=name,

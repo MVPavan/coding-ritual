@@ -84,9 +84,10 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.preflight import steer_ancestor_of
 from workflow_interpreter.contracts.execution import (
     MSG_NAMED_SANDBOX,
+    MSG_PINNED_POLICY,
     ExecutionGrants,
-    policy_for,
 )
+from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.clock import Clock, to_iso
@@ -99,6 +100,7 @@ from workflow_interpreter.supervisor.errors import (
     SandboxUnavailable,
     WrapperDirError,
 )
+from workflow_interpreter.supervisor.execution import resolve_grants
 from workflow_interpreter.supervisor.models import (
     RECORD_MODEL,
     ExecLedgerEntry,
@@ -936,10 +938,10 @@ class Dispatcher:
             else build_task(activation, channels)
         )
         if task.execution_profile is not None:
+            if task.execution_policy is None:
+                raise TaskRefused(MSG_PINNED_POLICY)
             task = task.model_copy(
                 update={
-                    "execution_policy": task.execution_policy
-                    or policy_for(task.execution_profile, profile.name()),
                     "checkout_read_root": task.checkout_read_root or task.cwd,
                 }
             )
@@ -955,8 +957,6 @@ class Dispatcher:
             update={"ro_pins": (*plan.ro_pins, *seed.protected_roots)}
         )
         if task.execution_profile is not None:
-            from workflow_interpreter.supervisor.execution import resolve_grants
-
             grants = resolve_grants(task, plan, profile.name())
             task = task.model_copy(
                 update={"execution_grants": grants, "cwd": grants.process_cwd}
@@ -967,6 +967,7 @@ class Dispatcher:
                 wrapper_root=self._paths.config.wrapper_root,
                 channels_dir=Path(grants.channels),
                 binary=plan.binary,
+                protected_roots=seed.protected_roots,
             )
         # §5.2: the session id is PRE-ASSIGNED by the profile and never
         # discovered from output. `prepare` is its ONLY minter — the foreman

@@ -668,6 +668,11 @@ def _run(
         "execution_contracts": execution_status(
             composition.for_root(root.root_id).paths, tuple(view.activations)
         ),
+        "deviations": {
+            a.activation_id: [d.model_dump(mode="json") for d in a.metadata.deviations]
+            for a in view.activations.values()
+            if a.metadata.deviations
+        },
         "input_envelopes": {
             a.activation_id: a.metadata.envelope
             for a in view.activations.values()

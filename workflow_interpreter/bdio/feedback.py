@@ -9,6 +9,8 @@ from workflow_interpreter.bdio.records import ActivationRecord, GateRecord, Root
 from workflow_interpreter.bdio.wire import MintRequest, NodeSetting, resolved_settings
 from workflow_interpreter.schema.models import EngineProducer, Outcome
 
+DEVIATION_VERIFY_UNPINNED: Final[str] = "verify_feedback_unpinned"
+
 MSG_BINDING: Final[str] = (
     "verify_failure binding does not match its causal host failure"
 )
@@ -123,6 +125,10 @@ def validate_feedback_bindings(
     if source is None:
         if bound:
             raise CarrierIntegrityError(MSG_BINDING)
+        return
+    if not bound and any(
+        d.kind == DEVIATION_VERIFY_UNPINNED for d in request.deviations
+    ):
         return
     if {b.name for b in bound} != names or len(bound) != len(names):
         raise CarrierIntegrityError(MSG_BINDING)

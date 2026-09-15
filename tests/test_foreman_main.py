@@ -20,7 +20,6 @@ from tests._foreman import ForemanLab
 from tests._foreman import entry_request as foreman_entry_request
 from tests._helpers import (
     AMBIGUOUS_ABANDON_EDITS,
-    LEGACY_BUILD_LOOP_GRAPH,
     VALID_FIXTURE,
     mutate,
     unnameable_abandon_graph,
@@ -1088,10 +1087,10 @@ def test_phase_bridge_refuses_without_a_configured_bridge_graph(
 
 
 def test_phase_bridge_refuses_a_configured_required_input_it_cannot_supply(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    build_loop_graph: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Only task_brief is bridge-owned; another required input costs no root."""
-    lab = _bridge_lab(tmp_path, toml=LEGACY_BUILD_LOOP_GRAPH)
+    lab = _bridge_lab(tmp_path, toml=build_loop_graph)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(

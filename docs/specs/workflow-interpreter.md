@@ -635,7 +635,6 @@ before older tails. Attempt exit codes are not invented. Ordinary composer
 budgeting counts the source and its label, records inclusion or omission, and
 preserves trim priority. Host grading, rounds and gate semantics are unchanged.
 
-
 Default: the rejected attempt's tree state is abandoned (next dispatch's
 precondition resets to the recorded `intended_base_commit`); the lesson
 crosses as data — (a) intra-session failure (`fail_code`/`fail_plan` from

@@ -45,10 +45,13 @@ VARIANT_SEPARATOR: Final[str] = "__"
 # no whitespace, or the comma-separated list several templates interpolate.
 MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 
-# Current shipped example hash (§3.1). Versioned authoring edits update this
-# expectation; admitted instances retain their own immutable body and hash.
+# Historical feature-delivery pin. Existing instances retain these exact bytes.
 FEATURE_DELIVERY_CONTENT_HASH = (
     "c929cb817742c2b5684aa4e4b5451a89865734b8fc86148ed02303166ebb458b"
+)
+
+SHIPPED_FEATURE_DELIVERY_CONTENT_HASH = (
+    "e15e71d0d0b2d5db1ed39180fc66eac9717e117697127bd06b41a377ac4df021"
 )
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
@@ -175,11 +178,11 @@ UNDECLARED_FAIL_CODE_EDITS: Final[tuple[tuple[str, str], ...]] = (
 )
 
 
-def undeclared_fail_code_graph(directory: Path) -> Path:
+def undeclared_fail_code_graph(directory: Path, source: Path = VALID_FIXTURE) -> Path:
     """The §2 fixture with `implement`'s `fail_code` outcome and edge removed."""
     return write(
         directory,
-        mutate(VALID_FIXTURE.read_text(encoding="utf-8"), UNDECLARED_FAIL_CODE_EDITS),
+        mutate(source.read_text(encoding="utf-8"), UNDECLARED_FAIL_CODE_EDITS),
         "undeclared-fail-code.toml",
     )
 

@@ -29,6 +29,8 @@ from workflow_interpreter.foreman.errors import (
 )
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RUNNER_PREFIX
 from workflow_interpreter.schema.models import Node, NodeKind
+from workflow_interpreter.supervisor.models import LaunchReceipt
+from workflow_interpreter.supervisor.paths import read_record
 
 if TYPE_CHECKING:
     from workflow_interpreter.supervisor.paths import WrapperPaths
@@ -207,8 +209,6 @@ def execution_status(
     paths: WrapperPaths, activation_ids: tuple[str, ...]
 ) -> dict[str, object]:
     """Expose recorded launch policy without inferring enforcement from live config."""
-    from workflow_interpreter.supervisor.models import LaunchReceipt
-    from workflow_interpreter.supervisor.paths import read_record
 
     result: dict[str, object] = {}
     for activation_id in activation_ids:

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._foreman import DEFAULT_LAB_ROLES
 from tests.test_children_process import writer_lab
 from tests.test_foreman_main import _bridge_adapter, _bridge_stage
 from workflow_interpreter.foreman.decisions import admission_of
@@ -15,7 +16,14 @@ from workflow_interpreter.foreman.decisions import admission_of
 def source_lab(tmp_path: Path):
     from workflow_interpreter.supervisor.sandbox import SandboxMode
 
-    lab, owner, composition, spawner = writer_lab(tmp_path, sandbox=SandboxMode.BWRAP)
+    lab, owner, composition, spawner = writer_lab(
+        tmp_path,
+        sandbox=SandboxMode.BWRAP,
+        roles={
+            role: binding.model_copy(update={"profile": "claude"})
+            for role, binding in DEFAULT_LAB_ROLES.items()
+        },
+    )
     from workflow_interpreter.bridge.verification import CheckCommand
 
     composition = replace(

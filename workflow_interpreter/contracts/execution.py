@@ -31,6 +31,38 @@ class ToolNetwork(StrEnum):
     NOT_ENFORCED = "not_enforced"
 
 
+RUNNER_PREFIX: Final[str] = "profile:"
+MSG_KNOWN_RUNNER: Final[str] = (
+    "named execution policy requires a known runner: {runner!r}"
+)
+MSG_PINNED_POLICY: Final[str] = "named execution_profile requires a pinned policy"
+
+
+class RunnerName(StrEnum):
+    """Registered vendor identities, each with an explicit network capability."""
+
+    CLAUDE = "claude"
+    CODEX = "codex"
+    OPENCODE = "opencode"
+
+    @property
+    def tool_network(self) -> ToolNetwork:
+        """Return the declared fact; additions cannot inherit an implicit fallback."""
+        return {
+            RunnerName.CLAUDE: ToolNetwork.NOT_ENFORCED,
+            RunnerName.CODEX: ToolNetwork.DENIED,
+            RunnerName.OPENCODE: ToolNetwork.NOT_ENFORCED,
+        }[self]
+
+    @classmethod
+    def from_profile(cls, value: str) -> "RunnerName":
+        """Validate the bare or profile-prefixed spelling at a boundary."""
+        try:
+            return cls(value.removeprefix(RUNNER_PREFIX))
+        except ValueError as error:
+            raise ValueError(MSG_KNOWN_RUNNER.format(runner=value)) from error
+
+
 class ExecutionPolicy(BaseModel):
     """The immutable meaning pinned when a named node enters an instance."""
 
@@ -53,9 +85,7 @@ def policy_for(name: ExecutionProfileName, runner: str) -> ExecutionPolicy:
     return ExecutionPolicy(
         name=name,
         writes=name is ExecutionProfileName.WRITER,
-        tool_network=ToolNetwork.DENIED
-        if runner == "codex"
-        else ToolNetwork.NOT_ENFORCED,
+        tool_network=RunnerName.from_profile(runner).tool_network,
     )
 
 
@@ -88,3 +118,15 @@ class ExecutionGrants(BaseModel):
                 )
             )
         )
+
+
+MSG_CODEX_IN_REPO: Final[str] = (
+    "codex: node {node!r} writes and its checkout {checkout} is an in-repo "
+    "band checkout, which this runner cannot be bounded for. `git add` creates "
+    "`index.lock` directly inside `<C>/.git`, and that same directory holds "
+    "`config`, `hooks/` and `info/` — the surface that names PROGRAMS the "
+    "wrapper's own git later executes. `sandbox_workspace_write` grants whole "
+    "directories and has no key that takes a subdirectory back, so granting the "
+    "one would grant the others. Run this node in §5.4 worktree isolation, or "
+    "bind the role to a runner whose permission layer is path-exact."
+)
