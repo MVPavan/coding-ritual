@@ -126,9 +126,8 @@ def test_two_independent_lexical_startups_share_one_isolated_database(
 def test_interrupted_update_recovers_after_observable_execution(qmd_state: QmdState) -> None:
     """Kill an update only after it reports execution, then recover search/get."""
     for position in range(80):
-        content = (
-            f"# Bulk {position}\n\ninterruptiblelexicalneedle {position}\n"
-            + ("payload " * 1200)
+        content = f"# Bulk {position}\n\ninterruptiblelexicalneedle {position}\n" + (
+            "payload " * 1200
         )
         (qmd_state.corpus / f"bulk-{position}.md").write_text(
             content,
