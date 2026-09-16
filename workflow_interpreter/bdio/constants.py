@@ -14,6 +14,7 @@ class BackendKind(StrEnum):
     """
 
     BD = "bd"
+    LEDGER = "ledger"
 
 
 DEVIATION_UNDECLARED_EFFECTS_ACCEPTED: Final[str] = "undeclared_effects_accepted"
