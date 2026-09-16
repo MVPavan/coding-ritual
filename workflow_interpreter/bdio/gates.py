@@ -17,8 +17,8 @@ from typing import Final, NoReturn
 import structlog
 
 from workflow_interpreter.bdio import bounds, finalize, keys, reads
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.capabilities import ArtifactReader
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
     CarrierIntegrityError,
@@ -162,7 +162,9 @@ def gate_key_for(root_id: str, request: GateOpenRequest, halt_ordinal: int = 0) 
     )
 
 
-def open_gate(client: BdClient, root_id: str, request: GateOpenRequest) -> GateRecord:
+def open_gate(
+    client: StoreBackend, root_id: str, request: GateOpenRequest
+) -> GateRecord:
     """Open a gate under its deterministic key, or re-find it (drill 6).
 
     Gate beads count toward the §10.3 ceiling — every one of them, halt gate
@@ -240,7 +242,7 @@ def open_gate(client: BdClient, root_id: str, request: GateOpenRequest) -> GateR
     return parse_gate(record)
 
 
-def _halt_gates(client: BdClient, root_id: str) -> tuple[GateRecord, ...]:
+def _halt_gates(client: StoreBackend, root_id: str) -> tuple[GateRecord, ...]:
     """Every halt gate of this instance, in `seq` order (§10.3 ordinal source)."""
     return tuple(
         gate
@@ -301,7 +303,7 @@ def _refound(gate: GateRecord, request: GateOpenRequest) -> GateRecord:
 
 
 def close_gate_verified(
-    client: BdClient,
+    client: StoreBackend,
     verifier: GateVerifier,
     root_id: str,
     gate_id: str,
@@ -380,7 +382,7 @@ def _gate_close_reason(approval: VerifiedApproval) -> str:
 
 
 def _repair_closed_gate(
-    client: BdClient,
+    client: StoreBackend,
     gate: GateRecord,
     approval: VerifiedApproval,
 ) -> GateRecord:
@@ -411,7 +413,7 @@ def _repair_closed_gate(
 
 
 def append_event(
-    client: BdClient, root_id: str, payload: EventPayload, *, seq: int | None = None
+    client: StoreBackend, root_id: str, payload: EventPayload, *, seq: int | None = None
 ) -> RowRecord:
     """Append one transition event, idempotently (§3.3).
 
@@ -545,7 +547,7 @@ def _assert_artifact_shape(gate: GateRecord, payload: GatePayload) -> None:
 
 
 def _assert_raises_bound(
-    client: BdClient, root: RootRecord, approval: VerifiedApproval
+    client: StoreBackend, root: RootRecord, approval: VerifiedApproval
 ) -> None:
     """§10.4: a `rebudget` may only RAISE a bound, and only a declared one.
 
@@ -625,7 +627,7 @@ def _assert_known_scope(root: RootRecord, parsed: ScopedBound, key: str) -> None
 
 
 def _assert_nonce_unused(
-    client: BdClient, root_id: str, gate_id: str, nonce: str
+    client: StoreBackend, root_id: str, gate_id: str, nonce: str
 ) -> None:
     """Refuse a replayed nonce (§9): a nonce is consumed by the gate it closed."""
     for bead in reads.beads_with_nonce(client, root_id, nonce):
@@ -636,7 +638,7 @@ def _assert_nonce_unused(
 
 
 def _assert_fresh_artifact(
-    client: BdClient,
+    client: StoreBackend,
     gate: GateRecord,
     approval: VerifiedApproval,
     artifact_reader: ArtifactReader | None,
@@ -682,7 +684,7 @@ def _assert_fresh_artifact(
     )
 
 
-def _refuse_stale(client: BdClient, gate: GateRecord, receipt: str) -> NoReturn:
+def _refuse_stale(client: StoreBackend, gate: GateRecord, receipt: str) -> NoReturn:
     """Record the edit receipt on the still-open gate, then refuse (§9)."""
     metadata = gate.metadata.model_copy(
         update={

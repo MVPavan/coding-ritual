@@ -18,7 +18,7 @@ from collections.abc import Iterable, Sequence
 from typing import Final
 
 from workflow_interpreter.bdio import bounds
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
@@ -51,22 +51,22 @@ from workflow_interpreter.contracts.wake import WakeEvent
 FIRST_SEQ: Final[int] = 1
 
 
-def load_root(client: BdClient, root_id: str) -> RootRecord:
+def load_root(client: StoreBackend, root_id: str) -> RootRecord:
     """Read a root and re-verify its pinned body's hash (§3.1, §4 tick step 0)."""
     return parse_root(client.show(root_id))
 
 
-def load_activation(client: BdClient, activation_id: str) -> ActivationRecord:
+def load_activation(client: StoreBackend, activation_id: str) -> ActivationRecord:
     """Read one activation through the carrier contract."""
     return parse_activation(client.show(activation_id))
 
 
-def load_gate(client: BdClient, gate_id: str) -> GateRecord:
+def load_gate(client: StoreBackend, gate_id: str) -> GateRecord:
     """Read one gate through the carrier contract."""
     return parse_gate(client.show(gate_id))
 
 
-def find_roots(client: BdClient, instance_key: str) -> tuple[BeadRecord, ...]:
+def find_roots(client: StoreBackend, instance_key: str) -> tuple[BeadRecord, ...]:
     """Every root bead carrying `instance_key` — more than one is race residue.
 
     Ordered by bead id, so the §3.2 convergence rule (lowest id survives) reads
@@ -81,7 +81,20 @@ def find_roots(client: BdClient, instance_key: str) -> tuple[BeadRecord, ...]:
     return tuple(sorted(found, key=lambda bead: bead.id))
 
 
-def list_roots(client: BdClient) -> tuple[RootRecord, ...]:
+def roots_by_instance_key(
+    client: StoreBackend, instance_key: str
+) -> tuple[RowRecord, ...]:
+    """Every root row carrying `instance_key`, as identity only.
+
+    The pinned body is deliberately NOT re-validated: a caller asking whether
+    a root exists for a bridge identity must get an answer even when that
+    root's create/self-link pair was interrupted, and it must get it without
+    naming a backend row (§3.1).
+    """
+    return tuple(parse_row(bead) for bead in find_roots(client, instance_key))
+
+
+def list_roots(client: StoreBackend) -> tuple[RootRecord, ...]:
     """Every root bead in the workspace, in bead-id order (§4 'Load roots').
 
     A stateless tick has to DISCOVER its instances before it can load one, and
@@ -93,7 +106,7 @@ def list_roots(client: BdClient) -> tuple[RootRecord, ...]:
     return tuple(parse_root(bead) for bead in sorted(beads, key=lambda b: b.id))
 
 
-def instance_records(client: BdClient, root_id: str) -> tuple[InstanceRecord, ...]:
+def instance_records(client: StoreBackend, root_id: str) -> tuple[InstanceRecord, ...]:
     """Every row of the instance, typed — root, activations, gates and events (§4).
 
     The root itself is included: it carries its own `wf_root_id`, and both the
@@ -106,7 +119,9 @@ def instance_records(client: BdClient, root_id: str) -> tuple[InstanceRecord, ..
     )
 
 
-def list_activations(client: BdClient, root_id: str) -> tuple[ActivationRecord, ...]:
+def list_activations(
+    client: StoreBackend, root_id: str
+) -> tuple[ActivationRecord, ...]:
     """Every activation of the instance, in `seq` order."""
     beads = client.list_beads(
         metadata_filters={
@@ -117,7 +132,7 @@ def list_activations(client: BdClient, root_id: str) -> tuple[ActivationRecord, 
     return _ordered(parse_activation(bead) for bead in beads)
 
 
-def list_gates(client: BdClient, root_id: str) -> tuple[GateRecord, ...]:
+def list_gates(client: StoreBackend, root_id: str) -> tuple[GateRecord, ...]:
     """Every gate bead of the instance, in `seq` order."""
     beads = client.list_beads(
         metadata_filters={
@@ -129,7 +144,7 @@ def list_gates(client: BdClient, root_id: str) -> tuple[GateRecord, ...]:
 
 
 def find_by_idempotency_key(
-    client: BdClient, root_id: str, idempotency_key: str
+    client: StoreBackend, root_id: str, idempotency_key: str
 ) -> tuple[ActivationRecord, ...]:
     """The §4 idempotency lookup — 0 or 1 bead; more is race residue (§3.2).
 
@@ -147,7 +162,7 @@ def find_by_idempotency_key(
     return tuple(parse_activation(bead) for bead in beads)
 
 
-def find_gate(client: BdClient, root_id: str, gate_key: str) -> GateRecord | None:
+def find_gate(client: StoreBackend, root_id: str, gate_key: str) -> GateRecord | None:
     """The gate carrying `gate_key`, if this key was already opened (§3.4).
 
     Ordered by bead id like `find_roots` and the §3.2 race rule: a key should
@@ -167,7 +182,7 @@ def find_gate(client: BdClient, root_id: str, gate_key: str) -> GateRecord | Non
     return parse_gate(beads[0]) if beads else None
 
 
-def find_event(client: BdClient, root_id: str, event_key: str) -> RowRecord | None:
+def find_event(client: StoreBackend, root_id: str, event_key: str) -> RowRecord | None:
     """The event row carrying `event_key`, so backfill cannot duplicate (§3.3)."""
     beads = client.list_beads(
         metadata_filters={
@@ -180,7 +195,7 @@ def find_event(client: BdClient, root_id: str, event_key: str) -> RowRecord | No
     return parse_row(beads[0]) if beads else None
 
 
-def list_wake_events(client: BdClient, root_id: str) -> tuple[WakeEvent, ...]:
+def list_wake_events(client: StoreBackend, root_id: str) -> tuple[WakeEvent, ...]:
     """Read notifications independently of transition event backfill."""
     beads = client.list_beads(
         metadata_filters={KEY_WF_ROOT_ID: root_id, KEY_WF_KIND: WfKind.EVENT.value},
@@ -195,7 +210,7 @@ def list_wake_events(client: BdClient, root_id: str) -> tuple[WakeEvent, ...]:
 
 
 def beads_with_nonce(
-    client: BdClient, root_id: str, nonce: str
+    client: StoreBackend, root_id: str, nonce: str
 ) -> tuple[BeadRecord, ...]:
     """Instance beads that already recorded `nonce` — the §9 replay check."""
     return client.list_beads(
@@ -240,7 +255,7 @@ def gates_of(records: Sequence[InstanceRecord]) -> tuple[GateRecord, ...]:
 
 
 def effective_bound(
-    client: BdClient, root_id: str, setting: BoundSetting, scope: str = ""
+    client: StoreBackend, root_id: str, setting: BoundSetting, scope: str = ""
 ) -> int | None:
     """The §10.4 bound in force for this instance: config ⊕ closed rebudgets."""
     return bounds.effective_bound(
@@ -263,12 +278,16 @@ class WorkflowReads:
     away from "close a gate without verifying it" (§0.1).
     """
 
-    def __init__(self, client: BdClient) -> None:
+    def __init__(self, client: StoreBackend) -> None:
         self._client = client
 
     def load_root(self, root_id: str) -> RootRecord:
         """Read a root and re-verify its pinned body's hash (§3.1)."""
         return load_root(self._client, root_id)
+
+    def roots_by_instance_key(self, instance_key: str) -> tuple[RowRecord, ...]:
+        """Every root row carrying `instance_key` — more than one is residue."""
+        return roots_by_instance_key(self._client, instance_key)
 
     def list_roots(self) -> tuple[RootRecord, ...]:
         """Every root bead in the workspace, in bead-id order (§4 'Load roots')."""

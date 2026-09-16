@@ -186,7 +186,7 @@ def _execute(
     target_ref = composition.git.attached_branch_ref(cwd=composition.config.repo_root)
     if target_ref is None:
         raise PhaseBridgeRefused(MSG_DETACHED)
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     from workflow_interpreter.bridge.integration import (
         IntegrationGuard,
         prepared_for_stage,

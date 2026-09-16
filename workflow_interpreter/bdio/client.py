@@ -30,6 +30,7 @@ import structlog
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import (
     BdCommandError,
     BdOutputError,
@@ -234,6 +235,11 @@ class BdClient:
             )
         self._config = config
         self._runner: CommandRunner = runner if runner is not None else run_subprocess
+
+    @property
+    def kind(self) -> BackendKind:
+        """bd, the backend this transport speaks for (§3.2)."""
+        return BackendKind.BD
 
     @property
     def config(self) -> BdConfig:

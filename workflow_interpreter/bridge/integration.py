@@ -23,7 +23,6 @@ from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
-from workflow_interpreter.bdio.wire import Metadata
 from workflow_interpreter.bridge.adapter import PhaseAdapter
 from workflow_interpreter.bridge.errors import BridgeRefusal
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
@@ -44,7 +43,7 @@ from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.gitcmd import GitSubcommand
 
 ESSENTIAL = ("integration_sources", "stage_brief", "target_base")
-CLAIM_KEY = "integration_target_key"
+CLAIM_PAYLOAD_KEY = "integration_target_claim"
 
 
 def _sha(body: str) -> str:
@@ -162,6 +161,7 @@ class IntegrationGuard:
     def __init__(self, composition: Composition) -> None:
         self.composition = composition
         self.store = composition.store.coordination_store(composition=composition)
+        self.claims = composition.store.claims
 
     def association(self, record: PhaseBridgeRecord) -> IntegrationAssociation:
         if record.integration_owner is None:
@@ -217,27 +217,22 @@ class IntegrationGuard:
             raise BridgeRefusal("integration association readback mismatch")
 
     def claim(self, key: str) -> tuple[str, IntegrationTargetClaim] | None:
-        rows = self.store._client.list_beads(metadata_filters={CLAIM_KEY: key})
+        rows = self.claims.find(key)
         if len(rows) > 1:
             raise BridgeRefusal("ambiguous integration target claim")
         if not rows:
             return None
         return rows[0].id, IntegrationTargetClaim.model_validate(
-            rows[0].metadata["integration_target_claim"]
+            rows[0].payload[CLAIM_PAYLOAD_KEY]
         )
 
     def write_claim(self, claim: IntegrationTargetClaim) -> None:
         prior = self.claim(claim.key)
-        data: Metadata = {
-            CLAIM_KEY: claim.key,
-            "integration_target_claim": claim.model_dump(mode="json"),
-        }
-        if prior is None:
-            self.store._client._create_bead(
-                title="Integration target claim", metadata=data
-            )
-        else:
-            self.store._client._merge_metadata(prior[0], data)
+        self.claims.write(
+            claim.key,
+            {CLAIM_PAYLOAD_KEY: claim.model_dump(mode="json")},
+            None if prior is None else prior[0],
+        )
 
     def binding(
         self, record: PhaseBridgeRecord, *, current: bool = True
@@ -579,7 +574,7 @@ def prepare_integration(
 ) -> PhaseBridgeRecord:
     """Persist fixed intent before admitting exactly one P3 child root."""
     guard = IntegrationGuard(composition)
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     adapter.integration_guard = guard
     stage = adapter.show(request.stage_id)
     if (
@@ -720,7 +715,7 @@ def resume_integration(
     composition: Composition, association: IntegrationAssociation
 ) -> PhaseBridgeRecord:
     guard = IntegrationGuard(composition)
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     adapter.integration_guard = guard
     with BandLock(guard.store.target_lock_path(association.target_key)):
         association = guard.store.state(association.request.owner_id).integrations[
@@ -993,7 +988,7 @@ def command(composition: Composition, args: object) -> str:
     association = prepared_for_stage(composition, args.epic_id, args.stage_id)
     if association is None:
         raise BridgeRefusal("integration association is absent")
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     raw = adapter.show(args.stage_id).metadata.get("phase_bridge")
     record = adapter.record(args.stage_id) if raw is not None else None
     if args.integration_command == "retry":

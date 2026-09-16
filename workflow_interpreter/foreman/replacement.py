@@ -502,7 +502,7 @@ def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
         != previous.expected_base_commit
     ):
         raise CoordinationError("replacement lost bridge target base")
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     root = composition.store.reads.load_root(intent.predecessor_id)
     if (
         previous.root_id != root.root_id
@@ -549,7 +549,7 @@ def _prepare_bridge(
         return intent
     previous = PhaseBridgeRecord.model_validate_json(intent.predecessor_bridge_json)
     successor = PhaseBridgeRecord.model_validate_json(intent.successor_bridge_json)
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     adapter.integration_guard = IntegrationGuard(composition)
     if previous.integration_digest:
         from workflow_interpreter.schema.decisions import (
@@ -639,7 +639,7 @@ def _admit_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
         return
     assert intent.receipt is not None
     successor = PhaseBridgeRecord.model_validate_json(intent.successor_bridge_json)
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     guard = IntegrationGuard(composition)
     adapter.integration_guard = guard
     if successor.integration_digest:

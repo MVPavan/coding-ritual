@@ -13,12 +13,12 @@ if TYPE_CHECKING:
 from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import reads, roots
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.carriers import (
     BoundSetting,
     InstanceInput,
     ResolvedSetting,
 )
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.wire import metadata_dict
 from workflow_interpreter.schema.decisions import (
@@ -58,7 +58,7 @@ class CoordinationStore:
 
     def __init__(
         self,
-        client: BdClient,
+        client: StoreBackend,
         verify_decision: Callable[[DecisionRequest], DecisionResponse] | None = None,
         *,
         composition: Composition | None = None,

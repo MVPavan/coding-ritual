@@ -21,7 +21,7 @@ from typing import Final
 import structlog
 
 from workflow_interpreter.bdio import finalize, reads
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.feedback import MSG_CONSUMER
 from workflow_interpreter.bdio.records import RootRecord, parse_root
@@ -212,7 +212,7 @@ def pin_execution_policies(
 
 
 def create_root(
-    client: BdClient,
+    client: StoreBackend,
     *,
     instance_key: str,
     definition: GraphDefinition,
@@ -385,7 +385,7 @@ def create_root(
     return converged
 
 
-def _converged_root(client: BdClient, instance_key: str) -> RootRecord | None:
+def _converged_root(client: StoreBackend, instance_key: str) -> RootRecord | None:
     """The one live root for this key, superseding any concurrent duplicate.
 
     Liveness is read off the raw metadata, not a parsed record: a root whose
@@ -407,7 +407,7 @@ def _converged_root(client: BdClient, instance_key: str) -> RootRecord | None:
 
 
 def _ordered_by_ownership(
-    client: BdClient, live: Sequence[BeadRecord], instance_key: str
+    client: StoreBackend, live: Sequence[BeadRecord], instance_key: str
 ) -> tuple[BeadRecord, ...]:
     """Convergence order for duplicate roots: the OWNER of the instance first (§3.1).
 
@@ -434,12 +434,12 @@ def _ordered_by_ownership(
     return (owner, *(bead for bead in live if bead.id != owner.id))
 
 
-def _owns_instance_records(client: BdClient, root_id: str) -> bool:
+def _owns_instance_records(client: StoreBackend, root_id: str) -> bool:
     """Whether any activation, gate or event of the instance links to this root."""
     return any(bead.id != root_id for bead in reads.instance_records(client, root_id))
 
 
-def _supersede_root(client: BdClient, loser: BeadRecord, winner_id: str) -> None:
+def _supersede_root(client: StoreBackend, loser: BeadRecord, winner_id: str) -> None:
     """Close a duplicate root append-only, pointing at the surviving one."""
     record = _ensure_self_id(client, loser)
     metadata = record.metadata.model_copy(update={"superseded_by": winner_id})
@@ -532,14 +532,14 @@ def _differing_keys(
     return _MSG_CONFIG_KEYS.format(keys=rendered)
 
 
-def _ensure_self_id(client: BdClient, bead: BeadRecord) -> RootRecord:
+def _ensure_self_id(client: StoreBackend, bead: BeadRecord) -> RootRecord:
     """Complete the self-reference if the create/link pair was interrupted."""
     if bead.metadata.get(KEY_WF_ROOT_ID) != bead.id:
         bead = client._merge_metadata(bead.id, {KEY_WF_ROOT_ID: bead.id})
     return parse_root(bead)
 
 
-def settle_root(client: BdClient, root_id: str, terminal: str) -> RootRecord:
+def settle_root(client: StoreBackend, root_id: str, terminal: str) -> RootRecord:
     """Record the terminal this instance reached and close its root (§3.1).
 
     Metadata first, close second — the same order every §5.1 transition uses,

@@ -1,0 +1,138 @@
+"""The store's backend seam — what a `WorkflowStore` is built on (§3.1, §3.2).
+
+One backend is pinned per root at creation and never changes, so the store a
+root is read and written through has to be chosen BEFORE the root is loaded.
+That choice is a `BackendLocator`'s answer and a `StoreBackendFactory`'s
+construction; nothing above the seam names a transport class.
+
+`bd` is the only backend today, and `BdClient` is its only implementation of
+`StoreBackend` — the protocol exists so that the store, and every collaborator
+the store hands its backend to, is typed against the surface rather than
+against bd.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from pathlib import Path
+from typing import Any, Final, Protocol
+
+from workflow_interpreter.bdio.client import DependencyRecord
+from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.bdio.errors import StoreConfigError
+from workflow_interpreter.bdio.wire import BeadRecord, IssueType, Metadata
+
+_MSG_UNSUPPORTED: Final[str] = (
+    "no backend is configured for {requested!r}; this process was built on {pinned!r}"
+)
+
+
+class StoreBackend(Protocol):
+    """The durable-row surface a `WorkflowStore` and its collaborators use.
+
+    The write methods are package-private in the implementation and stay that
+    way here: the typed operations in this package are the only callers, and
+    the protocol exists to keep them from naming `BdClient` (§0.1).
+    """
+
+    @property
+    def kind(self) -> BackendKind:
+        """Which backend this transport speaks for."""
+
+    @property
+    def config(self) -> BdConfig:
+        """The injected configuration (frozen)."""
+
+    @property
+    def workspace(self) -> Path:
+        """The workspace every operation is scoped to."""
+
+    def context(self) -> dict[str, Any]:
+        """Backend identity, as the §11 canary asserts it."""
+
+    def show(self, bead_id: str) -> BeadRecord:
+        """One row by id — the read-back path for every write."""
+
+    def list_beads(
+        self,
+        *,
+        metadata_filters: Mapping[str, str] | None = None,
+        issue_type: IssueType | None = None,
+    ) -> tuple[BeadRecord, ...]:
+        """Rows selected by ANDed metadata filters, closed rows included."""
+
+    def list_children(self, parent_id: str) -> tuple[BeadRecord, ...]:
+        """A parent's descendants, for callers that filter direct children."""
+
+    def list_dependencies(self, bead_id: str) -> tuple[DependencyRecord, ...]:
+        """One row's dependency records."""
+
+    def _create_bead(
+        self,
+        *,
+        title: str,
+        metadata: Metadata,
+        issue_type: IssueType = IssueType.TASK,
+        event_payload: Metadata | None = None,
+        ephemeral: bool = False,
+        wisp_type: str | None = None,
+    ) -> BeadRecord:
+        """Create a row and verify it read back exactly as written."""
+
+    def _merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+        """Merge metadata into a row and verify the merged result."""
+
+    def _claim_and_merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+        """Claim a row and merge metadata in one operation."""
+
+    def _close_bead(self, bead_id: str, reason: str) -> BeadRecord:
+        """Close a row with a structured reason and verify both landed."""
+
+
+class StoreBackendFactory(Protocol):
+    """Builds the backend a pinned `BackendKind` names."""
+
+    def __call__(self, backend: BackendKind) -> StoreBackend:
+        """The backend for `backend`, or `StoreConfigError` if none is configured."""
+
+
+class BackendLocator(Protocol):
+    """Answers which backend owns a root, before the root is loaded (§3.2)."""
+
+    def __call__(self, root_id: str) -> BackendKind:
+        """The backend pinned for this root."""
+
+
+class PinnedBackendFactory:
+    """The single-backend factory: one transport, and a refusal for the rest.
+
+    A process holds one transport per backend, so the factory hands out the
+    one it was built with rather than constructing a second connection per
+    root. Asking for a backend this process was not built on is a refusal, not
+    a silent fallback to the one it has.
+    """
+
+    def __init__(self, backend: StoreBackend) -> None:
+        self._backend = backend
+
+    def __call__(self, backend: BackendKind) -> StoreBackend:
+        """The pinned backend, or a refusal naming both kinds."""
+        if backend is not self._backend.kind:
+            raise StoreConfigError(
+                _MSG_UNSUPPORTED.format(
+                    requested=backend.value, pinned=self._backend.kind.value
+                )
+            )
+        return self._backend
+
+
+def bd_backend(root_id: str) -> BackendKind:
+    """Locate a root's backend while bd is the only one there is.
+
+    §3.2 moves this to the bridge record's `root_backend` and the ledger
+    `tasks` row; until a second backend exists there is nothing to read, and
+    reading bd to find out that the answer is bd would cost a round-trip per
+    tick.
+    """
+    return BackendKind.BD

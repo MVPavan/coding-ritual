@@ -609,7 +609,9 @@ def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
         gate_view_module.PhaseAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+            lambda _cls, _config, _reads=None: PhaseAdapter(
+                BdClient(lab.config.bd, lab.fake_bd)
+            )
         ),
     )
     assert gate_view_module.phase_bridge_gate_view(
@@ -677,7 +679,9 @@ def test_status_renders_current_bridge_attempt_evidence_at_an_open_gate(
         gate_view_module.PhaseAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+            lambda _cls, _config, _reads=None: PhaseAdapter(
+                BdClient(lab.config.bd, lab.fake_bd)
+            )
         ),
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
@@ -716,7 +720,9 @@ def test_phase_bridge_gate_view_rejects_a_root_outside_stage_attempts(
         gate_view_module.PhaseAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+            lambda _cls, _config, _reads=None: PhaseAdapter(
+                BdClient(lab.config.bd, lab.fake_bd)
+            )
         ),
     )
 
@@ -1018,7 +1024,7 @@ def test_phase_bridge_reports_exhaustion_before_named_stage_membership(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1040,7 +1046,7 @@ def test_phase_bridge_refuses_an_empty_stage_description_before_writing(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1070,7 +1076,7 @@ def test_phase_bridge_refuses_without_a_configured_bridge_graph(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1096,7 +1102,7 @@ def test_phase_bridge_refuses_a_configured_required_input_it_cannot_supply(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1123,7 +1129,7 @@ def test_phase_bridge_trace_is_read_only(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1154,7 +1160,7 @@ def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     def run(
@@ -1193,7 +1199,7 @@ def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: adapter),
+        classmethod(lambda _cls, _config, _reads=None: adapter),
     )
 
     def missing(_stage_id: str) -> NoReturn:
@@ -1229,7 +1235,7 @@ def test_phase_bridge_refuses_an_epic_without_stages(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
     codes: list[int] = []
     arguments = ["phase-bridge", "phase", "missing"]
@@ -1302,7 +1308,7 @@ def test_phase_bridge_reports_another_open_admission_as_blocked(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
     codes: list[int] = []
 
@@ -1332,7 +1338,7 @@ def test_phase_bridge_reports_open_blocking_dependencies(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     def unexpected_graph(_composition: Composition) -> NoReturn:
@@ -1379,7 +1385,7 @@ def test_phase_bridge_retry_mints_a_distinct_successor_root(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1427,7 +1433,7 @@ def test_phase_bridge_reports_each_retry_predicate_refusal(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
     monkeypatch.setattr(
         bridge_command_module,
@@ -1647,7 +1653,7 @@ def test_phase_bridge_monitored_requires_ack_before_dispatch(tmp_path, monkeypat
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
     codes = []
     _, transcript = lab.transcript(

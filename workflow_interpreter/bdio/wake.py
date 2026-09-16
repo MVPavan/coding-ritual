@@ -3,7 +3,7 @@
 from typing import Final
 
 from workflow_interpreter.bdio import reads
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import CarrierIntegrityError, StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.records import RowRecord, parse_event, parse_row
@@ -24,7 +24,7 @@ FIRST_WAKE_SEQ: Final[int] = -1
 TITLE_WAKE: Final[str] = "wake {condition} {root_id}"
 
 
-def _existing(client: BdClient, root_id: str, event: WakeEvent) -> RowRecord | None:
+def _existing(client: StoreBackend, root_id: str, event: WakeEvent) -> RowRecord | None:
     """Re-find and verify identical evidence, including after an ambiguous write."""
     found = reads.find_event(client, root_id, event.fire_key)
     if found is not None and parse_event(found) != event:
@@ -32,7 +32,9 @@ def _existing(client: BdClient, root_id: str, event: WakeEvent) -> RowRecord | N
     return found
 
 
-def append_wake_event(client: BdClient, root_id: str, event: WakeEvent) -> RowRecord:
+def append_wake_event(
+    client: StoreBackend, root_id: str, event: WakeEvent
+) -> RowRecord:
     """Append a notification without a mint, gate close, nonce or budget mutation."""
     event = WakeEvent.model_validate(event.model_dump())
     root = reads.load_root(client, root_id)

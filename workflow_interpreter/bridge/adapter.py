@@ -8,9 +8,10 @@ from typing import TYPE_CHECKING, Final
 from pydantic import ValidationError
 
 from workflow_interpreter.bdio import finalize
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
 from workflow_interpreter.bdio.config import BdConfig
-from workflow_interpreter.bdio.reads import find_roots
+from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
 
@@ -51,14 +52,25 @@ class PhaseAdapterError(ValueError):
 class PhaseAdapter:
     """Perform only fixed Beads operations needed to admit one named stage."""
 
-    def __init__(self, client: BdClient) -> None:
+    def __init__(
+        self, client: StoreBackend, reads: WorkflowReads | None = None
+    ) -> None:
         self._client = client
+        self._reads = WorkflowReads(client) if reads is None else reads
         self.integration_guard: IntegrationGuard | None = None
 
     @classmethod
-    def from_config(cls, config: BdConfig) -> PhaseAdapter:
-        """Build the bridge's read/write adapter without exposing bd transport."""
-        return cls(BdClient(config))
+    def from_config(
+        cls, config: BdConfig, reads: WorkflowReads | None = None
+    ) -> PhaseAdapter:
+        """Build the bridge's read/write adapter without exposing bd transport.
+
+        `reads` is the store the engine's roots live in. The adapter owns the
+        TASK bead (§3.2 authoritative writes) and nothing else, so a root
+        lookup is somebody else's read; without one injected it falls back to
+        its own transport, which is the same store today.
+        """
+        return cls(BdClient(config), reads)
 
     def guard_integration(
         self, record: PhaseBridgeRecord, *, post_cas: bool = False
@@ -134,7 +146,7 @@ class PhaseAdapter:
 
     def owns_root(self, instance_key: str, root_id: str) -> bool:
         """Require a uniquely persisted root, not an inferred key-shaped owner."""
-        roots = find_roots(self._client, instance_key)
+        roots = self._reads.roots_by_instance_key(instance_key)
         return (
             len(roots) == 1
             and roots[0].id == root_id
@@ -142,8 +154,8 @@ class PhaseAdapter:
         )
 
     def has_root(self, instance_key: str) -> bool:
-        """Report whether raw durable evidence exists for one bridge identity."""
-        return bool(find_roots(self._client, instance_key))
+        """Report whether durable evidence exists for one bridge identity."""
+        return bool(self._reads.roots_by_instance_key(instance_key))
 
     def prepare(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
         """Persist and read back a complete pre-claim admission intent."""

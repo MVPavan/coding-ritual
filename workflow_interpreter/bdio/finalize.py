@@ -21,7 +21,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol
 
-from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
+from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
@@ -47,7 +48,7 @@ def is_finished(row: ClosableRow, reason: str) -> bool:
     return row.status == STATUS_CLOSED and row.close_reason == reason
 
 
-def close_forward(client: BdClient, bead: BeadRecord, reason: str) -> BeadRecord:
+def close_forward(client: StoreBackend, bead: BeadRecord, reason: str) -> BeadRecord:
     """Drive this bead's close to completion, idempotently.
 
     A no-op when the close already landed with this reason; otherwise it
@@ -60,7 +61,7 @@ def close_forward(client: BdClient, bead: BeadRecord, reason: str) -> BeadRecord
 
 
 def close_record_forward[RecordT: (ActivationRecord, GateRecord, RootRecord)](
-    client: BdClient,
+    client: StoreBackend,
     record: RecordT,
     reason: str,
     parse: Callable[[BeadRecord], RecordT],

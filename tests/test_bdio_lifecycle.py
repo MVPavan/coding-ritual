@@ -58,6 +58,7 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
         "append_event",
         "append_wake_event",
         "assert_member",
+        "claims",
         "queue_decision",
         "record_envelope",
         "coordination_store",
@@ -99,7 +100,12 @@ which terminal an instance reached and closes its root on that fact.
 carriers, approve gates, change bounds, or route a transition.
 
 `register_session` binds a correlated vendor thread to the dispatched launch;
-it verifies root, activation, launch, and original process identity."""
+it verifies root, activation, launch, and original process identity.
+
+`claims` joined it in S0 of the run ledger: the integration-target claim is a
+shared row with no root and no lifecycle, and the bridge used to read and
+write it through the transport itself. It is a read plus a create-or-merge of
+one opaque payload — it can close nothing and approve nothing."""
 
 
 @pytest.fixture(scope="session")

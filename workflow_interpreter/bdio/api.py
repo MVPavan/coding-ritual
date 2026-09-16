@@ -37,10 +37,17 @@ from workflow_interpreter.bdio import (
     supervision,
     transitions,
 )
+from workflow_interpreter.bdio.backend import (
+    PinnedBackendFactory,
+    StoreBackend,
+    StoreBackendFactory,
+)
 from workflow_interpreter.bdio.bounds import BoundRefusal
 from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadReader
+from workflow_interpreter.bdio.claims import ClaimStore
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
@@ -127,18 +134,22 @@ class WorkflowStore:
 
     def __init__(
         self,
-        client: BdClient,
+        client: StoreBackend,
         verifier: GateVerifier | None = None,
         *,
         artifact_reader: ArtifactReader | None = None,
         branch_head_reader: BranchHeadReader | None = None,
         member_band: object | None = None,
+        backend_factory: StoreBackendFactory | None = None,
     ) -> None:
         self._member_band = member_band
         self._client = client
         self._verifier = verifier
         self._artifact_reader = artifact_reader
         self._branch_head_reader = branch_head_reader
+        self._backend_factory: StoreBackendFactory = (
+            PinnedBackendFactory(client) if backend_factory is None else backend_factory
+        )
         self._reads = reads.WorkflowReads(client)
 
     @classmethod
@@ -149,6 +160,7 @@ class WorkflowStore:
         *,
         artifact_reader: ArtifactReader | None = None,
         branch_head_reader: BranchHeadReader | None = None,
+        backend_factory: StoreBackendFactory | None = None,
     ) -> WorkflowStore:
         """Build a store from configuration alone — the supported entry point.
 
@@ -156,30 +168,47 @@ class WorkflowStore:
         caller with a `BdConfig` and a `SigningConfig` had no way to construct
         a store without reaching into the package. It has one now, and it is
         the only one.
+
+        The backend comes from the factory, not from a constructor call here:
+        a root is pinned to its backend (§3.2), so which transport a store is
+        built on has to be somebody else's answer.
         """
-        client = BdClient(config)
+        factory: StoreBackendFactory = (
+            PinnedBackendFactory(BdClient(config))
+            if backend_factory is None
+            else backend_factory
+        )
         verifier = None if signing is None else GateVerifier(signing, config.workspace)
         return cls(
-            client,
+            factory(BackendKind.BD),
             verifier,
             artifact_reader=artifact_reader,
             branch_head_reader=branch_head_reader,
+            backend_factory=factory,
         )
 
     def for_root(
-        self, *, branch_head_reader: BranchHeadReader, member_band: object | None = None
+        self,
+        *,
+        branch_head_reader: BranchHeadReader,
+        member_band: object | None = None,
+        backend: BackendKind | None = None,
     ) -> WorkflowStore:
         """Derive a root-scoped store without replacing injected capabilities.
 
-        The transport, verifier, and artifact reader are process-scoped
-        authority.  A root contributes only its branch-head reader.
+        The verifier and artifact reader are process-scoped authority. A root
+        contributes its branch-head reader and its pinned backend: the backend
+        is immutable per root (§3.2), so the store a root is served by comes
+        from the factory rather than from whichever transport the caller
+        happened to hold.
         """
         return WorkflowStore(
-            self._client,
+            self._backend_factory(self._client.kind if backend is None else backend),
             self._verifier,
             artifact_reader=self._artifact_reader,
             branch_head_reader=branch_head_reader,
             member_band=member_band,
+            backend_factory=self._backend_factory,
         )
 
     @property
@@ -230,6 +259,11 @@ class WorkflowStore:
         return settle_root(self._client, root_id, terminal)
 
     # -- activations -----------------------------------------------------
+
+    @property
+    def claims(self) -> ClaimStore:
+        """The integration-target claim surface (§3.2 shared serialisation)."""
+        return ClaimStore(self._client)
 
     def coordination_store(
         self,

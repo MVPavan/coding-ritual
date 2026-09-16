@@ -39,7 +39,7 @@ from typing import Final
 
 import structlog
 
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     LifecycleConflictError,
@@ -206,7 +206,7 @@ def assert_close_payload(
 
 
 def apply(
-    client: BdClient,
+    client: StoreBackend,
     load: ActivationLoader,
     activation_id: str,
     *,
@@ -244,7 +244,7 @@ def apply(
     return repair_forward(client, parse_activation(merged))
 
 
-def repair_forward(client: BdClient, record: ActivationRecord) -> ActivationRecord:
+def repair_forward(client: StoreBackend, record: ActivationRecord) -> ActivationRecord:
     """Restore the terminal lifecycle a losing race wrote over (§5.1, §3.3).
 
     A transition whose merge landed after a concurrent close leaves a recorded
@@ -272,7 +272,9 @@ def repair_forward(client: BdClient, record: ActivationRecord) -> ActivationReco
     )
 
 
-def finish(client: BdClient, record: ActivationRecord, reason: str) -> ActivationRecord:
+def finish(
+    client: StoreBackend, record: ActivationRecord, reason: str
+) -> ActivationRecord:
     """Drive this activation's close to completion, idempotently."""
     return close_record_forward(client, record, reason, parse_activation)
 

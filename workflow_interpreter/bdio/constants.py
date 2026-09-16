@@ -2,7 +2,19 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import Final
+
+
+class BackendKind(StrEnum):
+    """Which store implementation owns a root's facts (§3.2).
+
+    Here rather than in `backend.py` because the transport declares its own
+    kind, and `backend.py` imports the transport.
+    """
+
+    BD = "bd"
+
 
 DEVIATION_UNDECLARED_EFFECTS_ACCEPTED: Final[str] = "undeclared_effects_accepted"
 DEVIATION_UNDECLARED_EFFECTS_DISCARDED: Final[str] = "undeclared_effects_discarded"

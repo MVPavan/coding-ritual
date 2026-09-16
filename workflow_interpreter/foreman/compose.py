@@ -10,6 +10,7 @@ from typing import Protocol
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import MintRequest, WorkflowStore
+from workflow_interpreter.bdio.backend import BackendLocator, bd_backend
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF, procfs
@@ -145,6 +146,8 @@ class Composition:
     profiles: ProfileResolver
     spawner: Spawner
     host_env: Mapping[str, str]
+    locate_backend: BackendLocator = bd_backend
+    """Which backend owns a root, answered before the root is loaded (§3.2)."""
 
     def __post_init__(self) -> None:
         """Keep the explicit supervisor dependency aligned with the config guard."""
@@ -157,8 +160,15 @@ class Composition:
         branch_head_reader = lambda: instance_head(
             self.git, self.config.repo_root, root_id
         )
-        root = self.store.reads.load_root(root_id)
-        coordinator = self.store.coordination_store()
+        # The backend is pinned per root (§3.2), so the store this root is read
+        # through is chosen BEFORE the root is loaded — the process-wide store
+        # is only the factory it comes from.
+        backend = self.locate_backend(root_id)
+        root_store = self.store.for_root(
+            branch_head_reader=branch_head_reader, backend=backend
+        )
+        root = root_store.reads.load_root(root_id)
+        coordinator = root_store.coordination_store()
         link = root.metadata.coordination
         band_path = paths.band_lock
         if link is not None:
@@ -173,8 +183,8 @@ class Composition:
                     raise CoordinationError("conflicting child wrapper location")
                 band_path = coordinator.member_lock_path(root_id, root=root)
         band = BandLock(band_path)
-        store = self.store.for_root(
-            branch_head_reader=branch_head_reader, member_band=band
+        store = root_store.for_root(
+            branch_head_reader=branch_head_reader, member_band=band, backend=backend
         )
         workspace = Workspace(paths, self.git, self.clock, band, advance_branch=True)
         return InstanceWiring(

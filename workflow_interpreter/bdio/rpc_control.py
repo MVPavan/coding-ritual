@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from workflow_interpreter.bdio import bounds, reads
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
     CarrierIntegrityError,
@@ -59,7 +59,7 @@ def _guard(registration: SessionRegistration) -> Iterator[None]:
 
 
 def _reserve(
-    client: BdClient,
+    client: StoreBackend,
     reader: reads.WorkflowReads,
     activation_id: str,
     registration: SessionRegistration,
@@ -110,7 +110,7 @@ def _reserve(
 
 
 def _record_state(
-    client: BdClient,
+    client: StoreBackend,
     reader: reads.WorkflowReads,
     activation_id: str,
     control: ControlRegistration,
@@ -175,7 +175,7 @@ def _record_state(
 
 
 def reserve(
-    client: BdClient,
+    client: StoreBackend,
     reader: reads.WorkflowReads,
     activation_id: str,
     registration: SessionRegistration,
@@ -191,7 +191,7 @@ def reserve(
 
 
 def record_state(
-    client: BdClient,
+    client: StoreBackend,
     reader: reads.WorkflowReads,
     activation_id: str,
     control: ControlRegistration,

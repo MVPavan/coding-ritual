@@ -15,7 +15,7 @@ from __future__ import annotations
 import secrets
 from typing import Final
 
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import (
     BdCommandError,
     CanaryFailedError,
@@ -49,7 +49,7 @@ _MSG_NO_CONTEXT: Final[str] = (
 )
 
 
-def startup_canary(client: BdClient) -> CanaryResult:
+def startup_canary(client: StoreBackend) -> CanaryResult:
     """Assert the pinned backend AND workspace, then round-trip a wisp (§11).
 
     Backend identity alone answers "is this a real dolt store", not "is it the

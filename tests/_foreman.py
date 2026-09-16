@@ -54,7 +54,12 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
     canonical_payload_bytes,
 )
+from workflow_interpreter.bdio.backend import (
+    PinnedBackendFactory,
+    StoreBackendFactory,
+)
 from workflow_interpreter.bdio.client import BdClient, CompletedCommand
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -474,7 +479,7 @@ class ForemanLab:
             | {f"{RUNNER_PREFIX}{role}" for role in runner_roles(self.definition)}
         )
 
-    def _build_fresh(self) -> None:
+    def _build_fresh(self, backend_factory: StoreBackendFactory | None = None) -> None:
         """Construct no composition collaborator from a prior process."""
         self.fake_bd = self._bd_factory(str(self._workspace))
         verifier = (
@@ -482,9 +487,19 @@ class ForemanLab:
             if self._signing is None
             else GateVerifier(self._signing, self._workspace)
         )
+        self.backend_factory: StoreBackendFactory = (
+            PinnedBackendFactory(
+                BdClient(
+                    BdConfig(workspace=self._workspace, actor="test"), self.fake_bd
+                )
+            )
+            if backend_factory is None
+            else backend_factory
+        )
         self.store = WorkflowStore(
-            BdClient(BdConfig(workspace=self._workspace, actor="test"), self.fake_bd),
+            self.backend_factory(BackendKind.BD),
             verifier,
+            backend_factory=self.backend_factory,
         )
         self.git = make_git(self.supervisor_config)
         self.clock = FrozenClock()
@@ -587,12 +602,17 @@ class ForemanLab:
         assert self.root is not None
         return self.foreman.tick(self.root.root_id)
 
-    def rebuild(self) -> None:
-        """Reconstruct a fresh foreman from durable bd, git, and wrapper state."""
+    def rebuild(self, backend_factory: StoreBackendFactory | None = None) -> None:
+        """Reconstruct a fresh foreman from durable state, on a chosen backend.
+
+        The factory is a parameter because the backend is what a restarted
+        process has to be TOLD (§3.2): the durable state outlives the transport
+        object, and a rebuild that always rebuilt bd could never prove that.
+        """
         if not self._durable_factory:
             raise AssertionError("ForemanLab.rebuild requires a durable bd_factory")
         root_id = None if self.root is None else self.root.root_id
-        self._build_fresh()
+        self._build_fresh(backend_factory)
         self.root = None if root_id is None else self.store.reads.load_root(root_id)
 
     def crash_on_tick_create(self, occurrence: int) -> None:
