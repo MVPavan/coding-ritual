@@ -56,6 +56,7 @@ creation time (probed), and this is how that looks deterministically."""
 PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
     {
         "append_event",
+        "append_wake_event",
         "assert_member",
         "queue_decision",
         "record_envelope",
@@ -88,7 +89,10 @@ require in bd: the carry-forward trio proven before the exec, and the stale
 flag. Each takes one frozen carrier and touches only its own keys.
 
 `settle_root` joined it in phase 8 (cr-o85.34.24): the one write that records
-which terminal an instance reached and closes its root on that fact."""
+which terminal an instance reached and closes its root on that fact.
+
+`append_wake_event` adds a frozen notification payload only; it cannot close
+carriers, approve gates, change bounds, or route a transition."""
 
 
 @pytest.fixture(scope="session")
@@ -141,6 +145,7 @@ def test_the_read_facade_issues_no_write_command(
     facade.instance_beads(root.root_id)
     facade.list_activations(root.root_id)
     facade.list_gates(root.root_id)
+    facade.list_wake_events(root.root_id)
     facade.find_by_idempotency_key(root.root_id, minted.idempotency_key)
     facade.find_gate(root.root_id, "nope")
     facade.find_event(root.root_id, "nope")

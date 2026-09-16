@@ -59,6 +59,7 @@ from workflow_interpreter.bdio.records import (
 )
 from workflow_interpreter.bdio.roots import create_root, settle_root
 from workflow_interpreter.bdio.signing import GateVerifier
+from workflow_interpreter.bdio.wake import append_wake_event
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
     BeadRecord,
@@ -83,6 +84,7 @@ from workflow_interpreter.bdio.wire import (
     resolved_settings,
 )
 from workflow_interpreter.contracts.execution import ExecutionRegistry
+from workflow_interpreter.contracts.wake import WakeEvent
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
     CoordinationError,
@@ -896,6 +898,10 @@ class WorkflowStore:
             signature=signature,
             artifact_reader=self._artifact_reader,
         )
+
+    def append_wake_event(self, root_id: str, event: WakeEvent) -> BeadRecord:
+        """Append a deduplicated notification, with no activation or gate authority."""
+        return append_wake_event(self._client, root_id, event)
 
     def append_event(
         self, root_id: str, payload: EventPayload, *, seq: int | None = None

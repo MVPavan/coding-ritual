@@ -41,6 +41,18 @@ bridge_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"
 # environment = [["PATH", "@WRAPPER_HOME@/tools/bin:/usr/bin:/bin"], ["UV_PYTHON_INSTALL_DIR", "@WRAPPER_HOME@/python"]]
 # END BRIDGE CHECK EXAMPLE
 
+# The driver always records heartbeat/refusals; monitoring is a separate command.
+# Start `foreman monitor <root>` independently; only --monitored requires it.
+[wake]
+poll_s = 5
+stale_s = 120
+min_fire_interval_s = 30
+lifetime_cap = 100
+# Optional trusted host executable + literal arguments, never a shell command.
+# hook_argv = ["@WRAPPER_HOME@/bin/enqueue-coordinator-turn"]
+hook_timeout_s = 10
+hook_backoff_s = 5
+
 # The bd workspace is the repository itself: `bd init` puts `.beads/` there and
 # every invocation is scoped with `-C <workspace>` (`bdio/client.py`).
 [bd]

@@ -1158,9 +1158,15 @@ def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
     )
 
     def run(
-        _self: Foreman, _root_id: str, *, poll_s: float, max_wall_s: float
+        _self: Foreman,
+        _root_id: str,
+        *,
+        poll_s: float,
+        max_wall_s: float,
+        monitored: bool = False,
     ) -> RunReport:
         """Capture the public run boundary without advancing the lab clock."""
+        assert not monitored
         calls.append((poll_s, max_wall_s))
         return RunReport(ticks=1, report=TickReport())
 
@@ -1631,3 +1637,24 @@ def test_main_status_writes_the_report_alone_to_stdout(
     report = json.loads(captured.out)
     assert isinstance(report, dict)
     assert report["root_id"] == root.root_id
+
+
+def test_phase_bridge_monitored_requires_ack_before_dispatch(tmp_path, monkeypatch):
+    """Explicit monitored bridge admission never dispatches without a monitor."""
+    lab = _bridge_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+    codes = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(
+            main_module.main(["phase-bridge", "phase", "stage", "--monitored"])
+        )
+    )
+    assert codes[0] != 0
+    assert "healthy monitor required" in transcript
+    assert not lab.spawner.launches

@@ -7,6 +7,7 @@ skipped, because a silently ignored row is a bound that silently under-counts.
 
 from __future__ import annotations
 
+import json
 from typing import Final
 
 from pydantic import BaseModel, ValidationError
@@ -15,19 +16,26 @@ from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     PinnedGraphMismatchError,
 )
+from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.wire import (
     KEY_WF_KIND,
     WIRE_MODEL,
     ActivationMetadata,
     BeadRecord,
+    EventMetadata,
+    EventPayload,
     GateMetadata,
     RootMetadata,
     WfKind,
     config_signature,
 )
+from workflow_interpreter.contracts.wake import CANON_WAKE, WakeEvent
 from workflow_interpreter.schema.graph_index import GraphIndex, build_index
 from workflow_interpreter.schema.loader import GraphValidationError, load_pinned_body
 from workflow_interpreter.schema.models import GraphDefinition
+
+_MSG_WAKE_IDENTITY: Final[str] = "wake event identity mismatch"
+_MSG_EVENT_INVALID: Final[str] = "invalid event {bead_id}: {reason}"
 
 _MSG_WRONG_KIND: Final[str] = (
     "bead {bead_id} carries wf_kind={found!r}, expected {expected!r}"
@@ -218,3 +226,26 @@ def parse_root(bead: BeadRecord) -> RootRecord:
             )
         )
     return RootRecord(bead=bead, metadata=metadata, definition=definition)
+
+
+def parse_event(bead: BeadRecord) -> EventPayload | WakeEvent:
+    """Validate either event discriminator without treating notifications as routes."""
+    try:
+        raw = json.loads(bead.payload or "null")
+        if isinstance(raw, dict) and raw.get("canon") == CANON_WAKE:
+            metadata = EventMetadata.model_validate(bead.metadata)
+            event = WakeEvent.model_validate(raw)
+            if (
+                event.root_id != metadata.wf_root_id
+                or event.fire_key != metadata.event_key
+                or event.fire_key
+                != wake_fire_key(event.instance_key, event.condition, event.cursor)
+                or event.fired_at is None
+            ):
+                raise ValueError(_MSG_WAKE_IDENTITY)
+            return event
+        return EventPayload.model_validate(raw)
+    except (ValueError, TypeError) as error:
+        raise CarrierIntegrityError(
+            _MSG_EVENT_INVALID.format(bead_id=bead.id, reason=error)
+        ) from error

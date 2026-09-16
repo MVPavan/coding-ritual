@@ -55,7 +55,8 @@ def test_two_stages_land_from_normal_command(
     )
     started = []
 
-    def drive(self, root_id, *, poll_s, max_wall_s):
+    def drive(self, root_id, *, poll_s, max_wall_s, monitored=False):
+        assert not monitored
         lab.root = lab.store.reads.load_root(root_id)
         started.append(lab.root.metadata.instance_base_commit)
         lab.profiles.next_script(

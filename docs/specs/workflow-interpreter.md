@@ -855,6 +855,28 @@ write errors are surfaced as degraded durability. `run` stops with attention
 and a nonzero CLI exit on refusal; the child driver and phase bridge propagate
 that attention. None of these observations changes gate authority or routing.
 
+A separate optional host `foreman monitor <root>` owns a local lock, independent
+process group, identity-proven startup acknowledgment, and durable delivery
+cursor. Only explicit `--monitored` makes its health a startup requirement for
+`run`/`phase-bridge`. Polling uses metadata, durable gate history, and the refusal
+journal, never a model call. Conditions are gate opened, root terminal, refusal,
+driver exit/loss, and heartbeat stale (one episode per last advancing tick).
+
+Wake events use the distinct `wf-wake-event/1` discriminator and a stable
+instance/condition/cursor fire key. They are notifications, never transition,
+approval, rebudget, or activation authority. Persist pending intent before bd
+writes, re-find ambiguous writes by key, and reconcile lifetime usage on restart.
+Default poll/stale/minimum-fire spacing is 5/120/30 seconds, with a 100-event
+lifetime cap and bounded journal/outbox. Saturation and exhausted delivery stay
+visible in status; these guarantees stop at the configured cap.
+
+An optional trusted host `hook_argv` runs only after durable bd confirmation,
+without a shell or model call. Its JSON stdin is bounded to 8 KiB; output is
+discarded and runtime limited to 10 seconds. Persist at most three attempts with
+backoff. Effects are at-least-once: receivers deduplicate the fire key after a
+crash between effect and acknowledgment. The hook can enqueue a new turn, never
+inject into the running activation. No wake is promised while the host is down.
+
 ## 9. Human gates (signed payloads)
 
 A human decision is a **signed canonical payload**, not a bd state:

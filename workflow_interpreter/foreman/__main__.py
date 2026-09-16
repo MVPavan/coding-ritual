@@ -42,10 +42,12 @@ from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
+from workflow_interpreter.foreman.monitor import WakeMonitor, monitor_status
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.transcript import bounded_tail
+from workflow_interpreter.foreman.wake import MonitorUnavailable
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.clock import SystemClock
 from workflow_interpreter.supervisor.gitio import Git
@@ -146,12 +148,17 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("root_id")
     run.add_argument("--poll", type=float, default=RUN_DEFAULT_POLL_S)
     run.add_argument("--max-wall", type=float, default=RUN_DEFAULT_MAX_WALL_S)
+    run.add_argument("--monitored", action="store_true")
+    monitor = commands.add_parser("monitor")
+    monitor.add_argument("root_id")
+    monitor.add_argument("--max-wall", type=float)
     phase_bridge = commands.add_parser("phase-bridge")
     phase_bridge.add_argument("epic_id")
     phase_bridge.add_argument("stage_id")
     phase_bridge.add_argument("--retry", action="store_true")
     phase_bridge.add_argument("--retry-landing", action="store_true")
     phase_bridge.add_argument("--trace", action="store_true")
+    phase_bridge.add_argument("--monitored", action="store_true")
     supervise = commands.add_parser("supervise")
     supervise.add_argument("root_id")
     supervise.add_argument("activation_id")
@@ -295,7 +302,32 @@ def _emit(value: str, *, limit: int = MAX_TRANSCRIPT_BYTES) -> None:
         report[field] = bounded_tail(report_value, high)
         rendered = render()
     if len((rendered + "\n").encode("utf-8")) > limit:
-        rendered = '{"truncated":true}'
+        # Preserve attention even when unrelated diff/template output fills the cap.
+        compact: dict[str, object] = {"truncated": True}
+        for key in ("root_id", "observation", "monitor"):
+            if key in report:
+                compact[key] = report[key]
+        nested = report.get("report")
+        if isinstance(nested, dict) and nested.get("refusals"):
+            compact["attention"] = True
+            compact["refusals"] = [bounded_tail(str(nested["refusals"][0]), 512)]
+        rendered = json.dumps(compact, ensure_ascii=False, separators=(",", ":"))
+        if len((rendered + "\n").encode()) > limit:
+            compact.pop("monitor", None)
+            rendered = json.dumps(compact, ensure_ascii=False, separators=(",", ":"))
+        if len((rendered + "\n").encode()) > limit:
+            observation = report.get("observation")
+            attention = bool(
+                report.get("attention")
+                or compact.get("attention")
+                or (isinstance(observation, dict) and observation.get("refusals"))
+            )
+            rendered = (
+                '{"truncated":true,"attention":true}'
+                if attention
+                else '{"truncated":true}'
+            )
+
     sys.stdout.write(rendered + "\n")
 
 
@@ -449,8 +481,8 @@ def _usage_summary(
     }
 
 
-def _is_supervise(argv: Sequence[str] | None) -> bool:
-    """Recognize the subcommand without moving non-wrapper parser errors."""
+def _streams_logs(argv: Sequence[str] | None) -> bool:
+    """Stream long-lived service logs instead of accumulating them in memory."""
     arguments = tuple(sys.argv[1:] if argv is None else argv)
     index = 0
     while index < len(arguments):
@@ -461,14 +493,14 @@ def _is_supervise(argv: Sequence[str] | None) -> bool:
         if argument.startswith(("--config=", "-")):
             index += 1
             continue
-        return argument == "supervise"
+        return argument in {"supervise", "monitor"}
     return False
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one command, exempting the redirected wrapper log from the transcript cap."""
     _configure_logging()
-    if _is_supervise(argv):
+    if _streams_logs(argv):
         try:
             return _run(argv, lambda value, limit: _emit(value, limit=limit))
         except SystemExit:
@@ -583,6 +615,7 @@ def _run(
             retry=args.retry,
             retry_landing=args.retry_landing,
             trace=args.trace,
+            monitored=args.monitored,
         )
         emit(json.dumps(outcome.report, sort_keys=True), MAX_TRANSCRIPT_BYTES)
         return outcome.exit_code
@@ -591,6 +624,14 @@ def _run(
         validate_bead_id(args.activation_id)
     composition = _composition(args.config)
     foreman = Foreman(composition)
+    if args.command == "monitor":
+        if os.getpgrp() != os.getpid():
+            os.setsid()
+        WakeMonitor(composition, args.root_id).run(max_wall_s=args.max_wall)
+        emit(
+            json.dumps(monitor_status(composition, args.root_id)), MAX_TRANSCRIPT_BYTES
+        )
+        return 0
     if args.command == "supervise":
         return (
             0
@@ -625,7 +666,19 @@ def _run(
         )
         return 0
     if args.command == "run":
-        result = foreman.run(args.root_id, poll_s=args.poll, max_wall_s=args.max_wall)
+        try:
+            result = foreman.run(
+                args.root_id,
+                poll_s=args.poll,
+                max_wall_s=args.max_wall,
+                monitored=args.monitored,
+            )
+        except MonitorUnavailable as error:
+            emit(
+                json.dumps({"attention": True, "reason": str(error)}),
+                MAX_TRANSCRIPT_BYTES,
+            )
+            return 2
         view = _view(composition, args.root_id)
         bridge_view = phase_bridge_gate_view(
             view.root.metadata.instance_key,
@@ -636,6 +689,7 @@ def _run(
             json.dumps(
                 {
                     **result.model_dump(mode="json"),
+                    "attention": result.attention,
                     "open_gates": _open_gates(composition, view, bridge_view),
                     **_coordination_report(composition, view.root),
                 },
@@ -648,6 +702,7 @@ def _run(
     root, frontier = view.root, view.frontier
     status: dict[str, object] = {
         "root_id": root.root_id,
+        "monitor": monitor_status(composition, root.root_id),
         "observation": observation_status(
             view.wiring.paths.instance_dir, composition.clock
         ),

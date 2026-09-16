@@ -53,6 +53,7 @@ from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
 from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.inputs import InputsUnavailable
+from workflow_interpreter.foreman.monitor import require_monitor
 from workflow_interpreter.foreman.owner import ensure_owner
 from workflow_interpreter.foreman.reconcile import reconcile
 from workflow_interpreter.foreman.routing import abandon_target
@@ -433,7 +434,12 @@ class Foreman:
                     cleanup_toolchain(wiring.paths, repaired)
                     return TickReport(settled=repaired.activation_id)
             frontier = build_frontier(root, beads)
-            intake = intake_all(wiring, root, gates_of(beads))
+            intake = intake_all(
+                wiring,
+                root,
+                gates_of(beads),
+                refusal_limit=self._composition.config.wake.lifetime_cap,
+            )
             if intake.closed or intake.refusals:
                 return TickReport(
                     halted=not intake.closed and frontier.open_halt is not None,
@@ -567,7 +573,9 @@ class Foreman:
         finally:
             wiring.band.release()
 
-    def run(self, root_id: str, *, poll_s: float, max_wall_s: float) -> RunReport:
+    def run(
+        self, root_id: str, *, poll_s: float, max_wall_s: float, monitored: bool = False
+    ) -> RunReport:
         """Tick until a human, a terminal, a stall, or the wall ends the loop.
 
         The clock is the injected one, so a drill neither sleeps nor waits:
@@ -578,6 +586,8 @@ class Foreman:
         tick — because a run is exactly repeated ticks and nothing else.
         """
         with DriverObserver(self._composition, root_id) as observer:
+            if monitored:
+                require_monitor(self._composition, root_id)
             return self._drive(root_id, poll_s, max_wall_s, observer)
 
     def _drive(

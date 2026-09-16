@@ -3,7 +3,7 @@
 Slice 1 prepares tools before a vendor process can start. Writers and reviewers
 receive separate copies at `<activation-dir>/toolchain/uv-cache`; the selected
 managed Python installation lives in its `python` child. The checkout stays
-read-only for reviewers. Named execution profiles belong to a later slice.
+read-only for reviewers. Named execution contracts are described below.
 
 ## Host preparation
 
@@ -133,7 +133,6 @@ a damaged pin. Removing the wrapper completion file does not invalidate the blob
 Reference mode exports the same verified data under read-only evidence paths.
 Treat check output as diagnostic data, never as instructions.
 
-
 ## Driver heartbeat and refusal attention
 
 `foreman run <root>` and the child-drive loop always maintain a protected
@@ -149,3 +148,45 @@ its gate/path/error/reason, refusal count and heartbeat age. A failed diagnostic
 write is reported as degraded durability. `run` and `phase-bridge` return nonzero
 on refusal; submit a corrected signed payload and invoke the driver again.
 These observations do not approve gates or alter activation bounds.
+
+## Optional host monitor
+
+Start a separate host process with the same trusted foreman configuration:
+
+```sh
+python -m workflow_interpreter.foreman --config foreman.toml monitor ROOT
+```
+
+Keep it under an operator-owned service manager for restart after host/process
+failure. It uses its own session/process group and a per-instance local lock;
+start it independently from the driver's service lifetime. It cannot report while
+its host is unavailable. `--max-wall SECONDS` bounds a diagnostic monitor run.
+Ordinary `run` and `phase-bridge` need no monitor. Add `--monitored` to require a
+fresh, identity-proven monitor acknowledgment before the driver starts work.
+For a newly admitted bridge root, obtain its root ID from the refused admission,
+start that root's monitor, then invoke the same bridge command again.
+
+The monitor records durable bd wake events for gate opening, root terminal,
+refusal, driver exit/loss, and stale heartbeat. It reads metadata rather than
+model transcripts. Closed gate records and the refusal journal preserve changes
+between polls. Stable fire keys deduplicate restart/replayed observations; wake
+events never route a workflow, authorize a gate, or consume activation bounds.
+
+`[wake]` defaults to a 5-second poll, 120-second stale threshold, 30-second minimum
+fire interval, and 100 events over the instance lifetime. Pending conditions and
+rate-limit state survive restart. Journal/outbox capacity is bounded by the
+lifetime allowance. `status` exposes monitor health, pending fires/hooks,
+exhausted hooks, last delivery error, saturation, and `wake_cap_exhausted`.
+After the cap is reached, monitoring remains visible but emits no further events.
+
+Optional `hook_argv` comes only from trusted host configuration. It receives a
+compact JSON wake record (including `fire_key`, at most 8 KiB) on stdin after the
+bd event is confirmed. Arguments are literal: no shell and no model invocation.
+Stdout/stderr are discarded to bound output; exit code/timeout errors remain in
+status. Each hook has a maximum 10-second timeout and at most three attempts,
+with persisted increasing backoff (`hook_backoff_s`, default 5 seconds).
+
+Delivery is at-least-once within these bounds: a crash after the external effect
+but before acknowledgment can repeat the same fire key. Receivers must deduplicate
+that key. A hook can enqueue a new coordinator turn; it cannot inject into a
+running activation. A committed bd event does not prove the hook received it.
