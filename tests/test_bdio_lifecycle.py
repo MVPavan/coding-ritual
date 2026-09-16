@@ -26,7 +26,11 @@ from tests._fake_bd import FakeBd, InjectedCrash
 from workflow_interpreter import GraphDefinition
 from workflow_interpreter.bdio import bounds
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.client import (
+    ALLOWED_FLAGS,
+    BdClient,
+    BdSubcommand,
+)
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
     CarrierIntegrityError,
@@ -45,7 +49,38 @@ from workflow_interpreter.bdio.wire import (
     Usage,
     WfKind,
 )
+from workflow_interpreter.ledger.reconcile import ATTENTION_LABEL
 from workflow_interpreter.schema.models import Outcome
+
+LABEL_FLAGS: Final[frozenset[str]] = frozenset({"--add-label", "--remove-label"})
+PRE_LEDGER_FLAGS: Final[frozenset[str]] = frozenset(
+    {
+        "-C",
+        "--actor",
+        "--json",
+        "--silent",
+        "--title",
+        "--type",
+        "--no-inherit-labels",
+        "--metadata",
+        "--event-payload",
+        "--ephemeral",
+        "--wisp-type",
+        "--limit",
+        "--all",
+        "--include-gates",
+        "--metadata-field",
+        "--parent",
+        "--claim",
+        "--reason",
+    }
+)
+"""Every flag the transport could construct BEFORE the run ledger. Spelled out
+rather than derived, so the assertion below measures a change against a
+recorded baseline instead of against itself."""
+PRE_LEDGER_SUBCOMMANDS: Final[frozenset[str]] = frozenset(
+    {"create", "update", "close", "show", "list", "dep", "context"}
+)
 
 STATUS_CLOSED: Final[str] = "closed"
 STATUS_OPEN: Final[str] = "open"
@@ -105,7 +140,11 @@ it verifies root, activation, launch, and original process identity.
 `claims` joined it in S0 of the run ledger: the integration-target claim is a
 shared row with no root and no lifecycle, and the bridge used to read and
 write it through the transport itself. It is a read plus a create-or-merge of
-one opaque payload — it can close nothing and approve nothing."""
+one opaque payload — it can close nothing and approve nothing.
+
+S2 of the run ledger added NOTHING here. The one design change it records is
+one level down, on the transport: `bd update --add-label|--remove-label`
+(run-ledger §3.2.3), asserted below."""
 
 
 @pytest.fixture(scope="session")
@@ -124,6 +163,36 @@ def test_the_public_package_exports_no_transport() -> None:
 
     assert "BdClient" not in package.__all__
     assert not hasattr(package, "BdClient")
+
+
+def test_the_labels_are_the_one_addition_to_bds_closed_argument_set() -> None:
+    """Run-ledger §3.2.3, recorded: the projection's two flags, and no more.
+
+    The addition is narrow on purpose. It carries `wf:attention`, the single
+    derived label a ledger-backed run projects onto its task bead — not a new
+    subcommand, and specifically not `bd human`, whose dismiss CLOSES the
+    issue. The subcommand set is unchanged, which is what keeps `bd delete`,
+    `bd edit`, `bd gate` and `bd audit` structurally unconstructible.
+    """
+    assert LABEL_FLAGS <= ALLOWED_FLAGS
+    assert ALLOWED_FLAGS - LABEL_FLAGS == PRE_LEDGER_FLAGS
+    assert {subcommand.value for subcommand in BdSubcommand} == PRE_LEDGER_SUBCOMMANDS
+
+
+def test_a_label_write_is_one_update_that_reads_the_bead_back(
+    fake_client: BdClient, fake_bd: FakeBd
+) -> None:
+    """A projection write is verified like every other write (§0.1)."""
+    bead = fake_client._create_bead(title="task", metadata={})
+
+    added = fake_client._add_label(bead.id, ATTENTION_LABEL)
+    removed = fake_client._remove_label(bead.id, ATTENTION_LABEL)
+
+    assert added.labels == (ATTENTION_LABEL,)
+    assert removed.labels == ()
+    # One `update` per label write, and a `show` after each: no blind writes.
+    assert fake_bd.command_count("update") == 2
+    assert fake_bd.command_count("show") >= 2
 
 
 def test_the_store_exposes_no_write_that_skips_verification(

@@ -28,9 +28,17 @@ from workflow_interpreter.ledger.paths import (
     fence_path,
     ledger_path,
 )
+from workflow_interpreter.ledger.reconcile import (
+    ATTENTION_LABEL,
+    AttentionReconciler,
+    ReconcileResult,
+    task_lock_path,
+)
 from workflow_interpreter.ledger.store import LedgerStore
 
 __all__ = [
+    "ATTENTION_LABEL",
+    "AttentionReconciler",
     "LedgerDatabase",
     "LedgerExportError",
     "LedgerFence",
@@ -39,6 +47,7 @@ __all__ = [
     "LedgerSchemaError",
     "LedgerStore",
     "LedgerWriteUnsupported",
+    "ReconcileResult",
     "ensure_fence_dir",
     "export_path",
     "export_task",
@@ -47,5 +56,6 @@ __all__ = [
     "import_exports",
     "ledger_path",
     "open_ledger",
+    "task_lock_path",
     "write_export",
 ]
