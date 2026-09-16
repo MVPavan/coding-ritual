@@ -177,7 +177,8 @@ def list_wake_events(client: BdClient, root_id: str) -> tuple[WakeEvent, ...]:
     return tuple(
         event
         for bead in sorted(beads, key=lambda item: item.id)
-        if isinstance(event := parse_event(bead), WakeEvent)
+        if bead.payload is not None
+        and isinstance(event := parse_event(bead), WakeEvent)
     )
 
 

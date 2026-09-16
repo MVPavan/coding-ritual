@@ -89,7 +89,9 @@ def test_monitor_survives_driver_death_and_records_stale_then_exit(tmp_path):
             if any(event.condition is WakeCondition.DRIVER_EXIT for event in events):
                 break
             time.sleep(0.01)
-        assert any(event.condition is WakeCondition.DRIVER_EXIT for event in events)
+        assert (
+            sum(event.condition is WakeCondition.DRIVER_EXIT for event in events) == 1
+        )
         assert monitor.is_alive()
     finally:
         monitor_stop.set()

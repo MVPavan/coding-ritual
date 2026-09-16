@@ -4,11 +4,16 @@ import hashlib
 from pathlib import Path
 
 import structlog
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 
+from workflow_interpreter.foreman.observation import (
+    ObservationStatus,
+    bounded,
+    read_status,
+    save_status,
+)
 from workflow_interpreter.foreman.wake_constants import (
     DEFAULT_EVENT_CAP,
-    DETAIL_BYTES,
     JOURNAL_LOCK,
     LOG_CAP,
     LOG_REFUSAL,
@@ -20,6 +25,17 @@ from workflow_interpreter.foreman.wake_constants import (
 )
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.paths import write_durable, write_record
+
+# Retain the existing observation exports while sharing the advisory I/O boundary.
+__all__ = [
+    "ObservationStatus",
+    "RefusalJournal",
+    "RefusalRecord",
+    "append_refusal",
+    "bounded",
+    "read_journal",
+    "read_refusals",
+]
 
 
 class RefusalRecord(BaseModel):
@@ -34,34 +50,44 @@ class RefusalRecord(BaseModel):
     reason: str
 
 
-class ObservationStatus(BaseModel):
-    """Fixed-size evidence of saturation or degraded observation durability."""
+class RefusalJournal(BaseModel):
+    """Valid journal evidence plus a count of skipped corrupt records."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
-    saturated: bool = False
+    records: tuple[RefusalRecord, ...] = ()
+    invalid_records: int = 0
     error: str | None = None
 
 
-def bounded(text: str, limit: int = DETAIL_BYTES) -> str:
-    """Bound UTF-8 diagnostics without retaining approval payloads or signatures."""
-    return text.encode("utf-8")[:limit].decode("utf-8", errors="ignore")
-
-
-def read_refusals(directory: Path) -> tuple[RefusalRecord, ...]:
-    """Read the bounded journal; corruption is a reported error, not an empty log."""
+def read_journal(directory: Path) -> RefusalJournal:
+    """Retain readable refusals even when another bounded journal line is corrupt."""
     try:
         with (directory / REFUSAL_JOURNAL).open("rb") as stream:
             raw = stream.read(MAX_EVENT_CAP * MAX_CONDITION_BYTES + 1)
     except FileNotFoundError:
-        return ()
-    if len(raw) > MAX_EVENT_CAP * MAX_CONDITION_BYTES:
-        raise ValueError(MSG_JOURNAL_BOUND)
+        return RefusalJournal()
+    except OSError as error:
+        return RefusalJournal(error=bounded(str(error)))
+    over_bound = len(raw) > MAX_EVENT_CAP * MAX_CONDITION_BYTES
     records = []
-    for line in raw.splitlines():
-        if len(line) > MAX_CONDITION_BYTES:
-            raise ValueError(MSG_JOURNAL_BOUND)
-        records.append(RefusalRecord.model_validate_json(line))
-    return tuple(records)
+    invalid = 0
+    for line in raw.splitlines()[:MAX_EVENT_CAP]:
+        try:
+            if len(line) > MAX_CONDITION_BYTES:
+                raise ValueError(MSG_JOURNAL_BOUND)
+            records.append(RefusalRecord.model_validate_json(line))
+        except (ValidationError, ValueError):
+            invalid += 1
+    return RefusalJournal(
+        records=tuple(records),
+        invalid_records=invalid,
+        error=MSG_JOURNAL_BOUND if over_bound else None,
+    )
+
+
+def read_refusals(directory: Path) -> tuple[RefusalRecord, ...]:
+    """Return readable evidence; observation callers also report journal diagnostics."""
+    return read_journal(directory).records
 
 
 def append_refusal(
@@ -96,7 +122,15 @@ def append_refusal(
         reason=bounded(reason),
     )
     with BandLock(directory / JOURNAL_LOCK):
-        records = read_refusals(directory)
+        journal = read_journal(directory)
+        if journal.error:
+            raise OSError(journal.error)
+        if journal.invalid_records:
+            save_status(
+                directory,
+                read_status(directory).degraded(journal=journal.invalid_records),
+            )
+        records = journal.records
         if any(old.identity == record.identity for old in records):
             return record
         if len(records) >= limit:

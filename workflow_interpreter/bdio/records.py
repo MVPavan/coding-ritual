@@ -239,7 +239,9 @@ def parse_event(bead: BeadRecord) -> EventPayload | WakeEvent:
                 event.root_id != metadata.wf_root_id
                 or event.fire_key != metadata.event_key
                 or event.fire_key
-                != wake_fire_key(event.instance_key, event.condition, event.cursor)
+                != wake_fire_key(
+                    event.root_id, event.instance_key, event.condition, event.cursor
+                )
                 or event.fired_at is None
             ):
                 raise ValueError(_MSG_WAKE_IDENTITY)

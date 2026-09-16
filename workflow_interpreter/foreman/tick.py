@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from typing import Final
 
 import structlog
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio import (
     ActivationRecord,
@@ -54,6 +54,7 @@ from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.inputs import InputsUnavailable
 from workflow_interpreter.foreman.monitor import require_monitor
+from workflow_interpreter.foreman.observation import ObservationStatus
 from workflow_interpreter.foreman.owner import ensure_owner
 from workflow_interpreter.foreman.reconcile import reconcile
 from workflow_interpreter.foreman.routing import abandon_target
@@ -117,6 +118,9 @@ class RunReport(BaseModel):
 
     ticks: int
     report: TickReport
+    observation: ObservationStatus | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @property
     def attention(self) -> bool:
@@ -588,7 +592,14 @@ class Foreman:
         with DriverObserver(self._composition, root_id) as observer:
             if monitored:
                 require_monitor(self._composition, root_id)
-            return self._drive(root_id, poll_s, max_wall_s, observer)
+            result = self._drive(root_id, poll_s, max_wall_s, observer)
+        return result.model_copy(
+            update={
+                "observation": observer.status
+                if observer.status != ObservationStatus()
+                else None
+            }
+        )
 
     def _drive(
         self, root_id: str, poll_s: float, max_wall_s: float, observer: DriverObserver

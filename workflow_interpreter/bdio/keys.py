@@ -111,11 +111,11 @@ def event_key(
 
 
 def wake_fire_key(
-    instance_key: str, condition: WakeCondition, cursor: WakeCursor
+    root_id: str, instance_key: str, condition: WakeCondition, cursor: WakeCursor
 ) -> str:
     """Hash length-safe structured parts; instance keys are not bead identifiers."""
     raw = json.dumps(
-        (KeyDomain.WAKE.value, instance_key, condition.value, cursor.identity),
+        (KeyDomain.WAKE.value, root_id, instance_key, condition.value, cursor.identity),
         ensure_ascii=False,
         separators=(",", ":"),
     ).encode()

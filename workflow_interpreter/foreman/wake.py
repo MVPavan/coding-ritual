@@ -21,6 +21,9 @@ MSG_HOOK_EXIT: Final[str] = "wake hook exited {code}"
 MSG_MONITOR_REQUIRED: Final[str] = (
     "healthy monitor required; start foreman monitor {root_id}"
 )
+MSG_MONITOR_CAPACITY: Final[str] = (
+    "monitor recovery exceeds capacity of {limit} records"
+)
 MSG_MONITOR_IDENTITY: Final[str] = "monitor state belongs to a different instance"
 MSG_MONITOR_LOCK: Final[str] = "monitor must hold its instance lock before polling"
 LOG_MONITOR_ERROR: Final[str] = "wf.monitor.error"
@@ -59,7 +62,7 @@ class MonitorHandle(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
     root_id: str
     instance_key: str
-    handle: ProcessHandle
+    handle: ProcessHandle | None = None
     timestamp: str
     state: MonitorState
 
@@ -83,11 +86,14 @@ class WakeState(BaseModel):
     version: Literal[1] = 1
     root_id: str
     instance_key: str
+    journal_device: int | None = None
+    journal_inode: int | None = None
     journal_offset: int = Field(default=0, ge=0)
     journal_generation: int = Field(default=0, ge=0)
     deliveries: tuple[WakeDelivery, ...] = Field(default=(), max_length=MAX_EVENT_CAP)
     last_fire_at: str | None = None
     last_error: str | None = None
+    monitor_degraded: str | None = None
     saturated: bool = False
     cap_exhausted: bool = False
 

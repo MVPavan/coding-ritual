@@ -145,7 +145,14 @@ Rejected gate intake records a bounded, deduplicated `refusals.jsonl` journal
 before returning attention. Correcting an approval can remove `refusal.json`,
 but cannot remove that journal history. `status` includes the latest refusal,
 its gate/path/error/reason, refusal count and heartbeat age. A failed diagnostic
-write is reported as degraded durability. `run` and `phase-bridge` return nonzero
+write is reported as degraded durability, including in the run report when the
+diagnostic files themselves cannot be saved. Malformed heartbeats are replaced
+with a new generation and `heartbeat_degraded` detail. Corrupt journal lines are
+skipped and counted as `journal_degraded`; readable refusals remain visible.
+Missing process identity is recorded as `identity = null` with degradation; the
+monitor then uses staleness only and cannot claim process death. Observation
+failures never abort normal driving or status. `run` and `phase-bridge` return
+nonzero
 on refusal; submit a corrected signed payload and invoke the driver again.
 These observations do not approve gates or alter activation bounds.
 
@@ -167,9 +174,14 @@ For a newly admitted bridge root, obtain its root ID from the refused admission,
 start that root's monitor, then invoke the same bridge command again.
 
 The monitor records durable bd wake events for gate opening, root terminal,
-refusal, driver exit/loss, and stale heartbeat. It reads metadata rather than
+refusal, unexpected driver exit/loss, and stale heartbeat. Expected stops at a
+gate, terminal, wall limit, or acknowledged operator interruption use no wake
+slot. Error stops and identity-proven loss without a STOPPED record still wake.
+It reads metadata rather than
 model transcripts. Closed gate records and the refusal journal preserve changes
-between polls. Stable fire keys deduplicate restart/replayed observations; wake
+between polls. Journal cursors track device/inode as well as offset. Stable fire
+keys include root ID, so roots sharing an instance key do not collide at the
+receiver. They deduplicate restart/replayed observations; wake
 events never route a workflow, authorize a gate, or consume activation bounds.
 
 `[wake]` defaults to a 5-second poll, 120-second stale threshold, 30-second minimum
@@ -177,6 +189,8 @@ fire interval, and 100 events over the instance lifetime. Pending conditions and
 rate-limit state survive restart. Journal/outbox capacity is bounded by the
 lifetime allowance. `status` exposes monitor health, pending fires/hooks,
 exhausted hooks, last delivery error, saturation, and `wake_cap_exhausted`.
+Repeated reconciliation failures appear as `monitor_degraded`. A second local
+monitor returns a structured contention refusal rather than a traceback.
 After the cap is reached, monitoring remains visible but emits no further events.
 
 Optional `hook_argv` comes only from trusted host configuration. It receives a

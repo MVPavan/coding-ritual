@@ -406,9 +406,11 @@ The read-only reference is the orchestrators checkout's
 section 1 above.
 
 Add a shared `DriverObserver` used by `Foreman.run` and the child-drive loop.
-The bridge already calls `Foreman.run`. After each completed tick atomically write
+The bridge already calls `Foreman.run`. After each completed tick attempt to
+atomically write
 `<instance-dir>/driver-heartbeat.json`: schema version, instance/root identity,
-driver generation and identity (host/boot/PID/start time), tick count, timestamp,
+driver generation and optional identity (host/boot/PID/start time), tick count,
+timestamp,
 root state, current activation/gate IDs, refusal count, last condition, and
 per-active-log identity plus `run.jsonl` byte offset. Write starting and stopped
 records too; a hanging tick leaves a stale heartbeat. Heartbeat says the driver
@@ -417,8 +419,14 @@ refusal identities, not repeated writes of the same failed signature.
 Gate intake durably appends each distinct refusal identity and bounded detail to
 an instance condition journal before returning the refusal. The monitor consumes
 that journal by offset; a later corrected approval may remove `refusal.json` but
-cannot erase an unseen condition. Journal write failure is reported as degraded
-durability, never hidden behind a healthy heartbeat.
+cannot erase an unseen condition. Observation is advisory: malformed heartbeat
+records are replaced with a new
+generation and `heartbeat_degraded` detail; corrupt journal lines are skipped
+and counted as `journal_degraded`. Unreadable process identity is `identity = null`
+with degradation, allowing stale-only detection rather than proof of death.
+Write failures are logged and returned in the run report as degraded durability,
+even when no diagnostic file can be written. Neither driving nor status fails
+because its observation files are broken.
 
 Monitoring is **opt-in**. The driver always writes its heartbeat and refusal
 journal, whether or not a monitor is running. Add the separate host command
@@ -440,24 +448,33 @@ Conditions and stable cursors:
 | gate opened | Gate's immutable gate key; discover from durable gate records even after a crash |
 | root terminal | Root terminal identity/state, once per instance |
 | refusal | Gate key + payload/signature digest + bounded refusal digest; repeated identical intake does not create a new condition |
-| driver exit/loss | Driver generation + identity + stopped record or proven process loss |
+| unexpected driver exit/loss | Driver generation + identity + error stop or proven process loss without a STOPPED record |
 | heartbeat stale | Driver generation + last advancing tick; one fire per stale episode until heartbeat advances |
 
 Use log identity (activation plus file generation) alongside offsets so truncation
 or activation change cannot look like forward progress. No transcript reads are
 needed for the named wake conditions. Metadata-only polls suffice. Raw output and
 quiet-heartbeat notifications from QM are not extra wake triggers in this bundle.
-A normal stop at a gate still records driver exit; it is a separate event with
-an expected reason, rather than a duplicate gate key.
+Expected stops at gates, terminal, wall limits, or an acknowledged operator stop
+are not wake conditions and consume no lifetime allowance. Gate/terminal events
+already describe those transitions. Only an error stop or identity-proven loss
+without a STOPPED record fires driver exit. Without identity, only staleness can
+be reported. Journal cursors carry device/inode identity as well as offset so a
+deleted and regrown journal is replayed safely under stable refusal fire keys.
 
 `WakeCursor`, `DriverHeartbeat`, `WakeEvent`, and `WakeDelivery` are frozen typed
-records. Fire key is a domain-separated hash of instance key, condition, and
-cursor. Add `WorkflowStore.append_wake_event`, re-find by key, verify identical
+records. Fire key is a domain-separated hash of root ID, instance key, condition,
+and cursor; superseded roots with a shared instance key remain distinct. Add
+`WorkflowStore.append_wake_event`, re-find by key, verify identical
 payload, and return the existing event after an ambiguous write. Extend bd event
 encoding with a distinct wake discriminator while preserving existing transition
 event decoding/backfill. Wake events never count as activations or satisfy a
 transition, approval, or rebudget. Audit/readers must understand both event shapes;
-do not fake `from/outcome/to` to fit `EventPayload`.
+do not fake `from/outcome/to` to fit `EventPayload`. Wake events use negative
+sequence numbers, separate from the driver's nonnegative carrier namespace;
+they never compete with a driver's pending sequence allocation. Legacy events
+without a payload are skipped by wake reconciliation, as by frontier decoding.
+Repeated reconciliation errors remain visible as `monitor_degraded`.
 
 Persist observed/pending cursors before delivery; only advance delivered state
 after the bd event is confirmed. Minimum fire interval defaults to 30 seconds,

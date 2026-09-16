@@ -17,6 +17,8 @@ from workflow_interpreter.contracts.wake import WakeEvent
 
 MSG_WAKE_IDENTITY: Final[str] = "wake event disagrees with its root or fire key"
 MSG_WAKE_CHANGED: Final[str] = "wake fire key already records a different payload"
+FIRST_WAKE_SEQ: Final[int] = -1
+"""Wake notifications occupy negative seq; driver carriers start at zero."""
 TITLE_WAKE: Final[str] = "wake {condition} {root_id}"
 
 
@@ -36,7 +38,9 @@ def append_wake_event(client: BdClient, root_id: str, event: WakeEvent) -> BeadR
         event.root_id != root_id
         or event.instance_key != root.metadata.instance_key
         or event.fire_key
-        != wake_fire_key(event.instance_key, event.condition, event.cursor)
+        != wake_fire_key(
+            event.root_id, event.instance_key, event.condition, event.cursor
+        )
         or event.fired_at is None
     ):
         raise CarrierIntegrityError(MSG_WAKE_IDENTITY)
@@ -46,7 +50,7 @@ def append_wake_event(client: BdClient, root_id: str, event: WakeEvent) -> BeadR
     metadata = EventMetadata(
         wf_root_id=root_id,
         event_key=event.fire_key,
-        seq=reads.next_seq(reads.instance_beads(client, root_id)),
+        seq=FIRST_WAKE_SEQ - len(reads.list_wake_events(client, root_id)),
     )
     try:
         return client._create_bead(

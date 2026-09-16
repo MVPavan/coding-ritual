@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from datetime import timedelta
 from typing import Self
 
@@ -13,12 +14,14 @@ from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.reads import gates_of
 from workflow_interpreter.contracts.wake import WakeCondition, WakeCursor, WakeEvent
 from workflow_interpreter.foreman.compose import Composition
-from workflow_interpreter.foreman.heartbeat import DriverHeartbeat, process_handle
-from workflow_interpreter.foreman.refusals import RefusalRecord, bounded
+from workflow_interpreter.foreman.heartbeat import process_handle, read_heartbeat
+from workflow_interpreter.foreman.observation import read_status, save_status
+from workflow_interpreter.foreman.refusals import RefusalRecord, bounded, read_journal
 from workflow_interpreter.foreman.wake import (
     HOOK_ATTEMPTS,
     LOG_MONITOR_ERROR,
     LOG_MONITOR_READY,
+    MSG_MONITOR_CAPACITY,
     MSG_MONITOR_IDENTITY,
     MSG_MONITOR_LOCK,
     MSG_MONITOR_REQUIRED,
@@ -40,10 +43,12 @@ from workflow_interpreter.foreman.wake_constants import (
     MSG_JOURNAL_RECORD,
     REFUSAL_JOURNAL,
     WAKE_STATE,
+    DriverCondition,
     DriverState,
 )
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.clock import elapsed_seconds, from_iso, to_iso
+from workflow_interpreter.supervisor.errors import WrapperDirError
 from workflow_interpreter.supervisor.models import Liveness
 from workflow_interpreter.supervisor.paths import (
     WrapperPaths,
@@ -63,6 +68,7 @@ def monitor_health(composition: Composition, root_id: str) -> MonitorHealth:
     if (
         handle.root_id != root_id
         or handle.instance_key != root.metadata.instance_key
+        or handle.handle is None
         or handle.handle.host != composition.supervisor_config.host
     ):
         return MonitorHealth.INDETERMINATE
@@ -83,16 +89,30 @@ def monitor_health(composition: Composition, root_id: str) -> MonitorHealth:
 
 def require_monitor(composition: Composition, root_id: str) -> None:
     """Gate only explicitly monitored startup, never ordinary run or bridge use."""
-    if monitor_health(composition, root_id) is not MonitorHealth.HEALTHY:
+    try:
+        health = monitor_health(composition, root_id)
+    except (WrapperDirError, OSError, ValueError) as error:
+        raise MonitorUnavailable(
+            MSG_MONITOR_REQUIRED.format(root_id=root_id)
+        ) from error
+    if health is not MonitorHealth.HEALTHY:
         raise MonitorUnavailable(MSG_MONITOR_REQUIRED.format(root_id=root_id))
 
 
 def monitor_status(composition: Composition, root_id: str) -> dict[str, object]:
     """Report delivery health without pretending a bd event is a received hook."""
     paths = WrapperPaths(composition.supervisor_config, root_id)
-    state = read_record(paths.instance_dir / WAKE_STATE, WakeState)
+    state = None
+    degraded = None
+    try:
+        state = read_record(paths.instance_dir / WAKE_STATE, WakeState)
+        health = monitor_health(composition, root_id)
+    except (WrapperDirError, OSError, ValueError) as error:
+        degraded = bounded(str(error))
+        health = MonitorHealth.INDETERMINATE
     return {
-        "health": monitor_health(composition, root_id).value,
+        "health": health.value,
+        "monitor_degraded": degraded or (state.monitor_degraded if state else None),
         "pending_fires": sum(d.event_id is None for d in state.deliveries)
         if state
         else 0,
@@ -179,7 +199,9 @@ class WakeMonitor:
             raise MonitorUnavailable(MSG_MONITOR_LOCK)
         self._ack(MonitorState.READY)
         try:
-            self._reconcile()
+            if not self._reconcile():
+                self._save()
+                return self._state
             self._observe()
             self._save()
             self._fire()
@@ -223,7 +245,23 @@ class WakeMonitor:
         )
         self._save()
 
-    def _reconcile(self) -> None:
+    def _reconcile(self) -> bool:
+        """Expose read failures durably and retry without pretending delivery works."""
+        try:
+            self._reconcile_events()
+        except (BdioError, WrapperDirError, OSError, ValueError) as error:
+            detail = bounded(str(error))
+            self._state = self._state.model_copy(
+                update={"monitor_degraded": detail, "last_error": detail}
+            )
+            structlog.get_logger(__name__).error(
+                LOG_MONITOR_ERROR, root_id=self._root_id, reason=detail
+            )
+            return False
+        self._state = self._state.model_copy(update={"monitor_degraded": None})
+        return True
+
+    def _reconcile_events(self) -> None:
         """Recover ambiguous bd writes and derive lifetime usage from durable events."""
         events = self._composition.store.reads.list_wake_events(self._root_id)
         deliveries = {d.event.fire_key: d for d in self._state.deliveries}
@@ -241,7 +279,7 @@ class WakeMonitor:
                     old or WakeDelivery(event=event)
                 ).model_copy(update={"event_id": bead.id})
         if len(deliveries) > MAX_EVENT_CAP:
-            raise MonitorUnavailable(MSG_MONITOR_IDENTITY)
+            raise MonitorUnavailable(MSG_MONITOR_CAPACITY.format(limit=MAX_EVENT_CAP))
         times = [event.fired_at for event in events if event.fired_at]
         if self._state.last_fire_at:
             times.append(self._state.last_fire_at)
@@ -259,7 +297,7 @@ class WakeMonitor:
     def _queue(self, condition: WakeCondition, identity: str, detail: str) -> None:
         """Reserve finite capacity for a newly observed condition before advancing cursors."""
         cursor = WakeCursor(identity=identity)
-        key = wake_fire_key(self._instance_key, condition, cursor)
+        key = wake_fire_key(self._root_id, self._instance_key, condition, cursor)
         if any(d.event.fire_key == key for d in self._state.deliveries):
             return
         if len(self._state.deliveries) >= self._config.lifetime_cap:
@@ -290,27 +328,54 @@ class WakeMonitor:
         except FileNotFoundError:
             return
         with stream:
-            stream.seek(0, 2)
-            size = stream.tell()
+            stat = os.fstat(stream.fileno())
+            size = stat.st_size
             offset = self._state.journal_offset
             generation = self._state.journal_generation
-            if size < offset:
+            changed = (
+                self._state.journal_device != stat.st_dev
+                or self._state.journal_inode != stat.st_ino
+            )
+            if size < offset or (
+                changed and (offset or self._state.journal_inode is not None)
+            ):
                 offset = 0
                 generation += 1
             stream.seek(offset)
+            corrupt = False
             for _ in range(MAX_EVENT_CAP):
                 line = stream.readline(MAX_CONDITION_BYTES + 1)
                 if not line:
                     break
-                if len(line) > MAX_CONDITION_BYTES or not line.endswith(b"\n"):
-                    raise MonitorUnavailable(MSG_JOURNAL_RECORD)
-                record = RefusalRecord.model_validate_json(line)
+                offset = stream.tell()
+                try:
+                    if len(line) > MAX_CONDITION_BYTES or not line.endswith(b"\n"):
+                        raise ValueError(MSG_JOURNAL_RECORD)
+                    record = RefusalRecord.model_validate_json(line)
+                except ValueError:
+                    corrupt = True
+                    continue
                 self._queue(
                     WakeCondition.REFUSAL, record.identity, record.model_dump_json()
                 )
-                offset = stream.tell()
+            if corrupt:
+                journal = read_journal(self._paths.instance_dir)
+                save_status(
+                    self._paths.instance_dir,
+                    read_status(self._paths.instance_dir).degraded(
+                        journal=journal.invalid_records, error=journal.error
+                    ),
+                )
+                self._state = self._state.model_copy(
+                    update={"monitor_degraded": MSG_JOURNAL_RECORD}
+                )
         self._state = self._state.model_copy(
-            update={"journal_offset": offset, "journal_generation": generation}
+            update={
+                "journal_offset": offset,
+                "journal_generation": generation,
+                "journal_device": stat.st_dev,
+                "journal_inode": stat.st_ino,
+            }
         )
 
     def _observe(self) -> None:
@@ -327,7 +392,9 @@ class WakeMonitor:
                 root.metadata.terminal,
                 root.metadata.terminal,
             )
-        heartbeat = read_record(self._paths.driver_heartbeat, DriverHeartbeat)
+        heartbeat, error = read_heartbeat(self._paths.driver_heartbeat)
+        if error:
+            self._state = self._state.model_copy(update={"monitor_degraded": error})
         if heartbeat is None:
             return
         if (
@@ -336,19 +403,34 @@ class WakeMonitor:
         ):
             raise MonitorUnavailable(MSG_MONITOR_IDENTITY)
         identity = hashlib.sha256(
-            (heartbeat.generation + heartbeat.handle.model_dump_json()).encode()
+            (
+                heartbeat.generation
+                + (heartbeat.identity.model_dump_json() if heartbeat.identity else "")
+            ).encode()
         ).hexdigest()
         stopped = heartbeat.state is DriverState.STOPPED
-        proof = prove_liveness(self._composition.supervisor_config, heartbeat.handle)
+        if stopped and heartbeat.last_condition is not DriverCondition.ERROR:
+            return
+        proof = (
+            prove_liveness(self._composition.supervisor_config, heartbeat.identity)
+            if heartbeat.identity is not None
+            else None
+        )
         lost = (
-            heartbeat.handle.host == self._composition.supervisor_config.host
+            heartbeat.identity is not None
+            and heartbeat.identity.host == self._composition.supervisor_config.host
+            and proof is not None
             and proof.status in (Liveness.DEAD, Liveness.IDENTITY_MISMATCH)
         )
-        if stopped or lost:
+        if heartbeat.identity is not None and (stopped or lost):
             self._queue(
                 WakeCondition.DRIVER_EXIT,
                 identity,
-                heartbeat.last_condition.value if stopped else proof.status.value,
+                heartbeat.last_condition.value
+                if stopped
+                else proof.status.value
+                if proof
+                else "",
             )
         elif (
             elapsed_seconds(heartbeat.timestamp, self._clock.now())

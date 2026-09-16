@@ -57,7 +57,7 @@ def test_run_always_records_start_tick_and_stop_without_monitor(tmp_path: Path) 
     assert heartbeat.ticks == result.ticks == 1
     assert gate.gate_id in heartbeat.gates
     assert heartbeat.root_id == root.root_id
-    assert heartbeat.handle.proc_start_time
+    assert heartbeat.identity.proc_start_time
 
 
 def test_refusal_stops_run_and_journal_deduplicates(
@@ -129,11 +129,9 @@ def test_observer_reports_durability_failure(tmp_path: Path, monkeypatch):
         raise OSError("disk full")
 
     monkeypatch.setattr(heartbeat, "write_record", unwritable)
-    with (
-        pytest.raises(OSError, match="disk full"),
-        DriverObserver(lab.composition, root.root_id),
-    ):
-        pytest.fail("must not start work without recording the heartbeat")
+    with DriverObserver(lab.composition, root.root_id) as observer:
+        observer.observe(TickReport(blocked=True))
+    assert observer.status.heartbeat_degraded == "disk full"
 
 
 def test_log_cursor_does_not_treat_truncation_or_replacement_as_progress(tmp_path):
@@ -560,8 +558,8 @@ def test_stale_monitor_ack_does_not_authorize_startup(tmp_path):
             require_monitor(lab.composition, root.root_id)
 
 
-def test_terminal_and_normal_driver_stop_have_distinct_stable_fires(tmp_path):
-    """Terminal and expected stop are separate observations, deduped on restart."""
+def test_terminal_stop_does_not_spend_an_extra_fire(tmp_path):
+    """Expected terminal shutdown leaves only the terminal notification."""
 
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
@@ -573,15 +571,8 @@ def test_terminal_and_normal_driver_stop_have_distinct_stable_fires(tmp_path):
             lab.clock.sleep(31)
             monitor.poll()
     events = lab.store.reads.list_wake_events(root.root_id)
-    assert {event.condition for event in events} == {
-        WakeCondition.ROOT_TERMINAL,
-        WakeCondition.DRIVER_EXIT,
-    }
-    assert len(events) == 2
-    assert (
-        next(e for e in events if e.condition is WakeCondition.DRIVER_EXIT).detail
-        == "terminal"
-    )
+    assert len(events) == 1
+    assert events[0].condition is WakeCondition.ROOT_TERMINAL
 
 
 @pytest.mark.parametrize(
@@ -647,3 +638,38 @@ def test_oversize_durability_detail_cannot_hide_refusal(capsys):
     output = capsys.readouterr().out
     assert len(output.encode()) <= 4096
     assert json.loads(output)["attention"]
+
+
+def test_repeated_gate_runs_do_not_spend_exit_allowance(tmp_path):
+    """Returning to the same human gate never consumes another wake slot."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    gate = lab.store.open_gate(root.root_id, halt_gate("test"))
+    with WakeMonitor(lab.composition, root.root_id) as monitor:
+        for _ in range(2):
+            Foreman(lab.composition).run(root.root_id, poll_s=1, max_wall_s=10)
+            lab.clock.sleep(31)
+            monitor.poll()
+        lab.clock.sleep(31)
+        state = monitor.poll()
+    events = lab.store.reads.list_wake_events(root.root_id)
+    assert len(state.deliveries) == len(events) == 1
+    assert events[0].condition is WakeCondition.GATE_OPENED
+    assert events[0].cursor.identity == gate.metadata.gate_key
+
+
+@pytest.mark.parametrize("error", [RuntimeError, KeyboardInterrupt])
+def test_error_stop_fires_but_operator_stop_does_not(tmp_path, error):
+    """An acknowledged operator interruption is expected; an exception is not."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    with pytest.raises(error), DriverObserver(lab.composition, root.root_id):
+        raise error()
+    with WakeMonitor(lab.composition, root.root_id) as monitor:
+        monitor.poll()
+        lab.clock.sleep(31)
+        monitor.poll()
+    events = lab.store.reads.list_wake_events(root.root_id)
+    assert len(events) == (1 if error is RuntimeError else 0)
+    if events:
+        assert events[0].condition is WakeCondition.DRIVER_EXIT

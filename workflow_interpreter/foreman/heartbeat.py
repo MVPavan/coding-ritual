@@ -7,23 +7,25 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Self
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio import ProcessHandle
+from workflow_interpreter.bdio.errors import BdioError
 from workflow_interpreter.bdio.reads import activations_of, gates_of
-from workflow_interpreter.foreman.refusals import (
-    ObservationStatus,
+from workflow_interpreter.foreman.observation import (
     bounded,
-    read_refusals,
+    read_status,
+    save_status,
 )
+from workflow_interpreter.foreman.refusals import read_journal
 from workflow_interpreter.foreman.wake_constants import (
     MSG_IDENTITY,
-    OBSERVATION_STATUS,
     DriverCondition,
     DriverState,
 )
 from workflow_interpreter.supervisor.clock import Clock, elapsed_seconds, to_iso
 from workflow_interpreter.supervisor.config import SupervisorConfig
+from workflow_interpreter.supervisor.errors import WrapperDirError
 from workflow_interpreter.supervisor.paths import (
     HEARTBEAT_FILE,
     WrapperPaths,
@@ -79,7 +81,10 @@ class DriverHeartbeat(BaseModel):
     root_id: str
     instance_key: str
     generation: str
-    handle: ProcessHandle
+    identity: ProcessHandle | None = Field(
+        default=None, validation_alias=AliasChoices("identity", "handle")
+    )
+    identity_degraded: bool = False
     state: DriverState
     ticks: int = 0
     timestamp: str
@@ -92,13 +97,13 @@ class DriverHeartbeat(BaseModel):
     durability_error: str | None = None
 
 
-def process_handle(config: SupervisorConfig, clock: Clock) -> ProcessHandle:
+def process_handle(config: SupervisorConfig, clock: Clock) -> ProcessHandle | None:
     """Record the current host process with the same identity proof as a runner."""
     pid = os.getpid()
     start = read_start_time(config, pid)
     boot = read_boot_id(config)
     if start is None or boot is None:
-        raise OSError(MSG_IDENTITY)
+        return None
     return ProcessHandle(
         pid=pid,
         pgid=os.getpgrp(),
@@ -122,7 +127,12 @@ class DriverObserver:
         self._handle = process_handle(composition.supervisor_config, composition.clock)
         self._ticks = 0
         self._condition = DriverCondition.STARTING
-        previous = read_record(self._paths.driver_heartbeat, DriverHeartbeat)
+        self.status = read_status(self._paths.instance_dir)
+        if self._handle is None:
+            self.status = self.status.degraded(identity=MSG_IDENTITY)
+        previous, error = read_heartbeat(self._paths.driver_heartbeat)
+        if error:
+            self.status = self.status.degraded(heartbeat=error)
         self._logs = (
             {log.activation_id: log for log in previous.logs} if previous else {}
         )
@@ -151,10 +161,22 @@ class DriverObserver:
     def __exit__(self, *exc_info: object) -> None:
         """Persist expected stop or exceptional exit without asserting model success."""
         if exc_info and exc_info[0] is not None:
-            self._condition = DriverCondition.ERROR
+            self._condition = (
+                DriverCondition.STOPPED
+                if exc_info[0] in (KeyboardInterrupt, SystemExit)
+                else DriverCondition.ERROR
+            )
         self._write(DriverState.STOPPED)
 
     def _write(self, state: DriverState) -> None:
+        """Keep observational I/O failures out of the driver's control flow."""
+        try:
+            self._snapshot(state)
+        except (BdioError, WrapperDirError, OSError, ValueError) as error:
+            self.status = self.status.degraded(error=str(error), heartbeat=str(error))
+        self.status = save_status(self._paths.instance_dir, self.status)
+
+    def _snapshot(self, state: DriverState) -> None:
         """Snapshot durable carriers and log metadata after the tick's writes."""
         root = self._composition.store.reads.load_root(self._root_id)
         beads = self._composition.store.reads.instance_beads(self._root_id)
@@ -172,14 +194,22 @@ class DriverObserver:
             is not None
         )
         self._logs = {log.activation_id: log for log in logs}
-        status = read_record(
-            self._paths.instance_dir / OBSERVATION_STATUS, ObservationStatus
+        persisted = read_status(self._paths.instance_dir)
+        journal = read_journal(self._paths.instance_dir)
+        self.status = self.status.model_copy(
+            update={"saturated": self.status.saturated or persisted.saturated}
+        ).degraded(
+            error=journal.error or persisted.error,
+            heartbeat=persisted.heartbeat_degraded,
+            journal=max(journal.invalid_records, persisted.journal_degraded),
+            identity=persisted.identity_degraded,
         )
         heartbeat = DriverHeartbeat(
             root_id=self._root_id,
             instance_key=root.metadata.instance_key,
             generation=self._generation,
-            handle=self._handle,
+            identity=self._handle,
+            identity_degraded=self._handle is None,
             state=state,
             ticks=self._ticks,
             timestamp=to_iso(self._composition.clock.now()),
@@ -188,19 +218,28 @@ class DriverObserver:
             gates=tuple(
                 g.gate_id for g in gates_of(beads) if g.bead.status != "closed"
             ),
-            refusal_count=len(read_refusals(self._paths.instance_dir)),
+            refusal_count=len(journal.records),
             last_condition=self._condition,
             logs=logs,
-            durability_error=status.error if status else None,
+            durability_error=self.status.error,
         )
         write_record(self._paths.driver_heartbeat, heartbeat)
 
 
 def observation_status(directory: Path, clock: Clock) -> dict[str, object]:
     """Expose retained refusals and responsiveness without reading model output."""
-    heartbeat = read_record(directory / HEARTBEAT_FILE, DriverHeartbeat)
-    status = read_record(directory / OBSERVATION_STATUS, ObservationStatus)
-    refusals = read_refusals(directory)
+    heartbeat, heartbeat_error = read_heartbeat(directory / HEARTBEAT_FILE)
+    journal = read_journal(directory)
+    status = read_status(directory).degraded(
+        heartbeat=heartbeat_error, journal=journal.invalid_records, error=journal.error
+    )
+    age = None
+    if heartbeat:
+        try:
+            age = elapsed_seconds(heartbeat.timestamp, clock.now())
+        except ValueError as error:
+            status = status.degraded(heartbeat=str(error))
+    refusals = journal.records
     return {
         "heartbeat": heartbeat.model_dump(
             mode="json",
@@ -210,17 +249,24 @@ def observation_status(directory: Path, clock: Clock) -> dict[str, object]:
                 "generation",
                 "last_condition",
                 "durability_error",
+                "identity_degraded",
             },
         )
         if heartbeat
         else None,
-        "heartbeat_age_s": elapsed_seconds(heartbeat.timestamp, clock.now())
-        if heartbeat
-        else None,
+        "heartbeat_age_s": age,
         "refusals": [
             {**item.model_dump(mode="json"), "reason": bounded(item.reason, 512)}
             for item in refusals[-1:]
         ],
         "refusal_count": len(refusals),
-        "durability": status.model_dump(mode="json") if status else None,
+        "durability": status.model_dump(mode="json"),
     }
+
+
+def read_heartbeat(path: Path) -> tuple[DriverHeartbeat | None, str | None]:
+    """Malformed or unreadable heartbeat evidence is advisory, never authority."""
+    try:
+        return read_record(path, DriverHeartbeat), None
+    except (WrapperDirError, OSError, ValueError) as error:
+        return None, bounded(str(error))

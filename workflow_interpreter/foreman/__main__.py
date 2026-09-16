@@ -50,6 +50,7 @@ from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.foreman.wake import MonitorUnavailable
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.clock import SystemClock
+from workflow_interpreter.supervisor.errors import LockUnavailable
 from workflow_interpreter.supervisor.gitio import Git
 
 # The per-subprocess `debug` chatter every git and bd call emits is worthless in
@@ -627,7 +628,14 @@ def _run(
     if args.command == "monitor":
         if os.getpgrp() != os.getpid():
             os.setsid()
-        WakeMonitor(composition, args.root_id).run(max_wall_s=args.max_wall)
+        try:
+            WakeMonitor(composition, args.root_id).run(max_wall_s=args.max_wall)
+        except (LockUnavailable, MonitorUnavailable) as error:
+            emit(
+                json.dumps({"attention": True, "reason": str(error)}),
+                MAX_TRANSCRIPT_BYTES,
+            )
+            return 2
         emit(
             json.dumps(monitor_status(composition, args.root_id)), MAX_TRANSCRIPT_BYTES
         )

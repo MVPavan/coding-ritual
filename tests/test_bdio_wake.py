@@ -8,6 +8,7 @@ from workflow_interpreter.bdio import CarrierIntegrityError, WorkflowStore
 from workflow_interpreter.bdio.bounds import ceiling_count, effective_bound
 from workflow_interpreter.bdio.errors import BdioError
 from workflow_interpreter.bdio.keys import wake_fire_key
+from workflow_interpreter.bdio.reads import next_seq
 from workflow_interpreter.bdio.wire import BoundSetting
 from workflow_interpreter.contracts.wake import WakeCondition, WakeCursor, WakeEvent
 from workflow_interpreter.foreman.frontier import build_frontier
@@ -21,7 +22,9 @@ def event_for(root, identity="cursor", condition=WakeCondition.ROOT_TERMINAL):
         instance_key=root.metadata.instance_key,
         condition=condition,
         cursor=cursor,
-        fire_key=wake_fire_key(root.metadata.instance_key, condition, cursor),
+        fire_key=wake_fire_key(
+            root.root_id, root.metadata.instance_key, condition, cursor
+        ),
         observed_at="2026-09-15T00:00:00Z",
         fired_at="2026-09-15T00:00:00Z",
         detail="attention",
@@ -63,6 +66,7 @@ def test_real_bd_wake_roundtrip_is_idempotent_and_not_a_transition(
     root = make_root(store, load_definition())
     event = event_for(root)
     first = store.append_wake_event(root.root_id, event)
+    assert first.metadata["seq"] == -1
     assert store.append_wake_event(root.root_id, event).id == first.id
     assert store.reads.list_wake_events(root.root_id) == (event,)
     assert ceiling_count(store.reads.instance_beads(root.root_id)) == 0
@@ -145,3 +149,43 @@ def test_wake_cannot_decide_an_open_gate_or_raise_bounds(fake_store, gate_kind):
     assert build_frontier(
         root, fake_store.reads.instance_beads(root_id)
     ) == build_frontier(root, before)
+
+
+def test_wake_append_cannot_steal_a_reserved_activation_sequence(
+    fake_store, monkeypatch
+):
+    """A monitor append in the driver's read/create window uses another namespace."""
+
+    root = make_root(fake_store, load_definition())
+    original = fake_store._client._create_bead
+    wakes = []
+
+    def interleave(**kwargs):
+        """Commit a notification after mint selected its sequence, before its write."""
+        if kwargs["metadata"].get("wf_kind") == "activation":
+            wakes.append(fake_store.append_wake_event(root.root_id, event_for(root)))
+        return original(**kwargs)
+
+    monkeypatch.setattr(fake_store._client, "_create_bead", interleave)
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    assert activation.metadata.seq == 1
+    assert wakes[0].metadata["seq"] == -1
+    second = fake_store.append_wake_event(root.root_id, event_for(root, "second"))
+    assert second.metadata["seq"] == -2
+    assert next_seq(fake_store.reads.instance_beads(root.root_id)) == 2
+
+
+def test_roots_sharing_instance_key_have_distinct_fire_keys(fake_store, fake_bd):
+    """Concurrent/superseded roots remain distinct to receivers deduplicating fires."""
+    first = make_root(fake_store, load_definition())
+    second = make_root(fake_store, load_definition())
+    fake_bd.rows[second.root_id]["metadata"]["instance_key"] = (
+        first.metadata.instance_key
+    )
+    second = fake_store.reads.load_root(second.root_id)
+    first_event, second_event = event_for(first), event_for(second)
+    assert first_event.fire_key != second_event.fire_key
+    fake_store.append_wake_event(first.root_id, first_event)
+    fake_store.append_wake_event(second.root_id, second_event)
+    assert fake_store.reads.list_wake_events(first.root_id) == (first_event,)
+    assert fake_store.reads.list_wake_events(second.root_id) == (second_event,)

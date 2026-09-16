@@ -848,10 +848,16 @@ exceptional and byte-budgeted.
 The **driver** additionally writes a protected `driver-heartbeat.json` at startup,
 after every completed tick, and on shutdown, including process identity,
 generation, active activation/gate IDs, log identities/offsets and distinct
-refusal count. A hanging tick leaves a stale heartbeat. Gate intake journals
+refusal count. Process identity may be absent with a degraded flag; missing
+identity permits stale detection only, never proof of death. A hanging tick
+leaves a stale heartbeat. Gate intake journals
 bounded, deduplicated refusal identities independently of the mutable inbox
 receipt. Corrected approval does not erase refusal history. Journal/receipt
-write errors are surfaced as degraded durability. `run` stops with attention
+write errors are surfaced as degraded durability. Observation is advisory:
+malformed heartbeat records are replaced and reported as `heartbeat_degraded`;
+corrupt journal lines are skipped and counted as `journal_degraded`. The driver
+and status continue through observation I/O failures, returning diagnostics even
+when those diagnostics cannot be persisted. `run` stops with attention
 and a nonzero CLI exit on refusal; the child driver and phase bridge propagate
 that attention. None of these observations changes gate authority or routing.
 
@@ -860,11 +866,17 @@ process group, identity-proven startup acknowledgment, and durable delivery
 cursor. Only explicit `--monitored` makes its health a startup requirement for
 `run`/`phase-bridge`. Polling uses metadata, durable gate history, and the refusal
 journal, never a model call. Conditions are gate opened, root terminal, refusal,
-driver exit/loss, and heartbeat stale (one episode per last advancing tick).
+unexpected driver exit/loss, and heartbeat stale (one episode per last advancing
+tick). Expected STOPPED records do not wake or consume the cap; only an error
+stop or identity-proven loss without STOPPED produces an exit notification.
+Journal device/inode identity prevents deletion/regrowth from skipping records.
 
 Wake events use the distinct `wf-wake-event/1` discriminator and a stable
-instance/condition/cursor fire key. They are notifications, never transition,
-approval, rebudget, or activation authority. Persist pending intent before bd
+root/instance/condition/cursor fire key. They are notifications, never transition,
+approval, rebudget, or activation authority. Their negative sequence namespace
+cannot collide with driver carrier allocation. Legacy events without payloads
+are ignored; reconciliation errors expose `monitor_degraded`. Persist pending
+intent before bd
 writes, re-find ambiguous writes by key, and reconcile lifetime usage on restart.
 Default poll/stale/minimum-fire spacing is 5/120/30 seconds, with a 100-event
 lifetime cap and bounded journal/outbox. Saturation and exhausted delivery stay
