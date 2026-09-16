@@ -312,7 +312,7 @@ def test_supersede_is_append_only(
 
 
 def test_event_payload_round_trips_inline_and_never_duplicates(
-    store: WorkflowStore, definition: GraphDefinition
+    store: WorkflowStore, bd_client: BdClient, definition: GraphDefinition
 ) -> None:
     root = make_root(store, definition)
     activation = store.mint_activation(root.root_id, entry_request()).activation
@@ -328,7 +328,10 @@ def test_event_payload_round_trips_inline_and_never_duplicates(
     second = store.append_event(root.root_id, payload)
 
     assert first.id == second.id
-    assert first.issue_type == WfKind.EVENT.value
+    assert first.kind == WfKind.EVENT.value
+    # The bd issue type is asserted at the transport, where it exists: the
+    # seam's record carries the §3 discriminator, not bd's row columns.
+    assert bd_client.show(first.id).issue_type == WfKind.EVENT.value
     assert first.payload is not None
     stored = json.loads(first.payload)
     assert stored["from"] == IMPLEMENT
