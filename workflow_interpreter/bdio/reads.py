@@ -22,6 +22,7 @@ from pydantic import JsonValue
 from workflow_interpreter.bdio import bounds
 from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.carriers import JSON_SAFE_INT_LIMIT
+from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
@@ -51,6 +52,9 @@ from workflow_interpreter.bdio.wire import (
 from workflow_interpreter.contracts.wake import WakeEvent
 
 FIRST_SEQ: Final[int] = 1
+MSG_SEQ_EXHAUSTED: Final[str] = (
+    "instance seq space is exhausted: the next seq is past the JSON-safe bound"
+)
 
 
 def load_root(client: StoreBackend, root_id: str) -> RootRecord:
@@ -132,8 +136,16 @@ def next_instance_seq(client: StoreBackend, root_id: str) -> int:
     Same reason as `owns_instance_rows`: allocating the next sequence needs
     the numbers the rows carry, not their meaning, and an event backfill must
     not be blocked by a sibling row that no longer decodes.
+
+    The upper bound is a refusal, not an allocation: when the highest valid
+    `seq` is already the JSON-safe bound, its successor is a number no write
+    could carry back (`carriers.JsonSafeInt`), so this fails loudly instead of
+    handing out one that would be rounded on the way to the store.
     """
-    return _next_seq_of_rows(instance_rows(client, root_id))
+    seq = _next_seq_of_rows(instance_rows(client, root_id))
+    if seq > JSON_SAFE_INT_LIMIT:
+        raise CarrierIntegrityError(MSG_SEQ_EXHAUSTED)
+    return seq
 
 
 def _json_safe_seq(value: JsonValue | None) -> int | None:

@@ -319,6 +319,19 @@ def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
     # can be allocated from, so the successor comes from the one valid `seq`.
     assert fake_store.reads.next_instance_seq(root.root_id) == 8
 
+    # The bound itself IS a valid `seq`, and its successor is not: allocation
+    # refuses rather than hand out a number no write could carry back.
+    fake_client._create_bead(
+        title="wf activation at the JSON-safe bound",
+        metadata={
+            "wf_kind": WfKind.ACTIVATION.value,
+            "wf_root_id": root.root_id,
+            "seq": JSON_SAFE_INT_LIMIT,
+        },
+    )
+    with pytest.raises(CarrierIntegrityError, match="seq space is exhausted"):
+        fake_store.reads.next_instance_seq(root.root_id)
+
 
 def test_two_roots_that_both_own_beads_refuse_to_converge(
     fake_store: WorkflowStore,
