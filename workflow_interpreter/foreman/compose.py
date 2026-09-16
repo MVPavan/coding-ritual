@@ -171,7 +171,7 @@ class Composition:
                     from workflow_interpreter.schema.decisions import CoordinationError
 
                     raise CoordinationError("conflicting child wrapper location")
-                band_path = coordinator.member_lock_path(root_id)
+                band_path = coordinator.member_lock_path(root_id, root=root)
         band = BandLock(band_path)
         store = self.store.for_root(
             branch_head_reader=branch_head_reader, member_band=band

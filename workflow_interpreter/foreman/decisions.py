@@ -550,7 +550,13 @@ def advance_decision(
         active_id = state.active.get(child_slot or "work")
         if not active_id:
             raise CoordinationError("active member admission is incomplete")
-        active = composition.store.reads.load_root(active_id)
+        # Routing has not mutated this root; reuse its tick-local observation.
+        # Member validation above and the local tick still read fresh fencing state.
+        active = (
+            root
+            if active_id == root.root_id
+            else composition.store.reads.load_root(active_id)
+        )
         boundary = active.metadata.decision_boundary
         if boundary is not None and digest_record(boundary) not in state.requests:
             source = composition.store.reads.load_activation(
