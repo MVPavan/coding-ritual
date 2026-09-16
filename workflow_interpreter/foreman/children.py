@@ -315,12 +315,13 @@ def observe(
     """Bounded evidence pointers from authoritative local lifecycle reads."""
     if row.cancellation is not None or row.collection is not None:
         return row
-    root = composition.store.reads.load_root(row.root_id)
+    reads = composition.reads_for_root(row.root_id)
+    root = reads.load_root(row.root_id)
     if activations is None:
-        activations = composition.store.reads.list_activations(row.root_id)
+        activations = reads.list_activations(row.root_id)
     latest = max(activations, key=lambda a: a.metadata.seq, default=None)
     row = refresh_control_attention(row, activations)
-    gates = composition.store.reads.list_gates(row.root_id)
+    gates = reads.list_gates(row.root_id)
     waiting = next((g for g in gates if g.status != "closed"), None)
     changes: dict[str, object] = {
         "terminal": root.metadata.terminal,
@@ -364,7 +365,9 @@ def attention_blocks(
     if row.attention_source == "decision":
         return True
     if activations is None:
-        activations = composition.store.reads.list_activations(row.root_id)
+        activations = composition.reads_for_root(row.root_id).list_activations(
+            row.root_id
+        )
     row = refresh_control_attention(row, activations)
     return row.attention is not None and not set(row.attention.split("; ")).issubset(
         control_keys(activations)
@@ -395,7 +398,9 @@ def drive(
         while time.monotonic() < deadline:
             children = coordinator.state(owner).children
             snapshots = {
-                row.root_id: composition.store.reads.list_activations(row.root_id)
+                row.root_id: composition.reads_for_root(row.root_id).list_activations(
+                    row.root_id
+                )
                 for row in children.values()
                 if row.cancellation is None and row.collection is None
             }
@@ -578,7 +583,7 @@ def command(composition: Composition, args: object) -> str:
             composition, args.graph, args.slot, _instance_inputs(args.input)
         )
         receipt = coordinator.start_child(args.owner_id, args.slot, admission)
-        root = composition.store.reads.load_root(receipt.root_id)
+        root = composition.reads_for_root(receipt.root_id).load_root(receipt.root_id)
         return json.dumps(
             {
                 "receipt": receipt.model_dump(mode="json"),
@@ -649,7 +654,7 @@ def record_late_evidence(composition: Composition, root_id: str) -> None:
     from workflow_interpreter.bdio import Lifecycle
     from workflow_interpreter.supervisor.models import CompletionEvidence
 
-    root = composition.store.reads.load_root(root_id)
+    root = composition.reads_for_root(root_id).load_root(root_id)
     link = root.metadata.coordination
     if link is None:
         return
@@ -690,7 +695,7 @@ def active_slots(
         if any(
             a.metadata.lifecycle in (Lifecycle.MINTED, Lifecycle.DISPATCHED)
             for root_id in members
-            for a in composition.store.reads.list_activations(root_id)
+            for a in composition.reads_for_root(root_id).list_activations(root_id)
         ):
             active.add(row.slot)
     return active

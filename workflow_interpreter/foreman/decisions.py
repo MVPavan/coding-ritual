@@ -112,7 +112,8 @@ def queue_boundary(
 def _assert_current(composition: Composition, request: DecisionRequest) -> RootRecord:
     """State/artifact/authority check repeated immediately before consumption."""
     boundary = request.boundary
-    root = composition.store.reads.load_root(boundary.root_id)
+    reads = composition.reads_for_root(boundary.root_id)
+    root = reads.load_root(boundary.root_id)
     composition.store.coordination_store().validate_member(root)
     if root.metadata.decision_boundary != boundary:
         raise CoordinationError("stale boundary")
@@ -121,12 +122,9 @@ def _assert_current(composition: Composition, request: DecisionRequest) -> RootR
         or root.metadata.config_signature != boundary.config_signature
     ):
         raise CoordinationError("stale graph/config")
-    if any(
-        g.metadata.state.value == "open"
-        for g in composition.store.reads.list_gates(root.root_id)
-    ):
+    if any(g.metadata.state.value == "open" for g in reads.list_gates(root.root_id)):
         raise CoordinationError("human gate prevents decision consumption")
-    source = composition.store.reads.load_activation(boundary.source_activation_id)
+    source = reads.load_activation(boundary.source_activation_id)
     policy = root.index.nodes[source.metadata.node].decision
     if (
         policy is None
@@ -134,7 +132,7 @@ def _assert_current(composition: Composition, request: DecisionRequest) -> RootR
         or not source.metadata.is_completed
     ):
         raise CoordinationError("stale source/policy")
-    acts = composition.store.reads.list_activations(root.root_id)
+    acts = reads.list_activations(root.root_id)
     if (
         max(acts, key=lambda a: int(a.metadata.seq)).activation_id
         != source.activation_id
@@ -175,7 +173,7 @@ def _request_body(request: DecisionRequest) -> str:
 
 def _admit_decision(composition: Composition, request: DecisionRequest) -> None:
     root = _assert_current(composition, request)
-    source = composition.store.reads.load_activation(
+    source = composition.reads_for_root(request.boundary.root_id).load_activation(
         request.boundary.source_activation_id
     )
     template = (root.metadata.decision_templates or {})[source.metadata.node]
@@ -203,7 +201,8 @@ def _admit_decision(composition: Composition, request: DecisionRequest) -> None:
     from workflow_interpreter.foreman.resolve import ensure_instance_branch
 
     ensure_instance_branch(
-        composition, composition.store.reads.load_root(receipt.root_id)
+        composition,
+        composition.reads_for_root(receipt.root_id).load_root(receipt.root_id),
     )
     with coordinator._locked(request.boundary.owner_id):
         current = coordinator.state(request.boundary.owner_id).requests[
@@ -222,9 +221,10 @@ def _read_response(
 ) -> DecisionResponse:
     if request.decision_root_id is None or request.attempt_id is None:
         raise CoordinationError("missing decision attempt")
-    decision_root = composition.store.reads.load_root(request.decision_root_id)
+    decision_reads = composition.reads_for_root(request.decision_root_id)
+    decision_root = decision_reads.load_root(request.decision_root_id)
     composition.store.coordination_store().validate_member(decision_root)
-    activation = composition.store.reads.load_activation(request.attempt_id)
+    activation = decision_reads.load_activation(request.attempt_id)
     evidence = activation.metadata.evidence
     if (
         activation.metadata.wf_root_id != decision_root.root_id
@@ -237,7 +237,7 @@ def _read_response(
     ):
         raise CoordinationError("decision lacks successful immutable output evidence")
     latest = max(
-        composition.store.reads.list_activations(decision_root.root_id),
+        decision_reads.list_activations(decision_root.root_id),
         key=lambda a: int(a.metadata.seq),
     )
     if latest.activation_id != activation.activation_id:
@@ -287,8 +287,9 @@ def _apply(composition: Composition, request: DecisionRequest) -> None:
                 ),
             )
     elif response.action == "replace":
-        predecessor = composition.store.reads.load_root(request.boundary.root_id)
-        source = composition.store.reads.load_activation(
+        predecessor_reads = composition.reads_for_root(request.boundary.root_id)
+        predecessor = predecessor_reads.load_root(request.boundary.root_id)
+        source = predecessor_reads.load_activation(
             request.boundary.source_activation_id
         )
         policy = predecessor.index.nodes[source.metadata.node].decision
@@ -427,7 +428,7 @@ def advance_decision(
     """Public Foreman tick: reconcile at most one action or ordinary member tick."""
     from workflow_interpreter.foreman.tick import TickReport
 
-    root = composition.store.reads.load_root(root_id)
+    root = composition.reads_for_root(root_id).load_root(root_id)
     coordinator = composition.store.coordination_store()
     link = root.metadata.coordination
     if link is None:
@@ -501,8 +502,9 @@ def advance_decision(
                 return TickReport(blocked=True)
             if pending.decision_root_id is None:
                 raise CoordinationError("missing admitted decision root")
-            decision = composition.store.reads.load_root(pending.decision_root_id)
-            acts = composition.store.reads.list_activations(decision.root_id)
+            decision_reads = composition.reads_for_root(pending.decision_root_id)
+            decision = decision_reads.load_root(pending.decision_root_id)
+            acts = decision_reads.list_activations(decision.root_id)
             latest = max(acts, key=lambda a: int(a.metadata.seq), default=None)
             if latest is not None and pending.attempt_id != latest.activation_id:
                 with coordinator._locked(owner):
@@ -555,11 +557,11 @@ def advance_decision(
         active = (
             root
             if active_id == root.root_id
-            else composition.store.reads.load_root(active_id)
+            else composition.reads_for_root(active_id).load_root(active_id)
         )
         boundary = active.metadata.decision_boundary
         if boundary is not None and digest_record(boundary) not in state.requests:
-            source = composition.store.reads.load_activation(
+            source = composition.reads_for_root(active.root_id).load_activation(
                 boundary.source_activation_id
             )
             policy = active.index.nodes[source.metadata.node].decision
@@ -592,9 +594,14 @@ def advance_decision(
                 current = coordinator.state(owner).requests[pending.request_id]
                 rejected_tree = None
                 if current.attempt_id is not None:
-                    evidence = composition.store.reads.load_activation(
-                        current.attempt_id
-                    ).metadata.evidence
+                    # The attempt lives under the decision root, so its store
+                    # is that root's, not the owner's (§3.2).
+                    attempt_root = current.decision_root_id or owner
+                    evidence = (
+                        composition.reads_for_root(attempt_root)
+                        .load_activation(current.attempt_id)
+                        .metadata.evidence
+                    )
                     rejected_tree = (
                         None if evidence is None else evidence.outputs_tree_oid
                     )

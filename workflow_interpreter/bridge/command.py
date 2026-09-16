@@ -320,7 +320,7 @@ def _execute(
             monitored=monitored,
         )
     if retry and prior is not None and prior.root_id is not None:
-        predecessor = composition.store.reads.load_root(prior.root_id)
+        predecessor = composition.reads_for_root(prior.root_id).load_root(prior.root_id)
         if predecessor.metadata.coordination is not None:
             raise PhaseBridgeRefused(
                 "coordinated bridge retry requires the original-owner successor operation"

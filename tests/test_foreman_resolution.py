@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Final, cast
 
@@ -30,6 +31,7 @@ from tests._helpers import VALID_FIXTURE
 from tests._supervisor import FakeProfile, FrozenClock
 from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.foreman.compose import (
@@ -194,6 +196,32 @@ def test_composition_scopes_mint_reads_to_each_instance_branch(
     wiring_missing = composition.for_root(missing.root_id)
     with pytest.raises(InstanceBranchMissing, match="instance branch"):
         wiring_missing.branch_head_reader()
+
+
+def test_root_scoped_reads_ask_the_locator_for_that_root(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """A read about one root is served by that root's pinned backend (§3.2).
+
+    `composition.store` is the process-wide factory; using it for a root-scoped
+    read would serve a ledger-backed root from the bd store after the cutover
+    switch flips, which is exactly what the per-root pin forbids.
+    """
+    root = make_root(fake_store, load_definition())
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    asked: list[str] = []
+
+    def locate(root_id: str) -> BackendKind:
+        asked.append(root_id)
+        return BackendKind.BD
+
+    composition = replace(composition, locate_backend=locate)
+
+    assert (
+        composition.reads_for_root(root.root_id).load_root(root.root_id).root_id
+        == root.root_id
+    )
+    assert asked == [root.root_id]
 
 
 def test_store_root_derivation_keeps_injected_capabilities(

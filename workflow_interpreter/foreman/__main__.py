@@ -372,7 +372,7 @@ def _coordination_report(
 
 def _view(composition: Composition, root_id: str) -> _InstanceView:
     """Load one instance's beads a single time for a whole rendered report."""
-    requested = composition.store.reads.load_root(root_id)
+    requested = composition.reads_for_root(root_id).load_root(root_id)
     if requested.metadata.coordination_state is not None:
         root_id = requested.metadata.coordination_state.active.get("work") or root_id
     wiring = composition.for_root(root_id)

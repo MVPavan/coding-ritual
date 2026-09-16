@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from tests._foreman import ForemanLab
 from tests.test_foreman_main import _bridge_adapter, _bridge_lab, _bridge_stage
+from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bridge import command
 from workflow_interpreter.contracts.wake import WakeCondition
@@ -437,7 +438,7 @@ def test_monitor_crash_around_bd_write_replays_intent_once(
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     journal_condition(lab, "first")
-    append = lab.store.append_wake_event
+    append = WorkflowStore.append_wake_event
 
     def crash(*args):
         if after_write:
@@ -445,10 +446,10 @@ def test_monitor_crash_around_bd_write_replays_intent_once(
         raise RuntimeError("crash")
 
     with WakeMonitor(lab.composition, root.root_id) as monitor:
-        monkeypatch.setattr(lab.store, "append_wake_event", crash)
+        monkeypatch.setattr(WorkflowStore, "append_wake_event", crash)
         with pytest.raises(RuntimeError, match="crash"):
             monitor.poll()
-    monkeypatch.setattr(lab.store, "append_wake_event", append)
+    monkeypatch.setattr(WorkflowStore, "append_wake_event", append)
     with WakeMonitor(lab.composition, root.root_id) as monitor:
         lab.clock.sleep(31)
         state = monitor.poll()
@@ -530,19 +531,19 @@ def test_bd_failure_keeps_pending_and_does_not_call_hook(tmp_path, monkeypatch):
     composition = configured(lab, hook_argv=("trusted-hook",))
     calls = []
     monkeypatch.setattr(module, "run_hook", lambda *args: calls.append(args))
-    original = lab.store.append_wake_event
+    original = WorkflowStore.append_wake_event
 
     def unavailable(*_):
         raise StoreError("database unavailable")
 
-    monkeypatch.setattr(lab.store, "append_wake_event", unavailable)
+    monkeypatch.setattr(WorkflowStore, "append_wake_event", unavailable)
     with module.WakeMonitor(composition, root.root_id) as monitor:
         state = monitor.poll()
         assert state.last_error == "database unavailable"
         assert state.deliveries[0].event_id is None
         assert not state.deliveries[0].acknowledged
         assert not calls
-    monkeypatch.setattr(lab.store, "append_wake_event", original)
+    monkeypatch.setattr(WorkflowStore, "append_wake_event", original)
     with module.WakeMonitor(composition, root.root_id) as monitor:
         lab.clock.sleep(31)
         assert monitor.poll().deliveries[0].acknowledged

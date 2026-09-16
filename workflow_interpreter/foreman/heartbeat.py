@@ -178,8 +178,9 @@ class DriverObserver:
 
     def _snapshot(self, state: DriverState) -> None:
         """Snapshot durable carriers and log metadata after the tick's writes."""
-        root = self._composition.store.reads.load_root(self._root_id)
-        beads = self._composition.store.reads.instance_records(self._root_id)
+        reads = self._composition.reads_for_root(self._root_id)
+        root = reads.load_root(self._root_id)
+        beads = reads.instance_records(self._root_id)
         active = tuple(a for a in activations_of(beads) if not a.metadata.is_completed)
         logs = tuple(
             cursor

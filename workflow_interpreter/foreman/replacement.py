@@ -168,7 +168,9 @@ def _advance(
                 raise CoordinationError(
                     f"predecessor already has successor intent {competing.request_key!r}; replay that key"
                 )
-        predecessor = composition.store.reads.load_root(intent.predecessor_id)
+        predecessor = composition.reads_for_root(intent.predecessor_id).load_root(
+            intent.predecessor_id
+        )
         link = predecessor.metadata.coordination
         if link is None or (link.owner_id, link.slot, link.generation) != (
             intent.owner_id,
@@ -237,7 +239,9 @@ def _advance(
                     and pending.request_id != intent.decision_id
                 ):
                     raise CoordinationError("unrelated decision prevents replacement")
-            gates = composition.store.reads.list_gates(predecessor.root_id)
+            gates = composition.reads_for_root(predecessor.root_id).list_gates(
+                predecessor.root_id
+            )
             if any(
                 g.status != "closed"
                 or g.metadata.outcome is not None
@@ -254,7 +258,7 @@ def _advance(
             for activation in (
                 a
                 for root_id in process_roots
-                for a in composition.store.reads.list_activations(root_id)
+                for a in composition.reads_for_root(root_id).list_activations(root_id)
             ):
                 if not activation.metadata.is_completed:
                     raise CoordinationError(
@@ -311,9 +315,9 @@ def _advance(
                     from workflow_interpreter.foreman.decisions import _assert_current
 
                     _assert_current(composition, request)
-                source = composition.store.reads.load_activation(
-                    request.boundary.source_activation_id
-                )
+                source = composition.reads_for_root(
+                    predecessor.root_id
+                ).load_activation(request.boundary.source_activation_id)
                 policy = predecessor.index.nodes[source.metadata.node].decision
                 if policy and policy.replacement_input:
                     advisory.add(policy.replacement_input)
@@ -369,7 +373,8 @@ def _advance(
     from workflow_interpreter.foreman.resolve import ensure_instance_branch
 
     ensure_instance_branch(
-        composition, composition.store.reads.load_root(receipt.root_id)
+        composition,
+        composition.reads_for_root(receipt.root_id).load_root(receipt.root_id),
     )
     with store._locked(intent.owner_id):
         state = store.state(intent.owner_id)
@@ -439,7 +444,7 @@ def replace_checked(
     predecessor_id = store.state(owner).active.get(slot)
     if not predecessor_id:
         raise CoordinationError("active predecessor missing")
-    predecessor = composition.store.reads.load_root(predecessor_id)
+    predecessor = composition.reads_for_root(predecessor_id).load_root(predecessor_id)
     before = admission_of(predecessor, slot=slot, generation=generation)
     admission = admission.model_copy(
         update={
@@ -504,7 +509,9 @@ def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
     ):
         raise CoordinationError("replacement lost bridge target base")
     adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
-    root = composition.store.reads.load_root(intent.predecessor_id)
+    root = composition.reads_for_root(intent.predecessor_id).load_root(
+        intent.predecessor_id
+    )
     if (
         previous.root_id != root.root_id
         or adapter.show(previous.stage_id).parent != previous.epic_id
@@ -665,7 +672,7 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
     """Fence stale predecessors and bind B (CAS) separately from A (execution)."""
     store = composition.store.coordination_store(composition=composition)
     if record.root_id:
-        root = composition.store.reads.load_root(record.root_id)
+        root = composition.reads_for_root(record.root_id).load_root(record.root_id)
         link = root.metadata.coordination
         if link is not None:
             state = store.state(link.owner_id)
@@ -706,7 +713,9 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
     )
     if normalized != prepared or record.root_id != intent.receipt.root_id:
         raise CoordinationError("successor bridge binding mismatch")
-    root = composition.store.reads.load_root(intent.receipt.root_id)
+    root = composition.reads_for_root(intent.receipt.root_id).load_root(
+        intent.receipt.root_id
+    )
     reservation = store.state(intent.owner_id).reservations.get(
         digest_record(intent.admission)
     )
@@ -739,7 +748,7 @@ def bridge_landing_locks(
     store = composition.store.coordination_store(composition=composition)
     if record.root_id is None:
         raise CoordinationError("bridge root missing")
-    root = composition.store.reads.load_root(record.root_id)
+    root = composition.reads_for_root(record.root_id).load_root(record.root_id)
     link = root.metadata.coordination
     if link is None:
         yield
@@ -774,8 +783,9 @@ def repair_bridge_successor(composition: Composition, stage_id: str) -> None:
 
 def predecessor_artifact(composition: Composition, root_id: str) -> str:
     """An instance branch name alone is not artifact authority."""
-    root = composition.store.reads.load_root(root_id)
-    acts = composition.store.reads.list_activations(root_id)
+    reads = composition.reads_for_root(root_id)
+    root = reads.load_root(root_id)
+    acts = reads.list_activations(root_id)
     artifacts = [
         (a.metadata.seq, a.metadata.evidence.artifact)
         for a in acts

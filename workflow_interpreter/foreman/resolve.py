@@ -395,7 +395,7 @@ def instantiate(
         composition.store.coordination_store().initialize(
             root.root_id, admission_of(root, slot="work", generation=0)
         )
-        root = composition.store.reads.load_root(root.root_id)
+        root = composition.reads_for_root(root.root_id).load_root(root.root_id)
     ensure_instance_branch(composition, root)
     return root
 

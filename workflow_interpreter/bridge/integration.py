@@ -256,7 +256,9 @@ class IntegrationGuard:
             raise BridgeRefusal("integration root receipt mismatch")
         state = self.store.state(association.request.owner_id)
         reservation = state.reservations.get(association.admission_digest)
-        root = self.composition.store.reads.load_root(receipt.root_id)
+        root = self.composition.reads_for_root(receipt.root_id).load_root(
+            receipt.root_id
+        )
         if (
             reservation is None
             or reservation.root_id != receipt.root_id
@@ -307,7 +309,8 @@ class IntegrationGuard:
             if self.store.state(request.owner_id).active.get(slot) != row.root_id:
                 raise BridgeRefusal("source generation is stale")
             self._source_evidence(receipt)
-            root = self.composition.store.reads.load_root(row.root_id)
+            source_reads = self.composition.reads_for_root(row.root_id)
+            root = source_reads.load_root(row.root_id)
             self.store.validate_member(root)
             if (
                 root.metadata.coordination is None
@@ -315,9 +318,7 @@ class IntegrationGuard:
             ):
                 raise BridgeRefusal("source belongs to a different owner")
             writes = []
-            for activation in self.composition.store.reads.list_activations(
-                row.root_id
-            ):
+            for activation in source_reads.list_activations(row.root_id):
                 if not resolved_node(root, activation.metadata.node).node.writes:
                     continue
                 evidence = activation.metadata.evidence
@@ -345,13 +346,14 @@ class IntegrationGuard:
     def _source_evidence(self, receipt: CollectedChildResult) -> None:
         from workflow_interpreter.bdio import Lifecycle, Outcome
 
-        root = self.composition.store.reads.load_root(receipt.root_id)
+        receipt_reads = self.composition.reads_for_root(receipt.root_id)
+        root = receipt_reads.load_root(receipt.root_id)
         self.composition.for_root(
             receipt.root_id
         )  # Enforce the persisted wrapper/repository binding.
         repo = self.composition.config.repo_root
         latest = max(
-            self.composition.store.reads.list_activations(receipt.root_id),
+            receipt_reads.list_activations(receipt.root_id),
             key=lambda a: a.metadata.seq,
         )
         evidence = latest.metadata.evidence
@@ -435,7 +437,9 @@ class IntegrationGuard:
         from workflow_interpreter.bdio import Lifecycle, Outcome
 
         assert record.root_id is not None
-        activations = self.composition.store.reads.list_activations(record.root_id)
+        activations = self.composition.reads_for_root(record.root_id).list_activations(
+            record.root_id
+        )
         writers = [a for a in activations if a.metadata.node == "integrate"]
         reviewers = [a for a in activations if a.metadata.node == "review"]
         if len(writers) != 1 or len(reviewers) != 1:
@@ -489,9 +493,9 @@ class IntegrationGuard:
         ):
             raise BridgeRefusal("branch-moved")
         assert record.root_id is not None
-        evidence = BeadGateAuthority(self.composition.store.reads).verify(
-            record.root_id
-        )
+        evidence = BeadGateAuthority(
+            self.composition.reads_for_root(record.root_id)
+        ).verify(record.root_id)
         self.candidate(record, evidence.artifact_oid, evidence.tree)
         # Pin actual artifact authority, never the child collection or slot alone.
         updated = association.model_copy(
@@ -516,9 +520,9 @@ class IntegrationGuard:
 
         association = self.binding(record, current=False)
         assert record.root_id is not None
-        evidence = BeadGateAuthority(self.composition.store.reads).verify(
-            record.root_id
-        )
+        evidence = BeadGateAuthority(
+            self.composition.reads_for_root(record.root_id)
+        ).verify(record.root_id)
         intent = read_record(
             self.composition.for_root(record.root_id).paths.instance_dir
             / LANDING_INTENT_FILE,
@@ -839,7 +843,7 @@ def retry_integration(
     association = guard.binding(record, current=False)
     assert record.root_id is not None
     with guard.ordered(association):
-        root = composition.store.reads.load_root(record.root_id)
+        root = composition.reads_for_root(record.root_id).load_root(record.root_id)
         paths = composition.for_root(record.root_id).paths
         if (
             (paths.instance_dir / LANDING_INTENT_FILE).exists()

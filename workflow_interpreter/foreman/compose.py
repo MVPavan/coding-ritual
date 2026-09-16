@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import MintRequest, WorkflowStore
 from workflow_interpreter.bdio.backend import BackendLocator, bd_backend
+from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF, procfs
@@ -154,19 +155,33 @@ class Composition:
         if self.supervisor_config != self.config.supervisor:
             raise ValueError("supervisor_config must match foreman config")
 
+    def store_for_root(self, root_id: str) -> WorkflowStore:
+        """The store this root is read and written through (§3.2).
+
+        The backend is pinned per root, so it is chosen BEFORE the root is
+        loaded; the process-wide store is only the factory it comes from. Any
+        read or write about ONE root goes through here, not through
+        `composition.store`, which serves discovery and the task bead alone.
+        """
+        return self.store.for_root(
+            branch_head_reader=lambda: instance_head(
+                self.git, self.config.repo_root, root_id
+            ),
+            backend=self.locate_backend(root_id),
+        )
+
+    def reads_for_root(self, root_id: str) -> WorkflowReads:
+        """The §4 read vocabulary over the store this root is pinned to."""
+        return self.store_for_root(root_id).reads
+
     def for_root(self, root_id: str) -> InstanceWiring:
         """Build one wiring with exactly one ``BandLock`` shared throughout."""
         paths = WrapperPaths(self.supervisor_config, root_id)
         branch_head_reader = lambda: instance_head(
             self.git, self.config.repo_root, root_id
         )
-        # The backend is pinned per root (§3.2), so the store this root is read
-        # through is chosen BEFORE the root is loaded — the process-wide store
-        # is only the factory it comes from.
         backend = self.locate_backend(root_id)
-        root_store = self.store.for_root(
-            branch_head_reader=branch_head_reader, backend=backend
-        )
+        root_store = self.store_for_root(root_id)
         root = root_store.reads.load_root(root_id)
         coordinator = root_store.coordination_store()
         link = root.metadata.coordination
