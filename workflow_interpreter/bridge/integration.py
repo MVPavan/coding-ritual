@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from workflow_interpreter.bdio.coordination import CoordinationStore
     from workflow_interpreter.schema.decisions import (
         MemberReceipt,
         TrustedReplacementIntent,
@@ -161,13 +162,30 @@ class IntegrationGuard:
 
     def __init__(self, composition: Composition) -> None:
         self.composition = composition
-        self.store = composition.store.coordination_store(composition=composition)
+        # Only the cross-root namespaces may come from the process-wide store:
+        # the integration-target lock and the member lock paths are shared by
+        # roots that need not share a backend, and (D20) so is the claim
+        # namespace. Every owner-record access goes through `coordination`.
+        self.shared = composition.store.coordination_store(composition=composition)
         self.claims = composition.store.claims
+
+    def coordination(self, owner_id: str) -> CoordinationStore:
+        """Coordination for ONE integration owner, over that owner's backend (§3.2).
+
+        The owner record — reservations, children, associations — and the owner
+        lock both live on the backend that owner root is pinned to, so they are
+        never read or taken through the process-wide store.
+        """
+        return self.composition.coordination_for_root(
+            owner_id, composition=self.composition
+        )
 
     def association(self, record: PhaseBridgeRecord) -> IntegrationAssociation:
         if record.integration_owner is None:
             raise BridgeRefusal("integration owner missing")
-        state = self.store.state(record.integration_owner)
+        state = self.coordination(record.integration_owner).state(
+            record.integration_owner
+        )
         matches = [
             a
             for a in state.integrations.values()
@@ -198,8 +216,9 @@ class IntegrationGuard:
         return association
 
     def save(self, association: IntegrationAssociation) -> None:
-        state = self.store.state(association.request.owner_id)
-        self.store._save(
+        store = self.coordination(association.request.owner_id)
+        state = store.state(association.request.owner_id)
+        store._save(
             state.model_copy(
                 update={
                     "integrations": {
@@ -210,9 +229,7 @@ class IntegrationGuard:
             )
         )
         if (
-            self.store.state(state.owner_id).integrations[
-                association.request.request_key
-            ]
+            store.state(state.owner_id).integrations[association.request.request_key]
             != association
         ):
             raise BridgeRefusal("integration association readback mismatch")
@@ -254,7 +271,8 @@ class IntegrationGuard:
         receipt = association.receipt
         if receipt is None or receipt.root_id != record.root_id:
             raise BridgeRefusal("integration root receipt mismatch")
-        state = self.store.state(association.request.owner_id)
+        store = self.coordination(association.request.owner_id)
+        state = store.state(association.request.owner_id)
         reservation = state.reservations.get(association.admission_digest)
         root = self.composition.reads_for_root(receipt.root_id).load_root(
             receipt.root_id
@@ -285,7 +303,7 @@ class IntegrationGuard:
         if current and association.state == "stale":
             raise BridgeRefusal("integration association is stale")
         if current:
-            row = self.store.child_record(
+            row = store.child_record(
                 state.owner_id, receipt.link.slot, receipt.link.generation
             )
             if (
@@ -299,19 +317,20 @@ class IntegrationGuard:
         if len({slot for slot, _, _ in request.sources}) != len(request.sources):
             raise BridgeRefusal("duplicate integration source")
         entries: list[dict[str, object]] = []
+        store = self.coordination(request.owner_id)
         for slot, generation, digest in request.sources:
-            row = self.store.child_record(request.owner_id, slot, generation)
+            row = store.child_record(request.owner_id, slot, generation)
             receipt = row.collection
             if row.cancellation or receipt is None or receipt.receipt_digest != digest:
                 raise BridgeRefusal(
                     "source cancelled, uncollected, or receipt mismatch"
                 )
-            if self.store.state(request.owner_id).active.get(slot) != row.root_id:
+            if store.state(request.owner_id).active.get(slot) != row.root_id:
                 raise BridgeRefusal("source generation is stale")
             self._source_evidence(receipt)
             source_reads = self.composition.reads_for_root(row.root_id)
             root = source_reads.load_root(row.root_id)
-            self.store.validate_member(root)
+            store.validate_member(root)
             if (
                 root.metadata.coordination is None
                 or root.metadata.coordination.owner_id != request.owner_id
@@ -398,12 +417,13 @@ class IntegrationGuard:
 
     @contextmanager
     def ordered(self, association: IntegrationAssociation) -> Iterator[None]:
+        store = self.coordination(association.request.owner_id)
         with ExitStack() as stack:
             stack.enter_context(
-                BandLock(self.store.target_lock_path(association.target_key))
+                BandLock(self.shared.target_lock_path(association.target_key))
             )
-            stack.enter_context(self.store._locked(association.request.owner_id))
-            state = self.store.state(association.request.owner_id)
+            stack.enter_context(store._locked(association.request.owner_id))
+            state = store.state(association.request.owner_id)
             roots = {
                 state.children[slot].root_id
                 for slot, _, _ in association.request.sources
@@ -411,15 +431,17 @@ class IntegrationGuard:
             if association.receipt:
                 roots.add(association.receipt.root_id)
             for root in sorted(roots):
-                stack.enter_context(BandLock(self.store.member_lock_path(root)))
+                stack.enter_context(BandLock(self.shared.member_lock_path(root)))
             yield
 
     def finished(self, record: PhaseBridgeRecord) -> None:
         """Release only after the stage close was read back, including replay."""
         association = self.association(record)
         with (
-            BandLock(self.store.target_lock_path(association.target_key)),
-            self.store._locked(association.request.owner_id),
+            BandLock(self.shared.target_lock_path(association.target_key)),
+            self.coordination(association.request.owner_id)._locked(
+                association.request.owner_id
+            ),
         ):
             self.post_cas(record)
             self.save(association.model_copy(update={"state": "landed"}))
@@ -594,9 +616,11 @@ def prepare_integration(
     if target is None:
         raise BridgeRefusal("detached integration target")
     key = target_key(composition, target)
-    with BandLock(guard.store.target_lock_path(key)):
-        prior = guard.store.state(request.owner_id).integrations.get(
-            request.request_key
+    with BandLock(guard.shared.target_lock_path(key)):
+        prior = (
+            guard.coordination(request.owner_id)
+            .state(request.owner_id)
+            .integrations.get(request.request_key)
         )
         if prior is not None and prior.request != request:
             raise BridgeRefusal("integration request-key payload changed")
@@ -701,7 +725,7 @@ def prepare_integration(
                 ).model_dump_json(),
                 attempt=1,
             )
-            with guard.store._locked(request.owner_id):
+            with guard.coordination(request.owner_id)._locked(request.owner_id):
                 guard.save(prior)
         guard.write_claim(
             IntegrationTargetClaim(
@@ -722,10 +746,13 @@ def resume_integration(
     guard = IntegrationGuard(composition)
     adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     adapter.integration_guard = guard
-    with BandLock(guard.store.target_lock_path(association.target_key)):
-        association = guard.store.state(association.request.owner_id).integrations[
-            association.request.request_key
-        ]
+    owner = association.request.owner_id
+    with BandLock(guard.shared.target_lock_path(association.target_key)):
+        association = (
+            guard.coordination(owner)
+            .state(owner)
+            .integrations[association.request.request_key]
+        )
         claim = guard.claim(association.target_key)
         if claim is None or (
             claim[1].owner_id,
@@ -798,7 +825,7 @@ def resume_integration(
                 not in (PhaseBridgeState.LANDED, PhaseBridgeState.CLOSED),
             )
             if association.state == "root_bound":
-                with guard.store._locked(association.request.owner_id):
+                with guard.coordination(owner)._locked(owner):
                     guard.save(
                         association.model_copy(
                             update={
@@ -808,24 +835,24 @@ def resume_integration(
                     )
             return record
         if association.bridge_digest is None:
-            with guard.store._locked(association.request.owner_id):
+            with guard.coordination(owner)._locked(owner):
                 association = association.model_copy(
                     update={"bridge_digest": digest_record(record)}
                 )
                 guard.save(association)
         guard.sources(association.request)
-        receipt = guard.store.start_child(
+        receipt = guard.coordination(owner).start_child(
             association.request.owner_id,
             association.admission.slot,
             association.admission,
         )
-        with guard.store._locked(association.request.owner_id):
+        with guard.coordination(owner)._locked(owner):
             association = association.model_copy(
                 update={"receipt": receipt, "state": "root_bound"}
             )
             guard.save(association)
         record = adapter.admit(record.stage_id, record, root_id=receipt.root_id)
-        with guard.store._locked(association.request.owner_id):
+        with guard.coordination(owner)._locked(owner):
             guard.save(association.model_copy(update={"state": "admitted"}))
         return record
 
@@ -877,8 +904,10 @@ def retry_integration(
         request = association.request.model_copy(
             update={"request_key": f"retry-{association.identity_digest}-{attempt}"}
         )
-        existing = guard.store.state(request.owner_id).integrations.get(
-            request.request_key
+        existing = (
+            guard.coordination(request.owner_id)
+            .state(request.owner_id)
+            .integrations.get(request.request_key)
         )
         permitted = {association.identity_digest}
         if existing is not None:
@@ -1008,7 +1037,9 @@ def command(composition: Composition, args: object) -> str:
         _status_view(
             association,
             record,
-            guard.store.child_status(association.request.owner_id),
+            guard.coordination(association.request.owner_id).child_status(
+                association.request.owner_id
+            ),
         )
     )
 

@@ -93,7 +93,7 @@ def _save(composition: Composition, intent: TrustedReplacementIntent) -> None:
 def advance_successor(
     composition: Composition, intent: TrustedReplacementIntent
 ) -> MemberReceipt:
-    store = composition.store.coordination_store(composition=composition)
+    store = composition.coordination_for_root(intent.owner_id, composition=composition)
     saved = store.state(intent.owner_id).successors.get(intent.request_key)
     if saved is not None:
         intent = intent.model_copy(
@@ -104,7 +104,9 @@ def advance_successor(
         )
     elif intent.predecessor_bridge_json is None:
         matches: list[PhaseBridgeRecord] = []
-        for row in store._client.find_rows(RowQuery()):
+        # Discovery spans every root, so it stays on the process-wide store.
+        rows = composition.store.coordination_store(composition=composition)._client
+        for row in rows.find_rows(RowQuery()):
             raw = row.metadata.get("phase_bridge")
             if isinstance(raw, dict) and raw.get("root_id") == intent.predecessor_id:
                 matches.append(PhaseBridgeRecord.model_validate(raw))
@@ -535,8 +537,10 @@ def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
     if previous.integration_digest:
         guard = IntegrationGuard(composition)
         association = guard.binding(previous, current=False)
-        existing = guard.store.state(intent.owner_id).integrations.get(
-            intent.request_key
+        existing = (
+            guard.coordination(intent.owner_id)
+            .state(intent.owner_id)
+            .integrations.get(intent.request_key)
         )
         if existing is not None and (
             existing.predecessor_digest != association.identity_digest
@@ -584,8 +588,10 @@ def _prepare_bridge(
             previous_attempts=successor.previous_attempts,
             predecessor_digest=association.identity_digest,
         )
-        existing = guard.store.state(intent.owner_id).integrations.get(
-            intent.request_key
+        existing = (
+            guard.coordination(intent.owner_id)
+            .state(intent.owner_id)
+            .integrations.get(intent.request_key)
         )
         if (
             existing is not None
@@ -670,12 +676,13 @@ def _admit_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
 
 def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
     """Fence stale predecessors and bind B (CAS) separately from A (execution)."""
-    store = composition.store.coordination_store(composition=composition)
     if record.root_id:
         root = composition.reads_for_root(record.root_id).load_root(record.root_id)
         link = root.metadata.coordination
         if link is not None:
-            state = store.state(link.owner_id)
+            state = composition.coordination_for_root(
+                link.owner_id, composition=composition
+            ).state(link.owner_id)
             current_intent = state.successors.get(link.request_id or "")
             if (
                 current_intent
@@ -697,6 +704,9 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
         return
     if record.successor_owner is None:
         raise CoordinationError("successor owner missing")
+    store = composition.coordination_for_root(
+        record.successor_owner, composition=composition
+    )
     intent = store.state(record.successor_owner).successors.get(record.successor_key)
     if intent is None or intent.successor_bridge_json is None or intent.receipt is None:
         raise CoordinationError("successor bridge receipt missing")
@@ -716,7 +726,12 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
     root = composition.reads_for_root(intent.receipt.root_id).load_root(
         intent.receipt.root_id
     )
-    reservation = store.state(intent.owner_id).reservations.get(
+    # `validate_member` reads the OWNER's ledger about this member, so both it
+    # and the reservation lookup belong on the owner's store, not the member's.
+    owner_store = composition.coordination_for_root(
+        intent.owner_id, composition=composition
+    )
+    reservation = owner_store.state(intent.owner_id).reservations.get(
         digest_record(intent.admission)
     )
     if (
@@ -738,14 +753,14 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
     ):
         raise CoordinationError("successor admission receipt mismatch")
     if not record.integration_digest:
-        store.validate_member(root)
+        owner_store.validate_member(root)
 
 
 @contextmanager
 def bridge_landing_locks(
     composition: Composition, record: PhaseBridgeRecord
 ) -> Iterator[None]:
-    store = composition.store.coordination_store(composition=composition)
+    shared = composition.store.coordination_store(composition=composition)
     if record.root_id is None:
         raise CoordinationError("bridge root missing")
     root = composition.reads_for_root(record.root_id).load_root(record.root_id)
@@ -753,10 +768,13 @@ def bridge_landing_locks(
     if link is None:
         yield
         return
+    owner_store = composition.coordination_for_root(
+        link.owner_id, composition=composition
+    )
     with (
-        BandLock(store.target_lock_path(target_key(composition, record.target_ref))),
-        store._locked(link.owner_id),
-        BandLock(store.member_lock_path(root.root_id)),
+        BandLock(shared.target_lock_path(target_key(composition, record.target_ref))),
+        owner_store._locked(link.owner_id),
+        BandLock(shared.member_lock_path(root.root_id, root=root)),
     ):
         guard_bridge(composition, record)
         yield
