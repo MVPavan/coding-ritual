@@ -20,6 +20,7 @@ from tests._bdio import (
 from tests._fake_bd import FakeBd
 from workflow_interpreter import GraphDefinition
 from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.bdio.carriers import JSON_SAFE_INT_LIMIT
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.wire import (
@@ -301,18 +302,21 @@ def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
     root = fake_store.create_root(
         instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
     )
-    fake_client._create_bead(
-        title="wf activation with an unreadable carrier",
-        metadata={
-            "wf_kind": WfKind.ACTIVATION.value,
-            "wf_root_id": root.root_id,
-            "seq": 7,
-        },
-    )
+    for carried in (7, True, JSON_SAFE_INT_LIMIT + 1):
+        fake_client._create_bead(
+            title="wf activation with an unreadable carrier",
+            metadata={
+                "wf_kind": WfKind.ACTIVATION.value,
+                "wf_root_id": root.root_id,
+                "seq": carried,
+            },
+        )
 
     with pytest.raises(CarrierIntegrityError):
         fake_store.reads.instance_records(root.root_id)
     assert fake_store.reads.owns_instance_rows(root.root_id) is True
+    # A `bool` and an integer past the JSON-safe bound are residue too: neither
+    # can be allocated from, so the successor comes from the one valid `seq`.
     assert fake_store.reads.next_instance_seq(root.root_id) == 8
 
 

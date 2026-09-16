@@ -17,8 +17,11 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from typing import Final
 
+from pydantic import JsonValue
+
 from workflow_interpreter.bdio import bounds
 from workflow_interpreter.bdio.backend import StoreBackend
+from workflow_interpreter.bdio.carriers import JSON_SAFE_INT_LIMIT
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
@@ -133,10 +136,27 @@ def next_instance_seq(client: StoreBackend, root_id: str) -> int:
     return _next_seq_of_rows(instance_rows(client, root_id))
 
 
+def _json_safe_seq(value: JsonValue | None) -> int | None:
+    """A row's `seq` when it is an exact `JsonSafeInt`, else nothing.
+
+    `bool` is an `int` in Python, and an integer past the JSON-safe bound was
+    already rounded by the time it is read back (`carriers.JsonSafeInt`), so
+    either one would allocate a successor no write could carry. Both are
+    skipped exactly as an undecodable sibling row is.
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        return None
+    if -JSON_SAFE_INT_LIMIT <= value <= JSON_SAFE_INT_LIMIT:
+        return value
+    return None
+
+
 def _next_seq_of_rows(rows: Sequence[StoreRow]) -> int:
-    """The successor of the highest `seq` any of these rows carries."""
+    """The successor of the highest valid `seq` any of these rows carries."""
     seen = [
-        value for row in rows if isinstance(value := row.metadata.get(KEY_SEQ), int)
+        seq
+        for row in rows
+        if (seq := _json_safe_seq(row.metadata.get(KEY_SEQ))) is not None
     ]
     return max(seen, default=FIRST_SEQ - 1) + 1
 
