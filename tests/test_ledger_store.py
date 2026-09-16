@@ -20,7 +20,7 @@ import time
 from collections.abc import Iterator
 from contextlib import closing
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 import pytest
 
@@ -35,6 +35,7 @@ from workflow_interpreter.ledger import fence as fence_module
 from workflow_interpreter.ledger.__main__ import main as ledger_main
 from workflow_interpreter.ledger.constants import (
     EXPORT_KIND_HEADER,
+    LEDGER_FILE,
     ROW_TABLES,
     ExportKey,
     LedgerTable,
@@ -48,6 +49,7 @@ from workflow_interpreter.ledger.database import (
     schema_version,
 )
 from workflow_interpreter.ledger.errors import (
+    LedgerExportError,
     LedgerFenceBusy,
     LedgerIdentityError,
     LedgerWriteUnsupported,
@@ -65,6 +67,7 @@ from workflow_interpreter.ledger.schema import SCHEMA_VERSION
 from workflow_interpreter.ledger.store import LedgerStore
 
 TASK: Final[str] = "cr-3411.2"
+OTHER_TASK: Final[str] = "cr-3411.3"
 ARTIFACT_REF: Final[str] = "refs/wf/artifacts/cr-3411.2"
 ARTIFACT_OID: Final[str] = "c" * 40
 ARTIFACT_DIGEST: Final[str] = "t" * 40
@@ -357,6 +360,144 @@ def test_an_export_from_another_repository_is_refused(tmp_path: Path) -> None:
         )
 
     assert repo_hash(repo_root) in str(refusal.value)
+
+
+def test_an_export_row_naming_an_unknown_column_is_refused_whole(
+    tmp_path: Path,
+) -> None:
+    """A column name reaches SQL as TEXT, so it is checked against the schema."""
+    repo_root, wrapper_root = _repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        export = write_export(database, TASK)
+    _rewrite(export, _with_column(_lines(export), "x) VALUES (1); DROP TABLE roots --"))
+
+    with pytest.raises(LedgerExportError, match="column"):
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert _count(reopened, LedgerTable.ROOTS) == 1
+
+
+def test_an_export_row_naming_a_table_no_task_export_carries_is_refused(
+    tmp_path: Path,
+) -> None:
+    """`meta` is a real table and not one an export may write into."""
+    repo_root, wrapper_root = _repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        export = write_export(database, TASK)
+    lines = _lines(export)
+    lines[2][ExportKey.TABLE.value] = LedgerTable.META.value
+    _rewrite(export, lines)
+
+    with pytest.raises(LedgerExportError, match="meta"):
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert _count(reopened, LedgerTable.ROOTS) == 1
+
+
+def test_an_import_leaves_no_task_the_export_set_does_not_describe(
+    tmp_path: Path,
+) -> None:
+    """§3.6: a rebuild is the whole exportable state, not the files' tasks only."""
+    config, repo_root, wrapper_root = _config_file(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        _seeded(database, OTHER_TASK)
+        write_export(database, TASK)
+
+    assert ledger_main(["--config", str(config), "import"]) == 0
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert _count(reopened, LedgerTable.ROOTS, task_id=TASK) == 1
+        assert _count(reopened, LedgerTable.ROOTS, task_id=OTHER_TASK) == 0
+        assert _count(reopened, LedgerTable.TASKS, task_id=OTHER_TASK) == 0
+
+
+def test_a_failing_file_leaves_every_earlier_file_unimported(tmp_path: Path) -> None:
+    """One fence, one transaction: a rebuild half-applied is not a rebuild."""
+    config, repo_root, wrapper_root = _config_file(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        _seeded(database, OTHER_TASK)
+        write_export(database, TASK)
+        second = write_export(database, OTHER_TASK)
+    lines = _lines(second)
+    lines[-1][ExportKey.ROW.value]["root_id"] = "no-such-root"
+    _rewrite(second, lines)
+    with closing(connect(ledger_path(repo_root))) as raw:
+        raw.execute("DELETE FROM activations")
+
+    assert ledger_main(["--config", str(config), "import"]) == 2
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert _count(reopened, LedgerTable.ACTIVATIONS, task_id=TASK) == 0
+
+
+def test_an_import_into_a_ledger_pinned_to_another_wrapper_root_is_refused(
+    tmp_path: Path,
+) -> None:
+    """§3.5: the DESTINATION's pins are checked, under the exclusive fence."""
+    repo_root, wrapper_root = _repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        export = write_export(database, TASK)
+    for suffix in ("", "-wal", "-shm"):
+        ledger_path(repo_root).with_name(f"{LEDGER_FILE}{suffix}").unlink(
+            missing_ok=True
+        )
+    intruder = tmp_path / "other-wrapper"
+    intruder.mkdir()
+    with open_ledger(repo_root, intruder):
+        pass
+
+    with pytest.raises(LedgerIdentityError) as refusal:
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+    assert str(intruder.resolve()) in str(refusal.value)
+
+
+def _lines(export: Path) -> list[dict[str, Any]]:
+    """Every line of an export file as its parsed JSON object."""
+    return [
+        json.loads(line) for line in export.read_text(encoding="utf-8").splitlines()
+    ]
+
+
+def _rewrite(export: Path, lines: list[dict[str, Any]]) -> None:
+    """Write a crafted export back, one JSON object per line."""
+    export.write_text(
+        "".join(f"{json.dumps(line)}\n" for line in lines), encoding="utf-8"
+    )
+
+
+def _with_column(lines: list[dict[str, Any]], column: str) -> list[dict[str, Any]]:
+    """The same lines, with the roots row carrying one column name it must not."""
+    lines[2][ExportKey.ROW.value][column] = "x"
+    return lines
+
+
+def _count(database: LedgerDatabase, table: LedgerTable, task_id: str = TASK) -> int:
+    """How many rows of one task the table holds."""
+    statement = f"SELECT COUNT(*) FROM {table.value} WHERE task_id = ?"
+    return int(database.connection.execute(statement, (task_id,)).fetchone()[0])
 
 
 # --- the fence (§3.4) ------------------------------------------------------

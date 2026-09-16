@@ -43,6 +43,15 @@ class LedgerIdentityError(StoreConfigError):
     """The database is pinned to another repository or wrapper root (§3.5)."""
 
 
+class LedgerExportError(StoreConfigError):
+    """An export file is not one this schema may restore from (§3.6).
+
+    Its own class because the bytes are UNTRUSTED input: a line naming a table
+    or a column the schema does not have is refused before any SQL is built,
+    and the whole import refuses with it.
+    """
+
+
 class LedgerSchemaError(StoreConfigError):
     """The schema on disk is not one this build can migrate forward (§3.3)."""
 

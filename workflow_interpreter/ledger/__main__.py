@@ -20,7 +20,7 @@ from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.foreman.config import load_config
 from workflow_interpreter.ledger.constants import EXPORT_SUFFIX
 from workflow_interpreter.ledger.database import open_ledger
-from workflow_interpreter.ledger.export import import_export, write_export
+from workflow_interpreter.ledger.export import import_exports, write_export
 from workflow_interpreter.ledger.paths import export_dir, ledger_path
 
 PROG: Final[str] = "python -m workflow_interpreter.ledger"
@@ -50,7 +50,11 @@ def _parser() -> argparse.ArgumentParser:
     restore.add_argument(
         "task_ids",
         nargs="*",
-        help="tasks to rebuild; every export file when none is named",
+        help=(
+            "the export files the ledger is rebuilt from; every export file "
+            "when none is named. An import REPLACES the exportable state, so "
+            "a task no named file describes does not survive it"
+        ),
     )
     return parser
 
@@ -84,13 +88,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         # rather than held while the import asks for the same fence (§3.4).
         with open_ledger(repo_root, wrapper_root):
             pass
-        for path in paths:
-            task_id = import_export(
-                path,
-                repo_root=repo_root,
-                wrapper_root=wrapper_root,
-                ledger=ledger_path(repo_root),
-            )
+        # ONE call, so the whole set lands under ONE fence and ONE transaction
+        # (§3.6): a per-file loop would let a reader in between two files and
+        # would leave the first files applied when a later one failed.
+        task_ids = import_exports(
+            paths,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+        for task_id, path in zip(task_ids, paths, strict=True):
             sys.stdout.write(_MSG_IMPORTED.format(task_id=task_id, path=path))
     except (OSError, ValueError, ValidationError, StoreError) as exc:
         sys.stderr.write(_MSG_REFUSED.format(reason=exc))

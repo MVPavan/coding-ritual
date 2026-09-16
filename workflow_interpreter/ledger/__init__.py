@@ -9,12 +9,18 @@ from __future__ import annotations
 
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import (
+    LedgerExportError,
     LedgerFenceBusy,
     LedgerIdentityError,
     LedgerSchemaError,
     LedgerWriteUnsupported,
 )
-from workflow_interpreter.ledger.export import export_task, import_export, write_export
+from workflow_interpreter.ledger.export import (
+    export_task,
+    import_export,
+    import_exports,
+    write_export,
+)
 from workflow_interpreter.ledger.fence import LedgerFence
 from workflow_interpreter.ledger.paths import (
     ensure_fence_dir,
@@ -26,6 +32,7 @@ from workflow_interpreter.ledger.store import LedgerStore
 
 __all__ = [
     "LedgerDatabase",
+    "LedgerExportError",
     "LedgerFence",
     "LedgerFenceBusy",
     "LedgerIdentityError",
@@ -37,6 +44,7 @@ __all__ = [
     "export_task",
     "fence_path",
     "import_export",
+    "import_exports",
     "ledger_path",
     "open_ledger",
     "write_export",

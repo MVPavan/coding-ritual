@@ -3,8 +3,11 @@
 The export is the durable record a task is closable against, so it is written
 under ONE read transaction while the shared fence is held: it can never publish
 a snapshot from the middle of an exclusive restore. The import is the mirror —
-exclusive fence, one transaction, the task's rows replaced rather than merged,
-so a rebuild is a rebuild and not an append.
+every selected file parsed and validated first, then ONE exclusive fence and
+ONE transaction that clears every exportable table and refills it from the
+files. A rebuild is therefore a rebuild and not an append: a task the export
+set does not describe does not survive it, no reader can enter between two
+files, and any failure rolls the whole restore back.
 
 Order is `(task_id, seq)`, the per-task sequence every row is given inside the
 transaction that wrote it, which is what makes the round trip byte-identical:
@@ -15,19 +18,22 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import closing
 from pathlib import Path
 from typing import Final
 
 import structlog
-from pydantic import JsonValue
+from pydantic import BaseModel, ConfigDict, JsonValue
 
 from workflow_interpreter.ledger.constants import (
     EXPORT_KIND_HEADER,
     EXPORT_KIND_ROW,
     EXPORT_TABLES,
+    MSG_EXPORT_COLUMN,
     MSG_EXPORT_HEADER,
+    MSG_EXPORT_ROW_KIND,
+    MSG_EXPORT_TABLE,
     MSG_REPO_HASH_MISMATCH,
     MSG_UNKNOWN_TASK,
     MSG_WRAPPER_ROOT_MISMATCH,
@@ -38,27 +44,43 @@ from workflow_interpreter.ledger.constants import (
 )
 from workflow_interpreter.ledger.database import (
     LedgerDatabase,
+    assert_identity,
     connect,
     read_meta,
     schema_version,
     transaction,
 )
 from workflow_interpreter.ledger.errors import (
+    LedgerExportError,
     LedgerIdentityError,
     LedgerSchemaError,
     LedgerTransportError,
 )
 from workflow_interpreter.ledger.fence import LedgerFence
 from workflow_interpreter.ledger.paths import export_path, fence_path, repo_hash
+from workflow_interpreter.ledger.schema import table_columns
 from workflow_interpreter.schema.loader import canonical_json_bytes
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _SQL_TASK: Final[str] = "SELECT * FROM tasks WHERE task_id = ?"
 _SEQ_COLUMN: Final[str] = "seq"
+_SECOND_LINE: Final[int] = 2
 _NEWLINE: Final[bytes] = b"\n"
 
 ExportLine = dict[str, JsonValue]
+ExportRow = dict[str, JsonValue]
+
+
+class ParsedExport(BaseModel):
+    """One export file, validated whole before any fence is taken (§3.6)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    path: Path
+    task_id: str
+    header: ExportLine
+    rows: tuple[tuple[LedgerTable, ExportRow], ...]
 
 
 def export_task(database: LedgerDatabase, task_id: str) -> bytes:
@@ -105,12 +127,58 @@ def import_export(
     ledger: Path,
     fence: LedgerFence | None = None,
 ) -> str:
-    """Rebuild one task's rows from its export, under the exclusive fence.
+    """Rebuild the ledger's exportable rows from ONE export file."""
+    return import_exports(
+        (path,),
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        ledger=ledger,
+        fence=fence,
+    )[0]
 
-    The task's rows are DELETED first: an import is a restore of the exported
-    state, and merging would leave rows the export does not describe alive
-    beside the ones it does.
+
+def import_exports(
+    paths: Sequence[Path],
+    *,
+    repo_root: Path,
+    wrapper_root: Path,
+    ledger: Path,
+    fence: LedgerFence | None = None,
+) -> tuple[str, ...]:
+    """Rebuild every exportable row from these exports, atomically (§3.6).
+
+    Three properties, and each one is a step of this order: every file is
+    parsed and validated BEFORE the fence, so a malformed set never reaches
+    SQL; the fence is taken ONCE, so no reader can enter between two files; and
+    every exportable table is CLEARED inside the single transaction that
+    refills it, so the ledger ends up carrying exactly what the export set
+    describes and a failure anywhere leaves it as it was.
     """
+    parsed = tuple(
+        _parse(path, repo_root=repo_root, wrapper_root=wrapper_root) for path in paths
+    )
+    taken = LedgerFence(fence_path(repo_root)) if fence is None else fence
+    with taken.exclusive(), closing(connect(ledger)) as connection:
+        for export in parsed:
+            _assert_schema(connection, export.path, export.header)
+        # The DESTINATION's pins, not only the files' headers: a ledger this
+        # process may not write is refused here, inside the exclusive section
+        # and before a single row is deleted (§3.5).
+        assert_identity(
+            connection, path=ledger, repo_root=repo_root, wrapper_root=wrapper_root
+        )
+        with transaction(connection):
+            _clear(connection)
+            for export in parsed:
+                for table, row in export.rows:
+                    _insert(connection, table, row)
+    for export in parsed:
+        _LOG.info("wf.ledger.imported", task_id=export.task_id, path=str(export.path))
+    return tuple(export.task_id for export in parsed)
+
+
+def _parse(path: Path, *, repo_root: Path, wrapper_root: Path) -> ParsedExport:
+    """One export file as validated lines, or a refusal naming the bad one."""
     lines = _read_lines(path)
     header = lines[0]
     if header.get(ExportKey.KIND.value) != EXPORT_KIND_HEADER:
@@ -118,16 +186,49 @@ def import_export(
             MSG_EXPORT_HEADER.format(path=path, kind=EXPORT_KIND_HEADER)
         )
     _assert_header(header, path=path, repo_root=repo_root, wrapper_root=wrapper_root)
-    task_id = str(header[ExportKey.TASK_ID.value])
-    taken = LedgerFence(fence_path(repo_root)) if fence is None else fence
-    with taken.exclusive(), closing(connect(ledger)) as connection:
-        _assert_schema(connection, path, header)
-        with transaction(connection):
-            _delete_task(connection, task_id)
-            for line in lines[1:]:
-                _insert(connection, line)
-    _LOG.info("wf.ledger.imported", task_id=task_id, path=str(path))
-    return task_id
+    rows = tuple(
+        _row(line, path=path, number=number)
+        for number, line in enumerate(lines[1:], start=_SECOND_LINE)
+    )
+    return ParsedExport(
+        path=path,
+        task_id=str(header[ExportKey.TASK_ID.value]),
+        header=header,
+        rows=rows,
+    )
+
+
+def _row(
+    line: Mapping[str, JsonValue], *, path: Path, number: int
+) -> tuple[LedgerTable, ExportRow]:
+    """One export line as the table and columns it may be inserted into.
+
+    Untrusted text: the table name and every column name are interpolated into
+    the INSERT (SQLite binds neither), so both are checked against the schema
+    this build creates before any statement exists to run.
+    """
+    row = line.get(ExportKey.ROW.value)
+    if line.get(ExportKey.KIND.value) != EXPORT_KIND_ROW or not isinstance(row, dict):
+        raise LedgerExportError(
+            MSG_EXPORT_ROW_KIND.format(path=path, number=number, kind=EXPORT_KIND_ROW)
+        )
+    named = line.get(ExportKey.TABLE.value)
+    table = next(
+        (candidate for candidate in EXPORT_TABLES if candidate.value == named), None
+    )
+    if table is None:
+        raise LedgerExportError(
+            MSG_EXPORT_TABLE.format(path=path, number=number, table=named)
+        )
+    allowed = table_columns()[table.value]
+    for column in row:
+        if column not in allowed:
+            raise LedgerExportError(
+                MSG_EXPORT_COLUMN.format(
+                    path=path, number=number, table=table.value, column=column
+                )
+            )
+    return table, dict(row)
 
 
 def _assert_header(
@@ -210,18 +311,25 @@ def _ordered_rows(
         yield table, row
 
 
-def _delete_task(connection: sqlite3.Connection, task_id: str) -> None:
-    """Remove the task's rows, children before parents, so the FKs hold."""
+def _clear(connection: sqlite3.Connection) -> None:
+    """Empty every exportable table, children before parents, so the FKs hold.
+
+    The whole state and not one task's rows: the export set IS the ledger after
+    an import, so a task no file describes must not survive it (§3.6).
+    """
     for table in reversed(EXPORT_TABLES):
-        connection.execute(f"DELETE FROM {table.value} WHERE task_id = ?", (task_id,))
+        connection.execute(f"DELETE FROM {table.value}")
 
 
-def _insert(connection: sqlite3.Connection, line: Mapping[str, JsonValue]) -> None:
-    """Insert one exported row back into the table it names."""
-    table = LedgerTable(str(line[ExportKey.TABLE.value]))
-    row = line[ExportKey.ROW.value]
-    if not isinstance(row, dict):
-        raise LedgerTransportError(f"export line for {table.value} carries no row")
+def _insert(
+    connection: sqlite3.Connection, table: LedgerTable, row: Mapping[str, JsonValue]
+) -> None:
+    """Insert one VALIDATED exported row back into its table.
+
+    Only `_row` may build the arguments: the names below are interpolated, and
+    they are safe because they are schema names this build creates, never the
+    file's own text. Every VALUE is bound.
+    """
     names = ", ".join(row)
     placeholders = ", ".join("?" for _ in row)
     statement = f"INSERT INTO {table.value} ({names}) VALUES ({placeholders})"

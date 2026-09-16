@@ -15,6 +15,9 @@ can add a pin to without rewriting the row that guards migrations.
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Mapping
+from contextlib import closing
+from functools import cache
 from typing import Final
 
 _V1_META: Final[str] = """
@@ -247,3 +250,27 @@ def apply_migrations(connection: sqlite3.Connection, current: int) -> int:
         for statement in statements:
             connection.execute(statement)
     return len(MIGRATIONS)
+
+
+_SQL_TABLE_NAMES: Final[str] = "SELECT name FROM sqlite_master WHERE type = 'table'"
+_SQL_COLUMN_NAMES: Final[str] = "SELECT name FROM pragma_table_info(?)"
+
+
+@cache
+def table_columns() -> Mapping[str, frozenset[str]]:
+    """Every column name this build's migrations create, per table.
+
+    Built by RUNNING the migrations into an in-memory database rather than by
+    parsing their text or by restating them: the import path checks untrusted
+    column names against this, and an allowlist that could drift from the
+    schema it guards would not be one (§3.6).
+    """
+    with closing(sqlite3.connect(":memory:")) as connection:
+        apply_migrations(connection, 0)
+        tables = [str(row[0]) for row in connection.execute(_SQL_TABLE_NAMES)]
+        return {
+            name: frozenset(
+                str(row[0]) for row in connection.execute(_SQL_COLUMN_NAMES, (name,))
+            )
+            for name in tables
+        }

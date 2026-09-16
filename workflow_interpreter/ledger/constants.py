@@ -135,6 +135,18 @@ MSG_UNKNOWN_TASK: Final[str] = "no ledger rows exist for task {task_id!r}"
 MSG_EXPORT_HEADER: Final[str] = (
     "{path} is not a ledger export: its first line is not a {kind!r} object"
 )
+MSG_EXPORT_ROW_KIND: Final[str] = (
+    "{path} line {number} is not a {kind!r} object, so the import refuses "
+    "whole rather than restoring part of it (§3.6)"
+)
+MSG_EXPORT_TABLE: Final[str] = (
+    "{path} line {number} names table {table!r}, which is not one a task "
+    "export may write into (§3.6)"
+)
+MSG_EXPORT_COLUMN: Final[str] = (
+    "{path} line {number} gives table {table} a column {column!r} the schema "
+    "does not have (§3.3)"
+)
 MSG_BAD_FILTER_KEY: Final[str] = (
     "carrier filter key {key!r} is not a plain identifier, so it cannot name a "
     "JSON path"
