@@ -10,16 +10,18 @@ adding one `ContractLab` to `LABS`, not rewriting a case.
 
 A backend that cannot inject a fault skips those cases loudly rather than
 passing them vacuously: real bd has no crash hook, and a green fault case on a
-store that could not have crashed would prove nothing. The same rule covers a
-backend that does not implement the whole write surface yet: S1's ledger lab
-runs every READ case and skips the write cases loudly, rather than asserting
-half a store.
+store that could not have crashed would prove nothing.
+
+Claims are the one case that does NOT run on the backend under test: D20 keeps
+integration-target claims in bd while the bd backend exists, so the ledger lab
+injects a bd-backed claim store and the contract's claim case runs against
+that. A ledger that answered claim writes itself would be the split claim
+authority D20 exists to prevent.
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterator
-from enum import StrEnum
 from pathlib import Path
 from typing import Final, Protocol
 
@@ -33,6 +35,11 @@ from tests._bdio import (
     make_root,
 )
 from tests._fake_bd import FakeBd, InjectedCrash
+from tests._ledger import (
+    CrashingLedgerStore,
+    FaultPoint,
+    InjectedLedgerCrash,
+)
 from tests.conftest import FAKE_WORKSPACE, TEST_ACTOR, branch_head
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.backend import (
@@ -48,7 +55,6 @@ from workflow_interpreter.bdio.reads import activations_of, next_seq
 from workflow_interpreter.bdio.records import ActivationRecord, RowRecord
 from workflow_interpreter.bdio.wire import EventPayload, ExitRecord, Lifecycle, Metadata
 from workflow_interpreter.ledger.database import open_ledger
-from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
 
 STATUS_CLOSED: Final[str] = "closed"
@@ -58,24 +64,8 @@ _NO_FAULTS: Final[str] = (
     "the {backend} backend has no fault hook: a crash between two durable "
     "writes cannot be produced, so this case would pass vacuously"
 )
-_READS_ONLY: Final[str] = (
-    "the {backend} backend implements the read side and row creation only "
-    "(run-ledger S1); the transition, close and claim surface lands with S2"
-)
 LEDGER_TASK: Final[str] = "cr-3411.2"
 GIT_ENTRY: Final[str] = ".git"
-
-
-class FaultPoint(StrEnum):
-    """Where a backend is made to fail, named by meaning rather than command."""
-
-    AFTER_STATE_COMMIT = "after-state-commit"
-    """The routing state landed; the process dies before the follow-up write
-    that finishes the transition."""
-
-    BEFORE_READBACK = "before-readback"
-    """The write landed durably; its verifying read never returned, so the
-    caller never learned the row exists."""
 
 
 class FaultInjector(Protocol):
@@ -87,6 +77,22 @@ class FaultInjector(Protocol):
 
     def arm(self, point: FaultPoint) -> None:
         """Arm the next occurrence of `point`."""
+
+
+class LedgerFaultInjector:
+    """The ledger's translation: a fault point to the call that carries it."""
+
+    def __init__(self, store: CrashingLedgerStore) -> None:
+        self._store = store
+
+    @property
+    def crash_error(self) -> type[Exception]:
+        """What an injected ledger crash raises."""
+        return InjectedLedgerCrash
+
+    def arm(self, point: FaultPoint) -> None:
+        """Arm `point` on the store itself."""
+        self._store.arm(point)
 
 
 class BdFaultInjector:
@@ -120,18 +126,13 @@ class ContractLab:
         backend_factory: StoreBackendFactory,
         faults: FaultInjector | None = None,
         *,
-        full_writes: bool = True,
+        claims_backend: StoreBackend | None = None,
     ) -> None:
         self.name = name
         self.kind = kind
         self.backend_factory = backend_factory
+        self.claims_backend = claims_backend
         self._faults = faults
-        self._full_writes = full_writes
-
-    def require_writes(self) -> None:
-        """Skip a case this backend cannot yet write its way through."""
-        if not self._full_writes:
-            pytest.skip(_READS_ONLY.format(backend=self.name))
 
     def store(self) -> WorkflowStore:
         """A store built the way production builds one: through the factory."""
@@ -139,6 +140,7 @@ class ContractLab:
             self.backend_factory(self.kind),
             backend_factory=self.backend_factory,
             branch_head_reader=branch_head,
+            claims_backend=self.claims_backend,
         )
 
     def arm(self, point: FaultPoint) -> None:
@@ -170,12 +172,18 @@ def lab(request: pytest.FixtureRequest) -> Iterator[ContractLab]:
         # `<C>/.git` as a directory IS the git common directory (§3.4).
         (repo_root / GIT_ENTRY).mkdir(parents=True)
         with open_ledger(repo_root, tmp_path / "wrapper") as database:
-            store = LedgerStore(database, task_id=LEDGER_TASK)
+            store = CrashingLedgerStore(database, task_id=LEDGER_TASK)
             yield ContractLab(
                 "ledger",
                 BackendKind.LEDGER,
                 PinnedBackendFactory(store),
-                full_writes=False,
+                LedgerFaultInjector(store),
+                # D20: a ledger-backed run contends for an integration target
+                # on the SAME bd row a bd-backed run reserves.
+                claims_backend=BdClient(
+                    BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR),
+                    runner=FakeBd(str(FAKE_WORKSPACE)),
+                ),
             )
         return
     if request.param == "bd-fake":
@@ -256,7 +264,6 @@ def test_instance_records_are_typed_and_exclude_the_root_from_the_count(
 
 def test_a_close_records_its_outcome_and_settles_the_row(lab: ContractLab) -> None:
     """A closed activation carries its outcome AND a settled durable row."""
-    lab.require_writes()
     store = lab.store()
     root = make_root(store, load_definition())
     activation = _entry(store, root.root_id)
@@ -271,7 +278,6 @@ def test_a_close_records_its_outcome_and_settles_the_row(lab: ContractLab) -> No
 
 def test_an_event_appends_once_per_event_key(lab: ContractLab) -> None:
     """The second append of one transition re-finds the first (§3.3)."""
-    lab.require_writes()
     store = lab.store()
     root = make_root(store, load_definition())
     activation = _entry(store, root.root_id)
@@ -299,7 +305,6 @@ def test_a_claim_is_found_by_key_and_merged_rather_than_duplicated(
     lab: ContractLab,
 ) -> None:
     """Two writes of one target key contend on one row, not two (§3.2)."""
-    lab.require_writes()
     store = lab.store()
     key = instance_key()
     payload: Metadata = {CLAIM_PAYLOAD: {"holder": "first"}}
@@ -348,7 +353,6 @@ def test_a_crash_after_the_state_commit_is_repaired_forward(
     lab: ContractLab,
 ) -> None:
     """The transition finishes on the next call, rather than wedging (§5.1)."""
-    lab.require_writes()
     store = lab.store()
     root = make_root(store, load_definition())
     activation = _entry(store, root.root_id)

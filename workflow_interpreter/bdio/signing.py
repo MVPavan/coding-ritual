@@ -268,6 +268,20 @@ class AllowedSigner(BaseModel):
         return matched
 
 
+class SignaturePolicy(BaseModel):
+    """The §9 policy an approval was accepted under, recorded with it (D21).
+
+    Verification depends on the allow-list of the moment, so re-verifying a
+    historical approval from an export needs to know WHICH allow-list and
+    WHICH namespace admitted it — not merely that some verifier said yes.
+    """
+
+    model_config = WIRE_MODEL
+
+    namespace: str
+    allowed_signers_path: str
+
+
 class VerifiedApproval(BaseModel):
     """The result of a passing §9 verification — the only way a gate closes."""
 
@@ -277,6 +291,9 @@ class VerifiedApproval(BaseModel):
     principal: str
     fingerprint: str
     payload_digest: str
+    signer: AllowedSigner
+    """The allow-list entry that matched — the historical trust, not a name."""
+    policy: SignaturePolicy
 
 
 def canonical_payload_bytes(payload: GatePayload) -> bytes:
@@ -558,6 +575,27 @@ class GateVerifier:
             principal=principal,
             fingerprint=fingerprint,
             payload_digest=payload_digest(payload_bytes),
+            signer=self._matching_signer(fingerprint),
+            policy=SignaturePolicy(
+                namespace=self._config.namespace,
+                allowed_signers_path=str(self._allowed_signers),
+            ),
+        )
+
+    def _matching_signer(self, fingerprint: str) -> AllowedSigner:
+        """The allow-list entry this fingerprint was admitted by (§3.6).
+
+        Found rather than reconstructed: the entry carries the principals and
+        the `namespaces=` restriction that made the approval acceptable, and
+        those are what a later re-verification has to compare against.
+        """
+        for signer in self._signers:
+            if signer.fingerprint == fingerprint and signer.signs_in(
+                self._config.namespace
+            ):
+                return signer
+        raise SignerNotAllowedError(  # pragma: no cover - guarded just above
+            _MSG_FINGERPRINT_NOT_ALLOWED.format(fingerprint=fingerprint)
         )
 
     @staticmethod

@@ -35,6 +35,8 @@ from workflow_interpreter.ledger.constants import (
     MSG_SCHEMA_AHEAD,
     MSG_WRAPPER_ROOT_MISMATCH,
     PRAGMAS,
+    TARGET_LEDGER,
+    LedgerOperation,
     LedgerTable,
     MetaKey,
 )
@@ -42,6 +44,7 @@ from workflow_interpreter.ledger.errors import (
     LedgerIdentityError,
     LedgerSchemaError,
     LedgerTransportError,
+    sqlite_failure,
 )
 from workflow_interpreter.ledger.fence import LedgerFence
 from workflow_interpreter.ledger.paths import fence_path, ledger_path, repo_hash
@@ -146,7 +149,11 @@ def transaction(
     try:
         connection.execute(_BEGIN if write else _BEGIN_READ)
     except sqlite3.Error as exc:
-        raise LedgerTransportError(str(exc)) from exc
+        # A writer that cannot even BEGIN waited out `busy_timeout`; §3.4.6
+        # makes that a named refusal rather than the start of a retry loop.
+        raise sqlite_failure(
+            exc, operation=LedgerOperation.BEGINNING.value, row_id=TARGET_LEDGER
+        ) from exc
     try:
         yield connection
     except BaseException:

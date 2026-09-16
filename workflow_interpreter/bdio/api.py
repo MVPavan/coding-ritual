@@ -140,9 +140,11 @@ class WorkflowStore:
         branch_head_reader: BranchHeadReader | None = None,
         member_band: object | None = None,
         backend_factory: StoreBackendFactory | None = None,
+        claims_backend: StoreBackend | None = None,
     ) -> None:
         self._member_band = member_band
         self._client = client
+        self._claims_backend = claims_backend
         self._verifier = verifier
         self._artifact_reader = artifact_reader
         self._branch_head_reader = branch_head_reader
@@ -208,6 +210,7 @@ class WorkflowStore:
             branch_head_reader=branch_head_reader,
             member_band=member_band,
             backend_factory=self._backend_factory,
+            claims_backend=self._claims_backend,
         )
 
     @property
@@ -261,8 +264,17 @@ class WorkflowStore:
 
     @property
     def claims(self) -> ClaimStore:
-        """The integration-target claim surface (§3.2 shared serialisation)."""
-        return ClaimStore(self._client)
+        """The integration-target claim surface (§3.2 shared serialisation).
+
+        Served by an injected backend when one was given (D20): claims stay
+        bd-backed while `store` can still select bd, because two backends
+        discovering claims in two stores could not see each other's
+        reservations. A ledger-backed run therefore reads and writes its
+        claims through the SAME bd rows a bd-backed run does.
+        """
+        return ClaimStore(
+            self._client if self._claims_backend is None else self._claims_backend
+        )
 
     def coordination_store(
         self,

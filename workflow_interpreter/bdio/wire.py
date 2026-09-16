@@ -213,6 +213,7 @@ class BeadRecord(BaseModel):
     description: str | None = None
     status: str
     issue_type: str
+    labels: tuple[str, ...] = ()
     metadata: Metadata = Field(default_factory=dict)
     payload: str | None = None
     close_reason: str | None = None
@@ -222,6 +223,12 @@ class BeadRecord(BaseModel):
     ephemeral: bool = False
     wisp_type: str | None = None
     parent: str | None = None
+
+    @field_validator("labels", mode="before")
+    @classmethod
+    def _absent_labels_are_no_labels(cls, value: object) -> object:
+        """bd emits `null` for a bead with no labels; that is an empty set."""
+        return () if value is None else value
 
 
 # --- shared value objects -----------------------------------------------

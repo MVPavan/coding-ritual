@@ -35,7 +35,7 @@ from workflow_interpreter.bdio.records import (
     parse_gate,
     parse_row,
 )
-from workflow_interpreter.bdio.rows import NewRow, RowKind
+from workflow_interpreter.bdio.rows import GateClosure, GateSignature, NewRow, RowKind
 from workflow_interpreter.bdio.signing import (
     GatePayload,
     GateVerifier,
@@ -323,7 +323,10 @@ def close_gate_verified(
 
     A `rebudget` bound is part of THAT ONE WRITE — `bound_key`/`bound_value`
     land in the same `model_copy` as the outcome, the fingerprint and the
-    payload digest (§9). Nothing is written to the root, so there is no
+    payload digest (§9), and the whole decision is handed to the backend as
+    ONE `GateClosure`, so a backend that can transact consumes the nonce,
+    records the signature and enqueues the attention projection with it
+    (§3.3). Nothing is written to the root, so there is no
     apply/close window to crash in, and two rebudgets closing concurrently
     write two different beads instead of racing one whole-object root merge
     that provably lost one of them (probed, phase-2 r3/r4).
@@ -366,8 +369,15 @@ def close_gate_verified(
             "bound_value": None if mutation is None else mutation.value,
         }
     )
-    updated = client._merge_metadata(gate_id, metadata_dict(metadata))
-    closed = finalize.close_forward(client, updated, _gate_close_reason(approval))
+    closed = client._close_gate(
+        GateClosure(
+            gate_id=gate_id,
+            metadata=metadata_dict(metadata),
+            close_reason=_gate_close_reason(approval),
+            nonce=approval.payload.nonce,
+            signature=_signature_of(approval, payload_bytes, signature),
+        )
+    )
     _LOG.info(
         "wf.gate.closed",
         gate_id=gate_id,
@@ -375,6 +385,19 @@ def close_gate_verified(
         signer=approval.fingerprint,
     )
     return parse_gate(closed)
+
+
+def _signature_of(
+    approval: VerifiedApproval, payload_bytes: bytes, signature: bytes
+) -> GateSignature:
+    """The historical trust this approval was accepted under (§3.6, D21)."""
+    return GateSignature(
+        payload_bytes=payload_bytes,
+        signature_bytes=signature,
+        signer_fingerprint=approval.fingerprint,
+        allowed_signers_entry=approval.signer.model_dump_json(),
+        policy=approval.policy.model_dump(mode="json"),
+    )
 
 
 def _gate_close_reason(approval: VerifiedApproval) -> str:

@@ -26,9 +26,7 @@ import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
 from tests._gates import ship_gate_request
-from tests.conftest import branch_head
-from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.backend import PinnedBackendFactory
+from tests._ledger import GIT_ENTRY, TASK, config_file, ledger_store, repository
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.ledger import fence as fence_module
@@ -49,10 +47,10 @@ from workflow_interpreter.ledger.database import (
     schema_version,
 )
 from workflow_interpreter.ledger.errors import (
+    LedgerClaimUnsupported,
     LedgerExportError,
     LedgerFenceBusy,
     LedgerIdentityError,
-    LedgerWriteUnsupported,
 )
 from workflow_interpreter.ledger.export import import_export, write_export
 from workflow_interpreter.ledger.fence import LedgerFence, holders
@@ -66,12 +64,10 @@ from workflow_interpreter.ledger.paths import (
 from workflow_interpreter.ledger.schema import SCHEMA_VERSION
 from workflow_interpreter.ledger.store import LedgerStore
 
-TASK: Final[str] = "cr-3411.2"
 OTHER_TASK: Final[str] = "cr-3411.3"
 ARTIFACT_REF: Final[str] = "refs/wf/artifacts/cr-3411.2"
 ARTIFACT_OID: Final[str] = "c" * 40
 ARTIFACT_DIGEST: Final[str] = "t" * 40
-GIT_ENTRY: Final[str] = ".git"
 HOLD_TIMEOUT_S: Final[float] = 20.0
 HOLD_POLL_S: Final[float] = 0.05
 READY: Final[str] = "held"
@@ -89,32 +85,9 @@ sys.stdin.readline()
 it reports when the lock is taken and holds it until its stdin is closed."""
 
 
-def _repository(tmp_path: Path) -> tuple[Path, Path]:
-    """A repository and a wrapper root, with the in-repo `.git` shape.
-
-    `.git` as a DIRECTORY is its own git common directory (`sandbox._common_dir`),
-    which is all the fence resolver reads — so these tests need no `git` binary.
-    """
-    repo_root = tmp_path / "repo"
-    (repo_root / GIT_ENTRY).mkdir(parents=True)
-    wrapper_root = tmp_path / "wrapper"
-    wrapper_root.mkdir()
-    return repo_root, wrapper_root
-
-
-def _store(database: LedgerDatabase, task_id: str = TASK) -> WorkflowStore:
-    """The public write path over one task's ledger rows."""
-    backend = LedgerStore(database, task_id=task_id)
-    return WorkflowStore(
-        backend,
-        backend_factory=PinnedBackendFactory(backend),
-        branch_head_reader=branch_head,
-    )
-
-
 def _seeded(database: LedgerDatabase, task_id: str = TASK) -> str:
     """One root and one activation of `task_id`, through the public write path."""
-    store = _store(database, task_id)
+    store = ledger_store(database, task_id)
     root = make_root(store, load_definition())
     store.mint_activation(root.root_id, entry_request())
     return root.root_id
@@ -123,7 +96,7 @@ def _seeded(database: LedgerDatabase, task_id: str = TASK) -> str:
 @pytest.fixture
 def ledger(tmp_path: Path) -> Iterator[LedgerDatabase]:
     """An open ledger over a fresh repository, closed with the test."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         yield database
 
@@ -133,7 +106,7 @@ def ledger(tmp_path: Path) -> Iterator[LedgerDatabase]:
 
 def test_an_empty_database_is_migrated_to_the_known_schema(tmp_path: Path) -> None:
     """The first open creates every §3.3 table and pins the version it reached."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     assert not ledger_path(repo_root).exists()
 
     with open_ledger(repo_root, wrapper_root) as database:
@@ -151,7 +124,7 @@ def test_a_second_open_migrates_nothing_and_keeps_the_creation_pin(
     tmp_path: Path,
 ) -> None:
     """Migration is forward-only, so an up-to-date ledger is opened untouched."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as first:
         created = read_meta(first.connection, MetaKey.CREATED_AT)
 
@@ -191,7 +164,7 @@ def test_a_bound_gate_projects_the_artifact_oid_beside_its_ref(
     ledger: LedgerDatabase,
 ) -> None:
     """§3.3: `artifact_ref` names the ref, `artifact_oid` the immutable object."""
-    store = _store(ledger)
+    store = ledger_store(ledger)
     root = make_root(store, load_definition())
     source = store.mint_activation(root.root_id, entry_request()).activation
     store.open_gate(
@@ -223,17 +196,20 @@ def test_the_probe_round_trips_a_value_and_reports_the_pinned_identity(
     assert read_meta(ledger.connection, MetaKey.SCHEMA_VERSION) == str(SCHEMA_VERSION)
 
 
-def test_the_write_surface_s1_does_not_implement_refuses_loudly(
+def test_a_claim_write_is_refused_rather_than_kept_in_a_second_store(
     ledger: LedgerDatabase,
 ) -> None:
-    """A half-written transition is worse than a refusal (S2 owns the writes)."""
-    store = LedgerStore(ledger, task_id=TASK)
-    root_id = _seeded(ledger)
+    """D20: claims stay bd-backed, so the ledger refuses them by name.
 
-    with pytest.raises(LedgerWriteUnsupported):
-        store._merge_metadata(root_id, {"terminal": "done"})
-    with pytest.raises(LedgerWriteUnsupported):
-        store._close_row(root_id, "outcome=done")
+    A ledger that answered claim writes itself would give a ledger-backed run
+    a claim table no bd-backed run could see — two reservations, no shared
+    serialisation, which is the one thing the claim row exists to provide.
+    """
+    store = LedgerStore(ledger, task_id=TASK)
+    _seeded(ledger)
+
+    with pytest.raises(LedgerClaimUnsupported, match="D20"):
+        store._claim_and_merge_metadata(TASK, {"integration_target_key": "k"})
 
 
 # --- repository identity (§3.5) --------------------------------------------
@@ -243,7 +219,7 @@ def test_a_store_opened_under_another_wrapper_root_refuses_naming_the_pinned_one
     tmp_path: Path,
 ) -> None:
     """The refusal has to say WHICH wrapper root owns the ledger, always."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root):
         pass
     intruder = tmp_path / "other-wrapper"
@@ -266,7 +242,7 @@ def test_a_tree_that_is_not_a_repository_has_no_fence_to_take(
 
 def test_the_fence_lives_in_the_git_common_directory(tmp_path: Path) -> None:
     """D4: outside `git clean`'s reach and shared by every worktree."""
-    repo_root, _ = _repository(tmp_path)
+    repo_root, _ = repository(tmp_path)
 
     assert fence_path(repo_root) == repo_root / GIT_ENTRY / "wf" / "ledger.lock"
     assert ensure_fence_dir(repo_root) == fence_path(repo_root).parent
@@ -277,7 +253,7 @@ def test_the_fence_lives_in_the_git_common_directory(tmp_path: Path) -> None:
 
 def test_an_export_round_trips_byte_identically(tmp_path: Path) -> None:
     """Rebuild from the export, export again, and the bytes are the same."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         first = write_export(database, TASK).read_bytes()
@@ -297,7 +273,7 @@ def test_the_export_is_ordered_by_task_and_seq_with_an_identity_header(
     tmp_path: Path,
 ) -> None:
     """The header pins both identities, and the rows follow the durable order."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         lines = [
@@ -321,7 +297,7 @@ def test_the_export_is_ordered_by_task_and_seq_with_an_identity_header(
 
 def test_an_import_rebuilds_the_task_rather_than_merging_it(tmp_path: Path) -> None:
     """A restore leaves exactly what the export describes, and nothing else."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         root_id = _seeded(database)
         write_export(database, TASK)
@@ -345,11 +321,11 @@ def test_an_import_rebuilds_the_task_rather_than_merging_it(tmp_path: Path) -> N
 
 def test_an_export_from_another_repository_is_refused(tmp_path: Path) -> None:
     """§3.5: the header is checked against BOTH pins before anything is written."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         export = write_export(database, TASK)
-    elsewhere, _ = _repository(tmp_path / "elsewhere")
+    elsewhere, _ = repository(tmp_path / "elsewhere")
 
     with pytest.raises(LedgerIdentityError) as refusal:
         import_export(
@@ -366,7 +342,7 @@ def test_an_export_row_naming_an_unknown_column_is_refused_whole(
     tmp_path: Path,
 ) -> None:
     """A column name reaches SQL as TEXT, so it is checked against the schema."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         export = write_export(database, TASK)
@@ -388,7 +364,7 @@ def test_an_export_row_naming_a_table_no_task_export_carries_is_refused(
     tmp_path: Path,
 ) -> None:
     """`meta` is a real table and not one an export may write into."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         export = write_export(database, TASK)
@@ -410,7 +386,7 @@ def test_an_export_row_naming_a_table_no_task_export_carries_is_refused(
 
 def test_an_export_whose_rows_carry_another_task_is_refused(tmp_path: Path) -> None:
     """A file may only restore the task its header declares (§3.6)."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         _seeded(database, OTHER_TASK)
@@ -433,7 +409,7 @@ def test_an_export_whose_rows_carry_another_task_is_refused(tmp_path: Path) -> N
 
 def test_an_export_carrying_no_tasks_row_is_refused(tmp_path: Path) -> None:
     """A header alone does not describe a task the rebuild can restore."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         export = write_export(database, TASK)
@@ -451,7 +427,7 @@ def test_an_export_carrying_no_tasks_row_is_refused(tmp_path: Path) -> None:
 
 def test_an_export_carrying_two_tasks_rows_is_refused(tmp_path: Path) -> None:
     """Exactly one `tasks` row, so the file declares one task and carries it."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         export = write_export(database, TASK)
@@ -471,7 +447,7 @@ def test_an_import_leaves_no_task_the_export_set_does_not_describe(
     tmp_path: Path,
 ) -> None:
     """§3.6: a rebuild is the whole exportable state, not the files' tasks only."""
-    config, repo_root, wrapper_root = _config_file(tmp_path)
+    config, repo_root, wrapper_root = config_file(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         _seeded(database, OTHER_TASK)
@@ -487,7 +463,7 @@ def test_an_import_leaves_no_task_the_export_set_does_not_describe(
 
 def test_a_failing_file_leaves_every_earlier_file_unimported(tmp_path: Path) -> None:
     """One fence, one transaction: a rebuild half-applied is not a rebuild."""
-    config, repo_root, wrapper_root = _config_file(tmp_path)
+    config, repo_root, wrapper_root = config_file(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         _seeded(database, OTHER_TASK)
@@ -509,7 +485,7 @@ def test_an_import_into_a_ledger_pinned_to_another_wrapper_root_is_refused(
     tmp_path: Path,
 ) -> None:
     """§3.5: the DESTINATION's pins are checked, under the exclusive fence."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         export = write_export(database, TASK)
@@ -565,7 +541,7 @@ def _count(database: LedgerDatabase, table: LedgerTable, task_id: str = TASK) ->
 @pytest.mark.proc
 def test_an_import_refuses_while_a_shared_fence_holder_lives(tmp_path: Path) -> None:
     """The bounded wait ends in a refusal that NAMES the holder's pid."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         export = write_export(database, TASK)
@@ -590,7 +566,7 @@ def test_an_open_ledger_holds_the_fence_shared_for_the_life_of_its_connection(
     tmp_path: Path,
 ) -> None:
     """§3.4.4: the hold is the connection's, not one call's."""
-    repo_root, wrapper_root = _repository(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root):
         assert os.getpid() in holders(fence_path(repo_root))
     assert os.getpid() not in holders(fence_path(repo_root))
@@ -657,35 +633,9 @@ class _HolderContext:
 # --- the CLI (§3.6) --------------------------------------------------------
 
 
-def _config_file(tmp_path: Path) -> tuple[Path, Path, Path]:
-    """A foreman config over a fresh repository, and the two roots it names."""
-    repo_root, _ = _repository(tmp_path)
-    home = tmp_path / "home"
-    wrapper_root = home / repo_hash(repo_root)
-    path = tmp_path / "foreman.toml"
-    path.write_text(
-        f'''repo_root = "{repo_root}"
-wrapper_home = "{home}"
-host = "host"
-actor = "actor"
-
-[bd]
-workspace = "{tmp_path / "bd"}"
-actor = "actor"
-
-[supervisor]
-repo_root = "{repo_root}"
-wrapper_root = "{wrapper_root}"
-host = "host"
-''',
-        encoding="utf-8",
-    )
-    return path, repo_root, wrapper_root
-
-
 def test_the_cli_exports_a_task_and_imports_it_back(tmp_path: Path) -> None:
     """`wf ledger export <task>` then `wf ledger import`, over one config."""
-    config, repo_root, wrapper_root = _config_file(tmp_path)
+    config, repo_root, wrapper_root = config_file(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
 
@@ -699,7 +649,7 @@ def test_the_cli_exports_a_task_and_imports_it_back(tmp_path: Path) -> None:
 
 def test_the_cli_refuses_a_task_the_ledger_does_not_hold(tmp_path: Path) -> None:
     """An export of an unknown task is a refusal, not an empty file."""
-    config, repo_root, _ = _config_file(tmp_path)
+    config, repo_root, _ = config_file(tmp_path)
 
     assert ledger_main(["--config", str(config), "export", TASK]) == 2
     assert not export_path(repo_root, TASK).exists()

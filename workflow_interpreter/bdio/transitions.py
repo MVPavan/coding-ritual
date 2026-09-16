@@ -46,6 +46,7 @@ from workflow_interpreter.bdio.errors import (
 )
 from workflow_interpreter.bdio.finalize import close_record_forward
 from workflow_interpreter.bdio.records import ActivationRecord, parse_activation
+from workflow_interpreter.bdio.rows import StoreRow
 from workflow_interpreter.bdio.wire import (
     KEY_LIFECYCLE,
     ActivationMetadata,
@@ -229,19 +230,36 @@ def apply(
     a settled outcome, whatever the caller checked before the round-trip.
     """
     fresh = load(activation_id)
-    assert_not_settled(fresh, lifecycle)
-    if fresh.metadata.lifecycle not in allowed:
+    _assert_appliable(fresh, lifecycle, allowed)
+    owned: dict[str, object] = {KEY_LIFECYCLE: lifecycle, **changes}
+    metadata = fresh.metadata.model_copy(update=owned)
+
+    def guard(row: StoreRow) -> None:
+        """Re-assert the same two rules against the row being written.
+
+        Handed to the backend rather than run here so that a backend which
+        can transact makes the read, the check and the write ONE operation
+        (§3.3) — closing the window `apply`'s own fresh read can only narrow.
+        """
+        _assert_appliable(parse_activation(row), lifecycle, allowed)
+
+    merged = client._merge_metadata(activation_id, _delta(metadata, owned), guard=guard)
+    return repair_forward(client, parse_activation(merged))
+
+
+def _assert_appliable(
+    record: ActivationRecord, lifecycle: Lifecycle, allowed: frozenset[Lifecycle]
+) -> None:
+    """The two rules every transition is legal under: not settled, and allowed."""
+    assert_not_settled(record, lifecycle)
+    if record.metadata.lifecycle not in allowed:
         raise LifecycleConflictError(
             _MSG_RACED.format(
-                activation_id=activation_id,
-                found=fresh.metadata.lifecycle.value,
+                activation_id=record.activation_id,
+                found=record.metadata.lifecycle.value,
                 wanted=lifecycle.value,
             )
         )
-    owned: dict[str, object] = {KEY_LIFECYCLE: lifecycle, **changes}
-    metadata = fresh.metadata.model_copy(update=owned)
-    merged = client._merge_metadata(activation_id, _delta(metadata, owned))
-    return repair_forward(client, parse_activation(merged))
 
 
 def repair_forward(client: StoreBackend, record: ActivationRecord) -> ActivationRecord:

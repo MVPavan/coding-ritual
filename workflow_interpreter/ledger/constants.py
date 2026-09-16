@@ -17,6 +17,10 @@ LEDGER_FILE: Final[str] = "ledger.db"
 EXPORT_DIR: Final[str] = "export"
 EXPORT_SUFFIX: Final[str] = ".jsonl"
 FENCE_FILE: Final[str] = "ledger.lock"
+TASK_LOCK_DIR: Final[str] = "tasks"
+TASK_LOCK_SUFFIX: Final[str] = ".lock"
+"""`<wrapper_root>/tasks/<task_id>.lock` — the task-keyed reconcile lock of
+§3.2.2, distinct from the root-keyed member locks in `bdio/coordination.py`."""
 
 FENCE_WAIT_S: Final[float] = 5.0
 """How long an exclusive taker waits before naming the holders and refusing.
@@ -69,8 +73,28 @@ EXPORT_TABLES: Final[tuple[LedgerTable, ...]] = (
     LedgerTable.TASKS,
     *ROW_TABLES,
 )
-"""What one task's export carries in S1. The remaining §3.3 tables are written
-by S2 and join this tuple with the writes that fill them."""
+"""What one task's export carries. The §3.3 tables reached THROUGH a row —
+nonces, signatures, projections and the per-activation facts — join it with
+the export surface that renders them (S4's `wf ledger verify`), not with the
+writes that fill them."""
+
+
+TARGET_LEDGER: Final[str] = "the ledger"
+"""What a refusal names when the failure is the database itself rather than
+one row of it."""
+
+
+class LedgerOperation(StrEnum):
+    """What a failing statement was doing, for the refusal that names it."""
+
+    READING = "reading"
+    BEGINNING = "beginning a transaction on"
+    CREATING = "creating"
+    MERGING = "merging metadata into"
+    CLOSING = "closing"
+    CLOSING_GATE = "closing the gate"
+    CLAIMING = "claiming"
+    RECONCILING = "reconciling the attention projection of"
 
 
 class MetaKey(StrEnum):
@@ -126,11 +150,23 @@ MSG_SCHEMA_AHEAD: Final[str] = (
 MSG_UNKNOWN_CARRIER: Final[str] = (
     "a row carrying wf_kind={kind!r} has no table in the ledger schema (§3.3)"
 )
-MSG_NO_WRITE_SURFACE: Final[str] = (
-    "the ledger backend implements reads and row creation only; {operation} "
-    "lands with the S2 write surface"
+MSG_BUSY_REFUSED: Final[str] = (
+    "the ledger stayed busy for {timeout_ms} ms while {operation} {row_id}; "
+    "refusing rather than retrying silently (§3.4.6)"
+)
+MSG_CLAIM_ON_LEDGER: Final[str] = (
+    "integration-target claims stay bd-backed while the bd backend exists "
+    "(D20); the ledger refuses {operation} {row_id} rather than holding a "
+    "second claim table a bd-backed run could not see"
 )
 MSG_LOSSY_ROW: Final[str] = "the row did not read back as written: {detail}"
+MSG_ROW_MISSING: Final[str] = (
+    "no ledger row {row_id!r} in task {task_id!r}, so there is nothing to {operation}"
+)
+MSG_NOT_A_GATE: Final[str] = (
+    "row {row_id!r} is a {table} row; only a gate is closed with a nonce and "
+    "a signature (§3.3)"
+)
 MSG_UNKNOWN_TASK: Final[str] = "no ledger rows exist for task {task_id!r}"
 MSG_EXPORT_HEADER: Final[str] = (
     "{path} is not a ledger export: its first line is not a {kind!r} object"

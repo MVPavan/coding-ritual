@@ -1,11 +1,17 @@
 """`LedgerStore` — the §3.3 tables behind the neutral `StoreBackend` seam.
 
-S1 delivers the READ side whole: `WorkflowReads` runs over this store exactly
-as it runs over bd, because every §4 query is expressed as carrier filters and
-every carrier is here in `metadata_json`. The write side is one method —
-`_create_row` — which is what a read needs in order to have anything to read;
-the transitions, gate closes, nonces, signatures and projections of §3.3 land
-with S2, and calling one of them here refuses loudly rather than half-writing.
+`WorkflowReads` runs over this store exactly as it runs over bd, because every
+§4 query is expressed as carrier filters and every carrier is here in
+`metadata_json`. The write side is the four neutral methods plus the atomic
+gate close, and each one IS one `BEGIN IMMEDIATE` transaction (§3.4.2): the
+row, its projected columns, the `seq` it takes from `tasks.next_seq`, the
+nonce a gate close consumes, the signature it records and the attention
+projection it enqueues all land together or not at all.
+
+Two things are deliberately NOT here. Claims stay bd-backed while the bd
+backend exists (D20), so a claim write is refused rather than kept in a
+second, invisible table. And a writer that waits out `busy_timeout` refuses by
+name (§3.4.6) instead of retrying, so contention is visible.
 
 Every statement is parameterised, including the JSON paths a carrier filter
 selects on: `json_extract(metadata_json, ?)` takes its path as a bound value,
@@ -30,18 +36,28 @@ from workflow_interpreter.bdio.errors import LossyWriteError
 from workflow_interpreter.bdio.records import CanaryResult
 from workflow_interpreter.bdio.rows import (
     BackendIdentity,
+    GateClosure,
     NewRow,
+    RowGuard,
     RowKind,
     RowQuery,
     StoreRow,
 )
-from workflow_interpreter.bdio.wire import KEY_WF_ROOT_ID
+from workflow_interpreter.bdio.wire import (
+    KEY_SUPERSEDED_BY,
+    KEY_TERMINAL,
+    KEY_WF_ROOT_ID,
+)
 from workflow_interpreter.ledger import rowmap
 from workflow_interpreter.ledger.constants import (
     MSG_BAD_FILTER_KEY,
+    MSG_CLAIM_ON_LEDGER,
     MSG_LOSSY_ROW,
-    MSG_NO_WRITE_SURFACE,
+    MSG_NOT_A_GATE,
+    MSG_ROW_MISSING,
     ROW_TABLES,
+    STATUS_CLOSED,
+    LedgerOperation,
     LedgerTable,
     MetaKey,
 )
@@ -51,9 +67,10 @@ from workflow_interpreter.ledger.database import (
     schema_version,
 )
 from workflow_interpreter.ledger.errors import (
+    LedgerClaimUnsupported,
     LedgerRowMissing,
     LedgerTransportError,
-    LedgerWriteUnsupported,
+    sqlite_failure,
 )
 from workflow_interpreter.ledger.paths import fence_path
 from workflow_interpreter.schema.loader import canonical_json_bytes
@@ -88,6 +105,26 @@ _SQL_META_WRITE: Final[str] = "INSERT INTO meta (key, value) VALUES (?, ?)"
 _SQL_META_DELETE: Final[str] = "DELETE FROM meta WHERE key = ?"
 _SQL_META_READ: Final[str] = "SELECT value FROM meta WHERE key = ?"
 _FILTER_CLAUSE: Final[str] = "CAST(json_extract(metadata_json, ?) AS TEXT) = ?"
+_SQL_SELECT_BY_COLUMN: Final[str] = (
+    "SELECT * FROM {table} WHERE task_id = ? AND {column} = ?"
+)
+"""One row of this task by an indexed column — its id, or its natural key."""
+_SQL_UPDATE_ROW: Final[str] = (
+    "UPDATE {table} SET {assignments} WHERE task_id = ? AND {column} = ?"
+)
+_SQL_NONCE_INSERT: Final[str] = (
+    "INSERT INTO nonces (nonce, gate_id, consumed_at) VALUES (?, ?, ?) "
+    "ON CONFLICT(nonce) DO NOTHING"
+)
+_SQL_SIGNATURE_INSERT: Final[str] = (
+    "INSERT INTO signatures (gate_id, payload_bytes, signature_bytes, "
+    "signer_fingerprint, allowed_signers_entry, policy_json) "
+    "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(gate_id) DO NOTHING"
+)
+_SQL_PROJECTION_INSERT: Final[str] = (
+    "INSERT INTO projections (task_id, generation, created_at, acked_at) "
+    "VALUES (?, ?, ?, NULL)"
+)
 _MSG_PROBE: Final[str] = "the ledger probe wrote {wrote!r} and read back {read!r}"
 
 
@@ -190,15 +227,29 @@ class LedgerStore:
         deliberately dropped: §3.3 stores the carrier, and nothing routes on a
         title (`bdio/rows.py`). The read-back happens inside the same
         transaction, so a row that did not land exactly never becomes visible.
+
+        The §3.3 natural key is checked in the SAME transaction (§3.3 mint):
+        a second create of one fact — a re-mint after a lost read-back, a
+        re-appended event — ANSWERS with the row that already exists rather
+        than failing on the UNIQUE constraint. That is what the keys are for,
+        and deciding it under `BEGIN IMMEDIATE` is what makes it true between
+        processes rather than only between ticks.
         """
         table = rowmap.table_for(new.metadata)
         connection = self._database.connection
         with self._database.transaction():
+            existing = self._by_natural_key(table, new.metadata)
+            if existing is not None:
+                return existing
             self._ensure_task(connection)
             seq = self._allocate_seq(connection)
             attempt = self._next_attempt(connection) if _is_root(table) else 0
             row_id = rowmap.mint_id(
-                table, new.metadata, task_id=self._task_id, attempt=attempt
+                table,
+                new.metadata,
+                task_id=self._task_id,
+                attempt=attempt,
+                seq=seq,
             )
             metadata = _self_identified(new.metadata, table, row_id)
             columns = rowmap.projection(
@@ -211,33 +262,284 @@ class LedgerStore:
                 metadata_json=_json_text(metadata),
                 payload_json=None if new.payload is None else _json_text(new.payload),
             )
-            self._insert(connection, table, columns)
-            written = self._select(table, f"{rowmap.ID_COLUMN[table]} = ?", (row_id,))
-            if len(written) != 1 or written[0].metadata != metadata:
-                raise LossyWriteError(
-                    row_id, table.value, MSG_LOSSY_ROW.format(detail=row_id)
-                )
-        return written[0]
+            self._insert(table, columns)
+            written = self._verified(table, row_id, metadata, LedgerOperation.CREATING)
+            if _projects_attention(table, metadata):
+                self._enqueue_projection()
+        return written
 
-    def _merge_metadata(self, row_id: str, metadata: Metadata) -> StoreRow:
-        """S2's write surface — refused here rather than half-implemented."""
-        raise LedgerWriteUnsupported(
-            MSG_NO_WRITE_SURFACE.format(operation="merging metadata")
-        )
+    def _by_natural_key(
+        self, table: LedgerTable, metadata: Metadata
+    ) -> StoreRow | None:
+        """The row this carrier's §3.3 unique key already names, if there is one."""
+        key = rowmap.NATURAL_KEY[table]
+        value = metadata.get(key)
+        if not isinstance(value, str):
+            return None
+        statement = _SQL_SELECT_BY_COLUMN.format(table=table.value, column=key)
+        found = self._execute(
+            statement, (self._task_id, value), LedgerOperation.CREATING, value
+        ).fetchone()
+        return None if found is None else self._hydrated(table, found)
+
+    def _merge_metadata(
+        self, row_id: str, metadata: Metadata, *, guard: RowGuard | None = None
+    ) -> StoreRow:
+        """Merge a carrier delta into one row — read, check, write, in ONE go.
+
+        The guard runs INSIDE the transaction, against the row this write is
+        about to change: that is what makes §3.3's lifecycle transition atomic
+        rather than merely narrow. `version` moves with the write, so a
+        concurrent writer's merge is visible as a version it did not produce.
+        """
+        with self._database.transaction():
+            table, row = self._locate(row_id, LedgerOperation.MERGING)
+            current = self._hydrated(table, row)
+            if guard is not None:
+                guard(current)
+            merged = dict(current.metadata) | dict(metadata)
+            self._rewrite(table, row, merged)
+            written = self._verified(table, row_id, merged, LedgerOperation.MERGING)
+            if _projects_attention(table, merged):
+                self._enqueue_projection()
+        return written
 
     def _claim_and_merge_metadata(self, row_id: str, metadata: Metadata) -> StoreRow:
-        """S2's write surface; claims stay bd-backed until the cutover (D20)."""
-        raise LedgerWriteUnsupported(
-            MSG_NO_WRITE_SURFACE.format(operation="claiming a row")
+        """Refused: an integration-target claim is bd's row during coexistence.
+
+        The only caller is the claim surface (`bdio/claims.py`), and D20 keeps
+        claims in bd while `store` can still select it — a ledger-backed run
+        must contend on the SAME row a bd-backed run reserves, or neither sees
+        the other's reservation.
+        """
+        raise LedgerClaimUnsupported(
+            MSG_CLAIM_ON_LEDGER.format(
+                operation=LedgerOperation.CLAIMING.value, row_id=row_id
+            )
         )
 
     def _close_row(self, row_id: str, reason: str) -> StoreRow:
-        """S2's write surface — a close is a §5.1 transition, not an update."""
-        raise LedgerWriteUnsupported(
-            MSG_NO_WRITE_SURFACE.format(operation="closing a row")
+        """Settle one row: `status`, its reason, and the projection it may owe.
+
+        Idempotent, because every close in this package is driven forward
+        rather than refused (`bdio/finalize.py`): closing a closed row with
+        the same reason rewrites nothing and answers the row.
+        """
+        with self._database.transaction():
+            table, row = self._locate(row_id, LedgerOperation.CLOSING)
+            if row[rowmap.COLUMN_STATUS] == STATUS_CLOSED and (
+                row[rowmap.COLUMN_CLOSE_REASON] == reason
+            ):
+                return self._hydrated(table, row)
+            self._update(
+                table,
+                row_id,
+                {
+                    rowmap.COLUMN_STATUS: STATUS_CLOSED,
+                    rowmap.COLUMN_CLOSE_REASON: reason,
+                },
+                LedgerOperation.CLOSING,
+            )
+            metadata = _parsed(row[rowmap.COLUMN_METADATA])
+            written = self._verified(table, row_id, metadata, LedgerOperation.CLOSING)
+            if written.status != STATUS_CLOSED or written.close_reason != reason:
+                raise LossyWriteError(
+                    row_id, table.value, MSG_LOSSY_ROW.format(detail=reason)
+                )
+            if _closes_attention(table):
+                self._enqueue_projection()
+        return written
+
+    def _close_gate(self, closure: GateClosure) -> StoreRow:
+        """The §3.3 gate close, whole: nonce, state, outcome, signature, projection.
+
+        One `BEGIN IMMEDIATE` transaction, and the signature was verified
+        OUTSIDE it — §3.4.2 forbids a subprocess inside a transaction, and
+        `ssh-keygen` is one. What lands here is the DECISION: the nonce is
+        consumed so it can never close a second gate, the carrier records the
+        outcome, the historical trust (payload, signature, fingerprint, the
+        allow-list entry that matched and the policy in force) is stored so
+        §3.6 can re-verify from the export alone, and the attention projection
+        is enqueued with it.
+
+        The inserts are first-writer-wins: a repeat of one decision must not
+        fail the close it is repeating, and a DIFFERENT decision on a closed
+        gate is refused above this seam (`gates._repair_closed_gate`).
+        """
+        with self._database.transaction():
+            table, row = self._locate(closure.gate_id, LedgerOperation.CLOSING_GATE)
+            if table is not LedgerTable.GATES:
+                raise LedgerTransportError(
+                    MSG_NOT_A_GATE.format(row_id=closure.gate_id, table=table.value)
+                )
+            merged = dict(self._hydrated(table, row).metadata) | dict(closure.metadata)
+            self._rewrite(table, row, merged)
+            self._update(
+                table,
+                closure.gate_id,
+                {
+                    rowmap.COLUMN_STATUS: STATUS_CLOSED,
+                    rowmap.COLUMN_CLOSE_REASON: closure.close_reason,
+                },
+                LedgerOperation.CLOSING_GATE,
+            )
+            self._consume_nonce(closure)
+            self._record_signature(closure)
+            written = self._verified(
+                table, closure.gate_id, merged, LedgerOperation.CLOSING_GATE
+            )
+            self._enqueue_projection()
+        return written
+
+    # -- the writes, all inside their caller's transaction ---------------
+
+    def _locate(
+        self, row_id: str, operation: LedgerOperation
+    ) -> tuple[LedgerTable, sqlite3.Row]:
+        """The table and raw row this id names, or a refusal naming the task."""
+        for table in ROW_TABLES:
+            statement = _SQL_SELECT_BY_COLUMN.format(
+                table=table.value, column=rowmap.ID_COLUMN[table]
+            )
+            found = self._execute(statement, (self._task_id, row_id), operation, row_id)
+            row = found.fetchone()
+            if row is not None:
+                return table, row
+        raise LedgerRowMissing(
+            MSG_ROW_MISSING.format(
+                row_id=row_id, task_id=self._task_id, operation=operation.value
+            )
+        )
+
+    def _hydrated(self, table: LedgerTable, row: sqlite3.Row) -> StoreRow:
+        """One raw row as the neutral row the seam speaks."""
+        return rowmap.hydrate(table, row, _parsed(row[rowmap.COLUMN_METADATA]))
+
+    def _rewrite(self, table: LedgerTable, row: sqlite3.Row, merged: Metadata) -> None:
+        """Store the merged carrier and re-project every column it feeds."""
+        self._update(
+            table,
+            str(row[rowmap.ID_COLUMN[table]]),
+            rowmap.merge_projection(
+                table,
+                row,
+                metadata=merged,
+                metadata_json=_json_text(merged),
+                at=_now(),
+            ),
+            LedgerOperation.MERGING,
+        )
+
+    def _update(
+        self,
+        table: LedgerTable,
+        row_id: str,
+        columns: Mapping[str, JsonValue],
+        operation: LedgerOperation,
+    ) -> None:
+        """Set named columns on one row of this task, every value bound."""
+        assignments = ", ".join(f"{name} = ?" for name in columns)
+        statement = _SQL_UPDATE_ROW.format(
+            table=table.value, assignments=assignments, column=rowmap.ID_COLUMN[table]
+        )
+        self._execute(
+            statement,
+            (*columns.values(), self._task_id, row_id),
+            operation,
+            row_id,
+        )
+
+    def _verified(
+        self,
+        table: LedgerTable,
+        row_id: str,
+        expected: Metadata,
+        operation: LedgerOperation,
+    ) -> StoreRow:
+        """Read the written row back INSIDE the transaction, or abandon it.
+
+        Inside on purpose: a row that did not land exactly is rolled back with
+        the rest of the operation, so it never becomes visible to a reader —
+        which is what bd's read-back check cannot give (`client.py`).
+        """
+        statement = _SQL_SELECT_BY_COLUMN.format(
+            table=table.value, column=rowmap.ID_COLUMN[table]
+        )
+        found = self._execute(
+            statement, (self._task_id, row_id), operation, row_id
+        ).fetchone()
+        if found is None:
+            raise LedgerRowMissing(
+                MSG_ROW_MISSING.format(
+                    row_id=row_id, task_id=self._task_id, operation=operation.value
+                )
+            )
+        written = self._hydrated(table, found)
+        if written.metadata != expected:
+            raise LossyWriteError(
+                row_id, table.value, MSG_LOSSY_ROW.format(detail=row_id)
+            )
+        return written
+
+    def _consume_nonce(self, closure: GateClosure) -> None:
+        """Spend the approval's nonce on THIS gate, once and for all (§9)."""
+        if closure.nonce is None:
+            return
+        self._execute(
+            _SQL_NONCE_INSERT,
+            (closure.nonce, closure.gate_id, _now()),
+            LedgerOperation.CLOSING_GATE,
+            closure.gate_id,
+        )
+
+    def _record_signature(self, closure: GateClosure) -> None:
+        """Store the bytes AND the trust they were accepted under (§3.6, D21)."""
+        signature = closure.signature
+        if signature is None:
+            return
+        self._execute(
+            _SQL_SIGNATURE_INSERT,
+            (
+                closure.gate_id,
+                signature.payload_bytes,
+                signature.signature_bytes,
+                signature.signer_fingerprint,
+                signature.allowed_signers_entry,
+                _json_text(signature.policy),
+            ),
+            LedgerOperation.CLOSING_GATE,
+            closure.gate_id,
+        )
+
+    def _enqueue_projection(self) -> None:
+        """Journal one attention generation in the transaction that earned it.
+
+        The generation comes from `tasks.next_seq`, in this transaction, so it
+        is unique and ordered per task: the reconciler acks every row up to
+        the generation it reconciled, and an ack can therefore never cover a
+        change that happened after the state it read (§3.2).
+        """
+        self._execute(
+            _SQL_PROJECTION_INSERT,
+            (self._task_id, self._allocate_seq(self._database.connection), _now()),
+            LedgerOperation.RECONCILING,
+            self._task_id,
         )
 
     # -- the SQL --------------------------------------------------------
+
+    def _execute(
+        self,
+        statement: str,
+        values: Sequence[JsonValue] | Sequence[object],
+        operation: LedgerOperation,
+        row_id: str,
+    ) -> sqlite3.Cursor:
+        """Run one bound statement, naming what failed and whether it was busy."""
+        try:
+            return self._database.connection.execute(statement, tuple(values))
+        except sqlite3.Error as exc:
+            raise sqlite_failure(exc, operation=operation.value, row_id=row_id) from exc
 
     def _select(
         self, table: LedgerTable, where: str, values: Sequence[JsonValue]
@@ -251,32 +553,22 @@ class LedgerStore:
         filter names, is BOUND.
         """
         statement = f"SELECT * FROM {table.value} WHERE task_id = ? AND ({where})"
-        try:
-            cursor = self._database.connection.execute(
-                statement, (self._task_id, *values)
-            )
-            found = cursor.fetchall()
-        except sqlite3.Error as exc:
-            raise LedgerTransportError(str(exc)) from exc
+        found = self._execute(
+            statement, (self._task_id, *values), LedgerOperation.READING, table.value
+        ).fetchall()
         return tuple(
             rowmap.hydrate(table, row, _parsed(row[rowmap.COLUMN_METADATA]))
             for row in found
         )
 
-    def _insert(
-        self,
-        connection: sqlite3.Connection,
-        table: LedgerTable,
-        columns: Mapping[str, JsonValue],
-    ) -> None:
+    def _insert(self, table: LedgerTable, columns: Mapping[str, JsonValue]) -> None:
         """Insert one fully projected row, every value bound."""
         names = ", ".join(columns)
         placeholders = ", ".join("?" for _ in columns)
         statement = f"INSERT INTO {table.value} ({names}) VALUES ({placeholders})"
-        try:
-            connection.execute(statement, tuple(columns.values()))
-        except sqlite3.Error as exc:
-            raise LedgerTransportError(str(exc)) from exc
+        self._execute(
+            statement, tuple(columns.values()), LedgerOperation.CREATING, table.value
+        )
 
     def _ensure_task(self, connection: sqlite3.Connection) -> None:
         """Create this store's `tasks` row once; every later write reuses it."""
@@ -309,6 +601,33 @@ def epic_segment(task_id: str) -> str:
     """The parent prefix of a dotted bead id — deterministic, no bd lookup (§2)."""
     head, separator, _ = task_id.partition(_EPIC_SEPARATOR)
     return head if separator else task_id
+
+
+def _now() -> str:
+    """The instant a durable fact is stamped with, in UTC ISO-8601."""
+    return datetime.now(tz=UTC).isoformat()
+
+
+def _projects_attention(table: LedgerTable, metadata: Metadata) -> bool:
+    """Whether this write can change `wf:attention`'s value (§3.2).
+
+    Derived from the WRITE rather than announced by the caller: the predicate
+    is "any non-terminal root of this task has an OPEN gate", so every gate
+    write moves it, and a root write moves it exactly when the root leaves the
+    non-terminal set. A caller that forgot to declare a projection would
+    otherwise leave the label stale with nothing to notice it.
+    """
+    if table is LedgerTable.GATES:
+        return True
+    return table is LedgerTable.ROOTS and (
+        metadata.get(KEY_TERMINAL) is not None
+        or metadata.get(KEY_SUPERSEDED_BY) is not None
+    )
+
+
+def _closes_attention(table: LedgerTable) -> bool:
+    """A settled root or gate can retire the label; nothing else can."""
+    return table in (LedgerTable.ROOTS, LedgerTable.GATES)
 
 
 def _is_root(table: LedgerTable) -> bool:

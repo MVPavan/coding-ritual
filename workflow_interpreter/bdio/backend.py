@@ -20,7 +20,9 @@ from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.records import CanaryResult
 from workflow_interpreter.bdio.rows import (
     BackendIdentity,
+    GateClosure,
     NewRow,
+    RowGuard,
     RowQuery,
     StoreRow,
 )
@@ -65,14 +67,31 @@ class StoreBackend(Protocol):
     def _create_row(self, new: NewRow) -> StoreRow:
         """Create a row and verify it read back exactly as written."""
 
-    def _merge_metadata(self, row_id: str, metadata: Metadata) -> StoreRow:
-        """Merge metadata into a row and verify the merged result."""
+    def _merge_metadata(
+        self, row_id: str, metadata: Metadata, *, guard: RowGuard | None = None
+    ) -> StoreRow:
+        """Merge metadata into a row and verify the merged result.
+
+        `guard` is re-checked against the row this write is about to change,
+        by a backend that can hold that read and this write in one
+        transaction; see `RowGuard` for what a backend without transactions
+        does instead.
+        """
 
     def _claim_and_merge_metadata(self, row_id: str, metadata: Metadata) -> StoreRow:
         """Claim a row and merge metadata in one operation."""
 
     def _close_row(self, row_id: str, reason: str) -> StoreRow:
         """Close a row with a structured reason and verify both landed."""
+
+    def _close_gate(self, closure: GateClosure) -> StoreRow:
+        """Take a gate's decision whole: nonce, state, outcome, signature (§3.3).
+
+        One method rather than four calls because the operation is atomic
+        where it can be. A backend that cannot transact performs the same
+        writes in the §5.1 order — carrier first, close second — which is what
+        makes a crash between them repairable forward.
+        """
 
 
 class StoreBackendFactory(Protocol):

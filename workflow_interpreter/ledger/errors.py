@@ -7,7 +7,9 @@ states for bd's own shapes.
 
 from __future__ import annotations
 
+import sqlite3
 from collections.abc import Sequence
+from typing import Final
 
 from workflow_interpreter.bdio.errors import (
     StoreConfigError,
@@ -15,9 +17,17 @@ from workflow_interpreter.bdio.errors import (
     StoreTransportError,
 )
 from workflow_interpreter.ledger.constants import (
+    BUSY_TIMEOUT_MS,
+    MSG_BUSY_REFUSED,
     MSG_FENCE_BUSY,
     MSG_FENCE_HOLDERS_UNKNOWN,
 )
+
+_BUSY_CODES: Final[frozenset[int]] = frozenset(
+    {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED}
+)
+"""SQLite's two contention codes: another writer holds the database, or
+another connection holds a table in it."""
 
 
 class LedgerFenceBusy(StoreError):
@@ -57,11 +67,52 @@ class LedgerSchemaError(StoreConfigError):
 
 
 class LedgerWriteUnsupported(StoreError):
-    """A write surface S1 does not implement was called (S2 delivers it)."""
+    """A carrier the §3.3 schema has no table for was handed to the store."""
 
 
 class LedgerTransportError(StoreTransportError):
     """SQLite itself failed — the ledger's transport defect."""
+
+
+class LedgerBusyRefusal(StoreError):
+    """A writer waited out `busy_timeout` and REFUSED, rather than retrying.
+
+    §3.4.6 makes this its own failure: a silent retry loop under heavy child
+    concurrency turns contention into an unexplained hang, so the wait is
+    bounded by the pragma and what follows is a named refusal an operator and
+    a caller can both route on.
+    """
+
+    def __init__(self, operation: str, row_id: str, timeout_ms: int) -> None:
+        self.operation = operation
+        self.row_id = row_id
+        super().__init__(
+            MSG_BUSY_REFUSED.format(
+                operation=operation, row_id=row_id, timeout_ms=timeout_ms
+            )
+        )
+
+
+class LedgerClaimUnsupported(StoreError):
+    """Claims are bd-backed while the bd backend exists (D20).
+
+    Not a missing feature: two backends discovering claims in two stores
+    cannot see each other's reservations, so the ledger REFUSES the write
+    instead of keeping a second, invisible claim table.
+    """
+
+
+def sqlite_failure(
+    exc: sqlite3.Error, *, operation: str, row_id: str
+) -> LedgerBusyRefusal | LedgerTransportError:
+    """The typed failure one SQLite error is, busy told apart from broken.
+
+    Told apart by SQLite's own error code rather than by matching message
+    text, so a wording change upstream cannot turn a refusal into a defect.
+    """
+    if getattr(exc, "sqlite_errorcode", None) in _BUSY_CODES:
+        return LedgerBusyRefusal(operation, row_id, BUSY_TIMEOUT_MS)
+    return LedgerTransportError(str(exc))
 
 
 class LedgerRowMissing(LedgerTransportError):

@@ -9,6 +9,13 @@ Three properties this file exists to guarantee:
    `--ignore-schema-skew`, `--claim-next`, `bd delete`, `bd edit`,
    `bd gate`, `bd audit` are therefore structurally unconstructible rather
    than merely unused (§0.1, §11 'prior probe facts').
+   One addition to that set is a recorded DESIGN CHANGE (run-ledger §3.2.3):
+   `bd update <id> --add-label|--remove-label` carries the `wf:attention`
+   projection, the single derived label the ledger reconciles onto a task
+   bead. It is deliberately narrow — no `bd label` subcommand, no `bd human`
+   flag (whose dismiss CLOSES the issue), and nothing else joined the set
+   with it.
+
 3. **Every write is read back.** bd's extension surfaces are lossy by
    default — `--event-payload @file` stores the literal string, and integers
    beyond float64 precision are silently rounded (both probed) — so a write
@@ -42,7 +49,9 @@ from workflow_interpreter.bdio.errors import (
 )
 from workflow_interpreter.bdio.rows import (
     BackendIdentity,
+    GateClosure,
     NewRow,
+    RowGuard,
     RowKind,
     RowQuery,
     StoreRow,
@@ -81,6 +90,8 @@ _MSG_PAYLOAD_MANGLED: Final[str] = (
     "event payload written as {written!r}, read back as {stored!r}"
 )
 _MSG_NOT_CLOSED: Final[str] = "status is {status!r} after close"
+_MSG_LABEL_ABSENT: Final[str] = "label {label!r} absent after adding it"
+_MSG_LABEL_PRESENT: Final[str] = "label {label!r} still present after removing it"
 _MSG_REASON_MANGLED: Final[str] = (
     "close reason written as {written!r}, read back as {stored!r}"
 )
@@ -98,6 +109,7 @@ ISSUE_TYPE_OF: Final[dict[RowKind, IssueType]] = {
 SURFACE_METADATA: Final[str] = "metadata"
 SURFACE_EVENT_PAYLOAD: Final[str] = "event-payload"
 SURFACE_CLOSE: Final[str] = "close"
+SURFACE_LABEL: Final[str] = "label"
 
 
 class BdSubcommand(StrEnum):
@@ -130,6 +142,8 @@ class BdFlag(StrEnum):
     ALL = "--all"
     INCLUDE_GATES = "--include-gates"
     METADATA_FIELD = "--metadata-field"
+    ADD_LABEL = "--add-label"
+    REMOVE_LABEL = "--remove-label"
     PARENT = "--parent"
     CLAIM = "--claim"
     REASON = "--reason"
@@ -542,12 +556,19 @@ class BdClient:
         _LOG.debug("bd.create", bead_id=bead_id, issue_type=issue_type.value)
         return record
 
-    def _merge_metadata(self, bead_id: str, metadata: Metadata) -> StoreRow:
+    def _merge_metadata(
+        self, bead_id: str, metadata: Metadata, *, guard: RowGuard | None = None
+    ) -> StoreRow:
         """Merge metadata into a bead and verify the merged result.
 
         `bd update --metadata` merges and preserves JSON types; the
         `--set-metadata k=v` surface stringifies structured values (probed)
         and is therefore not on the flag allow-list at all.
+
+        `guard` is accepted and NOT evaluated: bd has no transaction, so a
+        read here would be one more round-trip and still not join the check to
+        the write. The caller re-read and re-checked immediately before this
+        call (`transitions.apply`), which is as close as bd allows.
         """
         with _metadata_file(metadata) as metadata_arg:
             self._run(
@@ -608,6 +629,47 @@ class BdClient:
             )
         _LOG.debug("bd.close", bead_id=bead_id, reason=reason)
         return as_row(record)
+
+    def _close_gate(self, closure: GateClosure) -> StoreRow:
+        """Record a gate's decision the way bd can: carrier first, close second.
+
+        The nonce and the signature evidence travel in the closure and are not
+        stored: bd has no `nonces` or `signatures` table, and the gate carrier
+        already records the nonce and the payload digest. What the ledger
+        gains (a re-verifiable approval, §3.6) bd does not have, and this
+        transport does not pretend otherwise.
+        """
+        merged = self._merge_metadata(closure.gate_id, closure.metadata)
+        if merged.status == STATUS_CLOSED and merged.close_reason == (
+            closure.close_reason
+        ):
+            return merged
+        return self._close_row(closure.gate_id, closure.close_reason)
+
+    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
+        """Add one derived label and verify it is on the bead (§3.2 projection)."""
+        return self._write_label(bead_id, label, BdFlag.ADD_LABEL, present=True)
+
+    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
+        """Remove one derived label and verify it is gone (§3.2 projection)."""
+        return self._write_label(bead_id, label, BdFlag.REMOVE_LABEL, present=False)
+
+    def _write_label(
+        self, bead_id: str, label: str, flag: BdFlag, *, present: bool
+    ) -> BeadRecord:
+        """Write one label and read the bead back, as every other write does."""
+        self._run(self._argv(BdSubcommand.UPDATE, bead_id, flag.value, label))
+        record = self.show(bead_id)
+        if (label in record.labels) is not present:
+            raise LossyWriteError(
+                bead_id,
+                SURFACE_LABEL,
+                (_MSG_LABEL_ABSENT if present else _MSG_LABEL_PRESENT).format(
+                    label=label
+                ),
+            )
+        _LOG.debug("bd.update.label", bead_id=bead_id, label=label, present=present)
+        return record
 
     # -- read-back verification ------------------------------------------
 

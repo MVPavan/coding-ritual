@@ -122,18 +122,26 @@ def _integer(metadata: Metadata, key: str, default: int = 0) -> int:
 
 
 def mint_id(
-    table: LedgerTable, metadata: Metadata, *, task_id: str, attempt: int
+    table: LedgerTable, metadata: Metadata, *, task_id: str, attempt: int, seq: int
 ) -> str:
     """The deterministic id this row gets on the ledger backend (D8).
 
-    A root is `<task>-a<n>`, and everything below it is named from the root and
-    the carrier's own `(node, round, seq)` — so the id of a row is a FUNCTION of
-    the facts it records, and a re-created row cannot get a second name.
+    A root is `<task>-a<n>`; everything below it is named from its root, the
+    carrier's own `(node, round)` and the per-task `seq` the WRITING
+    transaction allocated (§3.3).
+
+    That `seq` rather than the carrier's own: the carrier's `seq` is computed
+    from a read the caller took before the write, so two processes appending
+    to one instance compute the SAME one and mint the same id — which is a
+    `UNIQUE` failure on a row that is not a duplicate (proved by the
+    multiprocess test, which is how this was found). `tasks.next_seq` is
+    allocated under `BEGIN IMMEDIATE`, so it cannot be handed out twice, and
+    the carrier's own `seq` is kept whole in `metadata_json` and projected
+    into `act_seq`.
     """
     if table is LedgerTable.ROOTS:
         return _ROOT_ID_FORMAT.format(task_id=task_id, attempt=attempt)
     root_id = _text(metadata, KEY_WF_ROOT_ID) or task_id
-    seq = _integer(metadata, KEY_SEQ)
     if table is LedgerTable.ACTIVATIONS:
         return _ACTIVATION_ID_FORMAT.format(
             root_id=root_id,
@@ -226,6 +234,81 @@ def projection(
         COLUMN_PAYLOAD: payload_json,
         "at": None,
     }
+
+
+NATURAL_KEY: Final[Mapping[LedgerTable, str]] = {
+    LedgerTable.ROOTS: KEY_INSTANCE_KEY,
+    LedgerTable.ACTIVATIONS: KEY_IDEMPOTENCY_KEY,
+    LedgerTable.GATES: KEY_GATE_KEY,
+    LedgerTable.EVENTS: KEY_EVENT_KEY,
+}
+"""The column a second write of one fact collides on — §3.3's UNIQUE keys.
+
+A create that hits one of these has re-written a row that already exists (a
+re-mint, a re-append), and the ledger answers with the row rather than with a
+constraint failure: idempotency is the contract every one of these keys was
+given for."""
+
+COLUMN_VERSION: Final[str] = "version"
+COLUMN_TERMINAL_AT: Final[str] = "terminal_at"
+
+_IMMUTABLE_ON_MERGE: Final[frozenset[str]] = frozenset(
+    {
+        COLUMN_TASK,
+        COLUMN_SEQ,
+        COLUMN_STATUS,
+        COLUMN_CLOSE_REASON,
+        COLUMN_PAYLOAD,
+        COLUMN_TERMINAL_AT,
+        "attempt",
+        "backend",
+    }
+)
+"""What a metadata merge may never move. `seq` and `attempt` are identity,
+`status` and `close_reason` belong to the close, an event payload is immutable
+by §3.3, and `terminal_at` is stamped by the write that sets the terminal —
+never re-stamped by a later merge."""
+
+
+def merge_projection(
+    table: LedgerTable,
+    row: sqlite3.Row,
+    *,
+    metadata: Metadata,
+    metadata_json: str,
+    at: str,
+) -> dict[str, JsonValue]:
+    """The columns a merge rewrites: the carrier, its projections, `version+1`.
+
+    Computed by re-projecting the MERGED carrier and then dropping what a
+    merge does not own, so a column can never drift from the JSON it is a
+    projection of — the same rule the insert path follows.
+    """
+    row_id = str(row[ID_COLUMN[table]])
+    columns = projection(
+        table,
+        row_id=row_id,
+        task_id=str(row[COLUMN_TASK]),
+        attempt=int(row["attempt"]) if table is LedgerTable.ROOTS else 0,
+        seq=int(row[COLUMN_SEQ]),
+        metadata=metadata,
+        metadata_json=metadata_json,
+        payload_json=None,
+    )
+    updates = {
+        name: value
+        for name, value in columns.items()
+        if name not in _IMMUTABLE_ON_MERGE and name != ID_COLUMN[table]
+    }
+    if COLUMN_VERSION in updates:
+        updates[COLUMN_VERSION] = int(row[COLUMN_VERSION]) + 1
+    if (
+        table is LedgerTable.ROOTS
+        and updates.get(KEY_TERMINAL) is not None
+        and row[COLUMN_TERMINAL_AT] is None
+    ):
+        updates[COLUMN_TERMINAL_AT] = at
+    return updates
 
 
 def hydrate(table: LedgerTable, row: sqlite3.Row, metadata: Metadata) -> StoreRow:
