@@ -26,6 +26,9 @@ DEVIATION_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable"
 DEVIATION_UNUSABLE_RESOLUTION: Final[str] = "unusable_resolution"
 DEVIATION_BOUND_VIOLATED: Final[str] = "bound_violated"
 DEVIATION_FORK_BARRIER_ABORT: Final[str] = "fork_barrier_abort"
+DEVIATION_STORE_BUSY: Final[str] = "store_busy_refused"
+"""§3.4.6: a store that stayed contended past its bounded wait refused the
+write, and the refusal is recorded on the activation it was refused for."""
 _MSG_ENTRY_PREDECESSOR: Final[str] = (
     "an entry mint has no predecessor; {predecessor!r} was supplied (§3.2)"
 )

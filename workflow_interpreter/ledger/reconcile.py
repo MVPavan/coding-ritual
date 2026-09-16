@@ -59,6 +59,7 @@ _SQL_WANTED: Final[str] = (
     "    AND roots.terminal IS NULL AND roots.status = ?"
     ") AS wanted"
 )
+_SQL_TASK_OF_ROOT: Final[str] = "SELECT task_id FROM roots WHERE root_id = ?"
 _SQL_ACK: Final[str] = (
     "UPDATE projections SET acked_at = ? "
     "WHERE task_id = ? AND generation <= ? AND acked_at IS NULL"
@@ -188,10 +189,49 @@ class AttentionReconciler:
             return int(cursor.rowcount)
 
 
+class RootAttentionDrain:
+    """Drains the task that owns one root, for a driver that is about to exit.
+
+    The driver settles a root and leaves (`foreman/tick.py`); §3.2.4 makes that
+    exit the last chance to write the label the settlement implies, because
+    nothing else will run until the next tick of some other root. It takes the
+    ROOT id because that is what a driver has: the task is the ledger's own
+    mapping, and a root this ledger does not hold — every root on the bd
+    backend — is simply nothing to drain.
+
+    Refusals are not swallowed here. The caller decides what an unreachable bd
+    costs it, and for the driver that is a logged refusal and unacked rows, not
+    a blocked exit.
+    """
+
+    def __init__(
+        self,
+        database: LedgerDatabase,
+        writer: AttentionWriter,
+        *,
+        lock_wait_s: float = FENCE_WAIT_S,
+    ) -> None:
+        self._database = database
+        self._writer = writer
+        self._lock_wait_s = lock_wait_s
+
+    def __call__(self, root_id: str) -> None:
+        """Reconcile this root's task, if the ledger holds the root at all."""
+        row = self._database.connection.execute(
+            _SQL_TASK_OF_ROOT, (root_id,)
+        ).fetchone()
+        if row is None:
+            return
+        AttentionReconciler(
+            self._database, self._writer, lock_wait_s=self._lock_wait_s
+        ).drain(str(row[0]))
+
+
 __all__ = [
     "ATTENTION_LABEL",
     "AttentionReconciler",
     "AttentionWriter",
     "ReconcileResult",
+    "RootAttentionDrain",
     "task_lock_path",
 ]

@@ -139,6 +139,18 @@ class InstanceWiring:
     branch_head_reader: Callable[[], str]
 
 
+AttentionDrain = Callable[[str], None]
+"""Writes one root's task the attention label its ledger state implies (§3.2.4).
+
+Injected rather than constructed by the driver, because it is a bd WRITE and a
+composition root decides where those come from. The ledger's implementation is
+`ledger.reconcile.RootAttentionDrain`."""
+
+
+def no_attention_drain(root_id: str) -> None:
+    """The default: a bd-backed root keeps no projections, so none are owed."""
+
+
 @dataclass(frozen=True)
 class Composition:
     """The injected process-wide dependencies and factory for per-root state."""
@@ -153,6 +165,8 @@ class Composition:
     host_env: Mapping[str, str]
     locate_backend: BackendLocator = bd_backend
     """Which backend owns a root, answered before the root is loaded (§3.2)."""
+    drain_attention: AttentionDrain = no_attention_drain
+    """Drains a settling root's pending attention projections (§3.2.4)."""
 
     def __post_init__(self) -> None:
         """Keep the explicit supervisor dependency aligned with the config guard."""

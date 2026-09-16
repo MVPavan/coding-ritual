@@ -13,6 +13,9 @@ public write path over one task" shapes, so there is one definition of each.
 
 from __future__ import annotations
 
+import json
+import time
+from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
 from typing import Final
@@ -22,12 +25,22 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.backend import PinnedBackendFactory, StoreBackend
 from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
+from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.paths import repo_hash
 from workflow_interpreter.ledger.store import LedgerStore
 
 TASK: Final[str] = "cr-3411.2"
 GIT_ENTRY: Final[str] = ".git"
+STATUS_OPEN: Final[str] = "open"
+SIGNAL_TIMEOUT_S: Final[float] = 30.0
+"""How long one process waits for another's file signal before failing. A race
+test that hangs teaches nothing; one that fails names which signal never came."""
+SIGNAL_POLL_S: Final[float] = 0.01
+
+
+def _nothing() -> None:
+    """The default hook: a label write with nothing to interleave."""
 
 
 def repository(tmp_path: Path) -> tuple[Path, Path]:
@@ -106,6 +119,61 @@ host = "host"
         encoding="utf-8",
     )
     return path, repo_root, wrapper_root
+
+
+class FileLabelWriter:
+    """An `AttentionWriter` whose bead is a JSON file, shared across processes.
+
+    The in-memory `FakeBd` cannot be the bead of a REAL race: two processes do
+    not share it. A file can be, and the label write stays what the reconciler
+    treats it as — one write followed by a read-back — so what is under test is
+    the ordering, not a substitute for it.
+    """
+
+    def __init__(
+        self, path: Path, task_id: str = TASK, *, before: Callable[[], None] = _nothing
+    ) -> None:
+        self._path = path
+        self._task_id = task_id
+        self._before = before
+
+    def labels(self) -> tuple[str, ...]:
+        """The labels the bead currently carries."""
+        if not self._path.exists():
+            return ()
+        loaded = json.loads(self._path.read_text(encoding="utf-8"))
+        return tuple(str(label) for label in loaded)
+
+    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
+        """Add one label and read the bead back."""
+        return self._write(bead_id, (*self.labels(), label))
+
+    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
+        """Remove one label and read the bead back."""
+        return self._write(
+            bead_id, tuple(held for held in self.labels() if held != label)
+        )
+
+    def _write(self, bead_id: str, labels: tuple[str, ...]) -> BeadRecord:
+        """Set the bead's labels, after whatever must happen first has."""
+        self._before()
+        self._path.write_text(json.dumps(sorted(set(labels))), encoding="utf-8")
+        return BeadRecord(
+            id=bead_id,
+            title="task",
+            status=STATUS_OPEN,
+            issue_type="task",
+            labels=self.labels(),
+        )
+
+
+def wait_for(path: Path, *, timeout_s: float = SIGNAL_TIMEOUT_S) -> None:
+    """Block until another process raises `path`, or fail loudly (not silently)."""
+    deadline = time.monotonic() + timeout_s
+    while not path.exists():
+        if time.monotonic() > deadline:
+            raise TimeoutError(f"{path} was never raised")
+        time.sleep(SIGNAL_POLL_S)
 
 
 class FaultPoint(StrEnum):

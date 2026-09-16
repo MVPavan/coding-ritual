@@ -19,21 +19,26 @@ import json
 import sqlite3
 import subprocess
 import sys
+import threading
 import time
 from collections.abc import Callable, Iterator
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final
 
 import pytest
+from structlog.testing import capture_logs
 
 from tests._bdio import entry_request, handle, load_definition, make_root
 from tests._fake_bd import FakeBd
+from tests._foreman import ChildScript, ForemanLab
 from tests._gates import approval_payload, close, ship_gate_request
 from tests._ledger import (
     TASK,
     CrashingLedgerStore,
     FaultPoint,
+    FileLabelWriter,
     InjectedLedgerCrash,
     config_file,
     ledger_store,
@@ -45,13 +50,16 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.backend import PinnedBackendFactory
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
+from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
 from workflow_interpreter.bdio.errors import (
+    BdUnavailableError,
     CarrierIntegrityError,
     LifecycleConflictError,
 )
 from workflow_interpreter.bdio.rows import RowGuard, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import (
+    BeadRecord,
     EventPayload,
     Evidence,
     ExitRecord,
@@ -59,6 +67,7 @@ from workflow_interpreter.bdio.wire import (
     Lifecycle,
     Metadata,
 )
+from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.ledger.__main__ import main as ledger_main
 from workflow_interpreter.ledger.constants import ExportKey, LedgerTable
 from workflow_interpreter.ledger.database import LedgerDatabase, connect, open_ledger
@@ -69,6 +78,7 @@ from workflow_interpreter.ledger.paths import export_path, ledger_path
 from workflow_interpreter.ledger.reconcile import (
     ATTENTION_LABEL,
     AttentionReconciler,
+    RootAttentionDrain,
     task_lock_path,
 )
 from workflow_interpreter.ledger.store import LedgerStore
@@ -82,6 +92,10 @@ BUSY_TIMEOUT_MS: Final[int] = 50
 """The production wait is 5000 ms (§3.4.1). The refusal is the same code path
 at any bound, so the test shortens it rather than spending five seconds
 proving that a bounded wait is bounded."""
+CONTENTION_HOLD_S: Final[float] = 0.15
+"""Long enough that the first write and its first retry both wait the bound
+out, short enough that the bounded retry of the RECORD still finds the store
+free — which is the window §3.4.6 asks that record to be written in."""
 BUSY_CEILING_S: Final[float] = 2.0
 """A silent retry loop would blow past this; one bounded wait cannot."""
 LOCK_WAIT_S: Final[float] = 0.2
@@ -164,6 +178,57 @@ with open_ledger(Path(repo_root), Path(wrapper_root)) as database:
     except LedgerGateConflict:
         raise SystemExit(3)
 """
+_DRAIN_SCRIPT: Final[str] = """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, sys.argv[1])
+
+from tests._ledger import TASK, FileLabelWriter, wait_for
+from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.reconcile import AttentionReconciler
+
+repo_root, wrapper_root, bead, signals = sys.argv[2:6]
+writing = Path(signals) / "writing"
+opened = Path(signals) / "opened"
+
+
+def interleave():
+    "Let the other root open its gate during this drain's label write."
+    writing.write_text("now", encoding="utf-8")
+    wait_for(opened)
+
+
+with open_ledger(Path(repo_root), Path(wrapper_root)) as database:
+    writer = FileLabelWriter(Path(bead), before=interleave)
+    AttentionReconciler(database, writer).drain(TASK)
+"""
+"""One driver draining the task under the real task-keyed lock, pausing between
+its recompute and its ack for exactly as long as the other root needs."""
+
+_OPEN_SCRIPT: Final[str] = """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, sys.argv[1])
+
+from tests._bdio import entry_request, load_definition, make_root
+from tests._gates import ship_gate_request
+from tests._ledger import ledger_store, wait_for
+from workflow_interpreter.ledger.database import open_ledger
+
+repo_root, wrapper_root, bead, signals = sys.argv[2:6]
+wait_for(Path(signals) / "writing")
+with open_ledger(Path(repo_root), Path(wrapper_root)) as database:
+    store = ledger_store(database)
+    root = make_root(store, load_definition())
+    source = store.mint_activation(root.root_id, entry_request()).activation
+    store.open_gate(root.root_id, ship_gate_request(source.activation_id))
+(Path(signals) / "opened").write_text("done", encoding="utf-8")
+"""
+"""The second root of the SAME task, opening its gate while the first root's
+drain holds the lock — a real ledger write from a real second process."""
+
 """One process taking one gate's decision, released by a shared barrier file.
 Two of them race the SAME gate with two different approvals, which is the race
 the §3.3 gate close has to decide inside its transaction."""
@@ -586,6 +651,64 @@ def test_a_writer_that_waits_out_the_busy_timeout_refuses_rather_than_retrying(
     assert store.reads.load_root(root.root_id).metadata.terminal is None
 
 
+def test_a_busy_refusal_is_recorded_on_the_activation_once_contention_clears(
+    ledger: LedgerDatabase,
+) -> None:
+    """§3.4.6: busy beyond the timeout is a RECORDED refusal, not just a raise.
+
+    The refused write is never retried — that is the rule — but the refusal is
+    durable beside the activation's other tier-2 deviations, so an operator
+    reading the record learns that contention, and not a decision, is why the
+    transition did not land. The note itself is contended, so it is written
+    with a bounded retry once the contention clears.
+    """
+    store = ledger_store(ledger)
+    root = make_root(store, load_definition())
+    activation = store.mint_activation(root.root_id, entry_request()).activation
+    store.record_dispatch(activation.activation_id, handle())
+    ledger.connection.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_MS}")
+    holding = threading.Event()
+    blocker = threading.Thread(
+        target=_hold_the_write_lock, args=(ledger_path(ledger.repo_root), holding)
+    )
+    blocker.start()
+    holding.wait(timeout=CHILD_TIMEOUT_S)
+
+    with capture_logs() as captured, pytest.raises(LedgerBusyRefusal):
+        store.record_exit(activation.activation_id, EXIT_RECORD)
+
+    blocker.join(timeout=CHILD_TIMEOUT_S)
+    recorded = store.reads.load_activation(activation.activation_id)
+    assert [deviation.kind for deviation in recorded.metadata.deviations] == [
+        DEVIATION_STORE_BUSY
+    ]
+    assert "§3.4.6" in recorded.metadata.deviations[0].reason
+    assert [
+        entry
+        for entry in captured
+        if entry["event"] == "wf.activation.store_busy_refused"
+    ]
+    # The refused transition itself did NOT land.
+    assert recorded.metadata.exit_record is None
+    assert recorded.metadata.lifecycle is Lifecycle.DISPATCHED
+
+
+def _hold_the_write_lock(path: Path, holding: threading.Event) -> None:
+    """Hold the ledger's write lock, then let it go — real contention, bounded.
+
+    Its own connection in its own thread because that is what a second writer
+    IS; `sqlite3` refuses a connection used across threads, and a connection
+    shared with the test would not contend with it at all.
+    """
+    blocker = connect(path)
+    blocker.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_MS}")
+    blocker.execute("BEGIN IMMEDIATE")
+    holding.set()
+    time.sleep(CONTENTION_HOLD_S)
+    blocker.execute("ROLLBACK")
+    blocker.close()
+
+
 def test_a_second_drain_of_one_task_refuses_on_the_task_lock_naming_the_holder(
     ledger: LedgerDatabase, label_client: BdClient, bd_labels: FakeBd
 ) -> None:
@@ -695,49 +818,173 @@ def test_a_crash_at_a_fault_point_leaves_a_projection_the_next_drain_repairs(
     assert _unacked(ledger) == []
 
 
-def test_two_roots_racing_one_reconciler_lose_no_update(
-    ledger: LedgerDatabase, label_client: BdClient, bd_labels: FakeBd
-) -> None:
+@pytest.mark.proc
+def test_two_roots_racing_one_reconciler_lose_no_update(tmp_path: Path) -> None:
     """D6: an ack covers only the generation whose state was actually read.
 
-    The race, exactly: one root's gate opens while the OTHER root's drain is
-    between its recompute and its ack. If the ack covered that later
-    generation, the label would stay absent forever with nothing left to
-    notice. Instead the new generation stays unacked, and the next drain
-    writes what the ledger says.
+    Two REAL processes, with no shared objects between them: one drains the
+    task under the real task-keyed `flock`, and the other opens the second
+    root's gate while that drain sits between its recompute and its ack — the
+    interleaving is enforced by file signals, not by a patched method, so the
+    ledger writes, the lock and the timing are all the production ones.
+
+    If the ack covered the generation the second root enqueued, the label would
+    stay absent forever with nothing left to notice it. It stays unacked, and
+    the next drain writes what the ledger says.
+    """
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        store = ledger_store(database)
+        first_root, _ = _open_gate(store)
+        store.settle_root(first_root, TERMINAL)
+    bead = tmp_path / "bead.json"
+    bead.write_text(json.dumps([ATTENTION_LABEL]), encoding="utf-8")
+    signals = tmp_path / "signals"
+    signals.mkdir()
+
+    drainer, opener = (
+        _race_process(script, repo_root, wrapper_root, bead, signals)
+        for script in (_DRAIN_SCRIPT, _OPEN_SCRIPT)
+    )
+    for racer in (opener, drainer):
+        _, stderr = racer.communicate(timeout=CHILD_TIMEOUT_S)
+        assert racer.returncode == 0, stderr
+
+    writer = FileLabelWriter(bead)
+    # The drain retired the label for the root it read, and the gate the other
+    # root opened while it was writing is still owed.
+    assert writer.labels() == ()
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert _unacked(reopened)
+
+        second = AttentionReconciler(reopened, writer).drain(TASK)
+
+        assert second.wanted is True
+        assert writer.labels() == (ATTENTION_LABEL,)
+        assert _unacked(reopened) == []
+        assert AttentionReconciler(reopened, writer).wanted(TASK) is True
+
+
+def _race_process(
+    script: str, repo_root: Path, wrapper_root: Path, bead: Path, signals: Path
+) -> subprocess.Popen[str]:
+    """Start one side of the two-root race, with its own interpreter."""
+    return subprocess.Popen(
+        (
+            sys.executable,
+            "-c",
+            script,
+            str(Path(__file__).resolve().parents[1]),
+            str(repo_root),
+            str(wrapper_root),
+            str(bead),
+            str(signals),
+        ),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+
+# --- the drain a settling driver owes (§3.2.4) ------------------------------
+
+
+def test_the_root_drain_acks_what_the_settlement_owes_and_refuses_visibly(
+    tmp_path: Path, label_client: BdClient, bd_labels: FakeBd
+) -> None:
+    """§3.2.4: the driver's last act writes the label its settlement implies.
+
+    Both halves of the contract: with bd reachable the task owes nothing after
+    the drain, and with bd unreachable the rows stay unacked and the refusal
+    comes OUT — the driver logs it and exits; it is never swallowed here.
     """
     _task_bead(bd_labels)
-    store = ledger_store(ledger)
-    first_root, _ = _open_gate(store)
-    store.settle_root(first_root, TERMINAL)
-    second = ledger_store(ledger)
-    reconciler = AttentionReconciler(ledger, label_client)
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        store = ledger_store(database)
+        root_id, _ = _open_gate(store)
+        store.settle_root(root_id, TERMINAL)
+        assert _unacked(database)
 
-    interleaved: list[str] = []
-    original = label_client._remove_label
+        with pytest.raises(BdUnavailableError):
+            RootAttentionDrain(database, _UnreachableBd())(root_id)
 
-    def open_the_other_roots_gate(bead_id: str, label: str) -> object:
-        """A second root opens a gate exactly during the first root's write."""
-        label_client._remove_label = original
-        interleaved.append(_open_gate(second)[1])
-        return original(bead_id, label)
+        assert _unacked(database)
+        assert _labels(bd_labels) == []
 
-    label_client._remove_label = open_the_other_roots_gate  # type: ignore[method-assign]
+        RootAttentionDrain(database, label_client)(root_id)
 
-    first = reconciler.drain(TASK)
+        assert _unacked(database) == []
+        # A root the ledger does not hold — every bd-backed root — is nothing
+        # to drain, not an error.
+        RootAttentionDrain(database, _UnreachableBd())("bd-minted-root")
 
-    assert (first.wanted, _labels(bd_labels)) == (False, [])
-    assert interleaved
-    # The generation the second root enqueued was NOT acked by a drain that
-    # never read it.
-    assert _unacked(ledger)
 
-    second_drain = reconciler.drain(TASK)
+class _UnreachableBd:
+    """The `AttentionWriter` of a host where bd cannot be run at all."""
 
-    assert second_drain.wanted is True
-    assert _labels(bd_labels) == [ATTENTION_LABEL]
-    assert _unacked(ledger) == []
-    assert AttentionReconciler(ledger, label_client).wanted(TASK) is True
+    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
+        """Refuse, as the transport does when the binary is missing."""
+        raise BdUnavailableError((), "update", "bd is not installed")
+
+    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
+        """Refuse, as the transport does when the binary is missing."""
+        raise BdUnavailableError((), "update", "bd is not installed")
+
+
+def test_a_settling_driver_drains_its_task_and_logs_an_unreachable_bd(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """§3.2.4: the driver drains before terminal cleanup, and exits either way.
+
+    The driver used to settle and leave, so the label the settlement retired
+    stayed on the bead until some later tick of some other root. It drains now
+    — and a drain it cannot complete is a logged refusal with the rows left
+    unacked, never a driver that will not exit.
+    """
+    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    root = lab.instantiate()
+    drained: list[str] = []
+
+    def refusing(root_id: str) -> None:
+        """A drain against a host where bd cannot be run."""
+        drained.append(root_id)
+        raise BdUnavailableError((), "update", "bd is not installed")
+
+    lab.composition = replace(lab.composition, drain_attention=refusing)
+    lab.foreman = Foreman(lab.composition)
+    _run_to_ship(lab)
+
+    with capture_logs() as captured:
+        report = lab.tick()
+
+    assert report.terminal is True
+    assert report.terminal_node == "shipped"
+    assert drained == [root.root_id]
+    refusals = [
+        entry
+        for entry in captured
+        if entry["event"] == "wf.ledger.attention_drain_refused"
+    ]
+    assert refusals and refusals[0]["root_id"] == root.root_id
+    # The worktree cleanup that follows the drain still ran, so a refused drain
+    # does not wedge the terminal.
+    assert lab.store.reads.load_root(root.root_id).metadata.terminal == "shipped"
+
+
+def _run_to_ship(lab: ForemanLab) -> None:
+    """Drive the lab's happy path up to the tick that settles the terminal."""
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    lab.profiles.next_script(
+        ChildScript(marker='{"outcome":"accept"}\n', effects='{"paths":[]}')
+    )
+    assert lab.tick().dispatched is not None
+    lab.tick()
+    ship = lab.tick().opened_gate
+    assert ship is not None
+    lab.approve(ship, Outcome.APPROVE)
+    assert lab.tick().closed_gates == (ship,)
 
 
 # --- what the export carries out of the write side (§3.6) -------------------

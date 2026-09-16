@@ -23,6 +23,7 @@ from workflow_interpreter.bdio.errors import (
     CanaryFailedError,
     GateVerificationError,
     PinnedGraphMismatchError,
+    StoreError,
 )
 from workflow_interpreter.bdio.reads import activations_of, gates_of, next_seq
 from workflow_interpreter.bdio.records import RowRecord
@@ -716,8 +717,29 @@ class Foreman:
             if terminal is None
             else wiring.store.settle_root(root.root_id, terminal).metadata.terminal
         )
+        if recorded is not None:
+            self._drain_attention(root.root_id)
         self._cleanup_terminal_worktree(wiring, root)
         return recorded
+
+    def _drain_attention(self, root_id: str) -> None:
+        """Write the label this settlement implies, before the driver exits.
+
+        The settlement changed the attention predicate and journalled a
+        projection row (§3.2.1); nothing else runs for this task until some
+        other tick, so this is where the label is owed. Bounded on purpose: the
+        drain's own lock wait and bd timeout bound it, and a refusal is LOGGED
+        and left as unacked rows for `wf ledger reconcile` rather than
+        stopping an exit the root is already settled for.
+        """
+        try:
+            self._composition.drain_attention(root_id)
+        except (StoreError, OSError) as refusal:
+            _LOG.warning(
+                "wf.ledger.attention_drain_refused",
+                root_id=root_id,
+                reason=str(refusal),
+            )
 
     def _cleanup_terminal_worktree(
         self, wiring: InstanceWiring, root: RootRecord

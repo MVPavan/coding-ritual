@@ -34,15 +34,20 @@ bd offers no compare-and-set, so three things replace one:
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable, Sequence
+from datetime import UTC, datetime
 from typing import Final
 
 import structlog
 
 from workflow_interpreter.bdio.backend import StoreBackend
+from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     LifecycleConflictError,
+    StoreBusyRefusal,
+    StoreError,
 )
 from workflow_interpreter.bdio.finalize import close_record_forward
 from workflow_interpreter.bdio.records import ActivationRecord, parse_activation
@@ -89,6 +94,13 @@ _MSG_SESSION_DRIFT: Final[str] = (
     "this dispatch carries {found!r}; renaming it would point every "
     "continuation and infra retry at a session the child never ran (§5.2)"
 )
+_CONTENTION_ATTEMPTS: Final[int] = 4
+"""How many times the refusal RECORD itself is retried. Bounded, because the
+recording is a second write into the same contended store: §3.4.6 refuses the
+transition rather than looping, and the note about it must not loop either."""
+_CONTENTION_PAUSE_S: Final[float] = 0.05
+_FIELD_DEVIATIONS: Final[str] = "deviations"
+
 _MSG_CLOSE_PAYLOAD: Final[str] = (
     "activation {activation_id} is already closed {outcome}; this close "
     "carries a different {field}, which the recorded close would silently drop "
@@ -243,8 +255,72 @@ def apply(
         """
         _assert_appliable(parse_activation(row), lifecycle, allowed)
 
-    merged = client._merge_metadata(activation_id, _delta(metadata, owned), guard=guard)
+    try:
+        merged = client._merge_metadata(
+            activation_id, _delta(metadata, owned), guard=guard
+        )
+    except StoreBusyRefusal as refusal:
+        # §3.4.6: the store REFUSES rather than retrying, and the refusal is
+        # recorded on the activation it happened to — this is the boundary that
+        # knows which activation that is.
+        record_contention(client, load, activation_id, refusal)
+        raise
     return repair_forward(client, parse_activation(merged))
+
+
+def record_contention(
+    client: StoreBackend,
+    load: ActivationLoader,
+    activation_id: str,
+    refusal: StoreBusyRefusal,
+) -> ActivationRecord | None:
+    """Note a contention refusal on the activation, once contention clears.
+
+    The write that was refused is NOT retried — that is the whole point of
+    §3.4.6 — but the fact that it was refused is durable, beside the other
+    tier-2 deviations of the same activation. The note itself is contended by
+    definition, so it is attempted a bounded number of times and then given up
+    on with a log line: an unrecorded note must never be what blocks a caller
+    from learning it was refused.
+    """
+    _LOG.warning(
+        "wf.activation.store_busy_refused",
+        activation_id=activation_id,
+        detail=str(refusal),
+    )
+    for attempt in range(_CONTENTION_ATTEMPTS):
+        try:
+            return _record_deviation(client, load, activation_id, refusal)
+        except StoreError:
+            time.sleep(_CONTENTION_PAUSE_S)
+    _LOG.warning(
+        "wf.activation.refusal_unrecorded",
+        activation_id=activation_id,
+        attempts=_CONTENTION_ATTEMPTS,
+    )
+    return None
+
+
+def _record_deviation(
+    client: StoreBackend,
+    load: ActivationLoader,
+    activation_id: str,
+    refusal: StoreBusyRefusal,
+) -> ActivationRecord:
+    """Append one contention deviation to the activation's recorded ones."""
+    record = load(activation_id)
+    deviation = Deviation(
+        kind=DEVIATION_STORE_BUSY,
+        reason=str(refusal),
+        recorded_at=datetime.now(tz=UTC).isoformat(),
+    )
+    metadata = record.metadata.model_copy(
+        update={_FIELD_DEVIATIONS: (*record.metadata.deviations, deviation)}
+    )
+    merged = client._merge_metadata(
+        activation_id, _delta(metadata, {_FIELD_DEVIATIONS: deviation})
+    )
+    return parse_activation(merged)
 
 
 def _assert_appliable(
@@ -326,5 +402,6 @@ __all__ = [
     "assert_same",
     "assert_same_session",
     "finish",
+    "record_contention",
     "repair_forward",
 ]
