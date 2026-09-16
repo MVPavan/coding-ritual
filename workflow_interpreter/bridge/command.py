@@ -10,7 +10,7 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from workflow_interpreter.bdio import BdOutputError
+from workflow_interpreter.bdio import StoreTransportError
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.bridge.adapter import (
     PHASE_BRIDGE_METADATA_KEY,
@@ -140,7 +140,7 @@ def execute_phase_bridge(
         MonitorUnavailable,
         CoordinationError,
         LockUnavailable,
-        BdOutputError,
+        StoreTransportError,
         PhaseAdapterError,
         ResolutionError,
         BridgeRefusal,

@@ -27,8 +27,6 @@ from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadRea
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
 from workflow_interpreter.bdio.errors import (
     BdCommandError,
-    BdConfigError,
-    BdioError,
     BdOutputError,
     BdTimeoutError,
     BoundEvaluationError,
@@ -45,6 +43,9 @@ from workflow_interpreter.bdio.errors import (
     SignatureRefusedError,
     SignerNotAllowedError,
     StaleApprovalError,
+    StoreConfigError,
+    StoreError,
+    StoreTransportError,
 )
 from workflow_interpreter.bdio.mint import MintFacts
 from workflow_interpreter.bdio.reads import WorkflowReads
@@ -103,10 +104,8 @@ __all__ = [
     "ArtifactReader",
     "BdCommandError",
     "BdConfig",
-    "BdConfigError",
     "BdOutputError",
     "BdTimeoutError",
-    "BdioError",
     "BindsMode",
     "BoundEvaluationError",
     "BoundExceededError",
@@ -157,6 +156,9 @@ __all__ = [
     "SigningConfig",
     "StaleApprovalError",
     "StaleFlagRecord",
+    "StoreConfigError",
+    "StoreError",
+    "StoreTransportError",
     "Usage",
     "VerifyFailureBinding",
     "VerifyOutcome",

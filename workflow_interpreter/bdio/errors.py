@@ -1,8 +1,11 @@
-"""Typed failures of the bd write boundary (spec v0.3 §0 threat model).
+"""Typed failures of the store boundary (spec v0.3 §0 threat model).
 
 Every failure of the typed wrapper is one of these; a caller never sees a raw
-`subprocess` or `json` exception. The hierarchy is flat on purpose — the
-foreman routes on the class, not on a message.
+`subprocess` or `json` exception. The names above the seam are backend-neutral
+— `StoreError` and its neutral subclasses — so a caller routes on what went
+wrong, never on which backend it happened in. The backend-specific shapes
+(`BdCommandError` and its siblings) stay under `StoreTransportError`, which is
+the only name a caller above the seam is allowed to catch.
 """
 
 from __future__ import annotations
@@ -20,15 +23,23 @@ _MSG_FORBIDDEN: Final[str] = (
 )
 
 
-class BdioError(Exception):
-    """Base class for every failure raised by the typed bd wrapper."""
+class StoreError(Exception):
+    """Base class for every failure raised by the workflow store."""
 
 
-class BdConfigError(BdioError):
+class StoreConfigError(StoreError):
     """Injected configuration is unusable (missing path, workspace overlap)."""
 
 
-class BdCommandError(BdioError):
+class StoreTransportError(StoreError):
+    """The backend's transport failed; its shape is the backend's private detail.
+
+    Above the seam this is the only transport failure that exists: a caller
+    that catches `BdCommandError` has pinned itself to one backend.
+    """
+
+
+class BdCommandError(StoreTransportError):
     """bd exited non-zero."""
 
     def __init__(
@@ -45,7 +56,7 @@ class BdCommandError(BdioError):
         )
 
 
-class BdTimeoutError(BdioError):
+class BdTimeoutError(StoreTransportError):
     """bd did not finish inside the configured timeout."""
 
     def __init__(self, argv: Sequence[str], timeout_s: float, subcommand: str) -> None:
@@ -57,11 +68,11 @@ class BdTimeoutError(BdioError):
         )
 
 
-class BdOutputError(BdioError):
+class BdOutputError(StoreTransportError):
     """bd's `--json` output could not be parsed, or had an unexpected shape."""
 
 
-class ForbiddenInvocationError(BdioError):
+class ForbiddenInvocationError(StoreTransportError):
     """An argv outside the closed command set was constructed.
 
     Structural, not advisory: the client asserts this before spawning, so a
@@ -73,7 +84,7 @@ class ForbiddenInvocationError(BdioError):
         super().__init__(_MSG_FORBIDDEN.format(detail=detail))
 
 
-class LossyWriteError(BdioError):
+class LossyWriteError(StoreError):
     """A write did not read back as written.
 
     bd's extension surfaces are lossy by default (probed: `--event-payload
@@ -88,19 +99,19 @@ class LossyWriteError(BdioError):
         super().__init__(f"lossy bd write on {bead_id} ({surface}): {detail}")
 
 
-class CarrierIntegrityError(BdioError):
+class CarrierIntegrityError(StoreError):
     """A bd row does not carry the metadata the §3 encoding requires."""
 
 
-class PinnedGraphMismatchError(BdioError):
+class PinnedGraphMismatchError(StoreError):
     """The root's pinned body does not match its recorded hash (§3.1) — halt."""
 
 
-class LifecycleConflictError(BdioError):
+class LifecycleConflictError(StoreError):
     """A state write contradicts the state already recorded (§5.1)."""
 
 
-class BoundExceededError(BdioError):
+class BoundExceededError(StoreError):
     """A §10 pre-mint predicate refused the mint."""
 
     def __init__(self, refusal: BoundRefusal) -> None:
@@ -108,11 +119,11 @@ class BoundExceededError(BdioError):
         super().__init__(refusal.detail)
 
 
-class BoundEvaluationError(BdioError):
+class BoundEvaluationError(StoreError):
     """A bound could not be evaluated — fail closed, never mint (§10)."""
 
 
-class GateVerificationError(BdioError):
+class GateVerificationError(StoreError):
     """Base class for every §9 refusal; a gate never closes on one of these."""
 
 
@@ -136,5 +147,5 @@ class StaleApprovalError(GateVerificationError):
     """A `binds = "mutable"` document changed after gate-open (§9)."""
 
 
-class CanaryFailedError(BdioError):
+class CanaryFailedError(StoreError):
     """The §11 startup canary failed — refuse dispatch loudly."""

@@ -20,13 +20,13 @@ from workflow_interpreter.bdio import bounds, finalize, keys, reads
 from workflow_interpreter.bdio.capabilities import ArtifactReader
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import (
-    BdConfigError,
     BoundExceededError,
     CarrierIntegrityError,
     LifecycleConflictError,
     NonceReplayError,
     PayloadMismatchError,
     StaleApprovalError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.records import GateRecord, RootRecord, parse_gate
 from workflow_interpreter.bdio.signing import (
@@ -650,7 +650,7 @@ def _assert_fresh_artifact(
     if gate.metadata.binds is not BindsMode.MUTABLE:
         return
     if artifact_reader is None:
-        raise BdConfigError(_MSG_NO_ARTIFACT_READER.format(gate_id=gate.gate_id))
+        raise StoreConfigError(_MSG_NO_ARTIFACT_READER.format(gate_id=gate.gate_id))
     artifact_ref = gate.metadata.artifact_ref
     if artifact_ref is None:
         _refuse_stale(client, gate, _MSG_NO_ARTIFACT_REF.format(gate_id=gate.gate_id))

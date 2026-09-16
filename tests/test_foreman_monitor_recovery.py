@@ -8,7 +8,7 @@ import pytest
 from tests._foreman import ForemanLab
 from tests.test_bdio_wake import event_for
 from tests.test_foreman_wake import journal_condition
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.foreman import __main__ as cli
 from workflow_interpreter.foreman import monitor as module
 from workflow_interpreter.foreman.heartbeat import observation_status
@@ -38,7 +38,7 @@ def test_reconcile_failure_is_visible_across_restart(tmp_path, monkeypatch):
 
     def unavailable(*_):
         """Fail only the wake reader, preserving ordinary root/status reads."""
-        raise BdioError("wake reads unavailable")
+        raise StoreError("wake reads unavailable")
 
     with WakeMonitor(lab.composition, root.root_id) as monitor:
         monkeypatch.setattr(lab.store.reads, "list_wake_events", unavailable)

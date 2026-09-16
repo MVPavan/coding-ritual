@@ -55,10 +55,10 @@ from pydantic import BaseModel
 
 from workflow_interpreter.bdio import (
     ActivationRecord,
-    BdioError,
     LifecycleConflictError,
     MintRequest,
     StaleFlagRecord,
+    StoreError,
     WorkflowStore,
 )
 from workflow_interpreter.contracts.transport import RunnerTransport
@@ -384,7 +384,7 @@ class _StaleMirror:
                 error=str(exc),
             )
             return
-        except BdioError as exc:
+        except StoreError as exc:
             _LOG.warning(
                 "wf.stale.mirror_deferred",
                 activation_id=self._activation_id,

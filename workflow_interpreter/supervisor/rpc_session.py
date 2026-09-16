@@ -8,7 +8,7 @@ from typing import Final
 from pydantic import JsonValue, ValidationError
 
 from workflow_interpreter.bdio import WorkflowStore
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.rpc_control import ControlBusy
 from workflow_interpreter.bdio.rpc_records import (
     ControlRegistration,
@@ -509,7 +509,7 @@ class RpcSession:
                         return result
                     if client.eof and self._phase is not SessionPhase.SHUTDOWN:
                         raise RpcFailure(MSG_EXIT)
-            except (RpcFailure, ValidationError, BdioError, OSError) as error:
+            except (RpcFailure, ValidationError, StoreError, OSError) as error:
                 self._fail(str(error) if isinstance(error, RpcFailure) else MSG_REPLY)
                 interrupt(client, self._turn)
                 proof = procfs.terminate(

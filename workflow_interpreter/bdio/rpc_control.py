@@ -9,9 +9,9 @@ from pathlib import Path
 from workflow_interpreter.bdio import bounds, reads
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import (
-    BdioError,
     BoundExceededError,
     CarrierIntegrityError,
+    StoreError,
 )
 from workflow_interpreter.bdio.mint import views_of
 from workflow_interpreter.bdio.rpc_records import (
@@ -34,7 +34,7 @@ from workflow_interpreter.contracts.rpc_control import (
 )
 
 
-class ControlBusy(BdioError):
+class ControlBusy(StoreError):
     """Another host writer holds the control list; retry without blocking RPC."""
 
 

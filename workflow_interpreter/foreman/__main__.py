@@ -69,7 +69,7 @@ LOG_LEVEL: Final[int] = logging.INFO
 
 MSG_NO_SIGNING: Final[str] = (
     "refusing to create a root this config cannot approve: no [signing] "
-    "allowed_signers_path, so every gate close raises BdConfigError — render a "
+    "allowed_signers_path, so every gate close raises StoreConfigError — render a "
     "config with scripts/make-foreman-config.sh, or pass --allow-unsigned-gates "
     "for a lab instance that will never be approved"
 )
@@ -241,7 +241,7 @@ def _instance_inputs(pairs: Sequence[str]) -> dict[str, Path]:
 def _signing_preflight(config: ForemanConfig, *, allow_unsigned: bool) -> str | None:
     """Refuse, in one line, a root whose gates nobody would be able to close.
 
-    `close_gate_verified` raises `BdConfigError` when no verifier is configured
+    `close_gate_verified` raises `StoreConfigError` when no verifier is configured
     (`bdio/api.py`) and `GateVerifier` needs a readable allow-list, so an
     unsigned or empty-allow-list config fails first at the `ship` gate — after
     a whole run, with a human already waiting. Both are decidable at `create`,
@@ -579,7 +579,7 @@ def _run(
 
         from pydantic import ValidationError
 
-        from workflow_interpreter.bdio.errors import BdioError
+        from workflow_interpreter.bdio.errors import StoreError
         from workflow_interpreter.bridge.adapter import PhaseAdapterError
         from workflow_interpreter.bridge.errors import BridgeRefusal
         from workflow_interpreter.foreman.children import command
@@ -607,7 +607,7 @@ def _run(
             ValidationError,
             TOMLDecodeError,
             OSError,
-            BdioError,
+            StoreError,
             SupervisorError,
         ) as exc:
             emit(

@@ -32,11 +32,11 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.errors import (
     BdCommandError,
-    BdConfigError,
     BdOutputError,
     BdTimeoutError,
     ForbiddenInvocationError,
     LossyWriteError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.wire import (
     ROW_MODEL,
@@ -229,7 +229,7 @@ class BdClient:
 
     def __init__(self, config: BdConfig, runner: CommandRunner | None = None) -> None:
         if not config.workspace.is_absolute():
-            raise BdConfigError(
+            raise StoreConfigError(
                 _MSG_WORKSPACE_RELATIVE.format(workspace=config.workspace)
             )
         self._config = config

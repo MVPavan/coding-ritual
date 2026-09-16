@@ -30,7 +30,7 @@ from tests._helpers import VALID_FIXTURE
 from tests._supervisor import FakeProfile, FrozenClock
 from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.errors import BdConfigError
+from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -216,7 +216,7 @@ def test_composition_for_root_uses_the_injected_store(
     composition, _ = _instance_composition(fake_store, tmp_path)
     wiring = composition.for_root(root.root_id)
     fake_store._branch_head_reader = None
-    with pytest.raises(BdConfigError, match="no branch_head_reader"):
+    with pytest.raises(StoreConfigError, match="no branch_head_reader"):
         fake_store.mint_activation(root.root_id, entry_request())
     with pytest.raises(InstanceBranchMissing, match="instance branch"):
         wiring.supervisor._store.mint_activation(root.root_id, entry_request())

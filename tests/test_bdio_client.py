@@ -23,10 +23,10 @@ from workflow_interpreter.bdio.client import (
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.errors import (
     BdCommandError,
-    BdConfigError,
     BdOutputError,
     ForbiddenInvocationError,
     LossyWriteError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.wire import IssueType, Metadata
 
@@ -177,7 +177,7 @@ def test_an_actor_that_spells_a_flag_is_refused_not_passed_through() -> None:
 
 
 def test_a_relative_workspace_is_refused_at_construction() -> None:
-    with pytest.raises(BdConfigError):
+    with pytest.raises(StoreConfigError):
         BdClient(BdConfig(workspace=Path("relative/lab"), actor=ACTOR))
 
 

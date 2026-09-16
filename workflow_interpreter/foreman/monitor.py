@@ -9,7 +9,7 @@ from typing import Self
 
 import structlog
 
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.reads import gates_of
 from workflow_interpreter.contracts.wake import WakeCondition, WakeCursor, WakeEvent
@@ -206,7 +206,7 @@ class WakeMonitor:
             self._save()
             self._fire()
             self._hooks()
-        except (BdioError, OSError) as error:
+        except (StoreError, OSError) as error:
             self._state = self._state.model_copy(
                 update={"last_error": bounded(str(error))}
             )
@@ -249,7 +249,7 @@ class WakeMonitor:
         """Expose read failures durably and retry without pretending delivery works."""
         try:
             self._reconcile_events()
-        except (BdioError, WrapperDirError, OSError, ValueError) as error:
+        except (StoreError, WrapperDirError, OSError, ValueError) as error:
             detail = bounded(str(error))
             self._state = self._state.model_copy(
                 update={"monitor_degraded": detail, "last_error": detail}

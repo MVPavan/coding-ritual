@@ -8,7 +8,6 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import (
     ActivationRecord,
-    BdioError,
     Deviation,
     Evidence,
     ExitRecord,
@@ -16,6 +15,7 @@ from workflow_interpreter.bdio import (
     GateState,
     Lifecycle,
     RootRecord,
+    StoreError,
     Usage,
 )
 from workflow_interpreter.bdio.reads import gates_of
@@ -129,7 +129,7 @@ def _settle(
                 ).completion
             except SnapshotFailed as exc:
                 return Settlement(activation=activation, stalled=str(exc))
-            except (OSError, SupervisorError, BdioError) as exc:
+            except (OSError, SupervisorError, StoreError) as exc:
                 halt = wiring.store.open_gate(
                     root.root_id,
                     halt_gate(

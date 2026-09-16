@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from tests._foreman import ForemanLab
 from tests.test_foreman_main import _bridge_adapter, _bridge_lab, _bridge_stage
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bridge import command
 from workflow_interpreter.contracts.wake import WakeCondition
 from workflow_interpreter.foreman import __main__ as cli
@@ -533,7 +533,7 @@ def test_bd_failure_keeps_pending_and_does_not_call_hook(tmp_path, monkeypatch):
     original = lab.store.append_wake_event
 
     def unavailable(*_):
-        raise BdioError("database unavailable")
+        raise StoreError("database unavailable")
 
     monkeypatch.setattr(lab.store, "append_wake_event", unavailable)
     with module.WakeMonitor(composition, root.root_id) as monitor:

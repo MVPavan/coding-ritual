@@ -4,7 +4,7 @@ from typing import Final
 
 from workflow_interpreter.bdio import reads
 from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.errors import BdioError, CarrierIntegrityError
+from workflow_interpreter.bdio.errors import CarrierIntegrityError, StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.records import parse_event
 from workflow_interpreter.bdio.wire import (
@@ -79,7 +79,7 @@ def append_wake_event(client: BdClient, root_id: str, event: WakeEvent) -> BeadR
             issue_type=IssueType.EVENT,
             event_payload=metadata_dict(event),
         )
-    except BdioError:
+    except StoreError:
         existing = _existing(client, root_id, event)
         if existing is not None:
             return existing

@@ -51,7 +51,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.errors import BdConfigError
+from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.signing import payload_digest
 from workflow_interpreter.bdio.wire import (
     BoundSetting,
@@ -160,7 +160,7 @@ def test_without_an_artifact_reader_a_mutable_gate_cannot_close(
         gate,
         artifact=GateArtifact(sha256=hashlib.sha256(APPROVED_TEXT).hexdigest()),
     )
-    with pytest.raises(BdConfigError, match="artifact_reader"):
+    with pytest.raises(StoreConfigError, match="artifact_reader"):
         close(store, root_id, gate, payload, sign_payload)
 
 

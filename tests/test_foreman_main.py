@@ -1477,7 +1477,7 @@ def test_create_refuses_a_config_that_configures_no_gate_verifier(
 ) -> None:
     """A root nobody can approve is refused before bd is written (E1a).
 
-    `close_gate_verified` raises `BdConfigError` with no verifier, which is
+    `close_gate_verified` raises `StoreConfigError` with no verifier, which is
     discovered only once a human is already waiting at `ship`.
     """
     lab = ForemanLab(tmp_path)

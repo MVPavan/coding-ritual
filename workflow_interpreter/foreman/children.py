@@ -12,7 +12,7 @@ from pydantic import ValidationError
 if TYPE_CHECKING:
     from workflow_interpreter.schema.decisions import MemberAdmission
 
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.records import ActivationRecord
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.heartbeat import DriverObserver
@@ -107,7 +107,7 @@ def finish_cancel(
         CoordinationError,
         ValidationError,
         SupervisorError,
-        BdioError,
+        StoreError,
         OSError,
     ) as exc:
         pending = True
@@ -470,7 +470,7 @@ def drive(
                     CoordinationError,
                     ValidationError,
                     OSError,
-                    BdioError,
+                    StoreError,
                     SupervisorError,
                 ) as exc:
                     current = coordinator.child_record(owner, row.slot, row.generation)

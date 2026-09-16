@@ -43,9 +43,9 @@ from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
 from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.errors import (
-    BdConfigError,
     BoundExceededError,
     CarrierIntegrityError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.mint import MintFacts
 from workflow_interpreter.bdio.records import (
@@ -510,7 +510,7 @@ class WorkflowStore:
         current digest, because a caller-echoed digest is not a re-hash (§9).
         """
         if self._verifier is None:
-            raise BdConfigError(_MSG_NO_VERIFIER)
+            raise StoreConfigError(_MSG_NO_VERIFIER)
         return gates.close_gate_verified(
             self._client,
             self._verifier,

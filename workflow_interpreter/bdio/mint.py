@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from workflow_interpreter.bdio import bounds, keys
 from workflow_interpreter.bdio.capabilities import BranchHeadReader
 from workflow_interpreter.bdio.constants import _MSG_ENTRY_PREDECESSOR
-from workflow_interpreter.bdio.errors import BdConfigError, CarrierIntegrityError
+from workflow_interpreter.bdio.errors import CarrierIntegrityError, StoreConfigError
 from workflow_interpreter.bdio.records import ActivationRecord, GateRecord, RootRecord
 from workflow_interpreter.bdio.wire import (
     WIRE_MODEL,
@@ -370,7 +370,7 @@ def _derive_base_commit(
             ):
                 return metadata.pre_attempt_commit
     if branch_head_reader is None:
-        raise BdConfigError(_MSG_NO_HEAD_READER)
+        raise StoreConfigError(_MSG_NO_HEAD_READER)
     return branch_head_reader()
 
 

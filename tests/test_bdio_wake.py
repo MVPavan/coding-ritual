@@ -6,7 +6,7 @@ from tests._bdio import entry_request, load_definition, make_root
 from tests._gates import open_ship_gate, open_triage_gate
 from workflow_interpreter.bdio import CarrierIntegrityError, WorkflowStore
 from workflow_interpreter.bdio.bounds import ceiling_count, effective_bound
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.reads import next_seq
 from workflow_interpreter.bdio.wire import BoundSetting
@@ -82,7 +82,7 @@ def test_ambiguous_bd_write_is_refound_without_duplicate(fake_store, monkeypatch
 
     def ambiguous(**kwargs):
         original(**kwargs)
-        raise BdioError("lost acknowledgment")
+        raise StoreError("lost acknowledgment")
 
     monkeypatch.setattr(fake_store._client, "_create_bead", ambiguous)
     first = fake_store.append_wake_event(root.root_id, event)
@@ -97,10 +97,10 @@ def test_failure_before_bd_write_leaves_no_delivery(fake_store, monkeypatch):
     event = event_for(root)
 
     def unavailable(**kwargs):
-        raise BdioError("unavailable")
+        raise StoreError("unavailable")
 
     monkeypatch.setattr(fake_store._client, "_create_bead", unavailable)
-    with pytest.raises(BdioError):
+    with pytest.raises(StoreError):
         fake_store.append_wake_event(root.root_id, event)
     assert not fake_store.reads.list_wake_events(root.root_id)
 

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Literal, Self
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio import ProcessHandle
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.reads import activations_of, gates_of
 from workflow_interpreter.foreman.observation import (
     bounded,
@@ -172,7 +172,7 @@ class DriverObserver:
         """Keep observational I/O failures out of the driver's control flow."""
         try:
             self._snapshot(state)
-        except (BdioError, WrapperDirError, OSError, ValueError) as error:
+        except (StoreError, WrapperDirError, OSError, ValueError) as error:
             self.status = self.status.degraded(error=str(error), heartbeat=str(error))
         self.status = save_status(self._paths.instance_dir, self.status)
 

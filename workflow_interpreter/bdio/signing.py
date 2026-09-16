@@ -37,10 +37,10 @@ from pydantic import BaseModel, Field, model_validator
 
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.errors import (
-    BdConfigError,
     PayloadMismatchError,
     SignatureRefusedError,
     SignerNotAllowedError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.wire import (
     CANON_GATE_PAYLOAD,
@@ -343,10 +343,10 @@ def _split_unquoted(text: str, separators: str) -> list[str]:
 
 
 def _parse_signer_line(line: str, line_no: int, path: Path) -> AllowedSigner:
-    """One `allowed_signers` entry, or `BdConfigError` naming the line."""
+    """One `allowed_signers` entry, or `StoreConfigError` naming the line."""
 
-    def refuse(reason: object) -> BdConfigError:
-        return BdConfigError(
+    def refuse(reason: object) -> StoreConfigError:
+        return StoreConfigError(
             _MSG_ALLOW_LIST_UNPARSEABLE.format(
                 path=path, line_no=line_no, reason=reason
             )
@@ -467,11 +467,11 @@ class GateVerifier:
     def __init__(self, config: SigningConfig, workspace: Path) -> None:
         path = config.allowed_signers_path
         if not path.is_file():
-            raise BdConfigError(_MSG_ALLOW_LIST_MISSING.format(path=path))
+            raise StoreConfigError(_MSG_ALLOW_LIST_MISSING.format(path=path))
         resolved = path.resolve()
         workspace_resolved = workspace.resolve()
         if resolved.is_relative_to(workspace_resolved):
-            raise BdConfigError(
+            raise StoreConfigError(
                 _MSG_ALLOW_LIST_INSIDE.format(
                     path=resolved, workspace=workspace_resolved
                 )
@@ -485,7 +485,7 @@ class GateVerifier:
             resolved.read_text(encoding="utf-8"), resolved
         )
         if not self.allowed_fingerprints():
-            raise BdConfigError(
+            raise StoreConfigError(
                 _MSG_NO_KEY_FOR_NAMESPACE.format(
                     path=resolved, namespace=config.namespace
                 )
