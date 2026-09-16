@@ -426,10 +426,12 @@ class WorkflowStore:
         activation_id: str,
         control: ControlRegistration,
         state: ControlState,
+        *,
+        resolution_reason: str | None = None,
     ) -> ControlRegistration:
         """Record delivery evidence without creating a routing or approval fact."""
         return rpc_control.record_state(
-            self._client, self._reads, activation_id, control, state
+            self._client, self._reads, activation_id, control, state, resolution_reason
         )
 
     def record_session_completion(

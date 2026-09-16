@@ -10,7 +10,7 @@ from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.supervisor.sandbox import SandboxMode
 from workflow_interpreter.supervisor.toolchain_models import SeedReceipt
 
-RECORD_MODEL = ConfigDict(frozen=True, extra="forbid")
+RECORD_MODEL = ConfigDict(frozen=True, extra="forbid", arbitrary_types_allowed=False)
 
 
 class LaunchReceiptState(StrEnum):

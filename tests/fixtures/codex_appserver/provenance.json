@@ -244,5 +244,25 @@
         ]
       }
     }
+  },
+  "argv_qualification": {
+    "date": "2026-09-16",
+    "authority": "coordinator host probe; repeated locally without model calls",
+    "version_command": "codex --version",
+    "version_stdout": "codex-cli 0.154.0",
+    "help_command": "codex app-server --help",
+    "observed_options": [
+      "-c/--config <key=value>",
+      "--listen <URL> (default stdio://)"
+    ],
+    "smoke_command": "codex app-server --listen stdio:// -c sandbox_mode=read-only < /dev/null",
+    "smoke_exit_code": 0
+  },
+  "ambient_config_qualification": {
+    "date": "2026-09-16",
+    "mode": "no-model initialize + config/read",
+    "environment": "private CODEX_HOME",
+    "override": "projects={\"<checkout>\"={trust_level=\"untrusted\"}}",
+    "observed": "Project-local config, hooks, and exec policies disabled; project MCP definitions absent from effective config. Skills remain readable input."
   }
 }

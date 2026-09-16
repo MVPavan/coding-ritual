@@ -1,6 +1,10 @@
 """Choose intentional history from settled same-node records, never caller text."""
 
 from collections.abc import Sequence
+from typing import Final
+
+import structlog
+from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
@@ -11,21 +15,40 @@ from workflow_interpreter.bdio.wire import (
     NodeSetting,
     resolved_settings,
 )
+from workflow_interpreter.contracts.codex import CODEX_VERSION
 from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY
-from workflow_interpreter.contracts.sessions import MSG_SESSION_SOURCE, SessionReuse
+from workflow_interpreter.contracts.sessions import (
+    MSG_SESSION_SOURCE,
+    SessionFreshReason,
+    SessionReuse,
+    execution_policy_digest,
+)
+
+_LOG = structlog.get_logger(__name__)
+MSG_VERSION_FRESH: Final[str] = "wf.session.fresh.version_mismatch"
+
+
+class SessionChoice(BaseModel):
+    """Bind the selected source or explicit fresh reason together at mint."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    source: SessionRegistration | None = None
+    fresh_reason: SessionFreshReason | None = None
 
 
 def choose_source(
     root: RootRecord, request: MintRequest, activations: Sequence[ActivationRecord]
-) -> SessionRegistration | None:
+) -> SessionChoice:
     """Select once at mint; fresh and ambiguous sessions never become implicit reuse."""
     node = root.index.nodes[request.node]
     continuation_ids = _continuation_sources(request, activations)
     continuation = bool(continuation_ids)
     if not continuation and node.session_reuse is not SessionReuse.SAME_NODE:
-        return None
+        return SessionChoice()
     settings = resolved_settings(root.metadata)
     policy = settings.get(EXECUTION_POLICY_KEY.format(node=node.name), "legacy")
+    if not isinstance(policy, str):
+        raise CarrierIntegrityError(MSG_SESSION_SOURCE)
     for source in sorted(activations, key=lambda item: item.metadata.seq, reverse=True):
         meta = source.metadata
         registration = meta.session_registration
@@ -38,21 +61,31 @@ def choose_source(
             or registration.activation_id != source.activation_id
             or registration.model != settings.get(NodeSetting.MODEL.at(node.name))
             or registration.effort != settings.get(NodeSetting.EFFORT.at(node.name))
-            or registration.policy_digest != policy
-            or registration.runner_version != "0.154.0"
+            or registration.policy_digest != execution_policy_digest(policy)
         ):
             continue
-        if continuation:
-            if source.activation_id in continuation_ids:
-                return registration
-        elif (
-            meta.session_completion is not None
-            and meta.session_completion.registration == registration
-        ):
-            return registration
+        eligible = (
+            (source.activation_id in continuation_ids)
+            if continuation
+            else (
+                meta.session_completion is not None
+                and meta.session_completion.registration == registration
+            )
+        )
+        if not eligible:
+            continue
+        if registration.runner_version != CODEX_VERSION:
+            _LOG.warning(
+                MSG_VERSION_FRESH,
+                source=source.activation_id,
+                recorded=registration.runner_version,
+                required=CODEX_VERSION,
+            )
+            return SessionChoice(fresh_reason=SessionFreshReason.VERSION_MISMATCH)
+        return SessionChoice(source=registration)
     if continuation:
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
-    return None
+    return SessionChoice()
 
 
 def _continuation_sources(

@@ -179,3 +179,51 @@ def test_server_tool_and_permission_requests_are_denied(mode):
         finally:
             process.stdin.close()
             process.wait(timeout=3)
+
+
+def test_late_server_request_after_close_cannot_reuse_a_host_file_fd(tmp_path, capsys):
+    """A shutdown denial must never target a descriptor reused by a host record."""
+    request_read, request_write = os.pipe()
+    output_read, output_write = os.pipe()
+    error_read, error_write = os.pipe()
+    client = RpcClient(request_write, output_read, error_read)
+    target = None
+    try:
+        client.close_input()
+        target = os.open(tmp_path / "protected.json", os.O_CREAT | os.O_RDWR, 0o600)
+        assert target == request_write
+        os.write(output_write, b'{"id":7,"method":"item/tool/call","params":{}}\n')
+        client.poll(0.01)
+        assert not client.output_pending
+        assert os.fstat(target).st_size == 0
+        captured = capsys.readouterr()
+        assert "input_closed" in captured.out + captured.err
+        client.close()
+        os.fstat(target)
+    finally:
+        client.close()
+        for descriptor in (request_read, output_write, error_write, target):
+            if descriptor is not None:
+                os.close(descriptor)
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["app-server", "--unsupported"],
+        ["--version", "--unsupported"],
+        ["app-server", "--listen", "stdio://", "-s", "read-only"],
+    ],
+)
+def test_fixture_rejects_unknown_cli_arguments(args):
+    """The executable fixture must not conceal unsupported production argv."""
+    result = subprocess.run(
+        [sys.executable, str(FIXTURE), *args],
+        input="",
+        capture_output=True,
+        text=True,
+        timeout=3,
+        check=False,
+    )
+    assert result.returncode == 2
+    assert "unsupported argv" in result.stderr

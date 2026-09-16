@@ -213,6 +213,33 @@ def test_ambiguous_turn_intent_is_recovered_without_resend(
         lab.paths.activation_dir(aid) / "channels" / "artifacts" / "requests.jsonl"
     ).read_text()
     assert requests.count('"turn/start"') == int(after_submission)
+    assert recovered.closed.metadata.session_registration is not None
+    if after_submission:
+        submitted = next(
+            json.loads(line)
+            for line in requests.splitlines()
+            if json.loads(line).get("method") == "turn/start"
+        )
+        replies = (
+            (
+                lab.paths.activation_dir(aid)
+                / "channels"
+                / "artifacts"
+                / "responses.jsonl"
+            )
+            .read_text()
+            .splitlines()
+        )
+        assert not any(
+            json.loads(line).get("id") == submitted["id"] for line in replies
+        )
+        assert (
+            json.loads((lab.paths.activation_dir(aid) / "turn.json").read_text())[
+                "turn_id"
+            ]
+            is None
+        )
+
     assert (
         json.loads((lab.paths.activation_dir(aid) / "turn.json").read_text())["phase"]
         == "intent"

@@ -86,6 +86,31 @@ def run_turn_server():
         elif method == "turn/start":
             if mode == "hang-after-submit":
                 time.sleep(60)
+            if mode == "sandbox-probe":
+                cache = Path(os.environ["UV_CACHE_DIR"])
+                seeded = (
+                    cache / "wheels-v5/pypi/ruff/1.0-py3-none-any/ruff.py"
+                ).is_file()
+                (cache / "writable-probe").write_text("private")
+                checkout = (
+                    Path(os.environ["WF_RPC_TEST_CHECKOUT"]) / "src" / "rpc-probe"
+                )
+                try:
+                    checkout.write_text("test")
+                    checkout.unlink()
+                    writable = True
+                except OSError:
+                    writable = False
+                (artifacts / "sandbox-probe.json").write_text(
+                    json.dumps(
+                        {
+                            "cache_seeded": seeded,
+                            "cache_writable": True,
+                            "checkout_writable": writable,
+                            "cwd": os.getcwd(),
+                        }
+                    )
+                )
             directory = Path(os.environ["WF_OUTCOME_FILE"]).parent.parent
             registration = json.loads((directory / "session.json").read_text())
             intent = json.loads((directory / "turn.json").read_text())
@@ -196,7 +221,48 @@ def run_turn_server():
         time.sleep(60)
 
 
-if "--version" in sys.argv:
+def check_argv(args):
+    """Accept only the exercised 0.154.0 CLI subset before reading any RPC frame."""
+    if args == ["--version"]:
+        return
+    if args and args[0] == "app-server":
+        rest = args[1:]
+        while rest:
+            if len(rest) < 2:
+                break
+            flag, value, *tail = rest
+            if (flag == "--listen" and value == "stdio://") or (
+                flag in ("-c", "--config") and "=" in value
+            ):
+                rest = tail
+                continue
+            break
+        if not rest:
+            return
+    elif len(args) <= 1 and (
+        not args
+        or args[0]
+        in (
+            "normal",
+            "fragmented",
+            "oversize",
+            "invalid",
+            "unknown",
+            "wrong-id",
+            "duplicate",
+            "partial-eof",
+            "hang",
+            "tool",
+            "approval",
+        )
+    ):
+        return
+    sys.stderr.write("unsupported argv for codex-cli 0.154.0 fixture\n")
+    raise SystemExit(2)
+
+
+check_argv(sys.argv[1:])
+if sys.argv[1:] == ["--version"]:
     version = (
         "0.153.0"
         if os.environ.get("WF_RPC_TEST_MODE") == "wrong-version"

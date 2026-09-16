@@ -66,6 +66,7 @@ from workflow_interpreter.bdio.rpc_records import (
     SessionCompletion,
     SessionRegistration,
 )
+from workflow_interpreter.contracts.sessions import SessionFreshReason
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
     CoordinationLink,
@@ -396,6 +397,7 @@ class ActivationMetadata(BaseModel):
     launch_id: str | None = None
     session_registration: SessionRegistration | None = None
     session_reuse_source: SessionRegistration | None = None
+    session_fresh_reason: SessionFreshReason | None = None
     session_completion: SessionCompletion | None = None
     in_place_controls: tuple[ControlRegistration, ...] = ()
     handle: ProcessHandle | None = None

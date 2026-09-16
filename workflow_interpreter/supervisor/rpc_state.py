@@ -25,7 +25,12 @@ def state_for(
         root.index.nodes[activation.metadata.node].session_reuse
         is SessionReuse.SAME_NODE
     ):
-        state = paths.instance_dir / SESSION_STATES / activation.metadata.node
+        state = (
+            paths.instance_dir
+            / SESSION_STATES
+            / activation.metadata.node
+            / activation.activation_id
+        )
     else:
         state = paths.activation_dir(activation.activation_id) / VENDOR_STATE
     if not state.is_relative_to(paths.instance_dir) or state.resolve() != state:

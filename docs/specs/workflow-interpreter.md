@@ -733,10 +733,13 @@ is bound at mint, never selected again from live configuration at launch. Every
 new process receives current grants, cwd, channels, tool configuration and the
 complete current envelope. Deliberate §8.1 continuation and its infra retries
 retain their bound history independently of this ordinary re-entry setting.
-Host-owned vendor state persists per root/node for intentional reuse, outside
-model-writable roots and separate from disposable toolchain copies. Ambient
-project config/rules are refused for this experimental runner; its private
-`CODEX_HOME` does not inherit ambient user configuration or MCP definitions.
+A CLI-version mismatch is a logged, mint-pinned fresh decision, including on
+steer continuation. Compatibility compares a SHA-256 policy digest; the complete
+policy remains pinned on the root. Host-owned vendor state persists for eligible
+reuse, outside model-writable roots and separate from disposable toolchains.
+Fresh decisions allocate a distinct directory. A private `CODEX_HOME` and explicit
+untrusted project settings suppress ambient user configuration and project config,
+hooks and exec policies; tracked `.codex` files do not refuse dispatch.
 
 Protected accounting retains per-activation deltas, latest cumulative thread
 counts, the last vendor report, unknown fields and envelope bytes separately.
@@ -875,7 +878,11 @@ The typed bd intent spends the shared `max_steers` allowance before publication;
 submission is persisted before RPC, and acknowledgment is protected and mirrored.
 It creates no activation, review round, transition or approval. Unacknowledged
 control after owner loss is marked uncertain, never replayed, and reported through
-the refusal journal and attention exit. A subsequent deliberate steer is required.
+the refusal journal and attention exit alongside normal tick progress. It never
+blocks settlement, intake or routing. Settlement resolves uncertain controls into
+durable deviations; an operator may resolve live uncertainty with
+`steer --acknowledge-uncertain` and a reason. Neither resolution refunds the shared
+steer allowance or claims vendor acknowledgment.
 Termination offers a bounded RPC interrupt courtesy before ordinary TERM/KILL
 and identity-based death proof. Legacy exec steering semantics are unchanged.
 

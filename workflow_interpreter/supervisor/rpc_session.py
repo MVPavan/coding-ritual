@@ -17,6 +17,7 @@ from workflow_interpreter.bdio.rpc_records import (
 )
 from workflow_interpreter.contracts.rpc_control import MSG_CONTROL, ControlState
 from workflow_interpreter.contracts.rpc_usage import TokenCounts, UsageSnapshot
+from workflow_interpreter.contracts.sessions import execution_policy_digest
 from workflow_interpreter.profiles.codex_rpc import (
     CODEX_VERSION,
     Notification,
@@ -64,6 +65,7 @@ from workflow_interpreter.supervisor.rpc_records import (
 from workflow_interpreter.supervisor.rpc_usage import (
     USAGE_FILE,
     UsageNotification,
+    protected_baseline,
     updated_usage,
 )
 
@@ -118,7 +120,13 @@ class RpcSession:
             previous = store.reads.load_activation(
                 source.activation_id
             ).metadata.session_completion
-            self._baseline = previous.usage.cumulative if previous else TokenCounts()
+            self._baseline = (
+                previous.usage.cumulative
+                if previous
+                else protected_baseline(
+                    paths.activation_dir(source.activation_id), source
+                )
+            )
         self._usage = UsageSnapshot(envelope_bytes=len(task.brief.encode()))
         self._pending_usage: UsageNotification | None = None
         self._control: ControlRegistration | None = None
@@ -152,8 +160,7 @@ class RpcSession:
         }
         if self._receipt.handle.session_id:
             params["threadId"] = self._receipt.handle.session_id
-        else:
-            params["dynamicTools"] = []
+        params["dynamicTools"] = []
         return params
 
     def _start_turn(self, client: RpcClient, frame: RpcFrame) -> None:
@@ -177,7 +184,7 @@ class RpcSession:
             model=task.model,
             effort=task.effort or "",
             state_path=task.vendor_state or "",
-            policy_digest=(
+            policy_digest=execution_policy_digest(
                 task.execution_policy.model_dump_json()
                 if task.execution_policy
                 else "legacy"
@@ -231,6 +238,8 @@ class RpcSession:
             raise RpcFailure(MSG_IDENTITY)
         if completion.turn.status != "completed":
             raise RpcFailure(MSG_TURN)
+        if self._turn.phase is TurnPhase.COMPLETED:
+            return
         self._turn = self._turn.model_copy(update={"phase": TurnPhase.COMPLETED})
         self._save()
         self._phase = SessionPhase.SHUTDOWN

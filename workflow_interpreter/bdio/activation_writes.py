@@ -24,7 +24,7 @@ from workflow_interpreter.bdio.records import (
     MintResult,
     RootRecord,
 )
-from workflow_interpreter.bdio.sessions import choose_source
+from workflow_interpreter.bdio.sessions import SessionChoice, choose_source
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
     BeadRecord,
@@ -306,11 +306,12 @@ def _prepare_mint(
     runner_profile, model = self._assert_mint_permitted(
         root, facts, beads, activations, request
     )
-    source = (
+    choice = (
         choose_source(root, request, activations)
         if runner_profile.removeprefix("profile:") == RunnerName.CODEX_APPSERVER.value
-        else None
+        else SessionChoice()
     )
+    source = choice.source
     session_id = request.session_id
     if runner_profile.removeprefix("profile:") == RunnerName.CODEX_APPSERVER.value:
         session_id = source.thread_id if source else ""
@@ -330,6 +331,7 @@ def _prepare_mint(
         model=model,
         session_id=session_id,
         session_reuse_source=source,
+        session_fresh_reason=choice.fresh_reason,
         intended_base_commit=facts.intended_base_commit,
         deviations=request.deviations,
     )

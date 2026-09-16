@@ -1,5 +1,6 @@
 """Opt-in codex-cli 0.154.0 runner; one wrapper-owned stdio turn per activation."""
 
+import json
 import subprocess
 from collections.abc import Iterable, Iterator
 from pathlib import Path
@@ -30,9 +31,10 @@ from workflow_interpreter.supervisor.profile import (
 from workflow_interpreter.supervisor.rpc_records import SESSION_FILE
 from workflow_interpreter.supervisor.rpc_usage import USAGE_FILE
 
-MSG_VERSION: Final[str] = "codex-appserver requires codex-cli 0.154.0"
+MSG_VERSION: Final[str] = f"codex-appserver requires codex-cli {CODEX_VERSION}"
 MSG_STATE: Final[str] = "codex-appserver requires protected vendor state"
-MSG_AMBIENT: Final[str] = "codex-appserver refuses ambient project config/rules"
+KEY_PROJECTS: Final[str] = "projects"
+UNTRUSTED_PROJECT: Final[str] = '{trust_level="untrusted"}'
 ENV_CODEX_HOME: Final[str] = "CODEX_HOME"
 APP_SERVER: Final[str] = "app-server"
 
@@ -47,10 +49,6 @@ class CodexAppServerProfile(CodexProfile):
         if task.vendor_state is None:
             raise TaskRefused(MSG_STATE)
         checkout = Path(task.checkout_read_root or task.cwd)
-        if (checkout / ".codex" / "config.toml").exists() or (
-            checkout / ".codex" / "rules"
-        ).exists():
-            raise TaskRefused(MSG_AMBIENT)
         try:
             version = subprocess.run(
                 [self.binary(), "--version"],
@@ -75,6 +73,14 @@ class CodexAppServerProfile(CodexProfile):
                 APP_SERVER,
                 "--listen",
                 "stdio://",
+                "-c",
+                KEY_PROJECTS
+                + "={"
+                + ",".join(
+                    f"{json.dumps(path)}={UNTRUSTED_PROJECT}"
+                    for path in sorted({str(checkout), root})
+                )
+                + "}",
                 *self._sandbox_flags(task, root),
             ],
             task,
@@ -131,7 +137,7 @@ class CodexAppServerProfile(CodexProfile):
                 input_tokens=(
                     counts.input - counts.cached_input
                     if counts.cached_input is not None
-                    else None
+                    else counts.input
                 ),
                 cache_read_input_tokens=counts.cached_input,
                 output_tokens=counts.output,

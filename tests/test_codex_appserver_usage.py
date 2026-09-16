@@ -1,8 +1,16 @@
 """Per-activation usage is a delta, never a sum of cumulative notifications."""
 
+from hashlib import sha256
+
 import pytest
 
-from workflow_interpreter.contracts.rpc_usage import TokenCounts
+from tests._appserver import AppServerLab
+from tests._supervisor import entry_mint
+from workflow_interpreter.bdio import MintReason
+from workflow_interpreter.contracts.rpc_usage import TokenCounts, UsageSnapshot
+from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.supervisor.models import SteerIntent
+from workflow_interpreter.supervisor.paths import write_record
 from workflow_interpreter.supervisor.rpc_usage import updated_usage
 
 
@@ -68,10 +76,58 @@ def test_usage_after_completion_is_drained_before_the_reuse_baseline_is_publishe
     tmp_path,
 ):
     """Late cumulative telemetry must not make the next activation overcount."""
-    from tests._appserver import AppServerLab
 
     lab = AppServerLab(tmp_path, "late-usage")
     result = lab.run()
     record = lab.store.reads.load_activation(result.dispatch.activation.activation_id)
     assert record.metadata.session_completion.usage.cumulative.input == 150
     assert result.observation.usage.input_tokens == 130
+
+
+def test_missing_cached_count_preserves_known_input(tmp_path):
+    """Missing cache detail cannot erase the known total input count."""
+
+    lab = AppServerLab(tmp_path)
+    result = lab.run()
+    aid = result.dispatch.activation.activation_id
+    write_record(
+        lab.paths.activation_dir(aid) / "rpc-usage.json",
+        UsageSnapshot(per_turn=TokenCounts(input=17, output=3)),
+    )
+    usage = lab.profile.collect_terminal_envelope(result.dispatch.handle).usage
+    assert usage.known
+    assert usage.input_tokens == 17
+    assert usage.cache_read_input_tokens is None
+
+
+def test_steer_continuation_uses_last_protected_usage_without_completed_turn(tmp_path):
+    """An interrupted source may have real cumulative usage despite no completion."""
+
+    lab = AppServerLab(tmp_path)
+    first = lab.run()
+    aid = first.dispatch.activation.activation_id
+    lab.store._client._merge_metadata(aid, {"session_completion": None})
+    lab.store.close_activation(aid, Outcome.STEERED)
+
+    request = entry_mint(runner_profile="codex-appserver", session_id="").model_copy(
+        update={
+            "mint_reason": MintReason.STEER_CONTINUATION,
+            "predecessor_activation_id": aid,
+        }
+    )
+    instructions = "continue with the current envelope"
+    write_record(
+        lab.paths.steer_intent(aid),
+        SteerIntent(
+            activation_id=aid,
+            reason="test",
+            instructions=instructions,
+            instructions_digest=sha256(instructions.encode()).hexdigest(),
+            requested_at="test",
+            continuation=request,
+        ),
+    )
+    second = lab.run(request)
+    assert second.observation.usage.known
+    assert second.observation.usage.input_tokens == 80
+    assert second.observation.usage.cache_read_input_tokens == 20

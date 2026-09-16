@@ -27,6 +27,7 @@ from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.rpc_control import ControlBusy
 from workflow_interpreter.bridge.command import execute_phase_bridge
 from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
+from workflow_interpreter.contracts.rpc_control import MSG_CONTROL_ARGUMENTS
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -178,10 +179,12 @@ def _parser() -> argparse.ArgumentParser:
     steer.add_argument("root_id")
     steer.add_argument("activation_id")
     steer.add_argument("--reason", required=True)
-    steer.add_argument(
+    control = steer.add_mutually_exclusive_group()
+    control.add_argument("--acknowledge-uncertain", action="store_true")
+    control.add_argument(
         "--in-place", action="store_true", help="experimental app-server control"
     )
-    steer.add_argument("--instructions-file", type=Path, required=True)
+    steer.add_argument("--instructions-file", type=Path)
     integration = commands.add_parser("integration").add_subparsers(
         dest="integration_command", required=True
     )
@@ -675,11 +678,16 @@ def _run(
     if args.command == "steer":
         limit = MAX_TRANSCRIPT_BYTES + composition.supervisor_config.log_tail_bytes
         try:
+            if not args.acknowledge_uncertain and args.instructions_file is None:
+                raise ContinuationRefused(MSG_CONTROL_ARGUMENTS)
             report = foreman.steer(
                 args.root_id,
                 args.activation_id,
                 reason=args.reason,
-                instructions=(
+                acknowledge=args.acknowledge_uncertain,
+                instructions=""
+                if args.acknowledge_uncertain
+                else (
                     read_instructions(args.instructions_file)
                     if args.in_place
                     else args.instructions_file.read_text(encoding="utf-8")

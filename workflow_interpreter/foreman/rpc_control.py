@@ -6,6 +6,7 @@ from workflow_interpreter.bdio import ActivationRecord, WorkflowStore
 from workflow_interpreter.bdio.rpc_control import ControlBusy
 from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.contracts.rpc_control import (
+    DEVIATION_CONTROL_UNCERTAIN,
     MSG_CONTROL_UNCERTAIN,
     ControlState,
 )
@@ -14,8 +15,7 @@ from workflow_interpreter.foreman.observation import read_status, save_status
 from workflow_interpreter.foreman.refusals import append_refusal
 from workflow_interpreter.foreman.wake_constants import DEFAULT_EVENT_CAP
 from workflow_interpreter.profiles.codex_rpc import RpcFailure
-from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.errors import WrapperDirError
+from workflow_interpreter.supervisor.errors import ContinuationRefused, WrapperDirError
 from workflow_interpreter.supervisor.launch_record import LaunchReceipt
 from workflow_interpreter.supervisor.models import Liveness
 from workflow_interpreter.supervisor.paths import WrapperPaths, read_record
@@ -33,7 +33,7 @@ def _reconcile_control(
     lost: bool,
 ) -> ControlRegistration:
     """Recover each ack or lost intent, including earlier requests in the queue."""
-    if control.state is ControlState.ACKNOWLEDGED:
+    if control.state in (ControlState.ACKNOWLEDGED, ControlState.RESOLVED):
         return control
     try:
         intent = next_intent(
@@ -88,8 +88,6 @@ def control_attention(
             _reconcile_control(paths, store, activation, control, lost=lost)
             for control in meta.in_place_controls
         )
-        if meta.outcome is Outcome.STEERED:
-            continue
         for control in controls:
             if control.state is not ControlState.UNCERTAIN:
                 continue
@@ -101,7 +99,7 @@ def control_attention(
                     gate_key=key,
                     payload=control.model_dump_json().encode(),
                     signature=b"",
-                    error="control_uncertain",
+                    error=DEVIATION_CONTROL_UNCERTAIN,
                     reason=MSG_CONTROL_UNCERTAIN,
                     path=control_path(
                         paths.activation_dir(activation.activation_id), control.sequence
@@ -113,7 +111,14 @@ def control_attention(
                     paths.instance_dir,
                     read_status(paths.instance_dir).degraded(error=str(error)),
                 )
-            if control.sequence == controls[-1].sequence:
+            if meta.is_settled:
+                try:
+                    store.record_control_state(
+                        activation.activation_id, control, ControlState.RESOLVED
+                    )
+                except ControlBusy:
+                    pass  # Settlement clears attention; retry the durable mirror.
+            else:
                 attention.append(key)
     return tuple(attention)
 
@@ -136,6 +141,7 @@ def session_status(
             usage = None
         result[activation.activation_id] = {
             "thread_id": meta.session_registration.thread_id,
+            "fresh_reason": meta.session_fresh_reason,
             "source_activation": meta.session_reuse_source.activation_id
             if meta.session_reuse_source
             else None,
@@ -146,3 +152,24 @@ def session_status(
             ],
         }
     return result
+
+
+def acknowledge_uncertain(
+    store: WorkflowStore, activation_id: str, reason: str
+) -> ControlRegistration:
+    """Resolve live ambiguity explicitly without retrying or refunding any control."""
+    if not reason.strip() or len(reason) > 512:
+        raise ContinuationRefused(MSG_CONTROL_UNCERTAIN)
+    resolved = None
+    for control in store.reads.load_activation(
+        activation_id
+    ).metadata.in_place_controls:
+        if control.state is ControlState.UNCERTAIN:
+            resolved = store.record_control_state(
+                activation_id, control, ControlState.RESOLVED, resolution_reason=reason
+            )
+        elif control.state is ControlState.RESOLVED:
+            resolved = control
+    if resolved is None:
+        raise ContinuationRefused(MSG_CONTROL_UNCERTAIN)
+    return resolved

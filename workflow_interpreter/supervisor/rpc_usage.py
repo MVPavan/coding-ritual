@@ -1,10 +1,15 @@
 """Validate pinned token telemetry and derive deltas without double counting."""
 
+from pathlib import Path
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.contracts.rpc_usage import TokenCounts, UsageSnapshot
+from workflow_interpreter.supervisor.errors import WrapperDirError
+from workflow_interpreter.supervisor.paths import read_record
+from workflow_interpreter.supervisor.rpc_records import SESSION_FILE
 
 USAGE_FILE: Final[str] = "rpc-usage.json"
 
@@ -77,4 +82,16 @@ def updated_usage(
         cumulative=total,
         last_reported=notification.tokenUsage.last.counts(),
         envelope_bytes=envelope_bytes,
+    )
+
+
+def protected_baseline(directory: Path, source: SessionRegistration) -> TokenCounts:
+    """Use last known cumulative counts only from the bound source's protected record."""
+    try:
+        identity = read_record(directory / SESSION_FILE, SessionRegistration)
+        usage = read_record(directory / USAGE_FILE, UsageSnapshot)
+    except (OSError, WrapperDirError):
+        return TokenCounts()
+    return (
+        usage.cumulative if identity == source and usage is not None else TokenCounts()
     )

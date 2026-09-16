@@ -235,14 +235,18 @@ other runners. It binds eligible completed same-node history at mint and applies
 a fresh full input envelope and current grants on every activation. Remembered
 review verdicts can bias subsequent review; automatic reviewer reuse is disabled.
 Intentional vendor state persists under the wrapper's protected session-state
-directory; model tool roots exclude it. Private toolchain copies still follow
-their existing cleanup policy.
+directory; model tool roots exclude it. A fresh or rejected history decision gets
+a new directory. A CLI-version mismatch is logged and pinned as a fresh decision,
+including for a deliberate steer continuation; it cannot reuse old vendor state.
+Private toolchain copies still follow their existing cleanup policy.
 
-The runner uses an isolated `CODEX_HOME`. It conservatively refuses checkout
-`.codex/config.toml` or `.codex/rules` because the pinned app-server CLI does not
-accept exec's ignore-config flags. It does not copy ambient configuration or
-MCP definitions. Authentication through the configured host environment has not
-been live-qualified in this slice; fixture success does not certify a live login.
+The runner uses an isolated `CODEX_HOME` and explicit untrusted project settings.
+Checkout `.codex/config.toml`, hooks and execpolicy rules are ignored; tracked
+`.codex` files do not refuse dispatch. The pinned CLI's no-model `config/read`
+probe verifies disabled project layers and absent project MCP definitions.
+Project skills remain readable input. Ambient user configuration is not copied.
+Authentication through the configured host environment has not been live-qualified
+in this slice; fixture success does not certify a live login.
 
 Default `steer` retains termination and continuation. Explicit experimental
 in-place control uses:
@@ -257,12 +261,19 @@ command reports a durable pending intent; status shows acknowledgment or
 uncertainty. Both steer modes spend the same node/round allowance, including
 ambiguous requests. In-place steering does not mint an activation. After owner
 loss, uncertain requests produce a durable refusal and non-zero driver attention
-exit; they are never replayed. Use a deliberate default steer to continue that
-activation, or explicitly steer a still-running activation again within its cap.
-A protected acknowledgment survives a crash before its bd mirror is written.
+exit; they are never replayed. Each tick advances settlement and routing before
+reporting this attention. Settlement with any outcome resolves the uncertainty
+into a `control_uncertain` deviation and clears attention. To resolve a live
+uncertain request after inspection, use `steer ROOT ACTIVATION
+--acknowledge-uncertain --reason "inspection result"`. This durably records the
+operator acknowledgment without replaying the request or refunding its steer
+allowance. A protected vendor acknowledgment survives a crash before its bd
+mirror is written.
 
 `status.appserver` exposes registered thread/source identity, control states,
 and separate per-activation, cumulative and last-reported token counts plus input
 envelope bytes. Unknown fields remain visible. Activation totals subtract the
 recorded thread baseline; duplicate cumulative notifications add no spend, and an
-unknown baseline remains unknown. No token-saving claim is made.
+unknown baseline remains unknown. A steer continuation uses its source's last
+identity-checked protected cumulative counts when completion is absent. No
+token-saving claim is made.

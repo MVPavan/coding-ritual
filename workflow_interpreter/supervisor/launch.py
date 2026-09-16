@@ -83,6 +83,7 @@ from workflow_interpreter.contracts.execution import (
     MSG_PINNED_POLICY,
     RunnerName,
 )
+from workflow_interpreter.contracts.sessions import SessionFreshReason
 from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.schema.models import ArtifactInputMode
@@ -240,6 +241,9 @@ class Precondition(Protocol):
     def __call__(
         self, activation: ActivationRecord
     ) -> PreconditionResult: ...  # pragma: no cover - protocol
+
+
+MSG_RPC_CWD: Final[str] = "app-server command cwd disagrees with its planned cwd"
 
 
 class Dispatcher:
@@ -414,7 +418,13 @@ class Dispatcher:
         mints its own id would answer an empty session with a FRESH uuid, and
         the child would then "resume" a session no vendor has ever heard of.
         """
-        if carries_steer and not activation.metadata.session_id:
+        version_fresh = (
+            activation.metadata.runner_profile.removeprefix("profile:")
+            == RunnerName.CODEX_APPSERVER.value
+            and activation.metadata.session_fresh_reason
+            is SessionFreshReason.VERSION_MISMATCH
+        )
+        if carries_steer and not activation.metadata.session_id and not version_fresh:
             raise ContinuationRefused(
                 _MSG_NO_SESSION.format(
                     activation_id=activation.activation_id,
@@ -522,6 +532,15 @@ class Dispatcher:
             if isinstance(build_task, EnvelopeTaskBuilder) and instructions is not None
             else build_task(activation, channels)
         )
+        if profile.name() == RunnerName.CODEX_APPSERVER:
+            task = task.model_copy(
+                update={
+                    "checkout_read_root": task.checkout_read_root or task.cwd,
+                    "cwd": task.cwd
+                    if task.writes
+                    else str(Path(channels.outcome_file).parent),
+                }
+            )
         if task.execution_profile is not None:
             if task.execution_policy is None:
                 raise TaskRefused(MSG_PINNED_POLICY)
@@ -534,7 +553,7 @@ class Dispatcher:
         task = task.model_copy(update={"toolchain_cache": str(plan.toolchain_cache[0])})
         root = self._store.reads.load_root(self._paths.root_id)
         seed = ToolchainSeeder(self._paths.config, self._host_env).prepare(
-            Path(task.cwd),
+            Path(task.checkout_read_root or task.cwd),
             root.metadata.instance_base_commit,
             self._paths.activation_dir(activation_id),
         )
@@ -572,8 +591,8 @@ class Dispatcher:
                 session_id, task.brief if composed_resume else instructions, task
             )
         )
-        if command.transport is RunnerTransport.STDIO_RPC:
-            task = task.model_copy(update={"cwd": command.cwd})
+        if command.transport is RunnerTransport.STDIO_RPC and command.cwd != task.cwd:
+            raise TaskRefused(MSG_RPC_CWD)
         launcher = ForkBarrierLauncher(
             self._paths.config,
             self._paths,

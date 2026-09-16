@@ -59,7 +59,10 @@ from workflow_interpreter.foreman.observation import ObservationStatus
 from workflow_interpreter.foreman.owner import ensure_owner
 from workflow_interpreter.foreman.reconcile import reconcile
 from workflow_interpreter.foreman.routing import abandon_target
-from workflow_interpreter.foreman.rpc_control import control_attention
+from workflow_interpreter.foreman.rpc_control import (
+    acknowledge_uncertain,
+    control_attention,
+)
 from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.schema.models import NodeKind
 from workflow_interpreter.supervisor.errors import (
@@ -315,6 +318,7 @@ class Foreman:
         reason: str,
         instructions: str,
         in_place: bool = False,
+        acknowledge: bool = False,
     ) -> SteerReport | ControlRegistration:
         """Read the stale tail then perform exactly one supervisor steer."""
         validate_bead_id(root_id)
@@ -326,6 +330,8 @@ class Foreman:
             activation = wiring.store.reads.load_activation(activation_id)
             if activation.metadata.wf_root_id != root_id:
                 raise ValueError("activation does not belong to root")
+            if acknowledge:
+                return acknowledge_uncertain(wiring.store, activation_id, reason)
             tail = _stale_tail(
                 wiring, self._composition.supervisor_config.log_tail_bytes, activation
             )
@@ -382,6 +388,28 @@ class Foreman:
         return advance_decision(self._composition, root_id, self._tick_local)
 
     def _tick_local(self, root_id: str) -> TickReport:
+        """Report control attention alongside progress, never instead of settlement."""
+        report = self._progress_local(root_id)
+        if report.contended:
+            return report
+        wiring = self._composition.for_root(root_id)
+        try:
+            wiring.band.acquire()
+        except LockUnavailable:
+            return report
+        try:
+            attention = control_attention(
+                wiring.paths,
+                wiring.store,
+                refusal_limit=self._composition.config.wake.lifetime_cap,
+            )
+            return report.model_copy(
+                update={"refusals": (*report.refusals, *attention)}
+            )
+        finally:
+            wiring.band.release()
+
+    def _progress_local(self, root_id: str) -> TickReport:
         """Advance at most one lifecycle action after auditing fresh durable state."""
         validate_bead_id(root_id)
         wiring = self._composition.for_root(root_id)
@@ -426,13 +454,6 @@ class Foreman:
                 cleanup_toolchain,
             )
 
-            ambiguous = control_attention(
-                wiring.paths,
-                wiring.store,
-                refusal_limit=self._composition.config.wake.lifetime_cap,
-            )
-            if ambiguous:
-                return TickReport(refusals=ambiguous)
             for activation in activations_of(beads):
                 cleanup_toolchain(wiring.paths, activation)
                 if (

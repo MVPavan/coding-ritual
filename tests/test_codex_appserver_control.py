@@ -7,12 +7,25 @@ import jsonschema
 import pytest
 
 from tests._appserver import FIXTURE, AppServerLab
+from tests._bdio import entry_request, handle
+from tests._foreman import DEFAULT_LAB_ROLES, ForemanLab
+from tests._foreman import entry_request as foreman_entry_request
 from tests.test_codex_appserver_recovery import registered_activation
-from workflow_interpreter.bdio import BoundExceededError, CarrierIntegrityError
+from workflow_interpreter.bdio import (
+    BoundExceededError,
+    CarrierIntegrityError,
+    MintReason,
+    bounds,
+)
 from workflow_interpreter.bdio.bounds import steer_closes
 from workflow_interpreter.bdio.mint import views_of
-from workflow_interpreter.bdio.rpc_records import ControlRegistration
+from workflow_interpreter.bdio.rpc_control import ControlBusy
+from workflow_interpreter.bdio.rpc_records import (
+    ControlRegistration,
+    SessionRegistration,
+)
 from workflow_interpreter.contracts.rpc_control import MAX_CONTROL_BYTES, ControlState
+from workflow_interpreter.foreman import __main__ as cli
 from workflow_interpreter.foreman.__main__ import _parser
 from workflow_interpreter.foreman.refusals import read_refusals
 from workflow_interpreter.foreman.rpc_control import control_attention
@@ -73,6 +86,18 @@ def test_real_bd_control_intent_is_durable(store):
     assert store.reads.load_activation(
         registration.activation_id
     ).metadata.in_place_controls == (control,)
+    store.record_control_state(
+        registration.activation_id, control, ControlState.UNCERTAIN
+    )
+    store.record_control_state(
+        registration.activation_id,
+        control.model_copy(update={"state": ControlState.UNCERTAIN}),
+        ControlState.RESOLVED,
+        resolution_reason="operator inspected uncertainty",
+    )
+    persisted = store.reads.load_activation(registration.activation_id).metadata
+    assert persisted.in_place_controls[0].state is ControlState.RESOLVED
+    assert persisted.deviations[-1].kind == "control_uncertain"
 
 
 def test_live_in_place_control_is_acknowledged_without_an_activation(
@@ -126,7 +151,7 @@ def test_live_in_place_control_is_acknowledged_without_an_activation(
 
 
 def test_ambiguous_control_is_never_replayed_and_is_loud(tmp_path, monkeypatch):
-    """An intent on a settled activation becomes attention, not a second send."""
+    """An intent on a settled activation becomes a deviation without blocking progress."""
 
     lab = AppServerLab(tmp_path)
 
@@ -149,12 +174,15 @@ def test_ambiguous_control_is_never_replayed_and_is_loud(tmp_path, monkeypatch):
     aid = result.dispatch.activation.activation_id
     lab.store.close_activation(aid, Outcome.ERROR_TRANSPORT)
     first = control_attention(lab.paths, lab.store)
-    assert first
-    assert control_attention(lab.paths, lab.store) == first
+    assert first == ()
+    assert control_attention(lab.paths, lab.store) == ()
     assert len(read_refusals(lab.paths.instance_dir)) == 1
     assert (
         lab.store.reads.load_activation(aid).metadata.in_place_controls[0].state
-        is ControlState.UNCERTAIN
+        is ControlState.RESOLVED
+    )
+    assert lab.store.reads.load_activation(aid).metadata.deviations[-1].kind == (
+        "control_uncertain"
     )
 
 
@@ -230,7 +258,6 @@ def test_control_updates_cannot_overwrite_a_concurrent_reservation(
     fake_store, monkeypatch
 ):
     """A short nonblocking lock serializes the shared per-activation control list."""
-    from workflow_interpreter.bdio.rpc_control import ControlBusy
 
     registration = registered_activation(fake_store)
     fake_store.register_session(registration.activation_id, registration)
@@ -262,4 +289,120 @@ def test_control_updates_cannot_overwrite_a_concurrent_reservation(
             ).metadata.in_place_controls
         )
         == 2
+    )
+
+
+def test_unpinned_steer_limit_is_uncapped_in_both_paths(fake_store, monkeypatch):
+    """Omitting the bound has the same meaning for relaunch and in-place control."""
+
+    registration = registered_activation(fake_store).model_copy(
+        update={
+            "policy_digest": "c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84"
+        }
+    )
+    fake_store.register_session(registration.activation_id, registration)
+    original = bounds.effective_bound
+    monkeypatch.setattr(
+        bounds,
+        "effective_bound",
+        lambda *args: (
+            None if args[2] is bounds.BoundSetting.MAX_STEERS else original(*args)
+        ),
+    )
+    activation = fake_store.reads.load_activation(registration.activation_id)
+    request = entry_request(runner_profile="codex-appserver").model_copy(
+        update={
+            "mint_reason": MintReason.STEER_CONTINUATION,
+            "predecessor_activation_id": registration.activation_id,
+        }
+    )
+    fake_store._preflight_steer_continuation(registration.root_id, activation, request)
+    for number in range(4):
+        fake_store.reserve_in_place_steer(
+            registration.activation_id, registration, "turn-1", f"digest-{number}"
+        )
+
+
+def uncertain_foreman(tmp_path):
+    """A real foreman with a durable ambiguous control and inert vendor boundary."""
+
+    roles = {
+        name: binding.model_copy(update={"profile": "codex-appserver"})
+        for name, binding in DEFAULT_LAB_ROLES.items()
+    }
+    lab = ForemanLab(tmp_path, roles=roles)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id, foreman_entry_request(runner_profile="codex-appserver")
+        )
+        .activation
+    )
+    aid = activation.activation_id
+    process = handle(session_id="").model_copy(
+        update={"log_path": str(lab.wiring().paths.log(aid))}
+    )
+    lab.store.record_dispatch(aid, process, launch_id="test-launch")
+    registration = SessionRegistration(
+        root_id=root.root_id,
+        activation_id=aid,
+        launch_id="test-launch",
+        handle=process,
+        thread_id="thread-1",
+        model="fake",
+        effort="medium",
+        policy_digest="test",
+        state_path=str(lab.wiring().paths.activation_dir(aid) / "vendor-state"),
+    )
+    lab.store.register_session(aid, registration)
+    control = lab.store.reserve_in_place_steer(aid, registration, "turn-1", "digest")
+    lab.store.record_control_state(aid, control, ControlState.UNCERTAIN)
+    return lab, aid
+
+
+def test_closed_uncertain_control_does_not_block_root_progress(tmp_path):
+    """The former permanent wedge now records deviation and mints the next attempt."""
+    lab, aid = uncertain_foreman(tmp_path)
+    lab.store.close_activation(aid, Outcome.ERROR_TRANSPORT)
+    report = lab.tick()
+    assert report.refusals == ()
+    assert report.dispatched is not None
+    assert report.dispatched != aid
+    meta = lab.store.reads.load_activation(aid).metadata
+    assert meta.in_place_controls[0].state is ControlState.RESOLVED
+    assert len(meta.deviations) == 1
+    assert meta.deviations[0].kind == "control_uncertain"
+
+
+def test_operator_command_resolves_live_uncertain_control(tmp_path, monkeypatch):
+    """Explicit acknowledgment clears attention without replay or a budget refund."""
+
+    lab, aid = uncertain_foreman(tmp_path)
+    paths = lab.wiring().paths
+    assert control_attention(paths, lab.store)
+    monkeypatch.setattr(cli, "_composition", lambda _: lab.composition)
+    assert (
+        cli.main(
+            [
+                "steer",
+                lab.root.root_id,
+                aid,
+                "--acknowledge-uncertain",
+                "--reason",
+                "operator inspected the interrupted control",
+            ]
+        )
+        == 0
+    )
+    assert control_attention(paths, lab.store) == ()
+    meta = lab.store.reads.load_activation(aid).metadata
+    assert not meta.is_settled
+    assert meta.in_place_controls[0].state is ControlState.RESOLVED
+    assert meta.deviations[0].recorded_at == "operator"
+    assert (
+        steer_closes(
+            views_of(lab.store.reads.list_activations(lab.root.root_id)), "implement", 1
+        )
+        == 1
     )

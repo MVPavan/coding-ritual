@@ -8,9 +8,13 @@ import time
 from enum import StrEnum
 from typing import Final, Self
 
+import structlog
 from pydantic import BaseModel, ConfigDict, JsonValue, ValidationError, model_validator
 
-CODEX_VERSION: Final = "0.154.0"
+from workflow_interpreter.contracts.codex import (
+    CODEX_VERSION as CODEX_VERSION,  # noqa: PLC0414
+)
+
 MAX_FRAME_BYTES: Final[int] = 262144
 MAX_STDERR_BYTES: Final[int] = 16384
 MAX_POLL_S: Final[float] = 0.1
@@ -22,6 +26,10 @@ MSG_EOF: Final[str] = "app-server protocol closed"
 MSG_UNKNOWN: Final[str] = "unknown app-server notification or request"
 MSG_UNSUPPORTED: Final[str] = "unsupported tool or permission request"
 MSG_BUSY: Final[str] = "app-server request already pending"
+
+
+_LOG = structlog.get_logger(__name__)
+MSG_INPUT_CLOSED: Final[str] = "wf.rpc.outbound_dropped.input_closed"
 
 
 class RpcMethod(StrEnum):
@@ -177,6 +185,9 @@ class RpcClient:
 
     def _queue(self, frame: RpcFrame) -> None:
         """Bound queued output even if the vendor never reads stdin."""
+        if self._input not in self._fds:
+            _LOG.warning(MSG_INPUT_CLOSED, method=frame.method, request_id=frame.id)
+            return
         data = frame.model_dump_json(exclude_none=True).encode() + b"\n"
         if len(data) + len(self._outgoing) > MAX_FRAME_BYTES:
             raise RpcFailure(MSG_FRAME)

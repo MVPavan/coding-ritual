@@ -1,11 +1,14 @@
 """Session reuse is graph-pinned, app-server-only and derived at mint."""
 
+import hashlib
 import re
 
 import pytest
 
+from tests._appserver import AppServerLab
 from tests._bdio import RESOLVED_CONFIG, entry_request, handle, make_root
 from tests._helpers import VALID_FIXTURE
+from tests._supervisor import entry_mint
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import CarrierIntegrityError, MintReason
 from workflow_interpreter.bdio.rpc_records import (
@@ -15,6 +18,9 @@ from workflow_interpreter.bdio.rpc_records import (
 from workflow_interpreter.bdio.sessions import choose_source
 from workflow_interpreter.contracts.sessions import SessionReuse
 from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.supervisor.models import SteerIntent
+from workflow_interpreter.supervisor.paths import write_record
+from workflow_interpreter.supervisor.rpc_state import state_for
 
 
 def reuse_graph(tmp_path, reuse):
@@ -75,7 +81,7 @@ def finish_source(store, root, outcome=None):
         thread_id="thread-1",
         model=activation.metadata.model,
         effort="medium",
-        policy_digest="legacy",
+        policy_digest="c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84",
         state_path="/state/node",
     )
     store.register_session(activation.activation_id, registration)
@@ -147,7 +153,7 @@ def test_incompatible_registered_history_is_not_selected(
             "predecessor_activation_id": registration.activation_id,
         }
     )
-    assert choose_source(root, request, [source]) is None
+    assert choose_source(root, request, [source]).source is None
 
 
 def test_infra_retry_of_deliberate_steer_keeps_its_bound_session(tmp_path, fake_store):
@@ -180,3 +186,103 @@ def test_infra_retry_of_deliberate_steer_keeps_its_bound_session(tmp_path, fake_
     ).activation
     assert retry.metadata.session_reuse_source == source
     assert retry.metadata.session_id == source.thread_id
+
+
+@pytest.mark.parametrize("reason", [MintReason.EDGE, MintReason.STEER_CONTINUATION])
+def test_version_mismatch_is_a_logged_fresh_decision(
+    tmp_path, fake_store, capsys, reason
+):
+    """A CLI bump changes history eligibility, never wedges deliberate continuation."""
+    root = app_root(tmp_path, fake_store, "same-node")
+    registration = finish_source(fake_store, root, Outcome.STEERED)
+    source = fake_store.reads.load_activation(registration.activation_id)
+    old = registration.model_copy(update={"runner_version": "0.153.0"})
+    source = source.model_copy(
+        update={
+            "metadata": source.metadata.model_copy(
+                update={
+                    "session_registration": old,
+                    "session_completion": source.metadata.session_completion.model_copy(
+                        update={"registration": old}
+                    ),
+                }
+            )
+        }
+    )
+    request = entry_request(runner_profile="codex-appserver").model_copy(
+        update={
+            "mint_reason": reason,
+            "predecessor_activation_id": registration.activation_id,
+        }
+    )
+    assert choose_source(root, request, [source]).source is None
+    captured = capsys.readouterr()
+    assert "version_mismatch" in captured.out + captured.err
+
+
+def test_same_node_without_eligible_history_gets_distinct_private_state(tmp_path):
+    """A rejected source cannot leave its config or history in a fresh server home."""
+
+    lab = AppServerLab(tmp_path, reuse="same-node")
+    first = lab.store.mint_activation(
+        lab.root.root_id, entry_mint(runner_profile="codex-appserver", session_id="")
+    ).activation
+    old = state_for(lab.paths, lab.root, first)
+    (old / "prior-state").write_text("must not be reused")
+    lab.store.close_activation(first.activation_id, Outcome.ERROR_TRANSPORT)
+    second = lab.store.mint_activation(
+        lab.root.root_id,
+        entry_mint(runner_profile="codex-appserver", session_id="").model_copy(
+            update={
+                "mint_reason": MintReason.INFRA_RETRY,
+                "predecessor_activation_id": first.activation_id,
+            }
+        ),
+    ).activation
+    assert second.metadata.session_reuse_source is None
+    new = state_for(lab.paths, lab.root, second)
+    assert new != old
+    assert not (new / "prior-state").exists()
+
+
+def test_version_bump_deliberate_continuation_can_dispatch_fresh(tmp_path):
+    """The logged fresh decision must work at launch, not only at mint."""
+
+    lab = AppServerLab(tmp_path)
+    first = lab.run()
+    aid = first.dispatch.activation.activation_id
+    old = lab.store.reads.load_activation(aid).metadata.session_registration.model_copy(
+        update={"runner_version": "0.153.0"}
+    )
+    lab.store._client._merge_metadata(
+        aid,
+        {
+            "session_registration": old.model_dump(mode="json"),
+            "session_completion": None,
+        },
+    )
+    lab.store.close_activation(aid, Outcome.STEERED)
+    request = entry_mint(runner_profile="codex-appserver", session_id="").model_copy(
+        update={
+            "mint_reason": MintReason.STEER_CONTINUATION,
+            "predecessor_activation_id": aid,
+        }
+    )
+    write_record(
+        lab.paths.steer_intent(aid),
+        SteerIntent(
+            activation_id=aid,
+            reason="version bump",
+            instructions="fresh instructions",
+            instructions_digest=hashlib.sha256(b"fresh instructions").hexdigest(),
+            requested_at="test",
+            continuation=request,
+        ),
+    )
+    second = lab.run(request)
+    assert second.observation.completion.outcome is Outcome.NO_DIFF
+    meta = lab.store.reads.load_activation(
+        second.dispatch.activation.activation_id
+    ).metadata
+    assert meta.session_reuse_source is None
+    assert meta.session_registration.state_path != old.state_path
