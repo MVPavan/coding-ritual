@@ -1,6 +1,6 @@
 """The §4 read vocabulary — every query the write API issues.
 
-Free functions over a `BdClient`, so the write operations in `api.py` and
+Free functions over a `StoreBackend`, so the write operations in `api.py` and
 `gates.py` share exactly one definition of each query. Two rules hold
 throughout:
 
