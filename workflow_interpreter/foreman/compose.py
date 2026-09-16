@@ -16,6 +16,7 @@ from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
+from workflow_interpreter.ledger.paths import ensure_fence_dir
 from workflow_interpreter.schema.decisions import DecisionRequest, DecisionResponse
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF, procfs
 from workflow_interpreter.supervisor.band import BandLock
@@ -206,7 +207,15 @@ class Composition:
         return self.store_for_root(root_id).reads
 
     def for_root(self, root_id: str) -> InstanceWiring:
-        """Build one wiring with exactly one ``BandLock`` shared throughout."""
+        """Build one wiring with exactly one ``BandLock`` shared throughout.
+
+        The ledger fence directory is created HERE, before any dispatch this
+        wiring can make: every runner sandbox pins `<git common dir>/wf/`
+        read-only (`supervisor/sandbox.py`), and a pin whose bind source does
+        not exist would leave the locked inode replaceable from inside the box
+        (run-ledger §3.4).
+        """
+        ensure_fence_dir(self.config.repo_root)
         paths = WrapperPaths(self.supervisor_config, root_id)
         branch_head_reader = lambda: instance_head(
             self.git, self.config.repo_root, root_id
