@@ -35,6 +35,7 @@ from workflow_interpreter.bdio.errors import (
     BdCommandError,
     BdOutputError,
     BdTimeoutError,
+    BdUnavailableError,
     ForbiddenInvocationError,
     LossyWriteError,
     StoreConfigError,
@@ -380,6 +381,11 @@ class BdClient:
             completed = self._runner(argv, timeout_s)
         except subprocess.TimeoutExpired as exc:
             raise BdTimeoutError(argv, timeout_s, subcommand.value) from exc
+        except OSError as exc:
+            # A missing or non-executable binary never reaches bd, so it says
+            # nothing about the caller's ids; it must not escape as a bare
+            # `OSError` that a caller above the seam reads as a refusal.
+            raise BdUnavailableError(argv, subcommand.value, str(exc)) from exc
         if completed.returncode != 0:
             raise BdCommandError(
                 argv, completed.returncode, completed.stderr, subcommand.value

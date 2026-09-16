@@ -18,6 +18,7 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard for type checking onl
 
 _MSG_COMMAND: Final[str] = "bd {subcommand} failed (exit {returncode}): {stderr}"
 _MSG_TIMEOUT: Final[str] = "bd {subcommand} exceeded its {timeout_s}s timeout"
+_MSG_UNAVAILABLE: Final[str] = "bd {subcommand} could not be run: {reason}"
 _MSG_FORBIDDEN: Final[str] = (
     "refused to construct a bd invocation outside the closed command set: {detail}"
 )
@@ -66,6 +67,20 @@ class BdTimeoutError(StoreTransportError):
         super().__init__(
             _MSG_TIMEOUT.format(subcommand=subcommand, timeout_s=timeout_s)
         )
+
+
+class BdUnavailableError(StoreTransportError):
+    """The bd binary could not be executed at all (missing, not executable).
+
+    A defect of the transport, not an answer about the caller's ids: the
+    runner raises `OSError` before bd ever runs, and mapping it here is what
+    keeps a broken installation from reading as an ordinary refusal.
+    """
+
+    def __init__(self, argv: Sequence[str], subcommand: str, reason: str) -> None:
+        self.argv = tuple(argv)
+        self.subcommand = subcommand
+        super().__init__(_MSG_UNAVAILABLE.format(subcommand=subcommand, reason=reason))
 
 
 class StoreOutputError(StoreTransportError):

@@ -7,7 +7,7 @@ import json
 import os
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, NoReturn, cast
@@ -36,6 +36,7 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
 from workflow_interpreter.bdio.config import SigningConfig
+from workflow_interpreter.bdio.errors import BdUnavailableError, StoreTransportError
 from workflow_interpreter.bridge import (
     PhaseAdapter,
     PhaseAdapterError,
@@ -1231,15 +1232,24 @@ def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
     assert "Traceback" not in transcript
 
 
+@pytest.mark.parametrize(
+    ("defect", "expected"),
+    (("non-zero exit", BdCommandError), ("missing binary", BdUnavailableError)),
+)
 def test_phase_bridge_does_not_convert_a_transport_defect_into_a_refusal(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    defect: str,
+    expected: type[StoreTransportError],
 ) -> None:
     """A failed bd invocation is a defect, not a caller-visible refusal.
 
     An unreadable answer (`StoreOutputError`) means "no usable record" and is
     the caller's problem; a command that exited non-zero, timed out or was
     refused before it ran says nothing about the caller's ids, and reporting it
-    as `refused` would hide a broken store behind an ordinary exit code.
+    as `refused` would hide a broken store behind an ordinary exit code. A bd
+    binary that is missing or not executable is the same kind of defect: the
+    client maps the runner's `OSError`, so the bridge never sees a raw one.
     """
     lab = _bridge_lab(tmp_path)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
@@ -1250,13 +1260,25 @@ def test_phase_bridge_does_not_convert_a_transport_defect_into_a_refusal(
         classmethod(lambda _cls, _config, _reads=None: adapter),
     )
 
+    def unrunnable(_argv: Sequence[str], _timeout_s: float) -> NoReturn:
+        """What the runner does when the binary is absent or not executable."""
+        raise FileNotFoundError(2, "No such file or directory", "bd-not-installed")
+
     def broken(_stage_id: str) -> NoReturn:
         """Model the transport itself failing, not a missing row."""
-        raise BdCommandError(("bd", "dep", "tree"), 1, "dolt: connection lost", "dep")
+        if defect == "non-zero exit":
+            raise BdCommandError(
+                ("bd", "dep", "tree"), 1, "dolt: connection lost", "dep"
+            )
+        BdClient(
+            BdConfig(workspace=tmp_path, actor="tester", binary="bd-not-installed"),
+            unrunnable,
+        ).context()
+        raise AssertionError("an unrunnable bd binary must raise")
 
     monkeypatch.setattr(adapter, "blocking_dependencies", broken)
 
-    with pytest.raises(BdCommandError):
+    with pytest.raises(expected):
         bridge_command_module.execute_phase_bridge(
             lab.composition,
             epic_id="phase",

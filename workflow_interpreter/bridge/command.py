@@ -145,7 +145,6 @@ def execute_phase_bridge(
         ResolutionError,
         BridgeRefusal,
         ValidationError,
-        OSError,
         WrapperDirError,
         GitCommandError,
     ) as refusal:
