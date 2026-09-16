@@ -226,6 +226,7 @@ def open_gate(
         seq=seq,
         resume_hint=request.resume_hint,
         artifact_ref=request.artifact_ref,
+        artifact_oid=request.artifact_oid,
         artifact_digest=request.artifact_digest,
     )
     record = client._create_row(

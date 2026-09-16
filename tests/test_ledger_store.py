@@ -25,6 +25,7 @@ from typing import Final
 import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
+from tests._gates import ship_gate_request
 from tests.conftest import branch_head
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.backend import PinnedBackendFactory
@@ -64,6 +65,9 @@ from workflow_interpreter.ledger.schema import SCHEMA_VERSION
 from workflow_interpreter.ledger.store import LedgerStore
 
 TASK: Final[str] = "cr-3411.2"
+ARTIFACT_REF: Final[str] = "refs/wf/artifacts/cr-3411.2"
+ARTIFACT_OID: Final[str] = "c" * 40
+ARTIFACT_DIGEST: Final[str] = "t" * 40
 GIT_ENTRY: Final[str] = ".git"
 HOLD_TIMEOUT_S: Final[float] = 20.0
 HOLD_POLL_S: Final[float] = 0.05
@@ -95,14 +99,19 @@ def _repository(tmp_path: Path) -> tuple[Path, Path]:
     return repo_root, wrapper_root
 
 
-def _seeded(database: LedgerDatabase, task_id: str = TASK) -> str:
-    """One root and one activation of `task_id`, through the public write path."""
+def _store(database: LedgerDatabase, task_id: str = TASK) -> WorkflowStore:
+    """The public write path over one task's ledger rows."""
     backend = LedgerStore(database, task_id=task_id)
-    store = WorkflowStore(
+    return WorkflowStore(
         backend,
         backend_factory=PinnedBackendFactory(backend),
         branch_head_reader=branch_head,
     )
+
+
+def _seeded(database: LedgerDatabase, task_id: str = TASK) -> str:
+    """One root and one activation of `task_id`, through the public write path."""
+    store = _store(database, task_id)
     root = make_root(store, load_definition())
     store.mint_activation(root.root_id, entry_request())
     return root.root_id
@@ -173,6 +182,30 @@ def test_every_row_carries_the_task_and_a_per_task_seq(ledger: LedgerDatabase) -
     assert {task for task, _ in seqs} == {TASK}
     assert sorted(seq for _, seq in seqs) == [1, 2]
     assert next_seq == 3
+
+
+def test_a_bound_gate_projects_the_artifact_oid_beside_its_ref(
+    ledger: LedgerDatabase,
+) -> None:
+    """§3.3: `artifact_ref` names the ref, `artifact_oid` the immutable object."""
+    store = _store(ledger)
+    root = make_root(store, load_definition())
+    source = store.mint_activation(root.root_id, entry_request()).activation
+    store.open_gate(
+        root.root_id,
+        ship_gate_request(
+            source.activation_id,
+            artifact_ref=ARTIFACT_REF,
+            artifact_oid=ARTIFACT_OID,
+            artifact_digest=ARTIFACT_DIGEST,
+        ),
+    )
+
+    row = ledger.connection.execute(
+        "SELECT artifact_ref, artifact_oid FROM gates"
+    ).fetchone()
+    assert row["artifact_ref"] == ARTIFACT_REF
+    assert row["artifact_oid"] == ARTIFACT_OID
 
 
 def test_the_probe_round_trips_a_value_and_reports_the_pinned_identity(

@@ -489,6 +489,14 @@ class GateMetadata(BaseModel):
 
     Never the digest source itself — the wrapper hashes the bytes.
     """
+    artifact_oid: str | None = None
+    """The bound artifact's immutable object id, when the opener knows one.
+
+    Separate from `artifact_ref` because a ref is a NAME that can move: the
+    ledger indexes both (run-ledger §3.3), so a re-verification can find the
+    exact object an approval was taken over even after the ref has advanced.
+    Absent for a gate bound to a mutable document, which has no object id.
+    """
     artifact_digest: str | None = None
     """Mutable document SHA-256, or immutable artifact tree OID."""
     stale_approval_receipts: tuple[str, ...] = ()
@@ -599,6 +607,7 @@ class GateOpenRequest(BaseModel):
     round_no: JsonSafeInt | None = None
     resume_hint: str | None = None
     artifact_ref: str | None = None
+    artifact_oid: str | None = None
     artifact_digest: str | None = None
     halt_reason: str | None = None
 
