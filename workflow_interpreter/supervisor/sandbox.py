@@ -100,6 +100,11 @@ CONFIG_FILE: Final[str] = "config"
 CONFIG_WORKTREE_FILE: Final[str] = "config.worktree"
 HOOKS_DIR: Final[str] = "hooks"
 INFO_DIR: Final[str] = "info"
+WF_FENCE_DIR: Final[str] = "wf"
+"""The engine's own directory inside `<common>`, holding the ledger fence
+(run-ledger §3.4). The in-repo shape binds `.git` read-write AS A WHOLE, so a
+runner could otherwise unlink the locked inode and leave every writer holding a
+lock on a file nobody else can see; it is pinned back in both shapes."""
 WF_REFS_DIR: Final[str] = "refs/wf"
 """The wrapper's evidence refs. Pinning it protects them as LOOSE refs only;
 `packed-refs` stays rw for the runner's own commit, so ref forgery survives O2
@@ -379,6 +384,23 @@ def _common_dir(gitdir: Path) -> Path:
     return named.resolve()
 
 
+def fence_dir(checkout: Path) -> Path | None:
+    """`<common>/wf` for this checkout, or nothing when it is not a git tree.
+
+    The one resolver for the run-ledger fence directory (§3.4): the ledger and
+    the mount bound must name the SAME directory, and it is the git common
+    dir — shared by every worktree and every wrapper home over one repository —
+    that makes two wrapper roots contend on one lock. Routes on what `.git`
+    IS, exactly as `_git_binds` does, and runs no subprocess.
+    """
+    entry = checkout / GIT_ENTRY
+    if entry.is_dir():
+        return _common_dir(entry) / WF_FENCE_DIR
+    if entry.is_file():
+        return _common_dir(_parse_gitdir(entry)) / WF_FENCE_DIR
+    return None
+
+
 def _branch_ref(gitdir: Path) -> PurePosixPath | None:
     """The branch ref `<G>/HEAD` names, or `None` when there is no such branch.
 
@@ -474,8 +496,11 @@ def _in_repo_binds(
     _ensure_dir(git_dir / INFO_DIR)
     worktrees = git_dir / WORKTREES_DIR
     _ensure_dir(worktrees)
+    fence = _common_dir(git_dir) / WF_FENCE_DIR
+    _ensure_dir(fence)
     pins = _existing(
         (
+            fence,
             git_dir / CONFIG_FILE,
             git_dir / CONFIG_WORKTREE_FILE,
             git_dir / HOOKS_DIR,
@@ -504,9 +529,12 @@ def _worktree_binds(
         _ensure_dir(path)
     _ensure_file(gitdir / CONFIG_WORKTREE_FILE)
     _ensure_dir(gitdir / INFO_DIR)
+    fence = common / WF_FENCE_DIR
+    _ensure_dir(fence)
     git_rw = _existing((common / OBJECTS_DIR, *branch_dirs, gitdir))
     pins = _existing(
         (
+            fence,
             gitdir / COMMONDIR_FILE,
             gitdir / GITDIR_FILE,
             gitdir / CONFIG_WORKTREE_FILE,

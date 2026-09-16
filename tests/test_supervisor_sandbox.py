@@ -41,6 +41,7 @@ from workflow_interpreter.supervisor.sandbox import (
     FS_ROOT,
     GITDIR_FILE,
     REASON_OFF,
+    WF_FENCE_DIR,
     SandboxMode,
     SandboxPlan,
     grant_directory,
@@ -262,6 +263,7 @@ def test_worktree_checkout_binds_the_common_dir_and_the_worktree_gitdir(
         gitdir,
     )
     assert plan.ro_pins == (
+        common / WF_FENCE_DIR,
         gitdir / "commondir",
         gitdir / "gitdir",
         gitdir / "config.worktree",
@@ -419,6 +421,31 @@ def test_a_symlinked_branch_directory_grants_nothing(tmp_path: Path) -> None:
 
     with pytest.raises(SandboxPathRefused, match="symlink"):
         _plan(rig)
+
+
+def test_both_checkout_shapes_pin_the_ledger_fence_directory(
+    tmp_path: Path,
+) -> None:
+    """`<common>/wf` is read-only in every shape that has a git directory.
+
+    The in-repo shape is the one that NEEDS it — `.git` is bound read-write as
+    a whole, so without the pin a runner could unlink the locked inode and
+    leave every ledger writer holding a lock on a file nobody else can see
+    (run-ledger §3.4). The worktree shape pins the same directory, so the two
+    shapes cannot drift.
+    """
+    in_repo = _in_repo_rig(tmp_path / "ir")
+    worktree = _worktree_rig(tmp_path / "wt")
+
+    for rig, common in (
+        (in_repo, in_repo.repo_root / ".git"),
+        (worktree, worktree.repo_root / ".git"),
+    ):
+        fence = common / WF_FENCE_DIR
+        plan = _plan(rig)
+        assert fence.is_dir(), fence
+        assert fence in plan.ro_pins
+        assert not any(fence.is_relative_to(bind) for bind in plan.grants)
 
 
 def test_evidence_refs_remain_outside_the_write_grant(tmp_path: Path) -> None:
@@ -893,6 +920,42 @@ def test_the_worktree_gitdir_pointers_cannot_be_repointed(tmp_path: Path) -> Non
     # The wrapper's own git, outside the box, on the tree the runner just left.
     _git(rig.checkout, "status", "--porcelain")
     assert not marker.exists()
+
+
+@pytest.mark.proc
+def test_a_runner_cannot_replace_the_ledger_fence_inode_in_either_shape(
+    tmp_path: Path,
+) -> None:
+    """The fence file survives `rm`, `mv` and a truncating write from inside.
+
+    Replacing the INODE is the escape that matters: every other ledger writer
+    holds its `flock` on the file this one would have unlinked, so a runner
+    that could swap it would silently un-fence import, migration and restore
+    (run-ledger §3.4). Both checkout shapes, because `.git` is writable as a
+    whole in one of them.
+    """
+    capability = probe(_config(tmp_path))
+    if not capability.available:
+        pytest.skip(capability.reason)
+
+    for rig in (_in_repo_rig(tmp_path / "ir"), _worktree_rig(tmp_path / "wt")):
+        # Plan first: the fence directory is a bind source, pre-created by the
+        # planner exactly as the foreman pre-creates it before any dispatch.
+        box = wrap((), _plan(rig))
+        lock = rig.repo_root / ".git" / WF_FENCE_DIR / "ledger.lock"
+        lock.write_text("fence\n", encoding="utf-8")
+        inode = lock.stat().st_ino
+
+        for script in (
+            f"rm -f {lock}",
+            f"mv {lock} {lock}.stolen",
+            f"echo evil > {lock}",
+        ):
+            attempt = _run(box, script, rig.checkout)
+            assert attempt.returncode != 0, script
+            assert any(text in attempt.stderr for text in REFUSED_TEXT), attempt.stderr
+        assert lock.stat().st_ino == inode
+        assert lock.read_text(encoding="utf-8") == "fence\n"
 
 
 @pytest.mark.proc
