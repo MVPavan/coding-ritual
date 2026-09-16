@@ -284,6 +284,38 @@ def test_convergence_never_supersedes_the_root_that_owns_the_instance(
     }
 
 
+def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
+    fake_store: WorkflowStore,
+    fake_client: BdClient,
+    definition: GraphDefinition,
+) -> None:
+    """Residue an instance carries must not wedge convergence or allocation.
+
+    Ownership and `seq` are read from identity and one integer, never from a
+    decoded carrier: a row whose activation metadata no longer validates is
+    exactly the residue convergence exists to clean up, and a tick that
+    refused to allocate a sequence beside it could not even record what it
+    found (§3.1, §3.2).
+    """
+    key = "malformed-sibling"
+    root = fake_store.create_root(
+        instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
+    )
+    fake_client._create_bead(
+        title="wf activation with an unreadable carrier",
+        metadata={
+            "wf_kind": WfKind.ACTIVATION.value,
+            "wf_root_id": root.root_id,
+            "seq": 7,
+        },
+    )
+
+    with pytest.raises(CarrierIntegrityError):
+        fake_store.reads.instance_records(root.root_id)
+    assert fake_store.reads.owns_instance_rows(root.root_id) is True
+    assert fake_store.reads.next_instance_seq(root.root_id) == 8
+
+
 def test_two_roots_that_both_own_beads_refuse_to_converge(
     fake_store: WorkflowStore,
     fake_client: BdClient,

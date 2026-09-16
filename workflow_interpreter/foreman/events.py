@@ -24,7 +24,6 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.bdio.keys import event_key
-from workflow_interpreter.bdio.reads import next_seq
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.foreman.constants import EFFECTS_NODE, HALT_NODE
 from workflow_interpreter.foreman.routing import RouteKind, abandon_target, route
@@ -226,7 +225,7 @@ def backfill(
         if key in existing:
             continue
         seq = (
-            next_seq(store.reads.instance_records(root_id))
+            store.reads.next_instance_seq(root_id)
             if first_seq is None
             else first_seq + count
         )

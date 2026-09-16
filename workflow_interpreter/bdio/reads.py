@@ -112,6 +112,35 @@ def instance_rows(client: StoreBackend, root_id: str) -> tuple[StoreRow, ...]:
     return client.find_rows(RowQuery(metadata_filters={KEY_WF_ROOT_ID: root_id}))
 
 
+def owns_instance_rows(client: StoreBackend, root_id: str) -> bool:
+    """Whether any row of the instance other than the root itself links to it.
+
+    Deliberately over untyped rows: ownership decides which duplicate root
+    survives convergence (§3.2), and a malformed sibling row is exactly the
+    residue that decision exists to clean up. Parsing every carrier here would
+    make one unreadable row block the convergence.
+    """
+    return any(row.id != root_id for row in instance_rows(client, root_id))
+
+
+def next_instance_seq(client: StoreBackend, root_id: str) -> int:
+    """The next per-instance `seq`, read without parsing any carrier (§3.2).
+
+    Same reason as `owns_instance_rows`: allocating the next sequence needs
+    the numbers the rows carry, not their meaning, and an event backfill must
+    not be blocked by a sibling row that no longer decodes.
+    """
+    return _next_seq_of_rows(instance_rows(client, root_id))
+
+
+def _next_seq_of_rows(rows: Sequence[StoreRow]) -> int:
+    """The successor of the highest `seq` any of these rows carries."""
+    seen = [
+        value for row in rows if isinstance(value := row.metadata.get(KEY_SEQ), int)
+    ]
+    return max(seen, default=FIRST_SEQ - 1) + 1
+
+
 def instance_records(client: StoreBackend, root_id: str) -> tuple[InstanceRecord, ...]:
     """Every row of the instance, typed — root, activations, gates and events (§4).
 
@@ -318,6 +347,14 @@ class WorkflowReads:
     def load_gate(self, gate_id: str) -> GateRecord:
         """Read one gate through the carrier contract."""
         return load_gate(self._client, gate_id)
+
+    def owns_instance_rows(self, root_id: str) -> bool:
+        """Whether any row of the instance other than the root links to it."""
+        return owns_instance_rows(self._client, root_id)
+
+    def next_instance_seq(self, root_id: str) -> int:
+        """The next per-instance `seq`, allocated without parsing carriers."""
+        return next_instance_seq(self._client, root_id)
 
     def instance_records(self, root_id: str) -> tuple[InstanceRecord, ...]:
         """Every row of the instance, typed and selected by `wf_root_id` (§4)."""

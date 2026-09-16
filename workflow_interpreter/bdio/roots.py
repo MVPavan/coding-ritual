@@ -422,7 +422,7 @@ def _ordered_by_ownership(
     """
     if len(live) < 2:
         return tuple(live)
-    owners = [row for row in live if _owns_instance_records(client, row.id)]
+    owners = [row for row in live if reads.owns_instance_rows(client, row.id)]
     if len(owners) > 1:
         raise CarrierIntegrityError(
             _MSG_TWO_OWNING_ROOTS.format(
@@ -434,11 +434,6 @@ def _ordered_by_ownership(
         return tuple(live)
     owner = owners[0]
     return (owner, *(row for row in live if row.id != owner.id))
-
-
-def _owns_instance_records(client: StoreBackend, root_id: str) -> bool:
-    """Whether any activation, gate or event of the instance links to this root."""
-    return any(row.id != root_id for row in reads.instance_records(client, root_id))
 
 
 def _supersede_root(client: StoreBackend, loser: StoreRow, winner_id: str) -> None:
