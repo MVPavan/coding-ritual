@@ -1,11 +1,12 @@
 """The store contract — what every backend must do, whichever one is pinned.
 
-Parameterised by a BACKEND FACTORY rather than by a transport: each case runs
-against the in-memory transport and against a real bd workspace, and neither
-variant names a bd command. Faults are named by what they mean — the state
-committed and the process died before its follow-up write; the write landed
-and its read-back never returned — so the same case will run against the
-ledger backend in S1/S2 without being rewritten.
+Parameterised by BACKEND, not by transport: each lab carries its own
+`BackendKind`, the factory that builds it, and the fault injector that can
+produce a logical fault on it. Faults are named by what they mean — the state
+committed and the process died before its follow-up write; the write landed and
+its read-back never returned — and each backend's injector translates them into
+whatever it takes to make that happen there. Adding the S1 ledger backend is
+adding one `ContractLab` to `LABS`, not rewriting a case.
 
 A backend that cannot inject a fault skips those cases loudly rather than
 passing them vacuously: real bd has no crash hook, and a green fault case on a
@@ -16,7 +17,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from enum import StrEnum
-from typing import Final
+from typing import Final, Protocol
 
 import pytest
 
@@ -65,31 +66,30 @@ class FaultPoint(StrEnum):
     caller never learned the row exists."""
 
 
-class ContractLab:
-    """One backend under the contract, plus whatever faults it can produce."""
+class FaultInjector(Protocol):
+    """Makes one logical fault happen on the backend it was built for."""
 
-    def __init__(
-        self,
-        name: str,
-        backend_factory: StoreBackendFactory,
-        faults: FakeBd | None = None,
-    ) -> None:
-        self.name = name
-        self.backend_factory = backend_factory
-        self._faults = faults
-
-    def store(self) -> WorkflowStore:
-        """A store built the way production builds one: through the factory."""
-        return WorkflowStore(
-            self.backend_factory(BackendKind.BD),
-            backend_factory=self.backend_factory,
-            branch_head_reader=branch_head,
-        )
+    @property
+    def crash_error(self) -> type[Exception]:
+        """What an injected crash raises here — the backend's own shape."""
 
     def arm(self, point: FaultPoint) -> None:
-        """Arm the next occurrence of `point`, or skip a test that needs one."""
-        if self._faults is None:
-            pytest.skip(_NO_FAULTS.format(backend=self.name))
+        """Arm the next occurrence of `point`."""
+
+
+class BdFaultInjector:
+    """bd's translation: a logical fault point to the bd command that carries it."""
+
+    def __init__(self, faults: FakeBd) -> None:
+        self._faults = faults
+
+    @property
+    def crash_error(self) -> type[Exception]:
+        """The in-memory bd transport's crash."""
+        return InjectedCrash
+
+    def arm(self, point: FaultPoint) -> None:
+        """Arm `point` as the bd command sequence expresses it."""
         if point is FaultPoint.AFTER_STATE_COMMIT:
             # The carrier is written first and the row closed second (§5.1),
             # so "state committed, transition unfinished" is a dead close.
@@ -98,24 +98,65 @@ class ContractLab:
         self._faults.lose_response_on("create")
 
 
+class ContractLab:
+    """One backend under the contract, plus whatever faults it can produce."""
+
+    def __init__(
+        self,
+        name: str,
+        kind: BackendKind,
+        backend_factory: StoreBackendFactory,
+        faults: FaultInjector | None = None,
+    ) -> None:
+        self.name = name
+        self.kind = kind
+        self.backend_factory = backend_factory
+        self._faults = faults
+
+    def store(self) -> WorkflowStore:
+        """A store built the way production builds one: through the factory."""
+        return WorkflowStore(
+            self.backend_factory(self.kind),
+            backend_factory=self.backend_factory,
+            branch_head_reader=branch_head,
+        )
+
+    def arm(self, point: FaultPoint) -> None:
+        """Arm the next occurrence of `point`, or skip a test that needs one."""
+        if self._faults is None:
+            pytest.skip(_NO_FAULTS.format(backend=self.name))
+        self._faults.arm(point)
+
+    @property
+    def crash_error(self) -> type[Exception]:
+        """What this backend's injected crash raises."""
+        assert self._faults is not None
+        return self._faults.crash_error
+
+
 @pytest.fixture(
     params=[
-        pytest.param("fake", id="fake-transport"),
-        pytest.param("bd", id="real-bd", marks=pytest.mark.bd),
+        pytest.param("bd-fake", id="bd-fake-transport"),
+        pytest.param("bd-real", id="bd-real", marks=pytest.mark.bd),
     ]
 )
 def lab(request: pytest.FixtureRequest) -> Iterator[ContractLab]:
     """The contract's backend, built from a factory like production's."""
-    if request.param == "fake":
+    if request.param == "bd-fake":
         fake = FakeBd(str(FAKE_WORKSPACE))
         client = BdClient(
             BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR), runner=fake
         )
-        yield ContractLab("fake", PinnedBackendFactory(client), fake)
+        yield ContractLab(
+            "bd-fake",
+            BackendKind.BD,
+            PinnedBackendFactory(client),
+            BdFaultInjector(fake),
+        )
         return
     workspace = request.getfixturevalue("bd_workspace")
     client = BdClient(BdConfig(workspace=workspace, actor=TEST_ACTOR))
-    yield ContractLab("bd", PinnedBackendFactory(client))
+    yield ContractLab("bd-real", BackendKind.BD, PinnedBackendFactory(client))
 
 
 def _entry(store: WorkflowStore, root_id: str) -> ActivationRecord:
@@ -251,7 +292,7 @@ def test_a_root_scoped_store_is_built_through_the_backend_factory(
         return lab.backend_factory(backend)
 
     store = WorkflowStore(
-        recording(BackendKind.BD),
+        recording(lab.kind),
         backend_factory=recording,
         branch_head_reader=branch_head,
     )
@@ -260,7 +301,7 @@ def test_a_root_scoped_store_is_built_through_the_backend_factory(
 
     scoped = store.for_root(branch_head_reader=branch_head)
 
-    assert asked == [BackendKind.BD]
+    assert asked == [lab.kind]
     assert scoped.reads.load_root(root.root_id).root_id == root.root_id
 
 
@@ -273,7 +314,7 @@ def test_a_crash_after_the_state_commit_is_repaired_forward(
     activation = _entry(store, root.root_id)
     lab.arm(FaultPoint.AFTER_STATE_COMMIT)
 
-    with pytest.raises(InjectedCrash):
+    with pytest.raises(lab.crash_error):
         store.close_activation(activation.activation_id, Outcome.DONE)
 
     wedged = store.reads.load_activation(activation.activation_id)
@@ -295,7 +336,7 @@ def test_a_write_whose_readback_is_lost_mints_nothing_twice(
     root = make_root(store, load_definition())
     lab.arm(FaultPoint.BEFORE_READBACK)
 
-    with pytest.raises(InjectedCrash):
+    with pytest.raises(lab.crash_error):
         store.mint_activation(root.root_id, entry_request())
 
     recovered = store.mint_activation(root.root_id, entry_request())
