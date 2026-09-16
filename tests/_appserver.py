@@ -1,10 +1,12 @@
 """An isolated app-server lab using only the versioned fake executable."""
 
 import os
+import re
 import sys
 from pathlib import Path
 
 from tests._bdio import load_definition
+from tests._helpers import VALID_FIXTURE
 from tests._profiles import task_builder
 from tests._supervisor import (
     IMPLEMENT,
@@ -19,6 +21,7 @@ from tests._supervisor import (
     node_of,
     pinned_config,
 )
+from workflow_interpreter import load_graph
 from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.channels import pinned_verifier_digests
@@ -32,7 +35,9 @@ FIXTURE = Path(__file__).parent / "fixtures" / "codex_appserver" / "server.py"
 class AppServerLab:
     """Drive the real wrapper with fake RPC and an in-memory bd transport."""
 
-    def __init__(self, tmp_path: Path, mode: str = "complete") -> None:
+    def __init__(
+        self, tmp_path: Path, mode: str = "complete", *, reuse: str | None = None
+    ) -> None:
         self.repo = make_repo(tmp_path)
         self.config = make_config(
             self.repo, tmp_path, fake_proc=False, sandbox=SandboxMode.OFF
@@ -44,9 +49,21 @@ class AppServerLab:
             else item
             for item in pinned_config(self.repo)
         )
+        definition = load_definition()
+        if reuse is not None:
+            graph = tmp_path / "appserver.toml"
+            graph.write_text(
+                re.sub(
+                    r"writes\s*=\s*true",
+                    f'writes = true\nsession_reuse = "{reuse}"',
+                    VALID_FIXTURE.read_text(),
+                    count=1,
+                )
+            )
+            definition = load_graph(graph)
         self.root = self.store.create_root(
             instance_key="appserver-test",
-            definition=load_definition(),
+            definition=definition,
             resolved_config=settings,
         )
         self.paths = make_paths(self.config, self.root.root_id)
@@ -77,10 +94,10 @@ class AppServerLab:
             update={"max_wall": "2s", "stale_after": "1s"}
         )
 
-    def run(self):
+    def run(self, request=None):
         """Dispatch, enforce runtime limits, collect channels, and run host checks."""
         return self.supervisor.run(
-            entry_mint(runner_profile="codex-appserver", session_id=""),
+            request or entry_mint(runner_profile="codex-appserver", session_id=""),
             self.node,
             self.profile,
             task_builder(self.paths.worktree, self.node),

@@ -26,6 +26,7 @@ from workflow_interpreter.contracts.execution import (
     MSG_REVIEWER_GRANTS,
     ExecutionProfileName,
 )
+from workflow_interpreter.contracts.sessions import SessionReuse
 
 MODEL_CONFIG: Final[ConfigDict] = ConfigDict(
     frozen=True,
@@ -304,6 +305,7 @@ class Node(BaseModel):
     isolation: IsolationMode | None = None
     writes: bool | None = None
     execution_profile: ExecutionProfileName | None = None
+    session_reuse: SessionReuse | None = None
     allowed_paths: tuple[RelativePath, ...] | None = None
     inputs: tuple[Identifier, ...] | None = None
     verify: tuple[VerifyCheck, ...] | None = None
@@ -340,6 +342,8 @@ class Node(BaseModel):
     ) -> dict[str, object]:
         """Keep named authority singular and preserve absent-field legacy hashes."""
         result: dict[str, object] = handler(self)
+        if self.session_reuse is None:
+            result.pop("session_reuse", None)
         if self.execution_profile is not None:
             result.pop("writes", None)
         else:

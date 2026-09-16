@@ -21,6 +21,9 @@ def run_turn_server():
     mode = os.environ.get("WF_RPC_TEST_MODE", "complete")
     artifacts = Path(os.environ["WF_ARTIFACT_DIR"])
     artifacts.mkdir(parents=True, exist_ok=True)
+    counter = Path(os.environ["CODEX_HOME"]) / "fixture-turn-count"
+    calls = 0
+    turn_id = "turn-1"
     for line in sys.stdin:
         message = json.loads(line)
         with (artifacts / "requests.jsonl").open("a") as log:
@@ -44,6 +47,8 @@ def run_turn_server():
             )
         elif method in ("thread/start", "thread/resume"):
             params = message["params"]
+            calls = int(counter.read_text()) if method == "thread/resume" else 0
+            turn_id = f"turn-{calls + 1}"
             send(
                 {
                     "id": message["id"],
@@ -79,6 +84,8 @@ def run_turn_server():
                 }
             )
         elif method == "turn/start":
+            if mode == "hang-after-submit":
+                time.sleep(60)
             directory = Path(os.environ["WF_OUTCOME_FILE"]).parent.parent
             registration = json.loads((directory / "session.json").read_text())
             intent = json.loads((directory / "turn.json").read_text())
@@ -90,15 +97,52 @@ def run_turn_server():
                     "id": message["id"],
                     "result": {
                         "turn": {
-                            "id": "turn-1",
+                            "id": turn_id,
                             "status": "inProgress",
                             "items": [],
                         }
                     },
                 }
             )
-            Path(os.environ["WF_OUTCOME_FILE"]).write_text('{"outcome":"no_diff"}')
+            calls += 1
+            counter.write_text(str(calls))
+            Path(os.environ["WF_OUTCOME_FILE"]).write_text(
+                json.dumps(
+                    {"outcome": "fail_code" if mode == "fail-code" else "no_diff"}
+                )
+            )
+            counts = {
+                "inputTokens": 100 * calls,
+                "cachedInputTokens": 20 * calls,
+                "outputTokens": 10 * calls,
+                "reasoningOutputTokens": 2 * calls,
+                "totalTokens": 110 * calls,
+            }
+            send(
+                {
+                    "method": "thread/tokenUsage/updated",
+                    "params": {
+                        "threadId": "thread-1",
+                        "turnId": turn_id,
+                        "tokenUsage": {"total": counts, "last": counts},
+                    },
+                }
+            )
             Path(os.environ["WF_EFFECTS_FILE"]).write_text('{"paths":[]}')
+            if mode == "wrong-item-thread":
+                send(
+                    {
+                        "method": "item/agentMessage/delta",
+                        "params": {
+                            "threadId": "other",
+                            "turnId": turn_id,
+                            "itemId": "item-1",
+                            "delta": "bad",
+                        },
+                    }
+                )
+            if mode == "wait-control":
+                continue
             if mode == "exit-without-turn":
                 return
             if mode == "unknown-after-start":
@@ -113,7 +157,7 @@ def run_turn_server():
                             else "thread-1",
                             "turn": {
                                 "items": [],
-                                "id": "wrong" if mode == "wrong-turn" else "turn-1",
+                                "id": "wrong" if mode == "wrong-turn" else turn_id,
                                 "status": "failed"
                                 if mode == "turn-failed"
                                 else "completed",
@@ -121,6 +165,31 @@ def run_turn_server():
                         },
                     }
                 )
+            if mode == "late-usage":
+                for _ in range(100):
+                    send({"method": "warning", "params": {"message": "bounded info"}})
+                later = {**counts, "inputTokens": 150, "totalTokens": 160}
+                send(
+                    {
+                        "method": "thread/tokenUsage/updated",
+                        "params": {
+                            "threadId": "thread-1",
+                            "turnId": turn_id,
+                            "tokenUsage": {"total": later, "last": later},
+                        },
+                    }
+                )
+        elif method == "turn/steer":
+            send({"id": message["id"], "result": {"turnId": turn_id}})
+            send(
+                {
+                    "method": "turn/completed",
+                    "params": {
+                        "threadId": "thread-1",
+                        "turn": {"id": turn_id, "status": "completed", "items": []},
+                    },
+                }
+            )
         elif method == "turn/interrupt":
             send({"id": message["id"], "result": {}})
     if mode == "hang-shutdown":

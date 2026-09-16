@@ -52,7 +52,8 @@ from workflow_interpreter.bdio.errors import (
     LifecycleConflictError,
 )
 from workflow_interpreter.bdio.records import ActivationRecord, parse_activation
-from workflow_interpreter.bdio.rpc_records import SessionRegistration
+from workflow_interpreter.bdio.rpc_records import SessionCompletion, SessionRegistration
+from workflow_interpreter.bdio.sessions import validate_completion
 from workflow_interpreter.bdio.wire import (
     Lifecycle,
     Metadata,
@@ -216,4 +217,25 @@ def register_session(
             "session_registration": metadata_dict(registration),
             "session_id": registration.thread_id,
         },
+    )
+
+
+def record_session_completion(
+    client: BdClient,
+    load: ActivationLoader,
+    activation_id: str,
+    completion: SessionCompletion,
+) -> ActivationRecord:
+    """Publish one successful turn without claiming that its process has exited."""
+    record = load(activation_id)
+    validate_completion(record, completion)
+    if record.metadata.session_completion == completion:
+        return record
+    if (
+        record.metadata.is_settled
+        or record.metadata.lifecycle is not Lifecycle.DISPATCHED
+    ):
+        raise LifecycleConflictError(MSG_SESSION_IDENTITY)
+    return _merge(
+        client, activation_id, {"session_completion": metadata_dict(completion)}
     )

@@ -24,6 +24,7 @@ from workflow_interpreter.bdio.records import (
     MintResult,
     RootRecord,
 )
+from workflow_interpreter.bdio.sessions import choose_source
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
     BeadRecord,
@@ -39,6 +40,7 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
     resolved_settings,
 )
+from workflow_interpreter.contracts.execution import RunnerName
 from workflow_interpreter.schema.models import Outcome
 
 if TYPE_CHECKING:
@@ -304,6 +306,14 @@ def _prepare_mint(
     runner_profile, model = self._assert_mint_permitted(
         root, facts, beads, activations, request
     )
+    source = (
+        choose_source(root, request, activations)
+        if runner_profile.removeprefix("profile:") == RunnerName.CODEX_APPSERVER.value
+        else None
+    )
+    session_id = request.session_id
+    if runner_profile.removeprefix("profile:") == RunnerName.CODEX_APPSERVER.value:
+        session_id = source.thread_id if source else ""
     metadata = ActivationMetadata(
         wf_root_id=root_id,
         node=facts.node,
@@ -318,7 +328,8 @@ def _prepare_mint(
         inputs=request.inputs,
         runner_profile=runner_profile,
         model=model,
-        session_id=request.session_id,
+        session_id=session_id,
+        session_reuse_source=source,
         intended_base_commit=facts.intended_base_commit,
         deviations=request.deviations,
     )

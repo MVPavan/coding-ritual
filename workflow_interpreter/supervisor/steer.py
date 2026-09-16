@@ -59,6 +59,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
     pinned_execution_setting,
 )
+from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.bdio.wire import resolved_settings
 from workflow_interpreter.schema.models import Node
 from workflow_interpreter.supervisor.band import BandLock
@@ -77,6 +78,7 @@ from workflow_interpreter.supervisor.models import (
 )
 from workflow_interpreter.supervisor.paths import WrapperPaths, write_record
 from workflow_interpreter.supervisor.procfs import terminate
+from workflow_interpreter.supervisor.rpc_control import enqueue, request_interrupt
 from workflow_interpreter.supervisor.workspace import Workspace
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -183,6 +185,22 @@ class Steerer:
             paths, Git(config), clock, BandLock(paths.band_lock)
         )
 
+    def in_place(
+        self, activation: ActivationRecord, *, reason: str, instructions: str
+    ) -> ControlRegistration:
+        """Experimental app-server-only control; no close or continuation is minted."""
+        root = self._store.reads.load_root(self._paths.root_id)
+        coordinator = self._store.coordination_store()
+        coordinator.validate_member(root)
+        coordinator.assert_child_progress(root)
+        return enqueue(
+            self._paths,
+            self._store,
+            activation,
+            reason=reason,
+            instructions=instructions,
+        )
+
     def steer(
         self,
         activation: ActivationRecord,
@@ -240,6 +258,7 @@ class Steerer:
         if handle is None:
             raise TerminationFailed(_MSG_NO_HANDLE.format(activation_id=activation_id))
 
+        request_interrupt(self._paths, activation)
         proof = terminate(self._config, handle, self._clock)
         if not proof.confirmed_dead:
             raise TerminationFailed(_MSG_SURVIVED.format(activation_id=activation_id))

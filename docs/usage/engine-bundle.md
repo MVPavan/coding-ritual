@@ -211,3 +211,58 @@ Status reports the degraded heartbeat; durable gates, refusals, and terminal
 state remain independently observable. An operator must investigate this gap.
 Wake sequence numbers form a separate monotonically decreasing namespace;
 even a notification whose payload is lost retains its allocated sequence slot.
+
+
+## Experimental Codex app-server
+
+`codex-appserver` is a second runner pinned to codex-cli **0.154.0**. `codex`
+exec remains the default, and no shipped workflow or configuration opts in.
+Qualification uses the fake executable and generated schema subset under
+`tests/fixtures/codex_appserver/`; no live model run or token benchmark is implied.
+The fixture verifies protocol behavior and grant construction. Host proc,
+bd and acceptance gates remain separate qualification.
+
+Bind a dedicated experimental role to `codex-appserver` with explicit model and
+effort. The wrapper owns its stdio RPC and one server process per activation.
+It registers the thread in protected `session.json` and bd before submitting
+one turn. A server exit without successful turn completion is a transport error.
+After wrapper loss, recovery terminates an orphan and never resends an ambiguous
+turn start. Inspect `turn.json` for intent, acknowledged turn and completion state.
+
+Sessions are fresh by default, including reviewers. A node may explicitly set
+`session_reuse = "same-node"`; this changes the graph hash and is rejected for
+other runners. It binds eligible completed same-node history at mint and applies
+a fresh full input envelope and current grants on every activation. Remembered
+review verdicts can bias subsequent review; automatic reviewer reuse is disabled.
+Intentional vendor state persists under the wrapper's protected session-state
+directory; model tool roots exclude it. Private toolchain copies still follow
+their existing cleanup policy.
+
+The runner uses an isolated `CODEX_HOME`. It conservatively refuses checkout
+`.codex/config.toml` or `.codex/rules` because the pinned app-server CLI does not
+accept exec's ignore-config flags. It does not copy ambient configuration or
+MCP definitions. Authentication through the configured host environment has not
+been live-qualified in this slice; fixture success does not certify a live login.
+
+Default `steer` retains termination and continuation. Explicit experimental
+in-place control uses:
+
+```sh
+python -m workflow_interpreter.foreman steer ROOT ACTIVATION \
+  --in-place --reason "clarify scope" --instructions-file steer.txt
+```
+
+Instructions are bounded to 16 KiB and passed literally, without a shell. The
+command reports a durable pending intent; status shows acknowledgment or
+uncertainty. Both steer modes spend the same node/round allowance, including
+ambiguous requests. In-place steering does not mint an activation. After owner
+loss, uncertain requests produce a durable refusal and non-zero driver attention
+exit; they are never replayed. Use a deliberate default steer to continue that
+activation, or explicitly steer a still-running activation again within its cap.
+A protected acknowledgment survives a crash before its bd mirror is written.
+
+`status.appserver` exposes registered thread/source identity, control states,
+and separate per-activation, cumulative and last-reported token counts plus input
+envelope bytes. Unknown fields remain visible. Activation totals subtract the
+recorded thread baseline; duplicate cumulative notifications add no spend, and an
+unknown baseline remains unknown. No token-saving claim is made.

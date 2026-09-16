@@ -16,9 +16,15 @@ from typing import Final
 
 import structlog
 
-from workflow_interpreter.bdio import ActivationRecord, GateRecord, WorkflowStore
+from workflow_interpreter.bdio import (
+    ActivationRecord,
+    BoundExceededError,
+    GateRecord,
+    WorkflowStore,
+)
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.bdio.rpc_control import ControlBusy
 from workflow_interpreter.bridge.command import execute_phase_bridge
 from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
 from workflow_interpreter.foreman.compose import (
@@ -44,14 +50,16 @@ from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
 from workflow_interpreter.foreman.monitor import WakeMonitor, monitor_status
 from workflow_interpreter.foreman.resolve import instantiate
+from workflow_interpreter.foreman.rpc_control import session_status
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.foreman.wake import MonitorUnavailable
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.clock import SystemClock
-from workflow_interpreter.supervisor.errors import LockUnavailable
+from workflow_interpreter.supervisor.errors import ContinuationRefused, LockUnavailable
 from workflow_interpreter.supervisor.gitio import Git
+from workflow_interpreter.supervisor.rpc_control import read_instructions
 
 # The per-subprocess `debug` chatter every git and bd call emits is worthless in
 # an operator transcript, while `wf.verify.rerun` and every error must stay
@@ -170,6 +178,9 @@ def _parser() -> argparse.ArgumentParser:
     steer.add_argument("root_id")
     steer.add_argument("activation_id")
     steer.add_argument("--reason", required=True)
+    steer.add_argument(
+        "--in-place", action="store_true", help="experimental app-server control"
+    )
     steer.add_argument("--instructions-file", type=Path, required=True)
     integration = commands.add_parser("integration").add_subparsers(
         dest="integration_command", required=True
@@ -663,15 +674,22 @@ def _run(
         return 0
     if args.command == "steer":
         limit = MAX_TRANSCRIPT_BYTES + composition.supervisor_config.log_tail_bytes
-        emit(
-            foreman.steer(
+        try:
+            report = foreman.steer(
                 args.root_id,
                 args.activation_id,
                 reason=args.reason,
-                instructions=args.instructions_file.read_text(encoding="utf-8"),
-            ).model_dump_json(),
-            limit,
-        )
+                instructions=(
+                    read_instructions(args.instructions_file)
+                    if args.in_place
+                    else args.instructions_file.read_text(encoding="utf-8")
+                ),
+                in_place=args.in_place,
+            )
+        except (ControlBusy, ContinuationRefused, BoundExceededError) as error:
+            emit(json.dumps({"error": "steer_refused", "detail": str(error)}), limit)
+            return 1
+        emit(report.model_dump_json(), limit)
         return 0
     if args.command == "run":
         try:
@@ -732,6 +750,9 @@ def _run(
             if activation.metadata.stale_flag is not None
         ),
         "usage": _usage_summary(view.activations),
+        "appserver": session_status(
+            view.wiring.paths, tuple(view.activations.values())
+        ),
         "execution_contracts": execution_status(
             composition.for_root(root.root_id).paths, tuple(view.activations)
         ),

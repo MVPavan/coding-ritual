@@ -7,7 +7,9 @@ from typing import Final
 
 from pydantic import ValidationError
 
-from workflow_interpreter.bdio import ProcessHandle
+from workflow_interpreter.bdio import ProcessHandle, Usage
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
+from workflow_interpreter.contracts.rpc_usage import UsageSnapshot
 from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.profiles.codex import (
     CodexProfile,
@@ -17,12 +19,16 @@ from workflow_interpreter.profiles.codex import (
 from workflow_interpreter.profiles.codex_rpc import CODEX_VERSION
 from workflow_interpreter.profiles.config import RunnerName
 from workflow_interpreter.profiles.errors import TaskRefused
+from workflow_interpreter.supervisor.errors import WrapperDirError
+from workflow_interpreter.supervisor.paths import read_record
 from workflow_interpreter.supervisor.profile import (
     RunnerCommand,
     RunnerEvent,
     TaskSpec,
     TerminalEnvelope,
 )
+from workflow_interpreter.supervisor.rpc_records import SESSION_FILE
+from workflow_interpreter.supervisor.rpc_usage import USAGE_FILE
 
 MSG_VERSION: Final[str] = "codex-appserver requires codex-cli 0.154.0"
 MSG_STATE: Final[str] = "codex-appserver requires protected vendor state"
@@ -103,5 +109,31 @@ class CodexAppServerProfile(CodexProfile):
                 continue
 
     def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
-        """Until usage is recorded, report unknown rather than infer it from text."""
-        return TerminalEnvelope(session_id=handle.session_id or None)
+        """Read protected identity and per-turn usage, never sum thread totals."""
+        directory = Path(handle.log_path).parent
+        try:
+            registration = read_record(directory / SESSION_FILE, SessionRegistration)
+            snapshot = read_record(directory / USAGE_FILE, UsageSnapshot)
+        except (OSError, WrapperDirError):
+            return TerminalEnvelope()
+        if registration is None or registration.handle != handle:
+            return TerminalEnvelope()
+        counts = snapshot.per_turn if snapshot else None
+        known = (
+            counts is not None
+            and counts.input is not None
+            and counts.output is not None
+        )
+        usage = Usage(known=False)
+        if known and counts is not None and counts.input is not None:
+            usage = Usage(
+                known=True,
+                input_tokens=(
+                    counts.input - counts.cached_input
+                    if counts.cached_input is not None
+                    else None
+                ),
+                cache_read_input_tokens=counts.cached_input,
+                output_tokens=counts.output,
+            )
+        return TerminalEnvelope(session_id=registration.thread_id, usage=usage)

@@ -9,7 +9,14 @@ from pydantic import JsonValue, ValidationError
 
 from workflow_interpreter.bdio import WorkflowStore
 from workflow_interpreter.bdio.errors import BdioError
-from workflow_interpreter.bdio.rpc_records import SessionRegistration
+from workflow_interpreter.bdio.rpc_control import ControlBusy
+from workflow_interpreter.bdio.rpc_records import (
+    ControlRegistration,
+    SessionCompletion,
+    SessionRegistration,
+)
+from workflow_interpreter.contracts.rpc_control import MSG_CONTROL, ControlState
+from workflow_interpreter.contracts.rpc_usage import TokenCounts, UsageSnapshot
 from workflow_interpreter.profiles.codex_rpc import (
     CODEX_VERSION,
     Notification,
@@ -28,18 +35,36 @@ from workflow_interpreter.supervisor.models import (
     MonitorVerdict,
 )
 from workflow_interpreter.supervisor.monitor import TERMINAL_VERDICTS, Monitor
-from workflow_interpreter.supervisor.paths import WrapperPaths, write_record
+from workflow_interpreter.supervisor.paths import (
+    WrapperPaths,
+    read_record,
+    write_record,
+)
 from workflow_interpreter.supervisor.profile import EventType, RunnerEvent, TaskSpec
+from workflow_interpreter.supervisor.rpc_control import (
+    INTERRUPT_FILE,
+    control_path,
+    interrupt,
+    next_intent,
+)
 from workflow_interpreter.supervisor.rpc_pipes import RpcPipes
 from workflow_interpreter.supervisor.rpc_records import (
     SESSION_FILE,
     TURN_FILE,
     InitializeReply,
+    ThreadIdentity,
     ThreadReply,
     TurnCompleted,
+    TurnIdentity,
     TurnPhase,
     TurnRecord,
     TurnReply,
+    VendorThread,
+)
+from workflow_interpreter.supervisor.rpc_usage import (
+    USAGE_FILE,
+    UsageNotification,
+    updated_usage,
 )
 
 MSG_REPLY: Final[str] = "app-server rejected or malformed a required response"
@@ -57,6 +82,7 @@ class SessionPhase(StrEnum):
     THREAD = "thread"
     TURN = "turn"
     ACTIVE = "active"
+    CONTROL = "control"
     SHUTDOWN = "shutdown"
 
 
@@ -85,6 +111,23 @@ class RpcSession:
         self._turn: TurnRecord | None = None
         self._early: TurnCompleted | None = None
         self._shutdown_at = 0.0
+        activation = store.reads.load_activation(receipt.activation_id)
+        source = activation.metadata.session_reuse_source
+        self._baseline = TokenCounts(input=0, cached_input=0, output=0)
+        if source is not None:
+            previous = store.reads.load_activation(
+                source.activation_id
+            ).metadata.session_completion
+            self._baseline = previous.usage.cumulative if previous else TokenCounts()
+        self._usage = UsageSnapshot(envelope_bytes=len(task.brief.encode()))
+        self._pending_usage: UsageNotification | None = None
+        self._control: ControlRegistration | None = None
+        self._control_sequence = 1
+        self._interrupted = False
+        self._announced_thread: str | None = None
+        self._announced_turn: str | None = None
+        self._exit: MonitorResult | None = None
+        self._drain_deadline = 0.0
 
     def _save(self) -> None:
         """Persist turn intent or progress before any subsequent external action."""
@@ -119,6 +162,8 @@ class RpcSession:
         if reply.cwd != self._task.cwd or reply.model != self._task.model:
             raise RpcFailure(MSG_IDENTITY)
         thread = reply.thread.id
+        if self._announced_thread is not None and self._announced_thread != thread:
+            raise RpcFailure(MSG_IDENTITY)
         expected = self._receipt.handle.session_id
         if expected and thread != expected:
             raise RpcFailure(MSG_IDENTITY)
@@ -194,14 +239,17 @@ class RpcSession:
     def _frame(self, client: RpcClient, frame: RpcFrame) -> None:
         """Advance the handshake state machine or process a known notification."""
         if frame.method is not None:
+            self._notification_identity(frame)
             if frame.method == Notification.TURN_COMPLETED:
                 completion = TurnCompleted.model_validate(frame.params)
-                if self._phase is SessionPhase.TURN:
+                if self._phase in (SessionPhase.TURN, SessionPhase.CONTROL):
                     if self._early is not None:
                         raise RpcFailure(MSG_IDENTITY)
                     self._early = completion
                 else:
                     self._completed(completion)
+            elif frame.method == Notification.USAGE:
+                self._accept_usage(UsageNotification.model_validate(frame.params))
             elif frame.method == Notification.ERROR:
                 raise RpcFailure(MSG_REPLY)
             with self._paths.log(self._task.activation_id).open("ab") as stream:
@@ -228,8 +276,45 @@ class RpcSession:
             self._phase = SessionPhase.THREAD
         elif self._phase is SessionPhase.THREAD:
             self._start_turn(client, frame)
+        elif self._phase is SessionPhase.CONTROL:
+            if self._control is None or frame.result != {
+                "turnId": self._control.turn_id
+            }:
+                raise RpcFailure(MSG_CONTROL)
+            control = self._control
+            intent = next_intent(self._directory, control.sequence)
+            if intent is None:
+                raise RpcFailure(MSG_CONTROL)
+            write_record(
+                control_path(self._directory, control.sequence),
+                intent.model_copy(
+                    update={
+                        "control": control.model_copy(
+                            update={"state": ControlState.ACKNOWLEDGED}
+                        )
+                    }
+                ),
+            )
+            self._control = None
+            try:
+                self._store.record_control_state(
+                    self._task.activation_id, control, ControlState.ACKNOWLEDGED
+                )
+            except ControlBusy:
+                # Protected ack is authoritative; the next driver tick mirrors it.
+                pass
+            self._control_sequence += 1
+            self._phase = SessionPhase.ACTIVE
+            if self._early is not None:
+                self._completed(self._early)
+                self._early = None
         elif self._phase is SessionPhase.TURN:
             reply = TurnReply.model_validate(frame.result)
+            if (
+                self._announced_turn is not None
+                and self._announced_turn != reply.turn.id
+            ):
+                raise RpcFailure(MSG_IDENTITY)
             if self._turn is None:
                 raise RpcFailure(MSG_IDENTITY)
             self._turn = self._turn.model_copy(
@@ -237,10 +322,119 @@ class RpcSession:
             )
             self._save()
             self._phase = SessionPhase.ACTIVE
+            if self._pending_usage is not None:
+                self._accept_usage(self._pending_usage)
+                self._pending_usage = None
             if self._early is not None:
                 self._completed(self._early)
         else:
             raise RpcFailure(MSG_REPLY)
+
+    def _notification_identity(self, frame: RpcFrame) -> None:
+        """Validate progress identities without granting them registration authority."""
+        if frame.method in (
+            Notification.ERROR,
+            Notification.WARNING,
+            Notification.CONFIG_WARNING,
+            Notification.DEPRECATION,
+        ):
+            return
+        turn_id = None
+        if frame.method == Notification.THREAD_STARTED:
+            params = frame.params or {}
+            thread_id = VendorThread.model_validate(params.get("thread")).id
+        elif frame.method == Notification.THREAD_STATUS:
+            thread_id = ThreadIdentity.model_validate(frame.params).threadId
+        elif frame.method in (Notification.TURN_STARTED, Notification.TURN_COMPLETED):
+            notice = TurnCompleted.model_validate(frame.params)
+            thread_id, turn_id = notice.threadId, notice.turn.id
+        else:
+            identity = TurnIdentity.model_validate(frame.params)
+            thread_id, turn_id = identity.threadId, identity.turnId
+        expected_thread = (
+            self._turn.registration.thread_id
+            if self._turn is not None and self._turn.registration is not None
+            else self._announced_thread
+        )
+        expected_turn = (
+            self._turn.turn_id if self._turn is not None else None
+        ) or self._announced_turn
+        if (
+            expected_thread is not None
+            and thread_id != expected_thread
+            or turn_id is not None
+            and expected_turn is not None
+            and turn_id != expected_turn
+        ):
+            raise RpcFailure(MSG_IDENTITY)
+        self._announced_thread = thread_id
+        if turn_id is not None:
+            self._announced_turn = turn_id
+
+    def _poll_control(self, client: RpcClient) -> None:
+        """Persist submission before send; only this living pipe owner can deliver it."""
+        if not self._interrupted and (self._directory / INTERRUPT_FILE).exists():
+            registration = read_record(
+                self._directory / INTERRUPT_FILE, SessionRegistration
+            )
+            if self._turn is None or registration != self._turn.registration:
+                raise RpcFailure(MSG_CONTROL)
+            self._interrupted = True
+            interrupt(client, self._turn)
+            return
+        if self._phase is not SessionPhase.ACTIVE:
+            return
+        intent = next_intent(self._directory, self._control_sequence)
+        if intent is None:
+            return
+        if (
+            self._turn is None
+            or intent.control.registration != self._turn.registration
+            or intent.control.turn_id != self._turn.turn_id
+            or intent.control.state is not ControlState.INTENT
+        ):
+            raise RpcFailure(MSG_CONTROL)
+        try:
+            self._control = self._store.record_control_state(
+                self._task.activation_id,
+                intent.control,
+                ControlState.SUBMITTING,
+            )
+        except ControlBusy:
+            return
+        write_record(
+            control_path(self._directory, self._control_sequence),
+            intent.model_copy(update={"control": self._control}),
+        )
+        client.request(
+            RpcMethod.TURN_STEER,
+            {
+                "threadId": self._control.registration.thread_id,
+                "expectedTurnId": self._control.turn_id,
+                "input": [
+                    {"type": "text", "text": intent.instructions, "text_elements": []}
+                ],
+            },
+        )
+        self._phase = SessionPhase.CONTROL
+
+    def _accept_usage(self, notification: UsageNotification) -> None:
+        """Correlate telemetry before replacing the current snapshot."""
+        if self._turn is None or self._turn.registration is None:
+            raise RpcFailure(MSG_IDENTITY)
+        if notification.threadId != self._turn.registration.thread_id:
+            raise RpcFailure(MSG_IDENTITY)
+        if self._turn.turn_id is None:
+            self._pending_usage = notification
+            return
+        if notification.turnId != self._turn.turn_id:
+            raise RpcFailure(MSG_IDENTITY)
+        self._usage = updated_usage(
+            notification.model_dump(mode="json"),
+            self._baseline,
+            envelope_bytes=len(self._task.brief.encode()),
+        )
+        write_record(self._directory / USAGE_FILE, self._usage)
 
     def _fail(self, reason: str) -> None:
         """Keep bounded failure evidence even when handshake never made a thread."""
@@ -248,12 +442,21 @@ class RpcSession:
             update={"phase": TurnPhase.FAILED, "error": reason[:1024]}
         )
         self._save()
+        if self._control is not None:
+            try:
+                self._store.record_control_state(
+                    self._task.activation_id, self._control, ControlState.UNCERTAIN
+                )
+            except ControlBusy:
+                # Recovery derives uncertainty from owner death and the intent.
+                pass
 
     def watch(
         self, monitor: Monitor, on_cycle: Callable[[MonitorResult], None]
     ) -> MonitorResult:
         """Poll RPC and enforcement together; a blocked request cannot suspend limits."""
         with RpcClient(*self._pipes.detach()) as client:
+            monitor.before_terminate(lambda: interrupt(client, self._turn))
             client.request(
                 RpcMethod.INITIALIZE,
                 {
@@ -265,24 +468,46 @@ class RpcSession:
                 while True:
                     for frame in client.poll(0.02):
                         self._frame(client, frame)
+                    self._poll_control(client)
                     if self._phase is SessionPhase.SHUTDOWN:
                         if not client.output_pending:
                             client.close_input()
                         if time.monotonic() > self._shutdown_at:
                             raise RpcFailure(MSG_SHUTDOWN)
-                    result = monitor.observe()
+                    result = self._exit or monitor.observe()
                     on_cycle(result)
                     if result.verdict in TERMINAL_VERDICTS:
+                        if self._exit is None:
+                            self._exit = result
+                            self._drain_deadline = time.monotonic() + SHUTDOWN_S
+                        if not client.eof:
+                            if time.monotonic() > self._drain_deadline:
+                                raise RpcFailure(MSG_SHUTDOWN)
+                            continue
                         if (
                             self._phase is not SessionPhase.SHUTDOWN
                             or result.exit_code != 0
                         ):
                             self._fail(MSG_EXIT)
+                        elif (
+                            self._turn is not None
+                            and self._turn.registration is not None
+                            and self._turn.turn_id
+                        ):
+                            self._store.record_session_completion(
+                                self._task.activation_id,
+                                SessionCompletion(
+                                    registration=self._turn.registration,
+                                    turn_id=self._turn.turn_id,
+                                    usage=self._usage,
+                                ),
+                            )
                         return result
                     if client.eof and self._phase is not SessionPhase.SHUTDOWN:
                         raise RpcFailure(MSG_EXIT)
             except (RpcFailure, ValidationError, BdioError, OSError) as error:
                 self._fail(str(error) if isinstance(error, RpcFailure) else MSG_REPLY)
+                interrupt(client, self._turn)
                 proof = procfs.terminate(
                     self._config, self._receipt.handle, self._clock
                 )

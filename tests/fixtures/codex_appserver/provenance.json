@@ -116,6 +116,133 @@
           "status"
         ]
       }
+    },
+    "ThreadResumeParams.json": {
+      "source": "v2/ThreadResumeParams.json",
+      "sha256": "5ebc2fe61b33d85dd6dfa81acf88f632fe2bafe4aa83ff57ee58e866f14d49ac",
+      "projection": {
+        "properties": [
+          "threadId",
+          "model",
+          "cwd",
+          "approvalPolicy",
+          "sandbox",
+          "config",
+          "approvalsReviewer"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "ThreadResumeResponse.json": {
+      "source": "v2/ThreadResumeResponse.json",
+      "sha256": "0e75f88895e3d3d7424919a7936c2216a3b01b296ddf391768b61f8d1262aee6",
+      "projection": {
+        "properties": [
+          "thread",
+          "model",
+          "modelProvider",
+          "cwd",
+          "approvalPolicy",
+          "approvalsReviewer",
+          "sandbox"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "TurnSteerParams.json": {
+      "source": "v2/TurnSteerParams.json",
+      "sha256": "2e0cdcea6a90d6c8bc584fdc2ff838e824754b1eef0d2d16aa71bec4276fef44",
+      "projection": {
+        "properties": [
+          "threadId",
+          "expectedTurnId",
+          "input"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "TurnSteerResponse.json": {
+      "source": "v2/TurnSteerResponse.json",
+      "sha256": "866ba9a77c12b5d570c837d58f73bf40b24e50fa93404bdf792dd984d313b1aa",
+      "projection": {
+        "properties": [
+          "turnId"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "TurnInterruptParams.json": {
+      "source": "v2/TurnInterruptParams.json",
+      "sha256": "6dff382dae73d1dbc58406ed045605f647e7a49660e2540fbd2c6c24d60c5f2b",
+      "projection": {
+        "properties": [
+          "threadId",
+          "turnId"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "TurnInterruptResponse.json": {
+      "source": "v2/TurnInterruptResponse.json",
+      "sha256": "531de6be06fe979b5963f249bab82498a175e614bf65ac12fb2e849dfe60bcf1",
+      "projection": {
+        "properties": [],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "ThreadTokenUsageUpdatedNotification.json": {
+      "source": "v2/ThreadTokenUsageUpdatedNotification.json",
+      "sha256": "aba4f6c7e4a19b2b842c08ee793b57000c07dafd57b922ad0d8e7c76609108c2",
+      "projection": {
+        "properties": [
+          "threadId",
+          "turnId",
+          "tokenUsage"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
     }
   }
 }

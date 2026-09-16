@@ -24,6 +24,7 @@ from workflow_interpreter.bdio.errors import (
     PinnedGraphMismatchError,
 )
 from workflow_interpreter.bdio.reads import activations_of, gates_of, next_seq
+from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.foreman.audit import audit
 from workflow_interpreter.foreman.cases import (
     advance_lifecycle,
@@ -58,6 +59,7 @@ from workflow_interpreter.foreman.observation import ObservationStatus
 from workflow_interpreter.foreman.owner import ensure_owner
 from workflow_interpreter.foreman.reconcile import reconcile
 from workflow_interpreter.foreman.routing import abandon_target
+from workflow_interpreter.foreman.rpc_control import control_attention
 from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.schema.models import NodeKind
 from workflow_interpreter.supervisor.errors import (
@@ -306,8 +308,14 @@ class Foreman:
         )
 
     def steer(
-        self, root_id: str, activation_id: str, *, reason: str, instructions: str
-    ) -> SteerReport:
+        self,
+        root_id: str,
+        activation_id: str,
+        *,
+        reason: str,
+        instructions: str,
+        in_place: bool = False,
+    ) -> SteerReport | ControlRegistration:
         """Read the stale tail then perform exactly one supervisor steer."""
         validate_bead_id(root_id)
         validate_bead_id(activation_id)
@@ -338,6 +346,10 @@ class Foreman:
                 self._composition.clock,
                 workspace=wiring.workspace,
             )
+            if in_place:
+                return steerer.in_place(
+                    activation, reason=reason, instructions=instructions
+                )
             if activation.metadata.is_settled:
                 intent = read_record(
                     wiring.paths.steer_intent(activation_id), SteerIntent
@@ -414,6 +426,13 @@ class Foreman:
                 cleanup_toolchain,
             )
 
+            ambiguous = control_attention(
+                wiring.paths,
+                wiring.store,
+                refusal_limit=self._composition.config.wake.lifetime_cap,
+            )
+            if ambiguous:
+                return TickReport(refusals=ambiguous)
             for activation in activations_of(beads):
                 cleanup_toolchain(wiring.paths, activation)
                 if (

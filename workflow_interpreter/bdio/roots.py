@@ -43,10 +43,12 @@ from workflow_interpreter.contracts.execution import (
     MSG_PROFILE_WRITES,
     MSG_UNREGISTERED_RUNNER,
     ExecutionRegistry,
+    RunnerName,
     UnregisteredRunnerError,
     policy_for,
     tool_network_for,
 )
+from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import EngineProducer, GraphDefinition, NodeKind
 
@@ -142,6 +144,12 @@ def _assert_task_execution_settings_are_pinned(
         # cannot launch under any runner. Requiring it only for `profile:`
         # runners let an unrunnable root be created, and root identity then
         # refuses to recreate that key with the pin supplied (cr-xb2).
+        if (
+            node.session_reuse is not None
+            and settings.get(NodeSetting.RUNNER.at(node.name))
+            != RunnerName.CODEX_APPSERVER.value
+        ):
+            raise CarrierIntegrityError(MSG_SESSION_REUSE)
         required = (NodeSetting.RUNNER, NodeSetting.MODEL, NodeSetting.EFFORT)
         missing = tuple(
             setting.value.rsplit(".", maxsplit=1)[-1]

@@ -33,6 +33,7 @@ from workflow_interpreter.bdio import (
     gates,
     mint,
     reads,
+    rpc_control,
     supervision,
     transitions,
 )
@@ -55,7 +56,11 @@ from workflow_interpreter.bdio.records import (
     RootRecord,
 )
 from workflow_interpreter.bdio.roots import create_root, settle_root
-from workflow_interpreter.bdio.rpc_records import SessionRegistration
+from workflow_interpreter.bdio.rpc_records import (
+    ControlRegistration,
+    SessionCompletion,
+    SessionRegistration,
+)
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wake import append_wake_event
 from workflow_interpreter.bdio.wire import (
@@ -81,6 +86,7 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
 )
 from workflow_interpreter.contracts.execution import ExecutionRegistry
+from workflow_interpreter.contracts.rpc_control import ControlState
 from workflow_interpreter.contracts.wake import WakeEvent
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
@@ -395,6 +401,43 @@ class WorkflowStore:
         """Phase B: the state moves only after the handle is durable (§5.2)."""
         return activation_writes.record_dispatch(
             self, activation_id, handle, launch_id=launch_id
+        )
+
+    def reserve_in_place_steer(
+        self,
+        activation_id: str,
+        registration: SessionRegistration,
+        turn_id: str,
+        instructions_digest: str,
+    ) -> ControlRegistration:
+        """Spend the shared steer cap on an identity-bound RPC intent."""
+        self.assert_member(registration.root_id)
+        return rpc_control.reserve(
+            self._client,
+            self._reads,
+            activation_id,
+            registration,
+            turn_id,
+            instructions_digest,
+        )
+
+    def record_control_state(
+        self,
+        activation_id: str,
+        control: ControlRegistration,
+        state: ControlState,
+    ) -> ControlRegistration:
+        """Record delivery evidence without creating a routing or approval fact."""
+        return rpc_control.record_state(
+            self._client, self._reads, activation_id, control, state
+        )
+
+    def record_session_completion(
+        self, activation_id: str, completion: SessionCompletion
+    ) -> ActivationRecord:
+        """Record one correlated successful vendor turn, never process death."""
+        return supervision.record_session_completion(
+            self._client, self._load_activation, activation_id, completion
         )
 
     def register_session(

@@ -122,7 +122,7 @@ from workflow_interpreter.supervisor.profile import (
     channels_for,
 )
 from workflow_interpreter.supervisor.rpc_pipes import RpcPipes
-from workflow_interpreter.supervisor.rpc_records import VENDOR_STATE
+from workflow_interpreter.supervisor.rpc_state import state_for
 from workflow_interpreter.supervisor.sandbox import (
     SandboxMode,
     SandboxPlan,
@@ -561,10 +561,7 @@ class Dispatcher:
         # back onto the activation, which is where a continuation or an infra
         # retry reads the session to carry forward.
         if profile.name() == RunnerName.CODEX_APPSERVER:
-            state = self._paths.activation_dir(activation_id) / VENDOR_STATE
-            state.mkdir(mode=0o700, exist_ok=True)
-            if state.is_symlink() or state.resolve() != state:
-                raise TaskRefused("app-server state path is redirected")
+            state = state_for(self._paths, root, activation)
             task = task.model_copy(update={"vendor_state": str(state)})
             plan = plan.model_copy(update={"vendor_state": (state,)})
         session_id = profile.prepare(activation)

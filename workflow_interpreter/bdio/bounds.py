@@ -412,9 +412,9 @@ def consecutive_infra_closes(
 def steer_closes(
     activations: Sequence[ActivationView], node: str, round_no: int
 ) -> int:
-    """How many activations at `(node, round_no)` were closed `steered` (§8.1)."""
+    """Both steer modes spend the same budget, including ambiguous RPC intents."""
     return sum(
-        1
+        int(view.metadata.outcome is Outcome.STEERED)
+        + len(view.metadata.in_place_controls)
         for view in _at_node_round(activations, node, round_no)
-        if view.metadata.outcome is Outcome.STEERED
     )

@@ -131,3 +131,16 @@ def completion_error(receipt: LaunchReceipt | None, directory: Path) -> str | No
     ):
         return turn.error if turn and turn.error else MSG_RPC_INCOMPLETE
     return None
+
+
+class ThreadIdentity(BaseModel):
+    """Strict identity on notifications; never a source for registration."""
+
+    model_config = ConfigDict(frozen=True, extra="ignore", strict=True)
+    threadId: str = Field(min_length=1, max_length=256)
+
+
+class TurnIdentity(ThreadIdentity):
+    """A progress notification belongs to the one turn this wrapper owns."""
+
+    turnId: str = Field(min_length=1, max_length=256)

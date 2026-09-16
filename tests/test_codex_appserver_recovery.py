@@ -1,7 +1,11 @@
 """Protected registration and ambiguous RPC recovery, with no live vendor calls."""
 
+import json
+import os
+
 import pytest
 
+from tests._appserver import AppServerLab
 from tests._bdio import (
     RESOLVED_CONFIG,
     entry_request,
@@ -9,8 +13,18 @@ from tests._bdio import (
     load_definition,
     make_root,
 )
+from tests._profiles import task_builder
+from tests._supervisor import entry_mint
 from workflow_interpreter.bdio import CarrierIntegrityError
-from workflow_interpreter.bdio.rpc_records import SessionRegistration
+from workflow_interpreter.bdio.rpc_records import SessionCompletion, SessionRegistration
+from workflow_interpreter.profiles.codex_rpc import RpcClient
+from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.supervisor import procfs
+from workflow_interpreter.supervisor.launch import Dispatcher
+from workflow_interpreter.supervisor.models import LaunchReceipt, RecoveryCase
+from workflow_interpreter.supervisor.paths import read_record, write_record
+from workflow_interpreter.supervisor.recover import Recovery
+from workflow_interpreter.supervisor.rpc_session import RpcSession
 
 
 def registered_activation(store):
@@ -25,7 +39,16 @@ def registered_activation(store):
     activation = store.mint_activation(
         root.root_id, entry_request(runner_profile="codex-appserver", session_id="")
     ).activation
-    process = handle(session_id="")
+    process = handle(session_id="").model_copy(
+        update={
+            "log_path": str(
+                store._client.workspace
+                / "wrapper"
+                / activation.activation_id
+                / "run.jsonl"
+            )
+        }
+    )
     store.record_dispatch(activation.activation_id, process, launch_id="launch-1")
     return SessionRegistration(
         root_id=root.root_id,
@@ -86,21 +109,17 @@ def test_real_bd_session_registration(store):
     record = store.register_session(registration.activation_id, registration)
     assert record.metadata.session_registration == registration
     assert store.register_session(registration.activation_id, registration) == record
+    completion = SessionCompletion(registration=registration, turn_id="turn-1")
+    completed = store.record_session_completion(registration.activation_id, completion)
+    assert completed.metadata.session_completion == completion
+    assert (
+        store.record_session_completion(registration.activation_id, completion)
+        == completed
+    )
 
 
 def test_dead_rpc_owner_is_recovered_without_reconnecting_or_resubmitting(tmp_path):
     """A living server whose owner was lost is terminated before transport recovery."""
-    import os
-
-    from tests._appserver import AppServerLab
-    from tests._profiles import task_builder
-    from tests._supervisor import entry_mint
-    from workflow_interpreter.schema.models import Outcome
-    from workflow_interpreter.supervisor import procfs
-    from workflow_interpreter.supervisor.launch import Dispatcher
-    from workflow_interpreter.supervisor.models import LaunchReceipt, RecoveryCase
-    from workflow_interpreter.supervisor.paths import read_record, write_record
-    from workflow_interpreter.supervisor.recover import Recovery
 
     lab = AppServerLab(tmp_path)
     dispatcher = Dispatcher(lab.paths, lab.store, lab.clock, host_env=dict(os.environ))
@@ -134,3 +153,67 @@ def test_dead_rpc_owner_is_recovered_without_reconnecting_or_resubmitting(tmp_pa
     finally:
         pipes.close()
         procfs.terminate(lab.config, result.handle, lab.clock)
+
+
+@pytest.mark.parametrize("after_submission", [False, True])
+def test_ambiguous_turn_intent_is_recovered_without_resend(
+    tmp_path, monkeypatch, after_submission
+):
+    """Losing the pipe owner never authorizes replay, before or after a send."""
+
+    class OwnerLost(BaseException):
+        """Injected process death bypasses normal protocol error handling."""
+
+    lab = AppServerLab(tmp_path, "hang-after-submit")
+    save = RpcSession._save
+    poll = RpcClient.poll
+
+    def crash_before(session):
+        save(session)
+        if session._turn.phase.value == "intent":
+            raise OwnerLost()
+
+    def crash_after(client, *args):
+        result = poll(client, *args)
+        records = lab.store.reads.list_activations(lab.root.root_id)
+        if records:
+            path = (
+                lab.paths.activation_dir(records[0].activation_id)
+                / "channels"
+                / "artifacts"
+                / "requests.jsonl"
+            )
+            if path.exists() and '"turn/start"' in path.read_text():
+                raise OwnerLost()
+        return result
+
+    if after_submission:
+        monkeypatch.setattr(RpcClient, "poll", crash_after)
+    else:
+        monkeypatch.setattr(RpcSession, "_save", crash_before)
+    with pytest.raises(OwnerLost):
+        lab.run()
+    activation = lab.store.reads.list_activations(lab.root.root_id)[0]
+    aid = activation.activation_id
+    receipt = read_record(lab.paths.receipt(aid), LaunchReceipt)
+    write_record(
+        lab.paths.receipt(aid),
+        receipt.model_copy(
+            update={
+                "owner": receipt.owner.model_copy(
+                    update={"proc_start_time": "lost-owner"}
+                )
+            }
+        ),
+    )
+    recovery = Recovery(lab.config, lab.paths, lab.store, lab.workspace, lab.clock)
+    recovered = recovery.resolve(activation, lab.node)
+    assert recovered.closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    requests = (
+        lab.paths.activation_dir(aid) / "channels" / "artifacts" / "requests.jsonl"
+    ).read_text()
+    assert requests.count('"turn/start"') == int(after_submission)
+    assert (
+        json.loads((lab.paths.activation_dir(aid) / "turn.json").read_text())["phase"]
+        == "intent"
+    )

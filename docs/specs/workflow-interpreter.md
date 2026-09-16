@@ -570,17 +570,35 @@ idempotent (re-applying a recorded state is a no-op).
 ### 5.2 Two-phase activation
 
 Phase A: mint (state `minted`), with idempotency key, bound inputs and
-`intended_base_commit` — but NO session id. Phase B: launch via the
-supervisor wrapper; state `dispatched` only after the handle is durable,
-and the **pre-assigned session id** (from the profile's `prepare()` —
-never discovered from output) is written onto the activation by that same
-transition. **Fork barrier:** the wrapper commits the launch receipt (atomic
+`intended_base_commit`. A fresh vendor session is not created at mint. An
+app-server history source, when eligible, is bound durably at mint (§6).
+Phase B launches through the supervisor; `dispatched` follows the durable
+process handle. Profiles that pre-assign sessions do so in `prepare()` and
+publish that identity with dispatch. Legacy `codex exec` cannot pre-assign its
+thread ID; its existing output-based behavior remains unchanged. **Fork barrier:** the wrapper commits the launch receipt (atomic
 write: temp + rename) BEFORE the child may exec; the child blocks on the
 barrier until the receipt exists. An exec is also one appended line in the
 activation's **exec ledger** (append-only file in the wrapper dir; drill
 evidence for exactly-once). A child that never ACKed the barrier is never a
 launched runner, so its receipt records `aborted` (with its status) or
 `abort-pending` and dispatch raises an infra failure without adopting its handle.
+
+The experimental `codex-appserver` transport distinguishes **process identity
+before exec** from **vendor thread identity before the first model turn**.
+Its receipt also identifies the resident RPC owner. After the correlated
+`thread/start` or `thread/resume` reply, the wrapper atomically writes protected
+`session.json` and mirrors it through identity-checked bdio registration before
+sending `turn/start`. Registration verifies root, activation, launch nonce and
+the original process handle; repeating the same registration is a no-op.
+Thread notifications and model text never establish identity.
+
+Protected `turn.json` records start intent before submission and the returned
+turn ID when acknowledged. A lost wrapper never reconnects to or replays a turn
+on orphaned stdio. Recovery proves death, preserves artifacts, and uses bounded
+transport-error recovery. A submitted-but-unacknowledged turn remains ambiguous.
+Successful `turn/completed` plus process termination are prerequisites for the
+ordinary channel, artifact and host-verification grading; server exit alone is
+insufficient. Interrupt acknowledgment never proves process death.
 
 ### 5.3 Supervisor wrapper (deterministic, per activation)
 
@@ -678,7 +696,7 @@ the host verification path supplies evidence.
 
 ## 6. Runner floor
 
-Profiles (claude, codex, opencode) implement:
+Profiles (`claude`, `codex`, `opencode`, experimental `codex-appserver`) implement:
 
 ```text
 Profile:
@@ -697,6 +715,34 @@ declares `writes = true` (repo worktree only); unsupported option = loud
 error; usage normalization owned here (`usage: unknown` is legal telemetry).
 The supervisor owns process identity, liveness and death proof, and enforces
 `max_wall` independently of profile output.
+
+`RunnerTransport` is closed: `event-log` retains existing CLI stdio;
+`stdio-rpc` gives the wrapper bounded protocol pipes and a separate stderr
+drain. `codex` exec stays the default; `codex-appserver` pins CLI 0.154.0 and
+runs one server process and one turn per activation inside the same bwrap plan.
+Bounded nonblocking polls enforce RPC deadlines together with max-wall and stale
+limits. Unknown notifications/requests fail the activation. Dynamic tools are
+disabled; tool calls receive a bounded unsupported error, and approvals and
+escalations are rejected without executing host tools.
+
+Optional task-node `session_reuse = "fresh" | "same-node"` is graph-pinned and
+app-server-only. Absence means fresh, including for reviewers. Same-node selects
+the latest settled activation with an explicitly completed turn and matching
+root, node, execution policy, CLI version, model and effort. The source activation
+is bound at mint, never selected again from live configuration at launch. Every
+new process receives current grants, cwd, channels, tool configuration and the
+complete current envelope. Deliberate §8.1 continuation and its infra retries
+retain their bound history independently of this ordinary re-entry setting.
+Host-owned vendor state persists per root/node for intentional reuse, outside
+model-writable roots and separate from disposable toolchain copies. Ambient
+project config/rules are refused for this experimental runner; its private
+`CODEX_HOME` does not inherit ambient user configuration or MCP definitions.
+
+Protected accounting retains per-activation deltas, latest cumulative thread
+counts, the last vendor report, unknown fields and envelope bytes separately.
+Cumulative notifications replace previous snapshots; they are never summed.
+Missing baselines or counter resets produce unknown deltas. This is fixture
+qualification, not live qualification or evidence of token savings.
 
 The wrapper wraps every profile's argv in the bubblewrap mount bound
 before exec: the checkout is read-only except the node's `allowed_paths`
@@ -822,9 +868,16 @@ never consume review rounds. An **infra retry descended from a
 continuation is itself a continuation**: it resumes the same session with
 the same steer text (read back from the steered activation's persisted
 intent), and is refused rather than launched fresh if that intent is gone.
-Capability facts: all three CLIs accept new instructions between turns;
-none supports mid-turn input (mid-turn
-supervision remains the omnigent reopen trigger).
+The default remains persist → terminate → continuation for every runner.
+The experimental app-server additionally accepts explicit `steer --in-place`:
+a host-owned bounded inbox carries text plus launch/thread/expected-turn identity.
+The typed bd intent spends the shared `max_steers` allowance before publication;
+submission is persisted before RPC, and acknowledgment is protected and mirrored.
+It creates no activation, review round, transition or approval. Unacknowledged
+control after owner loss is marked uncertain, never replayed, and reported through
+the refusal journal and attention exit. A subsequent deliberate steer is required.
+Termination offers a bounded RPC interrupt courtesy before ordinary TERM/KILL
+and identity-based death proof. Legacy exec steering semantics are unchanged.
 
 ### 8.2 Monitoring (zero model tokens in the loop)
 

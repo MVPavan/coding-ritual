@@ -54,6 +54,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.contracts.execution import RunnerName
+from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.schema.models import Node
 from workflow_interpreter.supervisor.channels import (
     pinned_verifier_digests,
@@ -526,7 +527,8 @@ class ExitObserver:
         )
         rpc_error = (
             MSG_RPC_INCOMPLETE
-            if receipt is None and expects_rpc
+            if expects_rpc
+            and (receipt is None or receipt.transport is not RunnerTransport.STDIO_RPC)
             else completion_error(receipt, self._paths.activation_dir(activation_id))
         )
         if rpc_error is not None:
