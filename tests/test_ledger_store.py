@@ -30,6 +30,7 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.backend import PinnedBackendFactory
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.rows import RowQuery
+from workflow_interpreter.ledger import fence as fence_module
 from workflow_interpreter.ledger.__main__ import main as ledger_main
 from workflow_interpreter.ledger.constants import (
     EXPORT_KIND_HEADER,
@@ -67,6 +68,8 @@ GIT_ENTRY: Final[str] = ".git"
 HOLD_TIMEOUT_S: Final[float] = 20.0
 HOLD_POLL_S: Final[float] = 0.05
 READY: Final[str] = "held"
+_SAME_DEVICE_PID: Final[int] = 424242
+_OTHER_DEVICE_PID: Final[int] = 424243
 _HOLDER_SCRIPT: Final[str] = """
 import fcntl, os, sys
 fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644)
@@ -467,3 +470,24 @@ def test_the_cli_refuses_a_task_the_ledger_does_not_hold(tmp_path: Path) -> None
 
     assert ledger_main(["--config", str(config), "export", TASK]) == 2
     assert not export_path(repo_root, TASK).exists()
+
+
+def test_a_lock_on_another_device_with_the_same_inode_is_not_a_holder(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An inode number is unique per device, so the device is part of the key."""
+    lock = tmp_path / "ledger.lock"
+    lock.write_bytes(b"")
+    stat = lock.stat()
+    major, minor = os.major(stat.st_dev), os.minor(stat.st_dev)
+    locks = tmp_path / "locks"
+    locks.write_text(
+        f"1: FLOCK  ADVISORY  WRITE {_SAME_DEVICE_PID} "
+        f"{major:02x}:{minor:02x}:{stat.st_ino} 0 EOF\n"
+        f"2: FLOCK  ADVISORY  READ {_OTHER_DEVICE_PID} "
+        f"{major + 1:02x}:{minor:02x}:{stat.st_ino} 0 EOF\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(fence_module, "PROC_LOCKS", str(locks))
+
+    assert holders(lock) == (_SAME_DEVICE_PID,)
