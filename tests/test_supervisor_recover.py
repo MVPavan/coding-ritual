@@ -585,7 +585,7 @@ def _persist_steer_intent(lab: Lab) -> SteerIntent:
 
 def _continuations(lab: Lab) -> list[str]:
     """Every activation of this instance that is not the steered one."""
-    beads = lab.store.reads.instance_beads(lab.root.root_id)
+    beads = lab.store.reads.instance_records(lab.root.root_id)
     from workflow_interpreter.bdio.reads import activations_of
 
     return [

@@ -21,13 +21,13 @@ from workflow_interpreter.bdio.feedback import validate_feedback_bindings
 from workflow_interpreter.bdio.mint import MintFacts
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
+    InstanceRecord,
     MintResult,
     RootRecord,
 )
 from workflow_interpreter.bdio.sessions import SessionChoice, choose_source
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
-    BeadRecord,
     Deviation,
     Evidence,
     ExitRecord,
@@ -115,7 +115,7 @@ def _race_order(record: ActivationRecord) -> tuple[bool, int, str]:
     return (
         not record.metadata.is_completed,
         record.metadata.seq,
-        record.bead.id,
+        record.id,
     )
 
 
@@ -197,7 +197,7 @@ def _mint_activation(
     root = self._reads.load_root(root_id)
     # ONE fetch of the instance's beads serves the ceiling count, the
     # activation views, the key lookup and the derivation.
-    beads = self._reads.instance_beads(root_id)
+    beads = self._reads.instance_records(root_id)
     activations = reads.activations_of(beads)
     facts, existing, metadata, metadata_payload = self._prepare_mint(
         root_id, request, root, beads, activations
@@ -249,7 +249,7 @@ def _preflight_steer_continuation(
     post-close view without writing any durable state.
     """
     root = self._reads.load_root(root_id)
-    beads = self._reads.instance_beads(root_id)
+    beads = self._reads.instance_records(root_id)
     activations = reads.activations_of(beads)
     prospective = activation.model_copy(
         update={
@@ -270,7 +270,7 @@ def _prepare_mint(
     root_id: str,
     request: MintRequest,
     root: RootRecord,
-    beads: Sequence[BeadRecord],
+    beads: Sequence[InstanceRecord],
     activations: Sequence[ActivationRecord],
 ) -> tuple[
     MintFacts,

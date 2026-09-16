@@ -226,7 +226,7 @@ def backfill(
         if key in existing:
             continue
         seq = (
-            next_seq(store.reads.instance_beads(root_id))
+            next_seq(store.reads.instance_records(root_id))
             if first_seq is None
             else first_seq + count
         )

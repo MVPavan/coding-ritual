@@ -413,7 +413,7 @@ def test_stale_base_retry_keeps_original_budget_and_requires_new_approval(
     assert claim[1].attempt == 2
     assert lab.git.head_commit(cwd=lab.repo) == base
     gate = lab.store.reads.list_gates(successor.root_id)[0]
-    assert gate.metadata.gate_node == "ship" and gate.bead.status == "open"
+    assert gate.metadata.gate_node == "ship" and gate.status == "open"
     lab.root = lab.store.reads.load_root(successor.root_id)
     lab.approve(gate.gate_id, Outcome.APPROVE)
     result = entry(lab)

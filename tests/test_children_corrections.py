@@ -122,7 +122,7 @@ def test_signed_halt_resolution_unblocks_child(tmp_path, signing_config, sign_pa
     lab.root = lab.store.reads.load_root(child.root_id)
     lab.approve(gate.gate_id, Outcome.ABANDON)
     result = coordinator.drive_children(owner, 1, 0.5)
-    assert lab.store.reads.load_gate(gate.gate_id).bead.status == "closed"
+    assert lab.store.reads.load_gate(gate.gate_id).status == "closed"
     assert result.children[0].state == "settled"
     assert result.children[0].attention is None
 

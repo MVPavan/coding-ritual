@@ -238,7 +238,7 @@ def _advance(
                     raise CoordinationError("unrelated decision prevents replacement")
             gates = composition.store.reads.list_gates(predecessor.root_id)
             if any(
-                g.bead.status != "closed"
+                g.status != "closed"
                 or g.metadata.outcome is not None
                 and (
                     g.metadata.outcome.value == "abandon"

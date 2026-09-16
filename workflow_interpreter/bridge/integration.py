@@ -378,7 +378,7 @@ class IntegrationGuard:
             or root.definition.content_hash != receipt.graph_hash
             or root.metadata.config_signature != receipt.config_signature
             or root.metadata.instance_base_commit != receipt.base_commit
-            or root.bead.status != "closed"
+            or root.status != "closed"
             or root.metadata.terminal != receipt.terminal
             or latest.metadata.lifecycle is not Lifecycle.CLOSED
             or latest.metadata.outcome
@@ -853,7 +853,7 @@ def retry_integration(
             raise BridgeRefusal(
                 "uncertain or observed landing must recover before retry"
             )
-        if root.bead.status != "closed" or root.metadata.terminal not in (
+        if root.status != "closed" or root.metadata.terminal not in (
             "shipped",
             "abandoned",
         ):

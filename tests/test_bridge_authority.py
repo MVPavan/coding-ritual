@@ -8,7 +8,7 @@ import pytest
 
 from tests._helpers import VALID_FIXTURE
 from workflow_interpreter.bdio.records import GateRecord
-from workflow_interpreter.bdio.wire import BeadRecord, GateMetadata, GateState
+from workflow_interpreter.bdio.wire import GateMetadata, GateState
 from workflow_interpreter.bridge.authority import (
     MSG_SHIP_GATE_AMBIGUOUS,
     MSG_SHIP_GATE_MISSING,
@@ -78,16 +78,7 @@ def _ship_gate(
         artifact_ref=artifact_ref,
         artifact_digest=artifact_digest,
     )
-    return GateRecord(
-        bead=BeadRecord(
-            id=gate_id,
-            title=gate_node,
-            status="closed",
-            issue_type="task",
-            metadata=metadata.model_dump(mode="json", exclude_none=True),
-        ),
-        metadata=metadata,
-    )
+    return GateRecord(id=gate_id, status="closed", metadata=metadata)
 
 
 def test_refuses_when_no_ship_gate_belongs_to_the_requested_root() -> None:

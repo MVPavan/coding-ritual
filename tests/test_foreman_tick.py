@@ -314,8 +314,8 @@ def test_the_reached_terminal_settles_and_closes_the_root_and_a_re_tick_is_inert
     assert report.terminal is True
     assert report.terminal_node == "shipped"
     assert settled.metadata.terminal == "shipped"
-    assert settled.bead.status == STATUS_CLOSED
-    assert settled.bead.close_reason == "outcome=terminal terminal=shipped"
+    assert settled.status == STATUS_CLOSED
+    assert settled.close_reason == "outcome=terminal terminal=shipped"
     # A re-tick against a settled root writes NOTHING and still reports the
     # terminal: no re-mint of the entry, no dead end, no second close.
     assert again.terminal is True
@@ -358,11 +358,11 @@ def test_a_crash_between_the_terminal_record_and_the_root_close_repairs_forward(
     inert = lab.tick()
 
     assert half_written.metadata.terminal == "shipped"
-    assert half_written.bead.status != STATUS_CLOSED
+    assert half_written.status != STATUS_CLOSED
     assert repaired.terminal_node == "shipped"
     settled = lab.store.reads.load_root(root.root_id)
-    assert settled.bead.status == STATUS_CLOSED
-    assert settled.bead.close_reason == "outcome=terminal terminal=shipped"
+    assert settled.status == STATUS_CLOSED
+    assert settled.close_reason == "outcome=terminal terminal=shipped"
     assert inert.terminal_node == "shipped"
     assert lab.count("close") == closes
 
@@ -484,14 +484,14 @@ def test_tick_retries_a_close_that_crashed_after_recording_its_outcome(
     with pytest.raises(InjectedCrash, match="bd close died"):
         lab.wiring().store.close_activation(activation.activation_id, Outcome.DONE)
     wedged = lab.wiring().store.reads.load_activation(activation.activation_id)
-    assert wedged.bead.status == "open"
+    assert wedged.status == "open"
     before = lab.count("close")
 
     report = lab.tick()
 
     repaired = lab.wiring().store.reads.load_activation(activation.activation_id)
     assert report.settled == activation.activation_id
-    assert repaired.bead.status == STATUS_CLOSED
+    assert repaired.status == STATUS_CLOSED
     assert lab.count("close") == before + 1
 
 

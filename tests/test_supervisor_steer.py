@@ -268,7 +268,7 @@ def test_steer_pin_failure_keeps_producer_open_until_retry(
     assert not lab.store.reads.load_activation(
         activation.activation_id
     ).metadata.is_settled
-    assert len(activations_of(lab.store.reads.instance_beads(lab.root.root_id))) == 1
+    assert len(activations_of(lab.store.reads.instance_records(lab.root.root_id))) == 1
     assert path.read_text() == "interrupted steer bytes\n"
     monkeypatch.setattr(Git, "update_ref", original)
     result = _steer(lab, activation)

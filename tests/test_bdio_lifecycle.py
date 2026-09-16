@@ -149,7 +149,7 @@ def test_the_read_facade_issues_no_write_command(
     facade = fake_store.reads
     facade.load_root(root.root_id)
     facade.load_activation(minted.activation.activation_id)
-    facade.instance_beads(root.root_id)
+    facade.instance_records(root.root_id)
     facade.list_activations(root.root_id)
     facade.list_gates(root.root_id)
     facade.list_wake_events(root.root_id)
@@ -179,11 +179,11 @@ def test_a_crash_between_the_outcome_and_the_close_is_repaired_forward(
 
     wedged = fake_store.reads.load_activation(activation.activation_id)
     assert wedged.metadata.lifecycle is Lifecycle.CLOSED
-    assert wedged.bead.status == STATUS_OPEN
+    assert wedged.status == STATUS_OPEN
 
     repaired = fake_store.close_activation(activation.activation_id, Outcome.DONE)
-    assert repaired.bead.status == STATUS_CLOSED
-    assert repaired.bead.close_reason == "outcome=done"
+    assert repaired.status == STATUS_CLOSED
+    assert repaired.close_reason == "outcome=done"
     assert repaired.metadata.outcome is Outcome.DONE
 
 
@@ -199,7 +199,7 @@ def test_a_close_that_landed_before_its_metadata_is_still_completed(
 
     repaired = fake_store.close_activation(activation.activation_id, Outcome.DONE)
     assert repaired.metadata.outcome is Outcome.DONE
-    assert repaired.bead.close_reason == "outcome=done"
+    assert repaired.close_reason == "outcome=done"
 
 
 def test_a_contradicting_close_is_still_refused(
@@ -270,12 +270,12 @@ def test_a_crashed_supersede_is_repaired_forward(
         fake_store.supersede_activation(loser.activation_id, winner.activation_id)
     wedged = fake_store.reads.load_activation(loser.activation_id)
     assert wedged.metadata.superseded_by == winner.activation_id
-    assert wedged.bead.status == STATUS_OPEN
+    assert wedged.status == STATUS_OPEN
 
     repaired = fake_store.supersede_activation(
         loser.activation_id, winner.activation_id
     )
-    assert repaired.bead.status == STATUS_CLOSED
+    assert repaired.status == STATUS_CLOSED
     assert repaired.metadata.outcome is Outcome.SUPERSEDED
 
 
@@ -425,7 +425,7 @@ def test_race_residue_never_destroys_a_completed_activation(
     survivor = fake_store.reads.load_activation(first.activation_id)
     assert survivor.metadata.outcome is Outcome.DONE
     assert survivor.metadata.exit_record is not None
-    assert survivor.bead.close_reason == "outcome=done"
+    assert survivor.close_reason == "outcome=done"
     assert fake_client.show(duplicate.id).status == STATUS_CLOSED
 
 
@@ -538,7 +538,7 @@ def test_the_halt_gate_is_mintable_at_the_ceiling_and_still_counted(
     )
     assert halt.metadata.gate_reason is GateReason.HALT
     # And it counts: the instance is now 2 beads over a limit of 1.
-    assert bounds.ceiling_count(fake_store.reads.instance_beads(root.root_id)) == 2
+    assert bounds.ceiling_count(fake_store.reads.instance_records(root.root_id)) == 2
 
 
 def test_the_halt_gate_exemption_is_bounded_at_one_gate_per_instance(
@@ -573,4 +573,4 @@ def test_the_halt_gate_exemption_is_bounded_at_one_gate_per_instance(
     assert len({gate.gate_id for gate in opened}) == 1
     assert opened[0].metadata.halt_reason == "ceiling-0"
     assert len(fake_store.reads.list_gates(root.root_id)) == 1
-    assert bounds.ceiling_count(fake_store.reads.instance_beads(root.root_id)) == 2
+    assert bounds.ceiling_count(fake_store.reads.instance_records(root.root_id)) == 2

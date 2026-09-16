@@ -227,7 +227,7 @@ def test_the_happy_path_runs_both_regions_to_slice_done(
     assert lab.root is not None
     settled = lab.store.reads.load_root(lab.root.root_id)
     assert settled.metadata.terminal == NODE_SLICE_DONE
-    assert settled.bead.status == STATUS_CLOSED
+    assert settled.status == STATUS_CLOSED
 
     assert _bindings(lab, implement)[INPUT_ACCEPTANCE_TESTS] == write_tests
     assert _bindings(lab, critic)[INPUT_TEST_FINDINGS] == review_tests

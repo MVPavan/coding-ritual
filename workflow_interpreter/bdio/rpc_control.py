@@ -76,7 +76,7 @@ def _reserve(
     ):
         raise CarrierIntegrityError(MSG_CONTROL)
     root = reader.load_root(meta.wf_root_id)
-    beads = reader.instance_beads(root.root_id)
+    beads = reader.instance_records(root.root_id)
     limit = bounds.effective_bound(
         root, reads.gates_of(beads), BoundSetting.MAX_STEERS, meta.node
     )

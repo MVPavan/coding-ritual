@@ -28,14 +28,19 @@ from workflow_interpreter.bdio.errors import (
     StaleApprovalError,
     StoreConfigError,
 )
-from workflow_interpreter.bdio.records import GateRecord, RootRecord, parse_gate
+from workflow_interpreter.bdio.records import (
+    GateRecord,
+    RootRecord,
+    RowRecord,
+    parse_gate,
+    parse_row,
+)
 from workflow_interpreter.bdio.signing import (
     GatePayload,
     GateVerifier,
     VerifiedApproval,
 )
 from workflow_interpreter.bdio.wire import (
-    BeadRecord,
     BoundSetting,
     EventMetadata,
     EventPayload,
@@ -186,7 +191,7 @@ def open_gate(client: BdClient, root_id: str, request: GateOpenRequest) -> GateR
         existing = reads.find_gate(client, root_id, gate_key)
         if existing is not None:
             return _refound(existing, request)
-    beads = reads.instance_beads(client, root_id)
+    beads = reads.instance_records(client, root_id)
     root = reads.load_root(client, root_id)
     refusal = bounds.instance_ceiling_refusal(
         bead_count=bounds.ceiling_count(beads),
@@ -400,14 +405,14 @@ def _repair_closed_gate(
     if outcome is None or fingerprint is None:
         raise CarrierIntegrityError(_MSG_GATE_HALF_CLOSED.format(gate_id=gate.gate_id))
     reason = _REASON_GATE.format(outcome=outcome.value, fingerprint=fingerprint)
-    repaired = finalize.close_forward(client, gate.bead, reason)
+    repaired = finalize.close_record_forward(client, gate, reason, parse_gate)
     _LOG.info("wf.gate.repaired", gate_id=gate.gate_id, outcome=outcome.value)
-    return parse_gate(repaired)
+    return repaired
 
 
 def append_event(
     client: BdClient, root_id: str, payload: EventPayload, *, seq: int | None = None
-) -> BeadRecord:
+) -> RowRecord:
     """Append one transition event, idempotently (§3.3).
 
     Events are an audit projection: backfilling after a crash must not
@@ -425,7 +430,7 @@ def append_event(
     existing = reads.find_event(client, root_id, event_key)
     if existing is not None:
         return existing
-    beads = reads.instance_beads(client, root_id)
+    beads = reads.instance_records(client, root_id)
     metadata = EventMetadata(
         wf_root_id=root_id,
         event_key=event_key,
@@ -442,7 +447,7 @@ def append_event(
         event_payload=metadata_dict(payload),
     )
     _LOG.debug("wf.event.appended", root_id=root_id, event_id=record.id)
-    return record
+    return parse_row(record)
 
 
 def _assert_payload_matches(

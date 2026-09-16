@@ -1,8 +1,12 @@
-"""Parsed views of a workflow bead — a bd row plus its typed §3 carrier.
+"""Parsed views of a workflow row — backend-neutral identity plus its §3 carrier.
 
-Parsing is where the carrier contract is enforced: a bead that does not decode
+Parsing is where the carrier contract is enforced: a row that does not decode
 into its declared `wf_kind` raises `CarrierIntegrityError` rather than being
 skipped, because a silently ignored row is a bound that silently under-counts.
+
+The records carry `id`, `status` and their typed metadata, never the backend
+row they were parsed from: a consumer above the seam that could reach a
+`BeadRecord` through a record is a consumer pinned to bd (§3.1).
 """
 
 from __future__ import annotations
@@ -25,6 +29,7 @@ from workflow_interpreter.bdio.wire import (
     EventMetadata,
     EventPayload,
     GateMetadata,
+    Metadata,
     RootMetadata,
     WfKind,
     config_signature,
@@ -68,14 +73,21 @@ class RootRecord(BaseModel):
 
     model_config = WIRE_MODEL
 
-    bead: BeadRecord
+    id: str
+    status: str
+    close_reason: str | None = None
     metadata: RootMetadata
     definition: GraphDefinition
 
     @property
+    def kind(self) -> str | None:
+        """The §3 discriminator this record was parsed under."""
+        return WfKind.ROOT.value
+
+    @property
     def root_id(self) -> str:
-        """The instance id every other bead links to."""
-        return self.bead.id
+        """The instance id every other record links to."""
+        return self.id
 
     @property
     def index(self) -> GraphIndex:
@@ -86,31 +98,69 @@ class RootRecord(BaseModel):
 
 
 class ActivationRecord(BaseModel):
-    """An activation bead and its §3.2 metadata."""
+    """An activation row and its §3.2 metadata."""
 
     model_config = WIRE_MODEL
 
-    bead: BeadRecord
+    id: str
+    status: str
+    close_reason: str | None = None
     metadata: ActivationMetadata
 
     @property
+    def kind(self) -> str | None:
+        """The §3 discriminator this record was parsed under."""
+        return WfKind.ACTIVATION.value
+
+    @property
     def activation_id(self) -> str:
-        """The bead id."""
-        return self.bead.id
+        """The record id."""
+        return self.id
 
 
 class GateRecord(BaseModel):
-    """A gate bead and its §3.4 metadata."""
+    """A gate row and its §3.4 metadata."""
 
     model_config = WIRE_MODEL
 
-    bead: BeadRecord
+    id: str
+    status: str
+    close_reason: str | None = None
     metadata: GateMetadata
 
     @property
+    def kind(self) -> str | None:
+        """The §3 discriminator this record was parsed under."""
+        return WfKind.GATE.value
+
+    @property
     def gate_id(self) -> str:
-        """The bead id."""
-        return self.bead.id
+        """The record id."""
+        return self.id
+
+
+class RowRecord(BaseModel):
+    """An instance row nothing routes on: the root, an event, or an unclassified row.
+
+    Unclassified is deliberately not a parse error. §10.3 counts a row whose
+    kind cannot be read, because failing closed at the ceiling means
+    over-counting and never under-counting; refusing to parse it here would
+    instead make the whole instance unreadable.
+    """
+
+    model_config = WIRE_MODEL
+
+    id: str
+    status: str
+    close_reason: str | None = None
+    kind: str | None = None
+    metadata: Metadata
+    payload: str | None = None
+
+
+type InstanceRecord = ActivationRecord | GateRecord | RowRecord
+"""Every row of one instance, typed — what `WorkflowReads.instance_records`
+hands out, so no consumer above the seam reads a backend row (§3.1)."""
 
 
 class MintResult(BaseModel):
@@ -162,7 +212,12 @@ def parse_activation(bead: BeadRecord) -> ActivationRecord:
                 bead_id=bead.id, expected=WfKind.ACTIVATION.value, reason=exc
             )
         ) from exc
-    return ActivationRecord(bead=bead, metadata=metadata)
+    return ActivationRecord(
+        id=bead.id,
+        status=bead.status,
+        close_reason=bead.close_reason,
+        metadata=metadata,
+    )
 
 
 def parse_gate(bead: BeadRecord) -> GateRecord:
@@ -176,7 +231,12 @@ def parse_gate(bead: BeadRecord) -> GateRecord:
                 bead_id=bead.id, expected=WfKind.GATE.value, reason=exc
             )
         ) from exc
-    return GateRecord(bead=bead, metadata=metadata)
+    return GateRecord(
+        id=bead.id,
+        status=bead.status,
+        close_reason=bead.close_reason,
+        metadata=metadata,
+    )
 
 
 def parse_root(bead: BeadRecord) -> RootRecord:
@@ -225,15 +285,49 @@ def parse_root(bead: BeadRecord) -> RootRecord:
                 bead_id=bead.id, reason="config signature mismatch"
             )
         )
-    return RootRecord(bead=bead, metadata=metadata, definition=definition)
+    return RootRecord(
+        id=bead.id,
+        status=bead.status,
+        close_reason=bead.close_reason,
+        metadata=metadata,
+        definition=definition,
+    )
 
 
-def parse_event(bead: BeadRecord) -> EventPayload | WakeEvent:
+def parse_row(bead: BeadRecord) -> RowRecord:
+    """Carry a row nothing routes on across the seam, kind unparsed."""
+    kind = bead.metadata.get(KEY_WF_KIND)
+    return RowRecord(
+        id=bead.id,
+        status=bead.status,
+        close_reason=bead.close_reason,
+        kind=kind if isinstance(kind, str) else None,
+        metadata=bead.metadata,
+        payload=bead.payload,
+    )
+
+
+def parse_instance_row(bead: BeadRecord) -> InstanceRecord:
+    """Decode one row of an instance under the kind it declares.
+
+    The dispatch is here rather than in each consumer so that "which rows are
+    activations" has exactly one answer, and so an instance read hands out
+    typed records rather than backend rows (§3.1).
+    """
+    kind = bead.metadata.get(KEY_WF_KIND)
+    if kind == WfKind.ACTIVATION.value:
+        return parse_activation(bead)
+    if kind == WfKind.GATE.value:
+        return parse_gate(bead)
+    return parse_row(bead)
+
+
+def parse_event(record: RowRecord) -> EventPayload | WakeEvent:
     """Validate either event discriminator without treating notifications as routes."""
     try:
-        raw = json.loads(bead.payload or "null")
+        raw = json.loads(record.payload or "null")
         if isinstance(raw, dict) and raw.get("canon") == CANON_WAKE:
-            metadata = EventMetadata.model_validate(bead.metadata)
+            metadata = EventMetadata.model_validate(record.metadata)
             event = WakeEvent.model_validate(raw)
             if (
                 event.root_id != metadata.wf_root_id
@@ -249,5 +343,5 @@ def parse_event(bead: BeadRecord) -> EventPayload | WakeEvent:
         return EventPayload.model_validate(raw)
     except (ValueError, TypeError) as error:
         raise CarrierIntegrityError(
-            _MSG_EVENT_INVALID.format(bead_id=bead.id, reason=error)
+            _MSG_EVENT_INVALID.format(bead_id=record.id, reason=error)
         ) from error

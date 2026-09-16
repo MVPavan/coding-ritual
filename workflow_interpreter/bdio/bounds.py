@@ -23,11 +23,9 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.bdio.errors import BoundEvaluationError
-from workflow_interpreter.bdio.records import GateRecord, RootRecord
+from workflow_interpreter.bdio.records import GateRecord, InstanceRecord, RootRecord
 from workflow_interpreter.bdio.wire import (
-    KEY_WF_KIND,
     ActivationMetadata,
-    BeadRecord,
     BoundSetting,
     GateState,
     Lifecycle,
@@ -318,25 +316,24 @@ def steer_refusal(
 # --- counting over the instance's beads ---------------------------------
 
 
-def ceiling_count(beads: Iterable[BeadRecord]) -> int:
-    """§10.3 count: every activation and gate bead of the instance.
+def ceiling_count(records: Iterable[InstanceRecord]) -> int:
+    """§10.3 count: every activation and gate row of the instance.
 
-    Open, closed, superseded and UNCLASSIFIED all count — a bead carrying the
+    Open, closed, superseded and UNCLASSIFIED all count — a row carrying the
     instance's `wf_root_id` whose kind cannot be read is counted, because
     fail-closed here means over-counting, never under-counting. Events are a
     derived audit projection and are excluded, and the root is not one of the
     things being counted.
 
-    NOTHING else is excluded, and no metadata flag can remove a bead from the
+    NOTHING else is excluded, and no metadata flag can remove a row from the
     count (§10.3 ruling, phase-2 review). The halt gate is exempt from the
     PREDICATE — at the halt-gate call site, where the exemption is visible —
     never from the count, or the one auditable boundedness statement quietly
     under-reports.
     """
     counted = 0
-    for bead in beads:
-        kind = bead.metadata.get(KEY_WF_KIND)
-        if kind in _UNCOUNTED_KINDS:
+    for record in records:
+        if record.kind in _UNCOUNTED_KINDS:
             continue
         counted += 1
     return counted

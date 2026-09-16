@@ -52,8 +52,10 @@ from workflow_interpreter.bdio.records import (
     ActivationRecord,
     CanaryResult,
     GateRecord,
+    InstanceRecord,
     MintResult,
     RootRecord,
+    RowRecord,
 )
 from workflow_interpreter.bdio.roots import create_root, settle_root
 from workflow_interpreter.bdio.rpc_records import (
@@ -65,7 +67,6 @@ from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wake import append_wake_event
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
-    BeadRecord,
     BoundSetting,
     Deviation,
     EventPayload,
@@ -337,7 +338,7 @@ class WorkflowStore:
         root_id: str,
         request: MintRequest,
         root: RootRecord,
-        beads: Sequence[BeadRecord],
+        beads: Sequence[InstanceRecord],
         activations: Sequence[ActivationRecord],
     ) -> tuple[
         MintFacts,
@@ -521,13 +522,13 @@ class WorkflowStore:
             artifact_reader=self._artifact_reader,
         )
 
-    def append_wake_event(self, root_id: str, event: WakeEvent) -> BeadRecord:
+    def append_wake_event(self, root_id: str, event: WakeEvent) -> RowRecord:
         """Append a deduplicated notification, with no activation or gate authority."""
         return append_wake_event(self._client, root_id, event)
 
     def append_event(
         self, root_id: str, payload: EventPayload, *, seq: int | None = None
-    ) -> BeadRecord:
+    ) -> RowRecord:
         """Append one transition event, idempotently and INLINE (§3.3)."""
         return gates.append_event(self._client, root_id, payload, seq=seq)
 
@@ -597,7 +598,7 @@ class WorkflowStore:
         self,
         root: RootRecord,
         facts: MintFacts,
-        beads: Sequence[BeadRecord],
+        beads: Sequence[InstanceRecord],
         activations: Sequence[ActivationRecord],
         request: MintRequest,
     ) -> tuple[str, str]:
@@ -625,7 +626,7 @@ class WorkflowStore:
         self,
         root: RootRecord,
         facts: MintFacts,
-        beads: Sequence[BeadRecord],
+        beads: Sequence[InstanceRecord],
         activations: Sequence[ActivationRecord],
     ) -> BoundRefusal | None:
         """Every §10 pre-mint predicate that applies to this mint, in order.

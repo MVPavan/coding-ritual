@@ -420,7 +420,7 @@ def _ordered_by_ownership(
     """
     if len(live) < 2:
         return tuple(live)
-    owners = [bead for bead in live if _owns_instance_beads(client, bead.id)]
+    owners = [bead for bead in live if _owns_instance_records(client, bead.id)]
     if len(owners) > 1:
         raise CarrierIntegrityError(
             _MSG_TWO_OWNING_ROOTS.format(
@@ -434,9 +434,9 @@ def _ordered_by_ownership(
     return (owner, *(bead for bead in live if bead.id != owner.id))
 
 
-def _owns_instance_beads(client: BdClient, root_id: str) -> bool:
+def _owns_instance_records(client: BdClient, root_id: str) -> bool:
     """Whether any activation, gate or event of the instance links to this root."""
-    return any(bead.id != root_id for bead in reads.instance_beads(client, root_id))
+    return any(bead.id != root_id for bead in reads.instance_records(client, root_id))
 
 
 def _supersede_root(client: BdClient, loser: BeadRecord, winner_id: str) -> None:
@@ -572,12 +572,12 @@ def settle_root(client: BdClient, root_id: str, terminal: str) -> RootRecord:
         raise CarrierIntegrityError(
             _MSG_TERMINAL_CONFLICT.format(root_id=root_id, found=found, wanted=terminal)
         )
-    bead = record.bead
     if found is None:
-        bead = client._merge_metadata(root_id, {KEY_TERMINAL: terminal})
+        record = parse_root(client._merge_metadata(root_id, {KEY_TERMINAL: terminal}))
         _LOG.info("wf.root.terminal", root_id=root_id, terminal=terminal)
-    return parse_root(
-        finalize.close_forward(
-            client, bead, _REASON_ROOT_TERMINAL.format(terminal=terminal)
-        )
+    return finalize.close_record_forward(
+        client,
+        record,
+        _REASON_ROOT_TERMINAL.format(terminal=terminal),
+        parse_root,
     )

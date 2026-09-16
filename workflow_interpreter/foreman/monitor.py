@@ -382,7 +382,7 @@ class WakeMonitor:
         """Read carrier/log metadata only; historical gate records close polling gaps."""
         root = self._composition.store.reads.load_root(self._root_id)
         for gate in gates_of(
-            self._composition.store.reads.instance_beads(self._root_id)
+            self._composition.store.reads.instance_records(self._root_id)
         ):
             self._queue(WakeCondition.GATE_OPENED, gate.metadata.gate_key, gate.gate_id)
         self._journal()

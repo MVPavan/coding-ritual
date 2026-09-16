@@ -377,7 +377,7 @@ def _view(composition: Composition, root_id: str) -> _InstanceView:
         root_id = requested.metadata.coordination_state.active.get("work") or root_id
     wiring = composition.for_root(root_id)
     root = wiring.store.reads.load_root(root_id)
-    beads = wiring.store.reads.instance_beads(root_id)
+    beads = wiring.store.reads.instance_records(root_id)
     return _InstanceView(
         wiring=wiring,
         root=root,
@@ -746,7 +746,7 @@ def _run(
         # The two fields that say an instance is OVER: which terminal it
         # reached and whether its root bead is closed on that fact (§3.1).
         "terminal": frontier.terminal_node,
-        "root_state": root.bead.status,
+        "root_state": root.status,
         "instance_branch_head": composition.git.ref_target(
             INSTANCE_BRANCH.format(root_id=root.root_id),
             cwd=composition.config.repo_root,

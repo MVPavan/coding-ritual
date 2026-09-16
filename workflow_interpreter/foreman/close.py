@@ -351,7 +351,7 @@ def _effects_gate(
     return next(
         (
             gate
-            for gate in gates_of(wiring.store.reads.instance_beads(root.root_id))
+            for gate in gates_of(wiring.store.reads.instance_records(root.root_id))
             if gate.metadata.gate_node == EFFECTS_NODE
             and gate.metadata.source_activation_id == activation.activation_id
         ),

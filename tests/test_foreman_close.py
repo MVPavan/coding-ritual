@@ -982,7 +982,7 @@ def test_settle_replay_walks_back_to_the_prior_artifact_at_the_same_node(
     seed = fake_store.mint_activation(root.root_id, entry_request()).activation
     previous = seed.model_copy(
         update={
-            "bead": seed.bead.model_copy(update={"id": "previous"}),
+            "id": "previous",
             "metadata": seed.metadata.model_copy(
                 update={
                     "node": "implement",
@@ -999,7 +999,7 @@ def test_settle_replay_walks_back_to_the_prior_artifact_at_the_same_node(
     )
     review = seed.model_copy(
         update={
-            "bead": seed.bead.model_copy(update={"id": "review"}),
+            "id": "review",
             "metadata": seed.metadata.model_copy(
                 update={
                     "node": "review",
@@ -1011,7 +1011,7 @@ def test_settle_replay_walks_back_to_the_prior_artifact_at_the_same_node(
     )
     activation = seed.model_copy(
         update={
-            "bead": seed.bead.model_copy(update={"id": "current"}),
+            "id": "current",
             "metadata": seed.metadata.model_copy(
                 update={
                     "node": "implement",
@@ -1076,7 +1076,7 @@ def test_settle_bounds_a_cyclic_predecessor_walk(
     seed = fake_store.mint_activation(root.root_id, entry_request()).activation
     current = seed.model_copy(
         update={
-            "bead": seed.bead.model_copy(update={"id": "current"}),
+            "id": "current",
             "metadata": seed.metadata.model_copy(
                 update={
                     "lifecycle": Lifecycle.EXIT_RECORDED,
@@ -1092,7 +1092,7 @@ def test_settle_bounds_a_cyclic_predecessor_walk(
     )
     cycle = current.model_copy(
         update={
-            "bead": current.bead.model_copy(update={"id": "cycle"}),
+            "id": "cycle",
             "metadata": current.metadata.model_copy(
                 update={"predecessor_activation_id": "current"}
             ),

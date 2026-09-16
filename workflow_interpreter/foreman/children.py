@@ -184,10 +184,10 @@ def collect(
         gates = wiring.store.reads.list_gates(row.root_id)
         if (
             not terminal
-            or root.bead.status != "closed"
+            or root.status != "closed"
             or latest is None
             or latest.metadata.lifecycle is not Lifecycle.CLOSED
-            or any(g.bead.status != "closed" for g in gates)
+            or any(g.status != "closed" for g in gates)
         ):
             raise CoordinationError("child is not settled")
         if (
@@ -321,7 +321,7 @@ def observe(
     latest = max(activations, key=lambda a: a.metadata.seq, default=None)
     row = refresh_control_attention(row, activations)
     gates = composition.store.reads.list_gates(row.root_id)
-    waiting = next((g for g in gates if g.bead.status != "closed"), None)
+    waiting = next((g for g in gates if g.status != "closed"), None)
     changes: dict[str, object] = {
         "terminal": root.metadata.terminal,
         "state": "settled"

@@ -12,7 +12,9 @@ from workflow_interpreter.foreman.gates import halt_gate
 
 def test_audit_accepts_the_real_empty_instance(fake_store: WorkflowStore) -> None:
     root = make_root(fake_store, load_definition())
-    assert audit(root, fake_store.reads.instance_beads(root.root_id)).violation is None
+    assert (
+        audit(root, fake_store.reads.instance_records(root.root_id)).violation is None
+    )
 
 
 def test_audit_reports_an_unverified_closed_gate_without_writing(
@@ -24,7 +26,7 @@ def test_audit_reports_an_unverified_closed_gate_without_writing(
     before_updates = fake_bd.command_count("update")
     before_closes = fake_bd.command_count("close")
 
-    result = audit(root, fake_store.reads.instance_beads(root.root_id))
+    result = audit(root, fake_store.reads.instance_records(root.root_id))
 
     assert result.violation == "gate_close_unverified"
     assert fake_bd.command_count("update") == before_updates
@@ -41,6 +43,6 @@ def test_audit_reports_two_unconsumed_completed_heads(
     duplicate["id"] = "wf-conflict"
     fake_bd.rows["wf-conflict"] = duplicate
 
-    result = audit(root, fake_store.reads.instance_beads(root.root_id))
+    result = audit(root, fake_store.reads.instance_records(root.root_id))
 
     assert result.violation == "more than one unconsumed routing head"

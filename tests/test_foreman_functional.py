@@ -560,7 +560,7 @@ def test_drill_25_halt_abandon_reaches_terminal(
     assert lab.root is not None
     settled = lab.store.reads.load_root(lab.root.root_id)
     assert settled.metadata.terminal == "abandoned"
-    assert settled.bead.status == STATUS_CLOSED
+    assert settled.status == STATUS_CLOSED
 
 
 def test_an_abandon_edge_that_reaches_no_terminal_settles_nothing_and_still_ticks(
@@ -591,7 +591,7 @@ def test_an_abandon_edge_that_reaches_no_terminal_settles_nothing_and_still_tick
     assert lab.root is not None
     unsettled = lab.store.reads.load_root(lab.root.root_id)
     assert unsettled.metadata.terminal is None
-    assert unsettled.bead.status != STATUS_CLOSED
+    assert unsettled.status != STATUS_CLOSED
 
 
 def test_drill_25_a_declared_fail_code_outcome_opens_triage_directly(

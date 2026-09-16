@@ -22,11 +22,15 @@ from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
+    InstanceRecord,
     RootRecord,
+    RowRecord,
     parse_activation,
     parse_event,
     parse_gate,
+    parse_instance_row,
     parse_root,
+    parse_row,
 )
 from workflow_interpreter.bdio.wire import (
     KEY_EVENT_KEY,
@@ -89,9 +93,17 @@ def list_roots(client: BdClient) -> tuple[RootRecord, ...]:
     return tuple(parse_root(bead) for bead in sorted(beads, key=lambda b: b.id))
 
 
-def instance_beads(client: BdClient, root_id: str) -> tuple[BeadRecord, ...]:
-    """Every bead of the instance — activations, gates and events (§4)."""
-    return client.list_beads(metadata_filters={KEY_WF_ROOT_ID: root_id})
+def instance_records(client: BdClient, root_id: str) -> tuple[InstanceRecord, ...]:
+    """Every row of the instance, typed — root, activations, gates and events (§4).
+
+    The root itself is included: it carries its own `wf_root_id`, and both the
+    §10.3 count and the `seq` allocation are defined over everything the
+    selector returns.
+    """
+    return tuple(
+        parse_instance_row(bead)
+        for bead in client.list_beads(metadata_filters={KEY_WF_ROOT_ID: root_id})
+    )
 
 
 def list_activations(client: BdClient, root_id: str) -> tuple[ActivationRecord, ...]:
@@ -155,8 +167,8 @@ def find_gate(client: BdClient, root_id: str, gate_key: str) -> GateRecord | Non
     return parse_gate(beads[0]) if beads else None
 
 
-def find_event(client: BdClient, root_id: str, event_key: str) -> BeadRecord | None:
-    """The event bead carrying `event_key`, so backfill cannot duplicate (§3.3)."""
+def find_event(client: BdClient, root_id: str, event_key: str) -> RowRecord | None:
+    """The event row carrying `event_key`, so backfill cannot duplicate (§3.3)."""
     beads = client.list_beads(
         metadata_filters={
             KEY_WF_ROOT_ID: root_id,
@@ -165,7 +177,7 @@ def find_event(client: BdClient, root_id: str, event_key: str) -> BeadRecord | N
         },
         issue_type=IssueType.EVENT,
     )
-    return beads[0] if beads else None
+    return parse_row(beads[0]) if beads else None
 
 
 def list_wake_events(client: BdClient, root_id: str) -> tuple[WakeEvent, ...]:
@@ -176,9 +188,9 @@ def list_wake_events(client: BdClient, root_id: str) -> tuple[WakeEvent, ...]:
     )
     return tuple(
         event
-        for bead in sorted(beads, key=lambda item: item.id)
-        if bead.payload is not None
-        and isinstance(event := parse_event(bead), WakeEvent)
+        for record in sorted(map(parse_row, beads), key=lambda item: item.id)
+        if record.payload is not None
+        and isinstance(event := parse_event(record), WakeEvent)
     )
 
 
@@ -191,40 +203,40 @@ def beads_with_nonce(
     )
 
 
-def next_seq(beads: Sequence[BeadRecord]) -> int:
+def _seq_of(record: InstanceRecord) -> int | None:
+    """The §3.2 sequence a record carries, or `None` when it carries none."""
+    if isinstance(record, ActivationRecord | GateRecord):
+        return record.metadata.seq
+    value = record.metadata.get(KEY_SEQ)
+    return value if isinstance(value, int) else None
+
+
+def next_seq(records: Sequence[InstanceRecord]) -> int:
     """The next per-instance `seq` (§3.2) — never derived from a timestamp."""
-    seen = [
-        value for bead in beads if isinstance(value := bead.metadata.get(KEY_SEQ), int)
-    ]
+    seen = [seq for record in records if (seq := _seq_of(record)) is not None]
     return max(seen, default=FIRST_SEQ - 1) + 1
 
 
-def activations_of(beads: Sequence[BeadRecord]) -> tuple[ActivationRecord, ...]:
-    """The activations among already-fetched instance beads, in `seq` order.
+def activations_of(records: Sequence[InstanceRecord]) -> tuple[ActivationRecord, ...]:
+    """The activations among already-fetched instance records, in `seq` order.
 
-    A mint needs both the ceiling count (all beads) and the activation views
-    (§10.1/§10.2 counting); deriving the second from the first keeps one bd
+    A mint needs both the ceiling count (all records) and the activation views
+    (§10.1/§10.2 counting); deriving the second from the first keeps one
     round-trip per mint instead of two.
     """
     return _ordered(
-        parse_activation(bead)
-        for bead in beads
-        if bead.metadata.get(KEY_WF_KIND) == WfKind.ACTIVATION.value
+        record for record in records if isinstance(record, ActivationRecord)
     )
 
 
-def gates_of(beads: Sequence[BeadRecord]) -> tuple[GateRecord, ...]:
-    """The gates among already-fetched instance beads, in `seq` order.
+def gates_of(records: Sequence[InstanceRecord]) -> tuple[GateRecord, ...]:
+    """The gates among already-fetched instance records, in `seq` order.
 
     Same motive as `activations_of`: a mint and a gate-open both need the
-    ceiling count (all beads) AND the closed rebudget gates the §10.4
+    ceiling count (all records) AND the closed rebudget gates the §10.4
     effective bound is computed from, and one fetch serves both.
     """
-    return _ordered(
-        parse_gate(bead)
-        for bead in beads
-        if bead.metadata.get(KEY_WF_KIND) == WfKind.GATE.value
-    )
+    return _ordered(record for record in records if isinstance(record, GateRecord))
 
 
 def effective_bound(
@@ -240,9 +252,7 @@ def _ordered[RecordT: (ActivationRecord, GateRecord)](
     records: Iterable[RecordT],
 ) -> tuple[RecordT, ...]:
     """Sort parsed records by `(seq, bead id)` — a total, deterministic order."""
-    return tuple(
-        sorted(records, key=lambda record: (record.metadata.seq, record.bead.id))
-    )
+    return tuple(sorted(records, key=lambda record: (record.metadata.seq, record.id)))
 
 
 class WorkflowReads:
@@ -272,9 +282,9 @@ class WorkflowReads:
         """Read one gate through the carrier contract."""
         return load_gate(self._client, gate_id)
 
-    def instance_beads(self, root_id: str) -> tuple[BeadRecord, ...]:
-        """Every bead of the instance, selected by `wf_root_id` (§4)."""
-        return instance_beads(self._client, root_id)
+    def instance_records(self, root_id: str) -> tuple[InstanceRecord, ...]:
+        """Every row of the instance, typed and selected by `wf_root_id` (§4)."""
+        return instance_records(self._client, root_id)
 
     def list_activations(self, root_id: str) -> tuple[ActivationRecord, ...]:
         """Every activation of the instance, in `seq` order."""
@@ -304,8 +314,8 @@ class WorkflowReads:
         """The gate carrying `gate_key`, if this key was already opened (§3.4)."""
         return find_gate(self._client, root_id, gate_key)
 
-    def find_event(self, root_id: str, event_key: str) -> BeadRecord | None:
-        """The event bead carrying `event_key` (§3.3)."""
+    def find_event(self, root_id: str, event_key: str) -> RowRecord | None:
+        """The event row carrying `event_key` (§3.3)."""
         return find_event(self._client, root_id, event_key)
 
     def list_wake_events(self, root_id: str) -> tuple[WakeEvent, ...]:

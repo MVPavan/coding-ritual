@@ -23,8 +23,10 @@ from workflow_interpreter.bdio.bounds import (
 )
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
+    GateRecord,
     parse_activation,
     parse_gate,
+    parse_row,
 )
 from workflow_interpreter.bdio.wire import BeadRecord, EventPayload, GateMetadata
 from workflow_interpreter.foreman.bounds import (
@@ -124,7 +126,7 @@ def test_expected_intents_recovers_an_activation_edge(
     predecessor = fake_store.mint_activation(root.root_id, entry_request()).activation
     successor = predecessor.model_copy(
         update={
-            "bead": predecessor.bead.model_copy(update={"id": "successor"}),
+            "id": "successor",
             "metadata": predecessor.metadata.model_copy(
                 update={
                     "node": "review",
@@ -195,23 +197,17 @@ def test_expected_intents_covers_gate_transition_exhaustion_and_via(
             )
         }
     )
-    transition = parse_gate(
-        _halt_gate(root.root_id, state=GateState.OPEN).model_copy(
-            update={
-                "id": "transition",
-                "metadata": {
-                    **_halt_gate(root.root_id, state=GateState.OPEN).metadata,
-                    "gate_reason": "transition",
-                    "gate_node": "ship",
-                    "source_activation_id": source.activation_id,
-                    "opening_outcome": "done",
-                },
-            }
-        )
+    transition = _restated(
+        _halt_gate(root.root_id, state=GateState.OPEN),
+        "transition",
+        gate_reason="transition",
+        gate_node="ship",
+        source_activation_id=source.activation_id,
+        opening_outcome="done",
     )
     successor = source.model_copy(
         update={
-            "bead": source.bead.model_copy(update={"id": "successor"}),
+            "id": "successor",
             "metadata": source.metadata.model_copy(
                 update={
                     "node": "review",
@@ -223,19 +219,14 @@ def test_expected_intents_covers_gate_transition_exhaustion_and_via(
             ),
         }
     )
-    exhaustion_bead = _halt_gate(root.root_id, state=GateState.OPEN).model_copy(
-        update={
-            "id": "exhaustion",
-            "metadata": {
-                **_halt_gate(root.root_id, state=GateState.OPEN).metadata,
-                "gate_reason": "exhaustion",
-                "gate_node": "triage",
-                "source_activation_id": source.activation_id,
-                "opening_outcome": "no_diff",
-            },
-        }
+    exhaustion = _restated(
+        _halt_gate(root.root_id, state=GateState.OPEN),
+        "exhaustion",
+        gate_reason="exhaustion",
+        gate_node="triage",
+        source_activation_id=source.activation_id,
+        opening_outcome="no_diff",
     )
-    exhaustion = parse_gate(exhaustion_bead)
     intents = expected_intents(root, (via, successor), (transition, exhaustion))
     assert (
         EventIntent(
@@ -284,7 +275,7 @@ def test_expected_intents_excludes_effects_gates(
         gate_node=EFFECTS_NODE,
     )
 
-    assert expected_intents(root, (source,), (parse_gate(effects),)) == ()
+    assert expected_intents(root, (source,), (effects,)) == ()
 
 
 def test_expected_intents_suppresses_a_non_abandoned_dead_end_halt(
@@ -292,9 +283,7 @@ def test_expected_intents_suppresses_a_non_abandoned_dead_end_halt(
 ) -> None:
     """A dead-end halt opens no event until a human abandons it."""
     root = make_root(fake_store, load_definition())
-    gate = parse_gate(
-        _halt_gate(root.root_id, state=GateState.CLOSED, outcome=Outcome.APPROVE)
-    )
+    gate = _halt_gate(root.root_id, state=GateState.CLOSED, outcome=Outcome.APPROVE)
     assert expected_intents(root, (), (gate,)) == ()
 
 
@@ -458,7 +447,7 @@ def test_frontier_marks_a_fresh_instance_empty(fake_store: WorkflowStore) -> Non
     """F3: no activation, live gate, or terminal event is an entry-mint frontier."""
     root = make_root(fake_store, load_definition())
     assert (
-        build_frontier(root, fake_store.reads.instance_beads(root.root_id)).empty
+        build_frontier(root, fake_store.reads.instance_records(root.root_id)).empty
         is True
     )
 
@@ -467,7 +456,7 @@ def test_frontier_marks_a_minted_activation_nonempty(fake_store: WorkflowStore) 
     """The empty rule cannot re-entry-mint beside an already minted activation."""
     root = make_root(fake_store, load_definition())
     fake_store.mint_activation(root.root_id, entry_request())
-    frontier = build_frontier(root, fake_store.reads.instance_beads(root.root_id))
+    frontier = build_frontier(root, fake_store.reads.instance_records(root.root_id))
     assert frontier.empty is False
     assert len(frontier.minted) == 1
 
@@ -478,7 +467,7 @@ def _halt_gate(
     state: GateState,
     outcome: Outcome | None = None,
     source: str | None = None,
-) -> BeadRecord:
+) -> GateRecord:
     metadata = GateMetadata(
         wf_root_id=root_id,
         gate_key="gate-key",
@@ -493,12 +482,33 @@ def _halt_gate(
         verified_fingerprint="fingerprint" if outcome is not None else None,
         payload_digest="digest" if outcome is not None else None,
     )
-    return BeadRecord(
-        id="gate",
-        title="gate",
-        status="open",
-        issue_type="task",
-        metadata=metadata.model_dump(mode="json"),
+    return parse_gate(
+        BeadRecord(
+            id="gate",
+            title="gate",
+            status="open",
+            issue_type="task",
+            metadata=metadata.model_dump(mode="json"),
+        )
+    )
+
+
+def _restated(
+    gate: GateRecord, gate_id: str | None = None, **updates: object
+) -> GateRecord:
+    """Re-parse a gate carrier with overridden fields, without a transport write."""
+    row_id = gate.id if gate_id is None else gate_id
+    return parse_gate(
+        BeadRecord(
+            id=row_id,
+            title=row_id,
+            status=gate.status,
+            issue_type="task",
+            metadata={
+                **gate.metadata.model_dump(mode="json", exclude_none=True),
+                **updates,
+            },
+        )
     )
 
 
@@ -506,16 +516,19 @@ def _activation_bead(
     activation: object,
     bead_id: str,
     **updates: object,
-) -> BeadRecord:
+) -> ActivationRecord:
     """Copy a parsed activation into a distinct trace row for frontier tests."""
     record = cast(ActivationRecord, activation)
-    return record.bead.model_copy(
-        update={
-            "id": bead_id,
-            "metadata": record.metadata.model_copy(update=updates).model_dump(
+    return parse_activation(
+        BeadRecord(
+            id=bead_id,
+            title=bead_id,
+            status=record.status,
+            issue_type="task",
+            metadata=record.metadata.model_copy(update=updates).model_dump(
                 mode="json", exclude_none=True
             ),
-        }
+        )
     )
 
 
@@ -526,7 +539,7 @@ def _transition_gate(
     source: str | None,
     state: GateState,
     gate_node: str = "ship",
-) -> BeadRecord:
+) -> GateRecord:
     """Build a transition-shaped row without a transport write."""
     metadata = GateMetadata(
         wf_root_id=root_id,
@@ -542,12 +555,14 @@ def _transition_gate(
         verified_fingerprint="fingerprint" if state is GateState.CLOSED else None,
         payload_digest="digest" if state is GateState.CLOSED else None,
     )
-    return BeadRecord(
-        id=gate_id,
-        title=gate_id,
-        status="open",
-        issue_type="task",
-        metadata=metadata.model_dump(mode="json", exclude_none=True),
+    return parse_gate(
+        BeadRecord(
+            id=gate_id,
+            title=gate_id,
+            status="open",
+            issue_type="task",
+            metadata=metadata.model_dump(mode="json", exclude_none=True),
+        )
     )
 
 
@@ -576,7 +591,7 @@ def test_frontier_consumption_table_keeps_only_the_unconsumed_head(
         outcome=None,
         evidence=None,
     )
-    assert build_frontier(root, (source.bead, successor)).head is None
+    assert build_frontier(root, (source, successor)).head is None
 
     transition = _transition_gate(
         root.root_id,
@@ -584,7 +599,7 @@ def test_frontier_consumption_table_keeps_only_the_unconsumed_head(
         source=source.activation_id,
         state=GateState.OPEN,
     )
-    assert build_frontier(root, (source.bead, transition)).head is None
+    assert build_frontier(root, (source, transition)).head is None
 
     halt = _halt_gate(
         root.root_id,
@@ -592,7 +607,7 @@ def test_frontier_consumption_table_keeps_only_the_unconsumed_head(
         outcome=Outcome.APPROVE,
         source=source.activation_id,
     )
-    assert build_frontier(root, (source.bead, halt)).head_gate is not None
+    assert build_frontier(root, (source, halt)).head_gate is not None
 
 
 def test_frontier_effects_gate_cannot_consume_its_source(
@@ -608,7 +623,7 @@ def test_frontier_effects_gate_cannot_consume_its_source(
         state=GateState.OPEN,
         gate_node=EFFECTS_NODE,
     )
-    frontier = build_frontier(root, (source.bead, effects))
+    frontier = build_frontier(root, (source, effects))
     assert frontier.head_activation is not None
     assert frontier.head_activation.activation_id == source.activation_id
 
@@ -619,23 +634,25 @@ def test_frontier_terminal_and_gate_successors_consume_their_origins(
     """Terminal audit rows and activation gate predecessors leave no second head."""
     root = make_root(fake_store, load_definition())
     source = _closed_activation(fake_store, root.root_id)
-    terminal = BeadRecord(
-        id="terminal",
-        title="terminal",
-        status="open",
-        issue_type="event",
-        metadata={"wf_kind": "event"},
-        payload=EventPayload(
-            **{"from": "implement"},
-            outcome=Outcome.DONE,
-            to="shipped",
-            activation_id=source.activation_id,
-            seq=2,
-            actor="actor",
-            origin="activation",
-        ).model_dump_json(by_alias=True),
+    terminal = parse_row(
+        BeadRecord(
+            id="terminal",
+            title="terminal",
+            status="open",
+            issue_type="event",
+            metadata={"wf_kind": "event"},
+            payload=EventPayload(
+                **{"from": "implement"},
+                outcome=Outcome.DONE,
+                to="shipped",
+                activation_id=source.activation_id,
+                seq=2,
+                actor="actor",
+                origin="activation",
+            ).model_dump_json(by_alias=True),
+        )
     )
-    assert build_frontier(root, (source.bead, terminal)).head is None
+    assert build_frontier(root, (source, terminal)).head is None
 
     gate = _transition_gate(
         root.root_id,
@@ -674,7 +691,7 @@ def test_frontier_candidates_use_unconsumed_completed_non_effects_records(
         lifecycle=Lifecycle.CLOSED,
         outcome=Outcome.DONE,
     )
-    frontier = build_frontier(root, (source.bead, successor))
+    frontier = build_frontier(root, (source, successor))
     assert frontier.head_activation is not None
     assert frontier.head_activation.activation_id == "completed-successor"
 
@@ -720,20 +737,11 @@ def test_frontier_rejects_unverified_closes_ignores_superseded_and_conflicts(
     assert superseded_frontier.head is None
     assert superseded_frontier.minted == ()
 
-    unverified = _transition_gate(
-        root.root_id, gate_id="unverified", source=None, state=GateState.CLOSED
-    ).model_copy(
-        update={
-            "metadata": {
-                **_transition_gate(
-                    root.root_id,
-                    gate_id="unverified",
-                    source=None,
-                    state=GateState.CLOSED,
-                ).metadata,
-                "verified_fingerprint": None,
-            }
-        }
+    unverified = _restated(
+        _transition_gate(
+            root.root_id, gate_id="unverified", source=None, state=GateState.CLOSED
+        ),
+        verified_fingerprint=None,
     )
     with pytest.raises(FrontierViolation, match="gate_close_unverified"):
         build_frontier(root, (unverified,))
@@ -792,9 +800,7 @@ def test_expected_intents_includes_closed_abandoned_halt(
 ) -> None:
     """A closed abandonment is an audit event even without a successor mint."""
     root = make_root(fake_store, load_definition())
-    gate = parse_gate(
-        _halt_gate(root.root_id, state=GateState.CLOSED, outcome=Outcome.ABANDON)
-    )
+    gate = _halt_gate(root.root_id, state=GateState.CLOSED, outcome=Outcome.ABANDON)
     intents = expected_intents(root, (), (gate,))
     assert intents[0].from_node == "halt"
     assert intents[0].outcome is Outcome.ABANDON
@@ -816,17 +822,10 @@ def test_expected_intents_excludes_open_or_unverified_abandon_halts(
 ) -> None:
     """Only a verified close is an abandonment decision worth auditing."""
     root = make_root(fake_store, load_definition())
-    bead = _halt_gate(root.root_id, state=state, outcome=Outcome.ABANDON)
-    gate = parse_gate(
-        bead.model_copy(
-            update={
-                "metadata": {
-                    **bead.metadata,
-                    "verified_fingerprint": fingerprint,
-                    "payload_digest": digest,
-                }
-            }
-        )
+    gate = _restated(
+        _halt_gate(root.root_id, state=state, outcome=Outcome.ABANDON),
+        verified_fingerprint=fingerprint,
+        payload_digest=digest,
     )
     assert expected_intents(root, (), (gate,)) == ()
 
@@ -836,21 +835,23 @@ def test_frontier_terminal_event_never_reopens_an_empty_instance(
 ) -> None:
     """A terminal event is consumption, even if no activation remains."""
     root = make_root(fake_store, load_definition())
-    event = BeadRecord(
-        id="event",
-        title="event",
-        status="open",
-        issue_type="event",
-        metadata={"wf_kind": "event"},
-        payload=EventPayload(
-            **{"from": "halt"},
-            outcome=Outcome.ABANDON,
-            to="abandoned",
-            activation_id="gate",
-            seq=1,
-            actor="actor",
-            origin="gate",
-        ).model_dump_json(by_alias=True),
+    event = parse_row(
+        BeadRecord(
+            id="event",
+            title="event",
+            status="open",
+            issue_type="event",
+            metadata={"wf_kind": "event"},
+            payload=EventPayload(
+                **{"from": "halt"},
+                outcome=Outcome.ABANDON,
+                to="abandoned",
+                activation_id="gate",
+                seq=1,
+                actor="actor",
+                origin="gate",
+            ).model_dump_json(by_alias=True),
+        )
     )
     frontier = build_frontier(root, (event,))
     assert frontier.terminal is True
@@ -863,21 +864,23 @@ def test_frontier_consumes_an_abandoned_halt_only_at_its_terminal_event(
     """The durable abandon marker disappears only after its terminal audit row."""
     root = make_root(fake_store, load_definition())
     gate = _halt_gate(root.root_id, state=GateState.CLOSED, outcome=Outcome.ABANDON)
-    event = BeadRecord(
-        id="event",
-        title="event",
-        status="open",
-        issue_type="event",
-        metadata={"wf_kind": "event"},
-        payload=EventPayload(
-            **{"from": "halt"},
-            outcome=Outcome.ABANDON,
-            to="abandoned",
-            activation_id="gate",
-            seq=1,
-            actor="actor",
-            origin="gate",
-        ).model_dump_json(by_alias=True),
+    event = parse_row(
+        BeadRecord(
+            id="event",
+            title="event",
+            status="open",
+            issue_type="event",
+            metadata={"wf_kind": "event"},
+            payload=EventPayload(
+                **{"from": "halt"},
+                outcome=Outcome.ABANDON,
+                to="abandoned",
+                activation_id="gate",
+                seq=1,
+                actor="actor",
+                origin="gate",
+            ).model_dump_json(by_alias=True),
+        )
     )
     frontier = build_frontier(root, (gate, event))
     assert frontier.terminal is True
@@ -893,24 +896,26 @@ def test_frontier_does_not_consume_a_non_terminal_event(
     fake_store.close_activation(
         activation.activation_id, Outcome.DONE, evidence=Evidence()
     )
-    event = BeadRecord(
-        id="event",
-        title="event",
-        status="open",
-        issue_type="event",
-        metadata={"wf_kind": "event"},
-        payload=EventPayload(
-            **{"from": "implement"},
-            outcome=Outcome.DONE,
-            to="review",
-            activation_id=activation.activation_id,
-            seq=1,
-            actor="actor",
-            origin="activation",
-        ).model_dump_json(by_alias=True),
+    event = parse_row(
+        BeadRecord(
+            id="event",
+            title="event",
+            status="open",
+            issue_type="event",
+            metadata={"wf_kind": "event"},
+            payload=EventPayload(
+                **{"from": "implement"},
+                outcome=Outcome.DONE,
+                to="review",
+                activation_id=activation.activation_id,
+                seq=1,
+                actor="actor",
+                origin="activation",
+            ).model_dump_json(by_alias=True),
+        )
     )
     frontier = build_frontier(
-        root, (*fake_store.reads.instance_beads(root.root_id), event)
+        root, (*fake_store.reads.instance_records(root.root_id), event)
     )
     assert frontier.head_activation is not None
     assert frontier.head_activation.activation_id == activation.activation_id
@@ -987,7 +992,7 @@ def test_frontier_classifies_every_dead_end_kind(
             Deviation(kind=kind, reason=kind, recorded_at="now") for kind in kinds
         ),
     )
-    frontier = build_frontier(root, fake_store.reads.instance_beads(root.root_id))
+    frontier = build_frontier(root, fake_store.reads.instance_records(root.root_id))
     assert frontier.dead_end is not None
     assert frontier.dead_end.kind.value == expected
 
@@ -1004,7 +1009,7 @@ def test_frontier_excludes_a_dead_end_from_routing_heads(
         evidence=Evidence(claimed_outcome=Outcome.DONE),
     )
 
-    frontier = build_frontier(root, fake_store.reads.instance_beads(root.root_id))
+    frontier = build_frontier(root, fake_store.reads.instance_records(root.root_id))
 
     assert frontier.dead_end is not None
     assert frontier.head is None
@@ -1037,7 +1042,7 @@ def test_frontier_does_not_dead_end_a_declared_fail_code(
         evidence=Evidence(claimed_outcome=Outcome.FAIL_CODE),
     )
     frontier = build_frontier(
-        declared_root, fake_store.reads.instance_beads(root.root_id)
+        declared_root, fake_store.reads.instance_records(root.root_id)
     )
     assert frontier.dead_end is None
     assert frontier.head is not None
@@ -1062,7 +1067,7 @@ def test_frontier_fail_code_depends_only_on_the_declaration(
         Outcome.FAIL_CODE,
         evidence=Evidence(claimed_outcome=claimed_outcome),
     )
-    frontier = build_frontier(root, fake_store.reads.instance_beads(root.root_id))
+    frontier = build_frontier(root, fake_store.reads.instance_records(root.root_id))
     assert (frontier.dead_end is None) is declares_fail_code
 
 
@@ -1106,25 +1111,16 @@ def test_frontier_exhaustion_gate_consumes_its_completed_source(
     """An exhaustion gate is a consumption edge, not a second routing head."""
     root = make_root(fake_store, load_definition())
     source = _closed_activation(fake_store, root.root_id)
-    gate = _transition_gate(
-        root.root_id,
-        gate_id="exhaustion",
-        source=source.activation_id,
-        state=GateState.OPEN,
-    ).model_copy(
-        update={
-            "metadata": {
-                **_transition_gate(
-                    root.root_id,
-                    gate_id="exhaustion",
-                    source=source.activation_id,
-                    state=GateState.OPEN,
-                ).metadata,
-                "gate_reason": GateReason.EXHAUSTION.value,
-            }
-        }
+    gate = _restated(
+        _transition_gate(
+            root.root_id,
+            gate_id="exhaustion",
+            source=source.activation_id,
+            state=GateState.OPEN,
+        ),
+        gate_reason=GateReason.EXHAUSTION.value,
     )
-    assert build_frontier(root, (source.bead, gate)).head is None
+    assert build_frontier(root, (source, gate)).head is None
 
 
 @pytest.mark.parametrize("field", ["outcome", "verified_fingerprint", "payload_digest"])
@@ -1139,7 +1135,7 @@ def test_frontier_refuses_each_missing_closed_gate_proof(
     with pytest.raises(FrontierViolation, match="gate_close_unverified"):
         build_frontier(
             root,
-            (gate.model_copy(update={"metadata": {**gate.metadata, field: None}}),),
+            (_restated(gate, **{field: None}),),
         )
 
 
@@ -1292,7 +1288,7 @@ def test_events_ignore_non_edge_retries_and_backfill_once(
     source = _closed_activation(fake_store, root.root_id)
     retry = source.model_copy(
         update={
-            "bead": source.bead.model_copy(update={"id": "retry"}),
+            "id": "retry",
             "metadata": source.metadata.model_copy(
                 update={"mint_reason": MintReason.INFRA_RETRY}
             ),
@@ -1327,18 +1323,16 @@ def test_events_ignore_a_retry_that_otherwise_looks_like_an_edge(
     """The mint reason, independently of predecessor data, gates audit events."""
     root = make_root(fake_store, load_definition())
     source = _closed_activation(fake_store, root.root_id)
-    retry = parse_activation(
-        _activation_bead(
-            source,
-            "retry",
-            node="review",
-            mint_reason=MintReason.INFRA_RETRY,
-            predecessor_activation_id=source.activation_id,
-            outcome_taken=Outcome.DONE,
-            lifecycle=Lifecycle.MINTED,
-            outcome=None,
-            evidence=None,
-        )
+    retry = _activation_bead(
+        source,
+        "retry",
+        node="review",
+        mint_reason=MintReason.INFRA_RETRY,
+        predecessor_activation_id=source.activation_id,
+        outcome_taken=Outcome.DONE,
+        lifecycle=Lifecycle.MINTED,
+        outcome=None,
+        evidence=None,
     )
     assert expected_intents(root, (source, retry), ()) == ()
 
@@ -1421,7 +1415,7 @@ def test_expected_intents_carries_the_activation_edge_via_gate(
     )
     successor = predecessor.model_copy(
         update={
-            "bead": predecessor.bead.model_copy(update={"id": "successor"}),
+            "id": "successor",
             "metadata": predecessor.metadata.model_copy(
                 update={
                     "node": "review",
@@ -1455,16 +1449,7 @@ def test_expected_intents_ignores_a_sourced_halt_transition_shape(
         outcome=Outcome.APPROVE,
         source=source.activation_id,
     )
-    halt = parse_gate(
-        raw_halt.model_copy(
-            update={
-                "metadata": {
-                    **raw_halt.metadata,
-                    "opening_outcome": Outcome.DONE.value,
-                }
-            }
-        )
-    )
+    halt = _restated(raw_halt, opening_outcome=Outcome.DONE.value)
     assert expected_intents(root, (source,), (halt,)) == ()
 
 
@@ -1492,7 +1477,7 @@ def test_backfill_refetches_the_sequence_for_each_missing_intent(
     )
     events = [
         row
-        for row in fake_store.reads.instance_beads(root.root_id)
+        for row in fake_store.reads.instance_records(root.root_id)
         if row.metadata.get("wf_kind") == "event"
     ]
     assert len(events) == 2
@@ -1510,9 +1495,9 @@ def test_frontier_abandoned_halt_requires_closed_halt(
 ) -> None:
     """An abandon outcome alone is not an abandoned halt decision."""
     root = make_root(fake_store, load_definition())
-    raw_gate = _halt_gate(root.root_id, state=state, outcome=Outcome.ABANDON)
-    gate = raw_gate.model_copy(
-        update={"metadata": {**raw_gate.metadata, "gate_reason": gate_reason.value}}
+    gate = _restated(
+        _halt_gate(root.root_id, state=state, outcome=Outcome.ABANDON),
+        gate_reason=gate_reason.value,
     )
     assert build_frontier(root, (gate,)).abandoned_halt is None
 
@@ -1604,7 +1589,7 @@ def test_frontier_forgets_a_dead_end_consumed_by_an_approved_halt(
         mint_reason=MintReason.EDGE,
         outcome_taken=Outcome.APPROVE,
     )
-    assert build_frontier(root, (source.bead, halt, remint)).dead_end is None
+    assert build_frontier(root, (source, halt, remint)).dead_end is None
 
 
 def test_route_requires_a_declared_fail_code() -> None:

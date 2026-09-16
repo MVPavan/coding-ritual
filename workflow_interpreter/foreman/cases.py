@@ -104,8 +104,7 @@ def intake_all(
             for gate in gates
             if gate.metadata.state is GateState.OPEN
             or (
-                gate.metadata.state is GateState.CLOSED
-                and gate.bead.status != STATUS_CLOSED
+                gate.metadata.state is GateState.CLOSED and gate.status != STATUS_CLOSED
             )
         ),
         key=lambda gate: (gate.metadata.gate_node != HALT_NODE, gate.metadata.seq),

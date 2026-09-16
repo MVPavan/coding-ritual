@@ -44,7 +44,7 @@ from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     LifecycleConflictError,
 )
-from workflow_interpreter.bdio.finalize import close_forward
+from workflow_interpreter.bdio.finalize import close_record_forward
 from workflow_interpreter.bdio.records import ActivationRecord, parse_activation
 from workflow_interpreter.bdio.wire import (
     KEY_LIFECYCLE,
@@ -273,8 +273,8 @@ def repair_forward(client: BdClient, record: ActivationRecord) -> ActivationReco
 
 
 def finish(client: BdClient, record: ActivationRecord, reason: str) -> ActivationRecord:
-    """Drive this activation's bd close to completion, idempotently."""
-    return parse_activation(close_forward(client, record.bead, reason))
+    """Drive this activation's close to completion, idempotently."""
+    return close_record_forward(client, record, reason, parse_activation)
 
 
 def _delta(metadata: ActivationMetadata, owned: dict[str, object]) -> Metadata:

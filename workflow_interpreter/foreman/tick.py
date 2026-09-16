@@ -15,6 +15,7 @@ from workflow_interpreter.bdio import (
     MintRequest,
     Outcome,
     RootRecord,
+    WfKind,
 )
 from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.errors import (
@@ -24,6 +25,7 @@ from workflow_interpreter.bdio.errors import (
     PinnedGraphMismatchError,
 )
 from workflow_interpreter.bdio.reads import activations_of, gates_of, next_seq
+from workflow_interpreter.bdio.records import RowRecord
 from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.foreman.audit import audit
 from workflow_interpreter.foreman.cases import (
@@ -422,7 +424,7 @@ class Foreman:
             root = wiring.store.reads.load_root(root_id)
             wiring.store.assert_member(root_id)
             ensure_owner(self._composition.config)
-            beads = wiring.store.reads.instance_beads(root_id)
+            beads = wiring.store.reads.instance_records(root_id)
             checked = audit(root, beads)
             if checked.violation is not None:
                 gate = wiring.store.open_gate(
@@ -458,7 +460,7 @@ class Foreman:
                 cleanup_toolchain(wiring.paths, activation)
                 if (
                     activation.metadata.is_completed
-                    and activation.bead.status != STATUS_CLOSED
+                    and activation.status != STATUS_CLOSED
                     and activation.metadata.outcome is not None
                 ):
                     # The one close that re-passes the record's OWN deviations
@@ -677,11 +679,13 @@ class Foreman:
         intents: Iterable[EventIntent] = (),
     ) -> int:
         """Append every newly implied trace event after its source is durable."""
-        beads = wiring.store.reads.instance_beads(root.root_id)
+        beads = wiring.store.reads.instance_records(root.root_id)
         existing = {
-            str(bead.metadata["event_key"])
-            for bead in beads
-            if bead.metadata.get("wf_kind") == "event" and "event_key" in bead.metadata
+            str(record.metadata["event_key"])
+            for record in beads
+            if isinstance(record, RowRecord)
+            and record.kind == WfKind.EVENT.value
+            and "event_key" in record.metadata
         }
         return backfill(
             wiring.store,

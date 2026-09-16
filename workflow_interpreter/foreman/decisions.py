@@ -229,7 +229,7 @@ def _read_response(
     if (
         activation.metadata.wf_root_id != decision_root.root_id
         or not activation.metadata.is_completed
-        or activation.bead.status != STATUS_CLOSED
+        or activation.status != STATUS_CLOSED
         or activation.metadata.outcome is not Outcome.NO_DIFF
         or evidence is None
         or evidence.outputs_ref is None

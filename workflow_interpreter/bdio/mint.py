@@ -405,6 +405,6 @@ def views_of(
 ) -> tuple[bounds.ActivationView, ...]:
     """Activations reduced to what the §10 predicates read."""
     return tuple(
-        bounds.ActivationView(bead_id=record.bead.id, metadata=record.metadata)
+        bounds.ActivationView(bead_id=record.id, metadata=record.metadata)
         for record in activations
     )

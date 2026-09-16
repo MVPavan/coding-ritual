@@ -53,8 +53,10 @@ from workflow_interpreter.bdio.records import (
     ActivationRecord,
     CanaryResult,
     GateRecord,
+    InstanceRecord,
     MintResult,
     RootRecord,
+    RowRecord,
 )
 from workflow_interpreter.bdio.signing import (
     AllowedSigner,
@@ -135,6 +137,7 @@ __all__ = [
     "GateVerifier",
     "InputBinding",
     "InstanceInput",
+    "InstanceRecord",
     "Lifecycle",
     "LifecycleConflictError",
     "LossyWriteError",
@@ -151,6 +154,7 @@ __all__ = [
     "ProcessHandle",
     "ResolvedSetting",
     "RootRecord",
+    "RowRecord",
     "SignatureRefusedError",
     "SignerNotAllowedError",
     "SigningConfig",

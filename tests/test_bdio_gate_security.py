@@ -81,7 +81,7 @@ def test_a_verified_approval_closes_the_gate(
     assert closed.metadata.outcome is Outcome.APPROVE
     assert closed.metadata.nonce == payload.nonce
     assert closed.metadata.verified_fingerprint is not None
-    assert closed.bead.status == "closed"
+    assert closed.status == "closed"
 
 
 # --- mutable artifacts: the wrapper re-hashes (§9 ruling) ---------------
@@ -120,7 +120,7 @@ def test_an_edited_document_refuses_and_records_an_edit_receipt(
 
     still_open = gate_store.reads.load_gate(gate.gate_id)
     assert still_open.metadata.state is GateState.OPEN
-    assert still_open.bead.status == "open"
+    assert still_open.status == "open"
     assert len(still_open.metadata.stale_approval_receipts) == 1
 
 
@@ -324,12 +324,12 @@ def test_a_crash_after_the_carrier_but_before_the_bd_close_is_repaired_forward(
         )
     wedged = gate_store.reads.load_gate(gate.gate_id)
     assert wedged.metadata.state is GateState.CLOSED
-    assert wedged.bead.status == "open"
+    assert wedged.status == "open"
 
     repaired = gate_store.close_gate_verified(
         root_id, gate.gate_id, payload_bytes=encoded, signature=signature
     )
-    assert repaired.bead.status == "closed"
+    assert repaired.status == "closed"
     assert repaired.metadata.outcome is Outcome.APPROVE
 
 
@@ -378,7 +378,7 @@ def test_a_rebudget_bound_lands_atomically_with_the_gate_close(
     assert repaired.metadata.outcome is Outcome.REBUDGET
     assert repaired.metadata.bound_value == 9
     assert repaired.metadata.payload_digest == payload_digest(encoded)
-    assert repaired.bead.status == "closed"
+    assert repaired.status == "closed"
     # And the bound was raised exactly once, by exactly this approval.
     assert (
         gate_store.reads.effective_bound(root_id, BoundSetting.MAX_ENTRIES, REGION) == 9
@@ -486,7 +486,7 @@ def test_the_repair_path_re_verifies_the_presented_signature(
             payload_bytes=b"not-even-json",
             signature=b"garbage",
         )
-    assert gate_store.reads.load_gate(gate.gate_id).bead.status == "open"
+    assert gate_store.reads.load_gate(gate.gate_id).status == "open"
 
 
 def test_a_different_payload_against_a_closed_gate_is_still_a_conflict(

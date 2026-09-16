@@ -515,7 +515,7 @@ def test_the_steer_intent_keeps_the_prose_out_of_every_bd_record(lab: Lab) -> No
 
     assert steered.intent.instructions == STEER_INSTRUCTIONS
     assert steered.intent.instructions_digest == instructions_digest(STEER_INSTRUCTIONS)
-    beads = lab.store.reads.instance_beads(lab.root.root_id)
+    beads = lab.store.reads.instance_records(lab.root.root_id)
     dumped = repr([bead.model_dump(mode="json") for bead in beads])
     assert STEER_INSTRUCTIONS not in dumped
     assert STEER_REASON in dumped

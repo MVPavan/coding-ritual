@@ -49,7 +49,7 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> None
     or malformed identity with a nonempty ledger cannot establish runner death.
     No cache bytes or symlink targets are executed or followed during deletion.
     """
-    if not activation.metadata.is_completed or activation.bead.status != STATUS_CLOSED:
+    if not activation.metadata.is_completed or activation.status != STATUS_CLOSED:
         return
     directory = paths.activation_dir(activation.activation_id)
     private = directory / tc.TOOLCHAIN

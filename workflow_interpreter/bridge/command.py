@@ -549,7 +549,7 @@ def _retry_successor(
         raise PhaseBridgeRefused(MSG_RETRY_NO_ROOT)
     wiring = composition.for_root(_safe_root_id(prior.root_id))
     root = wiring.store.reads.load_root(prior.root_id)
-    frontier = build_frontier(root, wiring.store.reads.instance_beads(prior.root_id))
+    frontier = build_frontier(root, wiring.store.reads.instance_records(prior.root_id))
     terminals = root.definition.document.instance.phase_bridge_retry_terminals or ()
     refusal = retry_refusal(prior.state, terminals, frontier)
     if refusal is not None:
@@ -594,7 +594,7 @@ def _trace(
         return PhaseBridgeCommandResult(exit_code=EXIT_OK, report=report)
     wiring = composition.for_root(record.root_id)
     root = wiring.store.reads.load_root(record.root_id)
-    frontier = build_frontier(root, wiring.store.reads.instance_beads(record.root_id))
+    frontier = build_frontier(root, wiring.store.reads.instance_records(record.root_id))
     intent = read_record(wiring.paths.instance_dir / LANDING_INTENT_FILE, LandingIntent)
     receipt = read_record(
         wiring.paths.instance_dir / LANDING_RECEIPT_FILE, LandingReceipt
