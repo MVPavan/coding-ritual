@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from typing import Final
 
 import structlog
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio import (
     ActivationRecord,
@@ -24,6 +24,7 @@ from workflow_interpreter.bdio.errors import (
     PinnedGraphMismatchError,
 )
 from workflow_interpreter.bdio.reads import activations_of, gates_of, next_seq
+from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.foreman.audit import audit
 from workflow_interpreter.foreman.cases import (
     advance_lifecycle,
@@ -50,11 +51,18 @@ from workflow_interpreter.foreman.events import EventIntent, backfill, expected_
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
+from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.inputs import InputsUnavailable
+from workflow_interpreter.foreman.monitor import require_monitor
+from workflow_interpreter.foreman.observation import ObservationStatus
 from workflow_interpreter.foreman.owner import ensure_owner
 from workflow_interpreter.foreman.reconcile import reconcile
 from workflow_interpreter.foreman.routing import abandon_target
+from workflow_interpreter.foreman.rpc_control import (
+    acknowledge_uncertain,
+    control_attention,
+)
 from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.schema.models import NodeKind
 from workflow_interpreter.supervisor.errors import (
@@ -115,6 +123,14 @@ class RunReport(BaseModel):
 
     ticks: int
     report: TickReport
+    observation: ObservationStatus | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @property
+    def attention(self) -> bool:
+        """Refusals require deliberate correction before another driver invocation."""
+        return bool(self.report.refusals)
 
 
 class VerifyInspection(BaseModel):
@@ -295,8 +311,15 @@ class Foreman:
         )
 
     def steer(
-        self, root_id: str, activation_id: str, *, reason: str, instructions: str
-    ) -> SteerReport:
+        self,
+        root_id: str,
+        activation_id: str,
+        *,
+        reason: str,
+        instructions: str,
+        in_place: bool = False,
+        acknowledge: bool = False,
+    ) -> SteerReport | ControlRegistration:
         """Read the stale tail then perform exactly one supervisor steer."""
         validate_bead_id(root_id)
         validate_bead_id(activation_id)
@@ -307,6 +330,8 @@ class Foreman:
             activation = wiring.store.reads.load_activation(activation_id)
             if activation.metadata.wf_root_id != root_id:
                 raise ValueError("activation does not belong to root")
+            if acknowledge:
+                return acknowledge_uncertain(wiring.store, activation_id, reason)
             tail = _stale_tail(
                 wiring, self._composition.supervisor_config.log_tail_bytes, activation
             )
@@ -327,6 +352,10 @@ class Foreman:
                 self._composition.clock,
                 workspace=wiring.workspace,
             )
+            if in_place:
+                return steerer.in_place(
+                    activation, reason=reason, instructions=instructions
+                )
             if activation.metadata.is_settled:
                 intent = read_record(
                     wiring.paths.steer_intent(activation_id), SteerIntent
@@ -359,6 +388,28 @@ class Foreman:
         return advance_decision(self._composition, root_id, self._tick_local)
 
     def _tick_local(self, root_id: str) -> TickReport:
+        """Report control attention alongside progress, never instead of settlement."""
+        report = self._progress_local(root_id)
+        if report.contended:
+            return report
+        wiring = self._composition.for_root(root_id)
+        try:
+            wiring.band.acquire()
+        except LockUnavailable:
+            return report
+        try:
+            attention = control_attention(
+                wiring.paths,
+                wiring.store,
+                refusal_limit=self._composition.config.wake.lifetime_cap,
+            )
+            return report.model_copy(
+                update={"refusals": (*report.refusals, *attention)}
+            )
+        finally:
+            wiring.band.release()
+
+    def _progress_local(self, root_id: str) -> TickReport:
         """Advance at most one lifecycle action after auditing fresh durable state."""
         validate_bead_id(root_id)
         wiring = self._composition.for_root(root_id)
@@ -399,7 +450,12 @@ class Foreman:
                         halted=True, opened_gate=_opened_gate(wiring, gate.gate_id)
                     )
                 return TickReport(stalled=state.stalled)
+            from workflow_interpreter.supervisor.toolchain_cleanup import (
+                cleanup_toolchain,
+            )
+
             for activation in activations_of(beads):
+                cleanup_toolchain(wiring.paths, activation)
                 if (
                     activation.metadata.is_completed
                     and activation.bead.status != STATUS_CLOSED
@@ -419,9 +475,15 @@ class Foreman:
                         usage=activation.metadata.usage,
                         deviations=activation.metadata.deviations,
                     )
+                    cleanup_toolchain(wiring.paths, repaired)
                     return TickReport(settled=repaired.activation_id)
             frontier = build_frontier(root, beads)
-            intake = intake_all(wiring, root, gates_of(beads))
+            intake = intake_all(
+                wiring,
+                root,
+                gates_of(beads),
+                refusal_limit=self._composition.config.wake.lifetime_cap,
+            )
             if intake.closed or intake.refusals:
                 return TickReport(
                     halted=not intake.closed and frontier.open_halt is not None,
@@ -555,7 +617,9 @@ class Foreman:
         finally:
             wiring.band.release()
 
-    def run(self, root_id: str, *, poll_s: float, max_wall_s: float) -> RunReport:
+    def run(
+        self, root_id: str, *, poll_s: float, max_wall_s: float, monitored: bool = False
+    ) -> RunReport:
         """Tick until a human, a terminal, a stall, or the wall ends the loop.
 
         The clock is the injected one, so a drill neither sleeps nor waits:
@@ -565,14 +629,32 @@ class Foreman:
         `tick()` is unchanged by this loop — the startup canary still runs per
         tick — because a run is exactly repeated ticks and nothing else.
         """
+        with DriverObserver(self._composition, root_id) as observer:
+            if monitored:
+                require_monitor(self._composition, root_id)
+            result = self._drive(root_id, poll_s, max_wall_s, observer)
+        return result.model_copy(
+            update={
+                "observation": observer.status
+                if observer.status != ObservationStatus()
+                else None
+            }
+        )
+
+    def _drive(
+        self, root_id: str, poll_s: float, max_wall_s: float, observer: DriverObserver
+    ) -> RunReport:
+        """Drive a bounded loop while publishing every completed tick."""
         clock = self._composition.clock
         started = clock.now()
         ticks = 0
         while True:
             report = self.tick(root_id)
             ticks += 1
+            observer.observe(report)
             if (
-                report.halted
+                report.refusals
+                or report.halted
                 or report.terminal
                 or report.opened_gate
                 or report.waiting_gate
@@ -582,7 +664,9 @@ class Foreman:
             if (clock.now() - started).total_seconds() > max_wall_s:
                 # The run's own verdict, not a tick's: rendered as a stall so
                 # one field answers "why did this stop" for every caller.
-                return RunReport(ticks=ticks, report=TickReport(stalled=RUN_MAX_WALL))
+                report = TickReport(stalled=RUN_MAX_WALL)
+                observer.observe(report, advance=False)
+                return RunReport(ticks=ticks, report=report)
             if report.blocked or report.contended:
                 clock.sleep(poll_s)
 

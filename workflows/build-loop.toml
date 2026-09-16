@@ -61,9 +61,9 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-writes        = true
+execution_profile = "writer"
 allowed_paths = ["tests/acceptance/**"]
-inputs        = ["task_brief", "seam_contract", "test_findings"]
+inputs        = ["verify_failure", "task_brief", "seam_contract", "test_findings"]
 verify        = [{ cmd = "scripts/checks/tests-parse.sh", timeout = "5m" }]
 token_budget  = 80000
 max_wall      = "30m"
@@ -125,7 +125,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-writes        = false
+execution_profile = "reviewer"
 allowed_paths = []
 inputs        = ["task_brief", "seam_contract", "acceptance_tests", "test_findings"]
 verify        = [{ cmd = "scripts/checks/tests-parse.sh",        timeout = "5m" },
@@ -172,7 +172,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-writes        = true
+execution_profile = "writer"
 # `tests/**`, not `tests/unit/**`: this repo's unit suite is flat under
 # `tests/`, so a fix that must touch an existing unit test was unreachable
 # (cr-o85.34.21). The grant no longer excludes the acceptance tests; what
@@ -180,7 +180,7 @@ writes        = true
 # `tests-untouched.sh` verifier below, which fails the round on any diff
 # under `tests/acceptance/`.
 allowed_paths = ["workflow_interpreter/**", "tests/**"]
-inputs        = ["task_brief", "acceptance_tests", "impl_findings", "critic_findings"]
+inputs        = ["verify_failure", "task_brief", "acceptance_tests", "impl_findings", "critic_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh",        timeout = "20m" },
                  { cmd = "scripts/checks/tests-untouched.sh", timeout = "2m"  },
                  { cmd = "scripts/checks/mutate.sh",          timeout = "25m" }]
@@ -236,7 +236,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-writes        = false
+execution_profile = "reviewer"
 allowed_paths = []
 inputs        = ["task_brief", "acceptance_tests", "diff_artifact", "impl_findings"]
 verify        = [{ cmd = "scripts/checks/tests-parse.sh",        timeout = "5m" },
@@ -295,7 +295,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-writes        = false
+execution_profile = "reviewer"
 allowed_paths = []
 inputs        = ["task_brief", "seam_contract", "acceptance_tests", "diff_artifact",
                  "test_findings", "impl_findings"]
@@ -505,3 +505,10 @@ name          = "critic_findings"
 producer      = "node:critic"
 optional      = true
 trim_priority = 2
+
+# Host-observed diagnostic data, bound only to the causal failed check.
+[[source]]
+name = "verify_failure"
+producer = "engine:verify_failure"
+optional = true
+trim_priority = 10

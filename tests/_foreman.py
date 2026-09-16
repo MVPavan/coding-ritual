@@ -68,6 +68,7 @@ from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
 from workflow_interpreter.profiles.config import RUNNER_PREFIX
+from workflow_interpreter.profiles.errors import UnknownProfileError
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.models import StaleFlag
@@ -161,7 +162,8 @@ class _Profiles(ProfileResolver):
 
     def profile_for(self, name: str) -> Profile:
         if name not in self.accepted:
-            raise AssertionError(f"unexpected wrapper profile: {name}")
+            raise UnknownProfileError(f"unregistered wrapper profile: {name}")
+        self.profile.selected_runner = name.removeprefix(RUNNER_PREFIX)
         return self.profile
 
     def next_script_for_launch(self) -> ChildScript | None:
@@ -203,6 +205,11 @@ class _QueuedProfile(FakeProfile):
         super().__init__(script)
         self._profiles = profiles
         self.tasks: list[TaskSpec] = []
+        self.selected_runner = FAKE_PROFILE
+
+    def name(self) -> str:
+        """Keep the selected vendor identity while replacing its process boundary."""
+        return self.selected_runner
 
     def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
         """Build the next child without consuming a script during settlement."""
@@ -463,7 +470,7 @@ class ForemanLab:
     def _accepted_profiles(self) -> frozenset[str]:
         """Every runner name the pinned graph can ask the resolver for."""
         return frozenset(
-            {FAKE_PROFILE}
+            {FAKE_PROFILE, *(binding.profile for binding in self._roles.values())}
             | {f"{RUNNER_PREFIX}{role}" for role in runner_roles(self.definition)}
         )
 
@@ -503,6 +510,7 @@ class ForemanLab:
             self.clock,
             self.profiles,
             self.spawner,
+            host_env={"PATH": os.defpath, "HOME": str(self.repo.parent)},
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)
@@ -555,6 +563,7 @@ class ForemanLab:
         """Pin the graph and create the instance branch, like resolve does."""
         root = self.store.create_root(
             instance_key="foreman-lab",
+            profiles=self.profiles,
             definition=self.definition,
             resolved_config=self._overrides(),
             instance_inputs=tuple(

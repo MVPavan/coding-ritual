@@ -25,6 +25,10 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_SANDBOX_UNAVAILABLE,
     DEVIATION_UNUSABLE_RESOLUTION,
 )
+from workflow_interpreter.contracts.execution import (
+    UnregisteredRunnerError,
+    tool_network_for,
+)
 from workflow_interpreter.foreman.close import _previous_tree_oid
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -98,7 +102,7 @@ def _close_error(
 ) -> WrapperExit:
     """Persist a mapped wrapper failure while the activation is still minted."""
     try:
-        wiring.store.close_activation(
+        closed = wiring.store.close_activation(
             activation_id,
             outcome,
             evidence=Evidence(note=str(error)),
@@ -108,6 +112,9 @@ def _close_error(
         if wiring.store.reads.load_activation(activation_id).metadata.is_settled:
             return WrapperExit.CLOSED_BY_TICK
         raise
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+    cleanup_toolchain(wiring.paths, closed)
     return WrapperExit.DONE
 
 
@@ -205,6 +212,9 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             model=resolved.model,
             effort=resolved.effort,
             writes=bool(node.writes),
+            execution_profile=node.execution_profile,
+            execution_policy=resolved.execution_policy,
+            checkout_read_root=str(wiring.workspace.path_for(node)),
             allowed_paths=node.allowed_paths or (),
             cwd=str(wiring.workspace.path_for(node)),
             channels=channels,
@@ -251,6 +261,8 @@ def run_wrapper(
         resolved_node_view = resolved_node(root, activation.metadata.node)
         node = resolved_node_view.node
         profile = composition.profiles.profile_for(resolved_node_view.runner_profile)
+        if node.execution_profile is not None:
+            tool_network_for(profile.name(), composition.profiles)
         deadline = monotonic() + composition.config.band_wait_s
         while True:
             try:
@@ -321,6 +333,7 @@ def run_wrapper(
         ExecLedgerError,
         TaskRefused,
         UnsupportedOptionError,
+        UnregisteredRunnerError,
     ) as exc:
         return _close_error(resolved, activation_id, Outcome.ERROR_RUNNER, exc)
     except ContinuationRefused as exc:

@@ -13,7 +13,12 @@ from workflow_interpreter.foreman.decisions import admission_of
 
 
 def source_lab(tmp_path: Path):
-    lab, owner, composition, spawner = writer_lab(tmp_path)
+    from workflow_interpreter.supervisor.sandbox import SandboxMode
+
+    lab, owner, composition, spawner = writer_lab(
+        tmp_path,
+        sandbox=SandboxMode.BWRAP,
+    )
     from workflow_interpreter.bridge.verification import CheckCommand
 
     composition = replace(

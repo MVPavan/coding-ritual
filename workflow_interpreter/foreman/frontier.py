@@ -1,6 +1,5 @@
 """Derive the next durable workflow frontier from parsed bd records."""
 
-import json
 from collections.abc import Iterable
 from enum import StrEnum
 
@@ -21,7 +20,12 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_SANDBOX_UNAVAILABLE,
     DEVIATION_UNUSABLE_RESOLUTION,
 )
-from workflow_interpreter.bdio.records import RootRecord, parse_activation, parse_gate
+from workflow_interpreter.bdio.records import (
+    RootRecord,
+    parse_activation,
+    parse_event,
+    parse_gate,
+)
 from workflow_interpreter.bdio.wire import BeadRecord, EventPayload, WfKind
 from workflow_interpreter.foreman.constants import EFFECTS_NODE
 from workflow_interpreter.schema.graph_index import GraphIndex
@@ -92,7 +96,9 @@ def _event_payloads(beads: Iterable[BeadRecord]) -> tuple[EventPayload, ...]:
     for bead in beads:
         if bead.metadata.get("wf_kind") != WfKind.EVENT.value or bead.payload is None:
             continue
-        payloads.append(EventPayload.model_validate(json.loads(bead.payload)))
+        event = parse_event(bead)
+        if isinstance(event, EventPayload):
+            payloads.append(event)
     return tuple(payloads)
 
 

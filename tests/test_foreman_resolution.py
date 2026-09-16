@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -25,7 +26,8 @@ from tests._foreman import (
     FAKE_PROFILE,
     ForemanLab,
 )
-from tests._helpers import BUILD_LOOP_GRAPH, VALID_FIXTURE
+from tests._helpers import VALID_FIXTURE
+from tests._supervisor import FakeProfile, FrozenClock
 from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import BdConfigError
@@ -53,6 +55,8 @@ from workflow_interpreter.foreman.resolve import (
     instantiate,
     resolve,
 )
+from workflow_interpreter.profiles import ProfileConfig
+from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.schema.validator import PHASE_B_RULES
@@ -62,8 +66,16 @@ from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.paths import read_record, write_record
 
 
-class _AvailableProfiles:
-    """A resolver double for pure resolution tests."""
+class _AvailableProfiles(ProfileRegistry):
+    """A registry with built-in vendors and the registered lab runner."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            ProfileConfig(),
+            FrozenClock(),
+            {},
+            builders={"fake": lambda *_: FakeProfile()},
+        )
 
 
 def test_runner_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> None:
@@ -155,6 +167,7 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, _AvailableProfiles()),
         spawner=cast(Spawner, object()),
+        host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
     )
     wiring_a = composition.for_root(root_a.root_id)
     wiring_b = composition.for_root(root_b.root_id)
@@ -436,14 +449,15 @@ def _instance_composition(
             clock=cast(Clock, object()),
             profiles=_AvailableProfiles() if profiles is None else profiles,
             spawner=cast(Spawner, object()),
+            host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
         ),
         git,
     )
 
 
 # Which role staffs which build-loop node, as `workflows/build-loop.toml` spells
-# it. The test binds each role to a profile NAMED for it, so a root that pinned
-# one role twice — or dropped one — cannot pass.
+# it. Each role has its own model pin under a registered vendor identity, so
+# binding one role twice or dropping one cannot pass.
 BUILD_LOOP_NODE_ROLES: Final[dict[str, str]] = {
     "write_tests": "test-author",
     "review_tests": "test-critic",
@@ -455,7 +469,7 @@ BUILD_LOOP_NODE_ROLES: Final[dict[str, str]] = {
 
 @pytest.mark.bd
 def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
-    store: WorkflowStore, tmp_path: Path
+    build_loop_graph: Path, store: WorkflowStore, tmp_path: Path
 ) -> None:
     """`create workflows/build-loop.toml` with both `--input` pairs, on real bd.
 
@@ -469,7 +483,9 @@ def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
         store,
         tmp_path,
         roles={
-            role: RunnerBinding(profile=role, model=f"{role}-model", effort="medium")
+            role: RunnerBinding(
+                profile="claude", model=f"{role}-model", effort="medium"
+            )
             for role in BUILD_LOOP_ROLES
         },
     )
@@ -481,7 +497,7 @@ def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
 
     root = instantiate(
         composition,
-        BUILD_LOOP_GRAPH,
+        build_loop_graph,
         instance_key=instance_key(),
         instance_inputs=inputs,
         allow_test_flags=False,
@@ -503,7 +519,10 @@ def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
     settings = {setting.key: setting for setting in reloaded.metadata.resolved_config}
     assert {
         node: settings[f"node.{node}.runner"].value for node in BUILD_LOOP_NODE_ROLES
-    } == BUILD_LOOP_NODE_ROLES
+    } == {node: "claude" for node in BUILD_LOOP_NODE_ROLES}
+    assert {
+        node: settings[f"node.{node}.model"].value for node in BUILD_LOOP_NODE_ROLES
+    } == {node: f"{role}-model" for node, role in BUILD_LOOP_NODE_ROLES.items()}
 
 
 def test_instantiate_pins_project_resolution_and_creates_instance_branch(
@@ -897,6 +916,7 @@ def test_composition_refuses_a_different_supervisor_instance(
             clock=composition.clock,
             profiles=composition.profiles,
             spawner=composition.spawner,
+            host_env=composition.host_env,
         )
 
 
@@ -1216,10 +1236,11 @@ def test_instantiate_refuses_max_wall_below_pinned_verify_timeout(
 
 
 def test_resolve_does_not_log_an_unchanged_nodes_warning(
+    build_loop_graph: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """`node.implement.model` must not log the critic's pinned warning."""
-    definition = load_graph(BUILD_LOOP_GRAPH)
+    definition = load_graph(build_loop_graph)
     monkeypatch.setattr(
         "workflow_interpreter.foreman.resolve._EFFECTIVE_NODE_RULES", PHASE_B_RULES
     )
@@ -1292,3 +1313,17 @@ def test_resolved_node_refuses_a_role_bound_node_without_usable_vendor_setting(
 
     with pytest.raises(UnusableResolutionError, match=rf"node 'implement'.*{field}"):
         resolved_node(stripped, IMPLEMENT)
+
+
+def test_composition_requires_explicit_host_environment(tmp_path: Path) -> None:
+    """A missing host environment is rejected while composing, before dispatch."""
+    from dataclasses import fields
+
+    lab = ForemanLab(tmp_path)
+    arguments = {
+        field.name: getattr(lab.composition, field.name)
+        for field in fields(Composition)
+        if field.name != "host_env"
+    }
+    with pytest.raises(TypeError, match="host_env"):
+        Composition(**arguments)

@@ -172,6 +172,7 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
         lab.clock,
         lab.profiles,
         lab.spawner,
+        host_env=lab.composition.host_env,
     )
     lab.spawner.bind(lab.composition)
     lab.foreman = Foreman(lab.composition)
@@ -259,6 +260,7 @@ def test_wrapper_selects_root_pinned_runner_after_activation_runner_corruption(
         lab.clock,
         lab.profiles,
         lab.spawner,
+        host_env=lab.composition.host_env,
     )
     lab.spawner.bind(lab.composition)
     root = lab.instantiate_resolved()

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from collections.abc import Callable
@@ -19,7 +20,6 @@ from tests._foreman import ForemanLab
 from tests._foreman import entry_request as foreman_entry_request
 from tests._helpers import (
     AMBIGUOUS_ABANDON_EDITS,
-    BUILD_LOOP_GRAPH,
     VALID_FIXTURE,
     mutate,
     unnameable_abandon_graph,
@@ -408,6 +408,7 @@ def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, object()),
         spawner=cast(Spawner, object()),
+        host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
     )
     paths = composition.for_root(root.root_id).paths
     paths.ensure_activation_dir(activation.activation_id)
@@ -459,6 +460,7 @@ def test_wrapper_records_a_non_dirty_precondition_refusal(
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, Profiles()),
         spawner=cast(Spawner, object()),
+        host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
     )
     wiring = composition.for_root(root.root_id)
 
@@ -1085,10 +1087,10 @@ def test_phase_bridge_refuses_without_a_configured_bridge_graph(
 
 
 def test_phase_bridge_refuses_a_configured_required_input_it_cannot_supply(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    build_loop_graph: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Only task_brief is bridge-owned; another required input costs no root."""
-    lab = _bridge_lab(tmp_path, toml=BUILD_LOOP_GRAPH)
+    lab = _bridge_lab(tmp_path, toml=build_loop_graph)
     lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
@@ -1156,9 +1158,15 @@ def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
     )
 
     def run(
-        _self: Foreman, _root_id: str, *, poll_s: float, max_wall_s: float
+        _self: Foreman,
+        _root_id: str,
+        *,
+        poll_s: float,
+        max_wall_s: float,
+        monitored: bool = False,
     ) -> RunReport:
         """Capture the public run boundary without advancing the lab clock."""
+        assert not monitored
         calls.append((poll_s, max_wall_s))
         return RunReport(ticks=1, report=TickReport())
 
@@ -1629,3 +1637,24 @@ def test_main_status_writes_the_report_alone_to_stdout(
     report = json.loads(captured.out)
     assert isinstance(report, dict)
     assert report["root_id"] == root.root_id
+
+
+def test_phase_bridge_monitored_requires_ack_before_dispatch(tmp_path, monkeypatch):
+    """Explicit monitored bridge admission never dispatches without a monitor."""
+    lab = _bridge_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+    )
+    codes = []
+    _, transcript = lab.transcript(
+        lambda: codes.append(
+            main_module.main(["phase-bridge", "phase", "stage", "--monitored"])
+        )
+    )
+    assert codes[0] != 0
+    assert "healthy monitor required" in transcript
+    assert not lab.spawner.launches

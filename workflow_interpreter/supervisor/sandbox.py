@@ -40,6 +40,7 @@ from typing import TYPE_CHECKING, Final
 
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.contracts.execution import MSG_POLICY_MISMATCH
 from workflow_interpreter.supervisor.errors import SandboxPathRefused
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard for type checking only
@@ -121,6 +122,8 @@ ENV_MYPY_CACHE_DIR: Final[str] = "MYPY_CACHE_DIR"
 ENV_PYTEST_ADDOPTS: Final[str] = "PYTEST_ADDOPTS"
 UV_FROZEN_VALUE: Final[str] = "1"
 PYTEST_CACHE_OPTION: Final[str] = "-o cache_dir={path}"
+ENV_UV_OFFLINE: Final[str] = "UV_OFFLINE"
+TOOLCHAIN_DIRECTORY: Final[str] = "toolchain"
 UV_CACHE_DIRECTORY: Final[str] = "uv-cache"
 UV_PYTHON_DIRECTORY: Final[str] = "python"
 """The §2 toolchain env, named here so the launcher and `profiles/_base.py`
@@ -129,7 +132,7 @@ IMPORT it rather than re-spell it.
 A read-only checkout breaks the node's own `verify`: `uv run` creates `.venv`
 in the checkout, ruff and mypy create caches there. Profiles point all five
 toolchain locations at `$WF_SCRATCH_DIR`; the launcher replaces `UV_CACHE_DIR`
-and `UV_PYTHON_INSTALL_DIR` with locations below the wrapper-root cache that
+and `UV_PYTHON_INSTALL_DIR` with locations below the activation-private cache that
 this plan binds read-write. `-o cache_dir=` is chosen over
 `-p no:cacheprovider` because the latter also disables `--lf`/`--ff`/`--sw`.
 `UV_FROZEN` is a stated limitation, not a nicety: a node under the bound cannot
@@ -243,6 +246,7 @@ class SandboxPlan(BaseModel):
     grants: tuple[Path, ...] = ()
     channels: tuple[Path, ...] = ()
     toolchain_cache: tuple[Path, ...] = ()
+    vendor_state: tuple[Path, ...] = ()
     ro_pins: tuple[Path, ...] = ()
 
     def model_post_init(self, context: object, /) -> None:
@@ -253,6 +257,7 @@ class SandboxPlan(BaseModel):
             self.grants,
             self.channels,
             self.toolchain_cache,
+            self.vendor_state,
             self.ro_pins,
         ):
             for path in group:
@@ -564,6 +569,7 @@ def plan_for(
     wrapper_root: Path,
     channels_dir: Path,
     binary: str = BWRAP_BINARY,
+    protected_roots: tuple[Path, ...] = (),
 ) -> SandboxPlan:
     """Compute one dispatch's mount set from its `TaskSpec` and the wrapper roots.
 
@@ -574,37 +580,58 @@ def plan_for(
     nothing more — it can still report (§6), and there is no writable git state
     to re-close, so it carries no pins either.
     """
-    checkout = Path(task.cwd).resolve()
+    checkout = _require_dir("checkout", Path(task.checkout_read_root or task.cwd))
     ro_roots = (
         _require_dir(_FIELD_REPO_ROOT, repo_root),
         _require_dir(_FIELD_WRAPPER_ROOT, wrapper_root),
         checkout,
     )
     channels = (channels_dir.resolve(),)
-    toolchain_cache = toolchain_cache_for(wrapper_root)
-    if not task.writes:
-        return SandboxPlan(
-            binary=binary,
-            ro_roots=ro_roots,
-            channels=channels,
-            toolchain_cache=toolchain_cache,
-        )
-    grants = tuple(_grant_path(grant, checkout) for grant in task.allowed_paths)
-    git_rw, ro_pins = _git_binds(checkout, task.root_id)
-    return SandboxPlan(
+    toolchain_cache = toolchain_cache_for(channels_dir.parent)
+    grants = (
+        tuple(_grant_path(grant, checkout) for grant in task.allowed_paths)
+        if task.writes
+        else ()
+    )
+    git_rw, ro_pins = _git_binds(checkout, task.root_id) if task.writes else ((), ())
+    plan = SandboxPlan(
         binary=binary,
         ro_roots=ro_roots,
         git_rw=git_rw,
         grants=grants,
         channels=channels,
         toolchain_cache=toolchain_cache,
-        ro_pins=ro_pins,
+        ro_pins=(*ro_pins, *protected_roots),
     )
+    if task.execution_grants is not None:
+        contract = task.execution_grants
+        supplied = SandboxPlan(
+            binary=binary,
+            ro_roots=tuple(map(Path, contract.read_only_roots)),
+            git_rw=tuple(map(Path, contract.git_dirs)),
+            grants=tuple(map(Path, contract.checkout_write_dirs)),
+            channels=(Path(contract.channels),),
+            toolchain_cache=(Path(contract.private_cache),),
+            ro_pins=tuple(map(Path, contract.read_only_pins)),
+        )
+        if (
+            supplied != plan
+            or contract.policy != task.execution_policy
+            or contract.policy.writes != task.writes
+            or contract.checkout_read_root != str(checkout)
+            or contract.process_cwd != task.cwd
+            or contract.scratch
+            != str(task.channels.scratch_dir or channels_dir / "scratch")
+        ):
+            raise SandboxPathRefused(MSG_POLICY_MISMATCH)
+    return plan
 
 
-def toolchain_cache_for(wrapper_root: Path) -> tuple[Path, ...]:
-    """Create the wrapper-wide uv cache used by both sandbox modes."""
-    cache_dir = (wrapper_root / UV_CACHE_DIRECTORY).resolve()
+def toolchain_cache_for(activation_dir: Path) -> tuple[Path, ...]:
+    """Create one activation's private cache in either sandbox mode."""
+    cache_dir = activation_dir / TOOLCHAIN_DIRECTORY / UV_CACHE_DIRECTORY
+    if cache_dir.resolve() != cache_dir or cache_dir.is_symlink():
+        raise SandboxPathRefused("private toolchain path contains a symlink")
     _ensure_dir(cache_dir)
     return (cache_dir,)
 
@@ -642,6 +669,7 @@ def wrap(
         *_binds(ARG_BIND, plan.grants),
         *_binds(ARG_BIND, plan.channels),
         *_binds(ARG_BIND, plan.toolchain_cache),
+        *_binds(ARG_BIND, plan.vendor_state),
         *_binds(ARG_RO_BIND, plan.ro_pins),
     ]
     return (*words, ARG_END, *argv)

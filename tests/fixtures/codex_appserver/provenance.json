@@ -1,0 +1,92 @@
+{
+  "codex_cli": "0.154.0",
+  "generator": "codex app-server generate-json-schema --out <directory>",
+  "schemas": {
+    "InitializeParams.json": {
+      "source": "v1/InitializeParams.json",
+      "sha256": "6f0094be9a65242ec779a40794cbd4fdfa32fca1e45084a16adfb50501d33ea2"
+    },
+    "InitializeResponse.json": {
+      "source": "v1/InitializeResponse.json",
+      "sha256": "62ad689c2cb6379913c1d72749cfd8de5089d35760214123518eb92eef11acc9"
+    },
+    "DynamicToolCallParams.json": {
+      "source": "DynamicToolCallParams.json",
+      "sha256": "401bba20cfbd95762bef0467d840430c46be53369093ad9f26425ba757e34efc"
+    },
+    "PermissionsRequestApprovalParams.json": {
+      "source": "PermissionsRequestApprovalParams.json",
+      "sha256": "c11fbe632472ab0923aba5c0a53da3d6d86929bcd5c78e7c13c51c6b2db508ff"
+    },
+    "ThreadStartParams.json": {
+      "source": "v2/ThreadStartParams.json",
+      "sha256": "792e2f32e37cece971bd616664ea2053741acbed4e9c92e9d1766427718f2ecd"
+    },
+    "ThreadStartResponse.json": {
+      "source": "v2/ThreadStartResponse.json",
+      "sha256": "5686cd0fecf44b09c533018de90e34f74fcc92b8aaf941430941fd6d633e6621"
+    },
+    "TurnStartParams.json": {
+      "source": "v2/TurnStartParams.json",
+      "sha256": "a3835e8c1e942e4b358e1a670939b89918b16c4d13105a579899892b7ade6dea"
+    },
+    "TurnStartResponse.json": {
+      "source": "v2/TurnStartResponse.json",
+      "sha256": "6fc49c3e5d0ce11a3a109ae194619b04d6e3ff98fa29bac683fdb754608958be"
+    },
+    "TurnCompletedNotification.json": {
+      "source": "v2/TurnCompletedNotification.json",
+      "sha256": "78af2a37391e8e669a4020cb58593e4d3e378756ced79d5fec72374fa69fb94b"
+    },
+    "ThreadResumeParams.json": {
+      "source": "v2/ThreadResumeParams.json",
+      "sha256": "36b2854eb802559e17b0e5639385a1e39d5279326c50e2cdb836749b6dd7cb6f"
+    },
+    "ThreadResumeResponse.json": {
+      "source": "v2/ThreadResumeResponse.json",
+      "sha256": "fb1fac1fc4f7657736c1ab1a85efe7d71c8dde8fb5be7bf2b823d07367dab9b5"
+    },
+    "TurnSteerParams.json": {
+      "source": "v2/TurnSteerParams.json",
+      "sha256": "4a52eb76e7a717bb388484ccd7538737fca0df35481fc30a21e259f1bfe96e37"
+    },
+    "TurnSteerResponse.json": {
+      "source": "v2/TurnSteerResponse.json",
+      "sha256": "866ba9a77c12b5d570c837d58f73bf40b24e50fa93404bdf792dd984d313b1aa"
+    },
+    "TurnInterruptParams.json": {
+      "source": "v2/TurnInterruptParams.json",
+      "sha256": "6dff382dae73d1dbc58406ed045605f647e7a49660e2540fbd2c6c24d60c5f2b"
+    },
+    "TurnInterruptResponse.json": {
+      "source": "v2/TurnInterruptResponse.json",
+      "sha256": "531de6be06fe979b5963f249bab82498a175e614bf65ac12fb2e849dfe60bcf1"
+    },
+    "ThreadTokenUsageUpdatedNotification.json": {
+      "source": "v2/ThreadTokenUsageUpdatedNotification.json",
+      "sha256": "aba4f6c7e4a19b2b842c08ee793b57000c07dafd57b922ad0d8e7c76609108c2"
+    }
+  },
+  "argv_qualification": {
+    "date": "2026-09-16",
+    "authority": "coordinator host probe; repeated locally without model calls",
+    "version_command": "codex --version",
+    "version_stdout": "codex-cli 0.154.0",
+    "help_command": "codex app-server --help",
+    "observed_options": [
+      "-c/--config <key=value>",
+      "--listen <URL> (default stdio://)"
+    ],
+    "smoke_command": "codex app-server --listen stdio:// -c sandbox_mode=read-only < /dev/null",
+    "smoke_exit_code": 0
+  },
+  "ambient_config_qualification": {
+    "date": "2026-09-16",
+    "mode": "no-model initialize + config/read",
+    "environment": "private CODEX_HOME",
+    "override": "projects={\"<checkout>\"={trust_level=\"untrusted\"}}",
+    "observed": "Project-local config, hooks, and exec policies disabled; project MCP definitions absent from effective config. Skills remain readable input."
+  },
+  "generated_on": "2026-09-16",
+  "version_stdout": "codex-cli 0.154.0"
+}

@@ -2,7 +2,7 @@
 
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -144,6 +144,7 @@ class Composition:
     clock: Clock
     profiles: ProfileResolver
     spawner: Spawner
+    host_env: Mapping[str, str]
 
     def __post_init__(self) -> None:
         """Keep the explicit supervisor dependency aligned with the config guard."""
@@ -170,7 +171,7 @@ class Composition:
                     from workflow_interpreter.schema.decisions import CoordinationError
 
                     raise CoordinationError("conflicting child wrapper location")
-                band_path = coordinator.member_lock_path(root_id)
+                band_path = coordinator.member_lock_path(root_id, root=root)
         band = BandLock(band_path)
         store = self.store.for_root(
             branch_head_reader=branch_head_reader, member_band=band
@@ -189,6 +190,7 @@ class Composition:
                 store,
                 workspace,
                 self.clock,
+                host_env=self.host_env,
             ),
             recovery=Recovery(
                 self.supervisor_config, paths, store, workspace, self.clock

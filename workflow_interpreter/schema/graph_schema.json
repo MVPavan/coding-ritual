@@ -208,7 +208,10 @@
         },
         "artifact_input_mode": {
           "type": "string",
-          "enum": ["inline", "references"],
+          "enum": [
+            "inline",
+            "references"
+          ],
           "description": "How producer evidence is delivered to this task. Omit for the legacy inline behavior."
         },
         "isolation": {
@@ -283,6 +286,20 @@
         },
         "decision": {
           "$ref": "#/$defs/decision_policy"
+        },
+        "execution_profile": {
+          "type": "string",
+          "enum": [
+            "writer",
+            "reviewer"
+          ]
+        },
+        "session_reuse": {
+          "type": "string",
+          "enum": [
+            "fresh",
+            "same-node"
+          ]
         }
       },
       "additionalProperties": false
@@ -352,7 +369,7 @@
         },
         "producer": {
           "type": "string",
-          "pattern": "^(instance|node:[a-z0-9][a-z0-9_-]*)$"
+          "pattern": "^(instance|node:[a-z0-9][a-z0-9_-]*|engine:verify_failure)$"
         },
         "optional": {
           "type": "boolean"

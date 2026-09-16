@@ -29,6 +29,7 @@ from collections.abc import Mapping, Sequence
 from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, Usage
+from workflow_interpreter.contracts.execution import ToolNetwork
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     decimal_at,
@@ -64,10 +65,11 @@ DISALLOWED_TOOLS: Final[str] = "--disallowedTools"
 
 READ_TOOLS: Final[tuple[str, ...]] = ("Read", "Glob", "Grep")
 READ_ONLY_TOOLS: Final[tuple[str, ...]] = (*READ_TOOLS, "Write")
-"""`Write` is in the `writes = false` set on purpose: §6 makes the three runner
-channels writable regardless of `writes`, so a reviewer that cannot write has
-no way to report and every review would grade `fail_code` (zero markers). The
-allow-rules below are what keep that `Write` inside the wrapper directory."""
+"""Every reviewer retains `Write` for structured reports in the §6 channels.
+Its path-exact allow-rules grant only wrapper-owned paths, never the checkout.
+Named reviewers also get Bash for local checks; structured reporting remains
+available through `Write`."""
+REVIEW_TOOLS: Final[tuple[str, ...]] = (*READ_ONLY_TOOLS, "Bash")
 WRITE_TOOLS: Final[tuple[str, ...]] = (*READ_TOOLS, "Edit", "Write", "Bash")
 
 GIT_DIR_SEGMENT: Final[str] = ".git"
@@ -182,6 +184,7 @@ _MSG_UNUSABLE_EFFORT: Final[str] = (
 class ClaudeProfile(BaseProfile):
     """`claude -p` as a §6 runner: bounded by permission rules, not a sandbox."""
 
+    tool_network = ToolNetwork.NOT_ENFORCED
     runner = RunnerName.CLAUDE
     auth_env = (
         "ANTHROPIC_API_KEY",
@@ -257,7 +260,7 @@ class ClaudeProfile(BaseProfile):
         (`_grant_rules`); the §2 mount bound underneath grants the same set.
         """
         channels = _channel_rules(task)
-        if not task.writes:
+        if not task.writes and task.execution_profile is None:
             return [
                 TOOLS,
                 *READ_ONLY_TOOLS,
@@ -270,7 +273,7 @@ class ClaudeProfile(BaseProfile):
         cwd = require_absolute(self.runner, "task cwd", task.cwd)
         return [
             TOOLS,
-            *WRITE_TOOLS,
+            *(WRITE_TOOLS if task.writes else REVIEW_TOOLS),
             ALLOWED_TOOLS,
             *READ_TOOLS,
             "Bash",
@@ -414,4 +417,6 @@ def _channel_rules(task: TaskSpec) -> list[str]:
                 require_absolute(RunnerName.CLAUDE, "scratch dir", channels.scratch_dir)
             )
         )
+    if task.execution_grants is not None:
+        rules.append(_tree_rule(task.execution_grants.private_cache))
     return rules

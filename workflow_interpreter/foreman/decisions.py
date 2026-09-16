@@ -12,6 +12,7 @@ from pydantic import TypeAdapter, ValidationError
 from workflow_interpreter.bdio.carriers import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
+from workflow_interpreter.foreman.children import attention_blocks
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceWiring,
@@ -474,7 +475,7 @@ def advance_decision(
                 return TickReport(
                     halted=True, stalled="child is cancelled or collected"
                 )
-            if child.attention and not child.attention.startswith("waiting at gate "):
+            if attention_blocks(composition, child):
                 return TickReport(halted=True, stalled=child.attention)
         # Explicit commands to stale children refuse; the original owner is the durable run handle.
         if root_id != owner:
@@ -549,7 +550,13 @@ def advance_decision(
         active_id = state.active.get(child_slot or "work")
         if not active_id:
             raise CoordinationError("active member admission is incomplete")
-        active = composition.store.reads.load_root(active_id)
+        # Routing has not mutated this root; reuse its tick-local observation.
+        # Member validation above and the local tick still read fresh fencing state.
+        active = (
+            root
+            if active_id == root.root_id
+            else composition.store.reads.load_root(active_id)
+        )
         boundary = active.metadata.decision_boundary
         if boundary is not None and digest_record(boundary) not in state.requests:
             source = composition.store.reads.load_activation(

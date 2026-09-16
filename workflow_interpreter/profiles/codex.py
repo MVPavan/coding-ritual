@@ -69,6 +69,7 @@ from pathlib import Path
 from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, Usage
+from workflow_interpreter.contracts.execution import MSG_CODEX_IN_REPO, ToolNetwork
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     int_at,
@@ -173,16 +174,6 @@ KEY_CACHED_INPUT_TOKENS: Final[str] = "cached_input_tokens"
 KEY_CACHE_WRITE_INPUT_TOKENS: Final[str] = "cache_write_input_tokens"
 KEY_OUTPUT_TOKENS: Final[str] = "output_tokens"
 
-_MSG_IN_REPO: Final[str] = (
-    "codex: node {node!r} writes and its checkout {checkout} is an in-repo "
-    "band checkout, which this runner cannot be bounded for. `git add` creates "
-    "`index.lock` directly inside `<C>/.git`, and that same directory holds "
-    "`config`, `hooks/` and `info/` — the surface that names PROGRAMS the "
-    "wrapper's own git later executes. `sandbox_workspace_write` grants whole "
-    "directories and has no key that takes a subdirectory back, so granting the "
-    "one would grant the others. Run this node in §5.4 worktree isolation, or "
-    "bind the role to a runner whose permission layer is path-exact."
-)
 
 _MSG_NO_SESSION: Final[str] = (
     "codex: cannot resume without a thread id; codex assigns one in its first "
@@ -194,6 +185,7 @@ _MSG_NO_SESSION: Final[str] = (
 class CodexProfile(BaseProfile):
     """`codex exec` as a §6 runner: an OS sandbox, and no network."""
 
+    tool_network = ToolNetwork.DENIED
     runner = RunnerName.CODEX
     auth_env = (
         "OPENAI_API_KEY",
@@ -295,6 +287,8 @@ class CodexProfile(BaseProfile):
         surface `codex sandbox` takes as a required `--permission-profile`,
         which the profile has not probed.
         """
+        if task.execution_grants is not None:
+            return task.execution_grants.process_cwd
         if task.writes:
             return require_absolute(self.runner, "task cwd", task.cwd)
         return str(_channels_dir(task))
@@ -422,21 +416,28 @@ def _item_event(item: Mapping[str, object], kind: str) -> RunnerEvent:
 
 
 def _writable_roots(task: TaskSpec, root: str) -> tuple[str, ...]:
-    """Grant channels plus writer-only Git state and the supervisor uv cache."""
+    """Grant the private cache and channels, plus writer-only Git state."""
+    if task.execution_grants is not None:
+        return task.execution_grants.writable_directories
     roots: list[str] = []
     channels_dir = str(_channels_dir(task))
     if channels_dir != root:
         roots.append(channels_dir)
     if not task.writes:
+        if task.toolchain_cache is not None:
+            roots.append(
+                require_absolute(
+                    RunnerName.CODEX, "toolchain cache", task.toolchain_cache
+                )
+            )
         return tuple(roots)
     checkout = Path(require_absolute(RunnerName.CODEX, "task cwd", task.cwd))
     if (checkout / GIT_ENTRY).is_dir():
         raise UnsupportedOptionError(
-            _MSG_IN_REPO.format(node=task.node, checkout=checkout)
+            MSG_CODEX_IN_REPO.format(node=task.node, checkout=checkout)
         )
     roots += [str(path) for path in worktree_git_write_roots(checkout, task.root_id)]
-    # The wrapper-wide cache is a cross-node write channel: never grant it to
-    # reviewers, and never infer its location from the channels directory.
+    # The supervisor supplies an activation-private path, never inferred here.
     if task.toolchain_cache is not None:
         roots.append(
             require_absolute(RunnerName.CODEX, "toolchain cache", task.toolchain_cache)

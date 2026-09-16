@@ -204,7 +204,14 @@ def test_the_receipt_records_the_wrapped_argv_and_the_mode(tmp_path: Path) -> No
     assert receipt is not None
     assert receipt.sandbox is SandboxMode.BWRAP
     assert receipt.argv[0] == probe(lab.supervisor_config).binary
-    assert str(lab.supervisor_config.wrapper_root / UV_CACHE_DIRECTORY) in receipt.argv
+    assert (
+        str(
+            lab.wiring().paths.activation_dir(activation_id)
+            / "toolchain"
+            / UV_CACHE_DIRECTORY
+        )
+        in receipt.argv
+    )
     assert "--" in receipt.argv
     inner = receipt.argv[receipt.argv.index("--") + 1 :]
     assert inner[0] == "/bin/sh"

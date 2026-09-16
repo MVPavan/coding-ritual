@@ -47,6 +47,7 @@ from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.tick import Foreman
+from workflow_interpreter.foreman.wake import MonitorUnavailable
 from workflow_interpreter.schema.decisions import CoordinationError
 from workflow_interpreter.schema.loader import GraphValidationError, load_graph
 from workflow_interpreter.schema.models import PRODUCER_INSTANCE
@@ -111,6 +112,7 @@ def execute_phase_bridge(
     retry: bool,
     trace: bool,
     retry_landing: bool = False,
+    monitored: bool = False,
 ) -> PhaseBridgeCommandResult:
     """Validate, optionally admit, and run exactly the caller-named stage."""
     try:
@@ -121,6 +123,7 @@ def execute_phase_bridge(
             retry=retry,
             trace=trace,
             retry_landing=retry_landing,
+            monitored=monitored,
         )
     except PhaseBridgeRefused as refusal:
         return PhaseBridgeCommandResult(
@@ -134,6 +137,7 @@ def execute_phase_bridge(
         )
     except (
         AdmissionRefused,
+        MonitorUnavailable,
         CoordinationError,
         LockUnavailable,
         BdOutputError,
@@ -172,6 +176,7 @@ def _execute(
     retry: bool,
     trace: bool,
     retry_landing: bool = False,
+    monitored: bool = False,
 ) -> PhaseBridgeCommandResult:
     """Apply the required ordering after keeping the trace branch read-only."""
     if retry_landing and (retry or trace):
@@ -306,9 +311,14 @@ def _execute(
             != prior.expected_base_commit
         ):
             raise PhaseBridgeRefused("branch-moved")
-        return _run_record(composition, adapter, prior)
+        return _run_record(composition, adapter, prior, monitored=monitored)
     if prior is not None and prior.integration_digest is not None and retry:
-        return _run_record(composition, adapter, retry_integration(composition, prior))
+        return _run_record(
+            composition,
+            adapter,
+            retry_integration(composition, prior),
+            monitored=monitored,
+        )
     if retry and prior is not None and prior.root_id is not None:
         predecessor = composition.store.reads.load_root(prior.root_id)
         if predecessor.metadata.coordination is not None:
@@ -370,11 +380,15 @@ def _execute(
             if successor is not None
             else admission.admit(epic_id, stage_id, target_ref, expected_base)
         )
-    return _run_record(composition, adapter, record)
+    return _run_record(composition, adapter, record, monitored=monitored)
 
 
 def _run_record(
-    composition: Composition, adapter: PhaseAdapter, record: PhaseBridgeRecord
+    composition: Composition,
+    adapter: PhaseAdapter,
+    record: PhaseBridgeRecord,
+    *,
+    monitored: bool = False,
 ) -> PhaseBridgeCommandResult:
     """Resume the admitted root without reprovisioning from current configuration."""
     adapter.guard_integration(record)
@@ -382,6 +396,7 @@ def _run_record(
         _require_root(record),
         poll_s=RUN_DEFAULT_POLL_S,
         max_wall_s=RUN_DEFAULT_MAX_WALL_S,
+        monitored=monitored,
     )
     latest = adapter.record(record.stage_id)
     if latest != record:
@@ -394,12 +409,17 @@ def _run_record(
         record = latest
     if run.report.terminal_node == "shipped":
         return _land(composition, adapter, record, recover=False)
-    return _result(
+    result = _result(
         PhaseBridgeCommandState.RESULT,
         epic_id=record.epic_id,
         stage_id=record.stage_id,
         record=record.model_dump(by_alias=True, mode="json"),
         result=run.model_dump(mode="json"),
+    )
+    return (
+        result.model_copy(update={"exit_code": EXIT_REFUSED})
+        if run.attention or run.report.stalled
+        else result
     )
 
 

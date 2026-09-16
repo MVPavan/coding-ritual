@@ -15,6 +15,7 @@ from workflow_interpreter.foreman.constants import (
     FORCED_FIRST_REJECT,
     INPUT_LABEL,
     LEAF_EXECUTION_CONTRACT,
+    MSG_INPUT_SOURCE_UNDECLARED,
     RUNNER_PROTOCOL,
     RUNNER_PROTOCOL_NO_WRITE_STEP,
     RUNNER_PROTOCOL_WRITE_STEP,
@@ -27,8 +28,17 @@ from workflow_interpreter.foreman.envelope import (
     compose_envelope,
 )
 from workflow_interpreter.foreman.execution import resolved_node
-from workflow_interpreter.schema.graph_index import GraphIndex, producer_node
-from workflow_interpreter.schema.models import ArtifactInputMode, Node, Outcome
+from workflow_interpreter.schema.graph_index import (
+    GraphIndex,
+    producer_engine,
+    producer_node,
+)
+from workflow_interpreter.schema.models import (
+    ArtifactInputMode,
+    EngineProducer,
+    Node,
+    Outcome,
+)
 from workflow_interpreter.supervisor import activation_ref
 from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
 from workflow_interpreter.supervisor.gitio import Git
@@ -70,6 +80,9 @@ def select_bindings(
     bindings: list[InputBinding] = []
     for name in node.inputs or ():
         source = index.sources[name]
+        if producer_engine(source) is not None:
+            # Bound only by the causal routing seam, never as an instance input.
+            continue
         producer_node_name = producer_node(source)
         if producer_node_name is None:
             instance = next(
@@ -167,6 +180,18 @@ def materialize(
     limit: int | None = None,
 ) -> Materialized:
     """Read one bound input exclusively from the pinned git objects."""
+    source = root.index.sources.get(binding.name)
+    if source is None:
+        raise InputsUnavailable(MSG_INPUT_SOURCE_UNDECLARED)
+    if binding.verify_failure is not None or producer_engine(source) is not None:
+        from workflow_interpreter.foreman.verify_feedback import read_payload
+
+        body = read_payload(git, repo_root, root, binding, producer)
+        return Materialized(
+            text=body.decode(),
+            name=binding.name,
+            producer=EngineProducer.VERIFY_FAILURE.value,
+        )
     if producer is None:
         if (
             binding.producer_activation_id != "instance"

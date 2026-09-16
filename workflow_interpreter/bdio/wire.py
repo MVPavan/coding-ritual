@@ -50,6 +50,7 @@ from workflow_interpreter.bdio.carriers import (
     ResolvedSetting,
     ScopedBound,
     Usage,
+    VerifyFailureBinding,
     VerifyOutcome,
     WfKind,
     parse_bound_key,
@@ -60,6 +61,12 @@ from workflow_interpreter.bdio.constants import (
     _MSG_ENTRY_PREDECESSOR,
 )
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
+from workflow_interpreter.bdio.rpc_records import (
+    ControlRegistration,
+    SessionCompletion,
+    SessionRegistration,
+)
+from workflow_interpreter.contracts.sessions import SessionFreshReason
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
     CoordinationLink,
@@ -113,6 +120,7 @@ __all__ = [
     "ScopedBound",
     "StaleFlagRecord",
     "Usage",
+    "VerifyFailureBinding",
     "VerifyOutcome",
     "WfKind",
     "canonical_json_bytes",
@@ -386,6 +394,12 @@ class ActivationMetadata(BaseModel):
     reset_verified_commit: str | None = None
     pre_attempt_dirty_state: str | None = None
     lifecycle: Lifecycle = Lifecycle.MINTED
+    launch_id: str | None = None
+    session_registration: SessionRegistration | None = None
+    session_reuse_source: SessionRegistration | None = None
+    session_fresh_reason: SessionFreshReason | None = None
+    session_completion: SessionCompletion | None = None
+    in_place_controls: tuple[ControlRegistration, ...] = ()
     handle: ProcessHandle | None = None
     stale_flag: StaleFlagRecord | None = None
     """§8.2 requires the stale flag in the wrapper dir AND in bd metadata. The

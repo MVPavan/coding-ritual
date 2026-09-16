@@ -30,7 +30,7 @@ def test_basic_writer_returns_immutable_artifact_without_a_bridge(
     assert writer.writes is True
     assert writer.allowed_paths == ("src/**",)
 
-    lab = ForemanLab(tmp_path, toml=BASIC, sandbox=SandboxMode.OFF)
+    lab = ForemanLab(tmp_path, toml=BASIC, sandbox=SandboxMode.BWRAP)
     root = lab.instantiate_resolved()
     lab.profiles.next_script(
         ChildScript(
@@ -74,7 +74,7 @@ def test_design_spec_admits_and_exposes_only_the_existing_bridge_gate(
         toml=DESIGN_SPEC,
         signing=signing_config,
         signer=sign_payload,
-        sandbox=SandboxMode.OFF,
+        sandbox=SandboxMode.BWRAP,
     )
     (lab.repo / "docs").mkdir()
     (lab.repo / "docs" / ".gitkeep").write_text("", encoding="utf-8")

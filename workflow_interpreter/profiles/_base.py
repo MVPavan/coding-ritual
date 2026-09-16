@@ -45,6 +45,7 @@ import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ProcessHandle, Usage
+from workflow_interpreter.contracts.execution import MSG_GRANTS_MISSING
 from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
 from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.supervisor.clock import Clock, elapsed_seconds
@@ -63,6 +64,7 @@ from workflow_interpreter.supervisor.sandbox import (
     ENV_RUFF_CACHE_DIR,
     ENV_UV_CACHE_DIR,
     ENV_UV_FROZEN,
+    ENV_UV_OFFLINE,
     ENV_UV_PROJECT_ENVIRONMENT,
     ENV_UV_PYTHON_INSTALL_DIR,
     PYTEST_CACHE_OPTION,
@@ -142,7 +144,7 @@ def toolchain_env(scratch_dir: str) -> dict[str, str]:
     but a nicety that breaks the gate is not a nicety.
 
     Applied for every profile and in every mode. The launcher replaces the
-    scratch-local uv cache with the shared wrapper-root cache in both modes, so
+    scratch-local uv cache with the activation-private cache in both modes, so
     an `off` run reproduces a bounded run's toolchain state; only `bwrap` binds
     that cache into its mount plan.
     """
@@ -150,6 +152,7 @@ def toolchain_env(scratch_dir: str) -> dict[str, str]:
     return {
         ENV_UV_PROJECT_ENVIRONMENT: str(scratch / UV_VENV_DIR),
         ENV_UV_CACHE_DIR: str(scratch / UV_CACHE_DIRECTORY),
+        ENV_UV_OFFLINE: "1",
         ENV_UV_PYTHON_INSTALL_DIR: str(
             scratch / UV_CACHE_DIRECTORY / UV_PYTHON_DIRECTORY
         ),
@@ -402,6 +405,8 @@ def grant_dirs(runner: RunnerName, task: TaskSpec) -> tuple[str, ...]:
     A grant nested inside another stays its own directory: folding it into the
     parent would state a wider bound than the mounts hold.
     """
+    if task.execution_grants is not None:
+        return task.execution_grants.checkout_write_dirs
     cwd = PurePosixPath(require_absolute(runner, "task cwd", task.cwd))
     return tuple(str(cwd / grant_directory(grant)) for grant in task.allowed_paths)
 
@@ -490,6 +495,8 @@ class BaseProfile:
         `argv` is executed without a shell, so every element is a literal — no
         quoting, no metacharacters, no interpreter prefix.
         """
+        if task.execution_profile is not None and task.execution_grants is None:
+            raise TaskRefused(MSG_GRANTS_MISSING)
         return RunnerCommand(
             argv=tuple(argv),
             env=self.child_env(task.channels),

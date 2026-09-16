@@ -17,7 +17,7 @@ from tests._foreman import (
     DEFAULT_LAB_ROLES,
     ForemanLab,
 )
-from tests._helpers import BUILD_LOOP_GRAPH, runner_roles
+from tests._helpers import runner_roles
 from tests._supervisor import ChildScript, verifier_pins
 
 ENTRY_NODE: Final[str] = "write_tests"
@@ -37,11 +37,11 @@ WRITE_TESTS_SCRIPT: Final[ChildScript] = ChildScript(
 TESTS_PARSE_CHECK: Final[str] = "scripts/checks/tests-parse.sh"
 
 
-def _build_loop_lab(tmp_path: Path) -> ForemanLab:
+def _build_loop_lab(graph: Path, tmp_path: Path) -> ForemanLab:
     """A lab wired for build-loop's roles, instance inputs and entry check."""
     lab = ForemanLab(
         tmp_path,
-        toml=BUILD_LOOP_GRAPH,
+        toml=graph,
         roles=BUILD_LOOP_ROLES,
         instance_inputs=BUILD_LOOP_INSTANCE_INPUTS,
     )
@@ -55,9 +55,11 @@ def _build_loop_lab(tmp_path: Path) -> ForemanLab:
     return lab
 
 
-def test_the_lab_instantiates_build_loop(tmp_path: Path) -> None:
+def test_the_lab_instantiates_build_loop(
+    build_loop_graph: Path, tmp_path: Path
+) -> None:
     """A root pins the graph with both instance inputs and no unbound role."""
-    lab = _build_loop_lab(tmp_path)
+    lab = _build_loop_lab(build_loop_graph, tmp_path)
 
     root = lab.instantiate()
 
@@ -69,7 +71,9 @@ def test_the_lab_instantiates_build_loop(tmp_path: Path) -> None:
     } == BUILD_LOOP_INSTANCE_INPUTS
 
 
-def test_the_lab_dispatches_the_build_loop_entry_node(tmp_path: Path) -> None:
+def test_the_lab_dispatches_the_build_loop_entry_node(
+    build_loop_graph: Path, tmp_path: Path
+) -> None:
     """One tick past `create` mints and launches `write_tests`.
 
     Instantiating proves nothing about the wrapper seam: the activation has to
@@ -77,7 +81,7 @@ def test_the_lab_dispatches_the_build_loop_entry_node(tmp_path: Path) -> None:
     declared check. The recorded `runner_profile` is the BINDING's vendor name,
     not the graph's `profile:test-author` spelling.
     """
-    lab = _build_loop_lab(tmp_path)
+    lab = _build_loop_lab(build_loop_graph, tmp_path)
     lab.instantiate()
     lab.profiles.bind_node(ENTRY_NODE, WRITE_TESTS_SCRIPT)
 
@@ -87,7 +91,7 @@ def test_the_lab_dispatches_the_build_loop_entry_node(tmp_path: Path) -> None:
     assert not report.halted
     dispatched = lab.store.reads.load_activation(report.dispatched)
     assert dispatched.metadata.node == ENTRY_NODE
-    assert dispatched.metadata.runner_profile == BUILD_LOOP_ROLES["test-author"].profile
+    assert dispatched.metadata.runner_profile == lab.config.roles["test-author"].profile
     # The close (and with it the graded outcome) belongs to the NEXT tick; what
     # this one proves is that the child ran under the right runner and exited
     # cleanly.

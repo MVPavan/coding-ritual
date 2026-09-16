@@ -9,6 +9,11 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
 from workflow_interpreter.bridge.verification import CheckCommand
+from workflow_interpreter.foreman.wake_constants import (
+    DEFAULT_EVENT_CAP,
+    MAX_EVENT_CAP,
+    MSG_STALE_SPACING,
+)
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
 from workflow_interpreter.supervisor.config import SupervisorConfig
 
@@ -23,6 +28,31 @@ class RunnerBinding(BaseModel):
     effort: Annotated[str, StringConstraints(min_length=1)]
 
 
+class WakeConfig(BaseModel):
+    """Trusted host notification limits, never graph- or runner-selected commands."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    poll_s: float = Field(default=5, gt=0, allow_inf_nan=False)
+    stale_s: float = Field(default=120, gt=0, allow_inf_nan=False)
+    min_fire_interval_s: float = Field(default=30, gt=0, allow_inf_nan=False)
+    lifetime_cap: int = Field(default=DEFAULT_EVENT_CAP, gt=0, le=MAX_EVENT_CAP)
+    hook_argv: tuple[
+        Annotated[
+            str, StringConstraints(min_length=1, max_length=4096, pattern=r"^[^\x00]+$")
+        ],
+        ...,
+    ] = Field(default=(), max_length=64)
+    hook_timeout_s: float = Field(default=10, gt=0, le=10, allow_inf_nan=False)
+    hook_backoff_s: float = Field(default=5, gt=0, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def _stale_above_poll(self) -> "WakeConfig":
+        """A normally scheduled poll is not itself a stale heartbeat."""
+        if self.stale_s <= self.poll_s:
+            raise ValueError(MSG_STALE_SPACING)
+        return self
+
+
 class ForemanConfig(BaseModel):
     """All foreman authority arrives as injected configuration."""
 
@@ -33,6 +63,7 @@ class ForemanConfig(BaseModel):
     bd: BdConfig
     signing: SigningConfig | None = None
     profiles: ProfileConfig = Field(default_factory=ProfileConfig)
+    wake: WakeConfig = Field(default_factory=WakeConfig)
     project_config: dict[str, str | int | bool] = Field(default_factory=dict)
     roles: dict[str, RunnerBinding] = Field(default_factory=dict)
     bridge_graph: Path | None = None

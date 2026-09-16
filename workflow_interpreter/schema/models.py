@@ -10,7 +10,23 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated, Final, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    StringConstraints,
+    model_serializer,
+    model_validator,
+)
+
+from workflow_interpreter.contracts.execution import (
+    MSG_PROFILE_KIND,
+    MSG_PROFILE_WRITES,
+    MSG_REVIEWER_GRANTS,
+    ExecutionProfileName,
+)
+from workflow_interpreter.contracts.sessions import SessionReuse
 
 MODEL_CONFIG: Final[ConfigDict] = ConfigDict(
     frozen=True,
@@ -288,6 +304,8 @@ class Node(BaseModel):
     artifact_input_mode: ArtifactInputMode | None = None
     isolation: IsolationMode | None = None
     writes: bool | None = None
+    execution_profile: ExecutionProfileName | None = None
+    session_reuse: SessionReuse | None = None
     allowed_paths: tuple[RelativePath, ...] | None = None
     inputs: tuple[Identifier, ...] | None = None
     verify: tuple[VerifyCheck, ...] | None = None
@@ -303,6 +321,35 @@ class Node(BaseModel):
     binds: BindsMode | None = None
     fallback: FallbackRoute | None = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def _named_authority(cls, value: object) -> object:
+        """Derive writes for named nodes without accepting an authored writes flag."""
+        if not isinstance(value, dict) or value.get("execution_profile") is None:
+            return value
+        profile = ExecutionProfileName(value["execution_profile"])
+        if value.get("writes") is not None:
+            raise ValueError(MSG_PROFILE_WRITES)
+        if value.get("kind") != NodeKind.TASK:
+            raise ValueError(MSG_PROFILE_KIND)
+        if profile is ExecutionProfileName.REVIEWER and value.get("allowed_paths"):
+            raise ValueError(MSG_REVIEWER_GRANTS)
+        return {**value, "writes": profile is ExecutionProfileName.WRITER}
+
+    @model_serializer(mode="wrap")
+    def _authored_authority(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, object]:
+        """Keep named authority singular and preserve absent-field legacy hashes."""
+        result: dict[str, object] = handler(self)
+        if self.session_reuse is None:
+            result.pop("session_reuse", None)
+        if self.execution_profile is not None:
+            result.pop("writes", None)
+        else:
+            result.pop("execution_profile", None)
+        return result
+
 
 class Edge(BaseModel):
     """`[[edge]]` — a declared transition."""
@@ -314,6 +361,15 @@ class Edge(BaseModel):
     to: Identifier
 
 
+class EngineProducer(StrEnum):
+    """Engine-owned inputs, never caller-supplied instance material."""
+
+    VERIFY_FAILURE = "engine:verify_failure"
+
+
+MSG_ENGINE_OPTIONAL: Final[str] = "engine:verify_failure must be optional"
+
+
 class Source(BaseModel):
     """`[[source]]` — the input registry entry bound at mint (§2 'Input binding')."""
 
@@ -323,6 +379,13 @@ class Source(BaseModel):
     producer: Annotated[str, StringConstraints(min_length=1)]
     optional: bool
     trim_priority: int
+
+    @model_validator(mode="after")
+    def _engine_source_optional(self) -> Source:
+        """A diagnostic source exists only when its causal host check failed."""
+        if self.producer == EngineProducer.VERIFY_FAILURE and not self.optional:
+            raise ValueError(MSG_ENGINE_OPTIONAL)
+        return self
 
 
 class GraphDocument(BaseModel):

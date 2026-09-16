@@ -1,0 +1,596 @@
+"""Activation lifecycle writes behind the typed WorkflowStore facade."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Final
+
+import structlog
+
+from workflow_interpreter.bdio import (
+    mint,
+    reads,
+    supervision,
+    transitions,
+)
+from workflow_interpreter.bdio.errors import (
+    CarrierIntegrityError,
+    LifecycleConflictError,
+)
+from workflow_interpreter.bdio.feedback import validate_feedback_bindings
+from workflow_interpreter.bdio.mint import MintFacts
+from workflow_interpreter.bdio.records import (
+    ActivationRecord,
+    MintResult,
+    RootRecord,
+)
+from workflow_interpreter.bdio.sessions import SessionChoice, choose_source
+from workflow_interpreter.bdio.wire import (
+    ActivationMetadata,
+    BeadRecord,
+    Deviation,
+    Evidence,
+    ExitRecord,
+    Lifecycle,
+    Metadata,
+    MintRequest,
+    NodeSetting,
+    ProcessHandle,
+    Usage,
+    metadata_dict,
+    resolved_settings,
+)
+from workflow_interpreter.contracts.execution import RunnerName
+from workflow_interpreter.schema.models import Outcome
+
+if TYPE_CHECKING:
+    from workflow_interpreter.bdio.api import WorkflowStore
+
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
+
+_TITLE_ACTIVATION: Final[str] = "wf {node} r{round_no} #{seq}"
+_REASON_ACTIVATION: Final[str] = "outcome={outcome}"
+_REASON_SUPERSEDED: Final[str] = "outcome=superseded superseded_by={winner}"
+
+_MSG_ALL_SUPERSEDED: Final[str] = (
+    "every activation for idempotency_key={key!r} is superseded"
+)
+_MSG_CLOSE_CONFLICT: Final[str] = (
+    "activation {activation_id} is already closed {found}, refusing to close {wanted}"
+)
+_MSG_SUPERSEDE_CONFLICT: Final[str] = (
+    "activation {activation_id} is already superseded by {found}, not {wanted}"
+)
+_MSG_SUPERSEDE_OUTCOME: Final[str] = (
+    "close_activation refuses the system outcome {outcome} — use supersede_activation()"
+)
+_MSG_NO_VERIFIER: Final[str] = (
+    "no GateVerifier injected; a gate cannot be closed without §9 verification"
+)
+_MSG_CLOSE_SUPERSEDED: Final[str] = (
+    "activation {activation_id} is superseded by {winner}; closing it {wanted} "
+    "would resurrect a lost race into routing truth (§3.2)"
+)
+_MSG_SUPERSEDE_COMPLETED: Final[str] = (
+    "activation {activation_id} already recorded outcome {outcome}; superseding "
+    "a COMPLETED activation would destroy the outcome the frontier routed on "
+    "(§3.2, §3.3)"
+)
+_MSG_SUPERSEDE_NO_WINNER: Final[str] = (
+    "supersede names winner {winner!r}, which is not a live activation of this "
+    "root under idempotency_key={key!r}; {activation_id} would be destroyed to "
+    "settle a race that cannot be shown to exist (§3.2)"
+)
+_MSG_SUPERSEDE_DEAD_WINNER: Final[str] = (
+    "supersede names winner {winner!r}, which is itself superseded; closing "
+    "{activation_id} onto it would leave the key with nothing live (§3.2)"
+)
+_MSG_SUPERSEDE_LOSES: Final[str] = (
+    "supersede names winner {winner!r}, which does not win the §3.2 tie-break "
+    "against {activation_id} (completed first, then lowest seq, then lowest id)"
+)
+_MSG_TWO_COMPLETED: Final[str] = (
+    "idempotency_key={key!r} has more than one COMPLETED activation "
+    "({found}); the race cannot be resolved without destroying a recorded "
+    "outcome — triage it (§3.2)"
+)
+_FIELD_RUNNER_PROFILE: Final[str] = "runner_profile"
+_FIELD_MODEL: Final[str] = "model"
+_MSG_PINNED_EXECUTION_SETTING_MISSING: Final[str] = (
+    "root {root_id} has no text execution pin for node {node!r} at {key!r}; "
+    "an activation cannot carry a value the root did not resolve (§3.1)"
+)
+_MSG_PINNED_EXECUTION_SETTING_MISMATCH: Final[str] = (
+    "mint for node {node!r} requested {field} {requested!r}, but the root pins "
+    "{pinned!r} (§3.1)"
+)
+
+
+def _race_order(record: ActivationRecord) -> tuple[bool, int, str]:
+    """The §3.2 winner rule as a sort key: completed first, then `seq`, then id.
+
+    One definition, used both to pick a winner among race residue and to prove
+    a caller-named winner actually is one.
+    """
+    return (
+        not record.metadata.is_completed,
+        record.metadata.seq,
+        record.bead.id,
+    )
+
+
+def _may_be_superseded(record: ActivationRecord) -> bool:
+    """Whether a race record may be changed into a superseded loser."""
+    metadata = record.metadata
+    return not (metadata.is_settled and not metadata.is_superseded)
+
+
+def _unsupersedable_error(record: ActivationRecord) -> CarrierIntegrityError:
+    """Build the refusal for a record whose routing outcome is terminal."""
+    return CarrierIntegrityError(
+        _MSG_SUPERSEDE_COMPLETED.format(
+            activation_id=record.activation_id,
+            outcome=None
+            if record.metadata.outcome is None
+            else record.metadata.outcome.value,
+        )
+    )
+
+
+def _race_decision(
+    found: Sequence[ActivationRecord], key: str
+) -> tuple[ActivationRecord, tuple[ActivationRecord, ...]]:
+    """Choose a §3.2 race winner without mutating the losing residue."""
+    live = [record for record in found if not record.metadata.is_superseded]
+    if not live:
+        raise CarrierIntegrityError(_MSG_ALL_SUPERSEDED.format(key=key))
+    if len(live) == 1:
+        return live[0], ()
+    completed = [record for record in live if record.metadata.is_completed]
+    if len(completed) > 1:
+        raise CarrierIntegrityError(
+            _MSG_TWO_COMPLETED.format(
+                key=key,
+                found=", ".join(record.activation_id for record in completed),
+            )
+        )
+    winner, *losers = sorted(live, key=_race_order)
+    for loser in losers:
+        if not _may_be_superseded(loser):
+            raise _unsupersedable_error(loser)
+    return winner, tuple(losers)
+
+
+def pinned_execution_setting(root: RootRecord, node: str, setting: NodeSetting) -> str:
+    """Read one text execution pin from the root's immutable resolution."""
+    value = resolved_settings(root.metadata).get(setting.at(node))
+    if not isinstance(value, str):
+        raise CarrierIntegrityError(
+            _MSG_PINNED_EXECUTION_SETTING_MISSING.format(
+                root_id=root.root_id,
+                node=node,
+                key=setting.at(node),
+            )
+        )
+    return value
+
+
+def _assert_pinned_execution_setting(
+    *, node: str, field: str, requested: str, pinned: str
+) -> None:
+    """Refuse an execution binding that contradicts the pinned root."""
+    if requested != pinned:
+        raise CarrierIntegrityError(
+            _MSG_PINNED_EXECUTION_SETTING_MISMATCH.format(
+                node=node,
+                field=field,
+                requested=requested,
+                pinned=pinned,
+            )
+        )
+
+
+def _mint_activation(
+    self: WorkflowStore, root_id: str, request: MintRequest
+) -> MintResult:
+    self.assert_member(root_id)
+    root = self._reads.load_root(root_id)
+    # ONE fetch of the instance's beads serves the ceiling count, the
+    # activation views, the key lookup and the derivation.
+    beads = self._reads.instance_beads(root_id)
+    activations = reads.activations_of(beads)
+    facts, existing, metadata, metadata_payload = self._prepare_mint(
+        root_id, request, root, beads, activations
+    )
+    if existing:
+        return MintResult(
+            activation=self._resolve_race(existing, facts.idempotency_key),
+            idempotency_key=facts.idempotency_key,
+            created=False,
+        )
+
+    assert metadata is not None and metadata_payload is not None
+    record = self._client._create_bead(
+        title=_TITLE_ACTIVATION.format(
+            node=facts.node, round_no=facts.round_no, seq=metadata.seq
+        ),
+        metadata=metadata_payload,
+    )
+    _LOG.info(
+        "wf.activation.minted",
+        root_id=root_id,
+        activation_id=record.id,
+        node=facts.node,
+        round_no=facts.round_no,
+        idempotency_key=facts.idempotency_key,
+    )
+    winner = self._resolve_race(
+        self._reads.find_by_idempotency_key(root_id, facts.idempotency_key),
+        facts.idempotency_key,
+    )
+    return MintResult(
+        activation=winner,
+        idempotency_key=facts.idempotency_key,
+        created=winner.activation_id == record.id,
+    )
+
+
+def _preflight_steer_continuation(
+    self: WorkflowStore,
+    root_id: str,
+    activation: ActivationRecord,
+    continuation: MintRequest,
+) -> None:
+    """Check a fresh steer continuation as if its parent were closed `steered`.
+
+    A fresh steer must ask this before its intent write and termination, but
+    `derive_mint_facts` correctly refuses an open predecessor. Replacing
+    only that predecessor's lifecycle and outcome creates the precise
+    post-close view without writing any durable state.
+    """
+    root = self._reads.load_root(root_id)
+    beads = self._reads.instance_beads(root_id)
+    activations = reads.activations_of(beads)
+    prospective = activation.model_copy(
+        update={
+            "metadata": activation.metadata.model_copy(
+                update={"lifecycle": Lifecycle.CLOSED, "outcome": Outcome.STEERED}
+            )
+        }
+    )
+    prospective_activations = tuple(
+        prospective if record.activation_id == activation.activation_id else record
+        for record in activations
+    )
+    self._prepare_mint(root_id, continuation, root, beads, prospective_activations)
+
+
+def _prepare_mint(
+    self: WorkflowStore,
+    root_id: str,
+    request: MintRequest,
+    root: RootRecord,
+    beads: Sequence[BeadRecord],
+    activations: Sequence[ActivationRecord],
+) -> tuple[
+    MintFacts,
+    tuple[ActivationRecord, ...],
+    ActivationMetadata | None,
+    Metadata | None,
+]:
+    """Perform the complete non-mutating portion of ``mint_activation``.
+
+    The caller resolves an existing key after this method validates its
+    race residue; otherwise the returned metadata is the exact payload for
+    the sole write. Steer recovery uses the same preparation against its
+    prospective post-close trace before it changes parent or child state.
+    """
+    facts = mint.derive_mint_facts(
+        root,
+        request,
+        activations,
+        self._branch_head_reader,
+        reads.gates_of(beads),
+    )
+
+    validate_feedback_bindings(root, request, activations, reads.gates_of(beads))
+    existing = tuple(
+        record
+        for record in activations
+        if record.metadata.idempotency_key == facts.idempotency_key
+    )
+    if existing:
+        _race_decision(existing, facts.idempotency_key)
+        return facts, existing, None, None
+
+    runner_profile, model = self._assert_mint_permitted(
+        root, facts, beads, activations, request
+    )
+    choice = (
+        choose_source(root, request, activations)
+        if runner_profile.removeprefix("profile:") == RunnerName.CODEX_APPSERVER.value
+        else SessionChoice()
+    )
+    source = choice.source
+    session_id = request.session_id
+    if runner_profile.removeprefix("profile:") == RunnerName.CODEX_APPSERVER.value:
+        session_id = source.thread_id if source else ""
+    metadata = ActivationMetadata(
+        wf_root_id=root_id,
+        node=facts.node,
+        region=facts.region,
+        round_no=facts.round_no,
+        seq=reads.next_seq(beads),
+        predecessor_activation_id=facts.predecessor_activation_id,
+        predecessor_gate_id=facts.predecessor_gate_id,
+        outcome_taken=facts.outcome_taken,
+        idempotency_key=facts.idempotency_key,
+        mint_reason=facts.mint_reason,
+        inputs=request.inputs,
+        runner_profile=runner_profile,
+        model=model,
+        session_id=session_id,
+        session_reuse_source=source,
+        session_fresh_reason=choice.fresh_reason,
+        intended_base_commit=facts.intended_base_commit,
+        deviations=request.deviations,
+    )
+    return facts, (), metadata, metadata_dict(metadata)
+
+
+def record_dispatch(
+    self: WorkflowStore,
+    activation_id: str,
+    handle: ProcessHandle,
+    *,
+    launch_id: str | None = None,
+) -> ActivationRecord:
+    """Phase B: the state moves only after the handle is durable (§5.2).
+
+    The settled guard runs FIRST, before the idempotence short-circuit: a
+    recorded outcome is terminal even where a losing race left `lifecycle`
+    saying `dispatched`, and a short-circuit that returns such a row reports
+    success for a state write nobody may make (`transitions.py`).
+
+    The session id travels with the handle. `Profile.prepare` is the only
+    minter of one (§5.2), and it runs at LAUNCH, so an activation whose
+    mint carried none would leave every continuation and infra retry
+    copying an empty id off its metadata. It is written only when the
+    recorded id is EMPTY, and a handle naming a different non-empty session
+    is refused rather than dropped (`assert_same_session`).
+    """
+    record = self._load_activation(activation_id)
+    transitions.assert_not_settled(record, Lifecycle.DISPATCHED)
+    transitions.assert_same_session(
+        activation_id, record.metadata.session_id, handle.session_id
+    )
+    if launch_id is not None and record.metadata.launch_id not in (None, launch_id):
+        raise CarrierIntegrityError(supervision.MSG_SESSION_IDENTITY)
+    if record.metadata.lifecycle is Lifecycle.DISPATCHED:
+        transitions.assert_same(
+            activation_id, record.metadata.handle, handle, Lifecycle.DISPATCHED
+        )
+        return record
+    transitions.assert_lifecycle(record, Lifecycle.MINTED, Lifecycle.DISPATCHED)
+    session: dict[str, object] = (
+        {"session_id": handle.session_id}
+        if handle.session_id and not record.metadata.session_id
+        else {}
+    )
+    try:
+        return self._apply(
+            activation_id,
+            lifecycle=Lifecycle.DISPATCHED,
+            allowed=frozenset({Lifecycle.MINTED}),
+            handle=handle,
+            **({"launch_id": launch_id} if launch_id is not None else {}),
+            **session,
+        )
+    except LifecycleConflictError:
+        # Receipt recovery can race the original launch publisher. A matching
+        # winner is already the requested fact; a different handle is not.
+        winner = self._load_activation(activation_id)
+        if winner.metadata.lifecycle is not Lifecycle.DISPATCHED:
+            raise
+        transitions.assert_same(
+            activation_id, winner.metadata.handle, handle, Lifecycle.DISPATCHED
+        )
+        transitions.assert_same_session(
+            activation_id, winner.metadata.session_id, handle.session_id
+        )
+        return winner
+
+
+def record_exit(
+    self: WorkflowStore, activation_id: str, exit_record: ExitRecord
+) -> ActivationRecord:
+    """Mirror the wrapper's exit record into bd (§5.3) — the §7.1 observable."""
+    record = self._load_activation(activation_id)
+    transitions.assert_not_settled(record, Lifecycle.EXIT_RECORDED)
+    if record.metadata.lifecycle is Lifecycle.EXIT_RECORDED:
+        transitions.assert_same(
+            activation_id,
+            record.metadata.exit_record,
+            exit_record,
+            Lifecycle.EXIT_RECORDED,
+        )
+        return record
+    transitions.assert_lifecycle(record, Lifecycle.DISPATCHED, Lifecycle.EXIT_RECORDED)
+    return self._apply(
+        activation_id,
+        lifecycle=Lifecycle.EXIT_RECORDED,
+        allowed=frozenset({Lifecycle.DISPATCHED}),
+        exit_record=exit_record,
+    )
+
+
+def record_evidence(
+    self: WorkflowStore,
+    activation_id: str,
+    evidence: Evidence,
+    usage: Usage | None = None,
+) -> ActivationRecord:
+    """Record computed §7 evidence before the outcome is decided."""
+    record = self._load_activation(activation_id)
+    transitions.assert_not_settled(record, Lifecycle.EVIDENCE_RECORDED)
+    if record.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED:
+        transitions.assert_same(
+            activation_id,
+            record.metadata.evidence,
+            evidence,
+            Lifecycle.EVIDENCE_RECORDED,
+        )
+        return record
+    transitions.assert_lifecycle(
+        record, Lifecycle.EXIT_RECORDED, Lifecycle.EVIDENCE_RECORDED
+    )
+    try:
+        return self._apply(
+            activation_id,
+            lifecycle=Lifecycle.EVIDENCE_RECORDED,
+            allowed=frozenset({Lifecycle.EXIT_RECORDED}),
+            evidence=evidence,
+            usage=usage,
+        )
+    except LifecycleConflictError:
+        # A wrapper and cancellation recovery can publish the same durable
+        # completion between the initial read and the transition's guard.
+        # Reconcile exactly that winner; do not retry a write or roll back
+        # a later lifecycle, and never accept contradictory evidence.
+        winner = self._load_activation(activation_id)
+        if winner.metadata.lifecycle is not Lifecycle.EVIDENCE_RECORDED:
+            raise
+        transitions.assert_same(
+            activation_id,
+            winner.metadata.evidence,
+            evidence,
+            Lifecycle.EVIDENCE_RECORDED,
+        )
+        transitions.assert_same(
+            activation_id,
+            winner.metadata.usage,
+            usage,
+            Lifecycle.EVIDENCE_RECORDED,
+        )
+        return winner
+
+
+def close_activation(
+    self: WorkflowStore,
+    activation_id: str,
+    outcome: Outcome,
+    *,
+    evidence: Evidence | None = None,
+    usage: Usage | None = None,
+    deviations: Sequence[Deviation] = (),
+) -> ActivationRecord:
+    """Close with the outcome that IS the routing truth (§3.3).
+
+    A re-run that finds the outcome already recorded does NOT return early:
+    it repairs the close forward, because a recorded outcome on an open
+    bead is a half-finished transition the frontier would otherwise re-pick
+    forever (probed, phase-2 review).
+
+    A SUPERSEDED activation is refused outright: `supersede` is terminal
+    too, and closing over it would turn a lost race back into an edge a
+    successor can be minted from — forged routing truth in two typed calls
+    with no signature anywhere (probed, phase-2 review).
+
+    The "already closed" test is the RECORDED OUTCOME, not the lifecycle. A
+    transition whose merge landed after a concurrent close leaves the row
+    `status=closed lifecycle=exit-recorded outcome=steered`; keying this
+    guard on `is_completed` (which needs `lifecycle == closed`) let a second
+    close walk straight through it and overwrite the `steered` a
+    continuation was already minted from (probed, round 3). A bd row that is
+    closed with NO recorded outcome is a different state — the §5.1 crash
+    window — and is still repaired forward, which is why bd's status does
+    not appear here.
+    """
+    if outcome is Outcome.SUPERSEDED:
+        raise LifecycleConflictError(
+            _MSG_SUPERSEDE_OUTCOME.format(outcome=outcome.value)
+        )
+    record = self._load_activation(activation_id)
+    if record.metadata.is_superseded:
+        raise CarrierIntegrityError(
+            _MSG_CLOSE_SUPERSEDED.format(
+                activation_id=activation_id,
+                winner=record.metadata.superseded_by,
+                wanted=outcome.value,
+            )
+        )
+    reason = _REASON_ACTIVATION.format(outcome=outcome.value)
+    if record.metadata.is_settled:
+        if record.metadata.outcome is not outcome:
+            raise LifecycleConflictError(
+                _MSG_CLOSE_CONFLICT.format(
+                    activation_id=activation_id,
+                    found=record.metadata.outcome,
+                    wanted=outcome.value,
+                )
+            )
+        transitions.assert_close_payload(record, evidence, usage, deviations)
+        return self._finish(record, reason)
+    applied = self._apply(
+        activation_id,
+        lifecycle=Lifecycle.CLOSED,
+        allowed=transitions.OPEN_LIFECYCLES,
+        outcome=outcome,
+        evidence=evidence if evidence is not None else record.metadata.evidence,
+        usage=usage if usage is not None else record.metadata.usage,
+        deviations=(*record.metadata.deviations, *deviations),
+    )
+    _LOG.info(
+        "wf.activation.closed", activation_id=activation_id, outcome=outcome.value
+    )
+    return self._finish(applied, reason)
+
+
+def supersede_activation(
+    self: WorkflowStore, loser_id: str, winner_id: str
+) -> ActivationRecord:
+    """Append-only race resolution: never `bd delete`, never reopen (§3.2).
+
+    A COMPLETED activation is never a loser: its recorded outcome is what
+    the frontier routed on, so overwriting it with `superseded` destroys
+    routing truth rather than resolving a race (probed, phase-2 review).
+
+    The WINNER is proved, not taken on the caller's word: it must exist,
+    share this root AND this idempotency key, still be live, and win the
+    §3.2 tie-break. Without that, superseding the sole activation of an
+    instance onto `"wf-does-not-exist"` succeeded and left the key with
+    nothing live under it — the next mint refused (probed, phase-2 r3).
+
+    "Never a loser" is the RECORDED OUTCOME, not `is_completed`: that
+    property requires `lifecycle == closed`, and a losing merge drags the
+    lifecycle back under a row that already carries one — leaving
+    `status=closed lifecycle=exit-recorded outcome=steered`, which walked
+    straight through this guard and overwrote the `steered` a continuation
+    was minted from (probed, r4). An already-SUPERSEDED activation is the
+    one settled row this still accepts, because superseding it again is the
+    idempotent re-run below.
+    """
+    record = self._load_activation(loser_id)
+    if not _may_be_superseded(record):
+        raise _unsupersedable_error(record)
+    self._assert_race_winner(record, winner_id)
+    reason = _REASON_SUPERSEDED.format(winner=winner_id)
+    if record.metadata.superseded_by is not None:
+        if record.metadata.superseded_by != winner_id:
+            raise LifecycleConflictError(
+                _MSG_SUPERSEDE_CONFLICT.format(
+                    activation_id=loser_id,
+                    found=record.metadata.superseded_by,
+                    wanted=winner_id,
+                )
+            )
+        return self._finish(record, reason)
+    applied = self._apply(
+        loser_id,
+        lifecycle=Lifecycle.SUPERSEDED,
+        allowed=transitions.OPEN_LIFECYCLES,
+        outcome=Outcome.SUPERSEDED,
+        superseded_by=winner_id,
+    )
+    _LOG.warning("wf.activation.superseded", loser=loser_id, winner=winner_id)
+    return self._finish(applied, reason)

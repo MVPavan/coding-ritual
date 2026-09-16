@@ -20,7 +20,10 @@ from workflow_interpreter.schema.models import Finding, GraphDefinition
 
 PACKAGE_ROOT = Path(workflow_interpreter.__file__).parent
 FIXTURES = PACKAGE_ROOT / "fixtures"
-VALID_FIXTURE = FIXTURES / "feature-delivery.toml"
+# Historical pins exercise compatibility without weakening legacy test cases.
+VALID_FIXTURE = FIXTURES / "legacy" / "feature-delivery.toml"
+SHIPPED_FIXTURE = FIXTURES / "feature-delivery.toml"
+LEGACY_BUILD_LOOP_GRAPH = FIXTURES / "legacy" / "build-loop.toml"
 # The `workflows/` authoring copy of the same graph (spec §2 `:100-102`,
 # temporary until phase 5 collapses the split).
 AUTHORING_FIXTURE = PACKAGE_ROOT.parent / "workflows" / "feature-delivery.toml"
@@ -42,15 +45,18 @@ VARIANT_SEPARATOR: Final[str] = "__"
 # no whitespace, or the comma-separated list several templates interpolate.
 MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 
-# Current shipped example hash (§3.1). Versioned authoring edits update this
-# expectation; admitted instances retain their own immutable body and hash.
+# Historical feature-delivery pin. Existing instances retain these exact bytes.
 FEATURE_DELIVERY_CONTENT_HASH = (
     "c929cb817742c2b5684aa4e4b5451a89865734b8fc86148ed02303166ebb458b"
 )
 
+SHIPPED_FEATURE_DELIVERY_CONTENT_HASH = (
+    "e15e71d0d0b2d5db1ed39180fc66eac9717e117697127bd06b41a377ac4df021"
+)
+
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
 BUILD_LOOP_CONTENT_HASH = (
-    "9335b8e328d908a2e5b975e8d5a09e3802f5a975b07277b71f9626991bf87646"
+    "63e81d7dece8befe79e807eaa5a4b839570997f67ef11beaeaa68e0648981a10"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.
@@ -172,11 +178,11 @@ UNDECLARED_FAIL_CODE_EDITS: Final[tuple[tuple[str, str], ...]] = (
 )
 
 
-def undeclared_fail_code_graph(directory: Path) -> Path:
+def undeclared_fail_code_graph(directory: Path, source: Path = VALID_FIXTURE) -> Path:
     """The §2 fixture with `implement`'s `fail_code` outcome and edge removed."""
     return write(
         directory,
-        mutate(VALID_FIXTURE.read_text(encoding="utf-8"), UNDECLARED_FAIL_CODE_EDITS),
+        mutate(source.read_text(encoding="utf-8"), UNDECLARED_FAIL_CODE_EDITS),
         "undeclared-fail-code.toml",
     )
 

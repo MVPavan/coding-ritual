@@ -1,19 +1,30 @@
 """Real deterministic processes through ordinary Foreman and Supervisor."""
 
+from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
-from tests._foreman import ForemanLab, LockedPersistentBd, ProcSpawner
+from tests._foreman import (
+    DEFAULT_LAB_ROLES,
+    ForemanLab,
+    LockedPersistentBd,
+    ProcSpawner,
+)
 from tests._supervisor import ChildScript
+from workflow_interpreter.foreman.config import RunnerBinding
 from workflow_interpreter.foreman.decisions import admission_of
 from workflow_interpreter.supervisor.clock import SystemClock
 from workflow_interpreter.supervisor.models import SandboxMode
 
 
 def writer_lab(
-    tmp_path: Path, *, sandbox: SandboxMode = SandboxMode.OFF, writing: bool = True
+    tmp_path: Path,
+    *,
+    sandbox: SandboxMode = SandboxMode.OFF,
+    writing: bool = True,
+    roles: Mapping[str, RunnerBinding] = DEFAULT_LAB_ROLES,
 ):
     graph = tmp_path / "writer.toml"
     graph.write_text("""[graph]
@@ -75,6 +86,7 @@ to = "failed"
         ),
         instance_inputs={},
         sandbox=sandbox,
+        roles=roles,
     )
     owner = lab.instantiate_resolved()
     spawner = ProcSpawner()
@@ -108,6 +120,16 @@ def test_real_writer_collection_keeps_immutable_evidence(tmp_path: Path) -> None
             if process.is_alive():
                 process.kill()
                 process.join(timeout=5)
+
+    from workflow_interpreter.foreman.heartbeat import DriverHeartbeat
+    from workflow_interpreter.foreman.wake_constants import DriverState
+    from workflow_interpreter.supervisor.paths import read_record
+
+    heartbeat = read_record(
+        composition.for_root(child.root_id).paths.driver_heartbeat, DriverHeartbeat
+    )
+    assert heartbeat.state is DriverState.STOPPED
+    assert heartbeat.ticks > 0
 
 
 @pytest.mark.proc

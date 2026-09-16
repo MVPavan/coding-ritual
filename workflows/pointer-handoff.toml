@@ -49,9 +49,9 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"               # worktree | in-repo
-writes        = true                     # repo-worktree write access only
+execution_profile = "writer"            # repo-worktree write access only
 allowed_paths = ["workflow_interpreter/foreman/**", "workflow_interpreter/schema/**", "workflow_interpreter/profiles/**", "workflow_interpreter/supervisor/**", "workflow_interpreter/bdio/**", "tests/**", "docs/usage/**", "docs/specs/**", "config/**"]   # the writable mounts under bwrap
-inputs        = ["task_brief", "review_findings"]
+inputs        = ["verify_failure", "task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-pointer-handoff.sh", timeout = "10m" }]
 context_budget_bytes = 64000                   # context TRIM budget (not a runaway bound)
 max_wall      = "30m"                    # universal runaway ceiling (wrapper-enforced)
@@ -103,7 +103,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation     = "worktree"
-writes        = false                    # findings go to $WF_ARTIFACT_DIR, not the repo
+execution_profile = "reviewer"          # findings go to $WF_ARTIFACT_DIR, not the repo
 allowed_paths = []
 inputs        = ["task_brief", "diff_artifact", "review_findings"]
 verify        = [{ cmd = "scripts/verify-pointer-handoff.sh", timeout = "15m" }]
@@ -219,3 +219,10 @@ name          = "review_findings"
 producer      = "node:review"
 optional      = true                     # absent on round 1 by construction
 trim_priority = 2
+
+# Host-observed diagnostic data, bound only to the causal failed check.
+[[source]]
+name = "verify_failure"
+producer = "engine:verify_failure"
+optional = true
+trim_priority = 10

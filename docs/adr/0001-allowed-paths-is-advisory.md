@@ -173,3 +173,17 @@ prevention.**
 - **Hard-fail on undeclared paths at grading time.** Stops legitimate work
   (formatters, lockfiles, cache directories) without preventing anything — the
   edit already landed on disk by the time it is caught. Worst of both.
+
+## Amendment: named execution contracts (2026-09-15)
+
+Named `writer` and `reviewer` policies pin physical filesystem authority at root
+creation. `allowed_paths` still participates in the unchanged disclosure/effect
+reporting union; it also selects the writer's outer writable directory mounts.
+Those are separate mechanisms. Reviewers receive no checkout or Git write grant.
+A single resolved grant object supplies mounts and vendor flags. Legacy pinned
+roots retain their earlier authority and serialization.
+
+Network is a recorded fact rather than an admission requirement: Codex records
+`denied`; Claude writer and reviewer record `not_enforced`. Both Claude policies
+may launch. Named Claude reviewers may run Bash under the outer read-only
+checkout bound. This does not assert shell-network isolation or confidentiality.

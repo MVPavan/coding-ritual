@@ -23,12 +23,14 @@ import structlog
 from workflow_interpreter.bdio import finalize, reads
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
+from workflow_interpreter.bdio.feedback import MSG_CONSUMER
 from workflow_interpreter.bdio.records import RootRecord, parse_root
 from workflow_interpreter.bdio.wire import (
     KEY_SUPERSEDED_BY,
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
     BeadRecord,
+    ConfigSource,
     InstanceInput,
     NodeSetting,
     ResolvedSetting,
@@ -36,8 +38,19 @@ from workflow_interpreter.bdio.wire import (
     config_signature,
     metadata_dict,
 )
+from workflow_interpreter.contracts.execution import (
+    EXECUTION_POLICY_KEY,
+    MSG_PROFILE_WRITES,
+    MSG_UNREGISTERED_RUNNER,
+    ExecutionRegistry,
+    RunnerName,
+    UnregisteredRunnerError,
+    policy_for,
+    tool_network_for,
+)
+from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
-from workflow_interpreter.schema.models import GraphDefinition, NodeKind
+from workflow_interpreter.schema.models import EngineProducer, GraphDefinition, NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -131,6 +144,12 @@ def _assert_task_execution_settings_are_pinned(
         # cannot launch under any runner. Requiring it only for `profile:`
         # runners let an unrunnable root be created, and root identity then
         # refuses to recreate that key with the pin supplied (cr-xb2).
+        if (
+            node.session_reuse is not None
+            and settings.get(NodeSetting.RUNNER.at(node.name))
+            != RunnerName.CODEX_APPSERVER.value
+        ):
+            raise CarrierIntegrityError(MSG_SESSION_REUSE)
         required = (NodeSetting.RUNNER, NodeSetting.MODEL, NodeSetting.EFFORT)
         missing = tuple(
             setting.value.rsplit(".", maxsplit=1)[-1]
@@ -148,6 +167,50 @@ def _assert_task_execution_settings_are_pinned(
         )
 
 
+def pin_execution_policies(
+    definition: GraphDefinition,
+    resolved_config: Sequence[ResolvedSetting],
+    *,
+    profiles: ExecutionRegistry | None = None,
+) -> tuple[ResolvedSetting, ...]:
+    """Pin named authority before admission; preserve legacy settings verbatim."""
+    execution_settings = {item.key: item for item in resolved_config}
+    for node in definition.document.node:
+        if node.execution_profile is None:
+            continue
+        writes_key = NodeSetting.WRITES.at(node.name)
+        writes = execution_settings.get(writes_key)
+        if writes is not None and (
+            writes.value != node.writes
+            or writes.source is not ConfigSource.GRAPH_DEFAULT
+        ):
+            raise CarrierIntegrityError(MSG_PROFILE_WRITES)
+        runner = execution_settings.get(NodeSetting.RUNNER.at(node.name))
+        if runner is None or not isinstance(runner.value, str):
+            raise CarrierIntegrityError(MSG_UNREGISTERED_RUNNER.format(runner=runner))
+        try:
+            execution_policy = policy_for(
+                node.execution_profile, tool_network_for(runner.value, profiles)
+            )
+        except UnregisteredRunnerError as error:
+            raise CarrierIntegrityError(str(error)) from error
+        key = EXECUTION_POLICY_KEY.format(node=node.name)
+        expected = execution_policy.model_dump_json()
+        if key in execution_settings and execution_settings[key].value != expected:
+            raise CarrierIntegrityError(MSG_PROFILE_WRITES)
+        execution_settings[key] = ResolvedSetting(
+            key=key, value=expected, source=ConfigSource.GRAPH_DEFAULT
+        )
+        execution_settings[writes_key] = ResolvedSetting(
+            key=writes_key,
+            value=execution_policy.writes,
+            source=ConfigSource.GRAPH_DEFAULT,
+        )
+    if any(node.execution_profile is not None for node in definition.document.node):
+        return tuple(execution_settings[key] for key in sorted(execution_settings))
+    return tuple(resolved_config)
+
+
 def create_root(
     client: BdClient,
     *,
@@ -157,6 +220,7 @@ def create_root(
     instance_inputs: Sequence[InstanceInput] = (),
     allow_test_flags: bool = False,
     instance_base_commit: str | None = None,
+    profiles: ExecutionRegistry | None = None,
 ) -> RootRecord:
     """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
     if not resolved_config:
@@ -178,6 +242,21 @@ def create_root(
             )
         )
     definition = validated_definition
+
+    values = {item.key: item.value for item in resolved_config}
+    engine_sources = {
+        source.name
+        for source in definition.document.source
+        if source.producer == EngineProducer.VERIFY_FAILURE
+    }
+    for node in definition.document.node:
+        if engine_sources.intersection(node.inputs or ()) and not values.get(
+            NodeSetting.WRITES.at(node.name), node.writes
+        ):
+            raise CarrierIntegrityError(MSG_CONSUMER)
+    resolved_config = pin_execution_policies(
+        definition, resolved_config, profiles=profiles
+    )
     existing = _converged_root(client, instance_key)
     if existing is not None:
         _assert_same_instance(

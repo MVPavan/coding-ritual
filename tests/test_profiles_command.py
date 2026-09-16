@@ -39,7 +39,6 @@ from workflow_interpreter.profiles import (
     TaskRefused,
     UnknownProfileError,
     UnsupportedOptionError,
-    runner_name,
 )
 from workflow_interpreter.profiles._base import (
     ENV_MYPY_CACHE_DIR,
@@ -919,7 +918,12 @@ def test_the_registry_resolves_the_closed_vendor_set(
     name: str, expected: RunnerName
 ) -> None:
     """§6 records `runner = "profile:<name>"`, so both spellings resolve."""
-    assert runner_name(name) is expected
+    assert (
+        ProfileRegistry(make_profile_config(), FrozenClock(), {})
+        .profile_for(name)
+        .name()
+        == expected
+    )
 
 
 @pytest.mark.parametrize("name", ["", "gpt", "profile:implementer", "CLAUDE"])
@@ -932,7 +936,8 @@ def test_an_unknown_runner_name_is_a_typed_refusal(tmp_path: Path, name: str) ->
     """
     registry = ProfileRegistry(make_profile_config(), FrozenClock(), {})
 
-    with pytest.raises(UnknownProfileError, match="closed set"):
+    assert not issubclass(UnknownProfileError, ValueError)
+    with pytest.raises(UnknownProfileError, match="registered profiles"):
         registry.profile_for(name)
 
 
@@ -989,10 +994,10 @@ def test_the_toolchain_env_reaches_every_child(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("writes", [True, False])
-def test_codex_shared_uv_cache_is_writable_only_for_writers(
+def test_codex_private_uv_cache_is_writable_for_writers_and_reviewers(
     tmp_path: Path, writes: bool
 ) -> None:
-    """The launcher's cache is granted on launch and resume only to writers."""
+    """The private cache is granted on launch and resume without checkout grants."""
     cache = tmp_path / "wrapper cache" / "uv-cache"
     task = make_task(tmp_path, writes=writes).model_copy(
         update={"toolchain_cache": str(cache)}
@@ -1008,12 +1013,12 @@ def test_codex_shared_uv_cache_is_writable_only_for_writers(
         effective_env = {**command.env, ENV_UV_CACHE_DIR: str(cache)}
         effective_cache = Path(effective_env[ENV_UV_CACHE_DIR])
         writable = (Path(command.cwd), *(Path(root) for root in roots))
-        assert any(effective_cache.is_relative_to(root) for root in writable) is writes
+        assert any(effective_cache.is_relative_to(root) for root in writable)
         if writes:
             assert str(cache) in roots
         else:
-            assert roots == ()
-            assert "--add-dir" not in command.argv
+            assert roots == (str(cache),)
+            assert Path(task.cwd) not in writable
     assert not cache.exists()
 
 
@@ -1036,7 +1041,7 @@ def test_codex_cache_grant_does_not_depend_on_channels_layout(
         profile.build_command(task, ""),
         profile.build_resume_command("thread-id", INSTRUCTIONS, task),
     )
-    expected = ()
+    expected = (str(cache),)
     if writes:
         expected = (
             str(tmp_path / "unexpected"),

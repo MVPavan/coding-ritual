@@ -38,7 +38,7 @@ from workflow_interpreter.profiles.errors import (
     UnsupportedOptionError,
 )
 from workflow_interpreter.profiles.opencode import OpencodeProfile
-from workflow_interpreter.profiles.registry import ProfileRegistry, runner_name
+from workflow_interpreter.profiles.registry import ProfileRegistry
 
 __all__ = [
     "BASE_PASSTHROUGH_ENV",
@@ -56,5 +56,4 @@ __all__ = [
     "UnsupportedOptionError",
     "fold_usage",
     "parse_lines",
-    "runner_name",
 ]

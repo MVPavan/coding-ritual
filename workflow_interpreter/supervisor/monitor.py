@@ -135,8 +135,13 @@ class Monitor:
         STARTED, not `stale_after` after somebody happened to look (§8.2)."""
         self._last_proof_error: str | None = None
         """Why the last liveness question could not be answered, for the log."""
+        self._before_terminate: Callable[[], None] | None = None
         self._pending_termination: PendingTermination | None = None
         """An unconfirmed ceiling termination awaiting the child's reap."""
+
+    def before_terminate(self, callback: Callable[[], None]) -> None:
+        """Install the resident RPC owner's bounded courtesy interrupt callback."""
+        self._before_terminate = callback
 
     def observe(self) -> MonitorResult:
         """One cycle: reaped status, then unknown, then exit, runaway, staleness.
@@ -359,6 +364,8 @@ class Monitor:
         termination. `terminate` remains idempotent and paces itself through
         its own grace periods (§8.1).
         """
+        if self._before_terminate is not None:
+            self._before_terminate()
         termination = procfs.terminate(self._config, self._handle, self._clock)
         if not termination.confirmed_dead:
             self._pending_termination = PendingTermination(

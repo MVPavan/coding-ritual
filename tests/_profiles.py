@@ -50,6 +50,11 @@ from tests._supervisor import (
     node_of,
 )
 from workflow_interpreter.bdio import ActivationRecord, MintRequest, ProcessHandle
+from workflow_interpreter.contracts.execution import (
+    ExecutionPolicy,
+    ExecutionProfileName,
+    policy_for,
+)
 from workflow_interpreter.profiles import ProfileConfig, ProfileRegistry, RunnerName
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
@@ -585,6 +590,7 @@ def task_builder(
     node: Node,
     *,
     effort: str | None = "medium",
+    execution_policy: ExecutionPolicy | None = None,
 ) -> TaskBuilder:
     """A `TaskBuilder` that supplies a brief, which a real profile requires."""
 
@@ -596,6 +602,9 @@ def task_builder(
             model=activation.metadata.model,
             effort=effort,
             writes=bool(node.writes),
+            execution_profile=node.execution_profile,
+            execution_policy=execution_policy,
+            checkout_read_root=str(cwd),
             allowed_paths=node.allowed_paths or (),
             cwd=str(cwd),
             channels=channels,
@@ -679,6 +688,7 @@ class Lab:
         *,
         request: MintRequest | None = None,
         writes: bool = True,
+        execution_profile: ExecutionProfileName | None = None,
         marker: str = DEFAULT_MARKER,
         effects: str = DEFAULT_EFFECTS,
         binary: Path | str | None = None,
@@ -701,7 +711,7 @@ class Lab:
             self.bin, runner, exit_code=exit_code, channels=channels, forge=forge
         )
         node = node_of(self.root.definition.document, IMPLEMENT).model_copy(
-            update={"writes": writes}
+            update={"writes": writes, "execution_profile": execution_profile}
         )
         config = ProfileConfig(
             binary_overrides={runner: str(stub)}, passthrough_env=PASSTHROUGH
@@ -715,7 +725,15 @@ class Lab:
             request or entry_mint(session_id=str(uuid.uuid4())),
             node,
             registry.profile_for(runner.value),
-            task_builder(self.paths.worktree, node),
+            task_builder(
+                self.paths.worktree,
+                node,
+                execution_policy=policy_for(
+                    execution_profile, registry.profile_for(runner).tool_network
+                )
+                if execution_profile is not None
+                else None,
+            ),
             pinned_digests=pinned_verifier_digests(self.root),
         )
 

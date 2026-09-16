@@ -322,6 +322,7 @@ class CoordinationStore:
                     admission.inputs_json
                 ),
                 instance_base_commit=admission.base_commit,
+                profiles=self._composition.profiles if self._composition else None,
             )
             return self._bind(owner_id, reservation, root.root_id)
 
@@ -393,9 +394,21 @@ class CoordinationStore:
             raise CoordinationError("invalid integration target key")
         return self._lock_directory() / f"target-{key}.lock"
 
-    def member_lock_path(self, root_id: str, purpose: str = "band") -> Path:
-        """Canonical exclusion belongs to the Beads workspace, not wrapper home."""
-        reads.load_root(self._client, root_id)
+    def member_lock_path(
+        self,
+        root_id: str,
+        purpose: str = "band",
+        *,
+        root: RootRecord | None = None,
+    ) -> Path:
+        """Derive workspace exclusion, reusing a caller's validated root if supplied.
+
+        The path depends only on root identity, never mutable membership state.
+        """
+        if root is None:
+            root = reads.load_root(self._client, root_id)
+        if root.root_id != root_id:
+            raise CoordinationError("child lock root identity mismatch")
         if purpose not in ("band", "launch", "drive"):
             raise CoordinationError("unknown child lock purpose")
         return self._lock_directory() / f"{root_id}.{purpose}.lock"

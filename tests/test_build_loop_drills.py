@@ -24,7 +24,6 @@ from tests._foreman import (
     BUILD_LOOP_ROLES,
     ForemanLab,
 )
-from tests._helpers import BUILD_LOOP_GRAPH
 from tests._supervisor import ChildScript, verifier_pins
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
@@ -105,6 +104,7 @@ def _armed_check(flag: Path) -> str:
 
 
 def _build_loop_lab(
+    graph: Path,
     tmp_path: Path,
     *,
     checks: Mapping[str, str] | None = None,
@@ -114,7 +114,7 @@ def _build_loop_lab(
     """A lab wired for build-loop with every declared verify script pinned."""
     lab = ForemanLab(
         tmp_path,
-        toml=BUILD_LOOP_GRAPH,
+        toml=graph,
         roles=BUILD_LOOP_ROLES,
         instance_inputs=BUILD_LOOP_INSTANCE_INPUTS,
         signing=signing,
@@ -188,7 +188,10 @@ def _bindings(lab: ForemanLab, activation_id: str) -> dict[str, str]:
 
 
 def test_the_happy_path_runs_both_regions_to_slice_done(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+    build_loop_graph: Path,
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
 ) -> None:
     """One accepted slice: tests written and reviewed, built, reviewed, signed.
 
@@ -196,7 +199,9 @@ def test_the_happy_path_runs_both_regions_to_slice_done(
     slice A `implement` could not bind `acceptance_tests` across the region
     boundary, and `critic` did not declare `test_findings` at all.
     """
-    lab = _build_loop_lab(tmp_path, signing=signing_config, signer=sign_payload)
+    lab = _build_loop_lab(
+        build_loop_graph, tmp_path, signing=signing_config, signer=sign_payload
+    )
     lab.instantiate()
 
     write_tests = _run_node(lab, NODE_WRITE_TESTS, _tests_script(FIRST_TESTS))
@@ -229,6 +234,7 @@ def test_the_happy_path_runs_both_regions_to_slice_done(
 
 
 def test_a_rejected_test_round_rebinds_implement_to_the_second_round_tests(
+    build_loop_graph: Path,
     tmp_path: Path,
 ) -> None:
     """The tests region reworks, and `implement` binds the round it accepted.
@@ -236,7 +242,7 @@ def test_a_rejected_test_round_rebinds_implement_to_the_second_round_tests(
     Binding the FIRST round's tests here would be silent and wrong: the
     implementer would build against exactly the tests its reviewer rejected.
     """
-    lab = _build_loop_lab(tmp_path)
+    lab = _build_loop_lab(build_loop_graph, tmp_path)
     lab.instantiate()
 
     _run_node(lab, NODE_WRITE_TESTS, _tests_script(FIRST_TESTS))
@@ -250,10 +256,15 @@ def test_a_rejected_test_round_rebinds_implement_to_the_second_round_tests(
 
 
 def test_two_rejected_test_rounds_exhaust_the_region_then_rebudget_re_enters(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+    build_loop_graph: Path,
+    tmp_path: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
 ) -> None:
     """`max_entries = 2` ends the tests region at `triage_tests`, not at a stall."""
-    lab = _build_loop_lab(tmp_path, signing=signing_config, signer=sign_payload)
+    lab = _build_loop_lab(
+        build_loop_graph, tmp_path, signing=signing_config, signer=sign_payload
+    )
     lab.instantiate()
 
     _run_node(lab, NODE_WRITE_TESTS, _tests_script(FIRST_TESTS))
@@ -281,10 +292,11 @@ def test_two_rejected_test_rounds_exhaust_the_region_then_rebudget_re_enters(
 
 
 def test_an_unchanged_rework_tree_opens_triage_build_instead_of_looping(
+    build_loop_graph: Path,
     tmp_path: Path,
 ) -> None:
     """§10.5: a second `implement` with the rejected tree is no progress."""
-    lab = _build_loop_lab(tmp_path)
+    lab = _build_loop_lab(build_loop_graph, tmp_path)
     lab.instantiate()
 
     _run_node(lab, NODE_WRITE_TESTS, _tests_script(FIRST_TESTS))
@@ -303,7 +315,9 @@ def test_an_unchanged_rework_tree_opens_triage_build_instead_of_looping(
     assert gate.metadata.gate_reason is GateReason.TRANSITION
 
 
-def test_a_red_check_at_the_critic_routes_back_to_implement(tmp_path: Path) -> None:
+def test_a_red_check_at_the_critic_routes_back_to_implement(
+    build_loop_graph: Path, tmp_path: Path
+) -> None:
     """The B2 edge under test: `critic --fail_code--> implement`.
 
     Before slice B no node declared `fail_code` and no edge carried it, so a
@@ -311,7 +325,9 @@ def test_a_red_check_at_the_critic_routes_back_to_implement(tmp_path: Path) -> N
     """
     flag = tmp_path / "critic-red"
     lab = _build_loop_lab(
-        tmp_path, checks={CHECK_ASSERTION_STRENGTH: _armed_check(flag)}
+        build_loop_graph,
+        tmp_path,
+        checks={CHECK_ASSERTION_STRENGTH: _armed_check(flag)},
     )
     lab.instantiate()
 
@@ -331,12 +347,15 @@ def test_a_red_check_at_the_critic_routes_back_to_implement(tmp_path: Path) -> N
 
 
 def test_a_red_check_at_implement_re_enters_implement_as_a_new_round(
+    build_loop_graph: Path,
     tmp_path: Path,
 ) -> None:
     """The self-edge `implement --fail_code--> implement`, rounds still capping it."""
     flag = tmp_path / "implement-red"
     flag.write_text("", encoding="utf-8")
-    lab = _build_loop_lab(tmp_path, checks={CHECK_TESTS_UNTOUCHED: _armed_check(flag)})
+    lab = _build_loop_lab(
+        build_loop_graph, tmp_path, checks={CHECK_TESTS_UNTOUCHED: _armed_check(flag)}
+    )
     lab.instantiate()
 
     _run_node(lab, NODE_WRITE_TESTS, _tests_script(FIRST_TESTS))

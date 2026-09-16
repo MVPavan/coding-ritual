@@ -37,9 +37,9 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation = "worktree"
-writes = true
+execution_profile = "writer"
 allowed_paths = ["workflow_interpreter/**", "workflows/**", "config/**", "src/**", "tests/**", "docs/**"]
-inputs = ["integration_sources", "stage_brief", "target_base"]
+inputs = ["verify_failure", "integration_sources", "stage_brief", "target_base"]
 verify = [{cmd="scripts/verify-feature.sh", timeout="10m"}]
 context_budget_bytes = 64000
 max_wall = "45m"
@@ -84,7 +84,7 @@ $TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
 output evidence/findings, not scratch work.
 """
 isolation = "worktree"
-writes = false
+execution_profile = "reviewer"
 allowed_paths = []
 inputs = ["integration_sources", "stage_brief", "target_base", "candidate_diff"]
 verify = [{cmd="scripts/verify-feature.sh", timeout="10m"}, {cmd="scripts/review-checks.sh", timeout="5m"}]
@@ -152,3 +152,10 @@ name = "candidate_diff"
 producer = "node:integrate"
 optional = false
 trim_priority = 1
+
+# Host-observed diagnostic data, bound only to the causal failed check.
+[[source]]
+name = "verify_failure"
+producer = "engine:verify_failure"
+optional = true
+trim_priority = 10

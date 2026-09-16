@@ -63,6 +63,23 @@ def settle(
     activation: ActivationRecord,
     profile: Profile,
 ) -> Settlement:
+    """Verify and durably close before removing disposable activation tools."""
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+
+    result = _settle(wiring, root, node, activation, profile)
+    if not result.activation.metadata.is_completed:
+        return result
+    cleanup_toolchain(wiring.paths, result.activation)
+    return result
+
+
+def _settle(
+    wiring: InstanceWiring,
+    root: RootRecord,
+    node: Node,
+    activation: ActivationRecord,
+    profile: Profile,
+) -> Settlement:
     """Persist evidence exactly once, then close from its recorded verdict.
 
     A missing completion record invokes replay, which may re-run attribution and

@@ -16,11 +16,18 @@ from typing import Final
 
 import structlog
 
-from workflow_interpreter.bdio import ActivationRecord, GateRecord, WorkflowStore
+from workflow_interpreter.bdio import (
+    ActivationRecord,
+    BoundExceededError,
+    GateRecord,
+    WorkflowStore,
+)
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.bdio.rpc_control import ControlBusy
 from workflow_interpreter.bridge.command import execute_phase_bridge
 from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
+from workflow_interpreter.contracts.rpc_control import MSG_CONTROL_ARGUMENTS
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -37,16 +44,23 @@ from workflow_interpreter.foreman.constants import (
     RUN_DEFAULT_POLL_S,
 )
 from workflow_interpreter.foreman.errors import ResolutionError
+from workflow_interpreter.foreman.execution import execution_status
 from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
+from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
+from workflow_interpreter.foreman.monitor import WakeMonitor, monitor_status
 from workflow_interpreter.foreman.resolve import instantiate
+from workflow_interpreter.foreman.rpc_control import session_status
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.transcript import bounded_tail
+from workflow_interpreter.foreman.wake import MonitorUnavailable
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.clock import SystemClock
+from workflow_interpreter.supervisor.errors import ContinuationRefused, LockUnavailable
 from workflow_interpreter.supervisor.gitio import Git
+from workflow_interpreter.supervisor.rpc_control import read_instructions
 
 # The per-subprocess `debug` chatter every git and bd call emits is worthless in
 # an operator transcript, while `wf.verify.rerun` and every error must stay
@@ -101,6 +115,13 @@ def _composition(path: Path | None) -> Composition:
     if path is None:
         raise InvalidIdentifier("foreman configuration path is required: pass --config")
     config = load_config(path)
+    # Capture host uv authority before profile child_env points at private caches.
+    supervisor = config.supervisor.model_copy(
+        update={
+            "toolchain": config.supervisor.toolchain.with_host_env(os.environ),
+        }
+    )
+    config = config.model_copy(update={"supervisor": supervisor})
     clock = SystemClock()
     return Composition(
         config=config,
@@ -110,6 +131,7 @@ def _composition(path: Path | None) -> Composition:
         clock=clock,
         profiles=ProfileRegistry(config.profiles, clock, os.environ),
         spawner=DetachedSpawner(config.supervisor, path),
+        host_env=dict(os.environ),
     )
 
 
@@ -136,12 +158,17 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("root_id")
     run.add_argument("--poll", type=float, default=RUN_DEFAULT_POLL_S)
     run.add_argument("--max-wall", type=float, default=RUN_DEFAULT_MAX_WALL_S)
+    run.add_argument("--monitored", action="store_true")
+    monitor = commands.add_parser("monitor")
+    monitor.add_argument("root_id")
+    monitor.add_argument("--max-wall", type=float)
     phase_bridge = commands.add_parser("phase-bridge")
     phase_bridge.add_argument("epic_id")
     phase_bridge.add_argument("stage_id")
     phase_bridge.add_argument("--retry", action="store_true")
     phase_bridge.add_argument("--retry-landing", action="store_true")
     phase_bridge.add_argument("--trace", action="store_true")
+    phase_bridge.add_argument("--monitored", action="store_true")
     supervise = commands.add_parser("supervise")
     supervise.add_argument("root_id")
     supervise.add_argument("activation_id")
@@ -152,7 +179,12 @@ def _parser() -> argparse.ArgumentParser:
     steer.add_argument("root_id")
     steer.add_argument("activation_id")
     steer.add_argument("--reason", required=True)
-    steer.add_argument("--instructions-file", type=Path, required=True)
+    control = steer.add_mutually_exclusive_group()
+    control.add_argument("--acknowledge-uncertain", action="store_true")
+    control.add_argument(
+        "--in-place", action="store_true", help="experimental app-server control"
+    )
+    steer.add_argument("--instructions-file", type=Path)
     integration = commands.add_parser("integration").add_subparsers(
         dest="integration_command", required=True
     )
@@ -285,7 +317,32 @@ def _emit(value: str, *, limit: int = MAX_TRANSCRIPT_BYTES) -> None:
         report[field] = bounded_tail(report_value, high)
         rendered = render()
     if len((rendered + "\n").encode("utf-8")) > limit:
-        rendered = '{"truncated":true}'
+        # Preserve attention even when unrelated diff/template output fills the cap.
+        compact: dict[str, object] = {"truncated": True}
+        for key in ("root_id", "observation", "monitor"):
+            if key in report:
+                compact[key] = report[key]
+        nested = report.get("report")
+        if isinstance(nested, dict) and nested.get("refusals"):
+            compact["attention"] = True
+            compact["refusals"] = [bounded_tail(str(nested["refusals"][0]), 512)]
+        rendered = json.dumps(compact, ensure_ascii=False, separators=(",", ":"))
+        if len((rendered + "\n").encode()) > limit:
+            compact.pop("monitor", None)
+            rendered = json.dumps(compact, ensure_ascii=False, separators=(",", ":"))
+        if len((rendered + "\n").encode()) > limit:
+            observation = report.get("observation")
+            attention = bool(
+                report.get("attention")
+                or compact.get("attention")
+                or (isinstance(observation, dict) and observation.get("refusals"))
+            )
+            rendered = (
+                '{"truncated":true,"attention":true}'
+                if attention
+                else '{"truncated":true}'
+            )
+
     sys.stdout.write(rendered + "\n")
 
 
@@ -439,8 +496,8 @@ def _usage_summary(
     }
 
 
-def _is_supervise(argv: Sequence[str] | None) -> bool:
-    """Recognize the subcommand without moving non-wrapper parser errors."""
+def _streams_logs(argv: Sequence[str] | None) -> bool:
+    """Stream long-lived service logs instead of accumulating them in memory."""
     arguments = tuple(sys.argv[1:] if argv is None else argv)
     index = 0
     while index < len(arguments):
@@ -451,14 +508,14 @@ def _is_supervise(argv: Sequence[str] | None) -> bool:
         if argument.startswith(("--config=", "-")):
             index += 1
             continue
-        return argument == "supervise"
+        return argument in {"supervise", "monitor"}
     return False
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one command, exempting the redirected wrapper log from the transcript cap."""
     _configure_logging()
-    if _is_supervise(argv):
+    if _streams_logs(argv):
         try:
             return _run(argv, lambda value, limit: _emit(value, limit=limit))
         except SystemExit:
@@ -573,6 +630,7 @@ def _run(
             retry=args.retry,
             retry_landing=args.retry_landing,
             trace=args.trace,
+            monitored=args.monitored,
         )
         emit(json.dumps(outcome.report, sort_keys=True), MAX_TRANSCRIPT_BYTES)
         return outcome.exit_code
@@ -581,6 +639,21 @@ def _run(
         validate_bead_id(args.activation_id)
     composition = _composition(args.config)
     foreman = Foreman(composition)
+    if args.command == "monitor":
+        if os.getpgrp() != os.getpid():
+            os.setsid()
+        try:
+            WakeMonitor(composition, args.root_id).run(max_wall_s=args.max_wall)
+        except (LockUnavailable, MonitorUnavailable) as error:
+            emit(
+                json.dumps({"attention": True, "reason": str(error)}),
+                MAX_TRANSCRIPT_BYTES,
+            )
+            return 2
+        emit(
+            json.dumps(monitor_status(composition, args.root_id)), MAX_TRANSCRIPT_BYTES
+        )
+        return 0
     if args.command == "supervise":
         return (
             0
@@ -604,18 +677,42 @@ def _run(
         return 0
     if args.command == "steer":
         limit = MAX_TRANSCRIPT_BYTES + composition.supervisor_config.log_tail_bytes
-        emit(
-            foreman.steer(
+        try:
+            if not args.acknowledge_uncertain and args.instructions_file is None:
+                raise ContinuationRefused(MSG_CONTROL_ARGUMENTS)
+            report = foreman.steer(
                 args.root_id,
                 args.activation_id,
                 reason=args.reason,
-                instructions=args.instructions_file.read_text(encoding="utf-8"),
-            ).model_dump_json(),
-            limit,
-        )
+                acknowledge=args.acknowledge_uncertain,
+                instructions=""
+                if args.acknowledge_uncertain
+                else (
+                    read_instructions(args.instructions_file)
+                    if args.in_place
+                    else args.instructions_file.read_text(encoding="utf-8")
+                ),
+                in_place=args.in_place,
+            )
+        except (ControlBusy, ContinuationRefused, BoundExceededError) as error:
+            emit(json.dumps({"error": "steer_refused", "detail": str(error)}), limit)
+            return 1
+        emit(report.model_dump_json(), limit)
         return 0
     if args.command == "run":
-        result = foreman.run(args.root_id, poll_s=args.poll, max_wall_s=args.max_wall)
+        try:
+            result = foreman.run(
+                args.root_id,
+                poll_s=args.poll,
+                max_wall_s=args.max_wall,
+                monitored=args.monitored,
+            )
+        except MonitorUnavailable as error:
+            emit(
+                json.dumps({"attention": True, "reason": str(error)}),
+                MAX_TRANSCRIPT_BYTES,
+            )
+            return 2
         view = _view(composition, args.root_id)
         bridge_view = phase_bridge_gate_view(
             view.root.metadata.instance_key,
@@ -626,6 +723,7 @@ def _run(
             json.dumps(
                 {
                     **result.model_dump(mode="json"),
+                    "attention": result.attention,
                     "open_gates": _open_gates(composition, view, bridge_view),
                     **_coordination_report(composition, view.root),
                 },
@@ -633,11 +731,15 @@ def _run(
             ),
             MAX_TRANSCRIPT_BYTES,
         )
-        return 1 if result.report.stalled is not None else 0
+        return 1 if result.report.stalled is not None or result.attention else 0
     view = _view(composition, args.root_id)
     root, frontier = view.root, view.frontier
     status: dict[str, object] = {
         "root_id": root.root_id,
+        "monitor": monitor_status(composition, root.root_id),
+        "observation": observation_status(
+            view.wiring.paths.instance_dir, composition.clock
+        ),
         **_coordination_report(composition, root),
         "activations": len(view.activations),
         "instance_base_commit": root.metadata.instance_base_commit,
@@ -656,6 +758,17 @@ def _run(
             if activation.metadata.stale_flag is not None
         ),
         "usage": _usage_summary(view.activations),
+        "appserver": session_status(
+            view.wiring.paths, tuple(view.activations.values())
+        ),
+        "execution_contracts": execution_status(
+            composition.for_root(root.root_id).paths, tuple(view.activations)
+        ),
+        "deviations": {
+            a.activation_id: [d.model_dump(mode="json") for d in a.metadata.deviations]
+            for a in view.activations.values()
+            if a.metadata.deviations
+        },
         "input_envelopes": {
             a.activation_id: a.metadata.envelope
             for a in view.activations.values()

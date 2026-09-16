@@ -88,10 +88,12 @@ from workflow_interpreter.bdio.wire import (
     ResolvedSetting,
     StaleFlagRecord,
     Usage,
+    VerifyFailureBinding,
     VerifyOutcome,
     WfKind,
     resolved_settings,
 )
+from workflow_interpreter.contracts.wake import WakeCondition, WakeCursor, WakeEvent
 from workflow_interpreter.schema.models import Outcome
 
 __all__ = [
@@ -156,7 +158,11 @@ __all__ = [
     "StaleApprovalError",
     "StaleFlagRecord",
     "Usage",
+    "VerifyFailureBinding",
     "VerifyOutcome",
+    "WakeCondition",
+    "WakeCursor",
+    "WakeEvent",
     "WfKind",
     "WorkflowReads",
     "WorkflowStore",

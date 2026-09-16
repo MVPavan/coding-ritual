@@ -255,6 +255,7 @@ def test_successful_intake_clears_an_earlier_refusal_receipt(
 
     assert result.gate is gate
     assert not (inbox / "refusal.json").exists()
+    assert (tmp_path / "refusals.jsonl").is_file()
 
 
 def test_refusal_receipt_write_failure_does_not_escape_intake(
@@ -279,7 +280,9 @@ def test_refusal_receipt_write_failure_does_not_escape_intake(
 
     result = intake(cast(WorkflowStore, RefusingStore()), root, gate, tmp_path)
 
-    assert result.refusal == "bad signature"
+    assert "bad signature" in result.refusal
+    assert "durability degraded" in result.refusal
+    assert "disk full" in result.refusal
     assert not (inbox / "refusal.json").exists()
 
 

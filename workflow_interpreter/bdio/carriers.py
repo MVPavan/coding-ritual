@@ -228,6 +228,31 @@ class ResolvedSetting(BaseModel):
     source: ConfigSource
 
 
+SHA256_PATTERN: Final[str] = r"^[0-9a-f]{64}$"
+Sha256 = Annotated[str, StringConstraints(pattern=SHA256_PATTERN)]
+VERIFY_FAILURE_REF: Final[str] = "refs/wf/{root}/verify-failure/{source}/{digest}"
+
+
+class VerifyFailureBinding(BaseModel):
+    """An immutable host completion identity and its bounded Git blob."""
+
+    model_config = WIRE_MODEL
+    root_id: str
+    source_activation_id: str
+    completion_digest: Sha256
+    payload_digest: Sha256
+    blob_oid: Annotated[str, StringConstraints(pattern=COMMIT_OID_PATTERN)]
+
+    @property
+    def ref(self) -> str:
+        """Content-addressed evidence pin retained for the instance lifetime."""
+        return VERIFY_FAILURE_REF.format(
+            root=self.root_id,
+            source=self.source_activation_id,
+            digest=self.payload_digest,
+        )
+
+
 class InputBinding(BaseModel):
     """An immutable input tuple bound at mint (§2 'Input binding')."""
 
@@ -237,6 +262,7 @@ class InputBinding(BaseModel):
     producer_activation_id: str
     artifact_ref: str
     digest: str
+    verify_failure: VerifyFailureBinding | None = None
 
 
 class ProcessHandle(BaseModel):

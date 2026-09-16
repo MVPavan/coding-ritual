@@ -18,6 +18,7 @@ from tests._helpers import (
     AUTHORING_FIXTURE,
     FEATURE_DELIVERY_CONTENT_HASH,
     MINIMAL_GRAPH,
+    SHIPPED_FIXTURE,
     VALID_FIXTURE,
     mutate,
     write,
@@ -154,7 +155,7 @@ def test_the_authoring_copy_is_byte_identical_to_the_library_fixture() -> None:
     byte-identical, and until phase 5 collapses them this is the only thing
     that makes that claim true.
     """
-    assert AUTHORING_FIXTURE.read_bytes() == VALID_FIXTURE.read_bytes()
+    assert AUTHORING_FIXTURE.read_bytes() == SHIPPED_FIXTURE.read_bytes()
 
 
 def test_content_hash_ignores_formatting(tmp_path: Path) -> None:

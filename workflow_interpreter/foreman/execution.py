@@ -12,18 +12,28 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.wire import BoundSetting, NodeSetting, resolved_settings
+from workflow_interpreter.contracts.execution import (
+    EXECUTION_POLICY_KEY,
+    MSG_POLICY_MISMATCH,
+    ExecutionPolicy,
+)
 from workflow_interpreter.foreman.errors import (
     UnresolvedRunnerError,
     UnusableResolutionError,
 )
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RUNNER_PREFIX
 from workflow_interpreter.schema.models import Node, NodeKind
+from workflow_interpreter.supervisor.models import LaunchReceipt
+from workflow_interpreter.supervisor.paths import read_record
+
+if TYPE_CHECKING:
+    from workflow_interpreter.supervisor.paths import WrapperPaths
 
 _MSG_UNRESOLVED_RUNNER: Final[str] = (
     "node {node!r} binds the runner role {role!r}, but the root's resolved "
@@ -74,6 +84,10 @@ def effective_node(pinned: Node, settings: Mapping[str, str | int | bool]) -> No
         for field, setting in _EFFECTIVE_FIELDS
         if setting.at(pinned.name) in settings
     }
+    if pinned.execution_profile is not None:
+        if "writes" in updates and updates["writes"] != pinned.writes:
+            raise UnusableResolutionError(MSG_POLICY_MISMATCH)
+        updates.pop("writes", None)
     return Node.model_validate(pinned.model_dump() | updates)
 
 
@@ -91,6 +105,7 @@ class ResolvedNode(BaseModel):
     runner_profile: str
     model: str
     effort: str | None
+    execution_policy: ExecutionPolicy | None = None
 
 
 def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
@@ -132,11 +147,23 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
         effort = _required_role_text(
             node_name, "effort", settings.get(NodeSetting.EFFORT.at(node_name))
         )
+    policy = None
+    if pinned.execution_profile is not None:
+        raw = settings.get(EXECUTION_POLICY_KEY.format(node=node_name))
+        if not isinstance(raw, str):
+            raise UnusableResolutionError(MSG_POLICY_MISMATCH)
+        try:
+            policy = ExecutionPolicy.model_validate_json(raw)
+        except ValidationError as error:
+            raise UnusableResolutionError(MSG_POLICY_MISMATCH) from error
+        if policy.name != pinned.execution_profile or policy.writes != effective.writes:
+            raise UnusableResolutionError(MSG_POLICY_MISMATCH)
     return ResolvedNode(
         node=effective,
         runner_profile=runner_profile,
         model=model,
         effort=effort,
+        execution_policy=policy,
     )
 
 
@@ -176,3 +203,18 @@ def _required_role_text(
             _MSG_UNUSABLE_ROLE_BOUND_SETTING.format(node=node_name, field=field)
         )
     return resolved
+
+
+def execution_status(
+    paths: WrapperPaths, activation_ids: tuple[str, ...]
+) -> dict[str, object]:
+    """Expose recorded launch policy without inferring enforcement from live config."""
+
+    result: dict[str, object] = {}
+    for activation_id in activation_ids:
+        receipt = read_record(paths.receipt(activation_id), LaunchReceipt)
+        if receipt is not None and receipt.execution_grants is not None:
+            result[activation_id] = receipt.execution_grants.policy.model_dump(
+                mode="json"
+            )
+    return result

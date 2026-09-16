@@ -270,6 +270,14 @@ absent / duplicate marker, is `fail_code` (fail-closed) — never fallback
 routing. `no_progress` is not an outcome: it is a wrapper-computed breaker
 recorded as evidence (§10.5).
 
+**Engine sources.** `producer = "engine:verify_failure"` is an optional source
+with ordinary `trim_priority`, consumable only by effective writers (checked at
+root creation). It is distinct from instance and node artifact sources. A taken
+`fail_code` edge binds the causal closed activation's failed host checks; a
+verified exhaustion/rebudget gate may carry that same cause. Entry, other
+outcomes and marker-only failures supply no source. Retry and steer preserve the
+existing binding; they never search for a more recent failure.
+
 **Input binding.** At mint, each non-optional input is bound to an
 immutable tuple `(producer_activation_id, artifact_ref, digest)` — the
 latest CLOSED producer activation in the current region (current round
@@ -562,17 +570,35 @@ idempotent (re-applying a recorded state is a no-op).
 ### 5.2 Two-phase activation
 
 Phase A: mint (state `minted`), with idempotency key, bound inputs and
-`intended_base_commit` — but NO session id. Phase B: launch via the
-supervisor wrapper; state `dispatched` only after the handle is durable,
-and the **pre-assigned session id** (from the profile's `prepare()` —
-never discovered from output) is written onto the activation by that same
-transition. **Fork barrier:** the wrapper commits the launch receipt (atomic
+`intended_base_commit`. A fresh vendor session is not created at mint. An
+app-server history source, when eligible, is bound durably at mint (§6).
+Phase B launches through the supervisor; `dispatched` follows the durable
+process handle. Profiles that pre-assign sessions do so in `prepare()` and
+publish that identity with dispatch. Legacy `codex exec` cannot pre-assign its
+thread ID; its existing output-based behavior remains unchanged. **Fork barrier:** the wrapper commits the launch receipt (atomic
 write: temp + rename) BEFORE the child may exec; the child blocks on the
 barrier until the receipt exists. An exec is also one appended line in the
 activation's **exec ledger** (append-only file in the wrapper dir; drill
 evidence for exactly-once). A child that never ACKed the barrier is never a
 launched runner, so its receipt records `aborted` (with its status) or
 `abort-pending` and dispatch raises an infra failure without adopting its handle.
+
+The experimental `codex-appserver` transport distinguishes **process identity
+before exec** from **vendor thread identity before the first model turn**.
+Its receipt also identifies the resident RPC owner. After the correlated
+`thread/start` or `thread/resume` reply, the wrapper atomically writes protected
+`session.json` and mirrors it through identity-checked bdio registration before
+sending `turn/start`. Registration verifies root, activation, launch nonce and
+the original process handle; repeating the same registration is a no-op.
+Thread notifications and model text never establish identity.
+
+Protected `turn.json` records start intent before submission and the returned
+turn ID when acknowledged. A lost wrapper never reconnects to or replays a turn
+on orphaned stdio. Recovery proves death, preserves artifacts, and uses bounded
+transport-error recovery. A submitted-but-unacknowledged turn remains ambiguous.
+Successful `turn/completed` plus process termination are prerequisites for the
+ordinary channel, artifact and host-verification grading; server exit alone is
+insufficient. Interrupt acknowledgment never proves process death.
 
 ### 5.3 Supervisor wrapper (deterministic, per activation)
 
@@ -609,6 +635,24 @@ outputs go to `$WF_ARTIFACT_DIR`.
 
 ### 5.5 Back-edge failure handling (tier-2 default)
 
+When an implementer declares `engine:verify_failure`, the routing seam stores a
+canonical diagnostic Git blob before mint, pinned under
+`refs/wf/<root>/verify-failure/<source>/<sha256>`. `VerifyFailureBinding` records
+root, source activation, completion digest, blob OID and payload SHA-256 alongside
+the input binding. Subsequent composition verifies the blob and its identity;
+it has no runtime dependency on `completion.json`. Missing or corrupt recorded
+bindings refuse even though the source is optional. Reference mode publishes the
+same verified bytes under the existing read-only evidence directory.
+
+The payload is host-observed diagnostic data, not instructions. It contains
+finally failed check names (`cmd`), final exit codes, timeout/provenance/error
+fields, and the existing retained attempt tails (2 KiB per attempt). Its complete
+UTF-8 JSON is capped at 16 KiB, with stable check ordering and explicit omitted
+check/diagnostic-byte counts. Partial checks retain the final attempt's tail
+before older tails. Attempt exit codes are not invented. Ordinary composer
+budgeting counts the source and its label, records inclusion or omission, and
+preserves trim priority. Host grading, rounds and gate semantics are unchanged.
+
 Default: the rejected attempt's tree state is abandoned (next dispatch's
 precondition resets to the recorded `intended_base_commit`); the lesson
 crosses as data — (a) intra-session failure (`fail_code`/`fail_plan` from
@@ -634,9 +678,25 @@ Open activation found at tick:
 An `abort-pending` receipt is its own recovery case: recovery repeats the
 identity-proven termination on each tick until it rewrites the receipt `aborted`.
 
+### Named execution contracts
+
+Task nodes may select `execution_profile = "writer" | "reviewer"` instead of
+`writes`. Named nodes reject authored/configured `writes`; effective write
+semantics derive from the profile for base selection and grading. Reviewers
+reject nonempty `allowed_paths`. Policy version and meaning are pinned at root
+creation, while absent profiles preserve legacy canonical bodies and resolution.
+Named dispatch requires the outer sandbox. `TaskSpec.checkout_read_root` is
+separate from process cwd; reviewers receive only private channels, scratch and
+cache writes outside the checkout. One resolved `ExecutionGrants` supplies
+outer mounts and vendor flags. Launch receipts and status report `tool_network`:
+Codex `denied`, Claude `not_enforced`. Network enforcement never gates either
+Claude profile; named Claude reviewers gain local Bash checks within the outer
+filesystem bound. Existing Opencode refusal is unchanged. Local checks are claims;
+the host verification path supplies evidence.
+
 ## 6. Runner floor
 
-Profiles (claude, codex, opencode) implement:
+Profiles (`claude`, `codex`, `opencode`, experimental `codex-appserver`) implement:
 
 ```text
 Profile:
@@ -656,6 +716,43 @@ error; usage normalization owned here (`usage: unknown` is legal telemetry).
 The supervisor owns process identity, liveness and death proof, and enforces
 `max_wall` independently of profile output.
 
+`RunnerTransport` is closed: `event-log` retains existing CLI stdio;
+`stdio-rpc` gives the wrapper bounded protocol pipes and a separate stderr
+drain. `codex` exec stays the default; `codex-appserver` pins CLI 0.154.0 and
+runs one server process and one turn per activation inside the same bwrap plan.
+Bounded nonblocking polls enforce RPC deadlines together with max-wall and stale
+limits. Unknown notifications/requests fail the activation. Dynamic tools are
+disabled; tool calls receive a bounded unsupported error, and approvals and
+escalations are rejected without executing host tools. The exercised schemas are
+unaltered default-generator output for 0.154.0; requests never send the unsupported
+`dynamicTools` field. Startup and both thread RPCs apply the same supported config
+overrides: disabled web search and optional app/browser/computer/image/plugin/
+delegation features, empty MCP configuration, private user state and untrusted
+project layers. Local sandboxed shell/edit tools remain available. Experimental
+API negotiation is disabled; no client dynamic tools are registered.
+
+Optional task-node `session_reuse = "fresh" | "same-node"` is graph-pinned and
+app-server-only. Absence means fresh, including for reviewers. Same-node selects
+the latest settled activation with an explicitly completed turn and matching
+root, node, execution policy, CLI version, model and effort. The source activation
+is bound at mint, never selected again from live configuration at launch. Every
+new process receives current grants, cwd, channels, tool configuration and the
+complete current envelope. Deliberate §8.1 continuation and its infra retries
+retain their bound history independently of this ordinary re-entry setting.
+A CLI-version mismatch is a logged, mint-pinned fresh decision, including on
+steer continuation. Compatibility compares a SHA-256 policy digest; the complete
+policy remains pinned on the root. Host-owned vendor state persists for eligible
+reuse, outside model-writable roots and separate from disposable toolchains.
+Fresh decisions allocate a distinct directory. A private `CODEX_HOME` and explicit
+untrusted project settings suppress ambient user configuration and project config,
+hooks and exec policies; tracked `.codex` files do not refuse dispatch.
+
+Protected accounting retains per-activation deltas, latest cumulative thread
+counts, the last vendor report, unknown fields and envelope bytes separately.
+Cumulative notifications replace previous snapshots; they are never summed.
+Missing baselines or counter resets produce unknown deltas. This is fixture
+qualification, not live qualification or evidence of token savings.
+
 The wrapper wraps every profile's argv in the bubblewrap mount bound
 before exec: the checkout is read-only except the node's `allowed_paths`
 grants, `channels/` and the git object/ref stores, which are writable,
@@ -666,8 +763,15 @@ condition, because mounting its realpath would disagree with the lexical path
 that git reports. In an in-repo checkout, the wrapper pins the complete
 `<git-dir>/worktrees` directory; this keeps sibling worktrees created after
 plan construction read-only.
-The wrapper-root `uv-cache` is also bound read-write so `UV_CACHE_DIR` and
-`UV_PYTHON_INSTALL_DIR` never fall back to `$HOME` and activations reuse a warm tool cache.
+Each activation's `toolchain/uv-cache` is bound read-write; its `python` child
+holds a private managed interpreter. Before the fork barrier, the host seeds
+this cache from a per-project seed keyed by admitted lock digest, importing only
+locked artifacts from the host cache. The host seed/cache/interpreter sources
+are pinned read-only last. `UV_OFFLINE=1` applies to every dispatched child.
+Codex reviewers receive the external private-cache grant without checkout or Git
+writes. Host verification uses its own environment. Durable close and proof of
+runner death permit private-copy deletion; launch receipts retain `SeedReceipt`.
+Recovery retries deletion after crashes. See [toolchain operation](../usage/engine-bundle.md).
 Profiles neither opt in nor out. `sandbox = off` is an unsafe switch,
 recorded on the close as `AuditFlag.SANDBOX_OFF`; a host without a
 working `bwrap` refuses to dispatch — a halt, never an infra retry.
@@ -773,9 +877,20 @@ never consume review rounds. An **infra retry descended from a
 continuation is itself a continuation**: it resumes the same session with
 the same steer text (read back from the steered activation's persisted
 intent), and is refused rather than launched fresh if that intent is gone.
-Capability facts: all three CLIs accept new instructions between turns;
-none supports mid-turn input (mid-turn
-supervision remains the omnigent reopen trigger).
+The default remains persist → terminate → continuation for every runner.
+The experimental app-server additionally accepts explicit `steer --in-place`:
+a host-owned bounded inbox carries text plus launch/thread/expected-turn identity.
+The typed bd intent spends the shared `max_steers` allowance before publication;
+submission is persisted before RPC, and acknowledgment is protected and mirrored.
+It creates no activation, review round, transition or approval. Unacknowledged
+control after owner loss is marked uncertain, never replayed, and reported through
+the refusal journal and attention exit alongside normal tick progress. It never
+blocks settlement, intake or routing. Settlement resolves uncertain controls into
+durable deviations; an operator may resolve live uncertainty with
+`steer --acknowledge-uncertain` and a reason. Neither resolution refunds the shared
+steer allowance or claims vendor acknowledgment.
+Termination offers a bounded RPC interrupt courtesy before ordinary TERM/KILL
+and identity-based death proof. Legacy exec steering semantics are unchanged.
 
 ### 8.2 Monitoring (zero model tokens in the loop)
 
@@ -795,6 +910,50 @@ The foreman's model reads bytes only at transitions: terminal → marker +
 terminate (tier 2) — a bounded wait, since the wrapper itself TERMs the
 group after one further `stale_after` of silence. Full-log reads are
 exceptional and byte-budgeted.
+
+The **driver** additionally writes a protected `driver-heartbeat.json` at startup,
+after every completed tick, and on shutdown, including process identity,
+generation, active activation/gate IDs, log identities/offsets and distinct
+refusal count. Process identity may be absent with a degraded flag; missing
+identity permits stale detection only, never proof of death. A hanging tick
+leaves a stale heartbeat. Gate intake journals
+bounded, deduplicated refusal identities independently of the mutable inbox
+receipt. Corrected approval does not erase refusal history. Journal/receipt
+write errors are surfaced as degraded durability. Observation is advisory:
+malformed heartbeat records are replaced and reported as `heartbeat_degraded`;
+corrupt journal lines are skipped and counted as `journal_degraded`. The driver
+and status continue through observation I/O failures, returning diagnostics even
+when those diagnostics cannot be persisted. `run` stops with attention
+and a nonzero CLI exit on refusal; the child driver and phase bridge propagate
+that attention. None of these observations changes gate authority or routing.
+
+A separate optional host `foreman monitor <root>` owns a local lock, independent
+process group, identity-proven startup acknowledgment, and durable delivery
+cursor. Only explicit `--monitored` makes its health a startup requirement for
+`run`/`phase-bridge`. Polling uses metadata, durable gate history, and the refusal
+journal, never a model call. Conditions are gate opened, root terminal, refusal,
+unexpected driver exit/loss, and heartbeat stale (one episode per last advancing
+tick). Expected STOPPED records do not wake or consume the cap; only an error
+stop or identity-proven loss without STOPPED produces an exit notification.
+Journal device/inode identity prevents deletion/regrowth from skipping records.
+
+Wake events use the distinct `wf-wake-event/1` discriminator and a stable
+root/instance/condition/cursor fire key. They are notifications, never transition,
+approval, rebudget, or activation authority. Their negative sequence namespace
+cannot collide with driver carrier allocation. Legacy events without payloads
+are ignored; reconciliation errors expose `monitor_degraded`. Persist pending
+intent before bd
+writes, re-find ambiguous writes by key, and reconcile lifetime usage on restart.
+Default poll/stale/minimum-fire spacing is 5/120/30 seconds, with a 100-event
+lifetime cap and bounded journal/outbox. Saturation and exhausted delivery stay
+visible in status; these guarantees stop at the configured cap.
+
+An optional trusted host `hook_argv` runs only after durable bd confirmation,
+without a shell or model call. Its JSON stdin is bounded to 8 KiB; output is
+discarded and runtime limited to 10 seconds. Persist at most three attempts with
+backoff. Effects are at-least-once: receivers deduplicate the fire key after a
+crash between effect and acknowledgment. The hook can enqueue a new turn, never
+inject into the running activation. No wake is promised while the host is down.
 
 ## 9. Human gates (signed payloads)
 

@@ -36,6 +36,7 @@ from collections.abc import Mapping
 from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, Usage
+from workflow_interpreter.contracts.execution import ToolNetwork
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     decimal_at,
@@ -106,6 +107,7 @@ REASON_STOP: Final[str] = "stop"
 class OpencodeProfile(BaseProfile):
     """`opencode run` as a §6 runner: everything but a launch (see module doc)."""
 
+    tool_network = ToolNetwork.NOT_ENFORCED
     runner = RunnerName.OPENCODE
     auth_env = (
         "OPENCODE_API_KEY",

@@ -23,6 +23,7 @@ from tests._profiles import (
     writable_roots_in,
 )
 from tests._supervisor import GIT_TIMEOUT_S, FrozenClock, head_of
+from workflow_interpreter.contracts.execution import ExecutionProfileName, policy_for
 from workflow_interpreter.profiles._base import ENV_TMPDIR
 from workflow_interpreter.profiles.codex import (
     CONFIG,
@@ -34,6 +35,7 @@ from workflow_interpreter.profiles.codex import (
 from workflow_interpreter.profiles.config import ProfileConfig
 from workflow_interpreter.profiles.errors import UnsupportedOptionError
 from workflow_interpreter.supervisor.errors import SandboxPathRefused
+from workflow_interpreter.supervisor.execution import resolve_grants
 from workflow_interpreter.supervisor.profile import RunnerCommand, TaskSpec
 from workflow_interpreter.supervisor.sandbox import (
     SandboxPlan,
@@ -549,22 +551,44 @@ def test_the_superseded_wide_reflog_grant_is_what_opened_those_reflogs(
 
 @pytest.mark.proc
 @pytest.mark.nested_sandbox
+@pytest.mark.parametrize("named", [False, True])
 def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
     tmp_path: Path,
+    named: bool,
 ) -> None:
     """A `writes = false` node gains nothing from the writer's git grant.
 
     The grant is conditional on `writes`, so the thing to prove is that a
     reviewer — which is what every codex node in `config/foreman.example.toml`
     still is — can report and cannot touch source or git metadata. Rooted at
-    `channels/`, with no writable root added and no mount-bound grant, it is
+    `channels/`, with only its external private toolchain added, it is
     bounded twice over.
     """
     _requirements()
     task, plan = _lab(tmp_path, writes=False)
+    task = task.model_copy(update={"toolchain_cache": str(plan.toolchain_cache[0])})
     profile = CodexProfile(ProfileConfig(), FrozenClock(), {})
+    if named:
+        task = task.model_copy(
+            update={
+                "execution_profile": ExecutionProfileName.REVIEWER,
+                "execution_policy": policy_for(
+                    ExecutionProfileName.REVIEWER, profile.tool_network
+                ),
+                "checkout_read_root": task.cwd,
+            }
+        )
+        grants = resolve_grants(task, plan, profile)
+        task = task.model_copy(update={"execution_grants": grants})
     command = profile.build_command(task, "")
-    assert writable_roots_in(command.argv) == ()
+    if named:
+        assert task.execution_grants is not None
+        assert writable_roots_in(command.argv) == (
+            task.execution_grants.writable_directories
+        )
+    else:
+        assert writable_roots_in(command.argv) == (str(plan.toolchain_cache[0]),)
+    assert not plan.toolchain_cache[0].is_relative_to(Path(task.cwd))
     roots_a_writer_would_get = git_write_roots_of(Path(task.cwd))
 
     observed = _run(
@@ -576,6 +600,8 @@ def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
                 _write_probe(
                     Path(task.channels.artifact_dir) / "findings.md", "report"
                 ),
+                _write_probe(plan.toolchain_cache[0] / "probe", "cache"),
+                _write_probe(Path(task.channels.log_path), "wrapper-record"),
                 _write_probe(Path(task.cwd) / GRANTED_FILE, "source"),
                 _write_probe(Path(roots_a_writer_would_get[0]) / "index", "index"),
                 _write_probe(Path(roots_a_writer_would_get[1]) / "planted", "objects"),
@@ -585,7 +611,8 @@ def test_a_reviewer_can_write_its_channels_and_nothing_of_the_checkout(
     )
 
     assert f"{ALLOWED}:report" in observed, observed
-    for label in ("source", "index", "objects"):
+    assert f"{ALLOWED}:cache" in observed, observed
+    for label in ("source", "index", "objects", "wrapper-record"):
         assert f"{DENIED}:{label}" in observed, f"{label}\n{observed}"
 
 

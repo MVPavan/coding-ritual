@@ -962,3 +962,48 @@ def test_wrapper_close_of_an_unmaterializable_input_halts_without_redispatch(
     lab.tick()
     assert len(lab.spawner.launches) == launches
     assert len(lab.beads("activation")) == 2
+
+
+@pytest.mark.parametrize("cleanup_error", [False, True])
+def test_tick_retries_cleanup_without_stalling(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, cleanup_error: bool
+) -> None:
+    """Live-child deferral and filesystem failure never stop normal routing."""
+    import shutil
+
+    from workflow_interpreter.supervisor import procfs
+    from workflow_interpreter.supervisor.models import Liveness
+
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    wiring = lab.wiring()
+    activation = wiring.store.mint_activation(root.root_id, entry_request()).activation
+    activation = wiring.store.record_dispatch(activation.activation_id, handle())
+    wiring.store.close_activation(activation.activation_id, Outcome.ERROR_TRANSPORT)
+    private = wiring.paths.activation_dir(activation.activation_id) / "toolchain"
+    private.mkdir(parents=True)
+    (private / "payload").write_text("private")
+    original_proof = procfs.prove_liveness
+    original_remove = shutil.rmtree
+    if cleanup_error:
+
+        def fail(path: str | Path, *args: object, **kwargs: object) -> None:
+            if Path(path) == private:
+                raise PermissionError("cleanup permission denied")
+            original_remove(path, *args, **kwargs)
+
+        monkeypatch.setattr(shutil, "rmtree", fail)
+    else:
+        monkeypatch.setattr(
+            procfs,
+            "prove_liveness",
+            lambda config, runner: original_proof(config, runner).model_copy(
+                update={"status": Liveness.ALIVE}
+            ),
+        )
+    assert lab.tick().stalled is None
+    assert private.exists()
+    monkeypatch.setattr(procfs, "prove_liveness", original_proof)
+    monkeypatch.setattr(shutil, "rmtree", original_remove)
+    assert lab.tick().stalled is None
+    assert not private.exists()

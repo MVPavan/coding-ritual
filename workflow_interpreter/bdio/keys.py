@@ -14,9 +14,11 @@ activation (drill 1) or a duplicate gate (drill 6).
 from __future__ import annotations
 
 import hashlib
+import json
 from enum import StrEnum
 from typing import Final
 
+from workflow_interpreter.contracts.wake import WakeCondition, WakeCursor
 from workflow_interpreter.schema.models import Outcome
 
 # ASCII unit separator: cannot occur in a bead id, node name or outcome.
@@ -33,6 +35,7 @@ class KeyDomain(StrEnum):
     EXHAUSTION_GATE = "wf-exhaustion-gate/1"
     HALT_GATE = "wf-halt-gate/1"
     EVENT = "wf-event/1"
+    WAKE = "wf-wake/1"
 
 
 def _key(domain: KeyDomain, *parts: str | None) -> str:
@@ -105,3 +108,15 @@ def event_key(
     return _key(
         KeyDomain.EVENT, root_id, activation_id, from_node, outcome.value, to_node
     )
+
+
+def wake_fire_key(
+    root_id: str, instance_key: str, condition: WakeCondition, cursor: WakeCursor
+) -> str:
+    """Hash length-safe structured parts; instance keys are not bead identifiers."""
+    raw = json.dumps(
+        (KeyDomain.WAKE.value, root_id, instance_key, condition.value, cursor.identity),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode()
+    return hashlib.sha256(raw).hexdigest()

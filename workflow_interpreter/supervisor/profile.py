@@ -27,11 +27,18 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from enum import StrEnum
 from pathlib import Path
-from typing import Final, Protocol
+from typing import Final, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio import ActivationRecord, ProcessHandle, Usage
+from workflow_interpreter.contracts.execution import (
+    ExecutionGrants,
+    ExecutionPolicy,
+    ExecutionProfileName,
+    NetworkProfile,
+)
+from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor.channels import (
     COMMITTER_NAME,
@@ -140,15 +147,20 @@ class TaskSpec(BaseModel):
     model: str
     effort: str | None = None
     writes: bool
+    execution_profile: ExecutionProfileName | None = None
+    execution_policy: ExecutionPolicy | None = None
+    execution_grants: ExecutionGrants | None = None
+    checkout_read_root: str | None = None
     allowed_paths: tuple[str, ...] = ()
     cwd: str
     channels: RunnerChannels
+    vendor_state: str | None = None
     toolchain_cache: str | None = None
     """Supervisor-owned uv cache path, injected from the sandbox plan.
 
     None for standalone profile callers; dispatch always replaces it with the
     same path the launcher exports as UV_CACHE_DIR. Profiles must not derive
-    this shared grant from the activation's channels layout.
+    this private grant from the activation's channels layout.
     """
     brief: str = ""
     token_budget: int | None = None
@@ -164,6 +176,7 @@ class RunnerCommand(BaseModel):
 
     model_config = PROFILE_MODEL
 
+    transport: RunnerTransport = RunnerTransport.EVENT_LOG
     argv: tuple[str, ...] = Field(min_length=1)
     env: dict[str, str] = Field(default_factory=dict)
     cwd: str
@@ -212,7 +225,16 @@ class ChildLauncher(Protocol):
     ) -> ProcessHandle: ...  # pragma: no cover - protocol
 
 
-class Profile(Protocol):
+@runtime_checkable
+class WorkingDirectoryProfile(Protocol):
+    """Optional prelaunch cwd selection, before session creation or sandbox planning."""
+
+    def working_directory(self, task: TaskSpec) -> str:
+        """Return the same cwd that command construction will use."""
+        ...  # pragma: no cover - protocol
+
+
+class Profile(NetworkProfile, Protocol):
     """The §6 runner floor. One invocation contract, three vendors (phase 4)."""
 
     def name(self) -> str:

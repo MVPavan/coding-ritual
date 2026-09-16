@@ -224,14 +224,14 @@ def _clean_probe_cache() -> object:
 
 
 def test_no_git_checkout_binds_grants_and_channels_only(tmp_path: Path) -> None:
-    """A plain checkout binds `<wrapper_root>/uv-cache`, not only `channels/`."""
+    """A plain checkout binds only its activation-private toolchain cache."""
     rig = _plain_rig(tmp_path)
     plan = _plan(rig)
     assert plan.git_rw == ()
     assert plan.ro_pins == ()
     assert plan.grants == (rig.checkout / GRANT_DIR,)
     assert plan.channels == (rig.channels,)
-    assert plan.toolchain_cache == (rig.wrapper_root / "uv-cache",)
+    assert plan.toolchain_cache == (rig.channels.parent / "toolchain" / "uv-cache",)
     assert plan.ro_roots == (rig.repo_root, rig.wrapper_root, rig.checkout)
 
 
@@ -795,7 +795,7 @@ def test_uv_run_uses_the_cache_with_read_only_home_under_the_bound(
     """`HOME=<wrapper_root>/read-only-home` runs `uv`, not `~/.cache/uv` EROFS.
 
     The explicit interpreter avoids a network-dependent managed-Python download;
-    `UV_CACHE_DIR=<wrapper_root>/uv-cache` and its read-write bind are the
+    `UV_CACHE_DIR=<activation-dir>/toolchain/uv-cache` and its read-write bind are the
     behavior under test.
 
     `nested_sandbox` remains because a vendor sandbox cannot start the nested

@@ -24,6 +24,7 @@ from workflow_interpreter.bdio.records import (
     GateRecord,
     RootRecord,
     parse_activation,
+    parse_event,
     parse_gate,
     parse_root,
 )
@@ -41,6 +42,7 @@ from workflow_interpreter.bdio.wire import (
     IssueType,
     WfKind,
 )
+from workflow_interpreter.contracts.wake import WakeEvent
 
 FIRST_SEQ: Final[int] = 1
 
@@ -164,6 +166,20 @@ def find_event(client: BdClient, root_id: str, event_key: str) -> BeadRecord | N
         issue_type=IssueType.EVENT,
     )
     return beads[0] if beads else None
+
+
+def list_wake_events(client: BdClient, root_id: str) -> tuple[WakeEvent, ...]:
+    """Read notifications independently of transition event backfill."""
+    beads = client.list_beads(
+        metadata_filters={KEY_WF_ROOT_ID: root_id, KEY_WF_KIND: WfKind.EVENT.value},
+        issue_type=IssueType.EVENT,
+    )
+    return tuple(
+        event
+        for bead in sorted(beads, key=lambda item: item.id)
+        if bead.payload is not None
+        and isinstance(event := parse_event(bead), WakeEvent)
+    )
 
 
 def beads_with_nonce(
@@ -291,3 +307,7 @@ class WorkflowReads:
     def find_event(self, root_id: str, event_key: str) -> BeadRecord | None:
         """The event bead carrying `event_key` (§3.3)."""
         return find_event(self._client, root_id, event_key)
+
+    def list_wake_events(self, root_id: str) -> tuple[WakeEvent, ...]:
+        """Return typed notification evidence without interpreting it as routing."""
+        return list_wake_events(self._client, root_id)
