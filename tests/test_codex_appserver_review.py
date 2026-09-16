@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -106,3 +107,53 @@ def test_launch_receipt_explicitly_forbids_arbitrary_types():
     """Durable records retain the explicit schema-only model configuration."""
 
     assert LaunchReceipt.model_config["arbitrary_types_allowed"] is False
+
+
+@pytest.mark.parametrize(
+    "named", [ExecutionProfileName.WRITER, ExecutionProfileName.REVIEWER]
+)
+def test_dispatch_asks_profile_for_cwd_before_preparing_session(
+    tmp_path, monkeypatch, named
+):
+    """The profile owns cwd selection before the supervisor freezes the mount plan."""
+    lab = AppServerLab(tmp_path, named=named, sandbox=SandboxMode.BWRAP)
+    root = lab.profile._workspace_root
+    prepare = lab.profile.prepare
+    selected = []
+
+    def workspace(task):
+        result = root(task)
+        selected.append(result)
+        return result
+
+    def prepared(activation):
+        assert selected, "the launch plan re-derived cwd without asking its profile"
+        return prepare(activation)
+
+    monkeypatch.setattr(lab.profile, "_workspace_root", workspace)
+    monkeypatch.setattr(lab.profile, "prepare", prepared)
+    lab.run()
+
+
+def test_all_distinct_project_lookup_roots_are_explicitly_untrusted(tmp_path):
+    """Config lookup at process cwd or vendor-state parent cannot restore authority."""
+    task, _ = _lab(tmp_path, writes=False)
+    checkout = task.cwd
+    cwd = tmp_path / "process-cwd"
+    cwd.mkdir()
+    state = tmp_path / "private-state" / "vendor"
+    state.mkdir(parents=True)
+    task = task.model_copy(
+        update={
+            "checkout_read_root": checkout,
+            "cwd": str(cwd),
+            "vendor_state": str(state),
+        }
+    )
+    profile = CodexAppServerProfile(ProfileConfig(), FrozenClock(), dict(os.environ))
+    command = profile.build_command(task, "")
+    projects = tomllib.loads(
+        next(word for word in command.argv if word.startswith("projects="))
+    )["projects"]
+    assert set(projects) == {checkout, str(cwd), command.cwd, str(state.parent)}
+    assert all(value == {"trust_level": "untrusted"} for value in projects.values())

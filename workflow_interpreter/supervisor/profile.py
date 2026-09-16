@@ -27,7 +27,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from enum import StrEnum
 from pathlib import Path
-from typing import Final, Protocol
+from typing import Final, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -223,6 +223,15 @@ class ChildLauncher(Protocol):
     def __call__(
         self, command: RunnerCommand
     ) -> ProcessHandle: ...  # pragma: no cover - protocol
+
+
+@runtime_checkable
+class WorkingDirectoryProfile(Protocol):
+    """Optional prelaunch cwd selection, before session creation or sandbox planning."""
+
+    def working_directory(self, task: TaskSpec) -> str:
+        """Return the same cwd that command construction will use."""
+        ...  # pragma: no cover - protocol
 
 
 class Profile(NetworkProfile, Protocol):

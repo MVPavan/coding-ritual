@@ -1,5 +1,7 @@
 """Reconcile durable control evidence and surface ambiguity through slice-3 wake."""
 
+from collections.abc import Sequence
+
 from pydantic import ValidationError
 
 from workflow_interpreter.bdio import ActivationRecord, WorkflowStore
@@ -57,7 +59,7 @@ def _reconcile_control(
         return store.record_control_state(activation.activation_id, control, target)
     except ControlBusy:
         # The file/death proof is evidence already. Retry its bd mirror next tick.
-        return control.model_copy(update={"state": target})
+        return control
 
 
 def control_attention(
@@ -112,9 +114,14 @@ def control_attention(
                     read_status(paths.instance_dir).degraded(error=str(error)),
                 )
             if meta.is_settled:
+                durable = store.reads.load_activation(
+                    activation.activation_id
+                ).metadata.in_place_controls[control.sequence - 1]
+                if durable.state is not ControlState.UNCERTAIN:
+                    continue
                 try:
                     store.record_control_state(
-                        activation.activation_id, control, ControlState.RESOLVED
+                        activation.activation_id, durable, ControlState.RESOLVED
                     )
                 except ControlBusy:
                     pass  # Settlement clears attention; retry the durable mirror.
@@ -173,3 +180,19 @@ def acknowledge_uncertain(
     if resolved is None:
         raise ContinuationRefused(MSG_CONTROL_UNCERTAIN)
     return resolved
+
+
+def control_keys(
+    activations: Sequence[ActivationRecord], *, pending: bool = False
+) -> frozenset[str]:
+    """Identify control attention from durable records, including resolved history."""
+    return frozenset(
+        f"{activation.activation_id}:control:{control.sequence}"
+        for activation in activations
+        for control in activation.metadata.in_place_controls
+        if not pending
+        or (
+            not activation.metadata.is_settled
+            and control.state is ControlState.UNCERTAIN
+        )
+    )

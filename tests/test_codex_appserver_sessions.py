@@ -1,6 +1,7 @@
 """Session reuse is graph-pinned, app-server-only and derived at mint."""
 
 import hashlib
+import json
 import re
 
 import pytest
@@ -10,12 +11,18 @@ from tests._bdio import RESOLVED_CONFIG, entry_request, handle, make_root
 from tests._helpers import VALID_FIXTURE
 from tests._supervisor import entry_mint
 from workflow_interpreter import load_graph
-from workflow_interpreter.bdio import CarrierIntegrityError, MintReason
+from workflow_interpreter.bdio import (
+    CarrierIntegrityError,
+    ConfigSource,
+    MintReason,
+    ResolvedSetting,
+)
 from workflow_interpreter.bdio.rpc_records import (
     SessionCompletion,
     SessionRegistration,
 )
 from workflow_interpreter.bdio.sessions import choose_source
+from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY
 from workflow_interpreter.contracts.sessions import SessionReuse
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.supervisor.models import SteerIntent
@@ -286,3 +293,40 @@ def test_version_bump_deliberate_continuation_can_dispatch_fresh(tmp_path):
     ).metadata
     assert meta.session_reuse_source is None
     assert meta.session_registration.state_path != old.state_path
+    requests = [
+        json.loads(line)
+        for line in (
+            lab.paths.channels_dir(second.dispatch.activation.activation_id)
+            / "artifacts"
+            / "requests.jsonl"
+        )
+        .read_text()
+        .splitlines()
+    ]
+    assert any(item["method"] == "thread/start" for item in requests)
+    assert all(item["method"] != "thread/resume" for item in requests)
+    turn = next(item for item in requests if item["method"] == "turn/start")
+    assert "fresh instructions" in turn["params"]["input"][0]["text"]
+
+
+def test_non_string_pinned_policy_is_a_carrier_integrity_error(tmp_path, fake_store):
+    """Malformed durable policy data cannot become a session compatibility key."""
+    root = app_root(tmp_path, fake_store, "same-node")
+    broken = root.model_copy(
+        update={
+            "metadata": root.metadata.model_copy(
+                update={
+                    "resolved_config": (
+                        *root.metadata.resolved_config,
+                        ResolvedSetting(
+                            key=EXECUTION_POLICY_KEY.format(node="implement"),
+                            value=42,
+                            source=ConfigSource.PROJECT_CONFIG,
+                        ),
+                    ),
+                }
+            )
+        }
+    )
+    with pytest.raises(CarrierIntegrityError, match="session"):
+        choose_source(broken, entry_request(runner_profile="codex-appserver"), ())

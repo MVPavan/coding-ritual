@@ -18,6 +18,7 @@ from workflow_interpreter.bdio.rpc_records import (
 from workflow_interpreter.contracts.rpc_control import MSG_CONTROL, ControlState
 from workflow_interpreter.contracts.rpc_usage import TokenCounts, UsageSnapshot
 from workflow_interpreter.contracts.sessions import execution_policy_digest
+from workflow_interpreter.profiles.codex_appserver_config import thread_config
 from workflow_interpreter.profiles.codex_rpc import (
     CODEX_VERSION,
     Notification,
@@ -145,22 +146,16 @@ class RpcSession:
     def _thread_params(self) -> dict[str, JsonValue]:
         """Every process gets explicit current permissions; history is not authority."""
         task = self._task
-        config: dict[str, JsonValue] = {
-            "sandbox_workspace_write.network_access": False,
-            "sandbox_workspace_write.exclude_slash_tmp": True,
-            "mcp_servers": {},
-        }
         params: dict[str, JsonValue] = {
             "model": task.model,
             "cwd": task.cwd,
             "approvalPolicy": "never",
             "sandbox": "workspace-write",
             "approvalsReviewer": "user",
-            "config": config,
+            "config": thread_config(),
         }
         if self._receipt.handle.session_id:
             params["threadId"] = self._receipt.handle.session_id
-        params["dynamicTools"] = []
         return params
 
     def _start_turn(self, client: RpcClient, frame: RpcFrame) -> None:
@@ -470,7 +465,7 @@ class RpcSession:
                 RpcMethod.INITIALIZE,
                 {
                     "clientInfo": {"name": "workflow-interpreter", "version": "1"},
-                    "capabilities": {"experimentalApi": True},
+                    "capabilities": {"experimentalApi": False},
                 },
             )
             try:

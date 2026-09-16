@@ -120,6 +120,7 @@ from workflow_interpreter.supervisor.profile import (
     Profile,
     RunnerChannels,
     TaskSpec,
+    WorkingDirectoryProfile,
     channels_for,
 )
 from workflow_interpreter.supervisor.rpc_pipes import RpcPipes
@@ -533,12 +534,12 @@ class Dispatcher:
             else build_task(activation, channels)
         )
         if profile.name() == RunnerName.CODEX_APPSERVER:
+            if not isinstance(profile, WorkingDirectoryProfile):
+                raise TaskRefused(MSG_RPC_CWD)
             task = task.model_copy(
                 update={
                     "checkout_read_root": task.checkout_read_root or task.cwd,
-                    "cwd": task.cwd
-                    if task.writes
-                    else str(Path(channels.outcome_file).parent),
+                    "cwd": profile.working_directory(task),
                 }
             )
         if task.execution_profile is not None:
@@ -591,8 +592,11 @@ class Dispatcher:
                 session_id, task.brief if composed_resume else instructions, task
             )
         )
-        if command.transport is RunnerTransport.STDIO_RPC and command.cwd != task.cwd:
-            raise TaskRefused(MSG_RPC_CWD)
+        if command.transport is RunnerTransport.STDIO_RPC:
+            if command.cwd != task.cwd:
+                raise TaskRefused(MSG_RPC_CWD)
+            if instructions is not None and not composed_resume:
+                task = task.model_copy(update={"brief": instructions})
         launcher = ForkBarrierLauncher(
             self._paths.config,
             self._paths,

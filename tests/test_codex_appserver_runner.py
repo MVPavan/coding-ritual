@@ -201,7 +201,7 @@ def test_same_node_reentry_resumes_history_with_a_fresh_envelope(tmp_path):
     assert turn["params"]["sandboxPolicy"]["networkAccess"] is False
     assert str(lab.paths.channels_dir(next_id)) in str(turn["params"])
     resume = next(item for item in requests if item["method"] == "thread/resume")
-    assert resume["params"]["dynamicTools"] == []
+    assert "dynamicTools" not in resume["params"]
     jsonschema.validate(
         resume["params"],
         json.loads((FIXTURE.parent / "ThreadResumeParams.json").read_text()),

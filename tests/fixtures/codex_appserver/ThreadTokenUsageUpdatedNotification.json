@@ -1,23 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "properties": {
-    "threadId": {
-      "type": "string"
-    },
-    "tokenUsage": {
-      "$ref": "#/definitions/ThreadTokenUsage"
-    },
-    "turnId": {
-      "type": "string"
-    }
-  },
-  "required": [
-    "threadId",
-    "tokenUsage",
-    "turnId"
-  ],
-  "title": "ThreadTokenUsageUpdatedNotification",
-  "type": "object",
   "definitions": {
     "ThreadTokenUsage": {
       "properties": {
@@ -78,5 +60,23 @@
       ],
       "type": "object"
     }
-  }
+  },
+  "properties": {
+    "threadId": {
+      "type": "string"
+    },
+    "tokenUsage": {
+      "$ref": "#/definitions/ThreadTokenUsage"
+    },
+    "turnId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "threadId",
+    "tokenUsage",
+    "turnId"
+  ],
+  "title": "ThreadTokenUsageUpdatedNotification",
+  "type": "object"
 }

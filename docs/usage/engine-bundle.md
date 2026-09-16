@@ -219,6 +219,11 @@ even a notification whose payload is lost retains its allocated sequence slot.
 exec remains the default, and no shipped workflow or configuration opts in.
 Qualification uses the fake executable and generated schema subset under
 `tests/fixtures/codex_appserver/`; no live model run or token benchmark is implied.
+Each committed schema is byte-identical to the default
+`codex app-server generate-json-schema --out <directory>` output for 0.154.0,
+recorded with its generation date and digest. Tests compare fresh output when
+the binary is installed and reject undeclared request properties even where the
+schema permits extras. No experimental schema projection is used.
 The fixture verifies protocol behavior and grant construction. Host proc,
 bd and acceptance gates remain separate qualification.
 
@@ -245,6 +250,17 @@ Checkout `.codex/config.toml`, hooks and execpolicy rules are ignored; tracked
 `.codex` files do not refuse dispatch. The pinned CLI's no-model `config/read`
 probe verifies disabled project layers and absent project MCP definitions.
 Project skills remain readable input. Ambient user configuration is not copied.
+Both argv `-c` overrides and the supported `config` map on `thread/start` and
+`thread/resume` set `web_search="disabled"` and disable the `apps`, `browser_use`,
+`browser_use_external`, `computer_use`, `image_generation`, `multi_agent`,
+`multi_agent_v2`, `plugins`, `remote_plugin`, `skill_mcp_dependency_install`, and
+`tool_suggest` features. Local sandboxed shell/edit tools remain available for
+writers and checks. The empty `mcp_servers` map expresses the engine's settings;
+isolation and disabled project layers prevent inherited MCP entries (an empty
+map alone does not erase them). The default protocol has no `dynamicTools`
+request field: the wrapper never registers dynamic tools, resumes only its own
+compatible threads, disables experimental API negotiation, and rejects every
+`item/tool/call` without execution.
 Authentication through the configured host environment has not been live-qualified
 in this slice; fixture success does not certify a live login.
 
@@ -262,8 +278,11 @@ uncertainty. Both steer modes spend the same node/round allowance, including
 ambiguous requests. In-place steering does not mint an activation. After owner
 loss, uncertain requests produce a durable refusal and non-zero driver attention
 exit; they are never replayed. Each tick advances settlement and routing before
-reporting this attention. Settlement with any outcome resolves the uncertainty
-into a `control_uncertain` deviation and clears attention. To resolve a live
+reporting this attention. The child coordinator recomputes control attention
+from durable state on every observation, including acknowledgment and settlement,
+and allows lifecycle progress while delivery uncertainty remains. Settlement with
+any outcome resolves the uncertainty into a `control_uncertain` deviation and
+clears attention. To resolve a live
 uncertain request after inspection, use `steer ROOT ACTIVATION
 --acknowledge-uncertain --reason "inspection result"`. This durably records the
 operator acknowledgment without replaying the request or refunding its steer

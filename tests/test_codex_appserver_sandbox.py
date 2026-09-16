@@ -234,6 +234,21 @@ def test_real_appserver_suppresses_project_config_without_a_model_call(tmp_path)
         assert result is not None
         assert result["config"]["model"] != "candidate-model"
         assert "candidate" not in result["config"]["mcp_servers"]
+        assert result["config"]["web_search"] == "disabled"
+        for feature in (
+            "apps",
+            "browser_use",
+            "browser_use_external",
+            "computer_use",
+            "image_generation",
+            "multi_agent",
+            "multi_agent_v2",
+            "plugins",
+            "remote_plugin",
+            "skill_mcp_dependency_install",
+            "tool_suggest",
+        ):
+            assert result["config"]["features"][feature] is False
         layers = [
             layer for layer in result["layers"] if layer["name"]["type"] == "project"
         ]

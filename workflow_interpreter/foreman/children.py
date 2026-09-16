@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 from workflow_interpreter.bdio.errors import BdioError
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.heartbeat import DriverObserver
+from workflow_interpreter.foreman.rpc_control import control_keys
 from workflow_interpreter.schema.decisions import (
     CancellationReceipt,
     ChildCoordinationView,
@@ -292,6 +293,18 @@ def observe(composition: Composition, row: ChildRecord) -> ChildRecord:
     root = composition.store.reads.load_root(row.root_id)
     activations = composition.store.reads.list_activations(row.root_id)
     latest = max(activations, key=lambda a: a.metadata.seq, default=None)
+    if row.attention_source != "decision":
+        known = control_keys(activations)
+        pieces = [
+            part
+            for part in (row.attention or "").split("; ")
+            if part and part not in known
+        ]
+        pending = control_keys(activations, pending=True)
+        if not pieces and pending:
+            # One bounded key signals attention; the activation retains every control.
+            pieces.append(min(pending))
+        row = row.model_copy(update={"attention": "; ".join(pieces) or None})
     gates = composition.store.reads.list_gates(row.root_id)
     waiting = next((g for g in gates if g.bead.status != "closed"), None)
     changes: dict[str, object] = {
@@ -322,6 +335,15 @@ def observe(composition: Composition, row: ChildRecord) -> ChildRecord:
             else None,
         )
     return row.model_copy(update=changes)
+
+
+def attention_blocks(composition: Composition, row: ChildRecord) -> bool:
+    """Gate and control attention allow lifecycle observation; other failures stop."""
+    if not row.attention or row.attention.startswith("waiting at gate "):
+        return False
+    return row.attention_source == "decision" or not set(
+        row.attention.split("; ")
+    ).issubset(control_keys(composition.store.reads.list_activations(row.root_id)))
 
 
 def drive(
@@ -365,10 +387,7 @@ def drive(
                     eligible = True
                     continue
                 try:
-                    if row.state == "settled" or (
-                        row.attention
-                        and not row.attention.startswith("waiting at gate ")
-                    ):
+                    if row.state == "settled" or attention_blocks(composition, row):
                         coordinator.update_child(owner, row)
                         continue
                     composition.for_root(row.root_id)

@@ -12,6 +12,7 @@ from pydantic import TypeAdapter, ValidationError
 from workflow_interpreter.bdio.carriers import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
+from workflow_interpreter.foreman.children import attention_blocks, observe
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceWiring,
@@ -474,7 +475,8 @@ def advance_decision(
                 return TickReport(
                     halted=True, stalled="child is cancelled or collected"
                 )
-            if child.attention and not child.attention.startswith("waiting at gate "):
+            child = observe(composition, child)
+            if attention_blocks(composition, child):
                 return TickReport(halted=True, stalled=child.attention)
         # Explicit commands to stale children refuse; the original owner is the durable run handle.
         if root_id != owner:

@@ -17,6 +17,7 @@ from workflow_interpreter.profiles.codex import (
     _required_effort,
     _required_model,
 )
+from workflow_interpreter.profiles.codex_appserver_config import config_argv
 from workflow_interpreter.profiles.codex_rpc import CODEX_VERSION
 from workflow_interpreter.profiles.config import RunnerName
 from workflow_interpreter.profiles.errors import TaskRefused
@@ -43,6 +44,10 @@ class CodexAppServerProfile(CodexProfile):
     """The experimental runner shares Codex grants, never its exec transport."""
 
     runner = RunnerName.CODEX_APPSERVER
+
+    def working_directory(self, task: TaskSpec) -> str:
+        """Select cwd through the shared Codex policy before launch plans are frozen."""
+        return self._workspace_root(task)
 
     def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
         """Version-check without model work, then describe the barrier-owned server."""
@@ -78,9 +83,17 @@ class CodexAppServerProfile(CodexProfile):
                 + "={"
                 + ",".join(
                     f"{json.dumps(path)}={UNTRUSTED_PROJECT}"
-                    for path in sorted({str(checkout), root})
+                    for path in sorted(
+                        {
+                            str(checkout),
+                            root,
+                            task.cwd,
+                            str(Path(task.vendor_state).parent),
+                        }
+                    )
                 )
                 + "}",
+                *config_argv(),
                 *self._sandbox_flags(task, root),
             ],
             task,

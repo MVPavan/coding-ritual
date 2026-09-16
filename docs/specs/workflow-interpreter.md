@@ -723,7 +723,13 @@ runs one server process and one turn per activation inside the same bwrap plan.
 Bounded nonblocking polls enforce RPC deadlines together with max-wall and stale
 limits. Unknown notifications/requests fail the activation. Dynamic tools are
 disabled; tool calls receive a bounded unsupported error, and approvals and
-escalations are rejected without executing host tools.
+escalations are rejected without executing host tools. The exercised schemas are
+unaltered default-generator output for 0.154.0; requests never send the unsupported
+`dynamicTools` field. Startup and both thread RPCs apply the same supported config
+overrides: disabled web search and optional app/browser/computer/image/plugin/
+delegation features, empty MCP configuration, private user state and untrusted
+project layers. Local sandboxed shell/edit tools remain available. Experimental
+API negotiation is disabled; no client dynamic tools are registered.
 
 Optional task-node `session_reuse = "fresh" | "same-node"` is graph-pinned and
 app-server-only. Absence means fresh, including for reviewers. Same-node selects

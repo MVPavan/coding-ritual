@@ -105,7 +105,8 @@ def run_turn_server():
                     json.dumps(
                         {
                             "cache_seeded": seeded,
-                            "cache_writable": True,
+                            "cache_writable": (cache / "writable-probe").read_text()
+                            == "private",
                             "checkout_writable": writable,
                             "cwd": os.getcwd(),
                         }

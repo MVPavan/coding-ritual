@@ -406,3 +406,38 @@ def test_operator_command_resolves_live_uncertain_control(tmp_path, monkeypatch)
         )
         == 1
     )
+
+
+def test_busy_reconciliation_defers_resolution_until_uncertainty_is_durable(
+    tmp_path, monkeypatch
+):
+    """A lock released between writes must not resolve a merely inferred state."""
+    lab, aid = uncertain_foreman(tmp_path)
+    control = lab.store.reads.load_activation(aid).metadata.in_place_controls[0]
+    lab.store._client._merge_metadata(
+        aid,
+        {
+            "in_place_controls": [
+                control.model_copy(
+                    update={"state": ControlState.SUBMITTING}
+                ).model_dump(mode="json")
+            ]
+        },
+    )
+    lab.store.close_activation(aid, Outcome.ERROR_TRANSPORT)
+    original = lab.store.record_control_state
+    attempts = []
+
+    def busy_once(activation_id, item, state, **kwargs):
+        attempts.append(state)
+        if len(attempts) == 1:
+            raise ControlBusy("injected contention")
+        return original(activation_id, item, state, **kwargs)
+
+    monkeypatch.setattr(lab.store, "record_control_state", busy_once)
+    assert control_attention(lab.wiring().paths, lab.store) == ()
+    assert attempts == [ControlState.UNCERTAIN]
+    assert control_attention(lab.wiring().paths, lab.store) == ()
+    assert lab.store.reads.load_activation(aid).metadata.in_place_controls[0].state is (
+        ControlState.RESOLVED
+    )
