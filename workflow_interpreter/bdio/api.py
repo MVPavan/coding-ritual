@@ -762,7 +762,7 @@ class WorkflowStore:
 
     def _finish(self, record: ActivationRecord, reason: str) -> ActivationRecord:
         """Drive this activation's bd close to completion, idempotently."""
-        return transitions.finish(self._client, record, reason)
+        return transitions.finish(self._client, self._load_activation, record, reason)
 
 
 __all__ = ["WorkflowStore"]

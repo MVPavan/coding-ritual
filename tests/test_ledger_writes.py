@@ -69,7 +69,11 @@ from workflow_interpreter.bdio.wire import (
 )
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.ledger.__main__ import main as ledger_main
-from workflow_interpreter.ledger.constants import ExportKey, LedgerTable
+from workflow_interpreter.ledger.constants import (
+    ExportKey,
+    LedgerOperation,
+    LedgerTable,
+)
 from workflow_interpreter.ledger.database import LedgerDatabase, connect, open_ledger
 from workflow_interpreter.ledger.errors import LedgerBusyRefusal, LedgerFenceBusy
 from workflow_interpreter.ledger.export import import_export, write_export
@@ -691,6 +695,52 @@ def test_a_busy_refusal_is_recorded_on_the_activation_once_contention_clears(
     # The refused transition itself did NOT land.
     assert recorded.metadata.exit_record is None
     assert recorded.metadata.lifecycle is Lifecycle.DISPATCHED
+
+
+class _BusyClosingLedgerStore(LedgerStore):
+    """A ledger store whose row close is always refused for contention.
+
+    The close is the SECOND write of a terminal transition, so real contention
+    there would have to be timed between two writes of one call. What the
+    boundary under test routes on is the refusal itself, and this raises the
+    production one.
+    """
+
+    def _close_row(self, row_id: str, reason: str) -> StoreRow:
+        """Refuse the close the way a waited-out `busy_timeout` does."""
+        raise LedgerBusyRefusal(LedgerOperation.CLOSING.value, row_id, BUSY_TIMEOUT_MS)
+
+
+def test_a_busy_close_is_recorded_on_the_activation_it_was_refused_for(
+    ledger: LedgerDatabase,
+) -> None:
+    """§3.4.6: the close is a store write too, and its refusal is recorded.
+
+    Contention during the metadata merge of a transition was noted on the
+    activation; contention during the close that FINISHES it was not, so the
+    row carried no trace of why a close its caller saw raise never landed.
+    """
+    backend = _BusyClosingLedgerStore(ledger, task_id=TASK)
+    store = WorkflowStore(
+        backend,
+        backend_factory=PinnedBackendFactory(backend),
+        branch_head_reader=branch_head,
+    )
+    root = make_root(store, load_definition())
+    activation = store.mint_activation(root.root_id, entry_request()).activation
+
+    with capture_logs() as captured, pytest.raises(LedgerBusyRefusal):
+        store.close_activation(activation.activation_id, Outcome.DONE)
+
+    recorded = store.reads.load_activation(activation.activation_id)
+    assert [deviation.kind for deviation in recorded.metadata.deviations] == [
+        DEVIATION_STORE_BUSY
+    ]
+    assert [
+        entry
+        for entry in captured
+        if entry["event"] == "wf.activation.store_busy_refused"
+    ]
 
 
 def _hold_the_write_lock(path: Path, holding: threading.Event) -> None:

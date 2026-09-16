@@ -367,10 +367,24 @@ def repair_forward(client: StoreBackend, record: ActivationRecord) -> Activation
 
 
 def finish(
-    client: StoreBackend, record: ActivationRecord, reason: str
+    client: StoreBackend,
+    load: ActivationLoader,
+    record: ActivationRecord,
+    reason: str,
 ) -> ActivationRecord:
-    """Drive this activation's close to completion, idempotently."""
-    return close_record_forward(client, record, reason, parse_activation)
+    """Drive this activation's close to completion, idempotently.
+
+    The close is a store write like the merge before it, so §3.4.6 refuses it
+    under contention — and the refusal is recorded on the activation the same
+    way, through the same bounded recorder. Without that, contention during the
+    SECOND write of a terminal transition left the row carrying no trace of why
+    a close its caller saw raise never landed.
+    """
+    try:
+        return close_record_forward(client, record, reason, parse_activation)
+    except StoreBusyRefusal as refusal:
+        record_contention(client, load, record.activation_id, refusal)
+        raise
 
 
 def _delta(metadata: ActivationMetadata, owned: dict[str, object]) -> Metadata:
