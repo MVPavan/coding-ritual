@@ -154,6 +154,7 @@ class TaskSpec(BaseModel):
     allowed_paths: tuple[str, ...] = ()
     cwd: str
     channels: RunnerChannels
+    vendor_state: str | None = None
     toolchain_cache: str | None = None
     """Supervisor-owned uv cache path, injected from the sandbox plan.
 

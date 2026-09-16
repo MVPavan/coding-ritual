@@ -1,0 +1,222 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "approvalPolicy": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/AskForApproval"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "approvalsReviewer": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ApprovalsReviewer"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "config": {
+      "additionalProperties": true,
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "cwd": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dynamicTools": {
+      "default": null,
+      "items": {
+        "$ref": "#/definitions/DynamicToolSpec"
+      },
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "model": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sandbox": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SandboxMode"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "title": "ThreadStartParams",
+  "type": "object",
+  "required": [],
+  "definitions": {
+    "ApprovalsReviewer": {
+      "enum": [
+        "user",
+        "auto_review",
+        "guardian_subagent"
+      ],
+      "type": "string"
+    },
+    "AskForApproval": {
+      "oneOf": [
+        {
+          "enum": [
+            "untrusted",
+            "on-request",
+            "never"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "granular": {
+              "properties": {
+                "mcp_elicitations": {
+                  "type": "boolean"
+                },
+                "request_permissions": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "rules": {
+                  "type": "boolean"
+                },
+                "sandbox_approval": {
+                  "type": "boolean"
+                },
+                "skill_approval": {
+                  "default": false,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "mcp_elicitations",
+                "rules",
+                "sandbox_approval"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "granular"
+          ],
+          "title": "GranularAskForApproval",
+          "type": "object"
+        }
+      ]
+    },
+    "DynamicToolNamespaceTool": {
+      "oneOf": [
+        {
+          "properties": {
+            "deferLoading": {
+              "type": "boolean"
+            },
+            "inputSchema": true,
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "function"
+              ],
+              "title": "FunctionDynamicToolNamespaceToolType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "inputSchema",
+            "name",
+            "type"
+          ],
+          "title": "FunctionDynamicToolNamespaceTool",
+          "type": "object"
+        }
+      ]
+    },
+    "DynamicToolSpec": {
+      "oneOf": [
+        {
+          "properties": {
+            "deferLoading": {
+              "type": "boolean"
+            },
+            "inputSchema": true,
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "function"
+              ],
+              "title": "FunctionDynamicToolSpecType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "inputSchema",
+            "name",
+            "type"
+          ],
+          "title": "FunctionDynamicToolSpec",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "tools": {
+              "items": {
+                "$ref": "#/definitions/DynamicToolNamespaceTool"
+              },
+              "type": "array"
+            },
+            "type": {
+              "enum": [
+                "namespace"
+              ],
+              "title": "NamespaceDynamicToolSpecType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "name",
+            "tools",
+            "type"
+          ],
+          "title": "NamespaceDynamicToolSpec",
+          "type": "object"
+        }
+      ]
+    },
+    "SandboxMode": {
+      "enum": [
+        "read-only",
+        "workspace-write",
+        "danger-full-access"
+      ],
+      "type": "string"
+    }
+  }
+}

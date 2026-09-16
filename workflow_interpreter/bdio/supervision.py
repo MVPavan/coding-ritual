@@ -47,8 +47,12 @@ from typing import Final
 import structlog
 
 from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.errors import LifecycleConflictError
+from workflow_interpreter.bdio.errors import (
+    CarrierIntegrityError,
+    LifecycleConflictError,
+)
 from workflow_interpreter.bdio.records import ActivationRecord, parse_activation
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.bdio.wire import (
     Lifecycle,
     Metadata,
@@ -56,6 +60,7 @@ from workflow_interpreter.bdio.wire import (
     StaleFlagRecord,
     metadata_dict,
 )
+from workflow_interpreter.contracts.execution import RunnerName
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -172,3 +177,43 @@ def _merge(client: BdClient, activation_id: str, delta: Metadata) -> ActivationR
 
 
 __all__ = ["record_precondition", "record_stale_flag", "recorded_precondition"]
+
+
+MSG_SESSION_IDENTITY: Final[str] = "app-server session registration identity mismatch"
+
+
+def register_session(
+    client: BdClient,
+    load: ActivationLoader,
+    activation_id: str,
+    registration: SessionRegistration,
+) -> ActivationRecord:
+    """Bind a thread once, before the first turn, without changing the handle."""
+    record = load(activation_id)
+    metadata = record.metadata
+    if (
+        registration.activation_id != activation_id
+        or registration.root_id != metadata.wf_root_id
+        or registration.launch_id != metadata.launch_id
+        or registration.handle != metadata.handle
+        or registration.model != metadata.model
+        or metadata.runner_profile.removeprefix("profile:")
+        != RunnerName.CODEX_APPSERVER.value
+    ):
+        raise CarrierIntegrityError(MSG_SESSION_IDENTITY)
+    if metadata.session_registration is not None:
+        if metadata.session_registration != registration:
+            raise CarrierIntegrityError(MSG_SESSION_IDENTITY)
+        return record
+    if metadata.lifecycle is not Lifecycle.DISPATCHED or metadata.is_settled:
+        raise LifecycleConflictError(MSG_SESSION_IDENTITY)
+    if metadata.session_id and metadata.session_id != registration.thread_id:
+        raise CarrierIntegrityError(MSG_SESSION_IDENTITY)
+    return _merge(
+        client,
+        activation_id,
+        {
+            "session_registration": metadata_dict(registration),
+            "session_id": registration.thread_id,
+        },
+    )

@@ -1,9 +1,144 @@
 """Bounded fake of exercised codex-cli 0.154.0 stdio messages; no model calls."""
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
+
+
+def send(value):
+    """Write one bounded protocol message."""
+    if os.environ.get("WF_ARTIFACT_DIR"):
+        with (Path(os.environ["WF_ARTIFACT_DIR"]) / "responses.jsonl").open("a") as log:
+            log.write(json.dumps(value) + "\n")
+    sys.stdout.write(json.dumps(value) + "\n")
+    sys.stdout.flush()
+
+
+def run_turn_server():
+    """Exercise registration, intent, one turn, and EOF shutdown without a model."""
+    mode = os.environ.get("WF_RPC_TEST_MODE", "complete")
+    artifacts = Path(os.environ["WF_ARTIFACT_DIR"])
+    artifacts.mkdir(parents=True, exist_ok=True)
+    for line in sys.stdin:
+        message = json.loads(line)
+        with (artifacts / "requests.jsonl").open("a") as log:
+            log.write(line)
+        method = message.get("method")
+        if method == "initialize":
+            if mode == "hang-request":
+                time.sleep(60)
+            send(
+                {
+                    "id": message["id"],
+                    "result": {
+                        "userAgent": "codex-cli/0.154.0",
+                        "codexHome": "wrong"
+                        if mode == "wrong-home"
+                        else os.environ["CODEX_HOME"],
+                        "platformFamily": "unix",
+                        "platformOs": "linux",
+                    },
+                }
+            )
+        elif method in ("thread/start", "thread/resume"):
+            params = message["params"]
+            send(
+                {
+                    "id": message["id"],
+                    "result": {
+                        "thread": {
+                            "id": "thread-1",
+                            "cliVersion": "0.154.0",
+                            "createdAt": 0,
+                            "updatedAt": 0,
+                            "cwd": params["cwd"],
+                            "ephemeral": False,
+                            "modelProvider": "openai",
+                            "preview": "",
+                            "projectId": None,
+                            "sessionId": "session-1",
+                            "source": "appServer",
+                            "status": {"type": "idle"},
+                            "turns": [],
+                        },
+                        "model": params["model"],
+                        "modelProvider": "openai",
+                        "cwd": params["cwd"],
+                        "approvalPolicy": "never",
+                        "approvalsReviewer": "user",
+                        "sandbox": {
+                            "type": "workspaceWrite",
+                            "writableRoots": [],
+                            "networkAccess": mode == "wrong-policy",
+                            "excludeSlashTmp": True,
+                            "excludeTmpdirEnvVar": False,
+                        },
+                    },
+                }
+            )
+        elif method == "turn/start":
+            directory = Path(os.environ["WF_OUTCOME_FILE"]).parent.parent
+            registration = json.loads((directory / "session.json").read_text())
+            intent = json.loads((directory / "turn.json").read_text())
+            assert registration["thread_id"] == "thread-1"
+            assert intent["phase"] == "intent"
+            assert message["params"]["sandboxPolicy"]["networkAccess"] is False
+            send(
+                {
+                    "id": message["id"],
+                    "result": {
+                        "turn": {
+                            "id": "turn-1",
+                            "status": "inProgress",
+                            "items": [],
+                        }
+                    },
+                }
+            )
+            Path(os.environ["WF_OUTCOME_FILE"]).write_text('{"outcome":"no_diff"}')
+            Path(os.environ["WF_EFFECTS_FILE"]).write_text('{"paths":[]}')
+            if mode == "exit-without-turn":
+                return
+            if mode == "unknown-after-start":
+                send({"method": "unknown/permission", "params": {}})
+            else:
+                send(
+                    {
+                        "method": "turn/completed",
+                        "params": {
+                            "threadId": "wrong"
+                            if mode == "wrong-thread"
+                            else "thread-1",
+                            "turn": {
+                                "items": [],
+                                "id": "wrong" if mode == "wrong-turn" else "turn-1",
+                                "status": "failed"
+                                if mode == "turn-failed"
+                                else "completed",
+                            },
+                        },
+                    }
+                )
+        elif method == "turn/interrupt":
+            send({"id": message["id"], "result": {}})
+    if mode == "hang-shutdown":
+        time.sleep(60)
+
+
+if "--version" in sys.argv:
+    version = (
+        "0.153.0"
+        if os.environ.get("WF_RPC_TEST_MODE") == "wrong-version"
+        else "0.154.0"
+    )
+    sys.stdout.write(f"codex-cli {version}\n")
+    raise SystemExit(0)
+if "app-server" in sys.argv:
+    run_turn_server()
+    raise SystemExit(0)
+
 
 mode = sys.argv[1] if len(sys.argv) > 1 else "normal"
 for line in sys.stdin:

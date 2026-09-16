@@ -242,6 +242,24 @@ class ForkBarrierLauncher:
             os.close(ready_read)
             os.close(go_write)
 
+    def _owner_handle(self) -> ProcessHandle:
+        """Bind RPC ownership before exec so recovery can prove wrapper loss."""
+        pid = os.getpid()
+        start = procfs.read_start_time(self._config, pid)
+        boot = procfs.read_boot_id(self._config)
+        if start is None or boot is None:
+            raise ForkBarrierError(_MSG_NO_IDENTITY.format(pid=pid, missing="owner"))
+        return ProcessHandle(
+            pid=pid,
+            pgid=os.getpgrp(),
+            host=self._config.host,
+            host_boot_id=boot,
+            proc_start_time=start,
+            started_at=to_iso(self._clock.now()),
+            log_path="",
+            session_id="",
+        )
+
     def _parent(
         self,
         pid: int,
@@ -279,6 +297,13 @@ class ForkBarrierLauncher:
         write_record(
             self._paths.receipt(self._activation_id),
             LaunchReceipt(
+                transport=command.transport,
+                owner=self._owner_handle()
+                if command.transport is RunnerTransport.STDIO_RPC
+                else None,
+                vendor_state=command.env.get("CODEX_HOME")
+                if command.transport is RunnerTransport.STDIO_RPC
+                else None,
                 launch_id=self._launch_id,
                 root_id=self._paths.root_id,
                 activation_id=self._activation_id,

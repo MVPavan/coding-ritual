@@ -10,7 +10,7 @@ from typing import Final, Self
 
 from pydantic import BaseModel, ConfigDict, JsonValue, ValidationError, model_validator
 
-CODEX_VERSION: Final[str] = "0.154.0"
+CODEX_VERSION: Final = "0.154.0"
 MAX_FRAME_BYTES: Final[int] = 262144
 MAX_STDERR_BYTES: Final[int] = 16384
 MAX_POLL_S: Final[float] = 0.1
@@ -141,6 +141,11 @@ class RpcClient:
     def stderr_tail(self) -> str:
         """Diagnostic-only bounded text; callers must not log credentials from it."""
         return self._stderr.decode("utf-8", errors="replace")
+
+    @property
+    def output_pending(self) -> bool:
+        """Whether required replies still need flushing before stdin closes."""
+        return bool(self._outgoing)
 
     @property
     def pending(self) -> bool:

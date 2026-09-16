@@ -17,6 +17,105 @@
     "PermissionsRequestApprovalParams.json": {
       "source": "PermissionsRequestApprovalParams.json",
       "sha256": "c11fbe632472ab0923aba5c0a53da3d6d86929bcd5c78e7c13c51c6b2db508ff"
+    },
+    "ThreadStartParams.json": {
+      "source": "v2/ThreadStartParams.json",
+      "sha256": "25f490368ec6df52a2a3b82a5469d2413307eb93439121b309f415b5648eee7a",
+      "projection": {
+        "properties": [
+          "model",
+          "cwd",
+          "approvalPolicy",
+          "sandbox",
+          "config",
+          "dynamicTools",
+          "approvalsReviewer"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "ThreadStartResponse.json": {
+      "source": "v2/ThreadStartResponse.json",
+      "sha256": "b43f4e53d2262e0501d21bcf2a5a45b0316b8fab757a7ff19a6f1e042d4b09da",
+      "projection": {
+        "properties": [
+          "thread",
+          "model",
+          "modelProvider",
+          "cwd",
+          "approvalPolicy",
+          "approvalsReviewer",
+          "sandbox"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "TurnStartParams.json": {
+      "source": "v2/TurnStartParams.json",
+      "sha256": "b36fb37326b1cf69f75c8b306f1f886d53a57c4b1b985e08e298e2407ea2ad02",
+      "projection": {
+        "properties": [
+          "threadId",
+          "input",
+          "cwd",
+          "model",
+          "effort",
+          "approvalPolicy",
+          "sandboxPolicy"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "TurnStartResponse.json": {
+      "source": "v2/TurnStartResponse.json",
+      "sha256": "6fc49c3e5d0ce11a3a109ae194619b04d6e3ff98fa29bac683fdb754608958be",
+      "projection": {
+        "properties": [
+          "turn"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
+    },
+    "TurnCompletedNotification.json": {
+      "source": "v2/TurnCompletedNotification.json",
+      "sha256": "78af2a37391e8e669a4020cb58593e4d3e378756ced79d5fec72374fa69fb94b",
+      "projection": {
+        "properties": [
+          "threadId",
+          "turn"
+        ],
+        "Thread": [
+          "id"
+        ],
+        "Turn": [
+          "id",
+          "status"
+        ]
+      }
     }
   }
 }

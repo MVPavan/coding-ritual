@@ -81,7 +81,9 @@ from workflow_interpreter.bdio.preflight import steer_ancestor_of
 from workflow_interpreter.contracts.execution import (
     MSG_NAMED_SANDBOX,
     MSG_PINNED_POLICY,
+    RunnerName,
 )
+from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor.clock import Clock
@@ -119,6 +121,8 @@ from workflow_interpreter.supervisor.profile import (
     TaskSpec,
     channels_for,
 )
+from workflow_interpreter.supervisor.rpc_pipes import RpcPipes
+from workflow_interpreter.supervisor.rpc_records import VENDOR_STATE
 from workflow_interpreter.supervisor.sandbox import (
     SandboxMode,
     SandboxPlan,
@@ -252,7 +256,13 @@ class Dispatcher:
         self._paths = paths
         self._store = store
         self._clock = clock
+        self._rpc: tuple[RpcPipes, TaskSpec] | None = None
         self._host_env = dict(host_env or {})
+
+    def take_rpc(self) -> tuple[RpcPipes, TaskSpec] | None:
+        """Transfer live transport only to the resident owner; never reconstruct it."""
+        rpc, self._rpc = self._rpc, None
+        return rpc
 
     def dispatch(
         self,
@@ -296,7 +306,9 @@ class Dispatcher:
         self._paths.ensure_activation_dir(activation_id)
         reattached = self._reattach(activation_id, ledger)
         if reattached is not None:
-            record = self._store.record_dispatch(activation_id, reattached.handle)
+            record = self._store.record_dispatch(
+                activation_id, reattached.handle, launch_id=reattached.launch_id
+            )
             _LOG.warning(
                 "wf.dispatch.reattached",
                 activation_id=activation_id,
@@ -548,6 +560,13 @@ class Dispatcher:
         # to be named `claude` — and `record_dispatch` writes what it returned
         # back onto the activation, which is where a continuation or an infra
         # retry reads the session to carry forward.
+        if profile.name() == RunnerName.CODEX_APPSERVER:
+            state = self._paths.activation_dir(activation_id) / VENDOR_STATE
+            state.mkdir(mode=0o700, exist_ok=True)
+            if state.is_symlink() or state.resolve() != state:
+                raise TaskRefused("app-server state path is redirected")
+            task = task.model_copy(update={"vendor_state": str(state)})
+            plan = plan.model_copy(update={"vendor_state": (state,)})
         session_id = profile.prepare(activation)
         command = (
             profile.build_command(task, session_id)
@@ -556,6 +575,8 @@ class Dispatcher:
                 session_id, task.brief if composed_resume else instructions, task
             )
         )
+        if command.transport is RunnerTransport.STDIO_RPC:
+            task = task.model_copy(update={"cwd": command.cwd})
         launcher = ForkBarrierLauncher(
             self._paths.config,
             self._paths,
@@ -582,7 +603,18 @@ class Dispatcher:
             self._store.assert_member(root.root_id)
             handle = profile.launch(command, launcher)
             self._assert_barrier_held(activation_id, launcher, handle, ledger, before)
-            record = self._store.record_dispatch(activation_id, handle)
+            try:
+                record = self._store.record_dispatch(
+                    activation_id, handle, launch_id=launcher.launch_id
+                )
+            except BaseException:
+                pipes = launcher.take_rpc_pipes()
+                if pipes is not None:
+                    pipes.close()
+                raise
+            pipes = launcher.take_rpc_pipes()
+            if pipes is not None:
+                self._rpc = (pipes, task)
         return DispatchResult(
             activation=record,
             outcome=LaunchOutcome.LAUNCHED,

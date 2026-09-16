@@ -481,7 +481,9 @@ def test_the_exit_file_lands_before_the_evidence_is_computed(
     def explode(*_: object, **__: object) -> tuple[object, ...]:
         raise RuntimeError("the wrapper died inside §7")
 
-    monkeypatch.setattr("workflow_interpreter.supervisor.exit.run_checks", explode)
+    monkeypatch.setattr(
+        "workflow_interpreter.supervisor.exit_grade.run_checks", explode
+    )
     lab.commit_work()
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
@@ -545,7 +547,7 @@ def test_an_uncomputable_evidence_pass_still_records_the_exit(
     def refuse(*_: object, **__: object) -> object:
         raise VerifyTreeError("the §7.3 checkout could not be created")
 
-    monkeypatch.setattr("workflow_interpreter.supervisor.exit.VerifyTree", refuse)
+    monkeypatch.setattr("workflow_interpreter.supervisor.exit_grade.VerifyTree", refuse)
     lab.commit_work()
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)

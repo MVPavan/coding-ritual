@@ -70,6 +70,7 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
         "open_gate",
         "reads",
         "record_dispatch",
+        "register_session",
         "record_evidence",
         "record_exit",
         "record_precondition",
@@ -92,7 +93,10 @@ flag. Each takes one frozen carrier and touches only its own keys.
 which terminal an instance reached and closes its root on that fact.
 
 `append_wake_event` adds a frozen notification payload only; it cannot close
-carriers, approve gates, change bounds, or route a transition."""
+carriers, approve gates, change bounds, or route a transition.
+
+`register_session` binds a correlated vendor thread to the dispatched launch;
+it verifies root, activation, launch, and original process identity."""
 
 
 @pytest.fixture(scope="session")

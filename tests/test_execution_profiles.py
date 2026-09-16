@@ -307,6 +307,7 @@ def test_network_capability_is_declared_for_every_registered_runner() -> None:
         runner: registry().profile_for(runner).tool_network for runner in BUILDERS
     } == {
         RunnerName.CODEX: ToolNetwork.DENIED,
+        RunnerName.CODEX_APPSERVER: ToolNetwork.DENIED,
         RunnerName.CLAUDE: ToolNetwork.NOT_ENFORCED,
         RunnerName.OPENCODE: ToolNetwork.NOT_ENFORCED,
     }

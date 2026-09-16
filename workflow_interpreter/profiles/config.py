@@ -112,4 +112,6 @@ class ProfileConfig(BaseModel):
 
     def binary_for(self, runner: RunnerName) -> str:
         """The executable for one vendor: the override, or the vendor's name."""
-        return self.binary_overrides.get(runner, runner.value)
+        return self.binary_overrides.get(
+            runner, "codex" if runner is RunnerName.CODEX_APPSERVER else runner.value
+        )

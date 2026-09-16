@@ -61,6 +61,7 @@ from workflow_interpreter.bdio.constants import (
     _MSG_ENTRY_PREDECESSOR,
 )
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
     CoordinationLink,
@@ -388,6 +389,8 @@ class ActivationMetadata(BaseModel):
     reset_verified_commit: str | None = None
     pre_attempt_dirty_state: str | None = None
     lifecycle: Lifecycle = Lifecycle.MINTED
+    launch_id: str | None = None
+    session_registration: SessionRegistration | None = None
     handle: ProcessHandle | None = None
     stale_flag: StaleFlagRecord | None = None
     """§8.2 requires the stale flag in the wrapper dir AND in bd metadata. The

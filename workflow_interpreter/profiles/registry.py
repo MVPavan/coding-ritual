@@ -18,6 +18,7 @@ from typing import Final
 
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
+from workflow_interpreter.profiles.codex_appserver import CodexAppServerProfile
 from workflow_interpreter.profiles.config import (
     RUNNER_PREFIX,
     ProfileConfig,
@@ -36,6 +37,7 @@ ProfileBuilder = Callable[[ProfileConfig, Clock, Mapping[str, str]], Profile]
 BUILDERS: Final[dict[RunnerName, ProfileBuilder]] = {
     RunnerName.CLAUDE: ClaudeProfile,
     RunnerName.CODEX: CodexProfile,
+    RunnerName.CODEX_APPSERVER: CodexAppServerProfile,
     RunnerName.OPENCODE: OpencodeProfile,
 }
 """The closed vendor set, as constructors. Each concrete class satisfies the

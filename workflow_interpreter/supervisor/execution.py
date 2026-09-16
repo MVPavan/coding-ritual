@@ -68,14 +68,17 @@ def resolve_grants(
         raise SandboxPathRefused(MSG_PRIVATE_GRANTS)
     if not policy.writes and (plan.grants or plan.git_rw):
         raise SandboxPathRefused(MSG_POLICY_MISMATCH)
-    if policy.writes and runner_name == RunnerName.CODEX:
+    if policy.writes and runner_name in (RunnerName.CODEX, RunnerName.CODEX_APPSERVER):
         if (checkout / GIT_ENTRY).is_dir():
             raise UnsupportedOptionError(
                 MSG_CODEX_IN_REPO.format(node=task.node, checkout=checkout)
             )
         worktree_git_write_roots(checkout, task.root_id)
     cwd = (
-        channels if runner_name == RunnerName.CODEX and not policy.writes else checkout
+        channels
+        if runner_name in (RunnerName.CODEX, RunnerName.CODEX_APPSERVER)
+        and not policy.writes
+        else checkout
     )
     return ExecutionGrants(
         policy=policy,

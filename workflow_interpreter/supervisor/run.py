@@ -61,6 +61,7 @@ from workflow_interpreter.bdio import (
     StaleFlagRecord,
     WorkflowStore,
 )
+from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.schema.models import IsolationMode, Node
 from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.clock import Clock
@@ -88,6 +89,7 @@ from workflow_interpreter.supervisor.models import (
 from workflow_interpreter.supervisor.monitor import Limits, Monitor
 from workflow_interpreter.supervisor.paths import WrapperPaths, read_record
 from workflow_interpreter.supervisor.profile import Profile
+from workflow_interpreter.supervisor.rpc_session import RpcSession
 from workflow_interpreter.supervisor.workspace import Workspace
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -244,7 +246,25 @@ class Supervisor:
             limits=Limits.from_node(node),
         )
         mirror = _StaleMirror(self._store, activation.activation_id)
-        result = monitor.watch(mirror)
+        rpc = self._dispatcher.take_rpc()
+        if rpc is not None and dispatch.receipt is not None:
+            pipes, task = rpc
+            result = RpcSession(
+                self._config,
+                self._paths,
+                self._store,
+                self._clock,
+                dispatch.receipt,
+                task,
+                pipes,
+            ).watch(monitor, mirror)
+        else:
+            if (
+                dispatch.receipt is not None
+                and dispatch.receipt.transport is RunnerTransport.STDIO_RPC
+            ):
+                procfs.terminate(self._config, handle, self._clock)
+            result = monitor.watch(mirror)
         if self._steer_pending(activation.activation_id):
             # §8.1 writes the intent DURABLY before the kill, so a child that
             # dies with one on disk died BECAUSE of the steer — the same rule

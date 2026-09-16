@@ -246,6 +246,7 @@ class SandboxPlan(BaseModel):
     grants: tuple[Path, ...] = ()
     channels: tuple[Path, ...] = ()
     toolchain_cache: tuple[Path, ...] = ()
+    vendor_state: tuple[Path, ...] = ()
     ro_pins: tuple[Path, ...] = ()
 
     def model_post_init(self, context: object, /) -> None:
@@ -256,6 +257,7 @@ class SandboxPlan(BaseModel):
             self.grants,
             self.channels,
             self.toolchain_cache,
+            self.vendor_state,
             self.ro_pins,
         ):
             for path in group:
@@ -667,6 +669,7 @@ def wrap(
         *_binds(ARG_BIND, plan.grants),
         *_binds(ARG_BIND, plan.channels),
         *_binds(ARG_BIND, plan.toolchain_cache),
+        *_binds(ARG_BIND, plan.vendor_state),
         *_binds(ARG_RO_BIND, plan.ro_pins),
     ]
     return (*words, ARG_END, *argv)

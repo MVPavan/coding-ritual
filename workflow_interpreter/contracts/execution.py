@@ -43,6 +43,7 @@ class RunnerName(StrEnum):
 
     CLAUDE = "claude"
     CODEX = "codex"
+    CODEX_APPSERVER = "codex-appserver"
     OPENCODE = "opencode"
 
 

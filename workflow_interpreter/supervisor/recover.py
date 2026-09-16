@@ -75,6 +75,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.bdio.constants import DEVIATION_INSTANCE_BRANCH_DIVERGED
+from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.schema.models import Node
 from workflow_interpreter.supervisor import procfs
 from workflow_interpreter.supervisor.branch import BranchAdvanceOutcome
@@ -259,6 +260,17 @@ def classify(
         else recorded,
         proof,
     )
+    if (
+        case is RecoveryCase.RUNNING
+        and receipt is not None
+        and receipt.transport is RunnerTransport.STDIO_RPC
+        and receipt.owner is not None
+        and procfs.prove_liveness(config, receipt.owner).status
+        in (Liveness.DEAD, Liveness.IDENTITY_MISMATCH)
+    ):
+        # No process may reconnect to an orphaned stdio stream or replay its turn.
+        # The resolver proves vendor death and preserves artifacts before closing.
+        case = RecoveryCase.DEAD_WITHOUT_EXIT
     return RecoveryClassification(
         case=case,
         activation_id=activation_id,
