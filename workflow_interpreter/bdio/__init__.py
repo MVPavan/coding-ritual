@@ -45,6 +45,7 @@ from workflow_interpreter.bdio.errors import (
     StaleApprovalError,
     StoreConfigError,
     StoreError,
+    StoreOutputError,
     StoreTransportError,
 )
 from workflow_interpreter.bdio.mint import MintFacts
@@ -162,6 +163,7 @@ __all__ = [
     "StaleFlagRecord",
     "StoreConfigError",
     "StoreError",
+    "StoreOutputError",
     "StoreTransportError",
     "Usage",
     "VerifyFailureBinding",

@@ -68,7 +68,17 @@ class BdTimeoutError(StoreTransportError):
         )
 
 
-class BdOutputError(StoreTransportError):
+class StoreOutputError(StoreTransportError):
+    """The backend answered, but not in a shape this wrapper can read.
+
+    Distinct from its siblings on purpose: a command that failed, timed out or
+    was refused before it ran is a transport DEFECT, while an unreadable answer
+    is a store the caller may legitimately treat as "no usable record". Only
+    this class may be converted into an ordinary refusal above the seam.
+    """
+
+
+class BdOutputError(StoreOutputError):
     """bd's `--json` output could not be parsed, or had an unexpected shape."""
 
 

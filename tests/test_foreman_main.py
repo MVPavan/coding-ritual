@@ -26,7 +26,13 @@ from tests._helpers import (
 )
 from tests._supervisor import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from tests.conftest import Signer
-from workflow_interpreter.bdio import BdConfig, BdOutputError, Outcome, Usage
+from workflow_interpreter.bdio import (
+    BdCommandError,
+    BdConfig,
+    BdOutputError,
+    Outcome,
+    Usage,
+)
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
 from workflow_interpreter.bdio.config import SigningConfig
@@ -1223,6 +1229,41 @@ def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
     assert report["state"] == "refused"
     assert "missing" in report["reason"]
     assert "Traceback" not in transcript
+
+
+def test_phase_bridge_does_not_convert_a_transport_defect_into_a_refusal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failed bd invocation is a defect, not a caller-visible refusal.
+
+    An unreadable answer (`StoreOutputError`) means "no usable record" and is
+    the caller's problem; a command that exited non-zero, timed out or was
+    refused before it ran says nothing about the caller's ids, and reporting it
+    as `refused` would hide a broken store behind an ordinary exit code.
+    """
+    lab = _bridge_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    adapter = _bridge_adapter(lab)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config, _reads=None: adapter),
+    )
+
+    def broken(_stage_id: str) -> NoReturn:
+        """Model the transport itself failing, not a missing row."""
+        raise BdCommandError(("bd", "dep", "tree"), 1, "dolt: connection lost", "dep")
+
+    monkeypatch.setattr(adapter, "blocking_dependencies", broken)
+
+    with pytest.raises(BdCommandError):
+        bridge_command_module.execute_phase_bridge(
+            lab.composition,
+            epic_id="phase",
+            stage_id="stage",
+            retry=False,
+            trace=False,
+        )
 
 
 @pytest.mark.parametrize("trace", (False, True))
