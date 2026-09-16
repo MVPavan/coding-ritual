@@ -68,6 +68,7 @@ COLUMN_SEQ: Final[str] = "seq"
 COLUMN_STATUS: Final[str] = "status"
 COLUMN_CLOSE_REASON: Final[str] = "close_reason"
 COLUMN_ROOT: Final[str] = "root_id"
+COLUMN_AT: Final[str] = "at"
 
 _KEY_NODE: Final[str] = "node"
 _KEY_ROUND_NO: Final[str] = "round_no"
@@ -176,8 +177,15 @@ def projection(
     metadata: Metadata,
     metadata_json: str,
     payload_json: str | None,
+    at: str,
 ) -> dict[str, JsonValue]:
-    """Every column of one row: the carrier, plus what is indexed out of it."""
+    """Every column of one row: the carrier, plus what is indexed out of it.
+
+    `at` is the instant the WRITING transaction is stamping. An event is the
+    one row whose own column takes it: §3.3 gives `events.at` the moment the
+    fact was appended, and it was left NULL on every event until review found
+    it — which made the trace unreadable in time order outside `seq`.
+    """
     shared: dict[str, JsonValue] = {
         ID_COLUMN[table]: row_id,
         COLUMN_TASK: task_id,
@@ -232,7 +240,7 @@ def projection(
         "kind": _text(metadata, KEY_WF_KIND),
         KEY_EVENT_KEY: _text(metadata, KEY_EVENT_KEY) or row_id,
         COLUMN_PAYLOAD: payload_json,
-        "at": None,
+        COLUMN_AT: at,
     }
 
 
@@ -260,6 +268,7 @@ _IMMUTABLE_ON_MERGE: Final[frozenset[str]] = frozenset(
         COLUMN_CLOSE_REASON,
         COLUMN_PAYLOAD,
         COLUMN_TERMINAL_AT,
+        COLUMN_AT,
         "attempt",
         "backend",
     }
@@ -294,6 +303,7 @@ def merge_projection(
         metadata=metadata,
         metadata_json=metadata_json,
         payload_json=None,
+        at=at,
     )
     updates = {
         name: value

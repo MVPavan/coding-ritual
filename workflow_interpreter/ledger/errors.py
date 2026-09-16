@@ -12,6 +12,8 @@ from collections.abc import Sequence
 from typing import Final
 
 from workflow_interpreter.bdio.errors import (
+    LifecycleConflictError,
+    StoreBusyRefusal,
     StoreConfigError,
     StoreError,
     StoreTransportError,
@@ -74,7 +76,19 @@ class LedgerTransportError(StoreTransportError):
     """SQLite itself failed — the ledger's transport defect."""
 
 
-class LedgerBusyRefusal(StoreError):
+class LedgerGateConflict(LifecycleConflictError):
+    """Another decision already owns this gate, its nonce or its signature (§3.3).
+
+    A `LifecycleConflictError` because that is what it IS above the seam — a
+    write that contradicts the state already recorded — so the bd path's
+    refusal for the same situation (`gates._repair_closed_gate`) and this one
+    route identically. What only the ledger can add is that the refusal is
+    decided INSIDE the closing transaction, so the loser of a real race writes
+    neither a nonce nor a signature.
+    """
+
+
+class LedgerBusyRefusal(StoreBusyRefusal):
     """A writer waited out `busy_timeout` and REFUSED, rather than retrying.
 
     §3.4.6 makes this its own failure: a silent retry loop under heavy child

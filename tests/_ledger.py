@@ -65,6 +65,17 @@ def ledger_store(
     )
 
 
+def ledger_backend(database: LedgerDatabase, task_id: str = TASK) -> LedgerStore:
+    """The backend itself, for the tests that ask it what only IT decides.
+
+    The public path (`ledger_store`) goes through `WorkflowStore`, which
+    verifies a signature before it hands a gate closure down. A test about the
+    closing TRANSACTION — which decision owns the gate when two arrive — states
+    its closures directly, so it can state two of them.
+    """
+    return LedgerStore(database, task_id=task_id)
+
+
 def config_file(
     tmp_path: Path, bd_workspace: Path | None = None
 ) -> tuple[Path, Path, Path]:

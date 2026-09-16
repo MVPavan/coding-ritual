@@ -16,10 +16,13 @@ the same rows come back out in the same order with the same canonical JSON.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import sqlite3
 from collections.abc import Iterator, Mapping, Sequence
 from contextlib import closing
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final
 
@@ -30,7 +33,10 @@ from workflow_interpreter.ledger.constants import (
     EXPORT_KIND_HEADER,
     EXPORT_KIND_ROW,
     EXPORT_TABLES,
+    GATE_TABLES,
+    MSG_EXPORT_BLOB,
     MSG_EXPORT_COLUMN,
+    MSG_EXPORT_GATE_TASK,
     MSG_EXPORT_HEADER,
     MSG_EXPORT_ROW_KIND,
     MSG_EXPORT_TABLE,
@@ -66,6 +72,32 @@ from workflow_interpreter.schema.loader import canonical_json_bytes
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _SQL_TASK: Final[str] = "SELECT * FROM tasks WHERE task_id = ?"
+_SQL_GATE_ROWS: Final[str] = (
+    "SELECT {table}.* FROM {table} JOIN gates ON {table}.gate_id = gates.gate_id "
+    "WHERE gates.task_id = ? ORDER BY gates.seq, {table}.gate_id"
+)
+"""A nonce and a signature belong to the task their GATE belongs to; they carry
+no `task_id` of their own, so the join is what scopes them (§3.3)."""
+_SQL_PROJECTIONS: Final[str] = (
+    "SELECT * FROM projections WHERE task_id = ? ORDER BY generation"
+)
+_SQL_PROJECTION_COUNTS: Final[str] = (
+    "SELECT COUNT(*) AS recorded, "
+    "COUNT(*) FILTER (WHERE acked_at IS NULL) AS pending "
+    "FROM projections WHERE task_id = ?"
+)
+_SQL_NEXT_SEQ: Final[str] = "SELECT next_seq FROM tasks WHERE task_id = ?"
+_SQL_BUMP_SEQ: Final[str] = "UPDATE tasks SET next_seq = next_seq + 1 WHERE task_id = ?"
+_SQL_ENQUEUE: Final[str] = (
+    "INSERT INTO projections (task_id, generation, created_at, acked_at) "
+    "VALUES (?, ?, ?, NULL)"
+)
+_GATE_COLUMN: Final[str] = "gate_id"
+_BLOB_KEY: Final[str] = "base64"
+"""A signature's payload and bytes are BLOBs, and JSON has no bytes. They
+travel as a single-key object rather than as bare text, so a decoder can tell a
+restored BLOB from a column that really is a string (§3.6)."""
+_NONE_PENDING: Final[int] = 0
 _SEQ_COLUMN: Final[str] = "seq"
 _TASK_COLUMN: Final[str] = "task_id"
 _ONE_TASK_ROW: Final[int] = 1
@@ -110,6 +142,11 @@ def export_task(database: LedgerDatabase, task_id: str) -> bytes:
         lines = [header, _line(LedgerTable.TASKS, task)]
         lines += [
             _line(table, row) for table, row in _ordered_rows(connection, task_id)
+        ]
+        # After the rows they hang off, because that is the order an import
+        # inserts them in and a signature cannot precede its gate (§3.3 FKs).
+        lines += [
+            _line(table, row) for table, row in _auxiliary_rows(connection, task_id)
         ]
     return b"".join(canonical_json_bytes(line) + _NEWLINE for line in lines)
 
@@ -176,10 +213,38 @@ def import_exports(
             _clear(connection)
             for export in parsed:
                 for table, row in export.rows:
-                    _insert(connection, table, row)
+                    _insert(connection, table, row, path=export.path)
+            for export in parsed:
+                _enqueue_reconciliation(connection, export.task_id)
     for export in parsed:
         _LOG.info("wf.ledger.imported", task_id=export.task_id, path=str(export.path))
     return tuple(export.task_id for export in parsed)
+
+
+def _enqueue_reconciliation(connection: sqlite3.Connection, task_id: str) -> None:
+    """Owe one attention drain for a restored task, in the restoring transaction.
+
+    The label on the task bead was written from state that no longer exists, so
+    a restored task whose attention was ever reconciled owes one more drain
+    (§3.2). Two tasks are skipped, and neither of them is owed anything: one
+    that came back still owing unacked generations — that IS the drain, and a
+    second row would say nothing the first does not — and one that has no
+    projection history at all, whose label can never have been written because
+    only a drained generation writes one. Skipping them is also what keeps the
+    round trip byte-identical.
+    """
+    counts = connection.execute(_SQL_PROJECTION_COUNTS, (task_id,)).fetchone()
+    if counts is None or int(counts["recorded"]) == _NONE_PENDING:
+        return
+    if int(counts["pending"]) > _NONE_PENDING:
+        return
+    row = connection.execute(_SQL_NEXT_SEQ, (task_id,)).fetchone()
+    if row is None:  # pragma: no cover - the task row is inserted just above
+        raise LedgerTransportError(MSG_UNKNOWN_TASK.format(task_id=task_id))
+    connection.execute(
+        _SQL_ENQUEUE, (task_id, int(row[0]), datetime.now(tz=UTC).isoformat())
+    )
+    connection.execute(_SQL_BUMP_SEQ, (task_id,))
 
 
 def _parse(path: Path, *, repo_root: Path, wrapper_root: Path) -> ParsedExport:
@@ -223,8 +288,29 @@ def _assert_task(rows: Sequence[NumberedRow], *, path: Path, task_id: str) -> No
                 table=LedgerTable.TASKS.value,
             )
         )
-    for number, _table, row in rows:
-        # Every exportable table carries `task_id`, the `tasks` row as its key.
+    gates = {
+        row.get(_GATE_COLUMN)
+        for _number, table, row in rows
+        if table is LedgerTable.GATES
+    }
+    for number, table, row in rows:
+        if table in GATE_TABLES:
+            # A nonce and a signature carry no `task_id`: they are the task's
+            # exactly when their gate is, and the gate must be in THIS file.
+            gate = row.get(_GATE_COLUMN)
+            if gate not in gates:
+                raise LedgerExportError(
+                    MSG_EXPORT_GATE_TASK.format(
+                        path=path,
+                        number=number,
+                        table=table.value,
+                        gate_id=gate,
+                        declared=task_id,
+                    )
+                )
+            continue
+        # Every other exportable table carries `task_id`, the `tasks` row as
+        # its key.
         found = row.get(_TASK_COLUMN)
         if found != task_id:
             raise LedgerExportError(
@@ -330,8 +416,37 @@ def _line(table: LedgerTable, row: sqlite3.Row) -> ExportLine:
         ExportKey.KIND.value: EXPORT_KIND_ROW,
         ExportKey.TABLE.value: table.value,
         # `sqlite3.Row` iterates VALUES, so the column names come from `keys()`.
-        ExportKey.ROW.value: dict(zip(row.keys(), tuple(row), strict=True)),
+        ExportKey.ROW.value: {
+            name: _encoded(value)
+            for name, value in zip(row.keys(), tuple(row), strict=True)
+        },
     }
+
+
+def _encoded(value: object) -> JsonValue:
+    """One stored value as JSON — a BLOB as its base64 carrier."""
+    if isinstance(value, bytes):
+        return {_BLOB_KEY: base64.b64encode(value).decode("ascii")}
+    parsed: JsonValue = value  # type: ignore[assignment]
+    return parsed
+
+
+def _decoded(value: JsonValue, *, path: Path, column: str) -> object:
+    """One exported value back as what the column holds, BLOBs included.
+
+    Untrusted text: a carrier that does not decode is refused with the file and
+    the column that carried it, never handed to SQLite as a string that would
+    silently land in a BLOB column.
+    """
+    if not isinstance(value, dict) or set(value) != {_BLOB_KEY}:
+        return value
+    encoded = value[_BLOB_KEY]
+    try:
+        return base64.b64decode(str(encoded), validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise LedgerExportError(
+            MSG_EXPORT_BLOB.format(path=path, column=column, reason=exc)
+        ) from exc
 
 
 def _ordered_rows(
@@ -347,6 +462,24 @@ def _ordered_rows(
         yield table, row
 
 
+def _auxiliary_rows(
+    connection: sqlite3.Connection, task_id: str
+) -> Iterator[tuple[LedgerTable, sqlite3.Row]]:
+    """The task's nonces, signatures and projections, in a durable order.
+
+    They have no per-task `seq` of their own — they are facts ABOUT a gate or
+    about the task — so each is ordered by the key that identifies it: a gate's
+    own `seq` for the two gate-keyed tables, and the generation for a
+    projection. Deterministic, which is what keeps the round trip byte-identical.
+    """
+    for table in GATE_TABLES:
+        statement = _SQL_GATE_ROWS.format(table=table.value)
+        for row in connection.execute(statement, (task_id,)).fetchall():
+            yield table, row
+    for row in connection.execute(_SQL_PROJECTIONS, (task_id,)).fetchall():
+        yield LedgerTable.PROJECTIONS, row
+
+
 def _clear(connection: sqlite3.Connection) -> None:
     """Empty every exportable table, children before parents, so the FKs hold.
 
@@ -358,7 +491,11 @@ def _clear(connection: sqlite3.Connection) -> None:
 
 
 def _insert(
-    connection: sqlite3.Connection, table: LedgerTable, row: Mapping[str, JsonValue]
+    connection: sqlite3.Connection,
+    table: LedgerTable,
+    row: Mapping[str, JsonValue],
+    *,
+    path: Path,
 ) -> None:
     """Insert one VALIDATED exported row back into its table.
 
@@ -369,7 +506,10 @@ def _insert(
     names = ", ".join(row)
     placeholders = ", ".join("?" for _ in row)
     statement = f"INSERT INTO {table.value} ({names}) VALUES ({placeholders})"
+    values = tuple(
+        _decoded(value, path=path, column=column) for column, value in row.items()
+    )
     try:
-        connection.execute(statement, tuple(row.values()))
+        connection.execute(statement, values)
     except sqlite3.Error as exc:
         raise LedgerTransportError(str(exc)) from exc

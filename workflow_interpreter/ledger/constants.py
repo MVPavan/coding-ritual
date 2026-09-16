@@ -69,14 +69,25 @@ ROW_TABLES: Final[tuple[LedgerTable, ...]] = (
 """The tables holding a neutral `StoreRow` — the ones the read seam selects
 over. The rest hold facts ABOUT those rows and are reached through them."""
 
+GATE_TABLES: Final[tuple[LedgerTable, ...]] = (
+    LedgerTable.NONCES,
+    LedgerTable.SIGNATURES,
+)
+"""Task-owned rows keyed by `gate_id` rather than by `task_id`. They belong to
+the task their gate belongs to, which is how the export validates them."""
+
 EXPORT_TABLES: Final[tuple[LedgerTable, ...]] = (
     LedgerTable.TASKS,
     *ROW_TABLES,
+    *GATE_TABLES,
+    LedgerTable.PROJECTIONS,
 )
-"""What one task's export carries. The §3.3 tables reached THROUGH a row —
-nonces, signatures, projections and the per-activation facts — join it with
-the export surface that renders them (S4's `wf ledger verify`), not with the
-writes that fill them."""
+"""What one task's export carries: every task-owned row. The nonces and
+signatures are here because §3.6 re-verifies a task's approvals from the export
+ALONE, and the projections because a restored task whose attention rows were
+dropped would silently keep whatever label bd last carried. Order matters
+twice: rows are inserted in it (a signature needs its gate) and cleared in
+reverse. The per-activation facts stay out until S4 writes them."""
 
 
 TARGET_LEDGER: Final[str] = "the ledger"
@@ -163,6 +174,22 @@ MSG_LOSSY_ROW: Final[str] = "the row did not read back as written: {detail}"
 MSG_ROW_MISSING: Final[str] = (
     "no ledger row {row_id!r} in task {task_id!r}, so there is nothing to {operation}"
 )
+MSG_GATE_NOT_OPEN: Final[str] = (
+    "gate {gate_id!r} is {state!r} carrying approval {recorded!r}, and this "
+    "close carries {incoming!r}; the decision already recorded wins (§3.3)"
+)
+MSG_NONCE_SPENT: Final[str] = (
+    "nonce {nonce!r} was already consumed by gate {owner!r}; it cannot also "
+    "close {gate_id!r} (§9)"
+)
+MSG_GATE_SIGNED: Final[str] = (
+    "gate {gate_id!r} already holds a recorded signature, so this close would "
+    "replace the trust §3.6 re-verifies from (D21)"
+)
+MSG_EXPORT_GATE_TASK: Final[str] = (
+    "{path} line {number} carries a {table} row for gate {gate_id!r}, which "
+    "the file does not declare as a gate of task {declared!r} (§3.6)"
+)
 MSG_NOT_A_GATE: Final[str] = (
     "row {row_id!r} is a {table} row; only a gate is closed with a nonce and "
     "a signature (§3.3)"
@@ -191,6 +218,10 @@ MSG_EXPORT_TASK_MISMATCH: Final[str] = (
 MSG_EXPORT_COLUMN: Final[str] = (
     "{path} line {number} gives table {table} a column {column!r} the schema "
     "does not have (§3.3)"
+)
+MSG_EXPORT_BLOB: Final[str] = (
+    "{path} carries a value for column {column!r} that is not the base64 a "
+    "stored BLOB travels as: {reason} (§3.6)"
 )
 MSG_BAD_FILTER_KEY: Final[str] = (
     "carrier filter key {key!r} is not a plain identifier, so it cannot name a "

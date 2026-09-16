@@ -30,7 +30,7 @@ from typing import Final
 
 from pydantic import JsonValue
 
-from workflow_interpreter.bdio.carriers import Metadata
+from workflow_interpreter.bdio.carriers import GateState, Metadata
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import LossyWriteError
 from workflow_interpreter.bdio.records import CanaryResult
@@ -44,6 +44,8 @@ from workflow_interpreter.bdio.rows import (
     StoreRow,
 )
 from workflow_interpreter.bdio.wire import (
+    KEY_GATE_STATE,
+    KEY_PAYLOAD_DIGEST,
     KEY_SUPERSEDED_BY,
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
@@ -52,7 +54,10 @@ from workflow_interpreter.ledger import rowmap
 from workflow_interpreter.ledger.constants import (
     MSG_BAD_FILTER_KEY,
     MSG_CLAIM_ON_LEDGER,
+    MSG_GATE_NOT_OPEN,
+    MSG_GATE_SIGNED,
     MSG_LOSSY_ROW,
+    MSG_NONCE_SPENT,
     MSG_NOT_A_GATE,
     MSG_ROW_MISSING,
     ROW_TABLES,
@@ -68,6 +73,7 @@ from workflow_interpreter.ledger.database import (
 )
 from workflow_interpreter.ledger.errors import (
     LedgerClaimUnsupported,
+    LedgerGateConflict,
     LedgerRowMissing,
     LedgerTransportError,
     sqlite_failure,
@@ -113,14 +119,15 @@ _SQL_UPDATE_ROW: Final[str] = (
     "UPDATE {table} SET {assignments} WHERE task_id = ? AND {column} = ?"
 )
 _SQL_NONCE_INSERT: Final[str] = (
-    "INSERT INTO nonces (nonce, gate_id, consumed_at) VALUES (?, ?, ?) "
-    "ON CONFLICT(nonce) DO NOTHING"
+    "INSERT INTO nonces (nonce, gate_id, consumed_at) VALUES (?, ?, ?)"
 )
+_SQL_NONCE_OWNER: Final[str] = "SELECT gate_id FROM nonces WHERE nonce = ?"
 _SQL_SIGNATURE_INSERT: Final[str] = (
     "INSERT INTO signatures (gate_id, payload_bytes, signature_bytes, "
     "signer_fingerprint, allowed_signers_entry, policy_json) "
-    "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(gate_id) DO NOTHING"
+    "VALUES (?, ?, ?, ?, ?, ?)"
 )
+_SQL_SIGNATURE_PRESENT: Final[str] = "SELECT 1 FROM signatures WHERE gate_id = ?"
 _SQL_PROJECTION_INSERT: Final[str] = (
     "INSERT INTO projections (task_id, generation, created_at, acked_at) "
     "VALUES (?, ?, ?, NULL)"
@@ -261,6 +268,7 @@ class LedgerStore:
                 metadata=metadata,
                 metadata_json=_json_text(metadata),
                 payload_json=None if new.payload is None else _json_text(new.payload),
+                at=_now(),
             )
             self._insert(table, columns)
             written = self._verified(table, row_id, metadata, LedgerOperation.CREATING)
@@ -362,9 +370,15 @@ class LedgerStore:
         §3.6 can re-verify from the export alone, and the attention projection
         is enqueued with it.
 
-        The inserts are first-writer-wins: a repeat of one decision must not
-        fail the close it is repeating, and a DIFFERENT decision on a closed
-        gate is refused above this seam (`gates._repair_closed_gate`).
+        The decision is also DECIDED here, inside the transaction. The caller
+        read the gate as OPEN before it verified a signature (`gates.
+        close_gate_verified`), so two approvals can arrive at one gate having
+        both seen it open; whichever `BEGIN IMMEDIATE` commits first owns the
+        gate, and the other is refused with its nonce and its signature
+        unwritten. Letting the second write through while the nonce and
+        signature inserts quietly kept the first one's rows would leave a gate
+        whose recorded outcome and whose stored trust came from two different
+        approvals (found in review).
         """
         with self._database.transaction():
             table, row = self._locate(closure.gate_id, LedgerOperation.CLOSING_GATE)
@@ -372,6 +386,9 @@ class LedgerStore:
                 raise LedgerTransportError(
                     MSG_NOT_A_GATE.format(row_id=closure.gate_id, table=table.value)
                 )
+            recorded = self._decidable(table, row, closure)
+            if recorded is not None:
+                return recorded
             merged = dict(self._hydrated(table, row).metadata) | dict(closure.metadata)
             self._rewrite(table, row, merged)
             self._update(
@@ -481,8 +498,65 @@ class LedgerStore:
             )
         return written
 
+    def _decidable(
+        self, table: LedgerTable, row: sqlite3.Row, closure: GateClosure
+    ) -> StoreRow | None:
+        """Refuse a close that contradicts a decision this gate already carries.
+
+        Answers the recorded row when this closure IS that decision — the same
+        approval re-submitted after a lost read-back — and `None` when the gate
+        is open and nothing of this close has landed yet. Everything else is a
+        conflict, raised before a single row of the closure is written.
+        """
+        current = self._hydrated(table, row)
+        incoming = closure.metadata.get(KEY_PAYLOAD_DIGEST)
+        state = current.metadata.get(KEY_GATE_STATE)
+        if state != GateState.OPEN.value:
+            digest = current.metadata.get(KEY_PAYLOAD_DIGEST)
+            if digest is not None and digest == incoming:
+                return current
+            raise LedgerGateConflict(
+                MSG_GATE_NOT_OPEN.format(
+                    gate_id=closure.gate_id,
+                    state=state,
+                    recorded=digest,
+                    incoming=incoming,
+                )
+            )
+        signed = self._execute(
+            _SQL_SIGNATURE_PRESENT,
+            (closure.gate_id,),
+            LedgerOperation.CLOSING_GATE,
+            closure.gate_id,
+        ).fetchone()
+        if signed is not None:
+            raise LedgerGateConflict(MSG_GATE_SIGNED.format(gate_id=closure.gate_id))
+        self._assert_unspent(closure)
+        return None
+
+    def _assert_unspent(self, closure: GateClosure) -> None:
+        """Refuse an approval whose nonce already closed some OTHER gate (§9)."""
+        if closure.nonce is None:
+            return
+        owner = self._execute(
+            _SQL_NONCE_OWNER,
+            (closure.nonce,),
+            LedgerOperation.CLOSING_GATE,
+            closure.gate_id,
+        ).fetchone()
+        if owner is not None and str(owner[0]) != closure.gate_id:
+            raise LedgerGateConflict(
+                MSG_NONCE_SPENT.format(
+                    nonce=closure.nonce, owner=str(owner[0]), gate_id=closure.gate_id
+                )
+            )
+
     def _consume_nonce(self, closure: GateClosure) -> None:
-        """Spend the approval's nonce on THIS gate, once and for all (§9)."""
+        """Spend the approval's nonce on THIS gate, once and for all (§9).
+
+        A plain insert: `_decidable` has already proved the nonce is unspent,
+        so a conflict here is a defect rather than a second owner to tolerate.
+        """
         if closure.nonce is None:
             return
         self._execute(

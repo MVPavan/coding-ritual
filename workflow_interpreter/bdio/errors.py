@@ -40,6 +40,17 @@ class StoreTransportError(StoreError):
     """
 
 
+class StoreBusyRefusal(StoreError):
+    """A backend was contended past its bounded wait and REFUSED the write.
+
+    Neutral on purpose: the ledger raises it (`ledger/errors.py`), and the
+    activation-aware boundary above the seam records it as a deviation without
+    learning that SQLite exists. bd never raises it — its transport has no
+    write lock to wait on — so a caller that handles it is not thereby pinned
+    to one backend.
+    """
+
+
 class BdCommandError(StoreTransportError):
     """bd exited non-zero."""
 

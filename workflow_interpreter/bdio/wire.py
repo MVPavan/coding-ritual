@@ -155,6 +155,11 @@ KEY_EVENT_KEY: Final[str] = "event_key"
 KEY_INSTANCE_KEY: Final[str] = "instance_key"
 KEY_SEQ: Final[str] = "seq"
 KEY_NONCE: Final[str] = "nonce"
+KEY_GATE_STATE: Final[str] = "state"
+KEY_PAYLOAD_DIGEST: Final[str] = "payload_digest"
+"""The two keys a gate close is decided by: the state it must still be in, and
+the approval it carries — compared by a backend that closes the gate in ONE
+transaction (`ledger/store.py`)."""
 KEY_SUPERSEDED_BY: Final[str] = "superseded_by"
 KEY_TERMINAL: Final[str] = "terminal"
 KEY_LIFECYCLE: Final[str] = "lifecycle"

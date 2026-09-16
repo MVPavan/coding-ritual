@@ -570,7 +570,28 @@ def settle_root(client: StoreBackend, root_id: str, terminal: str) -> RootRecord
             _MSG_TERMINAL_CONFLICT.format(root_id=root_id, found=found, wanted=terminal)
         )
     if found is None:
-        record = parse_root(client._merge_metadata(root_id, {KEY_TERMINAL: terminal}))
+
+        def guard(row: StoreRow) -> None:
+            """Re-assert "no other terminal" against the row being written.
+
+            The check above ran against a read taken BEFORE this transaction,
+            so two settlements that both saw an unset terminal would both pass
+            it and the later one would rewrite the end of the instance. Handed
+            to the backend so that a backend which can transact decides it
+            against the row it is about to change (§3.3); bd does not evaluate
+            it and keeps today's narrower window (`rows.RowGuard`).
+            """
+            recorded = row.metadata.get(KEY_TERMINAL)
+            if recorded is not None and recorded != terminal:
+                raise CarrierIntegrityError(
+                    _MSG_TERMINAL_CONFLICT.format(
+                        root_id=root_id, found=recorded, wanted=terminal
+                    )
+                )
+
+        record = parse_root(
+            client._merge_metadata(root_id, {KEY_TERMINAL: terminal}, guard=guard)
+        )
         _LOG.info("wf.root.terminal", root_id=root_id, terminal=terminal)
     return finalize.close_record_forward(
         client,

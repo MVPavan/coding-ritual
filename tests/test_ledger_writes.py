@@ -20,7 +20,8 @@ import sqlite3
 import subprocess
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final
 
@@ -44,19 +45,27 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.backend import PinnedBackendFactory
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
-from workflow_interpreter.bdio.errors import LifecycleConflictError
+from workflow_interpreter.bdio.errors import (
+    CarrierIntegrityError,
+    LifecycleConflictError,
+)
+from workflow_interpreter.bdio.rows import RowGuard, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import (
+    EventPayload,
     Evidence,
     ExitRecord,
     GateState,
     Lifecycle,
+    Metadata,
 )
 from workflow_interpreter.ledger.__main__ import main as ledger_main
+from workflow_interpreter.ledger.constants import ExportKey, LedgerTable
 from workflow_interpreter.ledger.database import LedgerDatabase, connect, open_ledger
 from workflow_interpreter.ledger.errors import LedgerBusyRefusal, LedgerFenceBusy
+from workflow_interpreter.ledger.export import import_export, write_export
 from workflow_interpreter.ledger.fence import LedgerFence
-from workflow_interpreter.ledger.paths import ledger_path
+from workflow_interpreter.ledger.paths import export_path, ledger_path
 from workflow_interpreter.ledger.reconcile import (
     ATTENTION_LABEL,
     AttentionReconciler,
@@ -66,6 +75,7 @@ from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
 
 TERMINAL: Final[str] = "shipped"
+ABANDONED: Final[str] = "abandoned"
 STATUS_OPEN: Final[str] = "open"
 STATUS_CLOSED: Final[str] = "closed"
 BUSY_TIMEOUT_MS: Final[int] = 50
@@ -111,6 +121,52 @@ with open_ledger(Path(repo_root), Path(wrapper_root)) as database:
 """One child writing one event of its own into the SHARED ledger, through the
 same public path the driver uses — a real process, a real WAL, a real
 `busy_timeout`."""
+
+_CLOSE_SCRIPT: Final[str] = """
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, sys.argv[1])
+
+from tests._ledger import ledger_backend
+from workflow_interpreter.bdio.rows import GateClosure, GateSignature
+from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.errors import LedgerGateConflict
+
+repo_root, wrapper_root, gate_id, ordinal, barrier = sys.argv[2:7]
+mark = "-" + ordinal
+closure = GateClosure(
+    gate_id=gate_id,
+    metadata={
+        "state": "closed",
+        "outcome": "approve",
+        "nonce": "nonce" + mark,
+        "payload_digest": "digest" + mark,
+        "verified_fingerprint": "SHA256:fingerprint" + mark,
+    },
+    close_reason="outcome=approve",
+    nonce="nonce" + mark,
+    signature=GateSignature(
+        payload_bytes=("payload" + mark).encode("utf-8"),
+        signature_bytes=("signature" + mark).encode("utf-8"),
+        signer_fingerprint="SHA256:fingerprint" + mark,
+        allowed_signers_entry="entry" + mark,
+        policy={"namespace": "wf"},
+    ),
+)
+with open_ledger(Path(repo_root), Path(wrapper_root)) as database:
+    backend = ledger_backend(database)
+    while not Path(barrier).exists():
+        time.sleep(0.01)
+    try:
+        backend._close_gate(closure)
+    except LedgerGateConflict:
+        raise SystemExit(3)
+"""
+"""One process taking one gate's decision, released by a shared barrier file.
+Two of them race the SAME gate with two different approvals, which is the race
+the §3.3 gate close has to decide inside its transaction."""
 
 
 @pytest.fixture
@@ -267,6 +323,129 @@ def test_a_gate_close_lands_nonce_signature_and_projection_in_one_transaction(
         )
     ]
     assert len(_unacked(ledger)) == 2
+
+
+@pytest.mark.proc
+def test_two_processes_closing_one_gate_leave_exactly_one_whole_decision(
+    tmp_path: Path,
+) -> None:
+    """§3.3: the gate close DECIDES, inside the transaction that takes it.
+
+    Two approvals reach one gate having both read it OPEN — the real shape,
+    because verification happens outside the transaction. Whichever `BEGIN
+    IMMEDIATE` commits first owns the gate; the loser writes nothing at all.
+    Before this, the loser's carrier overwrote the winner's outcome while the
+    nonce and signature inserts silently kept the winner's rows, leaving one
+    gate whose decision and whose stored trust came from two approvals.
+    """
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _, gate_id = _open_gate(ledger_store(database))
+    barrier = tmp_path / "start"
+
+    project_root = str(Path(__file__).resolve().parents[1])
+    racers = [
+        subprocess.Popen(
+            (
+                sys.executable,
+                "-c",
+                _CLOSE_SCRIPT,
+                project_root,
+                str(repo_root),
+                str(wrapper_root),
+                gate_id,
+                str(ordinal),
+                str(barrier),
+            ),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        for ordinal in (1, 2)
+    ]
+    barrier.write_text("go", encoding="utf-8")
+    outcomes = []
+    for racer in racers:
+        _, stderr = racer.communicate(timeout=CHILD_TIMEOUT_S)
+        outcomes.append((racer.returncode, stderr))
+
+    codes = sorted(code for code, _ in outcomes)
+    assert codes == [0, 3], outcomes
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        gate = _rows(reopened, "SELECT * FROM gates WHERE gate_id = ?", gate_id)[0]
+        winner = str(gate["nonce"])
+        nonces = _rows(reopened, "SELECT * FROM nonces")
+        signatures = _rows(reopened, "SELECT * FROM signatures")
+
+    assert [str(row["nonce"]) for row in nonces] == [winner]
+    assert len(signatures) == 1
+    mark = winner.removeprefix("nonce")
+    # One decision, whole: the carrier, the nonce and the stored trust are all
+    # the winner's, and nothing of the loser's is anywhere.
+    assert json.loads(gate["metadata_json"])["payload_digest"] == f"digest{mark}"
+    assert signatures[0]["signer_fingerprint"] == f"SHA256:fingerprint{mark}"
+    assert signatures[0]["allowed_signers_entry"] == f"entry{mark}"
+    assert gate["state"] == GateState.CLOSED.value
+
+
+def test_a_settlement_that_loses_the_race_never_rewrites_the_recorded_terminal(
+    ledger: LedgerDatabase,
+) -> None:
+    """§3.1: the end an instance reached is routing truth, and it is written once.
+
+    `settle_root` checks the recorded terminal against a read taken before its
+    write, so two settlements that both saw it unset both passed that check and
+    the later one rewrote the end of the instance. The guard runs INSIDE the
+    writing transaction now, against the row being changed, so the settlement
+    that lands second is refused and the first terminal stands.
+    """
+    store = ledger_store(ledger)
+    root = make_root(store, load_definition())
+
+    def rival() -> None:
+        """Another process settles this root, on its own connection, first."""
+        with open_ledger(ledger.repo_root, ledger.wrapper_root) as other:
+            ledger_store(other).settle_root(root.root_id, ABANDONED)
+
+    raced = WorkflowStore(
+        _RacedLedgerStore(ledger, task_id=TASK, rival=rival),
+        branch_head_reader=branch_head,
+    )
+
+    with pytest.raises(CarrierIntegrityError) as refusal:
+        raced.settle_root(root.root_id, TERMINAL)
+
+    assert ABANDONED in str(refusal.value)
+    row = _rows(ledger, "SELECT * FROM roots WHERE root_id = ?", root.root_id)[0]
+    assert row["terminal"] == ABANDONED
+    assert store.reads.load_root(root.root_id).metadata.terminal == ABANDONED
+
+
+class _RacedLedgerStore(LedgerStore):
+    """A store whose rival settlement commits between the check and the write.
+
+    The interleaving is the one `settle_root` cannot otherwise be asked for:
+    its own guard read runs before the transaction, so the only way to prove
+    the IN-transaction guard is to make another connection's settlement land in
+    exactly that window. The rival commits on its own connection before this
+    store's transaction begins, which is where a second process's settlement
+    would land.
+    """
+
+    def __init__(
+        self, database: LedgerDatabase, *, task_id: str, rival: Callable[[], None]
+    ) -> None:
+        super().__init__(database, task_id=task_id)
+        self._rival: Callable[[], None] | None = rival
+
+    def _merge_metadata(
+        self, row_id: str, metadata: Metadata, *, guard: RowGuard | None = None
+    ) -> StoreRow:
+        """Let the rival settle once, then take this store's own transaction."""
+        rival, self._rival = self._rival, None
+        if rival is not None:
+            rival()
+        return super()._merge_metadata(row_id, metadata, guard=guard)
 
 
 def test_a_settlement_stamps_the_terminal_and_enqueues_its_projection(
@@ -559,6 +738,114 @@ def test_two_roots_racing_one_reconciler_lose_no_update(
     assert _labels(bd_labels) == [ATTENTION_LABEL]
     assert _unacked(ledger) == []
     assert AttentionReconciler(ledger, label_client).wanted(TASK) is True
+
+
+# --- what the export carries out of the write side (§3.6) -------------------
+
+
+def test_the_export_carries_the_nonces_signatures_and_projections_a_task_owns(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """§3.6: an approval is re-verifiable from the export ALONE (D21).
+
+    The three task-owned auxiliary tables used to be left out, so a restored
+    ledger had no signature to re-verify, no spent nonce to refuse a replay
+    with, and no record that its attention was owed. They round trip with
+    everything else, byte for byte.
+    """
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        verifier = GateVerifier(signing_config, database.repo_root)
+        store = ledger_store(database, verifier=verifier)
+        root_id, gate_id = _open_gate(store)
+        gate = store.reads.load_gate(gate_id)
+        close(store, root_id, gate, approval_payload(root_id, gate), sign_payload)
+        first = write_export(database, TASK).read_bytes()
+
+    tables = [
+        json.loads(line)[ExportKey.TABLE.value] for line in first.splitlines()[1:]
+    ]
+    assert {
+        LedgerTable.NONCES.value,
+        LedgerTable.SIGNATURES.value,
+        LedgerTable.PROJECTIONS.value,
+    } <= set(tables)
+
+    import_export(
+        export_path(repo_root, TASK),
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        ledger=ledger_path(repo_root),
+    )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert write_export(reopened, TASK).read_bytes() == first
+        assert _rows(reopened, "SELECT * FROM signatures WHERE gate_id = ?", gate_id)
+
+
+def test_an_imported_task_owes_exactly_one_new_attention_reconciliation(
+    tmp_path: Path, label_client: BdClient, bd_labels: FakeBd
+) -> None:
+    """§3.2: a restored task's label was written from state that is now gone.
+
+    The drain before the export left nothing owed, so the label on the bead
+    agreed with the ledger. After a rebuild it agrees with nothing, and the
+    import enqueues the one generation that makes the next drain re-derive it.
+    """
+    _task_bead(bd_labels)
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _open_gate(ledger_store(database))
+        AttentionReconciler(database, label_client).drain(TASK)
+        assert _unacked(database) == []
+        before = [
+            int(row["generation"])
+            for row in _rows(database, "SELECT generation FROM projections")
+        ]
+        write_export(database, TASK)
+
+    import_export(
+        export_path(repo_root, TASK),
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        ledger=ledger_path(repo_root),
+    )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        owed = _unacked(reopened)
+        assert len(owed) == 1
+        assert owed[0] not in before
+        assert AttentionReconciler(reopened, label_client).drain(TASK).written is True
+
+
+# --- the trace's own timestamps (§3.3) --------------------------------------
+
+
+def test_an_appended_event_is_stamped_with_the_instant_it_was_written(
+    ledger: LedgerDatabase,
+) -> None:
+    """§3.3: `events.at` is the moment the fact was appended, not NULL."""
+    store = ledger_store(ledger)
+    root = make_root(store, load_definition())
+
+    store.append_event(root.root_id, _event_payload(root.root_id))
+
+    stamps = [row["at"] for row in _rows(ledger, "SELECT at FROM events")]
+    assert stamps and all(stamp is not None for stamp in stamps)
+    assert all(datetime.fromisoformat(str(stamp)).tzinfo is UTC for stamp in stamps)
+
+
+def _event_payload(root_id: str) -> EventPayload:
+    """One routing event of this instance, as the driver appends it."""
+    return EventPayload(
+        **{"from": "implement"},
+        outcome=Outcome.DONE,
+        to="review",
+        activation_id=f"{root_id}.implement.r1.1",
+        seq=1,
+        actor=TEST_ACTOR,
+        origin="activation",
+    )
 
 
 # --- the CLI (§3.2.4) -------------------------------------------------------
