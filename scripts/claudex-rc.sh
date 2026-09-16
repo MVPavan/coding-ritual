@@ -19,6 +19,7 @@
 #   claudex-rc.sh list                      List configured Claude projects
 #   claudex-rc.sh logs <name|codex> [-f]    Show (or follow) a session's log
 #   claudex-rc.sh pair <name|codex>         Claude: print the connect URL; Codex: print the machine-name hint
+#   claudex-rc.sh start <name|codex|all>    Start a STOPPED session (or all, incl. Codex); running ones untouched
 #   claudex-rc.sh restart <name|codex|all>  Restart one session (or all, incl. Codex)
 #   claudex-rc.sh reset <name|path|all>     Force a FRESH env: clear the cached bridge-pointer + restart (un-burn)
 #   claudex-rc.sh heal                      Watchdog: restart sessions wedged >15 min (restart-only, never clears env; run by the timer)
@@ -419,6 +420,57 @@ cmd_pair() {
   fi
 }
 
+# Start a session that is currently stopped. Unlike `restart`, a running session
+# is left untouched — safe to run blind after a crash, a manual stop, or when
+# `status` shows "inactive (dead)". A previously failed unit is reset first so
+# systemd will start it again.
+start_unit() {
+  local unit="$1" label="$2"
+  if uc is-active --quiet "$unit"; then
+    log "already running: ${label}"
+    return
+  fi
+  uc reset-failed "$unit" >/dev/null 2>&1 || true
+  uc enable --now "$unit" >/dev/null 2>&1 || uc start "$unit"
+  log "started: ${label}"
+}
+
+start_codex() {
+  # Not configured yet: setup_codex writes the unit (and warns if codex is absent).
+  if [ ! -f "$CODEX_UNIT_FILE" ]; then
+    setup_codex
+    return
+  fi
+  start_unit "$CODEX_UNIT" "codex-rc"
+}
+
+start_instance() {
+  local inst="$1"
+  if [ ! -f "${CFG_DIR}/${inst}.env" ]; then
+    warn "No managed session '${inst}${RC_SUFFIX}'. Add it with: $0 add <path>"
+    return
+  fi
+  start_unit "claude-rc@${inst}" "${inst}${RC_SUFFIX}"
+}
+
+cmd_start() {
+  require_systemd
+  local arg="${1:-}"
+  if [ -z "$arg" ]; then err "Usage: $0 start <name|codex|all>"; exit 1; fi
+  if [ "$arg" = "all" ] || [ "$arg" = "--all" ]; then
+    shopt -s nullglob
+    local envf
+    for envf in "$CFG_DIR"/*.env; do
+      start_instance "$(basename "$envf" .env)"
+    done
+    shopt -u nullglob
+    if [ -f "$CODEX_UNIT_FILE" ]; then start_codex; fi
+    return 0
+  fi
+  if is_codex_arg "$arg"; then start_codex; return; fi
+  start_instance "$(resolve_inst "$arg")"
+}
+
 cmd_restart() {
   require_systemd
   local arg="${1:-}"
@@ -568,6 +620,7 @@ main() {
     list|ls)       cmd_list "$@" ;;
     logs|log)      cmd_logs "$@" ;;
     pair|url)      cmd_pair "$@" ;;
+    start)         cmd_start "$@" ;;
     restart)       cmd_restart "$@" ;;
     reset)         cmd_reset "$@" ;;
     heal)          cmd_heal "$@" ;;

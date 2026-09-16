@@ -43,6 +43,7 @@ Run from the repo root (or use an absolute path):
 | `scripts/claudex-rc.sh pair <name\|codex>` | Print the connect URL (Codex: prints the machine-name hint instead). |
 | `scripts/claudex-rc.sh add <path>` | Add and start ONE project. |
 | `scripts/claudex-rc.sh remove <name\|path\|codex>` | Stop, disable and forget one session. |
+| `scripts/claudex-rc.sh start <name\|codex\|all>` | Start a stopped session (Codex included). Running sessions are left untouched. |
 | `scripts/claudex-rc.sh restart <name\|codex\|all>` | Restart, keeping the cached env/session. |
 | `scripts/claudex-rc.sh reset <name\|path\|all>` | **Recovery:** delete the bridge pointer + restart → fresh env and a brand-new session. |
 | `scripts/claudex-rc.sh heal` | Watchdog pass (the timer runs this every 15 min). |
@@ -52,13 +53,22 @@ Run from the repo root (or use an absolute path):
 
 ### Start / stop
 
-`setup`, `add`, `restart` and `reset` all start things. To stop, use systemd directly —
+`start` brings a stopped session back up — one project, the Codex daemon, or everything
+configured — and is a no-op on anything already running, so it is safe to run blind:
+
+```bash
+scripts/claudex-rc.sh start codex                    # the Codex daemon
+scripts/claudex-rc.sh start bodha                    # one Claude project
+scripts/claudex-rc.sh start all                      # every configured session + Codex
+```
+
+`setup`, `add`, `restart` and `reset` also start things. To stop, use systemd directly —
 there is deliberately no `stop` subcommand, because stopping is rare and should be explicit:
 
 ```bash
 systemctl --user stop claude-rc@bodha.service        # one project
 systemctl --user stop claude-rc@{bodha,coding-ritual,multibaggers,orchestrators}.service
-systemctl --user start claude-rc@bodha.service       # bring it back
+systemctl --user stop codex-rc.service               # the Codex daemon
 ```
 
 A manual `stop` is **not** auto-revived: `Restart=always` only catches crashes, and
