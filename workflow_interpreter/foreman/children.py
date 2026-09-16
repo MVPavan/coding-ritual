@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from contextlib import ExitStack
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from workflow_interpreter.schema.decisions import MemberAdmission
 
 from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.records import ActivationRecord
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.rpc_control import control_keys
@@ -286,13 +287,10 @@ def collect(
         return result
 
 
-def observe(composition: Composition, row: ChildRecord) -> ChildRecord:
-    """Bounded evidence pointers from authoritative local lifecycle reads."""
-    if row.cancellation is not None or row.collection is not None:
-        return row
-    root = composition.store.reads.load_root(row.root_id)
-    activations = composition.store.reads.list_activations(row.root_id)
-    latest = max(activations, key=lambda a: a.metadata.seq, default=None)
+def refresh_control_attention(
+    row: ChildRecord, activations: Sequence[ActivationRecord]
+) -> ChildRecord:
+    """Recompute control attention from one caller-owned durable snapshot."""
     if row.attention_source != "decision":
         known = control_keys(activations)
         pieces = [
@@ -305,6 +303,23 @@ def observe(composition: Composition, row: ChildRecord) -> ChildRecord:
             # One bounded key signals attention; the activation retains every control.
             pieces.append(min(pending))
         row = row.model_copy(update={"attention": "; ".join(pieces) or None})
+    return row
+
+
+def observe(
+    composition: Composition,
+    row: ChildRecord,
+    *,
+    activations: Sequence[ActivationRecord] | None = None,
+) -> ChildRecord:
+    """Bounded evidence pointers from authoritative local lifecycle reads."""
+    if row.cancellation is not None or row.collection is not None:
+        return row
+    root = composition.store.reads.load_root(row.root_id)
+    if activations is None:
+        activations = composition.store.reads.list_activations(row.root_id)
+    latest = max(activations, key=lambda a: a.metadata.seq, default=None)
+    row = refresh_control_attention(row, activations)
     gates = composition.store.reads.list_gates(row.root_id)
     waiting = next((g for g in gates if g.bead.status != "closed"), None)
     changes: dict[str, object] = {
@@ -337,13 +352,23 @@ def observe(composition: Composition, row: ChildRecord) -> ChildRecord:
     return row.model_copy(update=changes)
 
 
-def attention_blocks(composition: Composition, row: ChildRecord) -> bool:
+def attention_blocks(
+    composition: Composition,
+    row: ChildRecord,
+    *,
+    activations: Sequence[ActivationRecord] | None = None,
+) -> bool:
     """Gate and control attention allow lifecycle observation; other failures stop."""
     if not row.attention or row.attention.startswith("waiting at gate "):
         return False
-    return row.attention_source == "decision" or not set(
-        row.attention.split("; ")
-    ).issubset(control_keys(composition.store.reads.list_activations(row.root_id)))
+    if row.attention_source == "decision":
+        return True
+    if activations is None:
+        activations = composition.store.reads.list_activations(row.root_id)
+    row = refresh_control_attention(row, activations)
+    return row.attention is not None and not set(row.attention.split("; ")).issubset(
+        control_keys(activations)
+    )
 
 
 def drive(
@@ -368,9 +393,19 @@ def drive(
     observers: dict[str, DriverObserver] = {}
     with BandLock(coordinator.member_lock_path(owner, "drive")), ExitStack() as stack:
         while time.monotonic() < deadline:
+            children = coordinator.state(owner).children
+            snapshots = {
+                row.root_id: composition.store.reads.list_activations(row.root_id)
+                for row in children.values()
+                if row.cancellation is None and row.collection is None
+            }
             rows = [
-                observe(composition, r)
-                for r in coordinator.child_status(owner).children
+                observe(
+                    composition,
+                    children[key],
+                    activations=snapshots.get(children[key].root_id),
+                )
+                for key in sorted(children)
             ]
             active = active_slots(composition, owner, rows)
             if len(active) > max_concurrent:
@@ -387,7 +422,9 @@ def drive(
                     eligible = True
                     continue
                 try:
-                    if row.state == "settled" or attention_blocks(composition, row):
+                    if row.state == "settled" or attention_blocks(
+                        composition, row, activations=snapshots[row.root_id]
+                    ):
                         coordinator.update_child(owner, row)
                         continue
                     composition.for_root(row.root_id)
