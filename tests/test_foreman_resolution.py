@@ -59,6 +59,7 @@ from workflow_interpreter.foreman.resolve import (
 )
 from workflow_interpreter.profiles import ProfileConfig
 from workflow_interpreter.profiles.registry import ProfileRegistry
+from workflow_interpreter.schema.decisions import CoordinationError
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.schema.validator import PHASE_B_RULES
@@ -221,6 +222,30 @@ def test_root_scoped_reads_ask_the_locator_for_that_root(
         composition.reads_for_root(root.root_id).load_root(root.root_id).root_id
         == root.root_id
     )
+    assert asked == [root.root_id]
+
+
+def test_root_scoped_coordination_is_bound_to_that_root(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """An owner's reservation ledger lives in the owner's own record (§3.2).
+
+    `CoordinationStore` loads and saves the owner root through the backend it
+    was built on, so a coordination store taken from `composition.store` would
+    query the process-wide backend about a root pinned to another one.
+    """
+    root = make_root(fake_store, load_definition())
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    asked: list[str] = []
+
+    def locate(root_id: str) -> BackendKind:
+        asked.append(root_id)
+        return BackendKind.BD
+
+    composition = replace(composition, locate_backend=locate)
+
+    with pytest.raises(CoordinationError, match="owner reservation ledger missing"):
+        composition.coordination_for_root(root.root_id).state(root.root_id)
     assert asked == [root.root_id]
 
 

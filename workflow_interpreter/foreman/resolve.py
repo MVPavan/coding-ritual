@@ -392,7 +392,7 @@ def instantiate(
     if definition.document.instance.coordination_limits is not None:
         from workflow_interpreter.foreman.decisions import admission_of
 
-        composition.store.coordination_store().initialize(
+        composition.coordination_for_root(root.root_id).initialize(
             root.root_id, admission_of(root, slot="work", generation=0)
         )
         root = composition.reads_for_root(root.root_id).load_root(root.root_id)

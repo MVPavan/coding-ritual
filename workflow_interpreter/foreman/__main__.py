@@ -364,7 +364,7 @@ def _coordination_report(
     if link is None:
         return {}
     return {
-        "coordination": composition.store.coordination_store()
+        "coordination": composition.coordination_for_root(link.owner_id)
         .coordination_view(link.owner_id)
         .model_dump(mode="json")
     }

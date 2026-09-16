@@ -34,7 +34,7 @@ from workflow_interpreter.supervisor.paths import ExecLedger, read_record, write
 def finish_cancel(
     composition: Composition, owner: str, row: ChildRecord
 ) -> CancellationReceipt:
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(owner, composition=composition)
     assert row.cancellation is not None
     if row.cancellation.state == "cancelled":
         record_late_evidence(composition, row.root_id)
@@ -137,7 +137,7 @@ def finish_cancel(
 def recover(
     composition: Composition, owner: str, row: ChildRecord
 ) -> ChildCoordinationView:
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(owner, composition=composition)
     if row.cancellation is not None:
         finish_cancel(composition, owner, row)
     elif row.collection is None:
@@ -165,7 +165,7 @@ def collect(
     from workflow_interpreter.bdio import Lifecycle, Outcome
     from workflow_interpreter.schema.decisions import digest_record
 
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(owner, composition=composition)
     # Owner-before-member for the final immutable receipt transition.
     with (
         coordinator._locked(owner),
@@ -382,7 +382,7 @@ def drive(
 
     from workflow_interpreter.foreman.tick import Foreman
 
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(owner, composition=composition)
     count = len(coordinator.child_status(owner).children)
     if type(max_concurrent) is not int or not 1 <= max_concurrent <= count:
         raise CoordinationError(
@@ -556,7 +556,9 @@ def command(composition: Composition, args: object) -> str:
 
     if not isinstance(args, Namespace):
         raise CoordinationError("invalid child command")
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(
+        args.owner_id, composition=composition
+    )
     name = args.child_command
     if name == "replace":
         from workflow_interpreter.foreman.replacement import replace_checked
@@ -658,7 +660,7 @@ def record_late_evidence(composition: Composition, root_id: str) -> None:
     link = root.metadata.coordination
     if link is None:
         return
-    row = composition.store.coordination_store().child_for_root(root)
+    row = composition.coordination_for_root(link.owner_id).child_for_root(root)
     if row is None or row.cancellation is None:
         return
     wiring = composition.for_root(root_id)
@@ -679,7 +681,7 @@ def active_slots(
     """Count launch intents too, including decision tasks and pending cancellation."""
     from workflow_interpreter.bdio import Lifecycle
 
-    state = composition.store.coordination_store().state(owner)
+    state = composition.coordination_for_root(owner).state(owner)
     active: set[str] = set()
     for row in rows:
         if row.state in ("cancelled", "collected"):

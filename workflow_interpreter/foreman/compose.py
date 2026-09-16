@@ -12,9 +12,11 @@ from pydantic import BaseModel, ConfigDict
 from workflow_interpreter.bdio import MintRequest, WorkflowStore
 from workflow_interpreter.bdio.backend import BackendLocator, bd_backend
 from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
+from workflow_interpreter.schema.decisions import DecisionRequest, DecisionResponse
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF, procfs
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.clock import Clock
@@ -179,6 +181,24 @@ class Composition:
                 self.git, self.config.repo_root, root_id
             ),
             backend=backend,
+        )
+
+    def coordination_for_root(
+        self,
+        owner_id: str,
+        *,
+        verify_decision: Callable[[DecisionRequest], DecisionResponse] | None = None,
+        composition: "Composition | None" = None,
+    ) -> CoordinationStore:
+        """Coordination for ONE owner root, over that root's backend (§3.2).
+
+        The reservation ledger lives in the owner's own record, which the
+        coordination store loads and saves through the backend it is bound
+        to. Binding it to `composition.store` would query the process-wide
+        backend for a root that may be pinned to another one.
+        """
+        return self.store_for_root(owner_id).coordination_store(
+            verify_decision=verify_decision, composition=composition
         )
 
     def reads_for_root(self, root_id: str) -> WorkflowReads:

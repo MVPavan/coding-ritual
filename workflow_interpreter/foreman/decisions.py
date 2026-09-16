@@ -96,7 +96,7 @@ def queue_boundary(
         artifact_tree=composition.git.tree_oid(commit, cwd=wiring.repo_root),
         policy_digest=digest_record(policy),
     )
-    coordinator = wiring.store.coordination_store()
+    coordinator = composition.coordination_for_root(link.owner_id)
     prior = coordinator.state(link.owner_id).requests.get(digest_record(boundary))
     if (
         prior is not None
@@ -114,7 +114,7 @@ def _assert_current(composition: Composition, request: DecisionRequest) -> RootR
     boundary = request.boundary
     reads = composition.reads_for_root(boundary.root_id)
     root = reads.load_root(boundary.root_id)
-    composition.store.coordination_store().validate_member(root)
+    composition.coordination_for_root(root.root_id).validate_member(root)
     if root.metadata.decision_boundary != boundary:
         raise CoordinationError("stale boundary")
     if (
@@ -194,7 +194,7 @@ def _admit_decision(composition: Composition, request: DecisionRequest) -> None:
         generation=0,
         request_id=request.request_id,
     )
-    coordinator = composition.store.coordination_store()
+    coordinator = composition.coordination_for_root(request.boundary.owner_id)
     receipt = coordinator.admit_member(
         request.boundary.owner_id, admission.slot, 0, admission, kind="decision"
     )
@@ -223,7 +223,9 @@ def _read_response(
         raise CoordinationError("missing decision attempt")
     decision_reads = composition.reads_for_root(request.decision_root_id)
     decision_root = decision_reads.load_root(request.decision_root_id)
-    composition.store.coordination_store().validate_member(decision_root)
+    composition.coordination_for_root(decision_root.root_id).validate_member(
+        decision_root
+    )
     activation = decision_reads.load_activation(request.attempt_id)
     evidence = activation.metadata.evidence
     if (
@@ -259,11 +261,11 @@ def _read_response(
 
 def _apply(composition: Composition, request: DecisionRequest) -> None:
     """Saved consumption is the action intent; repair it without another model."""
-    coordinator = composition.store.coordination_store()
+    owner = request.boundary.owner_id
+    coordinator = composition.coordination_for_root(owner)
     response = request.response
     if response is None:
         raise CoordinationError("consumed request lost its response")
-    owner = request.boundary.owner_id
     replacement_id = None
     if response.action == "human":
         child = next(
@@ -401,7 +403,7 @@ def reconcile_action(
     composition: Composition, owner_id: str, request_id: str
 ) -> DecisionConsumption:
     """Repair only a saved consumption intent; reusable by bridge orchestration."""
-    coordinator = composition.store.coordination_store()
+    coordinator = composition.coordination_for_root(owner_id)
     request = coordinator.state(owner_id).requests[request_id]
     if (
         request.state not in ("consumed", "applied")
@@ -429,11 +431,11 @@ def advance_decision(
     from workflow_interpreter.foreman.tick import TickReport
 
     root = composition.reads_for_root(root_id).load_root(root_id)
-    coordinator = composition.store.coordination_store()
     link = root.metadata.coordination
     if link is None:
         return tick_local(root_id)
     owner = link.owner_id
+    coordinator = composition.coordination_for_root(owner)
     pending: DecisionRequest | None = None
     child_slot: str | None = None
 
@@ -534,8 +536,8 @@ def advance_decision(
                         return _read_response(composition, current)
 
                 response = _read_response(composition, pending)
-                composition.store.coordination_store(
-                    verify_decision=verify
+                composition.coordination_for_root(
+                    owner, verify_decision=verify
                 ).consume_decision(owner, pending.request_id, response)
                 return TickReport(blocked=True)
             report = tick_local(decision.root_id)

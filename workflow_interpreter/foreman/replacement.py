@@ -81,7 +81,7 @@ def obligations(admission: MemberAdmission) -> str:
 
 
 def _save(composition: Composition, intent: TrustedReplacementIntent) -> None:
-    store = composition.store.coordination_store(composition=composition)
+    store = composition.coordination_for_root(intent.owner_id, composition=composition)
     state = store.state(intent.owner_id)
     store._save(
         state.model_copy(
@@ -143,7 +143,7 @@ def _advance(
     composition: Composition, intent: TrustedReplacementIntent
 ) -> MemberReceipt:
     """Save intent/reservation before fencing; replay repairs one immutable root."""
-    store = composition.store.coordination_store(composition=composition)
+    store = composition.coordination_for_root(intent.owner_id, composition=composition)
     with store._locked(intent.owner_id):
         state = store.state(intent.owner_id)
         saved = state.successors.get(intent.request_key)
@@ -421,7 +421,7 @@ def replace_checked(
     from workflow_interpreter.foreman.children import checked_admission
     from workflow_interpreter.foreman.decisions import admission_of
 
-    store = composition.store.coordination_store(composition=composition)
+    store = composition.coordination_for_root(owner, composition=composition)
     saved = store.state(owner).successors.get(request.request_key)
     if saved is not None:
         if saved.request_digest != digest_record(request):
