@@ -34,6 +34,8 @@ from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_HEADER,
     MSG_EXPORT_ROW_KIND,
     MSG_EXPORT_TABLE,
+    MSG_EXPORT_TASK_MISMATCH,
+    MSG_EXPORT_TASK_ROWS,
     MSG_REPO_HASH_MISMATCH,
     MSG_UNKNOWN_TASK,
     MSG_WRAPPER_ROOT_MISMATCH,
@@ -65,11 +67,14 @@ _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _SQL_TASK: Final[str] = "SELECT * FROM tasks WHERE task_id = ?"
 _SEQ_COLUMN: Final[str] = "seq"
+_TASK_COLUMN: Final[str] = "task_id"
+_ONE_TASK_ROW: Final[int] = 1
 _SECOND_LINE: Final[int] = 2
 _NEWLINE: Final[bytes] = b"\n"
 
 ExportLine = dict[str, JsonValue]
 ExportRow = dict[str, JsonValue]
+NumberedRow = tuple[int, LedgerTable, ExportRow]
 
 
 class ParsedExport(BaseModel):
@@ -186,16 +191,47 @@ def _parse(path: Path, *, repo_root: Path, wrapper_root: Path) -> ParsedExport:
             MSG_EXPORT_HEADER.format(path=path, kind=EXPORT_KIND_HEADER)
         )
     _assert_header(header, path=path, repo_root=repo_root, wrapper_root=wrapper_root)
-    rows = tuple(
-        _row(line, path=path, number=number)
+    numbered = tuple(
+        (number, *_row(line, path=path, number=number))
         for number, line in enumerate(lines[1:], start=_SECOND_LINE)
     )
+    task_id = str(header[ExportKey.TASK_ID.value])
+    _assert_task(numbered, path=path, task_id=task_id)
     return ParsedExport(
         path=path,
-        task_id=str(header[ExportKey.TASK_ID.value]),
+        task_id=task_id,
         header=header,
-        rows=rows,
+        rows=tuple((table, row) for _, table, row in numbered),
     )
+
+
+def _assert_task(rows: Sequence[NumberedRow], *, path: Path, task_id: str) -> None:
+    """Prove a file's rows are the one task its header declares (§3.6).
+
+    The header is what an import REPORTS as restored, and it is read
+    independently of the rows: without this, a file headed task A could refill
+    the cleared ledger with task B's rows — or with none at all — and the
+    whole-state rebuild would still report a successful restore of A.
+    """
+    declared = [entry for entry in rows if entry[1] is LedgerTable.TASKS]
+    if len(declared) != _ONE_TASK_ROW:
+        raise LedgerExportError(
+            MSG_EXPORT_TASK_ROWS.format(
+                path=path,
+                task_id=task_id,
+                count=len(declared),
+                table=LedgerTable.TASKS.value,
+            )
+        )
+    for number, _table, row in rows:
+        # Every exportable table carries `task_id`, the `tasks` row as its key.
+        found = row.get(_TASK_COLUMN)
+        if found != task_id:
+            raise LedgerExportError(
+                MSG_EXPORT_TASK_MISMATCH.format(
+                    path=path, number=number, found=found, declared=task_id
+                )
+            )
 
 
 def _row(

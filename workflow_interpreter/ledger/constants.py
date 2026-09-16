@@ -143,6 +143,15 @@ MSG_EXPORT_TABLE: Final[str] = (
     "{path} line {number} names table {table!r}, which is not one a task "
     "export may write into (§3.6)"
 )
+MSG_EXPORT_TASK_ROWS: Final[str] = (
+    "{path} declares task {task_id!r} and carries {count} {table} rows; an "
+    "export restores exactly the one task it declares (§3.6)"
+)
+MSG_EXPORT_TASK_MISMATCH: Final[str] = (
+    "{path} line {number} carries task_id {found!r}, and the header declares "
+    "{declared!r}; the import refuses whole rather than restoring a task the "
+    "file does not name (§3.6)"
+)
 MSG_EXPORT_COLUMN: Final[str] = (
     "{path} line {number} gives table {table} a column {column!r} the schema "
     "does not have (§3.3)"

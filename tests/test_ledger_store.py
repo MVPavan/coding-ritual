@@ -408,6 +408,65 @@ def test_an_export_row_naming_a_table_no_task_export_carries_is_refused(
         assert _count(reopened, LedgerTable.ROOTS) == 1
 
 
+def test_an_export_whose_rows_carry_another_task_is_refused(tmp_path: Path) -> None:
+    """A file may only restore the task its header declares (§3.6)."""
+    repo_root, wrapper_root = _repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        _seeded(database, OTHER_TASK)
+        export = write_export(database, OTHER_TASK)
+    lines = _lines(export)
+    lines[0][ExportKey.TASK_ID.value] = TASK
+    _rewrite(export, lines)
+
+    with pytest.raises(LedgerExportError, match=OTHER_TASK):
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert _count(reopened, LedgerTable.ROOTS) == 1
+
+
+def test_an_export_carrying_no_tasks_row_is_refused(tmp_path: Path) -> None:
+    """A header alone does not describe a task the rebuild can restore."""
+    repo_root, wrapper_root = _repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        export = write_export(database, TASK)
+    lines = _lines(export)
+    _rewrite(export, [lines[0], *lines[2:]])
+
+    with pytest.raises(LedgerExportError, match=LedgerTable.TASKS.value):
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+
+def test_an_export_carrying_two_tasks_rows_is_refused(tmp_path: Path) -> None:
+    """Exactly one `tasks` row, so the file declares one task and carries it."""
+    repo_root, wrapper_root = _repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        export = write_export(database, TASK)
+    lines = _lines(export)
+    _rewrite(export, [lines[0], lines[1], *lines[1:]])
+
+    with pytest.raises(LedgerExportError, match=LedgerTable.TASKS.value):
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+
 def test_an_import_leaves_no_task_the_export_set_does_not_describe(
     tmp_path: Path,
 ) -> None:
