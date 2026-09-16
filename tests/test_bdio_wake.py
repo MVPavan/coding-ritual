@@ -189,3 +189,12 @@ def test_roots_sharing_instance_key_have_distinct_fire_keys(fake_store, fake_bd)
     fake_store.append_wake_event(second.root_id, second_event)
     assert fake_store.reads.list_wake_events(first.root_id) == (first_event,)
     assert fake_store.reads.list_wake_events(second.root_id) == (second_event,)
+
+
+def test_lost_wake_payload_does_not_reuse_sequence(fake_store, fake_bd):
+    """Unreadable notifications still occupy their monotonic sequence slot."""
+    root = make_root(fake_store, load_definition())
+    first = fake_store.append_wake_event(root.root_id, event_for(root))
+    fake_bd.rows[first.id]["payload"] = None
+    second = fake_store.append_wake_event(root.root_id, event_for(root, "second"))
+    assert second.metadata["seq"] == -2

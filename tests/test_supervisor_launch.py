@@ -54,7 +54,7 @@ from workflow_interpreter.supervisor import (
     WrapperPaths,
     channels_for,
 )
-from workflow_interpreter.supervisor import launch as launch_module
+from workflow_interpreter.supervisor import fork_launcher as launch_module
 from workflow_interpreter.supervisor.models import LaunchReceiptState
 from workflow_interpreter.supervisor.paths import read_record, write_record
 from workflow_interpreter.supervisor.profile import (

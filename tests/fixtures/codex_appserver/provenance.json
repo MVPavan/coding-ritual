@@ -1,0 +1,22 @@
+{
+  "codex_cli": "0.154.0",
+  "generator": "codex app-server generate-json-schema --experimental --out <directory>",
+  "schemas": {
+    "InitializeParams.json": {
+      "source": "v1/InitializeParams.json",
+      "sha256": "6f0094be9a65242ec779a40794cbd4fdfa32fca1e45084a16adfb50501d33ea2"
+    },
+    "InitializeResponse.json": {
+      "source": "v1/InitializeResponse.json",
+      "sha256": "62ad689c2cb6379913c1d72749cfd8de5089d35760214123518eb92eef11acc9"
+    },
+    "DynamicToolCallParams.json": {
+      "source": "DynamicToolCallParams.json",
+      "sha256": "401bba20cfbd95762bef0467d840430c46be53369093ad9f26425ba757e34efc"
+    },
+    "PermissionsRequestApprovalParams.json": {
+      "source": "PermissionsRequestApprovalParams.json",
+      "sha256": "c11fbe632472ab0923aba5c0a53da3d6d86929bcd5c78e7c13c51c6b2db508ff"
+    }
+  }
+}

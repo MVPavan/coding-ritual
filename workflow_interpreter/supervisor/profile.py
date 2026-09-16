@@ -38,6 +38,7 @@ from workflow_interpreter.contracts.execution import (
     ExecutionProfileName,
     NetworkProfile,
 )
+from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.schema.models import ArtifactInputMode
 from workflow_interpreter.supervisor.channels import (
     COMMITTER_NAME,
@@ -174,6 +175,7 @@ class RunnerCommand(BaseModel):
 
     model_config = PROFILE_MODEL
 
+    transport: RunnerTransport = RunnerTransport.EVENT_LOG
     argv: tuple[str, ...] = Field(min_length=1)
     env: dict[str, str] = Field(default_factory=dict)
     cwd: str

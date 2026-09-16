@@ -27,8 +27,8 @@ from workflow_interpreter.foreman.monitor import (
     monitor_status,
     require_monitor,
 )
+from workflow_interpreter.foreman.observation import ObservationStatus
 from workflow_interpreter.foreman.refusals import (
-    ObservationStatus,
     append_refusal,
     read_refusals,
 )
@@ -42,7 +42,7 @@ from workflow_interpreter.foreman.wake_constants import (
 )
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.supervisor.errors import LockUnavailable
-from workflow_interpreter.supervisor.paths import read_record
+from workflow_interpreter.supervisor.paths import read_record, write_record
 
 
 def test_run_always_records_start_tick_and_stop_without_monitor(tmp_path: Path) -> None:
@@ -192,6 +192,10 @@ def test_journal_is_bounded_and_repeated_refusals_do_not_spend_capacity(tmp_path
             limit=2,
         )
 
+    write_record(
+        tmp_path / OBSERVATION_STATUS,
+        ObservationStatus(journal_degraded=2, heartbeat_degraded="broken"),
+    )
     first = append(b"first")
     assert append(b"first").identity == first.identity
     append(b"second")
@@ -203,7 +207,10 @@ def test_journal_is_bounded_and_repeated_refusals_do_not_spend_capacity(tmp_path
         len(line) <= 8192
         for line in (tmp_path / "refusals.jsonl").read_bytes().splitlines()
     )
-    assert read_record(tmp_path / OBSERVATION_STATUS, ObservationStatus).saturated
+    status = read_record(tmp_path / OBSERVATION_STATUS, ObservationStatus)
+    assert status.saturated
+    assert status.journal_degraded == 2
+    assert status.heartbeat_degraded == "broken"
 
 
 def test_refusal_journal_failure_is_visible(tmp_path, monkeypatch, signing_config):
@@ -219,12 +226,29 @@ def test_refusal_journal_failure_is_visible(tmp_path, monkeypatch, signing_confi
     def fail(*_args):
         raise OSError("journal disk full")
 
+    write_record(
+        lab.wiring().paths.instance_dir / OBSERVATION_STATUS,
+        ObservationStatus(saturated=True, identity_degraded="unavailable"),
+    )
     monkeypatch.setattr(refusals, "write_durable", fail)
+    from workflow_interpreter.foreman.gates import intake
+
+    intake(
+        lab.store, root, gate, inbox.parent, journal_dir=lab.wiring().paths.instance_dir
+    )
+    assert read_record(
+        lab.wiring().paths.instance_dir / OBSERVATION_STATUS, ObservationStatus
+    ).saturated
     result = Foreman(lab.composition).run(root.root_id, poll_s=1, max_wall_s=10)
     assert result.attention
     assert "journal disk full" in result.report.refusals[0]
     heartbeat = read_record(lab.wiring().paths.driver_heartbeat, DriverHeartbeat)
     assert "journal disk full" in heartbeat.durability_error
+    status = read_record(
+        lab.wiring().paths.instance_dir / OBSERVATION_STATUS, ObservationStatus
+    )
+    assert status.saturated
+    assert status.identity_degraded == "unavailable"
 
 
 def test_monitor_retains_rate_limited_conditions_across_restart(tmp_path):

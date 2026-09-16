@@ -15,8 +15,8 @@ from workflow_interpreter.bdio.reads import gates_of
 from workflow_interpreter.contracts.wake import WakeCondition, WakeCursor, WakeEvent
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.heartbeat import process_handle, read_heartbeat
-from workflow_interpreter.foreman.observation import read_status, save_status
-from workflow_interpreter.foreman.refusals import RefusalRecord, bounded, read_journal
+from workflow_interpreter.foreman.observation import bounded, read_status, save_status
+from workflow_interpreter.foreman.refusals import RefusalRecord, read_journal
 from workflow_interpreter.foreman.wake import (
     HOOK_ATTEMPTS,
     LOG_MONITOR_ERROR,

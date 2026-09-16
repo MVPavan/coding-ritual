@@ -7,7 +7,6 @@ import structlog
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.foreman.observation import (
-    ObservationStatus,
     bounded,
     read_status,
     save_status,
@@ -20,22 +19,10 @@ from workflow_interpreter.foreman.wake_constants import (
     MAX_CONDITION_BYTES,
     MAX_EVENT_CAP,
     MSG_JOURNAL_BOUND,
-    OBSERVATION_STATUS,
     REFUSAL_JOURNAL,
 )
 from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.paths import write_durable, write_record
-
-# Retain the existing observation exports while sharing the advisory I/O boundary.
-__all__ = [
-    "ObservationStatus",
-    "RefusalJournal",
-    "RefusalRecord",
-    "append_refusal",
-    "bounded",
-    "read_journal",
-    "read_refusals",
-]
+from workflow_interpreter.supervisor.paths import write_durable
 
 
 class RefusalRecord(BaseModel):
@@ -134,8 +121,9 @@ def append_refusal(
         if any(old.identity == record.identity for old in records):
             return record
         if len(records) >= limit:
-            write_record(
-                directory / OBSERVATION_STATUS, ObservationStatus(saturated=True)
+            save_status(
+                directory,
+                read_status(directory).model_copy(update={"saturated": True}),
             )
             structlog.get_logger(__name__).error(LOG_CAP)
             return record

@@ -204,3 +204,10 @@ Delivery is at-least-once within these bounds: a crash after the external effect
 but before acknowledgment can repeat the same fire key. Receivers must deduplicate
 that key. A hook can enqueue a new coordinator turn; it cannot inject into a
 running activation. A committed bd event does not prove the hook received it.
+
+If a driver dies while its heartbeat is corrupt, the monitor cannot recover its
+process identity or prove that death, so it cannot emit a driver-exit wake.
+Status reports the degraded heartbeat; durable gates, refusals, and terminal
+state remain independently observable. An operator must investigate this gap.
+Wake sequence numbers form a separate monotonically decreasing namespace;
+even a notification whose payload is lost retains its allocated sequence slot.

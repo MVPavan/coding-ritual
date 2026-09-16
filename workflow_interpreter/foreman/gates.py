@@ -37,16 +37,12 @@ from workflow_interpreter.foreman.constants import (
     HALT_UNUSABLE_RESOLUTION,
     NO_ARTIFACT_OID,
 )
-from workflow_interpreter.foreman.refusals import (
-    ObservationStatus,
-    append_refusal,
-    bounded,
-)
+from workflow_interpreter.foreman.observation import bounded, read_status, save_status
+from workflow_interpreter.foreman.refusals import append_refusal
 from workflow_interpreter.foreman.wake_constants import (
     DEFAULT_EVENT_CAP,
     LOG_DURABILITY,
     MSG_DURABILITY,
-    OBSERVATION_STATUS,
 )
 from workflow_interpreter.schema.graph_index import GraphIndex
 from workflow_interpreter.schema.models import Outcome
@@ -55,7 +51,6 @@ from workflow_interpreter.supervisor.paths import (
     WrapperPaths,
     fsync_dir,
     write_durable,
-    write_record,
 )
 from workflow_interpreter.supervisor.profile import Profile
 
@@ -286,12 +281,7 @@ def intake(
         if durability_errors:
             detail = MSG_DURABILITY.format(error=bounded("; ".join(durability_errors)))
             _LOG.error(LOG_DURABILITY, gate_id=gate.gate_id, reason=detail)
-            try:
-                write_record(
-                    journal_dir / OBSERVATION_STATUS, ObservationStatus(error=detail)
-                )
-            except OSError as failed:
-                _LOG.error(LOG_DURABILITY, gate_id=gate.gate_id, reason=str(failed))
+            save_status(journal_dir, read_status(journal_dir).degraded(error=detail))
             reason = f"{reason}; {detail}"
         return IntakeResult(refusal=reason)
     try:
