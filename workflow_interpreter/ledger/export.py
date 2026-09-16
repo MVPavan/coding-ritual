@@ -11,7 +11,9 @@ files, and any failure rolls the whole restore back.
 
 Order is `(task_id, seq)`, the per-task sequence every row is given inside the
 transaction that wrote it, which is what makes the round trip byte-identical:
-the same rows come back out in the same order with the same canonical JSON.
+the same rows come back out in the same order with the same canonical JSON. The
+one deliberate exception is the attention generation a restore owes every task
+it brings back (`_enqueue_reconciliation`).
 """
 
 from __future__ import annotations
@@ -81,10 +83,8 @@ no `task_id` of their own, so the join is what scopes them (§3.3)."""
 _SQL_PROJECTIONS: Final[str] = (
     "SELECT * FROM projections WHERE task_id = ? ORDER BY generation"
 )
-_SQL_PROJECTION_COUNTS: Final[str] = (
-    "SELECT COUNT(*) AS recorded, "
-    "COUNT(*) FILTER (WHERE acked_at IS NULL) AS pending "
-    "FROM projections WHERE task_id = ?"
+_SQL_PENDING_PROJECTIONS: Final[str] = (
+    "SELECT COUNT(*) FROM projections WHERE task_id = ? AND acked_at IS NULL"
 )
 _SQL_NEXT_SEQ: Final[str] = "SELECT next_seq FROM tasks WHERE task_id = ?"
 _SQL_BUMP_SEQ: Final[str] = "UPDATE tasks SET next_seq = next_seq + 1 WHERE task_id = ?"
@@ -224,19 +224,17 @@ def import_exports(
 def _enqueue_reconciliation(connection: sqlite3.Connection, task_id: str) -> None:
     """Owe one attention drain for a restored task, in the restoring transaction.
 
-    The label on the task bead was written from state that no longer exists, so
-    a restored task whose attention was ever reconciled owes one more drain
-    (§3.2). Two tasks are skipped, and neither of them is owed anything: one
-    that came back still owing unacked generations — that IS the drain, and a
-    second row would say nothing the first does not — and one that has no
-    projection history at all, whose label can never have been written because
-    only a drained generation writes one. Skipping them is also what keeps the
-    round trip byte-identical.
+    An import REPLACES the destination ledger rather than merging into it, so
+    the label on the task bead was written from state this rebuild discarded —
+    including state no export file describes — and EVERY restored task owes the
+    one drain that re-derives it (§3.2). The single exception is a task that
+    came back still owing an unacked generation: that IS the drain, and a second
+    row would say nothing the first does not. A task with no projection history
+    is not an exception — with nothing pending, nothing would ever re-derive its
+    label, so a stale attention label would sit on the bead indefinitely.
     """
-    counts = connection.execute(_SQL_PROJECTION_COUNTS, (task_id,)).fetchone()
-    if counts is None or int(counts["recorded"]) == _NONE_PENDING:
-        return
-    if int(counts["pending"]) > _NONE_PENDING:
+    pending = connection.execute(_SQL_PENDING_PROJECTIONS, (task_id,)).fetchone()
+    if pending is not None and int(pending[0]) > _NONE_PENDING:
         return
     row = connection.execute(_SQL_NEXT_SEQ, (task_id,)).fetchone()
     if row is None:  # pragma: no cover - the task row is inserted just above

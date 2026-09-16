@@ -3,8 +3,8 @@
 The store CONTRACT (what every backend must do) lives in
 `tests/test_store_contract.py`, which runs its read cases on a `ledger` lab.
 What is here is what only the ledger has: a migration, a repository identity
-pin, a `flock` two wrapper homes contend on, and an export whose round trip is
-byte-identical.
+pin, a `flock` two wrapper homes contend on, and an export whose round trip
+adds nothing but the attention drain a restore owes.
 
 Only the fence-contention case forks a process (`proc`); everything else is a
 small test over `tmp_path`.
@@ -251,12 +251,21 @@ def test_the_fence_lives_in_the_git_common_directory(tmp_path: Path) -> None:
 # --- export and import (§3.6) ----------------------------------------------
 
 
-def test_an_export_round_trips_byte_identically(tmp_path: Path) -> None:
-    """Rebuild from the export, export again, and the bytes are the same."""
+def test_an_export_round_trips_but_for_the_attention_row_the_restore_owes(
+    tmp_path: Path,
+) -> None:
+    """Rebuild from the export, export again: the same rows, plus one drain.
+
+    Byte identity is the property, and the ONE deliberate exception is the
+    attention generation every restored task is given (§3.2) — the restore
+    replaced the ledger the bead's label was written from. That row costs the
+    task one sequence number, so `next_seq` moves with it and nothing else
+    about the export changes.
+    """
     repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
-        first = write_export(database, TASK).read_bytes()
+        first = _lines(write_export(database, TASK))
 
     import_export(
         export_path(repo_root, TASK),
@@ -266,7 +275,16 @@ def test_an_export_round_trips_byte_identically(tmp_path: Path) -> None:
     )
 
     with open_ledger(repo_root, wrapper_root) as reopened:
-        assert write_export(reopened, TASK).read_bytes() == first
+        second = _lines(write_export(reopened, TASK))
+
+    recovery = second.pop()
+    assert recovery[ExportKey.TABLE.value] == LedgerTable.PROJECTIONS.value
+    assert recovery[ExportKey.ROW.value]["acked_at"] is None
+    task_row = second[1][ExportKey.ROW.value]
+    spent = first[1][ExportKey.ROW.value]["next_seq"]
+    assert task_row["next_seq"] == spent + 1
+    task_row["next_seq"] = spent
+    assert second == first
 
 
 def test_the_export_is_ordered_by_task_and_seq_with_an_identity_header(

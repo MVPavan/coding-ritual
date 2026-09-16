@@ -1065,6 +1065,57 @@ def test_an_imported_task_owes_exactly_one_new_attention_reconciliation(
         assert AttentionReconciler(reopened, label_client).drain(TASK).written is True
 
 
+def test_a_restored_task_with_no_projection_history_still_owes_one_drain(
+    tmp_path: Path,
+) -> None:
+    """§3.2: an import REPLACES the ledger, so the bead's label answers to nothing.
+
+    A task that never had a projection is the case with no safety net: nothing
+    is pending, so nothing would ever re-derive its label, and whatever the
+    destination ledger's own (now discarded) state put on the bead would sit
+    there indefinitely. The restore owes the drain that clears it.
+    """
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        store = ledger_store(database)
+        root = make_root(store, load_definition())
+        store.mint_activation(root.root_id, entry_request())
+        assert _rows(database, "SELECT generation FROM projections") == []
+        write_export(database, TASK)
+
+    import_export(
+        export_path(repo_root, TASK),
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        ledger=ledger_path(repo_root),
+    )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert len(_unacked(reopened)) == 1
+
+
+def test_a_restored_task_that_already_owes_a_drain_gets_no_second_row(
+    tmp_path: Path,
+) -> None:
+    """§3.2: one unacked generation IS the drain; a second says nothing more."""
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _open_gate(ledger_store(database))
+        owed = _unacked(database)
+        assert owed
+        write_export(database, TASK)
+
+    import_export(
+        export_path(repo_root, TASK),
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        ledger=ledger_path(repo_root),
+    )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert _unacked(reopened) == owed
+
+
 # --- the trace's own timestamps (§3.3) --------------------------------------
 
 
