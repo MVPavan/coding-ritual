@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import MintRequest, WorkflowStore
 from workflow_interpreter.bdio.backend import BackendLocator, bd_backend
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
@@ -163,11 +164,21 @@ class Composition:
         read or write about ONE root goes through here, not through
         `composition.store`, which serves discovery and the task bead alone.
         """
+        return self._store_on(root_id, self.locate_backend(root_id))
+
+    def _store_on(self, root_id: str, backend: BackendKind) -> WorkflowStore:
+        """The root's store over an ALREADY located backend.
+
+        A caller that needs both the located backend and the store must locate
+        once and pass that single answer here: two calls to the locator may
+        answer differently, and a root loaded from one backend must never be
+        wired to another (§3.2).
+        """
         return self.store.for_root(
             branch_head_reader=lambda: instance_head(
                 self.git, self.config.repo_root, root_id
             ),
-            backend=self.locate_backend(root_id),
+            backend=backend,
         )
 
     def reads_for_root(self, root_id: str) -> WorkflowReads:
@@ -181,7 +192,7 @@ class Composition:
             self.git, self.config.repo_root, root_id
         )
         backend = self.locate_backend(root_id)
-        root_store = self.store_for_root(root_id)
+        root_store = self._store_on(root_id, backend)
         root = root_store.reads.load_root(root_id)
         coordinator = root_store.coordination_store()
         link = root.metadata.coordination

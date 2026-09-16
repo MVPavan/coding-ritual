@@ -224,6 +224,38 @@ def test_root_scoped_reads_ask_the_locator_for_that_root(
     assert asked == [root.root_id]
 
 
+def test_one_wiring_locates_its_backend_once_and_keeps_that_answer(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """One wiring is built on ONE located backend (§3.2).
+
+    `for_root` loads the root and then derives the member-band store from it;
+    asking the locator again could answer differently, and the wiring would
+    then have loaded the root from one backend and run it against another. The
+    locator here refuses a second answer, and the backend the wiring ends up
+    on is compared by identity with the one the root was read through.
+    """
+    root = make_root(fake_store, load_definition())
+    composition, git = _instance_composition(fake_store, tmp_path)
+    git.refs[INSTANCE_BRANCH.format(root_id=root.root_id)] = "a" * 40
+    located: list[str] = []
+
+    def locate(root_id: str) -> BackendKind:
+        """Answer once; a second answer is a second decision, not a repeat."""
+        if located:
+            raise AssertionError("the located backend must not be re-derived")
+        located.append(root_id)
+        return BackendKind.BD
+
+    composition = replace(composition, locate_backend=locate)
+
+    wiring = composition.for_root(root.root_id)
+
+    assert located == [root.root_id]
+    assert wiring.store._client is fake_store._client
+    assert wiring.supervisor._store._client is fake_store._client
+
+
 def test_store_root_derivation_keeps_injected_capabilities(
     gate_store: WorkflowStore,
 ) -> None:
