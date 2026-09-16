@@ -25,6 +25,7 @@ from workflow_interpreter.bdio.records import (
     MintResult,
     RootRecord,
 )
+from workflow_interpreter.bdio.rows import NewRow
 from workflow_interpreter.bdio.sessions import SessionChoice, choose_source
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
@@ -210,11 +211,13 @@ def _mint_activation(
         )
 
     assert metadata is not None and metadata_payload is not None
-    record = self._client._create_bead(
-        title=_TITLE_ACTIVATION.format(
-            node=facts.node, round_no=facts.round_no, seq=metadata.seq
-        ),
-        metadata=metadata_payload,
+    record = self._client._create_row(
+        NewRow(
+            summary=_TITLE_ACTIVATION.format(
+                node=facts.node, round_no=facts.round_no, seq=metadata.seq
+            ),
+            metadata=metadata_payload,
+        )
     )
     _LOG.info(
         "wf.activation.minted",

@@ -28,13 +28,13 @@ from workflow_interpreter.bdio.records import (
     GateRecord,
     RootRecord,
 )
-from workflow_interpreter.bdio.wire import BeadRecord
+from workflow_interpreter.bdio.rows import StoreRow
 
 
 class ClosableRow(Protocol):
     """The identity a repair-forward close needs.
 
-    A `Protocol` rather than `BeadRecord`, so the parsed records can be closed
+    A `Protocol` rather than `StoreRow`, so the parsed records can be closed
     without carrying the backend row they were parsed from (§3.1).
     """
 
@@ -48,23 +48,23 @@ def is_finished(row: ClosableRow, reason: str) -> bool:
     return row.status == STATUS_CLOSED and row.close_reason == reason
 
 
-def close_forward(client: StoreBackend, bead: BeadRecord, reason: str) -> BeadRecord:
-    """Drive this bead's close to completion, idempotently.
+def close_forward(client: StoreBackend, row: StoreRow, reason: str) -> StoreRow:
+    """Drive this row's close to completion, idempotently.
 
     A no-op when the close already landed with this reason; otherwise it
     re-drives `bd close`, which is how a half-finished transition — ours or a
     previous tick's — reaches the state its carrier already claims.
     """
-    if is_finished(bead, reason):
-        return bead
-    return client._close_bead(bead.id, reason)
+    if is_finished(row, reason):
+        return row
+    return client._close_row(row.id, reason)
 
 
 def close_record_forward[RecordT: (ActivationRecord, GateRecord, RootRecord)](
     client: StoreBackend,
     record: RecordT,
     reason: str,
-    parse: Callable[[BeadRecord], RecordT],
+    parse: Callable[[StoreRow], RecordT],
 ) -> RecordT:
     """Drive a parsed record's close to completion, idempotently.
 
@@ -74,4 +74,4 @@ def close_record_forward[RecordT: (ActivationRecord, GateRecord, RootRecord)](
     """
     if is_finished(record, reason):
         return record
-    return parse(client._close_bead(record.id, reason))
+    return parse(client._close_row(record.id, reason))

@@ -201,7 +201,7 @@ def test_a_close_that_landed_before_its_metadata_is_still_completed(
     root = make_root(fake_store, definition)
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     fake_store.record_dispatch(activation.activation_id, handle())
-    fake_client._close_bead(activation.activation_id, "outcome=stale")
+    fake_client._close_row(activation.activation_id, "outcome=stale")
 
     repaired = fake_store.close_activation(activation.activation_id, Outcome.DONE)
     assert repaired.metadata.outcome is Outcome.DONE

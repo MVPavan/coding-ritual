@@ -13,15 +13,18 @@ against bd.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from pathlib import Path
-from typing import Any, Final, Protocol
+from typing import Final, Protocol
 
-from workflow_interpreter.bdio.client import DependencyRecord
-from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreConfigError
-from workflow_interpreter.bdio.wire import BeadRecord, IssueType, Metadata
+from workflow_interpreter.bdio.records import CanaryResult
+from workflow_interpreter.bdio.rows import (
+    BackendIdentity,
+    NewRow,
+    RowQuery,
+    StoreRow,
+)
+from workflow_interpreter.bdio.wire import Metadata
 
 _MSG_UNSUPPORTED: Final[str] = (
     "no backend is configured for {requested!r}; this process was built on {pinned!r}"
@@ -31,62 +34,44 @@ _MSG_UNSUPPORTED: Final[str] = (
 class StoreBackend(Protocol):
     """The durable-row surface a `WorkflowStore` and its collaborators use.
 
-    The write methods are package-private in the implementation and stay that
-    way here: the typed operations in this package are the only callers, and
-    the protocol exists to keep them from naming `BdClient` (§0.1).
+    Every type here is backend-neutral (`bdio/rows.py`): a backend is a place
+    rows live, not a bd workspace. The write methods are package-private in
+    the implementation and stay that way here — the typed operations in this
+    package are the only callers (§0.1).
     """
 
     @property
     def kind(self) -> BackendKind:
         """Which backend this transport speaks for."""
 
-    @property
-    def config(self) -> BdConfig:
-        """The injected configuration (frozen)."""
+    def identity(self) -> BackendIdentity:
+        """Where this backend's rows and their execution locks live (§3.4)."""
 
-    @property
-    def workspace(self) -> Path:
-        """The workspace every operation is scoped to."""
+    def probe(self) -> CanaryResult:
+        """Assert this is the pinned store and round-trip a carrier (§11).
 
-    def context(self) -> dict[str, Any]:
-        """Backend identity, as the §11 canary asserts it."""
+        The assertions are the backend's own: what identity means to bd is a
+        `bd context` field set, and what it means to the ledger is a schema
+        version and a pinned wrapper root. A caller gets the evidence, never
+        the vocabulary.
+        """
 
-    def show(self, bead_id: str) -> BeadRecord:
+    def get_row(self, row_id: str) -> StoreRow:
         """One row by id — the read-back path for every write."""
 
-    def list_beads(
-        self,
-        *,
-        metadata_filters: Mapping[str, str] | None = None,
-        issue_type: IssueType | None = None,
-    ) -> tuple[BeadRecord, ...]:
-        """Rows selected by ANDed metadata filters, closed rows included."""
+    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
+        """Rows the query selects, closed rows included."""
 
-    def list_children(self, parent_id: str) -> tuple[BeadRecord, ...]:
-        """A parent's descendants, for callers that filter direct children."""
-
-    def list_dependencies(self, bead_id: str) -> tuple[DependencyRecord, ...]:
-        """One row's dependency records."""
-
-    def _create_bead(
-        self,
-        *,
-        title: str,
-        metadata: Metadata,
-        issue_type: IssueType = IssueType.TASK,
-        event_payload: Metadata | None = None,
-        ephemeral: bool = False,
-        wisp_type: str | None = None,
-    ) -> BeadRecord:
+    def _create_row(self, new: NewRow) -> StoreRow:
         """Create a row and verify it read back exactly as written."""
 
-    def _merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+    def _merge_metadata(self, row_id: str, metadata: Metadata) -> StoreRow:
         """Merge metadata into a row and verify the merged result."""
 
-    def _claim_and_merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+    def _claim_and_merge_metadata(self, row_id: str, metadata: Metadata) -> StoreRow:
         """Claim a row and merge metadata in one operation."""
 
-    def _close_bead(self, bead_id: str, reason: str) -> BeadRecord:
+    def _close_row(self, row_id: str, reason: str) -> StoreRow:
         """Close a row with a structured reason and verify both landed."""
 
 

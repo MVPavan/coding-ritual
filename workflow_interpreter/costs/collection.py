@@ -14,6 +14,7 @@ from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.reads import find_roots, list_activations
 from workflow_interpreter.bdio.records import ActivationRecord
+from workflow_interpreter.bdio.rows import StoreRow
 from workflow_interpreter.bdio.wire import BeadRecord, Lifecycle
 from workflow_interpreter.bridge.adapter import MSG_CLOSE_REASON
 from workflow_interpreter.bridge.landing import (
@@ -129,7 +130,7 @@ def collect_task(
     if bridge.stage_id != stage_id:
         return _unreadable_task(stage_id, "phase bridge names a different stage")
 
-    root_rows: list[tuple[int, bool, BeadRecord]] = []
+    root_rows: list[tuple[int, bool, StoreRow]] = []
     expected_keys = (*bridge.previous_attempts, bridge.instance_key)
     expected_template = (
         f"phase-bridge:{bridge.epic_id}:{bridge.stage_id}:attempt:" + "{attempt}"

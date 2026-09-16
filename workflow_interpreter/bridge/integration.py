@@ -23,6 +23,7 @@ from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
+from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.bridge.adapter import PhaseAdapter
 from workflow_interpreter.bridge.errors import BridgeRefusal
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
@@ -944,8 +945,10 @@ def prepared_for_stage(
 
     coordinator = composition.store.coordination_store(composition=composition)
     matches: list[IntegrationAssociation] = []
-    for bead in coordinator._client.list_beads(metadata_filters={"wf_kind": "root"}):
-        raw = bead.metadata.get("coordination_state")
+    for row in coordinator._client.find_rows(
+        RowQuery(metadata_filters={"wf_kind": "root"})
+    ):
+        raw = row.metadata.get("coordination_state")
         if raw is None:
             continue
         state = CoordinationState.model_validate(raw)

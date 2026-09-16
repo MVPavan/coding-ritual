@@ -35,6 +35,7 @@ from workflow_interpreter.bdio.records import (
     parse_gate,
     parse_row,
 )
+from workflow_interpreter.bdio.rows import NewRow, RowKind
 from workflow_interpreter.bdio.signing import (
     GatePayload,
     GateVerifier,
@@ -48,7 +49,6 @@ from workflow_interpreter.bdio.wire import (
     GateOpenRequest,
     GateReason,
     GateState,
-    IssueType,
     ScopedBound,
     metadata_dict,
     parse_bound_key,
@@ -228,9 +228,11 @@ def open_gate(
         artifact_ref=request.artifact_ref,
         artifact_digest=request.artifact_digest,
     )
-    record = client._create_bead(
-        title=_TITLE_GATE.format(gate_node=request.gate_node, seq=seq),
-        metadata=metadata_dict(metadata),
+    record = client._create_row(
+        NewRow(
+            summary=_TITLE_GATE.format(gate_node=request.gate_node, seq=seq),
+            metadata=metadata_dict(metadata),
+        )
     )
     _LOG.info(
         "wf.gate.opened",
@@ -438,15 +440,17 @@ def append_event(
         event_key=event_key,
         seq=reads.next_seq(beads) if seq is None else seq,
     )
-    record = client._create_bead(
-        title=_TITLE_EVENT.format(
-            from_node=payload.from_node,
-            outcome=payload.outcome.value,
-            to_node=payload.to_node,
-        ),
-        metadata=metadata_dict(metadata),
-        issue_type=IssueType.EVENT,
-        event_payload=metadata_dict(payload),
+    record = client._create_row(
+        NewRow(
+            summary=_TITLE_EVENT.format(
+                from_node=payload.from_node,
+                outcome=payload.outcome.value,
+                to_node=payload.to_node,
+            ),
+            metadata=metadata_dict(metadata),
+            kind=RowKind.EVENT,
+            payload=metadata_dict(payload),
+        )
     )
     _LOG.debug("wf.event.appended", root_id=root_id, event_id=record.id)
     return parse_row(record)
@@ -630,10 +634,10 @@ def _assert_nonce_unused(
     client: StoreBackend, root_id: str, gate_id: str, nonce: str
 ) -> None:
     """Refuse a replayed nonce (§9): a nonce is consumed by the gate it closed."""
-    for bead in reads.beads_with_nonce(client, root_id, nonce):
-        if bead.id != gate_id:
+    for row in reads.rows_with_nonce(client, root_id, nonce):
+        if row.id != gate_id:
             raise NonceReplayError(
-                _MSG_NONCE_REPLAY.format(nonce=nonce, gate_id=bead.id)
+                _MSG_NONCE_REPLAY.format(nonce=nonce, gate_id=row.id)
             )
 
 

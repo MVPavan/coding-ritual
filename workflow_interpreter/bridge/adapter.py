@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Final
 from pydantic import ValidationError
 
 from workflow_interpreter.bdio import finalize
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
@@ -52,9 +51,7 @@ class PhaseAdapterError(ValueError):
 class PhaseAdapter:
     """Perform only fixed Beads operations needed to admit one named stage."""
 
-    def __init__(
-        self, client: StoreBackend, reads: WorkflowReads | None = None
-    ) -> None:
+    def __init__(self, client: BdClient, reads: WorkflowReads | None = None) -> None:
         self._client = client
         self._reads = WorkflowReads(client) if reads is None else reads
         self.integration_guard: IntegrationGuard | None = None

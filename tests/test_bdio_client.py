@@ -231,13 +231,13 @@ def test_a_missing_event_payload_raises() -> None:
 def test_a_close_that_did_not_close_raises() -> None:
     client, _ = _client(["", _row({}, status="open")])
     with pytest.raises(LossyWriteError, match="status is"):
-        client._close_bead(BEAD_ID, "outcome=done")
+        client._close_row(BEAD_ID, "outcome=done")
 
 
 def test_a_rewritten_close_reason_raises() -> None:
     client, _ = _client(["", _row({}, status="closed", close_reason="something else")])
     with pytest.raises(LossyWriteError, match="close reason"):
-        client._close_bead(BEAD_ID, "outcome=done")
+        client._close_row(BEAD_ID, "outcome=done")
 
 
 def test_a_successful_write_returns_the_verified_row() -> None:

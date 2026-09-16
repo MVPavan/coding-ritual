@@ -32,6 +32,7 @@ from workflow_interpreter.bdio.records import (
     parse_root,
     parse_row,
 )
+from workflow_interpreter.bdio.rows import RowKind, RowQuery, StoreRow
 from workflow_interpreter.bdio.wire import (
     KEY_EVENT_KEY,
     KEY_GATE_KEY,
@@ -41,9 +42,7 @@ from workflow_interpreter.bdio.wire import (
     KEY_SEQ,
     KEY_WF_KIND,
     KEY_WF_ROOT_ID,
-    BeadRecord,
     BoundSetting,
-    IssueType,
     WfKind,
 )
 from workflow_interpreter.contracts.wake import WakeEvent
@@ -53,32 +52,34 @@ FIRST_SEQ: Final[int] = 1
 
 def load_root(client: StoreBackend, root_id: str) -> RootRecord:
     """Read a root and re-verify its pinned body's hash (§3.1, §4 tick step 0)."""
-    return parse_root(client.show(root_id))
+    return parse_root(client.get_row(root_id))
 
 
 def load_activation(client: StoreBackend, activation_id: str) -> ActivationRecord:
     """Read one activation through the carrier contract."""
-    return parse_activation(client.show(activation_id))
+    return parse_activation(client.get_row(activation_id))
 
 
 def load_gate(client: StoreBackend, gate_id: str) -> GateRecord:
     """Read one gate through the carrier contract."""
-    return parse_gate(client.show(gate_id))
+    return parse_gate(client.get_row(gate_id))
 
 
-def find_roots(client: StoreBackend, instance_key: str) -> tuple[BeadRecord, ...]:
-    """Every root bead carrying `instance_key` — more than one is race residue.
+def find_roots(client: StoreBackend, instance_key: str) -> tuple[StoreRow, ...]:
+    """Every root row carrying `instance_key` — more than one is race residue.
 
-    Ordered by bead id, so the §3.2 convergence rule (lowest id survives) reads
+    Ordered by row id, so the §3.2 convergence rule (lowest id survives) reads
     the same from any tick that finds the duplicates.
     """
-    found = client.list_beads(
-        metadata_filters={
-            KEY_WF_KIND: WfKind.ROOT.value,
-            KEY_INSTANCE_KEY: instance_key,
-        }
+    found = client.find_rows(
+        RowQuery(
+            metadata_filters={
+                KEY_WF_KIND: WfKind.ROOT.value,
+                KEY_INSTANCE_KEY: instance_key,
+            }
+        )
     )
-    return tuple(sorted(found, key=lambda bead: bead.id))
+    return tuple(sorted(found, key=lambda row: row.id))
 
 
 def roots_by_instance_key(
@@ -91,19 +92,24 @@ def roots_by_instance_key(
     root's create/self-link pair was interrupted, and it must get it without
     naming a backend row (§3.1).
     """
-    return tuple(parse_row(bead) for bead in find_roots(client, instance_key))
+    return tuple(parse_row(row) for row in find_roots(client, instance_key))
 
 
 def list_roots(client: StoreBackend) -> tuple[RootRecord, ...]:
-    """Every root bead in the workspace, in bead-id order (§4 'Load roots').
+    """Every root row in the store, in row-id order (§4 'Load roots').
 
     A stateless tick has to DISCOVER its instances before it can load one, and
     without this the only way in was to import package internals (probed,
     phase-2 r3). Superseded roots are included: a tick that finds one needs to
     see the convergence, not a gap.
     """
-    beads = client.list_beads(metadata_filters={KEY_WF_KIND: WfKind.ROOT.value})
-    return tuple(parse_root(bead) for bead in sorted(beads, key=lambda b: b.id))
+    rows = client.find_rows(RowQuery(metadata_filters={KEY_WF_KIND: WfKind.ROOT.value}))
+    return tuple(parse_root(row) for row in sorted(rows, key=lambda row: row.id))
+
+
+def instance_rows(client: StoreBackend, root_id: str) -> tuple[StoreRow, ...]:
+    """Every row of the instance, untyped — identity and carrier only."""
+    return client.find_rows(RowQuery(metadata_filters={KEY_WF_ROOT_ID: root_id}))
 
 
 def instance_records(client: StoreBackend, root_id: str) -> tuple[InstanceRecord, ...]:
@@ -113,108 +119,120 @@ def instance_records(client: StoreBackend, root_id: str) -> tuple[InstanceRecord
     §10.3 count and the `seq` allocation are defined over everything the
     selector returns.
     """
-    return tuple(
-        parse_instance_row(bead)
-        for bead in client.list_beads(metadata_filters={KEY_WF_ROOT_ID: root_id})
-    )
+    return tuple(parse_instance_row(row) for row in instance_rows(client, root_id))
 
 
 def list_activations(
     client: StoreBackend, root_id: str
 ) -> tuple[ActivationRecord, ...]:
     """Every activation of the instance, in `seq` order."""
-    beads = client.list_beads(
-        metadata_filters={
-            KEY_WF_ROOT_ID: root_id,
-            KEY_WF_KIND: WfKind.ACTIVATION.value,
-        }
+    rows = client.find_rows(
+        RowQuery(
+            metadata_filters={
+                KEY_WF_ROOT_ID: root_id,
+                KEY_WF_KIND: WfKind.ACTIVATION.value,
+            }
+        )
     )
-    return _ordered(parse_activation(bead) for bead in beads)
+    return _ordered(parse_activation(row) for row in rows)
 
 
 def list_gates(client: StoreBackend, root_id: str) -> tuple[GateRecord, ...]:
-    """Every gate bead of the instance, in `seq` order."""
-    beads = client.list_beads(
-        metadata_filters={
-            KEY_WF_ROOT_ID: root_id,
-            KEY_WF_KIND: WfKind.GATE.value,
-        }
+    """Every gate row of the instance, in `seq` order."""
+    rows = client.find_rows(
+        RowQuery(
+            metadata_filters={
+                KEY_WF_ROOT_ID: root_id,
+                KEY_WF_KIND: WfKind.GATE.value,
+            }
+        )
     )
-    return _ordered(parse_gate(bead) for bead in beads)
+    return _ordered(parse_gate(row) for row in rows)
 
 
 def find_by_idempotency_key(
     client: StoreBackend, root_id: str, idempotency_key: str
 ) -> tuple[ActivationRecord, ...]:
-    """The §4 idempotency lookup — 0 or 1 bead; more is race residue (§3.2).
+    """The §4 idempotency lookup — 0 or 1 row; more is race residue (§3.2).
 
-    Closed activations are included (the client always passes `--all`): a key
+    Closed activations are included (the read never filters by status): a key
     whose activation already ran must still be found, or a re-tick mints a
     duplicate.
     """
-    beads = client.list_beads(
-        metadata_filters={
-            KEY_WF_ROOT_ID: root_id,
-            KEY_WF_KIND: WfKind.ACTIVATION.value,
-            KEY_IDEMPOTENCY_KEY: idempotency_key,
-        }
+    rows = client.find_rows(
+        RowQuery(
+            metadata_filters={
+                KEY_WF_ROOT_ID: root_id,
+                KEY_WF_KIND: WfKind.ACTIVATION.value,
+                KEY_IDEMPOTENCY_KEY: idempotency_key,
+            }
+        )
     )
-    return tuple(parse_activation(bead) for bead in beads)
+    return tuple(parse_activation(row) for row in rows)
 
 
 def find_gate(client: StoreBackend, root_id: str, gate_key: str) -> GateRecord | None:
     """The gate carrying `gate_key`, if this key was already opened (§3.4).
 
-    Ordered by bead id like `find_roots` and the §3.2 race rule: a key should
+    Ordered by row id like `find_roots` and the §3.2 race rule: a key should
     have exactly one gate, and when residue makes it two, every tick must
-    re-find the SAME one rather than whichever row bd listed first.
+    re-find the SAME one rather than whichever row the store listed first.
     """
-    beads = sorted(
-        client.list_beads(
-            metadata_filters={
-                KEY_WF_ROOT_ID: root_id,
-                KEY_WF_KIND: WfKind.GATE.value,
-                KEY_GATE_KEY: gate_key,
-            }
+    rows = sorted(
+        client.find_rows(
+            RowQuery(
+                metadata_filters={
+                    KEY_WF_ROOT_ID: root_id,
+                    KEY_WF_KIND: WfKind.GATE.value,
+                    KEY_GATE_KEY: gate_key,
+                }
+            )
         ),
-        key=lambda bead: bead.id,
+        key=lambda row: row.id,
     )
-    return parse_gate(beads[0]) if beads else None
+    return parse_gate(rows[0]) if rows else None
 
 
 def find_event(client: StoreBackend, root_id: str, event_key: str) -> RowRecord | None:
     """The event row carrying `event_key`, so backfill cannot duplicate (§3.3)."""
-    beads = client.list_beads(
-        metadata_filters={
-            KEY_WF_ROOT_ID: root_id,
-            KEY_WF_KIND: WfKind.EVENT.value,
-            KEY_EVENT_KEY: event_key,
-        },
-        issue_type=IssueType.EVENT,
+    rows = client.find_rows(
+        RowQuery(
+            metadata_filters={
+                KEY_WF_ROOT_ID: root_id,
+                KEY_WF_KIND: WfKind.EVENT.value,
+                KEY_EVENT_KEY: event_key,
+            },
+            kind=RowKind.EVENT,
+        )
     )
-    return parse_row(beads[0]) if beads else None
+    return parse_row(rows[0]) if rows else None
 
 
 def list_wake_events(client: StoreBackend, root_id: str) -> tuple[WakeEvent, ...]:
     """Read notifications independently of transition event backfill."""
-    beads = client.list_beads(
-        metadata_filters={KEY_WF_ROOT_ID: root_id, KEY_WF_KIND: WfKind.EVENT.value},
-        issue_type=IssueType.EVENT,
+    rows = client.find_rows(
+        RowQuery(
+            metadata_filters={
+                KEY_WF_ROOT_ID: root_id,
+                KEY_WF_KIND: WfKind.EVENT.value,
+            },
+            kind=RowKind.EVENT,
+        )
     )
     return tuple(
         event
-        for record in sorted(map(parse_row, beads), key=lambda item: item.id)
+        for record in sorted(map(parse_row, rows), key=lambda item: item.id)
         if record.payload is not None
         and isinstance(event := parse_event(record), WakeEvent)
     )
 
 
-def beads_with_nonce(
+def rows_with_nonce(
     client: StoreBackend, root_id: str, nonce: str
-) -> tuple[BeadRecord, ...]:
-    """Instance beads that already recorded `nonce` — the §9 replay check."""
-    return client.list_beads(
-        metadata_filters={KEY_WF_ROOT_ID: root_id, KEY_NONCE: nonce}
+) -> tuple[StoreRow, ...]:
+    """Instance rows that already recorded `nonce` — the §9 replay check."""
+    return client.find_rows(
+        RowQuery(metadata_filters={KEY_WF_ROOT_ID: root_id, KEY_NONCE: nonce})
     )
 
 

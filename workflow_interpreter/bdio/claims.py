@@ -17,6 +17,7 @@ from typing import Final
 from pydantic import BaseModel
 
 from workflow_interpreter.bdio.backend import StoreBackend
+from workflow_interpreter.bdio.rows import NewRow, RowQuery
 from workflow_interpreter.bdio.wire import ROW_MODEL, Metadata
 
 CLAIM_KEY: Final[str] = "integration_target_key"
@@ -49,13 +50,15 @@ class ClaimStore:
         """
         return tuple(
             ClaimRecord(id=row.id, payload=row.metadata)
-            for row in self._backend.list_beads(metadata_filters={CLAIM_KEY: key})
+            for row in self._backend.find_rows(
+                RowQuery(metadata_filters={CLAIM_KEY: key})
+            )
         )
 
     def write(self, key: str, payload: Metadata, claim_id: str | None = None) -> None:
         """Create the claim row, or merge the payload into the named one."""
         data: Metadata = {CLAIM_KEY: key, **payload}
         if claim_id is None:
-            self._backend._create_bead(title=CLAIM_TITLE, metadata=data)
+            self._backend._create_row(NewRow(summary=CLAIM_TITLE, metadata=data))
             return
         self._backend._merge_metadata(claim_id, data)

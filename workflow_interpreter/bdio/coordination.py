@@ -68,13 +68,19 @@ class CoordinationStore:
         self._verify_decision = verify_decision
 
     def _lock_directory(self) -> Path:
-        workspace = self._client.workspace.resolve()
-        if any((workspace / ".wf-coordination").glob("*.lock")):
+        """Where this backend says its execution locks live (§3.4).
+
+        The layout is the backend's answer, not this module's: a lock root and
+        the pre-migration directory that must be empty before it is used.
+        """
+        identity = self._client.identity()
+        legacy = identity.legacy_lock_root
+        if legacy is not None and any(legacy.glob("*.lock")):
             raise CoordinationError(
                 "legacy coordination locks require explicit offline migration; "
                 "stop all old drivers before archiving the legacy lock directory"
             )
-        return (workspace / ".beads").resolve() / "coordination"
+        return identity.lock_root
 
     @contextmanager
     def _locked(self, owner_id: str) -> Iterator[None]:

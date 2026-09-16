@@ -1,6 +1,6 @@
-"""Root-bead writes (§3.1) — pinning a graph into bd as an instance.
+"""Root-row writes (§3.1) — pinning a graph into bd as an instance.
 
-A root carries its own bead id, which bd only assigns at create, so creating
+A root carries its own row id, which bd only assigns at create, so creating
 one is two writes. `instance_key` closes the crash window between them: a
 re-run finds the half-written root by key and completes it instead of starting
 a second instance. The key is this wrapper's convention — §3.1 pins the body,
@@ -9,7 +9,7 @@ the hash and the resolved config, but names no creation key.
 Reuse by key is an IDENTITY claim, not a cache hit: the same key with a
 different graph or a different resolution is a different instance being
 silently aliased onto an existing one, so it is refused. Two roots that
-genuinely raced converge the way activations do (§3.2): lowest bead id
+genuinely raced converge the way activations do (§3.2): lowest row id
 survives, the loser is superseded, nothing is deleted.
 """
 
@@ -25,11 +25,11 @@ from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.feedback import MSG_CONSUMER
 from workflow_interpreter.bdio.records import RootRecord, parse_root
+from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.wire import (
     KEY_SUPERSEDED_BY,
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
-    BeadRecord,
     ConfigSource,
     InstanceInput,
     NodeSetting,
@@ -74,7 +74,7 @@ _MSG_REUSE_MISMATCH: Final[str] = (
 )
 _FIELD_RESOLVED_CONFIG: Final[str] = "resolved_config"
 _MSG_ALL_SUPERSEDED: Final[str] = (
-    "every root bead for instance_key={instance_key!r} is superseded"
+    "every root row for instance_key={instance_key!r} is superseded"
 )
 _MSG_TWO_OWNING_ROOTS: Final[str] = (
     "instance_key={instance_key!r} has more than one live root owning instance "
@@ -354,18 +354,20 @@ def create_root(
         seq=ROOT_SEQ,
         decision_templates=templates or None,
     )
-    record = client._create_bead(
-        title=_TITLE_ROOT.format(
-            graph_id=definition.document.graph.id, instance_key=instance_key
-        ),
-        metadata=metadata_dict(metadata),
+    record = client._create_row(
+        NewRow(
+            summary=_TITLE_ROOT.format(
+                graph_id=definition.document.graph.id, instance_key=instance_key
+            ),
+            metadata=metadata_dict(metadata),
+        )
     )
     _LOG.info("wf.root.created", root_id=record.id, instance_key=instance_key)
     _ensure_self_id(client, record)
     # Re-resolve after the write: a concurrent create under this key converges
     # HERE, rather than leaving two live instances for a later tick to find.
     converged = _converged_root(client, instance_key)
-    if converged is None:  # pragma: no cover - the bead was just written
+    if converged is None:  # pragma: no cover - the row was just written
         raise CarrierIntegrityError(
             _MSG_ALL_SUPERSEDED.format(instance_key=instance_key)
         )
@@ -393,7 +395,7 @@ def _converged_root(client: StoreBackend, instance_key: str) -> RootRecord | Non
     it is exactly what this path exists for.
     """
     found = reads.find_roots(client, instance_key)
-    live = [bead for bead in found if bead.metadata.get(KEY_SUPERSEDED_BY) is None]
+    live = [row for row in found if row.metadata.get(KEY_SUPERSEDED_BY) is None]
     if not live:
         if found:
             raise CarrierIntegrityError(
@@ -407,8 +409,8 @@ def _converged_root(client: StoreBackend, instance_key: str) -> RootRecord | Non
 
 
 def _ordered_by_ownership(
-    client: StoreBackend, live: Sequence[BeadRecord], instance_key: str
-) -> tuple[BeadRecord, ...]:
+    client: StoreBackend, live: Sequence[StoreRow], instance_key: str
+) -> tuple[StoreRow, ...]:
     """Convergence order for duplicate roots: the OWNER of the instance first (§3.1).
 
     Bead ids are not ordered by creation (bd 1.1.0 hands out `wf-yd1` before
@@ -420,26 +422,26 @@ def _ordered_by_ownership(
     """
     if len(live) < 2:
         return tuple(live)
-    owners = [bead for bead in live if _owns_instance_records(client, bead.id)]
+    owners = [row for row in live if _owns_instance_records(client, row.id)]
     if len(owners) > 1:
         raise CarrierIntegrityError(
             _MSG_TWO_OWNING_ROOTS.format(
                 instance_key=instance_key,
-                owners=", ".join(sorted(bead.id for bead in owners)),
+                owners=", ".join(sorted(row.id for row in owners)),
             )
         )
     if not owners:
         return tuple(live)
     owner = owners[0]
-    return (owner, *(bead for bead in live if bead.id != owner.id))
+    return (owner, *(row for row in live if row.id != owner.id))
 
 
 def _owns_instance_records(client: StoreBackend, root_id: str) -> bool:
     """Whether any activation, gate or event of the instance links to this root."""
-    return any(bead.id != root_id for bead in reads.instance_records(client, root_id))
+    return any(row.id != root_id for row in reads.instance_records(client, root_id))
 
 
-def _supersede_root(client: StoreBackend, loser: BeadRecord, winner_id: str) -> None:
+def _supersede_root(client: StoreBackend, loser: StoreRow, winner_id: str) -> None:
     """Close a duplicate root append-only, pointing at the surviving one."""
     record = _ensure_self_id(client, loser)
     metadata = record.metadata.model_copy(update={"superseded_by": winner_id})
@@ -532,11 +534,11 @@ def _differing_keys(
     return _MSG_CONFIG_KEYS.format(keys=rendered)
 
 
-def _ensure_self_id(client: StoreBackend, bead: BeadRecord) -> RootRecord:
+def _ensure_self_id(client: StoreBackend, row: StoreRow) -> RootRecord:
     """Complete the self-reference if the create/link pair was interrupted."""
-    if bead.metadata.get(KEY_WF_ROOT_ID) != bead.id:
-        bead = client._merge_metadata(bead.id, {KEY_WF_ROOT_ID: bead.id})
-    return parse_root(bead)
+    if row.metadata.get(KEY_WF_ROOT_ID) != row.id:
+        row = client._merge_metadata(row.id, {KEY_WF_ROOT_ID: row.id})
+    return parse_root(row)
 
 
 def settle_root(client: StoreBackend, root_id: str, terminal: str) -> RootRecord:
@@ -548,7 +550,7 @@ def settle_root(client: StoreBackend, root_id: str, terminal: str) -> RootRecord
     SAME terminal is a no-op; a different one is refused, because the end an
     instance reached is routing truth and is never rewritten.
     """
-    record = parse_root(client.show(root_id))
+    record = parse_root(client.get_row(root_id))
     node = record.index.nodes.get(terminal)
     if node is None or node.kind is not NodeKind.TERMINAL:
         raise CarrierIntegrityError(

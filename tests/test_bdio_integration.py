@@ -58,6 +58,7 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.bounds import BoundKind
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.wire import (
     BindsMode,
     BoundSetting,
@@ -92,10 +93,11 @@ def test_startup_canary_asserts_the_backend_and_round_trips_a_wisp(
     store: WorkflowStore,
 ) -> None:
     result = store.startup_canary()
-    assert result.backend == "dolt"
-    assert result.dolt_mode == "embedded"
-    assert result.bd_version == "1.1.0"
-    assert result.wisp_id
+    assert result.kind is BackendKind.BD
+    assert result.attributes["backend"] == "dolt"
+    assert result.attributes["dolt_mode"] == "embedded"
+    assert result.attributes["bd_version"] == "1.1.0"
+    assert result.probe_row_id
 
 
 def test_the_canary_refuses_a_store_that_is_not_the_injected_workspace(

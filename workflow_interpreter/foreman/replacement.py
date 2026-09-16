@@ -11,6 +11,7 @@ from pathlib import Path
 from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
+from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.bridge.adapter import PhaseAdapter
 from workflow_interpreter.bridge.integration import IntegrationGuard, target_key
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
@@ -103,8 +104,8 @@ def advance_successor(
         )
     elif intent.predecessor_bridge_json is None:
         matches: list[PhaseBridgeRecord] = []
-        for bead in store._client.list_beads():
-            raw = bead.metadata.get("phase_bridge")
+        for row in store._client.find_rows(RowQuery()):
+            raw = row.metadata.get("phase_bridge")
             if isinstance(raw, dict) and raw.get("root_id") == intent.predecessor_id:
                 matches.append(PhaseBridgeRecord.model_validate(raw))
         if len(matches) > 1:
@@ -757,8 +758,8 @@ def repair_bridge_successor(composition: Composition, stage_id: str) -> None:
     from workflow_interpreter.schema.decisions import CoordinationState
 
     store = composition.store.coordination_store(composition=composition)
-    for bead in store._client.list_beads(metadata_filters={"wf_kind": "root"}):
-        raw = bead.metadata.get("coordination_state")
+    for row in store._client.find_rows(RowQuery(metadata_filters={"wf_kind": "root"})):
+        raw = row.metadata.get("coordination_state")
         if raw is None:
             continue
         state = CoordinationState.model_validate(raw)

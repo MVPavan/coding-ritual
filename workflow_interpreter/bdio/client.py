@@ -24,7 +24,7 @@ from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Final, Protocol
+from typing import TYPE_CHECKING, Any, Final, Protocol
 
 import structlog
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -39,6 +39,13 @@ from workflow_interpreter.bdio.errors import (
     LossyWriteError,
     StoreConfigError,
 )
+from workflow_interpreter.bdio.rows import (
+    BackendIdentity,
+    NewRow,
+    RowKind,
+    RowQuery,
+    StoreRow,
+)
 from workflow_interpreter.bdio.wire import (
     ROW_MODEL,
     BeadRecord,
@@ -46,6 +53,9 @@ from workflow_interpreter.bdio.wire import (
     Metadata,
     canonical_json_bytes,
 )
+
+if TYPE_CHECKING:  # pragma: no cover - imported for typing and at call time only
+    from workflow_interpreter.bdio.records import CanaryResult
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -73,6 +83,16 @@ _MSG_NOT_CLOSED: Final[str] = "status is {status!r} after close"
 _MSG_REASON_MANGLED: Final[str] = (
     "close reason written as {written!r}, read back as {stored!r}"
 )
+
+BEADS_DIR_NAME: Final[str] = ".beads"
+LOCK_DIR_NAME: Final[str] = "coordination"
+LEGACY_LOCK_DIR_NAME: Final[str] = ".wf-coordination"
+
+ISSUE_TYPE_OF: Final[dict[RowKind, IssueType]] = {
+    RowKind.RECORD: IssueType.TASK,
+    RowKind.EVENT: IssueType.EVENT,
+}
+"""How the neutral row kinds are spelled in bd — bd's half of the translation."""
 
 SURFACE_METADATA: Final[str] = "metadata"
 SURFACE_EVENT_PAYLOAD: Final[str] = "event-payload"
@@ -203,6 +223,24 @@ def _metadata_file(metadata: Metadata) -> Iterator[str]:
         yield f"@{path}"
 
 
+def as_row(record: BeadRecord) -> StoreRow:
+    """Translate one bd row into the neutral row the seam speaks (§3.1).
+
+    bd's `event` type is the only one that carries a payload; everything else
+    is a record row, whatever bd calls it next version.
+    """
+    return StoreRow(
+        id=record.id,
+        status=record.status,
+        kind=RowKind.EVENT
+        if record.issue_type == IssueType.EVENT.value
+        else RowKind.RECORD,
+        metadata=record.metadata,
+        payload=record.payload,
+        close_reason=record.close_reason,
+    )
+
+
 def run_subprocess(argv: Sequence[str], timeout_s: float) -> CompletedCommand:
     """Run `argv` with no shell and an explicit timeout."""
     completed = subprocess.run(
@@ -250,6 +288,52 @@ class BdClient:
     def workspace(self) -> Path:
         """The bd workspace every invocation is scoped to via `-C`."""
         return self._config.workspace
+
+    # -- the neutral backend surface (§3.1) -------------------------------
+    #
+    # bd's own shapes stay below: `show`, `list_beads`, `list_children`,
+    # `list_dependencies` and `context` serve the bd-authoritative bridge
+    # path (D7), and everything the store proper uses is translated here.
+
+    def identity(self) -> BackendIdentity:
+        """Where bd's rows and their execution locks live (§3.4)."""
+        workspace = self._config.workspace.resolve()
+        return BackendIdentity(
+            kind=BackendKind.BD,
+            lock_root=(workspace / BEADS_DIR_NAME).resolve() / LOCK_DIR_NAME,
+            legacy_lock_root=workspace / LEGACY_LOCK_DIR_NAME,
+        )
+
+    def probe(self) -> CanaryResult:
+        """Assert the pinned bd identity and round-trip a wisp (§11)."""
+        from workflow_interpreter.bdio import canary
+
+        return canary.bd_probe(self)
+
+    def get_row(self, row_id: str) -> StoreRow:
+        """One row by id, as the neutral seam sees it."""
+        return as_row(self.show(row_id))
+
+    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
+        """Rows the query selects, translated into bd's filter vocabulary."""
+        return tuple(
+            as_row(record)
+            for record in self.list_beads(
+                metadata_filters=query.metadata_filters,
+                issue_type=None if query.kind is None else ISSUE_TYPE_OF[query.kind],
+            )
+        )
+
+    def _create_row(self, new: NewRow) -> StoreRow:
+        """Create a row from the neutral description and verify the read-back."""
+        return as_row(
+            self._create_bead(
+                title=new.summary,
+                metadata=new.metadata,
+                issue_type=ISSUE_TYPE_OF[new.kind],
+                event_payload=new.payload,
+            )
+        )
 
     # -- invocation ------------------------------------------------------
 
@@ -452,7 +536,7 @@ class BdClient:
         _LOG.debug("bd.create", bead_id=bead_id, issue_type=issue_type.value)
         return record
 
-    def _merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+    def _merge_metadata(self, bead_id: str, metadata: Metadata) -> StoreRow:
         """Merge metadata into a bead and verify the merged result.
 
         `bd update --metadata` merges and preserves JSON types; the
@@ -471,9 +555,9 @@ class BdClient:
         record = self.show(bead_id)
         self._assert_metadata(record, metadata)
         _LOG.debug("bd.update", bead_id=bead_id, keys=sorted(metadata))
-        return record
+        return as_row(record)
 
-    def _claim_and_merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+    def _claim_and_merge_metadata(self, bead_id: str, metadata: Metadata) -> StoreRow:
         """Claim a bead and merge metadata in the one supported bd invocation."""
         with _metadata_file(metadata) as metadata_arg:
             self._run(
@@ -496,10 +580,10 @@ class BdClient:
                 ),
             )
         _LOG.debug("bd.update.claim", bead_id=bead_id, keys=sorted(metadata))
-        return record
+        return as_row(record)
 
-    def _close_bead(self, bead_id: str, reason: str) -> BeadRecord:
-        """Close a bead with a structured reason and verify both landed.
+    def _close_row(self, bead_id: str, reason: str) -> StoreRow:
+        """Close a row with a structured reason and verify both landed.
 
         Closing twice succeeds and overwrites the reason (probed), so callers
         must decide idempotency above this transport, not rely on bd.
@@ -517,7 +601,7 @@ class BdClient:
                 _MSG_REASON_MANGLED.format(written=reason, stored=record.close_reason),
             )
         _LOG.debug("bd.close", bead_id=bead_id, reason=reason)
-        return record
+        return as_row(record)
 
     # -- read-back verification ------------------------------------------
 

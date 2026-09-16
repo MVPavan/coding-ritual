@@ -1,4 +1,4 @@
-"""Idempotent notification writes through the same guarded bd event transport."""
+"""Idempotent notification writes through the same guarded event surface."""
 
 from typing import Final
 
@@ -7,11 +7,11 @@ from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import CarrierIntegrityError, StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.records import RowRecord, parse_event, parse_row
+from workflow_interpreter.bdio.rows import NewRow, RowKind, RowQuery
 from workflow_interpreter.bdio.wire import (
     KEY_WF_KIND,
     KEY_WF_ROOT_ID,
     EventMetadata,
-    IssueType,
     WfKind,
     metadata_dict,
 )
@@ -59,13 +59,15 @@ def append_wake_event(
             0,
             min(
                 (
-                    EventMetadata.model_validate(bead.metadata).seq
-                    for bead in client.list_beads(
-                        metadata_filters={
-                            KEY_WF_ROOT_ID: root_id,
-                            KEY_WF_KIND: WfKind.EVENT.value,
-                        },
-                        issue_type=IssueType.EVENT,
+                    EventMetadata.model_validate(row.metadata).seq
+                    for row in client.find_rows(
+                        RowQuery(
+                            metadata_filters={
+                                KEY_WF_ROOT_ID: root_id,
+                                KEY_WF_KIND: WfKind.EVENT.value,
+                            },
+                            kind=RowKind.EVENT,
+                        )
                     )
                 ),
                 default=0,
@@ -75,13 +77,15 @@ def append_wake_event(
     )
     try:
         return parse_row(
-            client._create_bead(
-                title=TITLE_WAKE.format(
-                    condition=event.condition.value, root_id=root_id
-                ),
-                metadata=metadata_dict(metadata),
-                issue_type=IssueType.EVENT,
-                event_payload=metadata_dict(event),
+            client._create_row(
+                NewRow(
+                    summary=TITLE_WAKE.format(
+                        condition=event.condition.value, root_id=root_id
+                    ),
+                    metadata=metadata_dict(metadata),
+                    kind=RowKind.EVENT,
+                    payload=metadata_dict(event),
+                )
             )
         )
     except StoreError:

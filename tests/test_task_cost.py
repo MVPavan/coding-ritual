@@ -12,6 +12,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from workflow_interpreter.bdio.client import ISSUE_TYPE_OF, as_row
+from workflow_interpreter.bdio.rows import RowQuery, StoreRow
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.costs.collection import (
     CompletionEvidence,
@@ -414,6 +416,16 @@ class FakeReadClient:
             ):
                 selected.append(BeadRecord.model_validate(raw))
         return tuple(selected)
+
+    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
+        """The neutral read the §4 vocabulary issues, over the same rows."""
+        return tuple(
+            as_row(record)
+            for record in self.list_beads(
+                metadata_filters=query.metadata_filters,
+                issue_type=None if query.kind is None else ISSUE_TYPE_OF[query.kind],
+            )
+        )
 
 
 def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):

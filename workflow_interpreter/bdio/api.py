@@ -29,7 +29,6 @@ from pydantic import JsonValue
 
 from workflow_interpreter.bdio import (
     bounds,
-    canary,
     gates,
     mint,
     reads,
@@ -219,8 +218,8 @@ class WorkflowStore:
     # -- §11 startup canary ----------------------------------------------
 
     def startup_canary(self) -> CanaryResult:
-        """Assert the pinned backend and workspace, and round-trip a wisp (§11)."""
-        return canary.startup_canary(self._client)
+        """Assert the pinned backend and round-trip a carrier (§11)."""
+        return self._client.probe()
 
     # -- roots -----------------------------------------------------------
 
