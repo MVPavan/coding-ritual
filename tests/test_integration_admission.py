@@ -116,6 +116,10 @@ def test_replay_admits_only_one_original_owner_member(
     )
     first = integration.prepare_integration(composition, request)
     assert integration.prepare_integration(composition, request) == first
+    # §3.2: the integration root is the owner's child, so the record that
+    # admits it names the owner's backend — a record that named bd here would
+    # contradict the ledger row its own root was created with.
+    assert first.root_backend is store
     state = lab.store.coordination_store().state(owner.root_id)
     assert len(state.children) == 2
     assert len(state.reservations) == 3

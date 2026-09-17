@@ -34,6 +34,14 @@ MSG_UNPINNED: Final[str] = (
     "no backend is pinned for root {root_id!r} of task {task_id!r}: neither a "
     "bridge record nor a ledger tasks row names one (run-ledger §3.2)"
 )
+MSG_RECORD_DISAGREES: Final[str] = (
+    "bridge record pins root {root_id!r} to {record!r} but this process's "
+    "store says {store!r}: a root is never moved between backends, so neither "
+    "answer may be preferred silently (run-ledger §3.2, D18)"
+)
+NO_LEDGER_ROW: Final[str] = "no ledger row"
+"""What the store answers for a root it holds nothing about — correct for a
+bd-backed root, and a contradiction for a record that names the ledger."""
 
 
 class RootBackendLocator:
@@ -71,23 +79,36 @@ class RootBackendLocator:
         self._pins[root_id] = backend
 
     def pin_record(self, root_id: str, backend: BackendKind) -> None:
-        """Record what a BRIDGE RECORD says, behind every stronger source.
+        """Record what a BRIDGE RECORD says — the STRONGEST source (§3.2).
 
-        The record is what a restarted process has for an attempt root the
-        ledger holds no row for — a bd attempt of a ledger-pinned task, where
-        the `tasks` row would otherwise answer for attempt one. It is the
-        WEAKEST source even so: a `roots` row is the pin the root was actually
-        created with, and a record may carry this field's default rather than
-        an answer, because an integration bridge record never sets it
-        (`bridge/integration.py`). So anything already known wins, silently.
+        The record is written at prepare, before admission creates any root,
+        and it is all a restarted process has for an attempt root the ledger
+        holds no row for — a bd attempt of a ledger-pinned task, where the
+        `tasks` row would otherwise answer with attempt one's backend. So the
+        record leads the resolution order, and a store that answers differently
+        is a contradiction rather than a better answer: a `roots` row for a
+        record naming bd, or no row at all for a record naming the ledger of a
+        root that has already been admitted. Both refuse, naming both answers.
         """
-        if self._pins.get(root_id) is not None:
-            return
+        held = self._pins.get(root_id)
+        if held is not None and held is not backend:
+            raise StoreConfigError(
+                MSG_RECORD_DISAGREES.format(
+                    root_id=root_id, record=backend.value, store=held.value
+                )
+            )
         if self._ledger is not None:
             found = root_backend(self._ledger, root_id)
-            if found is not None:
-                self._pins[root_id] = found
-                return
+            if found is not backend and not (
+                found is None and backend is BackendKind.BD
+            ):
+                raise StoreConfigError(
+                    MSG_RECORD_DISAGREES.format(
+                        root_id=root_id,
+                        record=backend.value,
+                        store=NO_LEDGER_ROW if found is None else found.value,
+                    )
+                )
         self._pins[root_id] = backend
 
     def __call__(self, root_id: str) -> BackendKind:

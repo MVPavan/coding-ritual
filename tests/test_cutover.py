@@ -33,7 +33,7 @@ from workflow_interpreter.bridge.landing import (
 from workflow_interpreter.bridge.models import PhaseBridgeRecord
 from workflow_interpreter.bridge.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
-from workflow_interpreter.foreman.locator import RootBackendLocator
+from workflow_interpreter.foreman.locator import NO_LEDGER_ROW, RootBackendLocator
 from workflow_interpreter.foreman.tick import Foreman, RunReport
 from workflow_interpreter.ledger.constants import LEDGER_DIR
 from workflow_interpreter.ledger.paths import coordinator_dirt, export_path
@@ -236,6 +236,34 @@ def test_a_ledger_task_row_locates_every_root_of_a_run_with_no_bridge(
     assert task_backend(lab.ledger, LAB_TASK) is BackendKind.LEDGER
     # A root that does not exist yet still resolves, because the TASK is pinned.
     assert locator(f"{LAB_TASK}-a7") is BackendKind.LEDGER
+
+
+@pytest.mark.parametrize(
+    ("record_says", "existing"),
+    ((BackendKind.BD, True), (BackendKind.LEDGER, False)),
+)
+def test_a_record_pin_that_contradicts_the_store_refuses(
+    tmp_path: Path, record_says: BackendKind, existing: bool
+) -> None:
+    """§3.2: the record is the strongest source, so it may not be OVERRULED.
+
+    Either way round the two answers contradict each other — a `roots` row for
+    a record that names bd, or no row at all for a record that names the
+    ledger of a root that has already been admitted — and picking one silently
+    is how a live run gets read through the wrong store and reported missing.
+    """
+    lab = ForemanLab(tmp_path, store=BackendKind.LEDGER)
+    root_id = lab.instantiate_resolved().root_id if existing else f"{LAB_TASK}-a404"
+    locator = RootBackendLocator(LAB_TASK, ledger=lab.ledger)
+
+    with pytest.raises(
+        StoreConfigError, match="never moved between backends"
+    ) as refusal:
+        locator.pin_record(root_id, record_says)
+    # Both answers are named, because a refusal that reported only one would
+    # read as the locator having chosen it.
+    assert record_says.value in str(refusal.value)
+    assert ("ledger" if existing else NO_LEDGER_ROW) in str(refusal.value)
 
 
 def test_re_preparing_one_attempt_cannot_move_its_backend(

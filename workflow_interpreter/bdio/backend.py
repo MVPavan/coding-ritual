@@ -139,16 +139,17 @@ class RecordPinnableBackendLocator(Protocol):
     """A locator that can be told what a BRIDGE RECORD says (§3.2).
 
     Separate from `PinnableBackendLocator` because the two pins do not have
-    the same authority: a creation pin is the fact, while a record's pin is
-    the weakest of §3.2's sources and must never override what the store
-    itself already says.
+    the same provenance: a creation pin is what this process just did, while a
+    record's pin is §3.2's first source, written at prepare before any root
+    exists. A store that answers differently is a contradiction, not a better
+    answer, so installing one can REFUSE where a creation pin cannot.
     """
 
     def __call__(self, root_id: str) -> BackendKind:
         """The backend pinned for this root."""
 
     def pin_record(self, root_id: str, backend: BackendKind) -> None:
-        """Record a bridge record's pin, behind every stronger source."""
+        """Record a bridge record's pin, or refuse a store that contradicts it."""
 
 
 class PinnedBackendFactory:

@@ -251,7 +251,8 @@ class Composition:
         root: a process that restarted holds no pin, and for a bd attempt of
         a ledger-pinned task the `tasks` row answers for attempt one, so a
         load that asked first would read the wrong store and report a live
-        run as missing (D18).
+        run as missing (D18). The record leads §3.2's order, so a store that
+        answers differently refuses here rather than overruling it.
         """
         locator = self.locate_backend
         if isinstance(locator, RecordPinnableBackendLocator):
