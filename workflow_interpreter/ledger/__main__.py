@@ -17,18 +17,24 @@ from typing import Final
 from pydantic import ValidationError
 
 from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.config import DEFAULT_SSH_KEYGEN
 from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.foreman.config import ForemanConfig, load_config
+from workflow_interpreter.ledger.archive import archive_task
 from workflow_interpreter.ledger.constants import EXPORT_SUFFIX
 from workflow_interpreter.ledger.database import open_ledger
 from workflow_interpreter.ledger.export import import_exports, write_export
 from workflow_interpreter.ledger.paths import export_dir, ledger_path
 from workflow_interpreter.ledger.reconcile import ATTENTION_LABEL, AttentionReconciler
+from workflow_interpreter.ledger.reverify import verify_export
+from workflow_interpreter.supervisor.gitio import Git
 
 PROG: Final[str] = "python -m workflow_interpreter.ledger"
 COMMAND_EXPORT: Final[str] = "export"
 COMMAND_IMPORT: Final[str] = "import"
 COMMAND_RECONCILE: Final[str] = "reconcile"
+COMMAND_VERIFY: Final[str] = "verify"
+COMMAND_ARCHIVE: Final[str] = "archive"
 EXIT_OK: Final[int] = 0
 EXIT_REFUSED: Final[int] = 2
 
@@ -41,6 +47,18 @@ _MSG_RECONCILED: Final[str] = (
     "{acked} row(s) acked\n"
 )
 _MSG_NOTHING_DUE: Final[str] = "reconciled {task_id}: nothing due\n"
+_MSG_APPROVAL: Final[str] = (
+    "{status} {gate_id} {fingerprint} ({principal}, {namespace})\n"
+)
+_MSG_APPROVAL_REASON: Final[str] = "  {reason}\n"
+_MSG_VERIFIED: Final[str] = "verified {count} approval(s) of {task_id} from {path}\n"
+_MSG_NOT_VERIFIED: Final[str] = (
+    "refused {refused} of {count} approval(s) of {task_id} from {path}\n"
+)
+_MSG_ARCHIVED: Final[str] = (
+    "archived {task_id} to {bundle}: {refs} ref(s) and {folders} run folder(s) "
+    "removed\n"
+)
 _PRESENT: Final[str] = "present"
 _ABSENT: Final[str] = "absent"
 
@@ -71,6 +89,29 @@ def _parser() -> argparse.ArgumentParser:
         help="drain one task's unacked attention projections onto its bead",
     )
     reconcile.add_argument("task_id")
+    verify = commands.add_parser(
+        COMMAND_VERIFY,
+        help=(
+            "re-verify every approval of a task from its committed export "
+            "alone — no ledger database, no wrapper root, no allow-list"
+        ),
+    )
+    verify.add_argument("task_id")
+    archive = commands.add_parser(
+        COMMAND_ARCHIVE,
+        help=(
+            "bundle a closed task's refs/wf/<root>/ to a path outside the "
+            "repository, verify the bundle, then delete the run folders and "
+            "the refs — manual, and refused without a verified bundle"
+        ),
+    )
+    archive.add_argument("task_id")
+    archive.add_argument(
+        "--bundle",
+        required=True,
+        type=Path,
+        help="where the git bundle is written; outside the repository",
+    )
     return parser
 
 
@@ -105,6 +146,69 @@ def _reconcile(config: ForemanConfig, task_id: str) -> int:
     return EXIT_OK
 
 
+def _verify(config: ForemanConfig, task_id: str) -> int:
+    """Re-verify one task's approvals from `.wf/export/<task>.jsonl` (§3.6, D21).
+
+    Deliberately the one ledger command that never opens the ledger: what it
+    proves is that the EXPORT is sufficient, so reading anything else would
+    make the proof vacuous.
+    """
+    path = export_dir(config.repo_root) / f"{task_id}{EXPORT_SUFFIX}"
+    results = verify_export(
+        path,
+        ssh_keygen=(
+            DEFAULT_SSH_KEYGEN if config.signing is None else config.signing.ssh_keygen
+        ),
+    )
+    for result in results:
+        sys.stdout.write(
+            _MSG_APPROVAL.format(
+                status=result.status.value,
+                gate_id=result.gate_id,
+                fingerprint=result.fingerprint,
+                principal=result.principal,
+                namespace=result.namespace,
+            )
+        )
+        if result.reason is not None:
+            sys.stdout.write(_MSG_APPROVAL_REASON.format(reason=result.reason))
+    refused = sum(1 for result in results if not result.verified)
+    if refused:
+        sys.stderr.write(
+            _MSG_NOT_VERIFIED.format(
+                refused=refused, count=len(results), task_id=task_id, path=path
+            )
+        )
+        return EXIT_REFUSED
+    sys.stdout.write(
+        _MSG_VERIFIED.format(count=len(results), task_id=task_id, path=path)
+    )
+    return EXIT_OK
+
+
+def _archive(config: ForemanConfig, task_id: str, bundle: Path) -> int:
+    """Archive one closed task's bytes behind a verified bundle (§3.9, D19)."""
+    git = Git(config.supervisor)
+    with open_ledger(config.repo_root, config.wrapper_root) as database:
+        result = archive_task(
+            git,
+            database,
+            task_id,
+            bundle=bundle,
+            repo_root=config.repo_root,
+            wrapper_root=config.wrapper_root,
+        )
+    sys.stdout.write(
+        _MSG_ARCHIVED.format(
+            task_id=result.task_id,
+            bundle=result.bundle,
+            refs=len(result.refs),
+            folders=len(result.run_folders),
+        )
+    )
+    return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Export one task, or rebuild tasks from their exports."""
     args = _parser().parse_args(argv)
@@ -119,6 +223,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return EXIT_OK
         if args.command == COMMAND_RECONCILE:
             return _reconcile(config, args.task_id)
+        if args.command == COMMAND_VERIFY:
+            return _verify(config, args.task_id)
+        if args.command == COMMAND_ARCHIVE:
+            return _archive(config, args.task_id, args.bundle)
         paths = _exports(repo_root, args.task_ids)
         if not paths:
             sys.stderr.write(_MSG_NO_EXPORTS.format(directory=export_dir(repo_root)))

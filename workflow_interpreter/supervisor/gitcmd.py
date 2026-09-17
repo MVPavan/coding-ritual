@@ -147,6 +147,13 @@ class GitSubcommand(StrEnum):
     COMMIT_TREE = "commit-tree"
     CONFIG = "config"
     SYMBOLIC_REF = "symbolic-ref"
+    BUNDLE = "bundle"
+    """`wf archive` only, and a recorded design change (run-ledger §3.9, D19,
+    ADR 0005). It is the one member that writes OUTSIDE the repository — a
+    bundle at an operator-chosen path — which is exactly why archive exists:
+    JSON does not preserve git objects, so the refs a retention pass deletes
+    must first be provably reconstructible from a file that survives it. Read
+    (`bundle verify`) and write (`bundle create`) only; it moves no ref."""
 
 
 class GitResult:

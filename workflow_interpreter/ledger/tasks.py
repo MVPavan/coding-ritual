@@ -98,3 +98,19 @@ def export_oid(database: LedgerDatabase, task_id: str) -> str | None:
     with database.locked() as connection:
         row = connection.execute(_SQL_TASK_EXPORT, (task_id,)).fetchone()
     return None if row is None or row[0] is None else str(row[0])
+
+
+_SQL_TASK_ROOTS: Final[str] = (
+    "SELECT root_id, terminal FROM roots WHERE task_id = ? ORDER BY seq"
+)
+
+
+def task_roots(database: LedgerDatabase, task_id: str) -> tuple[tuple[str, str], ...]:
+    """Every ledger root of one task with the terminal it settled in.
+
+    A root that has not settled answers with the empty string, so a caller can
+    tell "no terminal yet" from "terminal `abandoned`" without a second read.
+    """
+    with database.locked() as connection:
+        rows = connection.execute(_SQL_TASK_ROOTS, (task_id,)).fetchall()
+    return tuple((str(row[0]), "" if row[1] is None else str(row[1])) for row in rows)
