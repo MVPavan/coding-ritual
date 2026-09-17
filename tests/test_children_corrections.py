@@ -58,6 +58,7 @@ def test_standard_beads_checkout_stays_clean_with_coordination_locks(
         instance_inputs={},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     coordinator = store.coordination_store(composition=composition)
     child = coordinator.start_child(
