@@ -45,7 +45,10 @@ this ADR exists to make discoverable:
    plain clone transports), falling back to the close's own
    `refs/wf/exports/<task>` where that ref was published, plus an operator
    `allowed_signers` trust root — because a file that carries its own public
-   key cannot certify its signer. The verdict names the anchor it used.
+   key cannot certify its signer. The verdict names the anchor it used. The
+   residual trust assumption is the history itself: the committed export blob
+   is a sound anchor only if the operator trusts the selected `HEAD` and its
+   history as authoritative.
 
 ## ADR 0003's argv ceiling applies to the bd path only
 
