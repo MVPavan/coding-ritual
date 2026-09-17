@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Sequence
+from contextlib import ExitStack
 from pathlib import Path
 
 from pydantic import ValidationError
 
+from workflow_interpreter.bdio.backend import SelectableBackendFactory
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.costs.collection import collect_task
 from workflow_interpreter.costs.pricing import PriceBook
@@ -22,6 +24,9 @@ from workflow_interpreter.costs.report import (
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
 from workflow_interpreter.foreman.config import load_config
+from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.paths import ledger_path
+from workflow_interpreter.ledger.store import LedgerStore
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -102,18 +107,46 @@ def main(argv: Sequence[str] | None = None) -> int:
         if len(stage_ids) != len(set(stage_ids)):
             raise ValueError("stage ids must be unique")
         reports: list[TaskCostReport] = []
-        for stage_id in stage_ids:
-            collection = collect_task(client, stage_id, runtime_roots=runtime_roots)
-            if supplement is not None:
-                collection = apply_supplement(collection, supplement)
-            reports.append(
-                build_task_report(
-                    collection,
-                    prices,
-                    as_of=args.as_of,
-                    normalize_standard=args.normalize_standard,
+        # §3.4: costs is READ-ONLY, so it opens an existing ledger and never
+        # creates one — `open_ledger` migrates, and migrating is a write. A
+        # repository with no ledger has no ledger-backed root either, and a
+        # bridge record that claims otherwise gets the factory's refusal.
+        ledger_file = ledger_path(config.repo_root)
+        with ExitStack() as resources:
+            ledger = (
+                resources.enter_context(
+                    open_ledger(config.repo_root, config.wrapper_root)
                 )
+                if ledger_file.is_file()
+                else None
             )
+            for stage_id in stage_ids:
+                # One factory per stage, because a `LedgerStore` is scoped to
+                # the task whose rows it hold (§3.3): the stage IS that task.
+                backends = SelectableBackendFactory(
+                    client,
+                    *(
+                        ()
+                        if ledger is None
+                        else (LedgerStore(ledger, task_id=stage_id),)
+                    ),
+                )
+                collection = collect_task(
+                    client,
+                    stage_id,
+                    backends=backends,
+                    runtime_roots=runtime_roots,
+                )
+                if supplement is not None:
+                    collection = apply_supplement(collection, supplement)
+                reports.append(
+                    build_task_report(
+                        collection,
+                        prices,
+                        as_of=args.as_of,
+                        normalize_standard=args.normalize_standard,
+                    )
+                )
     except (OSError, ValueError, ValidationError) as exc:
         del exc
         sys.stderr.write("task-cost: invalid or unavailable local input\n")

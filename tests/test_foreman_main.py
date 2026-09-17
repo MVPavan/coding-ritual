@@ -37,6 +37,7 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.errors import BdUnavailableError, StoreTransportError
+from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.bridge import (
     PhaseAdapter,
     PhaseAdapterError,
@@ -641,7 +642,10 @@ def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
         ),
     )
     assert gate_view_module.phase_bridge_gate_view(
-        first.instance_key, lab.config.bd, root_id=root.root_id
+        first.instance_key,
+        lab.config.bd,
+        root_id=root.root_id,
+        reads=lab.composition.reads_for_root(root.root_id),
     ) == {
         "attempt": 2,
         "is_current_attempt": False,
@@ -754,7 +758,10 @@ def test_phase_bridge_gate_view_rejects_a_root_outside_stage_attempts(
 
     with pytest.raises(PhaseAdapterError, match="does not own root instance_key"):
         gate_view_module.phase_bridge_gate_view(
-            "phase-bridge:phase-1:stage-a:attempt:3", lab.config.bd, root_id="impostor"
+            "phase-bridge:phase-1:stage-a:attempt:3",
+            lab.config.bd,
+            root_id="impostor",
+            reads=lab.store.reads,
         )
 
 
@@ -788,11 +795,11 @@ def test_status_resolves_bridge_view_once_for_an_open_halt(
     resolutions = 0
 
     def adapter_from_config(
-        _cls: type[PhaseAdapter], _config: BdConfig
+        _cls: type[PhaseAdapter], _config: BdConfig, reads: WorkflowReads
     ) -> PhaseAdapter:
         nonlocal resolutions
         resolutions += 1
-        return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+        return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd), reads)
 
     monkeypatch.setattr(
         gate_view_module.PhaseAdapter,

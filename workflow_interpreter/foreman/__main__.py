@@ -777,6 +777,7 @@ def _run(
             view.root.metadata.instance_key,
             composition.config.bd,
             root_id=view.root.root_id,
+            reads=composition.reads_for_root(view.root.root_id),
         )
         emit(
             json.dumps(
@@ -835,7 +836,10 @@ def _run(
         },
     }
     bridge_view = phase_bridge_gate_view(
-        root.metadata.instance_key, composition.config.bd, root_id=root.root_id
+        root.metadata.instance_key,
+        composition.config.bd,
+        root_id=root.root_id,
+        reads=composition.reads_for_root(root.root_id),
     )
     status["open_gates"] = _open_gates(composition, view, bridge_view)
     if frontier.open_halt is not None:

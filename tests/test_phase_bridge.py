@@ -1495,6 +1495,7 @@ def test_landing_refuses_wrong_root_directory(
 def test_gate_view_refuses_a_different_root_with_same_key(
     fake_bd, fake_client, monkeypatch
 ):
+    from workflow_interpreter.bdio.reads import WorkflowReads
     from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
 
     record = PhaseBridgeRecord.prepared(
@@ -1513,7 +1514,10 @@ def test_gate_view_refuses_a_different_root_with_same_key(
     )
     with pytest.raises(PhaseAdapterError, match="does not own"):
         phase_bridge_gate_view(
-            record.instance_key, fake_client.config, root_id="impostor"
+            record.instance_key,
+            fake_client.config,
+            root_id="impostor",
+            reads=WorkflowReads(fake_client),
         )
 
 
