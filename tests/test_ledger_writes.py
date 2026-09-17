@@ -35,6 +35,7 @@ from tests._fake_bd import FakeBd
 from tests._foreman import ChildScript, ForemanLab
 from tests._gates import approval_payload, close, ship_gate_request
 from tests._ledger import (
+    SIGNAL_TIMEOUT_S,
     TASK,
     CrashingLedgerStore,
     FaultPoint,
@@ -50,7 +51,7 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.backend import PinnedBackendFactory
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
-from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
+from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY, BackendKind
 from workflow_interpreter.bdio.errors import (
     BdUnavailableError,
     CarrierIntegrityError,
@@ -86,6 +87,7 @@ from workflow_interpreter.ledger.reconcile import (
     task_lock_path,
 )
 from workflow_interpreter.ledger.store import LedgerStore
+from workflow_interpreter.ledger.tasks import export_oid, pin_task_backend
 from workflow_interpreter.schema.models import Outcome
 
 TERMINAL: Final[str] = "shipped"
@@ -1249,3 +1251,59 @@ def test_the_reconcile_cli_drains_unacked_rows_onto_a_real_bead(
     assert ATTENTION_LABEL in client.show(task_id).labels
     with open_ledger(repo_root, wrapper_root) as reopened:
         assert _unacked(reopened, task_id) == []
+
+
+READER_TASKS: Final[tuple[str, str]] = ("cr-3411.9", "cr-3411.10")
+"""Two tasks one transaction writes, so a torn read has something to tear."""
+WRITER_PAUSE_S: Final[float] = 0.3
+"""How long the writer stays mid-transaction — long enough that an
+unsynchronised reader would certainly run between its two writes."""
+READER_OID: Final[str] = "a" * 40
+
+
+def test_a_read_never_sees_half_of_a_writers_transaction(
+    ledger: LedgerDatabase,
+) -> None:
+    """§3.4.1: one connection per process means its THREADS share it.
+
+    `check_same_thread=False` is what lets a resident supervisor and its
+    driver use the same connection, and it is exactly what makes an
+    unsynchronised read dangerous: SQLite shows a connection its OWN
+    uncommitted rows, so a reader running while another thread is mid-`BEGIN`
+    sees half of that transaction — one task's export pinned and the other's
+    not. Every read goes through the same lock the transaction takes, so the
+    only two answers are "neither" and "both".
+    """
+    for task_id in READER_TASKS:
+        pin_task_backend(ledger, task_id, BackendKind.LEDGER)
+    started = threading.Event()
+    failures: list[Exception] = []
+
+    def write_both() -> None:
+        """Pin both exports in ONE transaction, slowly, on another thread."""
+        try:
+            with ledger.transaction() as connection:
+                connection.execute(
+                    "UPDATE tasks SET export_oid = ? WHERE task_id = ?",
+                    (READER_OID, READER_TASKS[0]),
+                )
+                started.set()
+                time.sleep(WRITER_PAUSE_S)
+                connection.execute(
+                    "UPDATE tasks SET export_oid = ? WHERE task_id = ?",
+                    (READER_OID, READER_TASKS[1]),
+                )
+        except (sqlite3.Error, OSError) as failure:  # pragma: no cover - reported
+            started.set()
+            failures.append(failure)
+
+    writer = threading.Thread(target=write_both, name="ledger-writer")
+    writer.start()
+    try:
+        assert started.wait(SIGNAL_TIMEOUT_S)
+        observed = tuple(export_oid(ledger, task_id) for task_id in READER_TASKS)
+    finally:
+        writer.join(SIGNAL_TIMEOUT_S)
+
+    assert not failures
+    assert observed == (READER_OID, READER_OID)

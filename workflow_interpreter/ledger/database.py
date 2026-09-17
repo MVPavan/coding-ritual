@@ -144,10 +144,18 @@ def assert_identity(
 
 
 @contextmanager
-def transaction(
+def standalone_transaction(
     connection: sqlite3.Connection, *, write: bool = True
 ) -> Iterator[sqlite3.Connection]:
-    """One store method, one transaction (§3.4.2) — commit, or roll back.
+    """One transaction on a connection ONE caller owns alone (§3.4.2).
+
+    Only for a connection nobody else can reach — the migration peek and the
+    import's own connection. The process's shared connection is reached
+    through `LedgerDatabase.transaction` and `LedgerDatabase.locked`, which
+    take the mutual exclusion this function cannot: `check_same_thread=False`
+    means two threads share one connection, and SQLite has no nested `BEGIN`,
+    so an unlocked `BEGIN` here would commit another thread's work under its
+    own name and an unlocked read would see that work half-done.
 
     `write=False` opens a DEFERRED transaction: an export reads a whole task
     under ONE snapshot (§3.6) and must not take a write lock to do it.
@@ -196,7 +204,12 @@ class LedgerDatabase:
 
     @property
     def connection(self) -> sqlite3.Connection:
-        """The single connection of this process (§3.4.1)."""
+        """The single connection of this process, for a caller HOLDING the lock.
+
+        Valid inside `transaction()` or `locked()`, which is where every
+        production caller uses it; reaching for it outside either is the
+        unsynchronised access those two exist to prevent.
+        """
         return self._connection
 
     @property
@@ -230,8 +243,26 @@ class LedgerDatabase:
         method is one transaction" true between threads as well as between
         processes.
         """
-        with self._writing, transaction(self._connection, write=write) as connection:
+        with (
+            self._writing,
+            standalone_transaction(self._connection, write=write) as connection,
+        ):
             yield connection
+
+    @contextmanager
+    def locked(self) -> Iterator[sqlite3.Connection]:
+        """The shared connection, held against other threads for one operation.
+
+        Every operation on this connection that is NOT already inside
+        `transaction()` goes through here — reads included. The connection is
+        opened with `check_same_thread=False` (§3.4.1: one connection per
+        process, whatever its threads), so an unsynchronised read runs while
+        another thread is mid-`BEGIN` and sees uncommitted rows or a torn pair
+        of them. The lock is reentrant, so a read inside this process's own
+        transaction costs nothing.
+        """
+        with self._writing:
+            yield self._connection
 
     def close(self) -> None:
         """Close the connection and release the shared fence, in that order."""
@@ -267,7 +298,7 @@ class LedgerDatabase:
             current = schema_version(connection)
             if current >= SCHEMA_VERSION:
                 return
-            with transaction(connection):
+            with standalone_transaction(connection):
                 if current == _NO_VERSION:
                     apply_migrations(connection, current)
                     self._pin_identity(connection)

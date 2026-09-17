@@ -63,7 +63,8 @@ def pin_task_backend(
 
 def task_backend(database: LedgerDatabase, task_id: str) -> BackendKind | None:
     """The backend pinned for a task, or nothing when the task is unknown."""
-    row = database.connection.execute(_SQL_TASK_BACKEND, (task_id,)).fetchone()
+    with database.locked() as connection:
+        row = connection.execute(_SQL_TASK_BACKEND, (task_id,)).fetchone()
     return None if row is None else BackendKind(str(row[0]))
 
 
@@ -74,7 +75,8 @@ def root_backend(database: LedgerDatabase, root_id: str) -> BackendKind | None:
     rather than assumed so that the pin the row was written with is the one
     that answers, exactly as it does for the task.
     """
-    row = database.connection.execute(_SQL_ROOT_BACKEND, (root_id,)).fetchone()
+    with database.locked() as connection:
+        row = connection.execute(_SQL_ROOT_BACKEND, (root_id,)).fetchone()
     return None if row is None else BackendKind(str(row[0]))
 
 
@@ -93,5 +95,6 @@ def record_export_oid(database: LedgerDatabase, task_id: str, oid: str) -> None:
 
 def export_oid(database: LedgerDatabase, task_id: str) -> str | None:
     """The pinned export blob of a task, or nothing while it owes one."""
-    row = database.connection.execute(_SQL_TASK_EXPORT, (task_id,)).fetchone()
+    with database.locked() as connection:
+        row = connection.execute(_SQL_TASK_EXPORT, (task_id,)).fetchone()
     return None if row is None or row[0] is None else str(row[0])

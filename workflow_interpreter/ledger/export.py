@@ -58,7 +58,7 @@ from workflow_interpreter.ledger.database import (
     connect,
     read_meta,
     schema_version,
-    transaction,
+    standalone_transaction,
 )
 from workflow_interpreter.ledger.errors import (
     LedgerExportError,
@@ -121,8 +121,7 @@ def export_task(database: LedgerDatabase, task_id: str) -> bytes:
     is forbidden (§3.4.2), and the caller decides whether they go to `.wf/
     export/`, to a git blob, or to both.
     """
-    connection = database.connection
-    with transaction(connection, write=False):
+    with database.transaction(write=False) as connection:
         task = connection.execute(_SQL_TASK, (task_id,)).fetchone()
         if task is None:
             raise LedgerTransportError(MSG_UNKNOWN_TASK.format(task_id=task_id))
@@ -203,7 +202,7 @@ def import_exports(
         assert_identity(
             connection, path=ledger, repo_root=repo_root, wrapper_root=wrapper_root
         )
-        with transaction(connection):
+        with standalone_transaction(connection):
             _clear(connection)
             for export in parsed:
                 for table, row in export.rows:

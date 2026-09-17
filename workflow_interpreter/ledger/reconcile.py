@@ -140,9 +140,10 @@ class AttentionReconciler:
         is over the task's LIVE roots, so a gate left open under a root that
         lost its race is not a reason to flag a human.
         """
-        row = self._database.connection.execute(
-            _SQL_WANTED, (task_id, GateState.OPEN.value, STATUS_OPEN)
-        ).fetchone()
+        with self._database.locked() as connection:
+            row = connection.execute(
+                _SQL_WANTED, (task_id, GateState.OPEN.value, STATUS_OPEN)
+            ).fetchone()
         return bool(row[0])
 
     def drain(self, task_id: str) -> ReconcileResult:
@@ -163,13 +164,10 @@ class AttentionReconciler:
             wait_s=self._lock_wait_s,
         )
         with lock.exclusive():
-            pending = self._database.connection.execute(
-                _SQL_PENDING, (task_id,)
-            ).fetchone()
+            with self._database.locked() as connection:
+                pending = connection.execute(_SQL_PENDING, (task_id,)).fetchone()
+                restore = connection.execute(_SQL_RESTORE, (task_id,)).fetchone()
             newest = pending["newest"]
-            restore = self._database.connection.execute(
-                _SQL_RESTORE, (task_id,)
-            ).fetchone()
             wanted = self.wanted(task_id)
             if newest is None and restore is None:
                 return ReconcileResult(task_id=task_id, wanted=wanted)
@@ -252,9 +250,8 @@ class RootAttentionDrain:
 
     def __call__(self, root_id: str) -> None:
         """Reconcile this root's task, if the ledger holds the root at all."""
-        row = self._database.connection.execute(
-            _SQL_TASK_OF_ROOT, (root_id,)
-        ).fetchone()
+        with self._database.locked() as connection:
+            row = connection.execute(_SQL_TASK_OF_ROOT, (root_id,)).fetchone()
         if row is None:
             return
         AttentionReconciler(

@@ -609,9 +609,15 @@ class LedgerStore:
         operation: LedgerOperation,
         row_id: str,
     ) -> sqlite3.Cursor:
-        """Run one bound statement, naming what failed and whether it was busy."""
+        """Run one bound statement, naming what failed and whether it was busy.
+
+        Under the database's lock even for a read: the connection is shared by
+        every thread of this process (§3.4.1), and the lock is reentrant, so a
+        statement already inside one of this store's transactions pays nothing.
+        """
         try:
-            return self._database.connection.execute(statement, tuple(values))
+            with self._database.locked() as connection:
+                return connection.execute(statement, tuple(values))
         except sqlite3.Error as exc:
             raise sqlite_failure(exc, operation=operation.value, row_id=row_id) from exc
 

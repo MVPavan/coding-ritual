@@ -103,9 +103,10 @@ class LandingJournal:
         through to "both are missing" would let an unreadable journal look
         like an unjournalled one, and those need different answers.
         """
-        row = self._database.connection.execute(
-            _SQL_READ, (self._task_id, attempt, phase.value)
-        ).fetchone()
+        with self._database.locked() as connection:
+            row = connection.execute(
+                _SQL_READ, (self._task_id, attempt, phase.value)
+            ).fetchone()
         if row is None:
             return None
         try:
