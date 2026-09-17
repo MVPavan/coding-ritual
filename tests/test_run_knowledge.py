@@ -21,6 +21,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Final
@@ -38,14 +39,22 @@ from tests.conftest import Signer
 from tests.test_ledger_writes import EXIT_RECORD, _open_gate
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import GateVerifier, Outcome, SigningConfig
+from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import (
     LEDGER_RENDER_REF,
     Evidence,
     ProcessHandle,
+    Severity,
 )
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.bdio.findings import Severity, findings_of
-from workflow_interpreter.bdio.records import ActivationRecord
+from workflow_interpreter.bdio.findings import (
+    MAX_FINDING_BYTES,
+    MAX_REVIEW_FINDINGS_BYTES,
+    TRUNCATION_MARKER,
+    FindingKind,
+    findings_of,
+)
+from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
 from workflow_interpreter.bdio.signing import key_fingerprint
 from workflow_interpreter.bdio.wire import ActivationMetadata
 from workflow_interpreter.contracts.run_identity import RunIdentity, epic_segment
@@ -63,9 +72,10 @@ from workflow_interpreter.ledger.constants import (
 )
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerExportError
-from workflow_interpreter.ledger.export import write_export
-from workflow_interpreter.ledger.paths import ledger_path
+from workflow_interpreter.ledger.export import import_export, write_export
+from workflow_interpreter.ledger.paths import export_path, ledger_path, repo_hash
 from workflow_interpreter.ledger.reverify import (
+    ExportAnchor,
     TrustAnchor,
     read_signatures,
     verify_approvals,
@@ -73,7 +83,9 @@ from workflow_interpreter.ledger.reverify import (
     verify_signature,
 )
 from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
+from workflow_interpreter.schema.models import Node
 from workflow_interpreter.supervisor.config import SupervisorConfig
+from workflow_interpreter.supervisor.exit_grade import review_findings
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.launch_record import LaunchReceipt
 from workflow_interpreter.supervisor.paths import write_record
@@ -764,6 +776,216 @@ def test_the_ledger_stores_one_rounds_findings_when_it_closes(
     assert again[0] == len(derived)
 
 
+# --- the reviewer's OWN findings (finding 6) ---------------------------------
+
+REVIEW_REPORT: Final[str] = (
+    "# Review of cr-3411.5\n"
+    "\n"
+    "1. **BLOCKER** — `workflow_interpreter/ledger/store.py:383`: the close "
+    "writes no reviewer row.\n"
+    "   The rows are derived from carriers, so the review is lost.\n"
+    "2. MAJOR — `workflow_interpreter/bdio/findings.py:74`: the mapping is "
+    "documented as derivation.\n"
+    "3. the third item names no severity at all.\n"
+)
+REVIEW_FILE: Final[str] = "findings.md"
+
+
+def _review_node() -> Node:
+    """The shipped graph's `review` node — the one that writes findings."""
+    return next(
+        node
+        for node in load_graph(AUTHORING_FIXTURE).document.node
+        if node.name == "review"
+    )
+
+
+def _snapshot(tmp_path: Path, body: str, name: str = REVIEW_FILE) -> Path:
+    """One wrapper-owned outputs snapshot holding a review artifact."""
+    snapshot = tmp_path / "outputs"
+    snapshot.mkdir(exist_ok=True)
+    (snapshot / name).write_text(body, encoding="utf-8")
+    return snapshot
+
+
+def test_a_reviews_numbered_findings_are_extracted_verbatim(tmp_path: Path) -> None:
+    """Finding 6: the rows are the REVIEW's text, severity and `file:line`."""
+    snapshot = _snapshot(tmp_path, REVIEW_REPORT)
+
+    extracted = review_findings(_review_node(), snapshot, (REVIEW_FILE,))
+
+    assert [item.severity for item in extracted] == [
+        Severity.BLOCKER,
+        Severity.MAJOR,
+        Severity.MAJOR,
+    ]
+    assert extracted[0].text.startswith("1. **BLOCKER**")
+    assert "ledger/store.py:383" in extracted[0].text
+    assert "The rows are derived from carriers" in extracted[0].text
+    assert "bdio/findings.py:74" in extracted[1].text
+    assert extracted[2].text == "3. the third item names no severity at all."
+
+
+def test_an_unstructured_review_artifact_is_stored_whole(tmp_path: Path) -> None:
+    """A report with no numbering is kept, not dropped and not summarised."""
+    snapshot = _snapshot(tmp_path, "the guard is missing at store.py:383\n")
+
+    extracted = review_findings(_review_node(), snapshot, (REVIEW_FILE,))
+
+    assert [item.text for item in extracted] == ["the guard is missing at store.py:383"]
+
+
+def test_an_oversized_review_artifact_is_truncated_not_refused(
+    tmp_path: Path,
+) -> None:
+    """Finding 6: the bound is stated in bytes and marked where it bites."""
+    body = "".join(
+        f"{number}. BLOCKER — {'x' * MAX_FINDING_BYTES}\n" for number in range(1, 20)
+    )
+    snapshot = _snapshot(tmp_path, body)
+
+    extracted = review_findings(_review_node(), snapshot, (REVIEW_FILE,))
+
+    assert extracted
+    assert all(
+        len(item.text.encode("utf-8")) <= MAX_FINDING_BYTES for item in extracted
+    )
+    total = sum(len(item.text.encode("utf-8")) for item in extracted)
+    assert total <= MAX_REVIEW_FINDINGS_BYTES
+    assert any(TRUNCATION_MARKER in item.text for item in extracted)
+
+
+def test_a_writer_node_contributes_no_review_findings(tmp_path: Path) -> None:
+    """Only a node the graph lets REJECT is read for a verdict about others."""
+    implement = next(
+        node
+        for node in load_graph(AUTHORING_FIXTURE).document.node
+        if node.name == "implement"
+    )
+
+    assert (
+        review_findings(implement, _snapshot(tmp_path, REVIEW_REPORT), (REVIEW_FILE,))
+        == ()
+    )
+
+
+def _reviewed_evidence(tmp_path: Path) -> Evidence:
+    """Close evidence carrying the three findings the reviewer wrote."""
+    return Evidence(
+        claimed_outcome=Outcome.REJECT,
+        review_findings=review_findings(
+            _review_node(), _snapshot(tmp_path, REVIEW_REPORT), (REVIEW_FILE,)
+        ),
+    )
+
+
+def _closed_review(
+    store: WorkflowStore, evidence: Evidence
+) -> tuple[RootRecord, ActivationRecord]:
+    """One activation minted, dispatched and CLOSED as a rejecting review."""
+    root = make_root(store, load_definition())
+    activation = store.mint_activation(root.root_id, entry_request()).activation
+    store.record_dispatch(activation.activation_id, handle())
+    store.record_exit(activation.activation_id, EXIT_RECORD)
+    return root, store.close_activation(
+        activation.activation_id, Outcome.REJECT, evidence=evidence
+    )
+
+
+def test_the_reviewers_findings_reach_the_bd_backend_verbatim(
+    tmp_path: Path, fake_store: WorkflowStore
+) -> None:
+    """Finding 6: bd carries the same three findings, on the activation record."""
+    evidence = _reviewed_evidence(tmp_path)
+
+    _, closed = _closed_review(fake_store, evidence)
+
+    rows = [row for row in findings_of(closed) if row.kind is FindingKind.REVIEW]
+    assert [row.text for row in rows] == [
+        item.text for item in evidence.review_findings
+    ]
+    assert [row.severity for row in rows] == [
+        item.severity for item in evidence.review_findings
+    ]
+    assert findings_of(closed)[: len(rows)] == tuple(rows)
+
+
+def test_the_reviewers_findings_are_ledger_rows_in_durable_order(
+    tmp_path: Path,
+) -> None:
+    """Finding 6: §3.3's table holds the review's own bytes, review rows first."""
+    evidence = _reviewed_evidence(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _, closed = _closed_review(ledger_store(database), evidence)
+        with database.locked() as connection:
+            rows = connection.execute(
+                "SELECT severity, text, kind FROM findings "
+                "WHERE activation_id = ? ORDER BY rowid",
+                (closed.activation_id,),
+            ).fetchall()
+
+    review = [row for row in rows if row[2] == FindingKind.REVIEW.value]
+    assert [row[1] for row in review] == [
+        item.text for item in evidence.review_findings
+    ]
+    assert [row[0] for row in review] == [
+        item.severity.value for item in evidence.review_findings
+    ]
+    assert [row[2] for row in rows[: len(review)]] == [FindingKind.REVIEW.value] * len(
+        review
+    )
+    assert any(row[2] == FindingKind.DIAGNOSTIC.value for row in rows)
+
+
+def test_the_reviewers_findings_survive_the_export_round_trip(
+    tmp_path: Path,
+) -> None:
+    """Finding 6: the carrier is exported state, so the rows are re-derivable."""
+    evidence = _reviewed_evidence(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _, closed = _closed_review(ledger_store(database), evidence)
+        first = write_export(database, TASK).read_bytes()
+
+    import_export(
+        export_path(repo_root, TASK),
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        ledger=ledger_path(repo_root),
+    )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        second = write_export(reopened, TASK).read_bytes()
+        restored = ledger_store(reopened).reads.load_activation(closed.activation_id)
+
+    assert second == first
+    assert findings_of(restored) == findings_of(closed)
+    assert [row.text for row in findings_of(restored) if row.kind is FindingKind.REVIEW]
+
+
+def test_findings_md_shows_the_reviewers_findings_first(tmp_path: Path) -> None:
+    """Finding 6: `findings.md` is the review, before the engine's diagnostics."""
+    evidence = _reviewed_evidence(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        store = ledger_store(database)
+        root, closed = _closed_review(store, evidence)
+        rendered = render_run(
+            root, (closed,), store.reads.list_gates(root.root_id), round_no=1
+        )
+
+    positions = [
+        rendered.findings_md.find(item.text) for item in evidence.review_findings
+    ]
+    assert all(position > 0 for position in positions), rendered.findings_md
+    assert positions == sorted(positions)
+    diagnostic = next(
+        row for row in findings_of(closed) if row.kind is FindingKind.DIAGNOSTIC
+    )
+    assert rendered.findings_md.find(diagnostic.text) > positions[-1]
+
+
 def test_the_render_shows_each_rounds_findings_in_record_order(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:
@@ -981,7 +1203,13 @@ def test_the_export_is_enough_without_the_ledger_or_the_wrapper_root(
 
 
 def _anchor_repo(tmp_path: Path, export: Path, *, pin: bool = True) -> Path:
-    """A real clone holding the export, with its blob pinned as §3.6 pins it."""
+    """A repository with NO history, holding the export under its close ref.
+
+    The secondary anchor of §3.6: `refs/wf/exports/<task>` as the close wrote
+    it, in a repository whose HEAD carries nothing — so these cases exercise
+    the fallback, and the fresh-clone family below exercises the primary
+    anchor, the export the landed history carries.
+    """
     repo = tmp_path / "anchor-repo"
     repo.mkdir()
     _git(repo, "init", "--quiet", "--initial-branch=main")
@@ -1031,7 +1259,7 @@ def _rewrite_signature_row(path: Path, updates: dict[str, object]) -> None:
 def test_an_anchored_export_reports_all_four_answers(
     tmp_path: Path, exported_task: tuple[Path, Path], signing_config: SigningConfig
 ) -> None:
-    """The good case: bytes valid, export pinned, signer trusted, entry unchanged."""
+    """The good case on the fallback anchor: all four answers, from the ref."""
     path, _ = exported_task
     repo = _anchor_repo(tmp_path, path)
 
@@ -1041,12 +1269,13 @@ def test_an_anchored_export_reports_all_four_answers(
     assert (verdict.bytes_valid, verdict.export_pinned) == (True, True)
     assert (verdict.signer_trusted, verdict.entry_unchanged) == (True, True)
     assert verdict.blob_oid == verdict.pinned_oid
+    assert verdict.anchor is ExportAnchor.REF
 
 
 def test_an_export_that_is_not_the_pinned_blob_is_refused(
     tmp_path: Path, exported_task: tuple[Path, Path], signing_config: SigningConfig
 ) -> None:
-    """Finding 2: the bytes must be the ones the closing merge recorded (§3.6)."""
+    """Finding 2: the bytes must be the ones the close recorded (§3.6)."""
     path, _ = exported_task
     repo = _anchor_repo(tmp_path, path)
     target = _export_path(repo)
@@ -1063,7 +1292,7 @@ def test_an_export_that_is_not_the_pinned_blob_is_refused(
 def test_an_unpinned_export_is_refused(
     tmp_path: Path, exported_task: tuple[Path, Path], signing_config: SigningConfig
 ) -> None:
-    """An export no ref names is an export no merge recorded."""
+    """An export neither history nor a ref names is one no close recorded."""
     path, _ = exported_task
     repo = _anchor_repo(tmp_path, path, pin=False)
 
@@ -1071,7 +1300,8 @@ def test_an_unpinned_export_is_refused(
 
     assert not verdict.export_pinned
     assert not verdict.accepted
-    assert any("pinned" in reason for reason in verdict.reasons)
+    assert verdict.anchor is None
+    assert any("nothing anchors this export" in reason for reason in verdict.reasons)
 
 
 def test_a_tampered_payload_is_refused(
@@ -1114,6 +1344,32 @@ def test_a_self_signed_replacement_key_fails_the_anchor(
     path, _ = exported_task
     repo = _anchor_repo(tmp_path, path)
     target = _export_path(repo)
+    _forge_signer(target, tmp_path, sign_payload)
+    _pin_export(repo, target)
+
+    verdict = verify_export(target, TASK, _anchor(repo, signing_config))
+
+    # The export vouches for itself perfectly — the bytes-only half of D21,
+    # which is what S4 shipped before this fix, accepts the forgery outright —
+    # and git agrees these are the bytes it holds. Neither is provenance.
+    assert all(result.verified for result in verify_approvals(target))
+    assert verdict.bytes_valid
+    assert verdict.export_pinned
+    assert not verdict.signer_trusted
+    assert not verdict.accepted
+    assert any("trust root" in reason for reason in verdict.reasons)
+
+
+# --- the acceptance: the real CLI, in a real fresh clone (finding 9) ---------
+
+
+def _forge_signer(target: Path, tmp_path: Path, sign_payload: Signer) -> None:
+    """Mint a key, re-sign the recorded payload and replace the stored entry.
+
+    The tamperer's whole move: after it the export is internally consistent —
+    it carries a key, a signature over its own bytes and the allow-list entry
+    that certifies them — so only a trust root outside the file can refuse it.
+    """
     stored = read_signatures(target)[0]
     forged_key = tmp_path / "forged_key"
     subprocess.run(
@@ -1153,19 +1409,157 @@ def test_a_self_signed_replacement_key_fails_the_anchor(
             "allowed_signers_entry": entry.model_dump_json(),
         },
     )
-    _pin_export(repo, target)
 
-    verdict = verify_export(target, TASK, _anchor(repo, signing_config))
 
-    # The export vouches for itself perfectly — the bytes-only half of D21,
-    # which is what S4 shipped before this fix, accepts the forgery outright —
-    # and git agrees these are the bytes it holds. Neither is provenance.
-    assert all(result.verified for result in verify_approvals(target))
-    assert verdict.bytes_valid
-    assert verdict.export_pinned
-    assert not verdict.signer_trusted
-    assert not verdict.accepted
-    assert any("trust root" in reason for reason in verdict.reasons)
+def _commit_all(repo: Path, message: str) -> None:
+    """Commit the export exactly as §3.6's step 20 says the orchestrator does."""
+    _git(repo, "add", "--", str(Path(".wf") / "export"))
+    _git(repo, "commit", "--quiet", "-m", message)
+
+
+@pytest.fixture
+def landed_export(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> Path:
+    """A repository whose HISTORY carries one closed task's export (§3.6).
+
+    The real close path writes it — the gate is signed and closed through the
+    store, and the close exports the task — and then the orchestrator commits
+    `.wf/export/<task>.jsonl` beside the landed work, which is the step that
+    puts these bytes on the history a clone transports. `.wf/ledger.db` is
+    never added, so the clone cannot have one.
+    """
+    repo_root = tmp_path / "origin"
+    repo_root.mkdir()
+    _git(repo_root, "init", "--quiet", "--initial-branch=main")
+    _git(repo_root, "config", "user.email", "wf@test")
+    _git(repo_root, "config", "user.name", "wf test")
+    (repo_root / "README.md").write_text("origin\n", encoding="utf-8")
+    _git(repo_root, "add", "--", "README.md")
+    _git(repo_root, "commit", "--quiet", "-m", "base")
+    wrapper_root = tmp_path / "wrapper"
+    wrapper_root.mkdir(exist_ok=True)
+    with open_ledger(repo_root, wrapper_root) as database:
+        store = ledger_store(
+            database, verifier=GateVerifier(signing_config, database.repo_root)
+        )
+        root_id, gate_id = _open_gate(store)
+        gate = store.reads.load_gate(gate_id)
+        close(store, root_id, gate, approval_payload(root_id, gate), sign_payload)
+        write_export(database, TASK)
+    _commit_all(repo_root, "land: the task and its export")
+    return repo_root
+
+
+def _fresh_clone(tmp_path: Path, origin: Path, name: str = "fresh-clone") -> Path:
+    """A plain `git clone`: no ledger, no wrapper root, no custom refs."""
+    clone = tmp_path / name
+    _git(tmp_path, "clone", "--quiet", str(origin), str(clone))
+    assert not (clone / ".wf" / "ledger.db").exists()
+    assert not _git(clone, "for-each-ref", "refs/wf")
+    return clone
+
+
+def _cli_verify(clone: Path, signing: SigningConfig, tmp_path: Path) -> tuple[int, str]:
+    """Run the real `wf ledger verify` in `clone`, as an operator would."""
+    config = tmp_path / f"{clone.name}.toml"
+    home = tmp_path / "no-home"
+    wrapper_root = home / repo_hash(clone)
+    config.write_text(
+        f'''repo_root = "{clone}"
+wrapper_home = "{home}"
+host = "host"
+actor = "actor"
+
+[bd]
+workspace = "{tmp_path / "no-bd"}"
+actor = "actor"
+
+[supervisor]
+repo_root = "{clone}"
+wrapper_root = "{wrapper_root}"
+host = "host"
+''',
+        encoding="utf-8",
+    )
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "workflow_interpreter.ledger",
+            "--config",
+            str(config),
+            "verify",
+            TASK,
+            "--allowed-signers",
+            str(signing.allowed_signers_path),
+        ],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        check=False,
+        timeout=SCRIPT_TIMEOUT_S,
+    )
+    return completed.returncode, completed.stdout.decode() + completed.stderr.decode()
+
+
+def test_the_cli_verifies_a_task_in_a_real_fresh_clone(
+    tmp_path: Path, landed_export: Path, signing_config: SigningConfig
+) -> None:
+    """The §6 acceptance, end to end: `git clone`, then the actual command.
+
+    Nothing is manufactured here. The anchor is the export blob the landed
+    commit carries, which is why a clone that fetched no `refs/wf/*` can still
+    answer all four questions.
+    """
+    clone = _fresh_clone(tmp_path, landed_export)
+
+    code, output = _cli_verify(clone, signing_config, tmp_path)
+
+    assert code == 0, output
+    assert "bytes valid: yes" in output, output
+    assert f"export pinned: yes ({ExportAnchor.COMMITTED.value})" in output, output
+    assert "signer trusted: yes" in output, output
+    assert "historical entry unchanged: yes" in output, output
+
+
+def test_the_cli_refuses_export_bytes_altered_after_the_commit(
+    tmp_path: Path, landed_export: Path, signing_config: SigningConfig
+) -> None:
+    """Finding 9: the anchor is the COMMITTED blob, not the file on disk."""
+    clone = _fresh_clone(tmp_path, landed_export)
+    target = _export_path(clone)
+    target.write_text(target.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+
+    code, output = _cli_verify(clone, signing_config, tmp_path)
+
+    assert code != 0, output
+    assert "export pinned: no" in output, output
+
+
+def test_the_cli_refuses_a_self_signed_replacement_key_in_the_clone(
+    tmp_path: Path,
+    landed_export: Path,
+    signing_config: SigningConfig,
+    sign_payload: Signer,
+) -> None:
+    """Finding 9: a forgery committed into history is still not provenance.
+
+    The tamperer owns the clone, so it re-signs the export with its own key AND
+    commits it — the bytes anchor now agrees. Only the operator's trust root,
+    which is not in the repository at all, refuses it.
+    """
+    clone = _fresh_clone(tmp_path, landed_export)
+    _git(clone, "config", "user.email", "attacker@test")
+    _git(clone, "config", "user.name", "attacker")
+    _forge_signer(_export_path(clone), tmp_path, sign_payload)
+    _commit_all(clone, "land: the export, resigned")
+
+    code, output = _cli_verify(clone, signing_config, tmp_path)
+
+    assert code != 0, output
+    assert "bytes valid: yes" in output, output
+    assert f"export pinned: yes ({ExportAnchor.COMMITTED.value})" in output, output
+    assert "signer trusted: no" in output, output
 
 
 # --- archive (§3.9, D19) -----------------------------------------------------
