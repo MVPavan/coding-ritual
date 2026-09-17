@@ -76,20 +76,27 @@ def ensure_fence_dir(repo_root: Path) -> Path | None:
     return directory
 
 
-def coordinator_dirt(
-    entries: Iterable[tuple[str, bool]],
-) -> tuple[tuple[str, bool], ...]:
-    """The dirty paths a COORDINATOR owns, with the engine's own removed.
+def export_relpath(task_id: str) -> str:
+    """`.wf/export/<task>.jsonl` as git spells it, from the repository root."""
+    return str(PurePosixPath(LEDGER_DIR) / EXPORT_DIR / f"{task_id}{EXPORT_SUFFIX}")
 
-    `<repo>/.wf/` is engine state: the database is gitignored there and the
-    export the bridge writes moments before it closes is tracked there (§3.6,
-    "the export file appears in the main checkout, exactly as
-    `.beads/issues.jsonl` does after a bd write"). Every coordinator
-    cleanliness check therefore has to look past it, or the very write that
-    makes a close durable would block the next stage's admission.
+
+def coordinator_dirt(
+    entries: Iterable[tuple[str, bool]], *, task_id: str
+) -> tuple[tuple[str, bool], ...]:
+    """The dirty paths a COORDINATOR owns, with THIS task's export removed.
+
+    Exactly one path, never the directory: the export the bridge writes moments
+    before it closes is tracked in `<repo>/.wf/` (§3.6, "the export file appears
+    in the main checkout, exactly as `.beads/issues.jsonl` does after a bd
+    write"), so a cleanliness check that counted it would block the next
+    stage's admission on the very write that made this close durable.
+
+    Looking past the whole directory instead would hide every other staged,
+    modified or untracked file under it — including another task's export and
+    the ledger database when it is not ignored — from checks whose whole
+    purpose is to preserve a coordinator's work before a checkout is
+    synchronised.
     """
-    return tuple(
-        entry
-        for entry in entries
-        if not PurePosixPath(entry[0]).is_relative_to(LEDGER_DIR)
-    )
+    allowed = export_relpath(task_id)
+    return tuple(entry for entry in entries if entry[0] != allowed)

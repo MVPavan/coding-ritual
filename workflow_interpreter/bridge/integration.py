@@ -660,7 +660,8 @@ def prepare_integration(
             )
             base = composition.git.ref_target(target, cwd=composition.config.repo_root)
             if base is None or coordinator_dirt(
-                composition.git.status_paths(cwd=composition.config.repo_root)
+                composition.git.status_paths(cwd=composition.config.repo_root),
+                task_id=request.stage_id,
             ):
                 raise BridgeRefusal("integration target must be clean and present")
             entries = guard.sources(request)
@@ -895,7 +896,8 @@ def retry_integration(
             record.target_ref, cwd=composition.config.repo_root
         )
         if base is None or coordinator_dirt(
-            composition.git.status_paths(cwd=composition.config.repo_root)
+            composition.git.status_paths(cwd=composition.config.repo_root),
+            task_id=record.stage_id,
         ):
             raise BridgeRefusal("integration retry requires clean target")
         if (

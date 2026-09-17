@@ -35,7 +35,8 @@ from workflow_interpreter.bridge.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.tick import Foreman, RunReport
-from workflow_interpreter.ledger.paths import export_path
+from workflow_interpreter.ledger.constants import LEDGER_DIR
+from workflow_interpreter.ledger.paths import coordinator_dirt, export_path
 from workflow_interpreter.ledger.tasks import (
     export_oid,
     record_export_oid,
@@ -482,3 +483,122 @@ def test_a_bridge_task_keeps_its_worktree_until_the_export_is_pinned(
     lab.foreman.tick(record.root_id or "")
 
     assert not worktree.exists()
+
+
+def test_only_the_task_s_own_export_is_excused_from_coordinator_dirt() -> None:
+    """§3.6: one path is the bridge's own write; everything else is somebody's work.
+
+    Excusing the whole `.wf/` directory hid another task's export, an
+    unignored ledger database and any stray file under it from the checks that
+    exist to preserve a coordinator's uncommitted changes.
+    """
+    entries = (
+        (".wf/export/a.jsonl", True),
+        (".wf/export/other.jsonl", True),
+        (".wf/ledger.db", False),
+        (".wf/notes.md", False),
+        ("src/feature.py", True),
+    )
+
+    assert coordinator_dirt(entries, task_id=STAGE) == (
+        (".wf/export/other.jsonl", True),
+        (".wf/ledger.db", False),
+        (".wf/notes.md", False),
+        ("src/feature.py", True),
+    )
+
+
+@pytest.mark.acceptance
+def test_an_unrelated_file_under_wf_still_stops_the_bridge(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """A coordinator's stray engine-directory file is dirt, and dirt refuses."""
+    lab = _bridge_lab(
+        tmp_path, monkeypatch, signing_config, sign_payload, BackendKind.LEDGER
+    )
+    stray = lab.repo / LEDGER_DIR / "notes.md"
+    stray.parent.mkdir(parents=True, exist_ok=True)
+    stray.write_text("the coordinator's own notes\n", encoding="utf-8")
+
+    result = _entry(lab, STAGE)
+
+    assert result.exit_code == 2, result.report
+    assert result.report["reason"] == "coordinator checkout is not clean"
+    assert lab.fake_bd.rows[STAGE]["status"] != "closed"
+
+
+@pytest.mark.acceptance
+def test_a_checkout_sync_that_rewrites_the_export_is_refused(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """§3.6: the one file the dirt check excuses is the one whose bytes are proven.
+
+    `read-tree -m -u` writes the working tree, so a coordinator brought
+    forward onto a commit that carries a different `.wf/export/<task>.jsonl`
+    would silently lose the record this task is closing against — invisibly,
+    because that path is exactly the one the dirt check is told to ignore.
+
+    The state drilled here is the one `_sync_checkout` exists for and the only
+    one that reaches its `read-tree`: an old checkout whose index and worktree
+    are at the admitted base while the target ref has already moved on.
+    """
+    from tests._supervisor import commit_all, head_of
+    from workflow_interpreter.bridge.authority import BeadGateAuthority
+    from workflow_interpreter.bridge.journal import LandingJournal
+    from workflow_interpreter.bridge.landing import (
+        MSG_EXPORT_CHANGED,
+        DetachedRepositoryGate,
+        PhaseLanding,
+    )
+
+    lab = _bridge_lab(
+        tmp_path, monkeypatch, signing_config, sign_payload, BackendKind.LEDGER
+    )
+    assert _entry(lab, STAGE).exit_code == 0
+    record = _bridge_adapter(lab).record(STAGE)
+    wiring = lab.composition.for_root(record.root_id or "")
+    journal = LandingJournal(lab.ledger, STAGE, BackendKind.LEDGER)
+    landed = journal.read(record.attempt, LandingPhase.INTENT, LandingIntent)
+    assert landed is not None
+
+    export = export_path(lab.repo, STAGE)
+    export.write_text('{"kind":"header","of":"the base"}\n', encoding="utf-8")
+    base = commit_all(lab.repo, "the coordinator commits the export")
+    export.write_text('{"kind":"header","of":"a later attempt"}\n', encoding="utf-8")
+    (lab.repo / "other.txt").write_text("landed work\n", encoding="utf-8")
+    artifact = commit_all(lab.repo, "the work this landing brings forward")
+    _reset_to(lab.repo, base)
+    lab.git.update_ref(landed.ref, artifact, cwd=lab.repo)
+    # HEAD follows the branch, so the coordinator is now ATTACHED to work its
+    # index and worktree have never seen — `_sync_checkout`'s whole premise.
+    assert head_of(lab.repo) == artifact
+
+    landing = PhaseLanding(
+        _bridge_adapter(lab),
+        lab.git,
+        lab.repo,
+        wiring.paths,
+        BeadGateAuthority(wiring.store.reads),
+        DetachedRepositoryGate(
+            lab.git,
+            wiring.paths,
+            record.verification_policy,
+            lambda message: None,
+        ),
+    )
+    intent = landed.model_copy(update={"expected_base": base, "artifact_oid": artifact})
+
+    assert landing._sync_checkout(intent) == MSG_EXPORT_CHANGED
+
+
+def _reset_to(repo: Path, commit: str) -> None:
+    """Put index and worktree back at one commit, leaving the branch alone."""
+    import subprocess
+
+    subprocess.run(
+        ["git", "reset", "--hard", "--quiet", commit],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        timeout=30,
+    )

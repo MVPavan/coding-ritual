@@ -289,7 +289,10 @@ def _execute(
                 if retry:
                     raise PhaseBridgeRefused("landing recovery cannot be retried")
                 return _land(composition, adapter, prior, recover=True)
-    if coordinator_dirt(composition.git.status_paths(cwd=composition.config.repo_root)):
+    if coordinator_dirt(
+        composition.git.status_paths(cwd=composition.config.repo_root),
+        task_id=stage_id,
+    ):
         raise PhaseBridgeRefused(MSG_DIRTY)
     if (
         prior is not None

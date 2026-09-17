@@ -21,8 +21,11 @@ from workflow_interpreter.bridge.verification import (
     observe_checks,
 )
 from workflow_interpreter.foreman.identifiers import validate_bead_id
-from workflow_interpreter.ledger.constants import LEDGER_DIR
-from workflow_interpreter.ledger.paths import coordinator_dirt
+from workflow_interpreter.ledger.paths import (
+    coordinator_dirt,
+    export_path,
+    export_relpath,
+)
 from workflow_interpreter.supervisor.gitcmd import GitSubcommand
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.paths import (
@@ -46,6 +49,10 @@ MSG_HUMAN_ATTENTION: Final[str] = "halted: human-attention"
 MSG_GATE_MISMATCH: Final[str] = "immutable ship-gate evidence does not match landing"
 MSG_REPOSITORY_GATE: Final[str] = "repository gate is incomplete, red, or mismatched"
 MSG_IDENTITY: Final[str] = "landing intent and stage relation are ambiguous"
+MSG_EXPORT_CHANGED: Final[str] = (
+    "the task's export file changed while the checkout was synchronised; "
+    "preserve it and retry recovery (run-ledger §3.6)"
+)
 MSG_NO_EXPORT: Final[str] = (
     "refusing to close {task_id!r}: this landing has no export pin, so the "
     "task's record could not be put in git before its bead closed (§3.6)"
@@ -251,7 +258,9 @@ class PhaseLanding:
                 disposition=LandingDisposition.HUMAN_ATTENTION,
                 reason="stage is not eligible for fresh landing",
             )
-        reason = self._coordinator_refusal(record.target_ref)
+        reason = self._coordinator_refusal(
+            target_ref=record.target_ref, task_id=record.stage_id
+        )
         if reason:
             return LandingResult(
                 disposition=LandingDisposition.HUMAN_ATTENTION, reason=reason
@@ -319,7 +328,9 @@ class PhaseLanding:
             if record.integration_digest is not None and guard is not None:
                 guard.pre_cas(record)
             self._write_intent(intent)
-            reason = self._coordinator_refusal(intent.ref)
+            reason = self._coordinator_refusal(
+                target_ref=intent.ref, task_id=intent.stage
+            )
             if reason:
                 return LandingResult(
                     disposition=LandingDisposition.HUMAN_ATTENTION,
@@ -384,7 +395,7 @@ class PhaseLanding:
                 observed_target=observed,
                 reason="explicit landing retry requires the exact original target base",
             )
-        reason = self._coordinator_refusal(intent.ref)
+        reason = self._coordinator_refusal(target_ref=intent.ref, task_id=intent.stage)
         if reason:
             return LandingResult(
                 disposition=LandingDisposition.HUMAN_ATTENTION,
@@ -505,23 +516,37 @@ class PhaseLanding:
             and record.gate_receipt_digest == intent.gate_receipt_digest
         )
 
-    def _coordinator_dirt(self) -> tuple[tuple[str, bool], ...]:
-        """The dirty paths the COORDINATOR owns, excluding the engine's own.
+    def _coordinator_dirt(self, task_id: str) -> tuple[tuple[str, bool], ...]:
+        """The dirty paths the COORDINATOR owns, excluding this task's export.
 
-        `<repo>/.wf/` is engine state: the ledger database is gitignored there
-        and the export file is written there by THIS landing, moments before
-        the close (§3.6). Counting the bridge's own export as coordinator dirt
-        would make every recovery after a completed export refuse, and would
-        block the next stage's admission until a human committed a file the
-        plan says the orchestrator commits with the beads mirror.
+        The export file is written by THIS landing, moments before the close
+        (§3.6). Counting it as coordinator dirt would make every recovery after
+        a completed export refuse, and would block the next stage's admission
+        until a human committed a file the plan says the orchestrator commits
+        with the beads mirror. Nothing else under `<repo>/.wf/` is excused:
+        anything else there is somebody's uncommitted work.
         """
-        return coordinator_dirt(self._git.status_paths(cwd=self._repo_root))
+        return coordinator_dirt(
+            self._git.status_paths(cwd=self._repo_root), task_id=task_id
+        )
 
-    def _coordinator_refusal(self, target_ref: str) -> str | None:
+    def _export_digest(self, task_id: str) -> str | None:
+        """The content digest of the one file a checkout sync may leave dirty.
+
+        Nothing, when the export does not exist yet — which is the ordinary
+        case, since the close writes it after this. A digest that CHANGES
+        across the synchronisation is the case this exists for.
+        """
+        path = export_path(self._repo_root, task_id)
+        if not path.is_file():
+            return None
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    def _coordinator_refusal(self, *, target_ref: str, task_id: str) -> str | None:
         """Preserve the attached coordinator identity before any authorized CAS."""
         if self._git.attached_branch_ref(cwd=self._repo_root) != target_ref:
             return "coordinator must be attached to the admitted target ref"
-        if self._coordinator_dirt():
+        if self._coordinator_dirt(task_id):
             return "coordinator has staged, unstaged or untracked changes; preserve or repair them before retry"
         return None
 
@@ -669,9 +694,13 @@ class PhaseLanding:
         """Bring a clean old checkout forward without resetting refs or user edits."""
         if self._git.attached_branch_ref(cwd=self._repo_root) != intent.ref:
             return f"coordinator must return to admitted branch {intent.ref}; no checkout files changed"
-        dirty = self._coordinator_dirt()
+        dirty = self._coordinator_dirt(intent.stage)
         if not dirty:
             return None
+        # The one path the dirt check excuses is the one whose CONTENT has to
+        # be proven unchanged instead: `read-tree -u` writes the working tree,
+        # and this file is the task's whole record (§3.6).
+        pinned_export = self._export_digest(intent.stage)
         if self._git.ref_target(intent.ref, cwd=self._repo_root) != intent.artifact_oid:
             return "coordinator target differs from intent artifact; preserve current checkout"
         old_tree = self._git.tree_oid(intent.expected_base, cwd=self._repo_root)
@@ -688,7 +717,7 @@ class PhaseLanding:
             intent.expected_base,
             "--",
             ".",
-            f":(exclude){LEDGER_DIR}",
+            f":(exclude){export_relpath(intent.stage)}",
             cwd=self._repo_root,
             check=False,
             config=self._git.filter_overrides(cwd=self._repo_root),
@@ -706,8 +735,10 @@ class PhaseLanding:
             check=False,
             config=self._git.filter_overrides(cwd=self._repo_root),
         )
-        if result.returncode or self._coordinator_dirt():
+        if result.returncode or self._coordinator_dirt(intent.stage):
             return "checkout changed during synchronization; preserve local changes and retry recovery"
+        if self._export_digest(intent.stage) != pinned_export:
+            return MSG_EXPORT_CHANGED
         return None
 
     def _policy(self, record: PhaseBridgeRecord) -> VerificationPolicy:
