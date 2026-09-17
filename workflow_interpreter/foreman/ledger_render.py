@@ -19,8 +19,14 @@ the only identity the check is given.
 
 It is rendered from the ACTIVATION and GATE records through the neutral seam,
 which is the same answer on both backends: the bd rows and the ledger rows
-carry the same §3 carriers, and the plan's separate `findings`/`artifacts`
-tables have no writers as of S3 (recorded in the S4 report).
+carry the same §3 carriers.
+
+`findings.md` renders the §3.3 FINDINGS of each round, derived by
+`bdio/findings.py` from the close carriers. The ledger inserts exactly those
+rows inside the closing transaction, so on that backend the rendered sections
+are a projection of the table; on bd, where there is no table, they are the
+same derivation over the same carriers. One function, one order — otherwise
+the rendered account and the stored one could disagree about a run.
 """
 
 from __future__ import annotations
@@ -41,6 +47,7 @@ from workflow_interpreter.bdio import (
     RootRecord,
 )
 from workflow_interpreter.bdio.carriers import LedgerRenderBinding
+from workflow_interpreter.bdio.findings import Finding, findings_of
 from workflow_interpreter.bdio.wire import MintRequest
 from workflow_interpreter.foreman.compose import InstanceWiring
 from workflow_interpreter.foreman.constants import (
@@ -78,6 +85,9 @@ _PREAMBLE: Final[str] = (
 )
 _ROUND_HEADING: Final[str] = "\n## Round {round_no} — {node}\n"
 _NO_ROUNDS: Final[str] = "\nNo activation of this attempt has completed yet.\n"
+_FINDINGS_HEADING: Final[str] = "\nFindings:\n\n"
+_FINDING_LINE: Final[str] = "- {severity}: {text}\n"
+_NO_FINDINGS: Final[str] = "- none recorded for this round\n"
 
 
 class ActivationFacts(BaseModel):
@@ -85,6 +95,7 @@ class ActivationFacts(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
+    findings: tuple[Finding, ...]
     activation_id: str
     node: str
     round_no: int
@@ -144,6 +155,7 @@ def activation_facts(activation: ActivationRecord) -> ActivationFacts | None:
     evidence = metadata.evidence
     artifact = None if evidence is None else evidence.artifact
     return ActivationFacts(
+        findings=findings_of(activation),
         activation_id=activation.activation_id,
         node=metadata.node,
         round_no=int(metadata.round_no),
@@ -254,14 +266,18 @@ def _findings_markdown(
         parts.append(f"- claimed: {item.claimed_outcome or 'none'}\n")
         if item.artifact_commit_oid is not None:
             parts.append(f"- artifact commit: {item.artifact_commit_oid}\n")
-        for cmd, exit_code, attempts in item.verify:
-            parts.append(f"- verify `{cmd}`: exit {exit_code} after {attempts}\n")
-        if item.undeclared_effects:
+        # The §3.3 `findings` rows of this round, in the order they were
+        # derived and written — the same order the ledger holds them in,
+        # because both come from `findings_of` over this one record.
+        parts.append(_FINDINGS_HEADING)
+        if not item.findings:
+            parts.append(_NO_FINDINGS)
+        for finding in item.findings:
             parts.append(
-                f"- undeclared effects: {', '.join(item.undeclared_effects)}\n"
+                _FINDING_LINE.format(
+                    severity=finding.severity.value.upper(), text=finding.text
+                )
             )
-        if item.note:
-            parts.append(f"- note: {item.note}\n")
     return "".join(parts)
 
 

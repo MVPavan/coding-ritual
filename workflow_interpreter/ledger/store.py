@@ -33,7 +33,8 @@ from pydantic import JsonValue
 from workflow_interpreter.bdio.carriers import GateState, Metadata
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import LossyWriteError
-from workflow_interpreter.bdio.records import CanaryResult
+from workflow_interpreter.bdio.findings import findings_of
+from workflow_interpreter.bdio.records import CanaryResult, parse_activation
 from workflow_interpreter.bdio.rows import (
     BackendIdentity,
     GateClosure,
@@ -131,6 +132,10 @@ _SQL_SIGNATURE_PRESENT: Final[str] = "SELECT 1 FROM signatures WHERE gate_id = ?
 _SQL_PROJECTION_INSERT: Final[str] = (
     "INSERT INTO projections (task_id, generation, created_at, acked_at) "
     "VALUES (?, ?, ?, NULL)"
+)
+_SQL_FINDINGS_CLEAR: Final[str] = "DELETE FROM findings WHERE activation_id = ?"
+_SQL_FINDINGS_INSERT: Final[str] = (
+    "INSERT INTO findings (activation_id, round_no, severity, text) VALUES (?, ?, ?, ?)"
 )
 _MSG_PROBE: Final[str] = "the ledger probe wrote {wrote!r} and read back {read!r}"
 
@@ -360,9 +365,40 @@ class LedgerStore:
                 raise LossyWriteError(
                     row_id, table.value, MSG_LOSSY_ROW.format(detail=reason)
                 )
+            if table is LedgerTable.ACTIVATIONS:
+                self._record_findings(written)
             if _closes_attention(table):
                 self._enqueue_projection()
         return written
+
+    def _record_findings(self, written: StoreRow) -> None:
+        """Write §3.3's `findings` rows for one activation, inside its close.
+
+        In the SAME transaction as the close, because the rows are a statement
+        about the outcome that close records: a crash between the two would
+        leave a settled round whose findings the export does not carry.
+        Re-derived and rewritten on a repeated close, so the rows say what the
+        current record says rather than what an earlier attempt at it did.
+        """
+        rows = findings_of(parse_activation(written))
+        if not rows:
+            return
+        self._execute(
+            _SQL_FINDINGS_CLEAR,
+            (written.id,),
+            LedgerOperation.CLOSING,
+            LedgerTable.FINDINGS.value,
+        )
+        for finding in rows:
+            self._insert(
+                LedgerTable.FINDINGS,
+                {
+                    "activation_id": finding.activation_id,
+                    "round_no": finding.round_no,
+                    "severity": finding.severity.value,
+                    "text": finding.text,
+                },
+            )
 
     def _close_gate(self, closure: GateClosure) -> StoreRow:
         """The §3.3 gate close, whole: nonce, state, outcome, signature, projection.
