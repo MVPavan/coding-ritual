@@ -149,7 +149,7 @@ signatures   gate_id PK, payload_bytes, signature_bytes, signer_fingerprint,
              allowed_signers_entry, policy_json                               # the historical trust, not just the bytes (§3.6)
 events       event_id PK, task_id, seq, root_id, activation_id, kind, event_key, payload_json, at,  UNIQUE(root_id, event_key)
 sessions     activation_id PK, backend, thread_id, registered_at, completed_at
-findings     activation_id, round_no, severity, text
+findings     activation_id, round_no, severity, text, kind (review|diagnostic)   # review rows are the reviewer's own numbered findings, verbatim
 artifacts    activation_id, kind, git_ref, oid, path_in_ref, sha256           # ref name AND immutable object id
 usage        activation_id PK, tokens_in, tokens_out, cost_json
 landings     task_id, attempt, phase (intent|receipt), record_json, written_at,  UNIQUE(task_id, attempt, phase)
@@ -256,7 +256,11 @@ git.
   signature bytes, the signer fingerprint, the exact `allowed_signers`
   entry (public key, principal, options) that matched, and the policy in
   force. `wf ledger verify <task>` re-verifies every approval of a task
-  from the export alone, against that historical entry.
+  from the export alone, against that historical entry. Provenance is anchored
+  on what a plain clone transports first — the export blob in the landed
+  history (`HEAD:.wf/export/<task>.jsonl`, step 20) — and on
+  `refs/wf/exports/<task>` only where that ref was published; the verdict says
+  which anchor answered.
 
 ### 3.7 Debrief: an executable graph contract
 
@@ -316,7 +320,7 @@ docs/workstreams/<epic segment>/
 
 | Path | Today | Under the ledger |
 |---|---|---|
-| human abandons at the ship gate (`outcomes = ["approve", "abandon"]`, `feature-delivery.toml:126`) | `abandon` edge to the `abandoned` terminal; no bridge state change; a fresh attempt is admitted through the normal path | same; gate row outcome `abandon`; root terminal `abandoned` |
+| human abandons at the ship gate (`outcomes = ["approve", "abandon"]`, `feature-delivery.toml:126`) | `abandon` edge to the `abandoned` terminal; no bridge state change; the next attempt is admitted by `--retry`, which is the existing successor path for a terminal listed in `phase_bridge_retry_terminals` (`abandoned` is one) — not a separate mechanism | same; gate row outcome `abandon`; root terminal `abandoned` |
 | signed, then repository verification fails in landing | `GATE_RED` (`bridge/landing.py:257`); retry needs an approved ship gate and `shipped` terminal (`bridge/retry.py:43`) | same |
 | shipped root whose landing has not completed | not retry-eligible: `LANDING_RECOVERABLE` (`bridge/retry.py:55`); landing recovery runs instead | same |
 | target moved before landing | `BRANCH_MOVED`; recovery or a new attempt re-admitted against the current base (a preserved stale base is refused, `bridge/admission.py:188`) | same |
@@ -371,7 +375,7 @@ Measured on three run folders from September rigs: 2.9 GB, over 99 % of it
 | D18 | Backend pinned per root, recorded as `root_backend` on the bridge record at prepare, before any root exists; resolved before the store is built; children inherit; the `store` switch applies to new attempt roots only; no reverse migration | mid-run rollback (v2); per-root pin without a locator (v3–v4); locator written at admit (v5) | a ledger root must be loadable after the switch flips back (`foreman/compose.py:140`); admission creates the root before admit persists (`bridge/admission.py:188`) |
 | D19 | Archive deletes refs only after a verified git bundle | delete refs on export (v2) | JSON does not preserve git objects |
 | D20 | Integration target claims stay in bd behind the seam while `store` can still select bd; move to the ledger only when the bd backend is removed | move claims at cutover (v3) | two backends discovering claims in two stores cannot see each other's reservations (`bridge/integration.py:219`) |
-| D21 | `signatures` stores the historical allow-list entry and policy with the bytes; `wf ledger verify` re-verifies the SIGNED BYTES from the export alone, and anchors provenance outside it — the export blob pinned at `refs/wf/exports/<task>` and an operator `allowed_signers` trust root — because an export carries its own `key_blob` and cannot vouch for its own signer | bytes only (v4) | verification depends on the allow-list of the moment (`bdio/signing.py:464`) |
+| D21 | `signatures` stores the historical allow-list entry and policy with the bytes; `wf ledger verify` re-verifies the SIGNED BYTES from the export alone, and anchors provenance outside it — the export blob as the landed history carries it (`HEAD:.wf/export/<task>.jsonl`, what a plain clone transports), falling back to the close's own `refs/wf/exports/<task>` where it was published, and an operator `allowed_signers` trust root; the verdict names which anchor answered — because an export carries its own `key_blob` and cannot vouch for its own signer | bytes only (v4) | verification depends on the allow-list of the moment (`bdio/signing.py:464`) |
 
 ## 5. Lifecycle of one attempt
 
@@ -417,7 +421,7 @@ one.
 | S1 ledger reads | schema with per-task `seq` and the unique keys above; migrations; `LedgerStore` reads; fence at the git common dir with `<common dir>/wf/` created by the foreman and pinned read-only in runner sandboxes; export/import CLI ordered by `(task_id, seq)`; round-trip test | contract reads pass on ledger; export→import byte-identical; import refuses while a shared fence holder exists; a runner in both checkout shapes cannot replace the lock inode |
 | S2 ledger writes | full write surface; atomic mint / transition / gate-close+nonce+signature+projection / rebudget / settlement; task-keyed reconciler with label ops on `BdClient`; ledger-specific tests: reopen, multiprocess children, supervisor + steer, crash at each logical fault point, busy timeout, fence contention, two roots of one task racing the reconciler | contract suite passes on both backends; every fault point has a test that proves reconciliation; the two-root race test proves no lost update |
 | S3 cutover | `store` switch pinned per attempt root, `root_backend` on the bridge record, inheritance; foreman, supervisor, bridge, costs on the ledger; `--task` required; ledger ids; landings and signatures copy; wrapper_root pin and refusal; worktree refusal in config; signers path; export-before-close in the bridge; bd corpus reduced to adapter + claims + label reconciler | admission test has no wall problem; a rig lands a task end to end on each switch value; a ledger-backed root is resumed after the switch is set back to bd; a bd root and a ledger root contending for one integration target are serialised by the shared bd claim; a task cannot reach CLOSED without `export_oid` |
-| S4 knowledge | debrief node in `feature-delivery.toml` with static grant, `verify-debrief.sh`, `WF_EPIC_SEGMENT` / `WF_TASK_ID` / `WF_ATTEMPT` in verify env, `ledger_render` engine producer; `wf ledger verify`; terminal cleanup gated on `export_oid`; `wf archive` with bundle; ADR 0005; spec §3.1–3.4, 5.1, 5.4, 9, 10.4, 11 | rig run lands code + debrief in one fast-forward; a debrief that writes outside its directory or fails its render check reaches `triage`, never `ship`; a human-abandoned attempt leaves `a1/` on its ref and `a2/` lands; `wf ledger verify` re-verifies a task from the committed export in a fresh clone after `ledger.db` and the wrapper root are deleted; archive refuses without a verified bundle |
+| S4 knowledge | debrief node in `feature-delivery.toml` with static grant, `verify-debrief.sh`, `WF_EPIC_SEGMENT` / `WF_TASK_ID` / `WF_ATTEMPT` in verify env, `ledger_render` engine producer; `wf ledger verify`; terminal cleanup gated on `export_oid`; `wf archive` with bundle; ADR 0005; spec §3.1–3.4, 5.1, 5.4, 9, 10.4, 11 | rig run lands code + debrief in one fast-forward; a debrief that writes outside its directory or fails its render check reaches `triage`, never `ship`; a human-abandoned attempt leaves `a1/` on its ref and the `--retry` successor `a2/` lands; `wf ledger verify` re-verifies a task from the committed export in a fresh clone after `ledger.db` and the wrapper root are deleted; archive refuses without a verified bundle |
 
 Estimate, in AI execution plus review time: four days across five slices.
 S0 and S2 are the largest.

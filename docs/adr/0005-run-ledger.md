@@ -40,9 +40,12 @@ this ADR exists to make discoverable:
    disagrees with the engine's render can never be what the ship gate signs.
    Approvals store the allow-list entry and policy that accepted them, so
    `wf ledger verify` re-verifies the signed BYTES from the committed export
-   alone; provenance is anchored outside the export — the blob pinned at
-   `refs/wf/exports/<task>` and an operator `allowed_signers` trust root —
-   because a file that carries its own public key cannot certify its signer.
+   alone; provenance is anchored outside the export — the export blob as the
+   landed history carries it (`HEAD:.wf/export/<task>.jsonl`, which is what a
+   plain clone transports), falling back to the close's own
+   `refs/wf/exports/<task>` where that ref was published, plus an operator
+   `allowed_signers` trust root — because a file that carries its own public
+   key cannot certify its signer. The verdict names the anchor it used.
 
 ## ADR 0003's argv ceiling applies to the bd path only
 
