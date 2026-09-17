@@ -140,8 +140,9 @@ def is_repo_relative_executable(value: str) -> bool:
 
 def producer_engine(source: Source) -> EngineProducer | None:
     """Classify the exact, closed engine source vocabulary separately from nodes."""
-    if source.producer == EngineProducer.VERIFY_FAILURE:
-        return EngineProducer.VERIFY_FAILURE
+    for producer in EngineProducer:
+        if source.producer == producer:
+            return producer
     return None
 
 

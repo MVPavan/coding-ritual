@@ -14,7 +14,11 @@ DEVIATION_VERIFY_UNPINNED: Final[str] = "verify_feedback_unpinned"
 MSG_BINDING: Final[str] = (
     "verify_failure binding does not match its causal host failure"
 )
-MSG_CONSUMER: Final[str] = "engine:verify_failure requires an effective writer consumer"
+MSG_CONSUMER: Final[str] = "an engine producer requires an effective writer consumer"
+"""Both engine producers are host facts a node is expected to ACT on: the
+`verify_failure` diagnostic is for the implementer that fixes it, and the
+`ledger_render` account is for the debrief that writes it down. A reader with
+no write access could do neither."""
 
 
 def causal_failure(

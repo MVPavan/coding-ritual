@@ -253,6 +253,39 @@ class VerifyFailureBinding(BaseModel):
         )
 
 
+LEDGER_RENDER_REF: Final[str] = "refs/wf/render/{task_id}-a{attempt}"
+"""Where one attempt's rendered knowledge is pinned (run-ledger §3.7).
+
+Named by the TASK and the attempt rather than by the root, because the one
+other reader is `scripts/verify-debrief.sh`, which is given `WF_TASK_ID` and
+`WF_ATTEMPT` and no root id at all. One ref per attempt, moved to the current
+round's render, so a checker asking "what should this debrief say" has exactly
+one answer."""
+
+
+class LedgerRenderBinding(BaseModel):
+    """The rendered findings and evidence of every round so far (§3.7, D12).
+
+    Pinned as a commit whose tree holds the two files the debrief node must
+    write, so the node's output and the check's expectation are the same
+    bytes, reachable by `<ref>:findings.md` from any checkout of the repo.
+    """
+
+    model_config = WIRE_MODEL
+    root_id: str
+    task_id: str
+    attempt: JsonSafeInt
+    round_no: JsonSafeInt
+    commit_oid: Annotated[str, StringConstraints(pattern=COMMIT_OID_PATTERN)]
+    tree_oid: Annotated[str, StringConstraints(pattern=COMMIT_OID_PATTERN)]
+    payload_digest: Sha256
+
+    @property
+    def ref(self) -> str:
+        """The attempt-scoped pin `verify-debrief.sh` resolves the same way."""
+        return LEDGER_RENDER_REF.format(task_id=self.task_id, attempt=self.attempt)
+
+
 class InputBinding(BaseModel):
     """An immutable input tuple bound at mint (§2 'Input binding')."""
 
@@ -263,6 +296,7 @@ class InputBinding(BaseModel):
     artifact_ref: str
     digest: str
     verify_failure: VerifyFailureBinding | None = None
+    ledger_render: LedgerRenderBinding | None = None
 
 
 class ProcessHandle(BaseModel):

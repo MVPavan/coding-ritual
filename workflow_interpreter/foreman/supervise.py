@@ -172,6 +172,10 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
         def materialized(binding: InputBinding) -> Materialized:
             if (
                 binding.producer_activation_id != "instance"
+                # A render is produced by the ENGINE from the whole instance,
+                # so there is no producing activation to publish it under; it
+                # is materialized inline whatever the node's artifact mode.
+                and binding.ledger_render is None
                 and node.artifact_input_mode is ArtifactInputMode.REFERENCES
             ):
                 producer = by_id.get(binding.producer_activation_id)
@@ -196,6 +200,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
                 binding,
                 None
                 if binding.producer_activation_id == "instance"
+                or binding.ledger_render is not None
                 else by_id.get(binding.producer_activation_id),
                 limit=node.context_budget_bytes or 262144,
             )

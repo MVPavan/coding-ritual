@@ -50,8 +50,9 @@ from workflow_interpreter.contracts.execution import (
 )
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE
+from workflow_interpreter.schema.graph_index import producer_engine
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
-from workflow_interpreter.schema.models import EngineProducer, GraphDefinition, NodeKind
+from workflow_interpreter.schema.models import GraphDefinition, NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -254,7 +255,7 @@ def create_root(
     engine_sources = {
         source.name
         for source in definition.document.source
-        if source.producer == EngineProducer.VERIFY_FAILURE
+        if producer_engine(source) is not None
     }
     for node in definition.document.node:
         if engine_sources.intersection(node.inputs or ()) and not values.get(

@@ -80,6 +80,10 @@ IMPLEMENT: Final[str] = "implement"
 REVIEW: Final[str] = "review"
 VERIFY_SCRIPT: Final[str] = "scripts/verify-feature.sh"
 REVIEW_SCRIPT: Final[str] = "scripts/review-checks.sh"
+DEBRIEF_SCRIPT: Final[str] = "scripts/verify-debrief.sh"
+DEBRIEF: Final[str] = "debrief"
+DEBRIEF_MARKER: Final[str] = '{"outcome":"no_diff"}\n'
+NO_EFFECTS: Final[str] = '{"paths":[]}'
 SHELL: Final[str] = "/bin/sh"
 GIT_TIMEOUT_S: Final[float] = 60.0
 
@@ -221,7 +225,7 @@ def make_repo(tmp_path: Path, name: str = "repo") -> Path:
     _git(repo, "config", "commit.gpgsign", "false")
     (repo / "scripts").mkdir(exist_ok=True)
     (repo / "src").mkdir(exist_ok=True)
-    for script in (VERIFY_SCRIPT, REVIEW_SCRIPT):
+    for script in (VERIFY_SCRIPT, REVIEW_SCRIPT, DEBRIEF_SCRIPT):
         path = repo / script
         path.write_text(PASSING_SCRIPT, encoding="utf-8")
         path.chmod(0o755)

@@ -183,7 +183,19 @@ def materialize(
     source = root.index.sources.get(binding.name)
     if source is None:
         raise InputsUnavailable(MSG_INPUT_SOURCE_UNDECLARED)
-    if binding.verify_failure is not None or producer_engine(source) is not None:
+    engine = producer_engine(source)
+    if binding.ledger_render is not None or engine is EngineProducer.LEDGER_RENDER:
+        from workflow_interpreter.foreman.ledger_render import (
+            read_render,
+            render_envelope_text,
+        )
+
+        return Materialized(
+            text=render_envelope_text(read_render(git, repo_root, binding)),
+            name=binding.name,
+            producer=EngineProducer.LEDGER_RENDER.value,
+        )
+    if binding.verify_failure is not None or engine is not None:
         from workflow_interpreter.foreman.verify_feedback import read_payload
 
         body = read_payload(git, repo_root, root, binding, producer)

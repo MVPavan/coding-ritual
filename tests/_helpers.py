@@ -51,7 +51,7 @@ FEATURE_DELIVERY_CONTENT_HASH = (
 )
 
 SHIPPED_FEATURE_DELIVERY_CONTENT_HASH = (
-    "e15e71d0d0b2d5db1ed39180fc66eac9717e117697127bd06b41a377ac4df021"
+    "c64f2239e61ef127a7fe907541e862ea545adf458a154eec1fb473d01655b4e0"
 )
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.

@@ -1,11 +1,11 @@
 [graph]
 id          = "feature-delivery"
-version     = "1.0.2"
+version     = "1.1.0"
 entry       = "implement"
 description = "One feature: implemented → reviewed → shipped"
 
 [instance]
-max_total_activations  = 20      # counts every activation AND gate bead
+max_total_activations  = 26      # counts every activation AND gate bead
 test_force_first_reject = false  # schema'd; validator refuses true without --allow-test-flags
 phase_bridge_retry_terminals = ["shipped", "abandoned"]
 
@@ -61,6 +61,61 @@ max_steers    = 2
 outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]
 
 [[node]]
+name          = "debrief"
+kind          = "task"                   # one per implement round; the round cap
+region        = "build-review"           # is the edge set — nothing re-enters it
+runner        = "profile:scribe"
+model         = "default"
+instructions = """
+Write the knowledge this round produced, and nothing else.
+
+`ledger_render` carries two files the engine rendered from the run ledger:
+`findings.md` and `evidence.json`. Write BOTH of them into
+`docs/workstreams/<WF_EPIC_SEGMENT>/runs/<WF_TASK_ID>/a<WF_ATTEMPT>/`, byte for
+byte as given, and write your own `debrief.md` beside them: what was attempted,
+what happened, why it was done this way, and what the next round or the next
+reader should know. Keep `debrief.md` under 16 KB.
+
+Write nothing outside that one directory. Your verifier recomputes the
+directory from the run's own identity and fails the round if the commit under
+test touches anything else, if any of the three files is missing, or if either
+rendered file differs from the render you were given. It is not a style check
+and it cannot be argued with.
+
+Report `done` when the three files are written and committed; `no_diff` when
+the directory already holds exactly these files and needs no change;
+`fail_code` when your own checks show the commit is wrong; `fail_plan` when the
+round cannot be described from what you were given and a human must look.
+
+Your verdict is a claim; full declared HOST verification remains mandatory and
+gates advancement after you return. Perform available supported local checks;
+do not run host-only checks (including nested sandbox probes) inside the model
+sandbox. Record each command and result, or a not-run reason, in $WF_ARTIFACT_DIR.
+Unavailable sandbox/network/tooling is not evidence of a source defect and must
+not alone cause `fail_code` or `reject`. Do not retry dependency installs for an
+unavailable environment. Real code/test failures must be reported and never
+relabeled as environment problems. Review decisions are source/spec judgments;
+local evidence does not waive the host gate.
+
+Inspect the provided environment paths first. Use $WF_SCRATCH_DIR (the supplied
+$TMPDIR) for temporary repositories and caches; $WF_ARTIFACT_DIR is only for
+output evidence/findings, not scratch work.
+"""
+isolation     = "worktree"
+execution_profile = "writer"
+allowed_paths = ["docs/workstreams/**"]  # static and regex-valid; containment
+                                         # to one attempt directory is the
+                                         # verifier's job (ADR 0001)
+inputs        = ["ledger_render", "task_brief"]
+verify        = [{ cmd = "scripts/verify-debrief.sh", timeout = "5m" }]
+token_budget  = 40000
+max_wall      = "15m"
+stale_after   = "10m"
+max_infra_retries = 2
+max_steers    = 0
+outcomes      = ["done", "no_diff", "fail_code", "fail_plan"]
+
+[[node]]
 name          = "review"
 kind          = "task"
 region        = "build-review"
@@ -107,7 +162,8 @@ execution_profile = "reviewer"          # findings go to $WF_ARTIFACT_DIR, not t
 allowed_paths = []
 inputs        = ["task_brief", "diff_artifact", "review_findings"]
 verify        = [{ cmd = "scripts/verify-feature.sh", timeout = "10m" },
-                 { cmd = "scripts/review-checks.sh",  timeout = "5m"  }]
+                 { cmd = "scripts/review-checks.sh",  timeout = "5m"  },
+                 { cmd = "scripts/verify-debrief.sh", timeout = "5m"  }]
                 # deliberately a STRICT SUPERSET of implement's set; the
                 # validator warns when a judgment node's verify ⊆ its
                 # predecessor's (anti-drift cross-check would be vacuous)
@@ -143,7 +199,9 @@ kind = "terminal"
 [[edge]]
 from = "implement"
 on   = "done"
-to   = "review"
+to   = "debrief"         # the knowledge is written BEFORE the review, so the
+                         # reviewer grades it and the ship gate binds an
+                         # artifact that already contains it (run-ledger §3.7)
 
 [[edge]]
 from = "implement"
@@ -160,6 +218,29 @@ from = "implement"
 on   = "fail_code"
 to   = "implement"       # a red check is a rework, not a human halt; the
                          # region entry re-enters, so rounds still cap it
+
+[[edge]]
+from = "debrief"
+on   = "done"
+to   = "review"
+
+[[edge]]
+from = "debrief"
+on   = "no_diff"
+to   = "review"          # nothing to say is not a failure; the reviewer still
+                         # grades the debrief's verifier on the same commit
+
+[[edge]]
+from = "debrief"
+on   = "fail_code"
+to   = "triage"          # a debrief that wrote outside its directory, or whose
+                         # rendered files do not match, is a human's problem —
+                         # it must never reach `ship`
+
+[[edge]]
+from = "debrief"
+on   = "fail_plan"
+to   = "triage"
 
 [[edge]]
 from = "review"
@@ -223,6 +304,16 @@ name          = "review_findings"
 producer      = "node:review"
 optional      = true                     # absent on round 1 by construction
 trim_priority = 2
+
+# The ledger's own account of every round so far, rendered by the engine and
+# pinned as a commit before the consuming activation is minted (run-ledger
+# §3.7). Optional like every engine producer: a run with no pinned identity
+# has nothing to render, and its debrief then fails its verifier loudly.
+[[source]]
+name = "ledger_render"
+producer = "engine:ledger_render"
+optional = true
+trim_priority = 1
 
 # Host-observed diagnostic data, bound only to the causal failed check.
 [[source]]

@@ -136,6 +136,16 @@ profile = "codex"
 model = "gpt-5.6-sol"
 effort = "high"
 
+# feature-delivery's third role (run-ledger §3.7): the debrief writes what the
+# round learned into `docs/workstreams/<epic>/runs/<task>/a<n>/`. It copies two
+# engine-rendered files and adds a page of prose, once per implement round, so
+# it is deliberately the SMALLEST model at the LOWEST effort — the cost of the
+# knowledge must stay far below the cost of the work. It writes, so claude.
+[roles.scribe]
+profile = "claude"
+model = "claude-haiku-4-5"
+effort = "low"
+
 # build-loop's three further roles. The test author writes, so it is claude for
 # the same reason.
 [roles.test-author]

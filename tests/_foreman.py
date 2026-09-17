@@ -23,7 +23,10 @@ from typing import Final, TypedDict
 from tests._fake_bd import FakeBd, InjectedCrash
 from tests._helpers import VALID_FIXTURE, runner_roles
 from tests._supervisor import (
+    DEBRIEF,
+    DEBRIEF_MARKER,
     IMPLEMENT,
+    NO_EFFECTS,
     ChildScript,
     FakeProfile,
     FrozenClock,
@@ -92,14 +95,15 @@ from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 type OverrideValue = str | int | bool
 
-# The lab's defaults are feature-delivery's: its two roles and the one instance
-# input every drill written before phase 7 relies on. A graph with other roles
-# or sources (build-loop) passes its own through `ForemanLab(roles=…,
+# The lab's defaults are feature-delivery's: its three roles and the one
+# instance input every drill written before phase 7 relies on. A graph with
+# other roles or sources (build-loop) passes its own through `ForemanLab(roles=…,
 # instance_inputs=…)`.
 DEFAULT_LAB_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
     {
         "implementer": RunnerBinding(profile="fake", model="fake", effort="medium"),
         "critic": RunnerBinding(profile="fake", model="fake", effort="medium"),
+        "scribe": RunnerBinding(profile="fake", model="fake", effort="medium"),
     }
 )
 DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
@@ -635,6 +639,26 @@ class ForemanLab:
     def tick(self) -> TickReport:
         assert self.root is not None
         return self.foreman.tick(self.root.root_id)
+
+    def debrief_round(self) -> str | None:
+        """Run and settle the shipped graph's `debrief`, if this graph has one.
+
+        `feature-delivery` 1.1.0 puts a debrief between `implement` and
+        `review` (run-ledger §3.7), and its legacy predecessor does not, so a
+        drill that only cares about the reviewer crosses the node through here
+        rather than asserting an adjacency that depends on the graph.
+        """
+        if not any(node.name == DEBRIEF for node in self.definition.document.node):
+            return None
+        self.profiles.next_script(
+            ChildScript(marker=DEBRIEF_MARKER, effects=NO_EFFECTS)
+        )
+        activation_id = self.tick().dispatched
+        assert activation_id is not None
+        recorded = self.store.reads.load_activation(activation_id)
+        assert recorded.metadata.node == DEBRIEF, recorded.metadata.node
+        assert self.tick().settled == activation_id
+        return activation_id
 
     def rebuild(self, backend_factory: StoreBackendFactory | None = None) -> None:
         """Reconstruct a fresh foreman from durable state, on a chosen backend.
