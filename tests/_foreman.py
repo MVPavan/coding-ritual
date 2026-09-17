@@ -72,6 +72,7 @@ from workflow_interpreter.foreman.gates import payload_template
 from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
+from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.profiles.config import RUNNER_PREFIX
 from workflow_interpreter.profiles.errors import UnknownProfileError
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
@@ -125,6 +126,10 @@ BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
 # accepted set is derived per graph; `fake` is the lab's own inert profile.
 FAKE_PROFILE: Final[str] = "fake"
 FAKE_MODEL: Final[str] = "fake"
+LAB_TASK: Final[str] = "cr-lab.1"
+"""The task bead every lab root belongs to (D16). A synthetic id, because the
+lab has no tracker: what the engine needs from it is a stable, path-safe name
+to key the ledger's rows by."""
 
 
 def entry_request(**overrides: object) -> MintRequest:
@@ -468,6 +473,8 @@ class ForemanLab:
             sandbox=sandbox,
         )
         self._toml = toml
+        self._ledger_path = tmp_path / "lab-ledger.db"
+        self.ledger: LedgerDatabase | None = None
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
         self._build_fresh()
         self.root: RootRecord | None = None
@@ -517,6 +524,16 @@ class ForemanLab:
             roles=self._roles,
             bridge_graph=self._toml,
         )
+        # The lab's ledger lives OUTSIDE the checkout on purpose: production
+        # puts it in the repo's ignored `.wf/`, and a database inside the lab
+        # repo would show up in every dirty-tree and undeclared-effects drill
+        # the lab exists to run. The fence and the identity pin are the real
+        # ones, resolved from the real checkout (run-ledger §3.4, §3.5).
+        if self.ledger is not None:
+            self.ledger.close()
+        self.ledger = open_ledger(
+            self.repo, self.supervisor_config.wrapper_root, path=self._ledger_path
+        )
         self.composition = Composition(
             self.config,
             self.store,
@@ -526,6 +543,8 @@ class ForemanLab:
             self.profiles,
             self.spawner,
             host_env={"PATH": os.defpath, "HOME": str(self.repo.parent)},
+            ledger=self.ledger,
+            task_id=LAB_TASK,
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)

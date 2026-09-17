@@ -25,6 +25,7 @@ from workflow_interpreter.bridge.admission import (
 )
 from workflow_interpreter.bridge.authority import BeadGateAuthority
 from workflow_interpreter.bridge.errors import BridgeRefusal
+from workflow_interpreter.bridge.journal import ExportPin, LandingJournal
 from workflow_interpreter.bridge.landing import (
     LANDING_INTENT_FILE,
     LANDING_RECEIPT_FILE,
@@ -48,6 +49,7 @@ from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.wake import MonitorUnavailable
+from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import CoordinationError
 from workflow_interpreter.schema.loader import GraphValidationError, load_graph
 from workflow_interpreter.schema.models import PRODUCER_INSTANCE
@@ -287,7 +289,7 @@ def _execute(
                 if retry:
                     raise PhaseBridgeRefused("landing recovery cannot be retried")
                 return _land(composition, adapter, prior, recover=True)
-    if composition.git.status_paths(cwd=composition.config.repo_root):
+    if coordinator_dirt(composition.git.status_paths(cwd=composition.config.repo_root)):
         raise PhaseBridgeRefused(MSG_DIRTY)
     if (
         prior is not None
@@ -435,6 +437,10 @@ def _land(
     if record.verification_policy is None:
         raise PhaseBridgeRefused("bridge verification policy missing")
     wiring = composition.for_root(_require_root(record))
+    # D17 and §3.6: the ledger surfaces are composed HERE, from the one
+    # connection this process holds, and they are absent only for a wiring
+    # with no ledger at all — where the adapter refuses the close instead.
+    ledger = composition.ledger
     landing = PhaseLanding(
         adapter,
         composition.git,
@@ -447,6 +453,12 @@ def _land(
             record.verification_policy,
             lambda message: print(message, file=sys.stderr),
         ),
+        journal=None
+        if ledger is None
+        else LandingJournal(ledger, record.stage_id, record.root_backend),
+        export=None
+        if ledger is None
+        else ExportPin(ledger, composition.git, composition.config.repo_root),
     )
     try:
         outcome = (

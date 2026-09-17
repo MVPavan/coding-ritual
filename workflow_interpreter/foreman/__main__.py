@@ -168,6 +168,7 @@ def _composition(args: argparse.Namespace) -> Composition:
         profiles=ProfileRegistry(config.profiles, clock, os.environ),
         spawner=DetachedSpawner(config.supervisor, path, task_id),
         host_env=dict(os.environ),
+        ledger=ledger,
         locate_backend=RootBackendLocator(task_id, ledger=ledger),
         drain_attention=RootAttentionDrain(ledger, bd),
         task_id=task_id,

@@ -46,6 +46,7 @@ from workflow_interpreter.bridge import (
 )
 from workflow_interpreter.bridge.adapter import MSG_CLOSE_REASON
 from workflow_interpreter.bridge.authority import BeadGateAuthority
+from workflow_interpreter.bridge.journal import ExportPin
 from workflow_interpreter.bridge.landing import LANDING_RECEIPT_FILE, T1_MESSAGE
 from workflow_interpreter.bridge.models import INSTANCE_KEY_TEMPLATE
 from workflow_interpreter.bridge.retry import RetryRefusal, retry_refusal
@@ -55,6 +56,7 @@ from workflow_interpreter.bridge.verification import (
     VerificationPolicy,
 )
 from workflow_interpreter.foreman.frontier import Frontier
+from workflow_interpreter.ledger.database import open_ledger
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode, Outcome
@@ -72,6 +74,8 @@ EPIC_ID = "phase-1"
 STAGE_ID = "stage-a"
 TARGET_REF = "refs/heads/main"
 BASE_COMMIT = "a" * 40
+EXPORT_OID = "e" * 40
+"""§3.6: the blob a closed task's whole record is pinned as."""
 ROOT_ID: Final[str] = "bridge-root"
 FUTURE_PHASE_BRIDGE_SCHEMA: Final[str] = "future-schema/99"
 WRONG_INSTANCE_KEY: Final[str] = "not-the-derived-key"
@@ -409,7 +413,7 @@ def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
         expected_base_commit=BASE_COMMIT,
     ).admitted(ROOT_ID)
     if stored_state is PhaseBridgeState.CLOSED:
-        stored = stored.closed()
+        stored = stored.closed(EXPORT_OID)
     stage = _stage_row()
     stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
     fake_bd.rows[STAGE_ID] = stage
@@ -459,7 +463,7 @@ def test_prepare_refuses_a_structural_successor_over_a_closed_journal(
             expected_base_commit=BASE_COMMIT,
         )
         .admitted(ROOT_ID)
-        .closed()
+        .closed(EXPORT_OID)
     )
     stage = _stage_row()
     stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
@@ -692,7 +696,7 @@ def test_admission_refuses_an_open_stage_with_a_landed_relation(
     with pytest.raises(AdmissionRefused, match="unfinished bridge admission"):
         admission.admit(EPIC_ID, other_stage_id, TARGET_REF, base)
 
-    adapter.close(STAGE_ID, landed.closed(), "landing-receipt")
+    adapter.close(STAGE_ID, landed.closed(EXPORT_OID), "landing-receipt")
     other = admission.admit(EPIC_ID, other_stage_id, TARGET_REF, base)
 
     assert other.state is PhaseBridgeState.ADMITTED
@@ -866,15 +870,25 @@ def _commit_artifact(repo: Path) -> tuple[str, str]:
     return artifact_oid, tree
 
 
-def _landing_context(repo: Path, tmp_path: Path) -> tuple[Git, WrapperPaths]:
-    """Build the real Git and wrapper-path services for one temporary history."""
+def _landing_context(repo: Path, tmp_path: Path) -> tuple[Git, WrapperPaths, ExportPin]:
+    """The real Git, wrapper paths and export pin for one temporary history.
+
+    The export pin is part of the context rather than an option because §3.6
+    makes it a precondition of CLOSED: a landing composed without one cannot
+    close at all, so a test that omitted it would be testing the refusal.
+    The ledger lives outside the checkout, as it does in `ForemanLab`.
+    """
     config = SupervisorConfig(
         repo_root=repo,
         wrapper_root=tmp_path / "bridge-wrapper",
         host="bridge-test",
         sandbox=SandboxMode.OFF,
     )
-    return Git(config), WrapperPaths(config, ROOT_ID)
+    git = Git(config)
+    database = open_ledger(
+        repo, config.wrapper_root, path=tmp_path / "bridge-ledger.db"
+    )
+    return git, WrapperPaths(config, ROOT_ID), ExportPin(database, git, repo)
 
 
 def test_landing_refuses_a_prepared_stage_without_cas_or_close(
@@ -897,7 +911,7 @@ def test_landing_refuses_a_prepared_stage_without_cas_or_close(
         expected_base_commit=base,
     )
     adapter.prepare(STAGE_ID, prepared)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     landing = PhaseLanding(
         adapter,
         git,
@@ -905,6 +919,7 @@ def test_landing_refuses_a_prepared_stage_without_cas_or_close(
         paths,
         _GateAuthority(base, "b" * 40, gate_verifier, sign_payload),
         _RepositoryGate(base, "b" * 40),
+        export=export,
     )
     before_reflog = _reflog(repo)
 
@@ -945,7 +960,7 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     )
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
     repository_gate = _RepositoryGate(artifact_oid, tree)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     landing = PhaseLanding(
         PhaseAdapter(fake_client),
         git,
@@ -954,6 +969,7 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
         gate,
         repository_gate,
         hooks=_CrashAfterCas(),
+        export=export,
     )
 
     with pytest.raises(InjectedCrash, match="post-CAS interruption"):
@@ -968,6 +984,7 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
         paths,
         gate,
         repository_gate,
+        export=export,
     ).recover(STAGE_ID)
 
     assert recovered.disposition is LandingDisposition.CLOSED
@@ -1000,7 +1017,7 @@ def test_closed_recovery_uses_the_disk_receipt_digest_without_redriving_close(
     adapter.prepare(STAGE_ID, prepared)
     adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
 
     landed = PhaseLanding(
         adapter,
@@ -1009,6 +1026,7 @@ def test_closed_recovery_uses_the_disk_receipt_digest_without_redriving_close(
         paths,
         gate,
         _RepositoryGate(artifact_oid, tree, ("receipt written to disk",)),
+        export=export,
     ).land(STAGE_ID)
     receipt = read_record(paths.instance_dir / LANDING_RECEIPT_FILE, LandingReceipt)
     assert receipt is not None
@@ -1022,6 +1040,7 @@ def test_closed_recovery_uses_the_disk_receipt_digest_without_redriving_close(
         paths,
         gate,
         _RepositoryGate(artifact_oid, tree, ("rebuilt green diagnostic",)),
+        export=export,
     ).recover(STAGE_ID)
 
     assert landed.disposition is LandingDisposition.CLOSED
@@ -1055,7 +1074,7 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
     adapter.prepare(STAGE_ID, prepared)
     adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     fake_bd.crash_on("update")
 
     with pytest.raises(InjectedCrash, match="bd update died"):
@@ -1066,6 +1085,7 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
             paths,
             gate,
             _RepositoryGate(artifact_oid, tree, ("receipt written to disk",)),
+            export=export,
         ).land(STAGE_ID)
 
     receipt = read_record(paths.instance_dir / LANDING_RECEIPT_FILE, LandingReceipt)
@@ -1080,6 +1100,7 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
         paths,
         gate,
         _RepositoryGate(artifact_oid, tree, ("rebuilt green diagnostic",)),
+        export=export,
     ).recover(STAGE_ID)
 
     assert recovered.disposition is LandingDisposition.CLOSED
@@ -1116,20 +1137,22 @@ def test_recovery_returns_human_attention_for_mismatched_receipt_identity(
     adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
     repository_gate = _RepositoryGate(artifact_oid, tree)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     fake_bd.crash_on("close")
 
     with pytest.raises(InjectedCrash, match="bd close died"):
-        PhaseLanding(adapter, git, repo, paths, gate, repository_gate).land(STAGE_ID)
+        PhaseLanding(
+            adapter, git, repo, paths, gate, repository_gate, export=export
+        ).land(STAGE_ID)
 
     receipt_path = paths.instance_dir / LANDING_RECEIPT_FILE
     receipt = read_record(receipt_path, LandingReceipt)
     assert receipt is not None
     write_record(receipt_path, receipt.model_copy(update={field: base}))
 
-    recovered = PhaseLanding(adapter, git, repo, paths, gate, repository_gate).recover(
-        STAGE_ID
-    )
+    recovered = PhaseLanding(
+        adapter, git, repo, paths, gate, repository_gate, export=export
+    ).recover(STAGE_ID)
 
     assert recovered.disposition is LandingDisposition.HUMAN_ATTENTION
     assert fake_bd.rows[STAGE_ID]["status"] == "in_progress"
@@ -1159,8 +1182,10 @@ def test_landing_closed_stage_routes_to_recovery_without_a_second_cas(
     adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
     repository_gate = _RepositoryGate(artifact_oid, tree)
-    git, paths = _landing_context(repo, tmp_path)
-    landing = PhaseLanding(adapter, git, repo, paths, gate, repository_gate)
+    git, paths, export = _landing_context(repo, tmp_path)
+    landing = PhaseLanding(
+        adapter, git, repo, paths, gate, repository_gate, export=export
+    )
 
     assert landing.land(STAGE_ID).disposition is LandingDisposition.CLOSED
     subprocess.run(["git", "update-ref", TARGET_REF, base], cwd=repo, check=True)
@@ -1224,7 +1249,7 @@ def test_recovery_refuses_unrelated_history_without_closing_or_moving_a_ref(
     adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
     repository_gate = _RepositoryGate(artifact_oid, tree)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     with pytest.raises(InjectedCrash):
         PhaseLanding(
             adapter,
@@ -1234,6 +1259,7 @@ def test_recovery_refuses_unrelated_history_without_closing_or_moving_a_ref(
             gate,
             repository_gate,
             hooks=_CrashAfterCas(),
+            export=export,
         ).land(STAGE_ID)
     unrelated = subprocess.run(
         ["git", "commit-tree", f"{base}^{{tree}}", "-m", "unrelated"],
@@ -1245,9 +1271,9 @@ def test_recovery_refuses_unrelated_history_without_closing_or_moving_a_ref(
     subprocess.run(["git", "update-ref", TARGET_REF, unrelated], cwd=repo, check=True)
     before_recovery = _reflog(repo)
 
-    result = PhaseLanding(adapter, git, repo, paths, gate, repository_gate).recover(
-        STAGE_ID
-    )
+    result = PhaseLanding(
+        adapter, git, repo, paths, gate, repository_gate, export=export
+    ).recover(STAGE_ID)
 
     assert result.disposition is LandingDisposition.HUMAN_ATTENTION
     assert _ref_target(repo) == unrelated
@@ -1279,7 +1305,7 @@ def test_recovery_closes_when_a_descendant_contains_the_signed_artifact(
     adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
     repository_gate = _RepositoryGate(artifact_oid, tree)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     with pytest.raises(InjectedCrash):
         PhaseLanding(
             adapter,
@@ -1289,6 +1315,7 @@ def test_recovery_closes_when_a_descendant_contains_the_signed_artifact(
             gate,
             repository_gate,
             hooks=_CrashAfterCas(),
+            export=export,
         ).land(STAGE_ID)
     subprocess.run(["git", "checkout", "--quiet", "main"], cwd=repo, check=True)
     (repo / "descendant.txt").write_text("descendant\n", encoding="utf-8")
@@ -1301,9 +1328,9 @@ def test_recovery_closes_when_a_descendant_contains_the_signed_artifact(
     descendant = _ref_target(repo)
     before_recovery = _reflog(repo)
 
-    result = PhaseLanding(adapter, git, repo, paths, gate, repository_gate).recover(
-        STAGE_ID
-    )
+    result = PhaseLanding(
+        adapter, git, repo, paths, gate, repository_gate, export=export
+    ).recover(STAGE_ID)
 
     assert result.disposition is LandingDisposition.CLOSED
     assert _ref_target(repo) == descendant
@@ -1409,7 +1436,7 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
     adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
     repository_gate = _RepositoryGate(artifact_oid, tree)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     intent = LandingIntent(
         root_id=ROOT_ID,
         policy_digest=_policy().digest,
@@ -1424,9 +1451,9 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
     write_record(paths.instance_dir / "phase-bridge-landing.json", intent)
     before_recovery = _reflog(repo)
 
-    result = PhaseLanding(adapter, git, repo, paths, gate, repository_gate).recover(
-        STAGE_ID
-    )
+    result = PhaseLanding(
+        adapter, git, repo, paths, gate, repository_gate, export=export
+    ).recover(STAGE_ID)
 
     assert result.disposition is LandingDisposition.PENDING
     assert result.observed_target == base
@@ -1441,7 +1468,7 @@ def test_repository_gate_discloses_t1_before_running_the_detached_checkout(
     """Operator output names the trusted-code boundary before the gate can execute."""
     repo, _ = _temporary_repo(tmp_path)
     artifact_oid, tree = _commit_artifact(repo)
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, _export = _landing_context(repo, tmp_path)
     events: list[str] = []
 
     result = DetachedRepositoryGate(git, paths, _policy(), events.append).verify(
@@ -1478,7 +1505,7 @@ def test_landing_refuses_wrong_root_directory(
     fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
         by_alias=True, mode="json"
     )
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     landing = PhaseLanding(
         PhaseAdapter(fake_client),
         git,
@@ -1486,6 +1513,7 @@ def test_landing_refuses_wrong_root_directory(
         WrapperPaths(paths.config, "other-root"),
         _GateAuthority(oid, tree, gate_verifier, sign_payload),
         _RepositoryGate(oid, tree),
+        export=export,
     )
     with pytest.raises(ValueError, match="ambiguous"):
         landing.land(STAGE_ID)
@@ -1551,7 +1579,7 @@ def test_policy_correspondence_refuses_before_cas(
     fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
         by_alias=True, mode="json"
     )
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     repository = _RepositoryGate(oid, tree)
     observed = repository.verify(oid, tree)
     if corruption == "wrong-policy":
@@ -1578,6 +1606,7 @@ def test_policy_correspondence_refuses_before_cas(
         paths,
         _GateAuthority(oid, tree, gate_verifier, sign_payload),
         repository,
+        export=export,
     )
     if corruption == "legacy":
         with pytest.raises(ValueError, match="policy"):

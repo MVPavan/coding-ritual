@@ -719,6 +719,10 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
             "tree": None,
             "gate_receipt_digest": None,
             "landing_receipt_digest": None,
+            # Post-close evidence, like the digests above: the export oid is
+            # recorded in the merge that closes (§3.6), long after the
+            # prepared successor this is compared against was journalled.
+            "export_oid": None,
         }
     )
     if normalized != prepared or record.root_id != intent.receipt.root_id:

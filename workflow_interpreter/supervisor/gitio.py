@@ -556,6 +556,21 @@ class Git(GitTransport):
         """Drop registrations whose directories are gone (§7.3's throwaway tree)."""
         self.run(GitSubcommand.WORKTREE, "prune", cwd=cwd)
 
+    def write_blob(self, path: Path, *, cwd: Path) -> str:
+        """Store one file's bytes as a git blob and answer its object id.
+
+        `--no-filters` because the bytes stored must be the bytes on disk: the
+        export is re-read from this object and compared against the file, and
+        a `clean` filter the repository happens to declare would silently make
+        the two differ (run-ledger §3.6).
+        """
+        oid = self.run(
+            GitSubcommand.HASH_OBJECT, "-w", "--no-filters", "--", str(path), cwd=cwd
+        ).text
+        if not oid:
+            raise GitCommandError(f"git hash-object wrote no oid for {path}")
+        return oid
+
     def update_ref(self, ref: str, commit: str, *, cwd: Path) -> None:
         """Pin `refs/wf/<root_id>/<activation_id>` — idempotent for one value."""
         self.run(GitSubcommand.UPDATE_REF, ref, commit, cwd=cwd)

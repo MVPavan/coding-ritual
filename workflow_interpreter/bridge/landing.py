@@ -10,8 +10,10 @@ from typing import Final, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bridge.adapter import PhaseAdapter
 from workflow_interpreter.bridge.errors import BridgeRefusal
+from workflow_interpreter.bridge.journal import ExportPin, LandingJournal, LandingPhase
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
 from workflow_interpreter.bridge.verification import (
     CheckResult,
@@ -19,6 +21,8 @@ from workflow_interpreter.bridge.verification import (
     observe_checks,
 )
 from workflow_interpreter.foreman.identifiers import validate_bead_id
+from workflow_interpreter.ledger.constants import LEDGER_DIR
+from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.supervisor.gitcmd import GitSubcommand
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.paths import (
@@ -42,6 +46,10 @@ MSG_HUMAN_ATTENTION: Final[str] = "halted: human-attention"
 MSG_GATE_MISMATCH: Final[str] = "immutable ship-gate evidence does not match landing"
 MSG_REPOSITORY_GATE: Final[str] = "repository gate is incomplete, red, or mismatched"
 MSG_IDENTITY: Final[str] = "landing intent and stage relation are ambiguous"
+MSG_NO_EXPORT: Final[str] = (
+    "refusing to close {task_id!r}: this landing has no export pin, so the "
+    "task's record could not be put in git before its bead closed (§3.6)"
+)
 
 
 class LandingDisposition(StrEnum):
@@ -209,7 +217,17 @@ class PhaseLanding:
         repository_gate: RepositoryGate,
         *,
         hooks: LandingHooks | None = None,
+        journal: LandingJournal | None = None,
+        export: ExportPin | None = None,
     ) -> None:
+        """Compose one landing; the ledger collaborators are optional here.
+
+        `journal` copies the intent and receipt into the ledger (D17) and
+        `export` pins the task's record into git before the bead can close
+        (§3.6). Both are absent only for a composition with no ledger; a
+        close with no pinned export is refused by the adapter, so the absence
+        cannot quietly produce an unexportable closed task.
+        """
         self._adapter = adapter
         self._git = git
         self._repo_root = repo_root
@@ -217,11 +235,13 @@ class PhaseLanding:
         self._gate_authority = gate_authority
         self._repository_gate = repository_gate
         self._hooks = hooks or LandingHooks()
+        self._journal = journal
+        self._export = export
 
     def land(self, stage_id: str) -> LandingResult:
         """Execute the one allowed CAS after all landing evidence is green."""
         record = self._adapter.record(stage_id)
-        if self._intent_path().exists() or record.state in (
+        if self._journalled_intent(record) is not None or record.state in (
             PhaseBridgeState.LANDED,
             PhaseBridgeState.CLOSED,
         ):
@@ -328,7 +348,7 @@ class PhaseLanding:
     ) -> tuple[LandingIntent, GateEvidence]:
         """Revalidate the durable journal and its authenticated artifact authority."""
         self._policy(record)
-        intent = read_record(self._intent_path(), LandingIntent)
+        intent = self._journalled_intent(record)
         if intent is None:
             raise BridgeRefusal("landing intent is missing")
         if not self._identity_matches(record, intent):
@@ -354,7 +374,7 @@ class PhaseLanding:
                 "--retry-landing requires an admitted pending intent, not landed work"
             )
         intent, evidence = self._authorized_intent(record)
-        if read_record(self._receipt_path(), LandingReceipt) is not None:
+        if self._journalled_receipt(record) is not None:
             raise BridgeRefusal("--retry-landing refuses an existing landing receipt")
         observed = self._git.ref_target(intent.ref, cwd=self._repo_root)
         if observed != intent.expected_base:
@@ -388,7 +408,7 @@ class PhaseLanding:
         """Reconcile an unfinished intent without ever moving a target ref."""
         record = self._adapter.record(stage_id)
         self._policy(record)
-        if not self._intent_path().exists():
+        if self._journalled_intent(record) is None:
             return LandingResult(
                 disposition=LandingDisposition.NO_INTENT,
                 reason="landing intent is missing",
@@ -403,7 +423,7 @@ class PhaseLanding:
         if observed_target == intent.expected_base:
             if (
                 record.state is not PhaseBridgeState.ADMITTED
-                or self._receipt_path().exists()
+                or self._journalled_receipt(record) is not None
             ):
                 return LandingResult(
                     disposition=LandingDisposition.HUMAN_ATTENTION,
@@ -446,7 +466,7 @@ class PhaseLanding:
             and self._adapter.integration_guard is not None
         ):
             self._adapter.integration_guard.finished(record)
-        receipt = read_record(self._receipt_path(), LandingReceipt)
+        receipt = self._journalled_receipt(record)
         if receipt is None:
             raise BridgeRefusal("closed stage is missing its landing receipt")
         result = RepositoryGateResult(
@@ -485,11 +505,23 @@ class PhaseLanding:
             and record.gate_receipt_digest == intent.gate_receipt_digest
         )
 
+    def _coordinator_dirt(self) -> tuple[tuple[str, bool], ...]:
+        """The dirty paths the COORDINATOR owns, excluding the engine's own.
+
+        `<repo>/.wf/` is engine state: the ledger database is gitignored there
+        and the export file is written there by THIS landing, moments before
+        the close (§3.6). Counting the bridge's own export as coordinator dirt
+        would make every recovery after a completed export refuse, and would
+        block the next stage's admission until a human committed a file the
+        plan says the orchestrator commits with the beads mirror.
+        """
+        return coordinator_dirt(self._git.status_paths(cwd=self._repo_root))
+
     def _coordinator_refusal(self, target_ref: str) -> str | None:
         """Preserve the attached coordinator identity before any authorized CAS."""
         if self._git.attached_branch_ref(cwd=self._repo_root) != target_ref:
             return "coordinator must be attached to the admitted target ref"
-        if self._git.status_paths(cwd=self._repo_root):
+        if self._coordinator_dirt():
             return "coordinator has staged, unstaged or untracked changes; preserve or repair them before retry"
         return None
 
@@ -511,9 +543,11 @@ class PhaseLanding:
             )
         receipt = self._receipt(intent, repository_gate)
         receipt_digest = _digest_record(receipt)
-        existing = read_record(self._receipt_path(), LandingReceipt)
+        existing = self._journalled_receipt(record)
         if existing is None:
             write_record(self._receipt_path(), receipt)
+            if self._journal is not None:
+                self._journal.record(record.attempt, LandingPhase.RECEIPT, receipt)
         elif not self._receipt_identity_matches(existing, receipt):
             return LandingResult(
                 disposition=LandingDisposition.HUMAN_ATTENTION,
@@ -541,7 +575,13 @@ class PhaseLanding:
         )
         if landed.state is not PhaseBridgeState.CLOSED:
             self._adapter.land(record.stage_id, landed)
-            landed = landed.closed()
+        if landed.export_oid is None:
+            # §3.6: export, pin, record the oid, and only then close — the
+            # adapter closes the bead in the same call that merges this
+            # record, so this is the last moment the oid can reach it.
+            landed = landed.closed(
+                self._pin_export(record.stage_id, record.root_backend)
+            )
         self._adapter.close(record.stage_id, landed, receipt_digest)
         return LandingResult(disposition=LandingDisposition.CLOSED, intent=intent)
 
@@ -629,7 +669,7 @@ class PhaseLanding:
         """Bring a clean old checkout forward without resetting refs or user edits."""
         if self._git.attached_branch_ref(cwd=self._repo_root) != intent.ref:
             return f"coordinator must return to admitted branch {intent.ref}; no checkout files changed"
-        dirty = self._git.status_paths(cwd=self._repo_root)
+        dirty = self._coordinator_dirt()
         if not dirty:
             return None
         if self._git.ref_target(intent.ref, cwd=self._repo_root) != intent.artifact_oid:
@@ -647,6 +687,8 @@ class PhaseLanding:
             "--no-textconv",
             intent.expected_base,
             "--",
+            ".",
+            f":(exclude){LEDGER_DIR}",
             cwd=self._repo_root,
             check=False,
             config=self._git.filter_overrides(cwd=self._repo_root),
@@ -664,7 +706,7 @@ class PhaseLanding:
             check=False,
             config=self._git.filter_overrides(cwd=self._repo_root),
         )
-        if result.returncode or self._git.status_paths(cwd=self._repo_root):
+        if result.returncode or self._coordinator_dirt():
             return "checkout changed during synchronization; preserve local changes and retry recovery"
         return None
 
@@ -704,6 +746,38 @@ class PhaseLanding:
         write_record(self._intent_path(), intent)
         if read_record(self._intent_path(), LandingIntent) != intent:
             raise BridgeRefusal(MSG_IDENTITY)
+        # File, then row, and both BEFORE the CAS (D17): the row exists so
+        # that recovery survives a deleted wrapper directory, and it is
+        # written second so a row can never describe an intent no file ever
+        # carried.
+        if self._journal is not None:
+            self._journal.record(intent.attempt, LandingPhase.INTENT, intent)
+
+    def _journalled_intent(self, record: PhaseBridgeRecord) -> LandingIntent | None:
+        """The landing intent: the wrapper file first, the ledger row second.
+
+        The file leads because it is what every existing recovery path
+        revalidates; the row is the fallback for a wrapper directory that was
+        deleted (D17). Nothing here decides "missing" — the caller does, and
+        for each caller "neither exists" means something different.
+        """
+        found = read_record(self._intent_path(), LandingIntent)
+        if found is not None or self._journal is None:
+            return found
+        return self._journal.read(record.attempt, LandingPhase.INTENT, LandingIntent)
+
+    def _journalled_receipt(self, record: PhaseBridgeRecord) -> LandingReceipt | None:
+        """The landing receipt, file first and ledger row as fallback (D17)."""
+        found = read_record(self._receipt_path(), LandingReceipt)
+        if found is not None or self._journal is None:
+            return found
+        return self._journal.read(record.attempt, LandingPhase.RECEIPT, LandingReceipt)
+
+    def _pin_export(self, task_id: str, backend: BackendKind) -> str:
+        """Put this task's whole record in git, or refuse to close (§3.6)."""
+        if self._export is None:
+            raise BridgeRefusal(MSG_NO_EXPORT.format(task_id=task_id))
+        return self._export.pin(task_id, backend)
 
     def _intent_path(self) -> Path:
         """Locate this root's one landing intent record."""

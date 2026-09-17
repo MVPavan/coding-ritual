@@ -21,8 +21,9 @@ that can hold that rule.
 from __future__ import annotations
 
 import sqlite3
+import threading
 from collections.abc import Iterator
-from contextlib import AbstractContextManager, closing, contextmanager
+from contextlib import closing, contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from types import TracebackType
@@ -72,7 +73,12 @@ def connect(path: Path) -> sqlite3.Connection:
     """Open one connection with the §3.4.1 pragmas applied."""
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        connection = sqlite3.connect(path, isolation_level=None)
+        # One connection per process (§3.4.1) means a process with threads
+        # shares it, so the creating-thread check has to go and the mutual
+        # exclusion has to come from `LedgerDatabase.transaction` instead.
+        connection = sqlite3.connect(
+            path, isolation_level=None, check_same_thread=False
+        )
         connection.row_factory = sqlite3.Row
         for pragma in PRAGMAS:
             connection.execute(pragma)
@@ -177,6 +183,7 @@ class LedgerDatabase:
         self._repo_root = repo_root
         self._wrapper_root = wrapper_root
         self._fence = fence
+        self._writing = threading.RLock()
         self._migrate_if_behind()
         self._fence_hold = fence.shared()
         self._fence_hold.__enter__()
@@ -212,11 +219,19 @@ class LedgerDatabase:
         """The fence this connection holds shared (§3.4.4)."""
         return self._fence
 
-    def transaction(
-        self, *, write: bool = True
-    ) -> AbstractContextManager[sqlite3.Connection]:
-        """One transaction on this process's connection."""
-        return transaction(self._connection, write=write)
+    @contextmanager
+    def transaction(self, *, write: bool = True) -> Iterator[sqlite3.Connection]:
+        """One transaction on this process's ONE connection (§3.4.1, §3.4.2).
+
+        Reentrant-locked rather than merely begun: two threads of one process
+        share the connection, and SQLite has no nested `BEGIN` — so a second
+        thread entering here while the first is mid-transaction would commit
+        the first one's work under its own name. The lock makes "a store
+        method is one transaction" true between threads as well as between
+        processes.
+        """
+        with self._writing, transaction(self._connection, write=write) as connection:
+            yield connection
 
     def close(self) -> None:
         """Close the connection and release the shared fence, in that order."""

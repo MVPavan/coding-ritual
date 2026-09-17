@@ -32,6 +32,7 @@ from workflow_interpreter.bridge.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.resolve import _resolved_config
+from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import (
     CollectedChildResult,
     IntegrationAssociation,
@@ -264,6 +265,11 @@ class IntegrationGuard:
                 "tree": None,
                 "gate_receipt_digest": None,
                 "landing_receipt_digest": None,
+                # Post-close evidence, exactly like the receipt digests above:
+                # the export oid is recorded in the closing merge (§3.6), so a
+                # prepared projection that kept it could never match the
+                # digest taken before the stage was admitted.
+                "export_oid": None,
             }
         )
         if association.bridge_digest != digest_record(prepared):
@@ -653,8 +659,8 @@ def prepare_integration(
                 )
             )
             base = composition.git.ref_target(target, cwd=composition.config.repo_root)
-            if base is None or composition.git.status_paths(
-                cwd=composition.config.repo_root
+            if base is None or coordinator_dirt(
+                composition.git.status_paths(cwd=composition.config.repo_root)
             ):
                 raise BridgeRefusal("integration target must be clean and present")
             entries = guard.sources(request)
@@ -888,8 +894,8 @@ def retry_integration(
         base = composition.git.ref_target(
             record.target_ref, cwd=composition.config.repo_root
         )
-        if base is None or composition.git.status_paths(
-            cwd=composition.config.repo_root
+        if base is None or coordinator_dirt(
+            composition.git.status_paths(cwd=composition.config.repo_root)
         ):
             raise BridgeRefusal("integration retry requires clean target")
         if (

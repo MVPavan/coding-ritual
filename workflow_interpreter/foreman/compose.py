@@ -16,6 +16,7 @@ from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
+from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.paths import ensure_fence_dir
 from workflow_interpreter.schema.decisions import DecisionRequest, DecisionResponse
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF, procfs
@@ -170,6 +171,12 @@ class Composition:
     profiles: ProfileResolver
     spawner: Spawner
     host_env: Mapping[str, str]
+    ledger: LedgerDatabase | None = None
+    """This process's one ledger connection, holding the shared fence (§3.4.1).
+
+    The composition root owns it because a process has exactly one, and the
+    surfaces built from it — the landing journal, the export pin, the
+    reconciler — are composed, never self-constructed."""
     task_id: str | None = None
     """The task bead every root of this process belongs to (D16).
 

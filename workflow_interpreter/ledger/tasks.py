@@ -26,6 +26,10 @@ _SQL_PIN_TASK: Final[str] = (
     "VALUES (?, ?, NULL, ?, ?, ?)"
 )
 _SQL_TASK_BACKEND: Final[str] = "SELECT backend FROM tasks WHERE task_id = ?"
+_SQL_TASK_EXPORT: Final[str] = "SELECT export_oid FROM tasks WHERE task_id = ?"
+_SQL_RECORD_EXPORT: Final[str] = (
+    "UPDATE tasks SET export_oid = ?, exported_at = ? WHERE task_id = ?"
+)
 _SQL_ROOT_BACKEND: Final[str] = "SELECT backend FROM roots WHERE root_id = ?"
 
 
@@ -72,3 +76,22 @@ def root_backend(database: LedgerDatabase, root_id: str) -> BackendKind | None:
     """
     row = database.connection.execute(_SQL_ROOT_BACKEND, (root_id,)).fetchone()
     return None if row is None else BackendKind(str(row[0]))
+
+
+def record_export_oid(database: LedgerDatabase, task_id: str, oid: str) -> None:
+    """Record the blob this task's export is pinned as (§3.6).
+
+    Overwrites rather than appends: a crash after the blob was written but
+    before the oid was recorded re-runs the export at the next close, and the
+    later pin is the one the later close names.
+    """
+    with database.transaction():
+        database.connection.execute(
+            _SQL_RECORD_EXPORT, (oid, datetime.now(tz=UTC).isoformat(), task_id)
+        )
+
+
+def export_oid(database: LedgerDatabase, task_id: str) -> str | None:
+    """The pinned export blob of a task, or nothing while it owes one."""
+    row = database.connection.execute(_SQL_TASK_EXPORT, (task_id,)).fetchone()
+    return None if row is None or row[0] is None else str(row[0])

@@ -9,7 +9,8 @@ over one repository, and outside `git clean`'s reach.
 from __future__ import annotations
 
 import hashlib
-from pathlib import Path
+from collections.abc import Iterable
+from pathlib import Path, PurePosixPath
 from typing import Final
 
 from workflow_interpreter.ledger.constants import (
@@ -73,3 +74,22 @@ def ensure_fence_dir(repo_root: Path) -> Path | None:
         return None
     directory.mkdir(parents=True, exist_ok=True)
     return directory
+
+
+def coordinator_dirt(
+    entries: Iterable[tuple[str, bool]],
+) -> tuple[tuple[str, bool], ...]:
+    """The dirty paths a COORDINATOR owns, with the engine's own removed.
+
+    `<repo>/.wf/` is engine state: the database is gitignored there and the
+    export the bridge writes moments before it closes is tracked there (§3.6,
+    "the export file appears in the main checkout, exactly as
+    `.beads/issues.jsonl` does after a bd write"). Every coordinator
+    cleanliness check therefore has to look past it, or the very write that
+    makes a close durable would block the next stage's admission.
+    """
+    return tuple(
+        entry
+        for entry in entries
+        if not PurePosixPath(entry[0]).is_relative_to(LEDGER_DIR)
+    )

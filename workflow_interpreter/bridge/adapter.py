@@ -45,6 +45,10 @@ MSG_STORED_RECORD_UNREADABLE: Final[str] = (
     "stored phase bridge record is unreadable: {reason}"
 )
 MSG_CLOSE_REASON: Final[str] = "phase bridge landing receipt={digest}"
+MSG_NO_EXPORT_OID: Final[str] = (
+    "stage {stage_id!r} cannot close without export_oid: a task must have its "
+    "whole record pinned in git before its bead closes (run-ledger §3.6)"
+)
 STATUS_CLOSED: Final[str] = "closed"
 
 
@@ -217,9 +221,18 @@ class PhaseAdapter:
     def close(
         self, stage_id: str, record: PhaseBridgeRecord, receipt_digest: str
     ) -> PhaseBridgeRecord:
-        """Close and read back a stage whose durable relation names its receipt."""
+        """Close and read back a stage whose durable relation names its receipt.
+
+        §3.6: the bead is closed immediately after the metadata merge below,
+        so a record with no `export_oid` would close a task whose record only
+        `.wf/` holds — and `git clean` can delete that. The refusal is here,
+        at the one write that closes, rather than at the composition that
+        called it.
+        """
         self._assert_stage(stage_id, record)
         self._assert_state(record, PhaseBridgeState.CLOSED, MSG_WRONG_INCOMING_STATE)
+        if record.export_oid is None:
+            raise PhaseAdapterError(MSG_NO_EXPORT_OID.format(stage_id=stage_id))
         self.guard_integration(record, post_cas=True)
         if record.landing_receipt_digest != receipt_digest:
             raise PhaseAdapterError("close receipt does not match landed relation")

@@ -31,6 +31,8 @@ MSG_BACKEND_IMMUTABLE: Final[str] = (
 )
 
 CommitOid = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
+ObjectOid = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
+"""A git object id that is not a commit — the export blob (§3.6)."""
 NonEmptyText = Annotated[str, StringConstraints(min_length=1)]
 
 
@@ -91,6 +93,13 @@ class PhaseBridgeRecord(BaseModel):
     tree: CommitOid | None = None
     gate_receipt_digest: NonEmptyText | None = None
     landing_receipt_digest: NonEmptyText | None = None
+    export_oid: ObjectOid | None = None
+    """The git blob this task's whole ledger record is pinned as (§3.6).
+
+    Recorded in the SAME metadata merge that closes the relation, because the
+    adapter closes the bead immediately after that merge: a task that reached
+    CLOSED without it would be a task whose record `git clean` could still
+    delete."""
     previous_attempts: tuple[NonEmptyText, ...]
 
     @model_validator(mode="after")
@@ -187,6 +196,13 @@ class PhaseBridgeRecord(BaseModel):
             }
         )
 
-    def closed(self) -> PhaseBridgeRecord:
-        """Mark a relation closed immediately before its verified bead close."""
-        return self.model_copy(update={"state": PhaseBridgeState.CLOSED})
+    def closed(self, export_oid: str) -> PhaseBridgeRecord:
+        """Close the relation, naming the blob its whole record is pinned as.
+
+        The oid is an argument rather than a later merge because §3.6 gives
+        the bridge exactly one write in which to record it: the adapter closes
+        the bead in the same call that merges this record.
+        """
+        return self.model_copy(
+            update={"state": PhaseBridgeState.CLOSED, "export_oid": export_oid}
+        )

@@ -46,11 +46,11 @@ def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
     fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
         by_alias=True, mode="json"
     )
-    git, paths = _landing_context(repo, tmp_path)
+    git, paths, export = _landing_context(repo, tmp_path)
     adapter = PhaseAdapter(fake_client)
     authority = _GateAuthority(oid, tree, gate_verifier, sign_payload)
     checks = _RepositoryGate(oid, tree)
-    landing = PhaseLanding(adapter, git, repo, paths, authority, checks)
+    landing = PhaseLanding(adapter, git, repo, paths, authority, checks, export=export)
     return landing, adapter, git, repo, paths, fake_bd, checks, base
 
 
