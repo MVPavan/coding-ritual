@@ -8,18 +8,19 @@ the close transaction, and the bd backend carries the very carriers they are
 derived from, so `foreman/ledger_render.py` renders identical bytes on either.
 
 **Two kinds of row, and the reviewer's come first.** A `review` row is the
-reviewer's OWN numbered finding, parsed out of the artifact it wrote
-(`parse_review_findings`) before its evidence was recorded, carried verbatim
-on `Evidence.review_findings` — so both backends hold it and the ledger
-persists exactly those bytes. A `diagnostic` row is derived from the close
-carriers the record already holds (`Evidence`, §7), in this fixed order per
-activation:
+reviewer's OWN numbered finding, parsed out of the one report it wrote
+(`parse_review_findings`) before its evidence was recorded, carried bounded
+and normalised (line endings, invalid UTF-8 replaced) on
+`Evidence.review_findings` — so both backends hold it and the ledger persists
+exactly those bytes. A `diagnostic` row is derived from the close carriers the
+record already holds (`Evidence`, §7), in this fixed order per activation:
 
-1. every verify check that did not exit zero — BLOCKER;
-2. a graded outcome that contradicts the claimed one — MAJOR;
-3. every undeclared effect — MAJOR;
-4. a failing graded outcome — BLOCKER, carrying the note when there is one;
-5. the note on a non-failing outcome — INFO.
+1. a review node that wrote no report at all — INFO;
+2. every verify check that did not exit zero — BLOCKER;
+3. a graded outcome that contradicts the claimed one — MAJOR;
+4. every undeclared effect — MAJOR;
+5. a failing graded outcome — BLOCKER, carrying the note when there is one;
+6. the note on a non-failing outcome — INFO.
 
 Deterministic by construction: one pass over ordered carrier fields, no clock,
 no set iteration, so two derivations of one unchanged record are equal.
@@ -61,7 +62,30 @@ _SEVERITY_WORD: Final[re.Pattern[str]] = re.compile(r"\b(BLOCKER|MAJOR|MINOR|INF
 DEFAULT_REVIEW_SEVERITY: Final[Severity] = Severity.MAJOR
 """What an item that names no severity is stored as. A reviewer finding is a
 problem by definition, and filing it as INFO would hide it under the
-diagnostics; MAJOR is the honest floor, and the verbatim text says the rest."""
+diagnostics; MAJOR is the honest floor, and the bounded and normalised (line
+endings, invalid UTF-8 replaced) text says the rest."""
+
+REVIEW_REPORT_FILE: Final[str] = "review.md"
+"""The ONE file of a reviewer's outputs tree that IS its verdict.
+
+Named here rather than in the supervisor because the graph's `review`
+instructions and the extraction must agree on it, and because a reviewer's
+outputs tree also holds its evidence: concatenating the tree would let a
+command transcript become the tail of the last numbered finding, or — on a
+report-less tree — a fabricated MAJOR about nothing (found in review)."""
+REVIEW_NO_FINDINGS: Final[str] = "NO FINDINGS"
+"""The report an accepting reviewer writes: this line and nothing else.
+
+An explicit statement that there was nothing to say, so zero review rows are a
+DECLARED result rather than an ambiguity between silence and a lost file. An
+empty report reads the same way; an absent one does not."""
+TEXT_REVIEW_ABSENT: Final[str] = "review node wrote no {file} to its outputs tree"
+"""The diagnostic a review node with no report leaves.
+
+INFO, and a diagnostic rather than a review row: the engine is reporting on
+its own missing input, not stating a defect in the work under review, and
+inventing a MAJOR nobody wrote would be a false finding. When the round
+actually rejected, the failing-outcome BLOCKER below still says so."""
 
 FAILING_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
     {
@@ -124,16 +148,18 @@ def _severity_of(text: str) -> Severity:
 
 
 def parse_review_findings(text: str) -> tuple[ReviewFinding, ...]:
-    """The reviewer's own findings, read out of the artifact it wrote (§3.3).
+    """The reviewer's own findings, read out of the ONE report it wrote (§3.3).
 
     Numbered list items are the structure review reports actually have, so
-    each one becomes a row carrying its own bytes. An artifact with no such
+    each one becomes a row carrying its own bytes. A report with no such
     structure is NOT refused and NOT summarised: it becomes a single bounded
-    verbatim row, because a finding the engine could not parse is still a
-    finding a human must read.
+    and normalised (line endings, invalid UTF-8 replaced) row, because a
+    finding the engine could not parse is still a finding a human must read.
+    A report that is empty or says `REVIEW_NO_FINDINGS` and nothing else is
+    the declared no-findings report, and answers with no rows at all.
     """
     stripped = text.strip()
-    if not stripped:
+    if not stripped or stripped == REVIEW_NO_FINDINGS:
         return ()
     items: list[list[str]] = []
     for line in stripped.splitlines():
@@ -157,7 +183,8 @@ def parse_review_findings(text: str) -> tuple[ReviewFinding, ...]:
 def findings_of(activation: ActivationRecord) -> tuple[Finding, ...]:
     """Every finding one CLOSED activation's carriers state (§3.3).
 
-    The reviewer's own findings first, verbatim, then the derived diagnostics:
+    The reviewer's own findings first, bounded and normalised (line endings,
+    invalid UTF-8 replaced), then the derived diagnostics:
     a reader of `findings.md` should meet the review before the engine's
     account of it. An activation that has not completed answers with nothing:
     a round still running has no verdict, and a row written for it would have
@@ -173,6 +200,10 @@ def findings_of(activation: ActivationRecord) -> tuple[Finding, ...]:
         for item in (() if evidence is None else evidence.review_findings)
     ]
     texts: list[tuple[Severity, str]] = []
+    if evidence is not None and evidence.review_report_missing:
+        texts.append(
+            (Severity.INFO, TEXT_REVIEW_ABSENT.format(file=REVIEW_REPORT_FILE))
+        )
     for check in () if evidence is None else evidence.verify:
         if check.exit_code != 0:
             texts.append(

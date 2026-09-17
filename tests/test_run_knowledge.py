@@ -22,7 +22,7 @@ import os
 import shutil
 import subprocess
 import sys
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Final
 
@@ -50,6 +50,9 @@ from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.findings import (
     MAX_FINDING_BYTES,
     MAX_REVIEW_FINDINGS_BYTES,
+    REVIEW_NO_FINDINGS,
+    REVIEW_REPORT_FILE,
+    TEXT_REVIEW_ABSENT,
     TRUNCATION_MARKER,
     FindingKind,
     findings_of,
@@ -792,7 +795,10 @@ REVIEW_REPORT: Final[str] = (
     "documented as derivation.\n"
     "3. the third item names no severity at all.\n"
 )
-REVIEW_FILE: Final[str] = "findings.md"
+EVIDENCE_TRANSCRIPT: Final[str] = "verify-log.txt"
+EVIDENCE_TRANSCRIPT_BODY: Final[str] = (
+    "$ pytest -q\n42 passed\n$ ruff check\nAll checks passed\n"
+)
 
 
 def _review_node() -> Node:
@@ -805,14 +811,25 @@ def _review_node() -> Node:
 
 
 def _outputs(
-    tmp_path: Path, body: str, name: str = REVIEW_FILE
+    tmp_path: Path,
+    body: str | None,
+    name: str = REVIEW_REPORT_FILE,
+    beside: Mapping[str, str] | None = None,
 ) -> tuple[Git, Path, str]:
-    """One pinned outputs tree holding a review artifact, as the exit pins it."""
+    """One pinned outputs tree, as the exit pins the reviewer's own.
+
+    `body` is the report; `None` writes no report at all, which is the tree a
+    reviewer that recorded only evidence leaves. `beside` is that evidence.
+    """
     repo = tmp_path / "review-repo"
     repo.mkdir(exist_ok=True)
     _git(repo, "init", "--quiet", "--initial-branch=main")
-    (repo / name).write_text(body, encoding="utf-8")
-    _git(repo, "add", "--", name)
+    written = dict(beside or {})
+    if body is not None:
+        written[name] = body
+    for path, text in written.items():
+        (repo / path).write_text(text, encoding="utf-8")
+    _git(repo, "add", "--", *written)
     tree = _git(repo, "write-tree")
     wrapper_root = tmp_path / "review-wrapper"
     wrapper_root.mkdir(exist_ok=True)
@@ -820,11 +837,11 @@ def _outputs(
     return git, repo, tree
 
 
-def test_a_reviews_numbered_findings_are_extracted_verbatim(tmp_path: Path) -> None:
+def test_a_reviews_numbered_findings_are_extracted_unrewritten(tmp_path: Path) -> None:
     """Finding 6: the rows are the REVIEW's text, severity and `file:line`."""
     git, repo, tree = _outputs(tmp_path, REVIEW_REPORT)
 
-    extracted = review_findings(_review_node(), git, repo, tree)
+    extracted = review_findings(_review_node(), git, repo, tree).findings
 
     assert [item.severity for item in extracted] == [
         Severity.BLOCKER,
@@ -842,7 +859,7 @@ def test_an_unstructured_review_artifact_is_stored_whole(tmp_path: Path) -> None
     """A report with no numbering is kept, not dropped and not summarised."""
     git, repo, tree = _outputs(tmp_path, "the guard is missing at store.py:383\n")
 
-    extracted = review_findings(_review_node(), git, repo, tree)
+    extracted = review_findings(_review_node(), git, repo, tree).findings
 
     assert [item.text for item in extracted] == ["the guard is missing at store.py:383"]
 
@@ -856,7 +873,7 @@ def test_an_oversized_review_artifact_is_truncated_not_refused(
     )
     git, repo, tree = _outputs(tmp_path, body)
 
-    extracted = review_findings(_review_node(), git, repo, tree)
+    extracted = review_findings(_review_node(), git, repo, tree).findings
 
     assert extracted
     assert all(
@@ -875,11 +892,71 @@ def test_a_blob_too_large_to_read_leaves_a_row_that_says_so(
         tmp_path, "1. BLOCKER — " + "x" * MAX_REVIEW_ARTIFACT_BYTES + "\n"
     )
 
-    extracted = review_findings(_review_node(), git, repo, tree)
+    extracted = review_findings(_review_node(), git, repo, tree).findings
 
     assert len(extracted) == 1
-    assert REVIEW_FILE in extracted[0].text
+    assert REVIEW_REPORT_FILE in extracted[0].text
     assert TRUNCATION_MARKER in extracted[0].text
+
+
+def test_only_the_named_report_of_the_outputs_tree_is_read(tmp_path: Path) -> None:
+    """Finding 6: evidence beside the report is never part of a finding."""
+    git, repo, tree = _outputs(
+        tmp_path,
+        REVIEW_REPORT,
+        beside={EVIDENCE_TRANSCRIPT: EVIDENCE_TRANSCRIPT_BODY},
+    )
+
+    extracted = review_findings(_review_node(), git, repo, tree).findings
+
+    assert len(extracted) == 3
+    assert extracted[-1].text == "3. the third item names no severity at all."
+    assert not any("pytest -q" in item.text for item in extracted)
+
+
+def test_an_evidence_only_tree_is_a_diagnostic_and_not_a_finding(
+    tmp_path: Path,
+) -> None:
+    """Finding 6: a missing report never becomes a MAJOR nobody wrote."""
+    git, repo, tree = _outputs(
+        tmp_path, None, beside={EVIDENCE_TRANSCRIPT: EVIDENCE_TRANSCRIPT_BODY}
+    )
+
+    report = review_findings(_review_node(), git, repo, tree)
+
+    assert report.findings == ()
+    assert report.missing is True
+
+
+def test_the_no_findings_report_yields_no_review_rows(tmp_path: Path) -> None:
+    """The declared no-findings report is zero rows, not one row saying so."""
+    git, repo, tree = _outputs(tmp_path, f"{REVIEW_NO_FINDINGS}\n")
+
+    report = review_findings(_review_node(), git, repo, tree)
+
+    assert report.findings == ()
+    assert report.missing is False
+
+
+def test_an_absent_report_is_recorded_as_one_diagnostic_row(
+    fake_store: WorkflowStore,
+) -> None:
+    """Finding 6: the close states the report was absent, as INFO, once."""
+    _, closed = _closed_review(
+        fake_store, Evidence(claimed_outcome=Outcome.REJECT, review_report_missing=True)
+    )
+
+    rows = findings_of(closed)
+
+    absent = [
+        row
+        for row in rows
+        if row.text == TEXT_REVIEW_ABSENT.format(file=REVIEW_REPORT_FILE)
+    ]
+    assert len(absent) == 1
+    assert absent[0].kind is FindingKind.DIAGNOSTIC
+    assert absent[0].severity is Severity.INFO
+    assert not any(row.kind is FindingKind.REVIEW for row in rows)
 
 
 def test_a_writer_node_contributes_no_review_findings(tmp_path: Path) -> None:
@@ -892,7 +969,7 @@ def test_a_writer_node_contributes_no_review_findings(tmp_path: Path) -> None:
 
     git, repo, tree = _outputs(tmp_path, REVIEW_REPORT)
 
-    assert review_findings(implement, git, repo, tree) == ()
+    assert review_findings(implement, git, repo, tree).findings == ()
 
 
 def test_a_real_review_round_puts_its_findings_on_the_record(
@@ -913,7 +990,7 @@ def test_a_real_review_round_puts_its_findings_on_the_record(
         ChildScript(
             marker=REJECT_MARKER,
             effects=NO_EFFECTS,
-            artifact_path=FINDINGS_FILE,
+            artifact_path=REVIEW_REPORT_FILE,
             artifact_body=REVIEW_REPORT,
         )
     )
@@ -944,7 +1021,7 @@ def _reviewed_evidence(tmp_path: Path) -> Evidence:
         claimed_outcome=Outcome.REJECT,
         review_findings=review_findings(
             _review_node(), *_outputs(tmp_path, REVIEW_REPORT)
-        ),
+        ).findings,
     )
 
 
@@ -961,7 +1038,7 @@ def _closed_review(
     )
 
 
-def test_the_reviewers_findings_reach_the_bd_backend_verbatim(
+def test_the_reviewers_findings_reach_the_bd_backend_unrewritten(
     tmp_path: Path, fake_store: WorkflowStore
 ) -> None:
     """Finding 6: bd carries the same three findings, on the activation record."""
@@ -1031,6 +1108,43 @@ def test_the_reviewers_findings_survive_the_export_round_trip(
     assert second == first
     assert findings_of(restored) == findings_of(closed)
     assert [row.text for row in findings_of(restored) if row.kind is FindingKind.REVIEW]
+
+
+def _findings_rows(database: LedgerDatabase) -> list[tuple[str, int, str, str, str]]:
+    """§3.3's durable `findings` table, read straight out of SQL."""
+    with database.locked() as connection:
+        return [
+            (row[0], int(row[1]), row[2], row[3], row[4])
+            for row in connection.execute(
+                "SELECT activation_id, round_no, severity, text, kind FROM findings "
+                "ORDER BY rowid"
+            ).fetchall()
+        ]
+
+
+def test_the_import_rebuilds_the_findings_table_from_the_carriers(
+    tmp_path: Path,
+) -> None:
+    """Finding 6: a restored ledger answers §3.3 with the same rows, in order."""
+    evidence = _reviewed_evidence(tmp_path)
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _closed_review(ledger_store(database), evidence)
+        before = _findings_rows(database)
+        write_export(database, TASK)
+
+    import_export(
+        export_path(repo_root, TASK),
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        ledger=ledger_path(repo_root),
+    )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        after = _findings_rows(reopened)
+
+    assert any(row[4] == FindingKind.REVIEW.value for row in before)
+    assert after == before
 
 
 def test_findings_md_shows_the_reviewers_findings_first(tmp_path: Path) -> None:

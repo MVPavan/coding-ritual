@@ -227,7 +227,8 @@ _V2_FINDINGS_KIND: Final[str] = (
     "ALTER TABLE findings ADD COLUMN kind TEXT NOT NULL DEFAULT 'diagnostic'"
 )
 """§3.3's `findings` rows gained a second author. The reviewer's own numbered
-findings are stored verbatim as `kind = 'review'`; the rows derived from the
+findings are stored bounded and normalised (line endings, invalid UTF-8
+replaced) as `kind = 'review'`; the rows derived from the
 close carriers keep the default, which is also what any row written before
 this migration was."""
 

@@ -70,6 +70,7 @@ from workflow_interpreter.ledger.errors import (
 from workflow_interpreter.ledger.fence import LedgerFence
 from workflow_interpreter.ledger.paths import export_path, fence_path, repo_hash
 from workflow_interpreter.ledger.schema import table_columns
+from workflow_interpreter.ledger.store import rebuild_findings
 from workflow_interpreter.schema.loader import canonical_json_bytes
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -188,7 +189,9 @@ def import_exports(
     SQL; the fence is taken ONCE, so no reader can enter between two files; and
     every exportable table is CLEARED inside the single transaction that
     refills it, so the ledger ends up carrying exactly what the export set
-    describes and a failure anywhere leaves it as it was.
+    describes and a failure anywhere leaves it as it was. The derived
+    per-activation tables are rebuilt in that transaction too, from the
+    restored carriers (`rebuild_findings`).
     """
     parsed = tuple(
         _parse(path, repo_root=repo_root, wrapper_root=wrapper_root) for path in paths
@@ -209,6 +212,12 @@ def import_exports(
                 for table, row in export.rows:
                     _insert(connection, table, row, path=export.path)
             for export in parsed:
+                # The derived per-activation projections `_clear` emptied, back
+                # from the carriers this rebuild just inserted and inside the
+                # same transaction: `findings` is derivable state, and a
+                # restored ledger that answered §3.3 with nothing until the
+                # next close would be a silent loss (found in review).
+                rebuild_findings(connection, export.task_id)
                 _record_restore(connection, export.task_id)
     for export in parsed:
         _LOG.info("wf.ledger.imported", task_id=export.task_id, path=str(export.path))
@@ -476,7 +485,9 @@ def _clear(connection: sqlite3.Connection) -> None:
     it references `tasks`, and a drain owed for a task this rebuild does not
     bring back is owed for nothing. The per-activation tables go with it, for
     the same reason and in the same spirit: they reference rows this rebuild
-    replaces, and each is re-derived from the record a close settles.
+    replaces. `findings` is put back by `rebuild_findings` before the
+    transaction commits; `sessions`, `artifacts` and `usage` have no writer in
+    this build, so clearing them is the whole of their restore.
     """
     connection.execute(_SQL_CLEAR_RESTORES)
     for derived in DERIVED_ACTIVATION_TABLES:

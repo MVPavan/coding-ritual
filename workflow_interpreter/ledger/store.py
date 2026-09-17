@@ -34,7 +34,11 @@ from workflow_interpreter.bdio.carriers import GateState, Metadata
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import LossyWriteError
 from workflow_interpreter.bdio.findings import findings_of
-from workflow_interpreter.bdio.records import CanaryResult, parse_activation
+from workflow_interpreter.bdio.records import (
+    ActivationRecord,
+    CanaryResult,
+    parse_activation,
+)
 from workflow_interpreter.bdio.rows import (
     BackendIdentity,
     GateClosure,
@@ -135,7 +139,11 @@ _SQL_PROJECTION_INSERT: Final[str] = (
 )
 _SQL_FINDINGS_CLEAR: Final[str] = "DELETE FROM findings WHERE activation_id = ?"
 _SQL_FINDINGS_INSERT: Final[str] = (
-    "INSERT INTO findings (activation_id, round_no, severity, text) VALUES (?, ?, ?, ?)"
+    "INSERT INTO findings (activation_id, round_no, severity, text, kind) "
+    "VALUES (?, ?, ?, ?, ?)"
+)
+_SQL_TASK_ACTIVATIONS: Final[str] = (
+    "SELECT * FROM activations WHERE task_id = ? ORDER BY seq"
 )
 _MSG_PROBE: Final[str] = "the ledger probe wrote {wrote!r} and read back {read!r}"
 
@@ -382,27 +390,18 @@ class LedgerStore:
         reviewer's own findings are among them: extracted before this
         transaction and carried on the evidence this close was handed, so the
         rows are the review's bytes rather than a re-parse of anything.
+
+        The derivation and the SQL are `record_findings`, shared with the
+        import (§3.6): a projection rebuilt by a second copy of this code could
+        drift from the one a close writes.
         """
-        rows = findings_of(parse_activation(written))
-        if not rows:
-            return
-        self._execute(
-            _SQL_FINDINGS_CLEAR,
-            (written.id,),
-            LedgerOperation.CLOSING,
-            LedgerTable.FINDINGS.value,
-        )
-        for finding in rows:
-            self._insert(
-                LedgerTable.FINDINGS,
-                {
-                    "activation_id": finding.activation_id,
-                    "round_no": finding.round_no,
-                    "severity": finding.severity.value,
-                    "text": finding.text,
-                    "kind": finding.kind.value,
-                },
-            )
+        try:
+            with self._database.locked() as connection:
+                record_findings(connection, parse_activation(written))
+        except sqlite3.Error as exc:
+            raise sqlite_failure(
+                exc, operation=LedgerOperation.CLOSING.value, row_id=written.id
+            ) from exc
 
     def _close_gate(self, closure: GateClosure) -> StoreRow:
         """The §3.3 gate close, whole: nonce, state, outcome, signature, projection.
@@ -737,6 +736,55 @@ class LedgerStore:
         """The attempt number a new root of this task gets (D8)."""
         row = connection.execute(_SQL_ROOT_COUNT, (self._task_id,)).fetchone()
         return _FIRST_ATTEMPT + (0 if row is None else int(row[0]))
+
+
+def record_findings(
+    connection: sqlite3.Connection, activation: ActivationRecord
+) -> None:
+    """Rewrite §3.3's `findings` rows for ONE activation on an open connection.
+
+    The single writer of that table: the close calls it inside its own
+    transaction, and the import calls it inside the transaction that refills
+    the ledger, so the durable projection is the same derivation in both
+    cases. Clearing first makes it idempotent — a re-close and a re-import
+    both end with exactly the rows the current record states.
+    """
+    connection.execute(_SQL_FINDINGS_CLEAR, (activation.activation_id,))
+    for finding in findings_of(activation):
+        connection.execute(
+            _SQL_FINDINGS_INSERT,
+            (
+                finding.activation_id,
+                int(finding.round_no),
+                finding.severity.value,
+                finding.text,
+                finding.kind.value,
+            ),
+        )
+
+
+def rebuild_findings(connection: sqlite3.Connection, task_id: str) -> None:
+    """Re-derive one restored task's `findings` rows from its carriers (§3.6).
+
+    An import clears the per-activation tables with the rows they reference and
+    refills only what the export FILE carries; `findings` is not exported
+    because it is derivable, so it has to be derived here — inside the import's
+    own transaction — or a restored ledger would answer §3.3 with nothing until
+    some future close happened to rewrite it (found in review). Activation
+    order is `seq`, the order the rows were written in, so the rebuilt table
+    reads as the original did.
+    """
+    for row in connection.execute(_SQL_TASK_ACTIVATIONS, (task_id,)).fetchall():
+        record_findings(
+            connection,
+            parse_activation(
+                rowmap.hydrate(
+                    LedgerTable.ACTIVATIONS,
+                    row,
+                    _parsed(row[rowmap.COLUMN_METADATA]),
+                )
+            ),
+        )
 
 
 def _now() -> str:

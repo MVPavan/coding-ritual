@@ -22,8 +22,9 @@ which is the same answer on both backends: the bd rows and the ledger rows
 carry the same §3 carriers.
 
 `findings.md` renders the §3.3 FINDINGS of each round as `bdio/findings.py`
-orders them: the REVIEWER's own numbered findings first, verbatim from the
-carrier its evidence recorded, then the diagnostics derived from the close
+orders them: the REVIEWER's own numbered findings first, bounded and
+normalised (line endings, invalid UTF-8 replaced) on the carrier its evidence
+recorded, then the diagnostics derived from the close
 carriers. The ledger inserts exactly those
 rows inside the closing transaction, so on that backend the rendered sections
 are a projection of the table; on bd, where there is no table, they are the

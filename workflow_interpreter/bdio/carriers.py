@@ -362,10 +362,11 @@ class Severity(StrEnum):
 
 
 class ReviewFinding(BaseModel):
-    """One finding a REVIEWER wrote, carried verbatim out of its artifact (§3.3).
+    """One finding a REVIEWER wrote, read out of its ONE report (§3.3).
 
     `text` is the reviewer's own bytes — the numbered item, its severity word
-    and its `file:line` where it gave one — bounded but never rewritten, so
+    and its `file:line` where it gave one — bounded and normalised (line
+    endings, invalid UTF-8 replaced) but never rewritten, so
     the ledger row and `findings.md` say what the review said rather than what
     the engine inferred about it.
     """
@@ -383,10 +384,17 @@ class Evidence(BaseModel):
 
     verify: tuple[VerifyOutcome, ...] = ()
     review_findings: tuple[ReviewFinding, ...] = ()
-    """The reviewer's numbered findings, extracted from its output artifact
-    BEFORE this evidence was recorded and therefore before the close
+    """The reviewer's numbered findings, extracted from the one report file it
+    wrote BEFORE this evidence was recorded and therefore before the close
     transaction. Bounded by `bdio/findings.py` so the carrier stays far under
     the argv ceiling of ADR 0003 on the bd backend."""
+    review_report_missing: bool = False
+    """A review node whose outputs tree held no report file at all.
+
+    Carried rather than derived at read time because the tree is gone by the
+    time anything reads this record, and because both backends must answer the
+    same way: `findings_of` turns it into ONE diagnostic row, never into a
+    review finding nobody wrote."""
     artifact: ArtifactIdentity | None = None
     undeclared_effects: tuple[str, ...] = ()
     breaker: Breaker | None = None

@@ -18,6 +18,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.carriers import LedgerRenderBinding, ReviewFinding
 from workflow_interpreter.bdio.findings import (
+    REVIEW_REPORT_FILE,
     TRUNCATION_MARKER,
     parse_review_findings,
 )
@@ -91,16 +92,28 @@ TEXT_ARTIFACT_TOO_LARGE: Final[str] = (
 the file in the pinned tree a human can still open. Never a refusal — a
 finding the engine could not carry must not fail the round."""
 MAX_REVIEW_ARTIFACT_FILES: Final[int] = 32
-"""How many blobs of one outputs tree the extraction will open."""
+"""How many entries of one outputs tree the extraction will LIST while it
+looks for the report. Only the report itself is ever opened."""
 _TREE_LIST_LIMIT: Final[int] = 1024 * 1024
 """Bound on the tree listing itself, as `foreman/evidence_export.py` bounds it."""
 _REGULAR_BLOB: Final[str] = "100644"
 """The only mode a findings file may have; anything else is not text to read."""
 
 
+class ReviewReport(BaseModel):
+    """What one review node's outputs tree said, as the close must record it."""
+
+    model_config = RECORD_MODEL
+
+    findings: tuple[ReviewFinding, ...] = ()
+    missing: bool = False
+    """The tree held no `REVIEW_REPORT_FILE` at all — a fact about the engine's
+    input, kept apart from the findings so nothing fabricates one."""
+
+
 def review_findings(
     node: Node, git: Git, repo_root: Path, tree_oid: str | None
-) -> tuple[ReviewFinding, ...]:
+) -> ReviewReport:
     """The reviewer's own findings, read from the outputs tree just pinned.
 
     Only a node that CAN reject is read this way: `outcomes` is where the graph
@@ -108,39 +121,51 @@ def review_findings(
     product rather than its verdict. The bytes come from the PINNED tree rather
     than from any directory the runner can still reach, so the extraction
     cannot race the child and two replays of one activation agree.
+
+    Exactly ONE named file is read — `REVIEW_REPORT_FILE`, which the graph's
+    `review` instructions tell the reviewer to write. The tree also holds the
+    evidence that node recorded, and concatenating it would append a command
+    transcript to the last numbered finding or invent a finding out of a
+    transcript alone (found in review). A tree with no report yields no
+    findings and says so, for `findings_of` to record as one diagnostic.
     """
     if tree_oid is None or Outcome.REJECT not in (node.outcomes or ()):
-        return ()
+        return ReviewReport()
     entries = git.tree_blobs(
         tree_oid,
         cwd=repo_root,
         limit=_TREE_LIST_LIMIT,
         max_entries=MAX_REVIEW_ARTIFACT_FILES,
     )
-    chunks: list[str] = []
-    spent = 0
-    for mode, oid, path in entries:
-        remaining = MAX_REVIEW_ARTIFACT_BYTES - spent
-        if remaining <= 0:
-            break
-        if mode != _REGULAR_BLOB:
-            continue
-        try:
-            raw = git.bounded_bytes(
-                GitSubcommand.CAT_FILE, "blob", oid, cwd=repo_root, limit=remaining
-            )
-        except GitOutputTooLarge:
-            chunks.append(
+    report = next(
+        (
+            oid
+            for mode, oid, path in entries
+            if path == REVIEW_REPORT_FILE and mode == _REGULAR_BLOB
+        ),
+        None,
+    )
+    if report is None:
+        return ReviewReport(missing=True)
+    try:
+        raw = git.bounded_bytes(
+            GitSubcommand.CAT_FILE,
+            "blob",
+            report,
+            cwd=repo_root,
+            limit=MAX_REVIEW_ARTIFACT_BYTES,
+        )
+    except GitOutputTooLarge:
+        return ReviewReport(
+            findings=parse_review_findings(
                 TEXT_ARTIFACT_TOO_LARGE.format(
-                    path=path,
+                    path=REVIEW_REPORT_FILE,
                     limit=MAX_REVIEW_ARTIFACT_BYTES,
                     marker=TRUNCATION_MARKER,
                 )
             )
-            break
-        spent += len(raw)
-        chunks.append(raw.decode("utf-8", "replace"))
-    return parse_review_findings("\n".join(chunks))
+        )
+    return ReviewReport(findings=parse_review_findings(raw.decode("utf-8", "replace")))
 
 
 def render_binding(activation: ActivationRecord) -> LedgerRenderBinding | None:

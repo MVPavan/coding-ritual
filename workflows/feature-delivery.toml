@@ -122,9 +122,11 @@ region        = "build-review"
 runner        = "profile:critic"
 model         = "default"
 instructions = """
-Review `diff_artifact` against `task_brief`. Findings go to
-$WF_ARTIFACT_DIR as numbered BLOCKER / MAJOR / MINOR entries, each with a
-`file:line` and a concrete failure scenario.
+Review `diff_artifact` against `task_brief`. Findings go to ONE file,
+$WF_ARTIFACT_DIR/review.md, as numbered BLOCKER / MAJOR / MINOR entries, each
+with a `file:line` and a concrete failure scenario. That file is the only one
+read as your verdict; command evidence goes beside it under other names. When
+you have no findings, write `NO FINDINGS` as the whole of review.md.
 
 You have no repo write access. Do not fix what you find and do not propose
 patches — the implementer acts on your findings next round.
