@@ -58,6 +58,7 @@ class LedgerTable(StrEnum):
     USAGE = "usage"
     LANDINGS = "landings"
     PROJECTIONS = "projections"
+    RESTORE_PENDING = "restore_pending"
 
 
 ROW_TABLES: Final[tuple[LedgerTable, ...]] = (
@@ -87,7 +88,10 @@ signatures are here because §3.6 re-verifies a task's approvals from the export
 ALONE, and the projections because a restored task whose attention rows were
 dropped would silently keep whatever label bd last carried. Order matters
 twice: rows are inserted in it (a signature needs its gate) and cleared in
-reverse. The per-activation facts stay out until S4 writes them."""
+reverse. `restore_pending` is the one task-owned table deliberately left out:
+it records what an import OWES rather than what an export describes, and
+carrying it would break the byte-identical round trip (§3.6). The
+per-activation facts stay out until S4 writes them."""
 
 
 TARGET_LEDGER: Final[str] = "the ledger"

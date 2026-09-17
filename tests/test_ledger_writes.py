@@ -306,6 +306,18 @@ def _unacked(database: LedgerDatabase, task_id: str = TASK) -> list[int]:
     ]
 
 
+def _restore_pending(database: LedgerDatabase, task_id: str = TASK) -> list[str]:
+    """The restore this task still owes a drain for, if an import recorded one."""
+    return [
+        str(row["requested_at"])
+        for row in _rows(
+            database,
+            "SELECT requested_at FROM restore_pending WHERE task_id = ?",
+            task_id,
+        )
+    ]
+
+
 # --- durability across a reopen --------------------------------------------
 
 
@@ -1080,14 +1092,16 @@ def test_the_export_carries_the_nonces_signatures_and_projections_a_task_owns(
         assert _rows(reopened, "SELECT * FROM signatures WHERE gate_id = ?", gate_id)
 
 
-def test_an_imported_task_owes_exactly_one_new_attention_reconciliation(
+def test_a_restored_task_owes_a_drain_no_export_carries(
     tmp_path: Path, label_client: BdClient, bd_labels: FakeBd
 ) -> None:
     """§3.2: a restored task's label was written from state that is now gone.
 
     The drain before the export left nothing owed, so the label on the bead
     agreed with the ledger. After a rebuild it agrees with nothing, and the
-    import enqueues the one generation that makes the next drain re-derive it.
+    restore is owed one drain — recorded in `restore_pending`, outside the
+    exportable state, because §3.6's round trip is byte-identical. The drain
+    writes the label, then retires the row.
     """
     _task_bead(bd_labels)
     repo_root, wrapper_root = repository(tmp_path)
@@ -1095,10 +1109,7 @@ def test_an_imported_task_owes_exactly_one_new_attention_reconciliation(
         _open_gate(ledger_store(database))
         AttentionReconciler(database, label_client).drain(TASK)
         assert _unacked(database) == []
-        before = [
-            int(row["generation"])
-            for row in _rows(database, "SELECT generation FROM projections")
-        ]
+        before = _rows(database, "SELECT generation FROM projections")
         write_export(database, TASK)
 
     import_export(
@@ -1109,10 +1120,14 @@ def test_an_imported_task_owes_exactly_one_new_attention_reconciliation(
     )
 
     with open_ledger(repo_root, wrapper_root) as reopened:
-        owed = _unacked(reopened)
-        assert len(owed) == 1
-        assert owed[0] not in before
+        assert len(_restore_pending(reopened)) == 1
+        assert len(_rows(reopened, "SELECT generation FROM projections")) == len(before)
+        assert _unacked(reopened) == []
+
         assert AttentionReconciler(reopened, label_client).drain(TASK).written is True
+
+        assert _restore_pending(reopened) == []
+        assert _unacked(reopened) == []
 
 
 def test_a_restored_task_with_no_projection_history_still_owes_one_drain(
@@ -1141,13 +1156,19 @@ def test_a_restored_task_with_no_projection_history_still_owes_one_drain(
     )
 
     with open_ledger(repo_root, wrapper_root) as reopened:
-        assert len(_unacked(reopened)) == 1
+        assert len(_restore_pending(reopened)) == 1
+        assert _rows(reopened, "SELECT generation FROM projections") == []
 
 
-def test_a_restored_task_that_already_owes_a_drain_gets_no_second_row(
-    tmp_path: Path,
+def test_a_restored_task_that_already_owes_a_drain_is_drained_once(
+    tmp_path: Path, label_client: BdClient, bd_labels: FakeBd
 ) -> None:
-    """§3.2: one unacked generation IS the drain; a second says nothing more."""
+    """§3.2: an unacked generation and a restore are one drain, not two.
+
+    The restored task came back still owing its generation AND owing the
+    restore. One drain under one lock writes the label once and retires both.
+    """
+    _task_bead(bd_labels)
     repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _open_gate(ledger_store(database))
@@ -1164,6 +1185,12 @@ def test_a_restored_task_that_already_owes_a_drain_gets_no_second_row(
 
     with open_ledger(repo_root, wrapper_root) as reopened:
         assert _unacked(reopened) == owed
+        assert len(_restore_pending(reopened)) == 1
+
+        assert AttentionReconciler(reopened, label_client).drain(TASK).written is True
+
+        assert (_unacked(reopened), _restore_pending(reopened)) == ([], [])
+        assert _labels(bd_labels) == [ATTENTION_LABEL]
 
 
 # --- the trace's own timestamps (§3.3) --------------------------------------

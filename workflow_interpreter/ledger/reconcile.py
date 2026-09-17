@@ -5,6 +5,11 @@ ledger — present iff any non-terminal root of the task has a gate in state
 OPEN. Every transaction that can change that predicate journals a
 `projections` row; this is the reconciler that drains them.
 
+A restore owes a drain too, and owes it in `restore_pending` rather than in
+`projections`, so that §3.6's export→import→export stays byte-identical. A row
+there is due exactly as an unacked generation is, and is retired in the same
+ack step.
+
 Three properties it exists to guarantee.
 
 1. **No crash window.** The journal row is written in the SAME transaction as
@@ -24,6 +29,7 @@ its own transport would be a second bd write path, and §0.1 leaves exactly one.
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final, Protocol
@@ -59,10 +65,14 @@ _SQL_WANTED: Final[str] = (
     "    AND roots.terminal IS NULL AND roots.status = ?"
     ") AS wanted"
 )
+_SQL_RESTORE: Final[str] = "SELECT requested_at FROM restore_pending WHERE task_id = ?"
 _SQL_TASK_OF_ROOT: Final[str] = "SELECT task_id FROM roots WHERE root_id = ?"
 _SQL_ACK: Final[str] = (
     "UPDATE projections SET acked_at = ? "
     "WHERE task_id = ? AND generation <= ? AND acked_at IS NULL"
+)
+_SQL_ACK_RESTORE: Final[str] = (
+    "DELETE FROM restore_pending WHERE task_id = ? AND requested_at = ?"
 )
 
 
@@ -90,7 +100,10 @@ class ReconcileResult(BaseModel):
     wanted: bool
     """The desired presence of the label, recomputed from the ledger."""
     generation: int | None = None
-    """The newest generation this drain reconciled; `None` when none was due."""
+    """The newest generation this drain reconciled; `None` when none was due —
+    including a drain due only because the task was restored."""
+    restored: bool = False
+    """Whether this drain also retired the row an import left for a restore."""
     acked: int = 0
     written: bool = False
     """Whether bd was written at all — a drain with nothing due writes nothing."""
@@ -136,8 +149,10 @@ class AttentionReconciler:
         """Reconcile every unacked generation of this task, under its lock.
 
         Order is the whole point: take the lock, read the newest unacked
-        generation, recompute the desired state AFTER it, write bd and read
-        the bead back, and only then ack up to that generation.
+        generation and the restore this task owes, recompute the desired state
+        AFTER them, write bd and read the bead back, and only then ack up to
+        that generation and retire that restore. A task owing both is one
+        drain: the label is a function of the ledger, and it is written once.
 
         The lock's wait is bounded and its refusal names the holder: another
         drain of this task is already doing exactly this work, and the rows
@@ -152,23 +167,28 @@ class AttentionReconciler:
                 _SQL_PENDING, (task_id,)
             ).fetchone()
             newest = pending["newest"]
+            restore = self._database.connection.execute(
+                _SQL_RESTORE, (task_id,)
+            ).fetchone()
             wanted = self.wanted(task_id)
-            if newest is None:
+            if newest is None and restore is None:
                 return ReconcileResult(task_id=task_id, wanted=wanted)
-            generation = int(newest)
+            generation = None if newest is None else int(newest)
             self._write(task_id, wanted=wanted)
-            acked = self._ack(task_id, generation)
+            acked = self._ack(task_id, generation, restore)
         _LOG.info(
             "wf.ledger.attention_reconciled",
             task_id=task_id,
             wanted=wanted,
             generation=generation,
+            restored=restore is not None,
             acked=acked,
         )
         return ReconcileResult(
             task_id=task_id,
             wanted=wanted,
             generation=generation,
+            restored=restore is not None,
             acked=acked,
             written=True,
         )
@@ -179,14 +199,29 @@ class AttentionReconciler:
             return self._writer._add_label(task_id, ATTENTION_LABEL)
         return self._writer._remove_label(task_id, ATTENTION_LABEL)
 
-    def _ack(self, task_id: str, generation: int) -> int:
-        """Ack every generation up to the one whose state was just written."""
+    def _ack(
+        self, task_id: str, generation: int | None, restore: sqlite3.Row | None
+    ) -> int:
+        """Retire what this drain reconciled: generations, and the restore.
+
+        The restore is deleted by the timestamp this drain READ, for the reason
+        the ack is bounded by the generation it read: an import that landed
+        while bd was being written owes a drain of its own, and this one must
+        not swallow it.
+        """
+        acked = 0
         with self._database.transaction():
-            cursor = self._database.connection.execute(
-                _SQL_ACK,
-                (datetime.now(tz=UTC).isoformat(), task_id, generation),
-            )
-            return int(cursor.rowcount)
+            if generation is not None:
+                cursor = self._database.connection.execute(
+                    _SQL_ACK,
+                    (datetime.now(tz=UTC).isoformat(), task_id, generation),
+                )
+                acked = int(cursor.rowcount)
+            if restore is not None:
+                self._database.connection.execute(
+                    _SQL_ACK_RESTORE, (task_id, restore["requested_at"])
+                )
+        return acked
 
 
 class RootAttentionDrain:

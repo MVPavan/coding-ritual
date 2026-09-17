@@ -201,6 +201,18 @@ CREATE TABLE projections (
 )
 """
 
+_V1_RESTORE_PENDING: Final[str] = """
+CREATE TABLE restore_pending (
+    task_id      TEXT PRIMARY KEY REFERENCES tasks(task_id),
+    requested_at TEXT NOT NULL
+)
+"""
+"""The drain an import owes every task it restores (§3.2), deliberately OUTSIDE
+the exportable tables: a restore that journalled a `projections` row would spend
+a sequence number and change the very bytes §3.6 requires an export→import→export
+round trip to preserve. The reconciler treats a row here exactly as it treats an
+unacked generation, and retires it in the same ack step."""
+
 _V1_INDEXES: Final[tuple[str, ...]] = (
     "CREATE INDEX roots_by_task ON roots(task_id, seq)",
     "CREATE INDEX activations_by_root ON activations(root_id, act_seq)",
@@ -227,6 +239,7 @@ MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
         _V1_USAGE,
         _V1_LANDINGS,
         _V1_PROJECTIONS,
+        _V1_RESTORE_PENDING,
         *_V1_INDEXES,
     ),
 )

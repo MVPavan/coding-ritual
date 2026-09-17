@@ -239,7 +239,10 @@ git.
   including refused and abandoned attempts.
 - **`wf ledger import`** rebuilds from `export/*.jsonl` under the exclusive
   fence. Rows are ordered by `(task_id, seq)`; round trip is byte-identical
-  (tested).
+  (tested). The attention drain every restored task owes (§3.2) is recorded in
+  a non-exported `restore_pending` table, never as a `projections` row, so the
+  round trip keeps that byte identity; the reconciler drains such a row exactly
+  as it drains an unacked generation.
 - **Landing journal.** The bridge writes the intent file, then the
   `landings` row, before the CAS; the receipt file, then its row, after.
   Recovery reads the file first, falls back to the row if the file is

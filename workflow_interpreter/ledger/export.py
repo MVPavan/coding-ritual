@@ -11,9 +11,9 @@ files, and any failure rolls the whole restore back.
 
 Order is `(task_id, seq)`, the per-task sequence every row is given inside the
 transaction that wrote it, which is what makes the round trip byte-identical:
-the same rows come back out in the same order with the same canonical JSON. The
-one deliberate exception is the attention generation a restore owes every task
-it brings back (`_enqueue_reconciliation`).
+the same rows come back out in the same order with the same canonical JSON,
+with no exception — the attention drain a restore owes every task it brings
+back is recorded outside the exportable state (`_record_restore`).
 """
 
 from __future__ import annotations
@@ -83,21 +83,15 @@ no `task_id` of their own, so the join is what scopes them (§3.3)."""
 _SQL_PROJECTIONS: Final[str] = (
     "SELECT * FROM projections WHERE task_id = ? ORDER BY generation"
 )
-_SQL_PENDING_PROJECTIONS: Final[str] = (
-    "SELECT COUNT(*) FROM projections WHERE task_id = ? AND acked_at IS NULL"
+_SQL_RESTORE_PENDING: Final[str] = (
+    "INSERT INTO restore_pending (task_id, requested_at) VALUES (?, ?)"
 )
-_SQL_NEXT_SEQ: Final[str] = "SELECT next_seq FROM tasks WHERE task_id = ?"
-_SQL_BUMP_SEQ: Final[str] = "UPDATE tasks SET next_seq = next_seq + 1 WHERE task_id = ?"
-_SQL_ENQUEUE: Final[str] = (
-    "INSERT INTO projections (task_id, generation, created_at, acked_at) "
-    "VALUES (?, ?, ?, NULL)"
-)
+_SQL_CLEAR_RESTORES: Final[str] = "DELETE FROM restore_pending"
 _GATE_COLUMN: Final[str] = "gate_id"
 _BLOB_KEY: Final[str] = "base64"
 """A signature's payload and bytes are BLOBs, and JSON has no bytes. They
 travel as a single-key object rather than as bare text, so a decoder can tell a
 restored BLOB from a column that really is a string (§3.6)."""
-_NONE_PENDING: Final[int] = 0
 _SEQ_COLUMN: Final[str] = "seq"
 _TASK_COLUMN: Final[str] = "task_id"
 _ONE_TASK_ROW: Final[int] = 1
@@ -215,34 +209,28 @@ def import_exports(
                 for table, row in export.rows:
                     _insert(connection, table, row, path=export.path)
             for export in parsed:
-                _enqueue_reconciliation(connection, export.task_id)
+                _record_restore(connection, export.task_id)
     for export in parsed:
         _LOG.info("wf.ledger.imported", task_id=export.task_id, path=str(export.path))
     return tuple(export.task_id for export in parsed)
 
 
-def _enqueue_reconciliation(connection: sqlite3.Connection, task_id: str) -> None:
+def _record_restore(connection: sqlite3.Connection, task_id: str) -> None:
     """Owe one attention drain for a restored task, in the restoring transaction.
 
     An import REPLACES the destination ledger rather than merging into it, so
     the label on the task bead was written from state this rebuild discarded —
     including state no export file describes — and EVERY restored task owes the
-    one drain that re-derives it (§3.2). The single exception is a task that
-    came back still owing an unacked generation: that IS the drain, and a second
-    row would say nothing the first does not. A task with no projection history
-    is not an exception — with nothing pending, nothing would ever re-derive its
-    label, so a stale attention label would sit on the bead indefinitely.
+    one drain that re-derives it (§3.2), whatever its projection history says.
+
+    The row goes in `restore_pending`, which no export carries and no import
+    reads: a journalled `projections` row would spend a sequence number and
+    break §3.6's byte-identical round trip. The reconciler drains it exactly as
+    it drains an unacked generation, and a task that owes both is drained once.
     """
-    pending = connection.execute(_SQL_PENDING_PROJECTIONS, (task_id,)).fetchone()
-    if pending is not None and int(pending[0]) > _NONE_PENDING:
-        return
-    row = connection.execute(_SQL_NEXT_SEQ, (task_id,)).fetchone()
-    if row is None:  # pragma: no cover - the task row is inserted just above
-        raise LedgerTransportError(MSG_UNKNOWN_TASK.format(task_id=task_id))
     connection.execute(
-        _SQL_ENQUEUE, (task_id, int(row[0]), datetime.now(tz=UTC).isoformat())
+        _SQL_RESTORE_PENDING, (task_id, datetime.now(tz=UTC).isoformat())
     )
-    connection.execute(_SQL_BUMP_SEQ, (task_id,))
 
 
 def _parse(path: Path, *, repo_root: Path, wrapper_root: Path) -> ParsedExport:
@@ -483,7 +471,12 @@ def _clear(connection: sqlite3.Connection) -> None:
 
     The whole state and not one task's rows: the export set IS the ledger after
     an import, so a task no file describes must not survive it (§3.6).
+
+    `restore_pending` is not exportable and is cleared all the same, first:
+    it references `tasks`, and a drain owed for a task this rebuild does not
+    bring back is owed for nothing.
     """
+    connection.execute(_SQL_CLEAR_RESTORES)
     for table in reversed(EXPORT_TABLES):
         connection.execute(f"DELETE FROM {table.value}")
 
