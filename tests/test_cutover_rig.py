@@ -55,6 +55,10 @@ FEATURE_BODY: Final[str] = "value = 2\n"
 SHIP_GATE: Final[str] = "ship"
 BEAD_CLOSED: Final[str] = "closed"
 DEBRIEF_VERIFIER: Final[str] = "scripts/verify-debrief.sh"
+DEBRIEF_NODE: Final[str] = "debrief"
+TRIAGE_GATE: Final[str] = "triage"
+SABOTAGE_ENV: Final[str] = "WF_DEBRIEF_SABOTAGE"
+"""How a rig case tells the stub to break the debrief contract on purpose."""
 SHIPPED_GRAPH: Final[str] = "workflows/feature-delivery.toml"
 PROOF_SCRIPT: Final[str] = (
     "from pathlib import Path; assert Path('src/feature.py').is_file()"
@@ -72,10 +76,14 @@ printf '%s\\n' '{"type":"result","subtype":"success","session_id":"SID",\
 "usage":{"input_tokens":11,"output_tokens":22}}'
 # The debrief round, recognised by the one input only IT is given. It writes
 # the engine's render back out of the ref the engine pinned it under, which is
-# exactly what its verifier compares the commit against.
+# exactly what its verifier compares the commit against. The NEWEST such ref:
+# a second attempt of the same stage leaves its predecessor's
+# `refs/wf/render/<task>-a1` in place, and a stub that took the first one
+# would write attempt one's knowledge into attempt one's directory.
 case "$*" in
   *ledger_render*)
-    ref=$(git for-each-ref --format='%(refname)' 'refs/wf/render/*' | head -n 1)
+    ref=$(git for-each-ref --sort=-committerdate --format='%(refname)' \
+      'refs/wf/render/*' | head -n 1)
     name=${ref##*/}
     task=${name%-a*}
     attempt=${name##*-a}
@@ -84,6 +92,19 @@ case "$*" in
     git cat-file blob "$ref:findings.md" > "$dir/findings.md"
     git cat-file blob "$ref:evidence.json" > "$dir/evidence.json"
     printf 'stub debrief\\n' > "$dir/debrief.md"
+    # The two ways a real runner breaks the debrief contract, both INSIDE its
+    # `docs/workstreams/**` grant — which is the point: the grant discloses,
+    # the verifier contains (ADR 0001).
+    case "${WF_DEBRIEF_SABOTAGE:-}" in
+      stray)
+        mkdir -p docs/workstreams/not-mine
+        printf 'not mine to write\\n' > docs/workstreams/not-mine/notes.md
+        git add docs/workstreams/not-mine
+        ;;
+      edit)
+        printf 'and my own opinion\\n' >> "$dir/findings.md"
+        ;;
+    esac
     git add "$dir"
     git -c user.email=stub@wf -c user.name=stub commit --quiet -m "stub debrief"
     printf '%s' "$WF_MARKER_DONE" > "$WF_OUTCOME_FILE"
@@ -169,7 +190,8 @@ def _config_file(
         "[profiles]\n"
         f'binary_overrides = {{ claude = "{stub}" }}\n'
         'passthrough_env = ["PATH", "HOME", "WF_BODY", '
-        '"WF_FEATURE", "WF_MARKER_DONE", "WF_MARKER_ACCEPT"]\n'
+        '"WF_FEATURE", "WF_MARKER_DONE", "WF_MARKER_ACCEPT", '
+        '"WF_DEBRIEF_SABOTAGE"]\n'
         "[roles.implementer]\n"
         'profile = "claude"\n'
         'model = "stub-model"\n'
@@ -205,7 +227,14 @@ def _composition_for(config: Path, task_id: str) -> Composition:
     )
 
 
-def _approve_ship(config: Path, stage_id: str, signer: Signer) -> None:
+def _approve_ship(
+    config: Path,
+    stage_id: str,
+    signer: Signer,
+    *,
+    outcome: Outcome = Outcome.APPROVE,
+    gate_node: str = SHIP_GATE,
+) -> None:
     """Drop the signed approval the next tick intakes, as a human does."""
     composition = _composition_for(config, stage_id)
     try:
@@ -216,11 +245,11 @@ def _approve_ship(config: Path, stage_id: str, signer: Signer) -> None:
         gate = next(
             gate
             for gate in reads.list_gates(root_id)
-            if gate.metadata.gate_node == SHIP_GATE
+            if gate.metadata.gate_node == gate_node
         )
         rendered = GatePayload.model_validate_json(payload_template(root, gate))
         payload = rendered.model_copy(
-            update={"outcome": Outcome.APPROVE, "nonce": uuid.uuid4().hex}
+            update={"outcome": outcome, "nonce": uuid.uuid4().hex}
         )
         payload_bytes = canonical_payload_bytes(payload)
         directory = (
@@ -343,27 +372,22 @@ def _install_real_verifier(repo: Path) -> None:
     )
 
 
-@pytest.mark.bd
-@pytest.mark.acceptance
-def test_a_debrief_lands_with_the_code_it_describes(
+def _debrief_rig(
     tmp_path: Path,
     bd_workspace: Path,
     signing_key: Path,
-    sign_payload: Signer,
     monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Run-ledger §3.7: the knowledge is part of the landing, not a follow-up.
+    *,
+    title: str,
+) -> tuple[Path, Path, str, str]:
+    """The shipped graph, the shipped verifier, a real bd epic and stage.
 
-    The SHIPPED graph, the shipped `scripts/verify-debrief.sh`, and a real bd
-    workspace: what lands on `main` must carry the code AND this attempt's
-    `docs/workstreams/<epic>/runs/<task>/a1/` in one fast-forward, because a
-    debrief that lands separately is a debrief that can fail to land at all.
+    One builder for every debrief rig case, so a negative case differs from the
+    landing case in exactly one thing — what the runner does — rather than in
+    its wiring.
     """
     repo = make_repo(tmp_path)
     _install_real_verifier(repo)
-    before = subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=repo, text=True
-    ).strip()
     graph = Path(__file__).resolve().parents[1] / SHIPPED_GRAPH
     stub = _stub_binary(tmp_path / "bin")
     config = _config_file(
@@ -382,20 +406,43 @@ def test_a_debrief_lands_with_the_code_it_describes(
         ("WF_MARKER_ACCEPT", STUB_MARKER % "accept"),
     ):
         monkeypatch.setenv(name, value)
-    epic = _bd(
-        bd_workspace, "create", "--title", "rig debrief", "--type", "epic", "--silent"
-    )
+    epic = _bd(bd_workspace, "create", "--title", title, "--type", "epic", "--silent")
     stage = _bd(
         bd_workspace,
         "create",
         "--title",
-        "rig debrief stage",
+        f"{title} stage",
         "--parent",
         epic,
         "--description",
         "Implement the rig feature",
         "--silent",
     )
+    return repo, config, epic, stage
+
+
+@pytest.mark.bd
+@pytest.mark.acceptance
+def test_a_debrief_lands_with_the_code_it_describes(
+    tmp_path: Path,
+    bd_workspace: Path,
+    signing_key: Path,
+    sign_payload: Signer,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Run-ledger §3.7: the knowledge is part of the landing, not a follow-up.
+
+    The SHIPPED graph, the shipped `scripts/verify-debrief.sh`, and a real bd
+    workspace: what lands on `main` must carry the code AND this attempt's
+    `docs/workstreams/<epic>/runs/<task>/a1/` in one fast-forward, because a
+    debrief that lands separately is a debrief that can fail to land at all.
+    """
+    repo, config, epic, stage = _debrief_rig(
+        tmp_path, bd_workspace, signing_key, monkeypatch, title="rig debrief"
+    )
+    before = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=repo, text=True
+    ).strip()
 
     argv = ["--config", str(config), "phase-bridge", epic, stage]
     assert main_module.main(argv) == 0
@@ -417,3 +464,146 @@ def test_a_debrief_lands_with_the_code_it_describes(
     subprocess.check_call(
         ["git", "merge-base", "--is-ancestor", before, "HEAD"], cwd=repo
     )
+
+
+@pytest.mark.bd
+@pytest.mark.acceptance
+@pytest.mark.parametrize("sabotage", ["stray", "edit"])
+def test_a_debrief_the_real_runner_broke_reaches_triage_and_never_ship(
+    tmp_path: Path,
+    bd_workspace: Path,
+    signing_key: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    sabotage: str,
+) -> None:
+    """Run-ledger §3.7 on the production rig: the two ways a debrief is wrong.
+
+    `stray` writes a second directory under the node's own
+    `docs/workstreams/**` grant; `edit` changes `findings.md` after copying it.
+    Both are inside the grant and outside the contract, which is the division
+    ADR 0001 draws — so it is the shipped verifier, run by the real wrapper on
+    a real runner's commit, that has to catch them. What this asserts is the
+    consequence: `fail_code` over the runner's own `done` claim, a `triage`
+    gate, no ship gate, and `main` exactly where it started.
+    """
+    repo, config, epic, stage = _debrief_rig(
+        tmp_path, bd_workspace, signing_key, monkeypatch, title=f"rig {sabotage}"
+    )
+    monkeypatch.setenv(SABOTAGE_ENV, sabotage)
+    before = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=repo, text=True
+    ).strip()
+
+    assert main_module.main(["--config", str(config), "phase-bridge", epic, stage]) == 0
+
+    composition = _composition_for(config, stage)
+    try:
+        record = PhaseAdapter.from_config(composition.config.bd).record(stage)
+        root_id = record.root_id or ""
+        reads = composition.reads_for_root(root_id)
+        debriefs = [
+            activation
+            for activation in reads.list_activations(root_id)
+            if activation.metadata.node == DEBRIEF_NODE
+        ]
+        gates = [gate.metadata.gate_node for gate in reads.list_gates(root_id)]
+    finally:
+        if composition.ledger is not None:
+            composition.ledger.close()
+
+    assert debriefs, "the debrief round never ran"
+    assert debriefs[-1].metadata.outcome is Outcome.FAIL_CODE
+    assert debriefs[-1].metadata.evidence is not None
+    assert debriefs[-1].metadata.evidence.claimed_outcome is Outcome.DONE
+    assert TRIAGE_GATE in gates
+    assert SHIP_GATE not in gates
+    assert record.state is not PhaseBridgeState.CLOSED
+    assert (
+        subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=repo, text=True
+        ).strip()
+        == before
+    )
+
+
+@pytest.mark.bd
+@pytest.mark.acceptance
+def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
+    tmp_path: Path,
+    bd_workspace: Path,
+    signing_key: Path,
+    sign_payload: Signer,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Run-ledger §3.8 on the production rig: a1 abandoned, a2 admitted and landed.
+
+    A human abandons the first attempt at its ship gate. Nothing of a1 reaches
+    `main` — it was never approved — but its debrief is not lost either: the
+    wrapper pinned that commit under `refs/wf/<root>/`, so `a1/` is still
+    readable from the ref after a2 has landed its own `a2/` beside it.
+    """
+    repo, config, epic, stage = _debrief_rig(
+        tmp_path, bd_workspace, signing_key, monkeypatch, title="rig abandon"
+    )
+    argv = ["--config", str(config), "phase-bridge", epic, stage]
+
+    assert main_module.main(argv) == 0
+    _approve_ship(config, stage, sign_payload, outcome=Outcome.ABANDON)
+    assert main_module.main(argv) == 0
+
+    composition = _composition_for(config, stage)
+    try:
+        first = PhaseAdapter.from_config(composition.config.bd).record(stage)
+        abandoned_root = first.root_id or ""
+        pins = subprocess.check_output(
+            [
+                "git",
+                "for-each-ref",
+                "--format=%(refname)",
+                f"refs/wf/{abandoned_root}/",
+            ],
+            cwd=repo,
+            text=True,
+        ).split()
+    finally:
+        if composition.ledger is not None:
+            composition.ledger.close()
+    run_dir = f"docs/workstreams/{stage.split('.')[0]}/runs/{stage}"
+    assert pins, "the abandoned attempt pinned nothing"
+    assert any(
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{ref}:{run_dir}/a1/debrief.md"],
+            cwd=repo,
+            check=False,
+        ).returncode
+        == 0
+        for ref in pins
+    ), pins
+    assert (
+        f"{run_dir}/a1/debrief.md"
+        not in subprocess.check_output(
+            ["git", "ls-tree", "-r", "--name-only", "HEAD"], cwd=repo, text=True
+        ).split()
+    )
+
+    # §3.8: the fresh attempt is admitted through the normal path — which is
+    # `--retry`, because `abandoned` is one of the graph's own
+    # `phase_bridge_retry_terminals`. Without it the stage is simply over.
+    assert main_module.main([*argv, "--retry"]) == 0
+    _approve_ship(config, stage, sign_payload)
+    assert main_module.main(argv) == 0
+
+    composition = _composition_for(config, stage)
+    try:
+        second = PhaseAdapter.from_config(composition.config.bd).record(stage)
+    finally:
+        if composition.ledger is not None:
+            composition.ledger.close()
+    landed = subprocess.check_output(
+        ["git", "ls-tree", "-r", "--name-only", "HEAD"], cwd=repo, text=True
+    ).split()
+
+    assert second.root_id != abandoned_root
+    assert second.state is PhaseBridgeState.CLOSED
+    assert f"{run_dir}/a2/debrief.md" in landed
+    assert f"{run_dir}/a1/debrief.md" not in landed

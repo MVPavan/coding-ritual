@@ -15,6 +15,8 @@ Four claims, each tested where it is decidable:
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import os
 import shutil
@@ -24,37 +26,64 @@ from pathlib import Path
 from typing import Final
 
 import pytest
+from pydantic import ValidationError
 
+from tests._bdio import entry_request, handle, load_definition, make_root
 from tests._foreman import LAB_ATTEMPT, LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
 from tests._helpers import AUTHORING_FIXTURE
 from tests._ledger import TASK, ledger_store, repository
 from tests._supervisor import ChildScript, make_repo
 from tests.conftest import Signer
-from tests.test_ledger_writes import _open_gate
+from tests.test_ledger_writes import EXIT_RECORD, _open_gate
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import GateVerifier, Outcome, SigningConfig
-from workflow_interpreter.bdio.carriers import LEDGER_RENDER_REF
+from workflow_interpreter.bdio.carriers import (
+    LEDGER_RENDER_REF,
+    Evidence,
+    ProcessHandle,
+)
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.contracts.run_identity import epic_segment
+from workflow_interpreter.bdio.findings import Severity, findings_of
+from workflow_interpreter.bdio.records import ActivationRecord
+from workflow_interpreter.bdio.signing import key_fingerprint
+from workflow_interpreter.bdio.wire import ActivationMetadata
+from workflow_interpreter.contracts.run_identity import RunIdentity, epic_segment
 from workflow_interpreter.foreman.ledger_render import (
     EVIDENCE_FILE,
     FINDINGS_FILE,
     render_run,
 )
 from workflow_interpreter.ledger.archive import archive_task
+from workflow_interpreter.ledger.constants import (
+    EXPORT_REF_TEMPLATE,
+    EXPORT_SUFFIX,
+    ExportKey,
+    LedgerTable,
+)
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import write_export
 from workflow_interpreter.ledger.paths import ledger_path
-from workflow_interpreter.ledger.reverify import read_signatures, verify_signature
+from workflow_interpreter.ledger.reverify import (
+    TrustAnchor,
+    read_signatures,
+    verify_approvals,
+    verify_export,
+    verify_signature,
+)
 from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
 from workflow_interpreter.supervisor.config import SupervisorConfig
 from workflow_interpreter.supervisor.gitio import Git
+from workflow_interpreter.supervisor.launch_record import LaunchReceipt
+from workflow_interpreter.supervisor.paths import write_record
+from workflow_interpreter.supervisor.procfs import read_boot_id, read_start_time
 from workflow_interpreter.supervisor.verify import (
     ATTEMPT_ENV,
     BASE_COMMIT_ENV,
     EPIC_SEGMENT_ENV,
+    RENDER_DIGEST_ENV,
+    RENDER_OID_ENV,
     TASK_ID_ENV,
 )
 
@@ -158,8 +187,32 @@ def debrief_repo(tmp_path: Path) -> tuple[Path, str]:
     return repo, _git(repo, "rev-parse", "HEAD")
 
 
+def _render_oid(repo: Path) -> str:
+    """The render TREE the engine would have pinned in the activation carrier.
+
+    Resolved from the ref HERE, in the harness, because in production the id
+    comes from the activation's `LedgerRenderBinding` and the script is given
+    the id alone — which is the whole point of `WF_RENDER_OID`.
+    """
+    ref = LEDGER_RENDER_REF.format(task_id=TASK_ID, attempt=ATTEMPT)
+    return _git(repo, "rev-parse", f"{ref}^{{tree}}")
+
+
+def _render_digest() -> str:
+    """The binding's digest over both rendered files, findings first."""
+    return hashlib.sha256(
+        FINDINGS_BODY.encode("utf-8") + EVIDENCE_BODY.encode("utf-8")
+    ).hexdigest()
+
+
 def _run_debrief_check(
-    repo: Path, base: str, *, task_id: str = TASK_ID, attempt: str = str(ATTEMPT)
+    repo: Path,
+    base: str,
+    *,
+    task_id: str = TASK_ID,
+    attempt: str = str(ATTEMPT),
+    render_oid: str | None = None,
+    render_digest: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run the real verifier exactly as the wrapper does: env, no arguments."""
     return subprocess.run(
@@ -175,6 +228,10 @@ def _run_debrief_check(
             EPIC_SEGMENT_ENV: epic_segment(task_id),
             TASK_ID_ENV: task_id,
             ATTEMPT_ENV: attempt,
+            RENDER_OID_ENV: (_render_oid(repo) if render_oid is None else render_oid),
+            RENDER_DIGEST_ENV: (
+                _render_digest() if render_digest is None else render_digest
+            ),
         },
     )
 
@@ -281,6 +338,177 @@ def test_an_empty_run_identity_refuses_instead_of_guessing_a_path(
 
     assert result.returncode != 0
     assert "FAIL debrief-identity" in result.stdout
+
+
+def test_an_activation_with_no_render_pin_skips_the_comparison_loudly(
+    debrief_repo: tuple[Path, str],
+) -> None:
+    """`review` runs this check with no render of its own, and says so.
+
+    An engine source may only be consumed by a WRITING node
+    (`bdio/roots.py`, MSG_CONSUMER), so the reviewer is bound no render. It
+    still grades containment, presence, modes and size; the render comparison
+    belongs to the activation the engine pinned one for.
+    """
+    repo, base = debrief_repo
+    _write_debrief(repo)
+
+    result = _run_debrief_check(repo, base, render_oid="", render_digest="")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "SKIP debrief-render" in result.stdout
+    assert "PASS debrief-containment" in result.stdout
+    assert "PASS debrief-files" in result.stdout
+
+
+def test_a_repointed_render_ref_cannot_redefine_the_expected_bytes(
+    debrief_repo: tuple[Path, str],
+) -> None:
+    """Finding 1: the check reads the OID the activation pinned, not a ref.
+
+    The ref is moved to an attacker's render and the landed files are made to
+    match it. If the check resolved the ref by name this would pass; because it
+    is given the pinned tree id, the landed files no longer match the render.
+    """
+    repo, base = debrief_repo
+    pinned = _render_oid(repo)
+    forged = FINDINGS_BODY + "and my own opinion\n"
+    _write_debrief(repo, findings=forged)
+    staging = repo.parent / "forged"
+    staging.mkdir(exist_ok=True)
+    (staging / FINDINGS_FILE).write_text(forged, encoding="utf-8")
+    (staging / EVIDENCE_FILE).write_text(EVIDENCE_BODY, encoding="utf-8")
+    environment = {
+        **os.environ,
+        "GIT_INDEX_FILE": str(repo.parent / "forged.index"),
+        "GIT_AUTHOR_NAME": "attacker",
+        "GIT_AUTHOR_EMAIL": "attacker@wf",
+        "GIT_COMMITTER_NAME": "attacker",
+        "GIT_COMMITTER_EMAIL": "attacker@wf",
+    }
+
+    def plumbing(*args: str) -> str:
+        return (
+            subprocess.check_output(
+                ["git", *args], cwd=repo, timeout=GIT_TIMEOUT_S, env=environment
+            )
+            .decode()
+            .strip()
+        )
+
+    for name in (FINDINGS_FILE, EVIDENCE_FILE):
+        oid = plumbing("hash-object", "-w", "--no-filters", "--", str(staging / name))
+        plumbing("update-index", "--add", "--cacheinfo", f"100644,{oid},{name}")
+    commit = plumbing("commit-tree", plumbing("write-tree"), "-m", "forged render")
+    _git(
+        repo,
+        "update-ref",
+        LEDGER_RENDER_REF.format(task_id=TASK_ID, attempt=ATTEMPT),
+        commit,
+    )
+
+    assert _render_oid(repo) != pinned
+    result = _run_debrief_check(repo, base, render_oid=pinned)
+
+    assert result.returncode != 0
+    assert "FAIL debrief-render" in result.stdout
+
+
+def test_a_render_whose_digest_is_not_the_pinned_one_is_refused(
+    debrief_repo: tuple[Path, str],
+) -> None:
+    """Finding 1: the payload digest of the binding is checked, not assumed."""
+    repo, base = debrief_repo
+    _write_debrief(repo)
+
+    result = _run_debrief_check(repo, base, render_digest="0" * 64)
+
+    assert result.returncode != 0
+    assert "FAIL debrief-render" in result.stdout
+    assert "pinned" in result.stdout
+
+
+def test_a_committed_symlink_in_place_of_a_rendered_file_is_refused(
+    debrief_repo: tuple[Path, str],
+) -> None:
+    """Finding 3: mode 120000 passes every byte comparison and is not the file.
+
+    `findings.md` is committed as a symlink to a file OUTSIDE the attempt
+    directory that holds the render's bytes: `cmp` through the working tree
+    would be satisfied, and the landed artifact would still carry no findings.
+    """
+    repo, base = debrief_repo
+    _write_debrief(repo)
+    directory = _attempt_dir(repo)
+    (repo / "elsewhere.md").write_text(FINDINGS_BODY, encoding="utf-8")
+    (directory / FINDINGS_FILE).unlink()
+    (directory / FINDINGS_FILE).symlink_to(repo / "elsewhere.md")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "--quiet", "-m", "a symlink instead of the findings")
+
+    result = _run_debrief_check(repo, base)
+
+    assert result.returncode != 0
+    assert "FAIL debrief" in result.stdout
+    assert "120000" in result.stdout or "outside" in result.stdout
+
+
+def test_a_symlink_beside_the_three_files_is_refused(
+    debrief_repo: tuple[Path, str],
+) -> None:
+    """Finding 3: the whole permitted directory is swept, not the three names."""
+    repo, base = debrief_repo
+    _write_debrief(repo)
+    (_attempt_dir(repo) / "link").symlink_to(repo / "README.md")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "--quiet", "-m", "a stray symlink")
+
+    result = _run_debrief_check(repo, base)
+
+    assert result.returncode != 0
+    assert "FAIL debrief-files" in result.stdout
+    assert "120000" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "task_id", ["../../../etc", "cr-3411/../..", ".hidden", "cr .*", ""]
+)
+def test_an_unsafe_task_id_never_widens_containment(
+    debrief_repo: tuple[Path, str], task_id: str
+) -> None:
+    """Finding 4: an identity is one safe path component or it is refused."""
+    repo, base = debrief_repo
+    _write_debrief(repo)
+
+    result = _run_debrief_check(repo, base, task_id=task_id)
+
+    assert result.returncode != 0
+    assert "FAIL debrief-identity" in result.stdout
+
+
+@pytest.mark.parametrize("attempt", ["0", "-1", "1x", ""])
+def test_an_unusable_attempt_is_refused(
+    debrief_repo: tuple[Path, str], attempt: str
+) -> None:
+    """Finding 4: attempts start at one, and are digits."""
+    repo, base = debrief_repo
+    _write_debrief(repo)
+
+    result = _run_debrief_check(repo, base, attempt=attempt)
+
+    assert result.returncode != 0
+    assert "FAIL debrief-identity" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("task_id", "attempt"), [("../x", 1), ("a/b", 1), (".git", 1), ("ok", 0)]
+)
+def test_the_record_refuses_an_identity_a_path_cannot_hold(
+    task_id: str, attempt: int
+) -> None:
+    """Finding 4: the same rule on the record, so nothing unsafe is ever pinned."""
+    with pytest.raises(ValidationError):
+        RunIdentity(task_id=task_id, attempt=attempt)
 
 
 def test_an_abandoned_attempt_keeps_a1_while_a2_lands(
@@ -429,6 +657,241 @@ def test_a_debrief_the_host_refuses_reaches_triage_and_never_ship(
     assert lab.store.reads.load_gate(gate_id).metadata.gate_node == "triage"
 
 
+# --- findings: derived once, stored on the ledger, rendered from there -------
+
+
+def _evidence(**values: object) -> Evidence:
+    """One close evidence carrier, with only the fields a case is about."""
+    return Evidence.model_validate(values)
+
+
+def test_findings_are_derived_from_the_close_carriers_in_a_fixed_order() -> None:
+    """Finding 6: the mapping is stated, deterministic and over existing fields."""
+    record = ActivationRecord(
+        id="wf-9",
+        status="closed",
+        metadata=ActivationMetadata.model_validate(
+            {
+                "wf_root_id": "wf-1",
+                "node": "review",
+                "round_no": 2,
+                "seq": 3,
+                "idempotency_key": "k",
+                "mint_reason": "edge",
+                "runner_profile": "fake",
+                "model": "fake",
+                "session_id": "s",
+                "intended_base_commit": "a" * 40,
+                "lifecycle": "closed",
+                "outcome": Outcome.REJECT.value,
+                "evidence": _evidence(
+                    verify=(
+                        {
+                            "cmd": "ok.sh",
+                            "exit_code": 0,
+                            "attempts": 1,
+                            "script_digest": "0" * 64,
+                        },
+                        {
+                            "cmd": "red.sh",
+                            "exit_code": 1,
+                            "attempts": 3,
+                            "script_digest": "1" * 64,
+                        },
+                    ),
+                    undeclared_effects=("src/stray.py",),
+                    claimed_outcome=Outcome.ACCEPT.value,
+                    note="BLOCKER: the guard is missing",
+                ),
+            }
+        ),
+    )
+
+    rows = findings_of(record)
+
+    assert [(row.severity, row.text) for row in rows] == [
+        (Severity.BLOCKER, "verify `red.sh` exited 1 after 3"),
+        (Severity.MAJOR, "claimed accept, graded reject"),
+        (Severity.MAJOR, "undeclared effect: src/stray.py"),
+        (Severity.BLOCKER, "review graded reject: BLOCKER: the guard is missing"),
+    ]
+    assert {row.round_no for row in rows} == {2}
+    assert findings_of(record) == rows
+
+
+def test_the_ledger_stores_one_rounds_findings_when_it_closes(
+    tmp_path: Path,
+) -> None:
+    """Finding 6: §3.3's `findings` table has a writer, inside the close."""
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        store = ledger_store(database)
+        root = make_root(store, load_definition())
+        activation = store.mint_activation(root.root_id, entry_request()).activation
+        store.record_dispatch(activation.activation_id, handle())
+        store.record_exit(activation.activation_id, EXIT_RECORD)
+        closed = store.close_activation(
+            activation.activation_id,
+            Outcome.FAIL_CODE,
+            evidence=_evidence(
+                verify=(
+                    {
+                        "cmd": "red.sh",
+                        "exit_code": 2,
+                        "attempts": 1,
+                        "script_digest": "2" * 64,
+                    },
+                ),
+                claimed_outcome=Outcome.DONE.value,
+            ),
+        )
+        with database.locked() as connection:
+            rows = connection.execute(
+                "SELECT activation_id, round_no, severity, text FROM findings "
+                "ORDER BY rowid"
+            ).fetchall()
+        # Closing again re-derives rather than duplicating.
+        store.close_activation(closed.activation_id, Outcome.FAIL_CODE)
+        with database.locked() as connection:
+            again = connection.execute("SELECT COUNT(*) FROM findings").fetchone()
+
+    derived = findings_of(closed)
+    assert [(row[0], row[1], row[2], row[3]) for row in rows] == [
+        (item.activation_id, item.round_no, item.severity.value, item.text)
+        for item in derived
+    ]
+    assert derived
+    assert again[0] == len(derived)
+
+
+def test_the_render_shows_each_rounds_findings_in_record_order(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """Finding 6: `findings.md` is those rows, not a paraphrase of the outcome."""
+    lab = _lab(tmp_path, signing_config, sign_payload)
+    lab.pin_checks(
+        {
+            "scripts/verify-feature.sh": FAILING,
+            "scripts/review-checks.sh": PASSING,
+            "scripts/verify-debrief.sh": PASSING,
+        }
+    )
+    root = lab.instantiate()
+    _implement(lab)
+    activations = lab.store.reads.list_activations(root.root_id)
+
+    rendered = render_run(
+        root, activations, lab.store.reads.list_gates(root.root_id), round_no=1
+    )
+
+    expected = [
+        finding
+        for activation in sorted(activations, key=lambda item: int(item.metadata.seq))
+        for finding in findings_of(activation)
+    ]
+    assert expected
+    positions = [
+        rendered.findings_md.find(f"{item.severity.value.upper()}: {item.text}")
+        for item in expected
+    ]
+    assert all(position >= 0 for position in positions), rendered.findings_md
+    assert positions == sorted(positions)
+
+
+# --- terminal cleanup, and the liveness it waits on (§3.9) -------------------
+
+
+def _live_receipt(lab: ForemanLab, activation_id: str) -> Path:
+    """A launch receipt whose handle names a process that IS running.
+
+    The test process itself, which is the only pid a test can claim is alive
+    without racing a child: `prove_liveness` answers ALIVE only when pid, boot
+    id and start time all agree, so a fabricated handle would prove nothing.
+    """
+    config = lab.supervisor_config
+    pid = os.getpid()
+    handle = ProcessHandle(
+        pid=pid,
+        pgid=os.getpgid(pid),
+        host=config.host,
+        host_boot_id=read_boot_id(config) or "",
+        proc_start_time=read_start_time(config, pid) or "",
+        started_at="2026-09-17T00:00:00Z",
+        log_path=str(lab.wiring().paths.activation_dir(activation_id) / "raw.log"),
+        session_id="live",
+    )
+    path = lab.wiring().paths.receipt(activation_id)
+    write_record(
+        path,
+        LaunchReceipt(
+            launch_id="still-running",
+            root_id=lab.root.root_id if lab.root is not None else "",
+            activation_id=activation_id,
+            argv=("/bin/sleep",),
+            cwd=str(lab.repo),
+            handle=handle,
+        ),
+    )
+    return path
+
+
+def test_terminal_cleanup_defers_all_three_while_a_runner_may_be_alive(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """Finding 5: durable close is a record event, process death is not (§3.9).
+
+    The root settles while one activation's receipt still names a running
+    process. Worktree, verify tree and scratch are ONE decision, so all three
+    survive that tick; once the receipt no longer names a live process the next
+    tick takes all three.
+    """
+    lab = ForemanLab(
+        tmp_path,
+        overrides={"region.build-review.max_entries": 1},
+        signing=signing_config,
+        signer=sign_payload,
+    )
+    lab.instantiate()
+    _implement(lab)
+    lab.profiles.next_script(
+        ChildScript(
+            marker='{"outcome":"reject"}\n',
+            effects=NO_EFFECTS,
+            artifact_path="review.md",
+            artifact_body="rework this",
+        )
+    )
+    review = lab.tick().dispatched
+    assert review is not None
+    assert lab.tick().settled == review
+    exhaustion = lab.tick().opened_gate
+    assert exhaustion is not None
+    lab.approve(exhaustion, Outcome.ABANDON)
+    assert lab.tick().closed_gates == (exhaustion,)
+
+    wiring = lab.wiring()
+    verify_tree = wiring.paths.verify_tree
+    verify_tree.mkdir(parents=True, exist_ok=True)
+    (verify_tree / "left-behind").write_text("a killed check's checkout\n")
+    scratch = wiring.paths.scratch(review)
+    scratch.mkdir(parents=True, exist_ok=True)
+    (scratch / "tmpfile").write_text("the runner's working bytes\n")
+    receipt = _live_receipt(lab, review)
+
+    assert lab.tick().terminal is True
+
+    assert wiring.paths.worktree.exists()
+    assert verify_tree.exists()
+    assert scratch.exists()
+
+    receipt.unlink()
+    lab.tick()
+
+    assert not wiring.paths.worktree.exists()
+    assert not verify_tree.exists()
+    assert not scratch.exists()
+
+
 # --- re-verification from the export alone (§3.6, D21) -----------------------
 
 
@@ -493,7 +956,12 @@ def test_a_tampered_signature_is_refused(exported_task: tuple[Path, Path]) -> No
 def test_the_export_is_enough_without_the_ledger_or_the_wrapper_root(
     tmp_path: Path, exported_task: tuple[Path, Path]
 ) -> None:
-    """The acceptance: a fresh clone, `ledger.db` and the wrapper root gone."""
+    """The acceptance: a fresh clone, `ledger.db` and the wrapper root gone.
+
+    The BYTES half of D21. Provenance is anchored outside the export and is
+    tested above; what this pins is that nothing about the signature check
+    needs the database, the wrapper root or today's allow-list.
+    """
     path, repo_root = exported_task
     clone = tmp_path / "fresh-clone"
     clone.mkdir()
@@ -507,6 +975,197 @@ def test_the_export_is_enough_without_the_ledger_or_the_wrapper_root(
 
     assert results
     assert all(result.verified for result in results)
+
+
+# --- the anchors re-verification may not take from the export (finding 2) ----
+
+
+def _anchor_repo(tmp_path: Path, export: Path, *, pin: bool = True) -> Path:
+    """A real clone holding the export, with its blob pinned as §3.6 pins it."""
+    repo = tmp_path / "anchor-repo"
+    repo.mkdir()
+    _git(repo, "init", "--quiet", "--initial-branch=main")
+    _git(repo, "config", "user.email", "wf@test")
+    _git(repo, "config", "user.name", "wf test")
+    target = repo / ".wf" / "export" / export.name
+    target.parent.mkdir(parents=True)
+    shutil.copyfile(export, target)
+    if pin:
+        _pin_export(repo, target)
+    return repo
+
+
+def _pin_export(repo: Path, target: Path) -> str:
+    """Pin the export bytes exactly as the closing merge does (§3.6, journal)."""
+    oid = _git(repo, "hash-object", "-w", "--no-filters", "--", str(target))
+    _git(repo, "update-ref", EXPORT_REF_TEMPLATE.format(task_id=TASK), oid)
+    return oid
+
+
+def _anchor(repo: Path, signing: SigningConfig) -> TrustAnchor:
+    """The operator's two anchors: this clone and their own allow-list."""
+    return TrustAnchor(repo_root=repo, allowed_signers=signing.allowed_signers_path)
+
+
+def _export_path(repo: Path) -> Path:
+    """Where the export lives inside the anchor clone."""
+    return repo / ".wf" / "export" / f"{TASK}{EXPORT_SUFFIX}"
+
+
+def _rewrite_signature_row(path: Path, updates: dict[str, object]) -> None:
+    """Rewrite the one `signatures` row of an export, as a tamperer would."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    out: list[str] = []
+    for raw in lines:
+        line = json.loads(raw) if raw.strip() else None
+        if (
+            isinstance(line, dict)
+            and line.get(ExportKey.TABLE.value) == LedgerTable.SIGNATURES.value
+        ):
+            line[ExportKey.ROW.value] = {**line[ExportKey.ROW.value], **updates}
+            raw = json.dumps(line)
+        out.append(raw)
+    path.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
+def test_an_anchored_export_reports_all_four_answers(
+    tmp_path: Path, exported_task: tuple[Path, Path], signing_config: SigningConfig
+) -> None:
+    """The good case: bytes valid, export pinned, signer trusted, entry unchanged."""
+    path, _ = exported_task
+    repo = _anchor_repo(tmp_path, path)
+
+    verdict = verify_export(_export_path(repo), TASK, _anchor(repo, signing_config))
+
+    assert verdict.accepted
+    assert (verdict.bytes_valid, verdict.export_pinned) == (True, True)
+    assert (verdict.signer_trusted, verdict.entry_unchanged) == (True, True)
+    assert verdict.blob_oid == verdict.pinned_oid
+
+
+def test_an_export_that_is_not_the_pinned_blob_is_refused(
+    tmp_path: Path, exported_task: tuple[Path, Path], signing_config: SigningConfig
+) -> None:
+    """Finding 2: the bytes must be the ones the closing merge recorded (§3.6)."""
+    path, _ = exported_task
+    repo = _anchor_repo(tmp_path, path)
+    target = _export_path(repo)
+    target.write_text(target.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+
+    verdict = verify_export(target, TASK, _anchor(repo, signing_config))
+
+    assert verdict.bytes_valid
+    assert not verdict.export_pinned
+    assert not verdict.accepted
+    assert verdict.blob_oid != verdict.pinned_oid
+
+
+def test_an_unpinned_export_is_refused(
+    tmp_path: Path, exported_task: tuple[Path, Path], signing_config: SigningConfig
+) -> None:
+    """An export no ref names is an export no merge recorded."""
+    path, _ = exported_task
+    repo = _anchor_repo(tmp_path, path, pin=False)
+
+    verdict = verify_export(_export_path(repo), TASK, _anchor(repo, signing_config))
+
+    assert not verdict.export_pinned
+    assert not verdict.accepted
+    assert any("pinned" in reason for reason in verdict.reasons)
+
+
+def test_a_tampered_payload_is_refused(
+    tmp_path: Path, exported_task: tuple[Path, Path], signing_config: SigningConfig
+) -> None:
+    """A changed payload is not the payload anybody signed."""
+    path, _ = exported_task
+    repo = _anchor_repo(tmp_path, path)
+    target = _export_path(repo)
+    stored = read_signatures(target)[0]
+    _rewrite_signature_row(
+        target,
+        {
+            "payload_bytes": {
+                "base64": base64.b64encode(stored.payload_bytes + b" ").decode()
+            }
+        },
+    )
+    _pin_export(repo, target)
+
+    verdict = verify_export(target, TASK, _anchor(repo, signing_config))
+
+    assert not verdict.bytes_valid
+    assert not verdict.accepted
+
+
+def test_a_self_signed_replacement_key_fails_the_anchor(
+    tmp_path: Path,
+    exported_task: tuple[Path, Path],
+    signing_config: SigningConfig,
+    sign_payload: Signer,
+) -> None:
+    """Finding 2: an export cannot certify its own signer.
+
+    The tamperer mints a key, re-signs the recorded payload with it, replaces
+    the fingerprint and the stored allow-list entry, and re-pins the bytes — so
+    the export is internally consistent and git agrees it is the file it names.
+    Only the trust root, which is not in the export, can refuse it.
+    """
+    path, _ = exported_task
+    repo = _anchor_repo(tmp_path, path)
+    target = _export_path(repo)
+    stored = read_signatures(target)[0]
+    forged_key = tmp_path / "forged_key"
+    subprocess.run(
+        [
+            "ssh-keygen",
+            "-t",
+            "ed25519",
+            "-N",
+            "",
+            "-C",
+            "attacker",
+            "-f",
+            str(forged_key),
+        ],
+        check=True,
+        capture_output=True,
+        timeout=SCRIPT_TIMEOUT_S,
+    )
+    public = forged_key.with_suffix(".pub").read_text(encoding="utf-8").split()
+    blob = base64.b64decode(public[1], validate=True)
+    entry = stored.signer.model_copy(
+        update={
+            "key_type": public[0],
+            "key_blob": public[1],
+            "fingerprint": key_fingerprint(blob),
+        }
+    )
+    _rewrite_signature_row(
+        target,
+        {
+            "signature_bytes": {
+                "base64": base64.b64encode(
+                    sign_payload(stored.payload_bytes, forged_key)
+                ).decode()
+            },
+            "signer_fingerprint": key_fingerprint(blob),
+            "allowed_signers_entry": entry.model_dump_json(),
+        },
+    )
+    _pin_export(repo, target)
+
+    verdict = verify_export(target, TASK, _anchor(repo, signing_config))
+
+    # The export vouches for itself perfectly — the bytes-only half of D21,
+    # which is what S4 shipped before this fix, accepts the forgery outright —
+    # and git agrees these are the bytes it holds. Neither is provenance.
+    assert all(result.verified for result in verify_approvals(target))
+    assert verdict.bytes_valid
+    assert verdict.export_pinned
+    assert not verdict.signer_trusted
+    assert not verdict.accepted
+    assert any("trust root" in reason for reason in verdict.reasons)
 
 
 # --- archive (§3.9, D19) -----------------------------------------------------

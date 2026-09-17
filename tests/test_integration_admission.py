@@ -5,7 +5,6 @@ import sys
 import time
 from collections.abc import Sequence
 from dataclasses import replace
-from itertools import dropwhile, takewhile
 from pathlib import Path
 from typing import Final
 
@@ -102,6 +101,34 @@ FIXED_CALL_ALLOWANCE_S: Final[float] = 10.0
 EXPECTED_BD_CALLS: Final[int] = (
     START_TICK_BD_CALLS + STEADY_TICK_BD_CALLS * EXPECTED_TICKS + CLOSE_TICK_BD_CALLS
 )
+
+
+MAX_CALIBRATED_LATENCY_S: Final[float] = 1.0
+"""The slowest `bd` round trip this file will calibrate a budget from.
+
+A budget derived from an unbounded sample is not a bound: one pathological
+latency measurement (a cold host, a paging storm) would widen the wall until
+any engine passed it. Above this the drill SKIPS and says so, because a
+measurement nobody can trust is not evidence either way."""
+START_TICK_TOLERANCE: Final[int] = 1
+"""The opening tick measures 33 or 34 depending on whether the forked member
+has already exited when the foreman first looks — one read either way."""
+TOTAL_CALL_TOLERANCE: Final[int] = 18
+"""How far over `EXPECTED_BD_CALLS` the whole drill may go: one extra opening
+tick (measured at 18 calls) and nothing more. The steady count varies with
+where the forked member is when the foreman looks, so the total is asserted as
+a CEILING — which is exactly the premise `bd_wall_budget_s` rests on."""
+
+
+def calibrated_latency_s(sample: float) -> float:
+    """The measured `bd` latency, or a skip when it is too slow to trust."""
+    if sample > MAX_CALIBRATED_LATENCY_S:
+        pytest.skip(
+            f"one bd round trip measured {sample:.2f}s, over the "
+            f"{MAX_CALIBRATED_LATENCY_S:.1f}s this drill will calibrate a wall "
+            "budget from; the measurement, not the engine, is what failed"
+        )
+    return sample
 
 
 def bd_wall_budget_s(bd_latency_s: float) -> float:
@@ -216,19 +243,34 @@ def test_admission_tick_stays_at_five_bd_calls(
         for process in spawner.processes:
             process.join(timeout=5)
     assert result.report.terminal, result
-    # Steady ticks are the contiguous cheap middle: the opening phase can take
-    # one tick or two (34, or 34 then 18, depending on where the forked member
-    # is when the foreman looks), and the run ends with two 29-call closing
-    # ticks. An engine that got chattier makes EVERY tick expensive, so the
-    # middle run is empty — which is the failure this pins.
-    steady = list(
-        takewhile(
-            lambda count: count <= STEADY_TICK_BD_CALLS,
-            dropwhile(lambda count: count > STEADY_TICK_BD_CALLS, per_tick),
-        )
-    )
+    # EVERY tick is classified, and every steady one is asserted on its own.
+    # The opening phase can take one tick or two (34, or 34 then 18, depending
+    # on where the forked member is when the foreman looks) and the run ends
+    # with two 29-call closing ticks; everything between them must cost exactly
+    # `STEADY_TICK_BD_CALLS`. A truncating scan would stop at the first
+    # expensive tick and let a later intermittent one through — which is the
+    # regression this now catches.
+    steady = [
+        index for index, count in enumerate(per_tick) if count <= STEADY_TICK_BD_CALLS
+    ]
+    expensive = [
+        index for index, count in enumerate(per_tick) if count > STEADY_TICK_BD_CALLS
+    ]
     assert steady, f"no tick stayed within its per-tick budget: {per_tick}"
-    assert set(steady) == {STEADY_TICK_BD_CALLS}, per_tick
+    assert all(per_tick[index] == STEADY_TICK_BD_CALLS for index in steady), per_tick
+    opening = [index for index in expensive if index < steady[0]]
+    closing = [index for index in expensive if index > steady[-1]]
+    assert opening + closing == expensive, (
+        f"an expensive tick between two steady ones: {per_tick}"
+    )
+    assert sum(per_tick[index] for index in closing) == CLOSE_TICK_BD_CALLS, per_tick
+    assert abs(per_tick[0] - START_TICK_BD_CALLS) <= START_TICK_TOLERANCE, per_tick
+    total = sum(per_tick)
+    assert total <= EXPECTED_BD_CALLS + TOTAL_CALL_TOLERANCE, (
+        f"the drill made {total} bd calls, over the "
+        f"{EXPECTED_BD_CALLS} the wall budget is derived from: {per_tick}"
+    )
+    assert total >= START_TICK_BD_CALLS + CLOSE_TICK_BD_CALLS, per_tick
 
 
 @pytest.mark.parametrize("change", ["duplicate", "digest", "generation", "missing"])
@@ -473,7 +515,9 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
     )
     try:
         result = Foreman(composition).run(
-            child.root_id, poll_s=0.05, max_wall_s=bd_wall_budget_s(bd_latency_s)
+            child.root_id,
+            poll_s=0.05,
+            max_wall_s=bd_wall_budget_s(calibrated_latency_s(bd_latency_s)),
         )
         assert result.report.terminal, result
         source = coordinator.collect_child(owner.root_id, "source", 0)
