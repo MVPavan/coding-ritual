@@ -56,9 +56,11 @@ _MSG_NOT_VERIFIED: Final[str] = (
     "refused {refused} of {count} approval(s) of {task_id} from {path}\n"
 )
 _MSG_ANCHORS: Final[str] = (
-    "bytes valid: {bytes_valid}; export pinned: {pinned}; signer trusted: "
-    "{trusted}; historical entry unchanged: {unchanged}\n"
+    "bytes valid: {bytes_valid}; export pinned: {pinned} ({anchor}); signer "
+    "trusted: {trusted}; historical entry unchanged: {unchanged}\n"
 )
+_MSG_NO_ANCHOR: Final[str] = "no anchor"
+"""What the anchor field says when neither history nor a ref named an oid."""
 _MSG_NO_TRUST_ROOT: Final[str] = (
     "no allowed_signers trust root: pass --allowed-signers, or give the "
     "config a [signing] section. An export cannot vouch for its own signer"
@@ -215,6 +217,7 @@ def _verify(config: ForemanConfig, task_id: str, allowed_signers: Path | None) -
         _MSG_ANCHORS.format(
             bytes_valid=_answer(verdict.bytes_valid),
             pinned=_answer(verdict.export_pinned),
+            anchor=(_MSG_NO_ANCHOR if verdict.anchor is None else verdict.anchor.value),
             trusted=_answer(verdict.signer_trusted),
             unchanged=_answer(verdict.entry_unchanged),
         )
