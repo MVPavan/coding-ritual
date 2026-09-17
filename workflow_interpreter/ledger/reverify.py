@@ -11,6 +11,24 @@ Verification therefore reconstructs the allow-list of the MOMENT from the
 stored entry and asks `ssh-keygen -Y verify` about it in the stored namespace,
 rather than asking today's allow-list, which may have been rotated, widened or
 lost since (`bdio/signing.py` — the allow-list of the moment is what decided).
+
+That is a proof about BYTES, and only about bytes. An export carries its own
+`key_blob`, so a tampered file can mint a key, re-sign an altered payload and
+replace the entry, and the bytes check would then confirm the attacker's own
+trust root. PROVENANCE therefore comes from two anchors OUTSIDE the export,
+both of them the operator's rather than the file's:
+
+1. the export bytes must hash to the blob pinned at
+   `refs/wf/exports/<task>`, which is the oid the closing merge recorded
+   (§3.6, `bridge/journal.py`); and
+2. the signer's fingerprint AND key blob must appear in an `allowed_signers`
+   trust root the operator names — the same file `bdio/signing.py` verifies
+   against live, or an explicit `--allowed-signers` path.
+
+`ExportVerdict` reports the four answers separately — bytes valid, export
+pinned, signer trusted by the anchor, historical entry still equal to the
+anchor entry — so a rotated or re-optioned key is VISIBLE without silently
+invalidating the bytes that were signed under the old one.
 """
 
 from __future__ import annotations
@@ -32,9 +50,11 @@ from workflow_interpreter.bdio.signing import (
     SignaturePolicy,
     allowed_signers_line,
     key_fingerprint,
+    parse_allowed_signers,
 )
 from workflow_interpreter.ledger.constants import (
     EXPORT_KIND_ROW,
+    EXPORT_REF_TEMPLATE,
     ExportKey,
     LedgerTable,
 )
@@ -63,6 +83,26 @@ MSG_FINGERPRINT: Final[str] = (
 )
 MSG_REFUSED: Final[str] = "signature of gate {gate_id} does not verify: {reason}"
 MSG_UNRUNNABLE: Final[str] = "{binary} could not be run: {reason}"
+MSG_TRUST_UNREADABLE: Final[str] = "the trust root {path} is unreadable: {reason}"
+MSG_NO_PIN: Final[str] = (
+    "no export blob is pinned at {ref}: this export is not the one any merge recorded"
+)
+MSG_PIN_MISMATCH: Final[str] = (
+    "the export bytes hash to {found}, but {ref} pins {pinned}"
+)
+MSG_UNTRUSTED_SIGNER: Final[str] = (
+    "the signer of gate {gate_id} ({fingerprint}) is in no entry of the trust "
+    "root {path}: the export vouches only for itself"
+)
+MSG_ENTRY_ROTATED: Final[str] = (
+    "the trust root {path} now carries a DIFFERENT entry for {fingerprint} "
+    "than the one gate {gate_id} was accepted under"
+)
+
+_GIT: Final[str] = "git"
+_GIT_TIMEOUT_S: Final[float] = 15.0
+_FLAGS_HASH_OBJECT: Final[tuple[str, ...]] = ("hash-object", "-t", "blob", "--")
+_FLAGS_REV_PARSE: Final[tuple[str, ...]] = ("rev-parse", "--verify", "--quiet")
 
 
 class ApprovalStatus(StrEnum):
@@ -263,11 +303,194 @@ def _refused(
     )
 
 
-def verify_export(
+def verify_approvals(
     path: Path, *, ssh_keygen: str = _SSH_KEYGEN
 ) -> tuple[ApprovalResult, ...]:
-    """Re-verify every approval one exported task records, or refuse the file."""
+    """Re-verify every approval one exported task records, or refuse the file.
+
+    The BYTES half of D21, and nothing more: it answers "were these payloads
+    signed by the key this file names", not "is that key anyone's". The
+    provenance half is `verify_export`.
+    """
     stored = read_signatures(path)
     if not stored:
         raise LedgerExportError(MSG_NO_SIGNATURES.format(path=path))
     return tuple(verify_signature(item, ssh_keygen=ssh_keygen) for item in stored)
+
+
+class TrustAnchor(BaseModel):
+    """The two things a re-verification may NOT take from the export (§3.6).
+
+    A clone of the repository, because the export blob is pinned in it, and the
+    operator's `allowed_signers` file, because a fingerprint the export carries
+    is only a name until some trust root outside the export answers for it.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    repo_root: Path
+    allowed_signers: Path
+
+
+class ExportVerdict(BaseModel):
+    """What a re-verification can and cannot say about one exported task.
+
+    Four independent answers, because collapsing them hides which one failed:
+    a rotated key leaves `bytes_valid` true and `signer_trusted` false, and an
+    export nobody pinned leaves both true and `export_pinned` false.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    task_id: str
+    path: Path
+    approvals: tuple[ApprovalResult, ...]
+    bytes_valid: bool
+    export_pinned: bool
+    signer_trusted: bool
+    entry_unchanged: bool
+    blob_oid: str | None = None
+    pinned_oid: str | None = None
+    reasons: tuple[str, ...] = ()
+
+    @property
+    def accepted(self) -> bool:
+        """Whether every answer provenance depends on came back yes.
+
+        `entry_unchanged` is deliberately NOT one of them: re-optioning a live
+        entry is an operator act, and it does not unsign what was signed.
+        """
+        return self.bytes_valid and self.export_pinned and self.signer_trusted
+
+
+def read_trust_root(path: Path) -> tuple[AllowedSigner, ...]:
+    """Parse the operator's `allowed_signers` file — the anchor, not the export."""
+    try:
+        text = path.read_text(encoding=_ENCODING)
+    except OSError as error:
+        raise LedgerExportError(
+            MSG_TRUST_UNREADABLE.format(path=path, reason=error)
+        ) from error
+    return parse_allowed_signers(text, path)
+
+
+def _git_text(anchor: TrustAnchor, *args: str) -> str | None:
+    """One read-only git command in the clone, or `None` when it answers nothing.
+
+    `subprocess` rather than `supervisor.gitio.Git`: this module must run in a
+    bare clone with no wrapper root and no config, which is exactly what makes
+    the check worth anything, and `Git` is constructed from a `SupervisorConfig`
+    that such a clone cannot supply.
+    """
+    try:
+        completed = subprocess.run(
+            [_GIT, *args],
+            cwd=anchor.repo_root,
+            capture_output=True,
+            timeout=_GIT_TIMEOUT_S,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise LedgerExportError(
+            MSG_UNRUNNABLE.format(binary=_GIT, reason=error)
+        ) from error
+    if completed.returncode != 0:
+        return None
+    return completed.stdout.decode(_ENCODING, "replace").strip() or None
+
+
+def _pin_check(
+    anchor: TrustAnchor, task_id: str, path: Path
+) -> tuple[bool, str | None, str | None, tuple[str, ...]]:
+    """Whether these export bytes are the ones git pinned for this task (§3.6)."""
+    ref = EXPORT_REF_TEMPLATE.format(task_id=task_id)
+    blob = _git_text(anchor, *_FLAGS_HASH_OBJECT, str(path))
+    pinned = _git_text(anchor, *_FLAGS_REV_PARSE, ref)
+    if pinned is None:
+        return False, blob, None, (MSG_NO_PIN.format(ref=ref),)
+    if blob != pinned:
+        return (
+            False,
+            blob,
+            pinned,
+            (MSG_PIN_MISMATCH.format(found=blob, ref=ref, pinned=pinned),),
+        )
+    return True, blob, pinned, ()
+
+
+def _signer_check(
+    stored: Sequence[StoredSignature], anchor: TrustAnchor
+) -> tuple[bool, bool, tuple[str, ...]]:
+    """Whether the trust root — not the export — answers for every signer."""
+    entries = read_trust_root(anchor.allowed_signers)
+    trusted = True
+    unchanged = True
+    reasons: list[str] = []
+    for item in stored:
+        match = next(
+            (
+                entry
+                for entry in entries
+                if entry.fingerprint == item.signer_fingerprint
+                and entry.key_blob == item.signer.key_blob
+            ),
+            None,
+        )
+        if match is None:
+            trusted = False
+            reasons.append(
+                MSG_UNTRUSTED_SIGNER.format(
+                    gate_id=item.gate_id,
+                    fingerprint=item.signer_fingerprint,
+                    path=anchor.allowed_signers,
+                )
+            )
+            continue
+        if match != item.signer:
+            unchanged = False
+            reasons.append(
+                MSG_ENTRY_ROTATED.format(
+                    path=anchor.allowed_signers,
+                    fingerprint=item.signer_fingerprint,
+                    gate_id=item.gate_id,
+                )
+            )
+    return trusted, unchanged, tuple(reasons)
+
+
+def verify_export(
+    path: Path,
+    task_id: str,
+    anchor: TrustAnchor,
+    *,
+    ssh_keygen: str = _SSH_KEYGEN,
+) -> ExportVerdict:
+    """Re-verify one task's approvals, and anchor them outside the export (D21).
+
+    Three questions, asked in the order their answers depend on each other: are
+    the signatures over these bytes valid, are these the bytes git pinned for
+    this task, and is the key that signed them one the operator's trust root
+    knows. The first is answered from the export; the other two never are.
+    """
+    stored = read_signatures(path)
+    if not stored:
+        raise LedgerExportError(MSG_NO_SIGNATURES.format(path=path))
+    approvals = tuple(verify_signature(item, ssh_keygen=ssh_keygen) for item in stored)
+    pinned, blob_oid, pinned_oid, pin_reasons = _pin_check(anchor, task_id, path)
+    trusted, unchanged, signer_reasons = _signer_check(stored, anchor)
+    return ExportVerdict(
+        task_id=task_id,
+        path=path,
+        approvals=approvals,
+        bytes_valid=all(result.verified for result in approvals),
+        export_pinned=pinned,
+        signer_trusted=trusted,
+        entry_unchanged=unchanged,
+        blob_oid=blob_oid,
+        pinned_oid=pinned_oid,
+        reasons=(
+            *(result.reason for result in approvals if result.reason is not None),
+            *pin_reasons,
+            *signer_reasons,
+        ),
+    )

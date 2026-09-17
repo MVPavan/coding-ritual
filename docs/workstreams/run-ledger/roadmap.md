@@ -371,7 +371,7 @@ Measured on three run folders from September rigs: 2.9 GB, over 99 % of it
 | D18 | Backend pinned per root, recorded as `root_backend` on the bridge record at prepare, before any root exists; resolved before the store is built; children inherit; the `store` switch applies to new attempt roots only; no reverse migration | mid-run rollback (v2); per-root pin without a locator (v3–v4); locator written at admit (v5) | a ledger root must be loadable after the switch flips back (`foreman/compose.py:140`); admission creates the root before admit persists (`bridge/admission.py:188`) |
 | D19 | Archive deletes refs only after a verified git bundle | delete refs on export (v2) | JSON does not preserve git objects |
 | D20 | Integration target claims stay in bd behind the seam while `store` can still select bd; move to the ledger only when the bd backend is removed | move claims at cutover (v3) | two backends discovering claims in two stores cannot see each other's reservations (`bridge/integration.py:219`) |
-| D21 | `signatures` stores the historical allow-list entry and policy with the bytes; `wf ledger verify` re-verifies from the export alone | bytes only (v4) | verification depends on the allow-list of the moment (`bdio/signing.py:464`) |
+| D21 | `signatures` stores the historical allow-list entry and policy with the bytes; `wf ledger verify` re-verifies the SIGNED BYTES from the export alone, and anchors provenance outside it — the export blob pinned at `refs/wf/exports/<task>` and an operator `allowed_signers` trust root — because an export carries its own `key_blob` and cannot vouch for its own signer | bytes only (v4) | verification depends on the allow-list of the moment (`bdio/signing.py:464`) |
 
 ## 5. Lifecycle of one attempt
 

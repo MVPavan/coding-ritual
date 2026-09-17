@@ -17,6 +17,12 @@ LEDGER_FILE: Final[str] = "ledger.db"
 EXPORT_DIR: Final[str] = "export"
 EXPORT_SUFFIX: Final[str] = ".jsonl"
 FENCE_FILE: Final[str] = "ledger.lock"
+EXPORT_REF_TEMPLATE: Final[str] = "refs/wf/exports/{task_id}"
+"""Where a task's export BLOB is pinned before its bead may close (§3.6).
+
+Here rather than in `bridge/journal.py`, which writes it, because
+`ledger/reverify.py` reads it as the anchor that says which export bytes the
+closing merge actually recorded — and the ledger may not import the bridge."""
 IGNORE_FILE: Final[str] = ".gitignore"
 IGNORE_BODY: Final[str] = (
     "# Engine state (run-ledger \u00a73.5, D4): the database is this machine's.\n"

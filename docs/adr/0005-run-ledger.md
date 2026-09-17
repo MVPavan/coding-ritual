@@ -38,8 +38,11 @@ this ADR exists to make discoverable:
    `docs/workstreams/**` grant, its own verifier, and `fail_code`/`fail_plan`
    edges to `triage` — so a debrief that wrote outside its directory or
    disagrees with the engine's render can never be what the ship gate signs.
-   Approvals store the allow-list entry and policy that accepted them, and
-   `wf ledger verify` re-verifies a task from the committed export alone.
+   Approvals store the allow-list entry and policy that accepted them, so
+   `wf ledger verify` re-verifies the signed BYTES from the committed export
+   alone; provenance is anchored outside the export — the blob pinned at
+   `refs/wf/exports/<task>` and an operator `allowed_signers` trust root —
+   because a file that carries its own public key cannot certify its signer.
 
 ## ADR 0003's argv ceiling applies to the bd path only
 

@@ -27,12 +27,12 @@ from pydantic import BaseModel, ValidationError
 
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bridge.errors import BridgeRefusal
+from workflow_interpreter.ledger.constants import EXPORT_REF_TEMPLATE
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.export import write_export
 from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
 from workflow_interpreter.supervisor.gitio import Git
 
-EXPORT_REF_TEMPLATE: Final[str] = "refs/wf/exports/{task_id}"
 MSG_PIN_LOST: Final[str] = (
     "the export of {task_id!r} could not be pinned: {ref} names {found!r}, "
     "not the blob {oid!r} just written (run-ledger §3.6)"
