@@ -733,6 +733,7 @@ def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
+        backend=lab.composition.config.store,
     )
     lab.root = root
     branch = INSTANCE_BRANCH.format(root_id=root.root_id)
@@ -762,6 +763,7 @@ def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
+        backend=lab.composition.config.store,
     )
 
     assert lab.git.ref_target(branch, cwd=lab.repo) is not None

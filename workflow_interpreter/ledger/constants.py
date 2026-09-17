@@ -19,14 +19,19 @@ EXPORT_SUFFIX: Final[str] = ".jsonl"
 FENCE_FILE: Final[str] = "ledger.lock"
 IGNORE_FILE: Final[str] = ".gitignore"
 IGNORE_BODY: Final[str] = (
-    "# Engine state (run-ledger §3.5): everything this machine's, except the\n"
-    "# exports the orchestrator commits with the beads mirror (§3.6).\n"
-    "/*\n"
-    f"!/{EXPORT_DIR}/\n"
+    "# Engine state (run-ledger \u00a73.5, D4): the database is this machine's.\n"
+    "# Nothing else here is ignored \u2014 the exports are committed (\u00a73.6), and a\n"
+    "# stray file under this directory is a coordinator's own work.\n"
+    "/.gitignore\n"
+    f"/{LEDGER_FILE}\n"
+    f"/{LEDGER_FILE}-wal\n"
+    f"/{LEDGER_FILE}-shm\n"
 )
-"""What makes §3.5's \"the working tree's IGNORED `.wf/`\" true rather than
-assumed: without it the database is untracked dirt, and the coordinator
-cleanliness checks refuse the next bridge command on the engine's own file."""
+"""What makes \u00a73.5's "the working tree's IGNORED `.wf/`" true rather than
+assumed: without it the database is untracked dirt and the coordinator
+cleanliness checks refuse the next bridge command on the engine's own file.
+The rule names the database and itself, never the directory: a file somebody
+else put under `.wf/` must stay visible as the dirt it is."""
 TASK_LOCK_DIR: Final[str] = "tasks"
 TASK_LOCK_SUFFIX: Final[str] = ".lock"
 """`<wrapper_root>/tasks/<task_id>.lock` — the task-keyed reconcile lock of
