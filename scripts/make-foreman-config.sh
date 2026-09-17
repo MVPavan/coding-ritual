@@ -26,11 +26,13 @@ actor="wf-$USER"
 
 mkdir -p -- "$wrapper_home" "$(dirname -- "$output")"
 
-# §9 gate key. The allow-list must live outside the bd workspace (the repo), so
-# it is generated here beside the wrapper home. Never overwritten: a regenerated
-# key silently invalidates every approval an operator has already prepared, and
-# the allow-list is the authority the foreman trusts.
-signers_dir="$wrapper_home/signers"
+# §9 gate key. The allow-list must live outside the bd workspace (the repo).
+# It also lives outside the WRAPPER HOME (run-ledger D15): the wrapper home is
+# per-run scratch that a cleanup or a wipe may delete, and a wipe must not
+# destroy the key every past approval was signed with. Never overwritten: a
+# regenerated key silently invalidates every approval an operator has already
+# prepared, and the allow-list is the authority the foreman trusts.
+signers_dir="${XDG_CONFIG_HOME:-$HOME/.config}/wf/signers"
 key="$signers_dir/gate_key"
 allow_list="$signers_dir/allowed_signers"
 if [ -e "$allow_list" ]; then
@@ -53,6 +55,7 @@ sed \
   -e "s|@REPO_ROOT@|$repo_root|g" \
   -e "s|@WRAPPER_HOME@|$wrapper_home|g" \
   -e "s|@WRAPPER_ROOT@|$wrapper_root|g" \
+  -e "s|@SIGNERS_DIR@|$signers_dir|g" \
   -e "s|@HOST@|$host|g" \
   -e "s|@ACTOR@|$actor|g" \
   "$template" >"$output"

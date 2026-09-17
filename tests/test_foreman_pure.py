@@ -21,6 +21,7 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.bounds import (
     instance_ceiling_refusal as bdio_instance_ceiling_refusal,
 )
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
@@ -1367,6 +1368,56 @@ host = "host"
     config = load_config(path)
     assert config.actor == "actor"
     assert config.config_path == path
+    # The store switch defaults to bd, so an existing config keeps its backend
+    # until an operator asks for the ledger (run-ledger D18).
+    assert config.store is BackendKind.BD
+
+
+def test_load_config_reads_the_selected_store_backend(tmp_path: Path) -> None:
+    """`store = "ledger"` is what pins a NEW attempt root to the ledger."""
+    config = load_config(_config_file(tmp_path, extra='store = "ledger"\n'))
+    assert config.store is BackendKind.LEDGER
+
+
+def test_load_config_refuses_a_linked_worktree_repo_root(tmp_path: Path) -> None:
+    """A worktree borrows another checkout's git common dir, so its fence lies."""
+    path = _config_file(tmp_path)
+    repo = load_config(path).repo_root
+    (repo / ".git").write_text(
+        f"gitdir: {tmp_path / 'main' / '.git' / 'worktrees' / 'w'}\n"
+    )
+    with pytest.raises(ValueError, match="linked worktree"):
+        load_config(path)
+
+
+def _config_file(tmp_path: Path, extra: str = "") -> Path:
+    """A minimal loadable foreman config over a throwaway repository."""
+    repo = tmp_path / "repo"
+    repo.mkdir(exist_ok=True)
+    wrapper_root = (
+        tmp_path
+        / "home"
+        / hashlib.sha256(str(repo.resolve()).encode("utf-8")).hexdigest()[:16]
+    )
+    path = tmp_path / "foreman.toml"
+    path.write_text(
+        f'''repo_root = "{repo}"
+wrapper_home = "{tmp_path / "home"}"
+host = "host"
+actor = "actor"
+{extra}
+[bd]
+workspace = "{tmp_path / "bd"}"
+actor = "actor"
+
+[supervisor]
+repo_root = "{repo}"
+wrapper_root = "{wrapper_root}"
+host = "host"
+''',
+        encoding="utf-8",
+    )
+    return path
 
 
 @pytest.mark.parametrize("field", ["from_node", "outcome", "to_node"])

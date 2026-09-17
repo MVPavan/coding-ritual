@@ -3,11 +3,12 @@
 import hashlib
 import tomllib
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Final
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bridge.verification import CheckCommand
 from workflow_interpreter.foreman.wake_constants import (
     DEFAULT_EVENT_CAP,
@@ -16,6 +17,12 @@ from workflow_interpreter.foreman.wake_constants import (
 )
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
 from workflow_interpreter.supervisor.config import SupervisorConfig
+from workflow_interpreter.supervisor.sandbox import GIT_ENTRY
+
+MSG_WORKTREE_REPO_ROOT: Final[str] = (
+    "foreman repo_root {repo_root} is a linked worktree; configure the "
+    "repository whose git common directory it borrows (run-ledger §3.5)"
+)
 
 
 class RunnerBinding(BaseModel):
@@ -61,6 +68,12 @@ class ForemanConfig(BaseModel):
     repo_root: Path
     wrapper_home: Path
     bd: BdConfig
+    store: BackendKind = BackendKind.BD
+    """Which backend a NEW attempt root is pinned to (§3.2, D18).
+
+    New roots only: an existing root always resolves through the backend its
+    bridge record or `tasks` row pinned, so flipping this back to `bd` leaves
+    every ledger-backed root loadable. There is no reverse migration."""
     signing: SigningConfig | None = None
     profiles: ProfileConfig = Field(default_factory=ProfileConfig)
     wake: WakeConfig = Field(default_factory=WakeConfig)
@@ -112,7 +125,20 @@ class ForemanConfig(BaseModel):
 
 
 def load_config(path: Path) -> ForemanConfig:
-    """Load a checked-in TOML config without consulting ambient environment."""
+    """Load a checked-in TOML config without consulting ambient environment.
+
+    The repository identity is resolved HERE rather than in the model, because
+    it is a fact about the filesystem: a linked worktree borrows another
+    checkout's git common directory, so its ledger fence, its `refs/wf/` pins
+    and its wrapper root would all be the OTHER repository's while `repo_root`
+    claimed to name this one (run-ledger §3.5). Routed on what `.git` IS, the
+    way every other resolver in this repository does it, rather than on `git
+    rev-parse --git-common-dir`: the answer is the same and no subprocess runs
+    inside configuration loading.
+    """
     with path.open("rb") as handle:
         raw = tomllib.load(handle)
-    return ForemanConfig.model_validate(raw).model_copy(update={"config_path": path})
+    config = ForemanConfig.model_validate(raw).model_copy(update={"config_path": path})
+    if (config.repo_root / GIT_ENTRY).is_file():
+        raise ValueError(MSG_WORKTREE_REPO_ROOT.format(repo_root=config.repo_root))
+    return config

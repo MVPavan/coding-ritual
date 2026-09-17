@@ -15,6 +15,12 @@ wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
 actor        = "@ACTOR@"
 
+# Which backend a NEW attempt root is pinned to: "bd" or "ledger" (run-ledger
+# §3.2, D18). Existing roots always resolve through the backend recorded on
+# their bridge record or their ledger `tasks` row, so flipping this back to
+# "bd" leaves ledger-backed roots loadable. There is no reverse migration.
+store = "bd"
+
 # The validated graph `phase-bridge` pins for a selected stage. It is a normal
 # configurable graph path, not a bridge implementation default.
 bridge_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"
@@ -63,15 +69,17 @@ actor     = "@ACTOR@"
 # verifier is configured (`bdio/api.py`), so a signed `ship` gate needs this
 # section AND the key pair it names. Generate them once, outside the repo:
 #
-#   ssh-keygen -t ed25519 -N "" -C <principal> -f @WRAPPER_HOME@/signers/gate_key
-#   printf '%s %s\n' <principal> "$(cat @WRAPPER_HOME@/signers/gate_key.pub)" \
-#       > @WRAPPER_HOME@/signers/allowed_signers
+#   ssh-keygen -t ed25519 -N "" -C <principal> -f @SIGNERS_DIR@/gate_key
+#   printf '%s %s\n' <principal> "$(cat @SIGNERS_DIR@/gate_key.pub)" \
+#       > @SIGNERS_DIR@/allowed_signers
 #
 # The allow-list must live OUTSIDE the bd workspace — a foreman that can write
 # its own allow-list can forge approvals, and `GateVerifier` refuses a path
-# inside the workspace at construction (`bdio/config.py`).
+# inside the workspace at construction (`bdio/config.py`). It also lives outside
+# the wrapper home (run-ledger D15): $XDG_CONFIG_HOME/wf/signers, falling back
+# to ~/.config/wf/signers, so wiping the wrapper home cannot destroy the key.
 [signing]
-allowed_signers_path = "@WRAPPER_HOME@/signers/allowed_signers"
+allowed_signers_path = "@SIGNERS_DIR@/allowed_signers"
 
 [supervisor]
 repo_root    = "@REPO_ROOT@"
