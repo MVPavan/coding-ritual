@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import shutil
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Final
 
 import structlog
@@ -725,7 +727,7 @@ class Foreman:
         )
         if recorded is not None:
             self._drain_attention(root.root_id)
-        self._cleanup_terminal_worktree(wiring, root)
+        self._cleanup_terminal_state(wiring, root)
         return recorded
 
     def _export_pending(self, root: RootRecord) -> bool:
@@ -778,12 +780,21 @@ class Foreman:
                 reason=str(refusal),
             )
 
-    def _cleanup_terminal_worktree(
-        self, wiring: InstanceWiring, root: RootRecord
-    ) -> None:
-        """D-T1: remove only a clean worktree whose writing outputs are pinned."""
+    def _cleanup_terminal_state(self, wiring: InstanceWiring, root: RootRecord) -> None:
+        """D-T1 and §3.9: worktree, verify tree and scratch go together.
+
+        One gate for all three, because they are one decision: the run is over
+        and its record is durable. The worktree's own conditions — a clean tree
+        whose writing outputs are pinned — guard the other two as well, since a
+        dirty worktree means this run still has unpinned bytes somewhere.
+        Every step is idempotent and best effort, so a tick that cannot finish
+        the set leaves what remains for the next one (D14).
+        """
         worktree = wiring.paths.worktree
-        if not worktree.exists():
+        verify_tree = wiring.paths.verify_tree
+        if not worktree.exists() and not verify_tree.exists():
+            if not self._export_pending(root):
+                self._cleanup_scratch(wiring, root)
             return
         if self._export_pending(root):
             return
@@ -797,6 +808,32 @@ class Foreman:
             for activation in activations
         ):
             return
-        if self._composition.git.status_paths(cwd=worktree):
+        if worktree.exists():
+            if self._composition.git.status_paths(cwd=worktree):
+                return
+            wiring.workspace.remove_worktree()
+        self._remove_verify_tree(verify_tree)
+        self._cleanup_scratch(wiring, root)
+
+    def _remove_verify_tree(self, verify_tree: Path) -> None:
+        """Drop the throwaway §7.3 checkout a killed check may have left.
+
+        `VerifyTree` removes its own tree on exit; this is the crash case, and
+        the registration is dropped with the directory so `git worktree list`
+        does not keep naming a path that is gone.
+        """
+        if not verify_tree.exists():
             return
-        wiring.workspace.remove_worktree()
+        git = self._composition.git
+        repo_root = self._composition.config.repo_root
+        git.worktree_remove(verify_tree, cwd=repo_root, check=False)
+        if verify_tree.exists():
+            shutil.rmtree(verify_tree, ignore_errors=True)
+        git.worktree_prune(cwd=repo_root)
+
+    def _cleanup_scratch(self, wiring: InstanceWiring, root: RootRecord) -> None:
+        """Delete every closed activation's scratch under §3.9's guards."""
+        from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_scratch
+
+        for activation in wiring.store.reads.list_activations(root.root_id):
+            cleanup_scratch(wiring.paths, activation)

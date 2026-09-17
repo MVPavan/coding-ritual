@@ -42,6 +42,66 @@ def _pending(paths: WrapperPaths, activation: ActivationRecord, reason: str) -> 
     )
 
 
+def _death_refusal(paths: WrapperPaths, activation: ActivationRecord) -> str | None:
+    """Why this activation's bytes may NOT be deleted yet, or `None` if they may.
+
+    The one liveness question every disposal here asks: a receipt can hold the
+    handle missing from the store after a dispatch crash, and missing or
+    malformed identity with a nonempty ledger cannot establish runner death.
+    """
+    try:
+        receipt = read_record(paths.receipt(activation.activation_id), LaunchReceipt)
+    except SupervisorError as exc:
+        return str(exc)
+    handles = [activation.metadata.handle]
+    if receipt is not None:
+        handles.append(receipt.handle)
+    identified = [handle for handle in handles if handle is not None]
+    ledger = paths.ledger(activation.activation_id)
+    if not identified and ledger.exists() and ledger.stat().st_size:
+        return tc.MSG_NO_IDENTITY
+    for handle in identified:
+        proof = procfs.prove_liveness(paths.config, handle)
+        if proof.status not in (Liveness.DEAD, Liveness.IDENTITY_MISMATCH):
+            return tc.MSG_NOT_DEAD
+    return None
+
+
+def cleanup_scratch(paths: WrapperPaths, activation: ActivationRecord) -> None:
+    """Delete one activation's `channels/scratch` at TERMINAL (run-ledger §3.9).
+
+    Over 99 % of a run folder is scratch, and it is the runner's `TMPDIR`: it
+    holds nothing the record needs once the outcome, findings and evidence are
+    stored. Deleted here rather than at activation close because §3.9 makes
+    every run-folder deletion wait for the durable record — for a bridge task,
+    for its export — and under the same proven-death guard the toolchain
+    disposal uses, because the bytes belong to a process that may still exist.
+
+    Idempotent and best effort: a refusal leaves the directory and the retry
+    marker for the next tick, which is why nothing here raises.
+    """
+    if not activation.metadata.is_completed or activation.status != STATUS_CLOSED:
+        return
+    scratch = paths.scratch(activation.activation_id)
+    try:
+        if not scratch.exists() and not scratch.is_symlink():
+            return
+        if scratch.is_symlink() or scratch.resolve() != scratch:
+            raise OSError(tc.MSG_CLEANUP_LINK)
+        refusal = _death_refusal(paths, activation)
+        if refusal is not None:
+            _pending(paths, activation, refusal)
+            return
+        shutil.rmtree(scratch)
+        fsync_dir(scratch.parent)
+    except (OSError, SupervisorError) as exc:
+        structlog.get_logger(__name__).warning(
+            tc.LOG_CLEANUP,
+            activation_id=activation.activation_id,
+            error=tc.MSG_CLEANUP.format(error=exc),
+        )
+
+
 def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> None:
     """Retry close-time cleanup; report failures while keeping provenance intact.
 
@@ -66,26 +126,10 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> None
             return
         if any(path.is_symlink() for path in targets):
             raise OSError(tc.MSG_CLEANUP_LINK)
-        try:
-            receipt = read_record(
-                paths.receipt(activation.activation_id), LaunchReceipt
-            )
-        except SupervisorError as exc:
-            _pending(paths, activation, str(exc))
+        refusal = _death_refusal(paths, activation)
+        if refusal is not None:
+            _pending(paths, activation, refusal)
             return
-        handles = [activation.metadata.handle]
-        if receipt is not None:
-            handles.append(receipt.handle)
-        identified = [handle for handle in handles if handle is not None]
-        ledger = paths.ledger(activation.activation_id)
-        if not identified and ledger.exists() and ledger.stat().st_size:
-            _pending(paths, activation, tc.MSG_NO_IDENTITY)
-            return
-        for handle in identified:
-            proof = procfs.prove_liveness(paths.config, handle)
-            if proof.status not in (Liveness.DEAD, Liveness.IDENTITY_MISMATCH):
-                _pending(paths, activation, tc.MSG_NOT_DEAD)
-                return
         for target in targets:
             shutil.rmtree(target)
         (directory / tc.CLEANUP_PENDING).unlink(missing_ok=True)

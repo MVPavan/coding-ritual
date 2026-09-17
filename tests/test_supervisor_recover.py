@@ -974,3 +974,39 @@ def test_closed_live_runner_defers_cleanup_until_death(lab: Lab) -> None:
     cleanup_toolchain(lab.paths, closed)
     assert not private.exists()
     assert not pending.exists()
+
+
+def test_scratch_is_deleted_at_terminal_under_the_death_guard(lab: Lab) -> None:
+    """Run-ledger §3.9: the runner's TMPDIR goes once the record is durable."""
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_scratch
+
+    scratch = lab.paths.scratch(lab.activation.activation_id)
+    scratch.mkdir(parents=True, exist_ok=True)
+    (scratch / "tmpfile").write_text("throwaway bytes")
+    closed = lab.store.close_activation(
+        lab.activation.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    cleanup_scratch(lab.paths, closed)
+    assert not scratch.exists()
+    cleanup_scratch(lab.paths, closed)
+    assert not scratch.exists()
+
+
+def test_scratch_survives_while_the_runner_may_still_be_alive(lab: Lab) -> None:
+    """The bytes belong to a process, so a live handle defers the deletion."""
+    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_scratch
+
+    lab.alive()
+    scratch = lab.paths.scratch(lab.activation.activation_id)
+    scratch.mkdir(parents=True, exist_ok=True)
+    (scratch / "tmpfile").write_text("a live runner's working bytes")
+    closed = lab.store.close_activation(
+        lab.activation.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    pending = lab.paths.activation_dir(closed.activation_id) / "toolchain-cleanup.json"
+    cleanup_scratch(lab.paths, closed)
+    assert scratch.exists()
+    assert "pending" in pending.read_text()
+    remove_proc_entry(lab.config.proc_root, lab.pid)
+    cleanup_scratch(lab.paths, closed)
+    assert not scratch.exists()
