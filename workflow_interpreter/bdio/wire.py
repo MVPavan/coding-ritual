@@ -66,6 +66,7 @@ from workflow_interpreter.bdio.rpc_records import (
     SessionCompletion,
     SessionRegistration,
 )
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.sessions import SessionFreshReason
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
@@ -357,6 +358,13 @@ class RootMetadata(BaseModel):
     config_signature: str | None = None
     allow_test_flags: bool = False
     instance_base_commit: str | None = None
+    run_identity: RunIdentity | None = None
+    """The task bead and attempt number this root is an attempt at (§3.7, D16).
+
+    Pinned at creation and never rewritten, because the verify environment a
+    §7.3 check is given must name the run from a FACT on the record rather
+    than from a parse of the root id. Optional only for roots created before
+    the debrief node existed, and for a wiring that has no task to name."""
     superseded_by: str | None = None
     """Set on the loser of a concurrent create under one `instance_key`; the
     surviving root is the lowest bead id (same rule as §3.2 race residue)."""

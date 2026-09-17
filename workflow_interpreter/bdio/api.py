@@ -94,6 +94,7 @@ from workflow_interpreter.bdio.wire import (
 )
 from workflow_interpreter.contracts.execution import ExecutionRegistry
 from workflow_interpreter.contracts.rpc_control import ControlState
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.wake import WakeEvent
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
@@ -237,6 +238,7 @@ class WorkflowStore:
         instance_inputs: Sequence[InstanceInput] = (),
         allow_test_flags: bool = False,
         instance_base_commit: str | None = None,
+        run_identity: RunIdentity | None = None,
         profiles: ExecutionRegistry | None = None,
     ) -> RootRecord:
         """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
@@ -248,6 +250,7 @@ class WorkflowStore:
             instance_inputs=instance_inputs,
             allow_test_flags=allow_test_flags,
             instance_base_commit=instance_base_commit,
+            run_identity=run_identity,
             profiles=profiles,
         )
 

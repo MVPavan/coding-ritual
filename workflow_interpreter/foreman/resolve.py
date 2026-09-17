@@ -22,6 +22,7 @@ from workflow_interpreter.bdio.roots import (
     pin_execution_policies,
 )
 from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
@@ -367,6 +368,7 @@ def instantiate(
     allow_test_flags: bool,
     overrides: Mapping[str, object],
     backend: BackendKind,
+    attempt: int | None = None,
 ) -> RootRecord:
     """Pin graph, inputs, config and branch base into one idempotent root.
 
@@ -376,6 +378,11 @@ def instantiate(
     store is built on whichever transport this process started on, and a root
     created there after the `store` switch flipped would contradict the record
     that names its backend.
+
+    `attempt` is the bridge's own attempt number for this stage; with the
+    composition's task it becomes the root's pinned run identity (§3.7). A
+    caller that has no attempt to name — `foreman create`, a lab wiring —
+    pins none, and the run-scoped verify variables are then empty.
     """
     definition = load_graph(toml_path, allow_test_flags=allow_test_flags)
     pinned = _pinned_instance_inputs(
@@ -397,6 +404,11 @@ def instantiate(
         instance_inputs=pinned,
         allow_test_flags=allow_test_flags,
         instance_base_commit=base,
+        run_identity=(
+            None
+            if composition.task_id is None or attempt is None
+            else RunIdentity(task_id=composition.task_id, attempt=attempt)
+        ),
         profiles=composition.profiles,
     )
     # Before any read of the new root: nothing durable answers for a bd root

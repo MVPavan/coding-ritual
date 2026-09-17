@@ -529,7 +529,10 @@ class _Roots:
         self.fail_branch = False
 
     def find(
-        self, instance_key: str, backend: BackendKind = BackendKind.BD
+        self,
+        instance_key: str,
+        backend: BackendKind = BackendKind.BD,
+        attempt: int = 1,
     ) -> BridgeRoot | None:
         """Find the root already created for an admission identity."""
         self.backends.append(backend)
@@ -550,9 +553,12 @@ class _Roots:
         return None
 
     def create(
-        self, instance_key: str, backend: BackendKind = BackendKind.BD
+        self,
+        instance_key: str,
+        backend: BackendKind = BackendKind.BD,
+        attempt: int = 1,
     ) -> BridgeRoot:
-        """Create one fake root on the backend the record pins (§3.2)."""
+        """Create one fake root on the backend and attempt the record pins."""
         self.backends.append(backend)
         root = self._client._create_bead(
             title="phase root",

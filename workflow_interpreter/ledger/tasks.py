@@ -16,8 +16,8 @@ from datetime import UTC, datetime
 from typing import Final
 
 from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.contracts.run_identity import epic_segment
 from workflow_interpreter.ledger.database import LedgerDatabase
-from workflow_interpreter.ledger.store import epic_segment
 
 _FIRST_SEQ: Final[int] = 1
 _SQL_PIN_TASK: Final[str] = (

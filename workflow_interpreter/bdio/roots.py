@@ -48,6 +48,7 @@ from workflow_interpreter.contracts.execution import (
     policy_for,
     tool_network_for,
 )
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import EngineProducer, GraphDefinition, NodeKind
@@ -220,9 +221,15 @@ def create_root(
     instance_inputs: Sequence[InstanceInput] = (),
     allow_test_flags: bool = False,
     instance_base_commit: str | None = None,
+    run_identity: RunIdentity | None = None,
     profiles: ExecutionRegistry | None = None,
 ) -> RootRecord:
-    """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
+    """Pin a graph into bd as a new instance (§3.1), idempotently by key.
+
+    `run_identity` is the task and attempt this root IS (§3.7): pinned here so
+    that every later reader — the verify environment above all — answers from
+    the record rather than from a parse of the root id.
+    """
     if not resolved_config:
         raise CarrierIntegrityError(_MSG_EMPTY_CONFIG.format(instance_key=instance_key))
     # Validate the pinned body and retain the resulting definition BEFORE
@@ -351,6 +358,7 @@ def create_root(
         config_signature=config_signature(tuple(resolved_config)),
         allow_test_flags=allow_test_flags,
         instance_base_commit=instance_base_commit,
+        run_identity=run_identity,
         seq=ROOT_SEQ,
         decision_templates=templates or None,
     )

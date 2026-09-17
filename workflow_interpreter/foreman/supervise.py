@@ -280,6 +280,7 @@ def run_wrapper(
                         profile,
                         _task_builder(root, resolved, composition.git),
                         pinned_digests=pinned_verifier_digests(root),
+                        run_identity=root.metadata.run_identity,
                         previous_tree_oid=_previous_tree_oid(resolved, activation),
                     )
                 break

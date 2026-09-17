@@ -54,6 +54,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.contracts.execution import RunnerName
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.schema.models import Node
 from workflow_interpreter.supervisor.channels import (
@@ -179,6 +180,7 @@ class ExitObserver:
         reason: ExitReason,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None = None,
+        run_identity: RunIdentity | None = None,
     ) -> ExitObservation:
         """Observe an exit once, reusing the first durable exit record."""
         activation_id = activation.activation_id
@@ -212,6 +214,7 @@ class ExitObserver:
             exit_record,
             pinned_digests=pinned_digests,
             previous_tree_oid=previous_tree_oid,
+            run_identity=run_identity,
         )
 
     def replay(
@@ -223,6 +226,7 @@ class ExitObserver:
         *,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None = None,
+        run_identity: RunIdentity | None = None,
     ) -> ExitObservation:
         """Resume observation from its durable exit record, with cache-miss effects.
 
@@ -255,6 +259,7 @@ class ExitObserver:
         *,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
+        run_identity: RunIdentity | None = None,
     ) -> ExitObservation:
         """Compute missing evidence, then mirror the already-chosen exit record."""
         self._workspace.preserve_interrupted(activation, node)
@@ -267,6 +272,7 @@ class ExitObserver:
                 exit_record,
                 pinned_digests,
                 previous_tree_oid,
+                run_identity,
             )
         else:
             # Usage is re-read even here. The foreman settles through `replay`
@@ -308,6 +314,7 @@ class ExitObserver:
         exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
+        run_identity: RunIdentity | None = None,
     ) -> PostExit:
         """Everything between the exit file and `record_exit` — and it cannot raise.
 
@@ -333,6 +340,7 @@ class ExitObserver:
                 exit_record,
                 pinned_digests,
                 previous_tree_oid,
+                run_identity,
             )
         except (OSError, SupervisorError) as exc:
             _LOG.error(
@@ -356,6 +364,7 @@ class ExitObserver:
         exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
+        run_identity: RunIdentity | None = None,
     ) -> PostExit:
         """Read the §6 channels, record §12 attribution, pin §7.4, grade §7."""
         envelope = self._envelope(activation, profile)
@@ -380,6 +389,7 @@ class ExitObserver:
                 exit_record,
                 pinned_digests,
                 previous_tree_oid,
+                run_identity,
             ),
             artifact=pin.identity,
             usage=_envelope_usage(envelope),
@@ -428,6 +438,7 @@ class ExitObserver:
         exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
+        run_identity: RunIdentity | None = None,
     ) -> CompletionEvidence:
         """Compute §7, or record WHY it could not be computed — never escape.
 
@@ -450,6 +461,7 @@ class ExitObserver:
                 exit_record,
                 pinned_digests,
                 branch,
+                run_identity,
             )
         except (OSError, SupervisorError) as exc:
             _LOG.error(

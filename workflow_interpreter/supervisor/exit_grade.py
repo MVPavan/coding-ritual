@@ -16,6 +16,7 @@ from workflow_interpreter.bdio import (
     Outcome,
     VerifyOutcome,
 )
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.schema.models import JUDGMENT_OUTCOME, Node
 from workflow_interpreter.supervisor.channels import (
     REASON_EFFECTS,
@@ -101,6 +102,7 @@ class EvidenceGrader:
         exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         branch: BranchAdvance | None,
+        run_identity: RunIdentity | None = None,
     ) -> ComputedEvidence:
         """Decide the outcome the evidence supports — never the one claimed.
 
@@ -123,6 +125,7 @@ class EvidenceGrader:
                 tree,
                 pinned_digests,
                 base_commit=activation.metadata.intended_base_commit,
+                run_identity=run_identity,
             )
         undeclared = self._undeclared_effects(
             activation, node, collected, artifact, cwd

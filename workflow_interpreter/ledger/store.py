@@ -50,6 +50,7 @@ from workflow_interpreter.bdio.wire import (
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
 )
+from workflow_interpreter.contracts.run_identity import epic_segment
 from workflow_interpreter.ledger import rowmap
 from workflow_interpreter.ledger.constants import (
     MSG_BAD_FILTER_KEY,
@@ -93,7 +94,6 @@ _ATTRIBUTE_PATH: Final[str] = "path"
 
 _FIRST_SEQ: Final[int] = 1
 _FIRST_ATTEMPT: Final[int] = 1
-_EPIC_SEPARATOR: Final[str] = "."
 _IDENTIFIER: Final[re.Pattern[str]] = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _JSON_PATH_FORMAT: Final[str] = "$.{key}"
 
@@ -697,12 +697,6 @@ class LedgerStore:
         """The attempt number a new root of this task gets (D8)."""
         row = connection.execute(_SQL_ROOT_COUNT, (self._task_id,)).fetchone()
         return _FIRST_ATTEMPT + (0 if row is None else int(row[0]))
-
-
-def epic_segment(task_id: str) -> str:
-    """The parent prefix of a dotted bead id — deterministic, no bd lookup (§2)."""
-    head, separator, _ = task_id.partition(_EPIC_SEPARATOR)
-    return head if separator else task_id
 
 
 def _now() -> str:

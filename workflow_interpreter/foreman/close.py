@@ -126,6 +126,7 @@ def _settle(
                     exit_record,
                     pinned_digests=pinned_verifier_digests(root),
                     previous_tree_oid=_previous_tree_oid(wiring, activation),
+                    run_identity=root.metadata.run_identity,
                 ).completion
             except SnapshotFailed as exc:
                 return Settlement(activation=activation, stalled=str(exc))
@@ -236,6 +237,7 @@ def _settle(
             exit_record,
             pinned_digests=pinned_verifier_digests(root),
             previous_tree_oid=_previous_tree_oid(wiring, activation),
+            run_identity=root.metadata.run_identity,
         )
     except SnapshotFailed as exc:
         return Settlement(activation=activation, stalled=str(exc))

@@ -501,7 +501,7 @@ def _admit_successor(
     brief.write_text("the only stage", encoding="utf-8")
     roots = WorkflowRootProvisioner(
         adapter,
-        lambda instance_key, backend: instantiate(
+        lambda instance_key, backend, attempt: instantiate(
             lab.composition,
             lab.config.bridge_graph,
             instance_key=instance_key,
@@ -509,6 +509,7 @@ def _admit_successor(
             allow_test_flags=False,
             overrides={},
             backend=backend,
+            attempt=attempt,
         ),
         lab.git,
         lab.repo,

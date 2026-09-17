@@ -174,7 +174,7 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
     brief.write_text("Implement feature")
     roots = WorkflowRootProvisioner(
         adapter,
-        lambda key, backend: instantiate(
+        lambda key, backend, attempt: instantiate(
             lab.composition,
             graph,
             instance_key=key,
@@ -182,6 +182,7 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
             allow_test_flags=False,
             overrides={},
             backend=backend,
+            attempt=attempt,
         ),
         lab.git,
         lab.repo,
