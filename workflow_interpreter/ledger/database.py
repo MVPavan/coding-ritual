@@ -32,16 +32,20 @@ from typing import Final, Self
 import structlog
 
 from workflow_interpreter.ledger.constants import (
+    MSG_LEDGER_ABSENT,
     MSG_REPO_HASH_MISMATCH,
     MSG_SCHEMA_AHEAD,
+    MSG_SCHEMA_BEHIND,
     MSG_WRAPPER_ROOT_MISMATCH,
     PRAGMAS,
+    READ_ONLY_PRAGMAS,
     TARGET_LEDGER,
     LedgerOperation,
     LedgerTable,
     MetaKey,
 )
 from workflow_interpreter.ledger.errors import (
+    LedgerAbsent,
     LedgerIdentityError,
     LedgerSchemaError,
     LedgerTransportError,
@@ -69,19 +73,34 @@ _ROLLBACK: Final[str] = "ROLLBACK"
 _NO_VERSION: Final[int] = 0
 
 
-def connect(path: Path) -> sqlite3.Connection:
-    """Open one connection with the §3.4.1 pragmas applied."""
-    path.parent.mkdir(parents=True, exist_ok=True)
+def connect(path: Path, *, read_only: bool = False) -> sqlite3.Connection:
+    """Open one connection with the §3.4.1 pragmas applied.
+
+    `read_only` opens the file `mode=ro` through SQLite's URI form: the file is
+    never created, the schema is never migrated, and a stray write fails at
+    SQLite rather than at a check that could be raced. It is what a read-only
+    command (`costs`) gets, and the missing file is a NAMED refusal rather than
+    the transport's own wording.
+    """
+    if not read_only:
+        path.parent.mkdir(parents=True, exist_ok=True)
     try:
         # One connection per process (§3.4.1) means a process with threads
         # shares it, so the creating-thread check has to go and the mutual
         # exclusion has to come from `LedgerDatabase.transaction` instead.
         connection = sqlite3.connect(
-            path, isolation_level=None, check_same_thread=False
+            f"file:{path}?mode=ro" if read_only else str(path),
+            uri=read_only,
+            isolation_level=None,
+            check_same_thread=False,
         )
         connection.row_factory = sqlite3.Row
-        for pragma in PRAGMAS:
+        for pragma in READ_ONLY_PRAGMAS if read_only else PRAGMAS:
             connection.execute(pragma)
+    except sqlite3.OperationalError as exc:
+        if read_only and not path.is_file():
+            raise LedgerAbsent(MSG_LEDGER_ABSENT.format(path=path)) from exc
+        raise LedgerTransportError(str(exc)) from exc
     except sqlite3.Error as exc:
         raise LedgerTransportError(str(exc)) from exc
     return connection
@@ -186,17 +205,20 @@ class LedgerDatabase:
         repo_root: Path,
         wrapper_root: Path,
         fence: LedgerFence,
+        read_only: bool = False,
     ) -> None:
         self._path = path
         self._repo_root = repo_root
         self._wrapper_root = wrapper_root
         self._fence = fence
+        self._read_only = read_only
         self._writing = threading.RLock()
-        self._migrate_if_behind()
+        if not read_only:
+            self._migrate_if_behind()
         self._fence_hold = fence.shared()
         self._fence_hold.__enter__()
         try:
-            self._connection = connect(path)
+            self._connection = connect(path, read_only=read_only)
             self._assert_usable(self._connection)
         except BaseException:
             self._fence_hold.__exit__(None, None, None)
@@ -336,8 +358,20 @@ class LedgerDatabase:
         )
 
     def _assert_usable(self, connection: sqlite3.Connection) -> None:
-        """Refuse a schema from the future, or another repository's ledger."""
+        """Refuse a schema from the future, or another repository's ledger.
+
+        A read-only ledger must also be refused when it is BEHIND: the writer's
+        path migrates such a database, and this one may not, so answering from
+        a schema this build does not know would be answering from columns that
+        mean something else.
+        """
         version = schema_version(connection)
+        if self._read_only and version < SCHEMA_VERSION:
+            raise LedgerSchemaError(
+                MSG_SCHEMA_BEHIND.format(
+                    path=self._path, found=version, known=SCHEMA_VERSION
+                )
+            )
         if version > SCHEMA_VERSION:
             raise LedgerSchemaError(
                 MSG_SCHEMA_AHEAD.format(
@@ -350,6 +384,29 @@ class LedgerDatabase:
             repo_root=self._repo_root,
             wrapper_root=self._wrapper_root,
         )
+
+
+def open_readonly(
+    repo_root: Path,
+    wrapper_root: Path,
+    *,
+    path: Path | None = None,
+    fence: LedgerFence | None = None,
+) -> LedgerDatabase:
+    """Open this repository's ledger `mode=ro`, creating and migrating nothing.
+
+    For commands that only report (`costs`). An absent ledger is
+    `LedgerAbsent` and a schema this build does not know is
+    `LedgerSchemaError`; neither is a reason to write to a database a reader
+    was only asked to read (§3.4).
+    """
+    return LedgerDatabase(
+        ledger_path(repo_root) if path is None else path,
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        fence=LedgerFence(fence_path(repo_root)) if fence is None else fence,
+        read_only=True,
+    )
 
 
 def open_ledger(

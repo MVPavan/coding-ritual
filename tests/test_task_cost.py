@@ -8,6 +8,7 @@ import subprocess
 import sys
 from decimal import Decimal
 from pathlib import Path
+from typing import Final
 
 import pytest
 from pydantic import ValidationError
@@ -30,6 +31,7 @@ from workflow_interpreter.costs.report import (
     text_report,
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
+from workflow_interpreter.ledger.database import open_ledger
 
 
 def _pricebook() -> PriceBook:
@@ -1398,7 +1400,10 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
     )
     fake_bd.chmod(0o755)
     repo = tmp_path / "repo"
-    repo.mkdir()
+    # A git entry and a ledger, because `costs` now opens the ledger `mode=ro`
+    # and REFUSES when there is none: a report that silently omitted every
+    # ledger-backed root would read like a task that cost nothing (§3.4).
+    (repo / ".git").mkdir(parents=True)
     wrapper_home = tmp_path / "wrapper"
     wrapper_root = (
         wrapper_home / hashlib.sha256(str(repo.resolve()).encode()).hexdigest()[:16]
@@ -1418,6 +1423,7 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
         f'wrapper_root = "{wrapper_root}"\n'
         'host = "fixture"\n'
     )
+    open_ledger(repo, wrapper_root).close()
     project_root = Path(__file__).resolve().parents[1]
     completed = subprocess.run(
         [
@@ -1464,3 +1470,62 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
     )
     assert "pricing basis: standard-rate-normalization" in text_completed.stdout
     assert "price snapshot: latest-available (2026-09-13)" in text_completed.stdout
+
+
+PRICES: Final[Path] = (
+    Path(__file__).resolve().parents[1] / "config/task-cost-prices-2026-09-13.json"
+)
+"""The shipped price book, so a CLI refusal test fails for its own reason."""
+
+
+def _costs_config(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """A foreman config over a fresh repository that has no ledger yet."""
+    from tests._ledger import config_file
+
+    return config_file(tmp_path)
+
+
+def test_costs_against_a_missing_ledger_creates_nothing(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """§3.4: a read-only command never writes, and never migrates.
+
+    `open_ledger` would have CREATED and migrated the database — writes, from
+    the one command the plan calls read-only — and the `is_file()` check that
+    guarded it could be invalidated between the answer and the open.
+    """
+    from workflow_interpreter.costs.__main__ import main
+    from workflow_interpreter.ledger.paths import ledger_path
+
+    config, repo_root, _ = _costs_config(tmp_path)
+
+    code = main(["--config", str(config), "--prices", str(PRICES), "task", "cr-3411.4"])
+
+    assert code == 2
+    assert "no ledger to read" in capsys.readouterr().err
+    assert not ledger_path(repo_root).exists()
+
+
+def test_costs_against_an_older_schema_refuses(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A schema this build does not know means columns that mean something else."""
+    from workflow_interpreter.costs.__main__ import main
+    from workflow_interpreter.ledger.database import connect
+    from workflow_interpreter.ledger.paths import ledger_path
+    from workflow_interpreter.ledger.schema import SCHEMA_VERSION
+
+    config, repo_root, _ = _costs_config(tmp_path)
+    path = ledger_path(repo_root)
+    behind = connect(path)
+    behind.execute("CREATE TABLE ancient (id TEXT PRIMARY KEY)")
+    behind.close()
+    before = path.read_bytes()
+
+    code = main(["--config", str(config), "--prices", str(PRICES), "task", "cr-3411.4"])
+
+    assert code == 2
+    message = capsys.readouterr().err
+    assert "never migrates" in message
+    assert str(SCHEMA_VERSION) in message
+    assert path.read_bytes() == before

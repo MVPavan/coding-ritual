@@ -24,8 +24,8 @@ from workflow_interpreter.costs.report import (
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
 from workflow_interpreter.foreman.config import load_config
-from workflow_interpreter.ledger.database import open_ledger
-from workflow_interpreter.ledger.paths import ledger_path
+from workflow_interpreter.ledger.database import open_readonly
+from workflow_interpreter.ledger.errors import LedgerAbsent, LedgerSchemaError
 from workflow_interpreter.ledger.store import LedgerStore
 
 
@@ -107,29 +107,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         if len(stage_ids) != len(set(stage_ids)):
             raise ValueError("stage ids must be unique")
         reports: list[TaskCostReport] = []
-        # §3.4: costs is READ-ONLY, so it opens an existing ledger and never
-        # creates one — `open_ledger` migrates, and migrating is a write. A
-        # repository with no ledger has no ledger-backed root either, and a
-        # bridge record that claims otherwise gets the factory's refusal.
-        ledger_file = ledger_path(config.repo_root)
+        # §3.4: costs is READ-ONLY, so it opens the ledger `mode=ro` — never
+        # creating it, never migrating it, and never deciding from an
+        # `is_file()` check another process can invalidate between the answer
+        # and the open. An absent or behind ledger is a NAMED refusal, because
+        # a report that silently omitted every ledger-backed root would read
+        # exactly like a task that cost nothing.
         with ExitStack() as resources:
-            ledger = (
-                resources.enter_context(
-                    open_ledger(config.repo_root, config.wrapper_root)
-                )
-                if ledger_file.is_file()
-                else None
+            ledger = resources.enter_context(
+                open_readonly(config.repo_root, config.wrapper_root)
             )
             for stage_id in stage_ids:
                 # One factory per stage, because a `LedgerStore` is scoped to
                 # the task whose rows it hold (§3.3): the stage IS that task.
                 backends = SelectableBackendFactory(
-                    client,
-                    *(
-                        ()
-                        if ledger is None
-                        else (LedgerStore(ledger, task_id=stage_id),)
-                    ),
+                    client, LedgerStore(ledger, task_id=stage_id)
                 )
                 collection = collect_task(
                     client,
@@ -147,6 +139,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                         normalize_standard=args.normalize_standard,
                     )
                 )
+    except (LedgerAbsent, LedgerSchemaError) as refusal:
+        # Named, unlike every other local-input failure below: an operator who
+        # sees this can fix it, and the two causes have different fixes.
+        sys.stderr.write(f"task-cost: {refusal}\n")
+        return 2
     except (OSError, ValueError, ValidationError) as exc:
         del exc
         sys.stderr.write("task-cost: invalid or unavailable local input\n")

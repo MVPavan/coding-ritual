@@ -30,6 +30,13 @@ FENCE_POLL_S: Final[float] = 0.05
 BUSY_TIMEOUT_MS: Final[int] = 5000
 """§3.4.1 — SQLite's own wait for a writer, in milliseconds."""
 
+READ_ONLY_PRAGMAS: Final[tuple[str, ...]] = (
+    f"PRAGMA busy_timeout={BUSY_TIMEOUT_MS}",
+    "PRAGMA foreign_keys=ON",
+)
+"""What a `mode=ro` connection may set: `journal_mode` and `synchronous` are
+writes to the database header, and a reader must not make one."""
+
 PRAGMAS: Final[tuple[str, ...]] = (
     "PRAGMA journal_mode=WAL",
     f"PRAGMA busy_timeout={BUSY_TIMEOUT_MS}",
@@ -157,6 +164,13 @@ MSG_WRAPPER_ROOT_MISMATCH: Final[str] = (
 MSG_REPO_HASH_MISMATCH: Final[str] = (
     "ledger {path} is pinned to repository {pinned}; this process runs against "
     "{found} (§3.5)"
+)
+MSG_LEDGER_ABSENT: Final[str] = (
+    "no ledger to read at {path}: a read-only command never creates one (§3.4)"
+)
+MSG_SCHEMA_BEHIND: Final[str] = (
+    "ledger {path} carries schema version {found}, and this build needs "
+    "{known}; a read-only command never migrates (§3.4)"
 )
 MSG_SCHEMA_AHEAD: Final[str] = (
     "ledger {path} carries schema version {found}, and this build knows "

@@ -64,6 +64,10 @@ class LedgerExportError(StoreConfigError):
     """
 
 
+class LedgerAbsent(StoreConfigError):
+    """There is no ledger to read, and a read-only command never makes one."""
+
+
 class LedgerSchemaError(StoreConfigError):
     """The schema on disk is not one this build can migrate forward (§3.3)."""
 
