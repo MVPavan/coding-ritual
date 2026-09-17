@@ -122,6 +122,21 @@ carrying it would break the byte-identical round trip (§3.6). The
 per-activation facts stay out until S4 writes them."""
 
 
+DERIVED_ACTIVATION_TABLES: Final[tuple[LedgerTable, ...]] = (
+    LedgerTable.SESSIONS,
+    LedgerTable.FINDINGS,
+    LedgerTable.ARTIFACTS,
+    LedgerTable.USAGE,
+)
+"""Rows ABOUT an activation that no export carries, cleared with it.
+
+They reference `activations`, so a rebuild that emptied the exportable tables
+around them would fail its own foreign keys (§3.6). Each is derived from the
+record a close settles — `findings` from the evidence carrier the export DOES
+carry — so a restored task re-derives them rather than losing anything the
+export describes."""
+
+
 TARGET_LEDGER: Final[str] = "the ledger"
 """What a refusal names when the failure is the database itself rather than
 one row of it."""

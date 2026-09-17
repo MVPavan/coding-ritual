@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
 
@@ -16,7 +17,11 @@ from workflow_interpreter.bdio import (
     Outcome,
     VerifyOutcome,
 )
-from workflow_interpreter.bdio.carriers import LedgerRenderBinding
+from workflow_interpreter.bdio.carriers import LedgerRenderBinding, ReviewFinding
+from workflow_interpreter.bdio.findings import (
+    MAX_REVIEW_FINDINGS_BYTES,
+    parse_review_findings,
+)
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.schema.models import JUDGMENT_OUTCOME, Node
 from workflow_interpreter.supervisor.channels import (
@@ -69,6 +74,43 @@ _REASON_NO_DIFF_COMMIT: Final[str] = (
 _STATE_NON_REGULAR: Final[str] = "non-regular"
 """The working-tree state of a path that is not a regular file. Distinct from
 `NO_BLOB` (absent), which `hash_working_file` also returns for one."""
+
+
+MAX_REVIEW_ARTIFACT_BYTES: Final[int] = 4 * MAX_REVIEW_FINDINGS_BYTES
+"""How much artifact text the extraction reads before it stops looking.
+
+Four times the carrier's own bound: enough that a report which puts its
+findings after a preamble is still read whole, and small enough that a runner
+cannot make the host read a 32 MB output directory into memory."""
+
+
+def review_findings(
+    node: Node, snapshot: Path, paths: Sequence[str]
+) -> tuple[ReviewFinding, ...]:
+    """The reviewer's own findings, read from the outputs it actually wrote.
+
+    Only a node that CAN reject is read this way: `outcomes` is where the graph
+    says a node grades someone else's work, and a writer's outputs are its
+    product rather than its verdict. The bytes come from the wrapper's own
+    snapshot of `$WF_ARTIFACT_DIR`, in the walk's deterministic order, so the
+    extraction cannot race the runner and two replays of one activation agree.
+    """
+    if Outcome.REJECT not in (node.outcomes or ()):
+        return ()
+    chunks: list[str] = []
+    spent = 0
+    for relative in paths:
+        remaining = MAX_REVIEW_ARTIFACT_BYTES - spent
+        if remaining <= 0:
+            break
+        try:
+            with (snapshot / relative).open("rb") as handle:
+                raw = handle.read(remaining)
+        except OSError:
+            continue
+        spent += len(raw)
+        chunks.append(raw.decode("utf-8", "replace"))
+    return parse_review_findings("\n".join(chunks))
 
 
 def render_binding(activation: ActivationRecord) -> LedgerRenderBinding | None:
@@ -156,6 +198,11 @@ class EvidenceGrader:
             activation_id=activation.activation_id,
         )
         evidence = Evidence(
+            review_findings=review_findings(
+                node,
+                self._paths.outputs_snapshot(activation.activation_id),
+                collected.artifact_paths,
+            ),
             verify=tuple(
                 VerifyOutcome(
                     cmd=result.cmd,

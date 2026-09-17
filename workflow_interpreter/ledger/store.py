@@ -378,7 +378,10 @@ class LedgerStore:
         about the outcome that close records: a crash between the two would
         leave a settled round whose findings the export does not carry.
         Re-derived and rewritten on a repeated close, so the rows say what the
-        current record says rather than what an earlier attempt at it did.
+        current record says rather than what an earlier attempt at it did. The
+        reviewer's own findings are among them: extracted before this
+        transaction and carried on the evidence this close was handed, so the
+        rows are the review's bytes rather than a re-parse of anything.
         """
         rows = findings_of(parse_activation(written))
         if not rows:
@@ -397,6 +400,7 @@ class LedgerStore:
                     "round_no": finding.round_no,
                     "severity": finding.severity.value,
                     "text": finding.text,
+                    "kind": finding.kind.value,
                 },
             )
 

@@ -223,6 +223,14 @@ _V1_INDEXES: Final[tuple[str, ...]] = (
     "CREATE INDEX events_by_task ON events(task_id, seq)",
 )
 
+_V2_FINDINGS_KIND: Final[str] = (
+    "ALTER TABLE findings ADD COLUMN kind TEXT NOT NULL DEFAULT 'diagnostic'"
+)
+"""§3.3's `findings` rows gained a second author. The reviewer's own numbered
+findings are stored verbatim as `kind = 'review'`; the rows derived from the
+close carriers keep the default, which is also what any row written before
+this migration was."""
+
 MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     (
         _V1_META,
@@ -242,6 +250,7 @@ MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
         _V1_RESTORE_PENDING,
         *_V1_INDEXES,
     ),
+    (_V2_FINDINGS_KIND,),
 )
 """One tuple of statements per schema version, in order. Index `n` migrates a
 database at version `n` to version `n + 1`, so `len(MIGRATIONS)` IS the version

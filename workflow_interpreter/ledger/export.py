@@ -32,6 +32,7 @@ import structlog
 from pydantic import BaseModel, ConfigDict, JsonValue
 
 from workflow_interpreter.ledger.constants import (
+    DERIVED_ACTIVATION_TABLES,
     EXPORT_KIND_HEADER,
     EXPORT_KIND_ROW,
     EXPORT_TABLES,
@@ -473,9 +474,13 @@ def _clear(connection: sqlite3.Connection) -> None:
 
     `restore_pending` is not exportable and is cleared all the same, first:
     it references `tasks`, and a drain owed for a task this rebuild does not
-    bring back is owed for nothing.
+    bring back is owed for nothing. The per-activation tables go with it, for
+    the same reason and in the same spirit: they reference rows this rebuild
+    replaces, and each is re-derived from the record a close settles.
     """
     connection.execute(_SQL_CLEAR_RESTORES)
+    for derived in DERIVED_ACTIVATION_TABLES:
+        connection.execute(f"DELETE FROM {derived.value}")
     for table in reversed(EXPORT_TABLES):
         connection.execute(f"DELETE FROM {table.value}")
 

@@ -347,12 +347,46 @@ class VerifyOutcome(BaseModel):
     OUTPUT deliberately stays out of bd — the tails live in `completion.json`."""
 
 
+class Severity(StrEnum):
+    """How much of a problem one finding is — the `findings.severity` column.
+
+    The reviewer's own vocabulary, because a reviewer finding keeps the
+    severity it was written with; a derived diagnostic is mapped onto the same
+    four values so one column can hold both.
+    """
+
+    BLOCKER = "blocker"
+    MAJOR = "major"
+    MINOR = "minor"
+    INFO = "info"
+
+
+class ReviewFinding(BaseModel):
+    """One finding a REVIEWER wrote, carried verbatim out of its artifact (§3.3).
+
+    `text` is the reviewer's own bytes — the numbered item, its severity word
+    and its `file:line` where it gave one — bounded but never rewritten, so
+    the ledger row and `findings.md` say what the review said rather than what
+    the engine inferred about it.
+    """
+
+    model_config = WIRE_MODEL
+
+    severity: Severity
+    text: str
+
+
 class Evidence(BaseModel):
     """Computed, never claimed (§7)."""
 
     model_config = WIRE_MODEL
 
     verify: tuple[VerifyOutcome, ...] = ()
+    review_findings: tuple[ReviewFinding, ...] = ()
+    """The reviewer's numbered findings, extracted from its output artifact
+    BEFORE this evidence was recorded and therefore before the close
+    transaction. Bounded by `bdio/findings.py` so the carrier stays far under
+    the argv ceiling of ADR 0003 on the bd backend."""
     artifact: ArtifactIdentity | None = None
     undeclared_effects: tuple[str, ...] = ()
     breaker: Breaker | None = None

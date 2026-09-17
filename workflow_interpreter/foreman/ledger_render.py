@@ -21,8 +21,10 @@ It is rendered from the ACTIVATION and GATE records through the neutral seam,
 which is the same answer on both backends: the bd rows and the ledger rows
 carry the same §3 carriers.
 
-`findings.md` renders the §3.3 FINDINGS of each round, derived by
-`bdio/findings.py` from the close carriers. The ledger inserts exactly those
+`findings.md` renders the §3.3 FINDINGS of each round as `bdio/findings.py`
+orders them: the REVIEWER's own numbered findings first, verbatim from the
+carrier its evidence recorded, then the diagnostics derived from the close
+carriers. The ledger inserts exactly those
 rows inside the closing transaction, so on that backend the rendered sections
 are a projection of the table; on bd, where there is no table, they are the
 same derivation over the same carriers. One function, one order — otherwise
@@ -266,9 +268,9 @@ def _findings_markdown(
         parts.append(f"- claimed: {item.claimed_outcome or 'none'}\n")
         if item.artifact_commit_oid is not None:
             parts.append(f"- artifact commit: {item.artifact_commit_oid}\n")
-        # The §3.3 `findings` rows of this round, in the order they were
-        # derived and written — the same order the ledger holds them in,
-        # because both come from `findings_of` over this one record.
+        # The §3.3 `findings` rows of this round, review rows first and then
+        # the diagnostics — the same order the ledger holds them in, because
+        # both come from `findings_of` over this one record.
         parts.append(_FINDINGS_HEADING)
         if not item.findings:
             parts.append(_NO_FINDINGS)
