@@ -20,7 +20,9 @@ expression can, and deselecting rather than skipping is what makes
 from __future__ import annotations
 
 import shutil
+import statistics
 import subprocess
+import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Final
@@ -44,6 +46,8 @@ SSH_KEYGEN: Final[str] = "ssh-keygen"
 TEST_ACTOR: Final[str] = "wf-test-foreman"
 TEST_PRINCIPAL: Final[str] = "gatekeeper@wf-test"
 INIT_TIMEOUT_S: Final[float] = 180.0
+LIST_TIMEOUT_S: Final[float] = 60.0
+LATENCY_SAMPLES: Final[int] = 3
 KEYGEN_TIMEOUT_S: Final[float] = 30.0
 BRANCH_HEAD: Final[str] = "b" * 40
 """The instance branch head every test's injected reader reports (§3.2)."""
@@ -136,6 +140,29 @@ def bd_workspace(tmp_path_factory: pytest.TempPathFactory) -> Path:
         timeout=INIT_TIMEOUT_S,
     )
     return workspace
+
+
+@pytest.fixture(scope="session")
+def bd_latency_s(bd_workspace: Path) -> float:
+    """Median wall seconds of ONE `bd` round trip against the session workspace.
+
+    Wall budgets in bd-marked tests are call counts times this, never a fixed
+    number of seconds: a `bd` invocation costs ~50 ms on one host and ~290 ms on
+    another, which is the whole of `cr-xu34`. Measured once per session, and
+    with the same subcommand (`list --json`) the engine's reads use.
+    """
+    samples: list[float] = []
+    for _ in range(LATENCY_SAMPLES):
+        started = time.monotonic()
+        subprocess.run(
+            [BD_BINARY, "list", "--json"],
+            cwd=bd_workspace,
+            check=True,
+            capture_output=True,
+            timeout=LIST_TIMEOUT_S,
+        )
+        samples.append(time.monotonic() - started)
+    return statistics.median(samples)
 
 
 @pytest.fixture

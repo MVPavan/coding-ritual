@@ -3,7 +3,9 @@
 import json
 import sys
 import time
+from collections.abc import Sequence
 from dataclasses import replace
+from itertools import dropwhile, takewhile
 from pathlib import Path
 from typing import Final
 
@@ -11,8 +13,10 @@ import pytest
 
 from tests.test_children_process import writer_lab
 from tests.test_foreman_main import _bridge_adapter, _bridge_stage
+from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.foreman.decisions import admission_of
+from workflow_interpreter.foreman.tick import Foreman, TickReport
 
 
 def source_lab(tmp_path: Path, store: BackendKind = BackendKind.BD):
@@ -74,13 +78,44 @@ def source_lab(tmp_path: Path, store: BackendKind = BackendKind.BD):
     return lab, owner, composition, source
 
 
-BD_WALL_BUDGET_S: Final[float] = 30.0
-"""The wall this drill needed on bd, and the budget `cr-xu34` made flaky: five
-`bd` round trips per tick, about 1.5 s each on a grown database."""
-LEDGER_WALL_BUDGET_S: Final[float] = BD_WALL_BUDGET_S / 4
-"""What the same drill is allowed on the ledger. A quarter, asserted rather
-than claimed: the §6 acceptance for this slice is that admission has no wall
-problem, and a budget nobody measures is not a measurement."""
+LEDGER_WALL_BUDGET_S: Final[float] = 7.5
+"""What the same drill is allowed on the ledger. A quarter of the 30 s the bd
+drill used to be given, asserted rather than claimed: the §6 acceptance for
+this slice is that admission has no wall problem, and a budget nobody measures
+is not a measurement."""
+
+START_TICK_BD_CALLS: Final[int] = 34
+"""Calls the first decision tick makes: instantiation and admission writes."""
+STEADY_TICK_BD_CALLS: Final[int] = 5
+"""Calls a steady-state decision tick makes; pinned by
+`test_admission_tick_stays_at_five_bd_calls` so a regression here is caught by
+a count rather than by a clock."""
+CLOSE_TICK_BD_CALLS: Final[int] = 58
+"""Calls the two closing ticks make: collection plus terminal writes (29 each)."""
+EXPECTED_TICKS: Final[int] = 8
+"""Steady ticks the drill is expected to need while the forked writer runs;
+measured at 6, with two ticks of slack."""
+BD_CALL_SAFETY: Final[float] = 1.5
+"""Headroom over the measured per-call latency, for host jitter."""
+FIXED_CALL_ALLOWANCE_S: Final[float] = 10.0
+"""Wall the drill spends OUTSIDE bd: fork, sandbox setup, git, verification."""
+EXPECTED_BD_CALLS: Final[int] = (
+    START_TICK_BD_CALLS + STEADY_TICK_BD_CALLS * EXPECTED_TICKS + CLOSE_TICK_BD_CALLS
+)
+
+
+def bd_wall_budget_s(bd_latency_s: float) -> float:
+    """The bd drill's wall budget, derived from this host's measured latency.
+
+    `cr-xu34`: the old fixed 30 s assumed a ~50 ms `bd` invocation. On a host
+    where one round trip costs ~290 ms the same 132 expected calls need ~38 s,
+    so the drill stalled with `run max_wall` on a healthy engine. Deriving the
+    budget keeps it host-independent while staying tight enough to FAIL if the
+    engine doubles its per-tick calls: doubling every count roughly doubles the
+    bd share of the wall, which is 1.5x the budget's own headroom. Anything
+    beyond about 1.5x of `EXPECTED_BD_CALLS` (198 calls) breaks the budget.
+    """
+    return FIXED_CALL_ALLOWANCE_S + EXPECTED_BD_CALLS * bd_latency_s * BD_CALL_SAFETY
 
 
 @pytest.mark.parametrize("store", (BackendKind.BD, BackendKind.LEDGER))
@@ -137,6 +172,63 @@ def test_replay_admits_only_one_original_owner_member(
             f"the ledger admission drill took {wall_s:.2f}s, over its "
             f"{LEDGER_WALL_BUDGET_S:.1f}s budget"
         )
+
+
+def test_admission_tick_stays_at_five_bd_calls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A steady admission tick costs exactly five bd calls, timing aside.
+
+    The wall budget the bd drill derives is only as honest as this count, and a
+    clock cannot tell a slow host from a chattier engine (`cr-xu34`). Here bd is
+    the in-process double, so the counts are exact and deterministic: the drill
+    measures 33-34 calls across its opening tick (sometimes split as 34 then
+    18), 5 on every steady tick, and 29 on each of the two closing ticks.
+    """
+    from workflow_interpreter.supervisor.sandbox import SandboxMode
+
+    lab, owner, composition, spawner = writer_lab(tmp_path, sandbox=SandboxMode.BWRAP)
+    coordinator = lab.store.coordination_store(composition=composition)
+    child = coordinator.start_child(
+        owner.root_id, "source", admission_of(owner, slot="source", generation=0)
+    )
+    per_tick: list[int] = []
+    calls = [0]
+    run = BdClient._run
+    tick = Foreman.tick
+
+    def counted(self: BdClient, argv: Sequence[str]) -> str:
+        calls[0] += 1
+        return run(self, argv)
+
+    def counted_tick(self: Foreman, root_id: str) -> TickReport:
+        before = calls[0]
+        try:
+            return tick(self, root_id)
+        finally:
+            per_tick.append(calls[0] - before)
+
+    monkeypatch.setattr(BdClient, "_run", counted)
+    monkeypatch.setattr(Foreman, "tick", counted_tick)
+    try:
+        result = Foreman(composition).run(child.root_id, poll_s=0.01, max_wall_s=60)
+    finally:
+        for process in spawner.processes:
+            process.join(timeout=5)
+    assert result.report.terminal, result
+    # Steady ticks are the contiguous cheap middle: the opening phase can take
+    # one tick or two (34, or 34 then 18, depending on where the forked member
+    # is when the foreman looks), and the run ends with two 29-call closing
+    # ticks. An engine that got chattier makes EVERY tick expensive, so the
+    # middle run is empty — which is the failure this pins.
+    steady = list(
+        takewhile(
+            lambda count: count <= STEADY_TICK_BD_CALLS,
+            dropwhile(lambda count: count > STEADY_TICK_BD_CALLS, per_tick),
+        )
+    )
+    assert steady, f"no tick stayed within its per-tick budget: {per_tick}"
+    assert set(steady) == {STEADY_TICK_BD_CALLS}, per_tick
 
 
 @pytest.mark.parametrize("change", ["duplicate", "digest", "generation", "missing"])
@@ -322,8 +414,14 @@ def test_other_owner_busy_before_target_snapshot(
 
 @pytest.mark.bd
 def test_real_beads_roundtrips_integration_claim_and_one_root(
-    tmp_path: Path, bd_config
+    tmp_path: Path, bd_config, bd_latency_s: float
 ) -> None:
+    """The drill against a real bd, on a wall this host's latency justifies.
+
+    `cr-xu34`: measured here at ~290 ms per `bd` invocation (the fixed 30 s
+    this used to pass assumed ~50 ms), so the budget is
+    `bd_wall_budget_s(...)` — about 67 s — rather than a constant.
+    """
     import subprocess
     from dataclasses import replace
 
@@ -374,7 +472,9 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
         owner.root_id, "source", admission_of(owner, slot="source", generation=0)
     )
     try:
-        result = Foreman(composition).run(child.root_id, poll_s=0.05, max_wall_s=30)
+        result = Foreman(composition).run(
+            child.root_id, poll_s=0.05, max_wall_s=bd_wall_budget_s(bd_latency_s)
+        )
         assert result.report.terminal, result
         source = coordinator.collect_child(owner.root_id, "source", 0)
 
