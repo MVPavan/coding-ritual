@@ -85,7 +85,10 @@ from workflow_interpreter.ledger.reverify import (
 from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
 from workflow_interpreter.schema.models import Node
 from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.exit_grade import review_findings
+from workflow_interpreter.supervisor.exit_grade import (
+    MAX_REVIEW_ARTIFACT_BYTES,
+    review_findings,
+)
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.launch_record import LaunchReceipt
 from workflow_interpreter.supervisor.paths import write_record
@@ -115,6 +118,7 @@ PASSING: Final[str] = "#!/bin/sh\nexit 0\n"
 FAILING: Final[str] = "#!/bin/sh\nexit 1\n"
 DONE_MARKER: Final[str] = '{"outcome":"done"}\n'
 NO_DIFF_MARKER: Final[str] = '{"outcome":"no_diff"}\n'
+REJECT_MARKER: Final[str] = '{"outcome":"reject"}\n'
 NO_EFFECTS: Final[str] = '{"paths":[]}'
 FEATURE: Final[str] = "src/feature.py"
 
@@ -800,19 +804,27 @@ def _review_node() -> Node:
     )
 
 
-def _snapshot(tmp_path: Path, body: str, name: str = REVIEW_FILE) -> Path:
-    """One wrapper-owned outputs snapshot holding a review artifact."""
-    snapshot = tmp_path / "outputs"
-    snapshot.mkdir(exist_ok=True)
-    (snapshot / name).write_text(body, encoding="utf-8")
-    return snapshot
+def _outputs(
+    tmp_path: Path, body: str, name: str = REVIEW_FILE
+) -> tuple[Git, Path, str]:
+    """One pinned outputs tree holding a review artifact, as the exit pins it."""
+    repo = tmp_path / "review-repo"
+    repo.mkdir(exist_ok=True)
+    _git(repo, "init", "--quiet", "--initial-branch=main")
+    (repo / name).write_text(body, encoding="utf-8")
+    _git(repo, "add", "--", name)
+    tree = _git(repo, "write-tree")
+    wrapper_root = tmp_path / "review-wrapper"
+    wrapper_root.mkdir(exist_ok=True)
+    git = Git(SupervisorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
+    return git, repo, tree
 
 
 def test_a_reviews_numbered_findings_are_extracted_verbatim(tmp_path: Path) -> None:
     """Finding 6: the rows are the REVIEW's text, severity and `file:line`."""
-    snapshot = _snapshot(tmp_path, REVIEW_REPORT)
+    git, repo, tree = _outputs(tmp_path, REVIEW_REPORT)
 
-    extracted = review_findings(_review_node(), snapshot, (REVIEW_FILE,))
+    extracted = review_findings(_review_node(), git, repo, tree)
 
     assert [item.severity for item in extracted] == [
         Severity.BLOCKER,
@@ -828,9 +840,9 @@ def test_a_reviews_numbered_findings_are_extracted_verbatim(tmp_path: Path) -> N
 
 def test_an_unstructured_review_artifact_is_stored_whole(tmp_path: Path) -> None:
     """A report with no numbering is kept, not dropped and not summarised."""
-    snapshot = _snapshot(tmp_path, "the guard is missing at store.py:383\n")
+    git, repo, tree = _outputs(tmp_path, "the guard is missing at store.py:383\n")
 
-    extracted = review_findings(_review_node(), snapshot, (REVIEW_FILE,))
+    extracted = review_findings(_review_node(), git, repo, tree)
 
     assert [item.text for item in extracted] == ["the guard is missing at store.py:383"]
 
@@ -842,9 +854,9 @@ def test_an_oversized_review_artifact_is_truncated_not_refused(
     body = "".join(
         f"{number}. BLOCKER — {'x' * MAX_FINDING_BYTES}\n" for number in range(1, 20)
     )
-    snapshot = _snapshot(tmp_path, body)
+    git, repo, tree = _outputs(tmp_path, body)
 
-    extracted = review_findings(_review_node(), snapshot, (REVIEW_FILE,))
+    extracted = review_findings(_review_node(), git, repo, tree)
 
     assert extracted
     assert all(
@@ -855,6 +867,21 @@ def test_an_oversized_review_artifact_is_truncated_not_refused(
     assert any(TRUNCATION_MARKER in item.text for item in extracted)
 
 
+def test_a_blob_too_large_to_read_leaves_a_row_that_says_so(
+    tmp_path: Path,
+) -> None:
+    """A findings file past the reading budget is reported, never refused."""
+    git, repo, tree = _outputs(
+        tmp_path, "1. BLOCKER — " + "x" * MAX_REVIEW_ARTIFACT_BYTES + "\n"
+    )
+
+    extracted = review_findings(_review_node(), git, repo, tree)
+
+    assert len(extracted) == 1
+    assert REVIEW_FILE in extracted[0].text
+    assert TRUNCATION_MARKER in extracted[0].text
+
+
 def test_a_writer_node_contributes_no_review_findings(tmp_path: Path) -> None:
     """Only a node the graph lets REJECT is read for a verdict about others."""
     implement = next(
@@ -863,10 +890,52 @@ def test_a_writer_node_contributes_no_review_findings(tmp_path: Path) -> None:
         if node.name == "implement"
     )
 
-    assert (
-        review_findings(implement, _snapshot(tmp_path, REVIEW_REPORT), (REVIEW_FILE,))
-        == ()
+    git, repo, tree = _outputs(tmp_path, REVIEW_REPORT)
+
+    assert review_findings(implement, git, repo, tree) == ()
+
+
+def test_a_real_review_round_puts_its_findings_on_the_record(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> None:
+    """Finding 6, end to end: the wrapper reads the artifact the reviewer wrote.
+
+    Nothing here hands the engine a carrier. A `review` child writes its
+    numbered findings into `$WF_ARTIFACT_DIR` exactly as the shipped graph
+    instructs, and the evidence its close records — the evidence every backend
+    is handed — carries them.
+    """
+    lab = _lab(tmp_path, signing_config, sign_payload)
+    lab.instantiate()
+    _implement(lab)
+    lab.debrief_round()
+    lab.profiles.next_script(
+        ChildScript(
+            marker=REJECT_MARKER,
+            effects=NO_EFFECTS,
+            artifact_path=FINDINGS_FILE,
+            artifact_body=REVIEW_REPORT,
+        )
     )
+    review_id = lab.tick().dispatched
+    assert review_id is not None
+    assert lab.tick().settled == review_id
+
+    activation = lab.store.reads.load_activation(review_id)
+
+    assert activation.metadata.node == "review"
+    evidence = activation.metadata.evidence
+    assert evidence is not None
+    assert [item.severity for item in evidence.review_findings] == [
+        Severity.BLOCKER,
+        Severity.MAJOR,
+        Severity.MAJOR,
+    ]
+    assert "ledger/store.py:383" in evidence.review_findings[0].text
+    rows = [row for row in findings_of(activation) if row.kind is FindingKind.REVIEW]
+    assert [row.text for row in rows] == [
+        item.text for item in evidence.review_findings
+    ]
 
 
 def _reviewed_evidence(tmp_path: Path) -> Evidence:
@@ -874,7 +943,7 @@ def _reviewed_evidence(tmp_path: Path) -> Evidence:
     return Evidence(
         claimed_outcome=Outcome.REJECT,
         review_findings=review_findings(
-            _review_node(), _snapshot(tmp_path, REVIEW_REPORT), (REVIEW_FILE,)
+            _review_node(), *_outputs(tmp_path, REVIEW_REPORT)
         ),
     )
 

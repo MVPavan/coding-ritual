@@ -69,6 +69,7 @@ from workflow_interpreter.supervisor.errors import SupervisorError, WrapperDirEr
 from workflow_interpreter.supervisor.exit_grade import (
     ComputedEvidence,
     EvidenceGrader,
+    review_findings,
 )
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.models import (
@@ -483,6 +484,18 @@ class ExitObserver:
                         "outputs_tree_oid": None
                         if outputs_pin.identity is None
                         else outputs_pin.identity.tree_oid,
+                        # Extracted here rather than in the grader because the
+                        # tree is pinned by now and the runner's own directory
+                        # is already gone: the reviewer's findings are read
+                        # from the immutable objects, before any close (§3.3).
+                        "review_findings": review_findings(
+                            node,
+                            self._git,
+                            self._paths.config.repo_root,
+                            None
+                            if outputs_pin.identity is None
+                            else outputs_pin.identity.tree_oid,
+                        ),
                         "claimed_outcome": completion.claimed_outcome,
                     }
                 )

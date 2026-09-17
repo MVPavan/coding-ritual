@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
 
@@ -19,7 +18,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.carriers import LedgerRenderBinding, ReviewFinding
 from workflow_interpreter.bdio.findings import (
-    MAX_REVIEW_FINDINGS_BYTES,
+    TRUNCATION_MARKER,
     parse_review_findings,
 )
 from workflow_interpreter.contracts.run_identity import RunIdentity
@@ -30,7 +29,8 @@ from workflow_interpreter.supervisor.channels import (
     path_allowed,
 )
 from workflow_interpreter.supervisor.errors import SupervisorError
-from workflow_interpreter.supervisor.gitio import Git
+from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge
+from workflow_interpreter.supervisor.gitio import Git, GitSubcommand
 from workflow_interpreter.supervisor.models import (
     RECORD_MODEL,
     AuditFlag,
@@ -76,38 +76,68 @@ _STATE_NON_REGULAR: Final[str] = "non-regular"
 `NO_BLOB` (absent), which `hash_working_file` also returns for one."""
 
 
-MAX_REVIEW_ARTIFACT_BYTES: Final[int] = 4 * MAX_REVIEW_FINDINGS_BYTES
+MAX_REVIEW_ARTIFACT_BYTES: Final[int] = 1024 * 1024
 """How much artifact text the extraction reads before it stops looking.
 
-Four times the carrier's own bound: enough that a report which puts its
-findings after a preamble is still read whole, and small enough that a runner
-cannot make the host read a 32 MB output directory into memory."""
+Far above the carrier's own bound on purpose: the reading budget decides which
+findings are SEEN, and the carrier bound decides how much of them is stored,
+so a long report is still parsed into rows (each one bounded) rather than
+lost. Far below the 32 MB an outputs walk may hold, so a runner cannot make
+the host read its whole output directory into memory."""
+TEXT_ARTIFACT_TOO_LARGE: Final[str] = (
+    "review artifact {path} exceeds {limit} bytes and was not read{marker}"
+)
+"""What one blob too large to read leaves behind: a row that says so, naming
+the file in the pinned tree a human can still open. Never a refusal — a
+finding the engine could not carry must not fail the round."""
+MAX_REVIEW_ARTIFACT_FILES: Final[int] = 32
+"""How many blobs of one outputs tree the extraction will open."""
+_TREE_LIST_LIMIT: Final[int] = 1024 * 1024
+"""Bound on the tree listing itself, as `foreman/evidence_export.py` bounds it."""
+_REGULAR_BLOB: Final[str] = "100644"
+"""The only mode a findings file may have; anything else is not text to read."""
 
 
 def review_findings(
-    node: Node, snapshot: Path, paths: Sequence[str]
+    node: Node, git: Git, repo_root: Path, tree_oid: str | None
 ) -> tuple[ReviewFinding, ...]:
-    """The reviewer's own findings, read from the outputs it actually wrote.
+    """The reviewer's own findings, read from the outputs tree just pinned.
 
     Only a node that CAN reject is read this way: `outcomes` is where the graph
     says a node grades someone else's work, and a writer's outputs are its
-    product rather than its verdict. The bytes come from the wrapper's own
-    snapshot of `$WF_ARTIFACT_DIR`, in the walk's deterministic order, so the
-    extraction cannot race the runner and two replays of one activation agree.
+    product rather than its verdict. The bytes come from the PINNED tree rather
+    than from any directory the runner can still reach, so the extraction
+    cannot race the child and two replays of one activation agree.
     """
-    if Outcome.REJECT not in (node.outcomes or ()):
+    if tree_oid is None or Outcome.REJECT not in (node.outcomes or ()):
         return ()
+    entries = git.tree_blobs(
+        tree_oid,
+        cwd=repo_root,
+        limit=_TREE_LIST_LIMIT,
+        max_entries=MAX_REVIEW_ARTIFACT_FILES,
+    )
     chunks: list[str] = []
     spent = 0
-    for relative in paths:
+    for mode, oid, path in entries:
         remaining = MAX_REVIEW_ARTIFACT_BYTES - spent
         if remaining <= 0:
             break
-        try:
-            with (snapshot / relative).open("rb") as handle:
-                raw = handle.read(remaining)
-        except OSError:
+        if mode != _REGULAR_BLOB:
             continue
+        try:
+            raw = git.bounded_bytes(
+                GitSubcommand.CAT_FILE, "blob", oid, cwd=repo_root, limit=remaining
+            )
+        except GitOutputTooLarge:
+            chunks.append(
+                TEXT_ARTIFACT_TOO_LARGE.format(
+                    path=path,
+                    limit=MAX_REVIEW_ARTIFACT_BYTES,
+                    marker=TRUNCATION_MARKER,
+                )
+            )
+            break
         spent += len(raw)
         chunks.append(raw.decode("utf-8", "replace"))
     return parse_review_findings("\n".join(chunks))
@@ -198,11 +228,6 @@ class EvidenceGrader:
             activation_id=activation.activation_id,
         )
         evidence = Evidence(
-            review_findings=review_findings(
-                node,
-                self._paths.outputs_snapshot(activation.activation_id),
-                collected.artifact_paths,
-            ),
             verify=tuple(
                 VerifyOutcome(
                     cmd=result.cmd,
