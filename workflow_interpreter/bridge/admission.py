@@ -8,6 +8,7 @@ from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.bridge.adapter import PhaseAdapter
@@ -113,11 +114,19 @@ class PhaseAdmission:
         roots: RootProvisioner,
         head_commit: Callable[[], str],
         verification_policy: VerificationPolicy | None = None,
+        root_backend: BackendKind = BackendKind.BD,
     ) -> None:
+        """Pin the backend a first attempt is prepared on before it exists.
+
+        `root_backend` is the `store` switch in force now (§3.2, D18). It is
+        used only when THIS call prepares attempt one: a stored record already
+        carries its own immutable pin, and admission never overwrites it.
+        """
         self._adapter = adapter
         self._roots = roots
         self._head_commit = head_commit
         self._verification_policy = verification_policy
+        self._root_backend = root_backend
 
     def admit(
         self, epic_id: str, stage_id: str, target_ref: str, expected_base_commit: str
@@ -265,6 +274,7 @@ class PhaseAdmission:
                 target_ref=target_ref,
                 expected_base_commit=expected_base_commit,
                 verification_policy=self._verification_policy,
+                root_backend=self._root_backend,
             )
             return self._adapter.prepare(stage_id, prepared)
         try:

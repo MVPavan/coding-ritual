@@ -12,7 +12,11 @@ from workflow_interpreter.bdio.client import BdClient, DependencyRecord, Depende
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
-from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
+from workflow_interpreter.bridge.models import (
+    MSG_BACKEND_IMMUTABLE,
+    PhaseBridgeRecord,
+    PhaseBridgeState,
+)
 
 if TYPE_CHECKING:
     from workflow_interpreter.bridge.integration import IntegrationGuard
@@ -262,8 +266,21 @@ class PhaseAdapter:
     def _assert_prepare_shape(
         stored: PhaseBridgeRecord, incoming: PhaseBridgeRecord
     ) -> None:
-        """Allow only exact recovery or one non-closed successor journal."""
+        """Allow only exact recovery or one non-closed successor journal.
+
+        A SUCCESSOR may change `root_backend`, because a new attempt root is
+        exactly what the `store` switch applies to (D18); re-preparing THIS
+        attempt may not, because its root may already exist on the backend the
+        stored record pinned (§3.2).
+        """
         if incoming.attempt == stored.attempt:
+            if incoming.root_backend is not stored.root_backend:
+                raise PhaseAdapterError(
+                    MSG_BACKEND_IMMUTABLE.format(
+                        stored=stored.root_backend.value,
+                        incoming=incoming.root_backend.value,
+                    )
+                )
             if stored.state is not PhaseBridgeState.PREPARED:
                 raise PhaseAdapterError(
                     MSG_IDEMPOTENT_STATE.format(actual=stored.state.value)

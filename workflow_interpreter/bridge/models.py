@@ -7,6 +7,7 @@ from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bridge.verification import VerificationPolicy
 
 type PhaseBridgeSchema = Literal["phase-bridge/3"]
@@ -23,6 +24,10 @@ MSG_PREVIOUS_ATTEMPTS_UNIQUE: Final[str] = (
 )
 MSG_PREPARED_NOT_FIRST_ATTEMPT: Final[str] = (
     "phase bridge prepared records must be the first attempt"
+)
+MSG_BACKEND_IMMUTABLE: Final[str] = (
+    "phase bridge root_backend is pinned at prepare and cannot change from "
+    "{stored!r} to {incoming!r}"
 )
 
 CommitOid = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
@@ -57,6 +62,14 @@ class PhaseBridgeRecord(BaseModel):
     stage_id: NonEmptyText
     attempt: int = Field(ge=1)
     instance_key: NonEmptyText
+    root_backend: BackendKind = Field(default=BackendKind.BD, frozen=True)
+    """The backend this ATTEMPT root is pinned to (§3.2, D18).
+
+    Written at PREPARE, before admission creates the root or its branch, so
+    the store a root is served by can be chosen before the root is loaded. It
+    defaults to bd because every `phase-bridge/3` record written before the
+    ledger existed describes a bd root, and a missing pin therefore has one
+    true reading rather than an ambiguous one."""
     target_ref: NonEmptyText
     expected_base_commit: CommitOid
     verification_policy: VerificationPolicy | None = Field(
@@ -104,8 +117,9 @@ class PhaseBridgeRecord(BaseModel):
         target_ref: str,
         expected_base_commit: str,
         verification_policy: VerificationPolicy | None = None,
+        root_backend: BackendKind = BackendKind.BD,
     ) -> PhaseBridgeRecord:
-        """Build a new pre-claim admission intent."""
+        """Build a new pre-claim admission intent on the selected backend."""
         if attempt != 1:
             raise ValueError(MSG_PREPARED_NOT_FIRST_ATTEMPT)
         return cls(
@@ -117,14 +131,22 @@ class PhaseBridgeRecord(BaseModel):
             instance_key=INSTANCE_KEY_TEMPLATE.format(
                 epic_id=epic_id, stage_id=stage_id, attempt=attempt
             ),
+            root_backend=root_backend,
             target_ref=target_ref,
             expected_base_commit=expected_base_commit,
             previous_attempts=(),
             verification_policy=verification_policy,
         )
 
-    def next_attempt(self) -> PhaseBridgeRecord:
-        """Mint the next distinct root identity after an eligible retry."""
+    def next_attempt(
+        self, root_backend: BackendKind | None = None
+    ) -> PhaseBridgeRecord:
+        """Mint the next distinct root identity after an eligible retry.
+
+        A retry is a NEW attempt root, so the `store` switch applies to it
+        (D18): the caller passes the value in force now, and only a caller
+        with nothing to say keeps this attempt's pin.
+        """
         return PhaseBridgeRecord(
             schema=PHASE_BRIDGE_SCHEMA,
             state=PhaseBridgeState.PREPARED,
@@ -134,6 +156,7 @@ class PhaseBridgeRecord(BaseModel):
             instance_key=INSTANCE_KEY_TEMPLATE.format(
                 epic_id=self.epic_id, stage_id=self.stage_id, attempt=self.attempt + 1
             ),
+            root_backend=self.root_backend if root_backend is None else root_backend,
             target_ref=self.target_ref,
             expected_base_commit=self.expected_base_commit,
             previous_attempts=(*self.previous_attempts, self.instance_key),

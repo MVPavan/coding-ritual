@@ -75,6 +75,8 @@ def test_module_entrypoint_is_spawnable() -> None:
             sys.executable,
             "-m",
             "workflow_interpreter.foreman",
+            "--task",
+            "cr-3411.4",
             "supervise",
             "root-id",
             "activation-id",
@@ -179,10 +181,21 @@ def test_main_caps_a_configuration_failure_on_the_combined_transcript(
     """Configuration errors do not escape as an unbounded interpreter traceback."""
     lab = ForemanLab(tmp_path)
 
-    byte_count, text = lab.transcript(lambda: main_module.main(["tick", "wf-root"]))
+    byte_count, text = lab.transcript(
+        lambda: main_module.main(["--task", "cr-3411.4", "tick", "wf-root"])
+    )
 
     assert byte_count <= MAX_TRANSCRIPT_BYTES
     assert "foreman configuration path is required" in text
+
+
+def test_main_refuses_an_anonymous_run_with_no_task_bead(tmp_path: Path) -> None:
+    """D16: every root must be reachable from the tracker, so `--task` is required."""
+    lab = ForemanLab(tmp_path)
+
+    _, text = lab.transcript(lambda: main_module.main(["tick", "wf-root"]))
+
+    assert "pass --task <bead-id>" in text
 
 
 def test_main_inspect_keeps_a_bounded_escaped_tail_inside_its_extra_allowance(
@@ -335,9 +348,13 @@ def test_lab_pins_overrides_and_test_flagged_graphs(tmp_path: Path) -> None:
 def test_module_supervise_loads_the_argv_config_before_running_the_wrapper(
     tmp_path: Path,
 ) -> None:
-    """The detached command gets past configuration and reaches wrapper loading."""
-    repo = tmp_path / "repo"
-    repo.mkdir()
+    """The detached command gets past configuration and reaches wrapper loading.
+
+    A REAL checkout, because composing now opens the ledger and the ledger's
+    fence lives in the git common directory (§3.4): a tree with no `.git`
+    refuses before bd is ever reached.
+    """
+    repo = make_repo(tmp_path)
     wrapper_root = (
         tmp_path
         / "home"
@@ -369,6 +386,8 @@ host = "host"
             "workflow_interpreter.foreman",
             "--config",
             str(config),
+            "--task",
+            "cr-3411.4",
             "supervise",
             "root-id",
             "activation-id",

@@ -81,9 +81,12 @@ class ProfileResolver(Protocol):
 class DetachedSpawner:
     """Start one wrapper without a shell or a borrowed terminal."""
 
-    def __init__(self, supervisor_config: SupervisorConfig, config_path: Path) -> None:
+    def __init__(
+        self, supervisor_config: SupervisorConfig, config_path: Path, task_id: str
+    ) -> None:
         self._supervisor_config = supervisor_config
         self._config_path = config_path
+        self._task_id = task_id
 
     def launch(
         self, launch: WrapperLaunch, *, wiring: "InstanceWiring | None" = None
@@ -104,6 +107,10 @@ class DetachedSpawner:
                     # so it precedes the subcommand here too (`__main__._parser`).
                     "--config",
                     str(self._config_path),
+                    # D16: the wrapper re-enters as its own process and has to
+                    # be told the task too, or it could not locate a backend.
+                    "--task",
+                    self._task_id,
                     "supervise",
                     launch.root_id,
                     launch.activation_id,
@@ -163,6 +170,12 @@ class Composition:
     profiles: ProfileResolver
     spawner: Spawner
     host_env: Mapping[str, str]
+    task_id: str | None = None
+    """The task bead every root of this process belongs to (D16).
+
+    Optional only because a test wiring may have no bead to name; every
+    production entry point supplies it, and the surfaces that need it —
+    export before close, the ledger's rows — refuse without one."""
     locate_backend: BackendLocator = bd_backend
     """Which backend owns a root, answered before the root is loaded (§3.2)."""
     drain_attention: AttentionDrain = no_attention_drain

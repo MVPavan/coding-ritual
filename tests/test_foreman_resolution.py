@@ -1151,7 +1151,7 @@ def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_hand
         lambda _config: "boot",
     )
     config_path = tmp_path / "foreman.toml"
-    DetachedSpawner(composition.supervisor_config, config_path).launch(
+    DetachedSpawner(composition.supervisor_config, config_path, "cr-3411.4").launch(
         WrapperLaunch(
             root_id="root",
             activation_id="activation",
@@ -1164,6 +1164,10 @@ def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_hand
     assert argv[3:] == (
         "--config",
         str(config_path),
+        # D16: the wrapper re-enters as its own process and must be told the
+        # task, or it could not locate the backend its root is pinned to.
+        "--task",
+        "cr-3411.4",
         "supervise",
         "root",
         "activation",
@@ -1202,7 +1206,9 @@ def test_detached_spawner_records_an_immediately_exited_wrapper(
         "workflow_interpreter.foreman.compose.procfs.read_boot_id",
         lambda _config: None,
     )
-    DetachedSpawner(composition.supervisor_config, tmp_path / "foreman.toml").launch(
+    DetachedSpawner(
+        composition.supervisor_config, tmp_path / "foreman.toml", "cr-3411.4"
+    ).launch(
         WrapperLaunch(root_id="root", activation_id="gone", request=entry_request())
     )
     record = composition.supervisor_config.wrapper_root / "root" / "gone"

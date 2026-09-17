@@ -31,6 +31,10 @@ from workflow_interpreter.bdio.wire import Metadata
 _MSG_UNSUPPORTED: Final[str] = (
     "no backend is configured for {requested!r}; this process was built on {pinned!r}"
 )
+_MSG_NOT_BUILT: Final[str] = (
+    "no backend is configured for {requested!r}; this process was built with "
+    "{available}"
+)
 
 
 class StoreBackend(Protocol):
@@ -129,6 +133,36 @@ class PinnedBackendFactory:
                 )
             )
         return self._backend
+
+
+class SelectableBackendFactory:
+    """The two-backend factory: one transport per kind, and no substitutions.
+
+    A cutover process holds BOTH — a bd transport for bd-pinned roots, the
+    task bead and the claims D20 keeps in bd, and a ledger transport for
+    ledger-pinned ones — and hands out whichever the located pin names. A kind
+    this process was not built with is a refusal naming what it does have,
+    never the other transport: a root read from the wrong store looks missing,
+    not broken.
+    """
+
+    def __init__(self, *backends: StoreBackend) -> None:
+        self._backends: dict[BackendKind, StoreBackend] = {
+            backend.kind: backend for backend in backends
+        }
+
+    def __call__(self, backend: BackendKind) -> StoreBackend:
+        """The transport for `backend`, or a refusal naming the ones built."""
+        found = self._backends.get(backend)
+        if found is None:
+            raise StoreConfigError(
+                _MSG_NOT_BUILT.format(
+                    requested=backend.value,
+                    available=", ".join(sorted(kind.value for kind in self._backends))
+                    or "no backend",
+                )
+            )
+        return found
 
 
 def bd_backend(root_id: str) -> BackendKind:

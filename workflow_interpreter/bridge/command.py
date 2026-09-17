@@ -367,6 +367,7 @@ def _execute(
             roots,
             lambda: composition.git.head_commit(cwd=composition.config.repo_root),
             verification_policy=policy,
+            root_backend=composition.config.store,
         )
         record = (
             admission.admit_successor(
@@ -558,7 +559,7 @@ def _retry_successor(
         and not BeadGateAuthority(wiring.store.reads).verify(prior.root_id).accepted
     ):
         raise PhaseBridgeRefused("retry lacks approved ship authority")
-    return prior.next_attempt()
+    return prior.next_attempt(composition.config.store)
 
 
 def _trace(

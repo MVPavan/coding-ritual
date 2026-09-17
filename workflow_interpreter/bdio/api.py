@@ -162,6 +162,7 @@ class WorkflowStore:
         artifact_reader: ArtifactReader | None = None,
         branch_head_reader: BranchHeadReader | None = None,
         backend_factory: StoreBackendFactory | None = None,
+        claims_backend: StoreBackend | None = None,
     ) -> WorkflowStore:
         """Build a store from configuration alone — the supported entry point.
 
@@ -186,6 +187,7 @@ class WorkflowStore:
             artifact_reader=artifact_reader,
             branch_head_reader=branch_head_reader,
             backend_factory=factory,
+            claims_backend=claims_backend,
         )
 
     def for_root(
