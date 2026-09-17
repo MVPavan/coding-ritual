@@ -25,7 +25,7 @@ import subprocess
 import time
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict
@@ -530,6 +530,11 @@ class ChildScript(BaseModel):
     write_path: str | None = None
     """One worktree-relative file written by the child for artifact drills."""
     write_body: str = ""
+    write_files: tuple[tuple[str, str], ...] = ()
+    """Further worktree-relative `(path, body)` files, parents created.
+
+    A debrief writes three files into one directory, which a single
+    `write_path` cannot express."""
     commit: bool = False
     """Commit the written artifact with the wrapper's runner identity."""
     artifact_path: str | None = None
@@ -571,10 +576,18 @@ class ChildScript(BaseModel):
             lines.append(
                 f"printf %s {_quote(self.write_body)} > {_quote(self.write_path)}"
             )
+        for path, body in self.write_files:
+            lines.append(f"mkdir -p -- {_quote(str(PurePosixPath(path).parent))}")
+            lines.append(f"printf %s {_quote(body)} > {_quote(path)}")
         if self.commit:
-            if self.write_path is None:
-                raise ValueError("a committing ChildScript needs a write_path")
-            lines.append(f"git add -- {_quote(self.write_path)}")
+            written = [
+                *([] if self.write_path is None else [self.write_path]),
+                *(path for path, _ in self.write_files),
+            ]
+            if not written:
+                raise ValueError("a committing ChildScript needs something written")
+            for path in written:
+                lines.append(f"git add -- {_quote(path)}")
             lines.append("git commit --quiet -m 'runner artifact'")
         if self.artifact_path is not None:
             destination = f'"$WF_ARTIFACT_DIR"/{_quote(self.artifact_path)}'

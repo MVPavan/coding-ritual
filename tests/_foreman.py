@@ -64,6 +64,7 @@ from workflow_interpreter.bdio.backend import (
 from workflow_interpreter.bdio.client import BdClient, CompletedCommand
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceWiring,
@@ -134,6 +135,7 @@ BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
 FAKE_PROFILE: Final[str] = "fake"
 FAKE_MODEL: Final[str] = "fake"
 LAB_TASK: Final[str] = "cr-lab.1"
+LAB_ATTEMPT: Final[int] = 1
 """The task bead every lab root belongs to (D16). A synthetic id, because the
 lab has no tracker: what the engine needs from it is a stable, path-safe name
 to key the ledger's rows by."""
@@ -629,6 +631,11 @@ class ForemanLab:
             ),
             allow_test_flags=self.allow_test_flags,
             instance_base_commit=self.head,
+            # The lab's roots pin a run identity for the same reason production
+            # roots do (run-ledger §3.7): the verify environment, and therefore
+            # `scripts/verify-debrief.sh`, reads the task and attempt off the
+            # record.
+            run_identity=RunIdentity(task_id=LAB_TASK, attempt=LAB_ATTEMPT),
         )
         branch = INSTANCE_BRANCH_REF.format(root_id=root.root_id)
         if self.git.ref_target(branch, cwd=self.repo) is None:

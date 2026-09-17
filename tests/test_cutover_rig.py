@@ -54,6 +54,8 @@ FEATURE_FILE: Final[str] = "src/feature.py"
 FEATURE_BODY: Final[str] = "value = 2\n"
 SHIP_GATE: Final[str] = "ship"
 BEAD_CLOSED: Final[str] = "closed"
+DEBRIEF_VERIFIER: Final[str] = "scripts/verify-debrief.sh"
+SHIPPED_GRAPH: Final[str] = "workflows/feature-delivery.toml"
 PROOF_SCRIPT: Final[str] = (
     "from pathlib import Path; assert Path('src/feature.py').is_file()"
 )
@@ -68,6 +70,29 @@ printf '%s\\n' '{"type":"system","subtype":"init","session_id":"SID","tools":[]}
 printf '%s\\n' '{"type":"result","subtype":"success","session_id":"SID",\
 "is_error":false,"result":"ok","total_cost_usd":0.1,\
 "usage":{"input_tokens":11,"output_tokens":22}}'
+# The debrief round, recognised by the one input only IT is given. It writes
+# the engine's render back out of the ref the engine pinned it under, which is
+# exactly what its verifier compares the commit against.
+case "$*" in
+  *ledger_render*)
+    ref=$(git for-each-ref --format='%(refname)' 'refs/wf/render/*' | head -n 1)
+    name=${ref##*/}
+    task=${name%-a*}
+    attempt=${name##*-a}
+    dir="docs/workstreams/${task%%.*}/runs/$task/a$attempt"
+    mkdir -p "$dir"
+    git cat-file blob "$ref:findings.md" > "$dir/findings.md"
+    git cat-file blob "$ref:evidence.json" > "$dir/evidence.json"
+    printf 'stub debrief\\n' > "$dir/debrief.md"
+    git add "$dir"
+    git -c user.email=stub@wf -c user.name=stub commit --quiet -m "stub debrief"
+    printf '%s' "$WF_MARKER_DONE" > "$WF_OUTCOME_FILE"
+    printf '{"paths":["%s/debrief.md","%s/findings.md","%s/evidence.json"]}' \
+      "$dir" "$dir" "$dir" > "$WF_EFFECTS_FILE"
+    printf 'from the stub\\n' > "$WF_ARTIFACT_DIR/note.txt"
+    exit 0
+    ;;
+esac
 # Which role this is, asked of the §2 mount bound rather than of the
 # environment: the writer's node grants `src/**` and the reviewer's grants
 # nothing in the checkout, and that IS the difference between the two nodes.
@@ -150,6 +175,10 @@ def _config_file(
         'model = "stub-model"\n'
         'effort = "low"\n'
         "[roles.critic]\n"
+        'profile = "claude"\n'
+        'model = "stub-model"\n'
+        'effort = "low"\n'
+        "[roles.scribe]\n"
         'profile = "claude"\n'
         'model = "stub-model"\n'
         'effort = "low"\n'
@@ -295,3 +324,96 @@ def test_a_stage_lands_end_to_end_on_a_real_rig(
         if composition.ledger is not None:
             composition.ledger.close()
     assert wall_s < RIG_WALL_BUDGET_S
+
+
+def _install_real_verifier(repo: Path) -> None:
+    """Replace the passing stub with THE shipped `scripts/verify-debrief.sh`.
+
+    `make_repo` writes a stub for every verifier the fixtures name, which is
+    right for tests about other things. This rig is about the debrief, so the
+    check that grades it has to be the one production ships.
+    """
+    source = Path(__file__).resolve().parents[1] / DEBRIEF_VERIFIER
+    target = repo / DEBRIEF_VERIFIER
+    target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+    target.chmod(0o755)
+    subprocess.check_call(["git", "add", DEBRIEF_VERIFIER], cwd=repo)
+    subprocess.check_call(
+        ["git", "commit", "--quiet", "-m", "the real debrief verifier"], cwd=repo
+    )
+
+
+@pytest.mark.bd
+@pytest.mark.acceptance
+def test_a_debrief_lands_with_the_code_it_describes(
+    tmp_path: Path,
+    bd_workspace: Path,
+    signing_key: Path,
+    sign_payload: Signer,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Run-ledger §3.7: the knowledge is part of the landing, not a follow-up.
+
+    The SHIPPED graph, the shipped `scripts/verify-debrief.sh`, and a real bd
+    workspace: what lands on `main` must carry the code AND this attempt's
+    `docs/workstreams/<epic>/runs/<task>/a1/` in one fast-forward, because a
+    debrief that lands separately is a debrief that can fail to land at all.
+    """
+    repo = make_repo(tmp_path)
+    _install_real_verifier(repo)
+    before = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=repo, text=True
+    ).strip()
+    graph = Path(__file__).resolve().parents[1] / SHIPPED_GRAPH
+    stub = _stub_binary(tmp_path / "bin")
+    config = _config_file(
+        repo=repo,
+        wrapper_home=tmp_path / "wrapper",
+        bd_workspace=bd_workspace,
+        allowed_signers=signing_key.parent / "allowed_signers",
+        graph=graph,
+        stub=stub,
+        store=BackendKind.LEDGER,
+    )
+    for name, value in (
+        ("WF_BODY", FEATURE_BODY),
+        ("WF_FEATURE", FEATURE_FILE),
+        ("WF_MARKER_DONE", STUB_MARKER % "done"),
+        ("WF_MARKER_ACCEPT", STUB_MARKER % "accept"),
+    ):
+        monkeypatch.setenv(name, value)
+    epic = _bd(
+        bd_workspace, "create", "--title", "rig debrief", "--type", "epic", "--silent"
+    )
+    stage = _bd(
+        bd_workspace,
+        "create",
+        "--title",
+        "rig debrief stage",
+        "--parent",
+        epic,
+        "--description",
+        "Implement the rig feature",
+        "--silent",
+    )
+
+    argv = ["--config", str(config), "phase-bridge", epic, stage]
+    assert main_module.main(argv) == 0
+    _approve_ship(config, stage, sign_payload)
+    assert main_module.main(argv) == 0
+
+    landed = subprocess.check_output(
+        ["git", "ls-tree", "-r", "--name-only", "HEAD"], cwd=repo, text=True
+    ).split()
+    run_dir = f"docs/workstreams/{stage.split('.')[0]}/runs/{stage}/a1"
+    assert FEATURE_FILE in landed
+    for name in ("debrief.md", "findings.md", "evidence.json"):
+        assert f"{run_dir}/{name}" in landed
+    # One fast-forward: no merge, and the base this run started from is still
+    # an ancestor of what `main` now points at.
+    assert not subprocess.check_output(
+        ["git", "rev-list", "--merges", f"{before}..HEAD"], cwd=repo, text=True
+    ).strip()
+    subprocess.check_call(
+        ["git", "merge-base", "--is-ancestor", before, "HEAD"], cwd=repo
+    )
