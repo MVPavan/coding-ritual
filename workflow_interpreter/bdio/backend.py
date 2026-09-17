@@ -134,6 +134,23 @@ class PinnableBackendLocator(Protocol):
         """Record the backend a root was created on."""
 
 
+@runtime_checkable
+class RecordPinnableBackendLocator(Protocol):
+    """A locator that can be told what a BRIDGE RECORD says (§3.2).
+
+    Separate from `PinnableBackendLocator` because the two pins do not have
+    the same authority: a creation pin is the fact, while a record's pin is
+    the weakest of §3.2's sources and must never override what the store
+    itself already says.
+    """
+
+    def __call__(self, root_id: str) -> BackendKind:
+        """The backend pinned for this root."""
+
+    def pin_record(self, root_id: str, backend: BackendKind) -> None:
+        """Record a bridge record's pin, behind every stronger source."""
+
+
 class PinnedBackendFactory:
     """The single-backend factory: one transport, and a refusal for the rest.
 

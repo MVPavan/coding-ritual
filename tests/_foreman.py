@@ -673,7 +673,9 @@ class ForemanLab:
         assert self.root is not None
         if self.signer is None:
             raise AssertionError("ForemanLab.approve requires a signer")
-        gate = self.store.reads.load_gate(gate_id)
+        # Through the locator: a gate belongs to its ROOT's store, which is
+        # not this process's store once an attempt runs on the other backend.
+        gate = self.composition.reads_for_root(self.root.root_id).load_gate(gate_id)
         rendered = GatePayload.model_validate_json(payload_template(self.root, gate))
         payload = rendered.model_copy(
             update={

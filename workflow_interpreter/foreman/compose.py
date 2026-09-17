@@ -13,6 +13,7 @@ from workflow_interpreter.bdio import MintRequest, WorkflowStore
 from workflow_interpreter.bdio.backend import (
     BackendLocator,
     PinnableBackendLocator,
+    RecordPinnableBackendLocator,
     bd_backend,
 )
 from workflow_interpreter.bdio.constants import BackendKind
@@ -242,6 +243,19 @@ class Composition:
         locator = self.locate_backend
         if isinstance(locator, PinnableBackendLocator):
             locator.pin(root_id, backend)
+
+    def pin_record_backend(self, root_id: str, backend: BackendKind) -> None:
+        """Tell the locator what a bridge record says about a root (§3.2).
+
+        Every resume and recovery entry installs this BEFORE it loads the
+        root: a process that restarted holds no pin, and for a bd attempt of
+        a ledger-pinned task the `tasks` row answers for attempt one, so a
+        load that asked first would read the wrong store and report a live
+        run as missing (D18).
+        """
+        locator = self.locate_backend
+        if isinstance(locator, RecordPinnableBackendLocator):
+            locator.pin_record(root_id, backend)
 
     def _store_on(self, root_id: str, backend: BackendKind) -> WorkflowStore:
         """The root's store over an ALREADY located backend.

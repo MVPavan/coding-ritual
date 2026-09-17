@@ -87,7 +87,10 @@ def _bridge_lab(
 
     def drive(self, root_id, *, poll_s, max_wall_s, monitored=False):
         """Run the graph to its terminal through the REAL tick loop."""
-        lab.root = lab.store.reads.load_root(root_id)
+        # Through the LOCATOR, the way production reads a root: this drill
+        # runs attempts on either backend, and the lab's own store is only
+        # the one the process started on.
+        lab.root = lab.composition.reads_for_root(root_id).load_root(root_id)
         lab.profiles.next_script(
             ChildScript(
                 marker='{"outcome":"done"}\n',
@@ -411,6 +414,49 @@ def test_a_retry_creates_its_root_on_the_backend_its_record_names(
         .root_id
         == admitted.root_id
     )
+
+
+@pytest.mark.acceptance
+@pytest.mark.parametrize(
+    ("first", "second"),
+    ((BackendKind.LEDGER, BackendKind.BD), (BackendKind.BD, BackendKind.LEDGER)),
+)
+def test_a_restarted_process_resumes_the_root_the_record_names(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    signing_config,
+    sign_payload,
+    first: BackendKind,
+    second: BackendKind,
+) -> None:
+    """D18, §3.2: the record is the pin a restart has, so it must be USED first.
+
+    A retry admitted after the switch flipped is a live root of the new
+    backend, and the process that admitted it can die before it runs. The
+    locator that comes up next holds nothing in memory: for a bd attempt of a
+    ledger-pinned task the ledger has no row and the `tasks` row still names
+    attempt one, so a resume that loads the root BEFORE installing the
+    record's own pin reads the wrong store and reports a live run as missing.
+    """
+    lab = _bridge_lab(tmp_path, monkeypatch, signing_config, sign_payload, first)
+    adapter = _bridge_adapter(lab)
+    admitted = _admit_only(lab)
+    flipped = lab.composition.config.model_copy(update={"store": second})
+    lab.composition = replace(lab.composition, config=flipped)
+    retried = _admit_successor(lab, adapter, admitted.next_attempt(second))
+    assert retried.root_backend is second
+
+    # The process restarts: the locator keeps nothing the record does not say.
+    lab.composition = replace(
+        lab.composition,
+        locate_backend=RootBackendLocator(LAB_TASK, ledger=lab.ledger),
+    )
+
+    resumed = _entry(lab, STAGE)
+
+    assert resumed.exit_code == 0, resumed.report
+    assert _bridge_adapter(lab).record(STAGE).root_id == retried.root_id
+    assert lab.composition.locate_backend(retried.root_id or "") is second
 
 
 def _admit_successor(

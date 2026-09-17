@@ -70,6 +70,26 @@ class RootBackendLocator:
             )
         self._pins[root_id] = backend
 
+    def pin_record(self, root_id: str, backend: BackendKind) -> None:
+        """Record what a BRIDGE RECORD says, behind every stronger source.
+
+        The record is what a restarted process has for an attempt root the
+        ledger holds no row for — a bd attempt of a ledger-pinned task, where
+        the `tasks` row would otherwise answer for attempt one. It is the
+        WEAKEST source even so: a `roots` row is the pin the root was actually
+        created with, and a record may carry this field's default rather than
+        an answer, because an integration bridge record never sets it
+        (`bridge/integration.py`). So anything already known wins, silently.
+        """
+        if self._pins.get(root_id) is not None:
+            return
+        if self._ledger is not None:
+            found = root_backend(self._ledger, root_id)
+            if found is not None:
+                self._pins[root_id] = found
+                return
+        self._pins[root_id] = backend
+
     def __call__(self, root_id: str) -> BackendKind:
         """The backend pinned for this root, or a refusal naming it."""
         pinned = self._pins.get(root_id)

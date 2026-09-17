@@ -260,7 +260,7 @@ def _execute(
                 "legacy bridge journal lacks verification policy; human attention required"
             )
         if prior.root_id is not None:
-            wiring = composition.for_root(_safe_root_id(prior.root_id))
+            wiring = composition.for_root(_pinned_root(composition, prior))
             root = wiring.store.reads.load_root(prior.root_id)
             if (
                 prior.integration_digest is None
@@ -399,7 +399,7 @@ def _run_record(
     """Resume the admitted root without reprovisioning from current configuration."""
     adapter.guard_integration(record)
     run = Foreman(composition).run(
-        _require_root(record),
+        _pinned_root(composition, record),
         poll_s=RUN_DEFAULT_POLL_S,
         max_wall_s=RUN_DEFAULT_MAX_WALL_S,
         monitored=monitored,
@@ -440,7 +440,7 @@ def _land(
     """Compose authoritative landing using the admitted policy, including repair."""
     if record.verification_policy is None:
         raise PhaseBridgeRefused("bridge verification policy missing")
-    wiring = composition.for_root(_require_root(record))
+    wiring = composition.for_root(_pinned_root(composition, record))
     # D17 and §3.6: the ledger surfaces are composed HERE, from the one
     # connection this process holds, and they are absent only for a wiring
     # with no ledger at all — where the adapter refuses the close instead.
@@ -563,7 +563,7 @@ def _retry_successor(
         raise PhaseBridgeRefused(MSG_RETRY_NO_RECORD) from error
     if prior.root_id is None:
         raise PhaseBridgeRefused(MSG_RETRY_NO_ROOT)
-    wiring = composition.for_root(_safe_root_id(prior.root_id))
+    wiring = composition.for_root(_pinned_root(composition, prior))
     root = wiring.store.reads.load_root(prior.root_id)
     frontier = build_frontier(root, wiring.store.reads.instance_records(prior.root_id))
     terminals = root.definition.document.instance.phase_bridge_retry_terminals or ()
@@ -608,7 +608,7 @@ def _trace(
     }
     if record is None or record.root_id is None:
         return PhaseBridgeCommandResult(exit_code=EXIT_OK, report=report)
-    wiring = composition.for_root(record.root_id)
+    wiring = composition.for_root(_pinned_root(composition, record))
     root = wiring.store.reads.load_root(record.root_id)
     frontier = build_frontier(root, wiring.store.reads.instance_records(record.root_id))
     intent = read_record(wiring.paths.instance_dir / LANDING_INTENT_FILE, LandingIntent)
@@ -684,6 +684,19 @@ def _require_root(record: PhaseBridgeRecord) -> str:
     if record.root_id is None:
         raise PhaseBridgeRefused(MSG_ADMISSION_NO_ROOT)
     return _safe_root_id(record.root_id)
+
+
+def _pinned_root(composition: Composition, record: PhaseBridgeRecord) -> str:
+    """Install the record's own pin BEFORE its root is first located (§3.2).
+
+    The record is the only thing a restarted process has: for a bd attempt of
+    a ledger-pinned task the ledger holds no row and the `tasks` row still
+    names the first attempt's backend, so a load that asks the locator first
+    reads the wrong store and reports a live run as missing (D18).
+    """
+    root_id = _require_root(record)
+    composition.pin_record_backend(root_id, record.root_backend)
+    return root_id
 
 
 def _result(
