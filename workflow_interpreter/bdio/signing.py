@@ -241,6 +241,13 @@ class AllowedSigner(BaseModel):
 
     principals: tuple[str, ...]
     key_type: str
+    key_blob: str
+    """The base64 public key exactly as the allow-list line carried it.
+
+    Retained because D21 asks a LATER reader to re-verify a historical
+    approval from the export alone: a fingerprint identifies a key, it is not
+    one, and `ssh-keygen -Y verify` needs the key itself. This is public
+    material — the same bytes anyone can read out of `allowed_signers`."""
     fingerprint: str
     namespaces: tuple[str, ...] = ()
     """Empty = the entry carries no `namespaces=` restriction, so the key may
@@ -403,9 +410,27 @@ def _parse_signer_line(line: str, line_no: int, path: Path) -> AllowedSigner:
     return AllowedSigner(
         principals=principals,
         key_type=declared_type,
+        key_blob=fields[key_index + 1],
         fingerprint=key_fingerprint(blob),
         namespaces=_namespaces_option(options),
     )
+
+
+def allowed_signers_line(signer: AllowedSigner) -> str:
+    """Render one parsed entry back into the file `ssh-keygen -Y` reads.
+
+    The inverse of `_parse_signer_line` over everything that DECIDES a
+    verification — principals, the `namespaces=` restriction, the key type and
+    the key — and nothing that does not, so a re-verification runs against the
+    trust that was recorded rather than against the allow-list of today (D21).
+    """
+    options = (
+        ""
+        if not signer.namespaces
+        else f'namespaces="{_OPTION_SEPARATOR.join(signer.namespaces)}" '
+    )
+    principals = _OPTION_SEPARATOR.join(signer.principals)
+    return f"{principals} {options}{signer.key_type} {signer.key_blob}\n"
 
 
 def _blob_key_type(blob: bytes) -> str | None:
