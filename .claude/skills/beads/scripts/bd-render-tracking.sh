@@ -165,12 +165,37 @@ $progress"
 
 # ── main ────────────────────────────────────────────────────────────────────────────────────────
 render_board
-# Per-workstream: drive off the spec_ids of all epics (incl. closed); only those under docs/workstreams/.
+# Per-workstream: drive off the spec_ids of all epics (incl. closed).
+#   • under docs/workstreams/  → render its tracking trio
+#   • "(no anchor)"            → legitimate: an epic that belongs to no workstream
+#   • anything else            → MISCONFIGURED. spec_id is the workstream ANCHOR: it
+#     names the workstream and decides where tracking/ is written. A spec_id pointing
+#     somewhere else means that workstream silently gets no mirrors, so fail loudly.
 SPEC_IDS="$(all_epics_tsv | cut -f3 | sort -u)"
-for spec in $SPEC_IDS; do
+misanchored=0
+while IFS= read -r spec; do
+  [ -n "$spec" ] || continue
   case "$spec" in
-    "$WS_REL"/*) render_workstream "$spec" ;;
-    *) echo "  skip (spec_id not under $WS_REL/): $spec" ;;
+    "$WS_REL"/*)   render_workstream "$spec" ;;
+    "(no anchor)") echo "  skip: $(all_epics_tsv | awk -F'\t' '$3=="(no anchor)"' | wc -l | tr -d ' ') epic(s) with no spec_id (not workstream epics)" ;;
+    *)
+      misanchored=1
+      {
+        echo "  ERROR: epic spec_id is not under $WS_REL/ — no tracking was written for it."
+        echo "         spec_id:  $spec"
+        echo "         spec_id is the workstream ANCHOR. It names the workstream and"
+        echo "         determines the tracking output directory. Point it at the roadmap:"
+        echo "           bd update <epic> --spec-id $WS_REL/<name>/roadmap.md \\"
+        echo "                            --design <the governing spec>"
+        echo "         Affected epics:"
+        all_epics_tsv | awk -F'\t' -v s="$spec" '$3==s {printf "           %s  %s\n", $1, $4}'
+      } >&2
+      ;;
   esac
-done
+done <<<"$SPEC_IDS"
+
+if [ "$misanchored" -ne 0 ]; then
+  echo "done (with errors) — some workstreams have no tracking mirrors." >&2
+  exit 1
+fi
 echo "done."

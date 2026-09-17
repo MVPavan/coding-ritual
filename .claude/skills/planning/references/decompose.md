@@ -53,11 +53,21 @@ choices. Clarify only material ambiguity; do not demand a repeated approval phra
 Codex: `codex:<thread>`) on every bd write.
 
 1. **Epic per phase:**
-   `bd create -t epic "[<phase-id>] <phase>" --spec-id docs/specs/<spec>.md --design docs/workstreams/<name>/roadmap.md -l ws-<name> --actor … -q`
-   — `--spec-id` carries the spec (what was committed), `--design` the roadmap
-   (how it is sequenced); the `ws-<name>` label is the workstream key execution
-   filters on (a workstream accumulates epics from many specs, so neither doc
-   path can serve as its key).
+   `bd create -t epic "[<phase-id>] <phase>" --spec-id docs/workstreams/<name>/roadmap.md --design docs/specs/<spec>.md -l ws-<name> --actor … -q`
+   — **`--spec-id` is the workstream anchor: it must be the roadmap.** The
+   renderer derives the workstream name and the `tracking/` output directory
+   from `dirname(spec_id)`, so an anchor outside `docs/workstreams/<name>/`
+   produces no mirrors (the renderer now fails with exit 1 rather than
+   skipping quietly). `--design` carries the governing spec — the renderer
+   collects the unique `design` values across a workstream, so several specs
+   can feed one workstream. Keep every epic in a workstream on the **same**
+   `spec_id`: the renderer groups by exact match and writes the same
+   `tracking/` directory once per distinct value, so a split anchor silently
+   leaves only the last group in the mirror. The `ws-<name>` label remains the
+   key execution filters on.
+
+   The flag names read backwards here: the field called `--spec-id` holds the
+   roadmap and the field called `--design` holds the spec.
 2. **Flat stage children** — one per deliverables row:
    `bd create "<stage>" --parent <epic> -t task --acceptance "<the row's Verify cell>" --actor … -q`
    → dotted ids `<epic>.N`. No sub-tasks. Every stage carries acceptance.
