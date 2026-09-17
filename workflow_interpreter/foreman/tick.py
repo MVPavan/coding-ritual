@@ -67,6 +67,7 @@ from workflow_interpreter.foreman.rpc_control import (
     control_attention,
 )
 from workflow_interpreter.foreman.transcript import bounded_tail
+from workflow_interpreter.ledger.tasks import export_oid
 from workflow_interpreter.schema.models import NodeKind
 from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
@@ -86,6 +87,11 @@ from workflow_interpreter.supervisor.paths import read_record, read_tail
 from workflow_interpreter.supervisor.steer import Steerer
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
+
+MSG_CLEANUP_NEEDS_EXPORT: Final[str] = (
+    "a bridge task's run folders are deleted only after its export is pinned "
+    "(run-ledger §3.9)"
+)
 
 
 class TickReport(BaseModel):
@@ -722,6 +728,37 @@ class Foreman:
         self._cleanup_terminal_worktree(wiring, root)
         return recorded
 
+    def _export_pending(self, root: RootRecord) -> bool:
+        """Whether a BRIDGE-owned root still owes the export its task closes on.
+
+        §3.9 and D14: nothing destructive happens before the record is durable,
+        and for a bridge task the record is durable only once `tasks.export_oid`
+        names the blob the export was pinned as (§3.6). A non-bridge root owes
+        no export and is unaffected; a bridge root this process cannot ask
+        about — no ledger, no task — is deferred rather than cleaned, because
+        the cleanup is idempotent and retried, and the deletion is not.
+        """
+        # Imported here for the same reason `landing` imports `guard_bridge`
+        # here: the driver is BELOW the bridge, and only this one question
+        # about the owning task's closure path crosses that line.
+        from workflow_interpreter.bridge.models import INSTANCE_KEY_PREFIX
+
+        if not root.metadata.instance_key.startswith(INSTANCE_KEY_PREFIX):
+            return False
+        ledger = self._composition.ledger
+        task_id = self._composition.task_id
+        if ledger is None or task_id is None:
+            return True
+        pending = export_oid(ledger, task_id) is None
+        if pending:
+            _LOG.info(
+                "wf.ledger.cleanup_deferred",
+                root_id=root.root_id,
+                task_id=task_id,
+                reason=MSG_CLEANUP_NEEDS_EXPORT,
+            )
+        return pending
+
     def _drain_attention(self, root_id: str) -> None:
         """Write the label this settlement implies, before the driver exits.
 
@@ -747,6 +784,8 @@ class Foreman:
         """D-T1: remove only a clean worktree whose writing outputs are pinned."""
         worktree = wiring.paths.worktree
         if not worktree.exists():
+            return
+        if self._export_pending(root):
             return
         activations = wiring.store.reads.list_activations(root.root_id)
         if any(

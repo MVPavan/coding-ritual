@@ -36,7 +36,11 @@ from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.tick import Foreman, RunReport
 from workflow_interpreter.ledger.paths import export_path
-from workflow_interpreter.ledger.tasks import export_oid, task_backend
+from workflow_interpreter.ledger.tasks import (
+    export_oid,
+    record_export_oid,
+    task_backend,
+)
 from workflow_interpreter.schema.models import Outcome
 
 STAGE: Final[str] = "a"
@@ -44,6 +48,8 @@ PROOF_SCRIPT: Final[str] = (
     "from pathlib import Path; assert Path('src/feature.py').is_file()"
 )
 """The bridge check the landing runs in its detached verify tree."""
+EXPORT_BLOB_OID: Final[str] = "e" * 40
+"""A stand-in for the blob a close pins, where the pin is the point (§3.6)."""
 LEDGER_ROOT_PREFIX: Final[str] = f"{LAB_TASK}-a"
 """D8: a ledger root is `<task>-a<n>`, so the id itself names its backend."""
 
@@ -445,3 +451,34 @@ def _admit_successor(
         successor.expected_base_commit,
         successor,
     )
+
+
+@pytest.mark.acceptance
+def test_a_bridge_task_keeps_its_worktree_until_the_export_is_pinned(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """§3.9, D14: nothing is deleted before the task's record is durable.
+
+    Settlement happens BEFORE the bridge lands and closes, so the tick that
+    would delete the run folders runs while the export does not exist yet.
+    Deleting there destroys the worktree of a task whose whole record could
+    still be lost with `.wf/`; the cleanup is idempotent and a later tick does
+    it, so waiting costs a retry and deleting costs the evidence.
+    """
+    lab = _bridge_lab(
+        tmp_path, monkeypatch, signing_config, sign_payload, BackendKind.LEDGER
+    )
+
+    assert _entry(lab, STAGE).exit_code == 0
+    record = _bridge_adapter(lab).record(STAGE)
+    worktree = lab.composition.for_root(record.root_id or "").paths.worktree
+    assert worktree.exists(), "the settling tick ran before any export existed"
+
+    # The task the DRIVER owns is the lab's synthetic one (`LAB_TASK`), not the
+    # stage bead the bridge closed, so its export is pinned here rather than by
+    # the close above; what is under test is the gate, not who writes it.
+    assert export_oid(lab.ledger, LAB_TASK) is None
+    record_export_oid(lab.ledger, LAB_TASK, EXPORT_BLOB_OID)
+    lab.foreman.tick(record.root_id or "")
+
+    assert not worktree.exists()

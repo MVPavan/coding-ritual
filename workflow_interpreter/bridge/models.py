@@ -12,8 +12,15 @@ from workflow_interpreter.bridge.verification import VerificationPolicy
 
 type PhaseBridgeSchema = Literal["phase-bridge/3"]
 PHASE_BRIDGE_SCHEMA: Final[PhaseBridgeSchema] = "phase-bridge/3"
+INSTANCE_KEY_PREFIX: Final[str] = "phase-bridge:"
+"""What makes a root BRIDGE-owned, readable from the root itself (§3.9).
+
+Terminal cleanup has to know whether the task that owns a root closes through
+the bridge — and therefore owes an export before anything is deleted — without
+a bd round trip per tick. The instance key is pinned on the root record, so the
+answer is already in hand."""
 INSTANCE_KEY_TEMPLATE: Final[str] = (
-    "phase-bridge:{epic_id}:{stage_id}:attempt:{attempt}"
+    INSTANCE_KEY_PREFIX + "{epic_id}:{stage_id}:attempt:{attempt}"
 )
 MSG_INSTANCE_KEY: Final[str] = "phase bridge instance_key is not derived from identity"
 MSG_PREVIOUS_ATTEMPTS_COUNT: Final[str] = (
