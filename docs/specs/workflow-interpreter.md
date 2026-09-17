@@ -390,6 +390,14 @@ Every workflow bead: created via the typed wrapper with
 gate | event` and `wf_root_id = <root bead id>` (roots carry their own id)
 — the discriminator + linkage every query uses.
 
+**Backend note (run ledger).** §3.1–§3.4 describe the CARRIERS, not the
+store. Since the run ledger they exist on either backend: as the beads below
+when the root is bd-backed, and as `roots` / `activations` / `events` /
+`gates` rows — whole carrier in `metadata_json` plus indexed projections —
+when it is ledger-backed, pinned per root and unchanged for its life. Fields,
+discriminators and linkage are identical; only the writer differs. Details:
+`docs/workstreams/run-ledger/roadmap.md` §3.3 and D3, D8, D18, and ADR 0005.
+
 ### 3.1 Root bead (`wf_kind: root`)
 
 Metadata: `graph_id`, `graph_version`, `graph_content_hash`, **the
@@ -565,7 +573,9 @@ continuations.
 
 `minted → dispatched → exit-recorded → evidence-recorded → closed`
 (plus `superseded`). Each change is one typed-wrapper write; writes are
-idempotent (re-applying a recorded state is a no-op).
+idempotent (re-applying a recorded state is a no-op). On the ledger backend
+the same state changes are one local transaction each, through the same store
+seam (roadmap §3.4).
 
 ### 5.2 Two-phase activation
 
@@ -629,7 +639,11 @@ survives crashes; a trailing cleanup does not. (In-repo: §12.)
 **Worktree record** (per instance band): path
 `.wf/<root_id>/worktree`, branch `wf/<root_id>/candidate`, owner = current
 activation, expected HEAD = its `intended_base_commit`; created by the
-wrapper at first dispatch, removed at terminal. A `writes = false` node
+wrapper at first dispatch, removed at terminal. Terminal cleanup removes the
+worktree, the throwaway §7.3 verify tree and each closed activation's
+`channels/scratch` together, under the existing liveness and clean-tree
+guards, and for a bridge task only after the task's export is pinned
+(roadmap §3.9, D14); it is idempotent and retried on the next tick. A `writes = false` node
 (the reviewer) gets a read-only checkout at the reviewed commit; its
 outputs go to `$WF_ARTIFACT_DIR`.
 
@@ -964,7 +978,11 @@ fingerprint is on an **allow-list pinned outside the workspace** (in the
 validator's own configuration; not the repo, not the ambient keyring).
 The wrapper verifies signature AND fingerprint equality (never just
 `verify-tag` exit 0) before `close_gate_verified` takes the declared
-edge. `rebudget` payloads carry the new bound; the wrapper records the
+edge. On the ledger backend the close also stores the payload bytes, the
+signature bytes, the signer fingerprint, **the allow-list entry that matched
+and the policy in force**, so `wf ledger verify <task>` re-verifies every
+approval from the committed export alone — no ledger, no allow-list on disk —
+against the trust of the moment rather than today's (roadmap D21). `rebudget` payloads carry the new bound; the wrapper records the
 mutation ON THE GATE BEAD in the same write that closes it — bound
 authority is the root's creation-time config ⊕ the mutations of the
 instance's CLOSED rebudget gates (max per key). No root-config write
@@ -1033,7 +1051,9 @@ All bounds are **pre-mint predicates** with explicit operators:
    The single auditable boundedness statement.
 4. **Exhaust re-entry** only via a verified `rebudget` payload writing
    the raised bound with provenance. Exhaustion gates are unique by key
-   (§3.4) — never re-minted by re-ticking.
+   (§3.4) — never re-minted by re-ticking. On the ledger backend the
+   mutation is written in the same transaction that closes the gate, so a
+   raised bound and its provenance cannot separate (roadmap §3.4).
 5. **No-progress breaker** (wrapper-computed, evaluated when the NEXT
    attempt completes): identical artifact identity (tree OID) with the
    rejected attempt → record `breaker: no_progress` in evidence and route
@@ -1049,6 +1069,12 @@ runners by read-only bd, against the foreman by the sweep — not
 "unfalsifiable".
 
 ## 11. bd probes
+
+**Scope note (run ledger).** Everything in §11 — and ADR 0003's argv ceiling
+— is about **the bd backend**, which still exists and still carries the
+`phase-bridge` record and the `wf:attention` label (roadmap D7, D20). Ledger
+writes are parameterised SQL on an in-process connection: no argv, no
+`--event-payload` shape, no second-granularity timestamps. See ADR 0005.
 
 **Precondition probes — run BEFORE v1 code is written** (each with its
 named fallback):
