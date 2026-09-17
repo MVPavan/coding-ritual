@@ -89,8 +89,16 @@ STEADY_TICK_BD_CALLS: Final[int] = 5
 """Calls a steady-state decision tick makes; pinned by
 `test_admission_tick_stays_at_five_bd_calls` so a regression here is caught by
 a count rather than by a clock."""
-CLOSE_TICK_BD_CALLS: Final[int] = 58
-"""Calls the two closing ticks make: collection plus terminal writes (29 each)."""
+CLOSING_TICK_BD_CALLS: Final[int] = 29
+"""Calls ONE closing tick makes: collection plus terminal writes."""
+CLOSING_TICKS: Final[int] = 2
+"""How many closing ticks the drill ends with — the terminal is reached in the
+first and disposed in the second."""
+CLOSE_TICK_BD_CALLS: Final[int] = CLOSING_TICK_BD_CALLS * CLOSING_TICKS
+"""Calls the two closing ticks make together."""
+OPENING_SPLIT_TICK_BD_CALLS: Final[int] = 18
+"""The second opening tick, when the opening takes two: the foreman looked
+before the forked member had exited, so instantiation and admission split."""
 EXPECTED_TICKS: Final[int] = 8
 """Steady ticks the drill is expected to need while the forked writer runs;
 measured at 6, with two ticks of slack."""
@@ -118,6 +126,39 @@ TOTAL_CALL_TOLERANCE: Final[int] = 18
 tick (measured at 18 calls) and nothing more. The steady count varies with
 where the forked member is when the foreman looks, so the total is asserted as
 a CEILING — which is exactly the premise `bd_wall_budget_s` rests on."""
+
+
+def tick_shape_refusal(per_tick: Sequence[int]) -> str | None:
+    """Why this per-tick call sequence is not the drill's shape, or `None`.
+
+    Pure, so the classification itself is testable without bd. The shape is
+    positional rather than inferred from the counts, because inferring it is
+    exactly the hole the review found: an early regressed tick that happens to
+    cost MORE than a steady one used to be read as a second opening tick and
+    then only had to stay under a total ceiling to pass. So the opening prefix
+    is the first tick (33 or 34) plus at most the known split tick, the
+    closing suffix is exactly two 29-call ticks, and EVERY tick in between must
+    equal `STEADY_TICK_BD_CALLS` — no tolerance, no inference.
+    """
+    if len(per_tick) < CLOSING_TICKS + 1:
+        return f"the drill made {len(per_tick)} ticks: {list(per_tick)}"
+    opening = {START_TICK_BD_CALLS - START_TICK_TOLERANCE, START_TICK_BD_CALLS}
+    if per_tick[0] not in opening:
+        return f"the opening tick cost {per_tick[0]}, not {sorted(opening)}: {list(per_tick)}"
+    steady_from = 1
+    if per_tick[1] == OPENING_SPLIT_TICK_BD_CALLS:
+        steady_from = 2
+    closing = per_tick[-CLOSING_TICKS:]
+    if any(count != CLOSING_TICK_BD_CALLS for count in closing):
+        return f"the closing ticks cost {list(closing)}: {list(per_tick)}"
+    middle = per_tick[steady_from : len(per_tick) - CLOSING_TICKS]
+    for index, count in enumerate(middle, start=steady_from):
+        if count != STEADY_TICK_BD_CALLS:
+            return (
+                f"tick {index} cost {count}, not the steady "
+                f"{STEADY_TICK_BD_CALLS}: {list(per_tick)}"
+            )
+    return None
 
 
 def calibrated_latency_s(sample: float) -> float:
@@ -201,6 +242,33 @@ def test_replay_admits_only_one_original_owner_member(
         )
 
 
+@pytest.mark.parametrize(
+    ("per_tick", "accepted"),
+    (
+        ((34, 5, 5, 5, 29, 29), True),
+        ((33, 5, 29, 29), True),
+        ((34, 18, 5, 5, 29, 29), True),
+        ((34, 6, 5, 5, 29, 29), False),
+        ((34, 5, 6, 5, 29, 29), False),
+        ((34, 5, 5, 5, 29), False),
+        ((34, 5, 5, 5, 29, 30), False),
+        ((31, 5, 5, 29, 29), False),
+    ),
+)
+def test_the_tick_shape_classifier_places_every_tick(
+    per_tick: tuple[int, ...], accepted: bool
+) -> None:
+    """The classification the bd drill rests on, decided without bd.
+
+    `(34, 6, …)` is the regression the review found: a second tick that is
+    dearer than a steady one but cheaper than an opening one used to pass as
+    "still opening" and then only had to fit under a total ceiling.
+    """
+    refusal = tick_shape_refusal(per_tick)
+
+    assert (refusal is None) is accepted, refusal
+
+
 def test_admission_tick_stays_at_five_bd_calls(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -243,28 +311,10 @@ def test_admission_tick_stays_at_five_bd_calls(
         for process in spawner.processes:
             process.join(timeout=5)
     assert result.report.terminal, result
-    # EVERY tick is classified, and every steady one is asserted on its own.
-    # The opening phase can take one tick or two (34, or 34 then 18, depending
-    # on where the forked member is when the foreman looks) and the run ends
-    # with two 29-call closing ticks; everything between them must cost exactly
-    # `STEADY_TICK_BD_CALLS`. A truncating scan would stop at the first
-    # expensive tick and let a later intermittent one through — which is the
-    # regression this now catches.
-    steady = [
-        index for index, count in enumerate(per_tick) if count <= STEADY_TICK_BD_CALLS
-    ]
-    expensive = [
-        index for index, count in enumerate(per_tick) if count > STEADY_TICK_BD_CALLS
-    ]
-    assert steady, f"no tick stayed within its per-tick budget: {per_tick}"
-    assert all(per_tick[index] == STEADY_TICK_BD_CALLS for index in steady), per_tick
-    opening = [index for index in expensive if index < steady[0]]
-    closing = [index for index in expensive if index > steady[-1]]
-    assert opening + closing == expensive, (
-        f"an expensive tick between two steady ones: {per_tick}"
-    )
-    assert sum(per_tick[index] for index in closing) == CLOSE_TICK_BD_CALLS, per_tick
-    assert abs(per_tick[0] - START_TICK_BD_CALLS) <= START_TICK_TOLERANCE, per_tick
+    # EVERY tick is classified by position and asserted on its own; a tick that
+    # is neither the opening, the known split, nor one of the two closing ticks
+    # must cost exactly `STEADY_TICK_BD_CALLS`, whatever the total says.
+    assert tick_shape_refusal(per_tick) is None
     total = sum(per_tick)
     assert total <= EXPECTED_BD_CALLS + TOTAL_CALL_TOLERANCE, (
         f"the drill made {total} bd calls, over the "
