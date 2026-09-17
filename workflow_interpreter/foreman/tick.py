@@ -790,12 +790,11 @@ class Foreman:
         Every step is idempotent and best effort, so a tick that cannot finish
         the set leaves what remains for the next one (D14).
         """
-        worktree = wiring.paths.worktree
-        verify_tree = wiring.paths.verify_tree
-        if not worktree.exists() and not verify_tree.exists():
-            if not self._export_pending(root):
-                self._cleanup_scratch(wiring, root)
-            return
+        from workflow_interpreter.supervisor.toolchain_cleanup import (
+            cleanup_scratch,
+            death_refusal,
+        )
+
         if self._export_pending(root):
             return
         activations = wiring.store.reads.list_activations(root.root_id)
@@ -808,12 +807,30 @@ class Foreman:
             for activation in activations
         ):
             return
+        # Proven death FIRST, and for EVERY activation of the root, not per
+        # directory: the durable close of an activation is a record event and
+        # the runner's process is an operating-system one, so a settled root
+        # can still have a live child holding the worktree, the verify tree or
+        # its own scratch. Deleting any of the three under a live process is
+        # how a run loses the bytes it was still writing (§3.9).
+        for activation in activations:
+            refusal = death_refusal(wiring.paths, activation)
+            if refusal is not None:
+                _LOG.info(
+                    "wf.cleanup.deferred",
+                    root_id=root.root_id,
+                    activation_id=activation.activation_id,
+                    reason=refusal,
+                )
+                return
+        worktree = wiring.paths.worktree
         if worktree.exists():
             if self._composition.git.status_paths(cwd=worktree):
                 return
             wiring.workspace.remove_worktree()
-        self._remove_verify_tree(verify_tree)
-        self._cleanup_scratch(wiring, root)
+        self._remove_verify_tree(wiring.paths.verify_tree)
+        for activation in activations:
+            cleanup_scratch(wiring.paths, activation)
 
     def _remove_verify_tree(self, verify_tree: Path) -> None:
         """Drop the throwaway §7.3 checkout a killed check may have left.
@@ -830,10 +847,3 @@ class Foreman:
         if verify_tree.exists():
             shutil.rmtree(verify_tree, ignore_errors=True)
         git.worktree_prune(cwd=repo_root)
-
-    def _cleanup_scratch(self, wiring: InstanceWiring, root: RootRecord) -> None:
-        """Delete every closed activation's scratch under §3.9's guards."""
-        from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_scratch
-
-        for activation in wiring.store.reads.list_activations(root.root_id):
-            cleanup_scratch(wiring.paths, activation)

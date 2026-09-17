@@ -42,12 +42,17 @@ def _pending(paths: WrapperPaths, activation: ActivationRecord, reason: str) -> 
     )
 
 
-def _death_refusal(paths: WrapperPaths, activation: ActivationRecord) -> str | None:
+def death_refusal(paths: WrapperPaths, activation: ActivationRecord) -> str | None:
     """Why this activation's bytes may NOT be deleted yet, or `None` if they may.
 
-    The one liveness question every disposal here asks: a receipt can hold the
+    The one liveness question every disposal asks: a receipt can hold the
     handle missing from the store after a dispatch crash, and missing or
     malformed identity with a nonempty ledger cannot establish runner death.
+
+    PUBLIC because the terminal cleanup in `foreman/tick.py` must ask the same
+    question about every activation of a root before it removes the worktree,
+    the verify tree or any scratch — one decision, one implementation, rather
+    than a second liveness rule that could drift from this one (§3.9).
     """
     try:
         receipt = read_record(paths.receipt(activation.activation_id), LaunchReceipt)
@@ -88,7 +93,7 @@ def cleanup_scratch(paths: WrapperPaths, activation: ActivationRecord) -> None:
             return
         if scratch.is_symlink() or scratch.resolve() != scratch:
             raise OSError(tc.MSG_CLEANUP_LINK)
-        refusal = _death_refusal(paths, activation)
+        refusal = death_refusal(paths, activation)
         if refusal is not None:
             _pending(paths, activation, refusal)
             return
@@ -126,7 +131,7 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> None
             return
         if any(path.is_symlink() for path in targets):
             raise OSError(tc.MSG_CLEANUP_LINK)
-        refusal = _death_refusal(paths, activation)
+        refusal = death_refusal(paths, activation)
         if refusal is not None:
             _pending(paths, activation, refusal)
             return
