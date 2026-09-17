@@ -276,6 +276,7 @@ def test_other_owner_busy_before_target_snapshot(
         instance_inputs={},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     real_ref = Git.ref_target
 
@@ -339,6 +340,7 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
         instance_inputs={},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     coordinator = store.coordination_store(composition=composition)
     child = coordinator.start_child(

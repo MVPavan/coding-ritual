@@ -13,7 +13,7 @@ against bd.
 
 from __future__ import annotations
 
-from typing import Final, Protocol
+from typing import Final, Protocol, runtime_checkable
 
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreConfigError
@@ -110,6 +110,28 @@ class BackendLocator(Protocol):
 
     def __call__(self, root_id: str) -> BackendKind:
         """The backend pinned for this root."""
+
+
+@runtime_checkable
+class PinnableBackendLocator(Protocol):
+    """A locator that can be TOLD a pin it could not read for itself (§3.2).
+
+    The bridge record names the backend of an attempt root before that root
+    exists, and for a bd-backed attempt of a ledger-pinned task nothing durable
+    says so afterwards: the ledger holds no row for a bd root, and the `tasks`
+    row still names the first attempt's backend. So the answer has to be
+    installed at creation, by the one caller that holds the record.
+
+    Runtime-checkable because the default locator is a plain function with
+    nothing to install (bd is its answer for every root), and a composition
+    wired that way must keep working rather than grow a no-op pin.
+    """
+
+    def __call__(self, root_id: str) -> BackendKind:
+        """The backend pinned for this root."""
+
+    def pin(self, root_id: str, backend: BackendKind) -> None:
+        """Record the backend a root was created on."""
 
 
 class PinnedBackendFactory:

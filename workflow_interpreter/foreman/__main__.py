@@ -24,6 +24,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.backend import SelectableBackendFactory
 from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.rpc_control import ControlBusy
@@ -62,7 +63,7 @@ from workflow_interpreter.foreman.wake import MonitorUnavailable
 from workflow_interpreter.ledger.database import open_ledger
 from workflow_interpreter.ledger.reconcile import RootAttentionDrain
 from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import pin_task_backend
+from workflow_interpreter.ledger.tasks import pin_task_backend, task_backend
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.clock import SystemClock
 from workflow_interpreter.supervisor.errors import ContinuationRefused, LockUnavailable
@@ -317,6 +318,21 @@ def _signing_preflight(config: ForemanConfig, *, allow_unsigned: bool) -> str | 
     return MSG_ALLOW_LIST_EMPTY.format(path=path) if empty else None
 
 
+def _creation_backend(composition: Composition) -> BackendKind:
+    """The backend a NEW root of a run with no bridge is created on (§3.2, D16).
+
+    The `tasks` row is that run's locator, and it keeps the pin it was written
+    with, so a switch flipped after the task exists does not move roots the
+    locator will answer for.
+    """
+    if composition.ledger is None or composition.task_id is None:
+        return composition.config.store
+    return (
+        task_backend(composition.ledger, composition.task_id)
+        or composition.config.store
+    )
+
+
 def _create(args: argparse.Namespace) -> int:
     """Pin one new instance root and print nothing but its id.
 
@@ -339,6 +355,7 @@ def _create(args: argparse.Namespace) -> int:
             instance_inputs=_instance_inputs(args.input),
             allow_test_flags=args.allow_test_flags,
             overrides={},
+            backend=_creation_backend(composition),
         )
     except ResolutionError as refused:
         sys.stderr.write(f"{refused}\n")

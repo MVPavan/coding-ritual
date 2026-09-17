@@ -351,3 +351,97 @@ def test_a_bd_root_and_a_ledger_root_contend_on_one_bd_claim(
         assert [claim.payload["owner"] for claim in on_bd.claims.find(target)] == [
             "attempt-two"
         ]
+
+
+@pytest.mark.acceptance
+@pytest.mark.parametrize(
+    ("first", "second"),
+    ((BackendKind.BD, BackendKind.LEDGER), (BackendKind.LEDGER, BackendKind.BD)),
+)
+def test_a_retry_creates_its_root_on_the_backend_its_record_names(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    signing_config,
+    sign_payload,
+    first: BackendKind,
+    second: BackendKind,
+) -> None:
+    """D18: the switch applies to a NEW attempt root — and to its creation too.
+
+    A retry admitted after the switch flipped prepares a record pinned to the
+    new backend, so the root that record names has to be CREATED there. Created
+    through the process-wide store instead, it would land on whichever
+    transport this process started on and contradict its own record — and for a
+    bd root of a ledger-pinned task nothing durable would ever say so, because
+    the ledger holds no row for it and the `tasks` row still names attempt one.
+    """
+    lab = _bridge_lab(tmp_path, monkeypatch, signing_config, sign_payload, first)
+    adapter = _bridge_adapter(lab)
+    admitted = _admit_only(lab)
+    assert admitted.root_backend is first
+
+    # The operator flips the switch, and the next attempt is prepared on it.
+    flipped = lab.composition.config.model_copy(update={"store": second})
+    lab.composition = replace(lab.composition, config=flipped)
+    retried = _admit_successor(lab, adapter, admitted.next_attempt(second))
+
+    assert retried.root_backend is second
+    assert retried.root_id != admitted.root_id
+    locator = lab.composition.locate_backend
+    # The new root is on the backend its record names…
+    assert locator(retried.root_id or "") is second
+    assert (
+        lab.composition.store_for_root(retried.root_id or "")
+        .reads.load_root(retried.root_id or "")
+        .root_id
+        == retried.root_id
+    )
+    # …and the first attempt still resolves through its own, unmoved pin.
+    assert locator(admitted.root_id or "") is first
+    assert (
+        lab.composition.store_for_root(admitted.root_id or "")
+        .reads.load_root(admitted.root_id or "")
+        .root_id
+        == admitted.root_id
+    )
+
+
+def _admit_successor(
+    lab: ForemanLab, adapter: PhaseAdapter, successor: PhaseBridgeRecord
+) -> PhaseBridgeRecord:
+    """Admit one declared successor through the production admission path."""
+    from workflow_interpreter.bridge.admission import (
+        PhaseAdmission,
+        WorkflowRootProvisioner,
+    )
+    from workflow_interpreter.foreman.resolve import instantiate
+
+    brief = lab.repo.parent / "successor-brief.md"
+    brief.write_text("the only stage", encoding="utf-8")
+    roots = WorkflowRootProvisioner(
+        adapter,
+        lambda instance_key, backend: instantiate(
+            lab.composition,
+            lab.config.bridge_graph,
+            instance_key=instance_key,
+            instance_inputs={"task_brief": brief},
+            allow_test_flags=False,
+            overrides={},
+            backend=backend,
+        ),
+        lab.git,
+        lab.repo,
+    )
+    return PhaseAdmission(
+        adapter,
+        roots,
+        lambda: lab.git.head_commit(cwd=lab.repo),
+        verification_policy=successor.verification_policy,
+        root_backend=lab.composition.config.store,
+    ).admit_successor(
+        successor.epic_id,
+        successor.stage_id,
+        successor.target_ref,
+        successor.expected_base_commit,
+        successor,
+    )

@@ -51,10 +51,10 @@ class BridgeRoot(BaseModel):
 class RootProvisioner(Protocol):
     """Use existing root convergence and persisted-base branch recovery."""
 
-    def find(self, instance_key: str) -> BridgeRoot | None:
+    def find(self, instance_key: str, backend: BackendKind) -> BridgeRoot | None:
         """Return the uniquely converged root for an instance key."""
 
-    def create(self, instance_key: str) -> BridgeRoot:
+    def create(self, instance_key: str, backend: BackendKind) -> BridgeRoot:
         """Create or recover one root through existing raw-record convergence."""
 
     def ensure_branch(self, root: BridgeRoot) -> None:
@@ -67,7 +67,7 @@ class WorkflowRootProvisioner:
     def __init__(
         self,
         adapter: PhaseAdapter,
-        create_root: Callable[[str], RootRecord],
+        create_root: Callable[[str, BackendKind], RootRecord],
         git: Git,
         repo_root: Path,
     ) -> None:
@@ -76,15 +76,20 @@ class WorkflowRootProvisioner:
         self._git = git
         self._repo_root = repo_root
 
-    def find(self, instance_key: str) -> BridgeRoot | None:
+    def find(self, instance_key: str, backend: BackendKind) -> BridgeRoot | None:
         """Repair a discovered raw root through the existing convergence path."""
         if not self._adapter.has_root(instance_key):
             return None
-        return self._bridge_root(self._create_root(instance_key))
+        return self._bridge_root(self._create_root(instance_key, backend))
 
-    def create(self, instance_key: str) -> BridgeRoot:
-        """Create a root through the existing owner-first convergence path."""
-        return self._bridge_root(self._create_root(instance_key))
+    def create(self, instance_key: str, backend: BackendKind) -> BridgeRoot:
+        """Create a root through the existing owner-first convergence path.
+
+        `backend` is the attempt's own pin from the bridge record, not the
+        `store` switch in force: a retry admitted after the switch flipped must
+        land on the backend ITS record names (§3.2, D18).
+        """
+        return self._bridge_root(self._create_root(instance_key, backend))
 
     def ensure_branch(self, root: BridgeRoot) -> None:
         """Restore a missing branch from the root's persisted base commit."""
@@ -194,11 +199,11 @@ class PhaseAdmission:
             or record.verification_policy != self._verification_policy
         ):
             raise AdmissionRefused("bridge verification policy missing or changed")
-        root = self._roots.find(record.instance_key)
+        root = self._roots.find(record.instance_key, record.root_backend)
         if root is None:
             if self._head_commit() != record.expected_base_commit:
                 raise AdmissionRefused(MSG_HEAD_MOVED)
-            root = self._roots.create(record.instance_key)
+            root = self._roots.create(record.instance_key, record.root_backend)
         self._assert_root(root, record)
         self._roots.ensure_branch(root)
         if record.state is PhaseBridgeState.ADMITTED:

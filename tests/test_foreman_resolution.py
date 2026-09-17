@@ -709,6 +709,7 @@ def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
         instance_inputs=inputs,
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
 
     reloaded = store.reads.load_root(root.root_id)
@@ -748,6 +749,7 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     settings = {setting.key: setting for setting in root.metadata.resolved_config}
     assert settings["region.build-review.max_entries"].value == 2
@@ -766,6 +768,7 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     assert again.root_id == root.root_id
     assert git.updated == [(branch, git.base)]
@@ -788,6 +791,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": oversized},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
     empty = tmp_path / "empty.md"
     empty.write_text("", encoding="utf-8")
@@ -799,6 +803,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": empty},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
     wrong_source = tmp_path / "wrong-source.toml"
     wrong_source.write_text(
@@ -824,6 +829,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
     unstaffed, _ = _instance_composition(
         fake_store,
@@ -838,6 +844,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
 
 
@@ -857,6 +864,7 @@ def test_instantiate_refuses_missing_base_before_creating_a_branch(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
     assert git.updated == []
 
@@ -905,6 +913,7 @@ def test_instantiate_pins_every_named_instance_input_sorted_by_name(
         instance_inputs=paths,
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
 
     pinned = root.metadata.instance_inputs
@@ -931,6 +940,7 @@ def test_instantiate_refuses_a_missing_required_input_before_any_bd_write(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0
@@ -952,6 +962,7 @@ def test_instantiate_refuses_an_undeclared_instance_input_name(
             instance_inputs={"task_brief": brief, "stowaway": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0
@@ -977,6 +988,7 @@ def test_instantiate_refuses_inputs_over_the_aggregate_root_cap(
             instance_inputs=paths,
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0

@@ -24,6 +24,7 @@ from workflow_interpreter.bdio import (
     canonical_payload_bytes,
 )
 from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import GateRecord, parse_gate
 from workflow_interpreter.bdio.signing import payload_digest
 from workflow_interpreter.bdio.wire import BeadRecord, GateMetadata
@@ -524,10 +525,14 @@ class _Roots:
         self._base = base
         self._roots: dict[str, BridgeRoot] = {}
         self._branches: set[str] = set()
+        self.backends: list[BackendKind] = []
         self.fail_branch = False
 
-    def find(self, instance_key: str) -> BridgeRoot | None:
+    def find(
+        self, instance_key: str, backend: BackendKind = BackendKind.BD
+    ) -> BridgeRoot | None:
         """Find the root already created for an admission identity."""
+        self.backends.append(backend)
         found = self._roots.get(instance_key)
         if found is not None:
             return found
@@ -544,8 +549,11 @@ class _Roots:
             return recovered
         return None
 
-    def create(self, instance_key: str) -> BridgeRoot:
-        """Create one fake root through the real bd transport seam."""
+    def create(
+        self, instance_key: str, backend: BackendKind = BackendKind.BD
+    ) -> BridgeRoot:
+        """Create one fake root on the backend the record pins (§3.2)."""
+        self.backends.append(backend)
         root = self._client._create_bead(
             title="phase root",
             metadata={"instance_key": instance_key, "base": self._base},

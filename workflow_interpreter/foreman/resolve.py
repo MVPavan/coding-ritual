@@ -15,6 +15,7 @@ from workflow_interpreter.bdio import (
     NodeSetting,
     ResolvedSetting,
 )
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.roots import (
     MAX_INSTANCE_INPUT_BYTES,
@@ -365,8 +366,17 @@ def instantiate(
     instance_inputs: Mapping[str, Path],
     allow_test_flags: bool,
     overrides: Mapping[str, object],
+    backend: BackendKind,
 ) -> RootRecord:
-    """Pin graph, inputs, config and branch base into one idempotent root."""
+    """Pin graph, inputs, config and branch base into one idempotent root.
+
+    `backend` is the pin the root is CREATED on (§3.2, D18): the bridge
+    record's `root_backend` for a bridge stage, the `tasks` row for a run with
+    no bridge. It is required rather than defaulted because the process-wide
+    store is built on whichever transport this process started on, and a root
+    created there after the `store` switch flipped would contradict the record
+    that names its backend.
+    """
     definition = load_graph(toml_path, allow_test_flags=allow_test_flags)
     pinned = _pinned_instance_inputs(
         definition, instance_inputs, allow_test_flags=allow_test_flags
@@ -380,7 +390,7 @@ def instantiate(
     if missing:
         raise ResolutionError(f"unknown runner roles: {', '.join(missing)}")
     base = composition.git.head_commit(cwd=composition.config.repo_root)
-    root = composition.store.create_root(
+    root = composition.creation_store(backend).create_root(
         instance_key=instance_key,
         definition=definition,
         resolved_config=_resolved_config(composition, definition, overrides),
@@ -389,6 +399,10 @@ def instantiate(
         instance_base_commit=base,
         profiles=composition.profiles,
     )
+    # Before any read of the new root: nothing durable answers for a bd root
+    # of a ledger-pinned task, and the coordination initialisation below is a
+    # read (§3.2).
+    composition.pin_root_backend(root.root_id, backend)
     if definition.document.instance.coordination_limits is not None:
         from workflow_interpreter.foreman.decisions import admission_of
 

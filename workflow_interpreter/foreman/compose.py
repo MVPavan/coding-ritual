@@ -5,12 +5,16 @@ import sys
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Final, Protocol
 
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import MintRequest, WorkflowStore
-from workflow_interpreter.bdio.backend import BackendLocator, bd_backend
+from workflow_interpreter.bdio.backend import (
+    BackendLocator,
+    PinnableBackendLocator,
+    bd_backend,
+)
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.reads import WorkflowReads
@@ -43,6 +47,16 @@ def instance_head(git: Git, repo_root: Path, root_id: str) -> str:
     if head is None:
         raise InstanceBranchMissing(f"instance branch {branch} is missing")
     return head
+
+
+MSG_NO_BRANCH_YET: Final[str] = (
+    "a root being created has no instance branch yet; its base is pinned, never read"
+)
+
+
+def _no_branch_yet() -> str:
+    """The branch-head reader of a store that exists only to CREATE a root."""
+    raise InstanceBranchMissing(MSG_NO_BRANCH_YET)
 
 
 class WrapperLaunch(BaseModel):
@@ -202,6 +216,32 @@ class Composition:
         `composition.store`, which serves discovery and the task bead alone.
         """
         return self._store_on(root_id, self.locate_backend(root_id))
+
+    def creation_store(self, backend: BackendKind) -> WorkflowStore:
+        """The store a root that does not exist YET is created through (§3.2).
+
+        A root's backend is pinned before the root exists — on the bridge
+        record at prepare, or on the `tasks` row for a run with no bridge — so
+        creation is the one operation that cannot ask the locator for an id it
+        is about to mint. It is given the pin instead, and creating through
+        `composition.store` (which is built on whatever transport this process
+        happened to start on) is what D18 forbids: a retry admitted after the
+        switch flipped would land on the backend its own record denies.
+        """
+        return self.store.for_root(branch_head_reader=_no_branch_yet, backend=backend)
+
+    def pin_root_backend(self, root_id: str, backend: BackendKind) -> None:
+        """Tell the locator the backend a just-created root was pinned to (§3.2).
+
+        Nothing durable answers for a bd root of a ledger-pinned task — the
+        ledger holds no row for it and the `tasks` row names the first
+        attempt's backend — so without this the next read of that root would go
+        to the wrong store and report a live run as missing. A locator with no
+        pin surface answers bd for everything already and has nothing to learn.
+        """
+        locator = self.locate_backend
+        if isinstance(locator, PinnableBackendLocator):
+            locator.pin(root_id, backend)
 
     def _store_on(self, root_id: str, backend: BackendKind) -> WorkflowStore:
         """The root's store over an ALREADY located backend.

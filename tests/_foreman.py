@@ -604,6 +604,7 @@ class ForemanLab:
             instance_inputs=paths,
             allow_test_flags=self.allow_test_flags,
             overrides=dict(overrides or {}),
+            backend=self._store,
         )
         return self.root
 

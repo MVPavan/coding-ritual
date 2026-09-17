@@ -353,13 +353,14 @@ def _execute(
         brief_path.write_text(task_brief, encoding="utf-8")
         roots = WorkflowRootProvisioner(
             adapter,
-            lambda instance_key: instantiate(
+            lambda instance_key, backend: instantiate(
                 composition,
                 graph,
                 instance_key=instance_key,
                 instance_inputs={TASK_BRIEF: brief_path},
                 allow_test_flags=False,
                 overrides={},
+                backend=backend,
             ),
             composition.git,
             composition.config.repo_root,
