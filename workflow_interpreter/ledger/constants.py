@@ -17,6 +17,16 @@ LEDGER_FILE: Final[str] = "ledger.db"
 EXPORT_DIR: Final[str] = "export"
 EXPORT_SUFFIX: Final[str] = ".jsonl"
 FENCE_FILE: Final[str] = "ledger.lock"
+IGNORE_FILE: Final[str] = ".gitignore"
+IGNORE_BODY: Final[str] = (
+    "# Engine state (run-ledger §3.5): everything this machine's, except the\n"
+    "# exports the orchestrator commits with the beads mirror (§3.6).\n"
+    "/*\n"
+    f"!/{EXPORT_DIR}/\n"
+)
+"""What makes §3.5's \"the working tree's IGNORED `.wf/`\" true rather than
+assumed: without it the database is untracked dirt, and the coordinator
+cleanliness checks refuse the next bridge command on the engine's own file."""
 TASK_LOCK_DIR: Final[str] = "tasks"
 TASK_LOCK_SUFFIX: Final[str] = ".lock"
 """`<wrapper_root>/tasks/<task_id>.lock` — the task-keyed reconcile lock of

@@ -17,6 +17,8 @@ from workflow_interpreter.ledger.constants import (
     EXPORT_DIR,
     EXPORT_SUFFIX,
     FENCE_FILE,
+    IGNORE_BODY,
+    IGNORE_FILE,
     LEDGER_DIR,
     LEDGER_FILE,
     MSG_NOT_A_REPOSITORY,
@@ -48,6 +50,23 @@ def export_dir(repo_root: Path) -> Path:
 def export_path(repo_root: Path, task_id: str) -> Path:
     """The export file of one task bead."""
     return export_dir(repo_root) / f"{task_id}{EXPORT_SUFFIX}"
+
+
+def ensure_ledger_ignored(repo_root: Path) -> Path:
+    """Write `<repo>/.wf/.gitignore` once, so the database is really ignored.
+
+    §3.5 calls `.wf/` "the working tree's ignored" directory and D4 puts the
+    database there; nothing made that true, so the first bridge command after
+    the cutover refused its own ledger as coordinator dirt. The rule ignores
+    everything under `.wf/` EXCEPT `export/`, which §3.6 says the orchestrator
+    commits. Never rewritten: a repository that ignores this directory its own
+    way keeps its rule.
+    """
+    path = repo_root / LEDGER_DIR / IGNORE_FILE
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(IGNORE_BODY, encoding="utf-8")
+    return path
 
 
 def fence_path(repo_root: Path) -> Path:

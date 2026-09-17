@@ -52,7 +52,12 @@ from workflow_interpreter.ledger.errors import (
     sqlite_failure,
 )
 from workflow_interpreter.ledger.fence import LedgerFence
-from workflow_interpreter.ledger.paths import fence_path, ledger_path, repo_hash
+from workflow_interpreter.ledger.paths import (
+    ensure_ledger_ignored,
+    fence_path,
+    ledger_path,
+    repo_hash,
+)
 from workflow_interpreter.ledger.schema import SCHEMA_VERSION, apply_migrations
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -417,6 +422,7 @@ def open_ledger(
     fence: LedgerFence | None = None,
 ) -> LedgerDatabase:
     """Open this repository's ledger, creating and migrating it when needed."""
+    ensure_ledger_ignored(repo_root)
     return LedgerDatabase(
         ledger_path(repo_root) if path is None else path,
         repo_root=repo_root,

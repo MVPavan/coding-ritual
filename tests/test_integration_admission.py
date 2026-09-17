@@ -2,8 +2,10 @@
 
 import json
 import sys
+import time
 from dataclasses import replace
 from pathlib import Path
+from typing import Final
 
 import pytest
 
@@ -72,6 +74,15 @@ def source_lab(tmp_path: Path, store: BackendKind = BackendKind.BD):
     return lab, owner, composition, source
 
 
+BD_WALL_BUDGET_S: Final[float] = 30.0
+"""The wall this drill needed on bd, and the budget `cr-xu34` made flaky: five
+`bd` round trips per tick, about 1.5 s each on a grown database."""
+LEDGER_WALL_BUDGET_S: Final[float] = BD_WALL_BUDGET_S / 4
+"""What the same drill is allowed on the ledger. A quarter, asserted rather
+than claimed: the §6 acceptance for this slice is that admission has no wall
+problem, and a budget nobody measures is not a measurement."""
+
+
 @pytest.mark.parametrize("store", (BackendKind.BD, BackendKind.LEDGER))
 def test_replay_admits_only_one_original_owner_member(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, store: BackendKind
@@ -82,10 +93,16 @@ def test_replay_admits_only_one_original_owner_member(
     exists to prove the admission replay, and running it on the ledger proves
     the same replay without the per-tick bd round trip that made its wall
     budget flaky (`cr-xu34`).
+
+    The ledger run is TIMED. In this file bd is the in-process double, so the
+    number here bounds the engine's own work rather than the transport's; the
+    round trips a real `bd` binary costs are measured by the real-bd rig
+    (`tests/test_cutover_rig.py`).
     """
     from workflow_interpreter.bridge import integration
     from workflow_interpreter.bridge.adapter import PhaseAdapter
 
+    started = time.monotonic()
     lab, owner, composition, source = source_lab(tmp_path, store)
     monkeypatch.setattr(
         PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
@@ -110,6 +127,12 @@ def test_replay_admits_only_one_original_owner_member(
         "stage_brief",
         "target_base",
     }
+    wall_s = time.monotonic() - started
+    if store is BackendKind.LEDGER:
+        assert wall_s < LEDGER_WALL_BUDGET_S, (
+            f"the ledger admission drill took {wall_s:.2f}s, over its "
+            f"{LEDGER_WALL_BUDGET_S:.1f}s budget"
+        )
 
 
 @pytest.mark.parametrize("change", ["duplicate", "digest", "generation", "missing"])
