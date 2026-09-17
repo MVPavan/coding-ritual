@@ -183,25 +183,31 @@ class LedgerStore:
         """
         nonce = secrets.token_hex(CANARY_NONCE_BYTES)
         key = _PROBE_KEY_FORMAT.format(nonce=nonce)
-        connection = self._database.connection
-        with self._database.transaction():
-            connection.execute(_SQL_META_WRITE, (key, nonce))
-            row = connection.execute(_SQL_META_READ, (key,)).fetchone()
-            connection.execute(_SQL_META_DELETE, (key,))
-        read = None if row is None else str(row[0])
-        if read != nonce:
-            raise LossyWriteError(
-                key, _ATTRIBUTE_SCHEMA, _MSG_PROBE.format(wrote=nonce, read=read)
-            )
-        return CanaryResult(
-            kind=BackendKind.LEDGER,
-            attributes={
+        # One locked scope for the whole canary, the round trip and the
+        # attributes alike: an identity read after the lock was released could
+        # describe a state this probe never verified, and the canary would
+        # then vouch for it. The lock is reentrant, so the transaction below
+        # nests inside it.
+        with self._database.locked() as connection:
+            with self._database.transaction():
+                connection.execute(_SQL_META_WRITE, (key, nonce))
+                row = connection.execute(_SQL_META_READ, (key,)).fetchone()
+                connection.execute(_SQL_META_DELETE, (key,))
+            read = None if row is None else str(row[0])
+            if read != nonce:
+                raise LossyWriteError(
+                    key, _ATTRIBUTE_SCHEMA, _MSG_PROBE.format(wrote=nonce, read=read)
+                )
+            attributes = {
                 _ATTRIBUTE_SCHEMA: str(schema_version(connection)),
                 _ATTRIBUTE_WRAPPER_ROOT: str(
                     read_meta(connection, MetaKey.WRAPPER_ROOT)
                 ),
                 _ATTRIBUTE_PATH: str(self._database.path),
-            },
+            }
+        return CanaryResult(
+            kind=BackendKind.LEDGER,
+            attributes=attributes,
             probe_row_id=key,
             nonce=nonce,
         )
@@ -285,9 +291,9 @@ class LedgerStore:
         if not isinstance(value, str):
             return None
         statement = _SQL_SELECT_BY_COLUMN.format(table=table.value, column=key)
-        found = self._execute(
+        found = self._execute_one(
             statement, (self._task_id, value), LedgerOperation.CREATING, value
-        ).fetchone()
+        )
         return None if found is None else self._hydrated(table, found)
 
     def _merge_metadata(
@@ -418,8 +424,9 @@ class LedgerStore:
             statement = _SQL_SELECT_BY_COLUMN.format(
                 table=table.value, column=rowmap.ID_COLUMN[table]
             )
-            found = self._execute(statement, (self._task_id, row_id), operation, row_id)
-            row = found.fetchone()
+            row = self._execute_one(
+                statement, (self._task_id, row_id), operation, row_id
+            )
             if row is not None:
                 return table, row
         raise LedgerRowMissing(
@@ -482,9 +489,7 @@ class LedgerStore:
         statement = _SQL_SELECT_BY_COLUMN.format(
             table=table.value, column=rowmap.ID_COLUMN[table]
         )
-        found = self._execute(
-            statement, (self._task_id, row_id), operation, row_id
-        ).fetchone()
+        found = self._execute_one(statement, (self._task_id, row_id), operation, row_id)
         if found is None:
             raise LedgerRowMissing(
                 MSG_ROW_MISSING.format(
@@ -523,12 +528,12 @@ class LedgerStore:
                     incoming=incoming,
                 )
             )
-        signed = self._execute(
+        signed = self._execute_one(
             _SQL_SIGNATURE_PRESENT,
             (closure.gate_id,),
             LedgerOperation.CLOSING_GATE,
             closure.gate_id,
-        ).fetchone()
+        )
         if signed is not None:
             raise LedgerGateConflict(MSG_GATE_SIGNED.format(gate_id=closure.gate_id))
         self._assert_unspent(closure)
@@ -538,12 +543,12 @@ class LedgerStore:
         """Refuse an approval whose nonce already closed some OTHER gate (§9)."""
         if closure.nonce is None:
             return
-        owner = self._execute(
+        owner = self._execute_one(
             _SQL_NONCE_OWNER,
             (closure.nonce,),
             LedgerOperation.CLOSING_GATE,
             closure.gate_id,
-        ).fetchone()
+        )
         if owner is not None and str(owner[0]) != closure.gate_id:
             raise LedgerGateConflict(
                 MSG_NONCE_SPENT.format(
@@ -608,18 +613,35 @@ class LedgerStore:
         values: Sequence[JsonValue] | Sequence[object],
         operation: LedgerOperation,
         row_id: str,
-    ) -> sqlite3.Cursor:
-        """Run one bound statement, naming what failed and whether it was busy.
+    ) -> tuple[sqlite3.Row, ...]:
+        """Run one bound statement and return its rows, naming what failed.
 
         Under the database's lock even for a read: the connection is shared by
         every thread of this process (§3.4.1), and the lock is reentrant, so a
         statement already inside one of this store's transactions pays nothing.
+
+        The rows are FETCHED here rather than handed back as a live cursor:
+        `sqlite3` steps the rest of a result set as the caller fetches it, so
+        a cursor that outlived the lock would step the shared connection while
+        another thread holds it and answer half from each side of that
+        thread's transaction.
         """
         try:
             with self._database.locked() as connection:
-                return connection.execute(statement, tuple(values))
+                return tuple(connection.execute(statement, tuple(values)).fetchall())
         except sqlite3.Error as exc:
             raise sqlite_failure(exc, operation=operation.value, row_id=row_id) from exc
+
+    def _execute_one(
+        self,
+        statement: str,
+        values: Sequence[JsonValue] | Sequence[object],
+        operation: LedgerOperation,
+        row_id: str,
+    ) -> sqlite3.Row | None:
+        """The first row of one bound statement, or nothing — fetched under the lock."""
+        found = self._execute(statement, values, operation, row_id)
+        return found[0] if found else None
 
     def _select(
         self, table: LedgerTable, where: str, values: Sequence[JsonValue]
@@ -635,7 +657,7 @@ class LedgerStore:
         statement = f"SELECT * FROM {table.value} WHERE task_id = ? AND ({where})"
         found = self._execute(
             statement, (self._task_id, *values), LedgerOperation.READING, table.value
-        ).fetchall()
+        )
         return tuple(
             rowmap.hydrate(table, row, _parsed(row[rowmap.COLUMN_METADATA]))
             for row in found

@@ -22,6 +22,7 @@ import sys
 import threading
 import time
 from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -42,6 +43,7 @@ from tests._ledger import (
     FileLabelWriter,
     InjectedLedgerCrash,
     config_file,
+    ledger_backend,
     ledger_store,
     repository,
 )
@@ -57,7 +59,7 @@ from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     LifecycleConflictError,
 )
-from workflow_interpreter.bdio.rows import RowGuard, StoreRow
+from workflow_interpreter.bdio.rows import RowGuard, RowKind, RowQuery, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import (
     BeadRecord,
@@ -74,6 +76,7 @@ from workflow_interpreter.ledger.constants import (
     ExportKey,
     LedgerOperation,
     LedgerTable,
+    MetaKey,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase, connect, open_ledger
 from workflow_interpreter.ledger.errors import LedgerBusyRefusal, LedgerFenceBusy
@@ -1307,3 +1310,146 @@ def test_a_read_never_sees_half_of_a_writers_transaction(
 
     assert not failures
     assert observed == (READER_OID, READER_OID)
+
+
+READER_MARKER_KEY: Final[str] = "wf_torn_marker"
+"""The carrier key a writer sets on BOTH event rows, in one transaction."""
+READER_MARKER: Final[str] = "written"
+MOVED_WRAPPER_ROOT: Final[str] = "/moved-while-the-probe-was-reading"
+
+
+class _HandOver:
+    """Runs a writer at the reader's FIRST full release of the shared lock.
+
+    A torn read is not a timing accident to be slept at: it happens exactly
+    when an operation lets go of the connection with work still to do — a
+    cursor unfetched, an attribute unread. So the writer runs at that instant,
+    on its own thread, deterministically. An operation that holds the lock
+    until it is finished never hands anything over mid-flight, which is the
+    whole assertion.
+    """
+
+    def __init__(self, database: LedgerDatabase, writer: Callable[[], None]) -> None:
+        self._database = database
+        self._writer = writer
+        self._depth = 0
+        self._handed = False
+        self.failures: list[Exception] = []
+
+    def install(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Wrap BOTH lock surfaces a store operation can release."""
+        for name in ("locked", "transaction"):
+            monkeypatch.setattr(
+                LedgerDatabase, name, self._wrapped(getattr(LedgerDatabase, name))
+            )
+
+    def _wrapped(self, original: Callable[..., object]) -> Callable[..., object]:
+        """One lock surface, counting reentry so only the OUTER exit hands over."""
+
+        @contextmanager
+        def surface(
+            database: LedgerDatabase, *args: object, **kwargs: object
+        ) -> Iterator[sqlite3.Connection]:
+            self._depth += 1
+            try:
+                with original(database, *args, **kwargs) as connection:
+                    yield connection
+            finally:
+                self._depth -= 1
+            if self._depth == 0 and not self._handed:
+                self._handed = True
+                self._write_on_another_thread()
+
+        return surface
+
+    def _write_on_another_thread(self) -> None:
+        """Let the other thread have the connection, and wait for it to finish."""
+        thread = threading.Thread(target=self._guarded, name="ledger-handover-writer")
+        thread.start()
+        thread.join(SIGNAL_TIMEOUT_S)
+
+    def _guarded(self) -> None:
+        """Report the writer's own failure rather than losing it in the thread."""
+        try:
+            self._writer()
+        except (sqlite3.Error, OSError) as failure:  # pragma: no cover - reported
+            self.failures.append(failure)
+
+
+def test_a_row_read_never_sees_half_of_a_writers_transaction(
+    ledger: LedgerDatabase, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """§3.4.1: a read that releases the lock with rows unfetched is torn.
+
+    `sqlite3` steps the first row inside `execute` and the rest as they are
+    fetched, so a select that takes the lock for the execute alone hands the
+    shared connection back mid-scan: the row it already holds is the old one
+    and the rows it has yet to step are the writer's new ones. One read must
+    answer from ONE instant of the database, so the results are fetched while
+    the lock is still held.
+    """
+    store = ledger_store(ledger)
+    root = make_root(store, load_definition())
+    for ordinal in (1, 2):
+        store.append_event(
+            root.root_id,
+            _event_payload(root.root_id).model_copy(
+                update={
+                    "seq": ordinal,
+                    "activation_id": f"{root.root_id}.implement.r1.{ordinal}",
+                }
+            ),
+        )
+    ids = [str(row["event_id"]) for row in _rows(ledger, "SELECT event_id FROM events")]
+    assert len(ids) == 2
+
+    def mark_both() -> None:
+        """Mark both event rows in ONE transaction, on another thread."""
+        with ledger.transaction() as connection:
+            for event_id in ids:
+                connection.execute(
+                    "UPDATE events SET metadata_json = "
+                    f"json_set(metadata_json, '$.{READER_MARKER_KEY}', ?) "
+                    "WHERE event_id = ?",
+                    (READER_MARKER, event_id),
+                )
+
+    handover = _HandOver(ledger, mark_both)
+    handover.install(monkeypatch)
+
+    found = ledger_backend(ledger).find_rows(RowQuery(kind=RowKind.EVENT))
+
+    assert not handover.failures
+    marks = {row.metadata.get(READER_MARKER_KEY) for row in found}
+    assert len(found) == 2
+    assert len(marks) == 1
+
+
+def test_a_probe_reports_the_identity_it_verified_under_the_lock(
+    ledger: LedgerDatabase, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """§11: the canary's attributes belong to the same instant as its write.
+
+    The probe asserts the pinned identity by round-tripping a value, then
+    reports the schema and the wrapper root it holds. Read after the lock is
+    released, those attributes can describe a DIFFERENT database state than
+    the one the probe just proved — the canary would then vouch for an
+    identity it never saw.
+    """
+    wrapper_root = str(ledger.wrapper_root.resolve())
+
+    def move_the_wrapper_root() -> None:
+        """Repin the identity the probe is in the middle of reporting."""
+        with ledger.transaction() as connection:
+            connection.execute(
+                "UPDATE meta SET value = ? WHERE key = ?",
+                (MOVED_WRAPPER_ROOT, MetaKey.WRAPPER_ROOT.value),
+            )
+
+    handover = _HandOver(ledger, move_the_wrapper_root)
+    handover.install(monkeypatch)
+
+    result = ledger_backend(ledger).probe()
+
+    assert not handover.failures
+    assert result.attributes["wrapper_root"] == wrapper_root
