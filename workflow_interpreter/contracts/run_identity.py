@@ -13,13 +13,29 @@ the id itself when it is undotted — and not as a bd lookup.
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Annotated, Final
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 EPIC_SEPARATOR: Final[str] = "."
+FIRST_ATTEMPT: Final[int] = 1
+"""Attempts are counted from one; `a0` names no run (§3.7, D16)."""
 
 MODEL: Final[ConfigDict] = ConfigDict(frozen=True, extra="forbid")
+
+SAFE_COMPONENT_PATTERN: Final[str] = r"^[A-Za-z0-9][A-Za-z0-9._-]*$"
+"""One safe path component, and the same expression `scripts/verify-debrief.sh`
+re-applies to the identity it is handed.
+
+The identity is interpolated into a repository path and compared against the
+paths a commit touched, so a task id containing `/` or `..` would not name a
+directory but redefine one, and a regex metacharacter would silently widen the
+comparison. A leading `.` is excluded too: `..` is the traversal, and no bead
+id starts with a dot. `scripts/verify-debrief.sh` re-applies the same rule as a
+POSIX `case` glob rather than a regex, because the shell side must not depend
+on a regex dialect to decide containment."""
+
+SafeComponent = Annotated[str, StringConstraints(pattern=SAFE_COMPONENT_PATTERN)]
 
 
 def epic_segment(task_id: str) -> str:
@@ -33,8 +49,8 @@ class RunIdentity(BaseModel):
 
     model_config = MODEL
 
-    task_id: str
-    attempt: int
+    task_id: SafeComponent
+    attempt: Annotated[int, Field(ge=FIRST_ATTEMPT)]
 
     @property
     def epic_segment(self) -> str:

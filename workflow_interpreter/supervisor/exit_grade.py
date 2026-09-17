@@ -16,6 +16,7 @@ from workflow_interpreter.bdio import (
     Outcome,
     VerifyOutcome,
 )
+from workflow_interpreter.bdio.carriers import LedgerRenderBinding
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.schema.models import JUDGMENT_OUTCOME, Node
 from workflow_interpreter.supervisor.channels import (
@@ -68,6 +69,20 @@ _REASON_NO_DIFF_COMMIT: Final[str] = (
 _STATE_NON_REGULAR: Final[str] = "non-regular"
 """The working-tree state of a path that is not a regular file. Distinct from
 `NO_BLOB` (absent), which `hash_working_file` also returns for one."""
+
+
+def render_binding(activation: ActivationRecord) -> LedgerRenderBinding | None:
+    """The immutable ledger render this activation was MINTED against (§3.7).
+
+    Read from the activation's own input bindings rather than from the render
+    ref, because the ref is a mutable name and the binding is a pinned object
+    id: a §7.3 check that resolves the render itself must be told which objects
+    the engine promised it, not which ones a name points at now.
+    """
+    for binding in activation.metadata.inputs:
+        if binding.ledger_render is not None:
+            return binding.ledger_render
+    return None
 
 
 class ComputedEvidence(BaseModel):
@@ -126,6 +141,7 @@ class EvidenceGrader:
                 pinned_digests,
                 base_commit=activation.metadata.intended_base_commit,
                 run_identity=run_identity,
+                render=render_binding(activation),
             )
         undeclared = self._undeclared_effects(
             activation, node, collected, artifact, cwd

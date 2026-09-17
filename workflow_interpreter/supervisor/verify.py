@@ -53,6 +53,7 @@ from typing import Final
 
 import structlog
 
+from workflow_interpreter.bdio.carriers import LedgerRenderBinding
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.schema.graph_index import duration_seconds
 from workflow_interpreter.schema.models import Node, VerifyCheck
@@ -93,6 +94,18 @@ environment a check sees is still a property of the wrapper and not of the
 node. A root that pins no identity gives all three as the EMPTY string: a
 check that needs them (`scripts/verify-debrief.sh`) then fails loudly instead
 of computing a path from a guess."""
+
+RENDER_OID_ENV: Final[str] = "WF_RENDER_OID"
+RENDER_DIGEST_ENV: Final[str] = "WF_RENDER_DIGEST"
+"""The IMMUTABLE render this activation was minted against (run-ledger §3.7).
+
+A check that resolved the render by ref name would trust a ref the runner's
+sandbox protects as a loose file only (`sandbox.WF_REFS_DIR`: `packed-refs`
+stays writable), so a repointed ref could redefine what the debrief is
+compared against. These two come from the activation's own
+`LedgerRenderBinding`, which was pinned at mint: the tree object id, and the
+digest of the payload that tree holds. An activation with no render binding
+gives both as the EMPTY string."""
 
 _NO_IDENTITY: Final[str] = ""
 
@@ -254,12 +267,14 @@ def run_checks(
     *,
     base_commit: str,
     run_identity: RunIdentity | None = None,
+    render: LedgerRenderBinding | None = None,
 ) -> tuple[VerifyResult, ...]:
     """Execute the PINNED graph's checks in `tree`: provenance first, no shell.
 
-    `base_commit` is the activation's `intended_base_commit` and `run_identity`
-    the root's pinned task and attempt; both are passed to every check through
-    the fixed `WF_*` environment above.
+    `base_commit` is the activation's `intended_base_commit`, `run_identity` the
+    root's pinned task and attempt, and `render` the activation's own pinned
+    ledger render; all three are passed to every check through the fixed `WF_*`
+    environment above.
     """
     results: list[VerifyResult] = []
     for check in node.verify or ():
@@ -292,6 +307,7 @@ def run_checks(
                     pinned,
                     base_commit,
                     run_identity,
+                    render,
                 )
             )
         finally:
@@ -371,7 +387,11 @@ def _digest_of(descriptor: int) -> str:
         offset += len(chunk)
 
 
-def _check_env(base_commit: str, run_identity: RunIdentity | None) -> dict[str, str]:
+def _check_env(
+    base_commit: str,
+    run_identity: RunIdentity | None,
+    render: LedgerRenderBinding | None,
+) -> dict[str, str]:
     """The fixed `WF_*` environment every §7.3 check is given, identity or not."""
     return {
         BASE_COMMIT_ENV: base_commit,
@@ -382,6 +402,8 @@ def _check_env(base_commit: str, run_identity: RunIdentity | None) -> dict[str, 
         ATTEMPT_ENV: (
             _NO_IDENTITY if run_identity is None else str(run_identity.attempt)
         ),
+        RENDER_OID_ENV: _NO_IDENTITY if render is None else render.tree_oid,
+        RENDER_DIGEST_ENV: _NO_IDENTITY if render is None else render.payload_digest,
     }
 
 
@@ -392,6 +414,7 @@ def _execute(
     pinned: str,
     base_commit: str,
     run_identity: RunIdentity | None = None,
+    render: LedgerRenderBinding | None = None,
 ) -> VerifyResult:
     """Run the check, re-running a RED one `RED_CHECK_RERUNS` times.
 
@@ -406,7 +429,14 @@ def _execute(
     tails: list[str] = []
     while True:
         result = _run_once(
-            resolved, descriptor, digest, pinned, attempt, base_commit, run_identity
+            resolved,
+            descriptor,
+            digest,
+            pinned,
+            attempt,
+            base_commit,
+            run_identity,
+            render,
         )
         # Every attempt's tail is kept, not just the surviving result's: when a
         # rerun turns the check green, the RED attempt's output is the one a
@@ -434,6 +464,7 @@ def _run_once(
     attempts: int,
     base_commit: str,
     run_identity: RunIdentity | None = None,
+    render: LedgerRenderBinding | None = None,
 ) -> VerifyResult:
     """Run the HASHED descriptor with its declared timeout, argv only, no shell.
 
@@ -458,7 +489,7 @@ def _run_once(
             timeout=resolved.timeout_s,
             check=False,
             pass_fds=(descriptor,),
-            env={**os.environ, **_check_env(base_commit, run_identity)},
+            env={**os.environ, **_check_env(base_commit, run_identity, render)},
         )
     except subprocess.TimeoutExpired as expired:
         return VerifyResult(
