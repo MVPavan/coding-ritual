@@ -55,7 +55,7 @@ from workflow_interpreter.bdio import (
     canonical_payload_bytes,
 )
 from workflow_interpreter.bdio.backend import (
-    PinnedBackendFactory,
+    SelectableBackendFactory,
     StoreBackendFactory,
 )
 from workflow_interpreter.bdio.client import BdClient, CompletedCommand
@@ -69,10 +69,13 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
 from workflow_interpreter.foreman.gates import payload_template
+from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
+from workflow_interpreter.ledger.store import LedgerStore
+from workflow_interpreter.ledger.tasks import pin_task_backend
 from workflow_interpreter.profiles.config import RUNNER_PREFIX
 from workflow_interpreter.profiles.errors import UnknownProfileError
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
@@ -431,6 +434,7 @@ class ForemanLab:
         roles: Mapping[str, RunnerBinding] = DEFAULT_LAB_ROLES,
         instance_inputs: Mapping[str, str] = DEFAULT_LAB_INSTANCE_INPUTS,
         sandbox: SandboxMode = SandboxMode.BWRAP,
+        store: BackendKind = BackendKind.BD,
     ) -> None:
         """Wire a throwaway repo to a real foreman.
 
@@ -439,6 +443,11 @@ class ForemanLab:
         and `instance_inputs` maps each `producer = "instance"` source name to
         its body. Both default to feature-delivery's, which `toml` also
         defaults to.
+
+        `store` is the run-ledger §3.2 switch: it pins the backend every root
+        this lab creates is served by, and the locator answers from the ledger
+        exactly as production's does, so a lab on `LEDGER` proves the cutover
+        rather than a second wiring of it.
 
         `sandbox` defaults to the O5 value, so the whole foreman family runs
         under the REAL §2 mount bound on a host that has `bwrap`. A test whose
@@ -473,6 +482,7 @@ class ForemanLab:
             sandbox=sandbox,
         )
         self._toml = toml
+        self._store = store
         self._ledger_path = tmp_path / "lab-ledger.db"
         self.ledger: LedgerDatabase | None = None
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
@@ -494,19 +504,31 @@ class ForemanLab:
             if self._signing is None
             else GateVerifier(self._signing, self._workspace)
         )
+        # The lab's ledger lives OUTSIDE the checkout on purpose: production
+        # puts it in the repo's ignored `.wf/`, and a database inside the lab
+        # repo would show up in every dirty-tree and undeclared-effects drill
+        # the lab exists to run. The fence and the identity pin are the real
+        # ones, resolved from the real checkout (run-ledger §3.4, §3.5).
+        if self.ledger is not None:
+            self.ledger.close()
+        self.ledger = open_ledger(
+            self.repo, self.supervisor_config.wrapper_root, path=self._ledger_path
+        )
+        pin_task_backend(self.ledger, LAB_TASK, self._store)
+        bd = BdClient(BdConfig(workspace=self._workspace, actor="test"), self.fake_bd)
         self.backend_factory: StoreBackendFactory = (
-            PinnedBackendFactory(
-                BdClient(
-                    BdConfig(workspace=self._workspace, actor="test"), self.fake_bd
-                )
-            )
+            SelectableBackendFactory(bd, LedgerStore(self.ledger, task_id=LAB_TASK))
             if backend_factory is None
             else backend_factory
         )
+        # Claims stay bd-backed whichever backend this lab runs on (D20): two
+        # backends discovering claims in two stores could not see each other's
+        # reservations, so a ledger run contends on the SAME rows.
         self.store = WorkflowStore(
-            self.backend_factory(BackendKind.BD),
+            self.backend_factory(self._store),
             verifier,
             backend_factory=self.backend_factory,
+            claims_backend=bd,
         )
         self.git = make_git(self.supervisor_config)
         self.clock = FrozenClock()
@@ -523,16 +545,7 @@ class ForemanLab:
             band_wait_s=self._band_wait_s,
             roles=self._roles,
             bridge_graph=self._toml,
-        )
-        # The lab's ledger lives OUTSIDE the checkout on purpose: production
-        # puts it in the repo's ignored `.wf/`, and a database inside the lab
-        # repo would show up in every dirty-tree and undeclared-effects drill
-        # the lab exists to run. The fence and the identity pin are the real
-        # ones, resolved from the real checkout (run-ledger §3.4, §3.5).
-        if self.ledger is not None:
-            self.ledger.close()
-        self.ledger = open_ledger(
-            self.repo, self.supervisor_config.wrapper_root, path=self._ledger_path
+            store=self._store,
         )
         self.composition = Composition(
             self.config,
@@ -545,6 +558,7 @@ class ForemanLab:
             host_env={"PATH": os.defpath, "HOME": str(self.repo.parent)},
             ledger=self.ledger,
             task_id=LAB_TASK,
+            locate_backend=RootBackendLocator(LAB_TASK, ledger=self.ledger),
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)

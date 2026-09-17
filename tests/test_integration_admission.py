@@ -9,15 +9,24 @@ import pytest
 
 from tests.test_children_process import writer_lab
 from tests.test_foreman_main import _bridge_adapter, _bridge_stage
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.foreman.decisions import admission_of
 
 
-def source_lab(tmp_path: Path):
+def source_lab(tmp_path: Path, store: BackendKind = BackendKind.BD):
+    """One collected source child, on the caller's backend (run-ledger §3.2).
+
+    `store` is a parameter because the §6 acceptance for this slice is that
+    admission has no wall problem on the LEDGER and still works on bd: the
+    30 s wall this file used to need is the bd round trip per tick, so the
+    two runs are the measurement as much as the assertion.
+    """
     from workflow_interpreter.supervisor.sandbox import SandboxMode
 
     lab, owner, composition, spawner = writer_lab(
         tmp_path,
         sandbox=SandboxMode.BWRAP,
+        store=store,
     )
     from workflow_interpreter.bridge.verification import CheckCommand
 
@@ -48,21 +57,36 @@ def source_lab(tmp_path: Path):
     for process in spawner.processes:
         process.join(timeout=5)
         assert not process.is_alive()
-    data = json.loads(lab.fake_bd._state.read_text())
+    # The stage bead goes into the SHARED file, because the forked children
+    # read their own copy of it. On the ledger backend the run made no bd
+    # write at all, so the file may not exist yet — its absence is "no rows",
+    # not a failure.
+    state = lab.fake_bd._state
+    data = (
+        json.loads(state.read_text()) if state.exists() else {"rows": {}, "next_id": 1}
+    )
     data["rows"]["stage"] = _bridge_stage(
         "stage", description="Combine the collected work"
     )
-    lab.fake_bd._state.write_text(json.dumps(data))
+    state.write_text(json.dumps(data))
     return lab, owner, composition, source
 
 
+@pytest.mark.parametrize("store", (BackendKind.BD, BackendKind.LEDGER))
 def test_replay_admits_only_one_original_owner_member(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, store: BackendKind
 ) -> None:
+    """Replay converges on one member — and it converges on EITHER backend.
+
+    Run on both because this is the §6 acceptance for the cutover: the test
+    exists to prove the admission replay, and running it on the ledger proves
+    the same replay without the per-tick bd round trip that made its wall
+    budget flaky (`cr-xu34`).
+    """
     from workflow_interpreter.bridge import integration
     from workflow_interpreter.bridge.adapter import PhaseAdapter
 
-    lab, owner, composition, source = source_lab(tmp_path)
+    lab, owner, composition, source = source_lab(tmp_path, store)
     monkeypatch.setattr(
         PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
     )
