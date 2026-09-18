@@ -6,7 +6,10 @@ from typing import Final
 
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
-from workflow_interpreter.contractor.adapter import PhaseAdapter, PhaseAdapterError
+from workflow_interpreter.contractor.adapter import (
+    ContractorAdapter,
+    ContractorAdapterError,
+)
 
 _INSTANCE_KEY_PREFIX: Final[str] = "contract:"
 _ATTEMPT_DELIMITER: Final[str] = ":attempt:"
@@ -31,7 +34,7 @@ def contractor_gate_view(
     stage_id = _stage_id(instance_key)
     if stage_id is None:
         return {}
-    adapter = PhaseAdapter.from_config(config, reads)
+    adapter = ContractorAdapter.from_config(config, reads)
     record = adapter.record(stage_id)
     is_current_attempt = record.instance_key == instance_key
     if (
@@ -41,7 +44,7 @@ def contractor_gate_view(
         or (is_current_attempt and record.root_id != root_id)
         or (not is_current_attempt and instance_key not in record.previous_attempts)
     ):
-        raise PhaseAdapterError(
+        raise ContractorAdapterError(
             MSG_INSTANCE_KEY_MISMATCH.format(
                 stage_id=stage_id, instance_key=instance_key
             )

@@ -48,7 +48,8 @@ class ContractorState(StrEnum):
 
     PREPARED = "prepared"
     ADMITTED = "admitted"
-    # Read compatibility for the existing contract/3 wire vocabulary.
+    # Read compatibility for the OLD `phase-bridge/3` wire vocabulary; no record
+    # ever carried this state under `contract/3`, which S0 introduced.
     # No producer writes this state; removing it requires an explicit migration.
     LANDING = "landing"
     LANDED = "landed"
@@ -76,9 +77,10 @@ class ContractorRecord(BaseModel):
 
     Written at PREPARE, before admission creates the root or its branch, so
     the store a root is served by can be chosen before the root is loaded. It
-    defaults to bd because every `contract/3` record written before the
-    ledger existed describes a bd root, and a missing pin therefore has one
-    true reading rather than an ambiguous one."""
+    defaults to bd because a missing pin only ever appeared on pre-S0
+    `phase-bridge/3` records, which describe bd roots and which S0 makes
+    unloadable anyway — so the default has one true reading rather than an
+    ambiguous one."""
     target_ref: NonEmptyText
     expected_base_commit: CommitOid
     verification_policy: VerificationPolicy | None = Field(

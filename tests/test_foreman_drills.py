@@ -47,7 +47,7 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import halt_gate
-from workflow_interpreter.foreman.inspect import WrapperExit, run_wrapper
+from workflow_interpreter.foreman.inspector import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.inspector import (

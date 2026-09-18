@@ -11,7 +11,7 @@ from typing import Final, Literal, Protocol
 from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.contractor.journal import (
     ExportPin,
@@ -220,7 +220,7 @@ class PhaseLanding:
 
     def __init__(
         self,
-        adapter: PhaseAdapter,
+        adapter: ContractorAdapter,
         git: Git,
         repo_root: Path,
         paths: WrapperPaths,

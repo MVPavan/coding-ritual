@@ -25,7 +25,7 @@ from pydantic import TypeAdapter
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.bdio.rows import RowQuery
-from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.verification import VerificationPolicy
@@ -613,7 +613,9 @@ def prepare_integration(
 ) -> ContractorRecord:
     """Persist fixed intent before admitting exactly one P3 child root."""
     guard = IntegrationGuard(composition)
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    adapter = ContractorAdapter.from_config(
+        composition.config.bd, composition.store.reads
+    )
     adapter.integration_guard = guard
     stage = adapter.show(request.stage_id)
     if (
@@ -758,7 +760,9 @@ def resume_integration(
     composition: Composition, association: IntegrationAssociation
 ) -> ContractorRecord:
     guard = IntegrationGuard(composition)
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    adapter = ContractorAdapter.from_config(
+        composition.config.bd, composition.store.reads
+    )
     adapter.integration_guard = guard
     owner = association.request.owner_id
     with BandLock(guard.shared.target_lock_path(association.target_key)):
@@ -1046,7 +1050,9 @@ def command(composition: Composition, args: object) -> str:
     association = prepared_for_stage(composition, args.epic_id, args.stage_id)
     if association is None:
         raise ContractorRefusal("integration association is absent")
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    adapter = ContractorAdapter.from_config(
+        composition.config.bd, composition.store.reads
+    )
     raw = adapter.show(args.stage_id).metadata.get("contractor")
     record = adapter.record(args.stage_id) if raw is not None else None
     if args.integration_command == "retry":

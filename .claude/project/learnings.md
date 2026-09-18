@@ -90,7 +90,7 @@ Format per entry:
   overclaim (S1) was about.
 - Apply: set `lab.clock.real_sleep_s = 0.05` before forking in any real-fork
   timing test (the only precedent is
-  `tests/test_supervisor_run.py::test_a_stale_child_raises_the_flag_on_disk_and_in_bd`,
+  `tests/test_inspector_run.py::test_a_stale_child_is_flagged_on_disk_and_in_bd_then_terminated`,
   invisible from `tests/_foreman.py`); arm a crash BEFORE the dispatch attempt
   it must land in, not after; requeue the next `ChildScript` AFTER the rebuild
   that consumes it.
@@ -129,14 +129,14 @@ Format per entry:
   validator reads. Prefer field-by-field construction, which forces the
   validator to run and makes the invariant *enforced* rather than *assumed*.
   AUDITED the other five sites in this repo after the fix
-  (`supervisor/steer.py:145`, `foreman/config.py:75`,
-  `supervisor/workspace.py:480`, `bdio/transitions.py:220`,
+  (`inspector/steer.py:154`, `foreman/config.py:75`,
+  `inspector/workspace.py:490`, `bdio/transitions.py:220`,
   `bdio/roots.py:207`): none is a live defect — THREE target models with no
   after-validator at all (`RootMetadata`, `ActivationMetadata`, `PinResult`)
   and TWO that update a field the validator never reads
   (`MintRequest.session_id`, `ForemanConfig.config_path`). Note WHY the latter
   two are safe: field-disjointness, which nothing enforces and any later edit
-  can break — `steer.py:145` is the identical construct on the identical model
+  can break — `steer.py:154` is the identical construct on the identical model
   that caused the P1, separated from it only by which field is updated.
   (Classification corrected 2026-09-02 after a sign-off caught the counts
   reversed; the safety conclusion was unchanged.)
@@ -212,7 +212,7 @@ harnesses proving a property of themselves.
 
 ## Verify scripts run as `/proc/self/fd/<n>` — `$0`-relative paths do not exist  (2026-09-03)
 
-- Observed: `supervisor/verify.py` executes a pinned verifier through an open
+- Observed: `inspector/verify.py` executes a pinned verifier through an open
   descriptor, so inside the script `$0` is `/proc/self/fd/<n>` and
   `dirname "$0"` is `/proc/self/fd`. The process gets no `$WF_*` variables and
   no arguments (`verify.py:302`); only `argv[0]` is hashed.

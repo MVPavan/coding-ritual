@@ -99,13 +99,13 @@ def test_admission_requires_policy_before_writes(
         _Roots,
         _stage_row,
     )
-    from workflow_interpreter.contractor import PhaseAdapter, PhaseAdmission
+    from workflow_interpreter.contractor import ContractorAdapter, PhaseAdmission
 
     repo = make_repo(tmp_path)
     base = head_of(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     admission = PhaseAdmission(
-        PhaseAdapter(fake_client), _Roots(fake_client, repo, base), lambda: base
+        ContractorAdapter(fake_client), _Roots(fake_client, repo, base), lambda: base
     )
     with pytest.raises(ValueError, match="policy"):
         admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)

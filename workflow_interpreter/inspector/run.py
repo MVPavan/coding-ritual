@@ -226,7 +226,7 @@ class Inspector:
         handle = dispatch.handle
         if handle is None or dispatch.outcome is LaunchOutcome.ALREADY_DISPATCHED:
             _LOG.info(
-                "wf.inspect.no_child",
+                "wf.inspector.no_child",
                 activation_id=dispatch.activation.activation_id,
                 outcome=dispatch.outcome.value,
             )
@@ -234,7 +234,7 @@ class Inspector:
         if dispatch.outcome is LaunchOutcome.REATTACHED:
             proof = procfs.prove_liveness(self._config, handle)
             _LOG.warning(
-                "wf.inspect.adopted",
+                "wf.inspector.adopted",
                 activation_id=dispatch.activation.activation_id,
                 pid=handle.pid,
                 liveness=proof.status.value,
@@ -279,7 +279,7 @@ class Inspector:
             # steerer that wrote the intent — or recovery's STEER_PENDING case
             # on the next tick — owns the close; both are idempotent.
             _LOG.info(
-                "wf.inspect.steer_pending",
+                "wf.inspector.steer_pending",
                 activation_id=activation.activation_id,
                 verdict=result.verdict.value,
             )
@@ -314,7 +314,7 @@ class Inspector:
             intent = read_record(self._paths.steer_intent(activation_id), SteerIntent)
         except WrapperDirError as exc:
             _LOG.warning(
-                "wf.inspect.steer_intent_unreadable",
+                "wf.inspector.steer_intent_unreadable",
                 activation_id=activation_id,
                 error=str(exc),
             )

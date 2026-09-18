@@ -52,7 +52,7 @@ from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
-from workflow_interpreter.foreman.inspect import run_wrapper
+from workflow_interpreter.foreman.inspector import run_wrapper
 from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.monitor import WakeMonitor, monitor_status
 from workflow_interpreter.foreman.resolve import instantiate
@@ -658,7 +658,7 @@ def _run(
         from pydantic import ValidationError
 
         from workflow_interpreter.bdio.errors import StoreError
-        from workflow_interpreter.contractor.adapter import PhaseAdapterError
+        from workflow_interpreter.contractor.adapter import ContractorAdapterError
         from workflow_interpreter.contractor.errors import ContractorRefusal
         from workflow_interpreter.foreman.children import command
         from workflow_interpreter.inspector.errors import InspectorError
@@ -678,7 +678,7 @@ def _run(
         except (
             InvalidIdentifier,
             ContractorRefusal,
-            PhaseAdapterError,
+            ContractorAdapterError,
             GraphValidationError,
             CoordinationError,
             ResolutionError,

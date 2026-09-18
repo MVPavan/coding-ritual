@@ -52,7 +52,7 @@ from workflow_interpreter.foreman.gates import (
     transition_gate,
 )
 from workflow_interpreter.foreman.inputs import select_bindings
-from workflow_interpreter.foreman.inspect import wrapper_alive
+from workflow_interpreter.foreman.inspector import wrapper_alive
 from workflow_interpreter.foreman.ledger_render import bind_render
 from workflow_interpreter.foreman.routing import RouteKind, retry_kind, route
 from workflow_interpreter.foreman.verify_feedback import bind_feedback

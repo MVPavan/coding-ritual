@@ -171,11 +171,11 @@ def test_real_coordination_lands_design_children_and_integration(
         if resume:
             # Only the fixture's two named integration records can be resumed.
             assert name in {"integration-epic", "integration-stage"}
-            from workflow_interpreter.contractor.adapter import PhaseAdapter
+            from workflow_interpreter.contractor.adapter import ContractorAdapter
             from workflow_interpreter.foreman.__main__ import _composition
 
             composition = _composition(config)
-            adapter = PhaseAdapter.from_config(composition.config.bd)
+            adapter = ContractorAdapter.from_config(composition.config.bd)
             candidates = [
                 row
                 for row in composition.store._client.list_beads()
@@ -574,7 +574,7 @@ def test_real_coordination_lands_design_children_and_integration(
 
     else:
         # Resume only the completed design/two-child checkpoint, not arbitrary runs.
-        from workflow_interpreter.contractor.adapter import PhaseAdapter
+        from workflow_interpreter.contractor.adapter import ContractorAdapter
         from workflow_interpreter.foreman.__main__ import _composition
 
         contract = json.loads((original_evidence / "fixture-contract.json").read_text())
@@ -603,7 +603,7 @@ def test_real_coordination_lands_design_children_and_integration(
         child_base = saved("child-admission-base")
         independent_target_commit = saved("independent-target-head")
         composition = _composition(config)
-        adapter = PhaseAdapter.from_config(composition.config.bd)
+        adapter = ContractorAdapter.from_config(composition.config.bd)
         design_record = adapter.record(design_stage)
         assert design_record is not None
         assert (design_record.root_id, design_record.epic_id, design_record.state) == (

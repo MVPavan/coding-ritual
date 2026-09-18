@@ -32,7 +32,7 @@ from tests._profiles import Lab, host_env_with, stub_env
 from workflow_interpreter.bdio import Lifecycle, MintReason, MintRequest, ProcessHandle
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver
 from workflow_interpreter.foreman.config import CrewBinding
-from workflow_interpreter.foreman.inspect import WrapperExit, run_wrapper
+from workflow_interpreter.foreman.inspector import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.inspector import (
     ExecLedger,
@@ -654,7 +654,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
 
     from tests._profiles import PASSTHROUGH, write_stub
     from workflow_interpreter.foreman.inputs import select_bindings
-    from workflow_interpreter.foreman.inspect import _task_builder
+    from workflow_interpreter.foreman.inspector import _task_builder
     from workflow_interpreter.inspector import Dispatcher, Steerer
     from workflow_interpreter.inspector.launch import DispatchResult
     from workflow_interpreter.profiles.registry import ProfileRegistry

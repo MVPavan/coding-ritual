@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.wire import BeadRecord
-from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
@@ -70,7 +70,7 @@ class WorkflowRootProvisioner:
 
     def __init__(
         self,
-        adapter: PhaseAdapter,
+        adapter: ContractorAdapter,
         create_root: Callable[[str, BackendKind, int], RootRecord],
         git: Git,
         repo_root: Path,
@@ -125,7 +125,7 @@ class PhaseAdmission:
 
     def __init__(
         self,
-        adapter: PhaseAdapter,
+        adapter: ContractorAdapter,
         roots: RootProvisioner,
         head_commit: Callable[[], str],
         verification_policy: VerificationPolicy | None = None,

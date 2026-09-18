@@ -165,7 +165,7 @@ def test_contractor_propagates_run_attention(tmp_path, monkeypatch):
         "stage", description="Implement feature"
     )
     monkeypatch.setattr(
-        command.PhaseAdapter,
+        command.ContractorAdapter,
         "from_config",
         classmethod(lambda *_: _contractor_adapter(lab)),
     )

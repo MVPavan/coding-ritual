@@ -1,7 +1,7 @@
 """The S3 rig: one stage lands end to end through the PRODUCTION wiring.
 
 `tests/test_cutover.py` drives the same acceptance through doubles — it
-replaces `_composition`, `PhaseAdapter.from_config` and `Foreman.run`, and its
+replaces `_composition`, `ContractorAdapter.from_config` and `Foreman.run`, and its
 bd side is `FakeBd`. Those tests are fast and they are kept, but between them
 and production sit the three things they replace: the composition root that
 decides which store a root is CREATED through, the adapter that talks to a real
@@ -37,7 +37,7 @@ from tests._inspector import make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import GatePayload, Outcome, canonical_payload_bytes
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.models import ContractorState
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition
@@ -238,7 +238,7 @@ def _approve_ship(
     """Drop the signed approval the next tick intakes, as a human does."""
     composition = _composition_for(config, stage_id)
     try:
-        record = PhaseAdapter.from_config(composition.config.bd).record(stage_id)
+        record = ContractorAdapter.from_config(composition.config.bd).record(stage_id)
         root_id = record.root_id or ""
         reads = composition.reads_for_root(root_id)
         root = reads.load_root(root_id)
@@ -335,7 +335,7 @@ def test_a_stage_lands_end_to_end_on_a_real_rig(
 
     composition = _composition_for(config, stage)
     try:
-        record = PhaseAdapter.from_config(composition.config.bd).record(stage)
+        record = ContractorAdapter.from_config(composition.config.bd).record(stage)
         assert record.root_backend is store
         assert record.state is ContractorState.CLOSED
         shown = json.loads(_bd(bd_workspace, "show", stage, "--json"))
@@ -498,7 +498,7 @@ def test_a_debrief_the_real_crew_broke_reaches_triage_and_never_ship(
 
     composition = _composition_for(config, stage)
     try:
-        record = PhaseAdapter.from_config(composition.config.bd).record(stage)
+        record = ContractorAdapter.from_config(composition.config.bd).record(stage)
         root_id = record.root_id or ""
         reads = composition.reads_for_root(root_id)
         debriefs = [
@@ -553,7 +553,7 @@ def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
 
     composition = _composition_for(config, stage)
     try:
-        first = PhaseAdapter.from_config(composition.config.bd).record(stage)
+        first = ContractorAdapter.from_config(composition.config.bd).record(stage)
         abandoned_root = first.root_id or ""
         pins = subprocess.check_output(
             [
@@ -595,7 +595,7 @@ def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
 
     composition = _composition_for(config, stage)
     try:
-        second = PhaseAdapter.from_config(composition.config.bd).record(stage)
+        second = ContractorAdapter.from_config(composition.config.bd).record(stage)
     finally:
         if composition.ledger is not None:
             composition.ledger.close()

@@ -15,8 +15,8 @@ from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.contractor.adapter import (
     CONTRACTOR_METADATA_KEY,
     STATUS_CLOSED,
-    PhaseAdapter,
-    PhaseAdapterError,
+    ContractorAdapter,
+    ContractorAdapterError,
 )
 from workflow_interpreter.contractor.admission import (
     AdmissionRefused,
@@ -145,7 +145,7 @@ def execute_contractor(
         CoordinationError,
         LockUnavailable,
         StoreOutputError,
-        PhaseAdapterError,
+        ContractorAdapterError,
         ResolutionError,
         ContractorRefusal,
         ValidationError,
@@ -189,7 +189,9 @@ def _execute(
     target_ref = composition.git.attached_branch_ref(cwd=composition.config.repo_root)
     if target_ref is None:
         raise ContractorRefused(MSG_DETACHED)
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    adapter = ContractorAdapter.from_config(
+        composition.config.bd, composition.store.reads
+    )
     from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         prepared_for_stage,
@@ -394,7 +396,7 @@ def _execute(
 
 def _run_record(
     composition: Composition,
-    adapter: PhaseAdapter,
+    adapter: ContractorAdapter,
     record: ContractorRecord,
     *,
     monitored: bool = False,
@@ -434,7 +436,7 @@ def _run_record(
 
 def _land(
     composition: Composition,
-    adapter: PhaseAdapter,
+    adapter: ContractorAdapter,
     record: ContractorRecord,
     *,
     recover: bool,
@@ -546,7 +548,7 @@ def _task_brief(description: str | None) -> str:
     return description
 
 
-def _direct_stages(adapter: PhaseAdapter, epic_id: str) -> tuple[BeadRecord, ...]:
+def _direct_stages(adapter: ContractorAdapter, epic_id: str) -> tuple[BeadRecord, ...]:
     """Require the named epic to contain direct stages before reporting its state."""
     stages = adapter.direct_children(epic_id)
     if not stages:
@@ -556,7 +558,7 @@ def _direct_stages(adapter: PhaseAdapter, epic_id: str) -> tuple[BeadRecord, ...
 
 def _retry_successor(
     composition: Composition,
-    adapter: PhaseAdapter,
+    adapter: ContractorAdapter,
     stage_id: str,
 ) -> ContractorRecord:
     """Apply the prior root's retry predicate before persisting a successor."""
@@ -583,7 +585,7 @@ def _retry_successor(
 
 def _trace(
     composition: Composition,
-    adapter: PhaseAdapter,
+    adapter: ContractorAdapter,
     *,
     epic_id: str,
     stage_id: str,
@@ -662,7 +664,7 @@ def _record_for_trace(
 
 
 def _trace_state(
-    adapter: PhaseAdapter, epic_id: str, stage_id: str
+    adapter: ContractorAdapter, epic_id: str, stage_id: str
 ) -> tuple[ContractorCommandState, tuple[str, ...]]:
     """Compute the read-only phase fact without selecting or admitting a stage."""
     stages = _direct_stages(adapter, epic_id)

@@ -22,7 +22,7 @@ from tests.test_contractor_cli import _entry
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreConfigError
-from workflow_interpreter.contractor import PhaseAdapter, PhaseAdapterError
+from workflow_interpreter.contractor import ContractorAdapter, ContractorAdapterError
 from workflow_interpreter.contractor.journal import EXPORT_REF_TEMPLATE, LandingPhase
 from workflow_interpreter.contractor.landing import (
     LANDING_INTENT_FILE,
@@ -82,7 +82,9 @@ def _contractor_lab(
     lab.fake_bd.rows[STAGE] = _contractor_stage(STAGE, description="the only stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
 
     def drive(self, root_id, *, poll_s, max_wall_s, monitored=False):
@@ -284,7 +286,9 @@ def test_re_preparing_one_attempt_cannot_move_its_backend(
     )
     adapter.prepare(STAGE, prepared)
 
-    with pytest.raises(PhaseAdapterError, match="root_backend is pinned at prepare"):
+    with pytest.raises(
+        ContractorAdapterError, match="root_backend is pinned at prepare"
+    ):
         adapter.prepare(
             STAGE, prepared.model_copy(update={"root_backend": BackendKind.BD})
         )
@@ -488,7 +492,7 @@ def test_a_restarted_process_resumes_the_root_the_record_names(
 
 
 def _admit_successor(
-    lab: ForemanLab, adapter: PhaseAdapter, successor: ContractorRecord
+    lab: ForemanLab, adapter: ContractorAdapter, successor: ContractorRecord
 ) -> ContractorRecord:
     """Admit one declared successor through the production admission path."""
     from workflow_interpreter.contractor.admission import (

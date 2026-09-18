@@ -52,11 +52,11 @@ MSG_NO_EXPORT_OID: Final[str] = (
 STATUS_CLOSED: Final[str] = "closed"
 
 
-class PhaseAdapterError(ValueError):
+class ContractorAdapterError(ValueError):
     """A phase operation was requested with incompatible durable evidence."""
 
 
-class PhaseAdapter:
+class ContractorAdapter:
     """Perform only fixed Beads operations needed to admit one named stage."""
 
     def __init__(self, client: BdClient, reads: WorkflowReads | None = None) -> None:
@@ -67,7 +67,7 @@ class PhaseAdapter:
     @classmethod
     def from_config(
         cls, config: BdConfig, reads: WorkflowReads | None = None
-    ) -> PhaseAdapter:
+    ) -> ContractorAdapter:
         """Build the contractor's read/write adapter without exposing bd transport.
 
         `reads` is the store the engine's roots live in. The adapter owns the
@@ -86,14 +86,14 @@ class PhaseAdapter:
 
             guard_contractor(self.integration_guard.composition, record)
         elif record.successor_key is not None:
-            raise PhaseAdapterError("successor contractor requires runtime guard")
+            raise ContractorAdapterError("successor contractor requires runtime guard")
         stored = self.show(record.stage_id).metadata.get(CONTRACTOR_METADATA_KEY)
         if (
             isinstance(stored, dict)
             and stored.get("integration_digest") is not None
             and stored.get("integration_digest") != record.integration_digest
         ):
-            raise PhaseAdapterError(
+            raise ContractorAdapterError(
                 "cannot strip or change stored integration authority"
             )
         if (
@@ -102,7 +102,9 @@ class PhaseAdapter:
             and (stored.get("successor_owner"), stored.get("successor_key"))
             != (record.successor_owner, record.successor_key)
         ):
-            raise PhaseAdapterError("cannot strip or change stored successor authority")
+            raise ContractorAdapterError(
+                "cannot strip or change stored successor authority"
+            )
         if record.integration_digest is None:
             if any(
                 (
@@ -111,10 +113,10 @@ class PhaseAdapter:
                     record.integration_generation is not None,
                 )
             ):
-                raise PhaseAdapterError("incomplete integration binding")
+                raise ContractorAdapterError("incomplete integration binding")
             return
         if self.integration_guard is None:
-            raise PhaseAdapterError("integration requires runtime guard")
+            raise ContractorAdapterError("integration requires runtime guard")
         if post_cas:
             self.integration_guard.post_cas(record)
         else:
@@ -171,20 +173,22 @@ class PhaseAdapter:
             try:
                 stored_record = ContractorRecord.model_validate(existing)
             except ValidationError as exc:
-                raise PhaseAdapterError(
+                raise ContractorAdapterError(
                     MSG_STORED_RECORD_UNREADABLE.format(reason=exc)
                 ) from exc
             if (
                 stored_record.integration_digest is not None
                 and record.integration_digest is None
             ):
-                raise PhaseAdapterError("cannot strip stored integration authority")
+                raise ContractorAdapterError(
+                    "cannot strip stored integration authority"
+                )
             if (
                 stored_record.successor_key is not None
                 and record.successor_key is None
                 and record.integration_digest is None
             ):
-                raise PhaseAdapterError("cannot strip stored successor authority")
+                raise ContractorAdapterError("cannot strip stored successor authority")
             self._assert_prepare_shape(stored_record, record)
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         return self._record(stored.metadata)
@@ -232,10 +236,10 @@ class PhaseAdapter:
         self._assert_stage(stage_id, record)
         self._assert_state(record, ContractorState.CLOSED, MSG_WRONG_INCOMING_STATE)
         if record.export_oid is None:
-            raise PhaseAdapterError(MSG_NO_EXPORT_OID.format(stage_id=stage_id))
+            raise ContractorAdapterError(MSG_NO_EXPORT_OID.format(stage_id=stage_id))
         self.guard_integration(record, post_cas=True)
         if record.landing_receipt_digest != receipt_digest:
-            raise PhaseAdapterError("close receipt does not match landed relation")
+            raise ContractorAdapterError("close receipt does not match landed relation")
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         closed = finalize.close_forward(
             self._client,
@@ -261,7 +265,7 @@ class PhaseAdapter:
     def _assert_stage(stage_id: str, record: ContractorRecord) -> None:
         """Refuse to write a record for a different stage."""
         if record.stage_id != stage_id:
-            raise PhaseAdapterError(MSG_WRONG_STAGE.format(stage_id=stage_id))
+            raise ContractorAdapterError(MSG_WRONG_STAGE.format(stage_id=stage_id))
 
     @staticmethod
     def _assert_state(
@@ -269,7 +273,7 @@ class PhaseAdapter:
     ) -> None:
         """Refuse a contractor record that is not in an expected lifecycle state."""
         if record.state is not state:
-            raise PhaseAdapterError(
+            raise ContractorAdapterError(
                 message.format(state=state.value, actual=record.state.value)
             )
 
@@ -286,24 +290,24 @@ class PhaseAdapter:
         """
         if incoming.attempt == stored.attempt:
             if incoming.root_backend is not stored.root_backend:
-                raise PhaseAdapterError(
+                raise ContractorAdapterError(
                     MSG_BACKEND_IMMUTABLE.format(
                         stored=stored.root_backend.value,
                         incoming=incoming.root_backend.value,
                     )
                 )
             if stored.state is not ContractorState.PREPARED:
-                raise PhaseAdapterError(
+                raise ContractorAdapterError(
                     MSG_IDEMPOTENT_STATE.format(actual=stored.state.value)
                 )
             if incoming != stored:
-                raise PhaseAdapterError(MSG_IDEMPOTENT_RECORD)
+                raise ContractorAdapterError(MSG_IDEMPOTENT_RECORD)
             return
         if stored.state is ContractorState.CLOSED:
-            raise PhaseAdapterError(MSG_SUCCESSION_CLOSED)
+            raise ContractorAdapterError(MSG_SUCCESSION_CLOSED)
         expected_attempt = stored.attempt + 1
         if incoming.attempt != expected_attempt:
-            raise PhaseAdapterError(
+            raise ContractorAdapterError(
                 MSG_SUCCESSION_ATTEMPT.format(
                     expected=expected_attempt, actual=incoming.attempt
                 )
@@ -318,7 +322,9 @@ class PhaseAdapter:
             )
             or incoming.verification_policy != stored.verification_policy
         ):
-            raise PhaseAdapterError("successor changes admitted identity or policy")
+            raise ContractorAdapterError(
+                "successor changes admitted identity or policy"
+            )
         expected_history = (*stored.previous_attempts, stored.instance_key)
         if incoming.previous_attempts != expected_history:
-            raise PhaseAdapterError(MSG_SUCCESSION_HISTORY)
+            raise ContractorAdapterError(MSG_SUCCESSION_HISTORY)

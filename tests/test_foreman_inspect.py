@@ -31,7 +31,7 @@ from workflow_interpreter.bdio.constants import (
 )
 from workflow_interpreter.bdio.wire import config_signature
 from workflow_interpreter.foreman.compose import InstanceWiring
-from workflow_interpreter.foreman.inspect import (
+from workflow_interpreter.foreman.inspector import (
     WrapperExit,
     _close_error,
     _precondition_reason,

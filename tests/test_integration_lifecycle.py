@@ -8,7 +8,7 @@ import pytest
 from tests._inspector import ChildScript
 from tests.test_foreman_main import _contractor_adapter
 from tests.test_integration_admission import source_lab
-from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.command import execute_contractor
 from workflow_interpreter.contractor.integration import (
     IntegrationRequest,
@@ -41,7 +41,9 @@ def prepared_lab(tmp_path, monkeypatch, signing_config, sign_payload):
     lab.composition = composition
     lab.spawner.bind(composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     record = prepare_integration(
         composition,
@@ -136,7 +138,7 @@ def test_cancellation_and_crash_recovery_are_forward_only(
     coordinator = lab.store.coordination_store(composition=lab.composition)
     armed = True
     real_write = landing.write_record
-    real_land = PhaseAdapter.land
+    real_land = ContractorAdapter.land
 
     def after_cas(self):
         nonlocal armed
@@ -174,7 +176,7 @@ def test_cancellation_and_crash_recovery_are_forward_only(
 
     monkeypatch.setattr(LandingHooks, "after_cas", after_cas)
     monkeypatch.setattr(landing, "write_record", write)
-    monkeypatch.setattr(PhaseAdapter, "land", relation)
+    monkeypatch.setattr(ContractorAdapter, "land", relation)
     if boundary == "before-cas":
         coordinator.cancel_child(
             owner.root_id,
@@ -310,7 +312,9 @@ trim_priority = 1
     (lab.repo / "target.txt").write_text("independent target edit\n")
     new_base = commit_all(lab.repo, "independent target")
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     record = prepare_integration(
         composition,
@@ -547,7 +551,7 @@ def test_retry_journal_recovers_through_normal_entry(
     cls, method = {
         "association": (IntegrationGuard, "save"),
         "claim": (IntegrationGuard, "write_claim"),
-        "contractor": (PhaseAdapter, "prepare"),
+        "contractor": (ContractorAdapter, "prepare"),
     }[boundary]
     original = getattr(cls, method)
     armed = True
@@ -575,7 +579,7 @@ def test_retry_journal_recovers_through_normal_entry(
 def test_direct_adapter_close_cannot_promote_membership_to_landing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
 ) -> None:
-    from workflow_interpreter.contractor.adapter import PhaseAdapterError
+    from workflow_interpreter.contractor.adapter import ContractorAdapterError
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import IntegrationGuard
 
@@ -587,7 +591,7 @@ def test_direct_adapter_close_cannot_promote_membership_to_landing(
         "invented-receipt",
     ).closed(EXPORT_OID)
     adapter = _contractor_adapter(lab)
-    with pytest.raises(PhaseAdapterError, match="runtime guard"):
+    with pytest.raises(ContractorAdapterError, match="runtime guard"):
         adapter.close("stage", forged, "invented-receipt")
     stripped = forged.model_copy(
         update={
@@ -597,7 +601,7 @@ def test_direct_adapter_close_cannot_promote_membership_to_landing(
             "integration_generation": None,
         }
     )
-    with pytest.raises(PhaseAdapterError, match="strip"):
+    with pytest.raises(ContractorAdapterError, match="strip"):
         adapter.close("stage", stripped, "invented-receipt")
     adapter.integration_guard = IntegrationGuard(lab.composition)
     with pytest.raises(ContractorRefusal):

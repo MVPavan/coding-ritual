@@ -1,6 +1,9 @@
 """Phase-scoped contractor records and admission operations."""
 
-from workflow_interpreter.contractor.adapter import PhaseAdapter, PhaseAdapterError
+from workflow_interpreter.contractor.adapter import (
+    ContractorAdapter,
+    ContractorAdapterError,
+)
 from workflow_interpreter.contractor.admission import (
     AdmissionRefused,
     ContractorRoot,
@@ -33,6 +36,8 @@ __all__ = [
     "BeadGateAuthority",
     "CheckCommand",
     "CheckResult",
+    "ContractorAdapter",
+    "ContractorAdapterError",
     "ContractorRecord",
     "ContractorRoot",
     "ContractorState",
@@ -43,8 +48,6 @@ __all__ = [
     "LandingIntent",
     "LandingReceipt",
     "LandingResult",
-    "PhaseAdapter",
-    "PhaseAdapterError",
     "PhaseAdmission",
     "PhaseLanding",
     "RepositoryGateResult",

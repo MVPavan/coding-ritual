@@ -12,7 +12,7 @@ from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.rows import RowQuery
-from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.integration import IntegrationGuard, target_key
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.foreman.compose import Composition, instance_head
@@ -516,7 +516,9 @@ def _check_contractor(
         != previous.expected_base_commit
     ):
         raise CoordinationError("replacement lost contractor target base")
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    adapter = ContractorAdapter.from_config(
+        composition.config.bd, composition.store.reads
+    )
     root = composition.reads_for_root(intent.predecessor_id).load_root(
         intent.predecessor_id
     )
@@ -570,7 +572,9 @@ def _prepare_contractor(
         return intent
     previous = ContractorRecord.model_validate_json(intent.predecessor_contractor_json)
     successor = ContractorRecord.model_validate_json(intent.successor_contractor_json)
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    adapter = ContractorAdapter.from_config(
+        composition.config.bd, composition.store.reads
+    )
     adapter.integration_guard = IntegrationGuard(composition)
     if previous.integration_digest:
         from workflow_interpreter.schema.decisions import (
@@ -666,7 +670,9 @@ def _admit_contractor(
         return
     assert intent.receipt is not None
     successor = ContractorRecord.model_validate_json(intent.successor_contractor_json)
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    adapter = ContractorAdapter.from_config(
+        composition.config.bd, composition.store.reads
+    )
     guard = IntegrationGuard(composition)
     adapter.integration_guard = guard
     if successor.integration_digest:

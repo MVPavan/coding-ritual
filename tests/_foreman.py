@@ -73,7 +73,7 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.config import CrewBinding, ForemanConfig
 from workflow_interpreter.foreman.gates import payload_template
-from workflow_interpreter.foreman.inspect import run_wrapper
+from workflow_interpreter.foreman.inspector import run_wrapper
 from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
@@ -397,7 +397,7 @@ class ProcSpawner:
 
 def wrapper_alive_for_barrier(wiring: InstanceWiring, activation_id: str) -> bool:
     """Keep the three-stage proc barrier explicit at the same lock seam."""
-    from workflow_interpreter.foreman.inspect import wrapper_alive
+    from workflow_interpreter.foreman.inspector import wrapper_alive
 
     return wrapper_alive(wiring, activation_id)
 

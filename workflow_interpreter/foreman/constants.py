@@ -191,7 +191,7 @@ the root is settled on it."""
 
 LEAF_EXECUTION_CONTRACT: Final[str] = (
     "## Execution contract (engine-owned)\n\n"
-    "You are a leaf task crew. Do the assigned implementation, review, and "
+    "You are a leaf-task crew member. Do the assigned implementation, review, and "
     "tests directly. Do not spawn or delegate to agents, reviewers, councils, "
     "or nested execution workflows. The enclosing engine owns coordination, "
     "independent review, routing, and approval gates. Apply repository coding "

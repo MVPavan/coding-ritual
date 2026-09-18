@@ -203,12 +203,14 @@ def test_replay_admits_only_one_original_owner_member(
     (`tests/test_cutover_rig.py`).
     """
     from workflow_interpreter.contractor import integration
-    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.adapter import ContractorAdapter
 
     started = time.monotonic()
     lab, owner, composition, source = source_lab(tmp_path, store)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     request = integration.IntegrationRequest(
         owner_id=owner.root_id,
@@ -327,7 +329,7 @@ def test_admission_tick_stays_at_five_bd_calls(
 def test_invalid_source_never_admits_integration(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, change: str
 ) -> None:
-    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
@@ -337,7 +339,9 @@ def test_invalid_source_never_admits_integration(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     sources = (("source", 0, source.receipt_digest),)
     sources = {
@@ -364,7 +368,7 @@ def test_invalid_source_never_admits_integration(
 def test_changed_request_key_refuses_without_second_member(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
@@ -373,7 +377,9 @@ def test_changed_request_key_refuses_without_second_member(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -401,7 +407,7 @@ def test_prepared_faults_repair_only_saved_root(
     from tests._fake_bd import InjectedCrash
     from workflow_interpreter.bdio import roots
     from workflow_interpreter.bdio.coordination import CoordinationStore
-    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         IntegrationRequest,
@@ -410,7 +416,9 @@ def test_prepared_faults_repair_only_saved_root(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -421,11 +429,11 @@ def test_prepared_faults_repair_only_saved_root(
     )
     cls, method = {
         "association": (IntegrationGuard, "save"),
-        "contractor": (PhaseAdapter, "prepare"),
+        "contractor": (ContractorAdapter, "prepare"),
         "reservation": (CoordinationStore, "_reserve"),
         "root": (roots, "create_root"),
         "child": (CoordinationStore, "start_child"),
-        "admission": (PhaseAdapter, "admit"),
+        "admission": (ContractorAdapter, "admit"),
     }[fault]
     original = getattr(cls, method)
     armed = True
@@ -459,7 +467,7 @@ def test_prepared_faults_repair_only_saved_root(
 def test_other_owner_busy_before_target_snapshot(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
@@ -470,7 +478,9 @@ def test_other_owner_busy_before_target_snapshot(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -624,7 +634,7 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
 def test_admission_limits_and_source_authority_fail_closed(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
 ) -> None:
-    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
@@ -635,7 +645,9 @@ def test_admission_limits_and_source_authority_fail_closed(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     coordinator = lab.store.coordination_store(composition=composition)
     sources = (("source", 0, source.receipt_digest),)

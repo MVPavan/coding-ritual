@@ -25,7 +25,7 @@ from workflow_interpreter.foreman.evidence_export import (
     EXPORT_MAX_DIFF_BYTES,
     export_reference,
 )
-from workflow_interpreter.foreman.inspect import _task_builder
+from workflow_interpreter.foreman.inspector import _task_builder
 from workflow_interpreter.inspector import activation_ref, channels_for
 from workflow_interpreter.inspector.errors import GitCommandError, SandboxUnavailable
 from workflow_interpreter.inspector.sandbox import SandboxMode

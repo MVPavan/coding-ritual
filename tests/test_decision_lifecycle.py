@@ -434,7 +434,7 @@ def test_coordinated_detached_wrapper_acquires_its_member_band(tmp_path: Path) -
     import pytest
 
     from tests._fake_bd import InjectedCrash
-    from workflow_interpreter.foreman.inspect import run_wrapper
+    from workflow_interpreter.foreman.inspector import run_wrapper
 
     lab = ForemanLab(
         tmp_path, toml=FIXTURE, instance_inputs={}, sandbox=SandboxMode.OFF

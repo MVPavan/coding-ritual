@@ -39,9 +39,9 @@ from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.errors import BdUnavailableError, StoreTransportError
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.contractor import (
+    ContractorAdapter,
+    ContractorAdapterError,
     ContractorRecord,
-    PhaseAdapter,
-    PhaseAdapterError,
     RetryRefusal,
 )
 from workflow_interpreter.contractor import command as contractor_command_module
@@ -55,7 +55,7 @@ from workflow_interpreter.foreman.compose import Composition, ProfileResolver, S
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.gates import halt_gate
-from workflow_interpreter.foreman.inspect import WrapperExit, run_wrapper
+from workflow_interpreter.foreman.inspector import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, RunReport, TickReport
 from workflow_interpreter.inspector.clock import Clock
 from workflow_interpreter.inspector.errors import PreconditionRefused
@@ -636,10 +636,10 @@ def test_status_renders_prior_contractor_attempt_evidence_at_an_open_gate(
     assert ship_id is not None
 
     monkeypatch.setattr(
-        gate_view_module.PhaseAdapter,
+        gate_view_module.ContractorAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config, _reads=None: PhaseAdapter(
+            lambda _cls, _config, _reads=None: ContractorAdapter(
                 BdClient(lab.config.bd, lab.fake_bd)
             )
         ),
@@ -709,10 +709,10 @@ def test_status_renders_current_contractor_attempt_evidence_at_an_open_gate(
     assert ship_id is not None
 
     monkeypatch.setattr(
-        gate_view_module.PhaseAdapter,
+        gate_view_module.ContractorAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config, _reads=None: PhaseAdapter(
+            lambda _cls, _config, _reads=None: ContractorAdapter(
                 BdClient(lab.config.bd, lab.fake_bd)
             )
         ),
@@ -750,16 +750,16 @@ def test_contractor_gate_view_rejects_a_root_outside_stage_attempts(
         "parent": "phase-1",
     }
     monkeypatch.setattr(
-        gate_view_module.PhaseAdapter,
+        gate_view_module.ContractorAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config, _reads=None: PhaseAdapter(
+            lambda _cls, _config, _reads=None: ContractorAdapter(
                 BdClient(lab.config.bd, lab.fake_bd)
             )
         ),
     )
 
-    with pytest.raises(PhaseAdapterError, match="does not own root instance_key"):
+    with pytest.raises(ContractorAdapterError, match="does not own root instance_key"):
         gate_view_module.contractor_gate_view(
             "contract:phase-1:stage-a:attempt:3",
             lab.config.bd,
@@ -798,14 +798,14 @@ def test_status_resolves_contractor_view_once_for_an_open_halt(
     resolutions = 0
 
     def adapter_from_config(
-        _cls: type[PhaseAdapter], _config: BdConfig, reads: WorkflowReads
-    ) -> PhaseAdapter:
+        _cls: type[ContractorAdapter], _config: BdConfig, reads: WorkflowReads
+    ) -> ContractorAdapter:
         nonlocal resolutions
         resolutions += 1
-        return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd), reads)
+        return ContractorAdapter(BdClient(lab.config.bd, lab.fake_bd), reads)
 
     monkeypatch.setattr(
-        gate_view_module.PhaseAdapter,
+        gate_view_module.ContractorAdapter,
         "from_config",
         classmethod(adapter_from_config),
     )
@@ -1045,9 +1045,9 @@ def _contractor_stage(
     }
 
 
-def _contractor_adapter(lab: ForemanLab) -> PhaseAdapter:
+def _contractor_adapter(lab: ForemanLab) -> ContractorAdapter:
     """Keep the command's contractor adapter on the lab's real fake-bd transport."""
-    return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+    return ContractorAdapter(BdClient(lab.config.bd, lab.fake_bd))
 
 
 def test_contractor_reports_exhaustion_before_named_stage_membership(
@@ -1060,7 +1060,7 @@ def test_contractor_reports_exhaustion_before_named_stage_membership(
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1082,7 +1082,7 @@ def test_contractor_refuses_an_empty_stage_description_before_writing(
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description=None)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1112,7 +1112,7 @@ def test_contractor_refuses_without_a_configured_contractor_graph(
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1138,7 +1138,7 @@ def test_contractor_refuses_a_configured_required_input_it_cannot_supply(
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1165,7 +1165,7 @@ def test_contractor_trace_is_read_only(
     before = lab.git.head_commit(cwd=lab.repo)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1196,7 +1196,7 @@ def test_contractor_uses_the_run_defaults_not_the_band_wait(
     calls: list[tuple[float, float]] = []
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1235,7 +1235,7 @@ def test_contractor_refuses_a_missing_stage_instead_of_crashing(
     adapter = _contractor_adapter(lab)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: adapter),
     )
@@ -1286,7 +1286,7 @@ def test_contractor_does_not_convert_a_transport_defect_into_a_refusal(
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     adapter = _contractor_adapter(lab)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: adapter),
     )
@@ -1327,7 +1327,7 @@ def test_contractor_refuses_an_epic_without_stages(
     lab = _contractor_lab(tmp_path)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1362,7 +1362,9 @@ def test_contractor_refuses_a_detached_or_dirty_coordinator(
         )
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="brief")
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     codes: list[int] = []
 
@@ -1402,7 +1404,7 @@ def test_contractor_reports_another_open_admission_as_blocked(
     }
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1432,7 +1434,7 @@ def test_contractor_reports_open_blocking_dependencies(
     ]
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1483,7 +1485,7 @@ def test_contractor_retry_mints_a_distinct_successor_root(
     }
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1533,7 +1535,7 @@ def test_contractor_reports_each_retry_predicate_refusal(
     }
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )
@@ -1753,7 +1755,7 @@ def test_contractor_monitored_requires_ack_before_dispatch(tmp_path, monkeypatch
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.PhaseAdapter,
+        contractor_command_module.ContractorAdapter,
         "from_config",
         classmethod(lambda _cls, _config, _reads=None: _contractor_adapter(lab)),
     )

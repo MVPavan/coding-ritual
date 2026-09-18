@@ -11,7 +11,7 @@ from tests._fake_bd import InjectedCrash
 from tests._foreman import ForemanLab
 from tests._inspector import ChildScript, commit_all
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
-from workflow_interpreter.contractor import PhaseAdapter
+from workflow_interpreter.contractor import ContractorAdapter
 from workflow_interpreter.contractor import landing as landing_module
 from workflow_interpreter.contractor.command import ContractorCommandResult
 from workflow_interpreter.contractor.landing import LANDING_RECEIPT_FILE, LandingHooks
@@ -53,7 +53,9 @@ def test_two_stages_land_from_normal_command(
     lab.fake_bd.rows["b"] = _contractor_stage("b", description="second stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     started = []
 
@@ -88,8 +90,8 @@ def test_two_stages_land_from_normal_command(
     monkeypatch.setattr(Foreman, "run", drive)
     armed = True
     real_write = landing_module.write_record
-    real_land = PhaseAdapter.land
-    real_admit = PhaseAdapter.admit
+    real_land = ContractorAdapter.land
+    real_admit = ContractorAdapter.admit
 
     def admit(self, stage_id, record, *, root_id):
         nonlocal armed
@@ -99,7 +101,7 @@ def test_two_stages_land_from_normal_command(
             raise InjectedCrash("after admission")
         return result
 
-    monkeypatch.setattr(PhaseAdapter, "admit", admit)
+    monkeypatch.setattr(ContractorAdapter, "admit", admit)
 
     def after_cas(self):
         nonlocal armed
@@ -134,7 +136,7 @@ def test_two_stages_land_from_normal_command(
 
     monkeypatch.setattr(LandingHooks, "after_cas", after_cas)
     monkeypatch.setattr(landing_module, "write_record", write)
-    monkeypatch.setattr(PhaseAdapter, "land", land)
+    monkeypatch.setattr(ContractorAdapter, "land", land)
     if fault != "none":
         crashed = _entry(lab, "a")
         assert crashed.exit_code == 1
@@ -229,7 +231,9 @@ def test_missing_policy_refuses_before_admission_writes(tmp_path, monkeypatch):
     lab.fake_bd.rows["a"] = _contractor_stage("a", description="first stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     result = _entry(lab, "a")
     assert result.exit_code == 2
@@ -246,7 +250,9 @@ def test_unexpected_programming_valueerror_is_a_crash(tmp_path, monkeypatch):
     lab.fake_bd.rows["a"] = _contractor_stage("a", description="first stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
+        ContractorAdapter,
+        "from_config",
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
 
     def broken_run(*args, **kwargs):

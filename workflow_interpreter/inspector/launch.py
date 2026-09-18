@@ -654,7 +654,7 @@ class Dispatcher:
 
         BEFORE `Profile.prepare`, so no vendor session is minted for a launch
         that may not happen (O1). A missing or non-enforcing `bwrap` is
-        permanent, so it raises rather than degrades: `foreman/inspect.py`
+        permanent, so it raises rather than degrades: `foreman/inspector.py`
         turns it into a typed close and the frontier into a halt gate.
 
         `sandbox = off` builds only the private toolchain-cache plan. It avoids
