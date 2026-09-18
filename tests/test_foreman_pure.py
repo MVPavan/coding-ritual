@@ -57,6 +57,9 @@ from workflow_interpreter.foreman.routing import (
     route,
 )
 from workflow_interpreter.foreman.transcript import bounded_tail
+from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.models import CompletionEvidence
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.loader import content_hash
 from workflow_interpreter.schema.models import (
@@ -66,9 +69,6 @@ from workflow_interpreter.schema.models import (
     GraphDefinition,
     Outcome,
 )
-from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.models import CompletionEvidence
 
 
 @pytest.mark.parametrize(
@@ -114,8 +114,8 @@ def test_event_intent_key_changes_with_outcome() -> None:
     assert first.key_for("root") != second.key_for("root")
 
 
-def test_instance_branch_constant_uses_the_supervisor_contract() -> None:
-    """Foreman has one branch spelling and inherits it from supervisor."""
+def test_instance_branch_constant_uses_the_inspector_contract() -> None:
+    """Foreman has one branch spelling and inherits it from inspector."""
     assert INSTANCE_BRANCH == INSTANCE_BRANCH_REF
 
 
@@ -325,7 +325,7 @@ def test_route_handles_gate_and_no_progress_branches() -> None:
     )
     exhausted_route = exhausted(index, node)
     assert exhausted_route == Route(kind=RouteKind.EXHAUSTED, target="triage")
-    assert retry_kind(Outcome.ERROR_RUNNER) is MintReason.INFRA_RETRY
+    assert retry_kind(Outcome.ERROR_CREW) is MintReason.INFRA_RETRY
     assert retry_kind(Outcome.STEERED) is MintReason.STEER_CONTINUATION
 
 
@@ -1089,7 +1089,7 @@ def test_frontier_fail_code_requires_every_dead_end_clause(
     """Fail-code routing requires completion and a node that declares it.
 
     `missing` covers the unknown-node clause; the rest cover a node whose
-    vocabulary withholds `fail_code`, whatever the runner claimed.
+    vocabulary withholds `fail_code`, whatever the crew claimed.
     """
     root = make_root(fake_store, _undeclared_fail_code(load_definition()))
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
@@ -1175,7 +1175,7 @@ def test_finalize_preserves_an_unblocked_completion_and_deviations(
 def test_finalize_preserves_the_claim_and_adds_no_prior_deviation(
     fake_store: WorkflowStore,
 ) -> None:
-    """Finalization does not replace a runner claim, nor re-return prior deviations.
+    """Finalization does not replace a crew claim, nor re-return prior deviations.
 
     `decide` returns what THIS close ADDS and nothing else, because
     `WorkflowStore.close_activation` stores `(*record.metadata.deviations,
@@ -1221,7 +1221,7 @@ def test_config_derives_wrapper_root_from_the_real_repo_path(tmp_path: Path) -> 
         bd=BdConfig(workspace=tmp_path / "bd", actor="test"),
         host="host",
         actor="test",
-        supervisor=SupervisorConfig(
+        inspector=InspectorConfig(
             repo_root=repo, wrapper_root=wrapper_root, host="host"
         ),
     )
@@ -1238,7 +1238,7 @@ def test_config_derives_wrapper_root_from_the_real_repo_path(tmp_path: Path) -> 
         bd=BdConfig(workspace=tmp_path / "other-bd", actor="test"),
         host="host",
         actor="test",
-        supervisor=SupervisorConfig(
+        inspector=InspectorConfig(
             repo_root=sibling, wrapper_root=sibling_wrapper, host="host"
         ),
     )
@@ -1358,7 +1358,7 @@ actor = "actor"
 workspace = "{tmp_path / "bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{repo}"
 wrapper_root = "{wrapper_root}"
 host = "host"
@@ -1410,7 +1410,7 @@ actor = "actor"
 workspace = "{tmp_path / "bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{repo}"
 wrapper_root = "{wrapper_root}"
 host = "host"

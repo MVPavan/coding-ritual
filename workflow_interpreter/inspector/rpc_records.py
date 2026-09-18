@@ -1,4 +1,4 @@
-"""Protected one-turn RPC evidence, separate from runner-writable channels."""
+"""Protected one-turn RPC evidence, separate from crew-writable channels."""
 
 from enum import StrEnum
 from pathlib import Path
@@ -7,10 +7,10 @@ from typing import Final, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from workflow_interpreter.bdio.rpc_records import SessionRegistration
-from workflow_interpreter.contracts.transport import RunnerTransport
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.launch_record import LaunchReceipt
-from workflow_interpreter.supervisor.paths import read_record
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.launch_record import LaunchReceipt
+from workflow_interpreter.inspector.paths import read_record
 
 SESSION_FILE: Final[str] = "session.json"
 TURN_FILE: Final[str] = "turn.json"
@@ -110,7 +110,7 @@ class TurnCompleted(TurnReply):
 
 def completion_error(receipt: LaunchReceipt | None, directory: Path) -> str | None:
     """A server exit or forged log cannot replace protected completion evidence."""
-    if receipt is None or receipt.transport is not RunnerTransport.STDIO_RPC:
+    if receipt is None or receipt.transport is not CrewTransport.STDIO_RPC:
         return None
     try:
         session = read_record(directory / SESSION_FILE, SessionRegistration)

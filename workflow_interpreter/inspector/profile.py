@@ -1,16 +1,16 @@
-"""The §6 runner-floor Protocol the phase-4 adapters implement.
+"""The §6 crew-floor Protocol the phase-4 adapters implement.
 
 This module declares the contract and NOTHING that satisfies it: claude, codex
 and opencode adapters are phase 4. What lives here is the vendor-neutral shape
-the supervisor drives — plus the two rules that keep a vendor adapter from
+the inspector drives — plus the two rules that keep a vendor adapter from
 quietly becoming the trust boundary:
 
 - **The exec is not delegable.** `launch` receives a `ChildLauncher` the
-  SUPERVISOR owns and must exec through it. The §5.2 fork barrier and the exec
+  INSPECTOR owns and must exec through it. The §5.2 fork barrier and the exec
   ledger are the crash-atomicity contract; a profile that forked its own child
   would not have them. `launch.py` verifies the receipt and the ledger after
   every launch, so an adapter that ignores this is caught rather than trusted.
-- **The runner channels are wrapper-provided** (§6): `$WF_OUTCOME_FILE`,
+- **The crew channels are wrapper-provided** (§6): `$WF_OUTCOME_FILE`,
   `$WF_ARTIFACT_DIR` and `$WF_EFFECTS_FILE` — plus `$WF_SCRATCH_DIR`, the
   wrapper-owned `TMPDIR` a sandboxed child would otherwise not have — live
   together under `<activation>/channels/` and are writable regardless of the
@@ -18,7 +18,7 @@ quietly becoming the trust boundary:
   is load-bearing: a sandbox grants directories, so the channels must not share
   one with the wrapper's own crash records (`paths.CHANNELS_DIR`).
 
-`usage: unknown` is legal telemetry; `max_wall` is enforced by the supervisor
+`usage: unknown` is legal telemetry; `max_wall` is enforced by the inspector
 (§6).
 """
 
@@ -38,21 +38,21 @@ from workflow_interpreter.contracts.execution import (
     ExecutionProfileName,
     NetworkProfile,
 )
-from workflow_interpreter.contracts.transport import RunnerTransport
-from workflow_interpreter.schema.models import ArtifactInputMode
-from workflow_interpreter.supervisor.channels import (
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector.channels import (
     COMMITTER_NAME,
     ENV_GIT_COMMITTER_EMAIL,
     ENV_GIT_COMMITTER_NAME,
-    runner_committer_email,
+    crew_committer_email,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     ARTIFACT_DIR,
     CHANNELS_DIR,
     EFFECTS_FILE,
     OUTCOME_FILE,
     SCRATCH_DIR,
 )
+from workflow_interpreter.schema.models import ArtifactInputMode
 
 PROFILE_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -65,7 +65,7 @@ ENV_SCRATCH_DIR: Final[str] = "WF_SCRATCH_DIR"
 
 
 class EventType(StrEnum):
-    """The normalized event classes every runner's stream maps onto (§6)."""
+    """The normalized event classes every crew's stream maps onto (§6)."""
 
     MESSAGE = "message"
     TOOL = "tool"
@@ -74,11 +74,11 @@ class EventType(StrEnum):
     ERROR = "error"
 
 
-class RunnerChannels(BaseModel):
+class CrewChannels(BaseModel):
     """The §6 wrapper-provided channels for one activation.
 
     All of them live under ONE directory (`paths.CHANNELS_DIR`), which is what
-    lets a directory-granularity sandbox grant exactly the runner's channels and
+    lets a directory-granularity sandbox grant exactly the crew's channels and
     nothing of the wrapper's own crash-atomicity records.
     """
 
@@ -96,7 +96,7 @@ class RunnerChannels(BaseModel):
     activation_id: str = ""
     """Empty only where a caller built channels without one; production always
     supplies it (`Dispatcher._launch`). With no id there is no §7.4 committer
-    identity to stamp, so any in-repo commit the runner makes is unattributable
+    identity to stamp, so any in-repo commit the crew makes is unattributable
     and `pin_artifact` refuses it — the fail-closed direction."""
 
     def env(self) -> dict[str, str]:
@@ -105,14 +105,14 @@ class RunnerChannels(BaseModel):
         `GIT_COMMITTER_*` is not a channel and is here anyway, because it is set
         the same way and for the same reason — it is the wrapper telling the
         child something about the run rather than reading something back. §7.4
-        attribution used to be path containment alone, so a dead runner's
+        attribution used to be path containment alone, so a dead crew's
         manifest naming a path the HUMAN later committed made the human's commit
         this activation's artifact, and an artifact pin is the §12 authority for
         the next reset to move HEAD off it (probed, Opus#21). The committer is
         the missing authorship half.
 
         `GIT_AUTHOR_*` is deliberately untouched: the author is whoever the
-        runner says wrote the change, and overwriting that would destroy
+        crew says wrote the change, and overwriting that would destroy
         information rather than add any.
         """
         channels = {
@@ -127,14 +127,14 @@ class RunnerChannels(BaseModel):
         return {
             **channels,
             ENV_GIT_COMMITTER_NAME: COMMITTER_NAME,
-            ENV_GIT_COMMITTER_EMAIL: runner_committer_email(self.activation_id),
+            ENV_GIT_COMMITTER_EMAIL: crew_committer_email(self.activation_id),
         }
 
 
 class TaskSpec(BaseModel):
     """Everything a profile needs to build one invocation (§6 `build_command`).
 
-    Carries no bd handle and no store: a runner holds `bd --readonly` or no bd
+    Carries no bd handle and no store: a crew holds `bd --readonly` or no bd
     at all (§0.2), and the object that describes its task must not be a way
     around that.
     """
@@ -153,10 +153,10 @@ class TaskSpec(BaseModel):
     checkout_read_root: str | None = None
     allowed_paths: tuple[str, ...] = ()
     cwd: str
-    channels: RunnerChannels
+    channels: CrewChannels
     vendor_state: str | None = None
     toolchain_cache: str | None = None
-    """Supervisor-owned uv cache path, injected from the sandbox plan.
+    """Inspector-owned uv cache path, injected from the sandbox plan.
 
     None for standalone profile callers; dispatch always replaces it with the
     same path the launcher exports as UV_CACHE_DIR. Profiles must not derive
@@ -167,7 +167,7 @@ class TaskSpec(BaseModel):
     artifact_input_mode: ArtifactInputMode = ArtifactInputMode.INLINE
 
 
-class RunnerCommand(BaseModel):
+class CrewCommand(BaseModel):
     """A built invocation: argv, environment and working directory.
 
     `argv` is executed WITHOUT a shell, exactly like the §2 rule-6 `verify`
@@ -176,7 +176,7 @@ class RunnerCommand(BaseModel):
 
     model_config = PROFILE_MODEL
 
-    transport: RunnerTransport = RunnerTransport.EVENT_LOG
+    transport: CrewTransport = CrewTransport.EVENT_LOG
     argv: tuple[str, ...] = Field(min_length=1)
     env: dict[str, str] = Field(default_factory=dict)
     cwd: str
@@ -191,7 +191,7 @@ class TerminalEnvelope(BaseModel):
     Nothing ever consumed it: §7.2 makes the CLAIM the foreman wrapper's to
     parse, and `exit.py::_collect` re-reads `$WF_OUTCOME_FILE` itself with the
     node's declared outcome set — precisely so a vendor adapter's parse of a
-    vendor's stream cannot become a second, unvalidated way for a runner to name
+    vendor's stream cannot become a second, unvalidated way for a crew to name
     its own outcome. Reporting one anyway meant a profile deriving the reserved
     channel's path by convention from `handle.log_path`, which is the coupling
     `ProcessHandle` should have carried explicitly and did not.
@@ -204,8 +204,8 @@ class TerminalEnvelope(BaseModel):
     duration_s: float | None = None
 
 
-class RunnerEvent(BaseModel):
-    """One normalized event of a runner's machine stream (§6 `parse_output`)."""
+class CrewEvent(BaseModel):
+    """One normalized event of a crew's machine stream (§6 `parse_output`)."""
 
     model_config = PROFILE_MODEL
 
@@ -218,10 +218,10 @@ class RunnerEvent(BaseModel):
 
 
 class ChildLauncher(Protocol):
-    """The supervisor's fork-barrier exec, handed to a profile at launch (§5.2)."""
+    """The inspector's fork-barrier exec, handed to a profile at launch (§5.2)."""
 
     def __call__(
-        self, command: RunnerCommand
+        self, command: CrewCommand
     ) -> ProcessHandle: ...  # pragma: no cover - protocol
 
 
@@ -235,34 +235,34 @@ class WorkingDirectoryProfile(Protocol):
 
 
 class Profile(NetworkProfile, Protocol):
-    """The §6 runner floor. One invocation contract, three vendors (phase 4)."""
+    """The §6 crew floor. One invocation contract, three vendors (phase 4)."""
 
     def name(self) -> str:
-        """The profile's stable identifier (`runner = "profile:<name>"`)."""
+        """The profile's stable identifier (`crew = "profile:<name>"`)."""
         ...  # pragma: no cover - protocol
 
     def prepare(self, activation: ActivationRecord) -> str:
         """Pre-assign the session id (§5.2) — never discovered from output."""
         ...  # pragma: no cover - protocol
 
-    def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+    def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
         """Build the invocation; danger defaults inverted unless `writes` (§6)."""
         ...  # pragma: no cover - protocol
 
-    def launch(self, command: RunnerCommand, launcher: ChildLauncher) -> ProcessHandle:
-        """Exec THROUGH the supervisor's launcher; the barrier is not optional."""
+    def launch(self, command: CrewCommand, launcher: ChildLauncher) -> ProcessHandle:
+        """Exec THROUGH the inspector's launcher; the barrier is not optional."""
         ...  # pragma: no cover - protocol
 
     def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
-        """The runner's terminal facts; the outcome CLAIM is §7's, not a profile's."""
+        """The crew's terminal facts; the outcome CLAIM is §7's, not a profile's."""
         ...  # pragma: no cover - protocol
 
     def build_resume_command(
         self, session_id: str, instructions: str, task: TaskSpec
-    ) -> RunnerCommand:
+    ) -> CrewCommand:
         """The steer continuation's invocation (§8.1), bounded by `task`.
 
-        The `TaskSpec` is not optional and used to be absent. A `RunnerCommand`
+        The `TaskSpec` is not optional and used to be absent. A `CrewCommand`
         needs a working directory and the §6 channels; with neither in the
         signature the adapters remembered the launch they had built, which is
         per-object state on an object the registry mints fresh per lookup — so a
@@ -276,14 +276,14 @@ class Profile(NetworkProfile, Protocol):
         """A human-pasteable resume line, recorded on gate beads (§6)."""
         ...  # pragma: no cover - protocol
 
-    def parse_output(self, stream: Iterable[str]) -> Iterator[RunnerEvent]:
-        """Normalize the runner's machine event stream (§6)."""
+    def parse_output(self, stream: Iterable[str]) -> Iterator[CrewEvent]:
+        """Normalize the crew's machine event stream (§6)."""
         ...  # pragma: no cover - protocol
 
 
 def channels_for(
     activation_dir: Path, log_path: Path, activation_id: str = ""
-) -> RunnerChannels:
+) -> CrewChannels:
     """The §6 channels for an activation, rooted in `<activation>/channels/`.
 
     The nesting is the whole point and is stated in exactly two places — here
@@ -295,7 +295,7 @@ def channels_for(
     commit unattributable rather than misattributed.
     """
     channels_dir = activation_dir / CHANNELS_DIR
-    return RunnerChannels(
+    return CrewChannels(
         outcome_file=str(channels_dir / OUTCOME_FILE),
         artifact_dir=str(channels_dir / ARTIFACT_DIR),
         effects_file=str(channels_dir / EFFECTS_FILE),

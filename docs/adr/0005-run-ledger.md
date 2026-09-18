@@ -1,5 +1,7 @@
 # ADR 0005 — engine facts live in a run ledger, and every run writes its knowledge down
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 - **Status:** Accepted
 - **Date:** 2026-09-17
 - **Deciders:** repo owner

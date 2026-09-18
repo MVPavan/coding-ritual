@@ -1,12 +1,12 @@
-"""Audit flags that must survive malformed runner channels."""
+"""Audit flags that must survive malformed crew channels."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from tests.test_supervisor_exit import DONE_MARKER, FEATURE_FILE, Lab
-from workflow_interpreter.supervisor import AuditFlag
+from tests.test_inspector_exit import DONE_MARKER, FEATURE_FILE, Lab
+from workflow_interpreter.inspector import AuditFlag
 
 
 def test_invalid_marker_does_not_hide_unsafe_outputs(tmp_path: Path) -> None:

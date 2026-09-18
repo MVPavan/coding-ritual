@@ -8,7 +8,7 @@ from typing import Final, cast
 import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
-from tests._supervisor import make_config, make_git, make_repo
+from tests._inspector import make_config, make_git, make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     ActivationRecord,
@@ -29,9 +29,9 @@ from workflow_interpreter.foreman.inputs import (
     materialize,
     select_bindings,
 )
+from workflow_interpreter.inspector import activation_ref
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.schema.models import Outcome, Region, RegionMode
-from workflow_interpreter.supervisor import activation_ref
-from workflow_interpreter.supervisor.gitio import Git
 
 
 class GitDouble:
@@ -663,10 +663,10 @@ def test_default_composer_pins_every_forced_reject_clause(
         ("review", False, ("accept", "reject")),
     ),
 )
-def test_compose_tells_the_runner_the_channel_protocol_for_its_own_node(
+def test_compose_tells_the_crew_the_channel_protocol_for_its_own_node(
     fake_store: WorkflowStore, node: str, writes: bool, outcomes: tuple[str, ...]
 ) -> None:
-    """cr-0zc: a real runner is told the §6 contract, or it fails closed.
+    """cr-0zc: a real crew is told the §6 contract, or it fails closed.
 
     Found by the live DRILL-27 run, and structurally invisible to the lab: the
     `ShellProfile` double always wrote `$WF_OUTCOME_FILE` because the TEST
@@ -696,14 +696,14 @@ def test_compose_tells_the_runner_the_channel_protocol_for_its_own_node(
 
 
 @pytest.mark.parametrize("node", ("implement", "review"))
-def test_compose_tells_the_runner_what_its_own_node_must_do(
+def test_compose_tells_the_crew_what_its_own_node_must_do(
     fake_store: WorkflowStore, node: str
 ) -> None:
     """ADR 0002: instructions are pinned, hashed and enforced — and must arrive.
 
     The shipped graph is the participant here; the test authors none of the
     text it asserts on. A composer that stored instructions without rendering
-    them would satisfy slices 1 and 2 and still tell the runner nothing.
+    them would satisfy slices 1 and 2 and still tell the crew nothing.
     """
     root = make_root(fake_store, load_definition())
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
@@ -732,10 +732,10 @@ def test_compose_states_that_declared_facts_beat_instructions(
     assert "declared facts" in brief.lower()
 
 
-def test_compose_carries_the_activation_facts_a_runner_cannot_derive(
+def test_compose_carries_the_activation_facts_a_crew_cannot_derive(
     fake_store: WorkflowStore,
 ) -> None:
-    """§6 gaps: the runner is told its node, round, graph and the checks that run."""
+    """§6 gaps: the crew is told its node, round, graph and the checks that run."""
     root = make_root(fake_store, load_definition())
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     node = root.index.nodes[activation.metadata.node]
@@ -1057,7 +1057,7 @@ def test_optional_verify_feedback_never_hides_corrupt_bound_evidence(
     )
     from tests.test_verify_feedback import feedback_graph
     from workflow_interpreter.foreman.inputs import bounded_materialize
-    from workflow_interpreter.supervisor.gitcmd import GitSubcommand
+    from workflow_interpreter.inspector.gitcmd import GitSubcommand
 
     lab = _lab(
         tmp_path,

@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     IMPLEMENT,
     SESSION_ID,
     ChildScript,
@@ -40,7 +40,7 @@ from tests._supervisor import (
 )
 from workflow_interpreter.bdio import ActivationRecord, Lifecycle, ProcessHandle
 from workflow_interpreter.bdio.errors import LifecycleConflictError
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     Dispatcher,
     ExecLedger,
     ExecLedgerEntry,
@@ -48,21 +48,21 @@ from workflow_interpreter.supervisor import (
     ForkBarrierAbortError,
     ForkBarrierError,
     ForkBarrierLauncher,
+    InspectorConfig,
     LaunchOutcome,
     LaunchReceipt,
-    SupervisorConfig,
     WrapperPaths,
     channels_for,
 )
-from workflow_interpreter.supervisor import fork_launcher as launch_module
-from workflow_interpreter.supervisor.models import LaunchReceiptState
-from workflow_interpreter.supervisor.paths import read_record, write_record
-from workflow_interpreter.supervisor.profile import (
-    RunnerChannels,
-    RunnerCommand,
+from workflow_interpreter.inspector import fork_launcher as launch_module
+from workflow_interpreter.inspector.models import LaunchReceiptState
+from workflow_interpreter.inspector.paths import read_record, write_record
+from workflow_interpreter.inspector.profile import (
+    CrewChannels,
+    CrewCommand,
     TaskSpec,
 )
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector.sandbox import (
     ENV_UV_CACHE_DIR,
     ENV_UV_PYTHON_INSTALL_DIR,
     UV_CACHE_DIRECTORY,
@@ -81,14 +81,12 @@ FSYNC_FILE_AND_DIR = 2
 
 
 class Lab:
-    """A repo, an in-memory bd instance, a wrapper dir and a fake runner."""
+    """A repo, an in-memory bd instance, a wrapper dir and a fake crew."""
 
     def __init__(self, tmp_path: Path, script: ChildScript | None = None) -> None:
         self.repo = make_repo(tmp_path)
         self.base = head_of(self.repo)
-        self.config: SupervisorConfig = make_config(
-            self.repo, tmp_path, fake_proc=False
-        )
+        self.config: InspectorConfig = make_config(self.repo, tmp_path, fake_proc=False)
         self.fake_bd, self.store = make_store(tmp_path, self.base)
         self.root = make_root(self.store, self.repo, "launch-instance")
         self.paths: WrapperPaths = make_paths(self.config, self.root.root_id)
@@ -113,7 +111,7 @@ class Lab:
 
 @pytest.fixture
 def lab(tmp_path: Path) -> Lab:
-    """A launch lab with a fake runner that writes a `done` marker and exits."""
+    """A launch lab with a fake crew that writes a `done` marker and exits."""
     return Lab(tmp_path)
 
 
@@ -245,7 +243,7 @@ def test_a_handle_that_renames_a_minted_session_is_refused(tmp_path: Path) -> No
     )
 
 
-def test_child_writes_through_the_runner_channels(lab: Lab) -> None:
+def test_child_writes_through_the_crew_channels(lab: Lab) -> None:
     """§6: the wrapper-provided channels are what the child actually writes to."""
     result = lab.dispatch()
     assert result.handle is not None
@@ -297,7 +295,7 @@ def test_receipt_without_a_ledger_line_relaunches_once(lab: Lab) -> None:
 def test_aborted_receipt_never_reattaches_even_with_a_ledger_line(
     lab: Lab,
 ) -> None:
-    """A barrier abort is never adopted as a launched runner.
+    """A barrier abort is never adopted as a launched crew.
 
     The concrete input includes a ledger line because a child can append before
     its ACK is lost. Neither an `aborted` receipt nor that line authorizes
@@ -365,7 +363,7 @@ def test_exec_without_record_dispatch_reattaches(
     )
     handle = launcher(command)
     _wait(handle.pid)
-    from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
+    from workflow_interpreter.inspector.toolchain import ToolchainSeeder
 
     def tainted(*args: object, **kwargs: object) -> None:
         """A crashed dispatch's cache cannot be probed by the host."""
@@ -705,7 +703,7 @@ def test_abort_child_ignoring_term_escalates_without_reattached_status(
 ) -> None:
     """A TERM-trapping real child must be KILLed, not reclassified as reattached.
 
-    The concrete input is a real Python runner which has installed a SIGTERM
+    The concrete input is a real Python crew which has installed a SIGTERM
     trap; the wrong output is an unconsumed status or a receipt left
     `abort-pending` after the bounded TERM → KILL escalation.
     """
@@ -733,7 +731,7 @@ def test_abort_child_ignoring_term_escalates_without_reattached_status(
         lab.paths.activation_dir(activation_id), lab.paths.log(activation_id)
     )
     term_ready = tmp_path / "term-ready"
-    command = RunnerCommand(
+    command = CrewCommand(
         argv=(
             sys.executable,
             "-c",
@@ -792,7 +790,7 @@ def _await(predicate: Callable[[], bool], timeout_s: float = 10.0) -> None:
 
 def _placeholder_handle(lab: Lab, activation_id: str) -> object:
     """A handle for a launch that never happened (drill 2's stale receipt)."""
-    from tests._supervisor import handle_for
+    from tests._inspector import handle_for
 
     return handle_for(1, log_path=str(lab.paths.log(activation_id)))
 
@@ -805,7 +803,7 @@ def test_dispatch_passes_the_effective_uv_cache_to_the_profile(
     seen: list[TaskSpec] = []
     original = lab.profile.build_command
 
-    def capture(task: TaskSpec, session_id: str) -> RunnerCommand:
+    def capture(task: TaskSpec, session_id: str) -> CrewCommand:
         """Record the profile input and emit the child's effective cache."""
         seen.append(task)
         command = original(task, session_id)
@@ -819,8 +817,8 @@ def test_dispatch_passes_the_effective_uv_cache_to_the_profile(
             }
         )
 
-    def build_task(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
-        """Supply a deliberately wrong cache hint before supervisor planning."""
+    def build_task(activation: ActivationRecord, channels: CrewChannels) -> TaskSpec:
+        """Supply a deliberately wrong cache hint before inspector planning."""
         return lab.build_task(activation, channels).model_copy(
             update={"writes": writes, "toolchain_cache": str(lab.repo.parent)}
         )
@@ -844,8 +842,8 @@ def test_toolchain_preparation_failure_never_releases_vendor(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A named seed refusal leaves no exec-ledger line or launch receipt."""
-    from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
-    from workflow_interpreter.supervisor.toolchain_models import ToolchainUnavailable
+    from workflow_interpreter.inspector.toolchain import ToolchainSeeder
+    from workflow_interpreter.inspector.toolchain_models import ToolchainUnavailable
 
     def refuse(*args: object, **kwargs: object) -> None:
         """Model a bounded dependency preparation failure before the fork."""
@@ -867,8 +865,8 @@ def test_dispatch_records_seed_provenance_and_pins_host_sources_last(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Seed provenance reaches the real barrier receipt and offline child env."""
-    from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
-    from workflow_interpreter.supervisor.toolchain_models import (
+    from workflow_interpreter.inspector.toolchain import ToolchainSeeder
+    from workflow_interpreter.inspector.toolchain_models import (
         CopyMethod,
         SeedPreparation,
         SeedReceipt,
@@ -901,7 +899,7 @@ def test_dispatch_records_seed_provenance_and_pins_host_sources_last(
             receipts=(receipt,),
         )
 
-    def launch(self: ForkBarrierLauncher, command: RunnerCommand) -> ProcessHandle:
+    def launch(self: ForkBarrierLauncher, command: CrewCommand) -> ProcessHandle:
         """Observe the actual plan and let the real fork barrier run."""
         observed_plans.append(self._plan)
         return original_launcher(self, command)
@@ -934,9 +932,9 @@ def test_seed_host_environment_ignores_empty_profile_passthrough(
 ) -> None:
     """Host discovery survives a child profile that passes neither PATH nor HOME."""
     from tests._profiles import make_codex
+    from workflow_interpreter.inspector.toolchain import ToolchainSeeder
+    from workflow_interpreter.inspector.toolchain_models import SeedPreparation
     from workflow_interpreter.profiles import ProfileConfig
-    from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
-    from workflow_interpreter.supervisor.toolchain_models import SeedPreparation
 
     vendor = make_codex(tmp_path, lab.clock, ProfileConfig(passthrough_env=()))
     host_bin = tmp_path / "host-bin"
@@ -949,7 +947,7 @@ def test_seed_host_environment_ignores_empty_profile_passthrough(
     original = lab.profile.build_command
     probes: list[str] = []
 
-    def command(task: TaskSpec, session: str) -> RunnerCommand:
+    def command(task: TaskSpec, session: str) -> CrewCommand:
         child_env = vendor.child_env(task.channels)
         assert "PATH" not in child_env and "HOME" not in child_env
         return original(task, session).model_copy(update={"env": child_env})

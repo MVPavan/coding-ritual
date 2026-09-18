@@ -50,9 +50,9 @@ MSG_WHEEL_ENTRY: Final[str] = "unsupported host wheel index entry"
 MSG_WHEEL_BOUND: Final[str] = "host wheel metadata exceeds byte bound"
 MSG_CLEANUP_LINK: Final[str] = "private toolchain cleanup path contains a symlink"
 MSG_NO_IDENTITY: Final[str] = (
-    "private toolchain retained: launched runner identity missing"
+    "private toolchain retained: launched crew identity missing"
 )
-MSG_NOT_DEAD: Final[str] = "private toolchain retained: runner death is unproven"
+MSG_NOT_DEAD: Final[str] = "private toolchain retained: crew death is unproven"
 MSG_HOST_ABSOLUTE: Final[str] = "toolchain host paths must be absolute"
 MSG_DUPLICATE_PROJECTS: Final[str] = "duplicate toolchain projects"
 MSG_PROJECT_RELATIVE: Final[str] = "toolchain projects must be repo-relative"

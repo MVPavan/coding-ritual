@@ -44,7 +44,7 @@ def test_concurrent_evidence_publication_reconciles_only_identical_payload(
 
 
 def _die_during_snapshot(fake, entered):
-    from workflow_interpreter.supervisor import paths
+    from workflow_interpreter.inspector import paths
 
     original = Path.write_text
 

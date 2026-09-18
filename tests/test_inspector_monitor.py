@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 from tests._fake_bd import FakeBd
-from tests._supervisor import (
+from tests._inspector import (
     IMPLEMENT,
     SESSION_ID,
     ChildScript,
@@ -43,24 +43,24 @@ from tests._supervisor import (
     write_proc_entry,
 )
 from workflow_interpreter.bdio import Lifecycle
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     ExitReason,
     ForkBarrierLauncher,
+    InspectorConfig,
     Limits,
     Monitor,
     MonitorVerdict,
     ReapResult,
     StaleFlag,
-    SupervisorConfig,
     WrapperPaths,
     channels_for,
 )
-from workflow_interpreter.supervisor import procfs as procfs_module
-from workflow_interpreter.supervisor.models import EXIT_CODE_UNOBSERVED
-from workflow_interpreter.supervisor.monitor import TERMINAL_VERDICTS
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.run import _exit_code, _exit_reason, _StaleMirror
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector import procfs as procfs_module
+from workflow_interpreter.inspector.models import EXIT_CODE_UNOBSERVED
+from workflow_interpreter.inspector.monitor import TERMINAL_VERDICTS
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.run import _exit_code, _exit_reason, _StaleMirror
+from workflow_interpreter.inspector.sandbox import (
     UV_CACHE_DIRECTORY,
     SandboxMode,
     SandboxPlan,
@@ -89,7 +89,7 @@ class Watched:
 
     def __init__(self, tmp_path: Path) -> None:
         self.repo = make_repo(tmp_path)
-        self.config: SupervisorConfig = make_config(self.repo, tmp_path)
+        self.config: InspectorConfig = make_config(self.repo, tmp_path)
         self.paths: WrapperPaths = make_paths(self.config, ROOT_ID)
         self.clock = FrozenClock()
         self.activation_id = "wf-9"
@@ -110,7 +110,7 @@ class Watched:
         )
 
     def emit(self, text: str) -> None:
-        """Append bytes to the runner log — the only activity signal there is."""
+        """Append bytes to the crew log — the only activity signal there is."""
         with self.paths.log(self.activation_id).open("a", encoding="utf-8") as log:
             log.write(text)
 
@@ -184,13 +184,13 @@ def test_silence_past_stale_after_raises_the_flag(watched: Watched) -> None:
     assert flag.last_activity_at == watched.handle.started_at
     assert flag.stale_after_s == STALE_AFTER_S
     assert result.stale == flag
-    # The FIRST window only flags: §8.2's stale watch gives the runner one more
+    # The FIRST window only flags: §8.2's stale watch gives the crew one more
     # `stale_after` before it becomes terminable.
     assert result.termination is None
 
 
 def test_the_stale_flag_keeps_its_first_timestamp(watched: Watched) -> None:
-    """A re-raise must not rewrite when the runner actually went quiet."""
+    """A re-raise must not rewrite when the crew actually went quiet."""
     watched.clock.advance(STALE_AFTER_S + 1)
     first = watched.monitor.observe()
     # Still inside the second window, which is what keeps this a re-raise
@@ -210,7 +210,7 @@ def test_activity_after_the_flag_defers_the_stale_termination(
 ) -> None:
     """§8.2: the second window is silence, so any byte restarts the count.
 
-    A runner that goes quiet, is flagged, and then speaks again is working —
+    A crew that goes quiet, is flagged, and then speaks again is working —
     terminating it at a fixed `2 x stale_after` after the flag would kill it
     for a silence that ended.
     """
@@ -230,7 +230,7 @@ def test_activity_after_the_flag_defers_the_stale_termination(
 
 
 def test_a_second_stale_window_of_silence_is_terminable(watched: Watched) -> None:
-    """§8.2: the watch ENDS a runner that stays silent through both windows.
+    """§8.2: the watch ENDS a crew that stays silent through both windows.
 
     The fake `/proc` entry never goes away, so this is the unkillable shape:
     the kill is not confirmed, so it is not terminal — the same rule the
@@ -351,7 +351,7 @@ def test_an_unreadable_proc_is_never_recorded_as_an_exit(watched: Watched) -> No
     recorded `-256 / exit_unobserved`. That is §5.6's word for a transport
     failure: an infra retry was spent and a second child ran beside the
     survivor. A directory where `stat` should be reproduces the failure without
-    needing a permission the test runner may not be able to drop.
+    needing a permission the test crew may not be able to drop.
     """
     stat = watched.config.proc_root / str(FAKE_PID) / "stat"
     stat.unlink()
@@ -617,7 +617,7 @@ def test_a_breached_ceiling_terms_the_group_and_records_the_reason(
 ) -> None:
     """Drill 16 for both ceilings: TERM the group, record why (§8.2).
 
-    The second case is the staleness one: a runner that stayed silent through
+    The second case is the staleness one: a crew that stayed silent through
     a second `stale_after` window is ended exactly as a runaway is, so the
     same real child is signalled and the same proof is demanded — only the
     recorded reason differs.
@@ -763,7 +763,7 @@ def test_an_unreadable_boot_id_holds_position_instead_of_crashing(
     `read_boot_id` used a bare `read_text()`, so a container that lost its
     `/proc` mount — the module docstring's own example of an INDETERMINATE case
     — raised `FileNotFoundError` out of `prove_liveness`, through `observe`,
-    `watch` and `Supervisor._supervise`, killing the resident supervisor with a
+    `watch` and `Inspector._inspect`, killing the resident inspector with a
     live detached child, no exit record and nobody left to write one. The same
     read is what §5.6 recovery classifies on.
     """

@@ -99,7 +99,7 @@ actor = "codex:p2-live"
 [bd]
 workspace = {json.dumps(str(repo))}
 actor = "codex:p2-live"
-[supervisor]
+[inspector]
 repo_root = {json.dumps(str(repo))}
 wrapper_root = {json.dumps(str(rootdir))}
 host = {json.dumps(socket.gethostname())}

@@ -19,13 +19,13 @@ import pytest
 
 from tests._foreman import ForemanLab, LockedPersistentBd
 from tests._helpers import VALID_FIXTURE, mutate, write
-from tests._supervisor import ChildScript, handle_for
+from tests._inspector import ChildScript, handle_for
 from tests.conftest import Signer
 from workflow_interpreter.bdio import Lifecycle, Outcome, SigningConfig, bounds
 from workflow_interpreter.bdio.carriers import ExitRecord
 from workflow_interpreter.foreman.constants import FORCED_FIRST_REJECT
-from workflow_interpreter.supervisor import LaunchReceipt
-from workflow_interpreter.supervisor.paths import ExecLedger, read_record, write_record
+from workflow_interpreter.inspector import LaunchReceipt
+from workflow_interpreter.inspector.paths import ExecLedger, read_record, write_record
 
 # Every test in this file is a §5 drill row (DRILL-27 and its control).
 pytestmark = pytest.mark.acceptance
@@ -57,7 +57,7 @@ REWORK_SCRIPT = ChildScript(
     write_body="value = 3\n",
     commit=True,
     # spec:857-859, injection point 4: the CHILD itself asserts its worktree
-    # is clean before it writes or commits anything — the runner's own
+    # is clean before it writes or commits anything — the crew's own
     # observation, not a report about it from outside (see the comment at
     # the assertion site below for why an outside diff cannot cover this).
     assert_clean_tree=True,
@@ -243,10 +243,10 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     assert rework_settled.metadata.outcome is Outcome.DONE
     assert rework_settled.metadata.evidence is not None
     assert rework_settled.metadata.evidence.artifact is not None
-    # spec:857-859, the runner's OWN view rather than its self-reported
+    # spec:857-859, the crew's OWN view rather than its self-reported
     # metadata: `git commit` records the tree it actually started from as
     # the new commit's PARENT, so reading that parent back from the real
-    # object store is the rework runner observing its own starting HEAD.
+    # object store is the rework crew observing its own starting HEAD.
     # `diff_names(base, head)` below only proves the COMMIT is scoped to
     # exactly the one write the child made — it sees committed differences
     # only, so it cannot by itself rule out an untracked or unstaged leftover
@@ -255,7 +255,7 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     # instead covered by `assert_clean_tree` on REWORK_SCRIPT itself: the
     # child runs `git status --porcelain` before writing or committing
     # anything and fails loudly if that worktree it is about to work in is
-    # not already clean — reaching this line at all is the runner's own
+    # not already clean — reaching this line at all is the crew's own
     # proof that its observation passed.
     rework_artifact = rework_settled.metadata.evidence.artifact
     assert (

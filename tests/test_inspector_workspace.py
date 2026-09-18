@@ -7,7 +7,7 @@ actually reports, and a fake status parser proves nothing about it.
 
 The in-repo family is written against POSITIVE ATTRIBUTION, and the shape of
 every test in it is the same: nothing is resettable until the WRAPPER has
-recorded that it watched a runner produce exactly that content, and any later
+recorded that it watched a crew produce exactly that content, and any later
 divergence — a human edit, a human commit, a missing record — puts it back
 behind tier-2 confirmation.
 """
@@ -21,22 +21,22 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     blob_at,
     commit_all,
+    crew_commit,
     head_of,
     make_git,
-    runner_commit,
 )
 from tests._workspace import (
     CLEAN,
     CONFIRMED_AT,
+    CREW_FILE,
     HUMAN_COMMITTED,
     HUMAN_FILE,
     HUMAN_TEXT,
     NESTED_DIR,
     NESTED_TEXT,
-    RUNNER_FILE,
     SCRATCH_FILE,
     SCRATCH_TEXT,
     STRANGER_ACTIVATION,
@@ -50,8 +50,7 @@ from tests._workspace import (
     nested_checkout,
     worktree,
 )
-from workflow_interpreter.schema.models import IsolationMode
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     BandLock,
     ConfirmedPath,
     DirtySnapshot,
@@ -67,8 +66,9 @@ from workflow_interpreter.supervisor import (
     encode_dirty_state,
     namespaced_ref,
 )
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.workspace import PRERESET_NAMESPACE
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.workspace import PRERESET_NAMESPACE
+from workflow_interpreter.schema.models import IsolationMode
 
 __all__ = ["in_repo", "worktree"]
 
@@ -110,7 +110,7 @@ def test_rework_dispatch_resets_head_and_tree(worktree: Fixture) -> None:
     """Drill 4: after a rejected attempt, the next dispatch observes a clean base."""
     worktree.workspace.prepare(worktree.activation, worktree.node)
     tree = worktree.paths.worktree
-    (tree / RUNNER_FILE).write_text("rejected work\n", encoding="utf-8")
+    (tree / CREW_FILE).write_text("rejected work\n", encoding="utf-8")
     ahead = commit_all(tree, "rejected attempt")
     (tree / "src" / "leftover.txt").write_text("junk\n", encoding="utf-8")
     assert ahead != worktree.base
@@ -120,13 +120,13 @@ def test_rework_dispatch_resets_head_and_tree(worktree: Fixture) -> None:
     assert result.reset_applied is True
     assert head_of(tree) == worktree.base
     assert not (tree / "src" / "leftover.txt").exists()
-    assert not (tree / RUNNER_FILE).exists()
+    assert not (tree / CREW_FILE).exists()
 
 
 def test_precondition_is_idempotent(worktree: Fixture) -> None:
     """Drill 5: re-running the precondition converges instead of re-resetting."""
     worktree.workspace.prepare(worktree.activation, worktree.node)
-    (worktree.paths.worktree / RUNNER_FILE).write_text("x\n", encoding="utf-8")
+    (worktree.paths.worktree / CREW_FILE).write_text("x\n", encoding="utf-8")
 
     first = worktree.workspace.prepare(worktree.activation, worktree.node)
     second = worktree.workspace.prepare(worktree.activation, worktree.node)
@@ -173,7 +173,7 @@ def test_in_repo_requires_the_execution_band(tmp_path: Path) -> None:
 
 
 def test_band_is_single_flight(tmp_path: Path) -> None:
-    """§12: one active runner per repo path, ever."""
+    """§12: one active crew per repo path, ever."""
     fixture = Fixture(tmp_path, IsolationMode.IN_REPO)
     fixture.workspace.band.acquire()
     contender = BandLock(fixture.paths.band_lock)
@@ -205,7 +205,7 @@ def test_in_repo_refuses_to_reset_human_work(in_repo: Fixture) -> None:
 def test_in_repo_first_dispatch_treats_every_dirty_path_as_human(
     in_repo: Fixture,
 ) -> None:
-    """§12: with no prior snapshot nothing can be shown to be the runner's."""
+    """§12: with no prior snapshot nothing can be shown to be the crew's."""
     (in_repo.repo / HUMAN_FILE).write_text(HUMAN_TEXT, encoding="utf-8")
 
     with pytest.raises(DirtyTreeRefused) as refusal:
@@ -214,16 +214,16 @@ def test_in_repo_first_dispatch_treats_every_dirty_path_as_human(
     assert refusal.value.protected_paths == (HUMAN_FILE,)
 
 
-def test_in_repo_resets_what_the_wrapper_attributed_to_the_runner(
+def test_in_repo_resets_what_the_wrapper_attributed_to_the_crew(
     in_repo: Fixture,
 ) -> None:
-    """Drill 26: TRACKED content the wrapper watched the runner leave is resettable.
+    """Drill 26: TRACKED content the wrapper watched the crew leave is resettable.
 
     Tracked because that is now the whole resettable set in-repo: the content
     a reset destroys here is in the object store and `reset --hard` puts it
     back, which is exactly what untracked content cannot offer.
     """
-    (in_repo.repo / TRACKED_FILE).write_text("runner output\n", encoding="utf-8")
+    (in_repo.repo / TRACKED_FILE).write_text("crew output\n", encoding="utf-8")
     attribute(in_repo, TRACKED_FILE)
 
     result = in_repo.workspace.prepare(
@@ -236,21 +236,21 @@ def test_in_repo_resets_what_the_wrapper_attributed_to_the_runner(
     assert TRACKED_FILE in result.pre_attempt_dirty_state
 
 
-def test_in_repo_refuses_human_work_created_while_the_runner_ran(
+def test_in_repo_refuses_human_work_created_while_the_crew_ran(
     in_repo: Fixture,
 ) -> None:
-    """B2: a file that merely APPEARED during the run is not the runner's.
+    """B2: a file that merely APPEARED during the run is not the crew's.
 
     The probed counterexample: the human writes untracked notes and edits a
     tracked file mid-run, and the next dispatch `git clean`s the notes away —
     they were in neither the prior snapshot nor the stash, so nothing was left
     of them at all. Nothing here is resettable: the human's two paths because
-    the wrapper cannot attribute them, and the runner's own untracked file
+    the wrapper cannot attribute them, and the crew's own untracked file
     because untracked content is never auto-deleted whatever the evidence says.
     """
     first = in_repo.workspace.prepare(in_repo.activation, in_repo.node)
-    (in_repo.repo / RUNNER_FILE).write_text("runner output\n", encoding="utf-8")
-    attribute(in_repo, RUNNER_FILE)
+    (in_repo.repo / CREW_FILE).write_text("crew output\n", encoding="utf-8")
+    attribute(in_repo, CREW_FILE)
     (in_repo.repo / HUMAN_FILE).write_text(HUMAN_TEXT, encoding="utf-8")
     (in_repo.repo / TRACKED_FILE).write_text(
         "value = 1\n# human edit\n", encoding="utf-8"
@@ -263,30 +263,30 @@ def test_in_repo_refuses_human_work_created_while_the_runner_ran(
             prior_dirty_state=first.pre_attempt_dirty_state,
         )
 
-    assert set(refusal.value.protected_paths) == {HUMAN_FILE, TRACKED_FILE, RUNNER_FILE}
+    assert set(refusal.value.protected_paths) == {HUMAN_FILE, TRACKED_FILE, CREW_FILE}
     assert (in_repo.repo / HUMAN_FILE).read_text(encoding="utf-8") == HUMAN_TEXT
     assert "# human edit" in (in_repo.repo / TRACKED_FILE).read_text(encoding="utf-8")
 
 
-def test_the_runner_declaring_a_humans_untracked_file_does_not_release_it(
+def test_the_crew_declaring_a_humans_untracked_file_does_not_release_it(
     in_repo: Fixture,
 ) -> None:
-    """B2, round 2: the declaration is RUNNER-CONTROLLED, so it cannot be enough.
+    """B2, round 2: the declaration is CREW-CONTROLLED, so it cannot be enough.
 
     The probed counterexample: the human writes `notes.md` mid-run and the
-    runner — with no malice at all, building its manifest out of `git status` —
+    crew — with no malice at all, building its manifest out of `git status` —
     declares it. All three "independent" attribution tests then pass on the
     human's file, and the next prepare `git clean`s it away. It was never
     committed, so there is nothing anywhere to get it back from.
 
     An untracked path is therefore never auto-deleted, whatever the evidence
-    says. The runner's OWN untracked output is protected by the same rule, and
-    that is the intended cost: the alternative is a rule the runner can steer.
+    says. The crew's OWN untracked output is protected by the same rule, and
+    that is the intended cost: the alternative is a rule the crew can steer.
     """
     first = in_repo.workspace.prepare(in_repo.activation, in_repo.node)
     (in_repo.repo / HUMAN_FILE).write_text(HUMAN_TEXT, encoding="utf-8")
-    (in_repo.repo / RUNNER_FILE).write_text("runner output\n", encoding="utf-8")
-    attribution = attribute(in_repo, HUMAN_FILE, RUNNER_FILE)
+    (in_repo.repo / CREW_FILE).write_text("crew output\n", encoding="utf-8")
+    attribution = attribute(in_repo, HUMAN_FILE, CREW_FILE)
 
     with pytest.raises(DirtyTreeRefused) as refusal:
         in_repo.workspace.prepare(
@@ -298,7 +298,7 @@ def test_the_runner_declaring_a_humans_untracked_file_does_not_release_it(
     # The wrapper still RECORDS what it observed — the record is an
     # observation, and the policy is what refuses to act on it.
     assert attribution.digest_of(HUMAN_FILE) is not None
-    assert set(refusal.value.protected_paths) == {HUMAN_FILE, RUNNER_FILE}
+    assert set(refusal.value.protected_paths) == {HUMAN_FILE, CREW_FILE}
     assert (in_repo.repo / HUMAN_FILE).read_text(encoding="utf-8") == HUMAN_TEXT
 
 
@@ -306,7 +306,7 @@ def test_an_attributed_path_edited_since_is_protected_again(
     in_repo: Fixture,
 ) -> None:
     """B2: attribution is bound to CONTENT, so a later edit revokes it."""
-    (in_repo.repo / TRACKED_FILE).write_text("runner output\n", encoding="utf-8")
+    (in_repo.repo / TRACKED_FILE).write_text("crew output\n", encoding="utf-8")
     attribute(in_repo, TRACKED_FILE)
     (in_repo.repo / TRACKED_FILE).write_text(
         "a human kept working on it\n", encoding="utf-8"
@@ -349,15 +349,15 @@ def test_in_repo_moves_head_off_a_commit_the_wrapper_pinned(
 ) -> None:
     """B3, the other side: wrapper-pinned lineage IS the licence to reset.
 
-    The commit is made under the §7.4 runner identity, because that is now half
+    The commit is made under the §7.4 crew identity, because that is now half
     of what makes it attributable at all — see
     `test_a_commit_the_human_made_is_not_this_attempts_artifact`.
     """
     in_repo.workspace.prepare(in_repo.activation, in_repo.node)
-    (in_repo.repo / RUNNER_FILE).write_text("runner output\n", encoding="utf-8")
-    runner_commit(in_repo.repo, "the attempt", in_repo.activation.activation_id)
+    (in_repo.repo / CREW_FILE).write_text("crew output\n", encoding="utf-8")
+    crew_commit(in_repo.repo, "the attempt", in_repo.activation.activation_id)
     pinned = in_repo.workspace.pin_artifact(
-        in_repo.activation, in_repo.node, declared=frozenset({RUNNER_FILE})
+        in_repo.activation, in_repo.node, declared=frozenset({CREW_FILE})
     )
     assert pinned is not None
 
@@ -454,7 +454,7 @@ def test_a_reset_pins_a_snapshot_that_still_holds_what_it_deleted(
     """B1: every reset is recoverable, INCLUDING the untracked content.
 
     Attribution is a judgement, and the judgement is made partly out of what
-    the runner says about itself. So the reset is not allowed to be the last
+    the crew says about itself. So the reset is not allowed to be the last
     word: before the first destructive command, the whole dirty state —
     untracked files and all, which `stash create` cannot capture — is committed
     and pinned. `reset --hard` and `clean` then destroy nothing that is not
@@ -574,7 +574,7 @@ def test_a_nested_checkout_protects_instead_of_wedging_the_precondition(
 
     `git hash-object -- vendorwork/` is `fatal: Unable to hash` (exit 128), so
     hashing every dirty path with no filter raised `GitCommandError` out of
-    `prepare()` — through `Dispatcher.dispatch` and `Supervisor.run` — and the
+    `prepare()` — through `Dispatcher.dispatch` and `Inspector.run` — and the
     instance could never dispatch again until a human deleted the directory.
     Deterministic, and this repository's own `reference_harnesses/` shape
     triggers it. A directory is now its own kind: never hashed, and protected,

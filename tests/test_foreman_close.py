@@ -13,7 +13,7 @@ from tests._bdio import (
     load_definition,
     make_root,
 )
-from tests._supervisor import (
+from tests._inspector import (
     FakeProfile,
     FrozenClock,
     commit_all,
@@ -29,8 +29,8 @@ from tests._supervisor import (
     node_of,
     verifier_pins,
 )
-from tests._supervisor import (
-    make_root as make_supervisor_root,
+from tests._inspector import (
+    make_root as make_inspector_root,
 )
 from workflow_interpreter.bdio import (
     ActivationRecord,
@@ -46,15 +46,15 @@ from workflow_interpreter.bdio.carriers import ArtifactIdentity
 from workflow_interpreter.foreman import close as close_module
 from workflow_interpreter.foreman.close import settle
 from workflow_interpreter.foreman.compose import InstanceWiring
-from workflow_interpreter.schema.models import Node, Outcome
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     BranchAdvance,
     BranchAdvanceOutcome,
     CompletionEvidence,
     ExitObserver,
     ExitReason,
 )
-from workflow_interpreter.supervisor.paths import write_record
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.schema.models import Node, Outcome
 
 
 class WorkspaceDouble(SimpleNamespace):
@@ -212,7 +212,7 @@ def test_settle_replays_an_uncomputable_verdict_after_completion_loss(
 
     private = tmp_path / ".wf" / root.root_id / activation.activation_id / "toolchain"
     private.mkdir(parents=True)
-    (private / "runner-data").write_text("must survive host verification")
+    (private / "crew-data").write_text("must survive host verification")
     replayed: list[ExitRecord] = []
 
     def replay(*args: object, **kwargs: object) -> object:
@@ -228,15 +228,15 @@ def test_settle_replays_an_uncomputable_verdict_after_completion_loss(
         )
 
     paths = make_paths(make_config(tmp_path / "repo", tmp_path), root.root_id)
-    from workflow_interpreter.supervisor import procfs
-    from workflow_interpreter.supervisor.models import Liveness
+    from workflow_interpreter.inspector import procfs
+    from workflow_interpreter.inspector.models import Liveness
 
     original = procfs.prove_liveness
     if live:
         monkeypatch.setattr(
             procfs,
             "prove_liveness",
-            lambda config, runner: original(config, runner).model_copy(
+            lambda config, crew: original(config, crew).model_copy(
                 update={"status": Liveness.ALIVE}
             ),
         )
@@ -344,7 +344,7 @@ def test_settle_halts_when_real_replay_contradicts_recorded_evidence(
     base = head_of(repo)
     config = make_config(repo, tmp_path, fake_proc=False)
     _, store = make_store(tmp_path, base)
-    root = make_supervisor_root(store, repo, "settle-replay")
+    root = make_inspector_root(store, repo, "settle-replay")
     paths = make_paths(config, root.root_id)
     git = make_git(config)
     clock = FrozenClock()
@@ -356,7 +356,7 @@ def test_settle_halts_when_real_replay_contradicts_recorded_evidence(
     workspace.prepare(activation, node)
     tree = workspace.path_for(node)
     (tree / "src" / "feature.py").write_text("value = 2\n", encoding="utf-8")
-    commit_all(tree, "healthy runner result")
+    commit_all(tree, "healthy crew result")
     paths.outcome(activation.activation_id).write_text(
         json.dumps({"outcome": "done"}), encoding="utf-8"
     )
@@ -412,7 +412,7 @@ def test_settle_halts_when_real_replay_cannot_restore_missing_exit_record(
     base = head_of(repo)
     config = make_config(repo, tmp_path, fake_proc=False)
     fake, store = make_store(tmp_path, base)
-    root = make_supervisor_root(store, repo, "settle-exit-replay")
+    root = make_inspector_root(store, repo, "settle-exit-replay")
     paths = make_paths(config, root.root_id)
     git = make_git(config)
     clock = FrozenClock()
@@ -424,7 +424,7 @@ def test_settle_halts_when_real_replay_cannot_restore_missing_exit_record(
     workspace.prepare(activation, node)
     tree = workspace.path_for(node)
     (tree / "src" / "feature.py").write_text("value = 2\n", encoding="utf-8")
-    commit_all(tree, "healthy runner result")
+    commit_all(tree, "healthy crew result")
     paths.outcome(activation.activation_id).write_text(
         json.dumps({"outcome": "done"}), encoding="utf-8"
     )

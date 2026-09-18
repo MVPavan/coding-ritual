@@ -16,14 +16,14 @@ from workflow_interpreter.bdio.reads import find_roots, list_activations
 from workflow_interpreter.bdio.records import ActivationRecord
 from workflow_interpreter.bdio.rows import StoreRow
 from workflow_interpreter.bdio.wire import BeadRecord, Lifecycle
-from workflow_interpreter.bridge.adapter import MSG_CLOSE_REASON
-from workflow_interpreter.bridge.landing import (
+from workflow_interpreter.contractor.adapter import MSG_CLOSE_REASON
+from workflow_interpreter.contractor.landing import (
     LANDING_INTENT_FILE,
     LANDING_RECEIPT_FILE,
     LandingIntent,
     LandingReceipt,
 )
-from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
+from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.costs.models import (
     COST_MODEL,
     Diagnostic,
@@ -32,9 +32,9 @@ from workflow_interpreter.costs.models import (
     UsageObservation,
 )
 from workflow_interpreter.costs.profiles import LogContext, LogParseResult, parse_log
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.models import ExecLedgerEntry, LaunchReceipt
-from workflow_interpreter.supervisor.paths import read_record, record_bytes
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.models import ExecLedgerEntry, LaunchReceipt
+from workflow_interpreter.inspector.paths import read_record, record_bytes
 
 EXTERNAL_ATTRIBUTION_SCOPE_GAP = (
     "coordinator, planning, and child usage needs explicit supplement attribution"
@@ -46,7 +46,7 @@ class ReadClient(Protocol):
 
     The task bead stays bd (§3.2 authoritative writes), so this stays a bead
     surface. Roots and activations do NOT: they live on whichever backend the
-    bridge record pinned, and they are read through a factory instead.
+    contractor record pinned, and they are read through a factory instead.
     """
 
     def show(self, bead_id: str) -> BeadRecord:
@@ -73,7 +73,7 @@ class CompletionEvidence(BaseModel):
 
 
 class RootSummary(BaseModel):
-    """One current or previous phase-bridge attempt root."""
+    """One current or previous contractor attempt root."""
 
     model_config = COST_MODEL
 
@@ -128,7 +128,7 @@ def collect_task(
 ) -> TaskCollection:
     """Collect one explicit stage without invoking a write, launch, or network call.
 
-    `backends` resolves the root store from the bridge record's pin (§3.2):
+    `backends` resolves the root store from the contractor record's pin (§3.2):
     costs is read-only, but it has to read from the SAME place the run wrote,
     and asking bd about a ledger-backed attempt would report it as missing
     rather than as unreadable.
@@ -136,17 +136,17 @@ def collect_task(
     stage = client.show(stage_id)
     diagnostics: list[Diagnostic] = []
     try:
-        bridge = PhaseBridgeRecord.model_validate(stage.metadata.get("phase_bridge"))
+        contractor = ContractorRecord.model_validate(stage.metadata.get("contractor"))
     except ValidationError:
-        return _unreadable_task(stage_id, "phase bridge metadata is invalid")
-    roots_store = backends(bridge.root_backend)
-    if bridge.stage_id != stage_id:
-        return _unreadable_task(stage_id, "phase bridge names a different stage")
+        return _unreadable_task(stage_id, "contractor metadata is invalid")
+    roots_store = backends(contractor.root_backend)
+    if contractor.stage_id != stage_id:
+        return _unreadable_task(stage_id, "contractor names a different stage")
 
     root_rows: list[tuple[int, bool, StoreRow]] = []
-    expected_keys = (*bridge.previous_attempts, bridge.instance_key)
+    expected_keys = (*contractor.previous_attempts, contractor.instance_key)
     expected_template = (
-        f"phase-bridge:{bridge.epic_id}:{bridge.stage_id}:attempt:" + "{attempt}"
+        f"contract:{contractor.epic_id}:{contractor.stage_id}:attempt:" + "{attempt}"
     )
     roots_valid = True
     for attempt, instance_key in enumerate(expected_keys, start=1):
@@ -183,12 +183,12 @@ def collect_task(
         root_rows.append((attempt, attempt == len(expected_keys), row))
 
     current_matches = [row for _, current, row in root_rows if current]
-    if len(current_matches) != 1 or current_matches[0].id != bridge.root_id:
+    if len(current_matches) != 1 or current_matches[0].id != contractor.root_id:
         diagnostics.append(
             Diagnostic(
                 code="current-root-mismatch",
                 source=f"stage:{stage_id}",
-                detail="bridge current root does not match the resolved current attempt",
+                detail="contractor current root does not match the resolved current attempt",
             )
         )
         roots_valid = False
@@ -212,7 +212,7 @@ def collect_task(
             )
 
     expected_close_reason = MSG_CLOSE_REASON.format(
-        digest=bridge.landing_receipt_digest
+        digest=contractor.landing_receipt_digest
     )
     close_reason_valid = (
         None
@@ -229,7 +229,7 @@ def collect_task(
         )
 
     landing_evidence_valid, landing_diagnostic = _landing_evidence_consistency(
-        bridge,
+        contractor,
         runtime_roots or {},
         max_bytes=max_log_bytes,
     )
@@ -238,12 +238,12 @@ def collect_task(
 
     completion_checks: dict[str, bool | None] = {
         "stage-closed": stage.status == "closed",
-        "bridge-closed": bridge.state is PhaseBridgeState.CLOSED,
-        "current-root": bool(bridge.root_id),
-        "landed-oid": bool(bridge.landed_oid),
-        "tree": bool(bridge.tree),
-        "gate-receipt-digest": bool(bridge.gate_receipt_digest),
-        "landing-receipt-digest": bool(bridge.landing_receipt_digest),
+        "contractor-closed": contractor.state is ContractorState.CLOSED,
+        "current-root": bool(contractor.root_id),
+        "landed-oid": bool(contractor.landed_oid),
+        "tree": bool(contractor.tree),
+        "gate-receipt-digest": bool(contractor.gate_receipt_digest),
+        "landing-receipt-digest": bool(contractor.landing_receipt_digest),
         "attempt-roots": roots_valid and len(root_rows) == len(expected_keys),
         "current-root-closed": current_root_closed,
         "current-root-terminal": current_root_terminal_valid,
@@ -313,7 +313,7 @@ def collect_task(
     coverage_complete = completion.verified and usage_complete and not uncovered
     return TaskCollection(
         task_id=stage_id,
-        epic_id=bridge.epic_id,
+        epic_id=contractor.epic_id,
         completion=completion,
         roots=tuple(
             RootSummary(
@@ -364,8 +364,8 @@ def _baseline_observation(
             raise ValueError("all counters absent")
         return UsageObservation(
             identity=f"{activation.metadata.wf_root_id}/{activation.activation_id}/durable",
-            provider=_provider(activation.metadata.runner_profile),
-            profile=activation.metadata.runner_profile,
+            provider=_provider(activation.metadata.crew_profile),
+            profile=activation.metadata.crew_profile,
             root_id=activation.metadata.wf_root_id,
             activation_id=activation.activation_id,
             exec_id=activation.activation_id,
@@ -460,7 +460,7 @@ def _enriched_observations(
     return parse_log(
         log,
         LogContext(
-            profile=activation.metadata.runner_profile,
+            profile=activation.metadata.crew_profile,
             root_id=activation.metadata.wf_root_id,
             activation_id=activation.activation_id,
             launch_id=receipt.launch_id,
@@ -506,17 +506,17 @@ def _runtime_failure(code: str, detail: str) -> LogParseResult:
 
 
 def _landing_evidence_consistency(
-    bridge: PhaseBridgeRecord,
+    contractor: ContractorRecord,
     runtime_roots: Mapping[str, Path],
     *,
     max_bytes: int,
 ) -> tuple[bool | None, Diagnostic | None]:
     """Cross-check mapped landing records without treating absence as proof."""
-    if bridge.root_id is None or bridge.root_id not in runtime_roots:
+    if contractor.root_id is None or contractor.root_id not in runtime_roots:
         return None, None
-    source = f"root:{bridge.root_id}:landing"
+    source = f"root:{contractor.root_id}:landing"
     try:
-        root = runtime_roots[bridge.root_id].resolve(strict=True)
+        root = runtime_roots[contractor.root_id].resolve(strict=True)
         if not root.is_dir():
             raise ValueError("runtime root is not a directory")
         intent_path = root / LANDING_INTENT_FILE
@@ -537,14 +537,14 @@ def _landing_evidence_consistency(
     valid = bool(
         intent is not None
         and receipt is not None
-        and intent.root_id == bridge.root_id
-        and intent.stage == bridge.stage_id
-        and intent.attempt == bridge.attempt
-        and intent.ref == bridge.target_ref
-        and intent.expected_base == bridge.expected_base_commit
-        and intent.artifact_oid == bridge.landed_oid
-        and intent.tree == bridge.tree
-        and intent.gate_receipt_digest == bridge.gate_receipt_digest
+        and intent.root_id == contractor.root_id
+        and intent.stage == contractor.stage_id
+        and intent.attempt == contractor.attempt
+        and intent.ref == contractor.target_ref
+        and intent.expected_base == contractor.expected_base_commit
+        and intent.artifact_oid == contractor.landed_oid
+        and intent.tree == contractor.tree
+        and intent.gate_receipt_digest == contractor.gate_receipt_digest
         and receipt.intent_digest == hashlib.sha256(record_bytes(intent)).hexdigest()
         and receipt.ref == intent.ref
         and receipt.expected_base == intent.expected_base
@@ -554,13 +554,15 @@ def _landing_evidence_consistency(
         and receipt.gate_receipt_digest == intent.gate_receipt_digest
         and receipt.policy_digest == intent.policy_digest
         and (
-            bridge.verification_policy is None
+            contractor.verification_policy is None
             or (
-                intent.policy_digest == bridge.verification_policy.digest
-                and bridge.verification_policy.matches(receipt.repository_gate_results)
+                intent.policy_digest == contractor.verification_policy.digest
+                and contractor.verification_policy.matches(
+                    receipt.repository_gate_results
+                )
             )
         )
-        and bridge.landing_receipt_digest
+        and contractor.landing_receipt_digest
         == hashlib.sha256(record_bytes(receipt)).hexdigest()
     )
     if valid:
@@ -580,7 +582,7 @@ def _activation_summary(activation: ActivationRecord) -> ActivationSummary:
         root_id=metadata.wf_root_id,
         node=metadata.node,
         round_no=metadata.round_no,
-        profile=metadata.runner_profile,
+        profile=metadata.crew_profile,
         model=metadata.model,
         lifecycle=metadata.lifecycle.value,
         outcome=None if metadata.outcome is None else metadata.outcome.value,
@@ -605,22 +607,22 @@ def _deduplicate(
 
 
 def _provider(profile: str) -> str:
-    """Map a known runner profile to its pricing provider identity."""
+    """Map a known crew profile to its pricing provider identity."""
     return {"claude": "anthropic", "codex": "openai"}.get(profile, profile)
 
 
 def _unreadable_task(stage_id: str, detail: str) -> TaskCollection:
-    """Build a stable incomplete result for invalid bridge metadata."""
+    """Build a stable incomplete result for invalid contractor metadata."""
     return TaskCollection(
         task_id=stage_id,
         epic_id=None,
-        completion=CompletionEvidence(verified=False, basis=("phase-bridge:invalid",)),
+        completion=CompletionEvidence(verified=False, basis=("contract:invalid",)),
         roots=(),
         activations=(),
         observations=(),
         diagnostics=(
             Diagnostic(
-                code="phase-bridge-invalid", source=f"stage:{stage_id}", detail=detail
+                code="contract-invalid", source=f"stage:{stage_id}", detail=detail
             ),
         ),
         uncovered_scope=("task execution identity is unavailable",),

@@ -1,4 +1,4 @@
-"""The §3.3 tables, and the forward-only migration runner that installs them.
+"""The §3.3 tables, and the forward-only migration crew that installs them.
 
 Lossless by construction: every row keeps its whole carrier in `metadata_json`,
 and the named columns are PROJECTIONS of that JSON for queries and constraints.

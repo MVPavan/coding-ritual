@@ -34,13 +34,13 @@ between stores.
 `RootBackendLocator` must answer *before* the root is loaded — you cannot read the root
 to learn where to read the root. Three sources in order (`foreman/locator.py:1-40`):
 
-1. **The bridge record's `root_backend`**, written at prepare — the only source that
+1. **The contractor record's `root_backend`**, written at prepare — the only source that
    can answer for a root that does not exist yet.
-2. **The ledger's `roots` row**, or its `tasks` row for a run with no bridge.
+2. **The ledger's `roots` row**, or its `tasks` row for a run with no contractor.
 3. **A refusal.** A root nobody pinned could be read from the wrong store, and reading
    it from the wrong store *"would report a live run as missing."*
 
-If the bridge record and the store disagree it refuses rather than preferring one:
+If the contractor record and the store disagree it refuses rather than preferring one:
 *"neither answer may be preferred silently."*
 
 ## The ledger's rules

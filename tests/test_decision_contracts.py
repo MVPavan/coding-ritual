@@ -20,7 +20,7 @@ def test_declared_decision_loads_as_data_not_an_executable_gate(
     pos = text.index("[[node]]") + len("[[node]]")
     text = (
         text[:pos]
-        + '\ncontext_budget_bytes = 32000\ndecision = {triggers=["fail_plan"], actions=["continue_declared","human"], decision_task={runner="profile:reviewer", model="test", instructions="Decide.", verify=[{cmd="scripts/verify.sh",timeout="10s"}], context_budget_bytes=16000, max_wall="30s", stale_after="10s", max_infra_retries=0, max_steers=0, max_total_activations=2}}\n'
+        + '\ncontext_budget_bytes = 32000\ndecision = {triggers=["fail_plan"], actions=["continue_declared","human"], decision_task={crew="profile:reviewer", model="test", instructions="Decide.", verify=[{cmd="scripts/verify.sh",timeout="10s"}], context_budget_bytes=16000, max_wall="30s", stale_after="10s", max_infra_retries=0, max_steers=0, max_total_activations=2}}\n'
         + text[pos:]
     )
     path = tmp_path / "decision.toml"

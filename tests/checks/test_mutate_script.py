@@ -1,6 +1,6 @@
 """`scripts/checks/mutate.sh`: would the suite notice if this round were wrong?
 
-Run exactly as the wrapper runs it (`supervisor/verify.py`): cwd is the tree
+Run exactly as the wrapper runs it (`inspector/verify.py`): cwd is the tree
 under test, no arguments, and `WF_BASE_COMMIT` in the environment.
 
 Each case pays for a baseline run plus one run per mutant, so the wall time is

@@ -7,7 +7,7 @@ description = "Build and review immutable artifact pointer handoffs"
 [instance]
 max_total_activations  = 10      # counts every activation AND gate bead
 test_force_first_reject = false  # schema'd; validator refuses true without --allow-test-flags
-phase_bridge_retry_terminals = ["shipped", "abandoned"]
+contractor_retry_terminals = ["shipped", "abandoned"]
 
 [[region]]
 name         = "build-review"
@@ -20,7 +20,7 @@ on_exhausted = "triage"
 name          = "implement"
 kind          = "task"                   # task | gate | terminal
 region        = "build-review"
-runner        = "profile:implementer"
+crew        = "profile:implementer"
 model         = "default"
 instructions = """
 Implement the feature described in `task_brief`. On a later round,
@@ -50,7 +50,7 @@ output evidence/findings, not scratch work.
 """
 isolation     = "worktree"               # worktree | in-repo
 execution_profile = "writer"            # repo-worktree write access only
-allowed_paths = ["workflow_interpreter/foreman/**", "workflow_interpreter/schema/**", "workflow_interpreter/profiles/**", "workflow_interpreter/supervisor/**", "workflow_interpreter/bdio/**", "tests/**", "docs/usage/**", "docs/specs/**", "config/**"]   # the writable mounts under bwrap
+allowed_paths = ["workflow_interpreter/foreman/**", "workflow_interpreter/schema/**", "workflow_interpreter/profiles/**", "workflow_interpreter/inspector/**", "workflow_interpreter/bdio/**", "tests/**", "docs/usage/**", "docs/specs/**", "config/**"]   # the writable mounts under bwrap
 inputs        = ["verify_failure", "task_brief", "review_findings"]
 verify        = [{ cmd = "scripts/verify-pointer-handoff.sh", timeout = "10m" }]
 context_budget_bytes = 64000                   # context TRIM budget (not a runaway bound)
@@ -64,7 +64,7 @@ outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]
 name          = "review"
 kind          = "task"
 region        = "build-review"
-runner        = "profile:critic"
+crew        = "profile:critic"
 model         = "default"
 instructions = """
 Review `diff_artifact` against `task_brief`. Findings go to

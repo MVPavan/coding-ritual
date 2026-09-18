@@ -15,17 +15,17 @@ from typing import Final
 
 from pydantic import BaseModel, field_validator
 
-from workflow_interpreter.supervisor import toolchain_constants as tc
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.gitcmd import GitSubcommand
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector import toolchain_constants as tc
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.gitcmd import GitSubcommand
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import (
     LEDGER_FILE,
     fsync_dir,
     read_record,
     write_record,
 )
-from workflow_interpreter.supervisor.toolchain_files import (
+from workflow_interpreter.inspector.toolchain_files import (
     copy_tree,
     import_wheels,
     measure,
@@ -33,7 +33,7 @@ from workflow_interpreter.supervisor.toolchain_files import (
     relocate_links,
     sync_tree,
 )
-from workflow_interpreter.supervisor.toolchain_models import (
+from workflow_interpreter.inspector.toolchain_models import (
     MODEL,
     CopyMethod,
     SeedPreparation,
@@ -100,11 +100,11 @@ def digest(value: bytes) -> str:
 
 
 class ToolchainSeeder:
-    """Prepare offline tools before the supervisor releases the vendor process."""
+    """Prepare offline tools before the inspector releases the vendor process."""
 
-    def __init__(self, config: SupervisorConfig, env: Mapping[str, str]) -> None:
+    def __init__(self, config: InspectorConfig, env: Mapping[str, str]) -> None:
         """Keep host authority separate from activation-supplied environment."""
-        self._supervisor = config
+        self._inspector = config
         self._config = config.toolchain
         self._env = {
             key: value for key, value in env.items() if key in tc.HOST_ENV_KEYS
@@ -125,7 +125,7 @@ class ToolchainSeeder:
         """Serialize private publication and keep launched caches out of host probes."""
         if activation.is_symlink() or activation.resolve() != activation:
             raise ToolchainUnavailable(tc.MSG_ACTIVATION_LINK)
-        if not activation.is_relative_to(self._supervisor.wrapper_root):
+        if not activation.is_relative_to(self._inspector.wrapper_root):
             raise ToolchainUnavailable(tc.MSG_OUTSIDE_WRAPPER)
         activation.mkdir(parents=True, exist_ok=True)
         with self._lock(activation / "toolchain.lock"):
@@ -161,11 +161,11 @@ class ToolchainSeeder:
             python = self._host_path(self._config.python_root, (tc.PYTHON, "dir"))
             seeds = (
                 self._config.seed_root
-                or self._supervisor.wrapper_root / tc.SEED_DIRECTORY
+                or self._inspector.wrapper_root / tc.SEED_DIRECTORY
             )
             roots = (seeds, host, python)
             for source in roots:
-                for destination in (checkout, activation, self._supervisor.repo_root):
+                for destination in (checkout, activation, self._inspector.repo_root):
                     if source.is_relative_to(destination) or destination.is_relative_to(
                         source
                     ):
@@ -272,7 +272,7 @@ class ToolchainSeeder:
 
     def _pins(self, checkout: Path, base: str, project: str) -> ProjectPins | None:
         """Gate the lock; retain current digests and trusted sync metadata separately."""
-        git = Git(self._supervisor)
+        git = Git(self._inspector)
         values: dict[str, bytes | None] = {}
         admitted: dict[str, bytes | None] = {}
         for name in (tc.LOCK_FILE, tc.PROJECT_FILE, tc.PYTHON_FILE):
@@ -282,7 +282,7 @@ class ToolchainSeeder:
                 base,
                 "--",
                 relative,
-                cwd=self._supervisor.repo_root,
+                cwd=self._inspector.repo_root,
             ).text
             value = None
             if listing:
@@ -292,7 +292,7 @@ class ToolchainSeeder:
                     GitSubcommand.CAT_FILE,
                     "blob",
                     f"{base}:{relative}",
-                    cwd=self._supervisor.repo_root,
+                    cwd=self._inspector.repo_root,
                     limit=PIN_LIMIT,
                 )
             current = checkout / relative
@@ -334,7 +334,7 @@ class ToolchainSeeder:
     def _host_path(self, configured: Path | None, args: tuple[str, ...]) -> Path:
         """Discover host paths through injected uv, never from candidate settings."""
         value = configured or Path(
-            self._run(args, self._supervisor.repo_root, self._env)
+            self._run(args, self._inspector.repo_root, self._env)
         )
         if not value.is_absolute():
             raise ToolchainUnavailable(tc.MSG_RELATIVE_HOST)
@@ -371,7 +371,7 @@ class ToolchainSeeder:
         """Build once under a seed-key lock, then atomically publish a complete seed."""
         key = (
             digest(
-                str(self._supervisor.repo_root).encode() + b"\0" + pin.project.encode()
+                str(self._inspector.repo_root).encode() + b"\0" + pin.project.encode()
             )[:16]
             + "-"
             + digest(pin.lock)
@@ -479,7 +479,7 @@ class ToolchainSeeder:
 
     def _run(self, args: tuple[str, ...], cwd: Path, env: Mapping[str, str]) -> str:
         """Run one bounded host operation before any vendor has launched."""
-        from workflow_interpreter.supervisor.toolchain_process import run_uv
+        from workflow_interpreter.inspector.toolchain_process import run_uv
 
         return run_uv(self._config, args, cwd, env)
 

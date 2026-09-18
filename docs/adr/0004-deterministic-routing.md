@@ -1,5 +1,7 @@
 # ADR 0004 — routing is a deterministic table lookup; the node holds the verdict
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 - **Status:** Accepted
 - **Date:** 2026-09-03
 - **Deciders:** repo owner

@@ -31,14 +31,13 @@ from workflow_interpreter.bdio.constants import (
 )
 from workflow_interpreter.bdio.wire import config_signature
 from workflow_interpreter.foreman.compose import InstanceWiring
-from workflow_interpreter.foreman.supervise import (
+from workflow_interpreter.foreman.inspect import (
     WrapperExit,
     _close_error,
     _precondition_reason,
     run_wrapper,
 )
-from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.inspector.errors import (
     BandNotHeld,
     ContinuationRefused,
     DirtyTreeRefused,
@@ -48,8 +47,9 @@ from workflow_interpreter.supervisor.errors import (
     PreconditionRefused,
     SnapshotFailed,
 )
-from workflow_interpreter.supervisor.models import LaunchOutcome
-from workflow_interpreter.supervisor.profile import Profile
+from workflow_interpreter.inspector.models import LaunchOutcome
+from workflow_interpreter.inspector.profile import Profile
+from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
 
 FailureFactory = Callable[[], Exception]
 
@@ -70,7 +70,7 @@ def _hold_persistent_lock(
 def _wrapper_with_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: Exception
 ) -> tuple[ForemanLab, str, str, InstanceWiring]:
-    """Build one real minted activation whose supervisor raises the given fault."""
+    """Build one real minted activation whose inspector raises the given fault."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     wiring = lab.wiring()
@@ -84,7 +84,7 @@ def _wrapper_with_failure(
     def refuse(*_args: object, **_kwargs: object) -> NoReturn:
         raise failure
 
-    monkeypatch.setattr(wiring.supervisor, "run", refuse)
+    monkeypatch.setattr(wiring.inspector, "run", refuse)
     return lab, root.root_id, activation.activation_id, wiring
 
 
@@ -111,7 +111,7 @@ def test_wrapper_fallback_request_rebuilds_the_root_execution_pin(
     wiring = lab.wiring()
     activation = wiring.store.mint_activation(root.root_id, entry_request()).activation
     lab.fake_bd.rows[activation.activation_id]["metadata"].update(
-        {"runner_profile": "legacy-runner", "model": "legacy-model"}
+        {"crew_profile": "legacy-crew", "model": "legacy-model"}
     )
     received: list[MintRequest] = []
 
@@ -119,7 +119,7 @@ def test_wrapper_fallback_request_rebuilds_the_root_execution_pin(
         received.append(request)
         return SimpleNamespace(dispatch=SimpleNamespace(outcome=LaunchOutcome.LAUNCHED))
 
-    monkeypatch.setattr(wiring.supervisor, "run", capture)
+    monkeypatch.setattr(wiring.inspector, "run", capture)
 
     assert (
         run_wrapper(
@@ -128,7 +128,7 @@ def test_wrapper_fallback_request_rebuilds_the_root_execution_pin(
         is WrapperExit.DONE
     )
     request = received[0]
-    assert request.runner_profile == "fake"
+    assert request.crew_profile == "fake"
     assert request.model == "fake"
 
 
@@ -199,33 +199,33 @@ def test_unusable_role_resolution_closes_and_the_next_tick_does_not_redispatch(
     (
         pytest.param(
             lambda: ForkBarrierError("barrier"),
-            Outcome.ERROR_RUNNER,
+            Outcome.ERROR_CREW,
             id="fork-barrier-error",
         ),
         pytest.param(
             lambda: ExecLedgerError("ledger"),
-            Outcome.ERROR_RUNNER,
+            Outcome.ERROR_CREW,
             id="exec-ledger-error",
         ),
         pytest.param(
             lambda: TaskRefused("task"),
-            Outcome.ERROR_RUNNER,
+            Outcome.ERROR_CREW,
             id="task-refused",
         ),
         pytest.param(
             lambda: UnsupportedOptionError("option"),
-            Outcome.ERROR_RUNNER,
+            Outcome.ERROR_CREW,
             id="unsupported-option-error",
         ),
     ),
 )
-def test_runner_faults_close_as_error_runner_with_evidence(
+def test_crew_faults_close_as_error_crew_with_evidence(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     failure: FailureFactory,
     outcome: Outcome,
 ) -> None:
-    """Each runner-side failure has one durable error-runner mapping."""
+    """Each crew-side failure has one durable error-crew mapping."""
     error = failure()
     lab, root_id, activation_id, wiring = _wrapper_with_failure(
         tmp_path, monkeypatch, error
@@ -263,7 +263,7 @@ def test_continuation_refusal_records_a_transport_deviation(
 def test_barrier_abort_is_a_retry_counting_transport_deviation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """An unacknowledged child is infrastructure failure, never runner failure."""
+    """An unacknowledged child is infrastructure failure, never crew failure."""
     error = ForkBarrierAbortError("child 42 never acknowledged")
     lab, root_id, activation_id, wiring = _wrapper_with_failure(
         tmp_path, monkeypatch, error
@@ -378,7 +378,7 @@ def test_settled_write_conflicts_are_owned_by_the_tick(
         lab.store.close_activation(activation_id, Outcome.DONE)
         raise failure
 
-    monkeypatch.setattr(wiring.supervisor, "run", settle_then_refuse)
+    monkeypatch.setattr(wiring.inspector, "run", settle_then_refuse)
     assert (
         run_wrapper(lab.composition, root_id, activation_id, wiring=wiring)
         is WrapperExit.CLOSED_BY_TICK
@@ -488,8 +488,8 @@ def test_locked_persistent_bd_blocks_a_second_process_and_records_calls(
     """The state lock covers one real load-command-save cycle at a time."""
     state = tmp_path / "persistent-bd.json"
     workspace = tmp_path / "bd-workspace"
-    runner = LockedPersistentBd(str(workspace), state)
-    client = BdClient(BdConfig(workspace=workspace, actor="test"), runner)
+    crew = LockedPersistentBd(str(workspace), state)
+    client = BdClient(BdConfig(workspace=workspace, actor="test"), crew)
     context = multiprocessing.get_context("fork")
     acquired = context.Event()
     release = context.Event()
@@ -527,8 +527,8 @@ def test_snapshot_pin_failure_at_wrapper_lifecycle_seam(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, phase: str
 ) -> None:
     """Reset refusal closes for infra retry; producer recovery blocks settlement."""
-    from tests._supervisor import ChildScript
-    from workflow_interpreter.supervisor import Git, GitCommandError
+    from tests._inspector import ChildScript
+    from workflow_interpreter.inspector import Git, GitCommandError
 
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()

@@ -13,7 +13,7 @@ to = "failed"
 [[node]]
 name = "write"
 kind = "task"
-runner = "profile:implementer"
+crew = "profile:implementer"
 model = "default"
 instructions = """
 Implement the bounded change described in `task_brief` and commit it.

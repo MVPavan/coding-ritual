@@ -1,4 +1,4 @@
-"""The stateless foreman tick and bounded stale-runner control surface."""
+"""The stateless foreman tick and bounded stale-crew control surface."""
 
 from __future__ import annotations
 
@@ -69,9 +69,7 @@ from workflow_interpreter.foreman.rpc_control import (
     control_attention,
 )
 from workflow_interpreter.foreman.transcript import bounded_tail
-from workflow_interpreter.ledger.tasks import export_oid
-from workflow_interpreter.schema.models import NodeKind
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.inspector.errors import (
     ContinuationRefused,
     GitCommandError,
     LockUnavailable,
@@ -79,19 +77,21 @@ from workflow_interpreter.supervisor.errors import (
     TerminationFailed,
     WrapperDirError,
 )
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.models import (
     CompletionEvidence,
     RecoverySnapshot,
     SteerIntent,
     VerifyResult,
 )
-from workflow_interpreter.supervisor.paths import read_record, read_tail
-from workflow_interpreter.supervisor.steer import Steerer
+from workflow_interpreter.inspector.paths import read_record, read_tail
+from workflow_interpreter.inspector.steer import Steerer
+from workflow_interpreter.ledger.tasks import export_oid
+from workflow_interpreter.schema.models import NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 MSG_CLEANUP_NEEDS_EXPORT: Final[str] = (
-    "a bridge task's run folders are deleted only after its export is pinned "
+    "a contractor task's run folders are deleted only after its export is pinned "
     "(run-ledger §3.9)"
 )
 
@@ -299,7 +299,7 @@ class Foreman:
         activation = wiring.store.reads.load_activation(activation_id)
         if activation.metadata.wf_root_id != root_id:
             raise ValueError("activation does not belong to root")
-        limit = self._composition.supervisor_config.log_tail_bytes
+        limit = self._composition.inspector_config.log_tail_bytes
         tail = _stale_tail(wiring, limit, activation)
         flag = activation.metadata.stale_flag
         recovery = None
@@ -331,7 +331,7 @@ class Foreman:
         in_place: bool = False,
         acknowledge: bool = False,
     ) -> SteerReport | ControlRegistration:
-        """Read the stale tail then perform exactly one supervisor steer."""
+        """Read the stale tail then perform exactly one inspector steer."""
         validate_bead_id(root_id)
         validate_bead_id(activation_id)
         wiring = self._composition.for_root(root_id)
@@ -344,20 +344,20 @@ class Foreman:
             if acknowledge:
                 return acknowledge_uncertain(wiring.store, activation_id, reason)
             tail = _stale_tail(
-                wiring, self._composition.supervisor_config.log_tail_bytes, activation
+                wiring, self._composition.inspector_config.log_tail_bytes, activation
             )
             view = resolved_node(root, activation.metadata.node)
             continuation = MintRequest(
                 node=activation.metadata.node,
                 mint_reason=MintReason.STEER_CONTINUATION,
-                runner_profile=view.runner_profile,
+                crew_profile=view.crew_profile,
                 model=view.model,
                 session_id=activation.metadata.session_id,
                 predecessor_activation_id=activation.activation_id,
                 inputs=activation.metadata.inputs,
             )
             steerer = Steerer(
-                self._composition.supervisor_config,
+                self._composition.inspector_config,
                 wiring.paths,
                 wiring.store,
                 self._composition.clock,
@@ -461,7 +461,7 @@ class Foreman:
                         halted=True, opened_gate=_opened_gate(wiring, gate.gate_id)
                     )
                 return TickReport(stalled=state.stalled)
-            from workflow_interpreter.supervisor.toolchain_cleanup import (
+            from workflow_interpreter.inspector.toolchain_cleanup import (
                 cleanup_toolchain,
             )
 
@@ -731,19 +731,19 @@ class Foreman:
         return recorded
 
     def _export_pending(self, root: RootRecord) -> bool:
-        """Whether a BRIDGE-owned root still owes the export its task closes on.
+        """Whether a CONTRACTOR-owned root still owes the export its task closes on.
 
         §3.9 and D14: nothing destructive happens before the record is durable,
-        and for a bridge task the record is durable only once `tasks.export_oid`
-        names the blob the export was pinned as (§3.6). A non-bridge root owes
-        no export and is unaffected; a bridge root this process cannot ask
+        and for a contractor task the record is durable only once `tasks.export_oid`
+        names the blob the export was pinned as (§3.6). A non-contractor root owes
+        no export and is unaffected; a contractor root this process cannot ask
         about — no ledger, no task — is deferred rather than cleaned, because
         the cleanup is idempotent and retried, and the deletion is not.
         """
-        # Imported here for the same reason `landing` imports `guard_bridge`
-        # here: the driver is BELOW the bridge, and only this one question
+        # Imported here for the same reason `landing` imports `guard_contractor`
+        # here: the driver is BELOW the contractor, and only this one question
         # about the owning task's closure path crosses that line.
-        from workflow_interpreter.bridge.models import INSTANCE_KEY_PREFIX
+        from workflow_interpreter.contractor.models import INSTANCE_KEY_PREFIX
 
         if not root.metadata.instance_key.startswith(INSTANCE_KEY_PREFIX):
             return False
@@ -790,7 +790,7 @@ class Foreman:
         Every step is idempotent and best effort, so a tick that cannot finish
         the set leaves what remains for the next one (D14).
         """
-        from workflow_interpreter.supervisor.toolchain_cleanup import (
+        from workflow_interpreter.inspector.toolchain_cleanup import (
             cleanup_scratch,
             death_refusal,
         )
@@ -809,7 +809,7 @@ class Foreman:
             return
         # Proven death FIRST, and for EVERY activation of the root, not per
         # directory: the durable close of an activation is a record event and
-        # the runner's process is an operating-system one, so a settled root
+        # the crew's process is an operating-system one, so a settled root
         # can still have a live child holding the worktree, the verify tree or
         # its own scratch. Deleting any of the three under a live process is
         # how a run loses the bytes it was still writing (§3.9).

@@ -13,7 +13,7 @@ max_total_activations = 20
 [[node]]
 name = "a"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

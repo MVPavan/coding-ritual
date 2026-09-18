@@ -6,8 +6,8 @@ import stat
 import subprocess
 from pathlib import Path
 
-from workflow_interpreter.supervisor import toolchain_constants as tc
-from workflow_interpreter.supervisor.toolchain_models import (
+from workflow_interpreter.inspector import toolchain_constants as tc
+from workflow_interpreter.inspector.toolchain_models import (
     CopyMethod,
     ToolchainConfig,
     ToolchainUnavailable,

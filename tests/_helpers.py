@@ -14,7 +14,7 @@ from typing import Final
 
 import workflow_interpreter
 from workflow_interpreter import GraphValidationError, RuleId, load_graph
-from workflow_interpreter.profiles.config import RUNNER_PREFIX
+from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.schema import messages
 from workflow_interpreter.schema.models import Finding, GraphDefinition
 
@@ -45,18 +45,19 @@ VARIANT_SEPARATOR: Final[str] = "__"
 # no whitespace, or the comma-separated list several templates interpolate.
 MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 
-# Historical feature-delivery pin. Existing instances retain these exact bytes.
+# Feature-delivery pin, re-taken at the S0 actor rename (the `runner` node key
+# became `crew`, so every graph's content hash moved).
 FEATURE_DELIVERY_CONTENT_HASH = (
-    "c929cb817742c2b5684aa4e4b5451a89865734b8fc86148ed02303166ebb458b"
+    "42edd25f8306e42e8a8f30d9a549907d27fb87bf607fc1fead28183bacca14bc"
 )
 
 SHIPPED_FEATURE_DELIVERY_CONTENT_HASH = (
-    "8686fb8d18e9c809255f08f84646b348e4d020dc3f451e6b8b83b79dc07b1355"
+    "ccc644995d2341dd1fbae4ee043ebac82d51fe95290c20e1ae47aaf2e4db105d"
 )
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
 BUILD_LOOP_CONTENT_HASH = (
-    "63e81d7dece8befe79e807eaa5a4b839570997f67ef11beaeaa68e0648981a10"
+    "72d80cba3975a0c9de0c81a01d69f58b489206f8ef612b21308007f37c942758"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.
@@ -79,7 +80,7 @@ entry_node = "work"
 name = "work"
 kind = "task"
 region = "r"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Minimal task: the graph exists to be mutated, not to run."
 writes = false
 allowed_paths = []
@@ -135,17 +136,17 @@ def rule_of(path: Path) -> RuleId:
     return RuleId(path.stem.split(VARIANT_SEPARATOR, 1)[0])
 
 
-def runner_roles(definition: GraphDefinition) -> set[str]:
-    """The `profile:<role>` names a graph binds a runner to (§3.1 role-binding).
+def crew_roles(definition: GraphDefinition) -> set[str]:
+    """The `profile:<role>` names a graph binds a crew to (§3.1 role-binding).
 
     `resolve.instantiate` refuses a graph whose roles are not all bound in the
-    config ("unknown runner roles"), so both the example config and the lab are
+    config ("unknown crew roles"), so both the example config and the lab are
     checked against this set.
     """
     return {
-        node.runner.removeprefix(RUNNER_PREFIX)
+        node.crew.removeprefix(CREW_PREFIX)
         for node in definition.document.node
-        if node.runner is not None and node.runner.startswith(RUNNER_PREFIX)
+        if node.crew is not None and node.crew.startswith(CREW_PREFIX)
     }
 
 
@@ -194,7 +195,7 @@ def undeclared_fail_code_graph(directory: Path, source: Path = VALID_FIXTURE) ->
 _ABANDON_TASK_NODE: Final[str] = '''[[node]]
 name          = "wrapup"
 kind          = "task"
-runner        = "profile:critic"
+crew        = "profile:critic"
 model         = "default"
 instructions = """
 Record why the slice was abandoned.

@@ -46,7 +46,7 @@ whatever the human had committed since the wrapper died as this activation's
 artifact, which then WAS the wrapper lineage authorizing the next reset to
 destroy it (probed). An ahead commit it cannot attribute goes to the
 `orphan/` quarantine instead: reachable forever, claimed by nobody, and
-invisible to `_is_runner_lineage`.
+invisible to `_is_crew_lineage`.
 
 **Malformed input classifies; it never raises.** A truncated exit file or a
 corrupt JSONL tail is recorded in `malformed` and treated as absent, which
@@ -75,19 +75,18 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.bdio.constants import DEVIATION_INSTANCE_BRANCH_DIVERGED
-from workflow_interpreter.contracts.transport import RunnerTransport
-from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor.branch import BranchAdvanceOutcome
-from workflow_interpreter.supervisor.channels import read_effects
-from workflow_interpreter.supervisor.clock import Clock, to_iso
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import (
-    SupervisorError,
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector.branch import BranchAdvanceOutcome
+from workflow_interpreter.inspector.channels import read_effects
+from workflow_interpreter.inspector.clock import Clock, to_iso
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import (
+    InspectorError,
     TerminationFailed,
     WrapperDirError,
 )
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.models import (
     EXIT_CODE_UNOBSERVED,
     RECORD_MODEL,
     CompletionEvidence,
@@ -103,14 +102,15 @@ from workflow_interpreter.supervisor.models import (
     SteerIntent,
     TerminationProof,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     read_tail,
     write_record,
 )
-from workflow_interpreter.supervisor.steer import Steerer, SteerResult
-from workflow_interpreter.supervisor.workspace import Workspace
+from workflow_interpreter.inspector.steer import Steerer, SteerResult
+from workflow_interpreter.inspector.workspace import Workspace
+from workflow_interpreter.schema.models import Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -193,7 +193,7 @@ def _read_optional[RecordT: BaseModel](
 
 
 def classify(
-    config: SupervisorConfig,
+    config: InspectorConfig,
     paths: WrapperPaths,
     activation: ActivationRecord,
 ) -> RecoveryClassification:
@@ -263,7 +263,7 @@ def classify(
     if (
         case is RecoveryCase.RUNNING
         and receipt is not None
-        and receipt.transport is RunnerTransport.STDIO_RPC
+        and receipt.transport is CrewTransport.STDIO_RPC
         and receipt.owner is not None
         and procfs.prove_liveness(config, receipt.owner).status
         in (Liveness.DEAD, Liveness.IDENTITY_MISMATCH)
@@ -315,7 +315,7 @@ class Recovery:
 
     def __init__(
         self,
-        config: SupervisorConfig,
+        config: InspectorConfig,
         paths: WrapperPaths,
         store: WorkflowStore,
         workspace: Workspace,
@@ -334,7 +334,7 @@ class Recovery:
 
     def resolve(self, activation: ActivationRecord, node: Node) -> RecoveryResolution:
         """Classify and settle recovery before deleting any private toolchain."""
-        from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+        from workflow_interpreter.inspector.toolchain_cleanup import cleanup_toolchain
 
         result = self._resolve(activation, node)
         if result.closed is not None:
@@ -474,7 +474,7 @@ class Recovery:
         lineage, `head_protected` went false, and the next precondition reset
         the human's commit away (probed).
 
-        The declaration comes from the effects manifest the dead runner left.
+        The declaration comes from the effects manifest the dead crew left.
         No manifest in-repo means no evidence separating the two authors, so the
         commit is QUARANTINED: preserved under `orphan/`, claimed by nobody.
 
@@ -489,7 +489,7 @@ class Recovery:
                 declared=self._declared_effects(activation.activation_id),
                 quarantine=True,
             )
-        except (SupervisorError, OSError) as exc:
+        except (InspectorError, OSError) as exc:
             _LOG.error(
                 "wf.recovery.orphan_pin_failed",
                 activation_id=activation.activation_id,
@@ -498,10 +498,10 @@ class Recovery:
             return PinResult(outcome=PinOutcome.REFUSED, reason=str(exc))
 
     def _declared_effects(self, activation_id: str) -> frozenset[str] | None:
-        """The dead runner's `$WF_EFFECTS_FILE` paths, or `None` when there are none.
+        """The dead crew's `$WF_EFFECTS_FILE` paths, or `None` when there are none.
 
         `None` and `frozenset()` are different answers and both matter: an empty
-        manifest is a runner that declared it changed nothing, while no manifest
+        manifest is a crew that declared it changed nothing, while no manifest
         at all is no evidence — which in-repo makes any ahead commit
         unattributable (§7.5, §12).
         """

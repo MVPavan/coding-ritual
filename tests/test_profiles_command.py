@@ -19,6 +19,7 @@ from typing import Final
 
 import pytest
 
+from tests._inspector import FrozenClock
 from tests._profiles import (
     BRIEF,
     INSTRUCTIONS,
@@ -32,10 +33,21 @@ from tests._profiles import (
     profile_host_env,
     writable_roots_in,
 )
-from tests._supervisor import FrozenClock
+from workflow_interpreter.inspector.channels import (
+    ENV_GIT_COMMITTER_EMAIL,
+    ENV_GIT_COMMITTER_NAME,
+)
+from workflow_interpreter.inspector.paths import CHANNELS_DIR
+from workflow_interpreter.inspector.profile import (
+    ENV_ARTIFACT_DIR,
+    ENV_EFFECTS_FILE,
+    ENV_OUTCOME_FILE,
+    CrewCommand,
+    TaskSpec,
+)
 from workflow_interpreter.profiles import (
+    CrewName,
     ProfileRegistry,
-    RunnerName,
     TaskRefused,
     UnknownProfileError,
     UnsupportedOptionError,
@@ -54,18 +66,6 @@ from workflow_interpreter.profiles._base import (
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
 from workflow_interpreter.schema.models import ArtifactInputMode
-from workflow_interpreter.supervisor.channels import (
-    ENV_GIT_COMMITTER_EMAIL,
-    ENV_GIT_COMMITTER_NAME,
-)
-from workflow_interpreter.supervisor.paths import CHANNELS_DIR
-from workflow_interpreter.supervisor.profile import (
-    ENV_ARTIFACT_DIR,
-    ENV_EFFECTS_FILE,
-    ENV_OUTCOME_FILE,
-    RunnerCommand,
-    TaskSpec,
-)
 
 BYPASS_TOKENS: Final[tuple[str, ...]] = (
     "--dangerously-bypass-approvals-and-sandbox",
@@ -327,10 +327,10 @@ def test_claude_refuses_a_session_id_the_cli_cannot_carry(tmp_path: Path) -> Non
         profile.build_command(make_task(tmp_path), "sess-super-1")
 
 
-@pytest.mark.parametrize("runner", ("claude", "codex"))
-def test_adapters_refuse_the_vendor_default_model(tmp_path: Path, runner: str) -> None:
+@pytest.mark.parametrize("crew", ("claude", "codex"))
+def test_adapters_refuse_the_vendor_default_model(tmp_path: Path, crew: str) -> None:
     """A vendor default is not a model pin and must never reach argv."""
-    if runner == "claude":
+    if crew == "claude":
         profile = make_claude(tmp_path, FrozenClock())
         session_id = new_session()
     else:
@@ -341,10 +341,10 @@ def test_adapters_refuse_the_vendor_default_model(tmp_path: Path, runner: str) -
         profile.build_command(make_task(tmp_path, model="default"), session_id)
 
 
-@pytest.mark.parametrize("runner", ("claude", "codex"))
-def test_adapters_refuse_a_missing_effort(tmp_path: Path, runner: str) -> None:
+@pytest.mark.parametrize("crew", ("claude", "codex"))
+def test_adapters_refuse_a_missing_effort(tmp_path: Path, crew: str) -> None:
     """An absent effort must never become an argv with a missing output setting."""
-    if runner == "claude":
+    if crew == "claude":
         profile = make_claude(tmp_path, FrozenClock())
         session_id = new_session()
     else:
@@ -514,7 +514,7 @@ def test_codex_removes_slash_tmp_but_keeps_the_wrapper_owned_tmpdir(
 
     `$TMPDIR` is NOT excluded, and that is the deliberate half: the child's
     `TMPDIR` is set by the wrapper to `$WF_SCRATCH_DIR`, which already sits
-    inside the grant. Excluding it would subtract the runner's only temp space
+    inside the grant. Excluding it would subtract the crew's only temp space
     from its own writable root, and the exclusion never protected anything —
     `TMPDIR` is not a passthrough key, so no host value can reach the child.
     """
@@ -729,10 +729,10 @@ def test_opencode_refuses_a_continuation_for_the_same_reason(tmp_path: Path) -> 
 # --- the danger-default matrix -------------------------------------------
 
 
-def every_command(tmp_path: Path) -> list[RunnerCommand]:
+def every_command(tmp_path: Path) -> list[CrewCommand]:
     """Every invocation any profile can build, in both `writes` modes."""
     clock = FrozenClock()
-    commands: list[RunnerCommand] = []
+    commands: list[CrewCommand] = []
     session = new_session()
     for writes in (True, False):
         task = make_task(tmp_path, writes=writes)
@@ -754,7 +754,7 @@ INTERPRETERS: Final[frozenset[str]] = frozenset(
 def test_every_command_is_argv_only_with_the_vendor_binary_first(
     tmp_path: Path,
 ) -> None:
-    """§2 rule 6's contract, applied to runners: argv, never a shell string.
+    """§2 rule 6's contract, applied to crews: argv, never a shell string.
 
     `launch.py` execs with `execvpe(argv[0], argv, env)` — no shell, no
     expansion — so an interpreter prefix or a packed command string would be
@@ -773,10 +773,10 @@ def test_every_command_is_argv_only_with_the_vendor_binary_first(
         assert program.name not in INTERPRETERS
 
 
-def every_codex_command(tmp_path: Path) -> list[RunnerCommand]:
+def every_codex_command(tmp_path: Path) -> list[CrewCommand]:
     """Every invocation the codex profile can build, in both `writes` modes."""
     clock = FrozenClock()
-    commands: list[RunnerCommand] = []
+    commands: list[CrewCommand] = []
     for writes in (True, False):
         codex: CodexProfile = make_codex(tmp_path, clock)
         task = make_task(tmp_path, writes=writes)
@@ -828,14 +828,14 @@ def test_no_profile_can_emit_a_push_outside_a_denial(tmp_path: Path) -> None:
 def test_every_command_carries_the_committer_identity_and_the_channels(
     tmp_path: Path,
 ) -> None:
-    """§7.4: the stamp is applied in ONE place, `RunnerChannels.env()`.
+    """§7.4: the stamp is applied in ONE place, `CrewChannels.env()`.
 
     A profile that built its own environment instead would leave every in-repo
     commit unattributable, `pin_artifact` would refuse it, and a `done` claim on
     a writing node would grade `fail_code` with nothing to point at.
     """
     for command in every_command(tmp_path):
-        assert command.env[ENV_GIT_COMMITTER_NAME] == "wf-runner"
+        assert command.env[ENV_GIT_COMMITTER_NAME] == "wf-crew"
         assert "@workflow-interpreter.invalid" in command.env[ENV_GIT_COMMITTER_EMAIL]
         assert ENV_OUTCOME_FILE in command.env
         assert ENV_ARTIFACT_DIR in command.env
@@ -879,13 +879,13 @@ def test_the_injected_profile_config_is_actually_frozen() -> None:
     boundary; what is STORED is immutable.
     """
     config = make_profile_config(
-        binary_overrides={RunnerName.CODEX: "/opt/codex"},
+        binary_overrides={CrewName.CODEX: "/opt/codex"},
     )
 
-    assert config.binary_for(RunnerName.CODEX) == "/opt/codex"
-    assert config.binary_for(RunnerName.CLAUDE) == "claude"
+    assert config.binary_for(CrewName.CODEX) == "/opt/codex"
+    assert config.binary_for(CrewName.CLAUDE) == "claude"
     with pytest.raises(TypeError):
-        config.binary_overrides[RunnerName.CLAUDE] = "/opt/evil"  # type: ignore[index]
+        config.binary_overrides[CrewName.CLAUDE] = "/opt/evil"  # type: ignore[index]
     assert make_profile_config().binary_overrides == {}
 
 
@@ -908,16 +908,16 @@ def test_resume_hints_are_pasteable_vendor_commands(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("name", "expected"),
     [
-        ("claude", RunnerName.CLAUDE),
-        ("profile:claude", RunnerName.CLAUDE),
-        ("codex", RunnerName.CODEX),
-        ("opencode", RunnerName.OPENCODE),
+        ("claude", CrewName.CLAUDE),
+        ("profile:claude", CrewName.CLAUDE),
+        ("codex", CrewName.CODEX),
+        ("opencode", CrewName.OPENCODE),
     ],
 )
 def test_the_registry_resolves_the_closed_vendor_set(
-    name: str, expected: RunnerName
+    name: str, expected: CrewName
 ) -> None:
-    """§6 records `runner = "profile:<name>"`, so both spellings resolve."""
+    """§6 records `crew = "profile:<name>"`, so both spellings resolve."""
     assert (
         ProfileRegistry(make_profile_config(), FrozenClock(), {})
         .profile_for(name)
@@ -927,7 +927,7 @@ def test_the_registry_resolves_the_closed_vendor_set(
 
 
 @pytest.mark.parametrize("name", ["", "gpt", "profile:implementer", "CLAUDE"])
-def test_an_unknown_runner_name_is_a_typed_refusal(tmp_path: Path, name: str) -> None:
+def test_an_unknown_crew_name_is_a_typed_refusal(tmp_path: Path, name: str) -> None:
     """A bead the wrapper cannot resolve is a bead nothing should dispatch.
 
     `profile:implementer` is in the list on purpose: the §2 fixture names ROLES

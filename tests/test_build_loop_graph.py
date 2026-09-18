@@ -121,7 +121,7 @@ def test_both_reviewers_can_abandon_early() -> None:
 
 
 def test_the_critic_declares_every_input_its_instructions_name() -> None:
-    """An input the runner is told to read but the node never binds is unreadable."""
+    """An input the crew is told to read but the node never binds is unreadable."""
     graph = load_graph(BUILD_LOOP_GRAPH)
     critic = next(node for node in graph.document.node if node.name == "critic")
 

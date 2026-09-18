@@ -1,7 +1,7 @@
 """The shipped example config must render into a config the foreman loads.
 
 `ForemanConfig` requires absolute `repo_root`/`wrapper_home` and a
-`supervisor.wrapper_root` equal to the hash-derived one, so a live config is
+`inspector.wrapper_root` equal to the hash-derived one, so a live config is
 machine-specific and cannot be checked in. The example plus its generator are
 therefore the artefact under test: rendering it here is the only thing that
 proves the pair stays in step with the model.
@@ -13,8 +13,8 @@ import os
 import subprocess
 from pathlib import Path
 
-from tests._helpers import AUTHORING_FIXTURE, BUILD_LOOP_GRAPH, runner_roles
-from tests._supervisor import make_repo
+from tests._helpers import AUTHORING_FIXTURE, BUILD_LOOP_GRAPH, crew_roles
+from tests._inspector import make_repo
 from workflow_interpreter import load_graph
 from workflow_interpreter.foreman.config import load_config
 
@@ -24,7 +24,7 @@ GENERATOR = (
 RENDER_TIMEOUT_S = 30.0
 
 # Every graph `foreman create` may be pointed at. `instantiate` refuses one
-# whose roles are not all bound ("unknown runner roles", `resolve.py:218`), so
+# whose roles are not all bound ("unknown crew roles", `resolve.py:218`), so
 # an example config that misses a role makes the graph uninstantiable.
 LIVE_GRAPHS = (AUTHORING_FIXTURE, BUILD_LOOP_GRAPH)
 
@@ -51,11 +51,11 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     assert config.repo_root == repo.resolve()
     assert config.wrapper_home == home / ".wf"
     assert config.wrapper_home.is_dir()
-    assert config.supervisor.wrapper_root == config.wrapper_root
+    assert config.inspector.wrapper_root == config.wrapper_root
     assert config.actor == "wf-tester"
-    assert config.bridge_graph == repo / "workflows" / "feature-delivery.toml"
-    # feature-delivery names its two runner roles `implementer` and `critic`
-    # (`runner = "profile:<role>"`); the reviewer role is the critic one.
+    assert config.contractor_graph == repo / "workflows" / "feature-delivery.toml"
+    # feature-delivery names its two crew roles `implementer` and `critic`
+    # (`crew = "profile:<role>"`); the reviewer role is the critic one.
     assert config.roles["implementer"].profile == "claude"
     assert config.roles["critic"].profile == "codex"
     assert config.roles["implementer"].model == "claude-opus-5"
@@ -76,10 +76,10 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
         assert config.roles[role].model == "gpt-5.6-sol"
         assert config.roles[role].effort == "high"
     for graph_path in LIVE_GRAPHS:
-        assert not runner_roles(load_graph(graph_path)) - set(config.roles)
+        assert not crew_roles(load_graph(graph_path)) - set(config.roles)
 
 
-def test_commented_bridge_checks_example_round_trips_with_environment(
+def test_commented_contractor_checks_example_round_trips_with_environment(
     tmp_path: Path,
 ) -> None:
     """The documented check is actual load_config syntax, including environment pairs."""
@@ -96,20 +96,21 @@ def test_commented_bridge_checks_example_round_trips_with_environment(
         env={"HOME": str(home), "PATH": os.environ["PATH"], "USER": "tester"},
     )
     body = rendered.read_text()
-    begin = "# BEGIN BRIDGE CHECK EXAMPLE\n"
-    end = "# END BRIDGE CHECK EXAMPLE"
+    begin = "# BEGIN CONTRACTOR CHECK EXAMPLE\n"
+    end = "# END CONTRACTOR CHECK EXAMPLE"
     assert begin in body
     sample = body.split(begin, 1)[1].split(end, 1)[0]
     active = "\n".join(line.removeprefix("# ") for line in sample.splitlines())
     rendered.write_text(body.replace(sample, active + "\n"))
     config = load_config(rendered)
-    assert config.bridge_checks is not None
-    assert config.bridge_checks[0].argv == ("scripts/verify-feature.sh",)
-    assert config.bridge_checks[0].environment == (
+    assert config.contractor_checks is not None
+    assert config.contractor_checks[0].argv == ("scripts/verify-feature.sh",)
+    assert config.contractor_checks[0].environment == (
         ("PATH", str(home / ".wf/tools/bin") + ":/usr/bin:/bin"),
         ("UV_PYTHON_INSTALL_DIR", str(home / ".wf/python")),
     )
-    assert config.bridge_checks[0].timeout_s == 1800
+    assert config.contractor_checks[0].timeout_s == 1800
     assert (
-        config.model_validate(config.model_dump()).bridge_checks == config.bridge_checks
+        config.model_validate(config.model_dump()).contractor_checks
+        == config.contractor_checks
     )

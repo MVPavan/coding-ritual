@@ -1,11 +1,11 @@
-"""Builders and doubles shared by the supervisor test families (not a test module).
+"""Builders and doubles shared by the inspector test families (not a test module).
 
-Three things live here, because every supervisor family needs all three:
+Three things live here, because every inspector family needs all three:
 
 - **`FakeProfile`** — the §6 test double, scripted rather than mocked: it
   builds a real `/bin/sh` command out of a declarative script (emit log bytes,
   write a marker, hang, ignore TERM, exit with a code) and execs it through the
-  supervisor's OWN launcher. Nothing here fakes the fork barrier; a double that
+  inspector's OWN launcher. Nothing here fakes the fork barrier; a double that
   did would prove nothing about the thing being tested.
 - **A throwaway git repo** with a verify script, so the §5.4/§7 families work
   against real `git` behaviour rather than a stubbed `Git`.
@@ -46,32 +46,32 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.client import BdClient, CompletedCommand
 from workflow_interpreter.contracts.execution import ToolNetwork
-from workflow_interpreter.schema.models import GraphDocument, Node
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     BandLock,
     ChildLauncher,
+    CrewChannels,
+    CrewCommand,
+    CrewEvent,
     EventType,
-    RunnerChannels,
-    RunnerCommand,
-    RunnerEvent,
-    SupervisorConfig,
+    InspectorConfig,
     TaskSpec,
     TerminalEnvelope,
     Workspace,
     WrapperPaths,
 )
-from workflow_interpreter.supervisor.channels import (
+from workflow_interpreter.inspector.channels import (
     COMMITTER_NAME,
     ENV_GIT_COMMITTER_EMAIL,
     ENV_GIT_COMMITTER_NAME,
     VERIFIER_DIGEST_KEY,
-    runner_committer_email,
+    crew_committer_email,
     sha256_file,
 )
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import write_durable
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import write_durable
+from workflow_interpreter.schema.models import GraphDocument, Node
 
-TEST_ACTOR: Final[str] = "wf-test-supervisor"
+TEST_ACTOR: Final[str] = "wf-test-inspector"
 TEST_HOST: Final[str] = "lab"
 BOOT_ID: Final[str] = "boot-0000-1111"
 START_TIME: Final[str] = "424242"
@@ -100,8 +100,8 @@ HUMAN_IDENTITY: Final[dict[str, str]] = {
 """The human identity every throwaway repo commits under, as ENVIRONMENT.
 
 Repo config alone was not enough: `GIT_COMMITTER_EMAIL` OVERRIDES `user.email`,
-and the wrapper exports the §7.4 runner identity into every child environment
-— so a suite run from inside an activation committed as `runner+<id>@...` and
+and the wrapper exports the §7.4 crew identity into every child environment
+— so a suite run from inside an activation committed as `crew+<id>@...` and
 `test_commit_helpers_reject_non_commits_and_git_failures` failed on it
 (cr-o85.34.22, phase-7 live D2)."""
 
@@ -200,8 +200,8 @@ def dead_pid() -> int:
 def _git(repo: Path, *args: str, env: dict[str, str] | None = None) -> str:
     """Run git in a throwaway repo with an explicit timeout and identity.
 
-    `HUMAN_IDENTITY` is merged BEFORE the caller's `env`, so `runner_git` still
-    commits as the runner while everything else is pinned to the human.
+    `HUMAN_IDENTITY` is merged BEFORE the caller's `env`, so `crew_git` still
+    commits as the crew while everything else is pinned to the human.
     """
     completed = subprocess.run(
         ["git", *args],
@@ -247,10 +247,10 @@ def commit_all(repo: Path, message: str) -> str:
     return head_of(repo)
 
 
-def runner_git(repo: Path, *args: str, activation_id: str) -> str:
-    """Run one raw git command under the §7.4 runner identity.
+def crew_git(repo: Path, *args: str, activation_id: str) -> str:
+    """Run one raw git command under the §7.4 crew identity.
 
-    `runner_commit` is the whole-worktree version and stages with `add -A`. A
+    `crew_commit` is the whole-worktree version and stages with `add -A`. A
     test that forges the INDEX alone — `rm --cached`, `update-index
     --cacheinfo` — needs the identity without the staging, because `add -A`
     would put the very file back that the forgery removed.
@@ -260,16 +260,16 @@ def runner_git(repo: Path, *args: str, activation_id: str) -> str:
         *args,
         env={
             ENV_GIT_COMMITTER_NAME: COMMITTER_NAME,
-            ENV_GIT_COMMITTER_EMAIL: runner_committer_email(activation_id),
+            ENV_GIT_COMMITTER_EMAIL: crew_committer_email(activation_id),
         },
     )
 
 
-def runner_commit(repo: Path, message: str, activation_id: str) -> str:
-    """Commit everything under the §7.4 identity a real runner would carry.
+def crew_commit(repo: Path, message: str, activation_id: str) -> str:
+    """Commit everything under the §7.4 identity a real crew would carry.
 
     The wrapper stamps `GIT_COMMITTER_*` onto the child's environment
-    (`RunnerChannels.env()`), so a test that wants a commit `pin_artifact` can
+    (`CrewChannels.env()`), so a test that wants a commit `pin_artifact` can
     ATTRIBUTE has to make it the way the child would. Using the repo's own
     `user.email` instead produces exactly the human's commit — which is the case
     the authorship half of §7.4 exists to refuse.
@@ -283,7 +283,7 @@ def runner_commit(repo: Path, message: str, activation_id: str) -> str:
         message,
         env={
             ENV_GIT_COMMITTER_NAME: COMMITTER_NAME,
-            ENV_GIT_COMMITTER_EMAIL: runner_committer_email(activation_id),
+            ENV_GIT_COMMITTER_EMAIL: crew_committer_email(activation_id),
         },
     )
     return head_of(repo)
@@ -292,7 +292,7 @@ def runner_commit(repo: Path, message: str, activation_id: str) -> str:
 def blob_at(repo: Path, commit: str, path: str) -> str:
     """One file's contents inside a commit — how a human recovers from a snapshot.
 
-    Deliberately raw `git`, and deliberately unstripped: the supervisor's own
+    Deliberately raw `git`, and deliberately unstripped: the inspector's own
     transport has no `show`, and the question here is whether the EXACT bytes
     are retrievable by somebody who only has the ref.
     """
@@ -335,13 +335,13 @@ def add_submodule(repo: Path, name: str) -> Path:
     return source
 
 
-# --- supervisor wiring ---------------------------------------------------
+# --- inspector wiring ---------------------------------------------------
 
 
 def make_config(
     repo: Path, tmp_path: Path, *, fake_proc: bool = True, **overrides: object
-) -> SupervisorConfig:
-    """A `SupervisorConfig` for a throwaway repo, with `.wf/` beside it."""
+) -> InspectorConfig:
+    """A `InspectorConfig` for a throwaway repo, with `.wf/` beside it."""
     values: dict[str, object] = {
         "repo_root": repo,
         "wrapper_root": tmp_path / ".wf",
@@ -356,7 +356,7 @@ def make_config(
         values["proc_root"] = proc_root
         values["boot_id_path"] = boot_path
     values.update(overrides)
-    return SupervisorConfig.model_validate(values)
+    return InspectorConfig.model_validate(values)
 
 
 def make_store(tmp_path: Path, head: str) -> tuple[FakeBd, WorkflowStore]:
@@ -371,7 +371,7 @@ def make_store(tmp_path: Path, head: str) -> tuple[FakeBd, WorkflowStore]:
 class PersistentBd(FakeBd):
     """A `FakeBd` whose rows live in a JSON file instead of in one process.
 
-    Exists for exactly one property: the supervisor is supposed to keep
+    Exists for exactly one property: the inspector is supposed to keep
     recording after the process that started it is gone, and proving that needs
     a SEPARATE process whose bd writes the test can still read. An in-memory
     double cannot express that at all — the rows die with the wrapper.
@@ -461,20 +461,20 @@ def entry_mint(node: str = IMPLEMENT, **overrides: object) -> MintRequest:
     base: dict[str, object] = {
         "node": node,
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": "fake",
+        "crew_profile": "fake",
         "model": "fake-model",
         "session_id": SESSION_ID,
     }
     return MintRequest.model_validate(base | overrides)
 
 
-def make_paths(config: SupervisorConfig, root_id: str) -> WrapperPaths:
+def make_paths(config: InspectorConfig, root_id: str) -> WrapperPaths:
     """The wrapper directory for one instance."""
     return WrapperPaths(config, root_id)
 
 
-def make_git(config: SupervisorConfig) -> Git:
-    """The supervisor's git transport for a throwaway repo."""
+def make_git(config: InspectorConfig) -> Git:
+    """The inspector's git transport for a throwaway repo."""
     return Git(config)
 
 
@@ -516,12 +516,12 @@ def handle_for(
 
 
 class ChildScript(BaseModel):
-    """A declarative description of what the fake runner's child does."""
+    """A declarative description of what the fake crew's child does."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     emit: str = ""
-    """Text appended to the runner log, one line at a time."""
+    """Text appended to the crew log, one line at a time."""
     marker: str | None = None
     """Raw bytes written to `$WF_OUTCOME_FILE` (raw, so drill 15's zero/two
     marker sub-cases are expressible)."""
@@ -536,14 +536,14 @@ class ChildScript(BaseModel):
     A debrief writes three files into one directory, which a single
     `write_path` cannot express."""
     commit: bool = False
-    """Commit the written artifact with the wrapper's runner identity."""
+    """Commit the written artifact with the wrapper's crew identity."""
     artifact_path: str | None = None
     """One wrapper-artifact-relative finding written by a non-writing child."""
     artifact_body: str = ""
     sleep_s: float = 0.0
     assert_clean_tree: bool = False
     """Spec:857-859, injection point 4: have the CHILD observe its OWN
-    worktree before it does anything else. Only the runner's own process can
+    worktree before it does anything else. Only the crew's own process can
     see whether its worktree is genuinely clean at start — a `git reset
     --hard` the orchestrator ran before dispatch only touches tracked paths,
     so an untracked or otherwise unstaged leftover can survive it invisibly
@@ -588,7 +588,7 @@ class ChildScript(BaseModel):
                 raise ValueError("a committing ChildScript needs something written")
             for path in written:
                 lines.append(f"git add -- {_quote(path)}")
-            lines.append("git commit --quiet -m 'runner artifact'")
+            lines.append("git commit --quiet -m 'crew artifact'")
         if self.artifact_path is not None:
             destination = f'"$WF_ARTIFACT_DIR"/{_quote(self.artifact_path)}'
             lines.append(f'mkdir -p "$(dirname {destination})"')
@@ -608,7 +608,7 @@ def _quote(text: str) -> str:
 
 
 class FakeProfile:
-    """A scriptable §6 profile: real `/bin/sh` children, real supervisor launcher."""
+    """A scriptable §6 profile: real `/bin/sh` children, real inspector launcher."""
 
     tool_network = ToolNetwork.NOT_ENFORCED
 
@@ -620,7 +620,7 @@ class FakeProfile:
     ) -> None:
         self.script = script or ChildScript()
         self.session_id = session_id
-        self.launched: list[RunnerCommand] = []
+        self.launched: list[CrewCommand] = []
         self.bypass_launcher = False
         """Set by the test that asserts the wrapper CATCHES a profile which
         refuses to exec through the injected launcher (§5.2, §6)."""
@@ -633,9 +633,9 @@ class FakeProfile:
         """The pre-assigned session id (§5.2)."""
         return self.session_id
 
-    def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+    def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
         """A `/bin/sh -c <script>` invocation carrying the three §6 channels."""
-        return RunnerCommand(
+        return CrewCommand(
             argv=(SHELL, "-c", self.script.shell()),
             env={"PATH": "/usr/bin:/bin", **task.channels.env()},
             cwd=task.cwd,
@@ -643,8 +643,8 @@ class FakeProfile:
             session_id=session_id,
         )
 
-    def launch(self, command: RunnerCommand, launcher: ChildLauncher) -> ProcessHandle:
-        """Exec through the supervisor's launcher, unless the test says otherwise."""
+    def launch(self, command: CrewCommand, launcher: ChildLauncher) -> ProcessHandle:
+        """Exec through the inspector's launcher, unless the test says otherwise."""
         self.launched.append(command)
         if self.bypass_launcher:
             return handle_for(dead_pid(), log_path=command.log_path)
@@ -658,14 +658,14 @@ class FakeProfile:
 
     def build_resume_command(
         self, session_id: str, instructions: str, task: TaskSpec
-    ) -> RunnerCommand:
+    ) -> CrewCommand:
         """The steer continuation's invocation, bounded by the continuation's task.
 
         Signature follows the §6 Protocol's M4 change: the task is passed in
         rather than remembered, so this double runs its child in the SAME place
         and with the same channels a launch would.
         """
-        return RunnerCommand(
+        return CrewCommand(
             argv=(SHELL, "-c", self.script.shell()),
             env={"PATH": "/usr/bin:/bin", **task.channels.env()},
             cwd=task.cwd,
@@ -677,9 +677,9 @@ class FakeProfile:
         """A human-pasteable resume line."""
         return f"fake --resume {session_id}"
 
-    def parse_output(self, stream: Iterable[str]) -> Iterator[RunnerEvent]:
-        """Normalize the stream; the fake runner emits plain text."""
-        return iter(RunnerEvent(type=EventType.MESSAGE, text=line) for line in stream)
+    def parse_output(self, stream: Iterable[str]) -> Iterator[CrewEvent]:
+        """Normalize the stream; the fake crew emits plain text."""
+        return iter(CrewEvent(type=EventType.MESSAGE, text=line) for line in stream)
 
 
 def task_builder(
@@ -687,10 +687,10 @@ def task_builder(
     node: Node,
     *,
     effort: str | None = "medium",
-) -> Callable[[ActivationRecord, RunnerChannels], TaskSpec]:
+) -> Callable[[ActivationRecord, CrewChannels], TaskSpec]:
     """A `TaskBuilder` for one node and working directory."""
 
-    def build(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
+    def build(activation: ActivationRecord, channels: CrewChannels) -> TaskSpec:
         return TaskSpec(
             root_id=activation.metadata.wf_root_id,
             activation_id=activation.activation_id,

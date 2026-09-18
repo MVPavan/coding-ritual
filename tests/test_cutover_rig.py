@@ -9,10 +9,10 @@ decides which store a root is CREATED through, the adapter that talks to a real
 a cutover asserted against the test's own wiring (run-ledger §6, S3).
 
 So this file builds what production builds: a foreman TOML, a real bd
-workspace, a real ledger in a real repository, and `foreman phase-bridge`
+workspace, a real ledger in a real repository, and `foreman contract`
 through `__main__.main`. The only stand-in is the vendor binary, which is a
 shell stub — the same device the `proc` family uses to drive a real
-`Supervisor.run` without spending tokens.
+`Inspector.run` without spending tokens.
 
 `bd`-marked and slow by design: it forks detached wrappers and shells out to
 `bd`, which is exactly the round trip the ledger backend exists to remove, so
@@ -33,17 +33,17 @@ from typing import Final
 
 import pytest
 
-from tests._supervisor import make_repo
+from tests._inspector import make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import GatePayload, Outcome, canonical_payload_bytes
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.bridge.adapter import PhaseAdapter
-from workflow_interpreter.bridge.models import PhaseBridgeState
+from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.models import ContractorState
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.gates import payload_template
+from workflow_interpreter.inspector.paths import fsync_dir
 from workflow_interpreter.ledger.tasks import export_oid, task_backend
-from workflow_interpreter.supervisor.paths import fsync_dir
 
 BD_BINARY: Final[str] = "bd"
 BD_TIMEOUT_S: Final[float] = 60.0
@@ -92,7 +92,7 @@ case "$*" in
     git cat-file blob "$ref:findings.md" > "$dir/findings.md"
     git cat-file blob "$ref:evidence.json" > "$dir/evidence.json"
     printf 'stub debrief\\n' > "$dir/debrief.md"
-    # The two ways a real runner breaks the debrief contract, both INSIDE its
+    # The two ways a real crew breaks the debrief contract, both INSIDE its
     # `docs/workstreams/**` grant — which is the point: the grant discloses,
     # the verifier contains (ADR 0001).
     case "${WF_DEBRIEF_SABOTAGE:-}" in
@@ -181,7 +181,7 @@ def _config_file(
         'host = "rig"\n'
         'actor = "rig"\n'
         f'store = "{store.value}"\n'
-        f'bridge_graph = "{graph}"\n'
+        f'contractor_graph = "{graph}"\n'
         "[bd]\n"
         f'workspace = "{bd_workspace}"\n'
         'actor = "rig"\n'
@@ -204,7 +204,7 @@ def _config_file(
         'profile = "claude"\n'
         'model = "stub-model"\n'
         'effort = "low"\n'
-        "[supervisor]\n"
+        "[inspector]\n"
         f'repo_root = "{repo}"\n'
         f'wrapper_root = "{wrapper_root}"\n'
         'host = "rig"\n'
@@ -212,7 +212,7 @@ def _config_file(
         "poll_interval_s = 0.5\n"
         "term_grace_s = 2.0\n"
         "kill_grace_s = 2.0\n"
-        "[[bridge_checks]]\n"
+        "[[contractor_checks]]\n"
         'name = "source-proof"\n'
         f"argv = {json.dumps([sys.executable, '-c', PROOF_SCRIPT])}\n",
         encoding="utf-8",
@@ -280,7 +280,7 @@ def test_a_stage_lands_end_to_end_on_a_real_rig(
     """prepare → admit → activations → gate → landing → close, for real.
 
     The assertions are the ones only a production rig can make: the bead a real
-    `bd` closed, the root created on the backend the bridge record pins, and —
+    `bd` closed, the root created on the backend the contractor record pins, and —
     on the ledger side — `tasks.export_oid`, which is what §3.6 makes closure
     conditional on.
     """
@@ -327,7 +327,7 @@ def test_a_stage_lands_end_to_end_on_a_real_rig(
     )
 
     started = time.monotonic()
-    argv = ["--config", str(config), "phase-bridge", epic, stage]
+    argv = ["--config", str(config), "contract", epic, stage]
     assert main_module.main(argv) == 0
     _approve_ship(config, stage, sign_payload)
     assert main_module.main(argv) == 0
@@ -337,7 +337,7 @@ def test_a_stage_lands_end_to_end_on_a_real_rig(
     try:
         record = PhaseAdapter.from_config(composition.config.bd).record(stage)
         assert record.root_backend is store
-        assert record.state is PhaseBridgeState.CLOSED
+        assert record.state is ContractorState.CLOSED
         shown = json.loads(_bd(bd_workspace, "show", stage, "--json"))
         assert _status_of(shown) == BEAD_CLOSED
         assert (record.root_id or "").startswith(f"{stage}-a") is (
@@ -383,7 +383,7 @@ def _debrief_rig(
     """The shipped graph, the shipped verifier, a real bd epic and stage.
 
     One builder for every debrief rig case, so a negative case differs from the
-    landing case in exactly one thing — what the runner does — rather than in
+    landing case in exactly one thing — what the crew does — rather than in
     its wiring.
     """
     repo = make_repo(tmp_path)
@@ -444,7 +444,7 @@ def test_a_debrief_lands_with_the_code_it_describes(
         ["git", "rev-parse", "HEAD"], cwd=repo, text=True
     ).strip()
 
-    argv = ["--config", str(config), "phase-bridge", epic, stage]
+    argv = ["--config", str(config), "contract", epic, stage]
     assert main_module.main(argv) == 0
     _approve_ship(config, stage, sign_payload)
     assert main_module.main(argv) == 0
@@ -469,7 +469,7 @@ def test_a_debrief_lands_with_the_code_it_describes(
 @pytest.mark.bd
 @pytest.mark.acceptance
 @pytest.mark.parametrize("sabotage", ["stray", "edit"])
-def test_a_debrief_the_real_runner_broke_reaches_triage_and_never_ship(
+def test_a_debrief_the_real_crew_broke_reaches_triage_and_never_ship(
     tmp_path: Path,
     bd_workspace: Path,
     signing_key: Path,
@@ -482,8 +482,8 @@ def test_a_debrief_the_real_runner_broke_reaches_triage_and_never_ship(
     `docs/workstreams/**` grant; `edit` changes `findings.md` after copying it.
     Both are inside the grant and outside the contract, which is the division
     ADR 0001 draws — so it is the shipped verifier, run by the real wrapper on
-    a real runner's commit, that has to catch them. What this asserts is the
-    consequence: `fail_code` over the runner's own `done` claim, a `triage`
+    a real crew's commit, that has to catch them. What this asserts is the
+    consequence: `fail_code` over the crew's own `done` claim, a `triage`
     gate, no ship gate, and `main` exactly where it started.
     """
     repo, config, epic, stage = _debrief_rig(
@@ -494,7 +494,7 @@ def test_a_debrief_the_real_runner_broke_reaches_triage_and_never_ship(
         ["git", "rev-parse", "HEAD"], cwd=repo, text=True
     ).strip()
 
-    assert main_module.main(["--config", str(config), "phase-bridge", epic, stage]) == 0
+    assert main_module.main(["--config", str(config), "contract", epic, stage]) == 0
 
     composition = _composition_for(config, stage)
     try:
@@ -517,7 +517,7 @@ def test_a_debrief_the_real_runner_broke_reaches_triage_and_never_ship(
     assert debriefs[-1].metadata.evidence.claimed_outcome is Outcome.DONE
     assert TRIAGE_GATE in gates
     assert SHIP_GATE not in gates
-    assert record.state is not PhaseBridgeState.CLOSED
+    assert record.state is not ContractorState.CLOSED
     assert (
         subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=repo, text=True
@@ -545,7 +545,7 @@ def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
     repo, config, epic, stage = _debrief_rig(
         tmp_path, bd_workspace, signing_key, monkeypatch, title="rig abandon"
     )
-    argv = ["--config", str(config), "phase-bridge", epic, stage]
+    argv = ["--config", str(config), "contract", epic, stage]
 
     assert main_module.main(argv) == 0
     _approve_ship(config, stage, sign_payload, outcome=Outcome.ABANDON)
@@ -588,7 +588,7 @@ def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
 
     # §3.8: the fresh attempt is admitted through the normal path — which is
     # `--retry`, because `abandoned` is one of the graph's own
-    # `phase_bridge_retry_terminals`. Without it the stage is simply over.
+    # `contractor_retry_terminals`. Without it the stage is simply over.
     assert main_module.main([*argv, "--retry"]) == 0
     _approve_ship(config, stage, sign_payload)
     assert main_module.main(argv) == 0
@@ -604,6 +604,6 @@ def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
     ).split()
 
     assert second.root_id != abandoned_root
-    assert second.state is PhaseBridgeState.CLOSED
+    assert second.state is ContractorState.CLOSED
     assert f"{run_dir}/a2/debrief.md" in landed
     assert f"{run_dir}/a1/debrief.md" not in landed

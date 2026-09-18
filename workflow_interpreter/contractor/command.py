@@ -1,4 +1,4 @@
-"""Composition for the caller-selected, one-stage phase bridge command."""
+"""Composition for the caller-selected, one-stage contractor command."""
 
 from __future__ import annotations
 
@@ -12,21 +12,21 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.bdio import StoreOutputError
 from workflow_interpreter.bdio.wire import BeadRecord
-from workflow_interpreter.bridge.adapter import (
-    PHASE_BRIDGE_METADATA_KEY,
+from workflow_interpreter.contractor.adapter import (
+    CONTRACTOR_METADATA_KEY,
     STATUS_CLOSED,
     PhaseAdapter,
     PhaseAdapterError,
 )
-from workflow_interpreter.bridge.admission import (
+from workflow_interpreter.contractor.admission import (
     AdmissionRefused,
     PhaseAdmission,
     WorkflowRootProvisioner,
 )
-from workflow_interpreter.bridge.authority import BeadGateAuthority
-from workflow_interpreter.bridge.errors import BridgeRefusal
-from workflow_interpreter.bridge.journal import ExportPin, LandingJournal
-from workflow_interpreter.bridge.landing import (
+from workflow_interpreter.contractor.authority import BeadGateAuthority
+from workflow_interpreter.contractor.errors import ContractorRefusal
+from workflow_interpreter.contractor.journal import ExportPin, LandingJournal
+from workflow_interpreter.contractor.landing import (
     LANDING_INTENT_FILE,
     LANDING_RECEIPT_FILE,
     DetachedRepositoryGate,
@@ -35,9 +35,9 @@ from workflow_interpreter.bridge.landing import (
     LandingReceipt,
     PhaseLanding,
 )
-from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
-from workflow_interpreter.bridge.retry import retry_refusal
-from workflow_interpreter.bridge.verification import VerificationPolicy
+from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.retry import retry_refusal
+from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.constants import (
     RUN_DEFAULT_MAX_WALL_S,
@@ -49,40 +49,42 @@ from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.wake import MonitorUnavailable
-from workflow_interpreter.ledger.paths import coordinator_dirt
-from workflow_interpreter.schema.decisions import CoordinationError
-from workflow_interpreter.schema.loader import GraphValidationError, load_graph
-from workflow_interpreter.schema.models import PRODUCER_INSTANCE
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.inspector.errors import (
     GitCommandError,
     LockUnavailable,
     WrapperDirError,
 )
-from workflow_interpreter.supervisor.paths import read_record
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.ledger.paths import coordinator_dirt
+from workflow_interpreter.schema.decisions import CoordinationError
+from workflow_interpreter.schema.loader import GraphValidationError, load_graph
+from workflow_interpreter.schema.models import PRODUCER_INSTANCE
 
 TASK_BRIEF: Final[str] = "task_brief"
 MSG_DETACHED: Final[str] = "coordinator checkout is detached"
 MSG_DIRTY: Final[str] = "coordinator checkout is not clean"
-MSG_BRIDGE_GRAPH_MISSING: Final[str] = "foreman bridge_graph setting is missing"
-MSG_BRIDGE_GRAPH_INVALID: Final[str] = "configured bridge graph is invalid: {reason}"
+MSG_CONTRACTOR_GRAPH_MISSING: Final[str] = "foreman contractor_graph setting is missing"
+MSG_CONTRACTOR_GRAPH_INVALID: Final[str] = (
+    "configured contractor graph is invalid: {reason}"
+)
 MSG_TASK_BRIEF_MISSING: Final[str] = "stage description is missing or empty"
 MSG_TASK_BRIEF_UNDECLARED: Final[str] = (
-    "configured bridge graph does not declare task_brief as an instance input"
+    "configured contractor graph does not declare task_brief as an instance input"
 )
 MSG_OTHER_INPUT: Final[str] = (
-    "configured bridge graph requires missing instance input {name!r}"
+    "configured contractor graph requires missing instance input {name!r}"
 )
-MSG_RETRY_NO_RECORD: Final[str] = "retry requires a stored phase bridge record"
+MSG_RETRY_NO_RECORD: Final[str] = "retry requires a stored contractor record"
 MSG_RETRY_NO_ROOT: Final[str] = "retry requires the stored record to name a prior root"
-MSG_EPIC_NO_STAGES: Final[str] = "phase bridge epic has no stages"
+MSG_EPIC_NO_STAGES: Final[str] = "contractor epic has no stages"
 MSG_ADMISSION_NO_ROOT: Final[str] = (
-    "phase bridge admission requires the stored record to name a root"
+    "contractor admission requires the stored record to name a root"
 )
 EXIT_OK: Final[int] = 0
 EXIT_REFUSED: Final[int] = 2
 
 
-class PhaseBridgeCommandState(StrEnum):
+class ContractorCommandState(StrEnum):
     """The mutually exclusive stage-level facts the command reports."""
 
     PHASE_EXHAUSTED = "phase-exhausted"
@@ -93,7 +95,7 @@ class PhaseBridgeCommandState(StrEnum):
     REFUSED = "refused"
 
 
-class PhaseBridgeCommandResult(BaseModel):
+class ContractorCommandResult(BaseModel):
     """One JSON-ready command outcome with a distinct refusal exit code."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -102,11 +104,11 @@ class PhaseBridgeCommandResult(BaseModel):
     report: dict[str, object]
 
 
-class PhaseBridgeRefused(ValueError):
+class ContractorRefused(ValueError):
     """A caller-visible refusal that is not an interpreter crash."""
 
 
-def execute_phase_bridge(
+def execute_contractor(
     composition: Composition,
     *,
     epic_id: str,
@@ -115,7 +117,7 @@ def execute_phase_bridge(
     trace: bool,
     retry_landing: bool = False,
     monitored: bool = False,
-) -> PhaseBridgeCommandResult:
+) -> ContractorCommandResult:
     """Validate, optionally admit, and run exactly the caller-named stage."""
     try:
         return _execute(
@@ -127,14 +129,14 @@ def execute_phase_bridge(
             retry_landing=retry_landing,
             monitored=monitored,
         )
-    except PhaseBridgeRefused as refusal:
-        return PhaseBridgeCommandResult(
+    except ContractorRefused as refusal:
+        return ContractorCommandResult(
             exit_code=EXIT_REFUSED,
             report={
                 "epic_id": epic_id,
                 "reason": _refusal_reason(refusal),
                 "stage_id": stage_id,
-                "state": PhaseBridgeCommandState.REFUSED.value,
+                "state": ContractorCommandState.REFUSED.value,
             },
         )
     except (
@@ -145,26 +147,26 @@ def execute_phase_bridge(
         StoreOutputError,
         PhaseAdapterError,
         ResolutionError,
-        BridgeRefusal,
+        ContractorRefusal,
         ValidationError,
         WrapperDirError,
         GitCommandError,
     ) as refusal:
         if isinstance(refusal, AdmissionRefused) and refusal.blocked:
             return _result(
-                PhaseBridgeCommandState.BLOCKED,
+                ContractorCommandState.BLOCKED,
                 epic_id=epic_id,
                 stage_id=stage_id,
                 blocking_ids=refusal.blocking_ids,
                 reason=str(refusal),
             )
-        return PhaseBridgeCommandResult(
+        return ContractorCommandResult(
             exit_code=EXIT_REFUSED,
             report={
                 "epic_id": epic_id,
                 "reason": _refusal_reason(refusal),
                 "stage_id": stage_id,
-                "state": PhaseBridgeCommandState.REFUSED.value,
+                "state": ContractorCommandState.REFUSED.value,
             },
         )
 
@@ -178,17 +180,17 @@ def _execute(
     trace: bool,
     retry_landing: bool = False,
     monitored: bool = False,
-) -> PhaseBridgeCommandResult:
+) -> ContractorCommandResult:
     """Apply the required ordering after keeping the trace branch read-only."""
     if retry_landing and (retry or trace):
-        raise PhaseBridgeRefused(
+        raise ContractorRefused(
             "--retry-landing cannot combine with --retry or --trace"
         )
     target_ref = composition.git.attached_branch_ref(cwd=composition.config.repo_root)
     if target_ref is None:
-        raise PhaseBridgeRefused(MSG_DETACHED)
+        raise ContractorRefused(MSG_DETACHED)
     adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
-    from workflow_interpreter.bridge.integration import (
+    from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         prepared_for_stage,
         resume_integration,
@@ -203,25 +205,25 @@ def _execute(
         all(stage.status == STATUS_CLOSED for stage in stages)
         and not any(
             stage.id == stage_id
-            and stage.metadata.get(PHASE_BRIDGE_METADATA_KEY) is not None
+            and stage.metadata.get(CONTRACTOR_METADATA_KEY) is not None
             for stage in stages
         )
         and not retry_landing
     ):
         return _result(
-            PhaseBridgeCommandState.PHASE_EXHAUSTED,
+            ContractorCommandState.PHASE_EXHAUSTED,
             epic_id=epic_id,
             stage_id=stage_id,
         )
     stage = adapter.show(stage_id)
     if stage.parent != epic_id or not any(row.id == stage_id for row in stages):
-        raise PhaseBridgeRefused("selected stage does not belong to epic")
-    from workflow_interpreter.foreman.replacement import repair_bridge_successor
+        raise ContractorRefused("selected stage does not belong to epic")
+    from workflow_interpreter.foreman.replacement import repair_contractor_successor
 
-    repair_bridge_successor(composition, stage_id)
+    repair_contractor_successor(composition, stage_id)
     stage = adapter.show(stage_id)
-    raw = stage.metadata.get(PHASE_BRIDGE_METADATA_KEY)
-    prior = None if raw is None else PhaseBridgeRecord.model_validate(raw)
+    raw = stage.metadata.get(CONTRACTOR_METADATA_KEY)
+    prior = None if raw is None else ContractorRecord.model_validate(raw)
     pending = (
         prepared_for_stage(composition, epic_id, stage_id)
         if prior is None or prior.integration_digest is not None
@@ -240,24 +242,24 @@ def _execute(
     if (
         prior is not None
         and prior.integration_digest is not None
-        and prior.state is PhaseBridgeState.PREPARED
+        and prior.state is ContractorState.PREPARED
     ):
         prior = resume_integration(
             composition, adapter.integration_guard.association(prior)
         )
         retry = False
     if retry_landing and (prior is None or prior.root_id is None):
-        raise PhaseBridgeRefused("--retry-landing requires a stored pending intent")
+        raise ContractorRefused("--retry-landing requires a stored pending intent")
     if prior is not None:
         if (
             prior.stage_id != stage_id
             or prior.epic_id != epic_id
             or prior.target_ref != target_ref
         ):
-            raise PhaseBridgeRefused("stage/root ownership mismatch")
+            raise ContractorRefused("stage/root ownership mismatch")
         if prior.verification_policy is None:
-            raise PhaseBridgeRefused(
-                "legacy bridge journal lacks verification policy; human attention required"
+            raise ContractorRefused(
+                "legacy contractor journal lacks verification policy; human attention required"
             )
         if prior.root_id is not None:
             wiring = composition.for_root(_pinned_root(composition, prior))
@@ -269,10 +271,10 @@ def _execute(
             ) or root.metadata.instance_base_commit != (
                 prior.execution_base_commit or prior.expected_base_commit
             ):
-                raise PhaseBridgeRefused("stage/root ownership mismatch")
-            from workflow_interpreter.foreman.replacement import guard_bridge
+                raise ContractorRefused("stage/root ownership mismatch")
+            from workflow_interpreter.foreman.replacement import guard_contractor
 
-            guard_bridge(composition, prior)
+            guard_contractor(composition, prior)
             if prior.integration_digest is not None:
                 adapter.integration_guard.binding(prior, current=False)
             if retry_landing:
@@ -282,18 +284,18 @@ def _execute(
             if (
                 wiring.paths.instance_dir / LANDING_INTENT_FILE
             ).exists() or prior.state in (
-                PhaseBridgeState.LANDING,
-                PhaseBridgeState.LANDED,
-                PhaseBridgeState.CLOSED,
+                ContractorState.LANDING,
+                ContractorState.LANDED,
+                ContractorState.CLOSED,
             ):
                 if retry:
-                    raise PhaseBridgeRefused("landing recovery cannot be retried")
+                    raise ContractorRefused("landing recovery cannot be retried")
                 return _land(composition, adapter, prior, recover=True)
     if coordinator_dirt(
         composition.git.status_paths(cwd=composition.config.repo_root),
         task_id=stage_id,
     ):
-        raise PhaseBridgeRefused(MSG_DIRTY)
+        raise ContractorRefused(MSG_DIRTY)
     if (
         prior is not None
         and prior.root_id is not None
@@ -304,17 +306,17 @@ def _execute(
     dependencies = adapter.blocking_dependencies(stage_id)
     if dependencies:
         return _result(
-            PhaseBridgeCommandState.BLOCKED,
+            ContractorCommandState.BLOCKED,
             epic_id=epic_id,
             stage_id=stage_id,
             blocking_ids=tuple(dependency.id for dependency in dependencies),
         )
-    if prior is not None and prior.state is PhaseBridgeState.ADMITTED and not retry:
+    if prior is not None and prior.state is ContractorState.ADMITTED and not retry:
         if (
             composition.git.head_commit(cwd=composition.config.repo_root)
             != prior.expected_base_commit
         ):
-            raise PhaseBridgeRefused("branch-moved")
+            raise ContractorRefused("branch-moved")
         return _run_record(composition, adapter, prior, monitored=monitored)
     if prior is not None and prior.integration_digest is not None and retry:
         return _run_record(
@@ -326,17 +328,17 @@ def _execute(
     if retry and prior is not None and prior.root_id is not None:
         predecessor = composition.reads_for_root(prior.root_id).load_root(prior.root_id)
         if predecessor.metadata.coordination is not None:
-            raise PhaseBridgeRefused(
-                "coordinated bridge retry requires the original-owner successor operation"
+            raise ContractorRefused(
+                "coordinated contractor retry requires the original-owner successor operation"
             )
-    graph = _bridge_graph(composition)
+    graph = _contractor_graph(composition)
     stage = adapter.show(stage_id)
     task_brief = _task_brief(stage.description)
     expected_base = composition.git.head_commit(cwd=composition.config.repo_root)
     resume_prepared_retry = (
         retry
         and prior is not None
-        and prior.state is PhaseBridgeState.PREPARED
+        and prior.state is ContractorState.PREPARED
         and prior.attempt > 1
     )
     successor = (
@@ -348,10 +350,10 @@ def _execute(
         prior.verification_policy
         if prior is not None
         else VerificationPolicy.pin(
-            composition.config.bridge_checks or (), composition.config.repo_root
+            composition.config.contractor_checks or (), composition.config.repo_root
         )
     )
-    with tempfile.TemporaryDirectory(prefix="phase-bridge-") as directory:
+    with tempfile.TemporaryDirectory(prefix="contract-") as directory:
         brief_path = Path(directory) / "task-brief.md"
         brief_path.write_text(task_brief, encoding="utf-8")
         roots = WorkflowRootProvisioner(
@@ -393,10 +395,10 @@ def _execute(
 def _run_record(
     composition: Composition,
     adapter: PhaseAdapter,
-    record: PhaseBridgeRecord,
+    record: ContractorRecord,
     *,
     monitored: bool = False,
-) -> PhaseBridgeCommandResult:
+) -> ContractorCommandResult:
     """Resume the admitted root without reprovisioning from current configuration."""
     adapter.guard_integration(record)
     run = Foreman(composition).run(
@@ -411,13 +413,13 @@ def _run_record(
             record.instance_key not in latest.previous_attempts
             or latest.successor_key is None
         ):
-            raise PhaseBridgeRefused("bridge changed outside successor lineage")
+            raise ContractorRefused("contractor changed outside successor lineage")
         adapter.guard_integration(latest)
         record = latest
     if run.report.terminal_node == "shipped":
         return _land(composition, adapter, record, recover=False)
     result = _result(
-        PhaseBridgeCommandState.RESULT,
+        ContractorCommandState.RESULT,
         epic_id=record.epic_id,
         stage_id=record.stage_id,
         record=record.model_dump(by_alias=True, mode="json"),
@@ -433,14 +435,14 @@ def _run_record(
 def _land(
     composition: Composition,
     adapter: PhaseAdapter,
-    record: PhaseBridgeRecord,
+    record: ContractorRecord,
     *,
     recover: bool,
     retry_landing: bool = False,
-) -> PhaseBridgeCommandResult:
+) -> ContractorCommandResult:
     """Compose authoritative landing using the admitted policy, including repair."""
     if record.verification_policy is None:
-        raise PhaseBridgeRefused("bridge verification policy missing")
+        raise ContractorRefused("contractor verification policy missing")
     wiring = composition.for_root(_pinned_root(composition, record))
     # D17 and §3.6: the ledger surfaces are composed HERE, from the one
     # connection this process holds, and they are absent only for a wiring
@@ -475,15 +477,15 @@ def _land(
                 else landing.land(record.stage_id)
             )
         )
-    except BridgeRefusal as error:
-        return PhaseBridgeCommandResult(
+    except ContractorRefusal as error:
+        return ContractorCommandResult(
             exit_code=EXIT_REFUSED,
             report={
                 "epic_id": record.epic_id,
                 "stage_id": record.stage_id,
                 "root_id": record.root_id,
                 "attempt": record.attempt,
-                "state": PhaseBridgeCommandState.REFUSED.value,
+                "state": ContractorCommandState.REFUSED.value,
                 "disposition": LandingDisposition.HUMAN_ATTENTION.value,
                 "reason": str(error),
                 "observed_target": composition.git.ref_target(
@@ -492,20 +494,20 @@ def _land(
             },
         )
     if outcome.disposition is not LandingDisposition.CLOSED:
-        return PhaseBridgeCommandResult(
+        return ContractorCommandResult(
             exit_code=EXIT_REFUSED,
             report={
                 "epic_id": record.epic_id,
                 "stage_id": record.stage_id,
-                "state": PhaseBridgeCommandState.REFUSED.value,
+                "state": ContractorCommandState.REFUSED.value,
                 **outcome.model_dump(mode="json"),
                 "reason": outcome.reason or outcome.disposition.value,
             },
         )
     return _result(
-        PhaseBridgeCommandState.RECOVERED
+        ContractorCommandState.RECOVERED
         if recover
-        else PhaseBridgeCommandState.COMPLETED,
+        else ContractorCommandState.COMPLETED,
         epic_id=record.epic_id,
         stage_id=record.stage_id,
         record=adapter.record(record.stage_id).model_dump(by_alias=True, mode="json"),
@@ -513,16 +515,16 @@ def _land(
     )
 
 
-def _bridge_graph(composition: Composition) -> Path:
+def _contractor_graph(composition: Composition) -> Path:
     """Load the configured graph and reject unsupported required inputs first."""
-    graph = composition.config.bridge_graph
+    graph = composition.config.contractor_graph
     if graph is None:
-        raise PhaseBridgeRefused(MSG_BRIDGE_GRAPH_MISSING)
+        raise ContractorRefused(MSG_CONTRACTOR_GRAPH_MISSING)
     try:
         definition = load_graph(graph, allow_test_flags=False)
     except (GraphValidationError, OSError) as error:
-        raise PhaseBridgeRefused(
-            MSG_BRIDGE_GRAPH_INVALID.format(reason=error)
+        raise ContractorRefused(
+            MSG_CONTRACTOR_GRAPH_INVALID.format(reason=error)
         ) from error
     instance_sources = tuple(
         source
@@ -530,17 +532,17 @@ def _bridge_graph(composition: Composition) -> Path:
         if source.producer == PRODUCER_INSTANCE
     )
     if not any(source.name == TASK_BRIEF for source in instance_sources):
-        raise PhaseBridgeRefused(MSG_TASK_BRIEF_UNDECLARED)
+        raise ContractorRefused(MSG_TASK_BRIEF_UNDECLARED)
     for source in instance_sources:
         if not source.optional and source.name != TASK_BRIEF:
-            raise PhaseBridgeRefused(MSG_OTHER_INPUT.format(name=source.name))
+            raise ContractorRefused(MSG_OTHER_INPUT.format(name=source.name))
     return graph
 
 
 def _task_brief(description: str | None) -> str:
     """Require the selected stage's actual description as the pinned brief."""
     if description is None or not description.strip():
-        raise PhaseBridgeRefused(MSG_TASK_BRIEF_MISSING)
+        raise ContractorRefused(MSG_TASK_BRIEF_MISSING)
     return description
 
 
@@ -548,7 +550,7 @@ def _direct_stages(adapter: PhaseAdapter, epic_id: str) -> tuple[BeadRecord, ...
     """Require the named epic to contain direct stages before reporting its state."""
     stages = adapter.direct_children(epic_id)
     if not stages:
-        raise PhaseBridgeRefused(MSG_EPIC_NO_STAGES)
+        raise ContractorRefused(MSG_EPIC_NO_STAGES)
     return stages
 
 
@@ -556,26 +558,26 @@ def _retry_successor(
     composition: Composition,
     adapter: PhaseAdapter,
     stage_id: str,
-) -> PhaseBridgeRecord:
+) -> ContractorRecord:
     """Apply the prior root's retry predicate before persisting a successor."""
     try:
         prior = adapter.record(stage_id)
     except (KeyError, ValidationError) as error:
-        raise PhaseBridgeRefused(MSG_RETRY_NO_RECORD) from error
+        raise ContractorRefused(MSG_RETRY_NO_RECORD) from error
     if prior.root_id is None:
-        raise PhaseBridgeRefused(MSG_RETRY_NO_ROOT)
+        raise ContractorRefused(MSG_RETRY_NO_ROOT)
     wiring = composition.for_root(_pinned_root(composition, prior))
     root = wiring.store.reads.load_root(prior.root_id)
     frontier = build_frontier(root, wiring.store.reads.instance_records(prior.root_id))
-    terminals = root.definition.document.instance.phase_bridge_retry_terminals or ()
+    terminals = root.definition.document.instance.contractor_retry_terminals or ()
     refusal = retry_refusal(prior.state, terminals, frontier)
     if refusal is not None:
-        raise PhaseBridgeRefused(refusal.value)
+        raise ContractorRefused(refusal.value)
     if (
-        prior.state is PhaseBridgeState.GATE_RED
+        prior.state is ContractorState.GATE_RED
         and not BeadGateAuthority(wiring.store.reads).verify(prior.root_id).accepted
     ):
-        raise PhaseBridgeRefused("retry lacks approved ship authority")
+        raise ContractorRefused("retry lacks approved ship authority")
     return prior.next_attempt(composition.config.store)
 
 
@@ -585,12 +587,12 @@ def _trace(
     *,
     epic_id: str,
     stage_id: str,
-) -> PhaseBridgeCommandResult:
+) -> ContractorCommandResult:
     """Render durable stage and root evidence without admitting or running work."""
     state, blocking_ids = _trace_state(adapter, epic_id, stage_id)
     stage = adapter.show(stage_id)
     record, relation_error = _record_for_trace(
-        stage.metadata.get(PHASE_BRIDGE_METADATA_KEY)
+        stage.metadata.get(CONTRACTOR_METADATA_KEY)
     )
     report: dict[str, object] = {
         "blocking_ids": blocking_ids,
@@ -608,7 +610,7 @@ def _trace(
         "state": state.value,
     }
     if record is None or record.root_id is None:
-        return PhaseBridgeCommandResult(exit_code=EXIT_OK, report=report)
+        return ContractorCommandResult(exit_code=EXIT_OK, report=report)
     wiring = composition.for_root(_pinned_root(composition, record))
     root = wiring.store.reads.load_root(record.root_id)
     frontier = build_frontier(root, wiring.store.reads.instance_records(record.root_id))
@@ -644,50 +646,50 @@ def _trace(
             else receipt.model_dump(mode="json"),
         }
     )
-    return PhaseBridgeCommandResult(exit_code=EXIT_OK, report=report)
+    return ContractorCommandResult(exit_code=EXIT_OK, report=report)
 
 
 def _record_for_trace(
     raw: object | None,
-) -> tuple[PhaseBridgeRecord | None, str | None]:
+) -> tuple[ContractorRecord | None, str | None]:
     """Parse a relation for display while retaining malformed evidence as absence."""
     if raw is None:
         return None, None
     try:
-        return PhaseBridgeRecord.model_validate(raw), None
+        return ContractorRecord.model_validate(raw), None
     except ValidationError as error:
         return None, str(error)
 
 
 def _trace_state(
     adapter: PhaseAdapter, epic_id: str, stage_id: str
-) -> tuple[PhaseBridgeCommandState, tuple[str, ...]]:
+) -> tuple[ContractorCommandState, tuple[str, ...]]:
     """Compute the read-only phase fact without selecting or admitting a stage."""
     stages = _direct_stages(adapter, epic_id)
     if all(stage.status == STATUS_CLOSED for stage in stages):
-        return PhaseBridgeCommandState.PHASE_EXHAUSTED, ()
+        return ContractorCommandState.PHASE_EXHAUSTED, ()
     dependencies = adapter.blocking_dependencies(stage_id)
     if dependencies:
         return (
-            PhaseBridgeCommandState.BLOCKED,
+            ContractorCommandState.BLOCKED,
             tuple(dependency.id for dependency in dependencies),
         )
     for stage in stages:
         if stage.id == stage_id or stage.status == STATUS_CLOSED:
             continue
-        if stage.metadata.get(PHASE_BRIDGE_METADATA_KEY) is not None:
-            return PhaseBridgeCommandState.BLOCKED, ()
-    return PhaseBridgeCommandState.RESULT, ()
+        if stage.metadata.get(CONTRACTOR_METADATA_KEY) is not None:
+            return ContractorCommandState.BLOCKED, ()
+    return ContractorCommandState.RESULT, ()
 
 
-def _require_root(record: PhaseBridgeRecord) -> str:
+def _require_root(record: ContractorRecord) -> str:
     """Keep a malformed admitted relation from reaching the run loop."""
     if record.root_id is None:
-        raise PhaseBridgeRefused(MSG_ADMISSION_NO_ROOT)
+        raise ContractorRefused(MSG_ADMISSION_NO_ROOT)
     return _safe_root_id(record.root_id)
 
 
-def _pinned_root(composition: Composition, record: PhaseBridgeRecord) -> str:
+def _pinned_root(composition: Composition, record: ContractorRecord) -> str:
     """Install the record's own pin BEFORE its root is first located (§3.2).
 
     The record is the only thing a restarted process has: for a bd attempt of
@@ -701,7 +703,7 @@ def _pinned_root(composition: Composition, record: PhaseBridgeRecord) -> str:
 
 
 def _result(
-    state: PhaseBridgeCommandState,
+    state: ContractorCommandState,
     *,
     epic_id: str,
     stage_id: str,
@@ -709,9 +711,9 @@ def _result(
     record: dict[str, object] | None = None,
     reason: str | None = None,
     result: dict[str, object] | None = None,
-) -> PhaseBridgeCommandResult:
+) -> ContractorCommandResult:
     """Build one sorted-key-ready report for every non-refusal command state."""
-    return PhaseBridgeCommandResult(
+    return ContractorCommandResult(
         exit_code=EXIT_OK,
         report={
             "blocking_ids": blocking_ids,
@@ -730,14 +732,14 @@ def _safe_root_id(root_id: str) -> str:
     try:
         return validate_bead_id(root_id)
     except ValueError as error:
-        raise BridgeRefusal(str(error)) from error
+        raise ContractorRefusal(str(error)) from error
 
 
 def _refusal_reason(error: Exception) -> str:
     """Retain invalid field locations without echoing policy argv or environment."""
     validation = error if isinstance(error, ValidationError) else error.__cause__
     if isinstance(validation, ValidationError):
-        return "invalid bridge record: " + "; ".join(
+        return "invalid contractor record: " + "; ".join(
             ".".join(str(part) for part in item["loc"]) + ": " + item["type"]
             for item in validation.errors(include_input=False, include_context=False)
         )

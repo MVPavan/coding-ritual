@@ -29,17 +29,17 @@ from workflow_interpreter.foreman import __main__ as cli
 from workflow_interpreter.foreman.__main__ import _parser
 from workflow_interpreter.foreman.refusals import read_refusals
 from workflow_interpreter.foreman.rpc_control import control_attention
-from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.errors import ContinuationRefused
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.rpc_control import (
+from workflow_interpreter.inspector.errors import ContinuationRefused
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.rpc_control import (
     ControlIntent,
     control_path,
     next_intent,
     read_instructions,
 )
-from workflow_interpreter.supervisor.rpc_session import RpcSession, SessionPhase
-from workflow_interpreter.supervisor.steer import Steerer
+from workflow_interpreter.inspector.rpc_session import RpcSession, SessionPhase
+from workflow_interpreter.inspector.steer import Steerer
+from workflow_interpreter.schema.models import Outcome
 
 
 def test_pending_controls_consume_steer_budget_before_delivery(fake_store):
@@ -310,7 +310,7 @@ def test_unpinned_steer_limit_is_uncapped_in_both_paths(fake_store, monkeypatch)
         ),
     )
     activation = fake_store.reads.load_activation(registration.activation_id)
-    request = entry_request(runner_profile="codex-appserver").model_copy(
+    request = entry_request(crew_profile="codex-appserver").model_copy(
         update={
             "mint_reason": MintReason.STEER_CONTINUATION,
             "predecessor_activation_id": registration.activation_id,
@@ -335,7 +335,7 @@ def uncertain_foreman(tmp_path):
     activation = (
         lab.wiring()
         .store.mint_activation(
-            root.root_id, foreman_entry_request(runner_profile="codex-appserver")
+            root.root_id, foreman_entry_request(crew_profile="codex-appserver")
         )
         .activation
     )

@@ -30,10 +30,10 @@ from pydantic import JsonValue
 from workflow_interpreter.bdio import (
     bounds,
     gates,
+    inspection,
     mint,
     reads,
     rpc_control,
-    supervision,
     transitions,
 )
 from workflow_interpreter.bdio.backend import (
@@ -109,8 +109,8 @@ if TYPE_CHECKING:
 
 from workflow_interpreter.bdio import activation_writes
 from workflow_interpreter.bdio.activation_writes import (
+    _FIELD_CREW_PROFILE,
     _FIELD_MODEL,
-    _FIELD_RUNNER_PROFILE,
     _MSG_NO_VERIFIER,
     _MSG_SUPERSEDE_DEAD_WINNER,
     _MSG_SUPERSEDE_LOSES,
@@ -356,7 +356,7 @@ class WorkflowStore:
         """
         from contextlib import nullcontext
 
-        from workflow_interpreter.supervisor.band import BandLock
+        from workflow_interpreter.inspector.band import BandLock
 
         coordinator = self.coordination_store()
         root = self._reads.load_root(root_id)
@@ -424,10 +424,10 @@ class WorkflowStore:
         the rejected artifact.
 
         No lifecycle move: the trio is a fact about the tree, not a state
-        (`supervision.py` holds the rule, and does its own fresh read so the
+        (`inspection.py` holds the rule, and does its own fresh read so the
         lifecycle check sits as close to the write as bd allows).
         """
-        return supervision.record_precondition(
+        return inspection.record_precondition(
             self._client, self._load_activation, activation_id, record
         )
 
@@ -437,12 +437,12 @@ class WorkflowStore:
         """Mirror the §8.2 stale flag into bd; the FIRST raise wins.
 
         Staleness is a hint for a tier-2 decision, not a verdict, so a re-raise
-        must not rewrite when the runner actually went quiet — the recorded
+        must not rewrite when the crew actually went quiet — the recorded
         flag is returned unchanged rather than overwritten (§8.2). Refused
         outright unless the activation is still `dispatched`: the flag is a
         statement about a RUNNING child.
         """
-        return supervision.record_stale_flag(
+        return inspection.record_stale_flag(
             self._client, self._load_activation, activation_id, flag
         )
 
@@ -489,7 +489,7 @@ class WorkflowStore:
         self, activation_id: str, completion: SessionCompletion
     ) -> ActivationRecord:
         """Record one correlated successful vendor turn, never process death."""
-        return supervision.record_session_completion(
+        return inspection.record_session_completion(
             self._client, self._load_activation, activation_id, completion
         )
 
@@ -497,7 +497,7 @@ class WorkflowStore:
         self, activation_id: str, registration: SessionRegistration
     ) -> ActivationRecord:
         """Register correlated app-server identity before authorizing any turn."""
-        return supervision.register_session(
+        return inspection.register_session(
             self._client, self._load_activation, activation_id, registration
         )
 
@@ -653,13 +653,13 @@ class WorkflowStore:
         request: MintRequest,
     ) -> tuple[str, str]:
         """Verify the execution pins and every deterministic pre-mint bound."""
-        runner_profile = pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
+        crew_profile = pinned_execution_setting(root, facts.node, NodeSetting.CREW)
         model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
         _assert_pinned_execution_setting(
             node=facts.node,
-            field=_FIELD_RUNNER_PROFILE,
-            requested=request.runner_profile,
-            pinned=runner_profile,
+            field=_FIELD_CREW_PROFILE,
+            requested=request.crew_profile,
+            pinned=crew_profile,
         )
         _assert_pinned_execution_setting(
             node=facts.node,
@@ -670,7 +670,7 @@ class WorkflowStore:
         refusal = self._pre_mint_refusal(root, facts, beads, activations)
         if refusal is not None:
             raise BoundExceededError(refusal)
-        return runner_profile, model
+        return crew_profile, model
 
     def _pre_mint_refusal(
         self,

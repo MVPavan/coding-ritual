@@ -22,7 +22,7 @@ both of them the operator's rather than the file's:
    the blob committed at `.wf/export/<task>.jsonl` in the landed history,
    which is what a plain `git clone` transports, and failing that the blob
    pinned at `refs/wf/exports/<task>` by the close itself (§3.6,
-   `bridge/journal.py`), which no default clone fetches; and
+   `contractor/journal.py`), which no default clone fetches; and
 2. the signer's fingerprint AND key blob must appear in an `allowed_signers`
    trust root the operator names — the same file `bdio/signing.py` verifies
    against live, or an explicit `--allowed-signers` path.
@@ -512,9 +512,9 @@ def read_trust_root(path: Path) -> tuple[AllowedSigner, ...]:
 def _git_text(anchor: TrustAnchor, *args: str) -> str | None:
     """One read-only git command in the clone, or `None` when it answers nothing.
 
-    `subprocess` rather than `supervisor.gitio.Git`: this module must run in a
+    `subprocess` rather than `inspector.gitio.Git`: this module must run in a
     bare clone with no wrapper root and no config, which is exactly what makes
-    the check worth anything, and `Git` is constructed from a `SupervisorConfig`
+    the check worth anything, and `Git` is constructed from a `InspectorConfig`
     that such a clone cannot supply.
     """
     try:

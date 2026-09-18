@@ -435,20 +435,20 @@ def _collect(client, stage_id: str, **kwargs):
 
     The backend factory is what production injects (§3.2); these rows stand in
     for BOTH the task bead and its roots, so the factory answers with the one
-    client whichever backend the bridge record pins.
+    client whichever backend the contractor record pins.
     """
     return collect_task(client, stage_id, backends=lambda _: client, **kwargs)
 
 
 def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
     oid = "a" * 40
-    bridge = {
-        "schema": "phase-bridge/3",
+    contractor = {
+        "schema": "contract/3",
         "state": "closed",
         "epic_id": "epic-1",
         "stage_id": "stage-1",
         "attempt": 2,
-        "instance_key": "phase-bridge:epic-1:stage-1:attempt:2",
+        "instance_key": "contract:epic-1:stage-1:attempt:2",
         "target_ref": "refs/heads/main",
         "expected_base_commit": oid,
         "root_id": current_root_id,
@@ -456,7 +456,7 @@ def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
         "tree": "b" * 40,
         "gate_receipt_digest": "gate-digest",
         "landing_receipt_digest": "landing-digest",
-        "previous_attempts": ["phase-bridge:epic-1:stage-1:attempt:1"],
+        "previous_attempts": ["contract:epic-1:stage-1:attempt:1"],
     }
     rows: list[dict[str, object]] = [
         {
@@ -464,11 +464,11 @@ def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
             "title": "stage",
             "status": "closed" if closed else "in_progress",
             "issue_type": "task",
-            "metadata": {"phase_bridge": bridge},
+            "metadata": {"contractor": contractor},
         }
     ]
     for root_id, attempt in (("root-1", 1), ("root-2", 2)):
-        instance_key = f"phase-bridge:epic-1:stage-1:attempt:{attempt}"
+        instance_key = f"contract:epic-1:stage-1:attempt:{attempt}"
         rows.append(
             {
                 "id": root_id,
@@ -496,7 +496,7 @@ def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
                     "seq": 1,
                     "idempotency_key": f"key-{attempt}",
                     "mint_reason": "entry",
-                    "runner_profile": "codex",
+                    "crew_profile": "codex",
                     "model": "gpt-5.6-sol",
                     "session_id": f"session-{attempt}",
                     "intended_base_commit": oid,
@@ -584,7 +584,7 @@ def test_completion_refuses_forged_or_merely_closed_evidence(
 )
 def test_completion_requires_every_landing_field(missing_field: str) -> None:
     rows = _task_rows()
-    rows[0]["metadata"]["phase_bridge"][missing_field] = None
+    rows[0]["metadata"]["contractor"][missing_field] = None
 
     collected = _collect(FakeReadClient(rows), "stage-1")
 
@@ -635,7 +635,7 @@ def test_completion_rejects_current_root_terminal_contradictions(
 
 def test_completion_rejects_stage_close_reason_contradiction() -> None:
     rows = _task_rows()
-    rows[0]["close_reason"] = "phase bridge landing receipt=different-digest"
+    rows[0]["close_reason"] = "contractor landing receipt=different-digest"
 
     collected = _collect(FakeReadClient(rows), "stage-1")
 
@@ -650,16 +650,16 @@ def test_completion_rejects_available_landing_record_contradiction(
 ) -> None:
     runtime_root = tmp_path / "root-2"
     runtime_root.mkdir()
-    bridge = _task_rows()[0]["metadata"]["phase_bridge"]
-    oid = str(bridge["landed_oid"])
-    tree = str(bridge["tree"])
+    contractor = _task_rows()[0]["metadata"]["contractor"]
+    oid = str(contractor["landed_oid"])
+    tree = str(contractor["tree"])
     intent = {
-        "schema": "phase-bridge-landing/2",
-        "ref": bridge["target_ref"],
-        "expected_base": bridge["expected_base_commit"],
+        "schema": "contract-landing/2",
+        "ref": contractor["target_ref"],
+        "expected_base": contractor["expected_base_commit"],
         "artifact_oid": oid,
         "tree": tree,
-        "gate_receipt_digest": bridge["gate_receipt_digest"],
+        "gate_receipt_digest": contractor["gate_receipt_digest"],
         "root_id": "root-2",
         "policy_digest": "policy",
         "stage": "stage-1",
@@ -667,12 +667,12 @@ def test_completion_rejects_available_landing_record_contradiction(
     }
     receipt = {
         "intent_digest": "not-the-intent-digest",
-        "ref": bridge["target_ref"],
-        "expected_base": bridge["expected_base_commit"],
+        "ref": contractor["target_ref"],
+        "expected_base": contractor["expected_base_commit"],
         "signed_oid": oid,
         "landed_oid": "c" * 40,
         "tree": tree,
-        "gate_receipt_digest": bridge["gate_receipt_digest"],
+        "gate_receipt_digest": contractor["gate_receipt_digest"],
         "policy_digest": "policy",
         "repository_gate_results": [
             {
@@ -684,8 +684,8 @@ def test_completion_rejects_available_landing_record_contradiction(
             }
         ],
     }
-    (runtime_root / "phase-bridge-landing.json").write_text(json.dumps(intent))
-    (runtime_root / "phase-bridge-landing-receipt.json").write_text(json.dumps(receipt))
+    (runtime_root / "contract-landing.json").write_text(json.dumps(intent))
+    (runtime_root / "contract-landing-receipt.json").write_text(json.dumps(receipt))
 
     collected = _collect(
         FakeReadClient(_task_rows()),
@@ -838,7 +838,7 @@ def test_strict_supplement_supplies_usage_and_explicit_coverage_basis() -> None:
 
 def test_complete_external_declaration_preserves_unreadable_task_scope() -> None:
     rows = _task_rows()
-    rows[0]["metadata"]["phase_bridge"] = {"invalid": "identity"}
+    rows[0]["metadata"]["contractor"] = {"invalid": "identity"}
     collected = _collect(FakeReadClient(rows), "stage-1")
     supplemented = apply_supplement(
         collected,
@@ -865,9 +865,7 @@ def test_complete_external_declaration_preserves_unreadable_task_scope() -> None
     assert supplemented.diagnostics == collected.diagnostics
     assert supplemented.coverage_complete is False
     assert "uncovered scope: task execution identity is unavailable" in rendered
-    assert (
-        "diagnostic: phase-bridge-invalid: phase bridge metadata is invalid" in rendered
-    )
+    assert "diagnostic: contract-invalid: contractor metadata is invalid" in rendered
 
 
 def test_supplement_exact_duplicates_dedupe_and_conflicts_fail() -> None:
@@ -1257,7 +1255,7 @@ def test_supplement_cannot_hide_incomplete_raw_telemetry(tmp_path: Path) -> None
         run_log='{"type":"system","session_id":"session-1"}\n',
     )
     rows = _task_rows()
-    rows[2]["metadata"]["runner_profile"] = "claude"
+    rows[2]["metadata"]["crew_profile"] = "claude"
     rows[2]["metadata"]["model"] = "claude-opus-5"
     collected = _collect(
         FakeReadClient(rows),
@@ -1418,7 +1416,7 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
         f'workspace = "{repo}"\n'
         'actor = "fixture"\n'
         f'binary = "{fake_bd}"\n'
-        "[supervisor]\n"
+        "[inspector]\n"
         f'repo_root = "{repo}"\n'
         f'wrapper_root = "{wrapper_root}"\n'
         'host = "fixture"\n'

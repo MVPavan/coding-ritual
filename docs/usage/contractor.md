@@ -1,16 +1,16 @@
-# Operating the sequential phase bridge
+# Operating the sequential contractor
 
 Select one direct stage of the phase, then run:
 
 ```sh
-uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> phase-bridge <epic-id> <stage-id>
+uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> contract <epic-id> <stage-id>
 ```
 
-The coordinator must be clean and attached to the intended target branch. The bridge pins the stage's policy before admission, runs its workflow, consumes the authenticated immutable ship approval, verifies the candidate, lands it, and closes the stage with a durable receipt. A waiting workflow returns its run result; `completed` or `recovered` means a validated stage closure. The LLM selects stages; the bridge does not choose the next stage.
+The coordinator must be clean and attached to the intended target branch. The contractor pins the stage's policy before admission, runs its workflow, consumes the authenticated immutable ship approval, verifies the candidate, lands it, and closes the stage with a durable receipt. A waiting workflow returns its run result; `completed` or `recovered` means a validated stage closure. The LLM selects stages; the contractor does not choose the next stage.
 
 ## Required check policy
 
-Generate a local config with `scripts/make-foreman-config.sh`, then adapt and uncomment the `[[bridge_checks]]` example in `config/foreman.example.toml`. Select the complete required check set for the repository. There is no automatic default; missing or empty policy refuses before stage/root writes and points here.
+Generate a local config with `scripts/make-foreman-config.sh`, then adapt and uncomment the `[[contractor_checks]]` example in `config/foreman.example.toml`. Select the complete required check set for the repository. There is no automatic default; missing or empty policy refuses before stage/root writes and points here.
 
 Each check declares `name`, `argv`, `timeout_s` (positive, at most 3600 seconds), and optional `environment` as an array of `[key, value]` pairs. Names and environment keys must be unique. The example calls `scripts/verify-feature.sh`, which has its own documented exclusions; it does not replace the parent's seven milestone gates.
 
@@ -31,7 +31,7 @@ Rerunning the same command reads durable state first. Default recovery **never m
 To explicitly retry that retained landing intent:
 
 ```sh
-uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> phase-bridge <epic-id> <stage-id> --retry-landing
+uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> contract <epic-id> <stage-id> --retry-landing
 ```
 
 This operation revalidates the same stage/root/attempt, intent, authenticated ship authority, policy, exact target base, and clean attached coordinator; it reruns checks and attempts the same CAS. It never runs agents or creates a root. It refuses existing receipts, already-landed states, moved targets, or combinations with `--retry` or `--trace`. Repeating it after completion refuses without moving a ref; the ordinary command returns validated historical completion.
@@ -52,9 +52,9 @@ Collect the required child results first. Write an integration request with `own
 ```sh
 uv run python -m workflow_interpreter.foreman --config <config.toml> integration prepare --request <request.json>
 uv run python -m workflow_interpreter.foreman --config <config.toml> integration status <epic-id> <stage-id>
-uv run python -m workflow_interpreter.foreman --config <config.toml> phase-bridge <epic-id> <stage-id>
+uv run python -m workflow_interpreter.foreman --config <config.toml> contract <epic-id> <stage-id>
 ```
 
 Preparation pins the selected sources, target base and integration admission, and reserves capacity from the original owner. The integration workflow produces a combined candidate with fresh review, checks and authenticated ship approval. Existing child approvals cannot authorize that candidate. Source receipt collection does not change a Git target.
 
-Use `integration retry <epic-id> <stage-id>` only for an eligible same-pins integration retry; it takes a fresh target base and requires new evidence. A pending landing intent instead uses the existing `phase-bridge --retry-landing` contract above. Status and durable records distinguish these states; preserve them when recovery is pending.
+Use `integration retry <epic-id> <stage-id>` only for an eligible same-pins integration retry; it takes a fresh target base and requires new evidence. A pending landing intent instead uses the existing `contract --retry-landing` contract above. Status and durable records distinguish these states; preserve them when recovery is pending.

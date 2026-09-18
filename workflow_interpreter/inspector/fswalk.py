@@ -1,4 +1,4 @@
-"""Descriptor-relative filesystem classification for untrusted runner trees."""
+"""Descriptor-relative filesystem classification for untrusted crew trees."""
 
 from __future__ import annotations
 

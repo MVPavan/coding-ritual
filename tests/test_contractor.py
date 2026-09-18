@@ -1,4 +1,4 @@
-"""Focused proof for phase-bridge admission and recovery."""
+"""Focused proof for contract admission and recovery."""
 
 from __future__ import annotations
 
@@ -28,9 +28,11 @@ from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import GateRecord, parse_gate
 from workflow_interpreter.bdio.signing import payload_digest
 from workflow_interpreter.bdio.wire import BeadRecord, GateMetadata
-from workflow_interpreter.bridge import (
+from workflow_interpreter.contractor import (
     AdmissionRefused,
-    BridgeRoot,
+    ContractorRecord,
+    ContractorRoot,
+    ContractorState,
     DetachedRepositoryGate,
     GateEvidence,
     LandingDisposition,
@@ -40,36 +42,34 @@ from workflow_interpreter.bridge import (
     PhaseAdapter,
     PhaseAdapterError,
     PhaseAdmission,
-    PhaseBridgeRecord,
-    PhaseBridgeState,
     PhaseLanding,
     RepositoryGateResult,
 )
-from workflow_interpreter.bridge.adapter import MSG_CLOSE_REASON
-from workflow_interpreter.bridge.authority import BeadGateAuthority
-from workflow_interpreter.bridge.journal import ExportPin
-from workflow_interpreter.bridge.landing import LANDING_RECEIPT_FILE, T1_MESSAGE
-from workflow_interpreter.bridge.models import INSTANCE_KEY_TEMPLATE
-from workflow_interpreter.bridge.retry import RetryRefusal, retry_refusal
-from workflow_interpreter.bridge.verification import (
+from workflow_interpreter.contractor.adapter import MSG_CLOSE_REASON
+from workflow_interpreter.contractor.authority import BeadGateAuthority
+from workflow_interpreter.contractor.journal import ExportPin
+from workflow_interpreter.contractor.landing import LANDING_RECEIPT_FILE, T1_MESSAGE
+from workflow_interpreter.contractor.models import INSTANCE_KEY_TEMPLATE
+from workflow_interpreter.contractor.retry import RetryRefusal, retry_refusal
+from workflow_interpreter.contractor.verification import (
     CheckCommand,
     CheckResult,
     VerificationPolicy,
 )
 from workflow_interpreter.foreman.frontier import Frontier
-from workflow_interpreter.ledger.database import open_ledger
-from workflow_interpreter.schema.graph_index import build_index
-from workflow_interpreter.schema.loader import load_graph
-from workflow_interpreter.schema.models import IsolationMode, Outcome
-from workflow_interpreter.supervisor import Git
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector import Git
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     record_bytes,
     write_record,
 )
-from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.schema.graph_index import build_index
+from workflow_interpreter.schema.loader import load_graph
+from workflow_interpreter.schema.models import IsolationMode, Outcome
 
 EPIC_ID = "phase-1"
 STAGE_ID = "stage-a"
@@ -77,8 +77,8 @@ TARGET_REF = "refs/heads/main"
 BASE_COMMIT = "a" * 40
 EXPORT_OID = "e" * 40
 """§3.6: the blob a closed task's whole record is pinned as."""
-ROOT_ID: Final[str] = "bridge-root"
-FUTURE_PHASE_BRIDGE_SCHEMA: Final[str] = "future-schema/99"
+ROOT_ID: Final[str] = "contractor-root"
+FUTURE_CONTRACTOR_SCHEMA: Final[str] = "future-schema/99"
 WRONG_INSTANCE_KEY: Final[str] = "not-the-derived-key"
 REPEATED_PREVIOUS_ATTEMPT: Final[str] = "x"
 
@@ -94,7 +94,7 @@ def _admission(adapter, roots, head_commit):
 
 
 def _stage_row() -> dict[str, object]:
-    """Build the direct-child stage the bridge is allowed to admit."""
+    """Build the direct-child stage the contractor is allowed to admit."""
     return {
         "id": STAGE_ID,
         "title": "one stage",
@@ -136,7 +136,7 @@ def _gate(
 
 def test_attempt_key_is_stable_and_distinct_per_attempt() -> None:
     """Keep a recovered attempt on its recorded root identity."""
-    first = PhaseBridgeRecord.prepared(
+    first = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -146,14 +146,14 @@ def test_attempt_key_is_stable_and_distinct_per_attempt() -> None:
     )
     retry = first.next_attempt()
 
-    assert first.instance_key == "phase-bridge:phase-1:stage-a:attempt:1"
-    assert retry.instance_key == "phase-bridge:phase-1:stage-a:attempt:2"
+    assert first.instance_key == "contract:phase-1:stage-a:attempt:1"
+    assert retry.instance_key == "contract:phase-1:stage-a:attempt:2"
     assert retry.previous_attempts == (first.instance_key,)
 
 
-def test_phase_bridge_record_rejects_an_unknown_schema() -> None:
+def test_contractor_record_rejects_an_unknown_schema() -> None:
     """A journal must declare the pinned schema instead of accepting future records."""
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -162,15 +162,15 @@ def test_phase_bridge_record_rejects_an_unknown_schema() -> None:
         expected_base_commit=BASE_COMMIT,
     )
     raw = record.model_dump(by_alias=True)
-    raw["schema"] = FUTURE_PHASE_BRIDGE_SCHEMA
+    raw["schema"] = FUTURE_CONTRACTOR_SCHEMA
 
     with pytest.raises(ValueError, match="schema"):
-        PhaseBridgeRecord.model_validate(raw)
+        ContractorRecord.model_validate(raw)
 
 
-def test_phase_bridge_record_rejects_an_underived_instance_key() -> None:
+def test_contractor_record_rejects_an_underived_instance_key() -> None:
     """A journal key must identify its epic, stage, and attempt exactly."""
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -182,12 +182,12 @@ def test_phase_bridge_record_rejects_an_underived_instance_key() -> None:
     raw["instance_key"] = WRONG_INSTANCE_KEY
 
     with pytest.raises(ValueError, match="instance_key"):
-        PhaseBridgeRecord.model_validate(raw)
+        ContractorRecord.model_validate(raw)
 
 
-def test_phase_bridge_record_rejects_invalid_previous_attempt_history() -> None:
+def test_contractor_record_rejects_invalid_previous_attempt_history() -> None:
     """A retry journal must retain each earlier attempt once and only once."""
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -210,13 +210,13 @@ def test_phase_bridge_record_rejects_invalid_previous_attempt_history() -> None:
     )
 
     with pytest.raises(ValueError, match="previous_attempts"):
-        PhaseBridgeRecord.model_validate(raw)
+        ContractorRecord.model_validate(raw)
 
 
 @pytest.mark.parametrize("field", ("schema", "previous_attempts"))
-def test_phase_bridge_record_rejects_truncated_journal_fields(field: str) -> None:
+def test_contractor_record_rejects_truncated_journal_fields(field: str) -> None:
     """A nested metadata replacement cannot silently re-default identity fields."""
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -228,12 +228,12 @@ def test_phase_bridge_record_rejects_truncated_journal_fields(field: str) -> Non
     del raw[field]
 
     with pytest.raises(ValueError, match=field):
-        PhaseBridgeRecord.model_validate(raw)
+        ContractorRecord.model_validate(raw)
 
 
-def test_phase_bridge_next_attempt_round_trips_through_validation() -> None:
+def test_contractor_next_attempt_round_trips_through_validation() -> None:
     """The normal retry constructor remains a valid complete journal record."""
-    retry = PhaseBridgeRecord.prepared(
+    retry = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -242,13 +242,13 @@ def test_phase_bridge_next_attempt_round_trips_through_validation() -> None:
         expected_base_commit=BASE_COMMIT,
     ).next_attempt()
 
-    assert PhaseBridgeRecord.model_validate(retry.model_dump(by_alias=True)) == retry
+    assert ContractorRecord.model_validate(retry.model_dump(by_alias=True)) == retry
 
 
-def test_phase_bridge_prepared_refuses_a_nonfirst_attempt() -> None:
+def test_contractor_prepared_refuses_a_nonfirst_attempt() -> None:
     """Only next_attempt may attach genuine prior-attempt history."""
     with pytest.raises(ValueError, match="first attempt"):
-        PhaseBridgeRecord.prepared(
+        ContractorRecord.prepared(
             verification_policy=_policy(),
             epic_id=EPIC_ID,
             stage_id=STAGE_ID,
@@ -259,10 +259,10 @@ def test_phase_bridge_prepared_refuses_a_nonfirst_attempt() -> None:
 
 
 def test_retry_refusal_allows_a_declared_terminal() -> None:
-    """A listed terminal may mint the bridge's next root."""
+    """A listed terminal may mint the contractor's next root."""
     frontier = Frontier(terminal=True, terminal_node="abandoned")
 
-    assert retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier) is None
+    assert retry_refusal(ContractorState.ADMITTED, ("abandoned",), frontier) is None
 
 
 def test_retry_refusal_refuses_an_unlisted_terminal() -> None:
@@ -270,7 +270,7 @@ def test_retry_refusal_refuses_an_unlisted_terminal() -> None:
     frontier = Frontier(terminal=True, terminal_node="failed")
 
     assert (
-        retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier)
+        retry_refusal(ContractorState.ADMITTED, ("abandoned",), frontier)
         is RetryRefusal.UNLISTED_TERMINAL
     )
 
@@ -280,7 +280,7 @@ def test_retry_refusal_refuses_a_root_without_a_terminal() -> None:
     frontier = Frontier()
 
     assert (
-        retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier)
+        retry_refusal(ContractorState.ADMITTED, ("abandoned",), frontier)
         is RetryRefusal.NO_TERMINAL
     )
 
@@ -294,7 +294,7 @@ def test_retry_refusal_open_halt_outranks_a_declared_terminal() -> None:
     )
 
     assert (
-        retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier)
+        retry_refusal(ContractorState.ADMITTED, ("abandoned",), frontier)
         is RetryRefusal.OPEN_HALT
     )
 
@@ -304,7 +304,7 @@ def test_retry_refusal_refuses_the_realistic_open_halt_frontier() -> None:
     frontier = Frontier(open_halt=_gate(GateState.OPEN, gate_node="halt"))
 
     assert (
-        retry_refusal(PhaseBridgeState.ADMITTED, ("abandoned",), frontier)
+        retry_refusal(ContractorState.ADMITTED, ("abandoned",), frontier)
         is RetryRefusal.OPEN_HALT
     )
 
@@ -314,7 +314,7 @@ def test_retry_refusal_gate_red_requires_an_approved_shipped_terminal() -> None:
     frontier = Frontier(terminal=True, terminal_node="shipped")
 
     assert (
-        retry_refusal(PhaseBridgeState.GATE_RED, ("shipped", "abandoned"), frontier)
+        retry_refusal(ContractorState.GATE_RED, ("shipped", "abandoned"), frontier)
         is RetryRefusal.GATE_RED_NOT_APPROVED_SHIPPED
     )
 
@@ -328,7 +328,7 @@ def test_retry_refusal_allows_gate_red_after_approved_shipped_terminal() -> None
     )
 
     assert (
-        retry_refusal(PhaseBridgeState.GATE_RED, ("shipped", "abandoned"), frontier)
+        retry_refusal(ContractorState.GATE_RED, ("shipped", "abandoned"), frontier)
         is None
     )
 
@@ -348,7 +348,7 @@ def test_retry_refusal_refuses_gate_red_without_an_approved_ship_gate(
     )
 
     assert (
-        retry_refusal(PhaseBridgeState.GATE_RED, ("shipped",), frontier)
+        retry_refusal(ContractorState.GATE_RED, ("shipped",), frontier)
         is RetryRefusal.GATE_RED_NOT_APPROVED_SHIPPED
     )
 
@@ -362,7 +362,7 @@ def test_retry_refusal_refuses_gate_red_without_the_shipped_terminal() -> None:
     )
 
     assert (
-        retry_refusal(PhaseBridgeState.GATE_RED, ("abandoned",), frontier)
+        retry_refusal(ContractorState.GATE_RED, ("abandoned",), frontier)
         is RetryRefusal.GATE_RED_NOT_APPROVED_SHIPPED
     )
 
@@ -373,7 +373,7 @@ def test_adapter_writes_the_whole_record_then_claims_with_admission(
     """Keep the stage journal complete across the prepare-to-admit boundary."""
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -385,27 +385,27 @@ def test_adapter_writes_the_whole_record_then_claims_with_admission(
     adapter.prepare(STAGE_ID, prepared)
     admitted = adapter.admit(STAGE_ID, prepared, root_id="wf-1")
 
-    assert admitted.state is PhaseBridgeState.ADMITTED
+    assert admitted.state is ContractorState.ADMITTED
     assert fake_bd.rows[STAGE_ID]["status"] == "in_progress"
     assert fake_bd.rows[STAGE_ID]["metadata"] == {
         "unrelated": {"preserved": True},
-        "phase_bridge": admitted.model_dump(by_alias=True, mode="json"),
+        "contractor": admitted.model_dump(by_alias=True, mode="json"),
     }
     assert "--claim" in fake_bd.calls[-2][1]
-    assert fake_bd.metadata_writes[-2]["phase_bridge"] == admitted.model_dump(
+    assert fake_bd.metadata_writes[-2]["contractor"] == admitted.model_dump(
         by_alias=True, mode="json"
     )
     assert adapter.dependencies(STAGE_ID) == ()
 
 
 @pytest.mark.parametrize(
-    "stored_state", (PhaseBridgeState.ADMITTED, PhaseBridgeState.CLOSED)
+    "stored_state", (ContractorState.ADMITTED, ContractorState.CLOSED)
 )
 def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
-    fake_bd: FakeBd, fake_client: BdClient, stored_state: PhaseBridgeState
+    fake_bd: FakeBd, fake_client: BdClient, stored_state: ContractorState
 ) -> None:
     """A same-attempt write cannot replace admitted or closed stage evidence."""
-    stored = PhaseBridgeRecord.prepared(
+    stored = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -413,26 +413,26 @@ def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
         target_ref=TARGET_REF,
         expected_base_commit=BASE_COMMIT,
     ).admitted(ROOT_ID)
-    if stored_state is PhaseBridgeState.CLOSED:
+    if stored_state is ContractorState.CLOSED:
         stored = stored.closed(EXPORT_OID)
     stage = _stage_row()
-    stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
+    stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
     fake_bd.rows[STAGE_ID] = stage
 
-    incoming = stored.model_copy(update={"state": PhaseBridgeState.PREPARED})
+    incoming = stored.model_copy(update={"state": ContractorState.PREPARED})
 
     with pytest.raises(PhaseAdapterError, match="requires stored state prepared"):
         PhaseAdapter(fake_client).prepare(STAGE_ID, incoming)
 
 
 @pytest.mark.parametrize(
-    "stored_state", (PhaseBridgeState.ADMITTED, PhaseBridgeState.GATE_RED)
+    "stored_state", (ContractorState.ADMITTED, ContractorState.GATE_RED)
 )
 def test_prepare_accepts_a_valid_successor_over_an_unsettled_journal(
-    fake_bd: FakeBd, fake_client: BdClient, stored_state: PhaseBridgeState
+    fake_bd: FakeBd, fake_client: BdClient, stored_state: ContractorState
 ) -> None:
     """A retry advances a settled-not-closed stage journal by one attempt."""
-    stored = PhaseBridgeRecord.prepared(
+    stored = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -442,7 +442,7 @@ def test_prepare_accepts_a_valid_successor_over_an_unsettled_journal(
     ).admitted(ROOT_ID)
     stored = stored.model_copy(update={"state": stored_state})
     stage = _stage_row()
-    stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
+    stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
     fake_bd.rows[STAGE_ID] = stage
 
     successor = PhaseAdapter(fake_client).prepare(STAGE_ID, stored.next_attempt())
@@ -455,7 +455,7 @@ def test_prepare_refuses_a_structural_successor_over_a_closed_journal(
 ) -> None:
     """No retry structure can reopen evidence for a stage that landed and closed."""
     stored = (
-        PhaseBridgeRecord.prepared(
+        ContractorRecord.prepared(
             verification_policy=_policy(),
             epic_id=EPIC_ID,
             stage_id=STAGE_ID,
@@ -467,7 +467,7 @@ def test_prepare_refuses_a_structural_successor_over_a_closed_journal(
         .closed(EXPORT_OID)
     )
     stage = _stage_row()
-    stage["metadata"] = {"phase_bridge": stored.model_dump(by_alias=True, mode="json")}
+    stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
     fake_bd.rows[STAGE_ID] = stage
 
     with pytest.raises(PhaseAdapterError, match="refuses a closed stored record"):
@@ -479,7 +479,7 @@ def test_prepare_refuses_a_nonprepared_incoming_journal(
 ) -> None:
     """The supplied record is named when it is not a prepare intent."""
     fake_bd.rows[STAGE_ID] = _stage_row()
-    incoming = PhaseBridgeRecord.prepared(
+    incoming = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -489,7 +489,7 @@ def test_prepare_refuses_a_nonprepared_incoming_journal(
     ).admitted(ROOT_ID)
 
     with pytest.raises(
-        PhaseAdapterError, match="incoming phase bridge record expected state"
+        PhaseAdapterError, match="incoming contractor record expected state"
     ):
         PhaseAdapter(fake_client).prepare(STAGE_ID, incoming)
 
@@ -497,11 +497,11 @@ def test_prepare_refuses_a_nonprepared_incoming_journal(
 def test_prepare_wraps_unreadable_stored_journal(
     fake_bd: FakeBd, fake_client: BdClient
 ) -> None:
-    """Corrupt stored bridge metadata stays behind the adapter error boundary."""
+    """Corrupt stored contractor metadata stays behind the adapter error boundary."""
     stage = _stage_row()
-    stage["metadata"] = {"phase_bridge": {"state": "not-a-bridge-state"}}
+    stage["metadata"] = {"contractor": {"state": "not-a-contractor-state"}}
     fake_bd.rows[STAGE_ID] = stage
-    incoming = PhaseBridgeRecord.prepared(
+    incoming = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -511,7 +511,7 @@ def test_prepare_wraps_unreadable_stored_journal(
     )
 
     with pytest.raises(
-        PhaseAdapterError, match="stored phase bridge record is unreadable"
+        PhaseAdapterError, match="stored contractor record is unreadable"
     ):
         PhaseAdapter(fake_client).prepare(STAGE_ID, incoming)
 
@@ -523,7 +523,7 @@ class _Roots:
         self._client = fake_client
         self._repo = repo
         self._base = base
-        self._roots: dict[str, BridgeRoot] = {}
+        self._roots: dict[str, ContractorRoot] = {}
         self._branches: set[str] = set()
         self.backends: list[BackendKind] = []
         self.fail_branch = False
@@ -533,7 +533,7 @@ class _Roots:
         instance_key: str,
         backend: BackendKind = BackendKind.BD,
         attempt: int = 1,
-    ) -> BridgeRoot | None:
+    ) -> ContractorRoot | None:
         """Find the root already created for an admission identity."""
         self.backends.append(backend)
         found = self._roots.get(instance_key)
@@ -543,7 +543,7 @@ class _Roots:
             metadata_filters={"instance_key": instance_key}
         ):
             self._client._merge_metadata(row.id, {"root_id": row.id})
-            recovered = BridgeRoot(
+            recovered = ContractorRoot(
                 root_id=row.id,
                 instance_key=instance_key,
                 instance_base_commit=str(row.metadata["base"]),
@@ -557,7 +557,7 @@ class _Roots:
         instance_key: str,
         backend: BackendKind = BackendKind.BD,
         attempt: int = 1,
-    ) -> BridgeRoot:
+    ) -> ContractorRoot:
         """Create one fake root on the backend and attempt the record pins."""
         self.backends.append(backend)
         root = self._client._create_bead(
@@ -565,7 +565,7 @@ class _Roots:
             metadata={"instance_key": instance_key, "base": self._base},
         )
         self._client._merge_metadata(root.id, {"root_id": root.id})
-        created = BridgeRoot(
+        created = ContractorRoot(
             root_id=root.id,
             instance_key=instance_key,
             instance_base_commit=self._base,
@@ -573,7 +573,7 @@ class _Roots:
         self._roots[instance_key] = created
         return created
 
-    def ensure_branch(self, root: BridgeRoot) -> None:
+    def ensure_branch(self, root: ContractorRoot) -> None:
         """Recreate an instance branch from the persisted root base."""
         if self.fail_branch:
             self.fail_branch = False
@@ -609,10 +609,10 @@ def test_admission_recovers_after_root_creation_crash(
 
     recovered = admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
 
-    assert recovered.state is PhaseBridgeState.ADMITTED
+    assert recovered.state is ContractorState.ADMITTED
     assert fake_bd.command_count("create") == 2
     assert len(roots._roots) == 1
-    assert fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] == recovered.model_dump(
+    assert fake_bd.rows[STAGE_ID]["metadata"]["contractor"] == recovered.model_dump(
         by_alias=True, mode="json"
     )
 
@@ -655,7 +655,7 @@ def test_admission_reuses_a_root_when_branch_creation_is_interrupted(
 
     recovered = admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
 
-    assert recovered.state is PhaseBridgeState.ADMITTED
+    assert recovered.state is ContractorState.ADMITTED
     assert fake_bd.command_count("create") == 1
     assert f"refs/wf/{recovered.root_id}" in {
         line.strip()
@@ -676,7 +676,7 @@ def test_admission_recovers_after_the_relation_write_is_interrupted(
     fake_bd.rows[STAGE_ID] = _stage_row()
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
-    prepared_root = roots.create("phase-bridge:phase-1:stage-a:attempt:1")
+    prepared_root = roots.create("contract:phase-1:stage-a:attempt:1")
     admission = _admission(PhaseAdapter(fake_client), roots, lambda: base)
     fake_bd.crash_on("update", occurrence=2)
 
@@ -707,20 +707,20 @@ def test_admission_refuses_an_open_stage_with_a_landed_relation(
     landed = admitted.landed(base, "b" * 40, "gate-receipt", "landing-receipt")
     adapter.land(STAGE_ID, landed)
 
-    with pytest.raises(AdmissionRefused, match="unfinished bridge admission"):
+    with pytest.raises(AdmissionRefused, match="unfinished contractor admission"):
         admission.admit(EPIC_ID, other_stage_id, TARGET_REF, base)
 
     adapter.close(STAGE_ID, landed.closed(EXPORT_OID), "landing-receipt")
     other = admission.admit(EPIC_ID, other_stage_id, TARGET_REF, base)
 
-    assert other.state is PhaseBridgeState.ADMITTED
+    assert other.state is ContractorState.ADMITTED
 
 
 def test_conflicting_record_refuses_without_creating_a_root(
     fake_bd: FakeBd, fake_client: BdClient, tmp_path: Path
 ) -> None:
     """Leave ambiguous identity for a human instead of opening another journal."""
-    conflicting = PhaseBridgeRecord.prepared(
+    conflicting = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -729,7 +729,7 @@ def test_conflicting_record_refuses_without_creating_a_root(
         expected_base_commit="c" * 40,
     )
     stage = _stage_row()
-    stage["metadata"] = {"phase_bridge": conflicting.model_dump(by_alias=True)}
+    stage["metadata"] = {"contractor": conflicting.model_dump(by_alias=True)}
     fake_bd.rows[STAGE_ID] = stage
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
@@ -761,7 +761,7 @@ class _GateAuthority:
         """Describe the closed acceptance whose payload was re-verified upstream."""
         self.calls += 1
         payload = GatePayload(
-            graph_id="phase-bridge",
+            graph_id="contract",
             root_id=root_id,
             gate_key="ship",
             outcome=Outcome.APPROVE,
@@ -892,15 +892,15 @@ def _landing_context(repo: Path, tmp_path: Path) -> tuple[Git, WrapperPaths, Exp
     close at all, so a test that omitted it would be testing the refusal.
     The ledger lives outside the checkout, as it does in `ForemanLab`.
     """
-    config = SupervisorConfig(
+    config = InspectorConfig(
         repo_root=repo,
-        wrapper_root=tmp_path / "bridge-wrapper",
-        host="bridge-test",
+        wrapper_root=tmp_path / "contractor-wrapper",
+        host="contractor-test",
         sandbox=SandboxMode.OFF,
     )
     git = Git(config)
     database = open_ledger(
-        repo, config.wrapper_root, path=tmp_path / "bridge-ledger.db"
+        repo, config.wrapper_root, path=tmp_path / "contractor-ledger.db"
     )
     return git, WrapperPaths(config, ROOT_ID), ExportPin(database, git, repo)
 
@@ -916,7 +916,7 @@ def test_landing_refuses_a_prepared_stage_without_cas_or_close(
     repo, base = _temporary_repo(tmp_path)
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -956,7 +956,7 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     repo, base = _temporary_repo(tmp_path)
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
-    admitted = PhaseBridgeRecord.prepared(
+    admitted = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -965,11 +965,11 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
         expected_base_commit=base,
     ).admitted(ROOT_ID)
     PhaseAdapter(fake_client).prepare(
-        STAGE_ID, admitted.model_copy(update={"state": PhaseBridgeState.PREPARED})
+        STAGE_ID, admitted.model_copy(update={"state": ContractorState.PREPARED})
     )
     PhaseAdapter(fake_client).admit(
         STAGE_ID,
-        admitted.model_copy(update={"state": PhaseBridgeState.PREPARED}),
+        admitted.model_copy(update={"state": ContractorState.PREPARED}),
         root_id=ROOT_ID,
     )
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
@@ -1020,7 +1020,7 @@ def test_closed_recovery_uses_the_disk_receipt_digest_without_redriving_close(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -1077,7 +1077,7 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -1139,7 +1139,7 @@ def test_recovery_returns_human_attention_for_mismatched_receipt_identity(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -1184,7 +1184,7 @@ def test_landing_closed_stage_routes_to_recovery_without_a_second_cas(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -1251,7 +1251,7 @@ def test_recovery_refuses_unrelated_history_without_closing_or_moving_a_ref(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -1307,7 +1307,7 @@ def test_recovery_closes_when_a_descendant_contains_the_signed_artifact(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -1438,7 +1438,7 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     adapter = PhaseAdapter(fake_client)
-    prepared = PhaseBridgeRecord.prepared(
+    prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
@@ -1462,7 +1462,7 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
         stage=STAGE_ID,
         attempt=1,
     )
-    write_record(paths.instance_dir / "phase-bridge-landing.json", intent)
+    write_record(paths.instance_dir / "contract-landing.json", intent)
     before_recovery = _reflog(repo)
 
     result = PhaseLanding(
@@ -1496,7 +1496,7 @@ def test_repository_gate_discloses_t1_before_running_the_detached_checkout(
 def test_admitted_shipped_attempt_cannot_skip_landing_by_retry() -> None:
     assert (
         retry_refusal(
-            PhaseBridgeState.ADMITTED, ("shipped",), Frontier(terminal_node="shipped")
+            ContractorState.ADMITTED, ("shipped",), Frontier(terminal_node="shipped")
         )
         is not None
     )
@@ -1508,7 +1508,7 @@ def test_landing_refuses_wrong_root_directory(
     repo, base = _temporary_repo(tmp_path)
     oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1516,7 +1516,7 @@ def test_landing_refuses_wrong_root_directory(
         expected_base_commit=base,
         verification_policy=_policy(),
     ).admitted(ROOT_ID)
-    fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
+    fake_bd.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
         by_alias=True, mode="json"
     )
     git, paths, export = _landing_context(repo, tmp_path)
@@ -1538,9 +1538,9 @@ def test_gate_view_refuses_a_different_root_with_same_key(
     fake_bd, fake_client, monkeypatch
 ):
     from workflow_interpreter.bdio.reads import WorkflowReads
-    from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
+    from workflow_interpreter.contractor.gate_view import contractor_gate_view
 
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1548,14 +1548,14 @@ def test_gate_view_refuses_a_different_root_with_same_key(
         expected_base_commit=BASE_COMMIT,
     ).admitted(ROOT_ID)
     fake_bd.rows[STAGE_ID] = _stage_row()
-    fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
+    fake_bd.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
         by_alias=True, mode="json"
     )
     monkeypatch.setattr(
         PhaseAdapter, "from_config", classmethod(lambda *_: PhaseAdapter(fake_client))
     )
     with pytest.raises(PhaseAdapterError, match="does not own"):
-        phase_bridge_gate_view(
+        contractor_gate_view(
             record.instance_key,
             fake_client.config,
             root_id="impostor",
@@ -1582,7 +1582,7 @@ def test_policy_correspondence_refuses_before_cas(
     repo, base = _temporary_repo(tmp_path)
     oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -1590,7 +1590,7 @@ def test_policy_correspondence_refuses_before_cas(
         expected_base_commit=base,
         verification_policy=None if corruption == "legacy" else _policy(),
     ).admitted(ROOT_ID)
-    fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
+    fake_bd.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
         by_alias=True, mode="json"
     )
     git, paths, export = _landing_context(repo, tmp_path)

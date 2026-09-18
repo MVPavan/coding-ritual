@@ -1,5 +1,5 @@
-"""Expected bridge refusals, distinct from unexpected programming errors."""
+"""Expected contractor refusals, distinct from unexpected programming errors."""
 
 
-class BridgeRefusal(ValueError):
+class ContractorRefusal(ValueError):
     """Invalid authority, policy, or durable correspondence needs operator action."""

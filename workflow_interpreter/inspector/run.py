@@ -29,8 +29,8 @@ reach bd, and this is the caller that closes the gap — without ever being able
 to END the loop, because a failed hint must not cost an exit record.
 
 **In-repo, the whole run holds the §12 band.** Not just the precondition: the
-band is what makes "one active runner per repo path" true for the child's
-lifetime, and `ExitObserver` still needs it when it records what that runner
+band is what makes "one active crew per repo path" true for the child's
+lifetime, and `ExitObserver` still needs it when it records what that crew
 left dirty.
 
 **A §8.1 continuation comes through here like any other activation.** It used
@@ -62,21 +62,20 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.contracts.run_identity import RunIdentity
-from workflow_interpreter.contracts.transport import RunnerTransport
-from workflow_interpreter.schema.models import IsolationMode, Node
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.exit import ExitObservation, ExitObserver
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.launch import (
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.exit import ExitObservation, ExitObserver
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.launch import (
     Dispatcher,
     DispatchResult,
     Precondition,
     TaskBuilder,
 )
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.models import (
     EXIT_CODE_UNOBSERVED,
     RECORD_MODEL,
     ExitReason,
@@ -87,17 +86,18 @@ from workflow_interpreter.supervisor.models import (
     PreconditionResult,
     SteerIntent,
 )
-from workflow_interpreter.supervisor.monitor import Limits, Monitor
-from workflow_interpreter.supervisor.paths import WrapperPaths, read_record
-from workflow_interpreter.supervisor.profile import Profile
-from workflow_interpreter.supervisor.rpc_session import RpcSession
-from workflow_interpreter.supervisor.workspace import Workspace
+from workflow_interpreter.inspector.monitor import Limits, Monitor
+from workflow_interpreter.inspector.paths import WrapperPaths, read_record
+from workflow_interpreter.inspector.profile import Profile
+from workflow_interpreter.inspector.rpc_session import RpcSession
+from workflow_interpreter.inspector.workspace import Workspace
+from workflow_interpreter.schema.models import IsolationMode, Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 
-class SupervisionResult(BaseModel):
-    """Everything one supervised activation produced, in the order it happened."""
+class InspectionResult(BaseModel):
+    """Everything one inspected activation produced, in the order it happened."""
 
     model_config = RECORD_MODEL
 
@@ -108,12 +108,12 @@ class SupervisionResult(BaseModel):
     """Whether the §8.2 stale flag reached bd as well as the wrapper dir."""
 
 
-class Supervisor:
+class Inspector:
     """One activation's whole §5 lifecycle, owned by one resident process."""
 
     def __init__(
         self,
-        config: SupervisorConfig,
+        config: InspectorConfig,
         paths: WrapperPaths,
         git: Git,
         store: WorkflowStore,
@@ -142,19 +142,19 @@ class Supervisor:
         prior_dirty_state: str | None = None,
         confirmation: HumanConfirmation | None = None,
         run_identity: RunIdentity | None = None,
-    ) -> SupervisionResult:
+    ) -> InspectionResult:
         """Dispatch, watch until the child is gone, then record what it did.
 
         In-repo, the whole of that happens inside the §12 execution band — one
-        active runner per repo path, ever. Acquiring it around the composition
+        active crew per repo path, ever. Acquiring it around the composition
         rather than around `prepare` alone is what makes the claim true: the
-        band has to still be held when `ExitObserver` records what this runner
+        band has to still be held when `ExitObserver` records what this crew
         left dirty, and an in-repo node whose caller forgot to take it simply
         could not run at all (§12).
         """
 
-        def supervise() -> SupervisionResult:
-            return self._supervise(
+        def inspect() -> InspectionResult:
+            return self._inspect(
                 request,
                 node,
                 profile,
@@ -171,11 +171,11 @@ class Supervisor:
             # `band.held` means a caller above already took it and owns its
             # release; taking it here would end with this frame releasing
             # somebody else's band on the way out.
-            return supervise()
+            return inspect()
         with band:
-            return supervise()
+            return inspect()
 
-    def _supervise(
+    def _inspect(
         self,
         request: MintRequest,
         node: Node,
@@ -187,7 +187,7 @@ class Supervisor:
         prior_dirty_state: str | None = None,
         confirmation: HumanConfirmation | None = None,
         run_identity: RunIdentity | None = None,
-    ) -> SupervisionResult:
+    ) -> InspectionResult:
         """One activation, dispatch through `exit-recorded`, band already held.
 
         Returns without observing an exit only where the child is not this
@@ -213,7 +213,7 @@ class Supervisor:
         # A §8.1 continuation runs the same §5.4 precondition as any other
         # activation, so a writing node's continuation is reset to the steered
         # attempt's pre_attempt_commit BEFORE the resumed session's first turn
-        # — the killed runner's edits are pinned under prereset/ first, but the
+        # — the killed crew's edits are pinned under prereset/ first, but the
         # session rejoins a tree that no longer matches its context. §5.4 as
         # written is what this obeys; whether §8.1 should exempt continuations
         # is the open ruling in bead cr-o85.18.
@@ -226,15 +226,15 @@ class Supervisor:
         handle = dispatch.handle
         if handle is None or dispatch.outcome is LaunchOutcome.ALREADY_DISPATCHED:
             _LOG.info(
-                "wf.supervise.no_child",
+                "wf.inspect.no_child",
                 activation_id=dispatch.activation.activation_id,
                 outcome=dispatch.outcome.value,
             )
-            return SupervisionResult(dispatch=dispatch)
+            return InspectionResult(dispatch=dispatch)
         if dispatch.outcome is LaunchOutcome.REATTACHED:
             proof = procfs.prove_liveness(self._config, handle)
             _LOG.warning(
-                "wf.supervise.adopted",
+                "wf.inspect.adopted",
                 activation_id=dispatch.activation.activation_id,
                 pid=handle.pid,
                 liveness=proof.status.value,
@@ -265,7 +265,7 @@ class Supervisor:
         else:
             if (
                 dispatch.receipt is not None
-                and dispatch.receipt.transport is RunnerTransport.STDIO_RPC
+                and dispatch.receipt.transport is CrewTransport.STDIO_RPC
             ):
                 procfs.terminate(self._config, handle, self._clock)
             result = monitor.watch(mirror)
@@ -279,11 +279,11 @@ class Supervisor:
             # steerer that wrote the intent — or recovery's STEER_PENDING case
             # on the next tick — owns the close; both are idempotent.
             _LOG.info(
-                "wf.supervise.steer_pending",
+                "wf.inspect.steer_pending",
                 activation_id=activation.activation_id,
                 verdict=result.verdict.value,
             )
-            return SupervisionResult(
+            return InspectionResult(
                 dispatch=dispatch, monitor=result, stale_recorded=mirror.recorded
             )
         observation = self._observer.observe(
@@ -296,7 +296,7 @@ class Supervisor:
             previous_tree_oid=previous_tree_oid,
             run_identity=run_identity,
         )
-        return SupervisionResult(
+        return InspectionResult(
             dispatch=dispatch,
             monitor=result,
             observation=observation,
@@ -314,7 +314,7 @@ class Supervisor:
             intent = read_record(self._paths.steer_intent(activation_id), SteerIntent)
         except WrapperDirError as exc:
             _LOG.warning(
-                "wf.supervise.steer_intent_unreadable",
+                "wf.inspect.steer_intent_unreadable",
                 activation_id=activation_id,
                 error=str(exc),
             )
@@ -420,4 +420,4 @@ def _exit_reason(result: MonitorResult) -> ExitReason:
     return ExitReason.EXIT_UNOBSERVED
 
 
-__all__ = ["SupervisionResult", "Supervisor"]
+__all__ = ["InspectionResult", "Inspector"]

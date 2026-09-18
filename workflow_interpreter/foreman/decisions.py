@@ -21,6 +21,8 @@ from workflow_interpreter.foreman.compose import (
 from workflow_interpreter.foreman.envelope import InputsUnavailable
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.routing import route
+from workflow_interpreter.inspector.errors import GitCommandError, LockUnavailable
+from workflow_interpreter.inspector.gitcmd import GitSubcommand
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
     CoordinationError,
@@ -33,8 +35,6 @@ from workflow_interpreter.schema.decisions import (
 )
 from workflow_interpreter.schema.loader import canonical_bytes
 from workflow_interpreter.schema.models import DecisionTrigger, Outcome
-from workflow_interpreter.supervisor.errors import GitCommandError, LockUnavailable
-from workflow_interpreter.supervisor.gitcmd import GitSubcommand
 
 if TYPE_CHECKING:
     from workflow_interpreter.foreman.tick import TickReport
@@ -402,7 +402,7 @@ def _apply(composition: Composition, request: DecisionRequest) -> None:
 def reconcile_action(
     composition: Composition, owner_id: str, request_id: str
 ) -> DecisionConsumption:
-    """Repair only a saved consumption intent; reusable by bridge orchestration."""
+    """Repair only a saved consumption intent; reusable by contractor orchestration."""
     coordinator = composition.coordination_for_root(owner_id)
     request = coordinator.state(owner_id).requests[request_id]
     if (

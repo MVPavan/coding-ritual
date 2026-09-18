@@ -30,10 +30,10 @@ from typing import Final
 
 from pydantic import BaseModel, ValidationError
 
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.models import ExecLedgerEntry
 from workflow_interpreter.schema.loader import canonical_json_bytes
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.models import ExecLedgerEntry
 
 HEARTBEAT_FILE: Final[str] = "driver-heartbeat.json"
 
@@ -49,7 +49,7 @@ LOG_FILE: Final[str] = "run.jsonl"
 WRAPPER_LOG_FILE: Final[str] = "wrapper.log"
 CHANNELS_DIR: Final[str] = "channels"
 OUTPUTS_SNAPSHOT_DIR: Final[str] = "outputs-snapshot"
-"""The subdirectory holding everything the RUNNER may write (§6).
+"""The subdirectory holding everything the CREW may write (§6).
 
 It exists because a sandbox grants DIRECTORIES. Codex's `workspace-write` makes
 its working root writable and nothing else, so making `$WF_OUTCOME_FILE`
@@ -61,20 +61,20 @@ next dispatch refuses, burning an infra retry), append to `exec.ledger` (the
 exactly-once evidence drills 1/2/10/22 rest on) or pre-write `completion.json`.
 
 One level of nesting fixes it for every directory-granularity sandbox: the
-runner's grant is `<activation>/channels/`, and the records sit in
-`<activation>/` where no runner bound reaches them. Claude is unaffected either
+crew's grant is `<activation>/channels/`, and the records sit in
+`<activation>/` where no crew bound reaches them. Claude is unaffected either
 way — its grants are path-exact — but it follows the same layout so there is one
 answer to "where do the channels live".
 
 GOTCHA: `LOG_FILE` is the exception to "the records are outside the grant", and
 it is one by construction rather than by oversight. The launcher dup2s
-`run.jsonl` onto the child's fd 1 and fd 2 (`launch.py::_child`), so the runner
+`run.jsonl` onto the child's fd 1 and fd 2 (`launch.py::_child`), so the crew
 holds a write handle to a file in `<activation>/` no sandbox bound mentions —
-that IS the runner's own stream. What follows is that `BaseProfile.scan_log`
-reads a session id and token counts back out of a file the runner controls, so a
-runner can name its own session and its own usage. Nothing routes on either
+that IS the crew's own stream. What follows is that `BaseProfile.scan_log`
+reads a session id and token counts back out of a file the crew controls, so a
+crew can name its own session and its own usage. Nothing routes on either
 today (§6 makes `usage: unknown` legal and `max_wall` is the ceiling that holds),
-but a phase-5 caller that starts routing on them is routing on runner input."""
+but a phase-5 caller that starts routing on them is routing on crew input."""
 OUTCOME_FILE: Final[str] = "outcome.json"
 EFFECTS_FILE: Final[str] = "effects.json"
 ARTIFACT_DIR: Final[str] = "artifacts"
@@ -86,7 +86,7 @@ That was survivable until the codex sandbox stopped granting `/tmp` (probe 12a,
 where a checkout under `/tmp` made the read-only bound evaporate): a
 `writes = true` node then had nowhere an ordinary toolchain could write, and a
 `writes = false` one would have had to pollute `$WF_ARTIFACT_DIR`, which §7
-walks as the runner's declared outputs."""
+walks as the crew's declared outputs."""
 EXIT_FILE: Final[str] = "exit.json"
 COMPLETION_FILE: Final[str] = "completion.json"
 STALE_FLAG: Final[str] = "stale.flag"
@@ -170,13 +170,13 @@ def read_record[RecordT: BaseModel](path: Path, model: type[RecordT]) -> RecordT
 class WrapperPaths:
     """Every path of one instance's wrapper directory, derived not configured."""
 
-    def __init__(self, config: SupervisorConfig, root_id: str) -> None:
+    def __init__(self, config: InspectorConfig, root_id: str) -> None:
         self._config = config
         self._root_id = root_id
 
     @property
-    def config(self) -> SupervisorConfig:
-        """The injected supervisor configuration."""
+    def config(self) -> InspectorConfig:
+        """The injected inspector configuration."""
         return self._config
 
     @property
@@ -191,7 +191,7 @@ class WrapperPaths:
 
     @property
     def driver_heartbeat(self) -> Path:
-        """Host-owned driver responsiveness, outside every runner channel."""
+        """Host-owned driver responsiveness, outside every crew channel."""
         return self.instance_dir / HEARTBEAT_FILE
 
     @property
@@ -203,8 +203,8 @@ class WrapperPaths:
     def verify_tree(self) -> Path:
         """The throwaway detached checkout §7.3's checks run in.
 
-        Outside the runner's working tree on purpose: a check executed where
-        the runner can still edit files grades the working tree, not the
+        Outside the crew's working tree on purpose: a check executed where
+        the crew can still edit files grades the working tree, not the
         artifact commit the evidence NAMES (§7.3, §7.4).
         """
         return self.instance_dir / VERIFY_TREE_DIR
@@ -216,9 +216,9 @@ class WrapperPaths:
 
     @property
     def attribution_record(self) -> Path:
-        """The §12 positive-attribution record — what the runner provably made.
+        """The §12 positive-attribution record — what the crew provably made.
 
-        Instance-scoped because the §12 execution band is: one active runner
+        Instance-scoped because the §12 execution band is: one active crew
         per repo path, ever, so this file has exactly one writer at a time.
         """
         return self.instance_dir / ATTRIBUTION_RECORD
@@ -275,15 +275,15 @@ class WrapperPaths:
         return self.activation_dir(activation_id) / LEDGER_FILE
 
     def log(self, activation_id: str) -> Path:
-        """`log_path`: the runner's machine event stream (§5.3)."""
+        """`log_path`: the crew's machine event stream (§5.3)."""
         return self.activation_dir(activation_id) / LOG_FILE
 
     def wrapper_log(self, activation_id: str) -> Path:
-        """The detached wrapper's diagnostics, kept out of the runner stream."""
+        """The detached wrapper's diagnostics, kept out of the crew stream."""
         return self.activation_dir(activation_id) / WRAPPER_LOG_FILE
 
     def channels_dir(self, activation_id: str) -> Path:
-        """`<activation>/channels/` — the whole of what the runner may write.
+        """`<activation>/channels/` — the whole of what the crew may write.
 
         THE unit of a directory-granularity sandbox grant; see `CHANNELS_DIR`
         for why the §6 channels are not simply loose in the activation dir.
@@ -291,7 +291,7 @@ class WrapperPaths:
         return self.activation_dir(activation_id) / CHANNELS_DIR
 
     def outputs_snapshot(self, activation_id: str) -> Path:
-        """The wrapper-owned capture of one runner artifact directory."""
+        """The wrapper-owned capture of one crew artifact directory."""
         return self.activation_dir(activation_id) / OUTPUTS_SNAPSHOT_DIR
 
     def outcome(self, activation_id: str) -> Path:
@@ -411,7 +411,7 @@ def read_json_documents(path: Path) -> tuple[object, ...]:
     """Every whitespace-separated JSON document in a file (§6 marker channel).
 
     Returns all of them, so "exactly one marker" can be CHECKED rather than
-    assumed: a runner that appends a second marker must be caught, not have its
+    assumed: a crew that appends a second marker must be caught, not have its
     first or last silently win (§6, drill 15).
     """
     raw = path.read_text(encoding=ENCODING)

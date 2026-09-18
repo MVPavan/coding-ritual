@@ -6,8 +6,8 @@ be writable for a task whose roots live in **bd** — a `LedgerStore` only ever
 writes `backend = 'ledger'`, since every row it holds is its own.
 
 The pin is written once per task and never rewritten. A switch flipped later
-applies to new ATTEMPT roots, whose per-attempt pin is the bridge record's
-`root_backend`; this row is the locator for a run that has no bridge (D16).
+applies to new ATTEMPT roots, whose per-attempt pin is the contractor record's
+`root_backend`; this row is the locator for a run that has no contractor (D16).
 """
 
 from __future__ import annotations

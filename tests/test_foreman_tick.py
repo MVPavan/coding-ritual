@@ -11,7 +11,7 @@ from tests._bdio import handle, race_residue
 from tests._fake_bd import InjectedCrash
 from tests._foreman import ForemanLab, entry_request
 from tests._helpers import VALID_FIXTURE, mutate, write
-from tests._supervisor import ChildScript
+from tests._inspector import ChildScript
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     ArtifactIdentity,
@@ -43,14 +43,14 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import halt_gate
-from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor import activation_ref
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.inspector import activation_ref
+from workflow_interpreter.inspector.errors import (
     ContinuationRefused,
     GitCommandError,
     LockUnavailable,
 )
-from workflow_interpreter.supervisor.gitcmd import GitSubcommand
+from workflow_interpreter.inspector.gitcmd import GitSubcommand
+from workflow_interpreter.schema.models import Outcome
 
 
 def test_tick_reconciles_before_it_mints(tmp_path: Path) -> None:
@@ -120,7 +120,7 @@ def test_steer_request_rebuilds_its_execution_pin_from_the_root(
     )
     activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
     lab.fake_bd.rows[activation.activation_id]["metadata"].update(
-        {"runner_profile": "legacy-runner", "model": "legacy-model"}
+        {"crew_profile": "legacy-crew", "model": "legacy-model"}
     )
     continuations: list[MintRequest] = []
 
@@ -154,7 +154,7 @@ def test_steer_request_rebuilds_its_execution_pin_from_the_root(
     lab.steer(activation.activation_id, reason="stale", instructions="continue")
 
     request = continuations[0]
-    assert request.runner_profile == "fake"
+    assert request.crew_profile == "fake"
     assert request.model == "fake"
 
 
@@ -403,7 +403,7 @@ def test_tick_backfills_an_activation_terminal_edge_without_a_gate(
             VALID_FIXTURE.read_text(encoding="utf-8"),
             (
                 (
-                    'phase_bridge_retry_terminals = ["shipped", "abandoned"]\n',
+                    'contractor_retry_terminals = ["shipped", "abandoned"]\n',
                     "",
                 ),
                 (
@@ -770,7 +770,7 @@ on_exhausted = "triage"
 name = "implement"
 kind = "task"
 region = "build"
-runner = "profile:implementer"
+crew = "profile:implementer"
 model = "default"
 instructions = "Implement what task_brief describes."
 isolation = "worktree"
@@ -789,7 +789,7 @@ outcomes = ["done"]
 name = "review"
 kind = "task"
 region = "audit"
-runner = "profile:critic"
+crew = "profile:critic"
 model = "default"
 instructions = "Read diff_artifact and report done."
 isolation = "worktree"
@@ -854,7 +854,7 @@ trim_priority = 1
 """The §2 fixture's two task nodes split across two bounded-cycle regions, so
 `review` declares a required input produced in the OTHER region — the shape D1's
 binding rule exists for. Node names are the fixture's because the lab pins its
-§7.3 verify digests by node name (`tests/_supervisor.py:388-400`)."""
+§7.3 verify digests by node name (`tests/_inspector.py:388-400`)."""
 
 
 def _cross_region_lab(tmp_path: Path) -> ForemanLab:
@@ -971,8 +971,8 @@ def test_tick_retries_cleanup_without_stalling(
     """Live-child deferral and filesystem failure never stop normal routing."""
     import shutil
 
-    from workflow_interpreter.supervisor import procfs
-    from workflow_interpreter.supervisor.models import Liveness
+    from workflow_interpreter.inspector import procfs
+    from workflow_interpreter.inspector.models import Liveness
 
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
@@ -997,7 +997,7 @@ def test_tick_retries_cleanup_without_stalling(
         monkeypatch.setattr(
             procfs,
             "prove_liveness",
-            lambda config, runner: original_proof(config, runner).model_copy(
+            lambda config, crew: original_proof(config, crew).model_copy(
                 update={"status": Liveness.ALIVE}
             ),
         )

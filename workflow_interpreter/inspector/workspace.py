@@ -3,29 +3,29 @@
 **Worktree mode.** One worktree per instance at `.wf/<root_id>/worktree` on
 branch `wf/<root_id>`, created at first dispatch and removed at terminal. The
 tree belongs to the wrapper, so a dirty tree there is always the previous
-runner's and is always resettable.
+crew's and is always resettable.
 
 **In-repo mode.** The human's own checkout. Every invariant of worktree mode
 holds except physical isolation, and two things replace it: the §12 execution
-band (a single-flight `flock` scoped to the repo path — one active runner,
+band (a single-flight `flock` scoped to the repo path — one active crew,
 ever) and recorded provenance. `git stash create` snapshots the dirty tree at
 dispatch, preserving it as a dangling commit no reset can lose.
 
 **Whose file is it? POSITIVE ATTRIBUTION, and nothing weaker.** In-repo, a path
-is resettable only where the wrapper can PROVE the runner produced it. Nothing
+is resettable only where the wrapper can PROVE the crew produced it. Nothing
 is inferred from a path being new, or absent from a set, or otherwise
-unaccounted for: the destructive operation requires evidence FOR the runner,
+unaccounted for: the destructive operation requires evidence FOR the crew,
 so every gap in the evidence lands on the protected side.
 
 - **Untracked files are never auto-deleted, whatever the evidence says.**
-  Attribution rests in part on the runner's own `$WF_EFFECTS_FILE`, which the
-  runner controls: a runner that builds its manifest from `git status` names
+  Attribution rests in part on the crew's own `$WF_EFFECTS_FILE`, which the
+  crew controls: a crew that builds its manifest from `git status` names
   the human's mid-run file with no malice at all, and for never-committed
   content the mistake is unrecoverable — there is no blob, no commit, no reflog
   to go back to. So creation always refuses to tier-2 (probed).
-- **Tracked files** — `RunnerAttribution`, written by `ExitObserver` while the
-  runner's activation still held the band. An entry exists only where the
-  wrapper's own `git status` saw the path dirty AND the runner declared it AND
+- **Tracked files** — `CrewAttribution`, written by `ExitObserver` while the
+  crew's activation still held the band. An entry exists only where the
+  wrapper's own `git status` saw the path dirty AND the crew declared it AND
   it was not already dirty when that attempt started. A path is resettable now
   only if its content still hashes to the digest recorded then — anything that
   has touched it since breaks the match and protects it again.
@@ -35,7 +35,7 @@ so every gap in the evidence lands on the protected side.
   `intended_base_commit` is an ancestor of it. A commit nothing of ours
   references is somebody else's work, and `reset --hard` would leave it
   unreachable. The sibling namespaces (`orphan/`, `prereset/`) preserve commits
-  WITHOUT blessing them, and `_is_runner_lineage` reads neither.
+  WITHOUT blessing them, and `_is_crew_lineage` reads neither.
 - **Everything else** — protected. No prior snapshot, no attribution record, a
   wiped `.wf/`, a digest that no longer matches, an unpinned HEAD: each refuses
   to tier-2. §12 is explicit that an unresolvable dirty tree blocks the
@@ -48,11 +48,11 @@ untracked content included — and pins it under
 ABORTS the reset rather than proceeding unpinned: attribution is a judgement,
 and a judgement that destroys work has to have an undo behind it.
 
-*Flagged reading (§12 sentence "files matching the snapshot are the runner's"):
+*Flagged reading (§12 sentence "files matching the snapshot are the crew's"):
 taken literally that inverts the ownership test, because the `stash create`
-snapshot is taken BEFORE the runner runs and can only ever contain what
+snapshot is taken BEFORE the crew runs and can only ever contain what
 preceded it. Read as set membership it is worse than inverted — it made every
-file that APPEARED during a run the runner's, so a human's untracked notes
+file that APPEARED during a run the crew's, so a human's untracked notes
 written mid-run were auto-`git clean`ed at the next dispatch (probed). What the
 same paragraph actually requires — "anything else is human work → tier-2
 confirmation required, never auto-reset" — is what is implemented above, with
@@ -72,8 +72,7 @@ from typing import Final
 import structlog
 
 from workflow_interpreter.bdio import ActivationRecord, ArtifactIdentity
-from workflow_interpreter.schema.models import IsolationMode, Node
-from workflow_interpreter.supervisor.artifact import (
+from workflow_interpreter.inspector.artifact import (
     ARTIFACT_NAMESPACE,
     BRANCH_TEMPLATE,
     INSTANCE_BRANCH_REF,
@@ -85,15 +84,15 @@ from workflow_interpreter.supervisor.artifact import (
     namespace_prefix,
     namespaced_ref,
 )
-from workflow_interpreter.supervisor.attribution import (
+from workflow_interpreter.inspector.attribution import (
     AttributionManager,
     decode_dirty_state,
     encode_dirty_state,
 )
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.branch import BranchAdvance, BranchAdvanceOutcome
-from workflow_interpreter.supervisor.clock import Clock, to_iso
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.branch import BranchAdvance, BranchAdvanceOutcome
+from workflow_interpreter.inspector.clock import Clock, to_iso
+from workflow_interpreter.inspector.errors import (
     BandNotHeld,
     DirtyTreeRefused,
     GitCommandError,
@@ -102,8 +101,9 @@ from workflow_interpreter.supervisor.errors import (
     SnapshotFailed,
     WrapperDirError,
 )
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.models import (
+    CrewAttribution,
     DirtyEntry,
     DirtySnapshot,
     HumanConfirmation,
@@ -113,15 +113,15 @@ from workflow_interpreter.supervisor.models import (
     PreconditionResult,
     RecoverySnapshot,
     ResetPlan,
-    RunnerAttribution,
     WorkspaceRecord,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     write_record,
 )
-from workflow_interpreter.supervisor.procfs import prove_liveness
+from workflow_interpreter.inspector.procfs import prove_liveness
+from workflow_interpreter.schema.models import IsolationMode, Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -157,7 +157,7 @@ _MSG_NOT_RESET: Final[str] = (
 )
 _MSG_HUMAN_WORK: Final[str] = (
     "refusing to reset {count} path(s) the wrapper cannot attribute to the "
-    "runner: {paths}; §12 requires tier-2 human confirmation naming them and "
+    "crew: {paths}; §12 requires tier-2 human confirmation naming them and "
     "their current content, never an auto-reset"
 )
 _MSG_HUMAN_COMMIT: Final[str] = (
@@ -204,7 +204,7 @@ class Workspace:
         return self._band
 
     def path_for(self, node: Node) -> Path:
-        """Where this node's runner executes: the worktree, or the repo itself."""
+        """Where this node's crew executes: the worktree, or the repo itself."""
         if node.isolation is IsolationMode.IN_REPO:
             return self._paths.config.repo_root
         return self._paths.worktree
@@ -358,13 +358,13 @@ class Workspace:
         resettable: list[str] = []
         protected: list[str] = []
         for entry in snapshot.entries:
-            if self._attribution.is_runner_output(
+            if self._attribution.is_crew_output(
                 entry, attribution, prior, confirmation, activation_id
             ):
                 resettable.append(entry.path)
             else:
                 protected.append(entry.path)
-        head_protected = head_move_required and not self._is_runner_lineage(
+        head_protected = head_move_required and not self._is_crew_lineage(
             cwd, intended, head
         )
         return ResetPlan(
@@ -375,9 +375,9 @@ class Workspace:
             protected_head=head if head_protected else None,
         )
 
-    def _is_runner_lineage(self, cwd: Path, intended: str, head: str) -> bool:
+    def _is_crew_lineage(self, cwd: Path, intended: str, head: str) -> bool:
         """Delegate the instance-lineage check to artifact ownership."""
-        return self._artifacts.is_runner_lineage(cwd, intended, head)
+        return self._artifacts.is_crew_lineage(cwd, intended, head)
 
     @staticmethod
     def _refusal(plan: ResetPlan) -> str:
@@ -730,7 +730,7 @@ class Workspace:
         node: Node,
         *,
         declared: frozenset[str],
-    ) -> RunnerAttribution | None:
+    ) -> CrewAttribution | None:
         """Delegate durable dirty-tree attribution to its focused component."""
         return self._attribution.record_attribution(activation, node, declared=declared)
 

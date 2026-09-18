@@ -1,12 +1,12 @@
-"""Pure retry eligibility for a previously admitted phase-bridge root."""
+"""Pure retry eligibility for a previously admitted contractor root."""
 
 from __future__ import annotations
 
 from enum import StrEnum
 from typing import Final
 
-from workflow_interpreter.bridge.landing import SHIP_GATE
-from workflow_interpreter.bridge.models import PhaseBridgeState
+from workflow_interpreter.contractor.landing import SHIP_GATE
+from workflow_interpreter.contractor.models import ContractorState
 from workflow_interpreter.foreman.frontier import Frontier
 from workflow_interpreter.schema.models import Outcome
 
@@ -14,7 +14,7 @@ SHIPPED_TERMINAL: Final[str] = "shipped"
 
 
 class RetryRefusal(StrEnum):
-    """Reasons a phase-bridge retry must not create another root."""
+    """Reasons a contractor retry must not create another root."""
 
     LANDING_RECOVERABLE = "landing-recoverable"
     INELIGIBLE_STATE = "ineligible-state"
@@ -25,7 +25,7 @@ class RetryRefusal(StrEnum):
 
 
 def retry_refusal(
-    prior_state: PhaseBridgeState,
+    prior_state: ContractorState,
     retry_terminals: tuple[str, ...],
     frontier: Frontier,
 ) -> RetryRefusal | None:
@@ -34,13 +34,13 @@ def retry_refusal(
     The command separately validates canonical graph and closure marks for a
     gate-red retry. Callers of this pure predicate retain the cheap APPROVE guard.
     """
-    if prior_state not in (PhaseBridgeState.ADMITTED, PhaseBridgeState.GATE_RED):
+    if prior_state not in (ContractorState.ADMITTED, ContractorState.GATE_RED):
         return RetryRefusal.INELIGIBLE_STATE
     if frontier.open_halt is not None:
         return RetryRefusal.OPEN_HALT
     if frontier.terminal_node is None:
         return RetryRefusal.NO_TERMINAL
-    if prior_state is PhaseBridgeState.GATE_RED:
+    if prior_state is ContractorState.GATE_RED:
         if (
             frontier.terminal_node == SHIPPED_TERMINAL
             and SHIPPED_TERMINAL in retry_terminals

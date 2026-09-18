@@ -84,7 +84,7 @@ class BdUnavailableError(StoreTransportError):
     """The bd binary could not be executed at all (missing, not executable).
 
     A defect of the transport, not an answer about the caller's ids: the
-    runner raises `OSError` before bd ever runs, and mapping it here is what
+    crew raises `OSError` before bd ever runs, and mapping it here is what
     keeps a broken installation from reading as an ordinary refusal.
     """
 

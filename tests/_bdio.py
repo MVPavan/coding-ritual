@@ -44,7 +44,7 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
         source=ConfigSource.GRAPH_DEFAULT,
     ),
     ResolvedSetting(
-        key="node.implement.runner",
+        key="node.implement.crew",
         # The BOUND profile, not the graph's `profile:<role>` reference:
         # `_resolved_config` resolves every role at instantiation, and the
         # execution path reads this key as the profile it dispatches (§3.1).
@@ -63,10 +63,10 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
         source=ConfigSource.GRAPH_DEFAULT,
     ),
     # `review` is the fixture's other `profile:<role>` node, and the execution
-    # view reads its runner from the root too — a root that bound only one of
+    # view reads its crew from the root too — a root that bound only one of
     # them is not one `_resolved_config` could write.
     ResolvedSetting(
-        key="node.review.runner", value="fake", source=ConfigSource.ROLE_BINDING
+        key="node.review.crew", value="fake", source=ConfigSource.ROLE_BINDING
     ),
     ResolvedSetting(
         key="node.review.model", value="fake-model", source=ConfigSource.ROLE_BINDING
@@ -113,7 +113,7 @@ on_exhausted = "triage"
 name = "a1"
 kind = "task"
 region = "ra"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
@@ -129,7 +129,7 @@ outcomes = ["done", "reject"]
 name = "b2"
 kind = "task"
 region = "rb"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
@@ -145,7 +145,7 @@ outcomes = ["done"]
 name = "b1"
 kind = "task"
 region = "rb"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
@@ -314,7 +314,7 @@ def entry_request(**overrides: object) -> MintRequest:
     base: dict[str, object] = {
         "node": IMPLEMENT,
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": "fake",
+        "crew_profile": "fake",
         "model": "fake-model",
         "session_id": "",
     }

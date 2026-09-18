@@ -1,4 +1,4 @@
-"""Bounded capture of runner-controlled output trees."""
+"""Bounded capture of crew-controlled output trees."""
 
 from __future__ import annotations
 
@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
-from workflow_interpreter.supervisor import channels
-from workflow_interpreter.supervisor.channels import walk_outputs
-from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeKind
+from workflow_interpreter.inspector import channels
+from workflow_interpreter.inspector.channels import walk_outputs
+from workflow_interpreter.inspector.outputs import OutputsWalk, UnsafeKind
 
 
 def _walk(root: Path, snapshot: Path, **overrides: int) -> OutputsWalk:
@@ -116,10 +116,10 @@ def test_a_file_beyond_the_remaining_byte_budget_is_dropped_not_partly_captured(
     assert not (snapshot / "too-large").exists()
 
 
-def test_a_runner_root_swap_after_open_cannot_change_captured_output(
+def test_a_crew_root_swap_after_open_cannot_change_captured_output(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """N2 holds the root descriptor before a runner can replace its pathname."""
+    """N2 holds the root descriptor before a crew can replace its pathname."""
     root = tmp_path / "outputs"
     root.mkdir()
     (root / "result.txt").write_text("captured\n", encoding="utf-8")
@@ -142,14 +142,14 @@ def test_a_runner_root_swap_after_open_cannot_change_captured_output(
     assert (snapshot / "result.txt").read_text(encoding="utf-8") == "captured\n"
 
 
-def test_a_runner_artifact_swap_after_walk_cannot_change_the_pinned_output(
+def test_a_crew_artifact_swap_after_walk_cannot_change_the_pinned_output(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """N2 pins the wrapper capture, never a runner name reopened after walking."""
+    """N2 pins the wrapper capture, never a crew name reopened after walking."""
     import json
 
-    from tests._supervisor import blob_at
-    from tests.test_supervisor_exit import DONE_MARKER, FEATURE_FILE, Lab
+    from tests._inspector import blob_at
+    from tests.test_inspector_exit import DONE_MARKER, FEATURE_FILE, Lab
 
     lab = Lab(tmp_path)
     lab.commit_work(FEATURE_FILE)

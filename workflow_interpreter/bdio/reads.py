@@ -95,7 +95,7 @@ def roots_by_instance_key(
     """Every root row carrying `instance_key`, as identity only.
 
     The pinned body is deliberately NOT re-validated: a caller asking whether
-    a root exists for a bridge identity must get an answer even when that
+    a root exists for a contractor identity must get an answer even when that
     root's create/self-link pair was interrupted, and it must get it without
     naming a backend row (§3.1).
     """

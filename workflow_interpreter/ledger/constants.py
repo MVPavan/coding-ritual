@@ -20,9 +20,9 @@ FENCE_FILE: Final[str] = "ledger.lock"
 EXPORT_REF_TEMPLATE: Final[str] = "refs/wf/exports/{task_id}"
 """Where a task's export BLOB is pinned before its bead may close (§3.6).
 
-Here rather than in `bridge/journal.py`, which writes it, because
+Here rather than in `contractor/journal.py`, which writes it, because
 `ledger/reverify.py` reads it as the anchor that says which export bytes the
-closing merge actually recorded — and the ledger may not import the bridge."""
+closing merge actually recorded — and the ledger may not import the contractor."""
 IGNORE_FILE: Final[str] = ".gitignore"
 IGNORE_BODY: Final[str] = (
     "# Engine state (run-ledger \u00a73.5, D4): the database is this machine's.\n"
@@ -35,7 +35,7 @@ IGNORE_BODY: Final[str] = (
 )
 """What makes \u00a73.5's "the working tree's IGNORED `.wf/`" true rather than
 assumed: without it the database is untracked dirt and the coordinator
-cleanliness checks refuse the next bridge command on the engine's own file.
+cleanliness checks refuse the next contractor command on the engine's own file.
 The rule names the database and itself, never the directory: a file somebody
 else put under `.wf/` must stay visible as the dirt it is."""
 TASK_LOCK_DIR: Final[str] = "tasks"

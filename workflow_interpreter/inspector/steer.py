@@ -20,12 +20,12 @@ Read backwards, every step is there to make a crash survivable:
 - **Refused before anything is destroyed.** Both refusals — no handle to prove
   death against, and no session the continuation could rejoin — are checked
   ahead of the intent write and therefore ahead of the kill. `build_resume_command`
-  refuses an unknown session too, but that refusal lands after the runner is
+  refuses an unknown session too, but that refusal lands after the crew is
   dead and the activation is closed `steered`: the round is spent and the
   continuation cannot be made. Order is the difference between fail-closed and
   fail-destructive.
 - **Terminate before close.** Closing `steered` while the child still runs
-  would let the continuation's runner and the steered runner write the same
+  would let the continuation's crew and the steered crew write the same
   worktree at once. Death is PROVEN through the handle's identity, never
   assumed from a signal's exit status (§5.3), and a child that survives KILL
   refuses the steer outright — there is no honest way to continue.
@@ -61,25 +61,25 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.bdio.wire import resolved_settings
-from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.clock import Clock, to_iso
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.clock import Clock, to_iso
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import (
     ContinuationRefused,
     TerminationFailed,
 )
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.models import (
     RECORD_MODEL,
     ExitReason,
     SteerIntent,
     TerminationProof,
 )
-from workflow_interpreter.supervisor.paths import WrapperPaths, write_record
-from workflow_interpreter.supervisor.procfs import terminate
-from workflow_interpreter.supervisor.rpc_control import enqueue, request_interrupt
-from workflow_interpreter.supervisor.workspace import Workspace
+from workflow_interpreter.inspector.paths import WrapperPaths, write_record
+from workflow_interpreter.inspector.procfs import terminate
+from workflow_interpreter.inspector.rpc_control import enqueue, request_interrupt
+from workflow_interpreter.inspector.workspace import Workspace
+from workflow_interpreter.schema.models import Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -97,7 +97,7 @@ _MSG_NO_HANDLE: Final[str] = (
 )
 _MSG_NO_SESSION: Final[str] = (
     "activation {activation_id} has no session a continuation could rejoin; "
-    "refusing to kill a runner whose §8.1 continuation could only be dispatched "
+    "refusing to kill a crew whose §8.1 continuation could only be dispatched "
     "as a fresh session carrying the node's original brief"
 )
 
@@ -170,7 +170,7 @@ class Steerer:
 
     def __init__(
         self,
-        config: SupervisorConfig,
+        config: InspectorConfig,
         paths: WrapperPaths,
         store: WorkflowStore,
         clock: Clock,
@@ -290,7 +290,7 @@ class Steerer:
                 ),
             ),
         )
-        from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+        from workflow_interpreter.inspector.toolchain_cleanup import cleanup_toolchain
 
         cleanup_toolchain(self._paths, closed)
         intent = intent.model_copy(
@@ -312,8 +312,8 @@ class Steerer:
         root = self._store.reads.load_root(self._paths.root_id)
         return continuation.model_copy(
             update={
-                "runner_profile": pinned_execution_setting(
-                    root, continuation.node, NodeSetting.RUNNER
+                "crew_profile": pinned_execution_setting(
+                    root, continuation.node, NodeSetting.CREW
                 ),
                 "model": pinned_execution_setting(
                     root, continuation.node, NodeSetting.MODEL

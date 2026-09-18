@@ -1,46 +1,46 @@
-"""Typed failures of the supervisor wrapper (spec v0.3 §5–§8, §12).
+"""Typed failures of the inspector wrapper (spec v0.3 §5–§8, §12).
 
 Flat hierarchy, like `bdio.errors`: the foreman routes on the class, never on a
-message. Every one of these is a REFUSAL — the supervisor's job is to fail
+message. Every one of these is a REFUSAL — the inspector's job is to fail
 loudly rather than dispatch a child whose preconditions were not proven.
 """
 
 from __future__ import annotations
 
 
-class SupervisorError(Exception):
-    """Base class for every failure raised by the supervisor wrapper."""
+class InspectorError(Exception):
+    """Base class for every failure raised by the inspector wrapper."""
 
 
-class SupervisorConfigError(SupervisorError):
+class InspectorConfigError(InspectorError):
     """Injected configuration is unusable (relative path, missing repo)."""
 
 
-class WrapperDirError(SupervisorError):
+class WrapperDirError(InspectorError):
     """The wrapper directory could not be read or written durably."""
 
 
-class ForkBarrierError(SupervisorError):
+class ForkBarrierError(InspectorError):
     """The child never reached the barrier, or crossed it without a receipt (§5.2)."""
 
 
 class ForkBarrierAbortError(ForkBarrierError):
-    """An unacknowledged barrier child was aborted and was never a runner (§5.2)."""
+    """An unacknowledged barrier child was aborted and was never a crew (§5.2)."""
 
 
-class ExecLedgerError(SupervisorError):
+class ExecLedgerError(InspectorError):
     """The exec ledger disagrees with what the launch claims happened (§5.2)."""
 
 
-class GitCommandError(SupervisorError):
+class GitCommandError(InspectorError):
     """A git invocation failed, timed out, or was outside the closed set."""
 
 
-class PreconditionRefused(SupervisorError):
+class PreconditionRefused(InspectorError):
     """The §5.4 worktree precondition does not hold and cannot be repaired."""
 
 
-class SnapshotFailed(SupervisorError):
+class SnapshotFailed(InspectorError):
     """A pre-destruction snapshot could not be safely created or pinned."""
 
 
@@ -53,10 +53,10 @@ class BandNotHeld(PreconditionRefused):
 
 
 class DirtyTreeRefused(PreconditionRefused):
-    """§12: resetting would destroy work the wrapper cannot attribute to the runner.
+    """§12: resetting would destroy work the wrapper cannot attribute to the crew.
 
     Tier-2 human confirmation naming the exact paths is the only release; the
-    supervisor never auto-resets its way out of this one. `protected_head` is
+    inspector never auto-resets its way out of this one. `protected_head` is
     set when the thing at risk is a COMMIT rather than a file — HEAD sits on
     something no wrapper ref pins, so `reset --hard` would orphan it.
     """
@@ -73,7 +73,7 @@ class DirtyTreeRefused(PreconditionRefused):
         super().__init__(detail)
 
 
-class SandboxUnavailable(SupervisorError):
+class SandboxUnavailable(InspectorError):
     """This host cannot hold the §2 mount bound, so no dispatch may happen (O1).
 
     Permanent by nature — a missing `bwrap` or a self-test that does not enforce
@@ -93,11 +93,11 @@ class SandboxPathRefused(SandboxUnavailable):
     """
 
 
-class LockUnavailable(SupervisorError):
-    """The §12 in-repo execution band is held by another runner."""
+class LockUnavailable(InspectorError):
+    """The §12 in-repo execution band is held by another crew."""
 
 
-class ContinuationRefused(SupervisorError):
+class ContinuationRefused(InspectorError):
     """A §8.1 continuation has nothing to continue WITH, at either end.
 
     §8.1 mints exactly one continuation and dispatches it via
@@ -111,7 +111,7 @@ class ContinuationRefused(SupervisorError):
 
     - `Steerer.steer` raises it when the activation has no resumable session,
       BEFORE the intent is written and the child is killed. `build_resume_command`
-      also refuses an empty session, but by then the runner is dead and the
+      also refuses an empty session, but by then the crew is dead and the
       activation is closed `steered` — a refusal that costs the work it was
       protecting is not fail-closed.
     - `Dispatcher.dispatch` raises it when a `steer-continuation` reaches the
@@ -120,11 +120,11 @@ class ContinuationRefused(SupervisorError):
     """
 
 
-class TerminationFailed(SupervisorError):
+class TerminationFailed(InspectorError):
     """A child survived TERM and KILL, so no proof of death exists (§8.1)."""
 
 
-class VerifyTreeError(SupervisorError):
+class VerifyTreeError(InspectorError):
     """The §7.3 checks have no trustworthy tree to run in.
 
     Loud on purpose. The alternative is grading whatever tree happens to be

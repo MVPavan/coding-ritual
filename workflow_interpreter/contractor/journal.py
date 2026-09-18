@@ -1,4 +1,4 @@
-"""The bridge's two ledger writes: the landing journal and the export pin.
+"""The contractor's two ledger writes: the landing journal and the export pin.
 
 Both exist because the wrapper directory is disposable and the working tree is
 `git clean`-able, and both are therefore ordered rather than merely present.
@@ -12,7 +12,7 @@ is what makes the fallback unambiguous.
 **Export pin (§3.6).** A task's whole record goes into git BEFORE its bead can
 close: the export file is written, the same bytes are stored as a blob, the
 blob is pinned under `refs/wf/exports/<task>`, and only then does the oid reach
-`tasks.export_oid` and the bridge record. The export therefore survives a
+`tasks.export_oid` and the contractor record. The export therefore survives a
 deleted `.wf/` before the orchestrator has committed the file.
 """
 
@@ -26,12 +26,12 @@ from typing import Final
 from pydantic import BaseModel, ValidationError
 
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.bridge.errors import BridgeRefusal
+from workflow_interpreter.contractor.errors import ContractorRefusal
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.constants import EXPORT_REF_TEMPLATE
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.export import write_export
 from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
-from workflow_interpreter.supervisor.gitio import Git
 
 MSG_PIN_LOST: Final[str] = (
     "the export of {task_id!r} could not be pinned: {ref} names {found!r}, "
@@ -112,7 +112,7 @@ class LandingJournal:
         try:
             return model.model_validate_json(str(row[0]))
         except ValidationError as invalid:
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 MSG_UNREADABLE_ROW.format(
                     phase=phase.value,
                     attempt=attempt,
@@ -135,7 +135,7 @@ class ExportPin:
 
         The task row is ensured first, because a task whose roots are all in
         bd may never have been written here and still owes an export: §3.6
-        makes the export the precondition of CLOSED for every bridge task, not
+        makes the export the precondition of CLOSED for every contractor task, not
         only for ledger-backed ones. `pin_task_backend` is non-destructive, so
         a task that already named a backend keeps it.
 
@@ -152,7 +152,7 @@ class ExportPin:
         self._git.update_ref(ref, oid, cwd=self._repo_root)
         found = self._git.ref_target(ref, cwd=self._repo_root)
         if found != oid:
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 MSG_PIN_LOST.format(task_id=task_id, ref=ref, found=found, oid=oid)
             )
         record_export_oid(self._database, task_id, oid)

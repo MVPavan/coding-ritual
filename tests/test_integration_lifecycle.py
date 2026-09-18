@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import ChildScript
-from tests.test_foreman_main import _bridge_adapter
+from tests._inspector import ChildScript
+from tests.test_foreman_main import _contractor_adapter
 from tests.test_integration_admission import source_lab
-from workflow_interpreter.bridge.adapter import PhaseAdapter
-from workflow_interpreter.bridge.command import execute_phase_bridge
-from workflow_interpreter.bridge.integration import (
+from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.command import execute_contractor
+from workflow_interpreter.contractor.integration import (
     IntegrationRequest,
     prepare_integration,
 )
@@ -35,13 +35,13 @@ def prepared_lab(tmp_path, monkeypatch, signing_config, sign_payload):
     composition = replace(
         lab.composition,
         config=lab.config.model_copy(
-            update={"bridge_checks": composition.config.bridge_checks}
+            update={"contractor_checks": composition.config.contractor_checks}
         ),
     )
     lab.composition = composition
     lab.spawner.bind(composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     record = prepare_integration(
         composition,
@@ -70,7 +70,7 @@ def prepared_lab(tmp_path, monkeypatch, signing_config, sign_payload):
 
 
 def entry(lab, *, retry=False, retry_landing=False):
-    return execute_phase_bridge(
+    return execute_contractor(
         lab.composition,
         epic_id="phase",
         stage_id="stage",
@@ -86,7 +86,7 @@ def approve_integration(lab, record):
     gates = lab.store.reads.list_gates(record.root_id)
     assert len(gates) == 1 and gates[0].metadata.gate_node == "ship", before.report
     assert lab.git.head_commit(cwd=lab.repo) == record.expected_base_commit
-    assert _bridge_adapter(lab).show("stage").status != "closed"
+    assert _contractor_adapter(lab).show("stage").status != "closed"
     lab.root = lab.store.reads.load_root(record.root_id)
     lab.approve(gates[0].gate_id, Outcome.APPROVE)
 
@@ -102,11 +102,11 @@ def test_normal_entry_requires_fresh_review_and_explicit_ship(
     assert result.exit_code == 0, result.report
     assert result.report["state"] == "completed"
     assert (lab.repo / "src/feature.py").read_text() == "value = 2\n"
-    assert _bridge_adapter(lab).show("stage").status == "closed"
+    assert _contractor_adapter(lab).show("stage").status == "closed"
     state = lab.store.coordination_store().state(owner.root_id)
     assert len(state.children) == 2
     assert state.integrations["combine"].authorization is not None
-    from workflow_interpreter.bridge.integration import IntegrationGuard
+    from workflow_interpreter.contractor.integration import IntegrationGuard
 
     claim = IntegrationGuard(lab.composition).claim(
         state.integrations["combine"].target_key
@@ -126,8 +126,8 @@ def test_cancellation_and_crash_recovery_are_forward_only(
     boundary: str,
 ) -> None:
     from tests._fake_bd import InjectedCrash
-    from workflow_interpreter.bridge import landing
-    from workflow_interpreter.bridge.landing import LandingHooks
+    from workflow_interpreter.contractor import landing
+    from workflow_interpreter.contractor.landing import LandingHooks
 
     lab, owner, record = prepared_lab(
         tmp_path, monkeypatch, signing_config, sign_payload
@@ -186,7 +186,7 @@ def test_cancellation_and_crash_recovery_are_forward_only(
         refused = entry(lab)
         assert refused.exit_code == 2
         assert lab.git.head_commit(cwd=lab.repo) == record.expected_base_commit
-        assert _bridge_adapter(lab).show("stage").status != "closed"
+        assert _contractor_adapter(lab).show("stage").status != "closed"
         return
     with pytest.raises(InjectedCrash):
         entry(lab)
@@ -199,7 +199,7 @@ def test_cancellation_and_crash_recovery_are_forward_only(
     else:
         recovered = entry(lab)
     assert recovered.exit_code == 0, recovered.report
-    assert _bridge_adapter(lab).show("stage").status == "closed"
+    assert _contractor_adapter(lab).show("stage").status == "closed"
     assert lab.git.head_commit(cwd=lab.repo) != record.expected_base_commit
     assert len(lab.store.coordination_store().state(owner.root_id).children) == 2
 
@@ -217,12 +217,12 @@ def test_combines_code_markdown_reader_receipt_and_new_target(
 
     from pydantic import TypeAdapter
 
-    from tests._supervisor import FakeProfile, commit_all
+    from tests._inspector import FakeProfile, commit_all
     from workflow_interpreter.bdio import ResolvedSetting
     from workflow_interpreter.foreman.decisions import admission_of
     from workflow_interpreter.foreman.resolve import _resolved_config
+    from workflow_interpreter.inspector.profile import CrewCommand
     from workflow_interpreter.schema.loader import canonical_bytes, load_graph
-    from workflow_interpreter.supervisor.profile import RunnerCommand
 
     lab, owner, composition, source = source_lab(tmp_path)
     lab._signing = signing_config
@@ -231,7 +231,7 @@ def test_combines_code_markdown_reader_receipt_and_new_target(
     composition = replace(
         lab.composition,
         config=lab.config.model_copy(
-            update={"bridge_checks": composition.config.bridge_checks}
+            update={"contractor_checks": composition.config.contractor_checks}
         ),
     )
     lab.composition = composition
@@ -246,7 +246,7 @@ def test_combines_code_markdown_reader_receipt_and_new_target(
 [[node]]
 name = "source-review"
 kind = "task"
-runner = "profile:critic"
+crew = "profile:critic"
 instructions = "Review the Markdown change."
 allowed_paths = []
 verify = [{cmd="scripts/review-checks.sh", timeout="20s"}]
@@ -310,7 +310,7 @@ trim_priority = 1
     (lab.repo / "target.txt").write_text("independent target edit\n")
     new_base = commit_all(lab.repo, "independent target")
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     record = prepare_integration(
         composition,
@@ -356,7 +356,7 @@ assert Path("target.txt").read_text() == "independent target edit\\n"
 Path(os.environ["WF_EFFECTS_FILE"]).write_text(json.dumps({"paths": ["src/feature.py", "docs/design.md"] if sys.argv[2] == "integrate" else []}))
 Path(os.environ["WF_OUTCOME_FILE"]).write_text(json.dumps({"outcome": "done" if sys.argv[2] == "integrate" else "accept"}))
 """
-            return RunnerCommand(
+            return CrewCommand(
                 argv=(sys.executable, "-c", script, manifest, task.node),
                 env={"PATH": "/usr/bin:/bin", **task.channels.env()},
                 cwd=task.cwd,
@@ -374,7 +374,7 @@ Path(os.environ["WF_OUTCOME_FILE"]).write_text(json.dumps({"outcome": "done" if 
             for g in lab.store.reads.list_gates(record.root_id)
         )
         assert lab.git.head_commit(cwd=lab.repo) == new_base
-        assert _bridge_adapter(lab).show("stage").status != "closed"
+        assert _contractor_adapter(lab).show("stage").status != "closed"
         return
     approve_integration(lab, record)
     result = entry(lab)
@@ -387,7 +387,7 @@ Path(os.environ["WF_OUTCOME_FILE"]).write_text(json.dumps({"outcome": "done" if 
 def test_stale_base_retry_keeps_original_budget_and_requires_new_approval(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
 ) -> None:
-    from tests._supervisor import commit_all
+    from tests._inspector import commit_all
 
     lab, owner, record = prepared_lab(
         tmp_path, monkeypatch, signing_config, sign_payload
@@ -401,14 +401,14 @@ def test_stale_base_retry_keeps_original_budget_and_requires_new_approval(
     assert stale.report["disposition"] == "branch-moved"
     result = entry(lab, retry=True)
     assert result.exit_code == 0, result.report
-    successor = _bridge_adapter(lab).record("stage")
+    successor = _contractor_adapter(lab).record("stage")
     assert successor.attempt == 2 and successor.root_id != record.root_id
     assert successor.expected_base_commit == base
     assert successor.previous_attempts == (record.instance_key,)
     state = lab.store.coordination_store().state(owner.root_id)
     assert len(state.reservations) == 4
     assert sum(r.capacity.ceiling for r in state.reservations.values()) == 14
-    from workflow_interpreter.bridge.integration import IntegrationGuard
+    from workflow_interpreter.contractor.integration import IntegrationGuard
 
     claim = IntegrationGuard(lab.composition).claim(
         state.integrations["combine"].target_key
@@ -441,7 +441,7 @@ def test_invalid_candidate_never_moves_target(
     sign_payload,
     failure: str,
 ) -> None:
-    from workflow_interpreter.bridge.landing import DetachedRepositoryGate
+    from workflow_interpreter.contractor.landing import DetachedRepositoryGate
 
     lab, owner, record = prepared_lab(
         tmp_path, monkeypatch, signing_config, sign_payload
@@ -518,10 +518,10 @@ def test_invalid_candidate_never_moves_target(
         result = entry(lab)
         assert result.exit_code == 2, result.report
     assert lab.git.head_commit(cwd=lab.repo) == record.expected_base_commit
-    assert _bridge_adapter(lab).show("stage").status != "closed"
+    assert _contractor_adapter(lab).show("stage").status != "closed"
 
 
-@pytest.mark.parametrize("boundary", ["association", "claim", "bridge"])
+@pytest.mark.parametrize("boundary", ["association", "claim", "contractor"])
 def test_retry_journal_recovers_through_normal_entry(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -530,8 +530,8 @@ def test_retry_journal_recovers_through_normal_entry(
     boundary: str,
 ) -> None:
     from tests._fake_bd import InjectedCrash
-    from tests._supervisor import commit_all
-    from workflow_interpreter.bridge.integration import IntegrationGuard
+    from tests._inspector import commit_all
+    from workflow_interpreter.contractor.integration import IntegrationGuard
 
     lab, owner, record = prepared_lab(
         tmp_path, monkeypatch, signing_config, sign_payload
@@ -547,7 +547,7 @@ def test_retry_journal_recovers_through_normal_entry(
     cls, method = {
         "association": (IntegrationGuard, "save"),
         "claim": (IntegrationGuard, "write_claim"),
-        "bridge": (PhaseAdapter, "prepare"),
+        "contractor": (PhaseAdapter, "prepare"),
     }[boundary]
     original = getattr(cls, method)
     armed = True
@@ -565,7 +565,7 @@ def test_retry_journal_recovers_through_normal_entry(
         entry(lab, retry=True)
     result = entry(lab)
     assert result.exit_code == 0, result.report
-    successor = _bridge_adapter(lab).record("stage")
+    successor = _contractor_adapter(lab).record("stage")
     assert successor.attempt == 2
     state = lab.store.coordination_store().state(owner.root_id)
     assert len(state.reservations) == 4 and len(state.children) == 3
@@ -575,9 +575,9 @@ def test_retry_journal_recovers_through_normal_entry(
 def test_direct_adapter_close_cannot_promote_membership_to_landing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
 ) -> None:
-    from workflow_interpreter.bridge.adapter import PhaseAdapterError
-    from workflow_interpreter.bridge.errors import BridgeRefusal
-    from workflow_interpreter.bridge.integration import IntegrationGuard
+    from workflow_interpreter.contractor.adapter import PhaseAdapterError
+    from workflow_interpreter.contractor.errors import ContractorRefusal
+    from workflow_interpreter.contractor.integration import IntegrationGuard
 
     lab, _, record = prepared_lab(tmp_path, monkeypatch, signing_config, sign_payload)
     forged = record.landed(
@@ -586,7 +586,7 @@ def test_direct_adapter_close_cannot_promote_membership_to_landing(
         "child-approval",
         "invented-receipt",
     ).closed(EXPORT_OID)
-    adapter = _bridge_adapter(lab)
+    adapter = _contractor_adapter(lab)
     with pytest.raises(PhaseAdapterError, match="runtime guard"):
         adapter.close("stage", forged, "invented-receipt")
     stripped = forged.model_copy(
@@ -600,7 +600,7 @@ def test_direct_adapter_close_cannot_promote_membership_to_landing(
     with pytest.raises(PhaseAdapterError, match="strip"):
         adapter.close("stage", stripped, "invented-receipt")
     adapter.integration_guard = IntegrationGuard(lab.composition)
-    with pytest.raises(BridgeRefusal):
+    with pytest.raises(ContractorRefusal):
         adapter.close("stage", forged, "invented-receipt")
     assert adapter.show("stage").status != "closed"
 
@@ -612,8 +612,8 @@ def test_final_handoff_excludes_racing_cancellation(
     from concurrent.futures import ThreadPoolExecutor
     from threading import Event
 
-    from workflow_interpreter.bridge.integration import IntegrationGuard
-    from workflow_interpreter.supervisor.errors import LockUnavailable
+    from workflow_interpreter.contractor.integration import IntegrationGuard
+    from workflow_interpreter.inspector.errors import LockUnavailable
 
     lab, owner, record = prepared_lab(
         tmp_path, monkeypatch, signing_config, sign_payload
@@ -653,4 +653,4 @@ def test_final_handoff_excludes_racing_cancellation(
         owner.root_id, record.integration_slot, 0, "after", "after observed landing"
     )
     assert entry(lab).exit_code == 0
-    assert _bridge_adapter(lab).show("stage").status == "closed"
+    assert _contractor_adapter(lab).show("stage").status == "closed"

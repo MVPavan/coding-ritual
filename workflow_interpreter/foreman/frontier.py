@@ -131,7 +131,7 @@ def _dead_end(index: GraphIndex, activation: ActivationRecord) -> DeadEndKind | 
         return DeadEndKind.BOUND_VIOLATED
     node = index.nodes.get(meta.node)
     # Kept in step with `routing.route`: a `fail_code` dead-ends only where the
-    # node does not declare it, whatever the runner claimed (ADR 0004). A
+    # node does not declare it, whatever the crew claimed (ADR 0004). A
     # computed `fail_code` on a declaring node is a routing head like any other.
     if meta.outcome is Outcome.FAIL_CODE and (
         node is None or Outcome.FAIL_CODE not in (node.outcomes or ())

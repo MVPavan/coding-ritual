@@ -23,16 +23,15 @@ from workflow_interpreter.bdio.findings import (
     parse_review_findings,
 )
 from workflow_interpreter.contracts.run_identity import RunIdentity
-from workflow_interpreter.schema.models import JUDGMENT_OUTCOME, Node
-from workflow_interpreter.supervisor.channels import (
+from workflow_interpreter.inspector.channels import (
     REASON_EFFECTS,
     REASON_MARKER_ABSENT,
     path_allowed,
 )
-from workflow_interpreter.supervisor.errors import SupervisorError
-from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge
-from workflow_interpreter.supervisor.gitio import Git, GitSubcommand
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.errors import InspectorError
+from workflow_interpreter.inspector.gitcmd import GitOutputTooLarge
+from workflow_interpreter.inspector.gitio import Git, GitSubcommand
+from workflow_interpreter.inspector.models import (
     RECORD_MODEL,
     AuditFlag,
     BranchAdvance,
@@ -42,11 +41,12 @@ from workflow_interpreter.supervisor.models import (
     EntryKind,
     VerifyResult,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
 )
-from workflow_interpreter.supervisor.verify import VerifyTree, run_checks
-from workflow_interpreter.supervisor.workspace import Workspace
+from workflow_interpreter.inspector.verify import VerifyTree, run_checks
+from workflow_interpreter.inspector.workspace import Workspace
+from workflow_interpreter.schema.models import JUDGMENT_OUTCOME, Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -83,7 +83,7 @@ MAX_REVIEW_ARTIFACT_BYTES: Final[int] = 1024 * 1024
 Far above the carrier's own bound on purpose: the reading budget decides which
 findings are SEEN, and the carrier bound decides how much of them is stored,
 so a long report is still parsed into rows (each one bounded) rather than
-lost. Far below the 32 MB an outputs walk may hold, so a runner cannot make
+lost. Far below the 32 MB an outputs walk may hold, so a crew cannot make
 the host read its whole output directory into memory."""
 TEXT_ARTIFACT_TOO_LARGE: Final[str] = (
     "review artifact {path} exceeds {limit} bytes and was not read{marker}"
@@ -119,7 +119,7 @@ def review_findings(
     Only a node that CAN reject is read this way: `outcomes` is where the graph
     says a node grades someone else's work, and a writer's outputs are its
     product rather than its verdict. The bytes come from the PINNED tree rather
-    than from any directory the runner can still reach, so the extraction
+    than from any directory the crew can still reach, so the extraction
     cannot race the child and two replays of one activation agree.
 
     Exactly ONE named file is read — `REVIEW_REPORT_FILE`, which the graph's
@@ -222,7 +222,7 @@ class EvidenceGrader:
         artifact commit when there is one and `intended_base_commit` when there
         is not (a `no_diff` attempt, or a `writes = false` reviewer, both of
         which are graded at the commit they were given). It is a fact about the
-        checkout `verify.py` created, not a read of a tree the runner can still
+        checkout `verify.py` created, not a read of a tree the crew can still
         write — which is what makes §7.3's anti-drift cross-check mean anything.
         """
         cwd = self._workspace.path_for(node)
@@ -282,12 +282,12 @@ class EvidenceGrader:
         if exit_record.exit_code != 0 and collected.marker is None:
             return ComputedEvidence(
                 completion=CompletionEvidence(
-                    outcome=Outcome.ERROR_RUNNER,
+                    outcome=Outcome.ERROR_CREW,
                     claimed_outcome=None,
                     evidence=evidence,
                     verify_results=results,
                     audit_flags=tuple(output_flags),
-                    reasons=(f"runner exited {exit_record.exit_code}", *output_reasons),
+                    reasons=(f"crew exited {exit_record.exit_code}", *output_reasons),
                     branch=branch,
                 )
             )
@@ -418,9 +418,9 @@ class EvidenceGrader:
         artifact: ArtifactIdentity | None,
         cwd: Path,
     ) -> tuple[str, ...]:
-        """observed ∖ allowed — scope, ignoring what the runner declared.
+        """observed ∖ allowed — scope, ignoring what the crew declared.
 
-        The §7.5 set subtracts the runner's own manifest too, so a node that
+        The §7.5 set subtracts the crew's own manifest too, so a node that
         writes anywhere and says so is graded clean. This is the same observed
         set measured against the node's DECLARED scope alone, which is the
         only question an operator can act on (ADR 0001).
@@ -488,7 +488,7 @@ class EvidenceGrader:
                 disk = self._disk_state(path, cwd=cwd)
                 if disk != self._git.blob_oid_at(base_commit, path, cwd=cwd):
                     written.append(path)
-        except (OSError, SupervisorError) as exc:
+        except (OSError, InspectorError) as exc:
             _LOG.error(
                 "wf.sandbox.physical_check_uncomputable",
                 activation_id=activation_id,

@@ -4,17 +4,17 @@ The backend is pinned per attempt root at creation and never changes, so the
 answer has to exist BEFORE the root is loaded. Three sources, in the plan's
 order:
 
-1. the **bridge record**, whose `root_backend` is written at prepare, before
+1. the **contractor record**, whose `root_backend` is written at prepare, before
    admission creates any root or branch — the only source that can answer for
    a root that does not exist yet;
 2. the **ledger**, whose `roots` row carries the pin the root was created with
-   and whose `tasks` row carries the pin for a run with no bridge (D16);
+   and whose `tasks` row carries the pin for a run with no contractor (D16);
 3. a **refusal** naming the root, because a root nobody pinned is a root that
    could be read from the wrong store — and reading it from the wrong store
    would report a live run as missing.
 
-The bridge's answers arrive as pins rather than as a bd read per call: the
-bridge has the record in hand when it composes a run, and re-reading bd every
+The contractor's answers arrive as pins rather than as a bd read per call: the
+contractor has the record in hand when it composes a run, and re-reading bd every
 tick to learn that the answer is bd is the round trip this whole plan exists
 to remove.
 """
@@ -32,10 +32,10 @@ from workflow_interpreter.ledger.tasks import root_backend, task_backend
 
 MSG_UNPINNED: Final[str] = (
     "no backend is pinned for root {root_id!r} of task {task_id!r}: neither a "
-    "bridge record nor a ledger tasks row names one (run-ledger §3.2)"
+    "contractor record nor a ledger tasks row names one (run-ledger §3.2)"
 )
 MSG_RECORD_DISAGREES: Final[str] = (
-    "bridge record pins root {root_id!r} to {record!r} but this process's "
+    "contractor record pins root {root_id!r} to {record!r} but this process's "
     "store says {store!r}: a root is never moved between backends, so neither "
     "answer may be preferred silently (run-ledger §3.2, D18)"
 )
@@ -64,7 +64,7 @@ class RootBackendLocator:
         self._pins = dict(pins)
 
     def pin(self, root_id: str, backend: BackendKind) -> None:
-        """Record what a bridge record already says about one root.
+        """Record what a contractor record already says about one root.
 
         Called by the composition root with a record it has just read, never
         by a caller inventing an answer: a pin that disagreed with the stored
@@ -79,7 +79,7 @@ class RootBackendLocator:
         self._pins[root_id] = backend
 
     def pin_record(self, root_id: str, backend: BackendKind) -> None:
-        """Record what a BRIDGE RECORD says — the STRONGEST source (§3.2).
+        """Record what a CONTRACTOR RECORD says — the STRONGEST source (§3.2).
 
         The record is written at prepare, before admission creates any root,
         and it is all a restarted process has for an attempt root the ledger

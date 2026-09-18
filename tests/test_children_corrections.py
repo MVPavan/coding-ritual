@@ -11,7 +11,7 @@ from workflow_interpreter.bdio import BdConfig, WorkflowStore
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.foreman.decisions import admission_of
 from workflow_interpreter.foreman.resolve import instantiate
-from workflow_interpreter.supervisor.band import BandLock
+from workflow_interpreter.inspector.band import BandLock
 
 
 @pytest.mark.bd
@@ -103,7 +103,7 @@ def test_signed_halt_resolution_unblocks_child(tmp_path, signing_config, sign_pa
     from tests.test_children_lifecycle import FIXTURE, child_admission
     from workflow_interpreter.bdio import Outcome
     from workflow_interpreter.foreman.gates import halt_gate
-    from workflow_interpreter.supervisor.models import SandboxMode
+    from workflow_interpreter.inspector.models import SandboxMode
 
     lab = ForemanLab(
         tmp_path,
@@ -135,7 +135,7 @@ def test_recover_retries_repaired_child_runtime_failure(tmp_path):
         owner.root_id, "one", admission_of(owner, slot="one", generation=0)
     )
     # Persist a concrete runtime refusal, then repair its cause.
-    from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF as INSTANCE_BRANCH
+    from workflow_interpreter.inspector import INSTANCE_BRANCH_REF as INSTANCE_BRANCH
 
     branch = INSTANCE_BRANCH.format(root_id=child.root_id)
     subprocess.run(["git", "update-ref", "-d", branch], cwd=lab.repo, check=True)
@@ -160,13 +160,13 @@ def test_wrapper_mismatch_is_reported_without_blocking_healthy_sibling(tmp_path)
     lab, owner = owner_lab(tmp_path)
     coordinator = lab.store.coordination_store(composition=lab.composition)
     coordinator.start_child(owner, "bad", child_admission(lab, owner, "bad"))
-    config = lab.supervisor_config.model_copy(
+    config = lab.inspector_config.model_copy(
         update={"wrapper_root": tmp_path / "other"}
     )
     other = replace(
         lab.composition,
-        supervisor_config=config,
-        config=lab.config.model_copy(update={"supervisor": config}),
+        inspector_config=config,
+        config=lab.config.model_copy(update={"inspector": config}),
     )
     other_coordinator = lab.store.coordination_store(composition=other)
     healthy = other_coordinator.start_child(
@@ -183,12 +183,12 @@ def test_cancel_terminates_child_decision_process(tmp_path):
     import time
 
     from tests._foreman import ForemanLab, LockedPersistentBd, ProcSpawner
-    from tests._supervisor import ChildScript
+    from tests._inspector import ChildScript
     from tests.test_children_lifecycle import FIXTURE
+    from workflow_interpreter.inspector import procfs
+    from workflow_interpreter.inspector.clock import SystemClock
+    from workflow_interpreter.inspector.models import Liveness, SandboxMode
     from workflow_interpreter.schema.loader import canonical_bytes
-    from workflow_interpreter.supervisor import procfs
-    from workflow_interpreter.supervisor.clock import SystemClock
-    from workflow_interpreter.supervisor.models import Liveness, SandboxMode
 
     lab = ForemanLab(
         tmp_path,
@@ -247,7 +247,7 @@ def test_cancel_terminates_child_decision_process(tmp_path):
                     break
         assert handle is not None
         assert (
-            procfs.prove_liveness(composition.supervisor_config, handle).status
+            procfs.prove_liveness(composition.inspector_config, handle).status
             is Liveness.ALIVE
         )
         receipt = coordinator.cancel_child(
@@ -256,7 +256,7 @@ def test_cancel_terminates_child_decision_process(tmp_path):
         assert receipt.state == "cancelled"
         assert any(activations[0].activation_id in ref for ref in receipt.evidence)
         assert (
-            procfs.prove_liveness(composition.supervisor_config, handle).status
+            procfs.prove_liveness(composition.inspector_config, handle).status
             is Liveness.DEAD
         )
         before = coordinator.state(owner.root_id)

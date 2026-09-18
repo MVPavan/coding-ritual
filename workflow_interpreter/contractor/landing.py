@@ -1,4 +1,4 @@
-"""The signed, one-shot phase-bridge landing boundary and its recovery."""
+"""The signed, one-shot contract landing boundary and its recovery."""
 
 from __future__ import annotations
 
@@ -11,34 +11,38 @@ from typing import Final, Literal, Protocol
 from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.bridge.adapter import PhaseAdapter
-from workflow_interpreter.bridge.errors import BridgeRefusal
-from workflow_interpreter.bridge.journal import ExportPin, LandingJournal, LandingPhase
-from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
-from workflow_interpreter.bridge.verification import (
+from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.errors import ContractorRefusal
+from workflow_interpreter.contractor.journal import (
+    ExportPin,
+    LandingJournal,
+    LandingPhase,
+)
+from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.verification import (
     CheckResult,
     VerificationPolicy,
     observe_checks,
 )
 from workflow_interpreter.foreman.identifiers import validate_bead_id
-from workflow_interpreter.ledger.paths import (
-    coordinator_dirt,
-    export_path,
-    export_relpath,
-)
-from workflow_interpreter.supervisor.gitcmd import GitSubcommand
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.gitcmd import GitSubcommand
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     record_bytes,
     write_record,
 )
-from workflow_interpreter.supervisor.verify import VerifyTree
+from workflow_interpreter.inspector.verify import VerifyTree
+from workflow_interpreter.ledger.paths import (
+    coordinator_dirt,
+    export_path,
+    export_relpath,
+)
 
-LANDING_SCHEMA: Final = "phase-bridge-landing/2"
-LANDING_INTENT_FILE: Final[str] = "phase-bridge-landing.json"
-LANDING_RECEIPT_FILE: Final[str] = "phase-bridge-landing-receipt.json"
+LANDING_SCHEMA: Final = "contract-landing/2"
+LANDING_INTENT_FILE: Final[str] = "contract-landing.json"
+LANDING_RECEIPT_FILE: Final[str] = "contract-landing-receipt.json"
 SHIP_GATE: Final[str] = "ship"
 T1_MESSAGE: Final[str] = (
     "T1: landing-gate code is trusted candidate-controlled code; it may alter "
@@ -111,7 +115,7 @@ class LandingIntent(BaseModel):
         frozen=True, extra="forbid", populate_by_name=True, serialize_by_alias=True
     )
 
-    schema_version: Literal["phase-bridge-landing/2"] = Field(
+    schema_version: Literal["contract-landing/2"] = Field(
         default=LANDING_SCHEMA, alias="schema", serialization_alias="schema"
     )
     ref: str
@@ -188,7 +192,7 @@ class DetachedRepositoryGate:
     def verify(self, artifact_oid: str, tree: str) -> RepositoryGateResult:
         """Grade the signed commit only after making T1 visible to its operator."""
         if self._git.tree_oid(artifact_oid, cwd=self._paths.config.repo_root) != tree:
-            raise BridgeRefusal(MSG_REPOSITORY_GATE)
+            raise ContractorRefusal(MSG_REPOSITORY_GATE)
         self._operator_output(T1_MESSAGE)
         with VerifyTree(self._git, self._paths, artifact_oid) as checkout:
             results = observe_checks(
@@ -249,11 +253,11 @@ class PhaseLanding:
         """Execute the one allowed CAS after all landing evidence is green."""
         record = self._adapter.record(stage_id)
         if self._journalled_intent(record) is not None or record.state in (
-            PhaseBridgeState.LANDED,
-            PhaseBridgeState.CLOSED,
+            ContractorState.LANDED,
+            ContractorState.CLOSED,
         ):
             return self.recover(stage_id)
-        if record.state not in (PhaseBridgeState.ADMITTED, PhaseBridgeState.LANDING):
+        if record.state not in (ContractorState.ADMITTED, ContractorState.LANDING):
             return LandingResult(
                 disposition=LandingDisposition.HUMAN_ATTENTION,
                 reason="stage is not eligible for fresh landing",
@@ -304,7 +308,7 @@ class PhaseLanding:
 
     def _cas(
         self,
-        record: PhaseBridgeRecord,
+        record: ContractorRecord,
         intent: LandingIntent,
         repository_gate: RepositoryGateResult,
     ) -> LandingResult:
@@ -313,13 +317,13 @@ class PhaseLanding:
 
         guard = self._adapter.integration_guard
         if record.integration_digest is not None and guard is None:
-            raise BridgeRefusal("integration requires runtime guard")
-        from workflow_interpreter.foreman.replacement import bridge_landing_locks
+            raise ContractorRefusal("integration requires runtime guard")
+        from workflow_interpreter.foreman.replacement import contractor_landing_locks
 
         context = (
             guard.ordered(guard.association(record))
             if record.integration_digest is not None and guard is not None
-            else bridge_landing_locks(guard.composition, record)
+            else contractor_landing_locks(guard.composition, record)
             if guard is not None
             else nullcontext()
         )
@@ -355,38 +359,40 @@ class PhaseLanding:
         return self._finish(record, intent, repository_gate)
 
     def _authorized_intent(
-        self, record: PhaseBridgeRecord
+        self, record: ContractorRecord
     ) -> tuple[LandingIntent, GateEvidence]:
         """Revalidate the durable journal and its authenticated artifact authority."""
         self._policy(record)
         intent = self._journalled_intent(record)
         if intent is None:
-            raise BridgeRefusal("landing intent is missing")
+            raise ContractorRefusal("landing intent is missing")
         if not self._identity_matches(record, intent):
-            raise BridgeRefusal(MSG_IDENTITY)
+            raise ContractorRefusal(MSG_IDENTITY)
         evidence = self._gate_evidence(record)
         if not self._intent_matches_gate(intent, evidence):
-            raise BridgeRefusal(MSG_GATE_MISMATCH)
+            raise ContractorRefusal(MSG_GATE_MISMATCH)
         if not self._git.is_ancestor(
             intent.expected_base, intent.artifact_oid, cwd=self._repo_root
         ):
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 "intent artifact is not a fast-forward from the admitted base"
             )
         if self._git.tree_oid(intent.artifact_oid, cwd=self._repo_root) != intent.tree:
-            raise BridgeRefusal(MSG_GATE_MISMATCH)
+            raise ContractorRefusal(MSG_GATE_MISMATCH)
         return intent, evidence
 
     def retry_landing(self, stage_id: str) -> LandingResult:
         """Explicitly retry the same pending intent; never admit or run agents."""
         record = self._adapter.record(stage_id)
-        if record.state is not PhaseBridgeState.ADMITTED:
-            raise BridgeRefusal(
+        if record.state is not ContractorState.ADMITTED:
+            raise ContractorRefusal(
                 "--retry-landing requires an admitted pending intent, not landed work"
             )
         intent, evidence = self._authorized_intent(record)
         if self._journalled_receipt(record) is not None:
-            raise BridgeRefusal("--retry-landing refuses an existing landing receipt")
+            raise ContractorRefusal(
+                "--retry-landing refuses an existing landing receipt"
+            )
         observed = self._git.ref_target(intent.ref, cwd=self._repo_root)
         if observed != intent.expected_base:
             return LandingResult(
@@ -412,7 +418,7 @@ class PhaseLanding:
         # Checks are trusted T1 code, but may have changed the journal or stage.
         current = self._adapter.record(stage_id)
         if current != record or self._authorized_intent(current)[0] != intent:
-            raise BridgeRefusal(MSG_IDENTITY)
+            raise ContractorRefusal(MSG_IDENTITY)
         return self._cas(record, intent, results)
 
     def recover(self, stage_id: str) -> LandingResult:
@@ -426,14 +432,14 @@ class PhaseLanding:
             )
         intent, evidence = self._authorized_intent(record)
         if (
-            record.state is PhaseBridgeState.CLOSED
+            record.state is ContractorState.CLOSED
             and self._adapter.show(stage_id).status == "closed"
         ):
             return self._historical(record, intent, evidence)
         observed_target = self._git.ref_target(intent.ref, cwd=self._repo_root)
         if observed_target == intent.expected_base:
             if (
-                record.state is not PhaseBridgeState.ADMITTED
+                record.state is not ContractorState.ADMITTED
                 or self._journalled_receipt(record) is not None
             ):
                 return LandingResult(
@@ -468,7 +474,7 @@ class PhaseLanding:
         return self._finish(record, intent, repository_gate)
 
     def _historical(
-        self, record: PhaseBridgeRecord, intent: LandingIntent, evidence: GateEvidence
+        self, record: ContractorRecord, intent: LandingIntent, evidence: GateEvidence
     ) -> LandingResult:
         """Validate historical completion without executing old host tools."""
         self._adapter.guard_integration(record, post_cas=True)
@@ -479,7 +485,7 @@ class PhaseLanding:
             self._adapter.integration_guard.finished(record)
         receipt = self._journalled_receipt(record)
         if receipt is None:
-            raise BridgeRefusal("closed stage is missing its landing receipt")
+            raise ContractorRefusal("closed stage is missing its landing receipt")
         result = RepositoryGateResult(
             artifact_oid=intent.artifact_oid,
             tree=intent.tree,
@@ -495,7 +501,7 @@ class PhaseLanding:
             )
             or not self._relation_matches(record, intent, _digest_record(receipt))
         ):
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 "closed relation, policy, intent and receipt do not correspond"
             )
         return LandingResult(
@@ -506,7 +512,7 @@ class PhaseLanding:
 
     @staticmethod
     def _relation_matches(
-        record: PhaseBridgeRecord, intent: LandingIntent, digest: str
+        record: ContractorRecord, intent: LandingIntent, digest: str
     ) -> bool:
         """A persisted landed/closed relation must name exactly this receipt."""
         return (
@@ -552,7 +558,7 @@ class PhaseLanding:
 
     def _finish(
         self,
-        record: PhaseBridgeRecord,
+        record: ContractorRecord,
         intent: LandingIntent,
         repository_gate: RepositoryGateResult,
     ) -> LandingResult:
@@ -582,15 +588,15 @@ class PhaseLanding:
         else:
             receipt_digest = _digest_record(existing)
         if record.state in (
-            PhaseBridgeState.LANDED,
-            PhaseBridgeState.CLOSED,
+            ContractorState.LANDED,
+            ContractorState.CLOSED,
         ) and not self._relation_matches(record, intent, receipt_digest):
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 "persisted landed relation does not match landing receipt digest or artifact"
             )
         landed = (
             record
-            if record.state is PhaseBridgeState.CLOSED
+            if record.state is ContractorState.CLOSED
             else record.landed(
                 intent.artifact_oid,
                 intent.tree,
@@ -598,7 +604,7 @@ class PhaseLanding:
                 receipt_digest,
             )
         )
-        if landed.state is not PhaseBridgeState.CLOSED:
+        if landed.state is not ContractorState.CLOSED:
             self._adapter.land(record.stage_id, landed)
         if landed.export_oid is None:
             # §3.6: export, pin, record the oid, and only then close — the
@@ -610,11 +616,11 @@ class PhaseLanding:
         self._adapter.close(record.stage_id, landed, receipt_digest)
         return LandingResult(disposition=LandingDisposition.CLOSED, intent=intent)
 
-    def _gate_evidence(self, record: PhaseBridgeRecord) -> GateEvidence:
+    def _gate_evidence(self, record: ContractorRecord) -> GateEvidence:
         """Require the re-verified ship decision to agree with the stage root."""
         self._policy(record)
         if record.root_id is None:
-            raise BridgeRefusal(MSG_IDENTITY)
+            raise ContractorRefusal(MSG_IDENTITY)
         evidence = self._gate_authority.verify(record.root_id)
         if (
             evidence.root_id != record.root_id
@@ -623,14 +629,14 @@ class PhaseLanding:
             or not evidence.immutable
             or not evidence.accepted
         ):
-            raise BridgeRefusal(MSG_GATE_MISMATCH)
+            raise ContractorRefusal(MSG_GATE_MISMATCH)
         return evidence
 
     @staticmethod
     def _repository_gate_matches(
         repository_gate: RepositoryGateResult,
         evidence: GateEvidence,
-        record: PhaseBridgeRecord,
+        record: ContractorRecord,
     ) -> bool:
         """Require a complete repository result for the signed artifact itself."""
         return (
@@ -644,7 +650,7 @@ class PhaseLanding:
         )
 
     @staticmethod
-    def _identity_matches(record: PhaseBridgeRecord, intent: LandingIntent) -> bool:
+    def _identity_matches(record: ContractorRecord, intent: LandingIntent) -> bool:
         """Reject a recovery whose stage journal cannot identify one attempt."""
         return (
             record.root_id == intent.root_id
@@ -657,10 +663,10 @@ class PhaseLanding:
             and record.root_id is not None
             and record.state
             in (
-                PhaseBridgeState.ADMITTED,
-                PhaseBridgeState.LANDING,
-                PhaseBridgeState.LANDED,
-                PhaseBridgeState.CLOSED,
+                ContractorState.ADMITTED,
+                ContractorState.LANDING,
+                ContractorState.LANDED,
+                ContractorState.CLOSED,
             )
         )
 
@@ -741,31 +747,31 @@ class PhaseLanding:
             return MSG_EXPORT_CHANGED
         return None
 
-    def _policy(self, record: PhaseBridgeRecord) -> VerificationPolicy:
+    def _policy(self, record: ContractorRecord) -> VerificationPolicy:
         """Old journals and a different root directory cannot confer authority."""
         try:
             validate_bead_id(self._paths.root_id)
         except ValueError as error:
-            raise BridgeRefusal(str(error)) from error
+            raise ContractorRefusal(str(error)) from error
         if (
             self._paths.instance_dir.resolve()
             != self._paths.config.wrapper_root.resolve() / self._paths.root_id
         ):
-            raise BridgeRefusal(MSG_IDENTITY)
+            raise ContractorRefusal(MSG_IDENTITY)
         if (
             record.root_id != self._paths.root_id
             or self._repo_root != self._paths.config.repo_root
         ):
-            raise BridgeRefusal(MSG_IDENTITY)
+            raise ContractorRefusal(MSG_IDENTITY)
         if self._adapter.integration_guard is not None:
-            from workflow_interpreter.foreman.replacement import guard_bridge
+            from workflow_interpreter.foreman.replacement import guard_contractor
 
-            guard_bridge(self._adapter.integration_guard.composition, record)
+            guard_contractor(self._adapter.integration_guard.composition, record)
         elif record.successor_key is not None:
-            raise BridgeRefusal("successor requires runtime guard")
+            raise ContractorRefusal("successor requires runtime guard")
         if record.verification_policy is None:
-            raise BridgeRefusal(
-                "legacy bridge journal lacks verification policy; human attention required"
+            raise ContractorRefusal(
+                "legacy contractor journal lacks verification policy; human attention required"
             )
         return record.verification_policy
 
@@ -773,10 +779,10 @@ class PhaseLanding:
         """Persist and immediately read back the pre-CAS intent."""
         existing = read_record(self._intent_path(), LandingIntent)
         if existing is not None and existing != intent:
-            raise BridgeRefusal(MSG_IDENTITY)
+            raise ContractorRefusal(MSG_IDENTITY)
         write_record(self._intent_path(), intent)
         if read_record(self._intent_path(), LandingIntent) != intent:
-            raise BridgeRefusal(MSG_IDENTITY)
+            raise ContractorRefusal(MSG_IDENTITY)
         # File, then row, and both BEFORE the CAS (D17): the row exists so
         # that recovery survives a deleted wrapper directory, and it is
         # written second so a row can never describe an intent no file ever
@@ -784,7 +790,7 @@ class PhaseLanding:
         if self._journal is not None:
             self._journal.record(intent.attempt, LandingPhase.INTENT, intent)
 
-    def _journalled_intent(self, record: PhaseBridgeRecord) -> LandingIntent | None:
+    def _journalled_intent(self, record: ContractorRecord) -> LandingIntent | None:
         """The landing intent: the wrapper file first, the ledger row second.
 
         The file leads because it is what every existing recovery path
@@ -797,7 +803,7 @@ class PhaseLanding:
             return found
         return self._journal.read(record.attempt, LandingPhase.INTENT, LandingIntent)
 
-    def _journalled_receipt(self, record: PhaseBridgeRecord) -> LandingReceipt | None:
+    def _journalled_receipt(self, record: ContractorRecord) -> LandingReceipt | None:
         """The landing receipt, file first and ledger row as fallback (D17)."""
         found = read_record(self._receipt_path(), LandingReceipt)
         if found is not None or self._journal is None:
@@ -807,7 +813,7 @@ class PhaseLanding:
     def _pin_export(self, task_id: str, backend: BackendKind) -> str:
         """Put this task's whole record in git, or refuse to close (§3.6)."""
         if self._export is None:
-            raise BridgeRefusal(MSG_NO_EXPORT.format(task_id=task_id))
+            raise ContractorRefusal(MSG_NO_EXPORT.format(task_id=task_id))
         return self._export.pin(task_id, backend)
 
     def _intent_path(self) -> Path:

@@ -1,10 +1,10 @@
-"""§8.2 monitoring — supervisor-owned, and token-free by construction.
+"""§8.2 monitoring — inspector-owned, and token-free by construction.
 
 Everything here is `stat()`, `/proc` and `waitpid`. No model reads a byte of
-the runner's log, and nothing in this loop can consume a token even in
+the crew's log, and nothing in this loop can consume a token even in
 principle, which is what makes drill 14's property ("the stale flag is written
 while the foreman process is not running") true structurally rather than by
-measurement: the loop belongs to the supervisor process, which is alive for the
+measurement: the loop belongs to the inspector process, which is alive for the
 child's lifetime, and the foreman under manual ticks usually is not.
 
 Two enforcement powers, per §8.2's table:
@@ -14,7 +14,7 @@ Two enforcement powers, per §8.2's table:
   for a tier-2 decision, not a verdict — but the watch is terminable: one
   further `stale_after` of silence and the wrapper TERMs the group exactly as
   a runaway is TERMed, with `stale` as the recorded reason. Any byte in
-  between restarts the count, so only a runner that stays silent is ended.
+  between restarts the count, so only a crew that stays silent is ended.
 - **Runaway** — `max_wall` breached: TERM the group and record the exit reason.
 
 **Nothing terminal is ever recorded without proof.** Two observations end a
@@ -26,7 +26,7 @@ Absence of evidence is not evidence of death, and the honest answer here is to
 hold position.
 
 Activity is byte growth plus mtime, and §8.2 is explicit that this is activity,
-not proof of progress — a runner in a tight retry loop looks busy here, and the
+not proof of progress — a crew in a tight retry loop looks busy here, and the
 §10.5 no-progress breaker (artifact identity) is what actually catches it.
 """
 
@@ -40,12 +40,10 @@ import structlog
 from pydantic import BaseModel
 
 from workflow_interpreter.bdio import ProcessHandle
-from workflow_interpreter.schema.graph_index import duration_seconds
-from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor.clock import Clock, elapsed_seconds, to_iso
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector.clock import Clock, elapsed_seconds, to_iso
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.models import (
     RECORD_MODEL,
     ExitReason,
     Liveness,
@@ -55,11 +53,13 @@ from workflow_interpreter.supervisor.models import (
     StaleFlag,
     TerminationProof,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     write_record,
 )
+from workflow_interpreter.schema.graph_index import duration_seconds
+from workflow_interpreter.schema.models import Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -73,7 +73,7 @@ TERMINAL_VERDICTS: Final[frozenset[MonitorVerdict]] = frozenset(
 
 STALE_WINDOWS_BEFORE_TERMINATION: Final[int] = 2
 """§8.2: one `stale_after` raises the flag, a SECOND one of unbroken silence
-ends the child. Counted from the last activity, not from the flag, so a runner
+ends the child. Counted from the last activity, not from the flag, so a crew
 that speaks again buys itself the whole policy back."""
 
 
@@ -110,11 +110,11 @@ class PendingTermination(BaseModel):
 
 
 class Monitor:
-    """One activation's §8.2 watch loop, owned by the supervisor process."""
+    """One activation's §8.2 watch loop, owned by the inspector process."""
 
     def __init__(
         self,
-        config: SupervisorConfig,
+        config: InspectorConfig,
         paths: WrapperPaths,
         clock: Clock,
         *,
@@ -130,7 +130,7 @@ class Monitor:
         self._limits = limits
         self._last_size = 0
         self._last_activity = handle.started_at
-        """Seeded from the dispatch, not from the first poll: a runner that
+        """Seeded from the dispatch, not from the first poll: a crew that
         never writes a single event must still go stale `stale_after` after it
         STARTED, not `stale_after` after somebody happened to look (§8.2)."""
         self._last_proof_error: str | None = None
@@ -210,7 +210,7 @@ class Monitor:
         `on_cycle` is how a non-terminal observation reaches anything outside
         this loop — §8.2 requires the stale flag in bd as well as on disk, and
         the loop itself is deliberately incapable of writing to bd. The
-        supervisor process that owns this loop does the mirroring; nothing in
+        inspector process that owns this loop does the mirroring; nothing in
         here gains a store, a model, or a way to spend a token (drill 14).
         """
         while True:
@@ -283,7 +283,7 @@ class Monitor:
         return self._result(MonitorVerdict.INDETERMINATE, now, size)
 
     def _log_size(self) -> int:
-        """The runner log's byte count — the whole of the activity signal."""
+        """The crew log's byte count — the whole of the activity signal."""
         try:
             return self._paths.log(self._activation_id).stat().st_size
         except (FileNotFoundError, NotADirectoryError):
@@ -310,7 +310,7 @@ class Monitor:
     ) -> MonitorResult:
         """TERM the group after a SECOND silent `stale_after` window (§8.2).
 
-        The flag alone was only ever a hint, so a runner that went quiet and
+        The flag alone was only ever a hint, so a crew that went quiet and
         stayed quiet was watched forever: nothing but `max_wall` — often hours
         away, and unset on plenty of nodes — could end it. The second window is
         what makes the flag a watch: the first is the warning that reaches bd,
@@ -321,7 +321,7 @@ class Monitor:
         empty is TERMed on this wrapper's FIRST observation, raising the flag
         and terminating in one cycle, so the foreman never gets its tier-2
         steer window. That is the honest reading of the evidence — a wrapper
-        adopting a runner that has not written one byte in two full windows has
+        adopting a crew that has not written one byte in two full windows has
         nothing suggesting it ever spoke — and the flag is still written to
         disk and mirrored to bd, so the decision remains visible after the
         fact.

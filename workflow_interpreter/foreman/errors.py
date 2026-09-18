@@ -10,8 +10,8 @@ class ResolutionError(ValueError):
     """A caller supplied a setting that has no declared configuration home."""
 
 
-class UnresolvedRunnerError(ResolutionError):
-    """A root pins a role-bound node without the resolution of its runner."""
+class UnresolvedCrewError(ResolutionError):
+    """A root pins a role-bound node without the resolution of its crew."""
 
 
 class UnusableResolutionError(ResolutionError):

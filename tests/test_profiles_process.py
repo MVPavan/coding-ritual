@@ -1,6 +1,6 @@
 """The profiles driven through the REAL phase-3 machinery, with stub CLIs.
 
-Nothing here is mocked below the profile: a real `Supervisor.run`, a real
+Nothing here is mocked below the profile: a real `Inspector.run`, a real
 `ForkBarrierLauncher`, a real fork/exec into a real process, a real exec ledger,
 a real §5.4 worktree precondition and a real §7 grading pass. Only the vendor
 binary is a stand-in — an `sh` script that emits that vendor's JSONL shape and
@@ -23,6 +23,9 @@ from typing import Final
 
 import pytest
 
+from tests._inspector import (
+    make_repo,
+)
 from tests._profiles import (
     FD0_FILE,
     FORGED_LINE,
@@ -33,15 +36,12 @@ from tests._profiles import (
     Lab,
     add_remote,
 )
-from tests._supervisor import (
-    make_repo,
-)
 from workflow_interpreter.bdio import Lifecycle
-from workflow_interpreter.profiles import RunnerName
+from workflow_interpreter.inspector import ExecLedger
+from workflow_interpreter.inspector.models import LaunchReceipt
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.profiles import CrewName
 from workflow_interpreter.profiles._base import PUSH_SINK
-from workflow_interpreter.supervisor import ExecLedger
-from workflow_interpreter.supervisor.models import LaunchReceipt
-from workflow_interpreter.supervisor.paths import read_record
 
 MISSING_BINARY: Final[str] = "/nonexistent/vendor-cli"
 EXIT_EXEC_FAILED: Final[int] = 127
@@ -50,10 +50,10 @@ POSIX convention, and drill 22's injection point."""
 
 
 @pytest.mark.proc
-@pytest.mark.parametrize("runner", [RunnerName.CLAUDE, RunnerName.CODEX])
+@pytest.mark.parametrize("crew", [CrewName.CLAUDE, CrewName.CODEX])
 @pytest.mark.parametrize("writes", [True, False])
 def test_a_real_profile_dispatches_and_reaches_exit_recorded(
-    lab: Lab, runner: RunnerName, writes: bool
+    lab: Lab, crew: CrewName, writes: bool
 ) -> None:
     """Phase 4 composes with phase 3: one exec, one exit, one bd mirror.
 
@@ -61,7 +61,7 @@ def test_a_real_profile_dispatches_and_reaches_exit_recorded(
     genuinely different invocations — codex even runs them from different
     working directories.
     """
-    result = lab.run(runner, writes=writes)
+    result = lab.run(crew, writes=writes)
 
     activation_id = result.dispatch.activation.activation_id
     assert ExecLedger(lab.paths.ledger(activation_id)).count() == 1
@@ -79,7 +79,7 @@ def test_the_receipt_records_the_argv_the_profile_actually_built(lab: Lab) -> No
     difference between "the profile intended read-only" and "a read-only child
     really ran".
     """
-    result = lab.run(RunnerName.CODEX, writes=False)
+    result = lab.run(CrewName.CODEX, writes=False)
 
     receipt = result.dispatch.receipt
     assert receipt is not None
@@ -94,7 +94,7 @@ def test_the_receipt_records_the_argv_the_profile_actually_built(lab: Lab) -> No
 @pytest.mark.proc
 def test_a_writing_node_runs_in_the_checkout(lab: Lab) -> None:
     """`writes = true` is repo-worktree write access, so that is the cwd."""
-    result = lab.run(RunnerName.CODEX, writes=True)
+    result = lab.run(CrewName.CODEX, writes=True)
 
     receipt = result.dispatch.receipt
     assert receipt is not None
@@ -103,16 +103,16 @@ def test_a_writing_node_runs_in_the_checkout(lab: Lab) -> None:
 
 @pytest.mark.proc
 @pytest.mark.parametrize(
-    "runner",
+    "crew",
     [
-        pytest.param(RunnerName.CODEX, id="codex-sandbox-backed"),
-        pytest.param(RunnerName.CLAUDE, id="claude-layout-only"),
+        pytest.param(CrewName.CODEX, id="codex-sandbox-backed"),
+        pytest.param(CrewName.CLAUDE, id="claude-layout-only"),
     ],
 )
 def test_a_child_cannot_forge_the_wrapper_records_from_inside_its_grant(
-    lab: Lab, runner: RunnerName
+    lab: Lab, crew: CrewName
 ) -> None:
-    """B2: the runner's writable surface and the wrapper's records are disjoint.
+    """B2: the crew's writable surface and the wrapper's records are disjoint.
 
     The stub writes every wrapper record it could reach the only way a sandboxed
     child could — relative to the directory holding `$WF_OUTCOME_FILE` —
@@ -130,7 +130,7 @@ def test_a_child_cannot_forge_the_wrapper_records_from_inside_its_grant(
 
     - `codex-sandbox-backed` — the layout is backed by an OS bound. Codex's
       writable root is exactly `channels/` on a `writes = false` node, plus the
-      checkout on a writing one, and `SupervisorConfig` refuses a `wrapper_root`
+      checkout on a writing one, and `InspectorConfig` refuses a `wrapper_root`
       inside `repo_root` so the activation directory is outside both.
       Enforcement itself is the `live` family's to show; this shows the layout it
       enforces.
@@ -141,7 +141,7 @@ def test_a_child_cannot_forge_the_wrapper_records_from_inside_its_grant(
       permission engine was not asked about. That residual is §0.3's cooperative
       one and no assertion here closes it.
     """
-    result = lab.run(runner, forge=True)
+    result = lab.run(crew, forge=True)
 
     activation_id = result.dispatch.activation.activation_id
     ledger = ExecLedger(lab.paths.ledger(activation_id))
@@ -173,17 +173,17 @@ def test_a_broken_cli_binary_leaves_one_countable_exec_and_no_graded_outcome(
     The barrier still completes — the child appends its ledger line BEFORE it
     execs — so the attempt is countable, which is what the drill's
     `1 + max_infra_retries` arithmetic is made of. The exit code is 127 rather
-    than a runner's, and `$WF_OUTCOME_FILE` holds nothing, so §7 has no claim to
+    than a crew's, and `$WF_OUTCOME_FILE` holds nothing, so §7 has no claim to
     grade and no outcome is recorded.
 
-    Renamed from `..._is_a_transport_failure_not_a_runner_verdict`, which
+    Renamed from `..._is_a_transport_failure_not_a_crew_verdict`, which
     claimed more than it showed: "no stored outcome" is true of a transport
     failure AND of a clean run that never wrote a marker, so it discriminated
     nothing about ROUTING. Drill 22's other half — that the foreman routes this
     to `error_transport` and spends an infra retry rather than a review round —
     is phase-5 work, because nothing in phase 4 routes anything.
     """
-    result = lab.run(RunnerName.CLAUDE, binary=MISSING_BINARY)
+    result = lab.run(CrewName.CLAUDE, binary=MISSING_BINARY)
 
     activation_id = result.dispatch.activation.activation_id
     assert ExecLedger(lab.paths.ledger(activation_id)).count() == 1
@@ -195,22 +195,22 @@ def test_a_broken_cli_binary_leaves_one_countable_exec_and_no_graded_outcome(
 
 
 @pytest.mark.proc
-def test_the_runners_stream_is_stored_only_inside_the_wrapper_directory(
+def test_the_crews_stream_is_stored_only_inside_the_wrapper_directory(
     lab: Lab,
 ) -> None:
     """Drill 20, the half about STORAGE: the stream lands in `.wf/` and nowhere else.
 
     The profile never opens the log at all — `launch.py::_child` dup2s it onto
     the child's stdout and stderr — so what is provable here is that the
-    runner's bytes exist in exactly one place and that place is inside `.wf/`.
+    crew's bytes exist in exactly one place and that place is inside `.wf/`.
 
-    Renamed from `test_no_runner_log_bytes_leave_the_wrapper_directory`, which
+    Renamed from `test_no_crew_log_bytes_leave_the_wrapper_directory`, which
     read as a claim about the foreman never LOADING the transcript. That half —
     §8.2's "the foreman's model reads bytes only at transitions", byte-budgeted
     — belongs to whatever does the reading, and nothing in phase 4 reads a log
     into a model at all. Phase 5.
     """
-    result = lab.run(RunnerName.CLAUDE)
+    result = lab.run(CrewName.CLAUDE)
 
     activation_id = result.dispatch.activation.activation_id
     log = lab.paths.log(activation_id)
@@ -226,8 +226,8 @@ def test_the_runners_stream_is_stored_only_inside_the_wrapper_directory(
 
 @pytest.mark.proc
 def test_the_envelope_reads_the_log_the_launcher_created(lab: Lab) -> None:
-    """The §6 envelope is computed from the runner's own stream, end to end."""
-    result = lab.run(RunnerName.CLAUDE)
+    """The §6 envelope is computed from the crew's own stream, end to end."""
+    result = lab.run(CrewName.CLAUDE)
 
     assert result.observation is not None
     usage = result.observation.usage
@@ -238,7 +238,7 @@ def test_the_envelope_reads_the_log_the_launcher_created(lab: Lab) -> None:
 
 @pytest.mark.proc
 def test_usage_unknown_is_legal_all_the_way_through(lab: Lab) -> None:
-    """§6: a runner that reports no usage still completes; `max_wall` still holds."""
+    """§6: a crew that reports no usage still completes; `max_wall` still holds."""
     silent = lab.bin / "stub-silent"
     silent.write_text(
         "#!/bin/sh\n"
@@ -250,7 +250,7 @@ def test_usage_unknown_is_legal_all_the_way_through(lab: Lab) -> None:
     )
     silent.chmod(0o755)
 
-    result = lab.run(RunnerName.CODEX, binary=silent)
+    result = lab.run(CrewName.CODEX, binary=silent)
 
     assert result.observation is not None
     assert result.observation.exit_record.exit_code == 0
@@ -263,21 +263,21 @@ def test_a_codex_session_id_is_discovered_from_the_stream_and_reported(
     lab: Lab,
 ) -> None:
     """§5.2 deviation, made visible: codex names its own thread in event one."""
-    result = lab.run(RunnerName.CODEX)
+    result = lab.run(CrewName.CODEX)
 
     assert result.observation is not None
     assert result.observation.collected.session_id == STUB_SESSION
 
 
 @pytest.mark.proc
-def test_the_profile_execs_through_the_supervisors_launcher(lab: Lab) -> None:
+def test_the_profile_execs_through_the_inspectors_launcher(lab: Lab) -> None:
     """§5.2/§6: the fork barrier is not delegable, and `launch.py` checks.
 
     A profile that forked its own child would produce no receipt under this
     launch id, and the dispatcher refuses. The evidence that it did NOT is a
     receipt whose handle matches the ledger line.
     """
-    result = lab.run(RunnerName.CLAUDE)
+    result = lab.run(CrewName.CLAUDE)
 
     receipt = result.dispatch.receipt
     assert receipt is not None
@@ -295,7 +295,7 @@ def test_the_childs_stdin_is_dev_null(lab: Lab, tmp_path: Path) -> None:
 
     Every CLI probed reads or waits on stdin — claude stalls three seconds per
     launch and then warns, codex announces "Reading additional input from
-    stdin..." — and a runner given no prompt argument blocks on it outright.
+    stdin..." — and a crew given no prompt argument blocks on it outright.
 
     The test PUTS a recognisable file on its own fd 0 first, because a harness
     whose stdin already happens to be `/dev/null` would make this pass either
@@ -308,7 +308,7 @@ def test_the_childs_stdin_is_dev_null(lab: Lab, tmp_path: Path) -> None:
     supplied = os.open(marker, os.O_RDONLY)
     try:
         os.dup2(supplied, 0)
-        result = lab.dispatch(RunnerName.CODEX, sleep_s=0.0, fd0_probe=True)
+        result = lab.dispatch(CrewName.CODEX, sleep_s=0.0, fd0_probe=True)
         assert result.handle is not None
         assert lab.await_exit(result.handle) == 0
     finally:
@@ -327,9 +327,9 @@ def test_the_childs_stdin_is_dev_null(lab: Lab, tmp_path: Path) -> None:
 
 
 @pytest.mark.proc
-@pytest.mark.parametrize("runner", [RunnerName.CLAUDE, RunnerName.CODEX])
+@pytest.mark.parametrize("crew", [CrewName.CLAUDE, CrewName.CODEX])
 def test_a_push_from_inside_the_child_env_is_rewritten_to_the_sink(
-    lab: Lab, runner: RunnerName
+    lab: Lab, crew: CrewName
 ) -> None:
     """M5b: "no profile ever pushes", for every vendor and every URL spelling.
 
@@ -346,12 +346,12 @@ def test_a_push_from_inside_the_child_env_is_rewritten_to_the_sink(
     entry on the empty prefix covers them, and only asserting on all four can
     tell the difference.
     """
-    repo = make_repo(lab.tmp_path, name=f"push-probe-{runner.value}")
+    repo = make_repo(lab.tmp_path, name=f"push-probe-{crew.value}")
     for name, url in PUSH_PROBE_REMOTES:
         add_remote(repo, name, url)
 
     result = lab.dispatch(
-        runner,
+        crew,
         session_id="",
         sleep_s=0.0,
         push_probe=True,

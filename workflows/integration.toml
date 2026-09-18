@@ -5,13 +5,13 @@ entry = "integrate"
 description = "Fresh combined tree, independent review, explicit human ship"
 [instance]
 max_total_activations = 4
-phase_bridge_retry_terminals = ["shipped", "abandoned"]
+contractor_retry_terminals = ["shipped", "abandoned"]
 [fallback]
 to = "halt"
 [[node]]
 name = "integrate"
 kind = "task"
-runner = "profile:implementer"
+crew = "profile:implementer"
 model = "default"
 instructions = """
 Integrate EVERY repository contribution in integration_sources on target_base.
@@ -50,7 +50,7 @@ outcomes = ["done", "fail_code", "fail_plan"]
 [[node]]
 name = "review"
 kind = "task"
-runner = "profile:critic"
+crew = "profile:critic"
 model = "default"
 instructions = """
 Review the actual candidate tree and candidate_diff against EVERY contribution

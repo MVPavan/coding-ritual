@@ -1,4 +1,4 @@
-"""Bridge-owned additions to the human gate view."""
+"""Contractor-owned additions to the human gate view."""
 
 from __future__ import annotations
 
@@ -6,26 +6,26 @@ from typing import Final
 
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
-from workflow_interpreter.bridge.adapter import PhaseAdapter, PhaseAdapterError
+from workflow_interpreter.contractor.adapter import PhaseAdapter, PhaseAdapterError
 
-_INSTANCE_KEY_PREFIX: Final[str] = "phase-bridge:"
+_INSTANCE_KEY_PREFIX: Final[str] = "contract:"
 _ATTEMPT_DELIMITER: Final[str] = ":attempt:"
 MSG_INSTANCE_KEY_MISMATCH: Final[str] = (
-    "phase bridge stage {stage_id!r} does not own root instance_key {instance_key!r}"
+    "contractor stage {stage_id!r} does not own root instance_key {instance_key!r}"
 )
 
 
-def phase_bridge_gate_view(
+def contractor_gate_view(
     instance_key: str, config: BdConfig, *, root_id: str, reads: WorkflowReads
 ) -> dict[str, object]:
-    """Render retry evidence only for roots admitted through the phase bridge.
+    """Render retry evidence only for roots admitted through the contractor.
 
     The stage record remains the authority for attempts, so ordinary interpreter
-    roots never receive bridge-specific metadata and do not cause an extra read.
+    roots never receive contractor-specific metadata and do not cause an extra read.
 
     `config` builds the TASK bead's transport, which stays bd (§3.2), and
     `reads` is the store THIS ROOT is pinned to: `owns_root` is a root lookup,
-    and a bridge view that asked bd about a ledger-backed root would answer
+    and a contractor view that asked bd about a ledger-backed root would answer
     that a live run does not exist.
     """
     stage_id = _stage_id(instance_key)
@@ -54,7 +54,7 @@ def phase_bridge_gate_view(
 
 
 def _stage_id(instance_key: str) -> str | None:
-    """Extract the stage segment from the bridge's own canonical root key."""
+    """Extract the stage segment from the contractor's own canonical root key."""
     if not instance_key.startswith(_INSTANCE_KEY_PREFIX):
         return None
     identity, delimiter, attempt = instance_key.rpartition(_ATTEMPT_DELIMITER)

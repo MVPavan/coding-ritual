@@ -167,7 +167,7 @@ class NodeSetting(SettingKey):
     for the write mode that determines a retry's base commit.
     """
 
-    RUNNER = "node.{scope}.runner"
+    CREW = "node.{scope}.crew"
     MODEL = "node.{scope}.model"
     EFFORT = "node.{scope}.effort"
     ISOLATION = "node.{scope}.isolation"
@@ -405,7 +405,7 @@ class Evidence(BaseModel):
 
 
 class Usage(BaseModel):
-    """Normalized runner usage; `input_tokens` excludes cache layers (§6)."""
+    """Normalized crew usage; `input_tokens` excludes cache layers (§6)."""
 
     model_config = WIRE_MODEL
 

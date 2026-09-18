@@ -6,8 +6,8 @@ from typing import Final, Protocol
 
 from workflow_interpreter.bdio.records import GateRecord, RootRecord
 from workflow_interpreter.bdio.wire import GateState
-from workflow_interpreter.bridge.errors import BridgeRefusal
-from workflow_interpreter.bridge.landing import SHIP_GATE, GateEvidence
+from workflow_interpreter.contractor.errors import ContractorRefusal
+from workflow_interpreter.contractor.landing import SHIP_GATE, GateEvidence
 from workflow_interpreter.schema.models import BindsMode, NodeKind, Outcome
 
 MSG_SHIP_GATE_MISSING: Final[str] = (
@@ -63,9 +63,9 @@ class BeadGateAuthority:
             )
         )
         if not gates:
-            raise BridgeRefusal(MSG_SHIP_GATE_MISSING.format(root_id=root_id))
+            raise ContractorRefusal(MSG_SHIP_GATE_MISSING.format(root_id=root_id))
         if len(gates) != 1:
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 MSG_SHIP_GATE_AMBIGUOUS.format(
                     root_id=root_id,
                     gate_ids=",".join(gate.gate_id for gate in gates),
@@ -74,9 +74,11 @@ class BeadGateAuthority:
         gate = gates[0]
         metadata = gate.metadata
         if metadata.state is not GateState.CLOSED:
-            raise BridgeRefusal(MSG_SHIP_GATE_NOT_CLOSED.format(gate_id=gate.gate_id))
+            raise ContractorRefusal(
+                MSG_SHIP_GATE_NOT_CLOSED.format(gate_id=gate.gate_id)
+            )
         if metadata.binds is not BindsMode.IMMUTABLE:
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 MSG_SHIP_GATE_NOT_IMMUTABLE.format(gate_id=gate.gate_id)
             )
 
@@ -88,7 +90,7 @@ class BeadGateAuthority:
         artifact_ref = _required(gate, "artifact_ref", metadata.artifact_ref)
         artifact_digest = _required(gate, "artifact_digest", metadata.artifact_digest)
         if outcome not in metadata.outcomes:
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 MSG_SHIP_GATE_UNDECLARED_OUTCOME.format(gate_id=gate.gate_id)
             )
 
@@ -112,7 +114,7 @@ class BeadGateAuthority:
             or node.outcomes != metadata.outcomes
             or Outcome.APPROVE not in metadata.outcomes
         ):
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 MSG_SHIP_GATE_ACCEPTANCE_UNDECLARED.format(gate_id=gate.gate_id)
             )
         return GateEvidence(
@@ -131,7 +133,7 @@ class BeadGateAuthority:
 def _required[ValueT](gate: GateRecord, field: str, value: ValueT | None) -> ValueT:
     """Return one recorded verification mark or refuse its incomplete closure."""
     if value is None or (isinstance(value, str) and not value.strip()):
-        raise BridgeRefusal(
+        raise ContractorRefusal(
             MSG_SHIP_GATE_MISSING_MARK.format(gate_id=gate.gate_id, field=field)
         )
     return value

@@ -33,8 +33,8 @@ from tests._bdio import entry_request, handle, load_definition, make_root
 from tests._foreman import LAB_ATTEMPT, LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
 from tests._helpers import AUTHORING_FIXTURE
+from tests._inspector import ChildScript, make_repo
 from tests._ledger import TASK, ledger_store, repository
-from tests._supervisor import ChildScript, make_repo
 from tests.conftest import Signer
 from tests.test_ledger_writes import EXIT_RECORD, _open_gate
 from workflow_interpreter import load_graph
@@ -66,6 +66,23 @@ from workflow_interpreter.foreman.ledger_render import (
     FINDINGS_FILE,
     render_run,
 )
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.exit_grade import (
+    MAX_REVIEW_ARTIFACT_BYTES,
+    review_findings,
+)
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.launch_record import LaunchReceipt
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.procfs import read_boot_id, read_start_time
+from workflow_interpreter.inspector.verify import (
+    ATTEMPT_ENV,
+    BASE_COMMIT_ENV,
+    EPIC_SEGMENT_ENV,
+    RENDER_DIGEST_ENV,
+    RENDER_OID_ENV,
+    TASK_ID_ENV,
+)
 from workflow_interpreter.ledger.archive import archive_task
 from workflow_interpreter.ledger.constants import (
     EXPORT_REF_TEMPLATE,
@@ -87,23 +104,6 @@ from workflow_interpreter.ledger.reverify import (
 )
 from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
 from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.exit_grade import (
-    MAX_REVIEW_ARTIFACT_BYTES,
-    review_findings,
-)
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.launch_record import LaunchReceipt
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.procfs import read_boot_id, read_start_time
-from workflow_interpreter.supervisor.verify import (
-    ATTEMPT_ENV,
-    BASE_COMMIT_ENV,
-    EPIC_SEGMENT_ENV,
-    RENDER_DIGEST_ENV,
-    RENDER_OID_ENV,
-    TASK_ID_ENV,
-)
 
 VERIFY_DEBRIEF: Final[Path] = (
     Path(__file__).resolve().parents[1] / "scripts" / "verify-debrief.sh"
@@ -699,7 +699,7 @@ def test_findings_are_derived_from_the_close_carriers_in_a_fixed_order() -> None
                 "seq": 3,
                 "idempotency_key": "k",
                 "mint_reason": "edge",
-                "runner_profile": "fake",
+                "crew_profile": "fake",
                 "model": "fake",
                 "session_id": "s",
                 "intended_base_commit": "a" * 40,
@@ -835,7 +835,7 @@ def _outputs(
     tree = _git(repo, "write-tree")
     wrapper_root = tmp_path / "review-wrapper"
     wrapper_root.mkdir(exist_ok=True)
-    git = Git(SupervisorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
+    git = Git(InspectorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
     return git, repo, tree
 
 
@@ -1215,7 +1215,7 @@ def _live_receipt(lab: ForemanLab, activation_id: str) -> Path:
     without racing a child: `prove_liveness` answers ALIVE only when pid, boot
     id and start time all agree, so a fabricated handle would prove nothing.
     """
-    config = lab.supervisor_config
+    config = lab.inspector_config
     pid = os.getpid()
     handle = ProcessHandle(
         pid=pid,
@@ -1242,7 +1242,7 @@ def _live_receipt(lab: ForemanLab, activation_id: str) -> Path:
     return path
 
 
-def test_terminal_cleanup_defers_all_three_while_a_runner_may_be_alive(
+def test_terminal_cleanup_defers_all_three_while_a_crew_may_be_alive(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:
     """Finding 5: durable close is a record event, process death is not (§3.9).
@@ -1282,7 +1282,7 @@ def test_terminal_cleanup_defers_all_three_while_a_runner_may_be_alive(
     (verify_tree / "left-behind").write_text("a killed check's checkout\n")
     scratch = wiring.paths.scratch(review)
     scratch.mkdir(parents=True, exist_ok=True)
-    (scratch / "tmpfile").write_text("the runner's working bytes\n")
+    (scratch / "tmpfile").write_text("the crew's working bytes\n")
     receipt = _live_receipt(lab, review)
 
     assert lab.tick().terminal is True
@@ -1747,7 +1747,7 @@ actor = "actor"
 workspace = "{tmp_path / "no-bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{clone}"
 wrapper_root = "{wrapper_root}"
 host = "host"
@@ -1859,7 +1859,7 @@ def _archive_fixture(tmp_path: Path) -> tuple[Path, Path, Git, str, str]:
     folder = wrapper_root / root_id
     (folder / "worktree").mkdir(parents=True)
     (folder / "worktree" / "big").write_text("scratch\n", encoding="utf-8")
-    git = Git(SupervisorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
+    git = Git(InspectorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
     return repo, wrapper_root, git, root_id, ref
 
 

@@ -8,8 +8,7 @@ from pathlib import Path
 
 from tests._bdio import load_definition
 from tests._helpers import VALID_FIXTURE
-from tests._profiles import task_builder
-from tests._supervisor import (
+from tests._inspector import (
     IMPLEMENT,
     commit_all,
     entry_mint,
@@ -23,15 +22,16 @@ from tests._supervisor import (
     node_of,
     pinned_config,
 )
+from tests._profiles import task_builder
 from workflow_interpreter import load_graph
 from workflow_interpreter.contracts.execution import ExecutionProfileName, policy_for
-from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
+from workflow_interpreter.inspector.channels import pinned_verifier_digests
+from workflow_interpreter.inspector.clock import SystemClock
+from workflow_interpreter.inspector.run import Inspector
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.inspector.toolchain_models import ToolchainConfig
+from workflow_interpreter.profiles.config import CrewName, ProfileConfig
 from workflow_interpreter.profiles.registry import ProfileRegistry
-from workflow_interpreter.supervisor.channels import pinned_verifier_digests
-from workflow_interpreter.supervisor.clock import SystemClock
-from workflow_interpreter.supervisor.run import Supervisor
-from workflow_interpreter.supervisor.sandbox import SandboxMode
-from workflow_interpreter.supervisor.toolchain_models import ToolchainConfig
 
 FIXTURE = Path(__file__).parent / "fixtures" / "codex_appserver" / "server.py"
 
@@ -61,7 +61,7 @@ class AppServerLab:
         self.fake_bd, self.store = make_store(tmp_path, head_of(self.repo))
         settings = tuple(
             item.model_copy(update={"value": "codex-appserver"})
-            if item.key.endswith(".runner")
+            if item.key.endswith(".crew")
             else item
             for item in pinned_config(self.repo)
         )
@@ -95,7 +95,7 @@ class AppServerLab:
         self.clock = SystemClock()
         self.git = make_git(self.config)
         self.workspace = make_workspace(self.paths, self.git, self.clock)
-        self.supervisor = Supervisor(
+        self.inspector = Inspector(
             self.config,
             self.paths,
             self.git,
@@ -113,7 +113,7 @@ class AppServerLab:
             "WF_RPC_TEST_CHECKOUT": str(self.paths.worktree),
         }
         config = ProfileConfig(
-            binary_overrides={RunnerName.CODEX_APPSERVER: str(binary)},
+            binary_overrides={CrewName.CODEX_APPSERVER: str(binary)},
             passthrough_env=(
                 "PATH",
                 "HOME",
@@ -135,8 +135,8 @@ class AppServerLab:
 
     def run(self, request=None):
         """Dispatch, enforce runtime limits, collect channels, and run host checks."""
-        return self.supervisor.run(
-            request or entry_mint(runner_profile="codex-appserver", session_id=""),
+        return self.inspector.run(
+            request or entry_mint(crew_profile="codex-appserver", session_id=""),
             self.node,
             self.profile,
             task_builder(self.paths.worktree, self.node, execution_policy=self.policy),

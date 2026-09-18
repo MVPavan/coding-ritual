@@ -25,7 +25,7 @@ on_exhausted = "triage_build"
 name          = "write_tests"
 kind          = "task"
 region        = "tests"
-runner        = "profile:test-author"
+crew        = "profile:test-author"
 model         = "default"
 instructions = """
 Write acceptance tests for the slice described in `task_brief`, against the
@@ -83,7 +83,7 @@ outcomes      = ["done", "fail_plan", "fail_code"]
 name          = "review_tests"
 kind          = "task"
 region        = "tests"
-runner        = "profile:test-critic"
+crew        = "profile:test-critic"
 model         = "default"
 instructions = """
 Review the tests in `acceptance_tests` against `task_brief` and
@@ -142,7 +142,7 @@ outcomes      = ["accept", "reject", "fail_code", "fail_plan"]
 name          = "implement"
 kind          = "task"
 region        = "build"
-runner        = "profile:implementer"
+crew        = "profile:implementer"
 model         = "default"
 instructions = """
 Make the tests in `acceptance_tests` pass. `task_brief` states the intent;
@@ -195,7 +195,7 @@ outcomes      = ["done", "no_diff", "fail_plan", "fail_code"]
 name          = "review_impl"
 kind          = "task"
 region        = "build"
-runner        = "profile:impl-critic"
+crew        = "profile:impl-critic"
 model         = "default"
 instructions = """
 Review `diff_artifact` against `acceptance_tests` and `task_brief`.
@@ -252,7 +252,7 @@ outcomes      = ["accept", "reject", "fail_code", "fail_plan"]
 name          = "critic"
 kind          = "task"
 region        = "build"
-runner        = "profile:critic"
+crew        = "profile:critic"
 model         = "default"
 instructions = """
 Independent final critique of the whole slice: `diff_artifact` against

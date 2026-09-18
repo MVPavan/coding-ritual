@@ -1,9 +1,9 @@
-# 02 — Phase bridge
+# 02 — Contractor
 
 The command the LLM orchestrator runs. One work item in, one JSON result out.
 
 ```
-foreman phase-bridge <epic_id> <stage_id> [--retry] [--retry-landing] [--trace] [--monitored]
+foreman contract <epic_id> <stage_id> [--retry] [--retry-landing] [--trace] [--monitored]
 ```
 
 Two positional arguments, four flags. That is the entire surface.
@@ -11,13 +11,13 @@ Two positional arguments, four flags. That is the entire surface.
 ## What one call does, in order
 
 1. **Selects and validates.** The stage must be a direct child of the epic. Then
-   `repair_bridge_successor` heals any half-finished replacement lineage.
+   `repair_contractor_successor` heals any half-finished replacement lineage.
 2. **Checks phase state.** Every direct stage closed and this one has no record →
    `phase-exhausted`. Open blocking dependencies → `blocked` with their ids. Another
    unclosed stage already holding a record → also blocked.
 3. **Admits.** Reads the task brief from the bead description, pins the verification
    policy, captures the coordinator's `HEAD` as the expected base, instantiates the
-   graph as a root, writes the `phase_bridge` record onto the bead.
+   graph as a root, writes the `contractor` record onto the bead.
 4. **Runs.** Calls `Foreman.run` and **blocks** until it stops — poll 30 s, wall
    limit 8 h. The call is long-lived, not fire-and-forget.
 5. **Lands, only if the run ended at `shipped`.** Verifies exactly one closed,
@@ -31,7 +31,7 @@ Two positional arguments, four flags. That is the entire surface.
    orchestrator's "what is the state of this stage?" call.
 2. **Resume an admitted stage.** A second plain call on an `admitted` record resumes
    the existing root. The coordinator's `HEAD` must not have moved, or it refuses
-   with `branch-moved` (`bridge/command.py:312-318`).
+   with `branch-moved` (`contractor/command.py:312-318`).
 3. **Land an already-shipped stage.** A plain call on a record whose root reached
    `shipped` goes straight to landing, skipping the run.
 4. **`--retry`** — attempt n+1: new root, new instance key, previous attempt recorded
@@ -54,8 +54,8 @@ One JSON object with a state and a distinct exit code. Six states:
 
 ## Stages within an epic are serial
 
-Confirmed at `bridge/admission.py:240-257`. `_refuse_other_admission` walks every
-direct child of the epic; if any *other* stage carries a `phase_bridge` record and is
+Confirmed at `contractor/admission.py:240-257`. `_refuse_other_admission` walks every
+direct child of the epic; if any *other* stage carries a `contractor` record and is
 not closed, admission is refused as `blocked`, naming that stage.
 
 Three consequences:

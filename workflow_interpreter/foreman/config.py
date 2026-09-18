@@ -9,15 +9,15 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.bridge.verification import CheckCommand
+from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman.wake_constants import (
     DEFAULT_EVENT_CAP,
     MAX_EVENT_CAP,
     MSG_STALE_SPACING,
 )
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.sandbox import GIT_ENTRY
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.sandbox import GIT_ENTRY
 
 MSG_WORKTREE_REPO_ROOT: Final[str] = (
     "foreman repo_root {repo_root} is a linked worktree; configure the "
@@ -25,7 +25,7 @@ MSG_WORKTREE_REPO_ROOT: Final[str] = (
 )
 
 
-class RunnerBinding(BaseModel):
+class CrewBinding(BaseModel):
     """The profile and pinned invocation choices selected for a graph role."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -36,7 +36,7 @@ class RunnerBinding(BaseModel):
 
 
 class WakeConfig(BaseModel):
-    """Trusted host notification limits, never graph- or runner-selected commands."""
+    """Trusted host notification limits, never graph- or crew-selected commands."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     poll_s: float = Field(default=5, gt=0, allow_inf_nan=False)
@@ -72,19 +72,19 @@ class ForemanConfig(BaseModel):
     """Which backend a NEW attempt root is pinned to (§3.2, D18).
 
     New roots only: an existing root always resolves through the backend its
-    bridge record or `tasks` row pinned, so flipping this back to `bd` leaves
+    contractor record or `tasks` row pinned, so flipping this back to `bd` leaves
     every ledger-backed root loadable. There is no reverse migration."""
     signing: SigningConfig | None = None
     profiles: ProfileConfig = Field(default_factory=ProfileConfig)
     wake: WakeConfig = Field(default_factory=WakeConfig)
     project_config: dict[str, str | int | bool] = Field(default_factory=dict)
-    roles: dict[str, RunnerBinding] = Field(default_factory=dict)
-    bridge_graph: Path | None = None
-    bridge_checks: tuple[CheckCommand, ...] | None = Field(
+    roles: dict[str, CrewBinding] = Field(default_factory=dict)
+    contractor_graph: Path | None = None
+    contractor_checks: tuple[CheckCommand, ...] | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
     host: str
-    supervisor: SupervisorConfig
+    inspector: InspectorConfig
     band_wait_s: float = Field(default=30.0, gt=0)
     actor: str = Field(min_length=1)
     config_path: Path | None = None
@@ -112,10 +112,10 @@ class ForemanConfig(BaseModel):
         """Refuse relative or split paths without consulting the working directory."""
         if not self.repo_root.is_absolute() or not self.wrapper_home.is_absolute():
             raise ValueError("foreman repo_root and wrapper_home must be absolute")
-        if self.supervisor.repo_root != self.repo_root:
-            raise ValueError("supervisor repo_root must match foreman repo_root")
-        if self.supervisor.wrapper_root != self.wrapper_root:
-            raise ValueError("supervisor wrapper_root must match foreman wrapper_root")
+        if self.inspector.repo_root != self.repo_root:
+            raise ValueError("inspector repo_root must match foreman repo_root")
+        if self.inspector.wrapper_root != self.wrapper_root:
+            raise ValueError("inspector wrapper_root must match foreman wrapper_root")
         for role, binding in self.roles.items():
             if binding.model == MODEL_VENDOR_DEFAULT:
                 raise ValueError(

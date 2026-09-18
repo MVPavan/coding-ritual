@@ -6,9 +6,9 @@ from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, RootRecord
 from workflow_interpreter.contracts.sessions import SessionReuse
+from workflow_interpreter.inspector.paths import WrapperPaths
+from workflow_interpreter.inspector.rpc_records import VENDOR_STATE
 from workflow_interpreter.profiles.errors import TaskRefused
-from workflow_interpreter.supervisor.paths import WrapperPaths
-from workflow_interpreter.supervisor.rpc_records import VENDOR_STATE
 
 SESSION_STATES: Final[str] = "session-states"
 MSG_STATE: Final[str] = "app-server vendor state is outside its protected owner"

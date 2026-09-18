@@ -24,10 +24,10 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.tasks import export_oid, task_roots
-from workflow_interpreter.supervisor.gitio import Git
 
 ROOT_REF_PREFIX: Final[str] = "refs/wf/{root_id}/"
 

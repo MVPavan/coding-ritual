@@ -1,5 +1,7 @@
 # Workflow Interpreter — design spec (v0.3, implementation-ready)
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Status: **v0.3 — final after two review rounds** — bead cr-o85.
 Round 1 (Sol xhigh + Opus 5 high) and round 2 (Sol high + Opus 5 medium)
 both REVISE verdicts applied; consolidations in

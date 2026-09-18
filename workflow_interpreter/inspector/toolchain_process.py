@@ -10,9 +10,9 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Final
 
-from workflow_interpreter.supervisor import toolchain_constants as tc
-from workflow_interpreter.supervisor.toolchain_files import measure
-from workflow_interpreter.supervisor.toolchain_models import (
+from workflow_interpreter.inspector import toolchain_constants as tc
+from workflow_interpreter.inspector.toolchain_files import measure
+from workflow_interpreter.inspector.toolchain_models import (
     ToolchainConfig,
     ToolchainUnavailable,
 )

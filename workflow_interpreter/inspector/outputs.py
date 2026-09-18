@@ -1,4 +1,4 @@
-"""Frozen results from walking runner-owned output directories."""
+"""Frozen results from walking crew-owned output directories."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ class UnsafeEntry(BaseModel):
 
 
 class OutputsWalk(BaseModel):
-    """The bounded wrapper-owned capture of runner output."""
+    """The bounded wrapper-owned capture of crew output."""
 
     model_config = _MODEL
 

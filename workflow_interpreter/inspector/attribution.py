@@ -10,23 +10,23 @@ import structlog
 from pydantic import ValidationError
 
 from workflow_interpreter.bdio import ActivationRecord
-from workflow_interpreter.schema.loader import canonical_json_bytes
-from workflow_interpreter.schema.models import IsolationMode, Node
-from workflow_interpreter.supervisor.clock import Clock, to_iso
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.clock import Clock, to_iso
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.models import (
+    CrewAttribution,
     DirtyEntry,
     DirtySnapshot,
     EntryKind,
     HumanConfirmation,
-    RunnerAttribution,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     write_record,
 )
+from workflow_interpreter.schema.loader import canonical_json_bytes
+from workflow_interpreter.schema.models import IsolationMode, Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -43,7 +43,7 @@ def decode_dirty_state(value: str | None) -> DirtySnapshot | None:
     nothing validates that the object is a `DirtySnapshot` — so a row whose §3.2
     trio was written out of band (a hand edit, an older tool, a direct `bd
     update`; bead cr-too) decodes to a `ValidationError`. That is a `ValueError`,
-    which is neither an `OSError` nor a `SupervisorError`, so it escaped
+    which is neither an `OSError` nor a `InspectorError`, so it escaped
     `ExitObserver._post_exit`'s catch and took `observe()` down BEFORE
     `record_exit` ran — a provably-exited child left recorded as `dispatched`,
     re-classified as an infra failure on every subsequent tick (probed, r4).
@@ -82,14 +82,14 @@ class AttributionManager:
         self._entry_for = entry_for
 
     @staticmethod
-    def is_runner_output(
+    def is_crew_output(
         entry: DirtyEntry,
-        attribution: RunnerAttribution | None,
+        attribution: CrewAttribution | None,
         prior: DirtySnapshot | None,
         confirmation: HumanConfirmation | None,
         activation_id: str,
     ) -> bool:
-        """Can the wrapper PROVE the runner left this exact content here? (§12)
+        """Can the wrapper PROVE the crew left this exact content here? (§12)
 
         Two ways to answer yes, and every other answer is no:
 
@@ -103,13 +103,13 @@ class AttributionManager:
            whole subtree (§12).
         1. a human released this path at this content, in THIS activation
            (tier-2, digest-bound and activation-bound);
-        2. the path is TRACKED, the wrapper attributed it at a runner's exit,
+        2. the path is TRACKED, the wrapper attributed it at a crew's exit,
            and nothing has changed it since — the recorded digest still equals
            what is on disk;
         3. …there is no third way. Absence of evidence is not attribution.
 
         Condition 2 is restricted to tracked paths because attribution partly
-        rests on the runner's own `$WF_EFFECTS_FILE`, and the runner writes
+        rests on the crew's own `$WF_EFFECTS_FILE`, and the crew writes
         that file. A declaration naming a human's mid-run file — from malice or
         from a manifest built out of `git status` — would otherwise put
         never-committed content on the destroyable side, where the mistake has
@@ -118,7 +118,7 @@ class AttributionManager:
 
         It carries a second guard even though `ExitObserver` already applies
         it: a path that was dirty when the attempt STARTED pre-existed that
-        runner, so the runner cannot have produced it whatever else the record
+        crew, so the crew cannot have produced it whatever else the record
         says.
         """
         if entry.kind is not EntryKind.FILE:
@@ -135,10 +135,10 @@ class AttributionManager:
             return False
         return attribution.digest_of(entry.path) == entry.digest
 
-    def read(self) -> RunnerAttribution | None:
+    def read(self) -> CrewAttribution | None:
         """Read the attribution record, failing closed when it is malformed."""
         try:
-            return read_record(self._paths.attribution_record, RunnerAttribution)
+            return read_record(self._paths.attribution_record, CrewAttribution)
         except WrapperDirError as exc:
             _LOG.warning("wf.attribution.unreadable", error=str(exc))
             return None
@@ -149,15 +149,15 @@ class AttributionManager:
         node: Node,
         *,
         declared: frozenset[str],
-    ) -> RunnerAttribution | None:
-        """Record what this runner provably left dirty, for a later reset (§12).
+    ) -> CrewAttribution | None:
+        """Record what this crew provably left dirty, for a later reset (§12).
 
-        Called once, from `ExitObserver`, while the dead runner's activation
+        Called once, from `ExitObserver`, while the dead crew's activation
         still owns the §12 band — so `git status` here is the wrapper's own
-        observation of what that runner left, not a guess made later.
+        observation of what that crew left, not a guess made later.
 
         Entries survive three filters: the wrapper saw the path dirty, the
-        runner DECLARED it, and it was not already dirty when this attempt
+        crew DECLARED it, and it was not already dirty when this attempt
         started. Prior entries are carried forward untouched — a file the
         implementer left is still its work after a reviewer has run — because
         the reset-time digest comparison is what expires them: anything that
@@ -165,7 +165,7 @@ class AttributionManager:
 
         Untracked paths are recorded like any other — this file is an
         OBSERVATION, and a wrapper that edited its own observations to match
-        its policy would be worth nothing. `_is_runner_output` is where the
+        its policy would be worth nothing. `_is_crew_output` is where the
         policy lives, and it never resets an untracked path on this evidence.
 
         Worktree mode records nothing: that tree has no other author.
@@ -192,7 +192,7 @@ class AttributionManager:
                 if path in declared and path not in pre_attempt.paths
             )
             carried = self._carry_forward(entries)
-        record = RunnerAttribution(
+        record = CrewAttribution(
             activation_id=activation.activation_id,
             observed_at=to_iso(self._clock.now()),
             head_commit=self._git.head_commit(cwd=cwd),

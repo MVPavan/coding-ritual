@@ -119,7 +119,7 @@ class RpcFrame(BaseModel):
 class RpcClient:
     """Own three pipe descriptors and one bounded in-flight request.
 
-    Polling never waits beyond 100 ms. The resident supervisor remains responsible
+    Polling never waits beyond 100 ms. The resident inspector remains responsible
     for process death proof and max-wall/stale enforcement between polls. Stderr
     is drained independently into a bounded tail and is never parsed as protocol.
     """

@@ -23,7 +23,7 @@ composed without it.
 
 ## Interrupted writer content
 
-After confirmed process death, the supervisor preserves dirty content from the
+After confirmed process death, the inspector preserves dirty content from the
 writer's owned workspace before grading, closing, or replaying cached completion.
 This includes ordinary error and timeout exits, dead-without-exit recovery, and
 steer before the continuation is minted. In-repo preservation uses the existing
@@ -39,7 +39,7 @@ Recovery snapshots use the existing Git snapshot machinery and are pinned at:
 refs/wf/<root-id>/recovery/<activation-id>
 ```
 
-The producer's wrapper directory contains `recovery.json`, outside runner channel
+The producer's wrapper directory contains `recovery.json`, outside crew channel
 grants. It records root and activation identity, intended base, observed HEAD,
 snapshot commit/tree, previous commit, ref, and pending/pinned state. Inspection
 validates the producer, observed HEAD against the snapshot parent, tree, and pin.
@@ -57,7 +57,7 @@ unavailable, rather than attributing today's checkout to an old activation.
 
 Clean and read-only exits create no unnecessary snapshots. Existing pre-reset
 snapshot chains and terminal dirty-worktree retention remain in place. A generic
-pre-dispatch/pre-reset snapshot failure prevents reset and runner launch, leaves
+pre-dispatch/pre-reset snapshot failure prevents reset and crew launch, leaves
 the checkout intact, and closes as `error_transport` without a deviation. That
 close remains eligible for the normal infrastructure retry decision. Interrupted
 producer preservation instead keeps the activation open until recovery succeeds.

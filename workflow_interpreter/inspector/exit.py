@@ -1,6 +1,6 @@
 """Child exit: collect the §6 channels, compute §7, mirror the exit into bd.
 
-§7's premise is that a claim is not a proof. The runner writes one marker; the
+§7's premise is that a claim is not a proof. The crew writes one marker; the
 wrapper computes five clauses and the marker only ever gets to AGREE with them:
 
 1. **Terminal observed** — the bd exit record this module writes last (§7.1).
@@ -53,26 +53,25 @@ from workflow_interpreter.bdio import (
     Usage,
     WorkflowStore,
 )
-from workflow_interpreter.contracts.execution import RunnerName
+from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.contracts.run_identity import RunIdentity
-from workflow_interpreter.contracts.transport import RunnerTransport
-from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor.channels import (
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector.channels import (
     pinned_verifier_digests,
     read_effects,
     read_marker,
     walk_outputs,
 )
-from workflow_interpreter.supervisor.clock import Clock, to_iso
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import SupervisorError, WrapperDirError
-from workflow_interpreter.supervisor.exit_grade import (
+from workflow_interpreter.inspector.clock import Clock, to_iso
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import InspectorError, WrapperDirError
+from workflow_interpreter.inspector.exit_grade import (
     ComputedEvidence,
     EvidenceGrader,
     review_findings,
 )
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.models import (
     RECORD_MODEL,
     AuditFlag,
     BranchAdvance,
@@ -82,18 +81,19 @@ from workflow_interpreter.supervisor.models import (
     LaunchReceipt,
     PinResult,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     write_record,
 )
-from workflow_interpreter.supervisor.profile import Profile, TerminalEnvelope
-from workflow_interpreter.supervisor.rpc_records import (
+from workflow_interpreter.inspector.profile import Profile, TerminalEnvelope
+from workflow_interpreter.inspector.rpc_records import (
     MSG_RPC_INCOMPLETE,
     completion_error,
 )
-from workflow_interpreter.supervisor.sandbox import SandboxMode
-from workflow_interpreter.supervisor.workspace import Workspace
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.inspector.workspace import Workspace
+from workflow_interpreter.schema.models import Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -156,7 +156,7 @@ class ExitObserver:
 
     def __init__(
         self,
-        config: SupervisorConfig,
+        config: InspectorConfig,
         paths: WrapperPaths,
         git: Git,
         store: WorkflowStore,
@@ -328,7 +328,7 @@ class ExitObserver:
         finished run, deterministically, on every attempt (probed, Opus#12).
 
         `record_exit` is the wrapper's debt to §7.1 and it is owed whatever
-        happened in here, so every `OSError` and every `SupervisorError` becomes
+        happened in here, so every `OSError` and every `InspectorError` becomes
         a `fail_code` verdict carrying `VERIFY_UNRUNNABLE` instead. No
         `completion.json` is written for it, which is exactly the "exited,
         evidence incomplete" state §5.6 re-runs §7 from.
@@ -343,7 +343,7 @@ class ExitObserver:
                 previous_tree_oid,
                 run_identity,
             )
-        except (OSError, SupervisorError) as exc:
+        except (OSError, InspectorError) as exc:
             _LOG.error(
                 "wf.exit.post_exit_failed",
                 activation_id=activation.activation_id,
@@ -399,7 +399,7 @@ class ExitObserver:
     def _envelope(
         self, activation: ActivationRecord, profile: Profile
     ) -> TerminalEnvelope | None:
-        """The runner's own terminal facts, re-read from its log (§6).
+        """The crew's own terminal facts, re-read from its log (§6).
 
         `None` when §5.3 recorded no handle: there is no log to name, which is
         a different thing from a log that reported nothing.
@@ -464,7 +464,7 @@ class ExitObserver:
                 branch,
                 run_identity,
             )
-        except (OSError, SupervisorError) as exc:
+        except (OSError, InspectorError) as exc:
             _LOG.error(
                 "wf.evidence.uncomputable",
                 activation_id=activation_id,
@@ -476,7 +476,7 @@ class ExitObserver:
             )
         completion = self._with_sandbox_verdict(activation_id, computed)
         # Extracted here rather than in the grader because the tree is pinned
-        # by now and the runner's own directory is already gone: the reviewer's
+        # by now and the crew's own directory is already gone: the reviewer's
         # findings are read from the immutable objects, before any close (§3.3).
         report = review_findings(
             node,
@@ -522,7 +522,7 @@ class ExitObserver:
         working-tree write outside them was one the kernel had to refuse — and
         the only thing it can mean is that the bound did not hold. The
         observation on its own does not show that. `.git` is mounted writable
-        by design, so a runner inside an intact bound can put an out-of-grant
+        by design, so a crew inside an intact bound can put an out-of-grant
         path into the §7.5 observation with no write outside its grant at all
         (`git rm --cached`, `git update-index --cacheinfo`) — both halves of
         `_observed_paths` report it. Only `physically_written` is evidence of
@@ -546,13 +546,13 @@ class ExitObserver:
         except (WrapperDirError, OSError):
             receipt = None
         activation = self._store.reads.load_activation(activation_id)
-        expects_rpc = activation.metadata.runner_profile.removeprefix("profile:") == (
-            RunnerName.CODEX_APPSERVER.value
+        expects_rpc = activation.metadata.crew_profile.removeprefix("profile:") == (
+            CrewName.CODEX_APPSERVER.value
         )
         rpc_error = (
             MSG_RPC_INCOMPLETE
             if expects_rpc
-            and (receipt is None or receipt.transport is not RunnerTransport.STDIO_RPC)
+            and (receipt is None or receipt.transport is not CrewTransport.STDIO_RPC)
             else completion_error(receipt, self._paths.activation_dir(activation_id))
         )
         if rpc_error is not None:
@@ -618,7 +618,7 @@ class ExitObserver:
         The marker comes from `$WF_OUTCOME_FILE` and from nowhere else. A
         profile's `collect_terminal_envelope` may also report one, but it is a
         vendor adapter's parse of a vendor's stream — accepting it as a
-        fallback would give the runner a second, unvalidated way to name its
+        fallback would give the crew a second, unvalidated way to name its
         own outcome (§6, "THE reserved channel").
         """
         declared = frozenset(node.outcomes or ())

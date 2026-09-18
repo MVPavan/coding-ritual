@@ -1,4 +1,4 @@
-"""The claude runner profile (`claude 2.1.227`), built from live probes.
+"""The claude crew profile (`claude 2.1.227`), built from live probes.
 
 Every flag below was run before it was written down (`scratchpad/probes/
 phase4-cli-probes.md`). Four probe results shape this file:
@@ -30,6 +30,12 @@ from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, Usage
 from workflow_interpreter.contracts.execution import ToolNetwork
+from workflow_interpreter.inspector.profile import (
+    CrewCommand,
+    CrewEvent,
+    EventType,
+    TaskSpec,
+)
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     decimal_at,
@@ -40,14 +46,8 @@ from workflow_interpreter.profiles._base import (
     require_absolute,
     text_at,
 )
-from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RunnerName
+from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, CrewName
 from workflow_interpreter.profiles.errors import TaskRefused
-from workflow_interpreter.supervisor.profile import (
-    EventType,
-    RunnerCommand,
-    RunnerEvent,
-    TaskSpec,
-)
 
 PRINT: Final[str] = "-p"
 OUTPUT_FORMAT: Final[tuple[str, str]] = ("--output-format", "stream-json")
@@ -76,11 +76,11 @@ GIT_DIR_SEGMENT: Final[str] = ".git"
 
 
 def _git_dir_denials(cwd: str) -> list[str]:
-    """Deny-rules keeping a `writes = true` runner out of the checkout's `.git`.
+    """Deny-rules keeping a `writes = true` crew out of the checkout's `.git`.
 
     `.git` sits inside the tree `writes = true` grants, and `.git/config` and
     `.git/hooks/` name PROGRAMS the wrapper's own git would then run as the
-    wrapper — outside the bound the runner was given (`gitio.HARDENING` and
+    wrapper — outside the bound the crew was given (`gitio.HARDENING` and
     `gitio.ENV_HARDENING` are the other half, for the vendors whose grant is a
     whole directory and cannot exclude anything). Deny beats allow, so these
     outrank the tree rule.
@@ -88,7 +88,7 @@ def _git_dir_denials(cwd: str) -> list[str]:
     TWO rules, because `.git` is not always a directory. In §5.4 worktree mode
     the checkout is a `git worktree`, whose `.git` is a FILE holding
     `gitdir: <path>` — and a glob needs a `.git/` path SEGMENT to match, so the
-    `/**` form leaves the file itself editable. A runner that repoints it at a
+    `/**` form leaves the file itself editable. A crew that repoints it at a
     gitdir inside its own grant owns the config of every later
     `git -C <worktree>` the wrapper runs (Opus r2 #20). The file form is the
     rule that covers it; the tree form still covers the in-repo band, where
@@ -124,7 +124,7 @@ PUSH_DENIALS: Final[tuple[str, ...]] = (
 """No profile ever pushes (§6). Deny beats allow in every permission mode, so
 these outrank the bare `Bash` allow — probed against `git push --dry-run origin
 main`, which was refused. It is defence in depth, not the policy: a determined
-runner can phrase around a prefix rule, and the supervisor's `gitio` closed
+crew can phrase around a prefix rule, and the inspector's `gitio` closed
 subcommand set is the backstop."""
 
 READ_ONLY_DENIALS: Final[tuple[str, ...]] = (
@@ -182,10 +182,10 @@ _MSG_UNUSABLE_EFFORT: Final[str] = (
 
 
 class ClaudeProfile(BaseProfile):
-    """`claude -p` as a §6 runner: bounded by permission rules, not a sandbox."""
+    """`claude -p` as a §6 crew: bounded by permission rules, not a sandbox."""
 
     tool_network = ToolNetwork.NOT_ENFORCED
-    runner = RunnerName.CLAUDE
+    crew = CrewName.CLAUDE
     auth_env = (
         "ANTHROPIC_API_KEY",
         "ANTHROPIC_AUTH_TOKEN",
@@ -205,7 +205,7 @@ class ClaudeProfile(BaseProfile):
 
     # -- §6 command construction -----------------------------------------
 
-    def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+    def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
         """The headless one-shot, with the danger default inverted (§6)."""
         argv = [
             self.binary(),
@@ -219,7 +219,7 @@ class ClaudeProfile(BaseProfile):
 
     def build_resume_command(
         self, session_id: str, instructions: str, task: TaskSpec
-    ) -> RunnerCommand:
+    ) -> CrewCommand:
         """The §8.1 continuation: the continuation's own bounds, `--resume`."""
         argv = [
             self.binary(),
@@ -270,7 +270,7 @@ class ClaudeProfile(BaseProfile):
                 DISALLOWED_TOOLS,
                 *READ_ONLY_DENIALS,
             ]
-        cwd = require_absolute(self.runner, "task cwd", task.cwd)
+        cwd = require_absolute(self.crew, "task cwd", task.cwd)
         return [
             TOOLS,
             *(WRITE_TOOLS if task.writes else REVIEW_TOOLS),
@@ -294,7 +294,7 @@ class ClaudeProfile(BaseProfile):
 
     # -- §6 stream normalization -----------------------------------------
 
-    def decode_event(self, payload: Mapping[str, object]) -> RunnerEvent | None:
+    def decode_event(self, payload: Mapping[str, object]) -> CrewEvent | None:
         """Map one `stream-json` line onto the normalized §6 event."""
         session = optional_text_at(payload, KEY_SESSION)
         kind = text_at(payload, KEY_TYPE)
@@ -303,7 +303,7 @@ class ClaudeProfile(BaseProfile):
         if kind in (TYPE_ASSISTANT, TYPE_USER):
             return _message_event(payload, session)
         if kind == TYPE_SYSTEM:
-            return RunnerEvent(
+            return CrewEvent(
                 type=EventType.MESSAGE,
                 text=text_at(payload, KEY_SUBTYPE),
                 session=session,
@@ -311,14 +311,14 @@ class ClaudeProfile(BaseProfile):
         # Parseable, and a real vendor line the wrapper has no opinion about
         # (`stream_event`, `rate_limit_event`, whatever a later release adds).
         # Recorded as a message rather than an error: it is not a defect.
-        return RunnerEvent(type=EventType.MESSAGE, text=kind, session=session)
+        return CrewEvent(type=EventType.MESSAGE, text=kind, session=session)
 
 
-def _result_event(payload: Mapping[str, object], session: str | None) -> RunnerEvent:
+def _result_event(payload: Mapping[str, object], session: str | None) -> CrewEvent:
     """The terminal line: the run's cumulative usage, cost and error flag."""
     usage = mapping_at(payload, KEY_USAGE)
     cost = decimal_at(payload, KEY_COST)
-    return RunnerEvent(
+    return CrewEvent(
         type=EventType.RESULT,
         text=text_at(payload, "result"),
         session=session,
@@ -336,7 +336,7 @@ def _result_event(payload: Mapping[str, object], session: str | None) -> RunnerE
     )
 
 
-def _message_event(payload: Mapping[str, object], session: str | None) -> RunnerEvent:
+def _message_event(payload: Mapping[str, object], session: str | None) -> CrewEvent:
     """An `assistant` / `user` turn: a tool step when it carries tool blocks.
 
     No usage is attached even though `message.usage` is present: its counts
@@ -357,8 +357,8 @@ def _message_event(payload: Mapping[str, object], session: str | None) -> Runner
         elif block_type == BLOCK_TOOL_RESULT:
             tools.append(text_at(block, "tool_use_id"))
     if tools:
-        return RunnerEvent(type=EventType.TOOL, text=" ".join(tools), session=session)
-    return RunnerEvent(type=EventType.MESSAGE, text="\n".join(texts), session=session)
+        return CrewEvent(type=EventType.TOOL, text=" ".join(tools), session=session)
+    return CrewEvent(type=EventType.MESSAGE, text="\n".join(texts), session=session)
 
 
 def _grant_rules(task: TaskSpec) -> list[str]:
@@ -378,7 +378,7 @@ def _grant_rules(task: TaskSpec) -> list[str]:
     A `writes = true` node that declares no grant therefore gets no repository
     path at all, which is exactly what its mount plan gives it.
     """
-    return [_tree_rule(path) for path in grant_dirs(RunnerName.CLAUDE, task)]
+    return [_tree_rule(path) for path in grant_dirs(CrewName.CLAUDE, task)]
 
 
 def _tree_rule(directory: str) -> str:
@@ -402,19 +402,19 @@ def _channel_rules(task: TaskSpec) -> list[str]:
     channels = task.channels
     rules = [
         _tree_rule(
-            require_absolute(RunnerName.CLAUDE, "artifact dir", channels.artifact_dir)
+            require_absolute(CrewName.CLAUDE, "artifact dir", channels.artifact_dir)
         ),
         _file_rule(
-            require_absolute(RunnerName.CLAUDE, "outcome file", channels.outcome_file)
+            require_absolute(CrewName.CLAUDE, "outcome file", channels.outcome_file)
         ),
         _file_rule(
-            require_absolute(RunnerName.CLAUDE, "effects file", channels.effects_file)
+            require_absolute(CrewName.CLAUDE, "effects file", channels.effects_file)
         ),
     ]
     if channels.scratch_dir:
         rules.append(
             _tree_rule(
-                require_absolute(RunnerName.CLAUDE, "scratch dir", channels.scratch_dir)
+                require_absolute(CrewName.CLAUDE, "scratch dir", channels.scratch_dir)
             )
         )
     if task.execution_grants is not None:

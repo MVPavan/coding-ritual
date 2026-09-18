@@ -116,7 +116,7 @@ def test_successor_crash_replays_one_root(
 def test_p2_child_updates_current_slot_and_matching_decision_replays(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from tests._supervisor import ChildScript
+    from tests._inspector import ChildScript
     from tests.test_children_lifecycle import owner_lab
     from workflow_interpreter.foreman import replacement
     from workflow_interpreter.foreman.decisions import reconcile_action
@@ -168,7 +168,7 @@ def test_successor_authority_refusals_preserve_predecessor(
     import subprocess
 
     from workflow_interpreter.foreman.gates import halt_gate
-    from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
+    from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
 
     lab, owner, composition, _ = writer_lab(tmp_path)
     store = lab.store.coordination_store(composition=composition)
@@ -251,7 +251,7 @@ def test_concurrent_successor_requests_converge_same_reservation(
     from concurrent.futures import ThreadPoolExecutor
     from threading import Barrier
 
-    from workflow_interpreter.supervisor.errors import LockUnavailable
+    from workflow_interpreter.inspector.errors import LockUnavailable
 
     lab, owner, composition, _ = writer_lab(tmp_path)
     request = TrustedReplacementRequest(

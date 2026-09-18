@@ -6,9 +6,9 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ProcessHandle
 from workflow_interpreter.contracts.execution import ExecutionGrants, ToolNetwork
-from workflow_interpreter.contracts.transport import RunnerTransport
-from workflow_interpreter.supervisor.sandbox import SandboxMode
-from workflow_interpreter.supervisor.toolchain_models import SeedReceipt
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.inspector.toolchain_models import SeedReceipt
 
 RECORD_MODEL = ConfigDict(frozen=True, extra="forbid", arbitrary_types_allowed=False)
 
@@ -32,7 +32,7 @@ class LaunchReceipt(BaseModel):
 
     model_config = RECORD_MODEL
 
-    transport: RunnerTransport = RunnerTransport.EVENT_LOG
+    transport: CrewTransport = CrewTransport.EVENT_LOG
     owner: ProcessHandle | None = None
     vendor_state: str | None = None
     launch_id: str

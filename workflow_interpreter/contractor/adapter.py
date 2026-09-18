@@ -12,39 +12,39 @@ from workflow_interpreter.bdio.client import BdClient, DependencyRecord, Depende
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
-from workflow_interpreter.bridge.models import (
+from workflow_interpreter.contractor.models import (
     MSG_BACKEND_IMMUTABLE,
-    PhaseBridgeRecord,
-    PhaseBridgeState,
+    ContractorRecord,
+    ContractorState,
 )
 
 if TYPE_CHECKING:
-    from workflow_interpreter.bridge.integration import IntegrationGuard
+    from workflow_interpreter.contractor.integration import IntegrationGuard
 
-PHASE_BRIDGE_METADATA_KEY: Final[str] = "phase_bridge"
-MSG_WRONG_STAGE: Final[str] = "phase bridge record belongs to stage {stage_id!r}"
+CONTRACTOR_METADATA_KEY: Final[str] = "contractor"
+MSG_WRONG_STAGE: Final[str] = "contractor record belongs to stage {stage_id!r}"
 MSG_WRONG_INCOMING_STATE: Final[str] = (
-    "incoming phase bridge record expected state {state!r}, got {actual!r}"
+    "incoming contractor record expected state {state!r}, got {actual!r}"
 )
 MSG_IDEMPOTENT_STATE: Final[str] = (
-    "idempotent phase bridge re-prepare requires stored state prepared, got {actual!r}"
+    "idempotent contractor re-prepare requires stored state prepared, got {actual!r}"
 )
 MSG_IDEMPOTENT_RECORD: Final[str] = (
-    "idempotent phase bridge re-prepare requires an incoming record identical to stored"
+    "idempotent contractor re-prepare requires an incoming record identical to stored"
 )
 MSG_SUCCESSION_CLOSED: Final[str] = (
-    "valid phase bridge succession refuses a closed stored record"
+    "valid contractor succession refuses a closed stored record"
 )
 MSG_SUCCESSION_ATTEMPT: Final[str] = (
-    "valid phase bridge succession requires incoming attempt {expected}, got {actual}"
+    "valid contractor succession requires incoming attempt {expected}, got {actual}"
 )
 MSG_SUCCESSION_HISTORY: Final[str] = (
-    "valid phase bridge succession requires incoming previous_attempts to extend stored"
+    "valid contractor succession requires incoming previous_attempts to extend stored"
 )
 MSG_STORED_RECORD_UNREADABLE: Final[str] = (
-    "stored phase bridge record is unreadable: {reason}"
+    "stored contractor record is unreadable: {reason}"
 )
-MSG_CLOSE_REASON: Final[str] = "phase bridge landing receipt={digest}"
+MSG_CLOSE_REASON: Final[str] = "contractor landing receipt={digest}"
 MSG_NO_EXPORT_OID: Final[str] = (
     "stage {stage_id!r} cannot close without export_oid: a task must have its "
     "whole record pinned in git before its bead closes (run-ledger §3.6)"
@@ -68,7 +68,7 @@ class PhaseAdapter:
     def from_config(
         cls, config: BdConfig, reads: WorkflowReads | None = None
     ) -> PhaseAdapter:
-        """Build the bridge's read/write adapter without exposing bd transport.
+        """Build the contractor's read/write adapter without exposing bd transport.
 
         `reads` is the store the engine's roots live in. The adapter owns the
         TASK bead (§3.2 authoritative writes) and nothing else, so a root
@@ -78,16 +78,16 @@ class PhaseAdapter:
         return cls(BdClient(config), reads)
 
     def guard_integration(
-        self, record: PhaseBridgeRecord, *, post_cas: bool = False
+        self, record: ContractorRecord, *, post_cas: bool = False
     ) -> None:
         """Integration records are unusable without their runtime authority."""
         if self.integration_guard is not None:
-            from workflow_interpreter.foreman.replacement import guard_bridge
+            from workflow_interpreter.foreman.replacement import guard_contractor
 
-            guard_bridge(self.integration_guard.composition, record)
+            guard_contractor(self.integration_guard.composition, record)
         elif record.successor_key is not None:
-            raise PhaseAdapterError("successor bridge requires runtime guard")
-        stored = self.show(record.stage_id).metadata.get(PHASE_BRIDGE_METADATA_KEY)
+            raise PhaseAdapterError("successor contractor requires runtime guard")
+        stored = self.show(record.stage_id).metadata.get(CONTRACTOR_METADATA_KEY)
         if (
             isinstance(stored, dict)
             and stored.get("integration_digest") is not None
@@ -145,8 +145,8 @@ class PhaseAdapter:
             and dependency.status != STATUS_CLOSED
         )
 
-    def record(self, stage_id: str) -> PhaseBridgeRecord:
-        """Read the complete bridge relation currently persisted on a stage."""
+    def record(self, stage_id: str) -> ContractorRecord:
+        """Read the complete contractor relation currently persisted on a stage."""
         return self._record(self.show(stage_id).metadata)
 
     def owns_root(self, instance_key: str, root_id: str) -> bool:
@@ -159,17 +159,17 @@ class PhaseAdapter:
         )
 
     def has_root(self, instance_key: str) -> bool:
-        """Report whether durable evidence exists for one bridge identity."""
+        """Report whether durable evidence exists for one contractor identity."""
         return bool(self._reads.roots_by_instance_key(instance_key))
 
-    def prepare(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
+    def prepare(self, stage_id: str, record: ContractorRecord) -> ContractorRecord:
         """Persist and read back a complete pre-claim admission intent."""
         self._assert_stage(stage_id, record)
-        self._assert_state(record, PhaseBridgeState.PREPARED, MSG_WRONG_INCOMING_STATE)
-        existing = self.show(stage_id).metadata.get(PHASE_BRIDGE_METADATA_KEY)
+        self._assert_state(record, ContractorState.PREPARED, MSG_WRONG_INCOMING_STATE)
+        existing = self.show(stage_id).metadata.get(CONTRACTOR_METADATA_KEY)
         if existing is not None:
             try:
-                stored_record = PhaseBridgeRecord.model_validate(existing)
+                stored_record = ContractorRecord.model_validate(existing)
             except ValidationError as exc:
                 raise PhaseAdapterError(
                     MSG_STORED_RECORD_UNREADABLE.format(reason=exc)
@@ -190,11 +190,11 @@ class PhaseAdapter:
         return self._record(stored.metadata)
 
     def admit(
-        self, stage_id: str, record: PhaseBridgeRecord, *, root_id: str
-    ) -> PhaseBridgeRecord:
+        self, stage_id: str, record: ContractorRecord, *, root_id: str
+    ) -> ContractorRecord:
         """Atomically claim a stage while writing its complete admitted relation."""
         self._assert_stage(stage_id, record)
-        self._assert_state(record, PhaseBridgeState.PREPARED, MSG_WRONG_INCOMING_STATE)
+        self._assert_state(record, ContractorState.PREPARED, MSG_WRONG_INCOMING_STATE)
         admitted = record.admitted(root_id)
         self.guard_integration(admitted)
         stored = self._client._claim_and_merge_metadata(
@@ -202,25 +202,25 @@ class PhaseAdapter:
         )
         return self._record(stored.metadata)
 
-    def gate_red(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
+    def gate_red(self, stage_id: str, record: ContractorRecord) -> ContractorRecord:
         """Keep a failed verification eligible only for the explicit retry contract."""
         self._assert_stage(stage_id, record)
         self.guard_integration(record)
-        updated = record.model_copy(update={"state": PhaseBridgeState.GATE_RED})
+        updated = record.model_copy(update={"state": ContractorState.GATE_RED})
         stored = self._client._merge_metadata(stage_id, self._metadata(updated))
         return self._record(stored.metadata)
 
-    def land(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
+    def land(self, stage_id: str, record: ContractorRecord) -> ContractorRecord:
         """Persist and read back the artifact relation after a successful CAS."""
         self._assert_stage(stage_id, record)
-        self._assert_state(record, PhaseBridgeState.LANDED, MSG_WRONG_INCOMING_STATE)
+        self._assert_state(record, ContractorState.LANDED, MSG_WRONG_INCOMING_STATE)
         self.guard_integration(record, post_cas=True)
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         return self._record(stored.metadata)
 
     def close(
-        self, stage_id: str, record: PhaseBridgeRecord, receipt_digest: str
-    ) -> PhaseBridgeRecord:
+        self, stage_id: str, record: ContractorRecord, receipt_digest: str
+    ) -> ContractorRecord:
         """Close and read back a stage whose durable relation names its receipt.
 
         §3.6: the bead is closed immediately after the metadata merge below,
@@ -230,7 +230,7 @@ class PhaseAdapter:
         called it.
         """
         self._assert_stage(stage_id, record)
-        self._assert_state(record, PhaseBridgeState.CLOSED, MSG_WRONG_INCOMING_STATE)
+        self._assert_state(record, ContractorState.CLOSED, MSG_WRONG_INCOMING_STATE)
         if record.export_oid is None:
             raise PhaseAdapterError(MSG_NO_EXPORT_OID.format(stage_id=stage_id))
         self.guard_integration(record, post_cas=True)
@@ -248,28 +248,26 @@ class PhaseAdapter:
         return result
 
     @staticmethod
-    def _metadata(record: PhaseBridgeRecord) -> Metadata:
+    def _metadata(record: ContractorRecord) -> Metadata:
         """Serialize the whole nested record because bd replaces nested objects."""
-        return {
-            PHASE_BRIDGE_METADATA_KEY: record.model_dump(by_alias=True, mode="json")
-        }
+        return {CONTRACTOR_METADATA_KEY: record.model_dump(by_alias=True, mode="json")}
 
     @staticmethod
-    def _record(metadata: Mapping[str, object]) -> PhaseBridgeRecord:
-        """Parse the durable bridge record read back from a stage."""
-        return PhaseBridgeRecord.model_validate(metadata[PHASE_BRIDGE_METADATA_KEY])
+    def _record(metadata: Mapping[str, object]) -> ContractorRecord:
+        """Parse the durable contractor record read back from a stage."""
+        return ContractorRecord.model_validate(metadata[CONTRACTOR_METADATA_KEY])
 
     @staticmethod
-    def _assert_stage(stage_id: str, record: PhaseBridgeRecord) -> None:
+    def _assert_stage(stage_id: str, record: ContractorRecord) -> None:
         """Refuse to write a record for a different stage."""
         if record.stage_id != stage_id:
             raise PhaseAdapterError(MSG_WRONG_STAGE.format(stage_id=stage_id))
 
     @staticmethod
     def _assert_state(
-        record: PhaseBridgeRecord, state: PhaseBridgeState, message: str
+        record: ContractorRecord, state: ContractorState, message: str
     ) -> None:
-        """Refuse a phase bridge record that is not in an expected lifecycle state."""
+        """Refuse a contractor record that is not in an expected lifecycle state."""
         if record.state is not state:
             raise PhaseAdapterError(
                 message.format(state=state.value, actual=record.state.value)
@@ -277,7 +275,7 @@ class PhaseAdapter:
 
     @staticmethod
     def _assert_prepare_shape(
-        stored: PhaseBridgeRecord, incoming: PhaseBridgeRecord
+        stored: ContractorRecord, incoming: ContractorRecord
     ) -> None:
         """Allow only exact recovery or one non-closed successor journal.
 
@@ -294,14 +292,14 @@ class PhaseAdapter:
                         incoming=incoming.root_backend.value,
                     )
                 )
-            if stored.state is not PhaseBridgeState.PREPARED:
+            if stored.state is not ContractorState.PREPARED:
                 raise PhaseAdapterError(
                     MSG_IDEMPOTENT_STATE.format(actual=stored.state.value)
                 )
             if incoming != stored:
                 raise PhaseAdapterError(MSG_IDEMPOTENT_RECORD)
             return
-        if stored.state is PhaseBridgeState.CLOSED:
+        if stored.state is ContractorState.CLOSED:
             raise PhaseAdapterError(MSG_SUCCESSION_CLOSED)
         expected_attempt = stored.attempt + 1
         if incoming.attempt != expected_attempt:

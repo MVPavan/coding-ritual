@@ -28,13 +28,13 @@ from workflow_interpreter.foreman.constants import (
     MSG_VERIFY_READ_FAILURE,
 )
 from workflow_interpreter.foreman.envelope import InputsUnavailable
+from workflow_interpreter.inspector.clock import Clock, to_iso
+from workflow_interpreter.inspector.errors import GitCommandError
+from workflow_interpreter.inspector.gitcmd import GitOutputTooLarge, GitSubcommand
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.models import CompletionEvidence
+from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.schema.models import EngineProducer, Outcome
-from workflow_interpreter.supervisor.clock import Clock, to_iso
-from workflow_interpreter.supervisor.errors import GitCommandError
-from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.models import CompletionEvidence
-from workflow_interpreter.supervisor.paths import read_record
 
 PAYLOAD_CAP: Final[int] = 16 * 1024
 DIAGNOSTIC_LABEL: Final = (

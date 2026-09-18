@@ -262,7 +262,7 @@ def _dirty_state_defect(value: str) -> str | None:
 class PreconditionRecord(BaseModel):
     """The §3.2 carry-forward trio, proven by the §5.4 precondition.
 
-    Intent-only, like every other request carrier here: the supervisor states
+    Intent-only, like every other request carrier here: the inspector states
     what it PROVED about the working tree before the child could exec, and
     `record_precondition` is the only thing that writes those three keys.
 
@@ -278,7 +278,7 @@ class PreconditionRecord(BaseModel):
       `encode_dirty_state` produces. Anything else either fails to decode at
       reset time or compares unequal to itself across a re-serialization.
 
-    `supervision.py` re-reads the activation and re-checks the lifecycle
+    `inspection.py` re-reads the activation and re-checks the lifecycle
     immediately before the write, and writes only these three keys — bd merges
     metadata per key, so a stale carrier can no longer carry a lifecycle or a
     handle backwards with it.
@@ -402,12 +402,12 @@ class ActivationMetadata(BaseModel):
     mint_reason: MintReason
     inputs: tuple[InputBinding, ...] = ()
     envelope: dict[str, JsonValue] | None = None
-    runner_profile: str
+    crew_profile: str
     model: str
     session_id: str
     intended_base_commit: str
     pre_attempt_commit: str | None = None
-    """§3.2 carry-forward, written by the phase-3 supervisor: the commit this
+    """§3.2 carry-forward, written by the phase-3 inspector: the commit this
     attempt started from. `intended_base_commit` for a later rework mint at
     this node is derived from it, so it must be recorded from the first
     writing activation onward."""
@@ -583,7 +583,7 @@ class MintRequest(BaseModel):
     mint_reason: MintReason
     predecessor_activation_id: str | None = None
     predecessor_gate_id: str | None = None
-    runner_profile: str
+    crew_profile: str
     model: str
     session_id: str
     inputs: tuple[InputBinding, ...] = ()

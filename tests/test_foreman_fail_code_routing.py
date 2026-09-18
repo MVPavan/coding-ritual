@@ -21,7 +21,7 @@ from tests._helpers import (
     VALID_FIXTURE,
     undeclared_fail_code_graph,
 )
-from tests._supervisor import (
+from tests._inspector import (
     REVIEW_SCRIPT,
     VERIFY_SCRIPT,
     ChildScript,
@@ -31,11 +31,11 @@ from tests.conftest import Signer
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import Outcome, SigningConfig
 from workflow_interpreter.foreman.routing import RouteKind, route
+from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.schema.graph_index import build_index
-from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 # A check whose bytes are constant — so its pinned digest keeps matching — and
-# whose verdict depends on a file the runner may commit. That is the only way
+# whose verdict depends on a file the crew may commit. That is the only way
 # to make a check go red at a tick seam without also tripping §7.3 provenance.
 RED_MARKER = "src/red.py"
 REVIEW_RED_MARKER = "src/review_red.py"
@@ -101,7 +101,7 @@ def _implement(lab: ForemanLab, script: ChildScript) -> str:
 
 
 def _writes(path: str, *, body: str = "value = 2\n") -> ChildScript:
-    """A writing runner that claims `done` after committing one declared file."""
+    """A writing crew that claims `done` after committing one declared file."""
     return ChildScript(
         marker='{"outcome":"done"}\n',
         effects=f'{{"paths":["{path}"]}}',

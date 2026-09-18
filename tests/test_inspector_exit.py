@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     FAILING_SCRIPT,
     IMPLEMENT,
     REVIEW,
@@ -47,26 +47,26 @@ from workflow_interpreter.bdio import (
     ProcessHandle,
     Usage,
 )
-from workflow_interpreter.schema.models import IsolationMode, Node
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     AuditFlag,
     CompletionEvidence,
+    CrewAttribution,
     DirtyEntry,
     ExitObserver,
     ExitReason,
     GitCommandError,
+    InspectorConfig,
     RecoveryCase,
-    RunnerAttribution,
-    SupervisorConfig,
     TerminalEnvelope,
     VerifyTreeError,
     Workspace,
     WrapperPaths,
 )
-from workflow_interpreter.supervisor.models import LaunchReceipt
-from workflow_interpreter.supervisor.paths import read_record, write_record
-from workflow_interpreter.supervisor.recover import classify
-from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.inspector.models import LaunchReceipt
+from workflow_interpreter.inspector.paths import read_record, write_record
+from workflow_interpreter.inspector.recover import classify
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.schema.models import IsolationMode, Node
 
 FEATURE_FILE = "src/feature.py"
 OUTSIDE_FILE = "docs/notes.md"
@@ -82,7 +82,7 @@ live build-loop run (`wrapper-wf-5uc/wf-so4/run.jsonl`, claude 2.1.258)."""
 
 
 class SpendingProfile(FakeProfile):
-    """A runner whose log reports what the run spent, unlike `FakeProfile`."""
+    """A crew whose log reports what the run spent, unlike `FakeProfile`."""
 
     def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
         """The §6 envelope with usage the observer must not drop."""
@@ -99,9 +99,7 @@ class Lab:
     ) -> None:
         self.repo = make_repo(tmp_path)
         self.base = head_of(self.repo)
-        self.config: SupervisorConfig = make_config(
-            self.repo, tmp_path, fake_proc=False
-        )
+        self.config: InspectorConfig = make_config(self.repo, tmp_path, fake_proc=False)
         self.bd, self.store = make_store(tmp_path, self.base)
         self.root = make_root(self.store, self.repo, "exit-instance")
         self.paths: WrapperPaths = make_paths(self.config, self.root.root_id)
@@ -134,7 +132,7 @@ class Lab:
 
     @property
     def tree(self) -> Path:
-        """The tree this activation's runner executes in (§5.4, §12)."""
+        """The tree this activation's crew executes in (§5.4, §12)."""
         return self.workspace.path_for(self.node)
 
     def marker(self, raw: str) -> None:
@@ -172,7 +170,7 @@ class Lab:
         )
 
     def commit_work(self, path: str = FEATURE_FILE) -> str:
-        """Have the "runner" write and commit a file in its worktree."""
+        """Have the "crew" write and commit a file in its worktree."""
         target = self.tree / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("value = 2\n", encoding="utf-8")
@@ -295,7 +293,7 @@ def test_an_edited_verifier_is_refused_not_run(lab: Lab) -> None:
     (lab.tree / VERIFY_SCRIPT).write_text(
         "#!/bin/sh\nexit 0\n# quietly rewritten\n", encoding="utf-8"
     )
-    commit_all(lab.tree, "runner edits the verifier")
+    commit_all(lab.tree, "crew edits the verifier")
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(VERIFY_SCRIPT)
 
@@ -427,9 +425,9 @@ def test_accept_passes_when_the_reviewer_verified_the_reviewed_commit(
 
 
 def test_verify_runs_at_the_artifact_commit_not_the_dirty_worktree(lab: Lab) -> None:
-    """B1: a runner cannot commit a broken tree and be graded on a good one.
+    """B1: a crew cannot commit a broken tree and be graded on a good one.
 
-    The probed counterexample: the runner COMMITS `BROKEN`, fixes the file in
+    The probed counterexample: the crew COMMITS `BROKEN`, fixes the file in
     the working tree only, declares it, and collects a `done` with zero audit
     flags — while the evidence names the commit containing `BROKEN`.
     """
@@ -438,7 +436,7 @@ def test_verify_runs_at_the_artifact_commit_not_the_dirty_worktree(lab: Lab) -> 
     checker.chmod(0o755)
     (lab.tree / FEATURE_FILE).write_text("BROKEN\n", encoding="utf-8")
     pins = lab.pins()
-    commit = commit_all(lab.tree, "the runner commits a broken tree")
+    commit = commit_all(lab.tree, "the crew commits a broken tree")
     (lab.tree / FEATURE_FILE).write_text("GOOD\n", encoding="utf-8")
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE, VERIFY_SCRIPT)
@@ -451,10 +449,10 @@ def test_verify_runs_at_the_artifact_commit_not_the_dirty_worktree(lab: Lab) -> 
     assert observation.completion.outcome is Outcome.FAIL_CODE
 
 
-def test_the_verify_tree_leaves_the_runners_worktree_untouched(lab: Lab) -> None:
-    """B1: grading the artifact must not disturb what the runner left behind."""
+def test_the_verify_tree_leaves_the_crews_worktree_untouched(lab: Lab) -> None:
+    """B1: grading the artifact must not disturb what the crew left behind."""
     lab.commit_work()
-    (lab.tree / "src" / "scratch.txt").write_text("runner scratch\n", encoding="utf-8")
+    (lab.tree / "src" / "scratch.txt").write_text("crew scratch\n", encoding="utf-8")
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE, "src/scratch.txt")
 
@@ -481,9 +479,7 @@ def test_the_exit_file_lands_before_the_evidence_is_computed(
     def explode(*_: object, **__: object) -> tuple[object, ...]:
         raise RuntimeError("the wrapper died inside §7")
 
-    monkeypatch.setattr(
-        "workflow_interpreter.supervisor.exit_grade.run_checks", explode
-    )
+    monkeypatch.setattr("workflow_interpreter.inspector.exit_grade.run_checks", explode)
     lab.commit_work()
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
@@ -520,7 +516,7 @@ def test_a_verifier_that_cannot_run_still_produces_an_exit_record(lab: Lab) -> N
     """M14: the §7 grade is `fail_code` + a flag, and the exit is still mirrored."""
     checker = lab.tree / VERIFY_SCRIPT
     checker.chmod(0o644)
-    commit_all(lab.tree, "the runner removed the examiner's execute bit")
+    commit_all(lab.tree, "the crew removed the examiner's execute bit")
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(VERIFY_SCRIPT)
 
@@ -547,7 +543,7 @@ def test_an_uncomputable_evidence_pass_still_records_the_exit(
     def refuse(*_: object, **__: object) -> object:
         raise VerifyTreeError("the §7.3 checkout could not be created")
 
-    monkeypatch.setattr("workflow_interpreter.supervisor.exit_grade.VerifyTree", refuse)
+    monkeypatch.setattr("workflow_interpreter.inspector.exit_grade.VerifyTree", refuse)
     lab.commit_work()
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
@@ -629,7 +625,7 @@ def test_a_foreman_close_during_the_exit_is_skipped_without_a_write(
         pytest.fail("an already-settled exit must not be logged as an error")
 
     monkeypatch.setattr(
-        "workflow_interpreter.supervisor.exit._LOG.error", unexpected_error
+        "workflow_interpreter.inspector.exit._LOG.error", unexpected_error
     )
     lab.store.close_activation(lab.activation.activation_id, Outcome.STEERED)
     lab.marker(json.dumps(DONE_MARKER))
@@ -654,7 +650,7 @@ def test_an_out_of_band_dirty_state_still_records_the_exit(tmp_path: Path) -> No
     `record_attribution` decodes the §3.2 dirty state out of bd metadata, and a
     row whose trio was written out of band — one `bd update` away, and the case
     bead cr-too is open for — raises pydantic's `ValidationError`. That is a
-    `ValueError`, so `(OSError, SupervisorError)` did not catch it and
+    `ValueError`, so `(OSError, InspectorError)` did not catch it and
     `observe()` died BEFORE `record_exit`: the child had provably exited and bd
     still said `dispatched`, which §5.6 spends an infra retry on every tick.
     Corrupt provenance decodes to `None` now — no snapshot, so nothing is
@@ -676,7 +672,7 @@ def test_an_out_of_band_dirty_state_still_records_the_exit(tmp_path: Path) -> No
     assert read_record(lab.paths.exit_file(activation_id), ExitRecord) is not None
     # Unknown pre-attempt state attributes NOTHING — and REPLACES the record
     # on disk, so an earlier attempt's attribution cannot stay live either.
-    attribution = read_record(lab.paths.attribution_record, RunnerAttribution)
+    attribution = read_record(lab.paths.attribution_record, CrewAttribution)
     assert attribution is not None
     assert attribution.activation_id == activation_id
     assert attribution.entries == ()
@@ -775,7 +771,7 @@ def test_replay_recomputes_only_when_completion_is_absent(lab: Lab) -> None:
     assert lab.paths.completion(lab.activation.activation_id).exists()
 
 
-def test_replay_reports_the_runners_usage_even_from_cached_completion(
+def test_replay_reports_the_crews_usage_even_from_cached_completion(
     lab: Lab,
 ) -> None:
     """cr-o85.34.23: the settling observation is the one that carries §6 usage.
@@ -807,7 +803,7 @@ def test_replay_reports_the_runners_usage_even_from_cached_completion(
     assert settled.usage == LIVE_USAGE
 
 
-def test_replay_keeps_usage_unknown_when_the_runner_reported_none(lab: Lab) -> None:
+def test_replay_keeps_usage_unknown_when_the_crew_reported_none(lab: Lab) -> None:
     """§6: absent telemetry stays absent — the cached branch invents nothing."""
     lab.commit_work()
     lab.marker(json.dumps(DONE_MARKER))
@@ -837,7 +833,7 @@ def test_an_unknown_pre_attempt_state_retires_an_earlier_attribution(
     """
     lab = Lab(tmp_path, in_repo=True)
     activation_id = lab.activation.activation_id
-    stale = RunnerAttribution(
+    stale = CrewAttribution(
         activation_id="wf-earlier",
         observed_at="2026-01-01T00:00:00Z",
         head_commit=lab.base,
@@ -853,7 +849,7 @@ def test_an_unknown_pre_attempt_state_retires_an_earlier_attribution(
 
     lab.observe(exit_code=0)
 
-    attribution = read_record(lab.paths.attribution_record, RunnerAttribution)
+    attribution = read_record(lab.paths.attribution_record, CrewAttribution)
     assert attribution is not None
     assert attribution.activation_id == activation_id
     assert attribution.entries == ()
@@ -890,7 +886,7 @@ def test_a_declared_effect_outside_allowed_paths_is_still_flagged_for_audit(
 ) -> None:
     """ADR 0001: `allowed_paths` exempts from reporting; it bounds nothing.
 
-    §7.5 subtracts `declared ∪ allowed`, so a runner may edit any path, list
+    §7.5 subtracts `declared ∪ allowed`, so a crew may edit any path, list
     it in its own manifest, and be graded `done` with no signal at all. The
     transition still proceeds — that is the recorded decision — but an
     operator now gets `observed ∖ allowed` as a distinct flag, so a node
@@ -915,7 +911,7 @@ def test_an_effect_outside_allowed_paths_under_the_bound_is_a_bound_violation(
 ) -> None:
     """cr-n2z.4: under `sandbox = bwrap` the grants ARE the writable mounts.
 
-    So `observed ∖ allowed` cannot be a runner outcome — the write it names was
+    So `observed ∖ allowed` cannot be a crew outcome — the write it names was
     physically impossible — and the only thing it can report is that the bound
     itself did not hold. That is a wrapper invariant violation: the flag is
     still recorded, and the §7 verdict becomes `error_transport` carrying
@@ -932,7 +928,7 @@ def test_an_effect_outside_allowed_paths_under_the_bound_is_a_bound_violation(
     assert AuditFlag.EFFECT_OUTSIDE_ALLOWED_PATHS in observation.completion.audit_flags
     assert AuditFlag.BOUND_VIOLATED in observation.completion.audit_flags
     assert observation.completion.outcome is Outcome.ERROR_TRANSPORT
-    # Still the runner's own claim, unedited: the wrapper overrules the verdict,
+    # Still the crew's own claim, unedited: the wrapper overrules the verdict,
     # never the record of what was claimed.
     assert observation.completion.claimed_outcome is Outcome.DONE
 
@@ -999,7 +995,7 @@ def test_cached_completion_cannot_swallow_recovery_pin_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Preservation failure escapes grading and leaves the checkout recoverable."""
-    from workflow_interpreter.supervisor import SnapshotFailed
+    from workflow_interpreter.inspector import SnapshotFailed
 
     lab = Lab(tmp_path)
     lab.marker(json.dumps(DONE_MARKER))
@@ -1037,7 +1033,7 @@ def test_recovery_bytes_are_not_a_verification_candidate(tmp_path: Path) -> None
     assert observed.completion.outcome is not Outcome.DONE
     recovery = lab.workspace.read_recovery(lab.activation)
     assert recovery is not None and recovery.pinned
-    from workflow_interpreter.supervisor import activation_ref
+    from workflow_interpreter.inspector import activation_ref
 
     assert (
         lab.git.ref_target(

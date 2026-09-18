@@ -27,7 +27,7 @@ from tests._helpers import (
     undeclared_fail_code_graph,
     write,
 )
-from tests._supervisor import ChildScript, head_of
+from tests._inspector import ChildScript, head_of
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     ActivationRecord,
@@ -47,21 +47,21 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.frontier import build_frontier
 from workflow_interpreter.foreman.gates import halt_gate
+from workflow_interpreter.foreman.inspect import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.resolve import instantiate
-from workflow_interpreter.foreman.supervise import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
-from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     AuditFlag,
     BranchAdvanceOutcome,
     CompletionEvidence,
     PinResult,
 )
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.gitcmd import GIT_INDEX_FILE, GitSubcommand
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import ExecLedger, read_record
-from workflow_interpreter.supervisor.workspace import Workspace
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.gitcmd import GIT_INDEX_FILE, GitSubcommand
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import ExecLedger, read_record
+from workflow_interpreter.inspector.workspace import Workspace
+from workflow_interpreter.schema.models import Node
 
 # Every test in this file is a §5 drill row (D1 crash, lock, event, halt).
 pytestmark = pytest.mark.acceptance
@@ -803,7 +803,7 @@ def _missing_branch_before_the_pin(
     """Drive cr-o85.33.10(b) through the stalled tick and the branch's rebirth.
 
     Deletes the instance branch strictly before the wrapper's own §7.4 pin, on
-    an `implement` node pinned in-repo so the runner's commit lands on `main`
+    an `implement` node pinned in-repo so the crew's commit lands on `main`
     (the row's shared IN-REPO premise). A single `lab.tick()` runs mint,
     precondition, launch AND `pin_artifact` inline (`InlineSpawner` is
     synchronous) with no test-visible pause between them: mint reads the

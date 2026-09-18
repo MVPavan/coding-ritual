@@ -7,7 +7,7 @@ trigger in §5 fires. Roadmap: `roadmap.md` (design, R1–R13, slices S0–S7).
 ## 1. Scope
 
 Everything in the roadmap, in order: **S0** rename → **S1** export integrity →
-**S2** derived closed → **S3** identity → **S4** bridge in the ledger → **S5** tracker
+**S2** derived closed → **S3** identity → **S4** contractor in the ledger → **S5** tracker
 port → **S6** cutover → **S7** checkpoint export (`cr-h498`, promoted from follow-up
 to final slice) → **close-out** (§7). Done means: every slice bead closed, the branch
 merged to `main` as one, roadmap cleaned to a record, guide and ADR written.

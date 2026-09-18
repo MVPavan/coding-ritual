@@ -551,14 +551,14 @@ def test_a_settlement_stamps_the_terminal_and_enqueues_its_projection(
     assert len(_unacked(ledger)) > len(before)
 
 
-def test_a_late_supervisor_write_loses_to_the_steer_that_closed_the_activation(
+def test_a_late_inspector_write_loses_to_the_steer_that_closed_the_activation(
     ledger: LedgerDatabase,
 ) -> None:
     """§3.3: the transition reads, checks and writes in ONE transaction.
 
-    The interleaving is real and not hypothetical: the supervisor is resident
+    The interleaving is real and not hypothetical: the inspector is resident
     and writes evidence concurrently with foreman ticks (`transitions.py`), so
-    a steer can close the activation after the supervisor read it. Modelled by
+    a steer can close the activation after the inspector read it. Modelled by
     handing the transition a loader that answers the record as it stood BEFORE
     the steer — so every check outside the transaction passes, and only the
     guard that re-reads inside it can refuse.
@@ -1269,7 +1269,7 @@ def test_a_read_never_sees_half_of_a_writers_transaction(
 ) -> None:
     """§3.4.1: one connection per process means its THREADS share it.
 
-    `check_same_thread=False` is what lets a resident supervisor and its
+    `check_same_thread=False` is what lets a resident inspector and its
     driver use the same connection, and it is exactly what makes an
     unsynchronised read dangerous: SQLite shows a connection its OWN
     uncommitted rows, so a reader running while another thread is mid-`BEGIN`

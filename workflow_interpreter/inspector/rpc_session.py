@@ -18,39 +18,30 @@ from workflow_interpreter.bdio.rpc_records import (
 from workflow_interpreter.contracts.rpc_control import MSG_CONTROL, ControlState
 from workflow_interpreter.contracts.rpc_usage import TokenCounts, UsageSnapshot
 from workflow_interpreter.contracts.sessions import execution_policy_digest
-from workflow_interpreter.profiles.codex_appserver_config import thread_config
-from workflow_interpreter.profiles.codex_rpc import (
-    CODEX_VERSION,
-    Notification,
-    RpcClient,
-    RpcFailure,
-    RpcFrame,
-    RpcMethod,
-)
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.launch_record import LaunchReceipt
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.launch_record import LaunchReceipt
+from workflow_interpreter.inspector.models import (
     ExitReason,
     MonitorResult,
     MonitorVerdict,
 )
-from workflow_interpreter.supervisor.monitor import TERMINAL_VERDICTS, Monitor
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.monitor import TERMINAL_VERDICTS, Monitor
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     write_record,
 )
-from workflow_interpreter.supervisor.profile import EventType, RunnerEvent, TaskSpec
-from workflow_interpreter.supervisor.rpc_control import (
+from workflow_interpreter.inspector.profile import CrewEvent, EventType, TaskSpec
+from workflow_interpreter.inspector.rpc_control import (
     INTERRUPT_FILE,
     control_path,
     interrupt,
     next_intent,
 )
-from workflow_interpreter.supervisor.rpc_pipes import RpcPipes
-from workflow_interpreter.supervisor.rpc_records import (
+from workflow_interpreter.inspector.rpc_pipes import RpcPipes
+from workflow_interpreter.inspector.rpc_records import (
     SESSION_FILE,
     TURN_FILE,
     InitializeReply,
@@ -63,11 +54,20 @@ from workflow_interpreter.supervisor.rpc_records import (
     TurnReply,
     VendorThread,
 )
-from workflow_interpreter.supervisor.rpc_usage import (
+from workflow_interpreter.inspector.rpc_usage import (
     USAGE_FILE,
     UsageNotification,
     protected_baseline,
     updated_usage,
+)
+from workflow_interpreter.profiles.codex_appserver_config import thread_config
+from workflow_interpreter.profiles.codex_rpc import (
+    CODEX_VERSION,
+    Notification,
+    RpcClient,
+    RpcFailure,
+    RpcFrame,
+    RpcMethod,
 )
 
 MSG_REPLY: Final[str] = "app-server rejected or malformed a required response"
@@ -94,7 +94,7 @@ class RpcSession:
 
     def __init__(
         self,
-        config: SupervisorConfig,
+        config: InspectorConfig,
         paths: WrapperPaths,
         store: WorkflowStore,
         clock: Clock,
@@ -184,7 +184,7 @@ class RpcSession:
                 if task.execution_policy
                 else "legacy"
             ),
-            runner_version=CODEX_VERSION,
+            crew_version=CODEX_VERSION,
         )
         write_record(self._directory / SESSION_FILE, registration)
         self._store.register_session(task.activation_id, registration)
@@ -217,7 +217,7 @@ class RpcSession:
 
     def _legacy_roots(self) -> list[JsonValue]:
         """Legacy callers retain the same Codex writable-root translation."""
-        # Profile initialization imports Supervisor; defer this legacy adapter.
+        # Profile initialization imports Inspector; defer this legacy adapter.
         from workflow_interpreter.profiles.codex import _writable_roots
 
         return list(_writable_roots(self._task, self._task.cwd))
@@ -258,7 +258,7 @@ class RpcSession:
                 raise RpcFailure(MSG_REPLY)
             with self._paths.log(self._task.activation_id).open("ab") as stream:
                 stream.write(
-                    RunnerEvent(type=EventType.MESSAGE, text=frame.method)
+                    CrewEvent(type=EventType.MESSAGE, text=frame.method)
                     .model_dump_json()
                     .encode()
                     + b"\n"

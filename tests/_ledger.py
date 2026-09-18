@@ -111,7 +111,7 @@ actor = "actor"
 workspace = "{bd_workspace or tmp_path / "bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{repo_root}"
 wrapper_root = "{wrapper_root}"
 host = "host"

@@ -1,7 +1,7 @@
-"""The three §6 runner channels, read and validated (`exit.py` decides).
+"""The three §6 crew channels, read and validated (`exit.py` decides).
 
 `$WF_OUTCOME_FILE`, `$WF_ARTIFACT_DIR` and `$WF_EFFECTS_FILE` are the only ways
-a runner reports anything, and all three are wrapper-provided files inside the
+a crew reports anything, and all three are wrapper-provided files inside the
 wrapper directory — writable regardless of the node's `writes`, so a
 `writes = false` reviewer can still report (§6).
 
@@ -12,7 +12,7 @@ it lives with the other §7 rules.
 
 Also here: the two conventions a PRODUCER and a READER in different modules
 have to render identically — the §7.3 pinned-digest key, and the §7.4 committer
-identity a runner's commits carry. A convention rendered in two places is a
+identity a crew's commits carry. A convention rendered in two places is a
 convention that drifts.
 """
 
@@ -33,12 +33,12 @@ from workflow_interpreter.bdio import (
     ResolvedSetting,
     RootRecord,
 )
+from workflow_interpreter.inspector import fswalk
+from workflow_interpreter.inspector.models import EffectsManifest, OutcomeMarker
+from workflow_interpreter.inspector.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
+from workflow_interpreter.inspector.paths import read_json_documents
+from workflow_interpreter.inspector.sandbox import grant_directory
 from workflow_interpreter.schema.models import GraphDocument
-from workflow_interpreter.supervisor import fswalk
-from workflow_interpreter.supervisor.models import EffectsManifest, OutcomeMarker
-from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
-from workflow_interpreter.supervisor.paths import read_json_documents
-from workflow_interpreter.supervisor.sandbox import grant_directory
 
 VERIFIER_DIGEST_KEY: Final[str] = "verify.{node}.{program}.sha256"
 """The §7.3 pinned-digest convention in the root's resolved config. §14 defers
@@ -50,16 +50,16 @@ DIGEST_SUFFIX: Final[str] = ".sha256"
 
 ENV_GIT_COMMITTER_NAME: Final[str] = "GIT_COMMITTER_NAME"
 ENV_GIT_COMMITTER_EMAIL: Final[str] = "GIT_COMMITTER_EMAIL"
-COMMITTER_NAME: Final[str] = "wf-runner"
-COMMITTER_EMAIL: Final[str] = "runner+{activation_id}@workflow-interpreter.invalid"
-"""The §7.4 identity every commit a runner makes is stamped with, carrying the
+COMMITTER_NAME: Final[str] = "wf-crew"
+COMMITTER_EMAIL: Final[str] = "crew+{activation_id}@workflow-interpreter.invalid"
+"""The §7.4 identity every commit a crew makes is stamped with, carrying the
 ACTIVATION id so one attempt's commits cannot be mistaken for another's.
 
-Set on the child's environment by `RunnerChannels.env()` (§6) and required by
+Set on the child's environment by `CrewChannels.env()` (§6) and required by
 `Workspace.pin_artifact` in addition to path containment. It is an ATTRIBUTION
-mechanism, not an authorization one: a runner can unset the variables, and §0.3
-already treats the in-process runner as semi-trusted. What it removes is the
-ACCIDENT — a dead runner's manifest naming a path the human later commits made
+mechanism, not an authorization one: a crew can unset the variables, and §0.3
+already treats the in-process crew as semi-trusted. What it removes is the
+ACCIDENT — a dead crew's manifest naming a path the human later commits made
 the human's commit "attributable" on path containment alone, and that pin is
 what authorizes the next reset to move HEAD off it (probed, Opus#21)."""
 
@@ -109,7 +109,7 @@ def walk_outputs(
     max_walk_entries: int,
     max_depth: int,
 ) -> OutputsWalk:
-    """Capture bounded regular output files without following runner links."""
+    """Capture bounded regular output files without following crew links."""
     shutil.rmtree(snapshot, ignore_errors=True)
     snapshot.mkdir(parents=True, exist_ok=True)
     try:
@@ -222,8 +222,8 @@ def walk_outputs(
     )
 
 
-def runner_committer_email(activation_id: str) -> str:
-    """The §7.4 committer address one activation's runner commits under."""
+def crew_committer_email(activation_id: str) -> str:
+    """The §7.4 committer address one activation's crew commits under."""
     return COMMITTER_EMAIL.format(activation_id=activation_id)
 
 
@@ -270,7 +270,7 @@ def pin_verifier_digests(
     The PRODUCER for `pinned_verifier_digests`, which had none: the reader and
     the key convention lived here while the settings themselves were only ever
     built by hand, so nothing guaranteed the two agreed. §7.3's whole claim is
-    that the digest was recorded at INSTANTIATION, before any runner could edit
+    that the digest was recorded at INSTANTIATION, before any crew could edit
     the script, so this is a function of the pinned graph and the repo at that
     moment and of nothing else.
 
@@ -342,7 +342,7 @@ def read_effects(path: Path) -> tuple[EffectsManifest | None, str | None]:
 def path_allowed(path: str, allowed_paths: tuple[str, ...]) -> bool:
     """Whether an observed path is exempt from undeclared-effect reporting.
 
-    Not a containment check: §7.5 also exempts whatever the runner declares,
+    Not a containment check: §7.5 also exempts whatever the crew declares,
     so this answers "was this change expected here", never "was it allowed"
     (ADR 0001).
     """

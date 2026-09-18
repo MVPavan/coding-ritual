@@ -33,7 +33,7 @@ REGION_MEMBER_NODE: Final[str] = """
 name = "extra"
 kind = "task"
 region = "r"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -149,8 +149,8 @@ MUTATION_CASES: Final[tuple[tuple[str, Replacements, RuleId], ...]] = (
         RuleId.SOURCE_REGISTRY_WELL_FORMED,
     ),
     (
-        "task-missing-runner",
-        (('runner = "profile:x"\n', ""),),
+        "task-missing-crew",
+        (('crew = "profile:x"\n', ""),),
         RuleId.NODE_FIELDS_MATCH_KIND,
     ),
     (
@@ -159,11 +159,11 @@ MUTATION_CASES: Final[tuple[tuple[str, Replacements, RuleId], ...]] = (
         RuleId.NODE_FIELDS_MATCH_KIND,
     ),
     (
-        "gate-carrying-runner",
+        "gate-carrying-crew",
         (
             (
                 'kind = "gate"\ngate_type = "human"',
-                'kind = "gate"\nrunner = "profile:x"\ngate_type = "human"',
+                'kind = "gate"\ncrew = "profile:x"\ngate_type = "human"',
             ),
         ),
         RuleId.NODE_FIELDS_MATCH_KIND,
@@ -190,7 +190,7 @@ MUTATION_CASES: Final[tuple[tuple[str, Replacements, RuleId], ...]] = (
     ),
     (
         "system-outcome-declared",
-        (('outcomes = ["done"]', 'outcomes = ["done", "error_runner"]'),),
+        (('outcomes = ["done"]', 'outcomes = ["done", "error_crew"]'),),
         RuleId.NODE_OUTCOME_DECLARATIONS_VALID,
     ),
     (
@@ -229,7 +229,7 @@ MUTATION_CASES: Final[tuple[tuple[str, Replacements, RuleId], ...]] = (
             (
                 WORK_EDGE,
                 WORK_EDGE
-                + '\n[[edge]]\nfrom = "work"\non = "error_runner"\nto = "finished"\n',
+                + '\n[[edge]]\nfrom = "work"\non = "error_crew"\nto = "finished"\n',
             ),
         ),
         RuleId.NO_EDGES_ON_SYSTEM_OUTCOMES,

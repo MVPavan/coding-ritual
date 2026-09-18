@@ -1,9 +1,9 @@
 """Injected configuration for the §6 profiles: binaries, env passthrough, effort.
 
 Frozen and handed in at construction, exactly like `bdio.config` and
-`supervisor.config`, and for the same reason: `rules/python/safety.md` forbids
+`inspector.config`, and for the same reason: `rules/python/safety.md` forbids
 `os.environ` reads in business logic, and a profile whose sandbox posture came
-from the ambient environment would be a profile the runner it launches could
+from the ambient environment would be a profile the crew it launches could
 reconfigure. The brief called for a `pydantic-settings` model; this repo has no
 `pydantic-settings` dependency, the phase-4 brief allows only marker changes to
 `pyproject.toml`, and both sibling config modules deliberately reject ambient
@@ -27,9 +27,9 @@ from typing import Annotated, Final
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_serializer
 
-from workflow_interpreter.contracts.execution import RUNNER_PREFIX, RunnerName
+from workflow_interpreter.contracts.execution import CREW_PREFIX, CrewName
 
-__all__ = ["RUNNER_PREFIX", "ProfileConfig", "RunnerName"]
+__all__ = ["CREW_PREFIX", "CrewName", "ProfileConfig"]
 
 PROFILE_CONFIG_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -50,7 +50,7 @@ BASE_PASSTHROUGH_ENV: Final[tuple[str, ...]] = (
     "LC_ALL",
     "TZ",
 )
-"""The host keys every runner needs regardless of vendor.
+"""The host keys every crew needs regardless of vendor.
 
 `PATH` is not optional: `launch.py` execs with `os.execvpe(argv[0], argv, env)`,
 which resolves the program against the PATH IN THAT ENV — a child env without
@@ -60,7 +60,7 @@ authenticated), so dropping it silently downgrades auth to none.
 """
 
 
-VendorMap = Mapping[RunnerName, str]
+VendorMap = Mapping[CrewName, str]
 """A per-vendor mapping a FROZEN model can actually hold.
 
 `frozen = True` freezes the model's ATTRIBUTES, not the objects behind them: a
@@ -93,7 +93,7 @@ class ProfileConfig(BaseModel):
     """Vendor-only overrides; registered non-vendor profiles own binary selection.
     Where to find each CLI, when it is not simply on PATH under its own name.
     The `proc`-marked tests point these at stub executables, which is how a real
-    `Supervisor.run` can be driven end to end without spending tokens."""
+    `Inspector.run` can be driven end to end without spending tokens."""
     passthrough_env: tuple[str, ...] = BASE_PASSTHROUGH_ENV
     """Host env keys copied into the child, in addition to the vendor's own
     named auth keys. A key that is absent from the host env is simply not set;
@@ -110,8 +110,8 @@ class ProfileConfig(BaseModel):
         """
         return {key.value: item for key, item in value.items()}
 
-    def binary_for(self, runner: RunnerName) -> str:
+    def binary_for(self, crew: CrewName) -> str:
         """The executable for one vendor: the override, or the vendor's name."""
         return self.binary_overrides.get(
-            runner, "codex" if runner is RunnerName.CODEX_APPSERVER else runner.value
+            crew, "codex" if crew is CrewName.CODEX_APPSERVER else crew.value
         )

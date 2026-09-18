@@ -68,7 +68,7 @@ endings, invalid UTF-8 replaced) text says the rest."""
 REVIEW_REPORT_FILE: Final[str] = "review.md"
 """The ONE file of a reviewer's outputs tree that IS its verdict.
 
-Named here rather than in the supervisor because the graph's `review`
+Named here rather than in the inspector because the graph's `review`
 instructions and the extraction must agree on it, and because a reviewer's
 outputs tree also holds its evidence: concatenating the tree would let a
 command transcript become the tail of the last numbered finding, or — on a
@@ -92,7 +92,7 @@ FAILING_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
         Outcome.FAIL_CODE,
         Outcome.FAIL_PLAN,
         Outcome.REJECT,
-        Outcome.ERROR_RUNNER,
+        Outcome.ERROR_CREW,
         Outcome.ERROR_TRANSPORT,
     }
 )

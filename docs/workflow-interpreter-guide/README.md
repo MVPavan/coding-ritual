@@ -20,12 +20,12 @@ Start at 01 and stop when your question is answered. Each document stands alone.
 | # | Document | Answers |
 |---|---|---|
 | 01 | [Components](01-components.md) | Who does what, and what the confusable pairs are |
-| 02 | [Phase bridge](02-phase-bridge.md) | The command the orchestrator runs |
+| 02 | [Contractor](02-contractor.md) | The command the orchestrator runs |
 | 03 | [Foreman](03-foreman.md) | How one decision is taken, and how often |
 | 04 | [Graph and nodes](04-graph-and-nodes.md) | Node kinds, task parameters, outcomes, regions, budgets |
-| 05 | [Supervisor wrapper](05-wrapper.md) | How one activation is actually executed |
+| 05 | [Inspector wrapper](05-wrapper.md) | How one activation is actually executed |
 | 06 | [Recovery](06-recovery.md) | What happens when a wrapper dies |
-| 07 | [Grading](07-grading.md) | Why a runner's claim is never proof |
+| 07 | [Grading](07-grading.md) | Why a crew's claim is never proof |
 | 08 | [Store and ledger](08-store.md) | The backend seam, bd versus SQLite |
 | 09 | [Coordination](09-coordination.md) | Decision policy and child workflows (dormant today) |
 | 10 | [Assessment](10-assessment.md) | Vision versus what is built; over- and under-engineering |
@@ -56,4 +56,4 @@ Recorded so the same mistakes are not repeated:
   `debrief`. Per-node fields must be read against their own `[[node]]` block.
 - A test-line count of ~135,000 was wrong; the real figure is ~66,800. The original
   glob had swept in vendored `.venv` tests.
-- The wrapper's entry point is `foreman/supervise.py`, not a `supervisor/wrapper.py`.
+- The wrapper's entry point is `foreman/inspect.py`, not a `inspector/wrapper.py`.

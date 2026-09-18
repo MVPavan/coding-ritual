@@ -27,7 +27,7 @@ on_exhausted = "approval"
 name = "gather"
 kind = "task"
 region = "intake"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -42,7 +42,7 @@ outcomes = ["done"]
 name = "draft"
 kind = "task"
 region = "build"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -57,7 +57,7 @@ outcomes = ["done"]
 name = "polish"
 kind = "task"
 region = "build"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

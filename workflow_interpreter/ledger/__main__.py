@@ -20,6 +20,7 @@ from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import DEFAULT_SSH_KEYGEN
 from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.foreman.config import ForemanConfig, load_config
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.archive import archive_task
 from workflow_interpreter.ledger.constants import EXPORT_SUFFIX
 from workflow_interpreter.ledger.database import open_ledger
@@ -27,7 +28,6 @@ from workflow_interpreter.ledger.export import import_exports, write_export
 from workflow_interpreter.ledger.paths import export_dir, ledger_path
 from workflow_interpreter.ledger.reconcile import ATTENTION_LABEL, AttentionReconciler
 from workflow_interpreter.ledger.reverify import TrustAnchor, verify_export
-from workflow_interpreter.supervisor.gitio import Git
 
 PROG: Final[str] = "python -m workflow_interpreter.ledger"
 COMMAND_EXPORT: Final[str] = "export"
@@ -240,7 +240,7 @@ def _verify(config: ForemanConfig, task_id: str, allowed_signers: Path | None) -
 
 def _archive(config: ForemanConfig, task_id: str, bundle: Path) -> int:
     """Archive one closed task's bytes behind a verified bundle (§3.9, D19)."""
-    git = Git(config.supervisor)
+    git = Git(config.inspector)
     with open_ledger(config.repo_root, config.wrapper_root) as database:
         result = archive_task(
             git,

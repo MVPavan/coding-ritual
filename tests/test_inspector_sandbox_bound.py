@@ -1,6 +1,6 @@
 """The §2 mount bound WIRED: what a real dispatch does under it, end to end.
 
-`tests/test_supervisor_sandbox.py` owns the plan and the raw `bwrap` argv. This
+`tests/test_inspector_sandbox.py` owns the plan and the raw `bwrap` argv. This
 module owns the seams slice 3 added around them — the wrap site in
 `ForkBarrierLauncher`, the `probe` gate in `Dispatcher._launch`, the receipt
 field, the `sandbox = off` audit flag and the §3 refusal path — and it drives
@@ -25,8 +25,8 @@ import pytest
 from structlog.testing import capture_logs
 
 from tests._foreman import ForemanLab
+from tests._inspector import ChildScript, commit_all, crew_git
 from tests._profiles import GRANDCHILD_PID_FILE, Lab
-from tests._supervisor import ChildScript, commit_all, runner_git
 from tests.conftest import Signer
 from workflow_interpreter.bdio import Outcome, SigningConfig
 from workflow_interpreter.bdio.bounds import consecutive_infra_closes
@@ -40,29 +40,29 @@ from workflow_interpreter.foreman.constants import (
     HALT_BOUND_VIOLATED,
     HALT_SANDBOX_UNAVAILABLE,
 )
-from workflow_interpreter.profiles import RunnerName
-from workflow_interpreter.supervisor.errors import GitCommandError
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.launch import (
+from workflow_interpreter.inspector.errors import GitCommandError
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.launch import (
     EXIT_EXEC_FAILED,
     DispatchResult,
     _vendor_resolves,
 )
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.models import (
     AuditFlag,
     CompletionEvidence,
     LaunchReceipt,
     Liveness,
 )
-from workflow_interpreter.supervisor.paths import ARTIFACT_DIR, read_record
-from workflow_interpreter.supervisor.procfs import prove_liveness, terminate
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector.paths import ARTIFACT_DIR, read_record
+from workflow_interpreter.inspector.procfs import prove_liveness, terminate
+from workflow_interpreter.inspector.sandbox import (
     BWRAP_BINARY,
     UV_CACHE_DIRECTORY,
     SandboxCapability,
     SandboxMode,
     probe,
 )
+from workflow_interpreter.profiles import CrewName
 
 MISSING_BINARY: Final[str] = "/nonexistent/vendor-cli"
 GRANTED_FILE: Final[str] = "src/feature.py"
@@ -85,7 +85,7 @@ def handle_activation(result: DispatchResult) -> str:
 
 def _skip_without_bwrap(lab: ForemanLab) -> None:
     """Skip loudly when this host cannot hold the bound (plan §6 skip policy)."""
-    capability = probe(lab.supervisor_config)
+    capability = probe(lab.inspector_config)
     if not capability.available:
         pytest.skip(capability.reason)
 
@@ -203,7 +203,7 @@ def test_the_receipt_records_the_wrapped_argv_and_the_mode(tmp_path: Path) -> No
     receipt = read_record(lab.wiring().paths.receipt(activation_id), LaunchReceipt)
     assert receipt is not None
     assert receipt.sandbox is SandboxMode.BWRAP
-    assert receipt.argv[0] == probe(lab.supervisor_config).binary
+    assert receipt.argv[0] == probe(lab.inspector_config).binary
     assert (
         str(
             lab.wiring().paths.activation_dir(activation_id)
@@ -264,7 +264,7 @@ def test_a_host_that_cannot_hold_the_bound_halts_without_spending_a_retry(
     lab = ForemanLab(tmp_path)
     lab.instantiate()
     monkeypatch.setattr(
-        "workflow_interpreter.supervisor.launch.probe",
+        "workflow_interpreter.inspector.launch.probe",
         lambda config: SandboxCapability(available=False, reason=PROBE_REASON),
     )
 
@@ -290,7 +290,7 @@ def test_a_host_that_cannot_hold_the_bound_halts_without_spending_a_retry(
     )
 
 
-# --- a bound that FAILED is not a runner outcome (drill 28, cr-n2z.4) -------
+# --- a bound that FAILED is not a crew outcome (drill 28, cr-n2z.4) -------
 
 
 def _say_the_bound_was_on(lab: ForemanLab, activation_id: str) -> None:
@@ -341,7 +341,7 @@ def test_an_effect_outside_the_grant_under_the_bound_halts_the_instance(
 
     The infra count is load-bearing in the same way as the `sandbox_unavailable`
     drill: retrying into a bound that is not holding would keep dispatching
-    runners into an unbounded checkout until the §10.2 cap burned.
+    crews into an unbounded checkout until the §10.2 cap burned.
     """
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
     lab.instantiate()
@@ -392,12 +392,12 @@ def test_a_cached_removal_under_the_bound_is_not_a_bound_violation(
     """`git rm --cached docs/notes.md` + commit, file untouched on disk.
 
     `.git` is mounted writable under the bound (`sandbox.plan_for`), so this is
-    something a runner can do INSIDE an intact bound: the commit diff names
+    something a crew can do INSIDE an intact bound: the commit diff names
     `docs/notes.md`, `git status` names it untracked, and not one byte outside
     `src/**` was written. Escalating it — the shape this catches — reports a
     healthy contained run as a failed mount bound, halts the instance,
     retry-exempt, and points the operator at the wrapper instead of at the
-    runner. It must stay an advisory flag whose residue the §7.5 effects gate
+    crew. It must stay an advisory flag whose residue the §7.5 effects gate
     puts in front of a human, exactly as it did before cr-n2z.4.
     """
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
@@ -407,7 +407,7 @@ def test_a_cached_removal_under_the_bound_is_not_a_bound_violation(
     assert activation_id is not None
 
     worktree = lab.wiring().paths.worktree
-    runner_git(
+    crew_git(
         worktree,
         "rm",
         "--cached",
@@ -416,7 +416,7 @@ def test_a_cached_removal_under_the_bound_is_not_a_bound_violation(
         OUTSIDE_TRACKED,
         activation_id=activation_id,
     )
-    runner_git(
+    crew_git(
         worktree,
         "commit",
         "--quiet",
@@ -463,10 +463,10 @@ def test_a_cacheinfo_forgery_of_an_absent_path_is_not_a_violation(
     assert activation_id is not None
 
     worktree = lab.wiring().paths.worktree
-    blob = runner_git(
+    blob = crew_git(
         worktree, "rev-parse", f"HEAD:{GRANTED_FILE}", activation_id=activation_id
     )
-    runner_git(
+    crew_git(
         worktree,
         "update-index",
         "--add",
@@ -474,7 +474,7 @@ def test_a_cacheinfo_forgery_of_an_absent_path_is_not_a_violation(
         f"100644,{blob},{GHOST_FILE}",
         activation_id=activation_id,
     )
-    runner_git(
+    crew_git(
         worktree,
         "commit",
         "--quiet",
@@ -580,7 +580,7 @@ def test_a_vanished_vendor_binary_still_exits_127_inside_the_box(lab: Lab) -> No
     capability = probe(lab.config)
     if not capability.available:
         pytest.skip(capability.reason)
-    result = lab.run(RunnerName.CLAUDE, binary=MISSING_BINARY)
+    result = lab.run(CrewName.CLAUDE, binary=MISSING_BINARY)
 
     assert result.observation is not None
     assert result.observation.exit_record.exit_code == EXIT_EXEC_FAILED
@@ -605,7 +605,7 @@ def test_the_handle_still_owns_its_process_group_inside_the_box(lab: Lab) -> Non
     capability = probe(lab.config)
     if not capability.available:
         pytest.skip(capability.reason)
-    result = lab.dispatch(RunnerName.CLAUDE, session_id=str(uuid.uuid4()))
+    result = lab.dispatch(CrewName.CLAUDE, session_id=str(uuid.uuid4()))
 
     handle = result.handle
     assert handle is not None
@@ -643,7 +643,7 @@ def test_the_wrapped_argv_names_the_binary_the_probe_resolved(tmp_path: Path) ->
     """`probe` resolved an absolute `bwrap`; `wrap` must not re-resolve by name.
 
     Emitting a bare `bwrap` means the CHILD's `PATH` decides which binary holds
-    the bound — and that `PATH` is a passthrough value the runner's environment
+    the bound — and that `PATH` is a passthrough value the crew's environment
     carries. The probe already answered the question, so the answer travels on
     the plan instead of being asked again at exec time.
     """
@@ -655,7 +655,7 @@ def test_the_wrapped_argv_names_the_binary_the_probe_resolved(tmp_path: Path) ->
 
     receipt = read_record(lab.wiring().paths.receipt(activation_id), LaunchReceipt)
     assert receipt is not None
-    assert receipt.argv[0] == probe(lab.supervisor_config).binary
+    assert receipt.argv[0] == probe(lab.inspector_config).binary
     assert Path(receipt.argv[0]).is_absolute()
 
 
@@ -707,7 +707,7 @@ def _await_pid(path: Path, timeout_s: float = TERMINATE_TIMEOUT_S) -> int:
 def test_terminating_a_bound_child_ends_bwrap_and_its_grandchild(lab: Lab) -> None:
     """§8.1 termination has to reach THROUGH the box, not stop at `bwrap`.
 
-    `handle.pid` names `bwrap`, and the runner plus everything it spawns live
+    `handle.pid` names `bwrap`, and the crew plus everything it spawns live
     below it. `terminate` signals the process GROUP, which `setsid` gave the
     leader before the exec — so a grandchild that outlived the kill would mean
     the bound had cost the wrapper its only way to stop a run.
@@ -716,7 +716,7 @@ def test_terminating_a_bound_child_ends_bwrap_and_its_grandchild(lab: Lab) -> No
     if not capability.available:
         pytest.skip(capability.reason)
     result = lab.dispatch(
-        RunnerName.CLAUDE, session_id=str(uuid.uuid4()), grandchild=True
+        CrewName.CLAUDE, session_id=str(uuid.uuid4()), grandchild=True
     )
     handle = result.handle
     assert handle is not None

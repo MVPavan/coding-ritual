@@ -25,14 +25,14 @@ from workflow_interpreter.bdio import (
     PreconditionRecord,
     ProcessHandle,
 )
-from workflow_interpreter.schema.models import IsolationMode, Outcome
-from workflow_interpreter.supervisor.branch import BranchAdvance, BranchAdvanceOutcome
-from workflow_interpreter.supervisor.launch_record import (
+from workflow_interpreter.inspector.branch import BranchAdvance, BranchAdvanceOutcome
+from workflow_interpreter.inspector.launch_record import (
     LaunchReceipt,
     LaunchReceiptState,
 )
-from workflow_interpreter.supervisor.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
-from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.inspector.outputs import OutputsWalk, UnsafeEntry, UnsafeKind
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.schema.models import IsolationMode, Outcome
 
 RECORD_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -56,6 +56,7 @@ __all__ = [
     "CollectedExit",
     "CompletionEvidence",
     "ConfirmedPath",
+    "CrewAttribution",
     "DirtyEntry",
     "DirtySnapshot",
     "EffectsManifest",
@@ -84,7 +85,6 @@ __all__ = [
     "RecoveryCase",
     "RecoveryClassification",
     "ResetPlan",
-    "RunnerAttribution",
     "SandboxMode",
     "StaleFlag",
     "SteerIntent",
@@ -104,7 +104,7 @@ class ExitReason(StrEnum):
     STALE = "stale"
     """The child was silent through a SECOND `stale_after` window and the
     wrapper ended it (§8.2). The kill is the `max_wall` one — same proof, same
-    `error_runner` close costing one infra retry — and only this reason says
+    `error_crew` close costing one infra retry — and only this reason says
     which ceiling was breached."""
     STEERED = "steered"
     TERMINATED = "terminated"
@@ -198,7 +198,7 @@ class EntryKind(StrEnum):
 
     `git status -uall` reports a nested checkout as `?? vendorwork/` and a dirty
     submodule as ` M vendored`: single entries that name a DIRECTORY. They have
-    no blob, so they have no digest, so the digest comparison `_is_runner_output`
+    no blob, so they have no digest, so the digest comparison `_is_crew_output`
     rests on degenerates to `"" == ""` — which would make every directory the
     wrapper ever recorded resettable forever. The kind is recorded so the
     comparison is never reached for one (§12).
@@ -233,13 +233,13 @@ class AuditFlag(StrEnum):
     UNDECLARED_EFFECT = "undeclared_effect"
     EFFECT_OUTSIDE_ALLOWED_PATHS = "effect_outside_allowed_paths"
     """A path was modified outside the node's `allowed_paths`, whether or not
-    the runner declared it. §7.5 subtracts `declared UNION allowed`, so a
+    the crew declared it. §7.5 subtracts `declared UNION allowed`, so a
     declared path outside the set reconciles the transition and is graded
     `done`; as a REPORTING rule `allowed_paths` is an exemption, never a bound
     (ADR 0001). Recorded, never raised: this flags scope for an operator and
     changes no outcome.
 
-    Containment itself is the §2 mount bound (`supervisor/sandbox.py`), which
+    Containment itself is the §2 mount bound (`inspector/sandbox.py`), which
     makes the grants the node's writable mounts — so under `sandbox = bwrap`
     this flag is a should-never-fire signal rather than the only line of
     defence, and it is joined there by `BOUND_VIOLATED`. It still fires
@@ -248,7 +248,7 @@ class AuditFlag(StrEnum):
     """A child the RECEIPT says ran under the §2 mount bound left an
     out-of-grant path whose WORKING-TREE state differs from the intended base
     commit's (cr-n2z.4). That write was physically impossible under the bound,
-    so this is not a runner outcome at all: the bound did not hold. The flag
+    so this is not a crew outcome at all: the bound did not hold. The flag
     needs the physical difference and not just
     `EFFECT_OUTSIDE_ALLOWED_PATHS` — `.git` is writable under the bound, so an
     index-only or commit-only forgery puts an out-of-grant path in the
@@ -341,7 +341,7 @@ class DirtyEntry(BaseModel):
 
 
 class DirtySnapshot(BaseModel):
-    """§12 `pre_attempt_dirty_state`: what was dirty BEFORE the runner ran.
+    """§12 `pre_attempt_dirty_state`: what was dirty BEFORE the crew ran.
 
     `stash_commit` is `git stash create`'s commit (empty when the tree was
     clean); the per-path digests are what a later reset actually compares
@@ -366,23 +366,23 @@ class DirtySnapshot(BaseModel):
         )
 
 
-class RunnerAttribution(BaseModel):
-    """What the wrapper itself WATCHED a runner produce (§12 positive attribution).
+class CrewAttribution(BaseModel):
+    """What the wrapper itself WATCHED a crew produce (§12 positive attribution).
 
     The §12 reset authority. Every entry survived three independent tests at
-    the moment the runner died and the wrapper still held the band:
+    the moment the crew died and the wrapper still held the band:
 
     1. the wrapper's own `git status` saw the path dirty (observed);
-    2. the runner's `$WF_EFFECTS_FILE` declared it (claimed);
+    2. the crew's `$WF_EFFECTS_FILE` declared it (claimed);
     3. it was not already dirty when that attempt STARTED (so it cannot be
-       pre-existing human work the runner merely overwrote).
+       pre-existing human work the crew merely overwrote).
 
     A path is resettable later only if its content is STILL byte-identical to
     the digest recorded here — anything that touched it since (a human, an
     editor, another tool) breaks the match and returns it to protected.
 
     Instance-scoped and single-writer: only `ExitObserver` writes it, and only
-    one runner is ever active per repo path (§12 execution band). Entries
+    one crew is ever active per repo path (§12 execution band). Entries
     accumulate across activations so a file the implementer left is still
     attributable after a reviewer has run; a superseded path is overwritten and
     a changed one simply stops matching.
@@ -399,7 +399,7 @@ class RunnerAttribution(BaseModel):
     entries: tuple[DirtyEntry, ...] = ()
 
     def digest_of(self, path: str) -> str | None:
-        """The content digest the wrapper attributed to a runner, if any."""
+        """The content digest the wrapper attributed to a crew, if any."""
         return next(
             (entry.digest for entry in self.entries if entry.path == path), None
         )
@@ -460,7 +460,7 @@ class ResetPlan(BaseModel):
 
     resettable: tuple[str, ...] = ()
     protected: tuple[str, ...] = ()
-    """Dirty paths the wrapper cannot ATTRIBUTE to the runner — treated as
+    """Dirty paths the wrapper cannot ATTRIBUTE to the crew — treated as
     human work (§12). Ambiguity lands here; it never lands in `resettable`."""
     head_move_required: bool = False
     head_protected: bool = False
@@ -577,7 +577,7 @@ class SteerIntent(BaseModel):
     so a §5.6 recovery that re-dispatched one had nothing to resume with.
 
     The prose lives HERE and nowhere else. The wrapper directory is the
-    observation cache §P1 already allows to hold a runner's own bytes, while bd
+    observation cache §P1 already allows to hold a crew's own bytes, while bd
     is durable project state a human reads; `instructions_digest` is the form
     §8.1 records where the prose must not go, and the only form that may ever be
     written there. Nothing writes even the digest to bd today — the `steered`
@@ -723,7 +723,7 @@ class VerifyResult(BaseModel):
 
 
 class CollectedExit(BaseModel):
-    """The three §6 runner channels, read once, after the child exited."""
+    """The three §6 crew channels, read once, after the child exited."""
 
     model_config = RECORD_MODEL
 

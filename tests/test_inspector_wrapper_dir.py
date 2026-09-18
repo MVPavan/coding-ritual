@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     BOOT_ID,
     START_TIME,
     FrozenClock,
@@ -25,35 +25,35 @@ from tests._supervisor import (
     make_repo,
     write_proc_entry,
 )
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
+    CrewCommand,
     ExecLedger,
     ExecLedgerEntry,
     ForkBarrierLauncher,
     GitCommandError,
+    InspectorConfigError,
     Liveness,
-    RunnerCommand,
-    SupervisorConfigError,
     WrapperDirError,
     WrapperPaths,
 )
-from workflow_interpreter.supervisor import paths as paths_module
-from workflow_interpreter.supervisor import procfs as procfs_module
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.gitio import GitSubcommand
-from workflow_interpreter.supervisor.models import StaleFlag
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector import paths as paths_module
+from workflow_interpreter.inspector import procfs as procfs_module
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.gitio import GitSubcommand
+from workflow_interpreter.inspector.models import StaleFlag
+from workflow_interpreter.inspector.paths import (
     read_json_documents,
     read_record,
     read_tail,
     write_durable,
     write_record,
 )
-from workflow_interpreter.supervisor.procfs import (
+from workflow_interpreter.inspector.procfs import (
     prove_liveness,
     read_start_time,
     terminate,
 )
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector.sandbox import (
     UV_CACHE_DIRECTORY,
     SandboxMode,
     SandboxPlan,
@@ -142,14 +142,14 @@ def test_a_log_tail_is_bounded_and_lenient(tmp_path: Path) -> None:
 def test_a_wrapper_dir_inside_the_repo_is_refused(tmp_path: Path) -> None:
     """§P1: a `git clean -fdx` must not be able to delete the exec ledger."""
     repo = tmp_path / "repo"
-    with pytest.raises(SupervisorConfigError, match="inside repo_root"):
-        SupervisorConfig(repo_root=repo, wrapper_root=repo / ".wf", host="lab")
+    with pytest.raises(InspectorConfigError, match="inside repo_root"):
+        InspectorConfig(repo_root=repo, wrapper_root=repo / ".wf", host="lab")
 
 
 def test_a_relative_path_is_refused(tmp_path: Path) -> None:
     """Every path the wrapper holds is absolute; nothing depends on the cwd."""
-    with pytest.raises(SupervisorConfigError, match="absolute"):
-        SupervisorConfig(
+    with pytest.raises(InspectorConfigError, match="absolute"):
+        InspectorConfig(
             repo_root=Path("repo"), wrapper_root=tmp_path / ".wf", host="lab"
         )
 
@@ -164,7 +164,7 @@ def test_git_refuses_a_working_directory_it_does_not_own(tmp_path: Path) -> None
 
 
 def test_git_has_no_publishing_subcommand() -> None:
-    """Structural, not a convention: the supervisor cannot construct a push."""
+    """Structural, not a convention: the inspector cannot construct a push."""
     values = {subcommand.value for subcommand in GitSubcommand}
 
     assert values.isdisjoint({"push", "remote", "fetch", "commit"})
@@ -219,7 +219,7 @@ def test_an_unreadable_proc_entry_is_indeterminate_not_dead(tmp_path: Path) -> N
     Reading an EACCES or EIO as DEAD closed a live activation §5.6 case 3 and
     let the retry run beside the survivor. A DIRECTORY where `stat` should be
     reproduces a non-ENOENT read failure without needing a permission the test
-    runner may or may not be able to drop.
+    crew may or may not be able to drop.
     """
     config = make_config(make_repo(tmp_path), tmp_path)
     (config.proc_root / "4244" / "stat").mkdir(parents=True)
@@ -317,7 +317,7 @@ def test_a_term_resistant_descendant_dies_when_its_leader_does_not(
         f'/bin/sh -c \'trap "" TERM; echo $$ > {pid_file}; '
         "while :; do sleep 0.2; done' &"
     )
-    command = RunnerCommand(
+    command = CrewCommand(
         argv=("/bin/sh", "-c", f"{grandchild_script}\nsleep 60\nexit 0\n"),
         env={"PATH": "/usr/bin:/bin"},
         cwd=str(repo),

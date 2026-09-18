@@ -1,10 +1,10 @@
-"""The two writes the phase-3 supervisor owns (§3.2 carry-forward, §8.2 stale).
+"""The two writes the phase-3 inspector owns (§3.2 carry-forward, §8.2 stale).
 
 Split out of `api.py` the way `roots`, `gates`, `canary` and `finalize` already
 are: `WorkflowStore` keeps the method — it is still the only public surface
 (§0.1) — and the rule lives here.
 
-Neither write moves the §5.1 lifecycle. Both are FACTS the supervisor observed
+Neither write moves the §5.1 lifecycle. Both are FACTS the inspector observed
 about a running attempt rather than states of it, which is exactly why each
 needs its own guard instead of the usual `_assert_lifecycle` transition:
 
@@ -17,7 +17,7 @@ needs its own guard instead of the usual `_assert_lifecycle` transition:
 
 **Both writes are DELTA-ONLY, over a freshly read activation.** The earlier
 version wrote the whole merged carrier, on the argument that these keysets are
-single-writer inside the §4 tick. That argument is void: B5 made the supervisor
+single-writer inside the §4 tick. That argument is void: B5 made the inspector
 a RESIDENT process that outlives the tick, so its stale mirror runs concurrently
 with foreman ticks by design. A whole-carrier merge from a stale read then
 re-emits every OTHER key as it stood at read time — and a foreman that closed
@@ -61,7 +61,7 @@ from workflow_interpreter.bdio.wire import (
     StaleFlagRecord,
     metadata_dict,
 )
-from workflow_interpreter.contracts.execution import RunnerName
+from workflow_interpreter.contracts.execution import CrewName
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -200,8 +200,8 @@ def register_session(
         or registration.launch_id != metadata.launch_id
         or registration.handle != metadata.handle
         or registration.model != metadata.model
-        or metadata.runner_profile.removeprefix("profile:")
-        != RunnerName.CODEX_APPSERVER.value
+        or metadata.crew_profile.removeprefix("profile:")
+        != CrewName.CODEX_APPSERVER.value
     ):
         raise CarrierIntegrityError(MSG_SESSION_IDENTITY)
     if metadata.session_registration is not None:

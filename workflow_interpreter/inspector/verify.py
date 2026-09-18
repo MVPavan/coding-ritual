@@ -5,7 +5,7 @@ Three properties, each of which was a hole:
 1. **The tree under test is the ARTIFACT, not the workspace.** The checks run
    in a throwaway detached checkout of the commit the evidence names, created
    here and asserted clean before a single check runs. Grading the live working
-   tree let a runner commit a broken tree, leave a good one uncommitted, and
+   tree let a crew commit a broken tree, leave a good one uncommitted, and
    collect a `done` whose evidence named the broken commit (probed). §7.4 says
    the recorded identity is the commit; §7.3's checks have to be about the same
    object.
@@ -55,13 +55,13 @@ import structlog
 
 from workflow_interpreter.bdio.carriers import LedgerRenderBinding
 from workflow_interpreter.contracts.run_identity import RunIdentity
+from workflow_interpreter.inspector.channels import verifier_digest_key
+from workflow_interpreter.inspector.errors import VerifyTreeError
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.models import VerifyResult
+from workflow_interpreter.inspector.paths import ENCODING, WrapperPaths
 from workflow_interpreter.schema.graph_index import duration_seconds
 from workflow_interpreter.schema.models import Node, VerifyCheck
-from workflow_interpreter.supervisor.channels import verifier_digest_key
-from workflow_interpreter.supervisor.errors import VerifyTreeError
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.models import VerifyResult
-from workflow_interpreter.supervisor.paths import ENCODING, WrapperPaths
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -99,7 +99,7 @@ RENDER_OID_ENV: Final[str] = "WF_RENDER_OID"
 RENDER_DIGEST_ENV: Final[str] = "WF_RENDER_DIGEST"
 """The IMMUTABLE render this activation was minted against (run-ledger §3.7).
 
-A check that resolved the render by ref name would trust a ref the runner's
+A check that resolved the render by ref name would trust a ref the crew's
 sandbox protects as a loose file only (`sandbox.WF_REFS_DIR`: `packed-refs`
 stays writable), so a repointed ref could redefine what the debrief is
 compared against. These two come from the activation's own
@@ -114,7 +114,7 @@ READ_CHUNK: Final[int] = 65536
 REFUSED_EXIT_CODE: Final[int] = 126
 """A check whose provenance failed is REFUSED, not run — recorded as 126
 (POSIX 'found but not executable'), so evidence never contains a pass from an
-examiner the runner could have rewritten. A check that could not be started at
+examiner the crew could have rewritten. A check that could not be started at
 all lands on the same code for the same reason: it did not pass."""
 TIMEOUT_EXIT_CODE: Final[int] = 124
 
@@ -168,7 +168,7 @@ class VerifyTree:
     A context manager because the guarantee is only worth anything while it
     holds: the tree is created, proven to be exactly `commit` with nothing
     modified, used, and removed. It lives under the wrapper dir rather than
-    beside the runner's workspace, so nothing the runner can still write
+    beside the crew's workspace, so nothing the crew can still write
     reaches it.
     """
 
@@ -348,7 +348,7 @@ def _open_program(path: Path) -> int | None:
     succeeds; `os.pread` on the result then raises `IsADirectoryError` from
     inside `_digest_of`, which is not where §7.3 answers questions — it escaped
     `observe()` entirely, and a directory committed at a verifier's path is
-    something the runner being graded can arrange (Sol#17).
+    something the crew being graded can arrange (Sol#17).
 
     `O_NONBLOCK` is what makes the check REACHABLE for the other non-regular
     kinds. A FIFO at the verifier's path blocks in `os.open` itself until some

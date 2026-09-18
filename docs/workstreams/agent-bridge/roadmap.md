@@ -1,5 +1,7 @@
 # Agent bridge roadmap
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Approved by the owner on 2026-09-11 in conversation. Scope: [coordination spec](../../specs/2026-09-11-workflow-coordination.md). Execute all phases in the paused bridge worktree. Terra High implements bounded work; Astra low/medium handles substantial complexity; Fable 5.1 high reviews after P1, P3, and P5. Routine task checks and coordinator verification occur between those reviews. No merge or push.
 
 ## P0 — Baseline and contracts

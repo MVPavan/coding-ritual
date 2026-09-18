@@ -81,14 +81,12 @@ from workflow_interpreter.bdio.preflight import steer_ancestor_of
 from workflow_interpreter.contracts.execution import (
     MSG_NAMED_SANDBOX,
     MSG_PINNED_POLICY,
-    RunnerName,
+    CrewName,
 )
 from workflow_interpreter.contracts.sessions import SessionFreshReason
-from workflow_interpreter.contracts.transport import RunnerTransport
-from workflow_interpreter.profiles.errors import TaskRefused
-from workflow_interpreter.schema.models import ArtifactInputMode
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.errors import (
     ContinuationRefused,
     ExecLedgerError,
     ForkBarrierAbortError,
@@ -96,14 +94,14 @@ from workflow_interpreter.supervisor.errors import (
     SandboxUnavailable,
     WrapperDirError,
 )
-from workflow_interpreter.supervisor.execution import resolve_grants
-from workflow_interpreter.supervisor.fork_launcher import (
+from workflow_interpreter.inspector.execution import resolve_grants
+from workflow_interpreter.inspector.fork_launcher import (
     EXIT_EXEC_FAILED,
     MSG_NO_ACK,
     ForkBarrierLauncher,
     _vendor_resolves,
 )
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.models import (
     RECORD_MODEL,
     LaunchOutcome,
     LaunchReceipt,
@@ -111,28 +109,30 @@ from workflow_interpreter.supervisor.models import (
     PreconditionResult,
     SteerIntent,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     ExecLedger,
     WrapperPaths,
     read_record,
 )
-from workflow_interpreter.supervisor.profile import (
+from workflow_interpreter.inspector.profile import (
+    CrewChannels,
     Profile,
-    RunnerChannels,
     TaskSpec,
     WorkingDirectoryProfile,
     channels_for,
 )
-from workflow_interpreter.supervisor.rpc_pipes import RpcPipes
-from workflow_interpreter.supervisor.rpc_state import state_for
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector.rpc_pipes import RpcPipes
+from workflow_interpreter.inspector.rpc_state import state_for
+from workflow_interpreter.inspector.sandbox import (
     SandboxMode,
     SandboxPlan,
     plan_for,
     probe,
     toolchain_cache_for,
 )
-from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
+from workflow_interpreter.inspector.toolchain import ToolchainSeeder
+from workflow_interpreter.profiles.errors import TaskRefused
+from workflow_interpreter.schema.models import ArtifactInputMode
 
 __all__ = ["EXIT_EXEC_FAILED", "ForkBarrierLauncher", "_vendor_resolves"]
 
@@ -140,7 +140,7 @@ _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _MSG_NO_RECEIPT: Final[str] = (
     "no durable launch receipt for launch {launch_id} after launch; the profile "
-    "did not exec through the supervisor's launcher (§5.2, §6)"
+    "did not exec through the inspector's launcher (§5.2, §6)"
 )
 _MSG_HANDLE_DRIFT: Final[str] = (
     "the durable receipt for launch {launch_id} names a different process than "
@@ -157,7 +157,7 @@ _MSG_UNEXPLAINED: Final[str] = (
 _MSG_NO_SESSION: Final[str] = (
     "activation {activation_id} was minted as {reason!r} but carries no session "
     "to rejoin; §8.1 resumes a session, and a launch here would mint a fresh "
-    "one and resume something the runner never ran"
+    "one and resume something the crew never ran"
 )
 _MSG_NO_INSTRUCTIONS: Final[str] = (
     "activation {activation_id} was minted as {reason!r} but dispatch was given "
@@ -208,7 +208,7 @@ class TaskBuilder(Protocol):
     """Builds the §6 task for a freshly minted activation (foreman-owned)."""
 
     def __call__(
-        self, activation: ActivationRecord, channels: RunnerChannels
+        self, activation: ActivationRecord, channels: CrewChannels
     ) -> TaskSpec: ...  # pragma: no cover - protocol
 
 
@@ -220,17 +220,17 @@ class EnvelopeTaskBuilder:
 
     def __init__(
         self,
-        build: Callable[[ActivationRecord, RunnerChannels, str | None], TaskSpec],
+        build: Callable[[ActivationRecord, CrewChannels, str | None], TaskSpec],
     ) -> None:
         self._build = build
 
     def __call__(
-        self, activation: ActivationRecord, channels: RunnerChannels
+        self, activation: ActivationRecord, channels: CrewChannels
     ) -> TaskSpec:
         return self._build(activation, channels, None)
 
     def continuation(
-        self, activation: ActivationRecord, channels: RunnerChannels, instructions: str
+        self, activation: ActivationRecord, channels: CrewChannels, instructions: str
     ) -> TaskSpec:
         """Compose raw, already-validated steer advice before recording bytes."""
         return self._build(activation, channels, instructions)
@@ -290,7 +290,7 @@ class Dispatcher:
         A caller that does not hold the text does not have to: for a
         `steer-continuation` it is READ from the predecessor's persisted steer
         intent (`_steer_instructions`). That is what makes the continuation
-        dispatchable through `Supervisor.run` — the only entry point that also
+        dispatchable through `Inspector.run` — the only entry point that also
         watches the child and records its exit — without threading a human's
         prose through every foreman signature, and it is the same file §5.6
         recovery resumes a crashed steer from. bd never sees the prose at all.
@@ -420,8 +420,8 @@ class Dispatcher:
         the child would then "resume" a session no vendor has ever heard of.
         """
         version_fresh = (
-            activation.metadata.runner_profile.removeprefix("profile:")
-            == RunnerName.CODEX_APPSERVER.value
+            activation.metadata.crew_profile.removeprefix("profile:")
+            == CrewName.CODEX_APPSERVER.value
             and activation.metadata.session_fresh_reason
             is SessionFreshReason.VERSION_MISMATCH
         )
@@ -533,7 +533,7 @@ class Dispatcher:
             if isinstance(build_task, EnvelopeTaskBuilder) and instructions is not None
             else build_task(activation, channels)
         )
-        if profile.name() == RunnerName.CODEX_APPSERVER:
+        if profile.name() == CrewName.CODEX_APPSERVER:
             if not isinstance(profile, WorkingDirectoryProfile):
                 raise TaskRefused(MSG_RPC_CWD)
             task = task.model_copy(
@@ -580,7 +580,7 @@ class Dispatcher:
         # to be named `claude` — and `record_dispatch` writes what it returned
         # back onto the activation, which is where a continuation or an infra
         # retry reads the session to carry forward.
-        if profile.name() == RunnerName.CODEX_APPSERVER:
+        if profile.name() == CrewName.CODEX_APPSERVER:
             state = state_for(self._paths, root, activation)
             task = task.model_copy(update={"vendor_state": str(state)})
             plan = plan.model_copy(update={"vendor_state": (state,)})
@@ -592,7 +592,7 @@ class Dispatcher:
                 session_id, task.brief if composed_resume else instructions, task
             )
         )
-        if command.transport is RunnerTransport.STDIO_RPC:
+        if command.transport is CrewTransport.STDIO_RPC:
             if command.cwd != task.cwd:
                 raise TaskRefused(MSG_RPC_CWD)
             if instructions is not None and not composed_resume:
@@ -611,7 +611,7 @@ class Dispatcher:
         before = ledger.count()
         from contextlib import nullcontext
 
-        from workflow_interpreter.supervisor.band import BandLock
+        from workflow_interpreter.inspector.band import BandLock
 
         coordinator = self._store.coordination_store()
         guard = (
@@ -654,7 +654,7 @@ class Dispatcher:
 
         BEFORE `Profile.prepare`, so no vendor session is minted for a launch
         that may not happen (O1). A missing or non-enforcing `bwrap` is
-        permanent, so it raises rather than degrades: `foreman/supervise.py`
+        permanent, so it raises rather than degrades: `foreman/inspect.py`
         turns it into a typed close and the frontier into a halt gate.
 
         `sandbox = off` builds only the private toolchain-cache plan. It avoids

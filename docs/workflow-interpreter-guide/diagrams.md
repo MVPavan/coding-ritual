@@ -18,10 +18,10 @@ task travels from a bd stage to a landed, exported commit.
 2. [The big picture](#2-the-big-picture)
 3. [Data model](#3-data-model)
 4. [Workflow graphs](#4-workflow-graphs)
-5. [The phase bridge: from a bd stage to a root](#5-the-phase-bridge-from-a-bd-stage-to-a-root)
+5. [The contractor: from a bd stage to a root](#5-the-contractor-from-a-bd-stage-to-a-root)
 6. [The foreman: run loop and tick](#6-the-foreman-run-loop-and-tick)
 7. [Activation lifecycle](#7-activation-lifecycle)
-8. [The supervisor wrapper](#8-the-supervisor-wrapper)
+8. [The inspector wrapper](#8-the-inspector-wrapper)
 9. [Grading: claim is not proof](#9-grading-claim-is-not-proof)
 10. [Human gates](#10-human-gates)
 11. [Landing](#11-landing)
@@ -38,24 +38,24 @@ task travels from a bd stage to a landed, exported commit.
 | Term | Meaning in code |
 |---|---|
 | **Epic** | A bd issue whose direct children are stages. |
-| **Stage** (task) | One bd task bead, child of an epic. The bridge's `stage_id` is the task id. |
-| **Phase-bridge record** | Metadata key `phase_bridge` on the stage bead: attempt, state, base commit, backend pin, landing and export facts (`bridge/models.py:59`). Always stored in bd. |
+| **Stage** (task) | One bd task bead, child of an epic. The contractor's `stage_id` is the task id. |
+| **Phase-contractor record** | Metadata key `contractor` on the stage bead: attempt, state, base commit, backend pin, landing and export facts (`contractor/models.py:59`). Always stored in bd. |
 | **Attempt** | One try at a stage. Each attempt gets its own root. `--retry` creates attempt n+1. |
 | **Root** (instance) | One run of a workflow graph. It pins the graph body, its hash, the resolved config and the base commit (`bdio/wire.py:325`). |
-| **Instance key** | `phase-bridge:<epic>:<stage>:attempt:<n>` for bridge roots (`bridge/models.py:15-22`). Roots are idempotent by this key. |
+| **Instance key** | `contract:<epic>:<stage>:attempt:<n>` for contractor roots (`contractor/models.py:15-22`). Roots are idempotent by this key. |
 | **Node** | A graph vertex: `task`, `gate` or `terminal` (`schema/models.py:51`). |
 | **Activation** | One execution of one task node in one round. It moves through a lifecycle (`bdio/carriers.py:78`). |
 | **Gate** | A decision record that waits for a signed human payload. Opened by the foreman, closed only by a verified signature. |
 | **Event** | A derived, append-only transition record: from, outcome, to (`bdio/wire.py:536`). |
-| **Outcome** | The closed set `done, no_diff, accept, reject, fail_code, fail_plan, doubt, approve, rebudget, abandon` plus system outcomes `error_runner, error_transport, steered, superseded` (`schema/models.py:93-122`). |
+| **Outcome** | The closed set `done, no_diff, accept, reject, fail_code, fail_plan, doubt, approve, rebudget, abandon` plus system outcomes `error_crew, error_transport, steered, superseded` (`schema/models.py:93-122`). |
 | **Region** | A named set of nodes. `bounded-cycle` regions cap re-entries with `max_entries` (`schema/models.py:231`). |
 | **Foreman** | Deterministic code that ticks one root. It has no LLM client (ADR 0004 D4). |
-| **Supervisor wrapper** | A detached process per activation, `foreman supervise`. It prepares the workspace, launches the runner, watches it and records the exit. |
-| **Runner** | The vendor agent CLI: `claude`, `codex exec` or `codex app-server`. |
+| **Inspector wrapper** | A detached process per activation, `foreman inspector`. It prepares the workspace, launches the crew, watches it and records the exit. |
+| **Crew** | The vendor agent CLI: `claude`, `codex exec` or `codex app-server`. |
 | **Store** | `WorkflowStore` (`bdio/api.py:125`), the only write API. It sits over a backend: bd or the run ledger. |
 | **Run ledger** | The SQLite file `<repo>/.wf/ledger.db` (ADR 0005). Not the harness curation ledger in `CONTEXT.md`. |
 | **Wrapper root** | `<wrapper_home>/<sha256(realpath repo_root)[:16]>/`, outside the repo (`foreman/config.py:93-98`). |
-| **Band** | A non-blocking `flock` that serialises ticks. Ordinary roots of one wrapper root share `<wrapper_root>/repo-band.lock`. That is normally one per repository, but two wrapper homes over one repo do not exclude each other (`supervisor/paths.py:236-247`). |
+| **Band** | A non-blocking `flock` that serialises ticks. Ordinary roots of one wrapper root share `<wrapper_root>/repo-band.lock`. That is normally one per repository, but two wrapper homes over one repo do not exclude each other (`inspector/paths.py:236-247`). |
 
 ### 1.1 Who does what
 
@@ -63,28 +63,28 @@ Five actors. Each answers exactly one question, and none answers another's.
 
 | Actor | Package | Its one question | Lives as |
 |---|---|---|---|
-| **Phase bridge** | `bridge/` | May this stage start, and where do its commits land? | A command that runs once and returns |
+| **Contractor** | `contractor/` | May this stage start, and where do its commits land? | A command that runs once and returns |
 | **Foreman** | `foreman/` | Given what is recorded, what happens next? | A process taking one decision per tick |
-| **Supervisor wrapper** | `supervisor/` | Make one activation happen, and prove what happened. | A detached process per activation |
-| **Runner** | vendor CLI | Do the task. | A child process inside bwrap |
+| **Inspector wrapper** | `inspector/` | Make one activation happen, and prove what happened. | A detached process per activation |
+| **Crew** | vendor CLI | Do the task. | A child process inside bwrap |
 | **Store** | `bdio/`, `ledger/` | What is true so far? | A library over bd or SQLite |
 
 ```mermaid
 flowchart TB
   subgraph OUT["Outer boundary: beads, git refs, ship gate"]
-    B["Phase bridge<br/>admit, run, land, export"]
+    B["Contractor<br/>admit, run, land, export"]
   end
   subgraph MID["Inner loop: the graph only"]
     F["Foreman<br/>frontier, route, mint, settle, gates"]
   end
   subgraph EXEC["One activation at a time"]
-    W["Supervisor wrapper<br/>workspace, sandbox, monitor, grade"]
-    R["Runner<br/>claude or codex"]
+    W["Inspector wrapper<br/>workspace, sandbox, monitor, grade"]
+    R["Crew<br/>claude or codex"]
   end
   S[("Store<br/>bd or run ledger")]
 
   B -->|"calls Foreman.run"| F
-  F -->|"spawns foreman supervise"| W
+  F -->|"spawns foreman inspector"| W
   W -->|"launches inside bwrap"| R
   B <--> S
   F <--> S
@@ -94,19 +94,19 @@ flowchart TB
 
 Four distinctions the rest of this document assumes:
 
-1. **Supervisor and wrapper are one thing under two names.** `supervisor/` is the code;
+1. **Inspector and wrapper are one thing under two names.** `inspector/` is the code;
    the *wrapper* is a running instance of it plus its directory
    `wrapper_root/<root>/<activation>/`, its `wrapper.lock` and its `wrapper.json`. The lock
-   admits one live wrapper per activation. Its entry point is `foreman/supervise.py:75-83`,
-   which then drives the `supervisor/` machinery (section 8).
+   admits one live wrapper per activation. Its entry point is `foreman/inspect.py:75-83`,
+   which then drives the `inspector/` machinery (section 8).
 2. **The foreman decides and the wrapper does.** The foreman never launches an agent and never
    writes a worktree. The wrapper never chooses the next node. They are separate OS processes,
-   and `foreman tick` and `foreman supervise` are the two verbs of one binary (section 2.2).
-3. **The wrapper is the jailer, the runner the prisoner.** The runner writes only its channels,
+   and `foreman tick` and `foreman inspector` are the two verbs of one binary (section 2.2).
+3. **The wrapper is the jailer, the crew the prisoner.** The crew writes only its channels,
    its uv cache and the git paths the wrapper bound writable (section 8.4). Its claim of success
    is evidence, never proof — the foreman grades it (section 9).
-4. **The bridge owns the outside, the foreman the inside.** Epics, dependencies, branches and the
-   ship gate are the bridge's. Nodes, edges, rounds and bounds are the foreman's. The bridge calls
+4. **The contractor owns the outside, the foreman the inside.** Epics, dependencies, branches and the
+   ship gate are the contractor's. Nodes, edges, rounds and bounds are the foreman's. The contractor calls
    the foreman; the foreman knows nothing about epics (sections 5 and 6).
 
 ---
@@ -115,60 +115,60 @@ Four distinctions the rest of this document assumes:
 
 ### 2.1 Actors and who holds judgment
 
-The foreman and supervisor are deterministic. Judgment lives in three places: the orchestrating
-LLM session picks stages, runner agents produce verdicts, and a human signs gates.
+The foreman and inspector are deterministic. Judgment lives in three places: the orchestrating
+LLM session picks stages, crew agents produce verdicts, and a human signs gates.
 
 ```mermaid
 flowchart TB
   subgraph JUDGMENT["Judgment"]
     HUMAN["Human<br/>signs gate payloads"]
-    LLM["Orchestrating LLM session<br/>picks the stage, invokes phase-bridge,<br/>commits the export file"]
-    RUNNERS["Runner agents<br/>implement, debrief, review"]
+    LLM["Orchestrating LLM session<br/>picks the stage, invokes contract,<br/>commits the export file"]
+    CREWS["Crew agents<br/>implement, debrief, review"]
   end
   subgraph DETERMINISTIC["Deterministic code"]
-    BRIDGE["Phase bridge<br/>admission, landing, close"]
+    CONTRACTOR["Contractor<br/>admission, landing, close"]
     FOREMAN["Foreman<br/>tick: route by table lookup"]
-    SUPER["Supervisor wrapper<br/>sandbox, launch, watch, grade"]
+    SUPER["Inspector wrapper<br/>sandbox, launch, watch, grade"]
     VERIFY["Verify scripts<br/>scripts/verify-*.sh"]
   end
   subgraph STATE["Durable state"]
-    BD[("bd<br/>epics, stage beads,<br/>phase_bridge record, bd-backed roots")]
+    BD[("bd<br/>epics, stage beads,<br/>contractor record, bd-backed roots")]
     LEDGER[("Run ledger<br/>.wf/ledger.db")]
     GIT[("git<br/>branches, refs/wf pins,<br/>target branch")]
     WRAP[("Wrapper root<br/>receipts, logs, inboxes")]
   end
-  LLM --> BRIDGE
-  BRIDGE --> FOREMAN
+  LLM --> CONTRACTOR
+  CONTRACTOR --> FOREMAN
   FOREMAN --> SUPER
-  SUPER --> RUNNERS
+  SUPER --> CREWS
   SUPER --> VERIFY
   HUMAN -->|"signed payload in gate inbox"| WRAP
   FOREMAN --> BD
   FOREMAN --> LEDGER
   SUPER --> GIT
   SUPER --> WRAP
-  BRIDGE --> BD
-  BRIDGE --> GIT
-  BRIDGE --> LEDGER
+  CONTRACTOR --> BD
+  CONTRACTOR --> GIT
+  CONTRACTOR --> LEDGER
 ```
 
-Sources: ADR 0004 D4; `docs/usage/phase-bridge.md:9`; `bridge/landing.py:525-527`.
+Sources: ADR 0004 D4; `docs/usage/contractor.md:9`; `contractor/landing.py:525-527`.
 
 ### 2.2 Operating-system processes
 
 ```mermaid
 flowchart LR
-  LLM["Orchestrating LLM"] -->|"python -m workflow_interpreter.foreman<br/>--config C --task T phase-bridge EPIC T"| FP
+  LLM["Orchestrating LLM"] -->|"python -m workflow_interpreter.foreman<br/>--config C --task T contract EPIC T"| FP
   subgraph FP["foreman process"]
-    RUN["execute_phase_bridge<br/>then Foreman.run tick loop"]
+    RUN["execute_contractor<br/>then Foreman.run tick loop"]
   end
-  RUN -->|"subprocess.Popen start_new_session<br/>foreman supervise ROOT ACT"| WP
+  RUN -->|"subprocess.Popen start_new_session<br/>foreman inspector ROOT ACT"| WP
   subgraph WP["wrapper process, one per activation"]
-    RW["run_wrapper then Supervisor.run"]
+    RW["run_wrapper then Inspector.run"]
   end
-  RW -->|"os.fork, barrier, execvpe under bwrap"| RC["runner child<br/>claude or codex"]
+  RW -->|"os.fork, barrier, execvpe under bwrap"| RC["crew child<br/>claude or codex"]
   RW -->|"subprocess.run via /proc/self/fd"| NC["node verify checks<br/>in verify-tree"]
-  RUN -->|"landing checks from bridge_checks"| LC["host checks<br/>in verify-tree"]
+  RUN -->|"landing checks from contractor_checks"| LC["host checks<br/>in verify-tree"]
   RUN -->|"bd CLI subprocess"| BD[("bd")]
   RW -->|"bd CLI subprocess"| BD
   RUN -->|"sqlite3"| DB[(".wf/ledger.db")]
@@ -180,8 +180,8 @@ flowchart LR
   RUN -->|"reads"| INBOX
 ```
 
-Sources: `foreman/compose.py:107-147`; `supervisor/fork_launcher.py:131-522`;
-`supervisor/verify.py:459-493`; `bridge/verification.py:141-203`; `foreman/monitor.py:136`;
+Sources: `foreman/compose.py:107-147`; `inspector/fork_launcher.py:131-522`;
+`inspector/verify.py:459-493`; `contractor/verification.py:141-203`; `foreman/monitor.py:136`;
 `foreman/wake.py:101-130`; `scripts/approve-gate.sh`.
 
 There are no installed console scripts. Every CLI runs as a module
@@ -193,16 +193,16 @@ There are no installed console scripts. Every CLI runs as a module
 ```mermaid
 flowchart TB
   subgraph ENTRY["Entry points"]
-    FMAIN["foreman.__main__<br/>create, tick, run, status, steer,<br/>phase-bridge, integration, children,<br/>supervise, monitor, inspect"]
+    FMAIN["foreman.__main__<br/>create, tick, run, status, steer,<br/>contract, integration, children,<br/>inspector, monitor, inspect"]
     LMAIN["ledger.__main__<br/>export, import, reconcile,<br/>verify, archive"]
     CMAIN["costs.__main__<br/>task, cohort"]
   end
   subgraph OUTER["Outer layer"]
-    BRIDGE["bridge<br/>command, admission, adapter,<br/>landing, journal, authority,<br/>verification, retry, integration"]
+    CONTRACTOR["contractor<br/>command, admission, adapter,<br/>landing, journal, authority,<br/>verification, retry, integration"]
   end
   subgraph ENGINE["Engine"]
     FOREMAN["foreman<br/>compose, locator, tick, frontier,<br/>routing, cases, close, finalize,<br/>inputs, gates, decisions, children,<br/>replacement, monitor, wake"]
-    SUPERVISOR["supervisor<br/>run, launch, fork_launcher, workspace,<br/>sandbox, monitor, exit, exit_grade,<br/>verify, recover, steer, procfs, gitio"]
+    INSPECTOR["inspector<br/>run, launch, fork_launcher, workspace,<br/>sandbox, monitor, exit, exit_grade,<br/>verify, recover, steer, procfs, gitio"]
     PROFILES["profiles<br/>claude, codex, codex_appserver,<br/>opencode, registry"]
   end
   subgraph STORE["Store"]
@@ -213,32 +213,32 @@ flowchart TB
     SCHEMA["schema<br/>models, loader, validator,<br/>graph_index, rules_*, decisions"]
     CONTRACTS["contracts<br/>execution, run_identity,<br/>sessions, transport, wake"]
   end
-  FMAIN --> BRIDGE
+  FMAIN --> CONTRACTOR
   FMAIN --> FOREMAN
   LMAIN --> LEDGER
   CMAIN --> BDIO
   CMAIN --> LEDGER
-  BRIDGE --> FOREMAN
-  BRIDGE --> BDIO
-  BRIDGE --> LEDGER
-  BRIDGE --> SUPERVISOR
-  FOREMAN --> SUPERVISOR
+  CONTRACTOR --> FOREMAN
+  CONTRACTOR --> BDIO
+  CONTRACTOR --> LEDGER
+  CONTRACTOR --> INSPECTOR
+  FOREMAN --> INSPECTOR
   FOREMAN --> BDIO
   FOREMAN --> LEDGER
-  SUPERVISOR <--> PROFILES
-  SUPERVISOR --> BDIO
+  INSPECTOR <--> PROFILES
+  INSPECTOR --> BDIO
   LEDGER --> BDIO
   BDIO --> SCHEMA
   BDIO --> CONTRACTS
-  SUPERVISOR --> SCHEMA
-  SUPERVISOR --> CONTRACTS
+  INSPECTOR --> SCHEMA
+  INSPECTOR --> CONTRACTS
   FOREMAN --> SCHEMA
 ```
 
 The arrows are import directions, simplified. Three back-edges exist and are worth knowing:
-`supervisor` and `profiles` import each other; `bdio.coordination` imports foreman children
-functions lazily; `ledger.paths` uses `supervisor.sandbox.fence_dir`, and `bdio.api` uses
-`supervisor.band.BandLock`.
+`inspector` and `profiles` import each other; `bdio.coordination` imports foreman children
+functions lazily; `ledger.paths` uses `inspector.sandbox.fence_dir`, and `bdio.api` uses
+`inspector.band.BandLock`.
 
 ### 2.4 Composition: how one invocation is wired
 
@@ -266,7 +266,7 @@ flowchart TB
   WHICH --> RS["root store on bd or ledger"]
   RS --> LOAD["load_root: re-verifies pinned body and hash"]
   LOAD --> BAND["BandLock<br/>repo-band.lock or coordination member lock"]
-  BAND --> WIRING["InstanceWiring<br/>store, Workspace, Supervisor,<br/>Recovery, ExitObserver, paths, band"]
+  BAND --> WIRING["InstanceWiring<br/>store, Workspace, Inspector,<br/>Recovery, ExitObserver, paths, band"]
 ```
 
 Sources: `foreman/__main__.py:127-176`; `foreman/config.py:63-143`; `foreman/compose.py:178-361`;
@@ -283,12 +283,12 @@ flowchart LR
   R -->|"no"| T{"ledger tasks row<br/>for this task?"}
   T -->|"yes"| USE
   T -->|"no"| REF["StoreConfigError MSG_UNPINNED"]
-  REC["bridge record root_backend"] -->|"pin_record"| CHK{"agrees with held pin<br/>and ledger roots row?"}
+  REC["contractor record root_backend"] -->|"pin_record"| CHK{"agrees with held pin<br/>and ledger roots row?"}
   CHK -->|"yes"| M
   CHK -->|"no"| REF2["StoreConfigError MSG_RECORD_DISAGREES"]
 ```
 
-Sources: `foreman/locator.py:66-128`; `bridge/command.py:690-700`.
+Sources: `foreman/locator.py:66-128`; `contractor/command.py:690-700`.
 
 ---
 
@@ -301,7 +301,7 @@ mindmap
   root((Repository))
     bd epic
       stage bead = task
-        phase_bridge record
+        contractor record
           attempt 1
             root on bd or run ledger
               activations per node and round
@@ -348,7 +348,7 @@ classDiagram
   class InstanceBounds {
     max_total_activations
     coordination_limits
-    phase_bridge_retry_terminals
+    contractor_retry_terminals
     test_force_first_reject
   }
   class Region {
@@ -362,7 +362,7 @@ classDiagram
     name
     kind task gate terminal
     region
-    runner profile:ROLE
+    crew profile:ROLE
     execution_profile writer or reviewer
     instructions
     allowed_paths
@@ -432,7 +432,7 @@ classDiagram
     outcome_taken idempotency_key
     mint_reason
     inputs envelope
-    runner_profile model session_id
+    crew_profile model session_id
     intended_base_commit
     lifecycle launch_id handle
     stale_flag exit_record
@@ -469,7 +469,7 @@ classDiagram
   ActivationMetadata --> Evidence
 ```
 
-Sources: `bdio/wire.py:325-556`; `bdio/carriers.py:380`; `supervisor/exit.py:456-504`.
+Sources: `bdio/wire.py:325-556`; `bdio/carriers.py:380`; `inspector/exit.py:456-504`.
 
 ### 3.4 Natural keys: why writes are idempotent
 
@@ -610,7 +610,7 @@ Every row's `seq` and the id suffix come from `tasks.next_seq`, allocated inside
 |---|---|---|
 | Root, activation, gate, event records | bd beads | ledger tables |
 | Epic and stage beads | bd | bd |
-| `phase_bridge` record, incl. `root_backend` and `export_oid` | bd stage bead | bd stage bead |
+| `contractor` record, incl. `root_backend` and `export_oid` | bd stage bead | bd stage bead |
 | Integration-target claims | bd | bd (ledger refuses claims, D20) |
 | Gate nonce | only on the gate carrier | `nonces` table plus carrier |
 | Signature bytes and historical signer entry | not stored | `signatures` table |
@@ -619,21 +619,21 @@ Every row's `seq` and the id suffix come from `tasks.next_seq`, allocated inside
 | Landing journal | ledger `landings` | ledger `landings` |
 | Export and `export_oid` | ledger export | ledger export |
 
-Sources: `bdio/backend.py:178`; `bridge/adapter.py:24,165-248`; `bdio/api.py:271-282`;
+Sources: `bdio/backend.py:178`; `contractor/adapter.py:24,165-248`; `bdio/api.py:271-282`;
 `ledger/store.py:334-346,376-406,598-630`; `bdio/client.py:633-641`; `ledger/reconcile.py:225-259`;
-`bridge/journal.py:72-159`.
+`contractor/journal.py:72-159`.
 
 The `store = bd|ledger` config key only affects **new** attempt roots. It is recorded as
-`root_backend` on the bridge record at prepare and as `tasks.backend` once
-(`foreman/config.py:71-76`, `bridge/command.py:377`, `ledger/tasks.py:36-61`).
+`root_backend` on the contractor record at prepare and as `tasks.backend` once
+(`foreman/config.py:71-76`, `contractor/command.py:377`, `ledger/tasks.py:36-61`).
 
 ---
 
 ## 4. Workflow graphs
 
-### 4.1 `feature-delivery` 1.1.0, the bridge graph
+### 4.1 `feature-delivery` 1.1.0, the contractor graph
 
-`[instance] max_total_activations = 26`, `phase_bridge_retry_terminals = ["shipped", "abandoned"]`.
+`[instance] max_total_activations = 26`, `contractor_retry_terminals = ["shipped", "abandoned"]`.
 Global fallback is `triage` (`workflows/feature-delivery.toml`).
 
 ```mermaid
@@ -725,15 +725,15 @@ Sources: `schema/loader.py:121-324`; `schema/validator.py:51-99`; `schema/rules_
 
 ---
 
-## 5. The phase bridge: from a bd stage to a root
+## 5. The contractor: from a bd stage to a root
 
-### 5.1 What `phase-bridge EPIC STAGE` decides
+### 5.1 What `contract EPIC STAGE` decides
 
 One invocation resumes whatever state the stage is in. The command is safe to re-run.
 
 ```mermaid
 flowchart TD
-  S["phase-bridge EPIC STAGE"] --> ARGS{"--retry-landing with<br/>--retry or --trace?"}
+  S["contract EPIC STAGE"] --> ARGS{"--retry-landing with<br/>--retry or --trace?"}
   ARGS -->|"yes"| REF["refused, exit 2"]
   ARGS -->|"no"| ATT{"coordinator on an<br/>attached branch?"}
   ATT -->|"no"| REF
@@ -743,10 +743,10 @@ flowchart TD
   EX -->|"yes"| PX["phase-exhausted"]
   EX -->|"no"| OWN{"STAGE is a direct child of EPIC?"}
   OWN -->|"no"| REF
-  OWN -->|"yes"| REPAIR["repair_bridge_successor,<br/>integration resume or retry"]
+  OWN -->|"yes"| REPAIR["repair_contractor_successor,<br/>integration resume or retry"]
   REPAIR --> OWNR{"prior record: epic, stage, target_ref<br/>match and verification policy present?"}
   OWNR -->|"no"| REF
-  OWNR -->|"yes or no record"| PRIOR{"phase_bridge record exists<br/>with a root?"}
+  OWNR -->|"yes or no record"| PRIOR{"contractor record exists<br/>with a root?"}
   PRIOR -->|"yes"| PINR["_pinned_root: install record backend pin,<br/>load root, check instance key and base"]
   PINR --> LAND1{"--retry-landing, or an intent file,<br/>or state landing, landed, closed?"}
   LAND1 -->|"yes"| LANDREC["_land recover or retry-landing"]
@@ -761,7 +761,7 @@ flowchart TD
   ADM -->|"yes"| HEAD{"HEAD equals expected base?"}
   HEAD -->|"no"| MOVED["refused: branch moved"]
   HEAD -->|"yes"| RUNR["_run_record"]
-  ADM -->|"no"| NEW["load bridge_graph, read task brief,<br/>verification policy: prior record's,<br/>else pin bridge_checks,<br/>retry eligibility if --retry"]
+  ADM -->|"no"| NEW["load contractor_graph, read task brief,<br/>verification policy: prior record's,<br/>else pin contractor_checks,<br/>retry eligibility if --retry"]
   NEW --> ADMIT["PhaseAdmission admit or admit_successor"]
   ADMIT --> RUNR
   RUNR --> FR["Foreman.run poll 30s, wall 8h"]
@@ -770,7 +770,7 @@ flowchart TD
   TERM -->|"no"| RESULT["state result with run report<br/>exit 2 if attention or stalled"]
 ```
 
-Sources: `bridge/command.py:109-430`; `foreman/constants.py:149-150`.
+Sources: `contractor/command.py:109-430`; `foreman/constants.py:149-150`.
 
 ### 5.2 Admission
 
@@ -780,10 +780,10 @@ flowchart TD
   P -->|"no"| R1["AdmissionRefused"]
   P -->|"yes"| SEL{"STAGE is a direct child<br/>with status open or in_progress?"}
   SEL -->|"no"| R1
-  SEL -->|"yes"| OTHER{"another stage of EPIC has<br/>an unclosed bridge record?"}
+  SEL -->|"yes"| OTHER{"another stage of EPIC has<br/>an unclosed contractor record?"}
   OTHER -->|"yes"| R2["AdmissionRefused blocked<br/>one unfinished admission per epic"]
   OTHER -->|"no"| REC{"record stored?"}
-  REC -->|"no"| PREP["PhaseBridgeRecord.prepared attempt 1<br/>root_backend = config.store<br/>adapter.prepare: bd metadata merge"]
+  REC -->|"no"| PREP["ContractorRecord.prepared attempt 1<br/>root_backend = config.store<br/>adapter.prepare: bd metadata merge"]
   REC -->|"yes"| MATCH{"matches policy, epic, stage,<br/>target_ref, base?"}
   MATCH -->|"no"| R1
   MATCH -->|"yes"| FIND
@@ -796,15 +796,15 @@ flowchart TD
   CREATE --> ASSERT["_assert_root: key, base, root id"]
   ASSERT --> BR["ensure_branch refs/heads/wf/ROOT/candidate<br/>at the persisted base, never current HEAD"]
   BR --> ADMQ{"already ADMITTED?"}
-  ADMQ -->|"yes"| DONE["return BridgeRoot"]
+  ADMQ -->|"yes"| DONE["return ContractorRoot"]
   ADMQ -->|"no"| CLAIM["adapter.admit: bd update --claim --metadata<br/>read back status in_progress"]
   CLAIM --> DONE
 ```
 
-Sources: `bridge/admission.py:175-324`; `bridge/adapter.py:165-203`; `bdio/client.py:587-610`;
+Sources: `contractor/admission.py:175-324`; `contractor/adapter.py:165-203`; `bdio/client.py:587-610`;
 `foreman/resolve.py:362-429`.
 
-### 5.3 Phase-bridge record states
+### 5.3 Phase-contractor record states
 
 ```mermaid
 stateDiagram-v2
@@ -824,7 +824,7 @@ stateDiagram-v2
 ```
 
 A `landing` state exists for reading old records only. No code writes it
-(`bridge/models.py:46-56`). A retry never goes over `closed` (`bridge/adapter.py:304-326`).
+(`contractor/models.py:46-56`). A retry never goes over `closed` (`contractor/adapter.py:304-326`).
 
 ### 5.4 Retry eligibility
 
@@ -842,13 +842,13 @@ flowchart TD
   GR -->|"yes"| OK["eligible: next_attempt"]
   G -->|"no"| SH{"terminal shipped?"}
   SH -->|"yes"| X5["LANDING_RECOVERABLE<br/>shipped work lands, never retries"]
-  SH -->|"no"| L{"terminal in<br/>phase_bridge_retry_terminals?"}
+  SH -->|"no"| L{"terminal in<br/>contractor_retry_terminals?"}
   L -->|"no"| X6["UNLISTED_TERMINAL"]
   L -->|"yes"| OK
   OK --> NA["attempt+1, previous_attempts extended,<br/>root_backend = store in force now"]
 ```
 
-Sources: `bridge/retry.py:27-59`; `bridge/models.py:157-180`; `bridge/command.py:555-579`.
+Sources: `contractor/retry.py:27-59`; `contractor/models.py:157-180`; `contractor/command.py:555-579`.
 
 ---
 
@@ -965,7 +965,7 @@ flowchart TD
   Q1 -->|"yes"| B1["queue_boundary, blocked"]
   Q1 -->|"no"| Q2{"retry_kind"}
   Q2 -->|"steered"| R1["Recovery.resolve:<br/>mint steer continuation"]
-  Q2 -->|"error_runner or error_transport"| R2["mint INFRA_RETRY,<br/>same inputs, dispatch"]
+  Q2 -->|"error_crew or error_transport"| R2["mint INFRA_RETRY,<br/>same inputs, dispatch"]
   Q2 -->|"none"| RT["route node outcome"]
   RT --> K{"RouteKind"}
   K -->|"TASK"| M1["_mint_successor: bind inputs, mint,<br/>dispatch. Round +1 if the target<br/>is the region entry_node"]
@@ -1097,8 +1097,8 @@ stateDiagram-v2
 A recorded outcome is terminal whatever the lifecycle says. A crash between the metadata write
 and the row close is repaired forward (`bdio/wire.py:440`, `bdio/transitions.py:341`,
 `bdio/finalize.py:63`). Sources: `bdio/activation_writes.py:194-552`;
-`supervisor/launch.py:314,465,627`; `supervisor/exit.py:421`; `foreman/close.py`;
-`supervisor/recover.py:528-556`; `supervisor/steer.py:281`.
+`inspector/launch.py:314,465,627`; `inspector/exit.py:421`; `foreman/close.py`;
+`inspector/recover.py:528-556`; `inspector/steer.py:281`.
 
 ### 7.2 Two-phase activation: mint, then dispatch
 
@@ -1110,14 +1110,14 @@ sequenceDiagram
   participant FS as activation dir
   participant SP as DetachedSpawner
   participant W as wrapper process
-  participant SU as Supervisor.run
+  participant SU as Inspector.run
   T->>C: route_head returned TASK
   C->>C: select_bindings, bind_feedback, bind_render
   C->>S: mint_activation
   S-->>C: MINTED, or BoundExceededError
   C->>FS: dispatch_minted: write dispatch-request.json
   C->>SP: launch WrapperLaunch, same tick
-  SP->>W: Popen foreman supervise ROOT ACT
+  SP->>W: Popen foreman inspector ROOT ACT
   SP->>FS: write wrapper.json pid start_time boot_id
   W->>FS: take wrapper.lock, else exit LOCKED
   W->>S: load activation, must still be minted
@@ -1130,7 +1130,7 @@ sequenceDiagram
 Every mint (entry, edge successor, infra retry) is followed by `dispatch_minted` in the same tick.
 A later tick re-dispatches a still-`minted` activation only when no wrapper holds
 `wrapper.lock`, which is the crash or lost-spawn case (`foreman/cases.py:152-177,212-240,331-363,533`;
-`foreman/supervise.py:75-83,234-427`).
+`foreman/inspect.py:75-83,234-427`).
 
 ### 7.3 How wrapper failures close an activation
 
@@ -1138,7 +1138,7 @@ A later tick re-dispatches a still-`minted` activation only when no wrapper hold
 |---|---|---|
 | `ForkBarrierAbortError` | `error_transport` | `fork_barrier_abort` |
 | `UnusableResolutionError` | `error_transport` | `unusable_resolution` |
-| `ForkBarrierError`, `ExecLedgerError`, `TaskRefused`, `UnsupportedOptionError`, `UnregisteredRunnerError` | `error_runner` | none |
+| `ForkBarrierError`, `ExecLedgerError`, `TaskRefused`, `UnsupportedOptionError`, `UnregisteredCrewError` | `error_crew` | none |
 | `ContinuationRefused` | `error_transport` | `continuation_refused` |
 | `InputsUnavailable` | `error_transport` | `inputs_unavailable` |
 | `SandboxUnavailable` | `error_transport` | `sandbox_unavailable` |
@@ -1146,20 +1146,20 @@ A later tick re-dispatches a still-`minted` activation only when no wrapper hold
 | `PreconditionRefused` | `error_transport` | `precondition_refused` |
 | `LifecycleConflictError`, `LossyWriteError` | no close: `CLOSED_BY_TICK` or `FAILED` | none |
 | `InterruptedWorkPreservationFailed` | no close: `FAILED` | none |
-| other `SupervisorError` or `OSError` | `error_transport` | none |
+| other `InspectorError` or `OSError` | `error_transport` | none |
 
 Deviations like `sandbox_unavailable` make the activation a dead end, so the frontier opens a
-halt gate instead of retrying. Source: `foreman/supervise.py:303-428`.
+halt gate instead of retrying. Source: `foreman/inspect.py:303-428`.
 
 ---
 
-## 8. The supervisor wrapper
+## 8. The inspector wrapper
 
 ### 8.1 Components
 
 ```mermaid
 flowchart TB
-  RW["run_wrapper"] --> SUP["Supervisor.run"]
+  RW["run_wrapper"] --> SUP["Inspector.run"]
   SUP --> DISP["Dispatcher.dispatch"]
   SUP --> MON["Monitor.watch"]
   SUP --> RPC["RpcSession.watch<br/>codex app-server only"]
@@ -1169,7 +1169,7 @@ flowchart TB
   DISP --> SEED["ToolchainSeeder.prepare"]
   DISP --> PROF["Profile: claude, codex,<br/>codex-appserver"]
   PROF --> FORK["ForkBarrierLauncher"]
-  FORK --> CHILD(["runner child under bwrap"])
+  FORK --> CHILD(["crew child under bwrap"])
   WS --> ART["ArtifactManager"]
   WS --> ATTR["AttributionManager"]
   MON --> PROC["procfs prove_liveness, terminate"]
@@ -1186,21 +1186,21 @@ flowchart TB
   WS --> GIT[("git via Git.run<br/>closed subcommand set")]
 ```
 
-Sources: `supervisor/run.py:111-420`; `supervisor/launch.py:250-723`; `supervisor/exit.py:154-647`;
-`supervisor/recover.py:195-561`. The git wrapper has no `push`, `fetch`, `commit`, `merge` or
-`rebase` (`supervisor/gitcmd.py:101-141`).
+Sources: `inspector/run.py:111-420`; `inspector/launch.py:250-723`; `inspector/exit.py:154-647`;
+`inspector/recover.py:195-561`. The git wrapper has no `push`, `fetch`, `commit`, `merge` or
+`rebase` (`inspector/gitcmd.py:101-141`).
 
 ### 8.2 One activation: dispatch to exit-recorded
 
 ```mermaid
 sequenceDiagram
-  participant RW as Supervisor._supervise
+  participant RW as Inspector._inspect
   participant D as Dispatcher
   participant W as Workspace
   participant St as WorkflowStore
   participant P as Profile
   participant L as ForkBarrierLauncher
-  participant C as runner child
+  participant C as crew child
   participant M as Monitor
   participant O as ExitObserver
   RW->>D: dispatch request node profile
@@ -1232,7 +1232,7 @@ sequenceDiagram
   O->>St: record_exit, the wrapper's final act
 ```
 
-Sources: `supervisor/run.py:133-298`; `supervisor/launch.py:272-648`; `supervisor/exit.py:174-429`.
+Sources: `inspector/run.py:133-298`; `inspector/launch.py:272-648`; `inspector/exit.py:174-429`.
 
 ### 8.3 Workspace precondition
 
@@ -1257,8 +1257,8 @@ flowchart TD
   CLEAN -->|"yes"| REC["write workspace.json,<br/>return PreconditionResult"]
 ```
 
-In worktree mode every dirty path is resettable. In-repo, only paths with positive runner
-attribution are resettable (`supervisor/workspace.py:214-645`; `supervisor/attribution.py:85-136`).
+In worktree mode every dirty path is resettable. In-repo, only paths with positive crew
+attribution are resettable (`inspector/workspace.py:214-645`; `inspector/attribution.py:85-136`).
 
 ### 8.4 The sandbox mount plan
 
@@ -1275,9 +1275,9 @@ flowchart LR
   VS --> PINS["ro-bind pins, last. Always: git common dir /wf fence,<br/>seed roots. Worktree shape: commondir, gitdir,<br/>config.worktree, info. In-repo shape: config,<br/>config.worktree, hooks, info, modules config,<br/>refs/wf, worktrees"]
 ```
 
-Sources: `supervisor/sandbox.py:593-703`; `supervisor/execution.py:34-94`. Runners see these
+Sources: `inspector/sandbox.py:593-703`; `inspector/execution.py:34-94`. Crews see these
 environment channels: `WF_OUTCOME_FILE`, `WF_ARTIFACT_DIR`, `WF_EFFECTS_FILE`, `WF_SCRATCH_DIR`,
-and a committer email `runner+ACT@workflow-interpreter.invalid` (`supervisor/profile.py:102-131`).
+and a committer email `crew+ACT@workflow-interpreter.invalid` (`inspector/profile.py:102-131`).
 Pushes are blocked by a `pushInsteadOf` rewrite (`profiles/_base.py:168`).
 
 ### 8.5 The fork barrier
@@ -1306,10 +1306,10 @@ sequenceDiagram
     LP->>FS: receipt ABORTED or ABORT_PENDING
   end
   CH->>CH: redirect fds, chdir
-  CH->>CH: execvpe runner, else exit 127
+  CH->>CH: execvpe crew, else exit 127
 ```
 
-Source: `supervisor/fork_launcher.py:173-522`.
+Source: `inspector/fork_launcher.py:173-522`.
 
 ### 8.6 Monitor cycle
 
@@ -1336,7 +1336,7 @@ flowchart TD
 
 Liveness needs three facts: pid present, boot id matches, and process start time matches.
 Only ENOENT, ESRCH or ENOTDIR mean gone. Any other read error is indeterminate
-(`supervisor/procfs.py:134-321`; `supervisor/monitor.py:146-396`).
+(`inspector/procfs.py:134-321`; `inspector/monitor.py:146-396`).
 
 ### 8.7 Recovery after a crash
 
@@ -1365,7 +1365,7 @@ stateDiagram-v2
 ```
 
 The next tick then retries `error_transport` as an infra retry, subject to
-`max_infra_retries` (`supervisor/recover.py:195-561`; `foreman/cases.py:498-533`).
+`max_infra_retries` (`inspector/recover.py:195-561`; `foreman/cases.py:498-533`).
 
 ### 8.8 Steering a running activation
 
@@ -1375,7 +1375,7 @@ sequenceDiagram
   participant F as Foreman.steer
   participant S as Steerer
   participant FS as activation dir
-  participant P as runner process
+  participant P as crew process
   participant St as WorkflowStore
   Op->>F: foreman steer ROOT ACT --reason
   F->>S: steer activation reason instructions
@@ -1390,8 +1390,8 @@ sequenceDiagram
 ```
 
 The codex app-server profile also supports an in-place steer: `--in-place` queues a control file
-that the live RPC session delivers as `turn/steer` (`supervisor/steer.py:188-308`;
-`supervisor/rpc_control.py:58-141`; `supervisor/rpc_session.py:378-423`).
+that the live RPC session delivers as `turn/steer` (`inspector/steer.py:188-308`;
+`inspector/rpc_control.py:58-141`; `inspector/rpc_session.py:378-423`).
 
 ---
 
@@ -1399,13 +1399,13 @@ that the live RPC session delivers as `turn/steer` (`supervisor/steer.py:188-308
 
 ### 9.1 Exit grading
 
-The runner's `outcome.json` is a claim. The wrapper computes the real outcome.
+The crew's `outcome.json` is a claim. The wrapper computes the real outcome.
 
 ```mermaid
 flowchart TD
   START["EvidenceGrader._compute"] --> CHK["run_checks in VerifyTree<br/>at artifact commit or intended base"]
   CHK --> A{"exit code nonzero<br/>and no marker?"}
-  A -->|"yes"| ER["error_runner"]
+  A -->|"yes"| ER["error_crew"]
   A -->|"no"| B{"marker missing or invalid?"}
   B -->|"yes"| FM["fail_code + MARKER_INVALID"]
   B -->|"no"| C{"any verifier provenance failure?"}
@@ -1432,11 +1432,11 @@ flowchart TD
   RF["review_findings from review.md<br/>in the outputs tree, reject-capable nodes only"] --> DONE["write completion.json"]
 ```
 
-Sources: `supervisor/exit_grade.py:53-535`; `supervisor/exit.py:431-591`.
+Sources: `inspector/exit_grade.py:53-535`; `inspector/exit.py:431-591`.
 
 ### 9.2 Two different verification paths
 
-The node's `verify` checks and the landing's `bridge_checks` are separate mechanisms.
+The node's `verify` checks and the landing's `contractor_checks` are separate mechanisms.
 
 ```mermaid
 flowchart LR
@@ -1447,14 +1447,14 @@ flowchart LR
     N4 --> N5["red once? rerun once"]
   end
   subgraph LAND["Landing checks, per stage"]
-    L1["admission pins bridge_checks:<br/>argv, env, timeout, program sha256"] --> L2["VerifyTree at the<br/>approved artifact"]
+    L1["admission pins contractor_checks:<br/>argv, env, timeout, program sha256"] --> L2["VerifyTree at the<br/>approved artifact"]
     L2 --> L3["re-hash program by fd"]
     L3 --> L4["run with PATH=/usr/bin:/bin,<br/>temp HOME and TMPDIR"]
     L4 --> L5["source unchanged after each check"]
   end
 ```
 
-Sources: `foreman/resolve.py:473`; `supervisor/verify.py:165-546`; `bridge/verification.py:18-203`.
+Sources: `foreman/resolve.py:473`; `inspector/verify.py:165-546`; `contractor/verification.py:18-203`.
 
 ### 9.3 The debrief contract
 
@@ -1464,7 +1464,7 @@ proves it stayed there.
 ```mermaid
 flowchart TD
   MINT["mint debrief: bind_render"] --> RENDER["render findings.md and evidence.json<br/>from store rows, commit, pin ref,<br/>binding carries tree oid and digest"]
-  RENDER --> RUN["scribe runner writes<br/>docs/workstreams/SEG/runs/TASK/aN/<br/>debrief.md, findings.md, evidence.json"]
+  RENDER --> RUN["scribe crew writes<br/>docs/workstreams/SEG/runs/TASK/aN/<br/>debrief.md, findings.md, evidence.json"]
   RUN --> V1{"identity vars safe<br/>single path components?"}
   V1 -->|"no"| FAIL["check fails: fail_code, routes to triage"]
   V1 -->|"yes"| V2{"every changed path since<br/>WF_BASE_COMMIT inside the directory?"}
@@ -1481,7 +1481,7 @@ flowchart TD
 ```
 
 Sources: `scripts/verify-debrief.sh`; `foreman/ledger_render.py`; `contracts/run_identity.py:25-55`;
-`supervisor/verify.py:390-407`.
+`inspector/verify.py:390-407`.
 
 ---
 
@@ -1582,7 +1582,7 @@ flowchart TD
   ST -->|"yes"| CO{"coordinator attached to target<br/>and clean except the export file?"}
   CO -->|"no"| HA
   CO -->|"yes"| AUTH["BeadGateAuthority.verify:<br/>exactly one ship gate, closed, immutable,<br/>approve, all marks, matches pinned graph"]
-  AUTH -->|"fails"| BRF["BridgeRefusal"]
+  AUTH -->|"fails"| BRF["ContractorRefusal"]
   AUTH --> TGT{"target ref equals expected base?"}
   TGT -->|"no"| BM["BRANCH_MOVED"]
   TGT -->|"yes"| ANC{"artifact descends from base?"}
@@ -1603,14 +1603,14 @@ flowchart TD
   EXPORT --> CLOSE["adapter.close: record closed with export_oid,<br/>bd close reason receipt digest"]
 ```
 
-Sources: `bridge/landing.py:248-811`; `bridge/authority.py:52-128`; `bridge/journal.py:72-159`;
-`bridge/adapter.py:205-248`.
+Sources: `contractor/landing.py:248-811`; `contractor/authority.py:52-128`; `contractor/journal.py:72-159`;
+`contractor/adapter.py:205-248`.
 
 After the landing closes the stage, the orchestrating session commits the export file. That
 committed blob is what `python -m workflow_interpreter.ledger verify` anchors to in a fresh clone (`ledger/reverify.py:428-481`).
 
 Default recovery never moves a ref. If the target still sits at the old base, recovery reports
-`PENDING` and names `--retry-landing` as the explicit next action (`bridge/landing.py:418-468`).
+`PENDING` and names `--retry-landing` as the explicit next action (`contractor/landing.py:418-468`).
 
 ---
 
@@ -1620,7 +1620,7 @@ Default recovery never moves a ref. If the target still sits at the old base, re
 
 ```mermaid
 flowchart LR
-  CALLERS["foreman, supervisor, bridge"] --> COMP["Composition.store_for_root"]
+  CALLERS["foreman, inspector, contractor"] --> COMP["Composition.store_for_root"]
   COMP --> LOC["RootBackendLocator"]
   COMP --> WS["WorkflowStore<br/>write API"]
   WS --> WR["WorkflowReads<br/>no write methods"]
@@ -1632,7 +1632,7 @@ flowchart LR
   CLAIMS --> BDC
   BDC --> BDCLI["bd CLI subprocess<br/>closed command set, 60s timeout"]
   LS --> SQL[(".wf/ledger.db")]
-  ADAPTER["bridge PhaseAdapter"] -->|"raw bd writes on the stage bead"| BDC
+  ADAPTER["contractor PhaseAdapter"] -->|"raw bd writes on the stage bead"| BDC
 ```
 
 Sources: `bdio/api.py:125-776`; `bdio/reads.py:352-429`; `bdio/backend.py:40-215`;
@@ -1767,20 +1767,20 @@ drains after an import live in the non-exported `restore_pending` table.
     verify-tree/               throwaway detached checkout for checks
     workspace.json attribution.json prereset.index driver-heartbeat.json
     refusals.jsonl monitor.json wake-state.json
-    phase-bridge-landing.json phase-bridge-landing-receipt.json
+    contract-landing.json contract-landing-receipt.json
     gates/<gate_key>/payload.json payload.json.sig refusal.json
     <activation_id>/
       dispatch-request.json wrapper.json wrapper.lock wrapper.log
       launch-receipt.json exec.ledger run.jsonl
       exit.json completion.json stale.flag steer-intent.json recovery.json
       outputs-snapshot/        transient copy of channels/artifacts
-      toolchain/uv-cache/      runner-writable
-      channels/                the runner's report channels, runner-writable
+      toolchain/uv-cache/      crew-writable
+      channels/                the crew's report channels, crew-writable
         outcome.json effects.json artifacts/ scratch/
 ```
 
-Sources: `supervisor/paths.py:25-332`; `foreman/constants.py:61-133`; `ledger/paths.py:33-100`;
-`ledger/reconcile.py:112`; `bridge/landing.py:40-41`.
+Sources: `inspector/paths.py:25-332`; `foreman/constants.py:61-133`; `ledger/paths.py:33-100`;
+`ledger/reconcile.py:112`; `contractor/landing.py:40-41`.
 
 ### 13.2 Who creates and who deletes
 
@@ -1836,7 +1836,7 @@ flowchart LR
 | `refs/wf/exports/<task>` | `ExportPin.pin` at landing | nothing |
 | target branch, e.g. `refs/heads/main` | landing CAS, fast-forward only | nothing |
 
-Sources: `supervisor/artifact.py:26-193`; `supervisor/workspace.py:409-725`;
+Sources: `inspector/artifact.py:26-193`; `inspector/workspace.py:409-725`;
 `bdio/carriers.py:233,256`; `ledger/constants.py:20`; `ledger/archive.py:32-110`.
 
 ---
@@ -1848,7 +1848,7 @@ flowchart TD
   T["tick reaches a terminal node"] --> SR["settle_root: set terminal,<br/>close root row, idempotent"]
   SR --> DR["drain attention: refusals logged, not raised"]
   DR --> CU["_cleanup_terminal_state, retried on every<br/>tick that reaches the settled root"]
-  CU --> EP{"bridge root and<br/>export_oid not recorded yet?"}
+  CU --> EP{"contractor root and<br/>export_oid not recorded yet?"}
   EP -->|"yes"| WAIT["defer: landing must export first"]
   EP -->|"no"| ART{"every writer activation<br/>has a pinned artifact?"}
   ART -->|"no"| WAIT2["defer: permanent if a writer activation<br/>closed with no artifact, e.g. error_* or no_diff"]
@@ -1861,40 +1861,40 @@ flowchart TD
   KEEP -.->|"manual, later"| ARCH["ledger archive TASK --bundle PATH"]
 ```
 
-Sources: `foreman/tick.py:708-849`; `supervisor/toolchain_cleanup.py:45-141`; `ledger/archive.py:62-112`.
+Sources: `foreman/tick.py:708-849`; `inspector/toolchain_cleanup.py:45-141`; `ledger/archive.py:62-112`.
 
-Cleanup runs only inside a tick. On a bridge run, the tick that settles `shipped` still sees the
+Cleanup runs only inside a tick. On a contractor run, the tick that settles `shipped` still sees the
 export as pending, because landing and export happen after `Foreman.run` returns. Nothing ticks
-the root again automatically: a re-run of `phase-bridge` on a closed stage takes the landing
+the root again automatically: a re-run of `contract` on a closed stage takes the landing
 recovery path, which never ticks. An explicit `foreman tick ROOT` is needed to remove the trees
-(`bridge/command.py:282-291,417-418`; `foreman/tick.py:723-764`).
+(`contractor/command.py:282-291,417-418`; `foreman/tick.py:723-764`).
 
 ---
 
 ## 15. End to end: one feature task
 
 This follows stage `T` of epic `E` through `feature-delivery` on the run ledger, with one review
-rejection and one approval. The orchestrating session invokes the bridge twice: once to run
+rejection and one approval. The orchestrating session invokes the contractor twice: once to run
 until the ship gate opens, and once after the human signs.
 
 ```mermaid
 sequenceDiagram
   autonumber
   participant O as Orchestrating LLM
-  participant B as phase-bridge
+  participant B as contract
   participant F as Foreman ticks
-  participant W as wrappers and runners
+  participant W as wrappers and crews
   participant ST as bd and run ledger
   participant G as git
   participant H as Human
-  O->>B: foreman --task T phase-bridge E T
+  O->>B: foreman --task T contract E T
   B->>ST: prepare record attempt 1, root_backend ledger
   B->>ST: create root T-a1, pin backend
   B->>G: refs/heads/wf/T-a1/candidate at base
   B->>ST: admit: bd claim, record admitted
   B->>F: Foreman.run
   F->>ST: mint implement round 1
-  F->>W: dispatch, runner writes code
+  F->>W: dispatch, crew writes code
   W->>G: pin artifact, advance candidate
   W->>ST: record_exit
   F->>ST: settle: record evidence, close implement done
@@ -1913,7 +1913,7 @@ sequenceDiagram
   F-->>B: run stops: opened_gate
   B-->>O: state result, exit 0
   H->>F: foreman status, sign payload with approve-gate.sh
-  O->>B: phase-bridge E T again
+  O->>B: contract E T again
   B->>F: record admitted, HEAD at base, run
   F->>ST: intake: close_gate_verified approve
   F->>ST: route approve to shipped, settle_root
@@ -1935,7 +1935,7 @@ opens a new round, including its own `fail_code` rework. A fourth arrival is ref
 
 Between the two invocations the coordinator branch must not move. The second invocation
 requires `HEAD` to equal the recorded base, or it refuses with `branch-moved`
-(`bridge/command.py:312-318`).
+(`contractor/command.py:312-318`).
 
 ---
 
@@ -1954,12 +1954,12 @@ The code is authoritative. These are places a reader of
 | §2: graph outcomes list | `doubt` also exists | `schema/models.py:102` |
 | §2: only `engine:verify_failure` | `engine:ledger_render` added | `schema/models.py:368` |
 | §2: `token_budget` required | `token_budget` or `context_budget_bytes` | `schema/rules_nodes.py:102-117` |
-| §4: tick lock is repo flock plus `bd merge-slot` | `<wrapper_root>/repo-band.lock`; no merge-slot | `supervisor/paths.py:237-247` |
+| §4: tick lock is repo flock plus `bd merge-slot` | `<wrapper_root>/repo-band.lock`; no merge-slot | `inspector/paths.py:237-247` |
 | §4: ticks are manual | `Foreman.run` and `children drive` loop | `foreman/tick.py:631` |
 | §4: tick step order | one durable action per tick; gate intake before lifecycle | `foreman/tick.py:423-591` |
-| §5.4: worktree created by the wrapper | `worktree add --force -B` also resets the candidate branch if the worktree's `.git` is gone | `supervisor/gitio.py:507-525` |
-| §5.6: three recovery cases | seven cases plus an app-server owner override | `supervisor/models.py:174-193` |
-| §7: evidence computed at exit-recorded | the wrapper grades before `record_exit`; the foreman records evidence and closes | `supervisor/exit.py:21-36` |
+| §5.4: worktree created by the wrapper | `worktree add --force -B` also resets the candidate branch if the worktree's `.git` is gone | `inspector/gitio.py:507-525` |
+| §5.6: three recovery cases | seven cases plus an app-server owner override | `inspector/models.py:174-193` |
+| §7: evidence computed at exit-recorded | the wrapper grades before `record_exit`; the foreman records evidence and closes | `inspector/exit.py:21-36` |
 | §9: nonce unique per root | the run ledger enforces global nonce uniqueness | `ledger/schema.py:109` |
 | §10.5: no-progress routes to `on_exhausted` | opens a gate at the node or global fallback | `foreman/cases.py:568-573` |
 | §10.6: audit re-runs validator and bounds | audit is only "does `build_frontier` raise" | `foreman/audit.py:23-29` |
@@ -1972,13 +1972,13 @@ These were read from code and **not executed**. Each needs a test before anyone 
 |---|---|---|
 | 1 | An effects gate opened during settlement is dropped by `advance_lifecycle`: the report is empty, no inbox directory is created, and `run` re-ticks without sleeping until `max_wall`. Nobody learns a gate is waiting. | `foreman/cases.py:387-414`, `foreman/tick.py:513-518,666-682` |
 | 2 | `blocked` from `route_head` is dropped, so `run` re-ticks immediately instead of sleeping. | `foreman/tick.py:552-567` |
-| 3 | `ExitObserver.replay` does not forward `run_identity`, so replayed checks see empty `WF_TASK_ID`, `WF_EPIC_SEGMENT` and `WF_ATTEMPT`. | `supervisor/exit.py:221-245` |
-| 4 | `RpcSession` failure path updates key `reason` instead of field `exit_reason`, so `TERMINATED` may be lost. | `supervisor/rpc_session.py:520-525` |
+| 3 | `ExitObserver.replay` does not forward `run_identity`, so replayed checks see empty `WF_TASK_ID`, `WF_EPIC_SEGMENT` and `WF_ATTEMPT`. | `inspector/exit.py:221-245` |
+| 4 | `RpcSession` failure path updates key `reason` instead of field `exit_reason`, so `TERMINATED` may be lost. | `inspector/rpc_session.py:520-525` |
 | 5 | Ledger `gates.bound_value` column is always NULL because an int goes through a text projector. The value survives in `metadata_json`. | `ledger/rowmap.py:109-114,232` |
 | 6 | `OwnerConflict` is raised inside the tick but not caught by any except clause. | `foreman/tick.py:435,592-627` |
 | 7 | The `EXHAUSTED` branch in `route_head` looks unreachable. | `foreman/cases.py:563-567` |
 | 8 | `LedgerStore` natural-key lookups are task-scoped while `instance_key` and `idempotency_key` are globally unique, so a cross-task collision would fail as a transport error. | `ledger/store.py:306-308` |
-| 9 | `tree_blobs` raises when the outputs tree has more than 32 entries. The review read then fails, so the node gets an uncomputable `fail_code` instead of a graded verdict. `review.md` is not silently hidden. | `supervisor/exit_grade.py:114` |
-| 10 | `packed-refs` stays writable in the in-repo sandbox shape. | `supervisor/sandbox.py:108-111`, ADR 0001 |
-| 11 | Node verify checks run with the wrapper's full environment and outside bwrap. | `supervisor/verify.py:492` |
+| 9 | `tree_blobs` raises when the outputs tree has more than 32 entries. The review read then fails, so the node gets an uncomputable `fail_code` instead of a graded verdict. `review.md` is not silently hidden. | `inspector/exit_grade.py:114` |
+| 10 | `packed-refs` stays writable in the in-repo sandbox shape. | `inspector/sandbox.py:108-111`, ADR 0001 |
+| 11 | Node verify checks run with the wrapper's full environment and outside bwrap. | `inspector/verify.py:492` |
 | 12 | Terminal cleanup defers while any writer activation lacks a pinned artifact. A writer that closed with no artifact makes that defer permanent, so the trees are never removed. | `foreman/tick.py:797-808` |

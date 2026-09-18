@@ -1,13 +1,13 @@
 """The §5.1 activation transitions — delta-only writes over a re-read carrier.
 
 Split out of `api.py` the way `roots`, `gates`, `canary`, `finalize` and
-`supervision` already are: `WorkflowStore` keeps the methods — it is still the
+`inspection` already are: `WorkflowStore` keeps the methods — it is still the
 only public surface (§0.1) — and the write mechanics live here.
 
 **Every transition writes ONLY the keys it owns.** The earlier version re-emitted
 the WHOLE carrier from the read the method opened with, on the argument that a
 full re-write is idempotent because bd merges metadata. That argument holds for
-one writer and fails for two, and B5 made the supervisor a RESIDENT process:
+one writer and fails for two, and B5 made the inspector a RESIDENT process:
 `record_dispatch`, `record_exit` and `record_evidence` are all issued by it,
 concurrently with foreman ticks by design. A whole-carrier merge from a stale
 read then re-emits every OTHER key as it stood at read time, so a foreman that
@@ -231,7 +231,7 @@ def apply(
 
     `allowed` is re-asserted against a FRESH read rather than against whatever
     the caller loaded: the caller's guards ran before a bd round-trip, and the
-    supervisor is not serialised by the §4 tick. What remains after that is the
+    inspector is not serialised by the §4 tick. What remains after that is the
     merge itself, which `repair_forward` cleans up.
 
     The recorded outcome is re-asserted with it, and here rather than in each

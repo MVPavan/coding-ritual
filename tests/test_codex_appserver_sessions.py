@@ -9,7 +9,7 @@ import pytest
 from tests._appserver import AppServerLab
 from tests._bdio import RESOLVED_CONFIG, entry_request, handle, make_root
 from tests._helpers import VALID_FIXTURE
-from tests._supervisor import entry_mint
+from tests._inspector import entry_mint
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import (
     CarrierIntegrityError,
@@ -24,10 +24,10 @@ from workflow_interpreter.bdio.rpc_records import (
 from workflow_interpreter.bdio.sessions import choose_source
 from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY
 from workflow_interpreter.contracts.sessions import SessionReuse
+from workflow_interpreter.inspector.models import SteerIntent
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.rpc_state import state_for
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.models import SteerIntent
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.rpc_state import state_for
 
 
 def reuse_graph(tmp_path, reuse):
@@ -65,7 +65,7 @@ def app_root(tmp_path, store, reuse):
     """Pin the real app-server identity in this isolated test root."""
     settings = tuple(
         item.model_copy(update={"value": "codex-appserver"})
-        if item.key.endswith(".runner")
+        if item.key.endswith(".crew")
         else item
         for item in RESOLVED_CONFIG
     )
@@ -76,7 +76,7 @@ def finish_source(store, root, outcome=None):
     """Create the immutable registration and explicit completed-turn fact."""
 
     activation = store.mint_activation(
-        root.root_id, entry_request(runner_profile="codex-appserver", session_id="")
+        root.root_id, entry_request(crew_profile="codex-appserver", session_id="")
     ).activation
     process = handle(session_id="")
     store.record_dispatch(activation.activation_id, process, launch_id="launch-1")
@@ -107,7 +107,7 @@ def test_reentry_binds_history_only_when_the_graph_opts_in(tmp_path, fake_store,
     root = app_root(tmp_path, fake_store, reuse)
     source = finish_source(fake_store, root)
     request = entry_request(
-        runner_profile="codex-appserver", session_id="caller-invented"
+        crew_profile="codex-appserver", session_id="caller-invented"
     ).model_copy(
         update={
             "mint_reason": MintReason.EDGE,
@@ -154,7 +154,7 @@ def test_incompatible_registered_history_is_not_selected(
             )
         }
     )
-    request = entry_request(runner_profile="codex-appserver", session_id="").model_copy(
+    request = entry_request(crew_profile="codex-appserver", session_id="").model_copy(
         update={
             "mint_reason": MintReason.EDGE,
             "predecessor_activation_id": registration.activation_id,
@@ -171,7 +171,7 @@ def test_infra_retry_of_deliberate_steer_keeps_its_bound_session(tmp_path, fake_
     continuation = fake_store.mint_activation(
         root.root_id,
         entry_request(
-            runner_profile="codex-appserver", session_id=source.thread_id
+            crew_profile="codex-appserver", session_id=source.thread_id
         ).model_copy(
             update={
                 "mint_reason": MintReason.STEER_CONTINUATION,
@@ -183,7 +183,7 @@ def test_infra_retry_of_deliberate_steer_keeps_its_bound_session(tmp_path, fake_
     retry = fake_store.mint_activation(
         root.root_id,
         entry_request(
-            runner_profile="codex-appserver", session_id=source.thread_id
+            crew_profile="codex-appserver", session_id=source.thread_id
         ).model_copy(
             update={
                 "mint_reason": MintReason.INFRA_RETRY,
@@ -203,7 +203,7 @@ def test_version_mismatch_is_a_logged_fresh_decision(
     root = app_root(tmp_path, fake_store, "same-node")
     registration = finish_source(fake_store, root, Outcome.STEERED)
     source = fake_store.reads.load_activation(registration.activation_id)
-    old = registration.model_copy(update={"runner_version": "0.153.0"})
+    old = registration.model_copy(update={"crew_version": "0.153.0"})
     source = source.model_copy(
         update={
             "metadata": source.metadata.model_copy(
@@ -216,7 +216,7 @@ def test_version_mismatch_is_a_logged_fresh_decision(
             )
         }
     )
-    request = entry_request(runner_profile="codex-appserver").model_copy(
+    request = entry_request(crew_profile="codex-appserver").model_copy(
         update={
             "mint_reason": reason,
             "predecessor_activation_id": registration.activation_id,
@@ -232,14 +232,14 @@ def test_same_node_without_eligible_history_gets_distinct_private_state(tmp_path
 
     lab = AppServerLab(tmp_path, reuse="same-node")
     first = lab.store.mint_activation(
-        lab.root.root_id, entry_mint(runner_profile="codex-appserver", session_id="")
+        lab.root.root_id, entry_mint(crew_profile="codex-appserver", session_id="")
     ).activation
     old = state_for(lab.paths, lab.root, first)
     (old / "prior-state").write_text("must not be reused")
     lab.store.close_activation(first.activation_id, Outcome.ERROR_TRANSPORT)
     second = lab.store.mint_activation(
         lab.root.root_id,
-        entry_mint(runner_profile="codex-appserver", session_id="").model_copy(
+        entry_mint(crew_profile="codex-appserver", session_id="").model_copy(
             update={
                 "mint_reason": MintReason.INFRA_RETRY,
                 "predecessor_activation_id": first.activation_id,
@@ -259,7 +259,7 @@ def test_version_bump_deliberate_continuation_can_dispatch_fresh(tmp_path):
     first = lab.run()
     aid = first.dispatch.activation.activation_id
     old = lab.store.reads.load_activation(aid).metadata.session_registration.model_copy(
-        update={"runner_version": "0.153.0"}
+        update={"crew_version": "0.153.0"}
     )
     lab.store._client._merge_metadata(
         aid,
@@ -269,7 +269,7 @@ def test_version_bump_deliberate_continuation_can_dispatch_fresh(tmp_path):
         },
     )
     lab.store.close_activation(aid, Outcome.STEERED)
-    request = entry_mint(runner_profile="codex-appserver", session_id="").model_copy(
+    request = entry_mint(crew_profile="codex-appserver", session_id="").model_copy(
         update={
             "mint_reason": MintReason.STEER_CONTINUATION,
             "predecessor_activation_id": aid,
@@ -329,4 +329,4 @@ def test_non_string_pinned_policy_is_a_carrier_integrity_error(tmp_path, fake_st
         }
     )
     with pytest.raises(CarrierIntegrityError, match="session"):
-        choose_source(broken, entry_request(runner_profile="codex-appserver"), ())
+        choose_source(broken, entry_request(crew_profile="codex-appserver"), ())

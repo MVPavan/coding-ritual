@@ -10,8 +10,8 @@ from workflow_interpreter.foreman.wake_constants import (
     LOG_DURABILITY,
     OBSERVATION_STATUS,
 )
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.paths import read_record, write_record
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.paths import read_record, write_record
 
 
 def bounded(text: str, limit: int = DETAIL_BYTES) -> str:

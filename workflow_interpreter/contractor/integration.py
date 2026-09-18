@@ -25,13 +25,15 @@ from pydantic import TypeAdapter
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.bdio.rows import RowQuery
-from workflow_interpreter.bridge.adapter import PhaseAdapter
-from workflow_interpreter.bridge.errors import BridgeRefusal
-from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
-from workflow_interpreter.bridge.verification import VerificationPolicy
+from workflow_interpreter.contractor.adapter import PhaseAdapter
+from workflow_interpreter.contractor.errors import ContractorRefusal
+from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.resolve import _resolved_config
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.gitcmd import GitSubcommand
 from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import (
     CollectedChildResult,
@@ -42,8 +44,6 @@ from workflow_interpreter.schema.decisions import (
     digest_record,
 )
 from workflow_interpreter.schema.loader import canonical_bytes, load_graph
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.gitcmd import GitSubcommand
 
 ESSENTIAL = ("integration_sources", "stage_brief", "target_base")
 CLAIM_PAYLOAD_KEY = "integration_target_claim"
@@ -59,14 +59,14 @@ def _json(value: object) -> str:
 
 def _status_view(
     association: IntegrationAssociation,
-    record: PhaseBridgeRecord | None,
+    record: ContractorRecord | None,
     children: object,
 ) -> dict[str, object]:
     """Render stable operator identities without re-emitting pinned bulky bodies."""
     from workflow_interpreter.schema.decisions import ChildCoordinationView
 
     if not isinstance(children, ChildCoordinationView):
-        raise BridgeRefusal("integration child status has an invalid shape")
+        raise ContractorRefusal("integration child status has an invalid shape")
     receipt = association.receipt
     states: dict[str, int] = {}
     for child in children.children:
@@ -76,9 +76,9 @@ def _status_view(
         "ref": association.target_ref,
         "base_commit": association.base_commit,
     }
-    bridge = None
+    contractor = None
     if record is not None:
-        bridge = {
+        contractor = {
             "state": record.state,
             "root_id": record.root_id,
             "epic_id": record.epic_id,
@@ -127,7 +127,7 @@ def _status_view(
             },
             "target": target,
         },
-        "bridge": bridge,
+        "contractor": contractor,
         "target": target,
         "children": {
             "owner_id": children.owner_id,
@@ -181,9 +181,9 @@ class IntegrationGuard:
             owner_id, composition=self.composition
         )
 
-    def association(self, record: PhaseBridgeRecord) -> IntegrationAssociation:
+    def association(self, record: ContractorRecord) -> IntegrationAssociation:
         if record.integration_owner is None:
-            raise BridgeRefusal("integration owner missing")
+            raise ContractorRefusal("integration owner missing")
         state = self.coordination(record.integration_owner).state(
             record.integration_owner
         )
@@ -193,7 +193,7 @@ class IntegrationGuard:
             if a.identity_digest == record.integration_digest
         ]
         if len(matches) != 1:
-            raise BridgeRefusal("integration association missing or ambiguous")
+            raise ContractorRefusal("integration association missing or ambiguous")
         association = matches[0]
         if (
             association.request.stage_id != record.stage_id
@@ -213,7 +213,7 @@ class IntegrationGuard:
                 association.verification_policy_json
             )
         ):
-            raise BridgeRefusal("integration association identity mismatch")
+            raise ContractorRefusal("integration association identity mismatch")
         return association
 
     def save(self, association: IntegrationAssociation) -> None:
@@ -233,12 +233,12 @@ class IntegrationGuard:
             store.state(state.owner_id).integrations[association.request.request_key]
             != association
         ):
-            raise BridgeRefusal("integration association readback mismatch")
+            raise ContractorRefusal("integration association readback mismatch")
 
     def claim(self, key: str) -> tuple[str, IntegrationTargetClaim] | None:
         rows = self.claims.find(key)
         if len(rows) > 1:
-            raise BridgeRefusal("ambiguous integration target claim")
+            raise ContractorRefusal("ambiguous integration target claim")
         if not rows:
             return None
         return rows[0].id, IntegrationTargetClaim.model_validate(
@@ -254,12 +254,12 @@ class IntegrationGuard:
         )
 
     def binding(
-        self, record: PhaseBridgeRecord, *, current: bool = True
+        self, record: ContractorRecord, *, current: bool = True
     ) -> IntegrationAssociation:
         association = self.association(record)
         prepared = record.model_copy(
             update={
-                "state": PhaseBridgeState.PREPARED,
+                "state": ContractorState.PREPARED,
                 "root_id": None,
                 "landed_oid": None,
                 "tree": None,
@@ -272,11 +272,11 @@ class IntegrationGuard:
                 "export_oid": None,
             }
         )
-        if association.bridge_digest != digest_record(prepared):
-            raise BridgeRefusal("integration prepared bridge digest mismatch")
+        if association.contractor_digest != digest_record(prepared):
+            raise ContractorRefusal("integration prepared contractor digest mismatch")
         receipt = association.receipt
         if receipt is None or receipt.root_id != record.root_id:
-            raise BridgeRefusal("integration root receipt mismatch")
+            raise ContractorRefusal("integration root receipt mismatch")
         store = self.coordination(association.request.owner_id)
         state = store.state(association.request.owner_id)
         reservation = state.reservations.get(association.admission_digest)
@@ -305,9 +305,9 @@ class IntegrationGuard:
             .decode()
             != association.admission.inputs_json
         ):
-            raise BridgeRefusal("integration pinned root mismatch")
+            raise ContractorRefusal("integration pinned root mismatch")
         if current and association.state == "stale":
-            raise BridgeRefusal("integration association is stale")
+            raise ContractorRefusal("integration association is stale")
         if current:
             row = store.child_record(
                 state.owner_id, receipt.link.slot, receipt.link.generation
@@ -316,23 +316,23 @@ class IntegrationGuard:
                 state.active.get(receipt.link.slot) != receipt.root_id
                 or row.cancellation is not None
             ):
-                raise BridgeRefusal("integration member cancelled or stale")
+                raise ContractorRefusal("integration member cancelled or stale")
         return association
 
     def sources(self, request: IntegrationRequest) -> tuple[dict[str, object], ...]:
         if len({slot for slot, _, _ in request.sources}) != len(request.sources):
-            raise BridgeRefusal("duplicate integration source")
+            raise ContractorRefusal("duplicate integration source")
         entries: list[dict[str, object]] = []
         store = self.coordination(request.owner_id)
         for slot, generation, digest in request.sources:
             row = store.child_record(request.owner_id, slot, generation)
             receipt = row.collection
             if row.cancellation or receipt is None or receipt.receipt_digest != digest:
-                raise BridgeRefusal(
+                raise ContractorRefusal(
                     "source cancelled, uncollected, or receipt mismatch"
                 )
             if store.state(request.owner_id).active.get(slot) != row.root_id:
-                raise BridgeRefusal("source generation is stale")
+                raise ContractorRefusal("source generation is stale")
             self._source_evidence(receipt)
             source_reads = self.composition.reads_for_root(row.root_id)
             root = source_reads.load_root(row.root_id)
@@ -341,14 +341,14 @@ class IntegrationGuard:
                 root.metadata.coordination is None
                 or root.metadata.coordination.owner_id != request.owner_id
             ):
-                raise BridgeRefusal("source belongs to a different owner")
+                raise ContractorRefusal("source belongs to a different owner")
             writes = []
             for activation in source_reads.list_activations(row.root_id):
                 if not resolved_node(root, activation.metadata.node).node.writes:
                     continue
                 evidence = activation.metadata.evidence
                 if evidence is None or evidence.artifact is None:
-                    raise BridgeRefusal("source writer artifact evidence missing")
+                    raise ContractorRefusal("source writer artifact evidence missing")
                 artifact = evidence.artifact
                 if self.composition.git.tree_oid(
                     artifact.commit_oid, cwd=self.composition.config.repo_root
@@ -357,7 +357,7 @@ class IntegrationGuard:
                     receipt.artifact_commit,
                     cwd=self.composition.config.repo_root,
                 ):
-                    raise BridgeRefusal("source writer artifact mismatch")
+                    raise ContractorRefusal("source writer artifact mismatch")
                 writes.append(activation.activation_id)
             entries.append(
                 {
@@ -419,7 +419,7 @@ class IntegrationGuard:
                 receipt.base_commit, receipt.artifact_commit, cwd=repo
             )
         ):
-            raise BridgeRefusal("source immutable evidence mismatch")
+            raise ContractorRefusal("source immutable evidence mismatch")
 
     @contextmanager
     def ordered(self, association: IntegrationAssociation) -> Iterator[None]:
@@ -440,7 +440,7 @@ class IntegrationGuard:
                 stack.enter_context(BandLock(self.shared.member_lock_path(root)))
             yield
 
-    def finished(self, record: PhaseBridgeRecord) -> None:
+    def finished(self, record: ContractorRecord) -> None:
         """Release only after the stage close was read back, including replay."""
         association = self.association(record)
         with (
@@ -460,7 +460,7 @@ class IntegrationGuard:
                     claim[1].model_copy(update={"disposition": "released"})
                 )
 
-    def candidate(self, record: PhaseBridgeRecord, commit: str, tree: str) -> None:
+    def candidate(self, record: ContractorRecord, commit: str, tree: str) -> None:
         """Prove review consumed the actual writer artifact, independent of text."""
         from workflow_interpreter.bdio import Lifecycle, Outcome
 
@@ -471,7 +471,7 @@ class IntegrationGuard:
         writers = [a for a in activations if a.metadata.node == "integrate"]
         reviewers = [a for a in activations if a.metadata.node == "review"]
         if len(writers) != 1 or len(reviewers) != 1:
-            raise BridgeRefusal("integration needs one fresh writer and review")
+            raise ContractorRefusal("integration needs one fresh writer and review")
         writer, reviewer = writers[0], reviewers[0]
         artifact = (
             writer.metadata.evidence.artifact if writer.metadata.evidence else None
@@ -492,10 +492,12 @@ class IntegrationGuard:
             or binding.producer_activation_id != writer.activation_id
             or binding.digest != tree
         ):
-            raise BridgeRefusal("integration review does not prove candidate artifact")
+            raise ContractorRefusal(
+                "integration review does not prove candidate artifact"
+            )
 
-    def pre_cas(self, record: PhaseBridgeRecord) -> None:
-        from workflow_interpreter.bridge.authority import BeadGateAuthority
+    def pre_cas(self, record: ContractorRecord) -> None:
+        from workflow_interpreter.contractor.authority import BeadGateAuthority
 
         association = self.binding(record)
         claim = self.claim(association.target_key)
@@ -509,17 +511,17 @@ class IntegrationGuard:
             or claim[1].request_digest != association.request_digest
             or claim[1].attempt != association.attempt
         ):
-            raise BridgeRefusal("integration target claim is not active")
+            raise ContractorRefusal("integration target claim is not active")
         entries = self.sources(association.request)
         if _sha(_json(entries)) != association.manifest_digest:
-            raise BridgeRefusal("integration manifest changed")
+            raise ContractorRefusal("integration manifest changed")
         if (
             self.composition.git.ref_target(
                 record.target_ref, cwd=self.composition.config.repo_root
             )
             != association.base_commit
         ):
-            raise BridgeRefusal("branch-moved")
+            raise ContractorRefusal("branch-moved")
         assert record.root_id is not None
         evidence = BeadGateAuthority(
             self.composition.reads_for_root(record.root_id)
@@ -538,13 +540,13 @@ class IntegrationGuard:
         )
         self.save(updated)
 
-    def post_cas(self, record: PhaseBridgeRecord) -> None:
-        from workflow_interpreter.bridge.authority import BeadGateAuthority
-        from workflow_interpreter.bridge.landing import (
+    def post_cas(self, record: ContractorRecord) -> None:
+        from workflow_interpreter.contractor.authority import BeadGateAuthority
+        from workflow_interpreter.contractor.landing import (
             LANDING_INTENT_FILE,
             LandingIntent,
         )
-        from workflow_interpreter.supervisor.paths import read_record
+        from workflow_interpreter.inspector.paths import read_record
 
         association = self.binding(record, current=False)
         assert record.root_id is not None
@@ -578,9 +580,11 @@ class IntegrationGuard:
                 evidence.artifact_oid, target, cwd=self.composition.config.repo_root
             )
         ):
-            raise BridgeRefusal("integration lacks matching observed CAS authorization")
-        if record.state in (PhaseBridgeState.LANDED, PhaseBridgeState.CLOSED):
-            from workflow_interpreter.bridge.landing import (
+            raise ContractorRefusal(
+                "integration lacks matching observed CAS authorization"
+            )
+        if record.state in (ContractorState.LANDED, ContractorState.CLOSED):
+            from workflow_interpreter.contractor.landing import (
                 LANDING_RECEIPT_FILE,
                 LandingReceipt,
                 _digest_record,
@@ -599,12 +603,14 @@ class IntegrationGuard:
                 or receipt.intent_digest != _digest_record(intent)
                 or record.gate_receipt_digest != evidence.digest
             ):
-                raise BridgeRefusal("integration close lacks matching landing receipt")
+                raise ContractorRefusal(
+                    "integration close lacks matching landing receipt"
+                )
 
 
 def prepare_integration(
     composition: Composition, request: IntegrationRequest
-) -> PhaseBridgeRecord:
+) -> ContractorRecord:
     """Persist fixed intent before admitting exactly one P3 child root."""
     guard = IntegrationGuard(composition)
     adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
@@ -615,12 +621,12 @@ def prepare_integration(
         or not stage.description
         or not stage.description.strip()
     ):
-        raise BridgeRefusal("integration stage identity or brief missing")
+        raise ContractorRefusal("integration stage identity or brief missing")
     if adapter.blocking_dependencies(request.stage_id):
-        raise BridgeRefusal("integration stage is blocked")
+        raise ContractorRefusal("integration stage is blocked")
     target = composition.git.attached_branch_ref(cwd=composition.config.repo_root)
     if target is None:
-        raise BridgeRefusal("detached integration target")
+        raise ContractorRefusal("detached integration target")
     key = target_key(composition, target)
     with BandLock(guard.shared.target_lock_path(key)):
         prior = (
@@ -629,13 +635,13 @@ def prepare_integration(
             .integrations.get(request.request_key)
         )
         if prior is not None and prior.request != request:
-            raise BridgeRefusal("integration request-key payload changed")
+            raise ContractorRefusal("integration request-key payload changed")
         if prior is not None and prior.state == "landed":
             record = adapter.record(request.stage_id)
             guard.post_cas(record)
             return record
         if prior is not None and prior.target_key != key:
-            raise BridgeRefusal("integration request changed repository or target")
+            raise ContractorRefusal("integration request changed repository or target")
         claim = guard.claim(key)
         if (
             claim
@@ -643,11 +649,11 @@ def prepare_integration(
             and (claim[1].owner_id, claim[1].stage_id, claim[1].request_digest)
             != (request.owner_id, request.stage_id, digest_record(request))
         ):
-            raise BridgeRefusal("integration target busy")
+            raise ContractorRefusal("integration target busy")
         if prior is None:
-            if stage.metadata.get("phase_bridge") is not None:
-                raise BridgeRefusal(
-                    "stage already has bridge; use explicit integration retry"
+            if stage.metadata.get("contractor") is not None:
+                raise ContractorRefusal(
+                    "stage already has contractor; use explicit integration retry"
                 )
             guard.sources(request)
             guard.write_claim(
@@ -663,7 +669,7 @@ def prepare_integration(
                 composition.git.status_paths(cwd=composition.config.repo_root),
                 task_id=request.stage_id,
             ):
-                raise BridgeRefusal("integration target must be clean and present")
+                raise ContractorRefusal("integration target must be clean and present")
             entries = guard.sources(request)
             definition = load_graph(
                 Path(__file__).resolve().parents[2] / "workflows/integration.toml"
@@ -676,7 +682,7 @@ def prepare_integration(
                 sum(len(body.encode()) for body in bodies.values())
                 > MAX_INSTANCE_INPUT_BYTES
             ):
-                raise BridgeRefusal(
+                raise ContractorRefusal(
                     "integration essential inputs exceed root byte limit"
                 )
             from workflow_interpreter.foreman.envelope import EnvelopeRefusal
@@ -728,7 +734,8 @@ def prepare_integration(
                 admission_digest=digest_record(admission),
                 manifest_digest=_sha(bodies["integration_sources"]),
                 verification_policy_json=VerificationPolicy.pin(
-                    composition.config.bridge_checks or (), composition.config.repo_root
+                    composition.config.contractor_checks or (),
+                    composition.config.repo_root,
                 ).model_dump_json(),
                 attempt=1,
             )
@@ -749,7 +756,7 @@ def prepare_integration(
 
 def resume_integration(
     composition: Composition, association: IntegrationAssociation
-) -> PhaseBridgeRecord:
+) -> ContractorRecord:
     guard = IntegrationGuard(composition)
     adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     adapter.integration_guard = guard
@@ -770,9 +777,9 @@ def resume_integration(
             association.request.stage_id,
             association.request_digest,
         ):
-            raise BridgeRefusal("integration prepared intent lost target claim")
+            raise ContractorRefusal("integration prepared intent lost target claim")
         if claim[1].attempt != association.attempt:
-            raise BridgeRefusal("integration prepared claim attempt mismatch")
+            raise ContractorRefusal("integration prepared claim attempt mismatch")
         if claim[1].association_digest is None:
             guard.write_claim(
                 claim[1].model_copy(
@@ -780,9 +787,9 @@ def resume_integration(
                 )
             )
         elif claim[1].association_digest != association.identity_digest:
-            raise BridgeRefusal("integration prepared claim digest mismatch")
-        raw = adapter.show(association.request.stage_id).metadata.get("phase_bridge")
-        record = PhaseBridgeRecord.model_validate(raw) if raw else None
+            raise ContractorRefusal("integration prepared claim digest mismatch")
+        raw = adapter.show(association.request.stage_id).metadata.get("contractor")
+        record = ContractorRecord.model_validate(raw) if raw else None
         predecessor = (
             record
             if record is not None and record.attempt + 1 == association.attempt
@@ -797,9 +804,9 @@ def resume_integration(
             record is not None
             and record.integration_digest != association.identity_digest
         ):
-            raise BridgeRefusal("integration bridge association mismatch")
+            raise ContractorRefusal("integration contractor association mismatch")
         if record is None:
-            record = PhaseBridgeRecord.prepared(
+            record = ContractorRecord.prepared(
                 epic_id=association.request.epic_id,
                 stage_id=association.request.stage_id,
                 attempt=1,
@@ -830,11 +837,11 @@ def resume_integration(
                     }
                 )
             record = adapter.prepare(record.stage_id, record)
-        if record.state is not PhaseBridgeState.PREPARED:
+        if record.state is not ContractorState.PREPARED:
             guard.binding(
                 record,
                 current=record.state
-                not in (PhaseBridgeState.LANDED, PhaseBridgeState.CLOSED),
+                not in (ContractorState.LANDED, ContractorState.CLOSED),
             )
             if association.state == "root_bound":
                 with guard.coordination(owner)._locked(owner):
@@ -846,10 +853,10 @@ def resume_integration(
                         )
                     )
             return record
-        if association.bridge_digest is None:
+        if association.contractor_digest is None:
             with guard.coordination(owner)._locked(owner):
                 association = association.model_copy(
-                    update={"bridge_digest": digest_record(record)}
+                    update={"contractor_digest": digest_record(record)}
                 )
                 guard.save(association)
         guard.sources(association.request)
@@ -870,10 +877,10 @@ def resume_integration(
 
 
 def retry_integration(
-    composition: Composition, record: PhaseBridgeRecord
-) -> PhaseBridgeRecord:
+    composition: Composition, record: ContractorRecord
+) -> ContractorRecord:
     """Explicit ordinary retry, same source set/config and original owner budget."""
-    from workflow_interpreter.bridge.landing import (
+    from workflow_interpreter.contractor.landing import (
         LANDING_INTENT_FILE,
         LANDING_RECEIPT_FILE,
     )
@@ -889,14 +896,16 @@ def retry_integration(
             or (paths.instance_dir / LANDING_RECEIPT_FILE).exists()
             or association.authorization
         ):
-            raise BridgeRefusal(
+            raise ContractorRefusal(
                 "uncertain or observed landing must recover before retry"
             )
         if root.status != "closed" or root.metadata.terminal not in (
             "shipped",
             "abandoned",
         ):
-            raise BridgeRefusal("integration retry requires settled human-gated root")
+            raise ContractorRefusal(
+                "integration retry requires settled human-gated root"
+            )
         base = composition.git.ref_target(
             record.target_ref, cwd=composition.config.repo_root
         )
@@ -904,13 +913,13 @@ def retry_integration(
             composition.git.status_paths(cwd=composition.config.repo_root),
             task_id=record.stage_id,
         ):
-            raise BridgeRefusal("integration retry requires clean target")
+            raise ContractorRefusal("integration retry requires clean target")
         if (
             base == association.base_commit
-            and record.state is not PhaseBridgeState.GATE_RED
+            and record.state is not ContractorState.GATE_RED
             and root.metadata.terminal == "shipped"
         ):
-            raise BridgeRefusal("approved integration remains landing-recoverable")
+            raise ContractorRefusal("approved integration remains landing-recoverable")
         claim = guard.claim(association.target_key)
         guard.sources(association.request)
         attempt = record.attempt + 1
@@ -930,7 +939,7 @@ def retry_integration(
             or claim[1].association_digest not in permitted
             or claim[1].disposition != "active"
         ):
-            raise BridgeRefusal("integration retry lost target claim")
+            raise ContractorRefusal("integration retry lost target claim")
         if existing is None:
             inputs = TypeAdapter(tuple[InstanceInput, ...]).validate_json(
                 association.admission.inputs_json
@@ -986,7 +995,7 @@ def retry_integration(
 def prepared_for_stage(
     composition: Composition, epic_id: str, stage_id: str
 ) -> IntegrationAssociation | None:
-    """Recover the association-before-bridge window from the existing Beads ledger."""
+    """Recover the association-before-contractor window from the existing Beads ledger."""
     from workflow_interpreter.schema.decisions import CoordinationState
 
     coordinator = composition.store.coordination_store(composition=composition)
@@ -1010,7 +1019,7 @@ def prepared_for_stage(
         predecessors = {a.predecessor_digest for a in matches}
         matches = [a for a in matches if a.identity_digest not in predecessors]
     if len(matches) > 1:
-        raise BridgeRefusal("ambiguous prepared integration for stage")
+        raise ContractorRefusal("ambiguous prepared integration for stage")
     return matches[0] if matches else None
 
 
@@ -1021,12 +1030,12 @@ def command(composition: Composition, args: object) -> str:
     from workflow_interpreter.foreman.identifiers import validate_bead_id
 
     if not isinstance(args, Namespace):
-        raise BridgeRefusal("invalid integration command")
+        raise ContractorRefusal("invalid integration command")
     if args.integration_command == "prepare":
         with args.request.open("rb") as stream:
             body = stream.read(1_048_577)
         if len(body) > 1_048_576:
-            raise BridgeRefusal("integration request exceeds 1 MiB")
+            raise ContractorRefusal("integration request exceeds 1 MiB")
         prepared = prepare_integration(
             composition, IntegrationRequest.model_validate_json(body)
         )
@@ -1036,13 +1045,13 @@ def command(composition: Composition, args: object) -> str:
     guard = IntegrationGuard(composition)
     association = prepared_for_stage(composition, args.epic_id, args.stage_id)
     if association is None:
-        raise BridgeRefusal("integration association is absent")
+        raise ContractorRefusal("integration association is absent")
     adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
-    raw = adapter.show(args.stage_id).metadata.get("phase_bridge")
+    raw = adapter.show(args.stage_id).metadata.get("contractor")
     record = adapter.record(args.stage_id) if raw is not None else None
     if args.integration_command == "retry":
         if record is None:
-            raise BridgeRefusal("integration bridge is absent")
+            raise ContractorRefusal("integration contractor is absent")
         return retry_integration(composition, record).model_dump_json(by_alias=True)
     if record is not None:
         association = guard.association(record)
@@ -1071,7 +1080,7 @@ def replace_integration(
         or intent.expected_generation != association.admission.generation
         or intent.admission.inputs_json != association.admission.inputs_json
     ):
-        raise BridgeRefusal(
+        raise ContractorRefusal(
             "integration replacement changes fixed source/slot authority"
         )
     admission = intent.admission.model_copy(

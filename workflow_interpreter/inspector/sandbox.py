@@ -1,7 +1,7 @@
 """The §2 mount bound: `allowed_paths` expressed as real mounts, not as prose.
 
 Phase 1 of `docs/plans/allowed-paths-enforcement-phase-1.md` (ADR 0001, owner
-decisions O1-O5). A dispatched runner runs inside `bwrap`, and the ONLY writable
+decisions O1-O5). A dispatched crew runs inside `bwrap`, and the ONLY writable
 things it can reach in the workspace are the node's grants, the `channels/`
 directory and the git state a commit needs. Everything else the wrapper cares
 about — the main repo's tree, this repo's agent worktrees, the `.wf/`
@@ -19,12 +19,12 @@ assumed (plan §2):
   `repo_root`/`wrapper_root` ro-binds are load-bearing, not defensive. `$HOME`
   and `/tmp` stay writable by design — an accepted residual (plan §8).
 - **A bind source that does not exist fails the whole box** with a bare `rc=1`
-  that is indistinguishable from a runner exiting 1. Hence the fixed
+  that is indistinguishable from a crew exiting 1. Hence the fixed
   pre-creation set below, existence gating for every other path, and
   `SandboxPathRefused` for a root that is simply not there.
 
 This module is pure planning plus one capability probe: it never launches a
-runner. `launch.py` applies `wrap` as the last transform before exec, and
+crew. `launch.py` applies `wrap` as the last transform before exec, and
 `Dispatcher._launch` calls `probe` before a session is minted.
 """
 
@@ -41,11 +41,11 @@ from typing import TYPE_CHECKING, Final
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.contracts.execution import MSG_POLICY_MISMATCH
-from workflow_interpreter.supervisor.errors import SandboxPathRefused
+from workflow_interpreter.inspector.errors import SandboxPathRefused
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard for type checking only
-    from workflow_interpreter.supervisor.config import SupervisorConfig
-    from workflow_interpreter.supervisor.profile import TaskSpec
+    from workflow_interpreter.inspector.config import InspectorConfig
+    from workflow_interpreter.inspector.profile import TaskSpec
 
 SANDBOX_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -53,8 +53,8 @@ SANDBOX_MODEL: Final[ConfigDict] = ConfigDict(
 
 BWRAP_BINARY: Final[str] = "bwrap"
 ARG_DIE_WITH_PARENT: Final[str] = "--die-with-parent"
-"""Makes the box a leaf of the supervisor's process tree: a SIGKILLed wrapper
-tears the sandbox down instead of leaving an unreapable runner holding mounts."""
+"""Makes the box a leaf of the inspector's process tree: a SIGKILLed wrapper
+tears the sandbox down instead of leaving an unreapable crew holding mounts."""
 ARG_DEV_BIND: Final[str] = "--dev-bind"
 ARG_RO_BIND: Final[str] = "--ro-bind"
 ARG_BIND: Final[str] = "--bind"
@@ -76,7 +76,7 @@ WORKTREES_DIR: Final[str] = "worktrees"
 
 `commondir` decides which `config` git reads and `gitdir` decides which
 checkout `<G>` belongs to. `<G>` itself must stay read-write (`index.lock`
-is created in it), so both are pinned back — a runner that can repoint
+is created in it), so both are pinned back — a crew that can repoint
 `commondir` at a directory it controls makes the WRAPPER's own next
 `git status`, run outside the box, execute the `core.fsmonitor` it plants
 there. Probed: the escape works without these pins."""
@@ -103,11 +103,11 @@ INFO_DIR: Final[str] = "info"
 WF_FENCE_DIR: Final[str] = "wf"
 """The engine's own directory inside `<common>`, holding the ledger fence
 (run-ledger §3.4). The in-repo shape binds `.git` read-write AS A WHOLE, so a
-runner could otherwise unlink the locked inode and leave every writer holding a
+crew could otherwise unlink the locked inode and leave every writer holding a
 lock on a file nobody else can see; it is pinned back in both shapes."""
 WF_REFS_DIR: Final[str] = "refs/wf"
 """The wrapper's evidence refs. Pinning it protects them as LOOSE refs only;
-`packed-refs` stays rw for the runner's own commit, so ref forgery survives O2
+`packed-refs` stays rw for the crew's own commit, so ref forgery survives O2
 and is filed separately (plan §8)."""
 MODULES_CONFIG_GLOB: Final[str] = "modules/*/config"
 """Submodule configs, which name programs the same way `config` does. Only
@@ -224,7 +224,7 @@ class SandboxCapability(BaseModel):
     """The ABSOLUTE path `probe` resolved, so nothing has to resolve it twice.
 
     A bare `bwrap` in the wrapped argv would let the CHILD's `PATH` — a
-    passthrough value the runner's environment carries — decide which binary
+    passthrough value the crew's environment carries — decide which binary
     holds the bound. Defaulted to the bare name only for the unresolved case,
     which never reaches `wrap` because the dispatch is refused first."""
 
@@ -308,7 +308,7 @@ def _refuse_bad_shape(grant: str) -> str:
 
     A typed refusal rather than whatever `mkdir` happens to raise: `.git/**` used
     to surface as a bare `FileExistsError`, and an `OSError` out of here is spent
-    as a §10.2 infra retry by `supervise.py`'s generic catch instead of halting.
+    as a §10.2 infra retry by `inspect.py`'s generic catch instead of halting.
     """
     if not grant.endswith(GRANT_SUFFIX):
         raise SandboxPathRefused(_MSG_GRANT_SHAPE.format(grant=grant))
@@ -407,8 +407,8 @@ def _branch_ref(gitdir: Path) -> PurePosixPath | None:
     `None` for a DETACHED head, for a `HEAD` that is missing or unreadable, and
     for anything that does not spell a plain `refs/heads/...` ref — which is the
     fail-closed direction, because `None` grants a commit NOTHING outside `<G>`
-    rather than granting a directory derived from text a runner might control.
-    `<G>/HEAD` is inside the writable `<G>` and so IS runner-controlled between
+    rather than granting a directory derived from text a crew might control.
+    `<G>/HEAD` is inside the writable `<G>` and so IS crew-controlled between
     dispatches: the sanitising below is why that cannot become a grant of
     `<common>/hooks` via a `HEAD` reading `ref: refs/heads/../../hooks/x`.
     """
@@ -437,7 +437,7 @@ def _branch_write_dirs(
     """Grant only the branch directory reserved for this trusted workflow ID.
 
     Codex accepts directory grants, so each instance needs its own directory.
-    Never derive authority from runner-writable HEAD: it must match the trusted
+    Never derive authority from crew-writable HEAD: it must match the trusted
     instance identity. Legacy/shared branch layouts require a fresh instance.
     Detached verification checkouts need no shared branch writes.
     """
@@ -482,7 +482,7 @@ def _in_repo_binds(
 ) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     """In-repo shape: `.git` read-write as a WHOLE, minus what executes programs.
 
-    Whole, because `index.lock` is created directly in `.git/` and a runner that
+    Whole, because `index.lock` is created directly in `.git/` and a crew that
     cannot take it cannot commit (O2). The pins take back the parts that make
     git run a program: `config` and `config.worktree` name filters and hooks
     paths, `hooks/` holds the programs, `info/attributes` selects filter
@@ -551,7 +551,7 @@ def _git_binds(
     """Route on what `<C>/.git` actually IS — directory, file, or nothing.
 
     No subprocess: the shape is on disk, and asking git would mean running git
-    as the wrapper on a tree the runner controls.
+    as the wrapper on a tree the crew controls.
     """
     entry = checkout / GIT_ENTRY
     if entry.is_dir():
@@ -801,7 +801,7 @@ def _measure() -> SandboxCapability:
     )
 
 
-def probe(config: SupervisorConfig) -> SandboxCapability:
+def probe(config: InspectorConfig) -> SandboxCapability:
     """Whether this host can hold the bound, measured at most once per process.
 
     `sandbox = off` reports available without measuring anything and WITHOUT

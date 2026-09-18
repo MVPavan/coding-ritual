@@ -15,11 +15,11 @@ and lifecycle semantics are in `docs/specs/workflow-interpreter.md`.
 
 `basic.toml` is the smallest finite writer: supply one `task_brief` instance
 input and a binding for `profile:implementer`. Its only writer may change
-`src/**`; a successful committed artifact ends the root without bridge landing
+`src/**`; a successful committed artifact ends the root without contractor landing
 or a gate.
 
-`design-spec.toml` is the bridge-compatible Markdown path. Set it as the
-normal `bridge_graph`, provide the selected stage description as its sole
+`design-spec.toml` is the contractor-compatible Markdown path. Set it as the
+normal `contractor_graph`, provide the selected stage description as its sole
 instance input `task_brief`, and bind `profile:implementer` plus
 `profile:critic`. Its writer is confined to `docs/**`; the runtime supplies
 its `candidate_diff` to the non-writing reviewer. Only the existing immutable
@@ -40,7 +40,7 @@ actual usage, and activation `input_envelopes` records byte counts/omissions.
 
 A policy permits only `continue_declared`, `replace`, or `human`; the response in
 `WF_ARTIFACT_DIR/decision.json` must match the identity supplied in the ordinary task
-brief. Supervisor output evidence and current-generation checks authorize consumption,
+brief. Inspector output evidence and current-generation checks authorize consumption,
 not a model's assertion. Malformed, stale, duplicate or unauthorized output needs human
 attention. An explicit human gate still requires the existing authenticated closure.
 
@@ -50,7 +50,7 @@ present in a replacement, that advice is essential and cannot be trimmed. The or
 root remains the command handle, while status names its current successor. Total
 member capacities are reserved monotonically under the original owner; restart and
 replacement cannot replenish them. Exhausted reservations require human attention.
-Bridge-managed replacement is refused in P2; P3 owns successor-root binding and stale
+Contractor-managed replacement is refused in P2; P3 owns successor-root binding and stale
 predecessor landing/closure refusal, with normal phase proof in P5.
 
 Use positive `context_budget_bytes` for new task declarations. It measures the complete

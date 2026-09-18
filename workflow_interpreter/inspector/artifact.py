@@ -1,4 +1,4 @@
-"""Artifact claiming and instance-ref ownership for the supervisor.
+"""Artifact claiming and instance-ref ownership for the inspector.
 
 An artifact pin says that a particular activation produced a commit.  That is
 also the authority a later in-repo reset needs before it can move HEAD away
@@ -15,11 +15,11 @@ from typing import Final
 import structlog
 
 from workflow_interpreter.bdio import ActivationRecord, ArtifactIdentity
+from workflow_interpreter.inspector.channels import crew_committer_email
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.models import PinOutcome, PinResult
+from workflow_interpreter.inspector.paths import WrapperPaths
 from workflow_interpreter.schema.models import IsolationMode, Node
-from workflow_interpreter.supervisor.channels import runner_committer_email
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.models import PinOutcome, PinResult
-from workflow_interpreter.supervisor.paths import WrapperPaths
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -34,7 +34,7 @@ REF_TEMPLATE: Final[str] = "refs/wf/{root_id}/{namespace}/{activation_id}"
 load-bearing rather than tidy. `artifact/` is the §7.4 pin, and a commit under
 it is also the §12 authority to reset HEAD off it. `orphan/` preserves a commit
 recovery could not attribute, and `prereset/` preserves what a reset was about
-to destroy — neither is authority for anything, and `_is_runner_lineage` reads
+to destroy — neither is authority for anything, and `_is_crew_lineage` reads
 only `artifact/`. A flat `refs/wf/<root_id>/…` prefix could not express that:
 every ref the wrapper wrote for any reason would have blessed its commit."""
 
@@ -42,16 +42,16 @@ _REASON_NOT_DESCENDANT: Final[str] = (
     "it does not descend from intended_base_commit {intended}"
 )
 _REASON_UNDECLARED: Final[str] = (
-    "it touches {paths}, which the runner did not declare in $WF_EFFECTS_FILE"
+    "it touches {paths}, which the crew did not declare in $WF_EFFECTS_FILE"
 )
 _REASON_NO_MANIFEST: Final[str] = (
     "no $WF_EFFECTS_FILE manifest exists for this attempt, so in-repo there is "
-    "nothing separating a commit the runner made from one the human made"
+    "nothing separating a commit the crew made from one the human made"
 )
 _REASON_NOT_OUR_COMMITTER: Final[str] = (
-    "it was committed by {found!r}, not by this activation's runner identity "
+    "it was committed by {found!r}, not by this activation's crew identity "
     "{wanted!r}; path containment alone made a commit the HUMAN made in their "
-    "own checkout attributable whenever the dead runner's manifest happened to "
+    "own checkout attributable whenever the dead crew's manifest happened to "
     "name the same path (§7.4)"
 )
 
@@ -62,7 +62,7 @@ def activation_ref(root_id: str, activation_id: str) -> str:
 
 
 def namespaced_ref(root_id: str, namespace: str, activation_id: str) -> str:
-    """Return one instance ref in one of the supervisor namespaces."""
+    """Return one instance ref in one of the inspector namespaces."""
     return REF_TEMPLATE.format(
         root_id=root_id, namespace=namespace, activation_id=activation_id
     )
@@ -109,17 +109,17 @@ class ArtifactManager:
         - **Descent** (both modes): `intended_base_commit` must be an ancestor.
           A HEAD on unrelated history is not this attempt's artifact.
         - **Declaration** (in-repo only): every path the commit range touches
-          must be in `declared` — the runner's own `$WF_EFFECTS_FILE`. In-repo
-          the human's checkout IS the runner's workspace, so a commit made
+          must be in `declared` — the crew's own `$WF_EFFECTS_FILE`. In-repo
+          the human's checkout IS the crew's workspace, so a commit made
           during the run may be either party's, and the declaration is the only
           evidence separating them. `declared=None` means NO manifest exists,
           which in-repo is unattributable — not a licence to skip the test.
           Worktree mode never applies it: the tree is the wrapper's and nobody
           else commits in it.
         - **Authorship** (in-repo only): the commit's COMMITTER must be this
-          activation's runner identity, which `RunnerChannels.env()` stamps on
+          activation's crew identity, which `CrewChannels.env()` stamps on
           the child (§6, §7.4). Containment is a statement about PATHS and says
-          nothing about who wrote them: a dead runner's manifest naming a path
+          nothing about who wrote them: a dead crew's manifest naming a path
           the human later committed in their own checkout made the human's
           commit this activation's artifact — and an artifact pin is the §12
           authority for the next reset to move HEAD off it, so the human's work
@@ -127,7 +127,7 @@ class ArtifactManager:
 
         `quarantine` is §5.6's need: an unattributable commit found at recovery
         must still survive, so it is pinned under `orphan/` — preserved,
-        never claimed, and never lineage `_is_runner_lineage` will bless.
+        never claimed, and never lineage `_is_crew_lineage` will bless.
         """
         cwd = self._path_for(node)
         head = self._git.head_commit(cwd=cwd)
@@ -162,7 +162,7 @@ class ArtifactManager:
             ref=ref,
         )
 
-    def is_runner_lineage(self, cwd: Path, intended: str, head: str) -> bool:
+    def is_crew_lineage(self, cwd: Path, intended: str, head: str) -> bool:
         """Whether HEAD is a wrapper-pinned descendant of the intended base."""
         pinned = self._git.refs_under(
             namespace_prefix(self._paths.root_id, ARTIFACT_NAMESPACE), cwd=cwd
@@ -222,7 +222,7 @@ class ArtifactManager:
         undeclared = tuple(sorted(set(touched) - declared))
         if undeclared:
             return _REASON_UNDECLARED.format(paths=", ".join(undeclared))
-        wanted = runner_committer_email(activation_id)
+        wanted = crew_committer_email(activation_id)
         found = self._git.committer_email(head, cwd=cwd)
         if found != wanted:
             return _REASON_NOT_OUR_COMMITTER.format(found=found, wanted=wanted)

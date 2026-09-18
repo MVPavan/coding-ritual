@@ -1,5 +1,7 @@
 # Agent bridge and workflow coordination
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Complete normal phase execution through the interpreter, then add bounded model decisions, independent child workflows, and serialized integration.
 
 Approved behavior: [workflow coordination spec](../../specs/2026-09-11-workflow-coordination.md).

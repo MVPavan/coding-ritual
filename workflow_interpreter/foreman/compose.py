@@ -21,20 +21,20 @@ from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
+from workflow_interpreter.inspector import INSTANCE_BRANCH_REF, procfs
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.exit import ExitObserver
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import WrapperPaths, write_durable
+from workflow_interpreter.inspector.profile import Profile
+from workflow_interpreter.inspector.recover import Recovery
+from workflow_interpreter.inspector.run import Inspector
+from workflow_interpreter.inspector.workspace import Workspace
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.paths import ensure_fence_dir
 from workflow_interpreter.schema.decisions import DecisionRequest, DecisionResponse
-from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF, procfs
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.exit import ExitObserver
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import WrapperPaths, write_durable
-from workflow_interpreter.supervisor.profile import Profile
-from workflow_interpreter.supervisor.recover import Recovery
-from workflow_interpreter.supervisor.run import Supervisor
-from workflow_interpreter.supervisor.workspace import Workspace
 
 
 class InstanceBranchMissing(ValueError):
@@ -98,9 +98,9 @@ class DetachedSpawner:
     """Start one wrapper without a shell or a borrowed terminal."""
 
     def __init__(
-        self, supervisor_config: SupervisorConfig, config_path: Path, task_id: str
+        self, inspector_config: InspectorConfig, config_path: Path, task_id: str
     ) -> None:
-        self._supervisor_config = supervisor_config
+        self._inspector_config = inspector_config
         self._config_path = config_path
         self._task_id = task_id
 
@@ -108,7 +108,7 @@ class DetachedSpawner:
         self, launch: WrapperLaunch, *, wiring: "InstanceWiring | None" = None
     ) -> None:
         """Detach the wrapper and leave an informational process identity record."""
-        paths = WrapperPaths(self._supervisor_config, launch.root_id)
+        paths = WrapperPaths(self._inspector_config, launch.root_id)
         directory = paths.ensure_activation_dir(launch.activation_id)
         with (
             paths.wrapper_log(launch.activation_id).open("ab") as wrapper_stdout,
@@ -127,7 +127,7 @@ class DetachedSpawner:
                     # be told the task too, or it could not locate a backend.
                     "--task",
                     self._task_id,
-                    "supervise",
+                    "inspector",
                     launch.root_id,
                     launch.activation_id,
                 ),
@@ -138,8 +138,8 @@ class DetachedSpawner:
             )
         handle = WrapperHandle(
             pid=process.pid,
-            start_time=procfs.read_start_time(self._supervisor_config, process.pid),
-            boot_id=procfs.read_boot_id(self._supervisor_config),
+            start_time=procfs.read_start_time(self._inspector_config, process.pid),
+            boot_id=procfs.read_boot_id(self._inspector_config),
         )
         write_durable(
             directory / WRAPPER_HANDLE,
@@ -156,7 +156,7 @@ class InstanceWiring:
     band: BandLock
     store: WorkflowStore
     workspace: Workspace
-    supervisor: Supervisor
+    inspector: Inspector
     recovery: Recovery
     observer: ExitObserver
     branch_head_reader: Callable[[], str]
@@ -180,7 +180,7 @@ class Composition:
 
     config: ForemanConfig
     store: WorkflowStore
-    supervisor_config: SupervisorConfig
+    inspector_config: InspectorConfig
     git: Git
     clock: Clock
     profiles: ProfileResolver
@@ -204,9 +204,9 @@ class Composition:
     """Drains a settling root's pending attention projections (§3.2.4)."""
 
     def __post_init__(self) -> None:
-        """Keep the explicit supervisor dependency aligned with the config guard."""
-        if self.supervisor_config != self.config.supervisor:
-            raise ValueError("supervisor_config must match foreman config")
+        """Keep the explicit inspector dependency aligned with the config guard."""
+        if self.inspector_config != self.config.inspector:
+            raise ValueError("inspector_config must match foreman config")
 
     def store_for_root(self, root_id: str) -> WorkflowStore:
         """The store this root is read and written through (§3.2).
@@ -221,8 +221,8 @@ class Composition:
     def creation_store(self, backend: BackendKind) -> WorkflowStore:
         """The store a root that does not exist YET is created through (§3.2).
 
-        A root's backend is pinned before the root exists — on the bridge
-        record at prepare, or on the `tasks` row for a run with no bridge — so
+        A root's backend is pinned before the root exists — on the contractor
+        record at prepare, or on the `tasks` row for a run with no contractor — so
         creation is the one operation that cannot ask the locator for an id it
         is about to mint. It is given the pin instead, and creating through
         `composition.store` (which is built on whatever transport this process
@@ -245,7 +245,7 @@ class Composition:
             locator.pin(root_id, backend)
 
     def pin_record_backend(self, root_id: str, backend: BackendKind) -> None:
-        """Tell the locator what a bridge record says about a root (§3.2).
+        """Tell the locator what a contractor record says about a root (§3.2).
 
         Every resume and recovery entry installs this BEFORE it loads the
         root: a process that restarted holds no pin, and for a bd attempt of
@@ -299,13 +299,13 @@ class Composition:
         """Build one wiring with exactly one ``BandLock`` shared throughout.
 
         The ledger fence directory is created HERE, before any dispatch this
-        wiring can make: every runner sandbox pins `<git common dir>/wf/`
-        read-only (`supervisor/sandbox.py`), and a pin whose bind source does
+        wiring can make: every crew sandbox pins `<git common dir>/wf/`
+        read-only (`inspector/sandbox.py`), and a pin whose bind source does
         not exist would leave the locked inode replaceable from inside the box
         (run-ledger §3.4).
         """
         ensure_fence_dir(self.config.repo_root)
-        paths = WrapperPaths(self.supervisor_config, root_id)
+        paths = WrapperPaths(self.inspector_config, root_id)
         branch_head_reader = lambda: instance_head(
             self.git, self.config.repo_root, root_id
         )
@@ -320,7 +320,7 @@ class Composition:
             if child is not None:
                 if (
                     Path(child.wrapper_root)
-                    != self.supervisor_config.wrapper_root.resolve()
+                    != self.inspector_config.wrapper_root.resolve()
                 ):
                     from workflow_interpreter.schema.decisions import CoordinationError
 
@@ -337,8 +337,8 @@ class Composition:
             band=band,
             store=store,
             workspace=workspace,
-            supervisor=Supervisor(
-                self.supervisor_config,
+            inspector=Inspector(
+                self.inspector_config,
                 paths,
                 self.git,
                 store,
@@ -347,10 +347,10 @@ class Composition:
                 host_env=self.host_env,
             ),
             recovery=Recovery(
-                self.supervisor_config, paths, store, workspace, self.clock
+                self.inspector_config, paths, store, workspace, self.clock
             ),
             observer=ExitObserver(
-                self.supervisor_config,
+                self.inspector_config,
                 paths,
                 self.git,
                 store,

@@ -11,8 +11,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from workflow_interpreter.bridge.errors import BridgeRefusal
-from workflow_interpreter.supervisor.gitio import Git
+from workflow_interpreter.contractor.errors import ContractorRefusal
+from workflow_interpreter.inspector.gitio import Git
 
 
 class CheckCommand(BaseModel):
@@ -65,8 +65,8 @@ class VerificationPolicy(BaseModel):
     def pin(cls, commands: tuple[CheckCommand, ...], repo: Path) -> VerificationPolicy:
         """Resolve policy before any admission write or root creation."""
         if not commands:
-            raise BridgeRefusal(
-                "bridge verification policy must be nonempty; configure [[bridge_checks]] using config/foreman.example.toml and docs/usage/phase-bridge.md"
+            raise ContractorRefusal(
+                "contractor verification policy must be nonempty; configure [[contractor_checks]] using config/foreman.example.toml and docs/usage/contractor.md"
             )
         checks = []
         for command in commands:
@@ -114,9 +114,9 @@ def _program(checkout: Path, argv0: str) -> Path:
     path = Path(argv0)
     resolved = (checkout / path).resolve()
     if not path.is_absolute() and not resolved.is_relative_to(checkout.resolve()):
-        raise BridgeRefusal("verification executable escapes candidate")
+        raise ContractorRefusal("verification executable escapes candidate")
     if not resolved.is_file():
-        raise BridgeRefusal("verification executable missing")
+        raise ContractorRefusal("verification executable missing")
     return resolved
 
 
@@ -151,7 +151,9 @@ def observe_checks(
             with program.open("rb") as executable:
                 observed_digest = hashlib.file_digest(executable, "sha256").hexdigest()
                 if observed_digest == check.executable_digest:
-                    with tempfile.TemporaryDirectory(prefix="bridge-check-") as home:
+                    with tempfile.TemporaryDirectory(
+                        prefix="contractor-check-"
+                    ) as home:
                         env = {
                             "PATH": "/usr/bin:/bin",
                             "HOME": home,
@@ -183,7 +185,7 @@ def observe_checks(
                             except ProcessLookupError:
                                 pass
                             process.wait()
-        except (OSError, BridgeRefusal):
+        except (OSError, ContractorRefusal):
             code = 126
         unchanged = (
             git.head_commit(cwd=checkout) == artifact_oid

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     add_submodule,
     blob_at,
     commit_all,
@@ -19,7 +19,7 @@ from tests._supervisor import (
     make_repo,
     tree_modes,
 )
-from workflow_interpreter.supervisor import gitsnapshot
+from workflow_interpreter.inspector import gitsnapshot
 
 
 def _snapshot(repo: Path, tmp_path: Path) -> str:

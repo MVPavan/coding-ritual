@@ -26,7 +26,7 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.contracts.execution import (
-    UnregisteredRunnerError,
+    UnregisteredCrewError,
     tool_network_for,
 )
 from workflow_interpreter.foreman.close import _previous_tree_oid
@@ -46,28 +46,28 @@ from workflow_interpreter.foreman.inputs import (
     Materialized,
     bounded_materialize,
 )
-from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
-from workflow_interpreter.schema.models import ArtifactInputMode
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.channels import pinned_verifier_digests
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.channels import pinned_verifier_digests
+from workflow_interpreter.inspector.errors import (
     BandNotHeld,
     ContinuationRefused,
     DirtyTreeRefused,
     ExecLedgerError,
     ForkBarrierAbortError,
     ForkBarrierError,
+    InspectorError,
     InterruptedWorkPreservationFailed,
     LockUnavailable,
     PreconditionRefused,
     SandboxUnavailable,
-    SupervisorError,
 )
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.launch import EnvelopeTaskBuilder, TaskBuilder
-from workflow_interpreter.supervisor.models import LaunchOutcome
-from workflow_interpreter.supervisor.paths import WrapperPaths, read_record
-from workflow_interpreter.supervisor.profile import RunnerChannels, TaskSpec
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.launch import EnvelopeTaskBuilder, TaskBuilder
+from workflow_interpreter.inspector.models import LaunchOutcome
+from workflow_interpreter.inspector.paths import WrapperPaths, read_record
+from workflow_interpreter.inspector.profile import CrewChannels, TaskSpec
+from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
+from workflow_interpreter.schema.models import ArtifactInputMode
 
 _DEVIATION_CONTINUATION_REFUSED = "continuation_refused"
 
@@ -112,7 +112,7 @@ def _close_error(
         if wiring.store.reads.load_activation(activation_id).metadata.is_settled:
             return WrapperExit.CLOSED_BY_TICK
         raise
-    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+    from workflow_interpreter.inspector.toolchain_cleanup import cleanup_toolchain
 
     cleanup_toolchain(wiring.paths, closed)
     return WrapperExit.DONE
@@ -144,7 +144,7 @@ def _request(
     return MintRequest(
         node=meta.node,
         mint_reason=meta.mint_reason,
-        runner_profile=view.runner_profile,
+        crew_profile=view.crew_profile,
         model=view.model,
         session_id=meta.session_id,
         predecessor_activation_id=meta.predecessor_activation_id,
@@ -158,7 +158,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
     composer = DefaultComposer()
 
     def build(
-        activation: ActivationRecord, channels: RunnerChannels, instructions: str | None
+        activation: ActivationRecord, channels: CrewChannels, instructions: str | None
     ) -> TaskSpec:
         wiring.store.assert_member(root.root_id)
         current = wiring.store.reads.load_activation(activation.activation_id)
@@ -241,7 +241,7 @@ def run_wrapper(
     """Run one wrapper from its durable request and close only mapped failures."""
     validate_bead_id(root_id)
     paths = (
-        WrapperPaths(composition.supervisor_config, root_id)
+        WrapperPaths(composition.inspector_config, root_id)
         if wiring is None
         else wiring.paths
     )
@@ -265,7 +265,7 @@ def run_wrapper(
         # read the resolution the root pinned, not the graph body alone (§3.1).
         resolved_node_view = resolved_node(root, activation.metadata.node)
         node = resolved_node_view.node
-        profile = composition.profiles.profile_for(resolved_node_view.runner_profile)
+        profile = composition.profiles.profile_for(resolved_node_view.crew_profile)
         if node.execution_profile is not None:
             tool_network_for(profile.name(), composition.profiles)
         deadline = monotonic() + composition.config.band_wait_s
@@ -279,7 +279,7 @@ def run_wrapper(
                     else nullcontext()
                 )
                 with guard:
-                    dispatch = resolved.supervisor.run(
+                    dispatch = resolved.inspector.run(
                         request,
                         node,
                         profile,
@@ -319,7 +319,7 @@ def run_wrapper(
             ),
         )
     except UnusableResolutionError as exc:
-        # The root's immutable resolution could not make a task, so no runner
+        # The root's immutable resolution could not make a task, so no crew
         # invocation occurred and an infra retry cannot repair the root.
         return _close_error(
             resolved,
@@ -339,9 +339,9 @@ def run_wrapper(
         ExecLedgerError,
         TaskRefused,
         UnsupportedOptionError,
-        UnregisteredRunnerError,
+        UnregisteredCrewError,
     ) as exc:
-        return _close_error(resolved, activation_id, Outcome.ERROR_RUNNER, exc)
+        return _close_error(resolved, activation_id, Outcome.ERROR_CREW, exc)
     except ContinuationRefused as exc:
         return _close_error(
             resolved,
@@ -376,7 +376,7 @@ def run_wrapper(
             ),
         )
     except SandboxUnavailable as exc:
-        # BEFORE the generic `(SupervisorError, OSError)` catch below, which
+        # BEFORE the generic `(InspectorError, OSError)` catch below, which
         # would spend a §10.2 infra retry on it. O1 makes an unbounded dispatch
         # impossible, and a host with no `bwrap` will not grow one on the next
         # tick — so this closes as a dead end that opens a halt gate, exactly
@@ -421,7 +421,7 @@ def run_wrapper(
         # Recovery must finish before settlement; pre-reset SnapshotFailed still
         # takes the ordinary transport close below and remains infra-retryable.
         return WrapperExit.FAILED
-    except (SupervisorError, OSError) as exc:
+    except (InspectorError, OSError) as exc:
         return _close_error(resolved, activation_id, Outcome.ERROR_TRANSPORT, exc)
     finally:
         lock.release()

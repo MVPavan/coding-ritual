@@ -1,6 +1,6 @@
 """`scripts/checks/tests-untouched.sh`: the round did not edit its own yardstick.
 
-Run exactly as the wrapper runs it (`supervisor/verify.py`): cwd is the tree
+Run exactly as the wrapper runs it (`inspector/verify.py`): cwd is the tree
 under test, no arguments, and `WF_BASE_COMMIT` in the environment.
 """
 

@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 from tests._bdio import RESOLVED_CONFIG, load_definition
-from tests._supervisor import (
+from tests._inspector import (
     IMPLEMENT,
     commit_all,
     head_of,
@@ -26,17 +26,16 @@ from tests._supervisor import (
     make_store,
     node_of,
 )
-from workflow_interpreter.schema.models import Node, NodeKind, VerifyCheck
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     VerifyTreeError,
     pin_verifier_digests,
     pinned_verifier_digests,
     run_checks,
     verifier_digest_key,
 )
-from workflow_interpreter.supervisor import verify as verify_module
-from workflow_interpreter.supervisor.channels import sha256_file
-from workflow_interpreter.supervisor.verify import (
+from workflow_interpreter.inspector import verify as verify_module
+from workflow_interpreter.inspector.channels import sha256_file
+from workflow_interpreter.inspector.verify import (
     BASE_COMMIT_ENV,
     RED_CHECK_RERUNS,
     REFUSED_EXIT_CODE,
@@ -44,6 +43,7 @@ from workflow_interpreter.supervisor.verify import (
     VERIFY_OUTPUT_TAIL_BYTES,
     VerifyTree,
 )
+from workflow_interpreter.schema.models import Node, NodeKind, VerifyCheck
 
 PROGRAM = "scripts/check.sh"
 STDERR_MARK = "--- stderr ---"
@@ -83,7 +83,7 @@ def test_a_check_cwd_cannot_swap_the_program_that_was_hashed(tmp_path: Path) -> 
 
     The probed counterexample: the digest was taken at `tree/argv[0]` while
     `subprocess` resolved the same relative `argv[0]` against `check.cwd`, so a
-    runner that put a second script under the declared `cwd` had its own code
+    crew that put a second script under the declared `cwd` had its own code
     run while the honest script was the one vouched for.
     """
     honest = _script(tmp_path / PROGRAM, HONEST)
@@ -140,7 +140,7 @@ def test_a_check_cannot_reach_outside_the_verify_tree(tmp_path: Path) -> None:
     """Sol#1: `cwd` is a RelativePath, and `../` is a relative path.
 
     A check whose `cwd` climbs out of the detached checkout runs against
-    whatever is there — the live working tree the runner may still be writing,
+    whatever is there — the live working tree the crew may still be writing,
     which is precisely what B1's isolated checkout exists to prevent. Refused
     as a verdict rather than raised, so §7 still produces an exit record.
     """
@@ -223,7 +223,7 @@ def test_a_verifier_that_cannot_be_executed_is_a_result_not_an_exception(
 ) -> None:
     """M14: `PermissionError` used to escape `observe()` before any exit record.
 
-    A runner that ran `chmod -R a-x scripts/` therefore left the activation
+    A crew that ran `chmod -R a-x scripts/` therefore left the activation
     with no exit record at all, repeating as `error_transport` until the §10.2
     infra cap burned. The check is honestly pinned here — provenance passes and
     the EXECUTION is what fails.
@@ -345,7 +345,7 @@ def test_a_directory_at_the_verifier_path_is_refused_not_raised(
     inside the loop, and it escaped `run_checks` → `observe()` entirely — no
     exit record, and nothing in §5.6 recovery re-runs §7, so the activation was
     wedged. Committing a directory at a verifier's declared path is something
-    the runner being graded can arrange. §7.3 answers this with a REFUSED
+    the crew being graded can arrange. §7.3 answers this with a REFUSED
     verdict like any other unestablished provenance.
     """
     (tmp_path / PROGRAM).mkdir(parents=True)

@@ -13,8 +13,8 @@ from typing import Final
 
 import structlog
 
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import GitCommandError
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import GitCommandError
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -72,7 +72,7 @@ Three keys, not "the keys that name a program": `filter.<name>.clean` is the
 counterexample that no FIXED `-c` neutralises — the driver NAME comes from the
 repository's own `.gitattributes`. It is pinned per call instead, by the
 overlay `gitio.Git._filter_overrides` computes (cr-o85.29). See the `gitio`
-module docstring for what actually keeps `.git/config` out of a runner's hands,
+module docstring for what actually keeps `.git/config` out of a crew's hands,
 and for the residual that is left."""
 ENV_HARDENING: Final[Mapping[str, str]] = {
     "GIT_CONFIG_NOSYSTEM": "1",
@@ -81,17 +81,17 @@ ENV_HARDENING: Final[Mapping[str, str]] = {
 """The ambient config files, dropped: `/etc/gitconfig` and `~/.gitconfig`.
 
 Both are outside the wrapper's control and both can name programs. The global
-one is also why two hosts disagreed about what a supervisor git call does —
+one is also why two hosts disagreed about what an inspector git call does —
 whatever the operator happens to have in `~/.gitconfig` was in effect. Every
 identity the wrapper needs is supplied explicitly (`SNAPSHOT_IDENTITY`), so
 there is nothing left for it to contribute.
 
 Applied LAST, so no caller overlay can drop either."""
 SNAPSHOT_IDENTITY: Final[Mapping[str, str]] = {
-    "GIT_AUTHOR_NAME": "wf-supervisor",
-    "GIT_AUTHOR_EMAIL": "supervisor@workflow-interpreter.invalid",
-    "GIT_COMMITTER_NAME": "wf-supervisor",
-    "GIT_COMMITTER_EMAIL": "supervisor@workflow-interpreter.invalid",
+    "GIT_AUTHOR_NAME": "wf-inspector",
+    "GIT_AUTHOR_EMAIL": "inspector@workflow-interpreter.invalid",
+    "GIT_COMMITTER_NAME": "wf-inspector",
+    "GIT_COMMITTER_EMAIL": "inspector@workflow-interpreter.invalid",
 }
 """The snapshot commit's identity, supplied rather than discovered: a repo with
 no `user.email` configured would otherwise fail `commit-tree`, and the one
@@ -99,15 +99,15 @@ commit the wrapper authors must never be attributed to the human."""
 
 
 class GitSubcommand(StrEnum):
-    """The git subcommands the supervisor may run. Adding one is a design change.
+    """The git subcommands the inspector may run. Adding one is a design change.
 
     Note what is absent: `push`, `remote`, `fetch`, `commit`, `merge`, `rebase`.
-    The supervisor observes and resets a working tree; the RUNNER commits, and
+    The inspector observes and resets a working tree; the CREW commits, and
     nothing here ever publishes anything (§0.1's spirit, applied to git).
 
     `read-tree`, `hash-object`, `update-index`, `write-tree` and `commit-tree`
     are snapshot plumbing. `update-index` is deliberately included: staging
-    runner-owned content through a throwaway index is the only way to keep
+    crew-owned content through a throwaway index is the only way to keep
     `.gitattributes` filters out of the outputs pinning path. They are
     porcelain-free object-store operations: with
     `GIT_INDEX_FILE` pointed at a throwaway index none of them touches the
@@ -181,7 +181,7 @@ class GitOutputTooLarge(GitCommandError):
 class GitTransport:
     """Run closed-set Git commands under the wrapper's process controls."""
 
-    def __init__(self, config: SupervisorConfig) -> None:
+    def __init__(self, config: InspectorConfig) -> None:
         self._config = config
         self._hooks_dir: Path | None = None
 

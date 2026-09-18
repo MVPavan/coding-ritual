@@ -307,7 +307,7 @@ class BdClient:
     # -- the neutral backend surface (§3.1) -------------------------------
     #
     # bd's own shapes stay below: `show`, `list_beads`, `list_children`,
-    # `list_dependencies` and `context` serve the bd-authoritative bridge
+    # `list_dependencies` and `context` serve the bd-authoritative contractor
     # path (D7), and everything the store proper uses is translated here.
 
     def identity(self) -> BackendIdentity:

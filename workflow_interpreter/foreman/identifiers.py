@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from workflow_interpreter.supervisor.paths import WrapperPaths
+from workflow_interpreter.inspector.paths import WrapperPaths
 
 _BEAD_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 

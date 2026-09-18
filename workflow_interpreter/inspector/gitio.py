@@ -1,10 +1,10 @@
-"""The git transport — the only place the supervisor spawns `git` (§5.4, §7.4).
+"""The git transport — the only place the inspector spawns `git` (§5.4, §7.4).
 
 Same three properties as `bdio.client`, for the same reasons:
 
 1. **argv lists, never shell strings**, so no path or ref can become syntax.
 2. **A closed subcommand set.** `push`, `remote` and `fetch` are not members,
-   so "the supervisor never pushes" is structural rather than a convention
+   so "the inspector never pushes" is structural rather than a convention
    somebody has to keep. Every subcommand here is local and confined to a
    working tree the wrapper owns.
 3. **Explicit timeouts** on every invocation (`rules/python/safety.md`).
@@ -15,11 +15,11 @@ cannot aim a `clean -f` at an unrelated checkout.
 
 4. **Three named config keys are pinned, and the ambient files are dropped**
    (`HARDENING`, `ENV_HARDENING`). Every key git reads can come from
-   `.git/config`, and several of them name a PROGRAM the supervisor's own git
-   would then run as the wrapper — outside the sandbox that bounded the runner.
+   `.git/config`, and several of them name a PROGRAM the inspector's own git
+   would then run as the wrapper — outside the sandbox that bounded the crew.
    `core.hooksPath` is redirected at an empty directory the wrapper owns (the
    live one: `git worktree add` runs `post-checkout`, and that is a call §5.4
-   makes on a tree the runner just had), `core.pager` and `core.fsmonitor` are
+   makes on a tree the crew just had), `core.pager` and `core.fsmonitor` are
    pinned beside it, `GIT_CONFIG_NOSYSTEM` drops `/etc/gitconfig` and
    `GIT_CONFIG_GLOBAL` drops `~/.gitconfig`.
 
@@ -35,9 +35,9 @@ cannot aim a `clean -f` at an unrelated checkout.
    `diff.external`, `core.sshCommand`,
    `credential.helper`, `init.templateDir`, `core.alternateRefsCommand` and
    `uploadpack.packObjectsHook` are the same shape. The honest statement is that
-   `.git/config` is kept OUT OF THE RUNNER'S REACH rather than distrusted here.
+   `.git/config` is kept OUT OF THE CREW'S REACH rather than distrusted here.
    The wrapper-owned mechanism for that is the §2 mount bound
-   (`supervisor/sandbox.py`), which read-only pins `config`, `hooks/`, `info/`
+   (`inspector/sandbox.py`), which read-only pins `config`, `hooks/`, `info/`
    and the worktree pointer files under `sandbox = bwrap`. It does NOT hold
    under `sandbox = off`, and it does not reach a nested repository's own
    `.git`; the vendor-side reach below is what remains, and the pins above are
@@ -65,19 +65,19 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
 
-from workflow_interpreter.supervisor.errors import GitCommandError
-from workflow_interpreter.supervisor.gitcmd import (
+from workflow_interpreter.inspector.errors import GitCommandError
+from workflow_interpreter.inspector.gitcmd import (
     MAX_ARGV_BYTES,
     SNAPSHOT_IDENTITY,
     GitResult,
     GitSubcommand,
     GitTransport,
 )
-from workflow_interpreter.supervisor.gitsnapshot import (
+from workflow_interpreter.inspector.gitsnapshot import (
     commit_directory,
     snapshot_commit,
 )
-from workflow_interpreter.supervisor.models import EntryKind
+from workflow_interpreter.inspector.models import EntryKind
 
 NUL: Final[str] = "\0"
 HEAD: Final[str] = "HEAD"
@@ -117,11 +117,11 @@ that is not a regular file. `git status -uall` reports a nested checkout as
 `?? dir/` and a dirty submodule as ` M dir`, and `git hash-object -- <dir>` is a
 fatal error, not an empty answer — which used to escape `prepare()` and wedge
 every subsequent dispatch (probed). Callers tell those cases apart by the
-entry's KIND, never by this value (`supervisor/models.py`)."""
+entry's KIND, never by this value (`inspector/models.py`)."""
 
 
 class Git(GitTransport):
-    """Supervisor Git reads and mutations above the shared command transport."""
+    """Inspector Git reads and mutations above the shared command transport."""
 
     # -- reads -----------------------------------------------------------
 
@@ -181,14 +181,14 @@ class Git(GitTransport):
         raise GitCommandError(f"git merge-base failed (exit {result.returncode})")
 
     def filter_overrides(self, *, cwd: Path) -> tuple[str, ...]:
-        """Expose the existing filter-disable prefix to guarded bridge plumbing."""
+        """Expose the existing filter-disable prefix to guarded contractor plumbing."""
         return self._filter_overrides(cwd=cwd)
 
     def _filter_overrides(self, *, cwd: Path) -> tuple[str, ...]:
         """`-c filter.<name>.<clean|smudge|process>=` for every driver defined here.
 
         The half of cr-o85.29 that can be pinned. A filter driver needs BOTH a
-        `.gitattributes` naming it — runner-writable — and a `filter.<name>.*`
+        `.gitattributes` naming it — crew-writable — and a `filter.<name>.*`
         entry in configuration, and only the second names a PROGRAM. Config is
         therefore the complete enumeration, and `--list` resolves every scope
         git will consult (local, `include.path`, and `--worktree`; the system
@@ -206,7 +206,7 @@ class Git(GitTransport):
         `.git/config` on the invocation that would have spawned them. What this
         does NOT cover is a driver written into `.git/config` between this call
         and its consumer — the module docstring's residual, where a sandbox and
-        not this function keeps `.git/config` out of the runner's reach.
+        not this function keeps `.git/config` out of the crew's reach.
         """
         names = self.run(
             GitSubcommand.CONFIG, *_CONFIG_LIST_ARGS, cwd=cwd
@@ -228,7 +228,7 @@ class Git(GitTransport):
 
         Run with every configured filter driver blanked (cr-o85.29): `status`
         content-compares any entry whose size still matches the index, and a
-        `.gitattributes` the runner wrote would make that comparison SPAWN the
+        `.gitattributes` the crew wrote would make that comparison SPAWN the
         driver as the wrapper. The one visible consequence is that comparison
         is now against the file's raw bytes — the same basis
         `hash-object --no-filters` already gives the §12 snapshot — so a path
@@ -443,7 +443,7 @@ class Git(GitTransport):
 
         Filter-free (cr-o85.29): storing the working tree runs `clean`, so this
         records the same raw bytes `snapshot_commit` does rather than whatever
-        a runner's `.gitattributes` would have had git compute.
+        a crew's `.gitattributes` would have had git compute.
         """
         return (
             self.run(
@@ -510,7 +510,7 @@ class Git(GitTransport):
         Filter-free (cr-o85.29): a checkout WRITES files, so it runs `smudge`
         for whatever driver the checked-out `.gitattributes` names — the same
         program execution `status_paths` refuses, on the call that creates the
-        tree a runner is about to be handed.
+        tree a crew is about to be handed.
         """
         self.run(
             GitSubcommand.WORKTREE,
@@ -660,7 +660,7 @@ class Git(GitTransport):
 
         Filter-free (cr-o85.29): restoring a file WRITES it, so `smudge` runs —
         on the wrapper's most destructive call, against a tree whose
-        `.gitattributes` the runner had just been free to write.
+        `.gitattributes` the crew had just been free to write.
         """
         self.run(
             GitSubcommand.RESET,
@@ -673,7 +673,7 @@ class Git(GitTransport):
     def clean_paths(self, paths: Sequence[str], *, cwd: Path) -> None:
         """Remove exactly the named untracked paths — never a blanket `-fdx`.
 
-        The whole §12 guarantee is that a reset touches the runner's files and
+        The whole §12 guarantee is that a reset touches the crew's files and
         nothing else, and a blanket clean is precisely the operation that
         cannot make that promise.
         """

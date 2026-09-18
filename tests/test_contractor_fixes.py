@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from tests.test_phase_bridge import (
+from tests.test_contractor import (
     EPIC_ID,
     ROOT_ID,
     STAGE_ID,
@@ -18,16 +18,19 @@ from tests.test_phase_bridge import (
     _stage_row,
     _temporary_repo,
 )
-from workflow_interpreter.bridge import (
+from workflow_interpreter.contractor import (
+    ContractorRecord,
     DetachedRepositoryGate,
     LandingDisposition,
     LandingHooks,
     PhaseAdapter,
-    PhaseBridgeRecord,
     PhaseLanding,
 )
-from workflow_interpreter.bridge.landing import LANDING_RECEIPT_FILE
-from workflow_interpreter.bridge.verification import CheckCommand, VerificationPolicy
+from workflow_interpreter.contractor.landing import LANDING_RECEIPT_FILE
+from workflow_interpreter.contractor.verification import (
+    CheckCommand,
+    VerificationPolicy,
+)
 
 
 @pytest.fixture
@@ -35,7 +38,7 @@ def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
     repo, base = _temporary_repo(tmp_path)
     oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         epic_id=EPIC_ID,
         stage_id=STAGE_ID,
         attempt=1,
@@ -43,7 +46,7 @@ def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
         expected_base_commit=base,
         verification_policy=_policy(),
     ).admitted(ROOT_ID)
-    fake_bd.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
+    fake_bd.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
         by_alias=True, mode="json"
     )
     git, paths, export = _landing_context(repo, tmp_path)
@@ -65,7 +68,7 @@ def test_landed_relation_digest_cannot_be_overwritten(case, monkeypatch):
     with pytest.raises(RuntimeError):
         landing.land(STAGE_ID)
     # Simulate the durable LANDED branch before close's metadata write.
-    raw = fake.rows[STAGE_ID]["metadata"]["phase_bridge"]
+    raw = fake.rows[STAGE_ID]["metadata"]["contractor"]
     raw["state"] = "landed"
     raw["landing_receipt_digest"] = "different"
     monkeypatch.setattr(adapter, "close", real_close)
@@ -85,7 +88,7 @@ def test_closed_history_does_not_execute_old_host_tool(case, tmp_path, change):
         (CheckCommand(name="host", argv=(str(program),)),), repo
     )
     record = adapter.record(STAGE_ID).model_copy(update={"verification_policy": policy})
-    fake.rows[STAGE_ID]["metadata"]["phase_bridge"] = record.model_dump(
+    fake.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
         by_alias=True, mode="json"
     )
     landing._repository_gate = DetachedRepositoryGate(
@@ -193,7 +196,7 @@ def test_landed_state_at_original_base_does_not_offer_landing_retry(case, monkey
     ("root", "stage", "attempt", "policy", "target", "dirty", "gate", "receipt"),
 )
 def test_explicit_pending_retry_refuses_changed_authority(case, monkeypatch, change):
-    from workflow_interpreter.bridge.landing import LANDING_INTENT_FILE
+    from workflow_interpreter.contractor.landing import LANDING_INTENT_FILE
 
     landing, _, git, repo, paths, fake, checks, _ = case
     original_write = landing._write_intent

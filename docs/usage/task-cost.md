@@ -1,7 +1,7 @@
 # Task cost reporting
 
 `workflow_interpreter.costs` reports observed token usage and API-equivalent
-cost for one explicit phase-bridge stage or a finite explicit cohort. Reporting
+cost for one explicit contractor stage or a finite explicit cohort. Reporting
 is read-only: it reads Beads, explicitly mapped wrapper artifacts, a local
 pricebook, and an optional local supplement. It never launches work, mutates a
 task, fetches prices, or emits prompt/transcript content.
@@ -33,7 +33,7 @@ directory containing `<activation-id>/run.jsonl`, its launch receipt, and exec
 ledger. Any missing path, symlink escape, malformed receipt, or ambiguous exec
 identity is diagnosed without reading outside that root.
 
-Runner logs are streamed with finite byte and event limits. Only terminal
+Crew logs are streamed with finite byte and event limits. Only terminal
 usage/model fields are retained. Output uses an allowlisted report schema and
 never includes event text, prompts, tool arguments, or transcript tails.
 
@@ -62,7 +62,7 @@ is nonzero.
 A report exposes `whole_task_cost_usd` only when task completion, engine usage,
 rates, and external attribution are all complete. Otherwise it reports
 `partial-observed-spend` and a known priced subtotal. Closed stage status alone
-is insufficient: the phase-bridge record, available root terminal and stage
+is insufficient: the contractor record, available root terminal and stage
 close evidence, mapped landing intent/receipt, and every current and prior root
 identity must not contradict one another. Evidence not mapped or retained is
 labeled unavailable rather than treated as verified.

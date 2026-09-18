@@ -17,6 +17,11 @@ from workflow_interpreter.bdio.records import ActivationRecord
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.rpc_control import control_keys
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.errors import InspectorError, LockUnavailable
+from workflow_interpreter.inspector.models import LaunchReceipt, LaunchReceiptState
+from workflow_interpreter.inspector.paths import ExecLedger, read_record, write_record
 from workflow_interpreter.schema.decisions import (
     CancellationReceipt,
     ChildCoordinationView,
@@ -24,11 +29,6 @@ from workflow_interpreter.schema.decisions import (
     CollectedChildResult,
     CoordinationError,
 )
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.errors import LockUnavailable, SupervisorError
-from workflow_interpreter.supervisor.models import LaunchReceipt, LaunchReceiptState
-from workflow_interpreter.supervisor.paths import ExecLedger, read_record, write_record
 
 
 def finish_cancel(
@@ -91,7 +91,7 @@ def finish_cancel(
                             )
                         continue
                     proof = procfs.terminate(
-                        composition.supervisor_config, handle, composition.clock
+                        composition.inspector_config, handle, composition.clock
                     )
                     write_record(
                         wiring.paths.activation_dir(activation.activation_id)
@@ -106,7 +106,7 @@ def finish_cancel(
     except (
         CoordinationError,
         ValidationError,
-        SupervisorError,
+        InspectorError,
         StoreError,
         OSError,
     ) as exc:
@@ -476,7 +476,7 @@ def drive(
                     ValidationError,
                     OSError,
                     StoreError,
-                    SupervisorError,
+                    InspectorError,
                 ) as exc:
                     current = coordinator.child_record(owner, row.slot, row.generation)
                     try:
@@ -523,12 +523,12 @@ def checked_admission(
 
     definition = load_graph(graph)
     missing = {
-        node.runner.removeprefix("profile:")
+        node.crew.removeprefix("profile:")
         for node in definition.document.node
-        if node.runner and node.runner.startswith("profile:")
+        if node.crew and node.crew.startswith("profile:")
     } - set(composition.config.roles)
     if missing:
-        raise CoordinationError("unknown runner roles: " + ", ".join(sorted(missing)))
+        raise CoordinationError("unknown crew roles: " + ", ".join(sorted(missing)))
     pinned = _pinned_instance_inputs(definition, inputs, allow_test_flags=False)
     settings = _resolved_config(composition, definition, {})
     return MemberAdmission(
@@ -654,7 +654,7 @@ def command(composition: Composition, args: object) -> str:
 def record_late_evidence(composition: Composition, root_id: str) -> None:
     """Cancellation blocks authority, not immutable evidence publication."""
     from workflow_interpreter.bdio import Lifecycle
-    from workflow_interpreter.supervisor.models import CompletionEvidence
+    from workflow_interpreter.inspector.models import CompletionEvidence
 
     root = composition.reads_for_root(root_id).load_root(root_id)
     link = root.metadata.coordination

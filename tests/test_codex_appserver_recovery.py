@@ -13,31 +13,31 @@ from tests._bdio import (
     load_definition,
     make_root,
 )
+from tests._inspector import entry_mint
 from tests._profiles import task_builder
-from tests._supervisor import entry_mint
 from workflow_interpreter.bdio import CarrierIntegrityError
 from workflow_interpreter.bdio.rpc_records import SessionCompletion, SessionRegistration
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector.launch import Dispatcher
+from workflow_interpreter.inspector.models import LaunchReceipt, RecoveryCase
+from workflow_interpreter.inspector.paths import read_record, write_record
+from workflow_interpreter.inspector.recover import Recovery
+from workflow_interpreter.inspector.rpc_session import RpcSession
 from workflow_interpreter.profiles.codex_rpc import RpcClient
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor.launch import Dispatcher
-from workflow_interpreter.supervisor.models import LaunchReceipt, RecoveryCase
-from workflow_interpreter.supervisor.paths import read_record, write_record
-from workflow_interpreter.supervisor.recover import Recovery
-from workflow_interpreter.supervisor.rpc_session import RpcSession
 
 
 def registered_activation(store):
-    """Mint a root with explicit app-server runner pins and a dispatched identity."""
+    """Mint a root with explicit app-server crew pins and a dispatched identity."""
     settings = tuple(
         item.model_copy(update={"value": "codex-appserver"})
-        if item.key.endswith(".runner")
+        if item.key.endswith(".crew")
         else item
         for item in RESOLVED_CONFIG
     )
     root = make_root(store, load_definition(), *settings)
     activation = store.mint_activation(
-        root.root_id, entry_request(runner_profile="codex-appserver", session_id="")
+        root.root_id, entry_request(crew_profile="codex-appserver", session_id="")
     ).activation
     process = handle(session_id="").model_copy(
         update={
@@ -56,7 +56,7 @@ def registered_activation(store):
         launch_id="launch-1",
         handle=process,
         thread_id="thread-1",
-        runner_version="0.154.0",
+        crew_version="0.154.0",
         model=activation.metadata.model,
         effort="medium",
         policy_digest="policy-1",
@@ -124,7 +124,7 @@ def test_dead_rpc_owner_is_recovered_without_reconnecting_or_resubmitting(tmp_pa
     lab = AppServerLab(tmp_path)
     dispatcher = Dispatcher(lab.paths, lab.store, lab.clock, host_env=dict(os.environ))
     result = dispatcher.dispatch(
-        entry_mint(runner_profile="codex-appserver", session_id=""),
+        entry_mint(crew_profile="codex-appserver", session_id=""),
         lab.profile,
         task_builder(lab.paths.worktree, lab.node),
         lambda activation: lab.workspace.prepare(activation, lab.node),

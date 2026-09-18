@@ -1,4 +1,4 @@
-"""Supervisor-owned fork barrier, launch receipts, and process I/O ownership."""
+"""Inspector-owned fork barrier, launch receipts, and process I/O ownership."""
 
 from __future__ import annotations
 
@@ -18,33 +18,33 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.contracts.execution import (
     ExecutionGrants,
 )
-from workflow_interpreter.contracts.transport import RunnerTransport
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor.clock import Clock, to_iso
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector.clock import Clock, to_iso
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import (
     ForkBarrierAbortError,
     ForkBarrierError,
     WrapperDirError,
 )
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.models import (
     ExecLedgerEntry,
     LaunchReceipt,
     LaunchReceiptState,
     TerminationProof,
 )
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.paths import (
     ExecLedger,
     WrapperPaths,
     read_record,
     write_all,
     write_record,
 )
-from workflow_interpreter.supervisor.profile import (
-    RunnerCommand,
+from workflow_interpreter.inspector.profile import (
+    CrewCommand,
 )
-from workflow_interpreter.supervisor.rpc_pipes import RpcPipes
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector.rpc_pipes import RpcPipes
+from workflow_interpreter.inspector.sandbox import (
     ENV_UV_CACHE_DIR,
     ENV_UV_OFFLINE,
     ENV_UV_PYTHON_INSTALL_DIR,
@@ -53,7 +53,7 @@ from workflow_interpreter.supervisor.sandbox import (
     SandboxPlan,
     wrap,
 )
-from workflow_interpreter.supervisor.toolchain_models import SeedReceipt
+from workflow_interpreter.inspector.toolchain_models import SeedReceipt
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -129,11 +129,11 @@ def _await_byte(descriptor: int, expected: bytes, timeout_s: float) -> bool:
 
 
 class ForkBarrierLauncher:
-    """The supervisor-owned exec: fork, barrier, ledger append, `execve` (§5.2)."""
+    """The inspector-owned exec: fork, barrier, ledger append, `execve` (§5.2)."""
 
     def __init__(
         self,
-        config: SupervisorConfig,
+        config: InspectorConfig,
         paths: WrapperPaths,
         clock: Clock,
         *,
@@ -156,7 +156,7 @@ class ForkBarrierLauncher:
         self._rpc_pipes: RpcPipes | None = None
         """The §2 mount bound, injected rather than computed here: `plan_for`
         needs the `TaskSpec`, and this class is deliberately handed a built
-        `RunnerCommand` and nothing else. Both are REQUIRED keywords — a default
+        `CrewCommand` and nothing else. Both are REQUIRED keywords — a default
         would let a caller launch unbounded by forgetting an argument, which is
         the one failure mode O1 exists to prevent."""
 
@@ -170,7 +170,7 @@ class ForkBarrierLauncher:
         """The nonce tying this launch's receipt to its exec-ledger line."""
         return self._launch_id
 
-    def __call__(self, command: RunnerCommand) -> ProcessHandle:
+    def __call__(self, command: CrewCommand) -> ProcessHandle:
         """Start the child behind the barrier and return its durable handle.
 
         The mount bound is the LAST transform before the receipt: everything a
@@ -204,7 +204,7 @@ class ForkBarrierLauncher:
             }
         )
 
-        pipes = RpcPipes() if command.transport is RunnerTransport.STDIO_RPC else None
+        pipes = RpcPipes() if command.transport is CrewTransport.STDIO_RPC else None
         self._rpc_pipes = pipes
         ready_read, ready_write = os.pipe()
         go_read, go_write = os.pipe()
@@ -266,7 +266,7 @@ class ForkBarrierLauncher:
         *,
         ready_read: int,
         go_write: int,
-        command: RunnerCommand,
+        command: CrewCommand,
         log_path: str,
     ) -> ProcessHandle:
         """Prove the child is parked, make the receipt durable, then release it."""
@@ -299,10 +299,10 @@ class ForkBarrierLauncher:
             LaunchReceipt(
                 transport=command.transport,
                 owner=self._owner_handle()
-                if command.transport is RunnerTransport.STDIO_RPC
+                if command.transport is CrewTransport.STDIO_RPC
                 else None,
                 vendor_state=command.env.get("CODEX_HOME")
-                if command.transport is RunnerTransport.STDIO_RPC
+                if command.transport is CrewTransport.STDIO_RPC
                 else None,
                 launch_id=self._launch_id,
                 root_id=self._paths.root_id,
@@ -368,8 +368,8 @@ def _vendor_resolves(program: str, env: Mapping[str, str]) -> bool:
     return True
 
 
-def _abandon(config: SupervisorConfig, clock: Clock, pid: int) -> None:
-    """Kill and reap a child that never became a runner. Best effort by design.
+def _abandon(config: InspectorConfig, clock: Clock, pid: int) -> None:
+    """Kill and reap a child that never became a crew. Best effort by design.
 
     The GROUP, not the pid, whenever the child got as far as `setsid` — which
     is before it writes READY, so a child that timed out at the ACK has one for
@@ -378,14 +378,14 @@ def _abandon(config: SupervisorConfig, clock: Clock, pid: int) -> None:
     receipt anybody trusts, and nothing that will ever come back for it.
 
     `getpgid(pid) == pid` is the test for "it owns a group". A child that died
-    before `setsid` is still in the SUPERVISOR's group, and `killpg` on its pid
+    before `setsid` is still in the INSPECTOR's group, and `killpg` on its pid
     would then either hit nothing or hit a group that is not ours — so that
     case gets a plain `kill`.
 
     Both callers run before the parent writes either the receipt or the release:
     the no-READY path has no handle, and the no-identity path refuses to create
     one. That child therefore cannot have appended an exec-ledger line or become
-    a reattachable runner, so no later monitor or §5.6 recovery observer needs
+    a reattachable crew, so no later monitor or §5.6 recovery observer needs
     its wait status. After SIGKILL, this path waits one short, identity-proven
     interval before collecting so the wrapper does not carry a zombie; without
     an identity it keeps `collect` non-blocking rather than guessing.
@@ -420,7 +420,7 @@ def _abandon(config: SupervisorConfig, clock: Clock, pid: int) -> None:
 
 
 def _abort_child(
-    config: SupervisorConfig,
+    config: InspectorConfig,
     clock: Clock,
     receipt_path: Path,
     handle: ProcessHandle,
@@ -463,7 +463,7 @@ def _child(
     receipt_path: str,
     ledger_path: str,
     log_path: str,
-    command: RunnerCommand,
+    command: CrewCommand,
     vendor_missing: bool,
     rpc_pipes: RpcPipes | None = None,
 ) -> None:  # pragma: no cover - executed only in the forked child
@@ -499,9 +499,9 @@ def _child(
             os.close(log)
             # fd 0 is the WRAPPER's stdin, and every CLI probed reads or waits on
             # it: claude stalls 3s per launch and then warns, codex announces
-            # "Reading additional input from stdin...", and a runner given no prompt
+            # "Reading additional input from stdin...", and a crew given no prompt
             # argument blocks on it outright. Left connected, a headless child also
-            # competes with the supervisor for a terminal it must never own.
+            # competes with the inspector for a terminal it must never own.
             devnull = os.open(os.devnull, os.O_RDONLY)
             os.dup2(devnull, 0)
             os.close(devnull)

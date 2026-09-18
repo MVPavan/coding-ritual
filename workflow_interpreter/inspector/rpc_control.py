@@ -13,17 +13,17 @@ from workflow_interpreter.contracts.rpc_control import (
     MAX_CONTROL_BYTES,
     MSG_CONTROL,
 )
-from workflow_interpreter.profiles.codex_rpc import RpcClient, RpcFailure, RpcMethod
-from workflow_interpreter.supervisor.errors import ContinuationRefused, WrapperDirError
-from workflow_interpreter.supervisor.launch_record import LaunchReceipt
-from workflow_interpreter.supervisor.models import Liveness
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.errors import ContinuationRefused, WrapperDirError
+from workflow_interpreter.inspector.launch_record import LaunchReceipt
+from workflow_interpreter.inspector.models import Liveness
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     write_record,
 )
-from workflow_interpreter.supervisor.procfs import prove_liveness
-from workflow_interpreter.supervisor.rpc_records import TURN_FILE, TurnPhase, TurnRecord
+from workflow_interpreter.inspector.procfs import prove_liveness
+from workflow_interpreter.inspector.rpc_records import TURN_FILE, TurnPhase, TurnRecord
+from workflow_interpreter.profiles.codex_rpc import RpcClient, RpcFailure, RpcMethod
 
 CONTROL_PREFIX: Final[str] = "control-"
 INTERRUPT_FILE: Final[str] = "interrupt.json"
@@ -32,7 +32,7 @@ MAX_INBOX_BYTES: Final[int] = MAX_CONTROL_BYTES * 6 + 8192
 
 
 class ControlIntent(BaseModel):
-    """Model instructions remain outside bd and runner-writable channels."""
+    """Model instructions remain outside bd and crew-writable channels."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     control: ControlRegistration

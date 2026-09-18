@@ -11,7 +11,7 @@ import pytest
 from tests._bdio import entry_request, load_definition, make_root
 from tests._foreman import ForemanLab
 from tests._foreman import entry_request as lab_entry_request
-from tests._supervisor import (
+from tests._inspector import (
     add_submodule,
     commit_all,
     make_config,
@@ -25,7 +25,10 @@ from workflow_interpreter.foreman.evidence_export import (
     EXPORT_MAX_DIFF_BYTES,
     export_reference,
 )
-from workflow_interpreter.foreman.supervise import _task_builder
+from workflow_interpreter.foreman.inspect import _task_builder
+from workflow_interpreter.inspector import activation_ref, channels_for
+from workflow_interpreter.inspector.errors import GitCommandError, SandboxUnavailable
+from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.schema.loader import (
     GraphValidationError,
     canonical_bytes,
@@ -33,9 +36,6 @@ from workflow_interpreter.schema.loader import (
     load_pinned_body,
 )
 from workflow_interpreter.schema.models import ArtifactInputMode, RuleId
-from workflow_interpreter.supervisor import activation_ref, channels_for
-from workflow_interpreter.supervisor.errors import GitCommandError, SandboxUnavailable
-from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 
 def _references(root):
@@ -217,7 +217,7 @@ def test_task_builder_uses_compact_pointers_and_retains_instance_brief(
     assert "d" * 1024 not in task.brief
     assert task.artifact_input_mode is ArtifactInputMode.REFERENCES
     with pytest.raises(SandboxUnavailable, match="requires sandbox = bwrap"):
-        wiring.supervisor._dispatcher._sandbox(review.activation_id, task)
+        wiring.inspector._dispatcher._sandbox(review.activation_id, task)
 
 
 def test_export_uses_pinned_objects_after_live_mutation(

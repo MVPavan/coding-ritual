@@ -1,15 +1,15 @@
-"""Phase-scoped bridge records and admission operations."""
+"""Phase-scoped contractor records and admission operations."""
 
-from workflow_interpreter.bridge.adapter import PhaseAdapter, PhaseAdapterError
-from workflow_interpreter.bridge.admission import (
+from workflow_interpreter.contractor.adapter import PhaseAdapter, PhaseAdapterError
+from workflow_interpreter.contractor.admission import (
     AdmissionRefused,
-    BridgeRoot,
+    ContractorRoot,
     PhaseAdmission,
     RootProvisioner,
     WorkflowRootProvisioner,
 )
-from workflow_interpreter.bridge.authority import BeadGateAuthority
-from workflow_interpreter.bridge.landing import (
+from workflow_interpreter.contractor.authority import BeadGateAuthority
+from workflow_interpreter.contractor.landing import (
     DetachedRepositoryGate,
     GateEvidence,
     LandingDisposition,
@@ -20,9 +20,9 @@ from workflow_interpreter.bridge.landing import (
     PhaseLanding,
     RepositoryGateResult,
 )
-from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
-from workflow_interpreter.bridge.retry import RetryRefusal, retry_refusal
-from workflow_interpreter.bridge.verification import (
+from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.retry import RetryRefusal, retry_refusal
+from workflow_interpreter.contractor.verification import (
     CheckCommand,
     CheckResult,
     VerificationPolicy,
@@ -31,9 +31,11 @@ from workflow_interpreter.bridge.verification import (
 __all__ = [
     "AdmissionRefused",
     "BeadGateAuthority",
-    "BridgeRoot",
     "CheckCommand",
     "CheckResult",
+    "ContractorRecord",
+    "ContractorRoot",
+    "ContractorState",
     "DetachedRepositoryGate",
     "GateEvidence",
     "LandingDisposition",
@@ -44,8 +46,6 @@ __all__ = [
     "PhaseAdapter",
     "PhaseAdapterError",
     "PhaseAdmission",
-    "PhaseBridgeRecord",
-    "PhaseBridgeState",
     "PhaseLanding",
     "RepositoryGateResult",
     "RetryRefusal",

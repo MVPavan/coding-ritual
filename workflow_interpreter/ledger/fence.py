@@ -107,7 +107,7 @@ class LedgerFence:
     def _open(self) -> int:
         """Open (creating) the lock file, returning a close-on-exec descriptor.
 
-        `O_CLOEXEC` because a dispatched runner must never inherit the fence: a
+        `O_CLOEXEC` because a dispatched crew must never inherit the fence: a
         child that keeps the descriptor open keeps the lock held long after the
         writer that took it has exited.
         """

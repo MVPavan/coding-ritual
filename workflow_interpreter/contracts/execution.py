@@ -31,14 +31,14 @@ class ToolNetwork(StrEnum):
     NOT_ENFORCED = "not_enforced"
 
 
-RUNNER_PREFIX: Final[str] = "profile:"
-MSG_UNREGISTERED_RUNNER: Final[str] = (
-    "named execution policy requires a registered runner; unregistered runner: {runner!r}"
+CREW_PREFIX: Final[str] = "profile:"
+MSG_UNREGISTERED_CREW: Final[str] = (
+    "named execution policy requires a registered crew; unregistered crew: {crew!r}"
 )
 MSG_PINNED_POLICY: Final[str] = "named execution_profile requires a pinned policy"
 
 
-class RunnerName(StrEnum):
+class CrewName(StrEnum):
     """Built-in vendor identities; registration and capabilities live on profiles."""
 
     CLAUDE = "claude"
@@ -47,37 +47,35 @@ class RunnerName(StrEnum):
     OPENCODE = "opencode"
 
 
-class UnregisteredRunnerError(Exception):
-    """The selected runner is absent from the injected profile registry."""
+class UnregisteredCrewError(Exception):
+    """The selected crew is absent from the injected profile registry."""
 
 
 class NetworkProfile(Protocol):
-    """The runner capability needed by durable execution policy admission."""
+    """The crew capability needed by durable execution policy admission."""
 
     @property
     def tool_network(self) -> ToolNetwork:
-        """The enforcement fact declared by this registered runner."""
+        """The enforcement fact declared by this registered crew."""
         ...
 
 
 class ExecutionRegistry(Protocol):
-    """Resolve registered runners without depending on concrete adapters."""
+    """Resolve registered crews without depending on concrete adapters."""
 
     def profile_for(self, name: str) -> NetworkProfile:
-        """Resolve a profile or raise UnregisteredRunnerError."""
+        """Resolve a profile or raise UnregisteredCrewError."""
         ...
 
 
-def tool_network_for(runner: str, profiles: ExecutionRegistry | None) -> ToolNetwork:
+def tool_network_for(crew: str, profiles: ExecutionRegistry | None) -> ToolNetwork:
     """Read the registry capability; never infer a fact from a vendor spelling."""
-    if not runner or profiles is None:
-        raise UnregisteredRunnerError(MSG_UNREGISTERED_RUNNER.format(runner=runner))
+    if not crew or profiles is None:
+        raise UnregisteredCrewError(MSG_UNREGISTERED_CREW.format(crew=crew))
     try:
-        return profiles.profile_for(runner).tool_network
-    except UnregisteredRunnerError as error:
-        raise UnregisteredRunnerError(
-            MSG_UNREGISTERED_RUNNER.format(runner=runner)
-        ) from error
+        return profiles.profile_for(crew).tool_network
+    except UnregisteredCrewError as error:
+        raise UnregisteredCrewError(MSG_UNREGISTERED_CREW.format(crew=crew)) from error
 
 
 class ExecutionPolicy(BaseModel):
@@ -100,7 +98,7 @@ class ExecutionPolicy(BaseModel):
 def policy_for(
     name: ExecutionProfileName, tool_network: ToolNetwork
 ) -> ExecutionPolicy:
-    """Resolve current named authority and the runner's network enforcement fact."""
+    """Resolve current named authority and the crew's network enforcement fact."""
     return ExecutionPolicy(
         name=name,
         writes=name is ExecutionProfileName.WRITER,
@@ -141,11 +139,11 @@ class ExecutionGrants(BaseModel):
 
 MSG_CODEX_IN_REPO: Final[str] = (
     "codex: node {node!r} writes and its checkout {checkout} is an in-repo "
-    "band checkout, which this runner cannot be bounded for. `git add` creates "
+    "band checkout, which this crew cannot be bounded for. `git add` creates "
     "`index.lock` directly inside `<C>/.git`, and that same directory holds "
     "`config`, `hooks/` and `info/` — the surface that names PROGRAMS the "
     "wrapper's own git later executes. `sandbox_workspace_write` grants whole "
     "directories and has no key that takes a subdirectory back, so granting the "
     "one would grant the others. Run this node in §5.4 worktree isolation, or "
-    "bind the role to a runner whose permission layer is path-exact."
+    "bind the role to a crew whose permission layer is path-exact."
 )

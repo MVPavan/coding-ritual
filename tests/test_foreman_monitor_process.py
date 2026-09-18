@@ -17,7 +17,7 @@ from workflow_interpreter.foreman.config import WakeConfig
 from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.monitor import WakeMonitor
 from workflow_interpreter.foreman.wake import HookError, run_hook
-from workflow_interpreter.supervisor.clock import SystemClock
+from workflow_interpreter.inspector.clock import SystemClock
 
 
 def _driver(composition, root_id, ready):

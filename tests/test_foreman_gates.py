@@ -41,10 +41,10 @@ from workflow_interpreter.foreman.gates import (
     resume_hint,
     transition_gate,
 )
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.profile import Profile
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.profile import Profile
 
 
 def test_transition_gate_copies_source_round_and_verified_identity(

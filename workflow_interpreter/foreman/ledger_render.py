@@ -59,11 +59,11 @@ from workflow_interpreter.foreman.constants import (
     MSG_RENDER_READ_FAILURE,
 )
 from workflow_interpreter.foreman.envelope import InputsUnavailable
+from workflow_interpreter.inspector.errors import GitCommandError
+from workflow_interpreter.inspector.gitcmd import GitOutputTooLarge, GitSubcommand
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.schema.loader import canonical_json_bytes
 from workflow_interpreter.schema.models import EngineProducer
-from workflow_interpreter.supervisor.errors import GitCommandError
-from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
-from workflow_interpreter.supervisor.gitio import Git
 
 FINDINGS_FILE: Final[str] = "findings.md"
 EVIDENCE_FILE: Final[str] = "evidence.json"

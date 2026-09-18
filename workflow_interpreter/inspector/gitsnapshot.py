@@ -9,8 +9,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from workflow_interpreter.supervisor import fswalk
-from workflow_interpreter.supervisor.gitcmd import (
+from workflow_interpreter.inspector import fswalk
+from workflow_interpreter.inspector.gitcmd import (
     GIT_INDEX_FILE,
     SNAPSHOT_IDENTITY,
     GitSubcommand,

@@ -1,6 +1,6 @@
 """`scripts/verify-feature.sh` against a real tree, passing and failing.
 
-The script is run exactly as the wrapper runs it (`supervisor/verify.py:297`):
+The script is run exactly as the wrapper runs it (`inspector/verify.py:297`):
 cwd is the tree under test, there are no arguments and no `$WF_*` environment.
 """
 

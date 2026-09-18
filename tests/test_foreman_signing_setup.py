@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from tests._foreman import ForemanLab
-from tests._supervisor import ChildScript, make_repo
+from tests._inspector import ChildScript, make_repo
 from workflow_interpreter.bdio.carriers import GateState
 from workflow_interpreter.bdio.config import (
     GATE_SIGNATURE_NAMESPACE,

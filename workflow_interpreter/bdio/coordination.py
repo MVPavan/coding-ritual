@@ -85,7 +85,7 @@ class CoordinationStore:
     @contextmanager
     def _locked(self, owner_id: str) -> Iterator[None]:
         # Root IDs come from validated carrier reads, never arbitrary paths.
-        from workflow_interpreter.supervisor.band import BandLock
+        from workflow_interpreter.inspector.band import BandLock
 
         reads.load_root(self._client, owner_id)
         with BandLock(self._lock_directory() / f"{owner_id}.lock"):
@@ -362,7 +362,7 @@ class CoordinationStore:
             node = effective_node(pinned, settings)
             if node.writes and node.isolation is not IsolationMode.WORKTREE:
                 raise CoordinationError("writer child requires worktree isolation")
-        wrapper = str(self._composition.supervisor_config.wrapper_root.resolve())
+        wrapper = str(self._composition.inspector_config.wrapper_root.resolve())
         receipt = self.admit_member(owner_id, slot, 0, admission, kind="child")
         with self._locked(owner_id):
             state = self.state(owner_id)

@@ -1,4 +1,4 @@
-"""Resolve one named execution grant set for mounts and runner translations."""
+"""Resolve one named execution grant set for mounts and crew translations."""
 
 from pathlib import Path
 
@@ -6,21 +6,21 @@ from workflow_interpreter.contracts.execution import (
     MSG_CODEX_IN_REPO,
     MSG_POLICY_MISMATCH,
     MSG_PRIVATE_GRANTS,
+    CrewName,
     ExecutionGrants,
     ExecutionPolicy,
     ExecutionProfileName,
-    RunnerName,
     ToolNetwork,
     policy_for,
 )
-from workflow_interpreter.profiles.errors import UnsupportedOptionError
-from workflow_interpreter.supervisor.errors import SandboxPathRefused
-from workflow_interpreter.supervisor.profile import Profile, TaskSpec
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector.errors import SandboxPathRefused
+from workflow_interpreter.inspector.profile import Profile, TaskSpec
+from workflow_interpreter.inspector.sandbox import (
     GIT_ENTRY,
     SandboxPlan,
     worktree_git_write_roots,
 )
+from workflow_interpreter.profiles.errors import UnsupportedOptionError
 
 __all__ = [
     "ExecutionGrants",
@@ -35,7 +35,7 @@ def resolve_grants(
     task: TaskSpec, plan: SandboxPlan, profile: Profile
 ) -> ExecutionGrants:
     """Bind named policy to this activation's exact, nonredirected private paths."""
-    runner_name = profile.name()
+    crew_name = profile.name()
     policy = task.execution_policy
     if policy is None or task.execution_profile is None:
         raise SandboxPathRefused(MSG_POLICY_MISMATCH)
@@ -43,7 +43,7 @@ def resolve_grants(
     if policy != expected or task.writes != expected.writes:
         raise SandboxPathRefused(
             f"{MSG_POLICY_MISMATCH}: pinned={policy.model_dump_json()}; "
-            f"runner={runner_name}, expected={expected.model_dump_json()}; "
+            f"crew={crew_name}, expected={expected.model_dump_json()}; "
             f"task writes={task.writes}"
         )
     checkout = Path(task.checkout_read_root or task.cwd)
@@ -68,7 +68,7 @@ def resolve_grants(
         raise SandboxPathRefused(MSG_PRIVATE_GRANTS)
     if not policy.writes and (plan.grants or plan.git_rw):
         raise SandboxPathRefused(MSG_POLICY_MISMATCH)
-    if policy.writes and runner_name in (RunnerName.CODEX, RunnerName.CODEX_APPSERVER):
+    if policy.writes and crew_name in (CrewName.CODEX, CrewName.CODEX_APPSERVER):
         if (checkout / GIT_ENTRY).is_dir():
             raise UnsupportedOptionError(
                 MSG_CODEX_IN_REPO.format(node=task.node, checkout=checkout)
@@ -76,8 +76,7 @@ def resolve_grants(
         worktree_git_write_roots(checkout, task.root_id)
     cwd = (
         channels
-        if runner_name in (RunnerName.CODEX, RunnerName.CODEX_APPSERVER)
-        and not policy.writes
+        if crew_name in (CrewName.CODEX, CrewName.CODEX_APPSERVER) and not policy.writes
         else checkout
     )
     return ExecutionGrants(

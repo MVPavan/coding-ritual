@@ -1,6 +1,6 @@
 # 06 — Recovery
 
-`supervisor/recover.py`, 561 lines. It answers one question about a
+`inspector/recover.py`, 561 lines. It answers one question about a
 dispatched-but-not-closed activation: **did this run finish, is it still running, or
 is it gone?**
 
@@ -9,7 +9,7 @@ Its module docstring is the best design document in the codebase.
 ## Seven cases
 
 The spec defines three. The code has seven, because four situations the spec's three
-cannot express (`supervisor/models.py:174-193`):
+cannot express (`inspector/models.py:174-193`):
 
 | Case | When | What happens |
 |---|---|---|
@@ -21,7 +21,7 @@ cannot express (`supervisor/models.py:174-193`):
 | `INDETERMINATE` | Liveness could not be answered at all | Write nothing, hand back |
 | `DEAD_WITHOUT_EXIT` | Everything else, including identity mismatch | Pin evidence, then close `error_transport` |
 
-The ordering is the design (`supervisor/recover.py:290-310`):
+The ordering is the design (`inspector/recover.py:290-310`):
 
 ```python
 if intent is not None:            return STEER_PENDING

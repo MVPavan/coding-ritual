@@ -2,11 +2,11 @@
 
 A claim is not a workflow carrier: it has no root, no `seq` and no lifecycle.
 It exists so that two attempts aiming at one integration target serialise, and
-it is therefore read and written by the bridge rather than by the foreman. It
-still goes through the seam: a bridge that reached the transport for this one
+it is therefore read and written by the contractor rather than by the foreman. It
+still goes through the seam: a contractor that reached the transport for this one
 row would be a second write path into the store (§0.1).
 
-The payload stays opaque here. What a claim MEANS is the bridge's model; what
+The payload stays opaque here. What a claim MEANS is the contractor's model; what
 the store owns is the key it is found by and the row it lives on.
 """
 

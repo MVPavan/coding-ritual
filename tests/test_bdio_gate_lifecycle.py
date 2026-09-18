@@ -354,7 +354,7 @@ def test_a_ceiling_rebudget_on_a_halt_gate_lets_the_instance_run_again(
         node=REVIEW,
         mint_reason=MintReason.EDGE,
         predecessor_activation_id=entry.activation_id,
-        runner_profile="fake",
+        crew_profile="fake",
         model="fake-model",
         session_id="sess-1",
     )

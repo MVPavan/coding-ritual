@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # §7.3 verifier for the `debrief` node of `feature-delivery` (run-ledger §3.7).
 #
-# Contract, as the wrapper actually runs it (supervisor/verify.py): argv[0] is
+# Contract, as the wrapper actually runs it (inspector/verify.py): argv[0] is
 # /proc/self/fd/<n>, there are NO arguments, and cwd is a clean detached
 # checkout of the commit under test. Unlike the other verifiers this one IS
 # given environment: WF_BASE_COMMIT, the run's own identity — WF_EPIC_SEGMENT,
@@ -16,9 +16,9 @@
 # Everything it reads it reads from git OBJECTS — `git ls-tree`, `git cat-file`
 # against HEAD and against the pinned render id — never from the working tree
 # and never through a ref NAME. A ref is a mutable name the sandbox protects
-# only as a loose file (`supervisor/sandbox.py`, WF_REFS_DIR: `packed-refs`
-# stays writable for the runner's own commit), so a check that resolved
-# `refs/wf/render/<task>-a<n>` itself could be pointed at bytes the runner
+# only as a loose file (`inspector/sandbox.py`, WF_REFS_DIR: `packed-refs`
+# stays writable for the crew's own commit), so a check that resolved
+# `refs/wf/render/<task>-a<n>` itself could be pointed at bytes the crew
 # chose; an object id pinned in the activation carrier cannot be.
 #
 # Exit 0 = pass, non-zero at the first failing check. Self-contained: git,

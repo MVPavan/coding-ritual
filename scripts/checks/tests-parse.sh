@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # §7.3 verifier: the acceptance suite parses and collects at least one test.
 #
-# Contract, as the wrapper runs it (supervisor/verify.py): argv[0] is
+# Contract, as the wrapper runs it (inspector/verify.py): argv[0] is
 # /proc/self/fd/<n>, there are NO arguments, and cwd is a clean checkout of the
 # commit under test — so the repo root comes from git in cwd, never from `$0`,
 # which names a descriptor in /proc.

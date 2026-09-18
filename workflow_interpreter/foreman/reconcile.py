@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ActivationRecord, RootRecord
 from workflow_interpreter.foreman.constants import INSTANCE_BRANCH
-from workflow_interpreter.supervisor.gitio import Git
+from workflow_interpreter.inspector.gitio import Git
 
 
 class Reconciliation(BaseModel):

@@ -37,7 +37,7 @@ lines. Reaching one triggers `_settle_terminal` (`foreman/tick.py:708-731`), whi
 settles the root first (idempotent, durable), drains attention, then *tries* cleanup.
 Cleanup may fail; a settled root still reports terminal, so a later tick retries.
 
-The terminal name is what the caller reads: the bridge lands only when
+The terminal name is what the caller reads: the contractor lands only when
 `terminal_node == "shipped"`. `abandoned` is a fully recorded ending that does not
 land. A run that stops any other way has no terminal, and settles nothing — the root
 must not close on a guess.
@@ -46,7 +46,7 @@ must not close on a guess.
 
 Using the real `implement` node:
 
-**Who runs it** — `runner = "profile:implementer"`, `model`, `execution_profile`,
+**Who runs it** — `crew = "profile:implementer"`, `model`, `execution_profile`,
 `session_reuse`.
 
 **What it may touch** — `isolation`, `writes`, `allowed_paths`.
@@ -66,7 +66,7 @@ for this long flags stale; twice that is a breach).
 ### isolation versus allowed_paths
 
 The common misreading. **The checkout is mounted read-only**
-(`supervisor/sandbox.py:611-624`):
+(`inspector/sandbox.py:611-624`):
 
 ```python
 ro_roots = (repo_root, wrapper_root, checkout)
@@ -107,7 +107,7 @@ any agent, and how round 2 knows what round 1 did and why a check went red.
 
 **`artifact_input_mode`**: `inline` puts evidence content in the envelope;
 `references` puts pointers plus an instruction to open each `index_path`. References
-mode refuses to launch with the sandbox off (`supervisor/launch.py:674-678`) —
+mode refuses to launch with the sandbox off (`inspector/launch.py:674-678`) —
 pointers are only trustworthy when the mount set is enforced.
 
 ## Outcomes: ten routable, four system
@@ -115,7 +115,7 @@ pointers are only trustworthy when the mount set is enforced.
 **Routable by edges:** `done`, `no_diff`, `accept`, `reject`, `fail_code`,
 `fail_plan`, `doubt`, `approve`, `rebudget`, `abandon`.
 
-**System-assigned:** `error_runner`, `error_transport`, `steered`, `superseded`.
+**System-assigned:** `error_crew`, `error_transport`, `steered`, `superseded`.
 Never edge-routed; the wrapper and foreman handle them, which is why an infra retry
 does not consume a round.
 
@@ -161,7 +161,7 @@ an arrival at the entry node, so it opens a new round and consumes one of the th
 the same budget a review rejection uses.
 
 `fail_code` means the agent ran its checks and they are still red. It is honest
-failure, not a crash; `error_runner` covers the crash case. `debrief`'s `fail_code`
+failure, not a crash; `error_crew` covers the crash case. `debrief`'s `fail_code`
 routes to `triage` instead, because a debrief that wrote outside its directory is a
 containment breach that must never reach `ship`.
 
@@ -176,7 +176,7 @@ containment breach that must never reach `ship`.
 - **`token_budget` is ignored.** It only emits `legacy_token_budget_ignored`. No
   feature-delivery node sets `context_budget_bytes`, so all three run on the default
   and their `token_budget` lines do nothing.
-- **The runner's own context window is not configured at all.** No context, window or
+- **The crew's own context window is not configured at all.** No context, window or
   max-tokens flag is passed to any vendor CLI.
 
 Three unrelated units with confusable names. Tracked as bead **cr-e94f**.
@@ -186,13 +186,13 @@ Three unrelated units with confusable names. Tracked as bead **cr-e94f**.
 ```toml
 [instance]
 max_total_activations = 26   # counts every activation AND gate bead
-phase_bridge_retry_terminals = ["shipped", "abandoned"]
+contractor_retry_terminals = ["shipped", "abandoned"]
 ```
 
 `max_total_activations` bounds how many times the interpreter may start something; it
 has no visibility into what an agent does inside one activation. Hitting it opens a
 `HALT_CEILING` halt gate. `coordination_limits` bounds sub-workflows.
-`test_force_first_reject` only works when test flags are allowed, which the bridge
+`test_force_first_reject` only works when test flags are allowed, which the contractor
 never allows.
 
 Three nested budgets: rounds per region (3), activations per root (26), wall time per
@@ -204,7 +204,7 @@ Same `{cmd, timeout, cwd}` type, three moments:
 
 1. **`node.verify`** — the host gate after a task returns.
 2. **`DecisionTask.verify`** — required, minimum one.
-3. **`bridge_checks`** — not in the graph; pinned by the bridge at admission and run
+3. **`contractor_checks`** — not in the graph; pinned by the contractor at admission and run
    at landing with `PATH=/usr/bin:/bin`.
 
 The scripts are hand-written and checked into the repo under review. The wrapper runs

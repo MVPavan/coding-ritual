@@ -41,10 +41,10 @@ from workflow_interpreter.bdio.wire import (
 from workflow_interpreter.contracts.execution import (
     EXECUTION_POLICY_KEY,
     MSG_PROFILE_WRITES,
-    MSG_UNREGISTERED_RUNNER,
+    MSG_UNREGISTERED_CREW,
+    CrewName,
     ExecutionRegistry,
-    RunnerName,
-    UnregisteredRunnerError,
+    UnregisteredCrewError,
     policy_for,
     tool_network_for,
 )
@@ -143,16 +143,16 @@ def _assert_task_execution_settings_are_pinned(
         # one, only the spelling differs (claude `--effort`, codex
         # `-c model_reasoning_effort=`), and opencode refuses to build a
         # command at all before effort is ever read. So a task missing it
-        # cannot launch under any runner. Requiring it only for `profile:`
-        # runners let an unrunnable root be created, and root identity then
+        # cannot launch under any crew. Requiring it only for `profile:`
+        # crews let an unrunnable root be created, and root identity then
         # refuses to recreate that key with the pin supplied (cr-xb2).
         if (
             node.session_reuse is not None
-            and settings.get(NodeSetting.RUNNER.at(node.name))
-            != RunnerName.CODEX_APPSERVER.value
+            and settings.get(NodeSetting.CREW.at(node.name))
+            != CrewName.CODEX_APPSERVER.value
         ):
             raise CarrierIntegrityError(MSG_SESSION_REUSE)
-        required = (NodeSetting.RUNNER, NodeSetting.MODEL, NodeSetting.EFFORT)
+        required = (NodeSetting.CREW, NodeSetting.MODEL, NodeSetting.EFFORT)
         missing = tuple(
             setting.value.rsplit(".", maxsplit=1)[-1]
             for setting in required
@@ -187,14 +187,14 @@ def pin_execution_policies(
             or writes.source is not ConfigSource.GRAPH_DEFAULT
         ):
             raise CarrierIntegrityError(MSG_PROFILE_WRITES)
-        runner = execution_settings.get(NodeSetting.RUNNER.at(node.name))
-        if runner is None or not isinstance(runner.value, str):
-            raise CarrierIntegrityError(MSG_UNREGISTERED_RUNNER.format(runner=runner))
+        crew = execution_settings.get(NodeSetting.CREW.at(node.name))
+        if crew is None or not isinstance(crew.value, str):
+            raise CarrierIntegrityError(MSG_UNREGISTERED_CREW.format(crew=crew))
         try:
             execution_policy = policy_for(
-                node.execution_profile, tool_network_for(runner.value, profiles)
+                node.execution_profile, tool_network_for(crew.value, profiles)
             )
-        except UnregisteredRunnerError as error:
+        except UnregisteredCrewError as error:
             raise CarrierIntegrityError(str(error)) from error
         key = EXECUTION_POLICY_KEY.format(node=node.name)
         expected = execution_policy.model_dump_json()

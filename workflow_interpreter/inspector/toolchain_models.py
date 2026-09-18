@@ -7,8 +7,8 @@ from typing import Final, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from workflow_interpreter.supervisor import toolchain_constants as tc
-from workflow_interpreter.supervisor.errors import SandboxUnavailable
+from workflow_interpreter.inspector import toolchain_constants as tc
+from workflow_interpreter.inspector.errors import SandboxUnavailable
 
 MODEL: Final[ConfigDict] = ConfigDict(frozen=True, extra="forbid")
 DEFAULT_UV: Final[str] = "uv"
@@ -95,7 +95,7 @@ class SeedReceipt(BaseModel):
 
 
 class SeedPreparation(BaseModel):
-    """Supervisor-only preparation result used to build mounts and the receipt."""
+    """Inspector-only preparation result used to build mounts and the receipt."""
 
     model_config = MODEL
     cache: Path

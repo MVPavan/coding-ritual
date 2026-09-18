@@ -44,15 +44,15 @@ from workflow_interpreter.foreman.wake_constants import (
     LOG_DURABILITY,
     MSG_DURABILITY,
 )
-from workflow_interpreter.schema.graph_index import GraphIndex
-from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     fsync_dir,
     write_durable,
 )
-from workflow_interpreter.supervisor.profile import Profile
+from workflow_interpreter.inspector.profile import Profile
+from workflow_interpreter.schema.graph_index import GraphIndex
+from workflow_interpreter.schema.models import Outcome
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 

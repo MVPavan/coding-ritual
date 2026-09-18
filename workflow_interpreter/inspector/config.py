@@ -1,10 +1,10 @@
-"""Injected configuration for the supervisor wrapper (§5.3, §8, §12).
+"""Injected configuration for the inspector wrapper (§5.3, §8, §12).
 
 Frozen, constructed by the caller, handed in at construction time. Like
-`bdio.config` this is deliberately NOT `pydantic-settings`: no supervisor
+`bdio.config` this is deliberately NOT `pydantic-settings`: no inspector
 decision may depend on an ambient environment read (`rules/python/safety.md`),
 because a wrapper whose grace periods or `/proc` root come from the process
-environment is a wrapper the runner it supervises could reconfigure.
+environment is a wrapper the crew it inspects could reconfigure.
 
 **Linux only.** `/proc`, `boot_id`, process groups and `flock` are all
 Linux-specific and are used unguarded; there is no Windows shim and none is
@@ -19,9 +19,9 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from workflow_interpreter.supervisor.errors import SupervisorConfigError
-from workflow_interpreter.supervisor.sandbox import SandboxMode
-from workflow_interpreter.supervisor.toolchain_models import ToolchainConfig
+from workflow_interpreter.inspector.errors import InspectorConfigError
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.inspector.toolchain_models import ToolchainConfig
 
 CONFIG_MODEL: Final[ConfigDict] = ConfigDict(
     frozen=True, extra="forbid", arbitrary_types_allowed=False
@@ -51,7 +51,7 @@ _MSG_INSIDE_REPO: Final[str] = (
 )
 
 
-class SupervisorConfig(BaseModel):
+class InspectorConfig(BaseModel):
     """Everything the wrapper needs; nothing is discovered from the process.
 
     `wrapper_root` is the `.wf/` observation cache BESIDE the repo (§P1): losing
@@ -92,11 +92,11 @@ class SupervisorConfig(BaseModel):
             ("wrapper_root", self.wrapper_root),
         ):
             if not value.is_absolute():
-                raise SupervisorConfigError(
+                raise InspectorConfigError(
                     _MSG_RELATIVE.format(field=field, value=value)
                 )
         if self.wrapper_root.is_relative_to(self.repo_root):
-            raise SupervisorConfigError(
+            raise InspectorConfigError(
                 _MSG_INSIDE_REPO.format(
                     wrapper_root=self.wrapper_root, repo_root=self.repo_root
                 )

@@ -8,21 +8,21 @@ import pytest
 
 from tests._bdio import make_root
 from tests._helpers import VALID_FIXTURE
+from tests._inspector import FrozenClock
 from tests._profiles import Lab
-from tests._supervisor import FrozenClock
 from workflow_interpreter import GraphValidationError, load_graph
 from workflow_interpreter.bdio import WorkflowStore
 from workflow_interpreter.foreman.errors import ResolutionError
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.resolve import resolve
-from workflow_interpreter.profiles import ProfileConfig, RunnerName
-from workflow_interpreter.profiles.registry import ProfileRegistry
-from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
-from workflow_interpreter.supervisor.execution import (
+from workflow_interpreter.inspector.execution import (
     ExecutionPolicy,
     ExecutionProfileName,
     ToolNetwork,
 )
+from workflow_interpreter.profiles import CrewName, ProfileConfig
+from workflow_interpreter.profiles.registry import ProfileRegistry
+from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 
 
 def registry() -> ProfileRegistry:
@@ -104,7 +104,7 @@ def test_named_root_pins_policy_and_legacy_body_stays_unchanged(
         graph,
         *(
             ResolvedSetting(
-                key=f"node.{name}.runner",
+                key=f"node.{name}.crew",
                 value="claude",
                 source=ConfigSource.ROLE_BINDING,
             )
@@ -120,21 +120,21 @@ def test_named_root_pins_policy_and_legacy_body_stays_unchanged(
 
 
 @pytest.mark.proc
-@pytest.mark.parametrize("runner", ["codex", "claude"])
+@pytest.mark.parametrize("crew", ["codex", "claude"])
 @pytest.mark.parametrize(
     "name", [ExecutionProfileName.WRITER, ExecutionProfileName.REVIEWER]
 )
 def test_named_launch_records_grants_and_network_fact(
-    lab: Lab, runner: str, name: ExecutionProfileName
+    lab: Lab, crew: str, name: ExecutionProfileName
 ) -> None:
     """Both vendors launch both policies; receipts and status expose the same fact."""
     from workflow_interpreter.foreman.execution import execution_status
-    from workflow_interpreter.profiles import RunnerName
-    from workflow_interpreter.supervisor.models import LaunchReceipt
-    from workflow_interpreter.supervisor.paths import read_record
+    from workflow_interpreter.inspector.models import LaunchReceipt
+    from workflow_interpreter.inspector.paths import read_record
+    from workflow_interpreter.profiles import CrewName
 
     result = lab.run(
-        RunnerName(runner),
+        CrewName(crew),
         writes=name is ExecutionProfileName.WRITER,
         execution_profile=name,
     )
@@ -142,7 +142,7 @@ def test_named_launch_records_grants_and_network_fact(
     receipt = read_record(lab.paths.receipt(activation_id), LaunchReceipt)
     assert receipt is not None and receipt.execution_grants is not None
     grants = receipt.execution_grants
-    expected = ToolNetwork.DENIED if runner == "codex" else ToolNetwork.NOT_ENFORCED
+    expected = ToolNetwork.DENIED if crew == "codex" else ToolNetwork.NOT_ENFORCED
     assert receipt.tool_network is expected
     assert grants.policy.name is name
     assert (
@@ -155,7 +155,7 @@ def test_named_launch_records_grants_and_network_fact(
             not Path(path).is_relative_to(grants.checkout_read_root)
             for path in grants.writable_directories
         )
-        if runner == "claude":
+        if crew == "claude":
             allowed = receipt.argv[
                 receipt.argv.index("--allowedTools") + 1 : receipt.argv.index(
                     "--disallowedTools"
@@ -166,59 +166,59 @@ def test_named_launch_records_grants_and_network_fact(
 
 def test_named_profile_refuses_sandbox_off(tmp_path: Path) -> None:
     """Named authority cannot be claimed without its physical outer bound."""
-    from workflow_interpreter.profiles import RunnerName
-    from workflow_interpreter.supervisor.errors import SandboxUnavailable
-    from workflow_interpreter.supervisor.sandbox import SandboxMode
+    from workflow_interpreter.inspector.errors import SandboxUnavailable
+    from workflow_interpreter.inspector.sandbox import SandboxMode
+    from workflow_interpreter.profiles import CrewName
 
     lab = Lab(tmp_path, sandbox=SandboxMode.OFF)
     with pytest.raises(SandboxUnavailable, match="outer sandbox"):
-        lab.run(RunnerName.CODEX, execution_profile=ExecutionProfileName.WRITER)
+        lab.run(CrewName.CODEX, execution_profile=ExecutionProfileName.WRITER)
 
 
-@pytest.mark.parametrize("runner", ["codex", "claude"])
+@pytest.mark.parametrize("crew", ["codex", "claude"])
 @pytest.mark.parametrize(
     "name", [ExecutionProfileName.WRITER, ExecutionProfileName.REVIEWER]
 )
 def test_named_launch_and_resume_share_grants(
-    tmp_path: Path, runner: str, name: ExecutionProfileName
+    tmp_path: Path, crew: str, name: ExecutionProfileName
 ) -> None:
     """Resuming changes the vendor verb, never the activation's authority."""
-    from tests._profiles import make_supervisor_config, make_task, writable_roots_in
-    from tests._supervisor import FrozenClock
+    from tests._inspector import FrozenClock
+    from tests._profiles import make_inspector_config, make_task, writable_roots_in
     from workflow_interpreter.contracts.execution import policy_for
+    from workflow_interpreter.inspector.execution import resolve_grants
+    from workflow_interpreter.inspector.sandbox import plan_for
     from workflow_interpreter.profiles.claude import ClaudeProfile
     from workflow_interpreter.profiles.codex import CodexProfile
     from workflow_interpreter.profiles.config import ProfileConfig
-    from workflow_interpreter.supervisor.execution import resolve_grants
-    from workflow_interpreter.supervisor.sandbox import plan_for
 
     task = make_task(tmp_path, writes=name is ExecutionProfileName.WRITER)
     task = task.model_copy(
         update={
             "execution_profile": name,
             "execution_policy": policy_for(
-                name, registry().profile_for(runner).tool_network
+                name, registry().profile_for(crew).tool_network
             ),
             "checkout_read_root": task.cwd,
         }
     )
-    config = make_supervisor_config(tmp_path)
+    config = make_inspector_config(tmp_path)
     plan = plan_for(
         task,
         repo_root=config.repo_root,
         wrapper_root=config.wrapper_root,
         channels_dir=Path(task.channels.outcome_file).parent,
     )
-    grants = resolve_grants(task, plan, registry().profile_for(runner))
+    grants = resolve_grants(task, plan, registry().profile_for(crew))
     task = task.model_copy(update={"execution_grants": grants})
-    profile = (CodexProfile if runner == "codex" else ClaudeProfile)(
+    profile = (CodexProfile if crew == "codex" else ClaudeProfile)(
         ProfileConfig(), FrozenClock(), {}
     )
     session = "00000000-0000-4000-8000-000000000001"
     launch = profile.build_command(task, session)
     resume = profile.build_resume_command(session, "continue", task)
     assert launch.cwd == resume.cwd == grants.process_cwd
-    if runner == "codex":
+    if crew == "codex":
         assert writable_roots_in(launch.argv) == grants.writable_directories
         assert writable_roots_in(resume.argv) == grants.writable_directories
     else:
@@ -238,11 +238,11 @@ def test_named_reviewer_refuses_private_grant_escape(
     tmp_path: Path, escape: str
 ) -> None:
     """Checkout and wrapper records cannot become private writable roots."""
-    from tests._profiles import make_supervisor_config, make_task
+    from tests._profiles import make_inspector_config, make_task
     from workflow_interpreter.contracts.execution import policy_for
-    from workflow_interpreter.supervisor.errors import SandboxPathRefused
-    from workflow_interpreter.supervisor.execution import resolve_grants
-    from workflow_interpreter.supervisor.sandbox import plan_for
+    from workflow_interpreter.inspector.errors import SandboxPathRefused
+    from workflow_interpreter.inspector.execution import resolve_grants
+    from workflow_interpreter.inspector.sandbox import plan_for
 
     task = make_task(tmp_path, writes=False)
     task = task.model_copy(
@@ -253,7 +253,7 @@ def test_named_reviewer_refuses_private_grant_escape(
             ),
         }
     )
-    config = make_supervisor_config(tmp_path)
+    config = make_inspector_config(tmp_path)
     plan = plan_for(
         task,
         repo_root=config.repo_root,
@@ -275,11 +275,9 @@ def test_named_reviewer_refuses_private_grant_escape(
         resolve_grants(task, plan, registry().profile_for("codex"))
 
 
-@pytest.mark.parametrize("runner", [None, "unknown-runner", ""])
-def test_named_pin_requires_registered_runner(
-    tmp_path: Path, runner: str | None
-) -> None:
-    """A missing or unknown runner never becomes a not-enforced network fact."""
+@pytest.mark.parametrize("crew", [None, "unknown-crew", ""])
+def test_named_pin_requires_registered_crew(tmp_path: Path, crew: str | None) -> None:
+    """A missing or unknown crew never becomes a not-enforced network fact."""
     from workflow_interpreter.bdio import CarrierIntegrityError, ConfigSource
     from workflow_interpreter.bdio.roots import pin_execution_policies
     from workflow_interpreter.bdio.wire import NodeSetting, ResolvedSetting
@@ -287,29 +285,27 @@ def test_named_pin_requires_registered_runner(
     graph = load_graph(named_graph(tmp_path))
     settings = tuple(
         ResolvedSetting(
-            key=NodeSetting.RUNNER.at(node.name),
-            value=runner,
+            key=NodeSetting.CREW.at(node.name),
+            value=crew,
             source=ConfigSource.GRAPH_DEFAULT,
         )
         for node in graph.document.node
-        if node.execution_profile is not None and runner is not None
+        if node.execution_profile is not None and crew is not None
     )
-    with pytest.raises(CarrierIntegrityError, match="unregistered runner"):
+    with pytest.raises(CarrierIntegrityError, match="unregistered crew"):
         pin_execution_policies(graph, settings, profiles=registry())
 
 
-def test_network_capability_is_declared_for_every_registered_runner() -> None:
+def test_network_capability_is_declared_for_every_registered_crew() -> None:
     """Registry additions must have an explicit network capability."""
-    from workflow_interpreter.profiles import RunnerName
+    from workflow_interpreter.profiles import CrewName
     from workflow_interpreter.profiles.registry import BUILDERS
 
-    assert {
-        runner: registry().profile_for(runner).tool_network for runner in BUILDERS
-    } == {
-        RunnerName.CODEX: ToolNetwork.DENIED,
-        RunnerName.CODEX_APPSERVER: ToolNetwork.DENIED,
-        RunnerName.CLAUDE: ToolNetwork.NOT_ENFORCED,
-        RunnerName.OPENCODE: ToolNetwork.NOT_ENFORCED,
+    assert {crew: registry().profile_for(crew).tool_network for crew in BUILDERS} == {
+        CrewName.CODEX: ToolNetwork.DENIED,
+        CrewName.CODEX_APPSERVER: ToolNetwork.DENIED,
+        CrewName.CLAUDE: ToolNetwork.NOT_ENFORCED,
+        CrewName.OPENCODE: ToolNetwork.NOT_ENFORCED,
     }
 
 
@@ -318,11 +314,11 @@ def test_network_capability_is_declared_for_every_registered_runner() -> None:
 )
 def test_named_plan_revalidates_supplied_grants(tmp_path: Path, field: str) -> None:
     """Pre-resolved grants cannot substitute unchecked roots or omit Git pins."""
-    from tests._profiles import make_supervisor_config, make_task
+    from tests._profiles import make_inspector_config, make_task
     from workflow_interpreter.contracts.execution import policy_for
-    from workflow_interpreter.supervisor.errors import SandboxPathRefused
-    from workflow_interpreter.supervisor.execution import resolve_grants
-    from workflow_interpreter.supervisor.sandbox import plan_for
+    from workflow_interpreter.inspector.errors import SandboxPathRefused
+    from workflow_interpreter.inspector.execution import resolve_grants
+    from workflow_interpreter.inspector.sandbox import plan_for
 
     task = make_task(tmp_path, writes=True)
     task = task.model_copy(
@@ -333,7 +329,7 @@ def test_named_plan_revalidates_supplied_grants(tmp_path: Path, field: str) -> N
             ),
         }
     )
-    config = make_supervisor_config(tmp_path)
+    config = make_inspector_config(tmp_path)
     kwargs = {
         "repo_root": config.repo_root,
         "wrapper_root": config.wrapper_root,
@@ -349,16 +345,16 @@ def test_named_plan_revalidates_supplied_grants(tmp_path: Path, field: str) -> N
         plan_for(task, **kwargs)
 
 
-def test_named_codex_in_repo_refusal_keeps_runner_error(tmp_path: Path) -> None:
-    """Unsupported Codex isolation retains its actionable runner refusal."""
-    from tests._profiles import make_supervisor_config, make_task
+def test_named_codex_in_repo_refusal_keeps_crew_error(tmp_path: Path) -> None:
+    """Unsupported Codex isolation retains its actionable crew refusal."""
+    from tests._profiles import make_inspector_config, make_task
     from workflow_interpreter.contracts.execution import policy_for
+    from workflow_interpreter.inspector.execution import resolve_grants
+    from workflow_interpreter.inspector.sandbox import plan_for
     from workflow_interpreter.profiles.errors import UnsupportedOptionError
-    from workflow_interpreter.supervisor.execution import resolve_grants
-    from workflow_interpreter.supervisor.sandbox import plan_for
 
     task = make_task(tmp_path, writes=True)
-    config = make_supervisor_config(tmp_path)
+    config = make_inspector_config(tmp_path)
     task = task.model_copy(
         update={
             "cwd": str(config.repo_root),
@@ -384,13 +380,13 @@ def test_named_dispatch_requires_pinned_policy(
 ) -> None:
     """Dispatch cannot quietly derive authority when a builder forgets its pin."""
     from tests import _profiles
-    from workflow_interpreter.profiles import RunnerName
+    from workflow_interpreter.profiles import CrewName
     from workflow_interpreter.profiles.errors import TaskRefused
 
     original = _profiles.task_builder
 
+    from workflow_interpreter.inspector.launch import TaskBuilder
     from workflow_interpreter.schema.models import Node
-    from workflow_interpreter.supervisor.launch import TaskBuilder
 
     def unpinned(
         cwd: Path,
@@ -408,7 +404,7 @@ def test_named_dispatch_requires_pinned_policy(
     monkeypatch.setattr(_profiles, "task_builder", unpinned)
     lab = Lab(tmp_path)
     with pytest.raises(TaskRefused, match="pinned policy"):
-        lab.run(RunnerName.CODEX, execution_profile=ExecutionProfileName.WRITER)
+        lab.run(CrewName.CODEX, execution_profile=ExecutionProfileName.WRITER)
 
 
 @pytest.mark.parametrize("mismatch", ["network", "name", "writes"])
@@ -416,11 +412,11 @@ def test_policy_mismatch_names_pinned_and_expected_contracts(
     tmp_path: Path, mismatch: str
 ) -> None:
     """A policy refusal describes both contracts rather than an opaque mismatch."""
-    from tests._profiles import make_supervisor_config, make_task
+    from tests._profiles import make_inspector_config, make_task
     from workflow_interpreter.contracts.execution import policy_for
-    from workflow_interpreter.supervisor.errors import SandboxPathRefused
-    from workflow_interpreter.supervisor.execution import resolve_grants
-    from workflow_interpreter.supervisor.sandbox import plan_for
+    from workflow_interpreter.inspector.errors import SandboxPathRefused
+    from workflow_interpreter.inspector.execution import resolve_grants
+    from workflow_interpreter.inspector.sandbox import plan_for
 
     expected = policy_for(ExecutionProfileName.WRITER, ToolNetwork.DENIED)
     pinned = (
@@ -437,7 +433,7 @@ def test_policy_mismatch_names_pinned_and_expected_contracts(
             "writes": mismatch != "writes",
         }
     )
-    config = make_supervisor_config(tmp_path)
+    config = make_inspector_config(tmp_path)
     plan = plan_for(
         task,
         repo_root=config.repo_root,
@@ -458,13 +454,13 @@ def test_named_claude_reviewer_can_report_without_checkout_write(
     import subprocess
     import sys
 
-    from tests._profiles import host_env_with, make_supervisor_config, make_task
-    from tests._supervisor import FrozenClock
+    from tests._inspector import FrozenClock
+    from tests._profiles import host_env_with, make_inspector_config, make_task
     from workflow_interpreter.contracts.execution import policy_for
+    from workflow_interpreter.inspector.execution import resolve_grants
+    from workflow_interpreter.inspector.sandbox import plan_for, wrap
     from workflow_interpreter.profiles import ProfileConfig
     from workflow_interpreter.profiles.claude import ClaudeProfile
-    from workflow_interpreter.supervisor.execution import resolve_grants
-    from workflow_interpreter.supervisor.sandbox import plan_for, wrap
 
     task = make_task(tmp_path, writes=False).model_copy(
         update={
@@ -474,7 +470,7 @@ def test_named_claude_reviewer_can_report_without_checkout_write(
             ),
         }
     )
-    config = make_supervisor_config(tmp_path)
+    config = make_inspector_config(tmp_path)
     plan = plan_for(
         task,
         repo_root=config.repo_root,
@@ -507,7 +503,7 @@ else:
     )
     binary.chmod(0o755)
     profile = ClaudeProfile(
-        ProfileConfig(binary_overrides={RunnerName.CLAUDE: str(binary)}),
+        ProfileConfig(binary_overrides={CrewName.CLAUDE: str(binary)}),
         FrozenClock(),
         host_env_with(),
     )
@@ -550,22 +546,22 @@ else:
     assert not Path(task.cwd, "forbidden.md").exists()
 
 
-def test_unknown_profile_identity_closes_dispatch_as_error_runner(
+def test_unknown_profile_identity_closes_dispatch_as_error_crew(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A miswired profile name becomes durable ERROR_RUNNER through real dispatch."""
+    """A miswired profile name becomes durable ERROR_CREW through real dispatch."""
     from tests._foreman import ForemanLab
     from tests._helpers import SHIPPED_FIXTURE
     from workflow_interpreter.bdio import Outcome
 
     lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
     lab.instantiate()
-    monkeypatch.setattr(lab.profiles.profile, "name", lambda: "unknown-runner")
+    monkeypatch.setattr(lab.profiles.profile, "name", lambda: "unknown-crew")
     report = lab.tick()
     assert report.dispatched is not None
     activation = lab.store.reads.load_activation(report.dispatched)
-    assert activation.metadata.outcome is Outcome.ERROR_RUNNER
-    assert "unknown-runner" in activation.metadata.evidence.note
+    assert activation.metadata.outcome is Outcome.ERROR_CREW
+    assert "unknown-crew" in activation.metadata.evidence.note
     assert activation.metadata.handle is None
 
 
@@ -573,11 +569,11 @@ def test_unknown_profile_identity_closes_dispatch_as_error_runner(
 def test_registered_fake_pins_and_launches_its_declared_network_fact(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, network: ToolNetwork
 ) -> None:
-    """A registered non-vendor runner supplies authority for the shipped graph."""
+    """A registered non-vendor crew supplies authority for the shipped graph."""
     from tests._foreman import ForemanLab
     from tests._helpers import SHIPPED_FIXTURE
-    from workflow_interpreter.supervisor.models import LaunchReceipt
-    from workflow_interpreter.supervisor.paths import read_record
+    from workflow_interpreter.inspector.models import LaunchReceipt
+    from workflow_interpreter.inspector.paths import read_record
 
     lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
     monkeypatch.setattr(lab.profiles.profile, "tool_network", network)
@@ -586,7 +582,7 @@ def test_registered_fake_pins_and_launches_its_declared_network_fact(
     activation_id = lab.tick().dispatched
     assert activation_id is not None
     activation = lab.store.reads.load_activation(activation_id)
-    assert activation.metadata.runner_profile == "fake"
+    assert activation.metadata.crew_profile == "fake"
     receipt = read_record(lab.wiring().paths.receipt(activation_id), LaunchReceipt)
     assert receipt is not None and receipt.tool_network is network
 
@@ -596,7 +592,7 @@ def test_registry_extension_supplies_network_capability(
     tmp_path: Path, fake_store: WorkflowStore, network: ToolNetwork
 ) -> None:
     """Root admission accepts a registered non-vendor profile's declared fact."""
-    from tests._supervisor import FakeProfile
+    from tests._inspector import FakeProfile
 
     profile = FakeProfile()
     profile.tool_network = network
@@ -612,5 +608,5 @@ def test_named_pin_requires_registry(tmp_path: Path, fake_store: WorkflowStore) 
     """Root creation cannot infer capabilities without an injected registry."""
     from workflow_interpreter.bdio import CarrierIntegrityError
 
-    with pytest.raises(CarrierIntegrityError, match="unregistered runner"):
+    with pytest.raises(CarrierIntegrityError, match="unregistered crew"):
         make_root(fake_store, load_graph(named_graph(tmp_path)))

@@ -84,7 +84,7 @@
         "approve",
         "rebudget",
         "abandon",
-        "error_runner",
+        "error_crew",
         "error_transport",
         "steered",
         "superseded"
@@ -125,7 +125,7 @@
         "max_total_activations": {
           "type": "integer"
         },
-        "phase_bridge_retry_terminals": {
+        "contractor_retry_terminals": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/identifier"
@@ -191,7 +191,7 @@
         "region": {
           "$ref": "#/$defs/identifier"
         },
-        "runner": {
+        "crew": {
           "description": "A `profile:<role>` alias only (\u00a73.1). The role is bound to a concrete profile and model by the foreman config's `roles` map; any other spelling names nothing that map can resolve and would fail at dispatch instead of here.",
           "type": "string",
           "pattern": "^profile:[a-z0-9][a-z0-9_-]*$"
@@ -204,7 +204,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 8192,
-          "description": "What this task node must do. Required on task nodes at root creation (ADR 0002); rendered to the runner beneath the authoritative fact frame, which wins on conflict."
+          "description": "What this task node must do. Required on task nodes at root creation (ADR 0002); rendered to the crew beneath the authoritative fact frame, which wins on conflict."
         },
         "artifact_input_mode": {
           "type": "string",
@@ -229,7 +229,7 @@
           "items": {
             "$ref": "#/$defs/grant_glob"
           },
-          "description": "The directories this node may write. Under `sandbox = bwrap` these are its writable MOUNTS: everything else in the checkout is read-only to the runner. They are also the \u00a77.5 undeclared-effect exemption, which is a weaker rule \u2014 it also exempts whatever the runner declares in $WF_EFFECTS_FILE. See ADR 0001."
+          "description": "The directories this node may write. Under `sandbox = bwrap` these are its writable MOUNTS: everything else in the checkout is read-only to the crew. They are also the \u00a77.5 undeclared-effect exemption, which is a weaker rule \u2014 it also exempts whatever the crew declares in $WF_EFFECTS_FILE. See ADR 0001."
         },
         "inputs": {
           "type": "array",
@@ -384,9 +384,9 @@
       "additionalProperties": false,
       "description": "Nonrecursive data lowered into a normal task at admission.",
       "properties": {
-        "runner": {
+        "crew": {
           "minLength": 1,
-          "title": "Runner",
+          "title": "Crew",
           "type": "string"
         },
         "model": {
@@ -440,7 +440,7 @@
         }
       },
       "required": [
-        "runner",
+        "crew",
         "model",
         "instructions",
         "verify",

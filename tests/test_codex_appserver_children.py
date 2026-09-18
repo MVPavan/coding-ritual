@@ -10,8 +10,8 @@ from workflow_interpreter.contracts.rpc_control import ControlState
 from workflow_interpreter.foreman.children import observe
 from workflow_interpreter.foreman.rpc_control import acknowledge_uncertain
 from workflow_interpreter.foreman.tick import Foreman
+from workflow_interpreter.inspector.models import SandboxMode
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.models import SandboxMode
 
 
 def child_with_uncertain_control(tmp_path):
@@ -36,7 +36,7 @@ def child_with_uncertain_control(tmp_path):
     with wiring.band:
         activation = wiring.store.mint_activation(
             child.root_id,
-            entry_request(node="assess", runner_profile="codex-appserver"),
+            entry_request(node="assess", crew_profile="codex-appserver"),
         ).activation
         aid = activation.activation_id
         process = handle(session_id="").model_copy(

@@ -116,7 +116,7 @@ class BackendLocator(Protocol):
 class PinnableBackendLocator(Protocol):
     """A locator that can be TOLD a pin it could not read for itself (§3.2).
 
-    The bridge record names the backend of an attempt root before that root
+    The contractor record names the backend of an attempt root before that root
     exists, and for a bd-backed attempt of a ledger-pinned task nothing durable
     says so afterwards: the ledger holds no row for a bd root, and the `tasks`
     row still names the first attempt's backend. So the answer has to be
@@ -136,7 +136,7 @@ class PinnableBackendLocator(Protocol):
 
 @runtime_checkable
 class RecordPinnableBackendLocator(Protocol):
-    """A locator that can be told what a BRIDGE RECORD says (§3.2).
+    """A locator that can be told what a CONTRACTOR RECORD says (§3.2).
 
     Separate from `PinnableBackendLocator` because the two pins do not have
     the same provenance: a creation pin is what this process just did, while a
@@ -149,7 +149,7 @@ class RecordPinnableBackendLocator(Protocol):
         """The backend pinned for this root."""
 
     def pin_record(self, root_id: str, backend: BackendKind) -> None:
-        """Record a bridge record's pin, or refuse a store that contradicts it."""
+        """Record a contractor record's pin, or refuse a store that contradicts it."""
 
 
 class PinnedBackendFactory:
@@ -208,7 +208,7 @@ class SelectableBackendFactory:
 def bd_backend(root_id: str) -> BackendKind:
     """Locate a root's backend while bd is the only one there is.
 
-    §3.2 moves this to the bridge record's `root_backend` and the ledger
+    §3.2 moves this to the contractor record's `root_backend` and the ledger
     `tasks` row; until a second backend exists there is nothing to read, and
     reading bd to find out that the answer is bd would cost a round-trip per
     tick.

@@ -31,7 +31,7 @@ outcomes = ["approve"]
 name = "worker"
 kind = "task"
 region = "loop"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "1m" }]

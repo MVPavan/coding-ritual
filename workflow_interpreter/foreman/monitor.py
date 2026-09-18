@@ -46,21 +46,21 @@ from workflow_interpreter.foreman.wake_constants import (
     DriverCondition,
     DriverState,
 )
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.clock import elapsed_seconds, from_iso, to_iso
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.models import Liveness
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.clock import elapsed_seconds, from_iso, to_iso
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.models import Liveness
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     read_record,
     write_record,
 )
-from workflow_interpreter.supervisor.procfs import prove_liveness
+from workflow_interpreter.inspector.procfs import prove_liveness
 
 
 def monitor_health(composition: Composition, root_id: str) -> MonitorHealth:
     """Require an acknowledged, fresh monitor with matching local process identity."""
-    paths = WrapperPaths(composition.supervisor_config, root_id)
+    paths = WrapperPaths(composition.inspector_config, root_id)
     handle = read_record(paths.instance_dir / MONITOR_HANDLE, MonitorHandle)
     if handle is None:
         return MonitorHealth.MISSING
@@ -69,12 +69,12 @@ def monitor_health(composition: Composition, root_id: str) -> MonitorHealth:
         handle.root_id != root_id
         or handle.instance_key != root.metadata.instance_key
         or handle.handle is None
-        or handle.handle.host != composition.supervisor_config.host
+        or handle.handle.host != composition.inspector_config.host
     ):
         return MonitorHealth.INDETERMINATE
     if handle.state is MonitorState.STOPPED:
         return MonitorHealth.STOPPED
-    proof = prove_liveness(composition.supervisor_config, handle.handle)
+    proof = prove_liveness(composition.inspector_config, handle.handle)
     if proof.status is Liveness.INDETERMINATE:
         return MonitorHealth.INDETERMINATE
     if not proof.alive:
@@ -88,7 +88,7 @@ def monitor_health(composition: Composition, root_id: str) -> MonitorHealth:
 
 
 def require_monitor(composition: Composition, root_id: str) -> None:
-    """Gate only explicitly monitored startup, never ordinary run or bridge use."""
+    """Gate only explicitly monitored startup, never ordinary run or contractor use."""
     try:
         health = monitor_health(composition, root_id)
     except (WrapperDirError, OSError, ValueError) as error:
@@ -101,7 +101,7 @@ def require_monitor(composition: Composition, root_id: str) -> None:
 
 def monitor_status(composition: Composition, root_id: str) -> dict[str, object]:
     """Report delivery health without pretending a bd event is a received hook."""
-    paths = WrapperPaths(composition.supervisor_config, root_id)
+    paths = WrapperPaths(composition.inspector_config, root_id)
     state = None
     degraded = None
     try:
@@ -141,10 +141,10 @@ class WakeMonitor:
         self._composition = composition
         self._root_id = root_id
         self._config = composition.config.wake
-        self._paths = WrapperPaths(composition.supervisor_config, root_id)
+        self._paths = WrapperPaths(composition.inspector_config, root_id)
         self._lock = BandLock(self._paths.instance_dir / MONITOR_LOCK)
         self._clock = composition.clock
-        self._handle = process_handle(composition.supervisor_config, self._clock)
+        self._handle = process_handle(composition.inspector_config, self._clock)
         self._instance_key = (
             composition.reads_for_root(root_id).load_root(root_id).metadata.instance_key
         )
@@ -413,13 +413,13 @@ class WakeMonitor:
         if stopped and heartbeat.last_condition is not DriverCondition.ERROR:
             return
         proof = (
-            prove_liveness(self._composition.supervisor_config, heartbeat.identity)
+            prove_liveness(self._composition.inspector_config, heartbeat.identity)
             if heartbeat.identity is not None
             else None
         )
         lost = (
             heartbeat.identity is not None
-            and heartbeat.identity.host == self._composition.supervisor_config.host
+            and heartbeat.identity.host == self._composition.inspector_config.host
             and proof is not None
             and proof.status in (Liveness.DEAD, Liveness.IDENTITY_MISMATCH)
         )

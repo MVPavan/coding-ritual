@@ -103,12 +103,12 @@ def test_hung_request_deadline_does_not_block_polling():
 
 def test_fork_barrier_owns_rpc_pipes_and_preserves_receipt(tmp_path):
     """RPC uses the existing launch barrier; stderr never reaches the event log."""
-    from tests._supervisor import entry_mint
-    from tests.test_supervisor_launch import Lab
-    from workflow_interpreter.contracts.transport import RunnerTransport
-    from workflow_interpreter.supervisor.launch import ForkBarrierLauncher
-    from workflow_interpreter.supervisor.profile import RunnerCommand
-    from workflow_interpreter.supervisor.sandbox import SandboxMode, SandboxPlan
+    from tests._inspector import entry_mint
+    from tests.test_inspector_launch import Lab
+    from workflow_interpreter.contracts.transport import CrewTransport
+    from workflow_interpreter.inspector.launch import ForkBarrierLauncher
+    from workflow_interpreter.inspector.profile import CrewCommand
+    from workflow_interpreter.inspector.sandbox import SandboxMode, SandboxPlan
 
     lab = Lab(tmp_path)
     activation = lab.store.mint_activation(lab.root.root_id, entry_mint()).activation
@@ -124,13 +124,13 @@ def test_fork_barrier_owns_rpc_pipes_and_preserves_receipt(tmp_path):
         sandbox=SandboxMode.OFF,
     )
     handle = launcher(
-        RunnerCommand(
+        CrewCommand(
             argv=(sys.executable, str(FIXTURE)),
             env={},
             cwd=str(lab.repo),
             log_path=str(lab.paths.log(aid)),
             session_id="",
-            transport=RunnerTransport.STDIO_RPC,
+            transport=CrewTransport.STDIO_RPC,
         )
     )
     try:

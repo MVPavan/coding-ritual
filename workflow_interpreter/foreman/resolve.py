@@ -29,7 +29,9 @@ from workflow_interpreter.foreman.execution import (
     EFFECTIVE_FIELD_SETTINGS,
     effective_node,
 )
-from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RUNNER_PREFIX
+from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
+from workflow_interpreter.inspector.channels import pin_verifier_digests
+from workflow_interpreter.profiles.config import CREW_PREFIX, MODEL_VENDOR_DEFAULT
 from workflow_interpreter.schema.graph_index import at, build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import (
@@ -42,10 +44,8 @@ from workflow_interpreter.schema.models import (
     Severity,
 )
 from workflow_interpreter.schema.validator import PHASE_B_RULES
-from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
-from workflow_interpreter.supervisor.channels import pin_verifier_digests
 
-RUNNER_FIELD: Final[str] = "runner"
+CREW_FIELD: Final[str] = "crew"
 
 _LOG = structlog.get_logger()
 
@@ -57,8 +57,8 @@ MSG_ROLE_REFERENCE: Final[str] = (
     "{key!r} from {source} is a `profile:<role>` reference; only the foreman "
     "config's roles map resolves those, so state the profile itself"
 )
-MSG_RUNNER_WITHOUT_BINDING: Final[str] = (
-    "{key!r} from {source} chooses a runner without {binding!r} from the same "
+MSG_CREW_WITHOUT_BINDING: Final[str] = (
+    "{key!r} from {source} chooses a crew without {binding!r} from the same "
     "source — the binding would stay the graph role's, a pairing nobody stated"
 )
 MSG_EMPTY_EFFORT: Final[str] = "{key!r} must not be empty"
@@ -74,7 +74,7 @@ _EFFECTIVE_NODE_RULES: Final = PHASE_B_RULES
 TASK_SETTING_TYPES: Final[
     Mapping[NodeSetting | BoundSetting, type[str | int | bool]]
 ] = {
-    NodeSetting.RUNNER: str,
+    NodeSetting.CREW: str,
     NodeSetting.MODEL: str,
     NodeSetting.EFFORT: str,
     NodeSetting.ISOLATION: str,
@@ -166,8 +166,8 @@ def resolve(
         if owner is not None and source is not ConfigSource.GRAPH_DEFAULT:
             owner_node, owner_field = owner
             _refuse_unusable(owner_node, owner_field, key, value)
-            if owner_field == RUNNER_FIELD:
-                _refuse_half_bound_runner(
+            if owner_field == CREW_FIELD:
+                _refuse_half_bound_crew(
                     owner_node.name,
                     value,
                     source,
@@ -259,30 +259,30 @@ def _refuse_unusable(node: Node, field: str, key: str, value: str | int | bool) 
         ) from error
 
 
-def _refuse_half_bound_runner(
+def _refuse_half_bound_crew(
     node_name: str,
     value: str | int | bool,
     source: ConfigSource,
     supplied: Mapping[str, object],
 ) -> None:
-    """Keep a configured runner a COMPLETE, already-resolved binding (§3.1).
+    """Keep a configured crew a COMPLETE, already-resolved binding (§3.1).
 
     A `profile:<role>` value is a role reference, and only `_resolved_config`
     resolves those — accepting one here pins a root whose execution view has
-    no runner to read. A runner without its model or effort leaves one setting
+    no crew to read. A crew without its model or effort leaves one setting
     from the graph role, a pairing nobody stated (cr-7h8 review).
     """
-    if isinstance(value, str) and value.startswith(RUNNER_PREFIX):
+    if isinstance(value, str) and value.startswith(CREW_PREFIX):
         raise ResolutionError(
             MSG_ROLE_REFERENCE.format(
-                key=NodeSetting.RUNNER.at(node_name), source=source.value
+                key=NodeSetting.CREW.at(node_name), source=source.value
             )
         )
     for binding in (NodeSetting.MODEL, NodeSetting.EFFORT):
         if binding.at(node_name) not in supplied:
             raise ResolutionError(
-                MSG_RUNNER_WITHOUT_BINDING.format(
-                    key=NodeSetting.RUNNER.at(node_name),
+                MSG_CREW_WITHOUT_BINDING.format(
+                    key=NodeSetting.CREW.at(node_name),
                     binding=binding.at(node_name),
                     source=source.value,
                 )
@@ -372,14 +372,14 @@ def instantiate(
 ) -> RootRecord:
     """Pin graph, inputs, config and branch base into one idempotent root.
 
-    `backend` is the pin the root is CREATED on (§3.2, D18): the bridge
-    record's `root_backend` for a bridge stage, the `tasks` row for a run with
-    no bridge. It is required rather than defaulted because the process-wide
+    `backend` is the pin the root is CREATED on (§3.2, D18): the contractor
+    record's `root_backend` for a contractor stage, the `tasks` row for a run with
+    no contractor. It is required rather than defaulted because the process-wide
     store is built on whichever transport this process started on, and a root
     created there after the `store` switch flipped would contradict the record
     that names its backend.
 
-    `attempt` is the bridge's own attempt number for this stage; with the
+    `attempt` is the contractor's own attempt number for this stage; with the
     composition's task it becomes the root's pinned run identity (§3.7). A
     caller that has no attempt to name — `foreman create`, a lab wiring —
     pins none, and the run-scoped verify variables are then empty.
@@ -389,13 +389,13 @@ def instantiate(
         definition, instance_inputs, allow_test_flags=allow_test_flags
     )
     roles = {
-        node.name: node.runner.removeprefix("profile:")
+        node.name: node.crew.removeprefix("profile:")
         for node in definition.document.node
-        if node.runner is not None and node.runner.startswith("profile:")
+        if node.crew is not None and node.crew.startswith("profile:")
     }
     missing = sorted(set(roles.values()) - set(composition.config.roles))
     if missing:
-        raise ResolutionError(f"unknown runner roles: {', '.join(missing)}")
+        raise ResolutionError(f"unknown crew roles: {', '.join(missing)}")
     base = composition.git.head_commit(cwd=composition.config.repo_root)
     root = composition.creation_store(backend).create_root(
         instance_key=instance_key,
@@ -437,17 +437,17 @@ def _resolved_config(
         for item in resolve(definition, composition.config.project_config, overrides)
     }
     for node in definition.document.node:
-        if node.runner is None or not node.runner.startswith("profile:"):
+        if node.crew is None or not node.crew.startswith("profile:"):
             continue
-        binding = composition.config.roles[node.runner.removeprefix("profile:")]
-        runner_key = f"node.{node.name}.runner"
+        binding = composition.config.roles[node.crew.removeprefix("profile:")]
+        crew_key = f"node.{node.name}.crew"
         model_key = f"node.{node.name}.model"
         effort_key = f"node.{node.name}.effort"
-        if settings.get(runner_key) is None or (
-            settings[runner_key].source is ConfigSource.GRAPH_DEFAULT
+        if settings.get(crew_key) is None or (
+            settings[crew_key].source is ConfigSource.GRAPH_DEFAULT
         ):
-            settings[runner_key] = ResolvedSetting(
-                key=runner_key,
+            settings[crew_key] = ResolvedSetting(
+                key=crew_key,
                 value=binding.profile,
                 source=ConfigSource.ROLE_BINDING,
             )

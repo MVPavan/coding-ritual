@@ -58,12 +58,12 @@ Their shared prescription, in five moves:
 2. **A small tracker port replaces it** — roughly `get`, `children`, `blockers`,
    `claim`, `close`, plus optional `annotate` and `flag`. Every write followed by a
    read-back, because no remote tracker is transactional.
-3. **The `phase_bridge` record moves off the bead into the ledger.** Opus's governing
+3. **The `contractor` record moves off the bead into the ledger.** Opus's governing
    rule: *the tool must reconstruct full state with the tracker offline or wiped.* That
    single rule is what makes GitHub or Jira viable.
 4. **Mint tool-local, path-safe task ids** in the ledger and map them to tracker ids.
    `PROJ-12` and `#123` cannot appear in `refs/wf/...` or worktree paths.
-5. **The foreman and supervisor never touch the tracker.** Only the bridge, at admit
+5. **The foreman and inspector never touch the tracker.** Only the contractor, at admit
    and close, plus the attention reconciler. Snapshot at admission so no tick blocks on
    a network.
 
@@ -125,5 +125,5 @@ coupling that blocks any tracker but beads, and shrinks exactly the surface a fu
 port would carry. It is correct under both branches of the undecided question.
 
 Then decide the language at the concurrency fork: if adding concurrent graphs and
-subgraphs forces the foreman and supervisor to be restructured anyway, port then, using
+subgraphs forces the foreman and inspector to be restructured anyway, port then, using
 the existing `proc` and acceptance tests as the oracle rather than as code to translate.

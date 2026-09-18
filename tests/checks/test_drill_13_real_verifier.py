@@ -1,7 +1,7 @@
 """Drill 13 against the REAL `scripts/verify-feature.sh`.
 
 The earlier drill-13 coverage rewrites a synthetic one-line check; this one
-pins the bytes the phase actually ships and then edits them the way a runner
+pins the bytes the phase actually ships and then edits them the way a crew
 could — by committing a changed `scripts/verify-feature.sh` after `create`
 took the digest. The refusal has to be about THAT: a present, runnable,
 different-digest verifier, not a missing one (a missing script also fails
@@ -16,13 +16,13 @@ from pathlib import Path
 import pytest
 
 from tests._foreman import ForemanLab
-from tests._supervisor import VERIFY_SCRIPT, ChildScript
+from tests._inspector import VERIFY_SCRIPT, ChildScript
 from tests.checks._project import VERIFY_FEATURE
 from tests.conftest import Signer
 from workflow_interpreter.bdio import Outcome, SigningConfig
-from workflow_interpreter.supervisor.models import AuditFlag, CompletionEvidence
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.inspector.models import AuditFlag, CompletionEvidence
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.sandbox import SandboxMode
 
 pytestmark = pytest.mark.proc
 
@@ -40,7 +40,7 @@ def test_drill_13_refuses_the_real_verifier_when_it_is_edited_after_create(
     """An edited pinned verifier is REFUSED, and the claim becomes `fail_code`."""
     pinned_body = VERIFY_FEATURE.read_text(encoding="utf-8")
     edited_body = pinned_body + EDIT
-    # `sandbox = off`: the drill stages its edit by having the RUNNER commit a
+    # `sandbox = off`: the drill stages its edit by having the CREW commit a
     # rewritten `scripts/verify-feature.sh`, which is outside the implement
     # node's grants and which the §2 mount bound refuses outright. The bound
     # stopping it is a different (and welcome) fact; what has to keep holding

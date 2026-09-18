@@ -20,15 +20,14 @@ from typing import Final, NamedTuple
 
 import pytest
 
-from workflow_interpreter.profiles._base import toolchain_env
-from workflow_interpreter.supervisor.channels import path_allowed
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import (
+from workflow_interpreter.inspector.channels import path_allowed
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import (
     SandboxPathRefused,
     SandboxUnavailable,
 )
-from workflow_interpreter.supervisor.profile import TaskSpec, channels_for
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector.profile import TaskSpec, channels_for
+from workflow_interpreter.inspector.sandbox import (
     ARG_BIND,
     ARG_DEV_BIND,
     ARG_DIE_WITH_PARENT,
@@ -50,6 +49,7 @@ from workflow_interpreter.supervisor.sandbox import (
     reset_probe_cache,
     wrap,
 )
+from workflow_interpreter.profiles._base import toolchain_env
 
 ROOT_ID: Final[str] = "wf-root-1"
 ACTIVATION: Final[str] = "wf-42"
@@ -101,7 +101,7 @@ def _git(cwd: Path, *args: str) -> str:
 
 
 def _init(repo: Path) -> None:
-    """A git repo with one commit and an identity a runner can commit under."""
+    """A git repo with one commit and an identity a crew can commit under."""
     repo.mkdir(parents=True, exist_ok=True)
     _git(repo, "init", "--quiet", "--initial-branch=main")
     _git(repo, "config", "user.email", "wf@test")
@@ -138,7 +138,7 @@ def _in_repo_rig(tmp_path: Path) -> Rig:
 
 WORKTREE_BRANCH: Final[str] = f"wf/{ROOT_ID}/candidate"
 """Namespaced, because §5.4 names every candidate branch `wf/<root_id>`
-(`supervisor/artifact.py::BRANCH_TEMPLATE`) and the git write set descends to
+(`inspector/artifact.py::BRANCH_TEMPLATE`) and the git write set descends to
 the directory holding THIS branch. A rig on a top-level branch would have made
 `refs/heads` and `logs/refs/heads` themselves the grant and hidden the whole
 point of the narrowing."""
@@ -203,9 +203,9 @@ def _plan(
 
 def _config(
     tmp_path: Path, sandbox: SandboxMode = SandboxMode.BWRAP
-) -> SupervisorConfig:
-    """A supervisor config carrying only the field `probe` reads."""
-    return SupervisorConfig(
+) -> InspectorConfig:
+    """An inspector config carrying only the field `probe` reads."""
+    return InspectorConfig(
         repo_root=tmp_path / "repo",
         wrapper_root=tmp_path / ".wf",
         host=HOST,
@@ -299,7 +299,7 @@ def test_worktree_precreates_only_the_fixed_set(tmp_path: Path) -> None:
 
 def test_worktree_precreates_the_reflog_dir(tmp_path: Path) -> None:
     """The BRANCH's reflog directory is pre-created, not existence-gated: a repo
-    whose first ref update has not happened has no `logs/`, and the runner's own
+    whose first ref update has not happened has no `logs/`, and the crew's own
     commit then dies trying to CREATE it under a read-only `.git` (plan §2)."""
     rig = _worktree_rig(tmp_path)
     common = rig.repo_root / ".git"
@@ -373,7 +373,7 @@ def test_a_detached_worktree_gets_no_shared_ref_or_reflog_grant(
 def test_a_head_naming_a_path_outside_refs_heads_grants_nothing(
     tmp_path: Path,
 ) -> None:
-    """`<G>/HEAD` is inside the writable `<G>`, so it is runner-controlled text.
+    """`<G>/HEAD` is inside the writable `<G>`, so it is crew-controlled text.
 
     A `HEAD` that walks out of `refs/heads` is the escape this closes: without
     the check it would name `<common>/hooks` as a branch directory and hand the
@@ -407,7 +407,7 @@ def test_a_head_naming_refs_heads_itself_grants_nothing(tmp_path: Path) -> None:
 
 
 def test_a_symlinked_branch_directory_grants_nothing(tmp_path: Path) -> None:
-    """A runner can write in `<common>/refs/heads`, so the directory the NEXT
+    """A crew can write in `<common>/refs/heads`, so the directory the NEXT
     dispatch derives from `HEAD` is attacker-reachable. Replacing it with a link
     to `hooks/` would have the vendor layer grant the programs the wrapper's own
     git executes; the mount bound binds by real path and would refuse, so the
@@ -429,7 +429,7 @@ def test_both_checkout_shapes_pin_the_ledger_fence_directory(
     """`<common>/wf` is read-only in every shape that has a git directory.
 
     The in-repo shape is the one that NEEDS it — `.git` is bound read-write as
-    a whole, so without the pin a runner could unlink the locked inode and
+    a whole, so without the pin a crew could unlink the locked inode and
     leave every ledger writer holding a lock on a file nobody else can see
     (run-ledger §3.4). The worktree shape pins the same directory, so the two
     shapes cannot drift.
@@ -563,7 +563,7 @@ def test_wrap_emits_pins_after_every_rw_bind(tmp_path: Path) -> None:
     """The §2 blocker: a pin placed before a later rw bind of its parent re-opens."""
     rig = _worktree_rig(tmp_path)
     plan = _plan(rig)
-    argv = wrap(("runner", "--go"), plan)
+    argv = wrap(("crew", "--go"), plan)
     assert argv[:5] == (
         BWRAP_BINARY,
         ARG_DIE_WITH_PARENT,
@@ -571,7 +571,7 @@ def test_wrap_emits_pins_after_every_rw_bind(tmp_path: Path) -> None:
         FS_ROOT,
         FS_ROOT,
     )
-    assert argv[-3:] == (ARG_END, "runner", "--go")
+    assert argv[-3:] == (ARG_END, "crew", "--go")
     assert argv.count(ARG_END) == 1
     last_rw = max(index for index, word in enumerate(argv) if word == ARG_BIND)
     first_pin = min(argv.index(str(pin)) for pin in plan.ro_pins if str(pin) in argv)
@@ -582,7 +582,7 @@ def test_wrap_emits_the_groups_in_plan_order(tmp_path: Path) -> None:
     """`channels` → `uv-cache` → pins, so a later rw cache bind cannot reopen pins."""
     rig = _worktree_rig(tmp_path)
     plan = _plan(rig)
-    argv = wrap(("runner",), plan)
+    argv = wrap(("crew",), plan)
     ordered = [
         argv.index(str(path))
         for group in (
@@ -601,7 +601,7 @@ def test_wrap_emits_the_groups_in_plan_order(tmp_path: Path) -> None:
 def test_wrap_is_the_identity_under_sandbox_off(tmp_path: Path) -> None:
     """`off` is a real off switch, not a differently-shaped box."""
     plan = _plan(_plain_rig(tmp_path))
-    assert wrap(("runner", "--go"), plan, mode=SandboxMode.OFF) == ("runner", "--go")
+    assert wrap(("crew", "--go"), plan, mode=SandboxMode.OFF) == ("crew", "--go")
 
 
 # --- probe -----------------------------------------------------------------
@@ -653,17 +653,17 @@ def test_real_bwrap_bound_holds_for_a_worktree_checkout(tmp_path: Path) -> None:
     assert box[-1] == ARG_END
     grant = rig.checkout / GRANT_DIR
 
-    inside = _run(box, f"echo runner > {grant}/note.txt", rig.checkout)
+    inside = _run(box, f"echo crew > {grant}/note.txt", rig.checkout)
     assert inside.returncode == 0, inside.stderr
     assert (grant / "note.txt").is_file()
 
-    outside = _run(box, f"echo runner > {rig.checkout}/escape.txt", rig.checkout)
+    outside = _run(box, f"echo crew > {rig.checkout}/escape.txt", rig.checkout)
     assert outside.returncode != 0
     assert "Read-only file system" in outside.stderr
 
-    committed = _run(box, "git add -A && git commit --quiet -m runner", rig.checkout)
+    committed = _run(box, "git add -A && git commit --quiet -m crew", rig.checkout)
     assert committed.returncode == 0, committed.stderr
-    assert _git(rig.checkout, "log", "-1", "--pretty=%s") == "runner"
+    assert _git(rig.checkout, "log", "-1", "--pretty=%s") == "crew"
 
     hook = _run(box, f"echo evil > {rig.repo_root}/.git/hooks/pre-commit", rig.checkout)
     assert hook.returncode != 0
@@ -890,7 +890,7 @@ COMMONDIR_ESCAPE: Final[str] = "escape"
 def test_the_worktree_gitdir_pointers_cannot_be_repointed(tmp_path: Path) -> None:
     """The rw bind of `<G>` must not carry `commondir`/`gitdir` with it.
 
-    Repointing `commondir` at a runner-controlled directory holding a `config`
+    Repointing `commondir` at a crew-controlled directory holding a `config`
     with `core.fsmonitor` makes the WRAPPER's own next `git status` — run
     outside the box, as the wrapper — execute that command. `<G>` has to be
     read-write for `index.lock`, so the two pointer files are pinned back.
@@ -905,7 +905,7 @@ def test_the_worktree_gitdir_pointers_cannot_be_repointed(tmp_path: Path) -> Non
     assert gitdir / GITDIR_FILE in plan.ro_pins
     box = wrap((), plan)
 
-    # The escape, exactly as a runner would stage it: a writable directory it
+    # The escape, exactly as a crew would stage it: a writable directory it
     # controls, a hostile `config` in it, and `commondir` repointed at it.
     escape = rig.channels / COMMONDIR_ESCAPE
     marker = rig.channels / PWNED
@@ -917,19 +917,19 @@ def test_the_worktree_gitdir_pointers_cannot_be_repointed(tmp_path: Path) -> Non
 
     assert repointed.returncode != 0
     assert any(text in repointed.stderr for text in REFUSED_TEXT), repointed.stderr
-    # The wrapper's own git, outside the box, on the tree the runner just left.
+    # The wrapper's own git, outside the box, on the tree the crew just left.
     _git(rig.checkout, "status", "--porcelain")
     assert not marker.exists()
 
 
 @pytest.mark.proc
-def test_a_runner_cannot_replace_the_ledger_fence_inode_in_either_shape(
+def test_a_crew_cannot_replace_the_ledger_fence_inode_in_either_shape(
     tmp_path: Path,
 ) -> None:
     """The fence file survives `rm`, `mv` and a truncating write from inside.
 
     Replacing the INODE is the escape that matters: every other ledger writer
-    holds its `flock` on the file this one would have unlinked, so a runner
+    holds its `flock` on the file this one would have unlinked, so a crew
     that could swap it would silently un-fence import, migration and restore
     (run-ledger §3.4). Both checkout shapes, because `.git` is writable as a
     whole in one of them.
@@ -998,7 +998,7 @@ def test_a_grant_that_is_not_a_plain_directory_glob_is_refused(
     `./**` maps to the WHOLE checkout, a bare `tests` is taken literally as a
     directory named `tests`, and any `.`-leading segment re-opens a pin — and
     `.git/**` used to raise a bare `FileExistsError`, an `OSError` that
-    `supervise.py`'s generic catch spends an infra retry on instead of halting.
+    `inspect.py`'s generic catch spends an infra retry on instead of halting.
     """
     rig = _plain_rig(tmp_path)
     with pytest.raises(SandboxPathRefused):

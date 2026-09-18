@@ -1,21 +1,24 @@
-"""Observed checks, never labels, authorize the bridge artifact."""
+"""Observed checks, never labels, authorize the contractor artifact."""
 
 import sys
 from pathlib import Path
 
 import pytest
 
-from tests._supervisor import head_of, make_repo
-from workflow_interpreter.bridge.landing import DetachedRepositoryGate
-from workflow_interpreter.bridge.verification import CheckCommand, VerificationPolicy
-from workflow_interpreter.supervisor import Git
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.paths import WrapperPaths
+from tests._inspector import head_of, make_repo
+from workflow_interpreter.contractor.landing import DetachedRepositoryGate
+from workflow_interpreter.contractor.verification import (
+    CheckCommand,
+    VerificationPolicy,
+)
+from workflow_interpreter.inspector import Git
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.paths import WrapperPaths
 
 
 def gate(tmp_path: Path, code: str, timeout: float = 3):
     repo = make_repo(tmp_path)
-    config = SupervisorConfig(
+    config = InspectorConfig(
         repo_root=repo, wrapper_root=tmp_path / "wrapper", host="test"
     )
     git = Git(config)
@@ -89,14 +92,14 @@ def test_policy_rejects_missing_duplicate_failed_and_wrong_command_results(
 def test_admission_requires_policy_before_writes(
     fake_bd, fake_client, tmp_path: Path
 ) -> None:
-    from tests.test_phase_bridge import (
+    from tests.test_contractor import (
         EPIC_ID,
         STAGE_ID,
         TARGET_REF,
         _Roots,
         _stage_row,
     )
-    from workflow_interpreter.bridge import PhaseAdapter, PhaseAdmission
+    from workflow_interpreter.contractor import PhaseAdapter, PhaseAdmission
 
     repo = make_repo(tmp_path)
     base = head_of(repo)
@@ -106,7 +109,7 @@ def test_admission_requires_policy_before_writes(
     )
     with pytest.raises(ValueError, match="policy"):
         admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
-    assert "phase_bridge" not in fake_bd.rows[STAGE_ID]["metadata"]
+    assert "contractor" not in fake_bd.rows[STAGE_ID]["metadata"]
 
 
 def test_duplicate_policy_names_and_missing_program_refuse(tmp_path: Path) -> None:
@@ -128,7 +131,7 @@ def test_changed_executable_refuses_without_running(tmp_path: Path) -> None:
         (CheckCommand(name="proof", argv=(str(program),)),), repo
     )
     program.write_text("#!/bin/sh\ntouch ran\n")
-    config = SupervisorConfig(
+    config = InspectorConfig(
         repo_root=repo, wrapper_root=tmp_path / "wrapper", host="test"
     )
     git = Git(config)
@@ -142,7 +145,7 @@ def test_changed_executable_refuses_without_running(tmp_path: Path) -> None:
 
 def test_label_callback_is_not_a_repository_verification_policy(tmp_path: Path) -> None:
     repo = make_repo(tmp_path)
-    config = SupervisorConfig(
+    config = InspectorConfig(
         repo_root=repo, wrapper_root=tmp_path / "wrapper", host="test"
     )
     with pytest.raises(TypeError, match="policy"):

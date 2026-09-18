@@ -9,7 +9,7 @@ import pytest
 from tests._helpers import VALID_FIXTURE
 from workflow_interpreter.bdio.records import GateRecord
 from workflow_interpreter.bdio.wire import GateMetadata, GateState
-from workflow_interpreter.bridge.authority import (
+from workflow_interpreter.contractor.authority import (
     MSG_SHIP_GATE_AMBIGUOUS,
     MSG_SHIP_GATE_MISSING,
     MSG_SHIP_GATE_MISSING_MARK,
@@ -18,12 +18,12 @@ from workflow_interpreter.bridge.authority import (
     MSG_SHIP_GATE_UNDECLARED_OUTCOME,
     BeadGateAuthority,
 )
-from workflow_interpreter.bridge.landing import SHIP_GATE
+from workflow_interpreter.contractor.landing import SHIP_GATE
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import BindsMode, Outcome
 
-ROOT_ID = "bridge-root"
+ROOT_ID = "contractor-root"
 OTHER_ROOT_ID = "other-root"
 ARTIFACT_OID = "a" * 40
 TREE = "b" * 40
@@ -160,7 +160,7 @@ def test_refuses_a_closed_ship_gate_with_an_undeclared_outcome() -> None:
         authority.verify(ROOT_ID)
 
 
-def test_declared_bridge_ship_approve_authorizes_landing() -> None:
+def test_declared_contractor_ship_approve_authorizes_landing() -> None:
     authority = BeadGateAuthority(_Reads((_ship_gate(),)))
     assert authority.verify(ROOT_ID).accepted is True
 

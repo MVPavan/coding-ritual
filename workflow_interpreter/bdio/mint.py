@@ -9,7 +9,7 @@ phase-2 review; §3.2 'Mint facts are DERIVED by the wrapper').
 
 The mint reason is not exempt either: it must be CONSISTENT with the
 predecessor's recorded close. An `edge` mint whose predecessor closed
-`error_runner` is a mislabeled infra retry and is refused, not silently
+`error_crew` is a mislabeled infra retry and is refused, not silently
 counted against the wrong bound.
 """
 

@@ -18,7 +18,7 @@ from tests._helpers import (
     unnameable_abandon_graph,
     write,
 )
-from tests._supervisor import ChildScript
+from tests._inspector import ChildScript
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     ActivationRecord,
@@ -36,24 +36,24 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_PRECONDITION_REFUSED,
 )
 from workflow_interpreter.bdio.wire import EventPayload
-from workflow_interpreter.foreman.config import RunnerBinding
+from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.constants import DEVIATION_UNDECLARED_EFFECTS_ACCEPTED
 from workflow_interpreter.foreman.gates import exhaustion_gate
 from workflow_interpreter.foreman.routing import RouteKind, route
 from workflow_interpreter.foreman.tick import Foreman
-from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
-from workflow_interpreter.profiles.registry import ProfileRegistry
-from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     INSTANCE_BRANCH_REF,
     AuditFlag,
     BranchAdvanceOutcome,
     activation_ref,
 )
-from workflow_interpreter.supervisor.models import CompletionEvidence, PinResult
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.sandbox import SandboxMode
-from workflow_interpreter.supervisor.workspace import Workspace
+from workflow_interpreter.inspector.models import CompletionEvidence, PinResult
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.inspector.workspace import Workspace
+from workflow_interpreter.profiles.config import CrewName, ProfileConfig
+from workflow_interpreter.profiles.registry import ProfileRegistry
+from workflow_interpreter.schema.models import Node
 
 # Every test in this file is a §5 drill row (D2 functional drills).
 pytestmark = pytest.mark.acceptance
@@ -235,17 +235,15 @@ def test_drill_22_missing_registry_binary_exhausts_infra_retries_to_fallback(
     config = lab.config.model_copy(
         update={
             "roles": {
-                "implementer": RunnerBinding(
+                "implementer": CrewBinding(
                     profile="codex", model="gpt-5", effort="medium"
                 ),
-                "critic": RunnerBinding(
-                    profile="codex", model="gpt-5", effort="medium"
-                ),
+                "critic": CrewBinding(profile="codex", model="gpt-5", effort="medium"),
             }
         }
     )
     profiles = ProfileRegistry(
-        ProfileConfig(binary_overrides={RunnerName.CODEX: str(missing_binary)}),
+        ProfileConfig(binary_overrides={CrewName.CODEX: str(missing_binary)}),
         lab.clock,
         {},
     )
@@ -266,10 +264,10 @@ def test_drill_22_missing_registry_binary_exhausts_infra_retries_to_fallback(
     assert [
         lab.store.reads.load_activation(activation_id).metadata.outcome
         for activation_id in activation_ids
-    ] == [Outcome.ERROR_RUNNER] * 3
+    ] == [Outcome.ERROR_CREW] * 3
     assert gate_id is not None
     gate = lab.store.reads.load_gate(gate_id)
-    assert gate.metadata.opening_outcome is Outcome.ERROR_RUNNER
+    assert gate.metadata.opening_outcome is Outcome.ERROR_CREW
     assert gate.metadata.gate_node == "triage"
 
 
@@ -804,14 +802,14 @@ def test_drill_26_a_real_infra_failure_after_the_dirty_tree_recovery_keeps_the_f
         lab.tick()
         lab.tick()
 
-    error_runner_closes = [
+    error_crew_closes = [
         row
         for row in lab.beads("activation")
         if row["metadata"].get("node") == "implement"
         and row["metadata"].get("round_no") == 1
-        and row["metadata"].get("outcome") == "error_runner"
+        and row["metadata"].get("outcome") == "error_crew"
     ]
-    assert len(error_runner_closes) == 1 + max_infra_retries
+    assert len(error_crew_closes) == 1 + max_infra_retries
 
 
 # -- IN-REPO row, sub-cases (a) and (e) (scratchpad/probes/phase5-plan.md:357) --
@@ -1009,7 +1007,7 @@ def test_in_repo_worktree_review_branch_advance_is_unchanged(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Row clause (e): H3 — review's worktree is checked out `-B wf/<root>` at
-    the base (`gitio.py`'s `worktree_add`), so the runner's own commit already
+    the base (`gitio.py`'s `worktree_add`), so the crew's own commit already
     moves the instance branch; the wrapper's own advance finds nothing left to
     do (`BranchAdvance.unchanged`), and never calls `update_ref_cas`.
     """
@@ -1074,7 +1072,7 @@ def test_in_repo_worktree_review_branch_advance_is_unchanged(
     assert cas_calls == []
     # A short-name ref (`wf/<root>` instead of `refs/heads/wf/<root>`) makes
     # `Git.ref_target` raise `GitCommandError` immediately (`gitio.py`'s "ref
-    # must start with refs/" guard). `_post_exit` catches `SupervisorError`
+    # must start with refs/" guard). `_post_exit` catches `InspectorError`
     # and converts it into a swallowed `fail_code`/`VERIFY_UNRUNNABLE` verdict
     # rather than letting it propagate — so "NO GitCommandError" is observed
     # here as the ABSENCE of that fail-closed verdict, not as a raised
@@ -1186,7 +1184,7 @@ def test_a_dispatched_task_carries_its_nodes_instructions_and_facts(
 
     assert node.instructions is not None
     assert node.instructions.strip() in task.brief
-    # The facts the runner cannot derive from its inputs.
+    # The facts the crew cannot derive from its inputs.
     assert "implement" in task.brief
     assert lab.definition.document.graph.id in task.brief
     assert "declared facts" in task.brief.lower()
@@ -1211,7 +1209,7 @@ def test_preservation_failure_blocks_foreman_settlement(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The outer settlement seam must not close past a failed recovery pin."""
-    from workflow_interpreter.supervisor import Git, GitCommandError
+    from workflow_interpreter.inspector import Git, GitCommandError
 
     lab = ForemanLab(tmp_path)
     lab.instantiate()
@@ -1250,9 +1248,9 @@ def test_cached_evidence_preservation_failure_retries_before_close(
     """Even an already recorded verdict cannot advance past failed preservation."""
     from pydantic import BaseModel
 
-    from workflow_interpreter.supervisor import Git, GitCommandError
-    from workflow_interpreter.supervisor import workspace as workspace_module
-    from workflow_interpreter.supervisor.models import RecoverySnapshot
+    from workflow_interpreter.inspector import Git, GitCommandError
+    from workflow_interpreter.inspector import workspace as workspace_module
+    from workflow_interpreter.inspector.models import RecoverySnapshot
 
     lab = ForemanLab(tmp_path)
     lab.instantiate()
@@ -1309,7 +1307,7 @@ def test_cached_evidence_preservation_failure_retries_before_close(
 def _dead_writer_lab(tmp_path: Path) -> tuple[ForemanLab, ActivationRecord]:
     """Leave a real dispatched writer without an observed exit."""
     from tests._foreman import entry_request
-    from tests._supervisor import dead_pid, handle_for
+    from tests._inspector import dead_pid, handle_for
     from workflow_interpreter.bdio import PreconditionRecord
 
     lab = ForemanLab(tmp_path)
@@ -1339,13 +1337,13 @@ def test_orphan_pin_refusal_survives_repeated_foreman_ticks(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """An unobserved exit file never bypasses recovery's pin-first refusal."""
-    from tests._supervisor import runner_commit
-    from workflow_interpreter.supervisor import Git, GitCommandError
+    from tests._inspector import crew_commit
+    from workflow_interpreter.inspector import Git, GitCommandError
 
     lab, activation = _dead_writer_lab(tmp_path)
     wiring = lab.wiring()
     (wiring.paths.worktree / "src/feature.py").write_text("ahead\n")
-    commit = runner_commit(wiring.paths.worktree, "ahead", activation.activation_id)
+    commit = crew_commit(wiring.paths.worktree, "ahead", activation.activation_id)
     original = Git.update_ref
 
     def refuse(self: Git, ref: str, commit: str, *, cwd: Path) -> None:
@@ -1379,9 +1377,9 @@ def test_recovery_preservation_failure_is_a_retryable_foreman_stall(
     """Both dead-run recovery and interrupted steer report rather than crash."""
     from tests._foreman import entry_request
     from workflow_interpreter.bdio import MintReason
-    from workflow_interpreter.supervisor import Git, GitCommandError, SteerIntent
-    from workflow_interpreter.supervisor.paths import write_record
-    from workflow_interpreter.supervisor.steer import instructions_digest
+    from workflow_interpreter.inspector import Git, GitCommandError, SteerIntent
+    from workflow_interpreter.inspector.paths import write_record
+    from workflow_interpreter.inspector.steer import instructions_digest
 
     lab, activation = _dead_writer_lab(tmp_path)
     wiring = lab.wiring()
@@ -1456,8 +1454,8 @@ def test_unconfirmed_recovery_death_opens_human_gate(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Losing death proof halts visibly without preserving or closing the run."""
-    from workflow_interpreter.supervisor import procfs
-    from workflow_interpreter.supervisor.models import (
+    from workflow_interpreter.inspector import procfs
+    from workflow_interpreter.inspector.models import (
         Liveness,
         LivenessProof,
         TerminationProof,

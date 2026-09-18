@@ -292,7 +292,7 @@ def sign_payload(signing_key: Path, tmp_path: Path) -> Signer:
 
 @pytest.fixture
 def lab(tmp_path: Path) -> Iterator[Lab]:
-    """A supervisor over a throwaway repo, ready to exec a stub vendor CLI.
+    """An inspector over a throwaway repo, ready to exec a stub vendor CLI.
 
     Here rather than in a `test_profiles_*` module because two of them now drive
     the same `Lab` (`tests/_profiles.py`), and a fixture imported into a test

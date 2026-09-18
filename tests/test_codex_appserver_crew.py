@@ -6,14 +6,14 @@ import jsonschema
 import pytest
 
 from tests._appserver import FIXTURE, AppServerLab
-from tests._supervisor import entry_mint
+from tests._inspector import entry_mint
 from workflow_interpreter.bdio import MintReason
 from workflow_interpreter.bdio.rpc_records import SessionRegistration
+from workflow_interpreter.inspector import rpc_session
+from workflow_interpreter.inspector.exit import ComputedEvidence, ExitObserver
+from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor import rpc_session
-from workflow_interpreter.supervisor.exit import ComputedEvidence, ExitObserver
-from workflow_interpreter.supervisor.paths import read_record
 
 
 def test_registered_thread_precedes_turn_and_success_requires_completion(
@@ -184,7 +184,7 @@ def test_same_node_reentry_resumes_history_with_a_fresh_envelope(tmp_path):
     aid = first.dispatch.activation.activation_id
     lab.store.close_activation(aid, Outcome.FAIL_CODE)
     second = lab.run(
-        entry_mint(runner_profile="codex-appserver", session_id="").model_copy(
+        entry_mint(crew_profile="codex-appserver", session_id="").model_copy(
             update={"mint_reason": MintReason.EDGE, "predecessor_activation_id": aid}
         )
     )

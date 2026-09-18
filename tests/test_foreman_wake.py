@@ -8,10 +8,14 @@ import pytest
 from pydantic import ValidationError
 
 from tests._foreman import ForemanLab
-from tests.test_foreman_main import _bridge_adapter, _bridge_lab, _bridge_stage
+from tests.test_foreman_main import (
+    _contractor_adapter,
+    _contractor_lab,
+    _contractor_stage,
+)
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import StoreError
-from workflow_interpreter.bridge import command
+from workflow_interpreter.contractor import command
 from workflow_interpreter.contracts.wake import WakeCondition
 from workflow_interpreter.foreman import __main__ as cli
 from workflow_interpreter.foreman import heartbeat, refusals
@@ -41,9 +45,9 @@ from workflow_interpreter.foreman.wake_constants import (
     WAKE_STATE,
     DriverState,
 )
+from workflow_interpreter.inspector.errors import LockUnavailable
+from workflow_interpreter.inspector.paths import read_record, write_record
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.errors import LockUnavailable
-from workflow_interpreter.supervisor.paths import read_record, write_record
 
 
 def test_run_always_records_start_tick_and_stop_without_monitor(tmp_path: Path) -> None:
@@ -153,15 +157,17 @@ def test_log_cursor_does_not_treat_truncation_or_replacement_as_progress(tmp_pat
     assert log_cursor(path, "activation-b", third).generation == third.generation + 1
 
 
-def test_phase_bridge_propagates_run_attention(tmp_path, monkeypatch):
-    """Refusal attention is nonzero through the bridge's existing run adapter."""
+def test_contractor_propagates_run_attention(tmp_path, monkeypatch):
+    """Refusal attention is nonzero through the contractor's existing run adapter."""
 
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="Implement feature")
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _contractor_stage(
+        "stage", description="Implement feature"
+    )
     monkeypatch.setattr(
         command.PhaseAdapter,
         "from_config",
-        classmethod(lambda *_: _bridge_adapter(lab)),
+        classmethod(lambda *_: _contractor_adapter(lab)),
     )
     monkeypatch.setattr(
         Foreman,
@@ -170,7 +176,7 @@ def test_phase_bridge_propagates_run_attention(tmp_path, monkeypatch):
             ticks=1, report=TickReport(refusals=("bad signature",))
         ),
     )
-    result = command.execute_phase_bridge(
+    result = command.execute_contractor(
         lab.composition, epic_id="phase", stage_id="stage", retry=False, trace=False
     )
     assert result.exit_code != 0
@@ -551,7 +557,7 @@ def test_bd_failure_keeps_pending_and_does_not_call_hook(tmp_path, monkeypatch):
 
 
 def test_monitor_cli_never_resolves_a_model(tmp_path, monkeypatch, capsys):
-    """The independent command observes and fires without entering runner dispatch."""
+    """The independent command observes and fires without entering crew dispatch."""
 
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()

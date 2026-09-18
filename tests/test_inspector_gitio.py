@@ -1,4 +1,4 @@
-"""Strict git-helper contracts used by the supervisor's recovery paths."""
+"""Strict git-helper contracts used by the inspector's recovery paths."""
 
 import subprocess
 from collections.abc import Mapping
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     blob_at,
     commit_all,
     head_of,
@@ -16,9 +16,9 @@ from tests._supervisor import (
     make_repo,
     tree_modes,
 )
+from workflow_interpreter.inspector import GitCommandError, gitcmd, gitsnapshot
+from workflow_interpreter.inspector.gitcmd import GitResult, GitSubcommand
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor import GitCommandError, gitcmd, gitsnapshot
-from workflow_interpreter.supervisor.gitcmd import GitResult, GitSubcommand
 
 
 def _commit_outputs(
@@ -194,7 +194,7 @@ def test_commit_directory_chunks_by_argv_budget(
     assert git.tree_oid(commit, cwd=repo)
 
 
-def test_a_runner_gitattributes_cannot_run_a_clean_filter(tmp_path: Path) -> None:
+def test_a_crew_gitattributes_cannot_run_a_clean_filter(tmp_path: Path) -> None:
     """P9 hashes output bytes without attribute-selected clean filters."""
     repo = make_repo(tmp_path)
     root = tmp_path / "outputs"
@@ -207,24 +207,24 @@ def test_a_runner_gitattributes_cannot_run_a_clean_filter(tmp_path: Path) -> Non
     )
     filter_program.chmod(0o755)
     subprocess.run(
-        ["git", "config", "filter.runner.clean", str(filter_program)],
+        ["git", "config", "filter.crew.clean", str(filter_program)],
         cwd=repo,
         check=True,
     )
-    (root / ".gitattributes").write_text("result.txt filter=runner\n", encoding="utf-8")
-    (root / "result.txt").write_text("runner bytes\n", encoding="utf-8")
+    (root / ".gitattributes").write_text("result.txt filter=crew\n", encoding="utf-8")
+    (root / "result.txt").write_text("crew bytes\n", encoding="utf-8")
 
     _, commit = _commit_outputs(repo, root, (".gitattributes", "result.txt"))
 
     assert not sentinel.exists()
-    assert blob_at(repo, commit, "result.txt") == "runner bytes\n"
+    assert blob_at(repo, commit, "result.txt") == "crew bytes\n"
 
 
 @pytest.mark.proc
-def test_hash_working_file_uses_raw_runner_bytes_without_a_clean_filter(
+def test_hash_working_file_uses_raw_crew_bytes_without_a_clean_filter(
     tmp_path: Path,
 ) -> None:
-    """`runner bytes\\n` must not hash as the filter's `mangled\\n` output."""
+    """`crew bytes\\n` must not hash as the filter's `mangled\\n` output."""
     repo = make_repo(tmp_path)
     sentinel = tmp_path / "hash-filter-ran"
     filter_program = tmp_path / "hash-clean-filter.sh"
@@ -234,18 +234,18 @@ def test_hash_working_file_uses_raw_runner_bytes_without_a_clean_filter(
     )
     filter_program.chmod(0o755)
     subprocess.run(
-        ["git", "config", "filter.runner.clean", str(filter_program)],
+        ["git", "config", "filter.crew.clean", str(filter_program)],
         cwd=repo,
         check=True,
     )
-    (repo / ".gitattributes").write_text("target.txt filter=runner\n", encoding="utf-8")
-    (repo / "target.txt").write_text("runner bytes\n", encoding="utf-8")
+    (repo / ".gitattributes").write_text("target.txt filter=crew\n", encoding="utf-8")
+    (repo / "target.txt").write_text("crew bytes\n", encoding="utf-8")
 
     digest = make_git(make_config(repo, tmp_path)).hash_working_file(
         "target.txt", cwd=repo
     )
 
-    raw = b"runner bytes\n"
+    raw = b"crew bytes\n"
     assert digest == sha1(f"blob {len(raw)}\0".encode() + raw).hexdigest()
     assert not sentinel.exists()
 
@@ -268,7 +268,7 @@ def test_the_outputs_snapshot_is_removed_after_a_successful_pin_and_kept_after_a
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """P9 removes only a successfully committed capture for replay diagnosis."""
-    from tests.test_supervisor_exit import Lab
+    from tests.test_inspector_exit import Lab
 
     lab = Lab(tmp_path)
     snapshot = lab.paths.outputs_snapshot(lab.activation.activation_id)
@@ -296,8 +296,8 @@ def test_outputs_snapshot_cleanup_does_not_hide_a_successful_pin(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """P9 cleanup is diagnostic-only: an unlink failure cannot undo the pin."""
-    from tests.test_supervisor_exit import Lab
-    from workflow_interpreter.supervisor import workspace as workspace_module
+    from tests.test_inspector_exit import Lab
+    from workflow_interpreter.inspector import workspace as workspace_module
 
     lab = Lab(tmp_path)
     snapshot = lab.paths.outputs_snapshot(lab.activation.activation_id)
@@ -319,7 +319,7 @@ def test_workspace_default_does_not_advance_the_instance_branch(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """P12 keeps branch movement explicitly opt-in for ordinary activations."""
-    from tests.test_supervisor_exit import FEATURE_FILE, Lab
+    from tests.test_inspector_exit import FEATURE_FILE, Lab
 
     lab = Lab(tmp_path)
     lab.commit_work(FEATURE_FILE)
@@ -339,8 +339,8 @@ def test_a_git_failure_checking_a_base_commit_is_not_a_missing_commit(
 ) -> None:
     """R2 keeps a broken object store distinct from an absent base commit."""
     from tests._workspace import Fixture
+    from workflow_interpreter.inspector import PreconditionRefused
     from workflow_interpreter.schema.models import IsolationMode
-    from workflow_interpreter.supervisor import PreconditionRefused
 
     fixture = Fixture(tmp_path, IsolationMode.WORKTREE)
 
@@ -360,8 +360,8 @@ def test_a_previous_snapshot_read_failure_is_infra_not_a_refusal(
 ) -> None:
     """R2 maps a pre-reset ref failure to the retryable snapshot error."""
     from tests._workspace import SCRATCH_FILE, SCRATCH_TEXT, Fixture
+    from workflow_interpreter.inspector import PreconditionRefused, SnapshotFailed
     from workflow_interpreter.schema.models import IsolationMode
-    from workflow_interpreter.supervisor import PreconditionRefused, SnapshotFailed
 
     fixture = Fixture(tmp_path, IsolationMode.WORKTREE)
     fixture.workspace.prepare(fixture.activation, fixture.node)
@@ -385,8 +385,8 @@ def test_a_pin_listing_failure_is_not_misread_as_human_work(
 ) -> None:
     """R2 lets an in-repo lineage lookup failure escape the refusal path."""
     from tests._workspace import Fixture
+    from workflow_interpreter.inspector import DirtyTreeRefused
     from workflow_interpreter.schema.models import IsolationMode
-    from workflow_interpreter.supervisor import DirtyTreeRefused
 
     fixture = Fixture(tmp_path, IsolationMode.IN_REPO)
     fixture.workspace.band.acquire()
@@ -414,9 +414,9 @@ def test_an_artifact_lineage_failure_is_not_an_unattributed_commit(
     fixture = Fixture(tmp_path, IsolationMode.WORKTREE)
     fixture.workspace.prepare(fixture.activation, fixture.node)
     (fixture.paths.worktree / "src" / "feature.py").write_text(
-        "runner commit\n", encoding="utf-8"
+        "crew commit\n", encoding="utf-8"
     )
-    commit_all(fixture.paths.worktree, "runner")
+    commit_all(fixture.paths.worktree, "crew")
 
     def fail(*_: object, **__: object) -> bool:
         raise GitCommandError("merge-base failed")
@@ -431,8 +431,8 @@ def test_a_git_failure_inside_exit_pinning_is_replayable(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """R2 leaves a transient artifact-pin error as uncomputable evidence."""
-    from tests.test_supervisor_exit import FEATURE_FILE, Lab
-    from workflow_interpreter.supervisor import AuditFlag
+    from tests.test_inspector_exit import FEATURE_FILE, Lab
+    from workflow_interpreter.inspector import AuditFlag
 
     lab = Lab(tmp_path)
     lab.commit_work(FEATURE_FILE)
@@ -461,11 +461,11 @@ def test_a_git_failure_during_orphan_pinning_leaves_recovery_open(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """R2 never closes an unobserved activation when its preservation failed."""
-    from tests.test_supervisor_recover import RUNNER_FILE, Lab
+    from tests.test_inspector_recover import CREW_FILE, Lab
 
     lab = Lab(tmp_path)
-    lab.effects(RUNNER_FILE)
-    lab.orphan_commit(RUNNER_FILE)
+    lab.effects(CREW_FILE)
+    lab.orphan_commit(CREW_FILE)
 
     def fail(*_: object, **__: object) -> object:
         raise GitCommandError("object store unavailable")
@@ -482,9 +482,9 @@ def test_a_git_failure_during_orphan_pinning_leaves_recovery_open(
 def test_status_paths_never_runs_an_attribute_selected_clean_filter(
     tmp_path: Path,
 ) -> None:
-    """cr-o85.29: `status` content-compares, and that RAN the runner's program.
+    """cr-o85.29: `status` content-compares, and that RAN the crew's program.
 
-    A `.gitattributes` inside the tree is runner-writable, and the driver it
+    A `.gitattributes` inside the tree is crew-writable, and the driver it
     names only has to exist in `.git/config` for `git status` to spawn it AS
     THE WRAPPER. Git content-compares every entry whose size still matches the
     index, so an UNTOUCHED tree is enough to fire it — no modification needed,
@@ -498,12 +498,12 @@ def test_status_paths_never_runs_an_attribute_selected_clean_filter(
     )
     filter_program.chmod(0o755)
     subprocess.run(
-        ["git", "config", "filter.runner.clean", str(filter_program)],
+        ["git", "config", "filter.crew.clean", str(filter_program)],
         cwd=repo,
         check=True,
     )
-    (repo / ".gitattributes").write_text("* filter=runner\n", encoding="utf-8")
-    commit_all(repo, "runner attributes")
+    (repo / ".gitattributes").write_text("* filter=crew\n", encoding="utf-8")
+    commit_all(repo, "crew attributes")
     git = make_git(make_config(repo, tmp_path))
     assert sentinel.exists(), "the rig is inert: the human's own commit never filtered"
     sentinel.unlink()
@@ -529,7 +529,7 @@ def test_the_writing_git_calls_never_run_an_attribute_selected_smudge_filter(
 
     `worktree add` and `reset --hard` restore files through the same attribute
     machinery, so the driver a committed `.gitattributes` names runs as the
-    wrapper — on the call that hands a runner its tree, and on the destructive
+    wrapper — on the call that hands a crew its tree, and on the destructive
     one that takes it back.
     """
     repo = make_repo(tmp_path)
@@ -545,7 +545,7 @@ def test_the_writing_git_calls_never_run_an_attribute_selected_smudge_filter(
         check=True,
     )
     (repo / ".gitattributes").write_text("* filter=evil\n", encoding="utf-8")
-    head = commit_all(repo, "runner attributes")
+    head = commit_all(repo, "crew attributes")
     (repo / "src" / "feature.py").unlink()
     subprocess.run(["git", "checkout", "--", "src/feature.py"], cwd=repo, check=True)
     assert sentinel.exists(), "the rig is inert: a plain checkout never smudged"

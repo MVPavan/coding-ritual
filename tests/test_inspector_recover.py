@@ -12,10 +12,11 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     BOOT_ID,
     IMPLEMENT,
     FrozenClock,
+    crew_commit,
     dead_pid,
     entry_mint,
     handle_for,
@@ -29,7 +30,6 @@ from tests._supervisor import (
     make_workspace,
     node_of,
     remove_proc_entry,
-    runner_commit,
     write_proc_entry,
 )
 from workflow_interpreter.bdio import (
@@ -39,12 +39,12 @@ from workflow_interpreter.bdio import (
     MintReason,
     Outcome,
 )
-from workflow_interpreter.schema.models import IsolationMode
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     EVIDENCE_EXIT_UNOBSERVED,
     EXIT_CODE_UNOBSERVED,
     DirtyTreeRefused,
     GitCommandError,
+    InspectorConfig,
     LaunchReceipt,
     LaunchReceiptState,
     Liveness,
@@ -52,20 +52,20 @@ from workflow_interpreter.supervisor import (
     Recovery,
     RecoveryCase,
     SteerIntent,
-    SupervisorConfig,
     WrapperPaths,
     activation_ref,
     namespaced_ref,
 )
-from workflow_interpreter.supervisor.artifact import INSTANCE_BRANCH_REF
-from workflow_interpreter.supervisor.paths import read_record, write_record
-from workflow_interpreter.supervisor.steer import instructions_digest
-from workflow_interpreter.supervisor.workspace import ORPHAN_NAMESPACE
+from workflow_interpreter.inspector.artifact import INSTANCE_BRANCH_REF
+from workflow_interpreter.inspector.paths import read_record, write_record
+from workflow_interpreter.inspector.steer import instructions_digest
+from workflow_interpreter.inspector.workspace import ORPHAN_NAMESPACE
+from workflow_interpreter.schema.models import IsolationMode
 
-RUNNER_FILE = "src/orphan.py"
+CREW_FILE = "src/orphan.py"
 HUMAN_FILE = "docs/human-chapter.md"
 OTHER_BOOT_ID = "boot-after-the-reboot"
-STEER_REASON = "the runner is looping on the same test"
+STEER_REASON = "the crew is looping on the same test"
 STEER_INSTRUCTIONS = "stop looping"
 
 
@@ -81,7 +81,7 @@ class Lab:
     ) -> None:
         self.repo = make_repo(tmp_path)
         self.base = head_of(self.repo)
-        self.config: SupervisorConfig = make_config(self.repo, tmp_path)
+        self.config: InspectorConfig = make_config(self.repo, tmp_path)
         _, self.store = make_store(tmp_path, self.base)
         self.root = make_root(self.store, self.repo, "recover-instance")
         self.paths: WrapperPaths = make_paths(self.config, self.root.root_id)
@@ -111,7 +111,7 @@ class Lab:
 
     @property
     def tree(self) -> Path:
-        """Where this activation's runner worked."""
+        """Where this activation's crew worked."""
         return self.workspace.path_for(self.node)
 
     def reload(self) -> ActivationRecord:
@@ -122,20 +122,20 @@ class Lab:
         """Make the handle's process look alive and provably ours."""
         write_proc_entry(self.config.proc_root, self.pid)
 
-    def orphan_commit(self, path: str = RUNNER_FILE) -> str:
+    def orphan_commit(self, path: str = CREW_FILE) -> str:
         """A commit the dead attempt left behind with nothing referencing it.
 
-        Made under the §7.4 runner identity, which is what a real child's
+        Made under the §7.4 crew identity, which is what a real child's
         environment carries — the human's own identity is the OTHER case, and
         `test_recovery_quarantines_a_commit_the_human_made` is where it lives.
         """
         target = self.tree / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("half done\n", encoding="utf-8")
-        return runner_commit(self.tree, "orphan", self.activation.activation_id)
+        return crew_commit(self.tree, "orphan", self.activation.activation_id)
 
     def effects(self, *paths: str) -> None:
-        """The `$WF_EFFECTS_FILE` the dead runner left behind (§6, §7.5)."""
+        """The `$WF_EFFECTS_FILE` the dead crew left behind (§6, §7.5)."""
         self.paths.effects(self.activation.activation_id).write_text(
             json.dumps({"paths": list(paths)}), encoding="utf-8"
         )
@@ -180,7 +180,7 @@ def test_a_minted_activation_is_not_launched_and_never_closed(lab: Lab) -> None:
 
 
 def test_abort_pending_receipt_is_terminated_until_it_becomes_aborted(lab: Lab) -> None:
-    """Barrier cleanup owns its receipt even when bd never recorded a runner."""
+    """Barrier cleanup owns its receipt even when bd never recorded a crew."""
     handle = lab.activation.metadata.handle
     assert handle is not None
     write_record(
@@ -354,7 +354,7 @@ def test_an_unanswerable_liveness_question_halts_instead_of_closing(
     Classifying a transient read error as DEAD closed the activation
     `error_transport` and let the §10.2 retry exec a second child beside the
     survivor. A directory where `stat` should be reproduces the failure without
-    depending on a permission the test runner may not be able to drop.
+    depending on a permission the test crew may not be able to drop.
     """
     remove_proc_entry(lab.config.proc_root, lab.pid)
     (lab.config.proc_root / str(lab.pid) / "stat").mkdir(parents=True)
@@ -379,7 +379,7 @@ def test_recovery_quarantines_a_commit_it_cannot_attribute(tmp_path: Path) -> No
 
     Now the commit is quarantined instead: reachable forever under `orphan/`,
     named in the evidence NOTE rather than as an artifact, and invisible to
-    `_is_runner_lineage` — so the next prepare still refuses.
+    `_is_crew_lineage` — so the next prepare still refuses.
     """
     lab = Lab(tmp_path, IsolationMode.IN_REPO)
     human = lab.orphan_commit(HUMAN_FILE)
@@ -415,15 +415,15 @@ def test_recovery_quarantines_a_commit_it_cannot_attribute(tmp_path: Path) -> No
     assert (lab.repo / HUMAN_FILE).exists()
 
 
-def test_recovery_pins_a_commit_the_dead_runner_declared(tmp_path: Path) -> None:
-    """M15's other side: the manifest the dead runner left IS the evidence.
+def test_recovery_pins_a_commit_the_dead_crew_declared(tmp_path: Path) -> None:
+    """M15's other side: the manifest the dead crew left IS the evidence.
 
     §5.6 has to keep working for the case it exists for — a wrapper that died
-    after its runner committed — so the declaration is threaded from the effects
+    after its crew committed — so the declaration is threaded from the effects
     file rather than simply skipped.
     """
     lab = Lab(tmp_path, IsolationMode.IN_REPO)
-    lab.effects(RUNNER_FILE)
+    lab.effects(CREW_FILE)
     commit = lab.orphan_commit()
 
     resolution = lab.recovery.resolve(lab.activation, lab.node)
@@ -507,7 +507,7 @@ def test_recovery_rebuilds_a_persisted_steer_request_from_the_root_pin(
     divergent = intent.model_copy(
         update={
             "continuation": intent.continuation.model_copy(
-                update={"runner_profile": "legacy-runner", "model": "legacy-model"}
+                update={"crew_profile": "legacy-crew", "model": "legacy-model"}
             )
         }
     )
@@ -517,7 +517,7 @@ def test_recovery_rebuilds_a_persisted_steer_request_from_the_root_pin(
 
     assert resolution.steer is not None
     continuation = resolution.steer.continuation.activation.metadata
-    assert continuation.runner_profile == "fake"
+    assert continuation.crew_profile == "fake"
     assert continuation.model == "fake-model"
 
 
@@ -535,9 +535,9 @@ def test_a_steer_intent_beside_a_closed_activation_stays_recoverable(lab: Lab) -
 def test_recovery_records_instance_branch_divergence(tmp_path: Path) -> None:
     """R5: a moved instance ref closes with the routing-visible deviation."""
     lab = Lab(tmp_path, IsolationMode.IN_REPO, advance_branch=True)
-    lab.effects(RUNNER_FILE)
+    lab.effects(CREW_FILE)
     (lab.repo / "src" / "other.py").write_text("other\n", encoding="utf-8")
-    moved = runner_commit(lab.repo, "other branch", "other-activation")
+    moved = crew_commit(lab.repo, "other branch", "other-activation")
     lab.git.reset_hard(lab.base, cwd=lab.repo)
     lab.orphan_commit()
     branch = INSTANCE_BRANCH_REF.format(root_id=lab.root.root_id)
@@ -554,7 +554,7 @@ def test_recovery_records_instance_branch_divergence(tmp_path: Path) -> None:
 def test_recovery_records_missing_instance_branch_as_note(tmp_path: Path) -> None:
     """R5: a deleted instance ref is a note-only reconciliation condition."""
     lab = Lab(tmp_path, IsolationMode.IN_REPO, advance_branch=True)
-    lab.effects(RUNNER_FILE)
+    lab.effects(CREW_FILE)
     lab.orphan_commit()
 
     resolution = lab.recovery.resolve(lab.activation, lab.node)
@@ -598,7 +598,7 @@ def _continuations(lab: Lab) -> list[str]:
 def test_interrupted_dirty_writer_is_recoverable_before_retry(lab: Lab) -> None:
     """Dirty bytes survive case-three close/reset without becoming an artifact."""
     (lab.tree / "src/feature.py").write_text("unfinished tracked\n")
-    (lab.tree / RUNNER_FILE).write_text("unfinished untracked\n")
+    (lab.tree / CREW_FILE).write_text("unfinished untracked\n")
     result = lab.recovery.resolve(lab.activation, lab.node)
     assert result.closed is not None
     assert result.closed.metadata.outcome is Outcome.ERROR_TRANSPORT
@@ -608,7 +608,7 @@ def test_interrupted_dirty_writer_is_recoverable_before_retry(lab: Lab) -> None:
     assert record.observed_head == lab.base
     assert record.intended_base == lab.base
     assert (
-        lab.git.blob_text(f"{record.commit}:{RUNNER_FILE}", cwd=lab.repo)
+        lab.git.blob_text(f"{record.commit}:{CREW_FILE}", cwd=lab.repo)
         == "unfinished untracked\n"
     )
     retry = lab.store.mint_activation(
@@ -619,22 +619,22 @@ def test_interrupted_dirty_writer_is_recoverable_before_retry(lab: Lab) -> None:
         ),
     ).activation
     lab.workspace.prepare(retry, lab.node)
-    (lab.tree / RUNNER_FILE).write_text("successor work\n")
+    (lab.tree / CREW_FILE).write_text("successor work\n")
     assert lab.workspace.preserve_interrupted(lab.activation, lab.node) == record
     assert (
         lab.git.blob_text(f"{record.commit}:src/feature.py", cwd=lab.repo)
         == "unfinished tracked\n"
     )
-    assert (lab.tree / RUNNER_FILE).read_text() == "successor work\n"
+    assert (lab.tree / CREW_FILE).read_text() == "successor work\n"
 
 
 def test_interrupted_pin_failure_remains_retryable(
     lab: Lab, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A failed pin leaves the writer open and the original files intact."""
-    from workflow_interpreter.supervisor import SnapshotFailed
+    from workflow_interpreter.inspector import SnapshotFailed
 
-    (lab.tree / RUNNER_FILE).write_text("recover me\n")
+    (lab.tree / CREW_FILE).write_text("recover me\n")
     original = lab.git.update_ref
 
     def fail(ref: str, commit: str, *, cwd: Path) -> None:
@@ -646,7 +646,7 @@ def test_interrupted_pin_failure_remains_retryable(
     with pytest.raises(SnapshotFailed):
         lab.recovery.resolve(lab.activation, lab.node)
     assert not lab.reload().metadata.is_settled
-    assert (lab.tree / RUNNER_FILE).read_text() == "recover me\n"
+    assert (lab.tree / CREW_FILE).read_text() == "recover me\n"
     monkeypatch.setattr(lab.git, "update_ref", original)
     result = lab.recovery.resolve(lab.reload(), lab.node)
     assert result.closed is not None
@@ -658,9 +658,9 @@ def test_recovery_chains_divergent_bytes_and_keeps_prior_pin_on_failure(
     lab: Lab, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Tree identity, not commit timestamps, decides idempotency and chaining."""
-    from workflow_interpreter.supervisor import SnapshotFailed
+    from workflow_interpreter.inspector import SnapshotFailed
 
-    path = lab.tree / RUNNER_FILE
+    path = lab.tree / CREW_FILE
     path.write_text("first\n")
     first = lab.workspace.preserve_interrupted(lab.activation, lab.node)
     assert first is not None and first.pinned
@@ -680,17 +680,15 @@ def test_recovery_chains_divergent_bytes_and_keeps_prior_pin_on_failure(
     second = lab.workspace.preserve_interrupted(lab.activation, lab.node)
     assert second is not None and second.pinned
     assert lab.git.is_ancestor(first.commit, second.commit, cwd=lab.repo)
-    assert lab.git.blob_text(f"{first.commit}:{RUNNER_FILE}", cwd=lab.repo) == "first\n"
-    assert (
-        lab.git.blob_text(f"{second.commit}:{RUNNER_FILE}", cwd=lab.repo) == "second\n"
-    )
+    assert lab.git.blob_text(f"{first.commit}:{CREW_FILE}", cwd=lab.repo) == "first\n"
+    assert lab.git.blob_text(f"{second.commit}:{CREW_FILE}", cwd=lab.repo) == "second\n"
 
 
 def test_recovery_refuses_live_foreign_and_unowned_content(lab: Lab) -> None:
     """No live/successor bytes acquire an old producer's identity."""
-    from workflow_interpreter.supervisor import SnapshotFailed
+    from workflow_interpreter.inspector import SnapshotFailed
 
-    (lab.tree / RUNNER_FILE).write_text("owned work\n")
+    (lab.tree / CREW_FILE).write_text("owned work\n")
     write_proc_entry(lab.config.proc_root, lab.pid)
     with pytest.raises(SnapshotFailed, match="confirmed process death"):
         lab.workspace.preserve_interrupted(lab.activation, lab.node)
@@ -711,13 +709,13 @@ def test_recovery_refuses_live_foreign_and_unowned_content(lab: Lab) -> None:
         unavailable is not None and unavailable.unavailable and not unavailable.pinned
     )
     assert lab.git.ref_target(unavailable.ref, cwd=lab.repo) is None
-    assert (lab.tree / RUNNER_FILE).read_text() == "owned work\n"
+    assert (lab.tree / CREW_FILE).read_text() == "owned work\n"
 
 
 def test_clean_and_readonly_work_need_no_recovery_pin(lab: Lab) -> None:
     """Do not create snapshots for clean or read-only exits."""
     assert lab.workspace.preserve_interrupted(lab.activation, lab.node) is None
-    (lab.tree / RUNNER_FILE).write_text("not writer content\n")
+    (lab.tree / CREW_FILE).write_text("not writer content\n")
     assert (
         lab.workspace.preserve_interrupted(
             lab.activation, lab.node.model_copy(update={"writes": False})
@@ -732,10 +730,10 @@ def test_in_repo_recovery_does_not_capture_another_roots_writer(
     tmp_path: Path, already_preserved: bool
 ) -> None:
     """The shared band owner outranks a stale per-instance workspace record."""
-    from workflow_interpreter.supervisor import LockUnavailable
+    from workflow_interpreter.inspector import LockUnavailable
 
     lab = Lab(tmp_path, IsolationMode.IN_REPO)
-    path = lab.repo / RUNNER_FILE
+    path = lab.repo / CREW_FILE
     prior = None
     if already_preserved:
         path.write_text("old producer\n")
@@ -761,7 +759,7 @@ def test_in_repo_recovery_does_not_capture_another_roots_writer(
     if already_preserved:
         assert record == prior
         assert (
-            lab.git.blob_text(f"{record.commit}:{RUNNER_FILE}", cwd=lab.repo)
+            lab.git.blob_text(f"{record.commit}:{CREW_FILE}", cwd=lab.repo)
             == "old producer\n"
         )
     else:
@@ -777,11 +775,11 @@ def test_divergent_recovery_record_failure_preserves_history_and_retries(
     """Both durable-record crash windows retain files and the prior snapshot."""
     from pydantic import BaseModel
 
-    from workflow_interpreter.supervisor import SnapshotFailed
-    from workflow_interpreter.supervisor import workspace as workspace_module
-    from workflow_interpreter.supervisor.models import RecoverySnapshot
+    from workflow_interpreter.inspector import SnapshotFailed
+    from workflow_interpreter.inspector import workspace as workspace_module
+    from workflow_interpreter.inspector.models import RecoverySnapshot
 
-    path = lab.tree / RUNNER_FILE
+    path = lab.tree / CREW_FILE
     path.write_text("first producer bytes\n")
     first = lab.workspace.preserve_interrupted(lab.activation, lab.node)
     assert first is not None and first.pinned
@@ -807,20 +805,20 @@ def test_divergent_recovery_record_failure_preserves_history_and_retries(
     assert final is not None and final.pinned
     assert lab.git.is_ancestor(first.commit, final.commit, cwd=lab.repo)
     assert (
-        lab.git.blob_text(f"{first.commit}:{RUNNER_FILE}", cwd=lab.repo)
+        lab.git.blob_text(f"{first.commit}:{CREW_FILE}", cwd=lab.repo)
         == "first producer bytes\n"
     )
     assert (
-        lab.git.blob_text(f"{final.commit}:{RUNNER_FILE}", cwd=lab.repo)
+        lab.git.blob_text(f"{final.commit}:{CREW_FILE}", cwd=lab.repo)
         == "later producer bytes\n"
     )
 
 
 def test_recovery_rejects_mismatched_observed_head(lab: Lab) -> None:
     """Producer evidence must bind the recorded HEAD to its snapshot parent."""
-    from workflow_interpreter.supervisor import SnapshotFailed
+    from workflow_interpreter.inspector import SnapshotFailed
 
-    (lab.tree / RUNNER_FILE).write_text("producer bytes\n")
+    (lab.tree / CREW_FILE).write_text("producer bytes\n")
     record = lab.workspace.preserve_interrupted(lab.activation, lab.node)
     assert record is not None and record.pinned
     write_record(
@@ -830,16 +828,16 @@ def test_recovery_rejects_mismatched_observed_head(lab: Lab) -> None:
     with pytest.raises(SnapshotFailed, match="head identity"):
         lab.workspace.preserve_interrupted(lab.activation, lab.node)
     assert lab.git.ref_target(record.ref, cwd=lab.repo) == record.commit
-    assert (lab.tree / RUNNER_FILE).read_text() == "producer bytes\n"
+    assert (lab.tree / CREW_FILE).read_text() == "producer bytes\n"
 
 
 def test_failed_successor_reset_retains_previous_producer_ownership(
     lab: Lab, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A refused pre-reset pin does not relabel the preceding writer's bytes."""
-    from workflow_interpreter.supervisor import SnapshotFailed, WorkspaceRecord
+    from workflow_interpreter.inspector import SnapshotFailed, WorkspaceRecord
 
-    path = lab.tree / RUNNER_FILE
+    path = lab.tree / CREW_FILE
     path.write_text("previous producer work\n")
     lab.store.close_activation(lab.activation.activation_id, Outcome.ERROR_TRANSPORT)
     successor = lab.store.mint_activation(
@@ -866,17 +864,17 @@ def test_failed_successor_reset_retains_previous_producer_ownership(
     )
     record = lab.workspace.preserve_interrupted(lab.activation, lab.node)
     assert record is not None and record.pinned
-    assert lab.git.blob_text(f"{record.commit}:{RUNNER_FILE}", cwd=lab.repo) == (
+    assert lab.git.blob_text(f"{record.commit}:{CREW_FILE}", cwd=lab.repo) == (
         "previous producer work\n"
     )
     assert path.read_text() == "previous producer work\n"
 
 
-def test_private_toolchain_survives_until_recovery_closes_dead_runner(lab: Lab) -> None:
+def test_private_toolchain_survives_until_recovery_closes_dead_crew(lab: Lab) -> None:
     """Crash files are retained while alive and deleted only after classified close."""
     private = lab.paths.activation_dir(lab.activation.activation_id) / "toolchain"
     private.mkdir()
-    (private / "payload").write_text("runner mutable")
+    (private / "payload").write_text("crew mutable")
     receipt = private.parent / "toolchain-seed.json"
     receipt.write_text("retained provenance")
     lab.alive()
@@ -894,7 +892,7 @@ def test_cleanup_retries_after_close_without_touching_other_activation(
     lab: Lab,
 ) -> None:
     """Recovery can retry a crash after durable close but before cache deletion."""
-    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+    from workflow_interpreter.inspector.toolchain_cleanup import cleanup_toolchain
 
     resolution = lab.recovery.resolve(lab.activation, lab.node)
     assert resolution.closed is not None
@@ -912,7 +910,7 @@ def test_cleanup_retries_after_close_without_touching_other_activation(
 
 def test_cleanup_removes_unpublished_staging_only_after_close(lab: Lab) -> None:
     """A crash during copying leaves no complete cache but still needs cleanup."""
-    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+    from workflow_interpreter.inspector.toolchain_cleanup import cleanup_toolchain
 
     staged = lab.paths.activation_dir(lab.activation.activation_id) / ".toolchain-crash"
     staged.mkdir()
@@ -933,7 +931,7 @@ def test_cleanup_failure_is_reported_and_retryable(
 
     from structlog.testing import capture_logs
 
-    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+    from workflow_interpreter.inspector.toolchain_cleanup import cleanup_toolchain
 
     result = lab.recovery.resolve(lab.activation, lab.node)
     assert result.closed is not None
@@ -956,9 +954,9 @@ def test_cleanup_failure_is_reported_and_retryable(
     assert not private.exists()
 
 
-def test_closed_live_runner_defers_cleanup_until_death(lab: Lab) -> None:
+def test_closed_live_crew_defers_cleanup_until_death(lab: Lab) -> None:
     """A durable close can precede process death without blocking the driver."""
-    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+    from workflow_interpreter.inspector.toolchain_cleanup import cleanup_toolchain
 
     lab.alive()
     closed = lab.store.close_activation(
@@ -977,8 +975,8 @@ def test_closed_live_runner_defers_cleanup_until_death(lab: Lab) -> None:
 
 
 def test_scratch_is_deleted_at_terminal_under_the_death_guard(lab: Lab) -> None:
-    """Run-ledger §3.9: the runner's TMPDIR goes once the record is durable."""
-    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_scratch
+    """Run-ledger §3.9: the crew's TMPDIR goes once the record is durable."""
+    from workflow_interpreter.inspector.toolchain_cleanup import cleanup_scratch
 
     scratch = lab.paths.scratch(lab.activation.activation_id)
     scratch.mkdir(parents=True, exist_ok=True)
@@ -992,14 +990,14 @@ def test_scratch_is_deleted_at_terminal_under_the_death_guard(lab: Lab) -> None:
     assert not scratch.exists()
 
 
-def test_scratch_survives_while_the_runner_may_still_be_alive(lab: Lab) -> None:
+def test_scratch_survives_while_the_crew_may_still_be_alive(lab: Lab) -> None:
     """The bytes belong to a process, so a live handle defers the deletion."""
-    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_scratch
+    from workflow_interpreter.inspector.toolchain_cleanup import cleanup_scratch
 
     lab.alive()
     scratch = lab.paths.scratch(lab.activation.activation_id)
     scratch.mkdir(parents=True, exist_ok=True)
-    (scratch / "tmpfile").write_text("a live runner's working bytes")
+    (scratch / "tmpfile").write_text("a live crew's working bytes")
     closed = lab.store.close_activation(
         lab.activation.activation_id, Outcome.ERROR_TRANSPORT
     )

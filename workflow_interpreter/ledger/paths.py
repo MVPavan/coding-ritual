@@ -13,6 +13,7 @@ from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 from typing import Final
 
+from workflow_interpreter.inspector.sandbox import fence_dir
 from workflow_interpreter.ledger.constants import (
     EXPORT_DIR,
     EXPORT_SUFFIX,
@@ -24,7 +25,6 @@ from workflow_interpreter.ledger.constants import (
     MSG_NOT_A_REPOSITORY,
 )
 from workflow_interpreter.ledger.errors import LedgerIdentityError
-from workflow_interpreter.supervisor.sandbox import fence_dir
 
 REPO_HASH_LENGTH: Final[int] = 16
 """The same prefix `ForemanConfig.wrapper_root` names a repository by."""
@@ -56,7 +56,7 @@ def ensure_ledger_ignored(repo_root: Path) -> Path:
     """Write `<repo>/.wf/.gitignore` once, so the database is really ignored.
 
     §3.5 calls `.wf/` "the working tree's ignored" directory and D4 puts the
-    database there; nothing made that true, so the first bridge command after
+    database there; nothing made that true, so the first contractor command after
     the cutover refused its own ledger as coordinator dirt. The rule ignores
     everything under `.wf/` EXCEPT `export/`, which §3.6 says the orchestrator
     commits. Never rewritten: a repository that ignores this directory its own
@@ -84,7 +84,7 @@ def fence_path(repo_root: Path) -> Path:
 def ensure_fence_dir(repo_root: Path) -> Path | None:
     """Create `<git common dir>/wf/` before any dispatch, or answer nothing.
 
-    Nothing when the tree is not a git checkout: the runner sandbox pins this
+    Nothing when the tree is not a git checkout: the crew sandbox pins this
     directory in the two shapes that HAVE a git entry (`sandbox._git_binds`),
     and a shape with no `.git` gets no git binds at all.
     """
@@ -105,7 +105,7 @@ def coordinator_dirt(
 ) -> tuple[tuple[str, bool], ...]:
     """The dirty paths a COORDINATOR owns, with THIS task's export removed.
 
-    Exactly one path, never the directory: the export the bridge writes moments
+    Exactly one path, never the directory: the export the contractor writes moments
     before it closes is tracked in `<repo>/.wf/` (§3.6, "the export file appears
     in the main checkout, exactly as `.beads/issues.jsonl` does after a bd
     write"), so a cleanliness check that counted it would block the next

@@ -55,7 +55,7 @@ DecisionAction  = Literal["continue_declared", "replace", "human"]
 ```
 
 A node declares `[node.decision]` with `triggers`, `actions`, a `decision_task` (its
-own runner, model, instructions, verify, budgets) and an optional `replacement_input`.
+own crew, model, instructions, verify, budgets) and an optional `replacement_input`.
 
 **The identity is the point.** When a trigger fires, `queue_boundary`
 (`foreman/decisions.py:64-99`) builds a `BoundaryIdentity` with eleven fields: owner,
@@ -100,6 +100,6 @@ strictly better shape than an agent free-forming a recovery.
 
 The risk is that it was built before the thing that needs it. The obvious use is
 parallel stages — an owner fanning out children and collecting them — which is exactly
-what the epic serialization in [02-phase-bridge.md](02-phase-bridge.md) forbids today.
+what the epic serialization in [02-contractor.md](02-contractor.md) forbids today.
 If that is the intent, the serialization limit is temporary scaffolding rather than a
 design choice, and these 2,242 lines finally earn their place.

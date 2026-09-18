@@ -11,7 +11,7 @@ from typing import Final
 import pytest
 
 from tests.test_children_process import writer_lab
-from tests.test_foreman_main import _bridge_adapter, _bridge_stage
+from tests.test_foreman_main import _contractor_adapter, _contractor_stage
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.foreman.decisions import admission_of
@@ -26,20 +26,20 @@ def source_lab(tmp_path: Path, store: BackendKind = BackendKind.BD):
     30 s wall this file used to need is the bd round trip per tick, so the
     two runs are the measurement as much as the assertion.
     """
-    from workflow_interpreter.supervisor.sandbox import SandboxMode
+    from workflow_interpreter.inspector.sandbox import SandboxMode
 
     lab, owner, composition, spawner = writer_lab(
         tmp_path,
         sandbox=SandboxMode.BWRAP,
         store=store,
     )
-    from workflow_interpreter.bridge.verification import CheckCommand
+    from workflow_interpreter.contractor.verification import CheckCommand
 
     composition = replace(
         composition,
         config=composition.config.model_copy(
             update={
-                "bridge_checks": (
+                "contractor_checks": (
                     CheckCommand(
                         name="checks",
                         argv=(
@@ -70,7 +70,7 @@ def source_lab(tmp_path: Path, store: BackendKind = BackendKind.BD):
     data = (
         json.loads(state.read_text()) if state.exists() else {"rows": {}, "next_id": 1}
     )
-    data["rows"]["stage"] = _bridge_stage(
+    data["rows"]["stage"] = _contractor_stage(
         "stage", description="Combine the collected work"
     )
     state.write_text(json.dumps(data))
@@ -202,13 +202,13 @@ def test_replay_admits_only_one_original_owner_member(
     round trips a real `bd` binary costs are measured by the real-bd rig
     (`tests/test_cutover_rig.py`).
     """
-    from workflow_interpreter.bridge import integration
-    from workflow_interpreter.bridge.adapter import PhaseAdapter
+    from workflow_interpreter.contractor import integration
+    from workflow_interpreter.contractor.adapter import PhaseAdapter
 
     started = time.monotonic()
     lab, owner, composition, source = source_lab(tmp_path, store)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     request = integration.IntegrationRequest(
         owner_id=owner.root_id,
@@ -280,7 +280,7 @@ def test_admission_tick_stays_at_five_bd_calls(
     measures 33-34 calls across its opening tick (sometimes split as 34 then
     18), 5 on every steady tick, and 29 on each of the two closing ticks.
     """
-    from workflow_interpreter.supervisor.sandbox import SandboxMode
+    from workflow_interpreter.inspector.sandbox import SandboxMode
 
     lab, owner, composition, spawner = writer_lab(tmp_path, sandbox=SandboxMode.BWRAP)
     coordinator = lab.store.coordination_store(composition=composition)
@@ -327,9 +327,9 @@ def test_admission_tick_stays_at_five_bd_calls(
 def test_invalid_source_never_admits_integration(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, change: str
 ) -> None:
-    from workflow_interpreter.bridge.adapter import PhaseAdapter
-    from workflow_interpreter.bridge.errors import BridgeRefusal
-    from workflow_interpreter.bridge.integration import (
+    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.errors import ContractorRefusal
+    from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
         prepare_integration,
     )
@@ -337,7 +337,7 @@ def test_invalid_source_never_admits_integration(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     sources = (("source", 0, source.receipt_digest),)
     sources = {
@@ -347,7 +347,7 @@ def test_invalid_source_never_admits_integration(
         "missing": (("missing", 0, source.receipt_digest),),
     }[change]
     before = lab.store.coordination_store().state(owner.root_id)
-    with pytest.raises((BridgeRefusal, CoordinationError)):
+    with pytest.raises((ContractorRefusal, CoordinationError)):
         prepare_integration(
             composition,
             IntegrationRequest(
@@ -364,16 +364,16 @@ def test_invalid_source_never_admits_integration(
 def test_changed_request_key_refuses_without_second_member(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from workflow_interpreter.bridge.adapter import PhaseAdapter
-    from workflow_interpreter.bridge.errors import BridgeRefusal
-    from workflow_interpreter.bridge.integration import (
+    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.errors import ContractorRefusal
+    from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
         prepare_integration,
     )
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -384,7 +384,7 @@ def test_changed_request_key_refuses_without_second_member(
     )
     prepare_integration(composition, request)
     before = lab.store.coordination_store().state(owner.root_id)
-    with pytest.raises(BridgeRefusal, match="payload changed"):
+    with pytest.raises(ContractorRefusal, match="payload changed"):
         prepare_integration(
             composition,
             request.model_copy(update={"sources": (("source", 0, "changed"),)}),
@@ -393,7 +393,7 @@ def test_changed_request_key_refuses_without_second_member(
 
 
 @pytest.mark.parametrize(
-    "fault", ["association", "bridge", "reservation", "root", "child", "admission"]
+    "fault", ["association", "contractor", "reservation", "root", "child", "admission"]
 )
 def test_prepared_faults_repair_only_saved_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
@@ -401,8 +401,8 @@ def test_prepared_faults_repair_only_saved_root(
     from tests._fake_bd import InjectedCrash
     from workflow_interpreter.bdio import roots
     from workflow_interpreter.bdio.coordination import CoordinationStore
-    from workflow_interpreter.bridge.adapter import PhaseAdapter
-    from workflow_interpreter.bridge.integration import (
+    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         IntegrationRequest,
         prepare_integration,
@@ -410,7 +410,7 @@ def test_prepared_faults_repair_only_saved_root(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -421,7 +421,7 @@ def test_prepared_faults_repair_only_saved_root(
     )
     cls, method = {
         "association": (IntegrationGuard, "save"),
-        "bridge": (PhaseAdapter, "prepare"),
+        "contractor": (PhaseAdapter, "prepare"),
         "reservation": (CoordinationStore, "_reserve"),
         "root": (roots, "create_root"),
         "child": (CoordinationStore, "start_child"),
@@ -459,18 +459,18 @@ def test_prepared_faults_repair_only_saved_root(
 def test_other_owner_busy_before_target_snapshot(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from workflow_interpreter.bridge.adapter import PhaseAdapter
-    from workflow_interpreter.bridge.errors import BridgeRefusal
-    from workflow_interpreter.bridge.integration import (
+    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.errors import ContractorRefusal
+    from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
         prepare_integration,
     )
     from workflow_interpreter.foreman.resolve import instantiate
-    from workflow_interpreter.supervisor.gitio import Git
+    from workflow_interpreter.inspector.gitio import Git
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -497,7 +497,7 @@ def test_other_owner_busy_before_target_snapshot(
         return real_ref(self, ref, cwd=cwd)
 
     monkeypatch.setattr(Git, "ref_target", no_snapshot)
-    with pytest.raises(BridgeRefusal, match="busy"):
+    with pytest.raises(ContractorRefusal, match="busy"):
         prepare_integration(
             composition, request.model_copy(update={"owner_id": other.root_id})
         )
@@ -519,12 +519,12 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
 
     from workflow_interpreter.bdio import WorkflowStore
     from workflow_interpreter.bdio.client import BdClient
-    from workflow_interpreter.bridge.integration import (
+    from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         IntegrationRequest,
         prepare_integration,
     )
-    from workflow_interpreter.bridge.verification import CheckCommand
+    from workflow_interpreter.contractor.verification import CheckCommand
     from workflow_interpreter.foreman.resolve import instantiate
     from workflow_interpreter.foreman.tick import Foreman
 
@@ -536,7 +536,7 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
         config=composition.config.model_copy(
             update={
                 "bd": bd_config,
-                "bridge_checks": (
+                "contractor_checks": (
                     CheckCommand(
                         name="source",
                         argv=(
@@ -624,9 +624,9 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
 def test_admission_limits_and_source_authority_fail_closed(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
 ) -> None:
-    from workflow_interpreter.bridge.adapter import PhaseAdapter
-    from workflow_interpreter.bridge.errors import BridgeRefusal
-    from workflow_interpreter.bridge.integration import (
+    from workflow_interpreter.contractor.adapter import PhaseAdapter
+    from workflow_interpreter.contractor.errors import ContractorRefusal
+    from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
         prepare_integration,
     )
@@ -635,7 +635,7 @@ def test_admission_limits_and_source_authority_fail_closed(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     coordinator = lab.store.coordination_store(composition=composition)
     sources = (("source", 0, source.receipt_digest),)
@@ -662,7 +662,7 @@ def test_admission_limits_and_source_authority_fail_closed(
             source.outputs_ref, owner.metadata.instance_base_commit, cwd=lab.repo
         )
     before = set(coordinator.state(owner.root_id).children)
-    with pytest.raises((BridgeRefusal, CoordinationError, EnvelopeRefusal)):
+    with pytest.raises((ContractorRefusal, CoordinationError, EnvelopeRefusal)):
         prepare_integration(
             composition,
             IntegrationRequest(

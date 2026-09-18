@@ -1,17 +1,17 @@
-"""Runner profiles — phase 4 of the workflow interpreter (spec v0.3 §6).
+"""Crew profiles — phase 4 of the workflow interpreter (spec v0.3 §6).
 
 Three vendor adapters behind one invocation contract (§P4): `claude`, `codex`
 and `opencode`. The §6 Protocol they satisfy is declared in
-`supervisor/profile.py` and nothing here re-declares it.
+`inspector/profile.py` and nothing here re-declares it.
 
 Two rules hold across all three, and `_base.py` is where they are made
 structural rather than remembered:
 
-- **The exec is not delegable.** `launch` receives the supervisor's
+- **The exec is not delegable.** `launch` receives the inspector's
   `ChildLauncher` and execs through it; the §5.2 fork barrier and the exec
   ledger are the crash-atomicity contract, and `launch.py` verifies the receipt
   afterwards.
-- **The child environment is built once**, through `RunnerChannels.env()`, so
+- **The child environment is built once**, through `CrewChannels.env()`, so
   the §7.4 committer identity is always stamped (§14, phase-3 ruling).
 
 The danger default is inverted per vendor with whatever that vendor can
@@ -28,8 +28,8 @@ from workflow_interpreter.profiles.codex import CodexProfile
 from workflow_interpreter.profiles.config import (
     BASE_PASSTHROUGH_ENV,
     MODEL_VENDOR_DEFAULT,
+    CrewName,
     ProfileConfig,
-    RunnerName,
 )
 from workflow_interpreter.profiles.errors import (
     ProfileError,
@@ -46,11 +46,11 @@ __all__ = [
     "BaseProfile",
     "ClaudeProfile",
     "CodexProfile",
+    "CrewName",
     "OpencodeProfile",
     "ProfileConfig",
     "ProfileError",
     "ProfileRegistry",
-    "RunnerName",
     "TaskRefused",
     "UnknownProfileError",
     "UnsupportedOptionError",

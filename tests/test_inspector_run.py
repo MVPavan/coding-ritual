@@ -4,12 +4,12 @@ Three properties that only exist once something OWNS the sequence:
 
 - the §3.2 carry-forward trio reaches bd BEFORE the child can exec (B7);
 - the §8.2 stale flag reaches bd as well as the wrapper dir (§8.2, M11);
-- the exit still gets recorded after the process that started the supervisor is
+- the exit still gets recorded after the process that started the inspector is
   killed (§5.3's "alive for the child's lifetime", B5).
 
 The last one is a real three-process drill — pytest spawns a foreman, the
-foreman spawns a wrapper, the wrapper spawns a runner, and the foreman is
-SIGKILLed while the runner is still going. bd is file-backed for it
+foreman spawns a wrapper, the wrapper spawns a crew, and the foreman is
+SIGKILLed while the crew is still going. bd is file-backed for it
 (`PersistentBd`), because the whole question is whether writes made by a
 process the test does not own still land.
 """
@@ -27,7 +27,7 @@ from pathlib import Path
 import pytest
 
 from tests._fake_bd import InjectedCrash
-from tests._supervisor import (
+from tests._inspector import (
     IMPLEMENT,
     ChildScript,
     FakeProfile,
@@ -46,19 +46,19 @@ from tests._supervisor import (
     task_builder,
 )
 from workflow_interpreter.bdio import Lifecycle, MintReason
-from workflow_interpreter.schema.models import IsolationMode, Outcome
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     ExecLedger,
     ExitReason,
+    InspectionResult,
+    Inspector,
     LaunchOutcome,
     MonitorVerdict,
     SteerIntent,
-    SupervisionResult,
-    Supervisor,
     pinned_verifier_digests,
 )
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.steer import instructions_digest
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.steer import instructions_digest
+from workflow_interpreter.schema.models import IsolationMode, Outcome
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MARKER_JSON = '{"outcome":"done"}'
@@ -67,12 +67,12 @@ STALE_AFTER = "1s"
 CHILD_SECONDS = 3.0
 SENTINEL_TIMEOUT_S = 90.0
 BD_UPDATE = "update"
-STEER_REASON = "the runner is repeating itself"
+STEER_REASON = "the crew is repeating itself"
 STEER_INSTRUCTIONS = "start from the failing test instead"
 REQUESTED_AT = "2026-09-02T09:00:00Z"
 
 WRAPPER_MAIN = '''
-"""A supervisor wrapper in its own process, for the parent-death drill."""
+"""An inspector wrapper in its own process, for the parent-death drill."""
 import sys
 from pathlib import Path
 
@@ -83,7 +83,7 @@ import structlog
 
 structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(50))
 
-from tests._supervisor import (
+from tests._inspector import (
     IMPLEMENT,
     ChildScript,
     FakeProfile,
@@ -97,8 +97,8 @@ from tests._supervisor import (
     node_of,
     task_builder,
 )
-from workflow_interpreter.supervisor import (
-    Supervisor,
+from workflow_interpreter.inspector import (
+    Inspector,
     SystemClock,
     Workspace,
     pinned_verifier_digests,
@@ -124,7 +124,7 @@ profile = FakeProfile(
     )
 )
 (tmp / "WRAPPER-STARTED").write_text("1", encoding="utf-8")
-result = Supervisor(config, paths, git, store, workspace, clock).run(
+result = Inspector(config, paths, git, store, workspace, clock).run(
     entry_mint(),
     node,
     profile,
@@ -163,13 +163,13 @@ class Lab:
         self.git = make_git(self.config)
         self.workspace = make_workspace(self.paths, self.git, self.clock)
         self.node = node_of(self.root.definition.document, IMPLEMENT)
-        self.supervisor = Supervisor(
+        self.inspector = Inspector(
             self.config, self.paths, self.git, self.store, self.workspace, self.clock
         )
 
-    def supervise(self, script: ChildScript) -> SupervisionResult:
+    def inspect(self, script: ChildScript) -> InspectionResult:
         """Run one activation end to end against a scripted child."""
-        return self.supervisor.run(
+        return self.inspector.run(
             entry_mint(),
             self.node,
             FakeProfile(script),
@@ -180,7 +180,7 @@ class Lab:
 
 @pytest.fixture
 def lab(tmp_path: Path) -> Lab:
-    """A supervisor over a throwaway repo and an in-memory bd."""
+    """An inspector over a throwaway repo and an in-memory bd."""
     return Lab(tmp_path)
 
 
@@ -191,7 +191,7 @@ def test_one_call_dispatches_watches_and_records_the_exit(lab: Lab) -> None:
     `Monitor.watch` and `ExitObserver` had zero non-test callers, so in
     production shape no process enforced `max_wall` or wrote the exit record.
     """
-    result = lab.supervise(
+    result = lab.inspect(
         ChildScript(emit="hello\n", marker=MARKER_JSON, effects=EFFECTS_JSON)
     )
 
@@ -226,7 +226,7 @@ def test_the_carry_forward_trio_is_recorded_before_the_child_execs(lab: Lab) -> 
         ),
     )
 
-    result = lab.supervise(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
+    result = lab.inspect(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
 
     metadata = lab.store.reads.load_activation(activation_id).metadata
     assert metadata.pre_attempt_commit == lab.base
@@ -238,10 +238,10 @@ def test_the_carry_forward_trio_is_recorded_before_the_child_execs(lab: Lab) -> 
 @pytest.mark.proc
 def test_a_re_dispatch_does_not_rewrite_a_recorded_precondition(lab: Lab) -> None:
     """§5.1: the trio describes a tree the child already ran against."""
-    lab.supervise(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
+    lab.inspect(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
     before = lab.fake_bd.command_count("update")
 
-    second = lab.supervise(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
+    second = lab.inspect(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
 
     assert second.observation is None
     assert second.dispatch.precondition is None
@@ -252,7 +252,7 @@ def _persist_steer_intent(lab: Lab) -> str:
     """Mint the activation the run will re-find, with a §8.1 intent already on disk.
 
     Pre-minting is how the other tests here learn an activation id before the
-    run (§3.2's idempotency key makes the supervisor re-find this one), and it
+    run (§3.2's idempotency key makes the inspector re-find this one), and it
     is what makes the race deterministic: the intent is durable before the
     watch ends, exactly as `Steerer.steer` writes it before the kill.
     """
@@ -290,7 +290,7 @@ def test_a_pending_steer_intent_leaves_the_exit_to_the_steerer(lab: Lab) -> None
     activation_id = _persist_steer_intent(lab)
     updates_before = lab.fake_bd.command_count(BD_UPDATE)
 
-    result = lab.supervise(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
+    result = lab.inspect(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
 
     assert result.dispatch.activation.activation_id == activation_id
     assert result.monitor is not None
@@ -314,7 +314,7 @@ def test_a_malformed_steer_intent_does_not_suppress_the_exit(lab: Lab) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("{not json", encoding="utf-8")
 
-    result = lab.supervise(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
+    result = lab.inspect(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
 
     assert result.observation is not None
     assert result.observation.exit_record.exit_code == 0
@@ -340,13 +340,13 @@ def test_a_malformed_steer_intent_reads_as_no_intent_at_all(lab: Lab) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("{not json", encoding="utf-8")
 
-    unreadable = lab.supervisor._steer_pending(activation_id)
+    unreadable = lab.inspector._steer_pending(activation_id)
     # The §3.2 idempotency key re-finds the same activation, so this replaces
     # the corrupt bytes with a well-formed intent on the same path.
     assert _persist_steer_intent(lab) == activation_id
 
     assert unreadable is False
-    assert lab.supervisor._steer_pending(activation_id) is True
+    assert lab.inspector._steer_pending(activation_id) is True
 
 
 @pytest.mark.proc
@@ -357,7 +357,7 @@ def test_a_stale_child_is_flagged_on_disk_and_in_bd_then_terminated(
 
     Losing `.wf/` therefore lost a decision-relevant datum, which §P1 says the
     observation cache is never allowed to hold alone. The mirror lives in the
-    supervisor, not in the loop: `Monitor` still cannot reach bd at all.
+    inspector, not in the loop: `Monitor` still cannot reach bd at all.
 
     The child here stays silent for the whole watch, so it runs the §8.2 order
     end to end: the flag is raised and mirrored in the first window, and the
@@ -368,7 +368,7 @@ def test_a_stale_child_is_flagged_on_disk_and_in_bd_then_terminated(
     lab.node = lab.node.model_copy(update={"stale_after": STALE_AFTER})
     lab.clock.real_sleep_s = 0.05
 
-    result = lab.supervise(ChildScript(sleep_s=CHILD_SECONDS))
+    result = lab.inspect(ChildScript(sleep_s=CHILD_SECONDS))
 
     activation_id = result.dispatch.activation.activation_id
     assert result.monitor is not None
@@ -381,26 +381,26 @@ def test_a_stale_child_is_flagged_on_disk_and_in_bd_then_terminated(
 
 
 @pytest.mark.proc
-def test_a_stale_termination_is_graded_as_a_runner_error(tmp_path: Path) -> None:
+def test_a_stale_termination_is_graded_as_a_crew_error(tmp_path: Path) -> None:
     """§8.2: a second silent window ends the child, and §7 grades what is left.
 
-    The route to `error_runner` — and so to one infra retry (§10.2) — is the
+    The route to `error_crew` — and so to one infra retry (§10.2) — is the
     `max_wall` one exactly: nothing reads the exit REASON, and a TERMed child
-    with no marker is a runner error whichever ceiling ended it. The reason is
+    with no marker is a crew error whichever ceiling ended it. The reason is
     still recorded, because it is the only place the difference survives.
     """
     lab = Lab(tmp_path)
     lab.node = lab.node.model_copy(update={"stale_after": STALE_AFTER})
     lab.clock.real_sleep_s = 0.05
 
-    result = lab.supervise(ChildScript(sleep_s=CHILD_SECONDS))
+    result = lab.inspect(ChildScript(sleep_s=CHILD_SECONDS))
 
     assert result.monitor is not None
     assert result.monitor.verdict is MonitorVerdict.STALE_BREACH
     assert result.observation is not None
     assert result.observation.exit_record.reason == ExitReason.STALE.value
     assert result.observation.exit_record.exit_code == -signal.SIGTERM
-    assert result.observation.completion.outcome is Outcome.ERROR_RUNNER
+    assert result.observation.completion.outcome is Outcome.ERROR_CREW
     assert result.observation.activation.metadata.lifecycle is Lifecycle.EXIT_RECORDED
 
 
@@ -424,9 +424,9 @@ def test_a_reattached_child_is_adopted_into_the_watch(lab: Lab) -> None:
         sleep_s=CHILD_SECONDS, marker=MARKER_JSON, effects=EFFECTS_JSON
     )
     with pytest.raises(InjectedCrash):
-        lab.supervise(script)
+        lab.inspect(script)
 
-    result = lab.supervise(script)
+    result = lab.inspect(script)
 
     activation_id = result.dispatch.activation.activation_id
     assert result.dispatch.outcome is LaunchOutcome.REATTACHED
@@ -440,13 +440,13 @@ def test_a_reattached_child_is_adopted_into_the_watch(lab: Lab) -> None:
 
 @pytest.mark.proc
 def test_an_in_repo_node_runs_inside_the_execution_band(lab: Lab) -> None:
-    """Opus#30: `Supervisor.run` never acquired the §12 band.
+    """Opus#30: `Inspector.run` never acquired the §12 band.
 
     So the composition root that §5.3 says owns the lifecycle could not run an
     in-repo node at all — `prepare` refused it — and any caller that took the
     band itself had to keep holding it through the watch and the exit
-    observation, since `ExitObserver` records what the runner left dirty while
-    the band is still that runner's. Taken around the whole run, both hold.
+    observation, since `ExitObserver` records what the crew left dirty while
+    the band is still that crew's. Taken around the whole run, both hold.
     """
     node = lab.node.model_copy(update={"isolation": IsolationMode.IN_REPO})
     build = task_builder(lab.repo, node)
@@ -456,7 +456,7 @@ def test_an_in_repo_node_runs_inside_the_execution_band(lab: Lab) -> None:
         held.append(lab.workspace.band.held)
         return build(activation, channels)  # type: ignore[arg-type]
 
-    result = lab.supervisor.run(
+    result = lab.inspector.run(
         entry_mint(),
         node,
         FakeProfile(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON)),
@@ -474,7 +474,7 @@ def test_an_in_repo_node_runs_inside_the_execution_band(lab: Lab) -> None:
 def test_the_exit_is_recorded_after_the_wrappers_parent_is_killed(
     tmp_path: Path,
 ) -> None:
-    """B5's real claim: the supervisor outlives whatever started it.
+    """B5's real claim: the inspector outlives whatever started it.
 
     §5.3 gives the wrapper the child's whole lifetime, and drill 14 asserts the
     flags are raised "while the foreman process is not running". Both are only

@@ -21,8 +21,8 @@ from workflow_interpreter.foreman.wake_constants import (
     MSG_JOURNAL_BOUND,
     REFUSAL_JOURNAL,
 )
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.paths import write_durable
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.paths import write_durable
 
 
 class RefusalRecord(BaseModel):

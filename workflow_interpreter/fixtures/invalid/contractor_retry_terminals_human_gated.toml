@@ -1,4 +1,4 @@
-# phase_bridge_retry_terminals_human_gated: a retry terminal cannot bypass a human gate.
+# contractor_retry_terminals_human_gated: a retry terminal cannot bypass a human gate.
 [graph]
 id = "min"
 version = "1.0.0"
@@ -7,12 +7,12 @@ description = "minimal graph"
 
 [instance]
 max_total_activations = 5
-phase_bridge_retry_terminals = ["finished"]
+contractor_retry_terminals = ["finished"]
 
 [[node]]
 name = "work"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

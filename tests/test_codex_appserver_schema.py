@@ -9,14 +9,14 @@ import jsonschema
 import pytest
 
 from tests._appserver import FIXTURE, AppServerLab
-from tests._supervisor import entry_mint
+from tests._inspector import entry_mint
 from workflow_interpreter.bdio import MintReason
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.rpc_control import INTERRUPT_FILE
+from workflow_interpreter.inspector.rpc_session import RpcSession, SessionPhase
+from workflow_interpreter.inspector.steer import Steerer
 from workflow_interpreter.profiles.codex_rpc import RpcClient, RpcMethod
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.rpc_control import INTERRUPT_FILE
-from workflow_interpreter.supervisor.rpc_session import RpcSession, SessionPhase
-from workflow_interpreter.supervisor.steer import Steerer
 
 
 def test_committed_schemas_match_installed_generator(tmp_path):
@@ -123,7 +123,7 @@ def test_every_session_request_uses_only_generated_fields(
         aid = first.dispatch.activation.activation_id
         lab.store.close_activation(aid, Outcome.FAIL_CODE)
         lab.run(
-            entry_mint(runner_profile="codex-appserver", session_id="").model_copy(
+            entry_mint(crew_profile="codex-appserver", session_id="").model_copy(
                 update={
                     "mint_reason": MintReason.EDGE,
                     "predecessor_activation_id": aid,

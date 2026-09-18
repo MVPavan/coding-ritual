@@ -1,6 +1,6 @@
 """The two phase-3 writes: the §3.2 carry-forward trio and the §8.2 stale flag.
 
-Both are the narrowest typed surface for a fact the supervisor owns and bd has
+Both are the narrowest typed surface for a fact the inspector owns and bd has
 to carry, and both are here for the same two questions every other write in
 this package answers: is a repeat a no-op, and does a CONTRADICTION fail loud
 rather than silently overwrite?
@@ -13,7 +13,7 @@ And both have a fourth, which is what this family is really for now.
 `FakeBd.pause_before` runs a callback immediately before a chosen command, so
 "another writer landed between the read and the write" is expressible as
 ordinary single-threaded code. That is how the whole-carrier merge was caught:
-the supervisor is a RESIDENT process (B5), so it is not serialised by the §4
+the inspector is a RESIDENT process (B5), so it is not serialised by the §4
 tick, and a stale carrier re-emitted `lifecycle` and `handle` from read time —
 dragging a closed activation back to `dispatched` under a bd row already marked
 closed. Every write here is now delta-only over a freshly read record, and the
@@ -56,7 +56,7 @@ OTHER: Final[str] = "c" * 40
 DIRTY: Final[str] = '{"entries":[],"stash_commit":null}'
 RAISED_AT: Final[str] = "2026-08-25T12:10:00Z"
 LAST_ACTIVITY: Final[str] = "2026-08-25T12:00:00Z"
-STEER_REASON: Final[str] = "the runner has been quiet for an hour"
+STEER_REASON: Final[str] = "the crew has been quiet for an hour"
 UPDATE: Final[str] = "update"
 FLAG_METADATA: Final[str] = "--metadata"
 
@@ -175,7 +175,7 @@ def test_the_trio_may_be_re_proven_while_the_activation_is_still_minted(
 def test_the_trio_is_frozen_once_the_child_has_run(
     store: WorkflowStore, definition: GraphDefinition
 ) -> None:
-    """After dispatch it describes a tree the runner ALREADY worked in (§3.2)."""
+    """After dispatch it describes a tree the crew ALREADY worked in (§3.2)."""
     activation_id = _minted(store, definition)
     store.record_precondition(activation_id, _record())
     store.record_dispatch(activation_id, handle())
@@ -318,7 +318,7 @@ def test_the_trio_refuses_a_value_that_is_not_what_it_claims(
         _record(**overrides)
 
 
-# --- interleaving: the resident supervisor vs. the foreman tick ----------
+# --- interleaving: the resident inspector vs. the foreman tick ----------
 
 
 def test_a_precondition_write_cannot_drag_a_dispatch_backwards(
@@ -348,7 +348,7 @@ def test_a_stale_mirror_cannot_reopen_an_activation_the_foreman_closed(
 ) -> None:
     """Blocker 4 (probed): `status=closed` with `lifecycle=dispatched`.
 
-    The stale mirror runs in the RESIDENT supervisor process, which by B5's own
+    The stale mirror runs in the RESIDENT inspector process, which by B5's own
     design outlives the foreman tick — so it is not serialised by the §4
     single-flight lock the docstring used to claim. A foreman that closes the
     same activation between the mirror's read and its write (a §8.1 steer,
@@ -420,7 +420,7 @@ def _clobber_lifecycle(bd: FakeBd, activation_id: str, lifecycle: Lifecycle) -> 
 
 
 def _steer(store: WorkflowStore, activation_id: str) -> None:
-    """What a foreman tick does to an activation the supervisor still owns."""
+    """What a foreman tick does to an activation the inspector still owns."""
     store.close_activation(
         activation_id,
         Outcome.STEERED,
@@ -437,7 +437,7 @@ def test_a_transition_writes_only_the_keys_it_owns(
 
     Which meant every key the transition does not own travelled with it, at the
     value it had before any interleaved writer touched it — so a `record_exit`
-    issued by the resident supervisor rolled the foreman's `deviations`,
+    issued by the resident inspector rolled the foreman's `deviations`,
     `evidence` and `usage` back to their pre-close values. A transition owns
     `lifecycle` and its own record; this asserts it emits nothing else.
     """

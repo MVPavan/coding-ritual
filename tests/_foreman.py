@@ -21,8 +21,8 @@ from types import MappingProxyType
 from typing import Final, TypedDict
 
 from tests._fake_bd import FakeBd, InjectedCrash
-from tests._helpers import VALID_FIXTURE, runner_roles
-from tests._supervisor import (
+from tests._helpers import VALID_FIXTURE, crew_roles
+from tests._inspector import (
     DEBRIEF,
     DEBRIEF_MARKER,
     IMPLEMENT,
@@ -71,28 +71,28 @@ from workflow_interpreter.foreman.compose import (
     ProfileResolver,
     WrapperLaunch,
 )
-from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
+from workflow_interpreter.foreman.config import CrewBinding, ForemanConfig
 from workflow_interpreter.foreman.gates import payload_template
+from workflow_interpreter.foreman.inspect import run_wrapper
 from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
-from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
+from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.models import StaleFlag
+from workflow_interpreter.inspector.paths import fsync_dir, write_durable, write_record
+from workflow_interpreter.inspector.profile import (
+    ChildLauncher,
+    CrewCommand,
+    Profile,
+    TaskSpec,
+)
+from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.ledger.tasks import pin_task_backend
-from workflow_interpreter.profiles.config import RUNNER_PREFIX
+from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.profiles.errors import UnknownProfileError
-from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.models import StaleFlag
-from workflow_interpreter.supervisor.paths import fsync_dir, write_durable, write_record
-from workflow_interpreter.supervisor.profile import (
-    ChildLauncher,
-    Profile,
-    RunnerCommand,
-    TaskSpec,
-)
-from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 type OverrideValue = str | int | bool
 
@@ -100,23 +100,23 @@ type OverrideValue = str | int | bool
 # instance input every drill written before phase 7 relies on. A graph with
 # other roles or sources (build-loop) passes its own through `ForemanLab(roles=…,
 # instance_inputs=…)`.
-DEFAULT_LAB_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
+DEFAULT_LAB_ROLES: Final[Mapping[str, CrewBinding]] = MappingProxyType(
     {
-        "implementer": RunnerBinding(profile="fake", model="fake", effort="medium"),
-        "critic": RunnerBinding(profile="fake", model="fake", effort="medium"),
-        "scribe": RunnerBinding(profile="fake", model="fake", effort="medium"),
+        "implementer": CrewBinding(profile="fake", model="fake", effort="medium"),
+        "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
+        "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
     }
 )
 DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
     {"task_brief": "implement the lab fixture"}
 )
 
-# build-loop's five `runner = "profile:<role>"` names, all inert in the lab, and
+# build-loop's five `crew = "profile:<role>"` names, all inert in the lab, and
 # its two non-optional `producer = "instance"` sources. Shared by every test that
 # puts the second graph on the lab.
-BUILD_LOOP_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
+BUILD_LOOP_ROLES: Final[Mapping[str, CrewBinding]] = MappingProxyType(
     {
-        role: RunnerBinding(profile="fake", model="fake", effort="medium")
+        role: CrewBinding(profile="fake", model="fake", effort="medium")
         for role in (
             "test-author",
             "test-critic",
@@ -130,7 +130,7 @@ BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
     {"task_brief": "add the lab slice", "seam_contract": "def lab() -> int"}
 )
 
-# The resolver is asked for the runner name as the GRAPH spells it, so the
+# The resolver is asked for the crew name as the GRAPH spells it, so the
 # accepted set is derived per graph; `fake` is the lab's own inert profile.
 FAKE_PROFILE: Final[str] = "fake"
 FAKE_MODEL: Final[str] = "fake"
@@ -146,7 +146,7 @@ def entry_request(**overrides: object) -> MintRequest:
     base: dict[str, object] = {
         "node": IMPLEMENT,
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": FAKE_PROFILE,
+        "crew_profile": FAKE_PROFILE,
         "model": FAKE_MODEL,
         "session_id": "",
     }
@@ -156,7 +156,7 @@ def entry_request(**overrides: object) -> MintRequest:
 class _Profiles(ProfileResolver):
     """A scriptable resolver that keeps wrapper execution inside the real seam.
 
-    `accepted` is the runner-name allow-list: a name outside it is a wiring bug
+    `accepted` is the crew-name allow-list: a name outside it is a wiring bug
     in the lab, and failing loudly there beats silently handing every node the
     same profile.
     """
@@ -182,7 +182,7 @@ class _Profiles(ProfileResolver):
     def profile_for(self, name: str) -> Profile:
         if name not in self.accepted:
             raise UnknownProfileError(f"unregistered wrapper profile: {name}")
-        self.profile.selected_runner = name.removeprefix(RUNNER_PREFIX)
+        self.profile.selected_crew = name.removeprefix(CREW_PREFIX)
         return self.profile
 
     def next_script_for_launch(self) -> ChildScript | None:
@@ -207,7 +207,7 @@ class _Profiles(ProfileResolver):
         `next_script` is single-shot and consumed at launch, which works only
         where the test ticks by hand; an unattended `Foreman.run` dispatches
         several nodes with no seam in between, so those tests declare what each
-        node's runner does once, up front. An explicitly queued script still
+        node's crew does once, up front. An explicitly queued script still
         wins over the node binding.
         """
         self._by_node[node] = script
@@ -224,13 +224,13 @@ class _QueuedProfile(FakeProfile):
         super().__init__(script)
         self._profiles = profiles
         self.tasks: list[TaskSpec] = []
-        self.selected_runner = FAKE_PROFILE
+        self.selected_crew = FAKE_PROFILE
 
     def name(self) -> str:
         """Keep the selected vendor identity while replacing its process boundary."""
-        return self.selected_runner
+        return self.selected_crew
 
-    def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+    def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
         """Build the next child without consuming a script during settlement."""
         self.tasks.append(task)
         next_script = self._profiles.next_script_for_launch() or (
@@ -273,7 +273,7 @@ class _QueuedProfile(FakeProfile):
             self.script = next_script
         return super().build_command(task, session_id)
 
-    def launch(self, command: RunnerCommand, launcher: ChildLauncher) -> ProcessHandle:
+    def launch(self, command: CrewCommand, launcher: ChildLauncher) -> ProcessHandle:
         """Consume the queued script only after its child actually starts."""
         handle = super().launch(command, launcher)
         self._profiles.consume_next_script()
@@ -397,7 +397,7 @@ class ProcSpawner:
 
 def wrapper_alive_for_barrier(wiring: InstanceWiring, activation_id: str) -> bool:
     """Keep the three-stage proc barrier explicit at the same lock seam."""
-    from workflow_interpreter.foreman.supervise import wrapper_alive
+    from workflow_interpreter.foreman.inspect import wrapper_alive
 
     return wrapper_alive(wiring, activation_id)
 
@@ -437,14 +437,14 @@ class ForemanLab:
         signer: Callable[[bytes, Path | None], bytes] | None = None,
         bd_factory: Callable[[str], FakeBd] = FakeBd,
         band_wait_s: float = 30.0,
-        roles: Mapping[str, RunnerBinding] = DEFAULT_LAB_ROLES,
+        roles: Mapping[str, CrewBinding] = DEFAULT_LAB_ROLES,
         instance_inputs: Mapping[str, str] = DEFAULT_LAB_INSTANCE_INPUTS,
         sandbox: SandboxMode = SandboxMode.BWRAP,
         store: BackendKind = BackendKind.BD,
     ) -> None:
         """Wire a throwaway repo to a real foreman.
 
-        `roles` binds each `runner = "profile:<role>"` name the graph declares —
+        `roles` binds each `crew = "profile:<role>"` name the graph declares —
         the real `resolve.instantiate` refuses a graph with an unbound role —
         and `instance_inputs` maps each `producer = "instance"` source name to
         its body. Both default to feature-delivery's, which `toml` also
@@ -457,7 +457,7 @@ class ForemanLab:
 
         `sandbox` defaults to the O5 value, so the whole foreman family runs
         under the REAL §2 mount bound on a host that has `bwrap`. A test whose
-        PREMISE is a runner writing outside its own grants — the verifier
+        PREMISE is a crew writing outside its own grants — the verifier
         provenance, undeclared-effect and reviewer-commit drills — has to turn
         it off and say why: those drills exist to prove that the layer ABOVE the
         bound still holds, and the bound would otherwise stop the child before
@@ -480,7 +480,7 @@ class ForemanLab:
             self._wrapper_home
             / hashlib.sha256(str(self.repo.resolve()).encode("utf-8")).hexdigest()[:16]
         )
-        self.supervisor_config = make_config(
+        self.inspector_config = make_config(
             self.repo,
             tmp_path,
             fake_proc=False,
@@ -496,10 +496,10 @@ class ForemanLab:
         self.root: RootRecord | None = None
 
     def _accepted_profiles(self) -> frozenset[str]:
-        """Every runner name the pinned graph can ask the resolver for."""
+        """Every crew name the pinned graph can ask the resolver for."""
         return frozenset(
             {FAKE_PROFILE, *(binding.profile for binding in self._roles.values())}
-            | {f"{RUNNER_PREFIX}{role}" for role in runner_roles(self.definition)}
+            | {f"{CREW_PREFIX}{role}" for role in crew_roles(self.definition)}
         )
 
     def _build_fresh(self, backend_factory: StoreBackendFactory | None = None) -> None:
@@ -518,7 +518,7 @@ class ForemanLab:
         if self.ledger is not None:
             self.ledger.close()
         self.ledger = open_ledger(
-            self.repo, self.supervisor_config.wrapper_root, path=self._ledger_path
+            self.repo, self.inspector_config.wrapper_root, path=self._ledger_path
         )
         pin_task_backend(self.ledger, LAB_TASK, self._store)
         bd = BdClient(BdConfig(workspace=self._workspace, actor="test"), self.fake_bd)
@@ -536,7 +536,7 @@ class ForemanLab:
             backend_factory=self.backend_factory,
             claims_backend=bd,
         )
-        self.git = make_git(self.supervisor_config)
+        self.git = make_git(self.inspector_config)
         self.clock = FrozenClock()
         self.profiles = _Profiles(self._accepted_profiles())
         self.spawner = InlineSpawner()
@@ -546,17 +546,17 @@ class ForemanLab:
             bd=BdConfig(workspace=self._workspace, actor="test"),
             signing=self._signing,
             host="test-host",
-            supervisor=self.supervisor_config,
+            inspector=self.inspector_config,
             actor="test",
             band_wait_s=self._band_wait_s,
             roles=self._roles,
-            bridge_graph=self._toml,
+            contractor_graph=self._toml,
             store=self._store,
         )
         self.composition = Composition(
             self.config,
             self.store,
-            self.supervisor_config,
+            self.inspector_config,
             self.git,
             self.clock,
             self.profiles,

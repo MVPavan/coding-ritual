@@ -4,12 +4,12 @@ Four things live here because getting any of them wrong in one adapter would
 be invisible until production:
 
 - **The child environment is built in ONE place**, and it routes through
-  `RunnerChannels.env()`. That call is what stamps the §7.4 committer identity
+  `CrewChannels.env()`. That call is what stamps the §7.4 committer identity
   onto the child; a profile that assembled its own `dict` would leave every
   in-repo commit unattributable, `pin_artifact` would refuse it, and a `done`
   claim on a writing node would grade `fail_code` with nothing to point at
   (§14, phase-3 ruling). `command()` is therefore the only constructor of a
-  `RunnerCommand` in this package, so no adapter can skip it.
+  `CrewCommand` in this package, so no adapter can skip it.
 - **`launch` execs through the injected `ChildLauncher` and does nothing else.**
   The §5.2 fork barrier and the exec ledger are the crash-atomicity contract;
   `launch.py` verifies the receipt afterwards, so an adapter that forked its own
@@ -17,7 +17,7 @@ be invisible until production:
 - **The push backstop is set for EVERY vendor**, in the child env rather than
   in one vendor's flags (`push_backstop`). Two of the three CLIs cannot deny a
   push at all, and the third could only deny the spellings somebody thought of.
-- **`parse_output` never raises.** The launcher dup2s the runner log onto BOTH
+- **`parse_output` never raises.** The launcher dup2s the crew log onto BOTH
   fd 1 and fd 2 (`launch.py::_child`), so the "machine event stream" is
   guaranteed to carry non-JSON vendor chatter — every CLI probed writes a stdin
   complaint to stderr — on top of the torn final line a crash leaves. A parser
@@ -27,7 +27,7 @@ be invisible until production:
   these events (`exit.py` reads the reserved channel itself, `monitor.py`
   measures byte growth), so a misclassified stderr line costs nothing.
 
-`usage: unknown` is legal (§6) telemetry, and the supervisor always enforces
+`usage: unknown` is legal (§6) telemetry, and the inspector always enforces
 `max_wall`.
 """
 
@@ -46,19 +46,17 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ProcessHandle, Usage
 from workflow_interpreter.contracts.execution import MSG_GRANTS_MISSING
-from workflow_interpreter.profiles.config import ProfileConfig, RunnerName
-from workflow_interpreter.profiles.errors import TaskRefused
-from workflow_interpreter.supervisor.clock import Clock, elapsed_seconds
-from workflow_interpreter.supervisor.profile import (
+from workflow_interpreter.inspector.clock import Clock, elapsed_seconds
+from workflow_interpreter.inspector.profile import (
     ChildLauncher,
+    CrewChannels,
+    CrewCommand,
+    CrewEvent,
     EventType,
-    RunnerChannels,
-    RunnerCommand,
-    RunnerEvent,
     TaskSpec,
     TerminalEnvelope,
 )
-from workflow_interpreter.supervisor.sandbox import (
+from workflow_interpreter.inspector.sandbox import (
     ENV_MYPY_CACHE_DIR,
     ENV_PYTEST_ADDOPTS,
     ENV_RUFF_CACHE_DIR,
@@ -73,6 +71,8 @@ from workflow_interpreter.supervisor.sandbox import (
     UV_PYTHON_DIRECTORY,
     grant_directory,
 )
+from workflow_interpreter.profiles.config import CrewName, ProfileConfig
+from workflow_interpreter.profiles.errors import TaskRefused
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -174,9 +174,9 @@ def push_backstop() -> dict[str, str]:
     ENVIRONMENT, so the rewrite applies to every git any process in the child's
     tree runs, whatever tool spawned it and however the command was phrased.
 
-    It is a backstop, not the policy, and §0.3's semi-trusted runner can unset
+    It is a backstop, not the policy, and §0.3's semi-trusted crew can unset
     the variables — which is precisely why codex's `network_access = false` and
-    the supervisor's own closed subcommand set both still exist. What it removes
+    the inspector's own closed subcommand set both still exist. What it removes
     is every ACCIDENTAL push, and every push phrased around a prefix rule.
 
     ONE entry, keyed on the empty prefix (`PUSH_URL_PREFIX`): the rewrite is a
@@ -197,16 +197,16 @@ leniently keeps a torn byte from becoming an exception in a reader whose whole
 contract is that it does not raise."""
 
 _MSG_UNDECODABLE: Final[str] = (
-    "{runner}: could not decode a vendor event ({error}): {line}"
+    "{crew}: could not decode a vendor event ({error}): {line}"
 )
 
 _MSG_EMPTY_BRIEF: Final[str] = (
-    "{runner}: the task for node {node} has an empty brief; a runner CLI given "
+    "{crew}: the task for node {node} has an empty brief; a crew CLI given "
     "no prompt argument reads its instructions from stdin, which the launcher "
     "does not redirect"
 )
 _MSG_RELATIVE: Final[str] = (
-    "{runner}: {label} must be an absolute path, got {value!r}; a relative path "
+    "{crew}: {label} must be an absolute path, got {value!r}; a relative path "
     "in a sandbox rule silently anchors somewhere else"
 )
 _WRAPPER_EVENT_LINE: Final[re.Pattern[str]] = re.compile(
@@ -215,7 +215,7 @@ _WRAPPER_EVENT_LINE: Final[re.Pattern[str]] = re.compile(
 
 
 class LogScan(BaseModel):
-    """One pass over a runner log: the session it names and what it spent."""
+    """One pass over a crew log: the session it names and what it spent."""
 
     model_config = SCAN_MODEL
 
@@ -241,13 +241,13 @@ def json_object(line: str) -> Mapping[str, object] | None:
 
 def parse_lines(
     stream: Iterable[str],
-    decode: Callable[[Mapping[str, object]], RunnerEvent | None],
-    runner: str = "",
-) -> Iterator[RunnerEvent]:
+    decode: Callable[[Mapping[str, object]], CrewEvent | None],
+    crew: str = "",
+) -> Iterator[CrewEvent]:
     """Drive a vendor decoder over a stream, tolerating everything else.
 
     Blank lines and wrapper structlog records are dropped (they carry nothing
-    about the runner). Anything else that is not a JSON object becomes an
+    about the crew). Anything else that is not a JSON object becomes an
     `ERROR` event holding the raw line, so a caller can see exactly what the
     wrapper could not read.
 
@@ -268,18 +268,18 @@ def parse_lines(
                 continue
             if _WRAPPER_EVENT_LINE.search(text):
                 continue
-            yield RunnerEvent(type=EventType.ERROR, text=text, is_error=True)
+            yield CrewEvent(type=EventType.ERROR, text=text, is_error=True)
             continue
         if _is_wrapper_record(payload):
             continue
         try:
             event = decode(payload)
         except ValueError as error:
-            _LOG.warning("wf.profile.undecodable", runner=runner, error=str(error))
-            yield RunnerEvent(
+            _LOG.warning("wf.profile.undecodable", crew=crew, error=str(error))
+            yield CrewEvent(
                 type=EventType.ERROR,
                 text=_MSG_UNDECODABLE.format(
-                    runner=runner, error=type(error).__name__, line=line.strip()
+                    crew=crew, error=type(error).__name__, line=line.strip()
                 ),
                 is_error=True,
             )
@@ -289,7 +289,7 @@ def parse_lines(
 
 
 def _is_wrapper_record(payload: Mapping[str, object]) -> bool:
-    """Whether a JSON structlog record belongs to the wrapper, not a runner."""
+    """Whether a JSON structlog record belongs to the wrapper, not a crew."""
     event = payload.get("event")
     return isinstance(event, str) and event.startswith("wf.")
 
@@ -337,10 +337,10 @@ def decimal_at(payload: Mapping[str, object], key: str) -> Decimal | None:
         return None
 
 
-def fold_usage(events: Iterable[RunnerEvent]) -> Usage:
+def fold_usage(events: Iterable[CrewEvent]) -> Usage:
     """Normalize a stream's usage events into one §6 `Usage`.
 
-    Cost is read from `RunnerEvent.cost_usd` and from nowhere else. §6's event
+    Cost is read from `CrewEvent.cost_usd` and from nowhere else. §6's event
     carries `usage?` and `cost?` as separate fields, so a vendor decoder puts
     money on the event and tokens in the usage — two carriers for one number
     would be two things to keep in step.
@@ -392,7 +392,7 @@ def fold_usage(events: Iterable[RunnerEvent]) -> Usage:
     )
 
 
-def grant_dirs(runner: RunnerName, task: TaskSpec) -> tuple[str, ...]:
+def grant_dirs(crew: CrewName, task: TaskSpec) -> tuple[str, ...]:
     """The absolute directories a task's `allowed_paths` grant, in declared order.
 
     The one mapping both write-capable profiles express in their own permission
@@ -407,15 +407,15 @@ def grant_dirs(runner: RunnerName, task: TaskSpec) -> tuple[str, ...]:
     """
     if task.execution_grants is not None:
         return task.execution_grants.checkout_write_dirs
-    cwd = PurePosixPath(require_absolute(runner, "task cwd", task.cwd))
+    cwd = PurePosixPath(require_absolute(crew, "task cwd", task.cwd))
     return tuple(str(cwd / grant_directory(grant)) for grant in task.allowed_paths)
 
 
-def require_absolute(runner: RunnerName, label: str, value: str) -> str:
+def require_absolute(crew: CrewName, label: str, value: str) -> str:
     """Refuse a relative path where a bound depends on it being absolute."""
     if not Path(value).is_absolute():
         raise TaskRefused(
-            _MSG_RELATIVE.format(runner=runner.value, label=label, value=value)
+            _MSG_RELATIVE.format(crew=crew.value, label=label, value=value)
         )
     return value
 
@@ -423,10 +423,10 @@ def require_absolute(runner: RunnerName, label: str, value: str) -> str:
 class BaseProfile:
     """The shared half of a §6 profile; the vendor half is three subclasses."""
 
-    runner: ClassVar[RunnerName]
+    crew: ClassVar[CrewName]
     auth_env: ClassVar[tuple[str, ...]] = ()
     """Vendor credential keys copied from the host env when present. Named
-    explicitly rather than pattern-matched: a prefix rule would hand a runner
+    explicitly rather than pattern-matched: a prefix rule would hand a crew
     whatever new secret a future release happens to name."""
 
     def __init__(
@@ -442,16 +442,16 @@ class BaseProfile:
     # -- identity ---------------------------------------------------------
 
     def name(self) -> str:
-        """The profile's stable identifier (`runner = "profile:<name>"`)."""
-        return self.runner.value
+        """The profile's stable identifier (`crew = "profile:<name>"`)."""
+        return self.crew.value
 
     def binary(self) -> str:
         """The executable this profile execs."""
-        return self._config.binary_for(self.runner)
+        return self._config.binary_for(self.crew)
 
     # -- command construction --------------------------------------------
 
-    def child_env(self, channels: RunnerChannels) -> dict[str, str]:
+    def child_env(self, channels: CrewChannels) -> dict[str, str]:
         """The child's COMPLETE environment: passthrough keys, then the channels.
 
         Complete because `launch.py` execs with `dict(command.env)` and nothing
@@ -469,7 +469,7 @@ class BaseProfile:
 
         `toolchain_env` rides on the same channel and for the same reason: this
         is the merge that sees the INHERITED environment, which is what the
-        `PYTEST_ADDOPTS` append needs and what `RunnerChannels.env()` — merged
+        `PYTEST_ADDOPTS` append needs and what `CrewChannels.env()` — merged
         last, and taking no env at all — cannot have.
         """
         env = {
@@ -489,15 +489,15 @@ class BaseProfile:
         session_id: str,
         *,
         cwd: str | None = None,
-    ) -> RunnerCommand:
-        """The one place a `RunnerCommand` is built (see the module docstring).
+    ) -> CrewCommand:
+        """The one place a `CrewCommand` is built (see the module docstring).
 
         `argv` is executed without a shell, so every element is a literal — no
         quoting, no metacharacters, no interpreter prefix.
         """
         if task.execution_profile is not None and task.execution_grants is None:
             raise TaskRefused(MSG_GRANTS_MISSING)
-        return RunnerCommand(
+        return CrewCommand(
             argv=tuple(argv),
             env=self.child_env(task.channels),
             cwd=cwd or task.cwd,
@@ -515,24 +515,24 @@ class BaseProfile:
         """
         if not task.brief.strip():
             raise TaskRefused(
-                _MSG_EMPTY_BRIEF.format(runner=self.runner.value, node=task.node)
+                _MSG_EMPTY_BRIEF.format(crew=self.crew.value, node=task.node)
             )
         return task.brief
 
     # -- process lifecycle ------------------------------------------------
 
-    def launch(self, command: RunnerCommand, launcher: ChildLauncher) -> ProcessHandle:
-        """Exec THROUGH the supervisor's launcher; the barrier is not optional."""
+    def launch(self, command: CrewCommand, launcher: ChildLauncher) -> ProcessHandle:
+        """Exec THROUGH the inspector's launcher; the barrier is not optional."""
         _LOG.info(
             "wf.profile.launch",
-            runner=self.runner.value,
+            crew=self.crew.value,
             session_id=command.session_id,
             program=command.argv[0],
         )
         return launcher(command)
 
     def collect_terminal_envelope(self, handle: ProcessHandle) -> TerminalEnvelope:
-        """The runner's terminal facts, read from its own log (§6).
+        """The crew's terminal facts, read from its own log (§6).
 
         No marker: §7.2's claim is `exit.py`'s to parse from the reserved
         channel with the node's declared outcome set, and a profile reporting a
@@ -563,7 +563,7 @@ class BaseProfile:
         if observed and assigned and observed != assigned:
             _LOG.warning(
                 "wf.profile.session_mismatch",
-                runner=self.runner.value,
+                crew=self.crew.value,
                 assigned=assigned,
                 observed=observed,
             )
@@ -571,16 +571,16 @@ class BaseProfile:
 
     # -- stream parsing ---------------------------------------------------
 
-    def decode_event(self, payload: Mapping[str, object]) -> RunnerEvent | None:
+    def decode_event(self, payload: Mapping[str, object]) -> CrewEvent | None:
         """Map one vendor event object onto the normalized §6 event."""
         raise NotImplementedError  # pragma: no cover - vendor subclasses override
 
-    def parse_output(self, stream: Iterable[str]) -> Iterator[RunnerEvent]:
-        """Normalize the runner's machine event stream (§6), never raising."""
-        return parse_lines(stream, self.decode_event, self.runner.value)
+    def parse_output(self, stream: Iterable[str]) -> Iterator[CrewEvent]:
+        """Normalize the crew's machine event stream (§6), never raising."""
+        return parse_lines(stream, self.decode_event, self.crew.value)
 
     def scan_log(self, log_path: Path) -> LogScan:
-        """One pass over a runner log: the session it names and what it spent.
+        """One pass over a crew log: the session it names and what it spent.
 
         The session is the FIRST one any event carries — the id of the session
         this exec belongs to (§5.2) — which for codex and opencode is the only
@@ -589,7 +589,7 @@ class BaseProfile:
         try:
             with log_path.open(encoding=ENCODING, errors=DECODE_ERRORS) as handle:
                 session: str | None = None
-                events: list[RunnerEvent] = []
+                events: list[CrewEvent] = []
                 for event in self.parse_output(handle):
                     if session is None and event.session:
                         session = event.session

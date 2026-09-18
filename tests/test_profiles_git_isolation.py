@@ -1,10 +1,10 @@
-"""Whether a `writes = true` runner can reach the `.git` the wrapper then runs.
+"""Whether a `writes = true` crew can reach the `.git` the wrapper then runs.
 
-`writes = true` grants the checkout and `.git` sits inside it, so a runner that
-can write `.git/config` or `.git/hooks/` names PROGRAMS the supervisor's own git
-executes as the wrapper — outside the sandbox that bounded the runner.
+`writes = true` grants the checkout and `.git` sits inside it, so a crew that
+can write `.git/config` or `.git/hooks/` names PROGRAMS the inspector's own git
+executes as the wrapper — outside the sandbox that bounded the crew.
 `git worktree add` runs `post-checkout` and `git add --all` runs
-`filter.<x>.clean`, and §5.4 makes both calls on a tree the runner just had.
+`filter.<x>.clean`, and §5.4 makes both calls on a tree the crew just had.
 
 The earlier version of this docstring said codex's sandbox "grants a directory
 and cannot exclude a subdirectory of it", so the wrapper's own git was the only
@@ -40,12 +40,12 @@ from typing import Final
 
 import pytest
 
+from tests._inspector import GIT_TIMEOUT_S, FrozenClock, head_of, make_repo
 from tests._profiles import make_claude, make_task
-from tests._supervisor import GIT_TIMEOUT_S, FrozenClock, head_of, make_repo
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.gitio import Git, GitSubcommand
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.gitio import Git, GitSubcommand
 
-SENTINEL: Final[str] = "the-runners-hook-ran"
+SENTINEL: Final[str] = "the-crews-hook-ran"
 HOOK: Final[str] = "#!/bin/sh\nprintf ran > {sentinel}\n"
 
 CODEX: Final[str] = "codex"
@@ -62,7 +62,7 @@ refusal is the shell's report of the sandbox's `EROFS`, not codex's own."""
 
 
 def _plant_hook(repo: Path, name: str, sentinel: Path) -> None:
-    """Write an executable hook of the kind a `writes = true` runner could."""
+    """Write an executable hook of the kind a `writes = true` crew could."""
     hooks = repo / ".git" / "hooks"
     hooks.mkdir(parents=True, exist_ok=True)
     hook = hooks / name
@@ -70,14 +70,14 @@ def _plant_hook(repo: Path, name: str, sentinel: Path) -> None:
     hook.chmod(0o755)
 
 
-def _config(repo: Path, tmp_path: Path) -> SupervisorConfig:
-    """A supervisor configuration over a throwaway repo."""
-    return SupervisorConfig.model_validate(
+def _config(repo: Path, tmp_path: Path) -> InspectorConfig:
+    """An inspector configuration over a throwaway repo."""
+    return InspectorConfig.model_validate(
         {"repo_root": repo, "wrapper_root": tmp_path / ".wf", "host": "lab"}
     )
 
 
-def test_a_hook_the_runner_planted_never_runs_as_the_wrapper(tmp_path: Path) -> None:
+def test_a_hook_the_crew_planted_never_runs_as_the_wrapper(tmp_path: Path) -> None:
     """`git worktree add` runs `post-checkout`; the wrapper's git must not.
 
     The control below proves the hook is real: run through plain `git` in the
@@ -166,7 +166,7 @@ def test_claude_denies_the_checkouts_git_directory_and_the_git_file(
 
     The `/**` form alone was a hole. A glob needs a `.git/` path SEGMENT to
     match, and §5.4's worktree has `.git` as a FILE holding `gitdir: <path>`;
-    an `Edit` could repoint it at a gitdir inside the runner's own grant and own
+    an `Edit` could repoint it at a gitdir inside the crew's own grant and own
     the config of every later `git -C <worktree>` the wrapper runs. Both spellings
     are asserted because only one of them covers the deployment mode this
     wrapper actually uses by default.
@@ -228,10 +228,10 @@ def test_the_codex_sandbox_makes_dot_git_read_only_in_the_layout_it_is_given(
     """The real sandbox keeps `.git` read-only while the worktree stays writable.
 
     Two layouts, because `.git` has two shapes and the earlier claim covered
-    neither honestly. In the §12 in-repo band the runner's root is the repo and
+    neither honestly. In the §12 in-repo band the crew's root is the repo and
     `.git` is a DIRECTORY; in §5.4 worktree mode the root is a worktree and
     `.git` is a FILE naming the real gitdir. Each parameter names the thing a
-    runner in that layout would actually have to write, and asserts the sandbox
+    crew in that layout would actually have to write, and asserts the sandbox
     refuses it with `EROFS` — while the surrounding tree stays writable, which is
     the control that keeps this from passing because nothing ran.
 

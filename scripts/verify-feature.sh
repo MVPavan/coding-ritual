@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # §7.3 verifier for the `implement` node of `feature-delivery`.
 #
-# Contract, as the wrapper actually runs it (supervisor/verify.py:297-318):
+# Contract, as the wrapper actually runs it (inspector/verify.py:297-318):
 # argv[0] is /proc/self/fd/<n>, there are NO arguments and NO `$WF_*`
 # environment. cwd is a clean checkout of the commit under test, so everything
 # is derived from git in cwd — including the repo root, because `$0` names a

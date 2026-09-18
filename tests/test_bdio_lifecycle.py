@@ -124,7 +124,7 @@ point of the set is that a generic write cannot quietly join it.
 
 `for_root` derives a root-scoped reader without exposing the sealed client.
 `record_precondition` and `record_stale_flag` joined it in phase 3, as the
-narrowest typed writes for the two facts the supervisor owns and §3.2/§8.2
+narrowest typed writes for the two facts the inspector owns and §3.2/§8.2
 require in bd: the carry-forward trio proven before the exec, and the stale
 flag. Each takes one frozen carrier and touches only its own keys.
 
@@ -138,7 +138,7 @@ carriers, approve gates, change bounds, or route a transition.
 it verifies root, activation, launch, and original process identity.
 
 `claims` joined it in S0 of the run ledger: the integration-target claim is a
-shared row with no root and no lifecycle, and the bridge used to read and
+shared row with no root and no lifecycle, and the contractor used to read and
 write it through the transport itself. It is a read plus a create-or-merge of
 one opaque payload — it can close nothing and approve nothing.
 

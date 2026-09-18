@@ -1,4 +1,4 @@
-"""The opencode runner profile (`opencode 1.18.21`) — parses, but refuses to launch.
+"""The opencode crew profile (`opencode 1.18.21`) — parses, but refuses to launch.
 
 §6 says the danger default is inverted and an unsupported option is a loud
 error. For opencode the unsupported option is *the bound itself*, and the
@@ -37,6 +37,12 @@ from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, Usage
 from workflow_interpreter.contracts.execution import ToolNetwork
+from workflow_interpreter.inspector.profile import (
+    CrewCommand,
+    CrewEvent,
+    EventType,
+    TaskSpec,
+)
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     decimal_at,
@@ -45,14 +51,8 @@ from workflow_interpreter.profiles._base import (
     optional_text_at,
     text_at,
 )
-from workflow_interpreter.profiles.config import RunnerName
+from workflow_interpreter.profiles.config import CrewName
 from workflow_interpreter.profiles.errors import UnsupportedOptionError
-from workflow_interpreter.supervisor.profile import (
-    EventType,
-    RunnerCommand,
-    RunnerEvent,
-    TaskSpec,
-)
 
 SESSION: Final[str] = "--session"
 
@@ -105,10 +105,10 @@ REASON_STOP: Final[str] = "stop"
 
 
 class OpencodeProfile(BaseProfile):
-    """`opencode run` as a §6 runner: everything but a launch (see module doc)."""
+    """`opencode run` as a §6 crew: everything but a launch (see module doc)."""
 
     tool_network = ToolNetwork.NOT_ENFORCED
-    runner = RunnerName.OPENCODE
+    crew = CrewName.OPENCODE
     auth_env = (
         "OPENCODE_API_KEY",
         "OPENCODE_CONFIG",
@@ -121,7 +121,7 @@ class OpencodeProfile(BaseProfile):
         """The recorded session id, or `""` — opencode assigns `ses_…` itself."""
         return activation.metadata.session_id
 
-    def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+    def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
         """Refuse: §6's danger default cannot be expressed by this CLI."""
         raise UnsupportedOptionError(
             _MSG_REFUSED.format(
@@ -134,7 +134,7 @@ class OpencodeProfile(BaseProfile):
 
     def build_resume_command(
         self, session_id: str, instructions: str, task: TaskSpec
-    ) -> RunnerCommand:
+    ) -> CrewCommand:
         """Refuse: a continuation inherits the launch's missing bound."""
         raise UnsupportedOptionError(
             _MSG_REFUSED.format(
@@ -149,7 +149,7 @@ class OpencodeProfile(BaseProfile):
         """A human-pasteable resume line, recorded on gate beads (§6)."""
         return f"{self.binary()} {SESSION} {session_id}"
 
-    def decode_event(self, payload: Mapping[str, object]) -> RunnerEvent | None:
+    def decode_event(self, payload: Mapping[str, object]) -> CrewEvent | None:
         """Map one `--format json` line onto the normalized §6 event."""
         session = optional_text_at(payload, KEY_SESSION)
         kind = text_at(payload, KEY_TYPE)
@@ -157,24 +157,24 @@ class OpencodeProfile(BaseProfile):
         if kind == TYPE_STEP_FINISH:
             return _step_event(part, session)
         if kind == TYPE_TEXT:
-            return RunnerEvent(
+            return CrewEvent(
                 type=EventType.MESSAGE, text=text_at(part, KEY_TEXT), session=session
             )
         if kind == TYPE_TOOL_USE:
-            return RunnerEvent(
+            return CrewEvent(
                 type=EventType.TOOL, text=text_at(part, KEY_TOOL), session=session
             )
         if kind == TYPE_ERROR:
-            return RunnerEvent(
+            return CrewEvent(
                 type=EventType.ERROR,
                 text=text_at(part, KEY_ERROR) or text_at(payload, KEY_ERROR) or kind,
                 session=session,
                 is_error=True,
             )
-        return RunnerEvent(type=EventType.MESSAGE, text=kind, session=session)
+        return CrewEvent(type=EventType.MESSAGE, text=kind, session=session)
 
 
-def _step_event(part: Mapping[str, object], session: str | None) -> RunnerEvent:
+def _step_event(part: Mapping[str, object], session: str | None) -> CrewEvent:
     """A `step_finish`: per-step usage, and `RESULT` only on the final stop.
 
     Several steps make up one run and each reports its own tokens, so only the
@@ -184,7 +184,7 @@ def _step_event(part: Mapping[str, object], session: str | None) -> RunnerEvent:
     tokens = mapping_at(part, KEY_TOKENS)
     cost = decimal_at(part, KEY_COST)
     terminal = text_at(part, KEY_REASON) == REASON_STOP
-    return RunnerEvent(
+    return CrewEvent(
         type=EventType.RESULT if terminal else EventType.USAGE,
         text=text_at(part, KEY_REASON),
         session=session,

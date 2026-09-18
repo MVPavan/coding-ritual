@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     IMPLEMENT,
     SESSION_ID,
     ChildScript,
@@ -42,19 +42,19 @@ from workflow_interpreter.bdio import (
     Outcome,
     ProcessHandle,
 )
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     Dispatcher,
     ExecLedger,
+    InspectorConfig,
     Steerer,
     SteerIntent,
-    SupervisorConfig,
     TerminationFailed,
     WrapperPaths,
 )
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.steer import instructions_digest
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.steer import instructions_digest
 
-REASON = "the runner is looping on the same test"
+REASON = "the crew is looping on the same test"
 INSTRUCTIONS = "stop rewriting the fixture; fix the assertion"
 
 
@@ -63,7 +63,7 @@ class Lab:
 
     def __init__(self, tmp_path: Path, *, fake_proc: bool = True) -> None:
         self.repo = make_repo(tmp_path)
-        self.config: SupervisorConfig = make_config(
+        self.config: InspectorConfig = make_config(
             self.repo, tmp_path, fake_proc=fake_proc
         )
         _, self.store = make_store(tmp_path, head_of(self.repo))
@@ -105,7 +105,7 @@ def test_steer_persists_intent_kills_closes_and_mints_one_continuation(
 
     private = lab.paths.activation_dir(activation.activation_id) / "toolchain"
     private.mkdir(parents=True)
-    (private / "runner-tools").write_text("private")
+    (private / "crew-tools").write_text("private")
     result = _steer(lab, activation)
     assert not private.exists()
 
@@ -221,7 +221,7 @@ def _kill_group(handle: ProcessHandle) -> None:
 
 def test_steer_preserves_dirty_writer_before_continuation(tmp_path: Path) -> None:
     """Confirmed steer death pins unfinished bytes before the successor is minted."""
-    from tests._supervisor import make_git, make_workspace
+    from tests._inspector import make_git, make_workspace
 
     lab = Lab(tmp_path)
     activation = lab.dispatched(handle_for(dead_pid()))
@@ -244,9 +244,9 @@ def test_steer_pin_failure_keeps_producer_open_until_retry(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A persisted steer intent must not mint its continuation before preservation."""
-    from tests._supervisor import make_git, make_workspace
+    from tests._inspector import make_git, make_workspace
     from workflow_interpreter.bdio.reads import activations_of
-    from workflow_interpreter.supervisor import Git, GitCommandError, SnapshotFailed
+    from workflow_interpreter.inspector import Git, GitCommandError, SnapshotFailed
 
     lab = Lab(tmp_path)
     activation = lab.dispatched(handle_for(dead_pid()))

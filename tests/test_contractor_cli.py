@@ -9,13 +9,13 @@ import pytest
 
 from tests._fake_bd import InjectedCrash
 from tests._foreman import ForemanLab
-from tests._supervisor import ChildScript, commit_all
-from tests.test_foreman_main import _bridge_adapter, _bridge_stage
-from workflow_interpreter.bridge import PhaseAdapter
-from workflow_interpreter.bridge import landing as landing_module
-from workflow_interpreter.bridge.command import PhaseBridgeCommandResult
-from workflow_interpreter.bridge.landing import LANDING_RECEIPT_FILE, LandingHooks
-from workflow_interpreter.bridge.verification import CheckCommand
+from tests._inspector import ChildScript, commit_all
+from tests.test_foreman_main import _contractor_adapter, _contractor_stage
+from workflow_interpreter.contractor import PhaseAdapter
+from workflow_interpreter.contractor import landing as landing_module
+from workflow_interpreter.contractor.command import ContractorCommandResult
+from workflow_interpreter.contractor.landing import LANDING_RECEIPT_FILE, LandingHooks
+from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.tick import Foreman, RunReport
 from workflow_interpreter.ledger.constants import LEDGER_DIR
@@ -36,7 +36,7 @@ def test_two_stages_land_from_normal_command(
     lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
     config = lab.config.model_copy(
         update={
-            "bridge_checks": (
+            "contractor_checks": (
                 CheckCommand(
                     name="source-proof",
                     argv=(
@@ -49,11 +49,11 @@ def test_two_stages_land_from_normal_command(
         }
     )
     lab.composition = replace(lab.composition, config=config)
-    lab.fake_bd.rows["a"] = _bridge_stage("a", description="first stage")
-    lab.fake_bd.rows["b"] = _bridge_stage("b", description="second stage")
+    lab.fake_bd.rows["a"] = _contractor_stage("a", description="first stage")
+    lab.fake_bd.rows["b"] = _contractor_stage("b", description="second stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     started = []
 
@@ -142,10 +142,10 @@ def test_two_stages_land_from_normal_command(
         assert len(started) == (0 if fault == "admission" else 1)
         # Current local configuration must never replace the admitted check policy.
         lab.composition = replace(
-            lab.composition, config=config.model_copy(update={"bridge_checks": ()})
+            lab.composition, config=config.model_copy(update={"contractor_checks": ()})
         )
     if fault == "receipt":
-        record = _bridge_adapter(lab).record("a")
+        record = _contractor_adapter(lab).record("a")
         path = (
             lab.composition.for_root(record.root_id).paths.instance_dir
             / LANDING_RECEIPT_FILE
@@ -208,7 +208,7 @@ def _entry(lab, stage, *extra):
                 [
                     "--config",
                     str(lab.repo / "foreman.toml"),
-                    "phase-bridge",
+                    "contract",
                     "phase",
                     stage,
                     *extra,
@@ -216,7 +216,7 @@ def _entry(lab, stage, *extra):
             )
         )
     )
-    return PhaseBridgeCommandResult(
+    return ContractorCommandResult(
         exit_code=codes[0],
         report={"diagnostic": output}
         if codes[0] == 1
@@ -226,27 +226,27 @@ def _entry(lab, stage, *extra):
 
 def test_missing_policy_refuses_before_admission_writes(tmp_path, monkeypatch):
     lab = ForemanLab(tmp_path)
-    lab.fake_bd.rows["a"] = _bridge_stage("a", description="first stage")
+    lab.fake_bd.rows["a"] = _contractor_stage("a", description="first stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
     result = _entry(lab, "a")
     assert result.exit_code == 2
     assert "nonempty" in result.report["reason"]
     assert lab.fake_bd.command_count("create") == 0
     assert lab.fake_bd.command_count("update") == 0
-    assert "bridge_checks" not in lab.config.model_dump(mode="json")
+    assert "contractor_checks" not in lab.config.model_dump(mode="json")
 
 
 def test_unexpected_programming_valueerror_is_a_crash(tmp_path, monkeypatch):
-    from tests.test_foreman_main import _bridge_lab
+    from tests.test_foreman_main import _contractor_lab
 
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["a"] = _bridge_stage("a", description="first stage")
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["a"] = _contractor_stage("a", description="first stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        PhaseAdapter, "from_config", classmethod(lambda *_: _contractor_adapter(lab))
     )
 
     def broken_run(*args, **kwargs):

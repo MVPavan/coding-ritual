@@ -24,7 +24,7 @@ from tests._foreman import (
     BUILD_LOOP_ROLES,
     ForemanLab,
 )
-from tests._supervisor import ChildScript, verifier_pins
+from tests._inspector import ChildScript, verifier_pins
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     BoundMutation,

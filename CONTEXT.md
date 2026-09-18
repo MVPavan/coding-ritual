@@ -66,6 +66,26 @@ _Avoid_: ticket, todo
 Specified enough for autonomous execution — the intake gate in `.beads/beads.md`. Distinct from `bd ready`, which means only unblocked.
 _Avoid_: ready (unqualified)
 
+### Engine actors
+
+The workflow interpreter's four actors, renamed to one story in 2026-09.
+
+**Contractor**:
+Takes one task from the tracker, owns it to a landed commit, closes it. CLI: `contract`.
+_Formerly_: phase bridge (`bridge/`, `PhaseBridge*`, `phase-bridge`)
+
+**Foreman**:
+One decision per tick; never does the work itself.
+_Formerly_: unchanged
+
+**Inspector**:
+Contains each activation, watches it, records the exit, grades the claim. CLI: `inspector`.
+_Formerly_: supervisor (`supervisor/`, `Supervisor*`, `supervise`)
+
+**Crew**:
+The vendor CLI that does the work inside an activation.
+_Formerly_: runner (`Runner*`, the `runner` node key)
+
 ### Curation
 
 **Bucket**:

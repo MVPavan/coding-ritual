@@ -1,5 +1,7 @@
 # Run ledger — design and plan
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Status: DRAFT v6 (build-ready for S0–S2; S3–S4 re-checked by slice critics on §3.2, §3.6, §3.7). Review log: Astra medium rounds 1–3 (REJECT ×3: export
 timing vs signed landing; missing bridge writers; child/task terminal
 conflation; lossy schema; projection atomicity; destructive attention flag;

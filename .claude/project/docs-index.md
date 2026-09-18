@@ -23,13 +23,13 @@ Authoritative docs and when to read them.
 | `CONTEXT.md` | Naming anything — the domain glossary; use its terms, avoid its listed synonyms |
 | `.beads/beads.md` | Beads workflow, agent context profiles, session-completion protocol |
 | `.claude/rules/core/03-coding-discipline.md` | Coding rules that reduce common LLM mistakes |
-| `docs/research/codebases/<repo>/luna-exploration.md` | Comparing the phase-bridge design against a cloned orchestration reference (cli-agent-orchestrator, metaswarm) — raw agent reports, unverified `file:line`, resumable sessions |
-| `docs/workstreams/agent-bridge/state.md` | **Resuming the phase-bridge work** — branch/commit ledger, the seven gates, the open schema decision, known defects in committed code |
+| `docs/research/codebases/<repo>/luna-exploration.md` | Comparing the contractor design against a cloned orchestration reference (cli-agent-orchestrator, metaswarm) — raw agent reports, unverified `file:line`, resumable sessions |
+| `docs/workstreams/agent-bridge/state.md` | **Resuming the contractor work** — branch/commit ledger, the seven gates, the open schema decision, known defects in committed code |
 
 Reference-harness submodule docs under `reference_harnesses/<repo>/` are external —
 read only when the task is explicitly about that reference.
 
-| `docs/specs/2026-09-11-workflow-coordination.md` | Implementing the approved bridge, model decisions, child coordination and serialized integration scope |
+| `docs/specs/2026-09-11-workflow-coordination.md` | Implementing the approved contractor, model decisions, child coordination and serialized integration scope |
 | `docs/workstreams/agent-bridge/roadmap.md` | Resuming the approved six-phase workflow coordination execution |
 | `docs/workstreams/run-ledger/roadmap.md` | **Working on engine storage, the debrief node, exports or archiving** — the run-ledger design, decisions D1–D21 and slices; ADR 0005 records the decision |
 | `docs/workstreams/store-restructure/roadmap.md` | **Working on the store seam, the tracker port, exports, task identity or the actor rename (contractor / foreman / inspector / crew)** — supersedes run-ledger D6, D7, D8-bd, D9, D16, D18, D20; decisions R1–R13, slices S0–S6; epic `cr-nwy9` |

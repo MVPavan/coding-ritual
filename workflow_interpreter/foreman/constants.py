@@ -8,9 +8,12 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_UNDECLARED_EFFECTS_ACCEPTED,
     DEVIATION_UNDECLARED_EFFECTS_DISCARDED,
 )
-from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
+from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
 
 __all__ = [
+    "CREW_PROTOCOL",
+    "CREW_PROTOCOL_NO_WRITE_STEP",
+    "CREW_PROTOCOL_WRITE_STEP",
     "DEVIATION_INSTANCE_BRANCH_DIVERGED",
     "DEVIATION_PRECONDITION_REFUSED",
     "DEVIATION_UNDECLARED_EFFECTS_ACCEPTED",
@@ -43,9 +46,6 @@ __all__ = [
     "MAX_TRANSCRIPT_BYTES",
     "NO_ARTIFACT",
     "NO_ARTIFACT_OID",
-    "RUNNER_PROTOCOL",
-    "RUNNER_PROTOCOL_NO_WRITE_STEP",
-    "RUNNER_PROTOCOL_WRITE_STEP",
     "RUN_DEFAULT_MAX_WALL_S",
     "RUN_DEFAULT_POLL_S",
     "RUN_MAX_WALL",
@@ -65,7 +65,7 @@ FORCED_FIRST_REJECT: Final[str] = (
     "§13 test switch: this is the first review round of the instance — return "
     "the outcome `reject` with findings, whatever the artifact looks like"
 )
-RUNNER_PROTOCOL: Final[str] = """## How this run is judged (§6)
+CREW_PROTOCOL: Final[str] = """## How this run is judged (§6)
 
 Your work is read from three files whose paths are in your environment, never
 from what you say in your reply. Skip any step and the run grades `fail_code`
@@ -79,19 +79,19 @@ however good the work was.
 - Put structured output that is not a repository change — findings, notes — in
   `$WF_ARTIFACT_DIR`.
 """
-"""The §6 channel contract, told to the runner in its own brief.
+"""The §6 channel contract, told to the crew in its own brief.
 
 §6 defines the three channels and their fail-closed semantics but assigns
-nobody the duty of COMMUNICATING them, so nothing did: a real runner did the
+nobody the duty of COMMUNICATING them, so nothing did: a real crew did the
 task, passed verify, and exited 0 having written neither channel (cr-0zc,
 found by the live DRILL-27 run). It is composed per node because the legal
 outcome set and the write permission are both the node's own.
 """
-RUNNER_PROTOCOL_WRITE_STEP: Final[str] = (
+CREW_PROTOCOL_WRITE_STEP: Final[str] = (
     "- `git add` and `git commit` what you change in the repository. "
     "Uncommitted\n  work does not exist to this harness.\n"
 )
-RUNNER_PROTOCOL_NO_WRITE_STEP: Final[str] = (
+CREW_PROTOCOL_NO_WRITE_STEP: Final[str] = (
     "- Do NOT write to the repository. This node is `writes = false`, so any "
     "change\n  it leaves in the tree is out of scope and is flagged for a "
     "human to read.\n"
@@ -107,12 +107,12 @@ FACT_FRAME: Final[str] = """## What this node is (pinned, §3.1)
 These facts come from the pinned graph and decide how the run is graded. Where
 the instructions below disagree with them, the declared facts win.
 """
-"""The activation-level facts a runner cannot derive from its inputs (ADR 0002).
+"""The activation-level facts a crew cannot derive from its inputs (ADR 0002).
 
-Separate from `RUNNER_PROTOCOL`, which states the §6 channel contract: that is
+Separate from `CREW_PROTOCOL`, which states the §6 channel contract: that is
 per-node and stable, this is per-activation. `allowed_paths` is described as
 what the §2 mount bound makes it under `sandbox = bwrap`: the node's writable
-mount set. Telling the runner it is merely a reporting exemption — which is all
+mount set. Telling the crew it is merely a reporting exemption — which is all
 ADR 0001 recorded before the bound existed — would have it plan work the box
 will refuse.
 """
@@ -167,7 +167,7 @@ HALT_PRECONDITION_REFUSED: Final[str] = "precondition_refused:{node}:{activation
 HALT_BOUND_VIOLATED: Final[str] = "bound_violated:{node}:{activation_id}"
 """An effect landed outside the node's grants although the §2 mount bound was
 on: the bound did not hold, which is a wrapper invariant violation rather than
-a runner outcome. A dead end for the same reason as the row below — the next
+a crew outcome. A dead end for the same reason as the row below — the next
 dispatch would run unbounded too (cr-n2z.4)."""
 HALT_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable:{node}:{activation_id}"
 """This host cannot hold the §2 mount bound, so O1 refuses to dispatch. A dead
@@ -191,7 +191,7 @@ the root is settled on it."""
 
 LEAF_EXECUTION_CONTRACT: Final[str] = (
     "## Execution contract (engine-owned)\n\n"
-    "You are a leaf task runner. Do the assigned implementation, review, and "
+    "You are a leaf task crew. Do the assigned implementation, review, and "
     "tests directly. Do not spawn or delegate to agents, reviewers, councils, "
     "or nested execution workflows. The enclosing engine owns coordination, "
     "independent review, routing, and approval gates. Apply repository coding "

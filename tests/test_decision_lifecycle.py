@@ -3,8 +3,8 @@
 from pathlib import Path
 
 from tests._foreman import ForemanLab
-from tests._supervisor import ChildScript
-from workflow_interpreter.supervisor.models import SandboxMode
+from tests._inspector import ChildScript
+from workflow_interpreter.inspector.models import SandboxMode
 
 FIXTURE = Path("workflow_interpreter/fixtures/valid/bounded-decision.toml")
 
@@ -180,7 +180,7 @@ def test_untrusted_decision_cannot_resume_work(tmp_path: Path, patch: dict) -> N
 def test_consumed_intent_replays_after_restart_without_second_decider(
     tmp_path: Path,
 ) -> None:
-    from tests._supervisor import PersistentBd
+    from tests._inspector import PersistentBd
 
     lab = ForemanLab(
         tmp_path,
@@ -385,8 +385,8 @@ def test_two_process_reservations_converge_on_one_debit(tmp_path: Path) -> None:
 
     from tests._foreman import LockedPersistentBd
     from workflow_interpreter.foreman.decisions import admission_of
+    from workflow_interpreter.inspector.errors import LockUnavailable
     from workflow_interpreter.schema.decisions import MemberCapacity
-    from workflow_interpreter.supervisor.errors import LockUnavailable
 
     lab = ForemanLab(
         tmp_path,
@@ -434,7 +434,7 @@ def test_coordinated_detached_wrapper_acquires_its_member_band(tmp_path: Path) -
     import pytest
 
     from tests._fake_bd import InjectedCrash
-    from workflow_interpreter.foreman.supervise import run_wrapper
+    from workflow_interpreter.foreman.inspect import run_wrapper
 
     lab = ForemanLab(
         tmp_path, toml=FIXTURE, instance_inputs={}, sandbox=SandboxMode.OFF

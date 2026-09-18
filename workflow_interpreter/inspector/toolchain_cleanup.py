@@ -8,11 +8,11 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ActivationRecord
 from workflow_interpreter.bdio.client import STATUS_CLOSED
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor import toolchain_constants as tc
-from workflow_interpreter.supervisor.errors import SupervisorError
-from workflow_interpreter.supervisor.models import LaunchReceipt, Liveness
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector import toolchain_constants as tc
+from workflow_interpreter.inspector.errors import InspectorError
+from workflow_interpreter.inspector.models import LaunchReceipt, Liveness
+from workflow_interpreter.inspector.paths import (
     WrapperPaths,
     fsync_dir,
     read_record,
@@ -47,7 +47,7 @@ def death_refusal(paths: WrapperPaths, activation: ActivationRecord) -> str | No
 
     The one liveness question every disposal asks: a receipt can hold the
     handle missing from the store after a dispatch crash, and missing or
-    malformed identity with a nonempty ledger cannot establish runner death.
+    malformed identity with a nonempty ledger cannot establish crew death.
 
     PUBLIC because the terminal cleanup in `foreman/tick.py` must ask the same
     question about every activation of a root before it removes the worktree,
@@ -56,7 +56,7 @@ def death_refusal(paths: WrapperPaths, activation: ActivationRecord) -> str | No
     """
     try:
         receipt = read_record(paths.receipt(activation.activation_id), LaunchReceipt)
-    except SupervisorError as exc:
+    except InspectorError as exc:
         return str(exc)
     handles = [activation.metadata.handle]
     if receipt is not None:
@@ -75,10 +75,10 @@ def death_refusal(paths: WrapperPaths, activation: ActivationRecord) -> str | No
 def cleanup_scratch(paths: WrapperPaths, activation: ActivationRecord) -> None:
     """Delete one activation's `channels/scratch` at TERMINAL (run-ledger §3.9).
 
-    Over 99 % of a run folder is scratch, and it is the runner's `TMPDIR`: it
+    Over 99 % of a run folder is scratch, and it is the crew's `TMPDIR`: it
     holds nothing the record needs once the outcome, findings and evidence are
     stored. Deleted here rather than at activation close because §3.9 makes
-    every run-folder deletion wait for the durable record — for a bridge task,
+    every run-folder deletion wait for the durable record — for a contractor task,
     for its export — and under the same proven-death guard the toolchain
     disposal uses, because the bytes belong to a process that may still exist.
 
@@ -99,7 +99,7 @@ def cleanup_scratch(paths: WrapperPaths, activation: ActivationRecord) -> None:
             return
         shutil.rmtree(scratch)
         fsync_dir(scratch.parent)
-    except (OSError, SupervisorError) as exc:
+    except (OSError, InspectorError) as exc:
         structlog.get_logger(__name__).warning(
             tc.LOG_CLEANUP,
             activation_id=activation.activation_id,
@@ -111,7 +111,7 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> None
     """Retry close-time cleanup; report failures while keeping provenance intact.
 
     A receipt can hold the handle missing from bd after a dispatch crash. Missing
-    or malformed identity with a nonempty ledger cannot establish runner death.
+    or malformed identity with a nonempty ledger cannot establish crew death.
     No cache bytes or symlink targets are executed or followed during deletion.
     """
     if not activation.metadata.is_completed or activation.status != STATUS_CLOSED:
@@ -139,7 +139,7 @@ def cleanup_toolchain(paths: WrapperPaths, activation: ActivationRecord) -> None
             shutil.rmtree(target)
         (directory / tc.CLEANUP_PENDING).unlink(missing_ok=True)
         fsync_dir(directory)
-    except (OSError, SupervisorError) as exc:
+    except (OSError, InspectorError) as exc:
         error = tc.MSG_CLEANUP.format(error=exc)
         structlog.get_logger(__name__).warning(
             tc.LOG_CLEANUP,

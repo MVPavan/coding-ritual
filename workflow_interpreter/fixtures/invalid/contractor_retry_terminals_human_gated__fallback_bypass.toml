@@ -1,4 +1,4 @@
-# phase_bridge_retry_terminals_human_gated: a task fallback can reach a retry terminal
+# contractor_retry_terminals_human_gated: a task fallback can reach a retry terminal
 # without crossing the human gate on its declared success route.
 [graph]
 id = "fallback-bypass"
@@ -8,12 +8,12 @@ description = "fallback bypasses approval"
 
 [instance]
 max_total_activations = 5
-phase_bridge_retry_terminals = ["finished"]
+contractor_retry_terminals = ["finished"]
 
 [[node]]
 name = "work"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

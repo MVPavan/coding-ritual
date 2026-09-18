@@ -7,9 +7,9 @@ from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 
 from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.contracts.rpc_usage import TokenCounts, UsageSnapshot
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.rpc_records import SESSION_FILE
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.rpc_records import SESSION_FILE
 
 USAGE_FILE: Final[str] = "rpc-usage.json"
 

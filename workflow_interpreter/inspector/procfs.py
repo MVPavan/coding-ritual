@@ -33,9 +33,9 @@ import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ProcessHandle
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.models import (
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.models import (
     Liveness,
     LivenessProof,
     ReapResult,
@@ -60,13 +60,13 @@ _MSG_NO_BOOT_ID: Final[str] = (
 )
 
 
-def read_boot_id(config: SupervisorConfig) -> str | None:
+def read_boot_id(config: InspectorConfig) -> str | None:
     """The running kernel's boot id, or `None` when it cannot be read (§5.3).
 
     The one `/proc` read that used to sit outside the INDETERMINATE contract.
     A bare `read_text()` here raised `FileNotFoundError` straight out of
     `prove_liveness` — through `Monitor.observe`, `watch` and
-    `Supervisor._supervise` — killing the resident supervisor with a live
+    `Inspector._inspect` — killing the resident inspector with a live
     detached child, no exit record and nothing that would ever come back for
     it; the same read is also the one §5.6 recovery classifies on (probed,
     Opus#19). "A container that lost its /proc mount" is the module docstring's
@@ -108,7 +108,7 @@ _GONE: Final[tuple[type[OSError], ...]] = (
 are the only errors that MEAN the process is not there."""
 
 
-def _stat_fields(config: SupervisorConfig, pid: int) -> _Stat:
+def _stat_fields(config: InspectorConfig, pid: int) -> _Stat:
     """Read `/proc/<pid>/stat`, distinguishing "gone" from "could not read"."""
     path = Path(config.proc_root) / str(pid) / STAT_FILE
     try:
@@ -126,12 +126,12 @@ def _stat_fields(config: SupervisorConfig, pid: int) -> _Stat:
     return _Stat(state=fields[_STATE_INDEX], start_time=fields[_START_TIME_INDEX])
 
 
-def read_start_time(config: SupervisorConfig, pid: int) -> str | None:
+def read_start_time(config: InspectorConfig, pid: int) -> str | None:
     """Field 22 of `/proc/<pid>/stat`, or `None` if it could not be read."""
     return _stat_fields(config, pid).start_time
 
 
-def prove_liveness(config: SupervisorConfig, handle: ProcessHandle) -> LivenessProof:
+def prove_liveness(config: InspectorConfig, handle: ProcessHandle) -> LivenessProof:
     """Answer "is the handle's process still running" with its evidence (§5.6).
 
     A zombie counts as DEAD: it has exited, its exit status is simply not
@@ -217,7 +217,7 @@ def _signal_group(pgid: int, sig: signal.Signals) -> bool:
 
 
 def _await_death(
-    config: SupervisorConfig, handle: ProcessHandle, clock: Clock, grace_s: float
+    config: InspectorConfig, handle: ProcessHandle, clock: Clock, grace_s: float
 ) -> LivenessProof:
     """Poll the handle's identity until it stops being alive, or `grace_s` runs out.
 
@@ -238,7 +238,7 @@ def _await_death(
 
 
 def await_death(
-    config: SupervisorConfig, handle: ProcessHandle, clock: Clock, grace_s: float
+    config: InspectorConfig, handle: ProcessHandle, clock: Clock, grace_s: float
 ) -> LivenessProof:
     """Wait a bounded interval for an identity-proven handle to stop running."""
     return _await_death(config, handle, clock, grace_s)
@@ -258,7 +258,7 @@ def _group_is_ours(proof: LivenessProof) -> bool:
 
 
 def terminate(
-    config: SupervisorConfig, handle: ProcessHandle, clock: Clock
+    config: InspectorConfig, handle: ProcessHandle, clock: Clock
 ) -> TerminationProof:
     """§8.1 termination: TERM → bounded wait → KILL, with proof of death.
 

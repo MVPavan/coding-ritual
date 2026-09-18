@@ -228,7 +228,7 @@ class IntegrationAssociation(Record):
         "prepared", "root_bound", "admitted", "landing_authorized", "landed", "stale"
     ] = "prepared"
     receipt: MemberReceipt | None = Field(default=None, exclude_if=lambda v: v is None)
-    bridge_digest: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    contractor_digest: str | None = Field(default=None, exclude_if=lambda v: v is None)
     authorization: str | None = Field(default=None, exclude_if=lambda v: v is None)
     candidate_commit: str | None = Field(default=None, exclude_if=lambda v: v is None)
     candidate_tree: str | None = Field(default=None, exclude_if=lambda v: v is None)
@@ -241,7 +241,7 @@ class IntegrationAssociation(Record):
                 update={
                     "state": "prepared",
                     "receipt": None,
-                    "bridge_digest": None,
+                    "contractor_digest": None,
                     "authorization": None,
                     "candidate_commit": None,
                     "candidate_tree": None,
@@ -319,7 +319,7 @@ def lower_decision(policy: "DecisionPolicy") -> "GraphDefinition":
     task = Node(
         name="decide",
         kind=NodeKind.TASK,
-        runner=spec.runner,
+        crew=spec.crew,
         model=spec.model,
         instructions=spec.instructions,
         writes=False,
@@ -385,8 +385,8 @@ class TrustedReplacementIntent(Record):
     admission: MemberAdmission
     obligation_digest: str
     decision_id: str | None = None
-    predecessor_bridge_json: str | None = None
-    successor_bridge_json: str | None = None
+    predecessor_contractor_json: str | None = None
+    successor_contractor_json: str | None = None
     receipt: MemberReceipt | None = None
     state: Literal["prepared", "admitted"] = "prepared"
 
