@@ -51,8 +51,10 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
+from workflow_interpreter.bdio.errors import PayloadMismatchError
 from workflow_interpreter.bdio.signing import (
     AllowedSigner,
+    GatePayload,
     SignaturePolicy,
     allowed_signers_line,
     key_fingerprint,
@@ -106,6 +108,24 @@ MSG_ENTRY_ROTATED: Final[str] = (
     "the trust root {path} now carries a DIFFERENT entry for {fingerprint} "
     "than the one gate {gate_id} was accepted under"
 )
+MSG_FOREIGN_APPROVAL: Final[str] = (
+    "the approval recorded for gate {gate_id} is not an approval of a gate of "
+    "task {task_id} this export carries: {reason}"
+)
+MSG_BAD_ROW: Final[str] = "a {table} row of this export is unusable: {reason}"
+
+_NO_GATE_ROW: Final[str] = "the export declares no gate {gate_id}"
+_GATE_OF_OTHER_TASK: Final[str] = "its gate belongs to task {task_id}"
+_UNPARSEABLE_PAYLOAD: Final[str] = "the signed bytes are not a gate payload: {reason}"
+_PAYLOAD_FIELD: Final[str] = (
+    "the signed payload names {field} {found!r}, and the gate it closed carries "
+    "{expected!r}"
+)
+_UNRECORDED_NONCE: Final[str] = (
+    "the export records no nonce {nonce!r} consumed by that gate"
+)
+_FIELD_ROOT_ID: Final[str] = "root_id"
+_FIELD_GATE_KEY: Final[str] = "gate_key"
 
 _GIT: Final[str] = "git"
 _GIT_TIMEOUT_S: Final[float] = 15.0
@@ -166,19 +186,84 @@ class StoredSignature(BaseModel):
     policy: SignaturePolicy
 
 
-def read_signatures(path: Path) -> tuple[StoredSignature, ...]:
-    """Every approval one export file records, in the order it was written."""
+class ExportGate(BaseModel):
+    """One `gates` row as the export carries it (§3.3).
+
+    Only the columns an approval is bound to: which task owns the gate, and the
+    instance and gate identity the signed payload has to name.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    gate_id: str
+    task_id: str
+    root_id: str
+    gate_key: str
+
+
+class ExportNonce(BaseModel):
+    """One `nonces` row — which gate this export records spending a nonce."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    nonce: str
+    gate_id: str
+
+
+class ExportRows(BaseModel):
+    """The rows a re-verification reads out of one export file (§3.3, §3.6).
+
+    The approvals AND the gate rows they claim to close, because an approval on
+    its own says nothing about whose gate it approved: the binding check reads
+    both out of the SAME file.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    signatures: tuple[StoredSignature, ...]
+    gates: tuple[ExportGate, ...]
+    nonces: tuple[ExportNonce, ...]
+
+    def gate(self, gate_id: str) -> ExportGate | None:
+        """The gate row this export carries for `gate_id`, if it carries one."""
+        return next((row for row in self.gates if row.gate_id == gate_id), None)
+
+    def consumed_by(self, nonce: str) -> str | None:
+        """Which gate this export records as having consumed `nonce`."""
+        return next((row.gate_id for row in self.nonces if row.nonce == nonce), None)
+
+
+def read_export_rows(path: Path) -> ExportRows:
+    """Every row one export file records that an approval is checked against."""
     try:
         lines = path.read_bytes().splitlines()
     except OSError as error:
         raise LedgerExportError(
             MSG_UNREADABLE.format(path=path, reason=error)
         ) from error
-    return tuple(_signatures(path, lines))
+    rows = tuple(_rows(path, lines))
+    return ExportRows(
+        signatures=tuple(
+            _stored(row) for table, row in rows if table == LedgerTable.SIGNATURES.value
+        ),
+        gates=tuple(
+            _gate(row) for table, row in rows if table == LedgerTable.GATES.value
+        ),
+        nonces=tuple(
+            _nonce(row) for table, row in rows if table == LedgerTable.NONCES.value
+        ),
+    )
 
 
-def _signatures(path: Path, lines: Sequence[bytes]) -> Iterator[StoredSignature]:
-    """Parse the signature rows and refuse the file on the first bad one."""
+def read_signatures(path: Path) -> tuple[StoredSignature, ...]:
+    """Every approval one export file records, in the order it was written."""
+    return read_export_rows(path).signatures
+
+
+def _rows(
+    path: Path, lines: Sequence[bytes]
+) -> Iterator[tuple[str, dict[str, object]]]:
+    """Every row line as its table and columns; the first bad one refuses the file."""
     for raw in lines:
         if not raw.strip():
             continue
@@ -194,16 +279,15 @@ def _signatures(path: Path, lines: Sequence[bytes]) -> Iterator[StoredSignature]
             )
         if line.get(ExportKey.KIND.value) != EXPORT_KIND_ROW:
             continue
-        if line.get(ExportKey.TABLE.value) != LedgerTable.SIGNATURES.value:
+        table = line.get(ExportKey.TABLE.value)
+        if not isinstance(table, str):
             continue
         row = line.get(ExportKey.ROW.value)
         if not isinstance(row, dict):
             raise LedgerExportError(
-                MSG_UNREADABLE.format(
-                    path=path, reason="signature row is not an object"
-                )
+                MSG_UNREADABLE.format(path=path, reason=f"{table} row is not an object")
             )
-        yield _stored(row)
+        yield table, row
 
 
 def _stored(row: dict[str, object]) -> StoredSignature:
@@ -223,6 +307,31 @@ def _stored(row: dict[str, object]) -> StoredSignature:
     except (KeyError, ValueError, ValidationError) as error:
         raise LedgerExportError(
             MSG_BAD_ENTRY.format(gate_id=gate_id, reason=error)
+        ) from error
+
+
+def _gate(row: dict[str, object]) -> ExportGate:
+    """One parsed `gates` row — the gate identity an approval is bound to."""
+    try:
+        return ExportGate(
+            gate_id=str(row["gate_id"]),
+            task_id=str(row["task_id"]),
+            root_id=str(row["root_id"]),
+            gate_key=str(row["gate_key"]),
+        )
+    except (KeyError, ValidationError) as error:
+        raise LedgerExportError(
+            MSG_BAD_ROW.format(table=LedgerTable.GATES.value, reason=error)
+        ) from error
+
+
+def _nonce(row: dict[str, object]) -> ExportNonce:
+    """One parsed `nonces` row — the nonce a gate of this export spent."""
+    try:
+        return ExportNonce(nonce=str(row["nonce"]), gate_id=str(row["gate_id"]))
+    except (KeyError, ValidationError) as error:
+        raise LedgerExportError(
+            MSG_BAD_ROW.format(table=LedgerTable.NONCES.value, reason=error)
         ) from error
 
 
@@ -521,6 +630,66 @@ def _signer_check(
     return trusted, unchanged, tuple(reasons)
 
 
+def _binding_reason(
+    stored: StoredSignature, rows: ExportRows, task_id: str
+) -> str | None:
+    """Why this approval is not one of THIS task's gates, or `None` when it is.
+
+    The close-time identity of `bdio/gates.py` (`_assert_payload_matches`,
+    `_assert_nonce_unused`), re-asked of the export's OWN rows because a
+    re-verification has no instance to ask: the signed payload must name the
+    root and the `gate_key` of a `gates` row this file carries for `task_id`,
+    and the nonce it spends must be the one this file records that same gate
+    consuming.
+
+    Without it, a valid export of ANOTHER task left at this task's committed
+    path passes the signature, the git pin and the trust root, and its
+    approvals are reported as this task's.
+    """
+    gate = rows.gate(stored.gate_id)
+    if gate is None:
+        return _NO_GATE_ROW.format(gate_id=stored.gate_id)
+    if gate.task_id != task_id:
+        return _GATE_OF_OTHER_TASK.format(task_id=gate.task_id)
+    try:
+        payload = GatePayload.model_validate_json(stored.payload_bytes)
+    except (ValidationError, ValueError, PayloadMismatchError) as error:
+        return _UNPARSEABLE_PAYLOAD.format(reason=error)
+    for field, found, expected in (
+        (_FIELD_ROOT_ID, payload.root_id, gate.root_id),
+        (_FIELD_GATE_KEY, payload.gate_key, gate.gate_key),
+    ):
+        if found != expected:
+            return _PAYLOAD_FIELD.format(field=field, found=found, expected=expected)
+    if rows.consumed_by(payload.nonce) != gate.gate_id:
+        return _UNRECORDED_NONCE.format(nonce=payload.nonce)
+    return None
+
+
+def _bound_approval(
+    stored: StoredSignature, rows: ExportRows, task_id: str, *, ssh_keygen: str
+) -> ApprovalResult:
+    """One approval, re-verified only once it is an approval of THIS task.
+
+    An approval that names no gate of this task is reported UNVERIFIED with the
+    reason, never raised: the export may be a perfectly well-formed export of
+    something else, and saying so is the answer.
+    """
+    reason = _binding_reason(stored, rows, task_id)
+    if reason is None:
+        return verify_signature(stored, ssh_keygen=ssh_keygen)
+    return ApprovalResult(
+        gate_id=stored.gate_id,
+        status=ApprovalStatus.REFUSED,
+        fingerprint=stored.signer_fingerprint,
+        principal=stored.signer.principals[0],
+        namespace=stored.policy.namespace,
+        reason=MSG_FOREIGN_APPROVAL.format(
+            gate_id=stored.gate_id, task_id=task_id, reason=reason
+        ),
+    )
+
+
 def verify_export(
     path: Path,
     task_id: str,
@@ -530,15 +699,23 @@ def verify_export(
 ) -> ExportVerdict:
     """Re-verify one task's approvals, and anchor them outside the export (D21).
 
-    Three questions, asked in the order their answers depend on each other: are
-    the signatures over these bytes valid, are these the bytes git pinned for
-    this task, and is the key that signed them one the operator's trust root
-    knows. The first is answered from the export; the other two never are.
+    Four questions, asked in the order their answers depend on each other: is
+    each recorded approval an approval of a gate of THIS task, are the
+    signatures over those bytes valid, are these the bytes git pinned for this
+    task, and is the key that signed them one the operator's trust root knows.
+    The first two are answered from the export; the other two never are.
+
+    The binding question comes first because the other three are silent about
+    it: another task's valid, pinned, trusted export placed at this task's
+    committed path answers all of them yes (`_binding_reason`).
     """
-    stored = read_signatures(path)
+    rows = read_export_rows(path)
+    stored = rows.signatures
     if not stored:
         raise LedgerExportError(MSG_NO_SIGNATURES.format(path=path))
-    approvals = tuple(verify_signature(item, ssh_keygen=ssh_keygen) for item in stored)
+    approvals = tuple(
+        _bound_approval(item, rows, task_id, ssh_keygen=ssh_keygen) for item in stored
+    )
     pinned, blob_oid, pinned_oid, source, pin_reasons = _pin_check(
         anchor, task_id, path
     )

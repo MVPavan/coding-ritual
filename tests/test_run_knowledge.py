@@ -115,6 +115,8 @@ DEBRIEF_BODY: Final[str] = "# Debrief\n\nWhat happened, and why.\n"
 FINDINGS_BODY: Final[str] = "# Findings\n\nround one\n"
 EVIDENCE_BODY: Final[str] = '{"version":1}\n'
 TASK_ID: Final[str] = "cr-3411.5"
+OTHER_TASK: Final[str] = "cr-3411.9"
+"""A second ledger task, whose export is a valid export of something else."""
 ATTEMPT: Final[int] = 1
 DEBRIEF_MAX_BYTES: Final[int] = 16384
 PASSING: Final[str] = "#!/bin/sh\nexit 0\n"
@@ -1321,6 +1323,28 @@ def exported_task(
     yield path, repo_root
 
 
+@pytest.fixture
+def other_exported_task(
+    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
+) -> Path:
+    """A SECOND task's export, signed by the same key, in its own repository.
+
+    The same key deliberately: an approval transplanted out of this file must
+    be refused for the gate it approved, not for who signed it.
+    """
+    repo_root, wrapper_root = repository(tmp_path / "elsewhere")
+    with open_ledger(repo_root, wrapper_root) as database:
+        store = ledger_store(
+            database,
+            OTHER_TASK,
+            verifier=GateVerifier(signing_config, database.repo_root),
+        )
+        root_id, gate_id = _open_gate(store)
+        gate = store.reads.load_gate(gate_id)
+        close(store, root_id, gate, approval_payload(root_id, gate), sign_payload)
+        return write_export(database, OTHER_TASK)
+
+
 def test_an_approval_re_verifies_from_the_export_alone(
     exported_task: tuple[Path, Path],
 ) -> None:
@@ -1541,6 +1565,71 @@ def test_a_self_signed_replacement_key_fails_the_anchor(
     assert not verdict.signer_trusted
     assert not verdict.accepted
     assert any("trust root" in reason for reason in verdict.reasons)
+
+
+def test_a_transplanted_approval_is_not_an_approval_of_this_task(
+    tmp_path: Path,
+    exported_task: tuple[Path, Path],
+    other_exported_task: Path,
+    signing_config: SigningConfig,
+) -> None:
+    """An approval is bound to the gate rows its OWN export carries (§3.6).
+
+    The tamperer copies a valid `signatures` row out of another task's export
+    and pins the result: every byte verifies, the blob is the one git names and
+    the signer is on the trust root — so nothing but the binding check can see
+    that the extra approval closed somebody else's gate.
+    """
+    path, _ = exported_task
+    repo = _anchor_repo(tmp_path, path)
+    target = _export_path(repo)
+    foreign = [
+        line
+        for line in other_exported_task.read_text(encoding="utf-8").splitlines()
+        if json.loads(line).get(ExportKey.TABLE.value) == LedgerTable.SIGNATURES.value
+    ]
+    assert len(foreign) == 1
+    target.write_text(
+        "\n".join([*target.read_text(encoding="utf-8").splitlines(), *foreign]) + "\n",
+        encoding="utf-8",
+    )
+    _pin_export(repo, target)
+
+    verdict = verify_export(target, TASK, _anchor(repo, signing_config))
+
+    assert (verdict.export_pinned, verdict.signer_trusted) == (True, True)
+    refused = [result for result in verdict.approvals if not result.verified]
+    assert len(refused) == len(verdict.approvals) - 1
+    assert refused[0].reason is not None
+    assert f"not an approval of a gate of task {TASK}" in refused[0].reason
+    assert refused[0].reason in verdict.reasons
+    assert not verdict.bytes_valid
+    assert not verdict.accepted
+
+
+def test_another_tasks_export_at_this_path_lends_this_task_no_approval(
+    tmp_path: Path,
+    exported_task: tuple[Path, Path],
+    other_exported_task: Path,
+    signing_config: SigningConfig,
+) -> None:
+    """The whole file swapped: valid, pinned, trusted — and not this task's.
+
+    Without the binding check every other answer is yes, and the other task's
+    approvals are reported as approvals of this one.
+    """
+    path, _ = exported_task
+    repo = _anchor_repo(tmp_path, path)
+    target = _export_path(repo)
+    target.write_bytes(other_exported_task.read_bytes())
+    _pin_export(repo, target)
+
+    verdict = verify_export(target, TASK, _anchor(repo, signing_config))
+
+    assert (verdict.export_pinned, verdict.signer_trusted) == (True, True)
+    assert all(not result.verified for result in verdict.approvals)
+    assert any(f"belongs to task {OTHER_TASK}" in reason for reason in verdict.reasons)
+    assert not verdict.accepted
 
 
 # --- the acceptance: the real CLI, in a real fresh clone (finding 9) ---------
