@@ -22,6 +22,9 @@ from workflow_interpreter.bdio import (
     GateRecord,
     WorkflowStore,
 )
+from workflow_interpreter.bdio.backend import SelectableBackendFactory
+from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.rpc_control import ControlBusy
@@ -49,6 +52,7 @@ from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
+from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.monitor import WakeMonitor, monitor_status
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.rpc_control import session_status
@@ -56,6 +60,10 @@ from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.foreman.wake import MonitorUnavailable
+from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.reconcile import RootAttentionDrain
+from workflow_interpreter.ledger.store import LedgerStore
+from workflow_interpreter.ledger.tasks import pin_task_backend, task_backend
 from workflow_interpreter.profiles.registry import ProfileRegistry
 from workflow_interpreter.supervisor.clock import SystemClock
 from workflow_interpreter.supervisor.errors import ContinuationRefused, LockUnavailable
@@ -69,7 +77,7 @@ LOG_LEVEL: Final[int] = logging.INFO
 
 MSG_NO_SIGNING: Final[str] = (
     "refusing to create a root this config cannot approve: no [signing] "
-    "allowed_signers_path, so every gate close raises BdConfigError — render a "
+    "allowed_signers_path, so every gate close raises StoreConfigError — render a "
     "config with scripts/make-foreman-config.sh, or pass --allow-unsigned-gates "
     "for a lab instance that will never be approved"
 )
@@ -81,6 +89,12 @@ MSG_ALLOW_LIST_EMPTY: Final[str] = (
     "refusing to create a root this config cannot approve: gate allow-list "
     "{path} is empty, so no signer exists; scripts/make-foreman-config.sh "
     "generates a key and lists it"
+)
+MSG_TASK_REQUIRED: Final[str] = (
+    "every run belongs to a task bead: pass --task <bead-id> (run-ledger D16)"
+)
+MSG_TASK_CONFLICT: Final[str] = (
+    "--task {task!r} names a different bead than the selected stage {stage!r}"
 )
 
 
@@ -110,10 +124,24 @@ def _configure_logging() -> None:
     )
 
 
-def _composition(path: Path | None) -> Composition:
-    """Build production collaborators from the explicitly supplied TOML file."""
+def _composition(args: argparse.Namespace) -> Composition:
+    """Build production collaborators from the explicitly supplied TOML file.
+
+    Takes the parsed arguments rather than a path because a composition root
+    reads its own inputs: the task bead is one of them, and deriving it here
+    keeps the ONE place that decides what a run is composed of.
+
+    The task is required (D16): it names the bead every root of this process
+    belongs to, it is what the ledger's rows are keyed by, and it is what the
+    backend locator answers for. Opening the ledger is part of composing —
+    that is where §3.5's wrapper-root pin is asserted, so a foreman started
+    against another engine home refuses HERE, before any root is touched.
+    """
+    path = args.config
+    task_id = _task_of(args)
     if path is None:
         raise InvalidIdentifier("foreman configuration path is required: pass --config")
+    validate_bead_id(task_id)
     config = load_config(path)
     # Capture host uv authority before profile child_env points at private caches.
     supervisor = config.supervisor.model_copy(
@@ -123,16 +151,46 @@ def _composition(path: Path | None) -> Composition:
     )
     config = config.model_copy(update={"supervisor": supervisor})
     clock = SystemClock()
+    bd = BdClient(config.bd)
+    ledger = open_ledger(config.repo_root, config.wrapper_root)
+    pin_task_backend(ledger, task_id, config.store)
+    factory = SelectableBackendFactory(bd, LedgerStore(ledger, task_id=task_id))
     return Composition(
         config=config,
-        store=WorkflowStore.from_config(config.bd, config.signing),
+        store=WorkflowStore.from_config(
+            config.bd,
+            config.signing,
+            backend_factory=factory,
+            claims_backend=bd,
+        ),
         supervisor_config=config.supervisor,
         git=Git(config.supervisor),
         clock=clock,
         profiles=ProfileRegistry(config.profiles, clock, os.environ),
-        spawner=DetachedSpawner(config.supervisor, path),
+        spawner=DetachedSpawner(config.supervisor, path, task_id),
         host_env=dict(os.environ),
+        ledger=ledger,
+        locate_backend=RootBackendLocator(task_id, ledger=ledger),
+        drain_attention=RootAttentionDrain(ledger, bd),
+        task_id=task_id,
     )
+
+
+def _task_of(args: argparse.Namespace) -> str:
+    """The task bead this invocation runs for, refusing an anonymous run (D16).
+
+    A phase-bridge or integration operation names its stage, and the stage IS
+    the task bead the bridge record lives on, so `--task` is redundant there
+    and only has to agree when it is given at all.
+    """
+    stage = getattr(args, "stage_id", None)
+    task = getattr(args, "task", None)
+    if stage is not None and task is not None and stage != task:
+        raise InvalidIdentifier(MSG_TASK_CONFLICT.format(task=task, stage=stage))
+    named = task or stage
+    if named is None:
+        raise InvalidIdentifier(MSG_TASK_REQUIRED)
+    return str(named)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -144,6 +202,9 @@ def _parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path)
+    # Top-level like `--config`, and for the same reason: `DetachedSpawner`
+    # passes it in this one position when it re-enters for `supervise`.
+    parser.add_argument("--task")
     commands = parser.add_subparsers(dest="command", required=True)
     create = commands.add_parser("create")
     create.add_argument("graph", type=Path)
@@ -241,7 +302,7 @@ def _instance_inputs(pairs: Sequence[str]) -> dict[str, Path]:
 def _signing_preflight(config: ForemanConfig, *, allow_unsigned: bool) -> str | None:
     """Refuse, in one line, a root whose gates nobody would be able to close.
 
-    `close_gate_verified` raises `BdConfigError` when no verifier is configured
+    `close_gate_verified` raises `StoreConfigError` when no verifier is configured
     (`bdio/api.py`) and `GateVerifier` needs a readable allow-list, so an
     unsigned or empty-allow-list config fails first at the `ship` gate — after
     a whole run, with a human already waiting. Both are decidable at `create`,
@@ -257,6 +318,21 @@ def _signing_preflight(config: ForemanConfig, *, allow_unsigned: bool) -> str | 
     return MSG_ALLOW_LIST_EMPTY.format(path=path) if empty else None
 
 
+def _creation_backend(composition: Composition) -> BackendKind:
+    """The backend a NEW root of a run with no bridge is created on (§3.2, D16).
+
+    The `tasks` row is that run's locator, and it keeps the pin it was written
+    with, so a switch flipped after the task exists does not move roots the
+    locator will answer for.
+    """
+    if composition.ledger is None or composition.task_id is None:
+        return composition.config.store
+    return (
+        task_backend(composition.ledger, composition.task_id)
+        or composition.config.store
+    )
+
+
 def _create(args: argparse.Namespace) -> int:
     """Pin one new instance root and print nothing but its id.
 
@@ -264,7 +340,7 @@ def _create(args: argparse.Namespace) -> int:
     so it is written as a bare line rather than through the JSON report
     renderer the root-scoped commands share.
     """
-    composition = _composition(args.config)
+    composition = _composition(args)
     refusal = _signing_preflight(
         composition.config, allow_unsigned=args.allow_unsigned_gates
     )
@@ -279,6 +355,7 @@ def _create(args: argparse.Namespace) -> int:
             instance_inputs=_instance_inputs(args.input),
             allow_test_flags=args.allow_test_flags,
             overrides={},
+            backend=_creation_backend(composition),
         )
     except ResolutionError as refused:
         sys.stderr.write(f"{refused}\n")
@@ -364,7 +441,7 @@ def _coordination_report(
     if link is None:
         return {}
     return {
-        "coordination": composition.store.coordination_store()
+        "coordination": composition.coordination_for_root(link.owner_id)
         .coordination_view(link.owner_id)
         .model_dump(mode="json")
     }
@@ -372,12 +449,12 @@ def _coordination_report(
 
 def _view(composition: Composition, root_id: str) -> _InstanceView:
     """Load one instance's beads a single time for a whole rendered report."""
-    requested = composition.store.reads.load_root(root_id)
+    requested = composition.reads_for_root(root_id).load_root(root_id)
     if requested.metadata.coordination_state is not None:
         root_id = requested.metadata.coordination_state.active.get("work") or root_id
     wiring = composition.for_root(root_id)
     root = wiring.store.reads.load_root(root_id)
-    beads = wiring.store.reads.instance_beads(root_id)
+    beads = wiring.store.reads.instance_records(root_id)
     return _InstanceView(
         wiring=wiring,
         root=root,
@@ -502,10 +579,10 @@ def _streams_logs(argv: Sequence[str] | None) -> bool:
     index = 0
     while index < len(arguments):
         argument = arguments[index]
-        if argument == "--config":
+        if argument in ("--config", "--task"):
             index += 2
             continue
-        if argument.startswith(("--config=", "-")):
+        if argument.startswith(("--config=", "--task=", "-")):
             index += 1
             continue
         return argument in {"supervise", "monitor"}
@@ -579,7 +656,7 @@ def _run(
 
         from pydantic import ValidationError
 
-        from workflow_interpreter.bdio.errors import BdioError
+        from workflow_interpreter.bdio.errors import StoreError
         from workflow_interpreter.bridge.adapter import PhaseAdapterError
         from workflow_interpreter.bridge.errors import BridgeRefusal
         from workflow_interpreter.foreman.children import command
@@ -590,13 +667,13 @@ def _run(
         try:
             if args.command == "children":
                 validate_bead_id(args.owner_id)
-                value = command(_composition(args.config), args)
+                value = command(_composition(args), args)
             else:
                 from workflow_interpreter.bridge.integration import (
                     command as integration_command,
                 )
 
-                value = integration_command(_composition(args.config), args)
+                value = integration_command(_composition(args), args)
         except (
             InvalidIdentifier,
             BridgeRefusal,
@@ -607,7 +684,7 @@ def _run(
             ValidationError,
             TOMLDecodeError,
             OSError,
-            BdioError,
+            StoreError,
             SupervisorError,
         ) as exc:
             emit(
@@ -622,7 +699,7 @@ def _run(
     if args.command == "phase-bridge":
         validate_bead_id(args.epic_id)
         validate_bead_id(args.stage_id)
-        composition = _composition(args.config)
+        composition = _composition(args)
         outcome = execute_phase_bridge(
             composition,
             epic_id=args.epic_id,
@@ -637,7 +714,7 @@ def _run(
     validate_bead_id(args.root_id)
     if hasattr(args, "activation_id"):
         validate_bead_id(args.activation_id)
-    composition = _composition(args.config)
+    composition = _composition(args)
     foreman = Foreman(composition)
     if args.command == "monitor":
         if os.getpgrp() != os.getpid():
@@ -718,6 +795,7 @@ def _run(
             view.root.metadata.instance_key,
             composition.config.bd,
             root_id=view.root.root_id,
+            reads=composition.reads_for_root(view.root.root_id),
         )
         emit(
             json.dumps(
@@ -746,7 +824,7 @@ def _run(
         # The two fields that say an instance is OVER: which terminal it
         # reached and whether its root bead is closed on that fact (§3.1).
         "terminal": frontier.terminal_node,
-        "root_state": root.bead.status,
+        "root_state": root.status,
         "instance_branch_head": composition.git.ref_target(
             INSTANCE_BRANCH.format(root_id=root.root_id),
             cwd=composition.config.repo_root,
@@ -776,7 +854,10 @@ def _run(
         },
     }
     bridge_view = phase_bridge_gate_view(
-        root.metadata.instance_key, composition.config.bd, root_id=root.root_id
+        root.metadata.instance_key,
+        composition.config.bd,
+        root_id=root.root_id,
+        reads=composition.reads_for_root(root.root_id),
     )
     status["open_gates"] = _open_gates(composition, view, bridge_view)
     if frontier.open_halt is not None:

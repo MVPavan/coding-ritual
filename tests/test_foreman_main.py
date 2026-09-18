@@ -7,7 +7,7 @@ import json
 import os
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, NoReturn, cast
@@ -26,10 +26,18 @@ from tests._helpers import (
 )
 from tests._supervisor import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from tests.conftest import Signer
-from workflow_interpreter.bdio import BdConfig, BdOutputError, Outcome, Usage
+from workflow_interpreter.bdio import (
+    BdCommandError,
+    BdConfig,
+    BdOutputError,
+    Outcome,
+    Usage,
+)
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
 from workflow_interpreter.bdio.config import SigningConfig
+from workflow_interpreter.bdio.errors import BdUnavailableError, StoreTransportError
+from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.bridge import (
     PhaseAdapter,
     PhaseAdapterError,
@@ -68,6 +76,8 @@ def test_module_entrypoint_is_spawnable() -> None:
             sys.executable,
             "-m",
             "workflow_interpreter.foreman",
+            "--task",
+            "cr-3411.4",
             "supervise",
             "root-id",
             "activation-id",
@@ -172,10 +182,21 @@ def test_main_caps_a_configuration_failure_on_the_combined_transcript(
     """Configuration errors do not escape as an unbounded interpreter traceback."""
     lab = ForemanLab(tmp_path)
 
-    byte_count, text = lab.transcript(lambda: main_module.main(["tick", "wf-root"]))
+    byte_count, text = lab.transcript(
+        lambda: main_module.main(["--task", "cr-3411.4", "tick", "wf-root"])
+    )
 
     assert byte_count <= MAX_TRANSCRIPT_BYTES
     assert "foreman configuration path is required" in text
+
+
+def test_main_refuses_an_anonymous_run_with_no_task_bead(tmp_path: Path) -> None:
+    """D16: every root must be reachable from the tracker, so `--task` is required."""
+    lab = ForemanLab(tmp_path)
+
+    _, text = lab.transcript(lambda: main_module.main(["tick", "wf-root"]))
+
+    assert "pass --task <bead-id>" in text
 
 
 def test_main_inspect_keeps_a_bounded_escaped_tail_inside_its_extra_allowance(
@@ -328,9 +349,13 @@ def test_lab_pins_overrides_and_test_flagged_graphs(tmp_path: Path) -> None:
 def test_module_supervise_loads_the_argv_config_before_running_the_wrapper(
     tmp_path: Path,
 ) -> None:
-    """The detached command gets past configuration and reaches wrapper loading."""
-    repo = tmp_path / "repo"
-    repo.mkdir()
+    """The detached command gets past configuration and reaches wrapper loading.
+
+    A REAL checkout, because composing now opens the ledger and the ledger's
+    fence lives in the git common directory (§3.4): a tree with no `.git`
+    refuses before bd is ever reached.
+    """
+    repo = make_repo(tmp_path)
     wrapper_root = (
         tmp_path
         / "home"
@@ -362,6 +387,8 @@ host = "host"
             "workflow_interpreter.foreman",
             "--config",
             str(config),
+            "--task",
+            "cr-3411.4",
             "supervise",
             "root-id",
             "activation-id",
@@ -609,11 +636,16 @@ def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
         gate_view_module.PhaseAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+            lambda _cls, _config, _reads=None: PhaseAdapter(
+                BdClient(lab.config.bd, lab.fake_bd)
+            )
         ),
     )
     assert gate_view_module.phase_bridge_gate_view(
-        first.instance_key, lab.config.bd, root_id=root.root_id
+        first.instance_key,
+        lab.config.bd,
+        root_id=root.root_id,
+        reads=lab.composition.reads_for_root(root.root_id),
     ) == {
         "attempt": 2,
         "is_current_attempt": False,
@@ -677,7 +709,9 @@ def test_status_renders_current_bridge_attempt_evidence_at_an_open_gate(
         gate_view_module.PhaseAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+            lambda _cls, _config, _reads=None: PhaseAdapter(
+                BdClient(lab.config.bd, lab.fake_bd)
+            )
         ),
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
@@ -716,13 +750,18 @@ def test_phase_bridge_gate_view_rejects_a_root_outside_stage_attempts(
         gate_view_module.PhaseAdapter,
         "from_config",
         classmethod(
-            lambda _cls, _config: PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+            lambda _cls, _config, _reads=None: PhaseAdapter(
+                BdClient(lab.config.bd, lab.fake_bd)
+            )
         ),
     )
 
     with pytest.raises(PhaseAdapterError, match="does not own root instance_key"):
         gate_view_module.phase_bridge_gate_view(
-            "phase-bridge:phase-1:stage-a:attempt:3", lab.config.bd, root_id="impostor"
+            "phase-bridge:phase-1:stage-a:attempt:3",
+            lab.config.bd,
+            root_id="impostor",
+            reads=lab.store.reads,
         )
 
 
@@ -756,11 +795,11 @@ def test_status_resolves_bridge_view_once_for_an_open_halt(
     resolutions = 0
 
     def adapter_from_config(
-        _cls: type[PhaseAdapter], _config: BdConfig
+        _cls: type[PhaseAdapter], _config: BdConfig, reads: WorkflowReads
     ) -> PhaseAdapter:
         nonlocal resolutions
         resolutions += 1
-        return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+        return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd), reads)
 
     monkeypatch.setattr(
         gate_view_module.PhaseAdapter,
@@ -1018,7 +1057,7 @@ def test_phase_bridge_reports_exhaustion_before_named_stage_membership(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1040,7 +1079,7 @@ def test_phase_bridge_refuses_an_empty_stage_description_before_writing(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1070,7 +1109,7 @@ def test_phase_bridge_refuses_without_a_configured_bridge_graph(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1096,7 +1135,7 @@ def test_phase_bridge_refuses_a_configured_required_input_it_cannot_supply(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1123,7 +1162,7 @@ def test_phase_bridge_trace_is_read_only(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1154,7 +1193,7 @@ def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     def run(
@@ -1193,7 +1232,7 @@ def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: adapter),
+        classmethod(lambda _cls, _config, _reads=None: adapter),
     )
 
     def missing(_stage_id: str) -> NoReturn:
@@ -1219,6 +1258,62 @@ def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
     assert "Traceback" not in transcript
 
 
+@pytest.mark.parametrize(
+    ("defect", "expected"),
+    (("non-zero exit", BdCommandError), ("missing binary", BdUnavailableError)),
+)
+def test_phase_bridge_does_not_convert_a_transport_defect_into_a_refusal(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    defect: str,
+    expected: type[StoreTransportError],
+) -> None:
+    """A failed bd invocation is a defect, not a caller-visible refusal.
+
+    An unreadable answer (`StoreOutputError`) means "no usable record" and is
+    the caller's problem; a command that exited non-zero, timed out or was
+    refused before it ran says nothing about the caller's ids, and reporting it
+    as `refused` would hide a broken store behind an ordinary exit code. A bd
+    binary that is missing or not executable is the same kind of defect: the
+    client maps the runner's `OSError`, so the bridge never sees a raw one.
+    """
+    lab = _bridge_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    adapter = _bridge_adapter(lab)
+    monkeypatch.setattr(
+        bridge_command_module.PhaseAdapter,
+        "from_config",
+        classmethod(lambda _cls, _config, _reads=None: adapter),
+    )
+
+    def unrunnable(_argv: Sequence[str], _timeout_s: float) -> NoReturn:
+        """What the runner does when the binary is absent or not executable."""
+        raise FileNotFoundError(2, "No such file or directory", "bd-not-installed")
+
+    def broken(_stage_id: str) -> NoReturn:
+        """Model the transport itself failing, not a missing row."""
+        if defect == "non-zero exit":
+            raise BdCommandError(
+                ("bd", "dep", "tree"), 1, "dolt: connection lost", "dep"
+            )
+        BdClient(
+            BdConfig(workspace=tmp_path, actor="tester", binary="bd-not-installed"),
+            unrunnable,
+        ).context()
+        raise AssertionError("an unrunnable bd binary must raise")
+
+    monkeypatch.setattr(adapter, "blocking_dependencies", broken)
+
+    with pytest.raises(expected):
+        bridge_command_module.execute_phase_bridge(
+            lab.composition,
+            epic_id="phase",
+            stage_id="stage",
+            retry=False,
+            trace=False,
+        )
+
+
 @pytest.mark.parametrize("trace", (False, True))
 def test_phase_bridge_refuses_an_epic_without_stages(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, trace: bool
@@ -1229,7 +1324,7 @@ def test_phase_bridge_refuses_an_epic_without_stages(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
     codes: list[int] = []
     arguments = ["phase-bridge", "phase", "missing"]
@@ -1302,7 +1397,7 @@ def test_phase_bridge_reports_another_open_admission_as_blocked(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
     codes: list[int] = []
 
@@ -1332,7 +1427,7 @@ def test_phase_bridge_reports_open_blocking_dependencies(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     def unexpected_graph(_composition: Composition) -> NoReturn:
@@ -1379,7 +1474,7 @@ def test_phase_bridge_retry_mints_a_distinct_successor_root(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
 
     codes: list[int] = []
@@ -1427,7 +1522,7 @@ def test_phase_bridge_reports_each_retry_predicate_refusal(
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
     monkeypatch.setattr(
         bridge_command_module,
@@ -1477,7 +1572,7 @@ def test_create_refuses_a_config_that_configures_no_gate_verifier(
 ) -> None:
     """A root nobody can approve is refused before bd is written (E1a).
 
-    `close_gate_verified` raises `BdConfigError` with no verifier, which is
+    `close_gate_verified` raises `StoreConfigError` with no verifier, which is
     discovered only once a human is already waiting at `ship`.
     """
     lab = ForemanLab(tmp_path)
@@ -1647,7 +1742,7 @@ def test_phase_bridge_monitored_requires_ack_before_dispatch(tmp_path, monkeypat
     monkeypatch.setattr(
         bridge_command_module.PhaseAdapter,
         "from_config",
-        classmethod(lambda _cls, _config: _bridge_adapter(lab)),
+        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
     )
     codes = []
     _, transcript = lab.transcript(

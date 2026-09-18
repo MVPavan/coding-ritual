@@ -552,9 +552,62 @@ class Git(GitTransport):
         """
         self.run(GitSubcommand.WORKTREE, "remove", str(path), cwd=cwd, check=check)
 
+    def ref_names_under(self, prefix: str, *, cwd: Path) -> tuple[str, ...]:
+        """Every ref NAME under `prefix`, sorted — what archive bundles (§3.9).
+
+        The sibling of `refs_under`, which answers with the commits: a bundle
+        and a ref deletion both need the names, and a set of commits cannot be
+        turned back into the names that retained them.
+        """
+        result = self.run(GitSubcommand.SHOW_REF, cwd=cwd, check=False)
+        if result.returncode == 1:
+            return ()
+        if result.returncode != 0:
+            raise GitCommandError(f"git show-ref failed (exit {result.returncode})")
+        return tuple(
+            sorted(
+                ref
+                for line in result.stdout.splitlines()
+                for _, _, ref in (line.partition(" "),)
+                if ref.startswith(prefix)
+            )
+        )
+
+    def delete_ref(self, ref: str, *, cwd: Path) -> None:
+        """Drop one workflow ref. The objects survive until git prunes them."""
+        self.run(GitSubcommand.UPDATE_REF, "-d", ref, cwd=cwd)
+
+    def bundle_create(self, path: Path, refs: Sequence[str], *, cwd: Path) -> None:
+        """Write a bundle of exactly `refs` to `path` (run-ledger §3.9, D19)."""
+        self.run(GitSubcommand.BUNDLE, "create", str(path), *refs, cwd=cwd)
+
+    def bundle_verify(self, path: Path, *, cwd: Path) -> bool:
+        """Whether `path` is a complete, self-contained bundle git will accept."""
+        return (
+            self.run(
+                GitSubcommand.BUNDLE, "verify", str(path), cwd=cwd, check=False
+            ).returncode
+            == 0
+        )
+
     def worktree_prune(self, *, cwd: Path) -> None:
         """Drop registrations whose directories are gone (§7.3's throwaway tree)."""
         self.run(GitSubcommand.WORKTREE, "prune", cwd=cwd)
+
+    def write_blob(self, path: Path, *, cwd: Path) -> str:
+        """Store one file's bytes as a git blob and answer its object id.
+
+        `--no-filters` because the bytes stored must be the bytes on disk: the
+        export is re-read from this object and compared against the file, and
+        a `clean` filter the repository happens to declare would silently make
+        the two differ (run-ledger §3.6).
+        """
+        oid = self.run(
+            GitSubcommand.HASH_OBJECT, "-w", "--no-filters", "--", str(path), cwd=cwd
+        ).text
+        if not oid:
+            raise GitCommandError(f"git hash-object wrote no oid for {path}")
+        return oid
 
     def update_ref(self, ref: str, commit: str, *, cwd: Path) -> None:
         """Pin `refs/wf/<root_id>/<activation_id>` — idempotent for one value."""

@@ -100,7 +100,7 @@ def test_writing_doubt_child_exposes_ship_and_settles_after_approval(
     work_activation = max(
         lab.store.reads.list_activations(child.root_id), key=lambda a: a.metadata.seq
     )
-    assert work_activation.bead.status == "closed"
+    assert work_activation.status == "closed"
     assert (
         work_activation.metadata.evidence.artifact.commit_oid
         == status["instance_branch_head"]

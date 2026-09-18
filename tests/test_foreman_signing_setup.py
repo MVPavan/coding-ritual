@@ -69,7 +69,12 @@ def test_the_generator_makes_a_gate_key_and_allow_list_exactly_once(
 
     assert [signer.principals for signer in verifier.signers] == [("wf-tester",)]
     assert verifier.allowed_fingerprints()
-    signers_dir = config.wrapper_home / "signers"
+    # D15: the key lives under $XDG_CONFIG_HOME/wf/signers — outside the
+    # wrapper home, so a wrapper-home wipe cannot destroy it — and the
+    # rendered config names that same directory.
+    signers_dir = home / ".config" / "wf" / "signers"
+    assert config.signing.allowed_signers_path == signers_dir / "allowed_signers"
+    assert not signers_dir.is_relative_to(config.wrapper_home)
     assert (signers_dir / "gate_key").exists()
     before = {
         name: (signers_dir / name).read_bytes()

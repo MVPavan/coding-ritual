@@ -253,6 +253,39 @@ class VerifyFailureBinding(BaseModel):
         )
 
 
+LEDGER_RENDER_REF: Final[str] = "refs/wf/render/{task_id}-a{attempt}"
+"""Where one attempt's rendered knowledge is pinned (run-ledger §3.7).
+
+Named by the TASK and the attempt rather than by the root, because the one
+other reader is `scripts/verify-debrief.sh`, which is given `WF_TASK_ID` and
+`WF_ATTEMPT` and no root id at all. One ref per attempt, moved to the current
+round's render, so a checker asking "what should this debrief say" has exactly
+one answer."""
+
+
+class LedgerRenderBinding(BaseModel):
+    """The rendered findings and evidence of every round so far (§3.7, D12).
+
+    Pinned as a commit whose tree holds the two files the debrief node must
+    write, so the node's output and the check's expectation are the same
+    bytes, reachable by `<ref>:findings.md` from any checkout of the repo.
+    """
+
+    model_config = WIRE_MODEL
+    root_id: str
+    task_id: str
+    attempt: JsonSafeInt
+    round_no: JsonSafeInt
+    commit_oid: Annotated[str, StringConstraints(pattern=COMMIT_OID_PATTERN)]
+    tree_oid: Annotated[str, StringConstraints(pattern=COMMIT_OID_PATTERN)]
+    payload_digest: Sha256
+
+    @property
+    def ref(self) -> str:
+        """The attempt-scoped pin `verify-debrief.sh` resolves the same way."""
+        return LEDGER_RENDER_REF.format(task_id=self.task_id, attempt=self.attempt)
+
+
 class InputBinding(BaseModel):
     """An immutable input tuple bound at mint (§2 'Input binding')."""
 
@@ -263,6 +296,7 @@ class InputBinding(BaseModel):
     artifact_ref: str
     digest: str
     verify_failure: VerifyFailureBinding | None = None
+    ledger_render: LedgerRenderBinding | None = None
 
 
 class ProcessHandle(BaseModel):
@@ -313,12 +347,54 @@ class VerifyOutcome(BaseModel):
     OUTPUT deliberately stays out of bd — the tails live in `completion.json`."""
 
 
+class Severity(StrEnum):
+    """How much of a problem one finding is — the `findings.severity` column.
+
+    The reviewer's own vocabulary, because a reviewer finding keeps the
+    severity it was written with; a derived diagnostic is mapped onto the same
+    four values so one column can hold both.
+    """
+
+    BLOCKER = "blocker"
+    MAJOR = "major"
+    MINOR = "minor"
+    INFO = "info"
+
+
+class ReviewFinding(BaseModel):
+    """One finding a REVIEWER wrote, read out of its ONE report (§3.3).
+
+    `text` is the reviewer's own bytes — the numbered item, its severity word
+    and its `file:line` where it gave one — bounded and normalised (line
+    endings, invalid UTF-8 replaced) but never rewritten, so
+    the ledger row and `findings.md` say what the review said rather than what
+    the engine inferred about it.
+    """
+
+    model_config = WIRE_MODEL
+
+    severity: Severity
+    text: str
+
+
 class Evidence(BaseModel):
     """Computed, never claimed (§7)."""
 
     model_config = WIRE_MODEL
 
     verify: tuple[VerifyOutcome, ...] = ()
+    review_findings: tuple[ReviewFinding, ...] = ()
+    """The reviewer's numbered findings, extracted from the one report file it
+    wrote BEFORE this evidence was recorded and therefore before the close
+    transaction. Bounded by `bdio/findings.py` so the carrier stays far under
+    the argv ceiling of ADR 0003 on the bd backend."""
+    review_report_missing: bool = False
+    """A review node whose outputs tree held no report file at all.
+
+    Carried rather than derived at read time because the tree is gone by the
+    time anything reads this record, and because both backends must answer the
+    same way: `findings_of` turns it into ONE diagnostic row, never into a
+    review finding nobody wrote."""
     artifact: ArtifactIdentity | None = None
     undeclared_effects: tuple[str, ...] = ()
     breaker: Breaker | None = None

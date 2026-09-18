@@ -15,12 +15,14 @@ from workflow_interpreter.bdio import (
     NodeSetting,
     ResolvedSetting,
 )
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.roots import (
     MAX_INSTANCE_INPUT_BYTES,
     pin_execution_policies,
 )
 from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
@@ -365,8 +367,23 @@ def instantiate(
     instance_inputs: Mapping[str, Path],
     allow_test_flags: bool,
     overrides: Mapping[str, object],
+    backend: BackendKind,
+    attempt: int | None = None,
 ) -> RootRecord:
-    """Pin graph, inputs, config and branch base into one idempotent root."""
+    """Pin graph, inputs, config and branch base into one idempotent root.
+
+    `backend` is the pin the root is CREATED on (§3.2, D18): the bridge
+    record's `root_backend` for a bridge stage, the `tasks` row for a run with
+    no bridge. It is required rather than defaulted because the process-wide
+    store is built on whichever transport this process started on, and a root
+    created there after the `store` switch flipped would contradict the record
+    that names its backend.
+
+    `attempt` is the bridge's own attempt number for this stage; with the
+    composition's task it becomes the root's pinned run identity (§3.7). A
+    caller that has no attempt to name — `foreman create`, a lab wiring —
+    pins none, and the run-scoped verify variables are then empty.
+    """
     definition = load_graph(toml_path, allow_test_flags=allow_test_flags)
     pinned = _pinned_instance_inputs(
         definition, instance_inputs, allow_test_flags=allow_test_flags
@@ -380,22 +397,31 @@ def instantiate(
     if missing:
         raise ResolutionError(f"unknown runner roles: {', '.join(missing)}")
     base = composition.git.head_commit(cwd=composition.config.repo_root)
-    root = composition.store.create_root(
+    root = composition.creation_store(backend).create_root(
         instance_key=instance_key,
         definition=definition,
         resolved_config=_resolved_config(composition, definition, overrides),
         instance_inputs=pinned,
         allow_test_flags=allow_test_flags,
         instance_base_commit=base,
+        run_identity=(
+            None
+            if composition.task_id is None or attempt is None
+            else RunIdentity(task_id=composition.task_id, attempt=attempt)
+        ),
         profiles=composition.profiles,
     )
+    # Before any read of the new root: nothing durable answers for a bd root
+    # of a ledger-pinned task, and the coordination initialisation below is a
+    # read (§3.2).
+    composition.pin_root_backend(root.root_id, backend)
     if definition.document.instance.coordination_limits is not None:
         from workflow_interpreter.foreman.decisions import admission_of
 
-        composition.store.coordination_store().initialize(
+        composition.coordination_for_root(root.root_id).initialize(
             root.root_id, admission_of(root, slot="work", generation=0)
         )
-        root = composition.store.reads.load_root(root.root_id)
+        root = composition.reads_for_root(root.root_id).load_root(root.root_id)
     ensure_instance_branch(composition, root)
     return root
 

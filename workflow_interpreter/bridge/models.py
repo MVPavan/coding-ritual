@@ -7,12 +7,20 @@ from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bridge.verification import VerificationPolicy
 
 type PhaseBridgeSchema = Literal["phase-bridge/3"]
 PHASE_BRIDGE_SCHEMA: Final[PhaseBridgeSchema] = "phase-bridge/3"
+INSTANCE_KEY_PREFIX: Final[str] = "phase-bridge:"
+"""What makes a root BRIDGE-owned, readable from the root itself (§3.9).
+
+Terminal cleanup has to know whether the task that owns a root closes through
+the bridge — and therefore owes an export before anything is deleted — without
+a bd round trip per tick. The instance key is pinned on the root record, so the
+answer is already in hand."""
 INSTANCE_KEY_TEMPLATE: Final[str] = (
-    "phase-bridge:{epic_id}:{stage_id}:attempt:{attempt}"
+    INSTANCE_KEY_PREFIX + "{epic_id}:{stage_id}:attempt:{attempt}"
 )
 MSG_INSTANCE_KEY: Final[str] = "phase bridge instance_key is not derived from identity"
 MSG_PREVIOUS_ATTEMPTS_COUNT: Final[str] = (
@@ -24,8 +32,14 @@ MSG_PREVIOUS_ATTEMPTS_UNIQUE: Final[str] = (
 MSG_PREPARED_NOT_FIRST_ATTEMPT: Final[str] = (
     "phase bridge prepared records must be the first attempt"
 )
+MSG_BACKEND_IMMUTABLE: Final[str] = (
+    "phase bridge root_backend is pinned at prepare and cannot change from "
+    "{stored!r} to {incoming!r}"
+)
 
 CommitOid = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
+ObjectOid = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
+"""A git object id that is not a commit — the export blob (§3.6)."""
 NonEmptyText = Annotated[str, StringConstraints(min_length=1)]
 
 
@@ -57,6 +71,14 @@ class PhaseBridgeRecord(BaseModel):
     stage_id: NonEmptyText
     attempt: int = Field(ge=1)
     instance_key: NonEmptyText
+    root_backend: BackendKind = Field(default=BackendKind.BD, frozen=True)
+    """The backend this ATTEMPT root is pinned to (§3.2, D18).
+
+    Written at PREPARE, before admission creates the root or its branch, so
+    the store a root is served by can be chosen before the root is loaded. It
+    defaults to bd because every `phase-bridge/3` record written before the
+    ledger existed describes a bd root, and a missing pin therefore has one
+    true reading rather than an ambiguous one."""
     target_ref: NonEmptyText
     expected_base_commit: CommitOid
     verification_policy: VerificationPolicy | None = Field(
@@ -78,6 +100,13 @@ class PhaseBridgeRecord(BaseModel):
     tree: CommitOid | None = None
     gate_receipt_digest: NonEmptyText | None = None
     landing_receipt_digest: NonEmptyText | None = None
+    export_oid: ObjectOid | None = None
+    """The git blob this task's whole ledger record is pinned as (§3.6).
+
+    Recorded in the SAME metadata merge that closes the relation, because the
+    adapter closes the bead immediately after that merge: a task that reached
+    CLOSED without it would be a task whose record `git clean` could still
+    delete."""
     previous_attempts: tuple[NonEmptyText, ...]
 
     @model_validator(mode="after")
@@ -104,8 +133,9 @@ class PhaseBridgeRecord(BaseModel):
         target_ref: str,
         expected_base_commit: str,
         verification_policy: VerificationPolicy | None = None,
+        root_backend: BackendKind = BackendKind.BD,
     ) -> PhaseBridgeRecord:
-        """Build a new pre-claim admission intent."""
+        """Build a new pre-claim admission intent on the selected backend."""
         if attempt != 1:
             raise ValueError(MSG_PREPARED_NOT_FIRST_ATTEMPT)
         return cls(
@@ -117,14 +147,22 @@ class PhaseBridgeRecord(BaseModel):
             instance_key=INSTANCE_KEY_TEMPLATE.format(
                 epic_id=epic_id, stage_id=stage_id, attempt=attempt
             ),
+            root_backend=root_backend,
             target_ref=target_ref,
             expected_base_commit=expected_base_commit,
             previous_attempts=(),
             verification_policy=verification_policy,
         )
 
-    def next_attempt(self) -> PhaseBridgeRecord:
-        """Mint the next distinct root identity after an eligible retry."""
+    def next_attempt(
+        self, root_backend: BackendKind | None = None
+    ) -> PhaseBridgeRecord:
+        """Mint the next distinct root identity after an eligible retry.
+
+        A retry is a NEW attempt root, so the `store` switch applies to it
+        (D18): the caller passes the value in force now, and only a caller
+        with nothing to say keeps this attempt's pin.
+        """
         return PhaseBridgeRecord(
             schema=PHASE_BRIDGE_SCHEMA,
             state=PhaseBridgeState.PREPARED,
@@ -134,6 +172,7 @@ class PhaseBridgeRecord(BaseModel):
             instance_key=INSTANCE_KEY_TEMPLATE.format(
                 epic_id=self.epic_id, stage_id=self.stage_id, attempt=self.attempt + 1
             ),
+            root_backend=self.root_backend if root_backend is None else root_backend,
             target_ref=self.target_ref,
             expected_base_commit=self.expected_base_commit,
             previous_attempts=(*self.previous_attempts, self.instance_key),
@@ -164,6 +203,13 @@ class PhaseBridgeRecord(BaseModel):
             }
         )
 
-    def closed(self) -> PhaseBridgeRecord:
-        """Mark a relation closed immediately before its verified bead close."""
-        return self.model_copy(update={"state": PhaseBridgeState.CLOSED})
+    def closed(self, export_oid: str) -> PhaseBridgeRecord:
+        """Close the relation, naming the blob its whole record is pinned as.
+
+        The oid is an argument rather than a later merge because §3.6 gives
+        the bridge exactly one write in which to record it: the adapter closes
+        the bead in the same call that merges this record.
+        """
+        return self.model_copy(
+            update={"state": PhaseBridgeState.CLOSED, "export_oid": export_oid}
+        )

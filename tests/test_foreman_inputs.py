@@ -504,7 +504,7 @@ def test_select_bindings_does_not_bind_a_later_sequence_from_an_earlier_round(
     )
     earlier = current.model_copy(
         update={
-            "bead": current.bead.model_copy(update={"id": "wf-earlier"}),
+            "id": "wf-earlier",
             "metadata": current.metadata.model_copy(
                 update={
                     "lifecycle": Lifecycle.CLOSED,

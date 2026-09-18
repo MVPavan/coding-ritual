@@ -18,11 +18,11 @@ from pydantic import ValidationError
 from tests.conftest import KEYGEN_TIMEOUT_S, SSH_KEYGEN, TEST_PRINCIPAL, Signer
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.errors import (
-    BdConfigError,
     GateVerificationError,
     PayloadMismatchError,
     SignatureRefusedError,
     SignerNotAllowedError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.signing import (
     BoundMutation,
@@ -151,12 +151,12 @@ def test_an_allow_list_inside_the_workspace_is_refused(
     signing_config: SigningConfig,
 ) -> None:
     # §9: a foreman that can write its own allow-list can forge approvals.
-    with pytest.raises(BdConfigError, match="inside the bd workspace"):
+    with pytest.raises(StoreConfigError, match="inside the bd workspace"):
         GateVerifier(signing_config, signing_config.allowed_signers_path.parent)
 
 
 def test_a_missing_allow_list_is_refused(tmp_path: Path) -> None:
-    with pytest.raises(BdConfigError, match="does not exist"):
+    with pytest.raises(StoreConfigError, match="does not exist"):
         GateVerifier(SigningConfig(allowed_signers_path=tmp_path / "nope"), tmp_path)
 
 
@@ -229,7 +229,7 @@ def test_a_namespaces_restriction_excluding_wf_gate_is_honored(
 ) -> None:
     # A key allowed only for `git` signatures is not an allowed gate signer.
     public = signing_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
-    with pytest.raises(BdConfigError, match="namespace"):
+    with pytest.raises(StoreConfigError, match="namespace"):
         _allow_list(tmp_path, f'{TEST_PRINCIPAL} namespaces="git" {public}\n')
 
 
@@ -273,7 +273,7 @@ def test_a_namespaces_pattern_list_honours_negation(
     # `wf-gate` — the one direction this parser must never fail in (probed
     # against the local OpenSSH manual, round 3).
     public = signing_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
-    with pytest.raises(BdConfigError, match="namespace"):
+    with pytest.raises(StoreConfigError, match="namespace"):
         _allow_list(tmp_path, f'{TEST_PRINCIPAL} namespaces="*,!wf-gate" {public}\n')
 
     verifier = _allow_list(
@@ -320,7 +320,7 @@ def test_a_truncated_key_blob_is_refused_like_ssh_keygen_refuses_it(
     )
     assert reported.returncode != 0
 
-    with pytest.raises(BdConfigError, match="not a valid allowed_signers entry"):
+    with pytest.raises(StoreConfigError, match="not a valid allowed_signers entry"):
         _allow_list(tmp_path, line)
 
 
@@ -330,7 +330,7 @@ def test_a_key_blob_with_trailing_bytes_is_refused(
     public = signing_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
     _, blob, *_ = public.split()
     padded = base64.b64encode(base64.b64decode(blob) + b"\x00\x01").decode("ascii")
-    with pytest.raises(BdConfigError, match="not a valid allowed_signers entry"):
+    with pytest.raises(StoreConfigError, match="not a valid allowed_signers entry"):
         _allow_list(tmp_path, f"{TEST_PRINCIPAL} ssh-ed25519 {padded}\n")
 
 
@@ -341,7 +341,7 @@ def test_an_option_keyword_is_matched_case_insensitively(
     # it case-sensitively dropped the restriction and treated the key as
     # unrestricted — the one direction this parser must never fail in.
     public = signing_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
-    with pytest.raises(BdConfigError, match="namespace"):
+    with pytest.raises(StoreConfigError, match="namespace"):
         _allow_list(tmp_path, f'{TEST_PRINCIPAL} Namespaces="git" {public}\n')
 
 
@@ -349,7 +349,7 @@ def test_a_base64_field_that_is_not_a_key_blob_is_refused(tmp_path: Path) -> Non
     # `ssh-ed25519 AAAA` is valid base64 and was fingerprinted happily, while
     # ssh-keygen reports `invalid key`. The blob's own type string is the
     # authority on what the field holds.
-    with pytest.raises(BdConfigError, match="not a valid allowed_signers entry"):
+    with pytest.raises(StoreConfigError, match="not a valid allowed_signers entry"):
         _allow_list(tmp_path, f"{TEST_PRINCIPAL} ssh-ed25519 AAAA\n")
 
 
@@ -358,7 +358,7 @@ def test_a_key_blob_contradicting_its_declared_type_is_refused(
 ) -> None:
     public = signing_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
     _, blob, *_ = public.split()
-    with pytest.raises(BdConfigError, match="declares type"):
+    with pytest.raises(StoreConfigError, match="declares type"):
         _allow_list(tmp_path, f"{TEST_PRINCIPAL} ecdsa-sha2-nistp256 {blob}\n")
 
 
@@ -369,7 +369,7 @@ def test_a_cert_authority_line_is_refused_never_fingerprinted(
     # is not the fingerprint of anything that signs, so silently admitting it
     # puts a key on the allow-list that can never match a real approval.
     public = signing_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
-    with pytest.raises(BdConfigError, match="cert-authority"):
+    with pytest.raises(StoreConfigError, match="cert-authority"):
         _allow_list(tmp_path, f"{TEST_PRINCIPAL} cert-authority {public}\n")
 
 
@@ -393,7 +393,7 @@ def test_an_unparseable_line_refuses_the_whole_allow_list(
     line: str, tmp_path: Path
 ) -> None:
     # A key the wrapper cannot read is a key it cannot hold accountable.
-    with pytest.raises(BdConfigError, match="not a valid allowed_signers entry"):
+    with pytest.raises(StoreConfigError, match="not a valid allowed_signers entry"):
         _allow_list(tmp_path, f"{line}\n")
 
 

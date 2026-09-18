@@ -53,6 +53,8 @@ from typing import Final
 
 import structlog
 
+from workflow_interpreter.bdio.carriers import LedgerRenderBinding
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.schema.graph_index import duration_seconds
 from workflow_interpreter.schema.models import Node, VerifyCheck
 from workflow_interpreter.supervisor.channels import verifier_digest_key
@@ -69,7 +71,7 @@ package (§5.3), and the only argv[0] that cannot name a different file from
 the one the digest was taken from."""
 
 BASE_COMMIT_ENV: Final[str] = "WF_BASE_COMMIT"
-"""The one `WF_*` variable a §7.3 check is given: the activation's
+"""The first `WF_*` variable a §7.3 check is given: the activation's
 `intended_base_commit`.
 
 A check runs in a detached checkout whose HEAD is the artifact commit and which
@@ -80,6 +82,32 @@ that read it, so the environment a check sees does not depend on the node.
 
 For a non-writing node the base equals the verified head (phase 7, D5), which
 makes a diff-based check empty there by design rather than by accident."""
+
+EPIC_SEGMENT_ENV: Final[str] = "WF_EPIC_SEGMENT"
+TASK_ID_ENV: Final[str] = "WF_TASK_ID"
+ATTEMPT_ENV: Final[str] = "WF_ATTEMPT"
+"""The run the checked commit belongs to (run-ledger §3.7).
+
+Taken from the root record's pinned `run_identity`, never parsed from a root
+id, and injected for every check exactly as `WF_BASE_COMMIT` is — so the
+environment a check sees is still a property of the wrapper and not of the
+node. A root that pins no identity gives all three as the EMPTY string: a
+check that needs them (`scripts/verify-debrief.sh`) then fails loudly instead
+of computing a path from a guess."""
+
+RENDER_OID_ENV: Final[str] = "WF_RENDER_OID"
+RENDER_DIGEST_ENV: Final[str] = "WF_RENDER_DIGEST"
+"""The IMMUTABLE render this activation was minted against (run-ledger §3.7).
+
+A check that resolved the render by ref name would trust a ref the runner's
+sandbox protects as a loose file only (`sandbox.WF_REFS_DIR`: `packed-refs`
+stays writable), so a repointed ref could redefine what the debrief is
+compared against. These two come from the activation's own
+`LedgerRenderBinding`, which was pinned at mint: the tree object id, and the
+digest of the payload that tree holds. An activation with no render binding
+gives both as the EMPTY string."""
+
+_NO_IDENTITY: Final[str] = ""
 
 READ_CHUNK: Final[int] = 65536
 
@@ -238,11 +266,15 @@ def run_checks(
     pinned_digests: dict[str, str],
     *,
     base_commit: str,
+    run_identity: RunIdentity | None = None,
+    render: LedgerRenderBinding | None = None,
 ) -> tuple[VerifyResult, ...]:
     """Execute the PINNED graph's checks in `tree`: provenance first, no shell.
 
-    `base_commit` is the activation's `intended_base_commit`, passed to every
-    check as `BASE_COMMIT_ENV`.
+    `base_commit` is the activation's `intended_base_commit`, `run_identity` the
+    root's pinned task and attempt, and `render` the activation's own pinned
+    ledger render; all three are passed to every check through the fixed `WF_*`
+    environment above.
     """
     results: list[VerifyResult] = []
     for check in node.verify or ():
@@ -267,7 +299,17 @@ def run_checks(
                 )
                 results.append(_refused(resolved, digest, pinned))
                 continue
-            results.append(_execute(resolved, descriptor, digest, pinned, base_commit))
+            results.append(
+                _execute(
+                    resolved,
+                    descriptor,
+                    digest,
+                    pinned,
+                    base_commit,
+                    run_identity,
+                    render,
+                )
+            )
         finally:
             if descriptor is not None:
                 os.close(descriptor)
@@ -345,12 +387,34 @@ def _digest_of(descriptor: int) -> str:
         offset += len(chunk)
 
 
+def _check_env(
+    base_commit: str,
+    run_identity: RunIdentity | None,
+    render: LedgerRenderBinding | None,
+) -> dict[str, str]:
+    """The fixed `WF_*` environment every §7.3 check is given, identity or not."""
+    return {
+        BASE_COMMIT_ENV: base_commit,
+        EPIC_SEGMENT_ENV: (
+            _NO_IDENTITY if run_identity is None else run_identity.epic_segment
+        ),
+        TASK_ID_ENV: _NO_IDENTITY if run_identity is None else run_identity.task_id,
+        ATTEMPT_ENV: (
+            _NO_IDENTITY if run_identity is None else str(run_identity.attempt)
+        ),
+        RENDER_OID_ENV: _NO_IDENTITY if render is None else render.tree_oid,
+        RENDER_DIGEST_ENV: _NO_IDENTITY if render is None else render.payload_digest,
+    }
+
+
 def _execute(
     resolved: ResolvedCheck,
     descriptor: int,
     digest: str,
     pinned: str,
     base_commit: str,
+    run_identity: RunIdentity | None = None,
+    render: LedgerRenderBinding | None = None,
 ) -> VerifyResult:
     """Run the check, re-running a RED one `RED_CHECK_RERUNS` times.
 
@@ -364,7 +428,16 @@ def _execute(
     attempt = 1
     tails: list[str] = []
     while True:
-        result = _run_once(resolved, descriptor, digest, pinned, attempt, base_commit)
+        result = _run_once(
+            resolved,
+            descriptor,
+            digest,
+            pinned,
+            attempt,
+            base_commit,
+            run_identity,
+            render,
+        )
         # Every attempt's tail is kept, not just the surviving result's: when a
         # rerun turns the check green, the RED attempt's output is the one a
         # human wants to read (cr-o85.34.12).
@@ -390,6 +463,8 @@ def _run_once(
     pinned: str,
     attempts: int,
     base_commit: str,
+    run_identity: RunIdentity | None = None,
+    render: LedgerRenderBinding | None = None,
 ) -> VerifyResult:
     """Run the HASHED descriptor with its declared timeout, argv only, no shell.
 
@@ -414,7 +489,7 @@ def _run_once(
             timeout=resolved.timeout_s,
             check=False,
             pass_fds=(descriptor,),
-            env={**os.environ, BASE_COMMIT_ENV: base_commit},
+            env={**os.environ, **_check_env(base_commit, run_identity, render)},
         )
     except subprocess.TimeoutExpired as expired:
         return VerifyResult(

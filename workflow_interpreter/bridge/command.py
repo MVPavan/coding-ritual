@@ -10,7 +10,7 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from workflow_interpreter.bdio import BdOutputError
+from workflow_interpreter.bdio import StoreOutputError
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.bridge.adapter import (
     PHASE_BRIDGE_METADATA_KEY,
@@ -25,6 +25,7 @@ from workflow_interpreter.bridge.admission import (
 )
 from workflow_interpreter.bridge.authority import BeadGateAuthority
 from workflow_interpreter.bridge.errors import BridgeRefusal
+from workflow_interpreter.bridge.journal import ExportPin, LandingJournal
 from workflow_interpreter.bridge.landing import (
     LANDING_INTENT_FILE,
     LANDING_RECEIPT_FILE,
@@ -48,6 +49,7 @@ from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.wake import MonitorUnavailable
+from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import CoordinationError
 from workflow_interpreter.schema.loader import GraphValidationError, load_graph
 from workflow_interpreter.schema.models import PRODUCER_INSTANCE
@@ -140,12 +142,11 @@ def execute_phase_bridge(
         MonitorUnavailable,
         CoordinationError,
         LockUnavailable,
-        BdOutputError,
+        StoreOutputError,
         PhaseAdapterError,
         ResolutionError,
         BridgeRefusal,
         ValidationError,
-        OSError,
         WrapperDirError,
         GitCommandError,
     ) as refusal:
@@ -186,7 +187,7 @@ def _execute(
     target_ref = composition.git.attached_branch_ref(cwd=composition.config.repo_root)
     if target_ref is None:
         raise PhaseBridgeRefused(MSG_DETACHED)
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     from workflow_interpreter.bridge.integration import (
         IntegrationGuard,
         prepared_for_stage,
@@ -259,7 +260,7 @@ def _execute(
                 "legacy bridge journal lacks verification policy; human attention required"
             )
         if prior.root_id is not None:
-            wiring = composition.for_root(_safe_root_id(prior.root_id))
+            wiring = composition.for_root(_pinned_root(composition, prior))
             root = wiring.store.reads.load_root(prior.root_id)
             if (
                 prior.integration_digest is None
@@ -288,7 +289,10 @@ def _execute(
                 if retry:
                     raise PhaseBridgeRefused("landing recovery cannot be retried")
                 return _land(composition, adapter, prior, recover=True)
-    if composition.git.status_paths(cwd=composition.config.repo_root):
+    if coordinator_dirt(
+        composition.git.status_paths(cwd=composition.config.repo_root),
+        task_id=stage_id,
+    ):
         raise PhaseBridgeRefused(MSG_DIRTY)
     if (
         prior is not None
@@ -320,7 +324,7 @@ def _execute(
             monitored=monitored,
         )
     if retry and prior is not None and prior.root_id is not None:
-        predecessor = composition.store.reads.load_root(prior.root_id)
+        predecessor = composition.reads_for_root(prior.root_id).load_root(prior.root_id)
         if predecessor.metadata.coordination is not None:
             raise PhaseBridgeRefused(
                 "coordinated bridge retry requires the original-owner successor operation"
@@ -352,13 +356,15 @@ def _execute(
         brief_path.write_text(task_brief, encoding="utf-8")
         roots = WorkflowRootProvisioner(
             adapter,
-            lambda instance_key: instantiate(
+            lambda instance_key, backend, attempt: instantiate(
                 composition,
                 graph,
                 instance_key=instance_key,
                 instance_inputs={TASK_BRIEF: brief_path},
                 allow_test_flags=False,
                 overrides={},
+                backend=backend,
+                attempt=attempt,
             ),
             composition.git,
             composition.config.repo_root,
@@ -368,6 +374,7 @@ def _execute(
             roots,
             lambda: composition.git.head_commit(cwd=composition.config.repo_root),
             verification_policy=policy,
+            root_backend=composition.config.store,
         )
         record = (
             admission.admit_successor(
@@ -393,7 +400,7 @@ def _run_record(
     """Resume the admitted root without reprovisioning from current configuration."""
     adapter.guard_integration(record)
     run = Foreman(composition).run(
-        _require_root(record),
+        _pinned_root(composition, record),
         poll_s=RUN_DEFAULT_POLL_S,
         max_wall_s=RUN_DEFAULT_MAX_WALL_S,
         monitored=monitored,
@@ -434,7 +441,11 @@ def _land(
     """Compose authoritative landing using the admitted policy, including repair."""
     if record.verification_policy is None:
         raise PhaseBridgeRefused("bridge verification policy missing")
-    wiring = composition.for_root(_require_root(record))
+    wiring = composition.for_root(_pinned_root(composition, record))
+    # D17 and §3.6: the ledger surfaces are composed HERE, from the one
+    # connection this process holds, and they are absent only for a wiring
+    # with no ledger at all — where the adapter refuses the close instead.
+    ledger = composition.ledger
     landing = PhaseLanding(
         adapter,
         composition.git,
@@ -447,6 +458,12 @@ def _land(
             record.verification_policy,
             lambda message: print(message, file=sys.stderr),
         ),
+        journal=None
+        if ledger is None
+        else LandingJournal(ledger, record.stage_id, record.root_backend),
+        export=None
+        if ledger is None
+        else ExportPin(ledger, composition.git, composition.config.repo_root),
     )
     try:
         outcome = (
@@ -547,9 +564,9 @@ def _retry_successor(
         raise PhaseBridgeRefused(MSG_RETRY_NO_RECORD) from error
     if prior.root_id is None:
         raise PhaseBridgeRefused(MSG_RETRY_NO_ROOT)
-    wiring = composition.for_root(_safe_root_id(prior.root_id))
+    wiring = composition.for_root(_pinned_root(composition, prior))
     root = wiring.store.reads.load_root(prior.root_id)
-    frontier = build_frontier(root, wiring.store.reads.instance_beads(prior.root_id))
+    frontier = build_frontier(root, wiring.store.reads.instance_records(prior.root_id))
     terminals = root.definition.document.instance.phase_bridge_retry_terminals or ()
     refusal = retry_refusal(prior.state, terminals, frontier)
     if refusal is not None:
@@ -559,7 +576,7 @@ def _retry_successor(
         and not BeadGateAuthority(wiring.store.reads).verify(prior.root_id).accepted
     ):
         raise PhaseBridgeRefused("retry lacks approved ship authority")
-    return prior.next_attempt()
+    return prior.next_attempt(composition.config.store)
 
 
 def _trace(
@@ -592,9 +609,9 @@ def _trace(
     }
     if record is None or record.root_id is None:
         return PhaseBridgeCommandResult(exit_code=EXIT_OK, report=report)
-    wiring = composition.for_root(record.root_id)
+    wiring = composition.for_root(_pinned_root(composition, record))
     root = wiring.store.reads.load_root(record.root_id)
-    frontier = build_frontier(root, wiring.store.reads.instance_beads(record.root_id))
+    frontier = build_frontier(root, wiring.store.reads.instance_records(record.root_id))
     intent = read_record(wiring.paths.instance_dir / LANDING_INTENT_FILE, LandingIntent)
     receipt = read_record(
         wiring.paths.instance_dir / LANDING_RECEIPT_FILE, LandingReceipt
@@ -668,6 +685,19 @@ def _require_root(record: PhaseBridgeRecord) -> str:
     if record.root_id is None:
         raise PhaseBridgeRefused(MSG_ADMISSION_NO_ROOT)
     return _safe_root_id(record.root_id)
+
+
+def _pinned_root(composition: Composition, record: PhaseBridgeRecord) -> str:
+    """Install the record's own pin BEFORE its root is first located (§3.2).
+
+    The record is the only thing a restarted process has: for a bd attempt of
+    a ledger-pinned task the ledger holds no row and the `tasks` row still
+    names the first attempt's backend, so a load that asks the locator first
+    reads the wrong store and reports a live run as missing (D18).
+    """
+    root_id = _require_root(record)
+    composition.pin_record_backend(root_id, record.root_backend)
+    return root_id
 
 
 def _result(

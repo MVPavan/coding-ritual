@@ -501,8 +501,8 @@ def test_a_tampered_bound_without_signature_evidence_raises_nothing(
     before = gate_store.reads.effective_bound(
         root_id, BoundSetting.MAX_ENTRIES, scope="build-review"
     )
-    fake_bd.rows[gate.bead.id]["status"] = "closed"
-    fake_bd.rows[gate.bead.id]["metadata"].update(
+    fake_bd.rows[gate.id]["status"] = "closed"
+    fake_bd.rows[gate.id]["metadata"].update(
         {
             "state": "closed",
             "outcome": "rebudget",

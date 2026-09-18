@@ -54,6 +54,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.contracts.execution import RunnerName
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.schema.models import Node
 from workflow_interpreter.supervisor.channels import (
@@ -68,6 +69,7 @@ from workflow_interpreter.supervisor.errors import SupervisorError, WrapperDirEr
 from workflow_interpreter.supervisor.exit_grade import (
     ComputedEvidence,
     EvidenceGrader,
+    review_findings,
 )
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.models import (
@@ -179,6 +181,7 @@ class ExitObserver:
         reason: ExitReason,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None = None,
+        run_identity: RunIdentity | None = None,
     ) -> ExitObservation:
         """Observe an exit once, reusing the first durable exit record."""
         activation_id = activation.activation_id
@@ -212,6 +215,7 @@ class ExitObserver:
             exit_record,
             pinned_digests=pinned_digests,
             previous_tree_oid=previous_tree_oid,
+            run_identity=run_identity,
         )
 
     def replay(
@@ -223,6 +227,7 @@ class ExitObserver:
         *,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None = None,
+        run_identity: RunIdentity | None = None,
     ) -> ExitObservation:
         """Resume observation from its durable exit record, with cache-miss effects.
 
@@ -255,6 +260,7 @@ class ExitObserver:
         *,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
+        run_identity: RunIdentity | None = None,
     ) -> ExitObservation:
         """Compute missing evidence, then mirror the already-chosen exit record."""
         self._workspace.preserve_interrupted(activation, node)
@@ -267,6 +273,7 @@ class ExitObserver:
                 exit_record,
                 pinned_digests,
                 previous_tree_oid,
+                run_identity,
             )
         else:
             # Usage is re-read even here. The foreman settles through `replay`
@@ -308,6 +315,7 @@ class ExitObserver:
         exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
+        run_identity: RunIdentity | None = None,
     ) -> PostExit:
         """Everything between the exit file and `record_exit` — and it cannot raise.
 
@@ -333,6 +341,7 @@ class ExitObserver:
                 exit_record,
                 pinned_digests,
                 previous_tree_oid,
+                run_identity,
             )
         except (OSError, SupervisorError) as exc:
             _LOG.error(
@@ -356,6 +365,7 @@ class ExitObserver:
         exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
+        run_identity: RunIdentity | None = None,
     ) -> PostExit:
         """Read the §6 channels, record §12 attribution, pin §7.4, grade §7."""
         envelope = self._envelope(activation, profile)
@@ -380,6 +390,7 @@ class ExitObserver:
                 exit_record,
                 pinned_digests,
                 previous_tree_oid,
+                run_identity,
             ),
             artifact=pin.identity,
             usage=_envelope_usage(envelope),
@@ -428,6 +439,7 @@ class ExitObserver:
         exit_record: ExitRecord,
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
+        run_identity: RunIdentity | None = None,
     ) -> CompletionEvidence:
         """Compute §7, or record WHY it could not be computed — never escape.
 
@@ -450,6 +462,7 @@ class ExitObserver:
                 exit_record,
                 pinned_digests,
                 branch,
+                run_identity,
             )
         except (OSError, SupervisorError) as exc:
             _LOG.error(
@@ -462,6 +475,15 @@ class ExitObserver:
                 ComputedEvidence(completion=self._uncomputable(artifact, exc)),
             )
         completion = self._with_sandbox_verdict(activation_id, computed)
+        # Extracted here rather than in the grader because the tree is pinned
+        # by now and the runner's own directory is already gone: the reviewer's
+        # findings are read from the immutable objects, before any close (§3.3).
+        report = review_findings(
+            node,
+            self._git,
+            self._paths.config.repo_root,
+            None if outputs_pin.identity is None else outputs_pin.identity.tree_oid,
+        )
         completion = completion.model_copy(
             update={
                 "evidence": completion.evidence.model_copy(
@@ -471,6 +493,8 @@ class ExitObserver:
                         "outputs_tree_oid": None
                         if outputs_pin.identity is None
                         else outputs_pin.identity.tree_oid,
+                        "review_findings": report.findings,
+                        "review_report_missing": report.missing,
                         "claimed_outcome": completion.claimed_outcome,
                     }
                 )

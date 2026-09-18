@@ -21,12 +21,12 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.bdio.records import (
+    InstanceRecord,
     RootRecord,
-    parse_activation,
+    RowRecord,
     parse_event,
-    parse_gate,
 )
-from workflow_interpreter.bdio.wire import BeadRecord, EventPayload, WfKind
+from workflow_interpreter.bdio.wire import EventPayload, WfKind
 from workflow_interpreter.foreman.constants import EFFECTS_NODE
 from workflow_interpreter.schema.graph_index import GraphIndex
 from workflow_interpreter.schema.models import NodeKind, Outcome
@@ -91,12 +91,14 @@ class Frontier(BaseModel):
         return self.head_activation or self.head_gate
 
 
-def _event_payloads(beads: Iterable[BeadRecord]) -> tuple[EventPayload, ...]:
+def _event_payloads(records: Iterable[InstanceRecord]) -> tuple[EventPayload, ...]:
     payloads: list[EventPayload] = []
-    for bead in beads:
-        if bead.metadata.get("wf_kind") != WfKind.EVENT.value or bead.payload is None:
+    for record in records:
+        if not isinstance(record, RowRecord):
             continue
-        event = parse_event(bead)
+        if record.kind != WfKind.EVENT.value or record.payload is None:
+            continue
+        event = parse_event(record)
         if isinstance(event, EventPayload):
             payloads.append(event)
     return tuple(payloads)
@@ -138,21 +140,13 @@ def _dead_end(index: GraphIndex, activation: ActivationRecord) -> DeadEndKind | 
     return None
 
 
-def build_frontier(root: RootRecord, beads: Iterable[BeadRecord]) -> Frontier:
+def build_frontier(root: RootRecord, rows: Iterable[InstanceRecord]) -> Frontier:
     """Build a frontier, refusing ambiguous or unauthenticated trace state."""
-    records = tuple(beads)
-    activations = tuple(
-        record
-        for record in records
-        if record.metadata.get("wf_kind") == WfKind.ACTIVATION.value
+    records = tuple(rows)
+    parsed_activations = tuple(
+        record for record in records if isinstance(record, ActivationRecord)
     )
-    gates = tuple(
-        record
-        for record in records
-        if record.metadata.get("wf_kind") == WfKind.GATE.value
-    )
-    parsed_activations = tuple(parse_activation(record) for record in activations)
-    parsed_gates = tuple(parse_gate(record) for record in gates)
+    parsed_gates = tuple(record for record in records if isinstance(record, GateRecord))
     index = root.index
     events = _event_payloads(records)
     live_activations = tuple(

@@ -31,3 +31,4 @@ read only when the task is explicitly about that reference.
 
 | `docs/specs/2026-09-11-workflow-coordination.md` | Implementing the approved bridge, model decisions, child coordination and serialized integration scope |
 | `docs/workstreams/agent-bridge/roadmap.md` | Resuming the approved six-phase workflow coordination execution |
+| `docs/workstreams/run-ledger/roadmap.md` | **Working on engine storage, the debrief node, exports or archiving** — the run-ledger design, decisions D1–D21 and slices; ADR 0005 records the decision |

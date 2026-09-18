@@ -9,6 +9,13 @@ Three properties this file exists to guarantee:
    `--ignore-schema-skew`, `--claim-next`, `bd delete`, `bd edit`,
    `bd gate`, `bd audit` are therefore structurally unconstructible rather
    than merely unused (§0.1, §11 'prior probe facts').
+   One addition to that set is a recorded DESIGN CHANGE (run-ledger §3.2.3):
+   `bd update <id> --add-label|--remove-label` carries the `wf:attention`
+   projection, the single derived label the ledger reconciles onto a task
+   bead. It is deliberately narrow — no `bd label` subcommand, no `bd human`
+   flag (whose dismiss CLOSES the issue), and nothing else joined the set
+   with it.
+
 3. **Every write is read back.** bd's extension surfaces are lossy by
    default — `--event-payload @file` stores the literal string, and integers
    beyond float64 precision are silently rounded (both probed) — so a write
@@ -24,19 +31,30 @@ from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Final, Protocol
+from typing import TYPE_CHECKING, Any, Final, Protocol
 
 import structlog
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import (
     BdCommandError,
-    BdConfigError,
     BdOutputError,
     BdTimeoutError,
+    BdUnavailableError,
     ForbiddenInvocationError,
     LossyWriteError,
+    StoreConfigError,
+)
+from workflow_interpreter.bdio.rows import (
+    BackendIdentity,
+    GateClosure,
+    NewRow,
+    RowGuard,
+    RowKind,
+    RowQuery,
+    StoreRow,
 )
 from workflow_interpreter.bdio.wire import (
     ROW_MODEL,
@@ -45,6 +63,9 @@ from workflow_interpreter.bdio.wire import (
     Metadata,
     canonical_json_bytes,
 )
+
+if TYPE_CHECKING:  # pragma: no cover - imported for typing and at call time only
+    from workflow_interpreter.bdio.records import CanaryResult
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -69,13 +90,26 @@ _MSG_PAYLOAD_MANGLED: Final[str] = (
     "event payload written as {written!r}, read back as {stored!r}"
 )
 _MSG_NOT_CLOSED: Final[str] = "status is {status!r} after close"
+_MSG_LABEL_ABSENT: Final[str] = "label {label!r} absent after adding it"
+_MSG_LABEL_PRESENT: Final[str] = "label {label!r} still present after removing it"
 _MSG_REASON_MANGLED: Final[str] = (
     "close reason written as {written!r}, read back as {stored!r}"
 )
 
+BEADS_DIR_NAME: Final[str] = ".beads"
+LOCK_DIR_NAME: Final[str] = "coordination"
+LEGACY_LOCK_DIR_NAME: Final[str] = ".wf-coordination"
+
+ISSUE_TYPE_OF: Final[dict[RowKind, IssueType]] = {
+    RowKind.RECORD: IssueType.TASK,
+    RowKind.EVENT: IssueType.EVENT,
+}
+"""How the neutral row kinds are spelled in bd — bd's half of the translation."""
+
 SURFACE_METADATA: Final[str] = "metadata"
 SURFACE_EVENT_PAYLOAD: Final[str] = "event-payload"
 SURFACE_CLOSE: Final[str] = "close"
+SURFACE_LABEL: Final[str] = "label"
 
 
 class BdSubcommand(StrEnum):
@@ -108,6 +142,8 @@ class BdFlag(StrEnum):
     ALL = "--all"
     INCLUDE_GATES = "--include-gates"
     METADATA_FIELD = "--metadata-field"
+    ADD_LABEL = "--add-label"
+    REMOVE_LABEL = "--remove-label"
     PARENT = "--parent"
     CLAIM = "--claim"
     REASON = "--reason"
@@ -202,6 +238,24 @@ def _metadata_file(metadata: Metadata) -> Iterator[str]:
         yield f"@{path}"
 
 
+def as_row(record: BeadRecord) -> StoreRow:
+    """Translate one bd row into the neutral row the seam speaks (§3.1).
+
+    bd's `event` type is the only one that carries a payload; everything else
+    is a record row, whatever bd calls it next version.
+    """
+    return StoreRow(
+        id=record.id,
+        status=record.status,
+        kind=RowKind.EVENT
+        if record.issue_type == IssueType.EVENT.value
+        else RowKind.RECORD,
+        metadata=record.metadata,
+        payload=record.payload,
+        close_reason=record.close_reason,
+    )
+
+
 def run_subprocess(argv: Sequence[str], timeout_s: float) -> CompletedCommand:
     """Run `argv` with no shell and an explicit timeout."""
     completed = subprocess.run(
@@ -229,11 +283,16 @@ class BdClient:
 
     def __init__(self, config: BdConfig, runner: CommandRunner | None = None) -> None:
         if not config.workspace.is_absolute():
-            raise BdConfigError(
+            raise StoreConfigError(
                 _MSG_WORKSPACE_RELATIVE.format(workspace=config.workspace)
             )
         self._config = config
         self._runner: CommandRunner = runner if runner is not None else run_subprocess
+
+    @property
+    def kind(self) -> BackendKind:
+        """bd, the backend this transport speaks for (§3.2)."""
+        return BackendKind.BD
 
     @property
     def config(self) -> BdConfig:
@@ -244,6 +303,52 @@ class BdClient:
     def workspace(self) -> Path:
         """The bd workspace every invocation is scoped to via `-C`."""
         return self._config.workspace
+
+    # -- the neutral backend surface (§3.1) -------------------------------
+    #
+    # bd's own shapes stay below: `show`, `list_beads`, `list_children`,
+    # `list_dependencies` and `context` serve the bd-authoritative bridge
+    # path (D7), and everything the store proper uses is translated here.
+
+    def identity(self) -> BackendIdentity:
+        """Where bd's rows and their execution locks live (§3.4)."""
+        workspace = self._config.workspace.resolve()
+        return BackendIdentity(
+            kind=BackendKind.BD,
+            lock_root=(workspace / BEADS_DIR_NAME).resolve() / LOCK_DIR_NAME,
+            legacy_lock_root=workspace / LEGACY_LOCK_DIR_NAME,
+        )
+
+    def probe(self) -> CanaryResult:
+        """Assert the pinned bd identity and round-trip a wisp (§11)."""
+        from workflow_interpreter.bdio import canary
+
+        return canary.bd_probe(self)
+
+    def get_row(self, row_id: str) -> StoreRow:
+        """One row by id, as the neutral seam sees it."""
+        return as_row(self.show(row_id))
+
+    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
+        """Rows the query selects, translated into bd's filter vocabulary."""
+        return tuple(
+            as_row(record)
+            for record in self.list_beads(
+                metadata_filters=query.metadata_filters,
+                issue_type=None if query.kind is None else ISSUE_TYPE_OF[query.kind],
+            )
+        )
+
+    def _create_row(self, new: NewRow) -> StoreRow:
+        """Create a row from the neutral description and verify the read-back."""
+        return as_row(
+            self._create_bead(
+                title=new.summary,
+                metadata=new.metadata,
+                issue_type=ISSUE_TYPE_OF[new.kind],
+                event_payload=new.payload,
+            )
+        )
 
     # -- invocation ------------------------------------------------------
 
@@ -290,6 +395,11 @@ class BdClient:
             completed = self._runner(argv, timeout_s)
         except subprocess.TimeoutExpired as exc:
             raise BdTimeoutError(argv, timeout_s, subcommand.value) from exc
+        except OSError as exc:
+            # A missing or non-executable binary never reaches bd, so it says
+            # nothing about the caller's ids; it must not escape as a bare
+            # `OSError` that a caller above the seam reads as a refusal.
+            raise BdUnavailableError(argv, subcommand.value, str(exc)) from exc
         if completed.returncode != 0:
             raise BdCommandError(
                 argv, completed.returncode, completed.stderr, subcommand.value
@@ -446,12 +556,19 @@ class BdClient:
         _LOG.debug("bd.create", bead_id=bead_id, issue_type=issue_type.value)
         return record
 
-    def _merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+    def _merge_metadata(
+        self, bead_id: str, metadata: Metadata, *, guard: RowGuard | None = None
+    ) -> StoreRow:
         """Merge metadata into a bead and verify the merged result.
 
         `bd update --metadata` merges and preserves JSON types; the
         `--set-metadata k=v` surface stringifies structured values (probed)
         and is therefore not on the flag allow-list at all.
+
+        `guard` is accepted and NOT evaluated: bd has no transaction, so a
+        read here would be one more round-trip and still not join the check to
+        the write. The caller re-read and re-checked immediately before this
+        call (`transitions.apply`), which is as close as bd allows.
         """
         with _metadata_file(metadata) as metadata_arg:
             self._run(
@@ -465,9 +582,9 @@ class BdClient:
         record = self.show(bead_id)
         self._assert_metadata(record, metadata)
         _LOG.debug("bd.update", bead_id=bead_id, keys=sorted(metadata))
-        return record
+        return as_row(record)
 
-    def _claim_and_merge_metadata(self, bead_id: str, metadata: Metadata) -> BeadRecord:
+    def _claim_and_merge_metadata(self, bead_id: str, metadata: Metadata) -> StoreRow:
         """Claim a bead and merge metadata in the one supported bd invocation."""
         with _metadata_file(metadata) as metadata_arg:
             self._run(
@@ -490,10 +607,10 @@ class BdClient:
                 ),
             )
         _LOG.debug("bd.update.claim", bead_id=bead_id, keys=sorted(metadata))
-        return record
+        return as_row(record)
 
-    def _close_bead(self, bead_id: str, reason: str) -> BeadRecord:
-        """Close a bead with a structured reason and verify both landed.
+    def _close_row(self, bead_id: str, reason: str) -> StoreRow:
+        """Close a row with a structured reason and verify both landed.
 
         Closing twice succeeds and overwrites the reason (probed), so callers
         must decide idempotency above this transport, not rely on bd.
@@ -511,6 +628,47 @@ class BdClient:
                 _MSG_REASON_MANGLED.format(written=reason, stored=record.close_reason),
             )
         _LOG.debug("bd.close", bead_id=bead_id, reason=reason)
+        return as_row(record)
+
+    def _close_gate(self, closure: GateClosure) -> StoreRow:
+        """Record a gate's decision the way bd can: carrier first, close second.
+
+        The nonce and the signature evidence travel in the closure and are not
+        stored: bd has no `nonces` or `signatures` table, and the gate carrier
+        already records the nonce and the payload digest. What the ledger
+        gains (a re-verifiable approval, §3.6) bd does not have, and this
+        transport does not pretend otherwise.
+        """
+        merged = self._merge_metadata(closure.gate_id, closure.metadata)
+        if merged.status == STATUS_CLOSED and merged.close_reason == (
+            closure.close_reason
+        ):
+            return merged
+        return self._close_row(closure.gate_id, closure.close_reason)
+
+    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
+        """Add one derived label and verify it is on the bead (§3.2 projection)."""
+        return self._write_label(bead_id, label, BdFlag.ADD_LABEL, present=True)
+
+    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
+        """Remove one derived label and verify it is gone (§3.2 projection)."""
+        return self._write_label(bead_id, label, BdFlag.REMOVE_LABEL, present=False)
+
+    def _write_label(
+        self, bead_id: str, label: str, flag: BdFlag, *, present: bool
+    ) -> BeadRecord:
+        """Write one label and read the bead back, as every other write does."""
+        self._run(self._argv(BdSubcommand.UPDATE, bead_id, flag.value, label))
+        record = self.show(bead_id)
+        if (label in record.labels) is not present:
+            raise LossyWriteError(
+                bead_id,
+                SURFACE_LABEL,
+                (_MSG_LABEL_ABSENT if present else _MSG_LABEL_PRESENT).format(
+                    label=label
+                ),
+            )
+        _LOG.debug("bd.update.label", bead_id=bead_id, label=label, present=present)
         return record
 
     # -- read-back verification ------------------------------------------

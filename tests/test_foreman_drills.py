@@ -334,7 +334,7 @@ def test_event_b_backfills_once_after_successor_mint_crash(tmp_path: Path) -> No
     with pytest.raises(Exception, match="bd create died"):
         lab.tick()
     lab.rebuild()
-    frontier = build_frontier(root, lab.store.reads.instance_beads(root.root_id))
+    frontier = build_frontier(root, lab.store.reads.instance_records(root.root_id))
     assert frontier.head is None
     assert len(lab.beads("activation")) == 2
     assert lab.beads("event") == []
@@ -391,13 +391,13 @@ def test_drill_6_repairs_a_closed_abandon_carrier_after_its_bead_close_crashes(
 
     carrier_closed = lab.store.reads.load_gate(gate_id)
     assert carrier_closed.metadata.state.value == "closed"
-    assert carrier_closed.bead.status == "open"
+    assert carrier_closed.status == "open"
 
     lab.rebuild()
     repaired = lab.tick()
     terminal = lab.tick()
 
-    assert lab.store.reads.load_gate(gate_id).bead.status == "closed"
+    assert lab.store.reads.load_gate(gate_id).status == "closed"
     assert repaired.closed_gates == (gate_id,)
     assert terminal.terminal is True
     assert len(lab.beads("event")) == 3
@@ -733,6 +733,7 @@ def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
+        backend=lab.composition.config.store,
     )
     lab.root = root
     branch = INSTANCE_BRANCH.format(root_id=root.root_id)
@@ -762,6 +763,7 @@ def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
+        backend=lab.composition.config.store,
     )
 
     assert lab.git.ref_target(branch, cwd=lab.repo) is not None

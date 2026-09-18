@@ -645,9 +645,7 @@ def test_real_coordination_lands_design_children_and_integration(
             assert root.metadata.config_signature == admission["config_signature"]
             acts = composition.store.reads.list_activations(root_id)
             assert len(acts) == (1 if slot == "basic" else 2)
-            assert all(
-                a.metadata.is_completed and a.bead.status == "closed" for a in acts
-            )
+            assert all(a.metadata.is_completed and a.status == "closed" for a in acts)
         assert composition.store.reads.load_root(basic_root).metadata.terminal == "done"
         execute(
             "resume-independent-ancestor",
@@ -731,7 +729,7 @@ def test_real_coordination_lands_design_children_and_integration(
     assert decision_activation.metadata.runner_profile == "codex"
     assert (
         decision_activation.metadata.is_completed
-        and decision_activation.bead.status == "closed"
+        and decision_activation.status == "closed"
     )
     (evidence / "bound-decision-activation.json").write_text(
         decision_activation.metadata.model_dump_json(indent=2)

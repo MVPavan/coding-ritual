@@ -9,6 +9,9 @@
 
 **/scratchpad/*
 
+# Run ledger: the database is per machine, the export is tracked
+.wf/ledger.db*
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db

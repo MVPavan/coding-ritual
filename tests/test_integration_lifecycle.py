@@ -17,6 +17,9 @@ from workflow_interpreter.bridge.integration import (
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.schema.models import Outcome
 
+EXPORT_OID = "e" * 40
+"""§3.6: the blob a closed task's whole record is pinned as."""
+
 
 def prepared_lab(tmp_path, monkeypatch, signing_config, sign_payload):
     lab, owner, composition, source = source_lab(tmp_path)
@@ -413,7 +416,7 @@ def test_stale_base_retry_keeps_original_budget_and_requires_new_approval(
     assert claim[1].attempt == 2
     assert lab.git.head_commit(cwd=lab.repo) == base
     gate = lab.store.reads.list_gates(successor.root_id)[0]
-    assert gate.metadata.gate_node == "ship" and gate.bead.status == "open"
+    assert gate.metadata.gate_node == "ship" and gate.status == "open"
     lab.root = lab.store.reads.load_root(successor.root_id)
     lab.approve(gate.gate_id, Outcome.APPROVE)
     result = entry(lab)
@@ -582,7 +585,7 @@ def test_direct_adapter_close_cannot_promote_membership_to_landing(
         lab.git.tree_oid(record.expected_base_commit, cwd=lab.repo),
         "child-approval",
         "invented-receipt",
-    ).closed()
+    ).closed(EXPORT_OID)
     adapter = _bridge_adapter(lab)
     with pytest.raises(PhaseAdapterError, match="runtime guard"):
         adapter.close("stage", forged, "invented-receipt")

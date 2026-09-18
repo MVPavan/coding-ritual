@@ -9,7 +9,7 @@ from typing import Self
 
 import structlog
 
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.reads import gates_of
 from workflow_interpreter.contracts.wake import WakeCondition, WakeCursor, WakeEvent
@@ -64,7 +64,7 @@ def monitor_health(composition: Composition, root_id: str) -> MonitorHealth:
     handle = read_record(paths.instance_dir / MONITOR_HANDLE, MonitorHandle)
     if handle is None:
         return MonitorHealth.MISSING
-    root = composition.store.reads.load_root(root_id)
+    root = composition.reads_for_root(root_id).load_root(root_id)
     if (
         handle.root_id != root_id
         or handle.instance_key != root.metadata.instance_key
@@ -145,9 +145,9 @@ class WakeMonitor:
         self._lock = BandLock(self._paths.instance_dir / MONITOR_LOCK)
         self._clock = composition.clock
         self._handle = process_handle(composition.supervisor_config, self._clock)
-        self._instance_key = composition.store.reads.load_root(
-            root_id
-        ).metadata.instance_key
+        self._instance_key = (
+            composition.reads_for_root(root_id).load_root(root_id).metadata.instance_key
+        )
         self._state = WakeState(root_id=root_id, instance_key=self._instance_key)
 
     def __enter__(self) -> Self:
@@ -206,7 +206,7 @@ class WakeMonitor:
             self._save()
             self._fire()
             self._hooks()
-        except (BdioError, OSError) as error:
+        except (StoreError, OSError) as error:
             self._state = self._state.model_copy(
                 update={"last_error": bounded(str(error))}
             )
@@ -249,7 +249,7 @@ class WakeMonitor:
         """Expose read failures durably and retry without pretending delivery works."""
         try:
             self._reconcile_events()
-        except (BdioError, WrapperDirError, OSError, ValueError) as error:
+        except (StoreError, WrapperDirError, OSError, ValueError) as error:
             detail = bounded(str(error))
             self._state = self._state.model_copy(
                 update={"monitor_degraded": detail, "last_error": detail}
@@ -263,7 +263,9 @@ class WakeMonitor:
 
     def _reconcile_events(self) -> None:
         """Recover ambiguous bd writes and derive lifetime usage from durable events."""
-        events = self._composition.store.reads.list_wake_events(self._root_id)
+        events = self._composition.reads_for_root(self._root_id).list_wake_events(
+            self._root_id
+        )
         deliveries = {d.event.fire_key: d for d in self._state.deliveries}
         for event in events:
             if event.instance_key != self._instance_key:
@@ -271,7 +273,7 @@ class WakeMonitor:
             old = deliveries.get(event.fire_key)
             if old is not None and old.event != event:
                 raise MonitorUnavailable(MSG_MONITOR_IDENTITY)
-            bead = self._composition.store.reads.find_event(
+            bead = self._composition.reads_for_root(self._root_id).find_event(
                 self._root_id, event.fire_key
             )
             if bead is not None:
@@ -380,10 +382,9 @@ class WakeMonitor:
 
     def _observe(self) -> None:
         """Read carrier/log metadata only; historical gate records close polling gaps."""
-        root = self._composition.store.reads.load_root(self._root_id)
-        for gate in gates_of(
-            self._composition.store.reads.instance_beads(self._root_id)
-        ):
+        reads = self._composition.reads_for_root(self._root_id)
+        root = reads.load_root(self._root_id)
+        for gate in gates_of(reads.instance_records(self._root_id)):
             self._queue(WakeCondition.GATE_OPENED, gate.metadata.gate_key, gate.gate_id)
         self._journal()
         if root.metadata.terminal is not None:
@@ -462,7 +463,9 @@ class WakeMonitor:
         self._state = self._state.model_copy(update={"last_fire_at": now})
         pending = pending.model_copy(update={"event": event})
         self._replace(pending)
-        bead = self._composition.store.append_wake_event(self._root_id, event)
+        bead = self._composition.store_for_root(self._root_id).append_wake_event(
+            self._root_id, event
+        )
         self._replace(pending.model_copy(update={"event_id": bead.id}))
         self._reconcile()
         self._save()

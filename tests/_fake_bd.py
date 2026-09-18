@@ -14,8 +14,11 @@ cannot give a test deterministically:
   ordinary single-threaded code with no barriers and no flakiness.
 
 Semantics mirror the probed behaviour of bd 1.1.0: `--metadata` MERGES at the
-top level, closing twice succeeds and overwrites the reason, and `--json`
-reads return a list of rows.
+top level, closing twice succeeds and overwrites the reason, `--json` reads
+return a list of rows, and `--add-label` / `--remove-label` are set semantics —
+adding a label twice leaves one, removing one that is absent is a no-op. That
+last pair is the run-ledger §3.2 attention projection, and it is idempotent by
+design because the reconciler REPLAYS it.
 """
 
 from __future__ import annotations
@@ -47,6 +50,8 @@ _VALUE_FLAGS: Final[frozenset[str]] = frozenset(
         "--reason",
         "--limit",
         "--parent",
+        "--add-label",
+        "--remove-label",
     }
 )
 _BOOL_FLAGS: Final[frozenset[str]] = frozenset(
@@ -177,15 +182,25 @@ class FakeBd:
             "close_reason": None,
             "ephemeral": "--ephemeral" in args,
             "wisp_type": flags.get("--wisp-type"),
+            "labels": [],
         }
         return bead_id
 
     def _update(self, args: list[str]) -> str:
         flags = _parse(args[1:])
-        # bd MERGES top-level metadata keys rather than replacing the object.
-        self.rows[args[0]]["metadata"].update(_metadata(flags["--metadata"]))
+        row = self.rows[args[0]]
+        if "--metadata" in flags:
+            # bd MERGES top-level metadata keys rather than replacing the object.
+            row["metadata"].update(_metadata(flags["--metadata"]))
+        labels: list[str] = row.setdefault("labels", [])
+        added = flags.get("--add-label")
+        if added is not None and added not in labels:
+            labels.append(added)
+        removed = flags.get("--remove-label")
+        if removed is not None and removed in labels:
+            labels.remove(removed)
         if "--claim" in flags:
-            self.rows[args[0]]["status"] = "in_progress"
+            row["status"] = "in_progress"
         return ""
 
     def _close(self, args: list[str]) -> str:

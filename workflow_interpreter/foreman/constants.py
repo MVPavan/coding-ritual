@@ -207,3 +207,9 @@ MSG_VERIFY_PIN_FAILURE: Final[str] = "cannot pin verify_failure: {error}"
 MSG_VERIFY_READ_FAILURE: Final[str] = "cannot read verify_failure: {error}"
 MSG_VERIFY_EXPORT_FAILURE: Final[str] = "cannot export verify_failure: {error}"
 VERIFY_FAILURE_REPORT: Final[str] = "verify_failure.json"
+
+MSG_RENDER_IDENTITY: Final[str] = (
+    "ledger_render binding does not match the render it names"
+)
+MSG_RENDER_PIN_FAILURE: Final[str] = "cannot pin ledger_render: {error}"
+MSG_RENDER_READ_FAILURE: Final[str] = "cannot read ledger_render: {error}"

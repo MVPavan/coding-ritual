@@ -8,6 +8,7 @@ from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.bridge.adapter import PhaseAdapter
@@ -50,10 +51,14 @@ class BridgeRoot(BaseModel):
 class RootProvisioner(Protocol):
     """Use existing root convergence and persisted-base branch recovery."""
 
-    def find(self, instance_key: str) -> BridgeRoot | None:
+    def find(
+        self, instance_key: str, backend: BackendKind, attempt: int
+    ) -> BridgeRoot | None:
         """Return the uniquely converged root for an instance key."""
 
-    def create(self, instance_key: str) -> BridgeRoot:
+    def create(
+        self, instance_key: str, backend: BackendKind, attempt: int
+    ) -> BridgeRoot:
         """Create or recover one root through existing raw-record convergence."""
 
     def ensure_branch(self, root: BridgeRoot) -> None:
@@ -66,7 +71,7 @@ class WorkflowRootProvisioner:
     def __init__(
         self,
         adapter: PhaseAdapter,
-        create_root: Callable[[str], RootRecord],
+        create_root: Callable[[str, BackendKind, int], RootRecord],
         git: Git,
         repo_root: Path,
     ) -> None:
@@ -75,15 +80,26 @@ class WorkflowRootProvisioner:
         self._git = git
         self._repo_root = repo_root
 
-    def find(self, instance_key: str) -> BridgeRoot | None:
+    def find(
+        self, instance_key: str, backend: BackendKind, attempt: int
+    ) -> BridgeRoot | None:
         """Repair a discovered raw root through the existing convergence path."""
         if not self._adapter.has_root(instance_key):
             return None
-        return self._bridge_root(self._create_root(instance_key))
+        return self._bridge_root(self._create_root(instance_key, backend, attempt))
 
-    def create(self, instance_key: str) -> BridgeRoot:
-        """Create a root through the existing owner-first convergence path."""
-        return self._bridge_root(self._create_root(instance_key))
+    def create(
+        self, instance_key: str, backend: BackendKind, attempt: int
+    ) -> BridgeRoot:
+        """Create a root through the existing owner-first convergence path.
+
+        `backend` is the attempt's own pin from the bridge record, not the
+        `store` switch in force: a retry admitted after the switch flipped must
+        land on the backend ITS record names (§3.2, D18). `attempt` is the
+        record's own attempt number, which the root pins as its run identity
+        (§3.7) rather than leaving it to be parsed back out of a root id.
+        """
+        return self._bridge_root(self._create_root(instance_key, backend, attempt))
 
     def ensure_branch(self, root: BridgeRoot) -> None:
         """Restore a missing branch from the root's persisted base commit."""
@@ -113,11 +129,19 @@ class PhaseAdmission:
         roots: RootProvisioner,
         head_commit: Callable[[], str],
         verification_policy: VerificationPolicy | None = None,
+        root_backend: BackendKind = BackendKind.BD,
     ) -> None:
+        """Pin the backend a first attempt is prepared on before it exists.
+
+        `root_backend` is the `store` switch in force now (§3.2, D18). It is
+        used only when THIS call prepares attempt one: a stored record already
+        carries its own immutable pin, and admission never overwrites it.
+        """
         self._adapter = adapter
         self._roots = roots
         self._head_commit = head_commit
         self._verification_policy = verification_policy
+        self._root_backend = root_backend
 
     def admit(
         self, epic_id: str, stage_id: str, target_ref: str, expected_base_commit: str
@@ -185,11 +209,15 @@ class PhaseAdmission:
             or record.verification_policy != self._verification_policy
         ):
             raise AdmissionRefused("bridge verification policy missing or changed")
-        root = self._roots.find(record.instance_key)
+        root = self._roots.find(
+            record.instance_key, record.root_backend, record.attempt
+        )
         if root is None:
             if self._head_commit() != record.expected_base_commit:
                 raise AdmissionRefused(MSG_HEAD_MOVED)
-            root = self._roots.create(record.instance_key)
+            root = self._roots.create(
+                record.instance_key, record.root_backend, record.attempt
+            )
         self._assert_root(root, record)
         self._roots.ensure_branch(root)
         if record.state is PhaseBridgeState.ADMITTED:
@@ -265,6 +293,7 @@ class PhaseAdmission:
                 target_ref=target_ref,
                 expected_base_commit=expected_base_commit,
                 verification_policy=self._verification_policy,
+                root_backend=self._root_backend,
             )
             return self._adapter.prepare(stage_id, prepared)
         try:

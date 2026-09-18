@@ -55,12 +55,13 @@ from pydantic import BaseModel
 
 from workflow_interpreter.bdio import (
     ActivationRecord,
-    BdioError,
     LifecycleConflictError,
     MintRequest,
     StaleFlagRecord,
+    StoreError,
     WorkflowStore,
 )
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.transport import RunnerTransport
 from workflow_interpreter.schema.models import IsolationMode, Node
 from workflow_interpreter.supervisor import procfs
@@ -140,6 +141,7 @@ class Supervisor:
         previous_tree_oid: str | None = None,
         prior_dirty_state: str | None = None,
         confirmation: HumanConfirmation | None = None,
+        run_identity: RunIdentity | None = None,
     ) -> SupervisionResult:
         """Dispatch, watch until the child is gone, then record what it did.
 
@@ -161,6 +163,7 @@ class Supervisor:
                 previous_tree_oid=previous_tree_oid,
                 prior_dirty_state=prior_dirty_state,
                 confirmation=confirmation,
+                run_identity=run_identity,
             )
 
         band = self._workspace.band
@@ -183,6 +186,7 @@ class Supervisor:
         previous_tree_oid: str | None = None,
         prior_dirty_state: str | None = None,
         confirmation: HumanConfirmation | None = None,
+        run_identity: RunIdentity | None = None,
     ) -> SupervisionResult:
         """One activation, dispatch through `exit-recorded`, band already held.
 
@@ -290,6 +294,7 @@ class Supervisor:
             reason=_exit_reason(result),
             pinned_digests=pinned_digests,
             previous_tree_oid=previous_tree_oid,
+            run_identity=run_identity,
         )
         return SupervisionResult(
             dispatch=dispatch,
@@ -384,7 +389,7 @@ class _StaleMirror:
                 error=str(exc),
             )
             return
-        except BdioError as exc:
+        except StoreError as exc:
             _LOG.warning(
                 "wf.stale.mirror_deferred",
                 activation_id=self._activation_id,

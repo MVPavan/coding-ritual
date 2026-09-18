@@ -178,7 +178,12 @@ def test_loaded_tasks_separate_local_evidence_from_mandatory_host_verify(
             "feature-delivery",
             {
                 "implement": ("scripts/verify-feature.sh",),
-                "review": ("scripts/verify-feature.sh", "scripts/review-checks.sh"),
+                "debrief": ("scripts/verify-debrief.sh",),
+                "review": (
+                    "scripts/verify-feature.sh",
+                    "scripts/review-checks.sh",
+                    "scripts/verify-debrief.sh",
+                ),
             },
         ),
         (
@@ -324,7 +329,7 @@ def test_critic_distinguishes_tool_absence_from_material_evidence_blockage() -> 
 @pytest.mark.parametrize(
     ("template", "version"),
     [
-        ("feature-delivery", "1.0.2"),
+        ("feature-delivery", "1.1.0"),
         ("engine-bootstrap", "1.0.2"),
         ("pointer-handoff", "1.0.2"),
         ("integration", "1.0.2"),

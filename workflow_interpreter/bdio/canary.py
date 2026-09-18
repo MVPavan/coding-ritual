@@ -1,4 +1,8 @@
-"""§11 startup canary — run at the top of every tick, before any dispatch.
+"""bd's §11 startup probe — run at the top of every tick, before any dispatch.
+
+This is the bd backend's implementation of `StoreBackend.probe`: what identity
+means here is a `bd context` field set and a wisp that round-trips. A neutral
+caller gets `CanaryResult` and never these field names (§3.1).
 
 Two assertions: bd reports the pinned backend identity, and one ephemeral
 wisp round-trips its metadata. A fallback or schema-skewed store must refuse
@@ -13,9 +17,10 @@ authority.
 from __future__ import annotations
 
 import secrets
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.client import BEADS_DIR_NAME
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import (
     BdCommandError,
     CanaryFailedError,
@@ -23,6 +28,9 @@ from workflow_interpreter.bdio.errors import (
 )
 from workflow_interpreter.bdio.records import CanaryResult
 from workflow_interpreter.bdio.wire import CanaryMetadata, metadata_dict
+
+if TYPE_CHECKING:  # pragma: no cover - the transport imports this module back
+    from workflow_interpreter.bdio.client import BdClient
 
 CANARY_WISP_TYPE: Final[str] = "heartbeat"
 CANARY_NONCE_BYTES: Final[int] = 16
@@ -33,8 +41,6 @@ _CONTEXT_DOLT_MODE: Final[str] = "dolt_mode"
 _CONTEXT_BD_VERSION: Final[str] = "bd_version"
 _CONTEXT_REPO_ROOT: Final[str] = "repo_root"
 _CONTEXT_BEADS_DIR: Final[str] = "beads_dir"
-
-BEADS_DIR_NAME: Final[str] = ".beads"
 
 _TITLE_CANARY: Final[str] = "wf canary {nonce}"
 _MSG_BACKEND: Final[str] = (
@@ -49,7 +55,7 @@ _MSG_NO_CONTEXT: Final[str] = (
 )
 
 
-def startup_canary(client: BdClient) -> CanaryResult:
+def bd_probe(client: BdClient) -> CanaryResult:
     """Assert the pinned backend AND workspace, then round-trip a wisp (§11).
 
     Backend identity alone answers "is this a real dolt store", not "is it the
@@ -93,9 +99,11 @@ def startup_canary(client: BdClient) -> CanaryResult:
     except LossyWriteError as exc:
         raise CanaryFailedError(_MSG_ROUNDTRIP.format(reason=exc)) from exc
     return CanaryResult(
-        backend=str(context[_CONTEXT_BACKEND]),
-        dolt_mode=str(context[_CONTEXT_DOLT_MODE]),
-        bd_version=str(context[_CONTEXT_BD_VERSION]),
-        wisp_id=record.id,
+        kind=BackendKind.BD,
+        attributes={
+            field: str(context[field])
+            for field in (_CONTEXT_BACKEND, _CONTEXT_DOLT_MODE, _CONTEXT_BD_VERSION)
+        },
+        probe_row_id=record.id,
         nonce=nonce,
     )

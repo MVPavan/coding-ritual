@@ -17,25 +17,31 @@ from typing import Final, NoReturn
 import structlog
 
 from workflow_interpreter.bdio import bounds, finalize, keys, reads
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.capabilities import ArtifactReader
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import (
-    BdConfigError,
     BoundExceededError,
     CarrierIntegrityError,
     LifecycleConflictError,
     NonceReplayError,
     PayloadMismatchError,
     StaleApprovalError,
+    StoreConfigError,
 )
-from workflow_interpreter.bdio.records import GateRecord, RootRecord, parse_gate
+from workflow_interpreter.bdio.records import (
+    GateRecord,
+    RootRecord,
+    RowRecord,
+    parse_gate,
+    parse_row,
+)
+from workflow_interpreter.bdio.rows import GateClosure, GateSignature, NewRow, RowKind
 from workflow_interpreter.bdio.signing import (
     GatePayload,
     GateVerifier,
     VerifiedApproval,
 )
 from workflow_interpreter.bdio.wire import (
-    BeadRecord,
     BoundSetting,
     EventMetadata,
     EventPayload,
@@ -43,7 +49,6 @@ from workflow_interpreter.bdio.wire import (
     GateOpenRequest,
     GateReason,
     GateState,
-    IssueType,
     ScopedBound,
     metadata_dict,
     parse_bound_key,
@@ -157,7 +162,9 @@ def gate_key_for(root_id: str, request: GateOpenRequest, halt_ordinal: int = 0) 
     )
 
 
-def open_gate(client: BdClient, root_id: str, request: GateOpenRequest) -> GateRecord:
+def open_gate(
+    client: StoreBackend, root_id: str, request: GateOpenRequest
+) -> GateRecord:
     """Open a gate under its deterministic key, or re-find it (drill 6).
 
     Gate beads count toward the §10.3 ceiling — every one of them, halt gate
@@ -186,7 +193,7 @@ def open_gate(client: BdClient, root_id: str, request: GateOpenRequest) -> GateR
         existing = reads.find_gate(client, root_id, gate_key)
         if existing is not None:
             return _refound(existing, request)
-    beads = reads.instance_beads(client, root_id)
+    beads = reads.instance_records(client, root_id)
     root = reads.load_root(client, root_id)
     refusal = bounds.instance_ceiling_refusal(
         bead_count=bounds.ceiling_count(beads),
@@ -219,11 +226,14 @@ def open_gate(client: BdClient, root_id: str, request: GateOpenRequest) -> GateR
         seq=seq,
         resume_hint=request.resume_hint,
         artifact_ref=request.artifact_ref,
+        artifact_oid=request.artifact_oid,
         artifact_digest=request.artifact_digest,
     )
-    record = client._create_bead(
-        title=_TITLE_GATE.format(gate_node=request.gate_node, seq=seq),
-        metadata=metadata_dict(metadata),
+    record = client._create_row(
+        NewRow(
+            summary=_TITLE_GATE.format(gate_node=request.gate_node, seq=seq),
+            metadata=metadata_dict(metadata),
+        )
     )
     _LOG.info(
         "wf.gate.opened",
@@ -235,7 +245,7 @@ def open_gate(client: BdClient, root_id: str, request: GateOpenRequest) -> GateR
     return parse_gate(record)
 
 
-def _halt_gates(client: BdClient, root_id: str) -> tuple[GateRecord, ...]:
+def _halt_gates(client: StoreBackend, root_id: str) -> tuple[GateRecord, ...]:
     """Every halt gate of this instance, in `seq` order (§10.3 ordinal source)."""
     return tuple(
         gate
@@ -296,7 +306,7 @@ def _refound(gate: GateRecord, request: GateOpenRequest) -> GateRecord:
 
 
 def close_gate_verified(
-    client: BdClient,
+    client: StoreBackend,
     verifier: GateVerifier,
     root_id: str,
     gate_id: str,
@@ -313,7 +323,10 @@ def close_gate_verified(
 
     A `rebudget` bound is part of THAT ONE WRITE — `bound_key`/`bound_value`
     land in the same `model_copy` as the outcome, the fingerprint and the
-    payload digest (§9). Nothing is written to the root, so there is no
+    payload digest (§9), and the whole decision is handed to the backend as
+    ONE `GateClosure`, so a backend that can transact consumes the nonce,
+    records the signature and enqueues the attention projection with it
+    (§3.3). Nothing is written to the root, so there is no
     apply/close window to crash in, and two rebudgets closing concurrently
     write two different beads instead of racing one whole-object root merge
     that provably lost one of them (probed, phase-2 r3/r4).
@@ -356,8 +369,15 @@ def close_gate_verified(
             "bound_value": None if mutation is None else mutation.value,
         }
     )
-    updated = client._merge_metadata(gate_id, metadata_dict(metadata))
-    closed = finalize.close_forward(client, updated, _gate_close_reason(approval))
+    closed = client._close_gate(
+        GateClosure(
+            gate_id=gate_id,
+            metadata=metadata_dict(metadata),
+            close_reason=_gate_close_reason(approval),
+            nonce=approval.payload.nonce,
+            signature=_signature_of(approval, payload_bytes, signature),
+        )
+    )
     _LOG.info(
         "wf.gate.closed",
         gate_id=gate_id,
@@ -365,6 +385,19 @@ def close_gate_verified(
         signer=approval.fingerprint,
     )
     return parse_gate(closed)
+
+
+def _signature_of(
+    approval: VerifiedApproval, payload_bytes: bytes, signature: bytes
+) -> GateSignature:
+    """The historical trust this approval was accepted under (§3.6, D21)."""
+    return GateSignature(
+        payload_bytes=payload_bytes,
+        signature_bytes=signature,
+        signer_fingerprint=approval.fingerprint,
+        allowed_signers_entry=approval.signer.model_dump_json(),
+        policy=approval.policy.model_dump(mode="json"),
+    )
 
 
 def _gate_close_reason(approval: VerifiedApproval) -> str:
@@ -375,7 +408,7 @@ def _gate_close_reason(approval: VerifiedApproval) -> str:
 
 
 def _repair_closed_gate(
-    client: BdClient,
+    client: StoreBackend,
     gate: GateRecord,
     approval: VerifiedApproval,
 ) -> GateRecord:
@@ -400,14 +433,14 @@ def _repair_closed_gate(
     if outcome is None or fingerprint is None:
         raise CarrierIntegrityError(_MSG_GATE_HALF_CLOSED.format(gate_id=gate.gate_id))
     reason = _REASON_GATE.format(outcome=outcome.value, fingerprint=fingerprint)
-    repaired = finalize.close_forward(client, gate.bead, reason)
+    repaired = finalize.close_record_forward(client, gate, reason, parse_gate)
     _LOG.info("wf.gate.repaired", gate_id=gate.gate_id, outcome=outcome.value)
-    return parse_gate(repaired)
+    return repaired
 
 
 def append_event(
-    client: BdClient, root_id: str, payload: EventPayload, *, seq: int | None = None
-) -> BeadRecord:
+    client: StoreBackend, root_id: str, payload: EventPayload, *, seq: int | None = None
+) -> RowRecord:
     """Append one transition event, idempotently (§3.3).
 
     Events are an audit projection: backfilling after a crash must not
@@ -425,24 +458,26 @@ def append_event(
     existing = reads.find_event(client, root_id, event_key)
     if existing is not None:
         return existing
-    beads = reads.instance_beads(client, root_id)
+    beads = reads.instance_records(client, root_id)
     metadata = EventMetadata(
         wf_root_id=root_id,
         event_key=event_key,
         seq=reads.next_seq(beads) if seq is None else seq,
     )
-    record = client._create_bead(
-        title=_TITLE_EVENT.format(
-            from_node=payload.from_node,
-            outcome=payload.outcome.value,
-            to_node=payload.to_node,
-        ),
-        metadata=metadata_dict(metadata),
-        issue_type=IssueType.EVENT,
-        event_payload=metadata_dict(payload),
+    record = client._create_row(
+        NewRow(
+            summary=_TITLE_EVENT.format(
+                from_node=payload.from_node,
+                outcome=payload.outcome.value,
+                to_node=payload.to_node,
+            ),
+            metadata=metadata_dict(metadata),
+            kind=RowKind.EVENT,
+            payload=metadata_dict(payload),
+        )
     )
     _LOG.debug("wf.event.appended", root_id=root_id, event_id=record.id)
-    return record
+    return parse_row(record)
 
 
 def _assert_payload_matches(
@@ -540,7 +575,7 @@ def _assert_artifact_shape(gate: GateRecord, payload: GatePayload) -> None:
 
 
 def _assert_raises_bound(
-    client: BdClient, root: RootRecord, approval: VerifiedApproval
+    client: StoreBackend, root: RootRecord, approval: VerifiedApproval
 ) -> None:
     """§10.4: a `rebudget` may only RAISE a bound, and only a declared one.
 
@@ -620,18 +655,18 @@ def _assert_known_scope(root: RootRecord, parsed: ScopedBound, key: str) -> None
 
 
 def _assert_nonce_unused(
-    client: BdClient, root_id: str, gate_id: str, nonce: str
+    client: StoreBackend, root_id: str, gate_id: str, nonce: str
 ) -> None:
     """Refuse a replayed nonce (§9): a nonce is consumed by the gate it closed."""
-    for bead in reads.beads_with_nonce(client, root_id, nonce):
-        if bead.id != gate_id:
+    for row in reads.rows_with_nonce(client, root_id, nonce):
+        if row.id != gate_id:
             raise NonceReplayError(
-                _MSG_NONCE_REPLAY.format(nonce=nonce, gate_id=bead.id)
+                _MSG_NONCE_REPLAY.format(nonce=nonce, gate_id=row.id)
             )
 
 
 def _assert_fresh_artifact(
-    client: BdClient,
+    client: StoreBackend,
     gate: GateRecord,
     approval: VerifiedApproval,
     artifact_reader: ArtifactReader | None,
@@ -650,7 +685,7 @@ def _assert_fresh_artifact(
     if gate.metadata.binds is not BindsMode.MUTABLE:
         return
     if artifact_reader is None:
-        raise BdConfigError(_MSG_NO_ARTIFACT_READER.format(gate_id=gate.gate_id))
+        raise StoreConfigError(_MSG_NO_ARTIFACT_READER.format(gate_id=gate.gate_id))
     artifact_ref = gate.metadata.artifact_ref
     if artifact_ref is None:
         _refuse_stale(client, gate, _MSG_NO_ARTIFACT_REF.format(gate_id=gate.gate_id))
@@ -677,7 +712,7 @@ def _assert_fresh_artifact(
     )
 
 
-def _refuse_stale(client: BdClient, gate: GateRecord, receipt: str) -> NoReturn:
+def _refuse_stale(client: StoreBackend, gate: GateRecord, receipt: str) -> NoReturn:
     """Record the edit receipt on the still-open gate, then refuse (§9)."""
     metadata = gate.metadata.model_copy(
         update={

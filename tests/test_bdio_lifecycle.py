@@ -26,7 +26,11 @@ from tests._fake_bd import FakeBd, InjectedCrash
 from workflow_interpreter import GraphDefinition
 from workflow_interpreter.bdio import bounds
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.client import (
+    ALLOWED_FLAGS,
+    BdClient,
+    BdSubcommand,
+)
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
     CarrierIntegrityError,
@@ -45,7 +49,38 @@ from workflow_interpreter.bdio.wire import (
     Usage,
     WfKind,
 )
+from workflow_interpreter.ledger.reconcile import ATTENTION_LABEL
 from workflow_interpreter.schema.models import Outcome
+
+LABEL_FLAGS: Final[frozenset[str]] = frozenset({"--add-label", "--remove-label"})
+PRE_LEDGER_FLAGS: Final[frozenset[str]] = frozenset(
+    {
+        "-C",
+        "--actor",
+        "--json",
+        "--silent",
+        "--title",
+        "--type",
+        "--no-inherit-labels",
+        "--metadata",
+        "--event-payload",
+        "--ephemeral",
+        "--wisp-type",
+        "--limit",
+        "--all",
+        "--include-gates",
+        "--metadata-field",
+        "--parent",
+        "--claim",
+        "--reason",
+    }
+)
+"""Every flag the transport could construct BEFORE the run ledger. Spelled out
+rather than derived, so the assertion below measures a change against a
+recorded baseline instead of against itself."""
+PRE_LEDGER_SUBCOMMANDS: Final[frozenset[str]] = frozenset(
+    {"create", "update", "close", "show", "list", "dep", "context"}
+)
 
 STATUS_CLOSED: Final[str] = "closed"
 STATUS_OPEN: Final[str] = "open"
@@ -58,6 +93,7 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
         "append_event",
         "append_wake_event",
         "assert_member",
+        "claims",
         "queue_decision",
         "record_envelope",
         "coordination_store",
@@ -99,7 +135,16 @@ which terminal an instance reached and closes its root on that fact.
 carriers, approve gates, change bounds, or route a transition.
 
 `register_session` binds a correlated vendor thread to the dispatched launch;
-it verifies root, activation, launch, and original process identity."""
+it verifies root, activation, launch, and original process identity.
+
+`claims` joined it in S0 of the run ledger: the integration-target claim is a
+shared row with no root and no lifecycle, and the bridge used to read and
+write it through the transport itself. It is a read plus a create-or-merge of
+one opaque payload — it can close nothing and approve nothing.
+
+S2 of the run ledger added NOTHING here. The one design change it records is
+one level down, on the transport: `bd update --add-label|--remove-label`
+(run-ledger §3.2.3), asserted below."""
 
 
 @pytest.fixture(scope="session")
@@ -118,6 +163,36 @@ def test_the_public_package_exports_no_transport() -> None:
 
     assert "BdClient" not in package.__all__
     assert not hasattr(package, "BdClient")
+
+
+def test_the_labels_are_the_one_addition_to_bds_closed_argument_set() -> None:
+    """Run-ledger §3.2.3, recorded: the projection's two flags, and no more.
+
+    The addition is narrow on purpose. It carries `wf:attention`, the single
+    derived label a ledger-backed run projects onto its task bead — not a new
+    subcommand, and specifically not `bd human`, whose dismiss CLOSES the
+    issue. The subcommand set is unchanged, which is what keeps `bd delete`,
+    `bd edit`, `bd gate` and `bd audit` structurally unconstructible.
+    """
+    assert LABEL_FLAGS <= ALLOWED_FLAGS
+    assert ALLOWED_FLAGS - LABEL_FLAGS == PRE_LEDGER_FLAGS
+    assert {subcommand.value for subcommand in BdSubcommand} == PRE_LEDGER_SUBCOMMANDS
+
+
+def test_a_label_write_is_one_update_that_reads_the_bead_back(
+    fake_client: BdClient, fake_bd: FakeBd
+) -> None:
+    """A projection write is verified like every other write (§0.1)."""
+    bead = fake_client._create_bead(title="task", metadata={})
+
+    added = fake_client._add_label(bead.id, ATTENTION_LABEL)
+    removed = fake_client._remove_label(bead.id, ATTENTION_LABEL)
+
+    assert added.labels == (ATTENTION_LABEL,)
+    assert removed.labels == ()
+    # One `update` per label write, and a `show` after each: no blind writes.
+    assert fake_bd.command_count("update") == 2
+    assert fake_bd.command_count("show") >= 2
 
 
 def test_the_store_exposes_no_write_that_skips_verification(
@@ -149,7 +224,7 @@ def test_the_read_facade_issues_no_write_command(
     facade = fake_store.reads
     facade.load_root(root.root_id)
     facade.load_activation(minted.activation.activation_id)
-    facade.instance_beads(root.root_id)
+    facade.instance_records(root.root_id)
     facade.list_activations(root.root_id)
     facade.list_gates(root.root_id)
     facade.list_wake_events(root.root_id)
@@ -179,11 +254,11 @@ def test_a_crash_between_the_outcome_and_the_close_is_repaired_forward(
 
     wedged = fake_store.reads.load_activation(activation.activation_id)
     assert wedged.metadata.lifecycle is Lifecycle.CLOSED
-    assert wedged.bead.status == STATUS_OPEN
+    assert wedged.status == STATUS_OPEN
 
     repaired = fake_store.close_activation(activation.activation_id, Outcome.DONE)
-    assert repaired.bead.status == STATUS_CLOSED
-    assert repaired.bead.close_reason == "outcome=done"
+    assert repaired.status == STATUS_CLOSED
+    assert repaired.close_reason == "outcome=done"
     assert repaired.metadata.outcome is Outcome.DONE
 
 
@@ -195,11 +270,11 @@ def test_a_close_that_landed_before_its_metadata_is_still_completed(
     root = make_root(fake_store, definition)
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     fake_store.record_dispatch(activation.activation_id, handle())
-    fake_client._close_bead(activation.activation_id, "outcome=stale")
+    fake_client._close_row(activation.activation_id, "outcome=stale")
 
     repaired = fake_store.close_activation(activation.activation_id, Outcome.DONE)
     assert repaired.metadata.outcome is Outcome.DONE
-    assert repaired.bead.close_reason == "outcome=done"
+    assert repaired.close_reason == "outcome=done"
 
 
 def test_a_contradicting_close_is_still_refused(
@@ -270,12 +345,12 @@ def test_a_crashed_supersede_is_repaired_forward(
         fake_store.supersede_activation(loser.activation_id, winner.activation_id)
     wedged = fake_store.reads.load_activation(loser.activation_id)
     assert wedged.metadata.superseded_by == winner.activation_id
-    assert wedged.bead.status == STATUS_OPEN
+    assert wedged.status == STATUS_OPEN
 
     repaired = fake_store.supersede_activation(
         loser.activation_id, winner.activation_id
     )
-    assert repaired.bead.status == STATUS_CLOSED
+    assert repaired.status == STATUS_CLOSED
     assert repaired.metadata.outcome is Outcome.SUPERSEDED
 
 
@@ -425,7 +500,7 @@ def test_race_residue_never_destroys_a_completed_activation(
     survivor = fake_store.reads.load_activation(first.activation_id)
     assert survivor.metadata.outcome is Outcome.DONE
     assert survivor.metadata.exit_record is not None
-    assert survivor.bead.close_reason == "outcome=done"
+    assert survivor.close_reason == "outcome=done"
     assert fake_client.show(duplicate.id).status == STATUS_CLOSED
 
 
@@ -538,7 +613,7 @@ def test_the_halt_gate_is_mintable_at_the_ceiling_and_still_counted(
     )
     assert halt.metadata.gate_reason is GateReason.HALT
     # And it counts: the instance is now 2 beads over a limit of 1.
-    assert bounds.ceiling_count(fake_store.reads.instance_beads(root.root_id)) == 2
+    assert bounds.ceiling_count(fake_store.reads.instance_records(root.root_id)) == 2
 
 
 def test_the_halt_gate_exemption_is_bounded_at_one_gate_per_instance(
@@ -573,4 +648,4 @@ def test_the_halt_gate_exemption_is_bounded_at_one_gate_per_instance(
     assert len({gate.gate_id for gate in opened}) == 1
     assert opened[0].metadata.halt_reason == "ceiling-0"
     assert len(fake_store.reads.list_gates(root.root_id)) == 1
-    assert bounds.ceiling_count(fake_store.reads.instance_beads(root.root_id)) == 2
+    assert bounds.ceiling_count(fake_store.reads.instance_records(root.root_id)) == 2

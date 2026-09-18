@@ -66,6 +66,7 @@ from workflow_interpreter.bdio.rpc_records import (
     SessionCompletion,
     SessionRegistration,
 )
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.sessions import SessionFreshReason
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
@@ -155,6 +156,11 @@ KEY_EVENT_KEY: Final[str] = "event_key"
 KEY_INSTANCE_KEY: Final[str] = "instance_key"
 KEY_SEQ: Final[str] = "seq"
 KEY_NONCE: Final[str] = "nonce"
+KEY_GATE_STATE: Final[str] = "state"
+KEY_PAYLOAD_DIGEST: Final[str] = "payload_digest"
+"""The two keys a gate close is decided by: the state it must still be in, and
+the approval it carries — compared by a backend that closes the gate in ONE
+transaction (`ledger/store.py`)."""
 KEY_SUPERSEDED_BY: Final[str] = "superseded_by"
 KEY_TERMINAL: Final[str] = "terminal"
 KEY_LIFECYCLE: Final[str] = "lifecycle"
@@ -213,6 +219,7 @@ class BeadRecord(BaseModel):
     description: str | None = None
     status: str
     issue_type: str
+    labels: tuple[str, ...] = ()
     metadata: Metadata = Field(default_factory=dict)
     payload: str | None = None
     close_reason: str | None = None
@@ -222,6 +229,12 @@ class BeadRecord(BaseModel):
     ephemeral: bool = False
     wisp_type: str | None = None
     parent: str | None = None
+
+    @field_validator("labels", mode="before")
+    @classmethod
+    def _absent_labels_are_no_labels(cls, value: object) -> object:
+        """bd emits `null` for a bead with no labels; that is an empty set."""
+        return () if value is None else value
 
 
 # --- shared value objects -----------------------------------------------
@@ -345,6 +358,13 @@ class RootMetadata(BaseModel):
     config_signature: str | None = None
     allow_test_flags: bool = False
     instance_base_commit: str | None = None
+    run_identity: RunIdentity | None = None
+    """The task bead and attempt number this root is an attempt at (§3.7, D16).
+
+    Pinned at creation and never rewritten, because the verify environment a
+    §7.3 check is given must name the run from a FACT on the record rather
+    than from a parse of the root id. Optional only for roots created before
+    the debrief node existed, and for a wiring that has no task to name."""
     superseded_by: str | None = None
     """Set on the loser of a concurrent create under one `instance_key`; the
     surviving root is the lowest bead id (same rule as §3.2 race residue)."""
@@ -489,6 +509,14 @@ class GateMetadata(BaseModel):
 
     Never the digest source itself — the wrapper hashes the bytes.
     """
+    artifact_oid: str | None = None
+    """The bound artifact's immutable object id, when the opener knows one.
+
+    Separate from `artifact_ref` because a ref is a NAME that can move: the
+    ledger indexes both (run-ledger §3.3), so a re-verification can find the
+    exact object an approval was taken over even after the ref has advanced.
+    Absent for a gate bound to a mutable document, which has no object id.
+    """
     artifact_digest: str | None = None
     """Mutable document SHA-256, or immutable artifact tree OID."""
     stale_approval_receipts: tuple[str, ...] = ()
@@ -599,6 +627,7 @@ class GateOpenRequest(BaseModel):
     round_no: JsonSafeInt | None = None
     resume_hint: str | None = None
     artifact_ref: str | None = None
+    artifact_oid: str | None = None
     artifact_digest: str | None = None
     halt_reason: str | None = None
 

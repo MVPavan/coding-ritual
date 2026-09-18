@@ -29,7 +29,6 @@ from pydantic import JsonValue
 
 from workflow_interpreter.bdio import (
     bounds,
-    canary,
     gates,
     mint,
     reads,
@@ -37,23 +36,32 @@ from workflow_interpreter.bdio import (
     supervision,
     transitions,
 )
+from workflow_interpreter.bdio.backend import (
+    PinnedBackendFactory,
+    StoreBackend,
+    StoreBackendFactory,
+)
 from workflow_interpreter.bdio.bounds import BoundRefusal
 from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadReader
+from workflow_interpreter.bdio.claims import ClaimStore
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.errors import (
-    BdConfigError,
     BoundExceededError,
     CarrierIntegrityError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.mint import MintFacts
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     CanaryResult,
     GateRecord,
+    InstanceRecord,
     MintResult,
     RootRecord,
+    RowRecord,
 )
 from workflow_interpreter.bdio.roots import create_root, settle_root
 from workflow_interpreter.bdio.rpc_records import (
@@ -65,7 +73,6 @@ from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wake import append_wake_event
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
-    BeadRecord,
     BoundSetting,
     Deviation,
     EventPayload,
@@ -87,6 +94,7 @@ from workflow_interpreter.bdio.wire import (
 )
 from workflow_interpreter.contracts.execution import ExecutionRegistry
 from workflow_interpreter.contracts.rpc_control import ControlState
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.wake import WakeEvent
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
@@ -126,18 +134,24 @@ class WorkflowStore:
 
     def __init__(
         self,
-        client: BdClient,
+        client: StoreBackend,
         verifier: GateVerifier | None = None,
         *,
         artifact_reader: ArtifactReader | None = None,
         branch_head_reader: BranchHeadReader | None = None,
         member_band: object | None = None,
+        backend_factory: StoreBackendFactory | None = None,
+        claims_backend: StoreBackend | None = None,
     ) -> None:
         self._member_band = member_band
         self._client = client
+        self._claims_backend = claims_backend
         self._verifier = verifier
         self._artifact_reader = artifact_reader
         self._branch_head_reader = branch_head_reader
+        self._backend_factory: StoreBackendFactory = (
+            PinnedBackendFactory(client) if backend_factory is None else backend_factory
+        )
         self._reads = reads.WorkflowReads(client)
 
     @classmethod
@@ -148,6 +162,8 @@ class WorkflowStore:
         *,
         artifact_reader: ArtifactReader | None = None,
         branch_head_reader: BranchHeadReader | None = None,
+        backend_factory: StoreBackendFactory | None = None,
+        claims_backend: StoreBackend | None = None,
     ) -> WorkflowStore:
         """Build a store from configuration alone — the supported entry point.
 
@@ -155,30 +171,49 @@ class WorkflowStore:
         caller with a `BdConfig` and a `SigningConfig` had no way to construct
         a store without reaching into the package. It has one now, and it is
         the only one.
+
+        The backend comes from the factory, not from a constructor call here:
+        a root is pinned to its backend (§3.2), so which transport a store is
+        built on has to be somebody else's answer.
         """
-        client = BdClient(config)
+        factory: StoreBackendFactory = (
+            PinnedBackendFactory(BdClient(config))
+            if backend_factory is None
+            else backend_factory
+        )
         verifier = None if signing is None else GateVerifier(signing, config.workspace)
         return cls(
-            client,
+            factory(BackendKind.BD),
             verifier,
             artifact_reader=artifact_reader,
             branch_head_reader=branch_head_reader,
+            backend_factory=factory,
+            claims_backend=claims_backend,
         )
 
     def for_root(
-        self, *, branch_head_reader: BranchHeadReader, member_band: object | None = None
+        self,
+        *,
+        branch_head_reader: BranchHeadReader,
+        member_band: object | None = None,
+        backend: BackendKind | None = None,
     ) -> WorkflowStore:
         """Derive a root-scoped store without replacing injected capabilities.
 
-        The transport, verifier, and artifact reader are process-scoped
-        authority.  A root contributes only its branch-head reader.
+        The verifier and artifact reader are process-scoped authority. A root
+        contributes its branch-head reader and its pinned backend: the backend
+        is immutable per root (§3.2), so the store a root is served by comes
+        from the factory rather than from whichever transport the caller
+        happened to hold.
         """
         return WorkflowStore(
-            self._client,
+            self._backend_factory(self._client.kind if backend is None else backend),
             self._verifier,
             artifact_reader=self._artifact_reader,
             branch_head_reader=branch_head_reader,
             member_band=member_band,
+            backend_factory=self._backend_factory,
+            claims_backend=self._claims_backend,
         )
 
     @property
@@ -189,8 +224,8 @@ class WorkflowStore:
     # -- §11 startup canary ----------------------------------------------
 
     def startup_canary(self) -> CanaryResult:
-        """Assert the pinned backend and workspace, and round-trip a wisp (§11)."""
-        return canary.startup_canary(self._client)
+        """Assert the pinned backend and round-trip a carrier (§11)."""
+        return self._client.probe()
 
     # -- roots -----------------------------------------------------------
 
@@ -203,6 +238,7 @@ class WorkflowStore:
         instance_inputs: Sequence[InstanceInput] = (),
         allow_test_flags: bool = False,
         instance_base_commit: str | None = None,
+        run_identity: RunIdentity | None = None,
         profiles: ExecutionRegistry | None = None,
     ) -> RootRecord:
         """Pin a graph into bd as a new instance (§3.1), idempotently by key."""
@@ -214,6 +250,7 @@ class WorkflowStore:
             instance_inputs=instance_inputs,
             allow_test_flags=allow_test_flags,
             instance_base_commit=instance_base_commit,
+            run_identity=run_identity,
             profiles=profiles,
         )
 
@@ -229,6 +266,20 @@ class WorkflowStore:
         return settle_root(self._client, root_id, terminal)
 
     # -- activations -----------------------------------------------------
+
+    @property
+    def claims(self) -> ClaimStore:
+        """The integration-target claim surface (§3.2 shared serialisation).
+
+        Served by an injected backend when one was given (D20): claims stay
+        bd-backed while `store` can still select bd, because two backends
+        discovering claims in two stores could not see each other's
+        reservations. A ledger-backed run therefore reads and writes its
+        claims through the SAME bd rows a bd-backed run does.
+        """
+        return ClaimStore(
+            self._client if self._claims_backend is None else self._claims_backend
+        )
 
     def coordination_store(
         self,
@@ -337,7 +388,7 @@ class WorkflowStore:
         root_id: str,
         request: MintRequest,
         root: RootRecord,
-        beads: Sequence[BeadRecord],
+        beads: Sequence[InstanceRecord],
         activations: Sequence[ActivationRecord],
     ) -> tuple[
         MintFacts,
@@ -510,7 +561,7 @@ class WorkflowStore:
         current digest, because a caller-echoed digest is not a re-hash (§9).
         """
         if self._verifier is None:
-            raise BdConfigError(_MSG_NO_VERIFIER)
+            raise StoreConfigError(_MSG_NO_VERIFIER)
         return gates.close_gate_verified(
             self._client,
             self._verifier,
@@ -521,13 +572,13 @@ class WorkflowStore:
             artifact_reader=self._artifact_reader,
         )
 
-    def append_wake_event(self, root_id: str, event: WakeEvent) -> BeadRecord:
+    def append_wake_event(self, root_id: str, event: WakeEvent) -> RowRecord:
         """Append a deduplicated notification, with no activation or gate authority."""
         return append_wake_event(self._client, root_id, event)
 
     def append_event(
         self, root_id: str, payload: EventPayload, *, seq: int | None = None
-    ) -> BeadRecord:
+    ) -> RowRecord:
         """Append one transition event, idempotently and INLINE (§3.3)."""
         return gates.append_event(self._client, root_id, payload, seq=seq)
 
@@ -597,7 +648,7 @@ class WorkflowStore:
         self,
         root: RootRecord,
         facts: MintFacts,
-        beads: Sequence[BeadRecord],
+        beads: Sequence[InstanceRecord],
         activations: Sequence[ActivationRecord],
         request: MintRequest,
     ) -> tuple[str, str]:
@@ -625,7 +676,7 @@ class WorkflowStore:
         self,
         root: RootRecord,
         facts: MintFacts,
-        beads: Sequence[BeadRecord],
+        beads: Sequence[InstanceRecord],
         activations: Sequence[ActivationRecord],
     ) -> BoundRefusal | None:
         """Every §10 pre-mint predicate that applies to this mint, in order.
@@ -716,7 +767,7 @@ class WorkflowStore:
 
     def _finish(self, record: ActivationRecord, reason: str) -> ActivationRecord:
         """Drive this activation's bd close to completion, idempotently."""
-        return transitions.finish(self._client, record, reason)
+        return transitions.finish(self._client, self._load_activation, record, reason)
 
 
 __all__ = ["WorkflowStore"]

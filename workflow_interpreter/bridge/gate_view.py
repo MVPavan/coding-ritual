@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Final
 
 from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.bridge.adapter import PhaseAdapter, PhaseAdapterError
 
 _INSTANCE_KEY_PREFIX: Final[str] = "phase-bridge:"
@@ -15,17 +16,22 @@ MSG_INSTANCE_KEY_MISMATCH: Final[str] = (
 
 
 def phase_bridge_gate_view(
-    instance_key: str, config: BdConfig, *, root_id: str
+    instance_key: str, config: BdConfig, *, root_id: str, reads: WorkflowReads
 ) -> dict[str, object]:
     """Render retry evidence only for roots admitted through the phase bridge.
 
     The stage record remains the authority for attempts, so ordinary interpreter
     roots never receive bridge-specific metadata and do not cause an extra read.
+
+    `config` builds the TASK bead's transport, which stays bd (§3.2), and
+    `reads` is the store THIS ROOT is pinned to: `owns_root` is a root lookup,
+    and a bridge view that asked bd about a ledger-backed root would answer
+    that a live run does not exist.
     """
     stage_id = _stage_id(instance_key)
     if stage_id is None:
         return {}
-    adapter = PhaseAdapter.from_config(config)
+    adapter = PhaseAdapter.from_config(config, reads)
     record = adapter.record(stage_id)
     is_current_attempt = record.instance_key == instance_key
     if (

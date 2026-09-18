@@ -46,7 +46,7 @@ from typing import Final
 
 import structlog
 
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     LifecycleConflictError,
@@ -102,7 +102,7 @@ def recorded_precondition(record: ActivationRecord) -> PreconditionRecord | None
 
 
 def record_precondition(
-    client: BdClient,
+    client: StoreBackend,
     load: ActivationLoader,
     activation_id: str,
     wanted: PreconditionRecord,
@@ -122,7 +122,7 @@ def record_precondition(
 
 
 def record_stale_flag(
-    client: BdClient,
+    client: StoreBackend,
     load: ActivationLoader,
     activation_id: str,
     flag: StaleFlagRecord,
@@ -162,7 +162,9 @@ def record_stale_flag(
     return _merge(client, activation_id, {KEY_STALE_FLAG: metadata_dict(flag)})
 
 
-def _merge(client: BdClient, activation_id: str, delta: Metadata) -> ActivationRecord:
+def _merge(
+    client: StoreBackend, activation_id: str, delta: Metadata
+) -> ActivationRecord:
     """Write ONLY `delta`'s keys and parse what bd read back.
 
     Deliberately not `transitions.apply`, which is the same discipline for a
@@ -184,7 +186,7 @@ MSG_SESSION_IDENTITY: Final[str] = "app-server session registration identity mis
 
 
 def register_session(
-    client: BdClient,
+    client: StoreBackend,
     load: ActivationLoader,
     activation_id: str,
     registration: SessionRegistration,
@@ -221,7 +223,7 @@ def register_session(
 
 
 def record_session_completion(
-    client: BdClient,
+    client: StoreBackend,
     load: ActivationLoader,
     activation_id: str,
     completion: SessionCompletion,

@@ -2,7 +2,20 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import Final
+
+
+class BackendKind(StrEnum):
+    """Which store implementation owns a root's facts (§3.2).
+
+    Here rather than in `backend.py` because the transport declares its own
+    kind, and `backend.py` imports the transport.
+    """
+
+    BD = "bd"
+    LEDGER = "ledger"
+
 
 DEVIATION_UNDECLARED_EFFECTS_ACCEPTED: Final[str] = "undeclared_effects_accepted"
 DEVIATION_UNDECLARED_EFFECTS_DISCARDED: Final[str] = "undeclared_effects_discarded"
@@ -13,6 +26,9 @@ DEVIATION_SANDBOX_UNAVAILABLE: Final[str] = "sandbox_unavailable"
 DEVIATION_UNUSABLE_RESOLUTION: Final[str] = "unusable_resolution"
 DEVIATION_BOUND_VIOLATED: Final[str] = "bound_violated"
 DEVIATION_FORK_BARRIER_ABORT: Final[str] = "fork_barrier_abort"
+DEVIATION_STORE_BUSY: Final[str] = "store_busy_refused"
+"""§3.4.6: a store that stayed contended past its bounded wait refused the
+write, and the refusal is recorded on the activation it was refused for."""
 _MSG_ENTRY_PREDECESSOR: Final[str] = (
     "an entry mint has no predecessor; {predecessor!r} was supplied (§3.2)"
 )

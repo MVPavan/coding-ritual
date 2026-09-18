@@ -6,7 +6,7 @@ from tests._bdio import entry_request, load_definition, make_root
 from tests._gates import open_ship_gate, open_triage_gate
 from workflow_interpreter.bdio import CarrierIntegrityError, WorkflowStore
 from workflow_interpreter.bdio.bounds import ceiling_count, effective_bound
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.reads import next_seq
 from workflow_interpreter.bdio.wire import BoundSetting
@@ -38,7 +38,7 @@ def test_wakes_roundtrip_dedupe_and_never_route_or_spend_bounds(fake_store):
     first = fake_store.append_wake_event(root.root_id, event)
     assert fake_store.append_wake_event(root.root_id, event).id == first.id
     assert fake_store.reads.list_wake_events(root.root_id) == (event,)
-    beads = fake_store.reads.instance_beads(root.root_id)
+    beads = fake_store.reads.instance_records(root.root_id)
     assert ceiling_count(beads) == 0
     assert build_frontier(root, beads).empty
     assert not build_frontier(root, beads).terminal
@@ -69,8 +69,8 @@ def test_real_bd_wake_roundtrip_is_idempotent_and_not_a_transition(
     assert first.metadata["seq"] == -1
     assert store.append_wake_event(root.root_id, event).id == first.id
     assert store.reads.list_wake_events(root.root_id) == (event,)
-    assert ceiling_count(store.reads.instance_beads(root.root_id)) == 0
-    assert build_frontier(root, store.reads.instance_beads(root.root_id)).empty
+    assert ceiling_count(store.reads.instance_records(root.root_id)) == 0
+    assert build_frontier(root, store.reads.instance_records(root.root_id)).empty
 
 
 def test_ambiguous_bd_write_is_refound_without_duplicate(fake_store, monkeypatch):
@@ -82,7 +82,7 @@ def test_ambiguous_bd_write_is_refound_without_duplicate(fake_store, monkeypatch
 
     def ambiguous(**kwargs):
         original(**kwargs)
-        raise BdioError("lost acknowledgment")
+        raise StoreError("lost acknowledgment")
 
     monkeypatch.setattr(fake_store._client, "_create_bead", ambiguous)
     first = fake_store.append_wake_event(root.root_id, event)
@@ -97,10 +97,10 @@ def test_failure_before_bd_write_leaves_no_delivery(fake_store, monkeypatch):
     event = event_for(root)
 
     def unavailable(**kwargs):
-        raise BdioError("unavailable")
+        raise StoreError("unavailable")
 
     monkeypatch.setattr(fake_store._client, "_create_bead", unavailable)
-    with pytest.raises(BdioError):
+    with pytest.raises(StoreError):
         fake_store.append_wake_event(root.root_id, event)
     assert not fake_store.reads.list_wake_events(root.root_id)
 
@@ -130,7 +130,7 @@ def test_wake_cannot_decide_an_open_gate_or_raise_bounds(fake_store, gate_kind):
     opener = open_ship_gate if gate_kind == "approval" else open_triage_gate
     root_id, gate = opener(fake_store, load_definition())
     root = fake_store.reads.load_root(root_id)
-    before = fake_store.reads.instance_beads(root_id)
+    before = fake_store.reads.instance_records(root_id)
     gates = fake_store.reads.list_gates(root_id)
     bound = effective_bound(root, gates, BoundSetting.MAX_TOTAL_ACTIVATIONS)
     event = event_for(root, condition=WakeCondition.GATE_OPENED).model_copy(
@@ -147,7 +147,7 @@ def test_wake_cannot_decide_an_open_gate_or_raise_bounds(fake_store, gate_kind):
         == bound
     )
     assert build_frontier(
-        root, fake_store.reads.instance_beads(root_id)
+        root, fake_store.reads.instance_records(root_id)
     ) == build_frontier(root, before)
 
 
@@ -172,7 +172,7 @@ def test_wake_append_cannot_steal_a_reserved_activation_sequence(
     assert wakes[0].metadata["seq"] == -1
     second = fake_store.append_wake_event(root.root_id, event_for(root, "second"))
     assert second.metadata["seq"] == -2
-    assert next_seq(fake_store.reads.instance_beads(root.root_id)) == 2
+    assert next_seq(fake_store.reads.instance_records(root.root_id)) == 2
 
 
 def test_roots_sharing_instance_key_have_distinct_fire_keys(fake_store, fake_bd):

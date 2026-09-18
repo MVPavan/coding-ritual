@@ -5,13 +5,25 @@ import sys
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Final, Protocol
 
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import MintRequest, WorkflowStore
+from workflow_interpreter.bdio.backend import (
+    BackendLocator,
+    PinnableBackendLocator,
+    RecordPinnableBackendLocator,
+    bd_backend,
+)
+from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.bdio.coordination import CoordinationStore
+from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
+from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.paths import ensure_fence_dir
+from workflow_interpreter.schema.decisions import DecisionRequest, DecisionResponse
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF, procfs
 from workflow_interpreter.supervisor.band import BandLock
 from workflow_interpreter.supervisor.clock import Clock
@@ -36,6 +48,16 @@ def instance_head(git: Git, repo_root: Path, root_id: str) -> str:
     if head is None:
         raise InstanceBranchMissing(f"instance branch {branch} is missing")
     return head
+
+
+MSG_NO_BRANCH_YET: Final[str] = (
+    "a root being created has no instance branch yet; its base is pinned, never read"
+)
+
+
+def _no_branch_yet() -> str:
+    """The branch-head reader of a store that exists only to CREATE a root."""
+    raise InstanceBranchMissing(MSG_NO_BRANCH_YET)
 
 
 class WrapperLaunch(BaseModel):
@@ -75,9 +97,12 @@ class ProfileResolver(Protocol):
 class DetachedSpawner:
     """Start one wrapper without a shell or a borrowed terminal."""
 
-    def __init__(self, supervisor_config: SupervisorConfig, config_path: Path) -> None:
+    def __init__(
+        self, supervisor_config: SupervisorConfig, config_path: Path, task_id: str
+    ) -> None:
         self._supervisor_config = supervisor_config
         self._config_path = config_path
+        self._task_id = task_id
 
     def launch(
         self, launch: WrapperLaunch, *, wiring: "InstanceWiring | None" = None
@@ -98,6 +123,10 @@ class DetachedSpawner:
                     # so it precedes the subcommand here too (`__main__._parser`).
                     "--config",
                     str(self._config_path),
+                    # D16: the wrapper re-enters as its own process and has to
+                    # be told the task too, or it could not locate a backend.
+                    "--task",
+                    self._task_id,
                     "supervise",
                     launch.root_id,
                     launch.activation_id,
@@ -133,6 +162,18 @@ class InstanceWiring:
     branch_head_reader: Callable[[], str]
 
 
+AttentionDrain = Callable[[str], None]
+"""Writes one root's task the attention label its ledger state implies (§3.2.4).
+
+Injected rather than constructed by the driver, because it is a bd WRITE and a
+composition root decides where those come from. The ledger's implementation is
+`ledger.reconcile.RootAttentionDrain`."""
+
+
+def no_attention_drain(root_id: str) -> None:
+    """The default: a bd-backed root keeps no projections, so none are owed."""
+
+
 @dataclass(frozen=True)
 class Composition:
     """The injected process-wide dependencies and factory for per-root state."""
@@ -145,20 +186,133 @@ class Composition:
     profiles: ProfileResolver
     spawner: Spawner
     host_env: Mapping[str, str]
+    ledger: LedgerDatabase | None = None
+    """This process's one ledger connection, holding the shared fence (§3.4.1).
+
+    The composition root owns it because a process has exactly one, and the
+    surfaces built from it — the landing journal, the export pin, the
+    reconciler — are composed, never self-constructed."""
+    task_id: str | None = None
+    """The task bead every root of this process belongs to (D16).
+
+    Optional only because a test wiring may have no bead to name; every
+    production entry point supplies it, and the surfaces that need it —
+    export before close, the ledger's rows — refuse without one."""
+    locate_backend: BackendLocator = bd_backend
+    """Which backend owns a root, answered before the root is loaded (§3.2)."""
+    drain_attention: AttentionDrain = no_attention_drain
+    """Drains a settling root's pending attention projections (§3.2.4)."""
 
     def __post_init__(self) -> None:
         """Keep the explicit supervisor dependency aligned with the config guard."""
         if self.supervisor_config != self.config.supervisor:
             raise ValueError("supervisor_config must match foreman config")
 
+    def store_for_root(self, root_id: str) -> WorkflowStore:
+        """The store this root is read and written through (§3.2).
+
+        The backend is pinned per root, so it is chosen BEFORE the root is
+        loaded; the process-wide store is only the factory it comes from. Any
+        read or write about ONE root goes through here, not through
+        `composition.store`, which serves discovery and the task bead alone.
+        """
+        return self._store_on(root_id, self.locate_backend(root_id))
+
+    def creation_store(self, backend: BackendKind) -> WorkflowStore:
+        """The store a root that does not exist YET is created through (§3.2).
+
+        A root's backend is pinned before the root exists — on the bridge
+        record at prepare, or on the `tasks` row for a run with no bridge — so
+        creation is the one operation that cannot ask the locator for an id it
+        is about to mint. It is given the pin instead, and creating through
+        `composition.store` (which is built on whatever transport this process
+        happened to start on) is what D18 forbids: a retry admitted after the
+        switch flipped would land on the backend its own record denies.
+        """
+        return self.store.for_root(branch_head_reader=_no_branch_yet, backend=backend)
+
+    def pin_root_backend(self, root_id: str, backend: BackendKind) -> None:
+        """Tell the locator the backend a just-created root was pinned to (§3.2).
+
+        Nothing durable answers for a bd root of a ledger-pinned task — the
+        ledger holds no row for it and the `tasks` row names the first
+        attempt's backend — so without this the next read of that root would go
+        to the wrong store and report a live run as missing. A locator with no
+        pin surface answers bd for everything already and has nothing to learn.
+        """
+        locator = self.locate_backend
+        if isinstance(locator, PinnableBackendLocator):
+            locator.pin(root_id, backend)
+
+    def pin_record_backend(self, root_id: str, backend: BackendKind) -> None:
+        """Tell the locator what a bridge record says about a root (§3.2).
+
+        Every resume and recovery entry installs this BEFORE it loads the
+        root: a process that restarted holds no pin, and for a bd attempt of
+        a ledger-pinned task the `tasks` row answers for attempt one, so a
+        load that asked first would read the wrong store and report a live
+        run as missing (D18). The record leads §3.2's order, so a store that
+        answers differently refuses here rather than overruling it.
+        """
+        locator = self.locate_backend
+        if isinstance(locator, RecordPinnableBackendLocator):
+            locator.pin_record(root_id, backend)
+
+    def _store_on(self, root_id: str, backend: BackendKind) -> WorkflowStore:
+        """The root's store over an ALREADY located backend.
+
+        A caller that needs both the located backend and the store must locate
+        once and pass that single answer here: two calls to the locator may
+        answer differently, and a root loaded from one backend must never be
+        wired to another (§3.2).
+        """
+        return self.store.for_root(
+            branch_head_reader=lambda: instance_head(
+                self.git, self.config.repo_root, root_id
+            ),
+            backend=backend,
+        )
+
+    def coordination_for_root(
+        self,
+        owner_id: str,
+        *,
+        verify_decision: Callable[[DecisionRequest], DecisionResponse] | None = None,
+        composition: "Composition | None" = None,
+    ) -> CoordinationStore:
+        """Coordination for ONE owner root, over that root's backend (§3.2).
+
+        The reservation ledger lives in the owner's own record, which the
+        coordination store loads and saves through the backend it is bound
+        to. Binding it to `composition.store` would query the process-wide
+        backend for a root that may be pinned to another one.
+        """
+        return self.store_for_root(owner_id).coordination_store(
+            verify_decision=verify_decision, composition=composition
+        )
+
+    def reads_for_root(self, root_id: str) -> WorkflowReads:
+        """The §4 read vocabulary over the store this root is pinned to."""
+        return self.store_for_root(root_id).reads
+
     def for_root(self, root_id: str) -> InstanceWiring:
-        """Build one wiring with exactly one ``BandLock`` shared throughout."""
+        """Build one wiring with exactly one ``BandLock`` shared throughout.
+
+        The ledger fence directory is created HERE, before any dispatch this
+        wiring can make: every runner sandbox pins `<git common dir>/wf/`
+        read-only (`supervisor/sandbox.py`), and a pin whose bind source does
+        not exist would leave the locked inode replaceable from inside the box
+        (run-ledger §3.4).
+        """
+        ensure_fence_dir(self.config.repo_root)
         paths = WrapperPaths(self.supervisor_config, root_id)
         branch_head_reader = lambda: instance_head(
             self.git, self.config.repo_root, root_id
         )
-        root = self.store.reads.load_root(root_id)
-        coordinator = self.store.coordination_store()
+        backend = self.locate_backend(root_id)
+        root_store = self._store_on(root_id, backend)
+        root = root_store.reads.load_root(root_id)
+        coordinator = root_store.coordination_store()
         link = root.metadata.coordination
         band_path = paths.band_lock
         if link is not None:
@@ -173,8 +327,8 @@ class Composition:
                     raise CoordinationError("conflicting child wrapper location")
                 band_path = coordinator.member_lock_path(root_id, root=root)
         band = BandLock(band_path)
-        store = self.store.for_root(
-            branch_head_reader=branch_head_reader, member_band=band
+        store = root_store.for_root(
+            branch_head_reader=branch_head_reader, member_band=band, backend=backend
         )
         workspace = Workspace(paths, self.git, self.clock, band, advance_branch=True)
         return InstanceWiring(

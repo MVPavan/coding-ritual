@@ -163,6 +163,7 @@ def test_a_reviewers_computed_fail_code_routes_back_to_implement(
     )
     lab.instantiate()
     _implement(lab, _writes(REVIEW_RED_MARKER))
+    lab.debrief_round()
     lab.profiles.next_script(_reviews("accept"))
     review_id = lab.tick().dispatched
     assert review_id is not None
@@ -246,6 +247,7 @@ def test_review_fail_plan_survives_a_red_check_but_not_a_rewritten_one(
     )
     lab.instantiate()
     _implement(lab, _writes(REVIEW_RED_MARKER))
+    lab.debrief_round()
     lab.profiles.next_script(_reviews("fail_plan", findings=False))
     review_id = lab.tick().dispatched
     assert review_id is not None
@@ -286,6 +288,7 @@ def test_a_rewritten_reviewer_check_overwrites_even_a_failure_claim(
             commit=True,
         ),
     )
+    lab.debrief_round()
     lab.profiles.next_script(_reviews("fail_plan", findings=False))
     review_id = lab.tick().dispatched
     assert review_id is not None
@@ -314,11 +317,13 @@ def test_round_two_review_binds_round_one_findings(
     lab = _lab(tmp_path, signing_config, sign_payload, toml=feature_graph)
     lab.instantiate()
     _implement(lab, _writes("src/feature.py"))
+    lab.debrief_round()
     lab.profiles.next_script(_reviews("reject"))
     first_review = lab.tick().dispatched
     assert first_review is not None
     assert lab.tick().settled == first_review
     _implement(lab, _writes("src/feature.py", body="value = 3\n"))
+    lab.debrief_round()
     second_review = lab.tick().dispatched
     assert second_review is not None
 

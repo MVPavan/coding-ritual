@@ -8,7 +8,6 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import (
     ActivationRecord,
-    BdioError,
     Deviation,
     Evidence,
     ExitRecord,
@@ -16,6 +15,7 @@ from workflow_interpreter.bdio import (
     GateState,
     Lifecycle,
     RootRecord,
+    StoreError,
     Usage,
 )
 from workflow_interpreter.bdio.reads import gates_of
@@ -126,10 +126,11 @@ def _settle(
                     exit_record,
                     pinned_digests=pinned_verifier_digests(root),
                     previous_tree_oid=_previous_tree_oid(wiring, activation),
+                    run_identity=root.metadata.run_identity,
                 ).completion
             except SnapshotFailed as exc:
                 return Settlement(activation=activation, stalled=str(exc))
-            except (OSError, SupervisorError, BdioError) as exc:
+            except (OSError, SupervisorError, StoreError) as exc:
                 halt = wiring.store.open_gate(
                     root.root_id,
                     halt_gate(
@@ -236,6 +237,7 @@ def _settle(
             exit_record,
             pinned_digests=pinned_verifier_digests(root),
             previous_tree_oid=_previous_tree_oid(wiring, activation),
+            run_identity=root.metadata.run_identity,
         )
     except SnapshotFailed as exc:
         return Settlement(activation=activation, stalled=str(exc))
@@ -351,7 +353,7 @@ def _effects_gate(
     return next(
         (
             gate
-            for gate in gates_of(wiring.store.reads.instance_beads(root.root_id))
+            for gate in gates_of(wiring.store.reads.instance_records(root.root_id))
             if gate.metadata.gate_node == EFFECTS_NODE
             and gate.metadata.source_activation_id == activation.activation_id
         ),

@@ -8,7 +8,8 @@ import pytest
 from tests._foreman import ForemanLab
 from tests.test_bdio_wake import event_for
 from tests.test_foreman_wake import journal_condition
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
+from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman import __main__ as cli
 from workflow_interpreter.foreman import monitor as module
 from workflow_interpreter.foreman.heartbeat import observation_status
@@ -34,14 +35,14 @@ def test_reconcile_failure_is_visible_across_restart(tmp_path, monkeypatch):
     """A responsive monitor still reports that it cannot reconcile delivery state."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
-    original = lab.store.reads.list_wake_events
+    original = WorkflowReads.list_wake_events
 
     def unavailable(*_):
         """Fail only the wake reader, preserving ordinary root/status reads."""
-        raise BdioError("wake reads unavailable")
+        raise StoreError("wake reads unavailable")
 
     with WakeMonitor(lab.composition, root.root_id) as monitor:
-        monkeypatch.setattr(lab.store.reads, "list_wake_events", unavailable)
+        monkeypatch.setattr(WorkflowReads, "list_wake_events", unavailable)
         for _ in range(2):
             monitor.poll()
         assert (
@@ -50,7 +51,7 @@ def test_reconcile_failure_is_visible_across_restart(tmp_path, monkeypatch):
         )
     with WakeMonitor(lab.composition, root.root_id) as monitor:
         assert monitor.poll().monitor_degraded == "wake reads unavailable"
-        monkeypatch.setattr(lab.store.reads, "list_wake_events", original)
+        monkeypatch.setattr(WorkflowReads, "list_wake_events", original)
         monitor.poll()
         assert not monitor_status(lab.composition, root.root_id)["monitor_degraded"]
 

@@ -475,7 +475,7 @@ def test_steer_preflights_invalid_existing_key_residue_before_killing_its_child(
         unchanged = lab.store.reads.load_activation(activation_id)
         assert _runner_alive(activation.metadata.handle.pid)
         assert unchanged.metadata.lifecycle is Lifecycle.DISPATCHED
-        assert unchanged.bead.status != STATUS_CLOSED
+        assert unchanged.status != STATUS_CLOSED
         assert not lab.wiring().paths.steer_intent(activation_id).exists()
     finally:
         for process in cast(list[BaseProcess], spawner.processes):

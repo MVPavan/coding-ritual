@@ -62,7 +62,7 @@ def test_a_cyclic_retry_ancestry_stops_after_bounded_lookups(
     def retry(activation_id: str, predecessor_id: str) -> ActivationRecord:
         return seed.model_copy(
             update={
-                "bead": seed.bead.model_copy(update={"id": activation_id}),
+                "id": activation_id,
                 "metadata": seed.metadata.model_copy(
                     update={
                         "mint_reason": MintReason.INFRA_RETRY,

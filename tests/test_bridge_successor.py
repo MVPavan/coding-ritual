@@ -15,6 +15,17 @@ from workflow_interpreter.schema.decisions import (
 )
 
 
+def _bumped_version(text: str) -> tuple[str, str]:
+    """The graph's own `version = ` line and the same line one patch higher.
+
+    Read rather than written down: the shipped copy and its legacy predecessor
+    do not carry one version, and a replacement only has to differ.
+    """
+    line = next(item for item in text.splitlines() if item.startswith("version     = "))
+    major, minor, patch = line.split('"')[1].split(".")
+    return line, f'version     = "{major}.{minor}.{int(patch) + 1}"'
+
+
 def integration_request(tmp_path, lab, record):
     root = lab.store.reads.load_root(record.root_id)
     inputs = {}
@@ -174,13 +185,15 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
     brief.write_text("Implement feature")
     roots = WorkflowRootProvisioner(
         adapter,
-        lambda key: instantiate(
+        lambda key, backend, attempt: instantiate(
             lab.composition,
             graph,
             instance_key=key,
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=backend,
+            attempt=attempt,
         ),
         lab.git,
         lab.repo,
@@ -204,6 +217,11 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
     )
     assert lab.tick().dispatched
     assert lab.tick().settled
+    lab.profiles.bind_node(
+        "debrief",
+        ChildScript(marker='{"outcome":"no_diff"}', effects='{"paths":[]}'),
+    )
+    lab.debrief_round()
     from workflow_interpreter.foreman.compose import instance_head
 
     a = instance_head(lab.git, lab.repo, previous.root_id)
@@ -212,7 +230,9 @@ def test_ordinary_bridge_continues_B_A_C_with_original_CAS(
         graph.write_text(
             mutate(
                 graph.read_text(),
-                (('version     = "1.0.2"', 'version     = "1.0.3"'),),
+                # Bumped from whatever THIS graph carries: the shipped copy and
+                # its legacy predecessor are not on one version.
+                (_bumped_version(graph.read_text()),),
             )
         )
         receipt = replace_checked(

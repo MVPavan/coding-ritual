@@ -142,7 +142,7 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     assert first_attempt.metadata.pre_attempt_commit is not None
 
     ceiling_after_point_1_and_3 = bounds.ceiling_count(
-        lab.store.reads.instance_beads(root.root_id)
+        lab.store.reads.instance_records(root.root_id)
     )
 
     # --- injection point 2: after receipt durable / before child exec ------
@@ -192,7 +192,7 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     assert reviewed_first.metadata.outcome is Outcome.REJECT
 
     ceiling_after_point_2 = bounds.ceiling_count(
-        lab.store.reads.instance_beads(root.root_id)
+        lab.store.reads.instance_records(root.root_id)
     )
 
     # --- injection point 4: after outcome close / before reset (rework) ----
@@ -276,7 +276,7 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     )
 
     ceiling_after_points_4_and_5 = bounds.ceiling_count(
-        lab.store.reads.instance_beads(root.root_id)
+        lab.store.reads.instance_records(root.root_id)
     )
 
     # --- review, round 2: accept, no injection ------------------------------
@@ -332,7 +332,7 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
         lab.tick()
     verified_not_closed = lab.store.reads.load_gate(ship)
     assert verified_not_closed.metadata.state.value == "closed"
-    assert verified_not_closed.bead.status == "open"
+    assert verified_not_closed.status == "open"
 
     lab.rebuild()
     repaired = lab.tick()
@@ -394,7 +394,7 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
         assert raw["metadata"].get("wf_root_id") == root.root_id
 
     # --- final invariant (e): ceiling arithmetic is consistent, monotone ---
-    final_ceiling = bounds.ceiling_count(lab.store.reads.instance_beads(root.root_id))
+    final_ceiling = bounds.ceiling_count(lab.store.reads.instance_records(root.root_id))
     assert final_ceiling == len(lab.beads("activation")) + len(lab.beads("gate"))
     ceilings_across_restarts = (
         ceiling_after_point_1_and_3,

@@ -1,30 +1,37 @@
-"""Parsed views of a workflow bead — a bd row plus its typed §3 carrier.
+"""Parsed views of a workflow row — backend-neutral identity plus its §3 carrier.
 
-Parsing is where the carrier contract is enforced: a bead that does not decode
+Parsing is where the carrier contract is enforced: a row that does not decode
 into its declared `wf_kind` raises `CarrierIntegrityError` rather than being
 skipped, because a silently ignored row is a bound that silently under-counts.
+
+The records carry `id`, `status` and their typed metadata, never the backend
+row they were parsed from: a consumer above the seam that could reach a
+backend row through a record is a consumer pinned to one backend (§3.1).
 """
 
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import Final
 
 from pydantic import BaseModel, ValidationError
 
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     PinnedGraphMismatchError,
 )
 from workflow_interpreter.bdio.keys import wake_fire_key
+from workflow_interpreter.bdio.rows import StoreRow
 from workflow_interpreter.bdio.wire import (
     KEY_WF_KIND,
     WIRE_MODEL,
     ActivationMetadata,
-    BeadRecord,
     EventMetadata,
     EventPayload,
     GateMetadata,
+    Metadata,
     RootMetadata,
     WfKind,
     config_signature,
@@ -35,28 +42,28 @@ from workflow_interpreter.schema.loader import GraphValidationError, load_pinned
 from workflow_interpreter.schema.models import GraphDefinition
 
 _MSG_WAKE_IDENTITY: Final[str] = "wake event identity mismatch"
-_MSG_EVENT_INVALID: Final[str] = "invalid event {bead_id}: {reason}"
+_MSG_EVENT_INVALID: Final[str] = "invalid event {row_id}: {reason}"
 
 _MSG_WRONG_KIND: Final[str] = (
-    "bead {bead_id} carries wf_kind={found!r}, expected {expected!r}"
+    "row {row_id} carries wf_kind={found!r}, expected {expected!r}"
 )
 _MSG_UNDECODABLE: Final[str] = (
-    "bead {bead_id} does not decode as a {expected} carrier: {reason}"
+    "row {row_id} does not decode as a {expected} carrier: {reason}"
 )
 _MSG_BODY_INVALID: Final[str] = (
-    "root {bead_id} carries a pinned body that no longer validates: {reason}"
+    "root {row_id} carries a pinned body that no longer validates: {reason}"
 )
 _MSG_HASH_MISMATCH: Final[str] = (
-    "root {bead_id} pinned body hashes to {actual}, recorded {expected} — "
+    "root {row_id} pinned body hashes to {actual}, recorded {expected} — "
     "the instance halts (§3.1)"
 )
 _MSG_SELF_ID: Final[str] = (
-    "root {bead_id} carries wf_root_id={found!r}; a root carries its own id (§3)"
+    "root {row_id} carries wf_root_id={found!r}; a root carries its own id (§3)"
 )
 
 
 class RootRecord(BaseModel):
-    """A root bead with its pinned graph re-validated and hash-checked.
+    """A root row with its pinned graph re-validated and hash-checked.
 
     Deliberately carries NO effective-bound accessor: a bound is the root's
     creation-time config ⊕ the mutations of the instance's closed rebudget
@@ -68,14 +75,21 @@ class RootRecord(BaseModel):
 
     model_config = WIRE_MODEL
 
-    bead: BeadRecord
+    id: str
+    status: str
+    close_reason: str | None = None
     metadata: RootMetadata
     definition: GraphDefinition
 
     @property
+    def kind(self) -> str | None:
+        """The §3 discriminator this record was parsed under."""
+        return WfKind.ROOT.value
+
+    @property
     def root_id(self) -> str:
-        """The instance id every other bead links to."""
-        return self.bead.id
+        """The instance id every other record links to."""
+        return self.id
 
     @property
     def index(self) -> GraphIndex:
@@ -86,31 +100,69 @@ class RootRecord(BaseModel):
 
 
 class ActivationRecord(BaseModel):
-    """An activation bead and its §3.2 metadata."""
+    """An activation row and its §3.2 metadata."""
 
     model_config = WIRE_MODEL
 
-    bead: BeadRecord
+    id: str
+    status: str
+    close_reason: str | None = None
     metadata: ActivationMetadata
 
     @property
+    def kind(self) -> str | None:
+        """The §3 discriminator this record was parsed under."""
+        return WfKind.ACTIVATION.value
+
+    @property
     def activation_id(self) -> str:
-        """The bead id."""
-        return self.bead.id
+        """The record id."""
+        return self.id
 
 
 class GateRecord(BaseModel):
-    """A gate bead and its §3.4 metadata."""
+    """A gate row and its §3.4 metadata."""
 
     model_config = WIRE_MODEL
 
-    bead: BeadRecord
+    id: str
+    status: str
+    close_reason: str | None = None
     metadata: GateMetadata
 
     @property
+    def kind(self) -> str | None:
+        """The §3 discriminator this record was parsed under."""
+        return WfKind.GATE.value
+
+    @property
     def gate_id(self) -> str:
-        """The bead id."""
-        return self.bead.id
+        """The record id."""
+        return self.id
+
+
+class RowRecord(BaseModel):
+    """An instance row nothing routes on: the root, an event, or an unclassified row.
+
+    Unclassified is deliberately not a parse error. §10.3 counts a row whose
+    kind cannot be read, because failing closed at the ceiling means
+    over-counting and never under-counting; refusing to parse it here would
+    instead make the whole instance unreadable.
+    """
+
+    model_config = WIRE_MODEL
+
+    id: str
+    status: str
+    close_reason: str | None = None
+    kind: str | None = None
+    metadata: Metadata
+    payload: str | None = None
+
+
+type InstanceRecord = ActivationRecord | GateRecord | RowRecord
+"""Every row of one instance, typed — what `WorkflowReads.instance_records`
+hands out, so no consumer above the seam reads a backend row (§3.1)."""
 
 
 class MintResult(BaseModel):
@@ -129,75 +181,87 @@ class MintResult(BaseModel):
 
 
 class CanaryResult(BaseModel):
-    """The §11 startup canary's evidence for one tick."""
+    """The §11 startup probe's evidence for one tick, whichever backend ran it.
+
+    `attributes` are the backend's own identity facts, already asserted
+    against the pin by the backend that produced them; they are carried for
+    the record, never routed on.
+    """
 
     model_config = WIRE_MODEL
 
-    backend: str
-    dolt_mode: str
-    bd_version: str
-    wisp_id: str
+    kind: BackendKind
+    attributes: Mapping[str, str]
+    probe_row_id: str
     nonce: str
 
 
-def _assert_kind(bead: BeadRecord, expected: WfKind) -> None:
-    """Refuse a bead whose discriminator is not the expected one."""
-    found = bead.metadata.get(KEY_WF_KIND)
+def _assert_kind(row: StoreRow, expected: WfKind) -> None:
+    """Refuse a row whose discriminator is not the expected one."""
+    found = row.metadata.get(KEY_WF_KIND)
     if found != expected.value:
         raise CarrierIntegrityError(
-            _MSG_WRONG_KIND.format(
-                bead_id=bead.id, found=found, expected=expected.value
-            )
+            _MSG_WRONG_KIND.format(row_id=row.id, found=found, expected=expected.value)
         )
 
 
-def parse_activation(bead: BeadRecord) -> ActivationRecord:
-    """Decode an activation bead, or fail closed."""
-    _assert_kind(bead, WfKind.ACTIVATION)
+def parse_activation(row: StoreRow) -> ActivationRecord:
+    """Decode an activation row, or fail closed."""
+    _assert_kind(row, WfKind.ACTIVATION)
     try:
-        metadata = ActivationMetadata.model_validate(bead.metadata)
+        metadata = ActivationMetadata.model_validate(row.metadata)
     except ValidationError as exc:
         raise CarrierIntegrityError(
             _MSG_UNDECODABLE.format(
-                bead_id=bead.id, expected=WfKind.ACTIVATION.value, reason=exc
+                row_id=row.id, expected=WfKind.ACTIVATION.value, reason=exc
             )
         ) from exc
-    return ActivationRecord(bead=bead, metadata=metadata)
+    return ActivationRecord(
+        id=row.id,
+        status=row.status,
+        close_reason=row.close_reason,
+        metadata=metadata,
+    )
 
 
-def parse_gate(bead: BeadRecord) -> GateRecord:
-    """Decode a gate bead, or fail closed."""
-    _assert_kind(bead, WfKind.GATE)
+def parse_gate(row: StoreRow) -> GateRecord:
+    """Decode a gate row, or fail closed."""
+    _assert_kind(row, WfKind.GATE)
     try:
-        metadata = GateMetadata.model_validate(bead.metadata)
+        metadata = GateMetadata.model_validate(row.metadata)
     except ValidationError as exc:
         raise CarrierIntegrityError(
             _MSG_UNDECODABLE.format(
-                bead_id=bead.id, expected=WfKind.GATE.value, reason=exc
+                row_id=row.id, expected=WfKind.GATE.value, reason=exc
             )
         ) from exc
-    return GateRecord(bead=bead, metadata=metadata)
+    return GateRecord(
+        id=row.id,
+        status=row.status,
+        close_reason=row.close_reason,
+        metadata=metadata,
+    )
 
 
-def parse_root(bead: BeadRecord) -> RootRecord:
-    """Decode a root bead, re-validate its pinned body and check its hash.
+def parse_root(row: StoreRow) -> RootRecord:
+    """Decode a root row, re-validate its pinned body and check its hash.
 
     The hash is re-verified on every read (§0.4, §4 tick step 0): a corrupted
     or edited pinned body halts the instance instead of routing from a body
     nobody approved.
     """
-    _assert_kind(bead, WfKind.ROOT)
+    _assert_kind(row, WfKind.ROOT)
     try:
-        metadata = RootMetadata.model_validate(bead.metadata)
+        metadata = RootMetadata.model_validate(row.metadata)
     except ValidationError as exc:
         raise CarrierIntegrityError(
             _MSG_UNDECODABLE.format(
-                bead_id=bead.id, expected=WfKind.ROOT.value, reason=exc
+                row_id=row.id, expected=WfKind.ROOT.value, reason=exc
             )
         ) from exc
-    if metadata.wf_root_id != bead.id:
+    if metadata.wf_root_id != row.id:
         raise CarrierIntegrityError(
-            _MSG_SELF_ID.format(bead_id=bead.id, found=metadata.wf_root_id)
+            _MSG_SELF_ID.format(row_id=row.id, found=metadata.wf_root_id)
         )
     try:
         definition = load_pinned_body(
@@ -206,12 +270,12 @@ def parse_root(bead: BeadRecord) -> RootRecord:
         )
     except GraphValidationError as exc:
         raise PinnedGraphMismatchError(
-            _MSG_BODY_INVALID.format(bead_id=bead.id, reason=exc)
+            _MSG_BODY_INVALID.format(row_id=row.id, reason=exc)
         ) from exc
     if definition.content_hash != metadata.graph_content_hash:
         raise PinnedGraphMismatchError(
             _MSG_HASH_MISMATCH.format(
-                bead_id=bead.id,
+                row_id=row.id,
                 actual=definition.content_hash,
                 expected=metadata.graph_content_hash,
             )
@@ -221,19 +285,51 @@ def parse_root(bead: BeadRecord) -> RootRecord:
         and metadata.config_signature != config_signature(metadata.resolved_config)
     ):
         raise PinnedGraphMismatchError(
-            _MSG_BODY_INVALID.format(
-                bead_id=bead.id, reason="config signature mismatch"
-            )
+            _MSG_BODY_INVALID.format(row_id=row.id, reason="config signature mismatch")
         )
-    return RootRecord(bead=bead, metadata=metadata, definition=definition)
+    return RootRecord(
+        id=row.id,
+        status=row.status,
+        close_reason=row.close_reason,
+        metadata=metadata,
+        definition=definition,
+    )
 
 
-def parse_event(bead: BeadRecord) -> EventPayload | WakeEvent:
+def parse_row(row: StoreRow) -> RowRecord:
+    """Carry a row nothing routes on across the seam, kind unparsed."""
+    kind = row.metadata.get(KEY_WF_KIND)
+    return RowRecord(
+        id=row.id,
+        status=row.status,
+        close_reason=row.close_reason,
+        kind=kind if isinstance(kind, str) else None,
+        metadata=row.metadata,
+        payload=row.payload,
+    )
+
+
+def parse_instance_row(row: StoreRow) -> InstanceRecord:
+    """Decode one row of an instance under the kind it declares.
+
+    The dispatch is here rather than in each consumer so that "which rows are
+    activations" has exactly one answer, and so an instance read hands out
+    typed records rather than backend rows (§3.1).
+    """
+    kind = row.metadata.get(KEY_WF_KIND)
+    if kind == WfKind.ACTIVATION.value:
+        return parse_activation(row)
+    if kind == WfKind.GATE.value:
+        return parse_gate(row)
+    return parse_row(row)
+
+
+def parse_event(record: RowRecord) -> EventPayload | WakeEvent:
     """Validate either event discriminator without treating notifications as routes."""
     try:
-        raw = json.loads(bead.payload or "null")
+        raw = json.loads(record.payload or "null")
         if isinstance(raw, dict) and raw.get("canon") == CANON_WAKE:
-            metadata = EventMetadata.model_validate(bead.metadata)
+            metadata = EventMetadata.model_validate(record.metadata)
             event = WakeEvent.model_validate(raw)
             if (
                 event.root_id != metadata.wf_root_id
@@ -249,5 +345,5 @@ def parse_event(bead: BeadRecord) -> EventPayload | WakeEvent:
         return EventPayload.model_validate(raw)
     except (ValueError, TypeError) as error:
         raise CarrierIntegrityError(
-            _MSG_EVENT_INVALID.format(bead_id=bead.id, reason=error)
+            _MSG_EVENT_INVALID.format(row_id=record.id, reason=error)
         ) from error

@@ -9,7 +9,7 @@ import pytest
 
 from tests._fake_bd import InjectedCrash
 from tests._foreman import ForemanLab
-from tests._supervisor import ChildScript
+from tests._supervisor import ChildScript, commit_all
 from tests.test_foreman_main import _bridge_adapter, _bridge_stage
 from workflow_interpreter.bridge import PhaseAdapter
 from workflow_interpreter.bridge import landing as landing_module
@@ -18,6 +18,8 @@ from workflow_interpreter.bridge.landing import LANDING_RECEIPT_FILE, LandingHoo
 from workflow_interpreter.bridge.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.tick import Foreman, RunReport
+from workflow_interpreter.ledger.constants import LEDGER_DIR
+from workflow_interpreter.ledger.paths import export_path
 from workflow_interpreter.schema.models import Outcome
 
 
@@ -179,8 +181,18 @@ def test_two_stages_land_from_normal_command(
     )
     assert len(started) == 1
     lab.composition = replace(lab.composition, config=config)
-    landed = lab.git.head_commit(cwd=lab.repo)
-    assert not lab.git.status_paths(cwd=lab.repo)
+    # §3.6: the only thing the landing leaves in the checkout is the export
+    # the close pinned — it appears here exactly as `.beads/issues.jsonl` does
+    # after a bd write, and the orchestrator commits the two together. The next
+    # stage refuses until it does: an uncommitted export is a coordinator's
+    # work like any other, and only THIS task's own export is excused while it
+    # is being closed.
+    assert lab.git.status_paths(cwd=lab.repo) == (
+        (f"{LEDGER_DIR}/export/a.jsonl", False),
+    )
+    assert export_path(lab.repo, "a").is_file()
+    assert _entry(lab, "b").exit_code == 2
+    landed = commit_all(lab.repo, "the orchestrator commits the export")
     second = _entry(lab, "b")
     assert second.exit_code == 0, second.report
     assert second.report["state"] == "completed"

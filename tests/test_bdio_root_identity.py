@@ -20,6 +20,7 @@ from tests._bdio import (
 from tests._fake_bd import FakeBd
 from workflow_interpreter import GraphDefinition
 from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.bdio.carriers import JSON_SAFE_INT_LIMIT
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.wire import (
@@ -282,6 +283,54 @@ def test_convergence_never_supersedes_the_root_that_owns_the_instance(
         record.activation_id
         for record in fake_store.reads.list_activations(converged.root_id)
     }
+
+
+def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
+    fake_store: WorkflowStore,
+    fake_client: BdClient,
+    definition: GraphDefinition,
+) -> None:
+    """Residue an instance carries must not wedge convergence or allocation.
+
+    Ownership and `seq` are read from identity and one integer, never from a
+    decoded carrier: a row whose activation metadata no longer validates is
+    exactly the residue convergence exists to clean up, and a tick that
+    refused to allocate a sequence beside it could not even record what it
+    found (§3.1, §3.2).
+    """
+    key = "malformed-sibling"
+    root = fake_store.create_root(
+        instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
+    )
+    for carried in (7, True, JSON_SAFE_INT_LIMIT + 1):
+        fake_client._create_bead(
+            title="wf activation with an unreadable carrier",
+            metadata={
+                "wf_kind": WfKind.ACTIVATION.value,
+                "wf_root_id": root.root_id,
+                "seq": carried,
+            },
+        )
+
+    with pytest.raises(CarrierIntegrityError):
+        fake_store.reads.instance_records(root.root_id)
+    assert fake_store.reads.owns_instance_rows(root.root_id) is True
+    # A `bool` and an integer past the JSON-safe bound are residue too: neither
+    # can be allocated from, so the successor comes from the one valid `seq`.
+    assert fake_store.reads.next_instance_seq(root.root_id) == 8
+
+    # The bound itself IS a valid `seq`, and its successor is not: allocation
+    # refuses rather than hand out a number no write could carry back.
+    fake_client._create_bead(
+        title="wf activation at the JSON-safe bound",
+        metadata={
+            "wf_kind": WfKind.ACTIVATION.value,
+            "wf_root_id": root.root_id,
+            "seq": JSON_SAFE_INT_LIMIT,
+        },
+    )
+    with pytest.raises(CarrierIntegrityError, match="seq space is exhausted"):
+        fake_store.reads.next_instance_seq(root.root_id)
 
 
 def test_two_roots_that_both_own_beads_refuse_to_converge(

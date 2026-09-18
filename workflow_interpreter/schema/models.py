@@ -365,6 +365,12 @@ class EngineProducer(StrEnum):
     """Engine-owned inputs, never caller-supplied instance material."""
 
     VERIFY_FAILURE = "engine:verify_failure"
+    LEDGER_RENDER = "engine:ledger_render"
+    """The run ledger's own account of the rounds so far (run-ledger §3.7).
+
+    Bound through the same causal routing seam `verify_failure` is bound
+    through — never as an instance input — because its content is a function
+    of the instance's recorded history and of nothing a caller supplies."""
 
 
 MSG_ENGINE_OPTIONAL: Final[str] = "engine:verify_failure must be optional"

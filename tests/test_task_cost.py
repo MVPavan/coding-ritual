@@ -8,10 +8,13 @@ import subprocess
 import sys
 from decimal import Decimal
 from pathlib import Path
+from typing import Final
 
 import pytest
 from pydantic import ValidationError
 
+from workflow_interpreter.bdio.client import ISSUE_TYPE_OF, as_row
+from workflow_interpreter.bdio.rows import RowQuery, StoreRow
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.costs.collection import (
     CompletionEvidence,
@@ -28,6 +31,7 @@ from workflow_interpreter.costs.report import (
     text_report,
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
+from workflow_interpreter.ledger.database import open_ledger
 
 
 def _pricebook() -> PriceBook:
@@ -415,6 +419,26 @@ class FakeReadClient:
                 selected.append(BeadRecord.model_validate(raw))
         return tuple(selected)
 
+    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
+        """The neutral read the §4 vocabulary issues, over the same rows."""
+        return tuple(
+            as_row(record)
+            for record in self.list_beads(
+                metadata_filters=query.metadata_filters,
+                issue_type=None if query.kind is None else ISSUE_TYPE_OF[query.kind],
+            )
+        )
+
+
+def _collect(client, stage_id: str, **kwargs):
+    """Collect one stage with the roots served by the same synthetic rows.
+
+    The backend factory is what production injects (§3.2); these rows stand in
+    for BOTH the task bead and its roots, so the factory answers with the one
+    client whichever backend the bridge record pins.
+    """
+    return collect_task(client, stage_id, backends=lambda _: client, **kwargs)
+
 
 def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
     oid = "a" * 40
@@ -510,7 +534,7 @@ def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
 def test_collection_includes_failed_and_successful_attempts_without_writes() -> None:
     client = FakeReadClient(_task_rows())
 
-    collected = collect_task(client, "stage-1")
+    collected = _collect(client, "stage-1")
 
     assert collected.completion.verified is True
     assert [root.root_id for root in collected.roots] == ["root-1", "root-2"]
@@ -531,7 +555,7 @@ def test_minted_activation_that_never_executed_does_not_degrade_usage_coverage()
     for field in ("handle", "exit_record", "outcome", "usage"):
         metadata.pop(field)
 
-    collected = collect_task(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(rows), "stage-1")
 
     assert collected.usage_complete is True
     assert [item.activation_id for item in collected.observations] == ["activation-2"]
@@ -545,7 +569,7 @@ def test_minted_activation_that_never_executed_does_not_degrade_usage_coverage()
 def test_completion_refuses_forged_or_merely_closed_evidence(
     current_root_id: str, closed: bool
 ) -> None:
-    collected = collect_task(
+    collected = _collect(
         FakeReadClient(_task_rows(current_root_id=current_root_id, closed=closed)),
         "stage-1",
     )
@@ -562,7 +586,7 @@ def test_completion_requires_every_landing_field(missing_field: str) -> None:
     rows = _task_rows()
     rows[0]["metadata"]["phase_bridge"][missing_field] = None
 
-    collected = collect_task(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(rows), "stage-1")
 
     assert collected.completion.verified is False
 
@@ -571,7 +595,7 @@ def test_completion_rejects_mismatched_root_self_identity() -> None:
     rows = _task_rows()
     rows[1]["metadata"]["wf_root_id"] = "different-root"
 
-    collected = collect_task(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(rows), "stage-1")
 
     assert collected.completion.verified is False
     assert "root-identity-mismatch" in {item.code for item in collected.diagnostics}
@@ -584,7 +608,7 @@ def test_completion_rejects_duplicate_root_resolution() -> None:
     duplicate["metadata"]["wf_root_id"] = "root-duplicate"
     rows.append(duplicate)
 
-    collected = collect_task(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(rows), "stage-1")
 
     assert collected.completion.verified is False
     assert "root-resolution-ambiguous" in {item.code for item in collected.diagnostics}
@@ -601,7 +625,7 @@ def test_completion_rejects_current_root_terminal_contradictions(
     rows[3]["status"] = status
     rows[3]["metadata"]["terminal"] = terminal
 
-    collected = collect_task(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(rows), "stage-1")
 
     assert collected.completion.verified is False
     assert "current-root-terminal-contradiction" in {
@@ -613,7 +637,7 @@ def test_completion_rejects_stage_close_reason_contradiction() -> None:
     rows = _task_rows()
     rows[0]["close_reason"] = "phase bridge landing receipt=different-digest"
 
-    collected = collect_task(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(rows), "stage-1")
 
     assert collected.completion.verified is False
     assert "stage-close-reason-contradiction" in {
@@ -663,7 +687,7 @@ def test_completion_rejects_available_landing_record_contradiction(
     (runtime_root / "phase-bridge-landing.json").write_text(json.dumps(intent))
     (runtime_root / "phase-bridge-landing-receipt.json").write_text(json.dumps(receipt))
 
-    collected = collect_task(
+    collected = _collect(
         FakeReadClient(_task_rows()),
         "stage-1",
         runtime_roots={"root-2": runtime_root},
@@ -676,7 +700,7 @@ def test_completion_rejects_available_landing_record_contradiction(
 
 
 def test_task_report_is_partial_without_explicit_external_attribution() -> None:
-    collected = collect_task(FakeReadClient(_task_rows()), "stage-1")
+    collected = _collect(FakeReadClient(_task_rows()), "stage-1")
 
     report = build_task_report(collected, _pricebook(), normalize_standard=True)
 
@@ -699,7 +723,7 @@ def test_task_report_is_partial_without_explicit_external_attribution() -> None:
 
 def test_task_text_labels_explicit_as_of_as_api_estimate() -> None:
     report = build_task_report(
-        collect_task(FakeReadClient(_task_rows()), "stage-1"),
+        _collect(FakeReadClient(_task_rows()), "stage-1"),
         _pricebook(),
         as_of="2026-09-13",
     )
@@ -802,7 +826,7 @@ def test_strict_supplement_supplies_usage_and_explicit_coverage_basis() -> None:
     }
     supplement = UsageSupplement.model_validate(raw)
     collected = apply_supplement(
-        collect_task(FakeReadClient(_task_rows()), "stage-1"), supplement
+        _collect(FakeReadClient(_task_rows()), "stage-1"), supplement
     )
 
     report = build_task_report(collected, _pricebook(), normalize_standard=True)
@@ -815,7 +839,7 @@ def test_strict_supplement_supplies_usage_and_explicit_coverage_basis() -> None:
 def test_complete_external_declaration_preserves_unreadable_task_scope() -> None:
     rows = _task_rows()
     rows[0]["metadata"]["phase_bridge"] = {"invalid": "identity"}
-    collected = collect_task(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(rows), "stage-1")
     supplemented = apply_supplement(
         collected,
         UsageSupplement.model_validate(
@@ -884,7 +908,7 @@ def test_supplement_exact_duplicates_dedupe_and_conflicts_fail() -> None:
 def test_cohort_separates_failure_spend_and_zero_completion_nulls() -> None:
     complete = build_task_report(
         apply_supplement(
-            collect_task(FakeReadClient(_task_rows()), "stage-1"),
+            _collect(FakeReadClient(_task_rows()), "stage-1"),
             UsageSupplement.model_validate(
                 {
                     "schema": "task-cost-supplement/1",
@@ -904,7 +928,7 @@ def test_cohort_separates_failure_spend_and_zero_completion_nulls() -> None:
         normalize_standard=True,
     )
     incomplete = build_task_report(
-        collect_task(FakeReadClient(_task_rows(closed=False)), "stage-1"),
+        _collect(FakeReadClient(_task_rows(closed=False)), "stage-1"),
         _pricebook(),
         normalize_standard=True,
     )
@@ -937,7 +961,7 @@ def test_cohort_separates_failure_spend_and_zero_completion_nulls() -> None:
 def test_cohort_unions_parent_child_supplement_usage_identity() -> None:
     complete = build_task_report(
         apply_supplement(
-            collect_task(FakeReadClient(_task_rows()), "stage-1"),
+            _collect(FakeReadClient(_task_rows()), "stage-1"),
             UsageSupplement.model_validate(
                 {
                     "schema": "task-cost-supplement/1",
@@ -973,7 +997,7 @@ def test_cohort_unions_parent_child_supplement_usage_identity() -> None:
 
 def test_mixed_pricing_basis_is_explicit_in_cohort_json_and_text() -> None:
     collected = apply_supplement(
-        collect_task(FakeReadClient(_task_rows()), "stage-1"),
+        _collect(FakeReadClient(_task_rows()), "stage-1"),
         UsageSupplement.model_validate(
             {
                 "schema": "task-cost-supplement/1",
@@ -1140,7 +1164,7 @@ def test_codex_turn_totals_are_independent_deltas_across_counter_reset(
 
 
 def test_runtime_mapping_refuses_missing_root_without_raising(tmp_path: Path) -> None:
-    collected = collect_task(
+    collected = _collect(
         FakeReadClient(_task_rows()),
         "stage-1",
         runtime_roots={"root-1": tmp_path / "absent"},
@@ -1166,7 +1190,7 @@ def test_runtime_mapping_never_reads_a_symlink_escape(tmp_path: Path) -> None:
     (activation_dir / "run.jsonl").symlink_to(outside)
     (activation_dir / "launch-receipt.json").write_text("{}")
 
-    collected = collect_task(
+    collected = _collect(
         FakeReadClient(_task_rows()),
         "stage-1",
         runtime_roots={"root-1": runtime_root},
@@ -1235,7 +1259,7 @@ def test_supplement_cannot_hide_incomplete_raw_telemetry(tmp_path: Path) -> None
     rows = _task_rows()
     rows[2]["metadata"]["runner_profile"] = "claude"
     rows[2]["metadata"]["model"] = "claude-opus-5"
-    collected = collect_task(
+    collected = _collect(
         FakeReadClient(rows),
         "stage-1",
         runtime_roots={"root-1": runtime_root},
@@ -1267,7 +1291,7 @@ def test_runtime_mapping_refuses_an_oversized_exec_ledger(tmp_path: Path) -> Non
     activation_dir = _write_valid_runtime_activation(runtime_root)
     (activation_dir / "exec.ledger").write_text(" " * 513)
 
-    collected = collect_task(
+    collected = _collect(
         FakeReadClient(_task_rows()),
         "stage-1",
         runtime_roots={"root-1": runtime_root},
@@ -1326,7 +1350,7 @@ def test_runtime_mapping_never_reads_an_exec_ledger_symlink_escape(
     )
     (activation_dir / "exec.ledger").symlink_to(outside)
 
-    collected = collect_task(
+    collected = _collect(
         FakeReadClient(_task_rows()),
         "stage-1",
         runtime_roots={"root-1": runtime_root},
@@ -1376,7 +1400,10 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
     )
     fake_bd.chmod(0o755)
     repo = tmp_path / "repo"
-    repo.mkdir()
+    # A git entry and a ledger, because `costs` now opens the ledger `mode=ro`
+    # and REFUSES when there is none: a report that silently omitted every
+    # ledger-backed root would read like a task that cost nothing (§3.4).
+    (repo / ".git").mkdir(parents=True)
     wrapper_home = tmp_path / "wrapper"
     wrapper_root = (
         wrapper_home / hashlib.sha256(str(repo.resolve()).encode()).hexdigest()[:16]
@@ -1396,6 +1423,7 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
         f'wrapper_root = "{wrapper_root}"\n'
         'host = "fixture"\n'
     )
+    open_ledger(repo, wrapper_root).close()
     project_root = Path(__file__).resolve().parents[1]
     completed = subprocess.run(
         [
@@ -1442,3 +1470,62 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
     )
     assert "pricing basis: standard-rate-normalization" in text_completed.stdout
     assert "price snapshot: latest-available (2026-09-13)" in text_completed.stdout
+
+
+PRICES: Final[Path] = (
+    Path(__file__).resolve().parents[1] / "config/task-cost-prices-2026-09-13.json"
+)
+"""The shipped price book, so a CLI refusal test fails for its own reason."""
+
+
+def _costs_config(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """A foreman config over a fresh repository that has no ledger yet."""
+    from tests._ledger import config_file
+
+    return config_file(tmp_path)
+
+
+def test_costs_against_a_missing_ledger_creates_nothing(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """§3.4: a read-only command never writes, and never migrates.
+
+    `open_ledger` would have CREATED and migrated the database — writes, from
+    the one command the plan calls read-only — and the `is_file()` check that
+    guarded it could be invalidated between the answer and the open.
+    """
+    from workflow_interpreter.costs.__main__ import main
+    from workflow_interpreter.ledger.paths import ledger_path
+
+    config, repo_root, _ = _costs_config(tmp_path)
+
+    code = main(["--config", str(config), "--prices", str(PRICES), "task", "cr-3411.4"])
+
+    assert code == 2
+    assert "no ledger to read" in capsys.readouterr().err
+    assert not ledger_path(repo_root).exists()
+
+
+def test_costs_against_an_older_schema_refuses(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A schema this build does not know means columns that mean something else."""
+    from workflow_interpreter.costs.__main__ import main
+    from workflow_interpreter.ledger.database import connect
+    from workflow_interpreter.ledger.paths import ledger_path
+    from workflow_interpreter.ledger.schema import SCHEMA_VERSION
+
+    config, repo_root, _ = _costs_config(tmp_path)
+    path = ledger_path(repo_root)
+    behind = connect(path)
+    behind.execute("CREATE TABLE ancient (id TEXT PRIMARY KEY)")
+    behind.close()
+    before = path.read_bytes()
+
+    code = main(["--config", str(config), "--prices", str(PRICES), "task", "cr-3411.4"])
+
+    assert code == 2
+    message = capsys.readouterr().err
+    assert "never migrates" in message
+    assert str(SCHEMA_VERSION) in message
+    assert path.read_bytes() == before

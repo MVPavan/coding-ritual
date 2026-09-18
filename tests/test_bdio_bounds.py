@@ -11,6 +11,7 @@ import pytest
 from workflow_interpreter.bdio import bounds
 from workflow_interpreter.bdio.bounds import ActivationView, BoundKind
 from workflow_interpreter.bdio.errors import BoundEvaluationError
+from workflow_interpreter.bdio.records import RowRecord, parse_row
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
     BeadRecord,
@@ -58,14 +59,16 @@ def _view(
     )
 
 
-def _bead(bead_id: str, kind: WfKind, **metadata: object) -> BeadRecord:
-    """A bd row carrying only what the ceiling count reads."""
-    return BeadRecord(
-        id=bead_id,
-        title=bead_id,
-        status="open",
-        issue_type="task",
-        metadata={"wf_kind": kind.value} | metadata,
+def _bead(bead_id: str, kind: WfKind, **metadata: object) -> RowRecord:
+    """An instance row carrying only what the ceiling count reads."""
+    return parse_row(
+        BeadRecord(
+            id=bead_id,
+            title=bead_id,
+            status="open",
+            issue_type="task",
+            metadata={"wf_kind": kind.value} | metadata,
+        )
     )
 
 
@@ -168,8 +171,10 @@ def test_ceiling_count_includes_gates_and_unclassified_but_not_events() -> None:
         _bead("g", WfKind.GATE),
         _bead("e", WfKind.EVENT),
         _bead("r", WfKind.ROOT),
-        BeadRecord(
-            id="u", title="u", status="open", issue_type="task", metadata={"seq": 9}
+        parse_row(
+            BeadRecord(
+                id="u", title="u", status="open", issue_type="task", metadata={"seq": 9}
+            )
         ),
     )
     assert bounds.ceiling_count(beads) == 3

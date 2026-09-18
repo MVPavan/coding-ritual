@@ -75,6 +75,7 @@ def test_transition_gate_copies_source_round_and_verified_identity(
         Outcome.ACCEPT,
     )
     assert request.artifact_ref == "c" * 40
+    assert request.artifact_oid == "c" * 40
     assert request.artifact_digest == "t" * 40
     assert request.region == source.metadata.region
     assert request.round_no == source.metadata.round_no

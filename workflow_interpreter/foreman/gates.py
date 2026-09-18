@@ -110,6 +110,9 @@ def transition_gate(
         region=source.metadata.region,
         round_no=source.metadata.round_no,
         artifact_ref=artifact_ref,
+        # A transition gate binds a COMMIT, so the ref this gate carries is
+        # already the immutable object id (run-ledger §3.3 indexes both).
+        artifact_oid=artifact_ref,
         artifact_digest=artifact_digest,
     )
 
@@ -167,6 +170,7 @@ def effects_gate(
         region=source.metadata.region,
         round_no=source.metadata.round_no,
         artifact_ref=artifact.commit_oid,
+        artifact_oid=artifact.commit_oid,
         artifact_digest=artifact.tree_oid,
     )
 

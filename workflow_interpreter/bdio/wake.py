@@ -1,18 +1,17 @@
-"""Idempotent notification writes through the same guarded bd event transport."""
+"""Idempotent notification writes through the same guarded event surface."""
 
 from typing import Final
 
 from workflow_interpreter.bdio import reads
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.errors import BdioError, CarrierIntegrityError
+from workflow_interpreter.bdio.backend import StoreBackend
+from workflow_interpreter.bdio.errors import CarrierIntegrityError, StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
-from workflow_interpreter.bdio.records import parse_event
+from workflow_interpreter.bdio.records import RowRecord, parse_event, parse_row
+from workflow_interpreter.bdio.rows import NewRow, RowKind, RowQuery
 from workflow_interpreter.bdio.wire import (
     KEY_WF_KIND,
     KEY_WF_ROOT_ID,
-    BeadRecord,
     EventMetadata,
-    IssueType,
     WfKind,
     metadata_dict,
 )
@@ -25,7 +24,7 @@ FIRST_WAKE_SEQ: Final[int] = -1
 TITLE_WAKE: Final[str] = "wake {condition} {root_id}"
 
 
-def _existing(client: BdClient, root_id: str, event: WakeEvent) -> BeadRecord | None:
+def _existing(client: StoreBackend, root_id: str, event: WakeEvent) -> RowRecord | None:
     """Re-find and verify identical evidence, including after an ambiguous write."""
     found = reads.find_event(client, root_id, event.fire_key)
     if found is not None and parse_event(found) != event:
@@ -33,7 +32,9 @@ def _existing(client: BdClient, root_id: str, event: WakeEvent) -> BeadRecord | 
     return found
 
 
-def append_wake_event(client: BdClient, root_id: str, event: WakeEvent) -> BeadRecord:
+def append_wake_event(
+    client: StoreBackend, root_id: str, event: WakeEvent
+) -> RowRecord:
     """Append a notification without a mint, gate close, nonce or budget mutation."""
     event = WakeEvent.model_validate(event.model_dump())
     root = reads.load_root(client, root_id)
@@ -58,13 +59,15 @@ def append_wake_event(client: BdClient, root_id: str, event: WakeEvent) -> BeadR
             0,
             min(
                 (
-                    EventMetadata.model_validate(bead.metadata).seq
-                    for bead in client.list_beads(
-                        metadata_filters={
-                            KEY_WF_ROOT_ID: root_id,
-                            KEY_WF_KIND: WfKind.EVENT.value,
-                        },
-                        issue_type=IssueType.EVENT,
+                    EventMetadata.model_validate(row.metadata).seq
+                    for row in client.find_rows(
+                        RowQuery(
+                            metadata_filters={
+                                KEY_WF_ROOT_ID: root_id,
+                                KEY_WF_KIND: WfKind.EVENT.value,
+                            },
+                            kind=RowKind.EVENT,
+                        )
                     )
                 ),
                 default=0,
@@ -73,13 +76,19 @@ def append_wake_event(client: BdClient, root_id: str, event: WakeEvent) -> BeadR
         + FIRST_WAKE_SEQ,
     )
     try:
-        return client._create_bead(
-            title=TITLE_WAKE.format(condition=event.condition.value, root_id=root_id),
-            metadata=metadata_dict(metadata),
-            issue_type=IssueType.EVENT,
-            event_payload=metadata_dict(event),
+        return parse_row(
+            client._create_row(
+                NewRow(
+                    summary=TITLE_WAKE.format(
+                        condition=event.condition.value, root_id=root_id
+                    ),
+                    metadata=metadata_dict(metadata),
+                    kind=RowKind.EVENT,
+                    payload=metadata_dict(event),
+                )
+            )
         )
-    except BdioError:
+    except StoreError:
         existing = _existing(client, root_id, event)
         if existing is not None:
             return existing

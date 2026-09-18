@@ -6,14 +6,15 @@ import hashlib
 from collections.abc import Mapping
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import Any, Protocol, cast
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
 
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackendFactory
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.reads import find_roots, list_activations
 from workflow_interpreter.bdio.records import ActivationRecord
+from workflow_interpreter.bdio.rows import StoreRow
 from workflow_interpreter.bdio.wire import BeadRecord, Lifecycle
 from workflow_interpreter.bridge.adapter import MSG_CLOSE_REASON
 from workflow_interpreter.bridge.landing import (
@@ -41,7 +42,12 @@ EXTERNAL_ATTRIBUTION_SCOPE_GAP = (
 
 
 class ReadClient(Protocol):
-    """The BdClient read subset used by task-cost collection."""
+    """The TASK BEAD read subset used by task-cost collection.
+
+    The task bead stays bd (§3.2 authoritative writes), so this stays a bead
+    surface. Roots and activations do NOT: they live on whichever backend the
+    bridge record pinned, and they are read through a factory instead.
+    """
 
     def show(self, bead_id: str) -> BeadRecord:
         """Return one bead row."""
@@ -115,21 +121,29 @@ def collect_task(
     client: ReadClient,
     stage_id: str,
     *,
+    backends: StoreBackendFactory,
     runtime_roots: Mapping[str, Path] | None = None,
     max_log_bytes: int = 32 * 1024 * 1024,
     max_log_events: int = 100_000,
 ) -> TaskCollection:
-    """Collect one explicit stage without invoking a write, launch, or network call."""
+    """Collect one explicit stage without invoking a write, launch, or network call.
+
+    `backends` resolves the root store from the bridge record's pin (§3.2):
+    costs is read-only, but it has to read from the SAME place the run wrote,
+    and asking bd about a ledger-backed attempt would report it as missing
+    rather than as unreadable.
+    """
     stage = client.show(stage_id)
     diagnostics: list[Diagnostic] = []
     try:
         bridge = PhaseBridgeRecord.model_validate(stage.metadata.get("phase_bridge"))
     except ValidationError:
         return _unreadable_task(stage_id, "phase bridge metadata is invalid")
+    roots_store = backends(bridge.root_backend)
     if bridge.stage_id != stage_id:
         return _unreadable_task(stage_id, "phase bridge names a different stage")
 
-    root_rows: list[tuple[int, bool, BeadRecord]] = []
+    root_rows: list[tuple[int, bool, StoreRow]] = []
     expected_keys = (*bridge.previous_attempts, bridge.instance_key)
     expected_template = (
         f"phase-bridge:{bridge.epic_id}:{bridge.stage_id}:attempt:" + "{attempt}"
@@ -145,7 +159,7 @@ def collect_task(
                 )
             )
             roots_valid = False
-        found = find_roots(cast(BdClient, client), instance_key)
+        found = find_roots(roots_store, instance_key)
         if len(found) != 1:
             diagnostics.append(
                 Diagnostic(
@@ -249,7 +263,7 @@ def collect_task(
     usage_complete = True
     for _, _, root_row in sorted(root_rows, key=lambda item: item[0]):
         try:
-            activations = list_activations(cast(BdClient, client), root_row.id)
+            activations = list_activations(roots_store, root_row.id)
         except CarrierIntegrityError:
             diagnostics.append(
                 Diagnostic(

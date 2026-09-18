@@ -18,22 +18,60 @@ is always safe and always converges.
 
 from __future__ import annotations
 
-from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
-from workflow_interpreter.bdio.wire import BeadRecord
+from collections.abc import Callable
+from typing import Protocol
+
+from workflow_interpreter.bdio.backend import StoreBackend
+from workflow_interpreter.bdio.client import STATUS_CLOSED
+from workflow_interpreter.bdio.records import (
+    ActivationRecord,
+    GateRecord,
+    RootRecord,
+)
+from workflow_interpreter.bdio.rows import StoreRow
 
 
-def is_finished(bead: BeadRecord, reason: str) -> bool:
-    """Whether the bd side of this transition already landed exactly."""
-    return bead.status == STATUS_CLOSED and bead.close_reason == reason
+class ClosableRow(Protocol):
+    """The identity a repair-forward close needs.
+
+    A `Protocol` rather than `StoreRow`, so the parsed records can be closed
+    without carrying the backend row they were parsed from (§3.1).
+    """
+
+    id: str
+    status: str
+    close_reason: str | None
 
 
-def close_forward(client: BdClient, bead: BeadRecord, reason: str) -> BeadRecord:
-    """Drive this bead's close to completion, idempotently.
+def is_finished(row: ClosableRow, reason: str) -> bool:
+    """Whether the durable side of this transition already landed exactly."""
+    return row.status == STATUS_CLOSED and row.close_reason == reason
+
+
+def close_forward(client: StoreBackend, row: StoreRow, reason: str) -> StoreRow:
+    """Drive this row's close to completion, idempotently.
 
     A no-op when the close already landed with this reason; otherwise it
     re-drives `bd close`, which is how a half-finished transition — ours or a
     previous tick's — reaches the state its carrier already claims.
     """
-    if is_finished(bead, reason):
-        return bead
-    return client._close_bead(bead.id, reason)
+    if is_finished(row, reason):
+        return row
+    return client._close_row(row.id, reason)
+
+
+def close_record_forward[RecordT: (ActivationRecord, GateRecord, RootRecord)](
+    client: StoreBackend,
+    record: RecordT,
+    reason: str,
+    parse: Callable[[StoreRow], RecordT],
+) -> RecordT:
+    """Drive a parsed record's close to completion, idempotently.
+
+    The record already carries the status the decision needs, so the finished
+    case costs no call and no re-parse — exactly what passing the backend row
+    used to buy, without the row (§3.1).
+    """
+    if is_finished(record, reason):
+        return record
+    return parse(client._close_row(record.id, reason))

@@ -52,6 +52,7 @@ from workflow_interpreter.foreman.gates import (
     transition_gate,
 )
 from workflow_interpreter.foreman.inputs import select_bindings
+from workflow_interpreter.foreman.ledger_render import bind_render
 from workflow_interpreter.foreman.routing import RouteKind, retry_kind, route
 from workflow_interpreter.foreman.supervise import wrapper_alive
 from workflow_interpreter.foreman.verify_feedback import bind_feedback
@@ -104,8 +105,7 @@ def intake_all(
             for gate in gates
             if gate.metadata.state is GateState.OPEN
             or (
-                gate.metadata.state is GateState.CLOSED
-                and gate.bead.status != STATUS_CLOSED
+                gate.metadata.state is GateState.CLOSED and gate.status != STATUS_CLOSED
             )
         ),
         key=lambda gate: (gate.metadata.gate_node != HALT_NODE, gate.metadata.seq),
@@ -229,6 +229,10 @@ def _mint_successor(
         round_no=round_no,
     )
     request = bind_feedback(composition.git, wiring, root, request, composition.clock)
+    # After the feedback pin and before the mint, for the same reason: the
+    # render an activation is recorded as reading must already be a git object
+    # (run-ledger §3.7).
+    request = bind_render(composition.git, wiring, root, request, round_no=round_no)
     try:
         minted = wiring.store.mint_activation(root.root_id, request).activation
     except BoundExceededError as exc:

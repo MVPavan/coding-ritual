@@ -231,6 +231,7 @@ def test_real_beads_successor_intent_receipt_roundtrip(
         instance_inputs={},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     request = TrustedReplacementRequest(
         request_key="durable", reason="new instructions", graph=str(lab._toml)
@@ -437,6 +438,7 @@ def test_second_key_after_reservation_crash_cannot_poison_original(
         instance_inputs={},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     store = lab.store.coordination_store(composition=composition)
     if slot == "child":

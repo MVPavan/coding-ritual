@@ -34,18 +34,24 @@ bd offers no compare-and-set, so three things replace one:
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable, Sequence
+from datetime import UTC, datetime
 from typing import Final
 
 import structlog
 
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
+from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     LifecycleConflictError,
+    StoreBusyRefusal,
+    StoreError,
 )
-from workflow_interpreter.bdio.finalize import close_forward
+from workflow_interpreter.bdio.finalize import close_record_forward
 from workflow_interpreter.bdio.records import ActivationRecord, parse_activation
+from workflow_interpreter.bdio.rows import StoreRow
 from workflow_interpreter.bdio.wire import (
     KEY_LIFECYCLE,
     ActivationMetadata,
@@ -88,6 +94,13 @@ _MSG_SESSION_DRIFT: Final[str] = (
     "this dispatch carries {found!r}; renaming it would point every "
     "continuation and infra retry at a session the child never ran (§5.2)"
 )
+_CONTENTION_ATTEMPTS: Final[int] = 4
+"""How many times the refusal RECORD itself is retried. Bounded, because the
+recording is a second write into the same contended store: §3.4.6 refuses the
+transition rather than looping, and the note about it must not loop either."""
+_CONTENTION_PAUSE_S: Final[float] = 0.05
+_FIELD_DEVIATIONS: Final[str] = "deviations"
+
 _MSG_CLOSE_PAYLOAD: Final[str] = (
     "activation {activation_id} is already closed {outcome}; this close "
     "carries a different {field}, which the recorded close would silently drop "
@@ -206,7 +219,7 @@ def assert_close_payload(
 
 
 def apply(
-    client: BdClient,
+    client: StoreBackend,
     load: ActivationLoader,
     activation_id: str,
     *,
@@ -229,22 +242,103 @@ def apply(
     a settled outcome, whatever the caller checked before the round-trip.
     """
     fresh = load(activation_id)
-    assert_not_settled(fresh, lifecycle)
-    if fresh.metadata.lifecycle not in allowed:
-        raise LifecycleConflictError(
-            _MSG_RACED.format(
-                activation_id=activation_id,
-                found=fresh.metadata.lifecycle.value,
-                wanted=lifecycle.value,
-            )
-        )
+    _assert_appliable(fresh, lifecycle, allowed)
     owned: dict[str, object] = {KEY_LIFECYCLE: lifecycle, **changes}
     metadata = fresh.metadata.model_copy(update=owned)
-    merged = client._merge_metadata(activation_id, _delta(metadata, owned))
+
+    def guard(row: StoreRow) -> None:
+        """Re-assert the same two rules against the row being written.
+
+        Handed to the backend rather than run here so that a backend which
+        can transact makes the read, the check and the write ONE operation
+        (§3.3) — closing the window `apply`'s own fresh read can only narrow.
+        """
+        _assert_appliable(parse_activation(row), lifecycle, allowed)
+
+    try:
+        merged = client._merge_metadata(
+            activation_id, _delta(metadata, owned), guard=guard
+        )
+    except StoreBusyRefusal as refusal:
+        # §3.4.6: the store REFUSES rather than retrying, and the refusal is
+        # recorded on the activation it happened to — this is the boundary that
+        # knows which activation that is.
+        record_contention(client, load, activation_id, refusal)
+        raise
     return repair_forward(client, parse_activation(merged))
 
 
-def repair_forward(client: BdClient, record: ActivationRecord) -> ActivationRecord:
+def record_contention(
+    client: StoreBackend,
+    load: ActivationLoader,
+    activation_id: str,
+    refusal: StoreBusyRefusal,
+) -> ActivationRecord | None:
+    """Note a contention refusal on the activation, once contention clears.
+
+    The write that was refused is NOT retried — that is the whole point of
+    §3.4.6 — but the fact that it was refused is durable, beside the other
+    tier-2 deviations of the same activation. The note itself is contended by
+    definition, so it is attempted a bounded number of times and then given up
+    on with a log line: an unrecorded note must never be what blocks a caller
+    from learning it was refused.
+    """
+    _LOG.warning(
+        "wf.activation.store_busy_refused",
+        activation_id=activation_id,
+        detail=str(refusal),
+    )
+    for attempt in range(_CONTENTION_ATTEMPTS):
+        try:
+            return _record_deviation(client, load, activation_id, refusal)
+        except StoreError:
+            time.sleep(_CONTENTION_PAUSE_S)
+    _LOG.warning(
+        "wf.activation.refusal_unrecorded",
+        activation_id=activation_id,
+        attempts=_CONTENTION_ATTEMPTS,
+    )
+    return None
+
+
+def _record_deviation(
+    client: StoreBackend,
+    load: ActivationLoader,
+    activation_id: str,
+    refusal: StoreBusyRefusal,
+) -> ActivationRecord:
+    """Append one contention deviation to the activation's recorded ones."""
+    record = load(activation_id)
+    deviation = Deviation(
+        kind=DEVIATION_STORE_BUSY,
+        reason=str(refusal),
+        recorded_at=datetime.now(tz=UTC).isoformat(),
+    )
+    metadata = record.metadata.model_copy(
+        update={_FIELD_DEVIATIONS: (*record.metadata.deviations, deviation)}
+    )
+    merged = client._merge_metadata(
+        activation_id, _delta(metadata, {_FIELD_DEVIATIONS: deviation})
+    )
+    return parse_activation(merged)
+
+
+def _assert_appliable(
+    record: ActivationRecord, lifecycle: Lifecycle, allowed: frozenset[Lifecycle]
+) -> None:
+    """The two rules every transition is legal under: not settled, and allowed."""
+    assert_not_settled(record, lifecycle)
+    if record.metadata.lifecycle not in allowed:
+        raise LifecycleConflictError(
+            _MSG_RACED.format(
+                activation_id=record.activation_id,
+                found=record.metadata.lifecycle.value,
+                wanted=lifecycle.value,
+            )
+        )
+
+
+def repair_forward(client: StoreBackend, record: ActivationRecord) -> ActivationRecord:
     """Restore the terminal lifecycle a losing race wrote over (§5.1, §3.3).
 
     A transition whose merge landed after a concurrent close leaves a recorded
@@ -272,9 +366,25 @@ def repair_forward(client: BdClient, record: ActivationRecord) -> ActivationReco
     )
 
 
-def finish(client: BdClient, record: ActivationRecord, reason: str) -> ActivationRecord:
-    """Drive this activation's bd close to completion, idempotently."""
-    return parse_activation(close_forward(client, record.bead, reason))
+def finish(
+    client: StoreBackend,
+    load: ActivationLoader,
+    record: ActivationRecord,
+    reason: str,
+) -> ActivationRecord:
+    """Drive this activation's close to completion, idempotently.
+
+    The close is a store write like the merge before it, so §3.4.6 refuses it
+    under contention — and the refusal is recorded on the activation the same
+    way, through the same bounded recorder. Without that, contention during the
+    SECOND write of a terminal transition left the row carrying no trace of why
+    a close its caller saw raise never landed.
+    """
+    try:
+        return close_record_forward(client, record, reason, parse_activation)
+    except StoreBusyRefusal as refusal:
+        record_contention(client, load, record.activation_id, refusal)
+        raise
 
 
 def _delta(metadata: ActivationMetadata, owned: dict[str, object]) -> Metadata:
@@ -306,5 +416,6 @@ __all__ = [
     "assert_same",
     "assert_same_session",
     "finish",
+    "record_contention",
     "repair_forward",
 ]

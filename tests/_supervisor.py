@@ -25,7 +25,7 @@ import subprocess
 import time
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict
@@ -80,6 +80,10 @@ IMPLEMENT: Final[str] = "implement"
 REVIEW: Final[str] = "review"
 VERIFY_SCRIPT: Final[str] = "scripts/verify-feature.sh"
 REVIEW_SCRIPT: Final[str] = "scripts/review-checks.sh"
+DEBRIEF_SCRIPT: Final[str] = "scripts/verify-debrief.sh"
+DEBRIEF: Final[str] = "debrief"
+DEBRIEF_MARKER: Final[str] = '{"outcome":"no_diff"}\n'
+NO_EFFECTS: Final[str] = '{"paths":[]}'
 SHELL: Final[str] = "/bin/sh"
 GIT_TIMEOUT_S: Final[float] = 60.0
 
@@ -221,7 +225,7 @@ def make_repo(tmp_path: Path, name: str = "repo") -> Path:
     _git(repo, "config", "commit.gpgsign", "false")
     (repo / "scripts").mkdir(exist_ok=True)
     (repo / "src").mkdir(exist_ok=True)
-    for script in (VERIFY_SCRIPT, REVIEW_SCRIPT):
+    for script in (VERIFY_SCRIPT, REVIEW_SCRIPT, DEBRIEF_SCRIPT):
         path = repo / script
         path.write_text(PASSING_SCRIPT, encoding="utf-8")
         path.chmod(0o755)
@@ -526,6 +530,11 @@ class ChildScript(BaseModel):
     write_path: str | None = None
     """One worktree-relative file written by the child for artifact drills."""
     write_body: str = ""
+    write_files: tuple[tuple[str, str], ...] = ()
+    """Further worktree-relative `(path, body)` files, parents created.
+
+    A debrief writes three files into one directory, which a single
+    `write_path` cannot express."""
     commit: bool = False
     """Commit the written artifact with the wrapper's runner identity."""
     artifact_path: str | None = None
@@ -567,10 +576,18 @@ class ChildScript(BaseModel):
             lines.append(
                 f"printf %s {_quote(self.write_body)} > {_quote(self.write_path)}"
             )
+        for path, body in self.write_files:
+            lines.append(f"mkdir -p -- {_quote(str(PurePosixPath(path).parent))}")
+            lines.append(f"printf %s {_quote(body)} > {_quote(path)}")
         if self.commit:
-            if self.write_path is None:
-                raise ValueError("a committing ChildScript needs a write_path")
-            lines.append(f"git add -- {_quote(self.write_path)}")
+            written = [
+                *([] if self.write_path is None else [self.write_path]),
+                *(path for path, _ in self.write_files),
+            ]
+            if not written:
+                raise ValueError("a committing ChildScript needs something written")
+            for path in written:
+                lines.append(f"git add -- {_quote(path)}")
             lines.append("git commit --quiet -m 'runner artifact'")
         if self.artifact_path is not None:
             destination = f'"$WF_ARTIFACT_DIR"/{_quote(self.artifact_path)}'

@@ -12,7 +12,7 @@ from pydantic import ValidationError
 if TYPE_CHECKING:
     from workflow_interpreter.schema.decisions import MemberAdmission
 
-from workflow_interpreter.bdio.errors import BdioError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.records import ActivationRecord
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.heartbeat import DriverObserver
@@ -34,7 +34,7 @@ from workflow_interpreter.supervisor.paths import ExecLedger, read_record, write
 def finish_cancel(
     composition: Composition, owner: str, row: ChildRecord
 ) -> CancellationReceipt:
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(owner, composition=composition)
     assert row.cancellation is not None
     if row.cancellation.state == "cancelled":
         record_late_evidence(composition, row.root_id)
@@ -107,7 +107,7 @@ def finish_cancel(
         CoordinationError,
         ValidationError,
         SupervisorError,
-        BdioError,
+        StoreError,
         OSError,
     ) as exc:
         pending = True
@@ -137,7 +137,7 @@ def finish_cancel(
 def recover(
     composition: Composition, owner: str, row: ChildRecord
 ) -> ChildCoordinationView:
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(owner, composition=composition)
     if row.cancellation is not None:
         finish_cancel(composition, owner, row)
     elif row.collection is None:
@@ -165,7 +165,7 @@ def collect(
     from workflow_interpreter.bdio import Lifecycle, Outcome
     from workflow_interpreter.schema.decisions import digest_record
 
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(owner, composition=composition)
     # Owner-before-member for the final immutable receipt transition.
     with (
         coordinator._locked(owner),
@@ -184,10 +184,10 @@ def collect(
         gates = wiring.store.reads.list_gates(row.root_id)
         if (
             not terminal
-            or root.bead.status != "closed"
+            or root.status != "closed"
             or latest is None
             or latest.metadata.lifecycle is not Lifecycle.CLOSED
-            or any(g.bead.status != "closed" for g in gates)
+            or any(g.status != "closed" for g in gates)
         ):
             raise CoordinationError("child is not settled")
         if (
@@ -315,13 +315,14 @@ def observe(
     """Bounded evidence pointers from authoritative local lifecycle reads."""
     if row.cancellation is not None or row.collection is not None:
         return row
-    root = composition.store.reads.load_root(row.root_id)
+    reads = composition.reads_for_root(row.root_id)
+    root = reads.load_root(row.root_id)
     if activations is None:
-        activations = composition.store.reads.list_activations(row.root_id)
+        activations = reads.list_activations(row.root_id)
     latest = max(activations, key=lambda a: a.metadata.seq, default=None)
     row = refresh_control_attention(row, activations)
-    gates = composition.store.reads.list_gates(row.root_id)
-    waiting = next((g for g in gates if g.bead.status != "closed"), None)
+    gates = reads.list_gates(row.root_id)
+    waiting = next((g for g in gates if g.status != "closed"), None)
     changes: dict[str, object] = {
         "terminal": root.metadata.terminal,
         "state": "settled"
@@ -364,7 +365,9 @@ def attention_blocks(
     if row.attention_source == "decision":
         return True
     if activations is None:
-        activations = composition.store.reads.list_activations(row.root_id)
+        activations = composition.reads_for_root(row.root_id).list_activations(
+            row.root_id
+        )
     row = refresh_control_attention(row, activations)
     return row.attention is not None and not set(row.attention.split("; ")).issubset(
         control_keys(activations)
@@ -379,7 +382,7 @@ def drive(
 
     from workflow_interpreter.foreman.tick import Foreman
 
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(owner, composition=composition)
     count = len(coordinator.child_status(owner).children)
     if type(max_concurrent) is not int or not 1 <= max_concurrent <= count:
         raise CoordinationError(
@@ -395,7 +398,9 @@ def drive(
         while time.monotonic() < deadline:
             children = coordinator.state(owner).children
             snapshots = {
-                row.root_id: composition.store.reads.list_activations(row.root_id)
+                row.root_id: composition.reads_for_root(row.root_id).list_activations(
+                    row.root_id
+                )
                 for row in children.values()
                 if row.cancellation is None and row.collection is None
             }
@@ -470,7 +475,7 @@ def drive(
                     CoordinationError,
                     ValidationError,
                     OSError,
-                    BdioError,
+                    StoreError,
                     SupervisorError,
                 ) as exc:
                     current = coordinator.child_record(owner, row.slot, row.generation)
@@ -551,7 +556,9 @@ def command(composition: Composition, args: object) -> str:
 
     if not isinstance(args, Namespace):
         raise CoordinationError("invalid child command")
-    coordinator = composition.store.coordination_store(composition=composition)
+    coordinator = composition.coordination_for_root(
+        args.owner_id, composition=composition
+    )
     name = args.child_command
     if name == "replace":
         from workflow_interpreter.foreman.replacement import replace_checked
@@ -578,7 +585,7 @@ def command(composition: Composition, args: object) -> str:
             composition, args.graph, args.slot, _instance_inputs(args.input)
         )
         receipt = coordinator.start_child(args.owner_id, args.slot, admission)
-        root = composition.store.reads.load_root(receipt.root_id)
+        root = composition.reads_for_root(receipt.root_id).load_root(receipt.root_id)
         return json.dumps(
             {
                 "receipt": receipt.model_dump(mode="json"),
@@ -649,11 +656,11 @@ def record_late_evidence(composition: Composition, root_id: str) -> None:
     from workflow_interpreter.bdio import Lifecycle
     from workflow_interpreter.supervisor.models import CompletionEvidence
 
-    root = composition.store.reads.load_root(root_id)
+    root = composition.reads_for_root(root_id).load_root(root_id)
     link = root.metadata.coordination
     if link is None:
         return
-    row = composition.store.coordination_store().child_for_root(root)
+    row = composition.coordination_for_root(link.owner_id).child_for_root(root)
     if row is None or row.cancellation is None:
         return
     wiring = composition.for_root(root_id)
@@ -674,7 +681,7 @@ def active_slots(
     """Count launch intents too, including decision tasks and pending cancellation."""
     from workflow_interpreter.bdio import Lifecycle
 
-    state = composition.store.coordination_store().state(owner)
+    state = composition.coordination_for_root(owner).state(owner)
     active: set[str] = set()
     for row in rows:
         if row.state in ("cancelled", "collected"):
@@ -690,7 +697,7 @@ def active_slots(
         if any(
             a.metadata.lifecycle in (Lifecycle.MINTED, Lifecycle.DISPATCHED)
             for root_id in members
-            for a in composition.store.reads.list_activations(root_id)
+            for a in composition.reads_for_root(root_id).list_activations(root_id)
         ):
             active.add(row.slot)
     return active

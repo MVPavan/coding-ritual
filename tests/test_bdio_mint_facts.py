@@ -32,9 +32,9 @@ from workflow_interpreter import GraphDefinition
 from workflow_interpreter.bdio import bounds, mint
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import (
-    BdConfigError,
     BoundExceededError,
     CarrierIntegrityError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.records import ActivationRecord
 from workflow_interpreter.bdio.wire import (
@@ -584,7 +584,7 @@ def test_without_a_branch_head_reader_the_mint_refuses(
     # the caller, so a store with no way to resolve it cannot mint at all.
     store = WorkflowStore(fake_client)
     root = make_root(store, definition)
-    with pytest.raises(BdConfigError, match="branch_head_reader"):
+    with pytest.raises(StoreConfigError, match="branch_head_reader"):
         store.mint_activation(root.root_id, entry_request())
 
 

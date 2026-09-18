@@ -7,11 +7,11 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from workflow_interpreter.bdio import bounds, reads
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import (
-    BdioError,
     BoundExceededError,
     CarrierIntegrityError,
+    StoreError,
 )
 from workflow_interpreter.bdio.mint import views_of
 from workflow_interpreter.bdio.rpc_records import (
@@ -34,7 +34,7 @@ from workflow_interpreter.contracts.rpc_control import (
 )
 
 
-class ControlBusy(BdioError):
+class ControlBusy(StoreError):
     """Another host writer holds the control list; retry without blocking RPC."""
 
 
@@ -59,7 +59,7 @@ def _guard(registration: SessionRegistration) -> Iterator[None]:
 
 
 def _reserve(
-    client: BdClient,
+    client: StoreBackend,
     reader: reads.WorkflowReads,
     activation_id: str,
     registration: SessionRegistration,
@@ -76,7 +76,7 @@ def _reserve(
     ):
         raise CarrierIntegrityError(MSG_CONTROL)
     root = reader.load_root(meta.wf_root_id)
-    beads = reader.instance_beads(root.root_id)
+    beads = reader.instance_records(root.root_id)
     limit = bounds.effective_bound(
         root, reads.gates_of(beads), BoundSetting.MAX_STEERS, meta.node
     )
@@ -110,7 +110,7 @@ def _reserve(
 
 
 def _record_state(
-    client: BdClient,
+    client: StoreBackend,
     reader: reads.WorkflowReads,
     activation_id: str,
     control: ControlRegistration,
@@ -175,7 +175,7 @@ def _record_state(
 
 
 def reserve(
-    client: BdClient,
+    client: StoreBackend,
     reader: reads.WorkflowReads,
     activation_id: str,
     registration: SessionRegistration,
@@ -191,7 +191,7 @@ def reserve(
 
 
 def record_state(
-    client: BdClient,
+    client: StoreBackend,
     reader: reads.WorkflowReads,
     activation_id: str,
     control: ControlRegistration,

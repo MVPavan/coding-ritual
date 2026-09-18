@@ -10,9 +10,13 @@ from pydantic import ValidationError
 from workflow_interpreter.bdio import finalize
 from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
 from workflow_interpreter.bdio.config import BdConfig
-from workflow_interpreter.bdio.reads import find_roots
+from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.bdio.wire import BeadRecord, Metadata
-from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
+from workflow_interpreter.bridge.models import (
+    MSG_BACKEND_IMMUTABLE,
+    PhaseBridgeRecord,
+    PhaseBridgeState,
+)
 
 if TYPE_CHECKING:
     from workflow_interpreter.bridge.integration import IntegrationGuard
@@ -41,6 +45,10 @@ MSG_STORED_RECORD_UNREADABLE: Final[str] = (
     "stored phase bridge record is unreadable: {reason}"
 )
 MSG_CLOSE_REASON: Final[str] = "phase bridge landing receipt={digest}"
+MSG_NO_EXPORT_OID: Final[str] = (
+    "stage {stage_id!r} cannot close without export_oid: a task must have its "
+    "whole record pinned in git before its bead closes (run-ledger §3.6)"
+)
 STATUS_CLOSED: Final[str] = "closed"
 
 
@@ -51,14 +59,23 @@ class PhaseAdapterError(ValueError):
 class PhaseAdapter:
     """Perform only fixed Beads operations needed to admit one named stage."""
 
-    def __init__(self, client: BdClient) -> None:
+    def __init__(self, client: BdClient, reads: WorkflowReads | None = None) -> None:
         self._client = client
+        self._reads = WorkflowReads(client) if reads is None else reads
         self.integration_guard: IntegrationGuard | None = None
 
     @classmethod
-    def from_config(cls, config: BdConfig) -> PhaseAdapter:
-        """Build the bridge's read/write adapter without exposing bd transport."""
-        return cls(BdClient(config))
+    def from_config(
+        cls, config: BdConfig, reads: WorkflowReads | None = None
+    ) -> PhaseAdapter:
+        """Build the bridge's read/write adapter without exposing bd transport.
+
+        `reads` is the store the engine's roots live in. The adapter owns the
+        TASK bead (§3.2 authoritative writes) and nothing else, so a root
+        lookup is somebody else's read; without one injected it falls back to
+        its own transport, which is the same store today.
+        """
+        return cls(BdClient(config), reads)
 
     def guard_integration(
         self, record: PhaseBridgeRecord, *, post_cas: bool = False
@@ -134,7 +151,7 @@ class PhaseAdapter:
 
     def owns_root(self, instance_key: str, root_id: str) -> bool:
         """Require a uniquely persisted root, not an inferred key-shaped owner."""
-        roots = find_roots(self._client, instance_key)
+        roots = self._reads.roots_by_instance_key(instance_key)
         return (
             len(roots) == 1
             and roots[0].id == root_id
@@ -142,8 +159,8 @@ class PhaseAdapter:
         )
 
     def has_root(self, instance_key: str) -> bool:
-        """Report whether raw durable evidence exists for one bridge identity."""
-        return bool(find_roots(self._client, instance_key))
+        """Report whether durable evidence exists for one bridge identity."""
+        return bool(self._reads.roots_by_instance_key(instance_key))
 
     def prepare(self, stage_id: str, record: PhaseBridgeRecord) -> PhaseBridgeRecord:
         """Persist and read back a complete pre-claim admission intent."""
@@ -204,9 +221,18 @@ class PhaseAdapter:
     def close(
         self, stage_id: str, record: PhaseBridgeRecord, receipt_digest: str
     ) -> PhaseBridgeRecord:
-        """Close and read back a stage whose durable relation names its receipt."""
+        """Close and read back a stage whose durable relation names its receipt.
+
+        §3.6: the bead is closed immediately after the metadata merge below,
+        so a record with no `export_oid` would close a task whose record only
+        `.wf/` holds — and `git clean` can delete that. The refusal is here,
+        at the one write that closes, rather than at the composition that
+        called it.
+        """
         self._assert_stage(stage_id, record)
         self._assert_state(record, PhaseBridgeState.CLOSED, MSG_WRONG_INCOMING_STATE)
+        if record.export_oid is None:
+            raise PhaseAdapterError(MSG_NO_EXPORT_OID.format(stage_id=stage_id))
         self.guard_integration(record, post_cas=True)
         if record.landing_receipt_digest != receipt_digest:
             raise PhaseAdapterError("close receipt does not match landed relation")
@@ -253,8 +279,21 @@ class PhaseAdapter:
     def _assert_prepare_shape(
         stored: PhaseBridgeRecord, incoming: PhaseBridgeRecord
     ) -> None:
-        """Allow only exact recovery or one non-closed successor journal."""
+        """Allow only exact recovery or one non-closed successor journal.
+
+        A SUCCESSOR may change `root_backend`, because a new attempt root is
+        exactly what the `store` switch applies to (D18); re-preparing THIS
+        attempt may not, because its root may already exist on the backend the
+        stored record pinned (§3.2).
+        """
         if incoming.attempt == stored.attempt:
+            if incoming.root_backend is not stored.root_backend:
+                raise PhaseAdapterError(
+                    MSG_BACKEND_IMMUTABLE.format(
+                        stored=stored.root_backend.value,
+                        incoming=incoming.root_backend.value,
+                    )
+                )
             if stored.state is not PhaseBridgeState.PREPARED:
                 raise PhaseAdapterError(
                     MSG_IDEMPOTENT_STATE.format(actual=stored.state.value)

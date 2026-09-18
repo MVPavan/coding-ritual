@@ -1,8 +1,11 @@
-"""Typed failures of the bd write boundary (spec v0.3 §0 threat model).
+"""Typed failures of the store boundary (spec v0.3 §0 threat model).
 
 Every failure of the typed wrapper is one of these; a caller never sees a raw
-`subprocess` or `json` exception. The hierarchy is flat on purpose — the
-foreman routes on the class, not on a message.
+`subprocess` or `json` exception. The names above the seam are backend-neutral
+— `StoreError` and its neutral subclasses — so a caller routes on what went
+wrong, never on which backend it happened in. The backend-specific shapes
+(`BdCommandError` and its siblings) stay under `StoreTransportError`, which is
+the only name a caller above the seam is allowed to catch.
 """
 
 from __future__ import annotations
@@ -15,20 +18,40 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard for type checking onl
 
 _MSG_COMMAND: Final[str] = "bd {subcommand} failed (exit {returncode}): {stderr}"
 _MSG_TIMEOUT: Final[str] = "bd {subcommand} exceeded its {timeout_s}s timeout"
+_MSG_UNAVAILABLE: Final[str] = "bd {subcommand} could not be run: {reason}"
 _MSG_FORBIDDEN: Final[str] = (
     "refused to construct a bd invocation outside the closed command set: {detail}"
 )
 
 
-class BdioError(Exception):
-    """Base class for every failure raised by the typed bd wrapper."""
+class StoreError(Exception):
+    """Base class for every failure raised by the workflow store."""
 
 
-class BdConfigError(BdioError):
+class StoreConfigError(StoreError):
     """Injected configuration is unusable (missing path, workspace overlap)."""
 
 
-class BdCommandError(BdioError):
+class StoreTransportError(StoreError):
+    """The backend's transport failed; its shape is the backend's private detail.
+
+    Above the seam this is the only transport failure that exists: a caller
+    that catches `BdCommandError` has pinned itself to one backend.
+    """
+
+
+class StoreBusyRefusal(StoreError):
+    """A backend was contended past its bounded wait and REFUSED the write.
+
+    Neutral on purpose: the ledger raises it (`ledger/errors.py`), and the
+    activation-aware boundary above the seam records it as a deviation without
+    learning that SQLite exists. bd never raises it — its transport has no
+    write lock to wait on — so a caller that handles it is not thereby pinned
+    to one backend.
+    """
+
+
+class BdCommandError(StoreTransportError):
     """bd exited non-zero."""
 
     def __init__(
@@ -45,7 +68,7 @@ class BdCommandError(BdioError):
         )
 
 
-class BdTimeoutError(BdioError):
+class BdTimeoutError(StoreTransportError):
     """bd did not finish inside the configured timeout."""
 
     def __init__(self, argv: Sequence[str], timeout_s: float, subcommand: str) -> None:
@@ -57,11 +80,35 @@ class BdTimeoutError(BdioError):
         )
 
 
-class BdOutputError(BdioError):
+class BdUnavailableError(StoreTransportError):
+    """The bd binary could not be executed at all (missing, not executable).
+
+    A defect of the transport, not an answer about the caller's ids: the
+    runner raises `OSError` before bd ever runs, and mapping it here is what
+    keeps a broken installation from reading as an ordinary refusal.
+    """
+
+    def __init__(self, argv: Sequence[str], subcommand: str, reason: str) -> None:
+        self.argv = tuple(argv)
+        self.subcommand = subcommand
+        super().__init__(_MSG_UNAVAILABLE.format(subcommand=subcommand, reason=reason))
+
+
+class StoreOutputError(StoreTransportError):
+    """The backend answered, but not in a shape this wrapper can read.
+
+    Distinct from its siblings on purpose: a command that failed, timed out or
+    was refused before it ran is a transport DEFECT, while an unreadable answer
+    is a store the caller may legitimately treat as "no usable record". Only
+    this class may be converted into an ordinary refusal above the seam.
+    """
+
+
+class BdOutputError(StoreOutputError):
     """bd's `--json` output could not be parsed, or had an unexpected shape."""
 
 
-class ForbiddenInvocationError(BdioError):
+class ForbiddenInvocationError(StoreTransportError):
     """An argv outside the closed command set was constructed.
 
     Structural, not advisory: the client asserts this before spawning, so a
@@ -73,7 +120,7 @@ class ForbiddenInvocationError(BdioError):
         super().__init__(_MSG_FORBIDDEN.format(detail=detail))
 
 
-class LossyWriteError(BdioError):
+class LossyWriteError(StoreError):
     """A write did not read back as written.
 
     bd's extension surfaces are lossy by default (probed: `--event-payload
@@ -88,19 +135,19 @@ class LossyWriteError(BdioError):
         super().__init__(f"lossy bd write on {bead_id} ({surface}): {detail}")
 
 
-class CarrierIntegrityError(BdioError):
+class CarrierIntegrityError(StoreError):
     """A bd row does not carry the metadata the §3 encoding requires."""
 
 
-class PinnedGraphMismatchError(BdioError):
+class PinnedGraphMismatchError(StoreError):
     """The root's pinned body does not match its recorded hash (§3.1) — halt."""
 
 
-class LifecycleConflictError(BdioError):
+class LifecycleConflictError(StoreError):
     """A state write contradicts the state already recorded (§5.1)."""
 
 
-class BoundExceededError(BdioError):
+class BoundExceededError(StoreError):
     """A §10 pre-mint predicate refused the mint."""
 
     def __init__(self, refusal: BoundRefusal) -> None:
@@ -108,11 +155,11 @@ class BoundExceededError(BdioError):
         super().__init__(refusal.detail)
 
 
-class BoundEvaluationError(BdioError):
+class BoundEvaluationError(StoreError):
     """A bound could not be evaluated — fail closed, never mint (§10)."""
 
 
-class GateVerificationError(BdioError):
+class GateVerificationError(StoreError):
     """Base class for every §9 refusal; a gate never closes on one of these."""
 
 
@@ -136,5 +183,5 @@ class StaleApprovalError(GateVerificationError):
     """A `binds = "mutable"` document changed after gate-open (§9)."""
 
 
-class CanaryFailedError(BdioError):
+class CanaryFailedError(StoreError):
     """The §11 startup canary failed — refuse dispatch loudly."""

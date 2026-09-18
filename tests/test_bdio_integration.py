@@ -58,6 +58,7 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.bounds import BoundKind
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.wire import (
     BindsMode,
     BoundSetting,
@@ -92,10 +93,11 @@ def test_startup_canary_asserts_the_backend_and_round_trips_a_wisp(
     store: WorkflowStore,
 ) -> None:
     result = store.startup_canary()
-    assert result.backend == "dolt"
-    assert result.dolt_mode == "embedded"
-    assert result.bd_version == "1.1.0"
-    assert result.wisp_id
+    assert result.kind is BackendKind.BD
+    assert result.attributes["backend"] == "dolt"
+    assert result.attributes["dolt_mode"] == "embedded"
+    assert result.attributes["bd_version"] == "1.1.0"
+    assert result.probe_row_id
 
 
 def test_the_canary_refuses_a_store_that_is_not_the_injected_workspace(
@@ -196,9 +198,9 @@ def test_settle_root_records_the_terminal_and_closes_the_root_idempotently(
     again = store.settle_root(root.root_id, "shipped")
 
     assert settled.metadata.terminal == "shipped"
-    assert settled.bead.status == "closed"
-    assert settled.bead.close_reason == "outcome=terminal terminal=shipped"
-    assert again.bead.close_reason == settled.bead.close_reason
+    assert settled.status == "closed"
+    assert settled.close_reason == "outcome=terminal terminal=shipped"
+    assert again.close_reason == settled.close_reason
     # The end an instance reached is routing truth, so it is never rewritten.
     with pytest.raises(CarrierIntegrityError, match="already recorded terminal"):
         store.settle_root(root.root_id, "abandoned")
@@ -268,8 +270,8 @@ def test_the_activation_lifecycle_is_recorded_and_idempotent(
 
     closed = store.close_activation(activation_id, Outcome.DONE)
     assert closed.metadata.outcome is Outcome.DONE
-    assert closed.bead.status == "closed"
-    assert closed.bead.close_reason == "outcome=done"
+    assert closed.status == "closed"
+    assert closed.close_reason == "outcome=done"
     # A closed activation stays findable by its key — or a re-tick re-mints.
     assert (
         len(
@@ -296,7 +298,7 @@ def test_supersede_is_append_only(
     superseded = store.supersede_activation(loser.activation_id, winner.activation_id)
     assert superseded.metadata.superseded_by == winner.activation_id
     assert superseded.metadata.outcome is Outcome.SUPERSEDED
-    assert superseded.bead.status == "closed"
+    assert superseded.status == "closed"
     # The bead is still there — supersede never deletes.
     still_listed = {
         record.activation_id for record in store.reads.list_activations(root.root_id)
@@ -312,7 +314,7 @@ def test_supersede_is_append_only(
 
 
 def test_event_payload_round_trips_inline_and_never_duplicates(
-    store: WorkflowStore, definition: GraphDefinition
+    store: WorkflowStore, bd_client: BdClient, definition: GraphDefinition
 ) -> None:
     root = make_root(store, definition)
     activation = store.mint_activation(root.root_id, entry_request()).activation
@@ -328,7 +330,10 @@ def test_event_payload_round_trips_inline_and_never_duplicates(
     second = store.append_event(root.root_id, payload)
 
     assert first.id == second.id
-    assert first.issue_type == WfKind.EVENT.value
+    assert first.kind == WfKind.EVENT.value
+    # The bd issue type is asserted at the transport, where it exists: the
+    # seam's record carries the §3 discriminator, not bd's row columns.
+    assert bd_client.show(first.id).issue_type == WfKind.EVENT.value
     assert first.payload is not None
     stored = json.loads(first.payload)
     assert stored["from"] == IMPLEMENT
@@ -453,7 +458,7 @@ def test_a_verified_payload_closes_the_gate_and_a_replayed_nonce_does_not(
     assert closed.metadata.outcome is Outcome.APPROVE
     assert closed.metadata.verified_fingerprint is not None
     assert closed.metadata.nonce == nonce
-    assert closed.bead.status == "closed"
+    assert closed.status == "closed"
 
     # Same nonce, a different gate of the same instance: refused (§9).
     second_gate = store.open_gate(

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import shutil
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Final
 
 import structlog
@@ -15,6 +17,7 @@ from workflow_interpreter.bdio import (
     MintRequest,
     Outcome,
     RootRecord,
+    WfKind,
 )
 from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.errors import (
@@ -22,8 +25,10 @@ from workflow_interpreter.bdio.errors import (
     CanaryFailedError,
     GateVerificationError,
     PinnedGraphMismatchError,
+    StoreError,
 )
 from workflow_interpreter.bdio.reads import activations_of, gates_of, next_seq
+from workflow_interpreter.bdio.records import RowRecord
 from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.foreman.audit import audit
 from workflow_interpreter.foreman.cases import (
@@ -64,6 +69,7 @@ from workflow_interpreter.foreman.rpc_control import (
     control_attention,
 )
 from workflow_interpreter.foreman.transcript import bounded_tail
+from workflow_interpreter.ledger.tasks import export_oid
 from workflow_interpreter.schema.models import NodeKind
 from workflow_interpreter.supervisor.errors import (
     ContinuationRefused,
@@ -83,6 +89,11 @@ from workflow_interpreter.supervisor.paths import read_record, read_tail
 from workflow_interpreter.supervisor.steer import Steerer
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
+
+MSG_CLEANUP_NEEDS_EXPORT: Final[str] = (
+    "a bridge task's run folders are deleted only after its export is pinned "
+    "(run-ledger §3.9)"
+)
 
 
 class TickReport(BaseModel):
@@ -422,7 +433,7 @@ class Foreman:
             root = wiring.store.reads.load_root(root_id)
             wiring.store.assert_member(root_id)
             ensure_owner(self._composition.config)
-            beads = wiring.store.reads.instance_beads(root_id)
+            beads = wiring.store.reads.instance_records(root_id)
             checked = audit(root, beads)
             if checked.violation is not None:
                 gate = wiring.store.open_gate(
@@ -458,7 +469,7 @@ class Foreman:
                 cleanup_toolchain(wiring.paths, activation)
                 if (
                     activation.metadata.is_completed
-                    and activation.bead.status != STATUS_CLOSED
+                    and activation.status != STATUS_CLOSED
                     and activation.metadata.outcome is not None
                 ):
                     # The one close that re-passes the record's OWN deviations
@@ -677,11 +688,13 @@ class Foreman:
         intents: Iterable[EventIntent] = (),
     ) -> int:
         """Append every newly implied trace event after its source is durable."""
-        beads = wiring.store.reads.instance_beads(root.root_id)
+        beads = wiring.store.reads.instance_records(root.root_id)
         existing = {
-            str(bead.metadata["event_key"])
-            for bead in beads
-            if bead.metadata.get("wf_kind") == "event" and "event_key" in bead.metadata
+            str(record.metadata["event_key"])
+            for record in beads
+            if isinstance(record, RowRecord)
+            and record.kind == WfKind.EVENT.value
+            and "event_key" in record.metadata
         }
         return backfill(
             wiring.store,
@@ -712,15 +725,77 @@ class Foreman:
             if terminal is None
             else wiring.store.settle_root(root.root_id, terminal).metadata.terminal
         )
-        self._cleanup_terminal_worktree(wiring, root)
+        if recorded is not None:
+            self._drain_attention(root.root_id)
+        self._cleanup_terminal_state(wiring, root)
         return recorded
 
-    def _cleanup_terminal_worktree(
-        self, wiring: InstanceWiring, root: RootRecord
-    ) -> None:
-        """D-T1: remove only a clean worktree whose writing outputs are pinned."""
-        worktree = wiring.paths.worktree
-        if not worktree.exists():
+    def _export_pending(self, root: RootRecord) -> bool:
+        """Whether a BRIDGE-owned root still owes the export its task closes on.
+
+        §3.9 and D14: nothing destructive happens before the record is durable,
+        and for a bridge task the record is durable only once `tasks.export_oid`
+        names the blob the export was pinned as (§3.6). A non-bridge root owes
+        no export and is unaffected; a bridge root this process cannot ask
+        about — no ledger, no task — is deferred rather than cleaned, because
+        the cleanup is idempotent and retried, and the deletion is not.
+        """
+        # Imported here for the same reason `landing` imports `guard_bridge`
+        # here: the driver is BELOW the bridge, and only this one question
+        # about the owning task's closure path crosses that line.
+        from workflow_interpreter.bridge.models import INSTANCE_KEY_PREFIX
+
+        if not root.metadata.instance_key.startswith(INSTANCE_KEY_PREFIX):
+            return False
+        ledger = self._composition.ledger
+        task_id = self._composition.task_id
+        if ledger is None or task_id is None:
+            return True
+        pending = export_oid(ledger, task_id) is None
+        if pending:
+            _LOG.info(
+                "wf.ledger.cleanup_deferred",
+                root_id=root.root_id,
+                task_id=task_id,
+                reason=MSG_CLEANUP_NEEDS_EXPORT,
+            )
+        return pending
+
+    def _drain_attention(self, root_id: str) -> None:
+        """Write the label this settlement implies, before the driver exits.
+
+        The settlement changed the attention predicate and journalled a
+        projection row (§3.2.1); nothing else runs for this task until some
+        other tick, so this is where the label is owed. Bounded on purpose: the
+        drain's own lock wait and bd timeout bound it, and a refusal is LOGGED
+        and left as unacked rows for `wf ledger reconcile` rather than
+        stopping an exit the root is already settled for.
+        """
+        try:
+            self._composition.drain_attention(root_id)
+        except (StoreError, OSError) as refusal:
+            _LOG.warning(
+                "wf.ledger.attention_drain_refused",
+                root_id=root_id,
+                reason=str(refusal),
+            )
+
+    def _cleanup_terminal_state(self, wiring: InstanceWiring, root: RootRecord) -> None:
+        """D-T1 and §3.9: worktree, verify tree and scratch go together.
+
+        One gate for all three, because they are one decision: the run is over
+        and its record is durable. The worktree's own conditions — a clean tree
+        whose writing outputs are pinned — guard the other two as well, since a
+        dirty worktree means this run still has unpinned bytes somewhere.
+        Every step is idempotent and best effort, so a tick that cannot finish
+        the set leaves what remains for the next one (D14).
+        """
+        from workflow_interpreter.supervisor.toolchain_cleanup import (
+            cleanup_scratch,
+            death_refusal,
+        )
+
+        if self._export_pending(root):
             return
         activations = wiring.store.reads.list_activations(root.root_id)
         if any(
@@ -732,6 +807,43 @@ class Foreman:
             for activation in activations
         ):
             return
-        if self._composition.git.status_paths(cwd=worktree):
+        # Proven death FIRST, and for EVERY activation of the root, not per
+        # directory: the durable close of an activation is a record event and
+        # the runner's process is an operating-system one, so a settled root
+        # can still have a live child holding the worktree, the verify tree or
+        # its own scratch. Deleting any of the three under a live process is
+        # how a run loses the bytes it was still writing (§3.9).
+        for activation in activations:
+            refusal = death_refusal(wiring.paths, activation)
+            if refusal is not None:
+                _LOG.info(
+                    "wf.cleanup.deferred",
+                    root_id=root.root_id,
+                    activation_id=activation.activation_id,
+                    reason=refusal,
+                )
+                return
+        worktree = wiring.paths.worktree
+        if worktree.exists():
+            if self._composition.git.status_paths(cwd=worktree):
+                return
+            wiring.workspace.remove_worktree()
+        self._remove_verify_tree(wiring.paths.verify_tree)
+        for activation in activations:
+            cleanup_scratch(wiring.paths, activation)
+
+    def _remove_verify_tree(self, verify_tree: Path) -> None:
+        """Drop the throwaway §7.3 checkout a killed check may have left.
+
+        `VerifyTree` removes its own tree on exit; this is the crash case, and
+        the registration is dropped with the directory so `git worktree list`
+        does not keep naming a path that is gone.
+        """
+        if not verify_tree.exists():
             return
-        wiring.workspace.remove_worktree()
+        git = self._composition.git
+        repo_root = self._composition.config.repo_root
+        git.worktree_remove(verify_tree, cwd=repo_root, check=False)
+        if verify_tree.exists():
+            shutil.rmtree(verify_tree, ignore_errors=True)
+        git.worktree_prune(cwd=repo_root)

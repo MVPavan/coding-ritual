@@ -862,7 +862,7 @@ def test_an_unknown_pre_attempt_state_retires_an_earlier_attribution(
 def test_a_transient_bd_failure_on_the_exit_write_is_not_swallowed(
     lab: Lab,
 ) -> None:
-    """Micro-fix confirm (Sol): `except BdioError` hid real transport failures.
+    """Micro-fix confirm (Sol): `except StoreError` hid real transport failures.
 
     A bd that exits non-zero on the exit write is not the §8.1 race: nothing
     settled the activation and no exit record landed, so returning normally

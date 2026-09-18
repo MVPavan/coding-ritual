@@ -11,6 +11,7 @@ from pathlib import Path
 from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
+from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.bridge.adapter import PhaseAdapter
 from workflow_interpreter.bridge.integration import IntegrationGuard, target_key
 from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
@@ -80,7 +81,7 @@ def obligations(admission: MemberAdmission) -> str:
 
 
 def _save(composition: Composition, intent: TrustedReplacementIntent) -> None:
-    store = composition.store.coordination_store(composition=composition)
+    store = composition.coordination_for_root(intent.owner_id, composition=composition)
     state = store.state(intent.owner_id)
     store._save(
         state.model_copy(
@@ -92,7 +93,7 @@ def _save(composition: Composition, intent: TrustedReplacementIntent) -> None:
 def advance_successor(
     composition: Composition, intent: TrustedReplacementIntent
 ) -> MemberReceipt:
-    store = composition.store.coordination_store(composition=composition)
+    store = composition.coordination_for_root(intent.owner_id, composition=composition)
     saved = store.state(intent.owner_id).successors.get(intent.request_key)
     if saved is not None:
         intent = intent.model_copy(
@@ -103,8 +104,10 @@ def advance_successor(
         )
     elif intent.predecessor_bridge_json is None:
         matches: list[PhaseBridgeRecord] = []
-        for bead in store._client.list_beads():
-            raw = bead.metadata.get("phase_bridge")
+        # Discovery spans every root, so it stays on the process-wide store.
+        rows = composition.store.coordination_store(composition=composition)._client
+        for row in rows.find_rows(RowQuery()):
+            raw = row.metadata.get("phase_bridge")
             if isinstance(raw, dict) and raw.get("root_id") == intent.predecessor_id:
                 matches.append(PhaseBridgeRecord.model_validate(raw))
         if len(matches) > 1:
@@ -142,7 +145,7 @@ def _advance(
     composition: Composition, intent: TrustedReplacementIntent
 ) -> MemberReceipt:
     """Save intent/reservation before fencing; replay repairs one immutable root."""
-    store = composition.store.coordination_store(composition=composition)
+    store = composition.coordination_for_root(intent.owner_id, composition=composition)
     with store._locked(intent.owner_id):
         state = store.state(intent.owner_id)
         saved = state.successors.get(intent.request_key)
@@ -167,7 +170,9 @@ def _advance(
                 raise CoordinationError(
                     f"predecessor already has successor intent {competing.request_key!r}; replay that key"
                 )
-        predecessor = composition.store.reads.load_root(intent.predecessor_id)
+        predecessor = composition.reads_for_root(intent.predecessor_id).load_root(
+            intent.predecessor_id
+        )
         link = predecessor.metadata.coordination
         if link is None or (link.owner_id, link.slot, link.generation) != (
             intent.owner_id,
@@ -236,9 +241,11 @@ def _advance(
                     and pending.request_id != intent.decision_id
                 ):
                     raise CoordinationError("unrelated decision prevents replacement")
-            gates = composition.store.reads.list_gates(predecessor.root_id)
+            gates = composition.reads_for_root(predecessor.root_id).list_gates(
+                predecessor.root_id
+            )
             if any(
-                g.bead.status != "closed"
+                g.status != "closed"
                 or g.metadata.outcome is not None
                 and (
                     g.metadata.outcome.value == "abandon"
@@ -253,7 +260,7 @@ def _advance(
             for activation in (
                 a
                 for root_id in process_roots
-                for a in composition.store.reads.list_activations(root_id)
+                for a in composition.reads_for_root(root_id).list_activations(root_id)
             ):
                 if not activation.metadata.is_completed:
                     raise CoordinationError(
@@ -310,9 +317,9 @@ def _advance(
                     from workflow_interpreter.foreman.decisions import _assert_current
 
                     _assert_current(composition, request)
-                source = composition.store.reads.load_activation(
-                    request.boundary.source_activation_id
-                )
+                source = composition.reads_for_root(
+                    predecessor.root_id
+                ).load_activation(request.boundary.source_activation_id)
                 policy = predecessor.index.nodes[source.metadata.node].decision
                 if policy and policy.replacement_input:
                     advisory.add(policy.replacement_input)
@@ -368,7 +375,8 @@ def _advance(
     from workflow_interpreter.foreman.resolve import ensure_instance_branch
 
     ensure_instance_branch(
-        composition, composition.store.reads.load_root(receipt.root_id)
+        composition,
+        composition.reads_for_root(receipt.root_id).load_root(receipt.root_id),
     )
     with store._locked(intent.owner_id):
         state = store.state(intent.owner_id)
@@ -415,7 +423,7 @@ def replace_checked(
     from workflow_interpreter.foreman.children import checked_admission
     from workflow_interpreter.foreman.decisions import admission_of
 
-    store = composition.store.coordination_store(composition=composition)
+    store = composition.coordination_for_root(owner, composition=composition)
     saved = store.state(owner).successors.get(request.request_key)
     if saved is not None:
         if saved.request_digest != digest_record(request):
@@ -438,7 +446,7 @@ def replace_checked(
     predecessor_id = store.state(owner).active.get(slot)
     if not predecessor_id:
         raise CoordinationError("active predecessor missing")
-    predecessor = composition.store.reads.load_root(predecessor_id)
+    predecessor = composition.reads_for_root(predecessor_id).load_root(predecessor_id)
     before = admission_of(predecessor, slot=slot, generation=generation)
     admission = admission.model_copy(
         update={
@@ -502,8 +510,10 @@ def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
         != previous.expected_base_commit
     ):
         raise CoordinationError("replacement lost bridge target base")
-    adapter = PhaseAdapter.from_config(composition.config.bd)
-    root = composition.store.reads.load_root(intent.predecessor_id)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    root = composition.reads_for_root(intent.predecessor_id).load_root(
+        intent.predecessor_id
+    )
     if (
         previous.root_id != root.root_id
         or adapter.show(previous.stage_id).parent != previous.epic_id
@@ -527,8 +537,10 @@ def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
     if previous.integration_digest:
         guard = IntegrationGuard(composition)
         association = guard.binding(previous, current=False)
-        existing = guard.store.state(intent.owner_id).integrations.get(
-            intent.request_key
+        existing = (
+            guard.coordination(intent.owner_id)
+            .state(intent.owner_id)
+            .integrations.get(intent.request_key)
         )
         if existing is not None and (
             existing.predecessor_digest != association.identity_digest
@@ -549,7 +561,7 @@ def _prepare_bridge(
         return intent
     previous = PhaseBridgeRecord.model_validate_json(intent.predecessor_bridge_json)
     successor = PhaseBridgeRecord.model_validate_json(intent.successor_bridge_json)
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     adapter.integration_guard = IntegrationGuard(composition)
     if previous.integration_digest:
         from workflow_interpreter.schema.decisions import (
@@ -576,8 +588,10 @@ def _prepare_bridge(
             previous_attempts=successor.previous_attempts,
             predecessor_digest=association.identity_digest,
         )
-        existing = guard.store.state(intent.owner_id).integrations.get(
-            intent.request_key
+        existing = (
+            guard.coordination(intent.owner_id)
+            .state(intent.owner_id)
+            .integrations.get(intent.request_key)
         )
         if (
             existing is not None
@@ -639,7 +653,7 @@ def _admit_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
         return
     assert intent.receipt is not None
     successor = PhaseBridgeRecord.model_validate_json(intent.successor_bridge_json)
-    adapter = PhaseAdapter.from_config(composition.config.bd)
+    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
     guard = IntegrationGuard(composition)
     adapter.integration_guard = guard
     if successor.integration_digest:
@@ -662,12 +676,17 @@ def _admit_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
 
 def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
     """Fence stale predecessors and bind B (CAS) separately from A (execution)."""
-    store = composition.store.coordination_store(composition=composition)
     if record.root_id:
-        root = composition.store.reads.load_root(record.root_id)
+        # The record's pin goes in BEFORE its root is located: after a restart
+        # nothing else answers for a bd attempt root of a ledger-pinned task
+        # (§3.2, D18).
+        composition.pin_record_backend(record.root_id, record.root_backend)
+        root = composition.reads_for_root(record.root_id).load_root(record.root_id)
         link = root.metadata.coordination
         if link is not None:
-            state = store.state(link.owner_id)
+            state = composition.coordination_for_root(
+                link.owner_id, composition=composition
+            ).state(link.owner_id)
             current_intent = state.successors.get(link.request_id or "")
             if (
                 current_intent
@@ -689,6 +708,9 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
         return
     if record.successor_owner is None:
         raise CoordinationError("successor owner missing")
+    store = composition.coordination_for_root(
+        record.successor_owner, composition=composition
+    )
     intent = store.state(record.successor_owner).successors.get(record.successor_key)
     if intent is None or intent.successor_bridge_json is None or intent.receipt is None:
         raise CoordinationError("successor bridge receipt missing")
@@ -701,12 +723,23 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
             "tree": None,
             "gate_receipt_digest": None,
             "landing_receipt_digest": None,
+            # Post-close evidence, like the digests above: the export oid is
+            # recorded in the merge that closes (§3.6), long after the
+            # prepared successor this is compared against was journalled.
+            "export_oid": None,
         }
     )
     if normalized != prepared or record.root_id != intent.receipt.root_id:
         raise CoordinationError("successor bridge binding mismatch")
-    root = composition.store.reads.load_root(intent.receipt.root_id)
-    reservation = store.state(intent.owner_id).reservations.get(
+    root = composition.reads_for_root(intent.receipt.root_id).load_root(
+        intent.receipt.root_id
+    )
+    # `validate_member` reads the OWNER's ledger about this member, so both it
+    # and the reservation lookup belong on the owner's store, not the member's.
+    owner_store = composition.coordination_for_root(
+        intent.owner_id, composition=composition
+    )
+    reservation = owner_store.state(intent.owner_id).reservations.get(
         digest_record(intent.admission)
     )
     if (
@@ -728,25 +761,28 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
     ):
         raise CoordinationError("successor admission receipt mismatch")
     if not record.integration_digest:
-        store.validate_member(root)
+        owner_store.validate_member(root)
 
 
 @contextmanager
 def bridge_landing_locks(
     composition: Composition, record: PhaseBridgeRecord
 ) -> Iterator[None]:
-    store = composition.store.coordination_store(composition=composition)
+    shared = composition.store.coordination_store(composition=composition)
     if record.root_id is None:
         raise CoordinationError("bridge root missing")
-    root = composition.store.reads.load_root(record.root_id)
+    root = composition.reads_for_root(record.root_id).load_root(record.root_id)
     link = root.metadata.coordination
     if link is None:
         yield
         return
+    owner_store = composition.coordination_for_root(
+        link.owner_id, composition=composition
+    )
     with (
-        BandLock(store.target_lock_path(target_key(composition, record.target_ref))),
-        store._locked(link.owner_id),
-        BandLock(store.member_lock_path(root.root_id)),
+        BandLock(shared.target_lock_path(target_key(composition, record.target_ref))),
+        owner_store._locked(link.owner_id),
+        BandLock(shared.member_lock_path(root.root_id, root=root)),
     ):
         guard_bridge(composition, record)
         yield
@@ -757,8 +793,8 @@ def repair_bridge_successor(composition: Composition, stage_id: str) -> None:
     from workflow_interpreter.schema.decisions import CoordinationState
 
     store = composition.store.coordination_store(composition=composition)
-    for bead in store._client.list_beads(metadata_filters={"wf_kind": "root"}):
-        raw = bead.metadata.get("coordination_state")
+    for row in store._client.find_rows(RowQuery(metadata_filters={"wf_kind": "root"})):
+        raw = row.metadata.get("coordination_state")
         if raw is None:
             continue
         state = CoordinationState.model_validate(raw)
@@ -773,8 +809,9 @@ def repair_bridge_successor(composition: Composition, stage_id: str) -> None:
 
 def predecessor_artifact(composition: Composition, root_id: str) -> str:
     """An instance branch name alone is not artifact authority."""
-    root = composition.store.reads.load_root(root_id)
-    acts = composition.store.reads.list_activations(root_id)
+    reads = composition.reads_for_root(root_id)
+    root = reads.load_root(root_id)
+    acts = reads.list_activations(root_id)
     artifacts = [
         (a.metadata.seq, a.metadata.evidence.artifact)
         for a in acts

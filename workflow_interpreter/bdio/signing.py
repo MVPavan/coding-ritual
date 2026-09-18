@@ -37,10 +37,10 @@ from pydantic import BaseModel, Field, model_validator
 
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.errors import (
-    BdConfigError,
     PayloadMismatchError,
     SignatureRefusedError,
     SignerNotAllowedError,
+    StoreConfigError,
 )
 from workflow_interpreter.bdio.wire import (
     CANON_GATE_PAYLOAD,
@@ -241,6 +241,13 @@ class AllowedSigner(BaseModel):
 
     principals: tuple[str, ...]
     key_type: str
+    key_blob: str
+    """The base64 public key exactly as the allow-list line carried it.
+
+    Retained because D21 asks a LATER reader to re-verify a historical
+    approval from the export alone: a fingerprint identifies a key, it is not
+    one, and `ssh-keygen -Y verify` needs the key itself. This is public
+    material — the same bytes anyone can read out of `allowed_signers`."""
     fingerprint: str
     namespaces: tuple[str, ...] = ()
     """Empty = the entry carries no `namespaces=` restriction, so the key may
@@ -268,6 +275,20 @@ class AllowedSigner(BaseModel):
         return matched
 
 
+class SignaturePolicy(BaseModel):
+    """The §9 policy an approval was accepted under, recorded with it (D21).
+
+    Verification depends on the allow-list of the moment, so re-verifying a
+    historical approval from an export needs to know WHICH allow-list and
+    WHICH namespace admitted it — not merely that some verifier said yes.
+    """
+
+    model_config = WIRE_MODEL
+
+    namespace: str
+    allowed_signers_path: str
+
+
 class VerifiedApproval(BaseModel):
     """The result of a passing §9 verification — the only way a gate closes."""
 
@@ -277,6 +298,9 @@ class VerifiedApproval(BaseModel):
     principal: str
     fingerprint: str
     payload_digest: str
+    signer: AllowedSigner
+    """The allow-list entry that matched — the historical trust, not a name."""
+    policy: SignaturePolicy
 
 
 def canonical_payload_bytes(payload: GatePayload) -> bytes:
@@ -343,10 +367,10 @@ def _split_unquoted(text: str, separators: str) -> list[str]:
 
 
 def _parse_signer_line(line: str, line_no: int, path: Path) -> AllowedSigner:
-    """One `allowed_signers` entry, or `BdConfigError` naming the line."""
+    """One `allowed_signers` entry, or `StoreConfigError` naming the line."""
 
-    def refuse(reason: object) -> BdConfigError:
-        return BdConfigError(
+    def refuse(reason: object) -> StoreConfigError:
+        return StoreConfigError(
             _MSG_ALLOW_LIST_UNPARSEABLE.format(
                 path=path, line_no=line_no, reason=reason
             )
@@ -386,9 +410,27 @@ def _parse_signer_line(line: str, line_no: int, path: Path) -> AllowedSigner:
     return AllowedSigner(
         principals=principals,
         key_type=declared_type,
+        key_blob=fields[key_index + 1],
         fingerprint=key_fingerprint(blob),
         namespaces=_namespaces_option(options),
     )
+
+
+def allowed_signers_line(signer: AllowedSigner) -> str:
+    """Render one parsed entry back into the file `ssh-keygen -Y` reads.
+
+    The inverse of `_parse_signer_line` over everything that DECIDES a
+    verification — principals, the `namespaces=` restriction, the key type and
+    the key — and nothing that does not, so a re-verification runs against the
+    trust that was recorded rather than against the allow-list of today (D21).
+    """
+    options = (
+        ""
+        if not signer.namespaces
+        else f'namespaces="{_OPTION_SEPARATOR.join(signer.namespaces)}" '
+    )
+    principals = _OPTION_SEPARATOR.join(signer.principals)
+    return f"{principals} {options}{signer.key_type} {signer.key_blob}\n"
 
 
 def _blob_key_type(blob: bytes) -> str | None:
@@ -467,11 +509,11 @@ class GateVerifier:
     def __init__(self, config: SigningConfig, workspace: Path) -> None:
         path = config.allowed_signers_path
         if not path.is_file():
-            raise BdConfigError(_MSG_ALLOW_LIST_MISSING.format(path=path))
+            raise StoreConfigError(_MSG_ALLOW_LIST_MISSING.format(path=path))
         resolved = path.resolve()
         workspace_resolved = workspace.resolve()
         if resolved.is_relative_to(workspace_resolved):
-            raise BdConfigError(
+            raise StoreConfigError(
                 _MSG_ALLOW_LIST_INSIDE.format(
                     path=resolved, workspace=workspace_resolved
                 )
@@ -485,7 +527,7 @@ class GateVerifier:
             resolved.read_text(encoding="utf-8"), resolved
         )
         if not self.allowed_fingerprints():
-            raise BdConfigError(
+            raise StoreConfigError(
                 _MSG_NO_KEY_FOR_NAMESPACE.format(
                     path=resolved, namespace=config.namespace
                 )
@@ -558,6 +600,27 @@ class GateVerifier:
             principal=principal,
             fingerprint=fingerprint,
             payload_digest=payload_digest(payload_bytes),
+            signer=self._matching_signer(fingerprint),
+            policy=SignaturePolicy(
+                namespace=self._config.namespace,
+                allowed_signers_path=str(self._allowed_signers),
+            ),
+        )
+
+    def _matching_signer(self, fingerprint: str) -> AllowedSigner:
+        """The allow-list entry this fingerprint was admitted by (§3.6).
+
+        Found rather than reconstructed: the entry carries the principals and
+        the `namespaces=` restriction that made the approval acceptable, and
+        those are what a later re-verification has to compare against.
+        """
+        for signer in self._signers:
+            if signer.fingerprint == fingerprint and signer.signs_in(
+                self._config.namespace
+            ):
+                return signer
+        raise SignerNotAllowedError(  # pragma: no cover - guarded just above
+            _MSG_FINGERPRINT_NOT_ALLOWED.format(fingerprint=fingerprint)
         )
 
     @staticmethod

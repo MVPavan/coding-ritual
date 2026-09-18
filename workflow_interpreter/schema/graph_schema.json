@@ -369,7 +369,7 @@
         },
         "producer": {
           "type": "string",
-          "pattern": "^(instance|node:[a-z0-9][a-z0-9_-]*|engine:verify_failure)$"
+          "pattern": "^(instance|node:[a-z0-9][a-z0-9_-]*|engine:verify_failure|engine:ledger_render)$"
         },
         "optional": {
           "type": "boolean"

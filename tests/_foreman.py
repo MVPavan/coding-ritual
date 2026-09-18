@@ -23,7 +23,10 @@ from typing import Final, TypedDict
 from tests._fake_bd import FakeBd, InjectedCrash
 from tests._helpers import VALID_FIXTURE, runner_roles
 from tests._supervisor import (
+    DEBRIEF,
+    DEBRIEF_MARKER,
     IMPLEMENT,
+    NO_EFFECTS,
     ChildScript,
     FakeProfile,
     FrozenClock,
@@ -54,8 +57,14 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
     canonical_payload_bytes,
 )
+from workflow_interpreter.bdio.backend import (
+    SelectableBackendFactory,
+    StoreBackendFactory,
+)
 from workflow_interpreter.bdio.client import BdClient, CompletedCommand
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceWiring,
@@ -64,9 +73,13 @@ from workflow_interpreter.foreman.compose import (
 )
 from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
 from workflow_interpreter.foreman.gates import payload_template
+from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
+from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
+from workflow_interpreter.ledger.store import LedgerStore
+from workflow_interpreter.ledger.tasks import pin_task_backend
 from workflow_interpreter.profiles.config import RUNNER_PREFIX
 from workflow_interpreter.profiles.errors import UnknownProfileError
 from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
@@ -83,14 +96,15 @@ from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 type OverrideValue = str | int | bool
 
-# The lab's defaults are feature-delivery's: its two roles and the one instance
-# input every drill written before phase 7 relies on. A graph with other roles
-# or sources (build-loop) passes its own through `ForemanLab(roles=…,
+# The lab's defaults are feature-delivery's: its three roles and the one
+# instance input every drill written before phase 7 relies on. A graph with
+# other roles or sources (build-loop) passes its own through `ForemanLab(roles=…,
 # instance_inputs=…)`.
 DEFAULT_LAB_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
     {
         "implementer": RunnerBinding(profile="fake", model="fake", effort="medium"),
         "critic": RunnerBinding(profile="fake", model="fake", effort="medium"),
+        "scribe": RunnerBinding(profile="fake", model="fake", effort="medium"),
     }
 )
 DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
@@ -120,6 +134,11 @@ BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
 # accepted set is derived per graph; `fake` is the lab's own inert profile.
 FAKE_PROFILE: Final[str] = "fake"
 FAKE_MODEL: Final[str] = "fake"
+LAB_TASK: Final[str] = "cr-lab.1"
+LAB_ATTEMPT: Final[int] = 1
+"""The task bead every lab root belongs to (D16). A synthetic id, because the
+lab has no tracker: what the engine needs from it is a stable, path-safe name
+to key the ledger's rows by."""
 
 
 def entry_request(**overrides: object) -> MintRequest:
@@ -421,6 +440,7 @@ class ForemanLab:
         roles: Mapping[str, RunnerBinding] = DEFAULT_LAB_ROLES,
         instance_inputs: Mapping[str, str] = DEFAULT_LAB_INSTANCE_INPUTS,
         sandbox: SandboxMode = SandboxMode.BWRAP,
+        store: BackendKind = BackendKind.BD,
     ) -> None:
         """Wire a throwaway repo to a real foreman.
 
@@ -429,6 +449,11 @@ class ForemanLab:
         and `instance_inputs` maps each `producer = "instance"` source name to
         its body. Both default to feature-delivery's, which `toml` also
         defaults to.
+
+        `store` is the run-ledger §3.2 switch: it pins the backend every root
+        this lab creates is served by, and the locator answers from the ledger
+        exactly as production's does, so a lab on `LEDGER` proves the cutover
+        rather than a second wiring of it.
 
         `sandbox` defaults to the O5 value, so the whole foreman family runs
         under the REAL §2 mount bound on a host that has `bwrap`. A test whose
@@ -463,6 +488,9 @@ class ForemanLab:
             sandbox=sandbox,
         )
         self._toml = toml
+        self._store = store
+        self._ledger_path = tmp_path / "lab-ledger.db"
+        self.ledger: LedgerDatabase | None = None
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
         self._build_fresh()
         self.root: RootRecord | None = None
@@ -474,7 +502,7 @@ class ForemanLab:
             | {f"{RUNNER_PREFIX}{role}" for role in runner_roles(self.definition)}
         )
 
-    def _build_fresh(self) -> None:
+    def _build_fresh(self, backend_factory: StoreBackendFactory | None = None) -> None:
         """Construct no composition collaborator from a prior process."""
         self.fake_bd = self._bd_factory(str(self._workspace))
         verifier = (
@@ -482,9 +510,31 @@ class ForemanLab:
             if self._signing is None
             else GateVerifier(self._signing, self._workspace)
         )
+        # The lab's ledger lives OUTSIDE the checkout on purpose: production
+        # puts it in the repo's ignored `.wf/`, and a database inside the lab
+        # repo would show up in every dirty-tree and undeclared-effects drill
+        # the lab exists to run. The fence and the identity pin are the real
+        # ones, resolved from the real checkout (run-ledger §3.4, §3.5).
+        if self.ledger is not None:
+            self.ledger.close()
+        self.ledger = open_ledger(
+            self.repo, self.supervisor_config.wrapper_root, path=self._ledger_path
+        )
+        pin_task_backend(self.ledger, LAB_TASK, self._store)
+        bd = BdClient(BdConfig(workspace=self._workspace, actor="test"), self.fake_bd)
+        self.backend_factory: StoreBackendFactory = (
+            SelectableBackendFactory(bd, LedgerStore(self.ledger, task_id=LAB_TASK))
+            if backend_factory is None
+            else backend_factory
+        )
+        # Claims stay bd-backed whichever backend this lab runs on (D20): two
+        # backends discovering claims in two stores could not see each other's
+        # reservations, so a ledger run contends on the SAME rows.
         self.store = WorkflowStore(
-            BdClient(BdConfig(workspace=self._workspace, actor="test"), self.fake_bd),
+            self.backend_factory(self._store),
             verifier,
+            backend_factory=self.backend_factory,
+            claims_backend=bd,
         )
         self.git = make_git(self.supervisor_config)
         self.clock = FrozenClock()
@@ -501,6 +551,7 @@ class ForemanLab:
             band_wait_s=self._band_wait_s,
             roles=self._roles,
             bridge_graph=self._toml,
+            store=self._store,
         )
         self.composition = Composition(
             self.config,
@@ -511,6 +562,9 @@ class ForemanLab:
             self.profiles,
             self.spawner,
             host_env={"PATH": os.defpath, "HOME": str(self.repo.parent)},
+            ledger=self.ledger,
+            task_id=LAB_TASK,
+            locate_backend=RootBackendLocator(LAB_TASK, ledger=self.ledger),
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)
@@ -556,6 +610,7 @@ class ForemanLab:
             instance_inputs=paths,
             allow_test_flags=self.allow_test_flags,
             overrides=dict(overrides or {}),
+            backend=self._store,
         )
         return self.root
 
@@ -576,6 +631,11 @@ class ForemanLab:
             ),
             allow_test_flags=self.allow_test_flags,
             instance_base_commit=self.head,
+            # The lab's roots pin a run identity for the same reason production
+            # roots do (run-ledger §3.7): the verify environment, and therefore
+            # `scripts/verify-debrief.sh`, reads the task and attempt off the
+            # record.
+            run_identity=RunIdentity(task_id=LAB_TASK, attempt=LAB_ATTEMPT),
         )
         branch = INSTANCE_BRANCH_REF.format(root_id=root.root_id)
         if self.git.ref_target(branch, cwd=self.repo) is None:
@@ -587,12 +647,37 @@ class ForemanLab:
         assert self.root is not None
         return self.foreman.tick(self.root.root_id)
 
-    def rebuild(self) -> None:
-        """Reconstruct a fresh foreman from durable bd, git, and wrapper state."""
+    def debrief_round(self) -> str | None:
+        """Run and settle the shipped graph's `debrief`, if this graph has one.
+
+        `feature-delivery` 1.1.0 puts a debrief between `implement` and
+        `review` (run-ledger §3.7), and its legacy predecessor does not, so a
+        drill that only cares about the reviewer crosses the node through here
+        rather than asserting an adjacency that depends on the graph.
+        """
+        if not any(node.name == DEBRIEF for node in self.definition.document.node):
+            return None
+        self.profiles.next_script(
+            ChildScript(marker=DEBRIEF_MARKER, effects=NO_EFFECTS)
+        )
+        activation_id = self.tick().dispatched
+        assert activation_id is not None
+        recorded = self.store.reads.load_activation(activation_id)
+        assert recorded.metadata.node == DEBRIEF, recorded.metadata.node
+        assert self.tick().settled == activation_id
+        return activation_id
+
+    def rebuild(self, backend_factory: StoreBackendFactory | None = None) -> None:
+        """Reconstruct a fresh foreman from durable state, on a chosen backend.
+
+        The factory is a parameter because the backend is what a restarted
+        process has to be TOLD (§3.2): the durable state outlives the transport
+        object, and a rebuild that always rebuilt bd could never prove that.
+        """
         if not self._durable_factory:
             raise AssertionError("ForemanLab.rebuild requires a durable bd_factory")
         root_id = None if self.root is None else self.root.root_id
-        self._build_fresh()
+        self._build_fresh(backend_factory)
         self.root = None if root_id is None else self.store.reads.load_root(root_id)
 
     def crash_on_tick_create(self, occurrence: int) -> None:
@@ -619,7 +704,9 @@ class ForemanLab:
         assert self.root is not None
         if self.signer is None:
             raise AssertionError("ForemanLab.approve requires a signer")
-        gate = self.store.reads.load_gate(gate_id)
+        # Through the locator: a gate belongs to its ROOT's store, which is
+        # not this process's store once an attempt runs on the other backend.
+        gate = self.composition.reads_for_root(self.root.root_id).load_gate(gate_id)
         rendered = GatePayload.model_validate_json(payload_template(self.root, gate))
         payload = rendered.model_copy(
             update={

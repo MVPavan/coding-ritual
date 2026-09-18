@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Final, cast
 
@@ -30,8 +31,11 @@ from tests._helpers import VALID_FIXTURE
 from tests._supervisor import FakeProfile, FrozenClock
 from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.errors import BdConfigError
+from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
+from workflow_interpreter.bridge.integration import IntegrationGuard
+from workflow_interpreter.bridge.models import PhaseBridgeRecord
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -49,6 +53,11 @@ from workflow_interpreter.foreman.execution import (
     resolved_node,
 )
 from workflow_interpreter.foreman.owner import OwnerConflict, OwnerRecord, ensure_owner
+from workflow_interpreter.foreman.replacement import (
+    advance_successor,
+    bridge_landing_locks,
+    guard_bridge,
+)
 from workflow_interpreter.foreman.resolve import (
     TASK_SETTING_TYPES,
     _resolved_config,
@@ -57,11 +66,18 @@ from workflow_interpreter.foreman.resolve import (
 )
 from workflow_interpreter.profiles import ProfileConfig
 from workflow_interpreter.profiles.registry import ProfileRegistry
+from workflow_interpreter.schema.decisions import (
+    CoordinationError,
+    CoordinationLink,
+    MemberAdmission,
+    TrustedReplacementIntent,
+)
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.schema.validator import PHASE_B_RULES
 from workflow_interpreter.supervisor.clock import Clock
 from workflow_interpreter.supervisor.config import SupervisorConfig
+from workflow_interpreter.supervisor.gitcmd import GitResult, GitSubcommand
 from workflow_interpreter.supervisor.gitio import Git
 from workflow_interpreter.supervisor.paths import read_record, write_record
 
@@ -196,6 +212,191 @@ def test_composition_scopes_mint_reads_to_each_instance_branch(
         wiring_missing.branch_head_reader()
 
 
+def test_root_scoped_reads_ask_the_locator_for_that_root(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """A read about one root is served by that root's pinned backend (§3.2).
+
+    `composition.store` is the process-wide factory; using it for a root-scoped
+    read would serve a ledger-backed root from the bd store after the cutover
+    switch flips, which is exactly what the per-root pin forbids.
+    """
+    root = make_root(fake_store, load_definition())
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    asked: list[str] = []
+
+    def locate(root_id: str) -> BackendKind:
+        asked.append(root_id)
+        return BackendKind.BD
+
+    composition = replace(composition, locate_backend=locate)
+
+    assert (
+        composition.reads_for_root(root.root_id).load_root(root.root_id).root_id
+        == root.root_id
+    )
+    assert asked == [root.root_id]
+
+
+def test_root_scoped_coordination_is_bound_to_that_root(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """An owner's reservation ledger lives in the owner's own record (§3.2).
+
+    `CoordinationStore` loads and saves the owner root through the backend it
+    was built on, so a coordination store taken from `composition.store` would
+    query the process-wide backend about a root pinned to another one.
+    """
+    root = make_root(fake_store, load_definition())
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    asked: list[str] = []
+
+    def locate(root_id: str) -> BackendKind:
+        asked.append(root_id)
+        return BackendKind.BD
+
+    composition = replace(composition, locate_backend=locate)
+
+    with pytest.raises(CoordinationError, match="owner reservation ledger missing"):
+        composition.coordination_for_root(root.root_id).state(root.root_id)
+    assert asked == [root.root_id]
+
+
+def test_successor_and_bridge_paths_read_the_owner_through_its_own_store(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """Every owner-record access on these paths names its owner root (§3.2).
+
+    Successor journals, bridge authority and integration associations all live
+    in the owner's own record. Read through `composition.store` they would be
+    looked for on the process-wide backend, so each path is driven here until
+    it reaches the owner ledger, and the locator is asked for the owner.
+    """
+    owner = make_root(fake_store, load_definition())
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    asked: list[str] = []
+
+    def locate(root_id: str) -> BackendKind:
+        asked.append(root_id)
+        return BackendKind.BD
+
+    composition = replace(composition, locate_backend=locate)
+    missing_ledger = "owner reservation ledger missing"
+    intent = TrustedReplacementIntent(
+        request_key="successor-key",
+        request_digest="request-digest",
+        reason="correct instructions",
+        owner_id=owner.root_id,
+        slot="a",
+        expected_generation=0,
+        predecessor_id="predecessor",
+        admission=MemberAdmission(
+            graph_body="body",
+            config_json="[]",
+            base_commit="a" * 40,
+            slot="a",
+            generation=0,
+        ),
+        obligation_digest="obligation-digest",
+    )
+    record = PhaseBridgeRecord.prepared(
+        epic_id="epic",
+        stage_id="stage",
+        attempt=1,
+        target_ref="refs/heads/main",
+        expected_base_commit="a" * 40,
+    )
+
+    with pytest.raises(CoordinationError, match=missing_ledger):
+        advance_successor(composition, intent)
+    assert asked == [owner.root_id]
+
+    asked.clear()
+    with pytest.raises(CoordinationError, match=missing_ledger):
+        guard_bridge(
+            composition,
+            record.model_copy(
+                update={
+                    "successor_owner": owner.root_id,
+                    "successor_key": intent.request_key,
+                    "execution_base_commit": "a" * 40,
+                }
+            ),
+        )
+    assert asked == [owner.root_id]
+
+    asked.clear()
+    with pytest.raises(CoordinationError, match=missing_ledger):
+        IntegrationGuard(composition).association(
+            record.model_copy(
+                update={
+                    "integration_owner": owner.root_id,
+                    "integration_digest": "integration-digest",
+                }
+            )
+        )
+    assert asked == [owner.root_id]
+
+    # A landing takes the owner lock, which lives beside the owner record on
+    # the owner's backend; only the target and member lock namespaces are
+    # shared. The member carries the link a real admission would have written.
+    member = make_root(fake_store, load_definition())
+    fake_store._client._merge_metadata(
+        member.root_id,
+        {
+            "coordination": CoordinationLink(
+                owner_id=owner.root_id,
+                slot="a",
+                generation=0,
+                reservation_id="reservation",
+                ceiling=2,
+            ).model_dump(mode="json")
+        },
+    )
+    asked.clear()
+    with (
+        pytest.raises(CoordinationError, match=missing_ledger),
+        bridge_landing_locks(
+            composition, record.model_copy(update={"root_id": member.root_id})
+        ),
+    ):
+        pass
+    # Member, owner (the lock), then the same pair again inside `guard_bridge`.
+    assert asked == [member.root_id, owner.root_id] * 2
+
+
+def test_one_wiring_locates_its_backend_once_and_keeps_that_answer(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """One wiring is built on ONE located backend (§3.2).
+
+    `for_root` loads the root and then derives the member-band store from it;
+    asking the locator again could answer differently, and the wiring would
+    then have loaded the root from one backend and run it against another. The
+    locator here refuses a second answer, and the backend the wiring ends up
+    on is compared by identity with the one the root was read through.
+    """
+    root = make_root(fake_store, load_definition())
+    composition, git = _instance_composition(fake_store, tmp_path)
+    git.refs[INSTANCE_BRANCH.format(root_id=root.root_id)] = "a" * 40
+    located: list[str] = []
+
+    def locate(root_id: str) -> BackendKind:
+        """Answer once; a second answer is a second decision, not a repeat."""
+        if located:
+            raise AssertionError("the located backend must not be re-derived")
+        located.append(root_id)
+        return BackendKind.BD
+
+    composition = replace(composition, locate_backend=locate)
+
+    wiring = composition.for_root(root.root_id)
+
+    assert located == [root.root_id]
+    assert wiring.store._client is fake_store._client
+    assert wiring.supervisor._store._client is fake_store._client
+
+
 def test_store_root_derivation_keeps_injected_capabilities(
     gate_store: WorkflowStore,
 ) -> None:
@@ -216,7 +417,7 @@ def test_composition_for_root_uses_the_injected_store(
     composition, _ = _instance_composition(fake_store, tmp_path)
     wiring = composition.for_root(root.root_id)
     fake_store._branch_head_reader = None
-    with pytest.raises(BdConfigError, match="no branch_head_reader"):
+    with pytest.raises(StoreConfigError, match="no branch_head_reader"):
         fake_store.mint_activation(root.root_id, entry_request())
     with pytest.raises(InstanceBranchMissing, match="instance branch"):
         wiring.supervisor._store.mint_activation(root.root_id, entry_request())
@@ -400,6 +601,12 @@ class _InstanceGit:
         self.refs[ref] = commit
         self.updated.append((ref, commit))
 
+    def run(self, subcommand: GitSubcommand, *args: str, cwd: Path) -> GitResult:
+        """Answer only the common-dir question the target key is derived from."""
+        if subcommand is not GitSubcommand.REV_PARSE or args != ("--git-common-dir",):
+            raise AssertionError("unexpected git invocation")
+        return GitResult(0, ".git\n", "")
+
 
 def _instance_composition(
     fake_store: WorkflowStore,
@@ -502,6 +709,7 @@ def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
         instance_inputs=inputs,
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
 
     reloaded = store.reads.load_root(root.root_id)
@@ -541,6 +749,7 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     settings = {setting.key: setting for setting in root.metadata.resolved_config}
     assert settings["region.build-review.max_entries"].value == 2
@@ -559,6 +768,7 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
     assert again.root_id == root.root_id
     assert git.updated == [(branch, git.base)]
@@ -581,6 +791,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": oversized},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
     empty = tmp_path / "empty.md"
     empty.write_text("", encoding="utf-8")
@@ -592,6 +803,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": empty},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
     wrong_source = tmp_path / "wrong-source.toml"
     wrong_source.write_text(
@@ -617,6 +829,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
     unstaffed, _ = _instance_composition(
         fake_store,
@@ -631,6 +844,7 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
 
 
@@ -650,6 +864,7 @@ def test_instantiate_refuses_missing_base_before_creating_a_branch(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
     assert git.updated == []
 
@@ -698,6 +913,7 @@ def test_instantiate_pins_every_named_instance_input_sorted_by_name(
         instance_inputs=paths,
         allow_test_flags=False,
         overrides={},
+        backend=composition.config.store,
     )
 
     pinned = root.metadata.instance_inputs
@@ -724,6 +940,7 @@ def test_instantiate_refuses_a_missing_required_input_before_any_bd_write(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0
@@ -745,6 +962,7 @@ def test_instantiate_refuses_an_undeclared_instance_input_name(
             instance_inputs={"task_brief": brief, "stowaway": brief},
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0
@@ -770,6 +988,7 @@ def test_instantiate_refuses_inputs_over_the_aggregate_root_cap(
             instance_inputs=paths,
             allow_test_flags=False,
             overrides={},
+            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0
@@ -944,7 +1163,7 @@ def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_hand
         lambda _config: "boot",
     )
     config_path = tmp_path / "foreman.toml"
-    DetachedSpawner(composition.supervisor_config, config_path).launch(
+    DetachedSpawner(composition.supervisor_config, config_path, "cr-3411.4").launch(
         WrapperLaunch(
             root_id="root",
             activation_id="activation",
@@ -957,6 +1176,10 @@ def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_hand
     assert argv[3:] == (
         "--config",
         str(config_path),
+        # D16: the wrapper re-enters as its own process and must be told the
+        # task, or it could not locate the backend its root is pinned to.
+        "--task",
+        "cr-3411.4",
         "supervise",
         "root",
         "activation",
@@ -995,7 +1218,9 @@ def test_detached_spawner_records_an_immediately_exited_wrapper(
         "workflow_interpreter.foreman.compose.procfs.read_boot_id",
         lambda _config: None,
     )
-    DetachedSpawner(composition.supervisor_config, tmp_path / "foreman.toml").launch(
+    DetachedSpawner(
+        composition.supervisor_config, tmp_path / "foreman.toml", "cr-3411.4"
+    ).launch(
         WrapperLaunch(root_id="root", activation_id="gone", request=entry_request())
     )
     record = composition.supervisor_config.wrapper_root / "root" / "gone"
