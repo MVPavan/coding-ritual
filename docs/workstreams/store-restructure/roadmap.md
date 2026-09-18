@@ -111,7 +111,7 @@ Where the tracker is touched — nowhere else:
 | prepare | `get` → title, brief, status, parent snapshotted into the record | yes, unless `NullTracker` with `--brief` |
 | prepare | `children`, `blockers` | capabilities; absent → explicit stage, `blockers_checked=false` |
 | admit | `apply(Claim)` **before** the ledger transition (§3.4) | when `CLAIM` declared |
-| close | `apply(Close)` via outbox, once the committed anchor resolves | capability |
+| close | `apply(Close)` via outbox, once `closed()` derives true on the ref anchor (R7) | capability |
 | attention | `apply(SetFlag)` via outbox from the reconciler | capability |
 | abandon | `apply(Close)` via outbox from `wf phase abandon` | capability |
 
@@ -251,7 +251,7 @@ export in any clone. In-flight tasks do **not** survive ledger deletion in this 
 their rows exist only in the ledger until close; the evidence in `refs/wf/*` and the
 wrapper home survives, recovery refuses the ownerless evidence, and the orchestrator
 retries. A crash is not a delete — `BEGIN IMMEDIATE` per method leaves committed rows
-intact. Checkpoint export per activation close is the recorded follow-up (R10).
+intact. Checkpoint export per activation close is S7 (R10).
 
 ## 4. Decisions
 
@@ -266,7 +266,7 @@ intact. Checkpoint export per activation close is the recorded follow-up (R10).
 | R7 | Tracker `Close` drains on the ref anchor — the moment the bead closes today | drain on the committed anchor (v1) | sibling admission reads the bead's status (`admission.py:252`); draining on the commit refused every sibling until the orchestrator committed. A clone lags until push; accepted |
 | R8 | Ids minted by the ledger with epic as an input under the same grammar; `epic_segment` deleted; `RunIdentity` carries `epic_id`; grammar tightened; child roots `<task>-a<n>-c<m>` | sanitise the tracker id and read `epic_id` (circular today); mint `<slug>.<n>` to keep the parse valid; attempt-from-carrier with no child format (v1: two roots of one task collide) | the column must be independent of the id; the epic is a path component too; two id forms git refuses pass the regex; the count was the only root-id uniqueness |
 | R9 | Missing `BLOCKERS` records `blockers_checked=false` and proceeds; a per-tracker config flag turns it into a refusal | always refuse | an absent capability is not liveness ambiguity; the flag is recorded on the record either way so the trace shows which policy applied |
-| R10 | In-flight tasks do not survive ledger deletion in this epic; checkpoint export is a follow-up bead | checkpoint now | a second kind of export in the same epic that redefines the first is how a third circularity is born |
+| R10 | In-flight tasks do not survive ledger deletion until S7; checkpoint export is the final slice, after the one export is right | checkpoint inside S1–S2 | a second kind of export in the same epic that redefines the first is how a third circularity is born |
 | R11 | Claims stay ledger-local CAS | git-ref CAS | one ledger per repository (`foreman/config.py:23` refuses linked worktrees); a claim outliving the ledger is one nobody can see |
 | R12 | Clean break with quiesce; no compatibility layer | dual id schemes, dual headers | no live ledger, no committed export exists; in-flight bead-metadata records are the only migration surface |
 | R13 | Superseded run-ledger decisions, stated: **D6** — attention still drains before the driver exits, but through the outbox at driver exit rather than a direct label write per tick; **D9** — task closure is `closed()`, not a stored CLOSED; **D16** — every root is reachable from the ledger's `tasks` row; `tracker_ref` may be NULL under `NullTracker`, so "reachable from the tracker" becomes "reachable from the tracker when one is configured" | leave them implicit | a decision the roadmap undoes without saying so is the next reviewer's blocker |
@@ -288,7 +288,7 @@ Loop as the engine bundle: implementer writes, Opus medium iterates to convergen
 (≤3 rounds), independent critic signs off, canonical gate green after every slice.
 Each slice lands on `wf/store-restructure`; the branch merges as one. Strictly
 ordered — S0 first so every later slice is written in the new names, S2 needs S1's
-anchor rules, S4 needs S3's minted ids, S6 is last.
+anchor rules, S4 needs S3's minted ids, S6 deletes the seam, S7 last.
 
 | Slice | Delivers | Acceptance |
 |---|---|---|
@@ -299,9 +299,13 @@ anchor rules, S4 needs S3's minted ids, S6 is last.
 | S4 bridge in the ledger | `bridge_records` (exported, own emission branch), `claims` (non-exported), brief snapshot; the five adapter transitions become ledger transactions with a version guard; `_refuse_other_admission` as a ledger query on `closed()`; `wf phase abandon` → ABANDONED, `retired`; `LedgerClaimUnsupported` gone | with `.beads/` deleted after prepare: admit, land, `wf ledger show`, archive succeed; two attempts on one target serialise on the ledger claim; abandon unblocks sibling admission and the abandoned task's worktree is cleaned; a retry admits from the snapshot without a tracker read |
 | S5 tracker port | `tracker/` package: port, intents, `NullTracker`, `FileTracker`, `BdTracker`, `tracker_outbox` and drain (at driver exit, D6), claim placed per §3.4, PREPARED-plus-claimed detection, external-close detection, reconciler through `SetFlag`; one conformance suite | the same rig lands against null, file and bd; forced `Unknown` on `Close` leaves the landing intact and one pending row; `Unknown` on `Claim` refuses admit; a ledger refusal after the claim releases it; a crash after the claim is released on the next invocation; a bead closed mid-run marks the record ABANDONED_EXTERNAL; zero tracker calls inside any foreman tick and the outbox drained before the driver exits (counting tracker) |
 | S6 cutover | quiesce check (no bead-metadata record at PREPARED/ADMITTED); delete the seam (§3.2); `costs` on the ledger only with a release note; guide 08 and 11 rewritten; ADR 0006 | `grep -rn BackendKind workflow_interpreter/` empty; `bdio/client.py` and `foreman/locator.py` gone; canonical gate green; a full prepare → admit → land → close → commit → reconcile cycle closes the bead exactly once |
+| S7 checkpoint export | `cr-h498`, promoted from follow-up to final slice: an export at every activation close, pinned to a local ref and never committed, so a deleted ledger rebuilds to the last checkpoint and recovery resumes; `closed()` distinguishes a checkpoint anchor from a close anchor | delete `.wf/ledger.db` mid-run, rebuild, recovery resumes the in-flight root from the last activation close without a retry; a task with only checkpoint anchors is never `closed()`; canonical gate green |
 
-Estimate, in AI execution plus review time: six days across seven slices. S0 is half a
-day, mechanical; S1 and S5 are the largest; S2 is the one that must not be rushed.
+Estimate, in AI execution plus review time: six and a half days across eight slices.
+S0 is half a day, mechanical; S1 and S5 are the largest; S2 is the one that must not
+be rushed; S7 is small once S2's anchor rule exists. How the epic is run — roles,
+reports, the two Fable gates, close-out — is `orchestration.md`; live position is
+`state.md`.
 
 ## 7. Risks and open questions
 
