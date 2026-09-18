@@ -312,15 +312,24 @@ class LedgerDatabase:
         self.close()
 
     def _migrate_if_behind(self) -> None:
-        """Peek at the version, and migrate exclusively only when behind.
+        """Peek `mode=ro` at the version, and migrate exclusively when behind.
 
-        The peek is an unfenced read, and it is only a decision to ASK for the
-        fence: the version is read again inside the exclusive section, so a
-        process that migrated while we waited leaves nothing to do.
+        The peek is an unfenced READ and nothing else: it opens the file
+        read-only, so it cannot create the database, pin its pragmas or leave a
+        half-built file behind for a concurrent opener to read as finished. The
+        exclusive section below is the one place a ledger comes into existence.
+
+        An absent file is the ordinary first start, so `LedgerAbsent` here means
+        "behind, go and create it" rather than an error. The version is read
+        again inside the exclusive section, so a process that migrated while we
+        waited leaves nothing to do.
         """
-        with closing(connect(self._path)) as connection:
-            if schema_version(connection) >= SCHEMA_VERSION:
-                return
+        try:
+            with closing(connect(self._path, read_only=True)) as connection:
+                if schema_version(connection) >= SCHEMA_VERSION:
+                    return
+        except LedgerAbsent:
+            pass
         with self._fence.exclusive(), closing(connect(self._path)) as connection:
             current = schema_version(connection)
             if current >= SCHEMA_VERSION:
