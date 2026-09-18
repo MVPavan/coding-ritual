@@ -56,4 +56,4 @@ Recorded so the same mistakes are not repeated:
   `debrief`. Per-node fields must be read against their own `[[node]]` block.
 - A test-line count of ~135,000 was wrong; the real figure is ~66,800. The original
   glob had swept in vendored `.venv` tests.
-- The wrapper's entry point is `foreman/inspect.py`, not a `inspector/wrapper.py`.
+- The wrapper's entry point is `foreman/inspector.py`, not a `inspector/wrapper.py`.

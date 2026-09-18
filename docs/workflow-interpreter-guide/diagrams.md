@@ -97,7 +97,7 @@ Four distinctions the rest of this document assumes:
 1. **Inspector and wrapper are one thing under two names.** `inspector/` is the code;
    the *wrapper* is a running instance of it plus its directory
    `wrapper_root/<root>/<activation>/`, its `wrapper.lock` and its `wrapper.json`. The lock
-   admits one live wrapper per activation. Its entry point is `foreman/inspect.py:75-83`,
+   admits one live wrapper per activation. Its entry point is `foreman/inspector.py:75-83`,
    which then drives the `inspector/` machinery (section 8).
 2. **The foreman decides and the wrapper does.** The foreman never launches an agent and never
    writes a worktree. The wrapper never chooses the next node. They are separate OS processes,
@@ -1130,7 +1130,7 @@ sequenceDiagram
 Every mint (entry, edge successor, infra retry) is followed by `dispatch_minted` in the same tick.
 A later tick re-dispatches a still-`minted` activation only when no wrapper holds
 `wrapper.lock`, which is the crash or lost-spawn case (`foreman/cases.py:152-177,212-240,331-363,533`;
-`foreman/inspect.py:75-83,234-427`).
+`foreman/inspector.py:75-83,234-427`).
 
 ### 7.3 How wrapper failures close an activation
 
@@ -1149,7 +1149,7 @@ A later tick re-dispatches a still-`minted` activation only when no wrapper hold
 | other `InspectorError` or `OSError` | `error_transport` | none |
 
 Deviations like `sandbox_unavailable` make the activation a dead end, so the frontier opens a
-halt gate instead of retrying. Source: `foreman/inspect.py:303-428`.
+halt gate instead of retrying. Source: `foreman/inspector.py:303-428`.
 
 ---
 

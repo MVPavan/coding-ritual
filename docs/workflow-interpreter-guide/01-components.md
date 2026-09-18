@@ -29,7 +29,7 @@ Two rules make this trustworthy:
 code; the *wrapper* is a running instance of it plus its directory
 `wrapper_root/<root>/<activation>/`, its `wrapper.lock` and its `wrapper.json`. The
 lock admits one live wrapper per activation. Its entry point is
-`foreman/inspect.py:75-83`, which then drives the `inspector/` machinery.
+`foreman/inspector.py:75-83`, which then drives the `inspector/` machinery.
 
 **2. The foreman decides; the wrapper does.** The foreman never launches an agent and
 never writes a worktree. The wrapper never chooses the next node. Separate OS
@@ -51,9 +51,9 @@ about epics.
 ## Who owns the graph
 
 The foreman, entirely. A grep of `inspector/*.py` for any graph reference returns
-zero hits. Every use of `resolved_node` is in `foreman/inspect.py:143,165,266`.
+zero hits. Every use of `resolved_node` is in `foreman/inspector.py:143,165,266`.
 
-- `foreman/inspect.py` resolves **one node** from the pinned graph into an execution
+- `foreman/inspector.py` resolves **one node** from the pinned graph into an execution
   spec: crew, model, instructions, inputs, verify checks, budgets, profile.
 - `inspector/` receives that spec and executes it. It knows processes, sandboxes,
   locks and files. It does not know what a node, an edge or a region is.

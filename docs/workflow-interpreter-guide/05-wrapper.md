@@ -4,13 +4,13 @@ One detached OS process per activation, started by the foreman as
 `foreman inspector <root_id> <activation_id>`. It owns exactly one activation from
 launch to exit record, then dies. You never invoke it yourself.
 
-The code spans two places: `foreman/inspect.py` is the entry point that resolves the
+The code spans two places: `foreman/inspector.py` is the entry point that resolves the
 node and decides *what* to run; `inspector/` is the machinery that runs it and knows
 nothing about graphs.
 
 ## What one wrapper does, in order
 
-From `foreman/inspect.py:234-300` and `inspector/run.py:178-275`:
+From `foreman/inspector.py:234-300` and `inspector/run.py:178-275`:
 
 1. **Take `wrapper.lock`.** Held means another wrapper is alive on this activation →
    exit `LOCKED`. This is what makes double-dispatch impossible.
