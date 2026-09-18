@@ -45,6 +45,7 @@ from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_TABLE,
     MSG_EXPORT_TASK_MISMATCH,
     MSG_EXPORT_TASK_ROWS,
+    MSG_IMPORT_LANDED,
     MSG_REPO_HASH_MISMATCH,
     MSG_UNKNOWN_TASK,
     MSG_WRAPPER_ROOT_MISMATCH,
@@ -64,6 +65,7 @@ from workflow_interpreter.ledger.database import (
 from workflow_interpreter.ledger.errors import (
     LedgerExportError,
     LedgerIdentityError,
+    LedgerImportUnsupported,
     LedgerSchemaError,
     LedgerTransportError,
 )
@@ -89,6 +91,7 @@ _SQL_RESTORE_PENDING: Final[str] = (
     "INSERT INTO restore_pending (task_id, requested_at) VALUES (?, ?)"
 )
 _SQL_CLEAR_RESTORES: Final[str] = "DELETE FROM restore_pending"
+_SQL_COUNT_LANDINGS: Final[str] = f"SELECT COUNT(*) FROM {LedgerTable.LANDINGS.value}"
 _GATE_COLUMN: Final[str] = "gate_id"
 _BLOB_KEY: Final[str] = "base64"
 """A signature's payload and bytes are BLOBs, and JSON has no bytes. They
@@ -192,6 +195,10 @@ def import_exports(
     describes and a failure anywhere leaves it as it was. The derived
     per-activation tables are rebuilt in that transaction too, from the
     restored carriers (`rebuild_findings`).
+
+    A ledger that already records a landing is refused whole before any of
+    that (`_assert_no_landings`): the landing journal is not exportable, so no
+    rebuild can restore it.
     """
     parsed = tuple(
         _parse(path, repo_root=repo_root, wrapper_root=wrapper_root) for path in paths
@@ -206,6 +213,7 @@ def import_exports(
         assert_identity(
             connection, path=ledger, repo_root=repo_root, wrapper_root=wrapper_root
         )
+        _assert_no_landings(connection, ledger=ledger)
         with standalone_transaction(connection):
             _clear(connection)
             for export in parsed:
@@ -222,6 +230,28 @@ def import_exports(
     for export in parsed:
         _LOG.info("wf.ledger.imported", task_id=export.task_id, path=str(export.path))
     return tuple(export.task_id for export in parsed)
+
+
+def _assert_no_landings(connection: sqlite3.Connection, *, ledger: Path) -> None:
+    """Refuse an import into a ledger that already records a landing.
+
+    `landings` is deliberately outside `EXPORT_TABLES`, so no export carries
+    the landing journal and no rebuild can put it back. It is not even
+    droppable in passing: `landings.task_id` references `tasks` with no
+    `ON DELETE`, and `foreign_keys=ON`, so `_clear`'s `DELETE FROM tasks`
+    fails its foreign key and the whole import rolls back with a raw SQLite
+    message an operator reads as a damaged database.
+
+    Refused here by name instead, INSIDE the exclusive section — where the
+    destination is known — and before the transaction that would delete
+    anything opens. Rebuilding the journal is a deferred decision, so the
+    refusal says so rather than implying the ledger is broken.
+    """
+    landed = int(connection.execute(_SQL_COUNT_LANDINGS).fetchone()[0])
+    if landed:
+        raise LedgerImportUnsupported(
+            MSG_IMPORT_LANDED.format(path=ledger, count=landed)
+        )
 
 
 def _record_restore(connection: sqlite3.Connection, task_id: str) -> None:

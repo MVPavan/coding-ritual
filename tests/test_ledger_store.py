@@ -51,6 +51,7 @@ from workflow_interpreter.ledger.errors import (
     LedgerExportError,
     LedgerFenceBusy,
     LedgerIdentityError,
+    LedgerImportUnsupported,
 )
 from workflow_interpreter.ledger.export import import_export, write_export
 from workflow_interpreter.ledger.fence import LedgerFence, holders
@@ -477,6 +478,46 @@ def test_an_export_carrying_two_tasks_rows_is_refused(tmp_path: Path) -> None:
             wrapper_root=wrapper_root,
             ledger=ledger_path(repo_root),
         )
+
+
+def test_an_import_into_a_ledger_that_records_a_landing_is_refused_by_name(
+    tmp_path: Path,
+) -> None:
+    """A rebuild cannot restore the landing journal, so it refuses whole.
+
+    `landings` is outside `EXPORT_TABLES` and references `tasks` with no
+    `ON DELETE`, so the rebuild's `DELETE FROM tasks` would fail its own
+    foreign key and roll back with a raw SQLite message an operator would
+    reasonably read as a corrupt ledger. The refusal is named, says the
+    limitation is a deliberate deferral, and leaves the database untouched.
+
+    The row is written with SQL rather than through `LandingJournal` because
+    what the refusal keys on is a landed ledger, whatever wrote it.
+    """
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        export = write_export(database, TASK)
+    with closing(connect(ledger_path(repo_root))) as raw:
+        raw.execute(
+            "INSERT INTO landings (task_id, attempt, phase, record_json, written_at) "
+            "VALUES (?, 1, 'intent', '{}', '2026-09-18T00:00:00Z')",
+            (TASK,),
+        )
+
+    with pytest.raises(LedgerImportUnsupported, match="landing"):
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert _count(reopened, LedgerTable.LANDINGS) == 1
+        assert _count(reopened, LedgerTable.ROOTS) == 1
+        # An import that had started would owe this task a drain (§3.2).
+        assert _count(reopened, LedgerTable.RESTORE_PENDING) == 0
 
 
 def test_an_import_leaves_no_task_the_export_set_does_not_describe(

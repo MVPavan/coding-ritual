@@ -64,6 +64,17 @@ class LedgerExportError(StoreConfigError):
     """
 
 
+class LedgerImportUnsupported(StoreConfigError):
+    """This ledger holds state an import cannot rebuild, so it refuses whole.
+
+    Today that is the landing journal: `landings` is outside `EXPORT_TABLES`,
+    so no export carries it and the rebuild could not put it back. A KNOWN,
+    deferred limitation of import — not a damaged ledger — and its own class so
+    an operator and a caller both route on it rather than on a foreign-key
+    message from inside a rolled-back transaction.
+    """
+
+
 class LedgerAbsent(StoreConfigError):
     """There is no ledger to read, and a read-only command never makes one."""
 

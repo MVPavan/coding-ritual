@@ -277,6 +277,12 @@ MSG_EXPORT_BLOB: Final[str] = (
     "{path} carries a value for column {column!r} that is not the base64 a "
     "stored BLOB travels as: {reason} (§3.6)"
 )
+MSG_IMPORT_LANDED: Final[str] = (
+    "ledger {path} records {count} landing row(s), and no export carries the "
+    "landing journal, so an import cannot rebuild it (§3.6); this is a KNOWN "
+    "limitation of import, deliberately deferred, and NOT a corrupt ledger — "
+    "nothing has been changed, and the landed tasks are intact"
+)
 MSG_BAD_FILTER_KEY: Final[str] = (
     "carrier filter key {key!r} is not a plain identifier, so it cannot name a "
     "JSON path"
