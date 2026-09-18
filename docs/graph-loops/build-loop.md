@@ -1,5 +1,7 @@
 # Build loop — orchestration graph (v4.1)
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 **Audience: the orchestrator only.** Deliberately NOT a rule under
 `.claude/rules/` and deliberately NOT listed in `.claude/project/docs-index.md` —
 loading this into every agent's context is the exact cost this protocol exists to

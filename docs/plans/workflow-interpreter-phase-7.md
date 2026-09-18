@@ -1,5 +1,7 @@
 # Workflow Interpreter — phase 7 plan (v2, approved 2026-09-04)
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Status: **v2 — APPROVED by the user 2026-09-04 after an Opus 5 medium critic pass (REVISE: 1
 BLOCKER, 5 MAJOR, 4 MINOR; every finding re-verified against the code
 before it moved the plan).** Bead: `cr-o85.34.7` (parent `cr-o85.34`).

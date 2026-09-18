@@ -48,9 +48,9 @@ class ContractorState(StrEnum):
 
     PREPARED = "prepared"
     ADMITTED = "admitted"
-    # Read compatibility for the OLD `phase-bridge/3` wire vocabulary; no record
-    # ever carried this state under `contract/3`, which S0 introduced.
-    # No producer writes this state; removing it requires an explicit migration.
+    # Retained as dead vocabulary: pre-S0 `phase-bridge/3` records carried it, and
+    # no such record can validate against `contract/3` (R12: no read shim). Removing
+    # it is safe once S4 replaces this record with `contractor_records`.
     LANDING = "landing"
     LANDED = "landed"
     GATE_RED = "gate-red"

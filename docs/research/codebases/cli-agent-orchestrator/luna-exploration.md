@@ -1,5 +1,7 @@
 # cli-agent-orchestrator — Luna High exploration (raw report)
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 > GPT-5.6-Luna, effort high, read-only, 2026-09-11. Verbatim reply to the question set
 > below, over the pinned `reference_tools/cli-agent-orchestrator/` submodule. Not independently verified:
 > every `file:line` is Luna's claim — check before acting on one. Absolute paths were

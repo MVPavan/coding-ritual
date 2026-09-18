@@ -7,7 +7,7 @@ task travels from a bd stage to a landed, exported commit.
   run-ledger epic (the SQLite run ledger beside bd). Anything marked *run ledger* exists only on
   that branch until it merges.
 - **Source of truth:** the code. Where the design spec
-  ([workflow-interpreter.md](workflow-interpreter.md)) disagrees, section 16 lists the drift.
+  ([workflow-interpreter.md](../specs/workflow-interpreter.md)) disagrees, section 16 lists the drift.
 - **Citations:** `path:line` is relative to `workflow_interpreter/` unless it starts with
   `docs/`, `workflows/`, `scripts/` or `config/`.
 - **Rendering:** Mermaid blocks render in GitHub and in VS Code with a Mermaid preview extension.
@@ -1944,7 +1944,7 @@ requires `HEAD` to equal the recorded base, or it refuses with `branch-moved`
 ### 16.1 Where the code differs from the design spec
 
 The code is authoritative. These are places a reader of
-[workflow-interpreter.md](workflow-interpreter.md) would be misled.
+[workflow-interpreter.md](../specs/workflow-interpreter.md) would be misled.
 
 | Spec says | Code does | Code source |
 |---|---|---|

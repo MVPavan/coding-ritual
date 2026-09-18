@@ -195,7 +195,7 @@ def undeclared_fail_code_graph(directory: Path, source: Path = VALID_FIXTURE) ->
 _ABANDON_TASK_NODE: Final[str] = '''[[node]]
 name          = "wrapup"
 kind          = "task"
-crew        = "profile:critic"
+crew          = "profile:critic"
 model         = "default"
 instructions = """
 Record why the slice was abandoned.

@@ -1,5 +1,7 @@
 # Node execution contracts and interrupted-work recovery
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Status: approved scope; independent Opus critique resolved below; ready for bounded implementation.
 Stage: cr-s8xg.2 (execution epic cr-s8xg).
 Origin: cr-02ze.10 and user authorization to fix both gaps with Astra low. No separate spec: the user approved the two concrete behaviors in discussion. One bounded workflow stage implements two separately testable requirements, reviewed together to avoid duplicate coordination and full gates.
