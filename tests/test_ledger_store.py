@@ -133,6 +133,33 @@ def test_a_second_open_migrates_nothing_and_keeps_the_creation_pin(
         assert read_meta(second.connection, MetaKey.REPO_HASH) == repo_hash(repo_root)
 
 
+def test_the_pre_fence_peek_never_creates_the_database_it_only_reads(
+    tmp_path: Path,
+) -> None:
+    """§3.4: the version peek is a READ, so only the fenced branch may create.
+
+    A peek that opened the file for writing would create it, pin its pragmas
+    and leave it for a concurrent opener to read as an up-to-date ledger —
+    outside the exclusive fence that exists to make creation single. The
+    absent file is proved by refusing the fence: the peek is all that ran.
+    """
+    repo_root, wrapper_root = repository(tmp_path)
+    database_path = ledger_path(repo_root)
+    with LedgerFence(fence_path(repo_root)).exclusive():
+        with pytest.raises(LedgerFenceBusy):
+            open_ledger(
+                repo_root,
+                wrapper_root,
+                fence=LedgerFence(fence_path(repo_root), wait_s=0.0),
+            )
+        assert not list(database_path.parent.glob(f"{database_path.name}*"))
+
+    # And the absence is "behind", not an error: the first start still creates.
+    with open_ledger(repo_root, wrapper_root) as database:
+        assert schema_version(database.connection) == SCHEMA_VERSION
+    assert database_path.is_file()
+
+
 def test_the_pragmas_the_concurrency_contract_names_are_applied(
     ledger: LedgerDatabase,
 ) -> None:
