@@ -15,6 +15,10 @@ roadmap §1 names:
 5. and until §3.5's `closed()` exists in S2, `adapter.close` still refuses a
    record that names no export blob (D5).
 
+`wf ledger pin-export` is here too, beside the first: it recovers the one
+window the pin cannot make atomic, and it has to pin exactly the bytes that
+property is about.
+
 Real git rather than the `.git`-directory stand-in the other ledger tests use:
 three of these are statements about a blob, a ref or a clone, and none of those
 can be faked.
@@ -46,6 +50,8 @@ from workflow_interpreter.contractor.journal import (
 from workflow_interpreter.inspector import Git
 from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.ledger.__main__ import COMMAND_PIN_EXPORT
+from workflow_interpreter.ledger.__main__ import main as ledger_main
 from workflow_interpreter.ledger.constants import (
     EXPORT_REF_TEMPLATE,
     EXPORT_TABLES,
@@ -54,8 +60,14 @@ from workflow_interpreter.ledger.constants import (
 )
 from workflow_interpreter.ledger.database import open_ledger
 from workflow_interpreter.ledger.export import import_export, write_export
-from workflow_interpreter.ledger.paths import export_path, ledger_path, repo_id_path
+from workflow_interpreter.ledger.paths import (
+    export_path,
+    ledger_path,
+    repo_hash,
+    repo_id_path,
+)
 from workflow_interpreter.ledger.schema import table_columns
+from workflow_interpreter.ledger.tasks import export_oid
 
 EPIC_ID: Final[str] = "phase-1"
 STAGE_ID: Final[str] = "stage-a"
@@ -105,6 +117,36 @@ def _git(repo_root: Path, wrapper_root: Path) -> Git:
     )
 
 
+def _config_file(repo_root: Path, tmp_path: Path) -> tuple[Path, Path]:
+    """A foreman config over `repo_root`, and the wrapper root it derives.
+
+    `tests._ledger.config_file` builds its own `.git`-directory repository;
+    the CLI cases here need the config to name a REAL checkout, because what
+    they run reaches git.
+    """
+    home = tmp_path / "home"
+    wrapper_root = home / repo_hash(repo_root)
+    path = tmp_path / "foreman.toml"
+    path.write_text(
+        f'''repo_root = "{repo_root}"
+wrapper_home = "{home}"
+host = "{HOST}"
+actor = "actor"
+
+[bd]
+workspace = "{tmp_path / "bd"}"
+actor = "actor"
+
+[inspector]
+repo_root = "{repo_root}"
+wrapper_root = "{wrapper_root}"
+host = "{HOST}"
+''',
+        encoding="utf-8",
+    )
+    return path, wrapper_root
+
+
 def _landing_intent() -> LandingIntent:
     """One journalled landing intent, the shape D17's fallback reads back."""
     return LandingIntent(
@@ -143,6 +185,34 @@ def test_a_closed_task_re_exports_the_very_bytes_its_pin_names(
     assert again == as_pinned
     assert _git_binary("hash-object", "--", str(exported), cwd=repo_root) == pinned_oid
     assert _git_binary("rev-parse", "--verify", ref, cwd=repo_root) == pinned_oid
+
+
+def test_pin_export_recovers_a_crash_between_the_write_and_the_pin(
+    tmp_path: Path,
+) -> None:
+    """`wf ledger pin-export` pins the bytes ON DISK and records their oid.
+
+    The one window `ExportPin` cannot make atomic: the file is written and the
+    process dies before the ref names its blob, so the task looks unexported
+    while its whole record is sitting in the checkout. Recovery re-pins those
+    bytes rather than exporting again — the operator's file is the one the
+    oid must name.
+    """
+    repo_root, _ = _git_repository(tmp_path)
+    config, wrapper_root = _config_file(repo_root, tmp_path)
+    exported = export_path(repo_root, TASK)
+    ref = EXPORT_REF_TEMPLATE.format(task_id=TASK)
+    with open_ledger(repo_root, wrapper_root) as database:
+        seeded_task(database)
+        write_export(database, TASK)
+    assert _git_binary("for-each-ref", "--format=%(refname)", ref, cwd=repo_root) == ""
+
+    assert ledger_main(["--config", str(config), COMMAND_PIN_EXPORT, TASK]) == 0
+
+    oid = _git_binary("hash-object", "--", str(exported), cwd=repo_root)
+    assert _git_binary("rev-parse", "--verify", ref, cwd=repo_root) == oid
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert export_oid(reopened, TASK) == oid
 
 
 def test_a_committed_export_imports_into_a_clone_at_another_path(
