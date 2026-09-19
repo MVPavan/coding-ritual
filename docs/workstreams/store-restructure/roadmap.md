@@ -140,8 +140,8 @@ sees PREPARED + claimed-by-us and enqueues the release. The port gains no `list`
 
 ```text
 closed(task):
+    if state != LANDED:                     return False       # the gate, first
     if tasks.export_oid is set:            return True        # the latch
-    if state != LANDED:                     return False
     oid = anchor_oid(task)                  # reverify's _anchor_oid, same precedence:
     if oid is None:                         return False      #   HEAD blob first, ref fallback
     if blob_hash(.wf/export/<task>.jsonl) != oid: return False
@@ -173,8 +173,18 @@ closes today. v1 drained on the committed anchor; that left every sibling stage 
 by `_refuse_other_admission` until the orchestrator committed. A fresh clone lags until
 the export commit is pushed; accepted, and `wf ledger verify` names which anchor answered.
 
-Both tests hold at once: a crash between export and pin leaves the task open to
-succession, sibling admission, cleanup and archive; a ledger rebuilt in a fresh clone
+The LANDED gate is asked **above** the latch, and `wf ledger pin-export` refuses a task
+that has not landed, because both commands are the operator's and work on a task in any
+state: without the gate at both ends an in-flight task could be latched closed forever,
+and its landing would then skip `adapter.land` and the pin itself.
+
+Until S4's `contractor_records` exists, LANDED is carried by an exported `tasks.state`
+column (schema v3) written before the export bytes are — which is what lets a ledger
+rebuilt in a clone say that this task's work landed; S4 folds it into the record.
+
+Both tests hold at once: a crash between export and pin leaves the task NOT closed — a
+retry is refused (the commit is on the target), sibling admission, cleanup and archive
+wait, and re-running the close finishes it; a ledger rebuilt in a fresh clone
 from the committed file derives `closed()` on first ask, latches, and terminal cleanup
 proceeds. Archive is **not** clone-portable and never was — it bundles `refs/wf/<root>/*`
 (D19, `ledger/archive.py:94`), which a default clone does not fetch.
