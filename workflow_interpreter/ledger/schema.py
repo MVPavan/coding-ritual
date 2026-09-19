@@ -232,6 +232,16 @@ replaced) as `kind = 'review'`; the rows derived from the
 close carriers keep the default, which is also what any row written before
 this migration was."""
 
+_V3_TASKS_STATE: Final[str] = "ALTER TABLE tasks ADD COLUMN state TEXT"
+"""How far the CONTRACTOR got with this task, as the ledger knows it
+(store-restructure §3.5, R6): `landed`, `abandoned`, or nothing yet.
+
+`closed()` is derived from LANDED plus a resolving anchor, so the state has to
+be a ledger fact that the EXPORT carries — a task rebuilt in a clone has no
+other way to say that its work landed. It is deliberately not the contractor's
+whole lifecycle: S4 moves the record itself into `contractor_records`, and this
+column is what that table's `state` becomes."""
+
 MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     (
         _V1_META,
@@ -252,6 +262,7 @@ MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
         *_V1_INDEXES,
     ),
     (_V2_FINDINGS_KIND,),
+    (_V3_TASKS_STATE,),
 )
 """One tuple of statements per schema version, in order. Index `n` migrates a
 database at version `n` to version `n + 1`, so `len(MIGRATIONS)` IS the version

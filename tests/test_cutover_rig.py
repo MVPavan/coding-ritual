@@ -43,6 +43,7 @@ from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.gates import payload_template
 from workflow_interpreter.inspector.paths import fsync_dir
+from workflow_interpreter.ledger.closure import closed
 from workflow_interpreter.ledger.tasks import export_oid, task_backend
 
 BD_BINARY: Final[str] = "bd"
@@ -337,18 +338,18 @@ def test_a_stage_lands_end_to_end_on_a_real_rig(
     try:
         record = ContractorAdapter.from_config(composition.config.bd).record(stage)
         assert record.root_backend is store
-        assert record.state is ContractorState.CLOSED
+        assert record.state is ContractorState.LANDED
         shown = json.loads(_bd(bd_workspace, "show", stage, "--json"))
         assert _status_of(shown) == BEAD_CLOSED
         assert (record.root_id or "").startswith(f"{stage}-a") is (
             store is BackendKind.LEDGER
         )
         assert task_backend(composition.ledger, stage) is store
-        # §3.6 on BOTH backends: the bead closed only after the task's record
-        # was exported and pinned, and the ledger holds that oid even for a
-        # bd-backed root, whose landing journal it carries (D17).
-        assert record.export_oid is not None
-        assert export_oid(composition.ledger, stage) == record.export_oid
+        # §3.5 on BOTH backends: the bead closed only after the task derived
+        # `closed()`, and the ledger holds the latch that derivation wrote
+        # even for a bd-backed root, whose landing journal it carries (D17).
+        assert export_oid(composition.ledger, stage) is not None
+        assert closed(composition.ledger, composition.git, stage) is True
     finally:
         if composition.ledger is not None:
             composition.ledger.close()
@@ -517,7 +518,7 @@ def test_a_debrief_the_real_crew_broke_reaches_triage_and_never_ship(
     assert debriefs[-1].metadata.evidence.claimed_outcome is Outcome.DONE
     assert TRIAGE_GATE in gates
     assert SHIP_GATE not in gates
-    assert record.state is not ContractorState.CLOSED
+    assert record.state is not ContractorState.LANDED
     assert (
         subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=repo, text=True
@@ -604,6 +605,6 @@ def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
     ).split()
 
     assert second.root_id != abandoned_root
-    assert second.state is ContractorState.CLOSED
+    assert second.state is ContractorState.LANDED
     assert f"{run_dir}/a2/debrief.md" in landed
     assert f"{run_dir}/a1/debrief.md" not in landed

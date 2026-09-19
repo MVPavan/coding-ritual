@@ -75,8 +75,7 @@ EPIC_ID = "phase-1"
 STAGE_ID = "stage-a"
 TARGET_REF = "refs/heads/main"
 BASE_COMMIT = "a" * 40
-EXPORT_OID = "e" * 40
-"""§3.6: the blob a closed task's whole record is pinned as."""
+
 ROOT_ID: Final[str] = "contractor-root"
 FUTURE_CONTRACTOR_SCHEMA: Final[str] = "future-schema/99"
 WRONG_INSTANCE_KEY: Final[str] = "not-the-derived-key"
@@ -87,6 +86,23 @@ def _policy():
     return VerificationPolicy.pin(
         (CheckCommand(name="source", argv=(sys.executable, "-c", "pass")),), Path.cwd()
     )
+
+
+class _DurableRecord:
+    """A closure probe that says this task's record is already in git (§3.5).
+
+    A stand-in rather than a ledger: what these tests are about is the bead
+    surface, and `tests/test_derived_closed.py` is where the derivation itself
+    is proved against real git.
+    """
+
+    def closed(self, task_id: str) -> bool:
+        """Yes: the export is pinned and the task derives closed."""
+        return True
+
+    def retired(self, task_id: str) -> bool:
+        """A closed task is retired."""
+        return True
 
 
 def _admission(adapter, roots, head_commit):
@@ -399,12 +415,12 @@ def test_adapter_writes_the_whole_record_then_claims_with_admission(
 
 
 @pytest.mark.parametrize(
-    "stored_state", (ContractorState.ADMITTED, ContractorState.CLOSED)
+    "stored_state", (ContractorState.ADMITTED, ContractorState.LANDED)
 )
 def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
     fake_bd: FakeBd, fake_client: BdClient, stored_state: ContractorState
 ) -> None:
-    """A same-attempt write cannot replace admitted or closed stage evidence."""
+    """A same-attempt write cannot replace admitted or landed stage evidence."""
     stored = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -413,8 +429,7 @@ def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
         target_ref=TARGET_REF,
         expected_base_commit=BASE_COMMIT,
     ).admitted(ROOT_ID)
-    if stored_state is ContractorState.CLOSED:
-        stored = stored.closed(EXPORT_OID)
+    stored = stored.model_copy(update={"state": stored_state})
     stage = _stage_row()
     stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
     fake_bd.rows[STAGE_ID] = stage
@@ -450,10 +465,16 @@ def test_prepare_accepts_a_valid_successor_over_an_unsettled_journal(
     assert successor == stored.next_attempt()
 
 
-def test_prepare_refuses_a_structural_successor_over_a_closed_journal(
+def test_prepare_refuses_a_structural_successor_over_a_landed_journal(
     fake_bd: FakeBd, fake_client: BdClient
 ) -> None:
-    """No retry structure can reopen evidence for a stage that landed and closed."""
+    """No retry structure can reopen evidence for a stage that landed.
+
+    The record stops at LANDED since S2 — closure is derived from the ledger
+    and its git anchor (store-restructure §3.5) — so the stored state alone
+    refuses the successor, and a task that also derives `closed()` is refused
+    by the probe before this (`tests/test_derived_closed.py`).
+    """
     stored = (
         ContractorRecord.prepared(
             verification_policy=_policy(),
@@ -464,13 +485,13 @@ def test_prepare_refuses_a_structural_successor_over_a_closed_journal(
             expected_base_commit=BASE_COMMIT,
         )
         .admitted(ROOT_ID)
-        .closed(EXPORT_OID)
+        .landed("b" * 40, "c" * 40, "gate-receipt", "landing-receipt")
     )
     stage = _stage_row()
     stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
     fake_bd.rows[STAGE_ID] = stage
 
-    with pytest.raises(ContractorAdapterError, match="refuses a closed stored record"):
+    with pytest.raises(ContractorAdapterError, match="refuses a landed stored record"):
         ContractorAdapter(fake_client).prepare(STAGE_ID, stored.next_attempt())
 
 
@@ -710,7 +731,8 @@ def test_admission_refuses_an_open_stage_with_a_landed_relation(
     with pytest.raises(AdmissionRefused, match="unfinished contractor admission"):
         admission.admit(EPIC_ID, other_stage_id, TARGET_REF, base)
 
-    adapter.close(STAGE_ID, landed.closed(EXPORT_OID), "landing-receipt")
+    adapter.closure = _DurableRecord()
+    adapter.close(STAGE_ID, landed, "landing-receipt")
     other = admission.admit(EPIC_ID, other_stage_id, TARGET_REF, base)
 
     assert other.state is ContractorState.ADMITTED

@@ -1863,17 +1863,17 @@ def _archive_fixture(tmp_path: Path) -> tuple[Path, Path, Git, str, str]:
     return repo, wrapper_root, git, root_id, ref
 
 
-def test_archive_refuses_an_unexported_task_and_deletes_nothing(
+def test_archive_refuses_a_task_that_is_not_retired_and_deletes_nothing(
     tmp_path: Path,
 ) -> None:
-    """No export_oid means the task never closed, and nothing may be retired."""
+    """A task that neither derives `closed()` nor was abandoned keeps its bytes."""
     repo, wrapper_root, git, root_id, ref = _archive_fixture(tmp_path)
     bundle = tmp_path / "bundles" / f"{TASK_ID}.bundle"
     with open_ledger(repo, wrapper_root) as database:
         pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
         _settled_root(database, TASK_ID, root_id)
 
-        with pytest.raises(LedgerExportError, match="export_oid"):
+        with pytest.raises(LedgerExportError, match="not retired"):
             archive_task(
                 git,
                 database,

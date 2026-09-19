@@ -1,11 +1,11 @@
-"""Retire a closed task's bytes, but never before they are recoverable (§3.9).
+"""Retire a finished task's bytes, but never before they are recoverable (§3.9).
 
 `wf archive <task>` is MANUAL and deliberately so (D14): nothing in the engine
 deletes a run folder on a schedule. It is also strictly ordered, and the order
 is the whole design (D19):
 
-1. refuse unless the task's record is durable — exported, with every root
-   settled — because an unfinished run has nothing to archive;
+1. refuse unless the task is RETIRED — `closed()` or abandoned (§3.5) — with
+   every root settled, because a live run has nothing to archive;
 2. write a git bundle of every `refs/wf/<root>/*` the task pinned, to a path
    the operator chose OUTSIDE the repository;
 3. verify that bundle with git itself;
@@ -25,17 +25,15 @@ from typing import Final
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.ledger.closure import retired
+from workflow_interpreter.ledger.constants import MSG_NOT_RETIRED
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
-from workflow_interpreter.ledger.tasks import export_oid, task_roots
+from workflow_interpreter.ledger.tasks import task_roots
 
 ROOT_REF_PREFIX: Final[str] = "refs/wf/{root_id}/"
 
 MSG_UNKNOWN_TASK: Final[str] = "the ledger holds no task {task_id!r}"
-MSG_NOT_EXPORTED: Final[str] = (
-    "task {task_id!r} has no export_oid: it is not closed, and an unexported "
-    "task may not be archived (§3.6)"
-)
 MSG_LIVE_ROOT: Final[str] = (
     "root {root_id!r} of task {task_id!r} has not settled; archive is for "
     "finished runs only"
@@ -68,12 +66,12 @@ def archive_task(
     repo_root: Path,
     wrapper_root: Path,
 ) -> ArchiveResult:
-    """Bundle, verify, then delete one closed task's run folders and refs."""
+    """Bundle, verify, then delete one retired task's run folders and refs."""
     roots = task_roots(database, task_id)
     if not roots:
         raise LedgerExportError(MSG_UNKNOWN_TASK.format(task_id=task_id))
-    if export_oid(database, task_id) is None:
-        raise LedgerExportError(MSG_NOT_EXPORTED.format(task_id=task_id))
+    if not retired(database, git, task_id):
+        raise LedgerExportError(MSG_NOT_RETIRED.format(task_id=task_id))
     for root_id, terminal in roots:
         if not terminal:
             raise LedgerExportError(

@@ -105,6 +105,19 @@ class LedgerTable(StrEnum):
     RESTORE_PENDING = "restore_pending"
 
 
+class TaskState(StrEnum):
+    """How far the contractor got with one task, as the ledger knows it (§3.5).
+
+    Only the two states closure is derived from. LANDED is written before the
+    export bytes exist, so the export carries it and a rebuilt ledger can still
+    say that this task's work landed; ABANDONED is the orchestrator's verb
+    (§3.8), and it retires a task that will never export at all.
+    """
+
+    LANDED = "landed"
+    ABANDONED = "abandoned"
+
+
 ROW_TABLES: Final[tuple[LedgerTable, ...]] = (
     LedgerTable.ROOTS,
     LedgerTable.ACTIVATIONS,
@@ -305,6 +318,15 @@ MSG_PIN_TASK_MISMATCH: Final[str] = (
 MSG_EXPORT_NOT_RECORDED: Final[str] = (
     "no tasks row {task_id!r} to record export blob {oid!r} on; a pin nothing "
     "carries is a task that still owes an export (§3.6)"
+)
+MSG_STATE_NOT_RECORDED: Final[str] = (
+    "no tasks row {task_id!r} to record state {state!r} on; a state nothing "
+    "carries would leave the task open to every consumer of `closed()` (§3.5)"
+)
+MSG_NOT_RETIRED: Final[str] = (
+    "task {task_id!r} is not retired: it is neither closed — LANDED with an "
+    "anchor its export bytes hash to — nor abandoned, and a live task's bytes "
+    "are not archivable (§3.5, §3.9)"
 )
 MSG_REPO_ID_LOST: Final[str] = (
     "{repo_root} has no {relpath}, and this ledger already exists: the file is "

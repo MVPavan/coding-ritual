@@ -17,6 +17,7 @@ from workflow_interpreter.contractor.models import (
     ContractorRecord,
     ContractorState,
 )
+from workflow_interpreter.ledger.closure import ClosureProbe
 
 if TYPE_CHECKING:
     from workflow_interpreter.contractor.integration import IntegrationGuard
@@ -35,6 +36,15 @@ MSG_IDEMPOTENT_RECORD: Final[str] = (
 MSG_SUCCESSION_CLOSED: Final[str] = (
     "valid contractor succession refuses a closed stored record"
 )
+MSG_SUCCESSION_RETIRED: Final[str] = (
+    "valid contractor succession refuses a retired task: it was abandoned, and "
+    "an abandoned task is not retried (store-restructure §3.8)"
+)
+MSG_SUCCESSION_LANDED: Final[str] = (
+    "valid contractor succession refuses a landed stored record: the work is on "
+    "the target ref, and what an unpinned export needs is recovery, not a "
+    "second attempt (store-restructure §3.5)"
+)
 MSG_SUCCESSION_ATTEMPT: Final[str] = (
     "valid contractor succession requires incoming attempt {expected}, got {actual}"
 )
@@ -45,9 +55,14 @@ MSG_STORED_RECORD_UNREADABLE: Final[str] = (
     "stored contractor record is unreadable: {reason}"
 )
 MSG_CLOSE_REASON: Final[str] = "contractor landing receipt={digest}"
-MSG_NO_EXPORT_OID: Final[str] = (
-    "stage {stage_id!r} cannot close without export_oid: a task must have its "
-    "whole record pinned in git before its bead closes (run-ledger §3.6)"
+MSG_NOT_CLOSABLE: Final[str] = (
+    "stage {stage_id!r} does not derive closed: a task must have its whole "
+    "record durable in git — exported and anchored — before its bead closes "
+    "(store-restructure §3.5, D5)"
+)
+MSG_NO_CLOSURE_PROBE: Final[str] = (
+    "stage {stage_id!r} cannot close without a ledger to derive closure from: "
+    "the close would be recorded on evidence nothing anchors (§3.5, D5)"
 )
 STATUS_CLOSED: Final[str] = "closed"
 
@@ -63,6 +78,14 @@ class ContractorAdapter:
         self._client = client
         self._reads = WorkflowReads(client) if reads is None else reads
         self.integration_guard: IntegrationGuard | None = None
+        self.closure: ClosureProbe | None = None
+        """Whether this task's record is already durable in git (§3.5).
+
+        Injected like the integration guard, and for the same reason: the
+        adapter owns bead writes and must not construct a ledger. Absent only
+        for a wiring with no ledger at all — where the close refuses, because
+        no export can exist, and succession is decided by the stored record
+        alone."""
 
     @classmethod
     def from_config(
@@ -227,19 +250,25 @@ class ContractorAdapter:
     ) -> ContractorRecord:
         """Close and read back a stage whose durable relation names its receipt.
 
-        §3.6: the bead is closed immediately after the metadata merge below,
-        so a record with no `export_oid` would close a task whose record only
+        §3.5: the bead is closed immediately after the metadata merge below,
+        so a task that does not derive `closed()` would close on a record only
         `.wf/` holds — and `git clean` can delete that. The refusal is here,
         at the one write that closes, rather than at the composition that
-        called it.
+        called it; the record itself stays at LANDED, because nothing writes
+        CLOSED any more.
         """
         self._assert_stage(stage_id, record)
-        self._assert_state(record, ContractorState.CLOSED, MSG_WRONG_INCOMING_STATE)
-        if record.export_oid is None:
-            raise ContractorAdapterError(MSG_NO_EXPORT_OID.format(stage_id=stage_id))
+        self._assert_state(record, ContractorState.LANDED, MSG_WRONG_INCOMING_STATE)
         self.guard_integration(record, post_cas=True)
         if record.landing_receipt_digest != receipt_digest:
             raise ContractorAdapterError("close receipt does not match landed relation")
+        # Last, immediately before the write: every other refusal is about the
+        # record this call was handed, and this one is about the world it is
+        # being written into.
+        if self.closure is None:
+            raise ContractorAdapterError(MSG_NO_CLOSURE_PROBE.format(stage_id=stage_id))
+        if not self.closure.closed(stage_id):
+            raise ContractorAdapterError(MSG_NOT_CLOSABLE.format(stage_id=stage_id))
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
         closed = finalize.close_forward(
             self._client,
@@ -277,16 +306,23 @@ class ContractorAdapter:
                 message.format(state=state.value, actual=record.state.value)
             )
 
-    @staticmethod
     def _assert_prepare_shape(
-        stored: ContractorRecord, incoming: ContractorRecord
+        self, stored: ContractorRecord, incoming: ContractorRecord
     ) -> None:
-        """Allow only exact recovery or one non-closed successor journal.
+        """Allow only exact recovery or one successor over unfinished work.
 
         A SUCCESSOR may change `root_backend`, because a new attempt root is
         exactly what the `store` switch applies to (D18); re-preparing THIS
         attempt may not, because its root may already exist on the backend the
         stored record pinned (§3.2).
+
+        What ENDS succession used to be a stored CLOSED, and nothing writes
+        one after S2 (§3.5). Three refusals replace it, in the order that
+        names the finished task most precisely: the task derives `closed()`,
+        the task is `retired()` — abandoned, which is never retried (§3.8) —
+        or the stored record already landed, which is the crash-before-pin
+        shape, where what is owed is recovery of the pin rather than a second
+        attempt at work already on the target ref.
         """
         if incoming.attempt == stored.attempt:
             if incoming.root_backend is not stored.root_backend:
@@ -303,8 +339,13 @@ class ContractorAdapter:
             if incoming != stored:
                 raise ContractorAdapterError(MSG_IDEMPOTENT_RECORD)
             return
-        if stored.state is ContractorState.CLOSED:
-            raise ContractorAdapterError(MSG_SUCCESSION_CLOSED)
+        if self.closure is not None:
+            if self.closure.closed(stored.stage_id):
+                raise ContractorAdapterError(MSG_SUCCESSION_CLOSED)
+            if self.closure.retired(stored.stage_id):
+                raise ContractorAdapterError(MSG_SUCCESSION_RETIRED)
+        if stored.state is ContractorState.LANDED:
+            raise ContractorAdapterError(MSG_SUCCESSION_LANDED)
         expected_attempt = stored.attempt + 1
         if incoming.attempt != expected_attempt:
             raise ContractorAdapterError(

@@ -12,8 +12,8 @@ roadmap §1 names:
 4. every table in the schema is either exported or explicitly NOT, with a
    reason — the completeness check that keeps the next table from being
    forgotten in silence;
-5. and until §3.5's `closed()` exists in S2, `adapter.close` still refuses a
-   record that names no export blob (D5).
+5. and `adapter.close` still refuses a task whose record is not durable —
+   S2 asks `closed()` where S1 asked the record's own pin (D5).
 
 `wf ledger pin-export` is here too, beside the first: it recovers the one
 window the pin cannot make atomic, and it has to pin exactly the bytes that
@@ -32,6 +32,7 @@ from typing import Final
 
 import pytest
 
+from tests._fake_bd import FakeBd
 from tests._ledger import TASK, repository, seeded_task
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
@@ -39,7 +40,6 @@ from workflow_interpreter.contractor import (
     ContractorAdapter,
     ContractorAdapterError,
     ContractorRecord,
-    ContractorState,
     LandingIntent,
 )
 from workflow_interpreter.contractor.journal import (
@@ -396,15 +396,15 @@ def test_every_schema_table_is_exported_or_named_non_exported_with_a_reason() ->
     assert LedgerTable.LANDINGS.value in exported
 
 
-def test_close_still_refuses_a_record_that_names_no_export_blob(
-    fake_client: BdClient,
+def test_close_still_refuses_a_task_whose_record_is_not_durable(
+    fake_bd: FakeBd, fake_client: BdClient
 ) -> None:
-    """D5 stays until S2 derives `closed()` from the anchor instead (§3.6).
+    """D5, now asked of the derivation rather than of the record (§3.5).
 
-    The record's `export_oid` is the ONLY input to this refusal in S1, so
-    eliding the column from the exported row must not touch it: a bead that
-    closed on a record only `.wf/` held would close on bytes `git clean`
-    deletes.
+    Eliding the pin from the exported row must not weaken the one refusal it
+    used to carry: a bead that closed on a record only `.wf/` held would close
+    on bytes `git clean` deletes. Since S2 the input is `closed()`, and an
+    adapter with no ledger to derive it from refuses outright.
     """
     landed = (
         ContractorRecord.prepared(
@@ -417,7 +417,14 @@ def test_close_still_refuses_a_record_that_names_no_export_blob(
         .admitted(ROOT_ID)
         .landed(ARTIFACT_OID, TREE_OID, GATE_RECEIPT, LANDING_RECEIPT)
     )
-    unpinned = landed.model_copy(update={"state": ContractorState.CLOSED})
+    fake_bd.rows[STAGE_ID] = {
+        "id": STAGE_ID,
+        "title": "one stage",
+        "status": "in_progress",
+        "issue_type": "task",
+        "parent": EPIC_ID,
+        "metadata": {"contractor": landed.model_dump(by_alias=True, mode="json")},
+    }
 
-    with pytest.raises(ContractorAdapterError, match="export_oid"):
-        ContractorAdapter(fake_client).close(STAGE_ID, unpinned, LANDING_RECEIPT)
+    with pytest.raises(ContractorAdapterError, match="without a ledger"):
+        ContractorAdapter(fake_client).close(STAGE_ID, landed, LANDING_RECEIPT)

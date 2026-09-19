@@ -238,7 +238,11 @@ def collect_task(
 
     completion_checks: dict[str, bool | None] = {
         "stage-closed": stage.status == "closed",
-        "contractor-closed": contractor.state is ContractorState.CLOSED,
+        # The record's own last state. LANDED is what a close leaves since S2
+        # — closure is derived from the ledger and its git anchor (§3.5) — and
+        # CLOSED is what records written before it carry.
+        "contractor-closed": contractor.state
+        in (ContractorState.LANDED, ContractorState.CLOSED),
         "current-root": bool(contractor.root_id),
         "landed-oid": bool(contractor.landed_oid),
         "tree": bool(contractor.tree),

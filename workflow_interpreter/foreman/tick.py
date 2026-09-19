@@ -77,6 +77,7 @@ from workflow_interpreter.inspector.errors import (
     TerminationFailed,
     WrapperDirError,
 )
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.models import (
     CompletionEvidence,
     RecoverySnapshot,
@@ -85,14 +86,15 @@ from workflow_interpreter.inspector.models import (
 )
 from workflow_interpreter.inspector.paths import read_record, read_tail
 from workflow_interpreter.inspector.steer import Steerer
-from workflow_interpreter.ledger.tasks import export_oid
+from workflow_interpreter.ledger.closure import retired
+from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.schema.models import NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 MSG_CLEANUP_NEEDS_EXPORT: Final[str] = (
-    "a contractor task's run folders are deleted only after its export is pinned "
-    "(run-ledger §3.9)"
+    "a contractor task's run folders are deleted only once the task is retired — "
+    "closed against its export anchor, or abandoned (store-restructure §3.5)"
 )
 
 
@@ -240,6 +242,42 @@ def _verify_inspections(
         )
         for result in completion.verify_results
     )
+
+
+def cleanup_deferred(
+    root: RootRecord,
+    *,
+    ledger: LedgerDatabase | None,
+    git: Git,
+    task_id: str | None,
+) -> bool:
+    """Whether a CONTRACTOR-owned root's bytes must be kept for now (§3.9, D14).
+
+    Nothing destructive happens before the owning task is RETIRED — `closed()`
+    against the anchor its export bytes hash to, or abandoned (§3.5). A
+    non-contractor root owes no export and is unaffected; a contractor root
+    this process cannot ask about — no ledger, no task — is deferred rather
+    than cleaned, because the cleanup is idempotent and retried, and the
+    deletion is not.
+    """
+    # Imported here for the same reason `landing` imports `guard_contractor`
+    # here: the driver is BELOW the contractor, and only this one question
+    # about the owning task's closure path crosses that line.
+    from workflow_interpreter.contractor.models import INSTANCE_KEY_PREFIX
+
+    if not root.metadata.instance_key.startswith(INSTANCE_KEY_PREFIX):
+        return False
+    if ledger is None or task_id is None:
+        return True
+    deferred = not retired(ledger, git, task_id)
+    if deferred:
+        _LOG.info(
+            "wf.ledger.cleanup_deferred",
+            root_id=root.root_id,
+            task_id=task_id,
+            reason=MSG_CLEANUP_NEEDS_EXPORT,
+        )
+    return deferred
 
 
 def _abandon_terminal(root: RootRecord) -> str | None:
@@ -731,35 +769,13 @@ class Foreman:
         return recorded
 
     def _export_pending(self, root: RootRecord) -> bool:
-        """Whether a CONTRACTOR-owned root still owes the export its task closes on.
-
-        §3.9 and D14: nothing destructive happens before the record is durable,
-        and for a contractor task the record is durable only once `tasks.export_oid`
-        names the blob the export was pinned as (§3.6). A non-contractor root owes
-        no export and is unaffected; a contractor root this process cannot ask
-        about — no ledger, no task — is deferred rather than cleaned, because
-        the cleanup is idempotent and retried, and the deletion is not.
-        """
-        # Imported here for the same reason `landing` imports `guard_contractor`
-        # here: the driver is BELOW the contractor, and only this one question
-        # about the owning task's closure path crosses that line.
-        from workflow_interpreter.contractor.models import INSTANCE_KEY_PREFIX
-
-        if not root.metadata.instance_key.startswith(INSTANCE_KEY_PREFIX):
-            return False
-        ledger = self._composition.ledger
-        task_id = self._composition.task_id
-        if ledger is None or task_id is None:
-            return True
-        pending = export_oid(ledger, task_id) is None
-        if pending:
-            _LOG.info(
-                "wf.ledger.cleanup_deferred",
-                root_id=root.root_id,
-                task_id=task_id,
-                reason=MSG_CLEANUP_NEEDS_EXPORT,
-            )
-        return pending
+        """Whether this root's task is still live, and its bytes therefore owed."""
+        return cleanup_deferred(
+            root,
+            ledger=self._composition.ledger,
+            git=self._composition.git,
+            task_id=self._composition.task_id,
+        )
 
     def _drain_attention(self, root_id: str) -> None:
         """Write the label this settlement implies, before the driver exits.

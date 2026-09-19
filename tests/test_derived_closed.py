@@ -30,7 +30,6 @@ from pathlib import Path
 from typing import Final
 
 import pytest
-from workflow_interpreter.ledger.closure import TaskClosure, closed, retired
 
 from tests._fake_bd import FakeBd
 from tests._gates import approval_payload, close
@@ -58,6 +57,7 @@ from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.ledger.archive import archive_task
+from workflow_interpreter.ledger.closure import TaskClosure, closed, retired
 from workflow_interpreter.ledger.constants import TaskState
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerExportError
@@ -155,9 +155,14 @@ def _contractor_root(database: LedgerDatabase, root_id: str) -> RootRecord:
     )
 
 
-def _archivable(repo: Path, wrapper_root: Path, database: LedgerDatabase) -> str:
-    """A settled root with one pinned ref and one run folder to lose."""
-    root_id = f"{TASK}-a1"
+def _archivable(
+    repo: Path, wrapper_root: Path, database: LedgerDatabase, root_id: str
+) -> str:
+    """The task's root, settled, with one pinned ref and one run folder to lose.
+
+    Archive only READS the settlement, so it is written directly here rather
+    than driven through a whole instance.
+    """
     _git(
         repo,
         "update-ref",
@@ -167,10 +172,8 @@ def _archivable(repo: Path, wrapper_root: Path, database: LedgerDatabase) -> str
     (wrapper_root / root_id / "worktree").mkdir(parents=True, exist_ok=True)
     with database.transaction() as connection:
         connection.execute(
-            "INSERT INTO roots (root_id, task_id, seq, attempt, backend, "
-            "instance_key, terminal, status, metadata_json) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (root_id, TASK, 99, 1, "ledger", root_id, "shipped", "closed", "{}"),
+            "UPDATE roots SET terminal = ?, status = ? WHERE root_id = ?",
+            ("shipped", "closed", root_id),
         )
     return root_id
 
@@ -241,7 +244,7 @@ def test_a_crash_between_the_export_and_the_pin_leaves_the_task_open(
         )
         with pytest.raises(ContractorAdapterError, match="landed"):
             adapter.prepare(STAGE_ID, stored.next_attempt())
-        _archivable(repo, wrapper_root, database)
+        _archivable(repo, wrapper_root, database, root_id)
         with pytest.raises(LedgerExportError, match="not retired"):
             archive_task(
                 git,
@@ -397,7 +400,7 @@ def test_an_abandoned_task_is_retired_and_never_closed(
         )
         with pytest.raises(ContractorAdapterError, match="retired"):
             adapter.prepare(STAGE_ID, stored.next_attempt())
-        archived_root = _archivable(repo, wrapper_root, database)
+        archived_root = _archivable(repo, wrapper_root, database, root_id)
         result = archive_task(
             git,
             database,

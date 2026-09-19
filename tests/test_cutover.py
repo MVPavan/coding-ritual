@@ -30,11 +30,12 @@ from workflow_interpreter.contractor.landing import (
     LandingIntent,
     LandingReceipt,
 )
-from workflow_interpreter.contractor.models import ContractorRecord
+from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.locator import NO_LEDGER_ROW, RootBackendLocator
 from workflow_interpreter.foreman.tick import Foreman, RunReport
+from workflow_interpreter.ledger.closure import closed
 from workflow_interpreter.ledger.constants import EXPORT_REF_TEMPLATE, LEDGER_DIR
 from workflow_interpreter.ledger.paths import coordinator_dirt, export_path
 from workflow_interpreter.ledger.tasks import (
@@ -147,14 +148,17 @@ def test_a_stage_lands_end_to_end_on_each_switch_value(
     assert (record.root_id or "").startswith(LEDGER_ROOT_PREFIX) is (
         store is BackendKind.LEDGER
     )
-    # §3.6: the record is in git, and the bead names the blob it is in.
-    assert record.export_oid is not None
+    # §3.5: the record is in git, the ledger holds the latch the close derived
+    # it from, and the record itself stops at LANDED — nothing writes CLOSED.
+    assert record.state is ContractorState.LANDED
     assert export_path(lab.repo, STAGE).is_file()
+    pinned = export_oid(lab.ledger, STAGE)
+    assert pinned is not None
     assert (
         lab.git.ref_target(EXPORT_REF_TEMPLATE.format(task_id=STAGE), cwd=lab.repo)
-        == record.export_oid
+        == pinned
     )
-    assert export_oid(lab.ledger, STAGE) == record.export_oid
+    assert closed(lab.ledger, lab.git, STAGE) is True
     # D17: the landing is journalled, both halves, under the stage's task.
     assert (
         lab.ledger.connection.execute(
@@ -322,7 +326,8 @@ def test_a_close_is_refused_when_the_export_cannot_be_pinned(
     assert result.exit_code == 2, result.report
     assert "could not be pinned" in str(result.report["reason"])
     assert lab.fake_bd.rows[STAGE]["status"] != "closed"
-    assert _contractor_adapter(lab).record(STAGE).export_oid is None
+    assert export_oid(lab.ledger, STAGE) is None
+    assert closed(lab.ledger, lab.git, STAGE) is False
 
 
 @pytest.mark.parametrize("phase", (LandingPhase.INTENT, LandingPhase.RECEIPT))

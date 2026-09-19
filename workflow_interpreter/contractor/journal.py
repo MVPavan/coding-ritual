@@ -31,10 +31,12 @@ from pydantic import BaseModel, ValidationError
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.ledger.closure import TaskClosure
+from workflow_interpreter.ledger.constants import TaskState
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import pin_export, write_export
-from workflow_interpreter.ledger.tasks import pin_task_backend
+from workflow_interpreter.ledger.tasks import pin_task_backend, record_task_state
 
 MSG_UNREADABLE_ROW: Final[str] = (
     "the journalled {phase} of attempt {attempt} of {task_id!r} is unreadable: {reason}"
@@ -130,13 +132,18 @@ class ExportPin:
         self._repo_root = repo_root
 
     def pin(self, task_id: str, backend: BackendKind) -> str:
-        """Export, store, pin, record — and answer the blob's object id.
+        """Record LANDED, export, store, pin — and answer the blob's object id.
 
         The task row is ensured first, because a task whose roots are all in
         bd may never have been written here and still owes an export: §3.6
-        makes the export the precondition of CLOSED for every contractor task, not
-        only for ledger-backed ones. `pin_task_backend` is non-destructive, so
-        a task that already named a backend keeps it.
+        makes the export the precondition of closure for every contractor
+        task, not only for ledger-backed ones. `pin_task_backend` is
+        non-destructive, so a task that already named a backend keeps it.
+
+        LANDED is recorded BEFORE the bytes are written, unlike the pin, and
+        the order is the point (§3.5): the export has to carry the state, or a
+        ledger rebuilt in a clone could never derive closure at all. The pin
+        itself is elided from those bytes for the opposite reason.
 
         The export runs under the shared fence this connection already holds
         (§3.4.5), so it cannot publish a snapshot from before an exclusive
@@ -145,6 +152,7 @@ class ExportPin:
         recovery command cannot drift from the write it recovers.
         """
         pin_task_backend(self._database, task_id, backend)
+        record_task_state(self._database, task_id, TaskState.LANDED)
         write_export(self._database, task_id)
         try:
             return pin_export(self._git, self._database, task_id, self._repo_root)
@@ -154,3 +162,13 @@ class ExportPin:
             # shared function states what went wrong, and this states whose
             # step it was, so the close still exits as a refusal (D5).
             raise ContractorRefusal(str(lost)) from lost
+
+    @property
+    def closure(self) -> TaskClosure:
+        """The closure probe over the same ledger and checkout this pin writes.
+
+        The landing composes it into the adapter, which is where the close is
+        refused for a task whose record is not durable yet (§3.5, D5): the
+        evidence and the write that depends on it must come from one place.
+        """
+        return TaskClosure(self._database, self._git)

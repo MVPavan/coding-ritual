@@ -17,7 +17,6 @@ from workflow_interpreter.contractor.integration import (
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.schema.models import Outcome
 
-EXPORT_OID = "e" * 40
 """§3.6: the blob a closed task's whole record is pinned as."""
 
 
@@ -589,7 +588,7 @@ def test_direct_adapter_close_cannot_promote_membership_to_landing(
         lab.git.tree_oid(record.expected_base_commit, cwd=lab.repo),
         "child-approval",
         "invented-receipt",
-    ).closed(EXPORT_OID)
+    )
     adapter = _contractor_adapter(lab)
     with pytest.raises(ContractorAdapterError, match="runtime guard"):
         adapter.close("stage", forged, "invented-receipt")

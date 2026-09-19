@@ -509,7 +509,7 @@ def read_trust_root(path: Path) -> tuple[AllowedSigner, ...]:
     return parse_allowed_signers(text, path)
 
 
-def _git_text(anchor: TrustAnchor, *args: str) -> str | None:
+def _git_text(repo_root: Path, *args: str) -> str | None:
     """One read-only git command in the clone, or `None` when it answers nothing.
 
     `subprocess` rather than `inspector.gitio.Git`: this module must run in a
@@ -520,7 +520,7 @@ def _git_text(anchor: TrustAnchor, *args: str) -> str | None:
     try:
         completed = subprocess.run(
             [_GIT, *args],
-            cwd=anchor.repo_root,
+            cwd=repo_root,
             capture_output=True,
             timeout=_GIT_TIMEOUT_S,
             check=False,
@@ -534,8 +534,8 @@ def _git_text(anchor: TrustAnchor, *args: str) -> str | None:
     return completed.stdout.decode(_ENCODING, "replace").strip() or None
 
 
-def _anchor_oid(
-    anchor: TrustAnchor, task_id: str
+def anchor_oid(
+    repo_root: Path, task_id: str
 ) -> tuple[ExportAnchor | None, str | None, str]:
     """The oid this export must hash to, and which anchor named it.
 
@@ -544,17 +544,23 @@ def _anchor_oid(
     The close's own `refs/wf/exports/<task>` is the fallback, because a default
     clone does not fetch custom refs — it proves provenance only in a
     repository where the close ran or where the ref was deliberately published.
+
+    Public because `ledger.closure` derives closure through this very function
+    (store-restructure §3.5): a second copy of the precedence would let `wf
+    ledger verify` and `closed()` disagree about which bytes are the record.
     """
     relative = export_relpath(task_id)
     committed = _git_text(
-        anchor, *_FLAGS_REV_PARSE, _COMMITTED_BLOB.format(commit=_HEAD, path=relative)
+        repo_root,
+        *_FLAGS_REV_PARSE,
+        _COMMITTED_BLOB.format(commit=_HEAD, path=relative),
     )
     if committed is not None:
         return ExportAnchor.COMMITTED, committed, relative
     ref = EXPORT_REF_TEMPLATE.format(task_id=task_id)
     return (
         (None, None, relative)
-        if (pinned := _git_text(anchor, *_FLAGS_REV_PARSE, ref)) is None
+        if (pinned := _git_text(repo_root, *_FLAGS_REV_PARSE, ref)) is None
         else (ExportAnchor.REF, pinned, relative)
     )
 
@@ -563,8 +569,8 @@ def _pin_check(
     anchor: TrustAnchor, task_id: str, path: Path
 ) -> tuple[bool, str | None, str | None, ExportAnchor | None, tuple[str, ...]]:
     """Whether these export bytes are the ones git carries for this task (§3.6)."""
-    source, pinned, relative = _anchor_oid(anchor, task_id)
-    blob = _git_text(anchor, *_FLAGS_HASH_OBJECT, str(path))
+    source, pinned, relative = anchor_oid(anchor.repo_root, task_id)
+    blob = _git_text(anchor.repo_root, *_FLAGS_HASH_OBJECT, str(path))
     if source is None or pinned is None:
         return (
             False,

@@ -238,7 +238,15 @@ class PhaseLanding:
         (§3.6). Both are absent only for a composition with no ledger; a
         close with no pinned export is refused by the adapter, so the absence
         cannot quietly produce an unexportable closed task.
+
+        The export pin carries the closure probe the adapter's close refusal
+        reads (§3.5), so composing one here composes the other: the evidence
+        and the write that depends on it are the same ledger and the same
+        checkout, and an adapter that was given a probe by its own composition
+        root keeps it.
         """
+        if export is not None and adapter.closure is None:
+            adapter.closure = export.closure
         self._adapter = adapter
         self._git = git
         self._repo_root = repo_root
@@ -431,10 +439,13 @@ class PhaseLanding:
                 reason="landing intent is missing",
             )
         intent, evidence = self._authorized_intent(record)
+        # A task whose record derives `closed()` is finished, whatever a
+        # restored target ref now says (§3.5). The stored state is read too,
+        # because a record written before S2 says CLOSED and there is no read
+        # shim; the bead's own status is what says the close completed.
         if (
-            record.state is ContractorState.CLOSED
-            and self._adapter.show(stage_id).status == "closed"
-        ):
+            record.state is ContractorState.CLOSED or self._closed(stage_id)
+        ) and self._adapter.show(stage_id).status == "closed":
             return self._historical(record, intent, evidence)
         observed_target = self._git.ref_target(intent.ref, cwd=self._repo_root)
         if observed_target == intent.expected_base:
@@ -594,25 +605,22 @@ class PhaseLanding:
             raise ContractorRefusal(
                 "persisted landed relation does not match landing receipt digest or artifact"
             )
-        landed = (
-            record
-            if record.state is ContractorState.CLOSED
-            else record.landed(
-                intent.artifact_oid,
-                intent.tree,
-                intent.gate_receipt_digest,
-                receipt_digest,
-            )
+        landed = record.landed(
+            intent.artifact_oid,
+            intent.tree,
+            intent.gate_receipt_digest,
+            receipt_digest,
         )
-        if landed.state is not ContractorState.CLOSED:
+        # A task that already derives `closed()` has been all the way through
+        # here: its relation is written and its export is anchored. Re-landing
+        # and re-pinning it would move the anchor for nothing, so the only step
+        # repeated is the close itself, which is what a crash after the pin and
+        # before the bead's close still owes (§3.5).
+        if not self._closed(record.stage_id):
             self._adapter.land(record.stage_id, landed)
-        if landed.export_oid is None:
-            # §3.6: export, pin, record the oid, and only then close — the
-            # adapter closes the bead in the same call that merges this
-            # record, so this is the last moment the oid can reach it.
-            landed = landed.closed(
-                self._pin_export(record.stage_id, record.root_backend)
-            )
+            # Export, pin, latch — and only then close: the record is durable
+            # in git before anything reads this task as finished (D5).
+            self._pin_export(record.stage_id, record.root_backend)
         self._adapter.close(record.stage_id, landed, receipt_digest)
         return LandingResult(disposition=LandingDisposition.CLOSED, intent=intent)
 
@@ -815,6 +823,15 @@ class PhaseLanding:
         if self._export is None:
             raise ContractorRefusal(MSG_NO_EXPORT.format(task_id=task_id))
         return self._export.pin(task_id, backend)
+
+    def _closed(self, task_id: str) -> bool:
+        """Whether this task's record is already durable in git (§3.5).
+
+        A landing with no ledger answers no, because no export can exist for
+        it; the close it goes on to attempt is refused by the adapter for that
+        same reason, so the absence cannot produce a quietly closed task.
+        """
+        return self._export is not None and self._export.closure.closed(task_id)
 
     def _intent_path(self) -> Path:
         """Locate this root's one landing intent record."""
