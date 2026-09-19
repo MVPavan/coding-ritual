@@ -25,10 +25,11 @@ or cloning a checkout changes nothing about who its facts belong to."""
 REPO_ID_RELPATH: Final[str] = f"{LEDGER_DIR}/{REPO_ID_FILE}"
 """`.wf/repo-id` as GIT spells it, from the repository root.
 
-One constant rather than a literal per caller: two places have to agree that
+One constant rather than a literal per caller: three places have to agree that
 this path is the engine's own write and not somebody's work — `coordinator_dirt`
-(admission) and the §7.5 observation (in-repo grading) — and a second spelling
-would let one of them start counting the engine's mint as dirt again."""
+(admission), the §7.5 observation (in-repo grading) and the §5.4 precondition
+(in-repo reset planning) — and a second spelling would let one of them start
+counting the engine's mint as dirt again."""
 EXPORT_DIR: Final[str] = "export"
 EXPORT_SUFFIX: Final[str] = ".jsonl"
 FENCE_FILE: Final[str] = "ledger.lock"

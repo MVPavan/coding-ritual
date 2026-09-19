@@ -69,7 +69,6 @@ from workflow_interpreter.inspector.channels import (
 )
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.paths import write_durable
-from workflow_interpreter.ledger.paths import ensure_repo_id
 from workflow_interpreter.schema.models import GraphDocument, Node
 
 TEST_ACTOR: Final[str] = "wf-test-inspector"
@@ -216,17 +215,13 @@ def _git(repo: Path, *args: str, env: dict[str, str] | None = None) -> str:
     return completed.stdout.strip()
 
 
-def make_repo(
-    tmp_path: Path, name: str = "repo", *, commit_repo_id: bool = True
-) -> Path:
+def make_repo(tmp_path: Path, name: str = "repo") -> Path:
     """A throwaway git repo with one commit and the fixture's verify scripts.
 
-    `commit_repo_id=False` is the FRESH checkout: `.wf/repo-id` is minted by
-    the first ledger open (store-restructure §3.6), so a repository that has
-    never been run against does not carry it yet and the engine's own mint
-    lands mid-run. Only the tests about that state ask for it; every other lab
-    models a checkout whose id is already committed, which is what a second
-    run and every in-repo drill actually start from.
+    It carries no `.wf/repo-id`: that file is minted by the first ledger open
+    (store-restructure §3.6), so a repository nothing has run against yet does
+    not have one, and every lab built on this repo therefore exercises the real
+    FIRST-run path rather than a checkout whose id was already committed.
     """
     repo = tmp_path / name
     repo.mkdir(parents=True, exist_ok=True)
@@ -241,8 +236,6 @@ def make_repo(
         path.write_text(PASSING_SCRIPT, encoding="utf-8")
         path.chmod(0o755)
     (repo / "src" / "feature.py").write_text("value = 1\n", encoding="utf-8")
-    if commit_repo_id:
-        ensure_repo_id(repo)
     _git(repo, "add", "-A")
     _git(repo, "commit", "--quiet", "-m", "initial")
     return repo

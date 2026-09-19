@@ -101,9 +101,8 @@ class Lab:
         node_name: str = IMPLEMENT,
         *,
         in_repo: bool = False,
-        commit_repo_id: bool = True,
     ) -> None:
-        self.repo = make_repo(tmp_path, commit_repo_id=commit_repo_id)
+        self.repo = make_repo(tmp_path)
         self.base = head_of(self.repo)
         self.config: InspectorConfig = make_config(self.repo, tmp_path, fake_proc=False)
         self.bd, self.store = make_store(tmp_path, self.base)
@@ -120,13 +119,18 @@ class Lab:
                 update={"isolation": IsolationMode.IN_REPO}
             )
             self.workspace.band.acquire()
+            # The engine's first ledger open mints `.wf/repo-id` in this very
+            # tree before any activation is prepared (store-restructure §3.6),
+            # so every in-repo lab starts where a fresh checkout's first run
+            # does: the precondition below meets the engine's own untracked mint.
+            ensure_repo_id(self.repo)
         self.profile = FakeProfile()
         minted = self.store.mint_activation(self.root.root_id, entry_mint())
         self.activation = self.store.record_dispatch(
             minted.activation.activation_id, handle_for(dead_pid())
         )
         self.paths.ensure_activation_dir(self.activation.activation_id)
-        self.workspace.prepare(self.activation, self.node)
+        self.precondition = self.workspace.prepare(self.activation, self.node)
         self.observer = ExitObserver(
             self.config,
             self.paths,
@@ -343,16 +347,19 @@ def test_the_engine_s_own_repo_id_is_not_the_crew_s_undeclared_effect(
 
     The file is tracked and minted by the FIRST ledger open in a checkout
     (store-restructure §3.6); in-repo isolation makes that checkout the very
-    tree §7.5 observes. Counting it would fail the first run of every fresh
-    repository on a path no crew touched — which `coordinator_dirt` already
-    excuses for admission, and this is the same exclusion at the same path.
+    tree the §5.4 precondition resets and §7.5 observes. A fresh repository's
+    first run therefore meets the engine's own untracked mint at both — and
+    counting it would refuse the run as human work, or grade it as the crew's
+    undeclared effect, on a path no crew touched. `coordinator_dirt` already
+    excuses it for admission; these are the same exclusion at the same path.
     """
-    lab = Lab(tmp_path, in_repo=True, commit_repo_id=False)
+    lab = Lab(tmp_path, in_repo=True)  # `prepare` ran against the fresh mint
+    assert repo_id_relpath() in [path for path, _ in lab.git.status_paths(cwd=lab.tree)]
+    assert lab.precondition.plan.protected == ()
+    assert lab.precondition.plan.resettable == ()
     lab.commit_work()
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
-    ensure_repo_id(lab.tree)
-    assert repo_id_relpath() in [path for path, _ in lab.git.status_paths(cwd=lab.tree)]
 
     observation = lab.observe()
 

@@ -121,6 +121,7 @@ from workflow_interpreter.inspector.paths import (
     write_record,
 )
 from workflow_interpreter.inspector.procfs import prove_liveness
+from workflow_interpreter.ledger.constants import REPO_ID_RELPATH
 from workflow_interpreter.schema.models import IsolationMode, Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -261,7 +262,7 @@ class Workspace:
                 protected_head=plan.protected_head,
             )
         pre_reset = self._apply(cwd, intended, plan, activation.activation_id)
-        self._assert_clean(cwd, intended)
+        self._assert_clean(cwd, intended, in_repo=in_repo)
         # Transfer only after the precondition succeeds. A refused reset still
         # leaves the preceding producer's bytes and ownership intact.
         self._write_record(activation, node, cwd, intended)
@@ -347,7 +348,17 @@ class Workspace:
         confirmation: HumanConfirmation | None,
         activation_id: str,
     ) -> ResetPlan:
-        """Decide what may be destroyed, requiring evidence FOR every item (§12)."""
+        """Decide what may be destroyed, requiring evidence FOR every item (§12).
+
+        The ENGINE's own `.wf/repo-id` is neither side of that judgement in-repo
+        (store-restructure §3.6), exactly as `ledger.paths.coordinator_dirt` and
+        the §7.5 observation excuse it, through the one `REPO_ID_RELPATH` they
+        all read. The file is minted by the first ledger open in a fresh
+        checkout, and in-repo that open writes into the very tree this plan
+        reads — so a first run would refuse itself as human work on a path the
+        engine had just minted. It is excused rather than made resettable:
+        deleting it would strand the ledger that already pins the id it holds.
+        """
         head = self._git.head_commit(cwd=cwd)
         head_move_required = head != intended
         if snapshot is None:
@@ -358,6 +369,8 @@ class Workspace:
         resettable: list[str] = []
         protected: list[str] = []
         for entry in snapshot.entries:
+            if entry.path == REPO_ID_RELPATH:
+                continue
             if self._attribution.is_crew_output(
                 entry, attribution, prior, confirmation, activation_id
             ):
@@ -611,10 +624,19 @@ class Workspace:
             if not tracked and path in selected
         )
 
-    def _assert_clean(self, cwd: Path, intended: str) -> None:
-        """The precondition itself: HEAD at the intended commit, tree clean."""
+    def _assert_clean(self, cwd: Path, intended: str, *, in_repo: bool) -> None:
+        """The precondition itself: HEAD at the intended commit, tree clean.
+
+        Clean of everything `_plan` could have acted on: the one path it
+        excuses is excused here too, or the reset it deliberately left alone
+        would fail the very assertion it was spared for.
+        """
         head = self._git.head_commit(cwd=cwd)
-        dirty = self._git.status_paths(cwd=cwd)
+        dirty = tuple(
+            entry
+            for entry in self._git.status_paths(cwd=cwd)
+            if not (in_repo and entry[0] == REPO_ID_RELPATH)
+        )
         if head != intended or dirty:
             raise PreconditionRefused(
                 _MSG_NOT_RESET.format(
