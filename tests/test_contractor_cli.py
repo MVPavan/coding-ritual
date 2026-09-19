@@ -183,15 +183,17 @@ def test_two_stages_land_from_normal_command(
     )
     assert len(started) == 1
     lab.composition = replace(lab.composition, config=config)
-    # §3.6: the only thing the landing leaves in the checkout is the export
-    # the close pinned — it appears here exactly as `.beads/issues.jsonl` does
-    # after a bd write, and the orchestrator commits the two together. The next
+    # §3.6: the landing leaves two engine-owned files in the checkout — the
+    # export the close pinned, and on a fresh checkout the `.wf/repo-id` the
+    # first ledger open minted. Both appear here exactly as `.beads/issues.jsonl`
+    # does after a bd write, and the orchestrator commits them together. The next
     # stage refuses until it does: an uncommitted export is a coordinator's
     # work like any other, and only THIS task's own export is excused while it
     # is being closed.
-    assert lab.git.status_paths(cwd=lab.repo) == (
+    assert set(lab.git.status_paths(cwd=lab.repo)) == {
         (f"{LEDGER_DIR}/export/a.jsonl", False),
-    )
+        (f"{LEDGER_DIR}/repo-id", False),
+    }
     assert export_path(lab.repo, "a").is_file()
     assert _entry(lab, "b").exit_code == 2
     landed = commit_all(lab.repo, "the orchestrator commits the export")
