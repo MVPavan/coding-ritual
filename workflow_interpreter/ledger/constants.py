@@ -22,6 +22,13 @@ REPO_ID_FILE: Final[str] = "repo-id"
 `sha256(absolute path)`, so a clone at another path refused every export it was
 handed. Tracked rather than ignored, and minted rather than derived, so moving
 or cloning a checkout changes nothing about who its facts belong to."""
+REPO_ID_RELPATH: Final[str] = f"{LEDGER_DIR}/{REPO_ID_FILE}"
+"""`.wf/repo-id` as GIT spells it, from the repository root.
+
+One constant rather than a literal per caller: two places have to agree that
+this path is the engine's own write and not somebody's work — `coordinator_dirt`
+(admission) and the §7.5 observation (in-repo grading) — and a second spelling
+would let one of them start counting the engine's mint as dirt again."""
 EXPORT_DIR: Final[str] = "export"
 EXPORT_SUFFIX: Final[str] = ".jsonl"
 FENCE_FILE: Final[str] = "ledger.lock"
@@ -155,20 +162,23 @@ NON_EXPORTED: Final[Mapping[LedgerTable, str]] = MappingProxyType(
             "byte-identical round trip"
         ),
         LedgerTable.SESSIONS: (
-            "a fact about one activation, re-derived from the carriers a "
-            "restore brings back"
+            "a fact about one activation with no writer and no exporter in "
+            "this build; it is cleared with the activation it hangs off "
+            "(`export._clear`)"
         ),
         LedgerTable.FINDINGS: (
             "derived from the evidence carrier the export DOES carry; "
             "`rebuild_findings` puts it back inside the restoring transaction"
         ),
         LedgerTable.ARTIFACTS: (
-            "a fact about one activation, re-derived from the carriers a "
-            "restore brings back"
+            "a fact about one activation with no writer and no exporter in "
+            "this build; it is cleared with the activation it hangs off "
+            "(`export._clear`)"
         ),
         LedgerTable.USAGE: (
-            "a fact about one activation, re-derived from the carriers a "
-            "restore brings back"
+            "a fact about one activation with no writer and no exporter in "
+            "this build; it is cleared with the activation it hangs off "
+            "(`export._clear`)"
         ),
     }
 )
@@ -281,6 +291,24 @@ MSG_PIN_NO_FILE: Final[str] = (
 MSG_PIN_LOST: Final[str] = (
     "the export of {task_id!r} could not be pinned: {ref} names {found!r}, "
     "not the blob {oid!r} just written (§3.6)"
+)
+MSG_PIN_STALE: Final[str] = (
+    "{path} is not what task {task_id!r} exports now, so pinning it would name "
+    "a blob the ledger can no longer re-export; run export again before "
+    "pinning (§3.6)"
+)
+MSG_PIN_TASK_MISMATCH: Final[str] = (
+    "{path} declares task {declared!r}, and the pin is being recorded for "
+    "{task_id!r}; a pin names the export of the task it is recorded on (§3.6)"
+)
+MSG_EXPORT_NOT_RECORDED: Final[str] = (
+    "no tasks row {task_id!r} to record export blob {oid!r} on; a pin nothing "
+    "carries is a task that still owes an export (§3.6)"
+)
+MSG_REPO_ID_LOST: Final[str] = (
+    "{repo_root} has no {relpath}, and this ledger already exists: the file is "
+    "TRACKED, so restore it from git (`git checkout -- {relpath}`) rather than "
+    "minting a second identity for the same repository (store-restructure §3.6)"
 )
 MSG_LEDGER_ABSENT: Final[str] = (
     "no ledger to read at {path}: a read-only command never creates one (§3.4)"

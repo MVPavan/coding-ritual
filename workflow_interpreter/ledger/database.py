@@ -33,6 +33,7 @@ import structlog
 
 from workflow_interpreter.ledger.constants import (
     MSG_LEDGER_ABSENT,
+    MSG_REPO_ID_LOST,
     MSG_REPO_ID_MISMATCH,
     MSG_SCHEMA_AHEAD,
     MSG_SCHEMA_BEHIND,
@@ -58,6 +59,7 @@ from workflow_interpreter.ledger.paths import (
     fence_path,
     ledger_path,
     read_repo_id,
+    repo_id_relpath,
 )
 from workflow_interpreter.ledger.schema import SCHEMA_VERSION, apply_migrations
 
@@ -142,6 +144,7 @@ def assert_identity(
     *,
     path: Path,
     repo_id: str | None,
+    repo_root: Path,
     wrapper_root: Path,
 ) -> None:
     """Refuse unless this ledger is pinned to this repository AND wrapper root.
@@ -152,15 +155,21 @@ def assert_identity(
     fact about this machine, and an export that pinned it could not be read in
     a clone (store-restructure §3.6).
 
-    `repo_id` is READ BY THE CALLER, outside any transaction (§3.4.2), and may
-    be nothing: a writer mints one before it pins anything, so the only way to
-    arrive without one is a checkout whose tracked `.wf/repo-id` was deleted,
-    and refusing a read on a file the operator can restore from git would help
-    nobody.
+    `repo_id` is READ BY THE CALLER, outside any transaction (§3.4.2), and
+    NOTHING is a refusal rather than a skip: every open except the very first
+    creation of a ledger arrives with the tracked `.wf/repo-id` in hand, so an
+    absent one means a checkout whose file was deleted — and answering anyway
+    would mean answering a ledger whose identity nothing checked, which is
+    exactly the question this function exists to ask. The refusal says to
+    restore the file, because it is tracked and git still has it.
     """
+    if repo_id is None:
+        raise LedgerIdentityError(
+            MSG_REPO_ID_LOST.format(repo_root=repo_root, relpath=repo_id_relpath())
+        )
     pinned_repo = read_meta(connection, MetaKey.REPO_ID)
     found_repo = repo_id
-    if pinned_repo is not None and found_repo is not None and pinned_repo != found_repo:
+    if pinned_repo is not None and pinned_repo != found_repo:
         raise LedgerIdentityError(
             MSG_REPO_ID_MISMATCH.format(path=path, pinned=pinned_repo, found=found_repo)
         )
@@ -225,12 +234,13 @@ class LedgerDatabase:
         self._fence = fence
         self._read_only = read_only
         self._writing = threading.RLock()
-        # Before the migration, because the mint is file I/O and a migration is
-        # a transaction (§3.4.2), and because the id it answers is what every
-        # export this connection writes is headed with (§3.6).
-        self._repo_id = (
-            read_repo_id(repo_root) if read_only else ensure_repo_id(repo_root)
-        )
+        # READ, never minted: an open that is about to be refused — a schema
+        # from the future, another repository's pins, a wrapper root this
+        # process does not run under — must leave no file behind in a checkout
+        # it was not allowed to touch. The mint happens in `_migrate_if_behind`
+        # and only where a ledger is CREATED, which is the one open with
+        # nothing to refuse against (§3.5).
+        self._repo_id = read_repo_id(repo_root)
         if not read_only:
             self._migrate_if_behind()
         self._fence_hold = fence.shared()
@@ -347,6 +357,13 @@ class LedgerDatabase:
             current = schema_version(connection)
             if current >= SCHEMA_VERSION:
                 return
+            if current == _NO_VERSION:
+                # The one open that MINTS, and it happens here: under the
+                # exclusive fence, where no second first-start can be creating
+                # the same ledger, and outside the transaction below, because a
+                # mint is file I/O (§3.4.2). A ledger this process is about to
+                # refuse never reaches this line.
+                self._repo_id = ensure_repo_id(self._repo_root)
             with standalone_transaction(connection):
                 if current == _NO_VERSION:
                     apply_migrations(connection, current)
@@ -356,6 +373,7 @@ class LedgerDatabase:
                         connection,
                         path=self._path,
                         repo_id=self._repo_id,
+                        repo_root=self._repo_root,
                         wrapper_root=self._wrapper_root,
                     )
                     apply_migrations(connection, current)
@@ -412,6 +430,7 @@ class LedgerDatabase:
             connection,
             path=self._path,
             repo_id=self._repo_id,
+            repo_root=self._repo_root,
             wrapper_root=self._wrapper_root,
         )
 

@@ -81,6 +81,9 @@ LANDING_RECEIPT: Final[str] = "landing-receipt"
 ATTEMPT: Final[int] = 1
 POLICY_DIGEST: Final[str] = "d" * 64
 HOST: Final[str] = "export-integrity-test"
+OTHER_TASK: Final[str] = "cr-3411.3"
+UNKNOWN_TASK: Final[str] = "cr-3411.404"
+"""A task no ledger row describes, so a file named for it pins nothing."""
 
 
 def _git_binary(*args: str, cwd: Path) -> str:
@@ -213,6 +216,87 @@ def test_pin_export_recovers_a_crash_between_the_write_and_the_pin(
     assert _git_binary("rev-parse", "--verify", ref, cwd=repo_root) == oid
     with open_ledger(repo_root, wrapper_root) as reopened:
         assert export_oid(reopened, TASK) == oid
+
+
+def test_pin_export_refuses_a_file_the_ledger_has_moved_past(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Stale bytes are not a pin: recovery re-pins, it does not resurrect.
+
+    The crash `pin-export` recovers leaves a file the ledger still agrees
+    with. A file written BEFORE more rows landed is a different claim: the oid
+    would be recorded on a `tasks` row that can no longer produce those bytes,
+    so the task's own record would contradict the blob it names (§3.6).
+    """
+    repo_root, _ = _git_repository(tmp_path)
+    config, wrapper_root = _config_file(repo_root, tmp_path)
+    ref = EXPORT_REF_TEMPLATE.format(task_id=TASK)
+    with open_ledger(repo_root, wrapper_root) as database:
+        seeded_task(database)
+        write_export(database, TASK)
+        # The ledger moves on: a second root of the same task, written after
+        # the bytes were and before the interrupted pin could be retried.
+        seeded_task(database)
+
+    assert ledger_main(["--config", str(config), COMMAND_PIN_EXPORT, TASK]) == 2
+
+    assert "exports now" in capsys.readouterr().err
+    assert _git_binary("for-each-ref", "--format=%(refname)", ref, cwd=repo_root) == ""
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert export_oid(reopened, TASK) is None
+
+
+def test_pin_export_refuses_a_task_the_ledger_does_not_hold(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A pin is recorded ON a `tasks` row, so a task with no row cannot be pinned.
+
+    Before this, the file was hashed, the ref was moved and the recording
+    UPDATE matched nothing — the operator was told the export was pinned while
+    the ledger went on saying the task owed one.
+    """
+    repo_root, _ = _git_repository(tmp_path)
+    config, wrapper_root = _config_file(repo_root, tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        seeded_task(database)
+        exported = write_export(database, TASK)
+    stray = export_path(repo_root, UNKNOWN_TASK)
+    stray.write_bytes(exported.read_bytes())
+
+    assert ledger_main(["--config", str(config), COMMAND_PIN_EXPORT, UNKNOWN_TASK]) == 2
+
+    assert "no ledger rows exist" in capsys.readouterr().err
+    unknown_ref = EXPORT_REF_TEMPLATE.format(task_id=UNKNOWN_TASK)
+    assert (
+        _git_binary("for-each-ref", "--format=%(refname)", unknown_ref, cwd=repo_root)
+        == ""
+    )
+
+
+def test_pin_export_refuses_a_file_that_declares_another_task(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The header decides which task a file is an export OF, not the filename.
+
+    A pin recorded from a file describing another task would point this task's
+    row at a blob that rebuilds somebody else — found only when a restore did.
+    """
+    repo_root, _ = _git_repository(tmp_path)
+    config, wrapper_root = _config_file(repo_root, tmp_path)
+    ref = EXPORT_REF_TEMPLATE.format(task_id=TASK)
+    with open_ledger(repo_root, wrapper_root) as database:
+        seeded_task(database)
+        seeded_task(database, OTHER_TASK)
+        write_export(database, TASK)
+        other = write_export(database, OTHER_TASK)
+    export_path(repo_root, TASK).write_bytes(other.read_bytes())
+
+    assert ledger_main(["--config", str(config), COMMAND_PIN_EXPORT, TASK]) == 2
+
+    assert f"declares task {OTHER_TASK!r}" in capsys.readouterr().err
+    assert _git_binary("for-each-ref", "--format=%(refname)", ref, cwd=repo_root) == ""
+    with open_ledger(repo_root, wrapper_root) as reopened:
+        assert export_oid(reopened, TASK) is None
 
 
 def test_a_committed_export_imports_into_a_clone_at_another_path(

@@ -44,6 +44,7 @@ from workflow_interpreter.ledger.database import (
     LedgerDatabase,
     connect,
     open_ledger,
+    open_readonly,
     read_meta,
     schema_version,
 )
@@ -61,6 +62,8 @@ from workflow_interpreter.ledger.paths import (
     fence_path,
     ledger_path,
     read_repo_id,
+    repo_id_path,
+    repo_id_relpath,
 )
 from workflow_interpreter.ledger.schema import SCHEMA_VERSION
 from workflow_interpreter.ledger.store import LedgerStore
@@ -257,6 +260,55 @@ def test_a_store_opened_under_another_wrapper_root_refuses_naming_the_pinned_one
         open_ledger(repo_root, intruder)
 
     assert str(wrapper_root.resolve()) in str(refusal.value)
+
+
+def test_a_refused_open_leaves_no_repository_id_behind(tmp_path: Path) -> None:
+    """The mint is the CREATING open's, so a refused one writes nothing (§3.5).
+
+    Minting before the fence and the identity checks put a file in a checkout
+    this process had already been told it may not open — and the file is
+    tracked, so the operator inherits it as a diff they did not make.
+    """
+    repo_root, wrapper_root = repository(tmp_path)
+    with LedgerFence(fence_path(repo_root)).exclusive():
+        with pytest.raises(LedgerFenceBusy):
+            open_ledger(
+                repo_root,
+                wrapper_root,
+                fence=LedgerFence(fence_path(repo_root), wait_s=0.0),
+            )
+        assert read_repo_id(repo_root) is None
+
+    # And the creating open still mints: the file is refused, not abolished.
+    with open_ledger(repo_root, wrapper_root):
+        pass
+    assert read_repo_id(repo_root) is not None
+
+
+def test_an_open_whose_tracked_repo_id_is_gone_refuses_rather_than_minting_again(
+    tmp_path: Path,
+) -> None:
+    """A deleted `.wf/repo-id` is restored from git, never minted a second time.
+
+    Skipping the identity check when the file is absent answered a ledger
+    whose repository nothing had checked — and minting a fresh uuid instead
+    would give one repository two identities, so its own committed exports
+    would refuse to import. Both opens refuse, and the writer's refusal leaves
+    the file absent for git to restore.
+    """
+    repo_root, wrapper_root = repository(tmp_path)
+    with open_ledger(repo_root, wrapper_root):
+        pass
+    repo_id_path(repo_root).unlink()
+
+    with pytest.raises(LedgerIdentityError) as writer:
+        open_ledger(repo_root, wrapper_root)
+    with pytest.raises(LedgerIdentityError) as reader:
+        open_readonly(repo_root, wrapper_root)
+
+    assert repo_id_relpath() in str(writer.value)
+    assert "restore" in str(reader.value)
+    assert read_repo_id(repo_root) is None
 
 
 def test_a_tree_that_is_not_a_repository_has_no_fence_to_take(

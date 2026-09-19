@@ -17,7 +17,9 @@ from typing import Final
 
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contracts.run_identity import epic_segment
+from workflow_interpreter.ledger.constants import MSG_EXPORT_NOT_RECORDED
 from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.errors import LedgerExportError
 
 _FIRST_SEQ: Final[int] = 1
 _SQL_PIN_TASK: Final[str] = (
@@ -86,11 +88,20 @@ def record_export_oid(database: LedgerDatabase, task_id: str, oid: str) -> None:
     Overwrites rather than appends: a crash after the blob was written but
     before the oid was recorded re-runs the export at the next close, and the
     later pin is the one the later close names.
+
+    An UPDATE that matched nothing is a refusal, not a silent success: the
+    caller's whole reason for being here is that the task now carries this
+    blob, and a task with no row carries nothing — `export_oid` would go on
+    answering "still owes an export" while the ref said otherwise (§3.6).
     """
     with database.transaction():
-        database.connection.execute(
+        updated = database.connection.execute(
             _SQL_RECORD_EXPORT, (oid, datetime.now(tz=UTC).isoformat(), task_id)
         )
+        if updated.rowcount == 0:
+            raise LedgerExportError(
+                MSG_EXPORT_NOT_RECORDED.format(task_id=task_id, oid=oid)
+            )
 
 
 def export_oid(database: LedgerDatabase, task_id: str) -> str | None:

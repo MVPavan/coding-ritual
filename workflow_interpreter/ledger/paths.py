@@ -26,6 +26,7 @@ from workflow_interpreter.ledger.constants import (
     MSG_NOT_A_REPOSITORY,
     MSG_REPO_ID_ABSENT,
     REPO_ID_FILE,
+    REPO_ID_RELPATH,
 )
 from workflow_interpreter.ledger.errors import LedgerIdentityError
 
@@ -108,7 +109,7 @@ def ensure_repo_id(repo_root: Path) -> str:
 
 def repo_id_relpath() -> str:
     """`.wf/repo-id` as git spells it, from the repository root."""
-    return str(PurePosixPath(LEDGER_DIR) / REPO_ID_FILE)
+    return REPO_ID_RELPATH
 
 
 def ensure_ledger_ignored(repo_root: Path) -> Path:

@@ -51,6 +51,8 @@ from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_TASK_ROWS,
     MSG_PIN_LOST,
     MSG_PIN_NO_FILE,
+    MSG_PIN_STALE,
+    MSG_PIN_TASK_MISMATCH,
     MSG_REPO_ID_ABSENT,
     MSG_UNKNOWN_TASK,
     ROW_TABLES,
@@ -186,6 +188,18 @@ def pin_export(
     and re-exporting would pin a ledger that has moved on since the file was
     written — a different blob from the one the operator is holding.
 
+    Which is exactly why the file is CHECKED against a fresh export before it
+    is pinned. A pin is the claim "this blob is what the ledger says about this
+    task", and a file written before the ledger moved on is no longer that
+    claim: it would be recorded on a `tasks` row that can never re-export it,
+    and the next close would refuse a task whose pin its own bytes contradict.
+    Equality is the only state in which re-pinning the operator's file and
+    re-exporting would agree, so equality is the only state that pins.
+
+    Three refusals come before the blob is written, each naming its own defect:
+    the task must have a `tasks` row (`export_task`), the file must be an
+    export of THIS task, and its bytes must be the current ones.
+
     The ref is read back because `update-ref` succeeding is not the same fact
     as the ref naming this blob, and the oid must not be recorded unless it
     does.
@@ -193,6 +207,12 @@ def pin_export(
     path = export_path(repo_root, task_id)
     if not path.is_file():
         raise LedgerExportError(MSG_PIN_NO_FILE.format(path=path, task_id=task_id))
+    # Before the header check, so a task with no rows at all is refused as the
+    # unknown task it is rather than as a file that disagrees with the ledger.
+    current = export_task(database, task_id)
+    _assert_pins_this_task(path, task_id)
+    if path.read_bytes() != current:
+        raise LedgerExportError(MSG_PIN_STALE.format(path=path, task_id=task_id))
     oid = git.write_blob(path, cwd=repo_root)
     ref = EXPORT_REF_TEMPLATE.format(task_id=task_id)
     git.update_ref(ref, oid, cwd=repo_root)
@@ -261,7 +281,11 @@ def import_exports(
         # process may not write is refused here, inside the exclusive section
         # and before a single row is deleted (§3.5).
         assert_identity(
-            connection, path=ledger, repo_id=repo_id, wrapper_root=wrapper_root
+            connection,
+            path=ledger,
+            repo_id=repo_id,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
         )
         with standalone_transaction(connection):
             _clear(connection)
@@ -279,6 +303,26 @@ def import_exports(
     for export in parsed:
         _LOG.info("wf.ledger.imported", task_id=export.task_id, path=str(export.path))
     return tuple(export.task_id for export in parsed)
+
+
+def _assert_pins_this_task(path: Path, task_id: str) -> None:
+    """Refuse to pin a file that is not an export of THIS task (§3.6).
+
+    Read from the file's own header rather than inferred from its name: the
+    oid is recorded on the `tasks` row of `task_id`, so a file describing some
+    other task would make that row point at a blob it does not describe — and
+    the operator would learn it only when a rebuild restored the wrong task.
+    """
+    header = _read_lines(path)[0]
+    if header.get(ExportKey.KIND.value) != EXPORT_KIND_HEADER:
+        raise LedgerExportError(
+            MSG_EXPORT_HEADER.format(path=path, kind=EXPORT_KIND_HEADER)
+        )
+    declared = header.get(ExportKey.TASK_ID.value)
+    if declared != task_id:
+        raise LedgerExportError(
+            MSG_PIN_TASK_MISMATCH.format(path=path, declared=declared, task_id=task_id)
+        )
 
 
 def _record_restore(connection: sqlite3.Connection, task_id: str) -> None:

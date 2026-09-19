@@ -319,6 +319,12 @@ reports, the two Fable gates, close-out — is `orchestration.md`; live position
 - **Two repository identities.** `repo_hash` also names the wrapper home
   (`foreman/config.py:93-98`). A moved checkout keeps its exports and loses its wrapper
   home. Settle in S1 whether the wrapper root keys on `repo_id`; recommended yes.
+- **S1 left the wrapper home on the path digest.** The two identities above stayed
+  two: `repo_id` answers whose facts an export holds, and `repo_hash(repo_root)` still
+  names the wrapper home, because the config that derives the wrapper root is loaded
+  before any ledger is opened and therefore before a `repo_id` exists to key on.
+  S6 decides whether re-keying the wrapper home is worth a follow-up bead or whether
+  a moved checkout re-deriving its wrapper home is simply the behaviour.
 - **`projections` in `EXPORT_TABLES`** exists for "whatever label bd last carried".
   With `NullTracker` there is no label. Left in; own slice if it changes.
 - **Attempt drift is verified in mechanism, not in occurrence** — `rowmap.py` has no
