@@ -12,6 +12,7 @@ applies to new ATTEMPT roots, whose per-attempt pin is the contractor record's
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import UTC, datetime
 from typing import Final
 
@@ -20,10 +21,11 @@ from workflow_interpreter.contracts.run_identity import epic_segment
 from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_NOT_RECORDED,
     MSG_STATE_NOT_RECORDED,
+    LedgerOperation,
     TaskState,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase
-from workflow_interpreter.ledger.errors import LedgerExportError
+from workflow_interpreter.ledger.errors import LedgerExportError, sqlite_failure
 
 _FIRST_SEQ: Final[int] = 1
 _SQL_PIN_TASK: Final[str] = (
@@ -99,11 +101,21 @@ def record_export_oid(database: LedgerDatabase, task_id: str, oid: str) -> None:
     caller's whole reason for being here is that the task now carries this
     blob, and a task with no row carries nothing — `export_oid` would go on
     answering "still owes an export" while the ref said otherwise (§3.6).
+
+    A SQLite failure of the UPDATE itself is typed the way `BEGIN`'s already
+    is: a read-only database or a writer that waited out `busy_timeout` is a
+    named refusal callers route on, and `closure._latch` is the caller that
+    routes on it rather than failing a read.
     """
     with database.transaction():
-        updated = database.connection.execute(
-            _SQL_RECORD_EXPORT, (oid, datetime.now(tz=UTC).isoformat(), task_id)
-        )
+        try:
+            updated = database.connection.execute(
+                _SQL_RECORD_EXPORT, (oid, datetime.now(tz=UTC).isoformat(), task_id)
+            )
+        except sqlite3.Error as failure:
+            raise sqlite_failure(
+                failure, operation=LedgerOperation.PINNING.value, row_id=task_id
+            ) from failure
         if updated.rowcount == 0:
             raise LedgerExportError(
                 MSG_EXPORT_NOT_RECORDED.format(task_id=task_id, oid=oid)

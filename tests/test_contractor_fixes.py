@@ -50,7 +50,7 @@ def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
         by_alias=True, mode="json"
     )
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client)
+    adapter = ContractorAdapter(fake_client, closure=export.closure)
     authority = _GateAuthority(oid, tree, gate_verifier, sign_payload)
     checks = _RepositoryGate(oid, tree)
     landing = PhaseLanding(adapter, git, repo, paths, authority, checks, export=export)

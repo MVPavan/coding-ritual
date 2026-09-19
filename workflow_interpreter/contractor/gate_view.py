@@ -10,6 +10,7 @@ from workflow_interpreter.contractor.adapter import (
     ContractorAdapter,
     ContractorAdapterError,
 )
+from workflow_interpreter.ledger.closure import NoLedgerClosure
 
 _INSTANCE_KEY_PREFIX: Final[str] = "contract:"
 _ATTEMPT_DELIMITER: Final[str] = ":attempt:"
@@ -34,7 +35,11 @@ def contractor_gate_view(
     stage_id = _stage_id(instance_key)
     if stage_id is None:
         return {}
-    adapter = ContractorAdapter.from_config(config, reads)
+    # This view only READS the stage, and the probe decides a close and a
+    # succession — neither of which happens here. It is still supplied by
+    # name rather than defaulted, so no construction site can acquire one of
+    # those writes without having said what answers it (§3.5).
+    adapter = ContractorAdapter.from_config(config, reads, closure=NoLedgerClosure())
     record = adapter.record(stage_id)
     is_current_attempt = record.instance_key == instance_key
     if (

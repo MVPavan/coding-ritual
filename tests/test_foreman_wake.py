@@ -167,7 +167,7 @@ def test_contractor_propagates_run_attention(tmp_path, monkeypatch):
     monkeypatch.setattr(
         command.ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     monkeypatch.setattr(
         Foreman,

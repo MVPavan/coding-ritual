@@ -239,14 +239,11 @@ class PhaseLanding:
         close with no pinned export is refused by the adapter, so the absence
         cannot quietly produce an unexportable closed task.
 
-        The export pin carries the closure probe the adapter's close refusal
-        reads (§3.5), so composing one here composes the other: the evidence
-        and the write that depends on it are the same ledger and the same
-        checkout, and an adapter that was given a probe by its own composition
-        root keeps it.
+        The adapter arrives with its closure probe already bound — it has no
+        other kind (§3.5) — so this composition does not hand it one: the
+        composition root that built the adapter and the one that built
+        `export` are the same, over the same ledger and the same checkout.
         """
-        if export is not None and adapter.closure is None:
-            adapter.closure = export.closure
         self._adapter = adapter
         self._git = git
         self._repo_root = repo_root

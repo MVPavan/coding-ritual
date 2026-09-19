@@ -89,6 +89,7 @@ from workflow_interpreter.ledger.constants import (
     EXPORT_SUFFIX,
     ExportKey,
     LedgerTable,
+    TaskState,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerExportError
@@ -102,7 +103,11 @@ from workflow_interpreter.ledger.reverify import (
     verify_export,
     verify_signature,
 )
-from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
+from workflow_interpreter.ledger.tasks import (
+    pin_task_backend,
+    record_export_oid,
+    record_task_state,
+)
 from workflow_interpreter.schema.models import Node
 
 VERIFY_DEBRIEF: Final[Path] = (
@@ -1895,6 +1900,9 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
     with open_ledger(repo, wrapper_root) as database:
         pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
         _settled_root(database, TASK_ID, root_id)
+        # A closed task is LANDED and latched: the latch alone is not
+        # closure, and `closed()` asks the state first (§3.5).
+        record_task_state(database, TASK_ID, TaskState.LANDED)
         record_export_oid(database, TASK_ID, "0" * 40)
 
         result = archive_task(
@@ -1926,6 +1934,9 @@ def test_archive_refuses_a_bundle_inside_the_repository(tmp_path: Path) -> None:
     with open_ledger(repo, wrapper_root) as database:
         pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
         _settled_root(database, TASK_ID, root_id)
+        # A closed task is LANDED and latched: the latch alone is not
+        # closure, and `closed()` asks the state first (§3.5).
+        record_task_state(database, TASK_ID, TaskState.LANDED)
         record_export_oid(database, TASK_ID, "0" * 40)
 
         with pytest.raises(LedgerExportError, match="inside the repository"):

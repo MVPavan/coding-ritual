@@ -51,6 +51,7 @@ from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_TASK_ROWS,
     MSG_PIN_LOST,
     MSG_PIN_NO_FILE,
+    MSG_PIN_NOT_LANDED,
     MSG_PIN_STALE,
     MSG_PIN_TASK_MISMATCH,
     MSG_REPO_ID_ABSENT,
@@ -59,6 +60,7 @@ from workflow_interpreter.ledger.constants import (
     ExportKey,
     LedgerTable,
     MetaKey,
+    TaskState,
 )
 from workflow_interpreter.ledger.database import (
     LedgerDatabase,
@@ -83,7 +85,7 @@ from workflow_interpreter.ledger.paths import (
 )
 from workflow_interpreter.ledger.schema import table_columns
 from workflow_interpreter.ledger.store import rebuild_findings
-from workflow_interpreter.ledger.tasks import record_export_oid
+from workflow_interpreter.ledger.tasks import record_export_oid, task_state
 from workflow_interpreter.schema.loader import canonical_json_bytes
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -196,9 +198,16 @@ def pin_export(
     Equality is the only state in which re-pinning the operator's file and
     re-exporting would agree, so equality is the only state that pins.
 
-    Three refusals come before the blob is written, each naming its own defect:
+    Four refusals come before the blob is written, each naming its own defect:
     the task must have a `tasks` row (`export_task`), the file must be an
-    export of THIS task, and its bytes must be the current ones.
+    export of THIS task, the task must have LANDED, and its bytes must be the
+    current ones.
+
+    LANDED is the other end of the closure latch (§3.5). This command exists
+    for the operator, so it can be aimed at any task at all; a pin recorded on
+    a task still in flight would be read as closure the moment anything asked
+    `closed()`, and that task's landing would then skip both `adapter.land`
+    and the pin it is supposed to recover.
 
     The ref is read back because `update-ref` succeeding is not the same fact
     as the ref naming this blob, and the oid must not be recorded unless it
@@ -211,6 +220,13 @@ def pin_export(
     # unknown task it is rather than as a file that disagrees with the ledger.
     current = export_task(database, task_id)
     _assert_pins_this_task(path, task_id)
+    state = task_state(database, task_id)
+    if state is not TaskState.LANDED:
+        raise LedgerExportError(
+            MSG_PIN_NOT_LANDED.format(
+                task_id=task_id, state="nothing" if state is None else state.value
+            )
+        )
     if path.read_bytes() != current:
         raise LedgerExportError(MSG_PIN_STALE.format(path=path, task_id=task_id))
     oid = git.write_blob(path, cwd=repo_root)

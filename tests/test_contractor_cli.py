@@ -55,7 +55,7 @@ def test_two_stages_land_from_normal_command(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     started = []
 
@@ -235,7 +235,7 @@ def test_missing_policy_refuses_before_admission_writes(tmp_path, monkeypatch):
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     result = _entry(lab, "a")
     assert result.exit_code == 2
@@ -254,7 +254,7 @@ def test_unexpected_programming_valueerror_is_a_crash(tmp_path, monkeypatch):
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
 
     def broken_run(*args, **kwargs):

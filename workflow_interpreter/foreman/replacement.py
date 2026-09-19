@@ -20,6 +20,7 @@ from workflow_interpreter.foreman.execution import effective_node
 from workflow_interpreter.inspector import procfs
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.models import Liveness
+from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.schema.decisions import (
     ChildRecord,
     CoordinationError,
@@ -517,7 +518,9 @@ def _check_contractor(
     ):
         raise CoordinationError("replacement lost contractor target base")
     adapter = ContractorAdapter.from_config(
-        composition.config.bd, composition.store.reads
+        composition.config.bd,
+        composition.store.reads,
+        closure=closure_probe(composition.ledger, composition.git),
     )
     root = composition.reads_for_root(intent.predecessor_id).load_root(
         intent.predecessor_id
@@ -573,7 +576,9 @@ def _prepare_contractor(
     previous = ContractorRecord.model_validate_json(intent.predecessor_contractor_json)
     successor = ContractorRecord.model_validate_json(intent.successor_contractor_json)
     adapter = ContractorAdapter.from_config(
-        composition.config.bd, composition.store.reads
+        composition.config.bd,
+        composition.store.reads,
+        closure=closure_probe(composition.ledger, composition.git),
     )
     adapter.integration_guard = IntegrationGuard(composition)
     if previous.integration_digest:
@@ -671,7 +676,9 @@ def _admit_contractor(
     assert intent.receipt is not None
     successor = ContractorRecord.model_validate_json(intent.successor_contractor_json)
     adapter = ContractorAdapter.from_config(
-        composition.config.bd, composition.store.reads
+        composition.config.bd,
+        composition.store.reads,
+        closure=closure_probe(composition.ledger, composition.git),
     )
     guard = IntegrationGuard(composition)
     adapter.integration_guard = guard
@@ -746,10 +753,6 @@ def guard_contractor(composition: Composition, record: ContractorRecord) -> None
             "tree": None,
             "gate_receipt_digest": None,
             "landing_receipt_digest": None,
-            # Post-close evidence, like the digests above: the export oid is
-            # recorded in the merge that closes (§3.6), long after the
-            # prepared successor this is compared against was journalled.
-            "export_oid": None,
         }
     )
     if normalized != prepared or record.root_id != intent.receipt.root_id:

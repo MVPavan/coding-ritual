@@ -210,7 +210,7 @@ def test_replay_admits_only_one_original_owner_member(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     request = integration.IntegrationRequest(
         owner_id=owner.root_id,
@@ -341,7 +341,7 @@ def test_invalid_source_never_admits_integration(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     sources = (("source", 0, source.receipt_digest),)
     sources = {
@@ -379,7 +379,7 @@ def test_changed_request_key_refuses_without_second_member(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -418,7 +418,7 @@ def test_prepared_faults_repair_only_saved_root(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -480,7 +480,7 @@ def test_other_owner_busy_before_target_snapshot(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -647,7 +647,7 @@ def test_admission_limits_and_source_authority_fail_closed(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     coordinator = lab.store.coordination_store(composition=composition)
     sources = (("source", 0, source.receipt_digest),)

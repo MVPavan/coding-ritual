@@ -36,11 +36,16 @@ from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.locator import NO_LEDGER_ROW, RootBackendLocator
 from workflow_interpreter.foreman.tick import Foreman, RunReport
 from workflow_interpreter.ledger.closure import closed
-from workflow_interpreter.ledger.constants import EXPORT_REF_TEMPLATE, LEDGER_DIR
+from workflow_interpreter.ledger.constants import (
+    EXPORT_REF_TEMPLATE,
+    LEDGER_DIR,
+    TaskState,
+)
 from workflow_interpreter.ledger.paths import coordinator_dirt, export_path
 from workflow_interpreter.ledger.tasks import (
     export_oid,
     record_export_oid,
+    record_task_state,
     task_backend,
 )
 from workflow_interpreter.schema.models import Outcome
@@ -85,7 +90,7 @@ def _contractor_lab(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
 
     def drive(self, root_id, *, poll_s, max_wall_s, monitored=False):
@@ -563,6 +568,9 @@ def test_a_contractor_task_keeps_its_worktree_until_the_export_is_pinned(
     # stage bead the contractor closed, so its export is pinned here rather than by
     # the close above; what is under test is the gate, not who writes it.
     assert export_oid(lab.ledger, LAB_TASK) is None
+    # Both halves of what a pin records, because `closed()` reads the state
+    # BEFORE the latch: a latch alone is not closure (§3.5).
+    record_task_state(lab.ledger, LAB_TASK, TaskState.LANDED)
     record_export_oid(lab.ledger, LAB_TASK, EXPORT_BLOB_OID)
     lab.foreman.tick(record.root_id or "")
 

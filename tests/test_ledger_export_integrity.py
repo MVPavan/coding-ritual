@@ -52,11 +52,13 @@ from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.ledger.__main__ import COMMAND_PIN_EXPORT
 from workflow_interpreter.ledger.__main__ import main as ledger_main
+from workflow_interpreter.ledger.closure import NoLedgerClosure
 from workflow_interpreter.ledger.constants import (
     EXPORT_REF_TEMPLATE,
     EXPORT_TABLES,
     NON_EXPORTED,
     LedgerTable,
+    TaskState,
 )
 from workflow_interpreter.ledger.database import open_ledger
 from workflow_interpreter.ledger.export import import_export, write_export
@@ -67,7 +69,7 @@ from workflow_interpreter.ledger.paths import (
     repo_id_path,
 )
 from workflow_interpreter.ledger.schema import table_columns
-from workflow_interpreter.ledger.tasks import export_oid
+from workflow_interpreter.ledger.tasks import export_oid, record_task_state
 
 EPIC_ID: Final[str] = "phase-1"
 STAGE_ID: Final[str] = "stage-a"
@@ -207,6 +209,9 @@ def test_pin_export_recovers_a_crash_between_the_write_and_the_pin(
     ref = EXPORT_REF_TEMPLATE.format(task_id=TASK)
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
+        # LANDED first, exactly as `ExportPin.pin` records it before the bytes
+        # are written: the crash this recovers happens after that (§3.5).
+        record_task_state(database, TASK, TaskState.LANDED)
         write_export(database, TASK)
     assert _git_binary("for-each-ref", "--format=%(refname)", ref, cwd=repo_root) == ""
 
@@ -233,6 +238,7 @@ def test_pin_export_refuses_a_file_the_ledger_has_moved_past(
     ref = EXPORT_REF_TEMPLATE.format(task_id=TASK)
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
+        record_task_state(database, TASK, TaskState.LANDED)
         write_export(database, TASK)
         # The ledger moves on: a second root of the same task, written after
         # the bytes were and before the interrupted pin could be retried.
@@ -403,8 +409,9 @@ def test_close_still_refuses_a_task_whose_record_is_not_durable(
 
     Eliding the pin from the exported row must not weaken the one refusal it
     used to carry: a bead that closed on a record only `.wf/` held would close
-    on bytes `git clean` deletes. Since S2 the input is `closed()`, and an
-    adapter with no ledger to derive it from refuses outright.
+    on bytes `git clean` deletes. Since S2 the input is `closed()`, and the
+    probe of a wiring with no ledger answers "not closed" to every task it is
+    asked about, because no export of one can exist (§3.5).
     """
     landed = (
         ContractorRecord.prepared(
@@ -426,5 +433,7 @@ def test_close_still_refuses_a_task_whose_record_is_not_durable(
         "metadata": {"contractor": landed.model_dump(by_alias=True, mode="json")},
     }
 
-    with pytest.raises(ContractorAdapterError, match="without a ledger"):
-        ContractorAdapter(fake_client).close(STAGE_ID, landed, LANDING_RECEIPT)
+    with pytest.raises(ContractorAdapterError, match="does not derive closed"):
+        ContractorAdapter(fake_client, closure=NoLedgerClosure()).close(
+            STAGE_ID, landed, LANDING_RECEIPT
+        )

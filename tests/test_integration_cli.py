@@ -24,7 +24,7 @@ def test_prepare_and_status(tmp_path: Path, monkeypatch, capsys) -> None:
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     monkeypatch.setattr(cli, "_composition", lambda _: composition)
     request = tmp_path / "request.json"
@@ -82,7 +82,7 @@ def test_status_summarizes_large_prepared_integration_without_wholesale_truncati
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     monkeypatch.setattr(cli, "_composition", lambda _: composition)
     request = tmp_path / "two-source-request.json"
@@ -132,7 +132,7 @@ def test_status_omits_bulky_max_sibling_records(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     prepared = prepare_integration(
         composition,

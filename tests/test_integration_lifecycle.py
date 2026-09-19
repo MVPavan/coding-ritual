@@ -17,8 +17,6 @@ from workflow_interpreter.contractor.integration import (
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.schema.models import Outcome
 
-"""§3.6: the blob a closed task's whole record is pinned as."""
-
 
 def prepared_lab(tmp_path, monkeypatch, signing_config, sign_payload):
     lab, owner, composition, source = source_lab(tmp_path)
@@ -42,7 +40,7 @@ def prepared_lab(tmp_path, monkeypatch, signing_config, sign_payload):
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     record = prepare_integration(
         composition,
@@ -313,7 +311,7 @@ trim_priority = 1
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     record = prepare_integration(
         composition,

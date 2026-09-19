@@ -60,10 +60,6 @@ MSG_NOT_CLOSABLE: Final[str] = (
     "record durable in git — exported and anchored — before its bead closes "
     "(store-restructure §3.5, D5)"
 )
-MSG_NO_CLOSURE_PROBE: Final[str] = (
-    "stage {stage_id!r} cannot close without a ledger to derive closure from: "
-    "the close would be recorded on evidence nothing anchors (§3.5, D5)"
-)
 STATUS_CLOSED: Final[str] = "closed"
 
 
@@ -74,22 +70,33 @@ class ContractorAdapterError(ValueError):
 class ContractorAdapter:
     """Perform only fixed Beads operations needed to admit one named stage."""
 
-    def __init__(self, client: BdClient, reads: WorkflowReads | None = None) -> None:
+    def __init__(
+        self,
+        client: BdClient,
+        reads: WorkflowReads | None = None,
+        *,
+        closure: ClosureProbe,
+    ) -> None:
         self._client = client
         self._reads = WorkflowReads(client) if reads is None else reads
         self.integration_guard: IntegrationGuard | None = None
-        self.closure: ClosureProbe | None = None
+        self.closure: ClosureProbe = closure
         """Whether this task's record is already durable in git (§3.5).
 
-        Injected like the integration guard, and for the same reason: the
-        adapter owns bead writes and must not construct a ledger. Absent only
-        for a wiring with no ledger at all — where the close refuses, because
-        no export can exist, and succession is decided by the stored record
-        alone."""
+        Injected like the integration guard, because the adapter owns bead
+        writes and must not construct a ledger — but REQUIRED, unlike it: the
+        close refusal and the succession refusal are both decided here, and a
+        construction site that supplied nothing used to skip the succession
+        one silently. A wiring with no ledger passes `NoLedgerClosure`, which
+        answers the question rather than leaving it unasked."""
 
     @classmethod
     def from_config(
-        cls, config: BdConfig, reads: WorkflowReads | None = None
+        cls,
+        config: BdConfig,
+        reads: WorkflowReads | None = None,
+        *,
+        closure: ClosureProbe,
     ) -> ContractorAdapter:
         """Build the contractor's read/write adapter without exposing bd transport.
 
@@ -97,8 +104,12 @@ class ContractorAdapter:
         TASK bead (§3.2 authoritative writes) and nothing else, so a root
         lookup is somebody else's read; without one injected it falls back to
         its own transport, which is the same store today.
+
+        `closure` is the ledger's answer about this task (`ledger.closure`),
+        and it has no default for the reason §3.5 gives: every caller that can
+        reach a close or a succession has to have decided what answers it.
         """
-        return cls(BdClient(config), reads)
+        return cls(BdClient(config), reads, closure=closure)
 
     def guard_integration(
         self, record: ContractorRecord, *, post_cas: bool = False
@@ -265,8 +276,6 @@ class ContractorAdapter:
         # Last, immediately before the write: every other refusal is about the
         # record this call was handed, and this one is about the world it is
         # being written into.
-        if self.closure is None:
-            raise ContractorAdapterError(MSG_NO_CLOSURE_PROBE.format(stage_id=stage_id))
         if not self.closure.closed(stage_id):
             raise ContractorAdapterError(MSG_NOT_CLOSABLE.format(stage_id=stage_id))
         stored = self._client._merge_metadata(stage_id, self._metadata(record))
@@ -339,11 +348,10 @@ class ContractorAdapter:
             if incoming != stored:
                 raise ContractorAdapterError(MSG_IDEMPOTENT_RECORD)
             return
-        if self.closure is not None:
-            if self.closure.closed(stored.stage_id):
-                raise ContractorAdapterError(MSG_SUCCESSION_CLOSED)
-            if self.closure.retired(stored.stage_id):
-                raise ContractorAdapterError(MSG_SUCCESSION_RETIRED)
+        if self.closure.closed(stored.stage_id):
+            raise ContractorAdapterError(MSG_SUCCESSION_CLOSED)
+        if self.closure.retired(stored.stage_id):
+            raise ContractorAdapterError(MSG_SUCCESSION_RETIRED)
         if stored.state is ContractorState.LANDED:
             raise ContractorAdapterError(MSG_SUCCESSION_LANDED)
         expected_attempt = stored.attempt + 1

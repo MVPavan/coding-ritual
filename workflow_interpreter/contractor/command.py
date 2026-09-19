@@ -55,7 +55,7 @@ from workflow_interpreter.inspector.errors import (
     WrapperDirError,
 )
 from workflow_interpreter.inspector.paths import read_record
-from workflow_interpreter.ledger.closure import TaskClosure
+from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import CoordinationError
 from workflow_interpreter.schema.loader import GraphValidationError, load_graph
@@ -190,8 +190,13 @@ def _execute(
     target_ref = composition.git.attached_branch_ref(cwd=composition.config.repo_root)
     if target_ref is None:
         raise ContractorRefused(MSG_DETACHED)
+    # §3.5: both the succession refusal and the close refusal are decided by
+    # whether this task's record is already durable in git, and the adapter
+    # may not open a ledger of its own.
     adapter = ContractorAdapter.from_config(
-        composition.config.bd, composition.store.reads
+        composition.config.bd,
+        composition.store.reads,
+        closure=closure_probe(composition.ledger, composition.git),
     )
     from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
@@ -201,15 +206,6 @@ def _execute(
     )
 
     adapter.integration_guard = IntegrationGuard(composition)
-    # §3.5: both the succession refusal and the close refusal are decided by
-    # whether this task's record is already durable in git, and the adapter
-    # may not open a ledger of its own. Absent only when the composition has
-    # none, where no export can exist either.
-    adapter.closure = (
-        None
-        if composition.ledger is None
-        else TaskClosure(composition.ledger, composition.git)
-    )
     if trace:
         return _trace(composition, adapter, epic_id=epic_id, stage_id=stage_id)
     stages = _direct_stages(adapter, epic_id)

@@ -235,6 +235,7 @@ class LedgerOperation(StrEnum):
     CLOSING_GATE = "closing the gate"
     CLAIMING = "claiming"
     RECONCILING = "reconciling the attention projection of"
+    PINNING = "recording the export pin of"
 
 
 class MetaKey(StrEnum):
@@ -310,6 +311,11 @@ MSG_PIN_STALE: Final[str] = (
     "{path} is not what task {task_id!r} exports now, so pinning it would name "
     "a blob the ledger can no longer re-export; run export again before "
     "pinning (§3.6)"
+)
+MSG_PIN_NOT_LANDED: Final[str] = (
+    "task {task_id!r} has not landed — its recorded state is {state} — and a "
+    "pinned export is what `closed()` latches on, so pinning one now would "
+    "close a task that is still running (§3.5)"
 )
 MSG_PIN_TASK_MISMATCH: Final[str] = (
     "{path} declares task {declared!r}, and the pin is being recorded for "

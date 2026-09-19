@@ -9,6 +9,7 @@ from tests.test_integration_lifecycle import approve_integration, entry, prepare
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.integration import IntegrationGuard
 from workflow_interpreter.foreman.replacement import guard_contractor, replace_checked
+from workflow_interpreter.ledger.closure import NoLedgerClosure
 from workflow_interpreter.schema.decisions import (
     CoordinationError,
     TrustedReplacementRequest,
@@ -58,7 +59,7 @@ def test_changed_integration_runs_fresh_review_and_lands(
     receipt = replace_checked(
         lab.composition, owner.root_id, previous.integration_slot, 0, request
     )
-    adapter = ContractorAdapter.from_config(lab.config.bd)
+    adapter = ContractorAdapter.from_config(lab.config.bd, closure=NoLedgerClosure())
     record = adapter.record("stage")
     guard = IntegrationGuard(lab.composition)
     association = guard.binding(record)
@@ -124,7 +125,9 @@ def test_integration_successor_crash_repaired_by_normal_stage_entry(
             lab.composition, owner.root_id, previous.integration_slot, 0, request
         )
     repair_contractor_successor(lab.composition, "stage")
-    record = ContractorAdapter.from_config(lab.config.bd).record("stage")
+    record = ContractorAdapter.from_config(
+        lab.config.bd, closure=NoLedgerClosure()
+    ).record("stage")
     association = IntegrationGuard(lab.composition).binding(record)
     assert association.admission.generation == 1
     assert len(lab.store.coordination_store().state(owner.root_id).reservations) == 4
@@ -186,7 +189,7 @@ def test_ordinary_contractor_continues_B_A_C_with_original_CAS(
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
-        classmethod(lambda *_: _contractor_adapter(lab)),
+        classmethod(lambda *_, **__: _contractor_adapter(lab)),
     )
     adapter = _contractor_adapter(lab)
     brief = tmp_path / "brief.txt"
@@ -342,7 +345,12 @@ def test_bound_source_and_authorized_candidate_refuse_replacement(
         replace_checked(
             lab.composition, owner.root_id, record.integration_slot, 0, request
         )
-    assert ContractorAdapter.from_config(lab.config.bd).record("stage") == record
+    assert (
+        ContractorAdapter.from_config(lab.config.bd, closure=NoLedgerClosure()).record(
+            "stage"
+        )
+        == record
+    )
     assert entry(lab).exit_code == 0
 
 
@@ -366,7 +374,12 @@ def test_successful_writer_cannot_bypass_review_in_changed_graph(
         replace_checked(
             lab.composition, owner.root_id, record.integration_slot, 0, request
         )
-    assert ContractorAdapter.from_config(lab.config.bd).record("stage") == record
+    assert (
+        ContractorAdapter.from_config(lab.config.bd, closure=NoLedgerClosure()).record(
+            "stage"
+        )
+        == record
+    )
 
 
 def test_trusted_integration_replays_without_graph_or_inputs(
@@ -388,5 +401,7 @@ def test_trusted_integration_replays_without_graph_or_inputs(
         )
         == receipt
     )
-    current = ContractorAdapter.from_config(lab.config.bd).record("stage")
+    current = ContractorAdapter.from_config(
+        lab.config.bd, closure=NoLedgerClosure()
+    ).record("stage")
     assert IntegrationGuard(lab.composition).binding(current).receipt == receipt

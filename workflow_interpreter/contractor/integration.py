@@ -34,6 +34,7 @@ from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.resolve import _resolved_config
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.gitcmd import GitSubcommand
+from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import (
     CollectedChildResult,
@@ -265,11 +266,6 @@ class IntegrationGuard:
                 "tree": None,
                 "gate_receipt_digest": None,
                 "landing_receipt_digest": None,
-                # Post-close evidence, exactly like the receipt digests above:
-                # the export oid is recorded in the closing merge (§3.6), so a
-                # prepared projection that kept it could never match the
-                # digest taken before the stage was admitted.
-                "export_oid": None,
             }
         )
         if association.contractor_digest != digest_record(prepared):
@@ -614,7 +610,9 @@ def prepare_integration(
     """Persist fixed intent before admitting exactly one P3 child root."""
     guard = IntegrationGuard(composition)
     adapter = ContractorAdapter.from_config(
-        composition.config.bd, composition.store.reads
+        composition.config.bd,
+        composition.store.reads,
+        closure=closure_probe(composition.ledger, composition.git),
     )
     adapter.integration_guard = guard
     stage = adapter.show(request.stage_id)
@@ -761,7 +759,9 @@ def resume_integration(
 ) -> ContractorRecord:
     guard = IntegrationGuard(composition)
     adapter = ContractorAdapter.from_config(
-        composition.config.bd, composition.store.reads
+        composition.config.bd,
+        composition.store.reads,
+        closure=closure_probe(composition.ledger, composition.git),
     )
     adapter.integration_guard = guard
     owner = association.request.owner_id
@@ -1051,7 +1051,9 @@ def command(composition: Composition, args: object) -> str:
     if association is None:
         raise ContractorRefusal("integration association is absent")
     adapter = ContractorAdapter.from_config(
-        composition.config.bd, composition.store.reads
+        composition.config.bd,
+        composition.store.reads,
+        closure=closure_probe(composition.ledger, composition.git),
     )
     raw = adapter.show(args.stage_id).metadata.get("contractor")
     record = adapter.record(args.stage_id) if raw is not None else None

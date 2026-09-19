@@ -15,7 +15,16 @@ test:
    produce;
 5. an ABANDONED task is `retired()` — cleanup and archive proceed on what
    exists, succession does not;
-6. nothing in the package writes `ContractorState.CLOSED` any more.
+6. nothing in the package writes `ContractorState.CLOSED` any more;
+7. an IN-FLIGHT task can be neither pinned nor latched: the LANDED gate is
+   asked above the latch, and `pin_export` refuses by name;
+8. that same crashed task can still be DRIVEN TO DONE — recover the pin, land,
+   close — and its bead closes exactly once;
+9. a close is refused while the probe says the record is not durable (D5);
+10. a read-only ledger still answers `closed()`, skipping the latch it cannot
+    write;
+11. the foreman's replacement path refuses a successor over a retired task,
+    exactly as `wf contract` does.
 
 Real git throughout: every one of these is a statement about a blob, a ref or
 a clone, and none of those can be faked.
@@ -32,6 +41,7 @@ from typing import Final
 import pytest
 
 from tests._fake_bd import FakeBd
+from tests._foreman import LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
 from tests._inspector import make_repo
 from tests._ledger import TASK, ledger_store, seeded_task
@@ -58,10 +68,19 @@ from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.ledger.archive import archive_task
 from workflow_interpreter.ledger.closure import TaskClosure, closed, retired
-from workflow_interpreter.ledger.constants import TaskState
-from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
+from workflow_interpreter.ledger.constants import EXPORT_REF_TEMPLATE, TaskState
+from workflow_interpreter.ledger.database import (
+    LedgerDatabase,
+    open_ledger,
+    open_readonly,
+)
 from workflow_interpreter.ledger.errors import LedgerExportError
-from workflow_interpreter.ledger.export import export_task, import_export, write_export
+from workflow_interpreter.ledger.export import (
+    export_task,
+    import_export,
+    pin_export,
+    write_export,
+)
 from workflow_interpreter.ledger.paths import (
     export_path,
     ledger_path,
@@ -73,6 +92,10 @@ from workflow_interpreter.ledger.reverify import (
     verify_export,
 )
 from workflow_interpreter.ledger.tasks import export_oid, record_task_state
+from workflow_interpreter.schema.decisions import (
+    MemberAdmission,
+    TrustedReplacementIntent,
+)
 
 EPIC_ID: Final[str] = "phase-1"
 STAGE_ID: Final[str] = TASK
@@ -212,9 +235,7 @@ def _succession(
     fake_client: BdClient, database: LedgerDatabase, git: Git, stored: ContractorRecord
 ) -> ContractorAdapter:
     """An adapter that can answer the closure question, ready for a retry."""
-    adapter = ContractorAdapter(fake_client)
-    adapter.closure = TaskClosure(database, git)
-    return adapter
+    return ContractorAdapter(fake_client, closure=TaskClosure(database, git))
 
 
 def test_a_crash_between_the_export_and_the_pin_leaves_the_task_open(
@@ -254,6 +275,183 @@ def test_a_crash_between_the_export_and_the_pin_leaves_the_task_open(
                 repo_root=repo,
                 wrapper_root=wrapper_root,
             )
+
+
+def test_an_in_flight_task_is_neither_pinnable_nor_latchable(
+    tmp_path: Path,
+) -> None:
+    """§3.5: the LANDED gate comes before the latch, at both ends of it.
+
+    `wf ledger export` and `wf ledger pin-export` are operator commands and
+    work on a task in any state, so an in-flight task can be exported and its
+    bytes anchored. If the pin recorded the oid, or if `closed()` honoured a
+    latch it found, that task would be closed forever while its work was still
+    running — and the landing that followed would skip `adapter.land` and the
+    real pin entirely. So the pin refuses a task that has not landed, and a
+    latch on such a task is not an answer `closed()` will give.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    with open_ledger(repo, wrapper_root) as database:
+        seeded_task(database)
+        write_export(database, TASK)
+
+        with pytest.raises(LedgerExportError, match="has not landed"):
+            pin_export(git, database, TASK, repo)
+
+        assert export_oid(database, TASK) is None
+        assert closed(database, git, TASK) is False
+        # The latch written by any other hand — a restore, a future column, a
+        # hand-edited row — is still not closure while the task is in flight.
+        with database.transaction() as connection:
+            connection.execute(
+                "UPDATE tasks SET export_oid = ? WHERE task_id = ?", ("d" * 40, TASK)
+            )
+
+        assert closed(database, git, TASK) is False
+        assert retired(database, git, TASK) is False
+
+
+def test_the_crashed_task_is_driven_to_done_by_recovering_the_pin(
+    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+) -> None:
+    """The other half of the crash between the export and the pin (§3.5, D5).
+
+    Leaving the task open is only right if the task can still be FINISHED: the
+    operator recovers the pin with `wf ledger pin-export`, the landing relation
+    is written, and the close that was refused before the anchor existed now
+    goes through — once, on a task that derives closed.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    stored = _stored_record(fake_bd)
+    with open_ledger(repo, wrapper_root) as database:
+        _landed_task(database)
+        write_export(database, TASK)
+        adapter = _succession(fake_client, database, git, stored)
+
+        oid = pin_export(git, database, TASK, repo)
+        adapter.land(STAGE_ID, stored)
+        adapter.close(STAGE_ID, stored, LANDING_RECEIPT)
+
+        assert closed(database, git, TASK) is True
+        assert export_oid(database, TASK) == oid
+    assert fake_bd.rows[STAGE_ID]["status"] == "closed"
+    assert fake_bd.command_count("close") == 1
+
+
+def test_close_refuses_a_task_whose_probe_answers_not_closed(
+    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+) -> None:
+    """D5's guard: the bead closes only after the record is durable (§3.5).
+
+    The probe is present and answering — this is not the ledger-less wiring —
+    and it says the exported bytes are anchored by nothing. Closing here would
+    close a bead on a record `git clean` deletes.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    stored = _stored_record(fake_bd)
+    with open_ledger(repo, wrapper_root) as database:
+        _landed_task(database)
+        write_export(database, TASK)
+        adapter = _succession(fake_client, database, git, stored)
+
+        with pytest.raises(ContractorAdapterError, match="does not derive closed"):
+            adapter.close(STAGE_ID, stored, LANDING_RECEIPT)
+
+    assert fake_bd.rows[STAGE_ID]["status"] == "in_progress"
+
+
+def test_a_read_only_ledger_answers_closed_without_writing_the_latch(
+    tmp_path: Path,
+) -> None:
+    """§3.5: the latch is an optimisation, and a read must never fail for it.
+
+    `closed()` is asked from read paths — cleanup, archive, the succession
+    guard — and it WRITES the answer it derives. A ledger opened `mode=ro`, or
+    one whose writer holds the database, must still get the derived answer:
+    the latch is skipped and the next ask derives it again.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    with open_ledger(repo, wrapper_root) as database:
+        _landed_task(database)
+        exported = write_export(database, TASK)
+        # The anchor without the latch: the blob is pinned in git, and nothing
+        # recorded the oid — exactly the row a crash before the recording
+        # leaves behind.
+        git.update_ref(
+            EXPORT_REF_TEMPLATE.format(task_id=TASK),
+            git.write_blob(exported, cwd=repo),
+            cwd=repo,
+        )
+
+    with open_readonly(repo, wrapper_root) as reader:
+        assert closed(reader, git, TASK) is True
+        assert retired(reader, git, TASK) is True
+        assert export_oid(reader, TASK) is None
+
+
+def test_the_replacement_path_refuses_a_successor_over_a_retired_task(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """§3.8, through the wiring that replaces a member rather than the CLI.
+
+    `wf contract` refuses a second attempt at an abandoned task; the foreman's
+    replacement path prepares its successor through the same adapter, and it
+    used to build one with no closure probe at all — so the refusal the CLI
+    carried simply was not asked here. The private step is the seam under test
+    precisely because that is where the adapter is built — and `from_config`
+    itself is NOT replaced here, for the same reason: what is under test is
+    that the production site hands it the composition's probe. Only the bd
+    binary is stood in for.
+    """
+    from workflow_interpreter.contractor import adapter as adapter_module
+    from workflow_interpreter.foreman.replacement import _prepare_contractor
+
+    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    monkeypatch.setattr(
+        adapter_module,
+        "BdClient",
+        lambda config, *_, **__: BdClient(config, lab.fake_bd),
+    )
+    stored = ContractorRecord.prepared(
+        verification_policy=_policy(),
+        epic_id=EPIC_ID,
+        stage_id=LAB_TASK,
+        attempt=1,
+        target_ref=TARGET_REF,
+        expected_base_commit=BASE_COMMIT,
+    ).admitted(ROOT_ID)
+    lab.fake_bd.rows[LAB_TASK] = {
+        "id": LAB_TASK,
+        "title": "stage",
+        "status": "in_progress",
+        "issue_type": "task",
+        "parent": EPIC_ID,
+        "metadata": {"contractor": stored.model_dump(by_alias=True, mode="json")},
+    }
+    assert lab.ledger is not None
+    record_task_state(lab.ledger, LAB_TASK, TaskState.ABANDONED)
+    intent = TrustedReplacementIntent(
+        request_key="replace-one",
+        request_digest="digest",
+        reason="the task was abandoned",
+        owner_id="owner",
+        slot="build",
+        expected_generation=0,
+        predecessor_id=ROOT_ID,
+        admission=MemberAdmission(
+            graph_body="",
+            config_json="{}",
+            base_commit=BASE_COMMIT,
+            slot="build",
+            generation=1,
+        ),
+        obligation_digest="obligations",
+        predecessor_contractor_json=stored.model_dump_json(by_alias=True),
+        successor_contractor_json=stored.next_attempt().model_dump_json(by_alias=True),
+    )
+
+    with pytest.raises(ContractorAdapterError, match="retired"):
+        _prepare_contractor(lab.composition, intent)
 
 
 def test_a_shipped_exported_and_pinned_task_refuses_a_retry(

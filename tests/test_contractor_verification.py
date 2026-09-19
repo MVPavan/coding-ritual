@@ -14,6 +14,7 @@ from workflow_interpreter.contractor.verification import (
 from workflow_interpreter.inspector import Git
 from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.paths import WrapperPaths
+from workflow_interpreter.ledger.closure import NoLedgerClosure
 
 
 def gate(tmp_path: Path, code: str, timeout: float = 3):
@@ -105,7 +106,9 @@ def test_admission_requires_policy_before_writes(
     base = head_of(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     admission = PhaseAdmission(
-        ContractorAdapter(fake_client), _Roots(fake_client, repo, base), lambda: base
+        ContractorAdapter(fake_client, closure=NoLedgerClosure()),
+        _Roots(fake_client, repo, base),
+        lambda: base,
     )
     with pytest.raises(ValueError, match="policy"):
         admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
