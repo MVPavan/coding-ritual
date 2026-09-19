@@ -32,6 +32,10 @@ from workflow_interpreter.ledger.paths import repo_hash
 from workflow_interpreter.ledger.store import LedgerStore
 
 TASK: Final[str] = "cr-3411.2"
+EPIC: Final[str] = "cr-3411"
+"""The epic the lab's task is minted under. An INPUT everywhere (§3.7): the
+helpers state it because a store that would have to mint a `tasks` row without
+one refuses, which is exactly what an unprepared run should get."""
 GIT_ENTRY: Final[str] = ".git"
 STATUS_OPEN: Final[str] = "open"
 SIGNAL_TIMEOUT_S: Final[float] = 30.0
@@ -61,6 +65,7 @@ def ledger_store(
     database: LedgerDatabase,
     task_id: str = TASK,
     *,
+    epic_id: str | None = EPIC,
     verifier: GateVerifier | None = None,
     claims_backend: StoreBackend | None = None,
 ) -> WorkflowStore:
@@ -69,7 +74,7 @@ def ledger_store(
     Built through the factory, the way production builds one: the backend a
     root is served by is the factory's answer, never a borrowed handle (§3.2).
     """
-    backend = LedgerStore(database, task_id=task_id)
+    backend = LedgerStore(database, task_id=task_id, epic_id=epic_id)
     return WorkflowStore(
         backend,
         verifier,
@@ -92,7 +97,9 @@ def seeded_task(database: LedgerDatabase, task_id: str = TASK) -> str:
     return root.root_id
 
 
-def ledger_backend(database: LedgerDatabase, task_id: str = TASK) -> LedgerStore:
+def ledger_backend(
+    database: LedgerDatabase, task_id: str = TASK, *, epic_id: str | None = EPIC
+) -> LedgerStore:
     """The backend itself, for the tests that ask it what only IT decides.
 
     The public path (`ledger_store`) goes through `WorkflowStore`, which
@@ -100,7 +107,7 @@ def ledger_backend(database: LedgerDatabase, task_id: str = TASK) -> LedgerStore
     closing TRANSACTION — which decision owns the gate when two arrive — states
     its closures directly, so it can state two of them.
     """
-    return LedgerStore(database, task_id=task_id)
+    return LedgerStore(database, task_id=task_id, epic_id=epic_id)
 
 
 def config_file(
@@ -215,8 +222,10 @@ class CrashingLedgerStore(LedgerStore):
     what the two points name.
     """
 
-    def __init__(self, database: LedgerDatabase, *, task_id: str) -> None:
-        super().__init__(database, task_id=task_id)
+    def __init__(
+        self, database: LedgerDatabase, *, task_id: str, epic_id: str | None = EPIC
+    ) -> None:
+        super().__init__(database, task_id=task_id, epic_id=epic_id)
         self._armed: FaultPoint | None = None
 
     def arm(self, point: FaultPoint) -> None:

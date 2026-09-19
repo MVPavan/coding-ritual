@@ -98,11 +98,16 @@ class DetachedSpawner:
     """Start one wrapper without a shell or a borrowed terminal."""
 
     def __init__(
-        self, inspector_config: InspectorConfig, config_path: Path, task_id: str
+        self,
+        inspector_config: InspectorConfig,
+        config_path: Path,
+        task_id: str,
+        epic_id: str,
     ) -> None:
         self._inspector_config = inspector_config
         self._config_path = config_path
         self._task_id = task_id
+        self._epic_id = epic_id
 
     def launch(
         self, launch: WrapperLaunch, *, wiring: "InstanceWiring | None" = None
@@ -127,6 +132,10 @@ class DetachedSpawner:
                     # be told the task too, or it could not locate a backend.
                     "--task",
                     self._task_id,
+                    # And the epic, for the same reason: it is an input (§3.7),
+                    # so a process that was not told it has none to pin.
+                    "--epic",
+                    self._epic_id,
                     "inspector",
                     launch.root_id,
                     launch.activation_id,
@@ -198,6 +207,14 @@ class Composition:
     Optional only because a test wiring may have no bead to name; every
     production entry point supplies it, and the surfaces that need it —
     export before close, the ledger's rows — refuse without one."""
+    epic_id: str | None = None
+    """The epic this process's task belongs under, as an INPUT (§3.7, R8).
+
+    Never derived from `task_id`: it is the second free path component of the
+    `docs/workstreams/<epic>/runs/<task>/a<n>` grant, and a parse of one id
+    cannot answer for a tracker that does not shape its ids that way. Carried
+    here so that `RunIdentity` is pinned from a fact the composition root
+    decided, exactly as the task is."""
     locate_backend: BackendLocator = bd_backend
     """Which backend owns a root, answered before the root is loaded (§3.2)."""
     drain_attention: AttentionDrain = no_attention_drain

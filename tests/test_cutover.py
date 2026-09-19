@@ -16,7 +16,7 @@ from typing import Final
 
 import pytest
 
-from tests._foreman import LAB_TASK, ForemanLab
+from tests._foreman import LAB_EPIC, LAB_TASK, ForemanLab
 from tests._inspector import ChildScript
 from tests.test_contractor_cli import _entry
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
@@ -360,7 +360,7 @@ def test_landing_recovery_falls_back_to_the_journalled_row(
 
     from workflow_interpreter.contractor.journal import LandingJournal
 
-    journal = LandingJournal(lab.ledger, STAGE, BackendKind.LEDGER)
+    journal = LandingJournal(lab.ledger, STAGE, BackendKind.LEDGER, LAB_EPIC)
     assert journal.read(record.attempt, phase, model) is not None
     # Recovery of the already-closed stage still validates, from the row.
     assert _entry(lab, STAGE).exit_code == 0
@@ -649,7 +649,7 @@ def test_a_checkout_sync_that_rewrites_the_export_is_refused(
     assert _entry(lab, STAGE).exit_code == 0
     record = _contractor_adapter(lab).record(STAGE)
     wiring = lab.composition.for_root(record.root_id or "")
-    journal = LandingJournal(lab.ledger, STAGE, BackendKind.LEDGER)
+    journal = LandingJournal(lab.ledger, STAGE, BackendKind.LEDGER, LAB_EPIC)
     landed = journal.read(record.attempt, LandingPhase.INTENT, LandingIntent)
     assert landed is not None
 

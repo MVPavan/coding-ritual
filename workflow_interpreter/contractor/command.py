@@ -470,10 +470,17 @@ def _land(
         ),
         journal=None
         if ledger is None
-        else LandingJournal(ledger, record.stage_id, record.root_backend),
+        else LandingJournal(
+            ledger, record.stage_id, record.root_backend, record.epic_id
+        ),
         export=None
         if ledger is None
-        else ExportPin(ledger, composition.git, composition.config.repo_root),
+        else ExportPin(
+            ledger,
+            composition.git,
+            composition.config.repo_root,
+            record.epic_id,
+        ),
     )
     try:
         outcome = (

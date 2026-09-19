@@ -44,7 +44,7 @@ from tests._fake_bd import FakeBd
 from tests._foreman import LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
 from tests._inspector import make_repo
-from tests._ledger import TASK, ledger_store, seeded_task
+from tests._ledger import EPIC, TASK, ledger_store, seeded_task
 from tests.conftest import Signer
 from tests.test_ledger_writes import _open_gate
 from workflow_interpreter.bdio import GateVerifier, SigningConfig
@@ -467,7 +467,7 @@ def test_a_shipped_exported_and_pinned_task_refuses_a_retry(
     stored = _stored_record(fake_bd)
     with open_ledger(repo, wrapper_root) as database:
         _landed_task(database)
-        ExportPin(database, git, repo).pin(TASK, BackendKind.LEDGER)
+        ExportPin(database, git, repo, EPIC).pin(TASK, BackendKind.LEDGER)
         adapter = _succession(fake_client, database, git, stored)
 
         assert closed(database, git, TASK) is True
@@ -554,7 +554,7 @@ def test_a_closed_task_stays_closed_under_a_schema_bump_and_an_attention_write(
     repo, wrapper_root, git = _lab(tmp_path)
     with open_ledger(repo, wrapper_root) as database:
         _landed_task(database)
-        anchored = ExportPin(database, git, repo).pin(TASK, BackendKind.LEDGER)
+        anchored = ExportPin(database, git, repo, EPIC).pin(TASK, BackendKind.LEDGER)
         as_pinned = export_task(database, TASK)
         assert closed(database, git, TASK) is True
 

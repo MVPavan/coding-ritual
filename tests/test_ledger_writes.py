@@ -36,6 +36,7 @@ from tests._fake_bd import FakeBd
 from tests._foreman import ChildScript, ForemanLab
 from tests._gates import approval_payload, close, ship_gate_request
 from tests._ledger import (
+    EPIC,
     SIGNAL_TIMEOUT_S,
     TASK,
     CrashingLedgerStore,
@@ -737,7 +738,7 @@ def test_a_busy_close_is_recorded_on_the_activation_it_was_refused_for(
     activation; contention during the close that FINISHES it was not, so the
     row carried no trace of why a close its caller saw raise never landed.
     """
-    backend = _BusyClosingLedgerStore(ledger, task_id=TASK)
+    backend = _BusyClosingLedgerStore(ledger, task_id=TASK, epic_id=EPIC)
     store = WorkflowStore(
         backend,
         backend_factory=PinnedBackendFactory(backend),
@@ -1278,7 +1279,7 @@ def test_a_read_never_sees_half_of_a_writers_transaction(
     only two answers are "neither" and "both".
     """
     for task_id in READER_TASKS:
-        pin_task_backend(ledger, task_id, BackendKind.LEDGER)
+        pin_task_backend(ledger, task_id, BackendKind.LEDGER, EPIC)
     started = threading.Event()
     failures: list[Exception] = []
 

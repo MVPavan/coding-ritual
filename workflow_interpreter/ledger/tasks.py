@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 from typing import Final
 
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.contracts.run_identity import epic_segment
+from workflow_interpreter.contracts.run_identity import ComponentKind, safe_component
 from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_NOT_RECORDED,
     MSG_STATE_NOT_RECORDED,
@@ -26,14 +26,10 @@ from workflow_interpreter.ledger.constants import (
 )
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError, sqlite_failure
+from workflow_interpreter.ledger.identity import insert_task
 
-_FIRST_SEQ: Final[int] = 1
-_SQL_PIN_TASK: Final[str] = (
-    "INSERT OR IGNORE INTO tasks "
-    "(task_id, epic_id, graph_id, backend, next_seq, created_at) "
-    "VALUES (?, ?, NULL, ?, ?, ?)"
-)
 _SQL_TASK_BACKEND: Final[str] = "SELECT backend FROM tasks WHERE task_id = ?"
+_SQL_TASK_EPIC: Final[str] = "SELECT epic_id FROM tasks WHERE task_id = ?"
 _SQL_TASK_EXPORT: Final[str] = "SELECT export_oid FROM tasks WHERE task_id = ?"
 _SQL_RECORD_EXPORT: Final[str] = (
     "UPDATE tasks SET export_oid = ?, exported_at = ? WHERE task_id = ?"
@@ -44,7 +40,7 @@ _SQL_RECORD_STATE: Final[str] = "UPDATE tasks SET state = ? WHERE task_id = ?"
 
 
 def pin_task_backend(
-    database: LedgerDatabase, task_id: str, backend: BackendKind
+    database: LedgerDatabase, task_id: str, backend: BackendKind, epic_id: str
 ) -> BackendKind:
     """Record this task's backend if it has none, and answer what is pinned.
 
@@ -53,18 +49,15 @@ def pin_task_backend(
     roots that already exist (D18, no reverse migration). The answer is read
     back inside the same transaction, so the caller learns the pin in force
     rather than the one it asked for.
+
+    `epic_id` is written only on a row this call creates, and only after the
+    grammar has accepted it: it is an input (§3.7), so a second start under a
+    different epic does not move the directory this task's runs already wrote
+    their knowledge into.
     """
-    with database.transaction():
-        database.connection.execute(
-            _SQL_PIN_TASK,
-            (
-                task_id,
-                epic_segment(task_id),
-                backend.value,
-                _FIRST_SEQ,
-                datetime.now(tz=UTC).isoformat(),
-            ),
-        )
+    epic = safe_component(epic_id, kind=ComponentKind.EPIC)
+    with database.transaction() as connection:
+        insert_task(connection, task_id=task_id, epic_id=epic, backend=backend)
         pinned = task_backend(database, task_id)
     if pinned is None:  # pragma: no cover - the row is written just above
         raise LookupError(f"task row {task_id!r} vanished after its pin")
@@ -76,6 +69,17 @@ def task_backend(database: LedgerDatabase, task_id: str) -> BackendKind | None:
     with database.locked() as connection:
         row = connection.execute(_SQL_TASK_BACKEND, (task_id,)).fetchone()
     return None if row is None else BackendKind(str(row[0]))
+
+
+def task_epic(database: LedgerDatabase, task_id: str) -> str | None:
+    """The epic this task was minted under, or nothing when it has no row.
+
+    Read from the column, never derived from the id: that is the whole of R8
+    on the read side.
+    """
+    with database.locked() as connection:
+        row = connection.execute(_SQL_TASK_EPIC, (task_id,)).fetchone()
+    return None if row is None else str(row[0])
 
 
 def root_backend(database: LedgerDatabase, root_id: str) -> BackendKind | None:

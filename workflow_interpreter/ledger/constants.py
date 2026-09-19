@@ -118,6 +118,19 @@ class TaskState(StrEnum):
     ABANDONED = "abandoned"
 
 
+class TrackerKind(StrEnum):
+    """Which tracker the foreign id in `tasks.tracker_ref` belongs to (§3.7).
+
+    Stored beside the ref rather than folded into it: two trackers can mint
+    the same string, and a ledger that could not say which one an id came from
+    would have to guess when S5's port asks it to close the right issue.
+    """
+
+    BD = "bd"
+    GITHUB = "github"
+    JIRA = "jira"
+
+
 ROW_TABLES: Final[tuple[LedgerTable, ...]] = (
     LedgerTable.ROOTS,
     LedgerTable.ACTIVATIONS,
@@ -324,6 +337,15 @@ MSG_PIN_TASK_MISMATCH: Final[str] = (
 MSG_EXPORT_NOT_RECORDED: Final[str] = (
     "no tasks row {task_id!r} to record export blob {oid!r} on; a pin nothing "
     "carries is a task that still owes an export (§3.6)"
+)
+MSG_EPIC_REQUIRED: Final[str] = (
+    "task {task_id!r} has no ledger row and no epic was supplied; the epic is "
+    "an input at mint, never a parse of the task id, so a run that never went "
+    "through prepare cannot invent the directory its knowledge lands in (§3.7)"
+)
+MSG_TRACKER_REF_UNUSABLE: Final[str] = (
+    "tracker ref {tracker_ref!r} holds nothing a path component or a ref name "
+    "could be made of (§3.7)"
 )
 MSG_STATE_NOT_RECORDED: Final[str] = (
     "no tasks row {task_id!r} to record state {state!r} on; a state nothing "

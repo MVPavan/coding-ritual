@@ -64,11 +64,16 @@ class LandingJournal:
     """One task's copy of its landing intent and receipt, in the ledger."""
 
     def __init__(
-        self, database: LedgerDatabase, task_id: str, backend: BackendKind
+        self,
+        database: LedgerDatabase,
+        task_id: str,
+        backend: BackendKind,
+        epic_id: str,
     ) -> None:
         self._database = database
         self._task_id = task_id
         self._backend = backend
+        self._epic_id = epic_id
 
     def record(self, attempt: int, phase: LandingPhase, record: BaseModel) -> None:
         """Copy one landing half into the ledger, after its file was written.
@@ -82,7 +87,7 @@ class LandingJournal:
         second write would make the file and the row disagree about which
         attempt is current.
         """
-        pin_task_backend(self._database, self._task_id, self._backend)
+        pin_task_backend(self._database, self._task_id, self._backend, self._epic_id)
         with self._database.transaction():
             self._database.connection.execute(
                 _SQL_WRITE,
@@ -126,10 +131,13 @@ class LandingJournal:
 class ExportPin:
     """Puts a task's whole ledger record into git before its bead can close."""
 
-    def __init__(self, database: LedgerDatabase, git: Git, repo_root: Path) -> None:
+    def __init__(
+        self, database: LedgerDatabase, git: Git, repo_root: Path, epic_id: str
+    ) -> None:
         self._database = database
         self._git = git
         self._repo_root = repo_root
+        self._epic_id = epic_id
 
     def pin(self, task_id: str, backend: BackendKind) -> str:
         """Record LANDED, export, store, pin — and answer the blob's object id.
@@ -151,7 +159,7 @@ class ExportPin:
         with `wf ledger pin-export`: one definition of what a pin IS, so the
         recovery command cannot drift from the write it recovers.
         """
-        pin_task_backend(self._database, task_id, backend)
+        pin_task_backend(self._database, task_id, backend, self._epic_id)
         record_task_state(self._database, task_id, TaskState.LANDED)
         write_export(self._database, task_id)
         try:

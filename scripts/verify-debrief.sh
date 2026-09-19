@@ -39,9 +39,12 @@ fail() {
 # enforces on the record, re-applied here because this script interpolates
 # these values into a path and into a prefix comparison. A glob, not a regex:
 # containment must not depend on which regex dialect the host's tools speak.
+# `*..*` and `*.lock` are the two forms the charset alone lets through: the
+# first traverses out of the directory this check grants, the second is a name
+# git refuses for a ref (§3.7, R8).
 safe_component() {
     case "$2" in
-        '' | .* | *[!A-Za-z0-9._-]*)
+        '' | .* | *..* | *.lock | *[!A-Za-z0-9._-]*)
             fail "debrief-identity: $1 is not one safe path component: '$2'"
             ;;
     esac

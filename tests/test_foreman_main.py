@@ -520,7 +520,7 @@ def test_wrapper_rejects_a_path_traversal_identifier_before_lock_creation(
     root = lab.instantiate()
     outside = tmp_path / "outside"
 
-    with pytest.raises(ValueError, match="invalid bead id"):
+    with pytest.raises(ValueError, match="not one safe path component"):
         run_wrapper(lab.composition, root.root_id, "../outside")
 
     assert not outside.exists()

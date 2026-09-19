@@ -1161,7 +1161,9 @@ def test_detached_spawner_separates_wrapper_and_crew_logs_and_records_its_handle
         lambda _config: "boot",
     )
     config_path = tmp_path / "foreman.toml"
-    DetachedSpawner(composition.inspector_config, config_path, "cr-3411.4").launch(
+    DetachedSpawner(
+        composition.inspector_config, config_path, "cr-3411.4", "cr-3411"
+    ).launch(
         WrapperLaunch(
             root_id="root",
             activation_id="activation",
@@ -1178,6 +1180,9 @@ def test_detached_spawner_separates_wrapper_and_crew_logs_and_records_its_handle
         # task, or it could not locate the backend its root is pinned to.
         "--task",
         "cr-3411.4",
+        # §3.7: and the epic, which is an input and not a parse of the id.
+        "--epic",
+        "cr-3411",
         "inspector",
         "root",
         "activation",
@@ -1217,7 +1222,7 @@ def test_detached_spawner_records_an_immediately_exited_wrapper(
         lambda _config: None,
     )
     DetachedSpawner(
-        composition.inspector_config, tmp_path / "foreman.toml", "cr-3411.4"
+        composition.inspector_config, tmp_path / "foreman.toml", "cr-3411.4", "cr-3411"
     ).launch(
         WrapperLaunch(root_id="root", activation_id="gone", request=entry_request())
     )

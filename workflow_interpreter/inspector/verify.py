@@ -396,7 +396,7 @@ def _check_env(
     return {
         BASE_COMMIT_ENV: base_commit,
         EPIC_SEGMENT_ENV: (
-            _NO_IDENTITY if run_identity is None else run_identity.epic_segment
+            _NO_IDENTITY if run_identity is None else run_identity.epic_id
         ),
         TASK_ID_ENV: _NO_IDENTITY if run_identity is None else run_identity.task_id,
         ATTEMPT_ENV: (

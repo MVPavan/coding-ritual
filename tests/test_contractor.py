@@ -947,7 +947,7 @@ def _landing_context(repo: Path, tmp_path: Path) -> tuple[Git, WrapperPaths, Exp
     database = open_ledger(
         repo, config.wrapper_root, path=tmp_path / "contractor-ledger.db"
     )
-    return git, WrapperPaths(config, ROOT_ID), ExportPin(database, git, repo)
+    return git, WrapperPaths(config, ROOT_ID), ExportPin(database, git, repo, EPIC_ID)
 
 
 def test_landing_refuses_a_prepared_stage_without_cas_or_close(

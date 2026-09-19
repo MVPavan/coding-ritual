@@ -67,7 +67,11 @@ from workflow_interpreter.inspector.rpc_control import read_instructions
 from workflow_interpreter.ledger.database import open_ledger
 from workflow_interpreter.ledger.reconcile import RootAttentionDrain
 from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import pin_task_backend, task_backend
+from workflow_interpreter.ledger.tasks import (
+    pin_task_backend,
+    task_backend,
+    task_epic,
+)
 from workflow_interpreter.profiles.registry import ProfileRegistry
 
 # The per-subprocess `debug` chatter every git and bd call emits is worthless in
@@ -95,6 +99,9 @@ MSG_TASK_REQUIRED: Final[str] = (
 )
 MSG_TASK_CONFLICT: Final[str] = (
     "--task {task!r} names a different bead than the selected stage {stage!r}"
+)
+MSG_EPIC_CONFLICT: Final[str] = (
+    "--epic {epic!r} names a different epic than the selected {stated!r}"
 )
 
 
@@ -136,6 +143,10 @@ def _composition(args: argparse.Namespace) -> Composition:
     backend locator answers for. Opening the ledger is part of composing —
     that is where §3.5's wrapper-root pin is asserted, so a foreman started
     against another engine home refuses HERE, before any root is touched.
+
+    The epic is an input too (§3.7): the one this invocation named, else the
+    one the task's row already carries, else — for a task with no row at all —
+    the task standing as its own epic. What it is never is a parse of the id.
     """
     path = args.config
     task_id = _task_of(args)
@@ -143,6 +154,7 @@ def _composition(args: argparse.Namespace) -> Composition:
         raise InvalidIdentifier("foreman configuration path is required: pass --config")
     validate_bead_id(task_id)
     config = load_config(path)
+    named_epic = _epic_of(args)
     # Capture host uv authority before profile child_env points at private caches.
     inspector = config.inspector.model_copy(
         update={
@@ -153,8 +165,11 @@ def _composition(args: argparse.Namespace) -> Composition:
     clock = SystemClock()
     bd = BdClient(config.bd)
     ledger = open_ledger(config.repo_root, config.wrapper_root)
-    pin_task_backend(ledger, task_id, config.store)
-    factory = SelectableBackendFactory(bd, LedgerStore(ledger, task_id=task_id))
+    epic_id = named_epic or task_epic(ledger, task_id) or task_id
+    pin_task_backend(ledger, task_id, config.store, epic_id)
+    factory = SelectableBackendFactory(
+        bd, LedgerStore(ledger, task_id=task_id, epic_id=epic_id)
+    )
     return Composition(
         config=config,
         store=WorkflowStore.from_config(
@@ -167,13 +182,34 @@ def _composition(args: argparse.Namespace) -> Composition:
         git=Git(config.inspector),
         clock=clock,
         profiles=ProfileRegistry(config.profiles, clock, os.environ),
-        spawner=DetachedSpawner(config.inspector, path, task_id),
+        spawner=DetachedSpawner(config.inspector, path, task_id, epic_id),
         host_env=dict(os.environ),
         ledger=ledger,
         locate_backend=RootBackendLocator(task_id, ledger=ledger),
         drain_attention=RootAttentionDrain(ledger, bd),
         task_id=task_id,
+        epic_id=epic_id,
     )
+
+
+def _epic_of(args: argparse.Namespace) -> str | None:
+    """The epic this invocation names, or nothing when it names none (§3.7).
+
+    A `contract` or `integration` operation states its epic positionally; the
+    detached wrapper is told it as `--epic`, the way it is told the task. The
+    two must agree when both are present, because they are one fact.
+
+    Nothing is DERIVED here. A command that names no epic falls back, in
+    `_composition`, to the one the `tasks` row already carries — and only for
+    a task that has no row at all does the task stand as its own epic, which
+    is a statement about an unprepared run rather than a parse of its id.
+    """
+    stated = getattr(args, "epic_id", None)
+    named = getattr(args, "epic", None)
+    if stated is not None and named is not None and stated != named:
+        raise InvalidIdentifier(MSG_EPIC_CONFLICT.format(epic=named, stated=stated))
+    chosen = named or stated
+    return None if chosen is None else validate_bead_id(str(chosen))
 
 
 def _task_of(args: argparse.Namespace) -> str:
@@ -205,6 +241,9 @@ def _parser() -> argparse.ArgumentParser:
     # Top-level like `--config`, and for the same reason: `DetachedSpawner`
     # passes it in this one position when it re-enters for `inspector`.
     parser.add_argument("--task")
+    # The epic is an input, not a parse of the task id (§3.7, R8), so the
+    # wrapper has to be told it in this one position too.
+    parser.add_argument("--epic")
     commands = parser.add_subparsers(dest="command", required=True)
     create = commands.add_parser("create")
     create.add_argument("graph", type=Path)

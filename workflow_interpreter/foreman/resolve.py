@@ -380,9 +380,10 @@ def instantiate(
     that names its backend.
 
     `attempt` is the contractor's own attempt number for this stage; with the
-    composition's task it becomes the root's pinned run identity (§3.7). A
-    caller that has no attempt to name — `foreman create`, a lab wiring —
-    pins none, and the run-scoped verify variables are then empty.
+    composition's task and epic it becomes the root's pinned run identity
+    (§3.7). A caller that has no attempt to name — `foreman create`, a lab
+    wiring — pins none, and the run-scoped verify variables are then empty.
+    The epic is the composition's, never a parse of the task id (R8).
     """
     definition = load_graph(toml_path, allow_test_flags=allow_test_flags)
     pinned = _pinned_instance_inputs(
@@ -406,8 +407,14 @@ def instantiate(
         instance_base_commit=base,
         run_identity=(
             None
-            if composition.task_id is None or attempt is None
-            else RunIdentity(task_id=composition.task_id, attempt=attempt)
+            if composition.task_id is None
+            or composition.epic_id is None
+            or attempt is None
+            else RunIdentity(
+                task_id=composition.task_id,
+                epic_id=composition.epic_id,
+                attempt=attempt,
+            )
         ),
         profiles=composition.profiles,
     )

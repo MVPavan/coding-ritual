@@ -55,6 +55,15 @@ class LedgerIdentityError(StoreConfigError):
     """The database is pinned to another repository or wrapper root (§3.5)."""
 
 
+class LedgerEpicMissing(StoreConfigError):
+    """A `tasks` row was owed and no epic was supplied to write on it (§3.7).
+
+    Its own class because it is a WIRING refusal, not a transport one: the
+    lazy `_ensure_task` path serves runs that never went through prepare, and
+    the answer is to prepare the task rather than to retry the write.
+    """
+
+
 class LedgerExportError(StoreConfigError):
     """An export file is not one this schema may restore from (§3.6).
 

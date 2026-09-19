@@ -33,7 +33,7 @@ from typing import Final
 import pytest
 
 from tests._fake_bd import FakeBd
-from tests._ledger import TASK, repository, seeded_task
+from tests._ledger import EPIC, TASK, repository, seeded_task
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor import (
@@ -182,7 +182,9 @@ def test_a_closed_task_re_exports_the_very_bytes_its_pin_names(
     exported = export_path(repo_root, TASK)
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
-        pinned_oid = ExportPin(database, git, repo_root).pin(TASK, BackendKind.LEDGER)
+        pinned_oid = ExportPin(database, git, repo_root, EPIC).pin(
+            TASK, BackendKind.LEDGER
+        )
         as_pinned = exported.read_bytes()
         again = write_export(database, TASK).read_bytes()
 
@@ -363,7 +365,7 @@ def test_a_landed_task_round_trips_and_its_landing_rows_come_back(
     intent = _landing_intent()
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
-        journal = LandingJournal(database, TASK, BackendKind.LEDGER)
+        journal = LandingJournal(database, TASK, BackendKind.LEDGER, EPIC)
         journal.record(ATTEMPT, LandingPhase.INTENT, intent)
         export = write_export(database, TASK)
         as_exported = export.read_bytes()
@@ -377,7 +379,7 @@ def test_a_landed_task_round_trips_and_its_landing_rows_come_back(
     )
 
     with open_ledger(repo_root, wrapper_root) as rebuilt:
-        restored = LandingJournal(rebuilt, TASK, BackendKind.LEDGER).read(
+        restored = LandingJournal(rebuilt, TASK, BackendKind.LEDGER, EPIC).read(
             ATTEMPT, LandingPhase.INTENT, LandingIntent
         )
         again = write_export(rebuilt, TASK).read_bytes()

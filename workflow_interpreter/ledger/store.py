@@ -28,7 +28,7 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Final
 
-from pydantic import JsonValue
+from pydantic import BaseModel, ConfigDict, JsonValue
 
 from workflow_interpreter.bdio.carriers import GateState, Metadata
 from workflow_interpreter.bdio.constants import BackendKind
@@ -55,11 +55,16 @@ from workflow_interpreter.bdio.wire import (
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
 )
-from workflow_interpreter.contracts.run_identity import epic_segment
+from workflow_interpreter.contracts.run_identity import (
+    FIRST_ATTEMPT,
+    ComponentKind,
+    safe_component,
+)
 from workflow_interpreter.ledger import rowmap
 from workflow_interpreter.ledger.constants import (
     MSG_BAD_FILTER_KEY,
     MSG_CLAIM_ON_LEDGER,
+    MSG_EPIC_REQUIRED,
     MSG_GATE_NOT_OPEN,
     MSG_GATE_SIGNED,
     MSG_LOSSY_ROW,
@@ -79,11 +84,13 @@ from workflow_interpreter.ledger.database import (
 )
 from workflow_interpreter.ledger.errors import (
     LedgerClaimUnsupported,
+    LedgerEpicMissing,
     LedgerGateConflict,
     LedgerRowMissing,
     LedgerTransportError,
     sqlite_failure,
 )
+from workflow_interpreter.ledger.identity import insert_task
 from workflow_interpreter.ledger.paths import fence_path
 from workflow_interpreter.schema.loader import canonical_json_bytes
 
@@ -97,21 +104,25 @@ _ATTRIBUTE_SCHEMA: Final[str] = "schema_version"
 _ATTRIBUTE_WRAPPER_ROOT: Final[str] = "wrapper_root"
 _ATTRIBUTE_PATH: Final[str] = "path"
 
-_FIRST_SEQ: Final[int] = 1
-_FIRST_ATTEMPT: Final[int] = 1
 _IDENTIFIER: Final[re.Pattern[str]] = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _JSON_PATH_FORMAT: Final[str] = "$.{key}"
 
-_SQL_TASK_INSERT: Final[str] = (
-    "INSERT OR IGNORE INTO tasks "
-    "(task_id, epic_id, graph_id, backend, next_seq, created_at) "
-    "VALUES (?, ?, NULL, ?, ?, ?)"
-)
+_SQL_TASK_PRESENT: Final[str] = "SELECT 1 FROM tasks WHERE task_id = ?"
 _SQL_TASK_SEQ: Final[str] = "SELECT next_seq FROM tasks WHERE task_id = ?"
 _SQL_TASK_SEQ_BUMP: Final[str] = (
     "UPDATE tasks SET next_seq = next_seq + 1 WHERE task_id = ?"
 )
-_SQL_ROOT_COUNT: Final[str] = "SELECT COUNT(*) FROM roots WHERE task_id = ?"
+_SQL_ATTEMPT_ROOT: Final[str] = (
+    "SELECT root_id, attempt FROM roots WHERE task_id = ? AND child_no = 0 "
+    "ORDER BY attempt DESC LIMIT 1"
+)
+"""The attempt root a root with no identity of its own hangs off: the highest
+attempt this task holds (§3.7)."""
+_SQL_LAST_CHILD_NO: Final[str] = (
+    "SELECT MAX(child_no) FROM roots WHERE task_id = ? AND attempt = ?"
+)
+"""The child ordinal in force for one attempt, so the next is minted inside
+the creating transaction rather than counted outside it."""
 _SQL_META_WRITE: Final[str] = "INSERT INTO meta (key, value) VALUES (?, ?)"
 _SQL_META_DELETE: Final[str] = "DELETE FROM meta WHERE key = ?"
 _SQL_META_READ: Final[str] = "SELECT value FROM meta WHERE key = ?"
@@ -147,6 +158,34 @@ _SQL_TASK_ACTIVATIONS: Final[str] = (
 )
 _MSG_PROBE: Final[str] = "the ledger probe wrote {wrote!r} and read back {read!r}"
 
+_KEY_RUN_IDENTITY: Final[str] = "run_identity"
+_KEY_ATTEMPT: Final[str] = "attempt"
+
+
+class RootLineage(BaseModel):
+    """Where one new root sits: its attempt, its ordinal under it, its parent."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    attempt: int
+    child_no: int
+    parent_root_id: str | None = None
+
+
+_NO_LINEAGE: Final[RootLineage] = RootLineage(attempt=0, child_no=rowmap.NO_CHILD)
+"""What a row that is not a root gets: `attempt` is a root's column alone."""
+
+
+def _carrier_attempt(metadata: Metadata) -> int | None:
+    """The attempt a carrier's pinned run identity names, or nothing (§3.7)."""
+    identity = metadata.get(_KEY_RUN_IDENTITY)
+    if not isinstance(identity, Mapping):
+        return None
+    attempt = identity.get(_KEY_ATTEMPT)
+    if isinstance(attempt, bool) or not isinstance(attempt, int):
+        return None
+    return attempt
+
 
 class LedgerStore:
     """One repository's ledger, scoped to the task whose rows it writes.
@@ -155,11 +194,23 @@ class LedgerStore:
     `task_id` and a per-task `seq`, and D16 requires every root to be
     reachable from the tracker: a store with no task could only write rows
     nobody could export.
+
+    `epic_id` is the epic to write on a `tasks` row this store has to MINT —
+    the lazy path, for a run that never went through prepare (§3.7). It is
+    optional only because a store over a task that was prepared already has
+    its epic in the column; a store that would have to invent one refuses.
     """
 
-    def __init__(self, database: LedgerDatabase, *, task_id: str) -> None:
+    def __init__(
+        self,
+        database: LedgerDatabase,
+        *,
+        task_id: str,
+        epic_id: str | None = None,
+    ) -> None:
         self._database = database
         self._task_id = task_id
+        self._epic_id = epic_id
 
     @property
     def kind(self) -> BackendKind:
@@ -269,25 +320,32 @@ class LedgerStore:
                 return existing
             self._ensure_task(connection)
             seq = self._allocate_seq(connection)
-            attempt = self._next_attempt(connection) if _is_root(table) else 0
+            lineage = (
+                self._lineage(connection, new.metadata)
+                if _is_root(table)
+                else _NO_LINEAGE
+            )
             row_id = rowmap.mint_id(
                 table,
                 new.metadata,
                 task_id=self._task_id,
-                attempt=attempt,
+                attempt=lineage.attempt,
                 seq=seq,
+                child_no=lineage.child_no,
             )
             metadata = _self_identified(new.metadata, table, row_id)
             columns = rowmap.projection(
                 table,
                 row_id=row_id,
                 task_id=self._task_id,
-                attempt=attempt,
+                attempt=lineage.attempt,
                 seq=seq,
                 metadata=metadata,
                 metadata_json=_json_text(metadata),
                 payload_json=None if new.payload is None else _json_text(new.payload),
                 at=_now(),
+                child_no=lineage.child_no,
+                parent_root_id=lineage.parent_root_id,
             )
             self._insert(table, columns)
             written = self._verified(table, row_id, metadata, LedgerOperation.CREATING)
@@ -712,16 +770,23 @@ class LedgerStore:
         )
 
     def _ensure_task(self, connection: sqlite3.Connection) -> None:
-        """Create this store's `tasks` row once; every later write reuses it."""
-        connection.execute(
-            _SQL_TASK_INSERT,
-            (
-                self._task_id,
-                epic_segment(self._task_id),
-                BackendKind.LEDGER.value,
-                _FIRST_SEQ,
-                datetime.now(tz=UTC).isoformat(),
-            ),
+        """Create this store's `tasks` row once; every later write reuses it.
+
+        The lazy path, for a run that never went through prepare (§3.7). The
+        epic is an INPUT, so a row this store has to mint needs one to write:
+        without it the task's knowledge directory would have to be invented
+        from the id, which is the parse R8 deleted. Refused by name here,
+        before any row, ref or worktree exists.
+        """
+        if connection.execute(_SQL_TASK_PRESENT, (self._task_id,)).fetchone():
+            return
+        if self._epic_id is None:
+            raise LedgerEpicMissing(MSG_EPIC_REQUIRED.format(task_id=self._task_id))
+        insert_task(
+            connection,
+            task_id=self._task_id,
+            epic_id=safe_component(self._epic_id, kind=ComponentKind.EPIC),
+            backend=BackendKind.LEDGER,
         )
 
     def _allocate_seq(self, connection: sqlite3.Connection) -> int:
@@ -732,10 +797,37 @@ class LedgerStore:
         connection.execute(_SQL_TASK_SEQ_BUMP, (self._task_id,))
         return int(row[0])
 
-    def _next_attempt(self, connection: sqlite3.Connection) -> int:
-        """The attempt number a new root of this task gets (D8)."""
-        row = connection.execute(_SQL_ROOT_COUNT, (self._task_id,)).fetchone()
-        return _FIRST_ATTEMPT + (0 if row is None else int(row[0]))
+    def _lineage(
+        self, connection: sqlite3.Connection, metadata: Metadata
+    ) -> RootLineage:
+        """Which attempt a new root belongs to, and which root under it (§3.7).
+
+        A carrier that pins a run identity IS that attempt: the number comes
+        from the fact the contractor recorded, never from how many roots this
+        task happens to have — a count made D16's decision and replacement
+        roots look like attempts two and three of the work.
+
+        A carrier with no identity is a root created UNDER the attempt in
+        force: it takes the highest attempt this task holds, hangs off that
+        attempt's root, and mints the next child ordinal in this very
+        transaction. The first root of a task that has none is the attempt
+        root itself, which is what a lab wiring or `foreman create` produces.
+        """
+        attempt = _carrier_attempt(metadata)
+        if attempt is not None:
+            return RootLineage(attempt=attempt, child_no=rowmap.NO_CHILD)
+        parent = connection.execute(_SQL_ATTEMPT_ROOT, (self._task_id,)).fetchone()
+        if parent is None:
+            return RootLineage(attempt=FIRST_ATTEMPT, child_no=rowmap.NO_CHILD)
+        held = int(parent[rowmap.COLUMN_ATTEMPT])
+        highest = connection.execute(
+            _SQL_LAST_CHILD_NO, (self._task_id, held)
+        ).fetchone()
+        return RootLineage(
+            attempt=held,
+            child_no=(rowmap.NO_CHILD if highest[0] is None else int(highest[0])) + 1,
+            parent_root_id=str(parent[rowmap.COLUMN_ROOT]),
+        )
 
 
 def record_findings(

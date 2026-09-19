@@ -135,6 +135,9 @@ BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
 FAKE_PROFILE: Final[str] = "fake"
 FAKE_MODEL: Final[str] = "fake"
 LAB_TASK: Final[str] = "cr-lab.1"
+LAB_EPIC: Final[str] = "cr-lab"
+"""The lab's epic, stated as the input it is (§3.7) rather than parsed out of
+`LAB_TASK` — which is what production stopped doing in S3."""
 LAB_ATTEMPT: Final[int] = 1
 """The task bead every lab root belongs to (D16). A synthetic id, because the
 lab has no tracker: what the engine needs from it is a stable, path-safe name
@@ -520,10 +523,12 @@ class ForemanLab:
         self.ledger = open_ledger(
             self.repo, self.inspector_config.wrapper_root, path=self._ledger_path
         )
-        pin_task_backend(self.ledger, LAB_TASK, self._store)
+        pin_task_backend(self.ledger, LAB_TASK, self._store, LAB_EPIC)
         bd = BdClient(BdConfig(workspace=self._workspace, actor="test"), self.fake_bd)
         self.backend_factory: StoreBackendFactory = (
-            SelectableBackendFactory(bd, LedgerStore(self.ledger, task_id=LAB_TASK))
+            SelectableBackendFactory(
+                bd, LedgerStore(self.ledger, task_id=LAB_TASK, epic_id=LAB_EPIC)
+            )
             if backend_factory is None
             else backend_factory
         )
@@ -564,6 +569,7 @@ class ForemanLab:
             host_env={"PATH": os.defpath, "HOME": str(self.repo.parent)},
             ledger=self.ledger,
             task_id=LAB_TASK,
+            epic_id=LAB_EPIC,
             locate_backend=RootBackendLocator(LAB_TASK, ledger=self.ledger),
         )
         self.spawner.bind(self.composition)
@@ -635,7 +641,9 @@ class ForemanLab:
             # roots do (run-ledger §3.7): the verify environment, and therefore
             # `scripts/verify-debrief.sh`, reads the task and attempt off the
             # record.
-            run_identity=RunIdentity(task_id=LAB_TASK, attempt=LAB_ATTEMPT),
+            run_identity=RunIdentity(
+                task_id=LAB_TASK, epic_id=LAB_EPIC, attempt=LAB_ATTEMPT
+            ),
         )
         branch = INSTANCE_BRANCH_REF.format(root_id=root.root_id)
         if self.git.ref_target(branch, cwd=self.repo) is None:

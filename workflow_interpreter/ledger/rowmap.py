@@ -69,6 +69,9 @@ COLUMN_STATUS: Final[str] = "status"
 COLUMN_CLOSE_REASON: Final[str] = "close_reason"
 COLUMN_ROOT: Final[str] = "root_id"
 COLUMN_AT: Final[str] = "at"
+COLUMN_PARENT_ROOT: Final[str] = "parent_root_id"
+COLUMN_CHILD_NO: Final[str] = "child_no"
+COLUMN_ATTEMPT: Final[str] = "attempt"
 
 _KEY_NODE: Final[str] = "node"
 _KEY_ROUND_NO: Final[str] = "round_no"
@@ -92,6 +95,10 @@ _FIRST_VERSION: Final[int] = 1
 LEDGER_BACKEND: Final[str] = BackendKind.LEDGER.value
 
 _ROOT_ID_FORMAT: Final[str] = "{task_id}-a{attempt}"
+_CHILD_ROOT_ID_FORMAT: Final[str] = "{task_id}-a{attempt}-c{child_no}"
+NO_CHILD: Final[int] = 0
+"""`child_no = 0` names the attempt root itself — the one root of an attempt
+that is not under another (§3.7)."""
 _ACTIVATION_ID_FORMAT: Final[str] = "{root_id}.{node}.r{round_no}.{seq}"
 _GATE_ID_FORMAT: Final[str] = "{root_id}.g{seq}"
 _EVENT_ID_FORMAT: Final[str] = "{root_id}.e{seq}"
@@ -123,13 +130,26 @@ def _integer(metadata: Metadata, key: str, default: int = 0) -> int:
 
 
 def mint_id(
-    table: LedgerTable, metadata: Metadata, *, task_id: str, attempt: int, seq: int
+    table: LedgerTable,
+    metadata: Metadata,
+    *,
+    task_id: str,
+    attempt: int,
+    seq: int,
+    child_no: int = NO_CHILD,
 ) -> str:
     """The deterministic id this row gets on the ledger backend (D8).
 
-    A root is `<task>-a<n>`; everything below it is named from its root, the
+    An attempt root is `<task>-a<n>` and a root created under that attempt
+    without an attempt of its own — a decision root, a replacement root — is
+    `<task>-a<n>-c<m>`; everything below a root is named from its root, the
     carrier's own `(node, round)` and the per-task `seq` the WRITING
     transaction allocated (§3.3).
+
+    The two root forms are what keeps two roots of one task distinct now that
+    the attempt comes from the carrier's run identity instead of from a count
+    of the task's roots (§3.7, R8): the count was doing that job by accident,
+    and D16's decision and replacement roots inherit `task_id`.
 
     That `seq` rather than the carrier's own: the carrier's `seq` is computed
     from a read the caller took before the write, so two processes appending
@@ -141,7 +161,11 @@ def mint_id(
     into `act_seq`.
     """
     if table is LedgerTable.ROOTS:
-        return _ROOT_ID_FORMAT.format(task_id=task_id, attempt=attempt)
+        if child_no == NO_CHILD:
+            return _ROOT_ID_FORMAT.format(task_id=task_id, attempt=attempt)
+        return _CHILD_ROOT_ID_FORMAT.format(
+            task_id=task_id, attempt=attempt, child_no=child_no
+        )
     root_id = _text(metadata, KEY_WF_ROOT_ID) or task_id
     if table is LedgerTable.ACTIVATIONS:
         return _ACTIVATION_ID_FORMAT.format(
@@ -178,6 +202,8 @@ def projection(
     metadata_json: str,
     payload_json: str | None,
     at: str,
+    child_no: int = NO_CHILD,
+    parent_root_id: str | None = None,
 ) -> dict[str, JsonValue]:
     """Every column of one row: the carrier, plus what is indexed out of it.
 
@@ -197,8 +223,9 @@ def projection(
     root_id = _text(metadata, KEY_WF_ROOT_ID) or row_id
     if table is LedgerTable.ROOTS:
         return shared | {
-            "parent_root_id": None,
-            "attempt": attempt,
+            COLUMN_PARENT_ROOT: parent_root_id,
+            COLUMN_CHILD_NO: child_no,
+            COLUMN_ATTEMPT: attempt,
             "backend": LEDGER_BACKEND,
             KEY_INSTANCE_KEY: _text(metadata, KEY_INSTANCE_KEY) or row_id,
             _KEY_GRAPH_HASH: _text(metadata, _KEY_GRAPH_HASH),
@@ -269,14 +296,16 @@ _IMMUTABLE_ON_MERGE: Final[frozenset[str]] = frozenset(
         COLUMN_PAYLOAD,
         COLUMN_TERMINAL_AT,
         COLUMN_AT,
-        "attempt",
+        COLUMN_ATTEMPT,
+        COLUMN_PARENT_ROOT,
+        COLUMN_CHILD_NO,
         "backend",
     }
 )
-"""What a metadata merge may never move. `seq` and `attempt` are identity,
-`status` and `close_reason` belong to the close, an event payload is immutable
-by §3.3, and `terminal_at` is stamped by the write that sets the terminal —
-never re-stamped by a later merge."""
+"""What a metadata merge may never move. `seq`, `attempt`, `parent_root_id`
+and `child_no` are identity, `status` and `close_reason` belong to the close,
+an event payload is immutable by §3.3, and `terminal_at` is stamped by the
+write that sets the terminal — never re-stamped by a later merge."""
 
 
 def merge_projection(
@@ -298,7 +327,7 @@ def merge_projection(
         table,
         row_id=row_id,
         task_id=str(row[COLUMN_TASK]),
-        attempt=int(row["attempt"]) if table is LedgerTable.ROOTS else 0,
+        attempt=int(row[COLUMN_ATTEMPT]) if table is LedgerTable.ROOTS else 0,
         seq=int(row[COLUMN_SEQ]),
         metadata=metadata,
         metadata_json=metadata_json,

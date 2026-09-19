@@ -1,22 +1,27 @@
-"""Validation for bead identifiers that are also used as path components."""
+"""Validation for bead identifiers that are also used as path components.
 
-import re
+The grammar itself lives in `contracts/run_identity.py` — ONE expression, so
+that a component this module accepts is one the record model, the ledger's
+mint and `scripts/verify-debrief.sh` accept too (§3.7, R8). `InvalidIdentifier`
+is re-exported rather than redefined for the same reason: callers catch one
+class however the refusal was reached.
+"""
+
 from pathlib import Path
 
+from workflow_interpreter.contracts.run_identity import (
+    ComponentKind,
+    InvalidIdentifier,
+    safe_component,
+)
 from workflow_interpreter.inspector.paths import WrapperPaths
 
-_BEAD_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
-
-
-class InvalidIdentifier(ValueError):
-    """An identifier is unsafe for use as a path component."""
+__all__ = ["InvalidIdentifier", "activation_dir", "validate_bead_id"]
 
 
 def validate_bead_id(value: str) -> str:
     """Return one safe single-component bead id or refuse it before path use."""
-    if not _BEAD_ID.fullmatch(value):
-        raise InvalidIdentifier(f"invalid bead id: {value!r}")
-    return value
+    return safe_component(value, kind=ComponentKind.BEAD)
 
 
 def activation_dir(paths: WrapperPaths, activation_id: str) -> Path:

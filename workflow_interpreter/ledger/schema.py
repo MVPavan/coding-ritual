@@ -242,6 +242,29 @@ other way to say that its work landed. It is deliberately not the contractor's
 whole lifecycle: S4 moves the record itself into `contractor_records`, and this
 column is what that table's `state` becomes."""
 
+_V4_TASKS_TRACKER: Final[tuple[str, ...]] = (
+    "ALTER TABLE tasks ADD COLUMN tracker_ref TEXT",
+    "ALTER TABLE tasks ADD COLUMN tracker_kind TEXT",
+    "CREATE UNIQUE INDEX tasks_by_tracker_ref ON tasks(tracker_ref)",
+)
+"""The foreign id `task_id` was minted from, and which tracker minted it
+(store-restructure §3.7, R8).
+
+UNIQUE so that one tracker issue can never be prepared as two ledger tasks;
+nullable because a run under no tracker at all has no foreign id, and SQLite's
+unique index admits any number of NULLs, which is exactly that rule."""
+
+_V4_ROOTS_CHILD: Final[str] = (
+    "ALTER TABLE roots ADD COLUMN child_no INTEGER NOT NULL DEFAULT 0"
+)
+"""Which non-attempt root of its attempt this is — `0` for the attempt root
+itself (§3.7).
+
+A column rather than a number parsed back out of `<task>-a<n>-c<m>`: the
+ordinal is minted in the creating transaction and is the one thing keeping two
+roots of one task distinct now that the attempt comes from the carrier instead
+of from a count of the task's roots."""
+
 MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     (
         _V1_META,
@@ -263,6 +286,7 @@ MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     ),
     (_V2_FINDINGS_KIND,),
     (_V3_TASKS_STATE,),
+    (*_V4_TASKS_TRACKER, _V4_ROOTS_CHILD),
 )
 """One tuple of statements per schema version, in order. Index `n` migrates a
 database at version `n` to version `n + 1`, so `len(MIGRATIONS)` IS the version

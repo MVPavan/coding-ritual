@@ -60,7 +60,7 @@ from workflow_interpreter.bdio.findings import (
 from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
 from workflow_interpreter.bdio.signing import key_fingerprint
 from workflow_interpreter.bdio.wire import ActivationMetadata
-from workflow_interpreter.contracts.run_identity import RunIdentity, epic_segment
+from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.ledger_render import (
     EVIDENCE_FILE,
     FINDINGS_FILE,
@@ -120,6 +120,9 @@ DEBRIEF_BODY: Final[str] = "# Debrief\n\nWhat happened, and why.\n"
 FINDINGS_BODY: Final[str] = "# Findings\n\nround one\n"
 EVIDENCE_BODY: Final[str] = '{"version":1}\n'
 TASK_ID: Final[str] = "cr-3411.5"
+EPIC_ID: Final[str] = "cr-3411"
+"""The epic the lab's task belongs under — stated, never parsed out of the
+task id (§3.7, R8)."""
 OTHER_TASK: Final[str] = "cr-3411.9"
 """A second ledger task, whose export is a valid export of something else."""
 ATTEMPT: Final[int] = 1
@@ -146,15 +149,7 @@ def _git(repo: Path, *args: str) -> str:
 
 def _attempt_dir(repo: Path, task_id: str = TASK_ID, attempt: int = ATTEMPT) -> Path:
     """The one directory a debrief of this run may write."""
-    return (
-        repo
-        / "docs"
-        / "workstreams"
-        / epic_segment(task_id)
-        / "runs"
-        / task_id
-        / f"a{attempt}"
-    )
+    return repo / "docs" / "workstreams" / EPIC_ID / "runs" / task_id / f"a{attempt}"
 
 
 def _pin_render(repo: Path, tmp_path: Path) -> None:
@@ -236,6 +231,7 @@ def _run_debrief_check(
     base: str,
     *,
     task_id: str = TASK_ID,
+    epic_id: str = EPIC_ID,
     attempt: str = str(ATTEMPT),
     render_oid: str | None = None,
     render_digest: str | None = None,
@@ -251,7 +247,7 @@ def _run_debrief_check(
         env={
             **os.environ,
             BASE_COMMIT_ENV: base,
-            EPIC_SEGMENT_ENV: epic_segment(task_id),
+            EPIC_SEGMENT_ENV: epic_id,
             TASK_ID_ENV: task_id,
             ATTEMPT_ENV: attempt,
             RENDER_OID_ENV: (_render_oid(repo) if render_oid is None else render_oid),
@@ -534,7 +530,7 @@ def test_the_record_refuses_an_identity_a_path_cannot_hold(
 ) -> None:
     """Finding 4: the same rule on the record, so nothing unsafe is ever pinned."""
     with pytest.raises(ValidationError):
-        RunIdentity(task_id=task_id, attempt=attempt)
+        RunIdentity(task_id=task_id, epic_id=EPIC_ID, attempt=attempt)
 
 
 def test_an_abandoned_attempt_keeps_a1_while_a2_lands(
@@ -1875,7 +1871,7 @@ def test_archive_refuses_a_task_that_is_not_retired_and_deletes_nothing(
     repo, wrapper_root, git, root_id, ref = _archive_fixture(tmp_path)
     bundle = tmp_path / "bundles" / f"{TASK_ID}.bundle"
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
+        pin_task_backend(database, TASK_ID, BackendKind.LEDGER, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
 
         with pytest.raises(LedgerExportError, match="not retired"):
@@ -1898,7 +1894,7 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
     repo, wrapper_root, git, root_id, ref = _archive_fixture(tmp_path)
     bundle = tmp_path / "bundles" / f"{TASK_ID}.bundle"
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
+        pin_task_backend(database, TASK_ID, BackendKind.LEDGER, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
         # A closed task is LANDED and latched: the latch alone is not
         # closure, and `closed()` asks the state first (§3.5).
@@ -1932,7 +1928,7 @@ def test_archive_refuses_a_bundle_inside_the_repository(tmp_path: Path) -> None:
     """The bundle is what survives the deletion; inside the repo it may not."""
     repo, wrapper_root, git, root_id, _ = _archive_fixture(tmp_path)
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
+        pin_task_backend(database, TASK_ID, BackendKind.LEDGER, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
         # A closed task is LANDED and latched: the latch alone is not
         # closure, and `closed()` asks the state first (§3.5).
