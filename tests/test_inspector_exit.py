@@ -66,6 +66,7 @@ from workflow_interpreter.inspector.models import LaunchReceipt
 from workflow_interpreter.inspector.paths import read_record, write_record
 from workflow_interpreter.inspector.recover import classify
 from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.ledger.paths import ensure_repo_id, repo_id_relpath
 from workflow_interpreter.schema.models import IsolationMode, Node
 
 FEATURE_FILE = "src/feature.py"
@@ -95,9 +96,14 @@ class Lab:
     """A dispatched activation whose child has just exited."""
 
     def __init__(
-        self, tmp_path: Path, node_name: str = IMPLEMENT, *, in_repo: bool = False
+        self,
+        tmp_path: Path,
+        node_name: str = IMPLEMENT,
+        *,
+        in_repo: bool = False,
+        commit_repo_id: bool = True,
     ) -> None:
-        self.repo = make_repo(tmp_path)
+        self.repo = make_repo(tmp_path, commit_repo_id=commit_repo_id)
         self.base = head_of(self.repo)
         self.config: InspectorConfig = make_config(self.repo, tmp_path, fake_proc=False)
         self.bd, self.store = make_store(tmp_path, self.base)
@@ -328,6 +334,30 @@ def test_an_undeclared_effect_is_recorded_and_flagged(lab: Lab) -> None:
 
     assert observation.completion.evidence.undeclared_effects == (OUTSIDE_FILE,)
     assert AuditFlag.UNDECLARED_EFFECT in observation.completion.audit_flags
+
+
+def test_the_engine_s_own_repo_id_is_not_the_crew_s_undeclared_effect(
+    tmp_path: Path,
+) -> None:
+    """A first in-repo run mints `.wf/repo-id`, and that is the ENGINE's write.
+
+    The file is tracked and minted by the FIRST ledger open in a checkout
+    (store-restructure §3.6); in-repo isolation makes that checkout the very
+    tree §7.5 observes. Counting it would fail the first run of every fresh
+    repository on a path no crew touched — which `coordinator_dirt` already
+    excuses for admission, and this is the same exclusion at the same path.
+    """
+    lab = Lab(tmp_path, in_repo=True, commit_repo_id=False)
+    lab.commit_work()
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects(FEATURE_FILE)
+    ensure_repo_id(lab.tree)
+    assert repo_id_relpath() in [path for path, _ in lab.git.status_paths(cwd=lab.tree)]
+
+    observation = lab.observe()
+
+    assert observation.completion.evidence.undeclared_effects == ()
+    assert AuditFlag.UNDECLARED_EFFECT not in observation.completion.audit_flags
 
 
 def test_a_declared_effect_outside_allowed_paths_is_still_reconciled(

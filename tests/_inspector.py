@@ -216,8 +216,18 @@ def _git(repo: Path, *args: str, env: dict[str, str] | None = None) -> str:
     return completed.stdout.strip()
 
 
-def make_repo(tmp_path: Path, name: str = "repo") -> Path:
-    """A throwaway git repo with one commit and the fixture's verify scripts."""
+def make_repo(
+    tmp_path: Path, name: str = "repo", *, commit_repo_id: bool = True
+) -> Path:
+    """A throwaway git repo with one commit and the fixture's verify scripts.
+
+    `commit_repo_id=False` is the FRESH checkout: `.wf/repo-id` is minted by
+    the first ledger open (store-restructure §3.6), so a repository that has
+    never been run against does not carry it yet and the engine's own mint
+    lands mid-run. Only the tests about that state ask for it; every other lab
+    models a checkout whose id is already committed, which is what a second
+    run and every in-repo drill actually start from.
+    """
     repo = tmp_path / name
     repo.mkdir(parents=True, exist_ok=True)
     _git(repo, "init", "--quiet", "--initial-branch=main")
@@ -231,11 +241,8 @@ def make_repo(tmp_path: Path, name: str = "repo") -> Path:
         path.write_text(PASSING_SCRIPT, encoding="utf-8")
         path.chmod(0o755)
     (repo / "src" / "feature.py").write_text("value = 1\n", encoding="utf-8")
-    # The engine's repository id is a TRACKED file (store-restructure §3.6),
-    # committed like an export. A lab repository that left it untracked would
-    # be a checkout with engine dirt in it before the first tick, which is not
-    # the state any real run starts from.
-    ensure_repo_id(repo)
+    if commit_repo_id:
+        ensure_repo_id(repo)
     _git(repo, "add", "-A")
     _git(repo, "commit", "--quiet", "-m", "initial")
     return repo

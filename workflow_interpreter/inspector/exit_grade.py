@@ -46,7 +46,12 @@ from workflow_interpreter.inspector.paths import (
 )
 from workflow_interpreter.inspector.verify import VerifyTree, run_checks
 from workflow_interpreter.inspector.workspace import Workspace
-from workflow_interpreter.schema.models import JUDGMENT_OUTCOME, Node
+from workflow_interpreter.ledger.constants import REPO_ID_RELPATH
+from workflow_interpreter.schema.models import (
+    JUDGMENT_OUTCOME,
+    IsolationMode,
+    Node,
+)
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -429,7 +434,7 @@ class EvidenceGrader:
         return tuple(
             sorted(
                 path
-                for path in self._observed_paths(activation, artifact, cwd)
+                for path in self._observed_paths(activation, node, artifact, cwd)
                 if not path_allowed(path, allowed)
             )
         )
@@ -448,7 +453,7 @@ class EvidenceGrader:
         return tuple(
             sorted(
                 path
-                for path in self._observed_paths(activation, artifact, cwd)
+                for path in self._observed_paths(activation, node, artifact, cwd)
                 if path not in declared and not path_allowed(path, allowed)
             )
         )
@@ -514,6 +519,7 @@ class EvidenceGrader:
     def _observed_paths(
         self,
         activation: ActivationRecord,
+        node: Node,
         artifact: ArtifactIdentity | None,
         cwd: Path,
     ) -> frozenset[str]:
@@ -521,6 +527,15 @@ class EvidenceGrader:
 
         One definition, because §7.5's blocking set and the ADR 0001 scope flag
         must measure the same observation and differ only in what they subtract.
+
+        Minus the ENGINE's own `.wf/repo-id` in-repo, exactly as
+        `ledger.paths.coordinator_dirt` excuses it — one `REPO_ID_RELPATH`,
+        never a second literal (store-restructure §3.6). The file is tracked,
+        minted by the first ledger open in a fresh checkout,
+        and in-repo that open happens in the very tree this observation reads —
+        so counting it would grade the engine's own durable write as the crew's
+        undeclared effect on its first run. Worktree isolation gives the crew
+        its own checkout, where the file is whoever wrote it there.
         """
         observed: set[str] = set()
         if artifact is not None:
@@ -532,4 +547,6 @@ class EvidenceGrader:
                 )
             )
         observed.update(path for path, _ in self._git.status_paths(cwd=cwd))
+        if node.isolation is IsolationMode.IN_REPO:
+            observed.discard(REPO_ID_RELPATH)
         return frozenset(observed)
