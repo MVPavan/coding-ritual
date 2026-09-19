@@ -20,6 +20,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Final
 
+from tests._bdio import entry_request, load_definition, make_root
 from tests.conftest import branch_head
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.backend import PinnedBackendFactory, StoreBackend
@@ -76,6 +77,19 @@ def ledger_store(
         branch_head_reader=branch_head,
         claims_backend=claims_backend,
     )
+
+
+def seeded_task(database: LedgerDatabase, task_id: str = TASK) -> str:
+    """One root and one activation of `task_id`, through the public write path.
+
+    Here rather than in one test module because both export families need the
+    same "a task with rows in it" shape before they can say anything about the
+    bytes it exports.
+    """
+    store = ledger_store(database, task_id)
+    root = make_root(store, load_definition())
+    store.mint_activation(root.root_id, entry_request())
+    return root.root_id
 
 
 def ledger_backend(database: LedgerDatabase, task_id: str = TASK) -> LedgerStore:
