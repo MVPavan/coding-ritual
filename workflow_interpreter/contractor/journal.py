@@ -13,7 +13,10 @@ is what makes the fallback unambiguous.
 close: the export file is written, the same bytes are stored as a blob, the
 blob is pinned under `refs/wf/exports/<task>`, and only then does the oid reach
 `tasks.export_oid` and the contractor record. The export therefore survives a
-deleted `.wf/` before the orchestrator has committed the file.
+deleted `.wf/` before the orchestrator has committed the file. The storing and
+pinning half lives in `ledger.export.pin_export`, because `wf ledger
+pin-export` recovers a crash between the two and must pin exactly what this
+does.
 """
 
 from __future__ import annotations
@@ -28,15 +31,11 @@ from pydantic import BaseModel, ValidationError
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.inspector.gitio import Git
-from workflow_interpreter.ledger.constants import EXPORT_REF_TEMPLATE
 from workflow_interpreter.ledger.database import LedgerDatabase
-from workflow_interpreter.ledger.export import write_export
-from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
+from workflow_interpreter.ledger.errors import LedgerExportError
+from workflow_interpreter.ledger.export import pin_export, write_export
+from workflow_interpreter.ledger.tasks import pin_task_backend
 
-MSG_PIN_LOST: Final[str] = (
-    "the export of {task_id!r} could not be pinned: {ref} names {found!r}, "
-    "not the blob {oid!r} just written (run-ledger §3.6)"
-)
 MSG_UNREADABLE_ROW: Final[str] = (
     "the journalled {phase} of attempt {attempt} of {task_id!r} is unreadable: {reason}"
 )
@@ -141,19 +140,17 @@ class ExportPin:
 
         The export runs under the shared fence this connection already holds
         (§3.4.5), so it cannot publish a snapshot from before an exclusive
-        restore. The ref is read back because `update-ref` succeeding is not
-        the same fact as the ref naming this blob, and the oid must not reach
-        the bead unless it does.
+        restore. Storing and pinning the bytes is `ledger.pin_export`, shared
+        with `wf ledger pin-export`: one definition of what a pin IS, so the
+        recovery command cannot drift from the write it recovers.
         """
         pin_task_backend(self._database, task_id, backend)
-        path = write_export(self._database, task_id)
-        oid = self._git.write_blob(path, cwd=self._repo_root)
-        ref = EXPORT_REF_TEMPLATE.format(task_id=task_id)
-        self._git.update_ref(ref, oid, cwd=self._repo_root)
-        found = self._git.ref_target(ref, cwd=self._repo_root)
-        if found != oid:
-            raise ContractorRefusal(
-                MSG_PIN_LOST.format(task_id=task_id, ref=ref, found=found, oid=oid)
-            )
-        record_export_oid(self._database, task_id, oid)
-        return oid
+        write_export(self._database, task_id)
+        try:
+            return pin_export(self._git, self._database, task_id, self._repo_root)
+        except LedgerExportError as lost:
+            # A pin the CONTRACTOR could not complete is a refusal of the
+            # contractor's own operation, not a defect in the ledger: the
+            # shared function states what went wrong, and this states whose
+            # step it was, so the close still exits as a refusal (D5).
+            raise ContractorRefusal(str(lost)) from lost

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import subprocess
 import sys
 import time
@@ -51,7 +52,6 @@ from workflow_interpreter.ledger.errors import (
     LedgerExportError,
     LedgerFenceBusy,
     LedgerIdentityError,
-    LedgerImportUnsupported,
 )
 from workflow_interpreter.ledger.export import import_export, write_export
 from workflow_interpreter.ledger.fence import LedgerFence, holders
@@ -60,7 +60,7 @@ from workflow_interpreter.ledger.paths import (
     export_path,
     fence_path,
     ledger_path,
-    repo_hash,
+    read_repo_id,
 )
 from workflow_interpreter.ledger.schema import SCHEMA_VERSION
 from workflow_interpreter.ledger.store import LedgerStore
@@ -131,7 +131,7 @@ def test_a_second_open_migrates_nothing_and_keeps_the_creation_pin(
 
     with open_ledger(repo_root, wrapper_root) as second:
         assert read_meta(second.connection, MetaKey.CREATED_AT) == created
-        assert read_meta(second.connection, MetaKey.REPO_HASH) == repo_hash(repo_root)
+        assert read_meta(second.connection, MetaKey.REPO_ID) == read_repo_id(repo_root)
 
 
 def test_the_pre_fence_peek_never_creates_the_database_it_only_reads(
@@ -306,6 +306,17 @@ def test_an_export_round_trips_byte_identically(tmp_path: Path) -> None:
     assert second == first
 
 
+_HEADER_KEYS: Final[tuple[ExportKey, ...]] = (
+    ExportKey.KIND,
+    ExportKey.SCHEMA_VERSION,
+    ExportKey.REPO_ID,
+    ExportKey.TASK_ID,
+)
+"""Every key an export header carries — and, by equality, every key it does
+not: `wrapper_root` named this machine's engine home, which no clone could
+satisfy (§3.6)."""
+
+
 def test_the_export_is_ordered_by_task_and_seq_with_an_identity_header(
     tmp_path: Path,
 ) -> None:
@@ -322,8 +333,10 @@ def test_the_export_is_ordered_by_task_and_seq_with_an_identity_header(
 
     header = lines[0]
     assert header[ExportKey.KIND.value] == EXPORT_KIND_HEADER
-    assert header[ExportKey.REPO_HASH.value] == repo_hash(repo_root)
-    assert header[ExportKey.WRAPPER_ROOT.value] == str(wrapper_root.resolve())
+    assert header[ExportKey.REPO_ID.value] == read_repo_id(repo_root)
+    # Nothing about this machine: a wrapper root in the header is what a
+    # clone could not satisfy (§3.6).
+    assert set(header) == {key.value for key in _HEADER_KEYS}
     assert [line[ExportKey.TABLE.value] for line in lines[1:]] == [
         LedgerTable.TASKS.value,
         LedgerTable.ROOTS.value,
@@ -357,22 +370,29 @@ def test_an_import_rebuilds_the_task_rather_than_merging_it(tmp_path: Path) -> N
 
 
 def test_an_export_from_another_repository_is_refused(tmp_path: Path) -> None:
-    """§3.5: the header is checked against BOTH pins before anything is written."""
+    """§3.6: the header is checked against the DESTINATION's own `repo_id`.
+
+    Another repository, and not merely another path: the second checkout mints
+    its own id, which is what makes this a refusal while a clone of the FIRST
+    one — carrying the same committed `.wf/repo-id` — is an import.
+    """
     repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
         export = write_export(database, TASK)
-    elsewhere, _ = repository(tmp_path / "elsewhere")
+    elsewhere, elsewhere_wrapper = repository(tmp_path / "elsewhere")
+    with open_ledger(elsewhere, elsewhere_wrapper):
+        pass
 
     with pytest.raises(LedgerIdentityError) as refusal:
         import_export(
             export,
             repo_root=elsewhere,
-            wrapper_root=wrapper_root,
+            wrapper_root=elsewhere_wrapper,
             ledger=ledger_path(elsewhere),
         )
 
-    assert repo_hash(repo_root) in str(refusal.value)
+    assert str(read_repo_id(repo_root)) in str(refusal.value)
 
 
 def test_an_export_row_naming_an_unknown_column_is_refused_whole(
@@ -480,44 +500,53 @@ def test_an_export_carrying_two_tasks_rows_is_refused(tmp_path: Path) -> None:
         )
 
 
-def test_an_import_into_a_ledger_that_records_a_landing_is_refused_by_name(
+def test_an_import_into_a_ledger_that_records_a_landing_rebuilds_it(
     tmp_path: Path,
 ) -> None:
-    """A rebuild cannot restore the landing journal, so it refuses whole.
+    """A landed ledger is rebuilt, not refused (store-restructure §3.6).
 
-    `landings` is outside `EXPORT_TABLES` and references `tasks` with no
-    `ON DELETE`, so the rebuild's `DELETE FROM tasks` would fail its own
-    foreign key and roll back with a raw SQLite message an operator would
-    reasonably read as a corrupt ledger. The refusal is named, says the
-    limitation is a deliberate deferral, and leaves the database untouched.
+    It was refused whole before: `landings` was outside `EXPORT_TABLES` and
+    references `tasks` with no `ON DELETE`, so the rebuild's `DELETE FROM
+    tasks` would have failed its own foreign key. Now the export carries the
+    journal, `_clear` empties it in reverse order like every other exportable
+    table, and the rebuild puts back exactly what the file describes — here, a
+    row the destination did not have.
 
-    The row is written with SQL rather than through `LandingJournal` because
-    what the refusal keys on is a landed ledger, whatever wrote it.
+    The rows are written with SQL rather than through `LandingJournal` because
+    what this keys on is a landed ledger, whatever wrote it.
     """
     repo_root, wrapper_root = repository(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
+        _landing(database.connection, attempt=1)
         export = write_export(database, TASK)
     with closing(connect(ledger_path(repo_root))) as raw:
-        raw.execute(
-            "INSERT INTO landings (task_id, attempt, phase, record_json, written_at) "
-            "VALUES (?, 1, 'intent', '{}', '2026-09-18T00:00:00Z')",
-            (TASK,),
-        )
+        raw.execute("DELETE FROM landings")
+        _landing(raw, attempt=2)
 
-    with pytest.raises(LedgerImportUnsupported, match="landing"):
-        import_export(
-            export,
-            repo_root=repo_root,
-            wrapper_root=wrapper_root,
-            ledger=ledger_path(repo_root),
-        )
+    import_export(
+        export,
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        ledger=ledger_path(repo_root),
+    )
 
     with open_ledger(repo_root, wrapper_root) as reopened:
-        assert _count(reopened, LedgerTable.LANDINGS) == 1
-        assert _count(reopened, LedgerTable.ROOTS) == 1
-        # An import that had started would owe this task a drain (§3.2).
-        assert _count(reopened, LedgerTable.RESTORE_PENDING) == 0
+        attempts = reopened.connection.execute(
+            "SELECT attempt FROM landings WHERE task_id = ?", (TASK,)
+        ).fetchall()
+    # The export set IS the ledger after an import: attempt 2 was never in a
+    # file, so it does not survive the rebuild that brought attempt 1 back.
+    assert [int(row[0]) for row in attempts] == [1]
+
+
+def _landing(connection: sqlite3.Connection, *, attempt: int) -> None:
+    """One `landings` row of the fixture task, written straight to SQL."""
+    connection.execute(
+        "INSERT INTO landings (task_id, attempt, phase, record_json, written_at) "
+        "VALUES (?, ?, 'intent', '{}', '2026-09-18T00:00:00Z')",
+        (TASK, attempt),
+    )
 
 
 def test_an_import_leaves_no_task_the_export_set_does_not_describe(

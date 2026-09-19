@@ -9,11 +9,19 @@ seam every backend is used THROUGH. The dependency runs one way —
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from enum import StrEnum
+from types import MappingProxyType
 from typing import Final
 
 LEDGER_DIR: Final[str] = ".wf"
 LEDGER_FILE: Final[str] = "ledger.db"
+REPO_ID_FILE: Final[str] = "repo-id"
+"""`<repo>/.wf/repo-id` — a UUID minted once and COMMITTED (store-restructure
+§3.6, R5). It is what makes an export portable: the old header pinned
+`sha256(absolute path)`, so a clone at another path refused every export it was
+handed. Tracked rather than ignored, and minted rather than derived, so moving
+or cloning a checkout changes nothing about who its facts belong to."""
 EXPORT_DIR: Final[str] = "export"
 EXPORT_SUFFIX: Final[str] = ".jsonl"
 FENCE_FILE: Final[str] = "ledger.lock"
@@ -107,6 +115,7 @@ the task their gate belongs to, which is how the export validates them."""
 
 EXPORT_TABLES: Final[tuple[LedgerTable, ...]] = (
     LedgerTable.TASKS,
+    LedgerTable.LANDINGS,
     *ROW_TABLES,
     *GATE_TABLES,
     LedgerTable.PROJECTIONS,
@@ -114,12 +123,61 @@ EXPORT_TABLES: Final[tuple[LedgerTable, ...]] = (
 """What one task's export carries: every task-owned row. The nonces and
 signatures are here because §3.6 re-verifies a task's approvals from the export
 ALONE, and the projections because a restored task whose attention rows were
-dropped would silently keep whatever label bd last carried. Order matters
-twice: rows are inserted in it (a signature needs its gate) and cleared in
-reverse. `restore_pending` is the one task-owned table deliberately left out:
-it records what an import OWES rather than what an export describes, and
-carrying it would break the byte-identical round trip (§3.6). The
-per-activation facts stay out until S4 writes them."""
+dropped would silently keep whatever label bd last carried. `landings` joined
+them in the store restructure: it is the fallback D17 reads when the receipt
+file is gone, and a rebuild that could not restore it refused every landed
+ledger outright. Order matters twice: rows are inserted in it (a signature
+needs its gate, a landing needs its task) and cleared in reverse.
+`restore_pending` is the one task-owned table deliberately left out: it records
+what an import OWES rather than what an export describes, and carrying it would
+break the byte-identical round trip (§3.6). The per-activation facts stay out
+until S4 writes them."""
+
+ELIDED_TASK_COLUMNS: Final[frozenset[str]] = frozenset({"export_oid", "exported_at"})
+"""The two `tasks` columns an export does NOT carry (store-restructure §3.6).
+
+They are facts about the FILE, not about the task: both are written after the
+bytes exist, so an export that carried them could never hash to the blob it is
+pinned as, and a task rebuilt from such a file could never close or archive
+again. The columns stay in the schema — `export_oid` is S2's closed-latch —
+and `_insert` only ever writes the columns a row actually has, so eliding them
+here is the whole of it."""
+
+NON_EXPORTED: Final[Mapping[LedgerTable, str]] = MappingProxyType(
+    {
+        LedgerTable.META: (
+            "the database's own identity pins, which are per checkout and per "
+            "wrapper home; the export states its identity in its header"
+        ),
+        LedgerTable.RESTORE_PENDING: (
+            "what an import OWES rather than what an export describes; "
+            "carrying it would spend a sequence number and break the "
+            "byte-identical round trip"
+        ),
+        LedgerTable.SESSIONS: (
+            "a fact about one activation, re-derived from the carriers a "
+            "restore brings back"
+        ),
+        LedgerTable.FINDINGS: (
+            "derived from the evidence carrier the export DOES carry; "
+            "`rebuild_findings` puts it back inside the restoring transaction"
+        ),
+        LedgerTable.ARTIFACTS: (
+            "a fact about one activation, re-derived from the carriers a "
+            "restore brings back"
+        ),
+        LedgerTable.USAGE: (
+            "a fact about one activation, re-derived from the carriers a "
+            "restore brings back"
+        ),
+    }
+)
+"""Every table an export deliberately does NOT carry, and why (§3.6, R5).
+
+Stated rather than implied so that the completeness test can ask the SCHEMA —
+not a second hand-written list — whether every table it creates is accounted
+for. Two of the three defects this restructure closes were a table nobody
+listed; a check that restated the list would have missed them the same way."""
 
 
 DERIVED_ACTIVATION_TABLES: Final[tuple[LedgerTable, ...]] = (
@@ -159,20 +217,24 @@ class MetaKey(StrEnum):
     """The `meta` keys pinned at creation (§3.5)."""
 
     SCHEMA_VERSION = "schema_version"
-    REPO_HASH = "repo_hash"
+    REPO_ID = "repo_id"
     WRAPPER_ROOT = "wrapper_root"
     CREATED_AT = "created_at"
 
 
 class ExportKey(StrEnum):
-    """The keys of an export line — a header, then one row per line (§3.6)."""
+    """The keys of an export line — a header, then one row per line (§3.6).
+
+    No `wrapper_root`: which engine home owns a task's run folders is a fact
+    about this machine, and an export that pinned it could not be read in the
+    clone that is the whole point of committing it. The DATABASE still pins it
+    (`assert_identity`)."""
 
     KIND = "kind"
     TABLE = "table"
     ROW = "row"
     SCHEMA_VERSION = "schema_version"
-    REPO_HASH = "repo_hash"
-    WRAPPER_ROOT = "wrapper_root"
+    REPO_ID = "repo_id"
     TASK_ID = "task_id"
 
 
@@ -197,9 +259,28 @@ MSG_WRAPPER_ROOT_MISMATCH: Final[str] = (
     "ledger {path} is pinned to wrapper root {pinned}; this process runs under "
     "{found} — refusing, always, not only while roots are live (§3.5)"
 )
-MSG_REPO_HASH_MISMATCH: Final[str] = (
+MSG_REPO_ID_MISMATCH: Final[str] = (
     "ledger {path} is pinned to repository {pinned}; this process runs against "
     "{found} (§3.5)"
+)
+MSG_EXPORT_REPO_ID_MISMATCH: Final[str] = (
+    "{path} was exported from repository {pinned}, and this checkout is "
+    "{found}; an export restores only into the repository whose facts it "
+    "holds (store-restructure §3.6)"
+)
+MSG_REPO_ID_ABSENT: Final[str] = (
+    "{repo_root} has no {relpath}, so nothing says which repository these "
+    "exports belong to; open the ledger once to mint it, and commit it "
+    "(store-restructure §3.6)"
+)
+MSG_PIN_NO_FILE: Final[str] = (
+    "there is no export at {path} to pin for task {task_id!r}: pin-export "
+    "re-pins the bytes ON DISK, and writing a fresh export instead would pin "
+    "a ledger that has moved on since (§3.6)"
+)
+MSG_PIN_LOST: Final[str] = (
+    "the export of {task_id!r} could not be pinned: {ref} names {found!r}, "
+    "not the blob {oid!r} just written (§3.6)"
 )
 MSG_LEDGER_ABSENT: Final[str] = (
     "no ledger to read at {path}: a read-only command never creates one (§3.4)"
@@ -276,12 +357,6 @@ MSG_EXPORT_COLUMN: Final[str] = (
 MSG_EXPORT_BLOB: Final[str] = (
     "{path} carries a value for column {column!r} that is not the base64 a "
     "stored BLOB travels as: {reason} (§3.6)"
-)
-MSG_IMPORT_LANDED: Final[str] = (
-    "ledger {path} records {count} landing row(s), and no export carries the "
-    "landing journal, so an import cannot rebuild it (§3.6); this is a KNOWN "
-    "limitation of import, deliberately deferred, and NOT a corrupt ledger — "
-    "nothing has been changed, and the landed tasks are intact"
 )
 MSG_BAD_FILTER_KEY: Final[str] = (
     "carrier filter key {key!r} is not a plain identifier, so it cannot name a "

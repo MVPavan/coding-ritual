@@ -22,15 +22,16 @@ from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.foreman.config import ForemanConfig, load_config
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.archive import archive_task
-from workflow_interpreter.ledger.constants import EXPORT_SUFFIX
+from workflow_interpreter.ledger.constants import EXPORT_REF_TEMPLATE, EXPORT_SUFFIX
 from workflow_interpreter.ledger.database import open_ledger
-from workflow_interpreter.ledger.export import import_exports, write_export
+from workflow_interpreter.ledger.export import import_exports, pin_export, write_export
 from workflow_interpreter.ledger.paths import export_dir, ledger_path
 from workflow_interpreter.ledger.reconcile import ATTENTION_LABEL, AttentionReconciler
 from workflow_interpreter.ledger.reverify import TrustAnchor, verify_export
 
 PROG: Final[str] = "python -m workflow_interpreter.ledger"
 COMMAND_EXPORT: Final[str] = "export"
+COMMAND_PIN_EXPORT: Final[str] = "pin-export"
 COMMAND_IMPORT: Final[str] = "import"
 COMMAND_RECONCILE: Final[str] = "reconcile"
 COMMAND_VERIFY: Final[str] = "verify"
@@ -41,6 +42,7 @@ EXIT_REFUSED: Final[int] = 2
 _MSG_NO_EXPORTS: Final[str] = "ledger: no export files under {directory}\n"
 _MSG_REFUSED: Final[str] = "ledger: {reason}\n"
 _MSG_EXPORTED: Final[str] = "exported {task_id} to {path}\n"
+_MSG_PINNED: Final[str] = "pinned {task_id}: {ref} -> {oid}\n"
 _MSG_IMPORTED: Final[str] = "imported {task_id} from {path}\n"
 _MSG_RECONCILED: Final[str] = (
     "reconciled {task_id}: {label} {presence}, generation {generation}, "
@@ -91,6 +93,15 @@ def _parser() -> argparse.ArgumentParser:
         COMMAND_EXPORT, help="write one task's rows to .wf/export/<task>.jsonl"
     )
     export.add_argument("task_id")
+    pin = commands.add_parser(
+        COMMAND_PIN_EXPORT,
+        help=(
+            "re-pin refs/wf/exports/<task> from the export file already on "
+            "disk and record its oid — the recovery for a crash between the "
+            "write and the pin; it never re-exports"
+        ),
+    )
+    pin.add_argument("task_id")
     restore = commands.add_parser(
         COMMAND_IMPORT, help="rebuild tasks from .wf/export/, under the exclusive fence"
     )
@@ -238,6 +249,24 @@ def _verify(config: ForemanConfig, task_id: str, allowed_signers: Path | None) -
     return EXIT_OK
 
 
+def _pin_export(config: ForemanConfig, task_id: str) -> int:
+    """Re-pin one task's export from the bytes already on disk (§3.6).
+
+    The recovery for the one window `ExportPin` cannot make atomic: the file
+    was written and the process died before the ref named its blob, so the
+    task looks unexported while its whole record is sitting in the checkout.
+    """
+    git = Git(config.inspector)
+    with open_ledger(config.repo_root, config.wrapper_root) as database:
+        oid = pin_export(git, database, task_id, config.repo_root)
+    sys.stdout.write(
+        _MSG_PINNED.format(
+            task_id=task_id, ref=EXPORT_REF_TEMPLATE.format(task_id=task_id), oid=oid
+        )
+    )
+    return EXIT_OK
+
+
 def _archive(config: ForemanConfig, task_id: str, bundle: Path) -> int:
     """Archive one closed task's bytes behind a verified bundle (§3.9, D19)."""
     git = Git(config.inspector)
@@ -273,6 +302,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 path = write_export(database, args.task_id)
             sys.stdout.write(_MSG_EXPORTED.format(task_id=args.task_id, path=path))
             return EXIT_OK
+        if args.command == COMMAND_PIN_EXPORT:
+            return _pin_export(config, args.task_id)
         if args.command == COMMAND_RECONCILE:
             return _reconcile(config, args.task_id)
         if args.command == COMMAND_VERIFY:

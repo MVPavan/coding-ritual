@@ -23,7 +23,7 @@ from tests.test_foreman_main import _contractor_adapter, _contractor_stage
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.contractor import ContractorAdapter, ContractorAdapterError
-from workflow_interpreter.contractor.journal import EXPORT_REF_TEMPLATE, LandingPhase
+from workflow_interpreter.contractor.journal import LandingPhase
 from workflow_interpreter.contractor.landing import (
     LANDING_INTENT_FILE,
     LANDING_RECEIPT_FILE,
@@ -35,7 +35,7 @@ from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.locator import NO_LEDGER_ROW, RootBackendLocator
 from workflow_interpreter.foreman.tick import Foreman, RunReport
-from workflow_interpreter.ledger.constants import LEDGER_DIR
+from workflow_interpreter.ledger.constants import EXPORT_REF_TEMPLATE, LEDGER_DIR
 from workflow_interpreter.ledger.paths import coordinator_dirt, export_path
 from workflow_interpreter.ledger.tasks import (
     export_oid,

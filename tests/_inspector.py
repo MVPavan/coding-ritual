@@ -69,6 +69,7 @@ from workflow_interpreter.inspector.channels import (
 )
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.paths import write_durable
+from workflow_interpreter.ledger.paths import ensure_repo_id
 from workflow_interpreter.schema.models import GraphDocument, Node
 
 TEST_ACTOR: Final[str] = "wf-test-inspector"
@@ -230,6 +231,11 @@ def make_repo(tmp_path: Path, name: str = "repo") -> Path:
         path.write_text(PASSING_SCRIPT, encoding="utf-8")
         path.chmod(0o755)
     (repo / "src" / "feature.py").write_text("value = 1\n", encoding="utf-8")
+    # The engine's repository id is a TRACKED file (store-restructure §3.6),
+    # committed like an export. A lab repository that left it untracked would
+    # be a checkout with engine dirt in it before the first tick, which is not
+    # the state any real run starts from.
+    ensure_repo_id(repo)
     _git(repo, "add", "-A")
     _git(repo, "commit", "--quiet", "-m", "initial")
     return repo
