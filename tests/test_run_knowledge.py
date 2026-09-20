@@ -1841,10 +1841,10 @@ def _settled_root(database: LedgerDatabase, task_id: str, root_id: str) -> None:
     """A settled ledger root row, written directly: archive only READS it."""
     with database.transaction() as connection:
         connection.execute(
-            "INSERT INTO roots (root_id, task_id, seq, attempt, backend, "
+            "INSERT INTO roots (root_id, task_id, seq, attempt, "
             "instance_key, terminal, status, metadata_json) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (root_id, task_id, 1, 1, "ledger", root_id, "shipped", "closed", "{}"),
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (root_id, task_id, 1, 1, root_id, "shipped", "closed", "{}"),
         )
 
 

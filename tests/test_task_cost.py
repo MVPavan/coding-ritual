@@ -13,7 +13,9 @@ from typing import Final
 import pytest
 from pydantic import ValidationError
 
+from tests._bdio import seed_row
 from tests._helpers import seeded_records
+from tests._inspector import make_config, make_git, make_repo
 from workflow_interpreter.bdio.rows import RowKind, RowQuery, StoreRow
 from workflow_interpreter.contractor.models import ContractorRecord
 from workflow_interpreter.contractor.records import LedgerContractorRecords
@@ -33,6 +35,8 @@ from workflow_interpreter.costs.report import (
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
 from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.export import pin_export, write_export
+from workflow_interpreter.ledger.store import LedgerStore
 
 
 def _pricebook() -> PriceBook:
@@ -486,13 +490,15 @@ def _record(*, current_root_id: str = "root-2") -> dict[str, object]:
     }
 
 
-def _task_rows(*, closed: bool = True):
+def _task_rows():
     oid = "a" * 40
     rows: list[dict[str, object]] = [
         {
+            # The stage's own row carries no engine carrier, so costs never
+            # selects it; it is here because the fixtures index by position.
             "id": "stage-1",
             "title": "stage",
-            "status": "closed" if closed else "in_progress",
+            "status": "closed",
             "issue_type": "task",
             "metadata": {},
         }
@@ -573,7 +579,7 @@ def test_collection_includes_failed_and_successful_attempts_without_writes() -> 
         "activation-2",
     ]
     assert sum(item.tokens.output or 0 for item in collected.observations) == 15
-    assert set(client.reads) <= {"show:stage-1", "list"}
+    assert set(client.reads) <= {"find"}
 
 
 def test_minted_activation_that_never_executed_does_not_degrade_usage_coverage() -> (
@@ -593,16 +599,22 @@ def test_minted_activation_that_never_executed_does_not_degrade_usage_coverage()
 
 
 @pytest.mark.parametrize(
-    ("current_root_id", "closed"),
+    ("current_root_id", "task_closed"),
     [("forged-root", True), ("root-2", False)],
 )
 def test_completion_refuses_forged_or_merely_closed_evidence(
-    current_root_id: str, closed: bool
+    current_root_id: str, task_closed: bool
 ) -> None:
+    """A root the record does not name, or a task that does not derive closed.
+
+    "Merely closed" is `ledger.closure.closed` since S6 (R1): the stage bead's
+    status was a MIRROR, and costs reads the ledger and its git anchor.
+    """
     collected = _collect(
-        FakeReadClient(_task_rows(closed=closed)),
+        FakeReadClient(_task_rows()),
         "stage-1",
         record=_record(current_root_id=current_root_id),
+        task_closed=task_closed,
     )
 
     assert collected.completion.verified is False
@@ -660,18 +672,6 @@ def test_completion_rejects_current_root_terminal_contradictions(
 
     assert collected.completion.verified is False
     assert "current-root-terminal-contradiction" in {
-        item.code for item in collected.diagnostics
-    }
-
-
-def test_completion_rejects_stage_close_reason_contradiction() -> None:
-    rows = _task_rows()
-    rows[0]["close_reason"] = "contractor landing receipt=different-digest"
-
-    collected = _collect(FakeReadClient(rows), "stage-1")
-
-    assert collected.completion.verified is False
-    assert "stage-close-reason-contradiction" in {
         item.code for item in collected.diagnostics
     }
 
@@ -957,7 +957,7 @@ def test_cohort_separates_failure_spend_and_zero_completion_nulls() -> None:
         normalize_standard=True,
     )
     incomplete = build_task_report(
-        _collect(FakeReadClient(_task_rows(closed=False)), "stage-1"),
+        _collect(FakeReadClient(_task_rows()), "stage-1", task_closed=False),
         _pricebook(),
         normalize_standard=True,
     )
@@ -1403,36 +1403,50 @@ def test_module_cli_is_the_supported_entrypoint() -> None:
     assert "cohort" in completed.stdout
 
 
-def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
-    rows_path = tmp_path / "rows.json"
-    rows_path.write_text(json.dumps(_task_rows()))
-    fake_bd = tmp_path / "fake-bd"
-    fake_bd.write_text(
-        "#!" + sys.executable + "\n"
-        "import json, sys\n"
-        f"rows = json.load(open({str(rows_path)!r}, encoding='utf-8'))\n"
-        "command = sys.argv[5]\n"
-        "args = sys.argv[6:]\n"
-        "if command == 'show':\n"
-        "    selected = [r for r in rows if r['id'] == args[0]]\n"
-        "elif command == 'list':\n"
-        "    filters = [args[i + 1] for i, value in enumerate(args) "
-        "if value == '--metadata-field']\n"
-        "    selected = rows\n"
-        "    for item in filters:\n"
-        "        key, value = item.split('=', 1)\n"
-        "        selected = [r for r in selected "
-        "if str(r.get('metadata', {}).get(key)) == value]\n"
-        "else:\n"
-        "    raise SystemExit(9)\n"
-        "sys.stdout.write(json.dumps(selected))\n"
-    )
-    fake_bd.chmod(0o755)
-    repo = tmp_path / "repo"
-    # A git entry and a ledger, because `costs` now opens the ledger `mode=ro`
-    # and REFUSES when there is none: a report that silently omitted every
-    # ledger-backed root would read like a task that cost nothing (§3.4).
-    (repo / ".git").mkdir(parents=True)
+def _seed_ledger_rows(database, rows) -> str:
+    """Write the fixture's carriers into the ledger, and name the current root.
+
+    The ids are the LEDGER's (`<task>-a<n>`, §3.3) rather than the fixture's,
+    because a run identity in the carrier is what decides an attempt root's
+    id now — so the record is pinned to the id the write actually minted.
+    """
+    backend = LedgerStore(database, task_id="stage-1", epic_id="epic-1")
+    minted: dict[str, str] = {}
+    for raw in rows:
+        metadata = dict(raw["metadata"])
+        kind = metadata.get("wf_kind")
+        if kind == "root":
+            attempt = int(str(metadata["instance_key"]).rsplit(":", 1)[1])
+            metadata["run_identity"] = {
+                "task_id": "stage-1",
+                "attempt": attempt,
+                "epic_id": "epic-1",
+            }
+            metadata.pop("wf_root_id", None)
+            written = seed_row(backend, str(raw["title"]), metadata)
+            minted[str(raw["id"])] = written.id
+        elif kind == "activation":
+            metadata["wf_root_id"] = minted[str(metadata["wf_root_id"])]
+            written = seed_row(backend, str(raw["title"]), metadata)
+        else:
+            continue
+        if raw.get("status") == "closed":
+            backend._close_row(written.id, "done")
+    return minted["root-2"]
+
+
+def test_actual_cli_reads_the_ledger_and_emits_json(tmp_path: Path) -> None:
+    """`costs` reads the record store and nothing else (S6, R1).
+
+    It used to reach a bd binary for the stage's status and its roots; there is
+    no tracker in this path at all now, so the fixture's rows go where the run
+    would have written them.
+    """
+    # A REAL checkout, because `costs` opens the ledger `mode=ro` and derives
+    # the task's closure from the export's git anchor (§3.6) — neither is
+    # answerable from a bare `.git` directory, and a report that silently
+    # omitted every root would read like a task that cost nothing (§3.4).
+    repo = make_repo(tmp_path)
     wrapper_home = tmp_path / "wrapper"
     wrapper_root = (
         wrapper_home / hashlib.sha256(str(repo.resolve()).encode()).hexdigest()[:16]
@@ -1446,21 +1460,23 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
         "[bd]\n"
         f'workspace = "{repo}"\n'
         'actor = "fixture"\n'
-        f'binary = "{fake_bd}"\n'
         "[inspector]\n"
         f'repo_root = "{repo}"\n'
         f'wrapper_root = "{wrapper_root}"\n'
         'host = "fixture"\n'
     )
+    database = open_ledger(repo, wrapper_root)
+    current_root_id = _seed_ledger_rows(database, _task_rows())
     # The record is a ledger row since S4 (§3.2, R4) and the CLI reads it from
     # there, so the stage has to HAVE one: without it the report is about a
     # task whose execution identity is unavailable, not about this one.
-    database = open_ledger(repo, wrapper_root)
     seeded_records(
-        ContractorRecord.model_validate(_record()),
+        ContractorRecord.model_validate(_record(current_root_id=current_root_id)),
         brief=None,
         into=LedgerContractorRecords(database),
     )
+    write_export(database, "stage-1")
+    pin_export(make_git(make_config(repo, tmp_path)), database, "stage-1", repo)
     database.close()
     project_root = Path(__file__).resolve().parents[1]
     completed = subprocess.run(

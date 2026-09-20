@@ -264,11 +264,11 @@ def _stored_record(fake_bd: FakeBd, state: str = "landed") -> ContractorRecord:
 
 
 def _succession(
-    fake_client: BdClient, database: LedgerDatabase, git: Git
+    fake_bd_client: BdClient, database: LedgerDatabase, git: Git
 ) -> ContractorAdapter:
     """An adapter that can answer the closure question, ready for a retry."""
     return bd_adapter(
-        fake_client,
+        fake_bd_client,
         closure=TaskClosure(database, git),
         records=LedgerContractorRecords(database),
         outbox=TrackerOutbox(database),
@@ -276,7 +276,7 @@ def _succession(
 
 
 def test_a_crash_between_the_export_and_the_pin_leaves_the_task_open(
-    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+    tmp_path: Path, fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """§3.5: nothing anchors those bytes, so nothing may read them as closed.
 
@@ -292,7 +292,7 @@ def test_a_crash_between_the_export_and_the_pin_leaves_the_task_open(
     with open_ledger(repo, wrapper_root) as database:
         root_id = _landed_task(database, stored)
         write_export(database, TASK)
-        adapter = _succession(fake_client, database, git)
+        adapter = _succession(fake_bd_client, database, git)
 
         assert closed(database, git, TASK) is False
         assert retired(database, git, TASK) is False
@@ -349,7 +349,7 @@ def test_an_in_flight_task_is_neither_pinnable_nor_latchable(
 
 
 def test_the_crashed_task_is_driven_to_done_by_recovering_the_pin(
-    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+    tmp_path: Path, fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """The other half of the crash between the export and the pin (§3.5, D5).
 
@@ -363,7 +363,7 @@ def test_the_crashed_task_is_driven_to_done_by_recovering_the_pin(
     with open_ledger(repo, wrapper_root) as database:
         _landed_task(database, stored)
         write_export(database, TASK)
-        adapter = _succession(fake_client, database, git)
+        adapter = _succession(fake_bd_client, database, git)
 
         oid = pin_export(git, database, TASK, repo)
         adapter.land(STAGE_ID, stored)
@@ -376,7 +376,7 @@ def test_the_crashed_task_is_driven_to_done_by_recovering_the_pin(
 
 
 def test_close_refuses_a_task_whose_probe_answers_not_closed(
-    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+    tmp_path: Path, fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """D5's guard: the bead closes only after the record is durable (§3.5).
 
@@ -389,7 +389,7 @@ def test_close_refuses_a_task_whose_probe_answers_not_closed(
     with open_ledger(repo, wrapper_root) as database:
         _landed_task(database, stored)
         write_export(database, TASK)
-        adapter = _succession(fake_client, database, git)
+        adapter = _succession(fake_bd_client, database, git)
 
         with pytest.raises(ContractorAdapterError, match="does not derive closed"):
             adapter.close(STAGE_ID, stored, LANDING_RECEIPT)
@@ -440,12 +440,14 @@ def test_the_replacement_path_refuses_a_successor_over_a_retired_task(
     that the production site hands it the composition's probe. Only the bd
     binary is stood in for.
     """
-    from workflow_interpreter.contractor import adapter as adapter_module
+    from workflow_interpreter.contractor import tracker_wiring as wiring_module
     from workflow_interpreter.foreman.replacement import _prepare_contractor
 
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    # The transport lives under `tracker/` since S6 and the wiring is what
+    # opens it (R1), so the stand-in goes where the binary would be reached.
     monkeypatch.setattr(
-        adapter_module,
+        wiring_module,
         "BdClient",
         lambda config, *_, **__: BdClient(config, lab.fake_bd),
     )
@@ -496,7 +498,7 @@ def test_the_replacement_path_refuses_a_successor_over_a_retired_task(
 
 
 def test_a_shipped_exported_and_pinned_task_refuses_a_retry(
-    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+    tmp_path: Path, fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """The refusal a stored CLOSED used to carry, now carried by `closed()`.
 
@@ -509,7 +511,7 @@ def test_a_shipped_exported_and_pinned_task_refuses_a_retry(
     with open_ledger(repo, wrapper_root) as database:
         _landed_task(database, stored)
         ExportPin(database, git, repo, EPIC).pin(TASK)
-        adapter = _succession(fake_client, database, git)
+        adapter = _succession(fake_bd_client, database, git)
 
         assert closed(database, git, TASK) is True
         with pytest.raises(ContractorAdapterError, match="closed"):
@@ -617,7 +619,7 @@ def test_a_closed_task_stays_closed_under_a_schema_bump_and_an_attention_write(
 
 
 def test_an_abandoned_task_is_retired_and_never_closed(
-    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+    tmp_path: Path, fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """§3.5 and §3.8: cleanup and archive proceed on what exists; retry does not.
 
@@ -632,7 +634,7 @@ def test_an_abandoned_task_is_retired_and_never_closed(
         root_id = seeded_task(database)
         _seed_record(database, stored)
         record_task_state(database, TASK, TaskState.ABANDONED)
-        adapter = _succession(fake_client, database, git)
+        adapter = _succession(fake_bd_client, database, git)
 
         assert closed(database, git, TASK) is False
         assert retired(database, git, TASK) is True
@@ -656,7 +658,7 @@ def test_an_abandoned_task_is_retired_and_never_closed(
 
 
 def test_a_task_its_tracker_ended_is_retired_like_an_abandoned_one(
-    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+    tmp_path: Path, fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """§3.8: ABANDONED_EXTERNAL retires, or the whole epic wedges on it.
 
@@ -672,7 +674,7 @@ def test_a_task_its_tracker_ended_is_retired_like_an_abandoned_one(
     with open_ledger(repo, wrapper_root) as database:
         root_id = seeded_task(database)
         _seed_record(database, stored)
-        adapter = _succession(fake_client, database, git)
+        adapter = _succession(fake_bd_client, database, git)
         adapter.abandon_external(STAGE_ID, "a human closed the bead")
 
         assert closed(database, git, TASK) is False

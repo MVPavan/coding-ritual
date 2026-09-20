@@ -212,7 +212,7 @@ def _landed_record() -> ContractorRecord:
 
 
 def test_the_close_after_a_pin_leaves_the_exported_record_untouched(
-    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+    tmp_path: Path, fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """§3.6 and D3, through the order a real landing writes in.
 
@@ -242,7 +242,7 @@ def test_the_close_after_a_pin_leaves_the_exported_record_untouched(
         pinned_oid = pin.pin(TASK)
         as_pinned = exported.read_bytes()
         adapter = bd_adapter(
-            fake_client, closure=pin.closure, records=pin.records, outbox=pin.outbox
+            fake_bd_client, closure=pin.closure, records=pin.records, outbox=pin.outbox
         )
 
         adapter.close(TASK, landed, LANDING_RECEIPT)
@@ -474,7 +474,7 @@ def test_every_schema_table_is_exported_or_named_non_exported_with_a_reason() ->
 
 
 def test_close_still_refuses_a_task_whose_record_is_not_durable(
-    fake_bd: FakeBd, fake_client: BdClient
+    fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """D5, now asked of the derivation rather than of the record (§3.5).
 
@@ -506,5 +506,5 @@ def test_close_still_refuses_a_task_whose_record_is_not_durable(
 
     with pytest.raises(ContractorAdapterError, match="does not derive closed"):
         bd_adapter(
-            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+            fake_bd_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
         ).close(STAGE_ID, landed, LANDING_RECEIPT)

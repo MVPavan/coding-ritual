@@ -675,7 +675,7 @@ def test_the_adapter_keeps_no_bd_read_beside_the_port() -> None:
 
 @pytest.mark.acceptance
 def test_the_bd_adapter_holds_one_claim_at_a_time(
-    fake_bd: FakeBd, fake_client: BdClient
+    fake_bd: FakeBd, fake_bd_client: BdClient
 ) -> None:
     """§3.4, R3 on the tracker every checkout actually runs.
 
@@ -694,7 +694,7 @@ def test_the_bd_adapter_holds_one_claim_at_a_time(
         "metadata": {},
         "labels": [],
     }
-    tracker = BdTracker(fake_client)
+    tracker = BdTracker(fake_bd_client)
     ref = TrackerRef(kind=TrackerKind.BD, ref=STAGE)
 
     assert TrackerCapability.CLAIM in tracker.capabilities
