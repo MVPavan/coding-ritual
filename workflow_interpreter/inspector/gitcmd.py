@@ -24,6 +24,14 @@ _MSG_UNKNOWN: Final[str] = "git subcommand {subcommand!r} is not in the closed s
 _MSG_OUTSIDE: Final[str] = (
     "refusing to run git in {cwd}: outside both the repo and the wrapper dir"
 )
+_MSG_BOUNDED_FAILED: Final[str] = (
+    "bounded git object read failed: {subcommand} {args} (exit {returncode}): {stderr}"
+)
+_MSG_BOUNDED_TIMEOUT: Final[str] = "bounded git read timed out"
+STDERR_LIMIT: Final[int] = 4096
+"""How much of git's own diagnosis a bounded read keeps. It is an error
+message, not an output: enough to name the missing object, never enough for a
+runaway stderr to become the payload the bound exists to refuse."""
 HOOKS_DIR: Final[str] = "empty-hooks"
 CORE_HOOKS_PATH: Final[str] = "core.hooksPath={path}"
 GIT_INDEX_FILE: Final[str] = "GIT_INDEX_FILE"
@@ -224,6 +232,10 @@ class GitTransport:
         ) as process:
             assert process.stdout is not None and process.stderr is not None
             data = bytearray()
+            # Kept rather than drained: git says WHICH object it could not read
+            # on stderr, and a failure that does not carry it is untriageable
+            # from the caller's side (S6 review, finding 3).
+            diagnosis = bytearray()
             deadline = time.monotonic() + self._config.git_timeout_s
             try:
                 with selectors.DefaultSelector() as selector:
@@ -232,7 +244,7 @@ class GitTransport:
                     while selector.get_map():
                         remaining = deadline - time.monotonic()
                         if remaining <= 0:
-                            raise GitCommandError("bounded git read timed out")
+                            raise GitCommandError(_MSG_BOUNDED_TIMEOUT)
                         for key, _ in selector.select(remaining):
                             chunk = os.read(key.fd, min(65536, limit + 1))
                             if not chunk:
@@ -241,8 +253,20 @@ class GitTransport:
                                 data.extend(chunk)
                                 if len(data) > limit:
                                     raise GitOutputTooLarge(limit)
-                if process.wait(timeout=max(0.01, deadline - time.monotonic())) != 0:
-                    raise GitCommandError("bounded git object read failed")
+                            elif len(diagnosis) < STDERR_LIMIT:
+                                diagnosis.extend(chunk[: STDERR_LIMIT - len(diagnosis)])
+                returncode = process.wait(
+                    timeout=max(0.01, deadline - time.monotonic())
+                )
+                if returncode != 0:
+                    raise GitCommandError(
+                        _MSG_BOUNDED_FAILED.format(
+                            subcommand=subcommand.value,
+                            args=" ".join(args),
+                            returncode=returncode,
+                            stderr=bytes(diagnosis).decode("utf-8", "replace").strip(),
+                        )
+                    )
             except BaseException:
                 process.kill()
                 process.wait()
