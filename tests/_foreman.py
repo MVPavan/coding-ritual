@@ -64,6 +64,7 @@ from workflow_interpreter.bdio.backend import (
 from workflow_interpreter.bdio.client import BdClient, CompletedCommand
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.contractor.records import ContractorRecords, records_of
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -760,6 +761,17 @@ class ForemanLab:
 
     def count(self, subcommand: str) -> int:
         return self.fake_bd.command_count(subcommand)
+
+    @property
+    def records(self) -> ContractorRecords:
+        """This lab's contractor record store, built as production builds one.
+
+        Named here so every case that seeds or reads a record goes through the
+        composition's own store: the record is a ledger row since S4 (§3.2,
+        R4), and a test that reached for the ledger directly could seed one
+        the run would not find.
+        """
+        return records_of(self.composition)
 
     def wiring(self) -> InstanceWiring:
         assert self.root is not None

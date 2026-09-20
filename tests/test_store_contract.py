@@ -12,11 +12,11 @@ A backend that cannot inject a fault skips those cases loudly rather than
 passing them vacuously: real bd has no crash hook, and a green fault case on a
 store that could not have crashed would prove nothing.
 
-Claims are the one case that does NOT run on the backend under test: D20 keeps
-integration-target claims in bd while the bd backend exists, so the ledger lab
-injects a bd-backed claim store and the contract's claim case runs against
-that. A ledger that answered claim writes itself would be the split claim
-authority D20 exists to prevent.
+Claims are the one case that does NOT run on the backend under test: R11 keeps
+them ledger-local, so every lab — bd-backed included — is handed a claims
+surface over its own ledger, exactly as the composition root builds one. A
+claims surface derived from the transport would be the split claim authority
+R11 exists to prevent.
 """
 
 from __future__ import annotations
@@ -48,12 +48,14 @@ from workflow_interpreter.bdio.backend import (
     StoreBackendFactory,
 )
 from workflow_interpreter.bdio.bounds import ceiling_count
+from workflow_interpreter.bdio.claims import ClaimStore
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.reads import activations_of, next_seq
 from workflow_interpreter.bdio.records import ActivationRecord, RowRecord
 from workflow_interpreter.bdio.wire import EventPayload, ExitRecord, Lifecycle, Metadata
+from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import open_ledger
 from workflow_interpreter.schema.models import Outcome
 
@@ -126,12 +128,12 @@ class ContractLab:
         backend_factory: StoreBackendFactory,
         faults: FaultInjector | None = None,
         *,
-        claims_backend: StoreBackend | None = None,
+        claims: ClaimStore,
     ) -> None:
         self.name = name
         self.kind = kind
         self.backend_factory = backend_factory
-        self.claims_backend = claims_backend
+        self.claims = claims
         self._faults = faults
 
     def store(self) -> WorkflowStore:
@@ -140,7 +142,7 @@ class ContractLab:
             self.backend_factory(self.kind),
             backend_factory=self.backend_factory,
             branch_head_reader=branch_head,
-            claims_backend=self.claims_backend,
+            claims=self.claims,
         )
 
     def arm(self, point: FaultPoint) -> None:
@@ -164,43 +166,48 @@ class ContractLab:
     ]
 )
 def lab(request: pytest.FixtureRequest) -> Iterator[ContractLab]:
-    """The contract's backend, built from a factory like production's."""
-    if request.param == "ledger":
-        tmp_path = Path(request.getfixturevalue("tmp_path"))
-        repo_root = tmp_path / "repo"
-        # The in-repo checkout shape, which is all the fence resolver reads:
-        # `<C>/.git` as a directory IS the git common directory (§3.4).
-        (repo_root / GIT_ENTRY).mkdir(parents=True)
-        with open_ledger(repo_root, tmp_path / "wrapper") as database:
+    """The contract's backend, built from a factory like production's.
+
+    Every lab opens a ledger, whichever backend it pins. Claims are
+    ledger-local since S4 (R11) and there is one ledger per repository, so
+    that is true of a bd-backed run too — a claims surface derived from the
+    transport would be the second place a target could look free.
+    """
+    tmp_path = Path(request.getfixturevalue("tmp_path"))
+    repo_root = tmp_path / "repo"
+    # The in-repo checkout shape, which is all the fence resolver reads:
+    # `<C>/.git` as a directory IS the git common directory (§3.4).
+    (repo_root / GIT_ENTRY).mkdir(parents=True)
+    with open_ledger(repo_root, tmp_path / "wrapper") as database:
+        claims = LedgerClaims(database)
+        if request.param == "ledger":
             store = CrashingLedgerStore(database, task_id=LEDGER_TASK)
             yield ContractLab(
                 "ledger",
                 BackendKind.LEDGER,
                 PinnedBackendFactory(store),
                 LedgerFaultInjector(store),
-                # D20: a ledger-backed run contends for an integration target
-                # on the SAME bd row a bd-backed run reserves.
-                claims_backend=BdClient(
-                    BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR),
-                    runner=FakeBd(str(FAKE_WORKSPACE)),
-                ),
+                claims=claims,
             )
-        return
-    if request.param == "bd-fake":
-        fake = FakeBd(str(FAKE_WORKSPACE))
-        client = BdClient(
-            BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR), runner=fake
-        )
+            return
+        if request.param == "bd-fake":
+            fake = FakeBd(str(FAKE_WORKSPACE))
+            client = BdClient(
+                BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR), runner=fake
+            )
+            yield ContractLab(
+                "bd-fake",
+                BackendKind.BD,
+                PinnedBackendFactory(client),
+                BdFaultInjector(fake),
+                claims=claims,
+            )
+            return
+        workspace = request.getfixturevalue("bd_workspace")
+        client = BdClient(BdConfig(workspace=workspace, actor=TEST_ACTOR))
         yield ContractLab(
-            "bd-fake",
-            BackendKind.BD,
-            PinnedBackendFactory(client),
-            BdFaultInjector(fake),
+            "bd-real", BackendKind.BD, PinnedBackendFactory(client), claims=claims
         )
-        return
-    workspace = request.getfixturevalue("bd_workspace")
-    client = BdClient(BdConfig(workspace=workspace, actor=TEST_ACTOR))
-    yield ContractLab("bd-real", BackendKind.BD, PinnedBackendFactory(client))
 
 
 def _entry(store: WorkflowStore, root_id: str) -> ActivationRecord:
@@ -309,12 +316,14 @@ def test_a_claim_is_found_by_key_and_merged_rather_than_duplicated(
     key = instance_key()
     payload: Metadata = {CLAIM_PAYLOAD: {"holder": "first"}}
 
-    store.claims.write(key, payload)
+    store.claims.write(key, "first", payload)
     written = store.claims.find(key)
     assert len(written) == 1
     assert written[0].payload[CLAIM_PAYLOAD] == {"holder": "first"}
 
-    store.claims.write(key, {CLAIM_PAYLOAD: {"holder": "second"}}, written[0].id)
+    store.claims.write(
+        key, "second", {CLAIM_PAYLOAD: {"holder": "second"}}, written[0].id
+    )
     merged = store.claims.find(key)
     assert [row.id for row in merged] == [written[0].id]
     assert merged[0].payload[CLAIM_PAYLOAD] == {"holder": "second"}

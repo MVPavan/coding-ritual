@@ -22,6 +22,7 @@ from tests._helpers import (
     AMBIGUOUS_ABANDON_EDITS,
     VALID_FIXTURE,
     mutate,
+    seeded_records,
     unnameable_abandon_graph,
 )
 from tests._inspector import VERIFY_SCRIPT, ChildScript, make_config, make_repo
@@ -621,9 +622,10 @@ def test_status_renders_prior_contractor_attempt_evidence_at_an_open_gate(
         "title": "contractor stage",
         "status": "in_progress",
         "issue_type": "task",
-        "metadata": {"contractor": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
         "parent": "phase-1",
     }
+    seeded_records(record, into=lab.records)
     lab.profiles.next_script(
         ChildScript(
             marker='{"outcome":"done"}\n',
@@ -653,6 +655,7 @@ def test_status_renders_prior_contractor_attempt_evidence_at_an_open_gate(
         lab.config.bd,
         root_id=root.root_id,
         reads=lab.composition.reads_for_root(root.root_id),
+        records=lab.records,
     ) == {
         "attempt": 2,
         "is_current_attempt": False,
@@ -690,9 +693,10 @@ def test_status_renders_current_contractor_attempt_evidence_at_an_open_gate(
         "title": "contractor stage",
         "status": "in_progress",
         "issue_type": "task",
-        "metadata": {"contractor": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
         "parent": "phase-1",
     }
+    seeded_records(record, into=lab.records)
     lab.profiles.next_script(
         ChildScript(
             marker='{"outcome":"done"}\n',
@@ -746,9 +750,10 @@ def test_contractor_gate_view_rejects_a_root_outside_stage_attempts(
         "title": "contractor stage",
         "status": "in_progress",
         "issue_type": "task",
-        "metadata": {"contractor": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
         "parent": "phase-1",
     }
+    seeded_records(record, into=lab.records)
     monkeypatch.setattr(
         gate_view_module.ContractorAdapter,
         "from_config",
@@ -761,6 +766,7 @@ def test_contractor_gate_view_rejects_a_root_outside_stage_attempts(
             lab.config.bd,
             root_id="impostor",
             reads=lab.store.reads,
+            records=lab.records,
         )
 
 
@@ -787,9 +793,10 @@ def test_status_resolves_contractor_view_once_for_an_open_halt(
         "title": "contractor stage",
         "status": "in_progress",
         "issue_type": "task",
-        "metadata": {"contractor": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
         "parent": "phase-1",
     }
+    seeded_records(record, into=lab.records)
     lab.store.open_gate(root.root_id, halt_gate("ceiling:20"))
     resolutions = 0
 
@@ -1057,6 +1064,7 @@ def _contractor_adapter(
         BdClient(lab.config.bd, lab.fake_bd),
         reads,
         closure=closure_probe(lab.ledger, lab.git),
+        records=lab.records,
     )
 
 
@@ -1409,9 +1417,7 @@ def test_contractor_reports_another_open_admission_as_blocked(
     lab.fake_bd.rows["other-stage"] = _contractor_stage(
         "other-stage", description="held brief"
     )
-    lab.fake_bd.rows["other-stage"]["metadata"] = {
-        "contractor": held.model_dump(by_alias=True, mode="json")
-    }
+    seeded_records(held, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
         contractor_command_module.ContractorAdapter,
@@ -1490,9 +1496,7 @@ def test_contractor_retry_mints_a_distinct_successor_root(
     )
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["status"] = "in_progress"
-    lab.fake_bd.rows["stage"]["metadata"] = {
-        "contractor": first.model_dump(by_alias=True, mode="json")
-    }
+    seeded_records(first, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
         contractor_command_module.ContractorAdapter,
@@ -1508,9 +1512,9 @@ def test_contractor_retry_mints_a_distinct_successor_root(
     )
 
     report = json.loads(transcript.splitlines()[0])
-    stored = ContractorRecord.model_validate(
-        lab.fake_bd.rows["stage"]["metadata"]["contractor"]
-    )
+    held = lab.records.read("stage")
+    assert held is not None
+    stored = held.record
     assert codes == [0]
     assert report["state"] == "result"
     assert stored.attempt == 2
@@ -1540,9 +1544,7 @@ def test_contractor_reports_each_retry_predicate_refusal(
     )
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["status"] = "in_progress"
-    lab.fake_bd.rows["stage"]["metadata"] = {
-        "contractor": record.model_dump(by_alias=True, mode="json")
-    }
+    seeded_records(record, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
         contractor_command_module.ContractorAdapter,
