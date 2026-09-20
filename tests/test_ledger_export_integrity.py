@@ -46,6 +46,7 @@ from workflow_interpreter.contractor.journal import (
     LandingJournal,
     LandingPhase,
 )
+from workflow_interpreter.foreman.config import wrapper_root_for
 from workflow_interpreter.inspector import Git
 from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.sandbox import SandboxMode
@@ -64,7 +65,6 @@ from workflow_interpreter.ledger.export import import_export, write_export
 from workflow_interpreter.ledger.paths import (
     export_path,
     ledger_path,
-    repo_hash,
     repo_id_path,
 )
 from workflow_interpreter.ledger.schema import table_columns
@@ -130,7 +130,7 @@ def _config_file(repo_root: Path, tmp_path: Path) -> tuple[Path, Path]:
     they run reaches git.
     """
     home = tmp_path / "home"
-    wrapper_root = home / repo_hash(repo_root)
+    wrapper_root = wrapper_root_for(home, repo_root)
     path = tmp_path / "foreman.toml"
     path.write_text(
         f'''repo_root = "{repo_root}"
@@ -381,7 +381,7 @@ def test_a_committed_export_imports_into_a_clone_at_another_path(
 ) -> None:
     """§1.3: repository identity travels with the repository, not with its path.
 
-    The clone is a different absolute path, so the old `repo_hash` header —
+    The clone is a different absolute path, so the old wrapper-root header —
     `sha256` of that path — refused every committed export it was given. The
     `repo_id` in `.wf/repo-id` is committed with the export and answers the
     same question portably.

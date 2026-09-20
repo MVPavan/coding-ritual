@@ -26,10 +26,10 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import BeadRecord
+from workflow_interpreter.foreman.config import wrapper_root_for
 from workflow_interpreter.ledger import records
 from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import LedgerDatabase
-from workflow_interpreter.ledger.paths import repo_hash
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.ledger.tasks import ensure_task
 from workflow_interpreter.tracker.intents import SetFlag
@@ -119,7 +119,7 @@ def config_file(
     """
     repo_root, _ = repository(tmp_path)
     home = tmp_path / "home"
-    wrapper_root = home / repo_hash(repo_root)
+    wrapper_root = wrapper_root_for(home, repo_root)
     path = tmp_path / "foreman.toml"
     path.write_text(
         f'''repo_root = "{repo_root}"

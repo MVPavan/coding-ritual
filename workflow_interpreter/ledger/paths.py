@@ -8,7 +8,6 @@ over one repository, and outside `git clean`'s reach.
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 from typing import Final
@@ -30,23 +29,8 @@ from workflow_interpreter.ledger.constants import (
 )
 from workflow_interpreter.ledger.errors import LedgerIdentityError
 
-REPO_HASH_LENGTH: Final[int] = 16
-"""The same prefix `ForemanConfig.wrapper_root` names a repository by."""
-
 _EXCLUSIVE_CREATE: Final[str] = "x"
 """Open a file only when creating it, so two first starts cannot both mint."""
-
-
-def repo_hash(repo_root: Path) -> str:
-    """The repository's stable identity, as the wrapper root already spells it.
-
-    The WRAPPER HOME's name only: it answers "which engine home is this
-    checkout's", which is a question about this machine's paths. What an
-    export is pinned to is `repo_id`, which a move or a clone does not change.
-    """
-    return hashlib.sha256(str(repo_root.resolve()).encode("utf-8")).hexdigest()[
-        :REPO_HASH_LENGTH
-    ]
 
 
 def ledger_path(repo_root: Path) -> Path:

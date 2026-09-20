@@ -60,6 +60,7 @@ from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
 from workflow_interpreter.bdio.signing import key_fingerprint
 from workflow_interpreter.bdio.wire import ActivationMetadata
 from workflow_interpreter.contracts.run_identity import RunIdentity
+from workflow_interpreter.foreman.config import wrapper_root_for
 from workflow_interpreter.foreman.ledger_render import (
     EVIDENCE_FILE,
     FINDINGS_FILE,
@@ -93,7 +94,7 @@ from workflow_interpreter.ledger.constants import (
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import import_export, write_export
-from workflow_interpreter.ledger.paths import export_path, ledger_path, repo_hash
+from workflow_interpreter.ledger.paths import export_path, ledger_path
 from workflow_interpreter.ledger.reverify import (
     ExportAnchor,
     TrustAnchor,
@@ -1736,7 +1737,7 @@ def _cli_verify(clone: Path, signing: SigningConfig, tmp_path: Path) -> tuple[in
     """Run the real `wf ledger verify` in `clone`, as an operator would."""
     config = tmp_path / f"{clone.name}.toml"
     home = tmp_path / "no-home"
-    wrapper_root = home / repo_hash(clone)
+    wrapper_root = wrapper_root_for(home, clone)
     config.write_text(
         f'''repo_root = "{clone}"
 wrapper_home = "{home}"

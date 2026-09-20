@@ -33,15 +33,17 @@ import structlog
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from workflow_interpreter.bdio.errors import (
+    LossyWriteError,
+    StoreConfigError,
+)
+from workflow_interpreter.bdio.wire import ROW_MODEL, Metadata
+from workflow_interpreter.tracker.errors import (
     BdCommandError,
     BdOutputError,
     BdTimeoutError,
     BdUnavailableError,
     ForbiddenInvocationError,
-    LossyWriteError,
-    StoreConfigError,
 )
-from workflow_interpreter.bdio.wire import ROW_MODEL, Metadata
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 

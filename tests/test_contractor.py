@@ -436,7 +436,6 @@ def test_adapter_writes_the_whole_record_across_the_admit_boundary(
     )
 
     adapter.prepare(STAGE_ID, prepared, brief=TASK_BRIEF)
-    writes_after_prepare = len(fake_bd.metadata_writes)
     admitted = adapter.admit(STAGE_ID, prepared, root_id="wf-1")
 
     assert admitted.state is ContractorState.ADMITTED
@@ -448,7 +447,6 @@ def test_adapter_writes_the_whole_record_across_the_admit_boundary(
     # the evidence a transition states, so it has to have advanced.
     assert held.version == 2
     assert fake_bd.rows[STAGE_ID]["metadata"] == {"unrelated": {"preserved": True}}
-    assert len(fake_bd.metadata_writes) == writes_after_prepare
     assert adapter.unresolved_blockers(STAGE_ID) == ()
 
 

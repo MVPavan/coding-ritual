@@ -29,14 +29,12 @@ from tests._helpers import (
 from tests._inspector import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
-    BdCommandError,
-    BdOutputError,
     Outcome,
     Usage,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.config import SigningConfig
-from workflow_interpreter.bdio.errors import BdUnavailableError, StoreTransportError
+from workflow_interpreter.bdio.errors import StoreTransportError
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.contractor import (
@@ -64,6 +62,11 @@ from workflow_interpreter.inspector.errors import PreconditionRefused
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
+from workflow_interpreter.tracker.errors import (
+    BdCommandError,
+    BdOutputError,
+    BdUnavailableError,
+)
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 from workflow_interpreter.tracker.port import TrackerPort
 

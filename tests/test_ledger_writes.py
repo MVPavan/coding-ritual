@@ -55,7 +55,6 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
 from workflow_interpreter.bdio.errors import (
-    BdUnavailableError,
     CarrierIntegrityError,
     LifecycleConflictError,
 )
@@ -93,6 +92,7 @@ from workflow_interpreter.ledger.tasks import ensure_task, export_oid
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.tracker.bd import BdTracker
 from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
+from workflow_interpreter.tracker.errors import BdUnavailableError
 
 TERMINAL: Final[str] = "shipped"
 ABANDONED: Final[str] = "abandoned"

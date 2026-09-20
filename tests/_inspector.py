@@ -422,7 +422,7 @@ class PersistentBd(FakeBd):
         result = super().__call__(argv, timeout_s)
         write_durable(
             self._state,
-            json.dumps({"rows": self.rows, "next_id": self._next_id}).encode("utf-8"),
+            json.dumps({"rows": self.rows}).encode("utf-8"),
         )
         return result
 
@@ -432,7 +432,6 @@ class PersistentBd(FakeBd):
             return
         stored = json.loads(self._state.read_text(encoding="utf-8"))
         self.rows = stored["rows"]
-        self._next_id = stored["next_id"]
 
 
 def make_persistent_store(

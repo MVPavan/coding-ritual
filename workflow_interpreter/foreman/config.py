@@ -25,6 +25,24 @@ MSG_WORKTREE_REPO_ROOT: Final[str] = (
     "repository whose git common directory it borrows (run-ledger §3.5)"
 )
 
+REPO_HASH_LENGTH: Final[int] = 16
+"""How much of the repository digest names its wrapper home."""
+
+
+def wrapper_root_for(wrapper_home: Path, repo_root: Path) -> Path:
+    """This machine's engine home for one checkout.
+
+    A function as well as a property because a caller that must write the
+    wrapper root INTO a configuration cannot load the configuration to ask
+    for it — `inspector.wrapper_root` has to match `ForemanConfig`'s, and
+    that check is what makes the two one fact rather than two.
+
+    A question about this machine's paths only. What an export is pinned to is
+    `repo_id`, which a move or a clone does not change (`ledger/paths.py`).
+    """
+    digest = hashlib.sha256(str(repo_root.resolve()).encode("utf-8")).hexdigest()
+    return wrapper_home / digest[:REPO_HASH_LENGTH]
+
 
 class CrewBinding(BaseModel):
     """The profile and pinned invocation choices selected for a graph role."""
@@ -97,10 +115,7 @@ class ForemanConfig(BaseModel):
     @property
     def wrapper_root(self) -> Path:
         """Return the stable root for the explicitly configured repository path."""
-        digest = hashlib.sha256(
-            str(self.repo_root.resolve()).encode("utf-8")
-        ).hexdigest()
-        return self.wrapper_home / digest[:16]
+        return wrapper_root_for(self.wrapper_home, self.repo_root)
 
     @property
     def owner_path(self) -> Path:

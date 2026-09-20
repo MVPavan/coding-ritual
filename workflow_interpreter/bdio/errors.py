@@ -3,25 +3,18 @@
 Every failure of the typed wrapper is one of these; a caller never sees a raw
 `subprocess` or `json` exception. The names above the seam are backend-neutral
 — `StoreError` and its neutral subclasses — so a caller routes on what went
-wrong, never on which backend it happened in. The backend-specific shapes
-(`BdCommandError` and its siblings) stay under `StoreTransportError`, which is
-the only name a caller above the seam is allowed to catch.
+wrong, never on which backend it happened in. The backend-specific shapes live with the backend that raises them —
+`tracker/errors.py` since S6, because bd is a TRACKER now (R1) — and every one
+of them is a `StoreTransportError`, which is the only name a caller above the
+seam is allowed to catch.
 """
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard for type checking only
     from workflow_interpreter.bdio.bounds import BoundRefusal
-
-_MSG_COMMAND: Final[str] = "bd {subcommand} failed (exit {returncode}): {stderr}"
-_MSG_TIMEOUT: Final[str] = "bd {subcommand} exceeded its {timeout_s}s timeout"
-_MSG_UNAVAILABLE: Final[str] = "bd {subcommand} could not be run: {reason}"
-_MSG_FORBIDDEN: Final[str] = (
-    "refused to construct a bd invocation outside the closed command set: {detail}"
-)
 
 
 class StoreError(Exception):
@@ -51,49 +44,6 @@ class StoreBusyRefusal(StoreError):
     """
 
 
-class BdCommandError(StoreTransportError):
-    """bd exited non-zero."""
-
-    def __init__(
-        self, argv: Sequence[str], returncode: int, stderr: str, subcommand: str
-    ) -> None:
-        self.argv = tuple(argv)
-        self.returncode = returncode
-        self.stderr = stderr
-        self.subcommand = subcommand
-        super().__init__(
-            _MSG_COMMAND.format(
-                subcommand=subcommand, returncode=returncode, stderr=stderr.strip()
-            )
-        )
-
-
-class BdTimeoutError(StoreTransportError):
-    """bd did not finish inside the configured timeout."""
-
-    def __init__(self, argv: Sequence[str], timeout_s: float, subcommand: str) -> None:
-        self.argv = tuple(argv)
-        self.timeout_s = timeout_s
-        self.subcommand = subcommand
-        super().__init__(
-            _MSG_TIMEOUT.format(subcommand=subcommand, timeout_s=timeout_s)
-        )
-
-
-class BdUnavailableError(StoreTransportError):
-    """The bd binary could not be executed at all (missing, not executable).
-
-    A defect of the transport, not an answer about the caller's ids: the
-    crew raises `OSError` before bd ever runs, and mapping it here is what
-    keeps a broken installation from reading as an ordinary refusal.
-    """
-
-    def __init__(self, argv: Sequence[str], subcommand: str, reason: str) -> None:
-        self.argv = tuple(argv)
-        self.subcommand = subcommand
-        super().__init__(_MSG_UNAVAILABLE.format(subcommand=subcommand, reason=reason))
-
-
 class StoreOutputError(StoreTransportError):
     """The backend answered, but not in a shape this wrapper can read.
 
@@ -102,22 +52,6 @@ class StoreOutputError(StoreTransportError):
     is a store the caller may legitimately treat as "no usable record". Only
     this class may be converted into an ordinary refusal above the seam.
     """
-
-
-class BdOutputError(StoreOutputError):
-    """bd's `--json` output could not be parsed, or had an unexpected shape."""
-
-
-class ForbiddenInvocationError(StoreTransportError):
-    """An argv outside the closed command set was constructed.
-
-    Structural, not advisory: the client asserts this before spawning, so a
-    future edit that reaches for `--force` or `bd delete` fails loudly here
-    instead of reaching bd (§0 write boundary).
-    """
-
-    def __init__(self, detail: str) -> None:
-        super().__init__(_MSG_FORBIDDEN.format(detail=detail))
 
 
 class LossyWriteError(StoreError):
