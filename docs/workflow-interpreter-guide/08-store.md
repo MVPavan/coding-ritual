@@ -95,7 +95,9 @@ unshipped task.
   window, drain the task's unacked attention projections, drain its outbox — reporting
   conflicts, because the human at that command is the one who decides.
 - **`archive <task> --bundle …`** refuses unless the task is `retired`, bundles
-  `refs/wf/<root>/*`, verifies the bundle, then deletes run folders and refs. Not
+  `refs/wf/<root>/*`, verifies the bundle, then deletes run folders and refs — and the
+  task's local checkpoint anchor and staged bytes with them, outside the bundle, because
+  a retired task's checkpoint holds only rows its export already carries. Not
   clone-portable: a default clone does not fetch those refs.
 
 ## Rebuilding a ledger

@@ -84,6 +84,11 @@ from workflow_interpreter.inspector.verify import (
     TASK_ID_ENV,
 )
 from workflow_interpreter.ledger.archive import archive_task
+from workflow_interpreter.ledger.checkpoint import (
+    checkpoint_ref,
+    staging_path,
+    write_checkpoint,
+)
 from workflow_interpreter.ledger.constants import (
     EXPORT_REF_TEMPLATE,
     EXPORT_SUFFIX,
@@ -1902,6 +1907,10 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
         seed_contractor_record(database, TASK_ID, epic_id=EPIC_ID)
         record_task_state(database, TASK_ID, TaskState.LANDED)
         record_export_oid(database, TASK_ID, "0" * 40)
+        # The local checkpoint anchor retires WITH the task (§3.9): left
+        # behind, its blob stays reachable forever and `rebuild_sources`
+        # resurrects the task into every later import.
+        write_checkpoint(git, database, TASK_ID)
 
         result = archive_task(
             git,
@@ -1914,6 +1923,9 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
 
     assert result.refs == (ref,)
     assert result.run_folders == (wrapper_root / root_id,)
+    assert result.checkpoint_cleared is True
+    assert git.ref_target(checkpoint_ref(TASK_ID), cwd=repo) is None
+    assert not staging_path(repo, TASK_ID).exists()
     assert not (wrapper_root / root_id).exists()
     assert bundle.is_file()
     with pytest.raises(subprocess.CalledProcessError):

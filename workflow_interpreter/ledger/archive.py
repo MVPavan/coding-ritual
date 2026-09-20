@@ -11,6 +11,11 @@ is the whole design (D19):
 3. verify that bundle with git itself;
 4. and only then delete the run folders and the refs.
 
+The task's local checkpoint anchor goes with them (§3.9), outside the bundle:
+it holds rows the committed export already carries, and a retired task that
+kept one would keep its blob reachable forever and be resurrected into every
+later `import` by `checkpoint.rebuild_sources`.
+
 The export is JSON and JSON does not preserve git objects, so the bundle is
 the only thing standing between a retention pass and a rejected artifact
 nobody can look at again.
@@ -25,6 +30,7 @@ from typing import Final
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.ledger.checkpoint import checkpoint_ref, staging_path
 from workflow_interpreter.ledger.closure import retired
 from workflow_interpreter.ledger.constants import MSG_NOT_RETIRED
 from workflow_interpreter.ledger.database import LedgerDatabase
@@ -55,6 +61,10 @@ class ArchiveResult(BaseModel):
     bundle: Path
     refs: tuple[str, ...]
     run_folders: tuple[Path, ...]
+    checkpoint_cleared: bool = False
+    """Whether this task also held a `refs/wf/checkpoints/` anchor. Reported
+    rather than counted with `refs`: the bundle holds the root refs only, and
+    the checkpoint is dropped because it is redundant, not preserved."""
 
 
 def archive_task(
@@ -105,6 +115,29 @@ def archive_task(
             folders.append(folder)
     for ref in refs:
         git.delete_ref(ref, cwd=repo_root)
+    cleared = _clear_checkpoint(git, repo_root, task_id)
     return ArchiveResult(
-        task_id=task_id, bundle=bundle, refs=refs, run_folders=tuple(folders)
+        task_id=task_id,
+        bundle=bundle,
+        refs=refs,
+        run_folders=tuple(folders),
+        checkpoint_cleared=cleared,
     )
+
+
+def _clear_checkpoint(git: Git, repo_root: Path, task_id: str) -> bool:
+    """Drop this task's local checkpoint anchor and its staged bytes (§3.9).
+
+    Not in the bundle and not recoverable from it: a checkpoint is a LOCAL
+    mid-run anchor over rows the committed export already carries, and this
+    task is retired. Left behind it would keep its blob permanently reachable
+    — contradicting the constant's own claim that dropped blobs become
+    unreachable — and `_discovered` would resurrect the task into every later
+    `import`, which is worst for an ABANDONED one (S7 review, finding 4).
+    """
+    ref = checkpoint_ref(task_id)
+    if git.ref_target(ref, cwd=repo_root) is None:
+        return False
+    git.delete_ref(ref, cwd=repo_root)
+    staging_path(repo_root, task_id).unlink(missing_ok=True)
+    return True
