@@ -52,7 +52,11 @@ from uuid import uuid4
 import structlog
 
 from workflow_interpreter.bdio.errors import StoreError
-from workflow_interpreter.contracts.run_identity import ComponentKind, safe_component
+from workflow_interpreter.contracts.run_identity import (
+    ComponentKind,
+    InvalidIdentifier,
+    safe_component,
+)
 from workflow_interpreter.inspector.errors import GitCommandError
 from workflow_interpreter.inspector.gitcmd import GitSubcommand
 from workflow_interpreter.inspector.gitio import Git
@@ -65,7 +69,12 @@ from workflow_interpreter.ledger.constants import (
     MSG_CHECKPOINTS_UNREADABLE,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase
-from workflow_interpreter.ledger.errors import LedgerExportError
+from workflow_interpreter.ledger.errors import (
+    LedgerBusyRefusal,
+    LedgerExportError,
+    LedgerFenceBusy,
+    LedgerTransportError,
+)
 from workflow_interpreter.ledger.export import export_task
 from workflow_interpreter.ledger.paths import export_dir, export_path, fence_path
 
@@ -76,6 +85,18 @@ _HEAD_FILE: Final[str] = "HEAD"
 _TEMP_INFIX: Final[str] = "."
 """What separates the staging file's name from the unique suffix that makes a
 concurrent writer's temporary file a different file."""
+
+_TRANSIENT: Final[tuple[type[Exception], ...]] = (
+    OSError,
+    GitCommandError,
+    LedgerBusyRefusal,
+    LedgerFenceBusy,
+    LedgerTransportError,
+)
+"""The causes a checkpoint may degrade past QUIETLY, each named as the leaf it
+is: a full disk or a refusing git seam, a writer that waited out its busy
+timeout, a fence another process holds, SQLite itself failing. Every one of
+them is answered by the next activation close."""
 
 _STAGING_LOCKS: Final[dict[str, threading.Lock]] = {}
 _LOCKS_GUARD: Final[threading.Lock] = threading.Lock()
@@ -266,8 +287,8 @@ def rebuild_sources(
     it.
 
     Which tasks HAVE a checkpoint is asked once, of the ref listing, rather
-    than per task: one `show-ref` instead of a `rev-parse` each, and it is the
-    one question that degrades when git cannot answer for the tree.
+    than per task: one `show-ref` instead of a `rev-parse` each, and it
+    REFUSES when git cannot answer it (`checkpoint_tasks`).
     """
     checkpointed = frozenset(checkpoint_tasks(git, repo_root))
     wanted = tuple(task_ids) if task_ids else _discovered(repo_root, checkpointed)
@@ -300,6 +321,14 @@ class TaskCheckpoint:
     from a deleted ledger" — the behaviour of every build before S7 — into
     "this run failed". A full disk, a read-only object store, a checkout that
     is not a repository: all of them log and continue.
+
+    What the degradation may NOT do is make every cause look alike. `StoreError`
+    is the root of the whole ledger tree, so a permanently broken checkpoint —
+    an unsafe task id, a schema this build cannot read — was logged at the same
+    `warning` as a disk that will be empty again tomorrow, and an operator only
+    ever learnt of it from a failed rebuild (S7 review, finding 6). The
+    transient causes are now named one by one, and everything else is a DEFECT:
+    still not raised, but logged as an error under its own event.
     """
 
     def __init__(self, database: LedgerDatabase, git: Git) -> None:
@@ -310,7 +339,11 @@ class TaskCheckpoint:
         """Anchor the task's rows, or record why this close could not."""
         try:
             write_checkpoint(self._git, self._database, task_id)
-        except (OSError, GitCommandError, StoreError) as refusal:
+        except _TRANSIENT as refusal:
             _LOG.warning(
                 "wf.ledger.checkpoint_refused", task_id=task_id, reason=str(refusal)
+            )
+        except (StoreError, InvalidIdentifier) as broken:
+            _LOG.error(
+                "wf.ledger.checkpoint_broken", task_id=task_id, reason=str(broken)
             )
