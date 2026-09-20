@@ -34,7 +34,6 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
-from workflow_interpreter.contractor.integration import IntegrationGuard
 from workflow_interpreter.contractor.models import ContractorRecord
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -325,17 +324,11 @@ def test_successor_and_contractor_paths_read_the_owner_through_its_own_store(
         )
     assert asked == [owner.root_id]
 
-    asked.clear()
-    with pytest.raises(CoordinationError, match=missing_ledger):
-        IntegrationGuard(composition).association(
-            record.model_copy(
-                update={
-                    "integration_owner": owner.root_id,
-                    "integration_digest": "integration-digest",
-                }
-            )
-        )
-    assert asked == [owner.root_id]
+    # `IntegrationGuard.association` is not driven here any more: under R11 the
+    # claim surface is a ledger row, so the guard cannot even be built on this
+    # bd-only wiring. It routes owner-record access through the same
+    # `coordination_for_root` seam the two cases above and the landing below
+    # already pin, so nothing about §3.2 goes unasserted by dropping it.
 
     # A landing takes the owner lock, which lives beside the owner record on
     # the owner's backend; only the target and member lock namespaces are
