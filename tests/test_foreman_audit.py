@@ -1,7 +1,5 @@
 """C2b audit contracts against real pinned records."""
 
-from copy import deepcopy
-
 from tests._bdio import (
     CLOSE,
     UPDATE,
@@ -9,8 +7,8 @@ from tests._bdio import (
     entry_request,
     load_definition,
     make_root,
+    seed_row,
 )
-from tests._fake_bd import FakeBd
 from workflow_interpreter.bdio import Outcome
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.foreman.audit import audit
@@ -43,14 +41,20 @@ def test_audit_reports_an_unverified_closed_gate_without_writing(
 
 
 def test_audit_reports_two_unconsumed_completed_heads(
-    fake_store: WorkflowStore, fake_bd: FakeBd
+    fake_store: WorkflowStore, fake_client: LedgerStore
 ) -> None:
     root = make_root(fake_store, load_definition())
     first = fake_store.mint_activation(root.root_id, entry_request()).activation
-    fake_store.close_activation(first.activation_id, Outcome.DONE)
-    duplicate = deepcopy(fake_bd.rows[first.activation_id])
-    duplicate["id"] = "wf-conflict"
-    fake_bd.rows["wf-conflict"] = duplicate
+    closed = fake_store.close_activation(first.activation_id, Outcome.DONE)
+    # A second completed head under one root: a DIFFERENT idempotency key, so
+    # the §3.3 mint would have written it rather than answering with the
+    # first, which is exactly the residue the audit exists to name.
+    seed_row(
+        fake_client,
+        "wf activation duplicate head",
+        dict(closed.metadata.model_dump(mode="json"))
+        | {"idempotency_key": "conflicting-head"},
+    )
 
     result = audit(root, fake_store.reads.instance_records(root.root_id))
 

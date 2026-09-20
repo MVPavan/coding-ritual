@@ -159,11 +159,10 @@ def test_drill_21_ceiling_override_halts_then_rebudget_reopens_the_exhaustion_ga
     assert idle.halted is False
     assert lab.count("update") == before_updates
     assert lab.count("close") == before_closes
-    # The canary is exactly ONE `create` per tick (`crash_on_tick_create` skips
-    # it with `occurrence + 1`, `tests/_foreman.py`), so "no write beyond the
-    # canary" means the create count grows by exactly one. Snapshotting only
-    # `update`/`close` left a duplicate gate or event bead invisible.
-    assert lab.count("create") == before_creates + 1
+    # An idle tick creates NOTHING: the §11 canary is a `meta` round trip on
+    # the ledger rather than a row (`ledger/store.probe`). Snapshotting only
+    # `update`/`close` left a duplicate gate or event row invisible.
+    assert lab.count("create") == before_creates
 
 
 def test_drill_21_ceiling_halt_approve_without_a_mutation_is_inert_and_re_halts_at_ordinal_1(

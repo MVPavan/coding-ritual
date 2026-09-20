@@ -3,7 +3,6 @@
 import json
 import sys
 import time
-from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import Final
@@ -14,8 +13,6 @@ from tests.test_children_process import writer_lab
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
 from workflow_interpreter.contractor import tracker_wiring as wiring_module
 from workflow_interpreter.foreman.decisions import admission_of
-from workflow_interpreter.foreman.tick import Foreman, TickReport
-from workflow_interpreter.tracker.bd_transport import BdClient
 
 
 def source_lab(tmp_path: Path):
@@ -82,108 +79,6 @@ drill used to be given, asserted rather than claimed: the §6 acceptance for
 this slice is that admission has no wall problem, and a budget nobody measures
 is not a measurement."""
 
-START_TICK_BD_CALLS: Final[int] = 34
-"""Calls the first decision tick makes: instantiation and admission writes."""
-STEADY_TICK_BD_CALLS: Final[int] = 5
-"""Calls a steady-state decision tick makes; pinned by
-`test_admission_tick_stays_at_five_bd_calls` so a regression here is caught by
-a count rather than by a clock."""
-CLOSING_TICK_BD_CALLS: Final[int] = 29
-"""Calls ONE closing tick makes: collection plus terminal writes."""
-CLOSING_TICKS: Final[int] = 2
-"""How many closing ticks the drill ends with — the terminal is reached in the
-first and disposed in the second."""
-CLOSE_TICK_BD_CALLS: Final[int] = CLOSING_TICK_BD_CALLS * CLOSING_TICKS
-"""Calls the two closing ticks make together."""
-OPENING_SPLIT_TICK_BD_CALLS: Final[int] = 18
-"""The second opening tick, when the opening takes two: the foreman looked
-before the forked member had exited, so instantiation and admission split."""
-EXPECTED_TICKS: Final[int] = 8
-"""Steady ticks the drill is expected to need while the forked writer runs;
-measured at 6, with two ticks of slack."""
-BD_CALL_SAFETY: Final[float] = 1.5
-"""Headroom over the measured per-call latency, for host jitter."""
-FIXED_CALL_ALLOWANCE_S: Final[float] = 10.0
-"""Wall the drill spends OUTSIDE bd: fork, sandbox setup, git, verification."""
-EXPECTED_BD_CALLS: Final[int] = (
-    START_TICK_BD_CALLS + STEADY_TICK_BD_CALLS * EXPECTED_TICKS + CLOSE_TICK_BD_CALLS
-)
-
-
-MAX_CALIBRATED_LATENCY_S: Final[float] = 1.0
-"""The slowest `bd` round trip this file will calibrate a budget from.
-
-A budget derived from an unbounded sample is not a bound: one pathological
-latency measurement (a cold host, a paging storm) would widen the wall until
-any engine passed it. Above this the drill SKIPS and says so, because a
-measurement nobody can trust is not evidence either way."""
-START_TICK_TOLERANCE: Final[int] = 1
-"""The opening tick measures 33 or 34 depending on whether the forked member
-has already exited when the foreman first looks — one read either way."""
-TOTAL_CALL_TOLERANCE: Final[int] = 18
-"""How far over `EXPECTED_BD_CALLS` the whole drill may go: one extra opening
-tick (measured at 18 calls) and nothing more. The steady count varies with
-where the forked member is when the foreman looks, so the total is asserted as
-a CEILING — which is exactly the premise `bd_wall_budget_s` rests on."""
-
-
-def tick_shape_refusal(per_tick: Sequence[int]) -> str | None:
-    """Why this per-tick call sequence is not the drill's shape, or `None`.
-
-    Pure, so the classification itself is testable without bd. The shape is
-    positional rather than inferred from the counts, because inferring it is
-    exactly the hole the review found: an early regressed tick that happens to
-    cost MORE than a steady one used to be read as a second opening tick and
-    then only had to stay under a total ceiling to pass. So the opening prefix
-    is the first tick (33 or 34) plus at most the known split tick, the
-    closing suffix is exactly two 29-call ticks, and EVERY tick in between must
-    equal `STEADY_TICK_BD_CALLS` — no tolerance, no inference.
-    """
-    if len(per_tick) < CLOSING_TICKS + 1:
-        return f"the drill made {len(per_tick)} ticks: {list(per_tick)}"
-    opening = {START_TICK_BD_CALLS - START_TICK_TOLERANCE, START_TICK_BD_CALLS}
-    if per_tick[0] not in opening:
-        return f"the opening tick cost {per_tick[0]}, not {sorted(opening)}: {list(per_tick)}"
-    steady_from = 1
-    if per_tick[1] == OPENING_SPLIT_TICK_BD_CALLS:
-        steady_from = 2
-    closing = per_tick[-CLOSING_TICKS:]
-    if any(count != CLOSING_TICK_BD_CALLS for count in closing):
-        return f"the closing ticks cost {list(closing)}: {list(per_tick)}"
-    middle = per_tick[steady_from : len(per_tick) - CLOSING_TICKS]
-    for index, count in enumerate(middle, start=steady_from):
-        if count != STEADY_TICK_BD_CALLS:
-            return (
-                f"tick {index} cost {count}, not the steady "
-                f"{STEADY_TICK_BD_CALLS}: {list(per_tick)}"
-            )
-    return None
-
-
-def calibrated_latency_s(sample: float) -> float:
-    """The measured `bd` latency, or a skip when it is too slow to trust."""
-    if sample > MAX_CALIBRATED_LATENCY_S:
-        pytest.skip(
-            f"one bd round trip measured {sample:.2f}s, over the "
-            f"{MAX_CALIBRATED_LATENCY_S:.1f}s this drill will calibrate a wall "
-            "budget from; the measurement, not the engine, is what failed"
-        )
-    return sample
-
-
-def bd_wall_budget_s(bd_latency_s: float) -> float:
-    """The bd drill's wall budget, derived from this host's measured latency.
-
-    `cr-xu34`: the old fixed 30 s assumed a ~50 ms `bd` invocation. On a host
-    where one round trip costs ~290 ms the same 132 expected calls need ~38 s,
-    so the drill stalled with `run max_wall` on a healthy engine. Deriving the
-    budget keeps it host-independent while staying tight enough to FAIL if the
-    engine doubles its per-tick calls: doubling every count roughly doubles the
-    bd share of the wall, which is 1.5x the budget's own headroom. Anything
-    beyond about 1.5x of `EXPECTED_BD_CALLS` (198 calls) breaks the budget.
-    """
-    return FIXED_CALL_ALLOWANCE_S + EXPECTED_BD_CALLS * bd_latency_s * BD_CALL_SAFETY
-
 
 def test_replay_admits_only_one_original_owner_member(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -231,92 +126,10 @@ def test_replay_admits_only_one_original_owner_member(
         "target_base",
     }
     wall_s = time.monotonic() - started
-    if True:
-        assert wall_s < LEDGER_WALL_BUDGET_S, (
-            f"the ledger admission drill took {wall_s:.2f}s, over its "
-            f"{LEDGER_WALL_BUDGET_S:.1f}s budget"
-        )
-
-
-@pytest.mark.parametrize(
-    ("per_tick", "accepted"),
-    (
-        ((34, 5, 5, 5, 29, 29), True),
-        ((33, 5, 29, 29), True),
-        ((34, 18, 5, 5, 29, 29), True),
-        ((34, 6, 5, 5, 29, 29), False),
-        ((34, 5, 6, 5, 29, 29), False),
-        ((34, 5, 5, 5, 29), False),
-        ((34, 5, 5, 5, 29, 30), False),
-        ((31, 5, 5, 29, 29), False),
-    ),
-)
-def test_the_tick_shape_classifier_places_every_tick(
-    per_tick: tuple[int, ...], accepted: bool
-) -> None:
-    """The classification the bd drill rests on, decided without bd.
-
-    `(34, 6, …)` is the regression the review found: a second tick that is
-    dearer than a steady one but cheaper than an opening one used to pass as
-    "still opening" and then only had to fit under a total ceiling.
-    """
-    refusal = tick_shape_refusal(per_tick)
-
-    assert (refusal is None) is accepted, refusal
-
-
-def test_admission_tick_stays_at_five_bd_calls(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """A steady admission tick costs exactly five bd calls, timing aside.
-
-    The wall budget the bd drill derives is only as honest as this count, and a
-    clock cannot tell a slow host from a chattier engine (`cr-xu34`). Here bd is
-    the in-process double, so the counts are exact and deterministic: the drill
-    measures 33-34 calls across its opening tick (sometimes split as 34 then
-    18), 5 on every steady tick, and 29 on each of the two closing ticks.
-    """
-    from workflow_interpreter.inspector.sandbox import SandboxMode
-
-    lab, owner, composition, spawner = writer_lab(tmp_path, sandbox=SandboxMode.BWRAP)
-    coordinator = lab.store.coordination_store(composition=composition)
-    child = coordinator.start_child(
-        owner.root_id, "source", admission_of(owner, slot="source", generation=0)
+    assert wall_s < LEDGER_WALL_BUDGET_S, (
+        f"the ledger admission drill took {wall_s:.2f}s, over its "
+        f"{LEDGER_WALL_BUDGET_S:.1f}s budget"
     )
-    per_tick: list[int] = []
-    calls = [0]
-    run = BdClient._run
-    tick = Foreman.tick
-
-    def counted(self: BdClient, argv: Sequence[str]) -> str:
-        calls[0] += 1
-        return run(self, argv)
-
-    def counted_tick(self: Foreman, root_id: str) -> TickReport:
-        before = calls[0]
-        try:
-            return tick(self, root_id)
-        finally:
-            per_tick.append(calls[0] - before)
-
-    monkeypatch.setattr(BdClient, "_run", counted)
-    monkeypatch.setattr(Foreman, "tick", counted_tick)
-    try:
-        result = Foreman(composition).run(child.root_id, poll_s=0.01, max_wall_s=60)
-    finally:
-        for process in spawner.processes:
-            process.join(timeout=5)
-    assert result.report.terminal, result
-    # EVERY tick is classified by position and asserted on its own; a tick that
-    # is neither the opening, the known split, nor one of the two closing ticks
-    # must cost exactly `STEADY_TICK_BD_CALLS`, whatever the total says.
-    assert tick_shape_refusal(per_tick) is None
-    total = sum(per_tick)
-    assert total <= EXPECTED_BD_CALLS + TOTAL_CALL_TOLERANCE, (
-        f"the drill made {total} bd calls, over the "
-        f"{EXPECTED_BD_CALLS} the wall budget is derived from: {per_tick}"
-    )
-    assert total >= START_TICK_BD_CALLS + CLOSE_TICK_BD_CALLS, per_tick
 
 
 @pytest.mark.parametrize("change", ["duplicate", "digest", "generation", "missing"])
@@ -488,7 +301,6 @@ def test_other_owner_busy_before_target_snapshot(
         instance_inputs={},
         allow_test_flags=False,
         overrides={},
-        backend=composition.config.store,
     )
     real_ref = Git.ref_target
 
@@ -503,119 +315,6 @@ def test_other_owner_busy_before_target_snapshot(
             composition, request.model_copy(update={"owner_id": other.root_id})
         )
     assert len(lab.store.coordination_store().state(other.root_id).reservations) == 1
-
-
-@pytest.mark.bd
-def test_real_beads_roundtrips_integration_claim_and_one_root(
-    tmp_path: Path, bd_config, bd_latency_s: float
-) -> None:
-    """The drill against a real bd, on a wall this host's latency justifies.
-
-    `cr-xu34`: measured here at ~290 ms per `bd` invocation (the fixed 30 s
-    this used to pass assumed ~50 ms), so the budget is
-    `bd_wall_budget_s(...)` — about 67 s — rather than a constant.
-    """
-    import subprocess
-    from dataclasses import replace
-
-    from workflow_interpreter.bdio import WorkflowStore
-    from workflow_interpreter.contractor.integration import (
-        IntegrationGuard,
-        IntegrationRequest,
-        prepare_integration,
-    )
-    from workflow_interpreter.contractor.verification import CheckCommand
-    from workflow_interpreter.foreman.resolve import instantiate
-    from workflow_interpreter.foreman.tick import Foreman
-    from workflow_interpreter.tracker.bd_transport import BdClient
-
-    lab, _, composition, spawner = writer_lab(tmp_path)
-    store = WorkflowStore(BdClient(bd_config))
-    composition = replace(
-        composition,
-        config=composition.config.model_copy(
-            update={
-                "bd": bd_config,
-                "contractor_checks": (
-                    CheckCommand(
-                        name="source",
-                        argv=(
-                            sys.executable,
-                            "-c",
-                            "from pathlib import Path; assert Path('src/feature.py').is_file()",
-                        ),
-                    ),
-                ),
-            }
-        ),
-    )
-    spawner.bind(composition)
-    owner = instantiate(
-        composition,
-        lab._toml,
-        instance_key="p4-real-owner-" + tmp_path.name,
-        instance_inputs={},
-        allow_test_flags=False,
-        overrides={},
-        backend=composition.config.store,
-    )
-    coordinator = store.coordination_store(composition=composition)
-    child = coordinator.start_child(
-        owner.root_id, "source", admission_of(owner, slot="source", generation=0)
-    )
-    try:
-        result = Foreman(composition).run(
-            child.root_id,
-            poll_s=0.05,
-            max_wall_s=bd_wall_budget_s(calibrated_latency_s(bd_latency_s)),
-        )
-        assert result.report.terminal, result
-        source = coordinator.collect_child(owner.root_id, "source", 0)
-
-        def create(*args):
-            return (
-                subprocess.check_output(
-                    ["bd", "create", *args, "--silent"],
-                    cwd=bd_config.workspace,
-                    timeout=30,
-                )
-                .decode()
-                .strip()
-            )
-
-        epic = create("--title", "P4 isolated test", "--type", "epic")
-        stage = create(
-            "--title",
-            "P4 isolated integration",
-            "--parent",
-            epic,
-            "--description",
-            "Combine the explicit source",
-        )
-        request = IntegrationRequest(
-            owner_id=owner.root_id,
-            epic_id=epic,
-            stage_id=stage,
-            request_key="real-integration",
-            sources=(("source", 0, source.receipt_digest),),
-        )
-        record = prepare_integration(composition, request)
-        assert prepare_integration(composition, request) == record
-        state = coordinator.state(owner.root_id)
-        assert len(state.children) == 2 and len(state.reservations) == 3
-        claim = IntegrationGuard(composition).claim(
-            state.integrations[request.request_key].target_key
-        )
-        assert (
-            claim is not None
-            and claim[1].association_digest == record.integration_digest
-        )
-    finally:
-        for process in spawner.processes:
-            process.join(timeout=5)
-            if process.is_alive():
-                process.kill()
-                process.join(timeout=5)
 
 
 @pytest.mark.parametrize(

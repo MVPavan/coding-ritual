@@ -24,7 +24,6 @@ from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._inspector import ChildScript
 from workflow_interpreter.bdio import (
     BoundExceededError,
-    CarrierIntegrityError,
     Deviation,
     Lifecycle,
     MintReason,
@@ -32,10 +31,8 @@ from workflow_interpreter.bdio import (
     Outcome,
     WorkflowStore,
     bounds,
-    keys,
     mint,
 )
-from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.tick import Foreman
@@ -383,100 +380,6 @@ def test_steer_preflights_a_bound_before_killing_or_closing_its_child(
             record.metadata.mint_reason is not MintReason.STEER_CONTINUATION
             for record in lab.store.reads.list_activations(root.root_id)
         )
-    finally:
-        for process in cast(list[BaseProcess], spawner.processes):
-            if process.is_alive():
-                process.kill()
-                process.join(timeout=5)
-
-
-@pytest.mark.proc
-@pytest.mark.parametrize(
-    ("residue", "states", "match"),
-    [
-        (
-            "all-superseded",
-            ((Lifecycle.CLOSED, Outcome.SUPERSEDED),),
-            "every activation",
-        ),
-        (
-            "multiple-completed",
-            (
-                (Lifecycle.CLOSED, Outcome.DONE),
-                (Lifecycle.CLOSED, Outcome.DONE),
-            ),
-            "COMPLETED",
-        ),
-        (
-            "settled-not-completed",
-            (
-                (Lifecycle.MINTED, None),
-                (Lifecycle.EXIT_RECORDED, Outcome.DONE),
-            ),
-            "COMPLETED",
-        ),
-    ],
-)
-def test_steer_preflights_invalid_existing_key_residue_before_killing_its_child(
-    tmp_path: Path,
-    residue: str,
-    states: tuple[tuple[Lifecycle, Outcome | None], ...],
-    match: str,
-) -> None:
-    """Invalid §3.2 residue must refuse while the fresh steer's parent is live."""
-    lab, spawner = _proc_steer_lab(tmp_path)
-    root = lab.instantiate()
-    lab.profiles.next_script(ChildScript(sleep_s=_PROC_SLEEP_S))
-    activation_id = lab.tick().dispatched
-    assert activation_id is not None
-
-    try:
-        activation = lab.store.reads.load_activation(activation_id)
-        deadline = time.monotonic() + 10.0
-        while activation.metadata.handle is None:
-            if time.monotonic() > deadline:
-                raise AssertionError("the live child never recorded its handle")
-            time.sleep(0.05)
-            activation = lab.store.reads.load_activation(activation_id)
-        assert activation.metadata.handle is not None
-        assert _crew_alive(activation.metadata.handle.pid)
-
-        key = keys.idempotency_key(
-            root.root_id,
-            activation.activation_id,
-            Outcome.STEERED,
-            activation.metadata.node,
-        )
-        for offset, (lifecycle, outcome) in enumerate(states, start=1):
-            metadata = activation.metadata.model_copy(
-                update={
-                    "seq": activation.metadata.seq + offset,
-                    "idempotency_key": key,
-                    "mint_reason": MintReason.STEER_CONTINUATION,
-                    "lifecycle": lifecycle,
-                    "outcome": outcome,
-                    "superseded_by": "wf-winner"
-                    if outcome is Outcome.SUPERSEDED
-                    else None,
-                }
-            )
-            lab.store._client._create_bead(
-                title=f"wf {residue} steer residue",
-                metadata=metadata.model_dump(mode="json", exclude_none=True),
-            )
-
-        with pytest.raises(CarrierIntegrityError, match=match):
-            lab.steer(
-                activation_id,
-                reason="silent past stale_after",
-                instructions="finish the review with the recorded constraints",
-            )
-
-        unchanged = lab.store.reads.load_activation(activation_id)
-        assert _crew_alive(activation.metadata.handle.pid)
-        assert unchanged.metadata.lifecycle is Lifecycle.DISPATCHED
-        assert unchanged.status != STATUS_CLOSED
-        assert not lab.wiring().paths.steer_intent(activation_id).exists()
     finally:
         for process in cast(list[BaseProcess], spawner.processes):
             if process.is_alive():

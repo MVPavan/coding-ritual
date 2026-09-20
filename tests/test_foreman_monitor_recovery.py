@@ -23,7 +23,14 @@ def test_legacy_null_event_does_not_block_wakes(tmp_path: Path) -> None:
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     legacy = lab.store.append_wake_event(root.root_id, event_for(root, "legacy"))
-    lab.fake_bd.rows[legacy.id]["payload"] = None
+    # A legacy event carried its facts in metadata and had no payload column
+    # filled at all; nothing in the write path can produce one now, so the
+    # row is aged by hand.
+    assert lab.ledger is not None
+    with lab.ledger.transaction() as connection:
+        connection.execute(
+            "UPDATE events SET payload_json = NULL WHERE event_id = ?", (legacy.id,)
+        )
     journal_condition(lab, "new")
     with WakeMonitor(lab.composition, root.root_id) as monitor:
         state = monitor.poll()

@@ -444,7 +444,7 @@ def test_settle_halts_when_real_replay_cannot_restore_missing_exit_record(
         observed.activation.activation_id, observed.completion.evidence
     )
     paths.completion(activation.activation_id).unlink()
-    fake.rows[activation.activation_id]["metadata"]["exit_record"] = None
+    fake._merge_metadata(activation.activation_id, {"exit_record": None})
     activation = store.reads.load_activation(activation.activation_id)
 
     result = settle(

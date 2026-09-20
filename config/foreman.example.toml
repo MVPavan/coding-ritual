@@ -15,12 +15,6 @@ wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
 actor        = "@ACTOR@"
 
-# Which backend a NEW attempt root is pinned to: "bd" or "ledger" (run-ledger
-# §3.2, D18). Existing roots always resolve through the backend recorded on
-# their contractor record or their ledger `tasks` row, so flipping this back to
-# "bd" leaves ledger-backed roots loadable. There is no reverse migration.
-store = "bd"
-
 # The validated graph `contract` pins for a selected stage. It is a normal
 # configurable graph path, not a contractor implementation default.
 contractor_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"

@@ -1,12 +1,6 @@
 """C2b wrapper error-mapping contracts at the public wrapper seam."""
 
-import fcntl
-import json
-import multiprocessing
-import os
-import threading
 from collections.abc import Callable
-from multiprocessing.synchronize import Event
 from pathlib import Path
 from types import SimpleNamespace
 from typing import NoReturn, cast
@@ -48,22 +42,8 @@ from workflow_interpreter.inspector.errors import (
 from workflow_interpreter.inspector.models import LaunchOutcome
 from workflow_interpreter.inspector.profile import Profile
 from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
-from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
 
 FailureFactory = Callable[[], Exception]
-
-
-def _hold_persistent_lock(
-    lock_path: Path,
-    acquired: Event,
-    release: Event,
-) -> None:
-    """Hold the same flock a second fake-bd process must wait to acquire."""
-    with lock_path.open("a", encoding="utf-8") as handle:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        acquired.set()
-        release.wait(5)
-        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 def _wrapper_with_failure(
@@ -164,16 +144,20 @@ def test_unusable_role_resolution_closes_and_the_next_tick_does_not_redispatch(
     activation = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    root_row = lab.fake_bd.rows[root.root_id]
     resolved_config = tuple(
         item
         for item in root.metadata.resolved_config
         if item.key != f"node.implement.{field}"
     )
-    root_row["metadata"]["resolved_config"] = [
-        item.model_dump(mode="json") for item in resolved_config
-    ]
-    root_row["metadata"]["config_signature"] = config_signature(resolved_config)
+    lab.backend._merge_metadata(
+        root.root_id,
+        {
+            "resolved_config": [
+                item.model_dump(mode="json") for item in resolved_config
+            ],
+            "config_signature": config_signature(resolved_config),
+        },
+    )
     assert (
         run_wrapper(lab.composition, root.root_id, activation.activation_id)
         is WrapperExit.DONE
@@ -482,46 +466,6 @@ def test_rebuild_refuses_an_in_memory_bd(tmp_path: Path) -> None:
 
 
 @pytest.mark.proc
-def test_locked_persistent_bd_blocks_a_second_process_and_records_calls(
-    tmp_path: Path,
-) -> None:
-    """The state lock covers one real load-command-save cycle at a time."""
-    state = tmp_path / "persistent-bd.json"
-    workspace = tmp_path / "bd-workspace"
-    crew = LockedPersistentBd(str(workspace), state)
-    client = BdClient(BdConfig(workspace=workspace, actor="test"), crew)
-    context = multiprocessing.get_context("fork")
-    acquired = context.Event()
-    release = context.Event()
-    process = context.Process(
-        target=_hold_persistent_lock,
-        args=(state.with_suffix(state.suffix + ".lock"), acquired, release),
-    )
-    process.start()
-    assert acquired.wait(5)
-    started = threading.Event()
-    completed = threading.Event()
-
-    def read_context() -> None:
-        started.set()
-        client.context()
-        completed.set()
-
-    contender = threading.Thread(target=read_context)
-    contender.start()
-    assert started.wait(5)
-    assert not completed.wait(0.1)
-    release.set()
-    contender.join(5)
-    process.join(5)
-
-    assert completed.is_set()
-    assert process.exitcode == 0
-    calls = json.loads(state.read_text(encoding="utf-8"))["calls"]
-    assert calls[-1]["pid"] == os.getpid()
-    assert calls[-1]["argv"][5] == "context"
-
-
 @pytest.mark.parametrize("phase", ["pre_reset", "interrupted"])
 def test_snapshot_pin_failure_at_wrapper_lifecycle_seam(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, phase: str

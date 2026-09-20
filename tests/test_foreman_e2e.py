@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._bdio import CLOSE, UPDATE
 from tests._foreman import ForemanLab, LockedPersistentBd
 from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._inspector import ChildScript, handle_for
@@ -113,8 +114,8 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     # --- injection point 3: after child exit / before the bd exit mirror ---
     # (this same dispatch attempt: precondition and dispatch succeed, and the
     # exit-mirror write — the 4th `update` of a fresh attempt — is what dies)
-    lab.fake_bd.crash_on("update", _EXIT_MIRROR_UPDATE_OFFSET)
-    with pytest.raises(Exception, match="bd update died"):
+    lab.writes.crash_on(UPDATE, _EXIT_MIRROR_UPDATE_OFFSET)
+    with pytest.raises(Exception, match="ledger update died"):
         lab.tick()
     assert len(lab.beads("activation")) == 1  # same idempotency key, no second mint
     assert ExecLedger(lab.wiring().paths.ledger(implement_id)).count() == 1
@@ -213,8 +214,8 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     # --- injection point 5: mid-reset (the same rework dispatch, 2nd try) --
     # The real git reset already ran in-process before `record_precondition`;
     # crashing that write proves the precondition is idempotent on rerun.
-    lab.fake_bd.crash_on("update", _PRECONDITION_UPDATE_OFFSET)
-    with pytest.raises(Exception, match="bd update died"):
+    lab.writes.crash_on(UPDATE, _PRECONDITION_UPDATE_OFFSET)
+    with pytest.raises(Exception, match="ledger update died"):
         lab.tick()
     mid_reset = lab.store.reads.load_activation(rework_id)
     assert mid_reset.metadata.lifecycle is Lifecycle.MINTED
@@ -297,12 +298,13 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     # this tick would make is the transition EVENT it backfills right after
     # `open_gate` returns (`foreman/tick.py`, `self._backfill`): a fresh
     # `create` for the review->ship edge intent. Ordering within one tick is
-    # `startup_canary` (1st create), `open_gate` (2nd), backfill event
-    # (3rd) — `crash_on_tick_create(2)` (relative, +1 for the canary; see
-    # EVENT-B) kills the 3rd, landing exactly between the two.
+    # `open_gate` (1st create), backfill event (2nd) — the §11 canary is a
+    # `meta` round trip on the ledger, not a row, so it costs no create at
+    # all. `crash_on_tick_create(2)` (relative) kills the backfill, landing
+    # exactly between the two.
     events_before = len(lab.beads("event"))
     lab.crash_on_tick_create(2)
-    with pytest.raises(Exception, match="bd create died"):
+    with pytest.raises(Exception, match="ledger create died"):
         lab.tick()
     persisted_gates = lab.store.reads.list_gates(root.root_id)
     assert len(persisted_gates) == 1  # the gate itself landed before the crash
@@ -325,13 +327,17 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     reopened_ship = lab.store.reads.load_gate(ship)
     assert reopened_ship.metadata.state.value == "open"
 
-    # --- injection point 6b: after payload verification / before edge-taking
+    # --- injection point 6b: after payload verification / before the close
+    # The decision and the settle are ONE transaction on the ledger (§3.3), so
+    # a crash there leaves the gate exactly as it was: open, with the approval
+    # still only on disk. What is proven is the repair — the next tick verifies
+    # the same payload again and closes once.
     lab.approve(ship, Outcome.APPROVE)
-    lab.fake_bd.crash_on("close")
-    with pytest.raises(Exception, match="bd close died"):
+    lab.writes.crash_on(CLOSE, 1)
+    with pytest.raises(Exception, match="ledger close died"):
         lab.tick()
     verified_not_closed = lab.store.reads.load_gate(ship)
-    assert verified_not_closed.metadata.state.value == "closed"
+    assert verified_not_closed.metadata.state.value == "open"
     assert verified_not_closed.status == "open"
 
     lab.rebuild()
