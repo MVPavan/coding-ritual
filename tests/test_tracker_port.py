@@ -57,6 +57,7 @@ from workflow_interpreter.tracker import (
     Applied,
     Blocker,
     Claim,
+    Close,
     Conflict,
     FileTracker,
     IntentKind,
@@ -472,6 +473,30 @@ def test_every_driver_exit_drains_the_outbox(
     lab.transcript(lambda: main_module.main([command, root.root_id]))
 
     assert outbox.pending() == ()
+
+
+def test_a_re_enqueued_intent_is_owed_from_when_it_was_re_enqueued(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """§3.3: one pending row per desired state, applied in the order it was owed.
+
+    `ON CONFLICT DO UPDATE` keeps the row id, so a drain ordered by that id
+    applied a re-enqueued state at the position of the state it REPLACED: a
+    flag re-raised after a close was mirrored before the close.
+    """
+    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    assert lab.ledger is not None
+    outbox = TrackerOutbox(lab.ledger)
+    ref = TrackerRef(kind=TrackerKind.NONE, ref=LAB_TASK)
+    flag = SetFlag(ref=ref, flag=TrackerFlag.ATTENTION.value, on=True)
+    outbox.enqueue(LAB_TASK, flag)
+    outbox.enqueue(LAB_TASK, Close(ref=ref, reason="landed"))
+    outbox.enqueue(LAB_TASK, flag)
+
+    assert [intent.kind for intent in outbox.pending()] == [
+        IntentKind.CLOSE,
+        IntentKind.SET_FLAG,
+    ]
 
 
 @pytest.mark.acceptance

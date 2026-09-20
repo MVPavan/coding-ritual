@@ -49,13 +49,20 @@ _SQL_ENQUEUE: Final[str] = (
     "ON CONFLICT (intent_key) WHERE applied_at IS NULL DO UPDATE SET "
     "intent_json = excluded.intent_json, enqueued_at = excluded.enqueued_at"
 )
+_ORDER: Final[str] = " ORDER BY enqueued_at, outbox_id"
+"""By when the state was last OWED, not by when its row was first created.
+
+`ON CONFLICT DO UPDATE` keeps the original `outbox_id`, so ordering by the id
+applied a re-enqueued state at the position of the state it replaced — a flag
+raised again after a close was mirrored BEFORE that close. The id remains the
+tie-break, because two intents enqueued in one transaction share a timestamp."""
 _SQL_PENDING: Final[str] = (
-    "SELECT outbox_id, intent_json FROM tracker_outbox "
-    "WHERE applied_at IS NULL ORDER BY outbox_id"
+    "SELECT outbox_id, intent_json FROM tracker_outbox WHERE applied_at IS NULL"
+    + _ORDER
 )
 _SQL_PENDING_TASK: Final[str] = (
     "SELECT outbox_id, intent_json FROM tracker_outbox "
-    "WHERE applied_at IS NULL AND task_id = ? ORDER BY outbox_id"
+    "WHERE applied_at IS NULL AND task_id = ?" + _ORDER
 )
 _SQL_RETIRE: Final[str] = (
     "UPDATE tracker_outbox SET applied_at = ?, result = ? WHERE outbox_id = ?"
