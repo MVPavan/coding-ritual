@@ -394,6 +394,13 @@ MSG_TRACKER_REF_UNUSABLE: Final[str] = (
     "tracker ref {tracker_ref!r} holds nothing a path component or a ref name "
     "could be made of (§3.7)"
 )
+MSG_STATE_UNFOLDABLE: Final[str] = (
+    "task {task_id!r} carries state {state!r} in v4's `tasks.state`, and the "
+    "v5 fold has no columns to rebuild its contractor record from — no target "
+    "ref, no admitted base, no instance key. Dropping the state would reopen a "
+    "task that is closed, which R6 says a migration never does (§3.5), so this "
+    "database is left at v4 for a human to decide about"
+)
 MSG_STATE_NOT_RECORDED: Final[str] = (
     "no contractor record for {task_id!r} to record state {state!r} on; a "
     "state nothing carries would leave the task open to every consumer of "

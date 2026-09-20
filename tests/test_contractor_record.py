@@ -31,7 +31,7 @@ from workflow_interpreter.ledger.constants import (
     TaskState,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
-from workflow_interpreter.ledger.errors import LedgerRecordConflict
+from workflow_interpreter.ledger.errors import LedgerRecordConflict, LedgerSchemaError
 from workflow_interpreter.ledger.export import export_task
 from workflow_interpreter.ledger.schema import MIGRATIONS, apply_migrations
 from workflow_interpreter.ledger.tasks import task_state
@@ -178,6 +178,19 @@ def test_claims_are_declared_non_exported_with_a_stated_reason() -> None:
 # --- the migration ----------------------------------------------------------
 
 
+def _v4_database(connection: sqlite3.Connection, state: str | None) -> None:
+    """A v4 ledger holding one task, with the `state` this fold has to face."""
+    for statements in MIGRATIONS[:_V4]:
+        for statement in statements:
+            connection.execute(statement)
+    connection.execute(
+        "INSERT INTO tasks (task_id, epic_id, backend, next_seq, created_at, "
+        "state) VALUES (?, ?, ?, ?, ?, ?)",
+        (TASK, EPIC, "ledger", 1, "2026-01-01T00:00:00Z", state),
+    )
+    connection.commit()
+
+
 def test_a_v4_database_with_rows_migrates_without_losing_them(
     tmp_path: Path,
 ) -> None:
@@ -185,21 +198,11 @@ def test_a_v4_database_with_rows_migrates_without_losing_them(
 
     A `tasks` row written while the column still existed survives it, and the
     two new tables exist afterwards — which is the whole of what a
-    forward-only migration owes the database it is handed. Nothing is carried
-    ACROSS: R12's clean break means no live ledger holds a state a rebuilt
-    record would have to inherit.
+    forward-only migration owes the database it is handed. A row that reached
+    no state carries nothing across because there is nothing to carry.
     """
-    path = tmp_path / "v4.db"
-    with closing(sqlite3.connect(path)) as connection:
-        for statements in MIGRATIONS[:_V4]:
-            for statement in statements:
-                connection.execute(statement)
-        connection.execute(
-            "INSERT INTO tasks (task_id, epic_id, backend, next_seq, created_at, "
-            "state) VALUES (?, ?, ?, ?, ?, ?)",
-            (TASK, EPIC, "ledger", 1, "2026-01-01T00:00:00Z", "landed"),
-        )
-        connection.commit()
+    with closing(sqlite3.connect(tmp_path / "v4.db")) as connection:
+        _v4_database(connection, None)
 
         reached = apply_migrations(connection, _V4)
 
@@ -209,3 +212,28 @@ def test_a_v4_database_with_rows_migrates_without_losing_them(
         assert connection.execute(
             "SELECT COUNT(*) FROM contractor_records"
         ).fetchone() == (0,)
+
+
+def test_the_fold_refuses_a_v4_row_whose_state_it_cannot_carry(
+    tmp_path: Path,
+) -> None:
+    """R6: a migration may not REOPEN a closed task (§3.5, S2 acceptance).
+
+    `contractor_records` needs a whole contractor carrier — target ref, base
+    commit, instance key — and v4's `tasks` columns hold none of them, so no
+    valid minimal record can be rebuilt from a LANDED row. Dropping the state
+    anyway would leave a task with a latched `export_oid` reading open for
+    ever, with the latch unreachable. The migration therefore refuses by name
+    and the operator keeps a readable v4 database.
+    """
+    with closing(sqlite3.connect(tmp_path / "v4.db")) as connection:
+        _v4_database(connection, TaskState.LANDED.value)
+
+        with pytest.raises(LedgerSchemaError) as refusal:
+            apply_migrations(connection, _V4)
+
+        assert TASK in str(refusal.value)
+        assert TaskState.LANDED.value in str(refusal.value)
+        assert connection.execute("SELECT state FROM tasks").fetchall() == [
+            (TaskState.LANDED.value,)
+        ]

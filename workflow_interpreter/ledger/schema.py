@@ -15,10 +15,13 @@ can add a pin to without rewriting the row that guards migrations.
 from __future__ import annotations
 
 import sqlite3
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from contextlib import closing
 from functools import cache
 from typing import Final
+
+from workflow_interpreter.ledger.constants import MSG_STATE_UNFOLDABLE
+from workflow_interpreter.ledger.errors import LedgerSchemaError
 
 _V1_META: Final[str] = """
 CREATE TABLE meta (
@@ -322,7 +325,37 @@ One home for LANDED and ABANDONED. The column was always described as "what
 that table's `state` becomes", and two columns that had to agree about whether
 a task landed would be the next place they disagree. Dropped rather than left
 behind under R12's clean break: no live ledger and no committed export exist,
-so there is nothing to read a stale copy."""
+so there is nothing to read a stale copy — and a database that disagrees is
+refused by `_refuse_unfoldable_state` rather than quietly losing the state."""
+
+_SQL_V4_STATED_TASKS: Final[str] = (
+    "SELECT task_id, state FROM tasks WHERE state IS NOT NULL ORDER BY task_id"
+)
+
+
+def _refuse_unfoldable_state(connection: sqlite3.Connection) -> None:
+    """Refuse the v5 fold on a v4 row whose state nothing could carry (R6).
+
+    `contractor_records` needs a whole contractor carrier, and v4's `tasks`
+    holds none of its identity — so a LANDED row cannot be rebuilt as a record,
+    and dropping its state would leave a task with a latched `export_oid`
+    reading OPEN for ever (`closure.closed` asks the LANDED gate first). R12's
+    clean break says no such database exists; this is what happens when one
+    does, instead of the reopening R6 promises cannot happen.
+    """
+    for row in connection.execute(_SQL_V4_STATED_TASKS).fetchall():
+        raise LedgerSchemaError(
+            MSG_STATE_UNFOLDABLE.format(task_id=str(row[0]), state=str(row[1]))
+        )
+
+
+_MIGRATION_GUARDS: Final[Mapping[int, Callable[[sqlite3.Connection], None]]] = {
+    4: _refuse_unfoldable_state
+}
+"""What must be TRUE of the database before migration `n` may run.
+
+Beside `MIGRATIONS` rather than inside it, because a guard is a question and
+the tuples are statements; keying by index keeps the two orders one order."""
 
 MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     (
@@ -363,8 +396,14 @@ def apply_migrations(connection: sqlite3.Connection, current: int) -> int:
     The caller holds the exclusive fence (§3.4) and owns the transaction: a
     migration and the `schema_version` write that records it must land or fail
     together.
+
+    A migration's guard runs immediately before it, inside that transaction, so
+    a refusal leaves the database exactly at the version it arrived with.
     """
-    for statements in MIGRATIONS[current:]:
+    for version, statements in enumerate(MIGRATIONS[current:], start=current):
+        guard = _MIGRATION_GUARDS.get(version)
+        if guard is not None:
+            guard(connection)
         for statement in statements:
             connection.execute(statement)
     return len(MIGRATIONS)
