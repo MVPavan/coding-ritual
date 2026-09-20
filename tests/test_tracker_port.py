@@ -97,10 +97,18 @@ class _Decorated:
         *,
         forced: TrackerResult | None = None,
         kind: IntentKind | None = None,
+        times: int | None = None,
     ) -> None:
         self._inner = inner
         self._forced = forced
         self._kind = kind
+        self._times = times
+        """How many contacts are forced before the real tracker answers again.
+
+        `None` is every one of them. A count is for the cases where two intents
+        of ONE kind happen inside a single invocation and only the first is
+        meant to fail — a release the tracker did not answer, followed by the
+        claim that replaces it."""
         self.calls: list[str] = []
 
     @property
@@ -130,7 +138,11 @@ class _Decorated:
     def apply(self, intent: TrackerIntent) -> TrackerResult:
         self.calls.append(f"apply:{intent.kind.value}")
         if self._forced is not None and intent.kind is self._kind:
-            return self._forced
+            if self._times is None:
+                return self._forced
+            if self._times > 0:
+                self._times -= 1
+                return self._forced
         return self._inner.apply(intent)
 
 
@@ -328,6 +340,40 @@ def _fail_admit(error: Exception) -> Callable[..., ContractorRecord]:
         raise error
 
     return admit
+
+
+def test_a_stale_release_row_never_hands_back_a_live_claim(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """§3.4: the release a failed drain left behind is not owed any more.
+
+    `release_stranded_claim` mirrors a `Claim(held=False)` and drains it; an
+    `Unknown` leaves the row. The claim that follows is applied DIRECTLY —
+    admission needs the answer before it can proceed — so the stale row
+    survived it, and the next drain handed back the claim of a run in
+    progress. A claim and a release are one desired-state key, so taking the
+    claim replaces the row.
+    """
+    lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
+    inner = _file_tracker(lab, STAGE)
+    lab.tracker = inner
+    ref = TrackerRef(kind=inner.kind, ref=STAGE)
+    # A crash inside §3.4's window: the record is PREPARED and the item is
+    # still held, which is the shape the next invocation releases first.
+    _prepare_only(lab, STAGE)
+    lab.tracker = _Decorated(
+        inner,
+        forced=Unknown(reason="the tracker did not answer the release"),
+        kind=IntentKind.CLAIM,
+        times=1,
+    )
+    lab.halt_after_implement = True
+
+    assert _entry(lab, STAGE).exit_code == 0
+    _outbox(lab).drain(inner)
+
+    held = inner.get(ref)
+    assert held is not None and held.claimed_by == ACTOR
 
 
 @pytest.mark.acceptance

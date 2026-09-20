@@ -18,7 +18,6 @@ import structlog
 
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig
-from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.records import contractor_records
@@ -33,7 +32,6 @@ from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.reconcile import AttentionWriter
 from workflow_interpreter.tracker import BdTracker, FileTracker, NullTracker
 from workflow_interpreter.tracker.attention import OutboxAttentionWriter
-from workflow_interpreter.tracker.errors import TrackerRefused, TrackerUnavailable
 from workflow_interpreter.tracker.outbox import DrainResult, TrackerOutbox
 from workflow_interpreter.tracker.port import TrackerPort
 
@@ -175,7 +173,13 @@ def drain_at_exit(composition: Composition) -> None:
             composition.ledger,
             tracker_for(composition.config.tracker, composition.config.bd),
         )
-    except (StoreError, TrackerUnavailable, TrackerRefused, OSError) as refusal:
+    # Deliberately every ordinary exception, and only here. The named ones —
+    # `StoreError`, `TrackerUnavailable`, `TrackerRefused`, `OSError` — are
+    # what a tracker is expected to fail with, but this call is in a `finally`
+    # on the driver's exit path: ANY exception it lets out is one that replaces
+    # the run's own failure with a mirror's, about rows that are still owed and
+    # will be retried. `BaseException` still passes, so a Ctrl-C is not eaten.
+    except Exception as refusal:  # noqa: BLE001 - see above
         _LOG.warning("wf.tracker.outbox_drain_refused", reason=str(refusal))
         return
     if result.conflicts:

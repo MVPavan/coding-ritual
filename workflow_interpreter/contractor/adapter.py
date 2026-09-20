@@ -315,6 +315,24 @@ class ContractorAdapter:
             return
         self.mirror(stage_id, Claim(ref=self.ref(stage_id), actor=actor, held=False))
 
+    def record_claim(self, stage_id: str, actor: str) -> None:
+        """Say in the outbox that this actor HOLDS the item now (§3.4).
+
+        Not a second write — the claim was applied directly, because admission
+        needs the answer before it can proceed. This is what stops an older
+        row from undoing it: `release_stranded_claim` mirrors a release and
+        drains it, and an `Unknown` there leaves the release pending. Nothing
+        replaced it, so the next drain — the driver's exit — handed back the
+        claim of a run in progress.
+
+        A claim and a release are ONE desired-state key, so enqueueing the
+        claim replaces that row with what is now true. A wiring with no outbox
+        has no stale row to replace either.
+        """
+        if self._outbox is None:
+            return
+        self._enqueue(stage_id, Claim(ref=self.ref(stage_id), actor=actor))
+
     def unresolved_blockers(self, stage_id: str) -> tuple[Blocker, ...]:
         """What this stage still waits on, as the configured tracker sees it.
 

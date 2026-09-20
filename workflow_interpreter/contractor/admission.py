@@ -198,6 +198,7 @@ class PhaseAdmission:
             )
         if isinstance(result, Conflict):
             self._refuse_conflicted_claim(stage_id, result)
+        self._adapter.record_claim(stage_id, self._actor)
 
     def _refuse_conflicted_claim(self, stage_id: str, result: Conflict) -> None:
         """Refuse a disputed claim, retiring the task its tracker ended (§3.8).
