@@ -495,6 +495,16 @@ class WorkflowStore:
         checkpoint is taken HERE and not at each of them (§3.9, R10). AFTER
         the close has committed, so the anchored bytes carry the outcome that
         was just decided, and never in a way that can fail it.
+
+        The whole-task re-export it performs is deliberate, and it is what the
+        S7 review's finding 5 asked about: the git work is already OUTSIDE the
+        ledger's lock (`write_checkpoint` takes its snapshot first, and
+        `transaction()` releases `_writing` at its own exit), so the only part
+        under the lock is the read that IS the snapshot — and a read taken
+        outside it would be the torn pair the lock exists to prevent. What is
+        left is the cost: O(activations²) rows per task and two git spawns per
+        close, which is affordable at a task's activation counts and is the
+        price of a rebuildable in-flight run.
         """
         closed = activation_writes.close_activation(
             self,
