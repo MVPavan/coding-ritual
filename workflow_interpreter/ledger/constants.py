@@ -434,8 +434,11 @@ MSG_RECORD_EXISTS: Final[str] = (
     "not how a stored record is changed (store-restructure §3.2)"
 )
 MSG_RECORD_MISSING: Final[str] = (
-    "task {task_id!r} has no contractor record, so there is nothing to "
-    "{operation}; the record is written at prepare and is the ledger's own "
+    # `LedgerOperation` values are gerunds ("abandoning", "recording the
+    # contractor record of"), so the clause has to take one as its subject:
+    # "there is nothing to abandoning" read as a defect in the engine.
+    "task {task_id!r} has no contractor record, so {operation} it is refused; "
+    "the record is written at prepare and is the ledger's own "
     "(store-restructure §3.2, R4)"
 )
 MSG_LOSSY_ROW: Final[str] = "the row did not read back as written: {detail}"

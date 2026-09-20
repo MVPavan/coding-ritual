@@ -177,8 +177,10 @@ class IntegrationGuard:
         self.composition = composition
         # Only the cross-root namespaces may come from the process-wide store:
         # the integration-target lock and the member lock paths are shared by
-        # roots that need not share a backend, and (D20) so is the claim
-        # namespace. Every owner-record access goes through `coordination`.
+        # roots that need not share a backend. The claim namespace is NOT one
+        # of them any more — R11 superseded D20's shared bd claims, and
+        # `self.claims` below is the ledger's own CAS, one per repository.
+        # Every owner-record access goes through `coordination`.
         self.shared = composition.store.coordination_store(composition=composition)
         self.claims = composition.store.claims
 
