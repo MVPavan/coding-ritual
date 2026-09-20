@@ -20,6 +20,7 @@ from workflow_interpreter.ledger.closure import ClosureProbe
 from workflow_interpreter.tracker import (
     BdTracker,
     Blocker,
+    Claim,
     Close,
     TrackerCapability,
     TrackerIntent,
@@ -259,6 +260,32 @@ class ContractorAdapter:
         a caller that cannot proceed without one says so in its own words.
         """
         return self.tracker.get(self.ref(stage_id))
+
+    def release_stranded_claim(self, stage_id: str, actor: str) -> None:
+        """Free a claim a crash inside §3.4's window left behind.
+
+        Here rather than in admission, because two callers need exactly this
+        detection: the next `wf contract` on the task, and `wf ledger
+        reconcile <task>` — which §3.4 names as the other repair path and
+        which used to drain the outbox and do nothing else, so a crash on a
+        machine where the next `wf contract` is days away left `bd ready` and
+        the file tracker wrong with the documented remedy doing nothing.
+
+        The window leaves ONE shape — a PREPARED record plus an item this
+        actor holds — and it is detected PER TASK rather than by a sweep the
+        port would need a `list` for. The release is mirrored and drained now
+        rather than at driver exit, because a fresh claim may be about to be
+        taken and a release applied after it would take it away again.
+        """
+        stored = self.stored_record(stage_id)
+        if stored is None or stored.state is not ContractorState.PREPARED:
+            return
+        if TrackerCapability.CLAIM not in self.tracker.capabilities:
+            return
+        held = self.tracker.get(self.ref(stage_id))
+        if held is None or held.claimed_by != actor:
+            return
+        self.mirror(stage_id, Claim(ref=self.ref(stage_id), actor=actor, held=False))
 
     def unresolved_blockers(self, stage_id: str) -> tuple[Blocker, ...]:
         """What this stage still waits on, as the configured tracker sees it.

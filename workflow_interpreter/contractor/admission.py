@@ -23,7 +23,6 @@ from workflow_interpreter.tracker import (
     Conflict,
     TrackerCapability,
     Unknown,
-    WorkItem,
     WorkItemStatus,
 )
 from workflow_interpreter.tracker.constants import (
@@ -221,24 +220,13 @@ class PhaseAdmission:
     def _release_stranded(self, stage_id: str, stored: ContractorRecord | None) -> None:
         """Free a claim a crash inside §3.4's window left behind.
 
-        The window leaves one shape — a PREPARED record plus an item this
-        actor holds — and it is detected PER TASK, here, rather than by a sweep
-        the port would need a `list` for. The release is drained now and not at
-        driver exit, because the fresh claim is about to be taken and a release
-        applied after it would take it away again.
+        The detection lives on the adapter, because `wf ledger reconcile` is
+        the other repair path §3.4 names and the two must not drift; `stored`
+        is already in hand here, so the cheap answer is given first.
         """
         if stored is None or stored.state is not ContractorState.PREPARED:
             return
-        tracker = self._adapter.tracker
-        if TrackerCapability.CLAIM not in tracker.capabilities:
-            return
-        held: WorkItem | None = tracker.get(self._adapter.ref(stage_id))
-        if held is None or held.claimed_by != self._actor:
-            return
-        self._adapter.mirror(
-            stage_id,
-            Claim(ref=self._adapter.ref(stage_id), actor=self._actor, held=False),
-        )
+        self._adapter.release_stranded_claim(stage_id, self._actor)
 
     def admit(
         self, epic_id: str, stage_id: str, target_ref: str, expected_base_commit: str

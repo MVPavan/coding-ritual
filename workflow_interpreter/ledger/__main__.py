@@ -20,7 +20,7 @@ from workflow_interpreter.bdio.config import DEFAULT_SSH_KEYGEN
 from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.contractor.tracker_wiring import (
     attention_writer,
-    drain_outbox,
+    repair_mirror,
     tracker_for,
 )
 from workflow_interpreter.foreman.config import ForemanConfig, load_config
@@ -175,13 +175,13 @@ def _reconcile(config: ForemanConfig, task_id: str) -> int:
     the reconciler must not construct its own transport.
     """
     with open_ledger(config.repo_root, config.wrapper_root) as database:
-        tracker = tracker_for(config.tracker, config.bd)
-        writer = attention_writer(database, tracker)
+        writer = attention_writer(database, tracker_for(config.tracker, config.bd))
         result = AttentionReconciler(database, writer).drain(task_id)
         # The reconciler now only ENQUEUES (§3.3). `wf ledger reconcile` is a
-        # human asking for the mirror to be caught up, so it drains too —
-        # unlike a tick, which leaves the drain to the driver's exit.
-        drain_outbox(database, tracker, task_id)
+        # human asking for the mirror to be caught up, so it repairs it: the
+        # stranded claim §3.4 names this command for, then the drain — unlike
+        # a tick, which leaves the drain to the driver's exit.
+        repair_mirror(config, database, Git(config.inspector), task_id)
     if not result.written:
         sys.stdout.write(_MSG_NOTHING_DUE.format(task_id=task_id))
         return EXIT_OK

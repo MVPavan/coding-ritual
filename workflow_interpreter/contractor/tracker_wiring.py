@@ -121,6 +121,29 @@ def attention_writer(database: LedgerDatabase, tracker: TrackerPort) -> Attentio
     return OutboxAttentionWriter(database, tracker)
 
 
+def repair_mirror(
+    config: ForemanConfig,
+    database: LedgerDatabase,
+    git: Git,
+    task_id: str,
+) -> None:
+    """Everything `wf ledger reconcile <task>` owes the mirror (§3.4, §3.2.4).
+
+    Two repairs, not one. Draining what is owed was already here; the PREPARED
+    -plus-claimed release was not, although §3.4 names this command beside the
+    next `wf contract` as the way that shape is repaired — so on a machine
+    where the next contract invocation is days away, the documented remedy did
+    nothing and the tracker stayed wrong about who holds the task.
+
+    The release runs FIRST and shares `release_stranded_claim`, the same
+    detection admission performs: two spellings of "is this claim stranded"
+    would be two chances to release a live one.
+    """
+    adapter = contractor_adapter(config, database, git)
+    adapter.release_stranded_claim(task_id, config.actor)
+    drain_outbox(database, adapter.tracker, task_id)
+
+
 def drain_at_exit(composition: Composition) -> None:
     """Apply what this invocation accumulated, before the DRIVER exits (D6).
 

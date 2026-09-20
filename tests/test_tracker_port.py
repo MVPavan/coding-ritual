@@ -41,7 +41,10 @@ from workflow_interpreter.contractor.tracker_config import (
     TrackerBackend,
     TrackerSettings,
 )
-from workflow_interpreter.contractor.tracker_wiring import attention_writer
+from workflow_interpreter.contractor.tracker_wiring import (
+    attention_writer,
+    repair_mirror,
+)
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.ledger.closure import closed
@@ -469,6 +472,34 @@ def test_every_driver_exit_drains_the_outbox(
     lab.transcript(lambda: main_module.main([command, root.root_id]))
 
     assert outbox.pending() == ()
+
+
+@pytest.mark.acceptance
+def test_ledger_reconcile_releases_the_claim_a_crash_stranded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """§3.4: `wf ledger reconcile <task>` is the OTHER repair path, so it repairs.
+
+    A crash inside the claim window leaves a PREPARED record and an item this
+    actor holds. `wf contract` detects that shape on its next invocation — but
+    §3.4 also names this command, and it only drained the outbox, so on a
+    machine where the next `wf contract` is days away the documented remedy
+    did nothing and `bd ready` stayed wrong.
+    """
+    lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
+    tracker = _file_tracker(lab, STAGE)
+    lab.tracker = tracker
+    ref = TrackerRef(kind=tracker.kind, ref=STAGE)
+    _prepare_only(lab, STAGE)
+    stranded = tracker.get(ref)
+    assert stranded is not None and stranded.claimed_by == ACTOR
+
+    repair_mirror(lab.composition.config, lab.ledger, lab.git, STAGE)
+
+    released = tracker.get(ref)
+    assert released is not None and released.claimed_by is None
+    assert _record(lab).state is ContractorState.PREPARED
+    assert _outbox(lab).pending() == ()
 
 
 @pytest.mark.acceptance
