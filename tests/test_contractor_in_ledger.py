@@ -30,7 +30,6 @@ from tests._foreman import ForemanLab
 from tests._inspector import ChildScript
 from tests.test_contractor_cli import _entry
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
-from workflow_interpreter.bdio import GateVerifier, WorkflowStore
 from workflow_interpreter.contractor import command as command_module
 from workflow_interpreter.contractor import tracker_wiring
 from workflow_interpreter.contractor.adapter import ContractorAdapter
@@ -38,14 +37,11 @@ from workflow_interpreter.contractor.landing import LandingHooks
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
-from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.tick import Foreman, RunReport
 from workflow_interpreter.ledger.archive import archive_task
-from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.closure import closed, retired
 from workflow_interpreter.ledger.constants import TrackerKind
 from workflow_interpreter.ledger.paths import export_path
-from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.tracker.bd import BdTracker
 from workflow_interpreter.tracker.bd_transport import BdClient
@@ -55,10 +51,11 @@ EPIC: Final[str] = "phase"
 STAGE: Final[str] = "a"
 SIBLING: Final[str] = "b"
 STAGE_BRIEF: Final[str] = "the stage brief, read once and snapshotted"
-_CLAIM_WINDOW_COMMANDS: Final[int] = 7
+_CLAIM_WINDOW_COMMANDS: Final[int] = 8
 """What §3.4 costs on bd when the last attempt crashed inside the claim window:
-the stranded claim is detected and RELEASED (read, read, `--assignee ""`,
-read-back), then the fresh claim is taken (read, `--assignee`, read-back)."""
+R12's quiesce probe reads the item, then the stranded claim is detected and
+RELEASED (read, read, `--assignee ""`, read-back), then the fresh claim is
+taken (read, `--assignee`, read-back)."""
 PROOF_SCRIPT: Final[str] = (
     "from pathlib import Path; assert Path('src/feature.py').is_file()"
 )
@@ -106,9 +103,8 @@ def _lab(
     # first entry point runs. `None` means "let the configuration decide", so a
     # case can exercise `tracker_for` itself.
     lab.tracker = BdTracker(BdClient(lab.config.bd, lab.fake_bd))
-    verifier = GateVerifier(signing_config, lab.config.bd.workspace)
     monkeypatch.setattr(
-        main_module, "_composition", lambda args: _scoped(lab, verifier, args.stage_id)
+        main_module, "_composition", lambda args: lab.scope(args.stage_id, EPIC)
     )
     # The ADAPTER is built by production's own wiring (S5 fix): it reads
     # `config.tracker`, it always holds the ledger's outbox, and the only thing
@@ -127,34 +123,6 @@ def _lab(
     )
     monkeypatch.setattr(Foreman, "run", _drive(lab))
     return lab
-
-
-def _scoped(lab: ForemanLab, verifier: GateVerifier, stage: str) -> Composition:
-    """The composition production builds per invocation: scoped to ONE task.
-
-    The lab wires every root it creates to the one synthetic task its driver
-    owns, which is enough while a single contractor stage runs. Two stages of
-    one epic — and an abandon with a blocked sibling IS two — need what
-    production has: `--task` decides the ledger rows, the minted root ids
-    `<task>-a<n>` and the locator (§3.7, D16). Sharing one task instead makes
-    the second stage's root collide with the first stage's, and files the
-    first stage's roots where `wf phase abandon` cannot find them.
-    """
-    lab.store = WorkflowStore(
-        LedgerStore(lab.ledger, task_id=stage, epic_id=EPIC),
-        verifier,
-        claims=LedgerClaims(lab.ledger),
-    )
-    lab.composition = replace(
-        lab.composition,
-        store=lab.store,
-        task_id=stage,
-        epic_id=EPIC,
-    )
-    # The inline spawner writes the activation's records through the
-    # composition it was bound to, so it follows the task too.
-    lab.spawner.bind(lab.composition)
-    return lab.composition
 
 
 def _drive(lab: ForemanLab) -> Callable[..., RunReport]:
@@ -406,10 +374,11 @@ def test_a_retry_admits_from_the_snapshot_without_reading_the_tracker(
     admitted from the snapshot the first prepare wrote, so no bd command over
     the whole retry reads anything the record already holds.
 
-    The one command left is §3.4's claim, and it is a READ: the claim is a
-    desired state, the bead is already held by this actor, so the adapter
-    writes nothing. That is what makes re-admission cheap on bd now that bd
-    declares `CLAIM`.
+    The two commands left are both READS: R12's quiesce probe, which asks the
+    one tracker that ever held a contractor record whether this task still has
+    one there, and §3.4's claim — a desired state the bead is already in, so
+    the adapter writes nothing. That is what makes re-admission cheap on bd now
+    that bd declares `CLAIM`.
     """
     lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
     first = _admit_only(lab, STAGE)
@@ -418,7 +387,7 @@ def test_a_retry_admits_from_the_snapshot_without_reading_the_tracker(
 
     retried = _admit_only(lab, STAGE, "--retry")
 
-    assert [name for name, _ in lab.fake_bd.calls[served:]] == ["show"]
+    assert [name for name, _ in lab.fake_bd.calls[served:]] == ["show", "show"]
     assert (retried.attempt, retried.state) == (2, ContractorState.ADMITTED)
     assert retried.previous_attempts == (first.instance_key,)
     held = lab.records.read(STAGE)

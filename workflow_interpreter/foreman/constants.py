@@ -137,7 +137,16 @@ GATE_NONCE_PLACEHOLDER: Final[str] = "replace-with-a-unique-nonce"
 `scripts/approve-gate.sh` substitutes exactly this string, so the token is
 shared rather than spelled twice: a payload whose nonce is still the
 placeholder is refused as a replay by the second gate that sees it."""
-MAX_TRANSCRIPT_BYTES: Final[int] = 4096
+MAX_TRANSCRIPT_BYTES: Final[int] = 6144
+"""The byte budget one JSON report is rendered into before `_emit` compacts it.
+
+Raised from 4096 by the store restructure: a ledger row id states its task,
+attempt, child, node and round (`cr-lab.1-a1-c2.decide.r1.5`) where a bd id was
+four opaque characters, and a coordinated `status` carries roughly thirty of
+them. At the old budget an ORDINARY doubt-boundary status collapsed to
+`{"truncated": true}`, which costs the operator the open gate's inbox path and
+template — the one thing `status` exists to hand them.
+"""
 MAX_GATE_DIFF_BYTES: Final[int] = 1024
 """A rendered gate diff is bounded HERE, not by `_emit`: `_emit` truncates only
 its `tail` and `stalled` fields and otherwise drops the whole report for

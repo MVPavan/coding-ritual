@@ -93,7 +93,7 @@ def test_policy_rejects_missing_duplicate_failed_and_wrong_command_results(
 
 
 def test_admission_requires_policy_before_writes(
-    fake_bd, fake_client, tmp_path: Path
+    fake_bd, fake_bd_client, tmp_path: Path
 ) -> None:
     from tests.test_contractor import (
         EPIC_ID,
@@ -107,16 +107,18 @@ def test_admission_requires_policy_before_writes(
     repo = make_repo(tmp_path)
     base = head_of(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
+    records = MemoryContractorRecords()
+    roots = _Roots(repo, base)
     admission = PhaseAdmission(
-        bd_adapter(
-            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
-        ),
-        _Roots(fake_client, repo, base),
+        bd_adapter(fake_bd_client, closure=NoLedgerClosure(), records=records),
+        roots,
         lambda: base,
     )
     with pytest.raises(ValueError, match="policy"):
         admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
-    assert "contractor" not in fake_bd.rows[STAGE_ID]["metadata"]
+    # Nothing was written anywhere: no record, and no root for one to point at.
+    assert records.read(STAGE_ID) is None
+    assert roots.creates == 0
 
 
 def test_duplicate_policy_names_and_missing_program_refuse(tmp_path: Path) -> None:

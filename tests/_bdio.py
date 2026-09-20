@@ -386,6 +386,7 @@ class StoreWrites:
     def __init__(self, store: LedgerStore) -> None:
         self._counts: dict[str, int] = dict.fromkeys(self._METHODS, 0)
         self._crash: dict[str, int] = {}
+        self._lost: dict[str, int] = {}
         self._pause: dict[str, tuple[int, Callable[[], None]]] = {}
         self.created: list[str] = []
         """Row ids in the order this store minted them — what "the last two
@@ -401,6 +402,14 @@ class StoreWrites:
     def crash_on(self, kind: str, occurrence: int) -> None:
         """Die instead of serving the Nth write of one shape from here."""
         self._crash[kind] = self._counts[kind] + occurrence
+
+    def lose_response_on(self, kind: str, occurrence: int) -> None:
+        """Serve the Nth write of one shape durably, then lose its answer.
+
+        The other half of `crash_on`: the row IS committed and the caller never
+        learns it, which is the window every §3.3 natural key exists to close.
+        """
+        self._lost[kind] = self._counts[kind] + occurrence
 
     def pause_before(
         self, kind: str, callback: Callable[[], None], *, occurrence: int = 1
@@ -431,6 +440,9 @@ class StoreWrites:
             written = original(*args, **kwargs)
             if kind == CREATE and isinstance(written, StoreRow):
                 self.created.append(written.id)
+            if self._lost.get(kind) == self._counts[kind]:
+                del self._lost[kind]
+                raise InjectedCrash(f"ledger {kind} answer lost after persistence")
             return written
 
         return call
