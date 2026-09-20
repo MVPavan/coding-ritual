@@ -70,6 +70,8 @@ if TYPE_CHECKING:  # pragma: no cover - imported for typing and at call time onl
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 STATUS_CLOSED: Final[str] = "closed"
+STATUS_OPEN: Final[str] = "open"
+STATUS_IN_PROGRESS: Final[str] = "in_progress"
 
 _MSG_WORKSPACE_RELATIVE: Final[str] = (
     "workspace must be an absolute path, got {workspace}"
@@ -92,6 +94,9 @@ _MSG_PAYLOAD_MANGLED: Final[str] = (
 _MSG_NOT_CLOSED: Final[str] = "status is {status!r} after close"
 _MSG_LABEL_ABSENT: Final[str] = "label {label!r} absent after adding it"
 _MSG_LABEL_PRESENT: Final[str] = "label {label!r} still present after removing it"
+_MSG_ASSIGNEE_MANGLED: Final[str] = (
+    "assignee written as {written!r}, read back as {stored!r}"
+)
 _MSG_REASON_MANGLED: Final[str] = (
     "close reason written as {written!r}, read back as {stored!r}"
 )
@@ -110,6 +115,7 @@ SURFACE_METADATA: Final[str] = "metadata"
 SURFACE_EVENT_PAYLOAD: Final[str] = "event-payload"
 SURFACE_CLOSE: Final[str] = "close"
 SURFACE_LABEL: Final[str] = "label"
+SURFACE_ASSIGNEE: Final[str] = "assignee"
 
 
 class BdSubcommand(StrEnum):
@@ -147,6 +153,8 @@ class BdFlag(StrEnum):
     PARENT = "--parent"
     CLAIM = "--claim"
     REASON = "--reason"
+    ASSIGNEE = "--assignee"
+    STATUS = "--status"
 
 
 ALLOWED_FLAGS: Final[frozenset[str]] = frozenset(flag.value for flag in BdFlag)
@@ -628,6 +636,36 @@ class BdClient:
     def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
         """Remove one derived label and verify it is gone (§3.2 projection)."""
         return self._write_label(bead_id, label, BdFlag.REMOVE_LABEL, present=False)
+
+    def _write_assignee(self, bead_id: str, assignee: str) -> BeadRecord:
+        """Set (or, with an empty string, clear) who holds a row (§3.4).
+
+        `bd update --assignee` and not `--claim`: `--claim` binds the row to
+        bd's OWN user identity and refuses anything else, while the engine's
+        claim is held by its configured actor — the identity a second session
+        reads. So the actor is written explicitly, with the status bd's own
+        claim would have set, and read back like every other write here.
+        """
+        status = STATUS_IN_PROGRESS if assignee else STATUS_OPEN
+        self._run(
+            self._argv(
+                BdSubcommand.UPDATE,
+                bead_id,
+                BdFlag.ASSIGNEE.value,
+                assignee,
+                BdFlag.STATUS.value,
+                status,
+            )
+        )
+        record = self.show(bead_id)
+        if (record.assignee or "") != assignee:
+            raise LossyWriteError(
+                bead_id,
+                SURFACE_ASSIGNEE,
+                _MSG_ASSIGNEE_MANGLED.format(written=assignee, stored=record.assignee),
+            )
+        _LOG.debug("bd.update.assignee", bead_id=bead_id, assignee=assignee)
+        return record
 
     def _write_label(
         self, bead_id: str, label: str, flag: BdFlag, *, present: bool

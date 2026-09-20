@@ -21,7 +21,7 @@ from typing import Final
 
 import pytest
 
-from tests._fake_bd import InjectedCrash
+from tests._fake_bd import FakeBd, InjectedCrash
 from tests._foreman import LAB_TASK, ForemanLab
 from tests.test_contractor_cli import _entry
 from tests.test_contractor_in_ledger import (
@@ -600,6 +600,49 @@ def test_the_adapter_keeps_no_bd_read_beside_the_port() -> None:
     ]
 
     assert absent == []
+
+
+@pytest.mark.acceptance
+def test_the_bd_adapter_holds_one_claim_at_a_time(
+    fake_bd: FakeBd, fake_client: BdClient
+) -> None:
+    """§3.4, R3 on the tracker every checkout actually runs.
+
+    bd has `assignee`, so the claim is a desired state there like anywhere
+    else: claimed by us is `Applied` however often it is re-applied, claimed by
+    somebody else is a `Conflict` that carries what was observed — which is
+    what `_refuse_conflicted_claim` reads — and the release hands it back.
+    Without this, claim-first, `_release_stranded` and external-close detection
+    were all dead code on bd.
+    """
+    fake_bd.rows[STAGE] = {
+        "id": STAGE,
+        "title": "stage",
+        "status": "open",
+        "issue_type": "task",
+        "metadata": {},
+        "labels": [],
+    }
+    tracker = BdTracker(fake_client)
+    ref = TrackerRef(kind=TrackerKind.BD, ref=STAGE)
+
+    assert TrackerCapability.CLAIM in tracker.capabilities
+    for _ in range(2):
+        assert isinstance(tracker.apply(Claim(ref=ref, actor=ACTOR)), Applied)
+    assert fake_bd.rows[STAGE]["assignee"] == ACTOR
+    assert fake_bd.rows[STAGE]["status"] == "in_progress"
+
+    disputed = tracker.apply(Claim(ref=ref, actor="somebody-else"))
+
+    assert isinstance(disputed, Conflict)
+    assert disputed.observed is not None and disputed.observed.claimed_by == ACTOR
+    assert fake_bd.rows[STAGE]["assignee"] == ACTOR
+
+    released = tracker.apply(Claim(ref=ref, actor=ACTOR, held=False))
+
+    assert isinstance(released, Applied)
+    assert not fake_bd.rows[STAGE]["assignee"]
+    assert fake_bd.rows[STAGE]["status"] == "open"
 
 
 class _RacingTracker(FileTracker):

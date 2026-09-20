@@ -5,12 +5,20 @@ client's record-store half, and what survives is exactly the tracker traffic
 this adapter issues. Wrapping it now is what lets S5 move the contractor onto
 the port without moving bd at the same time.
 
-What bd does NOT declare is `CLAIM`. This transport has no claim primitive —
-`bd` says open, in_progress or closed, and nothing about who holds a row — and
-declaring the capability anyway would mean emulating one with a label that
-nothing else in bd respects. Admissions on bd serialise on the ledger's own
-claim (R11) and on `_refuse_other_admission`; §3.4's tracker claim is issued by
-the trackers that can actually answer it.
+bd DOES answer the claim, and this adapter used to say it did not. The
+docstring here claimed bd "says open, in_progress or closed, and nothing about
+who holds a row"; that was simply false — `bd show --json` carries `assignee`
+and `bd update` writes it (probed on bd 1.1.0). What was actually missing was
+local: `BeadRecord` did not carry the field. With `CLAIM` undeclared, §3.4's
+claim-first, `_release_stranded`, `_refuse_conflicted_claim` and the
+external-close detection were all dead on the one tracker every checkout runs.
+
+The write is `--assignee <actor>` rather than bd's own `--claim`, because
+`--claim` binds the row to bd's user identity and refuses a row assigned to
+anyone else — including this engine's actor. Exclusion is still ledger-side
+(R11 plus `_refuse_other_admission`): read-then-write across a subprocess is
+not atomic, and the claim here is the DESIRED STATE the port promises, not a
+mutex.
 """
 
 from __future__ import annotations
@@ -31,6 +39,7 @@ from workflow_interpreter.tracker.intents import (
     Applied,
     Claim,
     Close,
+    Conflict,
     SetFlag,
     TrackerIntent,
     TrackerResult,
@@ -42,12 +51,18 @@ BD_CAPABILITIES: Final[frozenset[TrackerCapability]] = frozenset(
     {
         TrackerCapability.CHILDREN,
         TrackerCapability.BLOCKERS,
+        TrackerCapability.CLAIM,
         TrackerCapability.CLOSE,
         TrackerCapability.FLAG,
     }
 )
-"""No `CLAIM` (see the module docstring) and no `ANNOTATE`: annotation would be
-a metadata merge, and §0.1 keeps bd metadata for the engine's own carriers."""
+"""No `ANNOTATE`: annotation would be a metadata merge, and §0.1 keeps bd
+metadata for the engine's own carriers."""
+
+_NOBODY: Final[str] = ""
+"""What `--assignee` is given to clear the field (probed)."""
+_MSG_CLOSED: Final[str] = "bead {ref!r} is closed"
+_MSG_HELD: Final[str] = "bead {ref!r} is assigned to {holder!r}"
 
 _STATUS: Final[dict[str, WorkItemStatus]] = {
     "open": WorkItemStatus.OPEN,
@@ -133,13 +148,47 @@ class BdTracker:
                 else self._client._remove_label(intent.ref.ref, intent.flag)
             )
             return Applied(observed=_item(written))
-        # `Claim` and `Annotate` are undeclared capabilities on bd, so they are
-        # no-ops rather than refusals: a caller that checked `capabilities`
-        # never sends one, and one that did not must not have its landing
-        # failed by a mirror this transport cannot write.
-        if isinstance(intent, Claim | Annotate):
+        if isinstance(intent, Claim):
+            return self._claim(intent)
+        # `Annotate` is an undeclared capability on bd, so it is a no-op rather
+        # than a refusal: a caller that checked `capabilities` never sends one,
+        # and one that did not must not have its landing failed by a mirror
+        # this transport cannot write.
+        if isinstance(intent, Annotate):
             return Applied(observed=self.get(intent.ref))
         raise AssertionError(intent)  # pragma: no cover - the union is closed
+
+    def _claim(self, intent: Claim) -> TrackerResult:
+        """Hold or hand back one bead for one actor, refusing somebody else's.
+
+        A desired state, so re-applying it is one claim and not two writes:
+        a bead this actor already holds is `Applied` without touching bd. A
+        CLOSED bead conflicts whichever way the claim points, and the observed
+        item travels with the refusal — §3.8's abandoned-external detection is
+        exactly "the conflict said closed".
+        """
+        held = _item(self._client.show(intent.ref.ref))
+        if held.status is WorkItemStatus.CLOSED:
+            return Conflict(reason=_MSG_CLOSED.format(ref=held.ref), observed=held)
+        if not intent.held:
+            if held.claimed_by is None:
+                return Applied(observed=held)
+            return Applied(
+                observed=_item(self._client._write_assignee(intent.ref.ref, _NOBODY))
+            )
+        if held.claimed_by not in (None, intent.actor):
+            return Conflict(
+                reason=_MSG_HELD.format(ref=held.ref, holder=held.claimed_by),
+                observed=held,
+            )
+        if (
+            held.claimed_by == intent.actor
+            and held.status is WorkItemStatus.IN_PROGRESS
+        ):
+            return Applied(observed=held)
+        return Applied(
+            observed=_item(self._client._write_assignee(intent.ref.ref, intent.actor))
+        )
 
 
 def _item(bead: BeadRecord) -> WorkItem:
@@ -157,4 +206,5 @@ def _item(bead: BeadRecord) -> WorkItem:
         parent=bead.parent,
         flags=frozenset(bead.labels),
         close_reason=bead.close_reason,
+        claimed_by=bead.assignee or None,
     )

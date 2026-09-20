@@ -219,6 +219,9 @@ class BeadRecord(BaseModel):
     description: str | None = None
     status: str
     issue_type: str
+    assignee: str | None = None
+    """Who holds the row — bd's own field, absent from `--json` when nobody
+    does (probed on bd 1.1.0). It is the tracker port's `claimed_by` (§3.4)."""
     labels: tuple[str, ...] = ()
     metadata: Metadata = Field(default_factory=dict)
     payload: str | None = None

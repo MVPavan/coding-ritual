@@ -52,6 +52,8 @@ _VALUE_FLAGS: Final[frozenset[str]] = frozenset(
         "--parent",
         "--add-label",
         "--remove-label",
+        "--assignee",
+        "--status",
     }
 )
 _BOOL_FLAGS: Final[frozenset[str]] = frozenset(
@@ -100,6 +102,7 @@ class FakeBd:
         self._pauses: list[tuple[str, Callable[[], None]]] = []
         self._seen: dict[str, int] = {}
         self._refusing = False
+        self._refuse_after: int | None = None
 
     # -- scheduling controls ---------------------------------------------
 
@@ -120,6 +123,15 @@ class FakeBd:
     def pause_before(self, subcommand: str, callback: Callable[[], None]) -> None:
         """Run `callback` once, immediately before the next `subcommand`."""
         self._pauses.append((subcommand, callback))
+
+    def refuse_after(self, commands: int) -> None:
+        """Refuse everything once this many MORE commands have been served.
+
+        The window §3.4's claim opened: a claim-capable tracker has to be
+        reachable for the admit itself, so "the tracker is gone" has to start
+        after it rather than before, and the count is the claim's own cost.
+        """
+        self._refuse_after = len(self.calls) + commands
 
     def refuse_everything(self) -> None:
         """Make every later command fail the way an unreachable tracker does.
@@ -153,6 +165,8 @@ class FakeBd:
             else {}
         )
         self._seen[subcommand] = self._seen.get(subcommand, 0) + 1
+        if self._refuse_after is not None and len(self.calls) > self._refuse_after:
+            self._refusing = True
         if self._refusing:
             raise InjectedCrash(f"bd {subcommand} cannot reach the tracker")
         if (subcommand, self._seen[subcommand]) in self._crashes:
@@ -197,6 +211,7 @@ class FakeBd:
             "ephemeral": "--ephemeral" in args,
             "wisp_type": flags.get("--wisp-type"),
             "labels": [],
+            "assignee": None,
         }
         return bead_id
 
@@ -215,6 +230,13 @@ class FakeBd:
             labels.remove(removed)
         if "--claim" in flags:
             row["status"] = "in_progress"
+        # Probed on bd 1.1.0: `--assignee ""` clears the field, and `--status`
+        # is written as given. `--claim` is bd's own atomic pair of the two,
+        # bound to bd's user identity rather than to the engine's actor.
+        if "--assignee" in flags:
+            row["assignee"] = flags["--assignee"]
+        if "--status" in flags:
+            row["status"] = flags["--status"]
         return ""
 
     def _close(self, args: list[str]) -> str:

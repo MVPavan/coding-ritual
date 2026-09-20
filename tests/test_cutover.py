@@ -503,6 +503,7 @@ def _admit_successor(
         lambda: lab.git.head_commit(cwd=lab.repo),
         verification_policy=successor.verification_policy,
         root_backend=lab.composition.config.store,
+        actor=lab.config.actor,
     ).admit_successor(
         successor.epic_id,
         successor.stage_id,

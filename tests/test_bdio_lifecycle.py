@@ -53,6 +53,10 @@ from workflow_interpreter.ledger.reconcile import ATTENTION_LABEL
 from workflow_interpreter.schema.models import Outcome
 
 LABEL_FLAGS: Final[frozenset[str]] = frozenset({"--add-label", "--remove-label"})
+CLAIM_FLAGS: Final[frozenset[str]] = frozenset({"--assignee", "--status"})
+"""Store-restructure §3.4's addition: who holds a bead, and the status bd's own
+`--claim` would have set. Not `--claim` itself, which binds the row to bd's user
+identity rather than to the engine's configured actor."""
 PRE_LEDGER_FLAGS: Final[frozenset[str]] = frozenset(
     {
         "-C",
@@ -166,16 +170,18 @@ def test_the_public_package_exports_no_transport() -> None:
 
 
 def test_the_labels_are_the_one_addition_to_bds_closed_argument_set() -> None:
-    """Run-ledger §3.2.3, recorded: the projection's two flags, and no more.
+    """Run-ledger §3.2.3 and store-restructure §3.4, recorded: four flags.
 
-    The addition is narrow on purpose. It carries `wf:attention`, the single
-    derived label a ledger-backed run projects onto its task bead — not a new
-    subcommand, and specifically not `bd human`, whose dismiss CLOSES the
-    issue. The subcommand set is unchanged, which is what keeps `bd delete`,
-    `bd edit`, `bd gate` and `bd audit` structurally unconstructible.
+    The additions are narrow on purpose. The first pair carries `wf:attention`,
+    the single derived label a ledger-backed run projects onto its task bead —
+    not a new subcommand, and specifically not `bd human`, whose dismiss CLOSES
+    the issue. The second pair is the tracker claim: who holds the bead, so
+    that `bd ready` is exact for a second session (R3). The subcommand set is
+    unchanged, which is what keeps `bd delete`, `bd edit`, `bd gate` and
+    `bd audit` structurally unconstructible.
     """
-    assert LABEL_FLAGS <= ALLOWED_FLAGS
-    assert ALLOWED_FLAGS - LABEL_FLAGS == PRE_LEDGER_FLAGS
+    assert LABEL_FLAGS | CLAIM_FLAGS <= ALLOWED_FLAGS
+    assert ALLOWED_FLAGS - LABEL_FLAGS - CLAIM_FLAGS == PRE_LEDGER_FLAGS
     assert {subcommand.value for subcommand in BdSubcommand} == PRE_LEDGER_SUBCOMMANDS
 
 

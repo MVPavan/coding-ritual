@@ -58,6 +58,10 @@ EPIC: Final[str] = "phase"
 STAGE: Final[str] = "a"
 SIBLING: Final[str] = "b"
 STAGE_BRIEF: Final[str] = "the stage brief, read once and snapshotted"
+_CLAIM_WINDOW_COMMANDS: Final[int] = 7
+"""What §3.4 costs on bd when the last attempt crashed inside the claim window:
+the stranded claim is detected and RELEASED (read, read, `--assignee ""`,
+read-back), then the fresh claim is taken (read, `--assignee`, read-back)."""
 PROOF_SCRIPT: Final[str] = (
     "from pathlib import Path; assert Path('src/feature.py').is_file()"
 )
@@ -276,23 +280,30 @@ def _abandon(lab: ForemanLab, stage: str) -> tuple[int, dict[str, object]]:
 def test_everything_after_prepare_runs_with_the_tracker_gone(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
 ) -> None:
-    """S4's headline (R4): prepare is the last tracker read a task needs.
+    """S4's headline (R4), as §3.4 leaves it: the CLAIM is the last contact.
 
-    The tracker is killed on the PREPARED record, so the admit that follows,
-    the run, the landing, the export pin and the archive all have to be
-    answered from the ledger. The close is excluded on purpose: it still
-    mirrors into the tracker directly, and the only call attempted after the
-    tracker died is asserted to be exactly that one — which is the call S5's
-    outbox removes.
+    The tracker is killed on the PREPARED record — one window later than it
+    used to be. bd declares `CLAIM` now, and R3 says an unanswered claim
+    refuses admission, so the tracker HAS to answer the crash repair and the
+    fresh claim; that is the price of `bd ready` being exact for a second
+    session, and it is the only thing R4's "admission runs with the tracker
+    unreachable" gives up.
+
+    Everything after it is unchanged: the run, the landing, the export pin and
+    the archive are answered from the ledger alone, and the only call attempted
+    once the tracker died is the close mirror's read, which leaves an outbox
+    row rather than a durable fact.
     """
     lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
     _prepare_only(lab, STAGE)
     served = len(lab.fake_bd.calls)
-    lab.fake_bd.refuse_everything()
+    lab.fake_bd.refuse_after(_CLAIM_WINDOW_COMMANDS)
 
     result = _entry(lab, STAGE)
 
-    assert {name for name, _ in lab.fake_bd.calls[served:]} == {"show"}
+    after = lab.fake_bd.calls[served + _CLAIM_WINDOW_COMMANDS :]
+    assert lab.fake_bd.rows[STAGE]["assignee"] == lab.config.actor
+    assert {name for name, _ in after} == {"show"}
     assert result.exit_code == 1
     assert "InjectedCrash" in result.report["diagnostic"]
     # Admitted, run and landed with nothing but the ledger and the checkout.
@@ -402,8 +413,13 @@ def test_a_retry_admits_from_the_snapshot_without_reading_the_tracker(
 
     The retry PREDICATE is stubbed out — `test_foreman_main` owns it — because
     what is under test is the admission it guards: attempt two is prepared and
-    admitted from the snapshot the first prepare wrote, and the count of bd
-    commands over the whole retry is zero.
+    admitted from the snapshot the first prepare wrote, so no bd command over
+    the whole retry reads anything the record already holds.
+
+    The one command left is §3.4's claim, and it is a READ: the claim is a
+    desired state, the bead is already held by this actor, so the adapter
+    writes nothing. That is what makes re-admission cheap on bd now that bd
+    declares `CLAIM`.
     """
     lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
     first = _admit_only(lab, STAGE)
@@ -412,7 +428,7 @@ def test_a_retry_admits_from_the_snapshot_without_reading_the_tracker(
 
     retried = _admit_only(lab, STAGE, "--retry")
 
-    assert lab.fake_bd.calls[served:] == []
+    assert [name for name, _ in lab.fake_bd.calls[served:]] == ["show"]
     assert (retried.attempt, retried.state) == (2, ContractorState.ADMITTED)
     assert retried.previous_attempts == (first.instance_key,)
     held = lab.records.read(STAGE)
