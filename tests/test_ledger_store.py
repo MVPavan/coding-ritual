@@ -27,7 +27,14 @@ import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
 from tests._gates import ship_gate_request
-from tests._ledger import GIT_ENTRY, TASK, config_file, ledger_store, repository
+from tests._ledger import (
+    GIT_ENTRY,
+    TASK,
+    config_file,
+    ledger_store,
+    repository,
+    seed_contractor_record,
+)
 from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.ledger import fence as fence_module
 from workflow_interpreter.ledger.__main__ import main as ledger_main
@@ -39,6 +46,7 @@ from workflow_interpreter.ledger.constants import (
     ExportKey,
     LedgerTable,
     MetaKey,
+    TaskState,
 )
 from workflow_interpreter.ledger.database import (
     LedgerDatabase,
@@ -883,10 +891,17 @@ class _HolderContext:
 
 
 def test_the_cli_exports_a_task_and_imports_it_back(tmp_path: Path) -> None:
-    """`wf ledger export <task>` then `wf ledger import`, over one config."""
+    """`wf ledger export <task>` then `wf ledger import`, over one config.
+
+    The task is LANDED first because that is the only state the committed
+    export path may be written in (§3.6, S7 review finding 1): a file written
+    while the task is still in flight is older than every checkpoint that
+    follows it, and the import prefers the file.
+    """
     config, repo_root, wrapper_root = config_file(tmp_path)
     with open_ledger(repo_root, wrapper_root) as database:
         _seeded(database)
+        seed_contractor_record(database, TASK, state=TaskState.LANDED.value)
 
     assert ledger_main(["--config", str(config), "export", TASK]) == 0
     assert export_path(repo_root, TASK).is_file()

@@ -33,7 +33,11 @@ from workflow_interpreter.ledger.constants import (
     EXPORT_SUFFIX,
 )
 from workflow_interpreter.ledger.database import open_ledger
-from workflow_interpreter.ledger.export import import_exports, pin_export, write_export
+from workflow_interpreter.ledger.export import (
+    import_exports,
+    pin_export,
+    write_landed_export,
+)
 from workflow_interpreter.ledger.paths import export_dir, ledger_path
 from workflow_interpreter.ledger.reconcile import ATTENTION_LABEL, AttentionReconciler
 from workflow_interpreter.ledger.reverify import TrustAnchor, verify_export
@@ -336,7 +340,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         wrapper_root = config.wrapper_root
         if args.command == COMMAND_EXPORT:
             with open_ledger(repo_root, wrapper_root) as database:
-                path = write_export(database, args.task_id)
+                path = write_landed_export(database, args.task_id)
             sys.stdout.write(_MSG_EXPORTED.format(task_id=args.task_id, path=path))
             return EXIT_OK
         if args.command == COMMAND_PIN_EXPORT:

@@ -72,7 +72,10 @@ unshipped task.
 ## Export, rebuild, verify, archive — `python -m workflow_interpreter.ledger --config C`
 
 - **`export <task>`** writes `.wf/export/<task>.jsonl` for the orchestrator to commit;
-  `ExportPin` runs before `adapter.close`. Task facts only: `export_oid`/`exported_at`
+  `ExportPin` runs before `adapter.close`. It refuses a task that has not **landed**,
+  because a rebuild prefers that path over every checkpoint: a file written mid-run is
+  older than the activation closes that follow it, and `import` clears before it refills.
+  Task facts only: `export_oid`/`exported_at`
   are elided (`ELIDED_TASK_COLUMNS`) as facts about the *file*, and the header pins
   `repo_id` — a UUID in the committed `.wf/repo-id` — so an export imports into a clone
   at any path. Every table is in `EXPORT_TABLES` or `NON_EXPORTED` with a stated reason,
@@ -106,7 +109,8 @@ anchors bring a task back, and `import` prefers them in this order:
 | checkpoint | `refs/wf/checkpoints/<task>` | at **every activation close** (`ledger/checkpoint.py`) | this checkout only — local, never committed, never pushed |
 
 The close anchor wins wherever one exists, because it is written after the last
-activation close and is therefore the newer. Same emitter, same bytes, same D3 rules;
+activation close and is therefore the newer — which holds only because `export`
+refuses a task that has not landed, so no in-flight file can reach that path. Same emitter, same bytes, same D3 rules;
 only the namespace differs — and that is what keeps them apart, since `anchor_oid`
 cannot see the checkpoint one. A task carrying nothing but checkpoints is **never**
 closed, and the `tasks.export_oid` latch is elided from every export, so no rebuild sets

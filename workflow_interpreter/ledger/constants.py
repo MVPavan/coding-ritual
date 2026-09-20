@@ -396,6 +396,12 @@ MSG_PIN_NOT_LANDED: Final[str] = (
     "pinned export is what `closed()` latches on, so pinning one now would "
     "close a task that is still running (§3.5)"
 )
+MSG_EXPORT_NOT_LANDED: Final[str] = (
+    "task {task_id!r} has not landed — its recorded state is {state} — and the "
+    "committed export path is what a rebuild prefers over every later "
+    "checkpoint, so writing one now would let an import rebuild this task "
+    "backwards in time; the checkpoints already anchor it (§3.6, §3.9)"
+)
 MSG_PIN_TASK_MISMATCH: Final[str] = (
     "{path} declares task {declared!r}, and the pin is being recorded for "
     "{task_id!r}; a pin names the export of the task it is recorded on (§3.6)"

@@ -20,10 +20,11 @@ closed(task):
 
 The LANDED gate comes FIRST, above the latch, and both ends of the latch hold
 it: `ledger.export.pin_export` refuses a task that has not landed, and a latch
-found on one is not an answer this module will give. `wf ledger export` and
-`wf ledger pin-export` are operator commands that work on a task in any state,
-so without the gate an in-flight task could be latched closed forever — and its
-landing would then skip `adapter.land` and the real pin.
+found on one is not an answer this module will give. `wf ledger pin-export` is
+an operator command that can be aimed at any task at all, so without the gate
+an in-flight task could be latched closed forever — and its landing would then
+skip `adapter.land` and the real pin. `wf ledger export` holds the same gate,
+for the rebuild's sake rather than the latch's (§3.9, `write_landed_export`).
 
 The latch is what makes it MONOTONIC, and monotonicity is the whole point. A
 live re-export is a function of mutable state — the header carries the schema

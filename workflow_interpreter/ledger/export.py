@@ -49,6 +49,7 @@ from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_COLUMN,
     MSG_EXPORT_GATE_TASK,
     MSG_EXPORT_HEADER,
+    MSG_EXPORT_NOT_LANDED,
     MSG_EXPORT_REPO_ID_MISMATCH,
     MSG_EXPORT_ROW_KIND,
     MSG_EXPORT_TABLE,
@@ -188,8 +189,42 @@ def export_task(database: LedgerDatabase, task_id: str) -> bytes:
 
 def write_export(database: LedgerDatabase, task_id: str) -> Path:
     """Write `<repo>/.wf/export/<task>.jsonl`, overwriting, never appending."""
+    return _write_export_file(
+        database.repo_root, task_id, export_task(database, task_id)
+    )
+
+
+def write_landed_export(database: LedgerDatabase, task_id: str) -> Path:
+    """`wf ledger export`'s write: the committed path, for a LANDED task only.
+
+    The LANDED gate is `pin_export`'s, and it is here for the rebuild's sake
+    (§3.9): `checkpoint.rebuild_sources` prefers the committed path by NAME,
+    and that is the newer answer only while every file on it was written at
+    landing — after the last activation close. An operator export of a task
+    still in flight broke that, and an import CLEARS before it refills, so the
+    activations that closed after the file was written were lost for good.
+
+    The engine's own landing writes through `write_export` instead, because it
+    has already recorded LANDED on the same `contractor_records` row
+    (`contractor/journal.py`) and re-reading that state here would make the
+    export's own ordering depend on a second read of it. The one file a
+    non-landed task may still leave on that path is therefore the one a crash
+    between `write_export` and the pin leaves, which `pin-export` recovers.
+    """
     payload = export_task(database, task_id)
-    path = export_path(database.repo_root, task_id)
+    state = task_state(database, task_id)
+    if state is not TaskState.LANDED:
+        raise LedgerExportError(
+            MSG_EXPORT_NOT_LANDED.format(
+                task_id=task_id, state="nothing" if state is None else state.value
+            )
+        )
+    return _write_export_file(database.repo_root, task_id, payload)
+
+
+def _write_export_file(repo_root: Path, task_id: str, payload: bytes) -> Path:
+    """Put one task's export bytes on the committed path they belong to."""
+    path = export_path(repo_root, task_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
     _LOG.info("wf.ledger.exported", task_id=task_id, path=str(path), bytes=len(payload))

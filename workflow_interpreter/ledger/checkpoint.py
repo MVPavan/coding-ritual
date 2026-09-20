@@ -27,9 +27,10 @@ a flag:
   orchestrator could commit as a close.
 
 A rebuild reads each task from the newest anchor it has, and that is the close
-anchor whenever one exists: the close export is written at landing, AFTER the
-last activation close, so preferring it by name is the same answer a timestamp
-would give — without trusting a timestamp.
+anchor whenever one exists: the committed export path may only be written for
+a LANDED task, so every file on it is written AFTER the last activation close
+and preferring it by name is the same answer a timestamp would give — without
+trusting a timestamp.
 
 What a checkpoint does NOT carry is what an export does not carry: `claims`,
 `tracker_outbox`, `sessions`, `artifacts` and `usage` are outside
@@ -162,9 +163,13 @@ def rebuild_sources(
     """The files a rebuild reads: each task's CLOSE anchor, else its checkpoint.
 
     The close export wins wherever one is on disk, and that is the newest
-    answer rather than merely the preferred one: it is written at landing,
-    after the last activation close, so a checkpoint can only ever be the
-    older of the two. Its FILE rather than its anchor, deliberately — a crash
+    answer rather than merely the preferred one: NOTHING may write that path
+    for a task that has not landed (`export.write_landed_export`), so every
+    file on it was written at landing — after the last activation close — and
+    a checkpoint can only ever be the older of the two. Before that gate, an
+    operator's `wf ledger export` of a running task left a file the import
+    preferred over every later checkpoint, and the import clears before it
+    refills (S7 review, finding 1). Its FILE rather than its anchor — a crash
     between `write_export` and the pin leaves the whole record sitting in the
     checkout unanchored (§3.6), and a rebuild that preferred the checkpoint
     there would drop the task back below LANDED and leave `pin-export`, the
