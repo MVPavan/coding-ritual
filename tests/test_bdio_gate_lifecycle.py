@@ -14,12 +14,13 @@ import hashlib
 import pytest
 
 from tests._bdio import (
+    CLOSE,
     IMPLEMENT,
     REGION,
     RESOLVED_CONFIG,
     REVIEW,
     TRIAGE,
-    MetadataWrites,
+    StoreWrites,
     entry_request,
     load_definition,
     make_root,
@@ -55,11 +56,9 @@ from workflow_interpreter.bdio.wire import (
     GateReason,
     GateState,
     ResolvedSetting,
-    metadata_dict,
 )
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.tracker.bd_transport import BdClient
 
 
 @pytest.fixture(scope="session")
@@ -116,23 +115,6 @@ def test_re_finding_an_open_gate_with_the_same_request_is_idempotent(
         root_id, ship_gate_request(str(gate.metadata.source_activation_id))
     )
     assert again.gate_id == gate.gate_id
-
-
-def test_a_gate_key_with_race_residue_re_finds_the_same_bead_every_tick(
-    gate_store: WorkflowStore, fake_client: BdClient, definition: GraphDefinition
-) -> None:
-    # Two beads under one gate key is residue; whichever bd lists first is not
-    # a rule. Lowest id is, exactly as for roots and activations.
-    root_id, gate = open_ship_gate(gate_store, definition)
-    duplicate = fake_client._create_bead(
-        title="wf gate residue",
-        metadata=metadata_dict(gate.metadata.model_copy(update={"seq": 99})),
-    )
-
-    found = gate_store.reads.find_gate(root_id, gate.metadata.gate_key)
-
-    assert found is not None
-    assert found.gate_id == min(gate.gate_id, duplicate.id)
 
 
 # --- §10.3 halt gates: one open at a time, never one per instance --------
@@ -438,7 +420,7 @@ def test_two_concurrent_rebudgets_both_stay_in_effect(
 
     # The second tick runs to completion inside the first one's write window:
     # it reads, decides and closes before the first one's carrier update lands.
-    MetadataWrites(fake_client).pause_before(interleave)
+    StoreWrites(fake_client).pause_before(CLOSE, interleave)
     close(gate_store, root_id, first_gate, first, sign_payload)
 
     assert (

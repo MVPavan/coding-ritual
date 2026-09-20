@@ -26,6 +26,12 @@ from workflow_interpreter.inspector.rpc_session import RpcSession
 from workflow_interpreter.profiles.codex_rpc import RpcClient
 from workflow_interpreter.schema.models import Outcome
 
+LOG_ROOT = "/tmp/wf-appserver-lab/wrapper"
+"""Where a dispatched app-server activation's run log would live.
+
+A path, not a directory anything writes: the registration carries it and every
+assertion here is about identity, never about bytes on disk."""
+
 
 def registered_activation(store):
     """Mint a root with explicit app-server crew pins and a dispatched identity."""
@@ -40,14 +46,7 @@ def registered_activation(store):
         root.root_id, entry_request(crew_profile="codex-appserver", session_id="")
     ).activation
     process = handle(session_id="").model_copy(
-        update={
-            "log_path": str(
-                store._client.workspace
-                / "wrapper"
-                / activation.activation_id
-                / "run.jsonl"
-            )
-        }
+        update={"log_path": f"{LOG_ROOT}/{activation.activation_id}/run.jsonl"}
     )
     store.record_dispatch(activation.activation_id, process, launch_id="launch-1")
     return SessionRegistration(

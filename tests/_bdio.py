@@ -19,7 +19,7 @@ from workflow_interpreter.bdio.records import (
     ActivationRecord,
     RootRecord,
 )
-from workflow_interpreter.bdio.rows import StoreRow
+from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.wire import (
     ConfigSource,
     ExitRecord,
@@ -252,6 +252,17 @@ def make_root(
     )
 
 
+def seed_row(backend: LedgerStore, summary: str, metadata: Metadata) -> StoreRow:
+    """One raw ledger row, for labs that seed residue the typed API refuses.
+
+    The carrier's `wf_kind` picks the table, exactly as a production write
+    does; what a test gets out of going under `WorkflowStore` is the ability to
+    write a carrier that no longer validates — which is what the residue drills
+    are about.
+    """
+    return backend._create_row(NewRow(summary=summary, metadata=metadata))
+
+
 def handle(session_id: str = "sess-1") -> ProcessHandle:
     """A durable §5.3 process handle."""
     return ProcessHandle(
@@ -375,6 +386,7 @@ class StoreWrites:
     def __init__(self, store: LedgerStore) -> None:
         self._counts: dict[str, int] = dict.fromkeys(self._METHODS, 0)
         self._crash: dict[str, int] = {}
+        self._pause: dict[str, tuple[int, Callable[[], None]]] = {}
         self.created: list[str] = []
         """Row ids in the order this store minted them — what "the last two
         rows this tick created" used to read off the fake workspace's dict."""
@@ -390,6 +402,17 @@ class StoreWrites:
         """Die instead of serving the Nth write of one shape from here."""
         self._crash[kind] = self._counts[kind] + occurrence
 
+    def pause_before(
+        self, kind: str, callback: Callable[[], None], *, occurrence: int = 1
+    ) -> None:
+        """Run `callback` once, just before the Nth write of one shape from here.
+
+        What `FakeBd.pause_before` gave the bd transport: a second tick that
+        runs to completion INSIDE the first one's write window, expressed as
+        ordinary single-threaded code.
+        """
+        self._pause[kind] = (self._counts[kind] + occurrence, callback)
+
     def _wrapped(
         self, store: LedgerStore, kind: str, method: str
     ) -> Callable[..., object]:
@@ -398,6 +421,10 @@ class StoreWrites:
 
         def call(*args: object, **kwargs: object) -> object:
             self._counts[kind] += 1
+            scheduled = self._pause.get(kind)
+            if scheduled is not None and scheduled[0] == self._counts[kind]:
+                del self._pause[kind]
+                scheduled[1]()
             if self._crash.get(kind) == self._counts[kind]:
                 del self._crash[kind]
                 raise InjectedCrash(f"ledger {kind} died")

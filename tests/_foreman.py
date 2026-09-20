@@ -16,6 +16,7 @@ import sys
 import time
 import uuid
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import replace
 from pathlib import Path
 from types import MappingProxyType
 from typing import Final, TypedDict
@@ -499,7 +500,7 @@ class ForemanLab:
     def _build_fresh(self) -> None:
         """Construct no composition collaborator from a prior process."""
         self.fake_bd = self._bd_factory(str(self._workspace))
-        verifier = (
+        self._verifier = (
             None
             if self._signing is None
             else GateVerifier(self._signing, self._workspace)
@@ -522,7 +523,7 @@ class ForemanLab:
         # reservation.
         self.store = WorkflowStore(
             self.backend,
-            verifier,
+            self._verifier,
             claims=LedgerClaims(self.ledger),
         )
         self.git = make_git(self.inspector_config)
@@ -758,6 +759,27 @@ class ForemanLab:
         a carrier delta merged, a row settled.
         """
         return self.writes.count(subcommand)
+
+    def scope(self, task_id: str, epic_id: str) -> Composition:
+        """Re-pin this lab to one task, as the CLI builds a composition per run.
+
+        `foreman/__main__._composition` reads the task off the argv and opens a
+        store scoped to it. Since S6 that scope is real: two stages driven
+        through one task's store would mint two attempt roots onto the same
+        task and attempt, which §3.7 refuses — so a case that drives more than
+        one stage has to move the lab with them.
+        """
+        assert self.ledger is not None
+        self.backend = LedgerStore(self.ledger, task_id=task_id, epic_id=epic_id)
+        self.writes = StoreWrites(self.backend)
+        self.store = WorkflowStore(
+            self.backend, self._verifier, claims=LedgerClaims(self.ledger)
+        )
+        self.composition = replace(
+            self.composition, store=self.store, task_id=task_id, epic_id=epic_id
+        )
+        self.spawner.bind(self.composition)
+        return self.composition
 
     @property
     def records(self) -> ContractorRecords:

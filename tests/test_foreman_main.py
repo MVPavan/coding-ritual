@@ -421,7 +421,7 @@ host = "host"
 
     assert completed.returncode != 0
     assert "configuration path is required" not in completed.stderr
-    assert "bd show" in completed.stderr
+    assert "no ledger row" in completed.stderr
 
 
 def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
@@ -552,10 +552,17 @@ def test_inspect_rejects_an_activation_owned_by_another_root(tmp_path: Path) -> 
         .store.mint_activation(root.root_id, foreman_entry_request())
         .activation
     )
-    lab.backend._merge_metadata(activation.activation_id, {"wf_root_id": "wf-other"})
+    # A second root of the same task, created the way a decision root is: the
+    # activation's own root is a real row the ledger binds it to (§3.3), so
+    # the mismatch this refuses has to be a real OTHER root.
+    rival = lab.store.create_root(
+        instance_key="rival",
+        definition=lab.definition,
+        resolved_config=root.metadata.resolved_config,
+    )
 
     with pytest.raises(ValueError, match="does not belong to root"):
-        lab.foreman.inspect(root.root_id, activation.activation_id)
+        lab.foreman.inspect(rival.root_id, activation.activation_id)
 
 
 def test_status_reports_an_open_transition_gate_with_its_inbox_and_template(
@@ -1053,10 +1060,13 @@ def _contractor_adapter(
     `tracker` defaults to the bd adapter over that same transport, which is
     what production wires; a suite running the port against another tracker
     passes one, and the outbox follows the lab's ledger either way (S5).
+
+    `reads` defaults to the lab's own root store, because since R1 the adapter
+    needs one to answer which root owns an instance key at all.
     """
     return bd_adapter(
         BdClient(lab.config.bd, lab.fake_bd),
-        reads,
+        lab.store.reads if reads is None else reads,
         closure=closure_probe(lab.ledger, lab.git),
         records=lab.records,
         tracker=tracker,
@@ -1321,7 +1331,7 @@ def test_contractor_does_not_convert_a_transport_defect_into_a_refusal(
         BdClient(
             BdConfig(workspace=tmp_path, actor="tester", binary="bd-not-installed"),
             unrunnable,
-        ).context()
+        ).show("stage")
         raise AssertionError("an unrunnable bd binary must raise")
 
     monkeypatch.setattr(adapter.tracker, "blockers", broken)

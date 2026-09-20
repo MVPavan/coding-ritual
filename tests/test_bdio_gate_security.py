@@ -13,15 +13,17 @@ import hashlib
 import pytest
 
 from tests._bdio import (
+    CLOSE,
     REGION,
     RESOLVED_CONFIG,
     SHIP,
     TRIAGE,
+    StoreWrites,
     entry_request,
     load_definition,
     make_root,
 )
-from tests._fake_bd import FakeBd, InjectedCrash
+from tests._fake_bd import InjectedCrash
 from tests._gates import (
     approval_payload,
     close,
@@ -58,6 +60,7 @@ from workflow_interpreter.bdio.wire import (
     GateState,
     metadata_dict,
 )
+from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.tracker.bd_transport import BdClient
 
@@ -303,39 +306,9 @@ def test_a_verified_rebudget_records_its_bound_on_the_gate_that_closed_it(
     ] == []
 
 
-def test_a_crash_after_the_carrier_but_before_the_bd_close_is_repaired_forward(
-    gate_store: WorkflowStore,
-    fake_bd: FakeBd,
-    definition: GraphDefinition,
-    sign_payload: Signer,
-) -> None:
-    # The plain window: the human decision was recorded, the bead stayed open,
-    # and every re-submission raised — with no raw bd write available to fix
-    # it. (This test carries no bound; the rebudget window is the next one.)
-    root_id, gate = open_ship_gate(gate_store, definition)
-    payload = approval_payload(root_id, gate)
-    encoded = canonical_payload_bytes(payload)
-    signature = sign_payload(encoded, None)
-
-    fake_bd.crash_on("close")
-    with pytest.raises(InjectedCrash):
-        gate_store.close_gate_verified(
-            root_id, gate.gate_id, payload_bytes=encoded, signature=signature
-        )
-    wedged = gate_store.reads.load_gate(gate.gate_id)
-    assert wedged.metadata.state is GateState.CLOSED
-    assert wedged.status == "open"
-
-    repaired = gate_store.close_gate_verified(
-        root_id, gate.gate_id, payload_bytes=encoded, signature=signature
-    )
-    assert repaired.status == "closed"
-    assert repaired.metadata.outcome is Outcome.APPROVE
-
-
 def test_a_rebudget_bound_lands_atomically_with_the_gate_close(
     gate_store: WorkflowStore,
-    fake_bd: FakeBd,
+    fake_client: LedgerStore,
     definition: GraphDefinition,
     sign_payload: Signer,
 ) -> None:
@@ -356,16 +329,16 @@ def test_a_rebudget_bound_lands_atomically_with_the_gate_close(
     encoded = canonical_payload_bytes(payload)
     signature = sign_payload(encoded, None)
 
-    before = fake_bd.command_count("update")
-    fake_bd.crash_on("update")
+    writes = StoreWrites(fake_client)
+    writes.crash_on(CLOSE, 1)
     with pytest.raises(InjectedCrash):
         gate_store.close_gate_verified(
             root_id, gate.gate_id, payload_bytes=encoded, signature=signature
         )
-    # The one update the close issues is the gate carrier: it died, so neither
-    # the decision nor the bound exists, and the region is still on its pinned
+    # The close IS the carrier write (§3.3): it died, so neither the decision
+    # nor the bound exists, and the region is still on its pinned
     # `max_entries`.
-    assert fake_bd.command_count("update") == before + 1
+    assert writes.count(CLOSE) == 1
     assert gate_store.reads.load_gate(gate.gate_id).metadata.state is GateState.OPEN
     assert (
         gate_store.reads.effective_bound(root_id, BoundSetting.MAX_ENTRIES, REGION) == 3

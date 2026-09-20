@@ -601,15 +601,3 @@ def test_a_re_mint_of_one_key_is_the_same_bead(
     assert first.activation.activation_id == second.activation.activation_id
     assert second.activation.metadata.lifecycle is Lifecycle.MINTED
     assert len(fake_store.reads.list_activations(root.root_id)) == 1
-
-
-def test_one_mint_reads_the_instance_beads_exactly_once(
-    fake_store: WorkflowStore, fake_bd, definition: GraphDefinition
-) -> None:
-    # The derivation, the ceiling count, the key lookup and the round count
-    # all read the same fetch; a mint is not worth a bd call per predicate.
-    root = make_root(fake_store, definition)
-    before = fake_bd.command_count("list")
-    fake_store.mint_activation(root.root_id, entry_request())
-    # One instance-beads fetch plus the post-create read-after-write lookup.
-    assert fake_bd.command_count("list") - before == 2

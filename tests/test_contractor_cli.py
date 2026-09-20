@@ -52,7 +52,9 @@ def test_two_stages_land_from_normal_command(
     lab.composition = replace(lab.composition, config=config)
     lab.fake_bd.rows["a"] = _contractor_stage("a", description="first stage")
     lab.fake_bd.rows["b"] = _contractor_stage("b", description="second stage")
-    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    monkeypatch.setattr(
+        main_module, "_composition", lambda args: lab.scope(args.stage_id, args.epic_id)
+    )
     monkeypatch.setattr(
         wiring_module,
         "contractor_adapter",
