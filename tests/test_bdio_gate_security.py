@@ -50,7 +50,6 @@ from workflow_interpreter.bdio import (
     canonical_payload_bytes,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.signing import payload_digest
 from workflow_interpreter.bdio.wire import (
@@ -60,6 +59,7 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
 )
 from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.tracker.bd_transport import BdClient
 
 
 @pytest.fixture(scope="session")

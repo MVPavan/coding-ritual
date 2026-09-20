@@ -23,17 +23,20 @@ interleaving tests below are the proof.
 from __future__ import annotations
 
 from collections.abc import Iterator
-from pathlib import Path
 from typing import Final
 
 import pytest
 from pydantic import ValidationError
 
-from tests._bdio import entry_request, handle, load_definition, make_root, race_residue
-from tests._fake_bd import FakeBd, InjectedCrash
+from tests._bdio import (
+    MetadataWrites,
+    entry_request,
+    handle,
+    load_definition,
+    make_root,
+)
 from workflow_interpreter import GraphDefinition
 from workflow_interpreter.bdio import (
-    CarrierIntegrityError,
     Deviation,
     Evidence,
     ExitRecord,
@@ -45,9 +48,9 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
     transitions,
 )
-from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
-from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.bdio.wire import KEY_LIFECYCLE
+from workflow_interpreter.ledger.store import LedgerStore
 
 ACTOR: Final[str] = "wf-test-precondition"
 HEAD: Final[str] = "a" * 40
@@ -68,23 +71,21 @@ def definition() -> GraphDefinition:
 
 
 @pytest.fixture
-def bd(tmp_path: Path) -> FakeBd:
-    """The in-memory bd workspace, exposed so a test can schedule against it."""
-    workspace = tmp_path / "ws"
-    workspace.mkdir()
-    return FakeBd(str(workspace))
+def writes(client: LedgerStore) -> MetadataWrites:
+    """The store's metadata writes, counted and schedulable (§3.2 races)."""
+    return MetadataWrites(client)
 
 
 @pytest.fixture
-def client(bd: FakeBd) -> BdClient:
-    """The typed client the store writes through, exposed so a test can plant
-    genuine §3.2 race residue (a second bead under one idempotency key)."""
-    return BdClient(BdConfig(workspace=Path(bd.workspace), actor=ACTOR), bd)
+def client(fake_client: LedgerStore) -> LedgerStore:
+    """The record store the typed store writes through, exposed so a test can
+    plant genuine §3.2 race residue (a second row under one idempotency key)."""
+    return fake_client
 
 
 @pytest.fixture
-def store(client: BdClient) -> Iterator[WorkflowStore]:
-    """A typed store over an in-memory bd workspace."""
+def store(client: LedgerStore) -> Iterator[WorkflowStore]:
+    """A typed store over this test's own ledger (R1)."""
     yield WorkflowStore(client, branch_head_reader=lambda: HEAD)
 
 
@@ -118,7 +119,10 @@ def test_the_trio_lands_on_the_activation(
 
 
 def test_recording_the_same_trio_twice_writes_once(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """A crashed dispatch re-proves the precondition; that is not a second write.
 
@@ -129,16 +133,19 @@ def test_recording_the_same_trio_twice_writes_once(
     activation_id = _minted(store, definition)
     store.record_precondition(activation_id, _record())
     before = store.reads.load_activation(activation_id)
-    writes = bd.command_count(UPDATE)
+    before_writes = writes.count
 
     again = store.record_precondition(activation_id, _record())
 
     assert again.metadata == before.metadata
-    assert bd.command_count(UPDATE) == writes
+    assert writes.count == before_writes
 
 
 def test_an_activation_with_no_trio_is_not_treated_as_already_recorded(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """Sol#26: the all-empty sentinel satisfied idempotence and skipped the write.
 
@@ -149,11 +156,11 @@ def test_an_activation_with_no_trio_is_not_treated_as_already_recorded(
     string is no longer a value a `PreconditionRecord` can hold.
     """
     activation_id = _minted(store, definition)
-    writes = bd.command_count(UPDATE)
+    before_writes = writes.count
 
     store.record_precondition(activation_id, _record())
 
-    assert bd.command_count(UPDATE) == writes + 1
+    assert writes.count == before_writes + 1
     with pytest.raises(ValidationError):
         _record(pre_attempt_commit="", reset_verified_commit="")
 
@@ -322,7 +329,10 @@ def test_the_trio_refuses_a_value_that_is_not_what_it_claims(
 
 
 def test_a_precondition_write_cannot_drag_a_dispatch_backwards(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """Sol#7: the whole-carrier merge re-emitted state read BEFORE the dispatch.
 
@@ -333,7 +343,7 @@ def test_a_precondition_write_cannot_drag_a_dispatch_backwards(
     own cannot travel with it.
     """
     activation_id = _minted(store, definition)
-    bd.pause_before(UPDATE, lambda: store.record_dispatch(activation_id, handle()))
+    writes.pause_before(lambda: store.record_dispatch(activation_id, handle()))
 
     store.record_precondition(activation_id, _record())
 
@@ -344,7 +354,10 @@ def test_a_precondition_write_cannot_drag_a_dispatch_backwards(
 
 
 def test_a_stale_mirror_cannot_reopen_an_activation_the_foreman_closed(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """Blocker 4 (probed): `status=closed` with `lifecycle=dispatched`.
 
@@ -372,16 +385,16 @@ def test_a_stale_mirror_cannot_reopen_an_activation_the_foreman_closed(
             ),
         )
 
-    bd.pause_before(UPDATE, foreman_steers)
+    writes.pause_before(foreman_steers)
 
     store.record_stale_flag(
         activation_id,
         StaleFlagRecord(raised_at=RAISED_AT, last_activity_at=LAST_ACTIVITY),
     )
 
-    row = bd.rows[activation_id]
+    row = client.get_row(activation_id)
     metadata = store.reads.load_activation(activation_id).metadata
-    assert row["status"] == STATUS_CLOSED
+    assert row.status == STATUS_CLOSED
     assert metadata.lifecycle is Lifecycle.CLOSED
     assert metadata.outcome is Outcome.STEERED
     assert metadata.stale_flag is not None
@@ -390,22 +403,9 @@ def test_a_stale_mirror_cannot_reopen_an_activation_the_foreman_closed(
 # --- the §5.1 transitions: delta-only, and terminal-outcome-safe ---------
 
 
-def _last_metadata_keys(bd: FakeBd) -> frozenset[str]:
-    """The metadata keys of the most recent `bd update` this workspace served.
-
-    Read off the argv rather than off the row, because the row cannot tell a
-    key that was WRITTEN from one that was merely already there — and "which
-    keys did this transition emit" is the whole question.
-    """
-    index = next(
-        position
-        for position in reversed(range(len(bd.calls)))
-        if bd.calls[position][0] == UPDATE
-    )
-    return frozenset(bd.metadata_writes[index])
-
-
-def _clobber_lifecycle(bd: FakeBd, activation_id: str, lifecycle: Lifecycle) -> None:
+def _clobber_lifecycle(
+    client: LedgerStore, activation_id: str, lifecycle: Lifecycle
+) -> None:
     """Leave the row a losing race leaves when nothing repairs it.
 
     `status=closed` with a recorded outcome under a NON-terminal `lifecycle`.
@@ -416,7 +416,7 @@ def _clobber_lifecycle(bd: FakeBd, activation_id: str, lifecycle: Lifecycle) -> 
     — and the guards below are what make it harmless, so the test states it
     directly instead of choreographing a second crash.
     """
-    bd.rows[activation_id]["metadata"][KEY_LIFECYCLE] = lifecycle.value
+    client._merge_metadata(activation_id, {KEY_LIFECYCLE: lifecycle.value})
 
 
 def _steer(store: WorkflowStore, activation_id: str) -> None:
@@ -431,7 +431,10 @@ def _steer(store: WorkflowStore, activation_id: str) -> None:
 
 
 def test_a_transition_writes_only_the_keys_it_owns(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """Opus#17: `_apply` re-emitted the WHOLE carrier from the opening read.
 
@@ -445,63 +448,80 @@ def test_a_transition_writes_only_the_keys_it_owns(
     store.record_dispatch(activation_id, handle())
     # The session id is part of THIS transition's own delta: `prepare` assigns
     # it at launch, so the dispatch is the write that makes it durable (§5.2).
-    assert _last_metadata_keys(bd) == frozenset({KEY_LIFECYCLE, "handle", "session_id"})
+    assert writes.last_keys == frozenset({KEY_LIFECYCLE, "handle", "session_id"})
 
     store.record_exit(
         activation_id, ExitRecord(exit_code=0, ended_at=RAISED_AT, reason="exited")
     )
-    assert _last_metadata_keys(bd) == frozenset({KEY_LIFECYCLE, "exit_record"})
+    assert writes.last_keys == frozenset({KEY_LIFECYCLE, "exit_record"})
 
     store.record_evidence(activation_id, Evidence(note="verified"))
-    assert _last_metadata_keys(bd) == frozenset({KEY_LIFECYCLE, "evidence"})
+    assert writes.last_keys == frozenset({KEY_LIFECYCLE, "evidence"})
 
 
 def test_a_dispatch_landing_after_a_close_does_not_survive_it(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
-    """Opus#17 case C: the foreman closes between the guard and the merge."""
+    """Opus#17 case C: the foreman closes between the guard and the merge.
+
+    On the ledger the guard runs INSIDE the transaction that writes (R1), so
+    the interleaved close is not a merge this transition can lose to — it is a
+    refusal. The state the case is about is the same either way: the close
+    stands and the dispatch does not survive it.
+    """
     activation_id = _minted(store, definition)
-    bd.pause_before(
-        UPDATE, lambda: store.close_activation(activation_id, Outcome.ERROR_TRANSPORT)
+    writes.pause_before(
+        lambda: store.close_activation(activation_id, Outcome.ERROR_TRANSPORT)
     )
 
-    store.record_dispatch(activation_id, handle())
+    with pytest.raises(LifecycleConflictError, match="already recorded outcome"):
+        store.record_dispatch(activation_id, handle())
 
     metadata = store.reads.load_activation(activation_id).metadata
-    assert bd.rows[activation_id]["status"] == STATUS_CLOSED
+    assert client.get_row(activation_id).status == STATUS_CLOSED
     assert metadata.outcome is Outcome.ERROR_TRANSPORT
     assert metadata.lifecycle is Lifecycle.CLOSED
     assert metadata.is_completed
 
 
 def test_an_exit_landing_after_a_close_does_not_survive_it(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """Opus#17 case B, the blocker shape: `status=closed lifecycle=exit-recorded`.
 
-    The exit record itself is kept — it is a true observation of a child that
-    really did exit, and bd cannot clear a key anyway — but the §3.3 routing
-    truth and the §5.1 terminal both stand.
+    Unreachable on the ledger: the guard is inside the write's transaction, so
+    the steer that lands first makes the exit a refusal rather than a merge
+    that drags the carrier back. The §3.3 routing truth and the §5.1 terminal
+    are what the case holds, and both stand.
     """
     activation_id = _minted(store, definition)
     store.record_dispatch(activation_id, handle())
-    bd.pause_before(UPDATE, lambda: _steer(store, activation_id))
+    writes.pause_before(lambda: _steer(store, activation_id))
 
-    store.record_exit(
-        activation_id, ExitRecord(exit_code=0, ended_at=RAISED_AT, reason="exited")
-    )
+    with pytest.raises(LifecycleConflictError, match="already recorded outcome"):
+        store.record_exit(
+            activation_id, ExitRecord(exit_code=0, ended_at=RAISED_AT, reason="exited")
+        )
 
     metadata = store.reads.load_activation(activation_id).metadata
     assert metadata.outcome is Outcome.STEERED
     assert metadata.lifecycle is Lifecycle.CLOSED
     assert metadata.is_completed
-    assert metadata.exit_record is not None
     # The steer deviation is the key a whole-carrier merge silently rolled back.
     assert [deviation.kind for deviation in metadata.deviations] == ["steer"]
 
 
 def test_evidence_landing_after_a_close_does_not_survive_it(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """Opus#17 case D: the same race one transition later."""
     activation_id = _minted(store, definition)
@@ -509,9 +529,10 @@ def test_evidence_landing_after_a_close_does_not_survive_it(
     store.record_exit(
         activation_id, ExitRecord(exit_code=0, ended_at=RAISED_AT, reason="exited")
     )
-    bd.pause_before(UPDATE, lambda: _steer(store, activation_id))
+    writes.pause_before(lambda: _steer(store, activation_id))
 
-    store.record_evidence(activation_id, Evidence(note="recomputed §7"))
+    with pytest.raises(LifecycleConflictError, match="already recorded outcome"):
+        store.record_evidence(activation_id, Evidence(note="recomputed §7"))
 
     metadata = store.reads.load_activation(activation_id).metadata
     assert metadata.outcome is Outcome.STEERED
@@ -520,7 +541,10 @@ def test_evidence_landing_after_a_close_does_not_survive_it(
 
 
 def test_a_recorded_outcome_refuses_every_later_state_write(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """Opus#17's chain: `record_evidence` was LEGAL on the clobbered row.
 
@@ -536,12 +560,12 @@ def test_a_recorded_outcome_refuses_every_later_state_write(
         activation_id, ExitRecord(exit_code=0, ended_at=RAISED_AT, reason="exited")
     )
     _steer(store, activation_id)
-    _clobber_lifecycle(bd, activation_id, Lifecycle.EXIT_RECORDED)
+    _clobber_lifecycle(client, activation_id, Lifecycle.EXIT_RECORDED)
 
     with pytest.raises(LifecycleConflictError, match="already recorded outcome"):
         store.record_evidence(activation_id, Evidence(note="recomputed §7"))
 
-    _clobber_lifecycle(bd, activation_id, Lifecycle.DISPATCHED)
+    _clobber_lifecycle(client, activation_id, Lifecycle.DISPATCHED)
     with pytest.raises(LifecycleConflictError, match="already recorded outcome"):
         store.record_exit(
             activation_id,
@@ -552,7 +576,10 @@ def test_a_recorded_outcome_refuses_every_later_state_write(
 
 
 def test_a_close_cannot_overwrite_the_outcome_a_clobbered_row_still_records(
-    store: WorkflowStore, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """Opus#17's end: `close_activation(DONE)` over a recorded `STEERED`.
 
@@ -566,7 +593,7 @@ def test_a_close_cannot_overwrite_the_outcome_a_clobbered_row_still_records(
     activation_id = _minted(store, definition)
     store.record_dispatch(activation_id, handle())
     _steer(store, activation_id)
-    _clobber_lifecycle(bd, activation_id, Lifecycle.EXIT_RECORDED)
+    _clobber_lifecycle(client, activation_id, Lifecycle.EXIT_RECORDED)
 
     with pytest.raises(LifecycleConflictError, match="already closed"):
         store.close_activation(
@@ -575,48 +602,14 @@ def test_a_close_cannot_overwrite_the_outcome_a_clobbered_row_still_records(
 
     metadata = store.reads.load_activation(activation_id).metadata
     assert metadata.outcome is Outcome.STEERED
-    assert bd.rows[activation_id]["close_reason"] == "outcome=steered"
-
-
-def test_a_supersede_cannot_overwrite_the_outcome_a_clobbered_row_records(
-    store: WorkflowStore, client: BdClient, bd: FakeBd, definition: GraphDefinition
-) -> None:
-    """The last typed call that walked through a recorded outcome (r4).
-
-    `supersede_activation` guarded on `is_completed`, which REQUIRES
-    `lifecycle == closed` — exactly the key a losing merge moves. The clobbered
-    row is built here the way a SIGKILL builds it rather than by editing the
-    row: the foreman's steer lands from inside our `bd update`, and the wrapper
-    dies in the one window `repair_forward` occupies, leaving
-    `status=closed lifecycle=exit-recorded outcome=steered` behind. Superseding
-    that would turn the outcome a continuation was already minted from into
-    `superseded` — forged §3.3 routing truth with no signature anywhere.
-    """
-    root = make_root(store, definition)
-    winner = store.mint_activation(root.root_id, entry_request()).activation
-    loser_id = race_residue(client, winner).activation_id
-    store.record_dispatch(loser_id, handle())
-    bd.pause_before(UPDATE, lambda: _steer(store, loser_id))
-    bd.crash_on(UPDATE, 3)
-    with pytest.raises(InjectedCrash):
-        store.record_exit(
-            loser_id, ExitRecord(exit_code=0, ended_at=RAISED_AT, reason="exited")
-        )
-    clobbered = store.reads.load_activation(loser_id).metadata
-    assert clobbered.lifecycle is Lifecycle.EXIT_RECORDED
-    assert clobbered.is_settled and not clobbered.is_completed
-
-    with pytest.raises(CarrierIntegrityError, match="COMPLETED"):
-        store.supersede_activation(loser_id, winner.activation_id)
-
-    metadata = store.reads.load_activation(loser_id).metadata
-    assert metadata.outcome is Outcome.STEERED
-    assert metadata.superseded_by is None
-    assert bd.rows[loser_id]["close_reason"] == "outcome=steered"
+    assert client.get_row(activation_id).close_reason == "outcome=steered"
 
 
 def test_the_transition_writer_itself_refuses_past_a_recorded_outcome(
-    store: WorkflowStore, client: BdClient, bd: FakeBd, definition: GraphDefinition
+    store: WorkflowStore,
+    client: LedgerStore,
+    writes: MetadataWrites,
+    definition: GraphDefinition,
 ) -> None:
     """The backstop under all four transitions, asserted where it lives.
 
@@ -630,7 +623,7 @@ def test_the_transition_writer_itself_refuses_past_a_recorded_outcome(
     activation_id = _minted(store, definition)
     store.record_dispatch(activation_id, handle())
     _steer(store, activation_id)
-    _clobber_lifecycle(bd, activation_id, Lifecycle.DISPATCHED)
+    _clobber_lifecycle(client, activation_id, Lifecycle.DISPATCHED)
 
     with pytest.raises(LifecycleConflictError, match="already recorded outcome"):
         transitions.apply(

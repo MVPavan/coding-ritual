@@ -6,17 +6,14 @@ import hashlib
 from collections.abc import Mapping
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import Any, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
 
-from workflow_interpreter.bdio.backend import StoreBackendFactory
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.reads import find_roots, list_activations
 from workflow_interpreter.bdio.records import ActivationRecord
 from workflow_interpreter.bdio.rows import StoreRow
-from workflow_interpreter.bdio.wire import BeadRecord, Lifecycle
-from workflow_interpreter.contractor.adapter import MSG_CLOSE_REASON
+from workflow_interpreter.bdio.wire import Lifecycle
 from workflow_interpreter.contractor.landing import (
     LANDING_INTENT_FILE,
     LANDING_RECEIPT_FILE,
@@ -35,32 +32,11 @@ from workflow_interpreter.costs.profiles import LogContext, LogParseResult, pars
 from workflow_interpreter.inspector.errors import WrapperDirError
 from workflow_interpreter.inspector.models import ExecLedgerEntry, LaunchReceipt
 from workflow_interpreter.inspector.paths import read_record, record_bytes
+from workflow_interpreter.ledger.store import LedgerStore
 
 EXTERNAL_ATTRIBUTION_SCOPE_GAP = (
     "coordinator, planning, and child usage needs explicit supplement attribution"
 )
-
-
-class ReadClient(Protocol):
-    """The TASK BEAD read subset used by task-cost collection.
-
-    The task bead stays bd (§3.2 authoritative writes), so this stays a bead
-    surface. Roots and activations do NOT: they live on whichever backend the
-    contractor record pinned, and they are read through a factory instead.
-    """
-
-    def show(self, bead_id: str) -> BeadRecord:
-        """Return one bead row."""
-        ...
-
-    def list_beads(
-        self,
-        *,
-        metadata_filters: Mapping[str, str] | None = None,
-        issue_type: Any = None,
-    ) -> tuple[BeadRecord, ...]:
-        """Return bead rows matching metadata filters."""
-        ...
 
 
 class CompletionEvidence(BaseModel):
@@ -118,10 +94,10 @@ class TaskCollection(BaseModel):
 
 
 def collect_task(
-    client: ReadClient,
+    store: LedgerStore,
     stage_id: str,
     *,
-    backends: StoreBackendFactory,
+    task_closed: bool,
     record_json: str | None,
     runtime_roots: Mapping[str, Path] | None = None,
     max_log_bytes: int = 32 * 1024 * 1024,
@@ -129,17 +105,17 @@ def collect_task(
 ) -> TaskCollection:
     """Collect one explicit stage without invoking a write, launch, or network call.
 
-    `backends` resolves the root store from the contractor record's pin (§3.2):
-    costs is read-only, but it has to read from the SAME place the run wrote,
-    and asking bd about a ledger-backed attempt would report it as missing
-    rather than as unreadable.
+    Every input is the LEDGER's (S6, R1): the record store is the only place
+    a run's facts live, so costs no longer reads a tracker at all — a bead's
+    status and close reason were a MIRROR of what the record and the export
+    anchor already say, and a report built from a mirror could disagree with
+    the task it describes.
 
-    `record_json` is the stage's contractor record as the LEDGER holds it
-    (§3.2, R4). Handed in rather than read here, because this function takes
-    a bd read client and the record stopped being a bead fact in S4; the CLI
-    that opens the read-only ledger is the one that can answer it.
+    `record_json` is the stage's contractor record and `task_closed` is
+    `ledger.closure.closed`. Both are handed in rather than read here for the
+    same reason: this function takes no git seam, and the CLI that opened the
+    read-only ledger is the one that can answer them.
     """
-    stage = client.show(stage_id)
     diagnostics: list[Diagnostic] = []
     if record_json is None:
         return _unreadable_task(stage_id, "contractor record is absent")
@@ -147,7 +123,7 @@ def collect_task(
         contractor = ContractorRecord.model_validate_json(record_json)
     except ValidationError:
         return _unreadable_task(stage_id, "contractor record is invalid")
-    roots_store = backends(contractor.root_backend)
+    roots_store = store
     if contractor.stage_id != stage_id:
         return _unreadable_task(stage_id, "contractor names a different stage")
 
@@ -219,23 +195,6 @@ def collect_task(
                 )
             )
 
-    expected_close_reason = MSG_CLOSE_REASON.format(
-        digest=contractor.landing_receipt_digest
-    )
-    close_reason_valid = (
-        None
-        if stage.close_reason is None
-        else stage.close_reason == expected_close_reason
-    )
-    if close_reason_valid is False:
-        diagnostics.append(
-            Diagnostic(
-                code="stage-close-reason-contradiction",
-                source=f"stage:{stage_id}",
-                detail="stage close reason names a different landing receipt",
-            )
-        )
-
     landing_evidence_valid, landing_diagnostic = _landing_evidence_consistency(
         contractor,
         runtime_roots or {},
@@ -245,7 +204,7 @@ def collect_task(
         diagnostics.append(landing_diagnostic)
 
     completion_checks: dict[str, bool | None] = {
-        "stage-closed": stage.status == "closed",
+        "stage-closed": task_closed,
         # The record's own last state. LANDED is what a close leaves since S2
         # — closure is derived from the ledger and its git anchor (§3.5) — and
         # since S4 it is the only state a finished record can be in.
@@ -258,7 +217,6 @@ def collect_task(
         "attempt-roots": roots_valid and len(root_rows) == len(expected_keys),
         "current-root-closed": current_root_closed,
         "current-root-terminal": current_root_terminal_valid,
-        "stage-close-reason": close_reason_valid,
         "landing-records": landing_evidence_valid,
     }
     completion = CompletionEvidence(

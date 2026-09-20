@@ -37,11 +37,10 @@ from __future__ import annotations
 import time
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import structlog
 
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
@@ -62,6 +61,11 @@ from workflow_interpreter.bdio.wire import (
     Usage,
     metadata_dict,
 )
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -219,7 +223,7 @@ def assert_close_payload(
 
 
 def apply(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     *,
@@ -269,7 +273,7 @@ def apply(
 
 
 def record_contention(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     refusal: StoreBusyRefusal,
@@ -302,7 +306,7 @@ def record_contention(
 
 
 def _record_deviation(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     refusal: StoreBusyRefusal,
@@ -338,7 +342,7 @@ def _assert_appliable(
         )
 
 
-def repair_forward(client: StoreBackend, record: ActivationRecord) -> ActivationRecord:
+def repair_forward(client: LedgerStore, record: ActivationRecord) -> ActivationRecord:
     """Restore the terminal lifecycle a losing race wrote over (§5.1, §3.3).
 
     A transition whose merge landed after a concurrent close leaves a recorded
@@ -367,7 +371,7 @@ def repair_forward(client: StoreBackend, record: ActivationRecord) -> Activation
 
 
 def finish(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     record: ActivationRecord,
     reason: str,

@@ -16,8 +16,6 @@ from typing import TYPE_CHECKING, Final
 
 import structlog
 
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.records import contractor_records
@@ -32,6 +30,7 @@ from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.reconcile import AttentionWriter
 from workflow_interpreter.tracker import BdTracker, FileTracker, NullTracker
 from workflow_interpreter.tracker.attention import OutboxAttentionWriter
+from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
 from workflow_interpreter.tracker.outbox import DrainResult, TrackerOutbox
 from workflow_interpreter.tracker.port import TrackerPort
 
@@ -84,11 +83,10 @@ def contractor_adapter(
     and not always bd (§3.2); without one the adapter falls back to its own
     transport.
     """
-    return ContractorAdapter.from_config(
-        config.bd,
+    return ContractorAdapter(
         reads,
         closure=closure_probe(database, git),
-        records=contractor_records(database, backend=config.store),
+        records=contractor_records(database),
         tracker=tracker_for(config.tracker, config.bd, client),
         outbox=None if database is None else TrackerOutbox(database),
     )

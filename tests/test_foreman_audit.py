@@ -2,12 +2,20 @@
 
 from copy import deepcopy
 
-from tests._bdio import entry_request, load_definition, make_root
+from tests._bdio import (
+    CLOSE,
+    UPDATE,
+    StoreWrites,
+    entry_request,
+    load_definition,
+    make_root,
+)
 from tests._fake_bd import FakeBd
 from workflow_interpreter.bdio import Outcome
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.foreman.audit import audit
 from workflow_interpreter.foreman.gates import halt_gate
+from workflow_interpreter.ledger.store import LedgerStore
 
 
 def test_audit_accepts_the_real_empty_instance(fake_store: WorkflowStore) -> None:
@@ -18,19 +26,20 @@ def test_audit_accepts_the_real_empty_instance(fake_store: WorkflowStore) -> Non
 
 
 def test_audit_reports_an_unverified_closed_gate_without_writing(
-    fake_store: WorkflowStore, fake_bd: FakeBd
+    fake_store: WorkflowStore, fake_client: LedgerStore
 ) -> None:
     root = make_root(fake_store, load_definition())
     gate = fake_store.open_gate(root.root_id, halt_gate("ceiling:20"))
-    fake_bd.rows[gate.gate_id]["metadata"]["state"] = "closed"
-    before_updates = fake_bd.command_count("update")
-    before_closes = fake_bd.command_count("close")
+    fake_client._merge_metadata(gate.gate_id, {"state": "closed"})
+    writes = StoreWrites(fake_client)
+    before_updates = writes.count(UPDATE)
+    before_closes = writes.count(CLOSE)
 
     result = audit(root, fake_store.reads.instance_records(root.root_id))
 
     assert result.violation == "gate_close_unverified"
-    assert fake_bd.command_count("update") == before_updates
-    assert fake_bd.command_count("close") == before_closes
+    assert writes.count(UPDATE) == before_updates
+    assert writes.count(CLOSE) == before_closes
 
 
 def test_audit_reports_two_unconsumed_completed_heads(

@@ -8,11 +8,8 @@ from typing import TYPE_CHECKING, Final
 import structlog
 from pydantic import ValidationError
 
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.contractor.models import (
-    MSG_BACKEND_IMMUTABLE,
     ContractorRecord,
     ContractorState,
 )
@@ -103,6 +100,13 @@ _RETIRED_STATES: Final[frozenset[ContractorState]] = frozenset(
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 
+MSG_NO_ROOT_READS: Final[str] = (
+    "this contractor adapter was given no root store, so it cannot answer "
+    "which root owns an instance key: supply `reads` at construction "
+    "(store-restructure R1)"
+)
+
+
 class ContractorAdapterError(ValueError):
     """A phase operation was requested with incompatible durable evidence."""
 
@@ -112,7 +116,6 @@ class ContractorAdapter:
 
     def __init__(
         self,
-        client: BdClient,
         reads: WorkflowReads | None = None,
         *,
         closure: ClosureProbe,
@@ -120,8 +123,15 @@ class ContractorAdapter:
         tracker: TrackerPort,
         outbox: TrackerOutbox | None = None,
     ) -> None:
-        self._client = client
-        self._reads = WorkflowReads(client) if reads is None else reads
+        self._reads = reads
+        """The store the engine's ROOTS live in, when this caller has one.
+
+        Optional, and no longer defaultable: the adapter used to build a
+        `WorkflowReads` over its own bd transport when nobody supplied one,
+        and S6 deleted that transport's record-store half (R1). The two reads
+        that need it refuse by name instead of reading an empty store —
+        `wf ledger reconcile` builds an adapter to release a stranded claim
+        and never asks about roots."""
         self.tracker: TrackerPort = tracker
         """The contractor's ONE tracker surface (§3.3, R2).
 
@@ -157,43 +167,6 @@ class ContractorAdapter:
         construction site that supplied nothing used to skip the succession
         one silently. A wiring with no ledger passes `NoLedgerClosure`, which
         answers the question rather than leaving it unasked."""
-
-    @classmethod
-    def from_config(
-        cls,
-        config: BdConfig,
-        reads: WorkflowReads | None = None,
-        *,
-        closure: ClosureProbe,
-        records: ContractorRecords,
-        tracker: TrackerPort,
-        outbox: TrackerOutbox | None,
-    ) -> ContractorAdapter:
-        """Build the contractor's read/write adapter without exposing bd transport.
-
-        `reads` is the store the engine's roots live in. The adapter owns the
-        TASK bead (§3.2 authoritative writes) and nothing else, so a root
-        lookup is somebody else's read; without one injected it falls back to
-        its own transport, which is the same store today.
-
-        `closure` is the ledger's answer about this task (`ledger.closure`),
-        and it has no default for the reason §3.5 gives: every caller that can
-        reach a close or a succession has to have decided what answers it.
-
-        `tracker` and `outbox` have no defaults for the SAME reason, learned
-        the hard way: a default bd tracker and a default absent outbox meant
-        eight of nine construction sites ignored `tracker.backend` and mirrored
-        into bd directly, unrecorded. `contractor.tracker_wiring` is where they
-        come from now, and it reads the configuration.
-        """
-        return cls(
-            BdClient(config),
-            reads,
-            closure=closure,
-            records=records,
-            tracker=tracker,
-            outbox=outbox,
-        )
 
     def ref(self, stage_id: str) -> TrackerRef:
         """This stage's foreign identity, as the configured tracker knows it."""
@@ -384,9 +357,20 @@ class ContractorAdapter:
         """Read the complete contractor relation currently persisted for a task."""
         return self._required(stage_id).record
 
+    def _roots(self) -> WorkflowReads:
+        """The root store this adapter was given, or a refusal naming the gap.
+
+        A refusal rather than a fallback: the adapter has no transport of its
+        own since S6 (R1), and answering "no such root" from a store nobody
+        supplied would let an ownership check pass on absence.
+        """
+        if self._reads is None:
+            raise ContractorAdapterError(MSG_NO_ROOT_READS)
+        return self._reads
+
     def owns_root(self, instance_key: str, root_id: str) -> bool:
         """Require a uniquely persisted root, not an inferred key-shaped owner."""
-        roots = self._reads.roots_by_instance_key(instance_key)
+        roots = self._roots().roots_by_instance_key(instance_key)
         return (
             len(roots) == 1
             and roots[0].id == root_id
@@ -395,7 +379,7 @@ class ContractorAdapter:
 
     def has_root(self, instance_key: str) -> bool:
         """Report whether durable evidence exists for one contractor identity."""
-        return bool(self._reads.roots_by_instance_key(instance_key))
+        return bool(self._roots().roots_by_instance_key(instance_key))
 
     def prepare(
         self, stage_id: str, record: ContractorRecord, *, brief: str | None = None
@@ -659,11 +643,6 @@ class ContractorAdapter:
     ) -> None:
         """Allow only exact recovery or one successor over unfinished work.
 
-        A SUCCESSOR may change `root_backend`, because a new attempt root is
-        exactly what the `store` switch applies to (D18); re-preparing THIS
-        attempt may not, because its root may already exist on the backend the
-        stored record pinned (§3.2).
-
         What ENDS succession used to be a stored CLOSED, and nothing writes
         one after S2 (§3.5). Three refusals replace it, in the order that
         names the finished task most precisely: the task derives `closed()`,
@@ -673,13 +652,6 @@ class ContractorAdapter:
         attempt at work already on the target ref.
         """
         if incoming.attempt == stored.attempt:
-            if incoming.root_backend is not stored.root_backend:
-                raise ContractorAdapterError(
-                    MSG_BACKEND_IMMUTABLE.format(
-                        stored=stored.root_backend.value,
-                        incoming=incoming.root_backend.value,
-                    )
-                )
             if stored.state is not ContractorState.PREPARED:
                 raise ContractorAdapterError(
                     MSG_IDEMPOTENT_STATE.format(actual=stored.state.value)

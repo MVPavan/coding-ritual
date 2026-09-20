@@ -28,7 +28,6 @@ from typing import Final
 
 from pydantic import BaseModel, ValidationError
 
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.contractor.records import (
     ContractorRecords,
@@ -40,7 +39,7 @@ from workflow_interpreter.ledger.constants import LANDING_INTENT_PHASE
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import pin_export, write_export
-from workflow_interpreter.ledger.tasks import pin_task_backend
+from workflow_interpreter.ledger.tasks import ensure_task
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 MSG_UNREADABLE_ROW: Final[str] = (
@@ -74,27 +73,25 @@ class LandingJournal:
         self,
         database: LedgerDatabase,
         task_id: str,
-        backend: BackendKind,
         epic_id: str,
     ) -> None:
         self._database = database
         self._task_id = task_id
-        self._backend = backend
         self._epic_id = epic_id
 
     def record(self, attempt: int, phase: LandingPhase, record: BaseModel) -> None:
         """Copy one landing half into the ledger, after its file was written.
 
         The task row is ensured first because `landings.task_id` references
-        it: a bd-backed task may never have been written here, and D17 copies
-        its landing all the same. `pin_task_backend` is non-destructive.
+        it: a task that never ran a prepare has no row, and D17 copies its
+        landing all the same. `ensure_task` is non-destructive.
 
         Upsert rather than insert: a repeated landing attempt writes the same
         file over itself (`_write_intent`), and a journal that refused the
         second write would make the file and the row disagree about which
         attempt is current.
         """
-        pin_task_backend(self._database, self._task_id, self._backend, self._epic_id)
+        ensure_task(self._database, self._task_id, self._epic_id)
         with self._database.transaction():
             self._database.connection.execute(
                 _SQL_WRITE,
@@ -144,22 +141,19 @@ class ExportPin:
         git: Git,
         repo_root: Path,
         epic_id: str,
-        backend: BackendKind = BackendKind.LEDGER,
     ) -> None:
         self._database = database
         self._git = git
         self._repo_root = repo_root
         self._epic_id = epic_id
-        self._backend = backend
 
-    def pin(self, task_id: str, backend: BackendKind) -> str:
+    def pin(self, task_id: str) -> str:
         """Export, store, pin — and answer the blob's object id.
 
-        The task row is ensured first, because a task whose roots are all in
-        bd may never have been written here and still owes an export: §3.6
-        makes the export the precondition of closure for every contractor
-        task, not only for ledger-backed ones. `pin_task_backend` is
-        non-destructive, so a task that already named a backend keeps it.
+        The task row is ensured first, because a task that reached here
+        without a prepare may have no row and still owes an export: §3.6 makes
+        the export the precondition of closure for every contractor task.
+        `ensure_task` is non-destructive.
 
         LANDED is NOT written here. The landing's own `adapter.land` already
         wrote it, into the same `contractor_records` row (§3.5), and a second
@@ -176,7 +170,7 @@ class ExportPin:
         with `wf ledger pin-export`: one definition of what a pin IS, so the
         recovery command cannot drift from the write it recovers.
         """
-        pin_task_backend(self._database, task_id, backend, self._epic_id)
+        ensure_task(self._database, task_id, self._epic_id)
         write_export(self._database, task_id)
         try:
             return pin_export(self._git, self._database, task_id, self._repo_root)
@@ -195,7 +189,7 @@ class ExportPin:
         the adapter, and the record it transitions and the export it pins have
         to be facts of one ledger.
         """
-        return LedgerContractorRecords(self._database, backend=self._backend)
+        return LedgerContractorRecords(self._database)
 
     @property
     def outbox(self) -> TrackerOutbox:

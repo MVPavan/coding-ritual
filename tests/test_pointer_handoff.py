@@ -172,13 +172,14 @@ def test_task_builder_uses_compact_pointers_and_retains_instance_brief(
             commit_oid=candidate, tree_oid=lab.git.tree_oid(candidate, cwd=lab.repo)
         )
     )
-    lab.fake_bd.rows[producer.activation_id]["metadata"].update(
+    lab.backend._merge_metadata(
+        producer.activation_id,
         {
             "pre_attempt_commit": base,
             "evidence": evidence.model_dump(mode="json"),
             "lifecycle": "closed",
             "outcome": Outcome.DONE.value,
-        }
+        },
     )
     binding = InputBinding(
         name="diff_artifact",

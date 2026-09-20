@@ -12,13 +12,13 @@ import pytest
 
 from tests.test_children_process import writer_lab
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
 from workflow_interpreter.foreman.decisions import admission_of
 from workflow_interpreter.foreman.tick import Foreman, TickReport
+from workflow_interpreter.tracker.bd_transport import BdClient
 
 
-def source_lab(tmp_path: Path, store: BackendKind = BackendKind.BD):
+def source_lab(tmp_path: Path):
     """One collected source child, on the caller's backend (run-ledger §3.2).
 
     `store` is a parameter because the §6 acceptance for this slice is that
@@ -31,7 +31,6 @@ def source_lab(tmp_path: Path, store: BackendKind = BackendKind.BD):
     lab, owner, composition, spawner = writer_lab(
         tmp_path,
         sandbox=SandboxMode.BWRAP,
-        store=store,
     )
     from workflow_interpreter.contractor.verification import CheckCommand
 
@@ -186,9 +185,8 @@ def bd_wall_budget_s(bd_latency_s: float) -> float:
     return FIXED_CALL_ALLOWANCE_S + EXPECTED_BD_CALLS * bd_latency_s * BD_CALL_SAFETY
 
 
-@pytest.mark.parametrize("store", (BackendKind.BD, BackendKind.LEDGER))
 def test_replay_admits_only_one_original_owner_member(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, store: BackendKind
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Replay converges on one member — and it converges on EITHER backend.
 
@@ -203,14 +201,13 @@ def test_replay_admits_only_one_original_owner_member(
     (`tests/test_cutover_rig.py`).
     """
     from workflow_interpreter.contractor import integration
-    from workflow_interpreter.contractor.adapter import ContractorAdapter
 
     started = time.monotonic()
-    lab, owner, composition, source = source_lab(tmp_path, store)
+    lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     request = integration.IntegrationRequest(
         owner_id=owner.root_id,
@@ -222,9 +219,6 @@ def test_replay_admits_only_one_original_owner_member(
     first = integration.prepare_integration(composition, request)
     assert integration.prepare_integration(composition, request) == first
     # §3.2: the integration root is the owner's child, so the record that
-    # admits it names the owner's backend — a record that named bd here would
-    # contradict the ledger row its own root was created with.
-    assert first.root_backend is store
     state = lab.store.coordination_store().state(owner.root_id)
     assert len(state.children) == 2
     assert len(state.reservations) == 3
@@ -237,7 +231,7 @@ def test_replay_admits_only_one_original_owner_member(
         "target_base",
     }
     wall_s = time.monotonic() - started
-    if store is BackendKind.LEDGER:
+    if True:
         assert wall_s < LEDGER_WALL_BUDGET_S, (
             f"the ledger admission drill took {wall_s:.2f}s, over its "
             f"{LEDGER_WALL_BUDGET_S:.1f}s budget"
@@ -329,7 +323,6 @@ def test_admission_tick_stays_at_five_bd_calls(
 def test_invalid_source_never_admits_integration(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, change: str
 ) -> None:
-    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
@@ -339,9 +332,9 @@ def test_invalid_source_never_admits_integration(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     sources = (("source", 0, source.receipt_digest),)
     sources = {
@@ -368,7 +361,6 @@ def test_invalid_source_never_admits_integration(
 def test_changed_request_key_refuses_without_second_member(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
@@ -377,9 +369,9 @@ def test_changed_request_key_refuses_without_second_member(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -416,9 +408,9 @@ def test_prepared_faults_repair_only_saved_root(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -467,7 +459,6 @@ def test_prepared_faults_repair_only_saved_root(
 def test_other_owner_busy_before_target_snapshot(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
@@ -478,9 +469,9 @@ def test_other_owner_busy_before_target_snapshot(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     request = IntegrationRequest(
         owner_id=owner.root_id,
@@ -528,7 +519,6 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
     from dataclasses import replace
 
     from workflow_interpreter.bdio import WorkflowStore
-    from workflow_interpreter.bdio.client import BdClient
     from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         IntegrationRequest,
@@ -537,12 +527,12 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
     from workflow_interpreter.contractor.verification import CheckCommand
     from workflow_interpreter.foreman.resolve import instantiate
     from workflow_interpreter.foreman.tick import Foreman
+    from workflow_interpreter.tracker.bd_transport import BdClient
 
     lab, _, composition, spawner = writer_lab(tmp_path)
     store = WorkflowStore(BdClient(bd_config))
     composition = replace(
         composition,
-        store=store,
         config=composition.config.model_copy(
             update={
                 "bd": bd_config,
@@ -634,7 +624,6 @@ def test_real_beads_roundtrips_integration_claim_and_one_root(
 def test_admission_limits_and_source_authority_fail_closed(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
 ) -> None:
-    from workflow_interpreter.contractor.adapter import ContractorAdapter
     from workflow_interpreter.contractor.errors import ContractorRefusal
     from workflow_interpreter.contractor.integration import (
         IntegrationRequest,
@@ -645,9 +634,9 @@ def test_admission_limits_and_source_authority_fail_closed(
 
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     coordinator = lab.store.coordination_store(composition=composition)
     sources = (("source", 0, source.receipt_digest),)

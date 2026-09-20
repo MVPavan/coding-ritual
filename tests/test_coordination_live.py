@@ -572,9 +572,8 @@ def test_real_coordination_lands_design_children_and_integration(
 
     else:
         # Resume only the completed design/two-child checkpoint, not arbitrary runs.
-        from workflow_interpreter.contractor.adapter import ContractorAdapter
+        from workflow_interpreter.contractor.tracker_wiring import adapter_of
         from workflow_interpreter.foreman.__main__ import _composition
-        from workflow_interpreter.ledger.closure import NoLedgerClosure
 
         contract = json.loads((original_evidence / "fixture-contract.json").read_text())
         assert (
@@ -602,9 +601,7 @@ def test_real_coordination_lands_design_children_and_integration(
         child_base = saved("child-admission-base")
         independent_target_commit = saved("independent-target-head")
         composition = _composition(config)
-        adapter = ContractorAdapter.from_config(
-            composition.config.bd, closure=NoLedgerClosure()
-        )
+        adapter = adapter_of(composition)
         design_record = adapter.record(design_stage)
         assert design_record is not None
         assert (design_record.root_id, design_record.epic_id, design_record.state) == (

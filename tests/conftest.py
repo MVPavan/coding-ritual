@@ -37,9 +37,12 @@ from tests._helpers import (
     VALID_FIXTURE,
 )
 from tests._profiles import Lab
-from workflow_interpreter.bdio import BdConfig, GateVerifier, SigningConfig
+from workflow_interpreter.bdio import GateVerifier, SigningConfig
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import BdClient
+from workflow_interpreter.ledger.claims import LedgerClaims
+from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
+from workflow_interpreter.ledger.store import LedgerStore
+from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
 
 BD_BINARY: Final[str] = "bd"
 SSH_KEYGEN: Final[str] = "ssh-keygen"
@@ -213,15 +216,53 @@ def signing_config(signing_key: Path) -> SigningConfig:
 
 
 @pytest.fixture
-def gate_verifier(signing_config: SigningConfig, bd_workspace: Path) -> GateVerifier:
-    """A verifier whose allow-list lives outside the bd workspace (§9)."""
-    return GateVerifier(signing_config, bd_workspace)
+def gate_verifier(
+    signing_config: SigningConfig, ledger_repo: tuple[Path, Path]
+) -> GateVerifier:
+    """A verifier whose allow-list lives outside what the engine writes (§9)."""
+    return GateVerifier(signing_config, ledger_repo[0])
+
+
+LAB_TASK: Final[str] = "cr-3411.2"
+LAB_EPIC: Final[str] = "cr-3411"
+"""The task and epic every ledger-backed fixture store is scoped to.
+
+One task per store is the ledger's own shape (§3.3): its rows are keyed by
+`task_id`, and the epic is an INPUT at mint (§3.7), never a parse of the id."""
 
 
 @pytest.fixture
-def store(bd_client: BdClient, gate_verifier: GateVerifier) -> WorkflowStore:
-    """The typed write API wired to real bd and a real §9 verifier."""
-    return WorkflowStore(bd_client, gate_verifier, branch_head_reader=branch_head)
+def ledger_repo(tmp_path: Path) -> tuple[Path, Path]:
+    """A repository and a wrapper root, with the in-repo `.git` shape.
+
+    `.git` as a DIRECTORY is its own git common directory, which is all the
+    fence resolver reads — so a store fixture needs no `git` binary.
+    """
+    repo_root = tmp_path / "fixture-repo"
+    (repo_root / ".git").mkdir(parents=True, exist_ok=True)
+    wrapper_root = tmp_path / "fixture-wrapper"
+    wrapper_root.mkdir(exist_ok=True)
+    return repo_root, wrapper_root
+
+
+@pytest.fixture
+def ledger(ledger_repo: tuple[Path, Path]) -> Iterator[LedgerDatabase]:
+    """This test's own ledger, fenced and migrated exactly as production's is."""
+    repo_root, wrapper_root = ledger_repo
+    with open_ledger(repo_root, wrapper_root) as database:
+        yield database
+
+
+@pytest.fixture
+def store(fake_store: WorkflowStore) -> WorkflowStore:
+    """The typed write API over this test's ledger.
+
+    It used to be "wired to real bd", and after S6 there is one record store
+    (R1) — so the distinction between this fixture and `fake_store` was the
+    transport, and the transport is gone. Kept as a name because dozens of
+    tests ask for it.
+    """
+    return fake_store
 
 
 @pytest.fixture
@@ -232,7 +273,10 @@ def documents() -> Documents:
 
 @pytest.fixture
 def gate_store(
-    fake_client: BdClient, gate_verifier: GateVerifier, documents: Documents
+    fake_client: LedgerStore,
+    ledger: LedgerDatabase,
+    gate_verifier: GateVerifier,
+    documents: Documents,
 ) -> WorkflowStore:
     """A store that can verify §9 approvals and re-hash mutable artifacts."""
     return WorkflowStore(
@@ -240,6 +284,7 @@ def gate_store(
         gate_verifier,
         artifact_reader=documents,
         branch_head_reader=branch_head,
+        claims=LedgerClaims(ledger),
     )
 
 
@@ -250,15 +295,27 @@ def fake_bd() -> FakeBd:
 
 
 @pytest.fixture
-def fake_client(fake_bd: FakeBd) -> BdClient:
-    """The real transport driving the in-memory workspace."""
+def fake_bd_client(fake_bd: FakeBd) -> BdClient:
+    """The bd TRANSPORT over the in-memory workspace — tracker traffic only.
+
+    Distinct from `fake_client` since S6: that one is the record store, and bd
+    is no longer one (R1). What is left here is what a tracker asks.
+    """
     return BdClient(BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR), fake_bd)
 
 
 @pytest.fixture
-def fake_store(fake_client: BdClient) -> WorkflowStore:
-    """The typed write API over the in-memory workspace, no §9 verifier."""
-    return WorkflowStore(fake_client, branch_head_reader=branch_head)
+def fake_client(ledger: LedgerDatabase) -> LedgerStore:
+    """The record store itself, for the tests that write rows directly."""
+    return LedgerStore(ledger, task_id=LAB_TASK, epic_id=LAB_EPIC)
+
+
+@pytest.fixture
+def fake_store(fake_client: LedgerStore, ledger: LedgerDatabase) -> WorkflowStore:
+    """The typed write API over this test's ledger, no §9 verifier."""
+    return WorkflowStore(
+        fake_client, branch_head_reader=branch_head, claims=LedgerClaims(ledger)
+    )
 
 
 @pytest.fixture

@@ -46,7 +46,6 @@ from workflow_interpreter.bdio.carriers import (
     ProcessHandle,
     Severity,
 )
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.findings import (
     MAX_FINDING_BYTES,
     MAX_REVIEW_FINDINGS_BYTES,
@@ -104,7 +103,7 @@ from workflow_interpreter.ledger.reverify import (
     verify_signature,
 )
 from workflow_interpreter.ledger.tasks import (
-    pin_task_backend,
+    ensure_task,
     record_export_oid,
     record_task_state,
 )
@@ -1871,7 +1870,7 @@ def test_archive_refuses_a_task_that_is_not_retired_and_deletes_nothing(
     repo, wrapper_root, git, root_id, ref = _archive_fixture(tmp_path)
     bundle = tmp_path / "bundles" / f"{TASK_ID}.bundle"
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER, EPIC_ID)
+        ensure_task(database, TASK_ID, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
 
         with pytest.raises(LedgerExportError, match="not retired"):
@@ -1894,7 +1893,7 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
     repo, wrapper_root, git, root_id, ref = _archive_fixture(tmp_path)
     bundle = tmp_path / "bundles" / f"{TASK_ID}.bundle"
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER, EPIC_ID)
+        ensure_task(database, TASK_ID, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
         # A closed task is LANDED and latched: the latch alone is not
         # closure, and `closed()` asks the state first (§3.5) — which since S4
@@ -1930,7 +1929,7 @@ def test_archive_refuses_a_bundle_inside_the_repository(tmp_path: Path) -> None:
     """The bundle is what survives the deletion; inside the repo it may not."""
     repo, wrapper_root, git, root_id, _ = _archive_fixture(tmp_path)
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER, EPIC_ID)
+        ensure_task(database, TASK_ID, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
         # A closed task is LANDED and latched: the latch alone is not
         # closure, and `closed()` asks the state first (§3.5) — which since S4

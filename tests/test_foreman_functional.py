@@ -30,11 +30,11 @@ from workflow_interpreter.bdio import (
     SigningConfig,
     keys,
 )
-from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.constants import (
     DEVIATION_INSTANCE_BRANCH_DIVERGED,
     DEVIATION_PRECONDITION_REFUSED,
 )
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.bdio.wire import EventPayload
 from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.constants import DEVIATION_UNDECLARED_EFFECTS_ACCEPTED

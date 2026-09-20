@@ -52,10 +52,8 @@ from tests._ledger import (
 from tests.conftest import FAKE_WORKSPACE, TEST_ACTOR, Signer, branch_head
 from workflow_interpreter.bdio import transitions
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.backend import PinnedBackendFactory
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.config import BdConfig, SigningConfig
-from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY, BackendKind
+from workflow_interpreter.bdio.config import SigningConfig
+from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
 from workflow_interpreter.bdio.errors import (
     BdUnavailableError,
     CarrierIntegrityError,
@@ -91,9 +89,10 @@ from workflow_interpreter.ledger.reconcile import (
     task_lock_path,
 )
 from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import export_oid, pin_task_backend
+from workflow_interpreter.ledger.tasks import ensure_task, export_oid
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.tracker.bd import BdTracker
+from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
 
 TERMINAL: Final[str] = "shipped"
 ABANDONED: Final[str] = "abandoned"
@@ -751,7 +750,6 @@ def test_a_busy_close_is_recorded_on_the_activation_it_was_refused_for(
     backend = _BusyClosingLedgerStore(ledger, task_id=TASK, epic_id=EPIC)
     store = WorkflowStore(
         backend,
-        backend_factory=PinnedBackendFactory(backend),
         branch_head_reader=branch_head,
     )
     root = make_root(store, load_definition())
@@ -869,7 +867,6 @@ def test_a_crash_at_a_fault_point_leaves_a_projection_the_next_drain_repairs(
     backend = CrashingLedgerStore(ledger, task_id=TASK)
     store = WorkflowStore(
         backend,
-        backend_factory=PinnedBackendFactory(backend),
         branch_head_reader=branch_head,
     )
     root = make_root(store, load_definition())
@@ -1285,7 +1282,7 @@ def test_a_read_never_sees_half_of_a_writers_transaction(
     only two answers are "neither" and "both".
     """
     for task_id in READER_TASKS:
-        pin_task_backend(ledger, task_id, BackendKind.LEDGER, EPIC)
+        ensure_task(ledger, task_id, EPIC)
     started = threading.Event()
     failures: list[Exception] = []
 

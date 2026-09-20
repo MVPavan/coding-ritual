@@ -36,7 +36,7 @@ from workflow_interpreter.contractor.verification import (
 
 
 @pytest.fixture
-def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
+def case(tmp_path, fake_bd, fake_bd_client, gate_verifier, sign_payload):
     repo, base = _temporary_repo(tmp_path)
     oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
@@ -51,7 +51,7 @@ def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
     git, paths, export = _landing_context(repo, tmp_path)
     seeded_records(record, into=export.records)
     adapter = bd_adapter(
-        fake_client,
+        fake_bd_client,
         closure=export.closure,
         records=export.records,
         outbox=export.outbox,

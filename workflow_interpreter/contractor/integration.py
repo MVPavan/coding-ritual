@@ -897,11 +897,6 @@ def resume_integration(
                 verification_policy=VerificationPolicy.model_validate_json(
                     association.verification_policy_json
                 ),
-                # §3.2: a child inherits its OWNER's backend, and this record
-                # is what the locator answers from on a restart — so it names
-                # the backend the integration root is actually created on
-                # rather than this field's bd default.
-                root_backend=composition.locate_backend(owner),
             ).model_copy(
                 update={
                     "integration_digest": association.identity_digest,

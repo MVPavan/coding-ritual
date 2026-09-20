@@ -1,6 +1,6 @@
 """The §4 read vocabulary — every query the write API issues.
 
-Free functions over a `StoreBackend`, so the write operations in `api.py` and
+Free functions over a `LedgerStore`, so the write operations in `api.py` and
 `gates.py` share exactly one definition of each query. Two rules hold
 throughout:
 
@@ -15,12 +15,11 @@ throughout:
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from pydantic import JsonValue
 
 from workflow_interpreter.bdio import bounds
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.carriers import JSON_SAFE_INT_LIMIT
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.records import (
@@ -51,28 +50,33 @@ from workflow_interpreter.bdio.wire import (
 )
 from workflow_interpreter.contracts.wake import WakeEvent
 
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
+
 FIRST_SEQ: Final[int] = 1
 MSG_SEQ_EXHAUSTED: Final[str] = (
     "instance seq space is exhausted: the next seq is past the JSON-safe bound"
 )
 
 
-def load_root(client: StoreBackend, root_id: str) -> RootRecord:
+def load_root(client: LedgerStore, root_id: str) -> RootRecord:
     """Read a root and re-verify its pinned body's hash (§3.1, §4 tick step 0)."""
     return parse_root(client.get_row(root_id))
 
 
-def load_activation(client: StoreBackend, activation_id: str) -> ActivationRecord:
+def load_activation(client: LedgerStore, activation_id: str) -> ActivationRecord:
     """Read one activation through the carrier contract."""
     return parse_activation(client.get_row(activation_id))
 
 
-def load_gate(client: StoreBackend, gate_id: str) -> GateRecord:
+def load_gate(client: LedgerStore, gate_id: str) -> GateRecord:
     """Read one gate through the carrier contract."""
     return parse_gate(client.get_row(gate_id))
 
 
-def find_roots(client: StoreBackend, instance_key: str) -> tuple[StoreRow, ...]:
+def find_roots(client: LedgerStore, instance_key: str) -> tuple[StoreRow, ...]:
     """Every root row carrying `instance_key` — more than one is race residue.
 
     Ordered by row id, so the §3.2 convergence rule (lowest id survives) reads
@@ -90,7 +94,7 @@ def find_roots(client: StoreBackend, instance_key: str) -> tuple[StoreRow, ...]:
 
 
 def roots_by_instance_key(
-    client: StoreBackend, instance_key: str
+    client: LedgerStore, instance_key: str
 ) -> tuple[RowRecord, ...]:
     """Every root row carrying `instance_key`, as identity only.
 
@@ -102,7 +106,7 @@ def roots_by_instance_key(
     return tuple(parse_row(row) for row in find_roots(client, instance_key))
 
 
-def list_roots(client: StoreBackend) -> tuple[RootRecord, ...]:
+def list_roots(client: LedgerStore) -> tuple[RootRecord, ...]:
     """Every root row in the store, in row-id order (§4 'Load roots').
 
     A stateless tick has to DISCOVER its instances before it can load one, and
@@ -114,12 +118,12 @@ def list_roots(client: StoreBackend) -> tuple[RootRecord, ...]:
     return tuple(parse_root(row) for row in sorted(rows, key=lambda row: row.id))
 
 
-def instance_rows(client: StoreBackend, root_id: str) -> tuple[StoreRow, ...]:
+def instance_rows(client: LedgerStore, root_id: str) -> tuple[StoreRow, ...]:
     """Every row of the instance, untyped — identity and carrier only."""
     return client.find_rows(RowQuery(metadata_filters={KEY_WF_ROOT_ID: root_id}))
 
 
-def owns_instance_rows(client: StoreBackend, root_id: str) -> bool:
+def owns_instance_rows(client: LedgerStore, root_id: str) -> bool:
     """Whether any row of the instance other than the root itself links to it.
 
     Deliberately over untyped rows: ownership decides which duplicate root
@@ -130,7 +134,7 @@ def owns_instance_rows(client: StoreBackend, root_id: str) -> bool:
     return any(row.id != root_id for row in instance_rows(client, root_id))
 
 
-def next_instance_seq(client: StoreBackend, root_id: str) -> int:
+def next_instance_seq(client: LedgerStore, root_id: str) -> int:
     """The next per-instance `seq`, read without parsing any carrier (§3.2).
 
     Same reason as `owns_instance_rows`: allocating the next sequence needs
@@ -173,7 +177,7 @@ def _next_seq_of_rows(rows: Sequence[StoreRow]) -> int:
     return max(seen, default=FIRST_SEQ - 1) + 1
 
 
-def instance_records(client: StoreBackend, root_id: str) -> tuple[InstanceRecord, ...]:
+def instance_records(client: LedgerStore, root_id: str) -> tuple[InstanceRecord, ...]:
     """Every row of the instance, typed — root, activations, gates and events (§4).
 
     The root itself is included: it carries its own `wf_root_id`, and both the
@@ -183,9 +187,7 @@ def instance_records(client: StoreBackend, root_id: str) -> tuple[InstanceRecord
     return tuple(parse_instance_row(row) for row in instance_rows(client, root_id))
 
 
-def list_activations(
-    client: StoreBackend, root_id: str
-) -> tuple[ActivationRecord, ...]:
+def list_activations(client: LedgerStore, root_id: str) -> tuple[ActivationRecord, ...]:
     """Every activation of the instance, in `seq` order."""
     rows = client.find_rows(
         RowQuery(
@@ -198,7 +200,7 @@ def list_activations(
     return _ordered(parse_activation(row) for row in rows)
 
 
-def list_gates(client: StoreBackend, root_id: str) -> tuple[GateRecord, ...]:
+def list_gates(client: LedgerStore, root_id: str) -> tuple[GateRecord, ...]:
     """Every gate row of the instance, in `seq` order."""
     rows = client.find_rows(
         RowQuery(
@@ -212,7 +214,7 @@ def list_gates(client: StoreBackend, root_id: str) -> tuple[GateRecord, ...]:
 
 
 def find_by_idempotency_key(
-    client: StoreBackend, root_id: str, idempotency_key: str
+    client: LedgerStore, root_id: str, idempotency_key: str
 ) -> tuple[ActivationRecord, ...]:
     """The §4 idempotency lookup — 0 or 1 row; more is race residue (§3.2).
 
@@ -232,7 +234,7 @@ def find_by_idempotency_key(
     return tuple(parse_activation(row) for row in rows)
 
 
-def find_gate(client: StoreBackend, root_id: str, gate_key: str) -> GateRecord | None:
+def find_gate(client: LedgerStore, root_id: str, gate_key: str) -> GateRecord | None:
     """The gate carrying `gate_key`, if this key was already opened (§3.4).
 
     Ordered by row id like `find_roots` and the §3.2 race rule: a key should
@@ -254,7 +256,7 @@ def find_gate(client: StoreBackend, root_id: str, gate_key: str) -> GateRecord |
     return parse_gate(rows[0]) if rows else None
 
 
-def find_event(client: StoreBackend, root_id: str, event_key: str) -> RowRecord | None:
+def find_event(client: LedgerStore, root_id: str, event_key: str) -> RowRecord | None:
     """The event row carrying `event_key`, so backfill cannot duplicate (§3.3)."""
     rows = client.find_rows(
         RowQuery(
@@ -269,7 +271,7 @@ def find_event(client: StoreBackend, root_id: str, event_key: str) -> RowRecord 
     return parse_row(rows[0]) if rows else None
 
 
-def list_wake_events(client: StoreBackend, root_id: str) -> tuple[WakeEvent, ...]:
+def list_wake_events(client: LedgerStore, root_id: str) -> tuple[WakeEvent, ...]:
     """Read notifications independently of transition event backfill."""
     rows = client.find_rows(
         RowQuery(
@@ -289,7 +291,7 @@ def list_wake_events(client: StoreBackend, root_id: str) -> tuple[WakeEvent, ...
 
 
 def rows_with_nonce(
-    client: StoreBackend, root_id: str, nonce: str
+    client: LedgerStore, root_id: str, nonce: str
 ) -> tuple[StoreRow, ...]:
     """Instance rows that already recorded `nonce` — the §9 replay check."""
     return client.find_rows(
@@ -334,7 +336,7 @@ def gates_of(records: Sequence[InstanceRecord]) -> tuple[GateRecord, ...]:
 
 
 def effective_bound(
-    client: StoreBackend, root_id: str, setting: BoundSetting, scope: str = ""
+    client: LedgerStore, root_id: str, setting: BoundSetting, scope: str = ""
 ) -> int | None:
     """The §10.4 bound in force for this instance: config ⊕ closed rebudgets."""
     return bounds.effective_bound(
@@ -357,7 +359,7 @@ class WorkflowReads:
     away from "close a gate without verifying it" (§0.1).
     """
 
-    def __init__(self, client: StoreBackend) -> None:
+    def __init__(self, client: LedgerStore) -> None:
         self._client = client
 
     def load_root(self, root_id: str) -> RootRecord:

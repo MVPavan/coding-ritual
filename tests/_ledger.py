@@ -23,8 +23,6 @@ from typing import Final
 from tests._bdio import entry_request, load_definition, make_root
 from tests.conftest import branch_head
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.backend import PinnedBackendFactory
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import BeadRecord
@@ -33,7 +31,7 @@ from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.paths import repo_hash
 from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import pin_task_backend
+from workflow_interpreter.ledger.tasks import ensure_task
 from workflow_interpreter.tracker.intents import SetFlag
 from workflow_interpreter.tracker.models import TrackerRef
 from workflow_interpreter.tracker.port import TrackerPort
@@ -75,16 +73,11 @@ def ledger_store(
     epic_id: str | None = EPIC,
     verifier: GateVerifier | None = None,
 ) -> WorkflowStore:
-    """The public write path over one task's ledger rows.
-
-    Built through the factory, the way production builds one: the backend a
-    root is served by is the factory's answer, never a borrowed handle (§3.2).
-    """
+    """The public write path over one task's ledger rows."""
     backend = LedgerStore(database, task_id=task_id, epic_id=epic_id)
     return WorkflowStore(
         backend,
         verifier,
-        backend_factory=PinnedBackendFactory(backend),
         branch_head_reader=branch_head,
         claims=LedgerClaims(database),
     )
@@ -301,7 +294,7 @@ def seed_contractor_record(
     every caller of this is testing the ledger's side of the fold rather than
     the contractor's record shape.
     """
-    pin_task_backend(database, task_id, BackendKind.LEDGER, epic_id)
+    ensure_task(database, task_id, epic_id)
     existing = records.read(database, task_id)
     carrier = json.dumps({"stage_id": task_id, "epic_id": epic_id, "state": state})
     if existing is None:

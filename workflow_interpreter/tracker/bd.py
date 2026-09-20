@@ -1,9 +1,9 @@
 """bd behind the port (§3.3).
 
-A wrapper over the existing `BdClient` rather than a rewrite: S6 deletes the
-client's record-store half, and what survives is exactly the tracker traffic
-this adapter issues. Wrapping it now is what lets S5 move the contractor onto
-the port without moving bd at the same time.
+A wrapper over the bd transport rather than a rewrite. S6 deleted the
+client's record-store half and moved what survived under `tracker/`
+(`bd_transport.py`): what is left is exactly the tracker traffic this adapter
+issues.
 
 bd DOES answer the claim, and this adapter used to say it did not. The
 docstring here claimed bd "says open, in_progress or closed, and nothing about
@@ -28,14 +28,14 @@ from typing import Final
 
 from pydantic import JsonValue
 
-from workflow_interpreter.bdio.client import (
+from workflow_interpreter.bdio.errors import StoreError, StoreOutputError
+from workflow_interpreter.ledger.constants import TrackerKind
+from workflow_interpreter.tracker.bd_transport import (
     STATUS_CLOSED,
     BdClient,
+    BeadRecord,
     DependencyType,
 )
-from workflow_interpreter.bdio.errors import StoreError, StoreOutputError
-from workflow_interpreter.bdio.wire import BeadRecord
-from workflow_interpreter.ledger.constants import TrackerKind
 from workflow_interpreter.tracker.constants import TrackerCapability, WorkItemStatus
 from workflow_interpreter.tracker.intents import (
     Annotate,
@@ -157,13 +157,13 @@ class BdTracker:
             held = self._client.show(intent.ref.ref)
             if held.status == STATUS_CLOSED and held.close_reason == intent.reason:
                 return Applied(observed=_item(held))
-            self._client._close_row(intent.ref.ref, intent.reason)
+            self._client.close(intent.ref.ref, intent.reason)
             return Applied(observed=self.get(intent.ref))
         if isinstance(intent, SetFlag):
             written = (
-                self._client._add_label(intent.ref.ref, intent.flag)
+                self._client.add_label(intent.ref.ref, intent.flag)
                 if intent.on
-                else self._client._remove_label(intent.ref.ref, intent.flag)
+                else self._client.remove_label(intent.ref.ref, intent.flag)
             )
             return Applied(observed=_item(written))
         if isinstance(intent, Claim):
@@ -192,7 +192,7 @@ class BdTracker:
             if held.claimed_by is None:
                 return Applied(observed=held)
             return Applied(
-                observed=_item(self._client._write_assignee(intent.ref.ref, _NOBODY))
+                observed=_item(self._client.write_assignee(intent.ref.ref, _NOBODY))
             )
         if held.claimed_by not in (None, intent.actor):
             return Conflict(
@@ -205,7 +205,7 @@ class BdTracker:
         ):
             return Applied(observed=held)
         return Applied(
-            observed=_item(self._client._write_assignee(intent.ref.ref, intent.actor))
+            observed=_item(self._client.write_assignee(intent.ref.ref, intent.actor))
         )
 
 

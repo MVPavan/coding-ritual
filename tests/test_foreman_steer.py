@@ -35,7 +35,7 @@ from workflow_interpreter.bdio import (
     keys,
     mint,
 )
-from workflow_interpreter.bdio.client import STATUS_CLOSED
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.tick import Foreman

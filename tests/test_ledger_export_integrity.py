@@ -36,8 +36,6 @@ from tests._contractor import bd_adapter
 from tests._fake_bd import FakeBd
 from tests._helpers import MemoryContractorRecords
 from tests._ledger import EPIC, TASK, repository, seed_contractor_record, seeded_task
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor import (
     ContractorAdapterError,
     ContractorRecord,
@@ -71,6 +69,7 @@ from workflow_interpreter.ledger.paths import (
 )
 from workflow_interpreter.ledger.schema import table_columns
 from workflow_interpreter.ledger.tasks import export_oid, record_task_state
+from workflow_interpreter.tracker.bd_transport import BdClient
 
 EPIC_ID: Final[str] = "phase-1"
 STAGE_ID: Final[str] = "stage-a"
@@ -187,9 +186,7 @@ def test_a_closed_task_re_exports_the_very_bytes_its_pin_names(
         # pin exports it — so a task pinned here has to have landed first, as
         # `pin_export` itself insists.
         seed_contractor_record(database, state=TaskState.LANDED.value)
-        pinned_oid = ExportPin(database, git, repo_root, EPIC).pin(
-            TASK, BackendKind.LEDGER
-        )
+        pinned_oid = ExportPin(database, git, repo_root, EPIC).pin(TASK)
         as_pinned = exported.read_bytes()
         again = write_export(database, TASK).read_bytes()
 
@@ -242,7 +239,7 @@ def test_the_close_after_a_pin_leaves_the_exported_record_untouched(
         pin = ExportPin(database, git, repo_root, EPIC)
         # What `adapter.land` leaves: the record at LANDED, before the export.
         pin.records.create(landed, brief=None)
-        pinned_oid = pin.pin(TASK, BackendKind.LEDGER)
+        pinned_oid = pin.pin(TASK)
         as_pinned = exported.read_bytes()
         adapter = bd_adapter(
             fake_client, closure=pin.closure, records=pin.records, outbox=pin.outbox
@@ -437,7 +434,7 @@ def test_a_landed_task_round_trips_and_its_landing_rows_come_back(
     intent = _landing_intent()
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
-        journal = LandingJournal(database, TASK, BackendKind.LEDGER, EPIC)
+        journal = LandingJournal(database, TASK, EPIC)
         journal.record(ATTEMPT, LandingPhase.INTENT, intent)
         export = write_export(database, TASK)
         as_exported = export.read_bytes()
@@ -451,7 +448,7 @@ def test_a_landed_task_round_trips_and_its_landing_rows_come_back(
     )
 
     with open_ledger(repo_root, wrapper_root) as rebuilt:
-        restored = LandingJournal(rebuilt, TASK, BackendKind.LEDGER, EPIC).read(
+        restored = LandingJournal(rebuilt, TASK, EPIC).read(
             ATTEMPT, LandingPhase.INTENT, LandingIntent
         )
         again = write_export(rebuilt, TASK).read_bytes()

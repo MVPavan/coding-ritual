@@ -16,6 +16,7 @@ from tests.test_foreman_main import (
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.contractor import command
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
 from workflow_interpreter.contracts.wake import WakeCondition
 from workflow_interpreter.foreman import __main__ as cli
 from workflow_interpreter.foreman import heartbeat, refusals
@@ -165,9 +166,9 @@ def test_contractor_propagates_run_attention(tmp_path, monkeypatch):
         "stage", description="Implement feature"
     )
     monkeypatch.setattr(
-        command.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     monkeypatch.setattr(
         Foreman,

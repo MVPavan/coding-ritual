@@ -7,8 +7,7 @@ from typing import Annotated, Final
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
-from workflow_interpreter.bdio.config import BdConfig, SigningConfig
-from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman.wake_constants import (
@@ -19,6 +18,7 @@ from workflow_interpreter.foreman.wake_constants import (
 from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.sandbox import GIT_ENTRY
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
+from workflow_interpreter.tracker.bd_transport import BdConfig
 
 MSG_WORKTREE_REPO_ROOT: Final[str] = (
     "foreman repo_root {repo_root} is a linked worktree; configure the "
@@ -69,12 +69,10 @@ class ForemanConfig(BaseModel):
     repo_root: Path
     wrapper_home: Path
     bd: BdConfig
-    store: BackendKind = BackendKind.BD
-    """Which backend a NEW attempt root is pinned to (§3.2, D18).
+    """How to reach bd — the TRACKER's transport, not a record store (R1).
 
-    New roots only: an existing root always resolves through the backend its
-    contractor record or `tasks` row pinned, so flipping this back to `bd` leaves
-    every ledger-backed root loadable. There is no reverse migration."""
+    Still named `bd` in the TOML because that is what the section configures;
+    `tracker.backend` decides whether it is reached at all."""
     signing: SigningConfig | None = None
     profiles: ProfileConfig = Field(default_factory=ProfileConfig)
     wake: WakeConfig = Field(default_factory=WakeConfig)

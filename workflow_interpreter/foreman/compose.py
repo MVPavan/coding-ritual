@@ -10,13 +10,6 @@ from typing import Final, Protocol
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import MintRequest, WorkflowStore
-from workflow_interpreter.bdio.backend import (
-    BackendLocator,
-    PinnableBackendLocator,
-    RecordPinnableBackendLocator,
-    bd_backend,
-)
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
@@ -129,7 +122,7 @@ class DetachedSpawner:
                     "--config",
                     str(self._config_path),
                     # D16: the wrapper re-enters as its own process and has to
-                    # be told the task too, or it could not locate a backend.
+                    # be told the task too, or its ledger rows have no key.
                     "--task",
                     self._task_id,
                     # And the epic, for the same reason: it is an input (§3.7),
@@ -180,7 +173,7 @@ composition root decides where those come from. The ledger's implementation is
 
 
 def no_attention_drain(root_id: str) -> None:
-    """The default: a bd-backed root keeps no projections, so none are owed."""
+    """The default for a wiring with no ledger: nothing is projected, none owed."""
 
 
 @dataclass(frozen=True)
@@ -215,8 +208,6 @@ class Composition:
     cannot answer for a tracker that does not shape its ids that way. Carried
     here so that `RunIdentity` is pinned from a fact the composition root
     decided, exactly as the task is."""
-    locate_backend: BackendLocator = bd_backend
-    """Which backend owns a root, answered before the root is loaded (§3.2)."""
     drain_attention: AttentionDrain = no_attention_drain
     """Drains a settling root's pending attention projections (§3.2.4)."""
 
@@ -226,68 +217,31 @@ class Composition:
             raise ValueError("inspector_config must match foreman config")
 
     def store_for_root(self, root_id: str) -> WorkflowStore:
-        """The store this root is read and written through (§3.2).
+        """The store this root is read and written through.
 
-        The backend is pinned per root, so it is chosen BEFORE the root is
-        loaded; the process-wide store is only the factory it comes from. Any
-        read or write about ONE root goes through here, not through
-        `composition.store`, which serves discovery and the task bead alone.
+        One record store (R1), so this is no longer a lookup: the ledger the
+        process opened is the ledger every root of its task lives in. What the
+        method still contributes is the root's branch-head reader, which is
+        why a read or write about ONE root comes through here rather than
+        through `composition.store`.
         """
-        return self._store_on(root_id, self.locate_backend(root_id))
+        return self._store_on(root_id)
 
-    def creation_store(self, backend: BackendKind) -> WorkflowStore:
-        """The store a root that does not exist YET is created through (§3.2).
+    def creation_store(self) -> WorkflowStore:
+        """The store a root that does not exist YET is created through.
 
-        A root's backend is pinned before the root exists — on the contractor
-        record at prepare, or on the `tasks` row for a run with no contractor — so
-        creation is the one operation that cannot ask the locator for an id it
-        is about to mint. It is given the pin instead, and creating through
-        `composition.store` (which is built on whatever transport this process
-        happened to start on) is what D18 forbids: a retry admitted after the
-        switch flipped would land on the backend its own record denies.
+        Separate from `store_for_root` for one reason: a root being created
+        has no instance branch, so its branch-head reader must refuse rather
+        than read one.
         """
-        return self.store.for_root(branch_head_reader=_no_branch_yet, backend=backend)
+        return self.store.for_root(branch_head_reader=_no_branch_yet)
 
-    def pin_root_backend(self, root_id: str, backend: BackendKind) -> None:
-        """Tell the locator the backend a just-created root was pinned to (§3.2).
-
-        Nothing durable answers for a bd root of a ledger-pinned task — the
-        ledger holds no row for it and the `tasks` row names the first
-        attempt's backend — so without this the next read of that root would go
-        to the wrong store and report a live run as missing. A locator with no
-        pin surface answers bd for everything already and has nothing to learn.
-        """
-        locator = self.locate_backend
-        if isinstance(locator, PinnableBackendLocator):
-            locator.pin(root_id, backend)
-
-    def pin_record_backend(self, root_id: str, backend: BackendKind) -> None:
-        """Tell the locator what a contractor record says about a root (§3.2).
-
-        Every resume and recovery entry installs this BEFORE it loads the
-        root: a process that restarted holds no pin, and for a bd attempt of
-        a ledger-pinned task the `tasks` row answers for attempt one, so a
-        load that asked first would read the wrong store and report a live
-        run as missing (D18). The record leads §3.2's order, so a store that
-        answers differently refuses here rather than overruling it.
-        """
-        locator = self.locate_backend
-        if isinstance(locator, RecordPinnableBackendLocator):
-            locator.pin_record(root_id, backend)
-
-    def _store_on(self, root_id: str, backend: BackendKind) -> WorkflowStore:
-        """The root's store over an ALREADY located backend.
-
-        A caller that needs both the located backend and the store must locate
-        once and pass that single answer here: two calls to the locator may
-        answer differently, and a root loaded from one backend must never be
-        wired to another (§3.2).
-        """
+    def _store_on(self, root_id: str) -> WorkflowStore:
+        """The root's store, bound to that root's branch-head reader."""
         return self.store.for_root(
             branch_head_reader=lambda: instance_head(
                 self.git, self.config.repo_root, root_id
             ),
-            backend=backend,
         )
 
     def coordination_for_root(
@@ -297,12 +251,10 @@ class Composition:
         verify_decision: Callable[[DecisionRequest], DecisionResponse] | None = None,
         composition: "Composition | None" = None,
     ) -> CoordinationStore:
-        """Coordination for ONE owner root, over that root's backend (§3.2).
+        """Coordination for ONE owner root, through that root's store.
 
         The reservation ledger lives in the owner's own record, which the
-        coordination store loads and saves through the backend it is bound
-        to. Binding it to `composition.store` would query the process-wide
-        backend for a root that may be pinned to another one.
+        coordination store loads and saves through the store it is bound to.
         """
         return self.store_for_root(owner_id).coordination_store(
             verify_decision=verify_decision, composition=composition
@@ -326,8 +278,7 @@ class Composition:
         branch_head_reader = lambda: instance_head(
             self.git, self.config.repo_root, root_id
         )
-        backend = self.locate_backend(root_id)
-        root_store = self._store_on(root_id, backend)
+        root_store = self._store_on(root_id)
         root = root_store.reads.load_root(root_id)
         coordinator = root_store.coordination_store()
         link = root.metadata.coordination
@@ -345,7 +296,7 @@ class Composition:
                 band_path = coordinator.member_lock_path(root_id, root=root)
         band = BandLock(band_path)
         store = root_store.for_root(
-            branch_head_reader=branch_head_reader, member_band=band, backend=backend
+            branch_head_reader=branch_head_reader, member_band=band
         )
         workspace = Workspace(paths, self.git, self.clock, band, advance_branch=True)
         return InstanceWiring(

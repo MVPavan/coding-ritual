@@ -12,12 +12,11 @@ from __future__ import annotations
 import hashlib
 import tempfile
 from pathlib import Path
-from typing import Final, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 import structlog
 
 from workflow_interpreter.bdio import bounds, finalize, keys, reads
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.capabilities import ArtifactReader
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
@@ -54,6 +53,11 @@ from workflow_interpreter.bdio.wire import (
     parse_bound_key,
 )
 from workflow_interpreter.schema.models import SYSTEM_OUTCOMES, BindsMode
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -163,7 +167,7 @@ def gate_key_for(root_id: str, request: GateOpenRequest, halt_ordinal: int = 0) 
 
 
 def open_gate(
-    client: StoreBackend, root_id: str, request: GateOpenRequest
+    client: LedgerStore, root_id: str, request: GateOpenRequest
 ) -> GateRecord:
     """Open a gate under its deterministic key, or re-find it (drill 6).
 
@@ -245,7 +249,7 @@ def open_gate(
     return parse_gate(record)
 
 
-def _halt_gates(client: StoreBackend, root_id: str) -> tuple[GateRecord, ...]:
+def _halt_gates(client: LedgerStore, root_id: str) -> tuple[GateRecord, ...]:
     """Every halt gate of this instance, in `seq` order (§10.3 ordinal source)."""
     return tuple(
         gate
@@ -306,7 +310,7 @@ def _refound(gate: GateRecord, request: GateOpenRequest) -> GateRecord:
 
 
 def close_gate_verified(
-    client: StoreBackend,
+    client: LedgerStore,
     verifier: GateVerifier,
     root_id: str,
     gate_id: str,
@@ -408,7 +412,7 @@ def _gate_close_reason(approval: VerifiedApproval) -> str:
 
 
 def _repair_closed_gate(
-    client: StoreBackend,
+    client: LedgerStore,
     gate: GateRecord,
     approval: VerifiedApproval,
 ) -> GateRecord:
@@ -439,7 +443,7 @@ def _repair_closed_gate(
 
 
 def append_event(
-    client: StoreBackend, root_id: str, payload: EventPayload, *, seq: int | None = None
+    client: LedgerStore, root_id: str, payload: EventPayload, *, seq: int | None = None
 ) -> RowRecord:
     """Append one transition event, idempotently (§3.3).
 
@@ -575,7 +579,7 @@ def _assert_artifact_shape(gate: GateRecord, payload: GatePayload) -> None:
 
 
 def _assert_raises_bound(
-    client: StoreBackend, root: RootRecord, approval: VerifiedApproval
+    client: LedgerStore, root: RootRecord, approval: VerifiedApproval
 ) -> None:
     """§10.4: a `rebudget` may only RAISE a bound, and only a declared one.
 
@@ -655,7 +659,7 @@ def _assert_known_scope(root: RootRecord, parsed: ScopedBound, key: str) -> None
 
 
 def _assert_nonce_unused(
-    client: StoreBackend, root_id: str, gate_id: str, nonce: str
+    client: LedgerStore, root_id: str, gate_id: str, nonce: str
 ) -> None:
     """Refuse a replayed nonce (§9): a nonce is consumed by the gate it closed."""
     for row in reads.rows_with_nonce(client, root_id, nonce):
@@ -666,7 +670,7 @@ def _assert_nonce_unused(
 
 
 def _assert_fresh_artifact(
-    client: StoreBackend,
+    client: LedgerStore,
     gate: GateRecord,
     approval: VerifiedApproval,
     artifact_reader: ArtifactReader | None,
@@ -712,7 +716,7 @@ def _assert_fresh_artifact(
     )
 
 
-def _refuse_stale(client: StoreBackend, gate: GateRecord, receipt: str) -> NoReturn:
+def _refuse_stale(client: LedgerStore, gate: GateRecord, receipt: str) -> NoReturn:
     """Record the edit receipt on the still-open gate, then refuse (§9)."""
     metadata = gate.metadata.model_copy(
         update={

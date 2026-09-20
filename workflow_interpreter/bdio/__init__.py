@@ -1,30 +1,29 @@
-"""The typed bd wrapper — the only path through which anything writes to bd.
+"""The typed store API — the only path through which anything writes a fact.
 
-Phase 2 of the workflow interpreter (spec v0.3 §0.1, §3, §4, §9, §10, §11).
 `WorkflowStore` is the typed operations, `WorkflowReads` the read vocabulary,
 `GateVerifier` the §9 human-gate check; `wire` holds the carriers, `mint` the
 §3.2 fact derivation and `bounds` the pre-mint predicates.
 
-`BdClient` is deliberately NOT exported. It is the transport, its write
-methods are package-private, and a caller holding one could close a bead
-without any of the §5.1/§9 rules that make this package worth having; a
-`WorkflowStore` plus its `.reads` facade is the entire public surface.
+The package name is historical: bd was the store when it was written, and S6
+made the ledger the only one (R1). What survived the cutover is what was never
+bd-shaped — the carriers, the §4 vocabulary, the §5.1 lifecycle rules, the §9
+gate check — over `LedgerStore`, which is constructed by composition roots and
+handed in here.
 
-`VerifiedApproval` is not exported either: it is the TOKEN saying "§9 already
+`VerifiedApproval` is not exported: it is the TOKEN saying "§9 already
 verified this", and the only thing that should ever hold one is the code
 between `GateVerifier.verify` and the write it authorizes (§0.3).
 
 Everything a caller needs to CALL a write method is exported, though — every
-request and value type in a public signature, plus `WorkflowStore.from_config`
-so a sealed transport does not mean an unbuildable store (phase-2 r3). That
-includes `Breaker`, which `Evidence` carries: a value type reachable only by
-importing `bdio.wire` is a sealed boundary with a hole in it.
+request and value type in a public signature. That includes `Breaker`, which
+`Evidence` carries: a value type reachable only by importing `bdio.wire` is a
+sealed boundary with a hole in it.
 """
 
 from workflow_interpreter.bdio.api import WorkflowStore, pinned_execution_setting
 from workflow_interpreter.bdio.bounds import BoundKind, BoundRefusal
 from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadReader
-from workflow_interpreter.bdio.config import BdConfig, SigningConfig
+from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.errors import (
     BdCommandError,
     BdOutputError,
@@ -107,7 +106,6 @@ __all__ = [
     "ArtifactIdentity",
     "ArtifactReader",
     "BdCommandError",
-    "BdConfig",
     "BdOutputError",
     "BdTimeoutError",
     "BdUnavailableError",

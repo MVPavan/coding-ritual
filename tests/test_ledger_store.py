@@ -28,7 +28,6 @@ import pytest
 from tests._bdio import entry_request, load_definition, make_root
 from tests._gates import ship_gate_request
 from tests._ledger import GIT_ENTRY, TASK, config_file, ledger_store, repository
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.ledger import fence as fence_module
 from workflow_interpreter.ledger.__main__ import main as ledger_main
@@ -222,7 +221,6 @@ def test_the_probe_round_trips_a_value_and_reports_the_pinned_identity(
     """§11: the ledger's canary is its schema, its wrapper root and a write."""
     result = LedgerStore(ledger, task_id=TASK).probe()
 
-    assert result.kind is BackendKind.LEDGER
     assert result.attributes["schema_version"] == str(SCHEMA_VERSION)
     assert result.attributes["wrapper_root"] == str(ledger.wrapper_root)
     assert read_meta(ledger.connection, MetaKey.SCHEMA_VERSION) == str(SCHEMA_VERSION)

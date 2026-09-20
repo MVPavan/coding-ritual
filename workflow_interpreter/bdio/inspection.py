@@ -42,11 +42,10 @@ race is repaired.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import structlog
 
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     LifecycleConflictError,
@@ -62,6 +61,11 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
 )
 from workflow_interpreter.contracts.execution import CrewName
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -102,7 +106,7 @@ def recorded_precondition(record: ActivationRecord) -> PreconditionRecord | None
 
 
 def record_precondition(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     wanted: PreconditionRecord,
@@ -122,7 +126,7 @@ def record_precondition(
 
 
 def record_stale_flag(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     flag: StaleFlagRecord,
@@ -163,7 +167,7 @@ def record_stale_flag(
 
 
 def _merge(
-    client: StoreBackend, activation_id: str, delta: Metadata
+    client: LedgerStore, activation_id: str, delta: Metadata
 ) -> ActivationRecord:
     """Write ONLY `delta`'s keys and parse what bd read back.
 
@@ -186,7 +190,7 @@ MSG_SESSION_IDENTITY: Final[str] = "app-server session registration identity mis
 
 
 def register_session(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     registration: SessionRegistration,
@@ -223,7 +227,7 @@ def register_session(
 
 
 def record_session_completion(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     completion: SessionCompletion,

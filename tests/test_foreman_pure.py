@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from pydantic import ValidationError
 
 from tests._bdio import entry_request, load_definition, make_root
 from workflow_interpreter.bdio import (
-    BdConfig,
     Deviation,
     Evidence,
     GateReason,
@@ -21,7 +21,6 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.bounds import (
     instance_ceiling_refusal as bdio_instance_ceiling_refusal,
 )
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
@@ -69,6 +68,7 @@ from workflow_interpreter.schema.models import (
     GraphDefinition,
     Outcome,
 )
+from workflow_interpreter.tracker.bd_transport import BdConfig
 
 
 @pytest.mark.parametrize(
@@ -1368,15 +1368,18 @@ host = "host"
     config = load_config(path)
     assert config.actor == "actor"
     assert config.config_path == path
-    # The store switch defaults to bd, so an existing config keeps its backend
-    # until an operator asks for the ledger (run-ledger D18).
-    assert config.store is BackendKind.BD
+    assert config.bd.actor == "actor"
 
 
-def test_load_config_reads_the_selected_store_backend(tmp_path: Path) -> None:
-    """`store = "ledger"` is what pins a NEW attempt root to the ledger."""
-    config = load_config(_config_file(tmp_path, extra='store = "ledger"\n'))
-    assert config.store is BackendKind.LEDGER
+def test_load_config_refuses_the_retired_store_switch(tmp_path: Path) -> None:
+    """R12, R1: there is one record store, so naming a second one refuses.
+
+    `extra="forbid"`, not a silently ignored key: an operator whose config
+    still says `store = "ledger"` has to learn that the switch is gone rather
+    than keep a file that reads as though it still chose something.
+    """
+    with pytest.raises(ValidationError):
+        load_config(_config_file(tmp_path, extra='store = "ledger"\n'))
 
 
 def test_load_config_refuses_a_linked_worktree_repo_root(tmp_path: Path) -> None:

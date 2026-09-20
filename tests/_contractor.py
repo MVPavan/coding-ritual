@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.tracker.bd import BdTracker
+from workflow_interpreter.tracker.bd_transport import BdClient
 from workflow_interpreter.tracker.port import TrackerPort
 
 
@@ -23,7 +23,6 @@ def bd_adapter(
 ) -> ContractorAdapter:
     """An adapter over `client`, tracked by bd through that same transport."""
     return ContractorAdapter(
-        client,
         *args,
         tracker=BdTracker(client) if tracker is None else tracker,
         **kwargs,

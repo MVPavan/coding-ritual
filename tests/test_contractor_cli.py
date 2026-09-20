@@ -13,6 +13,7 @@ from tests._inspector import ChildScript, commit_all
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
 from workflow_interpreter.contractor import ContractorAdapter
 from workflow_interpreter.contractor import landing as landing_module
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
 from workflow_interpreter.contractor.command import ContractorCommandResult
 from workflow_interpreter.contractor.landing import LANDING_RECEIPT_FILE, LandingHooks
 from workflow_interpreter.contractor.verification import CheckCommand
@@ -53,9 +54,9 @@ def test_two_stages_land_from_normal_command(
     lab.fake_bd.rows["b"] = _contractor_stage("b", description="second stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     started = []
 
@@ -233,9 +234,9 @@ def test_missing_policy_refuses_before_admission_writes(tmp_path, monkeypatch):
     lab.fake_bd.rows["a"] = _contractor_stage("a", description="first stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     result = _entry(lab, "a")
     assert result.exit_code == 2
@@ -252,9 +253,9 @@ def test_unexpected_programming_valueerror_is_a_crash(tmp_path, monkeypatch):
     lab.fake_bd.rows["a"] = _contractor_stage("a", description="first stage")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     def broken_run(*args, **kwargs):

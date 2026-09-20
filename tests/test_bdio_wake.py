@@ -78,13 +78,13 @@ def test_ambiguous_bd_write_is_refound_without_duplicate(fake_store, monkeypatch
 
     root = make_root(fake_store, load_definition())
     event = event_for(root)
-    original = fake_store._client._create_bead
+    original = fake_store._client._create_row
 
-    def ambiguous(**kwargs):
-        original(**kwargs)
+    def ambiguous(new):
+        original(new)
         raise StoreError("lost acknowledgment")
 
-    monkeypatch.setattr(fake_store._client, "_create_bead", ambiguous)
+    monkeypatch.setattr(fake_store._client, "_create_row", ambiguous)
     first = fake_store.append_wake_event(root.root_id, event)
     assert fake_store.append_wake_event(root.root_id, event).id == first.id
     assert fake_store.reads.list_wake_events(root.root_id) == (event,)
@@ -96,10 +96,10 @@ def test_failure_before_bd_write_leaves_no_delivery(fake_store, monkeypatch):
     root = make_root(fake_store, load_definition())
     event = event_for(root)
 
-    def unavailable(**kwargs):
+    def unavailable(new):
         raise StoreError("unavailable")
 
-    monkeypatch.setattr(fake_store._client, "_create_bead", unavailable)
+    monkeypatch.setattr(fake_store._client, "_create_row", unavailable)
     with pytest.raises(StoreError):
         fake_store.append_wake_event(root.root_id, event)
     assert not fake_store.reads.list_wake_events(root.root_id)
@@ -157,16 +157,16 @@ def test_wake_append_cannot_steal_a_reserved_activation_sequence(
     """A monitor append in the driver's read/create window uses another namespace."""
 
     root = make_root(fake_store, load_definition())
-    original = fake_store._client._create_bead
+    original = fake_store._client._create_row
     wakes = []
 
-    def interleave(**kwargs):
+    def interleave(new):
         """Commit a notification after mint selected its sequence, before its write."""
-        if kwargs["metadata"].get("wf_kind") == "activation":
+        if new.metadata.get("wf_kind") == "activation":
             wakes.append(fake_store.append_wake_event(root.root_id, event_for(root)))
-        return original(**kwargs)
+        return original(new)
 
-    monkeypatch.setattr(fake_store._client, "_create_bead", interleave)
+    monkeypatch.setattr(fake_store._client, "_create_row", interleave)
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
     assert activation.metadata.seq == 1
     assert wakes[0].metadata["seq"] == -1
@@ -175,26 +175,16 @@ def test_wake_append_cannot_steal_a_reserved_activation_sequence(
     assert next_seq(fake_store.reads.instance_records(root.root_id)) == 2
 
 
-def test_roots_sharing_instance_key_have_distinct_fire_keys(fake_store, fake_bd):
-    """Concurrent/superseded roots remain distinct to receivers deduplicating fires."""
-    first = make_root(fake_store, load_definition())
-    second = make_root(fake_store, load_definition())
-    fake_bd.rows[second.root_id]["metadata"]["instance_key"] = (
-        first.metadata.instance_key
-    )
-    second = fake_store.reads.load_root(second.root_id)
-    first_event, second_event = event_for(first), event_for(second)
-    assert first_event.fire_key != second_event.fire_key
-    fake_store.append_wake_event(first.root_id, first_event)
-    fake_store.append_wake_event(second.root_id, second_event)
-    assert fake_store.reads.list_wake_events(first.root_id) == (first_event,)
-    assert fake_store.reads.list_wake_events(second.root_id) == (second_event,)
-
-
-def test_lost_wake_payload_does_not_reuse_sequence(fake_store, fake_bd):
+def test_lost_wake_payload_does_not_reuse_sequence(fake_store, ledger):
     """Unreadable notifications still occupy their monotonic sequence slot."""
     root = make_root(fake_store, load_definition())
     first = fake_store.append_wake_event(root.root_id, event_for(root))
-    fake_bd.rows[first.id]["payload"] = None
+    # Straight at the column, because the point is a row nothing can PARSE:
+    # every typed write refuses to leave one, which is why this has to be
+    # stated rather than provoked.
+    with ledger.transaction() as connection:
+        connection.execute(
+            "UPDATE events SET payload_json = NULL WHERE event_id = ?", (first.id,)
+        )
     second = fake_store.append_wake_event(root.root_id, event_for(root, "second"))
     assert second.metadata["seq"] == -2

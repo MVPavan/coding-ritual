@@ -214,8 +214,8 @@ def test_real_beads_successor_intent_receipt_roundtrip(
     from dataclasses import replace
 
     from workflow_interpreter.bdio import WorkflowStore
-    from workflow_interpreter.bdio.client import BdClient
     from workflow_interpreter.foreman.resolve import instantiate
+    from workflow_interpreter.tracker.bd_transport import BdClient
 
     lab, _, composition, _ = writer_lab(tmp_path)
     store = WorkflowStore(BdClient(bd_config))

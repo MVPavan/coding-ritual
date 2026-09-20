@@ -5,7 +5,6 @@ import json
 import os
 import subprocess
 import sys
-from dataclasses import replace
 from pathlib import Path
 from typing import Final, cast
 
@@ -29,12 +28,10 @@ from tests._foreman import (
 )
 from tests._helpers import VALID_FIXTURE
 from tests._inspector import FakeProfile, FrozenClock
-from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
+from workflow_interpreter.bdio import BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
-from workflow_interpreter.contractor.models import ContractorRecord
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -52,11 +49,6 @@ from workflow_interpreter.foreman.execution import (
     resolved_node,
 )
 from workflow_interpreter.foreman.owner import OwnerConflict, OwnerRecord, ensure_owner
-from workflow_interpreter.foreman.replacement import (
-    advance_successor,
-    contractor_landing_locks,
-    guard_contractor,
-)
 from workflow_interpreter.foreman.resolve import (
     TASK_SETTING_TYPES,
     _resolved_config,
@@ -70,15 +62,10 @@ from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.paths import read_record, write_record
 from workflow_interpreter.profiles import ProfileConfig
 from workflow_interpreter.profiles.registry import ProfileRegistry
-from workflow_interpreter.schema.decisions import (
-    CoordinationError,
-    CoordinationLink,
-    MemberAdmission,
-    TrustedReplacementIntent,
-)
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.schema.validator import PHASE_B_RULES
+from workflow_interpreter.tracker.bd_transport import BdConfig
 
 
 class _AvailableProfiles(ProfileRegistry):
@@ -209,185 +196,6 @@ def test_composition_scopes_mint_reads_to_each_instance_branch(
     wiring_missing = composition.for_root(missing.root_id)
     with pytest.raises(InstanceBranchMissing, match="instance branch"):
         wiring_missing.branch_head_reader()
-
-
-def test_root_scoped_reads_ask_the_locator_for_that_root(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """A read about one root is served by that root's pinned backend (§3.2).
-
-    `composition.store` is the process-wide factory; using it for a root-scoped
-    read would serve a ledger-backed root from the bd store after the cutover
-    switch flips, which is exactly what the per-root pin forbids.
-    """
-    root = make_root(fake_store, load_definition())
-    composition, _ = _instance_composition(fake_store, tmp_path)
-    asked: list[str] = []
-
-    def locate(root_id: str) -> BackendKind:
-        asked.append(root_id)
-        return BackendKind.BD
-
-    composition = replace(composition, locate_backend=locate)
-
-    assert (
-        composition.reads_for_root(root.root_id).load_root(root.root_id).root_id
-        == root.root_id
-    )
-    assert asked == [root.root_id]
-
-
-def test_root_scoped_coordination_is_bound_to_that_root(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """An owner's reservation ledger lives in the owner's own record (§3.2).
-
-    `CoordinationStore` loads and saves the owner root through the backend it
-    was built on, so a coordination store taken from `composition.store` would
-    query the process-wide backend about a root pinned to another one.
-    """
-    root = make_root(fake_store, load_definition())
-    composition, _ = _instance_composition(fake_store, tmp_path)
-    asked: list[str] = []
-
-    def locate(root_id: str) -> BackendKind:
-        asked.append(root_id)
-        return BackendKind.BD
-
-    composition = replace(composition, locate_backend=locate)
-
-    with pytest.raises(CoordinationError, match="owner reservation ledger missing"):
-        composition.coordination_for_root(root.root_id).state(root.root_id)
-    assert asked == [root.root_id]
-
-
-def test_successor_and_contractor_paths_read_the_owner_through_its_own_store(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """Every owner-record access on these paths names its owner root (§3.2).
-
-    Successor journals, contractor authority and integration associations all live
-    in the owner's own record. Read through `composition.store` they would be
-    looked for on the process-wide backend, so each path is driven here until
-    it reaches the owner ledger, and the locator is asked for the owner.
-    """
-    owner = make_root(fake_store, load_definition())
-    composition, _ = _instance_composition(fake_store, tmp_path)
-    asked: list[str] = []
-
-    def locate(root_id: str) -> BackendKind:
-        asked.append(root_id)
-        return BackendKind.BD
-
-    composition = replace(composition, locate_backend=locate)
-    missing_ledger = "owner reservation ledger missing"
-    intent = TrustedReplacementIntent(
-        request_key="successor-key",
-        request_digest="request-digest",
-        reason="correct instructions",
-        owner_id=owner.root_id,
-        slot="a",
-        expected_generation=0,
-        predecessor_id="predecessor",
-        admission=MemberAdmission(
-            graph_body="body",
-            config_json="[]",
-            base_commit="a" * 40,
-            slot="a",
-            generation=0,
-        ),
-        obligation_digest="obligation-digest",
-    )
-    record = ContractorRecord.prepared(
-        epic_id="epic",
-        stage_id="stage",
-        attempt=1,
-        target_ref="refs/heads/main",
-        expected_base_commit="a" * 40,
-    )
-
-    with pytest.raises(CoordinationError, match=missing_ledger):
-        advance_successor(composition, intent)
-    assert asked == [owner.root_id]
-
-    asked.clear()
-    with pytest.raises(CoordinationError, match=missing_ledger):
-        guard_contractor(
-            composition,
-            record.model_copy(
-                update={
-                    "successor_owner": owner.root_id,
-                    "successor_key": intent.request_key,
-                    "execution_base_commit": "a" * 40,
-                }
-            ),
-        )
-    assert asked == [owner.root_id]
-
-    # `IntegrationGuard.association` is not driven here any more: under R11 the
-    # claim surface is a ledger row, so the guard cannot even be built on this
-    # bd-only wiring. It routes owner-record access through the same
-    # `coordination_for_root` seam the two cases above and the landing below
-    # already pin, so nothing about §3.2 goes unasserted by dropping it.
-
-    # A landing takes the owner lock, which lives beside the owner record on
-    # the owner's backend; only the target and member lock namespaces are
-    # shared. The member carries the link a real admission would have written.
-    member = make_root(fake_store, load_definition())
-    fake_store._client._merge_metadata(
-        member.root_id,
-        {
-            "coordination": CoordinationLink(
-                owner_id=owner.root_id,
-                slot="a",
-                generation=0,
-                reservation_id="reservation",
-                ceiling=2,
-            ).model_dump(mode="json")
-        },
-    )
-    asked.clear()
-    with (
-        pytest.raises(CoordinationError, match=missing_ledger),
-        contractor_landing_locks(
-            composition, record.model_copy(update={"root_id": member.root_id})
-        ),
-    ):
-        pass
-    # Member, owner (the lock), then the same pair again inside `guard_contractor`.
-    assert asked == [member.root_id, owner.root_id] * 2
-
-
-def test_one_wiring_locates_its_backend_once_and_keeps_that_answer(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """One wiring is built on ONE located backend (§3.2).
-
-    `for_root` loads the root and then derives the member-band store from it;
-    asking the locator again could answer differently, and the wiring would
-    then have loaded the root from one backend and run it against another. The
-    locator here refuses a second answer, and the backend the wiring ends up
-    on is compared by identity with the one the root was read through.
-    """
-    root = make_root(fake_store, load_definition())
-    composition, git = _instance_composition(fake_store, tmp_path)
-    git.refs[INSTANCE_BRANCH.format(root_id=root.root_id)] = "a" * 40
-    located: list[str] = []
-
-    def locate(root_id: str) -> BackendKind:
-        """Answer once; a second answer is a second decision, not a repeat."""
-        if located:
-            raise AssertionError("the located backend must not be re-derived")
-        located.append(root_id)
-        return BackendKind.BD
-
-    composition = replace(composition, locate_backend=locate)
-
-    wiring = composition.for_root(root.root_id)
-
-    assert located == [root.root_id]
-    assert wiring.store._client is fake_store._client
-    assert wiring.inspector._store._client is fake_store._client
 
 
 def test_store_root_derivation_keeps_injected_capabilities(

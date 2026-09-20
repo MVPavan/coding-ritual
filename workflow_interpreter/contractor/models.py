@@ -7,7 +7,6 @@ from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor.verification import VerificationPolicy
 
 type ContractorSchema = Literal["contract/3"]
@@ -31,10 +30,6 @@ MSG_PREVIOUS_ATTEMPTS_UNIQUE: Final[str] = (
 )
 MSG_PREPARED_NOT_FIRST_ATTEMPT: Final[str] = (
     "contractor prepared records must be the first attempt"
-)
-MSG_BACKEND_IMMUTABLE: Final[str] = (
-    "contractor root_backend is pinned at prepare and cannot change from "
-    "{stored!r} to {incoming!r}"
 )
 
 CommitOid = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
@@ -82,15 +77,6 @@ class ContractorRecord(BaseModel):
     stage_id: NonEmptyText
     attempt: int = Field(ge=1)
     instance_key: NonEmptyText
-    root_backend: BackendKind = Field(default=BackendKind.BD, frozen=True)
-    """The backend this ATTEMPT root is pinned to (§3.2, D18).
-
-    Written at PREPARE, before admission creates the root or its branch, so
-    the store a root is served by can be chosen before the root is loaded. It
-    defaults to bd because a missing pin only ever appeared on pre-S0
-    `phase-bridge/3` records, which describe bd roots and which S0 makes
-    unloadable anyway — so the default has one true reading rather than an
-    ambiguous one."""
     target_ref: NonEmptyText
     expected_base_commit: CommitOid
     verification_policy: VerificationPolicy | None = Field(
@@ -146,10 +132,9 @@ class ContractorRecord(BaseModel):
         target_ref: str,
         expected_base_commit: str,
         verification_policy: VerificationPolicy | None = None,
-        root_backend: BackendKind = BackendKind.BD,
         blockers_checked: bool = True,
     ) -> ContractorRecord:
-        """Build a new pre-claim admission intent on the selected backend."""
+        """Build a new pre-claim admission intent."""
         if attempt != 1:
             raise ValueError(MSG_PREPARED_NOT_FIRST_ATTEMPT)
         return cls(
@@ -161,7 +146,6 @@ class ContractorRecord(BaseModel):
             instance_key=INSTANCE_KEY_TEMPLATE.format(
                 epic_id=epic_id, stage_id=stage_id, attempt=attempt
             ),
-            root_backend=root_backend,
             target_ref=target_ref,
             expected_base_commit=expected_base_commit,
             previous_attempts=(),
@@ -169,13 +153,8 @@ class ContractorRecord(BaseModel):
             blockers_checked=blockers_checked,
         )
 
-    def next_attempt(self, root_backend: BackendKind | None = None) -> ContractorRecord:
-        """Mint the next distinct root identity after an eligible retry.
-
-        A retry is a NEW attempt root, so the `store` switch applies to it
-        (D18): the caller passes the value in force now, and only a caller
-        with nothing to say keeps this attempt's pin.
-        """
+    def next_attempt(self) -> ContractorRecord:
+        """Mint the next distinct root identity after an eligible retry."""
         return ContractorRecord(
             schema=CONTRACTOR_SCHEMA,
             state=ContractorState.PREPARED,
@@ -185,7 +164,6 @@ class ContractorRecord(BaseModel):
             instance_key=INSTANCE_KEY_TEMPLATE.format(
                 epic_id=self.epic_id, stage_id=self.stage_id, attempt=self.attempt + 1
             ),
-            root_backend=self.root_backend if root_backend is None else root_backend,
             target_ref=self.target_ref,
             expected_base_commit=self.expected_base_commit,
             previous_attempts=(*self.previous_attempts, self.instance_key),

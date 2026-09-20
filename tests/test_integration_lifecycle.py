@@ -8,6 +8,7 @@ import pytest
 from tests._inspector import ChildScript
 from tests.test_foreman_main import _contractor_adapter
 from tests.test_integration_admission import source_lab
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.command import execute_contractor
 from workflow_interpreter.contractor.integration import (
@@ -38,9 +39,9 @@ def prepared_lab(tmp_path, monkeypatch, signing_config, sign_payload):
     lab.composition = composition
     lab.spawner.bind(composition)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     record = prepare_integration(
         composition,
@@ -309,9 +310,9 @@ trim_priority = 1
     (lab.repo / "target.txt").write_text("independent target edit\n")
     new_base = commit_all(lab.repo, "independent target")
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     record = prepare_integration(
         composition,

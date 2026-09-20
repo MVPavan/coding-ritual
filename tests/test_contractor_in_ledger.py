@@ -31,9 +31,6 @@ from tests._inspector import ChildScript
 from tests.test_contractor_cli import _entry
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
 from workflow_interpreter.bdio import GateVerifier, WorkflowStore
-from workflow_interpreter.bdio.backend import SelectableBackendFactory
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor import command as command_module
 from workflow_interpreter.contractor import tracker_wiring
 from workflow_interpreter.contractor.adapter import ContractorAdapter
@@ -42,7 +39,6 @@ from workflow_interpreter.contractor.models import ContractorRecord, ContractorS
 from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition
-from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.tick import Foreman, RunReport
 from workflow_interpreter.ledger.archive import archive_task
 from workflow_interpreter.ledger.claims import LedgerClaims
@@ -52,6 +48,7 @@ from workflow_interpreter.ledger.paths import export_path
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
 from workflow_interpreter.tracker.bd import BdTracker
+from workflow_interpreter.tracker.bd_transport import BdClient
 
 EPIC: Final[str] = "phase"
 """The parent `_contractor_stage` writes, and therefore the CLI's epic id."""
@@ -76,17 +73,16 @@ def _lab(
     sign_payload: object,
     *stages: str,
 ) -> ForemanLab:
-    """A ledger-backed lab wired to run `stages` through the real contract CLI.
+    """A lab wired to run `stages` through the real contract CLI.
 
-    `store=LEDGER` is what makes the tracker assertions mean anything: on bd
-    every store write is also a bd command, so "the tracker was not called"
-    would be unanswerable. Here the only bd commands left ARE tracker traffic.
+    Every store write is a ledger write (R1), so the only bd commands a case
+    can observe ARE tracker traffic — which is what makes "the tracker was not
+    called" an answerable question.
     """
     lab = ForemanLab(
         tmp_path,
         signing=signing_config,
         signer=sign_payload,
-        store=BackendKind.LEDGER,
     )
     lab.composition = replace(
         lab.composition,
@@ -144,14 +140,9 @@ def _scoped(lab: ForemanLab, verifier: GateVerifier, stage: str) -> Composition:
     the second stage's root collide with the first stage's, and files the
     first stage's roots where `wf phase abandon` cannot find them.
     """
-    factory = SelectableBackendFactory(
-        BdClient(lab.config.bd, lab.fake_bd),
-        LedgerStore(lab.ledger, task_id=stage, epic_id=EPIC),
-    )
     lab.store = WorkflowStore(
-        factory(BackendKind.LEDGER),
+        LedgerStore(lab.ledger, task_id=stage, epic_id=EPIC),
         verifier,
-        backend_factory=factory,
         claims=LedgerClaims(lab.ledger),
     )
     lab.composition = replace(
@@ -159,7 +150,6 @@ def _scoped(lab: ForemanLab, verifier: GateVerifier, stage: str) -> Composition:
         store=lab.store,
         task_id=stage,
         epic_id=EPIC,
-        locate_backend=RootBackendLocator(stage, ledger=lab.ledger),
     )
     # The inline spawner writes the activation's records through the
     # composition it was bound to, so it follows the task too.

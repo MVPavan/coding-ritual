@@ -3,17 +3,13 @@
 from __future__ import annotations
 
 import json
-import multiprocessing
-import os
-import signal
-import time
 from dataclasses import replace
 from pathlib import Path
 from typing import cast
 
 import pytest
 
-from tests._bdio import race_residue
+from tests._bdio import UPDATE
 from tests._foreman import (
     ForemanLab,
     InlineSpawner,
@@ -56,7 +52,6 @@ from workflow_interpreter.inspector import (
     CompletionEvidence,
     PinResult,
 )
-from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.gitcmd import GIT_INDEX_FILE, GitSubcommand
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.paths import ExecLedger, read_record
@@ -227,7 +222,7 @@ def test_lock_stale_wrapper_returns_stale_without_durable_side_effects(
     activation = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["lifecycle"] = "dispatched"
+    lab.backend._merge_metadata(activation.activation_id, {"lifecycle": "dispatched"})
     before_updates = lab.count("update")
 
     result = run_wrapper(lab.composition, root.root_id, activation.activation_id)
@@ -239,71 +234,6 @@ def test_lock_stale_wrapper_returns_stale_without_durable_side_effects(
     assert sorted(path.name for path in directory.iterdir()) == ["wrapper.lock"]
 
 
-@pytest.mark.proc
-def test_lock_c_killed_tick_leaves_one_wrapper_writer(tmp_path: Path) -> None:
-    """LOCK-C catches a replacement tick that runs beside a surviving wrapper."""
-    lab = _persistent_lab(tmp_path)
-    lab.instantiate()
-    spawner = ProcSpawner()
-    _install_spawner(lab, spawner)
-    process = multiprocessing.get_context("fork").Process(
-        target=_tick_in_process, args=(lab,)
-    )
-    process.start()
-    spawned = lab.wiring().paths.instance_dir
-    deadline = time.monotonic() + 5.0
-    while time.monotonic() < deadline and not tuple(spawned.glob("*/spawned")):
-        time.sleep(0.01)
-    markers = tuple(spawned.glob("*/spawned"))
-    try:
-        assert markers
-        assert process.pid is not None
-        os.kill(process.pid, signal.SIGKILL)
-        process.join(timeout=5)
-        assert process.exitcode is not None
-
-        activation_id = markers[0].parent.name
-        lab.rebuild()
-        replacement = ProcSpawner()
-        _install_spawner(lab, replacement)
-        lab.tick()
-        replacement.await_barrier(lab.wiring(), activation_id)
-    finally:
-        if process.is_alive():
-            process.kill()
-            process.join(timeout=5)
-
-    activation = lab.store.reads.load_activation(activation_id)
-    state = json.loads((tmp_path / "persistent-bd.json").read_text(encoding="utf-8"))
-    calls = state["calls"]
-    spawned_pids = {
-        int(raw)
-        for raw in (spawned / activation_id / "spawned.pids")
-        .read_text(encoding="ascii")
-        .splitlines()
-    }
-    exit_writes = [
-        call
-        for call in calls
-        if call["argv"][5] == "update" and "exit_record" in call["metadata_keys"]
-    ]
-    spawned_writers = {
-        call["pid"]
-        for call in calls
-        if call["argv"][5] in {"create", "update", "close"}
-    } & spawned_pids
-
-    assert ExecLedger(lab.wiring().paths.ledger(activation_id)).count() == 1
-    assert len(lab.beads("activation")) == 1
-    assert activation.metadata.lifecycle in {
-        Lifecycle.EXIT_RECORDED,
-        Lifecycle.EVIDENCE_RECORDED,
-        Lifecycle.CLOSED,
-    }
-    assert len(exit_writes) == 1
-    assert spawned_writers == {exit_writes[0]["pid"]}
-
-
 def test_event_a_rebuilds_after_crashing_before_successor_mint(tmp_path: Path) -> None:
     """EVENT-A catches a crash path that never reaches the successor mint."""
     lab = _persistent_lab(tmp_path)
@@ -311,7 +241,7 @@ def test_event_a_rebuilds_after_crashing_before_successor_mint(tmp_path: Path) -
     _close_implement(lab)
     lab.crash_on_tick_create(1)
 
-    with pytest.raises(Exception, match="bd create died"):
+    with pytest.raises(Exception, match="ledger create died"):
         lab.tick()
     lab.rebuild()
     report = lab.tick()
@@ -331,7 +261,7 @@ def test_event_b_backfills_once_after_successor_mint_crash(tmp_path: Path) -> No
     )
     lab.crash_on_tick_create(2)
 
-    with pytest.raises(Exception, match="bd create died"):
+    with pytest.raises(Exception, match="ledger create died"):
         lab.tick()
     lab.rebuild()
     frontier = build_frontier(root, lab.store.reads.instance_records(root.root_id))
@@ -363,7 +293,7 @@ def test_event_c_rebuilds_terminal_event_from_closed_abandon_gate(
     assert lab.tick().closed_gates == (gate_id,)
     lab.crash_on_tick_create(1)
 
-    with pytest.raises(Exception, match="bd create died"):
+    with pytest.raises(Exception, match="ledger create died"):
         lab.tick()
     lab.rebuild()
     report = lab.tick()
@@ -374,33 +304,6 @@ def test_event_c_rebuilds_terminal_event_from_closed_abandon_gate(
     assert events == 3
     assert third.terminal is True
     assert len(lab.beads("event")) == events
-
-
-def test_drill_6_repairs_a_closed_abandon_carrier_after_its_bead_close_crashes(
-    tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
-) -> None:
-    """Drill 6 catches terminal routing that loses a carrier-before-close decision."""
-    lab = _persistent_lab(tmp_path, signing=signing_config, signer=sign_payload)
-    lab.instantiate()
-    gate_id = _drive_to_ship(lab)
-    lab.approve(gate_id, Outcome.ABANDON)
-    lab.fake_bd.crash_on("close")
-
-    with pytest.raises(Exception, match="bd close died"):
-        lab.tick()
-
-    carrier_closed = lab.store.reads.load_gate(gate_id)
-    assert carrier_closed.metadata.state.value == "closed"
-    assert carrier_closed.status == "open"
-
-    lab.rebuild()
-    repaired = lab.tick()
-    terminal = lab.tick()
-
-    assert lab.store.reads.load_gate(gate_id).status == "closed"
-    assert repaired.closed_gates == (gate_id,)
-    assert terminal.terminal is True
-    assert len(lab.beads("event")) == 3
 
 
 def test_halt_intake_closes_each_signed_outcome_before_dispatch(
@@ -465,11 +368,10 @@ def test_halt_intake_open_gate_admits_no_dispatch_and_no_write_but_the_refusal(
     assert lab.beads("activation") == []
     assert lab.count("update") == before_updates
     assert lab.count("close") == before_closes
-    # The canary is exactly ONE `create` per tick (`crash_on_tick_create` skips
-    # it with `occurrence + 1`, `tests/_foreman.py`), so "no write beyond the
-    # canary" means the create count grows by exactly one. Snapshotting only
-    # `update`/`close` left a duplicate gate or event bead invisible.
-    assert lab.count("create") == before_creates + 1
+    # The ledger has no canary row (S6: the probe is a transaction, not a
+    # create), so "no durable write" is exactly zero creates. Snapshotting only
+    # `update`/`close` left a duplicate gate or event row invisible.
+    assert lab.count("create") == before_creates
 
 
 def test_halt_rebudget_restarts_the_fail_code_node_without_a_new_round(
@@ -566,9 +468,9 @@ def test_drill_3_replays_the_exit_file_after_the_bd_exit_mirror_crashes(
     """Drill 3 catches a dispatched tick that never enters exit-file replay."""
     lab = _persistent_lab(tmp_path)
     lab.instantiate()
-    lab.fake_bd.crash_on("update", 4)  # precondition, envelope, dispatch, exit
+    lab.writes.crash_on(UPDATE, 4)  # precondition, envelope, dispatch, exit
 
-    with pytest.raises(Exception, match="bd update died"):
+    with pytest.raises(Exception, match="ledger update died"):
         lab.tick()
 
     activation_id = str(lab.beads("activation")[0]["id"])
@@ -665,34 +567,6 @@ def test_drill_9_keeps_routing_from_the_pinned_graph_after_authoring_changes(
     assert activation.metadata.node == "implement"
 
 
-def test_drill_10_supersedes_race_residue_before_dispatching_one_wrapper(
-    tmp_path: Path,
-) -> None:
-    """Drill 10 catches a race loser that survives to launch a second child."""
-    lab = ForemanLab(tmp_path)
-    root = lab.instantiate()
-    winner = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
-    )
-    loser = race_residue(lab.store._client, winner)
-
-    report = lab.tick()
-
-    assert report.dispatched == winner.activation_id
-    assert lab.store.reads.load_activation(loser.activation_id).metadata.is_superseded
-    assert len(lab.spawner.launches) == 1
-    assert ExecLedger(lab.wiring().paths.ledger(winner.activation_id)).count() == 1
-
-    band = BandLock(lab.wiring().paths.band_lock)
-    band.acquire()
-    try:
-        blocked = lab.tick()
-    finally:
-        band.release()
-
-    assert blocked.contended is True  # a band miss, not a stall (slice D)
-
-
 def test_drill_12_halts_on_a_missing_intended_base_commit(tmp_path: Path) -> None:
     """Drill 12 catches reconciliation that dispatches a nonexistent commit."""
     lab = ForemanLab(tmp_path)
@@ -700,8 +574,8 @@ def test_drill_12_halts_on_a_missing_intended_base_commit(tmp_path: Path) -> Non
     activation = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["intended_base_commit"] = (
-        "f" * 40
+    lab.backend._merge_metadata(
+        activation.activation_id, {"intended_base_commit": "f" * 40}
     )
 
     report = lab.tick()
@@ -733,7 +607,6 @@ def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
-        backend=lab.composition.config.store,
     )
     lab.root = root
     branch = INSTANCE_BRANCH.format(root_id=root.root_id)
@@ -763,7 +636,6 @@ def test_fresh_f1_instantiate_mints_and_dispatches_then_repairs_a_deleted_branch
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
-        backend=lab.composition.config.store,
     )
 
     assert lab.git.ref_target(branch, cwd=lab.repo) is not None

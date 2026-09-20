@@ -3,12 +3,12 @@
 import pytest
 
 from tests.test_codex_appserver_children import child_with_uncertain_control
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.children import attention_blocks, observe
 from workflow_interpreter.foreman.decisions import advance_decision
 from workflow_interpreter.foreman.tick import Foreman, TickReport
 from workflow_interpreter.schema.decisions import CoordinationError
+from workflow_interpreter.tracker.bd_transport import BdClient
 
 
 @pytest.mark.parametrize("attention", [None, "waiting at gate example"])

@@ -17,7 +17,6 @@ from typing import Final
 
 from pydantic import BaseModel, ValidationError
 
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
     PinnedGraphMismatchError,
@@ -183,14 +182,13 @@ class MintResult(BaseModel):
 class CanaryResult(BaseModel):
     """The §11 startup probe's evidence for one tick, whichever backend ran it.
 
-    `attributes` are the backend's own identity facts, already asserted
-    against the pin by the backend that produced them; they are carried for
-    the record, never routed on.
+    `attributes` are the ledger's own identity facts — its schema version, the
+    wrapper root it is pinned to, its path — already asserted when the
+    connection opened; they are carried for the record, never routed on.
     """
 
     model_config = WIRE_MODEL
 
-    kind: BackendKind
     attributes: Mapping[str, str]
     probe_row_id: str
     nonce: str

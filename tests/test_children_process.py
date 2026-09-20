@@ -13,7 +13,6 @@ from tests._foreman import (
     ProcSpawner,
 )
 from tests._inspector import ChildScript
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.decisions import admission_of
 from workflow_interpreter.inspector.clock import SystemClock
@@ -26,7 +25,6 @@ def writer_lab(
     sandbox: SandboxMode = SandboxMode.OFF,
     writing: bool = True,
     roles: Mapping[str, CrewBinding] = DEFAULT_LAB_ROLES,
-    store: BackendKind = BackendKind.BD,
 ):
     graph = tmp_path / "writer.toml"
     graph.write_text("""[graph]
@@ -89,7 +87,6 @@ to = "failed"
         instance_inputs={},
         sandbox=sandbox,
         roles=roles,
-        store=store,
     )
     owner = lab.instantiate_resolved()
     spawner = ProcSpawner()

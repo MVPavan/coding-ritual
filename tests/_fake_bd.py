@@ -28,7 +28,7 @@ import pathlib
 from collections.abc import Callable, Sequence
 from typing import Any, Final
 
-from workflow_interpreter.bdio.client import CompletedCommand
+from workflow_interpreter.tracker.bd_transport import CompletedCommand
 
 BD_VERSION: Final[str] = "1.1.0"
 BACKEND: Final[str] = "dolt"

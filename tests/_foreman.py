@@ -20,6 +20,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Final, TypedDict
 
+from tests._bdio import CREATE, StoreWrites
 from tests._fake_bd import FakeBd, InjectedCrash
 from tests._helpers import VALID_FIXTURE, crew_roles
 from tests._inspector import (
@@ -39,7 +40,6 @@ from tests._inspector import (
 )
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import (
-    BdConfig,
     BoundMutation,
     ConfigSource,
     GateArtifact,
@@ -57,13 +57,9 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
     canonical_payload_bytes,
 )
-from workflow_interpreter.bdio.backend import (
-    SelectableBackendFactory,
-    StoreBackendFactory,
-)
-from workflow_interpreter.bdio.client import BdClient, CompletedCommand
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.bdio.rows import RowQuery
+from workflow_interpreter.bdio.wire import KEY_WF_KIND
 from workflow_interpreter.contractor.records import ContractorRecords, records_of
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import (
@@ -75,7 +71,6 @@ from workflow_interpreter.foreman.compose import (
 from workflow_interpreter.foreman.config import CrewBinding, ForemanConfig
 from workflow_interpreter.foreman.gates import payload_template
 from workflow_interpreter.foreman.inspector import run_wrapper
-from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
 from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
@@ -92,9 +87,10 @@ from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import pin_task_backend
+from workflow_interpreter.ledger.tasks import ensure_task
 from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.profiles.errors import UnknownProfileError
+from workflow_interpreter.tracker.bd_transport import BdConfig, CompletedCommand
 
 type OverrideValue = str | int | bool
 
@@ -445,7 +441,6 @@ class ForemanLab:
         roles: Mapping[str, CrewBinding] = DEFAULT_LAB_ROLES,
         instance_inputs: Mapping[str, str] = DEFAULT_LAB_INSTANCE_INPUTS,
         sandbox: SandboxMode = SandboxMode.BWRAP,
-        store: BackendKind = BackendKind.BD,
     ) -> None:
         """Wire a throwaway repo to a real foreman.
 
@@ -454,11 +449,6 @@ class ForemanLab:
         and `instance_inputs` maps each `producer = "instance"` source name to
         its body. Both default to feature-delivery's, which `toml` also
         defaults to.
-
-        `store` is the run-ledger §3.2 switch: it pins the backend every root
-        this lab creates is served by, and the locator answers from the ledger
-        exactly as production's does, so a lab on `LEDGER` proves the cutover
-        rather than a second wiring of it.
 
         `sandbox` defaults to the O5 value, so the whole foreman family runs
         under the REAL §2 mount bound on a host that has `bwrap`. A test whose
@@ -493,7 +483,6 @@ class ForemanLab:
             sandbox=sandbox,
         )
         self._toml = toml
-        self._store = store
         self._ledger_path = tmp_path / "lab-ledger.db"
         self.ledger: LedgerDatabase | None = None
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
@@ -507,7 +496,7 @@ class ForemanLab:
             | {f"{CREW_PREFIX}{role}" for role in crew_roles(self.definition)}
         )
 
-    def _build_fresh(self, backend_factory: StoreBackendFactory | None = None) -> None:
+    def _build_fresh(self) -> None:
         """Construct no composition collaborator from a prior process."""
         self.fake_bd = self._bd_factory(str(self._workspace))
         verifier = (
@@ -525,22 +514,15 @@ class ForemanLab:
         self.ledger = open_ledger(
             self.repo, self.inspector_config.wrapper_root, path=self._ledger_path
         )
-        pin_task_backend(self.ledger, LAB_TASK, self._store, LAB_EPIC)
-        bd = BdClient(BdConfig(workspace=self._workspace, actor="test"), self.fake_bd)
-        self.backend_factory: StoreBackendFactory = (
-            SelectableBackendFactory(
-                bd, LedgerStore(self.ledger, task_id=LAB_TASK, epic_id=LAB_EPIC)
-            )
-            if backend_factory is None
-            else backend_factory
-        )
-        # Claims are ledger-local whichever backend this lab runs on (R11):
-        # there is one ledger per repository, so it is the one place two
-        # attempts on a target can see each other's reservation.
+        ensure_task(self.ledger, LAB_TASK, LAB_EPIC)
+        self.backend = LedgerStore(self.ledger, task_id=LAB_TASK, epic_id=LAB_EPIC)
+        self.writes = StoreWrites(self.backend)
+        # Claims are ledger-local (R11): there is one ledger per repository,
+        # so it is the one place two attempts on a target can see each other's
+        # reservation.
         self.store = WorkflowStore(
-            self.backend_factory(self._store),
+            self.backend,
             verifier,
-            backend_factory=self.backend_factory,
             claims=LedgerClaims(self.ledger),
         )
         self.git = make_git(self.inspector_config)
@@ -558,7 +540,6 @@ class ForemanLab:
             band_wait_s=self._band_wait_s,
             roles=self._roles,
             contractor_graph=self._toml,
-            store=self._store,
         )
         self.composition = Composition(
             self.config,
@@ -572,7 +553,6 @@ class ForemanLab:
             ledger=self.ledger,
             task_id=LAB_TASK,
             epic_id=LAB_EPIC,
-            locate_backend=RootBackendLocator(LAB_TASK, ledger=self.ledger),
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)
@@ -618,7 +598,6 @@ class ForemanLab:
             instance_inputs=paths,
             allow_test_flags=self.allow_test_flags,
             overrides=dict(overrides or {}),
-            backend=self._store,
         )
         return self.root
 
@@ -677,22 +656,21 @@ class ForemanLab:
         assert self.tick().settled == activation_id
         return activation_id
 
-    def rebuild(self, backend_factory: StoreBackendFactory | None = None) -> None:
-        """Reconstruct a fresh foreman from durable state, on a chosen backend.
+    def rebuild(self) -> None:
+        """Reconstruct a fresh foreman from durable state.
 
-        The factory is a parameter because the backend is what a restarted
-        process has to be TOLD (§3.2): the durable state outlives the transport
-        object, and a rebuild that always rebuilt bd could never prove that.
+        What a restarted process has is the durable state, which outlives
+        every transport object this lab holds — so nothing is carried over.
         """
         if not self._durable_factory:
             raise AssertionError("ForemanLab.rebuild requires a durable bd_factory")
         root_id = None if self.root is None else self.root.root_id
-        self._build_fresh(backend_factory)
+        self._build_fresh()
         self.root = None if root_id is None else self.store.reads.load_root(root_id)
 
     def crash_on_tick_create(self, occurrence: int) -> None:
-        """Inject a crash on the requested routed tick create after its canary."""
-        self.fake_bd.crash_on("create", occurrence + 1)
+        """Inject a crash on the requested routed tick row creation."""
+        self.writes.crash_on(CREATE, occurrence)
 
     def hold_wrapper_lock(self, activation_id: str) -> BandLock:
         """Hold an activation's real wrapper lock until the caller releases it."""
@@ -753,14 +731,33 @@ class ForemanLab:
         )
 
     def beads(self, kind: str) -> list[dict[str, object]]:
+        """Every row of one carrier kind, shaped as the cases read them.
+
+        The ledger is the record store since S6 (R1), so this reads rows
+        rather than bd beads; the dict shape stayed because it is what forty
+        assertions are written against, and none of them are about bd.
+        """
         return [
-            row
-            for row in self.fake_bd.rows.values()
-            if row["metadata"].get("wf_kind") == kind
+            {
+                "id": row.id,
+                "status": row.status,
+                "close_reason": row.close_reason,
+                "payload": row.payload,
+                "metadata": dict(row.metadata),
+            }
+            for row in self.backend.find_rows(
+                RowQuery(metadata_filters={KEY_WF_KIND: kind})
+            )
         ]
 
     def count(self, subcommand: str) -> int:
-        return self.fake_bd.command_count(subcommand)
+        """How many record-store writes of one shape this lab has served.
+
+        The names are bd's (`create`, `update`, `close`) because that is what
+        the cases ask for and what each one MEANS is unchanged: a row minted,
+        a carrier delta merged, a row settled.
+        """
+        return self.writes.count(subcommand)
 
     @property
     def records(self) -> ContractorRecords:

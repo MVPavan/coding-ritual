@@ -19,7 +19,6 @@ from workflow_interpreter.bdio import (
     RootRecord,
     WfKind,
 )
-from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
     CanaryFailedError,
@@ -29,6 +28,7 @@ from workflow_interpreter.bdio.errors import (
 )
 from workflow_interpreter.bdio.reads import activations_of, gates_of, next_seq
 from workflow_interpreter.bdio.records import RowRecord
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.foreman.audit import audit
 from workflow_interpreter.foreman.cases import (

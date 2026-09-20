@@ -50,8 +50,6 @@ from tests._ledger import EPIC, TASK, ledger_store, seeded_task
 from tests.conftest import Signer
 from tests.test_ledger_writes import _open_gate
 from workflow_interpreter.bdio import GateVerifier, SigningConfig
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.contractor import (
     ContractorAdapter,
@@ -102,6 +100,7 @@ from workflow_interpreter.schema.decisions import (
     MemberAdmission,
     TrustedReplacementIntent,
 )
+from workflow_interpreter.tracker.bd_transport import BdClient
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 EPIC_ID: Final[str] = "phase-1"
@@ -176,7 +175,7 @@ def _seed_record(database: LedgerDatabase, stored: ContractorRecord) -> None:
     """Put the stage's record where the ledger keeps it (§3.2, R4)."""
     seeded_records(
         stored,
-        into=LedgerContractorRecords(database, backend=BackendKind.LEDGER),
+        into=LedgerContractorRecords(database),
     )
 
 
@@ -271,7 +270,7 @@ def _succession(
     return bd_adapter(
         fake_client,
         closure=TaskClosure(database, git),
-        records=LedgerContractorRecords(database, backend=BackendKind.LEDGER),
+        records=LedgerContractorRecords(database),
         outbox=TrackerOutbox(database),
     )
 
@@ -436,7 +435,7 @@ def test_the_replacement_path_refuses_a_successor_over_a_retired_task(
     replacement path prepares its successor through the same adapter, and it
     used to build one with no closure probe at all — so the refusal the CLI
     carried simply was not asked here. The private step is the seam under test
-    precisely because that is where the adapter is built — and `from_config`
+    precisely because that is where the adapter is built — and the wiring
     itself is NOT replaced here, for the same reason: what is under test is
     that the production site hands it the composition's probe. Only the bd
     binary is stood in for.
@@ -509,7 +508,7 @@ def test_a_shipped_exported_and_pinned_task_refuses_a_retry(
     stored = _stored_record(fake_bd)
     with open_ledger(repo, wrapper_root) as database:
         _landed_task(database, stored)
-        ExportPin(database, git, repo, EPIC).pin(TASK, BackendKind.LEDGER)
+        ExportPin(database, git, repo, EPIC).pin(TASK)
         adapter = _succession(fake_client, database, git)
 
         assert closed(database, git, TASK) is True
@@ -597,7 +596,7 @@ def test_a_closed_task_stays_closed_under_a_schema_bump_and_an_attention_write(
     repo, wrapper_root, git = _lab(tmp_path)
     with open_ledger(repo, wrapper_root) as database:
         _landed_task(database)
-        anchored = ExportPin(database, git, repo, EPIC).pin(TASK, BackendKind.LEDGER)
+        anchored = ExportPin(database, git, repo, EPIC).pin(TASK)
         as_pinned = export_task(database, TASK)
         assert closed(database, git, TASK) is True
 

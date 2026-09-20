@@ -191,7 +191,7 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
         )
         .activation
     )
-    lab.fake_bd.rows[minted.activation_id]["metadata"]["model"] = DIVERGENT_MODEL
+    lab.backend._merge_metadata(minted.activation_id, {"model": DIVERGENT_MODEL})
 
     assert (
         run_wrapper(lab.composition, root.root_id, minted.activation_id)
@@ -278,8 +278,8 @@ def test_wrapper_selects_root_pinned_crew_after_activation_crew_corruption(
         )
         .activation
     )
-    lab.fake_bd.rows[minted.activation_id]["metadata"]["crew_profile"] = (
-        CrewName.CODEX.value
+    lab.backend._merge_metadata(
+        minted.activation_id, {"crew_profile": (CrewName.CODEX.value)}
     )
 
     assert (

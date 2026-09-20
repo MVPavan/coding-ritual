@@ -32,7 +32,6 @@ from tests.test_contractor_in_ledger import (
     _lab,
     _prepare_only,
 )
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.contractor.adapter import (
     ContractorAdapter,
     ContractorAdapterError,
@@ -74,6 +73,7 @@ from workflow_interpreter.tracker import (
     WorkItemStatus,
 )
 from workflow_interpreter.tracker.bd import BdTracker
+from workflow_interpreter.tracker.bd_transport import BdClient
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 ACTOR: Final[str] = "test"

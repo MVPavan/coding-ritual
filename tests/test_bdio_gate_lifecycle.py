@@ -19,12 +19,12 @@ from tests._bdio import (
     RESOLVED_CONFIG,
     REVIEW,
     TRIAGE,
+    MetadataWrites,
     entry_request,
     load_definition,
     make_root,
     run_to_close,
 )
-from tests._fake_bd import FakeBd
 from tests._gates import (
     approval_payload,
     close,
@@ -45,7 +45,6 @@ from workflow_interpreter.bdio import (
     canonical_payload_bytes,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.records import GateRecord
 from workflow_interpreter.bdio.signing import payload_digest
 from workflow_interpreter.bdio.wire import (
@@ -58,7 +57,9 @@ from workflow_interpreter.bdio.wire import (
     ResolvedSetting,
     metadata_dict,
 )
+from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.tracker.bd_transport import BdClient
 
 
 @pytest.fixture(scope="session")
@@ -401,7 +402,7 @@ def test_a_ceiling_rebudget_on_a_halt_gate_lets_the_instance_run_again(
 
 def test_two_concurrent_rebudgets_both_stay_in_effect(
     gate_store: WorkflowStore,
-    fake_bd: FakeBd,
+    fake_client: LedgerStore,
     definition: GraphDefinition,
     sign_payload: Signer,
 ) -> None:
@@ -437,7 +438,7 @@ def test_two_concurrent_rebudgets_both_stay_in_effect(
 
     # The second tick runs to completion inside the first one's write window:
     # it reads, decides and closes before the first one's carrier update lands.
-    fake_bd.pause_before("update", interleave)
+    MetadataWrites(fake_client).pause_before(interleave)
     close(gate_store, root_id, first_gate, first, sign_payload)
 
     assert (
@@ -491,7 +492,7 @@ def two_open_triage_gates(
 
 
 def test_a_tampered_bound_without_signature_evidence_raises_nothing(
-    fake_bd: FakeBd, gate_store: WorkflowStore, definition: GraphDefinition
+    fake_client: LedgerStore, gate_store: WorkflowStore, definition: GraphDefinition
 ) -> None:
     """A closed gate carrying bound fields but no verified fingerprint or
     payload digest was never written by `close_gate_verified` (which records
@@ -501,14 +502,14 @@ def test_a_tampered_bound_without_signature_evidence_raises_nothing(
     before = gate_store.reads.effective_bound(
         root_id, BoundSetting.MAX_ENTRIES, scope="build-review"
     )
-    fake_bd.rows[gate.id]["status"] = "closed"
-    fake_bd.rows[gate.id]["metadata"].update(
+    fake_client._merge_metadata(
+        gate.id,
         {
             "state": "closed",
             "outcome": "rebudget",
             "bound_key": "region.build-review.max_entries",
             "bound_value": 999,
-        }
+        },
     )
     after = gate_store.reads.effective_bound(
         root_id, BoundSetting.MAX_ENTRIES, scope="build-review"

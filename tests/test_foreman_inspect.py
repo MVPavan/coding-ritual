@@ -15,7 +15,6 @@ import pytest
 
 from tests._foreman import ForemanLab, LockedPersistentBd, entry_request
 from workflow_interpreter.bdio import (
-    BdConfig,
     Evidence,
     Lifecycle,
     LifecycleConflictError,
@@ -23,7 +22,6 @@ from workflow_interpreter.bdio import (
     MintRequest,
     Outcome,
 )
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import (
     DEVIATION_FORK_BARRIER_ABORT,
     DEVIATION_PRECONDITION_REFUSED,
@@ -50,6 +48,7 @@ from workflow_interpreter.inspector.errors import (
 from workflow_interpreter.inspector.models import LaunchOutcome
 from workflow_interpreter.inspector.profile import Profile
 from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
+from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
 
 FailureFactory = Callable[[], Exception]
 
@@ -110,8 +109,9 @@ def test_wrapper_fallback_request_rebuilds_the_root_execution_pin(
     root = lab.instantiate()
     wiring = lab.wiring()
     activation = wiring.store.mint_activation(root.root_id, entry_request()).activation
-    lab.fake_bd.rows[activation.activation_id]["metadata"].update(
-        {"crew_profile": "legacy-crew", "model": "legacy-model"}
+    lab.backend._merge_metadata(
+        activation.activation_id,
+        {"crew_profile": "legacy-crew", "model": "legacy-model"},
     )
     received: list[MintRequest] = []
 
@@ -432,8 +432,8 @@ def test_stale_wrapper_does_not_write_or_append_a_ledger(tmp_path: Path) -> None
     activation = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["lifecycle"] = (
-        Lifecycle.DISPATCHED.value
+    lab.backend._merge_metadata(
+        activation.activation_id, {"lifecycle": (Lifecycle.DISPATCHED.value)}
     )
     before_updates = lab.count("update")
     before_closes = lab.count("close")

@@ -34,7 +34,6 @@ from tests._bdio import RESOLVED_CONFIG, load_definition
 from tests._fake_bd import FakeBd
 from workflow_interpreter.bdio import (
     ActivationRecord,
-    BdConfig,
     ConfigSource,
     MintReason,
     MintRequest,
@@ -44,7 +43,6 @@ from workflow_interpreter.bdio import (
     Usage,
     WorkflowStore,
 )
-from workflow_interpreter.bdio.client import BdClient, CompletedCommand
 from workflow_interpreter.contracts.execution import ToolNetwork
 from workflow_interpreter.inspector import (
     BandLock,
@@ -69,7 +67,11 @@ from workflow_interpreter.inspector.channels import (
 )
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.paths import write_durable
+from workflow_interpreter.ledger.claims import LedgerClaims
+from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import GraphDocument, Node
+from workflow_interpreter.tracker.bd_transport import CompletedCommand
 
 TEST_ACTOR: Final[str] = "wf-test-inspector"
 TEST_HOST: Final[str] = "lab"
@@ -365,13 +367,35 @@ def make_config(
     return InspectorConfig.model_validate(values)
 
 
-def make_store(tmp_path: Path, head: str) -> tuple[FakeBd, WorkflowStore]:
-    """An in-memory bd workspace plus the typed store, wired to a git head."""
-    workspace = tmp_path / "bd-workspace"
-    workspace.mkdir(parents=True, exist_ok=True)
-    fake = FakeBd(str(workspace))
-    client = BdClient(BdConfig(workspace=workspace, actor=TEST_ACTOR), fake)
-    return fake, WorkflowStore(client, branch_head_reader=lambda: head)
+LAB_TASK: Final[str] = "cr-3411.2"
+LAB_EPIC: Final[str] = "cr-3411"
+
+
+def make_store(
+    tmp_path: Path, head: str, state: Path | None = None
+) -> tuple[LedgerStore, WorkflowStore]:
+    """A ledger plus the typed store over it, wired to a git head.
+
+    `state` names the database file, which is how TWO PROCESSES share a store
+    (`make_persistent_store`). Before S6 that took a `PersistentBd` saving
+    in-memory rows to JSON around every command; the record store is SQLite
+    now, so sharing it is naming the same path.
+    """
+    repo_root = tmp_path / "store-repo"
+    (repo_root / ".git").mkdir(parents=True, exist_ok=True)
+    wrapper_root = tmp_path / "store-wrapper"
+    wrapper_root.mkdir(parents=True, exist_ok=True)
+    database = open_ledger(
+        repo_root,
+        wrapper_root,
+        path=tmp_path / "store-ledger.db" if state is None else state,
+    )
+    backend = LedgerStore(database, task_id=LAB_TASK, epic_id=LAB_EPIC)
+    return backend, WorkflowStore(
+        backend,
+        branch_head_reader=lambda: head,
+        claims=LedgerClaims(database),
+    )
 
 
 class PersistentBd(FakeBd):
@@ -413,13 +437,9 @@ class PersistentBd(FakeBd):
 
 def make_persistent_store(
     tmp_path: Path, head: str, state: Path
-) -> tuple[PersistentBd, WorkflowStore]:
-    """A file-backed bd workspace two processes can share (see `PersistentBd`)."""
-    workspace = tmp_path / "bd-workspace"
-    workspace.mkdir(parents=True, exist_ok=True)
-    fake = PersistentBd(str(workspace), state)
-    client = BdClient(BdConfig(workspace=workspace, actor=TEST_ACTOR), fake)
-    return fake, WorkflowStore(client, branch_head_reader=lambda: head)
+) -> tuple[LedgerStore, WorkflowStore]:
+    """A store two processes can share, by naming one database file."""
+    return make_store(tmp_path, head, state)
 
 
 def verifier_pins(repo: Path, node_name: str, *scripts: str) -> dict[str, str]:

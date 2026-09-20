@@ -16,12 +16,11 @@ survives, the loser is superseded, nothing is deleted.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import structlog
 
 from workflow_interpreter.bdio import finalize, reads
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.feedback import MSG_CONSUMER
 from workflow_interpreter.bdio.records import RootRecord, parse_root
@@ -53,6 +52,11 @@ from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE
 from workflow_interpreter.schema.graph_index import producer_engine
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import GraphDefinition, NodeKind
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -214,7 +218,7 @@ def pin_execution_policies(
 
 
 def create_root(
-    client: StoreBackend,
+    client: LedgerStore,
     *,
     instance_key: str,
     definition: GraphDefinition,
@@ -396,7 +400,7 @@ def create_root(
     return converged
 
 
-def _converged_root(client: StoreBackend, instance_key: str) -> RootRecord | None:
+def _converged_root(client: LedgerStore, instance_key: str) -> RootRecord | None:
     """The one live root for this key, superseding any concurrent duplicate.
 
     Liveness is read off the raw metadata, not a parsed record: a root whose
@@ -418,7 +422,7 @@ def _converged_root(client: StoreBackend, instance_key: str) -> RootRecord | Non
 
 
 def _ordered_by_ownership(
-    client: StoreBackend, live: Sequence[StoreRow], instance_key: str
+    client: LedgerStore, live: Sequence[StoreRow], instance_key: str
 ) -> tuple[StoreRow, ...]:
     """Convergence order for duplicate roots: the OWNER of the instance first (§3.1).
 
@@ -445,7 +449,7 @@ def _ordered_by_ownership(
     return (owner, *(row for row in live if row.id != owner.id))
 
 
-def _supersede_root(client: StoreBackend, loser: StoreRow, winner_id: str) -> None:
+def _supersede_root(client: LedgerStore, loser: StoreRow, winner_id: str) -> None:
     """Close a duplicate root append-only, pointing at the surviving one."""
     record = _ensure_self_id(client, loser)
     metadata = record.metadata.model_copy(update={"superseded_by": winner_id})
@@ -538,14 +542,14 @@ def _differing_keys(
     return _MSG_CONFIG_KEYS.format(keys=rendered)
 
 
-def _ensure_self_id(client: StoreBackend, row: StoreRow) -> RootRecord:
+def _ensure_self_id(client: LedgerStore, row: StoreRow) -> RootRecord:
     """Complete the self-reference if the create/link pair was interrupted."""
     if row.metadata.get(KEY_WF_ROOT_ID) != row.id:
         row = client._merge_metadata(row.id, {KEY_WF_ROOT_ID: row.id})
     return parse_root(row)
 
 
-def settle_root(client: StoreBackend, root_id: str, terminal: str) -> RootRecord:
+def settle_root(client: LedgerStore, root_id: str, terminal: str) -> RootRecord:
     """Record the terminal this instance reached and close its root (§3.1).
 
     Metadata first, close second — the same order every §5.1 transition uses,

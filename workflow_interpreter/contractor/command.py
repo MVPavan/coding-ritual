@@ -301,7 +301,7 @@ def _execute(
                 "legacy contractor journal lacks verification policy; human attention required"
             )
         if prior.root_id is not None:
-            wiring = composition.for_root(_pinned_root(composition, prior))
+            wiring = composition.for_root(_require_root(prior))
             root = wiring.store.reads.load_root(prior.root_id)
             if (
                 prior.integration_digest is None
@@ -399,14 +399,13 @@ def _execute(
         brief_path.write_text(task_brief, encoding="utf-8")
         roots = WorkflowRootProvisioner(
             adapter,
-            lambda instance_key, backend, attempt: instantiate(
+            lambda instance_key, attempt: instantiate(
                 composition,
                 graph,
                 instance_key=instance_key,
                 instance_inputs={TASK_BRIEF: brief_path},
                 allow_test_flags=False,
                 overrides={},
-                backend=backend,
                 attempt=attempt,
             ),
             composition.git,
@@ -417,7 +416,6 @@ def _execute(
             roots,
             lambda: composition.git.head_commit(cwd=composition.config.repo_root),
             verification_policy=policy,
-            root_backend=composition.config.store,
             task_brief=task_brief,
             actor=composition.config.actor,
             blockers_checked=blockers_checked,
@@ -447,7 +445,7 @@ def _run_record(
     adapter.guard_integration(record)
     try:
         run = Foreman(composition).run(
-            _pinned_root(composition, record),
+            _require_root(record),
             poll_s=RUN_DEFAULT_POLL_S,
             max_wall_s=RUN_DEFAULT_MAX_WALL_S,
             monitored=monitored,
@@ -494,7 +492,7 @@ def _land(
     """Compose authoritative landing using the admitted policy, including repair."""
     if record.verification_policy is None:
         raise ContractorRefused("contractor verification policy missing")
-    wiring = composition.for_root(_pinned_root(composition, record))
+    wiring = composition.for_root(_require_root(record))
     # D17 and §3.6: the ledger surfaces are composed HERE, from the one
     # connection this process holds, and they are absent only for a wiring
     # with no ledger at all — where the adapter refuses the close instead.
@@ -513,9 +511,7 @@ def _land(
         ),
         journal=None
         if ledger is None
-        else LandingJournal(
-            ledger, record.stage_id, record.root_backend, record.epic_id
-        ),
+        else LandingJournal(ledger, record.stage_id, record.epic_id),
         export=None
         if ledger is None
         else ExportPin(
@@ -695,7 +691,6 @@ def _mint(
         tracker_ref=stage_id,
         tracker_kind=adapter.tracker.kind,
         epic_id=epic_id,
-        backend=composition.config.store,
     )
     if minted != stage_id:
         raise ContractorRefused(
@@ -723,7 +718,7 @@ def _retry_successor(
         raise ContractorRefused(MSG_RETRY_NO_RECORD) from error
     if prior.root_id is None:
         raise ContractorRefused(MSG_RETRY_NO_ROOT)
-    wiring = composition.for_root(_pinned_root(composition, prior))
+    wiring = composition.for_root(_require_root(prior))
     root = wiring.store.reads.load_root(prior.root_id)
     frontier = build_frontier(root, wiring.store.reads.instance_records(prior.root_id))
     terminals = root.definition.document.instance.contractor_retry_terminals or ()
@@ -735,7 +730,7 @@ def _retry_successor(
         and not BeadGateAuthority(wiring.store.reads).verify(prior.root_id).accepted
     ):
         raise ContractorRefused("retry lacks approved ship authority")
-    return prior.next_attempt(composition.config.store)
+    return prior.next_attempt()
 
 
 def _trace(
@@ -769,7 +764,7 @@ def _trace(
     }
     if record is None or record.root_id is None:
         return ContractorCommandResult(exit_code=EXIT_OK, report=report)
-    wiring = composition.for_root(_pinned_root(composition, record))
+    wiring = composition.for_root(_require_root(record))
     root = wiring.store.reads.load_root(record.root_id)
     frontier = build_frontier(root, wiring.store.reads.instance_records(record.root_id))
     intent = read_record(wiring.paths.instance_dir / LANDING_INTENT_FILE, LandingIntent)
@@ -851,19 +846,6 @@ def _require_root(record: ContractorRecord) -> str:
     if record.root_id is None:
         raise ContractorRefused(MSG_ADMISSION_NO_ROOT)
     return _safe_root_id(record.root_id)
-
-
-def _pinned_root(composition: Composition, record: ContractorRecord) -> str:
-    """Install the record's own pin BEFORE its root is first located (§3.2).
-
-    The record is the only thing a restarted process has: for a bd attempt of
-    a ledger-pinned task the ledger holds no row and the `tasks` row still
-    names the first attempt's backend, so a load that asks the locator first
-    reads the wrong store and reports a live run as missing (D18).
-    """
-    root_id = _require_root(record)
-    composition.pin_record_backend(root_id, record.root_backend)
-    return root_id
 
 
 def _result(

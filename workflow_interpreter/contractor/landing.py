@@ -10,7 +10,6 @@ from typing import Final, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.contractor.journal import (
@@ -620,7 +619,7 @@ class PhaseLanding:
             self._adapter.land(record.stage_id, landed)
             # Export, pin, latch — and only then close: the record is durable
             # in git before anything reads this task as finished (D5).
-            self._pin_export(record.stage_id, record.root_backend)
+            self._pin_export(record.stage_id)
         self._adapter.close(record.stage_id, landed, receipt_digest)
         return LandingResult(disposition=LandingDisposition.CLOSED, intent=intent)
 
@@ -817,11 +816,11 @@ class PhaseLanding:
             return found
         return self._journal.read(record.attempt, LandingPhase.RECEIPT, LandingReceipt)
 
-    def _pin_export(self, task_id: str, backend: BackendKind) -> str:
+    def _pin_export(self, task_id: str) -> str:
         """Put this task's whole record in git, or refuse to close (§3.6)."""
         if self._export is None:
             raise ContractorRefusal(MSG_NO_EXPORT.format(task_id=task_id))
-        return self._export.pin(task_id, backend)
+        return self._export.pin(task_id)
 
     def _closed(self, task_id: str) -> bool:
         """Whether this task's record is already durable in git (§3.5).

@@ -7,7 +7,7 @@ import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ActivationRecord
-from workflow_interpreter.bdio.client import STATUS_CLOSED
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.inspector import procfs
 from workflow_interpreter.inspector import toolchain_constants as tc
 from workflow_interpreter.inspector.errors import InspectorError

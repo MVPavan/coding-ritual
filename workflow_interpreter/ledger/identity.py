@@ -17,7 +17,6 @@ import sqlite3
 from datetime import UTC, datetime
 from typing import Final
 
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contracts.run_identity import (
     LOCK_SUFFIX,
     TRAVERSAL,
@@ -36,14 +35,14 @@ from workflow_interpreter.ledger.errors import LedgerMintConflict
 FIRST_SEQ: Final[int] = 1
 _INSERT_TASK: Final[str] = (
     "INSERT {conflict}INTO tasks "
-    "(task_id, epic_id, graph_id, backend, next_seq, created_at, "
+    "(task_id, epic_id, graph_id, next_seq, created_at, "
     "tracker_ref, tracker_kind) "
-    "VALUES (?, ?, NULL, ?, ?, ?, ?, ?)"
+    "VALUES (?, ?, NULL, ?, ?, ?, ?)"
 )
 SQL_INSERT_TASK: Final[str] = _INSERT_TASK.format(conflict="OR IGNORE ")
 """The one statement that writes a `tasks` row for a caller that only wants the
-row to EXIST — the locator's pin (`tasks.pin_task_backend`) and the store's
-lazy `_ensure_task`, both of which re-read what is there."""
+row to EXIST — `tasks.ensure_task` and the store's lazy `_ensure_task`, both
+of which re-read what is there."""
 
 SQL_INSERT_TASK_STRICT: Final[str] = _INSERT_TASK.format(conflict="")
 """The same write for the mint, which must not ignore a conflict: the id it is
@@ -76,7 +75,6 @@ def insert_task(
     *,
     task_id: str,
     epic_id: str,
-    backend: BackendKind,
     tracker_ref: str | None = None,
     tracker_kind: TrackerKind | None = None,
     strict: bool = False,
@@ -91,7 +89,6 @@ def insert_task(
         (
             task_id,
             epic_id,
-            backend.value,
             FIRST_SEQ,
             datetime.now(tz=UTC).isoformat(),
             tracker_ref,
@@ -131,7 +128,6 @@ def mint_task(
     tracker_ref: str,
     tracker_kind: TrackerKind,
     epic_id: str,
-    backend: BackendKind = BackendKind.LEDGER,
 ) -> str:
     """Mint this tracker ref's task id, or answer with the one it already has.
 
@@ -157,8 +153,8 @@ def mint_task(
         ).fetchone()
         if existing is not None:
             return str(existing[0])
-        # The locator pins a `tasks` row for every invocation (D16,
-        # `pin_task_backend`), so by the time prepare mints, the row this ref
+        # A `tasks` row is ensured for every invocation (D16,
+        # `tasks.ensure_task`), so by the time prepare mints, the row this ref
         # would be given usually already EXISTS and carries no tracker pair.
         # Adopting it is the mint: inventing `<stem>-2` beside it would leave
         # the run's own rows on one id and the tracker pair on another. Only
@@ -173,7 +169,6 @@ def mint_task(
                 connection,
                 task_id=task_id,
                 epic_id=epic,
-                backend=backend,
                 tracker_ref=tracker_ref,
                 tracker_kind=tracker_kind,
                 strict=True,

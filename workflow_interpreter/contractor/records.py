@@ -19,11 +19,10 @@ from typing import TYPE_CHECKING, Final, Protocol
 
 from pydantic import BaseModel, ConfigDict
 
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor.models import ContractorRecord
 from workflow_interpreter.ledger import records as rows
 from workflow_interpreter.ledger.database import LedgerDatabase
-from workflow_interpreter.ledger.tasks import pin_task_backend
+from workflow_interpreter.ledger.tasks import ensure_task
 
 if TYPE_CHECKING:
     from workflow_interpreter.foreman.compose import Composition
@@ -89,14 +88,12 @@ class LedgerContractorRecords:
     """The ledger's `contractor_records` table, as the contractor sees it.
 
     The `tasks` row is ensured before the first record is written, because
-    `contractor_records.task_id` references it and a task whose roots are
-    bd-backed may never have been written here. `pin_task_backend` is
-    non-destructive, so a task that already names a backend keeps it (D18).
+    `contractor_records.task_id` references it and a task that has not been
+    minted yet has no row. `ensure_task` is non-destructive.
     """
 
-    def __init__(self, database: LedgerDatabase, *, backend: BackendKind) -> None:
+    def __init__(self, database: LedgerDatabase) -> None:
         self._database = database
-        self._backend = backend
 
     def read(self, task_id: str) -> StoredRecord | None:
         """The stored record of this task, or nothing while it has none."""
@@ -105,7 +102,7 @@ class LedgerContractorRecords:
 
     def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
         """Write a task's first record, refusing a second first write."""
-        pin_task_backend(self._database, record.stage_id, self._backend, record.epic_id)
+        ensure_task(self._database, record.stage_id, record.epic_id)
         return _stored(
             rows.create(
                 self._database,
@@ -179,9 +176,7 @@ class NoContractorRecords:
         return ()
 
 
-def contractor_records(
-    database: LedgerDatabase | None, *, backend: BackendKind
-) -> ContractorRecords:
+def contractor_records(database: LedgerDatabase | None) -> ContractorRecords:
     """The record store for a composition whose ledger is optional.
 
     One definition, for `closure_probe`'s reason: every construction site of
@@ -189,9 +184,7 @@ def contractor_records(
     would be a second chance to get the ledger-less case wrong.
     """
     return (
-        NoContractorRecords()
-        if database is None
-        else LedgerContractorRecords(database, backend=backend)
+        NoContractorRecords() if database is None else LedgerContractorRecords(database)
     )
 
 
@@ -208,8 +201,8 @@ def records_of(composition: Composition) -> ContractorRecords:
     """The record store of one composition, named once for every caller.
 
     Six construction sites build a `ContractorAdapter`, and each of them has a
-    composition and nothing else in common. A second spelling of "which ledger
-    and which backend" is a second chance for one of them to build a store
-    that writes somewhere the rest do not read.
+    composition and nothing else in common. A second spelling of "which
+    ledger" is a second chance for one of them to build a store that writes
+    somewhere the rest do not read.
     """
-    return contractor_records(composition.ledger, backend=composition.config.store)
+    return contractor_records(composition.ledger)

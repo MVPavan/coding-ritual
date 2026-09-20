@@ -1,13 +1,15 @@
 """Typed control accounting; no turn, activation, transition or approval is minted."""
 
+from __future__ import annotations
+
 import fcntl
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from workflow_interpreter.bdio import bounds, reads
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
     CarrierIntegrityError,
@@ -32,6 +34,11 @@ from workflow_interpreter.contracts.rpc_control import (
     ControlResolutionOrigin,
     ControlState,
 )
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
 
 
 class ControlBusy(StoreError):
@@ -59,7 +66,7 @@ def _guard(registration: SessionRegistration) -> Iterator[None]:
 
 
 def _reserve(
-    client: StoreBackend,
+    client: LedgerStore,
     reader: reads.WorkflowReads,
     activation_id: str,
     registration: SessionRegistration,
@@ -110,7 +117,7 @@ def _reserve(
 
 
 def _record_state(
-    client: StoreBackend,
+    client: LedgerStore,
     reader: reads.WorkflowReads,
     activation_id: str,
     control: ControlRegistration,
@@ -175,7 +182,7 @@ def _record_state(
 
 
 def reserve(
-    client: StoreBackend,
+    client: LedgerStore,
     reader: reads.WorkflowReads,
     activation_id: str,
     registration: SessionRegistration,
@@ -191,7 +198,7 @@ def reserve(
 
 
 def record_state(
-    client: StoreBackend,
+    client: LedgerStore,
     reader: reads.WorkflowReads,
     activation_id: str,
     control: ControlRegistration,

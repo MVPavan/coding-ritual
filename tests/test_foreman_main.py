@@ -30,16 +30,15 @@ from tests._inspector import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     BdCommandError,
-    BdConfig,
     BdOutputError,
     Outcome,
     Usage,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.errors import BdUnavailableError, StoreTransportError
 from workflow_interpreter.bdio.reads import WorkflowReads
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.contractor import (
     ContractorAdapter,
     ContractorAdapterError,
@@ -48,6 +47,7 @@ from workflow_interpreter.contractor import (
 )
 from workflow_interpreter.contractor import command as contractor_command_module
 from workflow_interpreter.contractor import gate_view as gate_view_module
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
 from workflow_interpreter.contractor.verification import (
     CheckCommand,
     VerificationPolicy,
@@ -63,6 +63,7 @@ from workflow_interpreter.inspector.clock import Clock
 from workflow_interpreter.inspector.errors import PreconditionRefused
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.closure import closure_probe
+from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 from workflow_interpreter.tracker.port import TrackerPort
 
@@ -294,12 +295,17 @@ def test_status_renders_total_input_tokens_including_cache_layers(
         .store.mint_activation(root.root_id, foreman_entry_request())
         .activation
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["usage"] = Usage(
-        known=True,
-        input_tokens=92,
-        cache_read_input_tokens=3,
-        cache_creation_input_tokens=5,
-    ).model_dump(mode="json", exclude_none=True)
+    lab.backend._merge_metadata(
+        activation.activation_id,
+        {
+            "usage": Usage(
+                known=True,
+                input_tokens=92,
+                cache_read_input_tokens=3,
+                cache_creation_input_tokens=5,
+            ).model_dump(mode="json", exclude_none=True)
+        },
+    )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
 
     _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
@@ -546,7 +552,7 @@ def test_inspect_rejects_an_activation_owned_by_another_root(tmp_path: Path) -> 
         .store.mint_activation(root.root_id, foreman_entry_request())
         .activation
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["wf_root_id"] = "wf-other"
+    lab.backend._merge_metadata(activation.activation_id, {"wf_root_id": "wf-other"})
 
     with pytest.raises(ValueError, match="does not belong to root"):
         lab.foreman.inspect(root.root_id, activation.activation_id)
@@ -619,7 +625,7 @@ def test_status_renders_prior_contractor_attempt_evidence_at_an_open_gate(
         expected_base_commit=lab.head,
     )
     record = first.next_attempt().admitted("current-root")
-    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = first.instance_key
+    lab.backend._merge_metadata(root.root_id, {"instance_key": first.instance_key})
     lab.fake_bd.rows["stage-a"] = {
         "id": "stage-a",
         "title": "contractor stage",
@@ -684,7 +690,7 @@ def test_status_renders_current_contractor_attempt_evidence_at_an_open_gate(
         expected_base_commit=lab.head,
     )
     record = first.next_attempt().admitted(root.root_id)
-    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = record.instance_key
+    lab.backend._merge_metadata(root.root_id, {"instance_key": record.instance_key})
     lab.fake_bd.rows["stage-a"] = {
         "id": "stage-a",
         "title": "contractor stage",
@@ -776,7 +782,7 @@ def test_status_resolves_contractor_view_once_for_an_open_halt(
         .next_attempt()
         .admitted(root.root_id)
     )
-    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = record.instance_key
+    lab.backend._merge_metadata(root.root_id, {"instance_key": record.instance_key})
     lab.fake_bd.rows["stage-a"] = {
         "id": "stage-a",
         "title": "contractor stage",
@@ -1068,9 +1074,9 @@ def test_contractor_reports_exhaustion_before_named_stage_membership(
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
@@ -1090,9 +1096,9 @@ def test_contractor_refuses_an_empty_stage_description_before_writing(
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description=None)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
@@ -1120,9 +1126,9 @@ def test_contractor_refuses_without_a_configured_contractor_graph(
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
@@ -1146,9 +1152,9 @@ def test_contractor_refuses_a_configured_required_input_it_cannot_supply(
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
@@ -1173,9 +1179,9 @@ def test_contractor_trace_is_read_only(
     before = lab.git.head_commit(cwd=lab.repo)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
@@ -1204,9 +1210,9 @@ def test_contractor_uses_the_run_defaults_not_the_band_wait(
     calls: list[tuple[float, float]] = []
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     def run(
@@ -1243,9 +1249,9 @@ def test_contractor_refuses_a_missing_stage_instead_of_crashing(
     adapter = _contractor_adapter(lab)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: adapter),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: adapter,
     )
 
     def missing(_ref: object) -> NoReturn:
@@ -1297,9 +1303,9 @@ def test_contractor_does_not_convert_a_transport_defect_into_a_refusal(
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     adapter = _contractor_adapter(lab)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: adapter),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: adapter,
     )
 
     def unrunnable(_argv: Sequence[str], _timeout_s: float) -> NoReturn:
@@ -1338,9 +1344,9 @@ def test_contractor_refuses_an_epic_without_stages(
     lab = _contractor_lab(tmp_path)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     codes: list[int] = []
     arguments = ["contract", "phase", "missing"]
@@ -1373,9 +1379,9 @@ def test_contractor_refuses_a_detached_or_dirty_coordinator(
         )
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="brief")
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     codes: list[int] = []
 
@@ -1413,9 +1419,9 @@ def test_contractor_reports_another_open_admission_as_blocked(
     seeded_records(held, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     codes: list[int] = []
 
@@ -1443,9 +1449,9 @@ def test_contractor_reports_open_blocking_dependencies(
     ]
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     def unexpected_graph(_composition: Composition) -> NoReturn:
@@ -1473,7 +1479,7 @@ def test_contractor_retry_mints_a_distinct_successor_root(
     """An eligible retry uses the explicit successor admission path once."""
     lab = _contractor_lab(tmp_path)
     prior_root = lab.instantiate()
-    lab.fake_bd.rows[prior_root.root_id]["metadata"]["terminal"] = "abandoned"
+    lab.backend._merge_metadata(prior_root.root_id, {"terminal": "abandoned"})
     first = ContractorRecord.prepared(
         verification_policy=VerificationPolicy.pin(
             lab.config.contractor_checks, lab.repo
@@ -1484,17 +1490,17 @@ def test_contractor_retry_mints_a_distinct_successor_root(
         target_ref="refs/heads/main",
         expected_base_commit=lab.head,
     ).admitted(prior_root.root_id)
-    lab.fake_bd.rows[prior_root.root_id]["metadata"]["instance_key"] = (
-        first.instance_key
+    lab.backend._merge_metadata(
+        prior_root.root_id, {"instance_key": (first.instance_key)}
     )
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["status"] = "in_progress"
     seeded_records(first, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
@@ -1532,17 +1538,17 @@ def test_contractor_reports_each_retry_predicate_refusal(
         target_ref="refs/heads/main",
         expected_base_commit=lab.head,
     ).admitted(prior_root.root_id)
-    lab.fake_bd.rows[prior_root.root_id]["metadata"]["instance_key"] = (
-        record.instance_key
+    lab.backend._merge_metadata(
+        prior_root.root_id, {"instance_key": (record.instance_key)}
     )
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["status"] = "in_progress"
     seeded_records(record, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     monkeypatch.setattr(
         contractor_command_module,
@@ -1760,9 +1766,9 @@ def test_contractor_monitored_requires_ack_before_dispatch(tmp_path, monkeypatch
     lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        contractor_command_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     codes = []
     _, transcript = lab.transcript(

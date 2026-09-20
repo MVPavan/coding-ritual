@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 from pydantic import TypeAdapter, ValidationError
 
 from workflow_interpreter.bdio.carriers import InstanceInput, ResolvedSetting
-from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.foreman.children import attention_blocks
 from workflow_interpreter.foreman.compose import (
     Composition,

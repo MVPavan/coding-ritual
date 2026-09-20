@@ -1,17 +1,17 @@
-"""`LedgerStore` — the §3.3 tables behind the neutral `StoreBackend` seam.
+"""`LedgerStore` — the §3.3 tables, and the ONLY record store there is (R1).
 
-`WorkflowReads` runs over this store exactly as it runs over bd, because every
-§4 query is expressed as carrier filters and every carrier is here in
-`metadata_json`. The write side is the four neutral methods plus the atomic
-gate close, and each one IS one `BEGIN IMMEDIATE` transaction (§3.4.2): the
-row, its projected columns, the `seq` it takes from `tasks.next_seq`, the
-nonce a gate close consumes, the signature it records and the attention
-projection it enqueues all land together or not at all.
+Every §4 query is expressed as carrier filters and every carrier is here in
+`metadata_json`, so `WorkflowReads` runs over this store directly. The write
+side is the four row methods plus the atomic gate close, and each one IS one
+`BEGIN IMMEDIATE` transaction (§3.4.2): the row, its projected columns, the
+`seq` it takes from `tasks.next_seq`, the nonce a gate close consumes, the
+signature it records and the attention projection it enqueues all land
+together or not at all.
 
-Two things are deliberately NOT here. Claims stay bd-backed while the bd
-backend exists (D20), so a claim write is refused rather than kept in a
-second, invisible table. And a writer that waits out `busy_timeout` refuses by
-name (§3.4.6) instead of retrying, so contention is visible.
+Claims are not here: they are contention about an integration TARGET rather
+than a fact about one task, and they live in `ledger/claims.py` (R11). A
+writer that waits out `busy_timeout` refuses by name (§3.4.6) instead of
+retrying, so contention is visible.
 
 Every statement is parameterised, including the JSON paths a carrier filter
 selects on: `json_extract(metadata_json, ?)` takes its path as a bound value,
@@ -26,12 +26,12 @@ import secrets
 import sqlite3
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict, JsonValue, TypeAdapter, ValidationError
 
 from workflow_interpreter.bdio.carriers import GateState, Metadata
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import LossyWriteError
 from workflow_interpreter.bdio.findings import findings_of
 from workflow_interpreter.bdio.records import (
@@ -40,7 +40,6 @@ from workflow_interpreter.bdio.records import (
     parse_activation,
 )
 from workflow_interpreter.bdio.rows import (
-    BackendIdentity,
     GateClosure,
     NewRow,
     RowGuard,
@@ -239,11 +238,6 @@ class LedgerStore:
         self._epic_id = epic_id
 
     @property
-    def kind(self) -> BackendKind:
-        """The ledger, the backend this store speaks for (§3.2)."""
-        return BackendKind.LEDGER
-
-    @property
     def task_id(self) -> str:
         """The task bead every row of this store belongs to (D16)."""
         return self._task_id
@@ -255,13 +249,10 @@ class LedgerStore:
 
     # -- the neutral backend surface (§3.1) -------------------------------
 
-    def identity(self) -> BackendIdentity:
-        """Where the ledger's rows and their execution locks live (§3.4)."""
-        return BackendIdentity(
-            kind=BackendKind.LEDGER,
-            lock_root=fence_path(self._database.repo_root).parent / COORDINATION_DIR,
-            legacy_lock_root=None,
-        )
+    @property
+    def lock_root(self) -> Path:
+        """Where the execution locks over this store's rows live (§3.4)."""
+        return fence_path(self._database.repo_root).parent / COORDINATION_DIR
 
     def probe(self) -> CanaryResult:
         """Assert the pinned identity and round-trip a value (§11).
@@ -296,7 +287,6 @@ class LedgerStore:
                 _ATTRIBUTE_PATH: str(self._database.path),
             }
         return CanaryResult(
-            kind=BackendKind.LEDGER,
             attributes=attributes,
             probe_row_id=key,
             nonce=nonce,
@@ -800,7 +790,6 @@ class LedgerStore:
             connection,
             task_id=self._task_id,
             epic_id=safe_component(self._epic_id, kind=ComponentKind.EPIC),
-            backend=BackendKind.LEDGER,
         )
 
     def _assert_root_free(

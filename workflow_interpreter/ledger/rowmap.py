@@ -16,7 +16,6 @@ from typing import Final
 from pydantic import JsonValue
 
 from workflow_interpreter.bdio.carriers import Metadata
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.rows import RowKind, StoreRow
 from workflow_interpreter.bdio.wire import (
     KEY_EVENT_KEY,
@@ -92,7 +91,6 @@ _KEY_COORDINATION: Final[str] = "coordination"
 _KEY_ACTIVATION_ID: Final[str] = "activation_id"
 
 _FIRST_VERSION: Final[int] = 1
-LEDGER_BACKEND: Final[str] = BackendKind.LEDGER.value
 
 _ROOT_ID_FORMAT: Final[str] = "{task_id}-a{attempt}"
 _CHILD_ROOT_ID_FORMAT: Final[str] = "{task_id}-a{attempt}-c{child_no}"
@@ -226,7 +224,6 @@ def projection(
             COLUMN_PARENT_ROOT: parent_root_id,
             COLUMN_CHILD_NO: child_no,
             COLUMN_ATTEMPT: attempt,
-            "backend": LEDGER_BACKEND,
             KEY_INSTANCE_KEY: _text(metadata, KEY_INSTANCE_KEY) or row_id,
             _KEY_GRAPH_HASH: _text(metadata, _KEY_GRAPH_HASH),
             "instance_inputs_json": _json_column(metadata, _KEY_INSTANCE_INPUTS),
@@ -299,7 +296,6 @@ _IMMUTABLE_ON_MERGE: Final[frozenset[str]] = frozenset(
         COLUMN_ATTEMPT,
         COLUMN_PARENT_ROOT,
         COLUMN_CHILD_NO,
-        "backend",
     }
 )
 """What a metadata merge may never move. `seq`, `attempt`, `parent_root_id`

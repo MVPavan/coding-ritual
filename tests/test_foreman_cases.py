@@ -71,8 +71,8 @@ def test_minted_dispatch_rebuilds_its_request_from_the_root_pin(tmp_path: Path) 
     minted = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    lab.fake_bd.rows[minted.activation_id]["metadata"].update(
-        {"crew_profile": "legacy-crew", "model": "legacy-model"}
+    lab.backend._merge_metadata(
+        minted.activation_id, {"crew_profile": "legacy-crew", "model": "legacy-model"}
     )
     activation = lab.store.reads.load_activation(minted.activation_id)
 
@@ -168,8 +168,8 @@ def test_infra_retry_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> N
     closed = lab.wiring().store.close_activation(
         dispatched.activation_id, Outcome.ERROR_TRANSPORT
     )
-    lab.fake_bd.rows[closed.activation_id]["metadata"].update(
-        {"crew_profile": "legacy-crew", "model": "legacy-model"}
+    lab.backend._merge_metadata(
+        closed.activation_id, {"crew_profile": "legacy-crew", "model": "legacy-model"}
     )
     legacy = lab.store.reads.load_activation(closed.activation_id)
 
@@ -210,8 +210,8 @@ def test_exit_recorded_settlement_uses_the_root_pinned_profile(
         dispatched.activation_id,
         ExitRecord(exit_code=0, ended_at="2026-09-08T00:00:00Z", reason="ok"),
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["crew_profile"] = (
-        "legacy-crew"
+    lab.backend._merge_metadata(
+        activation.activation_id, {"crew_profile": ("legacy-crew")}
     )
     activation = lab.store.reads.load_activation(activation.activation_id)
     profiles: list[str] = []
@@ -246,8 +246,8 @@ def test_dispatched_settlement_uses_the_root_pinned_profile(
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
     activation = lab.wiring().store.record_dispatch(minted.activation_id, handle())
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["crew_profile"] = (
-        "legacy-crew"
+    lab.backend._merge_metadata(
+        activation.activation_id, {"crew_profile": ("legacy-crew")}
     )
     activation = lab.store.reads.load_activation(activation.activation_id)
     profiles: list[str] = []

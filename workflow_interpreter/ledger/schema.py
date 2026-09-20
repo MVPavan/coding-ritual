@@ -3,9 +3,13 @@
 Lossless by construction: every row keeps its whole carrier in `metadata_json`,
 and the named columns are PROJECTIONS of that JSON for queries and constraints.
 Two columns are not in §3.3's list and are here anyway — `status` and
-`close_reason` — because the neutral `StoreRow` the seam speaks carries them
-(`bdio/rows.py`), and a backend that could not answer them would be emulating
-half a store.
+`close_reason` — because the `StoreRow` the typed operations speak carries
+them (`bdio/rows.py`).
+
+The `-- dropped in v7` markers are deliberate: a migration is forward-only, so
+the v1 statements keep the columns a v1 database really had, and v7 is where
+they go. Reading them out of v1 would make every database that ever migrated
+disagree with this file.
 
 `meta` is key/value rather than one wide row: §3.5 pins repository identity
 before any table is written, and a key/value table is the one shape a migration
@@ -35,7 +39,7 @@ CREATE TABLE tasks (
     task_id     TEXT PRIMARY KEY,
     epic_id     TEXT NOT NULL,
     graph_id    TEXT,
-    backend     TEXT NOT NULL,
+    backend     TEXT NOT NULL,  -- dropped in v7
     next_seq    INTEGER NOT NULL,
     export_oid  TEXT,
     exported_at TEXT,
@@ -50,7 +54,7 @@ CREATE TABLE roots (
     seq                  INTEGER NOT NULL,
     parent_root_id       TEXT,
     attempt              INTEGER NOT NULL,
-    backend              TEXT NOT NULL,
+    backend              TEXT NOT NULL,  -- dropped in v7
     instance_key         TEXT NOT NULL UNIQUE,
     graph_content_hash   TEXT,
     instance_inputs_json TEXT,
@@ -147,7 +151,7 @@ CREATE TABLE events (
 _V1_SESSIONS: Final[str] = """
 CREATE TABLE sessions (
     activation_id TEXT PRIMARY KEY REFERENCES activations(activation_id),
-    backend       TEXT NOT NULL,
+    backend       TEXT NOT NULL,  -- dropped in v7
     thread_id     TEXT,
     registered_at TEXT,
     completed_at  TEXT
@@ -328,6 +332,24 @@ behind under R12's clean break: no live ledger and no committed export exist,
 so there is nothing to read a stale copy — and a database that disagrees is
 refused by `_refuse_unfoldable_state` rather than quietly losing the state."""
 
+_V7_DROP_BACKEND: Final[tuple[str, ...]] = (
+    "ALTER TABLE tasks DROP COLUMN backend",
+    "ALTER TABLE roots DROP COLUMN backend",
+    "ALTER TABLE sessions DROP COLUMN backend",
+)
+"""S6's cutover: the ledger is the only record store, so nothing is pinned.
+
+Three columns, one per table that carried a pin. `tasks.backend` and
+`roots.backend` were the locator's two answers to "which store owns this?"
+(D18) and there is one store to own it now (R1); `sessions.backend` named the
+same thing for a table this build has never written.
+
+This CHANGES the export bytes — `tasks` and `roots` rows lose a column — so a
+file written by a v6 build no longer round-trips against a v7 one. R12's clean
+break is what makes that safe: no committed export and no live ledger exists,
+and the release note says so.
+"""
+
 _V6_TRACKER_OUTBOX: Final[tuple[str, ...]] = (
     """
 CREATE TABLE tracker_outbox (
@@ -416,6 +438,7 @@ MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     (*_V4_TASKS_TRACKER, _V4_ROOTS_CHILD),
     (_V5_CONTRACTOR_RECORDS, _V5_CLAIMS, _V5_TASKS_STATE_FOLDED),
     _V6_TRACKER_OUTBOX,
+    _V7_DROP_BACKEND,
 )
 """One tuple of statements per schema version, in order. Index `n` migrates a
 database at version `n` to version `n + 1`, so `len(MIGRATIONS)` IS the version

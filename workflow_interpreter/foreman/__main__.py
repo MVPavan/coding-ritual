@@ -20,11 +20,9 @@ from workflow_interpreter.bdio import (
     ActivationRecord,
     BoundExceededError,
     GateRecord,
+    GateVerifier,
     WorkflowStore,
 )
-from workflow_interpreter.bdio.backend import SelectableBackendFactory
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
@@ -63,7 +61,6 @@ from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
 from workflow_interpreter.foreman.inspector import run_wrapper
-from workflow_interpreter.foreman.locator import RootBackendLocator
 from workflow_interpreter.foreman.monitor import WakeMonitor, monitor_status
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.rpc_control import session_status
@@ -80,12 +77,9 @@ from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerEpicMissing
 from workflow_interpreter.ledger.reconcile import RootAttentionDrain
 from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import (
-    pin_task_backend,
-    task_backend,
-    task_epic,
-)
+from workflow_interpreter.ledger.tasks import ensure_task, task_epic
 from workflow_interpreter.profiles.registry import ProfileRegistry
+from workflow_interpreter.tracker.bd_transport import BdClient
 
 # The per-subprocess `debug` chatter every git and bd call emits is worthless in
 # an operator transcript, while `wf.verify.rerun` and every error must stay
@@ -157,9 +151,9 @@ def _composition(args: argparse.Namespace) -> Composition:
     reads its own inputs: the task bead is one of them, and deriving it here
     keeps the ONE place that decides what a run is composed of.
 
-    The task is required (D16): it names the bead every root of this process
-    belongs to, it is what the ledger's rows are keyed by, and it is what the
-    backend locator answers for. Opening the ledger is part of composing —
+    The task is required (D16): it names the item every root of this process
+    belongs to, and it is what the ledger's rows are keyed by. Opening the
+    ledger is part of composing —
     that is where §3.5's wrapper-root pin is asserted, so a foreman started
     against another engine home refuses HERE, before any root is touched.
 
@@ -184,16 +178,17 @@ def _composition(args: argparse.Namespace) -> Composition:
     bd = BdClient(config.bd)
     ledger = open_ledger(config.repo_root, config.wrapper_root)
     epic_id = _epic_for(ledger, task_id, named_epic)
-    pin_task_backend(ledger, task_id, config.store, epic_id)
-    factory = SelectableBackendFactory(
-        bd, LedgerStore(ledger, task_id=task_id, epic_id=epic_id)
-    )
+    ensure_task(ledger, task_id, epic_id)
     return Composition(
         config=config,
-        store=WorkflowStore.from_config(
-            config.bd,
-            config.signing,
-            backend_factory=factory,
+        store=WorkflowStore(
+            LedgerStore(ledger, task_id=task_id, epic_id=epic_id),
+            # The allow-list must live outside what the engine can write, and
+            # what the engine writes is now the repository, not a bd
+            # workspace (§9, R1).
+            None
+            if config.signing is None
+            else GateVerifier(config.signing, config.repo_root),
             claims=LedgerClaims(ledger),
         ),
         inspector_config=config.inspector,
@@ -203,7 +198,6 @@ def _composition(args: argparse.Namespace) -> Composition:
         spawner=DetachedSpawner(config.inspector, path, task_id, epic_id),
         host_env=dict(os.environ),
         ledger=ledger,
-        locate_backend=RootBackendLocator(task_id, ledger=ledger),
         drain_attention=RootAttentionDrain(
             ledger,
             attention_writer(ledger, tracker_for(config.tracker, config.bd, bd)),
@@ -478,21 +472,6 @@ def _signing_preflight(config: ForemanConfig, *, allow_unsigned: bool) -> str | 
     return MSG_ALLOW_LIST_EMPTY.format(path=path) if empty else None
 
 
-def _creation_backend(composition: Composition) -> BackendKind:
-    """The backend a NEW root of a run with no contractor is created on (§3.2, D16).
-
-    The `tasks` row is that run's locator, and it keeps the pin it was written
-    with, so a switch flipped after the task exists does not move roots the
-    locator will answer for.
-    """
-    if composition.ledger is None or composition.task_id is None:
-        return composition.config.store
-    return (
-        task_backend(composition.ledger, composition.task_id)
-        or composition.config.store
-    )
-
-
 def _create(args: argparse.Namespace) -> int:
     """Pin one new instance root and print nothing but its id.
 
@@ -515,7 +494,6 @@ def _create(args: argparse.Namespace) -> int:
             instance_inputs=_instance_inputs(args.input),
             allow_test_flags=args.allow_test_flags,
             overrides={},
-            backend=_creation_backend(composition),
         )
     except ResolutionError as refused:
         sys.stderr.write(f"{refused}\n")

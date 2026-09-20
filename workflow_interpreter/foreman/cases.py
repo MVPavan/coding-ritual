@@ -17,8 +17,8 @@ from workflow_interpreter.bdio import (
     MintRequest,
     RootRecord,
 )
-from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.errors import BoundExceededError
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.foreman.bounds import refusal_route
 from workflow_interpreter.foreman.close import settle
 from workflow_interpreter.foreman.compose import (

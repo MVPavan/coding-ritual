@@ -702,10 +702,6 @@ def _admit_contractor(
 def guard_contractor(composition: Composition, record: ContractorRecord) -> None:
     """Fence stale predecessors and bind B (CAS) separately from A (execution)."""
     if record.root_id:
-        # The record's pin goes in BEFORE its root is located: after a restart
-        # nothing else answers for a bd attempt root of a ledger-pinned task
-        # (§3.2, D18).
-        composition.pin_record_backend(record.root_id, record.root_backend)
         root = composition.reads_for_root(record.root_id).load_root(record.root_id)
         link = root.metadata.coordination
         if link is not None:

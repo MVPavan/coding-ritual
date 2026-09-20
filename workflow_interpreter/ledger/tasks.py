@@ -1,13 +1,13 @@
-"""The `tasks` and `roots` backend pins the locator reads (§3.2, D18).
+"""Reads and writes of the `tasks` row that are not row writes through the store.
 
-Separate from `store.py` because these are not row writes through the seam:
-they are the two answers to "which backend owns this?", and one of them has to
-be writable for a task whose roots live in **bd** — a `LedgerStore` only ever
-writes `backend = 'ledger'`, since every row it holds is its own.
+`ensure_task` is the one write: it makes the row EXIST for callers whose own
+fact references it (the landing journal, the export pin), because
+`tasks.task_id` is a foreign key and a task that never ran a prepare has no
+row yet. Everything else here answers a question about the task — its epic,
+its export pin, its recorded state, its roots.
 
-The pin is written once per task and never rewritten. A switch flipped later
-applies to new ATTEMPT roots, whose per-attempt pin is the contractor record's
-`root_backend`; this row is the locator for a run that has no contractor (D16).
+Separate from `store.py` because none of it goes through `WorkflowStore`: the
+task is what rows are keyed BY, not one of them.
 """
 
 from __future__ import annotations
@@ -16,7 +16,6 @@ import sqlite3
 from datetime import UTC, datetime
 from typing import Final
 
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contracts.run_identity import ComponentKind, safe_component
 from workflow_interpreter.ledger import records
 from workflow_interpreter.ledger.constants import (
@@ -33,46 +32,26 @@ from workflow_interpreter.ledger.errors import (
 )
 from workflow_interpreter.ledger.identity import insert_task
 
-_SQL_TASK_BACKEND: Final[str] = "SELECT backend FROM tasks WHERE task_id = ?"
 _SQL_TASK_EPIC: Final[str] = "SELECT epic_id FROM tasks WHERE task_id = ?"
 _SQL_TASK_EXPORT: Final[str] = "SELECT export_oid FROM tasks WHERE task_id = ?"
 _SQL_RECORD_EXPORT: Final[str] = (
     "UPDATE tasks SET export_oid = ?, exported_at = ? WHERE task_id = ?"
 )
-_SQL_ROOT_BACKEND: Final[str] = "SELECT backend FROM roots WHERE root_id = ?"
 _SQL_TASK_STATE: Final[str] = "SELECT state FROM contractor_records WHERE task_id = ?"
 
 
-def pin_task_backend(
-    database: LedgerDatabase, task_id: str, backend: BackendKind, epic_id: str
-) -> BackendKind:
-    """Record this task's backend if it has none, and answer what is pinned.
+def ensure_task(database: LedgerDatabase, task_id: str, epic_id: str) -> None:
+    """Make this task's row exist, so a fact that references it can be written.
 
-    Idempotent and non-destructive: a task that already names a backend keeps
-    it, so a second start under a flipped `store` switch cannot retro-pin the
-    roots that already exist (D18, no reverse migration). The answer is read
-    back inside the same transaction, so the caller learns the pin in force
-    rather than the one it asked for.
-
-    `epic_id` is written only on a row this call creates, and only after the
-    grammar has accepted it: it is an input (§3.7), so a second start under a
-    different epic does not move the directory this task's runs already wrote
-    their knowledge into.
+    Idempotent and non-destructive: a task that already has a row keeps it,
+    epic included. `epic_id` is written only on a row this call creates, and
+    only after the grammar has accepted it — it is an input (§3.7), so a
+    second start under a different epic does not move the directory this
+    task's runs already wrote their knowledge into.
     """
     epic = safe_component(epic_id, kind=ComponentKind.EPIC)
     with database.transaction() as connection:
-        insert_task(connection, task_id=task_id, epic_id=epic, backend=backend)
-        pinned = task_backend(database, task_id)
-    if pinned is None:  # pragma: no cover - the row is written just above
-        raise LookupError(f"task row {task_id!r} vanished after its pin")
-    return pinned
-
-
-def task_backend(database: LedgerDatabase, task_id: str) -> BackendKind | None:
-    """The backend pinned for a task, or nothing when the task is unknown."""
-    with database.locked() as connection:
-        row = connection.execute(_SQL_TASK_BACKEND, (task_id,)).fetchone()
-    return None if row is None else BackendKind(str(row[0]))
+        insert_task(connection, task_id=task_id, epic_id=epic)
 
 
 def task_epic(database: LedgerDatabase, task_id: str) -> str | None:
@@ -84,18 +63,6 @@ def task_epic(database: LedgerDatabase, task_id: str) -> str | None:
     with database.locked() as connection:
         row = connection.execute(_SQL_TASK_EPIC, (task_id,)).fetchone()
     return None if row is None else str(row[0])
-
-
-def root_backend(database: LedgerDatabase, root_id: str) -> BackendKind | None:
-    """The backend pinned on one root, or nothing when the ledger has no such root.
-
-    A root the ledger holds a row for IS ledger-backed; the column is read
-    rather than assumed so that the pin the row was written with is the one
-    that answers, exactly as it does for the task.
-    """
-    with database.locked() as connection:
-        row = connection.execute(_SQL_ROOT_BACKEND, (root_id,)).fetchone()
-    return None if row is None else BackendKind(str(row[0]))
 
 
 def record_export_oid(database: LedgerDatabase, task_id: str, oid: str) -> None:

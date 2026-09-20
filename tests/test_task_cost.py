@@ -14,10 +14,7 @@ import pytest
 from pydantic import ValidationError
 
 from tests._helpers import seeded_records
-from workflow_interpreter.bdio.client import ISSUE_TYPE_OF, as_row
-from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.bdio.rows import RowQuery, StoreRow
-from workflow_interpreter.bdio.wire import BeadRecord
+from workflow_interpreter.bdio.rows import RowKind, RowQuery, StoreRow
 from workflow_interpreter.contractor.models import ContractorRecord
 from workflow_interpreter.contractor.records import LedgerContractorRecords
 from workflow_interpreter.costs.collection import (
@@ -397,51 +394,58 @@ def test_malformed_and_oversized_logs_are_safe_and_incomplete(tmp_path: Path) ->
 
 
 class FakeReadClient:
-    """Minimal local BdClient-shaped read seam with no mutation surface."""
+    """A minimal record-store read seam with no mutation surface.
+
+    Store-shaped since S6 (R1): costs reads the ledger and nothing else, so
+    the double answers `find_rows` over synthetic rows rather than standing in
+    for a bd workspace.
+    """
 
     def __init__(self, rows: list[dict[str, object]]) -> None:
         self.rows = {str(row["id"]): row for row in rows}
         self.reads: list[str] = []
 
-    def show(self, bead_id: str) -> BeadRecord:
-        """Return one synthetic bead."""
-        self.reads.append(f"show:{bead_id}")
-        return BeadRecord.model_validate(self.rows[bead_id])
-
-    def list_beads(self, *, metadata_filters=None, issue_type=None):
-        """Return rows matching the same metadata conjunction as BdClient."""
-        self.reads.append("list")
+    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
+        """Every synthetic row the ANDed carrier filters select."""
+        self.reads.append("find")
         selected = []
         for raw in self.rows.values():
-            if issue_type is not None and raw["issue_type"] != issue_type.value:
+            if query.kind is not None and _kind_of(raw) is not query.kind:
                 continue
             metadata = raw.get("metadata", {})
+            assert isinstance(metadata, dict)
             if all(
                 metadata.get(key) == value
-                for key, value in (metadata_filters or {}).items()
+                for key, value in (query.metadata_filters or {}).items()
             ):
-                selected.append(BeadRecord.model_validate(raw))
+                selected.append(_store_row(raw))
         return tuple(selected)
 
-    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
-        """The neutral read the §4 vocabulary issues, over the same rows."""
-        return tuple(
-            as_row(record)
-            for record in self.list_beads(
-                metadata_filters=query.metadata_filters,
-                issue_type=None if query.kind is None else ISSUE_TYPE_OF[query.kind],
-            )
-        )
+
+def _kind_of(raw: dict[str, object]) -> RowKind:
+    """A synthetic row's neutral kind, from the shape the fixtures declare."""
+    return RowKind.EVENT if raw.get("issue_type") == "event" else RowKind.RECORD
+
+
+def _store_row(raw: dict[str, object]) -> StoreRow:
+    """One synthetic row as the store's neutral row."""
+    metadata = raw.get("metadata", {})
+    assert isinstance(metadata, dict)
+    return StoreRow(
+        id=str(raw["id"]),
+        status=str(raw.get("status", "open")),
+        kind=_kind_of(raw),
+        metadata=metadata,
+        close_reason=(
+            None if raw.get("close_reason") is None else str(raw["close_reason"])
+        ),
+    )
 
 
 def _collect(
     client, stage_id: str, *, record: dict[str, object] | None = None, **kwargs
 ):
     """Collect one stage with the roots served by the same synthetic rows.
-
-    The backend factory is what production injects (§3.2); these rows stand in
-    for BOTH the task bead and its roots, so the factory answers with the one
-    client whichever backend the contractor record pins.
 
     `record` is the stage's contractor record. Handed in as JSON because that
     is how `collect_task` takes it since S4: the record is a ledger row (§3.2,
@@ -451,7 +455,7 @@ def _collect(
     return collect_task(
         client,
         stage_id,
-        backends=lambda _: client,
+        task_closed=kwargs.pop("task_closed", True),
         record_json=json.dumps(_record() if record is None else record),
         **kwargs,
     )
@@ -1455,7 +1459,7 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
     seeded_records(
         ContractorRecord.model_validate(_record()),
         brief=None,
-        into=LedgerContractorRecords(database, backend=BackendKind.BD),
+        into=LedgerContractorRecords(database),
     )
     database.close()
     project_root = Path(__file__).resolve().parents[1]

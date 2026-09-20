@@ -6,6 +6,7 @@ import pytest
 
 from tests._helpers import mutate
 from tests.test_integration_lifecycle import approve_integration, entry, prepared_lab
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.integration import IntegrationGuard
 from workflow_interpreter.contractor.tracker_wiring import adapter_of
@@ -184,9 +185,9 @@ def test_ordinary_contractor_continues_B_A_C_with_original_CAS(
         "stage", description="Implement feature"
     )
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     adapter = _contractor_adapter(lab)
     brief = tmp_path / "brief.txt"

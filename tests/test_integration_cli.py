@@ -8,7 +8,7 @@ from pathlib import Path
 from tests.test_foreman_main import _contractor_adapter
 from tests.test_integration_admission import source_lab
 from workflow_interpreter.bdio.coordination import CoordinationStore
-from workflow_interpreter.contractor.adapter import ContractorAdapter
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
 from workflow_interpreter.contractor.integration import (
     IntegrationRequest,
     prepare_integration,
@@ -22,9 +22,9 @@ from workflow_interpreter.foreman.decisions import admission_of
 def test_prepare_and_status(tmp_path: Path, monkeypatch, capsys) -> None:
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     monkeypatch.setattr(cli, "_composition", lambda _: composition)
     request = tmp_path / "request.json"
@@ -80,9 +80,9 @@ def test_status_summarizes_large_prepared_integration_without_wholesale_truncati
         ),
     )
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     monkeypatch.setattr(cli, "_composition", lambda _: composition)
     request = tmp_path / "two-source-request.json"
@@ -130,9 +130,9 @@ def test_status_omits_bulky_max_sibling_records(
         process.join(timeout=5)
         assert not process.is_alive()
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     prepared = prepare_integration(
         composition,

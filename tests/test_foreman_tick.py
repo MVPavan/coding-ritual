@@ -7,7 +7,7 @@ from typing import Final, NoReturn
 
 import pytest
 
-from tests._bdio import handle, race_residue
+from tests._bdio import CLOSE, handle
 from tests._fake_bd import InjectedCrash
 from tests._foreman import ForemanLab, entry_request
 from tests._helpers import VALID_FIXTURE, mutate, write
@@ -20,7 +20,6 @@ from workflow_interpreter.bdio import (
     MintRequest,
 )
 from workflow_interpreter.bdio.bounds import BoundKind, BoundRefusal
-from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.bdio.constants import DEVIATION_INPUTS_UNAVAILABLE
 from workflow_interpreter.bdio.errors import (
@@ -32,6 +31,7 @@ from workflow_interpreter.bdio.errors import (
     PinnedGraphMismatchError,
 )
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.bdio.wire import BeadRecord, EventPayload
 from workflow_interpreter.foreman import tick as tick_module
 from workflow_interpreter.foreman.audit import AuditResult, audit
@@ -119,8 +119,9 @@ def test_steer_request_rebuilds_its_execution_pin_from_the_root(
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
     activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
-    lab.fake_bd.rows[activation.activation_id]["metadata"].update(
-        {"crew_profile": "legacy-crew", "model": "legacy-model"}
+    lab.backend._merge_metadata(
+        activation.activation_id,
+        {"crew_profile": "legacy-crew", "model": "legacy-model"},
     )
     continuations: list[MintRequest] = []
 
@@ -217,16 +218,17 @@ def test_tick_mints_the_successor_before_backfilling_its_event(tmp_path: Path) -
             )
         ),
     )
-    known = set(lab.fake_bd.rows)
+    known = set(lab.writes.created)
 
     report = lab.tick()
 
-    created = [row for bead_id, row in lab.fake_bd.rows.items() if bead_id not in known]
-    assert report.dispatched is not None
-    assert [row["metadata"]["wf_kind"] for row in created[-2:]] == [
-        "activation",
-        "event",
+    created = [
+        lab.backend.get_row(row_id).metadata["wf_kind"]
+        for row_id in lab.writes.created
+        if row_id not in known
     ]
+    assert report.dispatched is not None
+    assert created[-2:] == ["activation", "event"]
 
 
 def test_tick_drives_the_fixture_from_entry_to_shipped(
@@ -346,9 +348,9 @@ def test_a_crash_between_the_terminal_record_and_the_root_close_repairs_forward(
     lab.approve(ship, Outcome.APPROVE)
     assert lab.tick().closed_gates == (ship,)
 
-    # The root close is the first `bd close` this tick issues; the gate's own
-    # close landed on the tick before.
-    lab.fake_bd.crash_on("close", 1)
+    # The root close is the first row this tick settles; the gate's own close
+    # landed on the tick before.
+    lab.writes.crash_on(CLOSE, 1)
     with pytest.raises(InjectedCrash):
         lab.tick()
     half_written = lab.store.reads.load_root(root.root_id)
@@ -480,8 +482,8 @@ def test_tick_retries_a_close_that_crashed_after_recording_its_outcome(
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
     activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
-    lab.fake_bd.crash_on("close")
-    with pytest.raises(InjectedCrash, match="bd close died"):
+    lab.writes.crash_on(CLOSE, 1)
+    with pytest.raises(InjectedCrash, match="ledger close died"):
         lab.wiring().store.close_activation(activation.activation_id, Outcome.DONE)
     wedged = lab.wiring().store.reads.load_activation(activation.activation_id)
     assert wedged.status == "open"
@@ -495,26 +497,6 @@ def test_tick_retries_a_close_that_crashed_after_recording_its_outcome(
     assert lab.count("close") == before + 1
 
 
-def test_tick_ignores_an_open_superseded_race_residue(tmp_path: Path) -> None:
-    """Only a completed non-superseded close is eligible for repair-forward."""
-    lab = ForemanLab(tmp_path)
-    root = lab.instantiate()
-    activation = (
-        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
-    )
-    loser = race_residue(lab.store._client, activation)
-    lab.fake_bd.crash_on("close")
-    with pytest.raises(InjectedCrash, match="bd close died"):
-        lab.wiring().store.supersede_activation(
-            loser.activation_id, activation.activation_id
-        )
-    before = lab.count("close")
-
-    lab.tick()
-
-    assert lab.count("close") == before
-
-
 def test_tick_audits_before_repairing_a_completed_open_row(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -525,8 +507,8 @@ def test_tick_audits_before_repairing_a_completed_open_row(
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
     activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
-    lab.fake_bd.crash_on("close")
-    with pytest.raises(InjectedCrash, match="bd close died"):
+    lab.writes.crash_on(CLOSE, 1)
+    with pytest.raises(InjectedCrash, match="ledger close died"):
         lab.wiring().store.close_activation(activation.activation_id, Outcome.DONE)
     before = lab.count("close")
     monkeypatch.setattr(
@@ -550,8 +532,8 @@ def test_tick_reconciles_before_repairing_a_completed_open_row(tmp_path: Path) -
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
     activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
-    lab.fake_bd.crash_on("close")
-    with pytest.raises(InjectedCrash, match="bd close died"):
+    lab.writes.crash_on(CLOSE, 1)
+    with pytest.raises(InjectedCrash, match="ledger close died"):
         lab.wiring().store.close_activation(activation.activation_id, Outcome.DONE)
     lab.git.run(
         GitSubcommand.UPDATE_REF,
@@ -904,7 +886,7 @@ def test_tick_halts_on_a_gate_when_a_bound_input_is_unavailable(
     lab = _cross_region_lab(tmp_path)
     lab.instantiate()
     produce = _closed_producer(lab)
-    lab.fake_bd.rows[produce]["metadata"]["evidence"] = {}
+    lab.backend._merge_metadata(produce, {"evidence": {}})
 
     report = lab.tick()
 

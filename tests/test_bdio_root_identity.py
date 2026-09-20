@@ -21,7 +21,6 @@ from tests._fake_bd import FakeBd
 from workflow_interpreter import GraphDefinition
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import JSON_SAFE_INT_LIMIT
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.wire import (
     ConfigSource,
@@ -29,6 +28,7 @@ from workflow_interpreter.bdio.wire import (
     WfKind,
     metadata_dict,
 )
+from workflow_interpreter.tracker.bd_transport import BdClient
 
 STATUS_CLOSED: Final[str] = "closed"
 STATUS_OPEN: Final[str] = "open"
@@ -447,15 +447,13 @@ def test_roots_can_be_discovered_without_reaching_into_the_package(
     )
 
 
-def test_a_store_can_be_built_from_configuration_alone(
+def test_the_sealed_boundary_exports_every_name_a_caller_must_build(
     fake_store: WorkflowStore,
 ) -> None:
-    # `BdClient` stays unexported (§0.1), so without a factory the sealed
-    # boundary was also an unbuildable one (probed, round 3).
+    # The store is constructed from a `LedgerStore` now (R1), so what the
+    # boundary owes callers is the vocabulary, not a factory.
     import workflow_interpreter.bdio as package
 
-    assert "BdClient" not in package.__all__
-    assert hasattr(package.WorkflowStore, "from_config")
     for name in (
         "MintRequest",
         "GateOpenRequest",

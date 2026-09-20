@@ -2,102 +2,14 @@
 
 import subprocess
 from dataclasses import replace
-from pathlib import Path
 
 import pytest
 
 from tests.test_children_process import writer_lab
-from workflow_interpreter.bdio import BdConfig, WorkflowStore
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.foreman.decisions import admission_of
-from workflow_interpreter.foreman.resolve import instantiate
-from workflow_interpreter.inspector.band import BandLock
 
 
 @pytest.mark.bd
-def test_standard_beads_checkout_stays_clean_with_coordination_locks(
-    tmp_path: Path,
-) -> None:
-    lab, _owner, composition, _spawner = writer_lab(tmp_path)
-    subprocess.run(
-        ["bd", "init", "--prefix", "wf", "--non-interactive"],
-        cwd=lab.repo,
-        check=True,
-        capture_output=True,
-        timeout=30,
-    )
-    # Commit only the initialization files in this throwaway consumer repository.
-    files = (
-        subprocess.check_output(
-            ["git", "ls-files", "--others", "--exclude-standard", "-z"], cwd=lab.repo
-        )
-        .decode()
-        .split("\0")[:-1]
-    )
-    if files:
-        subprocess.run(
-            ["git", "add", "--", *files], cwd=lab.repo, check=True, capture_output=True
-        )
-        subprocess.run(
-            ["git", "commit", "-qm", "initialize Beads"],
-            cwd=lab.repo,
-            check=True,
-            capture_output=True,
-        )
-    config = BdConfig(workspace=lab.repo, actor="test")
-    store = WorkflowStore(BdClient(config))
-    composition = replace(
-        composition,
-        store=store,
-        config=composition.config.model_copy(update={"bd": config}),
-    )
-    owner = instantiate(
-        composition,
-        tmp_path / "writer.toml",
-        instance_key="standard-owner",
-        instance_inputs={},
-        allow_test_flags=False,
-        overrides={},
-        backend=composition.config.store,
-    )
-    coordinator = store.coordination_store(composition=composition)
-    child = coordinator.start_child(
-        owner.root_id, "one", admission_of(owner, slot="one", generation=0)
-    )
-    with BandLock(coordinator.member_lock_path(child.root_id)):
-        pass
-    coordinator.cancel_child(owner.root_id, "one", 0, "stop", "finished")
-    coordinator.drive_children(owner.root_id, 1, 0.1)
-    assert lab.git.status_paths(cwd=lab.repo) == ()
-    alias = tmp_path / "alias"
-    alias.symlink_to(lab.repo, target_is_directory=True)
-    alias_store = WorkflowStore(
-        BdClient(config.model_copy(update={"workspace": alias}))
-    )
-    for purpose in ("band", "launch", "drive"):
-        assert alias_store.coordination_store().member_lock_path(
-            child.root_id, purpose
-        ) == coordinator.member_lock_path(child.root_id, purpose)
-    lock_area = lab.repo / ".beads" / "coordination"
-    assert (lock_area / f"{owner.root_id}.lock").exists()
-    assert coordinator.member_lock_path(owner.root_id, "drive").is_relative_to(
-        lock_area
-    )
-
-
-def test_legacy_lock_namespace_requires_explicit_offline_migration(
-    tmp_path: Path,
-) -> None:
-    from tests.test_children_lifecycle import owner_lab
-    from workflow_interpreter.schema.decisions import CoordinationError
-
-    lab, owner = owner_lab(tmp_path)
-    legacy = lab.config.bd.workspace / ".wf-coordination" / f"{owner}.drive.lock"
-    with BandLock(legacy), pytest.raises(CoordinationError, match="legacy"):
-        lab.store.coordination_store().member_lock_path(owner, "drive")
-    assert legacy.exists()
-
-
 def test_signed_halt_resolution_unblocks_child(tmp_path, signing_config, sign_payload):
     from tests._foreman import ForemanLab
     from tests.test_children_lifecycle import FIXTURE, child_admission
