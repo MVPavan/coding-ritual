@@ -13,7 +13,14 @@ from typing import Final
 import pytest
 
 from tests._fake_bd import FakeBd, InjectedCrash
-from tests._helpers import VALID_FIXTURE, MemoryContractorRecords
+from tests._helpers import (
+    TASK_BRIEF,
+    VALID_FIXTURE,
+    CrashingContractorRecords,
+    InjectedRecordCrash,
+    MemoryContractorRecords,
+    seeded_records,
+)
 from tests._workspace import Fixture
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
@@ -50,6 +57,7 @@ from workflow_interpreter.contractor.authority import BeadGateAuthority
 from workflow_interpreter.contractor.journal import ExportPin
 from workflow_interpreter.contractor.landing import LANDING_RECEIPT_FILE, T1_MESSAGE
 from workflow_interpreter.contractor.models import INSTANCE_KEY_TEMPLATE
+from workflow_interpreter.contractor.records import LedgerContractorRecords
 from workflow_interpreter.contractor.retry import RetryRefusal, retry_refusal
 from workflow_interpreter.contractor.verification import (
     CheckCommand,
@@ -66,8 +74,10 @@ from workflow_interpreter.inspector.paths import (
     write_record,
 )
 from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.ledger import records as ledger_records
 from workflow_interpreter.ledger.closure import NoLedgerClosure
 from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.tasks import pin_task_backend
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode, Outcome
@@ -107,15 +117,30 @@ class _DurableRecord:
 
 
 def _admission(adapter, roots, head_commit):
-    return PhaseAdmission(adapter, roots, head_commit, verification_policy=_policy())
+    # A first prepare snapshots the task brief beside the record (§3.3, R4),
+    # so an admission rig that could not state one could never prepare.
+    return PhaseAdmission(
+        adapter,
+        roots,
+        head_commit,
+        verification_policy=_policy(),
+        task_brief=TASK_BRIEF,
+    )
 
 
-def _stage_row() -> dict[str, object]:
-    """Build the direct-child stage the contractor is allowed to admit."""
+def _stage_row(status: str = "open") -> dict[str, object]:
+    """Build the direct-child stage the contractor is allowed to admit.
+
+    `status` is the TRACKER's label, and since S4 nothing in the contractor
+    writes it: the claim is the tracker port's, placed by the caller before
+    the ledger transition (§3.4), and it arrives in S5. A case about "this
+    recovery must not close the bead" therefore states the in-progress label
+    as part of its world instead of expecting admission to have set it.
+    """
     return {
         "id": STAGE_ID,
         "title": "one stage",
-        "status": "open",
+        "status": status,
         "issue_type": "task",
         "metadata": {"unrelated": {"preserved": True}},
         "parent": EPIC_ID,
@@ -384,14 +409,20 @@ def test_retry_refusal_refuses_gate_red_without_the_shipped_terminal() -> None:
     )
 
 
-def test_adapter_writes_the_whole_record_then_claims_with_admission(
+def test_adapter_writes_the_whole_record_across_the_admit_boundary(
     fake_bd: FakeBd, fake_client: BdClient
 ) -> None:
-    """Keep the stage journal complete across the prepare-to-admit boundary."""
+    """Keep the stage record complete across the prepare-to-admit boundary.
+
+    And keep it entirely in the record store: since S4 both transitions are
+    ledger writes (§3.2, R4), and the S4 acceptance is that admit succeeds
+    with `.beads/` deleted — so a tracker write here would be the defect, not
+    the claim this case used to assert. The tracker claim returns in S5, on
+    the tracker port, placed by the caller before the transaction (§3.4).
+    """
     fake_bd.rows[STAGE_ID] = _stage_row()
-    adapter = ContractorAdapter(
-        fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
-    )
+    records = MemoryContractorRecords()
+    adapter = ContractorAdapter(fake_client, closure=NoLedgerClosure(), records=records)
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -401,19 +432,20 @@ def test_adapter_writes_the_whole_record_then_claims_with_admission(
         expected_base_commit=BASE_COMMIT,
     )
 
-    adapter.prepare(STAGE_ID, prepared)
+    adapter.prepare(STAGE_ID, prepared, brief=TASK_BRIEF)
+    writes_after_prepare = len(fake_bd.metadata_writes)
     admitted = adapter.admit(STAGE_ID, prepared, root_id="wf-1")
 
     assert admitted.state is ContractorState.ADMITTED
-    assert fake_bd.rows[STAGE_ID]["status"] == "in_progress"
-    assert fake_bd.rows[STAGE_ID]["metadata"] == {
-        "unrelated": {"preserved": True},
-        "contractor": admitted.model_dump(by_alias=True, mode="json"),
-    }
-    assert "--claim" in fake_bd.calls[-2][1]
-    assert fake_bd.metadata_writes[-2]["contractor"] == admitted.model_dump(
-        by_alias=True, mode="json"
-    )
+    held = records.read(STAGE_ID)
+    assert held is not None
+    assert held.record == admitted
+    assert held.brief == TASK_BRIEF
+    # The first write created the record, the second moved it: the version is
+    # the evidence a transition states, so it has to have advanced.
+    assert held.version == 2
+    assert fake_bd.rows[STAGE_ID]["metadata"] == {"unrelated": {"preserved": True}}
+    assert len(fake_bd.metadata_writes) == writes_after_prepare
     assert adapter.dependencies(STAGE_ID) == ()
 
 
@@ -433,15 +465,13 @@ def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
         expected_base_commit=BASE_COMMIT,
     ).admitted(ROOT_ID)
     stored = stored.model_copy(update={"state": stored_state})
-    stage = _stage_row()
-    stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
-    fake_bd.rows[STAGE_ID] = stage
+    fake_bd.rows[STAGE_ID] = _stage_row()
 
     incoming = stored.model_copy(update={"state": ContractorState.PREPARED})
 
     with pytest.raises(ContractorAdapterError, match="requires stored state prepared"):
         ContractorAdapter(
-            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+            fake_client, closure=NoLedgerClosure(), records=seeded_records(stored)
         ).prepare(STAGE_ID, incoming)
 
 
@@ -461,12 +491,10 @@ def test_prepare_accepts_a_valid_successor_over_an_unsettled_journal(
         expected_base_commit=BASE_COMMIT,
     ).admitted(ROOT_ID)
     stored = stored.model_copy(update={"state": stored_state})
-    stage = _stage_row()
-    stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
-    fake_bd.rows[STAGE_ID] = stage
+    fake_bd.rows[STAGE_ID] = _stage_row()
 
     successor = ContractorAdapter(
-        fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        fake_client, closure=NoLedgerClosure(), records=seeded_records(stored)
     ).prepare(STAGE_ID, stored.next_attempt())
 
     assert successor == stored.next_attempt()
@@ -494,13 +522,11 @@ def test_prepare_refuses_a_structural_successor_over_a_landed_journal(
         .admitted(ROOT_ID)
         .landed("b" * 40, "c" * 40, "gate-receipt", "landing-receipt")
     )
-    stage = _stage_row()
-    stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
-    fake_bd.rows[STAGE_ID] = stage
+    fake_bd.rows[STAGE_ID] = _stage_row()
 
     with pytest.raises(ContractorAdapterError, match="refuses a landed stored record"):
         ContractorAdapter(
-            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+            fake_client, closure=NoLedgerClosure(), records=seeded_records(stored)
         ).prepare(STAGE_ID, stored.next_attempt())
 
 
@@ -527,12 +553,29 @@ def test_prepare_refuses_a_nonprepared_incoming_journal(
 
 
 def test_prepare_wraps_unreadable_stored_journal(
-    fake_bd: FakeBd, fake_client: BdClient
+    fake_bd: FakeBd, fake_client: BdClient, tmp_path: Path
 ) -> None:
-    """Corrupt stored contractor metadata stays behind the adapter error boundary."""
-    stage = _stage_row()
-    stage["metadata"] = {"contractor": {"state": "not-a-contractor-state"}}
-    fake_bd.rows[STAGE_ID] = stage
+    """A corrupt stored record stays behind the adapter's error boundary.
+
+    The record is a ledger row since S4 (§3.2, R4), so the corruption is a
+    `record_json` that will not validate — written straight to the table,
+    because no public path can produce one. A real ledger rather than a stub:
+    what is under test is that the seam the record actually crosses names its
+    own refusal instead of letting a validation error escape.
+    """
+    repo, _base = _temporary_repo(tmp_path)
+    fake_bd.rows[STAGE_ID] = _stage_row()
+    database = open_ledger(repo, tmp_path / "unreadable-wrapper")
+    pin_task_backend(database, STAGE_ID, BackendKind.LEDGER, EPIC_ID)
+    ledger_records.create(
+        database,
+        STAGE_ID,
+        state=ContractorState.PREPARED.value,
+        attempt=1,
+        root_id=None,
+        brief=TASK_BRIEF,
+        record_json='{"state": "not-a-contractor-state"}',
+    )
     incoming = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -546,7 +589,9 @@ def test_prepare_wraps_unreadable_stored_journal(
         ContractorAdapterError, match="stored contractor record is unreadable"
     ):
         ContractorAdapter(
-            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+            fake_client,
+            closure=NoLedgerClosure(),
+            records=LedgerContractorRecords(database, backend=BackendKind.LEDGER),
         ).prepare(STAGE_ID, incoming)
 
 
@@ -635,10 +680,9 @@ def test_admission_recovers_after_root_creation_crash(
     fake_bd.rows[STAGE_ID] = _stage_row()
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
+    records = MemoryContractorRecords()
     admission = _admission(
-        ContractorAdapter(
-            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
-        ),
+        ContractorAdapter(fake_client, closure=NoLedgerClosure(), records=records),
         roots,
         lambda: base,
     )
@@ -652,9 +696,9 @@ def test_admission_recovers_after_root_creation_crash(
     assert recovered.state is ContractorState.ADMITTED
     assert fake_bd.command_count("create") == 2
     assert len(roots._roots) == 1
-    assert fake_bd.rows[STAGE_ID]["metadata"]["contractor"] == recovered.model_dump(
-        by_alias=True, mode="json"
-    )
+    held = records.read(STAGE_ID)
+    assert held is not None
+    assert held.record == recovered
 
 
 def test_admission_repairs_a_root_interrupted_before_its_self_link(
@@ -671,7 +715,9 @@ def test_admission_repairs_a_root_interrupted_before_its_self_link(
         roots,
         lambda: base,
     )
-    fake_bd.crash_on("update", occurrence=2)
+    # The self-link is the FIRST bd update of an admission now: prepare writes
+    # the record to the ledger rather than to the stage bead (§3.2, R4).
+    fake_bd.crash_on("update", occurrence=1)
 
     with pytest.raises(InjectedCrash, match="bd update died"):
         admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
@@ -729,16 +775,19 @@ def test_admission_recovers_after_the_relation_write_is_interrupted(
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
     prepared_root = roots.create("contract:phase-1:stage-a:attempt:1")
+    # The relation write is the ledger transition to ADMITTED since S4 (§3.2,
+    # R4), so that is where this case's interruption has to be injected.
     admission = _admission(
         ContractorAdapter(
-            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+            fake_client,
+            closure=NoLedgerClosure(),
+            records=CrashingContractorRecords(MemoryContractorRecords(), armed=True),
         ),
         roots,
         lambda: base,
     )
-    fake_bd.crash_on("update", occurrence=2)
 
-    with pytest.raises(InjectedCrash, match="bd update died"):
+    with pytest.raises(InjectedRecordCrash, match="record update died"):
         admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
 
     recovered = admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
@@ -789,14 +838,12 @@ def test_conflicting_record_refuses_without_creating_a_root(
         target_ref=TARGET_REF,
         expected_base_commit="c" * 40,
     )
-    stage = _stage_row()
-    stage["metadata"] = {"contractor": conflicting.model_dump(by_alias=True)}
-    fake_bd.rows[STAGE_ID] = stage
+    fake_bd.rows[STAGE_ID] = _stage_row()
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
     admission = _admission(
         ContractorAdapter(
-            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+            fake_client, closure=NoLedgerClosure(), records=seeded_records(conflicting)
         ),
         roots,
         lambda: base,
@@ -1150,9 +1197,10 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
-    )
+    # The relation write is a ledger transition since S4 (§3.2, R4): the crash
+    # this case is about is armed on the record store, not on bd.
+    records = CrashingContractorRecords(export.records)
+    adapter = ContractorAdapter(fake_client, closure=export.closure, records=records)
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1164,9 +1212,9 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
     adapter.prepare(STAGE_ID, prepared)
     adapter.admit(STAGE_ID, prepared, root_id=ROOT_ID)
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
-    fake_bd.crash_on("update")
+    records.arm()
 
-    with pytest.raises(InjectedCrash, match="bd update died"):
+    with pytest.raises(InjectedRecordCrash, match="record update died"):
         PhaseLanding(
             adapter,
             git,
@@ -1212,7 +1260,7 @@ def test_recovery_returns_human_attention_for_mismatched_receipt_identity(
     """A receipt bound to another artifact remains for an operator to reconcile."""
     repo, base = _temporary_repo(tmp_path)
     artifact_oid, tree = _commit_artifact(repo)
-    fake_bd.rows[STAGE_ID] = _stage_row()
+    fake_bd.rows[STAGE_ID] = _stage_row(status="in_progress")
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
         fake_client, closure=export.closure, records=export.records
@@ -1328,7 +1376,7 @@ def test_recovery_refuses_unrelated_history_without_closing_or_moving_a_ref(
     """An interrupted landing cannot turn unrelated post-CAS history into closure."""
     repo, base = _temporary_repo(tmp_path)
     artifact_oid, tree = _commit_artifact(repo)
-    fake_bd.rows[STAGE_ID] = _stage_row()
+    fake_bd.rows[STAGE_ID] = _stage_row(status="in_progress")
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
         fake_client, closure=export.closure, records=export.records
@@ -1505,7 +1553,7 @@ def test_blocking_dependencies_tolerate_the_open_bd_relation_vocabulary(
     fake_bd.rows[STAGE_ID] = stage
 
     dependencies = ContractorAdapter(
-        fake_client, closure=NoLedgerClosure()
+        fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
     ).blocking_dependencies(STAGE_ID)
 
     assert tuple(dependency.id for dependency in dependencies) == ("open-blocker",)
@@ -1521,7 +1569,7 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
     """An intact intent at H is operator work, never an automatic second CAS."""
     repo, base = _temporary_repo(tmp_path)
     artifact_oid, tree = _commit_artifact(repo)
-    fake_bd.rows[STAGE_ID] = _stage_row()
+    fake_bd.rows[STAGE_ID] = _stage_row(status="in_progress")
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
         fake_client, closure=export.closure, records=export.records
@@ -1603,10 +1651,8 @@ def test_landing_refuses_wrong_root_directory(
         expected_base_commit=base,
         verification_policy=_policy(),
     ).admitted(ROOT_ID)
-    fake_bd.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
-        by_alias=True, mode="json"
-    )
     git, paths, export = _landing_context(repo, tmp_path)
+    seeded_records(record, into=export.records)
     landing = PhaseLanding(
         ContractorAdapter(fake_client, closure=export.closure, records=export.records),
         git,
@@ -1635,17 +1681,15 @@ def test_gate_view_refuses_a_different_root_with_same_key(
         expected_base_commit=BASE_COMMIT,
     ).admitted(ROOT_ID)
     fake_bd.rows[STAGE_ID] = _stage_row()
-    fake_bd.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
-        by_alias=True, mode="json"
-    )
+    records = seeded_records(record)
     monkeypatch.setattr(
         ContractorAdapter,
         "from_config",
         classmethod(
-            lambda *_, **__: ContractorAdapter(
+            lambda *_, **kwargs: ContractorAdapter(
                 fake_client,
                 closure=NoLedgerClosure(),
-                records=MemoryContractorRecords(),
+                records=kwargs["records"],
             )
         ),
     )
@@ -1655,6 +1699,7 @@ def test_gate_view_refuses_a_different_root_with_same_key(
             fake_client.config,
             root_id="impostor",
             reads=WorkflowReads(fake_client),
+            records=records,
         )
 
 
@@ -1686,9 +1731,7 @@ def test_policy_correspondence_refuses_before_cas(
         expected_base_commit=base,
         verification_policy=None if corruption == "legacy" else _policy(),
     ).admitted(ROOT_ID)
-    fake_bd.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
-        by_alias=True, mode="json"
-    )
+    seeded_records(record, into=export.records)
     repository = _RepositoryGate(oid, tree)
     observed = repository.verify(oid, tree)
     if corruption == "wrong-policy":

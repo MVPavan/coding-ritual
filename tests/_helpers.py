@@ -15,7 +15,7 @@ from typing import Final
 import workflow_interpreter
 from workflow_interpreter import GraphValidationError, RuleId, load_graph
 from workflow_interpreter.contractor.models import ContractorRecord
-from workflow_interpreter.contractor.records import StoredRecord
+from workflow_interpreter.contractor.records import ContractorRecords, StoredRecord
 from workflow_interpreter.ledger.errors import LedgerRecordConflict
 from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.schema import messages
@@ -356,3 +356,72 @@ class MemoryContractorRecords:
                 if held.record.epic_id == epic_id
             )
         )
+
+
+class InjectedRecordCrash(RuntimeError):
+    """A record transition interrupted on purpose, mid-write."""
+
+
+class CrashingContractorRecords:
+    """Any record store, with the nth `update` interrupted before it lands.
+
+    The relation write moved from a bd `update` to a ledger transition in S4
+    (§3.2, R4), so `FakeBd.crash_on("update")` no longer interrupts it — and
+    the crash-recovery cases have to keep interrupting the write they are
+    about rather than whichever call used to carry it. A wrapper rather than
+    a subclass, because the landing cases crash a REAL ledger-backed store.
+    """
+
+    def __init__(self, inner: ContractorRecords, *, armed: bool = False) -> None:
+        self._inner = inner
+        self._armed = armed
+
+    def arm(self) -> None:
+        """Interrupt the next record transition, and only that one."""
+        self._armed = True
+
+    def read(self, task_id: str) -> StoredRecord | None:
+        """The stored record of this task, or nothing while it has none."""
+        return self._inner.read(task_id)
+
+    def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
+        """Write a task's first record, refusing a second first write."""
+        return self._inner.create(record, brief=brief)
+
+    def update(
+        self, record: ContractorRecord, *, expected_version: int, brief: str | None
+    ) -> StoredRecord:
+        """Move the record forward, unless this is the interrupted write."""
+        if self._armed:
+            self._armed = False
+            raise InjectedRecordCrash("record update died")
+        return self._inner.update(
+            record, expected_version=expected_version, brief=brief
+        )
+
+    def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
+        """Every task of this epic with a record, and that record's state."""
+        return self._inner.states_of_epic(epic_id)
+
+
+TASK_BRIEF: Final[str] = "the seeded task brief"
+"""The snapshot a seeded first write carries (§3.3): tests need one to exist."""
+
+
+def seeded_records(
+    *held: ContractorRecord,
+    brief: str | None = TASK_BRIEF,
+    into: ContractorRecords | None = None,
+) -> ContractorRecords:
+    """A record store already holding `held`, written the way production does.
+
+    The one seeding path for every test that used to put a record in
+    `bead.metadata["contractor"]`. The record is a ledger row since S4 (§3.2,
+    R4), so a test states it through the public first write — `create` — and
+    `into` lets a lab with a real ledger seed exactly as an in-memory unit
+    test does, instead of each family growing its own INSERT.
+    """
+    store: ContractorRecords = MemoryContractorRecords() if into is None else into
+    for record in held:
+        store.create(record, brief=brief)
+    return store

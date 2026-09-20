@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
+from pydantic import ValidationError
+
 from workflow_interpreter.bdio import finalize
 from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
 from workflow_interpreter.bdio.config import BdConfig
@@ -32,6 +34,9 @@ MSG_ABANDON_LANDED: Final[str] = (
 MSG_ABANDON_CLOSED: Final[str] = (
     "task {stage_id!r} is closed — its whole record is durable in git — and a "
     "closed task is not abandoned (§3.5, §3.8)"
+)
+MSG_STORED_RECORD_UNREADABLE: Final[str] = (
+    "stored contractor record is unreadable: {reason}"
 )
 MSG_WRONG_STAGE: Final[str] = "contractor record belongs to stage {stage_id!r}"
 MSG_WRONG_INCOMING_STATE: Final[str] = (
@@ -189,8 +194,18 @@ class ContractorAdapter:
         The one read every transition starts from: the version is not an
         attribute of the record, it is the evidence that the record has not
         moved since it was read (§3.2).
+
+        A stored row that will not validate is named HERE, as an adapter
+        refusal: the record moved into the ledger in S4, but whose error
+        boundary a corrupt one lands behind did not. Every transition reads
+        through this method, so wrapping it once covers all five.
         """
-        return self.records.read(stage_id)
+        try:
+            return self.records.read(stage_id)
+        except ValidationError as unreadable:
+            raise ContractorAdapterError(
+                MSG_STORED_RECORD_UNREADABLE.format(reason=unreadable)
+            ) from unreadable
 
     def stored_record(self, stage_id: str) -> ContractorRecord | None:
         """The stored relation, or nothing when this task never prepared.
