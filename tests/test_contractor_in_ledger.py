@@ -4,7 +4,7 @@
 export branch. This file proves the four behaviours that row exists for, each
 through the production CLI on the lab's real wiring:
 
-1. everything after prepare runs with the tracker unreachable;
+1. everything after §3.4's claim runs with the tracker unreachable;
 2. `wf phase abandon` retires a task, cleans it up and frees its sibling;
 3. a retry admits from the brief snapshot without reading the tracker;
 4. prepare is where the ledger mints the task from its tracker ref (§3.7).
