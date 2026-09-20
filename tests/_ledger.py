@@ -23,6 +23,7 @@ from typing import Final
 from tests._bdio import entry_request, load_definition, make_root
 from tests.conftest import branch_head
 from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.bdio.capabilities import CheckpointSink
 from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import BeadRecord
@@ -72,14 +73,22 @@ def ledger_store(
     *,
     epic_id: str | None = EPIC,
     verifier: GateVerifier | None = None,
+    checkpoint: CheckpointSink | None = None,
 ) -> WorkflowStore:
-    """The public write path over one task's ledger rows."""
+    """The public write path over one task's ledger rows.
+
+    `checkpoint` is absent by default because most labs have no git seam at
+    all (`repository` fakes `.git` as a bare directory): the checkpoint is a
+    capability the composition root injects, and a store without one takes
+    none (S7, R10).
+    """
     backend = LedgerStore(database, task_id=task_id, epic_id=epic_id)
     return WorkflowStore(
         backend,
         verifier,
         branch_head_reader=branch_head,
         claims=LedgerClaims(database),
+        checkpoint=checkpoint,
     )
 
 
