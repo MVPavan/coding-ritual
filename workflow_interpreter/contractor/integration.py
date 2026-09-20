@@ -250,14 +250,54 @@ class IntegrationGuard:
             raise ContractorRefusal("integration association readback mismatch")
 
     def claim(self, key: str) -> tuple[str, IntegrationTargetClaim] | None:
+        """This target's claim as (the HOLDER it is held by, what it says).
+
+        The holder rather than the row id: the id is the key the caller already
+        has, and the holder is what a transfer has to state to be a
+        compare-and-swap rather than an overwrite (R11).
+        """
         rows = self.claims.find(key)
         if len(rows) > 1:
             raise ContractorRefusal("ambiguous integration target claim")
         if not rows:
             return None
-        return rows[0].id, IntegrationTargetClaim.model_validate(
+        return rows[0].holder, IntegrationTargetClaim.model_validate(
             rows[0].payload[CLAIM_PAYLOAD_KEY]
         )
+
+    def holder_retired(self, claim: IntegrationTargetClaim) -> bool:
+        """Whether the stage holding this claim is over (§3.5, §3.8).
+
+        A holder that died mid-attempt leaves an ACTIVE claim nothing will
+        release, and the row is the primary key, so the target would be busy
+        for ever. A retired holder — abandoned, or closed — is not contending
+        for anything, so its claim reads as free at the next claim attempt.
+        """
+        return closure_probe(self.composition.ledger, self.composition.git).retired(
+            claim.stage_id
+        )
+
+    def release(self, record: ContractorRecord) -> None:
+        """Free the target claim of an attempt that is over (R11, §3.8).
+
+        Beside `finished`, and for its reason: a claim is one row, so an
+        attempt that stops holding one has to SAY so. Abandon is the caller
+        `finished` has no equivalent of — the stage never landed, so nothing
+        else will ever touch its claim.
+
+        Keyed on the stage rather than on the association: what is being
+        released may be the claim of an attempt whose association is exactly
+        what could no longer be read.
+        """
+        key = target_key(self.composition, record.target_ref)
+        held = self.claim(key)
+        if (
+            held is None
+            or held[1].stage_id != record.stage_id
+            or held[1].disposition != "active"
+        ):
+            return
+        self.write_claim(held[1].model_copy(update={"disposition": "released"}))
 
     def write_claim(self, claim: IntegrationTargetClaim) -> None:
         """Take this target's claim, or move the one already read (R11).
@@ -267,7 +307,8 @@ class IntegrationGuard:
         is what makes exactly one of two such callers win. A caller that read
         one is transferring — a retry inheriting the target from the attempt
         before it — and has already checked, under the target lock, that the
-        claim it is moving is its own.
+        claim it is moving is its own. The HOLDER it read travels with the
+        transfer, so a write from a stale read is refused rather than applied.
         """
         prior = self.claim(claim.key)
         self.claims.write(
@@ -670,6 +711,9 @@ def prepare_integration(
         if (
             claim
             and claim[1].disposition == "active"
+            # A holder that is over — abandoned, or closed — contends for
+            # nothing, and its row is the only claim this target can have.
+            and not guard.holder_retired(claim[1])
             and (claim[1].owner_id, claim[1].stage_id, claim[1].request_digest)
             != (request.owner_id, request.stage_id, digest_record(request))
         ):

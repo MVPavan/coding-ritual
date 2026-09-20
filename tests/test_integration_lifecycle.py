@@ -385,6 +385,41 @@ Path(os.environ["WF_OUTCOME_FILE"]).write_text(json.dumps({"outcome": "done" if 
     assert (lab.repo / "target.txt").read_text() == "independent target edit\n"
 
 
+def test_abandoning_an_integration_attempt_frees_its_target_claim(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """R11, §3.8: a claim nobody releases is a target nobody may integrate again.
+
+    The claim is one row with a primary key, so an attempt that is abandoned
+    while holding it would refuse every later integration of that target with
+    "busy" and no verb to clear it. Abandon releases it, exactly as the close
+    does; and a holder that died before it could release reads as retired, so
+    the next claim attempt finds the target free anyway.
+    """
+    from workflow_interpreter.contractor.integration import IntegrationGuard
+    from workflow_interpreter.contractor.models import ContractorState
+
+    lab, owner, _record = prepared_lab(
+        tmp_path, monkeypatch, signing_config, sign_payload
+    )
+    guard = IntegrationGuard(lab.composition)
+    key = (
+        lab.store.coordination_store()
+        .state(owner.root_id)
+        .integrations["combine"]
+        .target_key
+    )
+    assert guard.claim(key)[1].disposition == "active"
+    adapter = _contractor_adapter(lab)
+    adapter.integration_guard = guard
+
+    abandoned = adapter.abandon("stage")
+
+    assert abandoned.state is ContractorState.ABANDONED
+    assert guard.claim(key)[1].disposition == "released"
+    assert guard.holder_retired(guard.claim(key)[1]) is True
+
+
 def test_stale_base_retry_keeps_original_budget_and_requires_new_approval(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
 ) -> None:

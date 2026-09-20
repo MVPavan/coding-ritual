@@ -34,7 +34,8 @@ _SQL_INSERT: Final[str] = (
     "VALUES (?, ?, ?, ?)"
 )
 _SQL_REPLACE: Final[str] = (
-    "UPDATE claims SET holder = ?, payload_json = ?, claimed_at = ? WHERE claim_key = ?"
+    "UPDATE claims SET holder = ?, payload_json = ?, claimed_at = ? "
+    "WHERE claim_key = ? AND holder = ?"
 )
 
 
@@ -63,20 +64,22 @@ class LedgerClaims:
         key: str,
         holder: str,
         payload: Metadata,
-        claim_id: str | None = None,
+        expected_holder: str | None = None,
     ) -> None:
-        """Claim this target, or replace the claim the caller already holds.
+        """Claim this target, or move the claim the caller read and still owns.
 
-        `claim_id` is what tells the two apart, exactly as it did on the bd
-        row: nothing means "I read no claim", which is the one write that has
-        to lose a race, and a named row means "I read this claim and I am
-        moving it", which the caller has already checked is its own.
+        `expected_holder` is what tells the two apart: nothing means "I read no
+        claim", which is the one write that has to lose a race, and a named
+        holder means "I read THIS claim and I am moving it" — guarded, inside
+        the same `BEGIN IMMEDIATE`, against the holder having changed since.
         """
         encoded = json.dumps(payload, sort_keys=True)
         stamped = datetime.now(tz=UTC).isoformat()
         with self._database.transaction() as connection:
-            if claim_id is not None:
-                self._replace(connection, key, holder, encoded, stamped)
+            if expected_holder is not None:
+                self._replace(
+                    connection, key, holder, encoded, stamped, expected_holder
+                )
                 return
             try:
                 connection.execute(_SQL_INSERT, (key, holder, encoded, stamped))
@@ -103,10 +106,24 @@ class LedgerClaims:
         holder: str,
         encoded: str,
         stamped: str,
+        expected_holder: str,
     ) -> None:
-        """Move a claim the caller named, refusing when the row has gone."""
-        updated = connection.execute(_SQL_REPLACE, (holder, encoded, stamped, key))
+        """Move the claim the caller read, refusing any other holder.
+
+        The holder is the guard, in the WHERE clause, so the check and the
+        write are one statement: a transfer written from a stale read is
+        refused NAMING whoever holds the target now, instead of silently
+        overwriting a claim it never saw.
+        """
+        updated = connection.execute(
+            _SQL_REPLACE, (holder, encoded, stamped, key, expected_holder)
+        )
         if updated.rowcount == 0:
+            found = connection.execute(_SQL_READ, (key,)).fetchone()
             raise LedgerClaimHeld(
-                MSG_CLAIM_HELD.format(claim_key=key, holder="nobody", incoming=holder)
+                MSG_CLAIM_HELD.format(
+                    claim_key=key,
+                    holder="nobody" if found is None else str(found[1]),
+                    incoming=holder,
+                )
             )

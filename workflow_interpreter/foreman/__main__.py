@@ -295,6 +295,12 @@ def _abandon(args: argparse.Namespace, emit: Callable[[str, int], None]) -> int:
         closure=closure_probe(composition.ledger, composition.git),
         records=records_of(composition),
     )
+    # Imported here, as `contract` does: the integration surface reaches back
+    # into the foreman's own composition. The guard is what releases an
+    # integration attempt's target claim as the abandon records it (R11).
+    from workflow_interpreter.contractor.integration import IntegrationGuard
+
+    adapter.integration_guard = IntegrationGuard(composition)
     try:
         record = adapter.abandon(args.stage_id)
         cleaned = Foreman(composition).cleanup_retired(args.stage_id)

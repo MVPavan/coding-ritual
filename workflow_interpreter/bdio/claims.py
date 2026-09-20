@@ -42,6 +42,10 @@ class ClaimStore(Protocol):
     than two methods, because the caller's evidence is what tells them apart:
     a caller that read no claim must LOSE a race for the target, and a caller
     that read its own claim is entitled to move it.
+
+    That evidence is the HOLDER it read, so the move is a compare-and-swap: a
+    transfer written from a stale read names a holder that has since changed,
+    and is refused rather than applied over whoever holds the target now.
     """
 
     def find(self, key: str) -> tuple[ClaimRecord, ...]:
@@ -53,7 +57,7 @@ class ClaimStore(Protocol):
         key: str,
         holder: str,
         payload: Metadata,
-        claim_id: str | None = None,
+        expected_holder: str | None = None,
     ) -> None:
-        """Claim the target, or replace the claim named by `claim_id`."""
+        """Claim the target, or move the claim `expected_holder` still holds."""
         ...

@@ -322,7 +322,7 @@ def test_a_claim_is_found_by_key_and_merged_rather_than_duplicated(
     assert written[0].payload[CLAIM_PAYLOAD] == {"holder": "first"}
 
     store.claims.write(
-        key, "second", {CLAIM_PAYLOAD: {"holder": "second"}}, written[0].id
+        key, "second", {CLAIM_PAYLOAD: {"holder": "second"}}, written[0].holder
     )
     merged = store.claims.find(key)
     assert [row.id for row in merged] == [written[0].id]

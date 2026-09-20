@@ -367,7 +367,14 @@ class ContractorAdapter:
                 )
             )
         abandoned = held.record.model_copy(update={"state": ContractorState.ABANDONED})
-        return self._write(abandoned, held).record
+        result = self._write(abandoned, held).record
+        # After the transition and never before it, exactly as the close
+        # releases through `finished`: a claim freed for an abandon that then
+        # failed to record would hand the target to a second attempt while the
+        # first one was still live (R11).
+        if result.integration_digest is not None and self.integration_guard is not None:
+            self.integration_guard.release(result)
+        return result
 
     def _required(self, stage_id: str) -> StoredRecord:
         """The stored record a transition is about, refusing when there is none."""

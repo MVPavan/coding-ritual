@@ -250,12 +250,20 @@ def test_two_attempts_on_one_target_serialise_on_the_ledger_claim(
 def test_a_claim_transfer_names_the_row_it_moves_and_is_not_a_race(
     ledger: LedgerDatabase,
 ) -> None:
-    """A retry inheriting a target transfers the claim it already read (R11)."""
+    """A retry inheriting a target transfers the claim it already read (R11).
+
+    The holder it read is the guard: a transfer written from a stale read would
+    otherwise overwrite a holder it never saw, which is the one thing the
+    primary key cannot refuse on its own.
+    """
     claims = LedgerClaims(ledger)
     claims.write("target", "owner:a:digest-a", {"attempt": 1})
 
-    claims.write("target", "owner:a:digest-b", {"attempt": 2}, "target")
+    claims.write("target", "owner:a:digest-b", {"attempt": 2}, "owner:a:digest-a")
 
+    assert [row.holder for row in claims.find("target")] == ["owner:a:digest-b"]
+    with pytest.raises(LedgerClaimHeld, match="owner:a:digest-b"):
+        claims.write("target", "owner:c:digest-c", {"attempt": 3}, "owner:a:digest-a")
     assert [row.holder for row in claims.find("target")] == ["owner:a:digest-b"]
 
 
