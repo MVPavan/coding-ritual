@@ -114,10 +114,12 @@ class TrackerOutbox:
         INSIDE the transaction of the fact it follows whenever there is one —
         that is what `connection` is. The rule used to be the opposite, and it
         left a window: `close()` pinned the export and then enqueued, so a
-        crash between the two lost the `Close` permanently. A drain only
-        applies rows that exist and nothing re-derives a missing one from
-        `closed()`, so the fact and its mirror row have to commit or roll back
-        together (§3.3).
+        crash between the two lost the `Close` until somebody ran the repair.
+        A drain only applies rows that exist, so the fact and its mirror row
+        commit or roll back together (§3.3). `adapter.rederive_close` is the
+        REPAIR for a row lost some other way — a rebuild does not restore this
+        table — and not a substitute for the joint commit: it runs only from
+        `wf ledger reconcile`, when a human asks.
 
         Without one it opens its own transaction, for the intents that follow
         no ledger fact at all: a claim released after a refusal, and the

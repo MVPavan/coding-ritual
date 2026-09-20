@@ -135,7 +135,7 @@ def repair_mirror(
 ) -> DrainResult:
     """Everything `wf ledger reconcile <task>` owes the mirror (§3.4, §3.2.4).
 
-    Two repairs, not one. Draining what is owed was already here; the PREPARED
+    Three repairs, not one. Draining what is owed was already here; the PREPARED
     -plus-claimed release was not, although §3.4 names this command beside the
     next `wf contract` as the way that shape is repaired — so on a machine
     where the next contract invocation is days away, the documented remedy did
@@ -148,9 +148,15 @@ def repair_mirror(
     What the drain DID comes back, because the human at this command is the
     one who has to hear about a conflict: the row retires either way, so a
     result nobody returned was a disagreement nobody was told about.
+
+    The third is the `Close` a REBUILT ledger owes (§3.9, gate B finding 1):
+    the outbox is not exported, so a rebuild restores a closed task with no
+    mirror row, and this command — the documented remedy — used to find
+    nothing due and leave the item open forever.
     """
     adapter = contractor_adapter(config, database, git)
     adapter.release_stranded_claim(task_id, config.actor)
+    adapter.rederive_close(task_id)
     return drain_outbox(database, adapter.tracker, task_id)
 
 

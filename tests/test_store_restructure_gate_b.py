@@ -26,21 +26,47 @@ from typing import Final
 
 import pytest
 
-from tests._ledger import EPIC, TASK, config_file
+from tests._inspector import make_repo
+from tests._ledger import EPIC, TASK, config_file, seeded_task
+from tests.test_derived_closed import _record, _seed_record
+from workflow_interpreter.contractor import tracker_wiring
 from workflow_interpreter.contractor.quiesce import NotQuiesced
+from workflow_interpreter.contractor.tracker_wiring import repair_mirror
 from workflow_interpreter.foreman import __main__ as foreman_main
+from workflow_interpreter.foreman.config import (
+    ForemanConfig,
+    load_config,
+    wrapper_root_for,
+)
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.ledger.__main__ import COMMAND_RECONCILE
 from workflow_interpreter.ledger.__main__ import main as ledger_main
+from workflow_interpreter.ledger.checkpoint import rebuild_sources
+from workflow_interpreter.ledger.closure import closed
+from workflow_interpreter.ledger.constants import TaskState
+from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.export import import_exports, pin_export, write_export
+from workflow_interpreter.ledger.paths import ledger_path, repo_id_path
+from workflow_interpreter.ledger.tasks import record_task_state
 from workflow_interpreter.tracker.bd import BdTracker
 from workflow_interpreter.tracker.bd_transport import (
     BdClient,
     BdConfig,
     CompletedCommand,
 )
+from workflow_interpreter.tracker.constants import WorkItemStatus
+from workflow_interpreter.tracker.file import FileTracker
+from workflow_interpreter.tracker.intents import Close, TrackerIntent, TrackerResult
+from workflow_interpreter.tracker.models import TrackerRef, WorkItem
+from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 EXIT_REFUSED: Final[int] = 2
 ESCAPING_ID: Final[str] = "../x"
 """An operator-supplied id that leaves the directory its verb derives paths in."""
+HOST: Final[str] = "gate-b-test"
+GIT_TIMEOUT_S: Final[float] = 60.0
 
 
 def test_a_ledger_verb_refuses_an_escaping_task_id_before_it_builds_a_path(
@@ -123,3 +149,131 @@ def test_the_quiesce_probe_is_a_cost_of_admitting_not_of_running(
         )
 
     assert transport.calls, "an admitting command still pays for the probe"
+
+
+class _CountingFileTracker(FileTracker):
+    """A file tracker that counts the closes it is ASKED for.
+
+    A repaired mirror must close the item once, so "how many `Close` intents
+    reached the tracker" is the question — a second one would be a mirror
+    write for a state the mirror is already in.
+    """
+
+    def __init__(self, path: Path) -> None:
+        super().__init__(path)
+        self.closes = 0
+
+    def apply(self, intent: TrackerIntent) -> TrackerResult:
+        """Count a close, then let the real document answer it."""
+        if isinstance(intent, Close):
+            self.closes += 1
+        return super().apply(intent)
+
+
+def _git(repo: Path, *args: str) -> None:
+    """One git command in `repo`, with an explicit timeout."""
+    subprocess.run(
+        ("git", *args),
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=GIT_TIMEOUT_S,
+    )
+
+
+def _file_tracker_config(tmp_path: Path, repo: Path, document: Path) -> ForemanConfig:
+    """A foreman config whose tracker is one JSON document, loaded from TOML.
+
+    Loaded rather than constructed, because `repair_mirror` is reached from
+    `wf ledger reconcile`, which reads exactly this file.
+    """
+    path = tmp_path / "foreman.toml"
+    home = tmp_path / "home"
+    path.write_text(
+        f'''repo_root = "{repo}"
+wrapper_home = "{home}"
+host = "{HOST}"
+actor = "actor"
+
+[tracker]
+backend = "file"
+path = "{document}"
+
+[inspector]
+repo_root = "{repo}"
+wrapper_root = "{wrapper_root_for(home, repo)}"
+host = "{HOST}"
+sandbox = "off"
+''',
+        encoding="utf-8",
+    )
+    return load_config(path)
+
+
+def test_a_close_lost_with_the_outbox_is_re_derived_by_reconcile(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """§3.4 and §3.9: the documented remedy has to actually re-derive the Close.
+
+    `tracker_outbox` is not exported, so a rebuild from a checkpoint or a
+    committed export loses every pending mirror row. `closed()` comes back
+    true, the item is still open, and `wf ledger reconcile` used to print
+    "nothing due" — leaving the bead open forever from the one command the
+    guide names as the repair. The re-derivation is idempotent against the
+    item's own state, so repairing twice closes once.
+    """
+    repo = make_repo(tmp_path, "repo")
+    wrapper_root = wrapper_root_for(tmp_path / "home", repo)
+    wrapper_root.mkdir(parents=True, exist_ok=True)
+    git = Git(
+        InspectorConfig(
+            repo_root=repo,
+            wrapper_root=wrapper_root,
+            host=HOST,
+            sandbox=SandboxMode.OFF,
+        )
+    )
+    with open_ledger(repo, wrapper_root) as database:
+        seeded_task(database)
+        _seed_record(database, _record())
+        record_task_state(database, TASK, TaskState.LANDED)
+        export = write_export(database, TASK)
+        pin_export(git, database, TASK, repo)
+    _git(repo, "add", "--", str(export), str(repo_id_path(repo)))
+    _git(repo, "commit", "--quiet", "-m", "land: the task and its export")
+
+    # The loss: the ledger, and with it the pending `Close`, is gone.
+    ledger_path(repo).unlink()
+    with open_ledger(repo, wrapper_root):
+        pass
+    import_exports(
+        rebuild_sources(git, repo, ()),
+        repo_root=repo,
+        wrapper_root=wrapper_root,
+        ledger=ledger_path(repo),
+    )
+
+    document = tmp_path / "tracker.json"
+    tracker = _CountingFileTracker(document)
+    tracker.upsert(
+        WorkItem(ref=TASK, title="the task", brief=None, status=WorkItemStatus.OPEN)
+    )
+    monkeypatch.setattr(
+        tracker_wiring, "tracker_for", lambda _settings, client=None: tracker
+    )
+    config = _file_tracker_config(tmp_path, repo, document)
+    ref = TrackerRef(kind=tracker.kind, ref=TASK)
+
+    with open_ledger(repo, wrapper_root) as rebuilt:
+        assert closed(rebuilt, git, TASK) is True
+        assert TrackerOutbox(rebuilt).pending() == (), "the rebuild lost the row"
+
+        repair_mirror(config, rebuilt, git, TASK)
+        item = tracker.get(ref)
+        assert item is not None and item.status is WorkItemStatus.CLOSED
+
+        repair_mirror(config, rebuilt, git, TASK)
+
+        assert tracker.closes == 1, "a repaired mirror closes the item once"
+        assert TrackerOutbox(rebuilt).pending() == ()

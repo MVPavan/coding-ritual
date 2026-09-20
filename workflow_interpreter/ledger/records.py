@@ -152,8 +152,8 @@ def update(
     outbox row for the mirror it implies. It runs after the guard has held, so
     a refused transition enqueues nothing, and it commits or rolls back with
     the transition itself: a crash between the fact and its mirror row would
-    otherwise lose the intent forever, since nothing re-derives a missing
-    `Close` from a closed task (store-restructure §3.3).
+    otherwise leave the intent owed by nothing, and the only repair is a human
+    running `wf ledger reconcile` (store-restructure §3.3, §3.4).
     """
     with database.transaction() as connection:
         try:

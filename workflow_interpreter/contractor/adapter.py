@@ -24,6 +24,7 @@ from workflow_interpreter.tracker import (
     TrackerRef,
     WorkItem,
 )
+from workflow_interpreter.tracker.constants import WorkItemStatus
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 from workflow_interpreter.tracker.port import TrackerPort
 
@@ -288,6 +289,47 @@ class ContractorAdapter:
         if held is None or held.claimed_by != actor:
             return
         self.mirror(stage_id, Claim(ref=self.ref(stage_id), actor=actor, held=False))
+
+    def rederive_close(self, stage_id: str) -> bool:
+        """Re-enqueue the `Close` a restored `closed()` says is owed (§3.4, §3.9).
+
+        `tracker_outbox` is not exported, so a rebuild from a checkpoint or a
+        committed export restores every fact about the task and NONE of the
+        mirror rows it still owed. `closed()` comes back true, the item is
+        still open, and before this the only path that closed it again was a
+        full `wf contract` re-run through `landing.recover` — which re-runs the
+        repository gate and needs a clean attached coordinator. `wf ledger
+        reconcile`, the remedy §3.4 and guide 08 name, drained an empty outbox
+        and printed "nothing due".
+
+        Re-derived from the RECORD's receipt digest, so the reason the mirror
+        carries is the one the original close would have written. Idempotent
+        twice over: an item the tracker already reports CLOSED enqueues
+        nothing, and a `Close` still pending replaces its own row rather than
+        queueing a second (`intent_key`).
+        """
+        if self._outbox is None or not self.closure.closed(stage_id):
+            return False
+        if TrackerCapability.CLOSE not in self.tracker.capabilities:
+            return False
+        held = self.tracker.get(self.ref(stage_id))
+        if held is not None and held.status is WorkItemStatus.CLOSED:
+            return False
+        record = self.stored_record(stage_id)
+        if record is None or record.landing_receipt_digest is None:
+            # A task with no record, or one whose record never named a
+            # receipt, is not one this can state a close FOR: the reason names
+            # the landing receipt, and inventing one would put a digest in the
+            # mirror that no landing ever produced.
+            return False
+        self._enqueue(
+            stage_id,
+            Close(
+                ref=self.ref(stage_id),
+                reason=MSG_CLOSE_REASON.format(digest=record.landing_receipt_digest),
+            ),
+        )
+        return True
 
     def record_claim(self, stage_id: str, actor: str) -> None:
         """Say in the outbox that this actor HOLDS the item now (§3.4).
