@@ -36,6 +36,10 @@ from workflow_interpreter.contractor.adapter import (
 from workflow_interpreter.contractor.command import execute_contractor
 from workflow_interpreter.contractor.gate_view import contractor_gate_view
 from workflow_interpreter.contractor.records import records_of
+from workflow_interpreter.contractor.tracker_wiring import (
+    attention_writer,
+    tracker_for,
+)
 from workflow_interpreter.contracts.rpc_control import MSG_CONTROL_ARGUMENTS
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -201,7 +205,10 @@ def _composition(args: argparse.Namespace) -> Composition:
         host_env=dict(os.environ),
         ledger=ledger,
         locate_backend=RootBackendLocator(task_id, ledger=ledger),
-        drain_attention=RootAttentionDrain(ledger, bd),
+        drain_attention=RootAttentionDrain(
+            ledger,
+            attention_writer(ledger, tracker_for(config.tracker, config.bd, bd)),
+        ),
         task_id=task_id,
         epic_id=epic_id,
     )
@@ -372,6 +379,9 @@ def _parser() -> argparse.ArgumentParser:
     contractor.add_argument("--retry-landing", action="store_true")
     contractor.add_argument("--trace", action="store_true")
     contractor.add_argument("--monitored", action="store_true")
+    # The brief a run under `NullTracker` has to be given: the tracker would
+    # otherwise have held it, and it is snapshotted with the record (§3.3, R4).
+    contractor.add_argument("--brief", type=Path)
     # The inspector process entry point, not the read-only `inspect` view below.
     inspector = commands.add_parser("inspector")
     inspector.add_argument("root_id")
@@ -866,6 +876,7 @@ def _run(
             retry_landing=args.retry_landing,
             trace=args.trace,
             monitored=args.monitored,
+            brief=args.brief,
         )
         emit(json.dumps(outcome.report, sort_keys=True), MAX_TRANSCRIPT_BYTES)
         return outcome.exit_code

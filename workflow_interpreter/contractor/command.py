@@ -8,12 +8,11 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Final
 
+import structlog
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.bdio import StoreOutputError
-from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.contractor.adapter import (
-    STATUS_CLOSED,
     ContractorAdapter,
     ContractorAdapterError,
 )
@@ -37,6 +36,7 @@ from workflow_interpreter.contractor.landing import (
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.records import RecordStoreUnavailable, records_of
 from workflow_interpreter.contractor.retry import retry_refusal
+from workflow_interpreter.contractor.tracker_wiring import tracker_for
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.constants import (
@@ -56,12 +56,17 @@ from workflow_interpreter.inspector.errors import (
 )
 from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.ledger.closure import closure_probe
-from workflow_interpreter.ledger.constants import TrackerKind
 from workflow_interpreter.ledger.identity import mint_task
 from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import CoordinationError
 from workflow_interpreter.schema.loader import GraphValidationError, load_graph
 from workflow_interpreter.schema.models import PRODUCER_INSTANCE
+from workflow_interpreter.tracker import TrackerCapability, WorkItem, WorkItemStatus
+from workflow_interpreter.tracker.constants import (
+    MSG_BLOCKERS_UNAVAILABLE,
+    MSG_BRIEF_REQUIRED,
+)
+from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 TASK_BRIEF: Final[str] = "task_brief"
 MSG_DETACHED: Final[str] = "coordinator checkout is detached"
@@ -80,6 +85,12 @@ MSG_OTHER_INPUT: Final[str] = (
 MSG_RETRY_NO_RECORD: Final[str] = "retry requires a stored contractor record"
 MSG_RETRY_NO_ROOT: Final[str] = "retry requires the stored record to name a prior root"
 MSG_EPIC_NO_STAGES: Final[str] = "contractor epic has no stages"
+MSG_STAGE_NOT_IN_EPIC: Final[str] = (
+    "selected stage {stage_id!r} does not belong to epic {epic_id!r}: the "
+    "tracker holds no such direct child. Naming the id is the whole of the "
+    "message a caller can act on — an id the tracker cannot read at all lands "
+    "here too, now that the read goes through the port (S5)"
+)
 MSG_MINTED_ELSEWHERE: Final[str] = (
     "tracker ref {stage_id!r} minted task id {minted!r}: this build runs a "
     "task under the id its tracker knows it by, and a ref that needs a "
@@ -89,6 +100,7 @@ MSG_MINTED_ELSEWHERE: Final[str] = (
 MSG_ADMISSION_NO_ROOT: Final[str] = (
     "contractor admission requires the stored record to name a root"
 )
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 EXIT_OK: Final[int] = 0
 EXIT_REFUSED: Final[int] = 2
 
@@ -126,6 +138,7 @@ def execute_contractor(
     trace: bool,
     retry_landing: bool = False,
     monitored: bool = False,
+    brief: Path | None = None,
 ) -> ContractorCommandResult:
     """Validate, optionally admit, and run exactly the caller-named stage."""
     try:
@@ -137,6 +150,7 @@ def execute_contractor(
             trace=trace,
             retry_landing=retry_landing,
             monitored=monitored,
+            brief=brief,
         )
     except ContractorRefused as refusal:
         return ContractorCommandResult(
@@ -190,6 +204,7 @@ def _execute(
     trace: bool,
     retry_landing: bool = False,
     monitored: bool = False,
+    brief: Path | None = None,
 ) -> ContractorCommandResult:
     """Apply the required ordering after keeping the trace branch read-only."""
     if retry_landing and (retry or trace):
@@ -207,6 +222,10 @@ def _execute(
         composition.store.reads,
         closure=closure_probe(composition.ledger, composition.git),
         records=records_of(composition),
+        tracker=tracker_for(composition.config.tracker, composition.config.bd),
+        outbox=None
+        if composition.ledger is None
+        else TrackerOutbox(composition.ledger),
     )
     from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
@@ -231,17 +250,23 @@ def _execute(
     # only a task with no record takes — which is prepare (§3.3, R4). A task
     # that has prepared is admitted, run, landed and closed from the ledger,
     # so the whole of that is possible with the tracker unreachable.
-    if prior is None:
+    if prior is None and TrackerCapability.CHILDREN in adapter.tracker.capabilities:
         stages = _direct_stages(adapter, epic_id)
-        if all(stage.status == STATUS_CLOSED for stage in stages) and not retry_landing:
+        if _all_closed(stages) and not retry_landing:
             return _result(
                 ContractorCommandState.PHASE_EXHAUSTED,
                 epic_id=epic_id,
                 stage_id=stage_id,
             )
-        stage = adapter.show(stage_id)
-        if stage.parent != epic_id or not any(row.id == stage_id for row in stages):
-            raise ContractorRefused("selected stage does not belong to epic")
+        stage = adapter.tracker.get(adapter.ref(stage_id))
+        if (
+            stage is None
+            or stage.parent != epic_id
+            or not any(row.ref == stage_id for row in stages)
+        ):
+            raise ContractorRefused(
+                MSG_STAGE_NOT_IN_EPIC.format(stage_id=stage_id, epic_id=epic_id)
+            )
     pending = (
         prepared_for_stage(composition, epic_id, stage_id)
         if prior is None or prior.integration_digest is not None
@@ -320,16 +345,17 @@ def _execute(
         and root.metadata.terminal == "shipped"
     ):
         return _land(composition, adapter, prior, recover=False)
+    blockers_checked = True
     if prepared_here:
         # A tracker read, so it belongs to prepare and to nothing later
         # (§3.3): blockers are checked once, before the task has a record.
-        dependencies = adapter.blocking_dependencies(stage_id)
-        if dependencies:
+        blockers_checked, blocking = _blockers(composition, adapter, stage_id)
+        if blocking:
             return _result(
                 ContractorCommandState.BLOCKED,
                 epic_id=epic_id,
                 stage_id=stage_id,
-                blocking_ids=tuple(dependency.id for dependency in dependencies),
+                blocking_ids=blocking,
             )
     if prior is not None and prior.state is ContractorState.ADMITTED and not retry:
         if (
@@ -352,7 +378,7 @@ def _execute(
                 "coordinated contractor retry requires the original-owner successor operation"
             )
     graph = _contractor_graph(composition)
-    task_brief = _brief_for(composition, adapter, epic_id, stage_id, prior)
+    task_brief = _brief_for(composition, adapter, epic_id, stage_id, prior, brief)
     expected_base = composition.git.head_commit(cwd=composition.config.repo_root)
     resume_prepared_retry = (
         retry
@@ -397,6 +423,8 @@ def _execute(
             verification_policy=policy,
             root_backend=composition.config.store,
             task_brief=task_brief,
+            actor=composition.config.actor,
+            blockers_checked=blockers_checked,
         )
         record = (
             admission.admit_successor(
@@ -421,12 +449,19 @@ def _run_record(
 ) -> ContractorCommandResult:
     """Resume the admitted root without reprovisioning from current configuration."""
     adapter.guard_integration(record)
-    run = Foreman(composition).run(
-        _pinned_root(composition, record),
-        poll_s=RUN_DEFAULT_POLL_S,
-        max_wall_s=RUN_DEFAULT_MAX_WALL_S,
-        monitored=monitored,
-    )
+    try:
+        run = Foreman(composition).run(
+            _pinned_root(composition, record),
+            poll_s=RUN_DEFAULT_POLL_S,
+            max_wall_s=RUN_DEFAULT_MAX_WALL_S,
+            monitored=monitored,
+        )
+    finally:
+        # D6, as S5 rewrote it: the ticks enqueued their attention intents and
+        # contacted no tracker. THIS is the driver's exit, so this is where the
+        # mirror is written — in a `finally`, because a run that ended badly is
+        # exactly the run whose attention flag a human needs to see.
+        _drain_outbox(composition, adapter)
     latest = adapter.record(record.stage_id)
     if latest != record:
         if (
@@ -542,6 +577,21 @@ def _land(
     )
 
 
+def _drain_outbox(composition: Composition, adapter: ContractorAdapter) -> None:
+    """Apply every intent this run accumulated, before the driver exits.
+
+    Bounded and non-fatal on purpose, exactly as the attention drain it
+    replaces was: an unreachable tracker leaves the rows pending for the next
+    drain, and it must not fail a run whose facts are already in the ledger.
+    """
+    if composition.ledger is None:
+        return
+    try:
+        TrackerOutbox(composition.ledger).drain(adapter.tracker)
+    except (StoreOutputError, OSError) as refusal:
+        _LOG.warning("wf.tracker.outbox_drain_refused", reason=str(refusal))
+
+
 def _contractor_graph(composition: Composition) -> Path:
     """Load the configured graph and reject unsupported required inputs first."""
     graph = composition.config.contractor_graph
@@ -573,12 +623,43 @@ def _task_brief(description: str | None) -> str:
     return description
 
 
+def _all_closed(stages: tuple[WorkItem, ...]) -> bool:
+    """Whether this epic has nothing left open."""
+    return all(stage.status is WorkItemStatus.CLOSED for stage in stages)
+
+
+def _blockers(
+    composition: Composition, adapter: ContractorAdapter, stage_id: str
+) -> tuple[bool, tuple[str, ...]]:
+    """Whether blockers were checked, and which are still unresolved (R9).
+
+    An absent `BLOCKERS` capability is not liveness ambiguity, so the default
+    is to record `blockers_checked=false` and proceed; a repository whose
+    dependency graph really does gate work sets `tracker.blockers_required`
+    and gets a refusal instead. Either way the record says which policy
+    applied, so the trace can tell "nothing blocked it" from "nobody asked".
+    """
+    tracker = adapter.tracker
+    if TrackerCapability.BLOCKERS not in tracker.capabilities:
+        if composition.config.tracker.blockers_required:
+            raise ContractorRefused(
+                MSG_BLOCKERS_UNAVAILABLE.format(kind=tracker.kind.value)
+            )
+        return False, ()
+    return True, tuple(
+        blocker.ref
+        for blocker in tracker.blockers(adapter.ref(stage_id))
+        if not blocker.resolved
+    )
+
+
 def _brief_for(
     composition: Composition,
     adapter: ContractorAdapter,
     epic_id: str,
     stage_id: str,
     prior: ContractorRecord | None,
+    supplied: Path | None = None,
 ) -> str:
     """The task brief, from the SNAPSHOT once one exists (§3.3, R4).
 
@@ -596,12 +677,25 @@ def _brief_for(
         held = adapter.stored(stage_id)
         if held is not None and held.brief is not None:
             return held.brief
-    brief = _task_brief(adapter.show(stage_id).description)
-    _mint(composition, epic_id, stage_id)
+    item = adapter.tracker.get(adapter.ref(stage_id))
+    if item is None:
+        if supplied is None:
+            raise ContractorRefused(
+                MSG_BRIEF_REQUIRED.format(kind=adapter.tracker.kind.value, ref=stage_id)
+            )
+        brief = _task_brief(supplied.read_text(encoding="utf-8"))
+    else:
+        brief = _task_brief(item.brief)
+    _mint(composition, adapter, epic_id, stage_id)
     return brief
 
 
-def _mint(composition: Composition, epic_id: str, stage_id: str) -> None:
+def _mint(
+    composition: Composition,
+    adapter: ContractorAdapter,
+    epic_id: str,
+    stage_id: str,
+) -> None:
     """Mint this tracker ref's task id at prepare, and pin the pair (§3.7).
 
     S3 built the mint and nothing called it. This is its one caller: prepare
@@ -618,7 +712,7 @@ def _mint(composition: Composition, epic_id: str, stage_id: str) -> None:
     minted = mint_task(
         composition.ledger,
         tracker_ref=stage_id,
-        tracker_kind=TrackerKind.BD,
+        tracker_kind=adapter.tracker.kind,
         epic_id=epic_id,
         backend=composition.config.store,
     )
@@ -628,9 +722,9 @@ def _mint(composition: Composition, epic_id: str, stage_id: str) -> None:
         )
 
 
-def _direct_stages(adapter: ContractorAdapter, epic_id: str) -> tuple[BeadRecord, ...]:
+def _direct_stages(adapter: ContractorAdapter, epic_id: str) -> tuple[WorkItem, ...]:
     """Require the named epic to contain direct stages before reporting its state."""
-    stages = adapter.direct_children(epic_id)
+    stages = adapter.tracker.children(adapter.ref(epic_id))
     if not stages:
         raise ContractorRefused(MSG_EPIC_NO_STAGES)
     return stages
@@ -671,12 +765,15 @@ def _trace(
     stage_id: str,
 ) -> ContractorCommandResult:
     """Render durable stage and root evidence without admitting or running work."""
-    state, blocking_ids = _trace_state(adapter, epic_id, stage_id)
-    stage = adapter.show(stage_id)
+    state, blocking_ids = _trace_state(composition, adapter, epic_id, stage_id)
+    stage = adapter.tracker.get(adapter.ref(stage_id))
     record, relation_error = _record_for_trace(adapter, stage_id)
     report: dict[str, object] = {
         "blocking_ids": blocking_ids,
-        "closure": {"reason": stage.close_reason, "status": stage.status},
+        "closure": {
+            "reason": None if stage is None else stage.close_reason,
+            "status": None if stage is None else stage.status.value,
+        },
         "epic_id": epic_id,
         "gate_evidence": (),
         "landing_intent": None,
@@ -747,18 +844,19 @@ def _record_for_trace(
 
 
 def _trace_state(
-    adapter: ContractorAdapter, epic_id: str, stage_id: str
+    composition: Composition,
+    adapter: ContractorAdapter,
+    epic_id: str,
+    stage_id: str,
 ) -> tuple[ContractorCommandState, tuple[str, ...]]:
     """Compute the read-only phase fact without selecting or admitting a stage."""
-    stages = _direct_stages(adapter, epic_id)
-    if all(stage.status == STATUS_CLOSED for stage in stages):
+    if TrackerCapability.CHILDREN in adapter.tracker.capabilities and _all_closed(
+        _direct_stages(adapter, epic_id)
+    ):
         return ContractorCommandState.PHASE_EXHAUSTED, ()
-    dependencies = adapter.blocking_dependencies(stage_id)
-    if dependencies:
-        return (
-            ContractorCommandState.BLOCKED,
-            tuple(dependency.id for dependency in dependencies),
-        )
+    _checked, blocking = _blockers(composition, adapter, stage_id)
+    if blocking:
+        return ContractorCommandState.BLOCKED, blocking
     for other, _state in adapter.records.states_of_epic(epic_id):
         if other == stage_id:
             continue

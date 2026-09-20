@@ -57,6 +57,12 @@ class ContractorState(StrEnum):
     # closed, so cleanup and archive proceed on what exists while succession
     # is refused. Nothing derives it — `wf phase abandon` writes it.
     ABANDONED = "abandoned"
+    # The same retirement, decided by somebody ELSE (§3.8, S5). A tracker item
+    # closed outside this engine surfaces as a `Conflict` at the next tracker
+    # contact; the record records what was OBSERVED rather than guessing that
+    # the work is done, and a distinct state is what keeps "we abandoned it"
+    # from being confused with "it was taken away from us".
+    ABANDONED_EXTERNAL = "abandoned-external"
 
 
 class ContractorRecord(BaseModel):
@@ -104,6 +110,14 @@ class ContractorRecord(BaseModel):
     tree: CommitOid | None = None
     gate_receipt_digest: NonEmptyText | None = None
     landing_receipt_digest: NonEmptyText | None = None
+    blockers_checked: bool = True
+    """Whether this task's blockers were actually looked at (R9).
+
+    False when the tracker declared no `BLOCKERS` capability and the wiring did
+    not require one, so the trace can answer which policy applied rather than
+    leaving "nothing blocked it" and "nobody asked" indistinguishable. True by
+    default, which is what every record written before S5 means.
+    """
     previous_attempts: tuple[NonEmptyText, ...]
 
     @model_validator(mode="after")
@@ -131,6 +145,7 @@ class ContractorRecord(BaseModel):
         expected_base_commit: str,
         verification_policy: VerificationPolicy | None = None,
         root_backend: BackendKind = BackendKind.BD,
+        blockers_checked: bool = True,
     ) -> ContractorRecord:
         """Build a new pre-claim admission intent on the selected backend."""
         if attempt != 1:
@@ -149,6 +164,7 @@ class ContractorRecord(BaseModel):
             expected_base_commit=expected_base_commit,
             previous_attempts=(),
             verification_policy=verification_policy,
+            blockers_checked=blockers_checked,
         )
 
     def next_attempt(self, root_backend: BackendKind | None = None) -> ContractorRecord:
@@ -172,6 +188,7 @@ class ContractorRecord(BaseModel):
             expected_base_commit=self.expected_base_commit,
             previous_attempts=(*self.previous_attempts, self.instance_key),
             verification_policy=self.verification_policy,
+            blockers_checked=self.blockers_checked,
         )
 
     def admitted(self, root_id: str) -> ContractorRecord:

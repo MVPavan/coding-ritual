@@ -10,16 +10,28 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
-from workflow_interpreter.bdio.wire import BeadRecord
-from workflow_interpreter.contractor.adapter import ContractorAdapter
+from workflow_interpreter.contractor.adapter import (
+    ContractorAdapter,
+    ContractorAdapterError,
+)
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.tracker import (
+    Claim,
+    Conflict,
+    TrackerCapability,
+    Unknown,
+    WorkItem,
+    WorkItemStatus,
+)
+from workflow_interpreter.tracker.constants import (
+    MSG_CLOSED_ELSEWHERE,
+    MSG_CONFLICT_CLAIM,
+    MSG_UNKNOWN_CLAIM,
+)
 
-STATUS_OPEN = "open"
-STATUS_IN_PROGRESS = "in_progress"
-STATUS_CLOSED = "closed"
 MSG_STAGE_NOT_DIRECT = "stage {stage_id!r} is not an open direct child of {epic_id!r}"
 MSG_OTHER_ADMISSION = "stage {stage_id!r} has unfinished contractor admission"
 MSG_BRIEF_REQUIRED = (
@@ -136,6 +148,8 @@ class PhaseAdmission:
         verification_policy: VerificationPolicy | None = None,
         root_backend: BackendKind = BackendKind.BD,
         task_brief: str | None = None,
+        actor: str = "",
+        blockers_checked: bool = True,
     ) -> None:
         """Pin the backend a first attempt is prepared on before it exists.
 
@@ -154,6 +168,77 @@ class PhaseAdmission:
         self._verification_policy = verification_policy
         self._root_backend = root_backend
         self._task_brief = task_brief
+        self._actor = actor
+        """Who a tracker claim is held BY (§3.4).
+
+        The engine's configured actor, not a process identity: the claim has
+        to mean the same thing to the second session that reads it, and a pid
+        or a hostname would make every restart look like somebody else."""
+        self._blockers_checked = blockers_checked
+
+    def _claim(self, stage_id: str) -> None:
+        """Claim the item in its tracker, immediately before the admit (§3.4).
+
+        Last, and deliberately: every ledger-side refusal has already run, so
+        an ordinary refusal never touches the tracker and `bd ready` is not
+        churned — while the call still precedes the transaction, so no I/O sits
+        inside one (R2, R3).
+
+        `Unknown` REFUSES. A task whose tracker may or may not hold it for this
+        actor is not one a second session can be told about; offline work is
+        `NullTracker`, which declares no claim capability at all.
+        """
+        tracker = self._adapter.tracker
+        if TrackerCapability.CLAIM not in tracker.capabilities:
+            return
+        ref = self._adapter.ref(stage_id)
+        result = tracker.apply(Claim(ref=ref, actor=self._actor))
+        if isinstance(result, Unknown):
+            raise AdmissionRefused(
+                MSG_UNKNOWN_CLAIM.format(ref=stage_id, reason=result.reason)
+            )
+        if isinstance(result, Conflict):
+            self._refuse_conflicted_claim(stage_id, result)
+
+    def _refuse_conflicted_claim(self, stage_id: str, result: Conflict) -> None:
+        """Refuse a disputed claim, retiring the task its tracker ended (§3.8).
+
+        The two conflicts are not one: an item somebody else HOLDS is a race
+        this admission loses and the record stays where it is, while an item
+        that has been CLOSED is a decision made outside the engine, and the
+        record records it as abandoned-external rather than waiting for a
+        claim that will never be granted.
+        """
+        if result.observed is not None and (
+            result.observed.status is WorkItemStatus.CLOSED
+        ):
+            self._adapter.abandon_external(stage_id, result.reason)
+            raise AdmissionRefused(MSG_CLOSED_ELSEWHERE.format(ref=stage_id))
+        raise AdmissionRefused(
+            MSG_CONFLICT_CLAIM.format(ref=stage_id, reason=result.reason)
+        )
+
+    def _release_stranded(self, stage_id: str, stored: ContractorRecord | None) -> None:
+        """Free a claim a crash inside §3.4's window left behind.
+
+        The window leaves one shape — a PREPARED record plus an item this
+        actor holds — and it is detected PER TASK, here, rather than by a sweep
+        the port would need a `list` for. The release is drained now and not at
+        driver exit, because the fresh claim is about to be taken and a release
+        applied after it would take it away again.
+        """
+        if stored is None or stored.state is not ContractorState.PREPARED:
+            return
+        tracker = self._adapter.tracker
+        if TrackerCapability.CLAIM not in tracker.capabilities:
+            return
+        held: WorkItem | None = tracker.get(self._adapter.ref(stage_id))
+        if held is None or held.claimed_by != self._actor:
+            return
+        self._adapter.mirror(
+            stage_id,
+            Claim(ref=self._adapter.ref(stage_id), actor=self._actor, held=False),
+        )
 
     def admit(
         self, epic_id: str, stage_id: str, target_ref: str, expected_base_commit: str
@@ -204,6 +289,7 @@ class PhaseAdmission:
         if stored is None:
             self._selected_stage(epic_id, stage_id)
         self._refuse_other_admission(epic_id, stage_id)
+        self._release_stranded(stage_id, stored)
         record = (
             self._record_or_prepare(
                 stored,
@@ -240,17 +326,37 @@ class PhaseAdmission:
         self._roots.ensure_branch(root)
         if record.state is ContractorState.ADMITTED:
             return record
-        return self._adapter.admit(stage_id, record, root_id=root.root_id)
+        self._claim(stage_id)
+        try:
+            return self._adapter.admit(stage_id, record, root_id=root.root_id)
+        except (AdmissionRefused, ContractorAdapterError):
+            # A ledger-side refusal AFTER the claim: the tracker is holding an
+            # item for an admission that did not happen, and only this process
+            # knows it (§3.4). A crash cannot run this, which is what
+            # `_release_stranded` is for on the next invocation.
+            self._adapter.mirror(
+                stage_id,
+                Claim(ref=self._adapter.ref(stage_id), actor=self._actor, held=False),
+            )
+            raise
 
-    def _selected_stage(self, epic_id: str, stage_id: str) -> BeadRecord:
-        """Validate the caller-selected open direct child without selecting work."""
-        stages = self._adapter.direct_children(epic_id)
-        for stage in stages:
-            if stage.id == stage_id and stage.status in (
-                STATUS_OPEN,
-                STATUS_IN_PROGRESS,
+    def _selected_stage(self, epic_id: str, stage_id: str) -> None:
+        """Validate the caller-selected open direct child without selecting work.
+
+        Through the port, and only when the tracker can answer: a tracker with
+        no `CHILDREN` capability has no hierarchy to contradict the caller, and
+        refusing every stage because nothing could list them would make
+        `NullTracker` a tracker no run completes under (§3.3, R9).
+        """
+        tracker = self._adapter.tracker
+        if TrackerCapability.CHILDREN not in tracker.capabilities:
+            return
+        for stage in tracker.children(self._adapter.ref(epic_id)):
+            if stage.ref == stage_id and stage.status in (
+                WorkItemStatus.OPEN,
+                WorkItemStatus.IN_PROGRESS,
             ):
-                return stage
+                return
         raise AdmissionRefused(
             MSG_STAGE_NOT_DIRECT.format(stage_id=stage_id, epic_id=epic_id)
         )
@@ -316,6 +422,7 @@ class PhaseAdmission:
                 expected_base_commit=expected_base_commit,
                 verification_policy=self._verification_policy,
                 root_backend=self._root_backend,
+                blockers_checked=self._blockers_checked,
             )
             return self._adapter.prepare(stage_id, prepared, brief=self._task_brief)
         record = stored

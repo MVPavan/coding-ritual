@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
+import structlog
 from pydantic import ValidationError
 
-from workflow_interpreter.bdio import finalize
 from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
@@ -18,6 +18,9 @@ from workflow_interpreter.contractor.models import (
 )
 from workflow_interpreter.contractor.records import ContractorRecords, StoredRecord
 from workflow_interpreter.ledger.closure import ClosureProbe
+from workflow_interpreter.tracker import BdTracker, Close, TrackerIntent, TrackerRef
+from workflow_interpreter.tracker.outbox import TrackerOutbox
+from workflow_interpreter.tracker.port import TrackerPort
 
 if TYPE_CHECKING:
     from workflow_interpreter.contractor.integration import IntegrationGuard
@@ -73,12 +76,14 @@ MSG_SUCCESSION_HISTORY: Final[str] = (
     "valid contractor succession requires incoming previous_attempts to extend stored"
 )
 MSG_CLOSE_REASON: Final[str] = "contractor landing receipt={digest}"
+MSG_ABANDON_REASON: Final[str] = "contractor task abandoned (store-restructure §3.8)"
 MSG_NOT_CLOSABLE: Final[str] = (
     "stage {stage_id!r} does not derive closed: a task must have its whole "
     "record durable in git — exported and anchored — before its bead closes "
     "(store-restructure §3.5, D5)"
 )
 STATUS_CLOSED: Final[str] = "closed"
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 
 class ContractorAdapterError(ValueError):
@@ -95,9 +100,24 @@ class ContractorAdapter:
         *,
         closure: ClosureProbe,
         records: ContractorRecords,
+        tracker: TrackerPort | None = None,
+        outbox: TrackerOutbox | None = None,
     ) -> None:
         self._client = client
         self._reads = WorkflowReads(client) if reads is None else reads
+        self.tracker: TrackerPort = BdTracker(client) if tracker is None else tracker
+        """The contractor's ONE tracker surface (§3.3, R2).
+
+        Defaulted to this adapter's own transport rather than required,
+        because bd is what every existing checkout runs and the default has to
+        be the wiring that does not change. A composition root that configured
+        another tracker passes it, and nothing else in the engine has one."""
+        self._outbox = outbox
+        """Where a mirror write waits when the tracker cannot answer (§3.3).
+
+        Absent for a wiring with no ledger, which has nowhere durable to wait:
+        such a wiring applies the intent directly and lives with the answer,
+        exactly as it lives without a record store or a closure probe."""
         self.integration_guard: IntegrationGuard | None = None
         self.records: ContractorRecords = records
         """Where this task's record lives (§3.2, R4).
@@ -125,6 +145,8 @@ class ContractorAdapter:
         *,
         closure: ClosureProbe,
         records: ContractorRecords,
+        tracker: TrackerPort | None = None,
+        outbox: TrackerOutbox | None = None,
     ) -> ContractorAdapter:
         """Build the contractor's read/write adapter without exposing bd transport.
 
@@ -137,7 +159,33 @@ class ContractorAdapter:
         and it has no default for the reason §3.5 gives: every caller that can
         reach a close or a succession has to have decided what answers it.
         """
-        return cls(BdClient(config), reads, closure=closure, records=records)
+        return cls(
+            BdClient(config),
+            reads,
+            closure=closure,
+            records=records,
+            tracker=tracker,
+            outbox=outbox,
+        )
+
+    def ref(self, stage_id: str) -> TrackerRef:
+        """This stage's foreign identity, as the configured tracker knows it."""
+        return TrackerRef(kind=self.tracker.kind, ref=stage_id)
+
+    def mirror(self, stage_id: str, intent: TrackerIntent) -> None:
+        """Ask the tracker for a desired state, durably (§3.1, §3.3).
+
+        Through the outbox rather than at the tracker: the ledger has already
+        decided, so an unreachable tracker leaves a pending row and the caller
+        goes on. The drain is immediate because the caller is usually about to
+        exit, and a row applied now is one the driver-exit drain finds nothing
+        to do about.
+        """
+        if self._outbox is None:
+            self.tracker.apply(intent)
+            return
+        self._outbox.enqueue(stage_id, intent)
+        self._outbox.drain(self.tracker, stage_id)
 
     def guard_integration(
         self, record: ContractorRecord, *, post_cas: bool = False
@@ -335,9 +383,13 @@ class ContractorAdapter:
         # (§3.1): the ledger is the truth, and the bead is the copy a human
         # reads. S5 moves this onto the outbox so an unreachable tracker
         # cannot fail a close that has already happened.
-        reason = MSG_CLOSE_REASON.format(digest=receipt_digest)
-        if not finalize.is_finished(self.show(stage_id), reason):
-            self._client._close_row(stage_id, reason)
+        self.mirror(
+            stage_id,
+            Close(
+                ref=self.ref(stage_id),
+                reason=MSG_CLOSE_REASON.format(digest=receipt_digest),
+            ),
+        )
         if result.integration_digest is not None and self.integration_guard is not None:
             self.integration_guard.finished(result)
         return result
@@ -376,6 +428,10 @@ class ContractorAdapter:
             )
         abandoned = held.record.model_copy(update={"state": ContractorState.ABANDONED})
         result = self._write(abandoned, held).record
+        # The mirror, after the transition (§3.3): a retired task's item is
+        # closed so a human stops seeing it as work, and an unreachable
+        # tracker leaves a pending row rather than failing the retirement.
+        self.mirror(stage_id, Close(ref=self.ref(stage_id), reason=MSG_ABANDON_REASON))
         # After the transition and never before it, exactly as the close
         # releases through `finished`: a claim freed for an abandon that then
         # failed to record would hand the target to a second attempt while the
@@ -383,6 +439,25 @@ class ContractorAdapter:
         if result.integration_digest is not None and self.integration_guard is not None:
             self.integration_guard.release(result)
         return result
+
+    def abandon_external(self, stage_id: str, reason: str) -> ContractorRecord:
+        """Retire a task its TRACKER ended, on what was observed (§3.8).
+
+        Never guessed: the only caller is the one that saw a `Conflict` naming
+        a closed item, and the state it writes is distinct from `ABANDONED` so
+        that "we retired it" and "it was taken from us" stay two facts. No
+        mirror follows — the item is already closed, which is how we found out.
+        """
+        held = self._required(stage_id)
+        if held.record.state is ContractorState.ABANDONED_EXTERNAL:
+            return held.record
+        _LOG.info("wf.contract.abandoned_external", stage_id=stage_id, reason=reason)
+        return self._write(
+            held.record.model_copy(
+                update={"state": ContractorState.ABANDONED_EXTERNAL}
+            ),
+            held,
+        ).record
 
     def _required(self, stage_id: str) -> StoredRecord:
         """The stored record a transition is about, refusing when there is none."""

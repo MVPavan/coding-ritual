@@ -16,9 +16,13 @@ from typing import Final
 
 from pydantic import ValidationError
 
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import DEFAULT_SSH_KEYGEN
 from workflow_interpreter.bdio.errors import StoreError
+from workflow_interpreter.contractor.tracker_wiring import (
+    attention_writer,
+    drain_outbox,
+    tracker_for,
+)
 from workflow_interpreter.foreman.config import ForemanConfig, load_config
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.archive import archive_task
@@ -171,7 +175,13 @@ def _reconcile(config: ForemanConfig, task_id: str) -> int:
     the reconciler must not construct its own transport.
     """
     with open_ledger(config.repo_root, config.wrapper_root) as database:
-        result = AttentionReconciler(database, BdClient(config.bd)).drain(task_id)
+        tracker = tracker_for(config.tracker, config.bd)
+        writer = attention_writer(database, tracker)
+        result = AttentionReconciler(database, writer).drain(task_id)
+        # The reconciler now only ENQUEUES (§3.3). `wf ledger reconcile` is a
+        # human asking for the mirror to be caught up, so it drains too —
+        # unlike a tick, which leaves the drain to the driver's exit.
+        drain_outbox(database, tracker, task_id)
     if not result.written:
         sys.stdout.write(_MSG_NOTHING_DUE.format(task_id=task_id))
         return EXIT_OK

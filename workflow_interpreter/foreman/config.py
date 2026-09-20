@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 
 from workflow_interpreter.bdio.config import BdConfig, SigningConfig
 from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman.wake_constants import (
     DEFAULT_EVENT_CAP,
@@ -79,6 +80,12 @@ class ForemanConfig(BaseModel):
     wake: WakeConfig = Field(default_factory=WakeConfig)
     project_config: dict[str, str | int | bool] = Field(default_factory=dict)
     roles: dict[str, CrewBinding] = Field(default_factory=dict)
+    tracker: TrackerSettings = Field(default_factory=TrackerSettings)
+    """Which tracker this repository has (store-restructure §3.3).
+
+    Reached through `contractor/` because the tracker is the contractor's
+    collaborator and nothing else's: the foreman, the inspector and the crew
+    never touch one."""
     contractor_graph: Path | None = None
     contractor_checks: tuple[CheckCommand, ...] | None = Field(
         default=None, exclude_if=lambda value: value is None
