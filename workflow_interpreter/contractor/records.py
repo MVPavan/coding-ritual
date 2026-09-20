@@ -13,6 +13,8 @@ and must not open a connection of its own.
 
 from __future__ import annotations
 
+import sqlite3
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Final, Protocol
 
 from pydantic import BaseModel, ConfigDict
@@ -31,6 +33,10 @@ MSG_NO_RECORD_STORE: Final[str] = (
     "since S4, and a composition with no ledger cannot prepare, admit, land "
     "or abandon a task (store-restructure §3.2, R4)"
 )
+
+
+type LedgerWrite = Callable[[sqlite3.Connection], None]
+"""A second write that belongs inside one transition's transaction (§3.3)."""
 
 
 class RecordStoreUnavailable(RuntimeError):
@@ -59,9 +65,19 @@ class ContractorRecords(Protocol):
         ...
 
     def update(
-        self, record: ContractorRecord, *, expected_version: int, brief: str | None
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
     ) -> StoredRecord:
-        """Move the record forward from exactly the version the caller read."""
+        """Move the record forward from exactly the version the caller read.
+
+        `inside` is a second ledger write that belongs to this transition —
+        the outbox row for the mirror it implies — and it commits or rolls
+        back with it (§3.3).
+        """
         ...
 
     def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
@@ -103,7 +119,12 @@ class LedgerContractorRecords:
         )
 
     def update(
-        self, record: ContractorRecord, *, expected_version: int, brief: str | None
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
     ) -> StoredRecord:
         """Move the record forward from exactly the version the caller read."""
         return _stored(
@@ -116,6 +137,7 @@ class LedgerContractorRecords:
                 brief=brief,
                 record_json=record.model_dump_json(by_alias=True),
                 expected_version=expected_version,
+                inside=inside,
             )
         )
 
@@ -142,7 +164,12 @@ class NoContractorRecords:
         raise RecordStoreUnavailable(MSG_NO_RECORD_STORE)
 
     def update(
-        self, record: ContractorRecord, *, expected_version: int, brief: str | None
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
     ) -> StoredRecord:
         """Refuse: there is nothing here to move forward."""
         raise RecordStoreUnavailable(MSG_NO_RECORD_STORE)

@@ -13,6 +13,9 @@ Two properties it exists to give.
    a second enqueue of the same key REPLACES the pending one instead of
    queueing a second write — which is why a drain can be repeated and why
    "exactly one pending row" is a property worth asserting.
+3. **No window between a fact and its mirror row.** An enqueue that follows a
+   ledger fact happens INSIDE that fact's transaction, so the two commit or
+   roll back together and a crash cannot lose the intent.
 
 `tracker_outbox` is not exported (§3.6): it records what this checkout still
 owes its tracker, which is neither a fact about the task nor portable to the
@@ -21,6 +24,7 @@ clone that rebuilds from the file.
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import UTC, datetime
 from typing import Final
 
@@ -92,23 +96,38 @@ class TrackerOutbox:
     def __init__(self, database: LedgerDatabase) -> None:
         self._database = database
 
-    def enqueue(self, task_id: str, intent: TrackerIntent) -> None:
+    def enqueue(
+        self,
+        task_id: str,
+        intent: TrackerIntent,
+        connection: sqlite3.Connection | None = None,
+    ) -> None:
         """Record that the mirror owes this desired state.
 
-        Never inside a caller's transaction and never conditional on a
-        tracker: this is a single ledger write, and it is what makes the
-        tracker call itself optional for everything after it (§3.1).
+        INSIDE the transaction of the fact it follows whenever there is one —
+        that is what `connection` is. The rule used to be the opposite, and it
+        left a window: `close()` pinned the export and then enqueued, so a
+        crash between the two lost the `Close` permanently. A drain only
+        applies rows that exist and nothing re-derives a missing one from
+        `closed()`, so the fact and its mirror row have to commit or roll back
+        together (§3.3).
+
+        Without one it opens its own transaction, for the intents that follow
+        no ledger fact at all: a claim released after a refusal, and the
+        attention flag, whose ack is written after it precisely so that a
+        crash between them re-enqueues rather than loses.
         """
-        with self._database.transaction() as connection:
-            connection.execute(
-                _SQL_ENQUEUE,
-                (
-                    task_id,
-                    intent_key(intent),
-                    intent.model_dump_json(),
-                    datetime.now(tz=UTC).isoformat(),
-                ),
-            )
+        row = (
+            task_id,
+            intent_key(intent),
+            intent.model_dump_json(),
+            datetime.now(tz=UTC).isoformat(),
+        )
+        if connection is not None:
+            connection.execute(_SQL_ENQUEUE, row)
+            return
+        with self._database.transaction() as opened:
+            opened.execute(_SQL_ENQUEUE, row)
 
     def pending(self, task_id: str | None = None) -> tuple[TrackerIntent, ...]:
         """Every intent still owed, oldest first."""

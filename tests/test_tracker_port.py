@@ -42,6 +42,7 @@ from workflow_interpreter.contractor.tracker_config import (
     TrackerSettings,
 )
 from workflow_interpreter.contractor.tracker_wiring import (
+    adapter_of,
     attention_writer,
     repair_mirror,
 )
@@ -472,6 +473,47 @@ def test_every_driver_exit_drains_the_outbox(
     lab.transcript(lambda: main_module.main([command, root.root_id]))
 
     assert outbox.pending() == ()
+
+
+@pytest.mark.acceptance
+def test_the_abandon_fact_and_its_mirror_row_commit_or_roll_back_together(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """§3.3: the crash between a fact and its outbox row is gone by construction.
+
+    `enqueue` used to open a transaction of its own, so a crash after the
+    transition and before the row lost the `Close` forever — a drain only
+    applies rows that exist, and nothing re-derives one from a retired record.
+    The row is written INSIDE the transition now, so there is no window to
+    inject a crash into: the only thing left to assert is the atomicity, by
+    failing the enqueue and finding the retirement gone with it.
+    """
+    lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
+    lab.tracker = _file_tracker(lab, STAGE)
+    lab.halt_after_implement = True
+    assert _entry(lab, STAGE).exit_code == 0
+    assert _record(lab).state is ContractorState.ADMITTED
+    monkeypatch.setattr(
+        TrackerOutbox,
+        "enqueue",
+        _fails("the process died between the fact and its mirror row"),
+    )
+
+    with pytest.raises(InjectedCrash):
+        adapter_of(lab.composition).abandon(STAGE)
+
+    # Neither half happened: the record is where it was, and nothing is owed.
+    assert _record(lab).state is ContractorState.ADMITTED
+    assert _outbox(lab).pending() == ()
+
+
+def _fails(reason: str) -> Callable[..., None]:
+    """An enqueue that dies, standing in for the crash the window allowed."""
+
+    def enqueue(*_: object, **__: object) -> None:
+        raise InjectedCrash(reason)
+
+    return enqueue
 
 
 @pytest.mark.acceptance

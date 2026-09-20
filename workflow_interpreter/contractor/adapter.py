@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sqlite3
 from typing import TYPE_CHECKING, Final
 
 import structlog
@@ -210,10 +211,24 @@ class ContractorAdapter:
         than allowed to write the tracker unrecorded: that branch is how eight
         construction sites mirrored into bd behind the configuration's back.
         """
+        self._enqueue(stage_id, intent)
+        self._drain(stage_id)
+
+    def _enqueue(
+        self,
+        stage_id: str,
+        intent: TrackerIntent,
+        connection: sqlite3.Connection | None = None,
+    ) -> None:
+        """Record the owed state, inside the fact's transaction when given one."""
         if self._outbox is None:
             raise ContractorAdapterError(MSG_NO_OUTBOX.format(stage_id=stage_id))
-        self._outbox.enqueue(stage_id, intent)
-        self._outbox.drain(self.tracker, stage_id)
+        self._outbox.enqueue(stage_id, intent, connection)
+
+    def _drain(self, stage_id: str) -> None:
+        """Try the tracker now; a row it does not answer waits for the exit."""
+        if self._outbox is not None:
+            self._outbox.drain(self.tracker, stage_id)
 
     def guard_integration(
         self, record: ContractorRecord, *, post_cas: bool = False
@@ -437,20 +452,25 @@ class ContractorAdapter:
         # Rewriting it would move `version` and `updated_at` inside a table the
         # export carries, so the task would stop re-exporting to the blob it
         # names and `wf ledger pin-export` would call the file stale (D3, §3.6).
-        result = (
-            held.record if held.record == record else self._write(record, held).record
+        # The tracker mirror is the OUTBOX ROW, and it is written inside this
+        # transition's transaction (§3.3): the ledger is the truth and the
+        # item is the copy a human reads, so an unreachable tracker cannot
+        # fail a close that has already happened — and a crash cannot lose the
+        # `Close` either, because nothing re-derives one from `closed()`.
+        closing = Close(
+            ref=self.ref(stage_id),
+            reason=MSG_CLOSE_REASON.format(digest=receipt_digest),
         )
-        # The tracker mirror, after the ledger transition and never inside it
-        # (§3.1): the ledger is the truth, and the bead is the copy a human
-        # reads. S5 moves this onto the outbox so an unreachable tracker
-        # cannot fail a close that has already happened.
-        self.mirror(
-            stage_id,
-            Close(
-                ref=self.ref(stage_id),
-                reason=MSG_CLOSE_REASON.format(digest=receipt_digest),
-            ),
-        )
+        if held.record == record:
+            # Nothing to transition: `land` stored this very relation and the
+            # export is pinned, so rewriting it would move `version` and
+            # `updated_at` inside a table the export carries (D3, §3.6). The
+            # enqueue is then its own write, with no fact to join.
+            result = held.record
+            self._enqueue(stage_id, closing)
+        else:
+            result = self._write(record, held, mirror=closing).record
+        self._drain(stage_id)
         if result.integration_digest is not None and self.integration_guard is not None:
             self.integration_guard.finished(result)
         return result
@@ -492,11 +512,16 @@ class ContractorAdapter:
                 )
             )
         abandoned = held.record.model_copy(update={"state": ContractorState.ABANDONED})
-        result = self._write(abandoned, held).record
-        # The mirror, after the transition (§3.3): a retired task's item is
-        # closed so a human stops seeing it as work, and an unreachable
-        # tracker leaves a pending row rather than failing the retirement.
-        self.mirror(stage_id, Close(ref=self.ref(stage_id), reason=MSG_ABANDON_REASON))
+        # The mirror row is written WITH the transition (§3.3): a retired
+        # task's item is closed so a human stops seeing it as work, and an
+        # unreachable tracker leaves a pending row rather than failing the
+        # retirement — but a crash may not leave a retirement with no row.
+        result = self._write(
+            abandoned,
+            held,
+            mirror=Close(ref=self.ref(stage_id), reason=MSG_ABANDON_REASON),
+        ).record
+        self._drain(stage_id)
         # After the transition and never before it, exactly as the close
         # releases through `finished`: a claim freed for an abandon that then
         # failed to record would hand the target to a second attempt while the
@@ -537,17 +562,28 @@ class ContractorAdapter:
         held: StoredRecord,
         *,
         brief: str | None = None,
+        mirror: TrackerIntent | None = None,
     ) -> StoredRecord:
         """Move the record forward from the version this call read (§3.2).
 
         The version travels with the read rather than being re-fetched here:
         re-reading it would make the guard a formality, since the write would
         then be guarded by whatever the state had just become.
+
+        `mirror` is the desired tracker state this transition implies, and it
+        is enqueued INSIDE the transition's own transaction: a crash between
+        the fact and its outbox row would lose the intent forever, because a
+        drain only applies rows that exist (§3.3).
         """
         return self.records.update(
             record,
             expected_version=held.version,
             brief=held.brief if brief is None else brief,
+            inside=None
+            if mirror is None
+            else (
+                lambda connection: self._enqueue(record.stage_id, mirror, connection)
+            ),
         )
 
     @staticmethod

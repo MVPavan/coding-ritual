@@ -17,6 +17,7 @@ states alongside the carrier, for the queries that must not parse JSON:
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Final
 
@@ -138,6 +139,7 @@ def update(
     brief: str | None,
     record_json: str,
     expected_version: int,
+    inside: Callable[[sqlite3.Connection], None] | None = None,
 ) -> ContractorRecordRow:
     """Move a record forward, only from the version the caller read.
 
@@ -145,6 +147,13 @@ def update(
     statement inside `BEGIN IMMEDIATE`: a concurrent transition cannot land
     between them, and the loser is refused by name instead of overwriting a
     state it never saw.
+
+    `inside` is another ledger write that belongs to THIS transition — the
+    outbox row for the mirror it implies. It runs after the guard has held, so
+    a refused transition enqueues nothing, and it commits or rolls back with
+    the transition itself: a crash between the fact and its mirror row would
+    otherwise lose the intent forever, since nothing re-derives a missing
+    `Close` from a closed task (store-restructure §3.3).
     """
     with database.transaction() as connection:
         try:
@@ -181,6 +190,8 @@ def update(
                     expected=expected_version,
                 )
             )
+        if inside is not None:
+            inside(connection)
     return _required(database, task_id, LedgerOperation.RECORDING.value)
 
 

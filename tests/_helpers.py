@@ -15,7 +15,11 @@ from typing import Final
 import workflow_interpreter
 from workflow_interpreter import GraphValidationError, RuleId, load_graph
 from workflow_interpreter.contractor.models import ContractorRecord
-from workflow_interpreter.contractor.records import ContractorRecords, StoredRecord
+from workflow_interpreter.contractor.records import (
+    ContractorRecords,
+    LedgerWrite,
+    StoredRecord,
+)
 from workflow_interpreter.ledger.errors import LedgerRecordConflict
 from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.schema import messages
@@ -335,9 +339,19 @@ class MemoryContractorRecords:
         return held
 
     def update(
-        self, record: ContractorRecord, *, expected_version: int, brief: str | None
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
     ) -> StoredRecord:
-        """Move the record forward from exactly the version the caller read."""
+        """Move the record forward from exactly the version the caller read.
+
+        `inside` is the outbox write this transition carries (§3.3). There is
+        no transaction here to join, so it is simply run after the guard has
+        held — which is the ordering the real store gives it.
+        """
         found = self._rows.get(record.stage_id)
         if found is None or found.version != expected_version:
             raise LedgerRecordConflict(
@@ -345,6 +359,8 @@ class MemoryContractorRecords:
             )
         held = StoredRecord(record=record, version=expected_version + 1, brief=brief)
         self._rows[record.stage_id] = held
+        if inside is not None:
+            inside(None)  # type: ignore[arg-type]
         return held
 
     def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
@@ -389,14 +405,19 @@ class CrashingContractorRecords:
         return self._inner.create(record, brief=brief)
 
     def update(
-        self, record: ContractorRecord, *, expected_version: int, brief: str | None
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
     ) -> StoredRecord:
         """Move the record forward, unless this is the interrupted write."""
         if self._armed:
             self._armed = False
             raise InjectedRecordCrash("record update died")
         return self._inner.update(
-            record, expected_version=expected_version, brief=brief
+            record, expected_version=expected_version, brief=brief, inside=inside
         )
 
     def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
