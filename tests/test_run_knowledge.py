@@ -34,7 +34,7 @@ from tests._foreman import LAB_ATTEMPT, LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
 from tests._helpers import AUTHORING_FIXTURE
 from tests._inspector import ChildScript, make_repo
-from tests._ledger import TASK, ledger_store, repository
+from tests._ledger import TASK, ledger_store, repository, seed_contractor_record
 from tests.conftest import Signer
 from tests.test_ledger_writes import EXIT_RECORD, _open_gate
 from workflow_interpreter import load_graph
@@ -1897,7 +1897,9 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
         pin_task_backend(database, TASK_ID, BackendKind.LEDGER, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
         # A closed task is LANDED and latched: the latch alone is not
-        # closure, and `closed()` asks the state first (§3.5).
+        # closure, and `closed()` asks the state first (§3.5) — which since S4
+        # is carried by the task's record, so it has to have one.
+        seed_contractor_record(database, TASK_ID, epic_id=EPIC_ID)
         record_task_state(database, TASK_ID, TaskState.LANDED)
         record_export_oid(database, TASK_ID, "0" * 40)
 
@@ -1931,7 +1933,9 @@ def test_archive_refuses_a_bundle_inside_the_repository(tmp_path: Path) -> None:
         pin_task_backend(database, TASK_ID, BackendKind.LEDGER, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
         # A closed task is LANDED and latched: the latch alone is not
-        # closure, and `closed()` asks the state first (§3.5).
+        # closure, and `closed()` asks the state first (§3.5) — which since S4
+        # is carried by the task's record, so it has to have one.
+        seed_contractor_record(database, TASK_ID, epic_id=EPIC_ID)
         record_task_state(database, TASK_ID, TaskState.LANDED)
         record_export_oid(database, TASK_ID, "0" * 40)
 

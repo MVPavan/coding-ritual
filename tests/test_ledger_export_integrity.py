@@ -34,7 +34,7 @@ import pytest
 
 from tests._fake_bd import FakeBd
 from tests._helpers import MemoryContractorRecords
-from tests._ledger import EPIC, TASK, repository, seeded_task
+from tests._ledger import EPIC, TASK, repository, seed_contractor_record, seeded_task
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor import (
@@ -183,6 +183,9 @@ def test_a_closed_task_re_exports_the_very_bytes_its_pin_names(
     exported = export_path(repo_root, TASK)
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
+        # The pin records LANDED on the way past, and since S4 that state lives
+        # on the task's RECORD (§3.5) — so the task has to have one.
+        seed_contractor_record(database)
         pinned_oid = ExportPin(database, git, repo_root, EPIC).pin(
             TASK, BackendKind.LEDGER
         )
@@ -212,6 +215,7 @@ def test_pin_export_recovers_a_crash_between_the_write_and_the_pin(
     ref = EXPORT_REF_TEMPLATE.format(task_id=TASK)
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
+        seed_contractor_record(database)
         # LANDED first, exactly as `ExportPin.pin` records it before the bytes
         # are written: the crash this recovers happens after that (§3.5).
         record_task_state(database, TASK, TaskState.LANDED)
@@ -241,6 +245,7 @@ def test_pin_export_refuses_a_file_the_ledger_has_moved_past(
     ref = EXPORT_REF_TEMPLATE.format(task_id=TASK)
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
+        seed_contractor_record(database)
         record_task_state(database, TASK, TaskState.LANDED)
         write_export(database, TASK)
         # The ledger moves on: a second root of the same task, written after

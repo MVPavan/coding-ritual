@@ -18,6 +18,7 @@ import pytest
 
 from tests._foreman import LAB_EPIC, LAB_TASK, ForemanLab
 from tests._inspector import ChildScript
+from tests._ledger import seed_contractor_record
 from tests.test_contractor_cli import _entry
 from tests.test_foreman_main import _contractor_adapter, _contractor_stage
 from workflow_interpreter.bdio.constants import BackendKind
@@ -366,43 +367,11 @@ def test_landing_recovery_falls_back_to_the_journalled_row(
     assert _entry(lab, STAGE).exit_code == 0
 
 
-def test_a_bd_root_and_a_ledger_root_contend_on_one_bd_claim(
-    tmp_path: Path,
-) -> None:
-    """D20: claims stay in bd, so the two backends see each other's reservation.
-
-    The whole risk the decision names: if a ledger-backed run kept its claims
-    in the ledger, two attempts aiming at one integration target would each
-    find an EMPTY claim set and both believe they had reserved it. So the
-    ledger-backed store is built with the bd transport injected as its claims
-    backend, and what is asserted is that the reservation one wrote is the
-    reservation the other reads — on the same row, not a copy of it.
-    """
-    from tests._fake_bd import FakeBd
-    from tests._ledger import ledger_store, repository
-    from workflow_interpreter.bdio import BdConfig, WorkflowStore
-    from workflow_interpreter.bdio.backend import PinnedBackendFactory
-    from workflow_interpreter.bdio.client import BdClient
-    from workflow_interpreter.ledger.database import open_ledger
-
-    target = "refs/heads/main"
-    repo_root, wrapper_root = repository(tmp_path)
-    bd = BdClient(
-        BdConfig(workspace=tmp_path / "bd", actor="test"), FakeBd(str(tmp_path / "bd"))
-    )
-    on_bd = WorkflowStore(bd, backend_factory=PinnedBackendFactory(bd))
-    with open_ledger(repo_root, wrapper_root, path=tmp_path / "ledger.db") as database:
-        on_ledger = ledger_store(database, claims_backend=bd)
-
-        on_bd.claims.write(target, {"owner": "attempt-one"})
-
-        held = on_ledger.claims.find(target)
-        assert [claim.payload["owner"] for claim in held] == ["attempt-one"]
-        # And the second run's write lands on the SAME row rather than a rival.
-        on_ledger.claims.write(target, {"owner": "attempt-two"}, held[0].id)
-        assert [claim.payload["owner"] for claim in on_bd.claims.find(target)] == [
-            "attempt-two"
-        ]
+# D20 ("claims stay in bd, shared across backends") is superseded by R11: claims
+# are ledger-local CAS rows, so a bd root and a ledger root no longer contend on
+# one claim at all. What replaced the risk it guarded — two attempts on one
+# integration target serialising — is
+# `test_ledger_store.py::test_two_attempts_on_one_target_serialise_on_the_ledger_claim`.
 
 
 @pytest.mark.acceptance
@@ -569,7 +538,9 @@ def test_a_contractor_task_keeps_its_worktree_until_the_export_is_pinned(
     # the close above; what is under test is the gate, not who writes it.
     assert export_oid(lab.ledger, LAB_TASK) is None
     # Both halves of what a pin records, because `closed()` reads the state
-    # BEFORE the latch: a latch alone is not closure (§3.5).
+    # BEFORE the latch: a latch alone is not closure (§3.5). The state lives on
+    # the task's record since S4, so the driver's task needs one to carry it.
+    seed_contractor_record(lab.ledger, LAB_TASK, epic_id=LAB_EPIC)
     record_task_state(lab.ledger, LAB_TASK, TaskState.LANDED)
     record_export_oid(lab.ledger, LAB_TASK, EXPORT_BLOB_OID)
     lab.foreman.tick(record.root_id or "")
