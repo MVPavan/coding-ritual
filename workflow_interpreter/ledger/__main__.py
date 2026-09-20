@@ -23,6 +23,10 @@ from workflow_interpreter.contractor.tracker_wiring import (
     repair_mirror,
     tracker_for,
 )
+from workflow_interpreter.contracts.run_identity import (
+    ComponentKind,
+    safe_component,
+)
 from workflow_interpreter.foreman.config import ForemanConfig, load_config
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.archive import archive_task
@@ -331,10 +335,30 @@ def _archive(config: ForemanConfig, task_id: str, bundle: Path) -> int:
     return EXIT_OK
 
 
+def _validate_ids(args: argparse.Namespace) -> None:
+    """Put every task id this invocation names through the ONE grammar (§3.6).
+
+    At the CLI boundary, before a config is loaded or a path, a ref or a lock
+    is derived from the id: every verb here takes an operator-typed id, and
+    each of them derived a different path from it — `reconcile` a lock under
+    the wrapper root, `verify` a file under `.wf/export/`, `import` a ref
+    name. `../x` escaped all three, and the fence CREATED the lock it escaped
+    to. The foreman CLI has validated its ids all along (invariant G).
+    """
+    named: list[str] = []
+    single = getattr(args, "task_id", None)
+    if single is not None:
+        named.append(str(single))
+    named.extend(str(task_id) for task_id in getattr(args, "task_ids", ()))
+    for task_id in named:
+        safe_component(task_id, kind=ComponentKind.TASK)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Export one task, or rebuild tasks from their exports."""
     args = _parser().parse_args(argv)
     try:
+        _validate_ids(args)
         config = load_config(args.config)
         repo_root = config.repo_root
         wrapper_root = config.wrapper_root
