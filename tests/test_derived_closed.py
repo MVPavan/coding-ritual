@@ -43,6 +43,7 @@ import pytest
 from tests._fake_bd import FakeBd
 from tests._foreman import LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
+from tests._helpers import seeded_records
 from tests._inspector import make_repo
 from tests._ledger import EPIC, TASK, ledger_store, seeded_task
 from tests.conftest import Signer
@@ -151,11 +152,27 @@ def _lab(tmp_path: Path, name: str = "repo") -> tuple[Path, Path, Git]:
     return repo_root, wrapper_root, _seam(repo_root, wrapper_root)
 
 
-def _landed_task(database: LedgerDatabase) -> str:
-    """One task with rows, recorded as LANDED but not yet exported."""
+def _landed_task(
+    database: LedgerDatabase, stored: ContractorRecord | None = None
+) -> str:
+    """One task with rows and a record, recorded LANDED but not yet exported.
+
+    The record is seeded before the state is recorded, because `tasks.state`
+    folded into it in S4 (§3.5, R6): a task with no record has no state to
+    move, and the write refuses by name rather than inventing one.
+    """
     root_id = seeded_task(database)
+    _seed_record(database, _record() if stored is None else stored)
     record_task_state(database, TASK, TaskState.LANDED)
     return root_id
+
+
+def _seed_record(database: LedgerDatabase, stored: ContractorRecord) -> None:
+    """Put the stage's record where the ledger keeps it (§3.2, R4)."""
+    seeded_records(
+        stored,
+        into=LedgerContractorRecords(database, backend=BackendKind.LEDGER),
+    )
 
 
 def _contractor_root(database: LedgerDatabase, root_id: str) -> RootRecord:
@@ -209,8 +226,8 @@ def _policy() -> VerificationPolicy:
     )
 
 
-def _stored_record(fake_bd: FakeBd, state: str = "landed") -> ContractorRecord:
-    """The stage's stored contractor record, at `state`, on the fake bead."""
+def _record(state: str = "landed") -> ContractorRecord:
+    """The stage's contractor record at `state`, with no tracker row at all."""
     record = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -221,19 +238,29 @@ def _stored_record(fake_bd: FakeBd, state: str = "landed") -> ContractorRecord:
     ).admitted(ROOT_ID)
     if state == "landed":
         record = record.landed(ARTIFACT_OID, TREE_OID, GATE_RECEIPT, LANDING_RECEIPT)
+    return record
+
+
+def _stored_record(fake_bd: FakeBd, state: str = "landed") -> ContractorRecord:
+    """The stage's contractor record at `state`, and its tracker row.
+
+    The row carries no record: it moved into the ledger in S4 (§3.2, R4), and
+    the caller seeds it there once the ledger is open.
+    """
+    record = _record(state)
     fake_bd.rows[STAGE_ID] = {
         "id": STAGE_ID,
         "title": "stage",
         "status": "in_progress",
         "issue_type": "task",
         "parent": EPIC_ID,
-        "metadata": {"contractor": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
     }
     return record
 
 
 def _succession(
-    fake_client: BdClient, database: LedgerDatabase, git: Git, stored: ContractorRecord
+    fake_client: BdClient, database: LedgerDatabase, git: Git
 ) -> ContractorAdapter:
     """An adapter that can answer the closure question, ready for a retry."""
     return ContractorAdapter(
@@ -258,9 +285,9 @@ def test_a_crash_between_the_export_and_the_pin_leaves_the_task_open(
     repo, wrapper_root, git = _lab(tmp_path)
     stored = _stored_record(fake_bd)
     with open_ledger(repo, wrapper_root) as database:
-        root_id = _landed_task(database)
+        root_id = _landed_task(database, stored)
         write_export(database, TASK)
-        adapter = _succession(fake_client, database, git, stored)
+        adapter = _succession(fake_client, database, git)
 
         assert closed(database, git, TASK) is False
         assert retired(database, git, TASK) is False
@@ -329,9 +356,9 @@ def test_the_crashed_task_is_driven_to_done_by_recovering_the_pin(
     repo, wrapper_root, git = _lab(tmp_path)
     stored = _stored_record(fake_bd)
     with open_ledger(repo, wrapper_root) as database:
-        _landed_task(database)
+        _landed_task(database, stored)
         write_export(database, TASK)
-        adapter = _succession(fake_client, database, git, stored)
+        adapter = _succession(fake_client, database, git)
 
         oid = pin_export(git, database, TASK, repo)
         adapter.land(STAGE_ID, stored)
@@ -355,9 +382,9 @@ def test_close_refuses_a_task_whose_probe_answers_not_closed(
     repo, wrapper_root, git = _lab(tmp_path)
     stored = _stored_record(fake_bd)
     with open_ledger(repo, wrapper_root) as database:
-        _landed_task(database)
+        _landed_task(database, stored)
         write_export(database, TASK)
-        adapter = _succession(fake_client, database, git, stored)
+        adapter = _succession(fake_client, database, git)
 
         with pytest.raises(ContractorAdapterError, match="does not derive closed"):
             adapter.close(STAGE_ID, stored, LANDING_RECEIPT)
@@ -431,9 +458,13 @@ def test_the_replacement_path_refuses_a_successor_over_a_retired_task(
         "status": "in_progress",
         "issue_type": "task",
         "parent": EPIC_ID,
-        "metadata": {"contractor": stored.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
     }
     assert lab.ledger is not None
+    # Through the composition's own store, because ABANDONED is recorded ON the
+    # record since S4 (§3.5) — a task the lab gave no record has no state to
+    # abandon, and the replacement path would find nothing to refuse over.
+    seeded_records(stored, into=lab.records)
     record_task_state(lab.ledger, LAB_TASK, TaskState.ABANDONED)
     intent = TrustedReplacementIntent(
         request_key="replace-one",
@@ -471,9 +502,9 @@ def test_a_shipped_exported_and_pinned_task_refuses_a_retry(
     repo, wrapper_root, git = _lab(tmp_path)
     stored = _stored_record(fake_bd)
     with open_ledger(repo, wrapper_root) as database:
-        _landed_task(database)
+        _landed_task(database, stored)
         ExportPin(database, git, repo, EPIC).pin(TASK, BackendKind.LEDGER)
-        adapter = _succession(fake_client, database, git, stored)
+        adapter = _succession(fake_client, database, git)
 
         assert closed(database, git, TASK) is True
         with pytest.raises(ContractorAdapterError, match="closed"):
@@ -501,6 +532,7 @@ def test_a_ledger_rebuilt_in_a_clone_derives_closed_on_first_ask_and_latches(
         root_id, gate_id = _open_gate(store)
         gate = store.reads.load_gate(gate_id)
         close(store, root_id, gate, approval_payload(root_id, gate), sign_payload)
+        _seed_record(database, _record())
         record_task_state(database, TASK, TaskState.LANDED)
         write_export(database, TASK)
     _git(origin, "add", "--", str(export_path(origin, TASK)), str(repo_id_path(origin)))
@@ -593,8 +625,9 @@ def test_an_abandoned_task_is_retired_and_never_closed(
     stored = _stored_record(fake_bd, state="admitted")
     with open_ledger(repo, wrapper_root) as database:
         root_id = seeded_task(database)
+        _seed_record(database, stored)
         record_task_state(database, TASK, TaskState.ABANDONED)
-        adapter = _succession(fake_client, database, git, stored)
+        adapter = _succession(fake_client, database, git)
 
         assert closed(database, git, TASK) is False
         assert retired(database, git, TASK) is True

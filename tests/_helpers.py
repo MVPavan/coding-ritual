@@ -425,3 +425,22 @@ def seeded_records(
     for record in held:
         store.create(record, brief=brief)
     return store
+
+
+def rewrite_record(
+    records: ContractorRecords, task_id: str, **updates: object
+) -> ContractorRecord:
+    """Move a stored record forward, stating the version it was read at.
+
+    The companion of `seeded_records` for the cases that used to edit the
+    stored dict in place: bead metadata merged, so a test could poke one
+    field, and a ledger row is TRANSITIONED — the version guard is part of
+    what a write means now (§3.2), so a test states it too.
+    """
+    held = records.read(task_id)
+    assert held is not None, f"{task_id} has no record to rewrite"
+    return records.update(
+        held.record.model_copy(update=updates),
+        expected_version=held.version,
+        brief=held.brief,
+    ).record

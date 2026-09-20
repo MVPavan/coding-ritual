@@ -5,6 +5,7 @@ import subprocess
 
 import pytest
 
+from tests._helpers import rewrite_record, seeded_records
 from tests.test_contractor import (
     EPIC_ID,
     ROOT_ID,
@@ -21,6 +22,7 @@ from tests.test_contractor import (
 from workflow_interpreter.contractor import (
     ContractorAdapter,
     ContractorRecord,
+    ContractorState,
     DetachedRepositoryGate,
     LandingDisposition,
     LandingHooks,
@@ -46,10 +48,8 @@ def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
         expected_base_commit=base,
         verification_policy=_policy(),
     ).admitted(ROOT_ID)
-    fake_bd.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
-        by_alias=True, mode="json"
-    )
     git, paths, export = _landing_context(repo, tmp_path)
+    seeded_records(record, into=export.records)
     adapter = ContractorAdapter(
         fake_client, closure=export.closure, records=export.records
     )
@@ -69,14 +69,17 @@ def test_landed_relation_digest_cannot_be_overwritten(case, monkeypatch):
     )
     with pytest.raises(RuntimeError):
         landing.land(STAGE_ID)
-    # Simulate the durable LANDED branch before close's metadata write.
-    raw = fake.rows[STAGE_ID]["metadata"]["contractor"]
-    raw["state"] = "landed"
-    raw["landing_receipt_digest"] = "different"
+    # Simulate the durable LANDED branch before the close transition.
+    rewrite_record(
+        adapter.records,
+        STAGE_ID,
+        state=ContractorState.LANDED,
+        landing_receipt_digest="different",
+    )
     monkeypatch.setattr(adapter, "close", real_close)
     with pytest.raises(ValueError, match="receipt digest"):
         landing.recover(STAGE_ID)
-    assert raw["landing_receipt_digest"] == "different"
+    assert adapter.record(STAGE_ID).landing_receipt_digest == "different"
     assert fake.rows[STAGE_ID]["status"] != "closed"
 
 
@@ -89,10 +92,7 @@ def test_closed_history_does_not_execute_old_host_tool(case, tmp_path, change):
     policy = VerificationPolicy.pin(
         (CheckCommand(name="host", argv=(str(program),)),), repo
     )
-    record = adapter.record(STAGE_ID).model_copy(update={"verification_policy": policy})
-    fake.rows[STAGE_ID]["metadata"]["contractor"] = record.model_dump(
-        by_alias=True, mode="json"
-    )
+    rewrite_record(adapter.records, STAGE_ID, verification_policy=policy)
     landing._repository_gate = DetachedRepositoryGate(
         git, paths, policy, lambda _: None
     )
