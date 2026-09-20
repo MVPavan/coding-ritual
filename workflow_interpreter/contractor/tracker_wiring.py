@@ -18,7 +18,7 @@ import structlog
 
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig
-from workflow_interpreter.bdio.errors import StoreOutputError
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.records import contractor_records
@@ -33,6 +33,7 @@ from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.reconcile import AttentionWriter
 from workflow_interpreter.tracker import BdTracker, FileTracker, NullTracker
 from workflow_interpreter.tracker.attention import OutboxAttentionWriter
+from workflow_interpreter.tracker.errors import TrackerRefused, TrackerUnavailable
 from workflow_interpreter.tracker.outbox import DrainResult, TrackerOutbox
 from workflow_interpreter.tracker.port import TrackerPort
 
@@ -126,7 +127,7 @@ def repair_mirror(
     database: LedgerDatabase,
     git: Git,
     task_id: str,
-) -> None:
+) -> DrainResult:
     """Everything `wf ledger reconcile <task>` owes the mirror (§3.4, §3.2.4).
 
     Two repairs, not one. Draining what is owed was already here; the PREPARED
@@ -138,10 +139,14 @@ def repair_mirror(
     The release runs FIRST and shares `release_stranded_claim`, the same
     detection admission performs: two spellings of "is this claim stranded"
     would be two chances to release a live one.
+
+    What the drain DID comes back, because the human at this command is the
+    one who has to hear about a conflict: the row retires either way, so a
+    result nobody returned was a disagreement nobody was told about.
     """
     adapter = contractor_adapter(config, database, git)
     adapter.release_stranded_claim(task_id, config.actor)
-    drain_outbox(database, adapter.tracker, task_id)
+    return drain_outbox(database, adapter.tracker, task_id)
 
 
 def drain_at_exit(composition: Composition) -> None:
@@ -156,16 +161,28 @@ def drain_at_exit(composition: Composition) -> None:
     Bounded and non-fatal on purpose, exactly as the attention drain it
     replaces was: an unreachable tracker leaves the rows pending for the next
     drain, and it must not fail a run whose facts are already in the ledger.
+
+    NOTHING escapes, and that is stricter than it looks: this runs from a
+    `finally`, so an exception raised here REPLACES the driver's own failure
+    with a mirror's. `TrackerRefused` — an unreadable file tracker — used to do
+    exactly that. A drain failure is logged, leaves its rows pending, and
+    leaves the exit status to whatever the run itself decided.
     """
     if composition.ledger is None:
         return
     try:
-        drain_outbox(
+        result = drain_outbox(
             composition.ledger,
             tracker_for(composition.config.tracker, composition.config.bd),
         )
-    except (StoreOutputError, OSError) as refusal:
+    except (StoreError, TrackerUnavailable, TrackerRefused, OSError) as refusal:
         _LOG.warning("wf.tracker.outbox_drain_refused", reason=str(refusal))
+        return
+    if result.conflicts:
+        # A conflict is an ANSWER, so its row retired; the only record of it
+        # was one `_LOG.info` nobody reads at exit. It is a decision for a
+        # human — the tracker disagrees about a task this run just landed.
+        _LOG.warning("wf.tracker.mirror_conflicted", refs=list(result.conflicts))
 
 
 def drain_outbox(

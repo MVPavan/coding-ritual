@@ -226,9 +226,22 @@ class ContractorAdapter:
         self._outbox.enqueue(stage_id, intent, connection)
 
     def _drain(self, stage_id: str) -> None:
-        """Try the tracker now; a row it does not answer waits for the exit."""
-        if self._outbox is not None:
-            self._outbox.drain(self.tracker, stage_id)
+        """Try the tracker now; a row it does not answer waits for the exit.
+
+        A CONFLICT is said out loud. It retires its row — the tracker answered,
+        and re-sending the state would not change the answer — so a result
+        nobody read was a tracker disagreeing about a task this process just
+        decided, recorded nowhere a caller sees.
+        """
+        if self._outbox is None:
+            return
+        result = self._outbox.drain(self.tracker, stage_id)
+        if result.conflicts:
+            _LOG.warning(
+                "wf.tracker.mirror_conflicted",
+                stage_id=stage_id,
+                refs=list(result.conflicts),
+            )
 
     def guard_integration(
         self, record: ContractorRecord, *, post_cas: bool = False

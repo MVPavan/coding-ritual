@@ -53,6 +53,10 @@ _MSG_RECONCILED: Final[str] = (
     "{acked} row(s) acked\n"
 )
 _MSG_NOTHING_DUE: Final[str] = "reconciled {task_id}: nothing due\n"
+_MSG_CONFLICTS: Final[str] = (
+    "  {count} mirror intent(s) the tracker REFUSED: {refs}\n"
+    "  the row retires either way; the tracker disagrees about these items\n"
+)
 _MSG_APPROVAL: Final[str] = (
     "{status} {gate_id} {fingerprint} ({principal}, {namespace})\n"
 )
@@ -181,7 +185,13 @@ def _reconcile(config: ForemanConfig, task_id: str) -> int:
         # human asking for the mirror to be caught up, so it repairs it: the
         # stranded claim §3.4 names this command for, then the drain — unlike
         # a tick, which leaves the drain to the driver's exit.
-        repair_mirror(config, database, Git(config.inspector), task_id)
+        drained = repair_mirror(config, database, Git(config.inspector), task_id)
+    if drained.conflicts:
+        sys.stdout.write(
+            _MSG_CONFLICTS.format(
+                count=len(drained.conflicts), refs=", ".join(drained.conflicts)
+            )
+        )
     if not result.written:
         sys.stdout.write(_MSG_NOTHING_DUE.format(task_id=task_id))
         return EXIT_OK
