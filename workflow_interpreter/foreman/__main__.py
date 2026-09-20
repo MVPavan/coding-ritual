@@ -118,6 +118,15 @@ MSG_EPIC_STORED_CONFLICT: Final[str] = (
     "the knowledge this task has already written (§3.7)"
 )
 
+CHILDREN_COMMAND: Final[str] = "children"
+CHILDREN_ADMIT: Final[str] = "admit"
+ADMITTING_COMMANDS: Final[frozenset[str]] = frozenset(
+    {"create", "contract", "phase", "integration"}
+)
+"""The verbs that create a root or admit work under one, and therefore the only
+ones R12's quiesce probe runs in (gate B, finding 3). `children` is decided by
+its own subcommand, so it is not listed here."""
+
 
 def _stderr_logger(*_args: object) -> structlog.PrintLogger:
     """Build a logger bound to whatever `sys.stderr` is at the moment of the call."""
@@ -177,11 +186,16 @@ def _composition(args: argparse.Namespace) -> Composition:
     config = config.model_copy(update={"inspector": inspector})
     clock = SystemClock()
     tracker = tracker_for(config.tracker)
-    # R12, per task and per COMMAND: every driver that can create or drive a
-    # root for this task composes HERE, so the one probe that refuses a task
-    # still in flight in the retired home belongs here rather than on `wf
-    # contract` alone (S6 review, finding 6).
-    assert_quiesced(tracker, task_id)
+    # R12, per task and per ADMITTING command (gate B, finding 3). Every
+    # command composes here, so probing unconditionally put one `bd show` on
+    # the activation's critical path: a detached `inspector` spawn refused
+    # before `run_wrapper` whenever bd hung or was missing, in the window R4
+    # and ADR 0006 promise is tracker-free. The probe guards work about to
+    # START — a task still in flight in the retired home must not be minted,
+    # claimed and run a second time — so it belongs to the commands that
+    # create or admit a root, and nowhere else.
+    if _admits(args):
+        assert_quiesced(tracker, task_id)
     ledger = open_ledger(config.repo_root, config.wrapper_root)
     epic_id = _epic_for(ledger, task_id, named_epic)
     ensure_task(ledger, task_id, epic_id)
@@ -216,6 +230,20 @@ def _composition(args: argparse.Namespace) -> Composition:
         task_id=task_id,
         epic_id=epic_id,
     )
+
+
+def _admits(args: argparse.Namespace) -> bool:
+    """Whether this command creates or admits, and so owes R12's probe.
+
+    By VERB rather than by a flag on the composition: the run-loop commands —
+    `tick`, `run`, `inspector`, `inspect`, `status`, `steer`, `monitor` — act
+    on a root that was already admitted, and a task whose retired-home record
+    is still in flight could not have reached them. `children` is admitting
+    only in its `admit` verb; the rest drive slots that already exist.
+    """
+    if args.command == CHILDREN_COMMAND:
+        return getattr(args, "child_command", None) == CHILDREN_ADMIT
+    return args.command in ADMITTING_COMMANDS
 
 
 def _epic_for(ledger: LedgerDatabase, task_id: str, named: str | None) -> str:
