@@ -194,14 +194,13 @@ def test_ordinary_contractor_continues_B_A_C_with_original_CAS(
     brief.write_text("Implement feature")
     roots = WorkflowRootProvisioner(
         adapter,
-        lambda key, backend, attempt: instantiate(
+        lambda key, attempt: instantiate(
             lab.composition,
             graph,
             instance_key=key,
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
-            backend=backend,
             attempt=attempt,
         ),
         lab.git,
