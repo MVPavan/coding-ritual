@@ -214,6 +214,9 @@ def test_ordinary_contractor_continues_B_A_C_with_original_CAS(
         roots,
         lambda: lab.git.head_commit(cwd=lab.repo),
         VerificationPolicy.pin(lab.config.contractor_checks, lab.repo),
+        # A FIRST prepare snapshots the brief beside the record (§3.3, R4), so
+        # this admission has to carry the one it just read off the stage.
+        task_brief=brief.read_text(),
     ).admit("phase", "stage", "refs/heads/main", lab.head)
     lab.root = lab.store.reads.load_root(previous.root_id)
     lab.profiles.bind_node(
