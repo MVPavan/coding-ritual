@@ -459,7 +459,9 @@ MSG_RECORD_MISSING: Final[str] = (
 )
 MSG_LOSSY_ROW: Final[str] = "the row did not read back as written: {detail}"
 MSG_ROW_MISSING: Final[str] = (
-    "no ledger row {row_id!r} in task {task_id!r}, so there is nothing to {operation}"
+    # `LedgerOperation` values are gerunds, so the clause takes one as its
+    # subject: "there is nothing to reading the row" read as a defect.
+    "no ledger row {row_id!r} in task {task_id!r}, so {operation} it is refused"
 )
 MSG_GATE_NOT_OPEN: Final[str] = (
     "gate {gate_id!r} is {state!r} carrying approval {recorded!r}, and this "

@@ -175,9 +175,10 @@ class PinnedBackendFactory:
 class SelectableBackendFactory:
     """The two-backend factory: one transport per kind, and no substitutions.
 
-    A cutover process holds BOTH — a bd transport for bd-pinned roots, the
-    task bead and the claims D20 keeps in bd, and a ledger transport for
-    ledger-pinned ones — and hands out whichever the located pin names. A kind
+    A cutover process holds BOTH — a bd transport for bd-pinned roots and the
+    task bead, and a ledger transport for ledger-pinned ones — and hands out
+    whichever the located pin names. Claims are not among them: R11 superseded
+    D20 and they are ledger-local now (`ledger/claims.py`). A kind
     this process was not built with is a refusal naming what it does have,
     never the other transport: a root read from the wrong store looks missing,
     not broken.

@@ -47,8 +47,25 @@ from workflow_interpreter.schema.decisions import (
 )
 from workflow_interpreter.schema.loader import canonical_bytes, load_graph
 
-ESSENTIAL = ("integration_sources", "stage_brief", "target_base")
+STAGE_BRIEF = "stage_brief"
+"""The essential input carrying this stage's brief, and its snapshot (§3.3)."""
+ESSENTIAL = ("integration_sources", STAGE_BRIEF, "target_base")
 CLAIM_PAYLOAD_KEY = "integration_target_claim"
+
+
+def _stage_brief(association: IntegrationAssociation) -> str | None:
+    """The brief this integration's admission pinned, for the record (§3.3, R4).
+
+    An integration stage's brief was read from the tracker ONCE, at
+    `prepare_integration`, and pinned into the admission's essential inputs.
+    Snapshotting it on the record too is what makes every later admission of
+    this stage — a retry, a resume with the tracker gone — read it from the
+    ledger, exactly as an ordinary stage does.
+    """
+    inputs = TypeAdapter(tuple[InstanceInput, ...]).validate_json(
+        association.admission.inputs_json
+    )
+    return next((item.body for item in inputs if item.name == STAGE_BRIEF), None)
 
 
 def _claim_holder(claim: IntegrationTargetClaim) -> str:
@@ -908,7 +925,9 @@ def resume_integration(
                         "previous_attempts": association.previous_attempts,
                     }
                 )
-            record = adapter.prepare(record.stage_id, record)
+            record = adapter.prepare(
+                record.stage_id, record, brief=_stage_brief(association)
+            )
         if record.state is not ContractorState.PREPARED:
             guard.binding(
                 record,

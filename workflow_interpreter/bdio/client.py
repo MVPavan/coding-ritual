@@ -584,31 +584,6 @@ class BdClient:
         _LOG.debug("bd.update", bead_id=bead_id, keys=sorted(metadata))
         return as_row(record)
 
-    def _claim_and_merge_metadata(self, bead_id: str, metadata: Metadata) -> StoreRow:
-        """Claim a bead and merge metadata in the one supported bd invocation."""
-        with _metadata_file(metadata) as metadata_arg:
-            self._run(
-                self._argv(
-                    BdSubcommand.UPDATE,
-                    bead_id,
-                    BdFlag.CLAIM.value,
-                    BdFlag.METADATA.value,
-                    metadata_arg,
-                )
-            )
-        record = self.show(bead_id)
-        self._assert_metadata(record, metadata)
-        if record.status != "in_progress":
-            raise LossyWriteError(
-                bead_id,
-                SURFACE_METADATA,
-                _MSG_MANGLED.format(
-                    key="status", written="in_progress", stored=record.status
-                ),
-            )
-        _LOG.debug("bd.update.claim", bead_id=bead_id, keys=sorted(metadata))
-        return as_row(record)
-
     def _close_row(self, bead_id: str, reason: str) -> StoreRow:
         """Close a row with a structured reason and verify both landed.
 

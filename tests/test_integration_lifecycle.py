@@ -412,6 +412,10 @@ def test_abandoning_an_integration_attempt_frees_its_target_claim(
     assert guard.claim(key)[1].disposition == "active"
     adapter = _contractor_adapter(lab)
     adapter.integration_guard = guard
+    # An integration stage snapshots its brief at prepare too (§3.3, R4), from
+    # the essential input its admission pinned rather than from the tracker.
+    held = lab.records.read("stage")
+    assert held is not None and held.brief == adapter.show("stage").description
 
     abandoned = adapter.abandon("stage")
 

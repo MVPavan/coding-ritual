@@ -35,7 +35,7 @@ from workflow_interpreter.contractor.landing import (
     PhaseLanding,
 )
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
-from workflow_interpreter.contractor.records import records_of
+from workflow_interpreter.contractor.records import RecordStoreUnavailable, records_of
 from workflow_interpreter.contractor.retry import retry_refusal
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
@@ -157,6 +157,7 @@ def execute_contractor(
         ContractorAdapterError,
         ResolutionError,
         ContractorRefusal,
+        RecordStoreUnavailable,
         ValidationError,
         WrapperDirError,
         GitCommandError,
@@ -221,6 +222,11 @@ def _execute(
 
     repair_contractor_successor(composition, stage_id)
     prior = adapter.stored_record(stage_id)
+    # Whether this stage had a record when the command STARTED. The integration
+    # branch below resumes into one, so `prior is None` stops being the answer
+    # to "is this stage's prepare happening now?" — and the blocker check §3.3
+    # puts at prepare would be skipped for every integration stage.
+    prepared_here = prior is None
     # Every tracker read of this command is HERE, inside the one branch that
     # only a task with no record takes — which is prepare (§3.3, R4). A task
     # that has prepared is admitted, run, landed and closed from the ledger,
@@ -314,7 +320,7 @@ def _execute(
         and root.metadata.terminal == "shipped"
     ):
         return _land(composition, adapter, prior, recover=False)
-    if prior is None:
+    if prepared_here:
         # A tracker read, so it belongs to prepare and to nothing later
         # (§3.3): blockers are checked once, before the task has a record.
         dependencies = adapter.blocking_dependencies(stage_id)
@@ -726,10 +732,17 @@ def _trace(
 def _record_for_trace(
     adapter: ContractorAdapter, stage_id: str
 ) -> tuple[ContractorRecord | None, str | None]:
-    """Read a relation for display while retaining malformed evidence as absence."""
+    """Read a relation for display while retaining malformed evidence as absence.
+
+    The record moved into the ledger in S4, and with it the error an unreadable
+    one raises: `adapter.stored` names it as an adapter refusal (§3.2). This
+    degrades on THAT, because `--trace` is the one read-only diagnostic a human
+    runs when a record will not parse, and exiting 2 would hide the root, the
+    gate evidence and the parse error it exists to show.
+    """
     try:
         return adapter.stored_record(stage_id), None
-    except ValidationError as error:
+    except ContractorAdapterError as error:
         return None, str(error)
 
 
