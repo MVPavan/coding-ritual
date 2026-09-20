@@ -115,6 +115,10 @@ class _DurableRecord:
         """A closed task is retired."""
         return True
 
+    def landing_begun(self, task_id: str, attempt: int) -> bool:
+        """No journal here: these tests are about the bead surface."""
+        return False
+
 
 def _admission(adapter, roots, head_commit):
     # A first prepare snapshots the task brief beside the record (§3.3, R4),

@@ -31,6 +31,12 @@ MSG_ABANDON_LANDED: Final[str] = (
     "task {stage_id!r} has landed, so it is not abandoned: the work is on the "
     "target ref and what it owes is a pinned export, not a retirement (§3.8)"
 )
+MSG_ABANDON_LANDING: Final[str] = (
+    "task {stage_id!r} journalled the landing intent of attempt {attempt}, so "
+    "its landing has begun and its work may already be on the target ref: what "
+    "it owes is the recovery `wf contract` performs, not a retirement that "
+    "would delete the worktree and pin no export (§3.8, D17)"
+)
 MSG_ABANDON_CLOSED: Final[str] = (
     "task {stage_id!r} is closed — its whole record is durable in git — and a "
     "closed task is not abandoned (§3.5, §3.8)"
@@ -340,6 +346,12 @@ class ContractorAdapter:
         on the target ref, and what an unpinned export owes is recovery, not
         retirement. The record's own state is checked first, because a landed
         task that has not pinned yet is not closed and must still be refused.
+
+        Refused for a task whose landing merely BEGAN, too, and on the same
+        evidence `wf contract`'s recovery reads: the record is still ADMITTED
+        for the whole landing window — journalled intent, fast-forward CAS,
+        receipt — so a crash inside it would otherwise be abandonable while the
+        commit sits on the target ref (D17).
         """
         held = self._required(stage_id)
         if held.record.state is ContractorState.ABANDONED:
@@ -348,6 +360,12 @@ class ContractorAdapter:
             raise ContractorAdapterError(MSG_ABANDON_LANDED.format(stage_id=stage_id))
         if self.closure.closed(stage_id):
             raise ContractorAdapterError(MSG_ABANDON_CLOSED.format(stage_id=stage_id))
+        if self.closure.landing_begun(stage_id, held.record.attempt):
+            raise ContractorAdapterError(
+                MSG_ABANDON_LANDING.format(
+                    stage_id=stage_id, attempt=held.record.attempt
+                )
+            )
         abandoned = held.record.model_copy(update={"state": ContractorState.ABANDONED})
         return self._write(abandoned, held).record
 

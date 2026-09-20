@@ -107,6 +107,15 @@ class LedgerTable(StrEnum):
     CLAIMS = "claims"
 
 
+LANDING_INTENT_PHASE: Final[str] = "intent"
+"""The `landings.phase` a journalled landing INTENT carries (D17).
+
+Here rather than only in `contractor.journal`, because the ledger itself now
+asks the question the row answers: "has this attempt's landing begun?" is what
+`closure.landing_begun` reads, and the contractor's `LandingPhase.INTENT` is
+this same string so the writer and the reader cannot drift apart."""
+
+
 class TaskState(StrEnum):
     """How far the contractor got with one task, as the ledger knows it (§3.5).
 

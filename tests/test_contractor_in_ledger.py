@@ -36,6 +36,7 @@ from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor import command as command_module
 from workflow_interpreter.contractor.adapter import ContractorAdapter
+from workflow_interpreter.contractor.landing import LandingHooks
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as main_module
@@ -340,6 +341,43 @@ def test_abandon_retires_a_task_cleans_it_up_and_frees_its_sibling(
 
     assert refused == 2
     assert "has landed" in str(reason["reason"])
+
+
+@pytest.mark.acceptance
+def test_abandon_refuses_a_task_whose_landing_has_already_begun(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """§3.8, D17: the landing window is not a window an abandon may close.
+
+    The crash is after the fast-forward CAS, so the work IS on the target ref
+    while the record still reads admitted. Abandoning there would clean the
+    worktree away, pin no export and leave the commit orphaned, so abandon is
+    refused by the one fact that outlives the process — the journalled landing
+    intent — and the recovery `wf contract` already performs finishes the job.
+    """
+    lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
+    armed = True
+
+    def after_cas(self: LandingHooks) -> None:
+        nonlocal armed
+        if armed:
+            armed = False
+            raise InjectedCrash("the process died after the landing CAS")
+
+    monkeypatch.setattr(LandingHooks, "after_cas", after_cas)
+    crashed = _entry(lab, STAGE)
+    assert crashed.exit_code == 1
+    assert "InjectedCrash" in crashed.report["diagnostic"]
+
+    refused, report = _abandon(lab, STAGE)
+
+    assert refused == 2
+    assert "landing" in str(report["reason"])
+    assert _contractor_adapter(lab).record(STAGE).state is ContractorState.ADMITTED
+    # What the task actually owes: the recovery the refusal named.
+    assert _entry(lab, STAGE).exit_code == 0
+    assert _contractor_adapter(lab).record(STAGE).state is ContractorState.LANDED
+    assert closed(lab.ledger, lab.git, STAGE) is True
 
 
 @pytest.mark.acceptance

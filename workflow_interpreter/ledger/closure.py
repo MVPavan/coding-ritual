@@ -50,7 +50,7 @@ from typing import Final, Protocol
 import structlog
 
 from workflow_interpreter.inspector.gitio import NO_BLOB, Git
-from workflow_interpreter.ledger.constants import TaskState
+from workflow_interpreter.ledger.constants import LANDING_INTENT_PHASE, TaskState
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerBusyRefusal, LedgerTransportError
 from workflow_interpreter.ledger.reverify import anchor_oid
@@ -122,6 +122,27 @@ def retired(database: LedgerDatabase, git: Git, task_id: str) -> bool:
     )
 
 
+_SQL_LANDING_INTENT: Final[str] = (
+    "SELECT 1 FROM landings WHERE task_id = ? AND attempt = ? AND phase = ?"
+)
+
+
+def landing_begun(database: LedgerDatabase, task_id: str, attempt: int) -> bool:
+    """Whether this attempt journalled a landing intent (§3.8, D17).
+
+    The intent row is written BEFORE the fast-forward CAS and outlives both the
+    process and a `git clean`ed `.wf/`, so it is the one durable fact that says
+    "this attempt's work may already be on the target ref". `wf contract`'s
+    recovery keys on the same intent; abandon refuses on it, so the two cannot
+    disagree about whether a landing is in flight.
+    """
+    with database.locked() as connection:
+        row = connection.execute(
+            _SQL_LANDING_INTENT, (task_id, attempt, LANDING_INTENT_PHASE)
+        ).fetchone()
+    return row is not None
+
+
 class ClosureProbe(Protocol):
     """What a caller needs to ask about a task's closure, and nothing else.
 
@@ -137,6 +158,10 @@ class ClosureProbe(Protocol):
 
     def retired(self, task_id: str) -> bool:
         """Whether this task is closed or abandoned."""
+        ...
+
+    def landing_begun(self, task_id: str, attempt: int) -> bool:
+        """Whether this attempt has a journalled landing intent."""
         ...
 
 
@@ -161,6 +186,10 @@ class TaskClosure:
         """Whether this task is closed or abandoned."""
         return retired(self._database, self._git, task_id)
 
+    def landing_begun(self, task_id: str, attempt: int) -> bool:
+        """Whether this attempt has a journalled landing intent."""
+        return landing_begun(self._database, task_id, attempt)
+
 
 class NoLedgerClosure:
     """The answer for a composition that has no ledger at all (§3.5, D5).
@@ -179,6 +208,10 @@ class NoLedgerClosure:
 
     def retired(self, task_id: str) -> bool:
         """No: a task this wiring cannot export is not one it can retire."""
+        return False
+
+    def landing_begun(self, task_id: str, attempt: int) -> bool:
+        """No: a wiring with no ledger journals no landing intent (D17)."""
         return False
 
 

@@ -36,7 +36,7 @@ from workflow_interpreter.contractor.records import (
 )
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.closure import TaskClosure
-from workflow_interpreter.ledger.constants import TaskState
+from workflow_interpreter.ledger.constants import LANDING_INTENT_PHASE, TaskState
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import pin_export, write_export
@@ -60,7 +60,9 @@ _SQL_READ: Final[str] = (
 class LandingPhase(StrEnum):
     """The two journalled halves of one landing (§3.3 `landings.phase`)."""
 
-    INTENT = "intent"
+    # The ledger reads this half too — `closure.landing_begun` is what refuses
+    # an abandon mid-landing — so the string is declared there, once.
+    INTENT = LANDING_INTENT_PHASE
     RECEIPT = "receipt"
 
 
