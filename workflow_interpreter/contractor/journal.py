@@ -41,6 +41,7 @@ from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import pin_export, write_export
 from workflow_interpreter.ledger.tasks import pin_task_backend
+from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 MSG_UNREADABLE_ROW: Final[str] = (
     "the journalled {phase} of attempt {attempt} of {task_id!r} is unreadable: {reason}"
@@ -195,6 +196,17 @@ class ExportPin:
         to be facts of one ledger.
         """
         return LedgerContractorRecords(self._database, backend=self._backend)
+
+    @property
+    def outbox(self) -> TrackerOutbox:
+        """The tracker outbox over the same ledger this pin writes (§3.3).
+
+        The third of the trio, for `records`' reason: the close the landing
+        drives transitions a record, pins an export and mirrors a `Close`, and
+        all three are facts of one ledger. A landing composed without it could
+        reach a mirror with nowhere durable to wait.
+        """
+        return TrackerOutbox(self._database)
 
     @property
     def closure(self) -> TaskClosure:

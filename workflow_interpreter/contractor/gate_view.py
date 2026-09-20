@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
-from workflow_interpreter.bdio.config import BdConfig
-from workflow_interpreter.bdio.reads import WorkflowReads
-from workflow_interpreter.contractor.adapter import (
-    ContractorAdapter,
-    ContractorAdapterError,
-)
-from workflow_interpreter.contractor.records import ContractorRecords
-from workflow_interpreter.ledger.closure import NoLedgerClosure
+from workflow_interpreter.contractor.adapter import ContractorAdapterError
+from workflow_interpreter.contractor.tracker_wiring import adapter_of
+
+if TYPE_CHECKING:
+    from workflow_interpreter.foreman.compose import Composition
 
 _INSTANCE_KEY_PREFIX: Final[str] = "contract:"
 _ATTEMPT_DELIMITER: Final[str] = ":attempt:"
@@ -22,34 +19,25 @@ MSG_INSTANCE_KEY_MISMATCH: Final[str] = (
 
 def contractor_gate_view(
     instance_key: str,
-    config: BdConfig,
+    composition: Composition,
     *,
     root_id: str,
-    reads: WorkflowReads,
-    records: ContractorRecords,
 ) -> dict[str, object]:
     """Render retry evidence only for roots admitted through the contractor.
 
     The stage record remains the authority for attempts, so ordinary interpreter
     roots never receive contractor-specific metadata and do not cause an extra read.
 
-    `records` is where the stage's record lives — a ledger row since S4
-    (§3.2, R4), which is why this read has to be handed one. `config` builds
-    the TASK bead's transport, which stays bd (§3.2), and `reads` is the store
-    THIS ROOT is pinned to: `owns_root` is a root lookup,
-    and a contractor view that asked bd about a ledger-backed root would answer
-    that a live run does not exist.
+    The COMPOSITION is what it takes, rather than a config, a `reads` and a
+    record store: the adapter is wired in one place now (§3.3), and the reads
+    it needs are the store THIS ROOT is pinned to — `owns_root` is a root
+    lookup, and a contractor view that asked bd about a ledger-backed root
+    would answer that a live run does not exist.
     """
     stage_id = _stage_id(instance_key)
     if stage_id is None:
         return {}
-    # This view only READS the stage, and the probe decides a close and a
-    # succession — neither of which happens here. It is still supplied by
-    # name rather than defaulted, so no construction site can acquire one of
-    # those writes without having said what answers it (§3.5).
-    adapter = ContractorAdapter.from_config(
-        config, reads, closure=NoLedgerClosure(), records=records
-    )
+    adapter = adapter_of(composition, composition.reads_for_root(root_id))
     record = adapter.record(stage_id)
     is_current_attempt = record.instance_key == instance_key
     # The CONFIGURED tracker, and an absent item contradicts nothing (R9): a

@@ -30,13 +30,12 @@ from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.rpc_control import ControlBusy
 from workflow_interpreter.contractor.adapter import (
-    ContractorAdapter,
     ContractorAdapterError,
 )
 from workflow_interpreter.contractor.command import execute_contractor
 from workflow_interpreter.contractor.gate_view import contractor_gate_view
-from workflow_interpreter.contractor.records import records_of
 from workflow_interpreter.contractor.tracker_wiring import (
+    adapter_of,
     attention_writer,
     tracker_for,
 )
@@ -75,7 +74,6 @@ from workflow_interpreter.inspector.errors import ContinuationRefused, LockUnava
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.rpc_control import read_instructions
 from workflow_interpreter.ledger.claims import LedgerClaims
-from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.ledger.constants import MSG_EPIC_REQUIRED
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerEpicMissing
@@ -296,12 +294,7 @@ def _abandon(args: argparse.Namespace, emit: Callable[[str, int], None]) -> int:
     """
     validate_bead_id(args.stage_id)
     composition = _composition(args)
-    adapter = ContractorAdapter.from_config(
-        composition.config.bd,
-        composition.store.reads,
-        closure=closure_probe(composition.ledger, composition.git),
-        records=records_of(composition),
-    )
+    adapter = adapter_of(composition)
     # Imported here, as `contract` does: the integration surface reaches back
     # into the foreman's own composition. The guard is what releases an
     # integration attempt's target claim as the abandon records it (R11).
@@ -962,10 +955,8 @@ def _run(
         view = _view(composition, args.root_id)
         contractor_view = contractor_gate_view(
             view.root.metadata.instance_key,
-            composition.config.bd,
+            composition,
             root_id=view.root.root_id,
-            reads=composition.reads_for_root(view.root.root_id),
-            records=records_of(composition),
         )
         emit(
             json.dumps(
@@ -1024,11 +1015,7 @@ def _run(
         },
     }
     contractor_view = contractor_gate_view(
-        root.metadata.instance_key,
-        composition.config.bd,
-        root_id=root.root_id,
-        reads=composition.reads_for_root(root.root_id),
-        records=records_of(composition),
+        root.metadata.instance_key, composition, root_id=root.root_id
     )
     status["open_gates"] = _open_gates(composition, view, contractor_view)
     if frontier.open_halt is not None:

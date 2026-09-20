@@ -89,6 +89,12 @@ MSG_NOT_CLOSABLE: Final[str] = (
     "record durable in git — exported and anchored — before its bead closes "
     "(store-restructure §3.5, D5)"
 )
+MSG_NO_OUTBOX: Final[str] = (
+    "this wiring has no tracker outbox, so the mirror for {stage_id!r} has "
+    "nowhere durable to wait: a mirror write is never issued directly, because "
+    "an unrecorded tracker call is what the outbox exists to prevent "
+    "(store-restructure §3.1, §3.3)"
+)
 _RETIRED_STATES: Final[frozenset[ContractorState]] = frozenset(
     {ContractorState.ABANDONED, ContractorState.ABANDONED_EXTERNAL}
 )
@@ -125,9 +131,11 @@ class ContractorAdapter:
         self._outbox = outbox
         """Where a mirror write waits when the tracker cannot answer (§3.3).
 
-        Absent for a wiring with no ledger, which has nowhere durable to wait:
-        such a wiring applies the intent directly and lives with the answer,
-        exactly as it lives without a record store or a closure probe."""
+        Absent only for a wiring with no LEDGER, which has nowhere durable to
+        wait — and such a wiring can reach no mirror at all, because every one
+        of them follows a record transition its `NoContractorRecords` refuses.
+        It does NOT fall back to a direct call: an unrecorded tracker write is
+        the one thing the outbox exists to prevent (§3.1)."""
         self.integration_guard: IntegrationGuard | None = None
         self.records: ContractorRecords = records
         """Where this task's record lives (§3.2, R4).
@@ -155,8 +163,8 @@ class ContractorAdapter:
         *,
         closure: ClosureProbe,
         records: ContractorRecords,
-        tracker: TrackerPort | None = None,
-        outbox: TrackerOutbox | None = None,
+        tracker: TrackerPort,
+        outbox: TrackerOutbox | None,
     ) -> ContractorAdapter:
         """Build the contractor's read/write adapter without exposing bd transport.
 
@@ -168,6 +176,12 @@ class ContractorAdapter:
         `closure` is the ledger's answer about this task (`ledger.closure`),
         and it has no default for the reason §3.5 gives: every caller that can
         reach a close or a succession has to have decided what answers it.
+
+        `tracker` and `outbox` have no defaults for the SAME reason, learned
+        the hard way: a default bd tracker and a default absent outbox meant
+        eight of nine construction sites ignored `tracker.backend` and mirrored
+        into bd directly, unrecorded. `contractor.tracker_wiring` is where they
+        come from now, and it reads the configuration.
         """
         return cls(
             BdClient(config),
@@ -190,10 +204,13 @@ class ContractorAdapter:
         goes on. The drain is immediate because the caller is usually about to
         exit, and a row applied now is one the driver-exit drain finds nothing
         to do about.
+
+        Never a direct call. A wiring with no outbox is refused BY NAME rather
+        than allowed to write the tracker unrecorded: that branch is how eight
+        construction sites mirrored into bd behind the configuration's back.
         """
         if self._outbox is None:
-            self.tracker.apply(intent)
-            return
+            raise ContractorAdapterError(MSG_NO_OUTBOX.format(stage_id=stage_id))
         self._outbox.enqueue(stage_id, intent)
         self._outbox.drain(self.tracker, stage_id)
 

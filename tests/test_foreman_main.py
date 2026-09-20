@@ -648,16 +648,10 @@ def test_status_renders_prior_contractor_attempt_evidence_at_an_open_gate(
     assert ship_id is not None
 
     monkeypatch.setattr(
-        gate_view_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        gate_view_module, "adapter_of", lambda *_, **__: _contractor_adapter(lab)
     )
     assert gate_view_module.contractor_gate_view(
-        first.instance_key,
-        lab.config.bd,
-        root_id=root.root_id,
-        reads=lab.composition.reads_for_root(root.root_id),
-        records=lab.records,
+        first.instance_key, lab.composition, root_id=root.root_id
     ) == {
         "attempt": 2,
         "is_current_attempt": False,
@@ -719,9 +713,7 @@ def test_status_renders_current_contractor_attempt_evidence_at_an_open_gate(
     assert ship_id is not None
 
     monkeypatch.setattr(
-        gate_view_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        gate_view_module, "adapter_of", lambda *_, **__: _contractor_adapter(lab)
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
@@ -757,18 +749,12 @@ def test_contractor_gate_view_rejects_a_root_outside_stage_attempts(
     }
     seeded_records(record, into=lab.records)
     monkeypatch.setattr(
-        gate_view_module.ContractorAdapter,
-        "from_config",
-        classmethod(lambda *_, **__: _contractor_adapter(lab)),
+        gate_view_module, "adapter_of", lambda *_, **__: _contractor_adapter(lab)
     )
 
     with pytest.raises(ContractorAdapterError, match="does not own root instance_key"):
         gate_view_module.contractor_gate_view(
-            "contract:phase-1:stage-a:attempt:3",
-            lab.config.bd,
-            root_id="impostor",
-            reads=lab.store.reads,
-            records=lab.records,
+            "contract:phase-1:stage-a:attempt:3", lab.composition, root_id="impostor"
         )
 
 
@@ -802,21 +788,14 @@ def test_status_resolves_contractor_view_once_for_an_open_halt(
     lab.store.open_gate(root.root_id, halt_gate("ceiling:20"))
     resolutions = 0
 
-    def adapter_from_config(
-        _cls: type[ContractorAdapter],
-        _config: BdConfig,
-        reads: WorkflowReads,
-        **_kwargs: object,
+    def adapter_of(
+        _composition: object, reads: WorkflowReads | None = None
     ) -> ContractorAdapter:
         nonlocal resolutions
         resolutions += 1
         return _contractor_adapter(lab, reads)
 
-    monkeypatch.setattr(
-        gate_view_module.ContractorAdapter,
-        "from_config",
-        classmethod(adapter_from_config),
-    )
+    monkeypatch.setattr(gate_view_module, "adapter_of", adapter_of)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
 
     _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))

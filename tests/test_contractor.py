@@ -811,8 +811,15 @@ def test_admission_refuses_an_open_stage_with_a_landed_relation(
     fake_bd.rows[other_stage_id] = other_stage
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
+    # A real outbox over a real ledger, because the close below MIRRORS: a
+    # mirror has nowhere durable to wait without one and is refused by name
+    # rather than issued directly (§3.3).
+    _, _, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
-        fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        fake_client,
+        closure=NoLedgerClosure(),
+        records=MemoryContractorRecords(),
+        outbox=export.outbox,
     )
     admission = _admission(adapter, roots, lambda: base)
 
@@ -1035,7 +1042,10 @@ def test_landing_refuses_a_prepared_stage_without_cas_or_close(
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
@@ -1086,10 +1096,16 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     ).admitted(ROOT_ID)
     git, paths, export = _landing_context(repo, tmp_path)
     ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     ).prepare(STAGE_ID, admitted.model_copy(update={"state": ContractorState.PREPARED}))
     ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     ).admit(
         STAGE_ID,
         admitted.model_copy(update={"state": ContractorState.PREPARED}),
@@ -1098,7 +1114,12 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
     repository_gate = _RepositoryGate(artifact_oid, tree)
     landing = PhaseLanding(
-        ContractorAdapter(fake_client, closure=export.closure, records=export.records),
+        ContractorAdapter(
+            fake_client,
+            closure=export.closure,
+            records=export.records,
+            outbox=export.outbox,
+        ),
         git,
         repo,
         paths,
@@ -1114,7 +1135,12 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     assert _ref_target(repo) == artifact_oid
     assert git.ref_target(TARGET_REF, cwd=repo) == artifact_oid
     recovered = PhaseLanding(
-        ContractorAdapter(fake_client, closure=export.closure, records=export.records),
+        ContractorAdapter(
+            fake_client,
+            closure=export.closure,
+            records=export.records,
+            outbox=export.outbox,
+        ),
         git,
         repo,
         paths,
@@ -1143,7 +1169,10 @@ def test_closed_recovery_uses_the_disk_receipt_digest_without_redriving_close(
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
@@ -1204,7 +1233,9 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
     # The relation write is a ledger transition since S4 (§3.2, R4): the crash
     # this case is about is armed on the record store, not on bd.
     records = CrashingContractorRecords(export.records)
-    adapter = ContractorAdapter(fake_client, closure=export.closure, records=records)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=records, outbox=export.outbox
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1267,7 +1298,10 @@ def test_recovery_returns_human_attention_for_mismatched_receipt_identity(
     fake_bd.rows[STAGE_ID] = _stage_row(status="in_progress")
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
@@ -1314,7 +1348,10 @@ def test_landing_closed_stage_routes_to_recovery_without_a_second_cas(
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
@@ -1383,7 +1420,10 @@ def test_recovery_refuses_unrelated_history_without_closing_or_moving_a_ref(
     fake_bd.rows[STAGE_ID] = _stage_row(status="in_progress")
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
@@ -1441,7 +1481,10 @@ def test_recovery_closes_when_a_descendant_contains_the_signed_artifact(
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
@@ -1576,7 +1619,10 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
     fake_bd.rows[STAGE_ID] = _stage_row(status="in_progress")
     git, paths, export = _landing_context(repo, tmp_path)
     adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
@@ -1658,7 +1704,12 @@ def test_landing_refuses_wrong_root_directory(
     git, paths, export = _landing_context(repo, tmp_path)
     seeded_records(record, into=export.records)
     landing = PhaseLanding(
-        ContractorAdapter(fake_client, closure=export.closure, records=export.records),
+        ContractorAdapter(
+            fake_client,
+            closure=export.closure,
+            records=export.records,
+            outbox=export.outbox,
+        ),
         git,
         repo,
         WrapperPaths(paths.config, "other-root"),
@@ -1674,7 +1725,10 @@ def test_landing_refuses_wrong_root_directory(
 def test_gate_view_refuses_a_different_root_with_same_key(
     fake_bd, fake_client, monkeypatch
 ):
+    from types import SimpleNamespace
+
     from workflow_interpreter.bdio.reads import WorkflowReads
+    from workflow_interpreter.contractor import gate_view as gate_view_module
     from workflow_interpreter.contractor.gate_view import contractor_gate_view
 
     record = ContractorRecord.prepared(
@@ -1686,24 +1740,23 @@ def test_gate_view_refuses_a_different_root_with_same_key(
     ).admitted(ROOT_ID)
     fake_bd.rows[STAGE_ID] = _stage_row()
     records = seeded_records(record)
+    # The view builds its adapter through the contractor's WIRING now (S5), so
+    # that is what a lab substitutes — one seam, the same one production uses.
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        classmethod(
-            lambda *_, **kwargs: ContractorAdapter(
-                fake_client,
-                closure=NoLedgerClosure(),
-                records=kwargs["records"],
-            )
+        gate_view_module,
+        "adapter_of",
+        lambda *_, **__: ContractorAdapter(
+            fake_client,
+            WorkflowReads(fake_client),
+            closure=NoLedgerClosure(),
+            records=records,
         ),
     )
     with pytest.raises(ContractorAdapterError, match="does not own"):
         contractor_gate_view(
             record.instance_key,
-            fake_client.config,
+            SimpleNamespace(reads_for_root=lambda _: WorkflowReads(fake_client)),
             root_id="impostor",
-            reads=WorkflowReads(fake_client),
-            records=records,
         )
 
 
@@ -1756,7 +1809,12 @@ def test_policy_correspondence_refuses_before_cas(
         git.update_ref(TARGET_REF, oid, cwd=repo)
     before = _ref_target(repo)
     landing = PhaseLanding(
-        ContractorAdapter(fake_client, closure=export.closure, records=export.records),
+        ContractorAdapter(
+            fake_client,
+            closure=export.closure,
+            records=export.records,
+            outbox=export.outbox,
+        ),
         git,
         repo,
         paths,

@@ -12,17 +12,15 @@ from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.rows import RowQuery
-from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.integration import IntegrationGuard, target_key
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
-from workflow_interpreter.contractor.records import records_of
+from workflow_interpreter.contractor.tracker_wiring import adapter_of
 from workflow_interpreter.foreman.compose import Composition, instance_head
 from workflow_interpreter.foreman.execution import effective_node
 from workflow_interpreter.inspector import procfs
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.models import Liveness
 from workflow_interpreter.ledger import records as ledger_records
-from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.ledger.records import ContractorRecordRow
 from workflow_interpreter.ledger.tasks import task_epic
 from workflow_interpreter.schema.decisions import (
@@ -521,12 +519,7 @@ def _check_contractor(
         != previous.expected_base_commit
     ):
         raise CoordinationError("replacement lost contractor target base")
-    adapter = ContractorAdapter.from_config(
-        composition.config.bd,
-        composition.store.reads,
-        closure=closure_probe(composition.ledger, composition.git),
-        records=records_of(composition),
-    )
+    adapter = adapter_of(composition)
     root = composition.reads_for_root(intent.predecessor_id).load_root(
         intent.predecessor_id
     )
@@ -589,12 +582,7 @@ def _prepare_contractor(
         return intent
     previous = ContractorRecord.model_validate_json(intent.predecessor_contractor_json)
     successor = ContractorRecord.model_validate_json(intent.successor_contractor_json)
-    adapter = ContractorAdapter.from_config(
-        composition.config.bd,
-        composition.store.reads,
-        closure=closure_probe(composition.ledger, composition.git),
-        records=records_of(composition),
-    )
+    adapter = adapter_of(composition)
     adapter.integration_guard = IntegrationGuard(composition)
     if previous.integration_digest:
         from workflow_interpreter.schema.decisions import (
@@ -690,12 +678,7 @@ def _admit_contractor(
         return
     assert intent.receipt is not None
     successor = ContractorRecord.model_validate_json(intent.successor_contractor_json)
-    adapter = ContractorAdapter.from_config(
-        composition.config.bd,
-        composition.store.reads,
-        closure=closure_probe(composition.ledger, composition.git),
-        records=records_of(composition),
-    )
+    adapter = adapter_of(composition)
     guard = IntegrationGuard(composition)
     adapter.integration_guard = guard
     if successor.integration_digest:

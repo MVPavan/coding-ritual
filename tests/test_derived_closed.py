@@ -101,6 +101,7 @@ from workflow_interpreter.schema.decisions import (
     MemberAdmission,
     TrustedReplacementIntent,
 )
+from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 EPIC_ID: Final[str] = "phase-1"
 STAGE_ID: Final[str] = TASK
@@ -270,6 +271,7 @@ def _succession(
         fake_client,
         closure=TaskClosure(database, git),
         records=LedgerContractorRecords(database, backend=BackendKind.LEDGER),
+        outbox=TrackerOutbox(database),
     )
 
 

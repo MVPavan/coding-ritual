@@ -34,9 +34,9 @@ from workflow_interpreter.contractor.landing import (
     PhaseLanding,
 )
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
-from workflow_interpreter.contractor.records import RecordStoreUnavailable, records_of
+from workflow_interpreter.contractor.records import RecordStoreUnavailable
 from workflow_interpreter.contractor.retry import retry_refusal
-from workflow_interpreter.contractor.tracker_wiring import tracker_for
+from workflow_interpreter.contractor.tracker_wiring import adapter_of
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.constants import (
@@ -55,7 +55,6 @@ from workflow_interpreter.inspector.errors import (
     WrapperDirError,
 )
 from workflow_interpreter.inspector.paths import read_record
-from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.ledger.identity import mint_task
 from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import CoordinationError
@@ -217,16 +216,7 @@ def _execute(
     # §3.5: both the succession refusal and the close refusal are decided by
     # whether this task's record is already durable in git, and the adapter
     # may not open a ledger of its own.
-    adapter = ContractorAdapter.from_config(
-        composition.config.bd,
-        composition.store.reads,
-        closure=closure_probe(composition.ledger, composition.git),
-        records=records_of(composition),
-        tracker=tracker_for(composition.config.tracker, composition.config.bd),
-        outbox=None
-        if composition.ledger is None
-        else TrackerOutbox(composition.ledger),
-    )
+    adapter = adapter_of(composition)
     from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         prepared_for_stage,

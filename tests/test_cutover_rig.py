@@ -1,7 +1,7 @@
 """The S3 rig: one stage lands end to end through the PRODUCTION wiring.
 
 `tests/test_cutover.py` drives the same acceptance through doubles — it
-replaces `_composition`, `ContractorAdapter.from_config` and `Foreman.run`, and its
+replaces `_composition`, the contractor adapter's wiring and `Foreman.run`, and its
 bd side is `FakeBd`. Those tests are fast and they are kept, but between them
 and production sit the three things they replace: the composition root that
 decides which store a root is CREATED through, the adapter that talks to a real
@@ -37,13 +37,13 @@ from tests._inspector import make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import GatePayload, Outcome, canonical_payload_bytes
 from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.models import ContractorState
+from workflow_interpreter.contractor.tracker_wiring import adapter_of
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.gates import payload_template
 from workflow_interpreter.inspector.paths import fsync_dir
-from workflow_interpreter.ledger.closure import NoLedgerClosure, closed
+from workflow_interpreter.ledger.closure import closed
 from workflow_interpreter.ledger.tasks import export_oid, task_backend
 
 BD_BINARY: Final[str] = "bd"
@@ -239,9 +239,7 @@ def _approve_ship(
     """Drop the signed approval the next tick intakes, as a human does."""
     composition = _composition_for(config, stage_id)
     try:
-        record = ContractorAdapter.from_config(
-            composition.config.bd, closure=NoLedgerClosure()
-        ).record(stage_id)
+        record = adapter_of(composition).record(stage_id)
         root_id = record.root_id or ""
         reads = composition.reads_for_root(root_id)
         root = reads.load_root(root_id)
@@ -338,9 +336,7 @@ def test_a_stage_lands_end_to_end_on_a_real_rig(
 
     composition = _composition_for(config, stage)
     try:
-        record = ContractorAdapter.from_config(
-            composition.config.bd, closure=NoLedgerClosure()
-        ).record(stage)
+        record = adapter_of(composition).record(stage)
         assert record.root_backend is store
         assert record.state is ContractorState.LANDED
         shown = json.loads(_bd(bd_workspace, "show", stage, "--json"))
@@ -503,9 +499,7 @@ def test_a_debrief_the_real_crew_broke_reaches_triage_and_never_ship(
 
     composition = _composition_for(config, stage)
     try:
-        record = ContractorAdapter.from_config(
-            composition.config.bd, closure=NoLedgerClosure()
-        ).record(stage)
+        record = adapter_of(composition).record(stage)
         root_id = record.root_id or ""
         reads = composition.reads_for_root(root_id)
         debriefs = [
@@ -560,9 +554,7 @@ def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
 
     composition = _composition_for(config, stage)
     try:
-        first = ContractorAdapter.from_config(
-            composition.config.bd, closure=NoLedgerClosure()
-        ).record(stage)
+        first = adapter_of(composition).record(stage)
         abandoned_root = first.root_id or ""
         pins = subprocess.check_output(
             [
@@ -604,9 +596,7 @@ def test_an_abandoned_attempt_keeps_its_knowledge_while_the_next_one_lands(
 
     composition = _composition_for(config, stage)
     try:
-        second = ContractorAdapter.from_config(
-            composition.config.bd, closure=NoLedgerClosure()
-        ).record(stage)
+        second = adapter_of(composition).record(stage)
     finally:
         if composition.ledger is not None:
             composition.ledger.close()

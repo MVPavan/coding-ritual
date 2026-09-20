@@ -25,10 +25,9 @@ from pydantic import TypeAdapter
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.bdio.rows import RowQuery
-from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
-from workflow_interpreter.contractor.records import records_of
+from workflow_interpreter.contractor.tracker_wiring import adapter_of
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.execution import resolved_node
@@ -690,12 +689,7 @@ def prepare_integration(
 ) -> ContractorRecord:
     """Persist fixed intent before admitting exactly one P3 child root."""
     guard = IntegrationGuard(composition)
-    adapter = ContractorAdapter.from_config(
-        composition.config.bd,
-        composition.store.reads,
-        closure=closure_probe(composition.ledger, composition.git),
-        records=records_of(composition),
-    )
+    adapter = adapter_of(composition)
     adapter.integration_guard = guard
     # The CONFIGURED tracker (§3.3), not bd: an integration prepared in a
     # repository on the file tracker used to be validated against a bd row
@@ -847,12 +841,7 @@ def resume_integration(
     composition: Composition, association: IntegrationAssociation
 ) -> ContractorRecord:
     guard = IntegrationGuard(composition)
-    adapter = ContractorAdapter.from_config(
-        composition.config.bd,
-        composition.store.reads,
-        closure=closure_probe(composition.ledger, composition.git),
-        records=records_of(composition),
-    )
+    adapter = adapter_of(composition)
     adapter.integration_guard = guard
     owner = association.request.owner_id
     with BandLock(guard.shared.target_lock_path(association.target_key)):
@@ -1140,12 +1129,7 @@ def command(composition: Composition, args: object) -> str:
     association = prepared_for_stage(composition, args.epic_id, args.stage_id)
     if association is None:
         raise ContractorRefusal("integration association is absent")
-    adapter = ContractorAdapter.from_config(
-        composition.config.bd,
-        composition.store.reads,
-        closure=closure_probe(composition.ledger, composition.git),
-        records=records_of(composition),
-    )
+    adapter = adapter_of(composition)
     record = adapter.stored_record(args.stage_id)
     if args.integration_command == "retry":
         if record is None:

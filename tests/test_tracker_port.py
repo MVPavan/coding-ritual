@@ -27,6 +27,7 @@ from tests.test_contractor_in_ledger import (
     EPIC,
     STAGE,
     STAGE_BRIEF,
+    _abandon,
     _lab,
     _prepare_only,
 )
@@ -36,7 +37,10 @@ from workflow_interpreter.contractor.adapter import (
     ContractorAdapterError,
 )
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
-from workflow_interpreter.contractor.tracker_config import TrackerSettings
+from workflow_interpreter.contractor.tracker_config import (
+    TrackerBackend,
+    TrackerSettings,
+)
 from workflow_interpreter.contractor.tracker_wiring import attention_writer
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.ledger.closure import closed
@@ -418,6 +422,48 @@ def test_a_tracker_without_blockers_records_the_gap_or_refuses(
         return
     assert result.exit_code == 0, result.report
     assert _record(lab).blockers_checked is False
+
+
+@pytest.mark.acceptance
+def test_abandon_closes_the_tracker_the_configuration_names(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signing_config, sign_payload
+) -> None:
+    """§3.3: the mirror goes where `tracker.backend` says, through the outbox.
+
+    The whole command runs on production's own wiring — no adapter is
+    substituted, and `tracker_for` builds the port from the configuration —
+    because that wiring was the defect: eight of nine construction sites
+    defaulted to a bd tracker and to no outbox, so `wf phase abandon` in a
+    repository whose tasks live in a FILE closed a bd bead instead, with no
+    pending row to say the real item was never touched.
+    """
+    lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
+    _file_tracker(lab, STAGE)
+    document = lab.repo.parent / "tracker.json"
+    # Nothing injected: `tracker_for` reads this and builds the port itself.
+    lab.tracker = None
+    lab.composition = replace(
+        lab.composition,
+        config=lab.composition.config.model_copy(
+            update={
+                "tracker": TrackerSettings(backend=TrackerBackend.FILE, path=document)
+            }
+        ),
+    )
+    lab.halt_after_implement = True
+    assert _entry(lab, STAGE).exit_code == 0
+    served = len(lab.fake_bd.calls)
+
+    exit_code, report = _abandon(lab, STAGE)
+
+    assert (exit_code, report["state"]) == (0, "abandoned")
+    item = FileTracker(document, actor=ACTOR).get(
+        TrackerRef(kind=TrackerKind.FILE, ref=STAGE)
+    )
+    assert item is not None and item.status is WorkItemStatus.CLOSED
+    assert lab.fake_bd.rows[STAGE]["status"] != "closed"
+    assert lab.fake_bd.calls[served:] == []
+    assert _outbox(lab).pending() == ()
 
 
 def test_the_adapter_keeps_no_bd_read_beside_the_port() -> None:

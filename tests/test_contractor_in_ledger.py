@@ -35,6 +35,7 @@ from workflow_interpreter.bdio.backend import SelectableBackendFactory
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor import command as command_module
+from workflow_interpreter.contractor import tracker_wiring
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.landing import LandingHooks
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
@@ -50,6 +51,7 @@ from workflow_interpreter.ledger.constants import TrackerKind
 from workflow_interpreter.ledger.paths import export_path
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.tracker.bd import BdTracker
 
 EPIC: Final[str] = "phase"
 """The parent `_contractor_stage` writes, and therefore the CLI's epic id."""
@@ -98,23 +100,29 @@ def _lab(
     for stage in stages:
         lab.fake_bd.rows[stage] = _contractor_stage(stage, description=STAGE_BRIEF)
     lab.halt_after_implement = False
-    # Which PORT the contractor runs on (S5). `None` is the bd adapter over
-    # this lab's own fake transport, which is production's wiring; a case
-    # about another tracker sets it before the first entry point runs.
-    lab.tracker = None
+    # Which PORT the contractor runs on (S5). The default is the bd adapter
+    # over this lab's own fake TRANSPORT — production's wiring, minus the
+    # subprocess — and a case about another tracker sets a port here before the
+    # first entry point runs. `None` means "let the configuration decide", so a
+    # case can exercise `tracker_for` itself.
+    lab.tracker = BdTracker(BdClient(lab.config.bd, lab.fake_bd))
     verifier = GateVerifier(signing_config, lab.config.bd.workspace)
     monkeypatch.setattr(
         main_module, "_composition", lambda args: _scoped(lab, verifier, args.stage_id)
     )
+    # The ADAPTER is built by production's own wiring (S5 fix): it reads
+    # `config.tracker`, it always holds the ledger's outbox, and the only thing
+    # the lab substitutes is which port object that wiring returns — a
+    # `_Decorated` counter or a pre-populated file document cannot be spelled
+    # in a config file.
+    real_tracker_for = tracker_wiring.tracker_for
     monkeypatch.setattr(
-        ContractorAdapter,
-        "from_config",
-        # `reads` is the composition's own store, exactly as
-        # `ContractorAdapter.from_config` is given it in production: an adapter
-        # left to build bd reads of its own would answer "this instance has no
-        # root" from a tracker that holds no roots at all.
-        classmethod(
-            lambda *_, **__: _contractor_adapter(lab, lab.store.reads, lab.tracker)
+        tracker_wiring,
+        "tracker_for",
+        lambda settings, config, client=None: (
+            real_tracker_for(settings, config, client)
+            if lab.tracker is None
+            else lab.tracker
         ),
     )
     monkeypatch.setattr(Foreman, "run", _drive(lab))

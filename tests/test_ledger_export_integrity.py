@@ -245,7 +245,7 @@ def test_the_close_after_a_pin_leaves_the_exported_record_untouched(
         pinned_oid = pin.pin(TASK, BackendKind.LEDGER)
         as_pinned = exported.read_bytes()
         adapter = ContractorAdapter(
-            fake_client, closure=pin.closure, records=pin.records
+            fake_client, closure=pin.closure, records=pin.records, outbox=pin.outbox
         )
 
         adapter.close(TASK, landed, LANDING_RECEIPT)

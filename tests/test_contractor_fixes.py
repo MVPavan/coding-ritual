@@ -51,7 +51,10 @@ def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
     git, paths, export = _landing_context(repo, tmp_path)
     seeded_records(record, into=export.records)
     adapter = ContractorAdapter(
-        fake_client, closure=export.closure, records=export.records
+        fake_client,
+        closure=export.closure,
+        records=export.records,
+        outbox=export.outbox,
     )
     authority = _GateAuthority(oid, tree, gate_verifier, sign_payload)
     checks = _RepositoryGate(oid, tree)
