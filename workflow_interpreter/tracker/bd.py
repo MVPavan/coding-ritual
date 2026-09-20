@@ -124,11 +124,17 @@ class BdTracker:
         until S4), so it is the one adapter that can answer whether a task is
         still in flight in that retired home. The caller
         (`contractor/quiesce.py`) owns what the keys mean; this answers only
-        what is there. An unreadable item carries nothing to refuse over.
+        what is there.
+
+        A transport failure is NOT an empty answer. Swallowing one made R12's
+        refusal skippable by a single `bd show` timeout — the one guard whose
+        whole value is that it cannot be missed — so the failure propagates and
+        the caller refuses by name (S6 review, finding 5). Only an UNREADABLE
+        answer is "nothing here": bd ran, spoke, and had no row to show.
         """
         try:
             return self._client.show(ref).metadata
-        except StoreError:
+        except StoreOutputError:
             return {}
 
     def blockers(self, ref: TrackerRef) -> tuple[Blocker, ...]:

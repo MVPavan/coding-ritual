@@ -23,6 +23,8 @@ from typing import Final, Protocol, runtime_checkable
 
 from pydantic import JsonValue
 
+from workflow_interpreter.bdio.errors import StoreError
+
 LEGACY_RECORD_KEYS: Final[frozenset[str]] = frozenset({"contractor", "phase_bridge"})
 """The bead-metadata keys the record was ever stored under.
 
@@ -42,6 +44,11 @@ MSG_NOT_QUIESCED: Final[str] = (
     "task {task_id!r} still carries a contractor record in the item's metadata "
     "under {key!r}, at state {state!r}: that home was retired in S4 and this "
     "build reads no shim for it (store-restructure R12). Remedy: " + MSG_REMEDY
+)
+MSG_PROBE_FAILED: Final[str] = (
+    "the R12 quiesce probe could not read task {task_id!r} from the tracker: "
+    "{reason}. A probe that cannot answer refuses: retry once the tracker is "
+    "reachable, or, if the task is known to be finished there, " + MSG_REMEDY
 )
 
 _STATE_FIELD: Final[str] = "state"
@@ -73,7 +80,14 @@ def assert_quiesced(tracker: object, task_id: str) -> None:
     """
     if not isinstance(tracker, LegacyMetadata):
         return
-    metadata = tracker.legacy_metadata(task_id)
+    try:
+        metadata = tracker.legacy_metadata(task_id)
+    except StoreError as unreadable:
+        # Fail CLOSED: a probe whose whole value is that it cannot be missed
+        # must not be skippable by one transport failure (S6 review, 5).
+        raise NotQuiesced(
+            MSG_PROBE_FAILED.format(task_id=task_id, reason=unreadable)
+        ) from unreadable
     for key in sorted(LEGACY_RECORD_KEYS):
         held = metadata.get(key)
         if not isinstance(held, Mapping):

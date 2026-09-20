@@ -16,6 +16,7 @@ rather than a task this build silently treats as unprepared.
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
 
@@ -24,10 +25,21 @@ import pytest
 from tests.test_contractor_cli import _entry
 from tests.test_contractor_in_ledger import STAGE, _lab
 from tests.test_tracker_port import _Decorated, _file_tracker, _outbox
-from workflow_interpreter.contractor.quiesce import LEGACY_RECORD_KEYS, MSG_REMEDY
+from workflow_interpreter.contractor.quiesce import (
+    LEGACY_RECORD_KEYS,
+    MSG_REMEDY,
+    NotQuiesced,
+    assert_quiesced,
+)
 from workflow_interpreter.contractor.tracker_wiring import repair_mirror
 from workflow_interpreter.ledger.closure import closed
 from workflow_interpreter.ledger.paths import export_path, repo_id_path
+from workflow_interpreter.tracker.bd import BdTracker
+from workflow_interpreter.tracker.bd_transport import (
+    BdClient,
+    BdConfig,
+    CompletedCommand,
+)
 from workflow_interpreter.tracker.constants import WorkItemStatus
 from workflow_interpreter.tracker.models import TrackerRef
 
@@ -116,3 +128,25 @@ def test_an_in_flight_record_in_the_old_home_refuses_by_name(
     assert STAGE in reason
     assert state in reason
     assert MSG_REMEDY in reason
+
+
+@pytest.mark.acceptance
+def test_a_quiesce_probe_that_cannot_answer_refuses(tmp_path: Path) -> None:
+    """R12 fails CLOSED: one `bd show` timeout may not skip the guard.
+
+    The probe used to read every transport failure as "carries nothing", so a
+    single timeout on a stage whose old-home record says `admitted` let the
+    command mint a second id for work already running — the exact shape R12
+    exists to refuse. A probe that cannot answer refuses by name instead.
+    """
+
+    def times_out(argv: Sequence[str], timeout_s: float) -> CompletedCommand:
+        raise subprocess.TimeoutExpired(list(argv), timeout_s)
+
+    tracker = BdTracker(BdClient(BdConfig(workspace=tmp_path, actor="test"), times_out))
+
+    with pytest.raises(NotQuiesced) as refusal:
+        assert_quiesced(tracker, STAGE)
+
+    assert STAGE in str(refusal.value)
+    assert MSG_REMEDY in str(refusal.value)
