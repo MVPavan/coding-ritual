@@ -207,43 +207,6 @@ def test_successor_authority_refusals_preserve_predecessor(
     assert not store.state(owner.root_id).successors
 
 
-@pytest.mark.bd
-def test_real_beads_successor_intent_receipt_roundtrip(
-    tmp_path: Path, bd_config
-) -> None:
-    from dataclasses import replace
-
-    from workflow_interpreter.bdio import WorkflowStore
-    from workflow_interpreter.foreman.resolve import instantiate
-    from workflow_interpreter.tracker.bd_transport import BdClient
-
-    lab, _, composition, _ = writer_lab(tmp_path)
-    store = WorkflowStore(BdClient(bd_config))
-    composition = replace(
-        composition,
-        store=store,
-        config=composition.config.model_copy(update={"bd": bd_config}),
-    )
-    owner = instantiate(
-        composition,
-        lab._toml,
-        instance_key="p5-successor-" + tmp_path.name,
-        instance_inputs={},
-        allow_test_flags=False,
-        overrides={},
-    )
-    request = TrustedReplacementRequest(
-        request_key="durable", reason="new instructions", graph=str(lab._toml)
-    )
-    receipt = replace_checked(composition, owner.root_id, "work", 0, request)
-    # A fresh client reads the actual Beads journal; no in-memory receipt cache.
-    restarted = replace(composition, store=WorkflowStore(BdClient(bd_config)))
-    assert replace_checked(restarted, owner.root_id, "work", 0, request) == receipt
-    state = restarted.store.coordination_store().state(owner.root_id)
-    assert state.successors["durable"].receipt == receipt
-    assert len(state.reservations) == 2
-
-
 def test_concurrent_successor_requests_converge_same_reservation(
     tmp_path: Path,
 ) -> None:

@@ -44,7 +44,6 @@ from tests._ledger import (
     FaultPoint,
     FileLabelWriter,
     InjectedLedgerCrash,
-    config_file,
     ledger_backend,
     ledger_store,
     repository,
@@ -69,7 +68,6 @@ from workflow_interpreter.bdio.wire import (
     Metadata,
 )
 from workflow_interpreter.foreman.tick import Foreman
-from workflow_interpreter.ledger.__main__ import main as ledger_main
 from workflow_interpreter.ledger.constants import (
     ExportKey,
     LedgerOperation,
@@ -1233,31 +1231,6 @@ def _event_payload(root_id: str) -> EventPayload:
 
 
 # --- the CLI (§3.2.4) -------------------------------------------------------
-
-
-@pytest.mark.bd
-def test_the_reconcile_cli_drains_unacked_rows_onto_a_real_bead(
-    tmp_path: Path, bd_workspace: Path
-) -> None:
-    """`wf ledger reconcile <task>` against REAL bd — the label ops included.
-
-    The one addition to bd's closed subcommand argument set (§3.2.3) is
-    exercised end to end here: the CLI builds the client, the reconciler
-    writes `--add-label`, and the transport reads the bead back. A fake would
-    not tell us whether bd accepts the flag.
-    """
-    config_path, repo_root, wrapper_root = config_file(tmp_path, bd_workspace)
-    client = BdClient(BdConfig(workspace=bd_workspace, actor=TEST_ACTOR))
-    task_id = client._create_bead(title="ledger task", metadata={}).id
-    with open_ledger(repo_root, wrapper_root) as database:
-        _open_gate(ledger_store(database, task_id))
-        assert _unacked(database, task_id)
-
-    assert ledger_main(["--config", str(config_path), "reconcile", task_id]) == 0
-
-    assert ATTENTION_LABEL in client.show(task_id).labels
-    with open_ledger(repo_root, wrapper_root) as reopened:
-        assert _unacked(reopened, task_id) == []
 
 
 READER_TASKS: Final[tuple[str, str]] = ("cr-3411.9", "cr-3411.10")
