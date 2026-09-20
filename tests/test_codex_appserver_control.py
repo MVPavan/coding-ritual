@@ -75,31 +75,6 @@ def test_control_identity_cannot_be_retargeted(fake_store):
         )
 
 
-@pytest.mark.bd
-def test_real_bd_control_intent_is_durable(store):
-    """An isolated bd records intent before any host inbox or protocol action."""
-    registration = registered_activation(store)
-    store.register_session(registration.activation_id, registration)
-    control = store.reserve_in_place_steer(
-        registration.activation_id, registration, "turn-1", "digest"
-    )
-    assert store.reads.load_activation(
-        registration.activation_id
-    ).metadata.in_place_controls == (control,)
-    store.record_control_state(
-        registration.activation_id, control, ControlState.UNCERTAIN
-    )
-    store.record_control_state(
-        registration.activation_id,
-        control.model_copy(update={"state": ControlState.UNCERTAIN}),
-        ControlState.RESOLVED,
-        resolution_reason="operator inspected uncertainty",
-    )
-    persisted = store.reads.load_activation(registration.activation_id).metadata
-    assert persisted.in_place_controls[0].state is ControlState.RESOLVED
-    assert persisted.deviations[-1].kind == "control_uncertain"
-
-
 def test_live_in_place_control_is_acknowledged_without_an_activation(
     tmp_path, monkeypatch
 ):

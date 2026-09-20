@@ -16,7 +16,7 @@ from tests._bdio import (
 from tests._inspector import entry_mint
 from tests._profiles import task_builder
 from workflow_interpreter.bdio import CarrierIntegrityError
-from workflow_interpreter.bdio.rpc_records import SessionCompletion, SessionRegistration
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.inspector import procfs
 from workflow_interpreter.inspector.launch import Dispatcher
 from workflow_interpreter.inspector.models import LaunchReceipt, RecoveryCase
@@ -99,22 +99,6 @@ def test_registered_thread_cannot_be_replaced(fake_store):
             registration.activation_id,
             registration.model_copy(update={"thread_id": "thread-2"}),
         )
-
-
-@pytest.mark.bd
-def test_real_bd_session_registration(store):
-    """Typed registration roundtrips through an isolated real bd database."""
-    registration = registered_activation(store)
-    record = store.register_session(registration.activation_id, registration)
-    assert record.metadata.session_registration == registration
-    assert store.register_session(registration.activation_id, registration) == record
-    completion = SessionCompletion(registration=registration, turn_id="turn-1")
-    completed = store.record_session_completion(registration.activation_id, completion)
-    assert completed.metadata.session_completion == completion
-    assert (
-        store.record_session_completion(registration.activation_id, completion)
-        == completed
-    )
 
 
 def test_dead_rpc_owner_is_recovered_without_reconnecting_or_resubmitting(tmp_path):

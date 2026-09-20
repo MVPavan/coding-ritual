@@ -13,6 +13,8 @@ call would prove only that the caller reads its own stub.
 
 from __future__ import annotations
 
+import json
+import subprocess
 import threading
 from collections.abc import Callable
 from dataclasses import replace
@@ -23,6 +25,7 @@ import pytest
 
 from tests._fake_bd import FakeBd, InjectedCrash
 from tests._foreman import LAB_TASK, ForemanLab
+from tests.conftest import BD_BINARY, LIST_TIMEOUT_S
 from tests.test_contractor_cli import _entry
 from tests.test_contractor_in_ledger import (
     EPIC,
@@ -714,6 +717,44 @@ def test_the_bd_adapter_holds_one_claim_at_a_time(
     assert isinstance(released, Applied)
     assert not fake_bd.rows[STAGE]["assignee"]
     assert fake_bd.rows[STAGE]["status"] == "open"
+
+
+CLOSE_REASON: Final[str] = "outcome=done"
+
+
+@pytest.mark.bd
+def test_the_bd_adapter_claims_and_closes_a_real_bead(bd_client: BdClient) -> None:
+    """The ONE test that spawns a real `bd`: claim → close → read back.
+
+    Everything else about the port is proven against `FakeBd`, which is a
+    model of bd rather than bd. What only the binary can answer is whether
+    `--assignee` and `bd close --reason` still mean what the adapter reads
+    them as — so this is the lane-2 canary for a bd upgrade, and the marker
+    means "spawns bd" here and nowhere else. Skipped when bd is absent.
+    """
+    created = subprocess.run(
+        [BD_BINARY, "create", "tracker port conformance", "--json"],
+        cwd=bd_client.config.workspace,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=LIST_TIMEOUT_S,
+    )
+    ref = TrackerRef(kind=TrackerKind.BD, ref=json.loads(created.stdout)["id"])
+    tracker = BdTracker(bd_client)
+
+    claimed = tracker.apply(Claim(ref=ref, actor=ACTOR))
+
+    assert isinstance(claimed, Applied)
+    assert claimed.observed is not None and claimed.observed.claimed_by == ACTOR
+
+    closed = tracker.apply(Close(ref=ref, reason=CLOSE_REASON))
+
+    assert isinstance(closed, Applied)
+    read_back = tracker.get(ref)
+    assert read_back is not None
+    assert read_back.status is WorkItemStatus.CLOSED
+    assert read_back.close_reason == CLOSE_REASON
 
 
 class _RacingTracker(FileTracker):

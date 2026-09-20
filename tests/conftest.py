@@ -254,18 +254,6 @@ def ledger(ledger_repo: tuple[Path, Path]) -> Iterator[LedgerDatabase]:
 
 
 @pytest.fixture
-def store(fake_store: WorkflowStore) -> WorkflowStore:
-    """The typed write API over this test's ledger.
-
-    It used to be "wired to real bd", and after S6 there is one record store
-    (R1) — so the distinction between this fixture and `fake_store` was the
-    transport, and the transport is gone. Kept as a name because dozens of
-    tests ask for it.
-    """
-    return fake_store
-
-
-@pytest.fixture
 def documents() -> Documents:
     """The mutable gate document, as approved (§9 artifact reader)."""
     return Documents({PLAN_REF: APPROVED_TEXT})

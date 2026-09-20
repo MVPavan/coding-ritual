@@ -4,7 +4,7 @@ import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
 from tests._gates import open_ship_gate, open_triage_gate
-from workflow_interpreter.bdio import CarrierIntegrityError, WorkflowStore
+from workflow_interpreter.bdio import CarrierIntegrityError
 from workflow_interpreter.bdio.bounds import ceiling_count, effective_bound
 from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
@@ -56,21 +56,6 @@ def test_same_key_with_different_payload_is_refused(fake_store):
         fake_store.append_wake_event(
             root.root_id, event.model_copy(update={"detail": "different"})
         )
-
-
-@pytest.mark.bd
-def test_real_bd_wake_roundtrip_is_idempotent_and_not_a_transition(
-    store: WorkflowStore,
-):
-    """Use the isolated bd fixture, never the coordinator task database."""
-    root = make_root(store, load_definition())
-    event = event_for(root)
-    first = store.append_wake_event(root.root_id, event)
-    assert first.metadata["seq"] == -1
-    assert store.append_wake_event(root.root_id, event).id == first.id
-    assert store.reads.list_wake_events(root.root_id) == (event,)
-    assert ceiling_count(store.reads.instance_records(root.root_id)) == 0
-    assert build_frontier(root, store.reads.instance_records(root.root_id)).empty
 
 
 def test_ambiguous_bd_write_is_refound_without_duplicate(fake_store, monkeypatch):

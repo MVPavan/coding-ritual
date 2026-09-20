@@ -9,7 +9,6 @@ from tests.test_children_process import writer_lab
 from workflow_interpreter.foreman.decisions import admission_of
 
 
-@pytest.mark.bd
 def test_signed_halt_resolution_unblocks_child(tmp_path, signing_config, sign_payload):
     from tests._foreman import ForemanLab
     from tests.test_children_lifecycle import FIXTURE, child_admission
