@@ -39,6 +39,29 @@ EXPORT_REF_TEMPLATE: Final[str] = "refs/wf/exports/{task_id}"
 Here rather than in `contractor/journal.py`, which writes it, because
 `ledger/reverify.py` reads it as the anchor that says which export bytes the
 closing merge actually recorded — and the ledger may not import the contractor."""
+CHECKPOINT_REF_TEMPLATE: Final[str] = "refs/wf/checkpoints/{task_id}"
+"""Where a task's CHECKPOINT blob is pinned at every activation close (§3.9, R10).
+
+A namespace of its own, beside `refs/wf/exports/` and never inside it, because
+that separation IS the distinction closure rests on: `reverify.anchor_oid`
+reads the committed blob and the export ref, so a task carrying nothing but
+checkpoints can never derive `closed()` however many of them it has. Local and
+never pushed — one ref per task, overwritten, so the blobs it drops become
+unreachable and git gc collects them."""
+CHECKPOINT_DIR: Final[str] = "checkpoint"
+"""`<git common dir>/wf/checkpoint/` — where checkpoint bytes are STAGED.
+
+Beside the fence rather than in `.wf/`: the bytes have to reach `git
+hash-object` through a file, and a file in the working tree would be dirt the
+coordinator cleanliness checks count against the next stage — or, under
+`.wf/export/`, a file the orchestrator would commit as if it were a close."""
+CHECKPOINT_BYTES_LIMIT: Final[int] = 64 * 1024 * 1024
+"""The most a checkpoint blob may be read back as, on a rebuild.
+
+A bound rather than a stream because the whole export is parsed in memory
+anyway; it exists so a corrupt or hostile ref cannot make a rebuild allocate
+without limit. Far above any real task: the largest export this engine writes
+is thousands of rows, not millions."""
 IGNORE_FILE: Final[str] = ".gitignore"
 IGNORE_BODY: Final[str] = (
     "# Engine state (run-ledger \u00a73.5, D4): the database is this machine's.\n"

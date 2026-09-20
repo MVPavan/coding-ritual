@@ -35,3 +35,20 @@ class BranchHeadReader(Protocol):
     """
 
     def __call__(self) -> str: ...  # pragma: no cover
+
+
+class CheckpointSink(Protocol):
+    """Anchors the task's rows outside the database at an activation close.
+
+    A capability rather than something the store derives, for the reason the
+    two above are: anchoring needs a git seam, and a record store that built
+    its own would be a second opinion about which checkout it belongs to. A
+    wiring with no sink takes none and checkpoints nothing — losing the
+    database is then exactly as costly as it was before S7.
+
+    Never raises: the activation's facts are already committed when this is
+    called, and a checkpoint is insurance against losing the ledger, not a
+    gate on the run (store-restructure §3.9, R10).
+    """
+
+    def checkpoint(self, task_id: str) -> None: ...  # pragma: no cover

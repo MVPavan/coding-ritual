@@ -37,7 +37,11 @@ from workflow_interpreter.bdio import (
     transitions,
 )
 from workflow_interpreter.bdio.bounds import BoundRefusal
-from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadReader
+from workflow_interpreter.bdio.capabilities import (
+    ArtifactReader,
+    BranchHeadReader,
+    CheckpointSink,
+)
 from workflow_interpreter.bdio.claims import ClaimStore
 from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.errors import (
@@ -140,6 +144,7 @@ class WorkflowStore:
         branch_head_reader: BranchHeadReader | None = None,
         member_band: object | None = None,
         claims: ClaimStore | None = None,
+        checkpoint: CheckpointSink | None = None,
     ) -> None:
         self._member_band = member_band
         self._client = client
@@ -147,6 +152,7 @@ class WorkflowStore:
         self._verifier = verifier
         self._artifact_reader = artifact_reader
         self._branch_head_reader = branch_head_reader
+        self._checkpoint = checkpoint
         self._reads = reads.WorkflowReads(client)
 
     def for_root(
@@ -157,10 +163,11 @@ class WorkflowStore:
     ) -> WorkflowStore:
         """Derive a root-scoped store without replacing injected capabilities.
 
-        The verifier and artifact reader are process-scoped authority; a root
-        contributes its branch-head reader and its execution band. There is
-        one record store (R1), so the ledger this store was built on is the
-        ledger every root of it is served by — nothing is located.
+        The verifier, artifact reader and checkpoint sink are process-scoped
+        authority; a root contributes its branch-head reader and its execution
+        band. There is one record store (R1), so the ledger this store was
+        built on is the ledger every root of it is served by — nothing is
+        located.
         """
         return WorkflowStore(
             self._client,
@@ -169,6 +176,7 @@ class WorkflowStore:
             branch_head_reader=branch_head_reader,
             member_band=member_band,
             claims=self._claims,
+            checkpoint=self._checkpoint,
         )
 
     @property
@@ -480,8 +488,15 @@ class WorkflowStore:
         usage: Usage | None = None,
         deviations: Sequence[Deviation] = (),
     ) -> ActivationRecord:
-        """Close with the outcome that IS the routing truth (§3.3)."""
-        return activation_writes.close_activation(
+        """Close with the outcome that IS the routing truth (§3.3).
+
+        The one seam every activation close passes through — the foreman's,
+        the inspector's recovery, a steer's repair — which is why the
+        checkpoint is taken HERE and not at each of them (§3.9, R10). AFTER
+        the close has committed, so the anchored bytes carry the outcome that
+        was just decided, and never in a way that can fail it.
+        """
+        closed = activation_writes.close_activation(
             self,
             activation_id,
             outcome,
@@ -489,6 +504,9 @@ class WorkflowStore:
             usage=usage,
             deviations=deviations,
         )
+        if self._checkpoint is not None:
+            self._checkpoint.checkpoint(self._client.task_id)
+        return closed
 
     def supersede_activation(self, loser_id: str, winner_id: str) -> ActivationRecord:
         """Append-only race resolution: never `bd delete`, never reopen (§3.2)."""

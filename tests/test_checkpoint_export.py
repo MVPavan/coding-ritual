@@ -248,7 +248,10 @@ def test_a_checkpoint_the_seam_cannot_write_does_not_fail_the_activation(
 
     git = RefusingGit(
         InspectorConfig(
-            repo_root=repo, wrapper_root=wrapper_root, host=HOST, sandbox=SandboxMode.OFF
+            repo_root=repo,
+            wrapper_root=wrapper_root,
+            host=HOST,
+            sandbox=SandboxMode.OFF,
         )
     )
     with open_ledger(repo, wrapper_root) as database:

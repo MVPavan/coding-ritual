@@ -72,6 +72,7 @@ from workflow_interpreter.inspector.clock import SystemClock
 from workflow_interpreter.inspector.errors import ContinuationRefused, LockUnavailable
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.rpc_control import read_instructions
+from workflow_interpreter.ledger.checkpoint import TaskCheckpoint
 from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.constants import MSG_EPIC_REQUIRED
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
@@ -195,6 +196,11 @@ def _composition(args: argparse.Namespace) -> Composition:
             if config.signing is None
             else GateVerifier(config.signing, config.repo_root),
             claims=LedgerClaims(ledger),
+            # The composition root is where a git seam exists to give: every
+            # activation close anchors the task's rows outside the database,
+            # so deleting `.wf/ledger.db` mid-run costs a rebuild rather than
+            # the attempt (§3.9, R10).
+            checkpoint=TaskCheckpoint(ledger, Git(config.inspector)),
         ),
         inspector_config=config.inspector,
         git=Git(config.inspector),
