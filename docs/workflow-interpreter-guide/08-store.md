@@ -1,100 +1,100 @@
 # 08 — Store and run ledger
 
-## Why the seam exists
+The **record store** holds every fact the engine decides on: one SQLite ledger at
+`<repo>/.wf/ledger.db`, gitignored, exported per task into git. It is the only one; the
+tracker is a mirror, and chapter [11](11-language-and-pluggability.md) owns it.
 
-Every write goes through one API: `WorkflowStore` (`bdio/api.py`). Nothing above it
-names a transport. Underneath is a `StoreBackend` protocol with a deliberately tiny
-surface:
-
-**Reads:** `get_row`, `find_rows`, `identity`, `probe`, `kind`
-**Writes:** `_create_row`, `_merge_metadata`, `_claim_and_merge_metadata`,
-`_close_row`, `_close_gate`
-
-Five write methods for the entire system. Minting, dispatching, grading, gates, events
-and findings are all composed from those five over typed carriers stored in metadata.
-That is what made a second backend possible at all.
-
-## Two backends
-
-| | **bd (Beads)** | **Run ledger** |
-|---|---|---|
-| Storage | The beads workspace | SQLite at `<repo>/.wf/ledger.db` |
-| Row identity | Bead ids | `task_id` + per-task `seq` |
-| Concurrency | bd's own | `BEGIN IMMEDIATE` + a `flock` fence |
-| Good at | Being visible to humans and `bd` tooling | Speed, atomicity, not polluting the tracker |
-
-The same `WorkflowReads` runs over both unchanged, because every query is expressed as
-carrier filters and every carrier lives in `metadata_json`.
-
-**One backend is pinned per root at creation and never changes.** A root is never moved
-between stores.
-
-## Choosing the backend
-
-`RootBackendLocator` must answer *before* the root is loaded — you cannot read the root
-to learn where to read the root. Three sources in order (`foreman/locator.py:1-40`):
-
-1. **The contractor record's `root_backend`**, written at prepare — the only source that
-   can answer for a root that does not exist yet.
-2. **The ledger's `roots` row**, or its `tasks` row for a run with no contractor.
-3. **A refusal.** A root nobody pinned could be read from the wrong store, and reading
-   it from the wrong store *"would report a live run as missing."*
-
-If the contractor record and the store disagree it refuses rather than preferring one:
-*"neither answer may be preferred silently."*
+`WorkflowStore` (`bdio/api.py`) is the typed write surface, `WorkflowReads` the read
+one, and `LedgerStore` (`ledger/store.py`) the only implementation — nothing is pinned,
+located or selected per root. **Reads:** `get_row`, `find_rows`, `probe` · **Writes:**
+`_create_row`, `_merge_metadata`, `_close_row`, `_close_gate`. Minting, dispatch,
+grading, gates, events and findings compose from those four over typed carriers in
+`metadata_json`.
 
 ## The ledger's rules
 
-Fifteen tables: `meta`, `tasks`, `roots`, `activations`, `gates`, `nonces`,
-`signatures`, `events`, `sessions`, `findings`, `artifacts`, `usage`, `landings`,
-`projections`, `restore_pending`. The schema version is *derived* from the migration
-list length, not declared.
+Eighteen tables (`ledger/schema.py`), from `meta` and `tasks` through
+`contractor_records`, `claims` and `tracker_outbox`. `SCHEMA_VERSION` is *derived* from
+`len(MIGRATIONS)`, so a migration cannot be added without moving the version; migrations
+are forward-only, and `_refuse_unfoldable_state` guards the v4→v5 fold against a
+database still carrying `tasks.state`.
 
-**Opening is four steps in a fixed order** (`ledger/database.py:1-20`): migrate under
-an **exclusive** fence; take the **shared** fence and hold it for the connection's
-life; apply pragmas; verify the `repo_hash` and `wrapper_root` pins before answering
-anything. The order matters because `flock` is per open file description — a second
-descriptor asking for `LOCK_EX` would block on your own `LOCK_SH`.
+**Opening is four steps in a fixed order** (`ledger/database.py`): migrate under an
+**exclusive** fence; take the **shared** fence and hold it for the connection's life;
+apply pragmas; verify the `repo_id` and `wrapper_root` pins before answering anything.
+`flock` is per open file description, so a second descriptor asking `LOCK_EX` would
+block on your own `LOCK_SH`.
 
-**One store method is one transaction**, and no subprocess, file I/O or `bd` call may
-happen inside one. A gate close lands its row, projected columns, the `seq` from
+**One store method is one transaction**, and no subprocess, file I/O or tracker call
+may happen inside one: a gate close lands its row, projected columns, the `seq` from
 `tasks.next_seq`, the consumed nonce, the recorded signature and the enqueued attention
-projection **together or not at all**.
+projection **together or not at all**. A busy writer refuses by name
+(`LedgerBusyRefusal`) rather than retrying, and every statement is parameterised.
 
-**A busy writer refuses by name rather than retrying**, so contention is visible.
+## `closed()` is a latch; consumers ask `retired()`
 
-**Every statement is parameterised, including JSON paths.**
-`json_extract(metadata_json, ?)` takes its path as a bound value, so no filter key is
-ever concatenated into SQL.
+Closure is not a stored state (`ledger/closure.py`): a stored CLOSED could only be
+written after the export bytes exist, so it could never be *in* the export.
 
-## The one thing that never moves
+```text
+closed(task):
+    if state != LANDED:                           return False   # the gate, first
+    if tasks.export_oid is set:                   return True    # the latch
+    oid = anchor_oid(task)          # HEAD:.wf/export/<task>.jsonl first, then the ref
+    if oid is None or hash(.wf/export/<task>.jsonl) != oid:   return False
+    tasks.export_oid = oid                        # derive once, then latch
+    return True
+```
 
-**Claims stay in bd.** `LedgerStore._claim_and_merge_metadata` refuses outright
-(`ledger/store.py:334-338`): *"a claim write is refused rather than kept in a second,
-invisible table."*
+The latch is what makes it monotonic: a live re-export is a function of mutable state,
+so recomputing would reopen every closed task after one migration or one attention
+drain. The file **on disk** is hashed, never a fresh export, and the anchor comes from
+`reverify.anchor_oid` itself, so `closed()` and `ledger verify` cannot disagree.
 
-So a ledger-backed run still has a bd presence — the task bead and its claims. The
-ledger holds the run's mechanics; bd holds the work item. Deliberate coexistence (D20),
-not a half-done migration.
+`retired(task) = closed(task) ∨ state ∈ {ABANDONED, ABANDONED_EXTERNAL}`. Terminal
+cleanup (`foreman/tick.py`), archive (`ledger/archive.py`), sibling admission
+(`contractor/admission.py`) and the succession guard (`contractor/adapter.py`) read
+`retired`, because an abandoned task never exports and waiting for closure would hold
+its worktree, refs and siblings' admission forever.
 
-## Export, import, verify, archive
+## The three orchestrator verbs
 
-- **Export** writes `.wf/export/<task>.jsonl`; the orchestrator commits it. `ExportPin`
-  runs before `adapter.close`.
-- **Verify** (`python -m workflow_interpreter.ledger verify TASK`) checks three trust
-  anchors in order: the HEAD blob at `.wf/export/<task>.jsonl`, then
-  `refs/wf/exports/<task>`.
-- **Archive** bundles before deleting.
+The contractor closes on its own only when the graph reaches `shipped`; otherwise it
+hands back with the record ADMITTED and there are three moves — no override lands an
+unshipped task.
 
-## Known wart
+| Verb | Command | What it does |
+|---|---|---|
+| continue | sign the gate, re-invoke `contract` | the same attempt resumes |
+| retry | `contract <epic> <task> --retry` | attempt + 1, from the ledger's snapshot, no tracker read; refused once the task shipped |
+| abandon | `phase abandon <task> --reason …` | record → ABANDONED, outbox `Close`, task `retired`. Idempotent, and refused for a task that LANDED, derives `closed()`, or whose landing merely *began* — a journalled landing intent means the commit may already be on the target ref, and that owes recovery, not retirement |
 
-`bdio/backend.py:8-11` still says *"`bd` is the only backend today, and `BdClient` is
-its only implementation."* `LedgerStore` is now a second implementation. The code is
-correct; the comment is stale.
+## Export, rebuild, verify, archive — `python -m workflow_interpreter.ledger --config C`
 
-## Where this is going
+- **`export <task>`** writes `.wf/export/<task>.jsonl` for the orchestrator to commit;
+  `ExportPin` runs before `adapter.close`. Task facts only: `export_oid`/`exported_at`
+  are elided (`ELIDED_TASK_COLUMNS`) as facts about the *file*, and the header pins
+  `repo_id` — a UUID in the committed `.wf/repo-id` — so an export imports into a clone
+  at any path. Every table is in `EXPORT_TABLES` or `NON_EXPORTED` with a stated reason,
+  checked against the schema rather than a second hand-written list.
+- **`pin-export <task>`** re-pins `refs/wf/exports/<task>` from the file already on disk
+  — the recovery for a crash between write and pin. It never re-exports, and refuses a
+  task that has not landed.
+- **`import [task …]`** rebuilds from `.wf/export/`: parse before the fence, one
+  exclusive fence, one transaction, whole-state rebuild. It **replaces** the exportable
+  state, so a task no named file describes does not survive it — and it is how a fresh
+  clone gets a ledger, after which `closed()` derives on the first ask and latches.
+- **`verify <task>`** re-verifies every approval from the committed export alone,
+  against the two anchors it may not take from the export — the repository (`HEAD` blob
+  first, the export ref second) and an operator `allowed_signers` trust root — naming
+  which anchor answered.
+- **`reconcile <task>`** repairs the mirror: release a claim stranded in the admission
+  window, drain the task's unacked attention projections, drain its outbox — reporting
+  conflicts, because the human at that command is the one who decides.
+- **`archive <task> --bundle …`** refuses unless the task is `retired`, bundles
+  `refs/wf/<root>/*`, verifies the bundle, then deletes run folders and refs. Not
+  clone-portable: a default clone does not fetch those refs.
 
-Three independent reviews (see [11-language-and-pluggability.md](11-language-and-pluggability.md))
-converged on the same verdict: `StoreBackend` is a record-store port shaped like bd,
-being asked to double as tracker portability. The intended next increment makes SQLite
-the only record store and replaces the bd backend with a much smaller tracker port.
+Closed tasks therefore rebuild anywhere; an in-flight task's rows exist only in the
+ledger. Delete it mid-run and the evidence in `refs/wf/*` and the wrapper home survives,
+recovery refuses the ownerless evidence, and the orchestrator retries.
