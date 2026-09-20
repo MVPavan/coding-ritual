@@ -34,6 +34,7 @@ from workflow_interpreter.contractor.landing import (
     PhaseLanding,
 )
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.quiesce import NotQuiesced, assert_quiesced
 from workflow_interpreter.contractor.records import RecordStoreUnavailable
 from workflow_interpreter.contractor.retry import retry_refusal
 from workflow_interpreter.contractor.tracker_wiring import adapter_of, drain_at_exit
@@ -169,6 +170,7 @@ def execute_contractor(
         ContractorAdapterError,
         ResolutionError,
         ContractorRefusal,
+        NotQuiesced,
         RecordStoreUnavailable,
         ValidationError,
         WrapperDirError,
@@ -216,6 +218,11 @@ def _execute(
     # whether this task's record is already durable in git, and the adapter
     # may not open a ledger of its own.
     adapter = adapter_of(composition)
+    # R12: before anything reads or writes this task, refuse the one shape a
+    # clean break would corrupt — a record still in flight in the home S4
+    # retired. Ahead of the trace branch too: a trace of a task this build
+    # cannot see the record of would report it as never prepared.
+    assert_quiesced(adapter.tracker, stage_id)
     from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         prepared_for_stage,

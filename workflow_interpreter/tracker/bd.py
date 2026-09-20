@@ -23,7 +23,10 @@ mutex.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Final
+
+from pydantic import JsonValue
 
 from workflow_interpreter.bdio.client import (
     STATUS_CLOSED,
@@ -112,6 +115,21 @@ class BdTracker:
             for bead in self._client.list_children(ref.ref)
             if bead.parent == ref.ref
         )
+
+    def legacy_metadata(self, ref: str) -> Mapping[str, JsonValue]:
+        """What this bead carries, uninterpreted — R12's quiesce probe ONLY.
+
+        Not part of the port and not a read the engine routes on: bd is the
+        one tracker whose items ever held a contractor record (in metadata,
+        until S4), so it is the one adapter that can answer whether a task is
+        still in flight in that retired home. The caller
+        (`contractor/quiesce.py`) owns what the keys mean; this answers only
+        what is there. An unreadable item carries nothing to refuse over.
+        """
+        try:
+            return self._client.show(ref).metadata
+        except StoreError:
+            return {}
 
     def blockers(self, ref: TrackerRef) -> tuple[Blocker, ...]:
         """Only the BLOCKS relations, resolved when the blocking row closed."""

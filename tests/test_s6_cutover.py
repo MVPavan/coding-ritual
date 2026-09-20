@@ -28,8 +28,8 @@ from workflow_interpreter.contractor.quiesce import LEGACY_RECORD_KEYS, MSG_REME
 from workflow_interpreter.contractor.tracker_wiring import repair_mirror
 from workflow_interpreter.ledger.closure import closed
 from workflow_interpreter.ledger.paths import export_path, repo_id_path
-from workflow_interpreter.tracker.models import TrackerRef
 from workflow_interpreter.tracker.constants import WorkItemStatus
+from workflow_interpreter.tracker.models import TrackerRef
 
 GIT_TIMEOUT_S: Final[float] = 60.0
 CLOSE_CALL: Final[str] = "apply:close"
