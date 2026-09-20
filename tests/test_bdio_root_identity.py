@@ -135,7 +135,6 @@ def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
 
     with pytest.raises(CarrierIntegrityError):
         fake_store.reads.instance_records(root.root_id)
-    assert fake_store.reads.owns_instance_rows(root.root_id) is True
     # A `bool` and an integer past the JSON-safe bound are residue too: neither
     # can be allocated from, so the successor comes from the one valid `seq`.
     assert fake_store.reads.next_instance_seq(root.root_id) == 8

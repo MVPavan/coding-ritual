@@ -26,7 +26,6 @@ from workflow_interpreter.bdio.feedback import MSG_CONSUMER
 from workflow_interpreter.bdio.records import RootRecord, parse_root
 from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.wire import (
-    KEY_SUPERSEDED_BY,
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
     ConfigSource,
@@ -79,14 +78,6 @@ _MSG_REUSE_MISMATCH: Final[str] = (
     "(§3.1) {detail}"
 )
 _FIELD_RESOLVED_CONFIG: Final[str] = "resolved_config"
-_MSG_ALL_SUPERSEDED: Final[str] = (
-    "every root row for instance_key={instance_key!r} is superseded"
-)
-_MSG_TWO_OWNING_ROOTS: Final[str] = (
-    "instance_key={instance_key!r} has more than one live root owning instance "
-    "beads ({owners}); converging would orphan a running instance — triage it "
-    "(§3.1)"
-)
 _MSG_CONFIG_KEYS: Final[str] = "differing keys: {keys}"
 _MSG_CONFIG_KEYS_TRUNCATED: Final[str] = "differing keys: {keys} (+{more} more)"
 _MSG_INSTANCE_INPUT_BYTES: Final[str] = "instance inputs exceed {limit} bytes"
@@ -269,7 +260,7 @@ def create_root(
     resolved_config = pin_execution_policies(
         definition, resolved_config, profiles=profiles
     )
-    existing = _converged_root(client, instance_key)
+    existing = _root_for_key(client, instance_key)
     if existing is not None:
         _assert_same_instance(
             existing,
@@ -376,20 +367,18 @@ def create_root(
         )
     )
     _LOG.info("wf.root.created", root_id=record.id, instance_key=instance_key)
-    _ensure_self_id(client, record)
-    # Re-resolve after the write: a concurrent create under this key converges
-    # HERE, rather than leaving two live instances for a later tick to find.
-    converged = _converged_root(client, instance_key)
-    if converged is None:  # pragma: no cover - the row was just written
-        raise CarrierIntegrityError(
-            _MSG_ALL_SUPERSEDED.format(instance_key=instance_key)
-        )
-    # The convergence winner may be someone ELSE's root: a concurrent create
-    # under this key with a different graph or resolution must be an identity
-    # error, exactly as reuse-by-key is. Without this, the loser silently
-    # inherits an instance it did not configure (probed, phase-2 review).
+    # `_create_row` resolves the §3.3 natural key inside `BEGIN IMMEDIATE` and
+    # `roots.instance_key` is `NOT NULL UNIQUE`, so a concurrent create under
+    # this key ANSWERS with the row that already exists — there is never a
+    # second live root to converge (S6 review, finding 8).
+    written = _ensure_self_id(client, record)
+    # The row this create answered with may be someone ELSE's root: a
+    # concurrent create under this key with a different graph or resolution
+    # must be an identity error, exactly as reuse-by-key is. Without this, the
+    # loser silently inherits an instance it did not configure (probed,
+    # phase-2 review).
     _assert_same_instance(
-        converged,
+        written,
         instance_key,
         definition,
         resolved_config,
@@ -397,67 +386,25 @@ def create_root(
         allow_test_flags,
         instance_base_commit,
     )
-    return converged
+    return written
 
 
-def _converged_root(client: LedgerStore, instance_key: str) -> RootRecord | None:
-    """The one live root for this key, superseding any concurrent duplicate.
+def _root_for_key(client: LedgerStore, instance_key: str) -> RootRecord | None:
+    """The root this instance key already has, or nothing.
 
-    Liveness is read off the raw metadata, not a parsed record: a root whose
-    create/self-link pair was interrupted does not parse yet, and completing
-    it is exactly what this path exists for.
+    ONE row or none, never a set to converge: `roots.instance_key` is
+    `NOT NULL UNIQUE` and the natural key is resolved inside the create's own
+    transaction, so the duplicate-root family this replaced could not fire on
+    the one record store there is (S6 review, finding 8).
+
+    Liveness is not read off a parsed record: a root whose create/self-link
+    pair was interrupted does not parse yet, and completing it is exactly what
+    this path exists for.
     """
     found = reads.find_roots(client, instance_key)
-    live = [row for row in found if row.metadata.get(KEY_SUPERSEDED_BY) is None]
-    if not live:
-        if found:
-            raise CarrierIntegrityError(
-                _MSG_ALL_SUPERSEDED.format(instance_key=instance_key)
-            )
+    if not found:
         return None
-    winner, *losers = _ordered_by_ownership(client, live, instance_key)
-    for loser in losers:
-        _supersede_root(client, loser, winner.id)
-    return _ensure_self_id(client, winner)
-
-
-def _ordered_by_ownership(
-    client: LedgerStore, live: Sequence[StoreRow], instance_key: str
-) -> tuple[StoreRow, ...]:
-    """Convergence order for duplicate roots: the OWNER of the instance first (§3.1).
-
-    Bead ids are not ordered by creation (bd 1.1.0 hands out `wf-yd1` before
-    `wf-c7b`; probed, phase-2 r3), so "lowest id survives" says nothing about
-    which root the instance actually ran on. A root that already owns
-    activations and gates is never superseded — closing it would orphan the
-    whole trace under a root nothing links to. Among roots that own nothing the
-    lowest id still wins, so two ticks resolving the same residue agree.
-    """
-    if len(live) < 2:
-        return tuple(live)
-    owners = [row for row in live if reads.owns_instance_rows(client, row.id)]
-    if len(owners) > 1:
-        raise CarrierIntegrityError(
-            _MSG_TWO_OWNING_ROOTS.format(
-                instance_key=instance_key,
-                owners=", ".join(sorted(row.id for row in owners)),
-            )
-        )
-    if not owners:
-        return tuple(live)
-    owner = owners[0]
-    return (owner, *(row for row in live if row.id != owner.id))
-
-
-def _supersede_root(client: LedgerStore, loser: StoreRow, winner_id: str) -> None:
-    """Close a duplicate root append-only, pointing at the surviving one."""
-    record = _ensure_self_id(client, loser)
-    metadata = record.metadata.model_copy(update={"superseded_by": winner_id})
-    updated = client._merge_metadata(loser.id, metadata_dict(metadata))
-    finalize.close_forward(
-        client, updated, _REASON_ROOT_SUPERSEDED.format(winner=winner_id)
-    )
-    _LOG.warning("wf.root.superseded", loser=loser.id, winner=winner_id)
+    return _ensure_self_id(client, found[0])
 
 
 def _assert_same_instance(

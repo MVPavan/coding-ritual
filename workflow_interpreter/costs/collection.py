@@ -123,7 +123,6 @@ def collect_task(
         contractor = ContractorRecord.model_validate_json(record_json)
     except ValidationError:
         return _unreadable_task(stage_id, "contractor record is invalid")
-    roots_store = store
     if contractor.stage_id != stage_id:
         return _unreadable_task(stage_id, "contractor names a different stage")
 
@@ -143,7 +142,7 @@ def collect_task(
                 )
             )
             roots_valid = False
-        found = find_roots(roots_store, instance_key)
+        found = find_roots(store, instance_key)
         if len(found) != 1:
             diagnostics.append(
                 Diagnostic(
@@ -232,7 +231,7 @@ def collect_task(
     usage_complete = True
     for _, _, root_row in sorted(root_rows, key=lambda item: item[0]):
         try:
-            activations = list_activations(roots_store, root_row.id)
+            activations = list_activations(store, root_row.id)
         except CarrierIntegrityError:
             diagnostics.append(
                 Diagnostic(

@@ -77,10 +77,11 @@ def load_gate(client: LedgerStore, gate_id: str) -> GateRecord:
 
 
 def find_roots(client: LedgerStore, instance_key: str) -> tuple[StoreRow, ...]:
-    """Every root row carrying `instance_key` — more than one is race residue.
+    """Every root row carrying `instance_key` — at most one, in row-id order.
 
-    Ordered by row id, so the §3.2 convergence rule (lowest id survives) reads
-    the same from any tick that finds the duplicates.
+    `roots.instance_key` is `NOT NULL UNIQUE`, so the tuple is the query's
+    shape rather than a set anybody converges: a caller reading a second row
+    here is reading a store the schema says cannot exist.
     """
     found = client.find_rows(
         RowQuery(
@@ -93,17 +94,18 @@ def find_roots(client: LedgerStore, instance_key: str) -> tuple[StoreRow, ...]:
     return tuple(sorted(found, key=lambda row: row.id))
 
 
-def roots_by_instance_key(
-    client: LedgerStore, instance_key: str
-) -> tuple[RowRecord, ...]:
-    """Every root row carrying `instance_key`, as identity only.
+def root_by_instance_key(client: LedgerStore, instance_key: str) -> RowRecord | None:
+    """The root this instance key has, as identity only, or nothing.
 
-    The pinned body is deliberately NOT re-validated: a caller asking whether
-    a root exists for a contractor identity must get an answer even when that
+    Singular since S6's review (finding 8): the key is unique in the schema,
+    so "every root for this key" was a set that could hold one member. The
+    pinned body is deliberately NOT re-validated: a caller asking whether a
+    root exists for a contractor identity must get an answer even when that
     root's create/self-link pair was interrupted, and it must get it without
     naming a backend row (§3.1).
     """
-    return tuple(parse_row(row) for row in find_roots(client, instance_key))
+    found = find_roots(client, instance_key)
+    return parse_row(found[0]) if found else None
 
 
 def list_roots(client: LedgerStore) -> tuple[RootRecord, ...]:
@@ -123,21 +125,10 @@ def instance_rows(client: LedgerStore, root_id: str) -> tuple[StoreRow, ...]:
     return client.find_rows(RowQuery(metadata_filters={KEY_WF_ROOT_ID: root_id}))
 
 
-def owns_instance_rows(client: LedgerStore, root_id: str) -> bool:
-    """Whether any row of the instance other than the root itself links to it.
-
-    Deliberately over untyped rows: ownership decides which duplicate root
-    survives convergence (§3.2), and a malformed sibling row is exactly the
-    residue that decision exists to clean up. Parsing every carrier here would
-    make one unreadable row block the convergence.
-    """
-    return any(row.id != root_id for row in instance_rows(client, root_id))
-
-
 def next_instance_seq(client: LedgerStore, root_id: str) -> int:
     """The next per-instance `seq`, read without parsing any carrier (§3.2).
 
-    Same reason as `owns_instance_rows`: allocating the next sequence needs
+    Untyped like `instance_rows`: allocating the next sequence needs
     the numbers the rows carry, not their meaning, and an event backfill must
     not be blocked by a sibling row that no longer decodes.
 
@@ -366,9 +357,9 @@ class WorkflowReads:
         """Read a root and re-verify its pinned body's hash (§3.1)."""
         return load_root(self._client, root_id)
 
-    def roots_by_instance_key(self, instance_key: str) -> tuple[RowRecord, ...]:
-        """Every root row carrying `instance_key` — more than one is residue."""
-        return roots_by_instance_key(self._client, instance_key)
+    def root_by_instance_key(self, instance_key: str) -> RowRecord | None:
+        """The one root this instance key has, as identity only, or nothing."""
+        return root_by_instance_key(self._client, instance_key)
 
     def list_roots(self) -> tuple[RootRecord, ...]:
         """Every root bead in the workspace, in bead-id order (§4 'Load roots')."""
@@ -381,10 +372,6 @@ class WorkflowReads:
     def load_gate(self, gate_id: str) -> GateRecord:
         """Read one gate through the carrier contract."""
         return load_gate(self._client, gate_id)
-
-    def owns_instance_rows(self, root_id: str) -> bool:
-        """Whether any row of the instance other than the root links to it."""
-        return owns_instance_rows(self._client, root_id)
 
     def next_instance_seq(self, root_id: str) -> int:
         """The next per-instance `seq`, allocated without parsing carriers."""

@@ -370,16 +370,16 @@ class ContractorAdapter:
 
     def owns_root(self, instance_key: str, root_id: str) -> bool:
         """Require a uniquely persisted root, not an inferred key-shaped owner."""
-        roots = self._roots().roots_by_instance_key(instance_key)
+        root = self._roots().root_by_instance_key(instance_key)
         return (
-            len(roots) == 1
-            and roots[0].id == root_id
-            and roots[0].metadata.get("wf_root_id") == root_id
+            root is not None
+            and root.id == root_id
+            and root.metadata.get("wf_root_id") == root_id
         )
 
     def has_root(self, instance_key: str) -> bool:
         """Report whether durable evidence exists for one contractor identity."""
-        return bool(self._roots().roots_by_instance_key(instance_key))
+        return self._roots().root_by_instance_key(instance_key) is not None
 
     def prepare(
         self, stage_id: str, record: ContractorRecord, *, brief: str | None = None
