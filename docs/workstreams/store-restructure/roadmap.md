@@ -165,8 +165,10 @@ terminal cleanup (`foreman/tick.py:754`), archive (`ledger/archive.py:75`),
 and, after S4, sibling admission (`contractor/admission.py:252`, today the *bead's*
 status).
 
-`retired(task) = closed(task) ∨ state == ABANDONED`. Cleanup and archive read
-`retired`; nothing else does. An abandoned task otherwise defers forever.
+`retired(task) = closed(task) ∨ state ∈ {ABANDONED, ABANDONED_EXTERNAL}`. Cleanup,
+archive, sibling admission and the succession guard read `retired`. An abandoned task
+otherwise defers forever — and so does one whose *tracker* ended it, which is why both
+abandonments are `TaskState` members and retire alike (§3.8).
 
 The tracker `Close` intent drains on the **ref** anchor — the same moment the bead
 closes today. v1 drained on the committed anchor; that left every sibling stage refused
@@ -253,7 +255,10 @@ back with the record ADMITTED and the orchestrator has three verbs — **continu
 task is `retired` (§3.5): cleanup and archive proceed on what exists; succession is
 refused. There is no override that lands an unshipped task. A bead closed externally
 mid-run surfaces as `Conflict` at the next tracker contact and the record is marked
-ABANDONED_EXTERNAL — never guessed.
+ABANDONED_EXTERNAL — never guessed. That state RETIRES the task exactly as ABANDONED
+does (§3.5): succession is refused, siblings are admitted, cleanup and archive proceed.
+`wf phase abandon` on it is a no-op and enqueues no second `Close` — the item is already
+closed, which is how we found out.
 
 ### 3.9 Ledger loss
 

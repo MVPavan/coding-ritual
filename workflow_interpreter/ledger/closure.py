@@ -38,9 +38,9 @@ and `closed()` must never disagree about which bytes are this task's record. A
 stale committed blob that no longer matches the file is "not closed" to both,
 and the orchestrator recommits.
 
-`retired(task) = closed(task) ∨ state == ABANDONED`: an abandoned task never
-exports, so terminal cleanup and archive would otherwise defer forever (§3.8).
-Nothing else reads `retired`.
+`retired(task) = closed(task) ∨ state ∈ {ABANDONED, ABANDONED_EXTERNAL}`: an
+abandoned task never exports, so terminal cleanup and archive would otherwise
+defer forever (§3.8). Sibling admission and the succession guard read it too.
 """
 
 from __future__ import annotations
@@ -110,15 +110,26 @@ def _latch(database: LedgerDatabase, task_id: str, pinned: str) -> None:
         )
 
 
+_RETIRING_STATES: Final[frozenset[TaskState]] = frozenset(
+    {TaskState.ABANDONED, TaskState.ABANDONED_EXTERNAL}
+)
+
+
 def retired(database: LedgerDatabase, git: Git, task_id: str) -> bool:
     """Whether this task is over — closed, or abandoned (§3.5, §3.8).
 
     What terminal cleanup and archive read. An abandoned task has no export
     and never will, so asking them to wait for closure would keep its worktree
     and its refs forever.
+
+    BOTH abandonments retire. Who decided is the only difference between them
+    — we did, or the tracker did — and it is not a difference any consumer of
+    this question has: a task whose item somebody closed mid-epic exports no
+    more than one we stopped ourselves, so leaving it open would wedge every
+    sibling's admission on a task no verb can move.
     """
     return closed(database, git, task_id) or (
-        task_state(database, task_id) is TaskState.ABANDONED
+        task_state(database, task_id) in _RETIRING_STATES
     )
 
 

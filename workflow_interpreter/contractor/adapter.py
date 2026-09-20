@@ -83,6 +83,10 @@ MSG_NOT_CLOSABLE: Final[str] = (
     "(store-restructure §3.5, D5)"
 )
 STATUS_CLOSED: Final[str] = "closed"
+_RETIRED_STATES: Final[frozenset[ContractorState]] = frozenset(
+    {ContractorState.ABANDONED, ContractorState.ABANDONED_EXTERNAL}
+)
+"""The two states `abandon` is idempotent over — ours and the tracker's."""
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 
@@ -414,7 +418,11 @@ class ContractorAdapter:
         commit sits on the target ref (D17).
         """
         held = self._required(stage_id)
-        if held.record.state is ContractorState.ABANDONED:
+        if held.record.state in _RETIRED_STATES:
+            # ABANDONED_EXTERNAL answers here too, and enqueues no Close: the
+            # task is already retired and its item is already closed, which is
+            # how we found out (§3.8). A second Close would be a mirror write
+            # for a state the mirror reached first.
             return held.record
         if held.record.state is ContractorState.LANDED:
             raise ContractorAdapterError(MSG_ABANDON_LANDED.format(stage_id=stage_id))

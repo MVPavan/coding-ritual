@@ -61,7 +61,9 @@ class ContractorState(StrEnum):
     # closed outside this engine surfaces as a `Conflict` at the next tracker
     # contact; the record records what was OBSERVED rather than guessing that
     # the work is done, and a distinct state is what keeps "we abandoned it"
-    # from being confused with "it was taken away from us".
+    # from being confused with "it was taken away from us". It retires exactly
+    # as ABANDONED does — `TaskState` carries it and `retired()` reads it —
+    # because who decided is the one thing no consumer of that question asks.
     ABANDONED_EXTERNAL = "abandoned-external"
 
 

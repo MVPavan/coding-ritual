@@ -120,17 +120,21 @@ this same string so the writer and the reader cannot drift apart."""
 class TaskState(StrEnum):
     """How far the contractor got with one task, as the ledger knows it (§3.5).
 
-    Only the two states closure is derived from, read from
+    Only the states closure is derived from, read from
     `contractor_records.state` since S4 folded `tasks.state` into it. LANDED is
     written before the export bytes exist, so the export carries it and a
     rebuilt ledger can still say that this task's work landed; ABANDONED is the
     orchestrator's verb (§3.8), and it retires a task that will never export at
-    all. Every other value the record's own lifecycle uses reads here as
-    nothing, which leaves the task open — which is what it is.
+    all. ABANDONED_EXTERNAL is the same retirement decided by somebody else —
+    it has to be a member here, because a value this enum does not carry reads
+    as nothing and would leave the task open forever (§3.8). Every other value
+    the record's own lifecycle uses reads here as nothing, which leaves the
+    task open — which is what it is.
     """
 
     LANDED = "landed"
     ABANDONED = "abandoned"
+    ABANDONED_EXTERNAL = "abandoned-external"
 
 
 class TrackerKind(StrEnum):

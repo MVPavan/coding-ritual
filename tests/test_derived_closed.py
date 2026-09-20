@@ -58,7 +58,10 @@ from workflow_interpreter.contractor import (
     ContractorRecord,
 )
 from workflow_interpreter.contractor.journal import ExportPin
-from workflow_interpreter.contractor.models import INSTANCE_KEY_TEMPLATE
+from workflow_interpreter.contractor.models import (
+    INSTANCE_KEY_TEMPLATE,
+    ContractorState,
+)
 from workflow_interpreter.contractor.records import LedgerContractorRecords
 from workflow_interpreter.contractor.verification import (
     CheckCommand,
@@ -648,6 +651,38 @@ def test_an_abandoned_task_is_retired_and_never_closed(
 
     assert result.refs == (f"refs/wf/{archived_root}/artifact/one",)
     assert not (wrapper_root / archived_root).exists()
+
+
+def test_a_task_its_tracker_ended_is_retired_like_an_abandoned_one(
+    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+) -> None:
+    """§3.8: ABANDONED_EXTERNAL retires, or the whole epic wedges on it.
+
+    The state `abandon_external` writes has to be READ by the consumers that
+    make a retirement a retirement. Otherwise a bead a human closed mid-epic
+    leaves a task that is neither closed nor retired: cleanup defers forever,
+    archive refuses, and every sibling fails admission on "unfinished
+    contractor admission" with no verb left that changes the answer — the
+    abandon verb included, since the record it would move is already there.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    stored = _stored_record(fake_bd, state="admitted")
+    with open_ledger(repo, wrapper_root) as database:
+        root_id = seeded_task(database)
+        _seed_record(database, stored)
+        adapter = _succession(fake_client, database, git)
+        adapter.abandon_external(STAGE_ID, "a human closed the bead")
+
+        assert closed(database, git, TASK) is False
+        assert retired(database, git, TASK) is True
+        assert not cleanup_deferred(
+            _contractor_root(database, root_id), ledger=database, git=git, task_id=TASK
+        )
+        with pytest.raises(ContractorAdapterError, match="retired"):
+            adapter.prepare(STAGE_ID, stored.next_attempt())
+        # The abandon verb is a no-op on it, and enqueues no second Close:
+        # the item is already closed, which is how we found out (§3.8).
+        assert adapter.abandon(STAGE_ID).state is ContractorState.ABANDONED_EXTERNAL
 
 
 def test_no_producer_writes_the_closed_contractor_state() -> None:
