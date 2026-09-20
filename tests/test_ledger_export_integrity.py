@@ -32,13 +32,13 @@ from typing import Final
 
 import pytest
 
+from tests._contractor import bd_adapter
 from tests._fake_bd import FakeBd
 from tests._helpers import MemoryContractorRecords
 from tests._ledger import EPIC, TASK, repository, seed_contractor_record, seeded_task
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor import (
-    ContractorAdapter,
     ContractorAdapterError,
     ContractorRecord,
     LandingIntent,
@@ -244,7 +244,7 @@ def test_the_close_after_a_pin_leaves_the_exported_record_untouched(
         pin.records.create(landed, brief=None)
         pinned_oid = pin.pin(TASK, BackendKind.LEDGER)
         as_pinned = exported.read_bytes()
-        adapter = ContractorAdapter(
+        adapter = bd_adapter(
             fake_client, closure=pin.closure, records=pin.records, outbox=pin.outbox
         )
 
@@ -508,6 +508,6 @@ def test_close_still_refuses_a_task_whose_record_is_not_durable(
     }
 
     with pytest.raises(ContractorAdapterError, match="does not derive closed"):
-        ContractorAdapter(
+        bd_adapter(
             fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
         ).close(STAGE_ID, landed, LANDING_RECEIPT)

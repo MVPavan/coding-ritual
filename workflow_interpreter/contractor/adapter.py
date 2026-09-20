@@ -19,7 +19,6 @@ from workflow_interpreter.contractor.models import (
 from workflow_interpreter.contractor.records import ContractorRecords, StoredRecord
 from workflow_interpreter.ledger.closure import ClosureProbe
 from workflow_interpreter.tracker import (
-    BdTracker,
     Blocker,
     Claim,
     Close,
@@ -118,18 +117,20 @@ class ContractorAdapter:
         *,
         closure: ClosureProbe,
         records: ContractorRecords,
-        tracker: TrackerPort | None = None,
+        tracker: TrackerPort,
         outbox: TrackerOutbox | None = None,
     ) -> None:
         self._client = client
         self._reads = WorkflowReads(client) if reads is None else reads
-        self.tracker: TrackerPort = BdTracker(client) if tracker is None else tracker
+        self.tracker: TrackerPort = tracker
         """The contractor's ONE tracker surface (§3.3, R2).
 
-        Defaulted to this adapter's own transport rather than required,
-        because bd is what every existing checkout runs and the default has to
-        be the wiring that does not change. A composition root that configured
-        another tracker passes it, and nothing else in the engine has one."""
+        REQUIRED. It used to default to `BdTracker(client)` — "the wiring that
+        does not change" — and that default is how eight of nine construction
+        sites came to mirror into bd whatever `tracker.backend` said. A
+        default nobody notices is a default nobody notices being wrong, so the
+        question is asked at every construction site instead; production
+        answers it once, in `contractor.tracker_wiring`."""
         self._outbox = outbox
         """Where a mirror write waits when the tracker cannot answer (§3.3).
 

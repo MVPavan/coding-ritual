@@ -16,6 +16,7 @@ import pytest
 
 from tests._bdio import entry_request as bdio_entry_request
 from tests._bdio import handle, load_definition, make_root
+from tests._contractor import bd_adapter
 from tests._foreman import ForemanLab
 from tests._foreman import entry_request as foreman_entry_request
 from tests._helpers import (
@@ -1047,7 +1048,7 @@ def _contractor_adapter(
     what production wires; a suite running the port against another tracker
     passes one, and the outbox follows the lab's ledger either way (S5).
     """
-    return ContractorAdapter(
+    return bd_adapter(
         BdClient(lab.config.bd, lab.fake_bd),
         reads,
         closure=closure_probe(lab.ledger, lab.git),

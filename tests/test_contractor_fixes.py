@@ -5,6 +5,7 @@ import subprocess
 
 import pytest
 
+from tests._contractor import bd_adapter
 from tests._helpers import rewrite_record, seeded_records
 from tests.test_contractor import (
     EPIC_ID,
@@ -20,7 +21,6 @@ from tests.test_contractor import (
     _temporary_repo,
 )
 from workflow_interpreter.contractor import (
-    ContractorAdapter,
     ContractorRecord,
     ContractorState,
     DetachedRepositoryGate,
@@ -50,7 +50,7 @@ def case(tmp_path, fake_bd, fake_client, gate_verifier, sign_payload):
     ).admitted(ROOT_ID)
     git, paths, export = _landing_context(repo, tmp_path)
     seeded_records(record, into=export.records)
-    adapter = ContractorAdapter(
+    adapter = bd_adapter(
         fake_client,
         closure=export.closure,
         records=export.records,

@@ -40,6 +40,7 @@ from typing import Final
 
 import pytest
 
+from tests._contractor import bd_adapter
 from tests._fake_bd import FakeBd
 from tests._foreman import LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
@@ -267,7 +268,7 @@ def _succession(
     fake_client: BdClient, database: LedgerDatabase, git: Git
 ) -> ContractorAdapter:
     """An adapter that can answer the closure question, ready for a retry."""
-    return ContractorAdapter(
+    return bd_adapter(
         fake_client,
         closure=TaskClosure(database, git),
         records=LedgerContractorRecords(database, backend=BackendKind.LEDGER),
