@@ -99,6 +99,7 @@ class FakeBd:
         self._lost_responses: list[tuple[str, int]] = []
         self._pauses: list[tuple[str, Callable[[], None]]] = []
         self._seen: dict[str, int] = {}
+        self._refusing = False
 
     # -- scheduling controls ---------------------------------------------
 
@@ -119,6 +120,17 @@ class FakeBd:
     def pause_before(self, subcommand: str, callback: Callable[[], None]) -> None:
         """Run `callback` once, immediately before the next `subcommand`."""
         self._pauses.append((subcommand, callback))
+
+    def refuse_everything(self) -> None:
+        """Make every later command fail the way an unreachable tracker does.
+
+        S4's acceptance is that a task which has PREPARED runs to a landing
+        with the tracker gone (§3.3, R4), and "gone" has to mean every call:
+        a fake that still answered reads would prove only that the writes
+        were skipped. The attempt is still recorded, so a test can name which
+        call — if any — the engine still owes the tracker.
+        """
+        self._refusing = True
 
     def command_count(self, subcommand: str) -> int:
         """How many `subcommand` invocations this workspace has served."""
@@ -141,6 +153,8 @@ class FakeBd:
             else {}
         )
         self._seen[subcommand] = self._seen.get(subcommand, 0) + 1
+        if self._refusing:
+            raise InjectedCrash(f"bd {subcommand} cannot reach the tracker")
         if (subcommand, self._seen[subcommand]) in self._crashes:
             raise InjectedCrash(f"bd {subcommand} died mid-command")
         handler = {
