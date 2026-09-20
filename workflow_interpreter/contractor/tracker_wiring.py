@@ -26,6 +26,7 @@ from workflow_interpreter.contractor.tracker_config import (
 )
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.ledger.checkpoint import TaskCheckpoint
 from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.reconcile import AttentionWriter
@@ -94,8 +95,10 @@ def contractor_adapter(
     """
     return ContractorAdapter(
         reads,
-        closure=closure_probe(database, git),
-        records=contractor_records(database),
+        closure=closure_probe(database, git, wrapper_root=config.wrapper_root),
+        records=contractor_records(
+            database, None if database is None else TaskCheckpoint(database, git)
+        ),
         tracker=tracker_for(config.tracker, client),
         outbox=None if database is None else TrackerOutbox(database),
     )

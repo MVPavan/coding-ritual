@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Final, Protocol
 
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.bdio.capabilities import CheckpointSink
 from workflow_interpreter.contractor.models import ContractorRecord
 from workflow_interpreter.ledger import records as rows
 from workflow_interpreter.ledger.database import LedgerDatabase
@@ -92,8 +93,19 @@ class LedgerContractorRecords:
     minted yet has no row. `ensure_task` is non-destructive.
     """
 
-    def __init__(self, database: LedgerDatabase) -> None:
+    def __init__(
+        self, database: LedgerDatabase, checkpoint: CheckpointSink | None = None
+    ) -> None:
         self._database = database
+        self._checkpoint = checkpoint
+        """What anchors this task's rows outside the database (§3.9, R10).
+
+        The activation close used to be the only checkpoint site, so every
+        transition this store writes after the last one — LANDED, GATE_RED,
+        ABANDONED, ABANDONED_EXTERNAL — lived in `.wf/ledger.db` alone and a
+        rebuild dropped the task back to the state it was in at that close
+        (gate B, finding 2). A transition is a contractor FACT and is anchored
+        like one. Absent for a wiring with no git seam, which anchors nothing."""
 
     def read(self, task_id: str) -> StoredRecord | None:
         """The stored record of this task, or nothing while it has none."""
@@ -103,7 +115,7 @@ class LedgerContractorRecords:
     def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
         """Write a task's first record, refusing a second first write."""
         ensure_task(self._database, record.stage_id, record.epic_id)
-        return _stored(
+        written = _stored(
             rows.create(
                 self._database,
                 record.stage_id,
@@ -114,6 +126,18 @@ class LedgerContractorRecords:
                 record_json=record.model_dump_json(by_alias=True),
             )
         )
+        self._anchor(record.stage_id)
+        return written
+
+    def _anchor(self, task_id: str) -> None:
+        """Checkpoint the task AFTER the transition committed, or not at all.
+
+        After, because the anchor is a copy of rows that exist; never raising,
+        because `CheckpointSink` is insurance against losing the database and
+        a transition that already committed may not fail on it.
+        """
+        if self._checkpoint is not None:
+            self._checkpoint.checkpoint(task_id)
 
     def update(
         self,
@@ -124,7 +148,7 @@ class LedgerContractorRecords:
         inside: LedgerWrite | None = None,
     ) -> StoredRecord:
         """Move the record forward from exactly the version the caller read."""
-        return _stored(
+        written = _stored(
             rows.update(
                 self._database,
                 record.stage_id,
@@ -137,6 +161,8 @@ class LedgerContractorRecords:
                 inside=inside,
             )
         )
+        self._anchor(record.stage_id)
+        return written
 
     def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
         """Every task of this epic with a record, and that record's state."""
@@ -176,15 +202,23 @@ class NoContractorRecords:
         return ()
 
 
-def contractor_records(database: LedgerDatabase | None) -> ContractorRecords:
+def contractor_records(
+    database: LedgerDatabase | None, checkpoint: CheckpointSink | None = None
+) -> ContractorRecords:
     """The record store for a composition whose ledger is optional.
 
     One definition, for `closure_probe`'s reason: every construction site of
     `ContractorAdapter` supplies one, and a second copy of "ledger or not"
     would be a second chance to get the ledger-less case wrong.
+
+    `checkpoint` anchors each transition outside the database (§3.9). Optional
+    because it needs a git seam the caller may not have, and a store without
+    one is exactly as durable as it was before S7.
     """
     return (
-        NoContractorRecords() if database is None else LedgerContractorRecords(database)
+        NoContractorRecords()
+        if database is None
+        else LedgerContractorRecords(database, checkpoint)
     )
 
 

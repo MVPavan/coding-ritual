@@ -547,10 +547,14 @@ class ContractorAdapter:
         task that has not pinned yet is not closed and must still be refused.
 
         Refused for a task whose landing merely BEGAN, too, and on the same
-        evidence `wf contract`'s recovery reads: the record is still ADMITTED
-        for the whole landing window — journalled intent, fast-forward CAS,
-        receipt — so a crash inside it would otherwise be abandonable while the
-        commit sits on the target ref (D17).
+        evidence `wf contract`'s recovery reads — BOTH halves of it: the
+        journalled row, and the wrapper intent file recovery reads first. The
+        record is still ADMITTED for the whole landing window — journalled
+        intent, fast-forward CAS, receipt — so a crash inside it would
+        otherwise be abandonable while the commit sits on the target ref (D17).
+        Reading the row alone was not enough: a ledger rebuilt from an anchor
+        older than the landing has no row, and the abandon was accepted with
+        the commit already on the target (gate B, finding 2a).
         """
         held = self._required(stage_id)
         if held.record.state in _RETIRED_STATES:
@@ -563,7 +567,9 @@ class ContractorAdapter:
             raise ContractorAdapterError(MSG_ABANDON_LANDED.format(stage_id=stage_id))
         if self.closure.closed(stage_id):
             raise ContractorAdapterError(MSG_ABANDON_CLOSED.format(stage_id=stage_id))
-        if self.closure.landing_begun(stage_id, held.record.attempt):
+        if self.closure.landing_begun(
+            stage_id, held.record.attempt, held.record.root_id
+        ):
             raise ContractorAdapterError(
                 MSG_ABANDON_LANDING.format(
                     stage_id=stage_id, attempt=held.record.attempt

@@ -21,6 +21,7 @@ from workflow_interpreter.inspector import procfs
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.models import Liveness
 from workflow_interpreter.ledger import records as ledger_records
+from workflow_interpreter.ledger.constants import LANDING_INTENT_FILE
 from workflow_interpreter.ledger.records import ContractorRecordRow
 from workflow_interpreter.ledger.tasks import task_epic
 from workflow_interpreter.schema.decisions import (
@@ -499,7 +500,6 @@ def _check_contractor(
     if intent.predecessor_contractor_json is None:
         return
     from workflow_interpreter.contractor.landing import (
-        LANDING_INTENT_FILE,
         LANDING_RECEIPT_FILE,
     )
 

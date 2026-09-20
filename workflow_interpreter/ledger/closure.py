@@ -46,12 +46,18 @@ defer forever (§3.8). Sibling admission and the succession guard read it too.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Final, Protocol
 
 import structlog
 
+from workflow_interpreter.contracts.run_identity import ComponentKind, safe_component
 from workflow_interpreter.inspector.gitio import NO_BLOB, Git
-from workflow_interpreter.ledger.constants import LANDING_INTENT_PHASE, TaskState
+from workflow_interpreter.ledger.constants import (
+    LANDING_INTENT_FILE,
+    LANDING_INTENT_PHASE,
+    TaskState,
+)
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerBusyRefusal, LedgerTransportError
 from workflow_interpreter.ledger.reverify import anchor_oid
@@ -172,8 +178,8 @@ class ClosureProbe(Protocol):
         """Whether this task is closed or abandoned."""
         ...
 
-    def landing_begun(self, task_id: str, attempt: int) -> bool:
-        """Whether this attempt has a journalled landing intent."""
+    def landing_begun(self, task_id: str, attempt: int, root_id: str | None) -> bool:
+        """Whether this attempt's landing has begun, by row or by file."""
         ...
 
 
@@ -186,9 +192,18 @@ class TaskClosure:
     whether the task's record is already durable (§3.5).
     """
 
-    def __init__(self, database: LedgerDatabase, git: Git) -> None:
+    def __init__(
+        self, database: LedgerDatabase, git: Git, wrapper_root: Path | None = None
+    ) -> None:
         self._database = database
         self._git = git
+        self._wrapper_root = wrapper_root
+        """Where this engine home keeps its instance directories, when the
+        caller knows (§3.8, D17). It is what lets `landing_begun` read the
+        wrapper intent FILE — the evidence `landing.recover` reads first —
+        rather than the restored row alone: a rebuild that never anchored the
+        row would otherwise let `wf phase abandon` delete a worktree whose
+        commit is already on the target ref (gate B, finding 2a)."""
 
     def closed(self, task_id: str) -> bool:
         """Whether this task's whole record is durable in git."""
@@ -198,9 +213,28 @@ class TaskClosure:
         """Whether this task is closed or abandoned."""
         return retired(self._database, self._git, task_id)
 
-    def landing_begun(self, task_id: str, attempt: int) -> bool:
-        """Whether this attempt has a journalled landing intent."""
-        return landing_begun(self._database, task_id, attempt)
+    def landing_begun(self, task_id: str, attempt: int, root_id: str | None) -> bool:
+        """Whether this attempt's landing has begun — the row, then the file.
+
+        Two pieces of evidence because either can be the only one left: the
+        row survives a deleted wrapper directory, and the file survives a
+        ledger this checkout rebuilt from an anchor older than the landing.
+        `landing.recover` reads the file first for the same reason, so the two
+        cannot disagree about whether a landing is in flight (D17).
+        """
+        return landing_begun(self._database, task_id, attempt) or self._intent_file(
+            root_id
+        )
+
+    def _intent_file(self, root_id: str | None) -> bool:
+        """Whether this root's wrapper directory still holds a landing intent."""
+        if self._wrapper_root is None or root_id is None:
+            return False
+        return (
+            self._wrapper_root
+            / safe_component(root_id, kind=ComponentKind.IDENTIFIER)
+            / LANDING_INTENT_FILE
+        ).is_file()
 
 
 class NoLedgerClosure:
@@ -222,16 +256,22 @@ class NoLedgerClosure:
         """No: a task this wiring cannot export is not one it can retire."""
         return False
 
-    def landing_begun(self, task_id: str, attempt: int) -> bool:
+    def landing_begun(self, task_id: str, attempt: int, root_id: str | None) -> bool:
         """No: a wiring with no ledger journals no landing intent (D17)."""
         return False
 
 
-def closure_probe(database: LedgerDatabase | None, git: Git) -> ClosureProbe:
+def closure_probe(
+    database: LedgerDatabase | None, git: Git, wrapper_root: Path | None = None
+) -> ClosureProbe:
     """The probe for a composition whose ledger is optional.
 
     One definition, because every construction site of `ContractorAdapter`
     supplies a probe (the adapter takes no absent one), and a second copy of
     "ledger or not" would be a second chance to get the ledger-less case wrong.
     """
-    return NoLedgerClosure() if database is None else TaskClosure(database, git)
+    return (
+        NoLedgerClosure()
+        if database is None
+        else TaskClosure(database, git, wrapper_root)
+    )

@@ -114,8 +114,8 @@ class _DurableRecord:
         """A closed task is retired."""
         return True
 
-    def landing_begun(self, task_id: str, attempt: int) -> bool:
-        """No journal here: these tests are about the bead surface."""
+    def landing_begun(self, task_id: str, attempt: int, root_id: str | None) -> bool:
+        """No journal and no wrapper file: these tests are about the bead surface."""
         return False
 
 

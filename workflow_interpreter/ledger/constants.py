@@ -131,6 +131,15 @@ class LedgerTable(StrEnum):
     TRACKER_OUTBOX = "tracker_outbox"
 
 
+LANDING_INTENT_FILE: Final[str] = "contract-landing.json"
+"""The wrapper file a landing writes its intent to, BEFORE the CAS (D17).
+
+Here for `LANDING_INTENT_PHASE`'s reason, and the same one: `closure.
+landing_begun` reads this file when the restored row cannot answer — a ledger
+rebuilt from an anchor older than the landing has no row — and the contractor's
+`LANDING_INTENT_FILE` is this same string, so the writer and the reader cannot
+drift apart."""
+
 LANDING_INTENT_PHASE: Final[str] = "intent"
 """The `landings.phase` a journalled landing INTENT carries (D17).
 

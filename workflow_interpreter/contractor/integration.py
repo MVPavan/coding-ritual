@@ -35,6 +35,7 @@ from workflow_interpreter.foreman.resolve import _resolved_config
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.gitcmd import GitSubcommand
 from workflow_interpreter.ledger.closure import closure_probe
+from workflow_interpreter.ledger.constants import LANDING_INTENT_FILE
 from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import (
     CollectedChildResult,
@@ -619,7 +620,6 @@ class IntegrationGuard:
     def post_cas(self, record: ContractorRecord) -> None:
         from workflow_interpreter.contractor.authority import BeadGateAuthority
         from workflow_interpreter.contractor.landing import (
-            LANDING_INTENT_FILE,
             LandingIntent,
         )
         from workflow_interpreter.inspector.paths import read_record
@@ -958,10 +958,7 @@ def retry_integration(
     composition: Composition, record: ContractorRecord
 ) -> ContractorRecord:
     """Explicit ordinary retry, same source set/config and original owner budget."""
-    from workflow_interpreter.contractor.landing import (
-        LANDING_INTENT_FILE,
-        LANDING_RECEIPT_FILE,
-    )
+    from workflow_interpreter.contractor.landing import LANDING_RECEIPT_FILE
 
     guard = IntegrationGuard(composition)
     association = guard.binding(record, current=False)

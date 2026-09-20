@@ -26,11 +26,24 @@ from typing import Final
 
 import pytest
 
+from tests._helpers import rewrite_record
 from tests._inspector import make_repo
 from tests._ledger import EPIC, TASK, config_file, seeded_task
+from tests.test_checkpoint_export import _lab as checkpoint_lab
+from tests.test_checkpoint_export import _rebuild as rebuild_ledger
+from tests.test_checkpoint_export import _run_one_activation as run_one_activation
 from tests.test_derived_closed import _record, _seed_record
+from tests.test_ledger_export_integrity import ROOT_ID, _landing_intent
 from workflow_interpreter.contractor import tracker_wiring
+from workflow_interpreter.contractor.adapter import (
+    ContractorAdapter,
+    ContractorAdapterError,
+)
+from workflow_interpreter.contractor.journal import LandingJournal, LandingPhase
+from workflow_interpreter.contractor.landing import LANDING_INTENT_FILE
+from workflow_interpreter.contractor.models import ContractorState
 from workflow_interpreter.contractor.quiesce import NotQuiesced
+from workflow_interpreter.contractor.records import contractor_records
 from workflow_interpreter.contractor.tracker_wiring import repair_mirror
 from workflow_interpreter.foreman import __main__ as foreman_main
 from workflow_interpreter.foreman.config import (
@@ -43,8 +56,8 @@ from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.ledger.__main__ import COMMAND_RECONCILE
 from workflow_interpreter.ledger.__main__ import main as ledger_main
-from workflow_interpreter.ledger.checkpoint import rebuild_sources
-from workflow_interpreter.ledger.closure import closed
+from workflow_interpreter.ledger.checkpoint import TaskCheckpoint, rebuild_sources
+from workflow_interpreter.ledger.closure import TaskClosure, closed, retired
 from workflow_interpreter.ledger.constants import TaskState
 from workflow_interpreter.ledger.database import open_ledger
 from workflow_interpreter.ledger.export import import_exports, pin_export, write_export
@@ -60,6 +73,7 @@ from workflow_interpreter.tracker.constants import WorkItemStatus
 from workflow_interpreter.tracker.file import FileTracker
 from workflow_interpreter.tracker.intents import Close, TrackerIntent, TrackerResult
 from workflow_interpreter.tracker.models import TrackerRef, WorkItem
+from workflow_interpreter.tracker.null import NullTracker
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 EXIT_REFUSED: Final[int] = 2
@@ -277,3 +291,78 @@ def test_a_close_lost_with_the_outbox_is_re_derived_by_reconcile(
 
         assert tracker.closes == 1, "a repaired mirror closes the item once"
         assert TrackerOutbox(rebuilt).pending() == ()
+
+
+def test_an_abandoned_task_is_still_retired_after_a_rebuild(tmp_path: Path) -> None:
+    """§3.8 and §3.9: the checkpoint has to anchor the CONTRACTOR's facts too.
+
+    The only checkpoint site was the activation close, so every contractor
+    transition after the last one — ABANDONED here, and LANDED, GATE_RED and
+    ABANDONED_EXTERNAL with it — existed in `.wf/ledger.db` alone. A rebuild
+    dropped the task back to ADMITTED, `retired()` answered false, and every
+    sibling's admission stayed blocked on a task whose worktree was gone.
+    """
+    repo, wrapper_root, git = checkpoint_lab(tmp_path)
+    with open_ledger(repo, wrapper_root) as database:
+        run_one_activation(database, git)
+        records = contractor_records(database, TaskCheckpoint(database, git))
+        records.create(_record("admitted"), brief=None)
+        rewrite_record(records, TASK, state=ContractorState.ABANDONED)
+
+        assert retired(database, git, TASK) is True
+    ledger_path(repo).unlink()
+
+    rebuild_ledger(git, repo, wrapper_root)
+
+    with open_ledger(repo, wrapper_root) as rebuilt:
+        assert retired(rebuilt, git, TASK) is True, "the rebuild lost the abandon"
+
+
+def test_an_abandon_after_a_rebuild_mid_landing_is_still_refused(
+    tmp_path: Path,
+) -> None:
+    """Invariant D: a commit on the target ref may never become abandonable.
+
+    A crash after the fast-forward CAS leaves the work on the target and the
+    record at ADMITTED for the whole landing window. `landing_begun` reads the
+    `landings` row, which the last activation close never anchored — so after
+    a rebuild abandon was ACCEPTED, the worktree deleted and no export pinned,
+    with the commit orphaned on the target ref.
+
+    Two answers now, and either is enough: the intent row is anchored when it
+    is written, and the abandon reads the wrapper intent FILE as
+    `landing.recover` does — so a checkpoint that degraded still refuses.
+    """
+    repo, wrapper_root, git = checkpoint_lab(tmp_path)
+    sink_attempt = 1
+    with open_ledger(repo, wrapper_root) as database:
+        run_one_activation(database, git)
+        records = contractor_records(database, TaskCheckpoint(database, git))
+        records.create(_record("admitted"), brief=None)
+        journal = LandingJournal(
+            database, TASK, EPIC, checkpoint=TaskCheckpoint(database, git)
+        )
+        journal.record(sink_attempt, LandingPhase.INTENT, _landing_intent())
+    ledger_path(repo).unlink()
+
+    rebuild_ledger(git, repo, wrapper_root)
+
+    with open_ledger(repo, wrapper_root) as rebuilt:
+        closure = TaskClosure(rebuilt, git, wrapper_root=wrapper_root)
+        adapter = ContractorAdapter(
+            closure=closure,
+            records=contractor_records(rebuilt),
+            tracker=NullTracker(),
+            outbox=TrackerOutbox(rebuilt),
+        )
+
+        with pytest.raises(ContractorAdapterError, match="landing"):
+            adapter.abandon(TASK)
+
+        # The second answer, on an attempt no restored row describes: the
+        # wrapper directory still carries the intent file recovery reads.
+        intent_file = wrapper_root / ROOT_ID / LANDING_INTENT_FILE
+        intent_file.parent.mkdir(parents=True, exist_ok=True)
+        intent_file.write_text("{}", encoding="utf-8")
+
+        assert closure.landing_begun(TASK, 99, ROOT_ID) is True

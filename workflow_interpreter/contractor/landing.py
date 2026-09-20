@@ -33,6 +33,7 @@ from workflow_interpreter.inspector.paths import (
     write_record,
 )
 from workflow_interpreter.inspector.verify import VerifyTree
+from workflow_interpreter.ledger.constants import LANDING_INTENT_FILE
 from workflow_interpreter.ledger.paths import (
     coordinator_dirt,
     export_path,
@@ -41,8 +42,10 @@ from workflow_interpreter.ledger.paths import (
 from workflow_interpreter.tracker import WorkItemStatus
 
 LANDING_SCHEMA: Final = "contract-landing/2"
-LANDING_INTENT_FILE: Final[str] = "contract-landing.json"
 LANDING_RECEIPT_FILE: Final[str] = "contract-landing-receipt.json"
+# `LANDING_INTENT_FILE` is imported rather than declared here: `closure.
+# landing_begun` reads the same file when the restored row cannot answer, so
+# the name lives in `ledger.constants` beside `LANDING_INTENT_PHASE` (D17).
 SHIP_GATE: Final[str] = "ship"
 T1_MESSAGE: Final[str] = (
     "T1: landing-gate code is trusted candidate-controlled code; it may alter "

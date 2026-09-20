@@ -25,7 +25,6 @@ from workflow_interpreter.contractor.authority import BeadGateAuthority
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.contractor.journal import ExportPin, LandingJournal
 from workflow_interpreter.contractor.landing import (
-    LANDING_INTENT_FILE,
     LANDING_RECEIPT_FILE,
     DetachedRepositoryGate,
     LandingDisposition,
@@ -56,6 +55,8 @@ from workflow_interpreter.inspector.errors import (
     WrapperDirError,
 )
 from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.ledger.checkpoint import TaskCheckpoint
+from workflow_interpreter.ledger.constants import LANDING_INTENT_FILE
 from workflow_interpreter.ledger.identity import mint_task
 from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import CoordinationError
@@ -511,7 +512,16 @@ def _land(
         ),
         journal=None
         if ledger is None
-        else LandingJournal(ledger, record.stage_id, record.epic_id),
+        # The journal anchors what it writes (§3.9): the intent row is the
+        # fact that says the work may be on the target ref, and it is written
+        # after the last activation close — so nothing else carried it through
+        # a rebuild (gate B, finding 2a).
+        else LandingJournal(
+            ledger,
+            record.stage_id,
+            record.epic_id,
+            TaskCheckpoint(ledger, composition.git),
+        ),
         export=None
         if ledger is None
         else ExportPin(

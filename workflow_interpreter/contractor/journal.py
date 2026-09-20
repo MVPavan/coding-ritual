@@ -28,12 +28,14 @@ from typing import Final
 
 from pydantic import BaseModel, ValidationError
 
+from workflow_interpreter.bdio.capabilities import CheckpointSink
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.contractor.records import (
     ContractorRecords,
     LedgerContractorRecords,
 )
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.ledger.checkpoint import TaskCheckpoint
 from workflow_interpreter.ledger.closure import TaskClosure
 from workflow_interpreter.ledger.constants import LANDING_INTENT_PHASE
 from workflow_interpreter.ledger.database import LedgerDatabase
@@ -74,10 +76,19 @@ class LandingJournal:
         database: LedgerDatabase,
         task_id: str,
         epic_id: str,
+        checkpoint: CheckpointSink | None = None,
     ) -> None:
         self._database = database
         self._task_id = task_id
         self._epic_id = epic_id
+        self._checkpoint = checkpoint
+        """What anchors the journalled row outside the database (§3.9, R10).
+
+        The intent row is the durable fact that says "this attempt's work may
+        already be on the target ref", and it is written mid-landing — after
+        the last activation close, which used to be the only checkpoint site.
+        So a rebuild answered `landing_begun` false, `wf phase abandon` was
+        accepted, and the commit was orphaned on the target (gate B, 2a)."""
 
     def record(self, attempt: int, phase: LandingPhase, record: BaseModel) -> None:
         """Copy one landing half into the ledger, after its file was written.
@@ -103,6 +114,8 @@ class LandingJournal:
                     datetime.now(tz=UTC).isoformat(),
                 ),
             )
+        if self._checkpoint is not None:
+            self._checkpoint.checkpoint(self._task_id)
 
     def read[RecordT: BaseModel](
         self, attempt: int, phase: LandingPhase, model: type[RecordT]
@@ -188,8 +201,14 @@ class ExportPin:
         Beside `closure`, and for its reason: the landing composes both into
         the adapter, and the record it transitions and the export it pins have
         to be facts of one ledger.
+
+        It anchors its transitions, because this pin has the git seam that
+        takes the anchor (§3.9): LANDED is written here, after the last
+        activation close, and nothing else would carry it through a rebuild.
         """
-        return LedgerContractorRecords(self._database)
+        return LedgerContractorRecords(
+            self._database, TaskCheckpoint(self._database, self._git)
+        )
 
     @property
     def outbox(self) -> TrackerOutbox:

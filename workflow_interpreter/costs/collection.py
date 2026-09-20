@@ -15,7 +15,6 @@ from workflow_interpreter.bdio.records import ActivationRecord
 from workflow_interpreter.bdio.rows import StoreRow
 from workflow_interpreter.bdio.wire import Lifecycle
 from workflow_interpreter.contractor.landing import (
-    LANDING_INTENT_FILE,
     LANDING_RECEIPT_FILE,
     LandingIntent,
     LandingReceipt,
@@ -32,6 +31,7 @@ from workflow_interpreter.costs.profiles import LogContext, LogParseResult, pars
 from workflow_interpreter.inspector.errors import WrapperDirError
 from workflow_interpreter.inspector.models import ExecLedgerEntry, LaunchReceipt
 from workflow_interpreter.inspector.paths import read_record, record_bytes
+from workflow_interpreter.ledger.constants import LANDING_INTENT_FILE
 from workflow_interpreter.ledger.store import LedgerStore
 
 EXTERNAL_ATTRIBUTION_SCOPE_GAP = (
