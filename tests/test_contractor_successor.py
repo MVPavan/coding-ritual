@@ -83,7 +83,7 @@ def test_changed_integration_runs_fresh_review_and_lands(
     approve_integration(lab, record)
     result = entry(lab)
     assert result.exit_code == 0, result.report
-    assert adapter.show("stage").status == "closed"
+    assert lab.fake_bd.rows["stage"]["status"] == "closed"
     acts = lab.store.reads.list_activations(receipt.root_id)
     assert [a.metadata.node for a in acts] == ["integrate", "review"]
 
@@ -310,7 +310,7 @@ def test_ordinary_contractor_continues_B_A_C_with_original_CAS(
     assert lab.git.is_ancestor(a, c, cwd=lab.repo)
     assert c != a
     assert (lab.repo / "src/feature.py").read_text() == "value = 3\n"
-    assert adapter.show("stage").status == "closed"
+    assert lab.fake_bd.rows["stage"]["status"] == "closed"
 
 
 def test_bound_source_and_authorized_candidate_refuse_replacement(

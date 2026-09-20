@@ -171,24 +171,19 @@ def test_real_coordination_lands_design_children_and_integration(
         if resume:
             # Only the fixture's two named integration records can be resumed.
             assert name in {"integration-epic", "integration-stage"}
-            from workflow_interpreter.contractor.adapter import ContractorAdapter
             from workflow_interpreter.foreman.__main__ import _composition
-            from workflow_interpreter.ledger.closure import NoLedgerClosure
 
             composition = _composition(config)
-            adapter = ContractorAdapter.from_config(
-                composition.config.bd, closure=NoLedgerClosure()
-            )
             candidates = [
                 row
                 for row in composition.store._client.list_beads()
                 if row.title == title
                 and row.issue_type == kind
-                and adapter.show(row.id).parent == parent
+                and composition.store._client.show(row.id).parent == parent
             ]
             assert len(candidates) <= 1, candidates
             if candidates:
-                record = adapter.show(candidates[0].id)
+                record = composition.store._client.show(candidates[0].id)
                 assert record.description == title
                 (evidence / f"{name}-reused.json").write_text(
                     json.dumps({"id": record.id, "parent": parent, "title": title})

@@ -420,6 +420,25 @@ def test_a_tracker_without_blockers_records_the_gap_or_refuses(
     assert _record(lab).blockers_checked is False
 
 
+def test_the_adapter_keeps_no_bd_read_beside_the_port() -> None:
+    """R2, §3.3: ONE tracker surface, or the port is decoration.
+
+    `show`, `direct_children`, `dependencies` and `blocking_dependencies` were
+    the contractor's own bd reads. Each asked the TRANSPORT while `self.tracker`
+    held the configured port, so a repository on the file tracker asked bd about
+    its own stage — and `landing.recover` decided on that answer whether a close
+    had completed. Their ABSENCE is the assertion: a method that still exists is
+    one a call site drifts back to.
+    """
+    absent = [
+        name
+        for name in ("show", "direct_children", "dependencies", "blocking_dependencies")
+        if hasattr(ContractorAdapter, name)
+    ]
+
+    assert absent == []
+
+
 def test_the_null_tracker_applies_every_intent_without_a_capability() -> None:
     """§3.3: no capabilities, and still every run completes.
 

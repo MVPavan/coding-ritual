@@ -7,10 +7,9 @@ from typing import TYPE_CHECKING, Final
 import structlog
 from pydantic import ValidationError
 
-from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
+from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
-from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.contractor.models import (
     MSG_BACKEND_IMMUTABLE,
     ContractorRecord,
@@ -18,7 +17,15 @@ from workflow_interpreter.contractor.models import (
 )
 from workflow_interpreter.contractor.records import ContractorRecords, StoredRecord
 from workflow_interpreter.ledger.closure import ClosureProbe
-from workflow_interpreter.tracker import BdTracker, Close, TrackerIntent, TrackerRef
+from workflow_interpreter.tracker import (
+    BdTracker,
+    Blocker,
+    Close,
+    TrackerCapability,
+    TrackerIntent,
+    TrackerRef,
+    WorkItem,
+)
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 from workflow_interpreter.tracker.port import TrackerPort
 
@@ -82,7 +89,6 @@ MSG_NOT_CLOSABLE: Final[str] = (
     "record durable in git — exported and anchored — before its bead closes "
     "(store-restructure §3.5, D5)"
 )
-STATUS_CLOSED: Final[str] = "closed"
 _RETIRED_STATES: Final[frozenset[ContractorState]] = frozenset(
     {ContractorState.ABANDONED, ContractorState.ABANDONED_EXTERNAL}
 )
@@ -221,29 +227,36 @@ class ContractorAdapter:
         else:
             self.integration_guard.binding(record)
 
-    def show(self, stage_id: str) -> BeadRecord:
-        """Read one resolved stage by id."""
-        return self._client.show(stage_id)
+    def item(self, stage_id: str) -> WorkItem | None:
+        """What the CONFIGURED tracker says about this stage, or nothing (§3.3).
 
-    def direct_children(self, epic_id: str) -> tuple[BeadRecord, ...]:
-        """List only rows whose persisted parent is the named epic."""
+        The adapter's four bd reads — `show`, `direct_children`, `dependencies`,
+        `blocking_dependencies` — are gone, and this is what replaced the only
+        one production still needed. They asked the bd TRANSPORT while
+        `self.tracker` held the configured port, so a repository on the file
+        tracker read bd about its own stage and `landing.recover` decided the
+        close had not completed.
+
+        Nothing rather than a refusal when the tracker holds no item: an
+        absent item is an ANSWER (R9) — the null tracker holds none at all, and
+        a caller that cannot proceed without one says so in its own words.
+        """
+        return self.tracker.get(self.ref(stage_id))
+
+    def unresolved_blockers(self, stage_id: str) -> tuple[Blocker, ...]:
+        """What this stage still waits on, as the configured tracker sees it.
+
+        Empty for a tracker with no `BLOCKERS` capability, which is R9's rule
+        rather than an omission: a tracker that cannot answer the question has
+        not answered it "no blockers", and the caller that cares whether it was
+        asked at all reads `capabilities` (§3.3).
+        """
+        if TrackerCapability.BLOCKERS not in self.tracker.capabilities:
+            return ()
         return tuple(
-            bead
-            for bead in self._client.list_children(epic_id)
-            if bead.parent == epic_id
-        )
-
-    def dependencies(self, stage_id: str) -> tuple[DependencyRecord, ...]:
-        """Inspect the selected stage's declared dependencies."""
-        return self._client.list_dependencies(stage_id)
-
-    def blocking_dependencies(self, stage_id: str) -> tuple[DependencyRecord, ...]:
-        """Return only unfinished blocking dependencies for a selected stage."""
-        return tuple(
-            dependency
-            for dependency in self.dependencies(stage_id)
-            if dependency.dependency_type is DependencyType.BLOCKS
-            and dependency.status != STATUS_CLOSED
+            blocker
+            for blocker in self.tracker.blockers(self.ref(stage_id))
+            if not blocker.resolved
         )
 
     def stored(self, stage_id: str) -> StoredRecord | None:

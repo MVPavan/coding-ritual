@@ -39,6 +39,7 @@ from workflow_interpreter.ledger.paths import (
     export_path,
     export_relpath,
 )
+from workflow_interpreter.tracker import WorkItemStatus
 
 LANDING_SCHEMA: Final = "contract-landing/2"
 LANDING_INTENT_FILE: Final[str] = "contract-landing.json"
@@ -439,9 +440,14 @@ class PhaseLanding:
         # A task whose record derives `closed()` is finished, whatever a
         # restored target ref now says (§3.5). CLOSED left the record's
         # vocabulary with S4's `contractor_records`, so the derived answer is
-        # the only one; the bead's own status is what says the close completed.
-        if self._closed(stage_id) and self._adapter.show(stage_id).status == "closed":
-            return self._historical(record, intent, evidence)
+        # the only one; the ITEM's own status is what says the close completed
+        # — asked of the CONFIGURED tracker, because a repository on the file
+        # tracker would otherwise ask bd about an item bd does not hold and
+        # take the recovery branch for a close that had already finished.
+        if self._closed(stage_id):
+            item = self._adapter.item(stage_id)
+            if item is not None and item.status is WorkItemStatus.CLOSED:
+                return self._historical(record, intent, evidence)
         observed_target = self._git.ref_target(intent.ref, cwd=self._repo_root)
         if observed_target == intent.expected_base:
             if (

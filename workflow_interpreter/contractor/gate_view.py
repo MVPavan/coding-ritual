@@ -52,9 +52,13 @@ def contractor_gate_view(
     )
     record = adapter.record(stage_id)
     is_current_attempt = record.instance_key == instance_key
+    # The CONFIGURED tracker, and an absent item contradicts nothing (R9): a
+    # null tracker holds none at all, and a view that refused for the lack of
+    # one would make the gate unreadable on every tracker but bd.
+    item = adapter.item(stage_id)
     if (
         record.stage_id != stage_id
-        or adapter.show(stage_id).parent != record.epic_id
+        or (item is not None and item.parent != record.epic_id)
         or not adapter.owns_root(instance_key, root_id)
         or (is_current_attempt and record.root_id != root_id)
         or (not is_current_attempt and instance_key not in record.previous_attempts)

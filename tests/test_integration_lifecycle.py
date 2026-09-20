@@ -85,7 +85,7 @@ def approve_integration(lab, record):
     gates = lab.store.reads.list_gates(record.root_id)
     assert len(gates) == 1 and gates[0].metadata.gate_node == "ship", before.report
     assert lab.git.head_commit(cwd=lab.repo) == record.expected_base_commit
-    assert _contractor_adapter(lab).show("stage").status != "closed"
+    assert lab.fake_bd.rows["stage"]["status"] != "closed"
     lab.root = lab.store.reads.load_root(record.root_id)
     lab.approve(gates[0].gate_id, Outcome.APPROVE)
 
@@ -101,7 +101,7 @@ def test_normal_entry_requires_fresh_review_and_explicit_ship(
     assert result.exit_code == 0, result.report
     assert result.report["state"] == "completed"
     assert (lab.repo / "src/feature.py").read_text() == "value = 2\n"
-    assert _contractor_adapter(lab).show("stage").status == "closed"
+    assert lab.fake_bd.rows["stage"]["status"] == "closed"
     state = lab.store.coordination_store().state(owner.root_id)
     assert len(state.children) == 2
     assert state.integrations["combine"].authorization is not None
@@ -185,7 +185,7 @@ def test_cancellation_and_crash_recovery_are_forward_only(
         refused = entry(lab)
         assert refused.exit_code == 2
         assert lab.git.head_commit(cwd=lab.repo) == record.expected_base_commit
-        assert _contractor_adapter(lab).show("stage").status != "closed"
+        assert lab.fake_bd.rows["stage"]["status"] != "closed"
         return
     with pytest.raises(InjectedCrash):
         entry(lab)
@@ -198,7 +198,7 @@ def test_cancellation_and_crash_recovery_are_forward_only(
     else:
         recovered = entry(lab)
     assert recovered.exit_code == 0, recovered.report
-    assert _contractor_adapter(lab).show("stage").status == "closed"
+    assert lab.fake_bd.rows["stage"]["status"] == "closed"
     assert lab.git.head_commit(cwd=lab.repo) != record.expected_base_commit
     assert len(lab.store.coordination_store().state(owner.root_id).children) == 2
 
@@ -375,7 +375,7 @@ Path(os.environ["WF_OUTCOME_FILE"]).write_text(json.dumps({"outcome": "done" if 
             for g in lab.store.reads.list_gates(record.root_id)
         )
         assert lab.git.head_commit(cwd=lab.repo) == new_base
-        assert _contractor_adapter(lab).show("stage").status != "closed"
+        assert lab.fake_bd.rows["stage"]["status"] != "closed"
         return
     approve_integration(lab, record)
     result = entry(lab)
@@ -415,7 +415,7 @@ def test_abandoning_an_integration_attempt_frees_its_target_claim(
     # An integration stage snapshots its brief at prepare too (§3.3, R4), from
     # the essential input its admission pinned rather than from the tracker.
     held = lab.records.read("stage")
-    assert held is not None and held.brief == adapter.show("stage").description
+    assert held is not None and held.brief == lab.fake_bd.rows["stage"]["description"]
 
     abandoned = adapter.abandon("stage")
 
@@ -558,7 +558,7 @@ def test_invalid_candidate_never_moves_target(
         result = entry(lab)
         assert result.exit_code == 2, result.report
     assert lab.git.head_commit(cwd=lab.repo) == record.expected_base_commit
-    assert _contractor_adapter(lab).show("stage").status != "closed"
+    assert lab.fake_bd.rows["stage"]["status"] != "closed"
 
 
 @pytest.mark.parametrize("boundary", ["association", "claim", "contractor"])
@@ -642,7 +642,7 @@ def test_direct_adapter_close_cannot_promote_membership_to_landing(
     adapter.integration_guard = IntegrationGuard(lab.composition)
     with pytest.raises(ContractorRefusal):
         adapter.close("stage", forged, "invented-receipt")
-    assert adapter.show("stage").status != "closed"
+    assert lab.fake_bd.rows["stage"]["status"] != "closed"
 
 
 @pytest.mark.proc
@@ -693,4 +693,4 @@ def test_final_handoff_excludes_racing_cancellation(
         owner.root_id, record.integration_slot, 0, "after", "after observed landing"
     )
     assert entry(lab).exit_code == 0
-    assert _contractor_adapter(lab).show("stage").status == "closed"
+    assert lab.fake_bd.rows["stage"]["status"] == "closed"

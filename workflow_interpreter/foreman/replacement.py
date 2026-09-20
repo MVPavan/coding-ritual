@@ -24,6 +24,7 @@ from workflow_interpreter.inspector.models import Liveness
 from workflow_interpreter.ledger import records as ledger_records
 from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.ledger.records import ContractorRecordRow
+from workflow_interpreter.ledger.tasks import task_epic
 from workflow_interpreter.schema.decisions import (
     ChildRecord,
     CoordinationError,
@@ -529,9 +530,18 @@ def _check_contractor(
     root = composition.reads_for_root(intent.predecessor_id).load_root(
         intent.predecessor_id
     )
-    if (
-        previous.root_id != root.root_id
-        or adapter.show(previous.stage_id).parent != previous.epic_id
+    # The LEDGER answers which epic this stage was minted under (§3.7, R8).
+    # It used to be a bd `show` from inside `foreman/` — a tracker read on the
+    # wrong side of §3.1, reachable from replacement coordination — and the
+    # ledger already holds the pair prepare wrote, so no tracker is needed to
+    # answer it at all. A task with no row is not contradicted by one.
+    stage_epic = (
+        None
+        if composition.ledger is None
+        else task_epic(composition.ledger, previous.stage_id)
+    )
+    if previous.root_id != root.root_id or (
+        stage_epic is not None and stage_epic != previous.epic_id
     ):
         raise CoordinationError("contractor stage/member ownership mismatch")
     if (

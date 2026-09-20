@@ -450,7 +450,7 @@ def test_adapter_writes_the_whole_record_across_the_admit_boundary(
     assert held.version == 2
     assert fake_bd.rows[STAGE_ID]["metadata"] == {"unrelated": {"preserved": True}}
     assert len(fake_bd.metadata_writes) == writes_after_prepare
-    assert adapter.dependencies(STAGE_ID) == ()
+    assert adapter.unresolved_blockers(STAGE_ID) == ()
 
 
 @pytest.mark.parametrize(
@@ -1556,11 +1556,11 @@ def test_blocking_dependencies_tolerate_the_open_bd_relation_vocabulary(
     ]
     fake_bd.rows[STAGE_ID] = stage
 
-    dependencies = ContractorAdapter(
+    blockers = ContractorAdapter(
         fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
-    ).blocking_dependencies(STAGE_ID)
+    ).unresolved_blockers(STAGE_ID)
 
-    assert tuple(dependency.id for dependency in dependencies) == ("open-blocker",)
+    assert tuple(blocker.ref for blocker in blockers) == ("open-blocker",)
 
 
 def test_intent_before_cas_refuses_without_restarting_the_landing(

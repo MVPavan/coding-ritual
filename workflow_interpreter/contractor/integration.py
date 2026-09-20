@@ -697,14 +697,18 @@ def prepare_integration(
         records=records_of(composition),
     )
     adapter.integration_guard = guard
-    stage = adapter.show(request.stage_id)
+    # The CONFIGURED tracker (§3.3), not bd: an integration prepared in a
+    # repository on the file tracker used to be validated against a bd row
+    # nobody there maintains.
+    stage = adapter.item(request.stage_id)
     if (
-        stage.parent != request.epic_id
-        or not stage.description
-        or not stage.description.strip()
+        stage is None
+        or stage.parent != request.epic_id
+        or not stage.brief
+        or not stage.brief.strip()
     ):
         raise ContractorRefusal("integration stage identity or brief missing")
-    if adapter.blocking_dependencies(request.stage_id):
+    if adapter.unresolved_blockers(request.stage_id):
         raise ContractorRefusal("integration stage is blocked")
     target = composition.git.attached_branch_ref(cwd=composition.config.repo_root)
     if target is None:
@@ -761,7 +765,7 @@ def prepare_integration(
             )
             settings = _resolved_config(composition, definition, {})
             bodies = dict(
-                zip(ESSENTIAL, (_json(entries), stage.description, base), strict=True)
+                zip(ESSENTIAL, (_json(entries), stage.brief, base), strict=True)
             )
             if (
                 sum(len(body.encode()) for body in bodies.values())
