@@ -328,6 +328,41 @@ behind under R12's clean break: no live ledger and no committed export exist,
 so there is nothing to read a stale copy — and a database that disagrees is
 refused by `_refuse_unfoldable_state` rather than quietly losing the state."""
 
+_V6_TRACKER_OUTBOX: Final[tuple[str, ...]] = (
+    """
+CREATE TABLE tracker_outbox (
+    outbox_id   INTEGER PRIMARY KEY,
+    task_id     TEXT NOT NULL,
+    intent_key  TEXT NOT NULL,
+    intent_json TEXT NOT NULL,
+    enqueued_at TEXT NOT NULL,
+    applied_at  TEXT,
+    result      TEXT
+)
+""",
+    (
+        "CREATE UNIQUE INDEX tracker_outbox_pending "
+        "ON tracker_outbox(intent_key) WHERE applied_at IS NULL"
+    ),
+)
+"""Intents awaiting a tracker that can answer (store-restructure §3.3, R2).
+
+The unique index is PARTIAL, and that is the whole design: an intent is a
+desired STATE, so at most one unapplied row may exist per key and a second
+enqueue replaces it rather than queueing a second write. Applied rows keep
+their key freely, so the same task can be flagged, unflagged and flagged again.
+
+The key is a plain rowid alias, not `AUTOINCREMENT`: rows here are retired in
+place and never deleted, so there is no id to reuse — and `AUTOINCREMENT`
+creates SQLite's own `sqlite_sequence` table, which §3.6's schema-derived
+completeness check would then have to account for as an engine table.
+
+`task_id` is not a foreign key into `tasks`: the release of a claim on a task
+whose row a failed prepare never wrote is still a write the mirror owes.
+Deliberately non-exported (§3.6) — it records what THIS checkout owes its
+tracker, which is neither a fact about the task nor true in the clone that
+rebuilds from the file."""
+
 _SQL_V4_STATED_TASKS: Final[str] = (
     "SELECT task_id, state FROM tasks WHERE state IS NOT NULL ORDER BY task_id"
 )
@@ -380,6 +415,7 @@ MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     (_V3_TASKS_STATE,),
     (*_V4_TASKS_TRACKER, _V4_ROOTS_CHILD),
     (_V5_CONTRACTOR_RECORDS, _V5_CLAIMS, _V5_TASKS_STATE_FOLDED),
+    _V6_TRACKER_OUTBOX,
 )
 """One tuple of statements per schema version, in order. Index `n` migrates a
 database at version `n` to version `n + 1`, so `len(MIGRATIONS)` IS the version

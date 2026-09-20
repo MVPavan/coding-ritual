@@ -105,6 +105,7 @@ class LedgerTable(StrEnum):
     RESTORE_PENDING = "restore_pending"
     CONTRACTOR_RECORDS = "contractor_records"
     CLAIMS = "claims"
+    TRACKER_OUTBOX = "tracker_outbox"
 
 
 LANDING_INTENT_PHASE: Final[str] = "intent"
@@ -143,6 +144,12 @@ class TrackerKind(StrEnum):
     BD = "bd"
     GITHUB = "github"
     JIRA = "jira"
+    FILE = "file"
+    """A whole tracker in one JSON document (S5). A repository with no issue
+    service still has tasks, briefs and a status somebody reads."""
+    NONE = "none"
+    """No tracker at all. The ref is then the engine's own task id, and
+    `NullTracker` mirrors nothing — every run still completes (§3.3)."""
 
 
 ROW_TABLES: Final[tuple[LedgerTable, ...]] = (
@@ -231,6 +238,11 @@ NON_EXPORTED: Final[Mapping[LedgerTable, str]] = MappingProxyType(
             "about one task: it is keyed by the target, not by task_id, it is "
             "ledger-local by R11, and a restored claim would reserve a target "
             "for an attempt that is already over"
+        ),
+        LedgerTable.TRACKER_OUTBOX: (
+            "what THIS checkout still owes its tracker (§3.3, R2): a mirror "
+            "write in flight, not a fact about the task — and a clone that "
+            "rebuilt one would re-send a close somebody else already applied"
         ),
     }
 )
