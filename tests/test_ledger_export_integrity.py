@@ -183,9 +183,10 @@ def test_a_closed_task_re_exports_the_very_bytes_its_pin_names(
     exported = export_path(repo_root, TASK)
     with open_ledger(repo_root, wrapper_root) as database:
         seeded_task(database)
-        # The pin records LANDED on the way past, and since S4 that state lives
-        # on the task's RECORD (§3.5) — so the task has to have one.
-        seed_contractor_record(database)
+        # The LANDING records LANDED, on the task's own record (§3.5), and the
+        # pin exports it — so a task pinned here has to have landed first, as
+        # `pin_export` itself insists.
+        seed_contractor_record(database, state=TaskState.LANDED.value)
         pinned_oid = ExportPin(database, git, repo_root, EPIC).pin(
             TASK, BackendKind.LEDGER
         )
@@ -196,6 +197,71 @@ def test_a_closed_task_re_exports_the_very_bytes_its_pin_names(
     assert again == as_pinned
     assert _git_binary("hash-object", "--", str(exported), cwd=repo_root) == pinned_oid
     assert _git_binary("rev-parse", "--verify", ref, cwd=repo_root) == pinned_oid
+
+
+def _landed_record() -> ContractorRecord:
+    """The record a landing leaves behind, for the ledger TASK id."""
+    return (
+        ContractorRecord.prepared(
+            epic_id=EPIC,
+            stage_id=TASK,
+            attempt=ATTEMPT,
+            target_ref=TARGET_REF,
+            expected_base_commit=BASE_COMMIT,
+        )
+        .admitted(ROOT_ID)
+        .landed(ARTIFACT_OID, TREE_OID, GATE_RECEIPT, LANDING_RECEIPT)
+    )
+
+
+def test_the_close_after_a_pin_leaves_the_exported_record_untouched(
+    tmp_path: Path, fake_bd: FakeBd, fake_client: BdClient
+) -> None:
+    """§3.6 and D3, through the order a real landing writes in.
+
+    `contractor_records` is exported, so anything the close writes to it AFTER
+    the pin makes the live row differ from the pinned bytes — and the task's
+    own record then contradicts the blob it names, with `wf ledger pin-export`
+    reporting the file stale. The close is a content no-op by then: LANDED is
+    written once, by the landing, BEFORE the export carries it.
+    """
+    repo_root, _ = _git_repository(tmp_path)
+    config, wrapper_root = _config_file(repo_root, tmp_path)
+    git = _git(repo_root, wrapper_root)
+    exported = export_path(repo_root, TASK)
+    landed = _landed_record()
+    fake_bd.rows[TASK] = {
+        "id": TASK,
+        "title": "one stage",
+        "status": "in_progress",
+        "issue_type": "task",
+        "parent": EPIC,
+    }
+    with open_ledger(repo_root, wrapper_root) as database:
+        seeded_task(database)
+        pin = ExportPin(database, git, repo_root, EPIC)
+        # What `adapter.land` leaves: the record at LANDED, before the export.
+        pin.records.create(landed, brief=None)
+        pinned_oid = pin.pin(TASK, BackendKind.LEDGER)
+        as_pinned = exported.read_bytes()
+        adapter = ContractorAdapter(
+            fake_client, closure=pin.closure, records=pin.records
+        )
+
+        adapter.close(TASK, landed, LANDING_RECEIPT)
+
+        assert write_export(database, TASK).read_bytes() == as_pinned
+
+    assert ledger_main(["--config", str(config), COMMAND_PIN_EXPORT, TASK]) == 0
+    assert (
+        _git_binary(
+            "rev-parse",
+            "--verify",
+            EXPORT_REF_TEMPLATE.format(task_id=TASK),
+            cwd=repo_root,
+        )
+        == pinned_oid
+    )
 
 
 def test_pin_export_recovers_a_crash_between_the_write_and_the_pin(

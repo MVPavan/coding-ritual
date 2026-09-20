@@ -36,11 +36,11 @@ from workflow_interpreter.contractor.records import (
 )
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.closure import TaskClosure
-from workflow_interpreter.ledger.constants import LANDING_INTENT_PHASE, TaskState
+from workflow_interpreter.ledger.constants import LANDING_INTENT_PHASE
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import pin_export, write_export
-from workflow_interpreter.ledger.tasks import pin_task_backend, record_task_state
+from workflow_interpreter.ledger.tasks import pin_task_backend
 
 MSG_UNREADABLE_ROW: Final[str] = (
     "the journalled {phase} of attempt {attempt} of {task_id!r} is unreadable: {reason}"
@@ -152,7 +152,7 @@ class ExportPin:
         self._backend = backend
 
     def pin(self, task_id: str, backend: BackendKind) -> str:
-        """Record LANDED, export, store, pin — and answer the blob's object id.
+        """Export, store, pin — and answer the blob's object id.
 
         The task row is ensured first, because a task whose roots are all in
         bd may never have been written here and still owes an export: §3.6
@@ -160,10 +160,14 @@ class ExportPin:
         task, not only for ledger-backed ones. `pin_task_backend` is
         non-destructive, so a task that already named a backend keeps it.
 
-        LANDED is recorded BEFORE the bytes are written, unlike the pin, and
-        the order is the point (§3.5): the export has to carry the state, or a
-        ledger rebuilt in a clone could never derive closure at all. The pin
-        itself is elided from those bytes for the opposite reason.
+        LANDED is NOT written here. The landing's own `adapter.land` already
+        wrote it, into the same `contractor_records` row (§3.5), and a second
+        write of the same state would move `version` and `updated_at` — inside
+        a table the export carries. One write, before the bytes, is what makes
+        the export carry the state AND re-export to the pinned bytes (D3);
+        `pin_export` refuses a task that has not landed, so the ordering is
+        enforced rather than assumed. The pin itself is elided from those bytes
+        for the opposite reason.
 
         The export runs under the shared fence this connection already holds
         (§3.4.5), so it cannot publish a snapshot from before an exclusive
@@ -172,7 +176,6 @@ class ExportPin:
         recovery command cannot drift from the write it recovers.
         """
         pin_task_backend(self._database, task_id, backend, self._epic_id)
-        record_task_state(self._database, task_id, TaskState.LANDED)
         write_export(self._database, task_id)
         try:
             return pin_export(self._git, self._database, task_id, self._repo_root)

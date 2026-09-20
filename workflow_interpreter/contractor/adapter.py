@@ -322,7 +322,15 @@ class ContractorAdapter:
         # being written into.
         if not self.closure.closed(stage_id):
             raise ContractorAdapterError(MSG_NOT_CLOSABLE.format(stage_id=stage_id))
-        result = self._write(record, self._required(stage_id)).record
+        held = self._required(stage_id)
+        # A close changes nothing about the record — `land` stored this very
+        # relation — and by now the record is EXPORTED and its bytes pinned.
+        # Rewriting it would move `version` and `updated_at` inside a table the
+        # export carries, so the task would stop re-exporting to the blob it
+        # names and `wf ledger pin-export` would call the file stale (D3, §3.6).
+        result = (
+            held.record if held.record == record else self._write(record, held).record
+        )
         # The tracker mirror, after the ledger transition and never inside it
         # (§3.1): the ledger is the truth, and the bead is the copy a human
         # reads. S5 moves this onto the outbox so an unreachable tracker
