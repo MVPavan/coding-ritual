@@ -26,10 +26,10 @@ Start at 01 and stop when your question is answered. Each document stands alone.
 | 05 | [Inspector wrapper](05-wrapper.md) | How one activation is actually executed |
 | 06 | [Recovery](06-recovery.md) | What happens when a wrapper dies |
 | 07 | [Grading](07-grading.md) | Why a crew's claim is never proof |
-| 08 | [Store and ledger](08-store.md) | The backend seam, bd versus SQLite |
+| 08 | [Store and ledger](08-store.md) | The one record store: the SQLite ledger and its rules |
 | 09 | [Coordination](09-coordination.md) | Decision policy and child workflows (dormant today) |
 | 10 | [Assessment](10-assessment.md) | Vision versus what is built; over- and under-engineering |
-| 11 | [Language and pluggability](11-language-and-pluggability.md) | Three independent rebuild recommendations, consolidated |
+| 11 | [Language and pluggability](11-language-and-pluggability.md) | The tracker port: what is swappable, and what a tracker may not decide |
 | — | [Diagrams](diagrams.md) | 46 Mermaid diagrams covering the whole system |
 
 [diagrams.md](diagrams.md) is the largest document and the most complete. The numbered
