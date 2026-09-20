@@ -98,6 +98,10 @@ def _lab(
     for stage in stages:
         lab.fake_bd.rows[stage] = _contractor_stage(stage, description=STAGE_BRIEF)
     lab.halt_after_implement = False
+    # Which PORT the contractor runs on (S5). `None` is the bd adapter over
+    # this lab's own fake transport, which is production's wiring; a case
+    # about another tracker sets it before the first entry point runs.
+    lab.tracker = None
     verifier = GateVerifier(signing_config, lab.config.bd.workspace)
     monkeypatch.setattr(
         main_module, "_composition", lambda args: _scoped(lab, verifier, args.stage_id)
@@ -109,7 +113,9 @@ def _lab(
         # `ContractorAdapter.from_config` is given it in production: an adapter
         # left to build bd reads of its own would answer "this instance has no
         # root" from a tracker that holds no roots at all.
-        classmethod(lambda *_, **__: _contractor_adapter(lab, lab.store.reads)),
+        classmethod(
+            lambda *_, **__: _contractor_adapter(lab, lab.store.reads, lab.tracker)
+        ),
     )
     monkeypatch.setattr(Foreman, "run", _drive(lab))
     return lab

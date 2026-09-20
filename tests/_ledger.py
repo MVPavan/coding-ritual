@@ -34,6 +34,9 @@ from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.paths import repo_hash
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.ledger.tasks import pin_task_backend
+from workflow_interpreter.tracker.intents import SetFlag
+from workflow_interpreter.tracker.models import TrackerRef
+from workflow_interpreter.tracker.port import TrackerPort
 
 TASK: Final[str] = "cr-3411.2"
 EPIC: Final[str] = "cr-3411"
@@ -145,6 +148,28 @@ host = "host"
     return path, repo_root, wrapper_root
 
 
+class DirectFlagWriter:
+    """An `AttentionWriter` that applies the `SetFlag` intent immediately.
+
+    Production enqueues it and lets the driver-exit drain apply it (§3.3); the
+    reconciler's own drills are about the recompute, the lock and the ack, so
+    they keep the write synchronous and assert on what the tracker holds.
+    """
+
+    def __init__(self, tracker: TrackerPort) -> None:
+        self._tracker = tracker
+
+    def set_flag(self, task_id: str, flag: str, *, on: bool) -> None:
+        """Write the flag's desired presence straight through the port."""
+        self._tracker.apply(
+            SetFlag(
+                ref=TrackerRef(kind=self._tracker.kind, ref=task_id),
+                flag=flag,
+                on=on,
+            )
+        )
+
+
 class FileLabelWriter:
     """An `AttentionWriter` whose bead is a JSON file, shared across processes.
 
@@ -168,14 +193,12 @@ class FileLabelWriter:
         loaded = json.loads(self._path.read_text(encoding="utf-8"))
         return tuple(str(label) for label in loaded)
 
-    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
-        """Add one label and read the bead back."""
-        return self._write(bead_id, (*self.labels(), label))
-
-    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
-        """Remove one label and read the bead back."""
-        return self._write(
-            bead_id, tuple(held for held in self.labels() if held != label)
+    def set_flag(self, task_id: str, flag: str, *, on: bool) -> None:
+        """Make the flag's presence match `on` — the desired-state write."""
+        held = self.labels()
+        self._write(
+            task_id,
+            (*held, flag) if on else tuple(other for other in held if other != flag),
         )
 
     def _write(self, bead_id: str, labels: tuple[str, ...]) -> BeadRecord:

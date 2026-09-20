@@ -30,15 +30,18 @@ from tests.test_contractor_in_ledger import (
     _lab,
     _prepare_only,
 )
+from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.contractor.adapter import (
     ContractorAdapter,
     ContractorAdapterError,
 )
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
+from workflow_interpreter.contractor.tracker_wiring import attention_writer
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.ledger.closure import closed
 from workflow_interpreter.ledger.constants import TrackerKind
+from workflow_interpreter.ledger.reconcile import RootAttentionDrain
 from workflow_interpreter.ledger.reverify import ExportAnchor, anchor_oid
 from workflow_interpreter.tracker import (
     Applied,
@@ -57,6 +60,7 @@ from workflow_interpreter.tracker import (
     WorkItem,
     WorkItemStatus,
 )
+from workflow_interpreter.tracker.bd import BdTracker
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 ACTOR: Final[str] = "test"
@@ -184,6 +188,8 @@ def test_the_same_rig_lands_against_null_file_and_bd(
         extra = ("--brief", str(_brief_path(lab)))
     elif tracker_kind == "file":
         lab.tracker = _file_tracker(lab, STAGE)
+    else:
+        lab.tracker = BdTracker(BdClient(lab.config.bd, lab.fake_bd))
 
     result = _entry(lab, STAGE, *extra)
 
@@ -279,6 +285,7 @@ def test_a_refusal_or_a_crash_after_the_claim_releases_it(
     tracker = _file_tracker(lab, STAGE)
     lab.tracker = tracker
     ref = TrackerRef(kind=tracker.kind, ref=STAGE)
+    admit = ContractorAdapter.admit
     refused = _fail_admit(ContractorAdapterError("the ledger refused the transition"))
 
     monkeypatch.setattr(ContractorAdapter, "admit", refused)
@@ -294,7 +301,7 @@ def test_a_refusal_or_a_crash_after_the_claim_releases_it(
     assert stranded is not None and stranded.claimed_by == ACTOR
     assert _record(lab).state is ContractorState.PREPARED
 
-    monkeypatch.undo()
+    monkeypatch.setattr(ContractorAdapter, "admit", admit)
     assert _entry(lab, STAGE).exit_code == 0
 
     assert _record(lab).state is ContractorState.LANDED
@@ -350,6 +357,14 @@ def test_no_tracker_call_inside_a_tick_and_the_outbox_drains_at_exit(
     lab = _lab(tmp_path, monkeypatch, signing_config, sign_payload, STAGE)
     tracker = _Decorated(_file_tracker(lab, STAGE))
     lab.tracker = tracker
+    # The production wiring of the projection (§3.3): the reconciler enqueues,
+    # nothing in a tick contacts the tracker, and the drain happens at exit.
+    lab.composition = replace(
+        lab.composition,
+        drain_attention=RootAttentionDrain(
+            lab.ledger, attention_writer(lab.ledger, tracker)
+        ),
+    )
     inside: list[int] = []
     driven = Foreman.run
 

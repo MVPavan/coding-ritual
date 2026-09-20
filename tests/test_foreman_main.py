@@ -62,6 +62,8 @@ from workflow_interpreter.inspector.clock import Clock
 from workflow_interpreter.inspector.errors import PreconditionRefused
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.closure import closure_probe
+from workflow_interpreter.tracker.outbox import TrackerOutbox
+from workflow_interpreter.tracker.port import TrackerPort
 
 
 def _created_root_id(transcript: str) -> str:
@@ -1052,19 +1054,27 @@ def _contractor_stage(
 
 
 def _contractor_adapter(
-    lab: ForemanLab, reads: WorkflowReads | None = None
+    lab: ForemanLab,
+    reads: WorkflowReads | None = None,
+    tracker: TrackerPort | None = None,
 ) -> ContractorAdapter:
     """Keep the command's contractor adapter on the lab's real fake-bd transport.
 
     The closure probe is the lab's OWN ledger and checkout — the same one the
     production site it stands in for would compute (§3.5) — so a stub adapter
     answers the close and succession refusals exactly as the real one does.
+
+    `tracker` defaults to the bd adapter over that same transport, which is
+    what production wires; a suite running the port against another tracker
+    passes one, and the outbox follows the lab's ledger either way (S5).
     """
     return ContractorAdapter(
         BdClient(lab.config.bd, lab.fake_bd),
         reads,
         closure=closure_probe(lab.ledger, lab.git),
         records=lab.records,
+        tracker=tracker,
+        outbox=None if lab.ledger is None else TrackerOutbox(lab.ledger),
     )
 
 
@@ -1258,15 +1268,18 @@ def test_contractor_refuses_a_missing_stage_instead_of_crashing(
         classmethod(lambda *_, **__: adapter),
     )
 
-    def missing(_stage_id: str) -> NoReturn:
+    def missing(_ref: object) -> NoReturn:
         """Model the typed bd read failure for the caller's nonexistent id."""
         raise BdOutputError("bd show missing returned no row")
 
+    # Through the PORT since S5: the command's reads are `tracker.get` and
+    # `tracker.blockers`, and what is under test is still that a typed bd read
+    # failure reaches the caller as input rather than as a traceback.
     if trace:
-        monkeypatch.setattr(adapter, "blocking_dependencies", lambda _stage_id: ())
-        monkeypatch.setattr(adapter, "show", missing)
+        monkeypatch.setattr(adapter.tracker, "blockers", lambda _ref: ())
+        monkeypatch.setattr(adapter.tracker, "get", missing)
     else:
-        monkeypatch.setattr(adapter, "blocking_dependencies", missing)
+        monkeypatch.setattr(adapter.tracker, "blockers", missing)
     codes: list[int] = []
     arguments = ["contract", "phase", "missing"]
     if trace:
@@ -1313,7 +1326,7 @@ def test_contractor_does_not_convert_a_transport_defect_into_a_refusal(
         """What the crew does when the binary is absent or not executable."""
         raise FileNotFoundError(2, "No such file or directory", "bd-not-installed")
 
-    def broken(_stage_id: str) -> NoReturn:
+    def broken(_ref: object) -> NoReturn:
         """Model the transport itself failing, not a missing row."""
         if defect == "non-zero exit":
             raise BdCommandError(
@@ -1325,7 +1338,7 @@ def test_contractor_does_not_convert_a_transport_defect_into_a_refusal(
         ).context()
         raise AssertionError("an unrunnable bd binary must raise")
 
-    monkeypatch.setattr(adapter, "blocking_dependencies", broken)
+    monkeypatch.setattr(adapter.tracker, "blockers", broken)
 
     with pytest.raises(expected):
         contractor_command_module.execute_contractor(

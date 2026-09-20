@@ -40,6 +40,7 @@ from tests._ledger import (
     SIGNAL_TIMEOUT_S,
     TASK,
     CrashingLedgerStore,
+    DirectFlagWriter,
     FaultPoint,
     FileLabelWriter,
     InjectedLedgerCrash,
@@ -63,7 +64,6 @@ from workflow_interpreter.bdio.errors import (
 from workflow_interpreter.bdio.rows import RowGuard, RowKind, RowQuery, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import (
-    BeadRecord,
     EventPayload,
     Evidence,
     ExitRecord,
@@ -93,6 +93,7 @@ from workflow_interpreter.ledger.reconcile import (
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.ledger.tasks import export_oid, pin_task_backend
 from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.tracker.bd import BdTracker
 
 TERMINAL: Final[str] = "shipped"
 ABANDONED: Final[str] = "abandoned"
@@ -259,9 +260,13 @@ def bd_labels() -> FakeBd:
 
 
 @pytest.fixture
-def label_client(bd_labels: FakeBd) -> BdClient:
-    """The real bd transport, driving the in-memory workspace."""
-    return BdClient(BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR), bd_labels)
+def label_client(bd_labels: FakeBd) -> DirectFlagWriter:
+    """The real bd transport behind the port, driving the in-memory workspace."""
+    return DirectFlagWriter(
+        BdTracker(
+            BdClient(BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR), bd_labels)
+        )
+    )
 
 
 def _task_bead(bd_labels: FakeBd, task_id: str = TASK) -> str:
@@ -996,11 +1001,7 @@ def test_the_root_drain_acks_what_the_settlement_owes_and_refuses_visibly(
 class _UnreachableBd:
     """The `AttentionWriter` of a host where bd cannot be run at all."""
 
-    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
-        """Refuse, as the transport does when the binary is missing."""
-        raise BdUnavailableError((), "update", "bd is not installed")
-
-    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
+    def set_flag(self, task_id: str, flag: str, *, on: bool) -> None:
         """Refuse, as the transport does when the binary is missing."""
         raise BdUnavailableError((), "update", "bd is not installed")
 
