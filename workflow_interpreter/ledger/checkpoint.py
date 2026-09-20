@@ -42,13 +42,17 @@ and the next admission re-takes the claim through the normal path.
 
 from __future__ import annotations
 
+import os
+import threading
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
+from uuid import uuid4
 
 import structlog
 
 from workflow_interpreter.bdio.errors import StoreError
+from workflow_interpreter.contracts.run_identity import ComponentKind, safe_component
 from workflow_interpreter.inspector.errors import GitCommandError
 from workflow_interpreter.inspector.gitcmd import GitSubcommand
 from workflow_interpreter.inspector.gitio import Git
@@ -69,6 +73,15 @@ _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _BLOB: Final[str] = "blob"
 _HEAD_FILE: Final[str] = "HEAD"
+_TEMP_INFIX: Final[str] = "."
+"""What separates the staging file's name from the unique suffix that makes a
+concurrent writer's temporary file a different file."""
+
+_STAGING_LOCKS: Final[dict[str, threading.Lock]] = {}
+_LOCKS_GUARD: Final[threading.Lock] = threading.Lock()
+"""One lock per task, minted under a guard: the dict is read and extended from
+every thread that closes an activation, and `setdefault` alone would let two
+threads of one task take two different locks."""
 
 
 def checkpoint_ref(task_id: str) -> str:
@@ -77,8 +90,17 @@ def checkpoint_ref(task_id: str) -> str:
 
 
 def staging_path(repo_root: Path, task_id: str) -> Path:
-    """Where this task's checkpoint bytes are staged, outside the working tree."""
-    return fence_path(repo_root).parent / CHECKPOINT_DIR / f"{task_id}{EXPORT_SUFFIX}"
+    """Where this task's checkpoint bytes are staged, outside the working tree.
+
+    The id goes through the ONE identifier grammar before it becomes a path
+    component (`safe_component`, §3.6's rule for every ref and every path the
+    engine derives from a task id), rather than being trusted because of where
+    it was read from: this path is under the git COMMON directory, which every
+    worktree of the repository shares, so a traversal here would escape into
+    the one directory the fence itself lives in.
+    """
+    safe = safe_component(task_id, kind=ComponentKind.TASK)
+    return fence_path(repo_root).parent / CHECKPOINT_DIR / f"{safe}{EXPORT_SUFFIX}"
 
 
 def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
@@ -96,14 +118,25 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
     Raises rather than degrading: the DEGRADING caller is `TaskCheckpoint`,
     which is the one that runs on the activation-close path. A future operator
     command aimed at this must hear about a failure.
+
+    Two writers of ONE task are the case this is ordered for (S7 review,
+    finding 3): the staging path is keyed by task id alone, and a task can
+    have several roots closing activations on two threads of one process
+    (`database.py`). So the bytes land through `os.replace` of a uniquely
+    named file — either complete export is valid, a half-written one is not —
+    and the stage, the blob and the ref are taken under one per-task lock, so
+    the ref a checkpoint pins names the bytes that checkpoint staged.
+
+    The snapshot is read BEFORE the lock, because `export_task` holds the
+    connection for the whole read and the lock is only about the file.
     """
     payload = export_task(database, task_id)
     path = staging_path(database.repo_root, task_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(payload)
-    oid = git.write_blob(path, cwd=database.repo_root)
     ref = checkpoint_ref(task_id)
-    git.update_ref(ref, oid, cwd=database.repo_root)
+    with _staging_lock(task_id):
+        _stage(path, payload)
+        oid = git.write_blob(path, cwd=database.repo_root)
+        git.update_ref(ref, oid, cwd=database.repo_root)
     _LOG.info(
         "wf.ledger.checkpointed",
         task_id=task_id,
@@ -112,6 +145,28 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
         bytes=len(payload),
     )
     return oid
+
+
+def _stage(path: Path, payload: bytes) -> None:
+    """Put `payload` on `path` atomically, leaving no partial file behind."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}{_TEMP_INFIX}{uuid4().hex}")
+    try:
+        temporary.write_bytes(payload)
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _staging_lock(task_id: str) -> threading.Lock:
+    """The lock that orders this task's stage, blob and ref against its twin.
+
+    Per task rather than one global lock: two different tasks share neither
+    the staging file nor the ref, and the ledger's own `_writing` lock is
+    released before any of this runs (it guards the connection, not the file).
+    """
+    with _LOCKS_GUARD:
+        return _STAGING_LOCKS.setdefault(task_id, threading.Lock())
 
 
 def checkpoint_source(git: Git, repo_root: Path, task_id: str) -> Path | None:
@@ -135,8 +190,8 @@ def checkpoint_source(git: Git, repo_root: Path, task_id: str) -> Path | None:
         limit=CHECKPOINT_BYTES_LIMIT,
     )
     path = staging_path(repo_root, task_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(payload)
+    with _staging_lock(task_id):
+        _stage(path, payload)
     return path
 
 
