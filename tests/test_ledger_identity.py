@@ -13,6 +13,7 @@ that would catch one has to run what the wrapper runs.
 
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 from collections.abc import Iterator
@@ -20,21 +21,34 @@ from pathlib import Path
 from typing import Final
 
 import pytest
-from pydantic import ValidationError
+from pydantic import JsonValue, ValidationError
 
 from tests._bdio import RESOLVED_CONFIG, load_definition
-from tests._ledger import ledger_store, repository
+from tests._ledger import config_file, ledger_backend, ledger_store, repository
 from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.bdio.rows import NewRow, StoreRow
+from workflow_interpreter.bdio.wire import KEY_INSTANCE_KEY
 from workflow_interpreter.contracts.run_identity import (
     InvalidIdentifier,
     RunIdentity,
     safe_component,
 )
+from workflow_interpreter.foreman import __main__ as foreman_main
 from workflow_interpreter.foreman.identifiers import validate_bead_id
+from workflow_interpreter.ledger import closure as closure_module
+from workflow_interpreter.ledger import identity as identity_module
 from workflow_interpreter.ledger.constants import TrackerKind
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
-from workflow_interpreter.ledger.errors import LedgerEpicMissing
+from workflow_interpreter.ledger.errors import (
+    LedgerAttemptInvalid,
+    LedgerBusyRefusal,
+    LedgerEpicMissing,
+    LedgerMintConflict,
+    LedgerRootCollision,
+    LedgerTransportError,
+)
 from workflow_interpreter.ledger.identity import mint_task
+from workflow_interpreter.ledger.store import LedgerStore
 
 EPIC: Final[str] = "store-restructure"
 TASK: Final[str] = "cr-nwy9.3"
@@ -446,3 +460,262 @@ def test_children_of_a_later_attempt_start_from_one(
     child = _root(store, "decision-2")
 
     assert child == f"{TASK}-a2-c1"
+
+
+# --- 6. one task per tracker ISSUE, not per ref string ---------------------
+
+SHARED_REF: Final[str] = "X-1"
+"""One string two trackers both mint: the whole reason `tracker_kind` is a
+column and not decoration."""
+OTHER_EPIC: Final[str] = "some-other-epic"
+
+
+def test_two_trackers_naming_one_ref_each_get_their_own_row(
+    ledger: LedgerDatabase,
+) -> None:
+    """bd `X-1` and GitHub `X-1` are two issues, so they are two tasks."""
+    from_bd = mint_task(
+        ledger, tracker_ref=SHARED_REF, tracker_kind=TrackerKind.BD, epic_id=EPIC
+    )
+
+    from_github = mint_task(
+        ledger, tracker_ref=SHARED_REF, tracker_kind=TrackerKind.GITHUB, epic_id=EPIC
+    )
+
+    assert from_bd != from_github
+    assert set(_tasks(ledger)) == {
+        (from_bd, EPIC, SHARED_REF, TrackerKind.BD.value),
+        (from_github, EPIC, SHARED_REF, TrackerKind.GITHUB.value),
+    }
+    assert (
+        mint_task(
+            ledger, tracker_ref=SHARED_REF, tracker_kind=TrackerKind.BD, epic_id=EPIC
+        )
+        == from_bd
+    )
+    assert (
+        mint_task(
+            ledger,
+            tracker_ref=SHARED_REF,
+            tracker_kind=TrackerKind.GITHUB,
+            epic_id=EPIC,
+        )
+        == from_github
+    )
+    assert len(_tasks(ledger)) == 2
+
+
+def test_the_mint_never_answers_with_an_id_it_did_not_write(
+    ledger: LedgerDatabase, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A conflict the free-id search did not foresee refuses instead of lying.
+
+    The id chooser is forced onto a taken id — the shape an `INSERT OR IGNORE`
+    turned into "answer with an id that has no row" — so what is under test is
+    the mint's own guarantee, not SQLite's.
+    """
+    taken = mint_task(
+        ledger, tracker_ref=TASK, tracker_kind=TrackerKind.BD, epic_id=EPIC
+    )
+    monkeypatch.setattr(identity_module, "_free_task_id", lambda *_args: taken)
+
+    with pytest.raises(LedgerMintConflict) as refusal:
+        mint_task(
+            ledger, tracker_ref="gh#7", tracker_kind=TrackerKind.GITHUB, epic_id=EPIC
+        )
+
+    assert taken in str(refusal.value)
+    assert len(_tasks(ledger)) == 1
+
+
+# --- 7. the epic the run uses is the one the row carries -------------------
+
+
+def _args(config: Path, *form: str) -> argparse.Namespace:
+    """One parsed foreman invocation, as the CLI would hand it to composition."""
+    return foreman_main._parser().parse_args(["--config", str(config), *form])
+
+
+def test_a_named_epic_that_disagrees_with_the_row_is_refused(tmp_path: Path) -> None:
+    """The stored column wins: a second epic would move the run's whole grant."""
+    config, repo_root, wrapper_root = config_file(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        mint_task(database, tracker_ref=TASK, tracker_kind=TrackerKind.BD, epic_id=EPIC)
+    args = _args(config, "--task", TASK, "--epic", OTHER_EPIC, "tick", "some-root")
+
+    with pytest.raises(InvalidIdentifier) as refusal:
+        foreman_main._composition(args)
+
+    assert OTHER_EPIC in str(refusal.value)
+    assert EPIC in str(refusal.value)
+    assert not (repo_root / "docs" / "workstreams" / OTHER_EPIC).exists()
+
+
+_NO_EPIC_FORMS: Final[tuple[tuple[str, ...], ...]] = (
+    ("create", "graph.toml", "--instance-key", "k"),
+    ("tick", "root"),
+    ("status", "root"),
+    ("run", "root"),
+    ("monitor", "root"),
+    ("inspector", "root", "activation"),
+    ("inspect", "root", "activation"),
+    ("steer", "root", "activation", "--reason", "r"),
+    ("integration", "prepare", "--request", "request.toml"),
+    ("children", "status", "owner"),
+)
+"""Every subcommand family that states no epic positionally — the ones the
+deleted `or task_id` tail used to pin as their own epic, permanently."""
+
+
+@pytest.mark.parametrize("form", _NO_EPIC_FORMS, ids=lambda form: form[0] + form[1])
+def test_an_unprepared_task_with_no_epic_refuses_by_name(
+    tmp_path: Path, form: tuple[str, ...]
+) -> None:
+    """No row and no epic given is a wiring defect, not a task that is its own epic."""
+    config, repo_root, _wrapper_root = config_file(tmp_path)
+    args = _args(config, "--task", TASK, *form)
+
+    with pytest.raises(LedgerEpicMissing) as refusal:
+        foreman_main._composition(args)
+
+    assert TASK in str(refusal.value)
+    assert not (repo_root / "docs").exists()
+
+
+_EPIC_CHAIN: Final[tuple[tuple[str | None, str | None, object], ...]] = (
+    (None, EPIC, EPIC),
+    (EPIC, None, EPIC),
+    (EPIC, EPIC, EPIC),
+    (EPIC, OTHER_EPIC, InvalidIdentifier),
+    (None, None, LedgerEpicMissing),
+)
+"""stored, named, and what the chain must answer — value or refusal."""
+
+
+@pytest.mark.parametrize(("stored", "named", "expected"), _EPIC_CHAIN)
+def test_the_epic_chain_answers_the_row_the_name_or_a_refusal(
+    ledger: LedgerDatabase, stored: str | None, named: str | None, expected: object
+) -> None:
+    """One chain, four outcomes: named, stored, agreeing, disagreeing, neither."""
+    if stored is not None:
+        mint_task(ledger, tracker_ref=TASK, tracker_kind=TrackerKind.BD, epic_id=stored)
+
+    if isinstance(expected, type):
+        with pytest.raises(expected):
+            foreman_main._epic_for(ledger, TASK, named)
+        return
+    assert foreman_main._epic_for(ledger, TASK, named) == expected
+
+
+# --- 8. one attempt, one root: carriers that would collide refuse ----------
+
+
+def _pinned_carrier(ledger: LedgerDatabase) -> tuple[LedgerStore, dict[str, JsonValue]]:
+    """A real attempt-root carrier of the lab task, and the backend that wrote it.
+
+    Taken from the row rather than hand-built, and re-created through the
+    backend's own create seam (the one `tests/_ledger.CrashingLedgerStore`
+    overrides): what is under test is what the ledger does with a SECOND
+    carrier pinning the attempt this one already holds, so the first carrier
+    has to be the genuine article.
+    """
+    store = ledger_store(ledger, TASK, epic_id=EPIC)
+    root = _root(store, "a1", RunIdentity(task_id=TASK, attempt=1, epic_id=EPIC))
+    backend = ledger_backend(ledger, TASK, epic_id=EPIC)
+    return backend, dict(backend.get_row(root).metadata)
+
+
+def _created(backend: LedgerStore, carrier: dict[str, JsonValue]) -> StoreRow:
+    """Create one row from a carrier, at the backend's own seam."""
+    return backend._create_row(NewRow(summary="rival", metadata=carrier))
+
+
+def test_two_carriers_pinning_one_attempt_refuse_by_name(
+    ledger: LedgerDatabase,
+) -> None:
+    """A colliding `root_id` is a wiring defect, never SQLite having a bad day."""
+    backend, carrier = _pinned_carrier(ledger)
+
+    with pytest.raises(LedgerRootCollision) as refusal:
+        _created(backend, {**carrier, KEY_INSTANCE_KEY: "rival-1"})
+
+    assert f"{TASK}-a1" in str(refusal.value)
+    assert set(_roots(ledger)) == {f"{TASK}-a1"}
+
+
+def test_the_collision_is_not_the_transport_defect_closure_soft_fails_on(
+    ledger: LedgerDatabase, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`closure._latch` swallows unwritable and busy; a wiring defect is neither."""
+    assert not issubclass(LedgerRootCollision, LedgerTransportError)
+    assert not issubclass(LedgerRootCollision, LedgerBusyRefusal)
+
+    def refuse(*_args: object) -> None:
+        raise LedgerRootCollision(f"{TASK}-a1")
+
+    monkeypatch.setattr(closure_module, "record_export_oid", refuse)
+
+    with pytest.raises(LedgerRootCollision):
+        closure_module._latch(ledger, TASK, "0" * 40)
+
+
+# --- 9. an attempt a carrier pins is under the record's own rule -----------
+
+_RUN_IDENTITY: Final[str] = "run_identity"
+_ATTEMPT: Final[str] = "attempt"
+_ABSENT: Final[str] = "absent"
+"""The fourth bad attempt: a carrier that HAS a run identity and no number in
+it — which used to read as "no identity", i.e. as a child root."""
+
+_BAD_ATTEMPTS: Final[tuple[object, ...]] = (0, -1, "2", _ABSENT)
+
+
+@pytest.mark.parametrize(
+    "attempt", _BAD_ATTEMPTS, ids=("zero", "negative", "text", _ABSENT)
+)
+def test_a_pinned_attempt_that_breaks_the_rule_is_refused(
+    ledger: LedgerDatabase, attempt: object
+) -> None:
+    """`a0`, `a-1` and a stringly attempt are refusals, not silent child roots."""
+    backend, carrier = _pinned_carrier(ledger)
+    pinned = carrier[_RUN_IDENTITY]
+    assert isinstance(pinned, dict)
+    identity: dict[str, object] = dict(pinned)
+    if attempt == _ABSENT:
+        identity.pop(_ATTEMPT)
+    else:
+        identity[_ATTEMPT] = attempt
+
+    with pytest.raises(LedgerAttemptInvalid):
+        _created(
+            backend,
+            {**carrier, KEY_INSTANCE_KEY: "bad-1", _RUN_IDENTITY: identity},
+        )
+
+    assert set(_roots(ledger)) == {f"{TASK}-a1"}
+
+
+# --- 10. the shell glob and the regex still refuse the same names ----------
+
+_LEADING_PUNCTUATION: Final[tuple[str, ...]] = ("-foo", "_foo")
+"""Two names the regex refuses (it requires a leading alphanumeric) and the
+`case` glob used to admit, because it excluded a leading `.` alone."""
+
+
+@pytest.mark.parametrize("value", _LEADING_PUNCTUATION)
+def test_the_shell_side_refuses_leading_punctuation_too(
+    identity_repo: tuple[Path, str], value: str
+) -> None:
+    """One rule on both sides, or the containment boundary is wider in shell."""
+    repo, base = identity_repo
+
+    with pytest.raises(InvalidIdentifier):
+        safe_component(value)
+
+    as_task = _debrief_identity(repo, base, task_id=value, epic_id=EPIC)
+    as_epic = _debrief_identity(repo, base, task_id=TASK, epic_id=value)
+
+    assert as_task.returncode != 0
+    assert _IDENTITY_FAILURE in as_task.stdout
+    assert as_epic.returncode != 0
+    assert _IDENTITY_FAILURE in as_epic.stdout

@@ -667,6 +667,75 @@ def test_an_import_into_a_ledger_pinned_to_another_wrapper_root_is_refused(
     assert str(intruder.resolve()) in str(refusal.value)
 
 
+HOSTILE_COMPONENT: Final[str] = "a..b"
+"""One of the two names git and the path grammar both refuse (§3.7, R8) — and
+untrusted export bytes can state either of them."""
+
+
+def _tasks_line(lines: list[dict[str, Any]]) -> dict[str, Any]:
+    """The one `tasks` row of an export, found by its table rather than by index."""
+    return next(
+        line
+        for line in lines[1:]
+        if line[ExportKey.TABLE.value] == LedgerTable.TASKS.value
+    )
+
+
+def test_an_import_refuses_an_epic_no_path_could_hold(tmp_path: Path) -> None:
+    """§3.7: the restored `tasks.epic_id` is under the ONE grammar too.
+
+    The column reaches `docs/workstreams/<epic>/` on the next run, so an
+    import that restored `a..b` would hand a traversal to the debrief grant
+    the run after it — refused before a row is written, like every other
+    untrusted value in these bytes.
+    """
+    config, repo_root, wrapper_root = config_file(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        export = write_export(database, TASK)
+    lines = _lines(export)
+    _tasks_line(lines)[ExportKey.ROW.value]["epic_id"] = HOSTILE_COMPONENT
+    _rewrite(export, lines)
+
+    with pytest.raises(LedgerExportError) as refusal:
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+    assert HOSTILE_COMPONENT in str(refusal.value)
+    assert ledger_main(["--config", str(config), "import"]) == 2
+
+
+def test_an_import_refuses_a_header_task_id_no_path_could_hold(
+    tmp_path: Path,
+) -> None:
+    """The header names the task every restored row is keyed by — grammar first."""
+    _config, repo_root, wrapper_root = config_file(tmp_path)
+    with open_ledger(repo_root, wrapper_root) as database:
+        _seeded(database)
+        export = write_export(database, TASK)
+    lines = _lines(export)
+    lines[0][ExportKey.TASK_ID.value] = HOSTILE_COMPONENT
+    for line in lines[1:]:
+        row = line[ExportKey.ROW.value]
+        if "task_id" in row:
+            row["task_id"] = HOSTILE_COMPONENT
+    _rewrite(export, lines)
+
+    with pytest.raises(LedgerExportError) as refusal:
+        import_export(
+            export,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
+            ledger=ledger_path(repo_root),
+        )
+
+    assert HOSTILE_COMPONENT in str(refusal.value)
+
+
 def _lines(export: Path) -> list[dict[str, Any]]:
     """Every line of an export file as its parsed JSON object."""
     return [

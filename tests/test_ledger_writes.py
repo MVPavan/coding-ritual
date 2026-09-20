@@ -495,7 +495,7 @@ def test_a_settlement_that_loses_the_race_never_rewrites_the_recorded_terminal(
             ledger_store(other).settle_root(root.root_id, ABANDONED)
 
     raced = WorkflowStore(
-        _RacedLedgerStore(ledger, task_id=TASK, rival=rival),
+        _RacedLedgerStore(ledger, task_id=TASK, epic_id=EPIC, rival=rival),
         branch_head_reader=branch_head,
     )
 
@@ -520,9 +520,14 @@ class _RacedLedgerStore(LedgerStore):
     """
 
     def __init__(
-        self, database: LedgerDatabase, *, task_id: str, rival: Callable[[], None]
+        self,
+        database: LedgerDatabase,
+        *,
+        task_id: str,
+        epic_id: str,
+        rival: Callable[[], None],
     ) -> None:
-        super().__init__(database, task_id=task_id)
+        super().__init__(database, task_id=task_id, epic_id=epic_id)
         self._rival: Callable[[], None] | None = rival
 
     def _merge_metadata(
@@ -564,7 +569,7 @@ def test_a_late_inspector_write_loses_to_the_steer_that_closed_the_activation(
     the steer — so every check outside the transaction passes, and only the
     guard that re-reads inside it can refuse.
     """
-    backend = LedgerStore(ledger, task_id=TASK)
+    backend = LedgerStore(ledger, task_id=TASK, epic_id=EPIC)
     store = ledger_store(ledger)
     root = make_root(store, load_definition())
     activation = store.mint_activation(root.root_id, entry_request()).activation
