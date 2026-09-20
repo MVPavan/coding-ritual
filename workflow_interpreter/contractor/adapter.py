@@ -2,27 +2,37 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import TYPE_CHECKING, Final
-
-from pydantic import ValidationError
 
 from workflow_interpreter.bdio import finalize
 from workflow_interpreter.bdio.client import BdClient, DependencyRecord, DependencyType
 from workflow_interpreter.bdio.config import BdConfig
 from workflow_interpreter.bdio.reads import WorkflowReads
-from workflow_interpreter.bdio.wire import BeadRecord, Metadata
+from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.contractor.models import (
     MSG_BACKEND_IMMUTABLE,
     ContractorRecord,
     ContractorState,
 )
+from workflow_interpreter.contractor.records import ContractorRecords, StoredRecord
 from workflow_interpreter.ledger.closure import ClosureProbe
 
 if TYPE_CHECKING:
     from workflow_interpreter.contractor.integration import IntegrationGuard
 
-CONTRACTOR_METADATA_KEY: Final[str] = "contractor"
+MSG_NO_STORED_RECORD: Final[str] = (
+    "task {stage_id!r} has no contractor record: it is a ledger row written "
+    "at prepare (store-restructure §3.2, R4), and an operation that needs one "
+    "is not one a task that never prepared can have"
+)
+MSG_ABANDON_LANDED: Final[str] = (
+    "task {stage_id!r} has landed, so it is not abandoned: the work is on the "
+    "target ref and what it owes is a pinned export, not a retirement (§3.8)"
+)
+MSG_ABANDON_CLOSED: Final[str] = (
+    "task {stage_id!r} is closed — its whole record is durable in git — and a "
+    "closed task is not abandoned (§3.5, §3.8)"
+)
 MSG_WRONG_STAGE: Final[str] = "contractor record belongs to stage {stage_id!r}"
 MSG_WRONG_INCOMING_STATE: Final[str] = (
     "incoming contractor record expected state {state!r}, got {actual!r}"
@@ -51,9 +61,6 @@ MSG_SUCCESSION_ATTEMPT: Final[str] = (
 MSG_SUCCESSION_HISTORY: Final[str] = (
     "valid contractor succession requires incoming previous_attempts to extend stored"
 )
-MSG_STORED_RECORD_UNREADABLE: Final[str] = (
-    "stored contractor record is unreadable: {reason}"
-)
 MSG_CLOSE_REASON: Final[str] = "contractor landing receipt={digest}"
 MSG_NOT_CLOSABLE: Final[str] = (
     "stage {stage_id!r} does not derive closed: a task must have its whole "
@@ -76,10 +83,19 @@ class ContractorAdapter:
         reads: WorkflowReads | None = None,
         *,
         closure: ClosureProbe,
+        records: ContractorRecords,
     ) -> None:
         self._client = client
         self._reads = WorkflowReads(client) if reads is None else reads
         self.integration_guard: IntegrationGuard | None = None
+        self.records: ContractorRecords = records
+        """Where this task's record lives (§3.2, R4).
+
+        The record is a LEDGER row since S4, not bead metadata, and that is
+        what makes admission possible with the tracker unreachable. Injected
+        and required for `closure`'s reason: the adapter owns the record and
+        may not open a database, and a construction site that supplied nothing
+        would quietly lose every transition it wrote."""
         self.closure: ClosureProbe = closure
         """Whether this task's record is already durable in git (§3.5).
 
@@ -97,6 +113,7 @@ class ContractorAdapter:
         reads: WorkflowReads | None = None,
         *,
         closure: ClosureProbe,
+        records: ContractorRecords,
     ) -> ContractorAdapter:
         """Build the contractor's read/write adapter without exposing bd transport.
 
@@ -109,7 +126,7 @@ class ContractorAdapter:
         and it has no default for the reason §3.5 gives: every caller that can
         reach a close or a succession has to have decided what answers it.
         """
-        return cls(BdClient(config), reads, closure=closure)
+        return cls(BdClient(config), reads, closure=closure, records=records)
 
     def guard_integration(
         self, record: ContractorRecord, *, post_cas: bool = False
@@ -121,24 +138,9 @@ class ContractorAdapter:
             guard_contractor(self.integration_guard.composition, record)
         elif record.successor_key is not None:
             raise ContractorAdapterError("successor contractor requires runtime guard")
-        stored = self.show(record.stage_id).metadata.get(CONTRACTOR_METADATA_KEY)
-        if (
-            isinstance(stored, dict)
-            and stored.get("integration_digest") is not None
-            and stored.get("integration_digest") != record.integration_digest
-        ):
-            raise ContractorAdapterError(
-                "cannot strip or change stored integration authority"
-            )
-        if (
-            isinstance(stored, dict)
-            and stored.get("successor_key") is not None
-            and (stored.get("successor_owner"), stored.get("successor_key"))
-            != (record.successor_owner, record.successor_key)
-        ):
-            raise ContractorAdapterError(
-                "cannot strip or change stored successor authority"
-            )
+        held = self.stored(record.stage_id)
+        if held is not None:
+            self._assert_authority_kept(held.record, record)
         if record.integration_digest is None:
             if any(
                 (
@@ -181,9 +183,29 @@ class ContractorAdapter:
             and dependency.status != STATUS_CLOSED
         )
 
+    def stored(self, stage_id: str) -> StoredRecord | None:
+        """This task's record and the version a transition must state.
+
+        The one read every transition starts from: the version is not an
+        attribute of the record, it is the evidence that the record has not
+        moved since it was read (§3.2).
+        """
+        return self.records.read(stage_id)
+
+    def stored_record(self, stage_id: str) -> ContractorRecord | None:
+        """The stored relation, or nothing when this task never prepared.
+
+        What the call sites that used to read `bead.metadata['contractor']`
+        ask now. Absence is an ANSWER here, not a failure: "has this stage a
+        contractor?" is a question admission and the trace view both ask about
+        stages that never had one.
+        """
+        held = self.stored(stage_id)
+        return None if held is None else held.record
+
     def record(self, stage_id: str) -> ContractorRecord:
-        """Read the complete contractor relation currently persisted on a stage."""
-        return self._record(self.show(stage_id).metadata)
+        """Read the complete contractor relation currently persisted for a task."""
+        return self._required(stage_id).record
 
     def owns_root(self, instance_key: str, root_id: str) -> bool:
         """Require a uniquely persisted root, not an inferred key-shaped owner."""
@@ -198,34 +220,37 @@ class ContractorAdapter:
         """Report whether durable evidence exists for one contractor identity."""
         return bool(self._reads.roots_by_instance_key(instance_key))
 
-    def prepare(self, stage_id: str, record: ContractorRecord) -> ContractorRecord:
-        """Persist and read back a complete pre-claim admission intent."""
+    def prepare(
+        self, stage_id: str, record: ContractorRecord, *, brief: str | None = None
+    ) -> ContractorRecord:
+        """Persist and read back a complete pre-claim admission intent.
+
+        `brief` is the task brief SNAPSHOT (§3.3, R4), written once with the
+        record. Every later admission — a recovery, a retry, an admission
+        with the tracker gone — reads it from here rather than from the
+        tracker's description, which is what makes those admissions possible
+        at all. A prepare that states none keeps the snapshot already stored:
+        the brief belongs to the task, not to the attempt.
+        """
         self._assert_stage(stage_id, record)
         self._assert_state(record, ContractorState.PREPARED, MSG_WRONG_INCOMING_STATE)
-        existing = self.show(stage_id).metadata.get(CONTRACTOR_METADATA_KEY)
-        if existing is not None:
-            try:
-                stored_record = ContractorRecord.model_validate(existing)
-            except ValidationError as exc:
-                raise ContractorAdapterError(
-                    MSG_STORED_RECORD_UNREADABLE.format(reason=exc)
-                ) from exc
-            if (
-                stored_record.integration_digest is not None
-                and record.integration_digest is None
-            ):
-                raise ContractorAdapterError(
-                    "cannot strip stored integration authority"
-                )
-            if (
-                stored_record.successor_key is not None
-                and record.successor_key is None
-                and record.integration_digest is None
-            ):
-                raise ContractorAdapterError("cannot strip stored successor authority")
-            self._assert_prepare_shape(stored_record, record)
-        stored = self._client._merge_metadata(stage_id, self._metadata(record))
-        return self._record(stored.metadata)
+        existing = self.stored(stage_id)
+        if existing is None:
+            return self.records.create(record, brief=brief).record
+        stored_record = existing.record
+        if (
+            stored_record.integration_digest is not None
+            and record.integration_digest is None
+        ):
+            raise ContractorAdapterError("cannot strip stored integration authority")
+        if (
+            stored_record.successor_key is not None
+            and record.successor_key is None
+            and record.integration_digest is None
+        ):
+            raise ContractorAdapterError("cannot strip stored successor authority")
+        self._assert_prepare_shape(stored_record, record)
+        return self._write(record, existing, brief=brief).record
 
     def admit(
         self, stage_id: str, record: ContractorRecord, *, root_id: str
@@ -235,26 +260,24 @@ class ContractorAdapter:
         self._assert_state(record, ContractorState.PREPARED, MSG_WRONG_INCOMING_STATE)
         admitted = record.admitted(root_id)
         self.guard_integration(admitted)
-        stored = self._client._claim_and_merge_metadata(
-            stage_id, self._metadata(admitted)
-        )
-        return self._record(stored.metadata)
+        # The transition is the ledger transaction now, not a claim on a bead
+        # row: the tracker's own claim is placed before it, by the caller,
+        # and never inside it (§3.4, R2 — no I/O in a store method).
+        return self._write(admitted, self._required(stage_id)).record
 
     def gate_red(self, stage_id: str, record: ContractorRecord) -> ContractorRecord:
         """Keep a failed verification eligible only for the explicit retry contract."""
         self._assert_stage(stage_id, record)
         self.guard_integration(record)
         updated = record.model_copy(update={"state": ContractorState.GATE_RED})
-        stored = self._client._merge_metadata(stage_id, self._metadata(updated))
-        return self._record(stored.metadata)
+        return self._write(updated, self._required(stage_id)).record
 
     def land(self, stage_id: str, record: ContractorRecord) -> ContractorRecord:
         """Persist and read back the artifact relation after a successful CAS."""
         self._assert_stage(stage_id, record)
         self._assert_state(record, ContractorState.LANDED, MSG_WRONG_INCOMING_STATE)
         self.guard_integration(record, post_cas=True)
-        stored = self._client._merge_metadata(stage_id, self._metadata(record))
-        return self._record(stored.metadata)
+        return self._write(record, self._required(stage_id)).record
 
     def close(
         self, stage_id: str, record: ContractorRecord, receipt_digest: str
@@ -278,26 +301,86 @@ class ContractorAdapter:
         # being written into.
         if not self.closure.closed(stage_id):
             raise ContractorAdapterError(MSG_NOT_CLOSABLE.format(stage_id=stage_id))
-        stored = self._client._merge_metadata(stage_id, self._metadata(record))
-        closed = finalize.close_forward(
-            self._client,
-            stored,
-            MSG_CLOSE_REASON.format(digest=receipt_digest),
-        )
-        result = self._record(closed.metadata)
+        result = self._write(record, self._required(stage_id)).record
+        # The tracker mirror, after the ledger transition and never inside it
+        # (§3.1): the ledger is the truth, and the bead is the copy a human
+        # reads. S5 moves this onto the outbox so an unreachable tracker
+        # cannot fail a close that has already happened.
+        reason = MSG_CLOSE_REASON.format(digest=receipt_digest)
+        if not finalize.is_finished(self.show(stage_id), reason):
+            self._client._close_row(stage_id, reason)
         if result.integration_digest is not None and self.integration_guard is not None:
             self.integration_guard.finished(result)
         return result
 
-    @staticmethod
-    def _metadata(record: ContractorRecord) -> Metadata:
-        """Serialize the whole nested record because bd replaces nested objects."""
-        return {CONTRACTOR_METADATA_KEY: record.model_dump(by_alias=True, mode="json")}
+    def abandon(self, stage_id: str) -> ContractorRecord:
+        """Retire a task the graph never took to `shipped` (§3.8).
+
+        The orchestrator's third verb, beside continue and retry. Idempotent,
+        because abandoning is a decision rather than an event: a second
+        `wf phase abandon` on the same task answers the same record instead of
+        refusing, which is what lets an interrupted abandon be repeated.
+
+        Refused for a task that LANDED or that derives `closed()`: its work is
+        on the target ref, and what an unpinned export owes is recovery, not
+        retirement. The record's own state is checked first, because a landed
+        task that has not pinned yet is not closed and must still be refused.
+        """
+        held = self._required(stage_id)
+        if held.record.state is ContractorState.ABANDONED:
+            return held.record
+        if held.record.state is ContractorState.LANDED:
+            raise ContractorAdapterError(MSG_ABANDON_LANDED.format(stage_id=stage_id))
+        if self.closure.closed(stage_id):
+            raise ContractorAdapterError(MSG_ABANDON_CLOSED.format(stage_id=stage_id))
+        abandoned = held.record.model_copy(update={"state": ContractorState.ABANDONED})
+        return self._write(abandoned, held).record
+
+    def _required(self, stage_id: str) -> StoredRecord:
+        """The stored record a transition is about, refusing when there is none."""
+        held = self.stored(stage_id)
+        if held is None:
+            raise ContractorAdapterError(MSG_NO_STORED_RECORD.format(stage_id=stage_id))
+        return held
+
+    def _write(
+        self,
+        record: ContractorRecord,
+        held: StoredRecord,
+        *,
+        brief: str | None = None,
+    ) -> StoredRecord:
+        """Move the record forward from the version this call read (§3.2).
+
+        The version travels with the read rather than being re-fetched here:
+        re-reading it would make the guard a formality, since the write would
+        then be guarded by whatever the state had just become.
+        """
+        return self.records.update(
+            record,
+            expected_version=held.version,
+            brief=held.brief if brief is None else brief,
+        )
 
     @staticmethod
-    def _record(metadata: Mapping[str, object]) -> ContractorRecord:
-        """Parse the durable contractor record read back from a stage."""
-        return ContractorRecord.model_validate(metadata[CONTRACTOR_METADATA_KEY])
+    def _assert_authority_kept(
+        stored: ContractorRecord, record: ContractorRecord
+    ) -> None:
+        """Refuse a write that strips or moves stored runtime authority."""
+        if (
+            stored.integration_digest is not None
+            and stored.integration_digest != record.integration_digest
+        ):
+            raise ContractorAdapterError(
+                "cannot strip or change stored integration authority"
+            )
+        if stored.successor_key is not None and (
+            stored.successor_owner,
+            stored.successor_key,
+        ) != (record.successor_owner, record.successor_key):
+            raise ContractorAdapterError(
+                "cannot strip or change stored successor authority"
+            )
 
     @staticmethod
     def _assert_stage(stage_id: str, record: ContractorRecord) -> None:

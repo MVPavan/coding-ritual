@@ -23,13 +23,17 @@ from typing import Final
 from tests._bdio import entry_request, load_definition, make_root
 from tests.conftest import branch_head
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.backend import PinnedBackendFactory, StoreBackend
+from workflow_interpreter.bdio.backend import PinnedBackendFactory
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import BeadRecord
+from workflow_interpreter.ledger import records
+from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.paths import repo_hash
 from workflow_interpreter.ledger.store import LedgerStore
+from workflow_interpreter.ledger.tasks import pin_task_backend
 
 TASK: Final[str] = "cr-3411.2"
 EPIC: Final[str] = "cr-3411"
@@ -67,7 +71,6 @@ def ledger_store(
     *,
     epic_id: str | None = EPIC,
     verifier: GateVerifier | None = None,
-    claims_backend: StoreBackend | None = None,
 ) -> WorkflowStore:
     """The public write path over one task's ledger rows.
 
@@ -80,7 +83,7 @@ def ledger_store(
         verifier,
         backend_factory=PinnedBackendFactory(backend),
         branch_head_reader=branch_head,
-        claims_backend=claims_backend,
+        claims=LedgerClaims(database),
     )
 
 
@@ -251,3 +254,51 @@ class CrashingLedgerStore(LedgerStore):
         if self._disarm(FaultPoint.AFTER_STATE_COMMIT):
             raise InjectedLedgerCrash(row_id)
         return super()._close_row(row_id, reason)
+
+
+CONTRACTOR_RECORD_STATES: Final[tuple[str, ...]] = ("prepared", "landed", "abandoned")
+"""The record states these labs seed, named so a typo is a collection error."""
+
+
+def seed_contractor_record(
+    database: LedgerDatabase,
+    task_id: str = TASK,
+    *,
+    state: str = "prepared",
+    epic_id: str = EPIC,
+    attempt: int = 1,
+    brief: str | None = None,
+) -> None:
+    """One `contractor_records` row, for the labs that need a task to have one.
+
+    `tasks.state` folded into this table in S4 (§3.5), so "this task landed"
+    is no longer something a test can say about a bare `tasks` row — it is a
+    fact about the task's RECORD, and a lab that wants to say it has to have
+    one. The carrier is the smallest thing the ledger will store, because
+    every caller of this is testing the ledger's side of the fold rather than
+    the contractor's record shape.
+    """
+    pin_task_backend(database, task_id, BackendKind.LEDGER, epic_id)
+    existing = records.read(database, task_id)
+    carrier = json.dumps({"stage_id": task_id, "epic_id": epic_id, "state": state})
+    if existing is None:
+        records.create(
+            database,
+            task_id,
+            state=state,
+            attempt=attempt,
+            root_id=None,
+            brief=brief,
+            record_json=carrier,
+        )
+        return
+    records.update(
+        database,
+        task_id,
+        state=state,
+        attempt=attempt,
+        root_id=existing.root_id,
+        brief=brief,
+        record_json=carrier,
+        expected_version=existing.version,
+    )

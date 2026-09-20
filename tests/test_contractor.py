@@ -13,7 +13,7 @@ from typing import Final
 import pytest
 
 from tests._fake_bd import FakeBd, InjectedCrash
-from tests._helpers import VALID_FIXTURE
+from tests._helpers import VALID_FIXTURE, MemoryContractorRecords
 from tests._workspace import Fixture
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
@@ -389,7 +389,9 @@ def test_adapter_writes_the_whole_record_then_claims_with_admission(
 ) -> None:
     """Keep the stage journal complete across the prepare-to-admit boundary."""
     fake_bd.rows[STAGE_ID] = _stage_row()
-    adapter = ContractorAdapter(fake_client, closure=NoLedgerClosure())
+    adapter = ContractorAdapter(
+        fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -438,9 +440,9 @@ def test_prepare_refuses_a_non_successor_over_a_later_stored_journal(
     incoming = stored.model_copy(update={"state": ContractorState.PREPARED})
 
     with pytest.raises(ContractorAdapterError, match="requires stored state prepared"):
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()).prepare(
-            STAGE_ID, incoming
-        )
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ).prepare(STAGE_ID, incoming)
 
 
 @pytest.mark.parametrize(
@@ -463,9 +465,9 @@ def test_prepare_accepts_a_valid_successor_over_an_unsettled_journal(
     stage["metadata"] = {"contractor": stored.model_dump(by_alias=True, mode="json")}
     fake_bd.rows[STAGE_ID] = stage
 
-    successor = ContractorAdapter(fake_client, closure=NoLedgerClosure()).prepare(
-        STAGE_ID, stored.next_attempt()
-    )
+    successor = ContractorAdapter(
+        fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+    ).prepare(STAGE_ID, stored.next_attempt())
 
     assert successor == stored.next_attempt()
 
@@ -497,9 +499,9 @@ def test_prepare_refuses_a_structural_successor_over_a_landed_journal(
     fake_bd.rows[STAGE_ID] = stage
 
     with pytest.raises(ContractorAdapterError, match="refuses a landed stored record"):
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()).prepare(
-            STAGE_ID, stored.next_attempt()
-        )
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ).prepare(STAGE_ID, stored.next_attempt())
 
 
 def test_prepare_refuses_a_nonprepared_incoming_journal(
@@ -519,9 +521,9 @@ def test_prepare_refuses_a_nonprepared_incoming_journal(
     with pytest.raises(
         ContractorAdapterError, match="incoming contractor record expected state"
     ):
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()).prepare(
-            STAGE_ID, incoming
-        )
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ).prepare(STAGE_ID, incoming)
 
 
 def test_prepare_wraps_unreadable_stored_journal(
@@ -543,9 +545,9 @@ def test_prepare_wraps_unreadable_stored_journal(
     with pytest.raises(
         ContractorAdapterError, match="stored contractor record is unreadable"
     ):
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()).prepare(
-            STAGE_ID, incoming
-        )
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ).prepare(STAGE_ID, incoming)
 
 
 class _Roots:
@@ -634,7 +636,11 @@ def test_admission_recovers_after_root_creation_crash(
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
     admission = _admission(
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()), roots, lambda: base
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ),
+        roots,
+        lambda: base,
     )
     fake_bd.crash_on("create")
 
@@ -659,7 +665,11 @@ def test_admission_repairs_a_root_interrupted_before_its_self_link(
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
     admission = _admission(
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()), roots, lambda: base
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ),
+        roots,
+        lambda: base,
     )
     fake_bd.crash_on("update", occurrence=2)
 
@@ -684,7 +694,9 @@ def test_admission_reuses_a_root_when_branch_creation_is_interrupted(
     roots.fail_branch = True
     head = [base]
     admission = _admission(
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()),
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ),
         roots,
         lambda: head[0],
     )
@@ -718,7 +730,11 @@ def test_admission_recovers_after_the_relation_write_is_interrupted(
     roots = _Roots(fake_client, repo, base)
     prepared_root = roots.create("contract:phase-1:stage-a:attempt:1")
     admission = _admission(
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()), roots, lambda: base
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ),
+        roots,
+        lambda: base,
     )
     fake_bd.crash_on("update", occurrence=2)
 
@@ -742,7 +758,9 @@ def test_admission_refuses_an_open_stage_with_a_landed_relation(
     fake_bd.rows[other_stage_id] = other_stage
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
-    adapter = ContractorAdapter(fake_client, closure=NoLedgerClosure())
+    adapter = ContractorAdapter(
+        fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+    )
     admission = _admission(adapter, roots, lambda: base)
 
     admitted = admission.admit(EPIC_ID, STAGE_ID, TARGET_REF, base)
@@ -777,7 +795,11 @@ def test_conflicting_record_refuses_without_creating_a_root(
     repo, base = _temporary_repo(tmp_path)
     roots = _Roots(fake_client, repo, base)
     admission = _admission(
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()), roots, lambda: base
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ),
+        roots,
+        lambda: base,
     )
 
     with pytest.raises(AdmissionRefused, match="identity conflicts"):
@@ -961,7 +983,9 @@ def test_landing_refuses_a_prepared_stage_without_cas_or_close(
     repo, base = _temporary_repo(tmp_path)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client, closure=export.closure)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1010,10 +1034,12 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
         expected_base_commit=base,
     ).admitted(ROOT_ID)
     git, paths, export = _landing_context(repo, tmp_path)
-    ContractorAdapter(fake_client, closure=export.closure).prepare(
-        STAGE_ID, admitted.model_copy(update={"state": ContractorState.PREPARED})
-    )
-    ContractorAdapter(fake_client, closure=export.closure).admit(
+    ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    ).prepare(STAGE_ID, admitted.model_copy(update={"state": ContractorState.PREPARED}))
+    ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    ).admit(
         STAGE_ID,
         admitted.model_copy(update={"state": ContractorState.PREPARED}),
         root_id=ROOT_ID,
@@ -1021,7 +1047,7 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     gate = _GateAuthority(artifact_oid, tree, gate_verifier, sign_payload)
     repository_gate = _RepositoryGate(artifact_oid, tree)
     landing = PhaseLanding(
-        ContractorAdapter(fake_client, closure=export.closure),
+        ContractorAdapter(fake_client, closure=export.closure, records=export.records),
         git,
         repo,
         paths,
@@ -1037,7 +1063,7 @@ def test_post_cas_recovery_closes_only_the_signed_artifact(
     assert _ref_target(repo) == artifact_oid
     assert git.ref_target(TARGET_REF, cwd=repo) == artifact_oid
     recovered = PhaseLanding(
-        ContractorAdapter(fake_client, closure=export.closure),
+        ContractorAdapter(fake_client, closure=export.closure, records=export.records),
         git,
         repo,
         paths,
@@ -1065,7 +1091,9 @@ def test_closed_recovery_uses_the_disk_receipt_digest_without_redriving_close(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client, closure=export.closure)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1122,7 +1150,9 @@ def test_recovery_after_receipt_write_persists_the_disk_receipt_digest(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client, closure=export.closure)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1184,7 +1214,9 @@ def test_recovery_returns_human_attention_for_mismatched_receipt_identity(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client, closure=export.closure)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1229,7 +1261,9 @@ def test_landing_closed_stage_routes_to_recovery_without_a_second_cas(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client, closure=export.closure)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1296,7 +1330,9 @@ def test_recovery_refuses_unrelated_history_without_closing_or_moving_a_ref(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client, closure=export.closure)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1352,7 +1388,9 @@ def test_recovery_closes_when_a_descendant_contains_the_signed_artifact(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client, closure=export.closure)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1485,7 +1523,9 @@ def test_intent_before_cas_refuses_without_restarting_the_landing(
     artifact_oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     git, paths, export = _landing_context(repo, tmp_path)
-    adapter = ContractorAdapter(fake_client, closure=export.closure)
+    adapter = ContractorAdapter(
+        fake_client, closure=export.closure, records=export.records
+    )
     prepared = ContractorRecord.prepared(
         verification_policy=_policy(),
         epic_id=EPIC_ID,
@@ -1568,7 +1608,7 @@ def test_landing_refuses_wrong_root_directory(
     )
     git, paths, export = _landing_context(repo, tmp_path)
     landing = PhaseLanding(
-        ContractorAdapter(fake_client, closure=export.closure),
+        ContractorAdapter(fake_client, closure=export.closure, records=export.records),
         git,
         repo,
         WrapperPaths(paths.config, "other-root"),
@@ -1602,7 +1642,11 @@ def test_gate_view_refuses_a_different_root_with_same_key(
         ContractorAdapter,
         "from_config",
         classmethod(
-            lambda *_, **__: ContractorAdapter(fake_client, closure=NoLedgerClosure())
+            lambda *_, **__: ContractorAdapter(
+                fake_client,
+                closure=NoLedgerClosure(),
+                records=MemoryContractorRecords(),
+            )
         ),
     )
     with pytest.raises(ContractorAdapterError, match="does not own"):
@@ -1665,7 +1709,7 @@ def test_policy_correspondence_refuses_before_cas(
         git.update_ref(TARGET_REF, oid, cwd=repo)
     before = _ref_target(repo)
     landing = PhaseLanding(
-        ContractorAdapter(fake_client, closure=export.closure),
+        ContractorAdapter(fake_client, closure=export.closure, records=export.records),
         git,
         repo,
         paths,

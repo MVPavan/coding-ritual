@@ -14,6 +14,9 @@ from typing import Final
 
 import workflow_interpreter
 from workflow_interpreter import GraphValidationError, RuleId, load_graph
+from workflow_interpreter.contractor.models import ContractorRecord
+from workflow_interpreter.contractor.records import StoredRecord
+from workflow_interpreter.ledger.errors import LedgerRecordConflict
 from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.schema import messages
 from workflow_interpreter.schema.models import Finding, GraphDefinition
@@ -305,3 +308,51 @@ def matching_templates(text: str) -> set[str]:
         for name, template in message_templates().items()
         if message_pattern(template).fullmatch(text)
     }
+
+
+class MemoryContractorRecords:
+    """A process-local `ContractorRecords` for the adapter's own unit tests.
+
+    The adapter needs somewhere durable to put a record; these tests are
+    about the REFUSALS it makes before it writes one, not about SQLite. The
+    version guard is implemented honestly, because "the caller stated a stale
+    version" is one of the refusals under test.
+    """
+
+    def __init__(self) -> None:
+        self._rows: dict[str, StoredRecord] = {}
+
+    def read(self, task_id: str) -> StoredRecord | None:
+        """The stored record of this task, or nothing while it has none."""
+        return self._rows.get(task_id)
+
+    def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
+        """Write a task's first record, refusing a second first write."""
+        if record.stage_id in self._rows:
+            raise LedgerRecordConflict(f"{record.stage_id} already has a record")
+        held = StoredRecord(record=record, version=1, brief=brief)
+        self._rows[record.stage_id] = held
+        return held
+
+    def update(
+        self, record: ContractorRecord, *, expected_version: int, brief: str | None
+    ) -> StoredRecord:
+        """Move the record forward from exactly the version the caller read."""
+        found = self._rows.get(record.stage_id)
+        if found is None or found.version != expected_version:
+            raise LedgerRecordConflict(
+                f"{record.stage_id} is not at version {expected_version}"
+            )
+        held = StoredRecord(record=record, version=expected_version + 1, brief=brief)
+        self._rows[record.stage_id] = held
+        return held
+
+    def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
+        """Every task of this epic with a record, and that record's state."""
+        return tuple(
+            sorted(
+                (task_id, held.record.state.value)
+                for task_id, held in self._rows.items()
+                if held.record.epic_id == epic_id
+            )
+        )

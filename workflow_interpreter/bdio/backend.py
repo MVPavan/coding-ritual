@@ -82,9 +82,6 @@ class StoreBackend(Protocol):
         does instead.
         """
 
-    def _claim_and_merge_metadata(self, row_id: str, metadata: Metadata) -> StoreRow:
-        """Claim a row and merge metadata in one operation."""
-
     def _close_row(self, row_id: str, reason: str) -> StoreRow:
         """Close a row with a structured reason and verify both landed."""
 

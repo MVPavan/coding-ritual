@@ -114,6 +114,9 @@ _SQL_LANDINGS: Final[str] = (
     f"SELECT * FROM {LedgerTable.LANDINGS.value} WHERE task_id = ? "
     "ORDER BY attempt, phase"
 )
+_SQL_CONTRACTOR_RECORD: Final[str] = (
+    f"SELECT * FROM {LedgerTable.CONTRACTOR_RECORDS.value} WHERE task_id = ?"
+)
 _GATE_COLUMN: Final[str] = "gate_id"
 _BLOB_KEY: Final[str] = "base64"
 """A signature's payload and bytes are BLOBs, and JSON has no bytes. They
@@ -160,6 +163,12 @@ def export_task(database: LedgerDatabase, task_id: str) -> bytes:
             ExportKey.TASK_ID.value: task_id,
         }
         lines = [header, _line(LedgerTable.TASKS, task, elide=ELIDED_TASK_COLUMNS)]
+        # Directly after the `tasks` row it references, and before everything
+        # else, because it is the one row that says how far the contractor got
+        # — which is what a ledger rebuilt in a clone derives closure from
+        # (§3.5). Its own emission branch for `landings`' reason: it has no
+        # per-task `seq`, so it cannot ride the `(seq, table)` order below.
+        lines += [_line(table, row) for table, row in _record_rows(connection, task_id)]
         # Directly after the `tasks` row it hangs off, and before everything
         # keyed by a root: `landings` has no per-task `seq` of its own, so it
         # cannot ride the `(seq, table)` emission below (§3.6).
@@ -628,6 +637,21 @@ def _landing_rows(
     """
     for row in connection.execute(_SQL_LANDINGS, (task_id,)).fetchall():
         yield LedgerTable.LANDINGS, row
+
+
+def _record_rows(
+    connection: sqlite3.Connection, task_id: str
+) -> Iterator[tuple[LedgerTable, sqlite3.Row]]:
+    """The task's contractor record — at most one row (§3.2, R4).
+
+    Its own branch rather than a place in `(seq, table)` order for the reason
+    `landings` has one: the record is written by the contractor, outside the
+    row seam that mints a `seq`, so there is nothing in it to sort by. The
+    primary key means the order is trivially deterministic, which is what
+    keeps the round trip byte-identical.
+    """
+    for row in connection.execute(_SQL_CONTRACTOR_RECORD, (task_id,)).fetchall():
+        yield LedgerTable.CONTRACTOR_RECORDS, row
 
 
 def _auxiliary_rows(

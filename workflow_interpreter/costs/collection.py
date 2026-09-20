@@ -122,6 +122,7 @@ def collect_task(
     stage_id: str,
     *,
     backends: StoreBackendFactory,
+    record_json: str | None,
     runtime_roots: Mapping[str, Path] | None = None,
     max_log_bytes: int = 32 * 1024 * 1024,
     max_log_events: int = 100_000,
@@ -132,13 +133,20 @@ def collect_task(
     costs is read-only, but it has to read from the SAME place the run wrote,
     and asking bd about a ledger-backed attempt would report it as missing
     rather than as unreadable.
+
+    `record_json` is the stage's contractor record as the LEDGER holds it
+    (§3.2, R4). Handed in rather than read here, because this function takes
+    a bd read client and the record stopped being a bead fact in S4; the CLI
+    that opens the read-only ledger is the one that can answer it.
     """
     stage = client.show(stage_id)
     diagnostics: list[Diagnostic] = []
+    if record_json is None:
+        return _unreadable_task(stage_id, "contractor record is absent")
     try:
-        contractor = ContractorRecord.model_validate(stage.metadata.get("contractor"))
+        contractor = ContractorRecord.model_validate_json(record_json)
     except ValidationError:
-        return _unreadable_task(stage_id, "contractor metadata is invalid")
+        return _unreadable_task(stage_id, "contractor record is invalid")
     roots_store = backends(contractor.root_backend)
     if contractor.stage_id != stage_id:
         return _unreadable_task(stage_id, "contractor names a different stage")
@@ -240,9 +248,8 @@ def collect_task(
         "stage-closed": stage.status == "closed",
         # The record's own last state. LANDED is what a close leaves since S2
         # — closure is derived from the ledger and its git anchor (§3.5) — and
-        # CLOSED is what records written before it carry.
-        "contractor-closed": contractor.state
-        in (ContractorState.LANDED, ContractorState.CLOSED),
+        # since S4 it is the only state a finished record can be in.
+        "contractor-closed": contractor.state is ContractorState.LANDED,
         "current-root": bool(contractor.root_id),
         "landed-oid": bool(contractor.landed_oid),
         "tree": bool(contractor.tree),

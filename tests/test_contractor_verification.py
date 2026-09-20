@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._helpers import MemoryContractorRecords
 from tests._inspector import head_of, make_repo
 from workflow_interpreter.contractor.landing import DetachedRepositoryGate
 from workflow_interpreter.contractor.verification import (
@@ -106,7 +107,9 @@ def test_admission_requires_policy_before_writes(
     base = head_of(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
     admission = PhaseAdmission(
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()),
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ),
         _Roots(fake_client, repo, base),
         lambda: base,
     )

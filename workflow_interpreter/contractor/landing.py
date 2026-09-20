@@ -257,9 +257,9 @@ class PhaseLanding:
     def land(self, stage_id: str) -> LandingResult:
         """Execute the one allowed CAS after all landing evidence is green."""
         record = self._adapter.record(stage_id)
-        if self._journalled_intent(record) is not None or record.state in (
-            ContractorState.LANDED,
-            ContractorState.CLOSED,
+        if (
+            self._journalled_intent(record) is not None
+            or record.state is ContractorState.LANDED
         ):
             return self.recover(stage_id)
         if record.state not in (ContractorState.ADMITTED, ContractorState.LANDING):
@@ -437,12 +437,10 @@ class PhaseLanding:
             )
         intent, evidence = self._authorized_intent(record)
         # A task whose record derives `closed()` is finished, whatever a
-        # restored target ref now says (§3.5). The stored state is read too,
-        # because a record written before S2 says CLOSED and there is no read
-        # shim; the bead's own status is what says the close completed.
-        if (
-            record.state is ContractorState.CLOSED or self._closed(stage_id)
-        ) and self._adapter.show(stage_id).status == "closed":
+        # restored target ref now says (§3.5). CLOSED left the record's
+        # vocabulary with S4's `contractor_records`, so the derived answer is
+        # the only one; the bead's own status is what says the close completed.
+        if self._closed(stage_id) and self._adapter.show(stage_id).status == "closed":
             return self._historical(record, intent, evidence)
         observed_target = self._git.ref_target(intent.ref, cwd=self._repo_root)
         if observed_target == intent.expected_base:
@@ -595,10 +593,9 @@ class PhaseLanding:
             )
         else:
             receipt_digest = _digest_record(existing)
-        if record.state in (
-            ContractorState.LANDED,
-            ContractorState.CLOSED,
-        ) and not self._relation_matches(record, intent, receipt_digest):
+        if record.state is ContractorState.LANDED and not self._relation_matches(
+            record, intent, receipt_digest
+        ):
             raise ContractorRefusal(
                 "persisted landed relation does not match landing receipt digest or artifact"
             )
@@ -671,7 +668,6 @@ class PhaseLanding:
                 ContractorState.ADMITTED,
                 ContractorState.LANDING,
                 ContractorState.LANDED,
-                ContractorState.CLOSED,
             )
         )
 

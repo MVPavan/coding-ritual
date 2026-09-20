@@ -54,6 +54,13 @@ _SQL_BY_TRACKER: Final[str] = (
     "SELECT task_id FROM tasks WHERE tracker_ref = ? AND tracker_kind = ?"
 )
 _SQL_BY_TASK_ID: Final[str] = "SELECT 1 FROM tasks WHERE task_id = ?"
+_SQL_UNCLAIMED: Final[str] = (
+    "SELECT 1 FROM tasks WHERE task_id = ? AND epic_id = ? AND tracker_ref IS NULL"
+)
+_SQL_ADOPT: Final[str] = (
+    "UPDATE tasks SET tracker_ref = ?, tracker_kind = ? "
+    "WHERE task_id = ? AND tracker_ref IS NULL"
+)
 
 _SAFE_CHARACTERS: Final[frozenset[str]] = frozenset(
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-"
@@ -150,6 +157,16 @@ def mint_task(
         ).fetchone()
         if existing is not None:
             return str(existing[0])
+        # The locator pins a `tasks` row for every invocation (D16,
+        # `pin_task_backend`), so by the time prepare mints, the row this ref
+        # would be given usually already EXISTS and carries no tracker pair.
+        # Adopting it is the mint: inventing `<stem>-2` beside it would leave
+        # the run's own rows on one id and the tracker pair on another. Only
+        # a row of the same epic with NO pair is adoptable — anything else
+        # belongs to some other task and the collision suffix answers.
+        if connection.execute(_SQL_UNCLAIMED, (stem, epic)).fetchone() is not None:
+            connection.execute(_SQL_ADOPT, (tracker_ref, tracker_kind.value, stem))
+            return stem
         task_id = _free_task_id(connection, stem)
         try:
             insert_task(

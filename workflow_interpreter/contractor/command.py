@@ -13,7 +13,6 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from workflow_interpreter.bdio import StoreOutputError
 from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.contractor.adapter import (
-    CONTRACTOR_METADATA_KEY,
     STATUS_CLOSED,
     ContractorAdapter,
     ContractorAdapterError,
@@ -36,6 +35,7 @@ from workflow_interpreter.contractor.landing import (
     PhaseLanding,
 )
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.records import records_of
 from workflow_interpreter.contractor.retry import retry_refusal
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
@@ -56,6 +56,8 @@ from workflow_interpreter.inspector.errors import (
 )
 from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.ledger.closure import closure_probe
+from workflow_interpreter.ledger.constants import TrackerKind
+from workflow_interpreter.ledger.identity import mint_task
 from workflow_interpreter.ledger.paths import coordinator_dirt
 from workflow_interpreter.schema.decisions import CoordinationError
 from workflow_interpreter.schema.loader import GraphValidationError, load_graph
@@ -78,6 +80,12 @@ MSG_OTHER_INPUT: Final[str] = (
 MSG_RETRY_NO_RECORD: Final[str] = "retry requires a stored contractor record"
 MSG_RETRY_NO_ROOT: Final[str] = "retry requires the stored record to name a prior root"
 MSG_EPIC_NO_STAGES: Final[str] = "contractor epic has no stages"
+MSG_MINTED_ELSEWHERE: Final[str] = (
+    "tracker ref {stage_id!r} minted task id {minted!r}: this build runs a "
+    "task under the id its tracker knows it by, and a ref that needs a "
+    "different one needs the tracker port that can translate between them "
+    "(store-restructure §3.7, S5)"
+)
 MSG_ADMISSION_NO_ROOT: Final[str] = (
     "contractor admission requires the stored record to name a root"
 )
@@ -197,6 +205,7 @@ def _execute(
         composition.config.bd,
         composition.store.reads,
         closure=closure_probe(composition.ledger, composition.git),
+        records=records_of(composition),
     )
     from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
@@ -208,30 +217,25 @@ def _execute(
     adapter.integration_guard = IntegrationGuard(composition)
     if trace:
         return _trace(composition, adapter, epic_id=epic_id, stage_id=stage_id)
-    stages = _direct_stages(adapter, epic_id)
-    if (
-        all(stage.status == STATUS_CLOSED for stage in stages)
-        and not any(
-            stage.id == stage_id
-            and stage.metadata.get(CONTRACTOR_METADATA_KEY) is not None
-            for stage in stages
-        )
-        and not retry_landing
-    ):
-        return _result(
-            ContractorCommandState.PHASE_EXHAUSTED,
-            epic_id=epic_id,
-            stage_id=stage_id,
-        )
-    stage = adapter.show(stage_id)
-    if stage.parent != epic_id or not any(row.id == stage_id for row in stages):
-        raise ContractorRefused("selected stage does not belong to epic")
     from workflow_interpreter.foreman.replacement import repair_contractor_successor
 
     repair_contractor_successor(composition, stage_id)
-    stage = adapter.show(stage_id)
-    raw = stage.metadata.get(CONTRACTOR_METADATA_KEY)
-    prior = None if raw is None else ContractorRecord.model_validate(raw)
+    prior = adapter.stored_record(stage_id)
+    # Every tracker read of this command is HERE, inside the one branch that
+    # only a task with no record takes — which is prepare (§3.3, R4). A task
+    # that has prepared is admitted, run, landed and closed from the ledger,
+    # so the whole of that is possible with the tracker unreachable.
+    if prior is None:
+        stages = _direct_stages(adapter, epic_id)
+        if all(stage.status == STATUS_CLOSED for stage in stages) and not retry_landing:
+            return _result(
+                ContractorCommandState.PHASE_EXHAUSTED,
+                epic_id=epic_id,
+                stage_id=stage_id,
+            )
+        stage = adapter.show(stage_id)
+        if stage.parent != epic_id or not any(row.id == stage_id for row in stages):
+            raise ContractorRefused("selected stage does not belong to epic")
     pending = (
         prepared_for_stage(composition, epic_id, stage_id)
         if prior is None or prior.integration_digest is not None
@@ -294,7 +298,6 @@ def _execute(
             ).exists() or prior.state in (
                 ContractorState.LANDING,
                 ContractorState.LANDED,
-                ContractorState.CLOSED,
             ):
                 if retry:
                     raise ContractorRefused("landing recovery cannot be retried")
@@ -311,14 +314,17 @@ def _execute(
         and root.metadata.terminal == "shipped"
     ):
         return _land(composition, adapter, prior, recover=False)
-    dependencies = adapter.blocking_dependencies(stage_id)
-    if dependencies:
-        return _result(
-            ContractorCommandState.BLOCKED,
-            epic_id=epic_id,
-            stage_id=stage_id,
-            blocking_ids=tuple(dependency.id for dependency in dependencies),
-        )
+    if prior is None:
+        # A tracker read, so it belongs to prepare and to nothing later
+        # (§3.3): blockers are checked once, before the task has a record.
+        dependencies = adapter.blocking_dependencies(stage_id)
+        if dependencies:
+            return _result(
+                ContractorCommandState.BLOCKED,
+                epic_id=epic_id,
+                stage_id=stage_id,
+                blocking_ids=tuple(dependency.id for dependency in dependencies),
+            )
     if prior is not None and prior.state is ContractorState.ADMITTED and not retry:
         if (
             composition.git.head_commit(cwd=composition.config.repo_root)
@@ -340,8 +346,7 @@ def _execute(
                 "coordinated contractor retry requires the original-owner successor operation"
             )
     graph = _contractor_graph(composition)
-    stage = adapter.show(stage_id)
-    task_brief = _task_brief(stage.description)
+    task_brief = _brief_for(composition, adapter, epic_id, stage_id, prior)
     expected_base = composition.git.head_commit(cwd=composition.config.repo_root)
     resume_prepared_retry = (
         retry
@@ -385,6 +390,7 @@ def _execute(
             lambda: composition.git.head_commit(cwd=composition.config.repo_root),
             verification_policy=policy,
             root_backend=composition.config.store,
+            task_brief=task_brief,
         )
         record = (
             admission.admit_successor(
@@ -561,6 +567,61 @@ def _task_brief(description: str | None) -> str:
     return description
 
 
+def _brief_for(
+    composition: Composition,
+    adapter: ContractorAdapter,
+    epic_id: str,
+    stage_id: str,
+    prior: ContractorRecord | None,
+) -> str:
+    """The task brief, from the SNAPSHOT once one exists (§3.3, R4).
+
+    A task that has prepared owns its brief: it is the one instance input the
+    contractor graph requires, it was pinned into the root at admission, and
+    re-reading the tracker's description here is what made an offline retry
+    impossible — and what let an edited description change the brief of work
+    already under way.
+
+    A task that has NOT prepared reads it from the tracker, and the same call
+    is where the ledger mints the task's identity from the tracker ref (§3.7):
+    prepare is the one moment both facts are available.
+    """
+    if prior is not None:
+        held = adapter.stored(stage_id)
+        if held is not None and held.brief is not None:
+            return held.brief
+    brief = _task_brief(adapter.show(stage_id).description)
+    _mint(composition, epic_id, stage_id)
+    return brief
+
+
+def _mint(composition: Composition, epic_id: str, stage_id: str) -> None:
+    """Mint this tracker ref's task id at prepare, and pin the pair (§3.7).
+
+    S3 built the mint and nothing called it. This is its one caller: prepare
+    is where a tracker ref first becomes work the engine owns, so it is where
+    `tasks.tracker_ref` and `tasks.tracker_kind` are written.
+
+    A bd id already satisfies the grammar, so the minted id IS the ref and
+    nothing moves. A ref that mints a DIFFERENT id is refused by name rather
+    than run under an id the rest of this command does not use: making the two
+    diverge safely is the tracker port's work (S5), not a silent rename here.
+    """
+    if composition.ledger is None:
+        return
+    minted = mint_task(
+        composition.ledger,
+        tracker_ref=stage_id,
+        tracker_kind=TrackerKind.BD,
+        epic_id=epic_id,
+        backend=composition.config.store,
+    )
+    if minted != stage_id:
+        raise ContractorRefused(
+            MSG_MINTED_ELSEWHERE.format(stage_id=stage_id, minted=minted)
+        )
+
+
 def _direct_stages(adapter: ContractorAdapter, epic_id: str) -> tuple[BeadRecord, ...]:
     """Require the named epic to contain direct stages before reporting its state."""
     stages = adapter.direct_children(epic_id)
@@ -606,9 +667,7 @@ def _trace(
     """Render durable stage and root evidence without admitting or running work."""
     state, blocking_ids = _trace_state(adapter, epic_id, stage_id)
     stage = adapter.show(stage_id)
-    record, relation_error = _record_for_trace(
-        stage.metadata.get(CONTRACTOR_METADATA_KEY)
-    )
+    record, relation_error = _record_for_trace(adapter, stage_id)
     report: dict[str, object] = {
         "blocking_ids": blocking_ids,
         "closure": {"reason": stage.close_reason, "status": stage.status},
@@ -665,13 +724,11 @@ def _trace(
 
 
 def _record_for_trace(
-    raw: object | None,
+    adapter: ContractorAdapter, stage_id: str
 ) -> tuple[ContractorRecord | None, str | None]:
-    """Parse a relation for display while retaining malformed evidence as absence."""
-    if raw is None:
-        return None, None
+    """Read a relation for display while retaining malformed evidence as absence."""
     try:
-        return ContractorRecord.model_validate(raw), None
+        return adapter.stored_record(stage_id), None
     except ValidationError as error:
         return None, str(error)
 
@@ -689,10 +746,10 @@ def _trace_state(
             ContractorCommandState.BLOCKED,
             tuple(dependency.id for dependency in dependencies),
         )
-    for stage in stages:
-        if stage.id == stage_id or stage.status == STATUS_CLOSED:
+    for other, _state in adapter.records.states_of_epic(epic_id):
+        if other == stage_id:
             continue
-        if stage.metadata.get(CONTRACTOR_METADATA_KEY) is not None:
+        if not adapter.closure.retired(other):
             return ContractorCommandState.BLOCKED, ()
     return ContractorCommandState.RESULT, ()
 

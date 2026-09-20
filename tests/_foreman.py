@@ -88,6 +88,7 @@ from workflow_interpreter.inspector.profile import (
     TaskSpec,
 )
 from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.ledger.tasks import pin_task_backend
@@ -532,14 +533,14 @@ class ForemanLab:
             if backend_factory is None
             else backend_factory
         )
-        # Claims stay bd-backed whichever backend this lab runs on (D20): two
-        # backends discovering claims in two stores could not see each other's
-        # reservations, so a ledger run contends on the SAME rows.
+        # Claims are ledger-local whichever backend this lab runs on (R11):
+        # there is one ledger per repository, so it is the one place two
+        # attempts on a target can see each other's reservation.
         self.store = WorkflowStore(
             self.backend_factory(self._store),
             verifier,
             backend_factory=self.backend_factory,
-            claims_backend=bd,
+            claims=LedgerClaims(self.ledger),
         )
         self.git = make_git(self.inspector_config)
         self.clock = FrozenClock()

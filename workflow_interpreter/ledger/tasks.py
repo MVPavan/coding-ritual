@@ -18,6 +18,7 @@ from typing import Final
 
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contracts.run_identity import ComponentKind, safe_component
+from workflow_interpreter.ledger import records
 from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_NOT_RECORDED,
     MSG_STATE_NOT_RECORDED,
@@ -25,7 +26,11 @@ from workflow_interpreter.ledger.constants import (
     TaskState,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase
-from workflow_interpreter.ledger.errors import LedgerExportError, sqlite_failure
+from workflow_interpreter.ledger.errors import (
+    LedgerExportError,
+    LedgerRecordConflict,
+    sqlite_failure,
+)
 from workflow_interpreter.ledger.identity import insert_task
 
 _SQL_TASK_BACKEND: Final[str] = "SELECT backend FROM tasks WHERE task_id = ?"
@@ -35,8 +40,7 @@ _SQL_RECORD_EXPORT: Final[str] = (
     "UPDATE tasks SET export_oid = ?, exported_at = ? WHERE task_id = ?"
 )
 _SQL_ROOT_BACKEND: Final[str] = "SELECT backend FROM roots WHERE root_id = ?"
-_SQL_TASK_STATE: Final[str] = "SELECT state FROM tasks WHERE task_id = ?"
-_SQL_RECORD_STATE: Final[str] = "UPDATE tasks SET state = ? WHERE task_id = ?"
+_SQL_TASK_STATE: Final[str] = "SELECT state FROM contractor_records WHERE task_id = ?"
 
 
 def pin_task_backend(
@@ -141,25 +145,29 @@ def record_task_state(database: LedgerDatabase, task_id: str, state: TaskState) 
     that this task's work landed, and `closed()` refuses to derive closure for
     a task that never said so.
 
-    An UPDATE that matched nothing is a refusal for the same reason the pin's
-    is: the state would be silently lost and the task would stay open to every
-    consumer that reads `closed()` or `retired()`.
+    Since S4 the home is `contractor_records.state`, the one place LANDED and
+    ABANDONED live: two columns that had to agree about whether a task landed
+    would be the next place they disagree. An UPDATE that matched nothing is
+    therefore a refusal naming the missing RECORD — the state would otherwise
+    be silently lost and the task would stay open to every consumer that reads
+    `closed()` or `retired()`.
     """
-    with database.transaction():
-        updated = database.connection.execute(_SQL_RECORD_STATE, (state.value, task_id))
-        if updated.rowcount == 0:
-            raise LedgerExportError(
-                MSG_STATE_NOT_RECORDED.format(task_id=task_id, state=state.value)
-            )
+    try:
+        records.set_state(database, task_id, state.value)
+    except LedgerRecordConflict as missing:
+        raise LedgerExportError(
+            MSG_STATE_NOT_RECORDED.format(task_id=task_id, state=state.value)
+        ) from missing
 
 
 def task_state(database: LedgerDatabase, task_id: str) -> TaskState | None:
     """This task's recorded state, or nothing while it has reached none.
 
-    An unrecognised value reads as nothing rather than raising: the column is
-    exported, so a file written by a LATER build may name a state this one has
-    no rule for, and "no state I can act on" is the safe reading of it — it
-    leaves the task open.
+    Read from `contractor_records`, which is where S4 folded it. A value that
+    is not one closure derives from — every in-flight state of the record's
+    own lifecycle, and anything a LATER build's export may name — reads as
+    nothing rather than raising, which leaves the task open. That is the safe
+    reading of a state this build has no rule for.
     """
     with database.locked() as connection:
         row = connection.execute(_SQL_TASK_STATE, (task_id,)).fetchone()

@@ -103,15 +103,20 @@ class LedgerTable(StrEnum):
     LANDINGS = "landings"
     PROJECTIONS = "projections"
     RESTORE_PENDING = "restore_pending"
+    CONTRACTOR_RECORDS = "contractor_records"
+    CLAIMS = "claims"
 
 
 class TaskState(StrEnum):
     """How far the contractor got with one task, as the ledger knows it (§3.5).
 
-    Only the two states closure is derived from. LANDED is written before the
-    export bytes exist, so the export carries it and a rebuilt ledger can still
-    say that this task's work landed; ABANDONED is the orchestrator's verb
-    (§3.8), and it retires a task that will never export at all.
+    Only the two states closure is derived from, read from
+    `contractor_records.state` since S4 folded `tasks.state` into it. LANDED is
+    written before the export bytes exist, so the export carries it and a
+    rebuilt ledger can still say that this task's work landed; ABANDONED is the
+    orchestrator's verb (§3.8), and it retires a task that will never export at
+    all. Every other value the record's own lifecycle uses reads here as
+    nothing, which leaves the task open — which is what it is.
     """
 
     LANDED = "landed"
@@ -149,6 +154,7 @@ the task their gate belongs to, which is how the export validates them."""
 
 EXPORT_TABLES: Final[tuple[LedgerTable, ...]] = (
     LedgerTable.TASKS,
+    LedgerTable.CONTRACTOR_RECORDS,
     LedgerTable.LANDINGS,
     *ROW_TABLES,
     *GATE_TABLES,
@@ -162,6 +168,10 @@ them in the store restructure: it is the fallback D17 reads when the receipt
 file is gone, and a rebuild that could not restore it refused every landed
 ledger outright. Order matters twice: rows are inserted in it (a signature
 needs its gate, a landing needs its task) and cleared in reverse.
+`contractor_records` joined them in S4: it IS the contractor's record now, and
+a rebuilt ledger that could not say how far the contractor got could not derive
+closure at all (§3.5). It sits directly after `tasks`, which it references, so
+insertion finds its parent and `_clear`'s reverse order empties it first.
 `restore_pending` is the one task-owned table deliberately left out: it records
 what an import OWES rather than what an export describes, and carrying it would
 break the byte-identical round trip (§3.6). The per-activation facts stay out
@@ -207,6 +217,12 @@ NON_EXPORTED: Final[Mapping[LedgerTable, str]] = MappingProxyType(
             "this build; it is cleared with the activation it hangs off "
             "(`export._clear`)"
         ),
+        LedgerTable.CLAIMS: (
+            "contention state about an integration TARGET rather than a fact "
+            "about one task: it is keyed by the target, not by task_id, it is "
+            "ledger-local by R11, and a restored claim would reserve a target "
+            "for an attempt that is already over"
+        ),
     }
 )
 """Every table an export deliberately does NOT carry, and why (§3.6, R5).
@@ -247,6 +263,8 @@ class LedgerOperation(StrEnum):
     CLOSING = "closing"
     CLOSING_GATE = "closing the gate"
     CLAIMING = "claiming"
+    ABANDONING = "abandoning"
+    RECORDING = "recording the contractor record of"
     RECONCILING = "reconciling the attention projection of"
     PINNING = "recording the export pin of"
 
@@ -368,8 +386,9 @@ MSG_TRACKER_REF_UNUSABLE: Final[str] = (
     "could be made of (§3.7)"
 )
 MSG_STATE_NOT_RECORDED: Final[str] = (
-    "no tasks row {task_id!r} to record state {state!r} on; a state nothing "
-    "carries would leave the task open to every consumer of `closed()` (§3.5)"
+    "no contractor record for {task_id!r} to record state {state!r} on; a "
+    "state nothing carries would leave the task open to every consumer of "
+    "`closed()` (§3.5)"
 )
 MSG_NOT_RETIRED: Final[str] = (
     "task {task_id!r} is not retired: it is neither closed — LANDED with an "
@@ -399,10 +418,25 @@ MSG_BUSY_REFUSED: Final[str] = (
     "the ledger stayed busy for {timeout_ms} ms while {operation} {row_id}; "
     "refusing rather than retrying silently (§3.4.6)"
 )
-MSG_CLAIM_ON_LEDGER: Final[str] = (
-    "integration-target claims stay bd-backed while the bd backend exists "
-    "(D20); the ledger refuses {operation} {row_id} rather than holding a "
-    "second claim table a bd-backed run could not see"
+MSG_CLAIM_HELD: Final[str] = (
+    "integration target {claim_key!r} is already claimed by {holder!r}, and "
+    "{incoming!r} asked for it; two attempts on one target serialise on this "
+    "row, and the second one is refused rather than queued (§3.2, R11)"
+)
+MSG_RECORD_STALE: Final[str] = (
+    "the contractor record of {task_id!r} is at version {found}, and this "
+    "transition was written against {expected}; something else moved the "
+    "record since it was read, so the write is refused rather than applied "
+    "over it (store-restructure §3.2, R4)"
+)
+MSG_RECORD_EXISTS: Final[str] = (
+    "the contractor record of {task_id!r} already exists; a first write is "
+    "not how a stored record is changed (store-restructure §3.2)"
+)
+MSG_RECORD_MISSING: Final[str] = (
+    "task {task_id!r} has no contractor record, so there is nothing to "
+    "{operation}; the record is written at prepare and is the ledger's own "
+    "(store-restructure §3.2, R4)"
 )
 MSG_LOSSY_ROW: Final[str] = "the row did not read back as written: {detail}"
 MSG_ROW_MISSING: Final[str] = (

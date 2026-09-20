@@ -88,6 +88,7 @@ from workflow_interpreter.inspector.paths import read_record, read_tail
 from workflow_interpreter.inspector.steer import Steerer
 from workflow_interpreter.ledger.closure import retired
 from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.tasks import task_roots
 from workflow_interpreter.schema.models import NodeKind
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -795,6 +796,25 @@ class Foreman:
                 root_id=root_id,
                 reason=str(refusal),
             )
+
+    def cleanup_retired(self, task_id: str) -> tuple[str, ...]:
+        """Run terminal cleanup for every root of a task that is over (§3.8).
+
+        What `wf phase abandon` calls, and the only caller: an abandoned task
+        never ships, so no tick will ever reach the cleanup that deletes its
+        worktree, its verify tree and its scratch — the bytes would be kept
+        forever by the very gate that protects a live run. The gate itself is
+        unchanged (`cleanup_deferred` still asks `retired()`), so a task this
+        is aimed at before it is retired cleans nothing.
+        """
+        if self._composition.ledger is None:
+            return ()
+        cleaned: list[str] = []
+        for root_id, _terminal in task_roots(self._composition.ledger, task_id):
+            wiring = self._composition.for_root(root_id)
+            self._cleanup_terminal_state(wiring, wiring.store.reads.load_root(root_id))
+            cleaned.append(root_id)
+        return tuple(cleaned)
 
     def _cleanup_terminal_state(self, wiring: InstanceWiring, root: RootRecord) -> None:
         """D-T1 and §3.9: worktree, verify tree and scratch go together.

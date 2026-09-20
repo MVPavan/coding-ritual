@@ -23,7 +23,7 @@ Three invariants shape almost every method:
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from pydantic import JsonValue
 
@@ -121,6 +121,12 @@ from workflow_interpreter.bdio.activation_writes import (
     pinned_execution_setting,
 )
 
+MSG_NO_CLAIMS: Final[str] = (
+    "this store has no integration-target claim surface: claims are ledger "
+    "rows two attempts contend for (R11), and a wiring with no ledger has "
+    "nothing for them to serialise on"
+)
+
 
 class WorkflowStore:
     """The typed bd write API for one workspace (§0.1 write boundary).
@@ -141,11 +147,11 @@ class WorkflowStore:
         branch_head_reader: BranchHeadReader | None = None,
         member_band: object | None = None,
         backend_factory: StoreBackendFactory | None = None,
-        claims_backend: StoreBackend | None = None,
+        claims: ClaimStore | None = None,
     ) -> None:
         self._member_band = member_band
         self._client = client
-        self._claims_backend = claims_backend
+        self._claims = claims
         self._verifier = verifier
         self._artifact_reader = artifact_reader
         self._branch_head_reader = branch_head_reader
@@ -163,7 +169,7 @@ class WorkflowStore:
         artifact_reader: ArtifactReader | None = None,
         branch_head_reader: BranchHeadReader | None = None,
         backend_factory: StoreBackendFactory | None = None,
-        claims_backend: StoreBackend | None = None,
+        claims: ClaimStore | None = None,
     ) -> WorkflowStore:
         """Build a store from configuration alone — the supported entry point.
 
@@ -188,7 +194,7 @@ class WorkflowStore:
             artifact_reader=artifact_reader,
             branch_head_reader=branch_head_reader,
             backend_factory=factory,
-            claims_backend=claims_backend,
+            claims=claims,
         )
 
     def for_root(
@@ -213,7 +219,7 @@ class WorkflowStore:
             branch_head_reader=branch_head_reader,
             member_band=member_band,
             backend_factory=self._backend_factory,
-            claims_backend=self._claims_backend,
+            claims=self._claims,
         )
 
     @property
@@ -271,15 +277,15 @@ class WorkflowStore:
     def claims(self) -> ClaimStore:
         """The integration-target claim surface (§3.2 shared serialisation).
 
-        Served by an injected backend when one was given (D20): claims stay
-        bd-backed while `store` can still select bd, because two backends
-        discovering claims in two stores could not see each other's
-        reservations. A ledger-backed run therefore reads and writes its
-        claims through the SAME bd rows a bd-backed run does.
+        Injected, never derived from the transport (R11): a claim is a ledger
+        row two attempts contend for, and a store that built its own would be
+        the second place a target could look free. A wiring with no claims
+        surface refuses HERE, by name, rather than handing back something that
+        cannot serialise anything.
         """
-        return ClaimStore(
-            self._client if self._claims_backend is None else self._claims_backend
-        )
+        if self._claims is None:
+            raise StoreConfigError(MSG_NO_CLAIMS)
+        return self._claims
 
     def coordination_store(
         self,

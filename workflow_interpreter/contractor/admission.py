@@ -22,6 +22,11 @@ STATUS_IN_PROGRESS = "in_progress"
 STATUS_CLOSED = "closed"
 MSG_STAGE_NOT_DIRECT = "stage {stage_id!r} is not an open direct child of {epic_id!r}"
 MSG_OTHER_ADMISSION = "stage {stage_id!r} has unfinished contractor admission"
+MSG_BRIEF_REQUIRED = (
+    "preparing stage {stage_id!r} needs its task brief: it is snapshotted with "
+    "the record so that every later admission can run with the tracker "
+    "unreachable (store-restructure §3.3, R4)"
+)
 MSG_IDENTITY_CONFLICT = "contractor identity conflicts with durable admission"
 MSG_HEAD_MOVED = "coordinator HEAD differs from the recorded expected base"
 
@@ -130,18 +135,25 @@ class PhaseAdmission:
         head_commit: Callable[[], str],
         verification_policy: VerificationPolicy | None = None,
         root_backend: BackendKind = BackendKind.BD,
+        task_brief: str | None = None,
     ) -> None:
         """Pin the backend a first attempt is prepared on before it exists.
 
         `root_backend` is the `store` switch in force now (§3.2, D18). It is
         used only when THIS call prepares attempt one: a stored record already
         carries its own immutable pin, and admission never overwrites it.
+
+        `task_brief` is the snapshot a FIRST prepare writes beside the record
+        (§3.3, R4). A caller that has one has just read the tracker; a caller
+        that has none is admitting a task that already prepared, and the
+        snapshot it needs is already in the ledger.
         """
         self._adapter = adapter
         self._roots = roots
         self._head_commit = head_commit
         self._verification_policy = verification_policy
         self._root_backend = root_backend
+        self._task_brief = task_brief
 
     def admit(
         self, epic_id: str, stage_id: str, target_ref: str, expected_base_commit: str
@@ -184,11 +196,17 @@ class PhaseAdmission:
         """Run the shared validation and convergence path for one declared record."""
         if self._verification_policy is None:
             raise AdmissionRefused("contractor verification policy is missing")
-        stage = self._selected_stage(epic_id, stage_id)
+        stored = self._adapter.stored_record(stage_id)
+        # The tracker is READ only when this task has no record yet — which is
+        # to say, only at prepare (§3.3). Every later admission, including a
+        # retry and a recovery, is answered from the ledger, which is what
+        # makes admission possible with the tracker gone (R4).
+        if stored is None:
+            self._selected_stage(epic_id, stage_id)
         self._refuse_other_admission(epic_id, stage_id)
         record = (
             self._record_or_prepare(
-                stage.metadata.get("contractor"),
+                stored,
                 epic_id,
                 stage_id,
                 target_ref,
@@ -196,7 +214,7 @@ class PhaseAdmission:
             )
             if successor is None
             else self._prepare_successor(
-                stage.metadata.get("contractor"),
+                stored,
                 epic_id,
                 stage_id,
                 target_ref,
@@ -238,27 +256,29 @@ class PhaseAdmission:
         )
 
     def _refuse_other_admission(self, epic_id: str, stage_id: str) -> None:
-        """Prevent one stage from bypassing another persisted admission intent."""
-        for stage in self._adapter.direct_children(epic_id):
-            if stage.id == stage_id:
+        """Prevent one stage from bypassing another unfinished admission (§3.5).
+
+        A ledger query over `retired()`, not the siblings' bead STATUS: the
+        record moved into the ledger, so the epic's other tasks are answered
+        from `tasks.epic_id` with the tracker unreachable — and "finished" is
+        the derived answer rather than whatever label a bead last carried. A
+        sibling that landed without a pinned export still blocks, because its
+        record is not durable yet; an ABANDONED sibling does not, because it
+        never will be (§3.8).
+        """
+        for other, _state in self._adapter.records.states_of_epic(epic_id):
+            if other == stage_id:
                 continue
-            raw = stage.metadata.get("contractor")
-            if raw is None:
-                continue
-            try:
-                ContractorRecord.model_validate(raw)
-            except ValueError as error:
-                raise AdmissionRefused(MSG_IDENTITY_CONFLICT) from error
-            if stage.status != STATUS_CLOSED:
+            if not self._adapter.closure.retired(other):
                 raise AdmissionRefused(
-                    MSG_OTHER_ADMISSION.format(stage_id=stage.id),
+                    MSG_OTHER_ADMISSION.format(stage_id=other),
                     blocked=True,
-                    blocking_ids=(stage.id,),
+                    blocking_ids=(other,),
                 )
 
     def _prepare_successor(
         self,
-        raw: object | None,
+        stored: ContractorRecord | None,
         epic_id: str,
         stage_id: str,
         target_ref: str,
@@ -266,7 +286,7 @@ class PhaseAdmission:
         successor: ContractorRecord,
     ) -> ContractorRecord:
         """Validate and persist only an explicitly supplied successor intent."""
-        if raw is None or (
+        if stored is None or (
             successor.epic_id != epic_id
             or successor.stage_id != stage_id
             or successor.target_ref != target_ref
@@ -278,14 +298,16 @@ class PhaseAdmission:
 
     def _record_or_prepare(
         self,
-        raw: object | None,
+        stored: ContractorRecord | None,
         epic_id: str,
         stage_id: str,
         target_ref: str,
         expected_base_commit: str,
     ) -> ContractorRecord:
         """Read a matching intent or persist attempt one's complete record."""
-        if raw is None:
+        if stored is None:
+            if self._task_brief is None:
+                raise AdmissionRefused(MSG_BRIEF_REQUIRED.format(stage_id=stage_id))
             prepared = ContractorRecord.prepared(
                 epic_id=epic_id,
                 stage_id=stage_id,
@@ -295,11 +317,8 @@ class PhaseAdmission:
                 verification_policy=self._verification_policy,
                 root_backend=self._root_backend,
             )
-            return self._adapter.prepare(stage_id, prepared)
-        try:
-            record = ContractorRecord.model_validate(raw)
-        except ValueError as error:
-            raise AdmissionRefused(MSG_IDENTITY_CONFLICT) from error
+            return self._adapter.prepare(stage_id, prepared, brief=self._task_brief)
+        record = stored
         if (
             record.verification_policy is None
             or record.verification_policy != self._verification_policy

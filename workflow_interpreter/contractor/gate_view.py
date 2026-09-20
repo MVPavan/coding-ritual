@@ -10,6 +10,7 @@ from workflow_interpreter.contractor.adapter import (
     ContractorAdapter,
     ContractorAdapterError,
 )
+from workflow_interpreter.contractor.records import ContractorRecords
 from workflow_interpreter.ledger.closure import NoLedgerClosure
 
 _INSTANCE_KEY_PREFIX: Final[str] = "contract:"
@@ -20,15 +21,22 @@ MSG_INSTANCE_KEY_MISMATCH: Final[str] = (
 
 
 def contractor_gate_view(
-    instance_key: str, config: BdConfig, *, root_id: str, reads: WorkflowReads
+    instance_key: str,
+    config: BdConfig,
+    *,
+    root_id: str,
+    reads: WorkflowReads,
+    records: ContractorRecords,
 ) -> dict[str, object]:
     """Render retry evidence only for roots admitted through the contractor.
 
     The stage record remains the authority for attempts, so ordinary interpreter
     roots never receive contractor-specific metadata and do not cause an extra read.
 
-    `config` builds the TASK bead's transport, which stays bd (§3.2), and
-    `reads` is the store THIS ROOT is pinned to: `owns_root` is a root lookup,
+    `records` is where the stage's record lives — a ledger row since S4
+    (§3.2, R4), which is why this read has to be handed one. `config` builds
+    the TASK bead's transport, which stays bd (§3.2), and `reads` is the store
+    THIS ROOT is pinned to: `owns_root` is a root lookup,
     and a contractor view that asked bd about a ledger-backed root would answer
     that a live run does not exist.
     """
@@ -39,7 +47,9 @@ def contractor_gate_view(
     # succession — neither of which happens here. It is still supplied by
     # name rather than defaulted, so no construction site can acquire one of
     # those writes without having said what answers it (§3.5).
-    adapter = ContractorAdapter.from_config(config, reads, closure=NoLedgerClosure())
+    adapter = ContractorAdapter.from_config(
+        config, reads, closure=NoLedgerClosure(), records=records
+    )
     record = adapter.record(stage_id)
     is_current_attempt = record.instance_key == instance_key
     if (

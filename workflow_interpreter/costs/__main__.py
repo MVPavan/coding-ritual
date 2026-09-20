@@ -24,6 +24,7 @@ from workflow_interpreter.costs.report import (
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
 from workflow_interpreter.foreman.config import load_config
+from workflow_interpreter.ledger import records as ledger_records
 from workflow_interpreter.ledger.database import open_readonly
 from workflow_interpreter.ledger.errors import LedgerAbsent, LedgerSchemaError
 from workflow_interpreter.ledger.store import LedgerStore
@@ -123,10 +124,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 backends = SelectableBackendFactory(
                     client, LedgerStore(ledger, task_id=stage_id)
                 )
+                stored = ledger_records.read(ledger, stage_id)
                 collection = collect_task(
                     client,
                     stage_id,
                     backends=backends,
+                    record_json=None if stored is None else stored.record_json,
                     runtime_roots=runtime_roots,
                 )
                 if supplement is not None:

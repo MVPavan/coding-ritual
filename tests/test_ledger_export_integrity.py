@@ -33,6 +33,7 @@ from typing import Final
 import pytest
 
 from tests._fake_bd import FakeBd
+from tests._helpers import MemoryContractorRecords
 from tests._ledger import EPIC, TASK, repository, seeded_task
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
@@ -436,6 +437,6 @@ def test_close_still_refuses_a_task_whose_record_is_not_durable(
     }
 
     with pytest.raises(ContractorAdapterError, match="does not derive closed"):
-        ContractorAdapter(fake_client, closure=NoLedgerClosure()).close(
-            STAGE_ID, landed, LANDING_RECEIPT
-        )
+        ContractorAdapter(
+            fake_client, closure=NoLedgerClosure(), records=MemoryContractorRecords()
+        ).close(STAGE_ID, landed, LANDING_RECEIPT)

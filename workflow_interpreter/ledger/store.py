@@ -65,7 +65,6 @@ from workflow_interpreter.ledger import rowmap
 from workflow_interpreter.ledger.constants import (
     MSG_ATTEMPT_INVALID,
     MSG_BAD_FILTER_KEY,
-    MSG_CLAIM_ON_LEDGER,
     MSG_EPIC_REQUIRED,
     MSG_GATE_NOT_OPEN,
     MSG_GATE_SIGNED,
@@ -87,7 +86,6 @@ from workflow_interpreter.ledger.database import (
 )
 from workflow_interpreter.ledger.errors import (
     LedgerAttemptInvalid,
-    LedgerClaimUnsupported,
     LedgerEpicMissing,
     LedgerGateConflict,
     LedgerRootCollision,
@@ -418,20 +416,6 @@ class LedgerStore:
             if _projects_attention(table, merged):
                 self._enqueue_projection()
         return written
-
-    def _claim_and_merge_metadata(self, row_id: str, metadata: Metadata) -> StoreRow:
-        """Refused: an integration-target claim is bd's row during coexistence.
-
-        The only caller is the claim surface (`bdio/claims.py`), and D20 keeps
-        claims in bd while `store` can still select it — a ledger-backed run
-        must contend on the SAME row a bd-backed run reserves, or neither sees
-        the other's reservation.
-        """
-        raise LedgerClaimUnsupported(
-            MSG_CLAIM_ON_LEDGER.format(
-                operation=LedgerOperation.CLAIMING.value, row_id=row_id
-            )
-        )
 
     def _close_row(self, row_id: str, reason: str) -> StoreRow:
         """Settle one row: `status`, its reason, and the projection it may owe.

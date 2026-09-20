@@ -150,12 +150,22 @@ class LedgerBusyRefusal(StoreBusyRefusal):
         )
 
 
-class LedgerClaimUnsupported(StoreError):
-    """Claims are bd-backed while the bd backend exists (D20).
+class LedgerRecordConflict(LifecycleConflictError):
+    """A contractor transition was written against a record that has moved.
 
-    Not a missing feature: two backends discovering claims in two stores
-    cannot see each other's reservations, so the ledger REFUSES the write
-    instead of keeping a second, invisible claim table.
+    The version guard of §3.2: every transition states the version it read,
+    the write is conditional on it, and a mismatch is refused rather than
+    applied over whatever the other writer decided. A conflict, not a
+    transport failure — the ledger is fine, the caller's evidence is stale.
+    """
+
+
+class LedgerClaimHeld(LifecycleConflictError):
+    """Another holder already claims this integration target (R11).
+
+    The loser of the CAS inside `BEGIN IMMEDIATE`, named rather than silently
+    queued: the two attempts contend for one target, and the one that did not
+    get it has to be told so it can refuse rather than land twice.
     """
 
 

@@ -52,13 +52,11 @@ class ContractorState(StrEnum):
     LANDING = "landing"
     LANDED = "landed"
     GATE_RED = "gate-red"
-    # Dead vocabulary since S2, exactly like LANDING above: closure is DERIVED
-    # from the ledger and its git anchor (`ledger/closure.py`, §3.5), nothing
-    # writes this, and the close path leaves the record at LANDED. It is kept
-    # only until S4 replaces this record with `contractor_records` — a pre-S0
-    # record that carried it cannot validate against `contract/3` anyway, so
-    # the member buys no compatibility that outlives the record itself.
-    CLOSED = "closed"
+    # The orchestrator's third verb (§3.8). A task the graph never took to
+    # `shipped` and that will never be retried: it is `retired()` rather than
+    # closed, so cleanup and archive proceed on what exists while succession
+    # is refused. Nothing derives it — `wf phase abandon` writes it.
+    ABANDONED = "abandoned"
 
 
 class ContractorRecord(BaseModel):

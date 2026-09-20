@@ -58,6 +58,7 @@ from workflow_interpreter.contractor import (
 )
 from workflow_interpreter.contractor.journal import ExportPin
 from workflow_interpreter.contractor.models import INSTANCE_KEY_TEMPLATE
+from workflow_interpreter.contractor.records import LedgerContractorRecords
 from workflow_interpreter.contractor.verification import (
     CheckCommand,
     VerificationPolicy,
@@ -235,7 +236,11 @@ def _succession(
     fake_client: BdClient, database: LedgerDatabase, git: Git, stored: ContractorRecord
 ) -> ContractorAdapter:
     """An adapter that can answer the closure question, ready for a retry."""
-    return ContractorAdapter(fake_client, closure=TaskClosure(database, git))
+    return ContractorAdapter(
+        fake_client,
+        closure=TaskClosure(database, git),
+        records=LedgerContractorRecords(database, backend=BackendKind.LEDGER),
+    )
 
 
 def test_a_crash_between_the_export_and_the_pin_leaves_the_task_open(

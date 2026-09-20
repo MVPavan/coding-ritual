@@ -32,6 +32,7 @@ from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.ledger import fence as fence_module
 from workflow_interpreter.ledger.__main__ import main as ledger_main
+from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.constants import (
     EXPORT_KIND_HEADER,
     LEDGER_FILE,
@@ -49,7 +50,7 @@ from workflow_interpreter.ledger.database import (
     schema_version,
 )
 from workflow_interpreter.ledger.errors import (
-    LedgerClaimUnsupported,
+    LedgerClaimHeld,
     LedgerExportError,
     LedgerFenceBusy,
     LedgerIdentityError,
@@ -227,20 +228,35 @@ def test_the_probe_round_trips_a_value_and_reports_the_pinned_identity(
     assert read_meta(ledger.connection, MetaKey.SCHEMA_VERSION) == str(SCHEMA_VERSION)
 
 
-def test_a_claim_write_is_refused_rather_than_kept_in_a_second_store(
+def test_two_attempts_on_one_target_serialise_on_the_ledger_claim(
     ledger: LedgerDatabase,
 ) -> None:
-    """D20: claims stay bd-backed, so the ledger refuses them by name.
+    """R11: the claims row is the serialisation point, and one attempt loses.
 
-    A ledger that answered claim writes itself would give a ledger-backed run
-    a claim table no bd-backed run could see — two reservations, no shared
-    serialisation, which is the one thing the claim row exists to provide.
+    The CAS is the primary key inside `BEGIN IMMEDIATE`, so two callers that
+    both read "free" cannot both take the target. The loser is named — it has
+    to be, because its whole job now is to refuse rather than land twice.
     """
-    store = LedgerStore(ledger, task_id=TASK)
-    _seeded(ledger)
+    claims = LedgerClaims(ledger)
 
-    with pytest.raises(LedgerClaimUnsupported, match="D20"):
-        store._claim_and_merge_metadata(TASK, {"integration_target_key": "k"})
+    claims.write("target", "owner:a:digest-a", {"integration_target_key": "target"})
+
+    with pytest.raises(LedgerClaimHeld, match="owner:a:digest-a"):
+        claims.write("target", "owner:b:digest-b", {"integration_target_key": "target"})
+    held = claims.find("target")
+    assert [(row.id, row.holder) for row in held] == [("target", "owner:a:digest-a")]
+
+
+def test_a_claim_transfer_names_the_row_it_moves_and_is_not_a_race(
+    ledger: LedgerDatabase,
+) -> None:
+    """A retry inheriting a target transfers the claim it already read (R11)."""
+    claims = LedgerClaims(ledger)
+    claims.write("target", "owner:a:digest-a", {"attempt": 1})
+
+    claims.write("target", "owner:a:digest-b", {"attempt": 2}, "target")
+
+    assert [row.holder for row in claims.find("target")] == ["owner:a:digest-b"]
 
 
 # --- repository identity (§3.5) --------------------------------------------

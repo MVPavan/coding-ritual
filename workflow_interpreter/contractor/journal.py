@@ -30,6 +30,10 @@ from pydantic import BaseModel, ValidationError
 
 from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.contractor.errors import ContractorRefusal
+from workflow_interpreter.contractor.records import (
+    ContractorRecords,
+    LedgerContractorRecords,
+)
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.closure import TaskClosure
 from workflow_interpreter.ledger.constants import TaskState
@@ -132,12 +136,18 @@ class ExportPin:
     """Puts a task's whole ledger record into git before its bead can close."""
 
     def __init__(
-        self, database: LedgerDatabase, git: Git, repo_root: Path, epic_id: str
+        self,
+        database: LedgerDatabase,
+        git: Git,
+        repo_root: Path,
+        epic_id: str,
+        backend: BackendKind = BackendKind.LEDGER,
     ) -> None:
         self._database = database
         self._git = git
         self._repo_root = repo_root
         self._epic_id = epic_id
+        self._backend = backend
 
     def pin(self, task_id: str, backend: BackendKind) -> str:
         """Record LANDED, export, store, pin — and answer the blob's object id.
@@ -170,6 +180,16 @@ class ExportPin:
             # shared function states what went wrong, and this states whose
             # step it was, so the close still exits as a refusal (D5).
             raise ContractorRefusal(str(lost)) from lost
+
+    @property
+    def records(self) -> ContractorRecords:
+        """The record store over the same ledger this pin writes (§3.2, R4).
+
+        Beside `closure`, and for its reason: the landing composes both into
+        the adapter, and the record it transitions and the export it pins have
+        to be facts of one ledger.
+        """
+        return LedgerContractorRecords(self._database, backend=self._backend)
 
     @property
     def closure(self) -> TaskClosure:

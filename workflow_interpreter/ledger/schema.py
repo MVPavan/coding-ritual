@@ -268,6 +268,62 @@ ordinal is minted in the creating transaction and is the one thing keeping two
 roots of one task distinct now that the attempt comes from the carrier instead
 of from a count of the task's roots."""
 
+_V5_CONTRACTOR_RECORDS: Final[str] = """
+CREATE TABLE contractor_records (
+    task_id     TEXT PRIMARY KEY REFERENCES tasks(task_id),
+    state       TEXT NOT NULL,
+    attempt     INTEGER NOT NULL,
+    version     INTEGER NOT NULL,
+    root_id     TEXT,
+    brief       TEXT,
+    record_json TEXT NOT NULL,
+    updated_at  TEXT NOT NULL
+)
+"""
+"""The contractor's own record, in the ledger rather than in bead metadata
+(store-restructure §3.2, R4).
+
+`record_json` is the whole carrier and the named columns are PROJECTIONS of it,
+exactly as `roots` and `gates` are: `state` is what `closed()` gates on, and a
+query that had to parse JSON to ask "did this land?" would be a second reading
+of the same fact. `version` is the guard — every transition states the version
+it read, so a stale writer is refused by name rather than overwriting a record
+that moved on.
+
+`root_id` is the attempt root the record names, projected so that the one
+query that runs the other way — "which task owns this root?", which replacement
+discovery asks — is a lookup rather than a scan of every carrier.
+
+`brief` is the task brief snapshotted at prepare. It is here because admission
+must run with the tracker unreachable (R4): the brief is the one instance input
+the contractor graph requires, and re-reading it from the tracker at every
+admission is what made an offline retry impossible."""
+
+_V5_CLAIMS: Final[str] = """
+CREATE TABLE claims (
+    claim_key    TEXT PRIMARY KEY,
+    holder       TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    claimed_at   TEXT NOT NULL
+)
+"""
+"""Ledger-local CAS for the integration-target claim (§3.2, R11).
+
+The PRIMARY KEY is the serialisation point: two attempts aiming at one target
+contend on one row inside `BEGIN IMMEDIATE`, and the loser learns it lost. Not
+a git ref, because there is one ledger per repository and a claim that outlived
+the ledger is one nobody can see; not exported, because a claim is contention
+state about a target rather than a fact about a task."""
+
+_V5_TASKS_STATE_FOLDED: Final[str] = "ALTER TABLE tasks DROP COLUMN state"
+"""S2's `tasks.state` folded into `contractor_records.state` (§3.5).
+
+One home for LANDED and ABANDONED. The column was always described as "what
+that table's `state` becomes", and two columns that had to agree about whether
+a task landed would be the next place they disagree. Dropped rather than left
+behind under R12's clean break: no live ledger and no committed export exist,
+so there is nothing to read a stale copy."""
+
 MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     (
         _V1_META,
@@ -290,6 +346,7 @@ MIGRATIONS: Final[tuple[tuple[str, ...], ...]] = (
     (_V2_FINDINGS_KIND,),
     (_V3_TASKS_STATE,),
     (*_V4_TASKS_TRACKER, _V4_ROOTS_CHILD),
+    (_V5_CONTRACTOR_RECORDS, _V5_CLAIMS, _V5_TASKS_STATE_FOLDED),
 )
 """One tuple of statements per schema version, in order. Index `n` migrates a
 database at version `n` to version `n + 1`, so `len(MIGRATIONS)` IS the version

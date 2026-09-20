@@ -15,12 +15,15 @@ from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.integration import IntegrationGuard, target_key
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.records import records_of
 from workflow_interpreter.foreman.compose import Composition, instance_head
 from workflow_interpreter.foreman.execution import effective_node
 from workflow_interpreter.inspector import procfs
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.models import Liveness
+from workflow_interpreter.ledger import records as ledger_records
 from workflow_interpreter.ledger.closure import closure_probe
+from workflow_interpreter.ledger.records import ContractorRecordRow
 from workflow_interpreter.schema.decisions import (
     ChildRecord,
     CoordinationError,
@@ -104,13 +107,13 @@ def advance_successor(
             }
         )
     elif intent.predecessor_contractor_json is None:
-        matches: list[ContractorRecord] = []
-        # Discovery spans every root, so it stays on the process-wide store.
-        rows = composition.store.coordination_store(composition=composition)._client
-        for row in rows.find_rows(RowQuery()):
-            raw = row.metadata.get("contractor")
-            if isinstance(raw, dict) and raw.get("root_id") == intent.predecessor_id:
-                matches.append(ContractorRecord.model_validate(raw))
+        # Discovery asks the LEDGER which task owns this root (§3.2, R4): the
+        # record is a row now, `root_id` is one of its projected columns, and
+        # what used to be a scan over every bead's metadata is a lookup.
+        matches = [
+            ContractorRecord.model_validate_json(found.record_json)
+            for found in _records_by_root(composition, intent.predecessor_id)
+        ]
         if len(matches) > 1:
             raise CoordinationError("ambiguous predecessor contractor")
         if matches:
@@ -503,7 +506,7 @@ def _check_contractor(
 
     previous = ContractorRecord.model_validate_json(intent.predecessor_contractor_json)
     paths = composition.for_root(intent.predecessor_id).paths
-    if previous.state in (ContractorState.LANDED, ContractorState.CLOSED) or any(
+    if previous.state is ContractorState.LANDED or any(
         (paths.instance_dir / name).exists()
         for name in (LANDING_INTENT_FILE, LANDING_RECEIPT_FILE)
     ):
@@ -521,6 +524,7 @@ def _check_contractor(
         composition.config.bd,
         composition.store.reads,
         closure=closure_probe(composition.ledger, composition.git),
+        records=records_of(composition),
     )
     root = composition.reads_for_root(intent.predecessor_id).load_root(
         intent.predecessor_id
@@ -579,6 +583,7 @@ def _prepare_contractor(
         composition.config.bd,
         composition.store.reads,
         closure=closure_probe(composition.ledger, composition.git),
+        records=records_of(composition),
     )
     adapter.integration_guard = IntegrationGuard(composition)
     if previous.integration_digest:
@@ -679,6 +684,7 @@ def _admit_contractor(
         composition.config.bd,
         composition.store.reads,
         closure=closure_probe(composition.ledger, composition.git),
+        records=records_of(composition),
     )
     guard = IntegrationGuard(composition)
     adapter.integration_guard = guard
@@ -942,3 +948,17 @@ def _verify_success_paths(graph: GraphDocument, nodes: tuple[Node, ...]) -> None
                     and (next_reviewed or not required_reviewers)
                 )
                 pending.append((edge.to, next_reviewed, next_approved))
+
+
+def _records_by_root(
+    composition: Composition, root_id: str
+) -> tuple[ContractorRecordRow, ...]:
+    """Every contractor record naming this root, or none without a ledger.
+
+    A wiring with no ledger holds no records at all, and discovery answering
+    "nothing owns this root" is the same thing it answered before S4 when no
+    bead carried one.
+    """
+    if composition.ledger is None:
+        return ()
+    return ledger_records.by_root(composition.ledger, root_id)

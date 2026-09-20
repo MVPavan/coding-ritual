@@ -25,11 +25,17 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.backend import SelectableBackendFactory
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.rpc_control import ControlBusy
+from workflow_interpreter.contractor.adapter import (
+    ContractorAdapter,
+    ContractorAdapterError,
+)
 from workflow_interpreter.contractor.command import execute_contractor
 from workflow_interpreter.contractor.gate_view import contractor_gate_view
+from workflow_interpreter.contractor.records import records_of
 from workflow_interpreter.contracts.rpc_control import MSG_CONTROL_ARGUMENTS
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -64,6 +70,8 @@ from workflow_interpreter.inspector.clock import SystemClock
 from workflow_interpreter.inspector.errors import ContinuationRefused, LockUnavailable
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.rpc_control import read_instructions
+from workflow_interpreter.ledger.claims import LedgerClaims
+from workflow_interpreter.ledger.closure import closure_probe
 from workflow_interpreter.ledger.constants import MSG_EPIC_REQUIRED
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerEpicMissing
@@ -183,7 +191,7 @@ def _composition(args: argparse.Namespace) -> Composition:
             config.bd,
             config.signing,
             backend_factory=factory,
-            claims_backend=bd,
+            claims=LedgerClaims(ledger),
         ),
         inspector_config=config.inspector,
         git=Git(config.inspector),
@@ -262,6 +270,62 @@ def _task_of(args: argparse.Namespace) -> str:
     return str(named)
 
 
+MSG_ABANDONED: Final[str] = "abandoned"
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
+
+
+def _abandon(args: argparse.Namespace, emit: Callable[[str, int], None]) -> int:
+    """`wf phase abandon <task> --reason` — the orchestrator's third verb (§3.8).
+
+    Beside continue and retry, and it is neither: an abandoned task is
+    `retired()` rather than closed, so cleanup and archive proceed on what
+    exists while succession is refused. The reason is required and recorded in
+    the log, because the one thing a later reader cannot reconstruct is why a
+    task that never shipped was stopped.
+
+    Cleanup runs AFTER the record is written, and only then: the gate it goes
+    through still asks `retired()`, so an abandon that failed to record would
+    delete nothing.
+    """
+    validate_bead_id(args.stage_id)
+    composition = _composition(args)
+    adapter = ContractorAdapter.from_config(
+        composition.config.bd,
+        composition.store.reads,
+        closure=closure_probe(composition.ledger, composition.git),
+        records=records_of(composition),
+    )
+    try:
+        record = adapter.abandon(args.stage_id)
+        cleaned = Foreman(composition).cleanup_retired(args.stage_id)
+    except (ContractorAdapterError, StoreError) as refusal:
+        emit(
+            json.dumps({"state": "refused", "reason": str(refusal)}, sort_keys=True),
+            MAX_TRANSCRIPT_BYTES,
+        )
+        return 2
+    _LOG.info(
+        "wf.contract.abandoned",
+        task_id=args.stage_id,
+        reason=args.reason,
+        roots=len(cleaned),
+    )
+    emit(
+        json.dumps(
+            {
+                "state": MSG_ABANDONED,
+                "stage_id": args.stage_id,
+                "reason": args.reason,
+                "attempt": record.attempt,
+                "roots_cleaned": list(cleaned),
+            },
+            sort_keys=True,
+        ),
+        MAX_TRANSCRIPT_BYTES,
+    )
+    return 0
+
+
 def _parser() -> argparse.ArgumentParser:
     """Create the eight public, deliberately small command forms.
 
@@ -319,6 +383,19 @@ def _parser() -> argparse.ArgumentParser:
         "--in-place", action="store_true", help="experimental app-server control"
     )
     steer.add_argument("--instructions-file", type=Path)
+    phase = commands.add_parser("phase").add_subparsers(
+        dest="phase_command", required=True
+    )
+    abandon = phase.add_parser(
+        "abandon",
+        help=(
+            "retire a task the graph never took to `shipped`: the record goes "
+            "to ABANDONED, sibling admission is unblocked, and the task's run "
+            "folders are cleaned. It is never a retry and never a close"
+        ),
+    )
+    abandon.add_argument("stage_id")
+    abandon.add_argument("--reason", required=True)
     integration = commands.add_parser("integration").add_subparsers(
         dest="integration_command", required=True
     )
@@ -769,6 +846,8 @@ def _run(
         return 0
     if args.command == "create":
         return _create(args)
+    if args.command == "phase":
+        return _abandon(args, emit)
     if args.command == "contract":
         validate_bead_id(args.epic_id)
         validate_bead_id(args.stage_id)
@@ -869,6 +948,7 @@ def _run(
             composition.config.bd,
             root_id=view.root.root_id,
             reads=composition.reads_for_root(view.root.root_id),
+            records=records_of(composition),
         )
         emit(
             json.dumps(
@@ -931,6 +1011,7 @@ def _run(
         composition.config.bd,
         root_id=root.root_id,
         reads=composition.reads_for_root(root.root_id),
+        records=records_of(composition),
     )
     status["open_gates"] = _open_gates(composition, view, contractor_view)
     if frontier.open_halt is not None:

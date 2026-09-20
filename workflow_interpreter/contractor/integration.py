@@ -28,6 +28,7 @@ from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.errors import ContractorRefusal
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.records import records_of
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.execution import resolved_node
@@ -48,6 +49,16 @@ from workflow_interpreter.schema.loader import canonical_bytes, load_graph
 
 ESSENTIAL = ("integration_sources", "stage_brief", "target_base")
 CLAIM_PAYLOAD_KEY = "integration_target_claim"
+
+
+def _claim_holder(claim: IntegrationTargetClaim) -> str:
+    """Who holds a target claim, as the three fields every check compares.
+
+    The same triple `prepare_integration` refuses "integration target busy"
+    on, stated once so the ledger row and the refusal cannot disagree about
+    what "somebody else" means.
+    """
+    return f"{claim.owner_id}:{claim.stage_id}:{claim.request_digest}"
 
 
 def _sha(body: str) -> str:
@@ -247,9 +258,19 @@ class IntegrationGuard:
         )
 
     def write_claim(self, claim: IntegrationTargetClaim) -> None:
+        """Take this target's claim, or move the one already read (R11).
+
+        `prior` is what tells the two apart, and it is the whole of the race:
+        a caller that read NO claim is inserting, and the ledger's primary key
+        is what makes exactly one of two such callers win. A caller that read
+        one is transferring — a retry inheriting the target from the attempt
+        before it — and has already checked, under the target lock, that the
+        claim it is moving is its own.
+        """
         prior = self.claim(claim.key)
         self.claims.write(
             claim.key,
+            _claim_holder(claim),
             {CLAIM_PAYLOAD_KEY: claim.model_dump(mode="json")},
             None if prior is None else prior[0],
         )
@@ -579,7 +600,7 @@ class IntegrationGuard:
             raise ContractorRefusal(
                 "integration lacks matching observed CAS authorization"
             )
-        if record.state in (ContractorState.LANDED, ContractorState.CLOSED):
+        if record.state is ContractorState.LANDED:
             from workflow_interpreter.contractor.landing import (
                 LANDING_RECEIPT_FILE,
                 LandingReceipt,
@@ -613,6 +634,7 @@ def prepare_integration(
         composition.config.bd,
         composition.store.reads,
         closure=closure_probe(composition.ledger, composition.git),
+        records=records_of(composition),
     )
     adapter.integration_guard = guard
     stage = adapter.show(request.stage_id)
@@ -651,7 +673,7 @@ def prepare_integration(
         ):
             raise ContractorRefusal("integration target busy")
         if prior is None:
-            if stage.metadata.get("contractor") is not None:
+            if adapter.stored_record(request.stage_id) is not None:
                 raise ContractorRefusal(
                     "stage already has contractor; use explicit integration retry"
                 )
@@ -762,6 +784,7 @@ def resume_integration(
         composition.config.bd,
         composition.store.reads,
         closure=closure_probe(composition.ledger, composition.git),
+        records=records_of(composition),
     )
     adapter.integration_guard = guard
     owner = association.request.owner_id
@@ -792,8 +815,7 @@ def resume_integration(
             )
         elif claim[1].association_digest != association.identity_digest:
             raise ContractorRefusal("integration prepared claim digest mismatch")
-        raw = adapter.show(association.request.stage_id).metadata.get("contractor")
-        record = ContractorRecord.model_validate(raw) if raw else None
+        record = adapter.stored_record(association.request.stage_id)
         predecessor = (
             record
             if record is not None and record.attempt + 1 == association.attempt
@@ -844,8 +866,7 @@ def resume_integration(
         if record.state is not ContractorState.PREPARED:
             guard.binding(
                 record,
-                current=record.state
-                not in (ContractorState.LANDED, ContractorState.CLOSED),
+                current=record.state is not ContractorState.LANDED,
             )
             if association.state == "root_bound":
                 with guard.coordination(owner)._locked(owner):
@@ -1054,9 +1075,9 @@ def command(composition: Composition, args: object) -> str:
         composition.config.bd,
         composition.store.reads,
         closure=closure_probe(composition.ledger, composition.git),
+        records=records_of(composition),
     )
-    raw = adapter.show(args.stage_id).metadata.get("contractor")
-    record = adapter.record(args.stage_id) if raw is not None else None
+    record = adapter.stored_record(args.stage_id)
     if args.integration_command == "retry":
         if record is None:
             raise ContractorRefusal("integration contractor is absent")
