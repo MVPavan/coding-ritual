@@ -396,6 +396,11 @@ MSG_PIN_NOT_LANDED: Final[str] = (
     "pinned export is what `closed()` latches on, so pinning one now would "
     "close a task that is still running (§3.5)"
 )
+MSG_CHECKPOINTS_UNREADABLE: Final[str] = (
+    "git could not list {prefix} in {repo_root} ({reason}), so nothing knows "
+    "which tasks this checkout can rebuild from a checkpoint; a rebuild that "
+    "read that as 'none' would clear every in-flight task's rows (§3.9)"
+)
 MSG_EXPORT_NOT_LANDED: Final[str] = (
     "task {task_id!r} has not landed — its recorded state is {state} — and the "
     "committed export path is what a rebuild prefers over every later "

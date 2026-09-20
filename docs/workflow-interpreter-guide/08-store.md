@@ -118,6 +118,12 @@ it. One ref per task, overwritten; the blobs it drops are unreachable and git gc
 them, and a checkpoint that fails logs `wf.ledger.checkpoint_refused` and closes the
 activation anyway.
 
+Which tasks *have* a checkpoint is one `show-ref`, and a rebuild **refuses** when git
+cannot answer it: reading a failure as "no checkpoints" would rebuild from the committed
+exports alone and clear every in-flight task's rows out of a live ledger. A checkout git
+does not recognise as a repository at all is the one degrade — there the committed
+exports need no git, and they are all there is.
+
 A rebuild restores exactly `EXPORT_TABLES` and **loses** everything else — pending
 `tracker_outbox` rows and held `claims`, plus `sessions`, `artifacts` and `usage`. Those
 are re-derived, never guessed: `reconcile <task>` re-enqueues a `Close` the restored

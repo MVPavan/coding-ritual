@@ -52,19 +52,23 @@ from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.inspector.errors import GitCommandError
 from workflow_interpreter.inspector.gitcmd import GitSubcommand
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.sandbox import fence_dir
 from workflow_interpreter.ledger.constants import (
     CHECKPOINT_BYTES_LIMIT,
     CHECKPOINT_DIR,
     CHECKPOINT_REF_TEMPLATE,
     EXPORT_SUFFIX,
+    MSG_CHECKPOINTS_UNREADABLE,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import export_task
 from workflow_interpreter.ledger.paths import export_dir, export_path, fence_path
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _BLOB: Final[str] = "blob"
+_HEAD_FILE: Final[str] = "HEAD"
 
 
 def checkpoint_ref(task_id: str) -> str:
@@ -139,22 +143,47 @@ def checkpoint_source(git: Git, repo_root: Path, task_id: str) -> Path | None:
 def checkpoint_tasks(git: Git, repo_root: Path) -> tuple[str, ...]:
     """Every task this checkout holds a checkpoint for, in ref order.
 
-    Nothing where git cannot answer for the tree at all: a directory whose
-    `.git` is not a repository git will read has no refs to find, and a
-    rebuild from the COMMITTED exports — which needs no git at all — must not
-    be lost to the question of whether it also has checkpoints.
+    Three different answers, and only one of them is empty by right:
+
+    - a tree git does not recognise as a repository AT ALL has no refs to
+      find, and a rebuild from the COMMITTED exports — which needs no git —
+      must not be lost to the question of whether it also has checkpoints.
+      Decided by the SHAPE of the checkout (`_git_readable`) rather than by a
+      git failure, because `git show-ref` spends one exit code (128) on both
+      that and every fatal defect;
+    - git answering "no refs under this prefix" is the empty set, because that
+      answer is TRUE (`ref_names_under` returns `()` on `show-ref`'s exit 1);
+    - git FAILING to answer is refused. Swallowing it made `_discovered` fall
+      back to the committed exports alone, and the import that followed
+      cleared every in-flight task's rows out of a live ledger while reporting
+      success (S7 review, finding 2).
     """
+    if not _git_readable(repo_root):
+        _LOG.info("wf.ledger.checkpoints_unreadable", repo_root=str(repo_root))
+        return ()
     prefix = CHECKPOINT_REF_TEMPLATE.format(task_id="")
     try:
         names = git.ref_names_under(prefix, cwd=repo_root)
     except GitCommandError as unanswerable:
-        _LOG.info(
-            "wf.ledger.checkpoints_unreadable",
-            repo_root=str(repo_root),
-            reason=str(unanswerable),
-        )
-        return ()
+        raise LedgerExportError(
+            MSG_CHECKPOINTS_UNREADABLE.format(
+                prefix=prefix, repo_root=repo_root, reason=unanswerable
+            )
+        ) from unanswerable
     return tuple(name.removeprefix(prefix) for name in names)
+
+
+def _git_readable(repo_root: Path) -> bool:
+    """Whether git will read this tree as a repository at all (§3.9's degrade).
+
+    Structural, and no subprocess: `fence_dir` already routes on what `.git`
+    IS, and `<common>/HEAD` is the file whose absence makes every git command
+    answer "not a git repository". That is the ONE unreadable checkout a
+    rebuild degrades past, so it is decided here rather than read out of an
+    exit code that also carries real failures.
+    """
+    fence = fence_dir(repo_root)
+    return fence is not None and (fence.parent / _HEAD_FILE).is_file()
 
 
 def rebuild_sources(
