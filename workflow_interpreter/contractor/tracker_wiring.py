@@ -14,8 +14,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
+import structlog
+
 from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import BdConfig
+from workflow_interpreter.bdio.errors import StoreOutputError
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.records import contractor_records
@@ -36,6 +39,7 @@ from workflow_interpreter.tracker.port import TrackerPort
 if TYPE_CHECKING:
     from workflow_interpreter.foreman.compose import Composition
 
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 MSG_FILE_PATH_REQUIRED: Final[str] = (
     "the file tracker needs its document: set tracker.path in the foreman "
     "configuration (store-restructure §3.3)"
@@ -115,6 +119,30 @@ def attention_writer(database: LedgerDatabase, tracker: TrackerPort) -> Attentio
     of D6's supersession is which writer the reconciler is given (§3.2).
     """
     return OutboxAttentionWriter(database, tracker)
+
+
+def drain_at_exit(composition: Composition) -> None:
+    """Apply what this invocation accumulated, before the DRIVER exits (D6).
+
+    Every driver, not only `wf contract`: `wf run` and `wf tick` build the same
+    composition and let the reconciler enqueue a `SetFlag`, so a drain only the
+    contractor performed left an operator driving a root with `wf run` unable
+    to see `wf:attention` until somebody happened to run another command.
+
+    Still zero tracker calls INSIDE a tick — this is the exit, after the loop.
+    Bounded and non-fatal on purpose, exactly as the attention drain it
+    replaces was: an unreachable tracker leaves the rows pending for the next
+    drain, and it must not fail a run whose facts are already in the ledger.
+    """
+    if composition.ledger is None:
+        return
+    try:
+        drain_outbox(
+            composition.ledger,
+            tracker_for(composition.config.tracker, composition.config.bd),
+        )
+    except (StoreOutputError, OSError) as refusal:
+        _LOG.warning("wf.tracker.outbox_drain_refused", reason=str(refusal))
 
 
 def drain_outbox(

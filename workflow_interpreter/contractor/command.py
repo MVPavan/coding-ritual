@@ -36,7 +36,7 @@ from workflow_interpreter.contractor.landing import (
 from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
 from workflow_interpreter.contractor.records import RecordStoreUnavailable
 from workflow_interpreter.contractor.retry import retry_refusal
-from workflow_interpreter.contractor.tracker_wiring import adapter_of
+from workflow_interpreter.contractor.tracker_wiring import adapter_of, drain_at_exit
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.constants import (
@@ -65,7 +65,6 @@ from workflow_interpreter.tracker.constants import (
     MSG_BLOCKERS_UNAVAILABLE,
     MSG_BRIEF_REQUIRED,
 )
-from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 TASK_BRIEF: Final[str] = "task_brief"
 MSG_DETACHED: Final[str] = "coordinator checkout is detached"
@@ -451,7 +450,7 @@ def _run_record(
         # contacted no tracker. THIS is the driver's exit, so this is where the
         # mirror is written — in a `finally`, because a run that ended badly is
         # exactly the run whose attention flag a human needs to see.
-        _drain_outbox(composition, adapter)
+        drain_at_exit(composition)
     latest = adapter.record(record.stage_id)
     if latest != record:
         if (
@@ -565,21 +564,6 @@ def _land(
         record=adapter.record(record.stage_id).model_dump(by_alias=True, mode="json"),
         result=outcome.model_dump(mode="json"),
     )
-
-
-def _drain_outbox(composition: Composition, adapter: ContractorAdapter) -> None:
-    """Apply every intent this run accumulated, before the driver exits.
-
-    Bounded and non-fatal on purpose, exactly as the attention drain it
-    replaces was: an unreachable tracker leaves the rows pending for the next
-    drain, and it must not fail a run whose facts are already in the ledger.
-    """
-    if composition.ledger is None:
-        return
-    try:
-        TrackerOutbox(composition.ledger).drain(adapter.tracker)
-    except (StoreOutputError, OSError) as refusal:
-        _LOG.warning("wf.tracker.outbox_drain_refused", reason=str(refusal))
 
 
 def _contractor_graph(composition: Composition) -> Path:

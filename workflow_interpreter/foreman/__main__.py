@@ -37,6 +37,7 @@ from workflow_interpreter.contractor.gate_view import contractor_gate_view
 from workflow_interpreter.contractor.tracker_wiring import (
     adapter_of,
     attention_writer,
+    drain_at_exit,
     tracker_for,
 )
 from workflow_interpreter.contracts.rpc_control import MSG_CONTROL_ARGUMENTS
@@ -901,7 +902,11 @@ def _run(
             else 1
         )
     if args.command == "tick":
-        emit(foreman.tick(args.root_id).model_dump_json(), MAX_TRANSCRIPT_BYTES)
+        ticked = foreman.tick(args.root_id)
+        # A tick is a DRIVER EXIT (D6): the reconciler enqueued whatever this
+        # tick decided, and nothing contacted the tracker inside it.
+        drain_at_exit(composition)
+        emit(ticked.model_dump_json(), MAX_TRANSCRIPT_BYTES)
         return 0
     if args.command == "inspect":
         inspection = foreman.inspect(args.root_id, args.activation_id)
@@ -952,6 +957,10 @@ def _run(
                 MAX_TRANSCRIPT_BYTES,
             )
             return 2
+        # The same driver exit the contractor has (D6): `wf run` is what an
+        # operator actually drives a root with, so the attention flag it
+        # enqueued must not wait for somebody else's command.
+        drain_at_exit(composition)
         view = _view(composition, args.root_id)
         contractor_view = contractor_gate_view(
             view.root.metadata.instance_key,

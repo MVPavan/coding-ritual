@@ -21,7 +21,7 @@ from typing import Final
 import pytest
 
 from tests._fake_bd import InjectedCrash
-from tests._foreman import ForemanLab
+from tests._foreman import LAB_TASK, ForemanLab
 from tests.test_contractor_cli import _entry
 from tests.test_contractor_in_ledger import (
     EPIC,
@@ -42,6 +42,7 @@ from workflow_interpreter.contractor.tracker_config import (
     TrackerSettings,
 )
 from workflow_interpreter.contractor.tracker_wiring import attention_writer
+from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.ledger.closure import closed
 from workflow_interpreter.ledger.constants import TrackerKind
@@ -55,7 +56,9 @@ from workflow_interpreter.tracker import (
     FileTracker,
     IntentKind,
     NullTracker,
+    SetFlag,
     TrackerCapability,
+    TrackerFlag,
     TrackerIntent,
     TrackerPort,
     TrackerRef,
@@ -422,6 +425,50 @@ def test_a_tracker_without_blockers_records_the_gap_or_refuses(
         return
     assert result.exit_code == 0, result.report
     assert _record(lab).blockers_checked is False
+
+
+@pytest.mark.acceptance
+@pytest.mark.parametrize("command", ["run", "tick"])
+def test_every_driver_exit_drains_the_outbox(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    signing_config,
+    sign_payload,
+    command: str,
+) -> None:
+    """D6: `wf contract` is not the only driver, so it is not the only drain.
+
+    `wf run` and `wf tick` build the same composition, tick the foreman, let
+    the reconciler enqueue a `SetFlag` and used to exit with the row still
+    pending — so an operator driving a root with `wf run` never saw
+    `wf:attention` until somebody happened to run `wf contract` or
+    `wf ledger reconcile`. One drain, at every driver exit.
+    """
+    lab = ForemanLab(tmp_path, signing=signing_config, signer=sign_payload)
+    # The null port, so the drain proves the DRAIN rather than a bd subprocess.
+    lab.composition = replace(
+        lab.composition,
+        config=lab.config.model_copy(
+            update={"tracker": TrackerSettings(backend=TrackerBackend.NULL)}
+        ),
+    )
+    root = lab.instantiate()
+    monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
+    assert lab.ledger is not None
+    outbox = TrackerOutbox(lab.ledger)
+    outbox.enqueue(
+        LAB_TASK,
+        SetFlag(
+            ref=TrackerRef(kind=TrackerKind.NONE, ref=LAB_TASK),
+            flag=TrackerFlag.ATTENTION.value,
+            on=True,
+        ),
+    )
+    assert len(outbox.pending()) == 1
+
+    lab.transcript(lambda: main_module.main([command, root.root_id]))
+
+    assert outbox.pending() == ()
 
 
 @pytest.mark.acceptance
