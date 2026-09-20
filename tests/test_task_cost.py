@@ -13,9 +13,13 @@ from typing import Final
 import pytest
 from pydantic import ValidationError
 
+from tests._helpers import seeded_records
 from workflow_interpreter.bdio.client import ISSUE_TYPE_OF, as_row
+from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.rows import RowQuery, StoreRow
 from workflow_interpreter.bdio.wire import BeadRecord
+from workflow_interpreter.contractor.models import ContractorRecord
+from workflow_interpreter.contractor.records import LedgerContractorRecords
 from workflow_interpreter.costs.collection import (
     CompletionEvidence,
     TaskCollection,
@@ -430,21 +434,39 @@ class FakeReadClient:
         )
 
 
-def _collect(client, stage_id: str, **kwargs):
+def _collect(
+    client, stage_id: str, *, record: dict[str, object] | None = None, **kwargs
+):
     """Collect one stage with the roots served by the same synthetic rows.
 
     The backend factory is what production injects (§3.2); these rows stand in
     for BOTH the task bead and its roots, so the factory answers with the one
     client whichever backend the contractor record pins.
+
+    `record` is the stage's contractor record. Handed in as JSON because that
+    is how `collect_task` takes it since S4: the record is a ledger row (§3.2,
+    R4), and the CLI that opens the read-only ledger is what reads it — so
+    these cases state it directly rather than hiding it in a bead's metadata.
     """
-    return collect_task(client, stage_id, backends=lambda _: client, **kwargs)
+    return collect_task(
+        client,
+        stage_id,
+        backends=lambda _: client,
+        record_json=json.dumps(_record() if record is None else record),
+        **kwargs,
+    )
 
 
-def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
+def _record(*, current_root_id: str = "root-2") -> dict[str, object]:
+    """The stage's contractor record, at the last state a finish leaves it.
+
+    LANDED, not closed: nothing writes CLOSED since S2 and the member is gone
+    since S4 — closure is derived from the ledger and its git anchor (§3.5).
+    """
     oid = "a" * 40
-    contractor = {
+    return {
         "schema": "contract/3",
-        "state": "closed",
+        "state": "landed",
         "epic_id": "epic-1",
         "stage_id": "stage-1",
         "attempt": 2,
@@ -458,13 +480,17 @@ def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
         "landing_receipt_digest": "landing-digest",
         "previous_attempts": ["contract:epic-1:stage-1:attempt:1"],
     }
+
+
+def _task_rows(*, closed: bool = True):
+    oid = "a" * 40
     rows: list[dict[str, object]] = [
         {
             "id": "stage-1",
             "title": "stage",
             "status": "closed" if closed else "in_progress",
             "issue_type": "task",
-            "metadata": {"contractor": contractor},
+            "metadata": {},
         }
     ]
     for root_id, attempt in (("root-1", 1), ("root-2", 2)):
@@ -570,8 +596,9 @@ def test_completion_refuses_forged_or_merely_closed_evidence(
     current_root_id: str, closed: bool
 ) -> None:
     collected = _collect(
-        FakeReadClient(_task_rows(current_root_id=current_root_id, closed=closed)),
+        FakeReadClient(_task_rows(closed=closed)),
         "stage-1",
+        record=_record(current_root_id=current_root_id),
     )
 
     assert collected.completion.verified is False
@@ -583,10 +610,10 @@ def test_completion_refuses_forged_or_merely_closed_evidence(
     ["landed_oid", "tree", "gate_receipt_digest", "landing_receipt_digest"],
 )
 def test_completion_requires_every_landing_field(missing_field: str) -> None:
-    rows = _task_rows()
-    rows[0]["metadata"]["contractor"][missing_field] = None
+    record = _record()
+    record[missing_field] = None
 
-    collected = _collect(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(_task_rows()), "stage-1", record=record)
 
     assert collected.completion.verified is False
 
@@ -650,7 +677,7 @@ def test_completion_rejects_available_landing_record_contradiction(
 ) -> None:
     runtime_root = tmp_path / "root-2"
     runtime_root.mkdir()
-    contractor = _task_rows()[0]["metadata"]["contractor"]
+    contractor = _record()
     oid = str(contractor["landed_oid"])
     tree = str(contractor["tree"])
     intent = {
@@ -837,9 +864,9 @@ def test_strict_supplement_supplies_usage_and_explicit_coverage_basis() -> None:
 
 
 def test_complete_external_declaration_preserves_unreadable_task_scope() -> None:
-    rows = _task_rows()
-    rows[0]["metadata"]["contractor"] = {"invalid": "identity"}
-    collected = _collect(FakeReadClient(rows), "stage-1")
+    collected = _collect(
+        FakeReadClient(_task_rows()), "stage-1", record={"invalid": "identity"}
+    )
     supplemented = apply_supplement(
         collected,
         UsageSupplement.model_validate(
@@ -865,7 +892,7 @@ def test_complete_external_declaration_preserves_unreadable_task_scope() -> None
     assert supplemented.diagnostics == collected.diagnostics
     assert supplemented.coverage_complete is False
     assert "uncovered scope: task execution identity is unavailable" in rendered
-    assert "diagnostic: contract-invalid: contractor metadata is invalid" in rendered
+    assert "diagnostic: contract-invalid: contractor record is invalid" in rendered
 
 
 def test_supplement_exact_duplicates_dedupe_and_conflicts_fail() -> None:
@@ -1421,7 +1448,16 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
         f'wrapper_root = "{wrapper_root}"\n'
         'host = "fixture"\n'
     )
-    open_ledger(repo, wrapper_root).close()
+    # The record is a ledger row since S4 (§3.2, R4) and the CLI reads it from
+    # there, so the stage has to HAVE one: without it the report is about a
+    # task whose execution identity is unavailable, not about this one.
+    database = open_ledger(repo, wrapper_root)
+    seeded_records(
+        ContractorRecord.model_validate(_record()),
+        brief=None,
+        into=LedgerContractorRecords(database, backend=BackendKind.BD),
+    )
+    database.close()
     project_root = Path(__file__).resolve().parents[1]
     completed = subprocess.run(
         [
