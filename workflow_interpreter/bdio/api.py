@@ -1,23 +1,23 @@
-"""The typed write API — every bd write in the system goes through here (§0.1).
+"""The typed write API — every record-store write goes through here (§0.1).
 
 `WorkflowStore` is the whole surface: one method per §4 command-table row. The
-model may read bd freely through `store.reads`; it never emits a bd write
-string, because the only write strings that exist are the ones `client.py`
-builds from these calls — and the transport's own write methods are
-package-private, so "read directly" is not one refactor away from "close a
-gate without verifying it".
+record store is the LEDGER since S6 (R1) — bd is a tracker and writes no rows
+— so what these methods reach is `ledger/store.py`. The model may read freely
+through `store.reads`; it never writes a row itself, because the store's write
+methods are package-private, so "read directly" is not one refactor away from
+"close a gate without verifying it".
 
 Three invariants shape almost every method:
 
 - **Append-only.** Nothing is ever deleted or reopened; a losing race is
-  superseded, a corrected state is a new bead (§3, §0.1).
+  superseded, a corrected state is a new row (§3, §0.1).
 - **Metadata first, close second.** A crash between the two leaves an open
-  bead whose outcome is already recorded. The other order would leave a
-  closed bead with no routing truth — unrecoverable (§5.1, §3.3).
+  row whose outcome is already recorded. The other order would leave a
+  closed row with no routing truth — unrecoverable (§5.1, §3.3).
 - **Repair forward, never refuse.** Which means the half-finished state above
   is FINISHED on the next call, not reported as a conflict: a lifecycle
-  refusal there wedges the bead permanently, since §0.1 leaves no raw bd
-  write to fix it with (`finalize.py`).
+  refusal there wedges the row permanently, since §0.1 leaves no raw write to
+  fix it with (`finalize.py`).
 """
 
 from __future__ import annotations
