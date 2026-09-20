@@ -13,6 +13,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._bdio import UPDATE, StoreWrites
 from tests._inspector import (
     FAILING_SCRIPT,
     IMPLEMENT,
@@ -38,11 +39,9 @@ from tests._inspector import (
 )
 from workflow_interpreter.bdio import (
     ActivationRecord,
-    BdCommandError,
     Breaker,
     ExitRecord,
     Lifecycle,
-    LossyWriteError,
     Outcome,
     ProcessHandle,
     Usage,
@@ -66,14 +65,14 @@ from workflow_interpreter.inspector.models import LaunchReceipt
 from workflow_interpreter.inspector.paths import read_record, write_record
 from workflow_interpreter.inspector.recover import classify
 from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.ledger.errors import LedgerTransportError
 from workflow_interpreter.ledger.paths import ensure_repo_id, repo_id_relpath
 from workflow_interpreter.schema.models import IsolationMode, Node
 
 FEATURE_FILE = "src/feature.py"
 OUTSIDE_FILE = "docs/notes.md"
 DONE_MARKER = {"outcome": "done"}
-BD_UPDATE = "update"
-BD_SHOW = "show"
+BD_UPDATE = UPDATE
 
 LIVE_USAGE = Usage(
     known=True, input_tokens=92, output_tokens=35631, cost_usd="3.9299935"
@@ -106,6 +105,10 @@ class Lab:
         self.base = head_of(self.repo)
         self.config: InspectorConfig = make_config(self.repo, tmp_path, fake_proc=False)
         self.bd, self.store = make_store(tmp_path, self.base)
+        self.writes = StoreWrites(self.bd)
+        """Every record-store write this lab's store served (S6: bd is not
+        one, R1), counted and injectable where the bd double's command hooks
+        used to be."""
         self.root = make_root(self.store, self.repo, "exit-instance")
         self.paths: WrapperPaths = make_paths(self.config, self.root.root_id)
         self.clock = FrozenClock()
@@ -667,7 +670,7 @@ def test_a_foreman_close_during_the_exit_is_skipped_without_a_write(
     lab.store.close_activation(lab.activation.activation_id, Outcome.STEERED)
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
-    updates_before = lab.bd.command_count(BD_UPDATE)
+    updates_before = lab.writes.count(BD_UPDATE)
     observation = lab.observe(exit_code=-15)
 
     assert observation.activation.metadata.outcome is Outcome.STEERED
@@ -678,7 +681,7 @@ def test_a_foreman_close_during_the_exit_is_skipped_without_a_write(
     )
     assert recorded is not None
     assert recorded.exit_code == -15
-    assert lab.bd.command_count(BD_UPDATE) == updates_before
+    assert lab.writes.count(BD_UPDATE) == updates_before
 
 
 def test_an_out_of_band_dirty_state_still_records_the_exit(tmp_path: Path) -> None:
@@ -695,8 +698,8 @@ def test_an_out_of_band_dirty_state_still_records_the_exit(tmp_path: Path) -> No
     """
     lab = Lab(tmp_path, in_repo=True)
     activation_id = lab.activation.activation_id
-    lab.bd.rows[activation_id]["metadata"]["pre_attempt_dirty_state"] = (
-        '{"entries": "not a list"}'
+    lab.bd._merge_metadata(
+        activation_id, {"pre_attempt_dirty_state": '{"entries": "not a list"}'}
     )
     lab.activation = lab.reload()
     lab.marker(json.dumps(DONE_MARKER))
@@ -715,43 +718,13 @@ def test_an_out_of_band_dirty_state_still_records_the_exit(tmp_path: Path) -> No
     assert attribution.entries == ()
 
 
-def test_a_foreman_close_one_bd_command_later_propagates_to_the_wrapper_boundary(
-    lab: Lab,
-) -> None:
-    """A race after the bd write is left for the wrapper boundary to classify."""
-
-    def steer() -> None:
-        lab.store.close_activation(lab.activation.activation_id, Outcome.STEERED)
-
-    def arm() -> None:
-        lab.bd.pause_before(BD_SHOW, steer)
-
-    lab.bd.pause_before(BD_UPDATE, arm)
-    lab.marker(json.dumps(DONE_MARKER))
-    lab.effects(FEATURE_FILE)
-    with pytest.raises(LossyWriteError):
-        lab.observe(exit_code=-15)
-
-    activation = lab.reload()
-    assert activation.metadata.outcome is Outcome.STEERED
-    assert activation.metadata.lifecycle is Lifecycle.CLOSED
-    # The later race, so the merge itself LANDED and only its verification
-    # lost: bd carries this exit under the foreman's close.
-    assert activation.metadata.exit_record is not None
-    recorded = read_record(
-        lab.paths.exit_file(lab.activation.activation_id), ExitRecord
-    )
-    assert recorded is not None
-    assert recorded.exit_code == -15
-
-
 def test_observe_is_idempotent_on_a_recorded_exit(lab: Lab) -> None:
     """A repeated observation reuses the first record and durable completion."""
     lab.commit_work()
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
     first = lab.observe(exit_code=0)
-    updates_before = lab.bd.command_count(BD_UPDATE)
+    updates_before = lab.writes.count(BD_UPDATE)
     lab.clock.sleep(1)
     second = lab.observer.observe(
         lab.reload(),
@@ -764,7 +737,7 @@ def test_observe_is_idempotent_on_a_recorded_exit(lab: Lab) -> None:
     assert second.exit_record == first.exit_record
     assert second.completion == first.completion
     assert second.activation.metadata.exit_record == first.exit_record
-    assert lab.bd.command_count(BD_UPDATE) == updates_before
+    assert lab.writes.count(BD_UPDATE) == updates_before
 
 
 def test_observe_reuses_the_exit_file_in_the_crash_window(lab: Lab) -> None:
@@ -877,8 +850,8 @@ def test_an_unknown_pre_attempt_state_retires_an_earlier_attribution(
         entries=(DirtyEntry(path=FEATURE_FILE, digest="0" * 40, tracked=True),),
     )
     write_record(lab.paths.attribution_record, stale)
-    lab.bd.rows[activation_id]["metadata"]["pre_attempt_dirty_state"] = (
-        '{"entries": "not a list"}'
+    lab.bd._merge_metadata(
+        activation_id, {"pre_attempt_dirty_state": '{"entries": "not a list"}'}
     )
     lab.activation = lab.reload()
     lab.marker(json.dumps(DONE_MARKER))
@@ -897,21 +870,21 @@ def test_a_transient_bd_failure_on_the_exit_write_is_not_swallowed(
 ) -> None:
     """Micro-fix confirm (Sol): `except StoreError` hid real transport failures.
 
-    A bd that exits non-zero on the exit write is not the §8.1 race: nothing
-    settled the activation and no exit record landed, so returning normally
-    would report a mirrored exit that never happened and leave `dispatched`
-    with only the exit FILE behind it. Only the two race members are absorbed,
-    and only when the re-read proves the race; everything else propagates.
+    A store that fails on the exit write is not the §8.1 race: nothing settled
+    the activation and no exit record landed, so returning normally would
+    report a mirrored exit that never happened and leave `dispatched` with only
+    the exit FILE behind it. Only the two race members are absorbed, and only
+    when the re-read proves the race; everything else propagates.
     """
 
     def fail() -> None:
-        raise BdCommandError(("bd", "update"), 1, "dolt: connection reset", "update")
+        raise LedgerTransportError("disk I/O error")
 
-    lab.bd.pause_before(BD_UPDATE, fail)
+    lab.writes.pause_before(BD_UPDATE, fail)
     lab.marker(json.dumps(DONE_MARKER))
     lab.effects(FEATURE_FILE)
 
-    with pytest.raises(BdCommandError):
+    with pytest.raises(LedgerTransportError):
         lab.observe(exit_code=0)
 
     assert lab.reload().metadata.lifecycle is Lifecycle.DISPATCHED

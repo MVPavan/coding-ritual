@@ -16,7 +16,6 @@ process the test does not own still land.
 
 from __future__ import annotations
 
-import json
 import os
 import signal
 import subprocess
@@ -26,6 +25,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._bdio import UPDATE, StoreWrites
 from tests._fake_bd import InjectedCrash
 from tests._inspector import (
     IMPLEMENT,
@@ -108,7 +108,7 @@ tmp = Path(sys.argv[1])
 root_id = sys.argv[2]
 repo = tmp / "repo"
 config = make_config(repo, tmp, fake_proc=False, poll_interval_s=0.2)
-_, store = make_persistent_store(tmp, head_of(repo), tmp / "bd-state.json")
+_, store = make_persistent_store(tmp, head_of(repo), tmp / "shared-ledger.db")
 root = store.reads.load_root(root_id)
 paths = make_paths(config, root_id)
 git = make_git(config)
@@ -157,6 +157,10 @@ class Lab:
         self.base = head_of(self.repo)
         self.config = make_config(self.repo, tmp_path, fake_proc=False)
         self.fake_bd, self.store = make_store(tmp_path, self.base)
+        self.writes = StoreWrites(self.fake_bd)
+        """Every record-store write this lab served, counted and injectable —
+        the hooks the bd double used to give a case (S6: bd is not a record
+        store, R1)."""
         self.root = make_root(self.store, self.repo, "run-instance")
         self.paths = make_paths(self.config, self.root.root_id)
         self.clock = FrozenClock()
@@ -219,8 +223,8 @@ def test_the_carry_forward_trio_is_recorded_before_the_child_execs(lab: Lab) -> 
     activation_id = lab.store.mint_activation(
         lab.root.root_id, entry_mint()
     ).activation.activation_id
-    lab.fake_bd.pause_before(
-        "update",
+    lab.writes.pause_before(
+        UPDATE,
         lambda: ledger_at_write.append(
             ExecLedger(lab.paths.ledger(activation_id)).count()
         ),
@@ -239,13 +243,13 @@ def test_the_carry_forward_trio_is_recorded_before_the_child_execs(lab: Lab) -> 
 def test_a_re_dispatch_does_not_rewrite_a_recorded_precondition(lab: Lab) -> None:
     """§5.1: the trio describes a tree the child already ran against."""
     lab.inspect(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
-    before = lab.fake_bd.command_count("update")
+    before = lab.writes.count(UPDATE)
 
     second = lab.inspect(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
 
     assert second.observation is None
     assert second.dispatch.precondition is None
-    assert lab.fake_bd.command_count("update") == before
+    assert lab.writes.count(UPDATE) == before
 
 
 def _persist_steer_intent(lab: Lab) -> str:
@@ -288,7 +292,7 @@ def test_a_pending_steer_intent_leaves_the_exit_to_the_steerer(lab: Lab) -> None
     lets outrank an exit record, so the wrapper now defers too.
     """
     activation_id = _persist_steer_intent(lab)
-    updates_before = lab.fake_bd.command_count(BD_UPDATE)
+    updates_before = lab.writes.count(BD_UPDATE)
 
     result = lab.inspect(ChildScript(marker=MARKER_JSON, effects=EFFECTS_JSON))
 
@@ -301,7 +305,7 @@ def test_a_pending_steer_intent_leaves_the_exit_to_the_steerer(lab: Lab) -> None
     assert metadata.exit_record is None
     # The §3.2 trio and the dispatch, and nothing after them: no `record_exit`
     # and no close reached bd, so the steerer's own close cannot conflict.
-    assert lab.fake_bd.command_count(BD_UPDATE) == updates_before + 2
+    assert lab.writes.count(BD_UPDATE) == updates_before + 2
 
 
 @pytest.mark.proc
@@ -419,7 +423,7 @@ def test_a_reattached_child_is_adopted_into_the_watch(lab: Lab) -> None:
     write, after the child has already exec'd.
     """
     lab.clock.real_sleep_s = 0.05
-    lab.fake_bd.crash_on("update", 2)
+    lab.writes.crash_on(UPDATE, 2)
     script = ChildScript(
         sleep_s=CHILD_SECONDS, marker=MARKER_JSON, effects=EFFECTS_JSON
     )
@@ -479,10 +483,10 @@ def test_the_exit_is_recorded_after_the_wrappers_parent_is_killed(
     §5.3 gives the wrapper the child's whole lifetime, and drill 14 asserts the
     flags are raised "while the foreman process is not running". Both are only
     true if the wrapper is a process in its own right — so this one kills the
-    parent of the wrapper mid-run and reads bd afterwards.
+    parent of the wrapper mid-run and reads the shared ledger afterwards.
     """
     repo = make_repo(tmp_path)
-    state = tmp_path / "bd-state.json"
+    state = tmp_path / "shared-ledger.db"
     _, store = make_persistent_store(tmp_path, head_of(repo), state)
     root = make_root(store, repo, "detached-instance")
     wrapper = tmp_path / "wrapper_main.py"
@@ -519,13 +523,13 @@ def test_the_exit_is_recorded_after_the_wrappers_parent_is_killed(
             process.kill()
 
     assert (tmp_path / "WRAPPER-DONE").read_text(encoding="utf-8") == "exit-recorded"
-    rows = json.loads(state.read_text(encoding="utf-8"))["rows"]
-    activations = [
-        row for row in rows.values() if row["metadata"].get("wf_kind") == "activation"
-    ]
-    assert len(activations) == 1
-    assert activations[0]["metadata"]["lifecycle"] == Lifecycle.EXIT_RECORDED.value
-    assert activations[0]["metadata"]["exit_record"]["exit_code"] == 0
+    # Read back through a SECOND connection to the one database file: that is
+    # what "two processes share a store" is since S6 (R1).
+    _, reader = make_persistent_store(tmp_path, head_of(repo), state)
+    (activation,) = reader.reads.list_activations(root.root_id)
+    assert activation.metadata.lifecycle is Lifecycle.EXIT_RECORDED
+    assert activation.metadata.exit_record is not None
+    assert activation.metadata.exit_record.exit_code == 0
 
 
 def _await(sentinel: Path, timeout_s: float = SENTINEL_TIMEOUT_S) -> None:

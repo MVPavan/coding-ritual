@@ -22,6 +22,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._bdio import CLOSE, CREATE, UPDATE, StoreWrites
 from tests._fake_bd import FakeBd
 from tests._inspector import (
     IMPLEMENT,
@@ -65,6 +66,7 @@ from workflow_interpreter.inspector.sandbox import (
     SandboxMode,
     SandboxPlan,
 )
+from workflow_interpreter.ledger.errors import LedgerTransportError
 
 STALE_AFTER_S = 600.0
 MAX_WALL_S = 2700.0
@@ -142,12 +144,13 @@ def test_a_whole_watch_raises_the_flag_without_one_bd_command(
     """Drill 14, MEASURED: the constructor check alone proves nothing at runtime.
 
     A signature says a store was never handed in; it says nothing about a
-    module-level import, a global, or a `subprocess` reaching for bd. So this
+    module-level import, a global, or a `subprocess` reaching for one. So this
     runs a full `watch()` through a stale cycle to a terminal verdict with a
-    live bd transport present in the same process, and counts the commands it
+    live record store present in the same process, and counts the writes it
     issued: zero, while the flag is on disk.
     """
     fake, _ = make_store(tmp_path, "head")
+    writes = StoreWrites(fake)
     watched.clock.advance(STALE_AFTER_S + 1)
     watched.clock.on_sleep.append(
         lambda: remove_proc_entry(watched.config.proc_root, FAKE_PID)
@@ -157,7 +160,7 @@ def test_a_whole_watch_raises_the_flag_without_one_bd_command(
 
     assert result.verdict is MonitorVerdict.EXITED
     assert watched.paths.stale_flag(watched.activation_id).exists()
-    assert fake.calls == []
+    assert [writes.count(kind) for kind in (CREATE, UPDATE, CLOSE)] == [0, 0, 0]
 
 
 def test_a_busy_child_is_simply_running(watched: Watched) -> None:
@@ -690,10 +693,11 @@ def _stale_mirror(watched: Watched, tmp_path: Path) -> tuple[FakeBd, _StaleMirro
     return fake, _StaleMirror(store, activation_id), activation_id
 
 
-def test_a_bd_failure_in_the_mirror_defers_instead_of_killing_the_watch(
+def test_a_store_failure_in_the_mirror_defers_instead_of_killing_the_watch(
     watched: Watched, tmp_path: Path
 ) -> None:
     """Sol#25: an exception out of `on_cycle` aborted `Monitor.watch`.
+
 
     The stale flag is a HINT for a tier-2 decision; the watch is what enforces
     `max_wall` and what eventually records the exit. Trading the second for the
@@ -703,9 +707,17 @@ def test_a_bd_failure_in_the_mirror_defers_instead_of_killing_the_watch(
     stale and the flag is still on disk.
     """
     fake, mirror, activation_id = _stale_mirror(watched, tmp_path)
-    row = fake.rows.pop(activation_id)
+
+    def fail() -> None:
+        raise LedgerTransportError("disk I/O error")
+
+    StoreWrites(fake).pause_before(UPDATE, fail)
     watched.clock.advance(STALE_AFTER_S + 1)
-    watched.clock.on_sleep.append(lambda: fake.rows.setdefault(activation_id, row))
+    # The child outlives the failed mirror write by one cycle, because that
+    # next STALE cycle is the retry: an exited child carries no stale flag to
+    # mirror, so killing it at the first sleep would prove only the deferral.
+    # `on_sleep` is one callback per sleep, so the first one is the wait.
+    watched.clock.on_sleep.append(lambda: None)
     watched.clock.on_sleep.append(
         lambda: remove_proc_entry(watched.config.proc_root, FAKE_PID)
     )
@@ -715,7 +727,8 @@ def test_a_bd_failure_in_the_mirror_defers_instead_of_killing_the_watch(
     assert result.verdict is MonitorVerdict.EXITED
     assert mirror.recorded is True
     assert mirror.abandoned is None
-    assert fake.rows[activation_id]["metadata"]["stale_flag"]["raised_at"] != ""
+    flag = fake.get_row(activation_id).metadata["stale_flag"]
+    assert isinstance(flag, dict) and flag["raised_at"] != ""
 
 
 def test_a_foreman_closing_first_does_not_kill_the_watch(
@@ -730,7 +743,7 @@ def test_a_foreman_closing_first_does_not_kill_the_watch(
     forward, so it stops trying rather than spending a bd read every poll.
     """
     fake, mirror, activation_id = _stale_mirror(watched, tmp_path)
-    fake.rows[activation_id]["metadata"]["lifecycle"] = Lifecycle.CLOSED.value
+    fake._merge_metadata(activation_id, {"lifecycle": Lifecycle.CLOSED.value})
     watched.clock.advance(STALE_AFTER_S + 1)
     watched.clock.on_sleep.append(
         lambda: remove_proc_entry(watched.config.proc_root, FAKE_PID)
