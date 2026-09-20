@@ -60,7 +60,7 @@ def tracker_for(
     if settings.backend is TrackerBackend.FILE:
         if settings.path is None:
             raise ValueError(MSG_FILE_PATH_REQUIRED)
-        return FileTracker(settings.path, actor=config.actor)
+        return FileTracker(settings.path)
     return BdTracker(BdClient(config) if client is None else client)
 
 

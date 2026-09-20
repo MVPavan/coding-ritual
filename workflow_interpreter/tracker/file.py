@@ -12,8 +12,13 @@ The file IS the tracker: `upsert` is how an item comes to exist, exactly as
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
+import time
+import uuid
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Final
 
@@ -22,6 +27,7 @@ from pydantic import ValidationError
 from workflow_interpreter.ledger.constants import TrackerKind
 from workflow_interpreter.tracker.constants import (
     DEFAULT_CAPABILITIES,
+    MSG_FILE_LOCKED,
     MSG_FILE_UNREADABLE,
     TrackerCapability,
     WorkItemStatus,
@@ -35,6 +41,7 @@ from workflow_interpreter.tracker.intents import (
     SetFlag,
     TrackerIntent,
     TrackerResult,
+    Unknown,
 )
 from workflow_interpreter.tracker.models import Blocker, TrackerRef, WorkItem
 
@@ -44,6 +51,16 @@ _NOTES: Final[str] = "notes"
 _MSG_NO_ITEM: Final[str] = "this tracker holds no item {ref!r}"
 _MSG_CLOSED: Final[str] = "item {ref!r} is closed"
 _MSG_HELD: Final[str] = "item {ref!r} is held by {holder!r}"
+_LOCK_SUFFIX: Final[str] = ".lock"
+_LOCK_TIMEOUT_S: Final[float] = 10.0
+"""How long a writer waits for the document. Bounded rather than blocking: a
+tracker that never answers must become `Unknown` — the outbox owns the retry —
+and a contractor that blocked here forever would be a run a mirror can hang."""
+_LOCK_POLL_S: Final[float] = 0.01
+
+
+class _LockTimeout(RuntimeError):
+    """The document stayed locked. Private: every caller turns it into a result."""
 
 
 class FileTracker:
@@ -53,10 +70,13 @@ class FileTracker:
         self,
         path: Path,
         *,
-        actor: str,
         capabilities: frozenset[TrackerCapability] | None = None,
     ) -> None:
         """Pin the document and what this tracker is allowed to claim it can do.
+
+        No actor: the holder of a claim is `intent.actor`, which is the only
+        identity `_claim` ever compares, and a second copy of it on the tracker
+        would be a second answer to "who is this" that nothing reads.
 
         `capabilities` is a parameter because a file tracker's abilities are a
         deployment fact, not a code fact: a repository that keeps its blocking
@@ -64,7 +84,6 @@ class FileTracker:
         question went unasked, rather than the file pretending to answer it.
         """
         self._path = path
-        self._actor = actor
         self._capabilities = (
             DEFAULT_CAPABILITIES if capabilities is None else capabilities
         )
@@ -112,9 +131,13 @@ class FileTracker:
 
     def upsert(self, item: WorkItem) -> WorkItem:
         """Write one item whole, creating it when this file has none."""
-        document = self._read()
-        document.setdefault(_ITEMS, {})[item.ref] = item.model_dump(mode="json")
-        self._write(document)
+        try:
+            with self._locked():
+                document = self._read()
+                document.setdefault(_ITEMS, {})[item.ref] = item.model_dump(mode="json")
+                self._write(document)
+        except _LockTimeout as timeout:
+            raise TrackerRefused(str(timeout)) from timeout
         return item
 
     def apply(self, intent: TrackerIntent) -> TrackerResult:
@@ -123,7 +146,21 @@ class FileTracker:
         Every branch is idempotent because every intent is a state: applying
         the same `Close` twice is one closed item, and that is what makes an
         outbox retry safe rather than merely tolerated.
+
+        The whole read-modify-write happens under an exclusive OS lock, and
+        the read happens INSIDE it. Without both, two `wf contract` processes
+        on sibling stages each read `claimed_by is None`, each write the whole
+        document and each are told `Applied` — two holders of one claim, and
+        the later write erases the earlier stage's claim as well (§3.4).
         """
+        try:
+            with self._locked():
+                return self._apply_locked(intent)
+        except _LockTimeout as timeout:
+            return Unknown(reason=str(timeout))
+
+    def _apply_locked(self, intent: TrackerIntent) -> TrackerResult:
+        """One intent against a document nobody else can be writing."""
         document = self._read()
         held = self._items(document).get(intent.ref.ref)
         if held is None:
@@ -213,11 +250,49 @@ class FileTracker:
         return loaded
 
     def _write(self, document: dict[str, Any]) -> None:
-        """Replace the file atomically: a half-written tracker is no tracker."""
+        """Replace the file atomically: a half-written tracker is no tracker.
+
+        The staging name is UNIQUE per write. A fixed `<path>.tmp` is shared
+        state of exactly the kind the lock removes, and the one writer that
+        does not take the lock — a second tool, an older build — used to
+        interleave into it and have `os.replace` publish the mixture.
+        """
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        staged = self._path.with_suffix(self._path.suffix + ".tmp")
+        staged = self._path.with_name(f"{self._path.name}.{uuid.uuid4().hex}.tmp")
         staged.write_text(json.dumps(document, sort_keys=True), encoding="utf-8")
         os.replace(staged, self._path)
+
+    @contextmanager
+    def _locked(self) -> Iterator[None]:
+        """Hold this document exclusively, or give up within the timeout.
+
+        On a SIDECAR file rather than the document: the document is replaced
+        by `os.replace`, so a lock held on its inode would be a lock on a file
+        that no longer exists the moment anybody writes.
+        """
+        lock_path = self._path.with_name(self._path.name + _LOCK_SUFFIX)
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        deadline = time.monotonic() + _LOCK_TIMEOUT_S
+        handle = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        try:
+            while True:
+                try:
+                    fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except OSError:
+                    if time.monotonic() >= deadline:
+                        raise _LockTimeout(
+                            MSG_FILE_LOCKED.format(
+                                path=self._path, timeout=_LOCK_TIMEOUT_S
+                            )
+                        ) from None
+                    time.sleep(_LOCK_POLL_S)
+            try:
+                yield
+            finally:
+                fcntl.flock(handle, fcntl.LOCK_UN)
+        finally:
+            os.close(handle)
 
     def _items(self, document: dict[str, Any]) -> dict[str, WorkItem]:
         """Every item the document holds, parsed once per call."""

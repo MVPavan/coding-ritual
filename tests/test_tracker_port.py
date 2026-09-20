@@ -13,6 +13,7 @@ call would prove only that the caller reads its own stub.
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
@@ -138,9 +139,7 @@ def _file_tracker(
     capabilities: frozenset[TrackerCapability] | None = None,
 ) -> FileTracker:
     """A file tracker holding the same epic and stages the bd rig holds."""
-    tracker = FileTracker(
-        lab.repo.parent / "tracker.json", actor=ACTOR, capabilities=capabilities
-    )
+    tracker = FileTracker(lab.repo.parent / "tracker.json", capabilities=capabilities)
     tracker.upsert(
         WorkItem(ref=EPIC, title="phase", brief=None, status=WorkItemStatus.OPEN)
     )
@@ -577,9 +576,7 @@ def test_abandon_closes_the_tracker_the_configuration_names(
     exit_code, report = _abandon(lab, STAGE)
 
     assert (exit_code, report["state"]) == (0, "abandoned")
-    item = FileTracker(document, actor=ACTOR).get(
-        TrackerRef(kind=TrackerKind.FILE, ref=STAGE)
-    )
+    item = FileTracker(document).get(TrackerRef(kind=TrackerKind.FILE, ref=STAGE))
     assert item is not None and item.status is WorkItemStatus.CLOSED
     assert lab.fake_bd.rows[STAGE]["status"] != "closed"
     assert lab.fake_bd.calls[served:] == []
@@ -603,6 +600,69 @@ def test_the_adapter_keeps_no_bd_read_beside_the_port() -> None:
     ]
 
     assert absent == []
+
+
+class _RacingTracker(FileTracker):
+    """A file tracker that holds the read open until its rival has read too.
+
+    The window under test is read-whole → mutate → write-whole, and two plain
+    threads hit it only by luck. So the window is FORCED: `_read` waits on a
+    barrier, and the barrier is what makes both outcomes deterministic. With
+    an exclusive lock the rival cannot reach `_read` at all, the barrier times
+    out, and the two claims are serialised — which is the assertion.
+    """
+
+    def __init__(self, path: Path, *, barrier: threading.Barrier) -> None:
+        super().__init__(path)
+        self._barrier = barrier
+
+    def _read(self) -> dict[str, object]:
+        document = super()._read()
+        try:
+            self._barrier.wait(timeout=_RACE_TIMEOUT_S)
+        except threading.BrokenBarrierError:
+            pass
+        return document
+
+
+_RACE_TIMEOUT_S: Final[float] = 0.5
+
+
+def test_two_racing_claims_on_one_item_leave_one_holder(tmp_path: Path) -> None:
+    """§3.4 on the file tracker: a claim excludes across processes, or it lies.
+
+    Two trackers over ONE document, each its own instance with its own file
+    handle, claim the same item at the same moment. Exactly one may be
+    `Applied`; the other has to see the first holder and conflict, and the
+    document has to still parse afterwards — an interleaved write would leave
+    a mixture no tracker can read again.
+    """
+    path = tmp_path / "tracker.json"
+    FileTracker(path).upsert(
+        WorkItem(ref=STAGE, title="stage", brief=None, status=WorkItemStatus.OPEN)
+    )
+    ref = TrackerRef(kind=TrackerKind.FILE, ref=STAGE)
+    barrier = threading.Barrier(2)
+    results: dict[str, TrackerResult] = {}
+
+    def claim(actor: str) -> None:
+        tracker = _RacingTracker(path, barrier=barrier)
+        results[actor] = tracker.apply(Claim(ref=ref, actor=actor))
+
+    racers = [threading.Thread(target=claim, args=(actor,)) for actor in ("one", "two")]
+    for racer in racers:
+        racer.start()
+    for racer in racers:
+        racer.join(timeout=10.0)
+
+    kinds = sorted(result.result.value for result in results.values())
+    assert kinds == ["applied", "conflict"]
+    held = FileTracker(path).get(ref)
+    assert held is not None and held.status is WorkItemStatus.IN_PROGRESS
+    applied = next(
+        actor for actor, result in results.items() if isinstance(result, Applied)
+    )
+    assert held.claimed_by == applied
 
 
 def test_the_null_tracker_applies_every_intent_without_a_capability() -> None:

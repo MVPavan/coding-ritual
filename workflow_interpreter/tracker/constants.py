@@ -98,3 +98,8 @@ MSG_BRIEF_REQUIRED: Final[str] = (
 MSG_FILE_UNREADABLE: Final[str] = (
     "tracker file {path} is not a tracker document: {reason}"
 )
+MSG_FILE_LOCKED: Final[str] = (
+    "tracker file {path} is held by another process: its lock did not come "
+    "free within {timeout}s. The intent is still owed, so this is UNKNOWN and "
+    "not a refusal (store-restructure §3.3)"
+)
