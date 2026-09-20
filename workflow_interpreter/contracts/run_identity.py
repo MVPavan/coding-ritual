@@ -84,6 +84,11 @@ def safe_component(
 
 SafeComponent = Annotated[str, AfterValidator(safe_component)]
 
+AttemptNumber = Annotated[int, Field(ge=FIRST_ATTEMPT)]
+"""The rule an attempt is under, as one alias: the record below is validated
+by it, and the ledger validates a CARRIER's pinned attempt through the same
+adapter rather than restating `>= 1` in a second place (`ledger/store.py`)."""
+
 
 class RunIdentity(BaseModel):
     """The task, epic and attempt number one root is an attempt at (§3.7)."""
@@ -97,7 +102,7 @@ class RunIdentity(BaseModel):
     Under the same grammar as the task id, and for the same reason: it is a
     second free path component on the one containment boundary
     `scripts/verify-debrief.sh` re-expands (§3.7)."""
-    attempt: Annotated[int, Field(ge=FIRST_ATTEMPT)]
+    attempt: AttemptNumber
 
     @property
     def run_directory(self) -> str:

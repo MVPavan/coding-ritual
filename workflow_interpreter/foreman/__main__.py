@@ -64,7 +64,9 @@ from workflow_interpreter.inspector.clock import SystemClock
 from workflow_interpreter.inspector.errors import ContinuationRefused, LockUnavailable
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.rpc_control import read_instructions
-from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.constants import MSG_EPIC_REQUIRED
+from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
+from workflow_interpreter.ledger.errors import LedgerEpicMissing
 from workflow_interpreter.ledger.reconcile import RootAttentionDrain
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.ledger.tasks import (
@@ -102,6 +104,12 @@ MSG_TASK_CONFLICT: Final[str] = (
 )
 MSG_EPIC_CONFLICT: Final[str] = (
     "--epic {epic!r} names a different epic than the selected {stated!r}"
+)
+MSG_EPIC_STORED_CONFLICT: Final[str] = (
+    "this invocation names epic {epic!r} and task {task_id!r} is recorded "
+    "under {stored!r}; the epic is written once at mint and reaching it would "
+    "move the run directory, the debrief grant and WF_EPIC_SEGMENT away from "
+    "the knowledge this task has already written (§3.7)"
 )
 
 
@@ -144,9 +152,8 @@ def _composition(args: argparse.Namespace) -> Composition:
     that is where §3.5's wrapper-root pin is asserted, so a foreman started
     against another engine home refuses HERE, before any root is touched.
 
-    The epic is an input too (§3.7): the one this invocation named, else the
-    one the task's row already carries, else — for a task with no row at all —
-    the task standing as its own epic. What it is never is a parse of the id.
+    The epic is an input too (§3.7): the one the task's row already carries,
+    else the one this invocation named. What it is never is a parse of the id.
     """
     path = args.config
     task_id = _task_of(args)
@@ -165,7 +172,7 @@ def _composition(args: argparse.Namespace) -> Composition:
     clock = SystemClock()
     bd = BdClient(config.bd)
     ledger = open_ledger(config.repo_root, config.wrapper_root)
-    epic_id = named_epic or task_epic(ledger, task_id) or task_id
+    epic_id = _epic_for(ledger, task_id, named_epic)
     pin_task_backend(ledger, task_id, config.store, epic_id)
     factory = SelectableBackendFactory(
         bd, LedgerStore(ledger, task_id=task_id, epic_id=epic_id)
@@ -192,6 +199,33 @@ def _composition(args: argparse.Namespace) -> Composition:
     )
 
 
+def _epic_for(ledger: LedgerDatabase, task_id: str, named: str | None) -> str:
+    """The epic this run belongs to: the stored column first, then the name (§3.7).
+
+    The column WINS. It was written at mint and every run of this task has
+    already written its knowledge under it, so a named epic that disagrees is
+    refused here — before the run directory, `WF_EPIC_SEGMENT`, the debrief
+    grant or a single row is decided — rather than silently moving all four
+    while `tasks.epic_id` stays where it was (found in review). Agreeing is
+    fine: the detached wrapper is TOLD the epic and passes it straight back.
+
+    A task with no row and no named epic refuses exactly as the store's lazy
+    mint does, and with its message: the epic is an input, so there is nothing
+    to fall back to — least of all the task standing as its own epic, which
+    pinned `cr-nwy9.3` to the directory `cr-nwy9.3/` forever.
+    """
+    stored = task_epic(ledger, task_id)
+    if stored is None:
+        if named is None:
+            raise LedgerEpicMissing(MSG_EPIC_REQUIRED.format(task_id=task_id))
+        return named
+    if named is not None and named != stored:
+        raise InvalidIdentifier(
+            MSG_EPIC_STORED_CONFLICT.format(epic=named, task_id=task_id, stored=stored)
+        )
+    return stored
+
+
 def _epic_of(args: argparse.Namespace) -> str | None:
     """The epic this invocation names, or nothing when it names none (§3.7).
 
@@ -199,10 +233,9 @@ def _epic_of(args: argparse.Namespace) -> str | None:
     detached wrapper is told it as `--epic`, the way it is told the task. The
     two must agree when both are present, because they are one fact.
 
-    Nothing is DERIVED here. A command that names no epic falls back, in
-    `_composition`, to the one the `tasks` row already carries — and only for
-    a task that has no row at all does the task stand as its own epic, which
-    is a statement about an unprepared run rather than a parse of its id.
+    Nothing is DERIVED here. A command that names no epic is answered, in
+    `_composition`, by the one the `tasks` row already carries — and a task
+    with no row and no name is refused there rather than given one.
     """
     stated = getattr(args, "epic_id", None)
     named = getattr(args, "epic", None)

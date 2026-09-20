@@ -28,7 +28,7 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Final
 
-from pydantic import BaseModel, ConfigDict, JsonValue
+from pydantic import BaseModel, ConfigDict, JsonValue, TypeAdapter, ValidationError
 
 from workflow_interpreter.bdio.carriers import GateState, Metadata
 from workflow_interpreter.bdio.constants import BackendKind
@@ -57,11 +57,13 @@ from workflow_interpreter.bdio.wire import (
 )
 from workflow_interpreter.contracts.run_identity import (
     FIRST_ATTEMPT,
+    AttemptNumber,
     ComponentKind,
     safe_component,
 )
 from workflow_interpreter.ledger import rowmap
 from workflow_interpreter.ledger.constants import (
+    MSG_ATTEMPT_INVALID,
     MSG_BAD_FILTER_KEY,
     MSG_CLAIM_ON_LEDGER,
     MSG_EPIC_REQUIRED,
@@ -70,6 +72,7 @@ from workflow_interpreter.ledger.constants import (
     MSG_LOSSY_ROW,
     MSG_NONCE_SPENT,
     MSG_NOT_A_GATE,
+    MSG_ROOT_COLLISION,
     MSG_ROW_MISSING,
     ROW_TABLES,
     STATUS_CLOSED,
@@ -83,9 +86,11 @@ from workflow_interpreter.ledger.database import (
     schema_version,
 )
 from workflow_interpreter.ledger.errors import (
+    LedgerAttemptInvalid,
     LedgerClaimUnsupported,
     LedgerEpicMissing,
     LedgerGateConflict,
+    LedgerRootCollision,
     LedgerRowMissing,
     LedgerTransportError,
     sqlite_failure,
@@ -160,6 +165,8 @@ _MSG_PROBE: Final[str] = "the ledger probe wrote {wrote!r} and read back {read!r
 
 _KEY_RUN_IDENTITY: Final[str] = "run_identity"
 _KEY_ATTEMPT: Final[str] = "attempt"
+_SQL_ROOT_HOLDER: Final[str] = "SELECT instance_key FROM roots WHERE root_id = ?"
+"""Which instance already holds a root id, for the refusal that names both."""
 
 
 class RootLineage(BaseModel):
@@ -176,15 +183,36 @@ _NO_LINEAGE: Final[RootLineage] = RootLineage(attempt=0, child_no=rowmap.NO_CHIL
 """What a row that is not a root gets: `attempt` is a root's column alone."""
 
 
-def _carrier_attempt(metadata: Metadata) -> int | None:
-    """The attempt a carrier's pinned run identity names, or nothing (§3.7)."""
+_ATTEMPT: Final[TypeAdapter[AttemptNumber]] = TypeAdapter(AttemptNumber)
+"""The record's own attempt rule, reused rather than restated: a carrier is
+read with exactly the constraint `RunIdentity` would have applied to it."""
+
+
+def _carrier_attempt(metadata: Metadata, *, task_id: str) -> int | None:
+    """The attempt a carrier's pinned run identity names, or nothing (§3.7).
+
+    Nothing ONLY when the carrier pins no identity at all — that is what makes
+    it a root created under the attempt in force. A carrier that pins one and
+    states an attempt no run can have (`0`, a negative, a string) is refused
+    by name: reading it as "no identity" would quietly file an attempt root as
+    a child of whichever attempt happened to be highest.
+    """
     identity = metadata.get(_KEY_RUN_IDENTITY)
     if not isinstance(identity, Mapping):
         return None
     attempt = identity.get(_KEY_ATTEMPT)
-    if isinstance(attempt, bool) or not isinstance(attempt, int):
-        return None
-    return attempt
+    try:
+        return _ATTEMPT.validate_python(attempt, strict=True)
+    except ValidationError as invalid:
+        raise LedgerAttemptInvalid(
+            MSG_ATTEMPT_INVALID.format(
+                task_id=task_id,
+                attempt=attempt,
+                # A literal key: pydantic's `ErrorDetails` is a TypedDict, and
+                # a named constant is not a key mypy can check it against.
+                reason=invalid.errors()[0]["msg"],
+            )
+        ) from invalid
 
 
 class LedgerStore:
@@ -333,6 +361,8 @@ class LedgerStore:
                 seq=seq,
                 child_no=lineage.child_no,
             )
+            if _is_root(table):
+                self._assert_root_free(connection, row_id, new.metadata)
             metadata = _self_identified(new.metadata, table, row_id)
             columns = rowmap.projection(
                 table,
@@ -789,6 +819,30 @@ class LedgerStore:
             backend=BackendKind.LEDGER,
         )
 
+    def _assert_root_free(
+        self, connection: sqlite3.Connection, root_id: str, metadata: Metadata
+    ) -> None:
+        """Refuse a second carrier that would be the same root (§3.7).
+
+        The natural key already answered that this is not the SAME instance,
+        so an id that is taken means two instances pin one attempt of one
+        task. Left to SQLite it is a PRIMARY KEY failure, which `sqlite_failure`
+        can only read as "SQLite failed" — a transport defect callers retry
+        (`closure._latch`). Named here, inside the writing transaction, it is
+        what it is: a wiring defect no retry fixes (found in review).
+        """
+        held = connection.execute(_SQL_ROOT_HOLDER, (root_id,)).fetchone()
+        if held is None:
+            return
+        raise LedgerRootCollision(
+            MSG_ROOT_COLLISION.format(
+                root_id=root_id,
+                held=str(held[0]),
+                incoming=metadata.get(rowmap.NATURAL_KEY[LedgerTable.ROOTS]),
+                task_id=self._task_id,
+            )
+        )
+
     def _allocate_seq(self, connection: sqlite3.Connection) -> int:
         """Take the next per-task `seq` inside the writing transaction (§3.3)."""
         row = connection.execute(_SQL_TASK_SEQ, (self._task_id,)).fetchone()
@@ -813,7 +867,7 @@ class LedgerStore:
         transaction. The first root of a task that has none is the attempt
         root itself, which is what a lab wiring or `foreman create` produces.
         """
-        attempt = _carrier_attempt(metadata)
+        attempt = _carrier_attempt(metadata, task_id=self._task_id)
         if attempt is not None:
             return RootLineage(attempt=attempt, child_no=rowmap.NO_CHILD)
         parent = connection.execute(_SQL_ATTEMPT_ROOT, (self._task_id,)).fetchone()

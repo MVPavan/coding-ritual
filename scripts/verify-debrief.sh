@@ -41,10 +41,12 @@ fail() {
 # containment must not depend on which regex dialect the host's tools speak.
 # `*..*` and `*.lock` are the two forms the charset alone lets through: the
 # first traverses out of the directory this check grants, the second is a name
-# git refuses for a ref (§3.7, R8).
+# git refuses for a ref (§3.7, R8). The leading `.`, `-` and `_` are the three
+# the regex excludes by requiring a leading alphanumeric — `-foo` is also an
+# option to every tool this value is passed to.
 safe_component() {
     case "$2" in
-        '' | .* | *..* | *.lock | *[!A-Za-z0-9._-]*)
+        '' | .* | -* | _* | *..* | *.lock | *[!A-Za-z0-9._-]*)
             fail "debrief-identity: $1 is not one safe path component: '$2'"
             ;;
     esac

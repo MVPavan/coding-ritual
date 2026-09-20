@@ -26,22 +26,31 @@ from workflow_interpreter.contracts.run_identity import (
     safe_component,
 )
 from workflow_interpreter.ledger.constants import (
+    MSG_MINT_CONFLICT,
     MSG_TRACKER_REF_UNUSABLE,
     TrackerKind,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.errors import LedgerMintConflict
 
 FIRST_SEQ: Final[int] = 1
-SQL_INSERT_TASK: Final[str] = (
-    "INSERT OR IGNORE INTO tasks "
+_INSERT_TASK: Final[str] = (
+    "INSERT {conflict}INTO tasks "
     "(task_id, epic_id, graph_id, backend, next_seq, created_at, "
     "tracker_ref, tracker_kind) "
     "VALUES (?, ?, NULL, ?, ?, ?, ?, ?)"
 )
-"""The one statement that writes a `tasks` row — the mint below and the
-locator's pin (`tasks.pin_task_backend`) are its only two callers."""
+SQL_INSERT_TASK: Final[str] = _INSERT_TASK.format(conflict="OR IGNORE ")
+"""The one statement that writes a `tasks` row for a caller that only wants the
+row to EXIST — the locator's pin (`tasks.pin_task_backend`) and the store's
+lazy `_ensure_task`, both of which re-read what is there."""
 
-_SQL_BY_TRACKER_REF: Final[str] = (
+SQL_INSERT_TASK_STRICT: Final[str] = _INSERT_TASK.format(conflict="")
+"""The same write for the mint, which must not ignore a conflict: the id it is
+about to ANSWER with is the id this statement writes, so a row silently not
+written would hand out an id nothing holds."""
+
+_SQL_BY_TRACKER: Final[str] = (
     "SELECT task_id FROM tasks WHERE tracker_ref = ? AND tracker_kind = ?"
 )
 _SQL_BY_TASK_ID: Final[str] = "SELECT 1 FROM tasks WHERE task_id = ?"
@@ -63,10 +72,15 @@ def insert_task(
     backend: BackendKind,
     tracker_ref: str | None = None,
     tracker_kind: TrackerKind | None = None,
+    strict: bool = False,
 ) -> None:
-    """Write one `tasks` row if the task has none, on an open connection."""
+    """Write one `tasks` row if the task has none, on an open connection.
+
+    `strict` is for the caller that will HAND OUT the id it just wrote: it
+    lets the conflict raise instead of being ignored (§3.7).
+    """
     connection.execute(
-        SQL_INSERT_TASK,
+        SQL_INSERT_TASK_STRICT if strict else SQL_INSERT_TASK,
         (
             task_id,
             epic_id,
@@ -114,10 +128,15 @@ def mint_task(
 ) -> str:
     """Mint this tracker ref's task id, or answer with the one it already has.
 
-    Idempotent by the foreign id: preparing the same issue twice is one task,
-    which is what makes a retried prepare safe. The collision suffix is chosen
-    INSIDE the writing transaction, so two processes preparing two issues that
-    sanitise alike cannot both read "free" and then both insert it.
+    Idempotent by the foreign id AND the tracker it came from — the pair, not
+    the string: preparing the same issue twice is one task, while bd's `X-1`
+    and GitHub's `X-1` are two. The collision suffix is chosen INSIDE the
+    writing transaction, so two processes preparing two issues that sanitise
+    alike cannot both read "free" and then both insert it.
+
+    The id answered is always an id this call WROTE or READ BACK: the insert
+    does not ignore conflicts, so a row that did not land is a refusal rather
+    than an id with nothing behind it.
 
     The epic and the stem are validated BEFORE the transaction opens: a
     component a path could not hold must not reach a row, a ref or a worktree,
@@ -127,19 +146,30 @@ def mint_task(
     stem = sanitise_tracker_ref(tracker_ref)
     with database.transaction() as connection:
         existing = connection.execute(
-            _SQL_BY_TRACKER_REF, (tracker_ref, tracker_kind.value)
+            _SQL_BY_TRACKER, (tracker_ref, tracker_kind.value)
         ).fetchone()
         if existing is not None:
             return str(existing[0])
         task_id = _free_task_id(connection, stem)
-        insert_task(
-            connection,
-            task_id=task_id,
-            epic_id=epic,
-            backend=backend,
-            tracker_ref=tracker_ref,
-            tracker_kind=tracker_kind,
-        )
+        try:
+            insert_task(
+                connection,
+                task_id=task_id,
+                epic_id=epic,
+                backend=backend,
+                tracker_ref=tracker_ref,
+                tracker_kind=tracker_kind,
+                strict=True,
+            )
+        except sqlite3.IntegrityError as conflict:
+            raise LedgerMintConflict(
+                MSG_MINT_CONFLICT.format(
+                    task_id=task_id,
+                    tracker_ref=tracker_ref,
+                    tracker_kind=tracker_kind.value,
+                    reason=conflict,
+                )
+            ) from conflict
     return task_id
 
 

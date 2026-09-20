@@ -343,6 +343,26 @@ MSG_EPIC_REQUIRED: Final[str] = (
     "an input at mint, never a parse of the task id, so a run that never went "
     "through prepare cannot invent the directory its knowledge lands in (§3.7)"
 )
+MSG_MINT_CONFLICT: Final[str] = (
+    "minting {tracker_kind} ref {tracker_ref!r} chose task id {task_id!r} and "
+    "the row did not land ({reason}); a mint never answers with an id it did "
+    "not write (§3.7)"
+)
+MSG_ROOT_COLLISION: Final[str] = (
+    "root {root_id!r} already belongs to instance {held!r}, and instance "
+    "{incoming!r} pins the same attempt of task {task_id!r}; two carriers "
+    "cannot be one attempt root (§3.7)"
+)
+MSG_ATTEMPT_INVALID: Final[str] = (
+    "the run identity carried for task {task_id!r} pins attempt {attempt!r}, "
+    "which is not an attempt a run can have ({reason}); a carrier that pins "
+    "an identity states which attempt it IS (§3.7)"
+)
+MSG_EXPORT_UNSAFE_COMPONENT: Final[str] = (
+    "{path} states {kind} {value!r}, which is not one safe path component; an "
+    "import applies the same grammar a mint does, before any row is written "
+    "(§3.6, §3.7)"
+)
 MSG_TRACKER_REF_UNUSABLE: Final[str] = (
     "tracker ref {tracker_ref!r} holds nothing a path component or a ref name "
     "could be made of (§3.7)"

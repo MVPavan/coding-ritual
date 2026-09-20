@@ -245,14 +245,17 @@ column is what that table's `state` becomes."""
 _V4_TASKS_TRACKER: Final[tuple[str, ...]] = (
     "ALTER TABLE tasks ADD COLUMN tracker_ref TEXT",
     "ALTER TABLE tasks ADD COLUMN tracker_kind TEXT",
-    "CREATE UNIQUE INDEX tasks_by_tracker_ref ON tasks(tracker_ref)",
+    "CREATE UNIQUE INDEX tasks_by_tracker ON tasks(tracker_ref, tracker_kind)",
 )
 """The foreign id `task_id` was minted from, and which tracker minted it
 (store-restructure §3.7, R8).
 
-UNIQUE so that one tracker issue can never be prepared as two ledger tasks;
-nullable because a run under no tracker at all has no foreign id, and SQLite's
-unique index admits any number of NULLs, which is exactly that rule."""
+UNIQUE over the PAIR, which is the key the mint dedupes on: two trackers can
+mint the same string, so a unique index on the ref alone would let bd's `X-1`
+block GitHub's `X-1` from ever getting a row — while the lookup, keyed by both,
+went on answering "no such task" (found in review). Nullable because a run
+under no tracker at all has no foreign id, and SQLite's unique index admits any
+number of rows with a NULL in the pair, which is exactly that rule."""
 
 _V4_ROOTS_CHILD: Final[str] = (
     "ALTER TABLE roots ADD COLUMN child_no INTEGER NOT NULL DEFAULT 0"

@@ -358,6 +358,11 @@ def test_module_inspect_loads_the_argv_config_before_running_the_wrapper(
     A REAL checkout, because composing now opens the ledger and the ledger's
     fence lives in the git common directory (§3.4): a tree with no `.git`
     refuses before bd is ever reached.
+
+    `--epic` is passed for the same reason the real `DetachedSpawner` passes
+    it: this task has no ledger row, and composing one without an epic is a
+    refusal by name (§3.7), which would stop the command short of the wrapper
+    this test is about.
     """
     repo = make_repo(tmp_path)
     wrapper_root = (
@@ -393,6 +398,8 @@ host = "host"
             str(config),
             "--task",
             "cr-3411.4",
+            "--epic",
+            "cr-3411",
             "inspector",
             "root-id",
             "activation-id",

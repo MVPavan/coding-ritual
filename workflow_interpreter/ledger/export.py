@@ -31,6 +31,11 @@ from typing import Final
 import structlog
 from pydantic import BaseModel, ConfigDict, JsonValue
 
+from workflow_interpreter.contracts.run_identity import (
+    ComponentKind,
+    InvalidIdentifier,
+    safe_component,
+)
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.constants import (
     DERIVED_ACTIVATION_TABLES,
@@ -49,6 +54,7 @@ from workflow_interpreter.ledger.constants import (
     MSG_EXPORT_TABLE,
     MSG_EXPORT_TASK_MISMATCH,
     MSG_EXPORT_TASK_ROWS,
+    MSG_EXPORT_UNSAFE_COMPONENT,
     MSG_PIN_LOST,
     MSG_PIN_NO_FILE,
     MSG_PIN_NOT_LANDED,
@@ -115,6 +121,7 @@ travel as a single-key object rather than as bare text, so a decoder can tell a
 restored BLOB from a column that really is a string (§3.6)."""
 _SEQ_COLUMN: Final[str] = "seq"
 _TASK_COLUMN: Final[str] = "task_id"
+_EPIC_COLUMN: Final[str] = "epic_id"
 _ONE_TASK_ROW: Final[int] = 1
 _SECOND_LINE: Final[int] = 2
 _NEWLINE: Final[bytes] = b"\n"
@@ -372,14 +379,47 @@ def _parse(path: Path, *, repo_id: str) -> ParsedExport:
         (number, *_row(line, path=path, number=number))
         for number, line in enumerate(lines[1:], start=_SECOND_LINE)
     )
-    task_id = str(header[ExportKey.TASK_ID.value])
+    task_id = _safe(header[ExportKey.TASK_ID.value], ComponentKind.TASK, path)
     _assert_task(numbered, path=path, task_id=task_id)
+    _assert_epic(numbered, path=path)
     return ParsedExport(
         path=path,
         task_id=task_id,
         header=header,
         rows=tuple((table, row) for _, table, row in numbered),
     )
+
+
+def _safe(value: JsonValue, kind: ComponentKind, path: Path) -> str:
+    """One untrusted component under the ONE grammar, refused by name (§3.7).
+
+    An export file is bytes from outside this process, and both components it
+    states — the task it declares and the epic on its `tasks` row — are spent
+    on a path and a ref by the next run: `docs/workstreams/<epic>/runs/<task>`
+    and `refs/wf/exports/<task>`. Checked while the file is being PARSED, which
+    is before the fence is taken and long before a row is written.
+
+    Anything that is not text is refused here rather than coerced: a component
+    is a name, and `None` or a number is a file describing something this
+    schema has no meaning for.
+    """
+    if isinstance(value, str):
+        try:
+            return safe_component(value, kind=kind)
+        except InvalidIdentifier as unsafe:
+            raise LedgerExportError(
+                MSG_EXPORT_UNSAFE_COMPONENT.format(path=path, kind=kind, value=value)
+            ) from unsafe
+    raise LedgerExportError(
+        MSG_EXPORT_UNSAFE_COMPONENT.format(path=path, kind=kind, value=value)
+    )
+
+
+def _assert_epic(rows: Sequence[NumberedRow], *, path: Path) -> None:
+    """Put the restored `tasks.epic_id` under the same grammar as the task id."""
+    for _number, table, row in rows:
+        if table is LedgerTable.TASKS:
+            _safe(row.get(_EPIC_COLUMN), ComponentKind.EPIC, path)
 
 
 def _assert_task(rows: Sequence[NumberedRow], *, path: Path, task_id: str) -> None:

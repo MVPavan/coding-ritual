@@ -64,6 +64,36 @@ class LedgerEpicMissing(StoreConfigError):
     """
 
 
+class LedgerMintConflict(StoreConfigError):
+    """A mint could not write the row for the id it was about to answer with (§3.7).
+
+    Its own class, and a refusal rather than a silent answer, because the id a
+    mint returns is spent immediately on a ref, a worktree and a run
+    directory: an id whose `tasks` row was never written names a task nothing
+    can later find by its tracker ref.
+    """
+
+
+class LedgerRootCollision(StoreConfigError):
+    """Two carriers pin the same attempt of one task under different keys (§3.7).
+
+    A WIRING refusal beside `LedgerEpicMissing`, deliberately NOT a transport
+    defect: `<task>-a<n>` is minted from the attempt the carrier pins, so a
+    second instance key pinning an attempt that already has a root is a
+    caller that has invented an attempt, and no retry can make it land.
+    """
+
+
+class LedgerAttemptInvalid(StoreConfigError):
+    """A carrier pins a run identity whose attempt is not one a run can have.
+
+    Attempts are counted from one (`RunIdentity`, `ge=FIRST_ATTEMPT`), and a
+    carrier that HAS an identity is making a statement about which attempt it
+    is. Reading a bad one as "no identity" would file the root as a child of
+    whatever attempt happened to be in force, so it refuses instead.
+    """
+
+
 class LedgerExportError(StoreConfigError):
     """An export file is not one this schema may restore from (§3.6).
 
