@@ -46,6 +46,7 @@ from workflow_interpreter.contractor import (
 from workflow_interpreter.contractor import command as contractor_command_module
 from workflow_interpreter.contractor import gate_view as gate_view_module
 from workflow_interpreter.contractor import tracker_wiring as wiring_module
+from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contractor.verification import (
     CheckCommand,
     VerificationPolicy,
@@ -390,7 +391,7 @@ wrapper_home = "{tmp_path / "home"}"
 host = "host"
 actor = "actor"
 
-[bd]
+[tracker.bd]
 workspace = "{tmp_path / "bd"}"
 actor = "actor"
 
@@ -436,7 +437,7 @@ def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=tmp_path / "foreman-home",
-        bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="actor")),
         host="host",
         actor="actor",
         inspector=inspector.model_copy(
@@ -483,7 +484,7 @@ def test_wrapper_records_a_non_dirty_precondition_refusal(
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=tmp_path / "foreman-home",
-        bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="actor")),
         host="host",
         actor="actor",
         inspector=inspector.model_copy(
@@ -1068,7 +1069,7 @@ def _contractor_adapter(
     needs one to answer which root owns an instance key at all.
     """
     return bd_adapter(
-        BdClient(lab.config.bd, lab.fake_bd),
+        BdClient(lab.bd_config, lab.fake_bd),
         lab.store.reads if reads is None else reads,
         closure=closure_probe(lab.ledger, lab.git),
         records=lab.records,

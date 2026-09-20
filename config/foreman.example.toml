@@ -53,9 +53,15 @@ lifetime_cap = 100
 hook_timeout_s = 10
 hook_backoff_s = 5
 
-# The bd workspace is the repository itself: `bd init` puts `.beads/` there and
-# every invocation is scoped with `-C <workspace>` (`bdio/client.py`).
-[bd]
+# Which tracker this repository has, and how to reach it (store-restructure
+# §3.3). `backend = "file"` or `"null"` needs no `[tracker.bd]` section at all;
+# `backend = "bd"` (the default) requires one. The bd workspace is the
+# repository itself: `bd init` puts `.beads/` there and every invocation is
+# scoped with `-C <workspace>` (`tracker/bd_transport.py`).
+[tracker]
+backend = "bd"
+
+[tracker.bd]
 workspace = "@REPO_ROOT@"
 actor     = "@ACTOR@"
 

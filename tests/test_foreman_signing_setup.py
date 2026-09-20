@@ -65,7 +65,7 @@ def test_the_generator_makes_a_gate_key_and_allow_list_exactly_once(
     first = _generate(repo, home, output)
     config = load_config(output)
     assert config.signing is not None
-    verifier = GateVerifier(config.signing, config.bd.workspace)
+    verifier = GateVerifier(config.signing, config.repo_root)
 
     assert [signer.principals for signer in verifier.signers] == [("wf-tester",)]
     assert verifier.allowed_fingerprints()

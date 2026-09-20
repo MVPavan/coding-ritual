@@ -29,6 +29,10 @@ from workflow_interpreter.bdio.records import (
     parse_row,
 )
 from workflow_interpreter.bdio.wire import BeadRecord, EventPayload, GateMetadata
+from workflow_interpreter.contractor.tracker_config import (
+    TrackerBackend,
+    TrackerSettings,
+)
 from workflow_interpreter.foreman.bounds import (
     infra_retry_refusal,
     instance_ceiling_refusal,
@@ -1218,7 +1222,7 @@ def test_config_derives_wrapper_root_from_the_real_repo_path(tmp_path: Path) -> 
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=home,
-        bd=BdConfig(workspace=tmp_path / "bd", actor="test"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="test")),
         host="host",
         actor="test",
         inspector=InspectorConfig(
@@ -1235,7 +1239,9 @@ def test_config_derives_wrapper_root_from_the_real_repo_path(tmp_path: Path) -> 
     sibling_config = ForemanConfig(
         repo_root=sibling,
         wrapper_home=home,
-        bd=BdConfig(workspace=tmp_path / "other-bd", actor="test"),
+        tracker=TrackerSettings(
+            bd=BdConfig(workspace=tmp_path / "other-bd", actor="test")
+        ),
         host="host",
         actor="test",
         inspector=InspectorConfig(
@@ -1354,7 +1360,7 @@ wrapper_home = "{tmp_path / "home"}"
 host = "host"
 actor = "actor"
 
-[bd]
+[tracker.bd]
 workspace = "{tmp_path / "bd"}"
 actor = "actor"
 
@@ -1368,7 +1374,46 @@ host = "host"
     config = load_config(path)
     assert config.actor == "actor"
     assert config.config_path == path
-    assert config.bd.actor == "actor"
+    assert config.tracker.bd is not None and config.tracker.bd.actor == "actor"
+
+
+def test_a_file_tracker_config_loads_with_no_bd_section(tmp_path: Path) -> None:
+    """A repository whose tasks live in a FILE configures no bd at all.
+
+    `bd` was a mandatory top-level field, so a `backend = "file"` checkout had
+    to invent a bd workspace and actor to load its own configuration (S6
+    review, finding 7). The transport now lives under the backend that uses it.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    wrapper_root = (
+        tmp_path
+        / "home"
+        / hashlib.sha256(str(repo.resolve()).encode("utf-8")).hexdigest()[:16]
+    )
+    path = tmp_path / "foreman.toml"
+    path.write_text(
+        f'''repo_root = "{repo}"
+wrapper_home = "{tmp_path / "home"}"
+host = "host"
+actor = "actor"
+
+[tracker]
+backend = "file"
+path = "{tmp_path / "tracker.json"}"
+
+[inspector]
+repo_root = "{repo}"
+wrapper_root = "{wrapper_root}"
+host = "host"
+''',
+        encoding="utf-8",
+    )
+
+    config = load_config(path)
+
+    assert config.tracker.backend is TrackerBackend.FILE
+    assert config.tracker.bd is None
 
 
 def test_load_config_refuses_the_retired_store_switch(tmp_path: Path) -> None:
@@ -1409,7 +1454,7 @@ wrapper_home = "{tmp_path / "home"}"
 host = "host"
 actor = "actor"
 {extra}
-[bd]
+[tracker.bd]
 workspace = "{tmp_path / "bd"}"
 actor = "actor"
 

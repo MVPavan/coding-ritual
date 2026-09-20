@@ -29,6 +29,7 @@ from workflow_interpreter.bdio import BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
+from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -92,7 +93,7 @@ def test_crew_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> None
             {
                 "repo_root": repo,
                 "wrapper_home": wrapper_home,
-                "bd": {"workspace": tmp_path / "bd", "actor": "actor"},
+                "tracker": {"bd": {"workspace": tmp_path / "bd", "actor": "actor"}},
                 "host": "host",
                 "actor": "actor",
                 "inspector": {
@@ -143,7 +144,7 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=tmp_path / "home",
-        bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="actor")),
         host="host",
         actor="actor",
         inspector=InspectorConfig(
@@ -425,7 +426,7 @@ def _instance_composition(
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=tmp_path / "home",
-        bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="actor")),
         project_config={} if project_config is None else project_config,
         roles=(
             {
@@ -741,7 +742,7 @@ def test_config_refuses_split_inspector_identity_and_guards_owner_file(
         ForemanConfig(
             repo_root=config.repo_root,
             wrapper_home=config.wrapper_home,
-            bd=config.bd,
+            tracker=config.tracker,
             host=config.host,
             actor=config.actor,
             inspector=InspectorConfig(
@@ -754,7 +755,7 @@ def test_config_refuses_split_inspector_identity_and_guards_owner_file(
         ForemanConfig(
             repo_root=config.repo_root,
             wrapper_home=config.wrapper_home,
-            bd=config.bd,
+            tracker=config.tracker,
             host=config.host,
             actor=config.actor,
             inspector=InspectorConfig(
@@ -790,7 +791,9 @@ def test_foreman_config_hashes_the_resolved_repository_path(tmp_path: Path) -> N
         return ForemanConfig(
             repo_root=repo_root,
             wrapper_home=home,
-            bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+            tracker=TrackerSettings(
+                bd=BdConfig(workspace=tmp_path / "bd", actor="actor")
+            ),
             host="host",
             actor="actor",
             inspector=InspectorConfig(
@@ -815,7 +818,9 @@ def test_foreman_config_refuses_relative_identity_paths(tmp_path: Path) -> None:
         ForemanConfig(
             repo_root=Path("repo"),
             wrapper_home=tmp_path / "home",
-            bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+            tracker=TrackerSettings(
+                bd=BdConfig(workspace=tmp_path / "bd", actor="actor")
+            ),
             host="host",
             actor="actor",
             inspector=InspectorConfig(
@@ -828,7 +833,9 @@ def test_foreman_config_refuses_relative_identity_paths(tmp_path: Path) -> None:
         ForemanConfig(
             repo_root=tmp_path / "repo",
             wrapper_home=Path("home"),
-            bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+            tracker=TrackerSettings(
+                bd=BdConfig(workspace=tmp_path / "bd", actor="actor")
+            ),
             host="host",
             actor="actor",
             inspector=invalid_inspector,

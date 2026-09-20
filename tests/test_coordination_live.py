@@ -463,7 +463,7 @@ def test_real_coordination_lands_design_children_and_integration(
     name = "fixture-final-tree"
     argv = ["scripts/verify-feature.sh"]
     timeout_s = 120
-    [bd]
+    [tracker.bd]
     workspace = {json.dumps(str(repo))}
     actor = "codex:p5-live"
     [signing]

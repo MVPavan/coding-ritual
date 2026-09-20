@@ -20,6 +20,7 @@ from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.contractor.adapter import ContractorAdapter
 from workflow_interpreter.contractor.records import contractor_records
 from workflow_interpreter.contractor.tracker_config import (
+    MSG_BD_REQUIRED,
     TrackerBackend,
     TrackerSettings,
 )
@@ -30,7 +31,7 @@ from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.reconcile import AttentionWriter
 from workflow_interpreter.tracker import BdTracker, FileTracker, NullTracker
 from workflow_interpreter.tracker.attention import OutboxAttentionWriter
-from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
+from workflow_interpreter.tracker.bd_transport import BdClient
 from workflow_interpreter.tracker.outbox import DrainResult, TrackerOutbox
 from workflow_interpreter.tracker.port import TrackerPort
 
@@ -45,9 +46,13 @@ MSG_FILE_PATH_REQUIRED: Final[str] = (
 
 
 def tracker_for(
-    settings: TrackerSettings, config: BdConfig, client: BdClient | None = None
+    settings: TrackerSettings, client: BdClient | None = None
 ) -> TrackerPort:
     """The port this repository's configuration names.
+
+    The bd transport comes from the SAME settings as the backend choice since
+    S6's review: two fields in one section, so a repository cannot name one
+    tracker and configure another.
 
     `client` is a parameter so the bd adapter can reuse a transport that
     already exists — the contractor adapter holds one — rather than opening a
@@ -59,7 +64,11 @@ def tracker_for(
         if settings.path is None:
             raise ValueError(MSG_FILE_PATH_REQUIRED)
         return FileTracker(settings.path)
-    return BdTracker(BdClient(config) if client is None else client)
+    if client is not None:
+        return BdTracker(client)
+    if settings.bd is None:  # pragma: no cover - refused at configuration load
+        raise ValueError(MSG_BD_REQUIRED)
+    return BdTracker(BdClient(settings.bd))
 
 
 def contractor_adapter(
@@ -87,7 +96,7 @@ def contractor_adapter(
         reads,
         closure=closure_probe(database, git),
         records=contractor_records(database),
-        tracker=tracker_for(config.tracker, config.bd, client),
+        tracker=tracker_for(config.tracker, client),
         outbox=None if database is None else TrackerOutbox(database),
     )
 
@@ -169,7 +178,7 @@ def drain_at_exit(composition: Composition) -> None:
     try:
         result = drain_outbox(
             composition.ledger,
-            tracker_for(composition.config.tracker, composition.config.bd),
+            tracker_for(composition.config.tracker),
         )
     # Deliberately every ordinary exception, and only here. The named ones —
     # `StoreError`, `TrackerUnavailable`, `TrackerRefused`, `OSError` — are

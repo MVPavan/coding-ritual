@@ -32,6 +32,7 @@ from workflow_interpreter.contractor.adapter import (
 )
 from workflow_interpreter.contractor.command import execute_contractor
 from workflow_interpreter.contractor.gate_view import contractor_gate_view
+from workflow_interpreter.contractor.quiesce import assert_quiesced
 from workflow_interpreter.contractor.tracker_wiring import (
     adapter_of,
     attention_writer,
@@ -79,7 +80,6 @@ from workflow_interpreter.ledger.reconcile import RootAttentionDrain
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.ledger.tasks import ensure_task, task_epic
 from workflow_interpreter.profiles.registry import ProfileRegistry
-from workflow_interpreter.tracker.bd_transport import BdClient
 
 # The per-subprocess `debug` chatter every git and bd call emits is worthless in
 # an operator transcript, while `wf.verify.rerun` and every error must stay
@@ -175,7 +175,12 @@ def _composition(args: argparse.Namespace) -> Composition:
     )
     config = config.model_copy(update={"inspector": inspector})
     clock = SystemClock()
-    bd = BdClient(config.bd)
+    tracker = tracker_for(config.tracker)
+    # R12, per task and per COMMAND: every driver that can create or drive a
+    # root for this task composes HERE, so the one probe that refuses a task
+    # still in flight in the retired home belongs here rather than on `wf
+    # contract` alone (S6 review, finding 6).
+    assert_quiesced(tracker, task_id)
     ledger = open_ledger(config.repo_root, config.wrapper_root)
     epic_id = _epic_for(ledger, task_id, named_epic)
     ensure_task(ledger, task_id, epic_id)
@@ -200,7 +205,7 @@ def _composition(args: argparse.Namespace) -> Composition:
         ledger=ledger,
         drain_attention=RootAttentionDrain(
             ledger,
-            attention_writer(ledger, tracker_for(config.tracker, config.bd, bd)),
+            attention_writer(ledger, tracker),
         ),
         task_id=task_id,
         epic_id=epic_id,

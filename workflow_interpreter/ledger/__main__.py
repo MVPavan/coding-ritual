@@ -179,7 +179,7 @@ def _reconcile(config: ForemanConfig, task_id: str) -> int:
     the reconciler must not construct its own transport.
     """
     with open_ledger(config.repo_root, config.wrapper_root) as database:
-        writer = attention_writer(database, tracker_for(config.tracker, config.bd))
+        writer = attention_writer(database, tracker_for(config.tracker))
         result = AttentionReconciler(database, writer).drain(task_id)
         # The reconciler now only ENQUEUES (§3.3). `wf ledger reconcile` is a
         # human asking for the mirror to be caught up, so it repairs it: the

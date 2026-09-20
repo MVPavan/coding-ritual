@@ -102,7 +102,7 @@ def _lab(
     # subprocess — and a case about another tracker sets a port here before the
     # first entry point runs. `None` means "let the configuration decide", so a
     # case can exercise `tracker_for` itself.
-    lab.tracker = BdTracker(BdClient(lab.config.bd, lab.fake_bd))
+    lab.tracker = BdTracker(BdClient(lab.bd_config, lab.fake_bd))
     monkeypatch.setattr(
         main_module, "_composition", lambda args: lab.scope(args.stage_id, EPIC)
     )
@@ -115,10 +115,8 @@ def _lab(
     monkeypatch.setattr(
         tracker_wiring,
         "tracker_for",
-        lambda settings, config, client=None: (
-            real_tracker_for(settings, config, client)
-            if lab.tracker is None
-            else lab.tracker
+        lambda settings, client=None: (
+            real_tracker_for(settings, client) if lab.tracker is None else lab.tracker
         ),
     )
     monkeypatch.setattr(Foreman, "run", _drive(lab))

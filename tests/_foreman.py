@@ -62,6 +62,7 @@ from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.rows import RowQuery
 from workflow_interpreter.bdio.wire import KEY_WF_KIND
 from workflow_interpreter.contractor.records import ContractorRecords, records_of
+from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -530,7 +531,9 @@ class ForemanLab:
         self.config = ForemanConfig(
             repo_root=self.repo,
             wrapper_home=self._wrapper_home,
-            bd=BdConfig(workspace=self._workspace, actor="test"),
+            tracker=TrackerSettings(
+                bd=BdConfig(workspace=self._workspace, actor="test")
+            ),
             signing=self._signing,
             host="test-host",
             inspector=self.inspector_config,
@@ -554,6 +557,12 @@ class ForemanLab:
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)
+
+    @property
+    def bd_config(self) -> BdConfig:
+        """This lab's bd transport settings, which live under `tracker` (§3.3)."""
+        assert self.config.tracker.bd is not None
+        return self.config.tracker.bd
 
     def pin_checks(self, bodies: Mapping[str, str]) -> None:
         """Commit `bodies` as the repo's check scripts, before they are pinned.

@@ -37,6 +37,7 @@ from workflow_interpreter.tracker.bd_transport import (
     DependencyType,
 )
 from workflow_interpreter.tracker.constants import TrackerCapability, WorkItemStatus
+from workflow_interpreter.tracker.errors import BdCommandError
 from workflow_interpreter.tracker.intents import (
     Annotate,
     Applied,
@@ -126,15 +127,22 @@ class BdTracker:
         (`contractor/quiesce.py`) owns what the keys mean; this answers only
         what is there.
 
-        A transport failure is NOT an empty answer. Swallowing one made R12's
-        refusal skippable by a single `bd show` timeout — the one guard whose
-        whole value is that it cannot be missed — so the failure propagates and
-        the caller refuses by name (S6 review, finding 5). Only an UNREADABLE
-        answer is "nothing here": bd ran, spoke, and had no row to show.
+        An unanswerable probe is NOT an empty answer. Swallowing every failure
+        made R12's refusal skippable by a single `bd show` timeout — the one
+        guard whose whole value is that it cannot be missed — so a transport
+        that never got an answer propagates, and the caller refuses by name
+        (S6 review, finding 5).
+
+        bd RAN and said no is a different thing, and it is an answer: an
+        unreadable row (`StoreOutputError`) and a non-zero exit
+        (`BdCommandError` — an id bd does not hold, a workspace bd was never
+        initialised in) are both "this build's tracker carries no record here",
+        deterministic, and the same on every retry. What propagates is the
+        retryable half: a timeout, or a bd that could not be run at all.
         """
         try:
             return self._client.show(ref).metadata
-        except StoreOutputError:
+        except (StoreOutputError, BdCommandError):
             return {}
 
     def blockers(self, ref: TrackerRef) -> tuple[Blocker, ...]:

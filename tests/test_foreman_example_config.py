@@ -64,7 +64,10 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     assert config.roles["critic"].effort == "high"
     assert config.signing is not None
     # §9: a foreman that can write its own allow-list can forge approvals.
-    assert not config.signing.allowed_signers_path.is_relative_to(config.bd.workspace)
+    assert config.tracker.bd is not None
+    assert not config.signing.allowed_signers_path.is_relative_to(
+        config.tracker.bd.workspace
+    )
     # build-loop adds `test-author`, `test-critic` and `impl-critic`; writers
     # go to claude because a codex sandbox cannot commit (phase 6 D5).
     assert config.roles["test-author"].profile == "claude"

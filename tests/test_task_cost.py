@@ -1457,7 +1457,7 @@ def test_actual_cli_reads_the_ledger_and_emits_json(tmp_path: Path) -> None:
         f'wrapper_home = "{wrapper_home}"\n'
         'host = "fixture"\n'
         'actor = "fixture"\n'
-        "[bd]\n"
+        "[tracker.bd]\n"
         f'workspace = "{repo}"\n'
         'actor = "fixture"\n'
         "[inspector]\n"

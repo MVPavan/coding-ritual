@@ -18,7 +18,6 @@ from workflow_interpreter.foreman.wake_constants import (
 from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.sandbox import GIT_ENTRY
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
-from workflow_interpreter.tracker.bd_transport import BdConfig
 
 MSG_WORKTREE_REPO_ROOT: Final[str] = (
     "foreman repo_root {repo_root} is a linked worktree; configure the "
@@ -86,22 +85,20 @@ class ForemanConfig(BaseModel):
 
     repo_root: Path
     wrapper_home: Path
-    bd: BdConfig
-    """How to reach bd — the TRACKER's transport, not a record store (R1).
-
-    Still named `bd` in the TOML because that is what the section configures;
-    `tracker.backend` decides whether it is reached at all."""
     signing: SigningConfig | None = None
     profiles: ProfileConfig = Field(default_factory=ProfileConfig)
     wake: WakeConfig = Field(default_factory=WakeConfig)
     project_config: dict[str, str | int | bool] = Field(default_factory=dict)
     roles: dict[str, CrewBinding] = Field(default_factory=dict)
-    tracker: TrackerSettings = Field(default_factory=TrackerSettings)
-    """Which tracker this repository has (store-restructure §3.3).
+    tracker: TrackerSettings
+    """Which tracker this repository has, AND how to reach it (§3.3).
 
     Reached through `contractor/` because the tracker is the contractor's
     collaborator and nothing else's: the foreman, the inspector and the crew
-    never touch one."""
+    never touch one — which is why the bd transport settings moved in here and
+    `foreman/` imports nothing bd (S6 review, finding 7). Required rather than
+    defaulted: `bd` was the mandatory field it replaces, and a repository that
+    names no tracker would silently get one."""
     contractor_graph: Path | None = None
     contractor_checks: tuple[CheckCommand, ...] | None = Field(
         default=None, exclude_if=lambda value: value is None

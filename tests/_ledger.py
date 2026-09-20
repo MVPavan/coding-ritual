@@ -127,7 +127,7 @@ wrapper_home = "{home}"
 host = "host"
 actor = "actor"
 
-[bd]
+[tracker.bd]
 workspace = "{bd_workspace or tmp_path / "bd"}"
 actor = "actor"
 

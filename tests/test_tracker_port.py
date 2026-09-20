@@ -215,7 +215,7 @@ def test_the_same_rig_lands_against_null_file_and_bd(
     elif tracker_kind == "file":
         lab.tracker = _file_tracker(lab, STAGE)
     else:
-        lab.tracker = BdTracker(BdClient(lab.config.bd, lab.fake_bd))
+        lab.tracker = BdTracker(BdClient(lab.bd_config, lab.fake_bd))
 
     result = _entry(lab, STAGE, *extra)
 
@@ -466,7 +466,11 @@ def test_a_tracker_without_blockers_records_the_gap_or_refuses(
     lab.composition = replace(
         lab.composition,
         config=lab.composition.config.model_copy(
-            update={"tracker": TrackerSettings(blockers_required=required)}
+            update={
+                "tracker": lab.config.tracker.model_copy(
+                    update={"blockers_required": required}
+                )
+            }
         ),
     )
 
