@@ -1,5 +1,10 @@
 # Store restructure — orchestration contract
 
+> **Status: COMPLETE (2026-09-21).** Every step of this contract was executed: slices
+> S0–S7 closed, Fable gates A and B passed, close-out (§7) done, merged to `main` as
+> `0ad406b` and pushed, epic `cr-nwy9` closed. Final position and follow-up beads:
+> `state.md`. Kept as the record of how the epic was run; nothing here is pending.
+
 How epic `cr-nwy9` is run, start to finish. The orchestrator reads this at the start
 of every session on this workstream, then `state.md`, then nothing else until a
 trigger in §5 fires. Roadmap: `roadmap.md` (design, R1–R13, slices S0–S7).
