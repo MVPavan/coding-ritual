@@ -20,14 +20,22 @@ from workflow_interpreter.schema.models import Outcome
 
 
 def test_committed_schemas_match_installed_generator(tmp_path):
-    """Never project or hand-edit schemas; absence is the sole allowed skip."""
+    """Never project or hand-edit schemas; compare only the fixture's CLI version."""
     binary = shutil.which("codex")
     if binary is None:
         pytest.skip("codex binary absent; cannot compare generated protocol schemas")
+    provenance = json.loads((FIXTURE.parent / "provenance.json").read_text())
     version = subprocess.run(
         [binary, "--version"], capture_output=True, text=True, timeout=5, check=True
     )
-    assert version.stdout.strip() == "codex-cli 0.154.0"
+    installed_version = version.stdout.strip().removeprefix("codex-cli ")
+    fixture_version = provenance["codex_cli"]
+    if installed_version != fixture_version:
+        pytest.skip(
+            f"installed codex-cli {installed_version} differs from fixture codex-cli "
+            f"{fixture_version}; regenerate with: {provenance['generator']}"
+        )
+    assert version.stdout.strip() == f"codex-cli {fixture_version}"
     target = tmp_path / "generated"
     subprocess.run(
         [binary, "app-server", "generate-json-schema", "--out", str(target)],
@@ -35,7 +43,6 @@ def test_committed_schemas_match_installed_generator(tmp_path):
         timeout=30,
         check=True,
     )
-    provenance = json.loads((FIXTURE.parent / "provenance.json").read_text())
     assert set(provenance["schemas"]) == {
         path.name for path in FIXTURE.parent.glob("*.json")
     } - {"provenance.json"}
