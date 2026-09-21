@@ -166,21 +166,11 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
     Over the bound nothing is staged and nothing is pinned, so the task's
     previous checkpoint stays its newest anchor, and the refusal reaches the
     operator through `TaskCheckpoint`'s defect log (cr-kba4). A KEPT anchor is
-    not a fresh one, so the same caller marks it stale; a write that lands
-    clears that marker here, because these rows are the ones the close made
-    and nothing older is owed any more.
-
-    The marker is written BEFORE the new anchor and cleared after it, and that
-    order is what makes a crash between the two ref writes harmless in both
-    directions (cr-kba4, fix round 2). Condemn-then-replace leaves only two
-    windows, and a rebuild reads each correctly with no further state: dying
-    before `update_ref` leaves the marker ON the anchor a rebuild would read,
-    which is the truth — the rows this close committed are newer than it; dying
-    after it leaves the marker on an object the checkpoint ref no longer names,
-    which `rebuild_sources` ignores by target. The reverse order — replace,
-    then mark — has a window where a hard kill leaves the OLD anchor with no
-    marker at all, reported as fresh, which is the failure the markers exist to
-    end. Three extra ref calls per close buy that; a close is not a hot loop.
+    not a fresh one, so the same caller marks it stale. A healthy write
+    publishes the new anchor and clears an existing marker in one ref
+    transaction; it never condemns a healthy checkpoint, and a failed
+    transaction changes neither ref (cr-kba4, fix round 3). Three git spawns
+    per close buy that: write the blob, read the marker, publish the refs.
     """
     payload = export_task(database, task_id)
     if len(payload) > CHECKPOINT_BYTES_LIMIT:
@@ -194,9 +184,18 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
     with _staging_lock(task_id):
         _stage(path, payload)
         oid = git.write_blob(path, cwd=database.repo_root)
-        mark_checkpoint_stale(git, database.repo_root, task_id)
-        git.update_ref(ref, oid, cwd=database.repo_root)
-        git.delete_ref(stale_ref(task_id), cwd=database.repo_root)
+        marker = stale_ref(task_id)
+        deleted_marker = (
+            marker
+            if git.ref_target(marker, cwd=database.repo_root) is not None
+            else None
+        )
+        git.update_ref_and_delete(
+            ref,
+            oid,
+            deleted_marker,
+            cwd=database.repo_root,
+        )
     _LOG.info(
         "wf.ledger.checkpointed",
         task_id=task_id,

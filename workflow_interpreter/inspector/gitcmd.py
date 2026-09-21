@@ -28,6 +28,7 @@ _MSG_BOUNDED_FAILED: Final[str] = (
     "bounded git object read failed: {subcommand} {args} (exit {returncode}): {stderr}"
 )
 _MSG_BOUNDED_TIMEOUT: Final[str] = "bounded git read timed out"
+_MSG_STDIN_TOO_LARGE: Final[str] = "git stdin exceeds {limit} bytes"
 STDERR_LIMIT: Final[int] = 4096
 """How much of git's own diagnosis a bounded read keeps. It is an error
 message, not an output: enough to name the missing object, never enough for a
@@ -38,6 +39,7 @@ GIT_INDEX_FILE: Final[str] = "GIT_INDEX_FILE"
 """Points snapshot plumbing at a THROWAWAY index, so the snapshot never stages
 anything in the index a human is using."""
 MAX_ARGV_BYTES: Final[int] = 128 * 1024
+MAX_STDIN_BYTES: Final[int] = 128 * 1024
 
 
 def chunk_argv(
@@ -281,6 +283,7 @@ class GitTransport:
         check: bool = True,
         env: Mapping[str, str] | None = None,
         config: Sequence[str] = (),
+        stdin_text: str | None = None,
     ) -> GitResult:
         """Run one bounded Git command without a shell.
 
@@ -293,6 +296,8 @@ class GitTransport:
         if subcommand not in set(GitSubcommand):  # pragma: no cover
             raise GitCommandError(_MSG_UNKNOWN.format(subcommand=subcommand))
         self._assert_inside(cwd)
+        if stdin_text is not None and len(stdin_text.encode("utf-8")) > MAX_STDIN_BYTES:
+            raise GitCommandError(_MSG_STDIN_TOO_LARGE.format(limit=MAX_STDIN_BYTES))
         argv = [
             self._config.git_binary,
             *config,
@@ -309,6 +314,7 @@ class GitTransport:
                 timeout=self._config.git_timeout_s,
                 check=False,
                 env={**os.environ, **(env or {}), **ENV_HARDENING},
+                input=stdin_text,
             )
         except subprocess.TimeoutExpired as exc:
             raise GitCommandError(
@@ -332,6 +338,7 @@ class GitTransport:
 __all__ = [
     "GIT_INDEX_FILE",
     "MAX_ARGV_BYTES",
+    "MAX_STDIN_BYTES",
     "SNAPSHOT_IDENTITY",
     "GitResult",
     "GitSubcommand",

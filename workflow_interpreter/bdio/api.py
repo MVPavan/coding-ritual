@@ -502,7 +502,7 @@ class WorkflowStore:
         `transaction()` releases `_writing` at its own exit), so the only part
         under the lock is the read that IS the snapshot — and a read taken
         outside it would be the torn pair the lock exists to prevent. What is
-        left is the cost: O(activations²) rows per task and two git spawns per
+        left is the cost: O(activations²) rows per task and three git spawns per
         close, which is affordable at a task's activation counts and is the
         price of a rebuildable in-flight run.
         """

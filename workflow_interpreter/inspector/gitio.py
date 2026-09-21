@@ -85,6 +85,12 @@ QUIET: Final[str] = "--quiet"
 TREE_SUFFIX: Final[str] = "^{tree}"
 COMMIT_SUFFIX: Final[str] = "^{commit}"
 PATH_SEPARATOR: Final[str] = "--"
+STDIN: Final[str] = "--stdin"
+TRANSACTION_START: Final[str] = "start"
+TRANSACTION_PREPARE: Final[str] = "prepare"
+TRANSACTION_COMMIT: Final[str] = "commit"
+TRANSACTION_UPDATE: Final[str] = "update"
+TRANSACTION_DELETE: Final[str] = "delete"
 NO_FILTERS: Final[str] = "--no-filters"
 NO_EXT_DIFF: Final[str] = "--no-ext-diff"
 NO_TEXTCONV: Final[str] = "--no-textconv"
@@ -612,6 +618,26 @@ class Git(GitTransport):
     def update_ref(self, ref: str, commit: str, *, cwd: Path) -> None:
         """Pin `refs/wf/<root_id>/<activation_id>` — idempotent for one value."""
         self.run(GitSubcommand.UPDATE_REF, ref, commit, cwd=cwd)
+
+    def update_ref_and_delete(
+        self,
+        ref: str,
+        new: str,
+        deleted_ref: str | None,
+        *,
+        cwd: Path,
+    ) -> None:
+        """Update one ref and conditionally delete another in one transaction."""
+        commands = [TRANSACTION_START, f"{TRANSACTION_UPDATE} {ref} {new}"]
+        if deleted_ref is not None:
+            commands.append(f"{TRANSACTION_DELETE} {deleted_ref}")
+        commands.extend((TRANSACTION_PREPARE, TRANSACTION_COMMIT, ""))
+        self.run(
+            GitSubcommand.UPDATE_REF,
+            STDIN,
+            cwd=cwd,
+            stdin_text="\n".join(commands),
+        )
 
     def ref_target(self, ref: str, *, cwd: Path) -> str | None:
         """The commit a workflow ref points at, or `None` when unpinned."""
