@@ -33,10 +33,17 @@ from workflow_interpreter.contractor.verification import (
     CheckCommand,
     VerificationPolicy,
 )
+from workflow_interpreter.tracker.null import NullTracker
 
 
 @pytest.fixture
-def case(tmp_path, fake_bd, fake_bd_client, gate_verifier, sign_payload):
+def case(tmp_path, fake_bd, fake_bd_client, gate_verifier, sign_payload, request):
+    """The landing rig, tracked by bd unless a test names another port.
+
+    `request.param` is the tracker: the recovery branch reads the CONFIGURED
+    one, so a case about a tracker that holds no item has to be wired with it
+    rather than have bd's answer taken away afterwards.
+    """
     repo, base = _temporary_repo(tmp_path)
     oid, tree = _commit_artifact(repo)
     fake_bd.rows[STAGE_ID] = _stage_row()
@@ -55,6 +62,7 @@ def case(tmp_path, fake_bd, fake_bd_client, gate_verifier, sign_payload):
         closure=export.closure,
         records=export.records,
         outbox=export.outbox,
+        tracker=getattr(request, "param", None),
     )
     authority = _GateAuthority(oid, tree, gate_verifier, sign_payload)
     checks = _RepositoryGate(oid, tree)
@@ -113,6 +121,26 @@ def test_closed_history_does_not_execute_old_host_tool(case, tmp_path, change):
     receipt_path.write_text(json.dumps(receipt))
     with pytest.raises(ValueError, match="correspond"):
         landing.recover(STAGE_ID)
+
+
+@pytest.mark.parametrize("case", [NullTracker()], indirect=True)
+def test_a_tracker_that_holds_no_item_trusts_the_derived_closure(case):
+    """§3.3, §3.5: an absent item is an ANSWER, not a missing one.
+
+    Recovery reads the derived `closed()` and then asks the tracker whether
+    the close's mirror completed. `NullTracker` holds no items at all, so its
+    `None` was read as "the item is not closed" and every re-invoke of a
+    finished task re-ran the whole repository gate. With no item there is
+    nothing to disagree with the ledger, so the derived answer stands alone —
+    an item that EXISTS and is not closed still takes the recovery branch.
+    """
+    landing, adapter, _, _, _, _, checks, _ = case
+    assert landing.land(STAGE_ID).disposition is LandingDisposition.CLOSED
+    assert adapter.item(STAGE_ID) is None
+    verified = checks.calls
+
+    assert landing.recover(STAGE_ID).disposition is LandingDisposition.CLOSED
+    assert checks.calls == verified
 
 
 def snapshot(repo):

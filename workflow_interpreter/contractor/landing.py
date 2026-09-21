@@ -446,9 +446,14 @@ class PhaseLanding:
         # — asked of the CONFIGURED tracker, because a repository on the file
         # tracker would otherwise ask bd about an item bd does not hold and
         # take the recovery branch for a close that had already finished.
+        # A tracker that holds NO item for this task — the null port, and any
+        # wiring whose mirror was never written — answers `None`, and that is
+        # an answer (R9): there is nothing to disagree with the ledger, so the
+        # derived closure stands alone. Reading it as "not closed" re-ran the
+        # whole repository gate on every re-invoke of a finished task (cr-m6am).
         if self._closed(stage_id):
             item = self._adapter.item(stage_id)
-            if item is not None and item.status is WorkItemStatus.CLOSED:
+            if item is None or item.status is WorkItemStatus.CLOSED:
                 return self._historical(record, intent, evidence)
         observed_target = self._git.ref_target(intent.ref, cwd=self._repo_root)
         if observed_target == intent.expected_base:
