@@ -521,6 +521,6 @@ class RpcSession:
                     update={
                         "verdict": MonitorVerdict.EXITED,
                         "exit_code": proof.exit_code,
-                        "reason": ExitReason.TERMINATED,
+                        "exit_reason": ExitReason.TERMINATED,
                     }
                 )
