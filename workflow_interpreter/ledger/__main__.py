@@ -32,6 +32,7 @@ from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.archive import archive_task
 from workflow_interpreter.ledger.checkpoint import rebuild_sources
 from workflow_interpreter.ledger.constants import (
+    ACCEPT_STALE_CHECKPOINT_FLAG,
     CHECKPOINT_REF_TEMPLATE,
     EXPORT_REF_TEMPLATE,
     EXPORT_SUFFIX,
@@ -144,6 +145,16 @@ def _parser() -> argparse.ArgumentParser:
             "describes does not survive it"
         ),
     )
+    restore.add_argument(
+        ACCEPT_STALE_CHECKPOINT_FLAG,
+        action="store_true",
+        help=(
+            "rebuild from a checkpoint that a failed write marked STALE — an "
+            "anchor older than the rows some later activation closed over. "
+            "Without it such a task is refused by name rather than restored "
+            "into obsolete rows"
+        ),
+    )
     reconcile = commands.add_parser(
         COMMAND_RECONCILE,
         help="drain one task's unacked attention projections onto its bead",
@@ -186,15 +197,20 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _exports(config: ForemanConfig, task_ids: Sequence[str]) -> tuple[Path, ...]:
+def _exports(
+    config: ForemanConfig, task_ids: Sequence[str], *, accept_stale: bool
+) -> tuple[Path, ...]:
     """The sources a rebuild reads, named or discovered in `(task)` order.
 
     Each task's CLOSE anchor where it has one, and its checkpoint otherwise
     (§3.9, R10): a task that never landed has no committed file, and before S7
     that meant a deleted ledger lost it. `rebuild_sources` owns the precedence
-    so the CLI cannot spell it a second way.
+    — and the refusal over a checkpoint marked stale — so the CLI cannot spell
+    either a second way.
     """
-    return rebuild_sources(Git(config.inspector), config.repo_root, task_ids)
+    return rebuild_sources(
+        Git(config.inspector), config.repo_root, task_ids, accept_stale=accept_stale
+    )
 
 
 def _reconcile(config: ForemanConfig, task_id: str) -> int:
@@ -370,7 +386,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _verify(config, args.task_id, args.allowed_signers)
         if args.command == COMMAND_ARCHIVE:
             return _archive(config, args.task_id, args.bundle)
-        paths = _exports(config, args.task_ids)
+        paths = _exports(
+            config, args.task_ids, accept_stale=args.accept_stale_checkpoint
+        )
         if not paths:
             sys.stderr.write(
                 _MSG_NO_EXPORTS.format(

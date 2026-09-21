@@ -1,6 +1,6 @@
 """A deleted ledger is survivable mid-run (store-restructure §3.9, R10, S7).
 
-Seven properties, one test each — the epic's last slice is small on purpose:
+Eight properties, one test each — the epic's last slice is small on purpose:
 
 1. `.wf/ledger.db` deleted after an activation close, with the task still in
    flight, rebuilds from the CHECKPOINT anchor and the in-flight root comes
@@ -19,7 +19,10 @@ Seven properties, one test each — the epic's last slice is small on purpose:
 6. a rebuild REFUSES when git cannot answer whether checkpoints exist, rather
    than silently dropping every in-flight task (finding 2);
 7. the staging write is a replace of a unique temporary file, and the task id
-   it is keyed by goes through the one identifier grammar (finding 3).
+   it is keyed by goes through the one identifier grammar (finding 3);
+8. a checkpoint write that was REFUSED marks the kept anchor stale in git, a
+   rebuild refuses that anchor by name until the operator accepts it, and the
+   next checkpoint that lands clears the marker (cr-kba4).
 
 Real git throughout: a blob, a ref and a rebuild cannot be faked.
 """
@@ -50,6 +53,7 @@ from workflow_interpreter.ledger.checkpoint import (
     checkpoint_ref,
     rebuild_sources,
     staging_path,
+    stale_ref,
     write_checkpoint,
 )
 from workflow_interpreter.ledger.closure import closed, retired
@@ -397,6 +401,46 @@ def test_a_rebuild_refuses_when_git_cannot_say_which_tasks_are_checkpointed(
         rebuild_sources(blind, repo, ())
 
     assert rebuild_sources(_seam(repo, wrapper_root), repo, ()) == ()
+
+
+def test_a_refused_checkpoint_marks_its_anchor_stale_until_a_good_one_lands(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A KEPT anchor is not a fresh one, and only git can say so (cr-kba4).
+
+    When a checkpoint write is refused the previous ref survives, and a
+    rebuild accepted it with no freshness evidence at all — restoring rows
+    from before a close that already happened, and inviting a replay of the
+    work done after it. The ledger is gone at rebuild time, so the evidence is
+    a local marker ref beside the anchor: the rebuild refuses it by name and
+    names the flag that accepts it, and the next checkpoint that LANDS clears
+    the marker, because those rows are the ones the close made.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    with open_ledger(repo, wrapper_root) as database:
+        _run_one_activation(database, git)
+        anchored = git.ref_target(checkpoint_ref(TASK), cwd=repo)
+        monkeypatch.setattr(checkpoint_module, "CHECKPOINT_BYTES_LIMIT", 32)
+        _run_one_activation(database, git)
+
+    assert git.ref_target(stale_ref(TASK), cwd=repo) == anchored
+    with pytest.raises(LedgerExportError, match="STALE"):
+        rebuild_sources(git, repo, ())
+
+    # The bound is lifted before the accepting rebuild because it is what
+    # REFUSED the write; the marker it left is the subject here, and reading
+    # the anchor back under a 32-byte limit would fail for the other reason.
+    monkeypatch.undo()
+
+    assert rebuild_sources(git, repo, (), accept_stale=True) == (
+        staging_path(repo, TASK),
+    )
+    with open_ledger(repo, wrapper_root) as database:
+        _run_one_activation(database, git)
+
+    assert git.ref_target(stale_ref(TASK), cwd=repo) is None
+    assert git.ref_target(checkpoint_ref(TASK), cwd=repo) != anchored
+    assert rebuild_sources(git, repo, ()) == (staging_path(repo, TASK),)
 
 
 def test_a_checkpoint_stages_through_a_replace_of_a_unique_file(

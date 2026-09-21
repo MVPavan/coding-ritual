@@ -48,6 +48,16 @@ reads the committed blob and the export ref, so a task carrying nothing but
 checkpoints can never derive `closed()` however many of them it has. Local and
 never pushed — one ref per task, overwritten, so the blobs it drops become
 unreachable and git gc collects them."""
+CHECKPOINT_STALE_REF_TEMPLATE: Final[str] = "refs/wf/checkpoints-stale/{task_id}"
+"""Where a task says its checkpoint no longer describes its rows (cr-kba4).
+
+A SIBLING namespace, not a subdirectory of `refs/wf/checkpoints/`: that prefix
+is listed by task (`checkpoint.checkpoint_tasks`), so a marker inside it would
+read as a task of its own. Written when a checkpoint write is refused and
+dropped by the next one that succeeds, so it is present exactly while the
+pinned anchor is older than the rows some activation closed over. Local and
+never pushed, like the anchor it condemns; it points at the very blob it is
+about, so the operator who accepts it can see which anchor they accepted."""
 CHECKPOINT_DIR: Final[str] = "checkpoint"
 """`<git common dir>/wf/checkpoint/` — where checkpoint bytes are STAGED.
 
@@ -415,6 +425,18 @@ MSG_CHECKPOINT_TOO_LARGE: Final[str] = (
     "{limit}, so anchoring these bytes would pin a checkpoint no rebuild could "
     "ever read; the previous checkpoint is left as this task's newest anchor "
     "(§3.9)"
+)
+ACCEPT_STALE_CHECKPOINT_FLAG: Final[str] = "--accept-stale-checkpoint"
+"""The flag on `wf ledger import` that accepts a checkpoint marked stale.
+
+Named here because the refusal below has to print it: an operator told only
+that their anchor is stale has no move, and a second spelling in the CLI would
+be the one that goes out of date."""
+MSG_CHECKPOINT_STALE: Final[str] = (
+    "task {task_id!r} would be rebuilt from a checkpoint marked STALE by "
+    "{ref}: a later activation closed over rows this anchor never recorded, so "
+    "importing it restores obsolete rows and may replay work done after it. "
+    "Pass {flag} to rebuild from this anchor anyway (§3.9)"
 )
 MSG_EXPORT_NOT_LANDED: Final[str] = (
     "task {task_id!r} has not landed — its recorded state is {state} — and the "

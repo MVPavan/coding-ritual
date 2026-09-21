@@ -37,7 +37,11 @@ from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.paths import WrapperPaths
 from workflow_interpreter.inspector.toolchain_cleanup import death_refusal
-from workflow_interpreter.ledger.checkpoint import checkpoint_ref, staging_path
+from workflow_interpreter.ledger.checkpoint import (
+    checkpoint_ref,
+    staging_path,
+    stale_ref,
+)
 from workflow_interpreter.ledger.closure import abandoned, retired
 from workflow_interpreter.ledger.constants import MSG_NOT_RETIRED
 from workflow_interpreter.ledger.database import LedgerDatabase
@@ -200,5 +204,9 @@ def _clear_checkpoint(git: Git, repo_root: Path, task_id: str) -> bool:
     if git.ref_target(ref, cwd=repo_root) is None:
         return False
     git.delete_ref(ref, cwd=repo_root)
+    # The staleness marker goes with the anchor it is about (cr-kba4): left
+    # behind it would refuse every later import over a checkpoint that no
+    # longer exists.
+    git.delete_ref(stale_ref(task_id), cwd=repo_root)
     staging_path(repo_root, task_id).unlink(missing_ok=True)
     return True

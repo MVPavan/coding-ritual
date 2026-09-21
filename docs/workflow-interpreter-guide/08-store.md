@@ -130,6 +130,15 @@ it. One ref per task, overwritten; the blobs it drops are unreachable and git gc
 them, and a checkpoint that fails logs `wf.ledger.checkpoint_refused` and closes the
 activation anyway.
 
+A checkpoint write that is refused — over the read bound, a full disk, a busy fence —
+leaves the PREVIOUS anchor in place, and that anchor is now older than the rows the
+close committed. The ledger is gone by rebuild time, so the evidence lives in git:
+`refs/wf/checkpoints-stale/<task>` is written beside the anchor and points at it, and
+the next checkpoint that lands deletes it. An `import` that meets one **refuses that
+task by name** rather than restoring obsolete rows and inviting a replay of the work
+done after it; `--accept-stale-checkpoint` rebuilds from that anchor anyway. Archive
+drops the marker with the anchor it is about.
+
 Which tasks *have* a checkpoint is one `show-ref`, and a rebuild **refuses** when git
 cannot answer it: reading a failure as "no checkpoints" would rebuild from the committed
 exports alone and clear every in-flight task's rows out of a live ledger. A checkout git

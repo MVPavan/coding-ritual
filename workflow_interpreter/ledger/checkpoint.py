@@ -62,10 +62,13 @@ from workflow_interpreter.inspector.gitcmd import GitSubcommand
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.sandbox import fence_dir
 from workflow_interpreter.ledger.constants import (
+    ACCEPT_STALE_CHECKPOINT_FLAG,
     CHECKPOINT_BYTES_LIMIT,
     CHECKPOINT_DIR,
     CHECKPOINT_REF_TEMPLATE,
+    CHECKPOINT_STALE_REF_TEMPLATE,
     EXPORT_SUFFIX,
+    MSG_CHECKPOINT_STALE,
     MSG_CHECKPOINT_TOO_LARGE,
     MSG_CHECKPOINTS_UNREADABLE,
 )
@@ -109,6 +112,11 @@ threads of one task take two different locks."""
 def checkpoint_ref(task_id: str) -> str:
     """`refs/wf/checkpoints/<task>` — this task's local, uncommitted anchor."""
     return CHECKPOINT_REF_TEMPLATE.format(task_id=task_id)
+
+
+def stale_ref(task_id: str) -> str:
+    """`refs/wf/checkpoints-stale/<task>` — the marker over a kept-but-old anchor."""
+    return CHECKPOINT_STALE_REF_TEMPLATE.format(task_id=task_id)
 
 
 def staging_path(repo_root: Path, task_id: str) -> Path:
@@ -157,7 +165,10 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
     its own rebuild would refuse, at the one moment the checkpoint exists for.
     Over the bound nothing is staged and nothing is pinned, so the task's
     previous checkpoint stays its newest anchor, and the refusal reaches the
-    operator through `TaskCheckpoint`'s defect log (cr-kba4).
+    operator through `TaskCheckpoint`'s defect log (cr-kba4). A KEPT anchor is
+    not a fresh one, so the same caller marks it stale; a write that lands
+    clears that marker here, because these rows are the ones the close made
+    and nothing older is owed any more.
     """
     payload = export_task(database, task_id)
     if len(payload) > CHECKPOINT_BYTES_LIMIT:
@@ -172,6 +183,7 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
         _stage(path, payload)
         oid = git.write_blob(path, cwd=database.repo_root)
         git.update_ref(ref, oid, cwd=database.repo_root)
+        git.delete_ref(stale_ref(task_id), cwd=database.repo_root)
     _LOG.info(
         "wf.ledger.checkpointed",
         task_id=task_id,
@@ -202,6 +214,47 @@ def _staging_lock(task_id: str) -> threading.Lock:
     """
     with _LOCKS_GUARD:
         return _STAGING_LOCKS.setdefault(task_id, threading.Lock())
+
+
+def mark_checkpoint_stale(git: Git, repo_root: Path, task_id: str) -> bool:
+    """Record that this task's pinned checkpoint is older than its rows (§3.9).
+
+    The evidence has to live in GIT, because the ledger is what a rebuild does
+    not have: a refused write leaves the previous anchor in place, and without
+    this marker `rebuild_sources` accepted it with no way to tell it apart
+    from a checkpoint the last close actually wrote — restoring obsolete rows
+    and inviting a replay of work done after it (cr-kba4).
+
+    Nothing to mark when the task has no anchor at all: there is then no old
+    answer for a rebuild to prefer, and a marker over an absent ref would
+    refuse an import that was never going to read one.
+    """
+    oid = git.ref_target(checkpoint_ref(task_id), cwd=repo_root)
+    if oid is None:
+        return False
+    git.update_ref(stale_ref(task_id), oid, cwd=repo_root)
+    return True
+
+
+def stale_checkpoints(git: Git, repo_root: Path) -> frozenset[str]:
+    """Every task whose kept checkpoint is marked stale, in one `show-ref`.
+
+    Asked exactly like `checkpoint_tasks` and refusing exactly as loudly: git
+    failing to list the markers is not "there are none", because that reading
+    would restore the silent acceptance the markers exist to end.
+    """
+    if not _git_readable(repo_root):
+        return frozenset()
+    prefix = CHECKPOINT_STALE_REF_TEMPLATE.format(task_id="")
+    try:
+        names = git.ref_names_under(prefix, cwd=repo_root)
+    except GitCommandError as unanswerable:
+        raise LedgerExportError(
+            MSG_CHECKPOINTS_UNREADABLE.format(
+                prefix=prefix, repo_root=repo_root, reason=unanswerable
+            )
+        ) from unanswerable
+    return frozenset(name.removeprefix(prefix) for name in names)
 
 
 def checkpoint_source(git: Git, repo_root: Path, task_id: str) -> Path | None:
@@ -277,7 +330,11 @@ def _git_readable(repo_root: Path) -> bool:
 
 
 def rebuild_sources(
-    git: Git, repo_root: Path, task_ids: Sequence[str]
+    git: Git,
+    repo_root: Path,
+    task_ids: Sequence[str],
+    *,
+    accept_stale: bool = False,
 ) -> tuple[Path, ...]:
     """The files a rebuild reads: each task's CLOSE anchor, else its checkpoint.
 
@@ -303,18 +360,37 @@ def rebuild_sources(
     Which tasks HAVE a checkpoint is asked once, of the ref listing, rather
     than per task: one `show-ref` instead of a `rev-parse` each, and it
     REFUSES when git cannot answer it (`checkpoint_tasks`).
+
+    A checkpoint a failed write left behind is REFUSED by name rather than
+    read: its marker (`mark_checkpoint_stale`) is the only evidence that
+    survives the ledger, and an anchor known to be older than some close is
+    not a record this can silently rebuild from. `accept_stale` is the
+    operator saying they want that anchor anyway — the same rebuild, from the
+    same bytes, with the refusal answered rather than routed around (cr-kba4).
     """
     checkpointed = frozenset(checkpoint_tasks(git, repo_root))
+    stale = (
+        frozenset()
+        if accept_stale or not checkpointed
+        else stale_checkpoints(git, repo_root)
+    )
     wanted = tuple(task_ids) if task_ids else _discovered(repo_root, checkpointed)
     sources: list[Path] = []
     for task_id in wanted:
         committed = export_path(repo_root, task_id)
-        staged = (
-            checkpoint_source(git, repo_root, task_id)
-            if task_id in checkpointed and not committed.is_file()
-            else None
-        )
-        sources.append(committed if staged is None else staged)
+        if task_id in checkpointed and not committed.is_file():
+            if task_id in stale:
+                raise LedgerExportError(
+                    MSG_CHECKPOINT_STALE.format(
+                        task_id=task_id,
+                        ref=stale_ref(task_id),
+                        flag=ACCEPT_STALE_CHECKPOINT_FLAG,
+                    )
+                )
+            staged = checkpoint_source(git, repo_root, task_id)
+            sources.append(committed if staged is None else staged)
+            continue
+        sources.append(committed)
     return tuple(sources)
 
 
@@ -357,7 +433,29 @@ class TaskCheckpoint:
             _LOG.warning(
                 "wf.ledger.checkpoint_refused", task_id=task_id, reason=str(refusal)
             )
+            self._mark_stale(task_id)
         except (StoreError, InvalidIdentifier) as broken:
             _LOG.error(
                 "wf.ledger.checkpoint_broken", task_id=task_id, reason=str(broken)
+            )
+            self._mark_stale(task_id)
+
+    def _mark_stale(self, task_id: str) -> None:
+        """Say in git that the anchor this close left in place is out of date.
+
+        Every failure lands here, transient or defect alike: what a rebuild
+        needs to know is not WHY the write failed but that the ref it would
+        read is older than the rows this close committed (cr-kba4).
+
+        Degrades exactly as the write above it does, and for the same reason —
+        the close has already committed, so a checkout that cannot even take
+        this marker must not turn a finished activation into a failed one.
+        """
+        try:
+            mark_checkpoint_stale(self._git, self._database.repo_root, task_id)
+        except (OSError, GitCommandError, StoreError, InvalidIdentifier) as unmarked:
+            _LOG.error(
+                "wf.ledger.checkpoint_stale_unmarked",
+                task_id=task_id,
+                reason=str(unmarked),
             )
