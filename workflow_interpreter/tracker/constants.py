@@ -20,6 +20,15 @@ class TrackerCapability(StrEnum):
     recorded as an unchecked question rather than guessed at (R9).
     """
 
+    ITEMS = "items"
+    """Whether this tracker keeps work items AT ALL.
+
+    The capability a caller needs to read an absent item: `get` answering
+    `None` means "no record for this task" only from a tracker that holds
+    records, and from one that holds none it means nothing else could have
+    been answered. Without this, `item is None` was taken as proof of absence
+    on bd too, where it is also what an unreadable answer once looked
+    like (cr-m6am)."""
     CHILDREN = "children"
     BLOCKERS = "blockers"
     CLAIM = "claim"

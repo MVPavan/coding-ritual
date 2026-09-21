@@ -261,8 +261,23 @@ class ContractorAdapter:
         Nothing rather than a refusal when the tracker holds no item: an
         absent item is an ANSWER (R9) — the null tracker holds none at all, and
         a caller that cannot proceed without one says so in its own words.
+
+        What `None` is NOT is proof that the tracker keeps no record for this
+        task; only `keeps_no_items` says that.
         """
         return self.tracker.get(self.ref(stage_id))
+
+    def keeps_no_items(self) -> bool:
+        """Whether this tracker holds no work items at all (§3.3, R9).
+
+        The positive form of "there is nothing to disagree with the ledger":
+        a caller that read an absent ITEM as that statement was also reading
+        every answer bd's absence looks like — including, before the port was
+        tightened, unreadable output over a live bead (cr-m6am). Asked of the
+        declared capability rather than of the adapter's class, because the
+        set of trackers that keep no records is not a list this may hold.
+        """
+        return TrackerCapability.ITEMS not in self.tracker.capabilities
 
     def release_stranded_claim(self, stage_id: str, actor: str) -> None:
         """Free a claim a crash inside §3.4's window left behind.

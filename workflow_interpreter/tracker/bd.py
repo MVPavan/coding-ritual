@@ -37,7 +37,7 @@ from workflow_interpreter.tracker.bd_transport import (
     DependencyType,
 )
 from workflow_interpreter.tracker.constants import TrackerCapability, WorkItemStatus
-from workflow_interpreter.tracker.errors import BdCommandError
+from workflow_interpreter.tracker.errors import BdCommandError, BdItemMissing
 from workflow_interpreter.tracker.intents import (
     Annotate,
     Applied,
@@ -53,6 +53,7 @@ from workflow_interpreter.tracker.models import Blocker, TrackerRef, WorkItem
 
 BD_CAPABILITIES: Final[frozenset[TrackerCapability]] = frozenset(
     {
+        TrackerCapability.ITEMS,
         TrackerCapability.CHILDREN,
         TrackerCapability.BLOCKERS,
         TrackerCapability.CLAIM,
@@ -95,14 +96,21 @@ class BdTracker:
     def get(self, ref: TrackerRef) -> WorkItem | None:
         """`bd show`, as one work item, or nothing when bd holds no such row.
 
-        Only an UNREADABLE answer is absence. A command that exited non-zero
+        Only bd's own "no such row" is absence. A command that exited non-zero
         or a binary that will not run says nothing about the caller's id, and
         reading it as "no such item" would hide a broken store behind an
         ordinary refusal — so those propagate.
+
+        So does UNREADABLE output, which used to land here too: invalid or
+        truncated JSON is a statement about the transport, not about the item,
+        and callers that read `None` as "this tracker keeps no record for the
+        task" then mirrored a close over a bead that was never closed
+        (cr-m6am). The empty array bd answers for an unknown id is the one
+        absence, and it arrives typed as `BdItemMissing`.
         """
         try:
             return _item(self._client.show(ref.ref))
-        except StoreOutputError:
+        except BdItemMissing:
             return None
 
     def children(self, ref: TrackerRef) -> tuple[WorkItem, ...]:

@@ -79,6 +79,17 @@ class BdOutputError(StoreOutputError):
     """bd's `--json` output could not be parsed, or had an unexpected shape."""
 
 
+class BdItemMissing(BdOutputError):
+    """bd answered, in the shape this wrapper reads, that it holds no such row.
+
+    The ONE unreadable answer that is a fact about the ITEM rather than about
+    the store: `bd show` returning an empty array says the id is not there.
+    Its parent says only "bd's output was not usable", which invalid or
+    truncated JSON also says — and reading THAT as "no item" let a real,
+    non-closed bead be mistaken for an absent one (cr-m6am).
+    """
+
+
 class ForbiddenInvocationError(StoreTransportError):
     """An argv outside the closed command set was constructed.
 

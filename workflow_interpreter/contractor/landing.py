@@ -442,19 +442,9 @@ class PhaseLanding:
         # A task whose record derives `closed()` is finished, whatever a
         # restored target ref now says (§3.5). CLOSED left the record's
         # vocabulary with S4's `contractor_records`, so the derived answer is
-        # the only one; the ITEM's own status is what says the close completed
-        # — asked of the CONFIGURED tracker, because a repository on the file
-        # tracker would otherwise ask bd about an item bd does not hold and
-        # take the recovery branch for a close that had already finished.
-        # A tracker that holds NO item for this task — the null port, and any
-        # wiring whose mirror was never written — answers `None`, and that is
-        # an answer (R9): there is nothing to disagree with the ledger, so the
-        # derived closure stands alone. Reading it as "not closed" re-ran the
-        # whole repository gate on every re-invoke of a finished task (cr-m6am).
-        if self._closed(stage_id):
-            item = self._adapter.item(stage_id)
-            if item is None or item.status is WorkItemStatus.CLOSED:
-                return self._historical(record, intent, evidence)
+        # the only one; the tracker is asked whether the close COMPLETED.
+        if self._closed(stage_id) and self._close_mirrored(stage_id):
+            return self._historical(record, intent, evidence)
         observed_target = self._git.ref_target(intent.ref, cwd=self._repo_root)
         if observed_target == intent.expected_base:
             if (
@@ -491,6 +481,26 @@ class PhaseLanding:
                 reason=MSG_REPOSITORY_GATE,
             )
         return self._finish(record, intent, repository_gate)
+
+    def _close_mirrored(self, stage_id: str) -> bool:
+        """Whether the tracker agrees this derived close already finished.
+
+        Asked of the CONFIGURED port, because a repository on the file tracker
+        would otherwise ask bd about an item bd does not hold and take the
+        recovery branch for a close that had already finished (cr-m6am).
+
+        A tracker that keeps NO records — the null port — has nothing to
+        disagree with the ledger, so the derived closure stands alone. That is
+        the tracker SAYING so (`keeps_no_items`), never an absent item: on bd
+        and on the file tracker an absent item is a real answer about a real
+        store, and `None` is also what a read that could not be understood
+        looked like, so treating it as "no mirror to check" mirrored a close
+        over a bead nobody had closed.
+        """
+        if self._adapter.keeps_no_items():
+            return True
+        item = self._adapter.item(stage_id)
+        return item is not None and item.status is WorkItemStatus.CLOSED
 
     def _historical(
         self, record: ContractorRecord, intent: LandingIntent, evidence: GateEvidence

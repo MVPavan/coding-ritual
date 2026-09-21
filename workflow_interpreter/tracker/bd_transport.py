@@ -39,6 +39,7 @@ from workflow_interpreter.bdio.errors import (
 from workflow_interpreter.bdio.wire import ROW_MODEL, Metadata
 from workflow_interpreter.tracker.errors import (
     BdCommandError,
+    BdItemMissing,
     BdOutputError,
     BdTimeoutError,
     BdUnavailableError,
@@ -345,7 +346,10 @@ class BdClient:
         """`bd show <id> --json` — the read-back path for every write."""
         rows = self._run_json(self._argv(BdSubcommand.SHOW, bead_id, BdFlag.JSON.value))
         if not rows:
-            raise BdOutputError(_MSG_NO_ROW.format(bead_id=bead_id))
+            # Typed apart from every other unreadable answer: an empty array
+            # is bd saying it holds no such row, which `BdTracker.get` may
+            # report as absence — unparseable output may not (cr-m6am).
+            raise BdItemMissing(_MSG_NO_ROW.format(bead_id=bead_id))
         return BeadRecord.model_validate(rows[0])
 
     def list_children(self, parent_id: str) -> tuple[BeadRecord, ...]:

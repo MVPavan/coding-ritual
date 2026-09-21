@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 import subprocess
 import threading
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import Final
@@ -76,7 +76,12 @@ from workflow_interpreter.tracker import (
     WorkItemStatus,
 )
 from workflow_interpreter.tracker.bd import BdTracker
-from workflow_interpreter.tracker.bd_transport import BdClient
+from workflow_interpreter.tracker.bd_transport import (
+    BdClient,
+    BdConfig,
+    CompletedCommand,
+)
+from workflow_interpreter.tracker.errors import BdOutputError
 from workflow_interpreter.tracker.outbox import TrackerOutbox
 
 ACTOR: Final[str] = "test"
@@ -678,6 +683,36 @@ def test_the_adapter_keeps_no_bd_read_beside_the_port() -> None:
     ]
 
     assert absent == []
+
+
+def test_unreadable_bd_output_is_not_an_absent_item(tmp_path: Path) -> None:
+    """§3.3 and R9: `None` must mean "bd holds no such row" and nothing else.
+
+    `get` mapped every unreadable answer to `None`, so truncated or invalid
+    JSON over a live, NON-closed bead looked exactly like an id bd does not
+    hold — and `landing.recover` read that absence as "no mirror to check" and
+    mirrored a close nobody had made (cr-m6am). Only the empty array bd
+    answers for an unknown id is absence now; and whether a tracker keeps
+    items at all is a declared CAPABILITY, not something inferred from one
+    `None`.
+    """
+
+    def tracker(stdout: str) -> BdTracker:
+        """The bd port over a transport that always answers `stdout`."""
+
+        def transport(argv: Sequence[str], timeout_s: float) -> CompletedCommand:
+            return CompletedCommand(returncode=0, stdout=stdout, stderr="")
+
+        return BdTracker(BdClient(BdConfig(workspace=tmp_path, actor=ACTOR), transport))
+
+    ref = TrackerRef(kind=TrackerKind.BD, ref=STAGE)
+
+    with pytest.raises(BdOutputError):
+        tracker('[{"id": "trunc').get(ref)
+
+    assert tracker("[]").get(ref) is None
+    assert TrackerCapability.ITEMS in tracker("[]").capabilities
+    assert TrackerCapability.ITEMS not in NullTracker().capabilities
 
 
 @pytest.mark.acceptance
