@@ -135,9 +135,18 @@ def retired(database: LedgerDatabase, git: Git, task_id: str) -> bool:
     more than one we stopped ourselves, so leaving it open would wedge every
     sibling's admission on a task no verb can move.
     """
-    return closed(database, git, task_id) or (
-        task_state(database, task_id) in _RETIRING_STATES
-    )
+    return closed(database, git, task_id) or abandoned(database, task_id)
+
+
+def abandoned(database: LedgerDatabase, task_id: str) -> bool:
+    """Whether this task was retired by abandonment rather than by closure.
+
+    The half of `retired()` that says the run STOPPED. Archive reads it by
+    name: an abandon ends a task mid-run, so its roots reach no terminal node
+    and a settlement check that stands for "this run is over" has to hear the
+    retirement instead (§3.8).
+    """
+    return task_state(database, task_id) in _RETIRING_STATES
 
 
 _SQL_LANDING_INTENT: Final[str] = (

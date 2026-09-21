@@ -100,10 +100,9 @@ unshipped task.
   a retired task's checkpoint holds only rows its export already carries. Not
   clone-portable: a default clone does not fetch those refs.
 
-  It also refuses any root that has no terminal, and `phase abandon` retires the record
-  without settling one — so a task **abandoned mid-run cannot be archived yet** and its
-  `refs/wf/<root>/*` are unreclaimable through any verb. Tracked as `cr-ov7l`; until it
-  is fixed, only a task the graph took to a terminal archives.
+  A CLOSED task must also have every root settled; an **abandoned** one need not, since
+  `phase abandon` retires the record mid-run and no terminal is ever reached (`cr-ov7l`).
+  A task that is merely in flight is still refused, by the retirement gate.
 
 ## Rebuilding a ledger
 

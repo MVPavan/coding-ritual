@@ -201,12 +201,18 @@ def _contractor_root(database: LedgerDatabase, root_id: str) -> RootRecord:
 
 
 def _archivable(
-    repo: Path, wrapper_root: Path, database: LedgerDatabase, root_id: str
+    repo: Path,
+    wrapper_root: Path,
+    database: LedgerDatabase,
+    root_id: str,
+    *,
+    settle: bool = True,
 ) -> str:
-    """The task's root, settled, with one pinned ref and one run folder to lose.
+    """The task's root, with one pinned ref and one run folder to lose.
 
     Archive only READS the settlement, so it is written directly here rather
-    than driven through a whole instance.
+    than driven through a whole instance. `settle=False` is the root an abandon
+    leaves: it stops mid-run, so no terminal node is ever reached.
     """
     _git(
         repo,
@@ -215,11 +221,12 @@ def _archivable(
         _git(repo, "rev-parse", "HEAD"),
     )
     (wrapper_root / root_id / "worktree").mkdir(parents=True, exist_ok=True)
-    with database.transaction() as connection:
-        connection.execute(
-            "UPDATE roots SET terminal = ?, status = ? WHERE root_id = ?",
-            ("shipped", "closed", root_id),
-        )
+    if settle:
+        with database.transaction() as connection:
+            connection.execute(
+                "UPDATE roots SET terminal = ?, status = ? WHERE root_id = ?",
+                ("shipped", "closed", root_id),
+            )
     return root_id
 
 
@@ -655,6 +662,50 @@ def test_an_abandoned_task_is_retired_and_never_closed(
 
     assert result.refs == (f"refs/wf/{archived_root}/artifact/one",)
     assert not (wrapper_root / archived_root).exists()
+
+
+def test_an_abandoned_run_archives_though_its_root_never_settled(
+    tmp_path: Path,
+) -> None:
+    """§3.8: an abandon stops the run, so its roots reach no terminal node.
+
+    Archive's settlement check stands for "this run is over", and for a closed
+    task the terminal node is what says so. An ABANDONED task has no terminal
+    node and never will — `wf phase abandon` retires it mid-run — so the same
+    check refused it forever and every `refs/wf/<root>/*` it pinned leaked.
+    The refusal a live run needs is the retirement gate above it, which an
+    in-flight task still fails.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    bundle = tmp_path / "bundles" / f"{TASK}.bundle"
+    with open_ledger(repo, wrapper_root) as database:
+        root_id = seeded_task(database)
+        _seed_record(database, _record(state="admitted"))
+        _archivable(repo, wrapper_root, database, root_id, settle=False)
+
+        with pytest.raises(LedgerExportError, match="not retired"):
+            archive_task(
+                git,
+                database,
+                TASK,
+                bundle=bundle,
+                repo_root=repo,
+                wrapper_root=wrapper_root,
+            )
+
+        record_task_state(database, TASK, TaskState.ABANDONED)
+        result = archive_task(
+            git,
+            database,
+            TASK,
+            bundle=bundle,
+            repo_root=repo,
+            wrapper_root=wrapper_root,
+        )
+
+    assert result.refs == (f"refs/wf/{root_id}/artifact/one",)
+    assert git.ref_names_under(f"refs/wf/{root_id}/", cwd=repo) == ()
+    assert not (wrapper_root / root_id).exists()
 
 
 def test_a_task_its_tracker_ended_is_retired_like_an_abandoned_one(

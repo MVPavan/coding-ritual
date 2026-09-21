@@ -4,8 +4,10 @@
 deletes a run folder on a schedule. It is also strictly ordered, and the order
 is the whole design (D19):
 
-1. refuse unless the task is RETIRED — `closed()` or abandoned (§3.5) — with
-   every root settled, because a live run has nothing to archive;
+1. refuse unless the task is RETIRED — `closed()` or abandoned (§3.5) — and,
+   for a closed one, unless every root settled, because a live run has nothing
+   to archive. An abandoned task stopped mid-run and has no terminal node to
+   wait for (§3.8);
 2. write a git bundle of every `refs/wf/<root>/*` the task pinned, to a path
    the operator chose OUTSIDE the repository;
 3. verify that bundle with git itself;
@@ -31,7 +33,7 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.checkpoint import checkpoint_ref, staging_path
-from workflow_interpreter.ledger.closure import retired
+from workflow_interpreter.ledger.closure import abandoned, retired
 from workflow_interpreter.ledger.constants import MSG_NOT_RETIRED
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
@@ -82,11 +84,18 @@ def archive_task(
         raise LedgerExportError(MSG_UNKNOWN_TASK.format(task_id=task_id))
     if not retired(database, git, task_id):
         raise LedgerExportError(MSG_NOT_RETIRED.format(task_id=task_id))
-    for root_id, terminal in roots:
-        if not terminal:
-            raise LedgerExportError(
-                MSG_LIVE_ROOT.format(root_id=root_id, task_id=task_id)
-            )
+    # A settled root is how a CLOSED task says its run is over. An abandoned
+    # one never reaches a terminal node — that is what abandoning it did — so
+    # asking for one kept `refs/wf/<root>/*` alive forever (cr-ov7l). The
+    # retirement above is the gate a merely in-flight task still fails; the
+    # state is read by name rather than by writing `roots.terminal`, which the
+    # export carries as `wf_terminal` and would desync.
+    if not abandoned(database, task_id):
+        for root_id, terminal in roots:
+            if not terminal:
+                raise LedgerExportError(
+                    MSG_LIVE_ROOT.format(root_id=root_id, task_id=task_id)
+                )
     if bundle.resolve().is_relative_to(repo_root.resolve()):
         raise LedgerExportError(MSG_BUNDLE_INSIDE.format(path=bundle))
     if bundle.exists():
