@@ -228,12 +228,6 @@ def test_combines_code_markdown_reader_receipt_and_new_target(
     lab._signing = signing_config
     lab.signer = sign_payload
     lab._build_fresh()
-    # This lab launches REAL children under the frozen clock, and every poll
-    # advances it without spending any real time: on the ledger the poll loop
-    # is fast enough to burn the work node's 60 s `max_wall` before the child
-    # it is watching has finished writing. A few real milliseconds per poll
-    # keep the two clocks in the same order of magnitude.
-    lab.clock.real_sleep_s = 0.05
     composition = replace(
         lab.composition,
         config=lab.config.model_copy(

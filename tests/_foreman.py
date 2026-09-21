@@ -138,6 +138,17 @@ LAB_TASK: Final[str] = "cr-lab.1"
 LAB_EPIC: Final[str] = "cr-lab"
 """The lab's epic, stated as the input it is (§3.7) rather than parsed out of
 `LAB_TASK` — which is what production stopped doing in S3."""
+LAB_POLL_REAL_SLEEP_S: Final[float] = 0.05
+"""Real seconds the lab's frozen clock spends per wrapper poll.
+
+The lab launches REAL children (bwrap wrappers, vendor stubs) but every
+wrapper deadline — `stale_after`, `max_wall`, `procfs.terminate`'s TERM/KILL
+grace — is arithmetic over the frozen clock. At zero real time per poll a
+loaded host burns those deadlines before a child has started, finished
+writing, or died, so the wrapper TERMs live work and `terminate` cannot
+confirm death. A few real milliseconds per poll keep both clocks in the same
+order of magnitude; it is a fixture default because the whole foreman family
+shares the premise (cr-02ze.16)."""
 LAB_ATTEMPT: Final[int] = 1
 """The task bead every lab root belongs to (D16). A synthetic id, because the
 lab has no tracker: what the engine needs from it is a stable, path-safe name
@@ -525,7 +536,7 @@ class ForemanLab:
             claims=LedgerClaims(self.ledger),
         )
         self.git = make_git(self.inspector_config)
-        self.clock = FrozenClock()
+        self.clock = FrozenClock(real_sleep_s=LAB_POLL_REAL_SLEEP_S)
         self.profiles = _Profiles(self._accepted_profiles())
         self.spawner = InlineSpawner()
         self.config = ForemanConfig(

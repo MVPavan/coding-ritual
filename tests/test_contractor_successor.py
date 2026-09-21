@@ -1,7 +1,6 @@
 """Successor associations preserve P1 landing and P4 target/source authority."""
 
 from pathlib import Path
-from typing import Final
 
 import pytest
 
@@ -16,9 +15,6 @@ from workflow_interpreter.schema.decisions import (
     CoordinationError,
     TrustedReplacementRequest,
 )
-
-_POLL_REAL_SLEEP_S: Final[float] = 0.05
-"""Real seconds the frozen clock spends per wrapper poll in the labs below."""
 
 
 def _bumped_version(text: str) -> tuple[str, str]:
@@ -185,13 +181,6 @@ def test_ordinary_contractor_continues_B_A_C_with_original_CAS(
         signer=sign_payload,
         sandbox=SandboxMode.BWRAP,
     )
-    # REAL children under bwrap, watched by a frozen clock every poll advances
-    # for free: the decision task's 10 s `stale_after` burns in a handful of
-    # polls, so the wrapper TERMs the decide child before it has written
-    # `decision.json` and the foreman then reads the decision out of an EMPTY
-    # outputs tree. A few real milliseconds per poll keep the wrapper's clock
-    # and the child's startup in the same order of magnitude (S6 review, 3).
-    lab.clock.real_sleep_s = _POLL_REAL_SLEEP_S
     lab.fake_bd.rows["stage"] = _contractor_stage(
         "stage", description="Implement feature"
     )
