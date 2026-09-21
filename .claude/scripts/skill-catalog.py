@@ -57,6 +57,7 @@ ALLOWED_SLASHES: dict[str, str] = {
     "/new": "builtin",
     "/plugin": "builtin",  # Claude Code built-in plugin manager; mvp-plugin update skill  # Codex built-in; execution/workstream-mode warns against it  # authoring-for-agents skill-anatomy: "the human typing `/name`"
     "/settings": "url-path",  # prototype/UI.md example route
+    "/subtask": "builtin",  # Claude Code built-in full-context fork; agent-matrix context modes
 }
 
 # `.claude/...` path tokens that legitimately name nothing on disk (an
