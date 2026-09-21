@@ -56,6 +56,63 @@ def test_decision_executes_then_continues_to_work_without_signing_gate(
     )
 
 
+def test_stale_killed_decider_cannot_pass_as_a_decision(tmp_path: Path) -> None:
+    """A decider the host ended for staleness is refused, not read as `no_diff`.
+
+    The §8.2 kill lands on a child that already wrote its marker, so §7 grades
+    it `no_diff` and the response file is readable — the only thing that says
+    the decider never finished thinking is the exit record's reason.
+    """
+    from workflow_interpreter.inspector.models import ExitReason
+    from workflow_interpreter.schema.models import Outcome
+
+    lab = ForemanLab(
+        tmp_path, toml=FIXTURE, instance_inputs={}, sandbox=SandboxMode.OFF
+    )
+    root = lab.instantiate_resolved()
+    lab.profiles.bind_node(
+        "assess", ChildScript(marker='{"outcome":"fail_plan"}', effects='{"paths":[]}')
+    )
+    lab.profiles.bind_node(
+        "work", ChildScript(marker='{"outcome":"no_diff"}', effects='{"paths":[]}')
+    )
+    lab.profiles.decision_action = "continue_declared"
+    for _ in range(30):
+        lab.tick()
+        state = lab.store.coordination_store().state(root.root_id)
+        request = next(iter(state.requests.values()), None)
+        if request is not None and request.decision_root_id is not None:
+            decision = lab.store.reads.load_root(request.decision_root_id)
+            if decision.metadata.terminal is not None:
+                break
+    else:
+        pytest.fail("the decision child never settled")
+    attempt = max(
+        lab.store.reads.list_activations(request.decision_root_id),
+        key=lambda a: int(a.metadata.seq),
+    )
+    assert attempt.metadata.outcome is Outcome.NO_DIFF
+    assert attempt.metadata.exit_record is not None
+    lab.backend._merge_metadata(
+        attempt.activation_id,
+        {
+            "exit_record": attempt.metadata.exit_record.model_copy(
+                update={"reason": ExitReason.STALE.value}
+            ).model_dump(mode="json")
+        },
+    )
+    report = lab.tick()
+    assert report.halted, report
+    assert "work" not in [t.node for t in lab.profiles.profile.tasks]
+    assert (
+        lab.store.coordination_store()
+        .state(root.root_id)
+        .requests[request.request_id]
+        .state
+        == "human_attention"
+    )
+
+
 def test_replacement_inherits_owner_and_advice_is_essential(tmp_path: Path) -> None:
     lab = ForemanLab(
         tmp_path, toml=FIXTURE, instance_inputs={}, sandbox=SandboxMode.OFF
