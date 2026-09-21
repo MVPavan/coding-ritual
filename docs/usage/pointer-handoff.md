@@ -51,11 +51,12 @@ instructions.
 ## Sandbox requirement and protection boundary
 
 Reference mode requires the production `sandbox = "bwrap"` setting. With that
-setting, the existing wrapper-root read-only mount lets Claude's unscoped Read
-tool and Codex's workspace-write sandbox read the absolute export paths, while
-the profile and physical sandbox keep the evidence directory, source checkout,
-and engine records unwritable. Only `channels/` and any separately declared
-writer grants remain writable. Reference mode refuses dispatch when
+setting, the outer box starts with `--dev-bind / /`: host paths outside the
+read-only repo, wrapper, and checkout mounts retain host writability, including
+`$HOME` and `/tmp`. Every activation also gets writable `channels/` and a private
+toolchain cache. Writers additionally get declared checkout grants and bounded
+Git state; reviewers get neither. Evidence and engine records remain read-only.
+Reference mode refuses dispatch when
 `sandbox = "off"`; no profile permission or tool grant is added by this mode.
 
 The current refusal is checked after task construction. Consequently, an
@@ -86,6 +87,8 @@ spaces, newlines, and shell metacharacters, are preserved as JSON data; a path
 that is not valid UTF-8 fails closed during publication. A normal publication
 error removes its staging directory, and the next export of the same evidence
 set also reclaims a UUID-shaped staging directory left by process termination.
+A stage from a different evidence fingerprint is not reclaimed; this is a known,
+deliberate limit.
 
 Reference mode does not add direct Git access, a storage service, network
 access, model tools, a result protocol, or token reporting. It changes only how
