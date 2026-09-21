@@ -1,8 +1,8 @@
 # Verification
 
-This repo has **no first-party application code, build, or CI**. There are no
-test/lint/build commands to run for the repo as a whole, so the health gate is
-**structural** — do not invent commands.
+This repo is a harness and also holds the first-party `workflow_interpreter/`
+engine. Its real Python gate is listed below; for the rest of the repo the
+health gate is **structural** — do not invent commands.
 
 ## Structural gate (run what applies to your change)
 

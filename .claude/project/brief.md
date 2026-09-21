@@ -3,7 +3,8 @@
 **coding Ritual** is a meta-repository — a workspace for building and maintaining
 reusable agent harnesses (Claude Code + Codex), studying strong third-party
 reference harnesses, and consolidating the resulting learnings in one place.
-It is **not** an application; there is no first-party product code and no CI.
+It is **not** an application; it also holds the first-party
+`workflow_interpreter/` engine and its real Python gate, but has no CI.
 
 ## What lives here
 
