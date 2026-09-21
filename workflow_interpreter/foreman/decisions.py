@@ -12,7 +12,10 @@ from pydantic import TypeAdapter, ValidationError
 from workflow_interpreter.bdio.carriers import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
 from workflow_interpreter.bdio.rows import STATUS_CLOSED
-from workflow_interpreter.foreman.children import attention_blocks
+from workflow_interpreter.foreman.children import (
+    attention_blocks,
+    refresh_control_attention,
+)
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceWiring,
@@ -490,7 +493,18 @@ def advance_decision(
                     halted=True, stalled="child is cancelled or collected"
                 )
             if attention_blocks(composition, child):
-                return TickReport(halted=True, stalled=child.attention)
+                # Report the REFRESHED attention: the stored string can still
+                # carry control keys that are already resolved, and a halt
+                # reason naming a settled control sends the operator to the
+                # wrong evidence. The snapshot is read here rather than above
+                # so an unblocked child still costs no observation read.
+                activations = composition.reads_for_root(
+                    child.root_id
+                ).list_activations(child.root_id)
+                return TickReport(
+                    halted=True,
+                    stalled=refresh_control_attention(child, activations).attention,
+                )
         # Explicit commands to stale children refuse; the original owner is the durable run handle.
         if root_id != owner:
             coordinator.validate_member(root)

@@ -55,6 +55,23 @@ def test_observation_and_attention_share_snapshot(tmp_path, monkeypatch):
     assert not attention_blocks(lab.composition, current, activations=activations)
 
 
+def test_blocking_halt_reason_drops_resolved_control_keys(tmp_path):
+    """A blocked child halts on its real failure, never on a settled control."""
+    from workflow_interpreter.foreman.rpc_control import acknowledge_uncertain
+
+    lab, owner, coordinator, child, aid = child_with_uncertain_control(tmp_path)
+    wiring = lab.composition.for_root(child.root_id)
+    with wiring.band:
+        acknowledge_uncertain(wiring.store, aid, "operator inspected delivery")
+    coordinator.update_child(
+        owner,
+        child.model_copy(update={"attention": f"{aid}:control:1; crew log is gone"}),
+    )
+    report = advance_decision(lab.composition, child.root_id, lambda _: TickReport())
+    assert report.halted
+    assert report.stalled == "crew log is gone"
+
+
 def test_child_lock_reused_root_must_match_identity(tmp_path):
     """A supplied root cannot silently select another child's exclusion path."""
     lab, owner, coordinator, child, _ = child_with_uncertain_control(tmp_path)
