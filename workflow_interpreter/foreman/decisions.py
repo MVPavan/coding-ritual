@@ -23,6 +23,7 @@ from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.routing import route
 from workflow_interpreter.inspector.errors import GitCommandError, LockUnavailable
 from workflow_interpreter.inspector.gitcmd import GitSubcommand
+from workflow_interpreter.inspector.models import HOST_ENDED_EXIT_REASONS
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
     CoordinationError,
@@ -227,6 +228,16 @@ def _read_response(
         decision_root
     )
     activation = decision_reads.load_activation(request.attempt_id)
+    exit_record = activation.metadata.exit_record
+    if exit_record is not None and exit_record.reason in HOST_ENDED_EXIT_REASONS:
+        # A decider the host ended (§8.2 staleness, a max-wall breach, a steer,
+        # a signalled death) can still be graded `no_diff`: the marker and the
+        # response file are written before the silence that gets it killed.
+        # Reading that file would route on a decision nobody finished making,
+        # so the attempt fails here exactly as a crashed decider does.
+        raise CoordinationError(
+            f"decision attempt was ended by the host ({exit_record.reason})"
+        )
     evidence = activation.metadata.evidence
     if (
         activation.metadata.wf_root_id != decision_root.root_id

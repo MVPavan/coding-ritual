@@ -49,6 +49,7 @@ either.
 
 __all__ = [
     "EXIT_CODE_UNOBSERVED",
+    "HOST_ENDED_EXIT_REASONS",
     "ArtifactIdentity",
     "AuditFlag",
     "BranchAdvance",
@@ -123,6 +124,25 @@ class ExitReason(StrEnum):
     PROVEN, through `/proc` and the handle's identity; §7's marker, verify
     results and effects decide the outcome, none of which read the exit code.
     """
+
+
+HOST_ENDED_EXIT_REASONS: Final[frozenset[ExitReason]] = frozenset(
+    {
+        ExitReason.MAX_WALL,
+        ExitReason.STALE,
+        ExitReason.STEERED,
+        ExitReason.TERMINATED,
+    }
+)
+"""The reasons that say the HOST ended the child, not that the child finished.
+
+Named as a set because the distinction a caller needs is rarely "was it stale"
+but "did this process get to decide it was done": a ceiling breach, a §8.1
+steer and a signalled death all stop a child mid-thought, and whatever it left
+behind is a partial record of an unfinished run. `EXITED` and the two
+unobserved-status reasons are excluded on purpose — those describe a child that
+ran to its own end (§5.6), however well its status was collected.
+"""
 
 
 class LaunchOutcome(StrEnum):
