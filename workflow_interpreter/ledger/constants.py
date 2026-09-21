@@ -410,6 +410,12 @@ MSG_CHECKPOINTS_UNREADABLE: Final[str] = (
     "which tasks this checkout can rebuild from a checkpoint; a rebuild that "
     "read that as 'none' would clear every in-flight task's rows (§3.9)"
 )
+MSG_CHECKPOINT_TOO_LARGE: Final[str] = (
+    "task {task_id!r} exports {size} bytes and a checkpoint is read back under "
+    "{limit}, so anchoring these bytes would pin a checkpoint no rebuild could "
+    "ever read; the previous checkpoint is left as this task's newest anchor "
+    "(§3.9)"
+)
 MSG_EXPORT_NOT_LANDED: Final[str] = (
     "task {task_id!r} has not landed — its recorded state is {state} — and the "
     "committed export path is what a rebuild prefers over every later "

@@ -66,6 +66,7 @@ from workflow_interpreter.ledger.constants import (
     CHECKPOINT_DIR,
     CHECKPOINT_REF_TEMPLATE,
     EXPORT_SUFFIX,
+    MSG_CHECKPOINT_TOO_LARGE,
     MSG_CHECKPOINTS_UNREADABLE,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase
@@ -150,8 +151,21 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
 
     The snapshot is read BEFORE the lock, because `export_task` holds the
     connection for the whole read and the lock is only about the file.
+
+    The write is bounded by the SAME constant the read is (`checkpoint_source`,
+    `CHECKPOINT_BYTES_LIMIT`): an unbounded write let a large task pin an anchor
+    its own rebuild would refuse, at the one moment the checkpoint exists for.
+    Over the bound nothing is staged and nothing is pinned, so the task's
+    previous checkpoint stays its newest anchor, and the refusal reaches the
+    operator through `TaskCheckpoint`'s defect log (cr-kba4).
     """
     payload = export_task(database, task_id)
+    if len(payload) > CHECKPOINT_BYTES_LIMIT:
+        raise LedgerExportError(
+            MSG_CHECKPOINT_TOO_LARGE.format(
+                task_id=task_id, size=len(payload), limit=CHECKPOINT_BYTES_LIMIT
+            )
+        )
     path = staging_path(database.repo_root, task_id)
     ref = checkpoint_ref(task_id)
     with _staging_lock(task_id):

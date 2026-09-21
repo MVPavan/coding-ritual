@@ -50,6 +50,7 @@ from workflow_interpreter.ledger.checkpoint import (
     checkpoint_ref,
     rebuild_sources,
     staging_path,
+    write_checkpoint,
 )
 from workflow_interpreter.ledger.closure import closed, retired
 from workflow_interpreter.ledger.constants import TaskState
@@ -302,6 +303,37 @@ def test_a_checkpoint_the_seam_cannot_write_does_not_fail_the_activation(
         assert closure.status == STATUS_CLOSED
         assert closure.metadata.outcome is Outcome.DONE
     assert _seam(repo, wrapper_root).ref_target(checkpoint_ref(TASK), cwd=repo) is None
+
+
+def test_a_checkpoint_bigger_than_the_read_bound_is_never_anchored(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The write is bounded by what the READ will accept, or it is a trap.
+
+    `checkpoint_source` reads the blob back under `CHECKPOINT_BYTES_LIMIT`, so
+    a task whose export grew past it used to pin an anchor no rebuild could
+    ever use — and the rebuild refused the whole set at the one moment the
+    checkpoint existed for. Over the bound, nothing is written and nothing is
+    pinned: the PREVIOUS checkpoint stays the newest anchor this task has, and
+    the activation close still succeeds, because a checkpoint is never a gate.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    with open_ledger(repo, wrapper_root) as database:
+        _run_one_activation(database, git)
+        anchored = git.ref_target(checkpoint_ref(TASK), cwd=repo)
+        staged = staging_path(repo, TASK).read_bytes()
+        monkeypatch.setattr(checkpoint_module, "CHECKPOINT_BYTES_LIMIT", 32)
+
+        with pytest.raises(LedgerExportError, match="read back"):
+            write_checkpoint(git, database, TASK)
+
+        _root_id, closure = _run_one_activation(database, git)
+
+        assert closure.status == STATUS_CLOSED
+
+    assert anchored is not None
+    assert git.ref_target(checkpoint_ref(TASK), cwd=repo) == anchored
+    assert staging_path(repo, TASK).read_bytes() == staged
 
 
 def test_an_in_flight_export_cannot_outrank_a_newer_checkpoint(
