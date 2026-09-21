@@ -169,6 +169,18 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
     not a fresh one, so the same caller marks it stale; a write that lands
     clears that marker here, because these rows are the ones the close made
     and nothing older is owed any more.
+
+    The marker is written BEFORE the new anchor and cleared after it, and that
+    order is what makes a crash between the two ref writes harmless in both
+    directions (cr-kba4, fix round 2). Condemn-then-replace leaves only two
+    windows, and a rebuild reads each correctly with no further state: dying
+    before `update_ref` leaves the marker ON the anchor a rebuild would read,
+    which is the truth — the rows this close committed are newer than it; dying
+    after it leaves the marker on an object the checkpoint ref no longer names,
+    which `rebuild_sources` ignores by target. The reverse order — replace,
+    then mark — has a window where a hard kill leaves the OLD anchor with no
+    marker at all, reported as fresh, which is the failure the markers exist to
+    end. Three extra ref calls per close buy that; a close is not a hot loop.
     """
     payload = export_task(database, task_id)
     if len(payload) > CHECKPOINT_BYTES_LIMIT:
@@ -182,6 +194,7 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
     with _staging_lock(task_id):
         _stage(path, payload)
         oid = git.write_blob(path, cwd=database.repo_root)
+        mark_checkpoint_stale(git, database.repo_root, task_id)
         git.update_ref(ref, oid, cwd=database.repo_root)
         git.delete_ref(stale_ref(task_id), cwd=database.repo_root)
     _LOG.info(
@@ -367,6 +380,11 @@ def rebuild_sources(
     not a record this can silently rebuild from. `accept_stale` is the
     operator saying they want that anchor anyway — the same rebuild, from the
     same bytes, with the refusal answered rather than routed around (cr-kba4).
+
+    A marker refuses by TARGET and not merely by presence (`_marker_condemns`):
+    it is written at the anchor it condemns, so one naming any other object is
+    evidence about an anchor that has since been replaced, and reading it as a
+    refusal would reject every later checkpoint of that task indefinitely.
     """
     checkpointed = frozenset(checkpoint_tasks(git, repo_root))
     stale = (
@@ -379,7 +397,7 @@ def rebuild_sources(
     for task_id in wanted:
         committed = export_path(repo_root, task_id)
         if task_id in checkpointed and not committed.is_file():
-            if task_id in stale:
+            if task_id in stale and _marker_condemns(git, repo_root, task_id):
                 raise LedgerExportError(
                     MSG_CHECKPOINT_STALE.format(
                         task_id=task_id,
@@ -392,6 +410,22 @@ def rebuild_sources(
             continue
         sources.append(committed)
     return tuple(sources)
+
+
+def _marker_condemns(git: Git, repo_root: Path, task_id: str) -> bool:
+    """Whether the stale marker names the anchor a rebuild would actually read.
+
+    `mark_checkpoint_stale` writes the marker AT the checkpoint it condemns, so
+    equality of the two targets is the whole question. A marker left over a
+    SUPERSEDED anchor — a crash between pinning a new checkpoint and clearing
+    the marker — is about an object no rebuild will read, and refusing on it
+    would make every normal import of that task require the operator flag for
+    ever (cr-kba4, fix round 2).
+    """
+    marker = git.ref_target(stale_ref(task_id), cwd=repo_root)
+    if marker is None:
+        return False
+    return marker == git.ref_target(checkpoint_ref(task_id), cwd=repo_root)
 
 
 def _discovered(repo_root: Path, anchored: frozenset[str]) -> tuple[str, ...]:
