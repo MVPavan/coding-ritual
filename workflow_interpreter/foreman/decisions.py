@@ -565,8 +565,11 @@ def advance_decision(
         active_id = state.active.get(child_slot or "work")
         if not active_id:
             raise CoordinationError("active member admission is incomplete")
-        # Routing has not mutated this root; reuse its tick-local observation.
-        # Member validation above and the local tick still read fresh fencing state.
+        # Nothing on this path has written to this root since the tick loaded
+        # it, so reuse that read instead of repeating it. That is a fact about
+        # THIS tick only, not a freshness claim against other processes: the
+        # member validation above and the local tick below are what re-read
+        # fencing state.
         active = (
             root
             if active_id == root.root_id
