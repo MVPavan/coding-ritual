@@ -397,6 +397,13 @@ def drive(
     with BandLock(coordinator.member_lock_path(owner, "drive")), ExitStack() as stack:
         while time.monotonic() < deadline:
             children = coordinator.state(owner).children
+            # One poll, one observation: whether a row is blocked — and which
+            # control keys count as resolved — is decided from THIS snapshot,
+            # so a control resolved after it was taken is seen on the NEXT
+            # poll. Left that way deliberately: the loop re-reads every ~20 ms,
+            # and re-reading per blocked row would spend an observation read
+            # per child per poll to shorten an already bounded wait. A row that
+            # is actually ticked is re-observed from fresh reads below.
             snapshots = {
                 row.root_id: composition.reads_for_root(row.root_id).list_activations(
                     row.root_id
