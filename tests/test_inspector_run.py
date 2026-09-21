@@ -33,6 +33,7 @@ from tests._inspector import (
     FakeProfile,
     FrozenClock,
     entry_mint,
+    handle_for,
     head_of,
     make_config,
     make_git,
@@ -46,16 +47,21 @@ from tests._inspector import (
     task_builder,
 )
 from workflow_interpreter.bdio import Lifecycle, MintReason
+from workflow_interpreter.contracts.transport import CrewTransport
 from workflow_interpreter.inspector import (
     ExecLedger,
+    ExecLedgerEntry,
     ExitReason,
     InspectionResult,
     Inspector,
     LaunchOutcome,
+    LaunchReceipt,
     MonitorVerdict,
     SteerIntent,
     pinned_verifier_digests,
+    procfs,
 )
+from workflow_interpreter.inspector.models import HOST_ENDED_EXIT_REASONS
 from workflow_interpreter.inspector.paths import write_record
 from workflow_interpreter.inspector.steer import instructions_digest
 from workflow_interpreter.schema.models import IsolationMode, Outcome
@@ -70,6 +76,9 @@ BD_UPDATE = "update"
 STEER_REASON = "the crew is repeating itself"
 STEER_INSTRUCTIONS = "start from the failing test instead"
 REQUESTED_AT = "2026-09-02T09:00:00Z"
+ORPHAN_LAUNCH_ID = "crashed-rpc-launcher"
+ORPHAN_SECONDS = 30
+"""Long enough that only the wrapper's own kill can end the adopted child."""
 
 WRAPPER_MAIN = '''
 """An inspector wrapper in its own process, for the parent-death drill."""
@@ -440,6 +449,97 @@ def test_a_reattached_child_is_adopted_into_the_watch(lab: Lab) -> None:
     assert result.observation.exit_record.exit_code == 0
     assert result.observation.activation.metadata.lifecycle is Lifecycle.EXIT_RECORDED
     assert ExecLedger(lab.paths.ledger(activation_id)).count() == 1
+
+
+def _orphaned_rpc_receipt(lab: Lab, tmp_path: Path) -> str:
+    """Mint one activation whose §5.2 receipt names a live ORPHANED RPC child.
+
+    The exact §5.2 crash window for an STDIO-RPC launch: the receipt and the
+    ledger line are durable, bd still says `minted`, and the wrapper that
+    exec'd the child is gone — so the child is reparented to init and its pipes
+    died with its launcher. A `setsid` grandchild whose parent exits is the
+    only shape that reproduces "alive, ours to signal, never ours to reap".
+    """
+    activation = lab.store.mint_activation(lab.root.root_id, entry_mint()).activation
+    activation_id = activation.activation_id
+    lab.paths.ensure_activation_dir(activation_id)
+    lab.workspace.prepare(activation, lab.node)
+    pidfile = tmp_path / "orphan.pid"
+    script = tmp_path / "orphan.sh"
+    script.write_text(
+        f"#!/bin/sh\necho $$ > {pidfile}\nsleep {ORPHAN_SECONDS}\n", encoding="utf-8"
+    )
+    script.chmod(0o755)
+    subprocess.run(["sh", "-c", f"setsid {script} &"], check=True, timeout=30)
+    deadline = time.monotonic() + SENTINEL_TIMEOUT_S
+    while not pidfile.exists() and time.monotonic() < deadline:
+        time.sleep(0.02)
+    pid = int(pidfile.read_text(encoding="utf-8").strip())
+    boot_id = procfs.read_boot_id(lab.config)
+    assert boot_id is not None
+    handle = handle_for(
+        pid,
+        boot_id=boot_id,
+        start_time=procfs.read_start_time(lab.config, pid) or "",
+        log_path=str(lab.paths.log(activation_id)),
+    )
+    write_record(
+        lab.paths.receipt(activation_id),
+        LaunchReceipt(
+            transport=CrewTransport.STDIO_RPC,
+            launch_id=ORPHAN_LAUNCH_ID,
+            root_id=lab.root.root_id,
+            activation_id=activation_id,
+            argv=(str(script),),
+            cwd=str(lab.repo),
+            handle=handle,
+        ),
+    )
+    lab.paths.ledger(activation_id).write_bytes(
+        ExecLedger.line(
+            ExecLedgerEntry(
+                launch_id=ORPHAN_LAUNCH_ID,
+                activation_id=activation_id,
+                pid=pid,
+                at=REQUESTED_AT,
+            )
+        )
+    )
+    return activation_id
+
+
+@pytest.mark.proc
+def test_a_reattached_rpc_child_the_wrapper_kills_is_recorded_as_host_ended(
+    tmp_path: Path,
+) -> None:
+    """Sol: the host-kill of an adopted RPC child passed as a normal finish.
+
+    A reattached STDIO-RPC child cannot be watched — the pipes belonged to the
+    dead launcher — so the wrapper kills it and watches the corpse. The kill
+    was never ours to reap (ECHILD), so the watch reads that death as
+    `EXIT_STATUS_UNOBSERVABLE_REATTACHED`: "it ended on its own", which is
+    outside `HOST_ENDED_EXIT_REASONS` and so accepted by `foreman/decisions` as
+    a finished run. A decider this wrapper KILLED would have been read for its
+    answer. The status is genuinely unknowable; the CAUSE is not.
+    """
+    lab = Lab(tmp_path)
+    lab.clock.real_sleep_s = 0.05
+    activation_id = _orphaned_rpc_receipt(lab, tmp_path)
+
+    result = lab.inspector.run(
+        entry_mint(),
+        lab.node,
+        FakeProfile(ChildScript()),
+        task_builder(lab.paths.worktree, lab.node),
+        pinned_digests=pinned_verifier_digests(lab.root),
+    )
+
+    assert result.dispatch.activation.activation_id == activation_id
+    assert result.dispatch.outcome is LaunchOutcome.REATTACHED
+    assert result.observation is not None
+    reason = ExitReason(result.observation.exit_record.reason)
+    assert reason is ExitReason.TERMINATED
+    assert reason in HOST_ENDED_EXIT_REASONS
 
 
 @pytest.mark.proc
