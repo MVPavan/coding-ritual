@@ -169,8 +169,9 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
     not a fresh one, so the same caller marks it stale. A healthy write
     publishes the new anchor and clears an existing marker in one ref
     transaction; it never condemns a healthy checkpoint, and a failed
-    transaction changes neither ref (cr-kba4, fix round 3). Three git spawns
-    per close buy that: write the blob, read the marker, publish the refs.
+    transaction changes neither ref (cr-kba4, fix round 3). Two git spawns per
+    close buy that: write the blob, then publish both refs; deleting a missing
+    marker is valid inside an `update-ref --stdin` transaction.
     """
     payload = export_task(database, task_id)
     if len(payload) > CHECKPOINT_BYTES_LIMIT:
@@ -185,15 +186,10 @@ def write_checkpoint(git: Git, database: LedgerDatabase, task_id: str) -> str:
         _stage(path, payload)
         oid = git.write_blob(path, cwd=database.repo_root)
         marker = stale_ref(task_id)
-        deleted_marker = (
-            marker
-            if git.ref_target(marker, cwd=database.repo_root) is not None
-            else None
-        )
         git.update_ref_and_delete(
             ref,
             oid,
-            deleted_marker,
+            marker,
             cwd=database.repo_root,
         )
     _LOG.info(
