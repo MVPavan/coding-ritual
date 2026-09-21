@@ -6,7 +6,7 @@ Read `orchestration.md` first, then this. Update at every phase transition.
 |---|---|
 | Branch | `wf/store-restructure` (from `aa0adc6`) |
 | Current slice | none — all slices closed, gate B passed, close-out docs done |
-| Phase | READY TO MERGE — waiting on the user's confirmation of the target (`main`) |
+| Phase | DONE — merged to `main` as `0ad406b` (2026-09-21); merged-result gate: 2291 passed, 2 order-dependent flakes (pass alone), bd lane/ruff/fmt/mypy 0 |
 | Last commit on branch | `266efb4` (gate B fixes `f56f59c..80e4d5b`, close-out docs `266efb4`) |
 | Fix round | 0 / 3 |
 | Fable gate A | SHIP WITH FIXES on `aa0adc6..b07b534`; fixes in `82e328f` |
