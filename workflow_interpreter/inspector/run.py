@@ -77,6 +77,7 @@ from workflow_interpreter.inspector.launch import (
 )
 from workflow_interpreter.inspector.models import (
     EXIT_CODE_UNOBSERVED,
+    HOST_ENDED_EXIT_REASONS,
     RECORD_MODEL,
     ExitReason,
     HumanConfirmation,
@@ -85,6 +86,7 @@ from workflow_interpreter.inspector.models import (
     MonitorVerdict,
     PreconditionResult,
     SteerIntent,
+    TerminationProof,
 )
 from workflow_interpreter.inspector.monitor import Limits, Monitor
 from workflow_interpreter.inspector.paths import WrapperPaths, read_record
@@ -208,7 +210,10 @@ class Inspector:
         reparented to init, so its exit STATUS is unknowable rather than
         unobserved. The monitor learns that from the kernel rather than from
         here — `waitpid` answers ECHILD — and records it as
-        `EXIT_STATUS_UNOBSERVABLE_REATTACHED` (§5.2, §5.6).
+        `EXIT_STATUS_UNOBSERVABLE_REATTACHED` (§5.2, §5.6). Except where THIS
+        frame ended it: an adopted STDIO-RPC child is killed rather than
+        watched, because its pipes died with the launcher, and `_host_ended`
+        keeps that kill in the recorded reason.
         """
         # A §8.1 continuation runs the same §5.4 precondition as any other
         # activation, so a writing node's continuation is reset to the steered
@@ -263,12 +268,15 @@ class Inspector:
                 pipes,
             ).watch(monitor, mirror)
         else:
-            if (
-                dispatch.receipt is not None
-                and dispatch.receipt.transport is CrewTransport.STDIO_RPC
-            ):
+            killed = (
                 procfs.terminate(self._config, handle, self._clock)
+                if dispatch.receipt is not None
+                and dispatch.receipt.transport is CrewTransport.STDIO_RPC
+                else None
+            )
             result = monitor.watch(mirror)
+            if killed is not None:
+                result = _host_ended(result, killed)
         if self._steer_pending(activation.activation_id):
             # §8.1 writes the intent DURABLY before the kill, so a child that
             # dies with one on disk died BECAUSE of the steer — the same rule
@@ -407,6 +415,31 @@ def _exit_code(result: MonitorResult) -> int:
     that must not be recordable as a success.
     """
     return EXIT_CODE_UNOBSERVED if result.exit_code is None else result.exit_code
+
+
+def _host_ended(result: MonitorResult, killed: TerminationProof) -> MonitorResult:
+    """Keep a kill this wrapper carried out visible in the reason it records.
+
+    An adopted child is reparented to init, so `waitpid` here answers ECHILD
+    and the watch reads its death as `EXIT_STATUS_UNOBSERVABLE_REATTACHED` — a
+    child that ran to its OWN end, which `foreman/decisions` then accepts as a
+    finished run (`HOST_ENDED_EXIT_REASONS`). Over a child this frame killed
+    that is a host-kill bypass: the status is genuinely unknowable, but the
+    CAUSE is not, and the termination proof is the evidence for it. A watch
+    that ended on a ceiling breach already names a host-ended reason and keeps
+    the more specific one.
+    """
+    if _exit_reason(result) in HOST_ENDED_EXIT_REASONS:
+        return result
+    return result.model_copy(
+        update={
+            "exit_reason": ExitReason.TERMINATED,
+            "exit_code": killed.exit_code
+            if result.exit_code is None
+            else result.exit_code,
+            "termination": killed if result.termination is None else result.termination,
+        }
+    )
 
 
 def _exit_reason(result: MonitorResult) -> ExitReason:
