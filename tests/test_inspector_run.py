@@ -451,7 +451,7 @@ def test_a_reattached_child_is_adopted_into_the_watch(lab: Lab) -> None:
     assert ExecLedger(lab.paths.ledger(activation_id)).count() == 1
 
 
-def _orphaned_rpc_receipt(lab: Lab, tmp_path: Path) -> str:
+def _orphaned_rpc_receipt(lab: Lab, tmp_path: Path) -> tuple[str, int]:
     """Mint one activation whose §5.2 receipt names a live ORPHANED RPC child.
 
     The exact §5.2 crash window for an STDIO-RPC launch: the receipt and the
@@ -505,7 +505,7 @@ def _orphaned_rpc_receipt(lab: Lab, tmp_path: Path) -> str:
             )
         )
     )
-    return activation_id
+    return activation_id, pid
 
 
 @pytest.mark.proc
@@ -524,7 +524,7 @@ def test_a_reattached_rpc_child_the_wrapper_kills_is_recorded_as_host_ended(
     """
     lab = Lab(tmp_path)
     lab.clock.real_sleep_s = 0.05
-    activation_id = _orphaned_rpc_receipt(lab, tmp_path)
+    activation_id, _ = _orphaned_rpc_receipt(lab, tmp_path)
 
     result = lab.inspector.run(
         entry_mint(),
@@ -540,6 +540,48 @@ def test_a_reattached_rpc_child_the_wrapper_kills_is_recorded_as_host_ended(
     reason = ExitReason(result.observation.exit_record.reason)
     assert reason is ExitReason.TERMINATED
     assert reason in HOST_ENDED_EXIT_REASONS
+
+
+@pytest.mark.proc
+def test_a_reattached_rpc_child_gone_before_the_kill_keeps_its_own_reason(
+    tmp_path: Path,
+) -> None:
+    """Sol: "we killed it" is a claim only a delivered signal can support.
+
+    Same adopted STDIO-RPC shape, except the child ended on its own before the
+    wrapper got to it, so `terminate` signals nothing — `signals_sent` is
+    empty. Relabelling that death `terminated` would state a host kill that
+    never happened, and §5.6 would then refuse a decision the crew genuinely
+    reached. With no signal delivered, the watch's own reason stands.
+    """
+    lab = Lab(tmp_path)
+    lab.clock.real_sleep_s = 0.05
+    activation_id, pid = _orphaned_rpc_receipt(lab, tmp_path)
+    os.kill(pid, signal.SIGKILL)
+    deadline = time.monotonic() + SENTINEL_TIMEOUT_S
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.02)
+    else:  # pragma: no cover - the orphan's reaper is init, not this process
+        pytest.fail(f"orphan {pid} outlived its own SIGKILL")
+
+    result = lab.inspector.run(
+        entry_mint(),
+        lab.node,
+        FakeProfile(ChildScript()),
+        task_builder(lab.paths.worktree, lab.node),
+        pinned_digests=pinned_verifier_digests(lab.root),
+    )
+
+    assert result.dispatch.activation.activation_id == activation_id
+    assert result.dispatch.outcome is LaunchOutcome.REATTACHED
+    assert result.observation is not None
+    reason = ExitReason(result.observation.exit_record.reason)
+    assert reason is ExitReason.EXIT_STATUS_UNOBSERVABLE_REATTACHED
+    assert reason not in HOST_ENDED_EXIT_REASONS
 
 
 @pytest.mark.proc
