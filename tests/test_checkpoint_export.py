@@ -23,10 +23,10 @@ Nine properties, one test each — the epic's last slice is small on purpose:
 8. a checkpoint write that was REFUSED marks the kept anchor stale in git, a
    rebuild refuses that anchor by name until the operator accepts it, and the
    next checkpoint that lands clears the marker (cr-kba4);
-9. a marker left behind over a SUPERSEDED anchor refuses nothing — the marker
-   names the one anchor it condemns, so a crash between pinning a new
-   checkpoint and clearing the marker cannot wedge the task's every later
-   import behind the operator flag (cr-kba4).
+9. a healthy checkpoint replaces its stale anchor and clears the marker in one
+   transaction without ever writing a marker itself; a refused transaction
+   changes neither ref, and even a refused marker write cannot fail the close
+   (cr-kba4).
 
 Real git throughout: a blob, a ref and a rebuild cannot be faked.
 """
@@ -420,7 +420,27 @@ def test_a_refused_checkpoint_marks_its_anchor_stale_until_a_good_one_lands(
     names the flag that accepts it, and the next checkpoint that LANDS clears
     the marker, because those rows are the ones the close made.
     """
-    repo, wrapper_root, git = _lab(tmp_path)
+    repo, wrapper_root, _ = _lab(tmp_path)
+
+    class TrackingGit(Git):
+        """Record every marker write while exercising the real Git seam."""
+
+        marker_updates: int = 0
+
+        def update_ref(self, ref: str, commit: str, *, cwd: Path) -> None:
+            """Record marker writes before forwarding the real mutation."""
+            if ref == stale_ref(TASK):
+                self.marker_updates += 1
+            super().update_ref(ref, commit, cwd=cwd)
+
+    git = TrackingGit(
+        InspectorConfig(
+            repo_root=repo,
+            wrapper_root=wrapper_root,
+            host=HOST,
+            sandbox=SandboxMode.OFF,
+        )
+    )
     with open_ledger(repo, wrapper_root) as database:
         _run_one_activation(database, git)
         anchored = git.ref_target(checkpoint_ref(TASK), cwd=repo)
@@ -428,6 +448,7 @@ def test_a_refused_checkpoint_marks_its_anchor_stale_until_a_good_one_lands(
         _run_one_activation(database, git)
 
     assert git.ref_target(stale_ref(TASK), cwd=repo) == anchored
+    assert git.marker_updates == 1
     with pytest.raises(LedgerExportError, match="STALE"):
         rebuild_sources(git, repo, ())
 
@@ -444,33 +465,42 @@ def test_a_refused_checkpoint_marks_its_anchor_stale_until_a_good_one_lands(
 
     assert git.ref_target(stale_ref(TASK), cwd=repo) is None
     assert git.ref_target(checkpoint_ref(TASK), cwd=repo) != anchored
+    assert git.marker_updates == 1, "the healthy path wrote a stale marker"
     assert rebuild_sources(git, repo, ()) == (staging_path(repo, TASK),)
 
 
-def test_a_marker_left_over_a_superseded_anchor_refuses_nothing(
-    tmp_path: Path,
+def test_a_failed_ref_transaction_changes_neither_ref_and_not_the_close(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The marker condemns ONE anchor, not the task (cr-kba4, fix round 2).
-
-    Pinning a fresh checkpoint and clearing the marker are two ref writes, and
-    a crash between them leaves the marker set over an anchor the checkpoint
-    ref no longer names. Read by PRESENCE, that marker refuses every ordinary
-    import of the task for ever, and the operator can only ever answer it with
-    the accept-stale flag — over an anchor that was never the stale one. Read
-    by TARGET, a superseded marker is evidence about an object no rebuild will
-    read, and the new anchor stands on its own.
-    """
+    """A refused atomic publish and refused marker write cannot fail the close."""
     repo, wrapper_root, git = _lab(tmp_path)
 
-    class HalfWriteGit(Git):
-        """A seam killed after the new anchor lands, before the marker goes."""
+    class RefusingTransactionGit(Git):
+        """Refuse both the atomic publish and its best-effort stale marker."""
 
-        def delete_ref(self, ref: str, *, cwd: Path) -> None:
-            """Drop every ref but this task's marker, which the crash keeps."""
-            if ref != stale_ref(TASK):
-                super().delete_ref(ref, cwd=cwd)
+        transaction_calls: int = 0
 
-    crashing = HalfWriteGit(
+        def update_ref_and_delete(
+            self,
+            ref: str,
+            new: str,
+            deleted_ref: str | None,
+            *,
+            cwd: Path,
+        ) -> None:
+            """Refuse the transaction before Git can change either ref."""
+            self.transaction_calls += 1
+            raise GitCommandError(
+                f"git update-ref transaction refused {ref} {new} {deleted_ref}"
+            )
+
+        def update_ref(self, ref: str, commit: str, *, cwd: Path) -> None:
+            """Refuse the recovery marker without changing its prior state."""
+            if ref == stale_ref(TASK):
+                raise GitCommandError(f"git update-ref marker refused {ref}")
+            super().update_ref(ref, commit, cwd=cwd)
+
+    refusing = RefusingTransactionGit(
         InspectorConfig(
             repo_root=repo,
             wrapper_root=wrapper_root,
@@ -479,15 +509,22 @@ def test_a_marker_left_over_a_superseded_anchor_refuses_nothing(
         )
     )
     with open_ledger(repo, wrapper_root) as database:
-        _run_one_activation(database, crashing)
-        condemned = git.ref_target(checkpoint_ref(TASK), cwd=repo)
-        # The marker a refused write would have left over that anchor.
-        git.update_ref(stale_ref(TASK), str(condemned), cwd=repo)
-        _run_one_activation(database, crashing)
+        _run_one_activation(database, git)
+        anchored = git.ref_target(checkpoint_ref(TASK), cwd=repo)
+        monkeypatch.setattr(checkpoint_module, "CHECKPOINT_BYTES_LIMIT", 32)
+        _run_one_activation(database, git)
+        marked = git.ref_target(stale_ref(TASK), cwd=repo)
+        monkeypatch.undo()
 
-    assert git.ref_target(stale_ref(TASK), cwd=repo) == condemned
-    assert git.ref_target(checkpoint_ref(TASK), cwd=repo) != condemned
-    assert rebuild_sources(git, repo, ()) == (staging_path(repo, TASK),)
+        _root_id, closure = _run_one_activation(database, refusing)
+
+    assert closure.status == STATUS_CLOSED
+    assert closure.metadata.outcome is Outcome.DONE
+    assert refusing.transaction_calls == 1
+    assert git.ref_target(checkpoint_ref(TASK), cwd=repo) == anchored
+    assert git.ref_target(stale_ref(TASK), cwd=repo) == marked == anchored
+    with pytest.raises(LedgerExportError, match="STALE"):
+        rebuild_sources(git, repo, ())
 
 
 def test_a_checkpoint_stages_through_a_replace_of_a_unique_file(
