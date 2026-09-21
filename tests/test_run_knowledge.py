@@ -1854,6 +1854,11 @@ def _settled_root(database: LedgerDatabase, task_id: str, root_id: str) -> None:
         )
 
 
+def _inspector(repo: Path, wrapper_root: Path) -> InspectorConfig:
+    """The one config the archive reads its roots and its `/proc` seam from."""
+    return InspectorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab")
+
+
 def _archive_fixture(tmp_path: Path) -> tuple[Path, Path, Git, str, str]:
     """A repository with one pinned root ref and one run folder to lose."""
     repo = make_repo(tmp_path)
@@ -1865,7 +1870,7 @@ def _archive_fixture(tmp_path: Path) -> tuple[Path, Path, Git, str, str]:
     folder = wrapper_root / root_id
     (folder / "worktree").mkdir(parents=True)
     (folder / "worktree" / "big").write_text("scratch\n", encoding="utf-8")
-    git = Git(InspectorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
+    git = Git(_inspector(repo, wrapper_root))
     return repo, wrapper_root, git, root_id, ref
 
 
@@ -1885,8 +1890,7 @@ def test_archive_refuses_a_task_that_is_not_retired_and_deletes_nothing(
                 database,
                 TASK_ID,
                 bundle=bundle,
-                repo_root=repo,
-                wrapper_root=wrapper_root,
+                inspector=_inspector(repo, wrapper_root),
             )
 
     assert (wrapper_root / root_id).is_dir()
@@ -1917,8 +1921,7 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
             database,
             TASK_ID,
             bundle=bundle,
-            repo_root=repo,
-            wrapper_root=wrapper_root,
+            inspector=_inspector(repo, wrapper_root),
         )
 
     assert result.refs == (ref,)
@@ -1957,8 +1960,7 @@ def test_archive_refuses_a_bundle_inside_the_repository(tmp_path: Path) -> None:
                 database,
                 TASK_ID,
                 bundle=repo / "inside.bundle",
-                repo_root=repo,
-                wrapper_root=wrapper_root,
+                inspector=_inspector(repo, wrapper_root),
             )
 
     assert (wrapper_root / root_id).is_dir()

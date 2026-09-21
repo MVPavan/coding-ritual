@@ -317,12 +317,7 @@ def _archive(config: ForemanConfig, task_id: str, bundle: Path) -> int:
     git = Git(config.inspector)
     with open_ledger(config.repo_root, config.wrapper_root) as database:
         result = archive_task(
-            git,
-            database,
-            task_id,
-            bundle=bundle,
-            repo_root=config.repo_root,
-            wrapper_root=config.wrapper_root,
+            git, database, task_id, bundle=bundle, inspector=config.inspector
         )
     sys.stdout.write(
         _MSG_ARCHIVED.format(

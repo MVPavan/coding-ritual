@@ -7,7 +7,8 @@ is the whole design (D19):
 1. refuse unless the task is RETIRED — `closed()` or abandoned (§3.5) — and,
    for a closed one, unless every root settled, because a live run has nothing
    to archive. An abandoned task stopped mid-run and has no terminal node to
-   wait for (§3.8);
+   wait for (§3.8), so what stands in for the settlement there is the same
+   proven death terminal cleanup takes before it deletes anything;
 2. write a git bundle of every `refs/wf/<root>/*` the task pinned, to a path
    the operator chose OUTSIDE the repository;
 3. verify that bundle with git itself;
@@ -31,12 +32,17 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.bdio.reads import list_activations
+from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import WrapperPaths
+from workflow_interpreter.inspector.toolchain_cleanup import death_refusal
 from workflow_interpreter.ledger.checkpoint import checkpoint_ref, staging_path
 from workflow_interpreter.ledger.closure import abandoned, retired
 from workflow_interpreter.ledger.constants import MSG_NOT_RETIRED
 from workflow_interpreter.ledger.database import LedgerDatabase
 from workflow_interpreter.ledger.errors import LedgerExportError
+from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.ledger.tasks import task_roots
 
 ROOT_REF_PREFIX: Final[str] = "refs/wf/{root_id}/"
@@ -51,6 +57,11 @@ MSG_BUNDLE_INSIDE: Final[str] = (
 )
 MSG_BUNDLE_EXISTS: Final[str] = "the bundle path {path} already exists"
 MSG_NO_REFS: Final[str] = "task {task_id!r} pinned no refs/wf/<root>/ to archive"
+MSG_LIVE_CREW: Final[str] = (
+    "activation {activation_id!r} of root {root_id!r} still has a live crew "
+    "({reason}); archive deletes bytes a running process may still be writing, "
+    "so nothing was deleted"
+)
 MSG_UNVERIFIED: Final[str] = "git refused the bundle at {path}; nothing was deleted"
 
 
@@ -75,10 +86,18 @@ def archive_task(
     task_id: str,
     *,
     bundle: Path,
-    repo_root: Path,
-    wrapper_root: Path,
+    inspector: InspectorConfig,
 ) -> ArchiveResult:
-    """Bundle, verify, then delete one retired task's run folders and refs."""
+    """Bundle, verify, then delete one retired task's run folders and refs.
+
+    The two roots come from `inspector` rather than beside it: the wrapper
+    directories this deletes and the repository it bundles from are the ones
+    the death proof below reads its `/proc` evidence against, and a second
+    pair of path arguments would be a second chance for them to disagree
+    (`ForemanConfig` already asserts they match).
+    """
+    repo_root = inspector.repo_root
+    wrapper_root = inspector.wrapper_root
     roots = task_roots(database, task_id)
     if not roots:
         raise LedgerExportError(MSG_UNKNOWN_TASK.format(task_id=task_id))
@@ -96,6 +115,7 @@ def archive_task(
                 raise LedgerExportError(
                     MSG_LIVE_ROOT.format(root_id=root_id, task_id=task_id)
                 )
+    _assert_crews_dead(database, task_id, roots, inspector)
     if bundle.resolve().is_relative_to(repo_root.resolve()):
         raise LedgerExportError(MSG_BUNDLE_INSIDE.format(path=bundle))
     if bundle.exists():
@@ -132,6 +152,38 @@ def archive_task(
         run_folders=tuple(folders),
         checkpoint_cleared=cleared,
     )
+
+
+def _assert_crews_dead(
+    database: LedgerDatabase,
+    task_id: str,
+    roots: tuple[tuple[str, str], ...],
+    inspector: InspectorConfig,
+) -> None:
+    """Refuse the archive while any activation of this task may still be running.
+
+    Retirement is a RECORD event and a crew is an operating-system one, so
+    neither `closed()` nor an abandon proves the processes are gone: `wf phase
+    abandon` writes the state and leaves the killing to cleanup, which is the
+    one thing that takes the death proof. Archive deletes strictly more than
+    cleanup does — the wrapper directories AND the `refs/wf/<root>/*` that are
+    the only pin on unbundled output — so it asks the SAME question, through
+    the same `death_refusal`, rather than growing a second liveness rule that
+    could drift from it (cr-ov7l, §3.9).
+    """
+    store = LedgerStore(database, task_id=task_id)
+    for root_id, _ in roots:
+        paths = WrapperPaths(inspector, root_id)
+        for activation in list_activations(store, root_id):
+            refusal = death_refusal(paths, activation)
+            if refusal is not None:
+                raise LedgerExportError(
+                    MSG_LIVE_CREW.format(
+                        activation_id=activation.activation_id,
+                        root_id=root_id,
+                        reason=refusal,
+                    )
+                )
 
 
 def _clear_checkpoint(git: Git, repo_root: Path, task_id: str) -> bool:

@@ -45,7 +45,7 @@ from tests._fake_bd import FakeBd
 from tests._foreman import LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
 from tests._helpers import seeded_records
-from tests._inspector import make_repo
+from tests._inspector import handle_for, make_config, make_repo, write_proc_entry
 from tests._ledger import EPIC, TASK, ledger_store, seeded_task
 from tests.conftest import Signer
 from tests.test_ledger_writes import _open_gate
@@ -115,6 +115,9 @@ TREE_OID: Final[str] = "c" * 40
 GATE_RECEIPT: Final[str] = "gate-receipt"
 LANDING_RECEIPT: Final[str] = "landing-receipt"
 HOST: Final[str] = "derived-closed-test"
+LIVE_PID: Final[int] = 4251
+"""A pid the lab's fake `/proc` holds an entry for, so the death proof reads
+the crew as ALIVE without this test ever spawning one."""
 GIT_TIMEOUT_S: Final[float] = 30.0
 _WRITES_CLOSED: Final[re.Pattern[str]] = re.compile(
     r"""["']?state["']?\s*[:=]\s*ContractorState\.CLOSED"""
@@ -136,16 +139,19 @@ def _git(repo: Path, *args: str) -> str:
     ).stdout.strip()
 
 
+def _inspector(repo_root: Path, wrapper_root: Path) -> InspectorConfig:
+    """The one config the seam and the archive both read their roots from."""
+    return InspectorConfig(
+        repo_root=repo_root,
+        wrapper_root=wrapper_root,
+        host=HOST,
+        sandbox=SandboxMode.OFF,
+    )
+
+
 def _seam(repo_root: Path, wrapper_root: Path) -> Git:
     """The engine's git seam over one checkout, sandbox off."""
-    return Git(
-        InspectorConfig(
-            repo_root=repo_root,
-            wrapper_root=wrapper_root,
-            host=HOST,
-            sandbox=SandboxMode.OFF,
-        )
-    )
+    return Git(_inspector(repo_root, wrapper_root))
 
 
 def _lab(tmp_path: Path, name: str = "repo") -> tuple[Path, Path, Git]:
@@ -316,8 +322,7 @@ def test_a_crash_between_the_export_and_the_pin_leaves_the_task_open(
                 database,
                 TASK,
                 bundle=tmp_path / "bundles" / f"{TASK}.bundle",
-                repo_root=repo,
-                wrapper_root=wrapper_root,
+                inspector=_inspector(repo, wrapper_root),
             )
 
 
@@ -656,8 +661,7 @@ def test_an_abandoned_task_is_retired_and_never_closed(
             database,
             TASK,
             bundle=tmp_path / "bundles" / f"{TASK}.bundle",
-            repo_root=repo,
-            wrapper_root=wrapper_root,
+            inspector=_inspector(repo, wrapper_root),
         )
 
     assert result.refs == (f"refs/wf/{archived_root}/artifact/one",)
@@ -689,8 +693,7 @@ def test_an_abandoned_run_archives_though_its_root_never_settled(
                 database,
                 TASK,
                 bundle=bundle,
-                repo_root=repo,
-                wrapper_root=wrapper_root,
+                inspector=_inspector(repo, wrapper_root),
             )
 
         record_task_state(database, TASK, TaskState.ABANDONED)
@@ -699,13 +702,49 @@ def test_an_abandoned_run_archives_though_its_root_never_settled(
             database,
             TASK,
             bundle=bundle,
-            repo_root=repo,
-            wrapper_root=wrapper_root,
+            inspector=_inspector(repo, wrapper_root),
         )
 
     assert result.refs == (f"refs/wf/{root_id}/artifact/one",)
     assert git.ref_names_under(f"refs/wf/{root_id}/", cwd=repo) == ()
     assert not (wrapper_root / root_id).exists()
+
+
+def test_archive_refuses_an_abandoned_task_whose_crew_is_still_alive(
+    tmp_path: Path,
+) -> None:
+    """§3.9: the retirement is a record event; the crew is a process.
+
+    `wf phase abandon` writes ABANDONED and terminates nothing — cleanup is
+    what takes the death proof. So skipping the settlement check for an
+    abandoned task let archive delete the wrapper directory and the
+    `refs/wf/<root>/*` that are the only pin on output a LIVE crew was still
+    writing. Archive now asks `death_refusal`, the same question cleanup asks,
+    and a live handle refuses it with nothing deleted (cr-ov7l).
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+    inspector = make_config(
+        repo, tmp_path, wrapper_root=wrapper_root, host=HOST, sandbox=SandboxMode.OFF
+    )
+    write_proc_entry(inspector.proc_root, LIVE_PID)
+    bundle = tmp_path / "bundles" / f"{TASK}.bundle"
+    with open_ledger(repo, wrapper_root) as database:
+        root_id = seeded_task(database)
+        store = ledger_store(database)
+        activation = store.reads.list_activations(root_id)[0]
+        store.record_dispatch(activation.activation_id, handle_for(LIVE_PID))
+        _seed_record(database, _record(state="admitted"))
+        record_task_state(database, TASK, TaskState.ABANDONED)
+        _archivable(repo, wrapper_root, database, root_id, settle=False)
+
+        with pytest.raises(LedgerExportError, match="live crew"):
+            archive_task(git, database, TASK, bundle=bundle, inspector=inspector)
+
+    assert git.ref_names_under(f"refs/wf/{root_id}/", cwd=repo) == (
+        f"refs/wf/{root_id}/artifact/one",
+    )
+    assert (wrapper_root / root_id / "worktree").is_dir()
+    assert not bundle.exists()
 
 
 def test_a_task_its_tracker_ended_is_retired_like_an_abandoned_one(

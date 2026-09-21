@@ -273,8 +273,7 @@ def test_everything_after_prepare_runs_with_the_tracker_gone(
         lab.ledger,
         STAGE,
         bundle=tmp_path / "archive" / f"{STAGE}.bundle",
-        repo_root=lab.repo,
-        wrapper_root=lab.inspector_config.wrapper_root,
+        inspector=lab.inspector_config,
     )
     assert archived.bundle.is_file()
 
