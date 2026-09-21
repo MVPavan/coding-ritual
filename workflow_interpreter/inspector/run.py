@@ -428,7 +428,16 @@ def _host_ended(result: MonitorResult, killed: TerminationProof) -> MonitorResul
     CAUSE is not, and the termination proof is the evidence for it. A watch
     that ended on a ceiling breach already names a host-ended reason and keeps
     the more specific one.
+
+    `signals_sent` is the whole of that evidence, and `terminate` fills it only
+    where it actually signalled a group it could prove was ours. Empty means
+    this frame ended nothing — the child was already gone, or `/proc` was
+    unreadable and nothing is proven either way — and claiming `terminated`
+    there states a kill that never happened: §5.6 then spends an infra retry
+    refusing a decision the crew reached on its own (Sol).
     """
+    if not killed.signals_sent:
+        return result
     if _exit_reason(result) in HOST_ENDED_EXIT_REASONS:
         return result
     return result.model_copy(
