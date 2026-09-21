@@ -1,5 +1,7 @@
 # Decision document — real `allowed_paths` enforcement at the runner layer
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Bead **cr-n2z (P1)**. Resolves ADR 0001 point 3 ("prevention is deferred, with
 an explicit trigger"). Status: **proposal for the repo owner**; this document
 does not edit ADR 0001. Probes run 2026-09-04 on the development host; every

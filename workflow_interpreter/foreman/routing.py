@@ -42,7 +42,7 @@ def abandon_target(index: GraphIndex) -> str | None:
 
 def retry_kind(outcome: Outcome) -> MintReason | None:
     """Map a system outcome to its bounded re-mint reason, if any."""
-    if outcome in {Outcome.ERROR_RUNNER, Outcome.ERROR_TRANSPORT}:
+    if outcome in {Outcome.ERROR_CREW, Outcome.ERROR_TRANSPORT}:
         return MintReason.INFRA_RETRY
     if outcome is Outcome.STEERED:
         return MintReason.STEER_CONTINUATION
@@ -70,7 +70,7 @@ def route(
     if no_progress:
         return Route(kind=RouteKind.NO_PROGRESS)
     # A `fail_code` the node declares is an ordinary outcome, however it was
-    # reached: the graph, not the runner's claim, decides whether a failing
+    # reached: the graph, not the crew's claim, decides whether a failing
     # check is routable (ADR 0004). Only an undeclared one dead-ends; a
     # declared one with no edge falls through to the fallback below.
     if outcome is Outcome.FAIL_CODE and Outcome.FAIL_CODE not in (node.outcomes or ()):

@@ -1,23 +1,23 @@
-# 05 — Supervisor wrapper
+# 05 — Inspector wrapper
 
 One detached OS process per activation, started by the foreman as
-`foreman supervise <root_id> <activation_id>`. It owns exactly one activation from
+`foreman inspector <root_id> <activation_id>`. It owns exactly one activation from
 launch to exit record, then dies. You never invoke it yourself.
 
-The code spans two places: `foreman/supervise.py` is the entry point that resolves the
-node and decides *what* to run; `supervisor/` is the machinery that runs it and knows
+The code spans two places: `foreman/inspector.py` is the entry point that resolves the
+node and decides *what* to run; `inspector/` is the machinery that runs it and knows
 nothing about graphs.
 
 ## What one wrapper does, in order
 
-From `foreman/supervise.py:234-300` and `supervisor/run.py:178-275`:
+From `foreman/inspector.py:234-300` and `inspector/run.py:178-275`:
 
 1. **Take `wrapper.lock`.** Held means another wrapper is alive on this activation →
    exit `LOCKED`. This is what makes double-dispatch impossible.
 2. **Check it is still ours.** Load the activation, assert it belongs to this root,
    assert its lifecycle is still `minted`. Anything else exits `STALE`.
 3. **Resolve the effective node** from the graph the *root pinned*, not the file on
-   disk. Then pick the runner profile.
+   disk. Then pick the crew profile.
 4. **Prove the precondition** — the workspace must be clean at the expected base
    commit. A writing node's continuation is reset to the steered attempt's
    `pre_attempt_commit` first.
@@ -32,12 +32,12 @@ then `record_dispatch`.
 
 ## The fork barrier
 
-Launching is not just `Popen`. `supervisor/fork_launcher.py` implements a handshake so
+Launching is not just `Popen`. `inspector/fork_launcher.py` implements a handshake so
 "did this child ever start?" always has an answer:
 
 - Child forks, sets itself up, writes **`R`** (ready).
 - Parent reads `R`, writes the exec-ledger line, replies **`A`** (ack).
-- Child reads `A`, then `execve`s the runner.
+- Child reads `A`, then `execve`s the crew.
 
 Four exit codes carry the failure modes: `120` setup failed, `121` barrier closed,
 `122` no receipt, `127` exec failed. The ledger line is written *before* the ack, so a
@@ -46,7 +46,7 @@ crash anywhere leaves a durable trace of intent.
 ## Three launch outcomes
 
 `dispatch()` is idempotent; its results are all about crash windows
-(`supervisor/models.py:128-138`):
+(`inspector/models.py:128-138`):
 
 | Outcome | Meaning |
 |---|---|
@@ -67,7 +67,7 @@ about what it cannot know.
 1. Read-only roots: `repo_root`, `wrapper_root`, `checkout`.
 2. Git read-write, writers only. Worktree shape: objects, `refs/heads/wf/<root>`,
    that ref's reflog, the worktree gitdir. In-repo shape: all of `.git`, because
-   `index.lock` is created directly in `.git/` and a runner that cannot take it cannot
+   `index.lock` is created directly in `.git/` and a crew that cannot take it cannot
    commit.
 3. Grants from `allowed_paths`, writers only.
 4. The activation's `channels/`.
@@ -88,7 +88,7 @@ boot_id + `/proc` start time** together, so a recycled pid cannot masquerade. No
 heartbeat for `stale_after` sets a stale flag; twice that is a breach and the child is
 killed.
 
-Two watch paths: an `RpcSession` when the runner speaks stdio-RPC (the app-server
+Two watch paths: an `RpcSession` when the crew speaks stdio-RPC (the app-server
 transport), and a plain `monitor.watch` otherwise.
 
 ## Steer
@@ -102,5 +102,5 @@ would race to grade the same death.
 ## What it does not do
 
 - Does not choose the next node, or read an edge.
-- Does not trust the runner's verdict; the host's verification governs.
+- Does not trust the crew's verdict; the host's verification governs.
 - Does not clean up the worktree — that is the foreman's terminal cleanup.

@@ -20,6 +20,7 @@ from workflow_interpreter.ledger.export import (
     import_export,
     import_exports,
     write_export,
+    write_landed_export,
 )
 from workflow_interpreter.ledger.fence import LedgerFence
 from workflow_interpreter.ledger.paths import (
@@ -58,4 +59,5 @@ __all__ = [
     "open_ledger",
     "task_lock_path",
     "write_export",
+    "write_landed_export",
 ]

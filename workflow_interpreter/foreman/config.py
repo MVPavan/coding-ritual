@@ -7,25 +7,43 @@ from typing import Annotated, Final
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
-from workflow_interpreter.bdio.config import BdConfig, SigningConfig
-from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.bridge.verification import CheckCommand
+from workflow_interpreter.bdio.config import SigningConfig
+from workflow_interpreter.contractor.tracker_config import TrackerSettings
+from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman.wake_constants import (
     DEFAULT_EVENT_CAP,
     MAX_EVENT_CAP,
     MSG_STALE_SPACING,
 )
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.sandbox import GIT_ENTRY
 from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileConfig
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.sandbox import GIT_ENTRY
 
 MSG_WORKTREE_REPO_ROOT: Final[str] = (
     "foreman repo_root {repo_root} is a linked worktree; configure the "
     "repository whose git common directory it borrows (run-ledger §3.5)"
 )
 
+REPO_HASH_LENGTH: Final[int] = 16
+"""How much of the repository digest names its wrapper home."""
 
-class RunnerBinding(BaseModel):
+
+def wrapper_root_for(wrapper_home: Path, repo_root: Path) -> Path:
+    """This machine's engine home for one checkout.
+
+    A function as well as a property because a caller that must write the
+    wrapper root INTO a configuration cannot load the configuration to ask
+    for it — `inspector.wrapper_root` has to match `ForemanConfig`'s, and
+    that check is what makes the two one fact rather than two.
+
+    A question about this machine's paths only. What an export is pinned to is
+    `repo_id`, which a move or a clone does not change (`ledger/paths.py`).
+    """
+    digest = hashlib.sha256(str(repo_root.resolve()).encode("utf-8")).hexdigest()
+    return wrapper_home / digest[:REPO_HASH_LENGTH]
+
+
+class CrewBinding(BaseModel):
     """The profile and pinned invocation choices selected for a graph role."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -36,7 +54,7 @@ class RunnerBinding(BaseModel):
 
 
 class WakeConfig(BaseModel):
-    """Trusted host notification limits, never graph- or runner-selected commands."""
+    """Trusted host notification limits, never graph- or crew-selected commands."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     poll_s: float = Field(default=5, gt=0, allow_inf_nan=False)
@@ -67,24 +85,26 @@ class ForemanConfig(BaseModel):
 
     repo_root: Path
     wrapper_home: Path
-    bd: BdConfig
-    store: BackendKind = BackendKind.BD
-    """Which backend a NEW attempt root is pinned to (§3.2, D18).
-
-    New roots only: an existing root always resolves through the backend its
-    bridge record or `tasks` row pinned, so flipping this back to `bd` leaves
-    every ledger-backed root loadable. There is no reverse migration."""
     signing: SigningConfig | None = None
     profiles: ProfileConfig = Field(default_factory=ProfileConfig)
     wake: WakeConfig = Field(default_factory=WakeConfig)
     project_config: dict[str, str | int | bool] = Field(default_factory=dict)
-    roles: dict[str, RunnerBinding] = Field(default_factory=dict)
-    bridge_graph: Path | None = None
-    bridge_checks: tuple[CheckCommand, ...] | None = Field(
+    roles: dict[str, CrewBinding] = Field(default_factory=dict)
+    tracker: TrackerSettings
+    """Which tracker this repository has, AND how to reach it (§3.3).
+
+    Reached through `contractor/` because the tracker is the contractor's
+    collaborator and nothing else's: the foreman, the inspector and the crew
+    never touch one — which is why the bd transport settings moved in here and
+    `foreman/` imports nothing bd (S6 review, finding 7). Required rather than
+    defaulted: `bd` was the mandatory field it replaces, and a repository that
+    names no tracker would silently get one."""
+    contractor_graph: Path | None = None
+    contractor_checks: tuple[CheckCommand, ...] | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
     host: str
-    supervisor: SupervisorConfig
+    inspector: InspectorConfig
     band_wait_s: float = Field(default=30.0, gt=0)
     actor: str = Field(min_length=1)
     config_path: Path | None = None
@@ -92,10 +112,7 @@ class ForemanConfig(BaseModel):
     @property
     def wrapper_root(self) -> Path:
         """Return the stable root for the explicitly configured repository path."""
-        digest = hashlib.sha256(
-            str(self.repo_root.resolve()).encode("utf-8")
-        ).hexdigest()
-        return self.wrapper_home / digest[:16]
+        return wrapper_root_for(self.wrapper_home, self.repo_root)
 
     @property
     def owner_path(self) -> Path:
@@ -112,10 +129,10 @@ class ForemanConfig(BaseModel):
         """Refuse relative or split paths without consulting the working directory."""
         if not self.repo_root.is_absolute() or not self.wrapper_home.is_absolute():
             raise ValueError("foreman repo_root and wrapper_home must be absolute")
-        if self.supervisor.repo_root != self.repo_root:
-            raise ValueError("supervisor repo_root must match foreman repo_root")
-        if self.supervisor.wrapper_root != self.wrapper_root:
-            raise ValueError("supervisor wrapper_root must match foreman wrapper_root")
+        if self.inspector.repo_root != self.repo_root:
+            raise ValueError("inspector repo_root must match foreman repo_root")
+        if self.inspector.wrapper_root != self.wrapper_root:
+            raise ValueError("inspector wrapper_root must match foreman wrapper_root")
         for role, binding in self.roles.items():
             if binding.model == MODEL_VENDOR_DEFAULT:
                 raise ValueError(

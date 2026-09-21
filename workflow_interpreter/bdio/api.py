@@ -1,52 +1,48 @@
-"""The typed write API — every bd write in the system goes through here (§0.1).
+"""The typed write API — every record-store write goes through here (§0.1).
 
 `WorkflowStore` is the whole surface: one method per §4 command-table row. The
-model may read bd freely through `store.reads`; it never emits a bd write
-string, because the only write strings that exist are the ones `client.py`
-builds from these calls — and the transport's own write methods are
-package-private, so "read directly" is not one refactor away from "close a
-gate without verifying it".
+record store is the LEDGER since S6 (R1) — bd is a tracker and writes no rows
+— so what these methods reach is `ledger/store.py`. The model may read freely
+through `store.reads`; it never writes a row itself, because the store's write
+methods are package-private, so "read directly" is not one refactor away from
+"close a gate without verifying it".
 
 Three invariants shape almost every method:
 
 - **Append-only.** Nothing is ever deleted or reopened; a losing race is
-  superseded, a corrected state is a new bead (§3, §0.1).
+  superseded, a corrected state is a new row (§3, §0.1).
 - **Metadata first, close second.** A crash between the two leaves an open
-  bead whose outcome is already recorded. The other order would leave a
-  closed bead with no routing truth — unrecoverable (§5.1, §3.3).
+  row whose outcome is already recorded. The other order would leave a
+  closed row with no routing truth — unrecoverable (§5.1, §3.3).
 - **Repair forward, never refuse.** Which means the half-finished state above
   is FINISHED on the next call, not reported as a conflict: a lifecycle
-  refusal there wedges the bead permanently, since §0.1 leaves no raw bd
-  write to fix it with (`finalize.py`).
+  refusal there wedges the row permanently, since §0.1 leaves no raw write to
+  fix it with (`finalize.py`).
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from pydantic import JsonValue
 
 from workflow_interpreter.bdio import (
     bounds,
     gates,
+    inspection,
     mint,
     reads,
     rpc_control,
-    supervision,
     transitions,
 )
-from workflow_interpreter.bdio.backend import (
-    PinnedBackendFactory,
-    StoreBackend,
-    StoreBackendFactory,
-)
 from workflow_interpreter.bdio.bounds import BoundRefusal
-from workflow_interpreter.bdio.capabilities import ArtifactReader, BranchHeadReader
+from workflow_interpreter.bdio.capabilities import (
+    ArtifactReader,
+    BranchHeadReader,
+    CheckpointSink,
+)
 from workflow_interpreter.bdio.claims import ClaimStore
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.config import BdConfig, SigningConfig
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.errors import (
     BoundExceededError,
@@ -106,11 +102,12 @@ from workflow_interpreter.schema.models import GraphDefinition, Outcome
 
 if TYPE_CHECKING:
     from workflow_interpreter.foreman.compose import Composition
+    from workflow_interpreter.ledger.store import LedgerStore
 
 from workflow_interpreter.bdio import activation_writes
 from workflow_interpreter.bdio.activation_writes import (
+    _FIELD_CREW_PROFILE,
     _FIELD_MODEL,
-    _FIELD_RUNNER_PROFILE,
     _MSG_NO_VERIFIER,
     _MSG_SUPERSEDE_DEAD_WINNER,
     _MSG_SUPERSEDE_LOSES,
@@ -119,6 +116,12 @@ from workflow_interpreter.bdio.activation_writes import (
     _race_decision,
     _race_order,
     pinned_execution_setting,
+)
+
+MSG_NO_CLAIMS: Final[str] = (
+    "this store has no integration-target claim surface: claims are ledger "
+    "rows two attempts contend for (R11), and a wiring with no ledger has "
+    "nothing for them to serialise on"
 )
 
 
@@ -134,86 +137,46 @@ class WorkflowStore:
 
     def __init__(
         self,
-        client: StoreBackend,
+        client: LedgerStore,
         verifier: GateVerifier | None = None,
         *,
         artifact_reader: ArtifactReader | None = None,
         branch_head_reader: BranchHeadReader | None = None,
         member_band: object | None = None,
-        backend_factory: StoreBackendFactory | None = None,
-        claims_backend: StoreBackend | None = None,
+        claims: ClaimStore | None = None,
+        checkpoint: CheckpointSink | None = None,
     ) -> None:
         self._member_band = member_band
         self._client = client
-        self._claims_backend = claims_backend
+        self._claims = claims
         self._verifier = verifier
         self._artifact_reader = artifact_reader
         self._branch_head_reader = branch_head_reader
-        self._backend_factory: StoreBackendFactory = (
-            PinnedBackendFactory(client) if backend_factory is None else backend_factory
-        )
+        self._checkpoint = checkpoint
         self._reads = reads.WorkflowReads(client)
-
-    @classmethod
-    def from_config(
-        cls,
-        config: BdConfig,
-        signing: SigningConfig | None = None,
-        *,
-        artifact_reader: ArtifactReader | None = None,
-        branch_head_reader: BranchHeadReader | None = None,
-        backend_factory: StoreBackendFactory | None = None,
-        claims_backend: StoreBackend | None = None,
-    ) -> WorkflowStore:
-        """Build a store from configuration alone — the supported entry point.
-
-        The transport stays sealed: `BdClient` is not exported (§0.1), so a
-        caller with a `BdConfig` and a `SigningConfig` had no way to construct
-        a store without reaching into the package. It has one now, and it is
-        the only one.
-
-        The backend comes from the factory, not from a constructor call here:
-        a root is pinned to its backend (§3.2), so which transport a store is
-        built on has to be somebody else's answer.
-        """
-        factory: StoreBackendFactory = (
-            PinnedBackendFactory(BdClient(config))
-            if backend_factory is None
-            else backend_factory
-        )
-        verifier = None if signing is None else GateVerifier(signing, config.workspace)
-        return cls(
-            factory(BackendKind.BD),
-            verifier,
-            artifact_reader=artifact_reader,
-            branch_head_reader=branch_head_reader,
-            backend_factory=factory,
-            claims_backend=claims_backend,
-        )
 
     def for_root(
         self,
         *,
         branch_head_reader: BranchHeadReader,
         member_band: object | None = None,
-        backend: BackendKind | None = None,
     ) -> WorkflowStore:
         """Derive a root-scoped store without replacing injected capabilities.
 
-        The verifier and artifact reader are process-scoped authority. A root
-        contributes its branch-head reader and its pinned backend: the backend
-        is immutable per root (§3.2), so the store a root is served by comes
-        from the factory rather than from whichever transport the caller
-        happened to hold.
+        The verifier, artifact reader and checkpoint sink are process-scoped
+        authority; a root contributes its branch-head reader and its execution
+        band. There is one record store (R1), so the ledger this store was
+        built on is the ledger every root of it is served by — nothing is
+        located.
         """
         return WorkflowStore(
-            self._backend_factory(self._client.kind if backend is None else backend),
+            self._client,
             self._verifier,
             artifact_reader=self._artifact_reader,
             branch_head_reader=branch_head_reader,
             member_band=member_band,
-            backend_factory=self._backend_factory,
-            claims_backend=self._claims_backend,
+            claims=self._claims,
+            checkpoint=self._checkpoint,
         )
 
     @property
@@ -271,15 +234,15 @@ class WorkflowStore:
     def claims(self) -> ClaimStore:
         """The integration-target claim surface (§3.2 shared serialisation).
 
-        Served by an injected backend when one was given (D20): claims stay
-        bd-backed while `store` can still select bd, because two backends
-        discovering claims in two stores could not see each other's
-        reservations. A ledger-backed run therefore reads and writes its
-        claims through the SAME bd rows a bd-backed run does.
+        Injected, never derived from the transport (R11): a claim is a ledger
+        row two attempts contend for, and a store that built its own would be
+        the second place a target could look free. A wiring with no claims
+        surface refuses HERE, by name, rather than handing back something that
+        cannot serialise anything.
         """
-        return ClaimStore(
-            self._client if self._claims_backend is None else self._claims_backend
-        )
+        if self._claims is None:
+            raise StoreConfigError(MSG_NO_CLAIMS)
+        return self._claims
 
     def coordination_store(
         self,
@@ -356,7 +319,7 @@ class WorkflowStore:
         """
         from contextlib import nullcontext
 
-        from workflow_interpreter.supervisor.band import BandLock
+        from workflow_interpreter.inspector.band import BandLock
 
         coordinator = self.coordination_store()
         root = self._reads.load_root(root_id)
@@ -424,10 +387,10 @@ class WorkflowStore:
         the rejected artifact.
 
         No lifecycle move: the trio is a fact about the tree, not a state
-        (`supervision.py` holds the rule, and does its own fresh read so the
+        (`inspection.py` holds the rule, and does its own fresh read so the
         lifecycle check sits as close to the write as bd allows).
         """
-        return supervision.record_precondition(
+        return inspection.record_precondition(
             self._client, self._load_activation, activation_id, record
         )
 
@@ -437,12 +400,12 @@ class WorkflowStore:
         """Mirror the §8.2 stale flag into bd; the FIRST raise wins.
 
         Staleness is a hint for a tier-2 decision, not a verdict, so a re-raise
-        must not rewrite when the runner actually went quiet — the recorded
+        must not rewrite when the crew actually went quiet — the recorded
         flag is returned unchanged rather than overwritten (§8.2). Refused
         outright unless the activation is still `dispatched`: the flag is a
         statement about a RUNNING child.
         """
-        return supervision.record_stale_flag(
+        return inspection.record_stale_flag(
             self._client, self._load_activation, activation_id, flag
         )
 
@@ -489,7 +452,7 @@ class WorkflowStore:
         self, activation_id: str, completion: SessionCompletion
     ) -> ActivationRecord:
         """Record one correlated successful vendor turn, never process death."""
-        return supervision.record_session_completion(
+        return inspection.record_session_completion(
             self._client, self._load_activation, activation_id, completion
         )
 
@@ -497,7 +460,7 @@ class WorkflowStore:
         self, activation_id: str, registration: SessionRegistration
     ) -> ActivationRecord:
         """Register correlated app-server identity before authorizing any turn."""
-        return supervision.register_session(
+        return inspection.register_session(
             self._client, self._load_activation, activation_id, registration
         )
 
@@ -525,8 +488,25 @@ class WorkflowStore:
         usage: Usage | None = None,
         deviations: Sequence[Deviation] = (),
     ) -> ActivationRecord:
-        """Close with the outcome that IS the routing truth (§3.3)."""
-        return activation_writes.close_activation(
+        """Close with the outcome that IS the routing truth (§3.3).
+
+        The one seam every activation close passes through — the foreman's,
+        the inspector's recovery, a steer's repair — which is why the
+        checkpoint is taken HERE and not at each of them (§3.9, R10). AFTER
+        the close has committed, so the anchored bytes carry the outcome that
+        was just decided, and never in a way that can fail it.
+
+        The whole-task re-export it performs is deliberate, and it is what the
+        S7 review's finding 5 asked about: the git work is already OUTSIDE the
+        ledger's lock (`write_checkpoint` takes its snapshot first, and
+        `transaction()` releases `_writing` at its own exit), so the only part
+        under the lock is the read that IS the snapshot — and a read taken
+        outside it would be the torn pair the lock exists to prevent. What is
+        left is the cost: O(activations²) rows per task and two git spawns per
+        close, which is affordable at a task's activation counts and is the
+        price of a rebuildable in-flight run.
+        """
+        closed = activation_writes.close_activation(
             self,
             activation_id,
             outcome,
@@ -534,6 +514,9 @@ class WorkflowStore:
             usage=usage,
             deviations=deviations,
         )
+        if self._checkpoint is not None:
+            self._checkpoint.checkpoint(self._client.task_id)
+        return closed
 
     def supersede_activation(self, loser_id: str, winner_id: str) -> ActivationRecord:
         """Append-only race resolution: never `bd delete`, never reopen (§3.2)."""
@@ -653,13 +636,13 @@ class WorkflowStore:
         request: MintRequest,
     ) -> tuple[str, str]:
         """Verify the execution pins and every deterministic pre-mint bound."""
-        runner_profile = pinned_execution_setting(root, facts.node, NodeSetting.RUNNER)
+        crew_profile = pinned_execution_setting(root, facts.node, NodeSetting.CREW)
         model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
         _assert_pinned_execution_setting(
             node=facts.node,
-            field=_FIELD_RUNNER_PROFILE,
-            requested=request.runner_profile,
-            pinned=runner_profile,
+            field=_FIELD_CREW_PROFILE,
+            requested=request.crew_profile,
+            pinned=crew_profile,
         )
         _assert_pinned_execution_setting(
             node=facts.node,
@@ -670,7 +653,7 @@ class WorkflowStore:
         refusal = self._pre_mint_refusal(root, facts, beads, activations)
         if refusal is not None:
             raise BoundExceededError(refusal)
-        return runner_profile, model
+        return crew_profile, model
 
     def _pre_mint_refusal(
         self,

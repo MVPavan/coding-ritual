@@ -7,21 +7,21 @@ from pathlib import Path
 import pytest
 
 from tests._foreman import ForemanLab
-from tests._supervisor import ChildScript, commit_all
+from tests._inspector import ChildScript, commit_all
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import Outcome
-from workflow_interpreter.bridge.command import _bridge_graph
+from workflow_interpreter.contractor.command import _contractor_graph
 from workflow_interpreter.foreman.routing import route
+from workflow_interpreter.inspector.models import SandboxMode
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.models import BindsMode, GateType, NodeKind
-from workflow_interpreter.supervisor.models import SandboxMode
 
 WORKFLOWS = Path(__file__).parents[1] / "workflows"
 BASIC = WORKFLOWS / "basic.toml"
 DESIGN_SPEC = WORKFLOWS / "design-spec.toml"
 
 
-def test_basic_writer_returns_immutable_artifact_without_a_bridge(
+def test_basic_writer_returns_immutable_artifact_without_a_contractor(
     tmp_path: Path,
 ) -> None:
     """Removing the writer's commit or adding a gate must make this fail."""
@@ -52,7 +52,7 @@ def test_basic_writer_returns_immutable_artifact_without_a_bridge(
     assert lab.store.reads.list_gates(root.root_id) == ()
 
 
-def test_design_spec_admits_and_exposes_only_the_existing_bridge_gate(
+def test_design_spec_admits_and_exposes_only_the_existing_contractor_gate(
     tmp_path: Path,
     signing_config,
     sign_payload,
@@ -81,7 +81,7 @@ def test_design_spec_admits_and_exposes_only_the_existing_bridge_gate(
     commit_all(lab.repo, "add design directory")
     root = lab.instantiate_resolved()
 
-    assert _bridge_graph(lab.composition) == DESIGN_SPEC
+    assert _contractor_graph(lab.composition) == DESIGN_SPEC
     assert tuple(item.name for item in root.metadata.instance_inputs) == ("task_brief",)
 
     lab.profiles.next_script(

@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from pydantic import ValidationError
 
 from tests._bdio import entry_request, load_definition, make_root
 from workflow_interpreter.bdio import (
-    BdConfig,
     Deviation,
     Evidence,
     GateReason,
@@ -21,7 +21,6 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.bounds import (
     instance_ceiling_refusal as bdio_instance_ceiling_refusal,
 )
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
@@ -30,6 +29,10 @@ from workflow_interpreter.bdio.records import (
     parse_row,
 )
 from workflow_interpreter.bdio.wire import BeadRecord, EventPayload, GateMetadata
+from workflow_interpreter.contractor.tracker_config import (
+    TrackerBackend,
+    TrackerSettings,
+)
 from workflow_interpreter.foreman.bounds import (
     infra_retry_refusal,
     instance_ceiling_refusal,
@@ -57,6 +60,9 @@ from workflow_interpreter.foreman.routing import (
     route,
 )
 from workflow_interpreter.foreman.transcript import bounded_tail
+from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.models import CompletionEvidence
 from workflow_interpreter.schema.graph_index import build_index
 from workflow_interpreter.schema.loader import content_hash
 from workflow_interpreter.schema.models import (
@@ -66,9 +72,7 @@ from workflow_interpreter.schema.models import (
     GraphDefinition,
     Outcome,
 )
-from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.models import CompletionEvidence
+from workflow_interpreter.tracker.bd_transport import BdConfig
 
 
 @pytest.mark.parametrize(
@@ -114,8 +118,8 @@ def test_event_intent_key_changes_with_outcome() -> None:
     assert first.key_for("root") != second.key_for("root")
 
 
-def test_instance_branch_constant_uses_the_supervisor_contract() -> None:
-    """Foreman has one branch spelling and inherits it from supervisor."""
+def test_instance_branch_constant_uses_the_inspector_contract() -> None:
+    """Foreman has one branch spelling and inherits it from inspector."""
     assert INSTANCE_BRANCH == INSTANCE_BRANCH_REF
 
 
@@ -325,7 +329,7 @@ def test_route_handles_gate_and_no_progress_branches() -> None:
     )
     exhausted_route = exhausted(index, node)
     assert exhausted_route == Route(kind=RouteKind.EXHAUSTED, target="triage")
-    assert retry_kind(Outcome.ERROR_RUNNER) is MintReason.INFRA_RETRY
+    assert retry_kind(Outcome.ERROR_CREW) is MintReason.INFRA_RETRY
     assert retry_kind(Outcome.STEERED) is MintReason.STEER_CONTINUATION
 
 
@@ -1089,7 +1093,7 @@ def test_frontier_fail_code_requires_every_dead_end_clause(
     """Fail-code routing requires completion and a node that declares it.
 
     `missing` covers the unknown-node clause; the rest cover a node whose
-    vocabulary withholds `fail_code`, whatever the runner claimed.
+    vocabulary withholds `fail_code`, whatever the crew claimed.
     """
     root = make_root(fake_store, _undeclared_fail_code(load_definition()))
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
@@ -1175,7 +1179,7 @@ def test_finalize_preserves_an_unblocked_completion_and_deviations(
 def test_finalize_preserves_the_claim_and_adds_no_prior_deviation(
     fake_store: WorkflowStore,
 ) -> None:
-    """Finalization does not replace a runner claim, nor re-return prior deviations.
+    """Finalization does not replace a crew claim, nor re-return prior deviations.
 
     `decide` returns what THIS close ADDS and nothing else, because
     `WorkflowStore.close_activation` stores `(*record.metadata.deviations,
@@ -1218,10 +1222,10 @@ def test_config_derives_wrapper_root_from_the_real_repo_path(tmp_path: Path) -> 
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=home,
-        bd=BdConfig(workspace=tmp_path / "bd", actor="test"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="test")),
         host="host",
         actor="test",
-        supervisor=SupervisorConfig(
+        inspector=InspectorConfig(
             repo_root=repo, wrapper_root=wrapper_root, host="host"
         ),
     )
@@ -1235,10 +1239,12 @@ def test_config_derives_wrapper_root_from_the_real_repo_path(tmp_path: Path) -> 
     sibling_config = ForemanConfig(
         repo_root=sibling,
         wrapper_home=home,
-        bd=BdConfig(workspace=tmp_path / "other-bd", actor="test"),
+        tracker=TrackerSettings(
+            bd=BdConfig(workspace=tmp_path / "other-bd", actor="test")
+        ),
         host="host",
         actor="test",
-        supervisor=SupervisorConfig(
+        inspector=InspectorConfig(
             repo_root=sibling, wrapper_root=sibling_wrapper, host="host"
         ),
     )
@@ -1354,11 +1360,11 @@ wrapper_home = "{tmp_path / "home"}"
 host = "host"
 actor = "actor"
 
-[bd]
+[tracker.bd]
 workspace = "{tmp_path / "bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{repo}"
 wrapper_root = "{wrapper_root}"
 host = "host"
@@ -1368,15 +1374,57 @@ host = "host"
     config = load_config(path)
     assert config.actor == "actor"
     assert config.config_path == path
-    # The store switch defaults to bd, so an existing config keeps its backend
-    # until an operator asks for the ledger (run-ledger D18).
-    assert config.store is BackendKind.BD
+    assert config.tracker.bd is not None and config.tracker.bd.actor == "actor"
 
 
-def test_load_config_reads_the_selected_store_backend(tmp_path: Path) -> None:
-    """`store = "ledger"` is what pins a NEW attempt root to the ledger."""
-    config = load_config(_config_file(tmp_path, extra='store = "ledger"\n'))
-    assert config.store is BackendKind.LEDGER
+def test_a_file_tracker_config_loads_with_no_bd_section(tmp_path: Path) -> None:
+    """A repository whose tasks live in a FILE configures no bd at all.
+
+    `bd` was a mandatory top-level field, so a `backend = "file"` checkout had
+    to invent a bd workspace and actor to load its own configuration (S6
+    review, finding 7). The transport now lives under the backend that uses it.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    wrapper_root = (
+        tmp_path
+        / "home"
+        / hashlib.sha256(str(repo.resolve()).encode("utf-8")).hexdigest()[:16]
+    )
+    path = tmp_path / "foreman.toml"
+    path.write_text(
+        f'''repo_root = "{repo}"
+wrapper_home = "{tmp_path / "home"}"
+host = "host"
+actor = "actor"
+
+[tracker]
+backend = "file"
+path = "{tmp_path / "tracker.json"}"
+
+[inspector]
+repo_root = "{repo}"
+wrapper_root = "{wrapper_root}"
+host = "host"
+''',
+        encoding="utf-8",
+    )
+
+    config = load_config(path)
+
+    assert config.tracker.backend is TrackerBackend.FILE
+    assert config.tracker.bd is None
+
+
+def test_load_config_refuses_the_retired_store_switch(tmp_path: Path) -> None:
+    """R12, R1: there is one record store, so naming a second one refuses.
+
+    `extra="forbid"`, not a silently ignored key: an operator whose config
+    still says `store = "ledger"` has to learn that the switch is gone rather
+    than keep a file that reads as though it still chose something.
+    """
+    with pytest.raises(ValidationError):
+        load_config(_config_file(tmp_path, extra='store = "ledger"\n'))
 
 
 def test_load_config_refuses_a_linked_worktree_repo_root(tmp_path: Path) -> None:
@@ -1406,11 +1454,11 @@ wrapper_home = "{tmp_path / "home"}"
 host = "host"
 actor = "actor"
 {extra}
-[bd]
+[tracker.bd]
 workspace = "{tmp_path / "bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{repo}"
 wrapper_root = "{wrapper_root}"
 host = "host"

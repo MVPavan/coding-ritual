@@ -25,11 +25,11 @@ from workflow_interpreter.foreman.constants import (
 from workflow_interpreter.foreman.envelope import InputsUnavailable
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.verify_feedback import read_payload
+from workflow_interpreter.inspector.errors import GitCommandError
+from workflow_interpreter.inspector.gitcmd import GitOutputTooLarge, GitSubcommand
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import write_durable
 from workflow_interpreter.schema.models import EngineProducer
-from workflow_interpreter.supervisor.errors import GitCommandError
-from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import write_durable
 
 EXPORT_MAX_DIFF_BYTES: Final[int] = 8 * 1024 * 1024
 EXPORT_MAX_REPORT_BYTES: Final[int] = 4 * 1024 * 1024

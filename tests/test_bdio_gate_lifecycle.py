@@ -14,17 +14,18 @@ import hashlib
 import pytest
 
 from tests._bdio import (
+    CLOSE,
     IMPLEMENT,
     REGION,
     RESOLVED_CONFIG,
     REVIEW,
     TRIAGE,
+    StoreWrites,
     entry_request,
     load_definition,
     make_root,
     run_to_close,
 )
-from tests._fake_bd import FakeBd
 from tests._gates import (
     approval_payload,
     close,
@@ -45,7 +46,6 @@ from workflow_interpreter.bdio import (
     canonical_payload_bytes,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.records import GateRecord
 from workflow_interpreter.bdio.signing import payload_digest
 from workflow_interpreter.bdio.wire import (
@@ -56,8 +56,8 @@ from workflow_interpreter.bdio.wire import (
     GateReason,
     GateState,
     ResolvedSetting,
-    metadata_dict,
 )
+from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
 
 
@@ -115,23 +115,6 @@ def test_re_finding_an_open_gate_with_the_same_request_is_idempotent(
         root_id, ship_gate_request(str(gate.metadata.source_activation_id))
     )
     assert again.gate_id == gate.gate_id
-
-
-def test_a_gate_key_with_race_residue_re_finds_the_same_bead_every_tick(
-    gate_store: WorkflowStore, fake_client: BdClient, definition: GraphDefinition
-) -> None:
-    # Two beads under one gate key is residue; whichever bd lists first is not
-    # a rule. Lowest id is, exactly as for roots and activations.
-    root_id, gate = open_ship_gate(gate_store, definition)
-    duplicate = fake_client._create_bead(
-        title="wf gate residue",
-        metadata=metadata_dict(gate.metadata.model_copy(update={"seq": 99})),
-    )
-
-    found = gate_store.reads.find_gate(root_id, gate.metadata.gate_key)
-
-    assert found is not None
-    assert found.gate_id == min(gate.gate_id, duplicate.id)
 
 
 # --- §10.3 halt gates: one open at a time, never one per instance --------
@@ -354,7 +337,7 @@ def test_a_ceiling_rebudget_on_a_halt_gate_lets_the_instance_run_again(
         node=REVIEW,
         mint_reason=MintReason.EDGE,
         predecessor_activation_id=entry.activation_id,
-        runner_profile="fake",
+        crew_profile="fake",
         model="fake-model",
         session_id="sess-1",
     )
@@ -401,7 +384,7 @@ def test_a_ceiling_rebudget_on_a_halt_gate_lets_the_instance_run_again(
 
 def test_two_concurrent_rebudgets_both_stay_in_effect(
     gate_store: WorkflowStore,
-    fake_bd: FakeBd,
+    fake_client: LedgerStore,
     definition: GraphDefinition,
     sign_payload: Signer,
 ) -> None:
@@ -437,7 +420,7 @@ def test_two_concurrent_rebudgets_both_stay_in_effect(
 
     # The second tick runs to completion inside the first one's write window:
     # it reads, decides and closes before the first one's carrier update lands.
-    fake_bd.pause_before("update", interleave)
+    StoreWrites(fake_client).pause_before(CLOSE, interleave)
     close(gate_store, root_id, first_gate, first, sign_payload)
 
     assert (
@@ -491,7 +474,7 @@ def two_open_triage_gates(
 
 
 def test_a_tampered_bound_without_signature_evidence_raises_nothing(
-    fake_bd: FakeBd, gate_store: WorkflowStore, definition: GraphDefinition
+    fake_client: LedgerStore, gate_store: WorkflowStore, definition: GraphDefinition
 ) -> None:
     """A closed gate carrying bound fields but no verified fingerprint or
     payload digest was never written by `close_gate_verified` (which records
@@ -501,14 +484,14 @@ def test_a_tampered_bound_without_signature_evidence_raises_nothing(
     before = gate_store.reads.effective_bound(
         root_id, BoundSetting.MAX_ENTRIES, scope="build-review"
     )
-    fake_bd.rows[gate.id]["status"] = "closed"
-    fake_bd.rows[gate.id]["metadata"].update(
+    fake_client._merge_metadata(
+        gate.id,
         {
             "state": "closed",
             "outcome": "rebudget",
             "bound_key": "region.build-review.max_entries",
             "bound_value": 999,
-        }
+        },
     )
     after = gate_store.reads.effective_bound(
         root_id, BoundSetting.MAX_ENTRIES, scope="build-review"

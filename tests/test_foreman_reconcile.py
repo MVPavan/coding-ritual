@@ -7,8 +7,8 @@ import pytest
 
 from tests._foreman import ForemanLab, entry_request
 from workflow_interpreter.foreman.reconcile import reconcile
-from workflow_interpreter.supervisor.errors import GitCommandError
-from workflow_interpreter.supervisor.gitcmd import GitSubcommand
+from workflow_interpreter.inspector.errors import GitCommandError
+from workflow_interpreter.inspector.gitcmd import GitSubcommand
 
 
 def test_reconcile_requires_the_instance_branch(tmp_path: Path) -> None:

@@ -16,21 +16,39 @@ from typing import Final
 
 from pydantic import ValidationError
 
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.config import DEFAULT_SSH_KEYGEN
 from workflow_interpreter.bdio.errors import StoreError
+from workflow_interpreter.contractor.tracker_wiring import (
+    attention_writer,
+    repair_mirror,
+    tracker_for,
+)
+from workflow_interpreter.contracts.run_identity import (
+    ComponentKind,
+    safe_component,
+)
 from workflow_interpreter.foreman.config import ForemanConfig, load_config
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.archive import archive_task
-from workflow_interpreter.ledger.constants import EXPORT_SUFFIX
+from workflow_interpreter.ledger.checkpoint import rebuild_sources
+from workflow_interpreter.ledger.constants import (
+    CHECKPOINT_REF_TEMPLATE,
+    EXPORT_REF_TEMPLATE,
+    EXPORT_SUFFIX,
+)
 from workflow_interpreter.ledger.database import open_ledger
-from workflow_interpreter.ledger.export import import_exports, write_export
+from workflow_interpreter.ledger.export import (
+    import_exports,
+    pin_export,
+    write_landed_export,
+)
 from workflow_interpreter.ledger.paths import export_dir, ledger_path
 from workflow_interpreter.ledger.reconcile import ATTENTION_LABEL, AttentionReconciler
 from workflow_interpreter.ledger.reverify import TrustAnchor, verify_export
-from workflow_interpreter.supervisor.gitio import Git
 
 PROG: Final[str] = "python -m workflow_interpreter.ledger"
 COMMAND_EXPORT: Final[str] = "export"
+COMMAND_PIN_EXPORT: Final[str] = "pin-export"
 COMMAND_IMPORT: Final[str] = "import"
 COMMAND_RECONCILE: Final[str] = "reconcile"
 COMMAND_VERIFY: Final[str] = "verify"
@@ -38,15 +56,23 @@ COMMAND_ARCHIVE: Final[str] = "archive"
 EXIT_OK: Final[int] = 0
 EXIT_REFUSED: Final[int] = 2
 
-_MSG_NO_EXPORTS: Final[str] = "ledger: no export files under {directory}\n"
+_MSG_NO_EXPORTS: Final[str] = (
+    "ledger: nothing to rebuild from — no export files under {directory} and "
+    "no checkpoint under {prefix}\n"
+)
 _MSG_REFUSED: Final[str] = "ledger: {reason}\n"
 _MSG_EXPORTED: Final[str] = "exported {task_id} to {path}\n"
+_MSG_PINNED: Final[str] = "pinned {task_id}: {ref} -> {oid}\n"
 _MSG_IMPORTED: Final[str] = "imported {task_id} from {path}\n"
 _MSG_RECONCILED: Final[str] = (
     "reconciled {task_id}: {label} {presence}, generation {generation}, "
     "{acked} row(s) acked\n"
 )
 _MSG_NOTHING_DUE: Final[str] = "reconciled {task_id}: nothing due\n"
+_MSG_CONFLICTS: Final[str] = (
+    "  {count} mirror intent(s) the tracker REFUSED: {refs}\n"
+    "  the row retires either way; the tracker disagrees about these items\n"
+)
 _MSG_APPROVAL: Final[str] = (
     "{status} {gate_id} {fingerprint} ({principal}, {namespace})\n"
 )
@@ -91,16 +117,31 @@ def _parser() -> argparse.ArgumentParser:
         COMMAND_EXPORT, help="write one task's rows to .wf/export/<task>.jsonl"
     )
     export.add_argument("task_id")
+    pin = commands.add_parser(
+        COMMAND_PIN_EXPORT,
+        help=(
+            "re-pin refs/wf/exports/<task> from the export file already on "
+            "disk and record its oid — the recovery for a crash between the "
+            "write and the pin; it never re-exports"
+        ),
+    )
+    pin.add_argument("task_id")
     restore = commands.add_parser(
-        COMMAND_IMPORT, help="rebuild tasks from .wf/export/, under the exclusive fence"
+        COMMAND_IMPORT,
+        help=(
+            "rebuild tasks from .wf/export/ and refs/wf/checkpoints/, under "
+            "the exclusive fence"
+        ),
     )
     restore.add_argument(
         "task_ids",
         nargs="*",
         help=(
-            "the export files the ledger is rebuilt from; every export file "
-            "when none is named. An import REPLACES the exportable state, so "
-            "a task no named file describes does not survive it"
+            "the tasks the ledger is rebuilt from — each from its committed "
+            "export, or from its checkpoint ref when it never closed; every "
+            "task some anchor describes when none is named. An import "
+            "REPLACES the exportable state, so a task no named anchor "
+            "describes does not survive it"
         ),
     )
     reconcile = commands.add_parser(
@@ -145,12 +186,15 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _exports(repo_root: Path, task_ids: Sequence[str]) -> tuple[Path, ...]:
-    """The export files a rebuild reads, named or discovered in `(task)` order."""
-    directory = export_dir(repo_root)
-    if task_ids:
-        return tuple(directory / f"{task_id}{EXPORT_SUFFIX}" for task_id in task_ids)
-    return tuple(sorted(directory.glob(f"*{EXPORT_SUFFIX}")))
+def _exports(config: ForemanConfig, task_ids: Sequence[str]) -> tuple[Path, ...]:
+    """The sources a rebuild reads, named or discovered in `(task)` order.
+
+    Each task's CLOSE anchor where it has one, and its checkpoint otherwise
+    (§3.9, R10): a task that never landed has no committed file, and before S7
+    that meant a deleted ledger lost it. `rebuild_sources` owns the precedence
+    so the CLI cannot spell it a second way.
+    """
+    return rebuild_sources(Git(config.inspector), config.repo_root, task_ids)
 
 
 def _reconcile(config: ForemanConfig, task_id: str) -> int:
@@ -160,7 +204,19 @@ def _reconcile(config: ForemanConfig, task_id: str) -> int:
     the reconciler must not construct its own transport.
     """
     with open_ledger(config.repo_root, config.wrapper_root) as database:
-        result = AttentionReconciler(database, BdClient(config.bd)).drain(task_id)
+        writer = attention_writer(database, tracker_for(config.tracker))
+        result = AttentionReconciler(database, writer).drain(task_id)
+        # The reconciler now only ENQUEUES (§3.3). `wf ledger reconcile` is a
+        # human asking for the mirror to be caught up, so it repairs it: the
+        # stranded claim §3.4 names this command for, then the drain — unlike
+        # a tick, which leaves the drain to the driver's exit.
+        drained = repair_mirror(config, database, Git(config.inspector), task_id)
+    if drained.conflicts:
+        sys.stdout.write(
+            _MSG_CONFLICTS.format(
+                count=len(drained.conflicts), refs=", ".join(drained.conflicts)
+            )
+        )
     if not result.written:
         sys.stdout.write(_MSG_NOTHING_DUE.format(task_id=task_id))
         return EXIT_OK
@@ -238,9 +294,27 @@ def _verify(config: ForemanConfig, task_id: str, allowed_signers: Path | None) -
     return EXIT_OK
 
 
+def _pin_export(config: ForemanConfig, task_id: str) -> int:
+    """Re-pin one task's export from the bytes already on disk (§3.6).
+
+    The recovery for the one window `ExportPin` cannot make atomic: the file
+    was written and the process died before the ref named its blob, so the
+    task looks unexported while its whole record is sitting in the checkout.
+    """
+    git = Git(config.inspector)
+    with open_ledger(config.repo_root, config.wrapper_root) as database:
+        oid = pin_export(git, database, task_id, config.repo_root)
+    sys.stdout.write(
+        _MSG_PINNED.format(
+            task_id=task_id, ref=EXPORT_REF_TEMPLATE.format(task_id=task_id), oid=oid
+        )
+    )
+    return EXIT_OK
+
+
 def _archive(config: ForemanConfig, task_id: str, bundle: Path) -> int:
     """Archive one closed task's bytes behind a verified bundle (§3.9, D19)."""
-    git = Git(config.supervisor)
+    git = Git(config.inspector)
     with open_ledger(config.repo_root, config.wrapper_root) as database:
         result = archive_task(
             git,
@@ -261,27 +335,54 @@ def _archive(config: ForemanConfig, task_id: str, bundle: Path) -> int:
     return EXIT_OK
 
 
+def _validate_ids(args: argparse.Namespace) -> None:
+    """Put every task id this invocation names through the ONE grammar (§3.6).
+
+    At the CLI boundary, before a config is loaded or a path, a ref or a lock
+    is derived from the id: every verb here takes an operator-typed id, and
+    each of them derived a different path from it — `reconcile` a lock under
+    the wrapper root, `verify` a file under `.wf/export/`, `import` a ref
+    name. `../x` escaped all three, and the fence CREATED the lock it escaped
+    to. The foreman CLI has validated its ids all along (invariant G).
+    """
+    named: list[str] = []
+    single = getattr(args, "task_id", None)
+    if single is not None:
+        named.append(str(single))
+    named.extend(str(task_id) for task_id in getattr(args, "task_ids", ()))
+    for task_id in named:
+        safe_component(task_id, kind=ComponentKind.TASK)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Export one task, or rebuild tasks from their exports."""
     args = _parser().parse_args(argv)
     try:
+        _validate_ids(args)
         config = load_config(args.config)
         repo_root = config.repo_root
         wrapper_root = config.wrapper_root
         if args.command == COMMAND_EXPORT:
             with open_ledger(repo_root, wrapper_root) as database:
-                path = write_export(database, args.task_id)
+                path = write_landed_export(database, args.task_id)
             sys.stdout.write(_MSG_EXPORTED.format(task_id=args.task_id, path=path))
             return EXIT_OK
+        if args.command == COMMAND_PIN_EXPORT:
+            return _pin_export(config, args.task_id)
         if args.command == COMMAND_RECONCILE:
             return _reconcile(config, args.task_id)
         if args.command == COMMAND_VERIFY:
             return _verify(config, args.task_id, args.allowed_signers)
         if args.command == COMMAND_ARCHIVE:
             return _archive(config, args.task_id, args.bundle)
-        paths = _exports(repo_root, args.task_ids)
+        paths = _exports(config, args.task_ids)
         if not paths:
-            sys.stderr.write(_MSG_NO_EXPORTS.format(directory=export_dir(repo_root)))
+            sys.stderr.write(
+                _MSG_NO_EXPORTS.format(
+                    directory=export_dir(repo_root),
+                    prefix=CHECKPOINT_REF_TEMPLATE.format(task_id=""),
+                )
+            )
             return EXIT_REFUSED
         # The schema has to exist before an import can fill it, and creating it
         # takes the exclusive fence — so the ledger is opened and CLOSED first,

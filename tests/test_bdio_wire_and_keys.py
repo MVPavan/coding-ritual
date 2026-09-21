@@ -53,7 +53,7 @@ def _activation(**overrides: object) -> ActivationMetadata:
         "seq": 3,
         "idempotency_key": "k",
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": "profile:implementer",
+        "crew_profile": "profile:implementer",
         "model": "default",
         "session_id": "sess-1",
         "intended_base_commit": "abc123",
@@ -155,7 +155,7 @@ def test_bead_record_ignores_unknown_bd_columns() -> None:
 
 
 def test_bead_record_reads_an_optional_description() -> None:
-    """A stage description is available to the bridge without requiring it."""
+    """A stage description is available to the contractor without requiring it."""
     record = BeadRecord.model_validate(
         {
             "id": "wf-1",
@@ -304,7 +304,7 @@ def test_a_mint_request_cannot_state_a_fact_the_store_derives(field: str) -> Non
             {
                 "node": NODE,
                 "mint_reason": MintReason.ENTRY,
-                "runner_profile": "p",
+                "crew_profile": "p",
                 "model": "m",
                 "session_id": "s",
                 field: 1,

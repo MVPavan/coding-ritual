@@ -116,7 +116,7 @@ def test_successor_crash_replays_one_root(
 def test_p2_child_updates_current_slot_and_matching_decision_replays(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from tests._supervisor import ChildScript
+    from tests._inspector import ChildScript
     from tests.test_children_lifecycle import owner_lab
     from workflow_interpreter.foreman import replacement
     from workflow_interpreter.foreman.decisions import reconcile_action
@@ -168,7 +168,7 @@ def test_successor_authority_refusals_preserve_predecessor(
     import subprocess
 
     from workflow_interpreter.foreman.gates import halt_gate
-    from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
+    from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
 
     lab, owner, composition, _ = writer_lab(tmp_path)
     store = lab.store.coordination_store(composition=composition)
@@ -207,51 +207,13 @@ def test_successor_authority_refusals_preserve_predecessor(
     assert not store.state(owner.root_id).successors
 
 
-@pytest.mark.bd
-def test_real_beads_successor_intent_receipt_roundtrip(
-    tmp_path: Path, bd_config
-) -> None:
-    from dataclasses import replace
-
-    from workflow_interpreter.bdio import WorkflowStore
-    from workflow_interpreter.bdio.client import BdClient
-    from workflow_interpreter.foreman.resolve import instantiate
-
-    lab, _, composition, _ = writer_lab(tmp_path)
-    store = WorkflowStore(BdClient(bd_config))
-    composition = replace(
-        composition,
-        store=store,
-        config=composition.config.model_copy(update={"bd": bd_config}),
-    )
-    owner = instantiate(
-        composition,
-        lab._toml,
-        instance_key="p5-successor-" + tmp_path.name,
-        instance_inputs={},
-        allow_test_flags=False,
-        overrides={},
-        backend=composition.config.store,
-    )
-    request = TrustedReplacementRequest(
-        request_key="durable", reason="new instructions", graph=str(lab._toml)
-    )
-    receipt = replace_checked(composition, owner.root_id, "work", 0, request)
-    # A fresh client reads the actual Beads journal; no in-memory receipt cache.
-    restarted = replace(composition, store=WorkflowStore(BdClient(bd_config)))
-    assert replace_checked(restarted, owner.root_id, "work", 0, request) == receipt
-    state = restarted.store.coordination_store().state(owner.root_id)
-    assert state.successors["durable"].receipt == receipt
-    assert len(state.reservations) == 2
-
-
 def test_concurrent_successor_requests_converge_same_reservation(
     tmp_path: Path,
 ) -> None:
     from concurrent.futures import ThreadPoolExecutor
     from threading import Barrier
 
-    from workflow_interpreter.supervisor.errors import LockUnavailable
+    from workflow_interpreter.inspector.errors import LockUnavailable
 
     lab, owner, composition, _ = writer_lab(tmp_path)
     request = TrustedReplacementRequest(
@@ -438,7 +400,6 @@ def test_second_key_after_reservation_crash_cannot_poison_original(
         instance_inputs={},
         allow_test_flags=False,
         overrides={},
-        backend=composition.config.store,
     )
     store = lab.store.coordination_store(composition=composition)
     if slot == "child":

@@ -8,14 +8,20 @@ from pathlib import Path
 
 import pytest
 
-from tests._bdio import entry_request, handle, load_definition, make_root
+from tests._bdio import (
+    MetadataWrites,
+    entry_request,
+    handle,
+    load_definition,
+    make_root,
+)
 from workflow_interpreter.bdio import Evidence, ExitRecord, Lifecycle
 from workflow_interpreter.bdio.errors import LifecycleConflictError
 
 
 @pytest.mark.parametrize("conflicting", [False, True])
 def test_concurrent_evidence_publication_reconciles_only_identical_payload(
-    fake_store, fake_bd, conflicting
+    fake_store, fake_client, conflicting
 ):
     root = make_root(fake_store, load_definition())
     activation = fake_store.mint_activation(root.root_id, entry_request()).activation
@@ -27,12 +33,10 @@ def test_concurrent_evidence_publication_reconciles_only_identical_payload(
     )
     evidence = Evidence(note="late completion")
     winner = Evidence(note="different completion") if conflicting else evidence
-    # First guard sees EXIT_RECORDED; a second publisher wins before the fresh guard.
-    fake_bd.pause_before(
-        "show",
-        lambda: fake_bd.pause_before(
-            "show", lambda: fake_store.record_evidence(activation_id, winner)
-        ),
+    # This publisher decided on the state it read; a second one lands first,
+    # and the guard inside the write transaction is what sees it (§3.3).
+    MetadataWrites(fake_client).pause_before(
+        lambda: fake_store.record_evidence(activation_id, winner)
     )
     if conflicting:
         with pytest.raises(LifecycleConflictError):
@@ -44,7 +48,7 @@ def test_concurrent_evidence_publication_reconciles_only_identical_payload(
 
 
 def _die_during_snapshot(fake, entered):
-    from workflow_interpreter.supervisor import paths
+    from workflow_interpreter.inspector import paths
 
     original = Path.write_text
 
@@ -108,7 +112,7 @@ def test_killed_fake_writer_preserves_previous_complete_snapshot(tmp_path):
 
 @pytest.mark.parametrize("conflicting", [False, True])
 def test_concurrent_dispatch_publication_reconciles_only_same_handle(
-    fake_store, fake_bd, conflicting
+    fake_store, fake_client, conflicting
 ):
     root = make_root(fake_store, load_definition())
     activation_id = fake_store.mint_activation(
@@ -120,11 +124,8 @@ def test_concurrent_dispatch_publication_reconciles_only_same_handle(
         if conflicting
         else launched
     )
-    fake_bd.pause_before(
-        "show",
-        lambda: fake_bd.pause_before(
-            "show", lambda: fake_store.record_dispatch(activation_id, winner)
-        ),
+    MetadataWrites(fake_client).pause_before(
+        lambda: fake_store.record_dispatch(activation_id, winner)
     )
     if conflicting:
         with pytest.raises(LifecycleConflictError):

@@ -7,7 +7,7 @@ import pytest
 
 from tests import test_toolchain_seeding
 from tests.test_toolchain_seeding import SeedLab
-from workflow_interpreter.supervisor.toolchain_models import ToolchainUnavailable
+from workflow_interpreter.inspector.toolchain_models import ToolchainUnavailable
 
 seed_lab = test_toolchain_seeding.seed_lab
 

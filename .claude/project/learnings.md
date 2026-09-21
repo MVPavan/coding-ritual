@@ -90,7 +90,7 @@ Format per entry:
   overclaim (S1) was about.
 - Apply: set `lab.clock.real_sleep_s = 0.05` before forking in any real-fork
   timing test (the only precedent is
-  `tests/test_supervisor_run.py::test_a_stale_child_raises_the_flag_on_disk_and_in_bd`,
+  `tests/test_inspector_run.py::test_a_stale_child_is_flagged_on_disk_and_in_bd_then_terminated`,
   invisible from `tests/_foreman.py`); arm a crash BEFORE the dispatch attempt
   it must land in, not after; requeue the next `ChildScript` AFTER the rebuild
   that consumes it.
@@ -129,14 +129,14 @@ Format per entry:
   validator reads. Prefer field-by-field construction, which forces the
   validator to run and makes the invariant *enforced* rather than *assumed*.
   AUDITED the other five sites in this repo after the fix
-  (`supervisor/steer.py:145`, `foreman/config.py:75`,
-  `supervisor/workspace.py:480`, `bdio/transitions.py:220`,
+  (`inspector/steer.py:154`, `foreman/config.py:75`,
+  `inspector/workspace.py:490`, `bdio/transitions.py:220`,
   `bdio/roots.py:207`): none is a live defect — THREE target models with no
   after-validator at all (`RootMetadata`, `ActivationMetadata`, `PinResult`)
   and TWO that update a field the validator never reads
   (`MintRequest.session_id`, `ForemanConfig.config_path`). Note WHY the latter
   two are safe: field-disjointness, which nothing enforces and any later edit
-  can break — `steer.py:145` is the identical construct on the identical model
+  can break — `steer.py:154` is the identical construct on the identical model
   that caused the P1, separated from it only by which field is updated.
   (Classification corrected 2026-09-02 after a sign-off caught the counts
   reversed; the safety conclusion was unchanged.)
@@ -212,7 +212,7 @@ harnesses proving a property of themselves.
 
 ## Verify scripts run as `/proc/self/fd/<n>` — `$0`-relative paths do not exist  (2026-09-03)
 
-- Observed: `supervisor/verify.py` executes a pinned verifier through an open
+- Observed: `inspector/verify.py` executes a pinned verifier through an open
   descriptor, so inside the script `$0` is `/proc/self/fd/<n>` and
   `dirname "$0"` is `/proc/self/fd`. The process gets no `$WF_*` variables and
   no arguments (`verify.py:302`); only `argv[0]` is hashed.
@@ -317,3 +317,58 @@ harnesses proving a property of themselves.
 - Why it matters: copying full pinned policies into status wastes context, while prose or absent fields cannot prove backend identity.
 - Apply: retain bounded state/receipt/target summaries with explicit omissions. Prove model identity from activation pins plus actual runner/native session records. Resume expensive live proofs using saved identities validated against fresh durable state, never cached status masquerading as a new observation.
 - Source: `cr-thh.1`, [P5 verification](../../docs/workstreams/agent-bridge/verification/P5.md).
+
+## A "known flaky" list hides real regressions  (2026-09-21)
+
+- Observed: during the store-restructure epic a failing test was carried on a
+  hand-maintained "known flaky" list across slices. It was not flaky — it was a
+  regression the seam change had caused, and the list is what kept anyone from
+  looking.
+- Why it matters: a flaky list is an assertion about a test's behaviour, and
+  nobody re-checks an assertion that is already written down. One wrong entry
+  buys permanent blindness on exactly the test most likely to catch you.
+- Apply: no test joins the flaky list without an isolated-run proof recorded
+  beside it — the test run alone, repeated, showing both outcomes on unchanged
+  code. Re-prove an entry before relying on it in a new slice; drop it
+  otherwise.
+- Source: epic `cr-nwy9` (store restructure)
+
+## Run BOTH pytest lanes when you delete a seam  (2026-09-21)
+
+- Observed: the cutover slice ran only `uv run pytest -q -m "not bd and not
+  live"`. The deselected `-m bd` lane had gone red at the same commit and stayed
+  red unseen, because the deleted seam was exactly what those tests exercised.
+- Why it matters: a marker selection is a filter over the code you are most
+  likely to have broken. The lane you skip is correlated with the change, not
+  independent of it.
+- Apply: a change that deletes or replaces a seam runs the full repo gate in
+  `.claude/project/verification.md` (all five commands), not the default lane.
+  If a lane cannot run on the host, say so explicitly rather than reporting the
+  subset as green.
+- Source: epic `cr-nwy9` (store restructure)
+
+## A stale `.mypy_cache` reports phantom errors after a mass rename  (2026-09-21)
+
+- Observed: after the S0 rename (`git mv` of two packages, ~3,300 occurrences),
+  `mypy --strict` reported errors against modules that no longer existed. The
+  cache had the old module graph.
+- Why it matters: the phantom errors look like a broken rename and cost a
+  debugging round chasing code that is already correct.
+- Apply: after any `git mv` of a package or a mass identifier rename, run the
+  typecheck once with `--cache-dir=/dev/null` before believing a failure. Same
+  rule before reporting a typecheck result from a worktree that was re-branched
+  under the same path.
+- Source: epic `cr-nwy9` (store restructure)
+
+## A frozen clock plus real children buys time-based coverage for free  (2026-09-21)
+
+- Observed: the epic's lab rig runs real child processes against an injected
+  frozen clock, which let `stale_after` expiry be exercised without any sleep or
+  wall-clock wait.
+- Why it matters: time-dependent branches are usually either untested or tested
+  with sleeps that make the suite slow and flaky — the thing the flaky list then
+  hides.
+- Apply: inject the clock at construction (never read wall time in the code under
+  test) and keep the children real. Advancing the injected clock then covers
+  expiry, staleness and timeout branches at unit-test speed.
+- Source: epic `cr-nwy9` (store restructure)

@@ -1,4 +1,4 @@
-"""Opt-in codex-cli 0.154.0 runner; one wrapper-owned stdio turn per activation."""
+"""Opt-in codex-cli 0.154.0 crew; one wrapper-owned stdio turn per activation."""
 
 import json
 import subprocess
@@ -11,7 +11,17 @@ from pydantic import ValidationError
 from workflow_interpreter.bdio import ProcessHandle, Usage
 from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.contracts.rpc_usage import UsageSnapshot
-from workflow_interpreter.contracts.transport import RunnerTransport
+from workflow_interpreter.contracts.transport import CrewTransport
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.profile import (
+    CrewCommand,
+    CrewEvent,
+    TaskSpec,
+    TerminalEnvelope,
+)
+from workflow_interpreter.inspector.rpc_records import SESSION_FILE
+from workflow_interpreter.inspector.rpc_usage import USAGE_FILE
 from workflow_interpreter.profiles.codex import (
     CodexProfile,
     _required_effort,
@@ -19,18 +29,8 @@ from workflow_interpreter.profiles.codex import (
 )
 from workflow_interpreter.profiles.codex_appserver_config import config_argv
 from workflow_interpreter.profiles.codex_rpc import CODEX_VERSION
-from workflow_interpreter.profiles.config import RunnerName
+from workflow_interpreter.profiles.config import CrewName
 from workflow_interpreter.profiles.errors import TaskRefused
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.profile import (
-    RunnerCommand,
-    RunnerEvent,
-    TaskSpec,
-    TerminalEnvelope,
-)
-from workflow_interpreter.supervisor.rpc_records import SESSION_FILE
-from workflow_interpreter.supervisor.rpc_usage import USAGE_FILE
 
 MSG_VERSION: Final[str] = f"codex-appserver requires codex-cli {CODEX_VERSION}"
 MSG_STATE: Final[str] = "codex-appserver requires protected vendor state"
@@ -41,15 +41,15 @@ APP_SERVER: Final[str] = "app-server"
 
 
 class CodexAppServerProfile(CodexProfile):
-    """The experimental runner shares Codex grants, never its exec transport."""
+    """The experimental crew shares Codex grants, never its exec transport."""
 
-    runner = RunnerName.CODEX_APPSERVER
+    crew = CrewName.CODEX_APPSERVER
 
     def working_directory(self, task: TaskSpec) -> str:
         """Select cwd through the shared Codex policy before launch plans are frozen."""
         return self._workspace_root(task)
 
-    def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+    def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
         """Version-check without model work, then describe the barrier-owned server."""
         if task.vendor_state is None:
             raise TaskRefused(MSG_STATE)
@@ -102,14 +102,14 @@ class CodexAppServerProfile(CodexProfile):
         )
         return command.model_copy(
             update={
-                "transport": RunnerTransport.STDIO_RPC,
+                "transport": CrewTransport.STDIO_RPC,
                 "env": {**command.env, ENV_CODEX_HOME: task.vendor_state},
             }
         )
 
     def build_resume_command(
         self, session_id: str, instructions: str, task: TaskSpec
-    ) -> RunnerCommand:
+    ) -> CrewCommand:
         """The wrapper performs thread/resume and resubmits the fresh full envelope."""
         return self.build_command(
             task.model_copy(update={"brief": instructions}), session_id
@@ -119,11 +119,11 @@ class CodexAppServerProfile(CodexProfile):
         """App-server threads resume only through a newly bounded wrapper activation."""
         return f"codex-appserver thread/resume {session_id}"
 
-    def parse_output(self, stream: Iterable[str]) -> Iterator[RunnerEvent]:
+    def parse_output(self, stream: Iterable[str]) -> Iterator[CrewEvent]:
         """Read only wrapper-normalized telemetry, never register identity from it."""
         for line in stream:
             try:
-                yield RunnerEvent.model_validate_json(line)
+                yield CrewEvent.model_validate_json(line)
             except ValidationError:
                 continue
 

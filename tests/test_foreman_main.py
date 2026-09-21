@@ -16,47 +16,60 @@ import pytest
 
 from tests._bdio import entry_request as bdio_entry_request
 from tests._bdio import handle, load_definition, make_root
+from tests._contractor import bd_adapter
 from tests._foreman import ForemanLab
 from tests._foreman import entry_request as foreman_entry_request
 from tests._helpers import (
     AMBIGUOUS_ABANDON_EDITS,
     VALID_FIXTURE,
     mutate,
+    seeded_records,
     unnameable_abandon_graph,
 )
-from tests._supervisor import VERIFY_SCRIPT, ChildScript, make_config, make_repo
+from tests._inspector import VERIFY_SCRIPT, ChildScript, make_config, make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
-    BdCommandError,
-    BdConfig,
-    BdOutputError,
     Outcome,
     Usage,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import STATUS_CLOSED, BdClient
 from workflow_interpreter.bdio.config import SigningConfig
-from workflow_interpreter.bdio.errors import BdUnavailableError, StoreTransportError
+from workflow_interpreter.bdio.errors import StoreTransportError
 from workflow_interpreter.bdio.reads import WorkflowReads
-from workflow_interpreter.bridge import (
-    PhaseAdapter,
-    PhaseAdapterError,
-    PhaseBridgeRecord,
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
+from workflow_interpreter.contractor import (
+    ContractorAdapter,
+    ContractorAdapterError,
+    ContractorRecord,
     RetryRefusal,
 )
-from workflow_interpreter.bridge import command as bridge_command_module
-from workflow_interpreter.bridge import gate_view as gate_view_module
-from workflow_interpreter.bridge.verification import CheckCommand, VerificationPolicy
+from workflow_interpreter.contractor import command as contractor_command_module
+from workflow_interpreter.contractor import gate_view as gate_view_module
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
+from workflow_interpreter.contractor.tracker_config import TrackerSettings
+from workflow_interpreter.contractor.verification import (
+    CheckCommand,
+    VerificationPolicy,
+)
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver, Spawner
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.gates import halt_gate
-from workflow_interpreter.foreman.supervise import WrapperExit, run_wrapper
+from workflow_interpreter.foreman.inspector import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, RunReport, TickReport
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.errors import PreconditionRefused
-from workflow_interpreter.supervisor.gitio import Git
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.errors import PreconditionRefused
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.ledger.closure import closure_probe
+from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
+from workflow_interpreter.tracker.errors import (
+    BdCommandError,
+    BdOutputError,
+    BdUnavailableError,
+)
+from workflow_interpreter.tracker.outbox import TrackerOutbox
+from workflow_interpreter.tracker.port import TrackerPort
 
 
 def _created_root_id(transcript: str) -> str:
@@ -78,7 +91,7 @@ def test_module_entrypoint_is_spawnable() -> None:
             "workflow_interpreter.foreman",
             "--task",
             "cr-3411.4",
-            "supervise",
+            "inspector",
             "root-id",
             "activation-id",
         ],
@@ -106,11 +119,11 @@ def test_lab_transcript_captures_the_entrypoint_stream(tmp_path: Path) -> None:
 
 
 @pytest.mark.acceptance
-def test_audit_20_keeps_clean_runner_log_bytes_out_of_every_transcript(
+def test_audit_20_keeps_clean_crew_log_bytes_out_of_every_transcript(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """AUDIT-20 catches a clean foreman command that reads a runner log."""
-    sentinel = "audit-20-50da3ef2-runner-log"
+    """AUDIT-20 catches a clean foreman command that reads a crew log."""
+    sentinel = "audit-20-50da3ef2-crew-log"
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     lab.profiles.next_script(
@@ -218,7 +231,7 @@ def test_main_inspect_keeps_a_bounded_escaped_tail_inside_its_extra_allowance(
         lambda: main_module.main(["inspect", root.root_id, activation.activation_id])
     )
 
-    assert byte_count <= (MAX_TRANSCRIPT_BYTES + lab.supervisor_config.log_tail_bytes)
+    assert byte_count <= (MAX_TRANSCRIPT_BYTES + lab.inspector_config.log_tail_bytes)
     report = json.loads(text)
     assert report["activation_id"] == activation.activation_id
     assert report["tail"] != ""
@@ -239,7 +252,7 @@ def test_main_tick_caps_structlog_without_dropping_its_report(
     assert json.loads(report)["dispatched"] is not None
 
 
-def test_main_leaves_supervise_output_in_its_redirected_wrapper_log(
+def test_main_leaves_inspect_output_in_its_redirected_wrapper_log(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The wrapper stream is already bounded when a reader asks for its tail."""
@@ -264,7 +277,7 @@ def test_main_leaves_supervise_output_in_its_redirected_wrapper_log(
             [
                 "--config",
                 str(tmp_path / "foreman.toml"),
-                "supervise",
+                "inspector",
                 root.root_id,
                 activation.activation_id,
             ]
@@ -286,12 +299,17 @@ def test_status_renders_total_input_tokens_including_cache_layers(
         .store.mint_activation(root.root_id, foreman_entry_request())
         .activation
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["usage"] = Usage(
-        known=True,
-        input_tokens=92,
-        cache_read_input_tokens=3,
-        cache_creation_input_tokens=5,
-    ).model_dump(mode="json", exclude_none=True)
+    lab.backend._merge_metadata(
+        activation.activation_id,
+        {
+            "usage": Usage(
+                known=True,
+                input_tokens=92,
+                cache_read_input_tokens=3,
+                cache_creation_input_tokens=5,
+            ).model_dump(mode="json", exclude_none=True)
+        },
+    )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
 
     _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
@@ -346,7 +364,7 @@ def test_lab_pins_overrides_and_test_flagged_graphs(tmp_path: Path) -> None:
     assert setting.value == 31
 
 
-def test_module_supervise_loads_the_argv_config_before_running_the_wrapper(
+def test_module_inspect_loads_the_argv_config_before_running_the_wrapper(
     tmp_path: Path,
 ) -> None:
     """The detached command gets past configuration and reaches wrapper loading.
@@ -354,6 +372,11 @@ def test_module_supervise_loads_the_argv_config_before_running_the_wrapper(
     A REAL checkout, because composing now opens the ledger and the ledger's
     fence lives in the git common directory (§3.4): a tree with no `.git`
     refuses before bd is ever reached.
+
+    `--epic` is passed for the same reason the real `DetachedSpawner` passes
+    it: this task has no ledger row, and composing one without an epic is a
+    refusal by name (§3.7), which would stop the command short of the wrapper
+    this test is about.
     """
     repo = make_repo(tmp_path)
     wrapper_root = (
@@ -368,11 +391,11 @@ wrapper_home = "{tmp_path / "home"}"
 host = "host"
 actor = "actor"
 
-[bd]
+[tracker.bd]
 workspace = "{tmp_path / "bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{repo}"
 wrapper_root = "{wrapper_root}"
 host = "host"
@@ -389,7 +412,9 @@ host = "host"
             str(config),
             "--task",
             "cr-3411.4",
-            "supervise",
+            "--epic",
+            "cr-3411",
+            "inspector",
             "root-id",
             "activation-id",
         ],
@@ -400,7 +425,7 @@ host = "host"
 
     assert completed.returncode != 0
     assert "configuration path is required" not in completed.stderr
-    assert "bd show" in completed.stderr
+    assert "no ledger row" in completed.stderr
 
 
 def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
@@ -408,14 +433,14 @@ def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
 ) -> None:
     """A healthy bd activation gates the real wrapper path's log read."""
     repo = make_repo(tmp_path)
-    supervisor = make_config(repo, tmp_path)
+    inspector = make_config(repo, tmp_path)
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=tmp_path / "foreman-home",
-        bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="actor")),
         host="host",
         actor="actor",
-        supervisor=supervisor.model_copy(
+        inspector=inspector.model_copy(
             update={
                 "wrapper_root": tmp_path
                 / "foreman-home"
@@ -430,7 +455,7 @@ def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
     composition = Composition(
         config=config,
         store=fake_store,
-        supervisor_config=config.supervisor,
+        inspector_config=config.inspector,
         git=cast(Git, object()),
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, object()),
@@ -440,7 +465,7 @@ def test_inspect_uses_real_store_and_workspace_but_opens_no_healthy_log(
     paths = composition.for_root(root.root_id).paths
     paths.ensure_activation_dir(activation.activation_id)
     paths.log(activation.activation_id).write_text(
-        "secret runner bytes", encoding="utf-8"
+        "secret crew bytes", encoding="utf-8"
     )
 
     report = Foreman(composition).inspect(root.root_id, activation.activation_id)
@@ -455,14 +480,14 @@ def test_wrapper_records_a_non_dirty_precondition_refusal(
 ) -> None:
     """A real activation closes transport with the exact refused precondition."""
     repo = make_repo(tmp_path)
-    supervisor = make_config(repo, tmp_path)
+    inspector = make_config(repo, tmp_path)
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=tmp_path / "foreman-home",
-        bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="actor")),
         host="host",
         actor="actor",
-        supervisor=supervisor.model_copy(
+        inspector=inspector.model_copy(
             update={
                 "wrapper_root": tmp_path
                 / "foreman-home"
@@ -482,7 +507,7 @@ def test_wrapper_records_a_non_dirty_precondition_refusal(
     composition = Composition(
         config=config,
         store=fake_store,
-        supervisor_config=config.supervisor,
+        inspector_config=config.inspector,
         git=cast(Git, object()),
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, Profiles()),
@@ -494,7 +519,7 @@ def test_wrapper_records_a_non_dirty_precondition_refusal(
     def refuse(*_args: object, **_kwargs: object) -> object:
         raise PreconditionRefused("worktree is not a git worktree")
 
-    monkeypatch.setattr(wiring.supervisor, "run", refuse)
+    monkeypatch.setattr(wiring.inspector, "run", refuse)
 
     assert (
         run_wrapper(composition, root.root_id, activation.activation_id, wiring=wiring)
@@ -516,7 +541,7 @@ def test_wrapper_rejects_a_path_traversal_identifier_before_lock_creation(
     root = lab.instantiate()
     outside = tmp_path / "outside"
 
-    with pytest.raises(ValueError, match="invalid bead id"):
+    with pytest.raises(ValueError, match="not one safe path component"):
         run_wrapper(lab.composition, root.root_id, "../outside")
 
     assert not outside.exists()
@@ -531,10 +556,17 @@ def test_inspect_rejects_an_activation_owned_by_another_root(tmp_path: Path) -> 
         .store.mint_activation(root.root_id, foreman_entry_request())
         .activation
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["wf_root_id"] = "wf-other"
+    # A second root of the same task, created the way a decision root is: the
+    # activation's own root is a real row the ledger binds it to (§3.3), so
+    # the mismatch this refuses has to be a real OTHER root.
+    rival = lab.store.create_root(
+        instance_key="rival",
+        definition=lab.definition,
+        resolved_config=root.metadata.resolved_config,
+    )
 
     with pytest.raises(ValueError, match="does not belong to root"):
-        lab.foreman.inspect(root.root_id, activation.activation_id)
+        lab.foreman.inspect(rival.root_id, activation.activation_id)
 
 
 def test_status_reports_an_open_transition_gate_with_its_inbox_and_template(
@@ -590,13 +622,13 @@ def test_status_reports_an_open_transition_gate_with_its_inbox_and_template(
     assert "previous_attempts" not in entry
 
 
-def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
+def test_status_renders_prior_contractor_attempt_evidence_at_an_open_gate(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A historical bridge root still renders the stage's retry evidence."""
+    """A historical contractor root still renders the stage's retry evidence."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
-    first = PhaseBridgeRecord.prepared(
+    first = ContractorRecord.prepared(
         epic_id="phase-1",
         stage_id="stage-a",
         attempt=1,
@@ -604,15 +636,16 @@ def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
         expected_base_commit=lab.head,
     )
     record = first.next_attempt().admitted("current-root")
-    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = first.instance_key
+    lab.backend._merge_metadata(root.root_id, {"instance_key": first.instance_key})
     lab.fake_bd.rows["stage-a"] = {
         "id": "stage-a",
-        "title": "bridge stage",
+        "title": "contractor stage",
         "status": "in_progress",
         "issue_type": "task",
-        "metadata": {"phase_bridge": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
         "parent": "phase-1",
     }
+    seeded_records(record, into=lab.records)
     lab.profiles.next_script(
         ChildScript(
             marker='{"outcome":"done"}\n',
@@ -633,19 +666,10 @@ def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
     assert ship_id is not None
 
     monkeypatch.setattr(
-        gate_view_module.PhaseAdapter,
-        "from_config",
-        classmethod(
-            lambda _cls, _config, _reads=None: PhaseAdapter(
-                BdClient(lab.config.bd, lab.fake_bd)
-            )
-        ),
+        gate_view_module, "adapter_of", lambda *_, **__: _contractor_adapter(lab)
     )
-    assert gate_view_module.phase_bridge_gate_view(
-        first.instance_key,
-        lab.config.bd,
-        root_id=root.root_id,
-        reads=lab.composition.reads_for_root(root.root_id),
+    assert gate_view_module.contractor_gate_view(
+        first.instance_key, lab.composition, root_id=root.root_id
     ) == {
         "attempt": 2,
         "is_current_attempt": False,
@@ -663,13 +687,13 @@ def test_status_renders_prior_bridge_attempt_evidence_at_an_open_gate(
     assert entry["previous_attempts"] == [first.instance_key]
 
 
-def test_status_renders_current_bridge_attempt_evidence_at_an_open_gate(
+def test_status_renders_current_contractor_attempt_evidence_at_an_open_gate(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The running bridge root renders its stage's retry evidence."""
+    """The running contractor root renders its stage's retry evidence."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
-    first = PhaseBridgeRecord.prepared(
+    first = ContractorRecord.prepared(
         epic_id="phase-1",
         stage_id="stage-a",
         attempt=1,
@@ -677,15 +701,16 @@ def test_status_renders_current_bridge_attempt_evidence_at_an_open_gate(
         expected_base_commit=lab.head,
     )
     record = first.next_attempt().admitted(root.root_id)
-    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = record.instance_key
+    lab.backend._merge_metadata(root.root_id, {"instance_key": record.instance_key})
     lab.fake_bd.rows["stage-a"] = {
         "id": "stage-a",
-        "title": "bridge stage",
+        "title": "contractor stage",
         "status": "in_progress",
         "issue_type": "task",
-        "metadata": {"phase_bridge": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
         "parent": "phase-1",
     }
+    seeded_records(record, into=lab.records)
     lab.profiles.next_script(
         ChildScript(
             marker='{"outcome":"done"}\n',
@@ -706,13 +731,7 @@ def test_status_renders_current_bridge_attempt_evidence_at_an_open_gate(
     assert ship_id is not None
 
     monkeypatch.setattr(
-        gate_view_module.PhaseAdapter,
-        "from_config",
-        classmethod(
-            lambda _cls, _config, _reads=None: PhaseAdapter(
-                BdClient(lab.config.bd, lab.fake_bd)
-            )
-        ),
+        gate_view_module, "adapter_of", lambda *_, **__: _contractor_adapter(lab)
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
@@ -726,12 +745,12 @@ def test_status_renders_current_bridge_attempt_evidence_at_an_open_gate(
     assert entry["previous_attempts"] == [first.instance_key]
 
 
-def test_phase_bridge_gate_view_rejects_a_root_outside_stage_attempts(
+def test_contractor_gate_view_rejects_a_root_outside_stage_attempts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A similarly named root remains foreign unless the record names it."""
     lab = ForemanLab(tmp_path)
-    record = PhaseBridgeRecord.prepared(
+    record = ContractorRecord.prepared(
         epic_id="phase-1",
         stage_id="stage-a",
         attempt=1,
@@ -740,39 +759,31 @@ def test_phase_bridge_gate_view_rejects_a_root_outside_stage_attempts(
     ).next_attempt()
     lab.fake_bd.rows["stage-a"] = {
         "id": "stage-a",
-        "title": "bridge stage",
+        "title": "contractor stage",
         "status": "in_progress",
         "issue_type": "task",
-        "metadata": {"phase_bridge": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
         "parent": "phase-1",
     }
+    seeded_records(record, into=lab.records)
     monkeypatch.setattr(
-        gate_view_module.PhaseAdapter,
-        "from_config",
-        classmethod(
-            lambda _cls, _config, _reads=None: PhaseAdapter(
-                BdClient(lab.config.bd, lab.fake_bd)
-            )
-        ),
+        gate_view_module, "adapter_of", lambda *_, **__: _contractor_adapter(lab)
     )
 
-    with pytest.raises(PhaseAdapterError, match="does not own root instance_key"):
-        gate_view_module.phase_bridge_gate_view(
-            "phase-bridge:phase-1:stage-a:attempt:3",
-            lab.config.bd,
-            root_id="impostor",
-            reads=lab.store.reads,
+    with pytest.raises(ContractorAdapterError, match="does not own root instance_key"):
+        gate_view_module.contractor_gate_view(
+            "contract:phase-1:stage-a:attempt:3", lab.composition, root_id="impostor"
         )
 
 
-def test_status_resolves_bridge_view_once_for_an_open_halt(
+def test_status_resolves_contractor_view_once_for_an_open_halt(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The duplicate halt presentation shares one root-scoped bridge read."""
+    """The duplicate halt presentation shares one root-scoped contractor read."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     record = (
-        PhaseBridgeRecord.prepared(
+        ContractorRecord.prepared(
             epic_id="phase-1",
             stage_id="stage-a",
             attempt=1,
@@ -782,30 +793,27 @@ def test_status_resolves_bridge_view_once_for_an_open_halt(
         .next_attempt()
         .admitted(root.root_id)
     )
-    lab.fake_bd.rows[root.root_id]["metadata"]["instance_key"] = record.instance_key
+    lab.backend._merge_metadata(root.root_id, {"instance_key": record.instance_key})
     lab.fake_bd.rows["stage-a"] = {
         "id": "stage-a",
-        "title": "bridge stage",
+        "title": "contractor stage",
         "status": "in_progress",
         "issue_type": "task",
-        "metadata": {"phase_bridge": record.model_dump(by_alias=True, mode="json")},
+        "metadata": {},
         "parent": "phase-1",
     }
+    seeded_records(record, into=lab.records)
     lab.store.open_gate(root.root_id, halt_gate("ceiling:20"))
     resolutions = 0
 
-    def adapter_from_config(
-        _cls: type[PhaseAdapter], _config: BdConfig, reads: WorkflowReads
-    ) -> PhaseAdapter:
+    def adapter_of(
+        _composition: object, reads: WorkflowReads | None = None
+    ) -> ContractorAdapter:
         nonlocal resolutions
         resolutions += 1
-        return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd), reads)
+        return _contractor_adapter(lab, reads)
 
-    monkeypatch.setattr(
-        gate_view_module.PhaseAdapter,
-        "from_config",
-        classmethod(adapter_from_config),
-    )
+    monkeypatch.setattr(gate_view_module, "adapter_of", adapter_of)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
 
     _, transcript = lab.transcript(lambda: main_module.main(["status", root.root_id]))
@@ -987,7 +995,7 @@ def test_create_reports_a_refused_instantiation_without_a_traceback(
 
 
 def test_config_is_accepted_before_every_subcommand() -> None:
-    """One `--config` position for all commands, including `phase-bridge`."""
+    """One `--config` position for all commands, including `contract`."""
     parser = main_module._parser()
     common = ["--config", "/tmp/foreman.toml"]
     forms = (
@@ -995,8 +1003,8 @@ def test_config_is_accepted_before_every_subcommand() -> None:
         ["tick", "root"],
         ["status", "root"],
         ["run", "root"],
-        ["phase-bridge", "phase", "stage"],
-        ["supervise", "root", "activation"],
+        ["contract", "phase", "stage"],
+        ["inspector", "root", "activation"],
         ["inspect", "root", "activation"],
         ["steer", "root", "activation", "--reason", "r", "--instructions-file", "f"],
     )
@@ -1007,11 +1015,11 @@ def test_config_is_accepted_before_every_subcommand() -> None:
         assert args.config == Path("/tmp/foreman.toml")
 
 
-def _bridge_lab(tmp_path: Path, **kwargs) -> ForemanLab:
+def _contractor_lab(tmp_path: Path, **kwargs) -> ForemanLab:
     lab = ForemanLab(tmp_path, **kwargs)
     lab.config = lab.config.model_copy(
         update={
-            "bridge_checks": (
+            "contractor_checks": (
                 CheckCommand(
                     name="source",
                     argv=(
@@ -1027,7 +1035,7 @@ def _bridge_lab(tmp_path: Path, **kwargs) -> ForemanLab:
     return lab
 
 
-def _bridge_stage(
+def _contractor_stage(
     stage_id: str, *, status: str = "open", description: str | None = None
 ) -> dict[str, object]:
     """Build one direct phase child for the command's public CLI seam."""
@@ -1042,49 +1050,74 @@ def _bridge_stage(
     }
 
 
-def _bridge_adapter(lab: ForemanLab) -> PhaseAdapter:
-    """Keep the command's bridge adapter on the lab's real fake-bd transport."""
-    return PhaseAdapter(BdClient(lab.config.bd, lab.fake_bd))
+def _contractor_adapter(
+    lab: ForemanLab,
+    reads: WorkflowReads | None = None,
+    tracker: TrackerPort | None = None,
+) -> ContractorAdapter:
+    """Keep the command's contractor adapter on the lab's real fake-bd transport.
+
+    The closure probe is the lab's OWN ledger and checkout — the same one the
+    production site it stands in for would compute (§3.5) — so a stub adapter
+    answers the close and succession refusals exactly as the real one does.
+
+    `tracker` defaults to the bd adapter over that same transport, which is
+    what production wires; a suite running the port against another tracker
+    passes one, and the outbox follows the lab's ledger either way (S5).
+
+    `reads` defaults to the lab's own root store, because since R1 the adapter
+    needs one to answer which root owns an instance key at all.
+    """
+    return bd_adapter(
+        BdClient(lab.bd_config, lab.fake_bd),
+        lab.store.reads if reads is None else reads,
+        closure=closure_probe(lab.ledger, lab.git),
+        records=lab.records,
+        tracker=tracker,
+        outbox=None if lab.ledger is None else TrackerOutbox(lab.ledger),
+    )
 
 
-def test_phase_bridge_reports_exhaustion_before_named_stage_membership(
+def test_contractor_reports_exhaustion_before_named_stage_membership(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """An exhausted phase is a fact even if the caller names a stale stage id."""
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["closed-stage"] = _bridge_stage("closed-stage", status="closed")
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["closed-stage"] = _contractor_stage(
+        "closed-stage", status="closed"
+    )
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
     _, transcript = lab.transcript(
-        lambda: codes.append(main_module.main(["phase-bridge", "phase", "missing"]))
+        lambda: codes.append(main_module.main(["contract", "phase", "missing"]))
     )
 
     assert codes == [0]
     assert json.loads(transcript)["state"] == "phase-exhausted"
 
 
-def test_phase_bridge_refuses_an_empty_stage_description_before_writing(
+def test_contractor_refuses_an_empty_stage_description_before_writing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The title never substitutes for a stage's task_brief input."""
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description=None)
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description=None)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
     _, transcript = lab.transcript(
-        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+        lambda: codes.append(main_module.main(["contract", "phase", "stage"]))
     )
 
     report = json.loads(transcript.splitlines()[0])
@@ -1095,52 +1128,52 @@ def test_phase_bridge_refuses_an_empty_stage_description_before_writing(
     assert lab.fake_bd.command_count("create") == 0
 
 
-def test_phase_bridge_refuses_without_a_configured_bridge_graph(
+def test_contractor_refuses_without_a_configured_contractor_graph(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A graphless foreman config cannot mint an unpinned bridge root."""
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    """A graphless foreman config cannot mint an unpinned contractor root."""
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     composition = replace(
         lab.composition,
-        config=lab.config.model_copy(update={"bridge_graph": None}),
+        config=lab.config.model_copy(update={"contractor_graph": None}),
     )
     monkeypatch.setattr(main_module, "_composition", lambda _: composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
     _, transcript = lab.transcript(
-        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+        lambda: codes.append(main_module.main(["contract", "phase", "stage"]))
     )
 
     report = json.loads(transcript.splitlines()[0])
     assert codes == [2]
     assert report["state"] == "refused"
-    assert "bridge_graph" in report["reason"]
+    assert "contractor_graph" in report["reason"]
     assert lab.fake_bd.command_count("update") == 0
     assert lab.fake_bd.command_count("create") == 0
 
 
-def test_phase_bridge_refuses_a_configured_required_input_it_cannot_supply(
+def test_contractor_refuses_a_configured_required_input_it_cannot_supply(
     build_loop_graph: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Only task_brief is bridge-owned; another required input costs no root."""
-    lab = _bridge_lab(tmp_path, toml=build_loop_graph)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    """Only task_brief is contractor-owned; another required input costs no root."""
+    lab = _contractor_lab(tmp_path, toml=build_loop_graph)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
     _, transcript = lab.transcript(
-        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+        lambda: codes.append(main_module.main(["contract", "phase", "stage"]))
     )
 
     report = json.loads(transcript.splitlines()[0])
@@ -1151,24 +1184,24 @@ def test_phase_bridge_refuses_a_configured_required_input_it_cannot_supply(
     assert lab.fake_bd.command_count("create") == 0
 
 
-def test_phase_bridge_trace_is_read_only(
+def test_contractor_trace_is_read_only(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Trace renders absent evidence without admitting, minting, or changing refs."""
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     before = lab.git.head_commit(cwd=lab.repo)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
     _, transcript = lab.transcript(
         lambda: codes.append(
-            main_module.main(["phase-bridge", "phase", "stage", "--trace"])
+            main_module.main(["contract", "phase", "stage", "--trace"])
         )
     )
 
@@ -1182,18 +1215,18 @@ def test_phase_bridge_trace_is_read_only(
     assert lab.git.head_commit(cwd=lab.repo) == before
 
 
-def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
+def test_contractor_uses_the_run_defaults_not_the_band_wait(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Bridge polling must not shorten the run before its human ship gate."""
-    lab = _bridge_lab(tmp_path, band_wait_s=7.0)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    """Contractor polling must not shorten the run before its human ship gate."""
+    lab = _contractor_lab(tmp_path, band_wait_s=7.0)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     calls: list[tuple[float, float]] = []
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     def run(
@@ -1213,7 +1246,7 @@ def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
     codes: list[int] = []
 
     lab.transcript(
-        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+        lambda: codes.append(main_module.main(["contract", "phase", "stage"]))
     )
 
     assert codes == [0]
@@ -1221,31 +1254,34 @@ def test_phase_bridge_uses_the_run_defaults_not_the_band_wait(
 
 
 @pytest.mark.parametrize("trace", (False, True))
-def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
+def test_contractor_refuses_a_missing_stage_instead_of_crashing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, trace: bool
 ) -> None:
     """A bd read miss is caller input, in ordinary and trace command forms."""
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
-    adapter = _bridge_adapter(lab)
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
+    adapter = _contractor_adapter(lab)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: adapter),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: adapter,
     )
 
-    def missing(_stage_id: str) -> NoReturn:
+    def missing(_ref: object) -> NoReturn:
         """Model the typed bd read failure for the caller's nonexistent id."""
         raise BdOutputError("bd show missing returned no row")
 
+    # Through the PORT since S5: the command's reads are `tracker.get` and
+    # `tracker.blockers`, and what is under test is still that a typed bd read
+    # failure reaches the caller as input rather than as a traceback.
     if trace:
-        monkeypatch.setattr(adapter, "blocking_dependencies", lambda _stage_id: ())
-        monkeypatch.setattr(adapter, "show", missing)
+        monkeypatch.setattr(adapter.tracker, "blockers", lambda _ref: ())
+        monkeypatch.setattr(adapter.tracker, "get", missing)
     else:
-        monkeypatch.setattr(adapter, "blocking_dependencies", missing)
+        monkeypatch.setattr(adapter.tracker, "blockers", missing)
     codes: list[int] = []
-    arguments = ["phase-bridge", "phase", "missing"]
+    arguments = ["contract", "phase", "missing"]
     if trace:
         arguments.append("--trace")
 
@@ -1262,7 +1298,7 @@ def test_phase_bridge_refuses_a_missing_stage_instead_of_crashing(
     ("defect", "expected"),
     (("non-zero exit", BdCommandError), ("missing binary", BdUnavailableError)),
 )
-def test_phase_bridge_does_not_convert_a_transport_defect_into_a_refusal(
+def test_contractor_does_not_convert_a_transport_defect_into_a_refusal(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     defect: str,
@@ -1275,22 +1311,22 @@ def test_phase_bridge_does_not_convert_a_transport_defect_into_a_refusal(
     refused before it ran says nothing about the caller's ids, and reporting it
     as `refused` would hide a broken store behind an ordinary exit code. A bd
     binary that is missing or not executable is the same kind of defect: the
-    client maps the runner's `OSError`, so the bridge never sees a raw one.
+    client maps the crew's `OSError`, so the contractor never sees a raw one.
     """
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
-    adapter = _bridge_adapter(lab)
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
+    adapter = _contractor_adapter(lab)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: adapter),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: adapter,
     )
 
     def unrunnable(_argv: Sequence[str], _timeout_s: float) -> NoReturn:
-        """What the runner does when the binary is absent or not executable."""
+        """What the crew does when the binary is absent or not executable."""
         raise FileNotFoundError(2, "No such file or directory", "bd-not-installed")
 
-    def broken(_stage_id: str) -> NoReturn:
+    def broken(_ref: object) -> NoReturn:
         """Model the transport itself failing, not a missing row."""
         if defect == "non-zero exit":
             raise BdCommandError(
@@ -1299,13 +1335,13 @@ def test_phase_bridge_does_not_convert_a_transport_defect_into_a_refusal(
         BdClient(
             BdConfig(workspace=tmp_path, actor="tester", binary="bd-not-installed"),
             unrunnable,
-        ).context()
+        ).show("stage")
         raise AssertionError("an unrunnable bd binary must raise")
 
-    monkeypatch.setattr(adapter, "blocking_dependencies", broken)
+    monkeypatch.setattr(adapter.tracker, "blockers", broken)
 
     with pytest.raises(expected):
-        bridge_command_module.execute_phase_bridge(
+        contractor_command_module.execute_contractor(
             lab.composition,
             epic_id="phase",
             stage_id="stage",
@@ -1315,19 +1351,19 @@ def test_phase_bridge_does_not_convert_a_transport_defect_into_a_refusal(
 
 
 @pytest.mark.parametrize("trace", (False, True))
-def test_phase_bridge_refuses_an_epic_without_stages(
+def test_contractor_refuses_an_epic_without_stages(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, trace: bool
 ) -> None:
     """An empty epic cannot tell a caller that its phase is exhausted."""
-    lab = _bridge_lab(tmp_path)
+    lab = _contractor_lab(tmp_path)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     codes: list[int] = []
-    arguments = ["phase-bridge", "phase", "missing"]
+    arguments = ["contract", "phase", "missing"]
     if trace:
         arguments.append("--trace")
 
@@ -1343,11 +1379,11 @@ def test_phase_bridge_refuses_an_epic_without_stages(
     ("guard", "reason"),
     (("detached", "detached"), ("dirty", "not clean")),
 )
-def test_phase_bridge_refuses_a_detached_or_dirty_coordinator(
+def test_contractor_refuses_a_detached_or_dirty_coordinator(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, guard: str, reason: str
 ) -> None:
     """The coordinator preflight refuses before any stage write, after reading possible recovery evidence."""
-    lab = _bridge_lab(tmp_path)
+    lab = _contractor_lab(tmp_path)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     if guard == "detached":
         monkeypatch.setattr(lab.git, "attached_branch_ref", lambda **_kwargs: None)
@@ -1355,14 +1391,16 @@ def test_phase_bridge_refuses_a_detached_or_dirty_coordinator(
         monkeypatch.setattr(
             lab.git, "status_paths", lambda **_kwargs: (("uncommitted.txt", True),)
         )
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="brief")
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="brief")
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     codes: list[int] = []
 
     _, transcript = lab.transcript(
-        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+        lambda: codes.append(main_module.main(["contract", "phase", "stage"]))
     )
 
     report = json.loads(transcript)
@@ -1373,36 +1411,36 @@ def test_phase_bridge_refuses_a_detached_or_dirty_coordinator(
     assert lab.fake_bd.command_count("create") == 0
 
 
-def test_phase_bridge_reports_another_open_admission_as_blocked(
+def test_contractor_reports_another_open_admission_as_blocked(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A sibling's unfinished admission is waiting work, not a caller refusal."""
-    lab = _bridge_lab(tmp_path)
-    held = PhaseBridgeRecord.prepared(
-        verification_policy=VerificationPolicy.pin(lab.config.bridge_checks, lab.repo),
+    lab = _contractor_lab(tmp_path)
+    held = ContractorRecord.prepared(
+        verification_policy=VerificationPolicy.pin(
+            lab.config.contractor_checks, lab.repo
+        ),
         epic_id="phase",
         stage_id="other-stage",
         attempt=1,
         target_ref="refs/heads/main",
         expected_base_commit=lab.head,
     )
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
-    lab.fake_bd.rows["other-stage"] = _bridge_stage(
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
+    lab.fake_bd.rows["other-stage"] = _contractor_stage(
         "other-stage", description="held brief"
     )
-    lab.fake_bd.rows["other-stage"]["metadata"] = {
-        "phase_bridge": held.model_dump(by_alias=True, mode="json")
-    }
+    seeded_records(held, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     codes: list[int] = []
 
     _, transcript = lab.transcript(
-        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+        lambda: codes.append(main_module.main(["contract", "phase", "stage"]))
     )
 
     report = json.loads(transcript)
@@ -1414,31 +1452,33 @@ def test_phase_bridge_reports_another_open_admission_as_blocked(
     assert report["result"] is None
 
 
-def test_phase_bridge_reports_open_blocking_dependencies(
+def test_contractor_reports_open_blocking_dependencies(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """An open blocking dependency returns its durable ids without admission."""
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["dependencies"] = [
         {"id": "blocking-stage", "status": "open", "dependency_type": "blocks"}
     ]
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     def unexpected_graph(_composition: Composition) -> NoReturn:
         """Make a removed dependency return fail before it can admit work."""
         raise AssertionError("blocking dependency reached graph admission")
 
-    monkeypatch.setattr(bridge_command_module, "_bridge_graph", unexpected_graph)
+    monkeypatch.setattr(
+        contractor_command_module, "_contractor_graph", unexpected_graph
+    )
     codes: list[int] = []
 
     _, transcript = lab.transcript(
-        lambda: codes.append(main_module.main(["phase-bridge", "phase", "stage"]))
+        lambda: codes.append(main_module.main(["contract", "phase", "stage"]))
     )
 
     report = json.loads(transcript)
@@ -1447,47 +1487,47 @@ def test_phase_bridge_reports_open_blocking_dependencies(
     assert report["blocking_ids"] == ["blocking-stage"]
 
 
-def test_phase_bridge_retry_mints_a_distinct_successor_root(
+def test_contractor_retry_mints_a_distinct_successor_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """An eligible retry uses the explicit successor admission path once."""
-    lab = _bridge_lab(tmp_path)
+    lab = _contractor_lab(tmp_path)
     prior_root = lab.instantiate()
-    lab.fake_bd.rows[prior_root.root_id]["metadata"]["terminal"] = "abandoned"
-    first = PhaseBridgeRecord.prepared(
-        verification_policy=VerificationPolicy.pin(lab.config.bridge_checks, lab.repo),
+    lab.backend._merge_metadata(prior_root.root_id, {"terminal": "abandoned"})
+    first = ContractorRecord.prepared(
+        verification_policy=VerificationPolicy.pin(
+            lab.config.contractor_checks, lab.repo
+        ),
         epic_id="phase",
         stage_id="stage",
         attempt=1,
         target_ref="refs/heads/main",
         expected_base_commit=lab.head,
     ).admitted(prior_root.root_id)
-    lab.fake_bd.rows[prior_root.root_id]["metadata"]["instance_key"] = (
-        first.instance_key
+    lab.backend._merge_metadata(
+        prior_root.root_id, {"instance_key": (first.instance_key)}
     )
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["status"] = "in_progress"
-    lab.fake_bd.rows["stage"]["metadata"] = {
-        "phase_bridge": first.model_dump(by_alias=True, mode="json")
-    }
+    seeded_records(first, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
 
     codes: list[int] = []
     _, transcript = lab.transcript(
         lambda: codes.append(
-            main_module.main(["phase-bridge", "phase", "stage", "--retry"])
+            main_module.main(["contract", "phase", "stage", "--retry"])
         )
     )
 
     report = json.loads(transcript.splitlines()[0])
-    stored = PhaseBridgeRecord.model_validate(
-        lab.fake_bd.rows["stage"]["metadata"]["phase_bridge"]
-    )
+    held = lab.records.read("stage")
+    assert held is not None
+    stored = held.record
     assert codes == [0]
     assert report["state"] == "result"
     assert stored.attempt == 2
@@ -1496,36 +1536,36 @@ def test_phase_bridge_retry_mints_a_distinct_successor_root(
 
 
 @pytest.mark.parametrize("reason", tuple(RetryRefusal))
-def test_phase_bridge_reports_each_retry_predicate_refusal(
+def test_contractor_reports_each_retry_predicate_refusal(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, reason: RetryRefusal
 ) -> None:
     """Every pure retry refusal is carried to the CLI without a stage write."""
-    lab = _bridge_lab(tmp_path)
+    lab = _contractor_lab(tmp_path)
     prior_root = lab.instantiate()
-    record = PhaseBridgeRecord.prepared(
-        verification_policy=VerificationPolicy.pin(lab.config.bridge_checks, lab.repo),
+    record = ContractorRecord.prepared(
+        verification_policy=VerificationPolicy.pin(
+            lab.config.contractor_checks, lab.repo
+        ),
         epic_id="phase",
         stage_id="stage",
         attempt=1,
         target_ref="refs/heads/main",
         expected_base_commit=lab.head,
     ).admitted(prior_root.root_id)
-    lab.fake_bd.rows[prior_root.root_id]["metadata"]["instance_key"] = (
-        record.instance_key
+    lab.backend._merge_metadata(
+        prior_root.root_id, {"instance_key": (record.instance_key)}
     )
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     lab.fake_bd.rows["stage"]["status"] = "in_progress"
-    lab.fake_bd.rows["stage"]["metadata"] = {
-        "phase_bridge": record.model_dump(by_alias=True, mode="json")
-    }
+    seeded_records(record, into=lab.records)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     monkeypatch.setattr(
-        bridge_command_module,
+        contractor_command_module,
         "retry_refusal",
         lambda _state, _terminals, _frontier: reason,
     )
@@ -1534,7 +1574,7 @@ def test_phase_bridge_reports_each_retry_predicate_refusal(
     codes: list[int] = []
     _, transcript = lab.transcript(
         lambda: codes.append(
-            main_module.main(["phase-bridge", "phase", "stage", "--retry"])
+            main_module.main(["contract", "phase", "stage", "--retry"])
         )
     )
 
@@ -1734,20 +1774,20 @@ def test_main_status_writes_the_report_alone_to_stdout(
     assert report["root_id"] == root.root_id
 
 
-def test_phase_bridge_monitored_requires_ack_before_dispatch(tmp_path, monkeypatch):
-    """Explicit monitored bridge admission never dispatches without a monitor."""
-    lab = _bridge_lab(tmp_path)
-    lab.fake_bd.rows["stage"] = _bridge_stage("stage", description="full brief")
+def test_contractor_monitored_requires_ack_before_dispatch(tmp_path, monkeypatch):
+    """Explicit monitored contractor admission never dispatches without a monitor."""
+    lab = _contractor_lab(tmp_path)
+    lab.fake_bd.rows["stage"] = _contractor_stage("stage", description="full brief")
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     monkeypatch.setattr(
-        bridge_command_module.PhaseAdapter,
-        "from_config",
-        classmethod(lambda _cls, _config, _reads=None: _bridge_adapter(lab)),
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     codes = []
     _, transcript = lab.transcript(
         lambda: codes.append(
-            main_module.main(["phase-bridge", "phase", "stage", "--monitored"])
+            main_module.main(["contract", "phase", "stage", "--monitored"])
         )
     )
     assert codes[0] != 0

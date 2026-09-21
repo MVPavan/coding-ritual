@@ -10,8 +10,6 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from workflow_interpreter.bdio.backend import SelectableBackendFactory
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.costs.collection import collect_task
 from workflow_interpreter.costs.pricing import PriceBook
 from workflow_interpreter.costs.report import (
@@ -24,6 +22,9 @@ from workflow_interpreter.costs.report import (
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
 from workflow_interpreter.foreman.config import load_config
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.ledger import records as ledger_records
+from workflow_interpreter.ledger.closure import closed
 from workflow_interpreter.ledger.database import open_readonly
 from workflow_interpreter.ledger.errors import LedgerAbsent, LedgerSchemaError
 from workflow_interpreter.ledger.store import LedgerStore
@@ -100,7 +101,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             None if args.supplement is None else UsageSupplement.load(args.supplement)
         )
         runtime_roots = _runtime_roots(args.runtime_root)
-        client = BdClient(config.bd)
+        git = Git(config.inspector)
         stage_ids = (
             (args.stage_id,) if args.command == "task" else tuple(args.stage_ids)
         )
@@ -118,15 +119,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 open_readonly(config.repo_root, config.wrapper_root)
             )
             for stage_id in stage_ids:
-                # One factory per stage, because a `LedgerStore` is scoped to
-                # the task whose rows it hold (§3.3): the stage IS that task.
-                backends = SelectableBackendFactory(
-                    client, LedgerStore(ledger, task_id=stage_id)
-                )
+                # One store per stage, because a `LedgerStore` is scoped to
+                # the task whose rows it holds (§3.3): the stage IS that task.
+                stored = ledger_records.read(ledger, stage_id)
                 collection = collect_task(
-                    client,
+                    LedgerStore(ledger, task_id=stage_id),
                     stage_id,
-                    backends=backends,
+                    task_closed=closed(ledger, git, stage_id),
+                    record_json=None if stored is None else stored.record_json,
                     runtime_roots=runtime_roots,
                 )
                 if supplement is not None:

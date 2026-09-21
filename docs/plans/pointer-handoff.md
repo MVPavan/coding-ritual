@@ -1,5 +1,7 @@
 # Pointer-based artifact handoffs
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Stage: `cr-wi82.1`; feedback item: `cr-02ze.2`
 
 Approved scope: implementation-to-review artifact references, implemented through

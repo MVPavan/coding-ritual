@@ -171,21 +171,19 @@ def test_real_coordination_lands_design_children_and_integration(
         if resume:
             # Only the fixture's two named integration records can be resumed.
             assert name in {"integration-epic", "integration-stage"}
-            from workflow_interpreter.bridge.adapter import PhaseAdapter
             from workflow_interpreter.foreman.__main__ import _composition
 
             composition = _composition(config)
-            adapter = PhaseAdapter.from_config(composition.config.bd)
             candidates = [
                 row
                 for row in composition.store._client.list_beads()
                 if row.title == title
                 and row.issue_type == kind
-                and adapter.show(row.id).parent == parent
+                and composition.store._client.show(row.id).parent == parent
             ]
             assert len(candidates) <= 1, candidates
             if candidates:
-                record = adapter.show(candidates[0].id)
+                record = composition.store._client.show(candidates[0].id)
                 assert record.description == title
                 (evidence / f"{name}-reused.json").write_text(
                     json.dumps({"id": record.id, "parent": parent, "title": title})
@@ -282,7 +280,7 @@ def test_real_coordination_lands_design_children_and_integration(
             ["git", "status", "--porcelain=v1", "--untracked-files=all"],
         ).stdout
         assert not status, (
-            f"the coordinator target must be clean before bridge work: {status}"
+            f"the coordinator target must be clean before contractor work: {status}"
         )
 
     if not resume:
@@ -377,7 +375,7 @@ def test_real_coordination_lands_design_children_and_integration(
         execute("git-name", ["git", "config", "user.name", "P5 coordination fixture"])
         execute("git-email", ["git", "config", "user.email", "fixture@example.invalid"])
         # bd init appends its own ignore entries.  Run it before the explicit
-        # fixture commit so the ordinary bridge begins from a clean target.
+        # fixture commit so the ordinary contractor begins from a clean target.
         execute(
             "bd-init",
             [
@@ -420,7 +418,7 @@ def test_real_coordination_lands_design_children_and_integration(
                 "Initialize P5 live fixture",
             ],
         )
-        # This compiles and runs before any live runner command.  Its source keeps
+        # This compiles and runs before any live crew command.  Its source keeps
         # the deliberately awkward Python-string quoting honest against the
         # initial committed fixture state.
         execute(
@@ -431,7 +429,7 @@ def test_real_coordination_lands_design_children_and_integration(
 
         # The fixture key is passed only to this host-side gate helper, never in a
         # workflow input or model prompt.  P1's disclosed T1 boundary does not
-        # claim filesystem read containment from host-visible runner processes.
+        # claim filesystem read containment from host-visible crew processes.
         execute(
             "fixture-keygen",
             [
@@ -460,17 +458,17 @@ def test_real_coordination_lands_design_children_and_integration(
     wrapper_home = {json.dumps(str(wrapper_home))}
     host = {json.dumps(socket.gethostname())}
     actor = "codex:p5-live"
-    bridge_graph = {json.dumps(str(repo / "workflows/design-spec.toml"))}
-    [[bridge_checks]]
+    contractor_graph = {json.dumps(str(repo / "workflows/design-spec.toml"))}
+    [[contractor_checks]]
     name = "fixture-final-tree"
     argv = ["scripts/verify-feature.sh"]
     timeout_s = 120
-    [bd]
+    [tracker.bd]
     workspace = {json.dumps(str(repo))}
     actor = "codex:p5-live"
     [signing]
     allowed_signers_path = {json.dumps(str(signer_dir / "allowed_signers"))}
-    [supervisor]
+    [inspector]
     repo_root = {json.dumps(str(repo))}
     wrapper_root = {json.dumps(str(wrapper_root))}
     host = {json.dumps(socket.gethostname())}
@@ -507,16 +505,14 @@ def test_real_coordination_lands_design_children_and_integration(
             "task",
             parent=design_epic,
         )
-        assert_target_clean("target-clean-before-design-phase-bridge")
+        assert_target_clean("target-clean-before-design-contract")
         # The design stage lands before the children are admitted, so it proves the
-        # ordinary bridge's CAS/closure path separately from source collection.
-        design_first = cli(
-            "design-phase-bridge", "phase-bridge", design_epic, design_stage
-        )
+        # ordinary contractor's CAS/closure path separately from source collection.
+        design_first = cli("design-contract", "contract", design_epic, design_stage)
         design_root = root_id_from(design_first)
         approve_open_ship("design", design_root)
         design_landed = cli(
-            "design-phase-bridge-land", "phase-bridge", design_epic, design_stage
+            "design-contract-land", "contract", design_epic, design_stage
         )
         assert design_landed.get("state") in {"completed", "recovered"}, design_landed
 
@@ -576,7 +572,7 @@ def test_real_coordination_lands_design_children_and_integration(
 
     else:
         # Resume only the completed design/two-child checkpoint, not arbitrary runs.
-        from workflow_interpreter.bridge.adapter import PhaseAdapter
+        from workflow_interpreter.contractor.tracker_wiring import adapter_of
         from workflow_interpreter.foreman.__main__ import _composition
 
         contract = json.loads((original_evidence / "fixture-contract.json").read_text())
@@ -586,7 +582,7 @@ def test_real_coordination_lands_design_children_and_integration(
         cfg = tomllib.loads(config.read_text())
         assert Path(cfg["repo_root"]).resolve() == repo
         assert Path(cfg["bd"]["workspace"]).resolve() == repo
-        assert Path(cfg["supervisor"]["wrapper_root"]).is_dir()
+        assert Path(cfg["inspector"]["wrapper_root"]).is_dir()
         assert (signer_dir / "fixture_gate_key").is_file()
         for name, path in template_paths.items():
             assert (
@@ -595,7 +591,7 @@ def test_real_coordination_lands_design_children_and_integration(
         assert graph_digest(doubt_graph) == contract["doubt_graph"]
         design_epic = json.loads(saved("design-epic"))["id"]
         design_stage = json.loads(saved("design-stage"))["id"]
-        design_landed = json.loads(saved("design-phase-bridge-land"))
+        design_landed = json.loads(saved("design-contract-land"))
         assert design_landed["state"] in {"completed", "recovered"}
         design_root = root_id_from(design_landed)
         owner_root = saved("owner-create")
@@ -605,7 +601,7 @@ def test_real_coordination_lands_design_children_and_integration(
         child_base = saved("child-admission-base")
         independent_target_commit = saved("independent-target-head")
         composition = _composition(config)
-        adapter = PhaseAdapter.from_config(composition.config.bd)
+        adapter = adapter_of(composition)
         design_record = adapter.record(design_stage)
         assert design_record is not None
         assert (design_record.root_id, design_record.epic_id, design_record.state) == (
@@ -726,7 +722,7 @@ def test_real_coordination_lands_design_children_and_integration(
     )
     assert decision_activation.metadata.wf_root_id == decision_root
     assert decision_activation.metadata.model == "gpt-6-astra"
-    assert decision_activation.metadata.runner_profile == "codex"
+    assert decision_activation.metadata.crew_profile == "codex"
     assert (
         decision_activation.metadata.is_completed
         and decision_activation.status == "closed"
@@ -807,11 +803,11 @@ def test_real_coordination_lands_design_children_and_integration(
         == prepared["integration_digest"]
     )
     assert integration_status["association"]["receipt"]["root_id"] == integration_root
-    assert integration_status["bridge"]["root_id"] == integration_root
-    assert integration_status["bridge"]["target_ref"] == "refs/heads/proof-main"
+    assert integration_status["contractor"]["root_id"] == integration_root
+    assert integration_status["contractor"]["target_ref"] == "refs/heads/proof-main"
     integration_first = cli(
-        "integration-phase-bridge",
-        "phase-bridge",
+        "integration-contract",
+        "contract",
         integration_epic,
         integration_stage,
         timeout=660,
@@ -819,8 +815,8 @@ def test_real_coordination_lands_design_children_and_integration(
     assert root_id_from(integration_first) == integration_root
     approve_open_ship("integration", integration_root)
     integration_landed = cli(
-        "integration-phase-bridge-land",
-        "phase-bridge",
+        "integration-contract-land",
+        "contract",
         integration_epic,
         integration_stage,
         timeout=180,
@@ -830,13 +826,13 @@ def test_real_coordination_lands_design_children_and_integration(
     )
     execute("final-verifier", ["scripts/verify-feature.sh"], timeout=90)
 
-    from workflow_interpreter.bridge.integration import (
+    from workflow_interpreter.contractor.integration import (
         IntegrationGuard,
         prepared_for_stage,
     )
     from workflow_interpreter.foreman.__main__ import _composition
-    from workflow_interpreter.supervisor.models import LaunchReceipt, WorkspaceRecord
-    from workflow_interpreter.supervisor.paths import ExecLedger, read_record
+    from workflow_interpreter.inspector.models import LaunchReceipt, WorkspaceRecord
+    from workflow_interpreter.inspector.paths import ExecLedger, read_record
 
     composition = _composition(config)
     association = prepared_for_stage(composition, integration_epic, integration_stage)
@@ -919,9 +915,9 @@ def test_real_coordination_lands_design_children_and_integration(
                     continue
                 if isinstance(event, dict):
                     events.append(event)
-            assert events, f"no runner events for {activation.activation_id}"
+            assert events, f"no crew events for {activation.activation_id}"
             backend: dict[str, object]
-            if metadata.runner_profile == "claude":
+            if metadata.crew_profile == "claude":
                 init = next(
                     (
                         event
@@ -937,7 +933,7 @@ def test_real_coordination_lands_design_children_and_integration(
                     f"missing Claude backend init for {activation.activation_id}"
                 )
                 backend = {"session_id": init["session_id"], "model": init["model"]}
-            elif metadata.runner_profile == "codex":
+            elif metadata.crew_profile == "codex":
                 thread = next(
                     (
                         event.get("thread_id")
@@ -989,9 +985,7 @@ def test_real_coordination_lands_design_children_and_integration(
                     "contexts": contexts,
                 }
             else:
-                pytest.fail(
-                    f"live proof used forbidden runner {metadata.runner_profile}"
-                )
+                pytest.fail(f"live proof used forbidden crew {metadata.crew_profile}")
             workspace = read_record(
                 composition.for_root(root_id).paths.workspace_record,
                 WorkspaceRecord,
@@ -1002,7 +996,7 @@ def test_real_coordination_lands_design_children_and_integration(
                     "activation": activation.activation_id,
                     "root": root_id,
                     "node": metadata.node,
-                    "runner": metadata.runner_profile,
+                    "crew": metadata.crew_profile,
                     "pinned_model": metadata.model,
                     "session": metadata.session_id,
                     "backend_session": backend.get(

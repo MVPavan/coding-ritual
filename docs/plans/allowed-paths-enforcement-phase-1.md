@@ -1,5 +1,7 @@
 # Phase 1 — `allowed_paths` as a real mount bound (bead `cr-n2z.1`)
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 v2, after critic round 1 (two blockers: bind order re-opened the pins; a read-only checkout broke the node's own toolchain). Implements option **B** of `docs/plans/allowed-paths-enforcement.md` under the owner decisions of 2026-09-04, recorded verbatim in ADR 0001. Probes run on this host (`bubblewrap 0.9.0`, WSL2 6.6.87.2) under `/tmp`; results quoted, not recalled.
 
 ## 1. Decisions as applied

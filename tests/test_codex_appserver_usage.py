@@ -5,13 +5,13 @@ from hashlib import sha256
 import pytest
 
 from tests._appserver import AppServerLab
-from tests._supervisor import entry_mint
+from tests._inspector import entry_mint
 from workflow_interpreter.bdio import MintReason
 from workflow_interpreter.contracts.rpc_usage import TokenCounts, UsageSnapshot
+from workflow_interpreter.inspector.models import SteerIntent
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.rpc_usage import updated_usage
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.models import SteerIntent
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.rpc_usage import updated_usage
 
 
 def payload(total, last=10):
@@ -109,7 +109,7 @@ def test_steer_continuation_uses_last_protected_usage_without_completed_turn(tmp
     lab.store._client._merge_metadata(aid, {"session_completion": None})
     lab.store.close_activation(aid, Outcome.STEERED)
 
-    request = entry_mint(runner_profile="codex-appserver", session_id="").model_copy(
+    request = entry_mint(crew_profile="codex-appserver", session_id="").model_copy(
         update={
             "mint_reason": MintReason.STEER_CONTINUATION,
             "predecessor_activation_id": aid,

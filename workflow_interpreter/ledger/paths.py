@@ -8,11 +8,12 @@ over one repository, and outside `git clean`'s reach.
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 from typing import Final
+from uuid import uuid4
 
+from workflow_interpreter.inspector.sandbox import fence_dir
 from workflow_interpreter.ledger.constants import (
     EXPORT_DIR,
     EXPORT_SUFFIX,
@@ -22,19 +23,14 @@ from workflow_interpreter.ledger.constants import (
     LEDGER_DIR,
     LEDGER_FILE,
     MSG_NOT_A_REPOSITORY,
+    MSG_REPO_ID_ABSENT,
+    REPO_ID_FILE,
+    REPO_ID_RELPATH,
 )
 from workflow_interpreter.ledger.errors import LedgerIdentityError
-from workflow_interpreter.supervisor.sandbox import fence_dir
 
-REPO_HASH_LENGTH: Final[int] = 16
-"""The same prefix `ForemanConfig.wrapper_root` names a repository by."""
-
-
-def repo_hash(repo_root: Path) -> str:
-    """The repository's stable identity, as the wrapper root already spells it."""
-    return hashlib.sha256(str(repo_root.resolve()).encode("utf-8")).hexdigest()[
-        :REPO_HASH_LENGTH
-    ]
+_EXCLUSIVE_CREATE: Final[str] = "x"
+"""Open a file only when creating it, so two first starts cannot both mint."""
 
 
 def ledger_path(repo_root: Path) -> Path:
@@ -52,11 +48,59 @@ def export_path(repo_root: Path, task_id: str) -> Path:
     return export_dir(repo_root) / f"{task_id}{EXPORT_SUFFIX}"
 
 
+def repo_id_path(repo_root: Path) -> Path:
+    """`<repo>/.wf/repo-id` — TRACKED, and committed beside the exports."""
+    return repo_root / LEDGER_DIR / REPO_ID_FILE
+
+
+def read_repo_id(repo_root: Path) -> str | None:
+    """This checkout's repository id, or nothing when none was ever minted."""
+    path = repo_id_path(repo_root)
+    if not path.is_file():
+        return None
+    return path.read_text(encoding="utf-8").strip() or None
+
+
+def ensure_repo_id(repo_root: Path) -> str:
+    """Mint `<repo>/.wf/repo-id` once, and answer the id in force (§3.6).
+
+    Exclusive create rather than "check, then write": two first starts race
+    here, and a repository that minted two identities would refuse its own
+    exports. The loser of the race reads the winner's file, which is why the
+    answer comes from a re-read rather than from the value this call generated.
+
+    Nothing here commits the file. It is tracked, not ignored
+    (`ensure_ledger_ignored`), and the orchestrator commits it exactly as it
+    commits an export.
+    """
+    existing = read_repo_id(repo_root)
+    if existing is not None:
+        return existing
+    path = repo_id_path(repo_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with path.open(_EXCLUSIVE_CREATE, encoding="utf-8") as handle:
+            handle.write(f"{uuid4()}\n")
+    except FileExistsError:
+        pass
+    minted = read_repo_id(repo_root)
+    if minted is None:  # pragma: no cover - the file is written just above
+        raise LedgerIdentityError(
+            MSG_REPO_ID_ABSENT.format(repo_root=repo_root, relpath=repo_id_relpath())
+        )
+    return minted
+
+
+def repo_id_relpath() -> str:
+    """`.wf/repo-id` as git spells it, from the repository root."""
+    return REPO_ID_RELPATH
+
+
 def ensure_ledger_ignored(repo_root: Path) -> Path:
     """Write `<repo>/.wf/.gitignore` once, so the database is really ignored.
 
     §3.5 calls `.wf/` "the working tree's ignored" directory and D4 puts the
-    database there; nothing made that true, so the first bridge command after
+    database there; nothing made that true, so the first contractor command after
     the cutover refused its own ledger as coordinator dirt. The rule ignores
     everything under `.wf/` EXCEPT `export/`, which §3.6 says the orchestrator
     commits. Never rewritten: a repository that ignores this directory its own
@@ -84,7 +128,7 @@ def fence_path(repo_root: Path) -> Path:
 def ensure_fence_dir(repo_root: Path) -> Path | None:
     """Create `<git common dir>/wf/` before any dispatch, or answer nothing.
 
-    Nothing when the tree is not a git checkout: the runner sandbox pins this
+    Nothing when the tree is not a git checkout: the crew sandbox pins this
     directory in the two shapes that HAVE a git entry (`sandbox._git_binds`),
     and a shape with no `.git` gets no git binds at all.
     """
@@ -103,13 +147,15 @@ def export_relpath(task_id: str) -> str:
 def coordinator_dirt(
     entries: Iterable[tuple[str, bool]], *, task_id: str
 ) -> tuple[tuple[str, bool], ...]:
-    """The dirty paths a COORDINATOR owns, with THIS task's export removed.
+    """The dirty paths a COORDINATOR owns, minus the two the ENGINE writes.
 
-    Exactly one path, never the directory: the export the bridge writes moments
-    before it closes is tracked in `<repo>/.wf/` (§3.6, "the export file appears
-    in the main checkout, exactly as `.beads/issues.jsonl` does after a bd
-    write"), so a cleanliness check that counted it would block the next
-    stage's admission on the very write that made this close durable.
+    Two named paths, never the directory: this task's export, and the
+    repository id. Both are tracked files in `<repo>/.wf/` that the engine
+    writes and the orchestrator commits (§3.6, "the export file appears in the
+    main checkout, exactly as `.beads/issues.jsonl` does after a bd write"), so
+    a cleanliness check that counted either would block the next stage's
+    admission on the engine's own durable write — the repo id on the very
+    first open in a fresh checkout, before anything else has happened.
 
     Looking past the whole directory instead would hide every other staged,
     modified or untracked file under it — including another task's export and
@@ -117,5 +163,5 @@ def coordinator_dirt(
     purpose is to preserve a coordinator's work before a checkout is
     synchronised.
     """
-    allowed = export_relpath(task_id)
-    return tuple(entry for entry in entries if entry[0] != allowed)
+    allowed = {export_relpath(task_id), repo_id_relpath()}
+    return tuple(entry for entry in entries if entry[0] not in allowed)

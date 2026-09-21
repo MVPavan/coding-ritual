@@ -1,5 +1,7 @@
 # Phase-Execution Interpreter Bridge Plan (v12.1)
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 **Purpose.** Prove one real multi-stage roadmap phase through the interpreter,
 entered from `/phase-execution`, with graph-owned gate rendering and stage closure,
 and without a prose stage loop running alongside it. The proof is reproducible from

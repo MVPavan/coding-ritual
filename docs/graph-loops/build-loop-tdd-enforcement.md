@@ -1,5 +1,7 @@
 # Build loop — what enforces TDD, and at which tier
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Scope: `workflows/build-loop.toml` as the interpreter runs it. This records
 **which rule is enforced by what**, so a claim about the loop ("the implementer
 cannot edit the tests") can be checked against the mechanism that would actually

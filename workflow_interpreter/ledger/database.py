@@ -6,7 +6,7 @@ Opening a ledger is four things in a fixed order, and the order is the point:
    create and no reader sees a half-built schema;
 2. then take the SHARED fence and hold it for the life of the connection;
 3. apply the §3.4.1 pragmas;
-4. verify the `repo_hash` and `wrapper_root` pins (§3.5) before answering
+4. verify the `repo_id` and `wrapper_root` pins (§3.5) before answering
    anything.
 
 Migration cannot happen while this process holds the shared fence: `flock` is
@@ -33,7 +33,8 @@ import structlog
 
 from workflow_interpreter.ledger.constants import (
     MSG_LEDGER_ABSENT,
-    MSG_REPO_HASH_MISMATCH,
+    MSG_REPO_ID_LOST,
+    MSG_REPO_ID_MISMATCH,
     MSG_SCHEMA_AHEAD,
     MSG_SCHEMA_BEHIND,
     MSG_WRAPPER_ROOT_MISMATCH,
@@ -54,9 +55,11 @@ from workflow_interpreter.ledger.errors import (
 from workflow_interpreter.ledger.fence import LedgerFence
 from workflow_interpreter.ledger.paths import (
     ensure_ledger_ignored,
+    ensure_repo_id,
     fence_path,
     ledger_path,
-    repo_hash,
+    read_repo_id,
+    repo_id_relpath,
 )
 from workflow_interpreter.ledger.schema import SCHEMA_VERSION, apply_migrations
 
@@ -140,22 +143,35 @@ def assert_identity(
     connection: sqlite3.Connection,
     *,
     path: Path,
+    repo_id: str | None,
     repo_root: Path,
     wrapper_root: Path,
 ) -> None:
     """Refuse unless this ledger is pinned to this repository AND wrapper root.
 
-    Both, because they answer different questions: `repo_hash` says whose facts
+    Both, because they answer different questions: `repo_id` says whose facts
     these are, and `wrapper_root` says which engine home owns the run folders
-    they point at. Import checks the same pair from the export header (§3.6).
+    they point at. The export header carries only the first — the second is a
+    fact about this machine, and an export that pinned it could not be read in
+    a clone (store-restructure §3.6).
+
+    `repo_id` is READ BY THE CALLER, outside any transaction (§3.4.2), and
+    NOTHING is a refusal rather than a skip: every open except the very first
+    creation of a ledger arrives with the tracked `.wf/repo-id` in hand, so an
+    absent one means a checkout whose file was deleted — and answering anyway
+    would mean answering a ledger whose identity nothing checked, which is
+    exactly the question this function exists to ask. The refusal says to
+    restore the file, because it is tracked and git still has it.
     """
-    pinned_repo = read_meta(connection, MetaKey.REPO_HASH)
-    found_repo = repo_hash(repo_root)
+    if repo_id is None:
+        raise LedgerIdentityError(
+            MSG_REPO_ID_LOST.format(repo_root=repo_root, relpath=repo_id_relpath())
+        )
+    pinned_repo = read_meta(connection, MetaKey.REPO_ID)
+    found_repo = repo_id
     if pinned_repo is not None and pinned_repo != found_repo:
         raise LedgerIdentityError(
-            MSG_REPO_HASH_MISMATCH.format(
-                path=path, pinned=pinned_repo, found=found_repo
-            )
+            MSG_REPO_ID_MISMATCH.format(path=path, pinned=pinned_repo, found=found_repo)
         )
     pinned_wrapper = read_meta(connection, MetaKey.WRAPPER_ROOT)
     found_wrapper = str(wrapper_root.resolve())
@@ -218,6 +234,13 @@ class LedgerDatabase:
         self._fence = fence
         self._read_only = read_only
         self._writing = threading.RLock()
+        # READ, never minted: an open that is about to be refused — a schema
+        # from the future, another repository's pins, a wrapper root this
+        # process does not run under — must leave no file behind in a checkout
+        # it was not allowed to touch. The mint happens in `_migrate_if_behind`
+        # and only where a ledger is CREATED, which is the one open with
+        # nothing to refuse against (§3.5).
+        self._repo_id = read_repo_id(repo_root)
         if not read_only:
             self._migrate_if_behind()
         self._fence_hold = fence.shared()
@@ -334,6 +357,13 @@ class LedgerDatabase:
             current = schema_version(connection)
             if current >= SCHEMA_VERSION:
                 return
+            if current == _NO_VERSION:
+                # The one open that MINTS, and it happens here: under the
+                # exclusive fence, where no second first-start can be creating
+                # the same ledger, and outside the transaction below, because a
+                # mint is file I/O (§3.4.2). A ledger this process is about to
+                # refuse never reaches this line.
+                self._repo_id = ensure_repo_id(self._repo_root)
             with standalone_transaction(connection):
                 if current == _NO_VERSION:
                     apply_migrations(connection, current)
@@ -342,6 +372,7 @@ class LedgerDatabase:
                     assert_identity(
                         connection,
                         path=self._path,
+                        repo_id=self._repo_id,
                         repo_root=self._repo_root,
                         wrapper_root=self._wrapper_root,
                     )
@@ -358,10 +389,13 @@ class LedgerDatabase:
             )
 
     def _pin_identity(self, connection: sqlite3.Connection) -> None:
-        """Pin repository and wrapper identity at creation, once and for all."""
-        connection.execute(
-            _SQL_META_WRITE, (MetaKey.REPO_HASH.value, repo_hash(self._repo_root))
-        )
+        """Pin repository and wrapper identity at creation, once and for all.
+
+        The repository id was minted before this transaction opened (§3.4.2):
+        it is what every export this database writes is headed with, and `meta`
+        mirrors it so that a header can be checked without a second file read.
+        """
+        connection.execute(_SQL_META_WRITE, (MetaKey.REPO_ID.value, str(self._repo_id)))
         connection.execute(
             _SQL_META_WRITE,
             (MetaKey.WRAPPER_ROOT.value, str(self._wrapper_root.resolve())),
@@ -395,6 +429,7 @@ class LedgerDatabase:
         assert_identity(
             connection,
             path=self._path,
+            repo_id=self._repo_id,
             repo_root=self._repo_root,
             wrapper_root=self._wrapper_root,
         )

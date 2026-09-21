@@ -5,7 +5,7 @@
 # code does, so it inflates the suite a reviewer and the mutants are judged by
 # without adding a single constraint.
 #
-# Contract, as the wrapper runs it (supervisor/verify.py): argv[0] is
+# Contract, as the wrapper runs it (inspector/verify.py): argv[0] is
 # /proc/self/fd/<n>, there are NO arguments, and cwd is a clean checkout of the
 # commit under test — so the repo root comes from git in cwd, never from `$0`,
 # which names a descriptor in /proc.

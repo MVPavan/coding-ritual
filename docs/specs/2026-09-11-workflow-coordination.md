@@ -1,5 +1,7 @@
 # Bounded workflow coordination
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Status: approved
 Approved by: repository owner, 2026-09-11, approving the six-phase plan in conversation and instructing execution with Fable 5.1 high reviews at substantial milestones.
 

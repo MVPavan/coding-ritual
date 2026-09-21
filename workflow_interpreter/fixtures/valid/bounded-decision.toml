@@ -16,7 +16,7 @@ trim_priority = 99
 [[node]]
 name = "assess"
 kind = "task"
-runner = "profile:implementer"
+crew = "profile:implementer"
 writes = false
 isolation = "worktree"
 allowed_paths = []
@@ -34,7 +34,7 @@ triggers = ["fail_plan", "allowance_exhausted", "input_oversize"]
 actions = ["continue_declared", "replace", "human"]
 replacement_input = "revision"
 [node.decision.decision_task]
-runner = "profile:critic"
+crew = "profile:critic"
 model = "gpt-6-astra"
 instructions = "Decide how to proceed using the bound request. For this proof, choose continue_declared when available: the declared next work computes and records a small verifiable result. Otherwise choose replace with concise revision advice. Never claim human approval. Follow the requested response schema and channel protocol."
 verify = [{cmd="scripts/verify-feature.sh", timeout="20s"}]
@@ -47,7 +47,7 @@ max_total_activations = 2
 [[node]]
 name = "work"
 kind = "task"
-runner = "profile:implementer"
+crew = "profile:implementer"
 writes = false
 isolation = "worktree"
 allowed_paths = []

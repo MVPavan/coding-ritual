@@ -1,4 +1,4 @@
-"""The codex runner profile (`codex-cli 0.148.0`), built from live probes.
+"""The codex crew profile (`codex-cli 0.148.0`), built from live probes.
 
 Codex is the only one of the three with an OS-level sandbox, and the only one
 whose flags differ between launching and resuming. Both facts came out of the
@@ -13,7 +13,7 @@ probes and both shape this file:
 - **`-s read-only` blocks EVERY write, including into `--add-dir`** (probed:
   the refusal is `patch rejected: writing is blocked by read-only sandbox`, on
   stderr, with exit code 0 and a cheerful `"done"` on stdout). §6 requires the
-  three runner channels to be writable REGARDLESS of `writes`, so a
+  three crew channels to be writable REGARDLESS of `writes`, so a
   `writes = false` codex node cannot use `read-only` at all: it could never
   write `$WF_OUTCOME_FILE`, and every review would grade `fail_code` for a
   missing marker.
@@ -70,6 +70,13 @@ from typing import Final
 
 from workflow_interpreter.bdio import ActivationRecord, Usage
 from workflow_interpreter.contracts.execution import MSG_CODEX_IN_REPO, ToolNetwork
+from workflow_interpreter.inspector.profile import (
+    CrewCommand,
+    CrewEvent,
+    EventType,
+    TaskSpec,
+)
+from workflow_interpreter.inspector.sandbox import GIT_ENTRY, worktree_git_write_roots
 from workflow_interpreter.profiles._base import (
     BaseProfile,
     int_at,
@@ -78,15 +85,8 @@ from workflow_interpreter.profiles._base import (
     require_absolute,
     text_at,
 )
-from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RunnerName
+from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, CrewName
 from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
-from workflow_interpreter.supervisor.profile import (
-    EventType,
-    RunnerCommand,
-    RunnerEvent,
-    TaskSpec,
-)
-from workflow_interpreter.supervisor.sandbox import GIT_ENTRY, worktree_git_write_roots
 
 EXEC: Final[str] = "exec"
 RESUME: Final[str] = "resume"
@@ -115,14 +115,14 @@ Auth is unaffected — the flag's own help says it still uses `CODEX_HOME`.
 (probe P2.1, round-2 addendum). Two loose ends were raised against that and both
 are answered:
 
-- *A project-level `.codex/config.toml` in a runner-writable checkout.* Codex
+- *A project-level `.codex/config.toml` in a crew-writable checkout.* Codex
   0.148 has no project config file; the project surface is execpolicy `.rules`,
   which is exactly what `--ignore-rules` drops ("Do not load user or project
   execpolicy `.rules` files"). Project TRUST — which would gate any project-level
   authority — lives in the USER `config.toml`'s `projects` table, and
   `--ignore-user-config` drops that file. Probed: a scratch checkout carrying
   `[mcp_servers.evil]` with an empty `CODEX_HOME` lists no MCP servers at all.
-- *System config (`/etc/codex`).* Host-admin authority, not runner-writable, so
+- *System config (`/etc/codex`).* Host-admin authority, not crew-writable, so
   it is outside the §0.3 threat model these flags exist for. A wrapper cannot
   and should not override the machine's operator."""
 SANDBOX: Final[str] = "-s"
@@ -183,10 +183,10 @@ _MSG_NO_SESSION: Final[str] = (
 
 
 class CodexProfile(BaseProfile):
-    """`codex exec` as a §6 runner: an OS sandbox, and no network."""
+    """`codex exec` as a §6 crew: an OS sandbox, and no network."""
 
     tool_network = ToolNetwork.DENIED
-    runner = RunnerName.CODEX
+    crew = CrewName.CODEX
     auth_env = (
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
@@ -210,7 +210,7 @@ class CodexProfile(BaseProfile):
 
     # -- §6 command construction -----------------------------------------
 
-    def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+    def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
         """The headless one-shot, with the danger default inverted (§6)."""
         root = self._workspace_root(task)
         argv = [
@@ -232,7 +232,7 @@ class CodexProfile(BaseProfile):
 
     def build_resume_command(
         self, session_id: str, instructions: str, task: TaskSpec
-    ) -> RunnerCommand:
+    ) -> CrewCommand:
         """The §8.1 continuation: the same box, expressed only as `-c` overrides.
 
         `codex exec resume` has no `-s` and no `-C`, so the sandbox mode, the
@@ -271,7 +271,7 @@ class CodexProfile(BaseProfile):
         channels stay writable. `writes = true` roots it in the checkout. In
         neither mode is the activation directory itself granted: the wrapper's
         receipt, exec ledger, exit file and completion evidence live one level
-        above the grant, where no runner can forge or delete them
+        above the grant, where no crew can forge or delete them
         (`paths.CHANNELS_DIR`).
 
         Phase 2 of `docs/plans/allowed-paths-enforcement.md` deliberately does
@@ -282,7 +282,7 @@ class CodexProfile(BaseProfile):
         writer's cwd outside the repo its brief names paths relative to, and its
         `git add`/`git commit` nowhere. A writer's checkout therefore stays
         vendor-writable and the §2 bubblewrap mount bound
-        (`supervisor/sandbox.py`) is the containment. Revisit when 0.153's
+        (`inspector/sandbox.py`) is the containment. Revisit when 0.153's
         `permission_profiles` can express a read-only cwd — it is already the
         surface `codex sandbox` takes as a required `--permission-profile`,
         which the profile has not probed.
@@ -290,7 +290,7 @@ class CodexProfile(BaseProfile):
         if task.execution_grants is not None:
             return task.execution_grants.process_cwd
         if task.writes:
-            return require_absolute(self.runner, "task cwd", task.cwd)
+            return require_absolute(self.crew, "task cwd", task.cwd)
         return str(_channels_dir(task))
 
     def _sandbox_flags(self, task: TaskSpec, root: str) -> list[str]:
@@ -305,7 +305,7 @@ class CodexProfile(BaseProfile):
         aimed at an INHERITED `TMPDIR` naming somewhere outside the box, and it
         never fired: `TMPDIR` is not a passthrough key, so the value the child
         sees is the one `BaseProfile.child_env` sets — `$WF_SCRATCH_DIR`, inside
-        the grant. Excluding it now would carve the runner's only temp space out
+        the grant. Excluding it now would carve the crew's only temp space out
         of its own writable root.
         """
         flags = [
@@ -349,19 +349,19 @@ class CodexProfile(BaseProfile):
 
     # -- §6 stream normalization -----------------------------------------
 
-    def decode_event(self, payload: Mapping[str, object]) -> RunnerEvent | None:
+    def decode_event(self, payload: Mapping[str, object]) -> CrewEvent | None:
         """Map one `--json` line onto the normalized §6 event."""
         kind = text_at(payload, KEY_TYPE)
         if kind == TYPE_THREAD_STARTED:
             # The ONE place a codex session id exists (see `prepare`).
-            return RunnerEvent(
+            return CrewEvent(
                 type=EventType.MESSAGE,
                 text=kind,
                 session=optional_text_at(payload, KEY_THREAD_ID),
             )
         if kind == TYPE_TURN_COMPLETED:
             usage = mapping_at(payload, KEY_USAGE)
-            return RunnerEvent(
+            return CrewEvent(
                 type=EventType.RESULT,
                 text=kind,
                 usage=Usage(
@@ -377,14 +377,14 @@ class CodexProfile(BaseProfile):
                 else None,
             )
         if kind in (TYPE_ERROR, TYPE_TURN_FAILED):
-            return RunnerEvent(
+            return CrewEvent(
                 type=EventType.ERROR,
                 text=text_at(payload, KEY_MESSAGE) or kind,
                 is_error=True,
             )
         if kind in ITEM_TYPES:
             return _item_event(mapping_at(payload, KEY_ITEM), kind)
-        return RunnerEvent(type=EventType.MESSAGE, text=kind)
+        return CrewEvent(type=EventType.MESSAGE, text=kind)
 
 
 def _uncached_input_tokens(usage: Mapping[str, object]) -> int | None:
@@ -399,20 +399,20 @@ def _uncached_input_tokens(usage: Mapping[str, object]) -> int | None:
     )
 
 
-def _item_event(item: Mapping[str, object], kind: str) -> RunnerEvent:
+def _item_event(item: Mapping[str, object], kind: str) -> CrewEvent:
     """One `item.*` line, classified by the item's own type."""
     item_type = text_at(item, KEY_TYPE)
     if item_type == ITEM_COMMAND:
-        return RunnerEvent(type=EventType.TOOL, text=text_at(item, KEY_COMMAND))
+        return CrewEvent(type=EventType.TOOL, text=text_at(item, KEY_COMMAND))
     if item_type == ITEM_ERROR:
-        return RunnerEvent(
+        return CrewEvent(
             type=EventType.ERROR,
             text=text_at(item, KEY_MESSAGE) or text_at(item, KEY_TEXT),
             is_error=True,
         )
     if item_type == ITEM_AGENT_MESSAGE:
-        return RunnerEvent(type=EventType.MESSAGE, text=text_at(item, KEY_TEXT))
-    return RunnerEvent(type=EventType.MESSAGE, text=item_type or kind)
+        return CrewEvent(type=EventType.MESSAGE, text=text_at(item, KEY_TEXT))
+    return CrewEvent(type=EventType.MESSAGE, text=item_type or kind)
 
 
 def _writable_roots(task: TaskSpec, root: str) -> tuple[str, ...]:
@@ -427,20 +427,20 @@ def _writable_roots(task: TaskSpec, root: str) -> tuple[str, ...]:
         if task.toolchain_cache is not None:
             roots.append(
                 require_absolute(
-                    RunnerName.CODEX, "toolchain cache", task.toolchain_cache
+                    CrewName.CODEX, "toolchain cache", task.toolchain_cache
                 )
             )
         return tuple(roots)
-    checkout = Path(require_absolute(RunnerName.CODEX, "task cwd", task.cwd))
+    checkout = Path(require_absolute(CrewName.CODEX, "task cwd", task.cwd))
     if (checkout / GIT_ENTRY).is_dir():
         raise UnsupportedOptionError(
             MSG_CODEX_IN_REPO.format(node=task.node, checkout=checkout)
         )
     roots += [str(path) for path in worktree_git_write_roots(checkout, task.root_id)]
-    # The supervisor supplies an activation-private path, never inferred here.
+    # The inspector supplies an activation-private path, never inferred here.
     if task.toolchain_cache is not None:
         roots.append(
-            require_absolute(RunnerName.CODEX, "toolchain cache", task.toolchain_cache)
+            require_absolute(CrewName.CODEX, "toolchain cache", task.toolchain_cache)
         )
     return tuple(roots)
 
@@ -452,10 +452,10 @@ def _channels_dir(task: TaskSpec) -> Path:
     `<activation_dir>/channels/outcome.json`. Codex's sandbox grants
     directories, not files, so this is the smallest grant that makes the
     reserved outcome channel writable — and since the wrapper's own records sit
-    outside `channels/`, the grant is now exactly the runner's own surface.
+    outside `channels/`, the grant is now exactly the crew's own surface.
     """
     return Path(
-        require_absolute(RunnerName.CODEX, "outcome file", task.channels.outcome_file)
+        require_absolute(CrewName.CODEX, "outcome file", task.channels.outcome_file)
     ).parent
 
 

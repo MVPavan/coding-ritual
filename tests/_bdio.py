@@ -7,28 +7,30 @@ live-bd families exercise the same shapes.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from pathlib import Path
 from typing import Final
 
+from tests._fake_bd import InjectedCrash
 from tests._helpers import VALID_FIXTURE
 from workflow_interpreter import GraphDefinition, load_graph
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     RootRecord,
-    parse_activation,
 )
+from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.wire import (
     ConfigSource,
     ExitRecord,
-    Lifecycle,
+    Metadata,
     MintReason,
     MintRequest,
     ProcessHandle,
     ResolvedSetting,
 )
 from workflow_interpreter.contracts.execution import ExecutionRegistry
+from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
 
 REGION: Final[str] = "build-review"
@@ -44,7 +46,7 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
         source=ConfigSource.GRAPH_DEFAULT,
     ),
     ResolvedSetting(
-        key="node.implement.runner",
+        key="node.implement.crew",
         # The BOUND profile, not the graph's `profile:<role>` reference:
         # `_resolved_config` resolves every role at instantiation, and the
         # execution path reads this key as the profile it dispatches (§3.1).
@@ -63,10 +65,10 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
         source=ConfigSource.GRAPH_DEFAULT,
     ),
     # `review` is the fixture's other `profile:<role>` node, and the execution
-    # view reads its runner from the root too — a root that bound only one of
+    # view reads its crew from the root too — a root that bound only one of
     # them is not one `_resolved_config` could write.
     ResolvedSetting(
-        key="node.review.runner", value="fake", source=ConfigSource.ROLE_BINDING
+        key="node.review.crew", value="fake", source=ConfigSource.ROLE_BINDING
     ),
     ResolvedSetting(
         key="node.review.model", value="fake-model", source=ConfigSource.ROLE_BINDING
@@ -113,7 +115,7 @@ on_exhausted = "triage"
 name = "a1"
 kind = "task"
 region = "ra"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
@@ -129,7 +131,7 @@ outcomes = ["done", "reject"]
 name = "b2"
 kind = "task"
 region = "rb"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
@@ -145,7 +147,7 @@ outcomes = ["done"]
 name = "b1"
 kind = "task"
 region = "rb"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Lab task node: do the thing this graph exists to test."
 writes = false
 allowed_paths = []
@@ -250,6 +252,17 @@ def make_root(
     )
 
 
+def seed_row(backend: LedgerStore, summary: str, metadata: Metadata) -> StoreRow:
+    """One raw ledger row, for labs that seed residue the typed API refuses.
+
+    The carrier's `wf_kind` picks the table, exactly as a production write
+    does; what a test gets out of going under `WorkflowStore` is the ability to
+    write a carrier that no longer validates — which is what the residue drills
+    are about.
+    """
+    return backend._create_row(NewRow(summary=summary, metadata=metadata))
+
+
 def handle(session_id: str = "sess-1") -> ProcessHandle:
     """A durable §5.3 process handle."""
     return ProcessHandle(
@@ -276,34 +289,6 @@ def run_to_close(
     return store.close_activation(activation_id, outcome)
 
 
-def race_residue(
-    client: BdClient, record: ActivationRecord, *, seq_delta: int = 1
-) -> ActivationRecord:
-    """A duplicate bead under the SAME idempotency key — real §3.2 race residue.
-
-    What a lost single-flight lock leaves behind: two live activations for one
-    key. `supersede_activation` now proves its winner shares the key, so a test
-    about race resolution has to produce a genuine race rather than name an id
-    that never existed.
-    """
-    duplicate = record.metadata.model_copy(
-        update={
-            "seq": record.metadata.seq + seq_delta,
-            "lifecycle": Lifecycle.MINTED,
-            "outcome": None,
-            "evidence": None,
-            "exit_record": None,
-            "handle": None,
-        }
-    )
-    return parse_activation(
-        client._create_bead(
-            title="wf race residue",
-            metadata=duplicate.model_dump(mode="json", exclude_none=True),
-        )
-    )
-
-
 def entry_request(**overrides: object) -> MintRequest:
     """An entry mint into the fixture's entry node.
 
@@ -314,8 +299,150 @@ def entry_request(**overrides: object) -> MintRequest:
     base: dict[str, object] = {
         "node": IMPLEMENT,
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": "fake",
+        "crew_profile": "fake",
         "model": "fake-model",
         "session_id": "",
     }
     return MintRequest.model_validate(base | overrides)
+
+
+class MetadataWrites:
+    """The metadata writes one `LedgerStore` served, countable and schedulable.
+
+    What `FakeBd.command_count`/`pause_before` were for the bd transport (S6
+    deleted it as a record store, R1): every §5.1 transition merges a carrier
+    delta through `_merge_metadata`, so wrapping that ONE method answers both
+    "did this write happen" and "what did it emit" — neither of which the row
+    can tell afterwards, since a key already present looks the same as a key
+    just written.
+    """
+
+    def __init__(self, store: LedgerStore) -> None:
+        self._store = store
+        self._original = store._merge_metadata
+        self.keys: list[frozenset[str]] = []
+        self._pause: Callable[[], None] | None = None
+        self._at = 1
+        self._crash_at: int | None = None
+        store._merge_metadata = self._merged  # type: ignore[method-assign]
+
+    @property
+    def count(self) -> int:
+        """How many metadata writes this store has served."""
+        return len(self.keys)
+
+    @property
+    def last_keys(self) -> frozenset[str]:
+        """The keys the most recent write emitted."""
+        return self.keys[-1]
+
+    def pause_before(
+        self, callback: Callable[[], None], *, occurrence: int = 1
+    ) -> None:
+        """Run `callback` just before the Nth write from here, once."""
+        self._pause = callback
+        self._at = self.count + occurrence
+
+    def crash_on(self, occurrence: int) -> None:
+        """Die instead of serving the Nth write from here (a lost writer)."""
+        self._crash_at = self.count + occurrence
+
+    def _merged(self, row_id: str, metadata: Metadata, **kwargs: object) -> StoreRow:
+        """Record the delta's keys, run any scheduled interleaving, then write."""
+        self.keys.append(frozenset(metadata))
+        if self._pause is not None and self.count == self._at:
+            paused, self._pause = self._pause, None
+            paused()
+        if self._crash_at is not None and self.count == self._crash_at:
+            self._crash_at = None
+            raise InjectedCrash("ledger write died")
+        return self._original(row_id, metadata, **kwargs)  # type: ignore[arg-type]
+
+
+CREATE: Final[str] = "create"
+UPDATE: Final[str] = "update"
+CLOSE: Final[str] = "close"
+
+
+class StoreWrites:
+    """Every record-store write of one `LedgerStore`, counted and injectable.
+
+    The lab used to ask the fake bd binary how many `create`/`update`/`close`
+    commands it had served; bd is not the record store any more (S6, R1), so
+    the same three questions are answered by wrapping the three ledger writes
+    that mean them. The bd names are kept because that is the vocabulary the
+    cases are written in.
+    """
+
+    _METHODS: Final[dict[str, tuple[str, ...]]] = {
+        CREATE: ("_create_row",),
+        UPDATE: ("_merge_metadata",),
+        CLOSE: ("_close_row", "_close_gate"),
+    }
+    """`_close_gate` counts as a close because it IS one: the gate's own
+    settle takes its verified payload with it, and a drill that injects "the
+    close crashed" means that write too."""
+
+    def __init__(self, store: LedgerStore) -> None:
+        self._counts: dict[str, int] = dict.fromkeys(self._METHODS, 0)
+        self._crash: dict[str, int] = {}
+        self._lost: dict[str, int] = {}
+        self._pause: dict[str, tuple[int, Callable[[], None]]] = {}
+        self.created: list[str] = []
+        """Row ids in the order this store minted them — what "the last two
+        rows this tick created" used to read off the fake workspace's dict."""
+        for name, methods in self._METHODS.items():
+            for method in methods:
+                setattr(store, method, self._wrapped(store, name, method))
+
+    def count(self, kind: str) -> int:
+        """How many writes of one shape this store has served."""
+        return self._counts[kind]
+
+    def crash_on(self, kind: str, occurrence: int) -> None:
+        """Die instead of serving the Nth write of one shape from here."""
+        self._crash[kind] = self._counts[kind] + occurrence
+
+    def lose_response_on(self, kind: str, occurrence: int) -> None:
+        """Serve the Nth write of one shape durably, then lose its answer.
+
+        The other half of `crash_on`: the row IS committed and the caller never
+        learns it, which is the window every §3.3 natural key exists to close.
+        """
+        self._lost[kind] = self._counts[kind] + occurrence
+
+    def pause_before(
+        self, kind: str, callback: Callable[[], None], *, occurrence: int = 1
+    ) -> None:
+        """Run `callback` once, just before the Nth write of one shape from here.
+
+        What `FakeBd.pause_before` gave the bd transport: a second tick that
+        runs to completion INSIDE the first one's write window, expressed as
+        ordinary single-threaded code.
+        """
+        self._pause[kind] = (self._counts[kind] + occurrence, callback)
+
+    def _wrapped(
+        self, store: LedgerStore, kind: str, method: str
+    ) -> Callable[..., object]:
+        """One store write, counted and crashable, otherwise untouched."""
+        original = getattr(store, method)
+
+        def call(*args: object, **kwargs: object) -> object:
+            self._counts[kind] += 1
+            scheduled = self._pause.get(kind)
+            if scheduled is not None and scheduled[0] == self._counts[kind]:
+                del self._pause[kind]
+                scheduled[1]()
+            if self._crash.get(kind) == self._counts[kind]:
+                del self._crash[kind]
+                raise InjectedCrash(f"ledger {kind} died")
+            written = original(*args, **kwargs)
+            if kind == CREATE and isinstance(written, StoreRow):
+                self.created.append(written.id)
+            if self._lost.get(kind) == self._counts[kind]:
+                del self._lost[kind]
+                raise InjectedCrash(f"ledger {kind} answer lost after persistence")
+            return written
+
+        return call

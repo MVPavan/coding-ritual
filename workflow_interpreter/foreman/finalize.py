@@ -6,8 +6,8 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ActivationRecord, Deviation
 from workflow_interpreter.bdio.constants import DEVIATION_BOUND_VIOLATED
+from workflow_interpreter.inspector.models import AuditFlag, CompletionEvidence
 from workflow_interpreter.schema.models import Node, Outcome
-from workflow_interpreter.supervisor.models import AuditFlag, CompletionEvidence
 
 REASON_BOUND_VIOLATED: Final[str] = (
     "an effect landed outside allowed_paths under the §2 mount bound"
@@ -61,8 +61,8 @@ def decide(
     violation = bound_violated(completion)
     if violation is not None:
         # Never `blocked`: the §7.5 effects gate asks a human to accept or
-        # discard what the runner did, and a bound that failed is not something
-        # the runner did. The deviation dead-ends this at a halt instead, and
+        # discard what the crew did, and a bound that failed is not something
+        # the crew did. The deviation dead-ends this at a halt instead, and
         # the outcome stays the wrapper's own `error_transport` verdict.
         return FinalDecision(
             outcome=completion.outcome,

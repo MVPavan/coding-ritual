@@ -1,5 +1,7 @@
 # Agent bridge execution handoff
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Updated 2026-09-12. The approved six-phase [roadmap](roadmap.md) and [coordination spec](../../specs/2026-09-11-workflow-coordination.md) are implemented and verified in `wf/bridge-slice0`, based at `71fea13`. The original paused authority changes were preserved. The user authorized committing this delivery and merging it into `main` on 2026-09-12. Verification below records the development worktree results; no push or reference-repository edits are included.
 
 Beads is the work-state authority. Completed phase epics: P0 `cr-dba`, P1 `cr-o85.39`, P2 `cr-bwo`, P3 `cr-148`, P4 `cr-3zz`, P5 `cr-thh`.
@@ -21,7 +23,7 @@ See [P1](verification/P1.md), [P2](verification/P2.md), [P3](verification/P3.md)
 
 ## Operating boundaries and remaining backlog
 
-Use [child operations](../../usage/children.md) and [phase bridge/integration](../../usage/phase-bridge.md). Configure one canonical Beads workspace for all drivers. Driver concurrency is session-scoped; unknown process identity leaves cancellation pending. Integration collection is evidence, not landing permission. Existing provider limitations and role bindings remain in the configuration example; the real proof covers Claude and Codex.
+Use [child operations](../../usage/children.md) and [phase bridge/integration](../../usage/contractor.md). Configure one canonical Beads workspace for all drivers. Driver concurrency is session-scoped; unknown process identity leaves cancellation pending. Integration collection is evidence, not landing permission. Existing provider limitations and role bindings remain in the configuration example; the real proof covers Claude and Codex.
 
 Broader pre-existing work remains outside this six-phase delivery: discipline composition (`cr-o85.43`) and the legacy uncoordinated checkout-lock contract (`cr-o85.44`). The design/spec graph now has a real non-coding run, but `cr-o85.45` remains open for its additional domain-specific verifier criterion. The old token-budget issue is superseded by the explicitly approved byte-budget contract; it is not a claim of exact token accounting.
 

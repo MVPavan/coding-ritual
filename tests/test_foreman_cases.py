@@ -8,17 +8,17 @@ import pytest
 
 from tests._bdio import handle
 from tests._foreman import FAKE_PROFILE, ForemanLab, entry_request
-from tests._supervisor import SESSION_ID, ChildScript
+from tests._inspector import SESSION_ID, ChildScript
 from workflow_interpreter.bdio import ExitRecord, Lifecycle
 from workflow_interpreter.foreman import cases as cases_module
 from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry, route_head
 from workflow_interpreter.foreman.compose import WrapperLaunch
-from workflow_interpreter.foreman.config import RunnerBinding
+from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.constants import DISPATCH_REQUEST
+from workflow_interpreter.inspector import Recovery
+from workflow_interpreter.inspector.models import CompletionEvidence, RecoveryCase
+from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor import Recovery
-from workflow_interpreter.supervisor.models import CompletionEvidence, RecoveryCase
-from workflow_interpreter.supervisor.paths import read_record
 
 
 def _bd_writes(lab: ForemanLab) -> int:
@@ -71,15 +71,15 @@ def test_minted_dispatch_rebuilds_its_request_from_the_root_pin(tmp_path: Path) 
     minted = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    lab.fake_bd.rows[minted.activation_id]["metadata"].update(
-        {"runner_profile": "legacy-runner", "model": "legacy-model"}
+    lab.backend._merge_metadata(
+        minted.activation_id, {"crew_profile": "legacy-crew", "model": "legacy-model"}
     )
     activation = lab.store.reads.load_activation(minted.activation_id)
 
     advance_lifecycle(lab.composition, lab.wiring(), root, activation)
 
     request = lab.spawner.launches[-1].request
-    assert request.runner_profile == FAKE_PROFILE
+    assert request.crew_profile == FAKE_PROFILE
     assert request.model == "fake"
 
 
@@ -168,8 +168,8 @@ def test_infra_retry_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> N
     closed = lab.wiring().store.close_activation(
         dispatched.activation_id, Outcome.ERROR_TRANSPORT
     )
-    lab.fake_bd.rows[closed.activation_id]["metadata"].update(
-        {"runner_profile": "legacy-runner", "model": "legacy-model"}
+    lab.backend._merge_metadata(
+        closed.activation_id, {"crew_profile": "legacy-crew", "model": "legacy-model"}
     )
     legacy = lab.store.reads.load_activation(closed.activation_id)
 
@@ -177,7 +177,7 @@ def test_infra_retry_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> N
 
     assert result.dispatched is not None
     retried = lab.store.reads.load_activation(result.dispatched)
-    assert retried.metadata.runner_profile == FAKE_PROFILE
+    assert retried.metadata.crew_profile == FAKE_PROFILE
     assert retried.metadata.model == "fake"
 
 
@@ -210,8 +210,8 @@ def test_exit_recorded_settlement_uses_the_root_pinned_profile(
         dispatched.activation_id,
         ExitRecord(exit_code=0, ended_at="2026-09-08T00:00:00Z", reason="ok"),
     )
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["runner_profile"] = (
-        "legacy-runner"
+    lab.backend._merge_metadata(
+        activation.activation_id, {"crew_profile": ("legacy-crew")}
     )
     activation = lab.store.reads.load_activation(activation.activation_id)
     profiles: list[str] = []
@@ -246,8 +246,8 @@ def test_dispatched_settlement_uses_the_root_pinned_profile(
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
     activation = lab.wiring().store.record_dispatch(minted.activation_id, handle())
-    lab.fake_bd.rows[activation.activation_id]["metadata"]["runner_profile"] = (
-        "legacy-runner"
+    lab.backend._merge_metadata(
+        activation.activation_id, {"crew_profile": ("legacy-crew")}
     )
     activation = lab.store.reads.load_activation(activation.activation_id)
     profiles: list[str] = []
@@ -376,14 +376,14 @@ def test_a_role_rebinding_after_instantiation_never_reaches_a_mint(
     """§3.1: the live roles map is consulted at instantiation only (cr-7h8)."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
-    lab.composition.config.roles["implementer"] = RunnerBinding(
+    lab.composition.config.roles["implementer"] = CrewBinding(
         profile=FAKE_PROFILE, model="drifted-model", effort="high"
     )
 
     mint_entry(lab.composition, lab.wiring(), root)
 
     activation = lab.store.reads.list_activations(root.root_id)[0]
-    assert activation.metadata.runner_profile == FAKE_PROFILE
+    assert activation.metadata.crew_profile == FAKE_PROFILE
     assert activation.metadata.model == "fake"
 
 
@@ -393,7 +393,7 @@ def test_a_real_override_reaches_the_brief_the_task_and_the_workspace(
     """An in-repo writer reaches every execution reader without becoming a non-writer.
 
     `writes` and `isolation` are resolved once and then read by everything:
-    the brief the runner is given, the task it is launched with, and the
+    the brief the crew is given, the task it is launched with, and the
     directory it runs in. Driven through `resolve()`'s own checks, not a
     hand-built resolution.
     """

@@ -17,7 +17,7 @@ wrapper_home="$HOME/.wf"
 output=${1:-$repo_root/scratchpad/foreman.toml}
 
 # `ForemanConfig.wrapper_root` is wrapper_home/<first 16 hex of sha256(repo_root)>,
-# and the model refuses a supervisor whose wrapper_root differs from it.
+# and the model refuses an inspector whose wrapper_root differs from it.
 digest=$(printf '%s' "$repo_root" | sha256sum | cut -c1-16)
 wrapper_root="$wrapper_home/$digest"
 

@@ -13,7 +13,7 @@ max_total_activations = 5
 [[node]]
 name = "work"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []
@@ -29,7 +29,7 @@ outcomes = ["done"]
 [[node]]
 name = "review"
 kind = "task"
-runner = "profile:critic"
+crew = "profile:critic"
 instructions = "Fixture task: exists to exercise one semantic rule."
 writes = false
 allowed_paths = []

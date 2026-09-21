@@ -18,7 +18,7 @@ import pytest
 from tests._bdio import make_root
 from tests._foreman import ForemanLab, LockedPersistentBd
 from tests._helpers import undeclared_fail_code_graph
-from tests._supervisor import (
+from tests._inspector import (
     FAILING_SCRIPT,
     VERIFY_SCRIPT,
     ChildScript,
@@ -26,7 +26,7 @@ from tests._supervisor import (
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.constants import RUN_MAX_WALL
 from workflow_interpreter.foreman.tick import RunReport
-from workflow_interpreter.supervisor.band import BandLock
+from workflow_interpreter.inspector.band import BandLock
 
 # implement dispatch, implement settle, review dispatch, review settle, and
 # the routed tick that opens `ship`: the whole unattended lifecycle of the
@@ -35,7 +35,7 @@ TICKS_TO_SHIP = 5
 
 FINDINGS_FILE = "review.md"
 
-# The lab's clock is the SUPERVISOR's clock too, and its watch loop sleeps on
+# The lab's clock is the INSPECTOR's clock too, and its watch loop sleeps on
 # it once a second while a child runs, so a run's own polls are counted by an
 # interval nothing else uses rather than by the length of `clock.sleeps`.
 POLL_S = 7.0
@@ -262,7 +262,7 @@ def test_the_run_command_exits_zero_at_a_gate_and_one_on_a_stall(
 
     _, transcript = lab.transcript(
         lambda: codes.append(
-            # A generous wall: the lab clock advances by the SUPERVISOR's own
+            # A generous wall: the lab clock advances by the INSPECTOR's own
             # watch-loop sleeps, so a one-second wall would trip on the first
             # dispatch rather than on anything this test is about.
             main_module.main(["run", root.root_id, "--poll", "0", "--max-wall", "3600"])

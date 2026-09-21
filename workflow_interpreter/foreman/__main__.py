@@ -20,16 +20,25 @@ from workflow_interpreter.bdio import (
     ActivationRecord,
     BoundExceededError,
     GateRecord,
+    GateVerifier,
     WorkflowStore,
 )
-from workflow_interpreter.bdio.backend import SelectableBackendFactory
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.constants import BackendKind
+from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.reads import activations_of
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.rpc_control import ControlBusy
-from workflow_interpreter.bridge.command import execute_phase_bridge
-from workflow_interpreter.bridge.gate_view import phase_bridge_gate_view
+from workflow_interpreter.contractor.adapter import (
+    ContractorAdapterError,
+)
+from workflow_interpreter.contractor.command import execute_contractor
+from workflow_interpreter.contractor.gate_view import contractor_gate_view
+from workflow_interpreter.contractor.quiesce import assert_quiesced
+from workflow_interpreter.contractor.tracker_wiring import (
+    adapter_of,
+    attention_writer,
+    drain_at_exit,
+    tracker_for,
+)
 from workflow_interpreter.contracts.rpc_control import MSG_CONTROL_ARGUMENTS
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -52,23 +61,26 @@ from workflow_interpreter.foreman.frontier import Frontier, build_frontier
 from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
-from workflow_interpreter.foreman.locator import RootBackendLocator
+from workflow_interpreter.foreman.inspector import run_wrapper
 from workflow_interpreter.foreman.monitor import WakeMonitor, monitor_status
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.rpc_control import session_status
-from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.foreman.transcript import bounded_tail
 from workflow_interpreter.foreman.wake import MonitorUnavailable
-from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.inspector.clock import SystemClock
+from workflow_interpreter.inspector.errors import ContinuationRefused, LockUnavailable
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.rpc_control import read_instructions
+from workflow_interpreter.ledger.checkpoint import TaskCheckpoint
+from workflow_interpreter.ledger.claims import LedgerClaims
+from workflow_interpreter.ledger.constants import MSG_EPIC_REQUIRED
+from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
+from workflow_interpreter.ledger.errors import LedgerEpicMissing
 from workflow_interpreter.ledger.reconcile import RootAttentionDrain
 from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import pin_task_backend, task_backend
+from workflow_interpreter.ledger.tasks import ensure_task, task_epic
 from workflow_interpreter.profiles.registry import ProfileRegistry
-from workflow_interpreter.supervisor.clock import SystemClock
-from workflow_interpreter.supervisor.errors import ContinuationRefused, LockUnavailable
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.rpc_control import read_instructions
 
 # The per-subprocess `debug` chatter every git and bd call emits is worthless in
 # an operator transcript, while `wf.verify.rerun` and every error must stay
@@ -96,6 +108,24 @@ MSG_TASK_REQUIRED: Final[str] = (
 MSG_TASK_CONFLICT: Final[str] = (
     "--task {task!r} names a different bead than the selected stage {stage!r}"
 )
+MSG_EPIC_CONFLICT: Final[str] = (
+    "--epic {epic!r} names a different epic than the selected {stated!r}"
+)
+MSG_EPIC_STORED_CONFLICT: Final[str] = (
+    "this invocation names epic {epic!r} and task {task_id!r} is recorded "
+    "under {stored!r}; the epic is written once at mint and reaching it would "
+    "move the run directory, the debrief grant and WF_EPIC_SEGMENT away from "
+    "the knowledge this task has already written (§3.7)"
+)
+
+CHILDREN_COMMAND: Final[str] = "children"
+CHILDREN_ADMIT: Final[str] = "admit"
+ADMITTING_COMMANDS: Final[frozenset[str]] = frozenset(
+    {"create", "contract", "phase", "integration"}
+)
+"""The verbs that create a root or admit work under one, and therefore the only
+ones R12's quiesce probe runs in (gate B, finding 3). `children` is decided by
+its own subcommand, so it is not listed here."""
 
 
 def _stderr_logger(*_args: object) -> structlog.PrintLogger:
@@ -107,7 +137,7 @@ def _configure_logging() -> None:
     """Send every log line to stderr so stdout carries the one JSON report alone.
 
     The sink is resolved per call, not captured here: `main` swaps `sys.stderr`
-    for a capturing wrapper and the `supervise` branch runs under the wrapper's
+    for a capturing wrapper and the `inspector` branch runs under the wrapper's
     own redirected streams, so a factory holding today's stderr object would
     write to a stream nobody is reading. That also forbids
     `cache_logger_on_first_use`.
@@ -131,11 +161,14 @@ def _composition(args: argparse.Namespace) -> Composition:
     reads its own inputs: the task bead is one of them, and deriving it here
     keeps the ONE place that decides what a run is composed of.
 
-    The task is required (D16): it names the bead every root of this process
-    belongs to, it is what the ledger's rows are keyed by, and it is what the
-    backend locator answers for. Opening the ledger is part of composing —
+    The task is required (D16): it names the item every root of this process
+    belongs to, and it is what the ledger's rows are keyed by. Opening the
+    ledger is part of composing —
     that is where §3.5's wrapper-root pin is asserted, so a foreman started
     against another engine home refuses HERE, before any root is touched.
+
+    The epic is an input too (§3.7): the one the task's row already carries,
+    else the one this invocation named. What it is never is a parse of the id.
     """
     path = args.config
     task_id = _task_of(args)
@@ -143,44 +176,127 @@ def _composition(args: argparse.Namespace) -> Composition:
         raise InvalidIdentifier("foreman configuration path is required: pass --config")
     validate_bead_id(task_id)
     config = load_config(path)
+    named_epic = _epic_of(args)
     # Capture host uv authority before profile child_env points at private caches.
-    supervisor = config.supervisor.model_copy(
+    inspector = config.inspector.model_copy(
         update={
-            "toolchain": config.supervisor.toolchain.with_host_env(os.environ),
+            "toolchain": config.inspector.toolchain.with_host_env(os.environ),
         }
     )
-    config = config.model_copy(update={"supervisor": supervisor})
+    config = config.model_copy(update={"inspector": inspector})
     clock = SystemClock()
-    bd = BdClient(config.bd)
+    tracker = tracker_for(config.tracker)
+    # R12, per task and per ADMITTING command (gate B, finding 3). Every
+    # command composes here, so probing unconditionally put one `bd show` on
+    # the activation's critical path: a detached `inspector` spawn refused
+    # before `run_wrapper` whenever bd hung or was missing, in the window R4
+    # and ADR 0006 promise is tracker-free. The probe guards work about to
+    # START — a task still in flight in the retired home must not be minted,
+    # claimed and run a second time — so it belongs to the commands that
+    # create or admit a root, and nowhere else.
+    if _admits(args):
+        assert_quiesced(tracker, task_id)
     ledger = open_ledger(config.repo_root, config.wrapper_root)
-    pin_task_backend(ledger, task_id, config.store)
-    factory = SelectableBackendFactory(bd, LedgerStore(ledger, task_id=task_id))
+    epic_id = _epic_for(ledger, task_id, named_epic)
+    ensure_task(ledger, task_id, epic_id)
     return Composition(
         config=config,
-        store=WorkflowStore.from_config(
-            config.bd,
-            config.signing,
-            backend_factory=factory,
-            claims_backend=bd,
+        store=WorkflowStore(
+            LedgerStore(ledger, task_id=task_id, epic_id=epic_id),
+            # The allow-list must live outside what the engine can write, and
+            # what the engine writes is now the repository, not a bd
+            # workspace (§9, R1).
+            None
+            if config.signing is None
+            else GateVerifier(config.signing, config.repo_root),
+            claims=LedgerClaims(ledger),
+            # The composition root is where a git seam exists to give: every
+            # activation close anchors the task's rows outside the database,
+            # so deleting `.wf/ledger.db` mid-run costs a rebuild rather than
+            # the attempt (§3.9, R10).
+            checkpoint=TaskCheckpoint(ledger, Git(config.inspector)),
         ),
-        supervisor_config=config.supervisor,
-        git=Git(config.supervisor),
+        inspector_config=config.inspector,
+        git=Git(config.inspector),
         clock=clock,
         profiles=ProfileRegistry(config.profiles, clock, os.environ),
-        spawner=DetachedSpawner(config.supervisor, path, task_id),
+        spawner=DetachedSpawner(config.inspector, path, task_id, epic_id),
         host_env=dict(os.environ),
         ledger=ledger,
-        locate_backend=RootBackendLocator(task_id, ledger=ledger),
-        drain_attention=RootAttentionDrain(ledger, bd),
+        drain_attention=RootAttentionDrain(
+            ledger,
+            attention_writer(ledger, tracker),
+        ),
         task_id=task_id,
+        epic_id=epic_id,
     )
+
+
+def _admits(args: argparse.Namespace) -> bool:
+    """Whether this command creates or admits, and so owes R12's probe.
+
+    By VERB rather than by a flag on the composition: the run-loop commands —
+    `tick`, `run`, `inspector`, `inspect`, `status`, `steer`, `monitor` — act
+    on a root that was already admitted, and a task whose retired-home record
+    is still in flight could not have reached them. `children` is admitting
+    only in its `admit` verb; the rest drive slots that already exist.
+    """
+    if args.command == CHILDREN_COMMAND:
+        return getattr(args, "child_command", None) == CHILDREN_ADMIT
+    return args.command in ADMITTING_COMMANDS
+
+
+def _epic_for(ledger: LedgerDatabase, task_id: str, named: str | None) -> str:
+    """The epic this run belongs to: the stored column first, then the name (§3.7).
+
+    The column WINS. It was written at mint and every run of this task has
+    already written its knowledge under it, so a named epic that disagrees is
+    refused here — before the run directory, `WF_EPIC_SEGMENT`, the debrief
+    grant or a single row is decided — rather than silently moving all four
+    while `tasks.epic_id` stays where it was (found in review). Agreeing is
+    fine: the detached wrapper is TOLD the epic and passes it straight back.
+
+    A task with no row and no named epic refuses exactly as the store's lazy
+    mint does, and with its message: the epic is an input, so there is nothing
+    to fall back to — least of all the task standing as its own epic, which
+    pinned `cr-nwy9.3` to the directory `cr-nwy9.3/` forever.
+    """
+    stored = task_epic(ledger, task_id)
+    if stored is None:
+        if named is None:
+            raise LedgerEpicMissing(MSG_EPIC_REQUIRED.format(task_id=task_id))
+        return named
+    if named is not None and named != stored:
+        raise InvalidIdentifier(
+            MSG_EPIC_STORED_CONFLICT.format(epic=named, task_id=task_id, stored=stored)
+        )
+    return stored
+
+
+def _epic_of(args: argparse.Namespace) -> str | None:
+    """The epic this invocation names, or nothing when it names none (§3.7).
+
+    A `contract` or `integration` operation states its epic positionally; the
+    detached wrapper is told it as `--epic`, the way it is told the task. The
+    two must agree when both are present, because they are one fact.
+
+    Nothing is DERIVED here. A command that names no epic is answered, in
+    `_composition`, by the one the `tasks` row already carries — and a task
+    with no row and no name is refused there rather than given one.
+    """
+    stated = getattr(args, "epic_id", None)
+    named = getattr(args, "epic", None)
+    if stated is not None and named is not None and stated != named:
+        raise InvalidIdentifier(MSG_EPIC_CONFLICT.format(epic=named, stated=stated))
+    chosen = named or stated
+    return None if chosen is None else validate_bead_id(str(chosen))
 
 
 def _task_of(args: argparse.Namespace) -> str:
     """The task bead this invocation runs for, refusing an anonymous run (D16).
 
-    A phase-bridge or integration operation names its stage, and the stage IS
-    the task bead the bridge record lives on, so `--task` is redundant there
+    A contract or integration operation names its stage, and the stage IS
+    the task bead the contractor record lives on, so `--task` is redundant there
     and only has to agree when it is given at all.
     """
     stage = getattr(args, "stage_id", None)
@@ -193,18 +309,78 @@ def _task_of(args: argparse.Namespace) -> str:
     return str(named)
 
 
+MSG_ABANDONED: Final[str] = "abandoned"
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
+
+
+def _abandon(args: argparse.Namespace, emit: Callable[[str, int], None]) -> int:
+    """`wf phase abandon <task> --reason` — the orchestrator's third verb (§3.8).
+
+    Beside continue and retry, and it is neither: an abandoned task is
+    `retired()` rather than closed, so cleanup and archive proceed on what
+    exists while succession is refused. The reason is required and recorded in
+    the log, because the one thing a later reader cannot reconstruct is why a
+    task that never shipped was stopped.
+
+    Cleanup runs AFTER the record is written, and only then: the gate it goes
+    through still asks `retired()`, so an abandon that failed to record would
+    delete nothing.
+    """
+    validate_bead_id(args.stage_id)
+    composition = _composition(args)
+    adapter = adapter_of(composition)
+    # Imported here, as `contract` does: the integration surface reaches back
+    # into the foreman's own composition. The guard is what releases an
+    # integration attempt's target claim as the abandon records it (R11).
+    from workflow_interpreter.contractor.integration import IntegrationGuard
+
+    adapter.integration_guard = IntegrationGuard(composition)
+    try:
+        record = adapter.abandon(args.stage_id)
+        cleaned = Foreman(composition).cleanup_retired(args.stage_id)
+    except (ContractorAdapterError, StoreError) as refusal:
+        emit(
+            json.dumps({"state": "refused", "reason": str(refusal)}, sort_keys=True),
+            MAX_TRANSCRIPT_BYTES,
+        )
+        return 2
+    _LOG.info(
+        "wf.contract.abandoned",
+        task_id=args.stage_id,
+        reason=args.reason,
+        roots=len(cleaned),
+    )
+    emit(
+        json.dumps(
+            {
+                "state": MSG_ABANDONED,
+                "stage_id": args.stage_id,
+                "reason": args.reason,
+                "attempt": record.attempt,
+                "roots_cleaned": list(cleaned),
+            },
+            sort_keys=True,
+        ),
+        MAX_TRANSCRIPT_BYTES,
+    )
+    return 0
+
+
 def _parser() -> argparse.ArgumentParser:
     """Create the eight public, deliberately small command forms.
 
-    `--config` is a top-level option for every command, `supervise` included:
+    `--config` is a top-level option for every command, `inspector` included:
     the detached wrapper spawn passes it in that one position too, so there is
     a single spelling to keep in step with `DetachedSpawner`.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path)
     # Top-level like `--config`, and for the same reason: `DetachedSpawner`
-    # passes it in this one position when it re-enters for `supervise`.
+    # passes it in this one position when it re-enters for `inspector`.
     parser.add_argument("--task")
+    # The epic is an input, not a parse of the task id (§3.7, R8), so the
+    # wrapper has to be told it in this one position too.
+    parser.add_argument("--epic")
     commands = parser.add_subparsers(dest="command", required=True)
     create = commands.add_parser("create")
     create.add_argument("graph", type=Path)
@@ -223,16 +399,20 @@ def _parser() -> argparse.ArgumentParser:
     monitor = commands.add_parser("monitor")
     monitor.add_argument("root_id")
     monitor.add_argument("--max-wall", type=float)
-    phase_bridge = commands.add_parser("phase-bridge")
-    phase_bridge.add_argument("epic_id")
-    phase_bridge.add_argument("stage_id")
-    phase_bridge.add_argument("--retry", action="store_true")
-    phase_bridge.add_argument("--retry-landing", action="store_true")
-    phase_bridge.add_argument("--trace", action="store_true")
-    phase_bridge.add_argument("--monitored", action="store_true")
-    supervise = commands.add_parser("supervise")
-    supervise.add_argument("root_id")
-    supervise.add_argument("activation_id")
+    contractor = commands.add_parser("contract")
+    contractor.add_argument("epic_id")
+    contractor.add_argument("stage_id")
+    contractor.add_argument("--retry", action="store_true")
+    contractor.add_argument("--retry-landing", action="store_true")
+    contractor.add_argument("--trace", action="store_true")
+    contractor.add_argument("--monitored", action="store_true")
+    # The brief a run under `NullTracker` has to be given: the tracker would
+    # otherwise have held it, and it is snapshotted with the record (§3.3, R4).
+    contractor.add_argument("--brief", type=Path)
+    # The inspector process entry point, not the read-only `inspect` view below.
+    inspector = commands.add_parser("inspector")
+    inspector.add_argument("root_id")
+    inspector.add_argument("activation_id")
     inspect = commands.add_parser("inspect")
     inspect.add_argument("root_id")
     inspect.add_argument("activation_id")
@@ -246,6 +426,19 @@ def _parser() -> argparse.ArgumentParser:
         "--in-place", action="store_true", help="experimental app-server control"
     )
     steer.add_argument("--instructions-file", type=Path)
+    phase = commands.add_parser("phase").add_subparsers(
+        dest="phase_command", required=True
+    )
+    abandon = phase.add_parser(
+        "abandon",
+        help=(
+            "retire a task the graph never took to `shipped`: the record goes "
+            "to ABANDONED, sibling admission is unblocked, and the task's run "
+            "folders are cleaned. It is never a retry and never a close"
+        ),
+    )
+    abandon.add_argument("stage_id")
+    abandon.add_argument("--reason", required=True)
     integration = commands.add_parser("integration").add_subparsers(
         dest="integration_command", required=True
     )
@@ -318,21 +511,6 @@ def _signing_preflight(config: ForemanConfig, *, allow_unsigned: bool) -> str | 
     return MSG_ALLOW_LIST_EMPTY.format(path=path) if empty else None
 
 
-def _creation_backend(composition: Composition) -> BackendKind:
-    """The backend a NEW root of a run with no bridge is created on (§3.2, D16).
-
-    The `tasks` row is that run's locator, and it keeps the pin it was written
-    with, so a switch flipped after the task exists does not move roots the
-    locator will answer for.
-    """
-    if composition.ledger is None or composition.task_id is None:
-        return composition.config.store
-    return (
-        task_backend(composition.ledger, composition.task_id)
-        or composition.config.store
-    )
-
-
 def _create(args: argparse.Namespace) -> int:
     """Pin one new instance root and print nothing but its id.
 
@@ -355,7 +533,6 @@ def _create(args: argparse.Namespace) -> int:
             instance_inputs=_instance_inputs(args.input),
             allow_test_flags=args.allow_test_flags,
             overrides={},
-            backend=_creation_backend(composition),
         )
     except ResolutionError as refused:
         sys.stderr.write(f"{refused}\n")
@@ -506,7 +683,7 @@ def _gate_entry(
     composition: Composition,
     view: _InstanceView,
     gate: GateRecord,
-    bridge_view: Mapping[str, object],
+    contractor_view: Mapping[str, object],
 ) -> dict[str, object]:
     """Render the four things a §9 approver cannot derive by hand."""
     return {
@@ -514,12 +691,12 @@ def _gate_entry(
         "template": payload_template(view.root, gate),
         "diff_stat": _diff_stat(composition, view.root, gate),
         "findings": _findings(composition, view, gate),
-        **bridge_view,
+        **contractor_view,
     }
 
 
 def _open_gates(
-    composition: Composition, view: _InstanceView, bridge_view: Mapping[str, object]
+    composition: Composition, view: _InstanceView, contractor_view: Mapping[str, object]
 ) -> tuple[dict[str, object], ...]:
     """EVERY open gate, halt and transition alike.
 
@@ -537,7 +714,7 @@ def _open_gates(
             "gate_id": gate.gate_id,
             "node": gate.metadata.gate_node,
             "reason": gate.metadata.gate_reason.value,
-            **_gate_entry(composition, view, gate, bridge_view),
+            **_gate_entry(composition, view, gate, contractor_view),
         }
         for gate in sorted(view.frontier.open_gates, key=lambda item: item.gate_id)
     )
@@ -585,7 +762,7 @@ def _streams_logs(argv: Sequence[str] | None) -> bool:
         if argument.startswith(("--config=", "--task=", "-")):
             index += 1
             continue
-        return argument in {"supervise", "monitor"}
+        return argument in {"inspector", "monitor"}
     return False
 
 
@@ -657,27 +834,27 @@ def _run(
         from pydantic import ValidationError
 
         from workflow_interpreter.bdio.errors import StoreError
-        from workflow_interpreter.bridge.adapter import PhaseAdapterError
-        from workflow_interpreter.bridge.errors import BridgeRefusal
+        from workflow_interpreter.contractor.adapter import ContractorAdapterError
+        from workflow_interpreter.contractor.errors import ContractorRefusal
         from workflow_interpreter.foreman.children import command
+        from workflow_interpreter.inspector.errors import InspectorError
         from workflow_interpreter.schema.decisions import CoordinationError
         from workflow_interpreter.schema.loader import GraphValidationError
-        from workflow_interpreter.supervisor.errors import SupervisorError
 
         try:
             if args.command == "children":
                 validate_bead_id(args.owner_id)
                 value = command(_composition(args), args)
             else:
-                from workflow_interpreter.bridge.integration import (
+                from workflow_interpreter.contractor.integration import (
                     command as integration_command,
                 )
 
                 value = integration_command(_composition(args), args)
         except (
             InvalidIdentifier,
-            BridgeRefusal,
-            PhaseAdapterError,
+            ContractorRefusal,
+            ContractorAdapterError,
             GraphValidationError,
             CoordinationError,
             ResolutionError,
@@ -685,7 +862,7 @@ def _run(
             TOMLDecodeError,
             OSError,
             StoreError,
-            SupervisorError,
+            InspectorError,
         ) as exc:
             emit(
                 json.dumps({"state": "refused", "reason": str(exc)[:2048]}),
@@ -696,11 +873,13 @@ def _run(
         return 0
     if args.command == "create":
         return _create(args)
-    if args.command == "phase-bridge":
+    if args.command == "phase":
+        return _abandon(args, emit)
+    if args.command == "contract":
         validate_bead_id(args.epic_id)
         validate_bead_id(args.stage_id)
         composition = _composition(args)
-        outcome = execute_phase_bridge(
+        outcome = execute_contractor(
             composition,
             epic_id=args.epic_id,
             stage_id=args.stage_id,
@@ -708,6 +887,7 @@ def _run(
             retry_landing=args.retry_landing,
             trace=args.trace,
             monitored=args.monitored,
+            brief=args.brief,
         )
         emit(json.dumps(outcome.report, sort_keys=True), MAX_TRANSCRIPT_BYTES)
         return outcome.exit_code
@@ -731,7 +911,7 @@ def _run(
             json.dumps(monitor_status(composition, args.root_id)), MAX_TRANSCRIPT_BYTES
         )
         return 0
-    if args.command == "supervise":
+    if args.command == "inspector":
         return (
             0
             if run_wrapper(composition, args.root_id, args.activation_id).value
@@ -739,7 +919,11 @@ def _run(
             else 1
         )
     if args.command == "tick":
-        emit(foreman.tick(args.root_id).model_dump_json(), MAX_TRANSCRIPT_BYTES)
+        ticked = foreman.tick(args.root_id)
+        # A tick is a DRIVER EXIT (D6): the reconciler enqueued whatever this
+        # tick decided, and nothing contacted the tracker inside it.
+        drain_at_exit(composition)
+        emit(ticked.model_dump_json(), MAX_TRANSCRIPT_BYTES)
         return 0
     if args.command == "inspect":
         inspection = foreman.inspect(args.root_id, args.activation_id)
@@ -747,13 +931,13 @@ def _run(
         # the budget grows by exactly one such tail per red attempt in the
         # report — otherwise a verdict with output collapses to `truncated`.
         red_tails = sum(len(check.red_tails) for check in inspection.verify)
-        limit = MAX_TRANSCRIPT_BYTES + composition.supervisor_config.log_tail_bytes * (
+        limit = MAX_TRANSCRIPT_BYTES + composition.inspector_config.log_tail_bytes * (
             1 + red_tails
         )
         emit(inspection.model_dump_json(), limit)
         return 0
     if args.command == "steer":
-        limit = MAX_TRANSCRIPT_BYTES + composition.supervisor_config.log_tail_bytes
+        limit = MAX_TRANSCRIPT_BYTES + composition.inspector_config.log_tail_bytes
         try:
             if not args.acknowledge_uncertain and args.instructions_file is None:
                 raise ContinuationRefused(MSG_CONTROL_ARGUMENTS)
@@ -790,19 +974,22 @@ def _run(
                 MAX_TRANSCRIPT_BYTES,
             )
             return 2
+        # The same driver exit the contractor has (D6): `wf run` is what an
+        # operator actually drives a root with, so the attention flag it
+        # enqueued must not wait for somebody else's command.
+        drain_at_exit(composition)
         view = _view(composition, args.root_id)
-        bridge_view = phase_bridge_gate_view(
+        contractor_view = contractor_gate_view(
             view.root.metadata.instance_key,
-            composition.config.bd,
+            composition,
             root_id=view.root.root_id,
-            reads=composition.reads_for_root(view.root.root_id),
         )
         emit(
             json.dumps(
                 {
                     **result.model_dump(mode="json"),
                     "attention": result.attention,
-                    "open_gates": _open_gates(composition, view, bridge_view),
+                    "open_gates": _open_gates(composition, view, contractor_view),
                     **_coordination_report(composition, view.root),
                 },
                 sort_keys=True,
@@ -853,16 +1040,13 @@ def _run(
             if a.metadata.envelope is not None
         },
     }
-    bridge_view = phase_bridge_gate_view(
-        root.metadata.instance_key,
-        composition.config.bd,
-        root_id=root.root_id,
-        reads=composition.reads_for_root(root.root_id),
+    contractor_view = contractor_gate_view(
+        root.metadata.instance_key, composition, root_id=root.root_id
     )
-    status["open_gates"] = _open_gates(composition, view, bridge_view)
+    status["open_gates"] = _open_gates(composition, view, contractor_view)
     if frontier.open_halt is not None:
         status["open_halt"] = _gate_entry(
-            composition, view, frontier.open_halt, bridge_view
+            composition, view, frontier.open_halt, contractor_view
         )
     emit(json.dumps(status, sort_keys=True), MAX_TRANSCRIPT_BYTES)
     return 0

@@ -1,4 +1,4 @@
-"""Pinned Codex protocol version shared without importing a runner into bdio."""
+"""Pinned Codex protocol version shared without importing a crew into bdio."""
 
 from typing import Final
 

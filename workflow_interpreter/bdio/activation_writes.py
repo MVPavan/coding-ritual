@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Final
 import structlog
 
 from workflow_interpreter.bdio import (
+    inspection,
     mint,
     reads,
-    supervision,
     transitions,
 )
 from workflow_interpreter.bdio.errors import (
@@ -41,7 +41,7 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
     resolved_settings,
 )
-from workflow_interpreter.contracts.execution import RunnerName
+from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.schema.models import Outcome
 
 if TYPE_CHECKING:
@@ -95,7 +95,7 @@ _MSG_TWO_COMPLETED: Final[str] = (
     "({found}); the race cannot be resolved without destroying a recorded "
     "outcome — triage it (§3.2)"
 )
-_FIELD_RUNNER_PROFILE: Final[str] = "runner_profile"
+_FIELD_CREW_PROFILE: Final[str] = "crew_profile"
 _FIELD_MODEL: Final[str] = "model"
 _MSG_PINNED_EXECUTION_SETTING_MISSING: Final[str] = (
     "root {root_id} has no text execution pin for node {node!r} at {key!r}; "
@@ -306,17 +306,17 @@ def _prepare_mint(
         _race_decision(existing, facts.idempotency_key)
         return facts, existing, None, None
 
-    runner_profile, model = self._assert_mint_permitted(
+    crew_profile, model = self._assert_mint_permitted(
         root, facts, beads, activations, request
     )
     choice = (
         choose_source(root, request, activations)
-        if runner_profile.removeprefix("profile:") == RunnerName.CODEX_APPSERVER.value
+        if crew_profile.removeprefix("profile:") == CrewName.CODEX_APPSERVER.value
         else SessionChoice()
     )
     source = choice.source
     session_id = request.session_id
-    if runner_profile.removeprefix("profile:") == RunnerName.CODEX_APPSERVER.value:
+    if crew_profile.removeprefix("profile:") == CrewName.CODEX_APPSERVER.value:
         session_id = source.thread_id if source else ""
     metadata = ActivationMetadata(
         wf_root_id=root_id,
@@ -330,7 +330,7 @@ def _prepare_mint(
         idempotency_key=facts.idempotency_key,
         mint_reason=facts.mint_reason,
         inputs=request.inputs,
-        runner_profile=runner_profile,
+        crew_profile=crew_profile,
         model=model,
         session_id=session_id,
         session_reuse_source=source,
@@ -368,7 +368,7 @@ def record_dispatch(
         activation_id, record.metadata.session_id, handle.session_id
     )
     if launch_id is not None and record.metadata.launch_id not in (None, launch_id):
-        raise CarrierIntegrityError(supervision.MSG_SESSION_IDENTITY)
+        raise CarrierIntegrityError(inspection.MSG_SESSION_IDENTITY)
     if record.metadata.lifecycle is Lifecycle.DISPATCHED:
         transitions.assert_same(
             activation_id, record.metadata.handle, handle, Lifecycle.DISPATCHED

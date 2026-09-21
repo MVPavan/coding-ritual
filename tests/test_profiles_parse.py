@@ -2,7 +2,7 @@
 
 Every assertion here runs over bytes a real CLI really produced (see
 `tests/_profiles.py` for provenance). The tolerance cases are not hypothetical:
-`launch.py::_child` dup2s the runner log onto BOTH fd 1 and fd 2, so a profile's
+`launch.py::_child` dup2s the crew log onto BOTH fd 1 and fd 2, so a profile's
 "machine event stream" is guaranteed to contain the vendor's stderr chatter —
 every CLI probed writes a stdin complaint there — and a crash is guaranteed to
 be able to leave a half-written final line (drill 18).
@@ -18,6 +18,7 @@ from typing import Final
 import pytest
 from structlog.testing import capture_logs
 
+from tests._inspector import FrozenClock, handle_for
 from tests._profiles import (
     FORBIDDEN,
     fixture_files,
@@ -27,10 +28,9 @@ from tests._profiles import (
     read_stream,
     redact,
 )
-from tests._supervisor import FrozenClock, handle_for
+from workflow_interpreter.inspector.profile import EventType
 from workflow_interpreter.profiles import fold_usage
 from workflow_interpreter.profiles._base import BaseProfile
-from workflow_interpreter.supervisor.profile import EventType
 
 SESSION_MISMATCH: Final[str] = "wf.profile.session_mismatch"
 """The m13 warning event, named once so the test and `_base` cannot drift."""
@@ -45,7 +45,7 @@ TORN: Final[list[str]] = [
     '["not", "an", "object"]',
     '{"type":"result","subtype":"suc',
 ]
-"""One line of each way a runner log can disappoint a parser: a real event, a
+"""One line of each way a crew log can disappoint a parser: a real event, a
 stderr sentence, blank lines, a tracing line, valid-but-not-an-object JSON, and
 the torn tail a kill leaves behind."""
 
@@ -348,7 +348,7 @@ def test_blank_lines_are_dropped_and_everything_else_is_kept(tmp_path: Path) -> 
         )
 
 
-def test_a_real_wrapper_structlog_line_is_not_a_runner_error(tmp_path: Path) -> None:
+def test_a_real_wrapper_structlog_line_is_not_a_crew_error(tmp_path: Path) -> None:
     """The archived `wf.precondition.verified` line must not become `ERROR`."""
     profile = make_codex(tmp_path, FrozenClock())
     wrapper_line = (
@@ -490,7 +490,7 @@ def test_the_envelope_reports_no_marker_because_the_claim_is_not_a_profiles(
 
 
 def test_the_envelope_survives_a_missing_log(tmp_path: Path) -> None:
-    """A dead-before-writing runner still has to produce a gradeable envelope."""
+    """A dead-before-writing crew still has to produce a gradeable envelope."""
     profile = make_claude(tmp_path, FrozenClock())
 
     envelope = profile.collect_terminal_envelope(
@@ -529,7 +529,7 @@ def test_a_session_the_stream_disagrees_with_is_reported_and_logged(
         {
             "event": SESSION_MISMATCH,
             "log_level": "warning",
-            "runner": "claude",
+            "crew": "claude",
             "assigned": "sess-super-1",
             "observed": "f50464f9-759c-4540-99bd-61657682151b",
         }

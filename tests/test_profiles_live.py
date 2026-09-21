@@ -32,17 +32,17 @@ from typing import Final
 
 import pytest
 
+from tests._inspector import FrozenClock
 from tests._profiles import (
     HOST_ENV,
     make_profile_config,
     make_task,
     new_session,
 )
-from tests._supervisor import FrozenClock
+from workflow_interpreter.inspector.profile import CrewCommand, EventType
 from workflow_interpreter.profiles import fold_usage
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
-from workflow_interpreter.supervisor.profile import EventType, RunnerCommand
 
 TIMEOUT_S: Final[float] = 300.0
 AGENT_LIST_TIMEOUT_S: Final[float] = 120.0
@@ -73,8 +73,8 @@ def require(binary: str) -> str:
     return found
 
 
-def run(command: RunnerCommand) -> subprocess.CompletedProcess[str]:
-    """Execute a built `RunnerCommand` exactly as the launcher would, plus stdin."""
+def run(command: CrewCommand) -> subprocess.CompletedProcess[str]:
+    """Execute a built `CrewCommand` exactly as the launcher would, plus stdin."""
     return subprocess.run(
         list(command.argv),
         env=dict(command.env),

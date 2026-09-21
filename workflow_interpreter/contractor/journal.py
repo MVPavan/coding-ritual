@@ -1,0 +1,232 @@
+"""The contractor's two ledger writes: the landing journal and the export pin.
+
+Both exist because the wrapper directory is disposable and the working tree is
+`git clean`-able, and both are therefore ordered rather than merely present.
+
+**Landing journal (D17).** The intent file, then its row, before the CAS; the
+receipt file, then its row, after. Recovery reads the FILE first — it is what
+every existing recovery path revalidates — falls back to the row when the file
+is gone, and refuses when both are missing. `UNIQUE(task_id, attempt, phase)`
+is what makes the fallback unambiguous.
+
+**Export pin (§3.6).** A task's whole record goes into git BEFORE its bead can
+close: the export file is written, the same bytes are stored as a blob, the
+blob is pinned under `refs/wf/exports/<task>`, and only then does the oid reach
+`tasks.export_oid` and the contractor record. The export therefore survives a
+deleted `.wf/` before the orchestrator has committed the file. The storing and
+pinning half lives in `ledger.export.pin_export`, because `wf ledger
+pin-export` recovers a crash between the two and must pin exactly what this
+does.
+"""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from enum import StrEnum
+from pathlib import Path
+from typing import Final
+
+from pydantic import BaseModel, ValidationError
+
+from workflow_interpreter.bdio.capabilities import CheckpointSink
+from workflow_interpreter.contractor.errors import ContractorRefusal
+from workflow_interpreter.contractor.records import (
+    ContractorRecords,
+    LedgerContractorRecords,
+)
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.ledger.checkpoint import TaskCheckpoint
+from workflow_interpreter.ledger.closure import TaskClosure
+from workflow_interpreter.ledger.constants import LANDING_INTENT_PHASE
+from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.errors import LedgerExportError
+from workflow_interpreter.ledger.export import pin_export, write_export
+from workflow_interpreter.ledger.tasks import ensure_task
+from workflow_interpreter.tracker.outbox import TrackerOutbox
+
+MSG_UNREADABLE_ROW: Final[str] = (
+    "the journalled {phase} of attempt {attempt} of {task_id!r} is unreadable: {reason}"
+)
+
+_SQL_WRITE: Final[str] = (
+    "INSERT INTO landings (task_id, attempt, phase, record_json, written_at) "
+    "VALUES (?, ?, ?, ?, ?) "
+    "ON CONFLICT(task_id, attempt, phase) DO UPDATE SET "
+    "record_json = excluded.record_json, written_at = excluded.written_at"
+)
+_SQL_READ: Final[str] = (
+    "SELECT record_json FROM landings WHERE task_id = ? AND attempt = ? AND phase = ?"
+)
+
+
+class LandingPhase(StrEnum):
+    """The two journalled halves of one landing (§3.3 `landings.phase`)."""
+
+    # The ledger reads this half too — `closure.landing_begun` is what refuses
+    # an abandon mid-landing — so the string is declared there, once.
+    INTENT = LANDING_INTENT_PHASE
+    RECEIPT = "receipt"
+
+
+class LandingJournal:
+    """One task's copy of its landing intent and receipt, in the ledger."""
+
+    def __init__(
+        self,
+        database: LedgerDatabase,
+        task_id: str,
+        epic_id: str,
+        checkpoint: CheckpointSink | None = None,
+    ) -> None:
+        self._database = database
+        self._task_id = task_id
+        self._epic_id = epic_id
+        self._checkpoint = checkpoint
+        """What anchors the journalled row outside the database (§3.9, R10).
+
+        The intent row is the durable fact that says "this attempt's work may
+        already be on the target ref", and it is written mid-landing — after
+        the last activation close, which used to be the only checkpoint site.
+        So a rebuild answered `landing_begun` false, `wf phase abandon` was
+        accepted, and the commit was orphaned on the target (gate B, 2a)."""
+
+    def record(self, attempt: int, phase: LandingPhase, record: BaseModel) -> None:
+        """Copy one landing half into the ledger, after its file was written.
+
+        The task row is ensured first because `landings.task_id` references
+        it: a task that never ran a prepare has no row, and D17 copies its
+        landing all the same. `ensure_task` is non-destructive.
+
+        Upsert rather than insert: a repeated landing attempt writes the same
+        file over itself (`_write_intent`), and a journal that refused the
+        second write would make the file and the row disagree about which
+        attempt is current.
+        """
+        ensure_task(self._database, self._task_id, self._epic_id)
+        with self._database.transaction():
+            self._database.connection.execute(
+                _SQL_WRITE,
+                (
+                    self._task_id,
+                    attempt,
+                    phase.value,
+                    record.model_dump_json(),
+                    datetime.now(tz=UTC).isoformat(),
+                ),
+            )
+        if self._checkpoint is not None:
+            self._checkpoint.checkpoint(self._task_id)
+
+    def read[RecordT: BaseModel](
+        self, attempt: int, phase: LandingPhase, model: type[RecordT]
+    ) -> RecordT | None:
+        """The journalled half, or nothing when this ledger never held it.
+
+        A row that exists and does not parse is a REFUSAL, not a miss: falling
+        through to "both are missing" would let an unreadable journal look
+        like an unjournalled one, and those need different answers.
+        """
+        with self._database.locked() as connection:
+            row = connection.execute(
+                _SQL_READ, (self._task_id, attempt, phase.value)
+            ).fetchone()
+        if row is None:
+            return None
+        try:
+            return model.model_validate_json(str(row[0]))
+        except ValidationError as invalid:
+            raise ContractorRefusal(
+                MSG_UNREADABLE_ROW.format(
+                    phase=phase.value,
+                    attempt=attempt,
+                    task_id=self._task_id,
+                    reason=invalid,
+                )
+            ) from invalid
+
+
+class ExportPin:
+    """Puts a task's whole ledger record into git before its bead can close."""
+
+    def __init__(
+        self,
+        database: LedgerDatabase,
+        git: Git,
+        repo_root: Path,
+        epic_id: str,
+    ) -> None:
+        self._database = database
+        self._git = git
+        self._repo_root = repo_root
+        self._epic_id = epic_id
+
+    def pin(self, task_id: str) -> str:
+        """Export, store, pin — and answer the blob's object id.
+
+        The task row is ensured first, because a task that reached here
+        without a prepare may have no row and still owes an export: §3.6 makes
+        the export the precondition of closure for every contractor task.
+        `ensure_task` is non-destructive.
+
+        LANDED is NOT written here. The landing's own `adapter.land` already
+        wrote it, into the same `contractor_records` row (§3.5), and a second
+        write of the same state would move `version` and `updated_at` — inside
+        a table the export carries. One write, before the bytes, is what makes
+        the export carry the state AND re-export to the pinned bytes (D3);
+        `pin_export` refuses a task that has not landed, so the ordering is
+        enforced rather than assumed. The pin itself is elided from those bytes
+        for the opposite reason.
+
+        The export runs under the shared fence this connection already holds
+        (§3.4.5), so it cannot publish a snapshot from before an exclusive
+        restore. Storing and pinning the bytes is `ledger.pin_export`, shared
+        with `wf ledger pin-export`: one definition of what a pin IS, so the
+        recovery command cannot drift from the write it recovers.
+        """
+        ensure_task(self._database, task_id, self._epic_id)
+        write_export(self._database, task_id)
+        try:
+            return pin_export(self._git, self._database, task_id, self._repo_root)
+        except LedgerExportError as lost:
+            # A pin the CONTRACTOR could not complete is a refusal of the
+            # contractor's own operation, not a defect in the ledger: the
+            # shared function states what went wrong, and this states whose
+            # step it was, so the close still exits as a refusal (D5).
+            raise ContractorRefusal(str(lost)) from lost
+
+    @property
+    def records(self) -> ContractorRecords:
+        """The record store over the same ledger this pin writes (§3.2, R4).
+
+        Beside `closure`, and for its reason: the landing composes both into
+        the adapter, and the record it transitions and the export it pins have
+        to be facts of one ledger.
+
+        It anchors its transitions, because this pin has the git seam that
+        takes the anchor (§3.9): LANDED is written here, after the last
+        activation close, and nothing else would carry it through a rebuild.
+        """
+        return LedgerContractorRecords(
+            self._database, TaskCheckpoint(self._database, self._git)
+        )
+
+    @property
+    def outbox(self) -> TrackerOutbox:
+        """The tracker outbox over the same ledger this pin writes (§3.3).
+
+        The third of the trio, for `records`' reason: the close the landing
+        drives transitions a record, pins an export and mirrors a `Close`, and
+        all three are facts of one ledger. A landing composed without it could
+        reach a mirror with nowhere durable to wait.
+        """
+        return TrackerOutbox(self._database)
+
+    @property
+    def closure(self) -> TaskClosure:
+        """The closure probe over the same ledger and checkout this pin writes.
+
+        The landing composes it into the adapter, which is where the close is
+        refused for a task whose record is not durable yet (§3.5, D5): the
+        evidence and the write that depends on it must come from one place.
+        """
+        return TaskClosure(self._database, self._git)

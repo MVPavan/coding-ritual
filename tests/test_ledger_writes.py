@@ -36,13 +36,14 @@ from tests._fake_bd import FakeBd
 from tests._foreman import ChildScript, ForemanLab
 from tests._gates import approval_payload, close, ship_gate_request
 from tests._ledger import (
+    EPIC,
     SIGNAL_TIMEOUT_S,
     TASK,
     CrashingLedgerStore,
+    DirectFlagWriter,
     FaultPoint,
     FileLabelWriter,
     InjectedLedgerCrash,
-    config_file,
     ledger_backend,
     ledger_store,
     repository,
@@ -50,19 +51,15 @@ from tests._ledger import (
 from tests.conftest import FAKE_WORKSPACE, TEST_ACTOR, Signer, branch_head
 from workflow_interpreter.bdio import transitions
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.backend import PinnedBackendFactory
-from workflow_interpreter.bdio.client import BdClient
-from workflow_interpreter.bdio.config import BdConfig, SigningConfig
-from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY, BackendKind
+from workflow_interpreter.bdio.config import SigningConfig
+from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
 from workflow_interpreter.bdio.errors import (
-    BdUnavailableError,
     CarrierIntegrityError,
     LifecycleConflictError,
 )
 from workflow_interpreter.bdio.rows import RowGuard, RowKind, RowQuery, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import (
-    BeadRecord,
     EventPayload,
     Evidence,
     ExitRecord,
@@ -71,7 +68,6 @@ from workflow_interpreter.bdio.wire import (
     Metadata,
 )
 from workflow_interpreter.foreman.tick import Foreman
-from workflow_interpreter.ledger.__main__ import main as ledger_main
 from workflow_interpreter.ledger.constants import (
     ExportKey,
     LedgerOperation,
@@ -90,8 +86,11 @@ from workflow_interpreter.ledger.reconcile import (
     task_lock_path,
 )
 from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import export_oid, pin_task_backend
+from workflow_interpreter.ledger.tasks import ensure_task, export_oid
 from workflow_interpreter.schema.models import Outcome
+from workflow_interpreter.tracker.bd import BdTracker
+from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
+from workflow_interpreter.tracker.errors import BdUnavailableError
 
 TERMINAL: Final[str] = "shipped"
 ABANDONED: Final[str] = "abandoned"
@@ -258,9 +257,13 @@ def bd_labels() -> FakeBd:
 
 
 @pytest.fixture
-def label_client(bd_labels: FakeBd) -> BdClient:
-    """The real bd transport, driving the in-memory workspace."""
-    return BdClient(BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR), bd_labels)
+def label_client(bd_labels: FakeBd) -> DirectFlagWriter:
+    """The real bd transport behind the port, driving the in-memory workspace."""
+    return DirectFlagWriter(
+        BdTracker(
+            BdClient(BdConfig(workspace=FAKE_WORKSPACE, actor=TEST_ACTOR), bd_labels)
+        )
+    )
 
 
 def _task_bead(bd_labels: FakeBd, task_id: str = TASK) -> str:
@@ -494,7 +497,7 @@ def test_a_settlement_that_loses_the_race_never_rewrites_the_recorded_terminal(
             ledger_store(other).settle_root(root.root_id, ABANDONED)
 
     raced = WorkflowStore(
-        _RacedLedgerStore(ledger, task_id=TASK, rival=rival),
+        _RacedLedgerStore(ledger, task_id=TASK, epic_id=EPIC, rival=rival),
         branch_head_reader=branch_head,
     )
 
@@ -519,9 +522,14 @@ class _RacedLedgerStore(LedgerStore):
     """
 
     def __init__(
-        self, database: LedgerDatabase, *, task_id: str, rival: Callable[[], None]
+        self,
+        database: LedgerDatabase,
+        *,
+        task_id: str,
+        epic_id: str,
+        rival: Callable[[], None],
     ) -> None:
-        super().__init__(database, task_id=task_id)
+        super().__init__(database, task_id=task_id, epic_id=epic_id)
         self._rival: Callable[[], None] | None = rival
 
     def _merge_metadata(
@@ -551,19 +559,19 @@ def test_a_settlement_stamps_the_terminal_and_enqueues_its_projection(
     assert len(_unacked(ledger)) > len(before)
 
 
-def test_a_late_supervisor_write_loses_to_the_steer_that_closed_the_activation(
+def test_a_late_inspector_write_loses_to_the_steer_that_closed_the_activation(
     ledger: LedgerDatabase,
 ) -> None:
     """§3.3: the transition reads, checks and writes in ONE transaction.
 
-    The interleaving is real and not hypothetical: the supervisor is resident
+    The interleaving is real and not hypothetical: the inspector is resident
     and writes evidence concurrently with foreman ticks (`transitions.py`), so
-    a steer can close the activation after the supervisor read it. Modelled by
+    a steer can close the activation after the inspector read it. Modelled by
     handing the transition a loader that answers the record as it stood BEFORE
     the steer — so every check outside the transaction passes, and only the
     guard that re-reads inside it can refuse.
     """
-    backend = LedgerStore(ledger, task_id=TASK)
+    backend = LedgerStore(ledger, task_id=TASK, epic_id=EPIC)
     store = ledger_store(ledger)
     root = make_root(store, load_definition())
     activation = store.mint_activation(root.root_id, entry_request()).activation
@@ -737,10 +745,9 @@ def test_a_busy_close_is_recorded_on_the_activation_it_was_refused_for(
     activation; contention during the close that FINISHES it was not, so the
     row carried no trace of why a close its caller saw raise never landed.
     """
-    backend = _BusyClosingLedgerStore(ledger, task_id=TASK)
+    backend = _BusyClosingLedgerStore(ledger, task_id=TASK, epic_id=EPIC)
     store = WorkflowStore(
         backend,
-        backend_factory=PinnedBackendFactory(backend),
         branch_head_reader=branch_head,
     )
     root = make_root(store, load_definition())
@@ -858,7 +865,6 @@ def test_a_crash_at_a_fault_point_leaves_a_projection_the_next_drain_repairs(
     backend = CrashingLedgerStore(ledger, task_id=TASK)
     store = WorkflowStore(
         backend,
-        backend_factory=PinnedBackendFactory(backend),
         branch_head_reader=branch_head,
     )
     root = make_root(store, load_definition())
@@ -990,11 +996,7 @@ def test_the_root_drain_acks_what_the_settlement_owes_and_refuses_visibly(
 class _UnreachableBd:
     """The `AttentionWriter` of a host where bd cannot be run at all."""
 
-    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
-        """Refuse, as the transport does when the binary is missing."""
-        raise BdUnavailableError((), "update", "bd is not installed")
-
-    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
+    def set_flag(self, task_id: str, flag: str, *, on: bool) -> None:
         """Refuse, as the transport does when the binary is missing."""
         raise BdUnavailableError((), "update", "bd is not installed")
 
@@ -1231,31 +1233,6 @@ def _event_payload(root_id: str) -> EventPayload:
 # --- the CLI (§3.2.4) -------------------------------------------------------
 
 
-@pytest.mark.bd
-def test_the_reconcile_cli_drains_unacked_rows_onto_a_real_bead(
-    tmp_path: Path, bd_workspace: Path
-) -> None:
-    """`wf ledger reconcile <task>` against REAL bd — the label ops included.
-
-    The one addition to bd's closed subcommand argument set (§3.2.3) is
-    exercised end to end here: the CLI builds the client, the reconciler
-    writes `--add-label`, and the transport reads the bead back. A fake would
-    not tell us whether bd accepts the flag.
-    """
-    config_path, repo_root, wrapper_root = config_file(tmp_path, bd_workspace)
-    client = BdClient(BdConfig(workspace=bd_workspace, actor=TEST_ACTOR))
-    task_id = client._create_bead(title="ledger task", metadata={}).id
-    with open_ledger(repo_root, wrapper_root) as database:
-        _open_gate(ledger_store(database, task_id))
-        assert _unacked(database, task_id)
-
-    assert ledger_main(["--config", str(config_path), "reconcile", task_id]) == 0
-
-    assert ATTENTION_LABEL in client.show(task_id).labels
-    with open_ledger(repo_root, wrapper_root) as reopened:
-        assert _unacked(reopened, task_id) == []
-
-
 READER_TASKS: Final[tuple[str, str]] = ("cr-3411.9", "cr-3411.10")
 """Two tasks one transaction writes, so a torn read has something to tear."""
 WRITER_PAUSE_S: Final[float] = 0.3
@@ -1269,7 +1246,7 @@ def test_a_read_never_sees_half_of_a_writers_transaction(
 ) -> None:
     """§3.4.1: one connection per process means its THREADS share it.
 
-    `check_same_thread=False` is what lets a resident supervisor and its
+    `check_same_thread=False` is what lets a resident inspector and its
     driver use the same connection, and it is exactly what makes an
     unsynchronised read dangerous: SQLite shows a connection its OWN
     uncommitted rows, so a reader running while another thread is mid-`BEGIN`
@@ -1278,7 +1255,7 @@ def test_a_read_never_sees_half_of_a_writers_transaction(
     only two answers are "neither" and "both".
     """
     for task_id in READER_TASKS:
-        pin_task_backend(ledger, task_id, BackendKind.LEDGER)
+        ensure_task(ledger, task_id, EPIC)
     started = threading.Event()
     failures: list[Exception] = []
 

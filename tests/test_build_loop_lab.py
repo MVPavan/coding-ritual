@@ -17,8 +17,8 @@ from tests._foreman import (
     DEFAULT_LAB_ROLES,
     ForemanLab,
 )
-from tests._helpers import runner_roles
-from tests._supervisor import ChildScript, verifier_pins
+from tests._helpers import crew_roles
+from tests._inspector import ChildScript, verifier_pins
 
 ENTRY_NODE: Final[str] = "write_tests"
 ACCEPTANCE_TEST: Final[str] = "tests/acceptance/test_lab.py"
@@ -63,7 +63,7 @@ def test_the_lab_instantiates_build_loop(
 
     root = lab.instantiate()
 
-    assert runner_roles(lab.definition) == set(BUILD_LOOP_ROLES)
+    assert crew_roles(lab.definition) == set(BUILD_LOOP_ROLES)
     assert set(lab.config.roles) == set(BUILD_LOOP_ROLES)
     assert root.metadata.graph_content_hash == lab.definition.content_hash
     assert {
@@ -77,8 +77,8 @@ def test_the_lab_dispatches_the_build_loop_entry_node(
     """One tick past `create` mints and launches `write_tests`.
 
     Instantiating proves nothing about the wrapper seam: the activation has to
-    be minted with `write_tests`'s bound runner, launched, and exit on its own
-    declared check. The recorded `runner_profile` is the BINDING's vendor name,
+    be minted with `write_tests`'s bound crew, launched, and exit on its own
+    declared check. The recorded `crew_profile` is the BINDING's vendor name,
     not the graph's `profile:test-author` spelling.
     """
     lab = _build_loop_lab(build_loop_graph, tmp_path)
@@ -91,9 +91,9 @@ def test_the_lab_dispatches_the_build_loop_entry_node(
     assert not report.halted
     dispatched = lab.store.reads.load_activation(report.dispatched)
     assert dispatched.metadata.node == ENTRY_NODE
-    assert dispatched.metadata.runner_profile == lab.config.roles["test-author"].profile
+    assert dispatched.metadata.crew_profile == lab.config.roles["test-author"].profile
     # The close (and with it the graded outcome) belongs to the NEXT tick; what
-    # this one proves is that the child ran under the right runner and exited
+    # this one proves is that the child ran under the right crew and exited
     # cleanly.
     assert dispatched.metadata.exit_record is not None
     assert dispatched.metadata.exit_record.exit_code == 0

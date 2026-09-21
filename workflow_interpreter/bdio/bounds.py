@@ -34,7 +34,7 @@ from workflow_interpreter.bdio.wire import (
 from workflow_interpreter.schema.models import Outcome
 
 INFRA_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
-    {Outcome.ERROR_RUNNER, Outcome.ERROR_TRANSPORT}
+    {Outcome.ERROR_CREW, Outcome.ERROR_TRANSPORT}
 )
 """§10.2: the system outcomes `max_infra_retries` counts."""
 
@@ -47,7 +47,7 @@ _RETRY_EXEMPT_DEVIATIONS: Final[frozenset[str]] = frozenset(
         DEVIATION_BOUND_VIOLATED,
     }
 )
-"""Deviations whose close is a dead end, not a spent §10.2 retry: the runner
+"""Deviations whose close is a dead end, not a spent §10.2 retry: the crew
 never ran, and the frontier sends every one of them to a halt gate.
 
 `sandbox_unavailable` earns its place the same way: a host with no `bwrap` will
@@ -55,7 +55,7 @@ not grow one on a retry, and O1 refuses to dispatch unbounded (ADR 0001).
 
 `bound_violated` is the same fact discovered one layer later: an effect landed
 outside the node's grants although the mount bound was on, so the bound is not
-holding on this host. Retrying would dispatch the next runner into the same
+holding on this host. Retrying would dispatch the next crew into the same
 unbounded checkout (cr-n2z.4).
 
 `continuation_refused` is deliberately NOT here. A refused §8.1 continuation
@@ -392,7 +392,7 @@ def consecutive_infra_closes(
     for view in reversed(_at_node_round(activations, node, round_no)):
         if view.metadata.lifecycle is not Lifecycle.CLOSED:
             continue
-        # A refusal the wrapper recorded before the runner could work is a
+        # A refusal the wrapper recorded before the crew could work is a
         # halt-gate dead end (§10.6), never a consumed infra retry.
         if any(
             deviation.kind in _RETRY_EXEMPT_DEVIATIONS

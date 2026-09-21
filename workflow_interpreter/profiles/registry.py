@@ -1,4 +1,4 @@
-"""Name → profile, over the registered runner set (§P4).
+"""Name → profile, over the registered crew set (§P4).
 
 A registry rather than a dict because a profile needs three injected things and
 none of them may be discovered from the process: the profile configuration, the
@@ -7,7 +7,7 @@ Building them at the composition root and handing the registry out keeps every
 `os.environ` read in one place — the one `rules/python/safety.md` allows.
 
 An unknown name is a typed refusal, never a fallback to some default vendor: a
-bead whose `runner_profile` the wrapper cannot resolve is a bead nothing should
+bead whose `crew_profile` the wrapper cannot resolve is a bead nothing should
 dispatch.
 """
 
@@ -16,29 +16,29 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import Final
 
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.profile import Profile
 from workflow_interpreter.profiles.claude import ClaudeProfile
 from workflow_interpreter.profiles.codex import CodexProfile
 from workflow_interpreter.profiles.codex_appserver import CodexAppServerProfile
 from workflow_interpreter.profiles.config import (
-    RUNNER_PREFIX,
+    CREW_PREFIX,
+    CrewName,
     ProfileConfig,
-    RunnerName,
 )
 from workflow_interpreter.profiles.errors import UnknownProfileError
 from workflow_interpreter.profiles.opencode import OpencodeProfile
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.profile import Profile
 
 _MSG_UNKNOWN: Final[str] = (
-    "no runner profile named {name!r}; registered profiles are {known}"
+    "no crew profile named {name!r}; registered profiles are {known}"
 )
 ProfileBuilder = Callable[[ProfileConfig, Clock, Mapping[str, str]], Profile]
 
-BUILDERS: Final[dict[RunnerName, ProfileBuilder]] = {
-    RunnerName.CLAUDE: ClaudeProfile,
-    RunnerName.CODEX: CodexProfile,
-    RunnerName.CODEX_APPSERVER: CodexAppServerProfile,
-    RunnerName.OPENCODE: OpencodeProfile,
+BUILDERS: Final[dict[CrewName, ProfileBuilder]] = {
+    CrewName.CLAUDE: ClaudeProfile,
+    CrewName.CODEX: CodexProfile,
+    CrewName.CODEX_APPSERVER: CodexAppServerProfile,
+    CrewName.OPENCODE: OpencodeProfile,
 }
 """The closed vendor set, as constructors. Each concrete class satisfies the
 §6 `Profile` protocol structurally; `BaseProfile` alone does not, which is
@@ -65,8 +65,8 @@ class ProfileRegistry:
         self._builders.update(builders or {})
 
     def profile_for(self, name: str) -> Profile:
-        """The registered runner profile; unknown names raise (see module doc)."""
-        builder = self._builders.get(name.removeprefix(RUNNER_PREFIX))
+        """The registered crew profile; unknown names raise (see module doc)."""
+        builder = self._builders.get(name.removeprefix(CREW_PREFIX))
         if builder is None:
             raise UnknownProfileError(
                 _MSG_UNKNOWN.format(name=name, known=", ".join(sorted(self._builders)))

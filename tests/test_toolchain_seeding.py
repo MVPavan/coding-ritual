@@ -7,12 +7,12 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ConfigDict
 
-from tests._supervisor import _git as git_run
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.profile import RunnerChannels, TaskSpec
-from workflow_interpreter.supervisor.sandbox import plan_for
-from workflow_interpreter.supervisor.toolchain import ToolchainSeeder
-from workflow_interpreter.supervisor.toolchain_models import (
+from tests._inspector import _git as git_run
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.profile import CrewChannels, TaskSpec
+from workflow_interpreter.inspector.sandbox import plan_for
+from workflow_interpreter.inspector.toolchain import ToolchainSeeder
+from workflow_interpreter.inspector.toolchain_models import (
     ToolchainConfig,
     ToolchainUnavailable,
 )
@@ -35,7 +35,7 @@ def test_two_reviewers_never_share_a_writable_toolchain(tmp_path: Path) -> None:
             model="test-model",
             writes=False,
             cwd=str(repo),
-            channels=RunnerChannels(
+            channels=CrewChannels(
                 outcome_file=str(channels / "outcome.json"),
                 artifact_dir=str(channels / "artifacts"),
                 effects_file=str(channels / "effects.json"),
@@ -64,7 +64,7 @@ class SeedLab(BaseModel):
     host: Path
     interpreter: Path
     calls: Path
-    config: SupervisorConfig
+    config: InspectorConfig
 
 
 @pytest.fixture
@@ -138,10 +138,10 @@ def seed_lab(tmp_path: Path) -> SeedLab:
         python_root=python_home,
         uv_binary=str(uv),
     )
-    supervisor = SupervisorConfig(
+    inspector = InspectorConfig(
         repo_root=repo, wrapper_root=tmp_path / "wrapper", host="test", toolchain=config
     )
-    seeder = ToolchainSeeder(supervisor, {"PATH": os.environ["PATH"]})
+    seeder = ToolchainSeeder(inspector, {"PATH": os.environ["PATH"]})
     return SeedLab(
         seeder=seeder,
         repo=repo,
@@ -149,7 +149,7 @@ def seed_lab(tmp_path: Path) -> SeedLab:
         host=host,
         interpreter=interpreter,
         calls=calls,
-        config=supervisor,
+        config=inspector,
     )
 
 
@@ -159,8 +159,8 @@ def test_seed_is_built_once_and_private_copies_are_independent(
 ) -> None:
     """Warm host wheels seed only the lock's packages, then reuse the project seed."""
     seeder, repo, base = seed_lab.seeder, seed_lab.repo, seed_lab.base
-    host, calls, supervisor = seed_lab.host, seed_lab.calls, seed_lab.config
-    config = supervisor.toolchain
+    host, calls, inspector = seed_lab.host, seed_lab.calls, seed_lab.config
+    config = inspector.toolchain
     archive = host / "archive-v0" / "locked-wheel"
     first = seeder.prepare(repo, base, tmp_path / "wrapper" / "first")
     second = seeder.prepare(repo, base, tmp_path / "wrapper" / "second")
@@ -198,8 +198,8 @@ def test_seed_is_built_once_and_private_copies_are_independent(
 @pytest.mark.parametrize("kind", ["escape", "bytes", "disk"])
 def test_unsafe_copy_is_refused_before_copy(tmp_path: Path, kind: str) -> None:
     """Escaping links and exhausted copy budgets never become writable grants."""
-    from workflow_interpreter.supervisor.toolchain_files import copy_tree
-    from workflow_interpreter.supervisor.toolchain_models import (
+    from workflow_interpreter.inspector.toolchain_files import copy_tree
+    from workflow_interpreter.inspector.toolchain_models import (
         ToolchainConfig,
         ToolchainUnavailable,
     )
@@ -221,7 +221,7 @@ def test_unsafe_copy_is_refused_before_copy(tmp_path: Path, kind: str) -> None:
 
 def test_receipts_predating_seeding_still_load(tmp_path: Path) -> None:
     """Optional seed provenance preserves existing fork-barrier receipts."""
-    from workflow_interpreter.supervisor.models import LaunchReceipt
+    from workflow_interpreter.inspector.models import LaunchReceipt
 
     assert LaunchReceipt.model_fields["seed_receipts"].default == ()
 
@@ -238,7 +238,7 @@ def test_changed_dependency_pins_never_invoke_uv(seed_lab: SeedLab, pin: str) ->
 
 
 def test_launched_cache_is_never_probed_on_host(seed_lab: SeedLab) -> None:
-    """A crashed runner's cache remains untrusted even if its receipt survived."""
+    """A crashed crew's cache remains untrusted even if its receipt survived."""
     activation = seed_lab.config.wrapper_root / "activation"
     seeded = seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
     (activation / "exec.ledger").write_text("launched")
@@ -292,8 +292,8 @@ def test_missing_host_wheel_fetches_into_seed_once(seed_lab: SeedLab) -> None:
 
 def test_copy_falls_back_to_plain_without_shared_inodes(tmp_path: Path) -> None:
     """A copier rejecting reflink-auto gets one ordinary-copy attempt."""
-    from workflow_interpreter.supervisor.toolchain_files import copy_tree
-    from workflow_interpreter.supervisor.toolchain_models import CopyMethod
+    from workflow_interpreter.inspector.toolchain_files import copy_tree
+    from workflow_interpreter.inspector.toolchain_models import CopyMethod
 
     source = tmp_path / "source"
     source.mkdir()
@@ -355,8 +355,8 @@ def test_lock_change_builds_a_new_seed(seed_lab: SeedLab) -> None:
 
 def test_private_cache_symlink_cannot_grant_another_activation(tmp_path: Path) -> None:
     """Planning must refuse a redirected private-cache path before creating it."""
-    from workflow_interpreter.supervisor.errors import SandboxPathRefused
-    from workflow_interpreter.supervisor.sandbox import toolchain_cache_for
+    from workflow_interpreter.inspector.errors import SandboxPathRefused
+    from workflow_interpreter.inspector.sandbox import toolchain_cache_for
 
     activation = tmp_path / "activation"
     activation.mkdir()
@@ -393,7 +393,7 @@ def test_no_project_does_not_discover_uv(seed_lab: SeedLab) -> None:
     assert not seed_lab.calls.exists()
 
 
-def test_host_fetch_can_be_disabled_for_offline_supervisors(seed_lab: SeedLab) -> None:
+def test_host_fetch_can_be_disabled_for_offline_inspectors(seed_lab: SeedLab) -> None:
     """An offline host reports a missing wheel without attempting network access."""
     import shutil
 
@@ -526,14 +526,14 @@ def test_candidate_fifo_is_refused_without_reading_it(
 
 def test_legacy_receipt_roundtrip_has_no_seed_claim(seed_lab: SeedLab) -> None:
     """Read a legacy serialized receipt without manufacturing seeding evidence."""
-    from tests._supervisor import dead_pid, handle_for
-    from workflow_interpreter.supervisor.models import LaunchReceipt
+    from tests._inspector import dead_pid, handle_for
+    from workflow_interpreter.inspector.models import LaunchReceipt
 
     receipt = LaunchReceipt(
         launch_id="old",
         root_id="root",
         activation_id="activation",
-        argv=("runner",),
+        argv=("crew",),
         cwd=str(seed_lab.repo),
         handle=handle_for(dead_pid()),
     )
@@ -574,7 +574,7 @@ def test_uv_created_internal_links_are_relocated_before_publication(
     assert (link / "ruff.py").read_text() == "trusted wheel"
 
 
-def test_host_cache_overrides_are_captured_before_runner_environment(
+def test_host_cache_overrides_are_captured_before_crew_environment(
     tmp_path: Path,
 ) -> None:
     """Capture operator uv locations before rewriting the child environment."""
@@ -639,7 +639,7 @@ def test_host_sources_stay_read_only_under_the_outer_bound(seed_lab: SeedLab) ->
     import subprocess
 
     from tests._profiles import make_task
-    from workflow_interpreter.supervisor.sandbox import SandboxMode, wrap
+    from workflow_interpreter.inspector.sandbox import SandboxMode, wrap
 
     activation = seed_lab.config.wrapper_root / "activation"
     seeded = seed_lab.seeder.prepare(seed_lab.repo, seed_lab.base, activation)
@@ -689,7 +689,7 @@ def test_metadata_change_keeps_lock_seed(
     seed_lab: SeedLab, warm: bool, reuse_private: bool
 ) -> None:
     """A project version edit can be reviewed with the same dependency seed."""
-    from workflow_interpreter.supervisor.toolchain import digest
+    from workflow_interpreter.inspector.toolchain import digest
 
     activation = seed_lab.config.wrapper_root / "activation"
     if warm:
@@ -708,7 +708,7 @@ def test_changed_python_selection_uses_available_managed_python(
     seed_lab: SeedLab,
 ) -> None:
     """An available interpreter selection is allowed and recorded."""
-    from workflow_interpreter.supervisor.toolchain import digest
+    from workflow_interpreter.inspector.toolchain import digest
 
     selection = seed_lab.repo / ".python-version"
     selection.write_text("3.13.9\n")

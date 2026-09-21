@@ -23,16 +23,16 @@ from workflow_interpreter.foreman.wake_constants import (
     DriverCondition,
     DriverState,
 )
-from workflow_interpreter.supervisor.clock import Clock, elapsed_seconds, to_iso
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.errors import WrapperDirError
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.clock import Clock, elapsed_seconds, to_iso
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.errors import WrapperDirError
+from workflow_interpreter.inspector.paths import (
     HEARTBEAT_FILE,
     WrapperPaths,
     read_record,
     write_record,
 )
-from workflow_interpreter.supervisor.procfs import read_boot_id, read_start_time
+from workflow_interpreter.inspector.procfs import read_boot_id, read_start_time
 
 if TYPE_CHECKING:
     from workflow_interpreter.foreman.compose import Composition
@@ -97,8 +97,8 @@ class DriverHeartbeat(BaseModel):
     durability_error: str | None = None
 
 
-def process_handle(config: SupervisorConfig, clock: Clock) -> ProcessHandle | None:
-    """Record the current host process with the same identity proof as a runner."""
+def process_handle(config: InspectorConfig, clock: Clock) -> ProcessHandle | None:
+    """Record the current host process with the same identity proof as a crew."""
     pid = os.getpid()
     start = read_start_time(config, pid)
     boot = read_boot_id(config)
@@ -122,9 +122,9 @@ class DriverObserver:
     def __init__(self, composition: Composition, root_id: str) -> None:
         self._composition = composition
         self._root_id = root_id
-        self._paths = WrapperPaths(composition.supervisor_config, root_id)
+        self._paths = WrapperPaths(composition.inspector_config, root_id)
         self._generation = uuid.uuid4().hex
-        self._handle = process_handle(composition.supervisor_config, composition.clock)
+        self._handle = process_handle(composition.inspector_config, composition.clock)
         self._ticks = 0
         self._condition = DriverCondition.STARTING
         self.status = read_status(self._paths.instance_dir)

@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.foreman.config import ForemanConfig
-from workflow_interpreter.supervisor.paths import read_record, write_record
+from workflow_interpreter.inspector.paths import read_record, write_record
 
 
 class OwnerConflict(ValueError):

@@ -1,5 +1,7 @@
 # Engine bundle — implementation plan
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Status: proposed; Phase 1 only. Coordinator review precedes implementation.
 Origin: coordinator brief; `docs/specs/workflow-interpreter.md` §§5, 6, 8–10.
 Baseline: `wf/engine-bundle`, `add0f008f57457950a83d7542286d1ca1c5ccea8`.

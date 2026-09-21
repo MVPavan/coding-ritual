@@ -14,7 +14,14 @@ from typing import Final
 
 import workflow_interpreter
 from workflow_interpreter import GraphValidationError, RuleId, load_graph
-from workflow_interpreter.profiles.config import RUNNER_PREFIX
+from workflow_interpreter.contractor.models import ContractorRecord
+from workflow_interpreter.contractor.records import (
+    ContractorRecords,
+    LedgerWrite,
+    StoredRecord,
+)
+from workflow_interpreter.ledger.errors import LedgerRecordConflict
+from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.schema import messages
 from workflow_interpreter.schema.models import Finding, GraphDefinition
 
@@ -45,18 +52,19 @@ VARIANT_SEPARATOR: Final[str] = "__"
 # no whitespace, or the comma-separated list several templates interpolate.
 MESSAGE_TOKEN: Final[str] = r"\S+(?:, \S+)*"
 
-# Historical feature-delivery pin. Existing instances retain these exact bytes.
+# Feature-delivery pin, re-taken at the S0 actor rename (the `runner` node key
+# became `crew`, so every graph's content hash moved).
 FEATURE_DELIVERY_CONTENT_HASH = (
-    "c929cb817742c2b5684aa4e4b5451a89865734b8fc86148ed02303166ebb458b"
+    "42edd25f8306e42e8a8f30d9a549907d27fb87bf607fc1fead28183bacca14bc"
 )
 
 SHIPPED_FEATURE_DELIVERY_CONTENT_HASH = (
-    "8686fb8d18e9c809255f08f84646b348e4d020dc3f451e6b8b83b79dc07b1355"
+    "ccc644995d2341dd1fbae4ee043ebac82d51fe95290c20e1ae47aaf2e4db105d"
 )
 
 # Same pin for build-loop; `tests/test_build_loop_graph.py` owns its assertions.
 BUILD_LOOP_CONTENT_HASH = (
-    "63e81d7dece8befe79e807eaa5a4b839570997f67ef11beaeaa68e0648981a10"
+    "72d80cba3975a0c9de0c81a01d69f58b489206f8ef612b21308007f37c942758"
 )
 
 # A valid graph every semantic rule can be pushed off with one small edit.
@@ -79,7 +87,7 @@ entry_node = "work"
 name = "work"
 kind = "task"
 region = "r"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Minimal task: the graph exists to be mutated, not to run."
 writes = false
 allowed_paths = []
@@ -135,17 +143,17 @@ def rule_of(path: Path) -> RuleId:
     return RuleId(path.stem.split(VARIANT_SEPARATOR, 1)[0])
 
 
-def runner_roles(definition: GraphDefinition) -> set[str]:
-    """The `profile:<role>` names a graph binds a runner to (§3.1 role-binding).
+def crew_roles(definition: GraphDefinition) -> set[str]:
+    """The `profile:<role>` names a graph binds a crew to (§3.1 role-binding).
 
     `resolve.instantiate` refuses a graph whose roles are not all bound in the
-    config ("unknown runner roles"), so both the example config and the lab are
+    config ("unknown crew roles"), so both the example config and the lab are
     checked against this set.
     """
     return {
-        node.runner.removeprefix(RUNNER_PREFIX)
+        node.crew.removeprefix(CREW_PREFIX)
         for node in definition.document.node
-        if node.runner is not None and node.runner.startswith(RUNNER_PREFIX)
+        if node.crew is not None and node.crew.startswith(CREW_PREFIX)
     }
 
 
@@ -194,7 +202,7 @@ def undeclared_fail_code_graph(directory: Path, source: Path = VALID_FIXTURE) ->
 _ABANDON_TASK_NODE: Final[str] = '''[[node]]
 name          = "wrapup"
 kind          = "task"
-runner        = "profile:critic"
+crew          = "profile:critic"
 model         = "default"
 instructions = """
 Record why the slice was abandoned.
@@ -304,3 +312,156 @@ def matching_templates(text: str) -> set[str]:
         for name, template in message_templates().items()
         if message_pattern(template).fullmatch(text)
     }
+
+
+class MemoryContractorRecords:
+    """A process-local `ContractorRecords` for the adapter's own unit tests.
+
+    The adapter needs somewhere durable to put a record; these tests are
+    about the REFUSALS it makes before it writes one, not about SQLite. The
+    version guard is implemented honestly, because "the caller stated a stale
+    version" is one of the refusals under test.
+    """
+
+    def __init__(self) -> None:
+        self._rows: dict[str, StoredRecord] = {}
+
+    def read(self, task_id: str) -> StoredRecord | None:
+        """The stored record of this task, or nothing while it has none."""
+        return self._rows.get(task_id)
+
+    def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
+        """Write a task's first record, refusing a second first write."""
+        if record.stage_id in self._rows:
+            raise LedgerRecordConflict(f"{record.stage_id} already has a record")
+        held = StoredRecord(record=record, version=1, brief=brief)
+        self._rows[record.stage_id] = held
+        return held
+
+    def update(
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
+    ) -> StoredRecord:
+        """Move the record forward from exactly the version the caller read.
+
+        `inside` is the outbox write this transition carries (§3.3). There is
+        no transaction here to join, so it is simply run after the guard has
+        held — which is the ordering the real store gives it.
+        """
+        found = self._rows.get(record.stage_id)
+        if found is None or found.version != expected_version:
+            raise LedgerRecordConflict(
+                f"{record.stage_id} is not at version {expected_version}"
+            )
+        held = StoredRecord(record=record, version=expected_version + 1, brief=brief)
+        self._rows[record.stage_id] = held
+        if inside is not None:
+            inside(None)  # type: ignore[arg-type]
+        return held
+
+    def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
+        """Every task of this epic with a record, and that record's state."""
+        return tuple(
+            sorted(
+                (task_id, held.record.state.value)
+                for task_id, held in self._rows.items()
+                if held.record.epic_id == epic_id
+            )
+        )
+
+
+class InjectedRecordCrash(RuntimeError):
+    """A record transition interrupted on purpose, mid-write."""
+
+
+class CrashingContractorRecords:
+    """Any record store, with the nth `update` interrupted before it lands.
+
+    The relation write moved from a bd `update` to a ledger transition in S4
+    (§3.2, R4), so `FakeBd.crash_on("update")` no longer interrupts it — and
+    the crash-recovery cases have to keep interrupting the write they are
+    about rather than whichever call used to carry it. A wrapper rather than
+    a subclass, because the landing cases crash a REAL ledger-backed store.
+    """
+
+    def __init__(self, inner: ContractorRecords, *, armed: bool = False) -> None:
+        self._inner = inner
+        self._armed = armed
+
+    def arm(self) -> None:
+        """Interrupt the next record transition, and only that one."""
+        self._armed = True
+
+    def read(self, task_id: str) -> StoredRecord | None:
+        """The stored record of this task, or nothing while it has none."""
+        return self._inner.read(task_id)
+
+    def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
+        """Write a task's first record, refusing a second first write."""
+        return self._inner.create(record, brief=brief)
+
+    def update(
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
+    ) -> StoredRecord:
+        """Move the record forward, unless this is the interrupted write."""
+        if self._armed:
+            self._armed = False
+            raise InjectedRecordCrash("record update died")
+        return self._inner.update(
+            record, expected_version=expected_version, brief=brief, inside=inside
+        )
+
+    def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
+        """Every task of this epic with a record, and that record's state."""
+        return self._inner.states_of_epic(epic_id)
+
+
+TASK_BRIEF: Final[str] = "the seeded task brief"
+"""The snapshot a seeded first write carries (§3.3): tests need one to exist."""
+
+
+def seeded_records(
+    *held: ContractorRecord,
+    brief: str | None = TASK_BRIEF,
+    into: ContractorRecords | None = None,
+) -> ContractorRecords:
+    """A record store already holding `held`, written the way production does.
+
+    The one seeding path for every test that used to put a record in
+    `bead.metadata["contractor"]`. The record is a ledger row since S4 (§3.2,
+    R4), so a test states it through the public first write — `create` — and
+    `into` lets a lab with a real ledger seed exactly as an in-memory unit
+    test does, instead of each family growing its own INSERT.
+    """
+    store: ContractorRecords = MemoryContractorRecords() if into is None else into
+    for record in held:
+        store.create(record, brief=brief)
+    return store
+
+
+def rewrite_record(
+    records: ContractorRecords, task_id: str, **updates: object
+) -> ContractorRecord:
+    """Move a stored record forward, stating the version it was read at.
+
+    The companion of `seeded_records` for the cases that used to edit the
+    stored dict in place: bead metadata merged, so a test could poke one
+    field, and a ledger row is TRANSITIONED — the version guard is part of
+    what a write means now (§3.2), so a test states it too.
+    """
+    held = records.read(task_id)
+    assert held is not None, f"{task_id} has no record to rewrite"
+    return records.update(
+        held.record.model_copy(update=updates),
+        expected_version=held.version,
+        brief=held.brief,
+    ).record

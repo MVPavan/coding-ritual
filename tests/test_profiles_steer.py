@@ -2,7 +2,7 @@
 
 Split out of `test_profiles_process.py` when R1 gave the family a §5.6 half:
 the same `Lab` (`tests/_profiles.py`), a real fork barrier, a real steer, a real
-recovery, and a real `Supervisor.run` over the continuation.
+recovery, and a real `Inspector.run` over the continuation.
 
 What the family is FOR is one sentence: a steer must cost the human nothing but
 a session. Three ways it used to cost more, all asserted here —
@@ -11,7 +11,7 @@ a session. Three ways it used to cost more, all asserted here —
   was simply re-run (`build_resume_command` was never called);
 - the continuation could not be dispatched through the only composition that
   watches a child and records its exit, so §8.1's second half had no production
-  path at all (`Supervisor.run` has no argument for the instructions, and the
+  path at all (`Inspector.run` has no argument for the instructions, and the
   §5.6 recovery that finds a crashed steer holds nothing but a `MintRequest`);
 - the refusal for an unresumable session landed AFTER the kill, so learning that
   the steer was impossible cost the work it was supposed to redirect.
@@ -27,36 +27,36 @@ from typing import Final
 import pytest
 
 from tests._foreman import ForemanLab
+from tests._inspector import IMPLEMENT, ChildScript, entry_mint, node_of
 from tests._profiles import Lab, host_env_with, stub_env
-from tests._supervisor import IMPLEMENT, ChildScript, entry_mint, node_of
 from workflow_interpreter.bdio import Lifecycle, MintReason, MintRequest, ProcessHandle
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver
-from workflow_interpreter.foreman.config import RunnerBinding
-from workflow_interpreter.foreman.supervise import WrapperExit, run_wrapper
+from workflow_interpreter.foreman.config import CrewBinding
+from workflow_interpreter.foreman.inspector import WrapperExit, run_wrapper
 from workflow_interpreter.foreman.tick import Foreman
-from workflow_interpreter.profiles import ProfileConfig, RunnerName
-from workflow_interpreter.profiles.claude import ClaudeProfile
-from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     ExecLedger,
     Recovery,
     SteerIntent,
     SteerResult,
     procfs,
 )
-from workflow_interpreter.supervisor.errors import ContinuationRefused
-from workflow_interpreter.supervisor.models import MonitorVerdict
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.profile import (
+from workflow_interpreter.inspector.errors import ContinuationRefused
+from workflow_interpreter.inspector.models import MonitorVerdict
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.profile import (
     ChildLauncher,
+    CrewCommand,
     Profile,
-    RunnerCommand,
     TaskSpec,
 )
-from workflow_interpreter.supervisor.sandbox import SandboxMode
-from workflow_interpreter.supervisor.steer import instructions_digest
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.inspector.steer import instructions_digest
+from workflow_interpreter.profiles import CrewName, ProfileConfig
+from workflow_interpreter.profiles.claude import ClaudeProfile
+from workflow_interpreter.schema.models import Outcome
 
-STEER_REASON: Final[str] = "the runner is looping on the same failing test"
+STEER_REASON: Final[str] = "the crew is looping on the same failing test"
 STEER_INSTRUCTIONS: Final[str] = "stop rewriting the fixture; fix the assertion"
 PINNED_MODEL: Final[str] = "claude-opus-5"
 DIVERGENT_MODEL: Final[str] = "claude-haiku-4-5"
@@ -69,7 +69,7 @@ def test_real_process_lab_grants_scheduler_time_per_virtual_poll(
     """A virtual process poll also yields a bounded real scheduling window."""
     real_sleeps: list[float] = []
     before = lab.clock.now()
-    monkeypatch.setattr("tests._supervisor.time.sleep", real_sleeps.append)
+    monkeypatch.setattr("tests._inspector.time.sleep", real_sleeps.append)
 
     lab.clock.sleep(lab.config.poll_interval_s)
 
@@ -110,15 +110,15 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
 
         def __init__(self, config: ProfileConfig) -> None:
             super().__init__(config, lab.clock, host_env_with(**stub_env()))
-            self.commands: dict[str, RunnerCommand] = {}
+            self.commands: dict[str, CrewCommand] = {}
 
-        def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+        def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
             command = super().build_command(task, session_id)
             self.commands[task.node] = command
             return command
 
         def launch(
-            self, command: RunnerCommand, launcher: ChildLauncher
+            self, command: CrewCommand, launcher: ChildLauncher
         ) -> ProcessHandle:
             """Run the foreman fixture child after retaining Claude's invocation."""
             if "review" in self.commands and self.commands["review"] == command:
@@ -147,16 +147,16 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
             self._profile = profile
 
         def profile_for(self, name: str) -> RecordingClaude:
-            assert name == RunnerName.CLAUDE.value
+            assert name == CrewName.CLAUDE.value
             return self._profile
 
     lab = ForemanLab(
         tmp_path,
         roles={
-            "implementer": RunnerBinding(
+            "implementer": CrewBinding(
                 profile="claude", model=PINNED_MODEL, effort="high"
             ),
-            "critic": RunnerBinding(
+            "critic": CrewBinding(
                 profile="claude", model=PINNED_MODEL, effort="medium"
             ),
         },
@@ -167,7 +167,7 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
     lab.composition = Composition(
         lab.config,
         lab.store,
-        lab.supervisor_config,
+        lab.inspector_config,
         lab.git,
         lab.clock,
         lab.profiles,
@@ -184,14 +184,14 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
             MintRequest(
                 node=IMPLEMENT,
                 mint_reason=MintReason.ENTRY,
-                runner_profile=RunnerName.CLAUDE.value,
+                crew_profile=CrewName.CLAUDE.value,
                 model=PINNED_MODEL,
                 session_id="",
             ),
         )
         .activation
     )
-    lab.fake_bd.rows[minted.activation_id]["metadata"]["model"] = DIVERGENT_MODEL
+    lab.backend._merge_metadata(minted.activation_id, {"model": DIVERGENT_MODEL})
 
     assert (
         run_wrapper(lab.composition, root.root_id, minted.activation_id)
@@ -221,7 +221,7 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
 
 
 @pytest.mark.proc
-def test_wrapper_selects_root_pinned_runner_after_activation_runner_corruption(
+def test_wrapper_selects_root_pinned_crew_after_activation_crew_corruption(
     tmp_path: Path,
 ) -> None:
     """The wrapper launches the root-pinned vendor, never corrupt activation metadata."""
@@ -229,10 +229,10 @@ def test_wrapper_selects_root_pinned_runner_after_activation_runner_corruption(
     lab = ForemanLab(
         tmp_path,
         roles={
-            "implementer": RunnerBinding(
+            "implementer": CrewBinding(
                 profile="claude", model=PINNED_MODEL, effort="high"
             ),
-            "critic": RunnerBinding(
+            "critic": CrewBinding(
                 profile="claude", model=PINNED_MODEL, effort="medium"
             ),
         },
@@ -255,7 +255,7 @@ def test_wrapper_selects_root_pinned_runner_after_activation_runner_corruption(
     lab.composition = Composition(
         lab.config,
         lab.store,
-        lab.supervisor_config,
+        lab.inspector_config,
         lab.git,
         lab.clock,
         lab.profiles,
@@ -271,15 +271,15 @@ def test_wrapper_selects_root_pinned_runner_after_activation_runner_corruption(
             MintRequest(
                 node=IMPLEMENT,
                 mint_reason=MintReason.ENTRY,
-                runner_profile=RunnerName.CLAUDE.value,
+                crew_profile=CrewName.CLAUDE.value,
                 model=PINNED_MODEL,
                 session_id="",
             ),
         )
         .activation
     )
-    lab.fake_bd.rows[minted.activation_id]["metadata"]["runner_profile"] = (
-        RunnerName.CODEX.value
+    lab.backend._merge_metadata(
+        minted.activation_id, {"crew_profile": (CrewName.CODEX.value)}
     )
 
     assert (
@@ -287,7 +287,7 @@ def test_wrapper_selects_root_pinned_runner_after_activation_runner_corruption(
         is WrapperExit.DONE
     )
 
-    assert profiles.selected == [RunnerName.CLAUDE.value]
+    assert profiles.selected == [CrewName.CLAUDE.value]
 
 
 @pytest.mark.proc
@@ -306,7 +306,7 @@ def test_a_steer_continuation_resumes_the_session_the_launch_actually_ran(
     the id the FIRST child ran under, `--session-id` gone, and the steer
     instructions on the argv.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     parent = launched.activation
     assert launched.handle is not None
     session = launched.handle.session_id
@@ -318,7 +318,7 @@ def test_a_steer_continuation_resumes_the_session_the_launch_actually_ran(
 
     assert steered.intent.continuation.session_id == session
     continuation = lab.dispatch(
-        RunnerName.CLAUDE,
+        CrewName.CLAUDE,
         request=steered.intent.continuation,
         instructions=STEER_INSTRUCTIONS,
     )
@@ -331,14 +331,14 @@ def test_a_steer_continuation_resumes_the_session_the_launch_actually_ran(
 
 
 @pytest.mark.proc
-def test_a_steer_continuation_runs_to_exit_recorded_through_supervisor_run(
+def test_a_steer_continuation_runs_to_exit_recorded_through_inspector_run(
     lab: Lab,
 ) -> None:
     """R1: the §8.1 continuation's only production entry point is this one.
 
-    `Supervisor.run` is what dispatches, watches for `max_wall`, and records the
+    `Inspector.run` is what dispatches, watches for `max_wall`, and records the
     exit; `Dispatcher.dispatch(instructions=...)` alone does none of those. And
-    `Supervisor.run` has no argument for a human's prose — so once dispatch
+    `Inspector.run` has no argument for a human's prose — so once dispatch
     started REFUSING a continuation with no instructions, every steer that
     reached production was refused at the launch instead of resuming.
 
@@ -347,12 +347,12 @@ def test_a_steer_continuation_runs_to_exit_recorded_through_supervisor_run(
     the continuation's receipt plus a real watch loop reaching `exit-recorded`
     with exactly one exec on the ledger.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     assert launched.handle is not None
     session = launched.handle.session_id
     steered = steer(lab, launched.activation.activation_id)
 
-    result = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
+    result = lab.run(CrewName.CLAUDE, request=steered.intent.continuation)
 
     receipt = result.dispatch.receipt
     assert receipt is not None
@@ -378,7 +378,7 @@ def test_a_steer_that_crashed_before_the_kill_still_reaches_a_resumed_child(
     which is exactly the position R1 says must be dispatchable. The instructions
     come back off the same file recovery classified from.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     parent = launched.activation
     assert launched.handle is not None
     session = launched.handle.session_id
@@ -405,7 +405,7 @@ def test_a_steer_that_crashed_before_the_kill_still_reaches_a_resumed_child(
     )
 
     assert resolution.steer is not None
-    result = lab.run(RunnerName.CLAUDE, request=resolution.steer.intent.continuation)
+    result = lab.run(CrewName.CLAUDE, request=resolution.steer.intent.continuation)
 
     receipt = result.dispatch.receipt
     assert receipt is not None
@@ -415,7 +415,7 @@ def test_a_steer_that_crashed_before_the_kill_still_reaches_a_resumed_child(
 
 
 @pytest.mark.proc
-def test_steering_a_runner_with_no_resumable_session_refuses_before_the_kill(
+def test_steering_a_crew_with_no_resumable_session_refuses_before_the_kill(
     lab: Lab,
 ) -> None:
     """R1: the refusal that used to arrive one kill too late.
@@ -429,7 +429,7 @@ def test_steering_a_runner_with_no_resumable_session_refuses_before_the_kill(
     no intent was persisted for recovery to act on, and bd still says the
     activation is dispatched.
     """
-    launched = lab.dispatch(RunnerName.CODEX, session_id="")
+    launched = lab.dispatch(CrewName.CODEX, session_id="")
     parent = launched.activation
     assert launched.handle is not None
     assert launched.handle.session_id == ""
@@ -457,13 +457,13 @@ def test_dispatching_a_continuation_with_nothing_to_continue_refuses(
     the intent file is the wrapper directory's, and `.wf/` is an observation
     cache §P1 allows to be lost. Losing it must refuse, not launch fresh.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     parent = launched.activation
     steered = steer(lab, parent.activation_id)
     lab.paths.steer_intent(parent.activation_id).unlink()
 
     with pytest.raises(ContinuationRefused, match="no steer instructions"):
-        lab.dispatch(RunnerName.CLAUDE, request=steered.intent.continuation)
+        lab.dispatch(CrewName.CLAUDE, request=steered.intent.continuation)
 
 
 @pytest.mark.proc
@@ -476,7 +476,7 @@ def test_a_torn_steer_intent_refuses_rather_than_wedging_the_dispatch(
     of `dispatch` would wedge the activation on every subsequent tick; treating
     it as absent walks to the same fail-closed refusal a missing file gets.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     parent = launched.activation
     steered = steer(lab, parent.activation_id)
     lab.paths.steer_intent(parent.activation_id).write_text(
@@ -484,7 +484,7 @@ def test_a_torn_steer_intent_refuses_rather_than_wedging_the_dispatch(
     )
 
     with pytest.raises(ContinuationRefused, match="no steer instructions"):
-        lab.dispatch(RunnerName.CLAUDE, request=steered.intent.continuation)
+        lab.dispatch(CrewName.CLAUDE, request=steered.intent.continuation)
 
 
 @pytest.mark.proc
@@ -493,7 +493,7 @@ def test_resume_instructions_are_refused_for_a_mint_that_is_not_a_continuation(
 ) -> None:
     """The other half: only a `steer-continuation` may rejoin another session."""
     with pytest.raises(ContinuationRefused, match="mint reason is entry"):
-        lab.dispatch(RunnerName.CLAUDE, instructions=STEER_INSTRUCTIONS)
+        lab.dispatch(CrewName.CLAUDE, instructions=STEER_INSTRUCTIONS)
 
 
 @pytest.mark.proc
@@ -506,7 +506,7 @@ def test_the_steer_intent_keeps_the_prose_out_of_every_bd_record(lab: Lab) -> No
     workspace rather than over one field, because "which record could leak it"
     is exactly the question a field-by-field check cannot answer.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="", sleep_s=0.0)
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="", sleep_s=0.0)
     parent = launched.activation
     assert launched.handle is not None
     lab.await_exit(launched.handle)
@@ -532,12 +532,12 @@ def test_an_infra_retry_of_a_continuation_carries_the_steer_forward(lab: Lab) ->
     the same steered work, so it resumes the same session with the same text,
     read off the STEERED activation's intent file one hop further back.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     parent = launched.activation
     assert launched.handle is not None
     session = launched.handle.session_id
     steered = steer(lab, parent.activation_id)
-    continuation = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
+    continuation = lab.run(CrewName.CLAUDE, request=steered.intent.continuation)
     continuation_id = continuation.dispatch.activation.activation_id
     lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
     retry = entry_mint(
@@ -546,7 +546,7 @@ def test_an_infra_retry_of_a_continuation_carries_the_steer_forward(lab: Lab) ->
         session_id=session,
     )
 
-    result = lab.dispatch(RunnerName.CLAUDE, request=retry)
+    result = lab.dispatch(CrewName.CLAUDE, request=retry)
 
     receipt = result.receipt
     assert receipt is not None
@@ -564,12 +564,12 @@ def test_a_retry_of_a_retry_still_finds_the_steer(lab: Lab) -> None:
     original brief in a fresh session — the silent loss, one activation further
     down the chain.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     parent = launched.activation
     assert launched.handle is not None
     session = launched.handle.session_id
     steered = steer(lab, parent.activation_id)
-    continuation = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
+    continuation = lab.run(CrewName.CLAUDE, request=steered.intent.continuation)
     continuation_id = continuation.dispatch.activation.activation_id
     lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
     first_retry = lab.store.mint_activation(
@@ -587,7 +587,7 @@ def test_a_retry_of_a_retry_still_finds_the_steer(lab: Lab) -> None:
         session_id=session,
     )
 
-    result = lab.dispatch(RunnerName.CLAUDE, request=second_retry)
+    result = lab.dispatch(CrewName.CLAUDE, request=second_retry)
 
     receipt = result.receipt
     assert receipt is not None
@@ -604,9 +604,9 @@ def test_a_retry_that_carries_a_steer_but_no_session_is_refused(lab: Lab) -> Non
     where `Steerer` checks it before the kill (`steer.py`), for the same
     reason: the answer is knowable before anything is spent.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     steered = steer(lab, launched.activation.activation_id)
-    continuation = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
+    continuation = lab.run(CrewName.CLAUDE, request=steered.intent.continuation)
     continuation_id = continuation.dispatch.activation.activation_id
     lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
     retry = entry_mint(
@@ -616,7 +616,7 @@ def test_a_retry_that_carries_a_steer_but_no_session_is_refused(lab: Lab) -> Non
     )
 
     with pytest.raises(ContinuationRefused, match="no session to rejoin"):
-        lab.dispatch(RunnerName.CLAUDE, request=retry)
+        lab.dispatch(CrewName.CLAUDE, request=retry)
 
 
 @pytest.mark.proc
@@ -628,10 +628,10 @@ def test_a_retry_of_a_continuation_whose_intent_is_gone_is_refused(lab: Lab) -> 
     and relaunching the node's original brief is exactly the silent loss this
     family exists to prevent.
     """
-    launched = lab.dispatch(RunnerName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
     parent = launched.activation
     steered = steer(lab, parent.activation_id)
-    continuation = lab.run(RunnerName.CLAUDE, request=steered.intent.continuation)
+    continuation = lab.run(CrewName.CLAUDE, request=steered.intent.continuation)
     continuation_id = continuation.dispatch.activation.activation_id
     lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
     lab.paths.steer_intent(parent.activation_id).unlink()
@@ -642,22 +642,22 @@ def test_a_retry_of_a_continuation_whose_intent_is_gone_is_refused(lab: Lab) -> 
     )
 
     with pytest.raises(ContinuationRefused, match="infra-retry"):
-        lab.dispatch(RunnerName.CLAUDE, request=retry)
+        lab.dispatch(CrewName.CLAUDE, request=retry)
 
 
-@pytest.mark.parametrize("runner", [RunnerName.CLAUDE, RunnerName.CODEX])
+@pytest.mark.parametrize("crew", [CrewName.CLAUDE, CrewName.CODEX])
 def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
-    tmp_path: Path, runner: RunnerName
+    tmp_path: Path, crew: CrewName
 ) -> None:
     """Serialize the real composed task, resume, and infra retry via vendor stubs."""
     import hashlib
 
     from tests._profiles import PASSTHROUGH, write_stub
     from workflow_interpreter.foreman.inputs import select_bindings
-    from workflow_interpreter.foreman.supervise import _task_builder
+    from workflow_interpreter.foreman.inspector import _task_builder
+    from workflow_interpreter.inspector import Dispatcher, Steerer
+    from workflow_interpreter.inspector.launch import DispatchResult
     from workflow_interpreter.profiles.registry import ProfileRegistry
-    from workflow_interpreter.supervisor import Dispatcher, Steerer
-    from workflow_interpreter.supervisor.launch import DispatchResult
 
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
     root = lab.instantiate()
@@ -665,14 +665,14 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     node = root.index.nodes[IMPLEMENT]
     bindings = select_bindings(root.index, root, node, (), 1)
     request = entry_mint(model="fake", session_id=str(uuid.uuid4()), inputs=bindings)
-    binary = write_stub(tmp_path, runner)
+    binary = write_stub(tmp_path, crew)
     profile = ProfileRegistry(
         ProfileConfig(
-            binary_overrides={runner: str(binary)}, passthrough_env=PASSTHROUGH
+            binary_overrides={crew: str(binary)}, passthrough_env=PASSTHROUGH
         ),
         lab.clock,
         host_env_with(**stub_env()),
-    ).profile_for(runner.value)
+    ).profile_for(crew.value)
     dispatcher = Dispatcher(wiring.paths, wiring.store, lab.clock)
     builder = _task_builder(root, wiring, lab.git)
 
@@ -688,7 +688,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
             assert result.receipt is not None
             argv = result.receipt.argv
             payload = (
-                argv[argv.index("-p") + 1] if runner is RunnerName.CLAUDE else argv[-1]
+                argv[argv.index("-p") + 1] if crew is CrewName.CLAUDE else argv[-1]
             )
             assert "Do not spawn or delegate" in payload
             assert "implement the lab fixture" in payload
@@ -707,12 +707,12 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
             return result
         finally:
             assert procfs.terminate(
-                lab.supervisor_config, result.handle, lab.clock
+                lab.inspector_config, result.handle, lab.clock
             ).confirmed_dead
 
     first = launch(request)
     steered = Steerer(
-        lab.supervisor_config,
+        lab.inspector_config,
         wiring.paths,
         wiring.store,
         lab.clock,

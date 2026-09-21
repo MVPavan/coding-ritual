@@ -74,11 +74,11 @@ def choose_source(
         )
         if not eligible:
             continue
-        if registration.runner_version != CODEX_VERSION:
+        if registration.crew_version != CODEX_VERSION:
             _LOG.warning(
                 MSG_VERSION_FRESH,
                 source=source.activation_id,
-                recorded=registration.runner_version,
+                recorded=registration.crew_version,
                 required=CODEX_VERSION,
             )
             return SessionChoice(fresh_reason=SessionFreshReason.VERSION_MISMATCH)

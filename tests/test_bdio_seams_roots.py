@@ -118,7 +118,7 @@ def test_test_flag_opt_in_reaches_both_root_read_paths(
                 source=ConfigSource.GRAPH_DEFAULT,
             ),
             ResolvedSetting(
-                key="node.work.runner",
+                key="node.work.crew",
                 value="fake",
                 source=ConfigSource.ROLE_BINDING,
             ),
@@ -144,7 +144,7 @@ def test_create_root_refuses_a_task_node_without_instructions(
     """ADR 0002: `create_root` is the chokepoint, so it owns the requirement.
 
     Enforcing anywhere else is bypassable — `tests/_bdio.py`,
-    `tests/_foreman.py` and `tests/_supervisor.py` all call `create_root`
+    `tests/_foreman.py` and `tests/_inspector.py` all call `create_root`
     directly, and there is no link step in the CLI.
     """
     definition = load_definition()
@@ -207,15 +207,15 @@ def test_create_root_refuses_a_task_without_a_model_pin(
         )
 
 
-def test_create_root_refuses_a_task_without_a_runner_pin(
+def test_create_root_refuses_a_task_without_a_crew_pin(
     fake_bd: FakeBd, fake_store: WorkflowStore
 ) -> None:
-    """A task needs its mint-time runner pin before root creation."""
+    """A task needs its mint-time crew pin before root creation."""
     config = tuple(
-        setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.runner"
+        setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.crew"
     )
 
-    with pytest.raises(CarrierIntegrityError, match="runner"):
+    with pytest.raises(CarrierIntegrityError, match="crew"):
         fake_store.create_root(
             instance_key=instance_key(),
             definition=load_definition(),
@@ -248,8 +248,8 @@ def test_create_root_refuses_a_task_without_an_effort_pin(
 ) -> None:
     """Every dispatch passes `--effort`, so every task needs it pinned.
 
-    Scoping the effort requirement to a subset of runners let a root with
-    complete runner and model pins but no effort through to `_create_bead`;
+    Scoping the effort requirement to a subset of crews let a root with
+    complete crew and model pins but no effort through to `_create_bead`;
     root identity then blocks recreating that key with the missing pin, so the
     instance is unrunnable forever (cr-xb2).
     """
@@ -275,7 +275,7 @@ def test_create_root_validates_the_pinned_body_before_writing(
     invalid = definition.document.model_copy(
         update={
             "node": tuple(
-                node.model_copy(update={"runner": "claude"})
+                node.model_copy(update={"crew": "claude"})
                 if node.name == "implement"
                 else node
                 for node in definition.document.node
@@ -283,9 +283,7 @@ def test_create_root_validates_the_pinned_body_before_writing(
         }
     )
 
-    with pytest.raises(
-        (GraphValidationError, PinnedGraphMismatchError), match="runner"
-    ):
+    with pytest.raises((GraphValidationError, PinnedGraphMismatchError), match="crew"):
         fake_store.create_root(
             instance_key=instance_key(),
             definition=definition.model_copy(update={"document": invalid}),
@@ -348,7 +346,7 @@ def test_create_root_refuses_a_stale_hash_before_reusing_an_existing_key(
 def test_create_root_does_not_require_instructions_on_gates_or_terminals(
     fake_store: WorkflowStore,
 ) -> None:
-    """Only a task dispatches a runner; a gate or terminal has no job to state."""
+    """Only a task dispatches a crew; a gate or terminal has no job to state."""
     definition = load_definition()
     assert any(node.kind is not NodeKind.TASK for node in definition.document.node), (
         "fixture must carry a non-task node for this test to mean anything"

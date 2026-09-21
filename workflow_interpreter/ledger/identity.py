@@ -1,0 +1,195 @@
+"""Minting one task's identity: the id, its epic, and the foreign id it came from.
+
+The ledger mints `task_id`; `tasks.tracker_ref` + `tasks.tracker_kind` hold the
+foreign id the tracker knows the work by (§3.7, R8). The two are separate
+because the tracker's id is not ours to spend: `gh#123` is a perfectly good
+GitHub issue and a name neither a path component nor a git ref can hold, while
+`task_id` reaches `refs/wf/exports/<task>`, a worktree path, the
+`docs/workstreams/<epic>/runs/<task>/a<n>` grant boundary and `WF_TASK_ID`.
+
+For bd the two are the same string — a bead id already satisfies the grammar —
+so no existing id, ref or `WF_*` value moves when this lands.
+"""
+
+from __future__ import annotations
+
+import sqlite3
+from datetime import UTC, datetime
+from typing import Final
+
+from workflow_interpreter.contracts.run_identity import (
+    LOCK_SUFFIX,
+    TRAVERSAL,
+    ComponentKind,
+    InvalidIdentifier,
+    safe_component,
+)
+from workflow_interpreter.ledger.constants import (
+    MSG_MINT_CONFLICT,
+    MSG_TRACKER_REF_UNUSABLE,
+    TrackerKind,
+)
+from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.errors import LedgerMintConflict
+
+FIRST_SEQ: Final[int] = 1
+_INSERT_TASK: Final[str] = (
+    "INSERT {conflict}INTO tasks "
+    "(task_id, epic_id, graph_id, next_seq, created_at, "
+    "tracker_ref, tracker_kind) "
+    "VALUES (?, ?, NULL, ?, ?, ?, ?)"
+)
+SQL_INSERT_TASK: Final[str] = _INSERT_TASK.format(conflict="OR IGNORE ")
+"""The one statement that writes a `tasks` row for a caller that only wants the
+row to EXIST — `tasks.ensure_task` and the store's lazy `_ensure_task`, both
+of which re-read what is there."""
+
+SQL_INSERT_TASK_STRICT: Final[str] = _INSERT_TASK.format(conflict="")
+"""The same write for the mint, which must not ignore a conflict: the id it is
+about to ANSWER with is the id this statement writes, so a row silently not
+written would hand out an id nothing holds."""
+
+_SQL_BY_TRACKER: Final[str] = (
+    "SELECT task_id FROM tasks WHERE tracker_ref = ? AND tracker_kind = ?"
+)
+_SQL_BY_TASK_ID: Final[str] = "SELECT 1 FROM tasks WHERE task_id = ?"
+_SQL_UNCLAIMED: Final[str] = (
+    "SELECT 1 FROM tasks WHERE task_id = ? AND epic_id = ? AND tracker_ref IS NULL"
+)
+_SQL_ADOPT: Final[str] = (
+    "UPDATE tasks SET tracker_ref = ?, tracker_kind = ? "
+    "WHERE task_id = ? AND tracker_ref IS NULL"
+)
+
+_SAFE_CHARACTERS: Final[frozenset[str]] = frozenset(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-"
+)
+_REPLACEMENT: Final[str] = "-"
+_DOT: Final[str] = "."
+_FIRST_SUFFIX: Final[int] = 2
+"""A collision suffix starts at two: the unsuffixed stem IS the first one."""
+
+
+def insert_task(
+    connection: sqlite3.Connection,
+    *,
+    task_id: str,
+    epic_id: str,
+    tracker_ref: str | None = None,
+    tracker_kind: TrackerKind | None = None,
+    strict: bool = False,
+) -> None:
+    """Write one `tasks` row if the task has none, on an open connection.
+
+    `strict` is for the caller that will HAND OUT the id it just wrote: it
+    lets the conflict raise instead of being ignored (§3.7).
+    """
+    connection.execute(
+        SQL_INSERT_TASK_STRICT if strict else SQL_INSERT_TASK,
+        (
+            task_id,
+            epic_id,
+            FIRST_SEQ,
+            datetime.now(tz=UTC).isoformat(),
+            tracker_ref,
+            None if tracker_kind is None else tracker_kind.value,
+        ),
+    )
+
+
+def sanitise_tracker_ref(tracker_ref: str) -> str:
+    """The grammar-safe stem a foreign id mints its task id from.
+
+    Every character the grammar does not admit becomes `-`, the traversal is
+    collapsed, a `.lock` tail is dropped and any leading punctuation is cut,
+    because each of those is a form the charset alone would pass and git or a
+    path would then refuse. A ref that holds nothing usable is refused by
+    name rather than mapped onto some default that two refs could share.
+    """
+    mapped = "".join(
+        character if character in _SAFE_CHARACTERS else _REPLACEMENT
+        for character in tracker_ref
+    )
+    while TRAVERSAL in mapped:
+        mapped = mapped.replace(TRAVERSAL, _DOT)
+    while mapped.endswith(LOCK_SUFFIX):
+        mapped = mapped[: -len(LOCK_SUFFIX)]
+    stem = mapped.lstrip("._-")
+    if not stem:
+        raise InvalidIdentifier(
+            MSG_TRACKER_REF_UNUSABLE.format(tracker_ref=tracker_ref)
+        )
+    return safe_component(stem, kind=ComponentKind.TRACKER_REF)
+
+
+def mint_task(
+    database: LedgerDatabase,
+    *,
+    tracker_ref: str,
+    tracker_kind: TrackerKind,
+    epic_id: str,
+) -> str:
+    """Mint this tracker ref's task id, or answer with the one it already has.
+
+    Idempotent by the foreign id AND the tracker it came from — the pair, not
+    the string: preparing the same issue twice is one task, while bd's `X-1`
+    and GitHub's `X-1` are two. The collision suffix is chosen INSIDE the
+    writing transaction, so two processes preparing two issues that sanitise
+    alike cannot both read "free" and then both insert it.
+
+    The id answered is always an id this call WROTE or READ BACK: the insert
+    does not ignore conflicts, so a row that did not land is a refusal rather
+    than an id with nothing behind it.
+
+    The epic and the stem are validated BEFORE the transaction opens: a
+    component a path could not hold must not reach a row, a ref or a worktree,
+    and there is nothing to roll back if it never got that far.
+    """
+    epic = safe_component(epic_id, kind=ComponentKind.EPIC)
+    stem = sanitise_tracker_ref(tracker_ref)
+    with database.transaction() as connection:
+        existing = connection.execute(
+            _SQL_BY_TRACKER, (tracker_ref, tracker_kind.value)
+        ).fetchone()
+        if existing is not None:
+            return str(existing[0])
+        # A `tasks` row is ensured for every invocation (D16,
+        # `tasks.ensure_task`), so by the time prepare mints, the row this ref
+        # would be given usually already EXISTS and carries no tracker pair.
+        # Adopting it is the mint: inventing `<stem>-2` beside it would leave
+        # the run's own rows on one id and the tracker pair on another. Only
+        # a row of the same epic with NO pair is adoptable — anything else
+        # belongs to some other task and the collision suffix answers.
+        if connection.execute(_SQL_UNCLAIMED, (stem, epic)).fetchone() is not None:
+            connection.execute(_SQL_ADOPT, (tracker_ref, tracker_kind.value, stem))
+            return stem
+        task_id = _free_task_id(connection, stem)
+        try:
+            insert_task(
+                connection,
+                task_id=task_id,
+                epic_id=epic,
+                tracker_ref=tracker_ref,
+                tracker_kind=tracker_kind,
+                strict=True,
+            )
+        except sqlite3.IntegrityError as conflict:
+            raise LedgerMintConflict(
+                MSG_MINT_CONFLICT.format(
+                    task_id=task_id,
+                    tracker_ref=tracker_ref,
+                    tracker_kind=tracker_kind.value,
+                    reason=conflict,
+                )
+            ) from conflict
+    return task_id
+
+
+def _free_task_id(connection: sqlite3.Connection, stem: str) -> str:
+    """The stem, or the first `<stem>-<n>` no task holds, inside the transaction."""
+    candidate = stem
+    suffix = _FIRST_SUFFIX
+    while connection.execute(_SQL_BY_TASK_ID, (candidate,)).fetchone() is not None:
+        candidate = f"{stem}{_REPLACEMENT}{suffix}"
+        suffix += 1
+    return candidate

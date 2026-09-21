@@ -13,7 +13,7 @@ max_total_activations = 10
 [[node]]
 name = "start"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "1m" }]
@@ -28,7 +28,7 @@ fallback = { to = "bypass" }
 [[node]]
 name = "producer"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "1m" }]
@@ -42,7 +42,7 @@ outcomes = ["done"]
 [[node]]
 name = "consumer"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 inputs = ["artifact"]

@@ -26,14 +26,14 @@ from workflow_interpreter.schema.graph_index import (
 )
 from workflow_interpreter.schema.messages import (
     MSG_BACK_EDGE,
+    MSG_CONTRACTOR_RETRY_TERMINAL_BYPASS,
+    MSG_CONTRACTOR_RETRY_TERMINAL_INVALID,
     MSG_CROSS_REGION_INGRESS,
     MSG_CYCLE_MISSES_ENTRY_NODE,
     MSG_CYCLE_UNBOUNDED,
     MSG_MAX_TOTAL_ACTIVATIONS,
     MSG_NO_TERMINAL,
     MSG_NODE_UNREACHABLE,
-    MSG_PHASE_BRIDGE_RETRY_TERMINAL_BYPASS,
-    MSG_PHASE_BRIDGE_RETRY_TERMINAL_INVALID,
     MSG_PRODUCER_NOT_DOMINATING,
     MSG_PRODUCER_SELF,
     MSG_REGION_ACYCLIC_FIELD,
@@ -419,10 +419,10 @@ def instance_bounds_valid(index: GraphIndex) -> list[Finding]:
     return []
 
 
-def phase_bridge_retry_terminals_human_gated(index: GraphIndex) -> list[Finding]:
+def contractor_retry_terminals_human_gated(index: GraphIndex) -> list[Finding]:
     """Require a human gate on every runtime path to a retryable terminal.
 
-    A bridge can mint a fresh root only after one of these terminals. Walking
+    A contractor can mint a fresh root only after one of these terminals. Walking
     backward while stopping at human gates searches precisely for the unsafe
     complement: an entry-to-terminal route containing no human approval. The
     visited set makes bounded-cycle graphs finite without weakening that test.
@@ -431,7 +431,7 @@ def phase_bridge_retry_terminals_human_gated(index: GraphIndex) -> list[Finding]
     every v1 gate is human, and this traversal stops at human gates. Revisit
     this structural property before adding a non-human ``GateType``.
     """
-    terminals = index.document.instance.phase_bridge_retry_terminals
+    terminals = index.document.instance.contractor_retry_terminals
     if not terminals:
         return []
     routes = effective_successors(index)
@@ -445,18 +445,18 @@ def phase_bridge_retry_terminals_human_gated(index: GraphIndex) -> list[Finding]
         if node is None or node.kind is not NodeKind.TERMINAL:
             findings.append(
                 finding_error(
-                    RuleId.PHASE_BRIDGE_RETRY_TERMINALS_HUMAN_GATED,
-                    path("instance", "phase_bridge_retry_terminals"),
-                    MSG_PHASE_BRIDGE_RETRY_TERMINAL_INVALID.format(terminal=terminal),
+                    RuleId.CONTRACTOR_RETRY_TERMINALS_HUMAN_GATED,
+                    path("instance", "contractor_retry_terminals"),
+                    MSG_CONTRACTOR_RETRY_TERMINAL_INVALID.format(terminal=terminal),
                 )
             )
             continue
         if _retry_terminal_has_unapproved_path(index, reverse, terminal):
             findings.append(
                 finding_error(
-                    RuleId.PHASE_BRIDGE_RETRY_TERMINALS_HUMAN_GATED,
-                    path("instance", "phase_bridge_retry_terminals"),
-                    MSG_PHASE_BRIDGE_RETRY_TERMINAL_BYPASS.format(terminal=terminal),
+                    RuleId.CONTRACTOR_RETRY_TERMINALS_HUMAN_GATED,
+                    path("instance", "contractor_retry_terminals"),
+                    MSG_CONTRACTOR_RETRY_TERMINAL_BYPASS.format(terminal=terminal),
                 )
             )
     return findings

@@ -1,13 +1,13 @@
 """The §5.1 activation transitions — delta-only writes over a re-read carrier.
 
 Split out of `api.py` the way `roots`, `gates`, `canary`, `finalize` and
-`supervision` already are: `WorkflowStore` keeps the methods — it is still the
+`inspection` already are: `WorkflowStore` keeps the methods — it is still the
 only public surface (§0.1) — and the write mechanics live here.
 
 **Every transition writes ONLY the keys it owns.** The earlier version re-emitted
 the WHOLE carrier from the read the method opened with, on the argument that a
 full re-write is idempotent because bd merges metadata. That argument holds for
-one writer and fails for two, and B5 made the supervisor a RESIDENT process:
+one writer and fails for two, and B5 made the inspector a RESIDENT process:
 `record_dispatch`, `record_exit` and `record_evidence` are all issued by it,
 concurrently with foreman ticks by design. A whole-carrier merge from a stale
 read then re-emits every OTHER key as it stood at read time, so a foreman that
@@ -37,11 +37,10 @@ from __future__ import annotations
 import time
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import structlog
 
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.constants import DEVIATION_STORE_BUSY
 from workflow_interpreter.bdio.errors import (
     CarrierIntegrityError,
@@ -62,6 +61,11 @@ from workflow_interpreter.bdio.wire import (
     Usage,
     metadata_dict,
 )
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -219,7 +223,7 @@ def assert_close_payload(
 
 
 def apply(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     *,
@@ -231,7 +235,7 @@ def apply(
 
     `allowed` is re-asserted against a FRESH read rather than against whatever
     the caller loaded: the caller's guards ran before a bd round-trip, and the
-    supervisor is not serialised by the §4 tick. What remains after that is the
+    inspector is not serialised by the §4 tick. What remains after that is the
     merge itself, which `repair_forward` cleans up.
 
     The recorded outcome is re-asserted with it, and here rather than in each
@@ -269,7 +273,7 @@ def apply(
 
 
 def record_contention(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     refusal: StoreBusyRefusal,
@@ -302,7 +306,7 @@ def record_contention(
 
 
 def _record_deviation(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     activation_id: str,
     refusal: StoreBusyRefusal,
@@ -338,7 +342,7 @@ def _assert_appliable(
         )
 
 
-def repair_forward(client: StoreBackend, record: ActivationRecord) -> ActivationRecord:
+def repair_forward(client: LedgerStore, record: ActivationRecord) -> ActivationRecord:
     """Restore the terminal lifecycle a losing race wrote over (§5.1, §3.3).
 
     A transition whose merge landed after a concurrent close leaves a recorded
@@ -367,7 +371,7 @@ def repair_forward(client: StoreBackend, record: ActivationRecord) -> Activation
 
 
 def finish(
-    client: StoreBackend,
+    client: LedgerStore,
     load: ActivationLoader,
     record: ActivationRecord,
     reason: str,

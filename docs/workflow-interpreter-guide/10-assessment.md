@@ -6,10 +6,11 @@ claims underneath it carry citations.
 ## The vision, restated
 
 From `docs/workflow-vision.md`. The motivating problem is named in its final section:
-**supervisor context growth**. When every implement → review → fix exchange passes
-through one model, its context fills with detail it does not need and it loses the
-larger picture. The goal is that local detail stays local and supervisors receive only
-outcomes and exceptions.
+**supervisor context growth** — the vision's *LLM supervisor*, the orchestrating
+model, not this engine's inspector. When every implement → review → fix exchange
+passes through one model, its context fills with detail it does not need and it loses
+the larger picture. The goal is that local detail stays local and LLM supervisors
+receive only outcomes and exceptions.
 
 Everything else follows: deterministic routing so routine transitions cost no tokens;
 bounded local loops so rework does not escalate; a small set of workflow families the
@@ -34,10 +35,10 @@ layer furthest from the point.
 
 ## The structural tension
 
-The supervisor is detached: `start_new_session`, reparented to init, boot_id liveness
+The inspector is detached: `start_new_session`, reparented to init, boot_id liveness
 proofs, adopted children whose exit status is unknowable, seven recovery cases.
 
-**And then the bridge blocks on `Foreman.run` for up to eight hours anyway.**
+**And then the contractor blocks on `Foreman.run` for up to eight hours anyway.**
 
 The concurrency that detachment buys is not being spent. Most of the hardest code in
 the repository exists to handle failure modes created by a design choice whose benefit
@@ -67,9 +68,9 @@ none of its assumptions have met a real use.
 1. **One graph family.** No family library, no selection mechanism.
 2. **No parallelism.** Stages are strictly serial, enforced in
    `_refuse_other_admission`. The vision's central structural ask is the one thing the
-   bridge forbids.
+   contractor forbids.
 3. **The orchestrator cannot assign models.** The vision is emphatic that workflow
-   shape and model assignment are separate choices. The bridge calls
+   shape and model assignment are separate choices. The contractor calls
    `instantiate(..., overrides={})` — it passes no overrides at all. Models come from
    role bindings in project config, fixed per graph.
 4. **Gates cannot distinguish who may approve.** Authorization is by ssh key with no
@@ -96,7 +97,7 @@ Freeze substrate work. No new backends, no deeper recovery, no extensions to
 coordination.
 
 Next increment: a second workflow family and per-stage model assignment through the
-bridge — the two smallest things that make the vision's core claim testable. Then
+contractor — the two smallest things that make the vision's core claim testable. Then
 parallel stages, which is where the existing children machinery finally earns its
 2,242 lines.
 

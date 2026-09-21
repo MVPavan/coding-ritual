@@ -12,11 +12,18 @@ from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import InstanceInput, ResolvedSetting
 from workflow_interpreter.bdio.rows import RowQuery
-from workflow_interpreter.bridge.adapter import PhaseAdapter
-from workflow_interpreter.bridge.integration import IntegrationGuard, target_key
-from workflow_interpreter.bridge.models import PhaseBridgeRecord, PhaseBridgeState
+from workflow_interpreter.contractor.integration import IntegrationGuard, target_key
+from workflow_interpreter.contractor.models import ContractorRecord, ContractorState
+from workflow_interpreter.contractor.tracker_wiring import adapter_of
 from workflow_interpreter.foreman.compose import Composition, instance_head
 from workflow_interpreter.foreman.execution import effective_node
+from workflow_interpreter.inspector import procfs
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.models import Liveness
+from workflow_interpreter.ledger import records as ledger_records
+from workflow_interpreter.ledger.constants import LANDING_INTENT_FILE
+from workflow_interpreter.ledger.records import ContractorRecordRow
+from workflow_interpreter.ledger.tasks import task_epic
 from workflow_interpreter.schema.decisions import (
     ChildRecord,
     CoordinationError,
@@ -29,9 +36,6 @@ from workflow_interpreter.schema.decisions import (
 )
 from workflow_interpreter.schema.loader import load_pinned_body
 from workflow_interpreter.schema.models import GraphDocument, Node, NodeKind, Outcome
-from workflow_interpreter.supervisor import procfs
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.models import Liveness
 
 
 def obligations(admission: MemberAdmission) -> str:
@@ -55,7 +59,7 @@ def obligations(admission: MemberAdmission) -> str:
         fields = node.model_dump(mode="json")
         for key in (
             "instructions",
-            "runner",
+            "crew",
             "model",
             "effort",
             "description",
@@ -98,20 +102,20 @@ def advance_successor(
     if saved is not None:
         intent = intent.model_copy(
             update={
-                "predecessor_bridge_json": saved.predecessor_bridge_json,
-                "successor_bridge_json": saved.successor_bridge_json,
+                "predecessor_contractor_json": saved.predecessor_contractor_json,
+                "successor_contractor_json": saved.successor_contractor_json,
             }
         )
-    elif intent.predecessor_bridge_json is None:
-        matches: list[PhaseBridgeRecord] = []
-        # Discovery spans every root, so it stays on the process-wide store.
-        rows = composition.store.coordination_store(composition=composition)._client
-        for row in rows.find_rows(RowQuery()):
-            raw = row.metadata.get("phase_bridge")
-            if isinstance(raw, dict) and raw.get("root_id") == intent.predecessor_id:
-                matches.append(PhaseBridgeRecord.model_validate(raw))
+    elif intent.predecessor_contractor_json is None:
+        # Discovery asks the LEDGER which task owns this root (§3.2, R4): the
+        # record is a row now, `root_id` is one of its projected columns, and
+        # what used to be a scan over every bead's metadata is a lookup.
+        matches = [
+            ContractorRecord.model_validate_json(found.record_json)
+            for found in _records_by_root(composition, intent.predecessor_id)
+        ]
         if len(matches) > 1:
-            raise CoordinationError("ambiguous predecessor bridge")
+            raise CoordinationError("ambiguous predecessor contractor")
         if matches:
             matched = matches[0]
             successor = matched.next_attempt().model_copy(
@@ -123,13 +127,17 @@ def advance_successor(
             )
             intent = intent.model_copy(
                 update={
-                    "predecessor_bridge_json": matched.model_dump_json(by_alias=True),
-                    "successor_bridge_json": successor.model_dump_json(by_alias=True),
+                    "predecessor_contractor_json": matched.model_dump_json(
+                        by_alias=True
+                    ),
+                    "successor_contractor_json": successor.model_dump_json(
+                        by_alias=True
+                    ),
                 }
             )
     previous = (
-        PhaseBridgeRecord.model_validate_json(intent.predecessor_bridge_json)
-        if intent.predecessor_bridge_json
+        ContractorRecord.model_validate_json(intent.predecessor_contractor_json)
+        if intent.predecessor_contractor_json
         else None
     )
     context = (
@@ -200,12 +208,12 @@ def _advance(
                 ),
             }
             roots = set(process_roots)
-            if intent.predecessor_bridge_json:
-                bridge = PhaseBridgeRecord.model_validate_json(
-                    intent.predecessor_bridge_json
+            if intent.predecessor_contractor_json:
+                contractor = ContractorRecord.model_validate_json(
+                    intent.predecessor_contractor_json
                 )
-                if bridge.integration_digest:
-                    association = IntegrationGuard(composition).association(bridge)
+                if contractor.integration_digest:
+                    association = IntegrationGuard(composition).association(contractor)
                     roots.update(
                         store.child_record(intent.owner_id, slot, generation).root_id
                         for slot, generation, _ in association.request.sources
@@ -266,8 +274,8 @@ def _advance(
                     raise CoordinationError(
                         "replacement predecessor execution is not settled"
                     )
-                from workflow_interpreter.supervisor.models import LaunchReceipt
-                from workflow_interpreter.supervisor.paths import read_record
+                from workflow_interpreter.inspector.models import LaunchReceipt
+                from workflow_interpreter.inspector.paths import read_record
 
                 paths = composition.for_root(activation.metadata.wf_root_id).paths
                 launch_receipt = read_record(
@@ -277,7 +285,7 @@ def _advance(
                     launch_receipt.handle if launch_receipt else None
                 )
                 if handle is not None:
-                    proof = procfs.prove_liveness(composition.supervisor_config, handle)
+                    proof = procfs.prove_liveness(composition.inspector_config, handle)
                     if proof.status in (Liveness.ALIVE, Liveness.INDETERMINATE):
                         raise CoordinationError(
                             "replacement predecessor process death is unproved"
@@ -334,16 +342,16 @@ def _advance(
                 i.name: i for i in after_inputs if i.name not in advisory
             }:
                 raise CoordinationError("replacement changes required source inputs")
-            _check_bridge(composition, intent)
+            _check_contractor(composition, intent)
             current = predecessor_artifact(composition, predecessor.root_id)
             if (
-                intent.predecessor_bridge_json
-                and PhaseBridgeRecord.model_validate_json(
-                    intent.predecessor_bridge_json
+                intent.predecessor_contractor_json
+                and ContractorRecord.model_validate_json(
+                    intent.predecessor_contractor_json
                 ).integration_digest
             ):
-                current = PhaseBridgeRecord.model_validate_json(
-                    intent.predecessor_bridge_json
+                current = ContractorRecord.model_validate_json(
+                    intent.predecessor_contractor_json
                 ).expected_base_commit
             if current != intent.admission.base_commit:
                 raise CoordinationError("replacement base is not predecessor artifact")
@@ -357,7 +365,7 @@ def _advance(
                 successor=intent,
             )
             _save(composition, intent)
-            intent = _prepare_bridge(composition, intent)
+            intent = _prepare_contractor(composition, intent)
             state = store.state(intent.owner_id)
             if state.active.get(intent.slot) == predecessor.root_id:
                 store._save(
@@ -408,7 +416,7 @@ def _advance(
         )
         intent = intent.model_copy(update={"receipt": receipt})
         _save(composition, intent)
-        _admit_bridge(composition, intent)
+        _admit_contractor(composition, intent)
         _save(composition, intent.model_copy(update={"state": "admitted"}))
     return receipt
 
@@ -480,23 +488,24 @@ def replace_checked(
         None,
     )
     if integration is not None:
-        from workflow_interpreter.bridge.integration import replace_integration
+        from workflow_interpreter.contractor.integration import replace_integration
 
         return replace_integration(composition, integration, intent)
     return advance_successor(composition, intent)
 
 
-def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) -> None:
-    if intent.predecessor_bridge_json is None:
+def _check_contractor(
+    composition: Composition, intent: TrustedReplacementIntent
+) -> None:
+    if intent.predecessor_contractor_json is None:
         return
-    from workflow_interpreter.bridge.landing import (
-        LANDING_INTENT_FILE,
+    from workflow_interpreter.contractor.landing import (
         LANDING_RECEIPT_FILE,
     )
 
-    previous = PhaseBridgeRecord.model_validate_json(intent.predecessor_bridge_json)
+    previous = ContractorRecord.model_validate_json(intent.predecessor_contractor_json)
     paths = composition.for_root(intent.predecessor_id).paths
-    if previous.state in (PhaseBridgeState.LANDED, PhaseBridgeState.CLOSED) or any(
+    if previous.state is ContractorState.LANDED or any(
         (paths.instance_dir / name).exists()
         for name in (LANDING_INTENT_FILE, LANDING_RECEIPT_FILE)
     ):
@@ -509,16 +518,25 @@ def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
         )
         != previous.expected_base_commit
     ):
-        raise CoordinationError("replacement lost bridge target base")
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+        raise CoordinationError("replacement lost contractor target base")
+    adapter = adapter_of(composition)
     root = composition.reads_for_root(intent.predecessor_id).load_root(
         intent.predecessor_id
     )
-    if (
-        previous.root_id != root.root_id
-        or adapter.show(previous.stage_id).parent != previous.epic_id
+    # The LEDGER answers which epic this stage was minted under (§3.7, R8).
+    # It used to be a bd `show` from inside `foreman/` — a tracker read on the
+    # wrong side of §3.1, reachable from replacement coordination — and the
+    # ledger already holds the pair prepare wrote, so no tracker is needed to
+    # answer it at all. A task with no row is not contradicted by one.
+    stage_epic = (
+        None
+        if composition.ledger is None
+        else task_epic(composition.ledger, previous.stage_id)
+    )
+    if previous.root_id != root.root_id or (
+        stage_epic is not None and stage_epic != previous.epic_id
     ):
-        raise CoordinationError("bridge stage/member ownership mismatch")
+        raise CoordinationError("contractor stage/member ownership mismatch")
     if (
         previous.integration_digest is None
         and previous.successor_key is None
@@ -527,13 +545,13 @@ def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
             or root.metadata.instance_base_commit != previous.expected_base_commit
         )
     ):
-        raise CoordinationError("legacy bridge key/base ownership mismatch")
+        raise CoordinationError("legacy contractor key/base ownership mismatch")
     current = adapter.record(previous.stage_id)
     if current != previous and (current.successor_owner, current.successor_key) != (
         intent.owner_id,
         intent.request_key,
     ):
-        raise CoordinationError("bridge predecessor association changed")
+        raise CoordinationError("contractor predecessor association changed")
     if previous.integration_digest:
         guard = IntegrationGuard(composition)
         association = guard.binding(previous, current=False)
@@ -554,14 +572,17 @@ def _check_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
             raise CoordinationError("integration landing authority already observed")
 
 
-def _prepare_bridge(
+def _prepare_contractor(
     composition: Composition, intent: TrustedReplacementIntent
 ) -> TrustedReplacementIntent:
-    if intent.successor_bridge_json is None or intent.predecessor_bridge_json is None:
+    if (
+        intent.successor_contractor_json is None
+        or intent.predecessor_contractor_json is None
+    ):
         return intent
-    previous = PhaseBridgeRecord.model_validate_json(intent.predecessor_bridge_json)
-    successor = PhaseBridgeRecord.model_validate_json(intent.successor_bridge_json)
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    previous = ContractorRecord.model_validate_json(intent.predecessor_contractor_json)
+    successor = ContractorRecord.model_validate_json(intent.successor_contractor_json)
+    adapter = adapter_of(composition)
     adapter.integration_guard = IntegrationGuard(composition)
     if previous.integration_digest:
         from workflow_interpreter.schema.decisions import (
@@ -618,7 +639,7 @@ def _prepare_bridge(
             }
         )
         candidate = candidate.model_copy(
-            update={"bridge_digest": digest_record(successor)}
+            update={"contractor_digest": digest_record(successor)}
         )
         if existing is None:
             guard.save(candidate)
@@ -634,26 +655,30 @@ def _prepare_bridge(
         )
         guard.save(association.model_copy(update={"state": "stale"}))
         intent = intent.model_copy(
-            update={"successor_bridge_json": successor.model_dump_json(by_alias=True)}
+            update={
+                "successor_contractor_json": successor.model_dump_json(by_alias=True)
+            }
         )
         _save(composition, intent)
     current = adapter.record(previous.stage_id)
     if current == previous:
         adapter.prepare(previous.stage_id, successor)
     elif (
-        current.model_copy(update={"state": PhaseBridgeState.PREPARED, "root_id": None})
+        current.model_copy(update={"state": ContractorState.PREPARED, "root_id": None})
         != successor
     ):
-        raise CoordinationError("successor bridge binding differs")
+        raise CoordinationError("successor contractor binding differs")
     return intent
 
 
-def _admit_bridge(composition: Composition, intent: TrustedReplacementIntent) -> None:
-    if intent.successor_bridge_json is None:
+def _admit_contractor(
+    composition: Composition, intent: TrustedReplacementIntent
+) -> None:
+    if intent.successor_contractor_json is None:
         return
     assert intent.receipt is not None
-    successor = PhaseBridgeRecord.model_validate_json(intent.successor_bridge_json)
-    adapter = PhaseAdapter.from_config(composition.config.bd, composition.store.reads)
+    successor = ContractorRecord.model_validate_json(intent.successor_contractor_json)
+    adapter = adapter_of(composition)
     guard = IntegrationGuard(composition)
     adapter.integration_guard = guard
     if successor.integration_digest:
@@ -664,23 +689,19 @@ def _admit_bridge(composition: Composition, intent: TrustedReplacementIntent) ->
             )
         )
     current = adapter.record(successor.stage_id)
-    if current.state is PhaseBridgeState.PREPARED:
+    if current.state is ContractorState.PREPARED:
         adapter.admit(successor.stage_id, successor, root_id=intent.receipt.root_id)
     elif current != successor.admitted(intent.receipt.root_id):
-        raise CoordinationError("admitted successor bridge differs")
+        raise CoordinationError("admitted successor contractor differs")
     if successor.integration_digest:
         guard.save(
             guard.association(successor).model_copy(update={"state": "admitted"})
         )
 
 
-def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
+def guard_contractor(composition: Composition, record: ContractorRecord) -> None:
     """Fence stale predecessors and bind B (CAS) separately from A (execution)."""
     if record.root_id:
-        # The record's pin goes in BEFORE its root is located: after a restart
-        # nothing else answers for a bd attempt root of a ledger-pinned task
-        # (§3.2, D18).
-        composition.pin_record_backend(record.root_id, record.root_backend)
         root = composition.reads_for_root(record.root_id).load_root(record.root_id)
         link = root.metadata.coordination
         if link is not None:
@@ -690,21 +711,21 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
             current_intent = state.successors.get(link.request_id or "")
             if (
                 current_intent
-                and current_intent.successor_bridge_json
+                and current_intent.successor_contractor_json
                 and (record.successor_owner, record.successor_key)
                 != (link.owner_id, link.request_id)
             ):
-                raise CoordinationError("cannot strip successor bridge authority")
+                raise CoordinationError("cannot strip successor contractor authority")
             if any(
                 i.predecessor_id == record.root_id for i in state.successors.values()
             ):
-                raise CoordinationError("bridge predecessor was superseded")
+                raise CoordinationError("contractor predecessor was superseded")
     if record.successor_key is None:
         if (
             record.successor_owner is not None
             or record.execution_base_commit is not None
         ):
-            raise CoordinationError("incomplete successor bridge authority")
+            raise CoordinationError("incomplete successor contractor authority")
         return
     if record.successor_owner is None:
         raise CoordinationError("successor owner missing")
@@ -712,25 +733,25 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
         record.successor_owner, composition=composition
     )
     intent = store.state(record.successor_owner).successors.get(record.successor_key)
-    if intent is None or intent.successor_bridge_json is None or intent.receipt is None:
-        raise CoordinationError("successor bridge receipt missing")
-    prepared = PhaseBridgeRecord.model_validate_json(intent.successor_bridge_json)
+    if (
+        intent is None
+        or intent.successor_contractor_json is None
+        or intent.receipt is None
+    ):
+        raise CoordinationError("successor contractor receipt missing")
+    prepared = ContractorRecord.model_validate_json(intent.successor_contractor_json)
     normalized = record.model_copy(
         update={
-            "state": PhaseBridgeState.PREPARED,
+            "state": ContractorState.PREPARED,
             "root_id": None,
             "landed_oid": None,
             "tree": None,
             "gate_receipt_digest": None,
             "landing_receipt_digest": None,
-            # Post-close evidence, like the digests above: the export oid is
-            # recorded in the merge that closes (§3.6), long after the
-            # prepared successor this is compared against was journalled.
-            "export_oid": None,
         }
     )
     if normalized != prepared or record.root_id != intent.receipt.root_id:
-        raise CoordinationError("successor bridge binding mismatch")
+        raise CoordinationError("successor contractor binding mismatch")
     root = composition.reads_for_root(intent.receipt.root_id).load_root(
         intent.receipt.root_id
     )
@@ -765,12 +786,12 @@ def guard_bridge(composition: Composition, record: PhaseBridgeRecord) -> None:
 
 
 @contextmanager
-def bridge_landing_locks(
-    composition: Composition, record: PhaseBridgeRecord
+def contractor_landing_locks(
+    composition: Composition, record: ContractorRecord
 ) -> Iterator[None]:
     shared = composition.store.coordination_store(composition=composition)
     if record.root_id is None:
-        raise CoordinationError("bridge root missing")
+        raise CoordinationError("contractor root missing")
     root = composition.reads_for_root(record.root_id).load_root(record.root_id)
     link = root.metadata.coordination
     if link is None:
@@ -784,11 +805,11 @@ def bridge_landing_locks(
         owner_store._locked(link.owner_id),
         BandLock(shared.member_lock_path(root.root_id, root=root)),
     ):
-        guard_bridge(composition, record)
+        guard_contractor(composition, record)
         yield
 
 
-def repair_bridge_successor(composition: Composition, stage_id: str) -> None:
+def repair_contractor_successor(composition: Composition, stage_id: str) -> None:
     """Repair saved successor intent from the normal stage handle after a crash."""
     from workflow_interpreter.schema.decisions import CoordinationState
 
@@ -799,9 +820,9 @@ def repair_bridge_successor(composition: Composition, stage_id: str) -> None:
             continue
         state = CoordinationState.model_validate(raw)
         for intent in state.successors.values():
-            if intent.state == "prepared" and intent.predecessor_bridge_json:
-                previous = PhaseBridgeRecord.model_validate_json(
-                    intent.predecessor_bridge_json
+            if intent.state == "prepared" and intent.predecessor_contractor_json:
+                previous = ContractorRecord.model_validate_json(
+                    intent.predecessor_contractor_json
                 )
                 if previous.stage_id == stage_id:
                     advance_successor(composition, intent)
@@ -916,3 +937,17 @@ def _verify_success_paths(graph: GraphDocument, nodes: tuple[Node, ...]) -> None
                     and (next_reviewed or not required_reviewers)
                 )
                 pending.append((edge.to, next_reviewed, next_approved))
+
+
+def _records_by_root(
+    composition: Composition, root_id: str
+) -> tuple[ContractorRecordRow, ...]:
+    """Every contractor record naming this root, or none without a ledger.
+
+    A wiring with no ledger holds no records at all, and discovery answering
+    "nothing owns this root" is the same thing it answered before S4 when no
+    bead carried one.
+    """
+    if composition.ledger is None:
+        return ()
+    return ledger_records.by_root(composition.ledger, root_id)

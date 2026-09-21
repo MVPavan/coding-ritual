@@ -24,7 +24,7 @@ from tests._foreman import (
     BUILD_LOOP_ROLES,
     ForemanLab,
 )
-from tests._supervisor import ChildScript, verifier_pins
+from tests._inspector import ChildScript, verifier_pins
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
     BoundMutation,
@@ -33,7 +33,7 @@ from workflow_interpreter.bdio import (
     Outcome,
     SigningConfig,
 )
-from workflow_interpreter.bdio.client import STATUS_CLOSED
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 
 # Every test in this file is a phase-7 D1 drill row.
 pytestmark = pytest.mark.acceptance

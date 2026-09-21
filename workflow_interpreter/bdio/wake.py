@@ -1,9 +1,10 @@
 """Idempotent notification writes through the same guarded event surface."""
 
-from typing import Final
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Final
 
 from workflow_interpreter.bdio import reads
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import CarrierIntegrityError, StoreError
 from workflow_interpreter.bdio.keys import wake_fire_key
 from workflow_interpreter.bdio.records import RowRecord, parse_event, parse_row
@@ -17,6 +18,11 @@ from workflow_interpreter.bdio.wire import (
 )
 from workflow_interpreter.contracts.wake import WakeEvent
 
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
+
 MSG_WAKE_IDENTITY: Final[str] = "wake event disagrees with its root or fire key"
 MSG_WAKE_CHANGED: Final[str] = "wake fire key already records a different payload"
 FIRST_WAKE_SEQ: Final[int] = -1
@@ -24,7 +30,7 @@ FIRST_WAKE_SEQ: Final[int] = -1
 TITLE_WAKE: Final[str] = "wake {condition} {root_id}"
 
 
-def _existing(client: StoreBackend, root_id: str, event: WakeEvent) -> RowRecord | None:
+def _existing(client: LedgerStore, root_id: str, event: WakeEvent) -> RowRecord | None:
     """Re-find and verify identical evidence, including after an ambiguous write."""
     found = reads.find_event(client, root_id, event.fire_key)
     if found is not None and parse_event(found) != event:
@@ -32,9 +38,7 @@ def _existing(client: StoreBackend, root_id: str, event: WakeEvent) -> RowRecord
     return found
 
 
-def append_wake_event(
-    client: StoreBackend, root_id: str, event: WakeEvent
-) -> RowRecord:
+def append_wake_event(client: LedgerStore, root_id: str, event: WakeEvent) -> RowRecord:
     """Append a notification without a mint, gate close, nonce or budget mutation."""
     event = WakeEvent.model_validate(event.model_dump())
     root = reads.load_root(client, root_id)

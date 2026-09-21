@@ -1,5 +1,7 @@
 # Workflow Interpreter — phase 6 plan (v2, post-review)
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Status: **v2 — revised after Opus 5 medium + Sol high review (both REVISE);
 every review finding below was re-verified against the code before it moved
 the plan.** Bead: `cr-o85.34` (parent `cr-o85`). Base: `main` at `0e19439`.

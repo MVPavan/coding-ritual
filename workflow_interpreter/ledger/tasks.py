@@ -1,83 +1,68 @@
-"""The `tasks` and `roots` backend pins the locator reads (§3.2, D18).
+"""Reads and writes of the `tasks` row that are not row writes through the store.
 
-Separate from `store.py` because these are not row writes through the seam:
-they are the two answers to "which backend owns this?", and one of them has to
-be writable for a task whose roots live in **bd** — a `LedgerStore` only ever
-writes `backend = 'ledger'`, since every row it holds is its own.
+`ensure_task` is the one write: it makes the row EXIST for callers whose own
+fact references it (the landing journal, the export pin), because
+`tasks.task_id` is a foreign key and a task that never ran a prepare has no
+row yet. Everything else here answers a question about the task — its epic,
+its export pin, its recorded state, its roots.
 
-The pin is written once per task and never rewritten. A switch flipped later
-applies to new ATTEMPT roots, whose per-attempt pin is the bridge record's
-`root_backend`; this row is the locator for a run that has no bridge (D16).
+Separate from `store.py` because none of it goes through `WorkflowStore`: the
+task is what rows are keyed BY, not one of them.
 """
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import UTC, datetime
 from typing import Final
 
-from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.contracts.run_identity import epic_segment
-from workflow_interpreter.ledger.database import LedgerDatabase
-
-_FIRST_SEQ: Final[int] = 1
-_SQL_PIN_TASK: Final[str] = (
-    "INSERT OR IGNORE INTO tasks "
-    "(task_id, epic_id, graph_id, backend, next_seq, created_at) "
-    "VALUES (?, ?, NULL, ?, ?, ?)"
+from workflow_interpreter.contracts.run_identity import ComponentKind, safe_component
+from workflow_interpreter.ledger import records
+from workflow_interpreter.ledger.constants import (
+    MSG_EXPORT_NOT_RECORDED,
+    MSG_STATE_NOT_RECORDED,
+    LedgerOperation,
+    TaskState,
 )
-_SQL_TASK_BACKEND: Final[str] = "SELECT backend FROM tasks WHERE task_id = ?"
+from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.errors import (
+    LedgerExportError,
+    LedgerRecordConflict,
+    sqlite_failure,
+)
+from workflow_interpreter.ledger.identity import insert_task
+
+_SQL_TASK_EPIC: Final[str] = "SELECT epic_id FROM tasks WHERE task_id = ?"
 _SQL_TASK_EXPORT: Final[str] = "SELECT export_oid FROM tasks WHERE task_id = ?"
 _SQL_RECORD_EXPORT: Final[str] = (
     "UPDATE tasks SET export_oid = ?, exported_at = ? WHERE task_id = ?"
 )
-_SQL_ROOT_BACKEND: Final[str] = "SELECT backend FROM roots WHERE root_id = ?"
+_SQL_TASK_STATE: Final[str] = "SELECT state FROM contractor_records WHERE task_id = ?"
 
 
-def pin_task_backend(
-    database: LedgerDatabase, task_id: str, backend: BackendKind
-) -> BackendKind:
-    """Record this task's backend if it has none, and answer what is pinned.
+def ensure_task(database: LedgerDatabase, task_id: str, epic_id: str) -> None:
+    """Make this task's row exist, so a fact that references it can be written.
 
-    Idempotent and non-destructive: a task that already names a backend keeps
-    it, so a second start under a flipped `store` switch cannot retro-pin the
-    roots that already exist (D18, no reverse migration). The answer is read
-    back inside the same transaction, so the caller learns the pin in force
-    rather than the one it asked for.
+    Idempotent and non-destructive: a task that already has a row keeps it,
+    epic included. `epic_id` is written only on a row this call creates, and
+    only after the grammar has accepted it — it is an input (§3.7), so a
+    second start under a different epic does not move the directory this
+    task's runs already wrote their knowledge into.
     """
-    with database.transaction():
-        database.connection.execute(
-            _SQL_PIN_TASK,
-            (
-                task_id,
-                epic_segment(task_id),
-                backend.value,
-                _FIRST_SEQ,
-                datetime.now(tz=UTC).isoformat(),
-            ),
-        )
-        pinned = task_backend(database, task_id)
-    if pinned is None:  # pragma: no cover - the row is written just above
-        raise LookupError(f"task row {task_id!r} vanished after its pin")
-    return pinned
+    epic = safe_component(epic_id, kind=ComponentKind.EPIC)
+    with database.transaction() as connection:
+        insert_task(connection, task_id=task_id, epic_id=epic)
 
 
-def task_backend(database: LedgerDatabase, task_id: str) -> BackendKind | None:
-    """The backend pinned for a task, or nothing when the task is unknown."""
-    with database.locked() as connection:
-        row = connection.execute(_SQL_TASK_BACKEND, (task_id,)).fetchone()
-    return None if row is None else BackendKind(str(row[0]))
+def task_epic(database: LedgerDatabase, task_id: str) -> str | None:
+    """The epic this task was minted under, or nothing when it has no row.
 
-
-def root_backend(database: LedgerDatabase, root_id: str) -> BackendKind | None:
-    """The backend pinned on one root, or nothing when the ledger has no such root.
-
-    A root the ledger holds a row for IS ledger-backed; the column is read
-    rather than assumed so that the pin the row was written with is the one
-    that answers, exactly as it does for the task.
+    Read from the column, never derived from the id: that is the whole of R8
+    on the read side.
     """
     with database.locked() as connection:
-        row = connection.execute(_SQL_ROOT_BACKEND, (root_id,)).fetchone()
-    return None if row is None else BackendKind(str(row[0]))
+        row = connection.execute(_SQL_TASK_EPIC, (task_id,)).fetchone()
+    return None if row is None else str(row[0])
 
 
 def record_export_oid(database: LedgerDatabase, task_id: str, oid: str) -> None:
@@ -86,11 +71,30 @@ def record_export_oid(database: LedgerDatabase, task_id: str, oid: str) -> None:
     Overwrites rather than appends: a crash after the blob was written but
     before the oid was recorded re-runs the export at the next close, and the
     later pin is the one the later close names.
+
+    An UPDATE that matched nothing is a refusal, not a silent success: the
+    caller's whole reason for being here is that the task now carries this
+    blob, and a task with no row carries nothing — `export_oid` would go on
+    answering "still owes an export" while the ref said otherwise (§3.6).
+
+    A SQLite failure of the UPDATE itself is typed the way `BEGIN`'s already
+    is: a read-only database or a writer that waited out `busy_timeout` is a
+    named refusal callers route on, and `closure._latch` is the caller that
+    routes on it rather than failing a read.
     """
     with database.transaction():
-        database.connection.execute(
-            _SQL_RECORD_EXPORT, (oid, datetime.now(tz=UTC).isoformat(), task_id)
-        )
+        try:
+            updated = database.connection.execute(
+                _SQL_RECORD_EXPORT, (oid, datetime.now(tz=UTC).isoformat(), task_id)
+            )
+        except sqlite3.Error as failure:
+            raise sqlite_failure(
+                failure, operation=LedgerOperation.PINNING.value, row_id=task_id
+            ) from failure
+        if updated.rowcount == 0:
+            raise LedgerExportError(
+                MSG_EXPORT_NOT_RECORDED.format(task_id=task_id, oid=oid)
+            )
 
 
 def export_oid(database: LedgerDatabase, task_id: str) -> str | None:
@@ -98,6 +102,48 @@ def export_oid(database: LedgerDatabase, task_id: str) -> str | None:
     with database.locked() as connection:
         row = connection.execute(_SQL_TASK_EXPORT, (task_id,)).fetchone()
     return None if row is None or row[0] is None else str(row[0])
+
+
+def record_task_state(database: LedgerDatabase, task_id: str, state: TaskState) -> None:
+    """Record how far the contractor got with this task (§3.5).
+
+    Written BEFORE the export bytes exist, unlike `export_oid`: the export has
+    to carry it, because a ledger rebuilt in a clone has no other way to know
+    that this task's work landed, and `closed()` refuses to derive closure for
+    a task that never said so.
+
+    Since S4 the home is `contractor_records.state`, the one place LANDED and
+    ABANDONED live: two columns that had to agree about whether a task landed
+    would be the next place they disagree. An UPDATE that matched nothing is
+    therefore a refusal naming the missing RECORD — the state would otherwise
+    be silently lost and the task would stay open to every consumer that reads
+    `closed()` or `retired()`.
+    """
+    try:
+        records.set_state(database, task_id, state.value)
+    except LedgerRecordConflict as missing:
+        raise LedgerExportError(
+            MSG_STATE_NOT_RECORDED.format(task_id=task_id, state=state.value)
+        ) from missing
+
+
+def task_state(database: LedgerDatabase, task_id: str) -> TaskState | None:
+    """This task's recorded state, or nothing while it has reached none.
+
+    Read from `contractor_records`, which is where S4 folded it. A value that
+    is not one closure derives from — every in-flight state of the record's
+    own lifecycle, and anything a LATER build's export may name — reads as
+    nothing rather than raising, which leaves the task open. That is the safe
+    reading of a state this build has no rule for.
+    """
+    with database.locked() as connection:
+        row = connection.execute(_SQL_TASK_STATE, (task_id,)).fetchone()
+    if row is None or row[0] is None:
+        return None
+    return next(
+        (state for state in TaskState if state.value == str(row[0])),
+        None,
+    )
 
 
 _SQL_TASK_ROOTS: Final[str] = (

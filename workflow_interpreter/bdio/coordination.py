@@ -7,13 +7,17 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
+
 if TYPE_CHECKING:
     from workflow_interpreter.foreman.compose import Composition
 
 from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import reads, roots
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.carriers import (
     BoundSetting,
     InstanceInput,
@@ -58,7 +62,7 @@ class CoordinationStore:
 
     def __init__(
         self,
-        client: StoreBackend,
+        client: LedgerStore,
         verify_decision: Callable[[DecisionRequest], DecisionResponse] | None = None,
         *,
         composition: Composition | None = None,
@@ -68,24 +72,18 @@ class CoordinationStore:
         self._verify_decision = verify_decision
 
     def _lock_directory(self) -> Path:
-        """Where this backend says its execution locks live (§3.4).
+        """Where the store says its execution locks live (§3.4).
 
-        The layout is the backend's answer, not this module's: a lock root and
-        the pre-migration directory that must be empty before it is used.
+        The layout is the store's answer, not this module's. The legacy
+        directory check went with bd: the pre-migration layout it guarded was
+        a bd workspace's, and no such workspace holds engine rows any more.
         """
-        identity = self._client.identity()
-        legacy = identity.legacy_lock_root
-        if legacy is not None and any(legacy.glob("*.lock")):
-            raise CoordinationError(
-                "legacy coordination locks require explicit offline migration; "
-                "stop all old drivers before archiving the legacy lock directory"
-            )
-        return identity.lock_root
+        return self._client.lock_root
 
     @contextmanager
     def _locked(self, owner_id: str) -> Iterator[None]:
         # Root IDs come from validated carrier reads, never arbitrary paths.
-        from workflow_interpreter.supervisor.band import BandLock
+        from workflow_interpreter.inspector.band import BandLock
 
         reads.load_root(self._client, owner_id)
         with BandLock(self._lock_directory() / f"{owner_id}.lock"):
@@ -362,7 +360,7 @@ class CoordinationStore:
             node = effective_node(pinned, settings)
             if node.writes and node.isolation is not IsolationMode.WORKTREE:
                 raise CoordinationError("writer child requires worktree isolation")
-        wrapper = str(self._composition.supervisor_config.wrapper_root.resolve())
+        wrapper = str(self._composition.inspector_config.wrapper_root.resolve())
         receipt = self.admit_member(owner_id, slot, 0, admission, kind="child")
         with self._locked(owner_id):
             state = self.state(owner_id)

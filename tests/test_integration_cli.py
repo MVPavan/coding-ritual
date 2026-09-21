@@ -5,15 +5,15 @@ import sys
 from dataclasses import replace
 from pathlib import Path
 
-from tests.test_foreman_main import _bridge_adapter
+from tests.test_foreman_main import _contractor_adapter
 from tests.test_integration_admission import source_lab
 from workflow_interpreter.bdio.coordination import CoordinationStore
-from workflow_interpreter.bridge.adapter import PhaseAdapter
-from workflow_interpreter.bridge.integration import (
+from workflow_interpreter.contractor import tracker_wiring as wiring_module
+from workflow_interpreter.contractor.integration import (
     IntegrationRequest,
     prepare_integration,
 )
-from workflow_interpreter.bridge.verification import CheckCommand
+from workflow_interpreter.contractor.verification import CheckCommand
 from workflow_interpreter.foreman import __main__ as cli
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.decisions import admission_of
@@ -22,7 +22,9 @@ from workflow_interpreter.foreman.decisions import admission_of
 def test_prepare_and_status(tmp_path: Path, monkeypatch, capsys) -> None:
     lab, owner, composition, source = source_lab(tmp_path)
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     monkeypatch.setattr(cli, "_composition", lambda _: composition)
     request = tmp_path / "request.json"
@@ -40,7 +42,7 @@ def test_prepare_and_status(tmp_path: Path, monkeypatch, capsys) -> None:
     record = json.loads(capsys.readouterr().out)
     assert cli.main(["integration", "status", "phase", "stage"]) == 0
     status = json.loads(capsys.readouterr().out)
-    assert status["bridge"]["root_id"] == record["root_id"]
+    assert status["contractor"]["root_id"] == record["root_id"]
     assert status["association"]["receipt"]["root_id"] == record["root_id"]
 
 
@@ -61,14 +63,14 @@ def test_status_summarizes_large_prepared_integration_without_wholesale_truncati
         process.join(timeout=5)
         assert not process.is_alive()
 
-    # The full bridge record serializes this admission-pinned policy.  It is
+    # The full contractor record serializes this admission-pinned policy.  It is
     # deliberately larger than Foreman's public transcript cap, while the
     # actual two collected source receipts and prepared integration stay real.
     composition = replace(
         composition,
         config=composition.config.model_copy(
             update={
-                "bridge_checks": (
+                "contractor_checks": (
                     CheckCommand(
                         name="oversized-status-policy",
                         argv=(sys.executable, "-c", "x" * MAX_TRANSCRIPT_BYTES),
@@ -78,7 +80,9 @@ def test_status_summarizes_large_prepared_integration_without_wholesale_truncati
         ),
     )
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     monkeypatch.setattr(cli, "_composition", lambda _: composition)
     request = tmp_path / "two-source-request.json"
@@ -105,7 +109,7 @@ def test_status_summarizes_large_prepared_integration_without_wholesale_truncati
     status = json.loads(rendered)
     assert status["association"]["identity_digest"]
     assert status["association"]["receipt"]["root_id"] == prepared.root_id
-    assert status["bridge"]["root_id"] == prepared.root_id
+    assert status["contractor"]["root_id"] == prepared.root_id
     assert status["target"]["base_commit"]
 
 
@@ -126,7 +130,9 @@ def test_status_omits_bulky_max_sibling_records(
         process.join(timeout=5)
         assert not process.is_alive()
     monkeypatch.setattr(
-        PhaseAdapter, "from_config", classmethod(lambda *_: _bridge_adapter(lab))
+        wiring_module,
+        "contractor_adapter",
+        lambda *_, **__: _contractor_adapter(lab),
     )
     prepared = prepare_integration(
         composition,
@@ -170,7 +176,7 @@ def test_status_omits_bulky_max_sibling_records(
     assert len(rendered.encode()) <= MAX_TRANSCRIPT_BYTES
     status = json.loads(rendered)
     assert status["association"]["root_id"] == prepared.root_id
-    assert status["bridge"]["root_id"] == prepared.root_id
+    assert status["contractor"]["root_id"] == prepared.root_id
     assert status["children"]["count"] == 5
     assert status["children"]["omitted"] == [
         "records",
@@ -184,7 +190,7 @@ def test_status_omits_bulky_max_sibling_records(
 def test_retry_cli_uses_saved_owner_and_requires_fresh_approval(
     tmp_path, monkeypatch, capsys, signing_config, sign_payload
 ):
-    from tests._supervisor import commit_all
+    from tests._inspector import commit_all
     from tests.test_integration_lifecycle import approve_integration, prepared_lab
     from workflow_interpreter.foreman.tick import Foreman
 

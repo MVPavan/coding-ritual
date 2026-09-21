@@ -53,7 +53,7 @@ _CROSS_REGION_EXECUTION_CONFIG: Final[tuple[ResolvedSetting, ...]] = tuple(
     ResolvedSetting(key=setting.at(node), value=value, source=ConfigSource.ROLE_BINDING)
     for node in (NODE_A1, NODE_B1, NODE_B2)
     for setting, value in (
-        (NodeSetting.RUNNER, "fake"),
+        (NodeSetting.CREW, "fake"),
         (NodeSetting.MODEL, "fake-model"),
         (NodeSetting.EFFORT, "medium"),
     )
@@ -82,7 +82,7 @@ def test_region_comes_from_the_pinned_graph_not_the_caller(
     ("field", "requested", "pinned"),
     (
         ("model", "claude-haiku-4-5", "claude-opus-5"),
-        ("runner_profile", "alternate-runner", "pinned-runner"),
+        ("crew_profile", "alternate-crew", "pinned-crew"),
     ),
 )
 def test_mint_refuses_execution_bindings_that_disagree_with_the_root(
@@ -102,8 +102,8 @@ def test_mint_refuses_execution_bindings_that_disagree_with_the_root(
             source=ConfigSource.ROLE_BINDING,
         ),
         ResolvedSetting(
-            key=NodeSetting.RUNNER.at(IMPLEMENT),
-            value="pinned-runner",
+            key=NodeSetting.CREW.at(IMPLEMENT),
+            value="pinned-crew",
             source=ConfigSource.ROLE_BINDING,
         ),
     )
@@ -113,7 +113,7 @@ def test_mint_refuses_execution_bindings_that_disagree_with_the_root(
             entry_request(
                 **{
                     "model": "claude-opus-5",
-                    "runner_profile": "pinned-runner",
+                    "crew_profile": "pinned-crew",
                     field: requested,
                 }
             ),
@@ -138,19 +138,19 @@ def test_mint_records_execution_bindings_derived_from_the_root(
             source=ConfigSource.ROLE_BINDING,
         ),
         ResolvedSetting(
-            key=NodeSetting.RUNNER.at(IMPLEMENT),
-            value="pinned-runner",
+            key=NodeSetting.CREW.at(IMPLEMENT),
+            value="pinned-crew",
             source=ConfigSource.ROLE_BINDING,
         ),
     )
     minted = fake_store.mint_activation(
         root.root_id,
-        entry_request(model="claude-opus-5", runner_profile="pinned-runner"),
+        entry_request(model="claude-opus-5", crew_profile="pinned-crew"),
     )
 
     stored = fake_store.reads.load_activation(minted.activation.activation_id)
     assert stored.metadata.model == "claude-opus-5"
-    assert stored.metadata.runner_profile == "pinned-runner"
+    assert stored.metadata.crew_profile == "pinned-crew"
 
 
 def test_a_node_the_pinned_graph_does_not_declare_is_refused(
@@ -244,7 +244,7 @@ def test_an_infra_retry_inherits_the_round_it_is_retrying(
     # System outcomes never consume rounds (§10.2).
     root = make_root(fake_store, definition)
     first = fake_store.mint_activation(root.root_id, entry_request()).activation
-    run_to_close(fake_store, first.activation_id, Outcome.ERROR_RUNNER)
+    run_to_close(fake_store, first.activation_id, Outcome.ERROR_CREW)
     retry = fake_store.mint_activation(
         root.root_id,
         entry_request(
@@ -253,7 +253,7 @@ def test_an_infra_retry_inherits_the_round_it_is_retrying(
         ),
     ).activation
     assert retry.metadata.round_no == 1
-    assert retry.metadata.outcome_taken is Outcome.ERROR_RUNNER
+    assert retry.metadata.outcome_taken is Outcome.ERROR_CREW
 
 
 def test_a_cross_region_arrival_starts_the_target_regions_own_round(
@@ -374,7 +374,7 @@ def test_a_mislabeled_infra_retry_cannot_dodge_its_cap(
     # mint used to be accepted, and `max_infra_retries` never saw it.
     root = make_root(fake_store, definition)
     first = fake_store.mint_activation(root.root_id, entry_request()).activation
-    run_to_close(fake_store, first.activation_id, Outcome.ERROR_RUNNER)
+    run_to_close(fake_store, first.activation_id, Outcome.ERROR_CREW)
     with pytest.raises(CarrierIntegrityError, match="wrong §10.2 bound"):
         fake_store.mint_activation(
             root.root_id,
@@ -408,7 +408,7 @@ def test_a_retry_must_re_dispatch_the_same_node(
 ) -> None:
     root = make_root(fake_store, definition)
     first = fake_store.mint_activation(root.root_id, entry_request()).activation
-    run_to_close(fake_store, first.activation_id, Outcome.ERROR_RUNNER)
+    run_to_close(fake_store, first.activation_id, Outcome.ERROR_CREW)
     with pytest.raises(CarrierIntegrityError, match="SAME node"):
         fake_store.mint_activation(
             root.root_id,
@@ -484,7 +484,7 @@ def test_a_rework_mint_bases_on_the_last_writing_attempts_pre_attempt_commit(
     # predecessor is the reviewer, whose base IS the rejected commit.
     root = make_root(fake_store, definition)
     first = fake_store.mint_activation(root.root_id, entry_request()).activation
-    # The phase-3 supervisor records this; phase 2 only carries the field.
+    # The phase-3 inspector records this; phase 2 only carries the field.
     fake_client._merge_metadata(
         first.activation_id,
         metadata_dict(
@@ -561,7 +561,7 @@ def test_retry_base_uses_the_pinned_write_mode(
             pre_attempt_commit=PRE_ATTEMPT, reset_verified_commit=PRE_ATTEMPT
         ),
     )
-    run_to_close(fake_store, attempt.activation_id, Outcome.ERROR_RUNNER)
+    run_to_close(fake_store, attempt.activation_id, Outcome.ERROR_CREW)
 
     retry = fake_store.mint_activation(
         root.root_id,
@@ -601,15 +601,3 @@ def test_a_re_mint_of_one_key_is_the_same_bead(
     assert first.activation.activation_id == second.activation.activation_id
     assert second.activation.metadata.lifecycle is Lifecycle.MINTED
     assert len(fake_store.reads.list_activations(root.root_id)) == 1
-
-
-def test_one_mint_reads_the_instance_beads_exactly_once(
-    fake_store: WorkflowStore, fake_bd, definition: GraphDefinition
-) -> None:
-    # The derivation, the ceiling count, the key lookup and the round count
-    # all read the same fetch; a mint is not worth a bd call per predicate.
-    root = make_root(fake_store, definition)
-    before = fake_bd.command_count("list")
-    fake_store.mint_activation(root.root_id, entry_request())
-    # One instance-beads fetch plus the post-create read-after-write lookup.
-    assert fake_bd.command_count("list") - before == 2

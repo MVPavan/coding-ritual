@@ -20,7 +20,7 @@ not a command-line or project override.
 
 Reference mode changes only bound producer evidence. The original instance
 inputs, including the complete original task brief, remain inline. The task
-node's role instructions, pinned facts, and runner channel protocol also remain
+node's role instructions, pinned facts, and crew channel protocol also remain
 inline. Each producer input instead contains a compact JSON pointer with an
 absolute `index_path`, the producer identity, and the relevant immutable Git
 object IDs. Diff and report bodies, and file or entry counts, are not injected
@@ -30,8 +30,8 @@ The engine exports each evidence set below the consumer activation directory:
 
 ```text
 <wrapper>/<root>/<activation>/
-├── channels/                    # runner-writable outcome/effects/artifacts
-└── evidence/<fingerprint>/      # engine-owned, runner-read-only
+├── channels/                    # crew-writable outcome/effects/artifacts
+└── evidence/<fingerprint>/      # engine-owned, crew-read-only
     ├── index.json
     ├── diff-000.patch           # writer evidence, when present
     └── report-000.txt           # zero or more published reports
@@ -41,7 +41,7 @@ The engine exports each evidence set below the consumer activation directory:
 original logical path as JSON data, its blob OID, and an engine-generated
 export path. Logical paths never select filesystem destinations.
 
-Use the runner's existing read capability to open `index_path`, then read the
+Use the crew's existing read capability to open `index_path`, then read the
 diff and the reports relevant to the decision. Findings should cite the
 exported file and line. Do not substitute live producer channels, a worktree,
 `HEAD`, or a branch: exports are materialized from the verified immutable Git

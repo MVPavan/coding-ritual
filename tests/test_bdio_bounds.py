@@ -48,7 +48,7 @@ def _view(
             seq=seq,
             idempotency_key=bead_id,
             mint_reason=MintReason.EDGE,
-            runner_profile="p",
+            crew_profile="p",
             model="m",
             session_id="s",
             intended_base_commit="c",
@@ -215,7 +215,7 @@ def test_infra_retries_allow_one_plus_n_attempts(
 
 def test_consecutive_infra_closes_restart_after_a_non_infra_close() -> None:
     views = (
-        _view("a", round_no=1, seq=1, outcome=Outcome.ERROR_RUNNER),
+        _view("a", round_no=1, seq=1, outcome=Outcome.ERROR_CREW),
         _view("b", round_no=1, seq=2, outcome=Outcome.FAIL_CODE),
         _view("c", round_no=1, seq=3, outcome=Outcome.ERROR_TRANSPORT),
     )
@@ -224,7 +224,7 @@ def test_consecutive_infra_closes_restart_after_a_non_infra_close() -> None:
 
 def test_open_activations_do_not_consume_the_infra_budget() -> None:
     views = (
-        _view("a", round_no=1, seq=1, outcome=Outcome.ERROR_RUNNER),
+        _view("a", round_no=1, seq=1, outcome=Outcome.ERROR_CREW),
         _view("b", round_no=1, seq=2, lifecycle=Lifecycle.DISPATCHED),
     )
     assert bounds.consecutive_infra_closes(views, NODE, 1) == 1
@@ -243,6 +243,6 @@ def test_steer_closes_counts_only_steered_outcomes_at_this_node_and_round() -> N
         _view("a", round_no=1, outcome=Outcome.STEERED),
         _view("b", round_no=2, outcome=Outcome.STEERED),
         _view("c", round_no=1, node="review", outcome=Outcome.STEERED),
-        _view("d", round_no=1, outcome=Outcome.ERROR_RUNNER),
+        _view("d", round_no=1, outcome=Outcome.ERROR_CREW),
     )
     assert bounds.steer_closes(views, NODE, 1) == 1

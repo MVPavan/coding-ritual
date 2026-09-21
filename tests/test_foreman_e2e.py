@@ -17,15 +17,16 @@ from pathlib import Path
 
 import pytest
 
+from tests._bdio import CLOSE, UPDATE
 from tests._foreman import ForemanLab, LockedPersistentBd
 from tests._helpers import VALID_FIXTURE, mutate, write
-from tests._supervisor import ChildScript, handle_for
+from tests._inspector import ChildScript, handle_for
 from tests.conftest import Signer
 from workflow_interpreter.bdio import Lifecycle, Outcome, SigningConfig, bounds
 from workflow_interpreter.bdio.carriers import ExitRecord
 from workflow_interpreter.foreman.constants import FORCED_FIRST_REJECT
-from workflow_interpreter.supervisor import LaunchReceipt
-from workflow_interpreter.supervisor.paths import ExecLedger, read_record, write_record
+from workflow_interpreter.inspector import LaunchReceipt
+from workflow_interpreter.inspector.paths import ExecLedger, read_record, write_record
 
 # Every test in this file is a §5 drill row (DRILL-27 and its control).
 pytestmark = pytest.mark.acceptance
@@ -57,7 +58,7 @@ REWORK_SCRIPT = ChildScript(
     write_body="value = 3\n",
     commit=True,
     # spec:857-859, injection point 4: the CHILD itself asserts its worktree
-    # is clean before it writes or commits anything — the runner's own
+    # is clean before it writes or commits anything — the crew's own
     # observation, not a report about it from outside (see the comment at
     # the assertion site below for why an outside diff cannot cover this).
     assert_clean_tree=True,
@@ -113,8 +114,8 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     # --- injection point 3: after child exit / before the bd exit mirror ---
     # (this same dispatch attempt: precondition and dispatch succeed, and the
     # exit-mirror write — the 4th `update` of a fresh attempt — is what dies)
-    lab.fake_bd.crash_on("update", _EXIT_MIRROR_UPDATE_OFFSET)
-    with pytest.raises(Exception, match="bd update died"):
+    lab.writes.crash_on(UPDATE, _EXIT_MIRROR_UPDATE_OFFSET)
+    with pytest.raises(Exception, match="ledger update died"):
         lab.tick()
     assert len(lab.beads("activation")) == 1  # same idempotency key, no second mint
     assert ExecLedger(lab.wiring().paths.ledger(implement_id)).count() == 1
@@ -213,8 +214,8 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     # --- injection point 5: mid-reset (the same rework dispatch, 2nd try) --
     # The real git reset already ran in-process before `record_precondition`;
     # crashing that write proves the precondition is idempotent on rerun.
-    lab.fake_bd.crash_on("update", _PRECONDITION_UPDATE_OFFSET)
-    with pytest.raises(Exception, match="bd update died"):
+    lab.writes.crash_on(UPDATE, _PRECONDITION_UPDATE_OFFSET)
+    with pytest.raises(Exception, match="ledger update died"):
         lab.tick()
     mid_reset = lab.store.reads.load_activation(rework_id)
     assert mid_reset.metadata.lifecycle is Lifecycle.MINTED
@@ -243,10 +244,10 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     assert rework_settled.metadata.outcome is Outcome.DONE
     assert rework_settled.metadata.evidence is not None
     assert rework_settled.metadata.evidence.artifact is not None
-    # spec:857-859, the runner's OWN view rather than its self-reported
+    # spec:857-859, the crew's OWN view rather than its self-reported
     # metadata: `git commit` records the tree it actually started from as
     # the new commit's PARENT, so reading that parent back from the real
-    # object store is the rework runner observing its own starting HEAD.
+    # object store is the rework crew observing its own starting HEAD.
     # `diff_names(base, head)` below only proves the COMMIT is scoped to
     # exactly the one write the child made — it sees committed differences
     # only, so it cannot by itself rule out an untracked or unstaged leftover
@@ -255,7 +256,7 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     # instead covered by `assert_clean_tree` on REWORK_SCRIPT itself: the
     # child runs `git status --porcelain` before writing or committing
     # anything and fails loudly if that worktree it is about to work in is
-    # not already clean — reaching this line at all is the runner's own
+    # not already clean — reaching this line at all is the crew's own
     # proof that its observation passed.
     rework_artifact = rework_settled.metadata.evidence.artifact
     assert (
@@ -297,12 +298,13 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     # this tick would make is the transition EVENT it backfills right after
     # `open_gate` returns (`foreman/tick.py`, `self._backfill`): a fresh
     # `create` for the review->ship edge intent. Ordering within one tick is
-    # `startup_canary` (1st create), `open_gate` (2nd), backfill event
-    # (3rd) — `crash_on_tick_create(2)` (relative, +1 for the canary; see
-    # EVENT-B) kills the 3rd, landing exactly between the two.
+    # `open_gate` (1st create), backfill event (2nd) — the §11 canary is a
+    # `meta` round trip on the ledger, not a row, so it costs no create at
+    # all. `crash_on_tick_create(2)` (relative) kills the backfill, landing
+    # exactly between the two.
     events_before = len(lab.beads("event"))
     lab.crash_on_tick_create(2)
-    with pytest.raises(Exception, match="bd create died"):
+    with pytest.raises(Exception, match="ledger create died"):
         lab.tick()
     persisted_gates = lab.store.reads.list_gates(root.root_id)
     assert len(persisted_gates) == 1  # the gate itself landed before the crash
@@ -325,13 +327,17 @@ def test_drill_27_pins_the_opt_in_and_forces_only_the_first_review_brief(
     reopened_ship = lab.store.reads.load_gate(ship)
     assert reopened_ship.metadata.state.value == "open"
 
-    # --- injection point 6b: after payload verification / before edge-taking
+    # --- injection point 6b: after payload verification / before the close
+    # The decision and the settle are ONE transaction on the ledger (§3.3), so
+    # a crash there leaves the gate exactly as it was: open, with the approval
+    # still only on disk. What is proven is the repair — the next tick verifies
+    # the same payload again and closes once.
     lab.approve(ship, Outcome.APPROVE)
-    lab.fake_bd.crash_on("close")
-    with pytest.raises(Exception, match="bd close died"):
+    lab.writes.crash_on(CLOSE, 1)
+    with pytest.raises(Exception, match="ledger close died"):
         lab.tick()
     verified_not_closed = lab.store.reads.load_gate(ship)
-    assert verified_not_closed.metadata.state.value == "closed"
+    assert verified_not_closed.metadata.state.value == "open"
     assert verified_not_closed.status == "open"
 
     lab.rebuild()

@@ -29,17 +29,17 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.finalize import bound_violated, decide
 from workflow_interpreter.foreman.gates import effects_gate, halt_gate
-from workflow_interpreter.schema.models import Node, Outcome
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     AuditFlag,
     BranchAdvanceOutcome,
     CompletionEvidence,
+    InspectorError,
     SnapshotFailed,
-    SupervisorError,
 )
-from workflow_interpreter.supervisor.channels import pinned_verifier_digests
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.profile import Profile
+from workflow_interpreter.inspector.channels import pinned_verifier_digests
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.profile import Profile
+from workflow_interpreter.schema.models import Node, Outcome
 
 _BRANCH_ADVANCED = "instance branch advanced at settle to {commit}"
 _MAX_PREDECESSOR_HOPS: Final = 1024
@@ -64,7 +64,7 @@ def settle(
     profile: Profile,
 ) -> Settlement:
     """Verify and durably close before removing disposable activation tools."""
-    from workflow_interpreter.supervisor.toolchain_cleanup import cleanup_toolchain
+    from workflow_interpreter.inspector.toolchain_cleanup import cleanup_toolchain
 
     result = _settle(wiring, root, node, activation, profile)
     if not result.activation.metadata.is_completed:
@@ -91,7 +91,7 @@ def _settle(
     ):
         try:
             wiring.workspace.preserve_interrupted(activation, node)
-        except (OSError, SupervisorError) as exc:
+        except (OSError, InspectorError) as exc:
             return Settlement(
                 activation=activation,
                 stalled=f"interrupted work preservation: {exc}",
@@ -104,7 +104,7 @@ def _settle(
             completion = read_record(
                 wiring.paths.completion(activation.activation_id), CompletionEvidence
             )
-        except (OSError, SupervisorError):
+        except (OSError, InspectorError):
             closed = wiring.store.close_activation(
                 activation.activation_id,
                 Outcome.ERROR_TRANSPORT,
@@ -118,7 +118,7 @@ def _settle(
                     wiring.paths.exit_file(activation.activation_id), ExitRecord
                 )
                 if exit_record is None:
-                    raise SupervisorError("ExitRecordMissing")
+                    raise InspectorError("ExitRecordMissing")
                 completion = wiring.observer.replay(
                     activation,
                     node,
@@ -130,7 +130,7 @@ def _settle(
                 ).completion
             except SnapshotFailed as exc:
                 return Settlement(activation=activation, stalled=str(exc))
-            except (OSError, SupervisorError, StoreError) as exc:
+            except (OSError, InspectorError, StoreError) as exc:
                 halt = wiring.store.open_gate(
                     root.root_id,
                     halt_gate(
@@ -162,7 +162,7 @@ def _settle(
         if AuditFlag.BOUND_VIOLATED in completion.audit_flags:
             # Ahead of the effects gate for the reason `finalize.decide` gives
             # on the fresh-observation path: a bound that did not hold is not a
-            # runner outcome, so there is nothing for a human to accept about
+            # crew outcome, so there is nothing for a human to accept about
             # the effects it let through. Closing here dead-ends it at a halt.
             closed = wiring.store.close_activation(
                 activation.activation_id,
@@ -241,7 +241,7 @@ def _settle(
         )
     except SnapshotFailed as exc:
         return Settlement(activation=activation, stalled=str(exc))
-    except (OSError, SupervisorError) as exc:
+    except (OSError, InspectorError) as exc:
         closed = wiring.store.close_activation(
             activation.activation_id,
             Outcome.ERROR_TRANSPORT,

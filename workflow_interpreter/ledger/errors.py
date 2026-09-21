@@ -55,23 +55,51 @@ class LedgerIdentityError(StoreConfigError):
     """The database is pinned to another repository or wrapper root (§3.5)."""
 
 
+class LedgerEpicMissing(StoreConfigError):
+    """A `tasks` row was owed and no epic was supplied to write on it (§3.7).
+
+    Its own class because it is a WIRING refusal, not a transport one: the
+    lazy `_ensure_task` path serves runs that never went through prepare, and
+    the answer is to prepare the task rather than to retry the write.
+    """
+
+
+class LedgerMintConflict(StoreConfigError):
+    """A mint could not write the row for the id it was about to answer with (§3.7).
+
+    Its own class, and a refusal rather than a silent answer, because the id a
+    mint returns is spent immediately on a ref, a worktree and a run
+    directory: an id whose `tasks` row was never written names a task nothing
+    can later find by its tracker ref.
+    """
+
+
+class LedgerRootCollision(StoreConfigError):
+    """Two carriers pin the same attempt of one task under different keys (§3.7).
+
+    A WIRING refusal beside `LedgerEpicMissing`, deliberately NOT a transport
+    defect: `<task>-a<n>` is minted from the attempt the carrier pins, so a
+    second instance key pinning an attempt that already has a root is a
+    caller that has invented an attempt, and no retry can make it land.
+    """
+
+
+class LedgerAttemptInvalid(StoreConfigError):
+    """A carrier pins a run identity whose attempt is not one a run can have.
+
+    Attempts are counted from one (`RunIdentity`, `ge=FIRST_ATTEMPT`), and a
+    carrier that HAS an identity is making a statement about which attempt it
+    is. Reading a bad one as "no identity" would file the root as a child of
+    whatever attempt happened to be in force, so it refuses instead.
+    """
+
+
 class LedgerExportError(StoreConfigError):
     """An export file is not one this schema may restore from (§3.6).
 
     Its own class because the bytes are UNTRUSTED input: a line naming a table
     or a column the schema does not have is refused before any SQL is built,
     and the whole import refuses with it.
-    """
-
-
-class LedgerImportUnsupported(StoreConfigError):
-    """This ledger holds state an import cannot rebuild, so it refuses whole.
-
-    Today that is the landing journal: `landings` is outside `EXPORT_TABLES`,
-    so no export carries it and the rebuild could not put it back. A KNOWN,
-    deferred limitation of import — not a damaged ledger — and its own class so
-    an operator and a caller both route on it rather than on a foreign-key
-    message from inside a rolled-back transaction.
     """
 
 
@@ -122,12 +150,22 @@ class LedgerBusyRefusal(StoreBusyRefusal):
         )
 
 
-class LedgerClaimUnsupported(StoreError):
-    """Claims are bd-backed while the bd backend exists (D20).
+class LedgerRecordConflict(LifecycleConflictError):
+    """A contractor transition was written against a record that has moved.
 
-    Not a missing feature: two backends discovering claims in two stores
-    cannot see each other's reservations, so the ledger REFUSES the write
-    instead of keeping a second, invisible claim table.
+    The version guard of §3.2: every transition states the version it read,
+    the write is conditional on it, and a mismatch is refused rather than
+    applied over whatever the other writer decided. A conflict, not a
+    transport failure — the ledger is fine, the caller's evidence is stale.
+    """
+
+
+class LedgerClaimHeld(LifecycleConflictError):
+    """Another holder already claims this integration target (R11).
+
+    The loser of the CAS inside `BEGIN IMMEDIATE`, named rather than silently
+    queued: the two attempts contend for one target, and the one that did not
+    get it has to be told so it can refuse rather than land twice.
     """
 
 

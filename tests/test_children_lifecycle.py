@@ -6,8 +6,8 @@ import pytest
 
 from tests._foreman import ForemanLab
 from workflow_interpreter.foreman.decisions import admission_of
+from workflow_interpreter.inspector.models import SandboxMode
 from workflow_interpreter.schema.decisions import CoordinationError
-from workflow_interpreter.supervisor.models import SandboxMode
 
 FIXTURE = Path("workflow_interpreter/fixtures/valid/bounded-decision.toml")
 
@@ -61,7 +61,7 @@ def test_admission_replay_and_child_identity_are_durable(tmp_path: Path) -> None
     assert status.reserved_activation_capacity == 24
     assert len(status.children) == 2
     assert all(
-        row.wrapper_root == str(lab.supervisor_config.wrapper_root.resolve())
+        row.wrapper_root == str(lab.inspector_config.wrapper_root.resolve())
         for row in status.children
     )
     with pytest.raises(CoordinationError, match="conflicting"):
@@ -97,7 +97,7 @@ def test_cancel_before_dispatch_is_durable_and_does_not_stop_sibling(
 
 
 def test_drive_reaches_human_gate_without_collecting_success(tmp_path: Path) -> None:
-    from tests._supervisor import ChildScript
+    from tests._inspector import ChildScript
 
     lab, owner = owner_lab(tmp_path)
     coordinator = lab.store.coordination_store(composition=lab.composition)
@@ -119,19 +119,19 @@ def test_different_wrapper_homes_refuse_same_child_and_share_canonical_band(
 ) -> None:
     from dataclasses import replace
 
-    from workflow_interpreter.supervisor.band import BandLock
-    from workflow_interpreter.supervisor.errors import LockUnavailable
+    from workflow_interpreter.inspector.band import BandLock
+    from workflow_interpreter.inspector.errors import LockUnavailable
 
     lab, owner = owner_lab(tmp_path)
     coordinator = lab.store.coordination_store(composition=lab.composition)
     child = coordinator.start_child(owner, "one", child_admission(lab, owner))
-    config = lab.supervisor_config.model_copy(
+    config = lab.inspector_config.model_copy(
         update={"wrapper_root": tmp_path / "other-home"}
     )
     other = replace(
         lab.composition,
-        supervisor_config=config,
-        config=lab.config.model_copy(update={"supervisor": config}),
+        inspector_config=config,
+        config=lab.config.model_copy(update={"inspector": config}),
     )
     with pytest.raises(CoordinationError, match="wrapper"):
         other.for_root(child.root_id)
@@ -153,7 +153,7 @@ def test_different_wrapper_homes_refuse_same_child_and_share_canonical_band(
 
 
 def test_child_continue_decision_stays_in_child_slot(tmp_path: Path) -> None:
-    from tests._supervisor import ChildScript
+    from tests._inspector import ChildScript
     from workflow_interpreter.schema.loader import canonical_bytes
 
     lab, owner = owner_lab(tmp_path)
@@ -199,7 +199,7 @@ def test_child_continue_decision_stays_in_child_slot(tmp_path: Path) -> None:
 def test_cancel_during_launch_publication_stays_pending_until_recovery(
     tmp_path: Path,
 ) -> None:
-    from workflow_interpreter.supervisor.band import BandLock
+    from workflow_interpreter.inspector.band import BandLock
 
     lab, owner = owner_lab(tmp_path)
     coordinator = lab.store.coordination_store(composition=lab.composition)
@@ -214,7 +214,7 @@ def test_cancel_during_launch_publication_stays_pending_until_recovery(
 
 
 def test_cancel_before_actual_launch_never_executes_child(tmp_path: Path) -> None:
-    from tests._supervisor import ChildScript, FakeProfile
+    from tests._inspector import ChildScript, FakeProfile
 
     class CancelBeforeLaunch(FakeProfile):
         def build_command(self, task, session_id):
@@ -251,8 +251,8 @@ def test_cancel_before_actual_launch_never_executes_child(tmp_path: Path) -> Non
 def test_same_lock_object_is_not_reentrant_across_threads(tmp_path: Path) -> None:
     from concurrent.futures import ThreadPoolExecutor
 
-    from workflow_interpreter.supervisor.band import BandLock
-    from workflow_interpreter.supervisor.errors import LockUnavailable
+    from workflow_interpreter.inspector.band import BandLock
+    from workflow_interpreter.inspector.errors import LockUnavailable
 
     band = BandLock(tmp_path / "thread.lock")
     with band, ThreadPoolExecutor(max_workers=1) as pool:

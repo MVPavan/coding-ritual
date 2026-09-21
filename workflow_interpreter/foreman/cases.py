@@ -17,8 +17,8 @@ from workflow_interpreter.bdio import (
     MintRequest,
     RootRecord,
 )
-from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.errors import BoundExceededError
+from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.foreman.bounds import refusal_route
 from workflow_interpreter.foreman.close import settle
 from workflow_interpreter.foreman.compose import (
@@ -52,14 +52,14 @@ from workflow_interpreter.foreman.gates import (
     transition_gate,
 )
 from workflow_interpreter.foreman.inputs import select_bindings
+from workflow_interpreter.foreman.inspector import wrapper_alive
 from workflow_interpreter.foreman.ledger_render import bind_render
 from workflow_interpreter.foreman.routing import RouteKind, retry_kind, route
-from workflow_interpreter.foreman.supervise import wrapper_alive
 from workflow_interpreter.foreman.verify_feedback import bind_feedback
 from workflow_interpreter.foreman.wake_constants import DEFAULT_EVENT_CAP
+from workflow_interpreter.inspector.models import RecoveryCase
+from workflow_interpreter.inspector.paths import write_record
 from workflow_interpreter.schema.models import NodeKind, Outcome
-from workflow_interpreter.supervisor.models import RecoveryCase
-from workflow_interpreter.supervisor.paths import write_record
 
 _STALL_ABORT_PENDING = "barrier abort cleanup is still pending"
 
@@ -139,7 +139,7 @@ def _request(
     return MintRequest(
         node=meta.node,
         mint_reason=meta.mint_reason,
-        runner_profile=view.runner_profile,
+        crew_profile=view.crew_profile,
         model=view.model,
         session_id=meta.session_id,
         predecessor_activation_id=meta.predecessor_activation_id,
@@ -193,7 +193,7 @@ def _successor_request(
         mint_reason=MintReason.EDGE,
         predecessor_activation_id=predecessor_activation_id,
         predecessor_gate_id=predecessor_gate_id,
-        runner_profile=view.runner_profile,
+        crew_profile=view.crew_profile,
         model=view.model,
         # §5.2: `Profile.prepare` is the only minter of session ids, and it
         # runs at launch; the dispatch writes the one the child ran under back
@@ -337,7 +337,7 @@ def mint_entry(
     request = MintRequest(
         node=node_name,
         mint_reason=MintReason.ENTRY,
-        runner_profile=view.runner_profile,
+        crew_profile=view.crew_profile,
         model=view.model,
         session_id="",  # minted by `Profile.prepare` at launch (§5.2)
         inputs=select_bindings(root.index, root, view.node, (), 1),
@@ -376,7 +376,7 @@ def advance_lifecycle(
         if exit_record is not None:
             recorded = wiring.store.record_exit(activation.activation_id, exit_record)
             view = resolved_node(root, recorded.metadata.node)
-            profile = composition.profiles.profile_for(view.runner_profile)
+            profile = composition.profiles.profile_for(view.crew_profile)
             result = settle(
                 wiring,
                 root,
@@ -398,7 +398,7 @@ def advance_lifecycle(
         )
     if lifecycle in {Lifecycle.EXIT_RECORDED, Lifecycle.EVIDENCE_RECORDED}:
         view = resolved_node(root, activation.metadata.node)
-        profile = composition.profiles.profile_for(view.runner_profile)
+        profile = composition.profiles.profile_for(view.crew_profile)
         result = settle(
             wiring,
             root,
@@ -514,7 +514,7 @@ def route_head(
         request = MintRequest(
             node=head_meta.node,
             mint_reason=retry,
-            runner_profile=view.runner_profile,
+            crew_profile=view.crew_profile,
             model=view.model,
             session_id=head_meta.session_id,
             predecessor_activation_id=head.activation_id,

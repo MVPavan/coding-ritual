@@ -16,13 +16,15 @@ import sys
 import time
 import uuid
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import replace
 from pathlib import Path
 from types import MappingProxyType
 from typing import Final, TypedDict
 
+from tests._bdio import CREATE, StoreWrites
 from tests._fake_bd import FakeBd, InjectedCrash
-from tests._helpers import VALID_FIXTURE, runner_roles
-from tests._supervisor import (
+from tests._helpers import VALID_FIXTURE, crew_roles
+from tests._inspector import (
     DEBRIEF,
     DEBRIEF_MARKER,
     IMPLEMENT,
@@ -39,7 +41,6 @@ from tests._supervisor import (
 )
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import (
-    BdConfig,
     BoundMutation,
     ConfigSource,
     GateArtifact,
@@ -57,13 +58,11 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
     canonical_payload_bytes,
 )
-from workflow_interpreter.bdio.backend import (
-    SelectableBackendFactory,
-    StoreBackendFactory,
-)
-from workflow_interpreter.bdio.client import BdClient, CompletedCommand
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.bdio.rows import RowQuery
+from workflow_interpreter.bdio.wire import KEY_WF_KIND
+from workflow_interpreter.contractor.records import ContractorRecords, records_of
+from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -71,28 +70,29 @@ from workflow_interpreter.foreman.compose import (
     ProfileResolver,
     WrapperLaunch,
 )
-from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
+from workflow_interpreter.foreman.config import CrewBinding, ForemanConfig
 from workflow_interpreter.foreman.gates import payload_template
-from workflow_interpreter.foreman.locator import RootBackendLocator
+from workflow_interpreter.foreman.inspector import run_wrapper
 from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
-from workflow_interpreter.foreman.supervise import run_wrapper
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
-from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
-from workflow_interpreter.ledger.store import LedgerStore
-from workflow_interpreter.ledger.tasks import pin_task_backend
-from workflow_interpreter.profiles.config import RUNNER_PREFIX
-from workflow_interpreter.profiles.errors import UnknownProfileError
-from workflow_interpreter.supervisor import INSTANCE_BRANCH_REF
-from workflow_interpreter.supervisor.band import BandLock
-from workflow_interpreter.supervisor.models import StaleFlag
-from workflow_interpreter.supervisor.paths import fsync_dir, write_durable, write_record
-from workflow_interpreter.supervisor.profile import (
+from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
+from workflow_interpreter.inspector.band import BandLock
+from workflow_interpreter.inspector.models import StaleFlag
+from workflow_interpreter.inspector.paths import fsync_dir, write_durable, write_record
+from workflow_interpreter.inspector.profile import (
     ChildLauncher,
+    CrewCommand,
     Profile,
-    RunnerCommand,
     TaskSpec,
 )
-from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.ledger.claims import LedgerClaims
+from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
+from workflow_interpreter.ledger.store import LedgerStore
+from workflow_interpreter.ledger.tasks import ensure_task
+from workflow_interpreter.profiles.config import CREW_PREFIX
+from workflow_interpreter.profiles.errors import UnknownProfileError
+from workflow_interpreter.tracker.bd_transport import BdConfig, CompletedCommand
 
 type OverrideValue = str | int | bool
 
@@ -100,23 +100,23 @@ type OverrideValue = str | int | bool
 # instance input every drill written before phase 7 relies on. A graph with
 # other roles or sources (build-loop) passes its own through `ForemanLab(roles=…,
 # instance_inputs=…)`.
-DEFAULT_LAB_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
+DEFAULT_LAB_ROLES: Final[Mapping[str, CrewBinding]] = MappingProxyType(
     {
-        "implementer": RunnerBinding(profile="fake", model="fake", effort="medium"),
-        "critic": RunnerBinding(profile="fake", model="fake", effort="medium"),
-        "scribe": RunnerBinding(profile="fake", model="fake", effort="medium"),
+        "implementer": CrewBinding(profile="fake", model="fake", effort="medium"),
+        "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
+        "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
     }
 )
 DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
     {"task_brief": "implement the lab fixture"}
 )
 
-# build-loop's five `runner = "profile:<role>"` names, all inert in the lab, and
+# build-loop's five `crew = "profile:<role>"` names, all inert in the lab, and
 # its two non-optional `producer = "instance"` sources. Shared by every test that
 # puts the second graph on the lab.
-BUILD_LOOP_ROLES: Final[Mapping[str, RunnerBinding]] = MappingProxyType(
+BUILD_LOOP_ROLES: Final[Mapping[str, CrewBinding]] = MappingProxyType(
     {
-        role: RunnerBinding(profile="fake", model="fake", effort="medium")
+        role: CrewBinding(profile="fake", model="fake", effort="medium")
         for role in (
             "test-author",
             "test-critic",
@@ -130,11 +130,14 @@ BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
     {"task_brief": "add the lab slice", "seam_contract": "def lab() -> int"}
 )
 
-# The resolver is asked for the runner name as the GRAPH spells it, so the
+# The resolver is asked for the crew name as the GRAPH spells it, so the
 # accepted set is derived per graph; `fake` is the lab's own inert profile.
 FAKE_PROFILE: Final[str] = "fake"
 FAKE_MODEL: Final[str] = "fake"
 LAB_TASK: Final[str] = "cr-lab.1"
+LAB_EPIC: Final[str] = "cr-lab"
+"""The lab's epic, stated as the input it is (§3.7) rather than parsed out of
+`LAB_TASK` — which is what production stopped doing in S3."""
 LAB_ATTEMPT: Final[int] = 1
 """The task bead every lab root belongs to (D16). A synthetic id, because the
 lab has no tracker: what the engine needs from it is a stable, path-safe name
@@ -146,7 +149,7 @@ def entry_request(**overrides: object) -> MintRequest:
     base: dict[str, object] = {
         "node": IMPLEMENT,
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": FAKE_PROFILE,
+        "crew_profile": FAKE_PROFILE,
         "model": FAKE_MODEL,
         "session_id": "",
     }
@@ -156,7 +159,7 @@ def entry_request(**overrides: object) -> MintRequest:
 class _Profiles(ProfileResolver):
     """A scriptable resolver that keeps wrapper execution inside the real seam.
 
-    `accepted` is the runner-name allow-list: a name outside it is a wiring bug
+    `accepted` is the crew-name allow-list: a name outside it is a wiring bug
     in the lab, and failing loudly there beats silently handing every node the
     same profile.
     """
@@ -182,7 +185,7 @@ class _Profiles(ProfileResolver):
     def profile_for(self, name: str) -> Profile:
         if name not in self.accepted:
             raise UnknownProfileError(f"unregistered wrapper profile: {name}")
-        self.profile.selected_runner = name.removeprefix(RUNNER_PREFIX)
+        self.profile.selected_crew = name.removeprefix(CREW_PREFIX)
         return self.profile
 
     def next_script_for_launch(self) -> ChildScript | None:
@@ -207,7 +210,7 @@ class _Profiles(ProfileResolver):
         `next_script` is single-shot and consumed at launch, which works only
         where the test ticks by hand; an unattended `Foreman.run` dispatches
         several nodes with no seam in between, so those tests declare what each
-        node's runner does once, up front. An explicitly queued script still
+        node's crew does once, up front. An explicitly queued script still
         wins over the node binding.
         """
         self._by_node[node] = script
@@ -224,13 +227,13 @@ class _QueuedProfile(FakeProfile):
         super().__init__(script)
         self._profiles = profiles
         self.tasks: list[TaskSpec] = []
-        self.selected_runner = FAKE_PROFILE
+        self.selected_crew = FAKE_PROFILE
 
     def name(self) -> str:
         """Keep the selected vendor identity while replacing its process boundary."""
-        return self.selected_runner
+        return self.selected_crew
 
-    def build_command(self, task: TaskSpec, session_id: str) -> RunnerCommand:
+    def build_command(self, task: TaskSpec, session_id: str) -> CrewCommand:
         """Build the next child without consuming a script during settlement."""
         self.tasks.append(task)
         next_script = self._profiles.next_script_for_launch() or (
@@ -273,7 +276,7 @@ class _QueuedProfile(FakeProfile):
             self.script = next_script
         return super().build_command(task, session_id)
 
-    def launch(self, command: RunnerCommand, launcher: ChildLauncher) -> ProcessHandle:
+    def launch(self, command: CrewCommand, launcher: ChildLauncher) -> ProcessHandle:
         """Consume the queued script only after its child actually starts."""
         handle = super().launch(command, launcher)
         self._profiles.consume_next_script()
@@ -397,7 +400,7 @@ class ProcSpawner:
 
 def wrapper_alive_for_barrier(wiring: InstanceWiring, activation_id: str) -> bool:
     """Keep the three-stage proc barrier explicit at the same lock seam."""
-    from workflow_interpreter.foreman.supervise import wrapper_alive
+    from workflow_interpreter.foreman.inspector import wrapper_alive
 
     return wrapper_alive(wiring, activation_id)
 
@@ -418,9 +421,6 @@ class _PersistentCall(TypedDict):
 
     pid: int
     argv: list[str]
-    # Metadata travels as `@<path>` and its file is unlinked on return, so the
-    # keys a call wrote are captured here or not at all (ADR 0003).
-    metadata_keys: list[str]
 
 
 class ForemanLab:
@@ -437,27 +437,21 @@ class ForemanLab:
         signer: Callable[[bytes, Path | None], bytes] | None = None,
         bd_factory: Callable[[str], FakeBd] = FakeBd,
         band_wait_s: float = 30.0,
-        roles: Mapping[str, RunnerBinding] = DEFAULT_LAB_ROLES,
+        roles: Mapping[str, CrewBinding] = DEFAULT_LAB_ROLES,
         instance_inputs: Mapping[str, str] = DEFAULT_LAB_INSTANCE_INPUTS,
         sandbox: SandboxMode = SandboxMode.BWRAP,
-        store: BackendKind = BackendKind.BD,
     ) -> None:
         """Wire a throwaway repo to a real foreman.
 
-        `roles` binds each `runner = "profile:<role>"` name the graph declares —
+        `roles` binds each `crew = "profile:<role>"` name the graph declares —
         the real `resolve.instantiate` refuses a graph with an unbound role —
         and `instance_inputs` maps each `producer = "instance"` source name to
         its body. Both default to feature-delivery's, which `toml` also
         defaults to.
 
-        `store` is the run-ledger §3.2 switch: it pins the backend every root
-        this lab creates is served by, and the locator answers from the ledger
-        exactly as production's does, so a lab on `LEDGER` proves the cutover
-        rather than a second wiring of it.
-
         `sandbox` defaults to the O5 value, so the whole foreman family runs
         under the REAL §2 mount bound on a host that has `bwrap`. A test whose
-        PREMISE is a runner writing outside its own grants — the verifier
+        PREMISE is a crew writing outside its own grants — the verifier
         provenance, undeclared-effect and reviewer-commit drills — has to turn
         it off and say why: those drills exist to prove that the layer ABOVE the
         bound still holds, and the bound would otherwise stop the child before
@@ -480,7 +474,7 @@ class ForemanLab:
             self._wrapper_home
             / hashlib.sha256(str(self.repo.resolve()).encode("utf-8")).hexdigest()[:16]
         )
-        self.supervisor_config = make_config(
+        self.inspector_config = make_config(
             self.repo,
             tmp_path,
             fake_proc=False,
@@ -488,7 +482,6 @@ class ForemanLab:
             sandbox=sandbox,
         )
         self._toml = toml
-        self._store = store
         self._ledger_path = tmp_path / "lab-ledger.db"
         self.ledger: LedgerDatabase | None = None
         self.definition = load_graph(toml, allow_test_flags=allow_test_flags)
@@ -496,16 +489,16 @@ class ForemanLab:
         self.root: RootRecord | None = None
 
     def _accepted_profiles(self) -> frozenset[str]:
-        """Every runner name the pinned graph can ask the resolver for."""
+        """Every crew name the pinned graph can ask the resolver for."""
         return frozenset(
             {FAKE_PROFILE, *(binding.profile for binding in self._roles.values())}
-            | {f"{RUNNER_PREFIX}{role}" for role in runner_roles(self.definition)}
+            | {f"{CREW_PREFIX}{role}" for role in crew_roles(self.definition)}
         )
 
-    def _build_fresh(self, backend_factory: StoreBackendFactory | None = None) -> None:
+    def _build_fresh(self) -> None:
         """Construct no composition collaborator from a prior process."""
         self.fake_bd = self._bd_factory(str(self._workspace))
-        verifier = (
+        self._verifier = (
             None
             if self._signing is None
             else GateVerifier(self._signing, self._workspace)
@@ -518,45 +511,41 @@ class ForemanLab:
         if self.ledger is not None:
             self.ledger.close()
         self.ledger = open_ledger(
-            self.repo, self.supervisor_config.wrapper_root, path=self._ledger_path
+            self.repo, self.inspector_config.wrapper_root, path=self._ledger_path
         )
-        pin_task_backend(self.ledger, LAB_TASK, self._store)
-        bd = BdClient(BdConfig(workspace=self._workspace, actor="test"), self.fake_bd)
-        self.backend_factory: StoreBackendFactory = (
-            SelectableBackendFactory(bd, LedgerStore(self.ledger, task_id=LAB_TASK))
-            if backend_factory is None
-            else backend_factory
-        )
-        # Claims stay bd-backed whichever backend this lab runs on (D20): two
-        # backends discovering claims in two stores could not see each other's
-        # reservations, so a ledger run contends on the SAME rows.
+        ensure_task(self.ledger, LAB_TASK, LAB_EPIC)
+        self.backend = LedgerStore(self.ledger, task_id=LAB_TASK, epic_id=LAB_EPIC)
+        self.writes = StoreWrites(self.backend)
+        # Claims are ledger-local (R11): there is one ledger per repository,
+        # so it is the one place two attempts on a target can see each other's
+        # reservation.
         self.store = WorkflowStore(
-            self.backend_factory(self._store),
-            verifier,
-            backend_factory=self.backend_factory,
-            claims_backend=bd,
+            self.backend,
+            self._verifier,
+            claims=LedgerClaims(self.ledger),
         )
-        self.git = make_git(self.supervisor_config)
+        self.git = make_git(self.inspector_config)
         self.clock = FrozenClock()
         self.profiles = _Profiles(self._accepted_profiles())
         self.spawner = InlineSpawner()
         self.config = ForemanConfig(
             repo_root=self.repo,
             wrapper_home=self._wrapper_home,
-            bd=BdConfig(workspace=self._workspace, actor="test"),
+            tracker=TrackerSettings(
+                bd=BdConfig(workspace=self._workspace, actor="test")
+            ),
             signing=self._signing,
             host="test-host",
-            supervisor=self.supervisor_config,
+            inspector=self.inspector_config,
             actor="test",
             band_wait_s=self._band_wait_s,
             roles=self._roles,
-            bridge_graph=self._toml,
-            store=self._store,
+            contractor_graph=self._toml,
         )
         self.composition = Composition(
             self.config,
             self.store,
-            self.supervisor_config,
+            self.inspector_config,
             self.git,
             self.clock,
             self.profiles,
@@ -564,10 +553,16 @@ class ForemanLab:
             host_env={"PATH": os.defpath, "HOME": str(self.repo.parent)},
             ledger=self.ledger,
             task_id=LAB_TASK,
-            locate_backend=RootBackendLocator(LAB_TASK, ledger=self.ledger),
+            epic_id=LAB_EPIC,
         )
         self.spawner.bind(self.composition)
         self.foreman = Foreman(self.composition)
+
+    @property
+    def bd_config(self) -> BdConfig:
+        """This lab's bd transport settings, which live under `tracker` (§3.3)."""
+        assert self.config.tracker.bd is not None
+        return self.config.tracker.bd
 
     def pin_checks(self, bodies: Mapping[str, str]) -> None:
         """Commit `bodies` as the repo's check scripts, before they are pinned.
@@ -610,7 +605,6 @@ class ForemanLab:
             instance_inputs=paths,
             allow_test_flags=self.allow_test_flags,
             overrides=dict(overrides or {}),
-            backend=self._store,
         )
         return self.root
 
@@ -635,7 +629,9 @@ class ForemanLab:
             # roots do (run-ledger §3.7): the verify environment, and therefore
             # `scripts/verify-debrief.sh`, reads the task and attempt off the
             # record.
-            run_identity=RunIdentity(task_id=LAB_TASK, attempt=LAB_ATTEMPT),
+            run_identity=RunIdentity(
+                task_id=LAB_TASK, epic_id=LAB_EPIC, attempt=LAB_ATTEMPT
+            ),
         )
         branch = INSTANCE_BRANCH_REF.format(root_id=root.root_id)
         if self.git.ref_target(branch, cwd=self.repo) is None:
@@ -667,22 +663,21 @@ class ForemanLab:
         assert self.tick().settled == activation_id
         return activation_id
 
-    def rebuild(self, backend_factory: StoreBackendFactory | None = None) -> None:
-        """Reconstruct a fresh foreman from durable state, on a chosen backend.
+    def rebuild(self) -> None:
+        """Reconstruct a fresh foreman from durable state.
 
-        The factory is a parameter because the backend is what a restarted
-        process has to be TOLD (§3.2): the durable state outlives the transport
-        object, and a rebuild that always rebuilt bd could never prove that.
+        What a restarted process has is the durable state, which outlives
+        every transport object this lab holds — so nothing is carried over.
         """
         if not self._durable_factory:
             raise AssertionError("ForemanLab.rebuild requires a durable bd_factory")
         root_id = None if self.root is None else self.root.root_id
-        self._build_fresh(backend_factory)
+        self._build_fresh()
         self.root = None if root_id is None else self.store.reads.load_root(root_id)
 
     def crash_on_tick_create(self, occurrence: int) -> None:
-        """Inject a crash on the requested routed tick create after its canary."""
-        self.fake_bd.crash_on("create", occurrence + 1)
+        """Inject a crash on the requested routed tick row creation."""
+        self.writes.crash_on(CREATE, occurrence)
 
     def hold_wrapper_lock(self, activation_id: str) -> BandLock:
         """Hold an activation's real wrapper lock until the caller releases it."""
@@ -743,14 +738,65 @@ class ForemanLab:
         )
 
     def beads(self, kind: str) -> list[dict[str, object]]:
+        """Every row of one carrier kind, shaped as the cases read them.
+
+        The ledger is the record store since S6 (R1), so this reads rows
+        rather than bd beads; the dict shape stayed because it is what forty
+        assertions are written against, and none of them are about bd.
+        """
         return [
-            row
-            for row in self.fake_bd.rows.values()
-            if row["metadata"].get("wf_kind") == kind
+            {
+                "id": row.id,
+                "status": row.status,
+                "close_reason": row.close_reason,
+                "payload": row.payload,
+                "metadata": dict(row.metadata),
+            }
+            for row in self.backend.find_rows(
+                RowQuery(metadata_filters={KEY_WF_KIND: kind})
+            )
         ]
 
     def count(self, subcommand: str) -> int:
-        return self.fake_bd.command_count(subcommand)
+        """How many record-store writes of one shape this lab has served.
+
+        The names are bd's (`create`, `update`, `close`) because that is what
+        the cases ask for and what each one MEANS is unchanged: a row minted,
+        a carrier delta merged, a row settled.
+        """
+        return self.writes.count(subcommand)
+
+    def scope(self, task_id: str, epic_id: str) -> Composition:
+        """Re-pin this lab to one task, as the CLI builds a composition per run.
+
+        `foreman/__main__._composition` reads the task off the argv and opens a
+        store scoped to it. Since S6 that scope is real: two stages driven
+        through one task's store would mint two attempt roots onto the same
+        task and attempt, which §3.7 refuses — so a case that drives more than
+        one stage has to move the lab with them.
+        """
+        assert self.ledger is not None
+        self.backend = LedgerStore(self.ledger, task_id=task_id, epic_id=epic_id)
+        self.writes = StoreWrites(self.backend)
+        self.store = WorkflowStore(
+            self.backend, self._verifier, claims=LedgerClaims(self.ledger)
+        )
+        self.composition = replace(
+            self.composition, store=self.store, task_id=task_id, epic_id=epic_id
+        )
+        self.spawner.bind(self.composition)
+        return self.composition
+
+    @property
+    def records(self) -> ContractorRecords:
+        """This lab's contractor record store, built as production builds one.
+
+        Named here so every case that seeds or reads a record goes through the
+        composition's own store: the record is a ledger row since S4 (§3.2,
+        R4), and a test that reached for the ledger directly could seed one
+        the run would not find.
+        """
+        return records_of(self.composition)
 
     def wiring(self) -> InstanceWiring:
         assert self.root is not None
@@ -853,26 +899,12 @@ class LockedPersistentBd(PersistentBd):
             try:
                 self._restore()
                 result = FakeBd.__call__(self, argv, timeout_s)
-                # `metadata_keys` rather than the argv alone: metadata travels
-                # as `@<path>` (ADR 0003) and the transport unlinks the file
-                # on return, so a later reader of this log could no longer
-                # answer "which keys did this call write" from argv.
-                self._call_log.append(
-                    {
-                        "pid": os.getpid(),
-                        "argv": list(argv),
-                        "metadata_keys": sorted(self.metadata_writes[-1]),
-                    }
-                )
+                self._call_log.append({"pid": os.getpid(), "argv": list(argv)})
                 write_durable(
                     self._state,
-                    json.dumps(
-                        {
-                            "rows": self.rows,
-                            "next_id": self._next_id,
-                            "calls": self._call_log,
-                        }
-                    ).encode("utf-8"),
+                    json.dumps({"rows": self.rows, "calls": self._call_log}).encode(
+                        "utf-8"
+                    ),
                 )
                 return result
             finally:
@@ -884,7 +916,6 @@ class LockedPersistentBd(PersistentBd):
             return
         stored = json.loads(self._state.read_text(encoding="utf-8"))
         self.rows = stored["rows"]
-        self._next_id = stored["next_id"]
         raw_calls = stored.get("calls", [])
         if not isinstance(raw_calls, list):
             raise TypeError("persistent fake-bd calls must be a list")
@@ -900,19 +931,9 @@ class LockedPersistentBd(PersistentBd):
                 or not all(isinstance(part, str) for part in argv)
             ):
                 raise ValueError("persistent fake-bd call has an invalid shape")
-            keys = entry.get("metadata_keys", [])
-            if not isinstance(keys, list) or not all(
-                isinstance(part, str) for part in keys
-            ):
-                raise ValueError("persistent fake-bd call has an invalid shape")
-            calls.append({"pid": pid, "argv": argv, "metadata_keys": keys})
+            calls.append({"pid": pid, "argv": argv})
         self._call_log = calls
         self.calls = [
             (str(entry["argv"][3]), tuple(str(part) for part in entry["argv"]))
             for entry in self._call_log
-        ]
-        # Restored in lockstep with `calls`: the two are indexed together by
-        # anything asking which keys a given call wrote.
-        self.metadata_writes = [
-            dict.fromkeys(entry["metadata_keys"]) for entry in self._call_log
         ]

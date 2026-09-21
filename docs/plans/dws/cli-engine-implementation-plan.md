@@ -1,5 +1,7 @@
 # DWS CLI and Core Engine Implementation Plan
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 **Date:** 2026-09-10
 
 **Status:** Proposed implementation plan; planning only, no product code or validation results implied.

@@ -1,5 +1,7 @@
 # ADR 0002 — a task node carries its own instructions, enforced at root creation
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 - **Status:** Accepted; fully implemented 2026-09-03 (slices 1-3)
 - **Date:** 2026-09-03
 - **Deciders:** repo owner

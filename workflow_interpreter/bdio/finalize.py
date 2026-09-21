@@ -19,16 +19,19 @@ is always safe and always converges.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from workflow_interpreter.bdio.backend import StoreBackend
-from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.bdio.records import (
     ActivationRecord,
     GateRecord,
     RootRecord,
 )
-from workflow_interpreter.bdio.rows import StoreRow
+from workflow_interpreter.bdio.rows import STATUS_CLOSED, StoreRow
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
 
 
 class ClosableRow(Protocol):
@@ -48,7 +51,7 @@ def is_finished(row: ClosableRow, reason: str) -> bool:
     return row.status == STATUS_CLOSED and row.close_reason == reason
 
 
-def close_forward(client: StoreBackend, row: StoreRow, reason: str) -> StoreRow:
+def close_forward(client: LedgerStore, row: StoreRow, reason: str) -> StoreRow:
     """Drive this row's close to completion, idempotently.
 
     A no-op when the close already landed with this reason; otherwise it
@@ -61,7 +64,7 @@ def close_forward(client: StoreBackend, row: StoreRow, reason: str) -> StoreRow:
 
 
 def close_record_forward[RecordT: (ActivationRecord, GateRecord, RootRecord)](
-    client: StoreBackend,
+    client: LedgerStore,
     record: RecordT,
     reason: str,
     parse: Callable[[StoreRow], RecordT],

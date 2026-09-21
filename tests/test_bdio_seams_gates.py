@@ -9,9 +9,9 @@ import pytest
 
 from tests._bdio import entry_request, load_definition, make_root
 from tests._gates import approval_payload, close, ship_gate_request
-from tests._supervisor import blob_at
+from tests._inspector import blob_at
 from tests.conftest import Signer
-from tests.test_supervisor_exit import DONE_MARKER, FEATURE_FILE, Lab
+from tests.test_inspector_exit import DONE_MARKER, FEATURE_FILE, Lab
 from workflow_interpreter.bdio import GateArtifact
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import PayloadMismatchError

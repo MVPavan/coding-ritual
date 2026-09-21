@@ -1,40 +1,31 @@
-"""§3.1 root identity — creation, reuse by key, convergence and discovery.
+"""§3.1 root identity — creation, reuse by key, and discovery.
 
-An instance IS its root bead: reusing a key is an identity claim, and two
-roots for one key is race residue that has to converge without orphaning the
-trace. Driven through the in-memory bd, whose scheduling hooks make the
-concurrent creates deterministic.
+An instance IS its root row: reusing a key is an identity claim, checked
+against the resolution the key was minted under. Two rows for one key is not
+a state the ledger can reach — `roots.instance_key` is UNIQUE and a second
+create answers with the row that exists (§3.3) — so what is left to test is
+the claim itself and the residue a live instance can still carry.
 """
 
 from __future__ import annotations
-
-from typing import Final
 
 import pytest
 
 from tests._bdio import (
     RESOLVED_CONFIG,
-    entry_request,
     load_definition,
+    seed_row,
 )
-from tests._fake_bd import FakeBd
 from workflow_interpreter import GraphDefinition
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import JSON_SAFE_INT_LIMIT
-from workflow_interpreter.bdio.client import BdClient
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.wire import (
     ConfigSource,
     ResolvedSetting,
     WfKind,
-    metadata_dict,
 )
-
-STATUS_CLOSED: Final[str] = "closed"
-STATUS_OPEN: Final[str] = "open"
-LOW_BEAD_ID: Final[str] = "wf-000"
-"""A bead id below every id FakeBd hands out — real bd ids are not ordered by
-creation time (probed), and this is how that looks deterministically."""
+from workflow_interpreter.ledger.store import LedgerStore
 
 
 @pytest.fixture(scope="session")
@@ -114,180 +105,9 @@ def test_reusing_a_key_with_the_same_resolution_is_idempotent(
     assert first.root_id == second.root_id
 
 
-def test_concurrent_duplicate_roots_converge_on_the_lowest_bead_id(
-    fake_store: WorkflowStore,
-    fake_client: BdClient,
-    fake_bd: FakeBd,
-    definition: GraphDefinition,
-) -> None:
-    # Same convergence rule as §3.2 race residue: append-only, lowest id wins,
-    # the loser is superseded rather than deleted.
-    key = "raced"
-
-    def interleave() -> None:
-        fake_store.create_root(
-            instance_key=key,
-            definition=definition,
-            resolved_config=_config(
-                ResolvedSetting(
-                    key="instance.max_total_activations",
-                    value=20,
-                    source=ConfigSource.GRAPH_DEFAULT,
-                ),
-            ),
-        )
-
-    fake_bd.pause_before("create", interleave)
-    second = fake_store.create_root(
-        instance_key=key,
-        definition=definition,
-        resolved_config=_config(
-            ResolvedSetting(
-                key="instance.max_total_activations",
-                value=20,
-                source=ConfigSource.GRAPH_DEFAULT,
-            ),
-        ),
-    )
-    roots = [
-        row
-        for row in fake_bd.rows.values()
-        if row["metadata"].get("instance_key") == key
-    ]
-    assert len(roots) == 2
-    live = [row for row in roots if row["metadata"].get("superseded_by") is None]
-    assert [row["id"] for row in live] == [second.root_id]
-    assert second.root_id == min(row["id"] for row in roots)
-    losers = [row for row in roots if row["id"] != second.root_id]
-    assert losers[0]["status"] == STATUS_CLOSED
-    assert losers[0]["metadata"]["superseded_by"] == second.root_id
-
-
-def test_settling_a_superseded_root_is_refused(
-    fake_store: WorkflowStore, fake_bd: FakeBd, definition: GraphDefinition
-) -> None:
-    """A lost create race is never reopened as an instance's recorded end.
-
-    `close_forward` repairs a transition forward, but only its OWN: the loser's
-    close already landed as `outcome=superseded`, and `bd close` overwrites the
-    reason (probed). So this refuses, exactly as closing a superseded
-    ACTIVATION does.
-    """
-    key = "settle-race"
-
-    def interleave() -> None:
-        fake_store.create_root(
-            instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
-        )
-
-    fake_bd.pause_before("create", interleave)
-    winner = fake_store.create_root(
-        instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
-    )
-    loser = next(
-        row
-        for row in fake_bd.rows.values()
-        if row["metadata"].get("instance_key") == key and row["id"] != winner.root_id
-    )
-
-    with pytest.raises(CarrierIntegrityError, match="is superseded by"):
-        fake_store.settle_root(str(loser["id"]), "shipped")
-
-    assert loser["metadata"].get("terminal") is None
-    assert loser["close_reason"] == f"outcome=superseded superseded_by={winner.root_id}"
-
-
-def test_a_concurrent_create_that_converges_on_another_resolution_is_refused(
-    fake_store: WorkflowStore, fake_bd: FakeBd, definition: GraphDefinition
-) -> None:
-    # Convergence used to skip the identity check that reuse-by-key runs, so
-    # the caller whose root lost the race silently inherited an instance
-    # configured with a ceiling it never resolved (probed, round-2 review).
-    key = "raced-mismatch"
-
-    def interleave() -> None:
-        fake_store.create_root(
-            instance_key=key,
-            definition=definition,
-            resolved_config=_config(
-                ResolvedSetting(
-                    key="instance.max_total_activations",
-                    value=20,
-                    source=ConfigSource.GRAPH_DEFAULT,
-                ),
-            ),
-        )
-
-    fake_bd.pause_before("create", interleave)
-    with pytest.raises(CarrierIntegrityError, match="resolved_config"):
-        fake_store.create_root(
-            instance_key=key,
-            definition=definition,
-            resolved_config=_config(
-                ResolvedSetting(
-                    key="instance.max_total_activations",
-                    value=99,
-                    source=ConfigSource.INSTANCE_OVERRIDE,
-                ),
-            ),
-        )
-    live = [
-        row
-        for row in fake_bd.rows.values()
-        if row["metadata"].get("instance_key") == key
-        and row["metadata"].get("superseded_by") is None
-    ]
-    assert [
-        next(
-            setting["value"]
-            for setting in row["metadata"]["resolved_config"]
-            if setting["key"] == "instance.max_total_activations"
-        )
-        for row in live
-    ] == [20]
-
-
-def test_convergence_never_supersedes_the_root_that_owns_the_instance(
-    fake_store: WorkflowStore,
-    fake_client: BdClient,
-    fake_bd: FakeBd,
-    definition: GraphDefinition,
-) -> None:
-    # bd 1.1.0 hands out ids that are NOT ordered by creation (`wf-yd1` before
-    # `wf-c7b`; probed live, round 3), so "lowest id survives" said nothing
-    # about which root the instance actually ran on: a later duplicate could
-    # win and close the root owning every activation and gate.
-    key = "owner-vs-id"
-    root = fake_store.create_root(
-        instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
-    )
-    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
-    duplicate = fake_client._create_bead(
-        title="wf root duplicate",
-        metadata=metadata_dict(root.metadata.model_copy(update={"wf_root_id": None})),
-    )
-    # Give the duplicate a LOWER id than the populated root, which is exactly
-    # what unordered bd ids produce half the time.
-    row = fake_bd.rows.pop(duplicate.id)
-    row["id"] = LOW_BEAD_ID
-    fake_bd.rows[LOW_BEAD_ID] = row
-
-    converged = fake_store.create_root(
-        instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
-    )
-
-    assert converged.root_id == root.root_id
-    assert fake_client.show(root.root_id).status == STATUS_OPEN
-    assert fake_bd.rows[LOW_BEAD_ID]["metadata"]["superseded_by"] == root.root_id
-    assert activation.activation_id in {
-        record.activation_id
-        for record in fake_store.reads.list_activations(converged.root_id)
-    }
-
-
 def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
     fake_store: WorkflowStore,
-    fake_client: BdClient,
+    fake_client: LedgerStore,
     definition: GraphDefinition,
 ) -> None:
     """Residue an instance carries must not wedge convergence or allocation.
@@ -303,9 +123,10 @@ def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
         instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
     )
     for carried in (7, True, JSON_SAFE_INT_LIMIT + 1):
-        fake_client._create_bead(
-            title="wf activation with an unreadable carrier",
-            metadata={
+        seed_row(
+            fake_client,
+            "wf activation with an unreadable carrier",
+            {
                 "wf_kind": WfKind.ACTIVATION.value,
                 "wf_root_id": root.root_id,
                 "seq": carried,
@@ -314,16 +135,16 @@ def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
 
     with pytest.raises(CarrierIntegrityError):
         fake_store.reads.instance_records(root.root_id)
-    assert fake_store.reads.owns_instance_rows(root.root_id) is True
     # A `bool` and an integer past the JSON-safe bound are residue too: neither
     # can be allocated from, so the successor comes from the one valid `seq`.
     assert fake_store.reads.next_instance_seq(root.root_id) == 8
 
     # The bound itself IS a valid `seq`, and its successor is not: allocation
     # refuses rather than hand out a number no write could carry back.
-    fake_client._create_bead(
-        title="wf activation at the JSON-safe bound",
-        metadata={
+    seed_row(
+        fake_client,
+        "wf activation at the JSON-safe bound",
+        {
             "wf_kind": WfKind.ACTIVATION.value,
             "wf_root_id": root.root_id,
             "seq": JSON_SAFE_INT_LIMIT,
@@ -331,39 +152,6 @@ def test_a_malformed_sibling_row_blocks_neither_ownership_nor_seq(
     )
     with pytest.raises(CarrierIntegrityError, match="seq space is exhausted"):
         fake_store.reads.next_instance_seq(root.root_id)
-
-
-def test_two_roots_that_both_own_beads_refuse_to_converge(
-    fake_store: WorkflowStore,
-    fake_client: BdClient,
-    definition: GraphDefinition,
-) -> None:
-    # Converging would orphan one running instance's trace. There is no safe
-    # automatic answer, so it fails toward triage (§3.1).
-    key = "both-own"
-    root = fake_store.create_root(
-        instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
-    )
-    fake_store.mint_activation(root.root_id, entry_request())
-    duplicate = fake_client._create_bead(
-        title="wf root duplicate",
-        metadata=metadata_dict(root.metadata.model_copy(update={"wf_root_id": None})),
-    )
-    fake_client._merge_metadata(duplicate.id, {"wf_root_id": duplicate.id})
-    fake_client._create_bead(
-        title="wf event under the duplicate",
-        metadata={
-            "wf_kind": WfKind.EVENT.value,
-            "wf_root_id": duplicate.id,
-            "event_key": "k",
-            "seq": 1,
-        },
-    )
-
-    with pytest.raises(CarrierIntegrityError, match="more than one live root"):
-        fake_store.create_root(
-            instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
-        )
 
 
 def test_a_configuration_identity_distinguishes_value_types(
@@ -447,15 +235,13 @@ def test_roots_can_be_discovered_without_reaching_into_the_package(
     )
 
 
-def test_a_store_can_be_built_from_configuration_alone(
+def test_the_sealed_boundary_exports_every_name_a_caller_must_build(
     fake_store: WorkflowStore,
 ) -> None:
-    # `BdClient` stays unexported (§0.1), so without a factory the sealed
-    # boundary was also an unbuildable one (probed, round 3).
+    # The store is constructed from a `LedgerStore` now (R1), so what the
+    # boundary owes callers is the vocabulary, not a factory.
     import workflow_interpreter.bdio as package
 
-    assert "BdClient" not in package.__all__
-    assert hasattr(package.WorkflowStore, "from_config")
     for name in (
         "MintRequest",
         "GateOpenRequest",

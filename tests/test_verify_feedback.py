@@ -26,8 +26,8 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.foreman.inputs import InputsUnavailable, materialize
 from workflow_interpreter.foreman.verify_feedback import bounded_payload
-from workflow_interpreter.supervisor.models import CompletionEvidence, VerifyResult
-from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.inspector.models import CompletionEvidence, VerifyResult
+from workflow_interpreter.inspector.sandbox import SandboxMode
 
 
 def feedback_graph(tmp_path: Path, *, consumer: str = "implement") -> Path:
@@ -171,7 +171,7 @@ def test_marker_only_fail_code_has_no_host_feedback(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:
     """A claimed fail_code with green host checks supplies no diagnostic source."""
-    from tests._supervisor import ChildScript
+    from tests._inspector import ChildScript
 
     lab = _lab(tmp_path, signing_config, sign_payload, toml=feedback_graph(tmp_path))
     lab.instantiate()
@@ -351,7 +351,7 @@ def test_mint_rejects_feedback_without_the_actual_causal_predecessor(
         inputs = tuple(forged if b.name == binding.name else b for b in inputs)
     request = MintRequest(
         node="implement",
-        runner_profile=activation.metadata.runner_profile,
+        crew_profile=activation.metadata.crew_profile,
         model=activation.metadata.model,
         session_id="",
         mint_reason=MintReason.ENTRY if forgery == "entry" else MintReason.EDGE,
@@ -366,7 +366,7 @@ def test_payload_digest_detects_replaced_blob_even_when_ref_matches(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:
     """OID lookup alone cannot authenticate a rewritten payload against its binding."""
-    from workflow_interpreter.supervisor.gitcmd import GitSubcommand
+    from workflow_interpreter.inspector.gitcmd import GitSubcommand
 
     lab = _lab(
         tmp_path,
@@ -410,8 +410,8 @@ def test_optional_pin_creation_failure_degrades_with_visible_deviation(
 ) -> None:
     """A failed initial pin leaves a dispatchable, auditable optional omission."""
     from workflow_interpreter.foreman import __main__ as main_module
-    from workflow_interpreter.supervisor.gitcmd import GitResult, GitSubcommand
-    from workflow_interpreter.supervisor.gitio import Git
+    from workflow_interpreter.inspector.gitcmd import GitResult, GitSubcommand
+    from workflow_interpreter.inspector.gitio import Git
 
     lab = _lab(
         tmp_path,

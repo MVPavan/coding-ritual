@@ -1,4 +1,4 @@
-"""Real deterministic processes through ordinary Foreman and Supervisor."""
+"""Real deterministic processes through ordinary Foreman and Inspector."""
 
 from collections.abc import Mapping
 from dataclasses import replace
@@ -12,12 +12,11 @@ from tests._foreman import (
     LockedPersistentBd,
     ProcSpawner,
 )
-from tests._supervisor import ChildScript
-from workflow_interpreter.bdio.constants import BackendKind
-from workflow_interpreter.foreman.config import RunnerBinding
+from tests._inspector import ChildScript
+from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.decisions import admission_of
-from workflow_interpreter.supervisor.clock import SystemClock
-from workflow_interpreter.supervisor.models import SandboxMode
+from workflow_interpreter.inspector.clock import SystemClock
+from workflow_interpreter.inspector.models import SandboxMode
 
 
 def writer_lab(
@@ -25,8 +24,7 @@ def writer_lab(
     *,
     sandbox: SandboxMode = SandboxMode.OFF,
     writing: bool = True,
-    roles: Mapping[str, RunnerBinding] = DEFAULT_LAB_ROLES,
-    store: BackendKind = BackendKind.BD,
+    roles: Mapping[str, CrewBinding] = DEFAULT_LAB_ROLES,
 ):
     graph = tmp_path / "writer.toml"
     graph.write_text("""[graph]
@@ -43,7 +41,7 @@ to = "failed"
 name = "work"
 kind = "task"
 instructions = "Write the deterministic feature and report done."
-runner = "profile:implementer"
+crew = "profile:implementer"
 writes = true
 isolation = "worktree"
 allowed_paths = ["src/**"]
@@ -89,7 +87,6 @@ to = "failed"
         instance_inputs={},
         sandbox=sandbox,
         roles=roles,
-        store=store,
     )
     owner = lab.instantiate_resolved()
     spawner = ProcSpawner()
@@ -126,7 +123,7 @@ def test_real_writer_collection_keeps_immutable_evidence(tmp_path: Path) -> None
 
     from workflow_interpreter.foreman.heartbeat import DriverHeartbeat
     from workflow_interpreter.foreman.wake_constants import DriverState
-    from workflow_interpreter.supervisor.paths import read_record
+    from workflow_interpreter.inspector.paths import read_record
 
     heartbeat = read_record(
         composition.for_root(child.root_id).paths.driver_heartbeat, DriverHeartbeat
@@ -140,8 +137,8 @@ def test_real_writer_collection_keeps_immutable_evidence(tmp_path: Path) -> None
 def test_process_cap_isolation_cancel_and_fresh_driver_recovery(
     tmp_path: Path, cap: int
 ) -> None:
-    from workflow_interpreter.supervisor import procfs
-    from workflow_interpreter.supervisor.models import Liveness
+    from workflow_interpreter.inspector import procfs
+    from workflow_interpreter.inspector.models import Liveness
 
     lab, owner, composition, spawner = writer_lab(tmp_path)
     lab.profiles.bind_node(
@@ -173,7 +170,7 @@ def test_process_cap_isolation_cancel_and_fresh_driver_recovery(
         assert all(a.metadata.handle is not None for a in acts)
         assert all(
             procfs.prove_liveness(
-                composition.supervisor_config, a.metadata.handle
+                composition.inspector_config, a.metadata.handle
             ).status
             is Liveness.ALIVE
             for a in acts
@@ -196,14 +193,14 @@ def test_process_cap_isolation_cancel_and_fresh_driver_recovery(
             fresh.collect_child(owner.root_id, "one", 0)
         assert (
             procfs.prove_liveness(
-                composition.supervisor_config, acts[0].metadata.handle
+                composition.inspector_config, acts[0].metadata.handle
             ).status
             is not Liveness.ALIVE
         )
         if cap == 2:
             assert (
                 procfs.prove_liveness(
-                    composition.supervisor_config, acts[1].metadata.handle
+                    composition.inspector_config, acts[1].metadata.handle
                 ).status
                 is Liveness.ALIVE
             )
@@ -244,11 +241,11 @@ def test_indeterminate_process_death_stays_pending(tmp_path: Path) -> None:
         proc = tmp_path / "unreadable-proc"
         (proc / str(handle.pid)).mkdir(parents=True)
         (proc / str(handle.pid) / "stat").write_text("malformed process identity")
-        config = composition.supervisor_config.model_copy(update={"proc_root": proc})
+        config = composition.inspector_config.model_copy(update={"proc_root": proc})
         uncertain = replace(
             composition,
-            supervisor_config=config,
-            config=composition.config.model_copy(update={"supervisor": config}),
+            inspector_config=config,
+            config=composition.config.model_copy(update={"inspector": config}),
         )
         pending = lab.store.coordination_store(composition=uncertain).cancel_child(
             owner.root_id, "one", 0, "stop", "uncertain identity"
@@ -280,7 +277,7 @@ def _drive_in_process(composition, owner_id):
 
 
 def _contending_driver(composition, owner_id, results):
-    from workflow_interpreter.supervisor.errors import LockUnavailable
+    from workflow_interpreter.inspector.errors import LockUnavailable
 
     try:
         composition.store.coordination_store(composition=composition).drive_children(
@@ -299,8 +296,8 @@ def test_killed_driver_recovers_same_running_process_and_reservation(
     import multiprocessing
     import time
 
-    from workflow_interpreter.supervisor import procfs
-    from workflow_interpreter.supervisor.models import Liveness
+    from workflow_interpreter.inspector import procfs
+    from workflow_interpreter.inspector.models import Liveness
 
     lab, owner, composition, _spawner = writer_lab(tmp_path)
     lab.profiles.bind_node(
@@ -349,7 +346,7 @@ def test_killed_driver_recovers_same_running_process_and_reservation(
             lab.store.reads.list_activations(child.root_id)[0].metadata.handle == handle
         )
         assert (
-            procfs.prove_liveness(composition.supervisor_config, handle).status
+            procfs.prove_liveness(composition.inspector_config, handle).status
             is Liveness.ALIVE
         )
         # The dead driver's canonical lock is released; no new admission is needed.
@@ -407,7 +404,7 @@ def test_cancel_between_real_launch_and_dispatch_publication(
     import multiprocessing
 
     from tests._fake_bd import InjectedCrash
-    from tests._supervisor import FakeProfile
+    from tests._inspector import FakeProfile
 
     publication = multiprocessing.get_context("fork").Event()
 
@@ -445,8 +442,8 @@ def test_cancel_between_real_launch_and_dispatch_publication(
         )
         from workflow_interpreter.foreman.compose import WrapperLaunch
         from workflow_interpreter.foreman.constants import DISPATCH_REQUEST
+        from workflow_interpreter.inspector.paths import ExecLedger, read_record
         from workflow_interpreter.schema.decisions import CoordinationError
-        from workflow_interpreter.supervisor.paths import ExecLedger, read_record
 
         wiring = composition.for_root(child.root_id)
         if not crash_publication:

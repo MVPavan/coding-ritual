@@ -1,6 +1,6 @@
 # 07 — Grading: the claim is not proof
 
-`supervisor/exit_grade.py`. Its `_compute` docstring states the principle in one line:
+`inspector/exit_grade.py`. Its `_compute` docstring states the principle in one line:
 *"Decide the outcome the evidence supports — never the one claimed."*
 
 The agent's verdict is an input to grading, not its result. Grading is host-only, runs
@@ -27,18 +27,18 @@ verified = intended_base_commit if artifact is None else artifact.commit_oid
 `verified` is the commit the checks actually ran at — the artifact commit when the
 agent produced one, the base commit when it did not (a `no_diff` attempt, or a
 non-writing reviewer). The checks then run inside a `VerifyTree`: **a fresh checkout of
-that commit**, not the working tree the runner could still be writing. That is what
+that commit**, not the working tree the crew could still be writing. That is what
 makes the anti-drift check mean anything.
 
 ## Step 3: two early exits
 
-1. **Non-zero exit and no marker** → `error_runner`. The process died without
+1. **Non-zero exit and no marker** → `error_crew`. The process died without
    reporting; infrastructure, and it does not consume a round.
 2. **Zero exit but no valid marker** → flagged `MARKER_INVALID`, reason recorded.
 
 ## Step 4: five ways a success claim becomes `fail_code`
 
-`supervisor/exit_grade.py:370-411`. Any of these overrides the claim:
+`inspector/exit_grade.py:370-411`. Any of these overrides the claim:
 
 1. **A verify check exited non-zero.**
 2. **The effects manifest is absent.** The agent must declare what it touched.
@@ -53,7 +53,7 @@ claim being wrong in **either** direction. You cannot under-claim or over-claim 
 
 ## Step 5: what was touched, measured two ways
 
-- **`undeclared_effects`** — observed writes minus what the runner declared.
+- **`undeclared_effects`** — observed writes minus what the crew declared.
 - **`out_of_scope`** — observed writes minus the node's `allowed_paths`, *ignoring the
   manifest entirely*. The comment is pointed: *"a node that writes anywhere and says so
   is graded clean"* by the first measure, so the second asks the question an operator
@@ -70,7 +70,7 @@ This is where the chain lands: the sandbox grant is *disclosure*, the verifier i
 `review_findings` runs only when the node's `outcomes` include `reject` — the graph's
 own statement that this node grades someone else's work. Three rules, each a scar:
 
-- Bytes come from the **pinned tree**, not any directory the runner can still reach, so
+- Bytes come from the **pinned tree**, not any directory the crew can still reach, so
   extraction cannot race the child and two replays agree.
 - Exactly **one** named file is read, `review.md`. The tree also holds that node's
   evidence, and concatenating it *"would append a command transcript to the last
@@ -79,7 +79,7 @@ own statement that this node grades someone else's work. Three rules, each a sca
 
 ## The order that makes it trustworthy
 
-1. The runner exits.
+1. The crew exits.
 2. The wrapper writes `exit.json` **first**.
 3. It pins artifacts and outputs to refs — evidence survives before any verdict exists.
 4. It runs the checks in a clean tree at the pinned commit.

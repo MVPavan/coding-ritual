@@ -96,10 +96,10 @@ def test_real_decision_resumes_work_and_preserves_human_gate(tmp_path: Path) -> 
 wrapper_home = {json.dumps(str(wrapper))}
 host = {json.dumps(socket.gethostname())}
 actor = "codex:p2-live"
-[bd]
+[tracker.bd]
 workspace = {json.dumps(str(repo))}
 actor = "codex:p2-live"
-[supervisor]
+[inspector]
 repo_root = {json.dumps(str(repo))}
 wrapper_root = {json.dumps(str(rootdir))}
 host = {json.dumps(socket.gethostname())}

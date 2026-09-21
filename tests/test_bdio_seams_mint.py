@@ -26,7 +26,7 @@ def _request(**updates: object) -> MintRequest:
     values: dict[str, object] = {
         "node": "implement",
         "mint_reason": MintReason.ENTRY,
-        "runner_profile": "shell",
+        "crew_profile": "shell",
         "model": "test",
         "session_id": "session",
     }

@@ -13,9 +13,12 @@ from typing import Final
 import pytest
 from pydantic import ValidationError
 
-from workflow_interpreter.bdio.client import ISSUE_TYPE_OF, as_row
-from workflow_interpreter.bdio.rows import RowQuery, StoreRow
-from workflow_interpreter.bdio.wire import BeadRecord
+from tests._bdio import seed_row
+from tests._helpers import seeded_records
+from tests._inspector import make_config, make_git, make_repo
+from workflow_interpreter.bdio.rows import RowKind, RowQuery, StoreRow
+from workflow_interpreter.contractor.models import ContractorRecord
+from workflow_interpreter.contractor.records import LedgerContractorRecords
 from workflow_interpreter.costs.collection import (
     CompletionEvidence,
     TaskCollection,
@@ -32,6 +35,8 @@ from workflow_interpreter.costs.report import (
 )
 from workflow_interpreter.costs.supplement import UsageSupplement, apply_supplement
 from workflow_interpreter.ledger.database import open_ledger
+from workflow_interpreter.ledger.export import pin_export, write_export
+from workflow_interpreter.ledger.store import LedgerStore
 
 
 def _pricebook() -> PriceBook:
@@ -393,62 +398,87 @@ def test_malformed_and_oversized_logs_are_safe_and_incomplete(tmp_path: Path) ->
 
 
 class FakeReadClient:
-    """Minimal local BdClient-shaped read seam with no mutation surface."""
+    """A minimal record-store read seam with no mutation surface.
+
+    Store-shaped since S6 (R1): costs reads the ledger and nothing else, so
+    the double answers `find_rows` over synthetic rows rather than standing in
+    for a bd workspace.
+    """
 
     def __init__(self, rows: list[dict[str, object]]) -> None:
         self.rows = {str(row["id"]): row for row in rows}
         self.reads: list[str] = []
 
-    def show(self, bead_id: str) -> BeadRecord:
-        """Return one synthetic bead."""
-        self.reads.append(f"show:{bead_id}")
-        return BeadRecord.model_validate(self.rows[bead_id])
-
-    def list_beads(self, *, metadata_filters=None, issue_type=None):
-        """Return rows matching the same metadata conjunction as BdClient."""
-        self.reads.append("list")
+    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
+        """Every synthetic row the ANDed carrier filters select."""
+        self.reads.append("find")
         selected = []
         for raw in self.rows.values():
-            if issue_type is not None and raw["issue_type"] != issue_type.value:
+            if query.kind is not None and _kind_of(raw) is not query.kind:
                 continue
             metadata = raw.get("metadata", {})
+            assert isinstance(metadata, dict)
             if all(
                 metadata.get(key) == value
-                for key, value in (metadata_filters or {}).items()
+                for key, value in (query.metadata_filters or {}).items()
             ):
-                selected.append(BeadRecord.model_validate(raw))
+                selected.append(_store_row(raw))
         return tuple(selected)
 
-    def find_rows(self, query: RowQuery) -> tuple[StoreRow, ...]:
-        """The neutral read the §4 vocabulary issues, over the same rows."""
-        return tuple(
-            as_row(record)
-            for record in self.list_beads(
-                metadata_filters=query.metadata_filters,
-                issue_type=None if query.kind is None else ISSUE_TYPE_OF[query.kind],
-            )
-        )
+
+def _kind_of(raw: dict[str, object]) -> RowKind:
+    """A synthetic row's neutral kind, from the shape the fixtures declare."""
+    return RowKind.EVENT if raw.get("issue_type") == "event" else RowKind.RECORD
 
 
-def _collect(client, stage_id: str, **kwargs):
+def _store_row(raw: dict[str, object]) -> StoreRow:
+    """One synthetic row as the store's neutral row."""
+    metadata = raw.get("metadata", {})
+    assert isinstance(metadata, dict)
+    return StoreRow(
+        id=str(raw["id"]),
+        status=str(raw.get("status", "open")),
+        kind=_kind_of(raw),
+        metadata=metadata,
+        close_reason=(
+            None if raw.get("close_reason") is None else str(raw["close_reason"])
+        ),
+    )
+
+
+def _collect(
+    client, stage_id: str, *, record: dict[str, object] | None = None, **kwargs
+):
     """Collect one stage with the roots served by the same synthetic rows.
 
-    The backend factory is what production injects (§3.2); these rows stand in
-    for BOTH the task bead and its roots, so the factory answers with the one
-    client whichever backend the bridge record pins.
+    `record` is the stage's contractor record. Handed in as JSON because that
+    is how `collect_task` takes it since S4: the record is a ledger row (§3.2,
+    R4), and the CLI that opens the read-only ledger is what reads it — so
+    these cases state it directly rather than hiding it in a bead's metadata.
     """
-    return collect_task(client, stage_id, backends=lambda _: client, **kwargs)
+    return collect_task(
+        client,
+        stage_id,
+        task_closed=kwargs.pop("task_closed", True),
+        record_json=json.dumps(_record() if record is None else record),
+        **kwargs,
+    )
 
 
-def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
+def _record(*, current_root_id: str = "root-2") -> dict[str, object]:
+    """The stage's contractor record, at the last state a finish leaves it.
+
+    LANDED, not closed: nothing writes CLOSED since S2 and the member is gone
+    since S4 — closure is derived from the ledger and its git anchor (§3.5).
+    """
     oid = "a" * 40
-    bridge = {
-        "schema": "phase-bridge/3",
-        "state": "closed",
+    return {
+        "schema": "contract/3",
+        "state": "landed",
         "epic_id": "epic-1",
         "stage_id": "stage-1",
         "attempt": 2,
-        "instance_key": "phase-bridge:epic-1:stage-1:attempt:2",
+        "instance_key": "contract:epic-1:stage-1:attempt:2",
         "target_ref": "refs/heads/main",
         "expected_base_commit": oid,
         "root_id": current_root_id,
@@ -456,19 +486,25 @@ def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
         "tree": "b" * 40,
         "gate_receipt_digest": "gate-digest",
         "landing_receipt_digest": "landing-digest",
-        "previous_attempts": ["phase-bridge:epic-1:stage-1:attempt:1"],
+        "previous_attempts": ["contract:epic-1:stage-1:attempt:1"],
     }
+
+
+def _task_rows():
+    oid = "a" * 40
     rows: list[dict[str, object]] = [
         {
+            # The stage's own row carries no engine carrier, so costs never
+            # selects it; it is here because the fixtures index by position.
             "id": "stage-1",
             "title": "stage",
-            "status": "closed" if closed else "in_progress",
+            "status": "closed",
             "issue_type": "task",
-            "metadata": {"phase_bridge": bridge},
+            "metadata": {},
         }
     ]
     for root_id, attempt in (("root-1", 1), ("root-2", 2)):
-        instance_key = f"phase-bridge:epic-1:stage-1:attempt:{attempt}"
+        instance_key = f"contract:epic-1:stage-1:attempt:{attempt}"
         rows.append(
             {
                 "id": root_id,
@@ -496,7 +532,7 @@ def _task_rows(*, current_root_id: str = "root-2", closed: bool = True):
                     "seq": 1,
                     "idempotency_key": f"key-{attempt}",
                     "mint_reason": "entry",
-                    "runner_profile": "codex",
+                    "crew_profile": "codex",
                     "model": "gpt-5.6-sol",
                     "session_id": f"session-{attempt}",
                     "intended_base_commit": oid,
@@ -543,7 +579,7 @@ def test_collection_includes_failed_and_successful_attempts_without_writes() -> 
         "activation-2",
     ]
     assert sum(item.tokens.output or 0 for item in collected.observations) == 15
-    assert set(client.reads) <= {"show:stage-1", "list"}
+    assert set(client.reads) <= {"find"}
 
 
 def test_minted_activation_that_never_executed_does_not_degrade_usage_coverage() -> (
@@ -563,15 +599,22 @@ def test_minted_activation_that_never_executed_does_not_degrade_usage_coverage()
 
 
 @pytest.mark.parametrize(
-    ("current_root_id", "closed"),
+    ("current_root_id", "task_closed"),
     [("forged-root", True), ("root-2", False)],
 )
 def test_completion_refuses_forged_or_merely_closed_evidence(
-    current_root_id: str, closed: bool
+    current_root_id: str, task_closed: bool
 ) -> None:
+    """A root the record does not name, or a task that does not derive closed.
+
+    "Merely closed" is `ledger.closure.closed` since S6 (R1): the stage bead's
+    status was a MIRROR, and costs reads the ledger and its git anchor.
+    """
     collected = _collect(
-        FakeReadClient(_task_rows(current_root_id=current_root_id, closed=closed)),
+        FakeReadClient(_task_rows()),
         "stage-1",
+        record=_record(current_root_id=current_root_id),
+        task_closed=task_closed,
     )
 
     assert collected.completion.verified is False
@@ -583,10 +626,10 @@ def test_completion_refuses_forged_or_merely_closed_evidence(
     ["landed_oid", "tree", "gate_receipt_digest", "landing_receipt_digest"],
 )
 def test_completion_requires_every_landing_field(missing_field: str) -> None:
-    rows = _task_rows()
-    rows[0]["metadata"]["phase_bridge"][missing_field] = None
+    record = _record()
+    record[missing_field] = None
 
-    collected = _collect(FakeReadClient(rows), "stage-1")
+    collected = _collect(FakeReadClient(_task_rows()), "stage-1", record=record)
 
     assert collected.completion.verified is False
 
@@ -633,33 +676,21 @@ def test_completion_rejects_current_root_terminal_contradictions(
     }
 
 
-def test_completion_rejects_stage_close_reason_contradiction() -> None:
-    rows = _task_rows()
-    rows[0]["close_reason"] = "phase bridge landing receipt=different-digest"
-
-    collected = _collect(FakeReadClient(rows), "stage-1")
-
-    assert collected.completion.verified is False
-    assert "stage-close-reason-contradiction" in {
-        item.code for item in collected.diagnostics
-    }
-
-
 def test_completion_rejects_available_landing_record_contradiction(
     tmp_path: Path,
 ) -> None:
     runtime_root = tmp_path / "root-2"
     runtime_root.mkdir()
-    bridge = _task_rows()[0]["metadata"]["phase_bridge"]
-    oid = str(bridge["landed_oid"])
-    tree = str(bridge["tree"])
+    contractor = _record()
+    oid = str(contractor["landed_oid"])
+    tree = str(contractor["tree"])
     intent = {
-        "schema": "phase-bridge-landing/2",
-        "ref": bridge["target_ref"],
-        "expected_base": bridge["expected_base_commit"],
+        "schema": "contract-landing/2",
+        "ref": contractor["target_ref"],
+        "expected_base": contractor["expected_base_commit"],
         "artifact_oid": oid,
         "tree": tree,
-        "gate_receipt_digest": bridge["gate_receipt_digest"],
+        "gate_receipt_digest": contractor["gate_receipt_digest"],
         "root_id": "root-2",
         "policy_digest": "policy",
         "stage": "stage-1",
@@ -667,12 +698,12 @@ def test_completion_rejects_available_landing_record_contradiction(
     }
     receipt = {
         "intent_digest": "not-the-intent-digest",
-        "ref": bridge["target_ref"],
-        "expected_base": bridge["expected_base_commit"],
+        "ref": contractor["target_ref"],
+        "expected_base": contractor["expected_base_commit"],
         "signed_oid": oid,
         "landed_oid": "c" * 40,
         "tree": tree,
-        "gate_receipt_digest": bridge["gate_receipt_digest"],
+        "gate_receipt_digest": contractor["gate_receipt_digest"],
         "policy_digest": "policy",
         "repository_gate_results": [
             {
@@ -684,8 +715,8 @@ def test_completion_rejects_available_landing_record_contradiction(
             }
         ],
     }
-    (runtime_root / "phase-bridge-landing.json").write_text(json.dumps(intent))
-    (runtime_root / "phase-bridge-landing-receipt.json").write_text(json.dumps(receipt))
+    (runtime_root / "contract-landing.json").write_text(json.dumps(intent))
+    (runtime_root / "contract-landing-receipt.json").write_text(json.dumps(receipt))
 
     collected = _collect(
         FakeReadClient(_task_rows()),
@@ -837,9 +868,9 @@ def test_strict_supplement_supplies_usage_and_explicit_coverage_basis() -> None:
 
 
 def test_complete_external_declaration_preserves_unreadable_task_scope() -> None:
-    rows = _task_rows()
-    rows[0]["metadata"]["phase_bridge"] = {"invalid": "identity"}
-    collected = _collect(FakeReadClient(rows), "stage-1")
+    collected = _collect(
+        FakeReadClient(_task_rows()), "stage-1", record={"invalid": "identity"}
+    )
     supplemented = apply_supplement(
         collected,
         UsageSupplement.model_validate(
@@ -865,9 +896,7 @@ def test_complete_external_declaration_preserves_unreadable_task_scope() -> None
     assert supplemented.diagnostics == collected.diagnostics
     assert supplemented.coverage_complete is False
     assert "uncovered scope: task execution identity is unavailable" in rendered
-    assert (
-        "diagnostic: phase-bridge-invalid: phase bridge metadata is invalid" in rendered
-    )
+    assert "diagnostic: contract-invalid: contractor record is invalid" in rendered
 
 
 def test_supplement_exact_duplicates_dedupe_and_conflicts_fail() -> None:
@@ -928,7 +957,7 @@ def test_cohort_separates_failure_spend_and_zero_completion_nulls() -> None:
         normalize_standard=True,
     )
     incomplete = build_task_report(
-        _collect(FakeReadClient(_task_rows(closed=False)), "stage-1"),
+        _collect(FakeReadClient(_task_rows()), "stage-1", task_closed=False),
         _pricebook(),
         normalize_standard=True,
     )
@@ -1257,7 +1286,7 @@ def test_supplement_cannot_hide_incomplete_raw_telemetry(tmp_path: Path) -> None
         run_log='{"type":"system","session_id":"session-1"}\n',
     )
     rows = _task_rows()
-    rows[2]["metadata"]["runner_profile"] = "claude"
+    rows[2]["metadata"]["crew_profile"] = "claude"
     rows[2]["metadata"]["model"] = "claude-opus-5"
     collected = _collect(
         FakeReadClient(rows),
@@ -1374,36 +1403,50 @@ def test_module_cli_is_the_supported_entrypoint() -> None:
     assert "cohort" in completed.stdout
 
 
-def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
-    rows_path = tmp_path / "rows.json"
-    rows_path.write_text(json.dumps(_task_rows()))
-    fake_bd = tmp_path / "fake-bd"
-    fake_bd.write_text(
-        "#!" + sys.executable + "\n"
-        "import json, sys\n"
-        f"rows = json.load(open({str(rows_path)!r}, encoding='utf-8'))\n"
-        "command = sys.argv[5]\n"
-        "args = sys.argv[6:]\n"
-        "if command == 'show':\n"
-        "    selected = [r for r in rows if r['id'] == args[0]]\n"
-        "elif command == 'list':\n"
-        "    filters = [args[i + 1] for i, value in enumerate(args) "
-        "if value == '--metadata-field']\n"
-        "    selected = rows\n"
-        "    for item in filters:\n"
-        "        key, value = item.split('=', 1)\n"
-        "        selected = [r for r in selected "
-        "if str(r.get('metadata', {}).get(key)) == value]\n"
-        "else:\n"
-        "    raise SystemExit(9)\n"
-        "sys.stdout.write(json.dumps(selected))\n"
-    )
-    fake_bd.chmod(0o755)
-    repo = tmp_path / "repo"
-    # A git entry and a ledger, because `costs` now opens the ledger `mode=ro`
-    # and REFUSES when there is none: a report that silently omitted every
-    # ledger-backed root would read like a task that cost nothing (§3.4).
-    (repo / ".git").mkdir(parents=True)
+def _seed_ledger_rows(database, rows) -> str:
+    """Write the fixture's carriers into the ledger, and name the current root.
+
+    The ids are the LEDGER's (`<task>-a<n>`, §3.3) rather than the fixture's,
+    because a run identity in the carrier is what decides an attempt root's
+    id now — so the record is pinned to the id the write actually minted.
+    """
+    backend = LedgerStore(database, task_id="stage-1", epic_id="epic-1")
+    minted: dict[str, str] = {}
+    for raw in rows:
+        metadata = dict(raw["metadata"])
+        kind = metadata.get("wf_kind")
+        if kind == "root":
+            attempt = int(str(metadata["instance_key"]).rsplit(":", 1)[1])
+            metadata["run_identity"] = {
+                "task_id": "stage-1",
+                "attempt": attempt,
+                "epic_id": "epic-1",
+            }
+            metadata.pop("wf_root_id", None)
+            written = seed_row(backend, str(raw["title"]), metadata)
+            minted[str(raw["id"])] = written.id
+        elif kind == "activation":
+            metadata["wf_root_id"] = minted[str(metadata["wf_root_id"])]
+            written = seed_row(backend, str(raw["title"]), metadata)
+        else:
+            continue
+        if raw.get("status") == "closed":
+            backend._close_row(written.id, "done")
+    return minted["root-2"]
+
+
+def test_actual_cli_reads_the_ledger_and_emits_json(tmp_path: Path) -> None:
+    """`costs` reads the record store and nothing else (S6, R1).
+
+    It used to reach a bd binary for the stage's status and its roots; there is
+    no tracker in this path at all now, so the fixture's rows go where the run
+    would have written them.
+    """
+    # A REAL checkout, because `costs` opens the ledger `mode=ro` and derives
+    # the task's closure from the export's git anchor (§3.6) — neither is
+    # answerable from a bare `.git` directory, and a report that silently
+    # omitted every root would read like a task that cost nothing (§3.4).
+    repo = make_repo(tmp_path)
     wrapper_home = tmp_path / "wrapper"
     wrapper_root = (
         wrapper_home / hashlib.sha256(str(repo.resolve()).encode()).hexdigest()[:16]
@@ -1414,16 +1457,27 @@ def test_actual_cli_reads_local_fake_bd_and_emits_json(tmp_path: Path) -> None:
         f'wrapper_home = "{wrapper_home}"\n'
         'host = "fixture"\n'
         'actor = "fixture"\n'
-        "[bd]\n"
+        "[tracker.bd]\n"
         f'workspace = "{repo}"\n'
         'actor = "fixture"\n'
-        f'binary = "{fake_bd}"\n'
-        "[supervisor]\n"
+        "[inspector]\n"
         f'repo_root = "{repo}"\n'
         f'wrapper_root = "{wrapper_root}"\n'
         'host = "fixture"\n'
     )
-    open_ledger(repo, wrapper_root).close()
+    database = open_ledger(repo, wrapper_root)
+    current_root_id = _seed_ledger_rows(database, _task_rows())
+    # The record is a ledger row since S4 (§3.2, R4) and the CLI reads it from
+    # there, so the stage has to HAVE one: without it the report is about a
+    # task whose execution identity is unavailable, not about this one.
+    seeded_records(
+        ContractorRecord.model_validate(_record(current_root_id=current_root_id)),
+        brief=None,
+        into=LedgerContractorRecords(database),
+    )
+    write_export(database, "stage-1")
+    pin_export(make_git(make_config(repo, tmp_path)), database, "stage-1", repo)
+    database.close()
     project_root = Path(__file__).resolve().parents[1]
     completed = subprocess.run(
         [

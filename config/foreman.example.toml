@@ -1,7 +1,7 @@
 # Foreman configuration — EXAMPLE, not a live config.
 #
 # `repo_root` and `wrapper_home` must be ABSOLUTE (`foreman/config.py`
-# `_shares_one_repository_identity`), and `supervisor.wrapper_root` must equal
+# `_shares_one_repository_identity`), and `inspector.wrapper_root` must equal
 # the hash-derived `wrapper_home/<sha256(repo_root)[:16]>` — so a working config
 # is machine-specific, which CLAUDE.md forbids checking in. Render this file
 # for the current checkout instead:
@@ -15,37 +15,31 @@ wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
 actor        = "@ACTOR@"
 
-# Which backend a NEW attempt root is pinned to: "bd" or "ledger" (run-ledger
-# §3.2, D18). Existing roots always resolve through the backend recorded on
-# their bridge record or their ledger `tasks` row, so flipping this back to
-# "bd" leaves ledger-backed roots loadable. There is no reverse migration.
-store = "bd"
-
-# The validated graph `phase-bridge` pins for a selected stage. It is a normal
-# configurable graph path, not a bridge implementation default.
-bridge_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"
+# The validated graph `contract` pins for a selected stage. It is a normal
+# configurable graph path, not a contractor implementation default.
+contractor_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"
 # For a specification stage, select workflows/design-spec.toml instead.
 # Basic work uses workflows/basic.toml through children admit; it returns an
-# artifact without bridge landing. Integration uses workflows/integration.toml
-# through explicit integration prepare and the same phase-bridge command.
+# artifact without contractor landing. Integration uses workflows/integration.toml
+# through explicit integration prepare and the same contract command.
 # These templates reuse the implementer/critic role bindings below.
 # Named writer/reviewer policies require bwrap. Receipts/status record tool_network:
 # codex = denied; claude = not_enforced (both Claude policies may launch).
 
-# Bridge admission requires an explicit complete nonempty check policy. Uncomment
+# Contractor admission requires an explicit complete nonempty check policy. Uncomment
 # and adapt the example only after provisioning uv under the PATH below and its
 # pinned Python under UV_PYTHON_INSTALL_DIR. This example calls the repository's
 # feature verifier; it is not a claim to run all seven parent milestone gates.
 # argv[0] is a tracked repository executable or an explicit absolute host tool,
-# never a bare command resolved through PATH. See docs/usage/phase-bridge.md for
+# never a bare command resolved through PATH. See docs/usage/contractor.md for
 # the fixed environment, detached checkout, policy pinning and retry contract.
-# BEGIN BRIDGE CHECK EXAMPLE
-# [[bridge_checks]]
+# BEGIN CONTRACTOR CHECK EXAMPLE
+# [[contractor_checks]]
 # name = "repository-feature-verifier"
 # argv = ["scripts/verify-feature.sh"]
 # timeout_s = 1800
 # environment = [["PATH", "@WRAPPER_HOME@/tools/bin:/usr/bin:/bin"], ["UV_PYTHON_INSTALL_DIR", "@WRAPPER_HOME@/python"]]
-# END BRIDGE CHECK EXAMPLE
+# END CONTRACTOR CHECK EXAMPLE
 
 # The driver always records heartbeat/refusals; monitoring is a separate command.
 # Start `foreman monitor <root>` independently; only --monitored requires it.
@@ -59,9 +53,15 @@ lifetime_cap = 100
 hook_timeout_s = 10
 hook_backoff_s = 5
 
-# The bd workspace is the repository itself: `bd init` puts `.beads/` there and
-# every invocation is scoped with `-C <workspace>` (`bdio/client.py`).
-[bd]
+# Which tracker this repository has, and how to reach it (store-restructure
+# §3.3). `backend = "file"` or `"null"` needs no `[tracker.bd]` section at all;
+# `backend = "bd"` (the default) requires one. The bd workspace is the
+# repository itself: `bd init` puts `.beads/` there and every invocation is
+# scoped with `-C <workspace>` (`tracker/bd_transport.py`).
+[tracker]
+backend = "bd"
+
+[tracker.bd]
 workspace = "@REPO_ROOT@"
 actor     = "@ACTOR@"
 
@@ -81,12 +81,12 @@ actor     = "@ACTOR@"
 [signing]
 allowed_signers_path = "@SIGNERS_DIR@/allowed_signers"
 
-[supervisor]
+[inspector]
 repo_root    = "@REPO_ROOT@"
 wrapper_root = "@WRAPPER_ROOT@"
 host         = "@HOST@"
 
-[supervisor.toolchain]
+[inspector.toolchain]
 # Explicit standalone uv projects; default root is used only when uv.lock exists.
 projects = ["."]
 # Optional absolute host paths. Omitted cache/python paths use uv discovery;
@@ -101,9 +101,9 @@ max_entries = 100000
 reserve_bytes = 67108864
 
 # Role bindings (§3.1 provenance source `role-binding`). The keys are the graph's
-# own `runner = "profile:<role>"` names — `feature-delivery.toml` declares
+# own `crew = "profile:<role>"` names — `feature-delivery.toml` declares
 # `implementer` and `critic` — and instantiation refuses a graph whose roles are
-# not all bound here ("unknown runner roles").
+# not all bound here ("unknown crew roles").
 #
 # The writer is claude and the reviewer is codex here, and that is a default
 # rather than a constraint. It used to be a constraint: the codex sandbox makes

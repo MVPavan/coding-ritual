@@ -17,7 +17,7 @@ class SessionRegistration(BaseModel):
     launch_id: str = Field(min_length=1)
     handle: ProcessHandle
     thread_id: str = Field(min_length=1, max_length=256)
-    runner_version: str = CODEX_VERSION
+    crew_version: str = CODEX_VERSION
     model: str
     effort: str
     policy_digest: str

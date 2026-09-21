@@ -23,7 +23,7 @@ entry_node = "plan"
 name = "work"
 kind = "task"
 region = "early"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -38,7 +38,7 @@ outcomes = ["done"]
 name = "plan"
 kind = "task"
 region = "later"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

@@ -1,129 +1,129 @@
-# 11 — Language and pluggability: three independent recommendations
+# 11 — Language and pluggability
 
-Dated 2026-09-18. Three models were given one identical brief — rebuild language
-choice, crash-recovery implications, distribution, and how to make the issue tracker
-pluggable — with no visibility into each other's answers. Full texts are in the session
-scratchpad; this is the consolidation.
+The ledger is the record store ([08](08-store.md)). This chapter is the other seam: the
+**tracker** — what humans read, and the one thing swappable for somebody else's service.
 
-Participants: **Opus 5** (high), **Sol 5.6** (high, via Codex), **Fable 5.1** (high).
+## The port
 
-## The tally
+Four operations, a capability set, and a closed union of desired states
+(`tracker/port.py`). Only the **contractor** holds one: the foreman, the inspector and
+the crew never import `tracker/`, because a tracker call on the run loop is a run that
+stops when somebody else's service does.
 
-| Agent | Greenfield choice | Rewrite now? | Confidence |
-|---|---|---|---|
-| Opus 5 | Python (stay); Go "defensible" | No | 85% no-rewrite; 60% Python-over-Go greenfield |
-| Sol 5.6 | **Go** | No | 85% Go; 90% that overhead alone does not justify a rewrite |
-| Fable 5.1 | **Go** | No — until concurrency forces it | 80% Go; 55% that a rebuild should happen at all |
+```python
+class TrackerPort(Protocol):
+    kind: TrackerKind
+    capabilities: frozenset[TrackerCapability]   # CHILDREN BLOCKERS CLAIM CLOSE ANNOTATE FLAG
+    def get(self, ref: TrackerRef) -> WorkItem | None: ...
+    def children(self, ref: TrackerRef) -> tuple[WorkItem, ...]: ...
+    def blockers(self, ref: TrackerRef) -> tuple[Blocker, ...]: ...
+    def apply(self, intent: TrackerIntent) -> TrackerResult: ...
+```
 
-**2–1 for Go on a greenfield build. 3–0 against rewriting now.** Rust was ranked second
-or third by all three and chosen by none: the hard parts are OS and protocol semantics
-no type system can prove, and borrow-checker friction slows LLM-assisted iteration
-without buying correctness where it is at risk.
+There is deliberately no `list`: the one sweep that would have needed it — finding tasks
+stranded in the claim window below — is answered per task from the ledger.
 
-## Unanimous: the resource worry is misplaced
+`TrackerIntent` is a **state**, never a toggle, so re-applying it is one write and not
+two: `Claim(actor, held=…)`, `Close(reason)`, `SetFlag(flag, on)`, `Annotate(key, text)`
+(defined, no caller emits one today). `apply` answers `Applied(observed)` — written and
+read back — or `Conflict(observed)`, the tracker disagreeing, which never rolls back a
+landed commit, or `Unknown(reason)`, which goes to the outbox. Reads raise
+`TrackerUnavailable` (retryable) or `TrackerRefused` (permanent).
 
-Sol measured it on this machine rather than estimating:
+## The three implementations
 
-- **49 MiB** max RSS importing the foreman, store and recovery modules
-- **0.32 s** cold `foreman --help`
-- **0.25 CPU-seconds** before the process sleeps
+`tracker.backend` in the foreman configuration picks one, through the single
+construction site `tracker_for` (`contractor/tracker_wiring.py`); `tasks.tracker_ref`
+and `tasks.tracker_kind` record which tracker a task's foreign id belongs to.
 
-Against a foreman that sleeps 30 s per tick and a `claude` process using 200–500 MB,
-CPython is roughly 10–20% of one activation's footprint — and that share *falls* as
-concurrency grows, because agents scale and the foreman does not. The GIL is
-irrelevant: the engine waits on processes, files, locks and SQLite; it never computes.
-Subprocess spawn uses `posix_spawn`/`vfork`, so spawning from a 60 MB parent costs well
-under a millisecond.
+| Backend | Capabilities | Notes |
+|---|---|---|
+| `BdTracker` | all but `ANNOTATE` | claim is `bd update --assignee <actor> --status in_progress`, **not** bd's own `--claim`, which binds the row to bd's user identity and refuses a row assigned to anyone else |
+| `FileTracker` | all six by default | one JSON document; the tracker a repository with no issue service actually wants, and the one a test can drive to every answer the port can give |
+| `NullTracker` | none | every intent `Applied(observed=None)`. A run with no tracker is not degraded, it is a run with no mirror — it owes only the brief, as `contract … --brief <file>` |
 
-Sol's summary: the measured cost was never Python dispatch, it was **1.5 s per tick in
-five `bd` round trips** — a protocol problem, which the ledger correctly attacked.
+An absent capability is not an error: callers branch on `capabilities`, never on a
+failure. A tracker with no `BLOCKERS` records `blockers_checked=false` and proceeds
+unless `tracker.blockers_required` is set — either way the trace can tell "nothing
+blocked it" from "nobody asked".
 
-## The real finding: the store seam is the wrong seam
+## Where the tracker is touched, and nowhere else
 
-All three reached this independently, in near-identical terms.
+| When | Call |
+|---|---|
+| prepare | `get` → the `WorkItem`, whose brief is snapshotted onto the record; `children` validates the selected stage; `blockers` |
+| admit | `apply(Claim)` immediately before the ledger transition |
+| close, abandon, attention | `apply(Close)` / `apply(SetFlag)` through the outbox |
 
-`StoreBackend` is a **record-store port shaped like bd**, being asked to double as
-tracker portability. Sol: *"a workflow database interface disguised as tracker
-portability."* Fable: beads fills two roles today, generic row store *and* human work
-tracker. The evidence each cited: bd cannot evaluate the row guard, cannot store
-signature bytes, cannot transact a gate close. The ledger already implements the port
-better than bd can.
+Everything after prepare is answered from the ledger — the record and its brief snapshot
+— which is what makes a retry, a recovery and a landing possible with the tracker gone.
 
-Their shared prescription, in five moves:
+## Claim first, then admit
 
-1. **SQLite becomes the only record store.** Delete the bd `StoreBackend`,
-   `SelectableBackendFactory`, `RootBackendLocator`, `root_backend` pinning and the
-   dual gate-write path. Opus estimates 15–20% of engine complexity, and a
-   disproportionate share of the twelve suspected defects' surface.
-2. **A small tracker port replaces it** — roughly `get`, `children`, `blockers`,
-   `claim`, `close`, plus optional `annotate` and `flag`. Every write followed by a
-   read-back, because no remote tracker is transactional.
-3. **The `phase_bridge` record moves off the bead into the ledger.** Opus's governing
-   rule: *the tool must reconstruct full state with the tracker offline or wiped.* That
-   single rule is what makes GitHub or Jira viable.
-4. **Mint tool-local, path-safe task ids** in the ledger and map them to tracker ids.
-   `PROJ-12` and `#123` cannot appear in `refs/wf/...` or worktree paths.
-5. **The foreman and supervisor never touch the tracker.** Only the bridge, at admit
-   and close, plus the attention reconciler. Snapshot at admission so no tick blocks on
-   a network.
+Every ledger-side refusal runs first (`contractor/admission.py`) — selected stage,
+`_refuse_other_admission`, HEAD and policy checks — *then* the tracker `Claim`, *then*
+the `contractor_records` transition to ADMITTED under `BEGIN IMMEDIATE`. Ordinary
+refusals never touch the tracker, and the call still precedes the transaction, so no
+I/O sits inside one. What that costs, and it is worth knowing before you operate this:
 
-What none of them would abstract: git, SQLite, gate signing, the evidence model, and
-any tracker query language.
+- **A claim-capable tracker must be reachable for PREPARED→ADMITTED.** `Unknown`
+  refuses admission: a task whose tracker may or may not hold it for this actor is not
+  one a second session can be told about. Offline work is `NullTracker`.
+- **A `Conflict` that observed a CLOSED item** retires the record as
+  ABANDONED_EXTERNAL rather than waiting for a claim nobody will grant — the same
+  retirement `phase abandon` performs, decided by somebody else.
+- **The crash window has one shape:** a `contractor_records` row at PREPARED plus an
+  item claimed by us. Detection is per task, never a sweep — the next `contract` on that
+  task, or `ledger reconcile <task>`, releases it through the same
+  `release_stranded_claim`. A ledger-side refusal *after* the claim releases it at once;
+  only a crash leaves it.
 
-Sol added a detail the others did not: `apply()` should return
-`Applied | Conflict | Unknown`, with `Unknown` on ambiguous network failure driving a
-durable `tracker_sync_pending` outbox that reconciles later and never rolls back a
-landed commit.
+## The outbox
 
-## Where they disagree
+`tracker_outbox` holds intents awaiting a tracker that can answer, and is what makes
+the tracker a mirror rather than a dependency. Three properties it exists to give:
 
-**1. The fork barrier under Go — same fact, opposite verdict.** Opus calls it the
-strongest argument against Go: the Go runtime forbids bare `fork`, so the one component
-whose correctness depends on behavior between fork and exec must be redesigned, and it
-is the most safety-critical file in the system. Fable agrees on the fact and disagrees
-on the valence — a re-exec'd `wf exec-shim` makes the barrier *an observable process
-with its own exit code* instead of a closure between two syscalls, which it calls better
-engineering. Sol takes the same line.
+1. **Nothing durable waits on a tracker.** A landed, exported, pinned task is closed
+   whatever bd says; `Unknown` leaves a row and the process exits.
+2. **One pending row per desired state**, keyed by `intent_key`. A second enqueue
+   replaces the pending one, so a drain is always repeatable.
+3. **No window between a fact and its mirror row.** An enqueue that follows a ledger
+   fact happens *inside that fact's transaction*. It is not exported: it records what
+   *this checkout* still owes, which is neither a fact about the task nor true in a
+   clone.
 
-**2. Where claims should live.** All three agree "not the tracker", each picks a
-different primitive: Opus says git-ref compare-and-swap (`git update-ref <ref> <new>
-<old>`), reusing what landing already trusts, and the only option that works across
-machines; Fable says the ledger's `BEGIN IMMEDIATE` plus the existing flock; Sol says
-engine-side leases.
+Three drain points, and none of them is a foreman tick:
 
-## Fable's traps, if Go is ever chosen
+- **immediately after the fact**, when the contractor mirrors one (`adapter.mirror`);
+- **at driver exit** (`drain_at_exit`) — every driver, not only `contract`. It runs from
+  a `finally`, bounded and non-fatal, so a mirror failure cannot replace the run's own
+  exit status; unapplied rows stay pending;
+- **`ledger reconcile <task>`**, a human asking for the mirror to be caught up.
 
-1. **`Pdeathsig` is tied to the parent *thread*, and Go migrates goroutines across
-   threads.** Without `runtime.LockOSThread()` for the child's lifetime, the signal
-   fires spuriously.
-2. **`database/sql` is a connection pool.** `BEGIN IMMEDIATE` on one connection with
-   the next statement on another silently breaks both the one-transaction-per-method
-   invariant and the flock held on the connection. Needs `*sql.Conn` with
-   `SetMaxOpenConns(1)`, or a single-connection driver.
-3. **Go and Rust randomize map iteration order.** Anywhere the foreman derives a
-   decision by iterating records — frontier heads, conflict detection — must sort
-   explicitly. Python's insertion-ordered dicts have been hiding this. This would
-   produce nondeterministic routing, the exact property the system exists to guarantee.
+A drained `Conflict` retires its row and is logged `wf.tracker.mirror_conflicted`: the
+tracker answered, and re-sending the same state would not change the answer.
 
-## A correction from the exercise
+The one derived label is `wf:attention` (`ledger/reconcile.py`), present iff a
+non-terminal root of the task has an OPEN gate. Every transaction that can change that
+predicate journals a `projections` row; the reconciler recomputes, enqueues one
+`SetFlag` and acks, under a task-keyed lock.
 
-The brief stated ~135,000 lines of tests. **The real figure is ~66,800** — Sol checked
-it against the repository instead of accepting the brief. The original glob had swept
-in 192 vendored `.venv` test files.
+## Adding a tracker
 
-This matters: Opus and Fable both leaned on the inflated number as the main
-rewrite-risk argument. The test corpus is still a large executable specification, but
-half the asset claimed — which, if anything, tilts slightly toward Go.
+Implement the four operations, declare `capabilities` honestly, read back every write
+and return `Applied`/`Conflict`/`Unknown` — `Unknown` only when the outcome is genuinely
+ambiguous, because it is the one answer that refuses an admission. Then run
+`tests/test_tracker_port.py`: the same landing rig runs against null, file and bd, and
+what changes between the three is the port and nothing else. Deliberately **not**
+abstracted: git, SQLite, gate signing, the evidence model, any tracker query language.
 
-## Conclusion
+## Language
 
-**Do not decide the language now. Do the store restructuring now, in Python.**
-
-The three disagree about Go versus Python but agree completely about the tracker seam —
-and that work is language-independent, deletes 15–20% of the engine, removes the
-coupling that blocks any tracker but beads, and shrinks exactly the surface a future
-port would carry. It is correct under both branches of the undecided question.
-
-Then decide the language at the concurrency fork: if adding concurrent graphs and
-subgraphs forces the foreman and supervisor to be restructured anyway, port then, using
-the existing `proc` and acceptance tests as the oracle rather than as code to translate.
+Python, deferred rather than settled. Three independent reviews in 2026-09 split 2–1 for
+Go on a greenfield build and 3–0 against rewriting now: the measured cost was never
+CPython (≈49 MiB RSS, 0.25 CPU-seconds) but the five `bd` round trips per tick, which
+the ledger removed. Decide at the concurrency fork, with the process and acceptance
+tests as the oracle rather than as code to translate. Traps for that day: `Pdeathsig`
+binds to the parent *thread*; `database/sql` is a connection pool, breaking both the
+one-transaction-per-method rule and the flock; Go randomises map iteration order where
+the foreman decides by iterating records.

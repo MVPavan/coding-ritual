@@ -1,4 +1,4 @@
-"""Bounded raw-log routing for supported runner profiles."""
+"""Bounded raw-log routing for supported crew profiles."""
 
 from __future__ import annotations
 
@@ -50,14 +50,14 @@ def parse_log(
     max_bytes: PositiveInt = DEFAULT_MAX_LOG_BYTES,
     max_events: PositiveInt = DEFAULT_MAX_LOG_EVENTS,
 ) -> LogParseResult:
-    """Stream a runner JSONL file within finite byte and event ceilings."""
+    """Stream a crew JSONL file within finite byte and event ceilings."""
     source = _safe_source(path)
     try:
         size = path.stat().st_size
     except OSError:
-        return _failure("log-unavailable", source, "runner log is unavailable")
+        return _failure("log-unavailable", source, "crew log is unavailable")
     if size > max_bytes:
-        return _failure("log-too-large", source, "runner log exceeds byte limit")
+        return _failure("log-too-large", source, "crew log exceeds byte limit")
 
     events: list[tuple[int, dict[str, object]]] = []
     diagnostics: list[Diagnostic] = []
@@ -72,7 +72,7 @@ def parse_log(
                         Diagnostic(
                             code="log-too-large",
                             source=line_source,
-                            detail="runner log exceeds byte limit",
+                            detail="crew log exceeds byte limit",
                         )
                     )
                     break
@@ -83,7 +83,7 @@ def parse_log(
                         Diagnostic(
                             code="too-many-events",
                             source=line_source,
-                            detail="runner log exceeds event limit",
+                            detail="crew log exceeds event limit",
                         )
                     )
                     break
@@ -94,7 +94,7 @@ def parse_log(
                         Diagnostic(
                             code="malformed-json",
                             source=line_source,
-                            detail="runner log line is not a complete JSON object",
+                            detail="crew log line is not a complete JSON object",
                         )
                     )
                     continue
@@ -103,13 +103,13 @@ def parse_log(
                         Diagnostic(
                             code="malformed-event",
                             source=line_source,
-                            detail="runner log event is not an object",
+                            detail="crew log event is not an object",
                         )
                     )
                     continue
                 events.append((line_number, value))
     except OSError:
-        return _failure("log-unavailable", source, "runner log could not be read")
+        return _failure("log-unavailable", source, "crew log could not be read")
 
     adapter = {
         "claude": claude.parse_events,

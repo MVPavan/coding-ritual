@@ -3,7 +3,7 @@
 # whole gate, plus the guard that a reviewed commit may not edit the tests it
 # is judged by.
 #
-# Contract, as the wrapper actually runs it (supervisor/verify.py:297-318):
+# Contract, as the wrapper actually runs it (inspector/verify.py:297-318):
 # argv[0] is /proc/self/fd/<n>, there are NO arguments and NO `$WF_*`
 # environment. cwd is a clean checkout of the commit under test, so everything
 # is derived from git in cwd. Exit 0 = pass. At most eight lines to stdout.

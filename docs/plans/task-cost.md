@@ -1,4 +1,7 @@
 # Task cost reporting implementation plan
+
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 Stage: cr-7uhd.1 (execution epic cr-7uhd).
 
 Approved scope: cr-02ze.8, task-level token and API-equivalent cost reporting. Read-only reporting; no scheduling, sandbox or landing behavior changes. Implementation through Sol high / Opus medium workflow after current pointer-handoff lands.

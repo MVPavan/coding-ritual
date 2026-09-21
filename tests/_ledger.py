@@ -20,17 +20,28 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Final
 
+from tests._bdio import entry_request, load_definition, make_root
 from tests.conftest import branch_head
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.backend import PinnedBackendFactory, StoreBackend
+from workflow_interpreter.bdio.capabilities import CheckpointSink
 from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wire import BeadRecord
+from workflow_interpreter.foreman.config import wrapper_root_for
+from workflow_interpreter.ledger import records
+from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import LedgerDatabase
-from workflow_interpreter.ledger.paths import repo_hash
 from workflow_interpreter.ledger.store import LedgerStore
+from workflow_interpreter.ledger.tasks import ensure_task
+from workflow_interpreter.tracker.intents import SetFlag
+from workflow_interpreter.tracker.models import TrackerRef
+from workflow_interpreter.tracker.port import TrackerPort
 
 TASK: Final[str] = "cr-3411.2"
+EPIC: Final[str] = "cr-3411"
+"""The epic the lab's task is minted under. An INPUT everywhere (§3.7): the
+helpers state it because a store that would have to mint a `tasks` row without
+one refuses, which is exactly what an unprepared run should get."""
 GIT_ENTRY: Final[str] = ".git"
 STATUS_OPEN: Final[str] = "open"
 SIGNAL_TIMEOUT_S: Final[float] = 30.0
@@ -60,25 +71,43 @@ def ledger_store(
     database: LedgerDatabase,
     task_id: str = TASK,
     *,
+    epic_id: str | None = EPIC,
     verifier: GateVerifier | None = None,
-    claims_backend: StoreBackend | None = None,
+    checkpoint: CheckpointSink | None = None,
 ) -> WorkflowStore:
     """The public write path over one task's ledger rows.
 
-    Built through the factory, the way production builds one: the backend a
-    root is served by is the factory's answer, never a borrowed handle (§3.2).
+    `checkpoint` is absent by default because most labs have no git seam at
+    all (`repository` fakes `.git` as a bare directory): the checkpoint is a
+    capability the composition root injects, and a store without one takes
+    none (S7, R10).
     """
-    backend = LedgerStore(database, task_id=task_id)
+    backend = LedgerStore(database, task_id=task_id, epic_id=epic_id)
     return WorkflowStore(
         backend,
         verifier,
-        backend_factory=PinnedBackendFactory(backend),
         branch_head_reader=branch_head,
-        claims_backend=claims_backend,
+        claims=LedgerClaims(database),
+        checkpoint=checkpoint,
     )
 
 
-def ledger_backend(database: LedgerDatabase, task_id: str = TASK) -> LedgerStore:
+def seeded_task(database: LedgerDatabase, task_id: str = TASK) -> str:
+    """One root and one activation of `task_id`, through the public write path.
+
+    Here rather than in one test module because both export families need the
+    same "a task with rows in it" shape before they can say anything about the
+    bytes it exports.
+    """
+    store = ledger_store(database, task_id)
+    root = make_root(store, load_definition())
+    store.mint_activation(root.root_id, entry_request())
+    return root.root_id
+
+
+def ledger_backend(
+    database: LedgerDatabase, task_id: str = TASK, *, epic_id: str | None = EPIC
+) -> LedgerStore:
     """The backend itself, for the tests that ask it what only IT decides.
 
     The public path (`ledger_store`) goes through `WorkflowStore`, which
@@ -86,7 +115,7 @@ def ledger_backend(database: LedgerDatabase, task_id: str = TASK) -> LedgerStore
     closing TRANSACTION — which decision owns the gate when two arrive — states
     its closures directly, so it can state two of them.
     """
-    return LedgerStore(database, task_id=task_id)
+    return LedgerStore(database, task_id=task_id, epic_id=epic_id)
 
 
 def config_file(
@@ -99,7 +128,7 @@ def config_file(
     """
     repo_root, _ = repository(tmp_path)
     home = tmp_path / "home"
-    wrapper_root = home / repo_hash(repo_root)
+    wrapper_root = wrapper_root_for(home, repo_root)
     path = tmp_path / "foreman.toml"
     path.write_text(
         f'''repo_root = "{repo_root}"
@@ -107,11 +136,11 @@ wrapper_home = "{home}"
 host = "host"
 actor = "actor"
 
-[bd]
+[tracker.bd]
 workspace = "{bd_workspace or tmp_path / "bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{repo_root}"
 wrapper_root = "{wrapper_root}"
 host = "host"
@@ -119,6 +148,28 @@ host = "host"
         encoding="utf-8",
     )
     return path, repo_root, wrapper_root
+
+
+class DirectFlagWriter:
+    """An `AttentionWriter` that applies the `SetFlag` intent immediately.
+
+    Production enqueues it and lets the driver-exit drain apply it (§3.3); the
+    reconciler's own drills are about the recompute, the lock and the ack, so
+    they keep the write synchronous and assert on what the tracker holds.
+    """
+
+    def __init__(self, tracker: TrackerPort) -> None:
+        self._tracker = tracker
+
+    def set_flag(self, task_id: str, flag: str, *, on: bool) -> None:
+        """Write the flag's desired presence straight through the port."""
+        self._tracker.apply(
+            SetFlag(
+                ref=TrackerRef(kind=self._tracker.kind, ref=task_id),
+                flag=flag,
+                on=on,
+            )
+        )
 
 
 class FileLabelWriter:
@@ -144,14 +195,12 @@ class FileLabelWriter:
         loaded = json.loads(self._path.read_text(encoding="utf-8"))
         return tuple(str(label) for label in loaded)
 
-    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
-        """Add one label and read the bead back."""
-        return self._write(bead_id, (*self.labels(), label))
-
-    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
-        """Remove one label and read the bead back."""
-        return self._write(
-            bead_id, tuple(held for held in self.labels() if held != label)
+    def set_flag(self, task_id: str, flag: str, *, on: bool) -> None:
+        """Make the flag's presence match `on` — the desired-state write."""
+        held = self.labels()
+        self._write(
+            task_id,
+            (*held, flag) if on else tuple(other for other in held if other != flag),
         )
 
     def _write(self, bead_id: str, labels: tuple[str, ...]) -> BeadRecord:
@@ -201,8 +250,10 @@ class CrashingLedgerStore(LedgerStore):
     what the two points name.
     """
 
-    def __init__(self, database: LedgerDatabase, *, task_id: str) -> None:
-        super().__init__(database, task_id=task_id)
+    def __init__(
+        self, database: LedgerDatabase, *, task_id: str, epic_id: str | None = EPIC
+    ) -> None:
+        super().__init__(database, task_id=task_id, epic_id=epic_id)
         self._armed: FaultPoint | None = None
 
     def arm(self, point: FaultPoint) -> None:
@@ -228,3 +279,51 @@ class CrashingLedgerStore(LedgerStore):
         if self._disarm(FaultPoint.AFTER_STATE_COMMIT):
             raise InjectedLedgerCrash(row_id)
         return super()._close_row(row_id, reason)
+
+
+CONTRACTOR_RECORD_STATES: Final[tuple[str, ...]] = ("prepared", "landed", "abandoned")
+"""The record states these labs seed, named so a typo is a collection error."""
+
+
+def seed_contractor_record(
+    database: LedgerDatabase,
+    task_id: str = TASK,
+    *,
+    state: str = "prepared",
+    epic_id: str = EPIC,
+    attempt: int = 1,
+    brief: str | None = None,
+) -> None:
+    """One `contractor_records` row, for the labs that need a task to have one.
+
+    `tasks.state` folded into this table in S4 (§3.5), so "this task landed"
+    is no longer something a test can say about a bare `tasks` row — it is a
+    fact about the task's RECORD, and a lab that wants to say it has to have
+    one. The carrier is the smallest thing the ledger will store, because
+    every caller of this is testing the ledger's side of the fold rather than
+    the contractor's record shape.
+    """
+    ensure_task(database, task_id, epic_id)
+    existing = records.read(database, task_id)
+    carrier = json.dumps({"stage_id": task_id, "epic_id": epic_id, "state": state})
+    if existing is None:
+        records.create(
+            database,
+            task_id,
+            state=state,
+            attempt=attempt,
+            root_id=None,
+            brief=brief,
+            record_json=carrier,
+        )
+        return
+    records.update(
+        database,
+        task_id,
+        state=state,
+        attempt=attempt,
+        root_id=existing.root_id,
+        brief=brief,
+        record_json=carrier,
+        expected_version=existing.version,
+    )

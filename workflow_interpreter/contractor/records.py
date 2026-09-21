@@ -1,0 +1,242 @@
+"""Where the contractor's record lives, and what a transition states about it.
+
+The record moved out of bead metadata in S4 (§3.2, R4). What made that
+necessary is admission: it must run with the tracker unreachable, and a record
+only the tracker held could not be read, let alone advanced. What makes it
+SAFE is the version guard — bead metadata was merged, so two writers silently
+composed; a row is transitioned, so the second one is refused by name.
+
+The contractor depends on this surface rather than on a database, the way it
+depends on `ClosureProbe` rather than on a ledger: the adapter owns the record
+and must not open a connection of its own.
+"""
+
+from __future__ import annotations
+
+import sqlite3
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Final, Protocol
+
+from pydantic import BaseModel, ConfigDict
+
+from workflow_interpreter.bdio.capabilities import CheckpointSink
+from workflow_interpreter.contractor.models import ContractorRecord
+from workflow_interpreter.ledger import records as rows
+from workflow_interpreter.ledger.database import LedgerDatabase
+from workflow_interpreter.ledger.tasks import ensure_task
+
+if TYPE_CHECKING:
+    from workflow_interpreter.foreman.compose import Composition
+
+MSG_NO_RECORD_STORE: Final[str] = (
+    "this wiring has no contractor record store: the record is a ledger row "
+    "since S4, and a composition with no ledger cannot prepare, admit, land "
+    "or abandon a task (store-restructure §3.2, R4)"
+)
+
+
+type LedgerWrite = Callable[[sqlite3.Connection], None]
+"""A second write that belongs inside one transition's transaction (§3.3)."""
+
+
+class RecordStoreUnavailable(RuntimeError):
+    """A contractor write was attempted with nowhere durable to write it."""
+
+
+class StoredRecord(BaseModel):
+    """One stored record, with the version a transition must state."""
+
+    model_config = ConfigDict(frozen=True)
+
+    record: ContractorRecord
+    version: int
+    brief: str | None
+
+
+class ContractorRecords(Protocol):
+    """Read the stored record, write the first one, or move it forward."""
+
+    def read(self, task_id: str) -> StoredRecord | None:
+        """The stored record of this task, or nothing while it has none."""
+        ...
+
+    def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
+        """Write a task's first record, refusing a second first write."""
+        ...
+
+    def update(
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
+    ) -> StoredRecord:
+        """Move the record forward from exactly the version the caller read.
+
+        `inside` is a second ledger write that belongs to this transition —
+        the outbox row for the mirror it implies — and it commits or rolls
+        back with it (§3.3).
+        """
+        ...
+
+    def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
+        """Every task of this epic with a record, and that record's state."""
+        ...
+
+
+class LedgerContractorRecords:
+    """The ledger's `contractor_records` table, as the contractor sees it.
+
+    The `tasks` row is ensured before the first record is written, because
+    `contractor_records.task_id` references it and a task that has not been
+    minted yet has no row. `ensure_task` is non-destructive.
+    """
+
+    def __init__(
+        self, database: LedgerDatabase, checkpoint: CheckpointSink | None = None
+    ) -> None:
+        self._database = database
+        self._checkpoint = checkpoint
+        """What anchors this task's rows outside the database (§3.9, R10).
+
+        The activation close used to be the only checkpoint site, so every
+        transition this store writes after the last one — LANDED, GATE_RED,
+        ABANDONED, ABANDONED_EXTERNAL — lived in `.wf/ledger.db` alone and a
+        rebuild dropped the task back to the state it was in at that close
+        (gate B, finding 2). A transition is a contractor FACT and is anchored
+        like one. Absent for a wiring with no git seam, which anchors nothing."""
+
+    def read(self, task_id: str) -> StoredRecord | None:
+        """The stored record of this task, or nothing while it has none."""
+        row = rows.read(self._database, task_id)
+        return None if row is None else _stored(row)
+
+    def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
+        """Write a task's first record, refusing a second first write."""
+        ensure_task(self._database, record.stage_id, record.epic_id)
+        written = _stored(
+            rows.create(
+                self._database,
+                record.stage_id,
+                state=record.state.value,
+                attempt=record.attempt,
+                root_id=record.root_id,
+                brief=brief,
+                record_json=record.model_dump_json(by_alias=True),
+            )
+        )
+        self._anchor(record.stage_id)
+        return written
+
+    def _anchor(self, task_id: str) -> None:
+        """Checkpoint the task AFTER the transition committed, or not at all.
+
+        After, because the anchor is a copy of rows that exist; never raising,
+        because `CheckpointSink` is insurance against losing the database and
+        a transition that already committed may not fail on it.
+        """
+        if self._checkpoint is not None:
+            self._checkpoint.checkpoint(task_id)
+
+    def update(
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
+    ) -> StoredRecord:
+        """Move the record forward from exactly the version the caller read."""
+        written = _stored(
+            rows.update(
+                self._database,
+                record.stage_id,
+                state=record.state.value,
+                attempt=record.attempt,
+                root_id=record.root_id,
+                brief=brief,
+                record_json=record.model_dump_json(by_alias=True),
+                expected_version=expected_version,
+                inside=inside,
+            )
+        )
+        self._anchor(record.stage_id)
+        return written
+
+    def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
+        """Every task of this epic with a record, and that record's state."""
+        return rows.states_of_epic(self._database, epic_id)
+
+
+class NoContractorRecords:
+    """The answer for a composition with no ledger at all.
+
+    A named refusal rather than an absent store, for `NoLedgerClosure`'s
+    reason: a read-only view (`wf contract --trace`, the gate view) has to be
+    able to say "no record here", while every WRITE has to say why it cannot
+    happen instead of quietly not happening.
+    """
+
+    def read(self, task_id: str) -> StoredRecord | None:
+        """Nothing: a wiring with no ledger holds no record."""
+        return None
+
+    def create(self, record: ContractorRecord, *, brief: str | None) -> StoredRecord:
+        """Refuse: there is nowhere durable for a first record to go."""
+        raise RecordStoreUnavailable(MSG_NO_RECORD_STORE)
+
+    def update(
+        self,
+        record: ContractorRecord,
+        *,
+        expected_version: int,
+        brief: str | None,
+        inside: LedgerWrite | None = None,
+    ) -> StoredRecord:
+        """Refuse: there is nothing here to move forward."""
+        raise RecordStoreUnavailable(MSG_NO_RECORD_STORE)
+
+    def states_of_epic(self, epic_id: str) -> tuple[tuple[str, str], ...]:
+        """Nothing: a wiring with no ledger holds no records to list."""
+        return ()
+
+
+def contractor_records(
+    database: LedgerDatabase | None, checkpoint: CheckpointSink | None = None
+) -> ContractorRecords:
+    """The record store for a composition whose ledger is optional.
+
+    One definition, for `closure_probe`'s reason: every construction site of
+    `ContractorAdapter` supplies one, and a second copy of "ledger or not"
+    would be a second chance to get the ledger-less case wrong.
+
+    `checkpoint` anchors each transition outside the database (§3.9). Optional
+    because it needs a git seam the caller may not have, and a store without
+    one is exactly as durable as it was before S7.
+    """
+    return (
+        NoContractorRecords()
+        if database is None
+        else LedgerContractorRecords(database, checkpoint)
+    )
+
+
+def _stored(row: rows.ContractorRecordRow) -> StoredRecord:
+    """One ledger row as the record and the version that guards it."""
+    return StoredRecord(
+        record=ContractorRecord.model_validate_json(row.record_json),
+        version=row.version,
+        brief=row.brief,
+    )
+
+
+def records_of(composition: Composition) -> ContractorRecords:
+    """The record store of one composition, named once for every caller.
+
+    Six construction sites build a `ContractorAdapter`, and each of them has a
+    composition and nothing else in common. A second spelling of "which
+    ledger" is a second chance for one of them to build a store that writes
+    somewhere the rest do not read.
+    """
+    return contractor_records(composition.ledger)

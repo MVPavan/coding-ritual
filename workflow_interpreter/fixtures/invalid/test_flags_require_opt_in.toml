@@ -12,7 +12,7 @@ test_force_first_reject = true
 [[node]]
 name = "work"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 instructions = "Minimal task: this fixture is rooted to prove the test-flag opt-in."
 writes = false
 allowed_paths = []

@@ -16,14 +16,14 @@ from workflow_interpreter.contracts.rpc_usage import UsageSnapshot
 from workflow_interpreter.foreman.observation import read_status, save_status
 from workflow_interpreter.foreman.refusals import append_refusal
 from workflow_interpreter.foreman.wake_constants import DEFAULT_EVENT_CAP
+from workflow_interpreter.inspector.errors import ContinuationRefused, WrapperDirError
+from workflow_interpreter.inspector.launch_record import LaunchReceipt
+from workflow_interpreter.inspector.models import Liveness
+from workflow_interpreter.inspector.paths import WrapperPaths, read_record
+from workflow_interpreter.inspector.procfs import prove_liveness
+from workflow_interpreter.inspector.rpc_control import control_path, next_intent
+from workflow_interpreter.inspector.rpc_usage import USAGE_FILE
 from workflow_interpreter.profiles.codex_rpc import RpcFailure
-from workflow_interpreter.supervisor.errors import ContinuationRefused, WrapperDirError
-from workflow_interpreter.supervisor.launch_record import LaunchReceipt
-from workflow_interpreter.supervisor.models import Liveness
-from workflow_interpreter.supervisor.paths import WrapperPaths, read_record
-from workflow_interpreter.supervisor.procfs import prove_liveness
-from workflow_interpreter.supervisor.rpc_control import control_path, next_intent
-from workflow_interpreter.supervisor.rpc_usage import USAGE_FILE
 
 
 def _reconcile_control(

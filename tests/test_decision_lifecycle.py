@@ -2,9 +2,10 @@
 
 from pathlib import Path
 
+from tests._bdio import CREATE
 from tests._foreman import ForemanLab
-from tests._supervisor import ChildScript
-from workflow_interpreter.supervisor.models import SandboxMode
+from tests._inspector import ChildScript
+from workflow_interpreter.inspector.models import SandboxMode
 
 FIXTURE = Path("workflow_interpreter/fixtures/valid/bounded-decision.toml")
 
@@ -180,7 +181,7 @@ def test_untrusted_decision_cannot_resume_work(tmp_path: Path, patch: dict) -> N
 def test_consumed_intent_replays_after_restart_without_second_decider(
     tmp_path: Path,
 ) -> None:
-    from tests._supervisor import PersistentBd
+    from tests._inspector import PersistentBd
 
     lab = ForemanLab(
         tmp_path,
@@ -232,10 +233,11 @@ def test_repeated_closed_halts_cannot_exceed_member_allocation(tmp_path: Path) -
     wiring = lab.composition.for_root(root.root_id)
     with wiring.band:
         gate = wiring.store.open_gate(root.root_id, halt_gate("capacity"))
-        # Simulate a historical authenticated close at the external Beads boundary.
-        row = lab.fake_bd.rows[gate.gate_id]
-        row["status"] = "closed"
-        row["metadata"].update(state="closed", outcome="abandon")
+        # A gate settled outside the verifier, as a historical close is.
+        lab.backend._merge_metadata(
+            gate.gate_id, {"state": "closed", "outcome": "abandon"}
+        )
+        lab.backend._close_row(gate.gate_id, "outcome=abandon")
         with pytest.raises(BoundExceededError):
             wiring.store.open_gate(root.root_id, halt_gate("another halt"))
     assert len(lab.store.reads.list_gates(root.root_id)) == 1
@@ -300,23 +302,16 @@ def test_lost_decision_admission_reply_repairs_same_root(tmp_path: Path) -> None
         if state.requests:
             break
     assert next(iter(state.requests.values())).state == "requested"
-    lab.fake_bd.lose_response_on("create")
+    lab.writes.lose_response_on(CREATE, 1)
     with pytest.raises(InjectedCrash):
         lab.tick()
     result = lab.foreman.run(root.root_id, poll_s=0.01, max_wall_s=3600)
     assert result.report.opened_gate, result
     state = lab.store.coordination_store().state(root.root_id)
     assert len(state.reservations) == 2
-    assert (
-        len(
-            [
-                r
-                for r in lab.fake_bd.rows.values()
-                if r["metadata"].get("wf_kind") == "root"
-            ]
-        )
-        == 2
-    )
+    # The repair re-created the SAME decision root rather than a third one:
+    # the owner and the one decision root are all this instance holds.
+    assert len(lab.store.reads.list_roots()) == 2
 
 
 def test_local_region_exhaustion_requests_decision_without_more_work(
@@ -385,8 +380,8 @@ def test_two_process_reservations_converge_on_one_debit(tmp_path: Path) -> None:
 
     from tests._foreman import LockedPersistentBd
     from workflow_interpreter.foreman.decisions import admission_of
+    from workflow_interpreter.inspector.errors import LockUnavailable
     from workflow_interpreter.schema.decisions import MemberCapacity
-    from workflow_interpreter.supervisor.errors import LockUnavailable
 
     lab = ForemanLab(
         tmp_path,
@@ -434,7 +429,7 @@ def test_coordinated_detached_wrapper_acquires_its_member_band(tmp_path: Path) -
     import pytest
 
     from tests._fake_bd import InjectedCrash
-    from workflow_interpreter.foreman.supervise import run_wrapper
+    from workflow_interpreter.foreman.inspector import run_wrapper
 
     lab = ForemanLab(
         tmp_path, toml=FIXTURE, instance_inputs={}, sandbox=SandboxMode.OFF

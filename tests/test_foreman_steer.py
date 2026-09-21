@@ -21,10 +21,9 @@ from tests._foreman import (
     entry_request,
 )
 from tests._helpers import VALID_FIXTURE, mutate, write
-from tests._supervisor import ChildScript
+from tests._inspector import ChildScript
 from workflow_interpreter.bdio import (
     BoundExceededError,
-    CarrierIntegrityError,
     Deviation,
     Lifecycle,
     MintReason,
@@ -32,23 +31,21 @@ from workflow_interpreter.bdio import (
     Outcome,
     WorkflowStore,
     bounds,
-    keys,
     mint,
 )
-from workflow_interpreter.bdio.client import STATUS_CLOSED
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.tick import Foreman
-from workflow_interpreter.supervisor.clock import to_iso
-from workflow_interpreter.supervisor.errors import ContinuationRefused
-from workflow_interpreter.supervisor.models import StaleFlag, SteerIntent
-from workflow_interpreter.supervisor.paths import ExecLedger, read_record, write_record
-from workflow_interpreter.supervisor.procfs import (
+from workflow_interpreter.inspector.clock import to_iso
+from workflow_interpreter.inspector.errors import ContinuationRefused
+from workflow_interpreter.inspector.models import StaleFlag, SteerIntent
+from workflow_interpreter.inspector.paths import ExecLedger, read_record, write_record
+from workflow_interpreter.inspector.procfs import (
     COMM_CLOSE,
     STAT_FILE,
     ZOMBIE_STATE,
 )
-from workflow_interpreter.supervisor.steer import instructions_digest
+from workflow_interpreter.inspector.steer import instructions_digest
 
 # Every test in this file is a §5 drill row (INSPECT and STEER).
 pytestmark = pytest.mark.acceptance
@@ -60,7 +57,7 @@ pytestmark = pytest.mark.acceptance
 # AND the node's real `max_wall` (45m) in a real-time eyeblink, killing the
 # child before the test ever gets to steer it. `_PROC_REAL_SLEEP_S` throttles
 # each poll to a real delay (the pattern `test_a_stale_child_raises_the_flag_
-# on_disk_and_in_bd` in test_supervisor_run.py uses), so `stale_after` is
+# on_disk_and_in_bd` in test_inspector_run.py uses), so `stale_after` is
 # reached almost at once while `max_wall` stays real-world minutes away;
 # `_PROC_SLEEP_S` only has to outlast detection, not `max_wall`.
 _PROC_STALE_AFTER: Final[str] = "2s"
@@ -78,7 +75,7 @@ _PROC_ANCHOR: Final[str] = (
 def test_inspect_reads_only_a_stale_activation_tail_without_writing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """INSPECT catches an unconditional runner-log read or lifecycle write."""
+    """INSPECT catches an unconditional crew-log read or lifecycle write."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     activation = (
@@ -94,9 +91,9 @@ def test_inspect_reads_only_a_stale_activation_tail_without_writing(
     )
     report = json.loads(transcript)
 
-    assert byte_count <= MAX_TRANSCRIPT_BYTES + lab.supervisor_config.log_tail_bytes
+    assert byte_count <= MAX_TRANSCRIPT_BYTES + lab.inspector_config.log_tail_bytes
     assert "foreman-lab-sentinel" in report["tail"]
-    assert report["tail_bytes"] <= lab.supervisor_config.log_tail_bytes
+    assert report["tail_bytes"] <= lab.inspector_config.log_tail_bytes
     assert lab.count("update") == before_updates
     assert lab.count("close") == before_closes
     assert (
@@ -105,7 +102,7 @@ def test_inspect_reads_only_a_stale_activation_tail_without_writing(
     )
 
 
-def test_inspect_never_opens_a_healthy_runner_log(
+def test_inspect_never_opens_a_healthy_crew_log(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """INSPECT preserves AUDIT-20's zero-log-byte premise for healthy work."""
@@ -181,11 +178,11 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
     )
 
     assert report.tail_bytes == len(report.tail.encode("utf-8"))
-    assert report.tail_bytes <= lab.supervisor_config.log_tail_bytes
+    assert report.tail_bytes <= lab.inspector_config.log_tail_bytes
     leniently_decoded = log_bytes_full.decode("utf-8", errors="replace")
     assert leniently_decoded.endswith(report.tail)
     assert report.tail != "" and report.tail[-1] == leniently_decoded[-1]
-    limit = lab.supervisor_config.log_tail_bytes
+    limit = lab.inspector_config.log_tail_bytes
     survivors = limit // len("�".encode())
     assert report.tail_bytes < limit
     assert report.tail == "�" * survivors
@@ -236,7 +233,7 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
             ]
         )
     )
-    assert byte_count <= MAX_TRANSCRIPT_BYTES + lab.supervisor_config.log_tail_bytes
+    assert byte_count <= MAX_TRANSCRIPT_BYTES + lab.inspector_config.log_tail_bytes
     assert transcript.count("foreman-lab-sentinel") <= 1
 
     assert lab.tick().dispatched == continuation.activation_id
@@ -366,7 +363,7 @@ def test_steer_preflights_a_bound_before_killing_or_closing_its_child(
             time.sleep(0.05)
             activation = lab.store.reads.load_activation(activation_id)
         assert activation.metadata.handle is not None
-        assert _runner_alive(activation.metadata.handle.pid)
+        assert _crew_alive(activation.metadata.handle.pid)
 
         with pytest.raises(BoundExceededError, match="steer continuations"):
             lab.steer(
@@ -376,107 +373,13 @@ def test_steer_preflights_a_bound_before_killing_or_closing_its_child(
             )
 
         unchanged = lab.store.reads.load_activation(activation_id)
-        assert _runner_alive(activation.metadata.handle.pid)
+        assert _crew_alive(activation.metadata.handle.pid)
         assert unchanged.metadata.lifecycle is Lifecycle.DISPATCHED
         assert not lab.wiring().paths.steer_intent(activation_id).exists()
         assert all(
             record.metadata.mint_reason is not MintReason.STEER_CONTINUATION
             for record in lab.store.reads.list_activations(root.root_id)
         )
-    finally:
-        for process in cast(list[BaseProcess], spawner.processes):
-            if process.is_alive():
-                process.kill()
-                process.join(timeout=5)
-
-
-@pytest.mark.proc
-@pytest.mark.parametrize(
-    ("residue", "states", "match"),
-    [
-        (
-            "all-superseded",
-            ((Lifecycle.CLOSED, Outcome.SUPERSEDED),),
-            "every activation",
-        ),
-        (
-            "multiple-completed",
-            (
-                (Lifecycle.CLOSED, Outcome.DONE),
-                (Lifecycle.CLOSED, Outcome.DONE),
-            ),
-            "COMPLETED",
-        ),
-        (
-            "settled-not-completed",
-            (
-                (Lifecycle.MINTED, None),
-                (Lifecycle.EXIT_RECORDED, Outcome.DONE),
-            ),
-            "COMPLETED",
-        ),
-    ],
-)
-def test_steer_preflights_invalid_existing_key_residue_before_killing_its_child(
-    tmp_path: Path,
-    residue: str,
-    states: tuple[tuple[Lifecycle, Outcome | None], ...],
-    match: str,
-) -> None:
-    """Invalid §3.2 residue must refuse while the fresh steer's parent is live."""
-    lab, spawner = _proc_steer_lab(tmp_path)
-    root = lab.instantiate()
-    lab.profiles.next_script(ChildScript(sleep_s=_PROC_SLEEP_S))
-    activation_id = lab.tick().dispatched
-    assert activation_id is not None
-
-    try:
-        activation = lab.store.reads.load_activation(activation_id)
-        deadline = time.monotonic() + 10.0
-        while activation.metadata.handle is None:
-            if time.monotonic() > deadline:
-                raise AssertionError("the live child never recorded its handle")
-            time.sleep(0.05)
-            activation = lab.store.reads.load_activation(activation_id)
-        assert activation.metadata.handle is not None
-        assert _runner_alive(activation.metadata.handle.pid)
-
-        key = keys.idempotency_key(
-            root.root_id,
-            activation.activation_id,
-            Outcome.STEERED,
-            activation.metadata.node,
-        )
-        for offset, (lifecycle, outcome) in enumerate(states, start=1):
-            metadata = activation.metadata.model_copy(
-                update={
-                    "seq": activation.metadata.seq + offset,
-                    "idempotency_key": key,
-                    "mint_reason": MintReason.STEER_CONTINUATION,
-                    "lifecycle": lifecycle,
-                    "outcome": outcome,
-                    "superseded_by": "wf-winner"
-                    if outcome is Outcome.SUPERSEDED
-                    else None,
-                }
-            )
-            lab.store._client._create_bead(
-                title=f"wf {residue} steer residue",
-                metadata=metadata.model_dump(mode="json", exclude_none=True),
-            )
-
-        with pytest.raises(CarrierIntegrityError, match=match):
-            lab.steer(
-                activation_id,
-                reason="silent past stale_after",
-                instructions="finish the review with the recorded constraints",
-            )
-
-        unchanged = lab.store.reads.load_activation(activation_id)
-        assert _runner_alive(activation.metadata.handle.pid)
-        assert unchanged.metadata.lifecycle is Lifecycle.DISPATCHED
-        assert unchanged.status != STATUS_CLOSED
-        assert not lab.wiring().paths.steer_intent(activation_id).exists()
     finally:
         for process in cast(list[BaseProcess], spawner.processes):
             if process.is_alive():
@@ -501,7 +404,7 @@ def test_tick_routes_a_stranded_steer_cap_refusal_to_its_declared_fallback(
             VALID_FIXTURE.read_text(encoding="utf-8"),
             [
                 (
-                    'phase_bridge_retry_terminals = ["shipped", "abandoned"]\n',
+                    'contractor_retry_terminals = ["shipped", "abandoned"]\n',
                     "",
                 ),
                 (
@@ -524,7 +427,7 @@ def test_tick_routes_a_stranded_steer_cap_refusal_to_its_declared_fallback(
     continuation = MintRequest(
         node=activation.metadata.node,
         mint_reason=MintReason.STEER_CONTINUATION,
-        runner_profile="fake",
+        crew_profile="fake",
         model="fake",
         session_id=activation.metadata.session_id,
         predecessor_activation_id=activation.activation_id,
@@ -663,8 +566,8 @@ def _proc_steer_lab(
     return lab, spawner
 
 
-def _runner_alive(pid: int) -> bool:
-    """Whether the real forked runner is still RUNNING, zombies excluded.
+def _crew_alive(pid: int) -> bool:
+    """Whether the real forked crew is still RUNNING, zombies excluded.
 
     A zombie is dead by `prove_liveness`'s own rule (procfs.py:137-141) — it has
     exited and only its unreaped status remains — but it keeps its `/proc` entry
@@ -672,7 +575,7 @@ def _runner_alive(pid: int) -> bool:
     existence therefore made this a race with that reap rather than a question
     about the kill, and it flaked under load (cr-us7 follow-up). `/proc` is read
     directly rather than through `prove_liveness`, which would need a
-    `SupervisorConfig` and the handle's boot id and start time to answer the same
+    `InspectorConfig` and the handle's boot id and start time to answer the same
     question this pid alone can answer.
     """
     try:
@@ -690,7 +593,7 @@ def test_steer_proc_raises_its_own_flag_and_kills_a_genuinely_live_child(
     """STEER sub-case (a): nothing is faked. A real forked wrapper's own §8.2
     monitor loop (monitor.py:152-154) raises and mirrors the stale flag while
     the test process — playing the foreman, per the row — never ticks; the
-    real runner child is still alive at that moment. `steer()` is then called
+    real crew child is still alive at that moment. `steer()` is then called
     from that separate foreman-side process and must actually kill the live
     child through the real `procfs.terminate` path, which sub-case (b)'s
     `dead_pid()` handle never exercises at all.
@@ -732,8 +635,8 @@ def test_steer_proc_raises_its_own_flag_and_kills_a_genuinely_live_child(
         assert on_disk.stale_after_s == _PROC_STALE_AFTER_S
         # "and the child is genuinely alive when the foreman arrives":
         assert activation.metadata.handle is not None
-        runner_pid = activation.metadata.handle.pid
-        assert _runner_alive(runner_pid)
+        crew_pid = activation.metadata.handle.pid
+        assert _crew_alive(crew_pid)
 
         report = lab.steer(
             activation_id,
@@ -746,7 +649,7 @@ def test_steer_proc_raises_its_own_flag_and_kills_a_genuinely_live_child(
         # its own and cannot tell a real kill from a natural exit (probed:
         # steering a bogus pid survives the post-barrier form and fails this
         # one). `steer()` terminates with proof before it returns.
-        assert not _runner_alive(runner_pid)
+        assert not _crew_alive(crew_pid)
 
         # The row's own post-conditions, reached through THIS live-child
         # injection rather than (b)'s dead_pid() one: (b)'s handle is already
@@ -779,7 +682,7 @@ def test_steer_proc_raises_its_own_flag_and_kills_a_genuinely_live_child(
         # The real child that was alive above is now genuinely dead: `steer()`
         # went through the real `procfs.terminate` signal-and-prove path, not
         # sub-case (b)'s already-dead handle.
-        assert not _runner_alive(runner_pid)
+        assert not _crew_alive(crew_pid)
     finally:
         for process in cast(list[BaseProcess], spawner.processes):
             if process.is_alive():

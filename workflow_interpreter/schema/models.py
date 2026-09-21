@@ -103,7 +103,7 @@ class Outcome(StrEnum):
     APPROVE = "approve"
     REBUDGET = "rebudget"
     ABANDON = "abandon"
-    ERROR_RUNNER = "error_runner"
+    ERROR_CREW = "error_crew"
     ERROR_TRANSPORT = "error_transport"
     STEERED = "steered"
     SUPERSEDED = "superseded"
@@ -111,7 +111,7 @@ class Outcome(StrEnum):
 
 SYSTEM_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
     {
-        Outcome.ERROR_RUNNER,
+        Outcome.ERROR_CREW,
         Outcome.ERROR_TRANSPORT,
         Outcome.STEERED,
         Outcome.SUPERSEDED,
@@ -177,9 +177,7 @@ class RuleId(StrEnum):
     VERIFY_ENTRIES_WELL_FORMED = "verify_entries_well_formed"
     ALLOWED_PATHS_WELL_FORMED = "allowed_paths_well_formed"
     INSTANCE_BOUNDS_VALID = "instance_bounds_valid"
-    PHASE_BRIDGE_RETRY_TERMINALS_HUMAN_GATED = (
-        "phase_bridge_retry_terminals_human_gated"
-    )
+    CONTRACTOR_RETRY_TERMINALS_HUMAN_GATED = "contractor_retry_terminals_human_gated"
     TEST_FLAGS_REQUIRE_OPT_IN = "test_flags_require_opt_in"
     JUDGMENT_VERIFY_SUPERSET = "judgment_verify_superset"
     TASK_NODES_INSTRUCTED = "task_nodes_instructed"
@@ -218,13 +216,13 @@ class CoordinationLimits(BaseModel):
 
 
 class InstanceBounds(BaseModel):
-    """`[instance]` — the §10.3 ceiling, bridge eligibility, and test switches."""
+    """`[instance]` — the §10.3 ceiling, contractor eligibility, and test switches."""
 
     model_config = MODEL_CONFIG
 
     max_total_activations: int
     coordination_limits: CoordinationLimits | None = None
-    phase_bridge_retry_terminals: tuple[Identifier, ...] | None = None
+    contractor_retry_terminals: tuple[Identifier, ...] | None = None
     test_force_first_reject: bool = False
 
 
@@ -254,7 +252,7 @@ class DecisionTask(BaseModel):
     """Nonrecursive data lowered into a normal task at admission."""
 
     model_config = MODEL_CONFIG
-    runner: str = Field(min_length=1)
+    crew: str = Field(min_length=1)
     model: str = Field(min_length=1)
     instructions: str = Field(min_length=1, max_length=8192)
     verify: tuple[VerifyCheck, ...] = Field(min_length=1)
@@ -296,7 +294,7 @@ class Node(BaseModel):
     name: Identifier
     kind: NodeKind
     region: Identifier | None = None
-    runner: Annotated[str, StringConstraints(min_length=1)] | None = None
+    crew: Annotated[str, StringConstraints(min_length=1)] | None = None
     model: Annotated[str, StringConstraints(min_length=1)] | None = None
     instructions: (
         Annotated[str, StringConstraints(min_length=1, max_length=8192)] | None

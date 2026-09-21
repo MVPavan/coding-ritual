@@ -33,8 +33,8 @@ from tests._bdio import entry_request, handle, load_definition, make_root
 from tests._foreman import LAB_ATTEMPT, LAB_TASK, ForemanLab
 from tests._gates import approval_payload, close
 from tests._helpers import AUTHORING_FIXTURE
-from tests._ledger import TASK, ledger_store, repository
-from tests._supervisor import ChildScript, make_repo
+from tests._inspector import ChildScript, make_repo
+from tests._ledger import TASK, ledger_store, repository, seed_contractor_record
 from tests.conftest import Signer
 from tests.test_ledger_writes import EXIT_RECORD, _open_gate
 from workflow_interpreter import load_graph
@@ -46,7 +46,6 @@ from workflow_interpreter.bdio.carriers import (
     ProcessHandle,
     Severity,
 )
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.findings import (
     MAX_FINDING_BYTES,
     MAX_REVIEW_FINDINGS_BYTES,
@@ -60,23 +59,47 @@ from workflow_interpreter.bdio.findings import (
 from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
 from workflow_interpreter.bdio.signing import key_fingerprint
 from workflow_interpreter.bdio.wire import ActivationMetadata
-from workflow_interpreter.contracts.run_identity import RunIdentity, epic_segment
+from workflow_interpreter.contracts.run_identity import RunIdentity
+from workflow_interpreter.foreman.config import wrapper_root_for
 from workflow_interpreter.foreman.ledger_render import (
     EVIDENCE_FILE,
     FINDINGS_FILE,
     render_run,
 )
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.exit_grade import (
+    MAX_REVIEW_ARTIFACT_BYTES,
+    review_findings,
+)
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.launch_record import LaunchReceipt
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.procfs import read_boot_id, read_start_time
+from workflow_interpreter.inspector.verify import (
+    ATTEMPT_ENV,
+    BASE_COMMIT_ENV,
+    EPIC_SEGMENT_ENV,
+    RENDER_DIGEST_ENV,
+    RENDER_OID_ENV,
+    TASK_ID_ENV,
+)
 from workflow_interpreter.ledger.archive import archive_task
+from workflow_interpreter.ledger.checkpoint import (
+    checkpoint_ref,
+    staging_path,
+    write_checkpoint,
+)
 from workflow_interpreter.ledger.constants import (
     EXPORT_REF_TEMPLATE,
     EXPORT_SUFFIX,
     ExportKey,
     LedgerTable,
+    TaskState,
 )
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.errors import LedgerExportError
 from workflow_interpreter.ledger.export import import_export, write_export
-from workflow_interpreter.ledger.paths import export_path, ledger_path, repo_hash
+from workflow_interpreter.ledger.paths import export_path, ledger_path
 from workflow_interpreter.ledger.reverify import (
     ExportAnchor,
     TrustAnchor,
@@ -85,25 +108,12 @@ from workflow_interpreter.ledger.reverify import (
     verify_export,
     verify_signature,
 )
-from workflow_interpreter.ledger.tasks import pin_task_backend, record_export_oid
+from workflow_interpreter.ledger.tasks import (
+    ensure_task,
+    record_export_oid,
+    record_task_state,
+)
 from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.exit_grade import (
-    MAX_REVIEW_ARTIFACT_BYTES,
-    review_findings,
-)
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.launch_record import LaunchReceipt
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.procfs import read_boot_id, read_start_time
-from workflow_interpreter.supervisor.verify import (
-    ATTEMPT_ENV,
-    BASE_COMMIT_ENV,
-    EPIC_SEGMENT_ENV,
-    RENDER_DIGEST_ENV,
-    RENDER_OID_ENV,
-    TASK_ID_ENV,
-)
 
 VERIFY_DEBRIEF: Final[Path] = (
     Path(__file__).resolve().parents[1] / "scripts" / "verify-debrief.sh"
@@ -115,6 +125,9 @@ DEBRIEF_BODY: Final[str] = "# Debrief\n\nWhat happened, and why.\n"
 FINDINGS_BODY: Final[str] = "# Findings\n\nround one\n"
 EVIDENCE_BODY: Final[str] = '{"version":1}\n'
 TASK_ID: Final[str] = "cr-3411.5"
+EPIC_ID: Final[str] = "cr-3411"
+"""The epic the lab's task belongs under — stated, never parsed out of the
+task id (§3.7, R8)."""
 OTHER_TASK: Final[str] = "cr-3411.9"
 """A second ledger task, whose export is a valid export of something else."""
 ATTEMPT: Final[int] = 1
@@ -141,15 +154,7 @@ def _git(repo: Path, *args: str) -> str:
 
 def _attempt_dir(repo: Path, task_id: str = TASK_ID, attempt: int = ATTEMPT) -> Path:
     """The one directory a debrief of this run may write."""
-    return (
-        repo
-        / "docs"
-        / "workstreams"
-        / epic_segment(task_id)
-        / "runs"
-        / task_id
-        / f"a{attempt}"
-    )
+    return repo / "docs" / "workstreams" / EPIC_ID / "runs" / task_id / f"a{attempt}"
 
 
 def _pin_render(repo: Path, tmp_path: Path) -> None:
@@ -231,6 +236,7 @@ def _run_debrief_check(
     base: str,
     *,
     task_id: str = TASK_ID,
+    epic_id: str = EPIC_ID,
     attempt: str = str(ATTEMPT),
     render_oid: str | None = None,
     render_digest: str | None = None,
@@ -246,7 +252,7 @@ def _run_debrief_check(
         env={
             **os.environ,
             BASE_COMMIT_ENV: base,
-            EPIC_SEGMENT_ENV: epic_segment(task_id),
+            EPIC_SEGMENT_ENV: epic_id,
             TASK_ID_ENV: task_id,
             ATTEMPT_ENV: attempt,
             RENDER_OID_ENV: (_render_oid(repo) if render_oid is None else render_oid),
@@ -529,7 +535,7 @@ def test_the_record_refuses_an_identity_a_path_cannot_hold(
 ) -> None:
     """Finding 4: the same rule on the record, so nothing unsafe is ever pinned."""
     with pytest.raises(ValidationError):
-        RunIdentity(task_id=task_id, attempt=attempt)
+        RunIdentity(task_id=task_id, epic_id=EPIC_ID, attempt=attempt)
 
 
 def test_an_abandoned_attempt_keeps_a1_while_a2_lands(
@@ -699,7 +705,7 @@ def test_findings_are_derived_from_the_close_carriers_in_a_fixed_order() -> None
                 "seq": 3,
                 "idempotency_key": "k",
                 "mint_reason": "edge",
-                "runner_profile": "fake",
+                "crew_profile": "fake",
                 "model": "fake",
                 "session_id": "s",
                 "intended_base_commit": "a" * 40,
@@ -835,7 +841,7 @@ def _outputs(
     tree = _git(repo, "write-tree")
     wrapper_root = tmp_path / "review-wrapper"
     wrapper_root.mkdir(exist_ok=True)
-    git = Git(SupervisorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
+    git = Git(InspectorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
     return git, repo, tree
 
 
@@ -1215,7 +1221,7 @@ def _live_receipt(lab: ForemanLab, activation_id: str) -> Path:
     without racing a child: `prove_liveness` answers ALIVE only when pid, boot
     id and start time all agree, so a fabricated handle would prove nothing.
     """
-    config = lab.supervisor_config
+    config = lab.inspector_config
     pid = os.getpid()
     handle = ProcessHandle(
         pid=pid,
@@ -1242,7 +1248,7 @@ def _live_receipt(lab: ForemanLab, activation_id: str) -> Path:
     return path
 
 
-def test_terminal_cleanup_defers_all_three_while_a_runner_may_be_alive(
+def test_terminal_cleanup_defers_all_three_while_a_crew_may_be_alive(
     tmp_path: Path, signing_config: SigningConfig, sign_payload: Signer
 ) -> None:
     """Finding 5: durable close is a record event, process death is not (§3.9).
@@ -1282,7 +1288,7 @@ def test_terminal_cleanup_defers_all_three_while_a_runner_may_be_alive(
     (verify_tree / "left-behind").write_text("a killed check's checkout\n")
     scratch = wiring.paths.scratch(review)
     scratch.mkdir(parents=True, exist_ok=True)
-    (scratch / "tmpfile").write_text("the runner's working bytes\n")
+    (scratch / "tmpfile").write_text("the crew's working bytes\n")
     receipt = _live_receipt(lab, review)
 
     assert lab.tick().terminal is True
@@ -1736,18 +1742,18 @@ def _cli_verify(clone: Path, signing: SigningConfig, tmp_path: Path) -> tuple[in
     """Run the real `wf ledger verify` in `clone`, as an operator would."""
     config = tmp_path / f"{clone.name}.toml"
     home = tmp_path / "no-home"
-    wrapper_root = home / repo_hash(clone)
+    wrapper_root = wrapper_root_for(home, clone)
     config.write_text(
         f'''repo_root = "{clone}"
 wrapper_home = "{home}"
 host = "host"
 actor = "actor"
 
-[bd]
+[tracker.bd]
 workspace = "{tmp_path / "no-bd"}"
 actor = "actor"
 
-[supervisor]
+[inspector]
 repo_root = "{clone}"
 wrapper_root = "{wrapper_root}"
 host = "host"
@@ -1841,10 +1847,10 @@ def _settled_root(database: LedgerDatabase, task_id: str, root_id: str) -> None:
     """A settled ledger root row, written directly: archive only READS it."""
     with database.transaction() as connection:
         connection.execute(
-            "INSERT INTO roots (root_id, task_id, seq, attempt, backend, "
+            "INSERT INTO roots (root_id, task_id, seq, attempt, "
             "instance_key, terminal, status, metadata_json) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (root_id, task_id, 1, 1, "ledger", root_id, "shipped", "closed", "{}"),
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (root_id, task_id, 1, 1, root_id, "shipped", "closed", "{}"),
         )
 
 
@@ -1859,21 +1865,21 @@ def _archive_fixture(tmp_path: Path) -> tuple[Path, Path, Git, str, str]:
     folder = wrapper_root / root_id
     (folder / "worktree").mkdir(parents=True)
     (folder / "worktree" / "big").write_text("scratch\n", encoding="utf-8")
-    git = Git(SupervisorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
+    git = Git(InspectorConfig(repo_root=repo, wrapper_root=wrapper_root, host="lab"))
     return repo, wrapper_root, git, root_id, ref
 
 
-def test_archive_refuses_an_unexported_task_and_deletes_nothing(
+def test_archive_refuses_a_task_that_is_not_retired_and_deletes_nothing(
     tmp_path: Path,
 ) -> None:
-    """No export_oid means the task never closed, and nothing may be retired."""
+    """A task that neither derives `closed()` nor was abandoned keeps its bytes."""
     repo, wrapper_root, git, root_id, ref = _archive_fixture(tmp_path)
     bundle = tmp_path / "bundles" / f"{TASK_ID}.bundle"
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
+        ensure_task(database, TASK_ID, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
 
-        with pytest.raises(LedgerExportError, match="export_oid"):
+        with pytest.raises(LedgerExportError, match="not retired"):
             archive_task(
                 git,
                 database,
@@ -1893,9 +1899,18 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
     repo, wrapper_root, git, root_id, ref = _archive_fixture(tmp_path)
     bundle = tmp_path / "bundles" / f"{TASK_ID}.bundle"
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
+        ensure_task(database, TASK_ID, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
+        # A closed task is LANDED and latched: the latch alone is not
+        # closure, and `closed()` asks the state first (§3.5) — which since S4
+        # is carried by the task's record, so it has to have one.
+        seed_contractor_record(database, TASK_ID, epic_id=EPIC_ID)
+        record_task_state(database, TASK_ID, TaskState.LANDED)
         record_export_oid(database, TASK_ID, "0" * 40)
+        # The local checkpoint anchor retires WITH the task (§3.9): left
+        # behind, its blob stays reachable forever and `rebuild_sources`
+        # resurrects the task into every later import.
+        write_checkpoint(git, database, TASK_ID)
 
         result = archive_task(
             git,
@@ -1908,6 +1923,9 @@ def test_archive_deletes_only_behind_a_bundle_git_accepts(tmp_path: Path) -> Non
 
     assert result.refs == (ref,)
     assert result.run_folders == (wrapper_root / root_id,)
+    assert result.checkpoint_cleared is True
+    assert git.ref_target(checkpoint_ref(TASK_ID), cwd=repo) is None
+    assert not staging_path(repo, TASK_ID).exists()
     assert not (wrapper_root / root_id).exists()
     assert bundle.is_file()
     with pytest.raises(subprocess.CalledProcessError):
@@ -1924,8 +1942,13 @@ def test_archive_refuses_a_bundle_inside_the_repository(tmp_path: Path) -> None:
     """The bundle is what survives the deletion; inside the repo it may not."""
     repo, wrapper_root, git, root_id, _ = _archive_fixture(tmp_path)
     with open_ledger(repo, wrapper_root) as database:
-        pin_task_backend(database, TASK_ID, BackendKind.LEDGER)
+        ensure_task(database, TASK_ID, EPIC_ID)
         _settled_root(database, TASK_ID, root_id)
+        # A closed task is LANDED and latched: the latch alone is not
+        # closure, and `closed()` asks the state first (§3.5) — which since S4
+        # is carried by the task's record, so it has to have one.
+        seed_contractor_record(database, TASK_ID, epic_id=EPIC_ID)
+        record_task_state(database, TASK_ID, TaskState.LANDED)
         record_export_oid(database, TASK_ID, "0" * 40)
 
         with pytest.raises(LedgerExportError, match="inside the repository"):

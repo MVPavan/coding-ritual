@@ -72,11 +72,11 @@ their own skills.
    `docs/workstreams/<name>/plans/<phase>.md`; then the **document-review
    skill** on the plan; then present for approval. Do not proceed without it.
 3. **Execute stages** — loop until no ready direct-child stage remains:
-   - **Select a ready direct child, then call the bridge:** select the stage by
+   - **Select a ready direct child, then call the contractor:** select the stage by
      judgment; its parent relationship, not its id shape, determines membership
-     and the bridge validates that choice. Run
-     `uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> phase-bridge <epic_id> <stage_id>`.
-     **Do not claim it:** the bridge claims atomically. Add `--retry` to mint a
+     and the contractor validates that choice. Run
+     `uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> contract <epic_id> <stage_id>`.
+     **Do not claim it:** the contractor claims atomically. Add `--retry` to mint a
      new attempt for an unfinished stage, or `--trace` to render current
      evidence read-only without running anything.
    - **Stage ↔ plan-task mapping (deep phases):** a claimed stage means
@@ -86,12 +86,12 @@ their own skills.
      phases have no plan: implement the stage from the roadmap row's Spec
      Reference.
    - **Act on the one JSON object it prints; `state` is a fact, not an
-     instruction.** The bridge never selects the next stage or decides whether
+     instruction.** The contractor never selects the next stage or decides whether
      to continue. `phase-exhausted` (exit 0) means every direct child is
      closed: go to step 4, without selecting another stage. `blocked` (exit
      0) names the open work preventing this stage: clear it or select another
      ready stage. `result` (exit 0) carries the result of a stage that ran: the
-     bridge closes the stage as part of landing, so do not close it; render via
+     contractor closes the stage as part of landing, so do not close it; render via
      the beads skill's `scripts/bd-render-tracking.sh` if it exists
      (`BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh <name>`),
      else report the missing renderer; then continue the loop. `refused` (exit
@@ -118,7 +118,7 @@ their own skills.
 
 When the selected work calls for parallel independent graphs, the orchestrator chooses the graphs, role/model configuration and task inputs. Use an admitted coordination owner with finite capacity, then the normal `children admit`, `drive`, `status` and `collect` commands documented in `docs/usage/children.md`. The runtime routes declared outcomes and bounded loops; consult the LLM only at a declared decision or unresolved attention state. Collection is evidence, not stage closure.
 
-Select the required receipt set explicitly and use `integration prepare`, then the existing `phase-bridge` command for fresh combined review, checks, ship approval and landing; see `docs/usage/phase-bridge.md`. Do not invent child dependencies or automatic result binding. A changed graph/model uses the trusted `children replace` operation; ordinary model decisions retain admitted pins and cannot bypass human gates or pending landing recovery.
+Select the required receipt set explicitly and use `integration prepare`, then the existing `contract` command for fresh combined review, checks, ship approval and landing; see `docs/usage/contractor.md`. Do not invent child dependencies or automatic result binding. A changed graph/model uses the trusted `children replace` operation; ordinary model decisions retain admitted pins and cannot bypass human gates or pending landing recovery.
 
 ## Task scope
 

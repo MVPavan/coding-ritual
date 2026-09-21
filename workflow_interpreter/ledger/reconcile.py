@@ -20,11 +20,13 @@ Three properties it exists to guarantee.
    task-keyed lock, and the ack covers only generations at or below the one
    that was reconciled. A generation enqueued while this drain was running
    stays unacked, so the value it implies is never assumed to be written.
-3. **No bd inside a transaction** (§3.4.2). The label write is a subprocess;
-   the ledger reads that surround it are single statements.
+3. **No tracker inside a transaction** (§3.4.2), and since S5 no tracker
+   inside a TICK either: the writer enqueues one `SetFlag` intent on the
+   outbox and the drain at driver exit applies it (§3.3, superseding D6's
+   direct label write).
 
-The bd client is a DEPENDENCY, never a construction: a reconciler that built
-its own transport would be a second bd write path, and §0.1 leaves exactly one.
+The writer is a DEPENDENCY, never a construction: a reconciler that built its
+own transport would be a second tracker write path, and §0.1 leaves one.
 """
 
 from __future__ import annotations
@@ -38,7 +40,6 @@ import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio.carriers import GateState
-from workflow_interpreter.bdio.wire import BeadRecord
 from workflow_interpreter.ledger.constants import (
     FENCE_WAIT_S,
     STATUS_OPEN,
@@ -77,18 +78,17 @@ _SQL_ACK_RESTORE: Final[str] = (
 
 
 class AttentionWriter(Protocol):
-    """The bd surface a projection needs, and nothing else.
+    """The one write a projection needs, as a DESIRED state (§3.3, R2).
 
-    Package-private names for the same reason `StoreBackend`'s writes are
-    (§0.1): the label write is reachable from this one typed operation, not
-    from anything holding a transport.
+    One method taking `on`, rather than the add/remove pair bd's transport
+    speaks: the projection's whole correctness argument is that replay is
+    idempotent because the write is "the flag should be present", never
+    "toggle it". S5's writer enqueues exactly that intent on the outbox, so
+    the label is applied when the driver exits instead of inside a tick.
     """
 
-    def _add_label(self, bead_id: str, label: str) -> BeadRecord:
-        """Add one label and read the bead back."""
-
-    def _remove_label(self, bead_id: str, label: str) -> BeadRecord:
-        """Remove one label and read the bead back."""
+    def set_flag(self, task_id: str, flag: str, *, on: bool) -> None:
+        """Make this flag's presence on the task match `on`."""
 
 
 class ReconcileResult(BaseModel):
@@ -191,11 +191,9 @@ class AttentionReconciler:
             written=True,
         )
 
-    def _write(self, task_id: str, *, wanted: bool) -> BeadRecord:
+    def _write(self, task_id: str, *, wanted: bool) -> None:
         """Set the label to the desired state — the write that replay repeats."""
-        if wanted:
-            return self._writer._add_label(task_id, ATTENTION_LABEL)
-        return self._writer._remove_label(task_id, ATTENTION_LABEL)
+        self._writer.set_flag(task_id, ATTENTION_LABEL, on=wanted)
 
     def _ack(
         self, task_id: str, generation: int | None, restore: sqlite3.Row | None

@@ -20,8 +20,8 @@ from workflow_interpreter.foreman.wake_constants import (
     OBSERVATION_STATUS,
     REFUSAL_JOURNAL,
 )
-from workflow_interpreter.supervisor import paths
-from workflow_interpreter.supervisor.paths import HEARTBEAT_FILE, read_record
+from workflow_interpreter.inspector import paths
+from workflow_interpreter.inspector.paths import HEARTBEAT_FILE, read_record
 
 
 @pytest.mark.parametrize("corruption", ["heartbeat", "journal", "status"])

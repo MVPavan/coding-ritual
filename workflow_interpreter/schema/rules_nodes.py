@@ -38,7 +38,7 @@ from workflow_interpreter.schema.models import (
 )
 
 _EXECUTION_FIELDS: Final[tuple[str, ...]] = (
-    "runner",
+    "crew",
     "artifact_input_mode",
     "execution_profile",
     "session_reuse",
@@ -58,7 +58,7 @@ _EXECUTION_FIELDS: Final[tuple[str, ...]] = (
 )
 _GATE_FIELDS: Final[tuple[str, ...]] = ("gate_type", "binds")
 _TASK_REQUIRED: Final[tuple[str, ...]] = (
-    "runner",
+    "crew",
     "writes",
     "allowed_paths",
     "verify",

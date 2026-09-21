@@ -126,16 +126,16 @@ MSG_ALLOWED_PATHS_NON_WRITER: Final[str] = (
 )
 MSG_ALLOWED_PATHS_WRITER: Final[str] = (
     "node {node!r} declares writes = true but no allowed_paths; "
-    "every effect would need the runner to declare it (§7.5)"
+    "every effect would need the crew to declare it (§7.5)"
 )
 MSG_MAX_TOTAL_ACTIVATIONS: Final[str] = (
     "max_total_activations must be >= 1, got {value}"
 )
-MSG_PHASE_BRIDGE_RETRY_TERMINAL_INVALID: Final[str] = (
-    "phase_bridge_retry_terminals entry {terminal!r} must name a terminal node"
+MSG_CONTRACTOR_RETRY_TERMINAL_INVALID: Final[str] = (
+    "contractor_retry_terminals entry {terminal!r} must name a terminal node"
 )
-MSG_PHASE_BRIDGE_RETRY_TERMINAL_BYPASS: Final[str] = (
-    "phase_bridge_retry_terminal {terminal!r} has an entry path without a human gate"
+MSG_CONTRACTOR_RETRY_TERMINAL_BYPASS: Final[str] = (
+    "contractor_retry_terminal {terminal!r} has an entry path without a human gate"
 )
 MSG_TEST_FLAG: Final[str] = (
     "test_force_first_reject = true requires loading with allow_test_flags (§13)"
@@ -147,6 +147,6 @@ MSG_VERIFY_SUBSET: Final[str] = (
 
 MSG_TASK_UNINSTRUCTED: Final[str] = (
     "task node {node!r} carries no instructions; it will be refused at "
-    "root creation and its runner would be told nothing about its job "
+    "root creation and its crew would be told nothing about its job "
     "(ADR 0002)"
 )

@@ -9,20 +9,59 @@ seam every backend is used THROUGH. The dependency runs one way —
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from enum import StrEnum
+from types import MappingProxyType
 from typing import Final
 
 LEDGER_DIR: Final[str] = ".wf"
 LEDGER_FILE: Final[str] = "ledger.db"
+REPO_ID_FILE: Final[str] = "repo-id"
+"""`<repo>/.wf/repo-id` — a UUID minted once and COMMITTED (store-restructure
+§3.6, R5). It is what makes an export portable: the old header pinned
+`sha256(absolute path)`, so a clone at another path refused every export it was
+handed. Tracked rather than ignored, and minted rather than derived, so moving
+or cloning a checkout changes nothing about who its facts belong to."""
+REPO_ID_RELPATH: Final[str] = f"{LEDGER_DIR}/{REPO_ID_FILE}"
+"""`.wf/repo-id` as GIT spells it, from the repository root.
+
+One constant rather than a literal per caller: three places have to agree that
+this path is the engine's own write and not somebody's work — `coordinator_dirt`
+(admission), the §7.5 observation (in-repo grading) and the §5.4 precondition
+(in-repo reset planning) — and a second spelling would let one of them start
+counting the engine's mint as dirt again."""
 EXPORT_DIR: Final[str] = "export"
 EXPORT_SUFFIX: Final[str] = ".jsonl"
 FENCE_FILE: Final[str] = "ledger.lock"
 EXPORT_REF_TEMPLATE: Final[str] = "refs/wf/exports/{task_id}"
 """Where a task's export BLOB is pinned before its bead may close (§3.6).
 
-Here rather than in `bridge/journal.py`, which writes it, because
+Here rather than in `contractor/journal.py`, which writes it, because
 `ledger/reverify.py` reads it as the anchor that says which export bytes the
-closing merge actually recorded — and the ledger may not import the bridge."""
+closing merge actually recorded — and the ledger may not import the contractor."""
+CHECKPOINT_REF_TEMPLATE: Final[str] = "refs/wf/checkpoints/{task_id}"
+"""Where a task's CHECKPOINT blob is pinned at every activation close (§3.9, R10).
+
+A namespace of its own, beside `refs/wf/exports/` and never inside it, because
+that separation IS the distinction closure rests on: `reverify.anchor_oid`
+reads the committed blob and the export ref, so a task carrying nothing but
+checkpoints can never derive `closed()` however many of them it has. Local and
+never pushed — one ref per task, overwritten, so the blobs it drops become
+unreachable and git gc collects them."""
+CHECKPOINT_DIR: Final[str] = "checkpoint"
+"""`<git common dir>/wf/checkpoint/` — where checkpoint bytes are STAGED.
+
+Beside the fence rather than in `.wf/`: the bytes have to reach `git
+hash-object` through a file, and a file in the working tree would be dirt the
+coordinator cleanliness checks count against the next stage — or, under
+`.wf/export/`, a file the orchestrator would commit as if it were a close."""
+CHECKPOINT_BYTES_LIMIT: Final[int] = 64 * 1024 * 1024
+"""The most a checkpoint blob may be read back as, on a rebuild.
+
+A bound rather than a stream because the whole export is parsed in memory
+anyway; it exists so a corrupt or hostile ref cannot make a rebuild allocate
+without limit. Far above any real task: the largest export this engine writes
+is thousands of rows, not millions."""
 IGNORE_FILE: Final[str] = ".gitignore"
 IGNORE_BODY: Final[str] = (
     "# Engine state (run-ledger \u00a73.5, D4): the database is this machine's.\n"
@@ -35,7 +74,7 @@ IGNORE_BODY: Final[str] = (
 )
 """What makes \u00a73.5's "the working tree's IGNORED `.wf/`" true rather than
 assumed: without it the database is untracked dirt and the coordinator
-cleanliness checks refuse the next bridge command on the engine's own file.
+cleanliness checks refuse the next contractor command on the engine's own file.
 The rule names the database and itself, never the directory: a file somebody
 else put under `.wf/` must stay visible as the dirt it is."""
 TASK_LOCK_DIR: Final[str] = "tasks"
@@ -87,6 +126,66 @@ class LedgerTable(StrEnum):
     LANDINGS = "landings"
     PROJECTIONS = "projections"
     RESTORE_PENDING = "restore_pending"
+    CONTRACTOR_RECORDS = "contractor_records"
+    CLAIMS = "claims"
+    TRACKER_OUTBOX = "tracker_outbox"
+
+
+LANDING_INTENT_FILE: Final[str] = "contract-landing.json"
+"""The wrapper file a landing writes its intent to, BEFORE the CAS (D17).
+
+Here for `LANDING_INTENT_PHASE`'s reason, and the same one: `closure.
+landing_begun` reads this file when the restored row cannot answer — a ledger
+rebuilt from an anchor older than the landing has no row — and the contractor's
+`LANDING_INTENT_FILE` is this same string, so the writer and the reader cannot
+drift apart."""
+
+LANDING_INTENT_PHASE: Final[str] = "intent"
+"""The `landings.phase` a journalled landing INTENT carries (D17).
+
+Here rather than only in `contractor.journal`, because the ledger itself now
+asks the question the row answers: "has this attempt's landing begun?" is what
+`closure.landing_begun` reads, and the contractor's `LandingPhase.INTENT` is
+this same string so the writer and the reader cannot drift apart."""
+
+
+class TaskState(StrEnum):
+    """How far the contractor got with one task, as the ledger knows it (§3.5).
+
+    Only the states closure is derived from, read from
+    `contractor_records.state` since S4 folded `tasks.state` into it. LANDED is
+    written before the export bytes exist, so the export carries it and a
+    rebuilt ledger can still say that this task's work landed; ABANDONED is the
+    orchestrator's verb (§3.8), and it retires a task that will never export at
+    all. ABANDONED_EXTERNAL is the same retirement decided by somebody else —
+    it has to be a member here, because a value this enum does not carry reads
+    as nothing and would leave the task open forever (§3.8). Every other value
+    the record's own lifecycle uses reads here as nothing, which leaves the
+    task open — which is what it is.
+    """
+
+    LANDED = "landed"
+    ABANDONED = "abandoned"
+    ABANDONED_EXTERNAL = "abandoned-external"
+
+
+class TrackerKind(StrEnum):
+    """Which tracker the foreign id in `tasks.tracker_ref` belongs to (§3.7).
+
+    Stored beside the ref rather than folded into it: two trackers can mint
+    the same string, and a ledger that could not say which one an id came from
+    would have to guess when S5's port asks it to close the right issue.
+    """
+
+    BD = "bd"
+    GITHUB = "github"
+    JIRA = "jira"
+    FILE = "file"
+    """A whole tracker in one JSON document (S5). A repository with no issue
+    service still has tasks, briefs and a status somebody reads."""
+    NONE = "none"
+    """No tracker at all. The ref is then the engine's own task id, and
+    `NullTracker` mirrors nothing — every run still completes (§3.3)."""
 
 
 ROW_TABLES: Final[tuple[LedgerTable, ...]] = (
@@ -107,6 +206,8 @@ the task their gate belongs to, which is how the export validates them."""
 
 EXPORT_TABLES: Final[tuple[LedgerTable, ...]] = (
     LedgerTable.TASKS,
+    LedgerTable.CONTRACTOR_RECORDS,
+    LedgerTable.LANDINGS,
     *ROW_TABLES,
     *GATE_TABLES,
     LedgerTable.PROJECTIONS,
@@ -114,12 +215,79 @@ EXPORT_TABLES: Final[tuple[LedgerTable, ...]] = (
 """What one task's export carries: every task-owned row. The nonces and
 signatures are here because §3.6 re-verifies a task's approvals from the export
 ALONE, and the projections because a restored task whose attention rows were
-dropped would silently keep whatever label bd last carried. Order matters
-twice: rows are inserted in it (a signature needs its gate) and cleared in
-reverse. `restore_pending` is the one task-owned table deliberately left out:
-it records what an import OWES rather than what an export describes, and
-carrying it would break the byte-identical round trip (§3.6). The
-per-activation facts stay out until S4 writes them."""
+dropped would silently keep whatever label bd last carried. `landings` joined
+them in the store restructure: it is the fallback D17 reads when the receipt
+file is gone, and a rebuild that could not restore it refused every landed
+ledger outright. Order matters twice: rows are inserted in it (a signature
+needs its gate, a landing needs its task) and cleared in reverse.
+`contractor_records` joined them in S4: it IS the contractor's record now, and
+a rebuilt ledger that could not say how far the contractor got could not derive
+closure at all (§3.5). It sits directly after `tasks`, which it references, so
+insertion finds its parent and `_clear`'s reverse order empties it first.
+`restore_pending` is the one task-owned table deliberately left out: it records
+what an import OWES rather than what an export describes, and carrying it would
+break the byte-identical round trip (§3.6). The per-activation facts stay out
+until S4 writes them."""
+
+ELIDED_TASK_COLUMNS: Final[frozenset[str]] = frozenset({"export_oid", "exported_at"})
+"""The two `tasks` columns an export does NOT carry (store-restructure §3.6).
+
+They are facts about the FILE, not about the task: both are written after the
+bytes exist, so an export that carried them could never hash to the blob it is
+pinned as, and a task rebuilt from such a file could never close or archive
+again. The columns stay in the schema — `export_oid` is S2's closed-latch —
+and `_insert` only ever writes the columns a row actually has, so eliding them
+here is the whole of it."""
+
+NON_EXPORTED: Final[Mapping[LedgerTable, str]] = MappingProxyType(
+    {
+        LedgerTable.META: (
+            "the database's own identity pins, which are per checkout and per "
+            "wrapper home; the export states its identity in its header"
+        ),
+        LedgerTable.RESTORE_PENDING: (
+            "what an import OWES rather than what an export describes; "
+            "carrying it would spend a sequence number and break the "
+            "byte-identical round trip"
+        ),
+        LedgerTable.SESSIONS: (
+            "a fact about one activation with no writer and no exporter in "
+            "this build; it is cleared with the activation it hangs off "
+            "(`export._clear`)"
+        ),
+        LedgerTable.FINDINGS: (
+            "derived from the evidence carrier the export DOES carry; "
+            "`rebuild_findings` puts it back inside the restoring transaction"
+        ),
+        LedgerTable.ARTIFACTS: (
+            "a fact about one activation with no writer and no exporter in "
+            "this build; it is cleared with the activation it hangs off "
+            "(`export._clear`)"
+        ),
+        LedgerTable.USAGE: (
+            "a fact about one activation with no writer and no exporter in "
+            "this build; it is cleared with the activation it hangs off "
+            "(`export._clear`)"
+        ),
+        LedgerTable.CLAIMS: (
+            "contention state about an integration TARGET rather than a fact "
+            "about one task: it is keyed by the target, not by task_id, it is "
+            "ledger-local by R11, and a restored claim would reserve a target "
+            "for an attempt that is already over"
+        ),
+        LedgerTable.TRACKER_OUTBOX: (
+            "what THIS checkout still owes its tracker (§3.3, R2): a mirror "
+            "write in flight, not a fact about the task — and a clone that "
+            "rebuilt one would re-send a close somebody else already applied"
+        ),
+    }
+)
+"""Every table an export deliberately does NOT carry, and why (§3.6, R5).
+
+Stated rather than implied so that the completeness test can ask the SCHEMA —
+not a second hand-written list — whether every table it creates is accounted
+for. Two of the three defects this restructure closes were a table nobody
+listed; a check that restated the list would have missed them the same way."""
 
 
 DERIVED_ACTIVATION_TABLES: Final[tuple[LedgerTable, ...]] = (
@@ -152,27 +320,34 @@ class LedgerOperation(StrEnum):
     CLOSING = "closing"
     CLOSING_GATE = "closing the gate"
     CLAIMING = "claiming"
+    ABANDONING = "abandoning"
+    RECORDING = "recording the contractor record of"
     RECONCILING = "reconciling the attention projection of"
+    PINNING = "recording the export pin of"
 
 
 class MetaKey(StrEnum):
     """The `meta` keys pinned at creation (§3.5)."""
 
     SCHEMA_VERSION = "schema_version"
-    REPO_HASH = "repo_hash"
+    REPO_ID = "repo_id"
     WRAPPER_ROOT = "wrapper_root"
     CREATED_AT = "created_at"
 
 
 class ExportKey(StrEnum):
-    """The keys of an export line — a header, then one row per line (§3.6)."""
+    """The keys of an export line — a header, then one row per line (§3.6).
+
+    No `wrapper_root`: which engine home owns a task's run folders is a fact
+    about this machine, and an export that pinned it could not be read in the
+    clone that is the whole point of committing it. The DATABASE still pins it
+    (`assert_identity`)."""
 
     KIND = "kind"
     TABLE = "table"
     ROW = "row"
     SCHEMA_VERSION = "schema_version"
-    REPO_HASH = "repo_hash"
-    WRAPPER_ROOT = "wrapper_root"
+    REPO_ID = "repo_id"
     TASK_ID = "task_id"
 
 
@@ -197,9 +372,108 @@ MSG_WRAPPER_ROOT_MISMATCH: Final[str] = (
     "ledger {path} is pinned to wrapper root {pinned}; this process runs under "
     "{found} — refusing, always, not only while roots are live (§3.5)"
 )
-MSG_REPO_HASH_MISMATCH: Final[str] = (
+MSG_REPO_ID_MISMATCH: Final[str] = (
     "ledger {path} is pinned to repository {pinned}; this process runs against "
     "{found} (§3.5)"
+)
+MSG_EXPORT_REPO_ID_MISMATCH: Final[str] = (
+    "{path} was exported from repository {pinned}, and this checkout is "
+    "{found}; an export restores only into the repository whose facts it "
+    "holds (store-restructure §3.6)"
+)
+MSG_REPO_ID_ABSENT: Final[str] = (
+    "{repo_root} has no {relpath}, so nothing says which repository these "
+    "exports belong to; open the ledger once to mint it, and commit it "
+    "(store-restructure §3.6)"
+)
+MSG_PIN_NO_FILE: Final[str] = (
+    "there is no export at {path} to pin for task {task_id!r}: pin-export "
+    "re-pins the bytes ON DISK, and writing a fresh export instead would pin "
+    "a ledger that has moved on since (§3.6)"
+)
+MSG_PIN_LOST: Final[str] = (
+    "the export of {task_id!r} could not be pinned: {ref} names {found!r}, "
+    "not the blob {oid!r} just written (§3.6)"
+)
+MSG_PIN_STALE: Final[str] = (
+    "{path} is not what task {task_id!r} exports now, so pinning it would name "
+    "a blob the ledger can no longer re-export; run export again before "
+    "pinning (§3.6)"
+)
+MSG_PIN_NOT_LANDED: Final[str] = (
+    "task {task_id!r} has not landed — its recorded state is {state} — and a "
+    "pinned export is what `closed()` latches on, so pinning one now would "
+    "close a task that is still running (§3.5)"
+)
+MSG_CHECKPOINTS_UNREADABLE: Final[str] = (
+    "git could not list {prefix} in {repo_root} ({reason}), so nothing knows "
+    "which tasks this checkout can rebuild from a checkpoint; a rebuild that "
+    "read that as 'none' would clear every in-flight task's rows (§3.9)"
+)
+MSG_EXPORT_NOT_LANDED: Final[str] = (
+    "task {task_id!r} has not landed — its recorded state is {state} — and the "
+    "committed export path is what a rebuild prefers over every later "
+    "checkpoint, so writing one now would let an import rebuild this task "
+    "backwards in time; the checkpoints already anchor it (§3.6, §3.9)"
+)
+MSG_PIN_TASK_MISMATCH: Final[str] = (
+    "{path} declares task {declared!r}, and the pin is being recorded for "
+    "{task_id!r}; a pin names the export of the task it is recorded on (§3.6)"
+)
+MSG_EXPORT_NOT_RECORDED: Final[str] = (
+    "no tasks row {task_id!r} to record export blob {oid!r} on; a pin nothing "
+    "carries is a task that still owes an export (§3.6)"
+)
+MSG_EPIC_REQUIRED: Final[str] = (
+    "task {task_id!r} has no ledger row and no epic was supplied; the epic is "
+    "an input at mint, never a parse of the task id, so a run that never went "
+    "through prepare cannot invent the directory its knowledge lands in (§3.7)"
+)
+MSG_MINT_CONFLICT: Final[str] = (
+    "minting {tracker_kind} ref {tracker_ref!r} chose task id {task_id!r} and "
+    "the row did not land ({reason}); a mint never answers with an id it did "
+    "not write (§3.7)"
+)
+MSG_ROOT_COLLISION: Final[str] = (
+    "root {root_id!r} already belongs to instance {held!r}, and instance "
+    "{incoming!r} pins the same attempt of task {task_id!r}; two carriers "
+    "cannot be one attempt root (§3.7)"
+)
+MSG_ATTEMPT_INVALID: Final[str] = (
+    "the run identity carried for task {task_id!r} pins attempt {attempt!r}, "
+    "which is not an attempt a run can have ({reason}); a carrier that pins "
+    "an identity states which attempt it IS (§3.7)"
+)
+MSG_EXPORT_UNSAFE_COMPONENT: Final[str] = (
+    "{path} states {kind} {value!r}, which is not one safe path component; an "
+    "import applies the same grammar a mint does, before any row is written "
+    "(§3.6, §3.7)"
+)
+MSG_TRACKER_REF_UNUSABLE: Final[str] = (
+    "tracker ref {tracker_ref!r} holds nothing a path component or a ref name "
+    "could be made of (§3.7)"
+)
+MSG_STATE_UNFOLDABLE: Final[str] = (
+    "task {task_id!r} carries state {state!r} in v4's `tasks.state`, and the "
+    "v5 fold has no columns to rebuild its contractor record from — no target "
+    "ref, no admitted base, no instance key. Dropping the state would reopen a "
+    "task that is closed, which R6 says a migration never does (§3.5), so this "
+    "database is left at v4 for a human to decide about"
+)
+MSG_STATE_NOT_RECORDED: Final[str] = (
+    "no contractor record for {task_id!r} to record state {state!r} on; a "
+    "state nothing carries would leave the task open to every consumer of "
+    "`closed()` (§3.5)"
+)
+MSG_NOT_RETIRED: Final[str] = (
+    "task {task_id!r} is not retired: it is neither closed — LANDED with an "
+    "anchor its export bytes hash to — nor abandoned, and a live task's bytes "
+    "are not archivable (§3.5, §3.9)"
+)
+MSG_REPO_ID_LOST: Final[str] = (
+    "{repo_root} has no {relpath}, and this ledger already exists: the file is "
+    "TRACKED, so restore it from git (`git checkout -- {relpath}`) rather than "
+    "minting a second identity for the same repository (store-restructure §3.6)"
 )
 MSG_LEDGER_ABSENT: Final[str] = (
     "no ledger to read at {path}: a read-only command never creates one (§3.4)"
@@ -219,14 +493,34 @@ MSG_BUSY_REFUSED: Final[str] = (
     "the ledger stayed busy for {timeout_ms} ms while {operation} {row_id}; "
     "refusing rather than retrying silently (§3.4.6)"
 )
-MSG_CLAIM_ON_LEDGER: Final[str] = (
-    "integration-target claims stay bd-backed while the bd backend exists "
-    "(D20); the ledger refuses {operation} {row_id} rather than holding a "
-    "second claim table a bd-backed run could not see"
+MSG_CLAIM_HELD: Final[str] = (
+    "integration target {claim_key!r} is already claimed by {holder!r}, and "
+    "{incoming!r} asked for it; two attempts on one target serialise on this "
+    "row, and the second one is refused rather than queued (§3.2, R11)"
+)
+MSG_RECORD_STALE: Final[str] = (
+    "the contractor record of {task_id!r} is at version {found}, and this "
+    "transition was written against {expected}; something else moved the "
+    "record since it was read, so the write is refused rather than applied "
+    "over it (store-restructure §3.2, R4)"
+)
+MSG_RECORD_EXISTS: Final[str] = (
+    "the contractor record of {task_id!r} already exists; a first write is "
+    "not how a stored record is changed (store-restructure §3.2)"
+)
+MSG_RECORD_MISSING: Final[str] = (
+    # `LedgerOperation` values are gerunds ("abandoning", "recording the
+    # contractor record of"), so the clause has to take one as its subject:
+    # "there is nothing to abandoning" read as a defect in the engine.
+    "task {task_id!r} has no contractor record, so {operation} it is refused; "
+    "the record is written at prepare and is the ledger's own "
+    "(store-restructure §3.2, R4)"
 )
 MSG_LOSSY_ROW: Final[str] = "the row did not read back as written: {detail}"
 MSG_ROW_MISSING: Final[str] = (
-    "no ledger row {row_id!r} in task {task_id!r}, so there is nothing to {operation}"
+    # `LedgerOperation` values are gerunds, so the clause takes one as its
+    # subject: "there is nothing to reading the row" read as a defect.
+    "no ledger row {row_id!r} in task {task_id!r}, so {operation} it is refused"
 )
 MSG_GATE_NOT_OPEN: Final[str] = (
     "gate {gate_id!r} is {state!r} carrying approval {recorded!r}, and this "
@@ -276,12 +570,6 @@ MSG_EXPORT_COLUMN: Final[str] = (
 MSG_EXPORT_BLOB: Final[str] = (
     "{path} carries a value for column {column!r} that is not the base64 a "
     "stored BLOB travels as: {reason} (§3.6)"
-)
-MSG_IMPORT_LANDED: Final[str] = (
-    "ledger {path} records {count} landing row(s), and no export carries the "
-    "landing journal, so an import cannot rebuild it (§3.6); this is a KNOWN "
-    "limitation of import, deliberately deferred, and NOT a corrupt ledger — "
-    "nothing has been changed, and the landed tasks are intact"
 )
 MSG_BAD_FILTER_KEY: Final[str] = (
     "carrier filter key {key!r} is not a plain identifier, so it cannot name a "

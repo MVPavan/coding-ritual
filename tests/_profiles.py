@@ -10,11 +10,11 @@ Not a test module. Three things live here:
   earlier claim and it was not true — one capture had its IPC socket pid
   normalized and three did not.
 - **Task builders**, because a `TaskSpec` with an empty brief is refused by
-  design and the supervisor's own `task_builder` does not set one.
+  design and the inspector's own `task_builder` does not set one.
 - **CLI stubs**: small `sh` programs that mimic each vendor's JSONL shape well
-  enough to drive a REAL `ForkBarrierLauncher` and a REAL `Supervisor.run`. They
+  enough to drive a REAL `ForkBarrierLauncher` and a REAL `Inspector.run`. They
   are what makes the `proc` family an end-to-end proof that costs no tokens.
-- **`Lab`**, the wiring that points those stubs at a real supervisor over a
+- **`Lab`**, the wiring that points those stubs at a real inspector over a
   throwaway repo. It moved here from `test_profiles_process.py` when the §8.1
   continuity family grew its own module: two `test_profiles_*` modules drive the
   same lab, and a second copy of it would be a second answer to "what does an
@@ -34,7 +34,7 @@ import uuid
 from pathlib import Path, PurePosixPath
 from typing import Final
 
-from tests._supervisor import (
+from tests._inspector import (
     GIT_TIMEOUT_S,
     IMPLEMENT,
     FrozenClock,
@@ -55,32 +55,32 @@ from workflow_interpreter.contracts.execution import (
     ExecutionProfileName,
     policy_for,
 )
-from workflow_interpreter.profiles import ProfileConfig, ProfileRegistry, RunnerName
-from workflow_interpreter.profiles.claude import ClaudeProfile
-from workflow_interpreter.profiles.codex import CodexProfile
-from workflow_interpreter.profiles.opencode import OpencodeProfile
-from workflow_interpreter.schema.models import Node
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     Dispatcher,
+    InspectionResult,
+    Inspector,
+    InspectorConfig,
     Steerer,
-    SupervisionResult,
-    Supervisor,
-    SupervisorConfig,
     TaskSpec,
     channels_for,
     pinned_verifier_digests,
     procfs,
 )
-from workflow_interpreter.supervisor.artifact import BRANCH_TEMPLATE
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.launch import DispatchResult, TaskBuilder
-from workflow_interpreter.supervisor.paths import (
+from workflow_interpreter.inspector.artifact import BRANCH_TEMPLATE
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.launch import DispatchResult, TaskBuilder
+from workflow_interpreter.inspector.paths import (
     ARTIFACT_DIR,
     CHANNELS_DIR,
     SCRATCH_DIR,
 )
-from workflow_interpreter.supervisor.profile import Profile, RunnerChannels
-from workflow_interpreter.supervisor.sandbox import SandboxMode
+from workflow_interpreter.inspector.profile import CrewChannels, Profile
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.profiles import CrewName, ProfileConfig, ProfileRegistry
+from workflow_interpreter.profiles.claude import ClaudeProfile
+from workflow_interpreter.profiles.codex import CodexProfile
+from workflow_interpreter.profiles.opencode import OpencodeProfile
+from workflow_interpreter.schema.models import Node
 
 FIXTURES: Final[Path] = Path(__file__).parent / "fixtures" / "profiles"
 
@@ -160,17 +160,17 @@ def fixture_files() -> list[Path]:
 
 
 def read_stream(vendor: str, name: str) -> list[str]:
-    """One captured vendor stream, as the lines a runner log would hold."""
+    """One captured vendor stream, as the lines a crew log would hold."""
     return (FIXTURES / vendor / name).read_text(encoding="utf-8").splitlines()
 
 
-def make_supervisor_config(
+def make_inspector_config(
     tmp_path: Path,
     *,
     sandbox: SandboxMode = SandboxMode.BWRAP,
     **overrides: object,
-) -> SupervisorConfig:
-    """A supervisor configuration the profiles can prove liveness against.
+) -> InspectorConfig:
+    """An inspector configuration the profiles can prove liveness against.
 
     Both roots are CREATED, not merely named: `sandbox.plan_for` read-only binds
     them and refuses a root that is not on disk, so a config whose `repo_root`
@@ -184,7 +184,7 @@ def make_supervisor_config(
         "sandbox": sandbox,
     }
     values.update(overrides)
-    config = SupervisorConfig.model_validate(values)
+    config = InspectorConfig.model_validate(values)
     config.repo_root.mkdir(parents=True, exist_ok=True)
     config.wrapper_root.mkdir(parents=True, exist_ok=True)
     return config
@@ -195,11 +195,11 @@ def make_profile_config(**overrides: object) -> ProfileConfig:
     return ProfileConfig.model_validate(overrides)
 
 
-def make_channels(tmp_path: Path, activation_id: str = ACTIVATION) -> RunnerChannels:
+def make_channels(tmp_path: Path, activation_id: str = ACTIVATION) -> CrewChannels:
     """The §6 channels for an activation, in a throwaway wrapper dir.
 
     Created through the same constants `WrapperPaths.ensure_activation_dir`
-    uses, so a test can never disagree with production about where the runner's
+    uses, so a test can never disagree with production about where the crew's
     writable surface starts.
     """
     activation_dir = tmp_path / ".wf" / ROOT_ID / activation_id
@@ -269,7 +269,7 @@ def git_write_roots_of(checkout: Path) -> tuple[str, ...]:
     """The git directories a commit in a linked worktree touches, read off disk.
 
     Spelled out here rather than imported from
-    `supervisor/sandbox.py::worktree_git_write_roots`: an assertion that calls
+    `inspector/sandbox.py::worktree_git_write_roots`: an assertion that calls
     the function it is asserting about states nothing at all. This walks the
     three files by hand — `<C>/.git` names `<G>`, `<G>/commondir` names the
     shared git dir, `<G>/HEAD` names the branch — and names the directories
@@ -377,7 +377,7 @@ def make_opencode(
 _PREAMBLE: Final[str] = """#!/bin/sh
 # A stand-in for a vendor CLI: emits that vendor's JSONL shape on stdout, then
 # writes the two §6 channels the wrapper grades on. Reads no argv on purpose —
-# the point is to prove the PROFILE composes with the supervisor, not to
+# the point is to prove the PROFILE composes with the inspector, not to
 # re-implement a CLI.
 set -e
 """
@@ -394,7 +394,7 @@ FORGED_RECORDS: Final[tuple[str, ...]] = (
     "exit.json",
     "completion.json",
 )
-"""The wrapper-owned records a runner must not be able to reach (B2).
+"""The wrapper-owned records a crew must not be able to reach (B2).
 
 Forging `exit.json` makes §5.6 classify a death the wrapper never observed;
 deleting `launch-receipt.json` makes the next dispatch refuse and burns an infra
@@ -402,7 +402,7 @@ retry; appending to `exec.ledger` destroys the exactly-once evidence drills 1, 2
 10 and 22 rest on; pre-writing `completion.json` tells a later tick that §7
 already finished."""
 
-FORGED_LINE: Final[str] = "forged by the runner"
+FORGED_LINE: Final[str] = "forged by the crew"
 
 _FORGE: Final[str] = """
 # Everything this stub can name lives under its own granted root: a real
@@ -416,8 +416,8 @@ done
 reading 1 by coincidence, which is exactly the assertion this must be able to
 break."""
 
-STUB_BODIES: Final[dict[RunnerName, str]] = {
-    RunnerName.CLAUDE: (
+STUB_BODIES: Final[dict[CrewName, str]] = {
+    CrewName.CLAUDE: (
         """printf '%s\\n' '{"type":"system","subtype":"init","session_id":"SID","""
         """"tools":["Read","Write"]}'
 printf '%s\\n' '{"type":"assistant","session_id":"SID","message":{"content":"""
@@ -427,7 +427,7 @@ printf '%s\\n' '{"type":"result","subtype":"success","session_id":"SID","""
         """"usage":{"input_tokens":11,"output_tokens":22}}'
 """
     ),
-    RunnerName.CODEX: (
+    CrewName.CODEX: (
         """printf '%s\\n' '{"type":"thread.started","thread_id":"SID"}'
 printf '%s\\n' '{"type":"turn.started"}'
 printf '%s\\n' '{"type":"item.completed","item":{"id":"item_0","""
@@ -436,7 +436,7 @@ printf '%s\\n' '{"type":"turn.completed","usage":{"input_tokens":11,"""
         """"output_tokens":22}}'
 """
     ),
-    RunnerName.OPENCODE: (
+    CrewName.OPENCODE: (
         """printf '%s\\n' '{"type":"step_start","sessionID":"SID","part":"""
         """{"type":"step-start"}}'
 printf '%s\\n' '{"type":"step_finish","sessionID":"SID","part":"""
@@ -448,7 +448,7 @@ printf '%s\\n' '{"type":"step_finish","sessionID":"SID","part":"""
 
 GRANDCHILD_PID_FILE: Final[str] = "grandchild.pid"
 _GRANDCHILD: Final[str] = f"""
-# A process the runner spawned, which the wrapper never knew about. It reports
+# A process the crew spawned, which the wrapper never knew about. It reports
 # its pid through the artifact channel because that is the only writable place
 # a sandboxed child has, and it outlives the stub unless the whole GROUP is
 # signalled — which is the property a termination test needs.
@@ -500,7 +500,7 @@ DEFAULT_EFFECTS: Final[str] = '{"paths":[]}'
 
 def write_stub(
     directory: Path,
-    runner: RunnerName,
+    crew: CrewName,
     *,
     session_id: str = STUB_SESSION,
     exit_code: int = 0,
@@ -513,13 +513,13 @@ def write_stub(
 ) -> Path:
     """Write an executable stub for one vendor and return its path.
 
-    `forge` makes the child attempt every write B2 says a runner must not be
+    `forge` makes the child attempt every write B2 says a crew must not be
     able to make, addressed the only way a sandboxed child could address them —
     relative to the directory it was granted. `sleep_s` parks the child alive
     after it has written its channels, which is what a §8.1 steer needs to have
     something to kill.
     """
-    body = STUB_BODIES[runner].replace("SID", session_id)
+    body = STUB_BODIES[crew].replace("SID", session_id)
     source = (
         _PREAMBLE
         + body
@@ -531,7 +531,7 @@ def write_stub(
         + (f"sleep {sleep_s}\n" if sleep_s else "")
         + f"exit {exit_code}\n"
     )
-    path = directory / f"stub-{runner.value}"
+    path = directory / f"stub-{crew.value}"
     path.write_text(source, encoding="utf-8")
     path.chmod(0o755)
     return path
@@ -594,7 +594,7 @@ def task_builder(
 ) -> TaskBuilder:
     """A `TaskBuilder` that supplies a brief, which a real profile requires."""
 
-    def build(activation: ActivationRecord, channels: RunnerChannels) -> TaskSpec:
+    def build(activation: ActivationRecord, channels: CrewChannels) -> TaskSpec:
         return TaskSpec(
             root_id=activation.metadata.wf_root_id,
             activation_id=activation.activation_id,
@@ -630,7 +630,7 @@ class Lab:
         self.clock = FrozenClock(real_sleep_s=REAL_PROCESS_SLEEP_S)
         self.git = make_git(self.config)
         self.workspace = make_workspace(self.paths, self.git, self.clock)
-        self.supervisor = Supervisor(
+        self.inspector = Inspector(
             self.config, self.paths, self.git, self.store, self.workspace, self.clock
         )
         self.steerer = Steerer(self.config, self.paths, self.store, self.clock)
@@ -674,17 +674,17 @@ class Lab:
                 continue
             procfs.reap(handle.pid)
 
-    def profile(self, runner: RunnerName, binary: Path | str) -> Profile:
+    def profile(self, crew: CrewName, binary: Path | str) -> Profile:
         """A real profile whose vendor binary is the stub (or a missing path)."""
         config = ProfileConfig(
-            binary_overrides={runner: str(binary)}, passthrough_env=PASSTHROUGH
+            binary_overrides={crew: str(binary)}, passthrough_env=PASSTHROUGH
         )
         registry = ProfileRegistry(config, self.clock, host_env_with(**stub_env()))
-        return registry.profile_for(runner.value)
+        return registry.profile_for(crew.value)
 
     def run(
         self,
-        runner: RunnerName,
+        crew: CrewName,
         *,
         request: MintRequest | None = None,
         writes: bool = True,
@@ -695,7 +695,7 @@ class Lab:
         exit_code: int = 0,
         channels: bool = True,
         forge: bool = False,
-    ) -> SupervisionResult:
+    ) -> InspectionResult:
         """Dispatch one activation for real and watch it to `exit-recorded`.
 
         Always the graph's ENTRY node, because an entry mint may target no other
@@ -708,28 +708,28 @@ class Lab:
         tests, so it is deliberately NOT given the instructions here.
         """
         stub = binary or write_stub(
-            self.bin, runner, exit_code=exit_code, channels=channels, forge=forge
+            self.bin, crew, exit_code=exit_code, channels=channels, forge=forge
         )
         node = node_of(self.root.definition.document, IMPLEMENT).model_copy(
             update={"writes": writes, "execution_profile": execution_profile}
         )
         config = ProfileConfig(
-            binary_overrides={runner: str(stub)}, passthrough_env=PASSTHROUGH
+            binary_overrides={crew: str(stub)}, passthrough_env=PASSTHROUGH
         )
         registry = ProfileRegistry(
             config,
             self.clock,
             host_env_with(**stub_env(marker=marker, effects=effects)),
         )
-        return self.supervisor.run(
+        return self.inspector.run(
             request or entry_mint(session_id=str(uuid.uuid4())),
             node,
-            registry.profile_for(runner.value),
+            registry.profile_for(crew.value),
             task_builder(
                 self.paths.worktree,
                 node,
                 execution_policy=policy_for(
-                    execution_profile, registry.profile_for(runner).tool_network
+                    execution_profile, registry.profile_for(crew).tool_network
                 )
                 if execution_profile is not None
                 else None,
@@ -739,7 +739,7 @@ class Lab:
 
     def dispatch(
         self,
-        runner: RunnerName,
+        crew: CrewName,
         *,
         request: MintRequest | None = None,
         session_id: str = STUB_SESSION,
@@ -754,7 +754,7 @@ class Lab:
     ) -> DispatchResult:
         """Run §5.2 phase B alone, with no watch loop over the child.
 
-        `Supervisor.run` also monitors and grades, and its `Monitor` advances the
+        `Inspector.run` also monitors and grades, and its `Monitor` advances the
         FrozenClock a poll interval per cycle — so a child that does anything
         slower than a `printf` is TERMed for a `max_wall` breach that took
         milliseconds of real time. A §8.1 steer needs a LIVE child and a `git`
@@ -765,7 +765,7 @@ class Lab:
         self.ensure_worktree()
         stub = write_stub(
             self.bin,
-            runner,
+            crew,
             session_id=STUB_SESSION,
             sleep_s=sleep_s,
             push_probe=push_probe,
@@ -776,7 +776,7 @@ class Lab:
             update={"writes": writes}
         )
         config = ProfileConfig(
-            binary_overrides={runner: str(stub)},
+            binary_overrides={crew: str(stub)},
             passthrough_env=(*PASSTHROUGH, *sorted(extra)),
         )
         registry = ProfileRegistry(
@@ -785,7 +785,7 @@ class Lab:
         dispatcher = Dispatcher(self.paths, self.store, self.clock)
         result = dispatcher.dispatch(
             request or entry_mint(session_id=session_id),
-            registry.profile_for(runner.value),
+            registry.profile_for(crew.value),
             task_builder(
                 self.paths.worktree,
                 node,

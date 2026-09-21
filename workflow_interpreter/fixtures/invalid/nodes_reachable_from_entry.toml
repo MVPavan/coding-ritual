@@ -13,7 +13,7 @@ max_total_activations = 5
 [[node]]
 name = "work"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -27,7 +27,7 @@ outcomes = ["done"]
 [[node]]
 name = "orphan"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/orphan.sh", timeout = "5m" }]

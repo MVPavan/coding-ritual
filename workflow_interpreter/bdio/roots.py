@@ -16,18 +16,16 @@ survives, the loser is superseded, nothing is deleted.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import structlog
 
 from workflow_interpreter.bdio import finalize, reads
-from workflow_interpreter.bdio.backend import StoreBackend
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.feedback import MSG_CONSUMER
 from workflow_interpreter.bdio.records import RootRecord, parse_root
 from workflow_interpreter.bdio.rows import NewRow, StoreRow
 from workflow_interpreter.bdio.wire import (
-    KEY_SUPERSEDED_BY,
     KEY_TERMINAL,
     KEY_WF_ROOT_ID,
     ConfigSource,
@@ -41,10 +39,10 @@ from workflow_interpreter.bdio.wire import (
 from workflow_interpreter.contracts.execution import (
     EXECUTION_POLICY_KEY,
     MSG_PROFILE_WRITES,
-    MSG_UNREGISTERED_RUNNER,
+    MSG_UNREGISTERED_CREW,
+    CrewName,
     ExecutionRegistry,
-    RunnerName,
-    UnregisteredRunnerError,
+    UnregisteredCrewError,
     policy_for,
     tool_network_for,
 )
@@ -53,6 +51,11 @@ from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE
 from workflow_interpreter.schema.graph_index import producer_engine
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import GraphDefinition, NodeKind
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; the runtime
+    # import direction is ledger -> bdio, so the store is named here and
+    # never imported (R1: one implementation, not a protocol).
+    from workflow_interpreter.ledger.store import LedgerStore
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
@@ -75,14 +78,6 @@ _MSG_REUSE_MISMATCH: Final[str] = (
     "(§3.1) {detail}"
 )
 _FIELD_RESOLVED_CONFIG: Final[str] = "resolved_config"
-_MSG_ALL_SUPERSEDED: Final[str] = (
-    "every root row for instance_key={instance_key!r} is superseded"
-)
-_MSG_TWO_OWNING_ROOTS: Final[str] = (
-    "instance_key={instance_key!r} has more than one live root owning instance "
-    "beads ({owners}); converging would orphan a running instance — triage it "
-    "(§3.1)"
-)
 _MSG_CONFIG_KEYS: Final[str] = "differing keys: {keys}"
 _MSG_CONFIG_KEYS_TRUNCATED: Final[str] = "differing keys: {keys} (+{more} more)"
 _MSG_INSTANCE_INPUT_BYTES: Final[str] = "instance inputs exceed {limit} bytes"
@@ -143,16 +138,16 @@ def _assert_task_execution_settings_are_pinned(
         # one, only the spelling differs (claude `--effort`, codex
         # `-c model_reasoning_effort=`), and opencode refuses to build a
         # command at all before effort is ever read. So a task missing it
-        # cannot launch under any runner. Requiring it only for `profile:`
-        # runners let an unrunnable root be created, and root identity then
+        # cannot launch under any crew. Requiring it only for `profile:`
+        # crews let an unrunnable root be created, and root identity then
         # refuses to recreate that key with the pin supplied (cr-xb2).
         if (
             node.session_reuse is not None
-            and settings.get(NodeSetting.RUNNER.at(node.name))
-            != RunnerName.CODEX_APPSERVER.value
+            and settings.get(NodeSetting.CREW.at(node.name))
+            != CrewName.CODEX_APPSERVER.value
         ):
             raise CarrierIntegrityError(MSG_SESSION_REUSE)
-        required = (NodeSetting.RUNNER, NodeSetting.MODEL, NodeSetting.EFFORT)
+        required = (NodeSetting.CREW, NodeSetting.MODEL, NodeSetting.EFFORT)
         missing = tuple(
             setting.value.rsplit(".", maxsplit=1)[-1]
             for setting in required
@@ -187,14 +182,14 @@ def pin_execution_policies(
             or writes.source is not ConfigSource.GRAPH_DEFAULT
         ):
             raise CarrierIntegrityError(MSG_PROFILE_WRITES)
-        runner = execution_settings.get(NodeSetting.RUNNER.at(node.name))
-        if runner is None or not isinstance(runner.value, str):
-            raise CarrierIntegrityError(MSG_UNREGISTERED_RUNNER.format(runner=runner))
+        crew = execution_settings.get(NodeSetting.CREW.at(node.name))
+        if crew is None or not isinstance(crew.value, str):
+            raise CarrierIntegrityError(MSG_UNREGISTERED_CREW.format(crew=crew))
         try:
             execution_policy = policy_for(
-                node.execution_profile, tool_network_for(runner.value, profiles)
+                node.execution_profile, tool_network_for(crew.value, profiles)
             )
-        except UnregisteredRunnerError as error:
+        except UnregisteredCrewError as error:
             raise CarrierIntegrityError(str(error)) from error
         key = EXECUTION_POLICY_KEY.format(node=node.name)
         expected = execution_policy.model_dump_json()
@@ -214,7 +209,7 @@ def pin_execution_policies(
 
 
 def create_root(
-    client: StoreBackend,
+    client: LedgerStore,
     *,
     instance_key: str,
     definition: GraphDefinition,
@@ -265,7 +260,7 @@ def create_root(
     resolved_config = pin_execution_policies(
         definition, resolved_config, profiles=profiles
     )
-    existing = _converged_root(client, instance_key)
+    existing = _root_for_key(client, instance_key)
     if existing is not None:
         _assert_same_instance(
             existing,
@@ -372,20 +367,18 @@ def create_root(
         )
     )
     _LOG.info("wf.root.created", root_id=record.id, instance_key=instance_key)
-    _ensure_self_id(client, record)
-    # Re-resolve after the write: a concurrent create under this key converges
-    # HERE, rather than leaving two live instances for a later tick to find.
-    converged = _converged_root(client, instance_key)
-    if converged is None:  # pragma: no cover - the row was just written
-        raise CarrierIntegrityError(
-            _MSG_ALL_SUPERSEDED.format(instance_key=instance_key)
-        )
-    # The convergence winner may be someone ELSE's root: a concurrent create
-    # under this key with a different graph or resolution must be an identity
-    # error, exactly as reuse-by-key is. Without this, the loser silently
-    # inherits an instance it did not configure (probed, phase-2 review).
+    # `_create_row` resolves the §3.3 natural key inside `BEGIN IMMEDIATE` and
+    # `roots.instance_key` is `NOT NULL UNIQUE`, so a concurrent create under
+    # this key ANSWERS with the row that already exists — there is never a
+    # second live root to converge (S6 review, finding 8).
+    written = _ensure_self_id(client, record)
+    # The row this create answered with may be someone ELSE's root: a
+    # concurrent create under this key with a different graph or resolution
+    # must be an identity error, exactly as reuse-by-key is. Without this, the
+    # loser silently inherits an instance it did not configure (probed,
+    # phase-2 review).
     _assert_same_instance(
-        converged,
+        written,
         instance_key,
         definition,
         resolved_config,
@@ -393,67 +386,25 @@ def create_root(
         allow_test_flags,
         instance_base_commit,
     )
-    return converged
+    return written
 
 
-def _converged_root(client: StoreBackend, instance_key: str) -> RootRecord | None:
-    """The one live root for this key, superseding any concurrent duplicate.
+def _root_for_key(client: LedgerStore, instance_key: str) -> RootRecord | None:
+    """The root this instance key already has, or nothing.
 
-    Liveness is read off the raw metadata, not a parsed record: a root whose
-    create/self-link pair was interrupted does not parse yet, and completing
-    it is exactly what this path exists for.
+    ONE row or none, never a set to converge: `roots.instance_key` is
+    `NOT NULL UNIQUE` and the natural key is resolved inside the create's own
+    transaction, so the duplicate-root family this replaced could not fire on
+    the one record store there is (S6 review, finding 8).
+
+    Liveness is not read off a parsed record: a root whose create/self-link
+    pair was interrupted does not parse yet, and completing it is exactly what
+    this path exists for.
     """
     found = reads.find_roots(client, instance_key)
-    live = [row for row in found if row.metadata.get(KEY_SUPERSEDED_BY) is None]
-    if not live:
-        if found:
-            raise CarrierIntegrityError(
-                _MSG_ALL_SUPERSEDED.format(instance_key=instance_key)
-            )
+    if not found:
         return None
-    winner, *losers = _ordered_by_ownership(client, live, instance_key)
-    for loser in losers:
-        _supersede_root(client, loser, winner.id)
-    return _ensure_self_id(client, winner)
-
-
-def _ordered_by_ownership(
-    client: StoreBackend, live: Sequence[StoreRow], instance_key: str
-) -> tuple[StoreRow, ...]:
-    """Convergence order for duplicate roots: the OWNER of the instance first (§3.1).
-
-    Bead ids are not ordered by creation (bd 1.1.0 hands out `wf-yd1` before
-    `wf-c7b`; probed, phase-2 r3), so "lowest id survives" says nothing about
-    which root the instance actually ran on. A root that already owns
-    activations and gates is never superseded — closing it would orphan the
-    whole trace under a root nothing links to. Among roots that own nothing the
-    lowest id still wins, so two ticks resolving the same residue agree.
-    """
-    if len(live) < 2:
-        return tuple(live)
-    owners = [row for row in live if reads.owns_instance_rows(client, row.id)]
-    if len(owners) > 1:
-        raise CarrierIntegrityError(
-            _MSG_TWO_OWNING_ROOTS.format(
-                instance_key=instance_key,
-                owners=", ".join(sorted(row.id for row in owners)),
-            )
-        )
-    if not owners:
-        return tuple(live)
-    owner = owners[0]
-    return (owner, *(row for row in live if row.id != owner.id))
-
-
-def _supersede_root(client: StoreBackend, loser: StoreRow, winner_id: str) -> None:
-    """Close a duplicate root append-only, pointing at the surviving one."""
-    record = _ensure_self_id(client, loser)
-    metadata = record.metadata.model_copy(update={"superseded_by": winner_id})
-    updated = client._merge_metadata(loser.id, metadata_dict(metadata))
-    finalize.close_forward(
-        client, updated, _REASON_ROOT_SUPERSEDED.format(winner=winner_id)
-    )
-    _LOG.warning("wf.root.superseded", loser=loser.id, winner=winner_id)
+    return _ensure_self_id(client, found[0])
 
 
 def _assert_same_instance(
@@ -538,14 +489,14 @@ def _differing_keys(
     return _MSG_CONFIG_KEYS.format(keys=rendered)
 
 
-def _ensure_self_id(client: StoreBackend, row: StoreRow) -> RootRecord:
+def _ensure_self_id(client: LedgerStore, row: StoreRow) -> RootRecord:
     """Complete the self-reference if the create/link pair was interrupted."""
     if row.metadata.get(KEY_WF_ROOT_ID) != row.id:
         row = client._merge_metadata(row.id, {KEY_WF_ROOT_ID: row.id})
     return parse_root(row)
 
 
-def settle_root(client: StoreBackend, root_id: str, terminal: str) -> RootRecord:
+def settle_root(client: LedgerStore, root_id: str, terminal: str) -> RootRecord:
     """Record the terminal this instance reached and close its root (§3.1).
 
     Metadata first, close second — the same order every §5.1 transition uses,

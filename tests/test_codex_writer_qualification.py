@@ -16,14 +16,23 @@ from typing import Final
 
 import pytest
 
+from tests._inspector import GIT_TIMEOUT_S, FrozenClock, head_of
 from tests._profiles import (
     git_write_roots_of,
-    make_supervisor_config,
+    make_inspector_config,
     make_task,
     writable_roots_in,
 )
-from tests._supervisor import GIT_TIMEOUT_S, FrozenClock, head_of
 from workflow_interpreter.contracts.execution import ExecutionProfileName, policy_for
+from workflow_interpreter.inspector.errors import SandboxPathRefused
+from workflow_interpreter.inspector.execution import resolve_grants
+from workflow_interpreter.inspector.profile import CrewCommand, TaskSpec
+from workflow_interpreter.inspector.sandbox import (
+    SandboxPlan,
+    plan_for,
+    worktree_git_write_roots,
+    wrap,
+)
 from workflow_interpreter.profiles._base import ENV_TMPDIR
 from workflow_interpreter.profiles.codex import (
     CONFIG,
@@ -34,15 +43,6 @@ from workflow_interpreter.profiles.codex import (
 )
 from workflow_interpreter.profiles.config import ProfileConfig
 from workflow_interpreter.profiles.errors import UnsupportedOptionError
-from workflow_interpreter.supervisor.errors import SandboxPathRefused
-from workflow_interpreter.supervisor.execution import resolve_grants
-from workflow_interpreter.supervisor.profile import RunnerCommand, TaskSpec
-from workflow_interpreter.supervisor.sandbox import (
-    SandboxPlan,
-    plan_for,
-    worktree_git_write_roots,
-    wrap,
-)
 
 CODEX: Final[str] = "codex"
 BWRAP: Final[str] = "bwrap"
@@ -80,9 +80,9 @@ somebody else's checkout."""
 
 COMMIT_IDENTITY: Final[tuple[str, ...]] = (
     "-c",
-    "user.email=runner@wf.invalid",
+    "user.email=crew@wf.invalid",
     "-c",
-    "user.name=wf-runner",
+    "user.name=wf-crew",
 )
 """`git commit` needs an identity and the probe's git has no global config; the
 §7.4 committer identity production stamps arrives through `GIT_COMMITTER_*` in
@@ -121,7 +121,7 @@ def _lab(tmp_path: Path, *, writes: bool = True) -> tuple[TaskSpec, SandboxPlan]
     task = make_task(tmp_path, writes=writes, allowed_paths=GRANTS if writes else ())
     for name in MOUNT_TARGETS:
         (Path(task.cwd) / name).mkdir(exist_ok=True)
-    config = make_supervisor_config(tmp_path)
+    config = make_inspector_config(tmp_path)
     _plant_neighbours(tmp_path, task)
     plan = plan_for(
         task,
@@ -215,7 +215,7 @@ def _permission_config(argv: tuple[str, ...]) -> list[str]:
 
 def _run(
     plan: SandboxPlan,
-    command: RunnerCommand,
+    command: CrewCommand,
     permission_config: list[str],
     script: str,
     tmp_path: Path,
@@ -246,7 +246,7 @@ def _run(
     return f"{done.stdout}{done.stderr}"
 
 
-def _probe_env(command: RunnerCommand, tmp_path: Path) -> dict[str, str]:
+def _probe_env(command: CrewCommand, tmp_path: Path) -> dict[str, str]:
     """The probe child's environment, with the two host values that are bounds.
 
     `TMPDIR` is one of them and it is not a nicety: `workspace-write` leaves
@@ -258,7 +258,7 @@ def _probe_env(command: RunnerCommand, tmp_path: Path) -> dict[str, str]:
     `$TMPDIR`, so an inherited one silently granted the whole lab — repository,
     parent `.git` and all — and every negative assertion below passed as
     `ALLOWED` while looking like a bound. Taking the value off the built
-    `RunnerCommand` is what keeps the rig describing production rather than
+    `CrewCommand` is what keeps the rig describing production rather than
     describing this machine.
 
     `CODEX_HOME` is the other: `codex sandbox` has no `--ignore-user-config`, and
@@ -721,7 +721,7 @@ def test_a_detached_writer_is_granted_no_shared_ref_or_reflog_directory(
 def test_a_head_that_walks_out_of_refs_heads_grants_no_directory(
     tmp_path: Path,
 ) -> None:
-    """`<G>/HEAD` is inside the writable `<G>`, so its text is runner-controlled.
+    """`<G>/HEAD` is inside the writable `<G>`, so its text is crew-controlled.
 
     A previous dispatch that rewrote `HEAD` to `ref: refs/heads/../../hooks/x`
     would otherwise have the NEXT one grant `<common>/hooks` — the programs the
@@ -745,7 +745,7 @@ def test_writer_head_cannot_select_another_instances_grants(
     task, _ = _lab(tmp_path)
     gitdir = Path(git_write_roots_of(Path(task.cwd))[0])
     (gitdir / "HEAD").write_text(f"ref: refs/heads/{branch}\n")
-    config = make_supervisor_config(tmp_path)
+    config = make_inspector_config(tmp_path)
     with pytest.raises(SandboxPathRefused, match="isolated instance branch"):
         plan_for(
             task,

@@ -11,8 +11,8 @@ from pathlib import Path
 import pytest
 
 from tests._appserver import AppServerLab
+from tests._inspector import FrozenClock
 from tests._profiles import writable_roots_in
-from tests._supervisor import FrozenClock
 from tests.test_codex_writer_qualification import (
     ALLOWED,
     CODEX,
@@ -24,15 +24,15 @@ from tests.test_codex_writer_qualification import (
     _write_probe,
 )
 from workflow_interpreter.contracts.execution import ExecutionProfileName, policy_for
+from workflow_interpreter.inspector.execution import resolve_grants
+from workflow_interpreter.inspector.fork_launcher import ForkBarrierLauncher
+from workflow_interpreter.inspector.launch_record import LaunchReceipt
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.inspector.rpc_session import RpcSession
+from workflow_interpreter.inspector.sandbox import SandboxMode, plan_for, wrap
 from workflow_interpreter.profiles.codex import CodexProfile
 from workflow_interpreter.profiles.codex_appserver import CodexAppServerProfile
 from workflow_interpreter.profiles.config import ProfileConfig
-from workflow_interpreter.supervisor.execution import resolve_grants
-from workflow_interpreter.supervisor.fork_launcher import ForkBarrierLauncher
-from workflow_interpreter.supervisor.launch_record import LaunchReceipt
-from workflow_interpreter.supervisor.paths import read_record
-from workflow_interpreter.supervisor.rpc_session import RpcSession
-from workflow_interpreter.supervisor.sandbox import SandboxMode, plan_for, wrap
 
 pytest_plugins = ("tests.test_toolchain_seeding",)
 

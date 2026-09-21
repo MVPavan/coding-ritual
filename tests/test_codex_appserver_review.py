@@ -9,17 +9,17 @@ from pathlib import Path
 import pytest
 
 from tests._appserver import AppServerLab
-from tests._supervisor import FrozenClock
+from tests._inspector import FrozenClock
 from tests.test_codex_writer_qualification import _lab
 from workflow_interpreter.contracts.execution import ExecutionProfileName
+from workflow_interpreter.inspector import rpc_session
+from workflow_interpreter.inspector.exit import ComputedEvidence, ExitObserver
+from workflow_interpreter.inspector.launch_record import LaunchReceipt
+from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.profiles.codex_appserver import CodexAppServerProfile
 from workflow_interpreter.profiles.config import ProfileConfig
 from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor import rpc_session
-from workflow_interpreter.supervisor.exit import ComputedEvidence, ExitObserver
-from workflow_interpreter.supervisor.launch_record import LaunchReceipt
-from workflow_interpreter.supervisor.sandbox import SandboxMode
 
 
 def test_checkout_codex_configuration_does_not_refuse_a_launch(tmp_path):
@@ -115,7 +115,7 @@ def test_launch_receipt_explicitly_forbids_arbitrary_types():
 def test_dispatch_asks_profile_for_cwd_before_preparing_session(
     tmp_path, monkeypatch, named
 ):
-    """The profile owns cwd selection before the supervisor freezes the mount plan."""
+    """The profile owns cwd selection before the inspector freezes the mount plan."""
     lab = AppServerLab(tmp_path, named=named, sandbox=SandboxMode.BWRAP)
     root = lab.profile._workspace_root
     prepare = lab.profile.prepare

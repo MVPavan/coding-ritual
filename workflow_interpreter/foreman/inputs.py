@@ -9,6 +9,9 @@ from pydantic import BaseModel, ConfigDict
 from workflow_interpreter.bdio import ActivationRecord, InputBinding, RootRecord
 from workflow_interpreter.bdio.mint import FIRST_ROUND
 from workflow_interpreter.foreman.constants import (
+    CREW_PROTOCOL,
+    CREW_PROTOCOL_NO_WRITE_STEP,
+    CREW_PROTOCOL_WRITE_STEP,
     EVIDENCE_REFERENCE_INSTRUCTIONS,
     FACT_FRAME,
     FACT_FRAME_NO_PATHS,
@@ -16,9 +19,6 @@ from workflow_interpreter.foreman.constants import (
     INPUT_LABEL,
     LEAF_EXECUTION_CONTRACT,
     MSG_INPUT_SOURCE_UNDECLARED,
-    RUNNER_PROTOCOL,
-    RUNNER_PROTOCOL_NO_WRITE_STEP,
-    RUNNER_PROTOCOL_WRITE_STEP,
 )
 from workflow_interpreter.foreman.envelope import (
     ComposedEnvelope,
@@ -28,6 +28,9 @@ from workflow_interpreter.foreman.envelope import (
     compose_envelope,
 )
 from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.inspector import activation_ref
+from workflow_interpreter.inspector.gitcmd import GitOutputTooLarge, GitSubcommand
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.schema.graph_index import (
     GraphIndex,
     producer_engine,
@@ -39,9 +42,6 @@ from workflow_interpreter.schema.models import (
     Node,
     Outcome,
 )
-from workflow_interpreter.supervisor import activation_ref
-from workflow_interpreter.supervisor.gitcmd import GitOutputTooLarge, GitSubcommand
-from workflow_interpreter.supervisor.gitio import Git
 
 __all__ = [
     "DefaultComposer",
@@ -342,11 +342,11 @@ def bounded_materialize(
         raise EnvelopeRefusal(limit + 1, limit, exact=False) from None
 
 
-def _runner_protocol(node: Node) -> str:
+def _crew_protocol(node: Node) -> str:
     """Render the §6 channel contract for one node's own permissions."""
-    return RUNNER_PROTOCOL.format(
+    return CREW_PROTOCOL.format(
         write_step=(
-            RUNNER_PROTOCOL_WRITE_STEP if node.writes else RUNNER_PROTOCOL_NO_WRITE_STEP
+            CREW_PROTOCOL_WRITE_STEP if node.writes else CREW_PROTOCOL_NO_WRITE_STEP
         ),
         outcomes=", ".join(item.value for item in node.outcomes or ()),
     )
@@ -392,13 +392,13 @@ class DefaultComposer:
     ) -> ComposedEnvelope:
         """Compose the profile brief from immutable inputs and resolved flags."""
         node = resolved_node(root, activation.metadata.node).node
-        # One blank line between sections: the runner reads a document, not a
+        # One blank line between sections: the crew reads a document, not a
         # run-on. Each part is stripped so section spacing is the joiner's
         # job alone, whatever trailing newlines a template or input carries.
         brief = "\n\n".join(
             part.strip()
             for part in (
-                _runner_protocol(node),
+                _crew_protocol(node),
                 _fact_frame(root, activation, node),
                 LEAF_EXECUTION_CONTRACT,
                 (

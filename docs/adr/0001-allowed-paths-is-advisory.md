@@ -1,5 +1,7 @@
 # ADR 0001 — `allowed_paths` is a disclosure exemption, not a containment bound
 
+*Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
+
 - **Status:** Accepted; points 1, 2 and 4 implemented 2026-09-03. Point 3 **decided
   2026-09-04** (trigger fired) and now under implementation — see
   `docs/plans/allowed-paths-enforcement.md` (options) and

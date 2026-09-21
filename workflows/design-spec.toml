@@ -6,7 +6,7 @@ description = "One tracked Markdown design reviewed before an authenticated huma
 
 [instance]
 max_total_activations = 4
-phase_bridge_retry_terminals = ["shipped", "abandoned"]
+contractor_retry_terminals = ["shipped", "abandoned"]
 
 [fallback]
 to = "halt"
@@ -14,7 +14,7 @@ to = "halt"
 [[node]]
 name = "draft"
 kind = "task"
-runner = "profile:implementer"
+crew = "profile:implementer"
 model = "default"
 instructions = """
 Write the tracked Markdown design described in `task_brief` and commit it.
@@ -51,7 +51,7 @@ outcomes = ["done", "fail_code", "fail_plan"]
 [[node]]
 name = "review"
 kind = "task"
-runner = "profile:critic"
+crew = "profile:critic"
 model = "default"
 instructions = """
 Review `candidate_diff` against `task_brief`. Verify that the proposed Markdown

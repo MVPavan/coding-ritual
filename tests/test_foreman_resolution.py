@@ -5,9 +5,8 @@ import json
 import os
 import subprocess
 import sys
-from dataclasses import replace
 from pathlib import Path
-from typing import Final, cast
+from typing import cast
 
 import pytest
 from pydantic import ValidationError
@@ -16,26 +15,21 @@ from structlog.testing import capture_logs
 from tests._bdio import (
     IMPLEMENT,
     entry_request,
-    instance_key,
     load_definition,
     make_root,
 )
 from tests._fake_bd import FakeBd
 from tests._foreman import (
-    BUILD_LOOP_INSTANCE_INPUTS,
-    BUILD_LOOP_ROLES,
     FAKE_PROFILE,
     ForemanLab,
 )
 from tests._helpers import VALID_FIXTURE
-from tests._supervisor import FakeProfile, FrozenClock
-from workflow_interpreter.bdio import BdConfig, BoundSetting, NodeSetting
+from tests._inspector import FakeProfile, FrozenClock
+from workflow_interpreter.bdio import BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
-from workflow_interpreter.bridge.integration import IntegrationGuard
-from workflow_interpreter.bridge.models import PhaseBridgeRecord
+from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -45,45 +39,35 @@ from workflow_interpreter.foreman.compose import (
     WrapperLaunch,
     instance_head,
 )
-from workflow_interpreter.foreman.config import ForemanConfig, RunnerBinding
+from workflow_interpreter.foreman.config import CrewBinding, ForemanConfig
 from workflow_interpreter.foreman.constants import INSTANCE_BRANCH
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
-    UnresolvedRunnerError,
+    UnresolvedCrewError,
     resolved_node,
 )
 from workflow_interpreter.foreman.owner import OwnerConflict, OwnerRecord, ensure_owner
-from workflow_interpreter.foreman.replacement import (
-    advance_successor,
-    bridge_landing_locks,
-    guard_bridge,
-)
 from workflow_interpreter.foreman.resolve import (
     TASK_SETTING_TYPES,
     _resolved_config,
     instantiate,
     resolve,
 )
+from workflow_interpreter.inspector.clock import Clock
+from workflow_interpreter.inspector.config import InspectorConfig
+from workflow_interpreter.inspector.gitcmd import GitResult, GitSubcommand
+from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.paths import read_record, write_record
 from workflow_interpreter.profiles import ProfileConfig
 from workflow_interpreter.profiles.registry import ProfileRegistry
-from workflow_interpreter.schema.decisions import (
-    CoordinationError,
-    CoordinationLink,
-    MemberAdmission,
-    TrustedReplacementIntent,
-)
 from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.schema.validator import PHASE_B_RULES
-from workflow_interpreter.supervisor.clock import Clock
-from workflow_interpreter.supervisor.config import SupervisorConfig
-from workflow_interpreter.supervisor.gitcmd import GitResult, GitSubcommand
-from workflow_interpreter.supervisor.gitio import Git
-from workflow_interpreter.supervisor.paths import read_record, write_record
+from workflow_interpreter.tracker.bd_transport import BdConfig
 
 
 class _AvailableProfiles(ProfileRegistry):
-    """A registry with built-in vendors and the registered lab runner."""
+    """A registry with built-in vendors and the registered lab crew."""
 
     def __init__(self) -> None:
         super().__init__(
@@ -94,7 +78,7 @@ class _AvailableProfiles(ProfileRegistry):
         )
 
 
-def test_runner_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> None:
+def test_crew_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> None:
     """A role cannot leave either output-affecting setting to a vendor default."""
     repo = tmp_path / "repo"
     repo.mkdir()
@@ -109,10 +93,10 @@ def test_runner_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> No
             {
                 "repo_root": repo,
                 "wrapper_home": wrapper_home,
-                "bd": {"workspace": tmp_path / "bd", "actor": "actor"},
+                "tracker": {"bd": {"workspace": tmp_path / "bd", "actor": "actor"}},
                 "host": "host",
                 "actor": "actor",
-                "supervisor": {
+                "inspector": {
                     "repo_root": repo,
                     "wrapper_root": wrapper_root,
                     "host": "host",
@@ -160,10 +144,10 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=tmp_path / "home",
-        bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="actor")),
         host="host",
         actor="actor",
-        supervisor=SupervisorConfig(
+        inspector=InspectorConfig(
             repo_root=repo, wrapper_root=wrapper_root, host="host"
         ),
     )
@@ -178,7 +162,7 @@ def test_composition_for_root_shares_one_band_and_installs_head_reader(
     composition = Composition(
         config=config,
         store=fake_store,
-        supervisor_config=config.supervisor,
+        inspector_config=config.inspector,
         git=cast(Git, Heads()),
         clock=cast(Clock, object()),
         profiles=cast(ProfileResolver, _AvailableProfiles()),
@@ -212,191 +196,6 @@ def test_composition_scopes_mint_reads_to_each_instance_branch(
         wiring_missing.branch_head_reader()
 
 
-def test_root_scoped_reads_ask_the_locator_for_that_root(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """A read about one root is served by that root's pinned backend (§3.2).
-
-    `composition.store` is the process-wide factory; using it for a root-scoped
-    read would serve a ledger-backed root from the bd store after the cutover
-    switch flips, which is exactly what the per-root pin forbids.
-    """
-    root = make_root(fake_store, load_definition())
-    composition, _ = _instance_composition(fake_store, tmp_path)
-    asked: list[str] = []
-
-    def locate(root_id: str) -> BackendKind:
-        asked.append(root_id)
-        return BackendKind.BD
-
-    composition = replace(composition, locate_backend=locate)
-
-    assert (
-        composition.reads_for_root(root.root_id).load_root(root.root_id).root_id
-        == root.root_id
-    )
-    assert asked == [root.root_id]
-
-
-def test_root_scoped_coordination_is_bound_to_that_root(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """An owner's reservation ledger lives in the owner's own record (§3.2).
-
-    `CoordinationStore` loads and saves the owner root through the backend it
-    was built on, so a coordination store taken from `composition.store` would
-    query the process-wide backend about a root pinned to another one.
-    """
-    root = make_root(fake_store, load_definition())
-    composition, _ = _instance_composition(fake_store, tmp_path)
-    asked: list[str] = []
-
-    def locate(root_id: str) -> BackendKind:
-        asked.append(root_id)
-        return BackendKind.BD
-
-    composition = replace(composition, locate_backend=locate)
-
-    with pytest.raises(CoordinationError, match="owner reservation ledger missing"):
-        composition.coordination_for_root(root.root_id).state(root.root_id)
-    assert asked == [root.root_id]
-
-
-def test_successor_and_bridge_paths_read_the_owner_through_its_own_store(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """Every owner-record access on these paths names its owner root (§3.2).
-
-    Successor journals, bridge authority and integration associations all live
-    in the owner's own record. Read through `composition.store` they would be
-    looked for on the process-wide backend, so each path is driven here until
-    it reaches the owner ledger, and the locator is asked for the owner.
-    """
-    owner = make_root(fake_store, load_definition())
-    composition, _ = _instance_composition(fake_store, tmp_path)
-    asked: list[str] = []
-
-    def locate(root_id: str) -> BackendKind:
-        asked.append(root_id)
-        return BackendKind.BD
-
-    composition = replace(composition, locate_backend=locate)
-    missing_ledger = "owner reservation ledger missing"
-    intent = TrustedReplacementIntent(
-        request_key="successor-key",
-        request_digest="request-digest",
-        reason="correct instructions",
-        owner_id=owner.root_id,
-        slot="a",
-        expected_generation=0,
-        predecessor_id="predecessor",
-        admission=MemberAdmission(
-            graph_body="body",
-            config_json="[]",
-            base_commit="a" * 40,
-            slot="a",
-            generation=0,
-        ),
-        obligation_digest="obligation-digest",
-    )
-    record = PhaseBridgeRecord.prepared(
-        epic_id="epic",
-        stage_id="stage",
-        attempt=1,
-        target_ref="refs/heads/main",
-        expected_base_commit="a" * 40,
-    )
-
-    with pytest.raises(CoordinationError, match=missing_ledger):
-        advance_successor(composition, intent)
-    assert asked == [owner.root_id]
-
-    asked.clear()
-    with pytest.raises(CoordinationError, match=missing_ledger):
-        guard_bridge(
-            composition,
-            record.model_copy(
-                update={
-                    "successor_owner": owner.root_id,
-                    "successor_key": intent.request_key,
-                    "execution_base_commit": "a" * 40,
-                }
-            ),
-        )
-    assert asked == [owner.root_id]
-
-    asked.clear()
-    with pytest.raises(CoordinationError, match=missing_ledger):
-        IntegrationGuard(composition).association(
-            record.model_copy(
-                update={
-                    "integration_owner": owner.root_id,
-                    "integration_digest": "integration-digest",
-                }
-            )
-        )
-    assert asked == [owner.root_id]
-
-    # A landing takes the owner lock, which lives beside the owner record on
-    # the owner's backend; only the target and member lock namespaces are
-    # shared. The member carries the link a real admission would have written.
-    member = make_root(fake_store, load_definition())
-    fake_store._client._merge_metadata(
-        member.root_id,
-        {
-            "coordination": CoordinationLink(
-                owner_id=owner.root_id,
-                slot="a",
-                generation=0,
-                reservation_id="reservation",
-                ceiling=2,
-            ).model_dump(mode="json")
-        },
-    )
-    asked.clear()
-    with (
-        pytest.raises(CoordinationError, match=missing_ledger),
-        bridge_landing_locks(
-            composition, record.model_copy(update={"root_id": member.root_id})
-        ),
-    ):
-        pass
-    # Member, owner (the lock), then the same pair again inside `guard_bridge`.
-    assert asked == [member.root_id, owner.root_id] * 2
-
-
-def test_one_wiring_locates_its_backend_once_and_keeps_that_answer(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """One wiring is built on ONE located backend (§3.2).
-
-    `for_root` loads the root and then derives the member-band store from it;
-    asking the locator again could answer differently, and the wiring would
-    then have loaded the root from one backend and run it against another. The
-    locator here refuses a second answer, and the backend the wiring ends up
-    on is compared by identity with the one the root was read through.
-    """
-    root = make_root(fake_store, load_definition())
-    composition, git = _instance_composition(fake_store, tmp_path)
-    git.refs[INSTANCE_BRANCH.format(root_id=root.root_id)] = "a" * 40
-    located: list[str] = []
-
-    def locate(root_id: str) -> BackendKind:
-        """Answer once; a second answer is a second decision, not a repeat."""
-        if located:
-            raise AssertionError("the located backend must not be re-derived")
-        located.append(root_id)
-        return BackendKind.BD
-
-    composition = replace(composition, locate_backend=locate)
-
-    wiring = composition.for_root(root.root_id)
-
-    assert located == [root.root_id]
-    assert wiring.store._client is fake_store._client
-    assert wiring.supervisor._store._client is fake_store._client
-
-
 def test_store_root_derivation_keeps_injected_capabilities(
     gate_store: WorkflowStore,
 ) -> None:
@@ -420,7 +219,7 @@ def test_composition_for_root_uses_the_injected_store(
     with pytest.raises(StoreConfigError, match="no branch_head_reader"):
         fake_store.mint_activation(root.root_id, entry_request())
     with pytest.raises(InstanceBranchMissing, match="instance branch"):
-        wiring.supervisor._store.mint_activation(root.root_id, entry_request())
+        wiring.inspector._store.mint_activation(root.root_id, entry_request())
 
 
 def test_task_setting_types_tracks_the_configurable_task_setting_vocabulary() -> None:
@@ -456,15 +255,15 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
             load_definition(),
             {
                 "node.implement.model": "opus-5",
-                "node.implement.runner": "operator-runner",
+                "node.implement.crew": "operator-crew",
                 "node.implement.effort": "high",
             },
         )
     }
     assert settings["node.implement.model"].value == "opus-5"
     assert settings["node.implement.model"].source.value == "instance-override"
-    assert settings["node.implement.runner"].value == "operator-runner"
-    assert settings["node.implement.runner"].source.value == "instance-override"
+    assert settings["node.implement.crew"].value == "operator-crew"
+    assert settings["node.implement.crew"].source.value == "instance-override"
     assert settings["node.implement.effort"].value == "high"
     assert settings["node.implement.effort"].source.value == "instance-override"
 
@@ -472,18 +271,18 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
         fake_store,
         tmp_path / "bound",
         roles={
-            "implementer": RunnerBinding(
-                profile="bound-runner", model="bound-model", effort="high"
+            "implementer": CrewBinding(
+                profile="bound-crew", model="bound-model", effort="high"
             ),
-            "critic": RunnerBinding(profile="critic", model="critic", effort="medium"),
+            "critic": CrewBinding(profile="critic", model="critic", effort="medium"),
         },
     )
     bound_settings = {
         item.key: item
         for item in _resolved_config(bound_composition, load_definition(), {})
     }
-    assert bound_settings["node.implement.runner"].value == "bound-runner"
-    assert bound_settings["node.implement.runner"].source.value == "role-binding"
+    assert bound_settings["node.implement.crew"].value == "bound-crew"
+    assert bound_settings["node.implement.crew"].source.value == "role-binding"
     assert bound_settings["node.implement.model"].value == "bound-model"
     assert bound_settings["node.implement.model"].source.value == "role-binding"
     assert bound_settings["node.implement.effort"].value == "high"
@@ -613,7 +412,7 @@ def _instance_composition(
     tmp_path: Path,
     *,
     project_config: dict[str, str | int | bool] | None = None,
-    roles: dict[str, RunnerBinding] | None = None,
+    roles: dict[str, CrewBinding] | None = None,
     profiles: ProfileResolver | None = None,
 ) -> tuple[Composition, _InstanceGit]:
     repo = tmp_path / "repo"
@@ -627,14 +426,14 @@ def _instance_composition(
     config = ForemanConfig(
         repo_root=repo,
         wrapper_home=tmp_path / "home",
-        bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+        tracker=TrackerSettings(bd=BdConfig(workspace=tmp_path / "bd", actor="actor")),
         project_config={} if project_config is None else project_config,
         roles=(
             {
-                "implementer": RunnerBinding(
+                "implementer": CrewBinding(
                     profile="implementer", model="implementer", effort="medium"
                 ),
-                "critic": RunnerBinding(
+                "critic": CrewBinding(
                     profile="critic", model="critic", effort="medium"
                 ),
             }
@@ -643,7 +442,7 @@ def _instance_composition(
         ),
         host="host",
         actor="actor",
-        supervisor=SupervisorConfig(
+        inspector=InspectorConfig(
             repo_root=repo, wrapper_root=wrapper_root, host="host"
         ),
     )
@@ -651,7 +450,7 @@ def _instance_composition(
         Composition(
             config=config,
             store=fake_store,
-            supervisor_config=config.supervisor,
+            inspector_config=config.inspector,
             git=cast(Git, git),
             clock=cast(Clock, object()),
             profiles=_AvailableProfiles() if profiles is None else profiles,
@@ -660,77 +459,6 @@ def _instance_composition(
         ),
         git,
     )
-
-
-# Which role staffs which build-loop node, as `workflows/build-loop.toml` spells
-# it. Each role has its own model pin under a registered vendor identity, so
-# binding one role twice or dropping one cannot pass.
-BUILD_LOOP_NODE_ROLES: Final[dict[str, str]] = {
-    "write_tests": "test-author",
-    "review_tests": "test-critic",
-    "implement": "implementer",
-    "review_impl": "impl-critic",
-    "critic": "critic",
-}
-
-
-@pytest.mark.bd
-def test_build_loop_create_pins_both_instance_inputs_and_all_five_roles(
-    build_loop_graph: Path, store: WorkflowStore, tmp_path: Path
-) -> None:
-    """`create workflows/build-loop.toml` with both `--input` pairs, on real bd.
-
-    This is the D2 command minus argv parsing: `__main__._instance_inputs`
-    turns `--input NAME=PATH` into exactly this mapping. It runs against the
-    real backend because a root is immutable once written (§3.1) — a lossy
-    write that dropped `seam_contract` or a role binding would be silent, and
-    the fake bd cannot prove it did not happen.
-    """
-    composition, _ = _instance_composition(
-        store,
-        tmp_path,
-        roles={
-            role: RunnerBinding(
-                profile="claude", model=f"{role}-model", effort="medium"
-            )
-            for role in BUILD_LOOP_ROLES
-        },
-    )
-    inputs: dict[str, Path] = {}
-    for name, body in BUILD_LOOP_INSTANCE_INPUTS.items():
-        path = tmp_path / f"{name}.md"
-        path.write_text(body, encoding="utf-8")
-        inputs[name] = path
-
-    root = instantiate(
-        composition,
-        build_loop_graph,
-        instance_key=instance_key(),
-        instance_inputs=inputs,
-        allow_test_flags=False,
-        overrides={},
-        backend=composition.config.store,
-    )
-
-    reloaded = store.reads.load_root(root.root_id)
-    assert {
-        pinned.name: pinned.body for pinned in reloaded.metadata.instance_inputs
-    } == dict(BUILD_LOOP_INSTANCE_INPUTS)
-    # Body and digest travel together; comparing only one would miss a backend
-    # that round-tripped the pair inconsistently.
-    assert {
-        pinned.name: pinned.sha256 for pinned in reloaded.metadata.instance_inputs
-    } == {
-        name: hashlib.sha256(body.encode("utf-8")).hexdigest()
-        for name, body in BUILD_LOOP_INSTANCE_INPUTS.items()
-    }
-    settings = {setting.key: setting for setting in reloaded.metadata.resolved_config}
-    assert {
-        node: settings[f"node.{node}.runner"].value for node in BUILD_LOOP_NODE_ROLES
-    } == {node: "claude" for node in BUILD_LOOP_NODE_ROLES}
-    assert {
-        node: settings[f"node.{node}.model"].value for node in BUILD_LOOP_NODE_ROLES
-    } == {node: f"{role}-model" for node, role in BUILD_LOOP_NODE_ROLES.items()}
 
 
 def test_instantiate_pins_project_resolution_and_creates_instance_branch(
@@ -749,7 +477,6 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
-        backend=composition.config.store,
     )
     settings = {setting.key: setting for setting in root.metadata.resolved_config}
     assert settings["region.build-review.max_entries"].value == 2
@@ -757,8 +484,8 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
     branch = INSTANCE_BRANCH.format(root_id=root.root_id)
     assert git.updated == [(branch, git.base)]
     assert root.metadata.instance_inputs[0].body == "implement this"
-    assert settings["node.implement.runner"].value == "implementer"
-    assert settings["node.review.runner"].value == "critic"
+    assert settings["node.implement.crew"].value == "implementer"
+    assert settings["node.review.crew"].value == "critic"
     assert {key for key in settings if key.startswith("verify.")}
 
     again = instantiate(
@@ -768,13 +495,12 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
         instance_inputs={"task_brief": brief},
         allow_test_flags=False,
         overrides={},
-        backend=composition.config.store,
     )
     assert again.root_id == root.root_id
     assert git.updated == [(branch, git.base)]
 
 
-def test_instantiate_refuses_brief_source_and_runner_role_failures(
+def test_instantiate_refuses_brief_source_and_crew_role_failures(
     fake_store: WorkflowStore, tmp_path: Path
 ) -> None:
     """The root cannot pin an oversized, wrongly sourced, or unstaffed instance."""
@@ -791,7 +517,6 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": oversized},
             allow_test_flags=False,
             overrides={},
-            backend=composition.config.store,
         )
     empty = tmp_path / "empty.md"
     empty.write_text("", encoding="utf-8")
@@ -803,7 +528,6 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": empty},
             allow_test_flags=False,
             overrides={},
-            backend=composition.config.store,
         )
     wrong_source = tmp_path / "wrong-source.toml"
     wrong_source.write_text(
@@ -829,14 +553,13 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
-            backend=composition.config.store,
         )
     unstaffed, _ = _instance_composition(
         fake_store,
         tmp_path / "unstaffed",
-        roles={"other": RunnerBinding(profile="other", model="other", effort="medium")},
+        roles={"other": CrewBinding(profile="other", model="other", effort="medium")},
     )
-    with pytest.raises(ResolutionError, match="unknown runner roles"):
+    with pytest.raises(ResolutionError, match="unknown crew roles"):
         instantiate(
             unstaffed,
             VALID_FIXTURE,
@@ -844,7 +567,6 @@ def test_instantiate_refuses_brief_source_and_runner_role_failures(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
-            backend=composition.config.store,
         )
 
 
@@ -864,7 +586,6 @@ def test_instantiate_refuses_missing_base_before_creating_a_branch(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
-            backend=composition.config.store,
         )
     assert git.updated == []
 
@@ -913,7 +634,6 @@ def test_instantiate_pins_every_named_instance_input_sorted_by_name(
         instance_inputs=paths,
         allow_test_flags=False,
         overrides={},
-        backend=composition.config.store,
     )
 
     pinned = root.metadata.instance_inputs
@@ -940,7 +660,6 @@ def test_instantiate_refuses_a_missing_required_input_before_any_bd_write(
             instance_inputs={"task_brief": brief},
             allow_test_flags=False,
             overrides={},
-            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0
@@ -962,7 +681,6 @@ def test_instantiate_refuses_an_undeclared_instance_input_name(
             instance_inputs={"task_brief": brief, "stowaway": brief},
             allow_test_flags=False,
             overrides={},
-            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0
@@ -988,7 +706,6 @@ def test_instantiate_refuses_inputs_over_the_aggregate_root_cap(
             instance_inputs=paths,
             allow_test_flags=False,
             overrides={},
-            backend=composition.config.store,
         )
 
     assert fake_bd.command_count("create") == 0
@@ -1015,33 +732,33 @@ def test_ensure_instance_branch_refuses_a_null_base_before_any_write(
     assert git.updated == []
 
 
-def test_config_refuses_split_supervisor_identity_and_guards_owner_file(
+def test_config_refuses_split_inspector_identity_and_guards_owner_file(
     fake_store: WorkflowStore, tmp_path: Path
 ) -> None:
     """One foreman root has one repository and one durable ownership record."""
     composition, _ = _instance_composition(fake_store, tmp_path)
     config = composition.config
-    with pytest.raises(ValueError, match="supervisor repo_root"):
+    with pytest.raises(ValueError, match="inspector repo_root"):
         ForemanConfig(
             repo_root=config.repo_root,
             wrapper_home=config.wrapper_home,
-            bd=config.bd,
+            tracker=config.tracker,
             host=config.host,
             actor=config.actor,
-            supervisor=SupervisorConfig(
+            inspector=InspectorConfig(
                 repo_root=tmp_path / "other-repository",
                 wrapper_root=config.wrapper_root,
                 host=config.host,
             ),
         )
-    with pytest.raises(ValueError, match="supervisor wrapper_root"):
+    with pytest.raises(ValueError, match="inspector wrapper_root"):
         ForemanConfig(
             repo_root=config.repo_root,
             wrapper_home=config.wrapper_home,
-            bd=config.bd,
+            tracker=config.tracker,
             host=config.host,
             actor=config.actor,
-            supervisor=SupervisorConfig(
+            inspector=InspectorConfig(
                 repo_root=config.repo_root,
                 wrapper_root=tmp_path / "other-wrapper",
                 host=config.host,
@@ -1074,10 +791,12 @@ def test_foreman_config_hashes_the_resolved_repository_path(tmp_path: Path) -> N
         return ForemanConfig(
             repo_root=repo_root,
             wrapper_home=home,
-            bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+            tracker=TrackerSettings(
+                bd=BdConfig(workspace=tmp_path / "bd", actor="actor")
+            ),
             host="host",
             actor="actor",
-            supervisor=SupervisorConfig(
+            inspector=InspectorConfig(
                 repo_root=repo_root, wrapper_root=wrapper_root, host="host"
             ),
         )
@@ -1089,20 +808,22 @@ def test_foreman_config_hashes_the_resolved_repository_path(tmp_path: Path) -> N
 
 def test_foreman_config_refuses_relative_identity_paths(tmp_path: Path) -> None:
     """Root identity never depends on the process working directory."""
-    invalid_supervisor = SupervisorConfig(
+    invalid_inspector = InspectorConfig(
         repo_root=tmp_path / "repo",
         wrapper_root=tmp_path / "wrapper",
         host="host",
     )
-    object.__setattr__(invalid_supervisor, "wrapper_root", Path("home") / "root")
+    object.__setattr__(invalid_inspector, "wrapper_root", Path("home") / "root")
     with pytest.raises(ValueError, match="must be absolute"):
         ForemanConfig(
             repo_root=Path("repo"),
             wrapper_home=tmp_path / "home",
-            bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+            tracker=TrackerSettings(
+                bd=BdConfig(workspace=tmp_path / "bd", actor="actor")
+            ),
             host="host",
             actor="actor",
-            supervisor=SupervisorConfig(
+            inspector=InspectorConfig(
                 repo_root=tmp_path / "repo",
                 wrapper_root=tmp_path / "home" / "root",
                 host="host",
@@ -1112,23 +833,25 @@ def test_foreman_config_refuses_relative_identity_paths(tmp_path: Path) -> None:
         ForemanConfig(
             repo_root=tmp_path / "repo",
             wrapper_home=Path("home"),
-            bd=BdConfig(workspace=tmp_path / "bd", actor="actor"),
+            tracker=TrackerSettings(
+                bd=BdConfig(workspace=tmp_path / "bd", actor="actor")
+            ),
             host="host",
             actor="actor",
-            supervisor=invalid_supervisor,
+            inspector=invalid_inspector,
         )
 
 
-def test_composition_refuses_a_different_supervisor_instance(
+def test_composition_refuses_a_different_inspector_instance(
     fake_store: WorkflowStore, tmp_path: Path
 ) -> None:
-    """Composition cannot bypass ForemanConfig's supervisor identity guard."""
+    """Composition cannot bypass ForemanConfig's inspector identity guard."""
     composition, _ = _instance_composition(fake_store, tmp_path)
-    with pytest.raises(ValueError, match="supervisor_config"):
+    with pytest.raises(ValueError, match="inspector_config"):
         Composition(
             config=composition.config,
             store=composition.store,
-            supervisor_config=composition.supervisor_config.model_copy(
+            inspector_config=composition.inspector_config.model_copy(
                 update={"host": "other-host"}
             ),
             git=composition.git,
@@ -1139,10 +862,10 @@ def test_composition_refuses_a_different_supervisor_instance(
         )
 
 
-def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_handle(
+def test_detached_spawner_separates_wrapper_and_crew_logs_and_records_its_handle(
     fake_store: WorkflowStore, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The `supervise root activation` spawn must not send wrapper output to `run.jsonl`."""
+    """The `inspect root activation` spawn must not send wrapper output to `run.jsonl`."""
     composition, _ = _instance_composition(fake_store, tmp_path)
     calls: list[tuple[tuple[str, ...], dict[str, object]]] = []
 
@@ -1163,7 +886,9 @@ def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_hand
         lambda _config: "boot",
     )
     config_path = tmp_path / "foreman.toml"
-    DetachedSpawner(composition.supervisor_config, config_path, "cr-3411.4").launch(
+    DetachedSpawner(
+        composition.inspector_config, config_path, "cr-3411.4", "cr-3411"
+    ).launch(
         WrapperLaunch(
             root_id="root",
             activation_id="activation",
@@ -1180,7 +905,10 @@ def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_hand
         # task, or it could not locate the backend its root is pinned to.
         "--task",
         "cr-3411.4",
-        "supervise",
+        # §3.7: and the epic, which is an input and not a parse of the id.
+        "--epic",
+        "cr-3411",
+        "inspector",
         "root",
         "activation",
     )
@@ -1189,7 +917,7 @@ def test_detached_spawner_separates_wrapper_and_runner_logs_and_records_its_hand
     assert kwargs["stdout"] is not kwargs["stderr"]
     assert Path(kwargs["stdout"].name).name == "wrapper.log"
     assert Path(kwargs["stderr"].name).name == "wrapper.log"
-    record = composition.supervisor_config.wrapper_root / "root" / "activation"
+    record = composition.inspector_config.wrapper_root / "root" / "activation"
     assert json.loads((record / "wrapper.json").read_text(encoding="utf-8")) == {
         "boot_id": "boot",
         "pid": 42,
@@ -1219,11 +947,11 @@ def test_detached_spawner_records_an_immediately_exited_wrapper(
         lambda _config: None,
     )
     DetachedSpawner(
-        composition.supervisor_config, tmp_path / "foreman.toml", "cr-3411.4"
+        composition.inspector_config, tmp_path / "foreman.toml", "cr-3411.4", "cr-3411"
     ).launch(
         WrapperLaunch(root_id="root", activation_id="gone", request=entry_request())
     )
-    record = composition.supervisor_config.wrapper_root / "root" / "gone"
+    record = composition.inspector_config.wrapper_root / "root" / "gone"
     assert json.loads((record / "wrapper.json").read_text(encoding="utf-8")) == {
         "boot_id": None,
         "pid": 42,
@@ -1264,7 +992,7 @@ def test_resolve_still_offers_every_field_the_node_kind_allows() -> None:
     keys = {item.key for item in resolve(load_definition(), {}, {})}
 
     assert "node.implement.model" in keys
-    assert "node.implement.runner" in keys
+    assert "node.implement.crew" in keys
     assert "node.implement.isolation" in keys
     assert "node.implement.max_steers" in keys
     # A gate carries no execution field; its own `gate_type`/`binds` are
@@ -1315,13 +1043,13 @@ def test_resolve_refuses_a_value_the_node_field_cannot_hold(
 
 
 def test_resolve_refuses_the_vendor_default_model_from_project_config() -> None:
-    """A root cannot pin a model selected later by the runner CLI."""
+    """A root cannot pin a model selected later by the crew CLI."""
     with pytest.raises(ResolutionError, match="vendor default"):
         resolve(load_definition(), {"node.implement.model": "default"}, {})
 
 
 def test_resolve_refuses_the_vendor_default_model_from_instance_override() -> None:
-    """An override cannot substitute the runner CLI's mutable default model."""
+    """An override cannot substitute the crew CLI's mutable default model."""
     with pytest.raises(ResolutionError, match="vendor default"):
         resolve(load_definition(), {}, {"node.implement.model": "default"})
 
@@ -1338,35 +1066,35 @@ def test_instantiate_refuses_an_unusable_override_before_writing_the_root(
     assert lab.store.reads.list_roots() == ()
 
 
-def test_resolve_refuses_a_configured_runner_that_is_still_a_role() -> None:
+def test_resolve_refuses_a_configured_crew_that_is_still_a_role() -> None:
     """Only the roles map resolves `profile:<role>`; config must state a profile."""
     with pytest.raises(ResolutionError, match="role.*reference|profile:"):
         resolve(
             load_definition(),
             {},
             {
-                "node.implement.runner": "profile:reviewer",
+                "node.implement.crew": "profile:reviewer",
                 "node.implement.model": "chosen",
             },
         )
 
 
-def test_resolve_refuses_a_configured_runner_without_its_model_and_effort() -> None:
-    """A runner override must name the complete runner-model-effort binding."""
+def test_resolve_refuses_a_configured_crew_without_its_model_and_effort() -> None:
+    """A crew override must name the complete crew-model-effort binding."""
     with pytest.raises(ResolutionError, match="without"):
-        resolve(load_definition(), {}, {"node.implement.runner": "claude"})
+        resolve(load_definition(), {}, {"node.implement.crew": "claude"})
     with pytest.raises(ResolutionError, match="effort"):
         resolve(
             load_definition(),
             {},
-            {"node.implement.runner": "claude", "node.implement.model": "opus"},
+            {"node.implement.crew": "claude", "node.implement.model": "opus"},
         )
     with pytest.raises(ResolutionError, match="effort"):
         resolve(
             load_definition(),
             {},
             {
-                "node.implement.runner": "claude",
+                "node.implement.crew": "claude",
                 "node.implement.model": "opus",
                 "node.implement.effort": "",
             },
@@ -1378,13 +1106,13 @@ def test_resolve_refuses_a_configured_runner_without_its_model_and_effort() -> N
             load_definition(),
             {},
             {
-                "node.implement.runner": "claude",
+                "node.implement.crew": "claude",
                 "node.implement.model": "opus",
                 "node.implement.effort": "high",
             },
         )
     }
-    assert settled["node.implement.runner"].value == "claude"
+    assert settled["node.implement.crew"].value == "claude"
     assert settled["node.implement.model"].value == "opus"
     assert settled["node.implement.effort"].value == "high"
 
@@ -1397,7 +1125,7 @@ def test_resolved_node_falls_back_to_the_pinned_node(tmp_path: Path) -> None:
 
     view = resolved_node(root, IMPLEMENT)
 
-    assert view.runner_profile == FAKE_PROFILE
+    assert view.crew_profile == FAKE_PROFILE
     assert view.node.max_wall == pinned.max_wall
     assert view.node.token_budget == pinned.token_budget
     # A list is outside the resolvable vocabulary, so it is never overlaid.
@@ -1483,7 +1211,7 @@ def test_resolve_does_not_log_an_unchanged_nodes_warning(
 def test_resolved_node_refuses_a_root_that_never_resolved_its_role(
     tmp_path: Path,
 ) -> None:
-    """A role reference is not a runner: an unresolved one fails loud, not late.
+    """A role reference is not a crew: an unresolved one fails loud, not late.
 
     `profile:<role>` names nothing a profile resolver can answer, and reading
     the live role map instead is the drift `resolved_node` exists to prevent.
@@ -1497,14 +1225,14 @@ def test_resolved_node_refuses_a_root_that_never_resolved_its_role(
                     "resolved_config": tuple(
                         item
                         for item in root.metadata.resolved_config
-                        if item.key != "node.implement.runner"
+                        if item.key != "node.implement.crew"
                     )
                 }
             )
         }
     )
 
-    with pytest.raises(UnresolvedRunnerError, match="implementer"):
+    with pytest.raises(UnresolvedCrewError, match="implementer"):
         resolved_node(stripped, IMPLEMENT)
 
 

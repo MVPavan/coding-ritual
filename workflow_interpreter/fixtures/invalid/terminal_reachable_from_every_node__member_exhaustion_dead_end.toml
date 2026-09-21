@@ -31,7 +31,7 @@ on_exhausted = "og2"
 [[node]]
 name = "s"
 kind = "task"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -46,7 +46,7 @@ outcomes = ["done", "no_diff"]
 name = "p"
 kind = "task"
 region = "r1"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -61,7 +61,7 @@ outcomes = ["done"]
 name = "e2"
 kind = "task"
 region = "r2"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

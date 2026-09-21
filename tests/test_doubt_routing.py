@@ -3,8 +3,8 @@
 from pathlib import Path
 
 from tests._foreman import ForemanLab
-from tests._supervisor import ChildScript
-from workflow_interpreter.supervisor.models import SandboxMode
+from tests._inspector import ChildScript
+from workflow_interpreter.inspector.models import SandboxMode
 
 
 def test_doubt_continues_only_its_declared_edge(tmp_path: Path) -> None:

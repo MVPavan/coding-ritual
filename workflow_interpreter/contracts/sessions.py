@@ -12,7 +12,7 @@ class SessionReuse(StrEnum):
     SAME_NODE = "same-node"
 
 
-MSG_SESSION_REUSE: Final[str] = "session_reuse requires the codex app-server runner"
+MSG_SESSION_REUSE: Final[str] = "session_reuse requires the codex app-server crew"
 MSG_SESSION_SOURCE: Final[str] = "app-server session source is absent or incompatible"
 
 

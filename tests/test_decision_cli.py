@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from tests._foreman import ForemanLab
-from tests._supervisor import ChildScript
+from tests._inspector import ChildScript
 from tests.test_decision_lifecycle import FIXTURE
 from workflow_interpreter.foreman import __main__ as cli
-from workflow_interpreter.supervisor.models import SandboxMode
+from workflow_interpreter.inspector.models import SandboxMode
 
 
 def test_create_run_status_includes_consumed_decision(

@@ -31,28 +31,43 @@ from typing import Final
 import structlog
 from pydantic import BaseModel, ConfigDict, JsonValue
 
+from workflow_interpreter.contracts.run_identity import (
+    ComponentKind,
+    InvalidIdentifier,
+    safe_component,
+)
+from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.ledger.constants import (
     DERIVED_ACTIVATION_TABLES,
+    ELIDED_TASK_COLUMNS,
     EXPORT_KIND_HEADER,
     EXPORT_KIND_ROW,
+    EXPORT_REF_TEMPLATE,
     EXPORT_TABLES,
     GATE_TABLES,
     MSG_EXPORT_BLOB,
     MSG_EXPORT_COLUMN,
     MSG_EXPORT_GATE_TASK,
     MSG_EXPORT_HEADER,
+    MSG_EXPORT_NOT_LANDED,
+    MSG_EXPORT_REPO_ID_MISMATCH,
     MSG_EXPORT_ROW_KIND,
     MSG_EXPORT_TABLE,
     MSG_EXPORT_TASK_MISMATCH,
     MSG_EXPORT_TASK_ROWS,
-    MSG_IMPORT_LANDED,
-    MSG_REPO_HASH_MISMATCH,
+    MSG_EXPORT_UNSAFE_COMPONENT,
+    MSG_PIN_LOST,
+    MSG_PIN_NO_FILE,
+    MSG_PIN_NOT_LANDED,
+    MSG_PIN_STALE,
+    MSG_PIN_TASK_MISMATCH,
+    MSG_REPO_ID_ABSENT,
     MSG_UNKNOWN_TASK,
-    MSG_WRAPPER_ROOT_MISMATCH,
     ROW_TABLES,
     ExportKey,
     LedgerTable,
     MetaKey,
+    TaskState,
 )
 from workflow_interpreter.ledger.database import (
     LedgerDatabase,
@@ -65,14 +80,19 @@ from workflow_interpreter.ledger.database import (
 from workflow_interpreter.ledger.errors import (
     LedgerExportError,
     LedgerIdentityError,
-    LedgerImportUnsupported,
     LedgerSchemaError,
     LedgerTransportError,
 )
 from workflow_interpreter.ledger.fence import LedgerFence
-from workflow_interpreter.ledger.paths import export_path, fence_path, repo_hash
+from workflow_interpreter.ledger.paths import (
+    export_path,
+    fence_path,
+    read_repo_id,
+    repo_id_relpath,
+)
 from workflow_interpreter.ledger.schema import table_columns
 from workflow_interpreter.ledger.store import rebuild_findings
+from workflow_interpreter.ledger.tasks import record_export_oid, task_state
 from workflow_interpreter.schema.loader import canonical_json_bytes
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
@@ -91,7 +111,13 @@ _SQL_RESTORE_PENDING: Final[str] = (
     "INSERT INTO restore_pending (task_id, requested_at) VALUES (?, ?)"
 )
 _SQL_CLEAR_RESTORES: Final[str] = "DELETE FROM restore_pending"
-_SQL_COUNT_LANDINGS: Final[str] = f"SELECT COUNT(*) FROM {LedgerTable.LANDINGS.value}"
+_SQL_LANDINGS: Final[str] = (
+    f"SELECT * FROM {LedgerTable.LANDINGS.value} WHERE task_id = ? "
+    "ORDER BY attempt, phase"
+)
+_SQL_CONTRACTOR_RECORD: Final[str] = (
+    f"SELECT * FROM {LedgerTable.CONTRACTOR_RECORDS.value} WHERE task_id = ?"
+)
 _GATE_COLUMN: Final[str] = "gate_id"
 _BLOB_KEY: Final[str] = "base64"
 """A signature's payload and bytes are BLOBs, and JSON has no bytes. They
@@ -99,6 +125,7 @@ travel as a single-key object rather than as bare text, so a decoder can tell a
 restored BLOB from a column that really is a string (§3.6)."""
 _SEQ_COLUMN: Final[str] = "seq"
 _TASK_COLUMN: Final[str] = "task_id"
+_EPIC_COLUMN: Final[str] = "epic_id"
 _ONE_TASK_ROW: Final[int] = 1
 _SECOND_LINE: Final[int] = 2
 _NEWLINE: Final[bytes] = b"\n"
@@ -133,11 +160,22 @@ def export_task(database: LedgerDatabase, task_id: str) -> bytes:
         header: ExportLine = {
             ExportKey.KIND.value: EXPORT_KIND_HEADER,
             ExportKey.SCHEMA_VERSION.value: schema_version(connection),
-            ExportKey.REPO_HASH.value: read_meta(connection, MetaKey.REPO_HASH),
-            ExportKey.WRAPPER_ROOT.value: read_meta(connection, MetaKey.WRAPPER_ROOT),
+            ExportKey.REPO_ID.value: read_meta(connection, MetaKey.REPO_ID),
             ExportKey.TASK_ID.value: task_id,
         }
-        lines = [header, _line(LedgerTable.TASKS, task)]
+        lines = [header, _line(LedgerTable.TASKS, task, elide=ELIDED_TASK_COLUMNS)]
+        # Directly after the `tasks` row it references, and before everything
+        # else, because it is the one row that says how far the contractor got
+        # — which is what a ledger rebuilt in a clone derives closure from
+        # (§3.5). Its own emission branch for `landings`' reason: it has no
+        # per-task `seq`, so it cannot ride the `(seq, table)` order below.
+        lines += [_line(table, row) for table, row in _record_rows(connection, task_id)]
+        # Directly after the `tasks` row it hangs off, and before everything
+        # keyed by a root: `landings` has no per-task `seq` of its own, so it
+        # cannot ride the `(seq, table)` emission below (§3.6).
+        lines += [
+            _line(table, row) for table, row in _landing_rows(connection, task_id)
+        ]
         lines += [
             _line(table, row) for table, row in _ordered_rows(connection, task_id)
         ]
@@ -151,12 +189,108 @@ def export_task(database: LedgerDatabase, task_id: str) -> bytes:
 
 def write_export(database: LedgerDatabase, task_id: str) -> Path:
     """Write `<repo>/.wf/export/<task>.jsonl`, overwriting, never appending."""
+    return _write_export_file(
+        database.repo_root, task_id, export_task(database, task_id)
+    )
+
+
+def write_landed_export(database: LedgerDatabase, task_id: str) -> Path:
+    """`wf ledger export`'s write: the committed path, for a LANDED task only.
+
+    The LANDED gate is `pin_export`'s, and it is here for the rebuild's sake
+    (§3.9): `checkpoint.rebuild_sources` prefers the committed path by NAME,
+    and that is the newer answer only while every file on it was written at
+    landing — after the last activation close. An operator export of a task
+    still in flight broke that, and an import CLEARS before it refills, so the
+    activations that closed after the file was written were lost for good.
+
+    The engine's own landing writes through `write_export` instead, because it
+    has already recorded LANDED on the same `contractor_records` row
+    (`contractor/journal.py`) and re-reading that state here would make the
+    export's own ordering depend on a second read of it. The one file a
+    non-landed task may still leave on that path is therefore the one a crash
+    between `write_export` and the pin leaves, which `pin-export` recovers.
+    """
     payload = export_task(database, task_id)
-    path = export_path(database.repo_root, task_id)
+    state = task_state(database, task_id)
+    if state is not TaskState.LANDED:
+        raise LedgerExportError(
+            MSG_EXPORT_NOT_LANDED.format(
+                task_id=task_id, state="nothing" if state is None else state.value
+            )
+        )
+    return _write_export_file(database.repo_root, task_id, payload)
+
+
+def _write_export_file(repo_root: Path, task_id: str, payload: bytes) -> Path:
+    """Put one task's export bytes on the committed path they belong to."""
+    path = export_path(repo_root, task_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
     _LOG.info("wf.ledger.exported", task_id=task_id, path=str(path), bytes=len(payload))
     return path
+
+
+def pin_export(
+    git: Git, database: LedgerDatabase, task_id: str, repo_root: Path
+) -> str:
+    """Pin the export ON DISK under `refs/wf/exports/<task>` and record its oid.
+
+    The bytes already written, never a fresh export: this is the recovery for
+    a crash between `write_export` and the pin (§3.6, `wf ledger pin-export`),
+    and re-exporting would pin a ledger that has moved on since the file was
+    written — a different blob from the one the operator is holding.
+
+    Which is exactly why the file is CHECKED against a fresh export before it
+    is pinned. A pin is the claim "this blob is what the ledger says about this
+    task", and a file written before the ledger moved on is no longer that
+    claim: it would be recorded on a `tasks` row that can never re-export it,
+    and the next close would refuse a task whose pin its own bytes contradict.
+    Equality is the only state in which re-pinning the operator's file and
+    re-exporting would agree, so equality is the only state that pins.
+
+    Four refusals come before the blob is written, each naming its own defect:
+    the task must have a `tasks` row (`export_task`), the file must be an
+    export of THIS task, the task must have LANDED, and its bytes must be the
+    current ones.
+
+    LANDED is the other end of the closure latch (§3.5). This command exists
+    for the operator, so it can be aimed at any task at all; a pin recorded on
+    a task still in flight would be read as closure the moment anything asked
+    `closed()`, and that task's landing would then skip both `adapter.land`
+    and the pin it is supposed to recover.
+
+    The ref is read back because `update-ref` succeeding is not the same fact
+    as the ref naming this blob, and the oid must not be recorded unless it
+    does.
+    """
+    path = export_path(repo_root, task_id)
+    if not path.is_file():
+        raise LedgerExportError(MSG_PIN_NO_FILE.format(path=path, task_id=task_id))
+    # Before the header check, so a task with no rows at all is refused as the
+    # unknown task it is rather than as a file that disagrees with the ledger.
+    current = export_task(database, task_id)
+    _assert_pins_this_task(path, task_id)
+    state = task_state(database, task_id)
+    if state is not TaskState.LANDED:
+        raise LedgerExportError(
+            MSG_PIN_NOT_LANDED.format(
+                task_id=task_id, state="nothing" if state is None else state.value
+            )
+        )
+    if path.read_bytes() != current:
+        raise LedgerExportError(MSG_PIN_STALE.format(path=path, task_id=task_id))
+    oid = git.write_blob(path, cwd=repo_root)
+    ref = EXPORT_REF_TEMPLATE.format(task_id=task_id)
+    git.update_ref(ref, oid, cwd=repo_root)
+    found = git.ref_target(ref, cwd=repo_root)
+    if found != oid:
+        raise LedgerExportError(
+            MSG_PIN_LOST.format(task_id=task_id, ref=ref, found=found, oid=oid)
+        )
+    record_export_oid(database, task_id, oid)
+    _LOG.info("wf.ledger.pinned", task_id=task_id, ref=ref, oid=oid)
+    return oid
 
 
 def import_export(
@@ -196,13 +330,16 @@ def import_exports(
     per-activation tables are rebuilt in that transaction too, from the
     restored carriers (`rebuild_findings`).
 
-    A ledger that already records a landing is refused whole before any of
-    that (`_assert_no_landings`): the landing journal is not exportable, so no
-    rebuild can restore it.
+    The landing journal rides along: `landings` is exported now (§3.6), so a
+    landed ledger is rebuilt rather than refused whole, and D17's fallback
+    still has a row to read afterwards.
     """
-    parsed = tuple(
-        _parse(path, repo_root=repo_root, wrapper_root=wrapper_root) for path in paths
-    )
+    repo_id = read_repo_id(repo_root)
+    if repo_id is None:
+        raise LedgerIdentityError(
+            MSG_REPO_ID_ABSENT.format(repo_root=repo_root, relpath=repo_id_relpath())
+        )
+    parsed = tuple(_parse(path, repo_id=repo_id) for path in paths)
     taken = LedgerFence(fence_path(repo_root)) if fence is None else fence
     with taken.exclusive(), closing(connect(ledger)) as connection:
         for export in parsed:
@@ -211,9 +348,12 @@ def import_exports(
         # process may not write is refused here, inside the exclusive section
         # and before a single row is deleted (§3.5).
         assert_identity(
-            connection, path=ledger, repo_root=repo_root, wrapper_root=wrapper_root
+            connection,
+            path=ledger,
+            repo_id=repo_id,
+            repo_root=repo_root,
+            wrapper_root=wrapper_root,
         )
-        _assert_no_landings(connection, ledger=ledger)
         with standalone_transaction(connection):
             _clear(connection)
             for export in parsed:
@@ -232,25 +372,23 @@ def import_exports(
     return tuple(export.task_id for export in parsed)
 
 
-def _assert_no_landings(connection: sqlite3.Connection, *, ledger: Path) -> None:
-    """Refuse an import into a ledger that already records a landing.
+def _assert_pins_this_task(path: Path, task_id: str) -> None:
+    """Refuse to pin a file that is not an export of THIS task (§3.6).
 
-    `landings` is deliberately outside `EXPORT_TABLES`, so no export carries
-    the landing journal and no rebuild can put it back. It is not even
-    droppable in passing: `landings.task_id` references `tasks` with no
-    `ON DELETE`, and `foreign_keys=ON`, so `_clear`'s `DELETE FROM tasks`
-    fails its foreign key and the whole import rolls back with a raw SQLite
-    message an operator reads as a damaged database.
-
-    Refused here by name instead, INSIDE the exclusive section — where the
-    destination is known — and before the transaction that would delete
-    anything opens. Rebuilding the journal is a deferred decision, so the
-    refusal says so rather than implying the ledger is broken.
+    Read from the file's own header rather than inferred from its name: the
+    oid is recorded on the `tasks` row of `task_id`, so a file describing some
+    other task would make that row point at a blob it does not describe — and
+    the operator would learn it only when a rebuild restored the wrong task.
     """
-    landed = int(connection.execute(_SQL_COUNT_LANDINGS).fetchone()[0])
-    if landed:
-        raise LedgerImportUnsupported(
-            MSG_IMPORT_LANDED.format(path=ledger, count=landed)
+    header = _read_lines(path)[0]
+    if header.get(ExportKey.KIND.value) != EXPORT_KIND_HEADER:
+        raise LedgerExportError(
+            MSG_EXPORT_HEADER.format(path=path, kind=EXPORT_KIND_HEADER)
+        )
+    declared = header.get(ExportKey.TASK_ID.value)
+    if declared != task_id:
+        raise LedgerExportError(
+            MSG_PIN_TASK_MISMATCH.format(path=path, declared=declared, task_id=task_id)
         )
 
 
@@ -272,7 +410,7 @@ def _record_restore(connection: sqlite3.Connection, task_id: str) -> None:
     )
 
 
-def _parse(path: Path, *, repo_root: Path, wrapper_root: Path) -> ParsedExport:
+def _parse(path: Path, *, repo_id: str) -> ParsedExport:
     """One export file as validated lines, or a refusal naming the bad one."""
     lines = _read_lines(path)
     header = lines[0]
@@ -280,19 +418,52 @@ def _parse(path: Path, *, repo_root: Path, wrapper_root: Path) -> ParsedExport:
         raise LedgerIdentityError(
             MSG_EXPORT_HEADER.format(path=path, kind=EXPORT_KIND_HEADER)
         )
-    _assert_header(header, path=path, repo_root=repo_root, wrapper_root=wrapper_root)
+    _assert_header(header, path=path, repo_id=repo_id)
     numbered = tuple(
         (number, *_row(line, path=path, number=number))
         for number, line in enumerate(lines[1:], start=_SECOND_LINE)
     )
-    task_id = str(header[ExportKey.TASK_ID.value])
+    task_id = _safe(header[ExportKey.TASK_ID.value], ComponentKind.TASK, path)
     _assert_task(numbered, path=path, task_id=task_id)
+    _assert_epic(numbered, path=path)
     return ParsedExport(
         path=path,
         task_id=task_id,
         header=header,
         rows=tuple((table, row) for _, table, row in numbered),
     )
+
+
+def _safe(value: JsonValue, kind: ComponentKind, path: Path) -> str:
+    """One untrusted component under the ONE grammar, refused by name (§3.7).
+
+    An export file is bytes from outside this process, and both components it
+    states — the task it declares and the epic on its `tasks` row — are spent
+    on a path and a ref by the next run: `docs/workstreams/<epic>/runs/<task>`
+    and `refs/wf/exports/<task>`. Checked while the file is being PARSED, which
+    is before the fence is taken and long before a row is written.
+
+    Anything that is not text is refused here rather than coerced: a component
+    is a name, and `None` or a number is a file describing something this
+    schema has no meaning for.
+    """
+    if isinstance(value, str):
+        try:
+            return safe_component(value, kind=kind)
+        except InvalidIdentifier as unsafe:
+            raise LedgerExportError(
+                MSG_EXPORT_UNSAFE_COMPONENT.format(path=path, kind=kind, value=value)
+            ) from unsafe
+    raise LedgerExportError(
+        MSG_EXPORT_UNSAFE_COMPONENT.format(path=path, kind=kind, value=value)
+    )
+
+
+def _assert_epic(rows: Sequence[NumberedRow], *, path: Path) -> None:
+    """Put the restored `tasks.epic_id` under the same grammar as the task id."""
+    for _number, table, row in rows:
+        if table is LedgerTable.TASKS:
+            _safe(row.get(_EPIC_COLUMN), ComponentKind.EPIC, path)
 
 
 def _assert_task(rows: Sequence[NumberedRow], *, path: Path, task_id: str) -> None:
@@ -379,27 +550,20 @@ def _row(
 
 
 def _assert_header(
-    header: Mapping[str, JsonValue],
-    *,
-    path: Path,
-    repo_root: Path,
-    wrapper_root: Path,
+    header: Mapping[str, JsonValue], *, path: Path, repo_id: str
 ) -> None:
-    """Refuse an export written for another repository or wrapper root (§3.5)."""
-    pinned_repo = header.get(ExportKey.REPO_HASH.value)
-    found_repo = repo_hash(repo_root)
-    if pinned_repo != found_repo:
+    """Refuse an export written for another repository (§3.6).
+
+    The repository, and nothing about the machine: `repo_id` is committed with
+    the export, so a clone at any path reads it as its own, and the wrapper
+    root the exporting checkout happened to use is not the importing
+    checkout's business (it is still pinned on the DATABASE).
+    """
+    pinned_repo = header.get(ExportKey.REPO_ID.value)
+    if pinned_repo != repo_id:
         raise LedgerIdentityError(
-            MSG_REPO_HASH_MISMATCH.format(
-                path=path, pinned=pinned_repo, found=found_repo
-            )
-        )
-    pinned_wrapper = header.get(ExportKey.WRAPPER_ROOT.value)
-    found_wrapper = str(wrapper_root.resolve())
-    if pinned_wrapper != found_wrapper:
-        raise LedgerIdentityError(
-            MSG_WRAPPER_ROOT_MISMATCH.format(
-                path=path, pinned=pinned_wrapper, found=found_wrapper
+            MSG_EXPORT_REPO_ID_MISMATCH.format(
+                path=path, pinned=pinned_repo, found=repo_id
             )
         )
 
@@ -435,8 +599,15 @@ def _read_lines(path: Path) -> list[ExportLine]:
     return lines
 
 
-def _line(table: LedgerTable, row: sqlite3.Row) -> ExportLine:
-    """One database row as its export line."""
+def _line(
+    table: LedgerTable, row: sqlite3.Row, *, elide: frozenset[str] = frozenset()
+) -> ExportLine:
+    """One database row as its export line, without the elided columns.
+
+    `elide` is how §3.6's "facts about the task, never about the file" is
+    enforced: the `tasks` row drops the pin it was exported as, which is
+    written after these bytes exist and could therefore never be in them.
+    """
     return {
         ExportKey.KIND.value: EXPORT_KIND_ROW,
         ExportKey.TABLE.value: table.value,
@@ -444,6 +615,7 @@ def _line(table: LedgerTable, row: sqlite3.Row) -> ExportLine:
         ExportKey.ROW.value: {
             name: _encoded(value)
             for name, value in zip(row.keys(), tuple(row), strict=True)
+            if name not in elide
         },
     }
 
@@ -485,6 +657,36 @@ def _ordered_rows(
             collected.append((int(row[_SEQ_COLUMN]), table.value, table, row))
     for _, _, table, row in sorted(collected, key=lambda item: (item[0], item[1])):
         yield table, row
+
+
+def _landing_rows(
+    connection: sqlite3.Connection, task_id: str
+) -> Iterator[tuple[LedgerTable, sqlite3.Row]]:
+    """The task's landing journal, in `(attempt, phase)` order (§3.6).
+
+    Its own emission branch because `landings` has no `seq` — it is written by
+    `contractor/journal.py`, outside the row seam that mints one — so the
+    `(seq, table)` order the row tables are emitted in has nothing to sort it
+    by. `(attempt, phase)` is the table's own UNIQUE key, which is
+    deterministic, which is what keeps the round trip byte-identical.
+    """
+    for row in connection.execute(_SQL_LANDINGS, (task_id,)).fetchall():
+        yield LedgerTable.LANDINGS, row
+
+
+def _record_rows(
+    connection: sqlite3.Connection, task_id: str
+) -> Iterator[tuple[LedgerTable, sqlite3.Row]]:
+    """The task's contractor record — at most one row (§3.2, R4).
+
+    Its own branch rather than a place in `(seq, table)` order for the reason
+    `landings` has one: the record is written by the contractor, outside the
+    row seam that mints a `seq`, so there is nothing in it to sort by. The
+    primary key means the order is trivially deterministic, which is what
+    keeps the round trip byte-identical.
+    """
+    for row in connection.execute(_SQL_CONTRACTOR_RECORD, (task_id,)).fetchall():
+        yield LedgerTable.CONTRACTOR_RECORDS, row
 
 
 def _auxiliary_rows(

@@ -9,7 +9,7 @@ foreman run  <root_id>     tick repeatedly until it must stop
 foreman status <root_id>   read-only view
 ```
 
-`run` is what the bridge calls. `tick` is what you call by hand when a run stopped and
+`run` is what the contractor calls. `tick` is what you call by hand when a run stopped and
 you want exactly one more step.
 
 ## The tick ladder
@@ -82,9 +82,9 @@ Two details that surprise readers:
 
 ## The other verbs
 
-1. **`create`** — instantiate a graph as a root directly, no bridge. Takes
+1. **`create`** — instantiate a graph as a root directly, no contractor. Takes
    `--instance-key`, `--input NAME=PATH`, and two test flags.
-2. **`supervise`** — the wrapper process. The foreman spawns this at itself.
+2. **`inspect`** — the wrapper process. The foreman spawns this at itself.
 3. **`inspect`**, **`monitor`** — read one activation, or watch a root live.
 4. **`steer`** — intervene in a running activation: `--acknowledge-uncertain`,
    `--instructions-file`, or the experimental `--in-place`. Always needs `--reason`.
@@ -92,7 +92,7 @@ Two details that surprise readers:
    ([09-coordination.md](09-coordination.md)).
 
 Worth connecting to gates: `foreman create` accepts `--allow-unsigned-gates`, but the
-bridge passes `allow_test_flags=False`, so a bridge-admitted root can never set it.
+contractor passes `allow_test_flags=False`, so a contractor-admitted root can never set it.
 The escape hatch exists and is closed on the path that matters.
 
 ## What it returns
@@ -105,5 +105,5 @@ A `TickReport`: `contended`, `halted`, `stalled`, `blocked`, `dispatched`, `sett
 
 - **No LLM.** No model client in the package.
 - **No agent execution.** It spawns the wrapper and forgets it until a record appears.
-- **No branch writing.** It never moves the target ref; only the bridge does.
+- **No branch writing.** It never moves the target ref; only the contractor does.
 - **No memory.** Kill it mid-run and the next tick reconstructs everything.

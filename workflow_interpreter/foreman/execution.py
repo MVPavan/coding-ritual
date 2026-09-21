@@ -24,19 +24,19 @@ from workflow_interpreter.contracts.execution import (
     ExecutionPolicy,
 )
 from workflow_interpreter.foreman.errors import (
-    UnresolvedRunnerError,
+    UnresolvedCrewError,
     UnusableResolutionError,
 )
-from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, RUNNER_PREFIX
+from workflow_interpreter.inspector.models import LaunchReceipt
+from workflow_interpreter.inspector.paths import read_record
+from workflow_interpreter.profiles.config import CREW_PREFIX, MODEL_VENDOR_DEFAULT
 from workflow_interpreter.schema.models import Node, NodeKind
-from workflow_interpreter.supervisor.models import LaunchReceipt
-from workflow_interpreter.supervisor.paths import read_record
 
 if TYPE_CHECKING:
-    from workflow_interpreter.supervisor.paths import WrapperPaths
+    from workflow_interpreter.inspector.paths import WrapperPaths
 
-_MSG_UNRESOLVED_RUNNER: Final[str] = (
-    "node {node!r} binds the runner role {role!r}, but the root's resolved "
+_MSG_UNRESOLVED_CREW: Final[str] = (
+    "node {node!r} binds the crew role {role!r}, but the root's resolved "
     "config carries no usable {key!r} — the pinned resolution is incomplete "
     "and the instance cannot be executed from it (§3.1)"
 )
@@ -64,10 +64,10 @@ _EFFECTIVE_FIELDS: Final[tuple[tuple[str, NodeSetting | BoundSetting], ...]] = (
 )
 """Node fields the execution path reads and `resolve()` can override.
 
-`runner` and `effort` are deliberately absent: the pinned node names a ROLE
+`crew` and `effort` are deliberately absent: the pinned node names a ROLE
 (`profile:<role>`), while the resolved key holds the profile that role was
 bound to, and the graph schema has no effort field. They are carried as
-`ResolvedNode.runner_profile` and `ResolvedNode.effort` instead. `allowed_paths`
+`ResolvedNode.crew_profile` and `ResolvedNode.effort` instead. `allowed_paths`
 is a list, which `resolve()` cannot express, so the pinned value stands.
 """
 
@@ -102,7 +102,7 @@ class ResolvedNode(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     node: Node
-    runner_profile: str
+    crew_profile: str
     model: str
     effort: str | None
     execution_policy: ExecutionPolicy | None = None
@@ -111,8 +111,8 @@ class ResolvedNode(BaseModel):
 def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
     """Read one node's effective execution settings off the root's pinned resolution.
 
-    Raises `UnresolvedRunnerError` when a role-bound node has no resolved
-    runner: the value would still be the `profile:<role>` reference, which no
+    Raises `UnresolvedCrewError` when a role-bound node has no resolved
+    crew: the value would still be the `profile:<role>` reference, which no
     profile resolver can answer, and guessing it from the live role map is the
     drift this view exists to prevent.
     """
@@ -131,12 +131,10 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
         raise UnusableResolutionError(
             _MSG_UNUSABLE_ROOT.format(node=node_name, detail=error.errors()[0]["msg"])
         ) from error
-    runner_profile = _runner_profile(
-        pinned, settings.get(NodeSetting.RUNNER.at(node_name))
-    )
+    crew_profile = _crew_profile(pinned, settings.get(NodeSetting.CREW.at(node_name)))
     model = effective.model or ""
     effort = _effort(node_name, settings.get(NodeSetting.EFFORT.at(node_name)))
-    if pinned.kind is NodeKind.TASK and (pinned.runner or "").startswith(RUNNER_PREFIX):
+    if pinned.kind is NodeKind.TASK and (pinned.crew or "").startswith(CREW_PREFIX):
         model = _required_role_text(
             node_name, "model", settings.get(NodeSetting.MODEL.at(node_name))
         )
@@ -160,25 +158,25 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
             raise UnusableResolutionError(MSG_POLICY_MISMATCH)
     return ResolvedNode(
         node=effective,
-        runner_profile=runner_profile,
+        crew_profile=crew_profile,
         model=model,
         effort=effort,
         execution_policy=policy,
     )
 
 
-def _runner_profile(pinned: Node, resolved: str | int | bool | None) -> str:
+def _crew_profile(pinned: Node, resolved: str | int | bool | None) -> str:
     """The profile this node runs as, refusing an unresolved role reference."""
-    runner = pinned.runner or ""
-    if isinstance(resolved, str) and not resolved.startswith(RUNNER_PREFIX):
+    crew = pinned.crew or ""
+    if isinstance(resolved, str) and not resolved.startswith(CREW_PREFIX):
         return resolved
-    if not runner.startswith(RUNNER_PREFIX):
-        return runner
-    raise UnresolvedRunnerError(
-        _MSG_UNRESOLVED_RUNNER.format(
+    if not crew.startswith(CREW_PREFIX):
+        return crew
+    raise UnresolvedCrewError(
+        _MSG_UNRESOLVED_CREW.format(
             node=pinned.name,
-            role=runner.removeprefix(RUNNER_PREFIX),
-            key=NodeSetting.RUNNER.at(pinned.name),
+            role=crew.removeprefix(CREW_PREFIX),
+            key=NodeSetting.CREW.at(pinned.name),
         )
     )
 

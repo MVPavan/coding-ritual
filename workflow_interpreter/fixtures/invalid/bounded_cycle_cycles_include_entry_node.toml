@@ -20,7 +20,7 @@ on_exhausted = "triage"
 name = "work"
 kind = "task"
 region = "loop"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -35,7 +35,7 @@ outcomes = ["done"]
 name = "draft"
 kind = "task"
 region = "loop"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]
@@ -50,7 +50,7 @@ outcomes = ["done"]
 name = "revise"
 kind = "task"
 region = "loop"
-runner = "profile:x"
+crew = "profile:x"
 writes = false
 allowed_paths = []
 verify = [{ cmd = "scripts/verify.sh", timeout = "5m" }]

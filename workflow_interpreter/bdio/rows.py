@@ -1,22 +1,24 @@
 """The neutral vocabulary of the store seam — rows, queries, writes, identity.
 
-A `StoreBackend` speaks these types and nothing else (§3.1). They carry what
-every backend has: an id, a status, a carrier, and for an event row its
-payload. Everything bd-shaped — titles, issue types, wisps, `bd context`
-fields, a `BdConfig` — stays inside `client.py`, so the S1 ledger backend
-implements a store rather than emulating bd.
+`LedgerStore` speaks these types and nothing else: an id, a status, a carrier,
+and for an event row its payload. They outlived the protocol they were written
+for (R1) because they are still the vocabulary the typed operations in this
+package are expressed in — a row, a query, a write, a gate closure taken whole.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from enum import StrEnum
-from pathlib import Path
+from typing import Final
 
 from pydantic import BaseModel, Field
 
-from workflow_interpreter.bdio.constants import BackendKind
 from workflow_interpreter.bdio.wire import ROW_MODEL, Metadata
+
+STATUS_CLOSED: Final[str] = "closed"
+STATUS_OPEN: Final[str] = "open"
+"""A row's two durable statuses, in the neutral vocabulary (§3.1)."""
 
 
 class RowKind(StrEnum):
@@ -71,22 +73,6 @@ class NewRow(BaseModel):
     metadata: Metadata
     kind: RowKind = RowKind.RECORD
     payload: Metadata | None = None
-
-
-class BackendIdentity(BaseModel):
-    """What a backend is, for the collaborators that must place its locks.
-
-    `lock_root` is where execution locks over this backend's rows live, and
-    `legacy_lock_root` is the pre-migration directory whose presence means an
-    unmigrated layout — both are the backend's answer, so no caller has to
-    know a workspace layout to ask (§3.4 lock order).
-    """
-
-    model_config = ROW_MODEL
-
-    kind: BackendKind
-    lock_root: Path
-    legacy_lock_root: Path | None = None
 
 
 class GateSignature(BaseModel):

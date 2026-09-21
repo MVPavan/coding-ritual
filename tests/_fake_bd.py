@@ -1,85 +1,47 @@
 """An in-memory bd substitute, driven through the real `BdClient` transport.
 
 This is a `CommandRunner`, not a mock of the wrapper: the argv is built,
-closed-set-checked and parsed exactly as it would be for a real `bd`, and
-every write still goes through the read-back verification in `client.py`.
-What it buys over the live binary is CONTROL — the two things a real bd
-cannot give a test deterministically:
+closed-set-checked and parsed exactly as it would be for a real `bd`. What it
+buys over the live binary is CONTROL — crash injection (`crash_on`) and
+reentrant scheduling (`pause_before`), so a window can be opened at will and
+two interleaved callers expressed as ordinary single-threaded code.
 
-- **Crash injection.** `crash_on` makes the Nth matching command die the way
-  a killed process does, so the window between the metadata write and the
-  `bd close` can be opened at will and inspected.
-- **Reentrant scheduling.** `pause_before` runs a callback just before a
-  chosen command executes, so two interleaved mints can be expressed as
-  ordinary single-threaded code with no barriers and no flakiness.
+Scoped to the TRACKER since S6: bd is not a record store (R1), so the
+transport can no longer construct `create`, `context` or `--metadata` at all
+(`BdSubcommand`, `ALLOWED_FLAGS`) and this double no longer answers them.
+What is left is exactly what `BdTracker` asks.
 
-Semantics mirror the probed behaviour of bd 1.1.0: `--metadata` MERGES at the
-top level, closing twice succeeds and overwrites the reason, `--json` reads
-return a list of rows, and `--add-label` / `--remove-label` are set semantics —
-adding a label twice leaves one, removing one that is absent is a no-op. That
-last pair is the run-ledger §3.2 attention projection, and it is idempotent by
-design because the reconciler REPLAYS it.
+Semantics mirror the probed behaviour of bd 1.1.0: closing twice succeeds and
+overwrites the reason, `--json` reads return a list of rows, and `--add-label`
+/ `--remove-label` are set semantics — adding a label twice leaves one,
+removing one that is absent is a no-op. That last pair is the run-ledger §3.2
+attention projection, and it is idempotent by design because the reconciler
+REPLAYS it.
 """
 
 from __future__ import annotations
 
 import json
-import pathlib
 from collections.abc import Callable, Sequence
 from typing import Any, Final
 
-from workflow_interpreter.bdio.client import CompletedCommand
-
-BD_VERSION: Final[str] = "1.1.0"
-BACKEND: Final[str] = "dolt"
-DOLT_MODE: Final[str] = "embedded"
-BEADS_DIR_NAME: Final[str] = ".beads"
+from workflow_interpreter.tracker.bd_transport import CompletedCommand
 
 _SUBCOMMAND_INDEX: Final[int] = 5
-_STATUS_OPEN: Final[str] = "open"
 _STATUS_CLOSED: Final[str] = "closed"
-_ID_TEMPLATE: Final[str] = "wf-{number}"
 
 _VALUE_FLAGS: Final[frozenset[str]] = frozenset(
     {
-        "--title",
-        "--type",
-        "--metadata",
-        "--event-payload",
-        "--wisp-type",
         "--reason",
         "--limit",
         "--parent",
         "--add-label",
         "--remove-label",
+        "--assignee",
+        "--status",
     }
 )
-_BOOL_FLAGS: Final[frozenset[str]] = frozenset(
-    {
-        "--no-inherit-labels",
-        "--silent",
-        "--ephemeral",
-        "--json",
-        "--all",
-        "--include-gates",
-        "--claim",
-    }
-)
-_REPEATED_FLAG: Final[str] = "--metadata-field"
-
-
-def _metadata(value: str) -> dict[str, object]:
-    """Read a `--metadata` argument in either form real bd accepts.
-
-    The transport writes metadata as `@<path>` because inline JSON made the
-    ceiling the kernel's `MAX_ARG_STRLEN` (ADR 0003). A double that only
-    understood inline JSON would stop being a faithful stand-in the moment
-    production switched — and every fake-bd test would fail loudly, which is
-    exactly what happened when it did.
-    """
-    if value.startswith("@"):
-        return dict(json.loads(pathlib.Path(value[1:]).read_text(encoding="utf-8")))
-    return dict(json.loads(value))
+_BOOL_FLAGS: Final[frozenset[str]] = frozenset({"--json", "--all", "--include-gates"})
 
 
 class InjectedCrash(Exception):
@@ -93,12 +55,12 @@ class FakeBd:
         self.workspace = workspace
         self.rows: dict[str, dict[str, Any]] = {}
         self.calls: list[tuple[str, tuple[str, ...]]] = []
-        self.metadata_writes: list[dict[str, object]] = []
-        self._next_id = 1
         self._crashes: list[tuple[str, int]] = []
         self._lost_responses: list[tuple[str, int]] = []
         self._pauses: list[tuple[str, Callable[[], None]]] = []
         self._seen: dict[str, int] = {}
+        self._refusing = False
+        self._refuse_after: int | None = None
 
     # -- scheduling controls ---------------------------------------------
 
@@ -120,6 +82,26 @@ class FakeBd:
         """Run `callback` once, immediately before the next `subcommand`."""
         self._pauses.append((subcommand, callback))
 
+    def refuse_after(self, commands: int) -> None:
+        """Refuse everything once this many MORE commands have been served.
+
+        The window §3.4's claim opened: a claim-capable tracker has to be
+        reachable for the admit itself, so "the tracker is gone" has to start
+        after it rather than before, and the count is the claim's own cost.
+        """
+        self._refuse_after = len(self.calls) + commands
+
+    def refuse_everything(self) -> None:
+        """Make every later command fail the way an unreachable tracker does.
+
+        S4's acceptance is that a task which has PREPARED runs to a landing
+        with the tracker gone (§3.3, R4), and "gone" has to mean every call:
+        a fake that still answered reads would prove only that the writes
+        were skipped. The attempt is still recorded, so a test can name which
+        call — if any — the engine still owes the tracker.
+        """
+        self._refusing = True
+
     def command_count(self, subcommand: str) -> int:
         """How many `subcommand` invocations this workspace has served."""
         return sum(1 for name, _ in self.calls if name == subcommand)
@@ -132,25 +114,19 @@ class FakeBd:
         args = list(argv[_SUBCOMMAND_INDEX + 1 :])
         self._fire_pause(subcommand)
         self.calls.append((subcommand, tuple(argv)))
-        # Metadata travels as `@<path>` (ADR 0003) and the transport deletes
-        # the file the moment the call returns, so anything that wants to ask
-        # "which keys did this call write" must capture it HERE.
-        self.metadata_writes.append(
-            _metadata(argv[argv.index("--metadata") + 1])
-            if "--metadata" in argv
-            else {}
-        )
         self._seen[subcommand] = self._seen.get(subcommand, 0) + 1
+        if self._refuse_after is not None and len(self.calls) > self._refuse_after:
+            self._refusing = True
+        if self._refusing:
+            raise InjectedCrash(f"bd {subcommand} cannot reach the tracker")
         if (subcommand, self._seen[subcommand]) in self._crashes:
             raise InjectedCrash(f"bd {subcommand} died mid-command")
         handler = {
-            "create": self._create,
             "update": self._update,
             "close": self._close,
             "show": self._show,
             "list": self._list,
             "dep": self._dependencies,
-            "context": self._context,
         }[subcommand]
         stdout = handler(args)
         if (subcommand, self._seen[subcommand]) in self._lost_responses:
@@ -167,31 +143,9 @@ class FakeBd:
 
     # -- subcommands ------------------------------------------------------
 
-    def _create(self, args: list[str]) -> str:
-        flags = _parse(args)
-        bead_id = _ID_TEMPLATE.format(number=self._next_id)
-        self._next_id += 1
-        payload = flags.get("--event-payload")
-        self.rows[bead_id] = {
-            "id": bead_id,
-            "title": flags.get("--title", ""),
-            "status": _STATUS_OPEN,
-            "issue_type": flags.get("--type", "task"),
-            "metadata": _metadata(flags.get("--metadata", "{}")),
-            "payload": payload,
-            "close_reason": None,
-            "ephemeral": "--ephemeral" in args,
-            "wisp_type": flags.get("--wisp-type"),
-            "labels": [],
-        }
-        return bead_id
-
     def _update(self, args: list[str]) -> str:
         flags = _parse(args[1:])
         row = self.rows[args[0]]
-        if "--metadata" in flags:
-            # bd MERGES top-level metadata keys rather than replacing the object.
-            row["metadata"].update(_metadata(flags["--metadata"]))
         labels: list[str] = row.setdefault("labels", [])
         added = flags.get("--add-label")
         if added is not None and added not in labels:
@@ -199,8 +153,12 @@ class FakeBd:
         removed = flags.get("--remove-label")
         if removed is not None and removed in labels:
             labels.remove(removed)
-        if "--claim" in flags:
-            row["status"] = "in_progress"
+        # Probed on bd 1.1.0: `--assignee ""` clears the field, and `--status`
+        # is written as given.
+        if "--assignee" in flags:
+            row["assignee"] = flags["--assignee"]
+        if "--status" in flags:
+            row["status"] = flags["--status"]
         return ""
 
     def _close(self, args: list[str]) -> str:
@@ -219,21 +177,9 @@ class FakeBd:
         selected = [
             row
             for row in self.rows.values()
-            if _matches(row, flags.get(_REPEATED_FLAG, []), flags.get("--type"))
-            and ("--parent" not in flags or row.get("parent") == flags["--parent"])
+            if "--parent" not in flags or row.get("parent") == flags["--parent"]
         ]
         return json.dumps(sorted(selected, key=lambda row: str(row["id"])))
-
-    def _context(self, args: list[str]) -> str:
-        return json.dumps(
-            {
-                "backend": BACKEND,
-                "dolt_mode": DOLT_MODE,
-                "bd_version": BD_VERSION,
-                "repo_root": self.workspace,
-                "beads_dir": f"{self.workspace}/{BEADS_DIR_NAME}",
-            }
-        )
 
     def _dependencies(self, args: list[str]) -> str:
         """Return the selected row's own dependency records, like `bd dep list`."""
@@ -242,15 +188,12 @@ class FakeBd:
 
 
 def _parse(args: list[str]) -> dict[str, Any]:
-    """Flags of one bd argv tail: repeated `--metadata-field` collects."""
+    """Flags of one bd argv tail, in the closed set the transport may build."""
     flags: dict[str, Any] = {}
     index = 0
     while index < len(args):
         token = args[index]
-        if token == _REPEATED_FLAG:
-            flags.setdefault(_REPEATED_FLAG, []).append(args[index + 1])
-            index += 2
-        elif token in _VALUE_FLAGS:
+        if token in _VALUE_FLAGS:
             flags[token] = args[index + 1]
             index += 2
         elif token in _BOOL_FLAGS:
@@ -259,17 +202,3 @@ def _parse(args: list[str]) -> dict[str, Any]:
         else:
             index += 1
     return flags
-
-
-def _matches(
-    row: dict[str, Any], metadata_filters: list[str], issue_type: str | None
-) -> bool:
-    """Whether a row satisfies every `--metadata-field k=v` filter (ANDed)."""
-    if issue_type is not None and row["issue_type"] != issue_type:
-        return False
-    for entry in metadata_filters:
-        key, _, value = entry.partition("=")
-        found = row["metadata"].get(key)
-        if found is None or str(found) != value:
-            return False
-    return True

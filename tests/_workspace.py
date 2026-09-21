@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._supervisor import (
+from tests._inspector import (
     IMPLEMENT,
     FrozenClock,
     entry_mint,
@@ -29,21 +29,21 @@ from tests._supervisor import (
     node_of,
 )
 from workflow_interpreter.bdio import ActivationRecord, PreconditionRecord
-from workflow_interpreter.schema.models import IsolationMode, Node
-from workflow_interpreter.supervisor import (
+from workflow_interpreter.inspector import (
     ConfirmedPath,
+    CrewAttribution,
     DirtyEntry,
     DirtySnapshot,
     HumanConfirmation,
-    RunnerAttribution,
     encode_dirty_state,
 )
+from workflow_interpreter.schema.models import IsolationMode, Node
 
 CONFIRMED_AT = "2026-08-25T12:00:00Z"
 HUMAN_FILE = "src/human.py"
 HUMAN_TEXT = "# a human was here\n"
 HUMAN_COMMITTED = "docs/chapter.md"
-RUNNER_FILE = "src/runner.py"
+CREW_FILE = "src/crew.py"
 TRACKED_FILE = "src/feature.py"
 TRACKED_ORIGINAL = "value = 1\n"
 SCRATCH_FILE = "src/scratch.txt"
@@ -72,7 +72,7 @@ class Fixture:
         minted = self.store.mint_activation(self.root.root_id, entry_mint()).activation
         # Production writes the §3.2 trio before the barrier releases a child
         # (§5.2); attribution refuses to guess without it, so the fixture
-        # records a clean pre-attempt state exactly as `Supervisor.run` would.
+        # records a clean pre-attempt state exactly as `Inspector.run` would.
         self.activation = self.store.record_precondition(
             minted.activation_id,
             PreconditionRecord(
@@ -129,8 +129,8 @@ def confirmation_for(fixture: Fixture, path: str) -> HumanConfirmation:
     )
 
 
-def attribute(fixture: Fixture, *declared: str) -> RunnerAttribution:
-    """Record what the wrapper would have observed at this runner's exit."""
+def attribute(fixture: Fixture, *declared: str) -> CrewAttribution:
+    """Record what the wrapper would have observed at this crew's exit."""
     record = fixture.workspace.record_attribution(
         fixture.activation, fixture.node, declared=frozenset(declared)
     )

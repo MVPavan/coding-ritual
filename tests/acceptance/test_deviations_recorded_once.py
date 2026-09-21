@@ -29,15 +29,15 @@ import pytest
 
 from tests._bdio import handle
 from tests._foreman import ForemanLab, entry_request
-from tests._supervisor import ChildScript
+from tests._inspector import ChildScript
 from tests.conftest import Signer
 from workflow_interpreter.bdio import Deviation, Outcome, SigningConfig
 from workflow_interpreter.bdio.constants import (
     DEVIATION_BOUND_VIOLATED,
     DEVIATION_UNDECLARED_EFFECTS_ACCEPTED,
 )
-from workflow_interpreter.supervisor.sandbox import SandboxMode
-from workflow_interpreter.supervisor.steer import DEVIATION_KIND_STEER
+from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.inspector.steer import DEVIATION_KIND_STEER
 
 pytestmark = pytest.mark.acceptance
 
@@ -103,7 +103,7 @@ def _say_the_bound_was_on(lab: ForemanLab, activation_id: str) -> None:
     child runs UNBOUNDED and the receipt is then amended to say the bound was
     on; deleting `completion.json` makes the settle tick recompute §7 against
     what the worktree now holds. The four lines are written out rather than
-    imported from `tests/test_supervisor_sandbox_bound.py`, whose helper is
+    imported from `tests/test_inspector_sandbox_bound.py`, whose helper is
     private to that module.
     """
     receipt_path = lab.wiring().paths.receipt(activation_id)
@@ -212,7 +212,7 @@ def test_a_replay_close_records_each_once(tmp_path: Path, signing: _Signing) -> 
 
     (a) STEER, first, and green on the current code. An entry activation is
     minted carrying one `steer` deviation (reason "carried in from an earlier
-    steer") and is steered while dispatched. `supervisor/steer.py` is the
+    steer") and is steered while dispatched. `inspector/steer.py` is the
     caller that ALREADY has the shape this slice restores: it hands the store
     only the `steer` deviation it adds, so the carried one survives that close
     through `close_activation`'s merge and nothing else. Delete that merge —

@@ -1,6 +1,6 @@
 """`scripts/checks/tests-parse.sh`: the acceptance suite imports and collects.
 
-Run exactly as the wrapper runs it (`supervisor/verify.py`): cwd is the tree
+Run exactly as the wrapper runs it (`inspector/verify.py`): cwd is the tree
 under test, no arguments.
 """
 

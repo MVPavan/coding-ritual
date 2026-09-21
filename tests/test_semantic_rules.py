@@ -22,7 +22,7 @@ from tests._helpers import (
 from tests._mutations import MUTATION_CASES
 from workflow_interpreter import GraphValidationError, RuleId, load_graph
 
-PHASE_BRIDGE_RETRY_TERMINALS_RULE = "phase_bridge_retry_terminals_human_gated"
+CONTRACTOR_RETRY_TERMINALS_RULE = "contractor_retry_terminals_human_gated"
 
 
 def test_minimal_graph_is_valid(tmp_path: Path) -> None:
@@ -32,7 +32,7 @@ def test_minimal_graph_is_valid(tmp_path: Path) -> None:
     assert graph.warnings == ()
 
 
-def test_phase_bridge_retry_terminals_are_optional_and_human_gated(
+def test_contractor_retry_terminals_are_optional_and_human_gated(
     tmp_path: Path,
 ) -> None:
     """The opt-in declaration accepts a terminal that follows human approval."""
@@ -41,36 +41,36 @@ def test_phase_bridge_retry_terminals_are_optional_and_human_gated(
         (
             (
                 "max_total_activations = 5",
-                'max_total_activations = 5\nphase_bridge_retry_terminals = ["finished"]',
+                'max_total_activations = 5\ncontractor_retry_terminals = ["finished"]',
             ),
         ),
     )
 
     graph = load_graph(write(tmp_path, text))
 
-    assert graph.document.instance.phase_bridge_retry_terminals == ("finished",)
+    assert graph.document.instance.contractor_retry_terminals == ("finished",)
 
 
-def test_empty_phase_bridge_retry_terminals_do_not_enable_bridge_validation(
+def test_empty_contractor_retry_terminals_do_not_enable_contractor_validation(
     tmp_path: Path,
 ) -> None:
-    """An empty declaration leaves a graph bridge-ineligible without rejecting it."""
+    """An empty declaration leaves a graph contractor-ineligible without rejecting it."""
     text = mutate(
         MINIMAL_GRAPH,
         (
             (
                 "max_total_activations = 5",
-                "max_total_activations = 5\nphase_bridge_retry_terminals = []",
+                "max_total_activations = 5\ncontractor_retry_terminals = []",
             ),
         ),
     )
 
     graph = load_graph(write(tmp_path, text))
 
-    assert graph.document.instance.phase_bridge_retry_terminals == ()
+    assert graph.document.instance.contractor_retry_terminals == ()
 
 
-def test_phase_bridge_retry_terminal_rejects_an_entry_bypass(
+def test_contractor_retry_terminal_rejects_an_entry_bypass(
     tmp_path: Path,
 ) -> None:
     """A retryable terminal cannot be reachable without first crossing a human gate."""
@@ -79,7 +79,7 @@ def test_phase_bridge_retry_terminal_rejects_an_entry_bypass(
         (
             (
                 "max_total_activations = 5",
-                'max_total_activations = 5\nphase_bridge_retry_terminals = ["finished"]',
+                'max_total_activations = 5\ncontractor_retry_terminals = ["finished"]',
             ),
             ('outcomes = ["done"]', 'outcomes = ["done", "no_diff"]'),
             (
@@ -93,20 +93,20 @@ def test_phase_bridge_retry_terminal_rejects_an_entry_bypass(
     with pytest.raises(GraphValidationError) as excinfo:
         load_graph(write(tmp_path, text))
 
-    assert excinfo.value.rule_ids == frozenset({PHASE_BRIDGE_RETRY_TERMINALS_RULE})
+    assert excinfo.value.rule_ids == frozenset({CONTRACTOR_RETRY_TERMINALS_RULE})
 
 
 @pytest.mark.parametrize("terminal", ("approval", "missing"))
-def test_phase_bridge_retry_terminal_rejects_a_nonterminal_name(
+def test_contractor_retry_terminal_rejects_a_nonterminal_name(
     tmp_path: Path, terminal: str
 ) -> None:
-    """A bridge declaration can name only an actual terminal node."""
+    """A contractor declaration can name only an actual terminal node."""
     text = mutate(
         MINIMAL_GRAPH,
         (
             (
                 "max_total_activations = 5",
-                f'max_total_activations = 5\nphase_bridge_retry_terminals = ["{terminal}"]',
+                f'max_total_activations = 5\ncontractor_retry_terminals = ["{terminal}"]',
             ),
         ),
     )
@@ -114,17 +114,17 @@ def test_phase_bridge_retry_terminal_rejects_a_nonterminal_name(
     with pytest.raises(GraphValidationError) as excinfo:
         load_graph(write(tmp_path, text))
 
-    assert excinfo.value.rule_ids == frozenset({PHASE_BRIDGE_RETRY_TERMINALS_RULE})
+    assert excinfo.value.rule_ids == frozenset({CONTRACTOR_RETRY_TERMINALS_RULE})
 
 
-def test_phase_bridge_retry_terminal_handles_a_bounded_cycle(tmp_path: Path) -> None:
+def test_contractor_retry_terminal_handles_a_bounded_cycle(tmp_path: Path) -> None:
     """A cycle that can only exit through a human gate still validates promptly."""
     text = mutate(
         MINIMAL_GRAPH,
         (
             (
                 "max_total_activations = 5",
-                'max_total_activations = 5\nphase_bridge_retry_terminals = ["finished"]',
+                'max_total_activations = 5\ncontractor_retry_terminals = ["finished"]',
             ),
             (
                 'mode = "acyclic"\nentry_node = "work"',
@@ -277,20 +277,20 @@ def test_two_phase_b_violations_are_both_reported(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "runner",
+    "crew",
     [
-        pytest.param('runner = "script:checks/route.sh"', id="unknown-prefix"),
-        pytest.param('runner = "implementer"', id="bare-word"),
-        pytest.param('runner = "profile:"', id="empty-role"),
+        pytest.param('crew = "script:checks/route.sh"', id="unknown-prefix"),
+        pytest.param('crew = "implementer"', id="bare-word"),
+        pytest.param('crew = "profile:"', id="empty-role"),
     ],
 )
-def test_runner_must_be_a_profile_role_alias(tmp_path: Path, runner: str) -> None:
-    """A runner the foreman's roles map could never resolve is refused at load.
+def test_crew_must_be_a_profile_role_alias(tmp_path: Path, crew: str) -> None:
+    """A crew the foreman's roles map could never resolve is refused at load.
 
     `profile:<role>` is the only spelling §3.1 binds; anything else used to
     pass validation and instantiation and die later at dispatch (cr-0jd).
     """
-    path = write(tmp_path, mutate(MINIMAL_GRAPH, (('runner = "profile:x"', runner),)))
+    path = write(tmp_path, mutate(MINIMAL_GRAPH, (('crew = "profile:x"', crew),)))
 
     with pytest.raises(GraphValidationError) as excinfo:
         load_graph(path)

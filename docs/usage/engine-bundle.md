@@ -7,15 +7,15 @@ read-only for reviewers. Named execution contracts are described below.
 
 ## Host preparation
 
-Configure `[supervisor.toolchain]` in the foreman configuration. `projects` lists
+Configure `[inspector.toolchain]` in the foreman configuration. `projects` lists
 repo-relative uv project directories; its default is `["."]`. A root without
 `uv.lock` needs no seed. Set `projects = []` for a graph with no uv toolchain.
 Optional absolute `seed_root`, `host_cache`, and `python_root` paths must be
 outside checkout and activation grants, and must not overlap each other.
 Defaults are `<wrapper_root>/toolchain-seeds`, `uv cache dir`, and `uv python dir`.
 The CLI captures operator `UV_CACHE_DIR` and `UV_PYTHON_INSTALL_DIR` overrides
-before constructing runner environments; explicit configuration paths win.
-Operator `UV_OFFLINE=1` disables host fetching as well as runner fetching.
+before constructing crew environments; explicit configuration paths win.
+Operator `UV_OFFLINE=1` disables host fetching as well as crew fetching.
 
 Install the required managed Python on the host before launching a workflow.
 The current `.python-version` or `requires-python` selects that installation.
@@ -31,7 +31,7 @@ metadata from uv's `wheels-v5`/`archive-v0` cache. It does not copy the whole ho
 cache. An offline `uv sync --locked` runs against a temporary copy of admitted
 metadata, with project/workspace/local installation and source builds disabled.
 Only a cache-miss diagnostic permits one host fetch attempt into this seed;
-`allow_host_fetch = false` disables that attempt for offline supervisors.
+`allow_host_fetch = false` disables that attempt for offline inspectors.
 Unsupported source builds, missing workspace metadata, or missing wheels get a
 named refusal. Preparation never executes candidate build hooks or changes a lock.
 
@@ -41,8 +41,8 @@ an ordinary copy. Hardlinks are not used. uv-created internal archive links are
 made relative before publication; escaping links and special files are refused.
 The private copy must pass `UV_OFFLINE=1 uv run --frozen ruff --version` after a
 dependency-only sync into a temporary scratch venv (`UV_NO_SYNC=1` on the probe).
-The scratch venv is discarded; runner venv and check caches stay under its channels'
-scratch directory. Host grading never uses runner-writable toolchain files.
+The scratch venv is discarded; crew venv and check caches stay under its channels'
+scratch directory. Host grading never uses crew-writable toolchain files.
 
 For manual host preparation, run `uv python install` for the admitted Python
 requirement, then dependency-only `uv sync --locked --no-install-project
@@ -71,7 +71,7 @@ Private toolchains are disposable. After host verification and durable activatio
 close, cleanup removes that activation's toolchain and interrupted copy staging.
 `SeedReceipt` and the host-owned project seed remain. An unclassified, running,
 or indeterminate activation retains its private copy. A receipt/ledger indicating
-an unidentified runner also prevents deletion. A closed activation whose runner
+an unidentified crew also prevents deletion. A closed activation whose crew
 may still be alive gets a `toolchain-cleanup.json` pending record. Subsequent ticks
 and recovery retry disposal; successful cleanup removes that record. Filesystem
 failures are logged and retried, without stalling settlement or the driver.
@@ -151,7 +151,7 @@ with a new generation and `heartbeat_degraded` detail. Corrupt journal lines are
 skipped and counted as `journal_degraded`; readable refusals remain visible.
 Missing process identity is recorded as `identity = null` with degradation; the
 monitor then uses staleness only and cannot claim process death. Observation
-failures never abort normal driving or status. `run` and `phase-bridge` return
+failures never abort normal driving or status. `run` and `contract` return
 nonzero
 on refusal; submit a corrected signed payload and invoke the driver again.
 These observations do not approve gates or alter activation bounds.
@@ -168,10 +168,10 @@ Keep it under an operator-owned service manager for restart after host/process
 failure. It uses its own session/process group and a per-instance local lock;
 start it independently from the driver's service lifetime. It cannot report while
 its host is unavailable. `--max-wall SECONDS` bounds a diagnostic monitor run.
-Ordinary `run` and `phase-bridge` need no monitor. Add `--monitored` to require a
+Ordinary `run` and `contract` need no monitor. Add `--monitored` to require a
 fresh, identity-proven monitor acknowledgment before the driver starts work.
-For a newly admitted bridge root, obtain its root ID from the refused admission,
-start that root's monitor, then invoke the same bridge command again.
+For a newly admitted contractor root, obtain its root ID from the refused admission,
+start that root's monitor, then invoke the same contractor command again.
 
 The monitor records durable bd wake events for gate opening, root terminal,
 refusal, unexpected driver exit/loss, and stale heartbeat. Expected stops at a
@@ -215,7 +215,7 @@ even a notification whose payload is lost retains its allocated sequence slot.
 
 ## Experimental Codex app-server
 
-`codex-appserver` is a second runner pinned to codex-cli **0.154.0**. `codex`
+`codex-appserver` is a second crew pinned to codex-cli **0.154.0**. `codex`
 exec remains the default, and no shipped workflow or configuration opts in.
 Qualification uses the fake executable and generated schema subset under
 `tests/fixtures/codex_appserver/`; no live model run or token benchmark is implied.
@@ -236,7 +236,7 @@ turn start. Inspect `turn.json` for intent, acknowledged turn and completion sta
 
 Sessions are fresh by default, including reviewers. A node may explicitly set
 `session_reuse = "same-node"`; this changes the graph hash and is rejected for
-other runners. It binds eligible completed same-node history at mint and applies
+other crews. It binds eligible completed same-node history at mint and applies
 a fresh full input envelope and current grants on every activation. Remembered
 review verdicts can bias subsequent review; automatic reviewer reuse is disabled.
 Intentional vendor state persists under the wrapper's protected session-state
@@ -245,7 +245,7 @@ a new directory. A CLI-version mismatch is logged and pinned as a fresh decision
 including for a deliberate steer continuation; it cannot reuse old vendor state.
 Private toolchain copies still follow their existing cleanup policy.
 
-The runner uses an isolated `CODEX_HOME` and explicit untrusted project settings.
+The crew uses an isolated `CODEX_HOME` and explicit untrusted project settings.
 Checkout `.codex/config.toml`, hooks and execpolicy rules are ignored; tracked
 `.codex` files do not refuse dispatch. The pinned CLI's no-model `config/read`
 probe verifies disabled project layers and absent project MCP definitions.

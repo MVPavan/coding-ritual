@@ -9,7 +9,8 @@ a new ADR that says what changed and why.
 | [0002](0002-node-instructions.md) | Task nodes carry inline `instructions`, enforced at `create_root`, rendered inside a deterministic fact frame | Accepted |
 | [0003](0003-large-payloads-and-shared-methods.md) | Ceiling is the kernel's argv limit (~130 KB), not bd's — switch metadata writes to `@file`; no git-object bodies. Shared methods resolve-copy-freeze at root creation | Accepted, probe-resolved |
 | [0004](0004-deterministic-routing.md) | Routing is a deterministic table lookup; the node holds the verdict, a computed `fail_code` routes on a declared edge. Model router rejected, model gate deferred with a trigger | Accepted |
-| [0005](0005-run-ledger.md) | Engine facts move to a per-repository SQLite run ledger behind the store seam, bd keeps the bridge record and one label, nothing closes before its export is durable, and `debrief` writes each run's knowledge into the repo. ADR 0003's argv ceiling applies to the bd path only | Accepted |
+| [0005](0005-run-ledger.md) | Engine facts move to a per-repository SQLite run ledger behind the store seam, bd keeps the bridge record and one label, nothing closes before its export is durable, and `debrief` writes each run's knowledge into the repo. ADR 0003's argv ceiling applies to the bd path only | Accepted; §4 D6–D9, D16, D18, D20 superseded by 0006 |
+| [0006](0006-ledger-only-record-store.md) | The SQLite ledger is the ONLY record store; bd becomes a contractor-only tracker port behind four operations. Supersedes run-ledger D6, D7, D8 (bd half), D9, D16, D18 and D20 | Accepted |
 
 Each ADR records who reviewed it. Review artifacts for 0001–0003 are
 `scratchpad/probes/decisions-fable.md` and `scratchpad/probes/decisions-sol.md`

@@ -29,17 +29,17 @@ from workflow_interpreter.foreman import __main__ as cli
 from workflow_interpreter.foreman.__main__ import _parser
 from workflow_interpreter.foreman.refusals import read_refusals
 from workflow_interpreter.foreman.rpc_control import control_attention
-from workflow_interpreter.schema.models import Outcome
-from workflow_interpreter.supervisor.errors import ContinuationRefused
-from workflow_interpreter.supervisor.paths import write_record
-from workflow_interpreter.supervisor.rpc_control import (
+from workflow_interpreter.inspector.errors import ContinuationRefused
+from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.rpc_control import (
     ControlIntent,
     control_path,
     next_intent,
     read_instructions,
 )
-from workflow_interpreter.supervisor.rpc_session import RpcSession, SessionPhase
-from workflow_interpreter.supervisor.steer import Steerer
+from workflow_interpreter.inspector.rpc_session import RpcSession, SessionPhase
+from workflow_interpreter.inspector.steer import Steerer
+from workflow_interpreter.schema.models import Outcome
 
 
 def test_pending_controls_consume_steer_budget_before_delivery(fake_store):
@@ -73,31 +73,6 @@ def test_control_identity_cannot_be_retargeted(fake_store):
             "turn-1",
             "digest",
         )
-
-
-@pytest.mark.bd
-def test_real_bd_control_intent_is_durable(store):
-    """An isolated bd records intent before any host inbox or protocol action."""
-    registration = registered_activation(store)
-    store.register_session(registration.activation_id, registration)
-    control = store.reserve_in_place_steer(
-        registration.activation_id, registration, "turn-1", "digest"
-    )
-    assert store.reads.load_activation(
-        registration.activation_id
-    ).metadata.in_place_controls == (control,)
-    store.record_control_state(
-        registration.activation_id, control, ControlState.UNCERTAIN
-    )
-    store.record_control_state(
-        registration.activation_id,
-        control.model_copy(update={"state": ControlState.UNCERTAIN}),
-        ControlState.RESOLVED,
-        resolution_reason="operator inspected uncertainty",
-    )
-    persisted = store.reads.load_activation(registration.activation_id).metadata
-    assert persisted.in_place_controls[0].state is ControlState.RESOLVED
-    assert persisted.deviations[-1].kind == "control_uncertain"
 
 
 def test_live_in_place_control_is_acknowledged_without_an_activation(
@@ -310,7 +285,7 @@ def test_unpinned_steer_limit_is_uncapped_in_both_paths(fake_store, monkeypatch)
         ),
     )
     activation = fake_store.reads.load_activation(registration.activation_id)
-    request = entry_request(runner_profile="codex-appserver").model_copy(
+    request = entry_request(crew_profile="codex-appserver").model_copy(
         update={
             "mint_reason": MintReason.STEER_CONTINUATION,
             "predecessor_activation_id": registration.activation_id,
@@ -335,7 +310,7 @@ def uncertain_foreman(tmp_path):
     activation = (
         lab.wiring()
         .store.mint_activation(
-            root.root_id, foreman_entry_request(runner_profile="codex-appserver")
+            root.root_id, foreman_entry_request(crew_profile="codex-appserver")
         )
         .activation
     )

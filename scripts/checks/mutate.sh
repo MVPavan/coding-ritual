@@ -5,7 +5,7 @@
 # line this round changed that no test kills is a test-suite hole, reported as
 # a failure naming the site.
 #
-# Contract, as the wrapper runs it (supervisor/verify.py): argv[0] is
+# Contract, as the wrapper runs it (inspector/verify.py): argv[0] is
 # /proc/self/fd/<n>, there are NO arguments, and cwd is a clean checkout of the
 # commit under test — so the repo root comes from git in cwd, never from `$0`,
 # which names a descriptor in /proc.
