@@ -64,6 +64,25 @@ def test_strict_git_helpers_distinguish_absence_from_git_failure(
         git.refs_under("refs/", cwd=config.wrapper_root)
 
 
+def test_ref_transaction_rejects_a_newline_before_spawning_git(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An untrusted ref cannot inject a second update-ref stdin command."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git = make_git(make_config(repo, tmp_path))
+
+    def spawned(*args: object, **kwargs: object) -> object:
+        raise AssertionError("git was spawned for an invalid ref")
+
+    monkeypatch.setattr(git, "run", spawned)
+
+    with pytest.raises(GitCommandError, match="whitespace"):
+        git.update_ref_and_delete(
+            "refs/wf/checkpoint\nprepare", "0" * 40, None, cwd=repo
+        )
+
+
 def test_attached_branch_ref_distinguishes_a_detached_head(tmp_path: Path) -> None:
     """An attached checkout names its branch while detached HEAD is an empty answer."""
     repo = make_repo(tmp_path)

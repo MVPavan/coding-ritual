@@ -126,6 +126,14 @@ every subsequent dispatch (probed). Callers tell those cases apart by the
 entry's KIND, never by this value (`inspector/models.py`)."""
 
 
+def _validate_ref(ref: str) -> None:
+    """Ref names embedded in update-ref stdin must remain one command token."""
+    if not ref.startswith("refs/"):
+        raise GitCommandError(f"ref must start with refs/: {ref!r}")
+    if NUL in ref or any(character.isspace() for character in ref):
+        raise GitCommandError(f"ref must contain no whitespace or NUL: {ref!r}")
+
+
 class Git(GitTransport):
     """Inspector Git reads and mutations above the shared command transport."""
 
@@ -628,6 +636,9 @@ class Git(GitTransport):
         cwd: Path,
     ) -> None:
         """Update one ref and conditionally delete another in one transaction."""
+        _validate_ref(ref)
+        if deleted_ref is not None:
+            _validate_ref(deleted_ref)
         commands = [TRANSACTION_START, f"{TRANSACTION_UPDATE} {ref} {new}"]
         if deleted_ref is not None:
             commands.append(f"{TRANSACTION_DELETE} {deleted_ref}")
@@ -641,8 +652,7 @@ class Git(GitTransport):
 
     def ref_target(self, ref: str, *, cwd: Path) -> str | None:
         """The commit a workflow ref points at, or `None` when unpinned."""
-        if not ref.startswith("refs/"):
-            raise GitCommandError(f"ref must start with refs/: {ref!r}")
+        _validate_ref(ref)
         result = self.run(
             GitSubcommand.REV_PARSE, "--verify", "-q", ref, cwd=cwd, check=False
         )
