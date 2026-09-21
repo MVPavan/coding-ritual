@@ -5,7 +5,7 @@
 - **Deciders:** repo owner
 - **Reviewed by:** two independent proposals (Opus 5 high, Fable 5.1 high) consolidated and cross-analysed at design time, then an Opus 5 high critic round on v1 (3 BLOCKER, 7 MAJOR, 4 MINOR, all applied); one independent critic per slice during the build
 - **Related:** `docs/workstreams/store-restructure/roadmap.md` §3 and its decision table R1–R13 — the authority for every detail this ADR states once; ADR 0005 (the run ledger), whose §4 decisions this amends; ADR 0003 (argv ceiling, now bd-tracker traffic only)
-- **Supersedes, in `docs/workstreams/run-ledger/roadmap.md` §4:** **D6** (attention drains by a direct label write per tick), **D7** (bd keeps the contractor record, one label and `root_backend`), **D8**'s bd half (bd-minted root ids), **D9** (task closure through a stored CLOSED), **D16** (every root reachable from the *tracker*), **D18** (backend pinned per root, with a locator), **D20** (integration claims stay in bd). Every other run-ledger decision and ADR 0001–0005 stand.
+- **Supersedes, in `docs/workstreams/run-ledger/roadmap.md` §4:** **D5**'s on-demand half (`wf ledger export` for *any* task; it now refuses anything but a LANDED task, because the committed file is the anchor a rebuild prefers over every checkpoint — D5's own rule, that a task is never closable before its record is durable, stands; D5 is written in pre-S0 names, where "the bridge" is the contractor), **D6** (attention drains by a direct label write per tick), **D7** (bd keeps the contractor record, one label and `root_backend`), **D8**'s bd half (bd-minted root ids), **D9** (task closure through a stored CLOSED), **D16** (every root reachable from the *tracker*), **D18** (backend pinned per root, with a locator), **D20** (integration claims stay in bd). Every other run-ledger decision and ADR 0001–0005 stand.
 
 ## Context
 
@@ -53,8 +53,13 @@ this ADR exists to make discoverable:
    header pins a committed `repo_id` UUID, `landings` and `contractor_records` are
    carried, and a schema-derived test requires every table to be in `EXPORT_TABLES` or
    in `NON_EXPORTED` with a stated reason. Ids are minted by the ledger with the epic
-   as an input under one tightened path grammar, so `PROJ-12` or `#123` can be a
-   `tracker_ref` without ever reaching a refname or a worktree path.
+   as an input under one tightened path grammar, and `tasks.tracker_ref` /
+   `tracker_kind` hold the foreign id as its own column. **As built, the ref and the
+   minted id must still be one string:** `wf contract` validates `stage_id` under the
+   grammar before anything else, and `_mint` refuses by name a ref whose minted id
+   differs (`contractor/command.py:680-708`). So a `PROJ-12` passes and a `#123` is
+   refused, rather than translated. Translating an id the grammar rejects is the
+   tracker port's work and is not in this build.
 
 ## The cutover is a clean break
 

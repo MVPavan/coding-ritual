@@ -1,8 +1,37 @@
 # Release note — S6 cutover: the ledger is the only record store
 
-Two operator-visible changes land together in S6. Both are breaking, and both
+Four operator-visible changes land with the cutover. All are breaking, and all
 are safe to take as a clean break (R12): no committed export and no live
 ledger exists at this version.
+
+## BREAKING: `[tracker]` is required, and `[bd]` moved to `[tracker.bd]`
+
+The foreman TOML must now declare which tracker this repository has
+(`tracker: TrackerSettings` on `ForemanConfig`, `foreman/config.py`), and bd's
+transport settings live under that section rather than at the top level
+(`contractor/tracker_config.py`). bd is one tracker among three now, so "how to
+reach bd" is part of "which tracker", not a mandatory field every repository
+carries.
+
+**Remedy:** rename the `[bd]` table to `[tracker.bd]` and add a `[tracker]`
+section above it with `backend = "bd"`. A `backend = "file"` or `"null"`
+repository needs no `[tracker.bd]` at all — a `file` tracker needs
+`path = …` instead. Without the change the config fails to load with a raw
+pydantic validation error naming the missing field. The worked example is
+`config/foreman.example.toml`.
+
+## BREAKING: `wf ledger export` writes only for a LANDED task
+
+`export` and `pin-export` both refuse a task in any other state
+(run-ledger D5 said "on demand for any task"; store-restructure R13 supersedes
+it). The committed file is the anchor a rebuild prefers over every checkpoint,
+so a file written mid-run would be older than the activation closes that follow
+it, and `import` clears before it refills — one stale on-demand export would
+silently roll a task back.
+
+**Remedy:** to capture an in-flight task's state, use the checkpoint anchor
+(`refs/wf/checkpoints/<task>`, written automatically), not an export. To get a
+committed export, finish the landing; the refusal names the state it found.
 
 ## Schema v7 — the `backend` columns are gone
 

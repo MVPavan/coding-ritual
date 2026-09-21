@@ -1,11 +1,11 @@
 # Workflow Interpreter in Diagrams
 
 A diagram-first map of the workflow interpreter: what runs, what it stores, and how one
-task travels from a bd stage to a landed, exported commit.
+task travels from a tracker stage to a landed, exported commit.
 
-- **Code version described:** branch `wf/run-ledger` at `c4e0b10`, which is `main` plus the
-  run-ledger epic (the SQLite run ledger beside bd). Anything marked *run ledger* exists only on
-  that branch until it merges.
+- **Code version described:** branch `wf/store-restructure`, which is `main` plus the
+  store-restructure epic — one record store (the SQLite run ledger), the tracker behind a
+  contractor-only port (ADR 0006).
 - **Source of truth:** the code. Where the design spec
   ([workflow-interpreter.md](../specs/workflow-interpreter.md)) disagrees, section 16 lists the drift.
 - **Citations:** `path:line` is relative to `workflow_interpreter/` unless it starts with
@@ -18,14 +18,14 @@ task travels from a bd stage to a landed, exported commit.
 2. [The big picture](#2-the-big-picture)
 3. [Data model](#3-data-model)
 4. [Workflow graphs](#4-workflow-graphs)
-5. [The contractor: from a bd stage to a root](#5-the-contractor-from-a-bd-stage-to-a-root)
+5. [The contractor: from a tracker stage to a root](#5-the-contractor-from-a-tracker-stage-to-a-root)
 6. [The foreman: run loop and tick](#6-the-foreman-run-loop-and-tick)
 7. [Activation lifecycle](#7-activation-lifecycle)
 8. [The inspector wrapper](#8-the-inspector-wrapper)
 9. [Grading: claim is not proof](#9-grading-claim-is-not-proof)
 10. [Human gates](#10-human-gates)
 11. [Landing](#11-landing)
-12. [The store: bd and the run ledger](#12-the-store-bd-and-the-run-ledger)
+12. [The store: one ledger, and the tracker beside it](#12-the-store-one-ledger-and-the-tracker-beside-it)
 13. [Files, directories and git refs](#13-files-directories-and-git-refs)
 14. [Terminal settlement, cleanup and archive](#14-terminal-settlement-cleanup-and-archive)
 15. [End to end: one feature task](#15-end-to-end-one-feature-task)
@@ -37,9 +37,9 @@ task travels from a bd stage to a landed, exported commit.
 
 | Term | Meaning in code |
 |---|---|
-| **Epic** | A bd issue whose direct children are stages. |
-| **Stage** (task) | One bd task bead, child of an epic. The contractor's `stage_id` is the task id. |
-| **Phase-contractor record** | Metadata key `contractor` on the stage bead: attempt, state, base commit, backend pin, landing and export facts (`contractor/models.py:59`). Always stored in bd. |
+| **Epic** | A tracker issue whose direct children are stages; an input at mint, held in `tasks.epic_id`. |
+| **Stage** (task) | One tracker item, child of an epic, mirrored by a `tasks` row. The contractor's `stage_id` is the task id. |
+| **Phase-contractor record** | A row in the ledger's `contractor_records` table: attempt, state, base commit, brief snapshot, landing and export facts (`contractor/models.py:59`, `contractor/records.py:88`). Exported with the task; never in tracker metadata. |
 | **Attempt** | One try at a stage. Each attempt gets its own root. `--retry` creates attempt n+1. |
 | **Root** (instance) | One run of a workflow graph. It pins the graph body, its hash, the resolved config and the base commit (`bdio/wire.py:325`). |
 | **Instance key** | `contract:<epic>:<stage>:attempt:<n>` for contractor roots (`contractor/models.py:15-22`). Roots are idempotent by this key. |
@@ -52,7 +52,8 @@ task travels from a bd stage to a landed, exported commit.
 | **Foreman** | Deterministic code that ticks one root. It has no LLM client (ADR 0004 D4). |
 | **Inspector wrapper** | A detached process per activation, `foreman inspector`. It prepares the workspace, launches the crew, watches it and records the exit. |
 | **Crew** | The vendor agent CLI: `claude`, `codex exec` or `codex app-server`. |
-| **Store** | `WorkflowStore` (`bdio/api.py:125`), the only write API. It sits over a backend: bd or the run ledger. |
+| **Store** | `WorkflowStore` (`bdio/api.py:128`), the only write API, over the one record store: `LedgerStore`. Nothing is pinned or selected per root. |
+| **Tracker** | What humans read — bd, a file, or nothing. Reached only by the contractor, through `TrackerPort` (`tracker/port.py`), and written only through the `tracker_outbox`. A mirror, never a source of truth. |
 | **Run ledger** | The SQLite file `<repo>/.wf/ledger.db` (ADR 0005). Not the harness curation ledger in `CONTEXT.md`. |
 | **Wrapper root** | `<wrapper_home>/<sha256(realpath repo_root)[:16]>/`, outside the repo (`foreman/config.py:93-98`). |
 | **Band** | A non-blocking `flock` that serialises ticks. Ordinary roots of one wrapper root share `<wrapper_root>/repo-band.lock`. That is normally one per repository, but two wrapper homes over one repo do not exclude each other (`inspector/paths.py:236-247`). |
@@ -67,11 +68,11 @@ Five actors. Each answers exactly one question, and none answers another's.
 | **Foreman** | `foreman/` | Given what is recorded, what happens next? | A process taking one decision per tick |
 | **Inspector wrapper** | `inspector/` | Make one activation happen, and prove what happened. | A detached process per activation |
 | **Crew** | vendor CLI | Do the task. | A child process inside bwrap |
-| **Store** | `bdio/`, `ledger/` | What is true so far? | A library over bd or SQLite |
+| **Store** | `bdio/`, `ledger/` | What is true so far? | A library over one SQLite ledger |
 
 ```mermaid
 flowchart TB
-  subgraph OUT["Outer boundary: beads, git refs, ship gate"]
+  subgraph OUT["Outer boundary: tracker, git refs, ship gate"]
     B["Contractor<br/>admit, run, land, export"]
   end
   subgraph MID["Inner loop: the graph only"]
@@ -81,12 +82,14 @@ flowchart TB
     W["Inspector wrapper<br/>workspace, sandbox, monitor, grade"]
     R["Crew<br/>claude or codex"]
   end
-  S[("Store<br/>bd or run ledger")]
+  S[("Record store<br/>run ledger")]
+  TR[["Tracker<br/>bd, file or null"]]
 
   B -->|"calls Foreman.run"| F
   F -->|"spawns foreman inspector"| W
   W -->|"launches inside bwrap"| R
   B <--> S
+  B -->|"TrackerPort: get, children,<br/>blockers, apply — outbox after commit"| TR
   F <--> S
   W <--> S
   R -.->|"writes channel files only,<br/>never the store"| W
@@ -132,8 +135,8 @@ flowchart TB
     VERIFY["Verify scripts<br/>scripts/verify-*.sh"]
   end
   subgraph STATE["Durable state"]
-    BD[("bd<br/>epics, stage beads,<br/>contractor record, bd-backed roots")]
-    LEDGER[("Run ledger<br/>.wf/ledger.db")]
+    BD[("Tracker<br/>bd, file or null:<br/>what humans read")]
+    LEDGER[("Run ledger<br/>.wf/ledger.db<br/>every engine fact")]
     GIT[("git<br/>branches, refs/wf pins,<br/>target branch")]
     WRAP[("Wrapper root<br/>receipts, logs, inboxes")]
   end
@@ -169,8 +172,7 @@ flowchart LR
   RW -->|"os.fork, barrier, execvpe under bwrap"| RC["crew child<br/>claude or codex"]
   RW -->|"subprocess.run via /proc/self/fd"| NC["node verify checks<br/>in verify-tree"]
   RUN -->|"landing checks from contractor_checks"| LC["host checks<br/>in verify-tree"]
-  RUN -->|"bd CLI subprocess"| BD[("bd")]
-  RW -->|"bd CLI subprocess"| BD
+  RUN -->|"tracker subprocess, contractor only:<br/>prepare reads, claim, outbox drain"| BD[("bd")]
   RUN -->|"sqlite3"| DB[(".wf/ledger.db")]
   RW -->|"sqlite3"| DB
   RUN -->|"git"| GIT[("git")]
@@ -201,13 +203,14 @@ flowchart TB
     CONTRACTOR["contractor<br/>command, admission, adapter,<br/>landing, journal, authority,<br/>verification, retry, integration"]
   end
   subgraph ENGINE["Engine"]
-    FOREMAN["foreman<br/>compose, locator, tick, frontier,<br/>routing, cases, close, finalize,<br/>inputs, gates, decisions, children,<br/>replacement, monitor, wake"]
+    FOREMAN["foreman<br/>compose, tick, frontier,<br/>routing, cases, close, finalize,<br/>inputs, gates, decisions, children,<br/>replacement, monitor, wake"]
     INSPECTOR["inspector<br/>run, launch, fork_launcher, workspace,<br/>sandbox, monitor, exit, exit_grade,<br/>verify, recover, steer, procfs, gitio"]
     PROFILES["profiles<br/>claude, codex, codex_appserver,<br/>opencode, registry"]
   end
-  subgraph STORE["Store"]
-    BDIO["bdio<br/>api WorkflowStore, reads, backend,<br/>client BdClient, wire, records,<br/>gates, signing, roots, bounds, keys"]
-    LEDGER["ledger<br/>database, fence, schema, store,<br/>rowmap, export, reconcile, reverify,<br/>archive, tasks"]
+  subgraph STORE["Store, and the mirror beside it"]
+    BDIO["bdio<br/>api WorkflowStore, reads, wire,<br/>records, gates, signing, roots,<br/>bounds, keys, claims"]
+    LEDGER["ledger<br/>database, fence, schema, store,<br/>rowmap, export, checkpoint, closure,<br/>reconcile, reverify, archive, tasks, claims"]
+    TRACKER["tracker<br/>port, intents, models, outbox,<br/>attention, bd, bd_transport, file, null"]
   end
   subgraph SHARED["Shared vocabulary"]
     SCHEMA["schema<br/>models, loader, validator,<br/>graph_index, rules_*, decisions"]
@@ -221,6 +224,7 @@ flowchart TB
   CONTRACTOR --> FOREMAN
   CONTRACTOR --> BDIO
   CONTRACTOR --> LEDGER
+  CONTRACTOR --> TRACKER
   CONTRACTOR --> INSPECTOR
   FOREMAN --> INSPECTOR
   FOREMAN --> BDIO
@@ -243,52 +247,38 @@ functions lazily; `ledger.paths` uses `inspector.sandbox.fence_dir`, and `bdio.a
 ### 2.4 Composition: how one invocation is wired
 
 Every CLI invocation builds one process-wide `Composition`. Each root it touches gets an
-`InstanceWiring` with a store bound to that root's backend.
+`InstanceWiring` with a store bound to that root's branch-head reader.
 
 ```mermaid
 flowchart TB
   MAIN["foreman.__main__ _composition"] --> TASK["_task_of: --task is required"]
   MAIN --> CFG["load_config: ForemanConfig<br/>refuses a linked-worktree repo_root"]
-  MAIN --> BDC["BdClient config.bd"]
-  MAIN --> OPEN["open_ledger repo_root wrapper_root<br/>always opened"]
-  OPEN --> PIN["pin_task_backend task config.store<br/>INSERT OR IGNORE"]
-  BDC --> FACT["SelectableBackendFactory<br/>bd, LedgerStore task"]
-  OPEN --> FACT
-  FACT --> WS["WorkflowStore.from_config<br/>claims_backend = bd"]
-  OPEN --> LOC["RootBackendLocator task ledger"]
-  OPEN --> DRAIN["RootAttentionDrain ledger bd"]
+  MAIN --> TRK["tracker_for config.tracker<br/>BdTracker, FileTracker or NullTracker"]
+  TRK --> QUI{"_admits: create, contract, phase,<br/>integration, children admit?"}
+  QUI -->|"yes"| PROBE["assert_quiesced: no retired-home record<br/>at PREPARED or ADMITTED"]
+  QUI -->|"no"| OPEN
+  PROBE --> OPEN["open_ledger repo_root wrapper_root<br/>always opened"]
+  OPEN --> EPIC["_epic_for: the task's own epic_id,<br/>else the one this invocation named"]
+  EPIC --> ENS["ensure_task task epic"]
+  ENS --> WS["WorkflowStore LedgerStore task epic<br/>+ GateVerifier, LedgerClaims, TaskCheckpoint"]
   WS --> COMP["Composition"]
-  LOC --> COMP
+  TRK --> DRAIN["RootAttentionDrain ledger<br/>OutboxAttentionWriter"]
   DRAIN --> COMP
   COMP --> FOR["Composition.for_root ROOT"]
   FOR --> FENCE["ensure_fence_dir<br/>git common dir /wf"]
-  FOR --> WHICH["locate_backend ROOT<br/>one call per for_root"]
-  WHICH --> RS["root store on bd or ledger"]
-  RS --> LOAD["load_root: re-verifies pinned body and hash"]
+  FOR --> LOAD["load_root: re-verifies pinned body and hash"]
   LOAD --> BAND["BandLock<br/>repo-band.lock or coordination member lock"]
   BAND --> WIRING["InstanceWiring<br/>store, Workspace, Inspector,<br/>Recovery, ExitObserver, paths, band"]
 ```
 
-Sources: `foreman/__main__.py:127-176`; `foreman/config.py:63-143`; `foreman/compose.py:178-361`;
-`foreman/locator.py:47-128`.
+There is nothing to locate: one record store, so the ledger this process opened is the
+ledger every root of its task lives in. The quiesce probe runs only in the commands that
+create a root or admit work under one — a probe on every composition would have put one
+`bd show` on the critical path of every activation dispatch, in the window that is meant
+to be tracker-free.
 
-The backend locator answers in a fixed order and never substitutes:
-
-```mermaid
-flowchart LR
-  Q["locate_backend ROOT"] --> M{"pinned in memory?"}
-  M -->|"yes"| USE["use that backend"]
-  M -->|"no"| R{"ledger roots row<br/>for ROOT?"}
-  R -->|"yes"| USE
-  R -->|"no"| T{"ledger tasks row<br/>for this task?"}
-  T -->|"yes"| USE
-  T -->|"no"| REF["StoreConfigError MSG_UNPINNED"]
-  REC["contractor record root_backend"] -->|"pin_record"| CHK{"agrees with held pin<br/>and ledger roots row?"}
-  CHK -->|"yes"| M
-  CHK -->|"no"| REF2["StoreConfigError MSG_RECORD_DISAGREES"]
-```
-
-Sources: `foreman/locator.py:66-128`; `contractor/command.py:690-700`.
+Sources: `foreman/__main__.py:123-246`; `foreman/config.py`; `foreman/compose.py:219-297`;
+`contractor/tracker_wiring.py:49-117`.
 
 ---
 
@@ -299,32 +289,35 @@ Sources: `foreman/locator.py:66-128`; `contractor/command.py:690-700`.
 ```mermaid
 mindmap
   root((Repository))
-    bd epic
-      stage bead = task
+    run ledger .wf/ledger.db
+      tasks row = one task
+        epic_id, tracker_ref, tracker_kind
         contractor record
           attempt 1
-            root on bd or run ledger
+            root TASK-a1
               activations per node and round
               gates
               events
             wrapper dir ROOT
             refs wf ROOT
           attempt 2 after retry
-        wf attention label
-    run ledger .wf/ledger.db
-      tasks row
-      roots activations gates events
       nonces signatures findings
       landings projections restore_pending
+      claims tracker_outbox
+    tracker
+      item humans read
+      claim, attention flag, closing comment
     export .wf/export/TASK.jsonl
       pinned at refs/wf/exports/TASK
+      checkpoint at refs/wf/checkpoints/TASK
     target branch
       landed artifact commit
 ```
 
-On the run ledger, ids follow the hierarchy: root `<task>-a<attempt>`, activation
-`<root>.<node>.r<round>.<seq>`, gate `<root>.g<seq>`, event `<root>.e<seq>`
-(`ledger/rowmap.py:94-125`). On bd, bd mints the ids.
+Ids follow the hierarchy: root `<task>-a<attempt>` (a non-attempt root under it is
+`<task>-a<n>-c<m>`), activation `<root>.<node>.r<round>.<seq>`, gate `<root>.g<seq>`,
+event `<root>.e<seq>` (`ledger/rowmap.py:94-125`). The ledger mints all of them, with the
+epic as an input; `tracker_ref` holds the foreign id in its own column.
 
 ### 3.2 Graph definition model
 
@@ -490,8 +483,11 @@ never deleted (`bdio/api.py:340-355`, `bdio/api.py:587`).
 
 ### 3.5 Run ledger schema
 
-Schema version 2. Version 1 created 15 tables. Version 2 added `findings.kind`
-(`ledger/schema.py:226-261`).
+Schema version 7, eighteen tables. Version 1 created 15; v2 added `findings.kind`, v3 a
+`tasks.state`, v4 the tracker columns and the child-root column, v5 `contractor_records`
+and `claims` (folding `tasks.state` into the record), v6 `tracker_outbox`, v7 dropped the
+`backend` columns. `SCHEMA_VERSION` is *derived* from `len(MIGRATIONS)`, so a migration
+cannot be added without moving the version (`ledger/schema.py`).
 
 ```mermaid
 erDiagram
@@ -502,6 +498,8 @@ erDiagram
   tasks ||--o{ projections : task_id
   tasks ||--o| restore_pending : task_id
   tasks ||--o{ landings : task_id
+  tasks ||--o| contractor_records : task_id
+  tasks ||--o{ tracker_outbox : task_id
   roots ||--o{ activations : root_id
   roots ||--o{ gates : root_id
   roots ||--o{ events : root_id
@@ -513,10 +511,34 @@ erDiagram
   activations ||--o| usage : activation_id
   tasks {
     text task_id PK
-    text backend
+    text epic_id
+    text tracker_ref UK
+    text tracker_kind
     int next_seq
     text export_oid
     text exported_at
+  }
+  contractor_records {
+    text task_id PK
+    text state
+    int attempt
+    int version
+    text root_id
+    text brief
+    text record_json
+  }
+  claims {
+    text claim_key PK
+    text holder
+    text payload_json
+  }
+  tracker_outbox {
+    int outbox_id PK
+    text task_id
+    text intent_key UK
+    text intent_json
+    text applied_at
+    text result
   }
   roots {
     text root_id PK
@@ -598,34 +620,40 @@ erDiagram
   }
 ```
 
-Also a `meta` table holds `schema_version`, `repo_hash`, `wrapper_root` and `created_at`.
+Also a `meta` table holds `schema_version`, `repo_id`, `repo_hash`, `wrapper_root` and
+`created_at`. `export_oid` stays as the closed-latch and is elided from every export;
+`claims` and `tracker_outbox` are `NON_EXPORTED`, so a rebuild loses them by design.
 `sessions`, `artifacts` and `usage` exist but nothing writes them yet (`ledger/export.py:489-490`).
 Every row's `seq` and the id suffix come from `tasks.next_seq`, allocated inside
 `BEGIN IMMEDIATE`. Projection generations use the same counter, so row seqs have gaps
 (`ledger/store.py:642,727-733`).
 
-### 3.6 Which store holds which fact
+### 3.6 Which fact lives where
 
-| Fact | bd-backed root | Ledger-backed root |
+The ledger is the record store; the tracker is a mirror of a few of its facts.
+
+| Fact | Record store (the ledger) | Tracker |
 |---|---|---|
-| Root, activation, gate, event records | bd beads | ledger tables |
-| Epic and stage beads | bd | bd |
-| `contractor` record, incl. `root_backend` and `export_oid` | bd stage bead | bd stage bead |
-| Integration-target claims | bd | bd (ledger refuses claims, D20) |
-| Gate nonce | only on the gate carrier | `nonces` table plus carrier |
-| Signature bytes and historical signer entry | not stored | `signatures` table |
-| Review findings | derivable from evidence | `findings` table, written at close |
-| `wf:attention` label on the stage bead | not written | projected by the reconciler |
-| Landing journal | ledger `landings` | ledger `landings` |
-| Export and `export_oid` | ledger export | ledger export |
+| Root, activation, gate, event records | ledger tables | — |
+| Epic and stage | `tasks`: `task_id`, `epic_id`, `tracker_ref`, `tracker_kind` | the item humans read |
+| Contractor record and brief snapshot | `contractor_records`, exported with the task | — |
+| Integration-target claims | `claims`, ledger-local CAS, never exported | — |
+| Gate nonce | `nonces` table plus carrier | — |
+| Signature bytes and historical signer entry | `signatures` table | — |
+| Review findings | `findings` table, written at close | — |
+| Attention | `projections`, reconciled under the task lock | `SetFlag` intent through the outbox |
+| Who holds the task | `contractor_records.state` | `Claim` intent: assignee plus in-progress |
+| Task closed | derived: `closure.closed`, latched in `tasks.export_oid` | `Close` intent through the outbox |
+| Landing journal | `landings` | — |
+| Export | `.wf/export/<task>.jsonl`, pinned at `refs/wf/exports/<task>` | — |
 
-Sources: `bdio/backend.py:178`; `contractor/adapter.py:24,165-248`; `bdio/api.py:271-282`;
-`ledger/store.py:334-346,376-406,598-630`; `bdio/client.py:633-641`; `ledger/reconcile.py:225-259`;
+Sources: `ledger/schema.py`; `ledger/closure.py:69-130`; `contractor/records.py:88`;
+`ledger/claims.py:42`; `tracker/outbox.py:85-131`; `tracker/attention.py:22`;
 `contractor/journal.py:72-159`.
 
-The `store = bd|ledger` config key only affects **new** attempt roots. It is recorded as
-`root_backend` on the contractor record at prepare and as `tasks.backend` once
-(`foreman/config.py:71-76`, `contractor/command.py:377`, `ledger/tasks.py:36-61`).
+There is no store selector: `LedgerStore` is the only implementation, and every mirror
+write is an intent enqueued inside the transaction of the fact it mirrors and applied
+after that transaction commits — never inside a foreman tick.
 
 ---
 
@@ -725,7 +753,7 @@ Sources: `schema/loader.py:121-324`; `schema/validator.py:51-99`; `schema/rules_
 
 ---
 
-## 5. The contractor: from a bd stage to a root
+## 5. The contractor: from a tracker stage to a root
 
 ### 5.1 What `contract EPIC STAGE` decides
 
@@ -747,7 +775,7 @@ flowchart TD
   REPAIR --> OWNR{"prior record: epic, stage, target_ref<br/>match and verification policy present?"}
   OWNR -->|"no"| REF
   OWNR -->|"yes or no record"| PRIOR{"contractor record exists<br/>with a root?"}
-  PRIOR -->|"yes"| PINR["_pinned_root: install record backend pin,<br/>load root, check instance key and base"]
+  PRIOR -->|"yes"| PINR["load root, check instance key and base"]
   PINR --> LAND1{"--retry-landing, or an intent file,<br/>or state landing, landed, closed?"}
   LAND1 -->|"yes"| LANDREC["_land recover or retry-landing"]
   LAND1 -->|"no"| DIRT
@@ -755,7 +783,7 @@ flowchart TD
   DIRT -->|"yes"| REF
   DIRT -->|"no"| SHIPPED{"root terminal is shipped<br/>and not --retry?"}
   SHIPPED -->|"yes"| LAND2["_land"]
-  SHIPPED -->|"no"| BLK{"blocking bd dependencies?"}
+  SHIPPED -->|"no"| BLK{"tracker.blockers: unresolved?<br/>recorded blockers_checked=false<br/>without the capability"}
   BLK -->|"yes"| BLOCKED["blocked, exit 0"]
   BLK -->|"no"| ADM{"record ADMITTED and not --retry?"}
   ADM -->|"yes"| HEAD{"HEAD equals expected base?"}
@@ -778,31 +806,40 @@ Sources: `contractor/command.py:109-430`; `foreman/constants.py:149-150`.
 flowchart TD
   A["PhaseAdmission._admit"] --> P{"verification policy present?"}
   P -->|"no"| R1["AdmissionRefused"]
-  P -->|"yes"| SEL{"STAGE is a direct child<br/>with status open or in_progress?"}
+  P -->|"yes"| STO{"contractor_records row stored?"}
+  STO -->|"no"| SEL{"tracker.children: STAGE is a direct child<br/>with status open or in_progress?<br/>skipped without CHILDREN capability"}
   SEL -->|"no"| R1
-  SEL -->|"yes"| OTHER{"another stage of EPIC has<br/>an unclosed contractor record?"}
+  SEL -->|"yes"| OTHER
+  STO -->|"yes"| OTHER{"another stage of EPIC has<br/>a record that is not retired?<br/>ledger query on closed()"}
   OTHER -->|"yes"| R2["AdmissionRefused blocked<br/>one unfinished admission per epic"]
-  OTHER -->|"no"| REC{"record stored?"}
-  REC -->|"no"| PREP["ContractorRecord.prepared attempt 1<br/>root_backend = config.store<br/>adapter.prepare: bd metadata merge"]
+  OTHER -->|"no"| STR["_release_stranded: PREPARED plus<br/>an item this actor holds -> Claim held=false"]
+  STR --> REC{"record stored?"}
+  REC -->|"no"| PREP["ContractorRecord.prepared attempt 1<br/>ledger row plus brief snapshot"]
   REC -->|"yes"| MATCH{"matches policy, epic, stage,<br/>target_ref, base?"}
   MATCH -->|"no"| R1
   MATCH -->|"yes"| FIND
-  PREP --> FIND["roots.find instance_key backend attempt"]
+  PREP --> FIND["roots.find instance_key attempt"]
   FIND --> HAS{"root exists?"}
   HAS -->|"no"| HM{"HEAD equals record base?"}
   HM -->|"no"| R3["refused: head moved"]
-  HM -->|"yes"| CREATE["instantiate: create_root on pinned backend,<br/>pin_root_backend"]
+  HM -->|"yes"| CREATE["instantiate: create_root in the ledger"]
   HAS -->|"yes"| ASSERT
   CREATE --> ASSERT["_assert_root: key, base, root id"]
   ASSERT --> BR["ensure_branch refs/heads/wf/ROOT/candidate<br/>at the persisted base, never current HEAD"]
   BR --> ADMQ{"already ADMITTED?"}
   ADMQ -->|"yes"| DONE["return ContractorRoot"]
-  ADMQ -->|"no"| CLAIM["adapter.admit: bd update --claim --metadata<br/>read back status in_progress"]
-  CLAIM --> DONE
+  ADMQ -->|"no"| CLAIM["_claim: tracker.apply Claim actor<br/>Unknown refuses; Conflict CLOSED -> abandoned-external"]
+  CLAIM --> ADM["adapter.admit: contractor_records -> ADMITTED<br/>under BEGIN IMMEDIATE"]
+  ADM --> DONE
+  ADM -->|"ledger refuses after the claim"| REL["mirror Claim held=false, re-raise"]
 ```
 
-Sources: `contractor/admission.py:175-324`; `contractor/adapter.py:165-203`; `bdio/client.py:587-610`;
-`foreman/resolve.py:362-429`.
+The claim is issued last before the ledger transition: every ledger-side refusal has
+already run, so an ordinary refusal never touches the tracker, and the call still
+precedes the transaction, so no I/O sits inside one.
+
+Sources: `contractor/admission.py:160-345`; `contractor/adapter.py:176-291`;
+`tracker/bd_transport.py:406-435`; `foreman/resolve.py:362-429`.
 
 ### 5.3 Phase-contractor record states
 
@@ -812,19 +849,31 @@ stateDiagram-v2
   state "admitted" as ADMITTED
   state "gate-red" as GATE_RED
   state "landed" as LANDED
-  state "closed" as CLOSED
+  state "abandoned" as ABANDONED
+  state "abandoned-external" as ABANDONED_EXT
   [*] --> PREPARED: adapter.prepare attempt 1
-  PREPARED --> ADMITTED: adapter.admit with bd claim
+  PREPARED --> ADMITTED: adapter.admit after the tracker claim
   ADMITTED --> GATE_RED: landing checks red or mismatched
   ADMITTED --> LANDED: CAS done and receipt written
-  LANDED --> CLOSED: export pinned then adapter.close
+  LANDED --> LANDED: export pinned, adapter.close mirrors the Close
   ADMITTED --> PREPARED: retry of an eligible terminal, attempt n+1
   GATE_RED --> PREPARED: retry after an approved ship
-  CLOSED --> [*]
+  ADMITTED --> ABANDONED: phase abandon --reason
+  ADMITTED --> ABANDONED_EXT: tracker reports the item closed elsewhere
+  LANDED --> [*]: closed() derives true
+  ABANDONED --> [*]: retired()
+  ABANDONED_EXT --> [*]: retired()
 ```
 
+**LANDED is the terminal state the record reaches.** Nothing writes `closed`: a stored
+CLOSED could only be written after the export bytes exist, so it could never be *in* the
+export, and closure is derived by `closure.closed` and latched in `tasks.export_oid`
+instead (chapter [08](08-store.md)). `adapter.close` refuses unless `closed()` already
+derives true, then mirrors the `Close` intent — the record stays at LANDED.
+
 A `landing` state exists for reading old records only. No code writes it
-(`contractor/models.py:46-56`). A retry never goes over `closed` (`contractor/adapter.py:304-326`).
+(`contractor/models.py:46-56`). A retry never goes over a task that derives `closed()`
+(`contractor/adapter.py:304-326`).
 
 ### 5.4 Retry eligibility
 
@@ -845,7 +894,7 @@ flowchart TD
   SH -->|"no"| L{"terminal in<br/>contractor_retry_terminals?"}
   L -->|"no"| X6["UNLISTED_TERMINAL"]
   L -->|"yes"| OK
-  OK --> NA["attempt+1, previous_attempts extended,<br/>root_backend = store in force now"]
+  OK --> NA["attempt+1, previous_attempts extended,<br/>admitted from the ledger's brief snapshot"]
 ```
 
 Sources: `contractor/retry.py:27-59`; `contractor/models.py:157-180`; `contractor/command.py:555-579`.
@@ -1559,11 +1608,11 @@ flowchart TD
   BOUND -->|"yes"| FRESH{"mutable gate artifact still fresh?"}
   FRESH -->|"no"| STALE["append stale receipt, refuse"]
   FRESH -->|"yes"| WRITE["one GateClosure write"]
-  WRITE --> BDW["bd: merge metadata, close row.<br/>No nonce row, no signature bytes."]
   WRITE --> LDW["run ledger, one transaction:<br/>re-check decidable, nonce unspent globally,<br/>rewrite gate, insert nonces and signatures,<br/>enqueue attention projection"]
 ```
 
-The allow-list must live outside the bd workspace and is parsed at startup. One bad line refuses
+The allow-list must live outside what the engine can write — and what the engine writes is
+the repository, not a tracker workspace — and it is parsed at startup. One bad line refuses
 the whole file (`bdio/signing.py:506-696`; `bdio/gates.py:308-724`; `ledger/store.py:406-630`).
 
 ---
@@ -1599,8 +1648,10 @@ flowchart TD
   SYNC -->|"refused"| HA
   SYNC --> RCPT["write receipt file,<br/>ledger landings RECEIPT row"]
   RCPT --> LANDED["adapter.land: record landed"]
-  LANDED --> EXPORT["ExportPin.pin: write .wf/export/TASK.jsonl,<br/>git blob, refs/wf/exports/TASK,<br/>tasks.export_oid"]
-  EXPORT --> CLOSE["adapter.close: record closed with export_oid,<br/>bd close reason receipt digest"]
+  LANDED --> EXPORT["ExportPin.pin: write .wf/export/TASK.jsonl,<br/>git blob, refs/wf/exports/TASK"]
+  EXPORT --> DERIVE{"closure.closed derives true<br/>on the ref anchor?"}
+  DERIVE -->|"no"| CRF["refused: the export is not pinned,<br/>so the record is not durable yet"]
+  DERIVE -->|"yes"| CLOSE["adapter.close: record stays LANDED,<br/>Close intent on the outbox,<br/>reason names the receipt digest"]
 ```
 
 Sources: `contractor/landing.py:248-811`; `contractor/authority.py:52-128`; `contractor/journal.py:72-159`;
@@ -1614,62 +1665,62 @@ Default recovery never moves a ref. If the target still sits at the old base, re
 
 ---
 
-## 12. The store: bd and the run ledger
+## 12. The store: one ledger, and the tracker beside it
 
-### 12.1 The store seam
+### 12.1 The store seam and the tracker port
 
 ```mermaid
 flowchart LR
   CALLERS["foreman, inspector, contractor"] --> COMP["Composition.store_for_root"]
-  COMP --> LOC["RootBackendLocator"]
   COMP --> WS["WorkflowStore<br/>write API"]
   WS --> WR["WorkflowReads<br/>no write methods"]
-  WS --> FACT["SelectableBackendFactory"]
-  FACT --> PROTO["StoreBackend protocol<br/>get_row, find_rows, _create_row,<br/>_merge_metadata, _close_row, _close_gate"]
-  PROTO -->|"bd"| BDC["BdClient"]
-  PROTO -->|"ledger"| LS["LedgerStore"]
-  WS -->|"claims, always bd"| CLAIMS["ClaimStore"]
-  CLAIMS --> BDC
-  BDC --> BDCLI["bd CLI subprocess<br/>closed command set, 60s timeout"]
+  WS --> LS["LedgerStore<br/>the only implementation"]
+  WS --> CLAIMS["LedgerClaims<br/>ledger-local CAS"]
+  WS --> CKPT["TaskCheckpoint<br/>refs/wf/checkpoints/TASK"]
   LS --> SQL[(".wf/ledger.db")]
-  ADAPTER["contractor PhaseAdapter"] -->|"raw bd writes on the stage bead"| BDC
+  CLAIMS --> SQL
+  ADAPTER["ContractorAdapter"] --> SQL
+  ADAPTER -->|"reads: get, children, blockers"| PORT["TrackerPort<br/>capabilities, intent union"]
+  ADAPTER -->|"writes: enqueue an intent"| OUT[("tracker_outbox")]
+  OUT -->|"drain after commit"| PORT
+  PORT --> BDT["BdTracker"] --> BDCLI["bd CLI subprocess<br/>closed command set, 60s timeout"]
+  PORT --> FT["FileTracker"]
+  PORT --> NT["NullTracker<br/>no capabilities"]
 ```
 
-Sources: `bdio/api.py:125-776`; `bdio/reads.py:352-429`; `bdio/backend.py:40-215`;
-`bdio/client.py:115-672`; `ledger/store.py:151`.
+Only the contractor holds a tracker. No tracker call happens inside a foreman tick or
+inside a store transaction: a mirror write is enqueued in the transaction of the fact it
+mirrors and applied after that transaction commits — at the contractor's own write, at
+driver exit, or from `wf ledger reconcile`.
 
-### 12.2 One lifecycle write on each backend
+Sources: `bdio/api.py:128`; `bdio/reads.py:352-429`; `ledger/store.py:151`;
+`ledger/claims.py:42`; `tracker/port.py`; `contractor/tracker_wiring.py:49-217`;
+`tracker/outbox.py:85-131`.
+
+### 12.2 One lifecycle write
 
 ```mermaid
 sequenceDiagram
   participant C as caller
   participant T as transitions.apply
-  participant BD as BdClient
   participant LS as LedgerStore
   participant DB as SQLite
   C->>T: e.g. record_exit
   T->>T: fresh load, assert allowed lifecycle
   T->>T: build delta of owned keys only, and a guard
-  alt bd backend
-    T->>BD: _merge_metadata delta
-    BD->>BD: bd update --metadata @tmpfile
-    BD->>BD: bd show, assert written keys
-    Note over BD: the guard is not evaluated on bd
-  else run ledger backend
-    T->>LS: _merge_metadata delta guard
-    LS->>DB: BEGIN IMMEDIATE
-    LS->>DB: locate row, run guard inside the transaction
-    LS->>DB: rewrite projected columns, version+1
-    LS->>DB: verify row, enqueue projection if needed
-    LS->>DB: COMMIT
-  end
+  T->>LS: _merge_metadata delta guard
+  LS->>DB: BEGIN IMMEDIATE
+  LS->>DB: locate row, run guard inside the transaction
+  LS->>DB: rewrite projected columns, version+1
+  LS->>DB: verify row, enqueue projection if needed
+  LS->>DB: COMMIT
   opt busy
     T->>T: write refused, not retried. A store_busy_refused deviation note is tried up to 4 times
   end
   T->>T: repair_forward if an outcome exists
 ```
 
-Sources: `bdio/transitions.py:221-390`; `bdio/client.py:559-583`; `ledger/store.py:312-543`.
+Sources: `bdio/transitions.py:221-390`; `ledger/store.py:312-543`.
 
 ### 12.3 Opening the run ledger and draining attention
 
@@ -1681,7 +1732,7 @@ sequenceDiagram
   participant DB as SQLite
   participant R as AttentionReconciler
   participant TL as wrapper_root/tasks/TASK.lock
-  participant BD as bd
+  participant OB as tracker_outbox
   P->>LD: open_ledger
   LD->>DB: peek schema_version
   opt schema behind
@@ -1696,21 +1747,28 @@ sequenceDiagram
   R->>TL: exclusive
   R->>DB: newest unacked generation, restore_pending
   R->>DB: wanted = an open gate on a live root
-  R->>BD: bd update TASK --add-label or --remove-label wf:attention
-  BD-->>R: read back
+  R->>OB: OutboxAttentionWriter: enqueue SetFlag attention on/off
   R->>DB: ack generations, delete restore row
+  Note over OB: drained after the transaction — at the contractor's write,<br/>at driver exit, or from wf ledger reconcile
 ```
 
-No subprocess ever runs inside a SQLite transaction (`ledger/database.py:16-19,203-417`;
-`ledger/fence.py:95-151`; `ledger/reconcile.py:122-259`).
+No subprocess ever runs inside a SQLite transaction, and the reconciler no longer calls
+the tracker at all — it writes an intent (`ledger/database.py:16-19,203-417`;
+`ledger/fence.py:95-151`; `tracker/attention.py:22`;
+`contractor/tracker_wiring.py:133-217`).
 
 ### 12.4 Export, import, verify, archive
 
 ```mermaid
 flowchart TD
-  subgraph EXP["Export at landing close"]
-    E1["export_task under a read transaction:<br/>header, tasks row, rows by seq,<br/>nonces, signatures, projections"] --> E2[".wf/export/TASK.jsonl<br/>canonical JSON lines"]
-    E2 --> E3["git blob, refs/wf/exports/TASK,<br/>tasks.export_oid"]
+  subgraph EXP["Export at landing close — LANDED tasks only"]
+    E0{"record state is LANDED?"} -->|"no"| E9["refuse: naming the state found"]
+    E0 -->|"yes"| E1["export_task under a read transaction:<br/>header with repo_id, tasks row,<br/>contractor_records, landings, rows by seq,<br/>nonces, signatures, projections"]
+    E1 --> E2[".wf/export/TASK.jsonl<br/>canonical JSON lines"]
+    E2 --> E3["git blob, refs/wf/exports/TASK"]
+  end
+  subgraph CK["Checkpoint — local, never committed"]
+    K1["every activation close, contractor-record<br/>transition and landing-journal write"] --> K2["refs/wf/checkpoints/TASK<br/>same emitter, same bytes"]
   end
   subgraph IMP["Import: rebuild a ledger"]
     I1["parse every file first:<br/>header identity, table and column allow-list"] --> I2["exclusive fence, one transaction"]
@@ -1726,18 +1784,23 @@ flowchart TD
     V4 --> V5
   end
   subgraph ARC["ledger archive TASK --bundle PATH"]
-    A1["refuse: unknown task, no export_oid,<br/>root not terminal, bundle inside repo"] --> A2["git bundle create refs/wf/ROOT/*"]
+    A1["refuse: unknown task, not retired(),<br/>root not terminal, bundle inside repo"] --> A2["git bundle create refs/wf/ROOT/*"]
     A2 --> A3{"git bundle verify ok?"}
     A3 -->|"no"| A4["refuse, delete nothing"]
     A3 -->|"yes"| A5["delete wrapper_root/ROOT dirs and refs"]
   end
   E2 --> I1
+  K2 --> I1
   E2 --> V1
 ```
 
-Sources: `ledger/export.py:119-499`; `ledger/reverify.py:239-524`; `ledger/archive.py:62-112`;
-`ledger/__main__.py:85-304`. The export round-trips byte-identically, which is why owed attention
-drains after an import live in the non-exported `restore_pending` table.
+Sources: `ledger/export.py:119-499`; `ledger/checkpoint.py`; `ledger/reverify.py:239-524`;
+`ledger/archive.py:62-112`; `ledger/__main__.py:85-304`. The export round-trips
+byte-identically, which is why owed attention drains after an import live in the
+non-exported `restore_pending` table — and why the `tracker_outbox` a rebuild loses is
+re-derived by `reconcile`, never guessed. `import` prefers the close anchor over the
+checkpoint one, which is safe only because export refuses a task that has not landed.
+An ABANDONED mid-run task has no terminal, so it cannot be archived yet (`cr-ov7l`).
 
 ---
 
@@ -1834,6 +1897,7 @@ flowchart LR
 | `refs/wf/<root>/verify-failure/<source>/<digest>` | `bind_feedback` | `ledger archive` |
 | `refs/wf/render/<task>-a<n>` | `bind_render`, moved to the current round | nothing |
 | `refs/wf/exports/<task>` | `ExportPin.pin` at landing | nothing |
+| `refs/wf/checkpoints/<task>` | `TaskCheckpoint` at each activation close, contractor-record transition and landing-journal write | `ledger archive` |
 | target branch, e.g. `refs/heads/main` | landing CAS, fast-forward only | nothing |
 
 Sources: `inspector/artifact.py:26-193`; `inspector/workspace.py:409-725`;
@@ -1848,8 +1912,8 @@ flowchart TD
   T["tick reaches a terminal node"] --> SR["settle_root: set terminal,<br/>close root row, idempotent"]
   SR --> DR["drain attention: refusals logged, not raised"]
   DR --> CU["_cleanup_terminal_state, retried on every<br/>tick that reaches the settled root"]
-  CU --> EP{"contractor root and<br/>export_oid not recorded yet?"}
-  EP -->|"yes"| WAIT["defer: landing must export first"]
+  CU --> EP{"contractor root and<br/>retired() still false?"}
+  EP -->|"yes"| WAIT["defer: the task must derive closed()<br/>or be abandoned first"]
   EP -->|"no"| ART{"every writer activation<br/>has a pinned artifact?"}
   ART -->|"no"| WAIT2["defer: permanent if a writer activation<br/>closed with no artifact, e.g. error_* or no_diff"]
   ART -->|"yes"| DEAD{"death_refusal clear for<br/>every activation?"}
@@ -1869,6 +1933,11 @@ the root again automatically: a re-run of `contract` on a closed stage takes the
 recovery path, which never ticks. An explicit `foreman tick ROOT` is needed to remove the trees
 (`contractor/command.py:282-291,417-418`; `foreman/tick.py:723-764`).
 
+An abandoned task never ships, so no tick would ever reach its cleanup: `wf phase abandon`
+calls `cleanup_retired` itself (`foreman/tick.py:800`), which runs the same gate — still
+`retired()` — over every root of the task. It settles no terminal, though, so archive still
+refuses that task (`cr-ov7l`).
+
 ---
 
 ## 15. End to end: one feature task
@@ -1884,14 +1953,17 @@ sequenceDiagram
   participant B as contract
   participant F as Foreman ticks
   participant W as wrappers and crews
-  participant ST as bd and run ledger
+  participant ST as run ledger
+  participant TR as tracker
   participant G as git
   participant H as Human
   O->>B: foreman --task T contract E T
-  B->>ST: prepare record attempt 1, root_backend ledger
-  B->>ST: create root T-a1, pin backend
+  B->>TR: get T: title, brief, status, parent
+  B->>ST: prepare record attempt 1, brief snapshot
+  B->>ST: create root T-a1
   B->>G: refs/heads/wf/T-a1/candidate at base
-  B->>ST: admit: bd claim, record admitted
+  B->>TR: apply Claim actor
+  B->>ST: admit: record admitted, BEGIN IMMEDIATE
   B->>F: Foreman.run
   F->>ST: mint implement round 1
   F->>W: dispatch, crew writes code
@@ -1923,7 +1995,8 @@ sequenceDiagram
   B->>G: update-ref target artifact base
   B->>ST: landings RECEIPT, record landed
   B->>G: export blob, refs/wf/exports/T
-  B->>ST: record closed with export_oid, bd close T
+  B->>ST: closed() derives true and latches, Close intent enqueued
+  B->>TR: drain: close T, reason names the receipt digest
   B-->>O: completed
   O->>G: commit .wf/export/T.jsonl
   Note over F,G: worktree, verify-tree and scratch stay until someone runs foreman tick ROOT after the export is recorded
@@ -1949,7 +2022,7 @@ The code is authoritative. These are places a reader of
 | Spec says | Code does | Code source |
 |---|---|---|
 | §1: the foreman is a model | The foreman is deterministic code with no LLM client | ADR 0004 D4 |
-| P1: bd is the sole authority | `store = "ledger"` puts new roots in SQLite; stage beads stay in bd | `foreman/config.py:71-76`, ADR 0005 |
+| P1: bd is the sole authority | the SQLite ledger is the only record store; bd is one tracker behind `TrackerPort`, written only through the outbox | ADR 0006, `tracker/port.py` |
 | §2: schema at `workflows/schema.json` | `workflow_interpreter/schema/graph_schema.json` | `schema/loader.py:38` |
 | §2: graph outcomes list | `doubt` also exists | `schema/models.py:102` |
 | §2: only `engine:verify_failure` | `engine:ledger_render` added | `schema/models.py:368` |

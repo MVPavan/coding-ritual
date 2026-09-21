@@ -100,6 +100,11 @@ unshipped task.
   a retired task's checkpoint holds only rows its export already carries. Not
   clone-portable: a default clone does not fetch those refs.
 
+  It also refuses any root that has no terminal, and `phase abandon` retires the record
+  without settling one — so a task **abandoned mid-run cannot be archived yet** and its
+  `refs/wf/<root>/*` are unreclaimable through any verb. Tracked as `cr-ov7l`; until it
+  is fixed, only a task the graph took to a terminal archives.
+
 ## Rebuilding a ledger
 
 `.wf/ledger.db` is this checkout's working state and `git clean` may take it. Two
@@ -108,7 +113,13 @@ anchors bring a task back, and `import` prefers them in this order:
 | Anchor | Where | Written | Survives |
 |---|---|---|---|
 | close | `HEAD:.wf/export/<task>.jsonl`, then `refs/wf/exports/<task>` | at landing, by `ExportPin` | a clone, once committed and pushed |
-| checkpoint | `refs/wf/checkpoints/<task>` | at **every activation close** (`ledger/checkpoint.py`) | this checkout only — local, never committed, never pushed |
+| checkpoint | `refs/wf/checkpoints/<task>` | at every activation close, **and** at every contractor-record transition and landing-journal write (`ledger/checkpoint.py`) | this checkout only — local, never committed, never pushed |
+
+An activation close is not the last fact a task produces: the landing journal's INTENT
+and RECEIPT rows and the record's LANDED, GATE_RED, ABANDONED and ABANDONED_EXTERNAL
+transitions all come after one. Anchoring only the activation close meant a rebuild
+answered "no landing began" about a commit already on the target, and reverted an
+abandoned task to ADMITTED — re-blocking every sibling — so those two writes anchor too.
 
 The close anchor wins wherever one exists, because it is written after the last
 activation close and is therefore the newer — which holds only because `export`
@@ -129,5 +140,17 @@ exports need no git, and they are all there is.
 A rebuild restores exactly `EXPORT_TABLES` and **loses** everything else — pending
 `tracker_outbox` rows and held `claims`, plus `sessions`, `artifacts` and `usage`. Those
 are re-derived, never guessed: `reconcile <task>` re-enqueues a `Close` the restored
-`closed()` says is owed and releases a stranded claim, and the next admission re-takes
-the claim through the ordinary path. So the mirror may lag a rebuild by one `reconcile`.
+`closed()` says is owed — from the record's own landing receipt digest, so the reason is
+the one the original close would have written, and an item the tracker already reports
+CLOSED enqueues nothing — releases a stranded claim, and the next admission re-takes the
+claim through the ordinary path. So the mirror may lag a rebuild by one `reconcile`.
+
+## `[tracker]` — which tracker this repository has
+
+Configuration, not a store fact, but the store chapter is where an upgrading operator
+looks first: `tracker` is a **required** section of the foreman TOML
+(`foreman/config.py`), and bd's transport settings moved from a top-level `[bd]` into
+`[tracker.bd]` (`contractor/tracker_config.py`). `backend = "file"` or `"null"` needs no
+`[tracker.bd]` at all. A config still carrying the old shape fails to load with a
+pydantic validation error naming the missing field; the worked example is
+`config/foreman.example.toml`.

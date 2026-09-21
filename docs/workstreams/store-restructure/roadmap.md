@@ -1,19 +1,15 @@
 # Store restructure — design and plan
 
-Status: DRAFT v2 (v1 consolidated from two independent proposals — Opus 5 high and
-Fable 5.1 high — on the same brief at `d20a728`, validated against code, then
-cross-analysed by Fable 5.1 high with both proposals and the consolidation in hand.
-v2 applies the Opus 5 high critic round on v1 + epic `cr-nwy9`: 3 BLOCKER, 7 MAJOR,
-4 MINOR, all verified — closure latched not recomputed; clone test retargeted off
-archive; D5's guard kept through S1; mirror closes on the ref; child root format
-restored; D6/D9/D16 listed as superseded; epic string under the same grammar; abandoned
-tasks retire.)
+Status: **DONE** — 2026-09-22, branch `wf/store-restructure`, slices S0–S7. This document
+is a RECORD: every section states what was built, amended in place wherever the build
+decided differently from the plan. ADR 0006 records the decision; the design provenance
+(two proposals, the cross-analysis, the v1 critic round) is in its `Reviewed by` line.
 Owner: workflow-interpreter engine.
-Supersedes, in `docs/workstreams/run-ledger/roadmap.md` §4: D6 (drain point), D7, D8
-(bd half), D9 (closure through CLOSED), D16 (reachability), D18, D20. Keeps every
-other run-ledger decision, ADR 0001–0005.
-Guide chapters to rewrite when this lands: `docs/workflow-interpreter-guide/08-store.md`,
-`11-language-and-pluggability.md`.
+Supersedes, in `docs/workstreams/run-ledger/roadmap.md` §4: D5 (export on demand), D6
+(drain point), D7, D8 (bd half), D9 (closure through CLOSED), D16 (reachability), D18,
+D20. Keeps every other run-ledger decision, ADR 0001–0005.
+Guide chapters rewritten for it: `docs/workflow-interpreter-guide/08-store.md`,
+`11-language-and-pluggability.md`, `diagrams.md`.
 
 ## 1. Problem
 
@@ -131,7 +127,16 @@ The only failures left inside the window are a crash and a concurrent-admit race
 leave the same shape: a `contractor_records` row at PREPARED (a ledger row, written at
 prepare) and a tracker item in progress by this actor. Detection is per task, not a
 sweep: the next contractor invocation on that task, or `wf ledger reconcile <task>`,
-sees PREPARED + claimed-by-us and enqueues the release. The port gains no `list`.
+sees PREPARED + claimed-by-us and enqueues the release
+(`adapter.release_stranded_claim`, `contractor/adapter.py:267`). The release is the same
+`Claim` intent with `held=False`, so it carries the claim's own `intent_key` and
+supersedes a pending claim row instead of queueing a second
+(`tracker/outbox.py:47-49`). The port gains no `list`.
+
+On bd the claim is `bd update --assignee <actor> --status in_progress`
+(`tracker/bd_transport.py:406-435`), never `bd update --claim`: `--claim` binds the row
+to bd's own user identity, while the engine's claim is held by its configured actor —
+the identity the second session reads.
 
 ### 3.5 Derived closed — a latch, not a recomputation
 
@@ -180,9 +185,13 @@ that has not landed, because both commands are the operator's and work on a task
 state: without the gate at both ends an in-flight task could be latched closed forever,
 and its landing would then skip `adapter.land` and the pin itself.
 
-Until S4's `contractor_records` exists, LANDED is carried by an exported `tasks.state`
-column (schema v3) written before the export bytes are — which is what lets a ledger
-rebuilt in a clone say that this task's work landed; S4 folds it into the record.
+S2 carried LANDED in an exported `tasks.state` column (schema v3) written before the
+export bytes are — which is what lets a ledger rebuilt in a clone say that this task's
+work landed. S4 folded that column into `contractor_records.state`
+(`ledger/schema.py:326`), and the v4→v5 migration **refuses** a ledger still carrying a
+stated `tasks.state` (`_refuse_unfoldable_state`, `ledger/schema.py:393`): v4 holds none
+of a record's identity, so folding is impossible and dropping the state would leave a
+task with a latched `export_oid` reading open forever.
 
 Both tests hold at once: a crash between export and pin leaves the task NOT closed — a
 retry is refused (the commit is on the target), sibling admission, cleanup and archive
@@ -212,6 +221,10 @@ proceeds. Archive is **not** clone-portable and never was — it bundles `refs/w
   `DERIVED_ACTIVATION_TABLES`).
 - Restore semantics unchanged: parse before the fence, one exclusive fence, one
   transaction, whole-state rebuild.
+- `.wf/export/<task>.jsonl` is written **only for a LANDED task**: `wf ledger export`
+  and `pin-export` both refuse any other state (`ledger/constants.py:404,414`). S7's
+  rebuild prefers that path over every checkpoint, so a file written mid-run would be
+  older than the activation closes that follow it and `import` clears before it refills.
 
 ### 3.7 Identity
 
@@ -263,11 +276,19 @@ closed, which is how we found out.
 ### 3.9 Ledger loss
 
 The ledger is per-checkout working state. Closed tasks rebuild from the committed
-export in any clone. In-flight tasks do **not** survive ledger deletion in this epic:
-their rows exist only in the ledger until close; the evidence in `refs/wf/*` and the
-wrapper home survives, recovery refuses the ownerless evidence, and the orchestrator
-retries. A crash is not a delete — `BEGIN IMMEDIATE` per method leaves committed rows
-intact. Checkpoint export per activation close is S7 (R10).
+export in any clone. Through S6 an in-flight task did **not** survive ledger deletion:
+its rows existed only in the ledger until close, and recovery refused the ownerless
+evidence in `refs/wf/*` and the wrapper home. A crash is not a delete — `BEGIN
+IMMEDIATE` per method leaves committed rows intact.
+
+S7 (R10) added the checkpoint anchor `refs/wf/checkpoints/<task>`, local and never
+committed. It is written at every activation close (`bdio/api.py:517-518`) **and** at
+every contractor-record transition (`contractor/records.py:140`) and landing-journal
+write (`contractor/journal.py:118`) — an activation close is not the last fact a task
+produces, and a rebuild that stopped at one reverted an abandoned task to ADMITTED and
+lost a landing the target already carries. The outbox is not exported, so
+`wf ledger reconcile <task>` re-derives the `Close` a restored `closed()` says is owed
+from the record's receipt digest (`adapter.rederive_close`, `contractor/adapter.py:293`).
 
 ## 4. Decisions
 
@@ -276,16 +297,16 @@ intact. Checkpoint export per activation close is S7 (R10).
 | R1 | The ledger is the only record store; `StoreBackend` becomes `LedgerStore`'s own surface | keep the protocol with one implementation | a port with one implementation that no tracker can satisfy is ceremony |
 | R2 | Tracker port: four operations, capability set, intent union, outbox; contractor-only | seven direct methods; a tracker call inside the close transaction | intents are idempotent by construction, which is what makes retry safe; invariant: no I/O in a store method |
 | R3 | Claim in the tracker after every ledger-side refusal check and immediately before the ledger admit; `Unknown` refuses; the crash window is detected per task from the PREPARED row | drain after admit; claim only in the ledger; claim first of all; a tracker `list` sweep | `bd ready` must be exact for a second session; ordinary refusals must not churn it; ambiguity refuses; the port stays four operations |
-| R4 | Contractor record, claims and the task-brief snapshot move to the ledger | record stays in bead metadata (D7) | admission must run with the tracker unreachable; `command.py:333` re-reads the brief today |
+| R4 | Contractor record, claims and the task-brief snapshot move to the ledger | record stays in bead metadata (D7) | every step **after** the claim must run with the tracker unreachable — R3 wins at the boundary, so a claim-capable tracker must be reachable for PREPARED→ADMITTED; `command.py:333` re-reads the brief today |
 | R5 | Export elides the pin and drops the record's copy; `landings` exported; `repo_id` header; schema-derived completeness | `export_pins` table; keep `repo_hash`; hand-listed tables | no schema change for the pin; the record copy is the back door; path digest is not portable; the third hand-list is one table from a fourth defect |
-| R6 | `closed()` is a latch: `export_oid` set, else derived once from the on-disk export against reverify's `_anchor_oid` and written; `contractor_records` exported with state ≤ LANDED; `retired = closed ∨ ABANDONED` for cleanup and archive; supersedes D9 | store CLOSED (either exported → violates D5, or not → lost on rebuild); recompute from a live re-export (v1: non-monotonic under a schema bump or a `projections` write) | the only rule under which crash-before-pin stays open, rebuild-in-clone reads closed, and a migration cannot reopen a closed task |
+| R6 | `closed()` is a latch: `export_oid` set, else derived once from the on-disk export against reverify's `_anchor_oid` and written; `contractor_records` exported with state ≤ LANDED; `retired = closed ∨ ABANDONED ∨ ABANDONED_EXTERNAL` for cleanup and archive; supersedes D9 | store CLOSED (either exported → violates D5, or not → lost on rebuild); recompute from a live re-export (v1: non-monotonic under a schema bump or a `projections` write) | the only rule under which crash-before-pin stays open, rebuild-in-clone reads closed, and a migration cannot reopen a closed task |
 | R7 | Tracker `Close` drains on the ref anchor — the moment the bead closes today | drain on the committed anchor (v1) | sibling admission reads the bead's status (`admission.py:252`); draining on the commit refused every sibling until the orchestrator committed. A clone lags until push; accepted |
 | R8 | Ids minted by the ledger with epic as an input under the same grammar; `epic_segment` deleted; `RunIdentity` carries `epic_id`; grammar tightened; child roots `<task>-a<n>-c<m>` | sanitise the tracker id and read `epic_id` (circular today); mint `<slug>.<n>` to keep the parse valid; attempt-from-carrier with no child format (v1: two roots of one task collide) | the column must be independent of the id; the epic is a path component too; two id forms git refuses pass the regex; the count was the only root-id uniqueness |
 | R9 | Missing `BLOCKERS` records `blockers_checked=false` and proceeds; a per-tracker config flag turns it into a refusal | always refuse | an absent capability is not liveness ambiguity; the flag is recorded on the record either way so the trace shows which policy applied |
 | R10 | In-flight tasks do not survive ledger deletion until S7; checkpoint export is the final slice, after the one export is right | checkpoint inside S1–S2 | a second kind of export in the same epic that redefines the first is how a third circularity is born |
 | R11 | Claims stay ledger-local CAS | git-ref CAS | one ledger per repository (`foreman/config.py:23` refuses linked worktrees); a claim outliving the ledger is one nobody can see |
 | R12 | Clean break with quiesce; no compatibility layer | dual id schemes, dual headers | no live ledger, no committed export exists; in-flight bead-metadata records are the only migration surface |
-| R13 | Superseded run-ledger decisions, stated: **D6** — attention still drains before the driver exits, but through the outbox at driver exit rather than a direct label write per tick; **D9** — task closure is `closed()`, not a stored CLOSED; **D16** — every root is reachable from the ledger's `tasks` row; `tracker_ref` may be NULL under `NullTracker`, so "reachable from the tracker" becomes "reachable from the tracker when one is configured" | leave them implicit | a decision the roadmap undoes without saying so is the next reviewer's blocker |
+| R13 | Superseded run-ledger decisions, stated: **D5** — `wf ledger export` no longer writes "on demand for any task"; it refuses anything but a LANDED task, because the committed file is the anchor a rebuild prefers (§3.6); **D6** — attention still drains before the driver exits, but through the outbox at driver exit rather than a direct label write per tick; **D9** — task closure is `closed()`, not a stored CLOSED; **D16** — every root is reachable from the ledger's `tasks` row; `tracker_ref` may be NULL under `NullTracker`, so "reachable from the tracker" becomes "reachable from the tracker when one is configured" | leave them implicit | a decision the roadmap undoes without saying so is the next reviewer's blocker |
 
 ## 5. Lifecycle of one task
 
@@ -312,10 +333,10 @@ anchor rules, S4 needs S3's minted ids, S6 deletes the seam, S7 last.
 | S1 export integrity | `export_oid`/`exported_at` elided from the exported row; `ContractorRecord.export_oid` **kept** (D5's guard until S2); `wf ledger pin-export`; `landings` in `EXPORT_TABLES` with its own emission branch, `_assert_no_landings` deleted; `.wf/repo-id` header, `wrapper_root` database-only; completeness test over every schema table | export → close → re-export is byte-identical and hashes to the pinned blob; import succeeds in a fresh clone at a different path; a landed task round-trips and D17's fallback reads the restored row; the completeness test fails when any new table is added to neither set; `adapter.close` still refuses without the record oid; closes `cr-p7dg` and `cr-ho9m` |
 | S2 derived closed | `closed()` and `retired()` in `ledger/` per §3.5 (latch on `export_oid`, on-disk hash against the shared `_anchor_oid`); consumers switched: `tick.py:754`, `archive.py:75`, `adapter.close` (`adapter.py:234`), the succession guard (`adapter.py:304`); `ContractorRecord.export_oid` dropped now; CLOSED removed from the producer side, kept read-compatible like LANDING; tracker `Close` on the ref anchor | crash injected between export and pin: succession refused, cleanup defers, archive refuses; a shipped task refuses `--retry`; ledger rebuilt from the committed file in a fresh clone: `wf ledger verify` passes and terminal cleanup proceeds (archive is not clone-portable, D19); a schema-version bump does not reopen a closed task; no producer writes CLOSED |
 | S3 identity | ledger-minted `task_id`, `tracker_ref`/`tracker_kind`, epic as mint input under the same grammar, `RunIdentity.epic_id`, `_ensure_task` refuses without it, `epic_segment` deleted, grammar rejects `..` and `.lock`, attempt from the carrier, child roots `<task>-a<n>-c<m>` with `parent_root_id` | `PROJ-12` mints a task id that yields a valid refname, worktree path, run directory and `WF_*`; `a..b` and `foo.lock` as task or epic are refused by name before any ref is written; a decision root and a replacement root under attempt 1 mint `-a1-c1` and `-a1-c2`, and attempt 2's root is `-a2`; `grep epic_segment` empty |
-| S4 contractor in the ledger | `contractor_records` (exported, own emission branch), `claims` (non-exported), brief snapshot; the five adapter transitions become ledger transactions with a version guard; `_refuse_other_admission` as a ledger query on `closed()`; `wf phase abandon` → ABANDONED, `retired`; `LedgerClaimUnsupported` gone | with `.beads/` deleted after prepare: admit, land, `wf ledger show`, archive succeed; two attempts on one target serialise on the ledger claim; abandon unblocks sibling admission and the abandoned task's worktree is cleaned; a retry admits from the snapshot without a tracker read |
+| S4 contractor in the ledger | `contractor_records` (exported, own emission branch), `claims` (non-exported), brief snapshot; the five adapter transitions become ledger transactions with a version guard; `_refuse_other_admission` as a ledger query on `closed()`; `wf phase abandon` → ABANDONED, `retired`; `LedgerClaimUnsupported` gone | with `.beads/` deleted after the claim: land, `wf ledger show`, archive succeed (admission itself still needs a claim-capable tracker, R3); two attempts on one target serialise on the ledger claim; abandon unblocks sibling admission and the abandoned task's worktree is cleaned; a retry admits from the snapshot without a tracker read |
 | S5 tracker port | `tracker/` package: port, intents, `NullTracker`, `FileTracker`, `BdTracker`, `tracker_outbox` and drain (at driver exit, D6), claim placed per §3.4, PREPARED-plus-claimed detection, external-close detection, reconciler through `SetFlag`; one conformance suite | the same rig lands against null, file and bd; forced `Unknown` on `Close` leaves the landing intact and one pending row; `Unknown` on `Claim` refuses admit; a ledger refusal after the claim releases it; a crash after the claim is released on the next invocation; a bead closed mid-run marks the record ABANDONED_EXTERNAL; zero tracker calls inside any foreman tick and the outbox drained before the driver exits (counting tracker) |
-| S6 cutover | quiesce check (no bead-metadata record at PREPARED/ADMITTED); delete the seam (§3.2); `costs` on the ledger only with a release note; guide 08 and 11 rewritten; ADR 0006 | `grep -rn BackendKind workflow_interpreter/` empty; `bdio/client.py` and `foreman/locator.py` gone; canonical gate green; a full prepare → admit → land → close → commit → reconcile cycle closes the bead exactly once |
-| S7 checkpoint export | `cr-h498`, promoted from follow-up to final slice: an export at every activation close, pinned to a local ref and never committed, so a deleted ledger rebuilds to the last checkpoint and recovery resumes; `closed()` distinguishes a checkpoint anchor from a close anchor | delete `.wf/ledger.db` mid-run, rebuild, recovery resumes the in-flight root from the last activation close without a retry; a task with only checkpoint anchors is never `closed()`; canonical gate green |
+| S6 cutover | quiesce check (no bead-metadata record at PREPARED/ADMITTED), run in the root-creating and admitting commands only — `create`, `contract`, `phase`, `integration`, `children admit` (`ADMITTING_COMMANDS`, `foreman/__main__.py:123`) — so no probe sits on an activation's path; delete the seam (§3.2); `costs` on the ledger only with a release note; guide 08 and 11 rewritten; ADR 0006 | `grep -rn BackendKind workflow_interpreter/` empty; `bdio/client.py` and `foreman/locator.py` gone; canonical gate green; a full prepare → admit → land → close → commit → reconcile cycle closes the bead exactly once |
+| S7 checkpoint export | `cr-h498`, promoted from follow-up to final slice: an export at every activation close **and** at every contractor-record transition and landing-journal write, pinned to a local ref and never committed, so a deleted ledger rebuilds to the last fact the task produced and recovery resumes; `closed()` distinguishes a checkpoint anchor from a close anchor; `wf ledger reconcile` re-derives the `Close` a restored `closed()` says is owed | delete `.wf/ledger.db` mid-run, rebuild, recovery resumes the in-flight root from the last activation close without a retry; a task with only checkpoint anchors is never `closed()`; an abandoned task stays retired across a rebuild and a landing already on the target is not abandonable after one; reconcile after a rebuild closes the mirror exactly once; canonical gate green |
 
 Estimate, in AI execution plus review time: six and a half days across eight slices.
 S0 is half a day, mechanical; S1 and S5 are the largest; S2 is the one that must not
@@ -323,28 +344,34 @@ be rushed; S7 is small once S2's anchor rule exists. How the epic is run — rol
 reports, the two Fable gates, close-out — is `orchestration.md`; live position is
 `state.md`.
 
-## 7. Risks and open questions
+## 7. Risks and open questions — how each was settled
 
-- **R6 is the highest-risk decision.** Everything durable keys off "closed". The
-  evidence that retires it: crash-before-pin stays open to every consumer, a clone
-  rebuild derives closed and latches, and a schema bump reopens nothing — all in S2.
-- **R7 reversed in v2** (ref anchor, not committed): the v1 form refused every sibling
-  stage until the orchestrator committed. If a global "closed only when in history"
-  is ever wanted, it is a second intent after the export commit, not a change to R7.
-- **Two repository identities.** `repo_hash` also names the wrapper home
-  (`foreman/config.py:93-98`). A moved checkout keeps its exports and loses its wrapper
-  home. Settle in S1 whether the wrapper root keys on `repo_id`; recommended yes.
-- **S1 left the wrapper home on the path digest.** The two identities above stayed
-  two: `repo_id` answers whose facts an export holds, and `repo_hash(repo_root)` still
-  names the wrapper home, because the config that derives the wrapper root is loaded
-  before any ledger is opened and therefore before a `repo_id` exists to key on.
-  S6 decides whether re-keying the wrapper home is worth a follow-up bead or whether
-  a moved checkout re-deriving its wrapper home is simply the behaviour.
-- **`projections` in `EXPORT_TABLES`** exists for "whatever label bd last carried".
-  With `NullTracker` there is no label. Left in; own slice if it changes.
-- **Attempt drift is verified in mechanism, not in occurrence** — `rowmap.py` has no
-  child format, so no ledger root today is anything but `<task>-a<n>`. S3 fixes the
-  mechanism regardless.
+- **R6 was the highest-risk decision** and S2 retired it: crash-before-pin stays open to
+  every consumer, a clone rebuild derives closed and latches, and a schema bump reopens
+  nothing.
+- **R7 (ref anchor, not committed)** shipped as decided. If a global "closed only when
+  in history" is ever wanted, it is a second intent after the export commit, not a
+  change to R7.
+- **Two repository identities — settled as two.** `repo_id` answers whose facts an
+  export holds; `sha256(realpath repo_root)` still names the wrapper home
+  (`wrapper_root_for`, `foreman/config.py:31-42`), because the config that derives the
+  wrapper root is loaded before any ledger exists to read a `repo_id` from. A moved
+  checkout keeps its exports and re-derives its wrapper home; that is the behaviour, not
+  a defect.
+- **`projections` stayed in `EXPORT_TABLES`.** It exists for "whatever label the tracker
+  last carried", and under `NullTracker` there is none. Left in; own slice if it changes.
+- **Attempt drift** was fixed in mechanism by S3 (`<task>-a<n>-c<m>` child roots,
+  attempt from the carrier); no root minted before it was ever anything but `<task>-a<n>`.
+- **An ABANDONED mid-run task cannot be archived** — `cleanup_retired` retires the record
+  and cleans the worktree but never settles the root, and archive refuses a root with no
+  terminal, so `refs/wf/<root>/*` are unreclaimable through any verb. Open: `cr-ov7l`.
+- **The checkpoint has a 64 MiB read bound and no write bound**, so a task can anchor
+  bytes it cannot read back, and a bare `import` parses every task's checkpoint before
+  the fence. Open: `cr-kba4`.
+- **A closed task re-verifies under `NullTracker`** — the historical path is taken only
+  when the tracker reports the item CLOSED, and a null tracker reports nothing, so each
+  `wf contract` re-runs the repository gate. Open: `cr-m6am`.
+- **A stale `decide` child is accepted.** Open: `cr-mz2d`.
 - **The numbered invariants in the design brief were the brief's own**, distilled from
   ADR 0005 and the guide; they are not a repo list. Where a decision leans on one, the
   reason column says why in its own words.

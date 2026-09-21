@@ -239,6 +239,7 @@ git.
   commits both together.
 - **`wf ledger export`** writes the same file on demand for any task,
   including refused and abandoned attempts.
+  *Superseded by ADR 0006 / store-restructure R13: export refuses anything but a LANDED task.*
 - **`wf ledger import`** rebuilds from `export/*.jsonl` under the exclusive
   fence. Rows are ordered by `(task_id, seq)`; round trip is byte-identical
   (tested). The attention drain every restored task owes (§3.2) is recorded in
@@ -361,7 +362,7 @@ Measured on three run folders from September rigs: 2.9 GB, over 99 % of it
 | D2 | One database per repository | one file per run or task | writes are tiny and serialised; one DB gives cross-run queries and one schema |
 | D3 | Tables per entity type, whole carrier in `metadata_json` plus indexed projections, per-task `seq` on every row | table per task; hand-mapped columns; "insertion order" (v4) | no dynamic DDL; lossless; a durable order the export can reproduce |
 | D4 | Database at `<repo>/.wf/ledger.db`, gitignored; fence at `<git common dir>/wf/ledger.lock` | fence under the wrapper root (v3–v4) | the common dir is shared by every worktree and wrapper home over one repository, and `git clean` cannot reach it |
-| D5 | One export file per task; written by the bridge before close and by `wf ledger export` on demand | one appended JSONL; export on the candidate branch (v1); orchestrator-only export after close (v4) | a task must never be closable before its record is durable |
+| D5 | One export file per task; written by the bridge before close and by `wf ledger export` on demand *(the on-demand half is superseded by ADR 0006 / store-restructure R13: export refuses anything but a LANDED task)* | one appended JSONL; export on the candidate branch (v1); orchestrator-only export after close (v4) | a task must never be closable before its record is durable |
 | D6 | Attention projection enqueued in every predicate-changing transaction, reconciled under a task-keyed lock, drained before the driver exits | enqueue after commit (v2); gate changes only (v3); root-keyed member lock (v4) | no crash window; settlement changes the OR; two roots of one task cannot race |
 | D7 | bd keeps the `phase-bridge` record (direct, authoritative, plus `root_backend`) and one label; claims stay bd-backed behind the seam until the bd backend is removed | zero bd writes; `bd human` flag (v2); "claims move to the ledger" (v3–v4) | the bridge record is the human-facing state machine and now the backend locator; `bd human dismiss` closes the issue |
 | D8 | Deterministic ids `<task>-a<n>` and `<root>.<node>.r<n>.<seq>` on the ledger backend only; bd roots keep bd-minted ids | deterministic ids on both backends (v4) | `BdClient` has no explicit-id path (`bdio/client.py:404`) and adding one is out of scope |
