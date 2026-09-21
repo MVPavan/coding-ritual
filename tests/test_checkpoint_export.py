@@ -1,6 +1,6 @@
 """A deleted ledger is survivable mid-run (store-restructure §3.9, R10, S7).
 
-Eight properties, one test each — the epic's last slice is small on purpose:
+Nine properties, one test each — the epic's last slice is small on purpose:
 
 1. `.wf/ledger.db` deleted after an activation close, with the task still in
    flight, rebuilds from the CHECKPOINT anchor and the in-flight root comes
@@ -22,7 +22,11 @@ Eight properties, one test each — the epic's last slice is small on purpose:
    it is keyed by goes through the one identifier grammar (finding 3);
 8. a checkpoint write that was REFUSED marks the kept anchor stale in git, a
    rebuild refuses that anchor by name until the operator accepts it, and the
-   next checkpoint that lands clears the marker (cr-kba4).
+   next checkpoint that lands clears the marker (cr-kba4);
+9. a marker left behind over a SUPERSEDED anchor refuses nothing — the marker
+   names the one anchor it condemns, so a crash between pinning a new
+   checkpoint and clearing the marker cannot wedge the task's every later
+   import behind the operator flag (cr-kba4).
 
 Real git throughout: a blob, a ref and a rebuild cannot be faked.
 """
@@ -440,6 +444,49 @@ def test_a_refused_checkpoint_marks_its_anchor_stale_until_a_good_one_lands(
 
     assert git.ref_target(stale_ref(TASK), cwd=repo) is None
     assert git.ref_target(checkpoint_ref(TASK), cwd=repo) != anchored
+    assert rebuild_sources(git, repo, ()) == (staging_path(repo, TASK),)
+
+
+def test_a_marker_left_over_a_superseded_anchor_refuses_nothing(
+    tmp_path: Path,
+) -> None:
+    """The marker condemns ONE anchor, not the task (cr-kba4, fix round 2).
+
+    Pinning a fresh checkpoint and clearing the marker are two ref writes, and
+    a crash between them leaves the marker set over an anchor the checkpoint
+    ref no longer names. Read by PRESENCE, that marker refuses every ordinary
+    import of the task for ever, and the operator can only ever answer it with
+    the accept-stale flag — over an anchor that was never the stale one. Read
+    by TARGET, a superseded marker is evidence about an object no rebuild will
+    read, and the new anchor stands on its own.
+    """
+    repo, wrapper_root, git = _lab(tmp_path)
+
+    class HalfWriteGit(Git):
+        """A seam killed after the new anchor lands, before the marker goes."""
+
+        def delete_ref(self, ref: str, *, cwd: Path) -> None:
+            """Drop every ref but this task's marker, which the crash keeps."""
+            if ref != stale_ref(TASK):
+                super().delete_ref(ref, cwd=cwd)
+
+    crashing = HalfWriteGit(
+        InspectorConfig(
+            repo_root=repo,
+            wrapper_root=wrapper_root,
+            host=HOST,
+            sandbox=SandboxMode.OFF,
+        )
+    )
+    with open_ledger(repo, wrapper_root) as database:
+        _run_one_activation(database, crashing)
+        condemned = git.ref_target(checkpoint_ref(TASK), cwd=repo)
+        # The marker a refused write would have left over that anchor.
+        git.update_ref(stale_ref(TASK), str(condemned), cwd=repo)
+        _run_one_activation(database, crashing)
+
+    assert git.ref_target(stale_ref(TASK), cwd=repo) == condemned
+    assert git.ref_target(checkpoint_ref(TASK), cwd=repo) != condemned
     assert rebuild_sources(git, repo, ()) == (staging_path(repo, TASK),)
 
 
